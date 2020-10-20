@@ -23,6 +23,7 @@
   "dependencies": {
     "@nomiclabs/buidler-ethers": "^2.0.2",
     "@nomiclabs/buidler-waffle": "^2.1.0",
-    "@openzeppelin/contracts": "^3.2.0"
+    "@openzeppelin/contracts": "^3.2.0",
+    "merkle-patricia-tree": "^4.0.0"
   }
 }

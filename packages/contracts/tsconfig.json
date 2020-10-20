@@ -6,7 +6,7 @@
     "esModuleInterop": true,
     "outDir": "dist"
   },
-  "include": ["./scripts", "./test"],
+  "include": ["./scripts", "./test", "./types"],
   "files": [
     "./buidler.config.ts",
     "./node_modules/@nomiclabs/buidler-ethers/src/type-extensions.d.ts",

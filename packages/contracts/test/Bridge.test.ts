@@ -2,41 +2,7 @@ import { expect } from 'chai'
 import { ethers } from '@nomiclabs/buidler'
 import { BigNumber, ContractFactory, Signer, Contract } from 'ethers'
 import MerkleTree from '../lib/MerkleTree'
-
-type WithdrawalProps = {
-  amount: BigNumber,
-  nonce: number,
-  sender: string
-}
-
-class Withdrawal {
-  amount: BigNumber
-  nonce: number
-  sender: string
-
-  constructor(props: WithdrawalProps) {
-    this.amount = props.amount
-    this.nonce = props.nonce
-    this.sender = props.sender
-  }
-
-  getWithdrawalHash(): Buffer {
-    const data = ethers.utils.defaultAbiCoder.encode(
-      [
-        'uint256',
-        'uint256',
-        'address'
-      ],
-      [
-        this.amount,
-        this.nonce,
-        this.sender
-      ]
-    )
-    const hash = ethers.utils.keccak256(data)
-    return Buffer.from(hash.slice(2), 'hex')
-  }
-}
+import Withdrawal from '../lib/Withdrawal'
 
 const USER_INITIAL_BALANCE = BigNumber.from('1000000')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
@@ -52,7 +18,6 @@ describe("Bridge", () => {
 
   let poolToken: Contract
   let bridge: Contract
-  let tree: MerkleTree
 
   before(async () => {
     accounts = await ethers.getSigners()
@@ -117,37 +82,20 @@ describe("Bridge", () => {
   })
 
   it('Should complete a mint', async () => {
-    const initialPoolTokenBalance = await poolToken.balanceOf(await user.getAddress())
-    const initialBridgeTokenBalance = await bridge.balanceOf(await user.getAddress())
+    const initialPoolTokenBalance: BigNumber = await poolToken.balanceOf(await user.getAddress())
+    const initialBridgeTokenBalance: BigNumber = await bridge.balanceOf(await user.getAddress())
     console.log('initialPoolTokenBalance: ', initialPoolTokenBalance.toString())
     console.log('initialBridgeTokenBalance: ', initialBridgeTokenBalance.toString())
 
     await poolToken.connect(user).approve(bridge.address, '999999999999999999')
     await bridge.connect(user).mint(AMOUNT)
 
-    const poolTokenBalance = await poolToken.balanceOf(await user.getAddress())
-    const bridgeTokenBalance = await bridge.balanceOf(await user.getAddress())
+    const poolTokenBalance: BigNumber = await poolToken.balanceOf(await user.getAddress())
+    const bridgeTokenBalance: BigNumber = await bridge.balanceOf(await user.getAddress())
+
     console.log('poolTokenBalance: ', poolTokenBalance.toString())
     console.log('bridgeTokenBalance: ', bridgeTokenBalance.toString())
-  })
-
-  describe('Withdrawal', () => {
-    describe('getWithdrawalHash()', () => {
-      it('should match onchain hash calculation', async () => {
-        const onchainHashHex = await bridge.getWithdrawalHash(
-          withdrawals[0].amount,
-          withdrawals[0].nonce,
-          withdrawals[0].sender
-        )
-        const onchainHash = Buffer.from(
-          onchainHashHex.slice(2),
-          'hex'
-        )
-
-        const offchainHash = withdrawals[0].getWithdrawalHash()
-
-        expect(Buffer.compare(onchainHash, offchainHash)).to.eq(0)
-      })
-    })
+    expect(initialPoolTokenBalance.sub(poolTokenBalance).toString()).to.eq(AMOUNT)
+    expect(bridgeTokenBalance.sub(initialBridgeTokenBalance).toString()).to.eq(AMOUNT)
   })
 })

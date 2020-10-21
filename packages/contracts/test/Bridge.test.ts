@@ -80,22 +80,4 @@ describe("Bridge", () => {
 
     expect(amountWithdrawn.toString()).to.eq(withdrawals[0].amount.toString())
   })
-
-  it('Should complete a mint', async () => {
-    const initialPoolTokenBalance: BigNumber = await poolToken.balanceOf(await user.getAddress())
-    const initialBridgeTokenBalance: BigNumber = await bridge.balanceOf(await user.getAddress())
-    console.log('initialPoolTokenBalance: ', initialPoolTokenBalance.toString())
-    console.log('initialBridgeTokenBalance: ', initialBridgeTokenBalance.toString())
-
-    await poolToken.connect(user).approve(bridge.address, '999999999999999999')
-    await bridge.connect(user).mint(AMOUNT)
-
-    const poolTokenBalance: BigNumber = await poolToken.balanceOf(await user.getAddress())
-    const bridgeTokenBalance: BigNumber = await bridge.balanceOf(await user.getAddress())
-
-    console.log('poolTokenBalance: ', poolTokenBalance.toString())
-    console.log('bridgeTokenBalance: ', bridgeTokenBalance.toString())
-    expect(initialPoolTokenBalance.sub(poolTokenBalance).toString()).to.eq(AMOUNT)
-    expect(bridgeTokenBalance.sub(initialBridgeTokenBalance).toString()).to.eq(AMOUNT)
-  })
 })

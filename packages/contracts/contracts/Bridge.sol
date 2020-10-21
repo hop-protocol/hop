@@ -46,15 +46,6 @@ contract Bridge is ERC20 {
         ));
     }
 
-    function mint(uint256 _amount) public {
-        poolToken.transferFrom(msg.sender, address(this), _amount.mul(price()));
-        _mint(msg.sender, _amount);
-    }
-
-    function burn(uint256 _amount) public {
-        // ToDo: Implement
-    }
-
     function price() public view returns(uint256) {
         return 1;
     }

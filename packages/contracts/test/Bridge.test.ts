@@ -68,7 +68,7 @@ describe("Bridge", () => {
     // Complete withdrawal
     const userInitialBalance: BigNumber = await bridge.balanceOf(user.getAddress())
 
-    await bridge.connect(user).bridgeWithdraw(
+    await bridge.connect(user).withdraw(
       withdrawals[0].amount,
       withdrawals[0].nonce,
       tree.getRoot(),

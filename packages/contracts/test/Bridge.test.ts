@@ -80,4 +80,22 @@ describe("Bridge", () => {
 
     expect(amountWithdrawn.toString()).to.eq(withdrawals[0].amount.toString())
   })
+
+  it('Should commit deposits', async () => {
+    // Get some bridge token for user
+    const withdrawalHashes = withdrawals.map( withdrawal => withdrawal.getWithdrawalHash() )
+    const tree = new MerkleTree(withdrawalHashes)
+    await bridge.setWithdrawalRoot(tree.getRoot())
+    await bridge.connect(user).withdraw(
+      withdrawals[0].amount,
+      withdrawals[0].nonce,
+      tree.getRoot(),
+      tree.getProof(withdrawalHashes[0])
+    )
+
+    await bridge.connect(user).deposit(5, 4, await user.getAddress())
+
+    expect(bridge.commitDeposits())
+      .to.emit(bridge, 'DepositsCommitted(bytes32, uint256)')
+  })
 })

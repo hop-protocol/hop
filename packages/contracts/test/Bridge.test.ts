@@ -12,12 +12,17 @@ describe("Bridge", () => {
   let accounts: Signer[]
   let user: Signer
   let liquidityProvider: Signer
+  let withdrawals: Withdrawal[]
+
+  // Factories
   let Bridge: ContractFactory
   let MockERC20: ContractFactory
-  let withdrawals: Withdrawal[]
+  let CrossDomainMessenger: ContractFactory
 
   let poolToken: Contract
   let bridge: Contract
+  let l1CrossDomainMessenger: Contract
+  let l2CrossDomainMessenger: Contract
 
   before(async () => {
     accounts = await ethers.getSigners()
@@ -25,6 +30,7 @@ describe("Bridge", () => {
     liquidityProvider = accounts[1]
     Bridge = await ethers.getContractFactory('Bridge')
     MockERC20 = await ethers.getContractFactory('MockERC20')
+    CrossDomainMessenger = await ethers.getContractFactory('mockOVM_CrossDomainMessenger')
     withdrawals = [
       new Withdrawal({
         amount: BigNumber.from('12345'),
@@ -43,6 +49,11 @@ describe("Bridge", () => {
     // Deploy contracts
     poolToken = await MockERC20.deploy()
     bridge = await Bridge.deploy(poolToken.address)
+
+    l1CrossDomainMessenger = await CrossDomainMessenger.deploy(0)
+    l2CrossDomainMessenger = await CrossDomainMessenger.deploy(0)
+    await l1CrossDomainMessenger.setTargetMessengerAddress(l2CrossDomainMessenger.address)
+    await l2CrossDomainMessenger.setTargetMessengerAddress(l1CrossDomainMessenger.address)
 
     // Distribute poolToken
     await poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
@@ -97,5 +108,39 @@ describe("Bridge", () => {
 
     expect(bridge.commitDeposits())
       .to.emit(bridge, 'DepositsCommitted(bytes32, uint256)')
+  })
+
+  it('Should send cross-chain message', async () => {
+    // Set withdrawalHash
+    const withdrawalHashes = withdrawals.map( withdrawal => withdrawal.getWithdrawalHash() )
+    const tree = new MerkleTree(withdrawalHashes)
+
+    const setWithdrawalRootData = bridge.interface.encodeFunctionData('setWithdrawalRoot', [tree.getRoot()])
+
+    expect(await l2CrossDomainMessenger.hasNextMessage()).to.eq(false)
+    await l1CrossDomainMessenger.sendMessage(
+      bridge.address,
+      setWithdrawalRootData,
+      200000
+    )
+    expect(await l2CrossDomainMessenger.hasNextMessage()).to.eq(true)
+
+    await l2CrossDomainMessenger.relayNextMessage()
+    expect(await l2CrossDomainMessenger.hasNextMessage()).to.eq(false)
+
+    // Complete withdrawal
+    const userInitialBalance: BigNumber = await bridge.balanceOf(user.getAddress())
+
+    await bridge.connect(user).withdraw(
+      withdrawals[0].amount,
+      withdrawals[0].nonce,
+      tree.getRoot(),
+      tree.getProof(withdrawalHashes[0])
+    )
+
+    const userBalance: BigNumber = await bridge.balanceOf(user.getAddress())
+    const amountWithdrawn = userBalance.sub(userInitialBalance)
+
+    expect(amountWithdrawn.toString()).to.eq(withdrawals[0].amount.toString())
   })
 })

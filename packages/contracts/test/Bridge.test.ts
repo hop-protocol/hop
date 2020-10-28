@@ -143,4 +143,5 @@ describe("Bridge", () => {
 
     expect(amountWithdrawn.toString()).to.eq(withdrawals[0].amount.toString())
   })
+
 })

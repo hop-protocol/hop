@@ -1,5 +1,6 @@
 import { expect } from 'chai'
-import { ethers } from '@nomiclabs/buidler'
+import '@nomiclabs/hardhat-waffle'
+import { ethers } from 'hardhat'
 import { BigNumber, ContractFactory, Signer, Contract } from 'ethers'
 import MerkleTree from '../lib/MerkleTree'
 import Withdrawal from '../lib/Withdrawal'
@@ -28,9 +29,9 @@ describe("Bridge", () => {
     accounts = await ethers.getSigners()
     user = accounts[0]
     liquidityProvider = accounts[1]
-    Bridge = await ethers.getContractFactory('Bridge')
-    MockERC20 = await ethers.getContractFactory('MockERC20')
-    CrossDomainMessenger = await ethers.getContractFactory('mockOVM_CrossDomainMessenger')
+    Bridge = await ethers.getContractFactory('contracts/Bridge.sol:Bridge')
+    MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
+    CrossDomainMessenger = await ethers.getContractFactory('contracts/test/mockOVM_CrossDomainMessenger.sol:mockOVM_CrossDomainMessenger')
     withdrawals = [
       new Withdrawal({
         amount: BigNumber.from('12345'),

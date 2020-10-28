@@ -7,23 +7,25 @@
   "license": "ISC",
   "main": "lib/contracts.js",
   "scripts": {
-    "test": "buidler test"
+    "test": "hardhat test"
   },
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.4.8",
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-waffle": "^2.0.0",
     "@types/chai": "^4.2.14",
     "@types/mocha": "^8.0.3",
     "@types/node": "^14.11.10",
     "chai": "^4.2.0",
     "ethereum-waffle": "^3.1.1",
     "ethers": "^5.0.17",
+    "hardhat": "^2.0.2",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.3"
   },
   "dependencies": {
-    "@nomiclabs/buidler-ethers": "^2.0.2",
-    "@nomiclabs/buidler-waffle": "^2.1.0",
     "@openzeppelin/contracts": "^3.2.0",
+    "@uniswap/v2-core": "^1.0.1",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0",
     "merkle-patricia-tree": "^4.0.0"
   }
 }

@@ -1,23 +1,23 @@
 import * as ethers from 'ethers'
 
-export type WithdrawalProps = {
+export type TransferProps = {
   amount: ethers.BigNumber,
   nonce: number,
   sender: string
 }
 
-export default class Withdrawal {
+export default class Transfer {
   amount: ethers.BigNumber
   nonce: number
   sender: string
 
-  constructor(props: WithdrawalProps) {
+  constructor(props: TransferProps) {
     this.amount = props.amount
     this.nonce = props.nonce
     this.sender = props.sender
   }
 
-  getWithdrawalHash(): Buffer {
+  getTransferHash(): Buffer {
     const data = ethers.utils.defaultAbiCoder.encode(
       [
         'uint256',

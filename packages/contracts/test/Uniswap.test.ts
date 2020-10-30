@@ -19,7 +19,6 @@ describe("Uniswap", () => {
   let uniswap: Contract
   let weth: Contract
   let token: Contract
-  
 
   before(async () => {
     accounts = await ethers.getSigners()
@@ -36,10 +35,9 @@ describe("Uniswap", () => {
     weth = await MockERC20.deploy('WETH', 'WETH')
     token = await MockERC20.deploy('DAI', 'DAI')
 
-    factory = await UniswapFactory.deploy(0)
+    factory = await UniswapFactory.deploy(await user.getAddress())
 
     router = await UniswapRouter.deploy(factory.address, weth.address)
-    // uniswap = await UniswapPair.deploy()
   })
 
   it('Should complete a swap', async () => {

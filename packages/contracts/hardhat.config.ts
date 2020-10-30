@@ -5,6 +5,11 @@ import "@nomiclabs/hardhat-waffle"
 // defaultNetwork, networks, solc, and paths.
 // Go to https://buidler.dev/config/ to learn more
 export default {
+  networks: {
+    hardhat: {
+      allowUnlimitedContractSize: true
+    }
+  },
   solidity: {
     compilers: [
       {

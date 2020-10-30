@@ -24,7 +24,8 @@ describe("Uniswap", () => {
     accounts = await ethers.getSigners()
     user = accounts[0]
 
-    UniswapRouter = await ethers.getContractFactory('@uniswap/v2-periphery/contracts/UniswapV2Router02.sol:UniswapV2Router02')
+    // UniswapRouter = await ethers.getContractFactory('@uniswap/v2-periphery/contracts/UniswapV2Router02.sol:UniswapV2Router02')
+    UniswapRouter = await ethers.getContractFactory('contracts/uniswap/UniswapV2Router02.sol:UniswapV2Router02')
     UniswapFactory = await ethers.getContractFactory('@uniswap/v2-core/contracts/UniswapV2Factory.sol:UniswapV2Factory')
     UniswapPair = await ethers.getContractFactory('@uniswap/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair')
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')

@@ -54,12 +54,13 @@ describe("Full story", () => {
   })
 
   beforeEach(async () => {
-    // Deploy contracts
+    // Deploy  L1 contracts
     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
     l1_messenger = await CrossDomainMessenger.deploy(0)
     l1_bridge = await L1_Bridge.deploy(l1_messenger.address, l1_poolToken.address)
     l1_ovmBridge = await L1_OVMTokenBridge.deploy(l1_messenger.address, l1_poolToken.address)
 
+     // Deploy  L2 contracts
     l2_messenger = await CrossDomainMessenger.deploy(0)
     l2_bridge = await L2_Bridge.deploy(l2_messenger.address)
     l2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_messenger.address)
@@ -153,7 +154,7 @@ describe("Full story", () => {
     const transfer = new Transfer({
       amount: BigNumber.from('99'),
       nonce: 0,
-      sender: await user.getAddress(),
+      sender: await user.getAddress()
     })
 
     // User moves funds back to L1 across the liquidity bridge

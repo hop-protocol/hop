@@ -4,6 +4,8 @@ import { ethers } from 'hardhat'
 import { BigNumber, BigNumberish, ContractFactory, Signer, Contract } from 'ethers'
 import MerkleTree from '../lib/MerkleTree'
 import Transfer from '../lib/Transfer'
+import { getL2BridgeId, getL2ChainData } from './utils'
+import { L2_NAME } from './constants'
 
 const USER_INITIAL_BALANCE = BigNumber.from('100')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
@@ -63,6 +65,10 @@ describe("Full story", () => {
     l2_messenger = await CrossDomainMessenger.deploy(0)
     l2_bridge = await L2_Bridge.deploy(l2_messenger.address)
     l2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_messenger.address)
+
+    // Initialize bridge
+    const arbitrumBridgeData = await getL2ChainData(L2_NAME.ARBITRUM)
+    await l1_bridge.setArbitrumBridgeData(arbitrumBridgeData)
 
     // Uniswap
     l2_uniswapFactory = await UniswapFactory.deploy(await user.getAddress())

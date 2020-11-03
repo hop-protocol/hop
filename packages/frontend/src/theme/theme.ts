@@ -1,6 +1,6 @@
 import { CSSProperties } from 'react'
 import createBreakpoints from '@material-ui/core/styles/createBreakpoints'
-import { createMuiTheme, ThemeOptions } from '@material-ui/core/styles'
+import { createMuiTheme } from '@material-ui/core/styles'
 import { TypographyOptions } from '@material-ui/core/styles/createTypography'
 
 import { SkeletonClassKey } from '@material-ui/lab/Skeleton'
@@ -42,6 +42,9 @@ export const palette = {
   secondary: {
     main: '#092056',
     contrastText: '#2D2D2D'
+  },
+  paper: {
+    main: '#F0F0F3'
   },
   orange: {
     main: '#ff4c2e',
@@ -87,24 +90,23 @@ const typography: TypographyOptions = {
     fontWeight: 400
   },
   h4: {
-    fontSize: '4.1rem',
-    fontWeight: 400
+    fontSize: '2.8rem',
+    fontWeight: 700
   },
   h5: {
     fontSize: '2.4rem',
-    fontWeight: 400
+    fontWeight: 700
   },
   h6: {
     fontSize: '2.0rem',
     fontWeight: 700
   },
   subtitle1: {
-    fontSize: '1.4rem',
-    fontWeight: 500,
-    opacity: '80%'
+    fontSize: '1.8rem',
+    fontWeight: 700
   },
   subtitle2: {
-    fontSize: '1.4rem',
+    fontSize: '1.6rem',
     fontWeight: 700
   },
   body1: {
@@ -140,7 +142,14 @@ const theme = createMuiTheme({
     MuiCard: {
       root: {
         padding: '2.8rem',
-        borderRadius: '3.0rem'
+        borderRadius: '3.0rem',
+        backgroundColor: palette.paper.main,
+        boxShadow: `
+          -8px -8px 30px rgba(255, 255, 255, 0.95),
+          8px 8px 30px rgba(174, 174, 192, 0.35),
+          inset -8px -8px 12px rgba(255, 255, 255, 0.15),
+          inset 8px 8px 8px rgba(174, 174, 192, 0.04);
+        `
       }
     }
   }

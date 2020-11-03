@@ -4,8 +4,8 @@ import { ethers } from 'hardhat'
 import { BigNumber, BigNumberish, ContractFactory, Signer, Contract } from 'ethers'
 import MerkleTree from '../lib/MerkleTree'
 import Transfer from '../lib/Transfer'
-import { getL2BridgeId, getL2ChainData } from './utils'
-import { L2_NAME } from './constants'
+import { getL2BridgeId } from './utils'
+import { L2_CHAIN_DATA } from './constants'
 
 const USER_INITIAL_BALANCE = BigNumber.from('100')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
@@ -59,7 +59,7 @@ describe("Full story", () => {
     // Deploy contracts
     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
     l1_messenger = await CrossDomainMessenger.deploy(0)
-    l1_bridge = await L1_Bridge.deploy(l1_messenger.address, l1_poolToken.address)
+    l1_bridge = await L1_Bridge.deploy(l1_poolToken.address)
     l1_ovmBridge = await L1_OVMTokenBridge.deploy(l1_messenger.address, l1_poolToken.address)
 
     l2_messenger = await CrossDomainMessenger.deploy(0)
@@ -67,8 +67,9 @@ describe("Full story", () => {
     l2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_messenger.address)
 
     // Initialize bridge
-    const arbitrumBridgeData = await getL2ChainData(L2_NAME.ARBITRUM)
-    await l1_bridge.setArbitrumBridgeData(arbitrumBridgeData)
+    let arbitrumBridgeData = L2_CHAIN_DATA.ARBITRUM
+    arbitrumBridgeData.defaultValues.l2BridgeAddress = l2_bridge.address
+    await l1_bridge.setArbitrumBridgeData(arbitrumBridgeData.defaultValues)
 
     // Uniswap
     l2_uniswapFactory = await UniswapFactory.deploy(await user.getAddress())
@@ -84,7 +85,9 @@ describe("Full story", () => {
     l2_ovmBridge.setCrossDomainBridgeAddress(l1_ovmBridge.address)
 
     // Set up liquidity bridge
-    await l1_bridge.setL2Bridge(l2_bridge.address)
+    const bridgeId = getL2BridgeId('arbitrum')
+    await l1_bridge.setMessenger(bridgeId, arbitrumBridgeData.messenger)
+    await l1_bridge.setL2Bridge(bridgeId, l2_bridge.address)
     await l2_bridge.setL1Bridge(l1_bridge.address)
 
     // Distribute poolToken

@@ -39,7 +39,7 @@ describe('Transfer', () => {
   beforeEach(async () => {
     // Deploy contracts
     poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
-    bridge = await L1_Bridge.deploy('0x0000000000000000000000000000000000000001', poolToken.address)
+    bridge = await L1_Bridge.deploy(poolToken.address)
   })
 
   describe('getTransferHash()', () => {

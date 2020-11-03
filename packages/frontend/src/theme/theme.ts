@@ -1,6 +1,6 @@
 import { CSSProperties } from 'react'
 import createBreakpoints from '@material-ui/core/styles/createBreakpoints'
-import { createMuiTheme } from '@material-ui/core/styles'
+import { createMuiTheme, ThemeOptions } from '@material-ui/core/styles'
 import { TypographyOptions } from '@material-ui/core/styles/createTypography'
 
 import { SkeletonClassKey } from '@material-ui/lab/Skeleton'
@@ -131,16 +131,19 @@ const padding = {
 
 const breakpoints = createBreakpoints({})
 
-const overrides = {
-
-}
-
 const theme = createMuiTheme({
   palette,
   padding,
   typography,
   breakpoints,
-  overrides
+  overrides: {
+    MuiCard: {
+      root: {
+        padding: '2.8rem',
+        borderRadius: '3.0rem'
+      }
+    }
+  }
 })
 
 export default theme

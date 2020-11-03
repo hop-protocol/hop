@@ -1,6 +1,7 @@
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
-import "./test/mockOVM_CrossDomainMessenger.sol";
+import "../test/mockOVM_CrossDomainMessenger.sol";
 
 contract Optimism {
 
@@ -11,16 +12,16 @@ contract Optimism {
 
     OptimismBridgeData public optimismBridgeData;
 
-    function setOptimismBridgeData (OptimismBridgeData _newData) public {
+    function setOptimismBridgeData (OptimismBridgeData memory _newData) public {
         optimismBridgeData = _newData;
     }
 
     function _sendToOptimism(address _chainMessenger, bytes memory mintCalldata) internal {
-        mockOVM_CrossDomainMessenger optimismMessenger = _chainMessenger;
+        mockOVM_CrossDomainMessenger optimismMessenger = mockOVM_CrossDomainMessenger(_chainMessenger);
         optimismMessenger.sendMessage(
             optimismBridgeData.l2BridgeAddress,
             mintCalldata,
-            optimismBridgeData.gasLimit
+            uint32(optimismBridgeData.defaultGasLimit)
         );
     }
 }

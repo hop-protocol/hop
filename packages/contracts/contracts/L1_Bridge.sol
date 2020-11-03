@@ -1,11 +1,12 @@
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./Bridge.sol";
 
+import "./Bridge.sol";
 import "./implementations/Arbitrum.sol";
 import "./implementations/Optimism.sol";
 
@@ -39,9 +40,10 @@ contract L1_Bridge is Bridge, Arbitrum, Optimism {
     }
 
     function sendToL2(bytes32 _bridgeId, address _recipient, uint256 _amount) public {
-        address chainMessenger = messenger[_bridgeId]
+        address chainMessenger = messenger[_bridgeId];
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
 
+        // TODO: Make these hashes either constants or a mapping
         if (_bridgeId == keccak256("arbitrum")) {
             _sendToArbitrum(chainMessenger, mintCalldata);
         } else if (_bridgeId == keccak256("optimism")) {

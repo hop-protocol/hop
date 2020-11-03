@@ -2,7 +2,7 @@
   "name": "contracts",
   "version": "0.0.0",
   "description": "> TODO: description",
-  "author": "cwhinfrey <cwhinfrey@gmail.com>",
+  "author": "Authereum Labs, Inc.",
   "homepage": "",
   "license": "ISC",
   "main": "lib/contracts.js",

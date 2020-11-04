@@ -5,39 +5,59 @@ import "../interfaces/IGlobalInbox.sol";
 
 contract Arbitrum {
 
-    struct ArbitrumBridgeData {
-        address arbChain;
-        address l2BridgeAddress;
-        uint256 defaultGasLimit;
-        uint256 defaultGasPrice;
-        uint256 defaultCallValue;
-        byte    defaultSubMessageType;
+    address public arbChain;
+    address public l2BridgeAddress;
+    uint256 public defaultGasLimit;
+    uint256 public defaultGasPrice;
+    uint256 public defaultCallValue;
+    byte  public defaultSubMessageType;
+    IGlobalInbox public l1BridgeAddress;
+
+    function setL1BridgeAddress(IGlobalInbox _l1BridgeAddress) public {
+        l1BridgeAddress = _l1BridgeAddress;
     }
 
-    ArbitrumBridgeData public arbitrumBridgeData;
-
-    function setArbitrumBridgeData (ArbitrumBridgeData memory _newData) public {
-        arbitrumBridgeData = _newData;
+    function setArbChain(address _arbChain) public {
+        arbChain = _arbChain;
     }
 
-    function _sendToArbitrum(address _chainMessenger, bytes memory mintCalldata) internal {
-        IGlobalInbox messenger = IGlobalInbox(_chainMessenger);
+    function setL2BridgeAddress(address _l2BridgeAddress) public {
+        l2BridgeAddress = _l2BridgeAddress;
+    }
+
+    function setDefaultGasLimit(uint256 _defaultGasLimit) public {
+        defaultGasLimit = _defaultGasLimit;
+    }
+
+    function setDefaultGasPrice(uint256 _defaultGasPrice) public {
+        defaultGasPrice = _defaultGasPrice;
+    }
+
+    function setDefaultCallValue(uint256 _defaultCallValue) public {
+        defaultCallValue = _defaultCallValue;
+    }
+
+    function setDefaultSubMessageType(byte _defaultSubMessageType) public {
+        defaultSubMessageType = _defaultSubMessageType;
+    }
+
+    function sendToL2(bytes memory _calldata) public {
         bytes memory subMessageWithoutData = abi.encode(
-            arbitrumBridgeData.defaultGasLimit,
-            arbitrumBridgeData.defaultGasPrice,
-            uint256(arbitrumBridgeData.l2BridgeAddress),
-            arbitrumBridgeData.defaultCallValue
+            defaultGasLimit,
+            defaultGasPrice,
+            uint256(l2BridgeAddress),
+            defaultCallValue
         );
         bytes memory subMessage = abi.encodePacked(
             subMessageWithoutData,
-            mintCalldata
+            _calldata
         );
         bytes memory prefixedSubMessage = abi.encodePacked(
-            arbitrumBridgeData.defaultSubMessageType,
+            defaultSubMessageType,
             subMessage
         );
-        messenger.sendL2Message(
-            arbitrumBridgeData.arbChain,
+        l1BridgeAddress.sendL2Message(
+            arbChain,
             prefixedSubMessage
         );
     }

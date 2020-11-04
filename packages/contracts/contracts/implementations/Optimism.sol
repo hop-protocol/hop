@@ -5,23 +5,27 @@ import "../test/mockOVM_CrossDomainMessenger.sol";
 
 contract Optimism {
 
-    struct OptimismBridgeData {
-        address l2BridgeAddress;
-        uint256 defaultGasLimit;
+    mockOVM_CrossDomainMessenger public l1BridgeAddress;
+    address public l2BridgeAddress;
+    uint256 public defaultGasLimit;
+
+    function setL1BridgeAddress(mockOVM_CrossDomainMessenger _l1BridgeAddress) public {
+        l1BridgeAddress = _l1BridgeAddress;
     }
 
-    OptimismBridgeData public optimismBridgeData;
-
-    function setOptimismBridgeData (OptimismBridgeData memory _newData) public {
-        optimismBridgeData = _newData;
+    function setL2BridgeAddress(address _l2BridgeAddress) public {
+        l2BridgeAddress = _l2BridgeAddress;
     }
 
-    function _sendToOptimism(address _chainMessenger, bytes memory mintCalldata) internal {
-        mockOVM_CrossDomainMessenger optimismMessenger = mockOVM_CrossDomainMessenger(_chainMessenger);
-        optimismMessenger.sendMessage(
-            optimismBridgeData.l2BridgeAddress,
-            mintCalldata,
-            uint32(optimismBridgeData.defaultGasLimit)
+    function setDefaultGasLimit(uint256 _defaultGasLimit) public {
+        defaultGasLimit = _defaultGasLimit;
+    }
+
+    function sendToL2(bytes memory _calldata) public {
+        l1BridgeAddress.sendMessage(
+            l2BridgeAddress,
+            _calldata,
+            uint32(defaultGasLimit)
         );
     }
 }

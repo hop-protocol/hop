@@ -7,18 +7,15 @@ import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 import "./Bridge.sol";
-import "./implementations/Arbitrum.sol";
-import "./implementations/Optimism.sol";
 
 import "./libraries/MerkleUtils.sol";
 
-contract L1_Bridge is Bridge, Arbitrum, Optimism {
+contract L1_Bridge is Bridge {
     using MerkleProof for bytes32[];
     using SafeERC20 for IERC20;
 
     IERC20 token;
 
-    mapping(bytes32 => address) messenger;
     mapping(bytes32 => address) l2Bridge;
     mapping(bytes32 => bool) transferRoots;
 
@@ -31,25 +28,19 @@ contract L1_Bridge is Bridge, Arbitrum, Optimism {
         token = _token;
     }
 
-    function setMessenger(bytes32 _bridgeId, address _messenger) public {
-        messenger[_bridgeId] = _messenger;
-    }
-
     function setL2Bridge(bytes32 _bridgeId, address _l2Bridge) public {
         l2Bridge[_bridgeId] = _l2Bridge;
     }
 
+    function getBridgeId(string calldata _bridgeLabel) public pure returns (bytes32) {
+        return keccak256(abi.encode(_bridgeLabel));
+    }
+
     function sendToL2(bytes32 _bridgeId, address _recipient, uint256 _amount) public {
-        address chainMessenger = messenger[_bridgeId];
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
+        bytes memory sendMessageCalldata = abi.encodeWithSignature("sendMessage(address,bytes memory)", mintCalldata);
 
-        // TODO: Make these hashes either constants or a mapping
-        if (_bridgeId == keccak256("arbitrum")) {
-            _sendToArbitrum(chainMessenger, mintCalldata);
-        } else if (_bridgeId == keccak256("optimism")) {
-            _sendToOptimism(chainMessenger, mintCalldata);
-        }
-
+        l2Bridge[_bridgeId].call(sendMessageCalldata);
         token.safeTransferFrom(msg.sender, address(this), _amount);
     }
 

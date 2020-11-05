@@ -1,4 +1,4 @@
-pragma solidity 0.6.12;
+pragma solidity 0.5.11;
 pragma experimental ABIEncoderV2;
 
 import "../interfaces/IGlobalInbox.sol";

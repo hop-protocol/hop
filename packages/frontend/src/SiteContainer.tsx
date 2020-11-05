@@ -2,11 +2,14 @@ import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import ThemeProvider from './theme/ThemeProvider'
 import AppRoutes from './AppRoutes'
+import Header from './components/Header'
 
 const useStyles = makeStyles(() => ({
   root: {
-    padding: '4.2rem',
     backgroundColor: '#F0F0F3'
+  },
+  content: {
+    padding: '4.2rem'
   }
 }))
 
@@ -16,7 +19,10 @@ const SiteContainer: FC<{}> = () => {
   return (
     <div className={styles.root}>
       <ThemeProvider>
-        <AppRoutes />
+        <Header />
+        <div className={styles.content}>
+          <AppRoutes />
+        </div>
       </ThemeProvider>
     </div>
   )

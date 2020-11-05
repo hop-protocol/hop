@@ -16,6 +16,7 @@ contract L1_Bridge is Bridge {
 
     IERC20 token;
 
+    mapping(bytes32 => address) l1Bridge;
     mapping(bytes32 => address) l2Bridge;
     mapping(bytes32 => bool) transferRoots;
 
@@ -26,6 +27,10 @@ contract L1_Bridge is Bridge {
 
     constructor (IERC20 _token) public {
         token = _token;
+    }
+
+    function setL1Bridge(bytes32 _bridgeId, address _l1Bridge) public {
+        l1Bridge[_bridgeId] = _l1Bridge;
     }
 
     function setL2Bridge(bytes32 _bridgeId, address _l2Bridge) public {

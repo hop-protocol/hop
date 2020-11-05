@@ -58,7 +58,7 @@ export const palette = {
     active: '#00BD7B',
     hover: '#28C894',
     selected: '#00BD7B',
-    disabled: '#00BD7B'
+    disabled: '#46525C'
   },
   divider: 'rgba(163, 163, 164, 0.3)'
 }
@@ -151,6 +151,15 @@ const theme = createMuiTheme({
           inset 8px 8px 8px rgba(174, 174, 192, 0.04);
         `
       }
+    },
+    MuiButton: {
+      root: {
+        margin: 'inherit',
+        // color: 'inherit'
+      },
+      // disabled: {
+      //   color: '#46525C'
+      // }
     }
   }
 })

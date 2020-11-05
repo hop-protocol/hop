@@ -15,6 +15,14 @@ const useStyles = makeStyles(() => ({
     `,
     borderRadius: '3.0rem',
     padding: '0.8rem 1.8rem'
+  },
+  disabled: {
+    color: '#46525C',
+    background: 'none',
+    boxShadow: `
+      -10px -10px 30px rgba(255, 255, 255, 0.95),
+      10px 10px 30px rgba(174, 174, 192, 0.35)
+    `,
   }
 }))
 
@@ -23,7 +31,7 @@ const LargeButton: FC<ButtonProps> = (props) => {
   const styles = useStyles()
 
   return (
-    <Button {...props} className={`${styles.root} ${className}`}>
+    <Button {...props} className={`${styles.root} ${className}`} classes={{ disabled: styles.disabled}}>
       { children }
     </Button>
   )

@@ -60,6 +60,14 @@ const Components: FC = () => {
           >
             LargeButton
           </LargeButton>
+          <br />
+          <LargeButton
+            className={styles.largeButton}
+            startIcon={<SendIcon />}
+            disabled
+          >
+            LargeButton Disabled
+          </LargeButton>
         </Section>
         <Section title="Typography">
           <Typography variant="h1">

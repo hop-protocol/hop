@@ -35,32 +35,26 @@ declare module '@material-ui/core/styles/createMuiTheme' {
 
 export const palette = {
   primary: {
-    main: '#FFFFFF',
-    dark: 'rgba(255,255,255,0.6)',
-    contrastText: '#2D2D2D'
-  },
-  secondary: {
-    main: '#092056',
-    contrastText: '#2D2D2D'
-  },
-  paper: {
-    main: '#F0F0F3'
-  },
-  orange: {
-    main: '#ff4c2e',
-    contrastText: '#FFFFFF'
+    light: '#55CCF2',
+    main: '#00ACE2',
+    dark: '#1AA7D3',
+    contrastText: 'white'
   },
   background: {
-    default: '#0F1343',
-    paper: '#F6F7FB'
+    default: '#F0F0F3',
+    paper: '#F0F0F3'
   },
   action: {
-    active: '#00BD7B',
-    hover: '#28C894',
-    selected: '#00BD7B',
-    disabled: '#46525C'
+    active: '#00ACE2',
+    hover: '#55CCF2',
+    selected: '#00ACE2',
+    disabled: 'rgba(5, 21, 36, 0.2)'
   },
-  divider: 'rgba(163, 163, 164, 0.3)'
+  text: {
+    primary: '#051524',
+    secondary: '#46525C',
+    disabled: 'rgba(5, 21, 36, 0.2)'
+  }
 }
 
 const typography: TypographyOptions = {
@@ -143,7 +137,7 @@ const theme = createMuiTheme({
       root: {
         padding: '2.8rem',
         borderRadius: '3.0rem',
-        backgroundColor: palette.paper.main,
+        // backgroundColor: palette.paper.main,
         boxShadow: `
           -8px -8px 30px rgba(255, 255, 255, 0.95),
           8px 8px 30px rgba(174, 174, 192, 0.35),

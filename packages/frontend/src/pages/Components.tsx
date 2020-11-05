@@ -5,6 +5,8 @@ import Card from '@material-ui/core/Card'
 import Typography from '@material-ui/core/Typography'
 import LargeButton from '../components/buttons/LargeButton'
 import SendIcon from '@material-ui/icons/Send'
+import RaisedSelect from '../components/selects/RaisedSelect'
+import MenuItem from '@material-ui/core/MenuItem'
 
 const useStyles = makeStyles(() => ({
   container: {
@@ -53,6 +55,7 @@ const Components: FC = () => {
             This is a card. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
           </Typography>
         </Section>
+
         <Section title="Buttons">
           <LargeButton
             className={styles.largeButton}
@@ -69,6 +72,18 @@ const Components: FC = () => {
             LargeButton Disabled
           </LargeButton>
         </Section>
+
+        <Section title="Selects">
+          <RaisedSelect value="ETH">
+            <MenuItem value="ETH">
+              ETH
+            </MenuItem>
+            <MenuItem value="DAI">
+              DAI
+            </MenuItem>
+          </RaisedSelect>
+        </Section>
+
         <Section title="Typography">
           <Typography variant="h1">
             h1. Lorem ipsum

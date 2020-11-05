@@ -137,7 +137,6 @@ const theme = createMuiTheme({
       root: {
         padding: '2.8rem',
         borderRadius: '3.0rem',
-        // backgroundColor: palette.paper.main,
         boxShadow: `
           -8px -8px 30px rgba(255, 255, 255, 0.95),
           8px 8px 30px rgba(174, 174, 192, 0.35),
@@ -149,11 +148,7 @@ const theme = createMuiTheme({
     MuiButton: {
       root: {
         margin: 'inherit',
-        // color: 'inherit'
-      },
-      // disabled: {
-      //   color: '#46525C'
-      // }
+      }
     }
   }
 })

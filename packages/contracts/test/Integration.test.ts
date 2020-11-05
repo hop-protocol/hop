@@ -49,7 +49,7 @@ describe("Full story", () => {
     liquidityProvider = accounts[1]
     L1_Bridge = await ethers.getContractFactory('contracts/L1_Bridge.sol:L1_Bridge')
     L2_Bridge = await ethers.getContractFactory('contracts/L2_Bridge.sol:L2_Bridge')
-    MockERC20 = await ethers.getContractFactory('contracts/test/mockOVM_CrossDomainMessenger.sol:mockOVM_CrossDomainMessenger')
+    MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
     L1_BridgeWrapper = await ethers.getContractFactory('contracts/wrappers/Arbitrum.sol:Arbitrum')
     globalInbox = await ethers.getContractFactory('contracts/test/arbitrum/inbox/GlobalInbox.sol:GlobalInbox')
     L1_OVMTokenBridge = await ethers.getContractFactory('contracts/test/L1_OVMTokenBridge.sol:L1_OVMTokenBridge')
@@ -62,12 +62,12 @@ describe("Full story", () => {
   beforeEach(async () => {
     // Deploy contracts
     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
-    l1_messenger = await globalInbox.deploy(0)
+    l1_messenger = await globalInbox.deploy()
     l1_bridge = await L1_Bridge.deploy(l1_poolToken.address)
     l1_bridgeWrapper = await L1_BridgeWrapper.deploy()
     l1_ovmBridge = await L1_OVMTokenBridge.deploy(l1_messenger.address, l1_poolToken.address)
 
-    l2_messenger = await globalInbox.deploy(0)
+    l2_messenger = await globalInbox.deploy()
     l2_bridge = await L2_Bridge.deploy(l2_messenger.address)
     l2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_messenger.address)
 

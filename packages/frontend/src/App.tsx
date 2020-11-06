@@ -1,11 +1,24 @@
 import React from 'react'
 import './App.css'
-import SiteContainer from './SiteContainer'
+import { makeStyles } from '@material-ui/core/styles'
+import AppRoutes from './AppRoutes'
+import Header from './components/Header'
+
+const useStyles = makeStyles(() => ({
+  content: {
+    padding: '4.2rem'
+  }
+}))
 
 function App() {
+  const styles = useStyles()
+
   return (
     <div className="App">
-      <SiteContainer />
+      <Header />
+      <div className={styles.content}>
+        <AppRoutes />
+      </div>
     </div>
   );
 }

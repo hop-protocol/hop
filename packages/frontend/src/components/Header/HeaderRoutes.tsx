@@ -10,6 +10,7 @@ const HeaderRoutes: FC<Props> = () => {
   const history = useHistory()
 
   const handleChange = (event: ChangeEvent<{}>, value: string) => {
+    event.preventDefault()
     history.push(value)
   }
 

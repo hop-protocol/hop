@@ -1,8 +1,8 @@
 import React, { FC } from 'react'
 import {
-  BrowserRouter as Router,
   Switch,
-  Route
+  Route,
+  Redirect
 } from 'react-router-dom'
 import Components from './pages/Components'
 import Send from './pages/Send'
@@ -12,19 +12,23 @@ type Props = {}
 const COMPONENT_NAME: FC<Props> = () => {
 
   return (
-    <Router>
-      <Switch>
-        <Route path="/" exact>
-          Home
-        </Route>
-        <Route path="/components">
-          <Components />
-        </Route>
-        <Route path="/send">
-          <Send />
-        </Route>
-      </Switch>
-    </Router>
+    <Switch>
+      <Route path="/send">
+        <Send />
+      </Route>
+      <Route path="/pool">
+        Pools coming soon
+      </Route>
+      <Route path="/stake">
+        Staking coming soon
+      </Route>
+
+      <Route path="/components">
+        <Components />
+      </Route>
+
+      <Redirect to="/send" />
+    </Switch>
   )
 }
 

@@ -22,6 +22,7 @@ describe("Full story", () => {
   let L1_Bridge: ContractFactory
   let L2_Bridge: ContractFactory
   let MockERC20: ContractFactory
+  let CrossDomainMessenger: ContractFactory
   let L1_BridgeWrapper: ContractFactory
   let L1_OVMTokenBridge: ContractFactory
   let L2_OVMTokenBridge: ContractFactory
@@ -52,6 +53,7 @@ describe("Full story", () => {
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
     L1_BridgeWrapper = await ethers.getContractFactory('contracts/wrappers/Arbitrum.sol:Arbitrum')
     globalInbox = await ethers.getContractFactory('contracts/test/arbitrum/inbox/GlobalInbox.sol:GlobalInbox')
+    CrossDomainMessenger = await ethers.getContractFactory('contracts/test/mockOVM_CrossDomainMessenger.sol:mockOVM_CrossDomainMessenger')
     L1_OVMTokenBridge = await ethers.getContractFactory('contracts/test/L1_OVMTokenBridge.sol:L1_OVMTokenBridge')
     L2_OVMTokenBridge = await ethers.getContractFactory('contracts/test/L2_OVMTokenBridge.sol:L2_OVMTokenBridge')
     // UniswapRouter = await ethers.getContractFactory('@uniswap/v2-periphery/contracts/UniswapV2Router02.sol:UniswapV2Router02')
@@ -67,7 +69,7 @@ describe("Full story", () => {
     l1_bridgeWrapper = await L1_BridgeWrapper.deploy()
     l1_ovmBridge = await L1_OVMTokenBridge.deploy(l1_messenger.address, l1_poolToken.address)
 
-    l2_messenger = await globalInbox.deploy()
+    l2_messenger = await CrossDomainMessenger.deploy(0)
     l2_bridge = await L2_Bridge.deploy(l2_messenger.address)
     l2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_messenger.address)
 
@@ -101,9 +103,9 @@ describe("Full story", () => {
 
     // liquidityProvider moves funds across the canonical bridge
     console.log('000')
-    await l1_poolToken.connect(liquidityProvider).approve(l1_ovmBridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l1_poolToken.connect(liquidityProvider).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
     console.log('111')
-    await l1_ovmBridge.connect(liquidityProvider).xDomainTransfer(await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l1_bridge.connect(liquidityProvider).sendToL2(bridgeId, await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
     console.log('222')
     await l2_messenger.relayNextMessage()
     console.log('333')

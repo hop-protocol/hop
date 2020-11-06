@@ -149,6 +149,22 @@ const theme = createMuiTheme({
       root: {
         margin: 'inherit',
       }
+    },
+    MuiTabs: {
+      indicator: {
+        display: 'none'
+      }
+    },
+    MuiTab: {
+      root: {
+        '&.MuiTab-root': {
+          color: palette.text.secondary,
+          minWidth: 0
+        },
+        '&$selected': {
+          color: palette.primary.main
+        }
+      }
     }
   }
 })

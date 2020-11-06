@@ -36,9 +36,6 @@ const useStyles = makeStyles((theme) => ({
     top: 'calc(50% - 0.75rem)',
     right: '0.8rem',
     color: theme.palette.text.secondary
-  },
-  underline: {
-    display: 'hidden'
   }
 }))
 

@@ -2,6 +2,7 @@ import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
+import HeaderRoutes from './HeaderRoutes'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -21,9 +22,7 @@ const Header: FC = () => {
         </Typography>
       </Box>
       <Box display="flex" flexDirection="row" flex={1} justifyContent="center">
-        <Typography variant="h6" color="textSecondary">
-          Send Pool Stake
-        </Typography>
+        <HeaderRoutes />
       </Box>
       <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-end">
         <Typography variant="h6" color="textSecondary">

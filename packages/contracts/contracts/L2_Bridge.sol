@@ -65,4 +65,38 @@ contract L2_Bridge is ERC20, Bridge {
     function mint(address _recipient, uint256 _amount) public {
         _mint(_recipient, _amount);
     }
+
+    function mintAndAttemptSwap(address _recipient, uint256 _amount) public {
+        _mint(address(this), _amount);
+
+        // TODO: Some or all of these should be global variables
+        address exchangeAddress = 0x; // TODO
+
+        address oDaiAddress = 0x; // TODO
+        address sfDaiAddress = 0x; // TODO
+        address[] path = [oDaiAddress, sfDaiAddress]; // TODO
+
+        uint256 amountOut = exchangeAddress.getAmountsOut(_amount, path);
+        uint256 slippageMaxNumerator = 99;
+        uint256 slippageMaxDenominator = 100;
+        uint256 amountOutMin = amountOut * slippageMaxNumerator / slippageMaxDenominator;
+
+        uint256 deadlineBuffer = 3600;
+        uint256 deadline = block.timestamp + deadlineBuffer;
+
+        bytes memory swapCalldata = abi.encodeWithSignature(
+            "swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)",
+            _amount,
+            amountOutMin,
+            path,
+            _recipient,
+            deadline
+            )
+        );
+
+        (, bool success) = exchangeAddress.call(swapCallData);
+        if (!success) {
+            mint(_recipient, _amount);
+        }
+    }
 }

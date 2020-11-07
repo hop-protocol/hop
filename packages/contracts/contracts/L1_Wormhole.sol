@@ -6,18 +6,17 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import "./Bridge.sol";
+import "./Wormhole.sol";
 
 import "./libraries/MerkleUtils.sol";
 
-contract L1_Bridge is Bridge {
+contract L1_Wormhole is Wormhole {
     using MerkleProof for bytes32[];
     using SafeERC20 for IERC20;
 
     IERC20 token;
 
-    mapping(bytes32 => address) l1Bridge;
-    mapping(bytes32 => address) l2Bridge;
+    mapping(bytes32 => address) l1Messenger;
     mapping(bytes32 => bool) transferRoots;
 
     event DepositsCommitted (
@@ -29,23 +28,19 @@ contract L1_Bridge is Bridge {
         token = _token;
     }
 
-    function setL1Bridge(bytes32 _bridgeId, address _l1Bridge) public {
-        l1Bridge[_bridgeId] = _l1Bridge;
+    function setL1Messenger(bytes32 _messengerId, address _l1Messenger) public {
+        l1Messenger[_messengerId] = _l1Messenger;
     }
 
-    function setL2Bridge(bytes32 _bridgeId, address _l2Bridge) public {
-        l2Bridge[_bridgeId] = _l2Bridge;
+    function getMessengerId(string calldata _messengerLabel) public pure returns (bytes32) {
+        return keccak256(abi.encode(_messengerLabel));
     }
 
-    function getBridgeId(string calldata _bridgeLabel) public pure returns (bytes32) {
-        return keccak256(abi.encode(_bridgeLabel));
-    }
-
-    function sendToL2(bytes32 _bridgeId, address _recipient, uint256 _amount) public {
+    function sendToL2(bytes32 _messengerId, address _recipient, uint256 _amount) public {
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
-        bytes memory sendMessageCalldata = abi.encodeWithSignature("sendMessage(address,bytes memory)", mintCalldata);
+        bytes memory sendMessageCalldata = abi.encodeWithSignature("sendToL2(bytes)", mintCalldata);
 
-        l2Bridge[_bridgeId].call(sendMessageCalldata);
+        l1Messenger[_messengerId].call(sendMessageCalldata);
         token.safeTransferFrom(msg.sender, address(this), _amount);
     }
 

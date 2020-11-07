@@ -55,14 +55,24 @@ contract L1_Bridge is Bridge {
         transferRoots[_newTransferRoot] = true;
     }
 
-    function withdraw(uint256 _amount, uint256 _transferNonce, bytes32 _transferRoot, bytes32[] memory _proof) public {
+    function withdraw(
+        uint256 _amount,
+        uint256 _transferNonce,
+        uint256 _relayerFee,
+        bytes32 _transferRoot,
+        bytes32[] memory _proof
+    )
+        public
+    {
         bytes32 transferHash = getTransferHash(
             _amount,
             _transferNonce,
-            msg.sender
+            msg.sender,
+            _relayerFee
         );
         require(_proof.verify(_transferRoot, transferHash), "BDG: Invalid transfer proof");
 
         token.safeTransfer(msg.sender, _amount);
+        msg.sender.transfer(_relayerFee); // TODO: msg.sender shouldn't get both the tokens and the relayer fee
     }
 }

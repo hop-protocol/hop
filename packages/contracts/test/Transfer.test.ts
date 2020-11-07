@@ -3,6 +3,8 @@ import '@nomiclabs/hardhat-waffle'
 import { ethers } from 'hardhat'
 import { BigNumber, ContractFactory, Signer, Contract } from 'ethers'
 
+const RELAYER_FEE = BigNumber.from('1000000000000000000')
+
 import Transfer from '../lib/Transfer'
 
 describe('Transfer', () => {
@@ -27,11 +29,13 @@ describe('Transfer', () => {
         amount: BigNumber.from('12345'),
         nonce: 0,
         sender: await user.getAddress(),
+        relayerFee: RELAYER_FEE
       }),
       new Transfer({
         amount: BigNumber.from('12345'),
         nonce: 0,
         sender: await liquidityProvider.getAddress(),
+        relayerFee: RELAYER_FEE
       })
     ]
   })
@@ -47,7 +51,8 @@ describe('Transfer', () => {
       const onchainHashHex = await bridge.getTransferHash(
         transfers[0].amount,
         transfers[0].nonce,
-        transfers[0].sender
+        transfers[0].sender,
+        transfers[0].relayerFee
       )
       const onchainHash = Buffer.from(
         onchainHashHex.slice(2),

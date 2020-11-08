@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+      "module": "commonjs",
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "target": "es2016",
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "noImplicitAny": false,
+      "noUnusedLocals": true,
+      "moduleResolution": "node",
+      "sourceMap": false,
+      "outDir": "dist",
+      "baseUrl": ".",
+      "paths": {
+        "src/*": [ "./src/*" ],
+        "scripts/*": [ "./scripts/*" ],
+        "*": [ "node_modules/*" ]
+      },
+      "typeRoots": [
+        "./node_modules/@types",
+        "./@types"
+      ],
+      "lib": ["es2016", "esnext.asynciterable"]
+    },
+    "include": [
+      "src/*",
+      "scripts/*"
+    ]
+  }
+  

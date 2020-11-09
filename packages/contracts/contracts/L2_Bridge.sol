@@ -12,9 +12,13 @@ contract L2_Bridge is ERC20, Bridge {
     using MerkleProof for bytes32[];
 
     mockOVM_CrossDomainMessenger messenger;
-    address l1Bridge;
-    bytes32[] pendingTransfers;
-    uint256 pendingAmount;
+    address   public l1Bridge;
+    bytes32[] public pendingTransfers;
+    uint256   public pendingAmount;
+    uint256   public swapDeadlineBuffer;
+    address   public exchangeAddress;
+    address   public oDaiAddress;
+    address[] public exchangePath;
 
     event TransfersCommitted (
         bytes32 root,
@@ -22,12 +26,19 @@ contract L2_Bridge is ERC20, Bridge {
     );
 
     constructor (
-        mockOVM_CrossDomainMessenger _messenger
+        mockOVM_CrossDomainMessenger _messenger,
+        uint256 _swapDeadlineBuffer,
+        address _exchangeAddress,
+        address _oDaiAddress
     )
         public
         ERC20("DAI Liquidity Pool Token", "LDAI")
     {
         messenger = _messenger;
+        swapDeadlineBuffer = _swapDeadlineBuffer;
+        exchangeAddress = _exchangeAddress;
+        oDaiAddress = _oDaiAddress;
+        exchangePath = [oDaiAddress, address(this)];
     }
 
     function setL1Bridge(address _l1Bridge) public {
@@ -66,37 +77,22 @@ contract L2_Bridge is ERC20, Bridge {
         _mint(_recipient, _amount);
     }
 
-    function mintAndAttemptSwap(address _recipient, uint256 _amount) public {
+    function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin) public {
         _mint(address(this), _amount);
 
-        // TODO: Some or all of these should be global variables
-        address exchangeAddress = 0x; // TODO
-
-        address oDaiAddress = 0x; // TODO
-        address sfDaiAddress = 0x; // TODO
-        address[] path = [oDaiAddress, sfDaiAddress]; // TODO
-
-        uint256 amountOut = exchangeAddress.getAmountsOut(_amount, path);
-        uint256 slippageMaxNumerator = 99;
-        uint256 slippageMaxDenominator = 100;
-        uint256 amountOutMin = amountOut * slippageMaxNumerator / slippageMaxDenominator;
-
-        uint256 deadlineBuffer = 3600;
-        uint256 deadline = block.timestamp + deadlineBuffer;
-
+        uint256 swapDeadline = block.timestamp + swapDeadlineBuffer;
         bytes memory swapCalldata = abi.encodeWithSignature(
             "swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)",
             _amount,
-            amountOutMin,
-            path,
+            _amountOutMin,
+            exchangePath,
             _recipient,
-            deadline
-            )
+            swapDeadline
         );
 
-        (, bool success) = exchangeAddress.call(swapCallData);
+        (bool success,) = exchangeAddress.call(swapCalldata);
         if (!success) {
-            mint(_recipient, _amount);
+            transfer(_recipient, _amount);
         }
     }
 }

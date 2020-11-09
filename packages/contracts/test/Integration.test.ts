@@ -8,6 +8,7 @@ import Transfer from '../lib/Transfer'
 const USER_INITIAL_BALANCE = BigNumber.from('100')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
 const AMOUNT = BigNumber.from('123')
+const SWAP_DEADLINE_BUFFER = BigNumber.from('3600')
 
 describe("Full story", () => {
   let accounts: Signer[]
@@ -54,6 +55,11 @@ describe("Full story", () => {
   })
 
   beforeEach(async () => {
+    // Uniswap
+    l2_uniswapFactory = await UniswapFactory.deploy(await user.getAddress())
+    const weth = await MockERC20.deploy('WETH', 'WETH')
+    l2_uniswapRouter = await UniswapRouter.deploy(l2_uniswapFactory.address, weth.address)//'0x0000000000000000000000000000000000000000')
+
     // Deploy  L1 contracts
     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
     l1_messenger = await CrossDomainMessenger.deploy(0)
@@ -62,13 +68,8 @@ describe("Full story", () => {
 
      // Deploy  L2 contracts
     l2_messenger = await CrossDomainMessenger.deploy(0)
-    l2_bridge = await L2_Bridge.deploy(l2_messenger.address)
     l2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_messenger.address)
-
-    // Uniswap
-    l2_uniswapFactory = await UniswapFactory.deploy(await user.getAddress())
-    const weth = await MockERC20.deploy('WETH', 'WETH')
-    l2_uniswapRouter = await UniswapRouter.deploy(l2_uniswapFactory.address, weth.address)//'0x0000000000000000000000000000000000000000')
+    l2_bridge = await L2_Bridge.deploy(l2_messenger.address, SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, l2_ovmBridge.address)
 
     // Set up Cross Domain Messengers
     await l1_messenger.setTargetMessengerAddress(l2_messenger.address)

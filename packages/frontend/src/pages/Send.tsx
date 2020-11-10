@@ -7,7 +7,7 @@ import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import SendIcon from '@material-ui/icons/Send'
 import RaisedSelect from '../components/selects/RaisedSelect'
 import AmountSelectorCard from '../components/AmountSelectorCard'
-import LargeButton from '../components/buttons/LargeButton'
+import Button from '../components/buttons/Button'
 
 const useStyles = makeStyles(() => ({
   sendSelect: {
@@ -19,8 +19,7 @@ const useStyles = makeStyles(() => ({
   downArrow: {
     margin: '1.8rem',
     height: '2.4rem',
-    width: '2.4rem',
-    zIndex: 1
+    width: '2.4rem'
   },
   detailRow: {
     marginTop: '4.2rem',
@@ -70,12 +69,14 @@ const Send: FC = () => {
           0.98253
         </Typography>
       </Box>
-      <LargeButton
+      <Button
         className={styles.sendButton}
         startIcon={<SendIcon />}
+        large
+        highlighted
       >
         Send
-      </LargeButton>
+      </Button>
     </Box>
   )
 }

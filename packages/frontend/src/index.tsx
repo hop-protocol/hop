@@ -5,12 +5,15 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import ThemeProvider from './theme/ThemeProvider'
+import Web3Context from './contexts/Web3Context'
 
 ReactDOM.render(
   <React.StrictMode>
     <ThemeProvider>
       <Router>
-        <App />
+        <Web3Context>
+          <App />
+        </Web3Context>
       </Router>
     </ThemeProvider>
   </React.StrictMode>,

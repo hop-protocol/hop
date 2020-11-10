@@ -93,9 +93,6 @@ contract L1_Bridge is Bridge {
         require(_proof.verify(_transferRoot, transferHash), "BDG: Invalid transfer proof");
 
         token.safeTransfer(_recipient, _amount);
-        msg.sender.transfer(_relayerFee);
+        token.safeTransfer(msg.sender, _relayerFee);
     }
-
-    // TODO: How else should we have user's deposit funds for fee
-    receive () external payable {}
 }

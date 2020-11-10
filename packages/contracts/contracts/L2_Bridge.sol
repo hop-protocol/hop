@@ -55,7 +55,7 @@ contract L2_Bridge is ERC20, Bridge {
     {
         _burn(msg.sender, _amount);
 
-        bytes32 transferHash = getTransferHash(_amount, _transferNonce, _recipient, _relayerFee);
+        bytes32 transferHash = getTransferHash(_recipient, _amount, _transferNonce, _relayerFee);
         pendingTransfers.push(transferHash);
         pendingAmount = pendingAmount.add(_amount);
     }

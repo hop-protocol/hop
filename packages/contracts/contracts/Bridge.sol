@@ -8,9 +8,9 @@ import "./libraries/MerkleUtils.sol";
 
 contract Bridge {
     function getTransferHash(
+        address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
-        address _recipient,
         uint256 _relayerFee
     )
         public
@@ -18,9 +18,9 @@ contract Bridge {
         returns (bytes32)
     {
         return keccak256(abi.encode(
+            _recipient,
             _amount,
             _transferNonce,
-            _recipient,
             _relayerFee
         ));
     }

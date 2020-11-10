@@ -75,6 +75,7 @@ contract L1_Bridge is Bridge {
     }
 
     function withdraw(
+        address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
         uint256 _relayerFee,
@@ -84,14 +85,17 @@ contract L1_Bridge is Bridge {
         public
     {
         bytes32 transferHash = getTransferHash(
+            _recipient,
             _amount,
             _transferNonce,
-            msg.sender,
             _relayerFee
         );
         require(_proof.verify(_transferRoot, transferHash), "BDG: Invalid transfer proof");
 
-        token.safeTransfer(msg.sender, _amount);
-        msg.sender.transfer(_relayerFee); // TODO: msg.sender shouldn't get both the tokens and the relayer fee
+        token.safeTransfer(_recipient, _amount);
+        msg.sender.transfer(_relayerFee);
     }
+
+    // TODO: How else should we have user's deposit funds for fee
+    receive () external payable {}
 }

@@ -4,17 +4,20 @@ export type TransferProps = {
   amount: ethers.BigNumber,
   nonce: number,
   sender: string
+  relayerFee: ethers.BigNumber
 }
 
 export default class Transfer {
   amount: ethers.BigNumber
   nonce: number
   sender: string
+  relayerFee: ethers.BigNumber
 
   constructor(props: TransferProps) {
     this.amount = props.amount
     this.nonce = props.nonce
     this.sender = props.sender
+    this.relayerFee = props.relayerFee
   }
 
   getTransferHash(): Buffer {
@@ -22,12 +25,14 @@ export default class Transfer {
       [
         'uint256',
         'uint256',
-        'address'
+        'address',
+        'uint256'
       ],
       [
         this.amount,
         this.nonce,
-        this.sender
+        this.sender,
+        this.relayerFee
       ]
     )
     const hash = ethers.utils.keccak256(data)

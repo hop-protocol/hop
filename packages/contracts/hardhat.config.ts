@@ -7,7 +7,10 @@ import "@nomiclabs/hardhat-waffle"
 export default {
   networks: {
     hardhat: {
-      allowUnlimitedContractSize: true
+      allowUnlimitedContractSize: true,
+      accounts: {
+        mnemonic: "bridge bridge bridge bridge bridge bridge bridge bridge bridge bridge bridge bridge"
+      }
     }
   },
   solidity: {

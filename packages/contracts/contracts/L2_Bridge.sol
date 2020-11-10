@@ -45,10 +45,17 @@ contract L2_Bridge is ERC20, Bridge {
         l1Bridge = _l1Bridge;
     }
 
-    function sendToMainnet(address _recipient, uint256 _amount, uint256 _transferNonce) public {
+    function sendToMainnet(
+        address _recipient,
+        uint256 _amount,
+        uint256 _transferNonce,
+        uint256 _relayerFee
+    )
+        public
+    {
         _burn(msg.sender, _amount);
 
-        bytes32 transferHash = getTransferHash(_amount, _transferNonce, _recipient);
+        bytes32 transferHash = getTransferHash(_amount, _transferNonce, _recipient, _relayerFee);
         pendingTransfers.push(transferHash);
         pendingAmount = pendingAmount.add(_amount);
     }

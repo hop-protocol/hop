@@ -41,11 +41,30 @@ contract L1_Bridge is Bridge {
     function sendToL2(address _recipient, uint256 _amount) public {
         token.safeTransferFrom(msg.sender, address(this), _amount);
 
-        bytes memory setMintMessage = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
+        bytes memory message = abi.encodeWithSignature(
+            "mint(address,uint256)",
+            _recipient,
+            _amount
+        );
+        _sendMessage(message);
+    }
 
+    function sendToL2AndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin) public {
+        token.safeTransferFrom(msg.sender, address(this), _amount);
+
+        bytes memory message = abi.encodeWithSignature(
+            "mintAndAttemptSwap(address,uint256,uint256)",
+            _recipient,
+            _amount,
+            _amountOutMin
+        );
+        _sendMessage(message);
+    }
+
+    function _sendMessage(bytes memory _message) internal {
         messenger.sendMessage(
             l2Bridge,
-            setMintMessage,
+            _message,
             200000
         );
     }

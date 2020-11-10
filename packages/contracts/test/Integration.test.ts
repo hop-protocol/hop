@@ -176,6 +176,57 @@ describe("Full story", () => {
     await expectBalanceOf(l1_poolToken, user, '99')
   })
 
+  it('Should mint and swap for the canonical token', async () => {
+    // Mint the user additional tokens for the user
+    await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
+
+    // liquidityProvider moves funds across the canonical bridge
+    await l1_poolToken.connect(liquidityProvider).approve(l1_ovmBridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l1_ovmBridge.connect(liquidityProvider).xDomainTransfer(await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l2_messenger.relayNextMessage()
+    await expectBalanceOf(l2_ovmBridge, liquidityProvider, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+
+    // liquidityProvider moves funds across the liquidity bridge
+    await l1_poolToken.connect(liquidityProvider).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l1_bridge.connect(liquidityProvider).sendToL2(await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l2_messenger.relayNextMessage()
+    await expectBalanceOf(l2_bridge, liquidityProvider, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+
+    // liquidityProvider adds liquidity to the pool on L2
+    await l2_ovmBridge.connect(liquidityProvider).approve(l2_uniswapRouter.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l2_bridge.connect(liquidityProvider).approve(l2_uniswapRouter.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l2_uniswapRouter.connect(liquidityProvider).addLiquidity(
+      l2_ovmBridge.address,
+      l2_bridge.address,
+      LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2),
+      LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2),
+      '0',
+      '0',
+      await liquidityProvider.getAddress(),
+      '999999999999'
+    )
+    await expectBalanceOf(l2_ovmBridge, liquidityProvider, '0')
+    await expectBalanceOf(l2_bridge, liquidityProvider, '0')
+
+    const uniswapPairAddress: string = await l2_uniswapFactory.getPair(l2_ovmBridge.address, l2_bridge.address)
+    const uniswapPair = await ethers.getContractAt('@uniswap/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', uniswapPairAddress)
+    await expectBalanceOf(uniswapPair, liquidityProvider, '499000')
+    await expectBalanceOf(l2_ovmBridge, uniswapPair, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await expectBalanceOf(l2_bridge, uniswapPair, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+
+    /**
+     * User moves funds from L1 to L2 on the canonical bridge and back to L1 on the liquidity bridge
+     */
+
+    await l2_bridge.approveExchangeTransfer()
+    await l1_poolToken.connect(user).approve(l1_bridge.address, USER_INITIAL_BALANCE)
+    await l1_bridge.connect(user).sendToL2AndAttemptSwap(await user.getAddress(), USER_INITIAL_BALANCE, 0)
+    await l2_messenger.relayNextMessage()
+
+    const expectedUserBalanceAfterSwap = USER_INITIAL_BALANCE.sub('1')
+    await expectBalanceOf(l2_ovmBridge, user, expectedUserBalanceAfterSwap)
+  })
+
   const expectBalanceOf = async (token: Contract, account: Signer | Contract, expectedBalance: BigNumberish) => {
     const accountAddress = account instanceof Signer ? await account.getAddress() : account.address
     const balance = await token.balanceOf(accountAddress)

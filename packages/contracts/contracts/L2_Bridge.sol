@@ -38,7 +38,7 @@ contract L2_Bridge is ERC20, Bridge {
         swapDeadlineBuffer = _swapDeadlineBuffer;
         exchangeAddress = _exchangeAddress;
         oDaiAddress = _oDaiAddress;
-        exchangePath = [oDaiAddress, address(this)];
+        exchangePath = [address(this), oDaiAddress];
     }
 
     function setL1Bridge(address _l1Bridge) public {
@@ -82,7 +82,7 @@ contract L2_Bridge is ERC20, Bridge {
 
         uint256 swapDeadline = block.timestamp + swapDeadlineBuffer;
         bytes memory swapCalldata = abi.encodeWithSignature(
-            "swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)",
+            "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",
             _amount,
             _amountOutMin,
             exchangePath,
@@ -94,5 +94,9 @@ contract L2_Bridge is ERC20, Bridge {
         if (!success) {
             transfer(_recipient, _amount);
         }
+    }
+
+    function approveExchangeTransfer() public {
+        _approve(address(this), exchangeAddress, uint256(-1));
     }
 }

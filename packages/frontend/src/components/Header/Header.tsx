@@ -16,8 +16,6 @@ const useStyles = makeStyles(() => ({
 const Header: FC = () => {
   const styles = useStyles()
   const {
-    onboard,
-    provider,
     address,
     requestWallet
   } = useWeb3Context()

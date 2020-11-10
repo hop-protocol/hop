@@ -41,11 +41,30 @@ contract L1_Bridge is Bridge {
     function sendToL2(address _recipient, uint256 _amount) public {
         token.safeTransferFrom(msg.sender, address(this), _amount);
 
-        bytes memory setMintMessage = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
+        bytes memory message = abi.encodeWithSignature(
+            "mint(address,uint256)",
+            _recipient,
+            _amount
+        );
+        _sendMessage(message);
+    }
 
+    function sendToL2AndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin) public {
+        token.safeTransferFrom(msg.sender, address(this), _amount);
+
+        bytes memory message = abi.encodeWithSignature(
+            "mintAndAttemptSwap(address,uint256,uint256)",
+            _recipient,
+            _amount,
+            _amountOutMin
+        );
+        _sendMessage(message);
+    }
+
+    function _sendMessage(bytes memory _message) internal {
         messenger.sendMessage(
             l2Bridge,
-            setMintMessage,
+            _message,
             200000
         );
     }
@@ -55,14 +74,28 @@ contract L1_Bridge is Bridge {
         transferRoots[_newTransferRoot] = true;
     }
 
-    function withdraw(uint256 _amount, uint256 _transferNonce, bytes32 _transferRoot, bytes32[] memory _proof) public {
+    function withdraw(
+        address _recipient,
+        uint256 _amount,
+        uint256 _transferNonce,
+        uint256 _relayerFee,
+        bytes32 _transferRoot,
+        bytes32[] memory _proof
+    )
+        public
+    {
         bytes32 transferHash = getTransferHash(
+            _recipient,
             _amount,
             _transferNonce,
-            msg.sender
+            _relayerFee
         );
         require(_proof.verify(_transferRoot, transferHash), "BDG: Invalid transfer proof");
 
-        token.safeTransfer(msg.sender, _amount);
+        token.safeTransfer(_recipient, _amount);
+        msg.sender.transfer(_relayerFee);
     }
+
+    // TODO: How else should we have user's deposit funds for fee
+    receive () external payable {}
 }

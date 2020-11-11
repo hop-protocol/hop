@@ -38,7 +38,7 @@ const Demo: FC<Props> = () => {
       >
         Step 1
       </Button>
-      {/* <Button
+      <Button
         className={styles.stepButton}
         onClick={() => {
           console.log('step 2')
@@ -57,7 +57,7 @@ const Demo: FC<Props> = () => {
         highlighted
       >
         Step 3
-      </Button> */}
+      </Button>
     </Box>
   )
 }

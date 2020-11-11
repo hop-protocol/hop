@@ -6,6 +6,7 @@ import {
 } from 'react-router-dom'
 import Components from './pages/Components'
 import Send from './pages/Send'
+import Demo from './pages/Demo'
 
 type Props = {}
 
@@ -21,6 +22,9 @@ const COMPONENT_NAME: FC<Props> = () => {
       </Route>
       <Route path="/stake">
         Staking coming soon
+      </Route>
+      <Route path="/demo">
+        <Demo />
       </Route>
 
       <Route path="/components">

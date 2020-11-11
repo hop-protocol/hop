@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Card from '@material-ui/core/Card'
 import Typography from '@material-ui/core/Typography'
-import LargeButton from '../components/buttons/LargeButton'
+import Button from '../components/buttons/Button'
 import SendIcon from '@material-ui/icons/Send'
 import RaisedSelect from '../components/selects/RaisedSelect'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -19,7 +19,6 @@ const useStyles = makeStyles(() => ({
     marginBottom: '2.8rem'
   },
   largeButton: {
-    width: '30.0rem',
     marginBottom: '2.8rem'
   }
 }))
@@ -57,20 +56,56 @@ const Components: FC = () => {
         </Section>
 
         <Section title="Buttons">
-          <LargeButton
+          <Button
             className={styles.largeButton}
             startIcon={<SendIcon />}
           >
-            LargeButton
-          </LargeButton>
-          <br />
-          <LargeButton
+            Button
+          </Button>
+          <Button
+            className={styles.largeButton}
+            startIcon={<SendIcon />}
+            flat
+          >
+            Button flat
+          </Button>
+          <Button
+            className={styles.largeButton}
+            startIcon={<SendIcon />}
+            highlighted
+          >
+            Button highlighted
+          </Button>
+          <Button
             className={styles.largeButton}
             startIcon={<SendIcon />}
             disabled
           >
-            LargeButton Disabled
-          </LargeButton>
+            Button disabled
+          </Button>
+          <Button
+            className={styles.largeButton}
+            startIcon={<SendIcon />}
+            large
+          >
+            Button large
+          </Button>
+          <Button
+            className={styles.largeButton}
+            startIcon={<SendIcon />}
+            large
+            highlighted
+          >
+            Button large highlighted
+          </Button>
+          <Button
+            className={styles.largeButton}
+            startIcon={<SendIcon />}
+            large
+            disabled
+          >
+            Button large disabled
+          </Button>
         </Section>
 
         <Section title="Selects">

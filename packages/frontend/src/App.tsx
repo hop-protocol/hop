@@ -20,7 +20,7 @@ function App() {
         <AppRoutes />
       </div>
     </div>
-  );
+  )
 }
 
 export default App;

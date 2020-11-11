@@ -2,6 +2,7 @@ pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./Bridge.sol";
@@ -10,14 +11,21 @@ import "./test/mockOVM_CrossDomainMessenger.sol";
 import "./libraries/MerkleUtils.sol";
 
 contract L1_Bridge is Bridge {
+    using SafeMath for uint256;
     using MerkleProof for bytes32[];
     using SafeERC20 for IERC20;
+
+    struct TransferRootBalance {
+        uint256 total;
+        uint256 amountWithdrawn;
+    }
 
     IERC20 token;
     mockOVM_CrossDomainMessenger messenger;
     address l2Bridge;
 
-    mapping(bytes32 => bool) transferRoots;
+    mapping(bytes32 => TransferRootBalance) transferRootBalances;
+    mapping(bytes32 => bool) spentTransferHashes;
 
     event DepositsCommitted (
         bytes32 root,
@@ -70,8 +78,8 @@ contract L1_Bridge is Bridge {
     }
 
     // onlyCrossDomainBridge
-    function setTransferRoot(bytes32 _newTransferRoot) public {
-        transferRoots[_newTransferRoot] = true;
+    function setTransferRoot(bytes32 _newTransferRoot, uint256 _amount) public {
+        transferRootBalances[_newTransferRoot] = TransferRootBalance(_amount, 0);
     }
 
     function withdraw(
@@ -90,8 +98,15 @@ contract L1_Bridge is Bridge {
             _transferNonce,
             _relayerFee
         );
-        require(_proof.verify(_transferRoot, transferHash), "BDG: Invalid transfer proof");
+        uint256 totalAmount = _amount + _relayerFee;
+        TransferRootBalance storage rootBalance = transferRootBalances[_transferRoot];
 
+        require(!spentTransferHashes[transferHash], "BDG: The transfer has already been withdrawn");
+        require(_proof.verify(_transferRoot, transferHash), "BDG: Invalid transfer proof");
+        require(rootBalance.amountWithdrawn.add(totalAmount) <= rootBalance.total, "BDG: Withdrawal exceeds TransferRoot total");
+
+        spentTransferHashes[transferHash] = true;
+        rootBalance.amountWithdrawn = rootBalance.amountWithdrawn.add(totalAmount);
         token.safeTransfer(_recipient, _amount);
         msg.sender.transfer(_relayerFee);
     }

@@ -186,7 +186,6 @@ describe("Full story", () => {
     )
 
     await expectBalanceOf(l1_poolToken, user, '99')
-    expect(await user.getBalance()).to.eq(BigNumber.from('9990834192400000000000'))
   })
 
   it('Should mint and swap for the canonical token', async () => {

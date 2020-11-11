@@ -9,6 +9,7 @@ import "./test/mockOVM_CrossDomainMessenger.sol";
 import "./libraries/MerkleUtils.sol";
 
 contract L2_Bridge is ERC20, Bridge {
+    using SafeMath for uint256;
     using MerkleProof for bytes32[];
 
     mockOVM_CrossDomainMessenger messenger;
@@ -57,7 +58,7 @@ contract L2_Bridge is ERC20, Bridge {
 
         bytes32 transferHash = getTransferHash(_recipient, _amount, _transferNonce, _relayerFee);
         pendingTransfers.push(transferHash);
-        pendingAmount = pendingAmount.add(_amount);
+        pendingAmount = pendingAmount.add(_amount).add(_relayerFee);
     }
 
     function commitTransfers() public {
@@ -68,7 +69,7 @@ contract L2_Bridge is ERC20, Bridge {
         delete pendingTransfers;
         pendingAmount = 0;
 
-        bytes memory setTransferRootMessage = abi.encodeWithSignature("setTransferRoot(bytes32)", root);
+        bytes memory setTransferRootMessage = abi.encodeWithSignature("setTransferRoot(bytes32,uint256)", root, _pendingAmount);
 
         messenger.sendMessage(
             l1Bridge,

@@ -188,7 +188,7 @@ describe("Full story", () => {
 
   it('Should mint and swap for the canonical token', async () => {
     // Mint the user additional tokens for the user
-    await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
+    await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE.mul(2))
 
     // liquidityProvider moves funds across the canonical bridge
     await l1_poolToken.connect(liquidityProvider).approve(l1_ovmBridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
@@ -225,7 +225,7 @@ describe("Full story", () => {
     await expectBalanceOf(l2_bridge, uniswapPair, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
 
     /**
-     * User moves funds from L1 to L2 on the canonical bridge and back to L1 on the liquidity bridge
+     * User moves funds from L1 to L2 on the liquidity bridge and swaps in a single transaction
      */
 
     await l2_bridge.approveExchangeTransfer()
@@ -233,8 +233,24 @@ describe("Full story", () => {
     await l1_bridge.connect(user).sendToL2AndAttemptSwap(await user.getAddress(), USER_INITIAL_BALANCE, 0)
     await l2_messenger.relayNextMessage()
 
-    const expectedUserBalanceAfterSwap = USER_INITIAL_BALANCE.sub('1')
-    await expectBalanceOf(l2_ovmBridge, user, expectedUserBalanceAfterSwap)
+    let expectedUserSFDaiBalanceAfterSwap = BigNumber.from('0')
+    let expectedUserODaiBalanceAfterSwap = USER_INITIAL_BALANCE.sub('1')
+    await expectBalanceOf(l2_bridge, user, expectedUserSFDaiBalanceAfterSwap)
+    await expectBalanceOf(l2_ovmBridge, user, expectedUserODaiBalanceAfterSwap)
+
+    /**
+     * User moves funds from L1 to L2 on the liquidity bridge and attempts to swap in a single transaction
+     * but instead just receives the original asset because the swap failed
+     */
+
+    const largeValue = BigNumber.from('999999999999999999999999999')
+    await l1_poolToken.connect(user).approve(l1_bridge.address, USER_INITIAL_BALANCE)
+    await l1_bridge.connect(user).sendToL2AndAttemptSwap(await user.getAddress(), USER_INITIAL_BALANCE, largeValue)
+    await l2_messenger.relayNextMessage()
+
+    expectedUserSFDaiBalanceAfterSwap = BigNumber.from('100')
+    await expectBalanceOf(l2_bridge, user, expectedUserSFDaiBalanceAfterSwap)
+    await expectBalanceOf(l2_ovmBridge, user, expectedUserODaiBalanceAfterSwap)
   })
 
   const expectBalanceOf = async (token: Contract, account: Signer | Contract, expectedBalance: BigNumberish) => {

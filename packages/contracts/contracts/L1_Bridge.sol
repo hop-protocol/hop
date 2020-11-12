@@ -6,11 +6,11 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import "./Wormhole.sol";
+import "./Bridge.sol";
 
 import "./libraries/MerkleUtils.sol";
 
-contract L1_Wormhole is Wormhole {
+contract L1_Bridge is Bridge {
     using MerkleProof for bytes32[];
     using SafeERC20 for IERC20;
 

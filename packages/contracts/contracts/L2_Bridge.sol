@@ -3,12 +3,12 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./Wormhole.sol";
+import "./Bridge.sol";
 import "./test/mockOVM_CrossDomainMessenger.sol";
 
 import "./libraries/MerkleUtils.sol";
 
-contract L2_Wormhole is ERC20, Wormhole {
+contract L2_Bridge is ERC20, Bridge {
     using MerkleProof for bytes32[];
 
     mockOVM_CrossDomainMessenger messenger;

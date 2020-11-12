@@ -14,10 +14,10 @@ contract MockMessenger {
 
     Message public nextMessage;
     MockMessenger public targetMessengerAddress;
-    address public targetWormholeAddress;
+    address public targetBridgeAddress;
 
-    function setTargetWormholeAddress(address _targetWormholeAddress) public {
-        targetWormholeAddress = _targetWormholeAddress;
+    function setTargetBridgeAddress(address _targetBridgeAddress) public {
+        targetBridgeAddress = _targetBridgeAddress;
     }
 
     function setTargetMessengerAddress(MockMessenger _targetMessengerAddress) public {
@@ -48,7 +48,7 @@ contract MockMessenger {
     }
 
     function relayNextMessage() public {
-        targetWormholeAddress.call(nextMessage.message);
+        targetBridgeAddress.call(nextMessage.message);
     }
 
     function decodeMessage(bytes memory _message) public returns (bytes memory) {

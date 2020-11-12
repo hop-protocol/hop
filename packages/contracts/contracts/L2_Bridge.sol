@@ -54,11 +54,12 @@ contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
-        _burn(msg.sender, _amount);
+        uint256 totalAmount = _amount + _relayerFee;
+        _burn(msg.sender, totalAmount);
 
         bytes32 transferHash = getTransferHash(_recipient, _amount, _transferNonce, _relayerFee);
         pendingTransfers.push(transferHash);
-        pendingAmount = pendingAmount.add(_amount).add(_relayerFee);
+        pendingAmount = pendingAmount.add(totalAmount);
     }
 
     function commitTransfers() public {
@@ -100,11 +101,15 @@ contract L2_Bridge is ERC20, Bridge {
 
         (bool success,) = exchangeAddress.call(swapCalldata);
         if (!success) {
-            transfer(_recipient, _amount);
+            transferFallback(_recipient, _amount);
         }
     }
 
     function approveExchangeTransfer() public {
         _approve(address(this), exchangeAddress, uint256(-1));
+    }
+
+    function transferFallback(address _recipient, uint256 _amount) public {
+        _transfer(address(this), _recipient, _amount);
     }
 }

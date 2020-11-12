@@ -8,12 +8,13 @@ import Transfer from '../lib/Transfer'
 const USER_INITIAL_BALANCE = BigNumber.from('100')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
 const SWAP_DEADLINE_BUFFER = BigNumber.from('3600')
-const RELAYER_FEE = BigNumber.from('1000000000000000000')
+const RELAYER_FEE = BigNumber.from('1')
 
 describe("Full story", () => {
   let accounts: Signer[]
   let user: Signer
   let liquidityProvider: Signer
+  let relayer: Signer
   // let withdrawals: Withdrawal[]
 
   // Factories
@@ -43,6 +44,7 @@ describe("Full story", () => {
     accounts = await ethers.getSigners()
     user = accounts[0]
     liquidityProvider = accounts[1]
+    relayer = accounts[2]
     L1_Bridge = await ethers.getContractFactory('contracts/L1_Bridge.sol:L1_Bridge')
     L2_Bridge = await ethers.getContractFactory('contracts/L2_Bridge.sol:L2_Bridge')
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
@@ -154,7 +156,7 @@ describe("Full story", () => {
 
     const transfer = new Transfer({
       recipient: await user.getAddress(),
-      amount: BigNumber.from('99'),
+      amount: BigNumber.from('98'),
       nonce: 0,
       relayerFee: RELAYER_FEE
     })
@@ -164,19 +166,14 @@ describe("Full story", () => {
     await l2_bridge.commitTransfers()
     await l1_messenger.relayNextMessage()
 
-    // User sends funds to the bridge to pay for fee
-    // TODO: This should be more natural in the process
-    const tx = {
-      to: l1_bridge.address,
-      value: ethers.utils.parseEther('10'),
-    }
-    await user.sendTransaction(tx)
-
     // User withdraws from L1 bridge
     const tree = new MerkleTree([ transfer.getTransferHash() ])
     const proof = tree.getProof(transfer.getTransferHash())
 
-    await l1_bridge.withdraw(
+    await expectBalanceOf(l1_poolToken, user, '0')
+    await expectBalanceOf(l1_poolToken, relayer, '0')
+
+    await l1_bridge.connect(relayer).withdraw(
       transfer.recipient,
       transfer.amount,
       transfer.nonce,
@@ -185,12 +182,13 @@ describe("Full story", () => {
       proof
     )
 
-    await expectBalanceOf(l1_poolToken, user, '99')
+    await expectBalanceOf(l1_poolToken, user, '98')
+    await expectBalanceOf(l1_poolToken, relayer, '1')
   })
 
   it('Should mint and swap for the canonical token', async () => {
     // Mint the user additional tokens for the user
-    await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
+    await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE.mul(2))
 
     // liquidityProvider moves funds across the canonical bridge
     await l1_poolToken.connect(liquidityProvider).approve(l1_ovmBridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
@@ -227,7 +225,7 @@ describe("Full story", () => {
     await expectBalanceOf(l2_bridge, uniswapPair, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
 
     /**
-     * User moves funds from L1 to L2 on the canonical bridge and back to L1 on the liquidity bridge
+     * User moves funds from L1 to L2 on the liquidity bridge and swaps in a single transaction
      */
 
     await l2_bridge.approveExchangeTransfer()
@@ -235,8 +233,24 @@ describe("Full story", () => {
     await l1_bridge.connect(user).sendToL2AndAttemptSwap(await user.getAddress(), USER_INITIAL_BALANCE, 0)
     await l2_messenger.relayNextMessage()
 
-    const expectedUserBalanceAfterSwap = USER_INITIAL_BALANCE.sub('1')
-    await expectBalanceOf(l2_ovmBridge, user, expectedUserBalanceAfterSwap)
+    let expectedUserSFDaiBalanceAfterSwap = BigNumber.from('0')
+    let expectedUserODaiBalanceAfterSwap = USER_INITIAL_BALANCE.sub('1')
+    await expectBalanceOf(l2_bridge, user, expectedUserSFDaiBalanceAfterSwap)
+    await expectBalanceOf(l2_ovmBridge, user, expectedUserODaiBalanceAfterSwap)
+
+    /**
+     * User moves funds from L1 to L2 on the liquidity bridge and attempts to swap in a single transaction
+     * but instead just receives the original asset because the swap failed
+     */
+
+    const largeValue = BigNumber.from('999999999999999999999999999')
+    await l1_poolToken.connect(user).approve(l1_bridge.address, USER_INITIAL_BALANCE)
+    await l1_bridge.connect(user).sendToL2AndAttemptSwap(await user.getAddress(), USER_INITIAL_BALANCE, largeValue)
+    await l2_messenger.relayNextMessage()
+
+    expectedUserSFDaiBalanceAfterSwap = BigNumber.from('100')
+    await expectBalanceOf(l2_bridge, user, expectedUserSFDaiBalanceAfterSwap)
+    await expectBalanceOf(l2_ovmBridge, user, expectedUserODaiBalanceAfterSwap)
   })
 
   const expectBalanceOf = async (token: Contract, account: Signer | Contract, expectedBalance: BigNumberish) => {

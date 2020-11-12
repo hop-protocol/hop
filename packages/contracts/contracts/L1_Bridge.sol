@@ -208,7 +208,7 @@ contract L1_Bridge is Bridge {
         spentTransferHashes[transferHash] = true;
         rootBalance.amountWithdrawn = rootBalance.amountWithdrawn.add(totalAmount);
         token.safeTransfer(_recipient, _amount);
-        msg.sender.transfer(_relayerFee);
+        token.safeTransfer(msg.sender, _relayerFee);
     }
 
     // TODO: How else should we have user's deposit funds for fee

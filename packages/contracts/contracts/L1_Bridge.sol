@@ -63,7 +63,13 @@ contract L1_Bridge is Bridge {
         return keccak256(abi.encodePacked(_messengerLabel));
     }
 
-    function sendToL2(bytes32 _messengerId, address _recipient, uint256 _amount) public {
+    function sendToL2(
+        bytes32 _messengerId,
+        address _recipient,
+        uint256 _amount
+    )
+        public
+    {
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
         bytes memory sendMessageCalldata = abi.encodeWithSignature("sendToL2(bytes)", mintCalldata);
 
@@ -71,35 +77,25 @@ contract L1_Bridge is Bridge {
         token.safeTransferFrom(msg.sender, address(this), _amount);
     }
 
-    // TODO: Uncomment this when merging Arbitrum and Optimism together
-    // function sendToL2(address _recipient, uint256 _amount) public {
-    //     bytes memory message = abi.encodeWithSignature(
-    //         "mint(address,uint256)",
-    //         _recipient,
-    //         _amount
-    //     );
-    //     _sendMessage(message);
-    // }
+    function sendToL2AndAttemptSwap(
+        bytes32 _messengerId,
+        address _recipient,
+        uint256 _amount,
+        uint256 _amountOutMin
+    )
+        public
+    {
+        bytes memory mintAndAttemptSwapCalldata = abi.encodeWithSignature(
+            "mintAndAttemptSwap(address,uint256,uint256)",
+            _recipient,
+            _amount,
+            _amountOutMin
+        );
+        bytes memory sendMessageCalldata = abi.encodeWithSignature("sendToL2(bytes)", mintAndAttemptSwapCalldata);
 
-    // function sendToL2AndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin) public {
-    //     token.safeTransferFrom(msg.sender, address(this), _amount);
-
-    //     bytes memory message = abi.encodeWithSignature(
-    //         "mintAndAttemptSwap(address,uint256,uint256)",
-    //         _recipient,
-    //         _amount,
-    //         _amountOutMin
-    //     );
-    //     _sendMessage(message);
-    // }
-
-    // function _sendMessage(bytes memory _message) internal {
-    //     messenger.sendMessage(
-    //         l2Bridge,
-    //         _message,
-    //         200000
-    //     );
-    // }
+        l1Messenger[_messengerId].call(sendMessageCalldata);
+        token.safeTransferFrom(msg.sender, address(this), _amount);
+    }
 
     /**
      * Committee

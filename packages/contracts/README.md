@@ -17,16 +17,21 @@ const contracts = require('contracts');
 #### L1
 
 _Pre Deployed_
-L1 Pool Token: 0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9
-Global inbox: 0xE681857DEfE8b454244e701BA63EfAa078d7eA85
+* L1 Pool Token: 0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9
+* Global inbox: 0xE681857DEfE8b454244e701BA63EfAa078d7eA85
 
-L1 Bridge: 0x1652a11C406d6Ea407967370B492f85BeCE96c29
-L1 Messenger: 0x7b542e47Bf4aeC075cC2a3bB1871890AAfB0D5d9
-L1 Messenger Wrapper: 0xaE254AC0EA0aA32bBdEb207C1F58e1bA98F0cF26
+_Bridge System_
+* L1 Bridge: 0x1652a11C406d6Ea407967370B492f85BeCE96c29
+* L1 Messenger: 0x7b542e47Bf4aeC075cC2a3bB1871890AAfB0D5d9
+* L1 Messenger Wrapper: 0xaE254AC0EA0aA32bBdEb207C1F58e1bA98F0cF26
 
 
 #### L2
 
+_Pre Deployed_
+NA
+
+_Bridge System_
 L2 Messenger: 
 L2 Bridge:
 L2 Uniswap Factory: 

@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "example": "npm run build && node dist/example/example.js",
     "start": "node .",
     "dev": "tsc --watch",
     "build": "tsc",
@@ -20,9 +21,13 @@
   "dependencies": {
     "@authereum/utils": "^0.1.10",
     "ethers": "^5.0.19",
+    "module-alias": "^2.2.2",
     "typescript": "^4.0.5"
   },
   "devDependencies": {
     "prettier-standard": "^16.4.1"
+  },
+  "_moduleAliases": {
+    "src": "src"
   }
 }

@@ -1,5 +1,5 @@
 import * as ethers from 'ethers'
-import L2BridgeAbi from 'src/abi/L2Bridge.json'
+import L2BridgeAbi from 'src/abi/L2ArbitrumBridge.json'
 import { L2BridgeAddress } from 'src/config'
 import L2Wallet from 'src/wallets/L2Wallet'
 

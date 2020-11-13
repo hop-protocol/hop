@@ -168,6 +168,13 @@
   },
   {
     "inputs": [],
+    "name": "commitTransfers",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "decimals",
     "outputs": [
       {

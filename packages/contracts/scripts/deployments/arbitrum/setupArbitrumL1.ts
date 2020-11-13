@@ -48,13 +48,13 @@ async function deployArbitrum () {
    */
 
   // Connect Contracts
-  l1_messenger = MockMessenger.attach('0x8aca015FAA06F22bE661D04Aa3606DAbDB0Aaf64')
-  l1_messengerWrapper = L1_MessengerWrapper.attach('0xe3F62e3c2f454720423ad4d8E76632358749387D')
+  l1_messenger = MockMessenger.attach('0x7b542e47Bf4aeC075cC2a3bB1871890AAfB0D5d9')
+  l1_messengerWrapper = L1_MessengerWrapper.attach('0xaE254AC0EA0aA32bBdEb207C1F58e1bA98F0cF26')
   l1_arbitrumBridge = GlobalInbox.attach('0xE681857DEfE8b454244e701BA63EfAa078d7eA85')
-  l1_bridge = L1_Bridge.attach('0x570bd01C0f64521968093e47A83A5fD819A6a4a6')
-  l1_poolToken = MockERC20.attach('0xE8d447130bA14Bc76A8bBf29b18196C70d762255')
+  l1_bridge = L1_Bridge.attach('0x1652a11C406d6Ea407967370B492f85BeCE96c29')
+  l1_poolToken = MockERC20.attach('0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9')
 
-  l2_messenger = MockMessenger.attach('0xd888161Cf0651f50d9BbfaA7DE2A8F50609B6437')
+  l2_messenger = MockMessenger.attach('0xDc08a1D8b62f02F55149D51F68504412fdF2Ce3c')
 
   // Initialize messenger wrapper
   const l2Name = L2_NAMES.ARBITRUM

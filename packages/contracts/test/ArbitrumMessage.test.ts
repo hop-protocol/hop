@@ -62,7 +62,7 @@ describe("Full story", () => {
     l1_messengerWrapper = await L1_MessengerWrapper.deploy()
 
     l2_messenger = await MockMessenger.deploy()
-    l2_bridge = await L2_Bridge.deploy(l2_messenger.address, SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, weth.address)
+    l2_bridge = await L2_Bridge.deploy(l2_messenger.address)
 
     // Initialize messenger wrapper
     const l2Name = L2_NAMES.ARBITRUM
@@ -72,6 +72,7 @@ describe("Full story", () => {
     messengerId = getL2MessengerId('arbitrum')
     await l1_bridge.setL1Messenger(messengerId, l1_messengerWrapper.address)
     await l2_bridge.setL1Messenger(l1_messengerWrapper.address)
+    await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, weth.address)
 
     // Set up messenger
     await l1_messenger.setTargetMessengerAddress(l2_messenger.address)

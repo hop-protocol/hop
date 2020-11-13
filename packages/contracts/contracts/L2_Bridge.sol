@@ -26,16 +26,17 @@ contract L2_Bridge is ERC20, Bridge {
         uint256 amount
     );
 
-    constructor (
-        mockOVM_CrossDomainMessenger _messenger,
+    constructor (mockOVM_CrossDomainMessenger _messenger) public ERC20("DAI Liquidity Pool Token", "LDAI") {
+        messenger = _messenger;
+    }
+
+    function setExchangeValues(
         uint256 _swapDeadlineBuffer,
         address _exchangeAddress,
         address _oDaiAddress
     )
         public
-        ERC20("DAI Liquidity Pool Token", "LDAI")
     {
-        messenger = _messenger;
         swapDeadlineBuffer = _swapDeadlineBuffer;
         exchangeAddress = _exchangeAddress;
         oDaiAddress = _oDaiAddress;

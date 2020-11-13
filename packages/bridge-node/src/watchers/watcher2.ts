@@ -1,10 +1,10 @@
 import wait from '@authereum/utils/core/wait'
-import L2BridgeContract from '../contracts/L2BridgeContract'
+import L2BridgeContract from 'src/contracts/L2BridgeContract'
 
 // notes:
 // - invoke commitTransfers at every interval
 
-async function main () {
+export default async function watcher2 () {
   const sendTx = async () => {
     return L2BridgeContract.functions.commitTransfers()
   }
@@ -17,8 +17,6 @@ async function main () {
       console.error('commitTransfers error', err)
     }
 
-    await wait(10e3)
+    await wait(60 * 1000)
   }
 }
-
-main()

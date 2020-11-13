@@ -15,7 +15,7 @@ ETH_HTTP_ENDPOINT=${ETH_HTTP_ENDPOINT:-"https://mainnet.rpc.authereum.com"}
 
 (
   cd ~/go/src/github.com/ethereum-optimism/go-ethereum;
-  rm -rf da-test-chain-dir && ./build/bin/geth \
+  ./build/bin/geth \
     --datadir $VOLUME_PATH \
     --rpc \
     --dev \

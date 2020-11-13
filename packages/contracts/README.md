@@ -45,3 +45,10 @@ L2 Uniswap Router: `0x958F7a85E32e948Db30F7332ee809ED26B43298a`
 * npx hardhat run scripts/arbitrum/deployArbitrumL2.ts --network arbitrum
 * npx hardhat run scripts/arbitrum/setupArbitrumL1.ts --network kovan
 * npx hardhat run scripts/arbitrum/setupArbitrumL2.ts --network arbitrum
+
+## FAQ
+
+* What are the relevant `messageId`s?
+
+    * Arbitrum = `0x9186606d55c571b43a756333453d90ab5653c483deb4980cda697bfa36fba5de`
+      Optimism = `0x09d0f27659ee556a8134fa56941e42400e672aecc2d4cfc61cdb0fcea4590e05`

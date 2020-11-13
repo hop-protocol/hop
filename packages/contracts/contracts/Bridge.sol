@@ -7,12 +7,21 @@ import "./test/mockOVM_CrossDomainMessenger.sol";
 import "./libraries/MerkleUtils.sol";
 
 contract Bridge {
-    function getTransferHash(uint256 _amount, uint256 _transferNonce, address _recipient) public pure returns (bytes32) {
+    function getTransferHash(
+        address _recipient,
+        uint256 _amount,
+        uint256 _transferNonce,
+        uint256 _relayerFee
+    )
+        public
+        pure
+        returns (bytes32)
+    {
         return keccak256(abi.encode(
+            _recipient,
             _amount,
             _transferNonce,
-            _recipient
-            // relayer fee
+            _relayerFee
         ));
     }
 }

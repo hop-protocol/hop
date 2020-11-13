@@ -33,7 +33,7 @@ contract L1_Bridge is Bridge {
     }
 
     function getMessengerId(string calldata _messengerLabel) public pure returns (bytes32) {
-        return keccak256(abi.encode(_messengerLabel));
+        return keccak256(abi.encodePacked(_messengerLabel));
     }
 
     function sendToL2(bytes32 _messengerId, address _recipient, uint256 _amount) public {

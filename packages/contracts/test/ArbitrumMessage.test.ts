@@ -92,6 +92,13 @@ describe("Full story", () => {
     await expectBalanceOf(l2_bridge, liquidityProvider, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
   })
 
+  it('Should return the correct bridge hash', async () => {
+    const actualMessengerId = getL2MessengerId('arbitrum')
+    const l2Name = L2_NAMES.ARBITRUM
+    const expectedMessengerId = await l1_bridge.getMessengerId(l2Name)
+    expect(actualMessengerId).to.eq(expectedMessengerId)
+  })
+
   const expectBalanceOf = async (token: Contract, account: Signer | Contract, expectedBalance: BigNumberish) => {
     const accountAddress = account instanceof Signer ? await account.getAddress() : account.address
     const balance = await token.balanceOf(accountAddress)

@@ -15,7 +15,7 @@ describe("Full story", () => {
   let user: Signer
   let liquidityProvider: Signer
   let relayer: Signer
-  // let withdrawals: Withdrawal[]
+  let committee: Signer
 
   // Factories
   let L1_Bridge: ContractFactory
@@ -45,6 +45,8 @@ describe("Full story", () => {
     user = accounts[0]
     liquidityProvider = accounts[1]
     relayer = accounts[2]
+    committee = accounts[3]
+
     L1_Bridge = await ethers.getContractFactory('contracts/L1_Bridge.sol:L1_Bridge')
     L2_Bridge = await ethers.getContractFactory('contracts/L2_Bridge.sol:L2_Bridge')
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
@@ -88,6 +90,7 @@ describe("Full story", () => {
     // Distribute poolToken
     await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
     await l1_poolToken.mint(await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_poolToken.mint(await committee.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
   })
 
   it('Should complete the full story', async () => {
@@ -164,7 +167,14 @@ describe("Full story", () => {
     // User moves funds back to L1 across the liquidity bridge
     await l2_bridge.connect(user).sendToMainnet(transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee)
     await l2_bridge.commitTransfers()
-    await l1_messenger.relayNextMessage()
+
+    const transfersCommittedEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransfersCommitted()))[0]
+
+    await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+
+    await l1_bridge.setTransferRoot(transfersCommittedEvent.args.root, transfer.amount.add(transfer.relayerFee))
+    await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, transfer.amount.add(transfer.relayerFee))
 
     // User withdraws from L1 bridge
     const tree = new MerkleTree([ transfer.getTransferHash() ])

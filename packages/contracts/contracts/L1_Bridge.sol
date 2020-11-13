@@ -18,8 +18,8 @@ contract L1_Bridge is Bridge {
     /**
      * Constants
      */
-    uint256 constant CHALLENGE_AMOUNT_MULTIPLIER = 1e17;
-    uint256 constant CHALLENGE_AMOUNT_DIVISOR = 1e18;
+    uint256 constant CHALLENGE_AMOUNT_MULTIPLIER = 1;
+    uint256 constant CHALLENGE_AMOUNT_DIVISOR = 10;
     uint256 constant TIME_SLOT_SIZE = 1 hours;
     uint256 constant CHALLENGE_PERIOD = 4 hours;
     uint256 constant CHALLENGE_RESOLUTION_PERIOD = 8 days;

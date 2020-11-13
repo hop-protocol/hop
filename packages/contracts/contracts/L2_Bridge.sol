@@ -11,10 +11,10 @@ import "./libraries/MerkleUtils.sol";
 contract L2_Bridge is ERC20, Bridge {
     using MerkleProof for bytes32[];
 
-    mockOVM_CrossDomainMessenger messenger;
-    address l1Messenger;
-    bytes32[] pendingTransfers;
-    uint256 pendingAmount;
+    mockOVM_CrossDomainMessenger public messenger;
+    address   public l1Messenger;
+    bytes32[] public pendingTransfers;
+    uint256   public pendingAmount;
 
     event TransfersCommitted (
         bytes32 root,

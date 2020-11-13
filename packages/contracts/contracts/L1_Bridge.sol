@@ -16,8 +16,8 @@ contract L1_Bridge is Bridge {
 
     IERC20 token;
 
-    mapping(bytes32 => address) l1Messenger;
-    mapping(bytes32 => bool) transferRoots;
+    mapping(bytes32 => address) public l1Messenger;
+    mapping(bytes32 => bool)    public transferRoots;
 
     event DepositsCommitted (
         bytes32 root,

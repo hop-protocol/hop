@@ -52,7 +52,7 @@ async function deployArbitrum () {
   console.log('L2 Messenger        :', l2_messenger.address)
   console.log('L2 Bridge           :', l2_bridge.address)
   console.log('L2 Uniswap Factory  :', l2_uniswapFactory.address)
-  console.log('Weth                :', weth.address)
+  // console.log('Weth                :', weth.address)
   console.log('L2 Uniswap Router   :', l2_uniswapRouter.address)
 }
 

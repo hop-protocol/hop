@@ -2,8 +2,8 @@ require('dotenv').config()
 
 import { ethers } from 'hardhat'
 import { BigNumber, ContractFactory, Signer, Wallet, Contract } from 'ethers'
-import { getL2MessengerId, setMessengerWrapperDefaults } from '../../test/utils'
-import { L2_NAMES } from '../../test/constants'
+import { getL2MessengerId, setMessengerWrapperDefaults } from '../../../test/utils'
+import { L2_NAMES } from '../../../test/constants'
 
 const USER_INITIAL_BALANCE = BigNumber.from('100')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
@@ -15,6 +15,7 @@ async function deployArbitrum () {
   let messengerId: string
 
   // Factories
+  let MockERC20: ContractFactory
   let L1_Bridge: ContractFactory
   let L1_MessengerWrapper: ContractFactory
   let MockMessenger: ContractFactory
@@ -36,6 +37,7 @@ async function deployArbitrum () {
   liquidityProvider = accounts[1]
 
   // Get the contract Factories
+  MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
   L1_Bridge = await ethers.getContractFactory('contracts/L1_Bridge.sol:L1_Bridge')
   L1_MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/Arbitrum.sol:Arbitrum')
   MockMessenger = await ethers.getContractFactory('contracts/test/MockMessenger.sol:MockMessenger')
@@ -46,12 +48,13 @@ async function deployArbitrum () {
    */
 
   // Connect Contracts
-  l1_messenger = MockMessenger.attach('0x')
-  l1_messengerWrapper = L1_MessengerWrapper.attach('0x')
-  l1_arbitrumBridge = GlobalInbox.attach('0x')
-  l1_bridge = L1_Bridge.attach('0x')
+  l1_messenger = MockMessenger.attach('0x8aca015FAA06F22bE661D04Aa3606DAbDB0Aaf64')
+  l1_messengerWrapper = L1_MessengerWrapper.attach('0xe3F62e3c2f454720423ad4d8E76632358749387D')
+  l1_arbitrumBridge = GlobalInbox.attach('0xE681857DEfE8b454244e701BA63EfAa078d7eA85')
+  l1_bridge = L1_Bridge.attach('0x570bd01C0f64521968093e47A83A5fD819A6a4a6')
+  l1_poolToken = MockERC20.attach('0xE8d447130bA14Bc76A8bBf29b18196C70d762255')
 
-  l2_messenger = MockMessenger.attach('0x')
+  l2_messenger = MockMessenger.attach('0xd888161Cf0651f50d9BbfaA7DE2A8F50609B6437')
 
   // Initialize messenger wrapper
   const l2Name = L2_NAMES.ARBITRUM

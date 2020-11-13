@@ -7,6 +7,7 @@ import { L2_NAMES } from './constants'
 
 const USER_INITIAL_BALANCE = BigNumber.from('100')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
+const SWAP_DEADLINE_BUFFER = BigNumber.from('3600')
 
 describe("Full story", () => {
   let accounts: Signer[]
@@ -51,18 +52,17 @@ describe("Full story", () => {
 
   beforeEach(async () => {
     // Deploy contracts
+    const weth = await MockERC20.deploy('WETH', 'WETH')
+    l2_uniswapFactory = await UniswapFactory.deploy(await user.getAddress())
+    l2_uniswapRouter = await UniswapRouter.deploy(l2_uniswapFactory.address, weth.address)
+
     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
     l1_bridge = await L1_Bridge.deploy(l1_poolToken.address)
     l1_messenger = await MockMessenger.deploy()
     l1_messengerWrapper = await L1_MessengerWrapper.deploy()
 
     l2_messenger = await MockMessenger.deploy()
-    l2_bridge = await L2_Bridge.deploy(l2_messenger.address)
-
-    // Uniswap
-    l2_uniswapFactory = await UniswapFactory.deploy(await user.getAddress())
-    const weth = await MockERC20.deploy('WETH', 'WETH')
-    l2_uniswapRouter = await UniswapRouter.deploy(l2_uniswapFactory.address, weth.address)
+    l2_bridge = await L2_Bridge.deploy(l2_messenger.address, SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, weth.address)
 
     // Initialize messenger wrapper
     const l2Name = L2_NAMES.ARBITRUM

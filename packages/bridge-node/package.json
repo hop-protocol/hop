@@ -1,0 +1,24 @@
+{
+  "name": "bridge-node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "prettier-standard --format",
+    "geth": "./scripts/start_geth.sh",
+    "ovm": "./scripts/start_ovm.sh",
+    "watcher1": "node watchers/watcher1.js",
+    "watcher2": "node watchers/watcher2.js",
+    "watcher3": "node watchers/watcher3.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@authereum/utils": "^0.1.10",
+    "ethers": "^5.0.19"
+  },
+  "devDependencies": {
+    "prettier-standard": "^16.4.1"
+  }
+}

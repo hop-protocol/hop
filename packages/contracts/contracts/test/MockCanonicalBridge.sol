@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "./BytesLib.sol";
 
-contract MockMessenger {
+contract MockCanonicalBridge {
     using BytesLib for bytes;
 
     struct Message {
@@ -13,15 +13,15 @@ contract MockMessenger {
     }
 
     Message public nextMessage;
-    MockMessenger public targetMessengerAddress;
+    MockCanonicalBridge public targetCanonicalBridgeAddress;
     address public targetBridgeAddress;
 
     function setTargetBridgeAddress(address _targetBridgeAddress) public {
         targetBridgeAddress = _targetBridgeAddress;
     }
 
-    function setTargetMessengerAddress(MockMessenger _targetMessengerAddress) public {
-        targetMessengerAddress = _targetMessengerAddress;
+    function setTargetCanonicalBridgeAddress(MockCanonicalBridge _targetCanonicalBridgeAddress) public {
+        targetCanonicalBridgeAddress = _targetCanonicalBridgeAddress;
     }
 
     function sendL2Message(
@@ -32,7 +32,7 @@ contract MockMessenger {
     {
         bytes memory _messageCalldata = decodeMessage(_message);
         bytes memory setMessageData = abi.encodeWithSignature("setMessage(address,bytes)", _arbChain, _messageCalldata);
-        address(targetMessengerAddress).call(setMessageData);
+        address(targetCanonicalBridgeAddress).call(setMessageData);
     }
 
     function setMessage(

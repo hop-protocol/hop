@@ -12,8 +12,8 @@ contract L2_Bridge is ERC20, Bridge {
     using SafeMath for uint256;
     using MerkleProof for bytes32[];
 
-    mockOVM_CrossDomainMessenger public messenger;
-    address   public l1Messenger;
+    mockOVM_CrossDomainMessenger public canonicalBridge;
+    address   public l1BridgeAddress;
     bytes32[] public pendingTransfers;
     uint256   public pendingAmount;
     uint256   public swapDeadlineBuffer;
@@ -26,8 +26,8 @@ contract L2_Bridge is ERC20, Bridge {
         uint256 amount
     );
 
-    constructor (mockOVM_CrossDomainMessenger _messenger) public ERC20("DAI Liquidity Pool Token", "LDAI") {
-        messenger = _messenger;
+    constructor (mockOVM_CrossDomainMessenger _canonicalBridge) public ERC20("DAI Liquidity Pool Token", "LDAI") {
+        canonicalBridge = _canonicalBridge;
     }
 
     function setExchangeValues(
@@ -43,8 +43,8 @@ contract L2_Bridge is ERC20, Bridge {
         exchangePath = [address(this), oDaiAddress];
     }
 
-    function setL1Messenger(address _l1Messenger) public {
-        l1Messenger = _l1Messenger;
+    function setL1BridgeAddress(address _l1BridgeAddress) public {
+        l1BridgeAddress = _l1BridgeAddress;
     }
 
     function sendToMainnet(
@@ -74,8 +74,8 @@ contract L2_Bridge is ERC20, Bridge {
 
         bytes memory setTransferRootMessage = abi.encodeWithSignature("setTransferRoot(bytes32,uint256)", root, _pendingAmount);
 
-        messenger.sendMessage(
-            l1Messenger,
+        canonicalBridge.sendMessage(
+            l1BridgeAddress,
             setTransferRootMessage,
             200000
         );

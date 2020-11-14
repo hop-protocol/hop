@@ -29,7 +29,7 @@ contract mockOVM_CrossDomainMessenger is OVM_BaseCrossDomainMessenger {
      **********************/
 
     ReceivedMessage[] internal fullReceivedMessages;
-    address internal targetMessengerAddress;
+    address internal targetCanonicalBridgeAddress;
     uint256 internal lastRelayedMessage;
     uint256 internal delay;
 
@@ -55,22 +55,22 @@ contract mockOVM_CrossDomainMessenger is OVM_BaseCrossDomainMessenger {
      ********************/
 
     /**
-     * Sets the target messenger address.
+     * Sets the target bridge address.
      * @dev Currently, this function is public and therefore allows anyone to modify the target
-     *      messenger for a given xdomain messenger contract. Obviously this shouldn't be allowed,
+     *      bridge for a given xdomain bridge contract. Obviously this shouldn't be allowed,
      *      but we still need to determine an adequate mechanism for updating this address.
-     * @param _targetMessengerAddress New messenger address.
+     * @param _targetCanonicalBridgeAddress New bridge address.
      */
-    function setTargetMessengerAddress(
-        address _targetMessengerAddress
+    function setTargetCanonicalBridgeAddress(
+        address _targetCanonicalBridgeAddress
     )
         public
     {
-        targetMessengerAddress = _targetMessengerAddress;
+        targetCanonicalBridgeAddress = _targetCanonicalBridgeAddress;
     }
 
     /**
-     * Sends a message to another mock xdomain messenger.
+     * Sends a message to another mock xdomain bridge.
      * @param _target Target for the message.
      * @param _message Message to send.
      * @param _gasLimit Amount of gas to send with the call.
@@ -82,12 +82,12 @@ contract mockOVM_CrossDomainMessenger is OVM_BaseCrossDomainMessenger {
     )
         public
     {
-        mockOVM_CrossDomainMessenger targetMessenger = mockOVM_CrossDomainMessenger(
-            targetMessengerAddress
+        mockOVM_CrossDomainMessenger targetCanonicalBridge = mockOVM_CrossDomainMessenger(
+            targetCanonicalBridgeAddress
         );
 
         // Just send it over!
-        targetMessenger.receiveMessage(ReceivedMessage({
+        targetCanonicalBridge.receiveMessage(ReceivedMessage({
             timestamp: block.timestamp,
             target: _target,
             sender: msg.sender,

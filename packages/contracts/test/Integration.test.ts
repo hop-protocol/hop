@@ -7,7 +7,7 @@
 
 // const USER_INITIAL_BALANCE = BigNumber.from('100')
 // const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
-// const AMOUNT = BigNumber.from('123')
+// // const AMOUNT = BigNumber.from('123')
 
 // describe("Full story", () => {
 //   let accounts: Signer[]
@@ -161,11 +161,12 @@
 //     const transfer = new Transfer({
 //       amount: BigNumber.from('99'),
 //       nonce: 0,
-//       sender: await user.getAddress()
+//       recipient: await user.getAddress(),
+//       relayerFee: BigNumber.from('0')
 //     })
 
 //     // User moves funds back to L1 across the liquidity bridge
-//     await l2_bridge.connect(user).sendToMainnet(transfer.sender, transfer.amount, transfer.nonce)
+//     await l2_bridge.connect(user).sendToMainnet(transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee)
 //     await l2_bridge.commitTransfers()
 //     await l1_messenger.relayNextMessage()
 

@@ -6,10 +6,10 @@ import "./mockOVM_CrossDomainMessenger.sol";
 
 contract L2_OVMTokenBridge is ERC20 {
     address l1BridgeAddress;
-    mockOVM_CrossDomainMessenger messenger;
+    mockOVM_CrossDomainMessenger canonicalBridge;
 
-    constructor(mockOVM_CrossDomainMessenger _messenger) public ERC20('OVM DAI', "ODAI") {
-        messenger = _messenger;
+    constructor(mockOVM_CrossDomainMessenger _canonicalBridge) public ERC20('OVM DAI', "ODAI") {
+        canonicalBridge = _canonicalBridge;
     }
 
     function setCrossDomainBridgeAddress(address _l1BridgeAddress) public {
@@ -25,7 +25,7 @@ contract L2_OVMTokenBridge is ERC20 {
             _amount
         );
 
-        messenger.sendMessage(
+        canonicalBridge.sendMessage(
             l1BridgeAddress,
             l1TransferMessage,
             200000

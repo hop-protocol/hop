@@ -1,5 +1,5 @@
-import { expect } from 'chai'
 import '@nomiclabs/hardhat-waffle'
+import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { BigNumber, BigNumberish, ContractFactory, Signer, Contract } from 'ethers'
 import MerkleTree from '../lib/MerkleTree'
@@ -16,6 +16,7 @@ describe("Full story", () => {
   let liquidityProvider: Signer
   let relayer: Signer
   let committee: Signer
+  let challenger: Signer
 
   // Factories
   let L1_Bridge: ContractFactory
@@ -46,6 +47,7 @@ describe("Full story", () => {
     liquidityProvider = accounts[1]
     relayer = accounts[2]
     committee = accounts[3]
+    challenger = accounts[4]
 
     L1_Bridge = await ethers.getContractFactory('contracts/L1_Bridge.sol:L1_Bridge')
     L2_Bridge = await ethers.getContractFactory('contracts/L2_Bridge.sol:L2_Bridge')
@@ -91,6 +93,7 @@ describe("Full story", () => {
     await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
     await l1_poolToken.mint(await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l1_poolToken.mint(await committee.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_poolToken.mint(await challenger.getAddress(), BigNumber.from('10'))
   })
 
   it('Should complete the full story', async () => {
@@ -173,7 +176,6 @@ describe("Full story", () => {
     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
-    await l1_bridge.setTransferRoot(transfersCommittedEvent.args.root, transfer.amount.add(transfer.relayerFee))
     await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, transfer.amount.add(transfer.relayerFee))
 
     // User withdraws from L1 bridge
@@ -261,6 +263,49 @@ describe("Full story", () => {
     expectedUserSFDaiBalanceAfterSwap = BigNumber.from('100')
     await expectBalanceOf(l2_bridge, user, expectedUserSFDaiBalanceAfterSwap)
     await expectBalanceOf(l2_ovmBridge, user, expectedUserODaiBalanceAfterSwap)
+  })
+
+  it('Should not allow a transfer root that exceeds the committee bond', async () => {
+    const transfer = new Transfer({
+      recipient: await user.getAddress(),
+      amount: BigNumber.from('98'),
+      nonce: 0,
+      relayerFee: RELAYER_FEE
+    })
+
+    // User withdraws from L1 bridge
+    const tree = new MerkleTree([ transfer.getTransferHash() ])
+
+    await l1_poolToken.connect(committee).approve(l1_bridge.address, '1')
+    await l1_bridge.connect(committee).committeeStake('1')
+
+    await expect(
+      l1_bridge.bondTransferRoot(tree.getRoot(), transfer.amount.add(transfer.relayerFee))
+    ).to.be.reverted
+  })
+
+  it('Should successfully challenge a malicious transfer root', async () => {
+    const transfer = new Transfer({
+      recipient: await user.getAddress(),
+      amount: BigNumber.from('100'),
+      nonce: 0,
+      relayerFee: BigNumber.from('0')
+    })
+
+    // User withdraws from L1 bridge
+    const tree = new MerkleTree([ transfer.getTransferHash() ])
+
+    await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+
+    await l1_bridge.bondTransferRoot(tree.getRoot(), transfer.amount.add(transfer.relayerFee))
+
+    await l1_poolToken.connect(challenger).approve(l1_bridge.address, BigNumber.from('10'))
+    await l1_bridge.connect(challenger).challengeTransferRoot(tree.getRoot())
+
+    await ethers.provider.send("evm_increaseTime", [60 * 60 * 24 * 9]) // 9 days
+
+    await l1_bridge.connect(challenger).resolveChallenge(tree.getRoot())
   })
 
   const expectBalanceOf = async (token: Contract, account: Signer | Contract, expectedBalance: BigNumberish) => {

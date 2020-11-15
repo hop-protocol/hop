@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
+import LargeTextField from '../components/LargeTextField'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -30,9 +31,9 @@ const AmountSelectorCard: FC<Props> = () => {
         </Typography>
       </Box>
       <Box display="flex" flexDirection="row" justifyContent="flex-end">
-        <Typography variant="h4">
+        <LargeTextField placeholder="0.0">
           0.0 ETH
-        </Typography>
+        </LargeTextField>
       </Box>
     </Card>
   )

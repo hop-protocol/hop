@@ -4,6 +4,7 @@ import Box from '@material-ui/core/Box'
 import Card from '@material-ui/core/Card'
 import Typography from '@material-ui/core/Typography'
 import Button from '../components/buttons/Button'
+import LargeTextField from '../components/LargeTextField'
 import SendIcon from '@material-ui/icons/Send'
 import RaisedSelect from '../components/selects/RaisedSelect'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -46,6 +47,12 @@ const Components: FC = () => {
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <div className={styles.container}>
+        <Section title="Text Fields">
+          <LargeTextField
+            placeholder="Text Field"
+          />
+        </Section>
+
         <Section title="Cards">
           <Typography variant="h6">
             You're looking at one

@@ -26,7 +26,8 @@ contract L2_Bridge is ERC20, Bridge {
         uint256 amount
     );
 
-    constructor (string memory name, string memory symbol) public ERC20(name, symbol) {
+    constructor (mockOVM_CrossDomainMessenger _canonicalBridge) public ERC20("DAI Liquidity Pool Token", "LDAI") {
+        canonicalBridge = _canonicalBridge;
     }
 
     function setExchangeValues(
@@ -81,9 +82,6 @@ contract L2_Bridge is ERC20, Bridge {
     function commitTransfersPostHook(bytes32 _root, uint256 _pendingAmount) internal {
         emit TransfersCommitted(_root, _pendingAmount);
     }
-
-    // relayer 
-    // function commitTransfers() public {} // to be overridden
 
     // onlyCrossDomainBridge
     function mint(address _recipient, uint256 _amount) public {

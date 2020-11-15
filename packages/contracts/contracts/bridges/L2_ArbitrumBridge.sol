@@ -2,11 +2,9 @@ pragma solidity 0.6.12;
 
 import "./L2_Bridge.sol";
 
-contract L2_ArbitrumBridge is ERC20, L2_Bridge {
+contract L2_ArbitrumBridge is L2_Bridge {
 
-    constructor (mockOVM_CrossDomainMessenger _canonicalBridge) public L2_Bridge("DAI Liquidity Pool Token", "LDAI") {
-        canonicalBridge = _canonicalBridge;
-    }
+    constructor (mockOVM_CrossDomainMessenger _canonicalBridge) public L2_Bridge(_canonicalBridge) {}
 
     function commitTransfers() public {
         (bytes32 root, uint256 pendingAmount, bytes memory setTransferRootMessage) = commitTransfersPreHook();

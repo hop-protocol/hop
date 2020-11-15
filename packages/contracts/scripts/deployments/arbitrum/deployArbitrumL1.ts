@@ -16,7 +16,7 @@ async function deployArbitrum () {
 
   // Get the contract Factories
   MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
-  L1_Bridge = await ethers.getContractFactory('contracts/L1_Bridge.sol:L1_Bridge')
+  L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
   L1_BridgeWrapper = await ethers.getContractFactory('contracts/wrappers/Arbitrum.sol:Arbitrum')
 
   const DAI_ADDRESS = '0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9'

@@ -7,9 +7,9 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import "./Bridge.sol";
+import "../Bridge.sol";
 
-import "./libraries/MerkleUtils.sol";
+import "../libraries/MerkleUtils.sol";
 
 contract L1_Bridge is Bridge {
     using SafeMath for uint256;

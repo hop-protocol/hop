@@ -42,8 +42,8 @@
 //     accounts = await ethers.getSigners()
 //     user = accounts[0]
 //     liquidityProvider = accounts[1]
-//     L1_Bridge = await ethers.getContractFactory('contracts/L1_Bridge.sol:L1_Bridge')
-//     L2_Bridge = await ethers.getContractFactory('contracts/L2_Bridge.sol:L2_Bridge')
+//     L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
+//     L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_Bridge.sol:L2_Bridge')
 //     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
 //     CrossDomainMessenger = await ethers.getContractFactory('contracts/test/mockOVM_CrossDomainMessenger.sol:mockOVM_CrossDomainMessenger')
 //     L1_OVMTokenBridge = await ethers.getContractFactory('contracts/test/L1_OVMTokenBridge.sol:L1_OVMTokenBridge')

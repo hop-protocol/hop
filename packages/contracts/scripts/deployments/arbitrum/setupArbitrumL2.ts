@@ -22,8 +22,8 @@ async function deployArbitrum () {
 
   // Get the contract Factories
   // MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
-  L1_Bridge = await ethers.getContractFactory('contracts/L1_Bridge.sol:L1_Bridge')
-  L2_Bridge = await ethers.getContractFactory('contracts/L2_Bridge.sol:L2_Bridge')
+  L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
+  L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_Bridge.sol:L2_Bridge')
   // UniswapRouter = await ethers.getContractFactory('contracts/uniswap/UniswapV2Router02.sol:UniswapV2Router02')
 
   /**

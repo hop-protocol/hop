@@ -4,9 +4,9 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./Bridge.sol";
-import "./test/mockOVM_CrossDomainMessenger.sol";
+import "../test/mockOVM_CrossDomainMessenger.sol";
 
-import "./libraries/MerkleUtils.sol";
+import "../libraries/MerkleUtils.sol";
 
 contract L2_Bridge is ERC20, Bridge {
     using SafeMath for uint256;

@@ -40,7 +40,7 @@ async function deployArbitrum () {
   L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
   L1_BridgeWrapper = await ethers.getContractFactory('contracts/wrappers/Arbitrum.sol:Arbitrum')
   GlobalInbox = await ethers.getContractFactory('contracts/test/arbitrum/inbox/GlobalInbox.sol:GlobalInbox')
-  L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_Bridge.sol:L2_Bridge')
+  L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_ArbitrumBridge.sol:L2_ArbitrumBridge')
 
   /**
    * Deployments

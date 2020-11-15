@@ -43,7 +43,7 @@ describe("Full story", () => {
 
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
     L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
-    L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_Bridge.sol:L2_Bridge')
+    L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_ArbitrumBridge.sol:L2_ArbitrumBridge')
     L1_BridgeWrapper = await ethers.getContractFactory('contracts/wrappers/Arbitrum.sol:Arbitrum')
     MockCanonicalBridge = await ethers.getContractFactory('contracts/test/MockCanonicalBridge.sol:MockCanonicalBridge')
     UniswapRouter = await ethers.getContractFactory('contracts/uniswap/UniswapV2Router02.sol:UniswapV2Router02')

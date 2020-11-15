@@ -24,7 +24,7 @@ async function deployArbitrum () {
   user = accounts[0]
 
   // Get the contract Factories
-  L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_Bridge.sol:L2_Bridge')
+  L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_ArbitrumBridge.sol:L2_ArbitrumBridge')
   UniswapRouter = await ethers.getContractFactory('contracts/uniswap/UniswapV2Router02.sol:UniswapV2Router02')
   UniswapFactory = await ethers.getContractFactory('@uniswap/v2-core/contracts/UniswapV2Factory.sol:UniswapV2Factory')
 

@@ -26,8 +26,7 @@ contract L2_Bridge is ERC20, Bridge {
         uint256 amount
     );
 
-    constructor (mockOVM_CrossDomainMessenger _canonicalBridge) public ERC20("DAI Liquidity Pool Token", "LDAI") {
-        canonicalBridge = _canonicalBridge;
+    constructor (string memory name, string memory symbol) public ERC20(name, symbol) {
     }
 
     function setExchangeValues(
@@ -63,8 +62,7 @@ contract L2_Bridge is ERC20, Bridge {
         pendingAmount = pendingAmount.add(totalAmount);
     }
 
-    // relayer 
-    function commitTransfers() public {
+    function commitTransfersPreHook() internal returns (bytes32, uint256, bytes memory) {
         bytes32[] memory _pendingTransfers = pendingTransfers;
         bytes32 root = MerkleUtils.getMerkleRoot(_pendingTransfers);
         uint256 _pendingAmount = pendingAmount;
@@ -73,15 +71,19 @@ contract L2_Bridge is ERC20, Bridge {
         pendingAmount = 0;
 
         bytes memory setTransferRootMessage = abi.encodeWithSignature("setTransferRoot(bytes32,uint256)", root, _pendingAmount);
-
-        canonicalBridge.sendMessage(
-            l1BridgeAddress,
-            setTransferRootMessage,
-            200000
+        return (
+            root,
+            _pendingAmount,
+            setTransferRootMessage
         );
-
-        emit TransfersCommitted(root, _pendingAmount);
     }
+
+    function commitTransfersPostHook(bytes32 _root, uint256 _pendingAmount) internal {
+        emit TransfersCommitted(_root, _pendingAmount);
+    }
+
+    // relayer 
+    // function commitTransfers() public {} // to be overridden
 
     // onlyCrossDomainBridge
     function mint(address _recipient, uint256 _amount) public {

@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import "../Bridge.sol";
+import "./Bridge.sol";
 
 import "../libraries/MerkleUtils.sol";
 

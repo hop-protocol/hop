@@ -55,7 +55,7 @@ contract L1_Bridge is Bridge {
         token = _token;
     }
 
-    function setL1CanonicalBridgeWrapper(bytes32 _canonicalBridgeId, address _l1CanonicalBridge) public {
+    function setL1BridgeWrapper(bytes32 _canonicalBridgeId, address _l1CanonicalBridge) public {
         l1CanonicalBridge[_canonicalBridgeId] = _l1CanonicalBridge;
     }
 
@@ -71,7 +71,7 @@ contract L1_Bridge is Bridge {
         public
     {
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
-        bytes memory sendMessageCalldata = abi.encodeWithSignature("sendToL2(bytes)", mintCalldata);
+        bytes memory sendMessageCalldata = abi.encodeWithSignature("sendMessageToL2(bytes)", mintCalldata);
 
         l1CanonicalBridge[_canonicalBridgeId].call(sendMessageCalldata);
         token.safeTransferFrom(msg.sender, address(this), _amount);
@@ -91,7 +91,7 @@ contract L1_Bridge is Bridge {
             _amount,
             _amountOutMin
         );
-        bytes memory sendMessageCalldata = abi.encodeWithSignature("sendToL2(bytes)", mintAndAttemptSwapCalldata);
+        bytes memory sendMessageCalldata = abi.encodeWithSignature("sendMessageToL2(bytes)", mintAndAttemptSwapCalldata);
 
         l1CanonicalBridge[_canonicalBridgeId].call(sendMessageCalldata);
         token.safeTransferFrom(msg.sender, address(this), _amount);

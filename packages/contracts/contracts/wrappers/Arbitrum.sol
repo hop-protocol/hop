@@ -41,7 +41,7 @@ contract Arbitrum {
         defaultSubMessageType = _defaultSubMessageType;
     }
 
-    function sendToL2(bytes memory _calldata) public {
+    function sendMessageToL2(bytes memory _calldata) public {
         bytes memory subMessageWithoutData = abi.encode(
             defaultGasLimit,
             defaultGasPrice,

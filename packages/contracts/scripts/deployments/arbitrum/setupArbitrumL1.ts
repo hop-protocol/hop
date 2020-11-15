@@ -47,12 +47,13 @@ async function deployArbitrum () {
    */
 
   // Connect Contracts
-  l1_bridgeWrapper = L1_BridgeWrapper.attach('0xaE254AC0EA0aA32bBdEb207C1F58e1bA98F0cF26')
   l1_arbitrumBridge = GlobalInbox.attach('0xE681857DEfE8b454244e701BA63EfAa078d7eA85')
-  l1_bridge = L1_Bridge.attach('0x1652a11C406d6Ea407967370B492f85BeCE96c29')
   l1_poolToken = MockERC20.attach('0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9')
 
-  l2_bridge = L2_Bridge.attach('0xFbf9AB2A295a7c6f01f667C4fd326Df20bEa30e3')
+  l1_bridge = L1_Bridge.attach('0xC9898E162b6a43dc665B033F1EF6b2bc7B0157B4')
+  l1_bridgeWrapper = L1_BridgeWrapper.attach('0xb5cAC377180fcE007664Cc65ff044d685e0F1A3b')
+
+  l2_bridge = L2_Bridge.attach('0xf8E96392b1Ba3B2FD88041894a93e089E93C0dcd')
 
   // Initialize bridge wrapper
   const l2Name = L2_NAMES.ARBITRUM

@@ -21,7 +21,7 @@ contract Optimism {
         defaultGasLimit = _defaultGasLimit;
     }
 
-    function sendToL2(bytes memory _calldata) public {
+    function sendMessageToL2(bytes memory _calldata) public {
         l1CanonicalBridgeBridgeAddress.sendMessage(
             l2BridgeAddress,
             _calldata,

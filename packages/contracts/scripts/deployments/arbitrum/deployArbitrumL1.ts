@@ -31,7 +31,6 @@ async function deployArbitrum () {
   l1_bridgeWrapper = await L1_BridgeWrapper.deploy()
   await l1_bridgeWrapper.deployed()
 
-  console.log('L1 Pool Token       :', l1_poolToken.address)
   console.log('L1 Bridge           :', l1_bridge.address)
   console.log('L1 Bridge Wrapper   :', l1_bridgeWrapper.address)
 }

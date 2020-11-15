@@ -70,7 +70,7 @@ describe("Full story", () => {
 
     // Set up bridges
     canonicalBridgeId = getL2CanonicalBridgeId('arbitrum')
-    await l1_bridge.setL1CanonicalBridgeWrapper(canonicalBridgeId, l1_bridgeWrapper.address)
+    await l1_bridge.setL1BridgeWrapper(canonicalBridgeId, l1_bridgeWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
     await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, weth.address)
 

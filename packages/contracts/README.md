@@ -18,7 +18,7 @@ const contracts = require('contracts');
 
 _Pre Deployed_
 * L1 DAI (Pool Token): `0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`
-* L1 Canonical Bridge: `0xE681857DEfE8b454244e701BA63EfAa078d7eA85`
+* L1 Messenger: `0xE681857DEfE8b454244e701BA63EfAa078d7eA85`
 
 _Bridge System_
 * L1 Bridge: `0xC9898E162b6a43dc665B033F1EF6b2bc7B0157B4`
@@ -29,7 +29,7 @@ _Bridge System_
 
 _Pre Deployed_
 * L2 DAI (oDAI): `0x7d669a64deb8a4a51eea755bb0e19fd39ce25ae9`
-* L2 Canonical Bridge: `0x0000000000000000000000000000000000000064`
+* L2 Messenger: `0x0000000000000000000000000000000000000064`
 
 _Bridge System_
 * L2 Bridge: `0xf8E96392b1Ba3B2FD88041894a93e089E93C0dcd`

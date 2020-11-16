@@ -12,7 +12,7 @@ contract L2_Bridge is ERC20, Bridge {
     using SafeMath for uint256;
     using MerkleProof for bytes32[];
 
-    mockOVM_CrossDomainMessenger public canonicalBridge;
+    mockOVM_CrossDomainMessenger public messenger;
     address   public l1BridgeAddress;
     bytes32[] public pendingTransfers;
     uint256   public pendingAmount;
@@ -26,8 +26,8 @@ contract L2_Bridge is ERC20, Bridge {
         uint256 amount
     );
 
-    constructor (mockOVM_CrossDomainMessenger _canonicalBridge) public ERC20("DAI Liquidity Pool Token", "LDAI") {
-        canonicalBridge = _canonicalBridge;
+    constructor (mockOVM_CrossDomainMessenger _messenger) public ERC20("DAI Liquidity Pool Token", "LDAI") {
+        messenger = _messenger;
     }
 
     function setExchangeValues(

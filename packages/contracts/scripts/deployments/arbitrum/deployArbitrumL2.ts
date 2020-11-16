@@ -39,8 +39,8 @@ async function deployArbitrum () {
   await l2_uniswapRouter.deployed()
 
   // Deploy contracts
-  const l2_canonicalBridgeAddress = '0x0000000000000000000000000000000000000064'
-  l2_bridge = await L2_Bridge.deploy(l2_canonicalBridgeAddress)
+  const l2_messengerAddress = '0x0000000000000000000000000000000000000064'
+  l2_bridge = await L2_Bridge.deploy(l2_messengerAddress)
   await l2_bridge.deployed()
 
   console.log('L2 Bridge           :', l2_bridge.address)

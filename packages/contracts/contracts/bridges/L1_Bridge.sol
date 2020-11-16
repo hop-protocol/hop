@@ -36,7 +36,7 @@ contract L1_Bridge is Bridge {
 
     IERC20 token;
 
-    mapping(bytes32 => address) public l1CanonicalBridge;
+    mapping(bytes32 => address) public l1Messenger;
 
     address public committee;
     uint256 public committeeBond;
@@ -55,16 +55,16 @@ contract L1_Bridge is Bridge {
         token = _token;
     }
 
-    function setL1BridgeWrapper(bytes32 _canonicalBridgeId, address _l1CanonicalBridge) public {
-        l1CanonicalBridge[_canonicalBridgeId] = _l1CanonicalBridge;
+    function setL1MessengerWrapper(bytes32 _messengerId, address _l1Messenger) public {
+        l1Messenger[_messengerId] = _l1Messenger;
     }
 
-    function getCanonicalBridgeId(string calldata _canonicalBridgeLabel) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_canonicalBridgeLabel));
+    function getMessengerId(string calldata _messengerLabel) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_messengerLabel));
     }
 
     function sendToL2(
-        bytes32 _canonicalBridgeId,
+        bytes32 _messengerId,
         address _recipient,
         uint256 _amount
     )
@@ -73,12 +73,12 @@ contract L1_Bridge is Bridge {
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
         bytes memory sendMessageCalldata = abi.encodeWithSignature("sendMessageToL2(bytes)", mintCalldata);
 
-        l1CanonicalBridge[_canonicalBridgeId].call(sendMessageCalldata);
+        l1Messenger[_messengerId].call(sendMessageCalldata);
         token.safeTransferFrom(msg.sender, address(this), _amount);
     }
 
     function sendToL2AndAttemptSwap(
-        bytes32 _canonicalBridgeId,
+        bytes32 _messengerId,
         address _recipient,
         uint256 _amount,
         uint256 _amountOutMin
@@ -93,7 +93,7 @@ contract L1_Bridge is Bridge {
         );
         bytes memory sendMessageCalldata = abi.encodeWithSignature("sendMessageToL2(bytes)", mintAndAttemptSwapCalldata);
 
-        l1CanonicalBridge[_canonicalBridgeId].call(sendMessageCalldata);
+        l1Messenger[_messengerId].call(sendMessageCalldata);
         token.safeTransferFrom(msg.sender, address(this), _amount);
     }
 

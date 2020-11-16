@@ -8,12 +8,12 @@ import "./L2_OVMTokenBridge.sol";
 contract L1_OVMTokenBridge {
     using SafeERC20 for IERC20;
 
-    IERC20 token;
-    mockOVM_CrossDomainMessenger canonicalBridge;
-    address l2BridgeAddress;
+    IERC20 public token;
+    mockOVM_CrossDomainMessenger public messenger;
+    address public l2BridgeAddress;
 
-    constructor(mockOVM_CrossDomainMessenger _canonicalBridge, IERC20 _token) public {
-        canonicalBridge = _canonicalBridge;
+    constructor(mockOVM_CrossDomainMessenger _messenger, IERC20 _token) public {
+        messenger = _messenger;
         token = _token;
     }
 
@@ -30,7 +30,7 @@ contract L1_OVMTokenBridge {
             _amount
         );
 
-        canonicalBridge.sendMessage(
+        messenger.sendMessage(
             l2BridgeAddress,
             l2TransferMessage,
             200000

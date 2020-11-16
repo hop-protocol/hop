@@ -29,7 +29,7 @@ contract mockOVM_CrossDomainMessenger is OVM_BaseCrossDomainMessenger {
      **********************/
 
     ReceivedMessage[] public fullReceivedMessages;
-    address public targetCanonicalBridgeAddress;
+    address public targetMessengerAddress;
     uint256 public lastRelayedMessage;
     uint256 public delay;
 
@@ -57,16 +57,16 @@ contract mockOVM_CrossDomainMessenger is OVM_BaseCrossDomainMessenger {
     /**
      * Sets the target bridge address.
      * @dev Currently, this function is public and therefore allows anyone to modify the target
-     *      bridge for a given xdomain bridge contract. Obviously this shouldn't be allowed,
+     *      messenger for a given xdomain messenger contract. Obviously this shouldn't be allowed,
      *      but we still need to determine an adequate mechanism for updating this address.
-     * @param _targetCanonicalBridgeAddress New bridge address.
+     * @param _targetMessengerAddress New messenger address.
      */
-    function setTargetCanonicalBridgeAddress(
-        address _targetCanonicalBridgeAddress
+    function setTargetMessengerAddress(
+        address _targetMessengerAddress
     )
         public
     {
-        targetCanonicalBridgeAddress = _targetCanonicalBridgeAddress;
+        targetMessengerAddress = _targetMessengerAddress;
     }
 
     /**
@@ -82,12 +82,12 @@ contract mockOVM_CrossDomainMessenger is OVM_BaseCrossDomainMessenger {
     )
         public
     {
-        mockOVM_CrossDomainMessenger targetCanonicalBridge = mockOVM_CrossDomainMessenger(
-            targetCanonicalBridgeAddress
+        mockOVM_CrossDomainMessenger targetMessenger = mockOVM_CrossDomainMessenger(
+            targetMessengerAddress
         );
 
         // Just send it over!
-        targetCanonicalBridge.receiveMessage(ReceivedMessage({
+        targetMessenger.receiveMessage(ReceivedMessage({
             timestamp: block.timestamp,
             target: _target,
             sender: msg.sender,

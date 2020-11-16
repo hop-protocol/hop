@@ -5,12 +5,12 @@ import "../test/mockOVM_CrossDomainMessenger.sol";
 
 contract Optimism {
 
-    mockOVM_CrossDomainMessenger public l1CanonicalBridgeBridgeAddress;
+    mockOVM_CrossDomainMessenger public l1MessengerAddress;
     address public l2BridgeAddress;
     uint256 public defaultGasLimit;
 
-    function setL1CanonicalBridgeAddress(mockOVM_CrossDomainMessenger _l1CanonicalBridgeBridgeAddress) public {
-        l1CanonicalBridgeBridgeAddress = _l1CanonicalBridgeBridgeAddress;
+    function setL1MessengerAddress(mockOVM_CrossDomainMessenger _l1MessengerAddress) public {
+        l1MessengerAddress = _l1MessengerAddress;
     }
 
     function setL2BridgeAddress(address _l2BridgeAddress) public {
@@ -22,7 +22,7 @@ contract Optimism {
     }
 
     function sendMessageToL2(bytes memory _calldata) public {
-        l1CanonicalBridgeBridgeAddress.sendMessage(
+        l1MessengerAddress.sendMessage(
             l2BridgeAddress,
             _calldata,
             uint32(defaultGasLimit)

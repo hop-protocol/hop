@@ -5,7 +5,7 @@ import { BigNumber, BigNumberish, ContractFactory, Signer, Contract } from 'ethe
 import MerkleTree from '../lib/MerkleTree'
 import Transfer from '../lib/Transfer'
 
-import { getL2CanonicalBridgeId, setBridgeWrapperDefaults } from './utils'
+import { getL2MessengerId, setMessengerWrapperDefaults } from './utils'
 import { L2_NAMES } from './constants'
 
 const USER_INITIAL_BALANCE = BigNumber.from('100')
@@ -17,7 +17,7 @@ describe("Full story", () => {
   let accounts: Signer[]
   let user: Signer
   let liquidityProvider: Signer
-  let canonicalBridgeId: string
+  let messengerId: string
   let committee: Signer
   let challenger: Signer
 
@@ -25,7 +25,7 @@ describe("Full story", () => {
   let L1_Bridge: ContractFactory
   let L2_Bridge: ContractFactory
   let MockERC20: ContractFactory
-  let L1_BridgeWrapper: ContractFactory
+  let L1_MessengerWrapper: ContractFactory
   let CrossDomainMessenger: ContractFactory
   let L1_OVMTokenBridge: ContractFactory
   let L2_OVMTokenBridge: ContractFactory
@@ -35,14 +35,14 @@ describe("Full story", () => {
   // L1
   let l1_poolToken: Contract
   let l1_bridge: Contract
-  let l1_bridgeWrapper: Contract
-  let l1_canonicalBridge: Contract
+  let l1_messengerWrapper: Contract
+  let l1_messenger: Contract
   let l1_ovmBridge: Contract
   
   // L2
   let l2_bridge: Contract
   let l2_ovmBridge: Contract
-  let l2_canonicalBridge: Contract
+  let l2_messenger: Contract
   let l2_uniswapFactory: Contract
   let l2_uniswapRouter: Contract
 
@@ -53,7 +53,7 @@ describe("Full story", () => {
     committee = accounts[3]
     challenger = accounts[4]
 
-    L1_BridgeWrapper = await ethers.getContractFactory('contracts/wrappers/Optimism.sol:Optimism')
+    L1_MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/Optimism.sol:Optimism')
     L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
     L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_OptimismBridge.sol:L2_OptimismBridge')
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
@@ -68,19 +68,19 @@ describe("Full story", () => {
   beforeEach(async () => {
     // Deploy  L1 contracts
     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
-    l1_canonicalBridge = await CrossDomainMessenger.deploy(0)
+    l1_messenger = await CrossDomainMessenger.deploy(0)
     l1_bridge = await L1_Bridge.deploy(l1_poolToken.address)
-    l1_ovmBridge = await L1_OVMTokenBridge.deploy(l1_canonicalBridge.address, l1_poolToken.address)
-    l1_bridgeWrapper = await L1_BridgeWrapper.deploy()
+    l1_ovmBridge = await L1_OVMTokenBridge.deploy(l1_messenger.address, l1_poolToken.address)
+    l1_messengerWrapper = await L1_MessengerWrapper.deploy()
 
     // Deploy  L2 contracts
-    l2_canonicalBridge = await CrossDomainMessenger.deploy(0)
-    l2_bridge = await L2_Bridge.deploy(l2_canonicalBridge.address)
-    l2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_canonicalBridge.address)
+    l2_messenger = await CrossDomainMessenger.deploy(0)
+    l2_bridge = await L2_Bridge.deploy(l2_messenger.address)
+    l2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_messenger.address)
 
     // Initialize bridge wrapper
     const l2Name = L2_NAMES.OPTIMISM
-    await setBridgeWrapperDefaults(l2Name, l1_bridgeWrapper, l1_canonicalBridge.address, l2_bridge.address)
+    await setMessengerWrapperDefaults(l2Name, l1_messengerWrapper, l1_messenger.address, l2_bridge.address)
 
     // Uniswap
     l2_uniswapFactory = await UniswapFactory.deploy(await user.getAddress())
@@ -88,16 +88,16 @@ describe("Full story", () => {
     l2_uniswapRouter = await UniswapRouter.deploy(l2_uniswapFactory.address, weth.address)//'0x0000000000000000000000000000000000000000')
 
     // Set up Cross Domain Messengers
-    await l1_canonicalBridge.setTargetCanonicalBridgeAddress(l2_canonicalBridge.address)
-    await l2_canonicalBridge.setTargetCanonicalBridgeAddress(l1_canonicalBridge.address)
+    await l1_messenger.setTargetMessengerAddress(l2_messenger.address)
+    await l2_messenger.setTargetMessengerAddress(l1_messenger.address)
 
     // Set up OVM bridges
     l1_ovmBridge.setCrossDomainBridgeAddress(l2_ovmBridge.address)
     l2_ovmBridge.setCrossDomainBridgeAddress(l1_ovmBridge.address)
 
     // Set up liquidity bridge
-    canonicalBridgeId = getL2CanonicalBridgeId('optimism')
-    await l1_bridge.setL1BridgeWrapper(canonicalBridgeId, l1_bridgeWrapper.address)
+    messengerId = getL2MessengerId('optimism')
+    await l1_bridge.setL1MessengerWrapper(messengerId, l1_messengerWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
     await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, weth.address)
 
@@ -113,16 +113,16 @@ describe("Full story", () => {
      * Liquidity provider adds liquidity
      */
 
-    // liquidityProvider moves funds across the canonical bridge
+    // liquidityProvider moves funds across the messenger
     await l1_poolToken.connect(liquidityProvider).approve(l1_ovmBridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
     await l1_ovmBridge.connect(liquidityProvider).xDomainTransfer(await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
-    await l2_canonicalBridge.relayNextMessage()
+    await l2_messenger.relayNextMessage()
     await expectBalanceOf(l2_ovmBridge, liquidityProvider, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
 
     // liquidityProvider moves funds across the liquidity bridge
     await l1_poolToken.connect(liquidityProvider).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
-    await l1_bridge.connect(liquidityProvider).sendToL2(canonicalBridgeId, await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
-    await l2_canonicalBridge.relayNextMessage()
+    await l1_bridge.connect(liquidityProvider).sendToL2(messengerId, await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l2_messenger.relayNextMessage()
     await expectBalanceOf(l2_bridge, liquidityProvider, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
 
     // liquidityProvider adds liquidity to the pool on L2
@@ -148,13 +148,13 @@ describe("Full story", () => {
     await expectBalanceOf(l2_bridge, uniswapPair, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
 
     /**
-     * User moves funds from L1 to L2 on the canonical bridge and back to L1 on the liquidity bridge
+     * User moves funds from L1 to L2 on the messenger and back to L1 on the liquidity bridge
      */
 
-    // User moves funds across the canonical bridge
+    // User moves funds across the messenger
     await l1_poolToken.connect(user).approve(l1_ovmBridge.address, USER_INITIAL_BALANCE)
     await l1_ovmBridge.connect(user).xDomainTransfer(await user.getAddress(), USER_INITIAL_BALANCE)
-    await l2_canonicalBridge.relayNextMessage()
+    await l2_messenger.relayNextMessage()
     await expectBalanceOf(l2_ovmBridge, user, USER_INITIAL_BALANCE)
 
     // User sells ovm token for bridge token
@@ -182,7 +182,7 @@ describe("Full story", () => {
     // User moves funds back to L1 across the liquidity bridge
     await l2_bridge.connect(user).sendToMainnet(transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee)
     await l2_bridge.commitTransfers()
-    await l1_canonicalBridge.relayNextMessage()
+    await l1_messenger.relayNextMessage()
 
     const transfersCommittedEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransfersCommitted()))[0]
 

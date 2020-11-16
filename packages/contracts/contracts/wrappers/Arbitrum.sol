@@ -11,10 +11,10 @@ contract Arbitrum {
     uint256 public defaultGasPrice;
     uint256 public defaultCallValue;
     byte  public defaultSubMessageType;
-    IGlobalInbox public l1CanonicalBridgeAddress;
+    IGlobalInbox public l1MessengerAddress;
 
-    function setL1CanonicalBridgeAddress(IGlobalInbox _l1CanonicalBridgeAddress) public {
-        l1CanonicalBridgeAddress = _l1CanonicalBridgeAddress;
+    function setL1MessengerAddress(IGlobalInbox _l1MessengerAddress) public {
+        l1MessengerAddress = _l1MessengerAddress;
     }
 
     function setArbChain(address _arbChain) public {
@@ -56,7 +56,7 @@ contract Arbitrum {
             defaultSubMessageType,
             subMessage
         );
-        l1CanonicalBridgeAddress.sendL2Message(
+        l1MessengerAddress.sendL2Message(
             arbChain,
             prefixedSubMessage
         );

@@ -71,7 +71,7 @@ contract L2_Bridge is ERC20, Bridge {
         delete pendingTransfers;
         pendingAmount = 0;
 
-        bytes memory setTransferRootMessage = abi.encodeWithSignature("setTransferRoot(bytes32,uint256)", root, _pendingAmount);
+        bytes memory setTransferRootMessage = abi.encodeWithSignature("confirmTransferRoot(bytes32,uint256)", root, _pendingAmount);
         return (
             root,
             _pendingAmount,

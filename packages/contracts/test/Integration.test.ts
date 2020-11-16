@@ -1,5 +1,5 @@
-import { expect } from 'chai'
 import '@nomiclabs/hardhat-waffle'
+import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { BigNumber, BigNumberish, ContractFactory, Signer, Contract } from 'ethers'
 import MerkleTree from '../lib/MerkleTree'
@@ -11,13 +11,15 @@ import { L2_NAMES } from './constants'
 const USER_INITIAL_BALANCE = BigNumber.from('100')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
 const SWAP_DEADLINE_BUFFER = BigNumber.from('3600')
+const RELAYER_FEE = BigNumber.from('1000000000000000000')
 
 describe("Full story", () => {
   let accounts: Signer[]
   let user: Signer
   let liquidityProvider: Signer
-  // let withdrawals: Withdrawal[]
   let canonicalBridgeId: string
+  let committee: Signer
+  let challenger: Signer
 
   // Factories
   let L1_Bridge: ContractFactory
@@ -48,6 +50,9 @@ describe("Full story", () => {
     accounts = await ethers.getSigners()
     user = accounts[0]
     liquidityProvider = accounts[1]
+    committee = accounts[3]
+    challenger = accounts[4]
+
     L1_BridgeWrapper = await ethers.getContractFactory('contracts/wrappers/Optimism.sol:Optimism')
     L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
     L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_OptimismBridge.sol:L2_OptimismBridge')
@@ -99,6 +104,8 @@ describe("Full story", () => {
     // Distribute poolToken
     await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
     await l1_poolToken.mint(await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_poolToken.mint(await committee.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_poolToken.mint(await challenger.getAddress(), BigNumber.from('10'))
   })
 
   it('Should complete the full story', async () => {
@@ -177,6 +184,13 @@ describe("Full story", () => {
     await l2_bridge.commitTransfers()
     await l1_canonicalBridge.relayNextMessage()
 
+    const transfersCommittedEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransfersCommitted()))[0]
+
+    await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+
+    await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, transfer.amount.add(transfer.relayerFee))
+
     // User withdraws from L1 bridge
     const tree = new MerkleTree([ transfer.getTransferHash() ])
     const proof = tree.getProof(transfer.getTransferHash())
@@ -190,6 +204,49 @@ describe("Full story", () => {
     )
 
     await expectBalanceOf(l1_poolToken, user, '99')
+  })
+
+  it('Should not allow a transfer root that exceeds the committee bond', async () => {
+    const transfer = new Transfer({
+      recipient: await user.getAddress(),
+      amount: BigNumber.from('98'),
+      nonce: 0,
+      relayerFee: RELAYER_FEE
+    })
+
+    // User withdraws from L1 bridge
+    const tree = new MerkleTree([ transfer.getTransferHash() ])
+
+    await l1_poolToken.connect(committee).approve(l1_bridge.address, '1')
+    await l1_bridge.connect(committee).committeeStake('1')
+
+    await expect(
+      l1_bridge.bondTransferRoot(tree.getRoot(), transfer.amount.add(transfer.relayerFee))
+    ).to.be.reverted
+  })
+
+  it('Should successfully challenge a malicious transfer root', async () => {
+    const transfer = new Transfer({
+      recipient: await user.getAddress(),
+      amount: BigNumber.from('100'),
+      nonce: 0,
+      relayerFee: BigNumber.from('0')
+    })
+
+    // User withdraws from L1 bridge
+    const tree = new MerkleTree([ transfer.getTransferHash() ])
+
+    await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+
+    await l1_bridge.bondTransferRoot(tree.getRoot(), transfer.amount.add(transfer.relayerFee))
+
+    await l1_poolToken.connect(challenger).approve(l1_bridge.address, BigNumber.from('10'))
+    await l1_bridge.connect(challenger).challengeTransferRoot(tree.getRoot())
+
+    await ethers.provider.send("evm_increaseTime", [60 * 60 * 24 * 9]) // 9 days
+
+    await l1_bridge.connect(challenger).resolveChallenge(tree.getRoot())
   })
 
   const expectBalanceOf = async (token: Contract, account: Signer | Contract, expectedBalance: BigNumberish) => {

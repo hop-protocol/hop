@@ -1,6 +1,8 @@
 import '../moduleAlias'
 import assert from 'assert'
 import * as ethers from 'ethers'
+import MerkleTree from '@authereum/utils/core/MerkleTree'
+import Transfer from 'src/lib/Transfer'
 import { ARBITRUM_MESSENGER_ID } from 'src/constants'
 import L1PoolTokenContract from 'src/contracts/L1PoolTokenContract'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
@@ -79,7 +81,7 @@ async function main () {
     assert(receipt.status === 1)
   }
 
-  const transferNonce = '7'
+  const transferNonce = 8
   const relayerFee = '0'
   const tx3 = await L2BridgeContract.sendToMainnet(
     accountAddress,
@@ -88,8 +90,39 @@ async function main () {
     relayerFee
   )
   console.log('L2 sendToMainnet tx', tx3.hash)
-  const receipt = await tx3.wait()
-  assert(receipt.status === 1)
+  const receipt3 = await tx3.wait()
+  assert(receipt3.status === 1)
+
+  const recipient = await L1Wallet.getAddress()
+  const transfer = new Transfer({
+    recipient,
+    amount,
+    nonce: transferNonce,
+    relayerFee: ethers.BigNumber.from(relayerFee)
+  })
+
+  const leaves = [transfer.getTransferHash()]
+  const tree = new MerkleTree(leaves)
+  const proof = tree.getProof(leaves[0])
+  const root = tree.getHexRoot()
+  console.log('tree root for withdrawal', root)
+
+  const tx5 = await L1BridgeContract.withdraw(
+    transfer.recipient,
+    transfer.amount,
+    transfer.nonce,
+    transfer.relayerFee,
+    root,
+    proof,
+    {
+      // gasLimit: 100000
+    }
+  )
+
+  console.log('L1 withdraw tx', tx5.hash)
+  const receipt5 = await tx5.wait()
+  assert(receipt5.status)
+
   console.log('complete')
 }
 

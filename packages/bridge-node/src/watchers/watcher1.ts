@@ -1,4 +1,5 @@
 import '../moduleAlias'
+import wait from '@authereum/utils/core/wait'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
 import L2BridgeContract from 'src/contracts/L2BridgeContract'
 import { L2Provider } from 'src/wallets/L2Wallet'
@@ -34,6 +35,7 @@ export default async function watcher1 () {
       console.log('received L2 TransfersCommittedEvent event')
       console.log('root', root)
 
+      await wait(2 * 1000)
       const tx = await sendL1TransferRootTx(root, amount)
       console.log('L1 bondTransferRoot tx', tx.hash)
     } catch (err) {

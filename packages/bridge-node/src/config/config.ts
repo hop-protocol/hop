@@ -1,3 +1,7 @@
+require('dotenv').config()
+
+export const committeePrivateKey = process.env.COMMITTEE_PRIVATE_KEY
+
 export const L1RpcUrl = 'https://kovan.rpc.authereum.com'
 export const L2RpcUrl = 'https://kovan2.arbitrum.io/rpc'
 

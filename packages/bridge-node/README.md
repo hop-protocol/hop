@@ -1,39 +1,25 @@
 # bridge node
 
-> Bridge node scripts
+> L1<>L2 Bridge node
 
 ## Getting started
 
 Install dependencies:
 
-```bas
+```bash
 npm install
 ```
 
-Add committed private key to `secret.json`
+Run node:
 
 ```bash
-{
-  "committeePrivateKey": "<private-key>"
-}
+npm start
 ```
 
-Run watcher 1:
+Run E2E example:
 
 ```bash
-npm run watcher1
-```
-
-Run watcher 2:
-
-```bash
-npm run watcher2
-```
-
-Run watcher 3:
-
-```bash
-npm run watcher3
+npm run example
 ```
 
 ## License

@@ -28,10 +28,10 @@ contract mockOVM_CrossDomainMessenger is OVM_BaseCrossDomainMessenger {
      * Contract Variables *
      **********************/
 
-    ReceivedMessage[] internal fullReceivedMessages;
-    address internal targetCanonicalBridgeAddress;
-    uint256 internal lastRelayedMessage;
-    uint256 internal delay;
+    ReceivedMessage[] public fullReceivedMessages;
+    address public targetCanonicalBridgeAddress;
+    uint256 public lastRelayedMessage;
+    uint256 public delay;
 
 
     /***************

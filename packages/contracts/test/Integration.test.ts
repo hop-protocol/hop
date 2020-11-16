@@ -2,13 +2,15 @@ import { expect } from 'chai'
 import '@nomiclabs/hardhat-waffle'
 import { ethers } from 'hardhat'
 import { BigNumber, BigNumberish, ContractFactory, Signer, Contract } from 'ethers'
-import { getL2CanonicalBridgeId } from './utils'
 import MerkleTree from '../lib/MerkleTree'
 import Transfer from '../lib/Transfer'
 
+import { getL2CanonicalBridgeId, setBridgeWrapperDefaults } from './utils'
+import { L2_NAMES } from './constants'
+
 const USER_INITIAL_BALANCE = BigNumber.from('100')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
-// const AMOUNT = BigNumber.from('123')
+const SWAP_DEADLINE_BUFFER = BigNumber.from('3600')
 
 describe("Full story", () => {
   let accounts: Signer[]
@@ -46,7 +48,7 @@ describe("Full story", () => {
     accounts = await ethers.getSigners()
     user = accounts[0]
     liquidityProvider = accounts[1]
-    L1_BridgeWrapper = await ethers.getContractFactory('contracts/wrappers/Arbitrum.sol:Arbitrum')
+    L1_BridgeWrapper = await ethers.getContractFactory('contracts/wrappers/Optimism.sol:Optimism')
     L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
     L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_OptimismBridge.sol:L2_OptimismBridge')
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
@@ -71,6 +73,10 @@ describe("Full story", () => {
     l2_bridge = await L2_Bridge.deploy(l2_canonicalBridge.address)
     l2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_canonicalBridge.address)
 
+    // Initialize bridge wrapper
+    const l2Name = L2_NAMES.OPTIMISM
+    await setBridgeWrapperDefaults(l2Name, l1_bridgeWrapper, l1_canonicalBridge.address, l2_bridge.address)
+
     // Uniswap
     l2_uniswapFactory = await UniswapFactory.deploy(await user.getAddress())
     const weth = await MockERC20.deploy('WETH', 'WETH')
@@ -85,9 +91,10 @@ describe("Full story", () => {
     l2_ovmBridge.setCrossDomainBridgeAddress(l1_ovmBridge.address)
 
     // Set up liquidity bridge
-    canonicalBridgeId = getL2CanonicalBridgeId('arbitrum')
+    canonicalBridgeId = getL2CanonicalBridgeId('optimism')
     await l1_bridge.setL1BridgeWrapper(canonicalBridgeId, l1_bridgeWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
+    await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, weth.address)
 
     // Distribute poolToken
     await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
@@ -107,7 +114,7 @@ describe("Full story", () => {
 
     // liquidityProvider moves funds across the liquidity bridge
     await l1_poolToken.connect(liquidityProvider).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
-    await l1_bridge.connect(liquidityProvider).sendToL2(await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l1_bridge.connect(liquidityProvider).sendToL2(canonicalBridgeId, await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
     await l2_canonicalBridge.relayNextMessage()
     await expectBalanceOf(l2_bridge, liquidityProvider, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
 
@@ -174,8 +181,10 @@ describe("Full story", () => {
     const tree = new MerkleTree([ transfer.getTransferHash() ])
     const proof = tree.getProof(transfer.getTransferHash())
     await l1_bridge.withdraw(
+      transfer.recipient,
       transfer.amount,
       transfer.nonce,
+      transfer.relayerFee,
       tree.getRoot(),
       proof
     )

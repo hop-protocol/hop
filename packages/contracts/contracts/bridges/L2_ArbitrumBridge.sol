@@ -9,11 +9,7 @@ contract L2_ArbitrumBridge is L2_Bridge {
     function commitTransfers() public {
         (bytes32 root, uint256 pendingAmount, bytes memory setTransferRootMessage) = commitTransfersPreHook();
 
-        canonicalBridge.sendMessage(
-            l1BridgeAddress,
-            setTransferRootMessage,
-            200000
-        );
+        // TODO: Add the Arbitrum-specific messaging
 
         commitTransfersPostHook(root, pendingAmount);
     }

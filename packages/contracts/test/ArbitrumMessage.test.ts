@@ -66,7 +66,7 @@ describe("Full story", () => {
 
     // Initialize bridge wrapper
     const l2Name = L2_NAMES.ARBITRUM
-    await setBridgeWrapperDefaults(l2Name, l1_bridgeWrapper, l1_canonicalBridge.address, l2_canonicalBridge.address)
+    await setBridgeWrapperDefaults(l2Name, l1_bridgeWrapper, l1_canonicalBridge.address, l2_bridge.address)
 
     // Set up bridges
     canonicalBridgeId = getL2CanonicalBridgeId('arbitrum')

@@ -9,7 +9,11 @@ contract L2_OptimismBridge is L2_Bridge {
     function commitTransfers() public {
         (bytes32 root, uint256 pendingAmount, bytes memory setTransferRootMessage) = commitTransfersPreHook();
 
-        // TODO: Add the Optimism-specific messaging
+        canonicalBridge.sendMessage(
+            l1BridgeAddress,
+            setTransferRootMessage,
+            200000
+        );
 
         commitTransfersPostHook(root, pendingAmount);
     }

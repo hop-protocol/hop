@@ -9,7 +9,7 @@ contract Optimism {
     address public l2BridgeAddress;
     uint256 public defaultGasLimit;
 
-    function setL1CanonicalBridgeBridgeAddress(mockOVM_CrossDomainMessenger _l1CanonicalBridgeBridgeAddress) public {
+    function setL1CanonicalBridgeAddress(mockOVM_CrossDomainMessenger _l1CanonicalBridgeBridgeAddress) public {
         l1CanonicalBridgeBridgeAddress = _l1CanonicalBridgeBridgeAddress;
     }
 

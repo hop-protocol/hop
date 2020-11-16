@@ -8,9 +8,9 @@ import "./L2_OVMTokenBridge.sol";
 contract L1_OVMTokenBridge {
     using SafeERC20 for IERC20;
 
-    IERC20 token;
-    mockOVM_CrossDomainMessenger messenger;
-    address l2BridgeAddress;
+    IERC20 public token;
+    mockOVM_CrossDomainMessenger public messenger;
+    address public l2BridgeAddress;
 
     constructor(mockOVM_CrossDomainMessenger _messenger, IERC20 _token) public {
         messenger = _messenger;

@@ -4,16 +4,16 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./Bridge.sol";
-import "./test/mockOVM_CrossDomainMessenger.sol";
+import "../test/mockOVM_CrossDomainMessenger.sol";
 
-import "./libraries/MerkleUtils.sol";
+import "../libraries/MerkleUtils.sol";
 
 contract L2_Bridge is ERC20, Bridge {
     using SafeMath for uint256;
     using MerkleProof for bytes32[];
 
-    mockOVM_CrossDomainMessenger messenger;
-    address   public l1Bridge;
+    mockOVM_CrossDomainMessenger public messenger;
+    address   public l1BridgeAddress;
     bytes32[] public pendingTransfers;
     uint256   public pendingAmount;
     uint256   public swapDeadlineBuffer;
@@ -26,24 +26,25 @@ contract L2_Bridge is ERC20, Bridge {
         uint256 amount
     );
 
-    constructor (
-        mockOVM_CrossDomainMessenger _messenger,
+    constructor (mockOVM_CrossDomainMessenger _messenger) public ERC20("DAI Liquidity Pool Token", "LDAI") {
+        messenger = _messenger;
+    }
+
+    function setExchangeValues(
         uint256 _swapDeadlineBuffer,
         address _exchangeAddress,
         address _oDaiAddress
     )
         public
-        ERC20("DAI Liquidity Pool Token", "LDAI")
     {
-        messenger = _messenger;
         swapDeadlineBuffer = _swapDeadlineBuffer;
         exchangeAddress = _exchangeAddress;
         oDaiAddress = _oDaiAddress;
         exchangePath = [address(this), oDaiAddress];
     }
 
-    function setL1Bridge(address _l1Bridge) public {
-        l1Bridge = _l1Bridge;
+    function setL1BridgeAddress(address _l1BridgeAddress) public {
+        l1BridgeAddress = _l1BridgeAddress;
     }
 
     function sendToMainnet(
@@ -62,7 +63,7 @@ contract L2_Bridge is ERC20, Bridge {
         pendingAmount = pendingAmount.add(totalAmount);
     }
 
-    function commitTransfers() public {
+    function commitTransfersPreHook() internal returns (bytes32, uint256, bytes memory) {
         bytes32[] memory _pendingTransfers = pendingTransfers;
         bytes32 root = MerkleUtils.getMerkleRoot(_pendingTransfers);
         uint256 _pendingAmount = pendingAmount;
@@ -71,14 +72,15 @@ contract L2_Bridge is ERC20, Bridge {
         pendingAmount = 0;
 
         bytes memory setTransferRootMessage = abi.encodeWithSignature("confirmTransferRoot(bytes32,uint256)", root, _pendingAmount);
-
-        messenger.sendMessage(
-            l1Bridge,
-            setTransferRootMessage,
-            200000
+        return (
+            root,
+            _pendingAmount,
+            setTransferRootMessage
         );
+    }
 
-        emit TransfersCommitted(root, _pendingAmount);
+    function commitTransfersPostHook(bytes32 _root, uint256 _pendingAmount) internal {
+        emit TransfersCommitted(_root, _pendingAmount);
     }
 
     // onlyCrossDomainBridge

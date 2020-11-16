@@ -1,0 +1,6 @@
+export const L2_NAMES = {
+  ARBITRUM: 'arbitrum',
+  OPTIMISM: 'optimism'
+}
+
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'

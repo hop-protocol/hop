@@ -35,6 +35,7 @@ _Bridge System_
 * L2 Bridge: `0xf8E96392b1Ba3B2FD88041894a93e089E93C0dcd`
 * L2 Uniswap Factory: `0xEaAec7a29B6ccE9e831C8d07e989fa4163026177`
 * L2 Uniswap Router: `0xBae19197DFa25105E832b8fAfeAB88aCa275385F`
+* L2 Uniswap Exchange: `0xea535dF09be62d5542161D1a4A429A831d329638`
 
 ## Scripts
 

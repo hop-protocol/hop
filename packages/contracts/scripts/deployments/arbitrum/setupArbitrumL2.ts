@@ -67,8 +67,8 @@ async function deployArbitrum () {
   )
 
   // Finalize bridge
-  const uniswapPairAddress: string = await l2_uniswapFactory.getPair(l2_oDai.address, l2_bridge.address)
-  await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, uniswapPairAddress, l2_oDai.address)
+  await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, l2_oDai.address)
+  await l2_bridge.approveExchangeTransfer()
 
 }
 

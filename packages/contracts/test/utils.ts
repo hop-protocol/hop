@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat'
-import { L2_NAMES } from './constants'
+import { L2_NAMES, ARB_CHAIN_ADDRESS } from './constants'
 import { Contract } from 'ethers'
 
 export const getL2MessengerId = (l2Name: string): string => {
@@ -25,7 +25,7 @@ export const setMessengerWrapperDefaults = async (
 }
 
 export const setArbitrumMessengerWrapperDefaults = async (l1MessengerWrapper: Contract) => {
-  const arbChain: string = '0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71'
+  const arbChain: string = ARB_CHAIN_ADDRESS
   const defaultGasLimit: number = 1000000
   const defaultGasPrice: number = 0
   const defaultCallValue: number = 0

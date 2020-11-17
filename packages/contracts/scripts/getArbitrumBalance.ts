@@ -20,13 +20,19 @@ async function getArbitrumBalance () {
   l2_poolToken = MockERC20.attach(POOL_TOKEN_ADDRESS)
   l2_ourToken = MockERC20.attach(OUR_TOKEN_ADDRESS)
 
-  const addressToCheck = '0x92E5A4B202F57B3634d6352fBAbBA9Cf2908a14A'
+  let addressToCheck = '0x92E5A4B202F57B3634d6352fBAbBA9Cf2908a14A'
+  let l2_poolTokenBalance = (await l2_poolToken.balanceOf(addressToCheck)).toString()
+  let l2_ourTokenBalance = (await l2_ourToken.balanceOf(addressToCheck)).toString()
 
-  const l2_poolTokenBalance = (await l2_poolToken.balanceOf(addressToCheck)).toString()
-  const l2_ourTokenBalance = (await l2_ourToken.balanceOf(addressToCheck)).toString()
+  console.log("Canonical: ", addressToCheck, l2_poolTokenBalance)
+  console.log("Our Token: ", addressToCheck, l2_ourTokenBalance)
 
-  console.log("Canonical: ", l2_poolTokenBalance)
-  console.log("Our Token: ", l2_ourTokenBalance)
+  addressToCheck = '0x02b260F6f47FF328496Be632678d06a564B8c4AB'
+  l2_poolTokenBalance = (await l2_poolToken.balanceOf(addressToCheck)).toString()
+  l2_ourTokenBalance = (await l2_ourToken.balanceOf(addressToCheck)).toString()
+
+  console.log("Canonical: ", addressToCheck, l2_poolTokenBalance)
+  console.log("Our Token: ", addressToCheck, l2_ourTokenBalance)
 }
 
 /* tslint:disable-next-line */

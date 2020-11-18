@@ -1,4 +1,4 @@
-import React, { FC } from 'react'
+import React, { FC, ChangeEvent } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
@@ -15,9 +15,14 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-type Props = {}
+type Props = {
+  value: string,
+  balance?: string
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void,
+}
 
-const AmountSelectorCard: FC<Props> = () => {
+const AmountSelectorCard: FC<Props> = (props) => {
+  const { value, balance, onChange } = props
   const styles = useStyles()
 
   return (
@@ -26,14 +31,19 @@ const AmountSelectorCard: FC<Props> = () => {
         <Typography variant="subtitle2" color="textSecondary">
           From
         </Typography>
-        <Typography variant="subtitle2" color="textSecondary">
-          Balance: 0.0
-        </Typography>
+        {balance ?
+          <Typography variant="subtitle2" color="textSecondary">
+            Balance: {balance}
+          </Typography> :
+          null
+        }
       </Box>
       <Box display="flex" flexDirection="row" justifyContent="flex-end">
-        <LargeTextField placeholder="0.0">
-          0.0 ETH
-        </LargeTextField>
+        <LargeTextField
+          value={value}
+          onChange={onChange}
+          placeholder="0.0"
+        />
       </Box>
     </Card>
   )

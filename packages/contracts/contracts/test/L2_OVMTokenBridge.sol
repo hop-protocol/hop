@@ -5,8 +5,8 @@ import "../test/mockOVM_CrossDomainMessenger.sol";
 import "./mockOVM_CrossDomainMessenger.sol";
 
 contract L2_OVMTokenBridge is ERC20 {
-    address l1BridgeAddress;
-    mockOVM_CrossDomainMessenger messenger;
+    address public l1BridgeAddress;
+    mockOVM_CrossDomainMessenger public messenger;
 
     constructor(mockOVM_CrossDomainMessenger _messenger) public ERC20('OVM DAI', "ODAI") {
         messenger = _messenger;

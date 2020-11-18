@@ -29,7 +29,7 @@
 //     accounts = await ethers.getSigners()
 //     user = accounts[0]
 //     liquidityProvider = accounts[1]
-//     Bridge = await ethers.getContractFactory('contracts/Bridge.sol:Bridge')
+//     Bridge = await ethers.getContractFactory('contracts/bridges/Bridge.sol:Bridge')
 //     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
 //     CrossDomainMessenger = await ethers.getContractFactory('contracts/test/mockOVM_CrossDomainMessenger.sol:mockOVM_CrossDomainMessenger')
 //     withdrawals = [

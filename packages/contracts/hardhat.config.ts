@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 import "@nomiclabs/hardhat-waffle"
 
 // You have to export an object to set up your config
@@ -7,10 +9,16 @@ import "@nomiclabs/hardhat-waffle"
 export default {
   networks: {
     hardhat: {
-      allowUnlimitedContractSize: true,
-      accounts: {
-        mnemonic: "bridge bridge bridge bridge bridge bridge bridge bridge bridge bridge bridge bridge"
-      }
+      allowUnlimitedContractSize: true
+    },
+    kovan : {
+      url: "https://kovan.rpc.authereum.com",
+      accounts: [process.env.USER_PRIVATE_KEY, process.env.LIQUIDITY_PROVIDER_PRIVATE_KEY]
+    },
+    arbitrum: {
+      url: "https://kovan2.arbitrum.io/rpc",
+      accounts: [process.env.USER_PRIVATE_KEY, process.env.LIQUIDITY_PROVIDER_PRIVATE_KEY],
+      gasPrice: 0
     }
   },
   solidity: {
@@ -23,6 +31,9 @@ export default {
       },
       {
         version:"0.5.16"
+      },
+      {
+        version:"0.5.11"
       },
       {
         version:"0.4.25"

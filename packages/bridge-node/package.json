@@ -20,6 +20,7 @@
   "license": "ISC",
   "dependencies": {
     "@authereum/utils": "^0.1.12",
+    "@types/yargs": "^15.0.10",
     "dotenv": "^8.2.0",
     "ethers": "^5.0.19",
     "fs-extra": "^9.0.1",

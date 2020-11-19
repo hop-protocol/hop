@@ -1,4 +1,10 @@
-import React, { FC, useState, useMemo, ChangeEvent } from 'react'
+import React, {
+  FC,
+  useState,
+  useMemo,
+  useEffect,
+  ChangeEvent
+} from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -7,12 +13,11 @@ import MuiButton from '@material-ui/core/Button'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import SendIcon from '@material-ui/icons/Send'
 import RaisedSelect from '../../components/selects/RaisedSelect'
-import AmountSelectorCard from '../../components/AmountSelectorCard'
+import AmountSelectorCard from './AmountSelectorCard'
 import Button from '../../components/buttons/Button'
 
-import { BigNumber, utils as ethersUtils } from 'ethers'
+import { utils as ethersUtils } from 'ethers'
 import Token from '../../models/Token'
-import TokenAmount from '../../models/TokenAmount'
 import Network from '../../models/Network'
 
 const useStyles = makeStyles(() => ({
@@ -45,7 +50,13 @@ const useStyles = makeStyles(() => ({
 const Send: FC = () => {
   const styles = useStyles()
 
-  let tokenOptions = useMemo<Token[]>(() => [
+  const networkOptions = useMemo<Network[]>(() => [
+    new Network('kovan'),
+    new Network('optimism'),
+    new Network('arbitrum')
+  ], [])
+
+  const tokenOptions = useMemo<Token[]>(() => [
     new Token({
       symbol: 'ETH',
       tokenName: 'Ether',
@@ -68,13 +79,26 @@ const Send: FC = () => {
     })
   ], [])
   const [selectedToken, setSelectedToken] = useState<Token>(tokenOptions[0])
-  const fromNetwork: Network = useMemo(() => new Network('kovan'), [])
-  const toNetwork: Network = useMemo(() => new Network('arbitrum'), [])
+  const [fromNetwork, setFromNetwork] = useState<Network>()
+  const [toNetwork, setToNetwork] = useState<Network>()
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
-  const exchangeRate = useMemo(() => ethersUtils.formatEther(ethersUtils.parseEther('1')
-    .mul(selectedToken.rateForNetwork(toNetwork))
-    .div(selectedToken.rateForNetwork(fromNetwork))), [toNetwork, fromNetwork])
+  const [isFromLastChanged, setIsFromLastChanged] = useState<boolean>(false)
+  const exchangeRate = useMemo(() => {
+    if (!fromNetwork || !toNetwork) {
+      return '-'
+    }
+
+    let rate
+    try {
+      rate = ethersUtils.formatEther(ethersUtils.parseEther('1')
+        .mul(selectedToken.rateForNetwork(toNetwork))
+        .div(selectedToken.rateForNetwork(fromNetwork)))
+    } catch (err) {
+    }
+
+    return rate || '-'
+  }, [toNetwork, fromNetwork, selectedToken])
 
   const handleTokenOptionSelect = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value
@@ -85,8 +109,36 @@ const Send: FC = () => {
   }
 
   const handleSwitchDirection = () => {
-    console.log('ToDo')
+    setToTokenAmount(fromTokenAmount)
+    setFromTokenAmount(toTokenAmount)
+    setFromNetwork(toNetwork)
+    setToNetwork(fromNetwork)
+    setIsFromLastChanged(!isFromLastChanged)
   }
+
+  // Control toTokenAmount when fromTokenAmount was edited last
+  useEffect(() => {
+    if (isFromLastChanged) {
+      try {
+        const toAmount = ethersUtils.parseEther(fromTokenAmount)
+          .mul(selectedToken.rateForNetwork(toNetwork))
+          .div(selectedToken.rateForNetwork(fromNetwork))
+        setToTokenAmount(ethersUtils.formatEther(toAmount))
+      } catch (err) {}
+    }
+  }, [isFromLastChanged, fromNetwork, toNetwork, selectedToken, fromTokenAmount, setToTokenAmount])
+
+  // Control fromTokenAmount when toTokenAmount was edited last
+  useEffect(() => {
+    if (!isFromLastChanged) {
+      try {
+        const fromAmount = ethersUtils.parseEther(toTokenAmount)
+          .mul(selectedToken.rateForNetwork(fromNetwork))
+          .div(selectedToken.rateForNetwork(toNetwork))
+        setFromTokenAmount(ethersUtils.formatEther(fromAmount))
+      } catch (err) {}
+    }
+  }, [isFromLastChanged, fromNetwork, toNetwork, selectedToken, toTokenAmount, setFromTokenAmount])
 
   return (
     <Box
@@ -116,14 +168,21 @@ const Send: FC = () => {
             return
           }
 
+          setFromTokenAmount(event.target.value)
+          setIsFromLastChanged(true)
+
           try {
             const fromAmount = ethersUtils.parseEther(event.target.value)
             const toAmount = fromAmount
               .mul(selectedToken.rateForNetwork(toNetwork))
               .div(selectedToken.rateForNetwork(fromNetwork))
-            setFromTokenAmount(event.target.value)
             setToTokenAmount(ethersUtils.formatEther(toAmount))
           } catch (e) {}
+        }}
+        selectedNetwork={fromNetwork}
+        networkOptions={networkOptions}
+        onNetworkChange={ network => {
+          setFromNetwork(network)
         }}
       />
       <MuiButton className={styles.switchDirectionButton} onClick={handleSwitchDirection}>
@@ -133,7 +192,27 @@ const Send: FC = () => {
         value={toTokenAmount}
         balance={'0.0'}
         onChange={ event => {
+          if (!event.target.value) {
+            setToTokenAmount('')
+            setFromTokenAmount('')
+            return
+          }
+
           setToTokenAmount(event.target.value)
+          setIsFromLastChanged(false)
+
+          try {
+            const toAmount = ethersUtils.parseEther(event.target.value)
+            const fromAmount = toAmount
+              .mul(selectedToken.rateForNetwork(fromNetwork))
+              .div(selectedToken.rateForNetwork(toNetwork))
+            setFromTokenAmount(ethersUtils.formatEther(fromAmount))
+          } catch (e) {}
+        }}
+        selectedNetwork={toNetwork}
+        networkOptions={networkOptions}
+        onNetworkChange={ network => {
+          setToNetwork(network)
         }}
       />
       <Box

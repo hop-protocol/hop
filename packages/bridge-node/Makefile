@@ -29,3 +29,10 @@ docker-build-and-push: docker-registry-login docker-build docker-image-tag docke
 .PHONY: docker-start
 docker-start:
 	docker run --env-file .env authereum/bridge-node
+
+arbitrum-validator-docker-image-tag:
+	docker tag arb-validator:latest 874777227511.dkr.ecr.us-east-1.amazonaws.com/arbitrum-validator:latest
+
+arbitrum-validator-docker-registry-push:
+	$(eval REV=$(shell git rev-parse HEAD | cut -c1-7))
+	docker push 874777227511.dkr.ecr.us-east-1.amazonaws.com/arbitrum-validator:latest

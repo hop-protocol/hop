@@ -12,9 +12,9 @@
     "lint": "prettier-standard --format",
     "geth": "./scripts/start_geth.sh",
     "ovm": "./scripts/start_ovm.sh",
-    "watcher1": "node dist/watchers/watcher1.js",
-    "watcher2": "node dist/watchers/watcher2.js",
-    "watcher3": "node dist/watchers/watcher3.js"
+    "arbitrum:init": "ts-node docker/arbitrum/initialize.ts init",
+    "arbitrum:run": "python docker/arbitrum/arb_deploy.py",
+    "arbitrum:run2": "docker-compose -f docker/arbitrum/docker-compose.yml up"
   },
   "author": "",
   "license": "ISC",
@@ -22,8 +22,11 @@
     "@authereum/utils": "^0.1.12",
     "dotenv": "^8.2.0",
     "ethers": "^5.0.19",
+    "fs-extra": "^9.0.1",
     "module-alias": "^2.2.2",
-    "typescript": "^4.0.5"
+    "typescript": "^4.0.5",
+    "yargs": "^16.1.1",
+    "yars": "^1.2.0"
   },
   "devDependencies": {
     "prettier-standard": "^16.4.1"

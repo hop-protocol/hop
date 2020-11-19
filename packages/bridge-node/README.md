@@ -22,6 +22,13 @@ Run E2E example:
 npm run example
 ```
 
+Run arbitrum node:
+
+```bash
+npm run arbitrum:init -- 0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71 https://kovan.infura.io/v3/[id]
+npm run arbitrum:run -- 0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71 --password=[password]
+```
+
 ## License
 
 [MIT](LICENSE)

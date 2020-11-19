@@ -1,6 +1,6 @@
 {
   "L1RpcUrl": "https://kovan.rpc.authereum.com",
-  "L2RpcUrl": "https://kovan2.arbitrum.io/rpc",
+  "L2RpcUrl": "https://arbitrum-rpc-kovan.authereum.com",
   "L1BridgeAddress": "0xC9898E162b6a43dc665B033F1EF6b2bc7B0157B4",
   "L2BridgeAddress": "0xf8E96392b1Ba3B2FD88041894a93e089E93C0dcd",
   "L1PoolTokenAddress": "0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9",

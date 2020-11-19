@@ -9,7 +9,6 @@ import L1BridgeContract from 'src/contracts/L1BridgeContract'
 import L2BridgeContract from 'src/contracts/L2BridgeContract'
 import { L1BridgeAddress } from 'src/config'
 import L1Wallet from 'src/wallets/L1Wallet'
-import L2Wallet from 'src/wallets/L2Wallet'
 
 async function main () {
   const accountAddress = L1Wallet.getAddress()

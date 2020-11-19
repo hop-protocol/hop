@@ -8,13 +8,7 @@ type StyleProps = {
   flat: boolean
 }
 
-type OptionalStyleProps = {
-  highlighted?: boolean
-  large?: boolean
-  flat?: boolean
-}
-
-export type ButtonProps = OptionalStyleProps& MuiButtonProps
+export type ButtonProps = Partial<StyleProps> & MuiButtonProps
 
 const useStyles = makeStyles((theme) => ({
   root: ({ highlighted, large, flat }: StyleProps) => ({
@@ -68,13 +62,14 @@ const LargeButton: FC<ButtonProps> = (props) => {
     children,
     highlighted = false,
     large = false,
-    flat = false
+    flat = false,
+    ...buttonProps
   } = props
   const styles = useStyles({ highlighted, large, flat })
 
   return (
     <MuiButton
-      {...props}
+      {...buttonProps}
       className={`${styles.root} ${className}`}
       classes={{ disabled: styles.disabled}}
     >

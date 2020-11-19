@@ -51,6 +51,11 @@ contract L1_Bridge is Bridge {
         uint256 amount
     );
 
+    event TransferRootBonded (
+        bytes32 root,
+        uint256 amount
+    );
+
     constructor (IERC20 _token) public {
         token = _token;
     }
@@ -130,6 +135,8 @@ contract L1_Bridge is Bridge {
         timeSlotToAmountBonded[currentTimeSlot] = timeSlotToAmountBonded[currentTimeSlot].add(_amount);
 
         transferRoots[_transferRootHash] = TransferRoot(now, _amount, 0, false, 0, address(0));
+
+        emit TransferRootBonded(_transferRootHash, _amount);
     }
 
     // onlyCrossDomainBridge

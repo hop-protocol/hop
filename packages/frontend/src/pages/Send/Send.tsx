@@ -161,6 +161,7 @@ const Send: FC = () => {
       <AmountSelectorCard
         value={fromTokenAmount}
         balance={'0.0'}
+        token={selectedToken}
         onChange={ event => {
           if (!event.target.value) {
             setFromTokenAmount('')
@@ -191,6 +192,7 @@ const Send: FC = () => {
       <AmountSelectorCard
         value={toTokenAmount}
         balance={'0.0'}
+        token={selectedToken}
         onChange={ event => {
           if (!event.target.value) {
             setToTokenAmount('')

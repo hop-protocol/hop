@@ -8,6 +8,7 @@ import MenuItem from '@material-ui/core/MenuItem'
 import LargeTextField from '../../components/LargeTextField'
 import FlatSelect from '../../components/selects/FlatSelect'
 import Network from '../../models/Network'
+import Token from '../../models/Token'
 import { OFFCHAIN_LABS_LOGO_URL as offchainLabsLogoUrl } from '../../config/constants'
 import { OPTIMISM_LOGO_URL as optimismLogoUrl } from '../../config/constants'
 import { MAINNET_LOGO_URL as mainnetLogoUrl } from '../../config/constants'
@@ -35,7 +36,8 @@ const useStyles = makeStyles((theme) => ({
 
 type Props = {
   value: string,
-  balance?: string
+  balance?: string,
+  token?: Token,
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void,
   selectedNetwork?: Network,
   networkOptions: Network[],
@@ -46,6 +48,7 @@ const AmountSelectorCard: FC<Props> = (props) => {
   const {
     value,
     balance,
+    token,
     onChange,
     selectedNetwork,
     networkOptions,
@@ -113,6 +116,7 @@ const AmountSelectorCard: FC<Props> = (props) => {
             value={value}
             onChange={onChange}
             placeholder="0.0"
+            units={token?.symbol}
           />
         </Grid>
       </Grid>

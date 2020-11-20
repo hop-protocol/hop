@@ -19,6 +19,8 @@ import Button from '../../components/buttons/Button'
 import { utils as ethersUtils } from 'ethers'
 import Token from '../../models/Token'
 import Network from '../../models/Network'
+import { useWeb3Context } from '../../contexts/web3Context'
+import { useContracts } from '../../contexts/contracts'
 
 const useStyles = makeStyles(() => ({
   sendSelect: {
@@ -73,8 +75,8 @@ const Send: FC = () => {
       addresses: {},
       rates: {
         kovan: ethersUtils.parseEther('1'),
-        arbitrum: ethersUtils.parseEther('0.998125000000000000'),
-        optimism: ethersUtils.parseEther('0.977777000000000000')
+        arbitrum: ethersUtils.parseEther('0.958125000000000000'),
+        optimism: ethersUtils.parseEther('0.967777000000000000')
       }
     })
   ], [])
@@ -99,6 +101,8 @@ const Send: FC = () => {
 
     return rate || '-'
   }, [toNetwork, fromNetwork, selectedToken])
+  const { provider } = useWeb3Context()
+  const { l1_dai, l1_bridge } = useContracts()
 
   const handleTokenOptionSelect = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value
@@ -139,6 +143,26 @@ const Send: FC = () => {
       } catch (err) {}
     }
   }, [isFromLastChanged, fromNetwork, toNetwork, selectedToken, toTokenAmount, setFromTokenAmount])
+
+  const approve = async () => {
+    await l1_dai?.approve('0xc9898e162b6a43dc665b033f1ef6b2bc7b0157b4', '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+  }
+
+  const send = async () => {
+    const signer = provider?.getSigner()
+    if (!l1_bridge || !signer) {
+      throw new Error('Cannot send: l1_bridge or signer does not exist.')
+    }
+
+    const arbitrumNetwork = new Network('arbitrum')
+    // await l1_bridge.sendToL2(arbitrumNetwork.key(), await signer.getAddress(), fromTokenAmount)
+    await l1_bridge.sendToL2AndAttemptSwap(
+      arbitrumNetwork.key(),
+      await signer.getAddress(),
+      fromTokenAmount,
+      '0'
+    )
+  }
 
   return (
     <Box
@@ -233,6 +257,16 @@ const Send: FC = () => {
       <Button
         className={styles.sendButton}
         startIcon={<SendIcon />}
+        onClick={approve}
+        large
+        highlighted
+      >
+        Approve
+      </Button>
+      <Button
+        className={styles.sendButton}
+        startIcon={<SendIcon />}
+        onClick={send}
         large
         highlighted
       >

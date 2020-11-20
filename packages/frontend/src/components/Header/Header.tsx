@@ -4,7 +4,7 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import Button from '../buttons/Button'
 import HeaderRoutes from './HeaderRoutes'
-import { useWeb3Context } from '../../contexts/Web3Context'
+import { useWeb3Context } from '../../contexts/web3Context'
 
 const useStyles = makeStyles(() => ({
   root: {

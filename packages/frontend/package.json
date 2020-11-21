@@ -20,6 +20,7 @@
     "react-dom": "^16.8.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.0",
+    "to-hex": "0.0.15",
     "typescript": "^3.2.1",
     "web-vitals": "^0.2.4"
   },

@@ -1,14 +1,15 @@
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./Bridge.sol";
-import "./test/mockOVM_CrossDomainMessenger.sol";
 
-import "./libraries/MerkleUtils.sol";
+import "./Bridge.sol";
+
+import "../libraries/MerkleUtils.sol";
 
 contract L1_Bridge is Bridge {
     using SafeMath for uint256;
@@ -18,8 +19,8 @@ contract L1_Bridge is Bridge {
     /**
      * Constants
      */
-    uint256 constant CHALLENGE_AMOUNT_MULTIPLIER = 1e17;
-    uint256 constant CHALLENGE_AMOUNT_DIVISOR = 1e18;
+    uint256 constant CHALLENGE_AMOUNT_MULTIPLIER = 1;
+    uint256 constant CHALLENGE_AMOUNT_DIVISOR = 10;
     uint256 constant TIME_SLOT_SIZE = 1 hours;
     uint256 constant CHALLENGE_PERIOD = 4 hours;
     uint256 constant CHALLENGE_RESOLUTION_PERIOD = 8 days;
@@ -34,65 +35,71 @@ contract L1_Bridge is Bridge {
     }
 
     IERC20 token;
-    mockOVM_CrossDomainMessenger messenger;
-    address l2Bridge;
 
-    address committee;
-    uint256 committeeBond;
-    mapping(uint256 => uint256) timeSlotToAmountBonded;
-    uint256 amountChallenged;
+    mapping(bytes32 => address) public l1Messenger;
 
-    mapping(bytes32 => TransferRoot) transferRoots;
-    mapping(bytes32 => bool) spentTransferHashes;
+    address public committee;
+    uint256 public committeeBond;
+    mapping(uint256 => uint256) public timeSlotToAmountBonded;
+    uint256 public amountChallenged;
+
+    mapping(bytes32 => TransferRoot) public transferRoots;
+    mapping(bytes32 => bool) public spentTransferHashes;
 
     event DepositsCommitted (
         bytes32 root,
         uint256 amount
     );
 
-    constructor (
-        mockOVM_CrossDomainMessenger _messenger,
-        IERC20 _token
-    )
-        public
-    {
-        messenger = _messenger;
+    event TransferRootBonded (
+        bytes32 root,
+        uint256 amount
+    );
+
+    constructor (IERC20 _token) public {
         token = _token;
     }
 
-    function setL2Bridge(address _l2Bridge) public {
-        l2Bridge = _l2Bridge;
+    function setL1MessengerWrapper(bytes32 _messengerId, address _l1Messenger) public {
+        l1Messenger[_messengerId] = _l1Messenger;
     }
 
-    function sendToL2(address _recipient, uint256 _amount) public {
-        token.safeTransferFrom(msg.sender, address(this), _amount);
-
-        bytes memory message = abi.encodeWithSignature(
-            "mint(address,uint256)",
-            _recipient,
-            _amount
-        );
-        _sendMessage(message);
+    function getMessengerId(string calldata _messengerLabel) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_messengerLabel));
     }
 
-    function sendToL2AndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin) public {
-        token.safeTransferFrom(msg.sender, address(this), _amount);
+    function sendToL2(
+        bytes32 _messengerId,
+        address _recipient,
+        uint256 _amount
+    )
+        public
+    {
+        bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
+        bytes memory sendMessageCalldata = abi.encodeWithSignature("sendMessageToL2(bytes)", mintCalldata);
 
-        bytes memory message = abi.encodeWithSignature(
+        l1Messenger[_messengerId].call(sendMessageCalldata);
+        token.safeTransferFrom(msg.sender, address(this), _amount);
+    }
+
+    function sendToL2AndAttemptSwap(
+        bytes32 _messengerId,
+        address _recipient,
+        uint256 _amount,
+        uint256 _amountOutMin
+    )
+        public
+    {
+        bytes memory mintAndAttemptSwapCalldata = abi.encodeWithSignature(
             "mintAndAttemptSwap(address,uint256,uint256)",
             _recipient,
             _amount,
             _amountOutMin
         );
-        _sendMessage(message);
-    }
+        bytes memory sendMessageCalldata = abi.encodeWithSignature("sendMessageToL2(bytes)", mintAndAttemptSwapCalldata);
 
-    function _sendMessage(bytes memory _message) internal {
-        messenger.sendMessage(
-            l2Bridge,
-            _message,
-            200000
-        );
+        l1Messenger[_messengerId].call(sendMessageCalldata);
+        token.safeTransferFrom(msg.sender, address(this), _amount);
     }
 
     /**
@@ -107,7 +114,7 @@ contract L1_Bridge is Bridge {
     // onlyCommittee
     // ToDo: Add time delay to unstake
     function committeeUnstake(uint256 _amount) public {
-        committeeBond = committeeBond.sub(_amount, "BDG: Amount excceeds total stake");
+        committeeBond = committeeBond.sub(_amount, "BDG: Amount exceeds total stake");
         token.transfer(committee, _amount);
     }
 
@@ -128,6 +135,8 @@ contract L1_Bridge is Bridge {
         timeSlotToAmountBonded[currentTimeSlot] = timeSlotToAmountBonded[currentTimeSlot].add(_amount);
 
         transferRoots[_transferRootHash] = TransferRoot(now, _amount, 0, false, 0, address(0));
+
+        emit TransferRootBonded(_transferRootHash, _amount);
     }
 
     // onlyCrossDomainBridge
@@ -173,7 +182,7 @@ contract L1_Bridge is Bridge {
             // Invalid challenge, send challengers stake to committee
             token.transfer(committee, challengeStakeAmount);
         } else {
-            // Valid challenge, reward challenger with their stake times 2 and slash comittee by the
+            // Valid challenge, reward challenger with their stake times 2 and slash committee by the
             // transfer root amount plus the challenge stake
             token.transfer(transferRoot.challenger, challengeStakeAmount.mul(2));
             committeeBond = committeeBond.sub(transferRoot.total).sub(challengeStakeAmount);

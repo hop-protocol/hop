@@ -2,9 +2,9 @@ pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./test/mockOVM_CrossDomainMessenger.sol";
+import "../test/mockOVM_CrossDomainMessenger.sol";
 
-import "./libraries/MerkleUtils.sol";
+import "../libraries/MerkleUtils.sol";
 
 contract Bridge {
     function getTransferHash(

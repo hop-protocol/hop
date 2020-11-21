@@ -9,7 +9,7 @@ import React, {
 } from 'react'
 import Onboard from 'bnc-onboard'
 import { ethers } from 'ethers'
-import Address from '../lib/Address'
+import Address from '../models/Address'
 
 type Props = {
   onboard: any,
@@ -37,7 +37,6 @@ const Web3ContextProvider: FC = ({ children }) => {
       subscriptions: {
         wallet: wallet => {
           setProvider(new ethers.providers.Web3Provider(wallet.provider))
-          console.log('wallet: ', wallet)
         }
       }
     })
@@ -47,8 +46,12 @@ const Web3ContextProvider: FC = ({ children }) => {
 
   const requestWallet = useCallback(() => {
     const _requestWallet = async () => {
-      await onboard.walletSelect()
-      await onboard.walletCheck()
+      try {
+        await onboard.walletSelect()
+        await onboard.walletCheck()
+      } catch (err) {
+        console.error(err)
+      }
     }
 
     _requestWallet()

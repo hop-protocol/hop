@@ -4,6 +4,8 @@ import Box from '@material-ui/core/Box'
 import Button from '../components/buttons/Button'
 import { useWeb3Context } from '../contexts/Web3Context'
 
+import toHex from 'to-hex'
+
 const useStyles = makeStyles(() => ({
   root: {},
   stepButton: {
@@ -22,41 +24,56 @@ const Demo: FC<Props> = () => {
       <Button
         className={styles.stepButton}
         onClick={async () => {
-          console.log('before')
           const signer = provider?.getSigner()
-          console.log('signer: ', signer)
+          const daiAddress = '0x7d669a64deb8a4a51eea755bb0e19fd39ce25ae9'
           await signer?.sendTransaction({
-            to: '0x816a684f40b8B4B060A4Df7A10caD589Ef64E95e',
-            value: 1,
-            gasLimit: 21000,
-            gasPrice: 10000000000
+            to: daiAddress,
+            value: toHex('0', { addPrefix: true }),
+            gasLimit: toHex('1000000', { addPrefix: true }),
+            gasPrice: toHex('10000000000', { addPrefix: true }),
+            data: '0x095ea7b3000000000000000000000000c9898e162b6a43dc665b033f1ef6b2bc7b0157b4ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
           })
-          console.log('after')
         }}
         large
         highlighted
       >
-        Step 1
+        Approve token
       </Button>
       <Button
         className={styles.stepButton}
-        onClick={() => {
-          console.log('step 2')
+        onClick={async () => {
+          const signer = provider?.getSigner()
+          const bridgeAddress = '0xC9898E162b6a43dc665B033F1EF6b2bc7B0157B4'
+          await signer?.sendTransaction({
+            to: bridgeAddress,
+            value: toHex('0', { addPrefix: true }),
+            gasLimit: toHex('2000000', { addPrefix: true }),
+            gasPrice: toHex('10000000000', { addPrefix: true }),
+            data: '0xb285f05b9186606d55c571b43a756333453d90ab5653c483deb4980cda697bfa36fba5de00000000000000000000000092e5a4b202f57b3634d6352fbabba9cf2908a14a0000000000000000000000000000000000000000000000000de0b6b3a7640000'
+          })
         }}
         large
         highlighted
       >
-        Step 2
+        Send to L2 (no swap)
       </Button>
       <Button
         className={styles.stepButton}
-        onClick={() => {
-          console.log('step 3')
+        onClick={async () => {
+          const signer = provider?.getSigner()
+          const bridgeAddress = '0xC9898E162b6a43dc665B033F1EF6b2bc7B0157B4'
+          await signer?.sendTransaction({
+            to: bridgeAddress,
+            value: toHex('0', { addPrefix: true }),
+            gasLimit: toHex('2000000', { addPrefix: true }),
+            gasPrice: toHex('10000000000', { addPrefix: true }),
+            data: '0x7f620ce19186606d55c571b43a756333453d90ab5653c483deb4980cda697bfa36fba5de00000000000000000000000092e5a4b202f57b3634d6352fbabba9cf2908a14a00000000000000000000000000000000000000000000000000000000000003e80000000000000000000000000000000000000000000000000000000000000000'
+          })
         }}
         large
         highlighted
       >
-        Step 3
+        Send to L2 (swap)
       </Button>
     </Box>
   )

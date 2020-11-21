@@ -24,10 +24,6 @@ class Address {
     return new Address(address)
   }
 
-  isValid (): boolean {
-    return !!this._address
-  }
-
   toString (): string {
     return this._address
   }
@@ -41,11 +37,7 @@ class Address {
   }
 
   eq (address: Addressish): boolean {
-    if (!this.isValid()) {
-      return false
-    } else {
-      return (new Address(address)).toLowercase() === this.toLowercase()
-    }
+    return (new Address(address)).toLowercase() === this.toLowercase()
   }
 }
 

@@ -14,7 +14,8 @@
     "ovm": "./scripts/start_ovm.sh",
     "arbitrum:init": "ts-node docker/arbitrum/initialize.ts init",
     "arbitrum:run": "python docker/arbitrum/arb_deploy.py",
-    "arbitrum:run2": "docker-compose -f docker/arbitrum/docker-compose.yml up"
+    "arbitrum:run2": "docker-compose -f docker/arbitrum/docker-compose.yml up",
+    "arbitrum:clean": "rm -rf docker/arbitrum/data"
   },
   "author": "",
   "license": "ISC",

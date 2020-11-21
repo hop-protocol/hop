@@ -32,7 +32,7 @@ export async function setupValidatorStates(
     throw Error('must create at least 1 validator')
   }
 
-  const rollupsPath = path.resolve(__dirname, './data/ '+ 'rollups') + '/'
+  const rollupsPath = path.resolve(__dirname, './data/' + 'rollups') + '/'
 
   if (!fs.existsSync(rollupsPath)) {
     fs.mkdirpSync(rollupsPath)

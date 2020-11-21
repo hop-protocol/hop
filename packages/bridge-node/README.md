@@ -4,6 +4,26 @@
 
 ## Getting started
 
+Run bridge node watcher:
+
+```bash
+docker run --env-file .env 874777227511.dkr.ecr.us-east-1.amazonaws.com/authereum/bridge-node:latest
+```
+
+Bridge node config:
+
+```bash
+COMMITTEE_PRIVATE_KEY=0x111...
+```
+
+Run arbitrum node:
+
+```bash
+DIR_PATH=~/arbitrum ./l2_nodes/arbitrum/setup.sh
+```
+
+## Development
+
 Install dependencies:
 
 ```bash
@@ -20,13 +40,6 @@ Run E2E example:
 
 ```bash
 npm run example
-```
-
-Run arbitrum node:
-
-```bash
-npm run arbitrum:init -- 0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71 https://kovan.infura.io/v3/[id]
-npm run arbitrum:run -- 0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71 --password=[password]
 ```
 
 ## License

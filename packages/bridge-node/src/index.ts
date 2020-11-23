@@ -1,14 +1,12 @@
 import './moduleAlias'
-import watcher1 from 'src/watchers/watcher1'
-import watcher2 from 'src/watchers/watcher2'
-import watcher3 from 'src/watchers/watcher3'
+import ArbitrumCommitTransferWatcher from 'src/watchers/ArbitrumCommitTransferWatcher'
+import ArbitrumBondTransferRootWatcher from 'src/watchers/ArbitrumBondTransferRootWatcher'
+import ArbitrumChallengeWatcher from 'src/watchers/ArbitrumChallengeWatcher'
 
 async function main () {
-  watcher1().catch(console.error)
-
-  watcher2().catch(console.error)
-
-  watcher3().catch(console.error)
+  ArbitrumCommitTransferWatcher().catch(console.error)
+  ArbitrumBondTransferRootWatcher().catch(console.error)
+  ArbitrumChallengeWatcher().catch(console.error)
 }
 
 main()

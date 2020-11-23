@@ -6,7 +6,7 @@ import Transfer from 'src/lib/Transfer'
 import { ARBITRUM_MESSENGER_ID } from 'src/constants'
 import L1PoolTokenContract from 'src/contracts/L1PoolTokenContract'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
-import L2BridgeContract from 'src/contracts/L2BridgeContract'
+import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
 import { L1BridgeAddress } from 'src/config'
 import L1Wallet from 'src/wallets/L1Wallet'
 
@@ -31,11 +31,11 @@ async function main () {
   )
   console.log('L1 committee bond', parsedCommitteeBond)
 
-  const bridgeBalance = await L2BridgeContract.balanceOf(accountAddress)
+  const bridgeBalance = await L2ArbitrumBridgeContract.balanceOf(accountAddress)
   const parsedBridgeBalance = Number(
     ethers.utils.formatUnits(bridgeBalance.toString(), 18)
   )
-  console.log('L2 bridge balance', parsedBridgeBalance)
+  console.log('L2 Arbitrum bridge balance', parsedBridgeBalance)
 
   const tokenBalance = await L1PoolTokenContract.balanceOf(accountAddress)
   const parsedTokenBalance = Number(
@@ -82,13 +82,13 @@ async function main () {
 
   const transferNonce = 8
   const relayerFee = '0'
-  const tx3 = await L2BridgeContract.sendToMainnet(
+  const tx3 = await L2ArbitrumBridgeContract.sendToMainnet(
     accountAddress,
     amount,
     transferNonce,
     relayerFee
   )
-  console.log('L2 sendToMainnet tx', tx3.hash)
+  console.log('L2 Arbitrum sendToMainnet tx', tx3.hash)
   const receipt3 = await tx3.wait()
   assert(receipt3.status === 1)
 

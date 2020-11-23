@@ -1,8 +1,8 @@
 import '../moduleAlias'
 import wait from '@authereum/utils/core/wait'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
-import L2BridgeContract from 'src/contracts/L2BridgeContract'
-import { L2Provider } from 'src/wallets/L2Wallet'
+import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
+import { L2ArbitrumProvider } from 'src/wallets/L2ArbitrumWallet'
 import { TransfersCommittedEvent } from 'src/constants'
 
 // notes:
@@ -12,12 +12,12 @@ import { TransfersCommittedEvent } from 'src/constants'
 // - get block and check event log on L2 to verify
 // - send L1 tx to bond transfer root post event
 
-export default async function watcher1 () {
+async function watcher () {
   console.log(
-    'starting L2 TransfersCommitted event watcher for L1 bondTransferRoot tx'
+    'starting L2 Arbitrum TransfersCommitted event watcher for L1 bondTransferRoot tx'
   )
-  const L2BlockNumber = await L2Provider.getBlockNumber()
-  console.log('L2 head block number', L2BlockNumber)
+  const L2BlockNumber = await L2ArbitrumProvider.getBlockNumber()
+  console.log('L2 Arbitrum head block number', L2BlockNumber)
 
   const sendL1TransferRootTx = (root: string, amount: string) => {
     return L1BridgeContract.functions.bondTransferRoot(root, amount, {
@@ -32,7 +32,7 @@ export default async function watcher1 () {
   ) => {
     try {
       const { transactionHash } = meta
-      console.log('received L2 TransfersCommittedEvent event')
+      console.log('received L2 Arbitrum TransfersCommittedEvent event')
       console.log('root', root)
 
       await wait(2 * 1000)
@@ -43,5 +43,10 @@ export default async function watcher1 () {
     }
   }
 
-  L2BridgeContract.on(TransfersCommittedEvent, handleTransferCommittedEvent)
+  L2ArbitrumBridgeContract.on(
+    TransfersCommittedEvent,
+    handleTransferCommittedEvent
+  )
 }
+
+export default watcher

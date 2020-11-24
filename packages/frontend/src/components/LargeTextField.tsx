@@ -4,6 +4,10 @@ import MuiTextField, { TextFieldProps } from '@material-ui/core/TextField'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import Typography from '@material-ui/core/Typography'
 
+type LargeTextFieldProps = {
+  units?: string
+} & TextFieldProps
+
 const useStyles = makeStyles((theme) => ({
   root: {
     margin: `-0.8rem -${theme.padding.extraLight}`
@@ -41,7 +45,8 @@ const useInputStyles = makeStyles((theme) => ({
   },
 }))
 
-const TextField: FC<TextFieldProps> = (props) => {
+const TextField: FC<LargeTextFieldProps> = (props) => {
+  const { units, ...textFieldProps } = props
   const styles = useStyles()
   const inputStyles = useInputStyles()
 
@@ -51,15 +56,15 @@ const TextField: FC<TextFieldProps> = (props) => {
       InputProps={{
         classes: inputStyles,
         disableUnderline: true,
-        endAdornment: (
+        endAdornment: units ? (
           <InputAdornment position="end">
             <Typography variant="h4" color="textPrimary" className={styles.adornment}>
-              ETH
+              {units}
             </Typography>
           </InputAdornment>
-        ),
+        ) : null
       }}
-      {...props}
+      {...textFieldProps}
     >
     </MuiTextField>
   )

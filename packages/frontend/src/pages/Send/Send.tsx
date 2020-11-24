@@ -159,6 +159,8 @@ const Send: FC = () => {
         </RaisedSelect>
       </Box>
       <AmountSelectorCard
+        label={'From'}
+        symbol={'ETH'}
         value={fromTokenAmount}
         balance={'0.0'}
         onChange={ event => {
@@ -189,6 +191,8 @@ const Send: FC = () => {
         <ArrowDownIcon color="primary" className={styles.downArrow}/>
       </MuiButton>
       <AmountSelectorCard
+        label={'To'}
+        symbol={'ETH'}
         value={toTokenAmount}
         balance={'0.0'}
         onChange={ event => {

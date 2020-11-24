@@ -44,6 +44,7 @@ const useInputStyles = makeStyles((theme) => ({
 const TextField: FC<TextFieldProps> = (props) => {
   const styles = useStyles()
   const inputStyles = useInputStyles()
+  const { label } = props
 
   return (
     <MuiTextField
@@ -54,7 +55,7 @@ const TextField: FC<TextFieldProps> = (props) => {
         endAdornment: (
           <InputAdornment position="end">
             <Typography variant="h4" color="textPrimary" className={styles.adornment}>
-              ETH
+              {label}
             </Typography>
           </InputAdornment>
         ),

@@ -35,6 +35,8 @@ const useStyles = makeStyles((theme) => ({
 
 type Props = {
   value: string,
+  label: string,
+  symbol: string,
   balance?: string
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void,
   selectedNetwork?: Network,
@@ -45,6 +47,8 @@ type Props = {
 const AmountSelectorCard: FC<Props> = (props) => {
   const {
     value,
+    label,
+    symbol,
     balance,
     onChange,
     selectedNetwork,
@@ -57,7 +61,7 @@ const AmountSelectorCard: FC<Props> = (props) => {
     <Card className={styles.root}>
       <Box display="flex" flexDirection="row" justifyContent="space-between" className={styles.topRow}>
         <Typography variant="subtitle2" color="textSecondary">
-          From
+          {label}
         </Typography>
         {balance ?
           <Typography variant="subtitle2" color="textSecondary">
@@ -110,6 +114,7 @@ const AmountSelectorCard: FC<Props> = (props) => {
         </Grid>
         <Grid item xs={6}>
           <LargeTextField
+            label={symbol}
             value={value}
             onChange={onChange}
             placeholder="0.0"

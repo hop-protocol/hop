@@ -2,10 +2,10 @@ import {
   useMemo
 } from 'react'
 import { Contract } from 'ethers'
-import erc20Artifact from '@poc/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
-import l1BridgeArtifact from '@poc/contracts/artifacts/contracts/bridges/L1_Bridge.sol/L1_Bridge.json'
-import l2BridgeArtifact from '@poc/contracts/artifacts/contracts/bridges/L2_Bridge.sol/L2_Bridge.json'
-import uniswapArtifact from '@poc/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
+import erc20Artifact from '@hop-exchange/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
+import l1BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L1_Bridge.sol/L1_Bridge.json'
+import l2BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L2_Bridge.sol/L2_Bridge.json'
+import uniswapArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config/config'

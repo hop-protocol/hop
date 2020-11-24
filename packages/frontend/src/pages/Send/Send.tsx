@@ -53,7 +53,7 @@ const Send: FC = () => {
   const styles = useStyles()
 
   const { user, tokens, networks, contracts } = useApp()
-  const { l1_bridge } = contracts
+FE  const { l1_bridge, arbitrum_bridge } = contracts
 
   const { provider } = useWeb3Context()
 
@@ -128,19 +128,44 @@ const Send: FC = () => {
   }
 
   const send = async () => {
+    if (!fromNetwork || !toNetwork) {
+      throw new Error('A network is undefined')
+    }
+
+    if (fromNetwork.isLayer1) {
+      await sendl1ToL2()
+    } else if (!fromNetwork.isLayer1) {
+      await sendl2ToL1()
+    } else {
+      console.log('ToDo: L2 to L2 transfers')
+    }
+  }
+
+  const sendl1ToL2 = async () => {
     const signer = provider?.getSigner()
     if (!l1_bridge || !signer) {
       throw new Error('Cannot send: l1_bridge or signer does not exist.')
     }
 
     const arbitrumNetwork = networks[1]
-    // await l1_bridge.sendToL2(arbitrumNetwork.key(), await signer.getAddress(), fromTokenAmount)
     await l1_bridge.sendToL2AndAttemptSwap(
       arbitrumNetwork.key(),
       await signer.getAddress(),
-      fromTokenAmount,
+      ethersUtils.parseEther(fromTokenAmount),
       '0'
     )
+  }
+
+  const sendl2ToL1 = async () => {
+    const signer = provider?.getSigner()
+    if (!arbitrum_bridge || !signer) {
+      throw new Error('Cannot send: l1_bridge or signer does not exist.')
+    }
+
+    // ToDo: Hook up to swapAndSendToMainnet
+    // const arbitrumNetwork = networks[1]
+    // await arbitrum_bridge.swapAndSendToMainnet(
+    // )
   }
 
   return (

@@ -2,7 +2,8 @@ import React, {
   FC,
   ChangeEvent,
   useState,
-  useEffect
+  useEffect,
+  useCallback
 } from 'react'
 import { utils as ethersUtils } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
@@ -16,6 +17,7 @@ import FlatSelect from '../../components/selects/FlatSelect'
 import Network from '../../models/Network'
 import Token from '../../models/Token'
 import { useApp } from '../../contexts/AppContext'
+import useInterval from '../../hooks/useInterval'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -61,15 +63,30 @@ const AmountSelectorCard: FC<Props> = (props) => {
 
   const [balance, setBalance] = useState('0.0')
   useEffect(() => {
-    const getBalance = async  () => {
+    const _getBalance = async  () => {
       if (user && token && selectedNetwork) {
         const _balance = await user.getBalance(token, selectedNetwork)
         setBalance(ethersUtils.formatUnits(_balance, 18))
       }
     }
 
-    getBalance()
+    _getBalance()
   }, [user, token, selectedNetwork])
+
+  const getBalance = useCallback(() => {
+    const _getBalance = async  () => {
+      if (user && token && selectedNetwork) {
+        const _balance = await user.getBalance(token, selectedNetwork)
+        setBalance(ethersUtils.formatUnits(_balance, 18))
+      }
+    }
+
+    _getBalance()
+  }, [user, token, selectedNetwork])
+
+  useInterval(() => {
+    getBalance()
+  }, 5e3)
 
   return (
     <Card className={styles.root}>

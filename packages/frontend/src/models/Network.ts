@@ -3,9 +3,9 @@ import * as ethers from 'ethers'
 export type Networkish = Network | string | undefined
 
 export type NetworkProps = {
-  name: string,
-  imageUrl: string,
-  rpcUrl: string,
+  name: string
+  imageUrl: string
+  rpcUrl: string
   isLayer1? : boolean
 }
 
@@ -15,7 +15,7 @@ class Network {
   provider: ethers.providers.Provider
   isLayer1: boolean
 
-  constructor(props: NetworkProps) {
+  constructor (props: NetworkProps) {
     this.name = props.name
     this.imageUrl = props.imageUrl
     this.provider = new ethers.providers.JsonRpcProvider(props.rpcUrl)

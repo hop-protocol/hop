@@ -8,7 +8,7 @@ type LargeTextFieldProps = {
   units?: string
 } & TextFieldProps
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     margin: `-0.8rem -${theme.padding.extraLight}`
   },
@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const useInputStyles = makeStyles((theme) => ({
+const useInputStyles = makeStyles(theme => ({
   root: {
     padding: `0.8rem 0`,
     transition: 'box-shadow 0.3s ease-in-out',
@@ -34,7 +34,7 @@ const useInputStyles = makeStyles((theme) => ({
     textAlign: 'right',
     fontSize: theme.typography.h4.fontSize,
     fontWeight: theme.typography.h4.fontWeight,
-    color: theme.palette.text.primary,
+    color: theme.palette.text.primary
   },
   focused: {
     borderRadius: '1.5rem',
@@ -42,10 +42,10 @@ const useInputStyles = makeStyles((theme) => ({
       inset -3px -3px 6px rgba(255, 255, 255, 0.5),
       inset 3px 3px 6px rgba(174, 174, 192, 0.16)
     `
-  },
+  }
 }))
 
-const TextField: FC<LargeTextFieldProps> = (props) => {
+const TextField: FC<LargeTextFieldProps> = props => {
   const { units, ...textFieldProps } = props
   const styles = useStyles()
   const inputStyles = useInputStyles()
@@ -58,15 +58,18 @@ const TextField: FC<LargeTextFieldProps> = (props) => {
         disableUnderline: true,
         endAdornment: units ? (
           <InputAdornment position="end">
-            <Typography variant="h4" color="textPrimary" className={styles.adornment}>
+            <Typography
+              variant="h4"
+              color="textPrimary"
+              className={styles.adornment}
+            >
               {units}
             </Typography>
           </InputAdornment>
         ) : null
       }}
       {...textFieldProps}
-    >
-    </MuiTextField>
+    ></MuiTextField>
   )
 }
 

@@ -10,7 +10,7 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-function App() {
+function App () {
   const styles = useStyles()
 
   return (
@@ -23,4 +23,4 @@ function App() {
   )
 }
 
-export default App;
+export default App

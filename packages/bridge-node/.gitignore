@@ -1,0 +1,12 @@
+build
+dist
+.DS_Store
+node_modules
+secret.json
+.env
+*.env
+.env*
+package-lock.json
+yarn.lock
+docker/arbitrum/data
+docker/arbitrum/docker-compose.yml

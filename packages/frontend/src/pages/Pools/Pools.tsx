@@ -1,7 +1,4 @@
-import React, {
-  FC,
-  useState,
-} from 'react'
+import React, { FC, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Card from '@material-ui/core/Card'
@@ -24,7 +21,7 @@ const useStyles = makeStyles(() => ({
     height: '2.4rem',
     margin: '2.2rem',
     fontSize: '2rem',
-    opacity: '0.5',
+    opacity: '0.5'
   },
   pricesBox: {
     width: '51.6rem',
@@ -32,7 +29,7 @@ const useStyles = makeStyles(() => ({
   },
   priceBox: {
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'column'
   },
   pricesCard: {
     display: 'flex',
@@ -40,7 +37,7 @@ const useStyles = makeStyles(() => ({
   },
   sendButton: {
     marginTop: '6.4rem',
-    width: '30.0rem',
+    width: '30.0rem'
   }
 }))
 
@@ -56,10 +53,7 @@ const Pools: FC = () => {
   const [isFromLastChanged, setIsFromLastChanged] = useState<boolean>(false)
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center">
+    <Box display="flex" flexDirection="column" alignItems="center">
       <Box display="flex" alignItems="center">
         <Typography variant="h4" className={styles.title}>
           Add Liquidity
@@ -67,10 +61,10 @@ const Pools: FC = () => {
       </Box>
       <Box display="flex" alignItems="center">
         <AmountSelectorCard
-          label='Input'
+          label="Input"
           token={selectedTokenA}
           value={tokenAAmount}
-          onChange={ event => {
+          onChange={event => {
             if (!event.target.value) {
               setTokenAAmount('')
               setTokenBAmount('')
@@ -90,7 +84,7 @@ const Pools: FC = () => {
           }}
           selectedNetwork={tokenANetwork}
           networkOptions={networkOptions}
-          onNetworkChange={ network => {
+          onNetworkChange={network => {
             setTokenANetwork(network)
           }}
         />
@@ -100,10 +94,10 @@ const Pools: FC = () => {
       </Box>
       <Box display="flex" alignItems="center">
         <AmountSelectorCard
-          label='Input'
+          label="Input"
           token={selectedTokenB}
           value={tokenBAmount}
-          onChange={ event => {
+          onChange={event => {
             if (!event.target.value) {
               setTokenAAmount('')
               setTokenBAmount('')
@@ -123,7 +117,7 @@ const Pools: FC = () => {
           }}
           selectedNetwork={tokenBNetwork}
           networkOptions={networkOptions}
-          onNetworkChange={ network => {
+          onNetworkChange={network => {
             setTokenBNetwork(network)
           }}
         />
@@ -143,7 +137,7 @@ const Pools: FC = () => {
               0
             </Typography>
             <Typography variant="subtitle2" color="textSecondary">
-               {selectedTokenA.symbol} per {selectedTokenB.symbol}
+              {selectedTokenA.symbol} per {selectedTokenB.symbol}
             </Typography>
           </Box>
           <Box alignItems="center" className={styles.priceBox}>

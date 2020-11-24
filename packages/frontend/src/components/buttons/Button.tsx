@@ -1,6 +1,8 @@
 import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import MuiButton, { ButtonProps as MuiButtonProps } from '@material-ui/core/Button'
+import MuiButton, {
+  ButtonProps as MuiButtonProps
+} from '@material-ui/core/Button'
 
 type StyleProps = {
   highlighted: boolean
@@ -10,16 +12,14 @@ type StyleProps = {
 
 export type ButtonProps = Partial<StyleProps> & MuiButtonProps
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: ({ highlighted, large, flat }: StyleProps) => ({
     borderRadius: '3.0rem',
     textTransform: 'none',
     padding: large ? '0.8rem 4.2rem' : '0.8rem 2.8rem',
     height: large ? '6.0rem' : '4.0rem',
     fontSize: large ? '2.2rem' : '1.6rem',
-    color: highlighted
-      ? 'white'
-      : theme.palette.text.secondary,
+    color: highlighted ? 'white' : theme.palette.text.secondary,
     background: highlighted
       ? 'linear-gradient(127.75deg, #36BFEA 25.27%, #1AA7D3 71.82%)'
       : flat
@@ -56,11 +56,11 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: `
       -10px -10px 30px rgba(255, 255, 255, 0.95),
       10px 10px 30px rgba(174, 174, 192, 0.35)
-    `,
+    `
   }
 }))
 
-const LargeButton: FC<ButtonProps> = (props) => {
+const LargeButton: FC<ButtonProps> = props => {
   const {
     className,
     children,
@@ -75,9 +75,9 @@ const LargeButton: FC<ButtonProps> = (props) => {
     <MuiButton
       {...buttonProps}
       className={`${styles.root} ${className}`}
-      classes={{ disabled: styles.disabled}}
+      classes={{ disabled: styles.disabled }}
     >
-      { children }
+      {children}
     </MuiButton>
   )
 }

@@ -1,9 +1,4 @@
-import React, {
-  FC,
-  useMemo,
-  createContext,
-  useContext
-} from 'react'
+import React, { FC, useMemo, createContext, useContext } from 'react'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import User from 'src/models/User'
@@ -14,9 +9,9 @@ import useTokens from './useTokens'
 import useContracts, { HopContracts } from './useContracts'
 
 type AppContextProps = {
-  user?: User,
-  networks: Network[],
-  contracts: HopContracts,
+  user?: User
+  networks: Network[]
+  contracts: HopContracts
   tokens: Token[]
 }
 
@@ -43,12 +38,14 @@ const AppContextProvider: FC = ({ children }) => {
   const tokens = useTokens(networks)
 
   return (
-    <AppContext.Provider value={{
-      user,
-      networks,
-      contracts,
-      tokens
-    }}>
+    <AppContext.Provider
+      value={{
+        user,
+        networks,
+        contracts,
+        tokens
+      }}
+    >
       {children}
     </AppContext.Provider>
   )

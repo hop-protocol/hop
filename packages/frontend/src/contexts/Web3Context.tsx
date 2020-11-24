@@ -12,9 +12,9 @@ import { ethers } from 'ethers'
 import Address from 'src/models/Address'
 
 type Props = {
-  onboard: any,
-  provider: ethers.providers.Web3Provider | undefined,
-  address: Address | undefined,
+  onboard: any
+  provider: ethers.providers.Web3Provider | undefined
+  address: Address | undefined
   requestWallet: () => void
 }
 
@@ -28,7 +28,9 @@ const initialState = {
 const Web3Context = createContext<Props>(initialState)
 
 const Web3ContextProvider: FC = ({ children }) => {
-  const [provider, setProvider] = useState<ethers.providers.Web3Provider | undefined>()
+  const [provider, setProvider] = useState<
+    ethers.providers.Web3Provider | undefined
+  >()
 
   const onboard = useMemo(() => {
     return Onboard({
@@ -69,12 +71,14 @@ const Web3ContextProvider: FC = ({ children }) => {
   }, [provider])
 
   return (
-    <Web3Context.Provider value={{
-      onboard,
-      provider,
-      address,
-      requestWallet
-    }}>
+    <Web3Context.Provider
+      value={{
+        onboard,
+        provider,
+        address,
+        requestWallet
+      }}
+    >
       {children}
     </Web3Context.Provider>
   )

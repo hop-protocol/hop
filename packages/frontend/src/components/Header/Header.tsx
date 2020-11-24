@@ -24,7 +24,7 @@ const Header: FC = () => {
     <Box className={styles.root} display="flex" alignItems="center">
       <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-start">
         <Typography variant="h5" color="textSecondary">
-          Placeholder
+          🐰 Hop
         </Typography>
       </Box>
       <Box display="flex" flexDirection="row" flex={1} justifyContent="center">

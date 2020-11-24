@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { utils as ethersUtils, Contract } from 'ethers'
-import erc20Artifact from '@poc/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
+import erc20Artifact from '@hop-exchange/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'

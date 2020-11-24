@@ -5,7 +5,7 @@ import React, {
   useContext
 } from 'react'
 
-import { useWeb3Context } from '../web3Context'
+import { useWeb3Context } from '../Web3Context'
 import User from '../../models/User'
 import Token from '../../models/Token'
 import Network from '../../models/Network'

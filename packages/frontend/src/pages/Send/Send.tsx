@@ -19,7 +19,7 @@ import Button from '../../components/buttons/Button'
 import { utils as ethersUtils } from 'ethers'
 import Token from '../../models/Token'
 import Network from '../../models/Network'
-import { useWeb3Context } from '../../contexts/web3Context'
+import { useWeb3Context } from '../../contexts/Web3Context'
 import { useApp } from '../../contexts/AppContext'
 
 const useStyles = makeStyles(() => ({

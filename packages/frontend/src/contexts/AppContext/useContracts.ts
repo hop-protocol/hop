@@ -7,7 +7,7 @@ import l1BridgeArtifact from '@poc/contracts/artifacts/contracts/bridges/L1_Brid
 import l2BridgeArtifact from '@poc/contracts/artifacts/contracts/bridges/L2_Bridge.sol/L2_Bridge.json'
 import uniswapArtifact from '@poc/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
 
-import { useWeb3Context } from './../web3Context'
+import { useWeb3Context } from './../Web3Context'
 import { addresses } from '../../config/config'
 import Network from '../../models/Network'
 

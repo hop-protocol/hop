@@ -53,7 +53,7 @@ const Send: FC = () => {
   const styles = useStyles()
 
   const { user, tokens, networks, contracts } = useApp()
-FE  const { l1_bridge, arbitrum_bridge } = contracts
+  const { l1_bridge, arbitrum_bridge } = contracts
 
   const { provider } = useWeb3Context()
 

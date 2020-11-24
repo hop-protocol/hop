@@ -6,13 +6,16 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import ThemeProvider from './theme/ThemeProvider'
 import Web3Context from './contexts/web3Context'
+import AppContext from './contexts/AppContext'
 
 ReactDOM.render(
   <React.StrictMode>
     <ThemeProvider>
       <Router>
         <Web3Context>
-          <App />
+          <AppContext>
+            <App />
+          </AppContext>
         </Web3Context>
       </Router>
     </ThemeProvider>

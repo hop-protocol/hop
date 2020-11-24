@@ -2,19 +2,21 @@ import * as ethers from 'ethers'
 
 export type Networkish = Network | string | undefined
 
+export type NetworkProps = {
+  name: string,
+  imageUrl: string,
+  rpcUrl: string
+}
+
 class Network {
   name: string
+  imageUrl: string
+  provider: ethers.providers.Provider
 
-  constructor(network: Networkish) {
-    if (!network) {
-      throw new Error(`Invalid network '${network?.toString()}'`)
-    }
-
-    this.name = network.toString()
-  }
-
-  static from (network: Networkish): Network {
-    return new Network(network)
+  constructor(props: NetworkProps) {
+    this.name = props.name
+    this.imageUrl = props.imageUrl
+    this.provider = new ethers.providers.JsonRpcProvider(props.rpcUrl)
   }
 
   toString () {

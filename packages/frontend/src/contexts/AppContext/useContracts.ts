@@ -7,10 +7,19 @@ import l1BridgeArtifact from '@poc/contracts/artifacts/contracts/bridges/L1_Brid
 import l2BridgeArtifact from '@poc/contracts/artifacts/contracts/bridges/L2_Bridge.sol/L2_Bridge.json'
 import uniswapArtifact from '@poc/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
 
-import { useWeb3Context } from './web3Context'
-import { addresses } from '../config/config'
+import { useWeb3Context } from './../web3Context'
+import { addresses } from '../../config/config'
+import Network from '../../models/Network'
 
-export const useContracts = () => {
+export type HopContracts = {
+  l1_dai?: Contract,
+  l1_bridge?: Contract,
+  arbitrum_dai?: Contract,
+  arbitrum_bridge?: Contract,
+  arbitrum_uniswap?: Contract
+}
+
+const useContracts = (networks: Network[]): HopContracts => {
   const { provider } = useWeb3Context()
 
   const l1_dai = useMemo(() => {
@@ -51,3 +60,5 @@ export const useContracts = () => {
     arbitrum_uniswap
   }
 }
+
+export default useContracts

@@ -1,4 +1,10 @@
-import React, { FC, ChangeEvent } from 'react'
+import React, {
+  FC,
+  ChangeEvent,
+  useState,
+  useEffect
+} from 'react'
+import { utils as ethersUtils } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
@@ -9,9 +15,7 @@ import LargeTextField from '../../components/LargeTextField'
 import FlatSelect from '../../components/selects/FlatSelect'
 import Network from '../../models/Network'
 import Token from '../../models/Token'
-import { OFFCHAIN_LABS_LOGO_URL as offchainLabsLogoUrl } from '../../config/constants'
-import { OPTIMISM_LOGO_URL as optimismLogoUrl } from '../../config/constants'
-import { MAINNET_LOGO_URL as mainnetLogoUrl } from '../../config/constants'
+import { useApp } from '../../contexts/AppContext'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -36,7 +40,6 @@ const useStyles = makeStyles((theme) => ({
 
 type Props = {
   value: string,
-  balance?: string,
   token?: Token,
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void,
   selectedNetwork?: Network,
@@ -47,7 +50,6 @@ type Props = {
 const AmountSelectorCard: FC<Props> = (props) => {
   const {
     value,
-    balance,
     token,
     onChange,
     selectedNetwork,
@@ -55,6 +57,19 @@ const AmountSelectorCard: FC<Props> = (props) => {
     onNetworkChange
   } = props
   const styles = useStyles()
+  const { user } = useApp()
+
+  const [balance, setBalance] = useState('0.0')
+  useEffect(() => {
+    const getBalance = async  () => {
+      if (user && token && selectedNetwork) {
+        const _balance = await user.getBalance(token, selectedNetwork)
+        setBalance(ethersUtils.formatUnits(_balance, 18))
+      }
+    }
+
+    getBalance()
+  }, [user, token, selectedNetwork])
 
   return (
     <Card className={styles.root}>

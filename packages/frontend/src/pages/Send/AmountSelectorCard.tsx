@@ -85,30 +85,18 @@ const AmountSelectorCard: FC<Props> = (props) => {
                 </Typography>
               </Box>
             </MenuItem>
-            <MenuItem value="kovan">
-              <Box display="flex" flexDirection="row" alignItems="center">
-                <img src={mainnetLogoUrl} className={styles.networkIcon} alt="kovan" />
-                <Typography variant="subtitle2" className={styles.networkLabel}>
-                  Kovan
-                </Typography>
-              </Box>
-            </MenuItem>
-            <MenuItem value="optimism">
-              <Box display="flex" flexDirection="row" alignItems="center">
-                <img src={optimismLogoUrl} className={styles.networkIcon} alt="optimism" />
-                <Typography variant="subtitle2" className={styles.networkLabel}>
-                  Optimism
-                </Typography>
-              </Box>
-            </MenuItem>
-            <MenuItem value="arbitrum">
-              <Box display="flex" flexDirection="row" alignItems="center">
-                <img src={offchainLabsLogoUrl} className={styles.networkIcon} alt="arbitrum" /> 
-                <Typography variant="subtitle2" className={styles.networkLabel}>
-                  Arbitrum
-                </Typography> 
-              </Box>
-            </MenuItem>
+            {
+              networkOptions.map( network => 
+                <MenuItem value={network.name} key={network.name}>
+                  <Box display="flex" flexDirection="row" alignItems="center">
+                    <img src={network.imageUrl} className={styles.networkIcon} alt="kovan" />
+                    <Typography variant="subtitle2" className={styles.networkLabel}>
+                      {network.name}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              )
+            }
           </FlatSelect>
         </Grid>
         <Grid item xs={6}>

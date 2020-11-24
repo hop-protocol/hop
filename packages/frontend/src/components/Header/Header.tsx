@@ -2,9 +2,9 @@ import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import Button from '../buttons/Button'
+import Button from 'src/components/buttons/Button'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 import HeaderRoutes from './HeaderRoutes'
-import { useWeb3Context } from '../../contexts/Web3Context'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -39,7 +39,7 @@ const Header: FC = () => {
               Connect a Wallet
             </Button>
         }
-        
+
       </Box>
     </Box>
   )

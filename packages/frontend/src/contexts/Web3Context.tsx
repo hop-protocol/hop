@@ -9,7 +9,7 @@ import React, {
 } from 'react'
 import Onboard from 'bnc-onboard'
 import { ethers } from 'ethers'
-import Address from '../models/Address'
+import Address from 'src/models/Address'
 
 type Props = {
   onboard: any,

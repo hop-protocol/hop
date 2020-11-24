@@ -12,13 +12,13 @@ import MenuItem from '@material-ui/core/MenuItem'
 import MuiButton from '@material-ui/core/Button'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import SendIcon from '@material-ui/icons/Send'
-import RaisedSelect from '../../components/selects/RaisedSelect'
+import RaisedSelect from 'src/components/selects/RaisedSelect'
 import AmountSelectorCard from './AmountSelectorCard'
-import Button from '../../components/buttons/Button'
+import Button from 'src/components/buttons/Button'
 
 import { utils as ethersUtils } from 'ethers'
-import Token from '../../models/Token'
-import Network from '../../models/Network'
+import Token from 'src/models/Token'
+import Network from 'src/models/Network'
 
 const useStyles = makeStyles(() => ({
   sendSelect: {

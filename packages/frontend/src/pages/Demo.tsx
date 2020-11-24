@@ -1,8 +1,8 @@
 import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
-import Button from '../components/buttons/Button'
-import { useWeb3Context } from '../contexts/Web3Context'
+import Button from 'src/components/buttons/Button'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 import toHex from 'to-hex'
 

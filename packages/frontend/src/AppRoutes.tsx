@@ -4,9 +4,10 @@ import {
   Route,
   Redirect
 } from 'react-router-dom'
-import Components from './pages/Components'
-import Send from './pages/Send'
-import Demo from './pages/Demo'
+import Components from 'src/pages/Components'
+import Send from 'src/pages/Send'
+import Pools from 'src/pages/Pools'
+import Demo from 'src/pages/Demo'
 
 type Props = {}
 
@@ -18,7 +19,7 @@ const COMPONENT_NAME: FC<Props> = () => {
         <Send />
       </Route>
       <Route path="/pool">
-        Pools coming soon
+        <Pools />
       </Route>
       <Route path="/stake">
         Staking coming soon

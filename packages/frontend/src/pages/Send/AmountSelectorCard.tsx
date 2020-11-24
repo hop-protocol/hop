@@ -5,12 +5,12 @@ import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import MenuItem from '@material-ui/core/MenuItem'
-import LargeTextField from '../../components/LargeTextField'
-import FlatSelect from '../../components/selects/FlatSelect'
-import Network from '../../models/Network'
-import { OFFCHAIN_LABS_LOGO_URL as offchainLabsLogoUrl } from '../../config/constants'
-import { OPTIMISM_LOGO_URL as optimismLogoUrl } from '../../config/constants'
-import { MAINNET_LOGO_URL as mainnetLogoUrl } from '../../config/constants'
+import LargeTextField from 'src/components/LargeTextField'
+import FlatSelect from 'src/components/selects/FlatSelect'
+import Network from 'src/models/Network'
+import { OFFCHAIN_LABS_LOGO_URL as offchainLabsLogoUrl } from 'src/config/constants'
+import { OPTIMISM_LOGO_URL as optimismLogoUrl } from 'src/config/constants'
+import { MAINNET_LOGO_URL as mainnetLogoUrl } from 'src/config/constants'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -69,7 +69,7 @@ const AmountSelectorCard: FC<Props> = (props) => {
       <Grid container alignItems="center">
         <Grid item xs={6}>
           <FlatSelect value={selectedNetwork?.name || "default"} onChange={ event => {
-            const network = networkOptions.find( _network => 
+            const network = networkOptions.find( _network =>
               _network.name === event.target.value
             )
             onNetworkChange(network)
@@ -100,10 +100,10 @@ const AmountSelectorCard: FC<Props> = (props) => {
             </MenuItem>
             <MenuItem value="arbitrum">
               <Box display="flex" flexDirection="row" alignItems="center">
-                <img src={offchainLabsLogoUrl} className={styles.networkIcon} alt="arbitrum" /> 
+                <img src={offchainLabsLogoUrl} className={styles.networkIcon} alt="arbitrum" />
                 <Typography variant="subtitle2" className={styles.networkLabel}>
                   Arbitrum
-                </Typography> 
+                </Typography>
               </Box>
             </MenuItem>
           </FlatSelect>

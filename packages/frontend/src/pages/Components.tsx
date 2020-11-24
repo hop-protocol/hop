@@ -3,10 +3,10 @@ import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Card from '@material-ui/core/Card'
 import Typography from '@material-ui/core/Typography'
-import Button from '../components/buttons/Button'
-import LargeTextField from '../components/LargeTextField'
+import Button from 'src/components/buttons/Button'
+import LargeTextField from 'src/components/LargeTextField'
 import SendIcon from '@material-ui/icons/Send'
-import RaisedSelect from '../components/selects/RaisedSelect'
+import RaisedSelect from 'src/components/selects/RaisedSelect'
 import MenuItem from '@material-ui/core/MenuItem'
 
 const useStyles = makeStyles(() => ({

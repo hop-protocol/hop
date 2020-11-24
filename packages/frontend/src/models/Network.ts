@@ -3,8 +3,8 @@ import * as ethers from 'ethers'
 export type Networkish = Network | string | undefined
 
 export type NetworkProps = {
-  name: string,
-  imageUrl: string,
+  name: string
+  imageUrl: string
   rpcUrl: string
 }
 
@@ -13,7 +13,7 @@ class Network {
   imageUrl: string
   provider: ethers.providers.Provider
 
-  constructor(props: NetworkProps) {
+  constructor (props: NetworkProps) {
     this.name = props.name
     this.imageUrl = props.imageUrl
     this.provider = new ethers.providers.JsonRpcProvider(props.rpcUrl)

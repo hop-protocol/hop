@@ -2,7 +2,7 @@ import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Select, { SelectProps } from '@material-ui/core/Select'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     color: theme.palette.text.secondary,
     backgroundColor: 'rgba(255, 255, 255, 0.55)',
@@ -31,16 +31,10 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const FlatSelect: FC<SelectProps> = (props) => {
+const FlatSelect: FC<SelectProps> = props => {
   const styles = useStyles()
 
-  return (
-    <Select
-      {...props}
-      classes={styles}
-      disableUnderline
-    />
-  )
+  return <Select {...props} classes={styles} disableUnderline />
 }
 
 export default FlatSelect

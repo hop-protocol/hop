@@ -1,9 +1,5 @@
 import React, { FC } from 'react'
-import {
-  Switch,
-  Route,
-  Redirect
-} from 'react-router-dom'
+import { Switch, Route, Redirect } from 'react-router-dom'
 import Components from 'src/pages/Components'
 import Send from 'src/pages/Send'
 import Pools from 'src/pages/Pools'
@@ -12,7 +8,6 @@ import Demo from 'src/pages/Demo'
 type Props = {}
 
 const COMPONENT_NAME: FC<Props> = () => {
-
   return (
     <Switch>
       <Route path="/send">
@@ -21,9 +16,7 @@ const COMPONENT_NAME: FC<Props> = () => {
       <Route path="/pool">
         <Pools />
       </Route>
-      <Route path="/stake">
-        Staking coming soon
-      </Route>
+      <Route path="/stake">Staking coming soon</Route>
       <Route path="/demo">
         <Demo />
       </Route>

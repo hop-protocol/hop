@@ -1,10 +1,4 @@
-import React, {
-  FC,
-  useState,
-  useMemo,
-  useEffect,
-  ChangeEvent
-} from 'react'
+import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -70,11 +64,13 @@ const Send: FC = () => {
 
     let rate
     try {
-      rate = ethersUtils.formatEther(ethersUtils.parseEther('1')
-        .mul(selectedToken.rateForNetwork(toNetwork))
-        .div(selectedToken.rateForNetwork(fromNetwork)))
-    } catch (err) {
-    }
+      rate = ethersUtils.formatEther(
+        ethersUtils
+          .parseEther('1')
+          .mul(selectedToken.rateForNetwork(toNetwork))
+          .div(selectedToken.rateForNetwork(fromNetwork))
+      )
+    } catch (err) {}
 
     return rate || '-'
   }, [toNetwork, fromNetwork, selectedToken])
@@ -99,30 +95,49 @@ const Send: FC = () => {
   useEffect(() => {
     if (isFromLastChanged) {
       try {
-        const toAmount = ethersUtils.parseEther(fromTokenAmount)
+        const toAmount = ethersUtils
+          .parseEther(fromTokenAmount)
           .mul(selectedToken.rateForNetwork(toNetwork))
           .div(selectedToken.rateForNetwork(fromNetwork))
         setToTokenAmount(ethersUtils.formatEther(toAmount))
       } catch (err) {}
     }
-  }, [isFromLastChanged, fromNetwork, toNetwork, selectedToken, fromTokenAmount, setToTokenAmount])
+  }, [
+    isFromLastChanged,
+    fromNetwork,
+    toNetwork,
+    selectedToken,
+    fromTokenAmount,
+    setToTokenAmount
+  ])
 
   // Control fromTokenAmount when toTokenAmount was edited last
   useEffect(() => {
     if (!isFromLastChanged) {
       try {
-        const fromAmount = ethersUtils.parseEther(toTokenAmount)
+        const fromAmount = ethersUtils
+          .parseEther(toTokenAmount)
           .mul(selectedToken.rateForNetwork(fromNetwork))
           .div(selectedToken.rateForNetwork(toNetwork))
         setFromTokenAmount(ethersUtils.formatEther(fromAmount))
       } catch (err) {}
     }
-  }, [isFromLastChanged, fromNetwork, toNetwork, selectedToken, toTokenAmount, setFromTokenAmount])
+  }, [
+    isFromLastChanged,
+    fromNetwork,
+    toNetwork,
+    selectedToken,
+    toTokenAmount,
+    setFromTokenAmount
+  ])
 
   const approve = async () => {
     console.log('user: ', user)
     if (toNetwork) {
-      console.log('bal: ', (await user?.getBalance(selectedToken, toNetwork))?.toString())
+      console.log(
+        'bal: ',
+        (await user?.getBalance(selectedToken, toNetwork))?.toString()
+      )
     }
     // await l1_dai?.approve('0xc9898e162b6a43dc665b033f1ef6b2bc7b0157b4', '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
   }
@@ -144,27 +159,23 @@ const Send: FC = () => {
   }
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-    >
+    <Box display="flex" flexDirection="column" alignItems="center">
       <Box display="flex" alignItems="center" className={styles.sendSelect}>
         <Typography variant="h4" className={styles.sendLabel}>
           Send
         </Typography>
         <RaisedSelect value={selectedToken.symbol} onChange={handleTokenSelect}>
-          {tokens.map( token =>
+          {tokens.map(token => (
             <MenuItem value={token.symbol} key={token.symbol}>
               {token.symbol}
             </MenuItem>
-          )}
+          ))}
         </RaisedSelect>
       </Box>
       <AmountSelectorCard
         value={fromTokenAmount}
         token={selectedToken}
-        onChange={ event => {
+        onChange={event => {
           if (!event.target.value) {
             setFromTokenAmount('')
             setToTokenAmount('')
@@ -184,17 +195,20 @@ const Send: FC = () => {
         }}
         selectedNetwork={fromNetwork}
         networkOptions={networks}
-        onNetworkChange={ network => {
+        onNetworkChange={network => {
           setFromNetwork(network)
         }}
       />
-      <MuiButton className={styles.switchDirectionButton} onClick={handleSwitchDirection}>
-        <ArrowDownIcon color="primary" className={styles.downArrow}/>
+      <MuiButton
+        className={styles.switchDirectionButton}
+        onClick={handleSwitchDirection}
+      >
+        <ArrowDownIcon color="primary" className={styles.downArrow} />
       </MuiButton>
       <AmountSelectorCard
         value={toTokenAmount}
         token={selectedToken}
-        onChange={ event => {
+        onChange={event => {
           if (!event.target.value) {
             setToTokenAmount('')
             setFromTokenAmount('')
@@ -214,7 +228,7 @@ const Send: FC = () => {
         }}
         selectedNetwork={toNetwork}
         networkOptions={networks}
-        onNetworkChange={ network => {
+        onNetworkChange={network => {
           setToNetwork(network)
         }}
       />

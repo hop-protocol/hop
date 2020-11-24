@@ -1,7 +1,6 @@
 import React, {
   FC,
   useState,
-  useMemo,
 } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
@@ -13,6 +12,7 @@ import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
 import { utils as ethersUtils } from 'ethers'
 import SendIcon from '@material-ui/icons/Send'
 import Button from 'src/components/buttons/Button'
+import { useApp } from 'src/contexts/AppContext'
 
 const useStyles = makeStyles(() => ({
   title: {
@@ -46,35 +46,9 @@ const useStyles = makeStyles(() => ({
 
 const Pools: FC = () => {
   const styles = useStyles()
-  const networkOptions = useMemo<Network[]>(() => [
-    new Network('kovan'),
-    new Network('optimism'),
-    new Network('arbitrum')
-  ], [])
-  const tokenOptions = useMemo<Token[]>(() => [
-    new Token({
-      symbol: 'ETH',
-      tokenName: 'Ether',
-      addresses: {},
-      rates: {
-        kovan: ethersUtils.parseEther('1'),
-        arbitrum: ethersUtils.parseEther('0.998125000000000000'),
-        optimism: ethersUtils.parseEther('0.977777000000000000')
-      }
-    }),
-    new Token({
-      symbol: 'DAI',
-      tokenName: 'DAI Stablecoin',
-      addresses: {},
-      rates: {
-        kovan: ethersUtils.parseEther('1'),
-        arbitrum: ethersUtils.parseEther('0.998125000000000000'),
-        optimism: ethersUtils.parseEther('0.977777000000000000')
-      }
-    })
-  ], [])
+  const { tokens: tokenOptions, networks: networkOptions } = useApp()
   const [selectedTokenA, setSelectedTokenA] = useState<Token>(tokenOptions[0])
-  const [selectedTokenB, setSelectedTokenB] = useState<Token>(tokenOptions[1])
+  const [selectedTokenB, setSelectedTokenB] = useState<Token>(tokenOptions[0])
   const [tokenANetwork, setTokenANetwork] = useState<Network>()
   const [tokenBNetwork, setTokenBNetwork] = useState<Network>()
   const [tokenAAmount, setTokenAAmount] = useState<string>('')
@@ -94,9 +68,8 @@ const Pools: FC = () => {
       <Box display="flex" alignItems="center">
         <AmountSelectorCard
           label='Input'
-          symbol={selectedTokenA.symbol}
+          token={selectedTokenA}
           value={tokenAAmount}
-          balance={'0.0'}
           onChange={ event => {
             if (!event.target.value) {
               setTokenAAmount('')
@@ -128,9 +101,8 @@ const Pools: FC = () => {
       <Box display="flex" alignItems="center">
         <AmountSelectorCard
           label='Input'
-          symbol={selectedTokenB.symbol}
+          token={selectedTokenB}
           value={tokenBAmount}
-          balance={'0.0'}
           onChange={ event => {
             if (!event.target.value) {
               setTokenAAmount('')

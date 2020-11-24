@@ -20,7 +20,7 @@ import { utils as ethersUtils } from 'ethers'
 import Token from '../../models/Token'
 import Network from '../../models/Network'
 import { useWeb3Context } from '../../contexts/web3Context'
-import { useContracts } from '../../contexts/contracts'
+import { useApp } from '../../contexts/AppContext'
 
 const useStyles = makeStyles(() => ({
   sendSelect: {
@@ -52,35 +52,12 @@ const useStyles = makeStyles(() => ({
 const Send: FC = () => {
   const styles = useStyles()
 
-  const networkOptions = useMemo<Network[]>(() => [
-    new Network('kovan'),
-    new Network('optimism'),
-    new Network('arbitrum')
-  ], [])
+  const { user, tokens, networks, contracts } = useApp()
+  const { l1_bridge } = contracts
 
-  const tokenOptions = useMemo<Token[]>(() => [
-    new Token({
-      symbol: 'ETH',
-      tokenName: 'Ether',
-      addresses: {},
-      rates: {
-        kovan: ethersUtils.parseEther('1'),
-        arbitrum: ethersUtils.parseEther('0.998125000000000000'),
-        optimism: ethersUtils.parseEther('0.977777000000000000')
-      }
-    }),
-    new Token({
-      symbol: 'DAI',
-      tokenName: 'DAI Stablecoin',
-      addresses: {},
-      rates: {
-        kovan: ethersUtils.parseEther('1'),
-        arbitrum: ethersUtils.parseEther('0.958125000000000000'),
-        optimism: ethersUtils.parseEther('0.967777000000000000')
-      }
-    })
-  ], [])
-  const [selectedToken, setSelectedToken] = useState<Token>(tokenOptions[0])
+  const { provider } = useWeb3Context()
+
+  const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [fromNetwork, setFromNetwork] = useState<Network>()
   const [toNetwork, setToNetwork] = useState<Network>()
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
@@ -101,12 +78,10 @@ const Send: FC = () => {
 
     return rate || '-'
   }, [toNetwork, fromNetwork, selectedToken])
-  const { provider } = useWeb3Context()
-  const { l1_dai, l1_bridge } = useContracts()
 
-  const handleTokenOptionSelect = (event: ChangeEvent<{ value: unknown }>) => {
+  const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value
-    const newSelectedToken = tokenOptions.find(token => token.symbol === tokenSymbol)
+    const newSelectedToken = tokens.find(token => token.symbol === tokenSymbol)
     if (newSelectedToken) {
       setSelectedToken(newSelectedToken)
     }
@@ -145,7 +120,11 @@ const Send: FC = () => {
   }, [isFromLastChanged, fromNetwork, toNetwork, selectedToken, toTokenAmount, setFromTokenAmount])
 
   const approve = async () => {
-    await l1_dai?.approve('0xc9898e162b6a43dc665b033f1ef6b2bc7b0157b4', '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+    console.log('user: ', user)
+    if (toNetwork) {
+      console.log('bal: ', (await user?.getBalance(selectedToken, toNetwork))?.toString())
+    }
+    // await l1_dai?.approve('0xc9898e162b6a43dc665b033f1ef6b2bc7b0157b4', '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
   }
 
   const send = async () => {
@@ -154,7 +133,7 @@ const Send: FC = () => {
       throw new Error('Cannot send: l1_bridge or signer does not exist.')
     }
 
-    const arbitrumNetwork = new Network('arbitrum')
+    const arbitrumNetwork = networks[1]
     // await l1_bridge.sendToL2(arbitrumNetwork.key(), await signer.getAddress(), fromTokenAmount)
     await l1_bridge.sendToL2AndAttemptSwap(
       arbitrumNetwork.key(),
@@ -174,8 +153,8 @@ const Send: FC = () => {
         <Typography variant="h4" className={styles.sendLabel}>
           Send
         </Typography>
-        <RaisedSelect value={selectedToken.symbol} onChange={handleTokenOptionSelect}>
-          {tokenOptions.map( token =>
+        <RaisedSelect value={selectedToken.symbol} onChange={handleTokenSelect}>
+          {tokens.map( token =>
             <MenuItem value={token.symbol} key={token.symbol}>
               {token.symbol}
             </MenuItem>
@@ -184,7 +163,6 @@ const Send: FC = () => {
       </Box>
       <AmountSelectorCard
         value={fromTokenAmount}
-        balance={'0.0'}
         token={selectedToken}
         onChange={ event => {
           if (!event.target.value) {
@@ -205,7 +183,7 @@ const Send: FC = () => {
           } catch (e) {}
         }}
         selectedNetwork={fromNetwork}
-        networkOptions={networkOptions}
+        networkOptions={networks}
         onNetworkChange={ network => {
           setFromNetwork(network)
         }}
@@ -215,7 +193,6 @@ const Send: FC = () => {
       </MuiButton>
       <AmountSelectorCard
         value={toTokenAmount}
-        balance={'0.0'}
         token={selectedToken}
         onChange={ event => {
           if (!event.target.value) {
@@ -236,7 +213,7 @@ const Send: FC = () => {
           } catch (e) {}
         }}
         selectedNetwork={toNetwork}
-        networkOptions={networkOptions}
+        networkOptions={networks}
         onNetworkChange={ network => {
           setToNetwork(network)
         }}

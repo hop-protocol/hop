@@ -62,16 +62,6 @@ const AmountSelectorCard: FC<Props> = props => {
   const { user } = useApp()
 
   const [balance, setBalance] = useState('0.0')
-  useEffect(() => {
-    const _getBalance = async () => {
-      if (user && token && selectedNetwork) {
-        const _balance = await user.getBalance(token, selectedNetwork)
-        setBalance(ethersUtils.formatUnits(_balance, 18))
-      }
-    }
-
-    _getBalance()
-  }, [user, token, selectedNetwork])
 
   const getBalance = useCallback(() => {
     const _getBalance = async  () => {
@@ -82,6 +72,10 @@ const AmountSelectorCard: FC<Props> = props => {
     }
 
     _getBalance()
+  }, [user, token, selectedNetwork])
+
+  useEffect(() => {
+    getBalance()
   }, [user, token, selectedNetwork])
 
   useInterval(() => {

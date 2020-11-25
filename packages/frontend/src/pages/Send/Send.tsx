@@ -47,7 +47,7 @@ const Send: FC = () => {
   const styles = useStyles()
 
   const { user, tokens, networks, contracts } = useApp()
-  const { l1_bridge, arbitrum_bridge } = contracts
+  const { l1_bridge, arbitrum_bridge, arbitrum_uniswap } = contracts
 
   const { provider } = useWeb3Context()
 
@@ -132,14 +132,24 @@ const Send: FC = () => {
   ])
 
   const approve = async () => {
-    console.log('user: ', user)
-    if (toNetwork) {
-      console.log(
-        'bal: ',
-        (await user?.getBalance(selectedToken, toNetwork))?.toString()
-      )
+    const signer = user?.signer()
+
+    if (!signer) {
+      throw new Error('Wallet not connected')
     }
-    // await l1_dai?.approve('0xc9898e162b6a43dc665b033f1ef6b2bc7b0157b4', '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+
+    if (!fromNetwork) {
+      throw new Error('No fromNetwork selected')
+    }
+
+    const tokenContract = selectedToken.contractForNetwork(fromNetwork).connect(signer)
+
+    if (fromNetwork.isLayer1) {
+      tokenContract.approve(l1_bridge?.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+    } else {
+      // ToDo: Get uniswap contract based on from network
+      tokenContract.approve(arbitrum_uniswap?.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+    }
   }
 
   const send = async () => {

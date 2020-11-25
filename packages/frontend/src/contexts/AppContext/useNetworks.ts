@@ -6,7 +6,6 @@ import { MAINNET_LOGO_URL as mainnetLogoUrl } from 'src/config/constants'
 import Network from 'src/models/Network'
 
 const useNetworks = () => {
-
   const networks = useMemo<Network[]>(
     () => [
       new Network({

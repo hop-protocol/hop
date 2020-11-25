@@ -1,10 +1,4 @@
-import React, {
-  FC,
-  ChangeEvent,
-  useState,
-  useEffect,
-  useCallback
-} from 'react'
+import React, { FC, ChangeEvent, useState, useEffect, useCallback } from 'react'
 import { utils as ethersUtils } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
@@ -66,7 +60,7 @@ const AmountSelectorCard: FC<Props> = props => {
   const [balance, setBalance] = useState('0.0')
 
   const getBalance = useCallback(() => {
-    const _getBalance = async  () => {
+    const _getBalance = async () => {
       if (user && token && selectedNetwork) {
         const _balance = await user.getBalance(token, selectedNetwork)
         setBalance(ethersUtils.formatUnits(_balance, 18))

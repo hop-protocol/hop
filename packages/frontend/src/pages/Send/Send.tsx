@@ -142,13 +142,21 @@ const Send: FC = () => {
       throw new Error('No fromNetwork selected')
     }
 
-    const tokenContract = selectedToken.contractForNetwork(fromNetwork).connect(signer)
+    const tokenContract = selectedToken
+      .contractForNetwork(fromNetwork)
+      .connect(signer)
 
     if (fromNetwork.isLayer1) {
-      tokenContract.approve(l1_bridge?.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+      tokenContract.approve(
+        l1_bridge?.address,
+        '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+      )
     } else {
       // ToDo: Get uniswap contract based on from network
-      tokenContract.approve(arbitrum_uniswap?.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+      tokenContract.approve(
+        arbitrum_uniswap?.address,
+        '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+      )
     }
   }
 
@@ -210,7 +218,7 @@ const Send: FC = () => {
       <AmountSelectorCard
         value={fromTokenAmount}
         token={selectedToken}
-        label={isFromLastChanged ? "From" : "From (estimated)"}
+        label={isFromLastChanged ? 'From' : 'From (estimated)'}
         onChange={event => {
           if (!event.target.value) {
             setFromTokenAmount('')
@@ -244,7 +252,7 @@ const Send: FC = () => {
       <AmountSelectorCard
         value={toTokenAmount}
         token={selectedToken}
-        label={isFromLastChanged ? "To (estimated)" : "To"}
+        label={isFromLastChanged ? 'To (estimated)' : 'To'}
         onChange={event => {
           if (!event.target.value) {
             setToTokenAmount('')

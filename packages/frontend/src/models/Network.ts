@@ -6,7 +6,7 @@ export type NetworkProps = {
   name: string
   imageUrl: string
   rpcUrl: string
-  isLayer1? : boolean
+  isLayer1?: boolean
 }
 
 class Network {

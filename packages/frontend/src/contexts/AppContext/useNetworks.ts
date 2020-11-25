@@ -11,7 +11,8 @@ const useNetworks = () => {
       new Network({
         name: 'kovan',
         imageUrl: mainnetLogoUrl,
-        rpcUrl: 'https://kovan.rpc.authereum.com'
+        rpcUrl: 'https://kovan.rpc.authereum.com',
+        isLayer1: true
       }),
       new Network({
         name: 'arbitrum',

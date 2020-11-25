@@ -47,7 +47,7 @@ const Send: FC = () => {
   const styles = useStyles()
 
   const { user, tokens, networks, contracts } = useApp()
-  const { l1_bridge } = contracts
+  const { l1_bridge, arbitrum_bridge, arbitrum_uniswap } = contracts
 
   const { provider } = useWeb3Context()
 
@@ -56,7 +56,7 @@ const Send: FC = () => {
   const [toNetwork, setToNetwork] = useState<Network>()
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
-  const [isFromLastChanged, setIsFromLastChanged] = useState<boolean>(false)
+  const [isFromLastChanged, setIsFromLastChanged] = useState<boolean>(true)
   const exchangeRate = useMemo(() => {
     if (!fromNetwork || !toNetwork) {
       return '-'
@@ -132,30 +132,73 @@ const Send: FC = () => {
   ])
 
   const approve = async () => {
-    console.log('user: ', user)
-    if (toNetwork) {
-      console.log(
-        'bal: ',
-        (await user?.getBalance(selectedToken, toNetwork))?.toString()
+    const signer = user?.signer()
+
+    if (!signer) {
+      throw new Error('Wallet not connected')
+    }
+
+    if (!fromNetwork) {
+      throw new Error('No fromNetwork selected')
+    }
+
+    const tokenContract = selectedToken
+      .contractForNetwork(fromNetwork)
+      .connect(signer)
+
+    if (fromNetwork.isLayer1) {
+      tokenContract.approve(
+        l1_bridge?.address,
+        '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+      )
+    } else {
+      // ToDo: Get uniswap contract based on from network
+      tokenContract.approve(
+        arbitrum_uniswap?.address,
+        '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
       )
     }
-    // await l1_dai?.approve('0xc9898e162b6a43dc665b033f1ef6b2bc7b0157b4', '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
   }
 
   const send = async () => {
+    if (!fromNetwork || !toNetwork) {
+      throw new Error('A network is undefined')
+    }
+
+    if (fromNetwork.isLayer1) {
+      await sendl1ToL2()
+    } else if (!fromNetwork.isLayer1) {
+      await sendl2ToL1()
+    } else {
+      console.log('ToDo: L2 to L2 transfers')
+    }
+  }
+
+  const sendl1ToL2 = async () => {
     const signer = provider?.getSigner()
     if (!l1_bridge || !signer) {
       throw new Error('Cannot send: l1_bridge or signer does not exist.')
     }
 
     const arbitrumNetwork = networks[1]
-    // await l1_bridge.sendToL2(arbitrumNetwork.key(), await signer.getAddress(), fromTokenAmount)
     await l1_bridge.sendToL2AndAttemptSwap(
       arbitrumNetwork.key(),
       await signer.getAddress(),
-      fromTokenAmount,
+      ethersUtils.parseEther(fromTokenAmount),
       '0'
     )
+  }
+
+  const sendl2ToL1 = async () => {
+    const signer = provider?.getSigner()
+    if (!arbitrum_bridge || !signer) {
+      throw new Error('Cannot send: l1_bridge or signer does not exist.')
+    }
+
+    // ToDo: Hook up to swapAndSendToMainnet
+    // const arbitrumNetwork = networks[1]
+    // await arbitrum_bridge.swapAndSendToMainnet(
+    // )
   }
 
   return (
@@ -175,6 +218,7 @@ const Send: FC = () => {
       <AmountSelectorCard
         value={fromTokenAmount}
         token={selectedToken}
+        label={isFromLastChanged ? 'From' : 'From (estimated)'}
         onChange={event => {
           if (!event.target.value) {
             setFromTokenAmount('')
@@ -208,6 +252,7 @@ const Send: FC = () => {
       <AmountSelectorCard
         value={toTokenAmount}
         token={selectedToken}
+        label={isFromLastChanged ? 'To (estimated)' : 'To'}
         onChange={event => {
           if (!event.target.value) {
             setToTokenAmount('')

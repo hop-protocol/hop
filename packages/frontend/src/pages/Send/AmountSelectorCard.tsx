@@ -1,4 +1,4 @@
-import React, { FC, ChangeEvent, useState, useEffect } from 'react'
+import React, { FC, ChangeEvent, useState, useEffect, useCallback } from 'react'
 import { utils as ethersUtils } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
@@ -11,6 +11,7 @@ import FlatSelect from 'src/components/selects/FlatSelect'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import { useApp } from 'src/contexts/AppContext'
+import useInterval from 'src/hooks/useInterval'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -36,6 +37,7 @@ const useStyles = makeStyles(theme => ({
 type Props = {
   value: string
   token?: Token
+  label: string
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void
   selectedNetwork?: Network
   networkOptions: Network[]
@@ -46,6 +48,7 @@ const AmountSelectorCard: FC<Props> = props => {
   const {
     value,
     token,
+    label,
     onChange,
     selectedNetwork,
     networkOptions,
@@ -55,16 +58,25 @@ const AmountSelectorCard: FC<Props> = props => {
   const { user } = useApp()
 
   const [balance, setBalance] = useState('0.0')
-  useEffect(() => {
-    const getBalance = async () => {
+
+  const getBalance = useCallback(() => {
+    const _getBalance = async () => {
       if (user && token && selectedNetwork) {
         const _balance = await user.getBalance(token, selectedNetwork)
         setBalance(ethersUtils.formatUnits(_balance, 18))
       }
     }
 
-    getBalance()
+    _getBalance()
   }, [user, token, selectedNetwork])
+
+  useEffect(() => {
+    getBalance()
+  }, [getBalance, user, token, selectedNetwork])
+
+  useInterval(() => {
+    getBalance()
+  }, 5e3)
 
   return (
     <Card className={styles.root}>
@@ -75,7 +87,7 @@ const AmountSelectorCard: FC<Props> = props => {
         className={styles.topRow}
       >
         <Typography variant="subtitle2" color="textSecondary">
-          From
+          {label}
         </Typography>
         {balance ? (
           <Typography variant="subtitle2" color="textSecondary">

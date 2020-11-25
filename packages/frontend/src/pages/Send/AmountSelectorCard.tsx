@@ -43,6 +43,7 @@ const useStyles = makeStyles(theme => ({
 type Props = {
   value: string
   token?: Token
+  label: string
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void
   selectedNetwork?: Network
   networkOptions: Network[]
@@ -53,6 +54,7 @@ const AmountSelectorCard: FC<Props> = props => {
   const {
     value,
     token,
+    label,
     onChange,
     selectedNetwork,
     networkOptions,
@@ -91,7 +93,7 @@ const AmountSelectorCard: FC<Props> = props => {
         className={styles.topRow}
       >
         <Typography variant="subtitle2" color="textSecondary">
-          From
+          {label}
         </Typography>
         {balance ? (
           <Typography variant="subtitle2" color="textSecondary">

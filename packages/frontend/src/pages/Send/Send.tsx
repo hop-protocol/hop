@@ -56,7 +56,7 @@ const Send: FC = () => {
   const [toNetwork, setToNetwork] = useState<Network>()
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
-  const [isFromLastChanged, setIsFromLastChanged] = useState<boolean>(false)
+  const [isFromLastChanged, setIsFromLastChanged] = useState<boolean>(true)
   const exchangeRate = useMemo(() => {
     if (!fromNetwork || !toNetwork) {
       return '-'
@@ -210,6 +210,7 @@ const Send: FC = () => {
       <AmountSelectorCard
         value={fromTokenAmount}
         token={selectedToken}
+        label={isFromLastChanged ? "From" : "From (estimated)"}
         onChange={event => {
           if (!event.target.value) {
             setFromTokenAmount('')
@@ -243,6 +244,7 @@ const Send: FC = () => {
       <AmountSelectorCard
         value={toTokenAmount}
         token={selectedToken}
+        label={isFromLastChanged ? "To (estimated)" : "To"}
         onChange={event => {
           if (!event.target.value) {
             setToTokenAmount('')

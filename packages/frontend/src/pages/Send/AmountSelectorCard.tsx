@@ -78,7 +78,7 @@ const AmountSelectorCard: FC<Props> = props => {
 
   useEffect(() => {
     getBalance()
-  }, [user, token, selectedNetwork])
+  }, [getBalance, user, token, selectedNetwork])
 
   useInterval(() => {
     getBalance()

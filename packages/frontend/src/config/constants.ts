@@ -9,8 +9,14 @@ export enum PROPOSAL_STATUSES {
   DEFEATED = 'defeated'
 }
 
-// export const PROPOSAL_STATUSES: I_PROPOSAL_STATUSES = {
-//   ONGOING: 'ongoing',
-//   SUCCEEDED: 'succeeded',
-//   DEFEATED: 'defeated'
+// TODO: These are all the possible states
+// enum ProposalState {
+//   Pending,
+//   Active,
+//   Canceled,
+//   Defeated,
+//   Succeeded,
+//   Queued,
+//   Expired,
+//   Executed
 // }

@@ -216,7 +216,6 @@ const Send: FC = () => {
         </RaisedSelect>
       </Box>
       <AmountSelectorCard
-        label={'From'}
         value={fromTokenAmount}
         token={selectedToken}
         label={isFromLastChanged ? 'From' : 'From (estimated)'}
@@ -251,7 +250,6 @@ const Send: FC = () => {
         <ArrowDownIcon color="primary" className={styles.downArrow} />
       </MuiButton>
       <AmountSelectorCard
-        label={'To'}
         value={toTokenAmount}
         token={selectedToken}
         label={isFromLastChanged ? 'To (estimated)' : 'To'}

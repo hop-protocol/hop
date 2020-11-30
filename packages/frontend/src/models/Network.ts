@@ -4,6 +4,7 @@ export type Networkish = Network | string | undefined
 
 export type NetworkProps = {
   name: string
+  slug: string
   imageUrl: string
   rpcUrl: string
   isLayer1?: boolean
@@ -11,12 +12,14 @@ export type NetworkProps = {
 
 class Network {
   name: string
+  slug: string
   imageUrl: string
   provider: ethers.providers.Provider
   isLayer1: boolean
 
   constructor (props: NetworkProps) {
     this.name = props.name
+    this.slug = props.slug
     this.imageUrl = props.imageUrl
     this.provider = new ethers.providers.JsonRpcProvider(props.rpcUrl)
     this.isLayer1 = props.isLayer1 ? props.isLayer1 : false
@@ -27,7 +30,7 @@ class Network {
   }
 
   key () {
-    return ethers.utils.solidityKeccak256(['string'], [this.name])
+    return ethers.utils.solidityKeccak256(['string'], [this.slug])
   }
 }
 

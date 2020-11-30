@@ -59,7 +59,7 @@ const useContracts = (networks: Network[]): HopContracts => {
   const arbitrum_uniswap = useMemo(() => {
     return provider
       ? new Contract(
-          addresses.arbitrumBridge,
+          addresses.arbitrumUniswapRouter,
           uniswapArtifact.abi,
           provider.getSigner()
         )

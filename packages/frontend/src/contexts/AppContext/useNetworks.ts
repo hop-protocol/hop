@@ -9,18 +9,21 @@ const useNetworks = () => {
   const networks = useMemo<Network[]>(
     () => [
       new Network({
-        name: 'kovan',
+        name: 'Kovan',
+        slug: 'kovan',
         imageUrl: mainnetLogoUrl,
         rpcUrl: 'https://kovan.rpc.authereum.com',
         isLayer1: true
       }),
       new Network({
-        name: 'arbitrum',
+        name: 'Arbitrum',
+        slug: 'arbitrum',
         imageUrl: offchainLabsLogoUrl,
         rpcUrl: 'https://kovan2.arbitrum.io/rpc'
       })
       // new Network({
-      //   name: 'optimism',
+      //   name: 'Optimism',
+      //   slug: 'optimism',
       //   imageUrl: optimismLogoUrl,
       //   rpcUrl: ''
       // })

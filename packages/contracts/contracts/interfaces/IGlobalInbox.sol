@@ -1,4 +1,4 @@
-pragma solidity 0.5.11;
+pragma solidity 0.6.12;
 
 interface IGlobalInbox {
     event MessageDelivered(

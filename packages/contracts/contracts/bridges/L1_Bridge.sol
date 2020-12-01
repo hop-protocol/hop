@@ -17,6 +17,16 @@ contract L1_Bridge is Bridge {
     using MerkleProof for bytes32[];
     using SafeERC20 for IERC20;
 
+    struct TransferRoot {
+        uint256 createdAt;
+        uint256 total;
+        bytes32 amountHash;
+        uint256 amountWithdrawn;
+        bool confirmed;
+        uint256 challengeStartTime;
+        address challenger;
+    }
+
     /**
      * Constants
      */
@@ -25,19 +35,11 @@ contract L1_Bridge is Bridge {
     uint256 constant TIME_SLOT_SIZE = 1 hours;
     uint256 constant CHALLENGE_PERIOD = 4 hours;
     uint256 constant CHALLENGE_RESOLUTION_PERIOD = 8 days;
+    string constant LAYER_NAME = "kovan";
 
-    struct TransferRoot {
-        uint256 createdAt;
-        uint256 total;
-        uint256 amountWithdrawn;
-        bool confirmed;
-        uint256 challengeStartTime;
-        address challenger;
-    }
+    IERC20 public token;
 
     mapping(bytes32 => ILayerWrapper) public l1Messenger;
-
-    mapping(bytes32 => address) public l1Messenger;
 
     address public committee;
     uint256 public committeeBond;
@@ -65,10 +67,6 @@ contract L1_Bridge is Bridge {
         l1Messenger[_messengerId] = _l1Messenger;
     }
 
-    function getMessengerId(string calldata _messengerLabel) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_messengerLabel));
-    }
-
     function sendToL2(
         bytes32 _messengerId,
         address _recipient,
@@ -77,7 +75,6 @@ contract L1_Bridge is Bridge {
         public
     {
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
-        bytes memory sendMessageCalldata = abi.encodeWithSignature("sendMessageToL2(bytes)", mintCalldata);
 
         l1Messenger[_messengerId].sendMessageToL2(mintCalldata);
         token.safeTransferFrom(msg.sender, address(this), _amount);
@@ -97,7 +94,6 @@ contract L1_Bridge is Bridge {
             _amount,
             _amountOutMin
         );
-        bytes memory sendMessageCalldata = abi.encodeWithSignature("sendMessageToL2(bytes)", mintAndAttemptSwapCalldata);
 
         l1Messenger[_messengerId].sendMessageToL2(mintAndAttemptSwapCalldata);
         token.safeTransferFrom(msg.sender, address(this), _amount);
@@ -123,26 +119,44 @@ contract L1_Bridge is Bridge {
      * Transfer Roots
      */
 
-    // onlyCrossDomainBridge
-    function setTransferRoot(bytes32 _transferRootHash, uint256 _amount) public {
-        transferRoots[_transferRootHash] = TransferRoot(now, _amount, 0, false, 0, address(0));
-    }
-
     // onlyCommittee
-    function bondTransferRoot(bytes32 _transferRootHash, uint256 _amount) public {
-        require(totalBondedWith(_amount) <= committeeBond, "BDG: Amount exceeds committee bond");
+    function bondTransferRoot(bytes32 _transferRootHash, bytes32[] memory _layerIds, uint256[] memory _layerAmounts) public {
+        require(_layerIds.length == _layerAmounts.length, "BDG: layerIds and layerAmounts must be the same length");
+
+        uint256 totalAmount = 0;
+        for (uint256 i = 0; i < _layerAmounts.length; i++) {
+            totalAmount = totalAmount.add(_layerAmounts[i]);
+        }
+        require(totalBondedWith(totalAmount) <= committeeBond, "BDG: Amount exceeds committee bond");
 
         uint256 currentTimeSlot = timeToTimeSlot(now);
-        timeSlotToAmountBonded[currentTimeSlot] = timeSlotToAmountBonded[currentTimeSlot].add(_amount);
+        timeSlotToAmountBonded[currentTimeSlot] = timeSlotToAmountBonded[currentTimeSlot].add(totalAmount);
 
-        transferRoots[_transferRootHash] = TransferRoot(now, _amount, 0, false, 0, address(0));
+        bytes32 amountHash = getAmountHash(_layerIds, _layerAmounts);
 
-        emit TransferRootBonded(_transferRootHash, _amount);
+        for (uint256 i = 0; i < _layerIds.length; i++) {
+            if (_layerIds[i] == getMessengerId(LAYER_NAME)) {
+                // Set L1 transfer root
+                transferRoots[_transferRootHash] = TransferRoot(now, totalAmount, amountHash, 0, false, 0, address(0));
+            } else {
+                // Set L2 transfer root
+                bytes memory setTransferRootMessage = abi.encodeWithSignature(
+                    "setTransferRoot(bytes32,uint256)",
+                    _transferRootHash,
+                    _layerAmounts[i]
+                );
+
+                l1Messenger[_layerIds[i]].sendMessageToL2(setTransferRootMessage);
+            }
+        }
+
+        emit TransferRootBonded(_transferRootHash, totalAmount);
     }
 
     // onlyCrossDomainBridge
-    function confirmTransferRoot(bytes32 _transferRootHash, uint256 _amount) public {
+    function confirmTransferRoot(bytes32 _transferRootHash, bytes32 _amountHash) public {
         TransferRoot storage transferRoot = transferRoots[_transferRootHash];
+        require(transferRoot.amountHash == _amountHash, "BDG: Amount hash is invalid");
         transferRoot.confirmed = true;
     }
 
@@ -203,12 +217,13 @@ contract L1_Bridge is Bridge {
         public
     {
         bytes32 transferHash = getTransferHash(
+            getMessengerId(LAYER_NAME),
             _recipient,
             _amount,
             _transferNonce,
             _relayerFee
         );
-        uint256 totalAmount = _amount + _relayerFee;
+        uint256 totalAmount = _amount.add(_relayerFee);
         TransferRoot storage rootBalance = transferRoots[_transferRoot];
 
         require(!spentTransferHashes[transferHash], "BDG: The transfer has already been withdrawn");

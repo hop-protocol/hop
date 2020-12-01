@@ -19,7 +19,8 @@ contract L2_Bridge is ERC20, Bridge {
     uint256   public swapDeadlineBuffer;
     address   public exchangeAddress;
     address   public oDaiAddress;
-    address[] public exchangePath;
+    address[] public OH_exchangePath;
+    address[] public HO_exchangePath;
 
     event TransfersCommitted (
         bytes32 root,
@@ -40,7 +41,8 @@ contract L2_Bridge is ERC20, Bridge {
         swapDeadlineBuffer = _swapDeadlineBuffer;
         exchangeAddress = _exchangeAddress;
         oDaiAddress = _oDaiAddress;
-        exchangePath = [address(this), oDaiAddress];
+        OH_exchangePath = [oDaiAddress, address(this)];
+        HO_exchangePath = [address(this), oDaiAddress];
     }
 
     function setL1BridgeAddress(address _l1BridgeAddress) public {
@@ -61,6 +63,28 @@ contract L2_Bridge is ERC20, Bridge {
         bytes32 transferHash = getTransferHash(_recipient, _amount, _transferNonce, _relayerFee);
         pendingTransfers.push(transferHash);
         pendingAmount = pendingAmount.add(totalAmount);
+    }
+
+    function swapAndSendToMainnet(
+        address _recipient,
+        uint256 _amount,
+        uint256 _transferNonce,
+        uint256 _relayerFee,
+        uint256 _amountOutMin
+    )
+        public
+    {
+        ERC20(oDaiAddress).transferFrom(msg.sender, address(this), _amount);
+
+        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, OH_exchangePath);
+        (bool success,) = exchangeAddress.call(swapCalldata);
+        require(success, "L2BDG: Swap failed");
+
+        uint256 totalAmount = _amount + _relayerFee;
+        uint256 senderBalance = balanceOf(msg.sender);
+        uint256 senderAmount = totalAmount >= senderBalance ? senderBalance : _amount;
+
+        sendToMainnet(_recipient, senderAmount, _transferNonce, _relayerFee);
     }
 
     function commitTransfersPreHook() internal returns (bytes32, uint256, bytes memory) {
@@ -91,27 +115,35 @@ contract L2_Bridge is ERC20, Bridge {
     function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin) public {
         _mint(address(this), _amount);
 
-        uint256 swapDeadline = block.timestamp + swapDeadlineBuffer;
-        bytes memory swapCalldata = abi.encodeWithSignature(
-            "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",
-            _amount,
-            _amountOutMin,
-            exchangePath,
-            _recipient,
-            swapDeadline
-        );
-
+        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, HO_exchangePath);
         (bool success,) = exchangeAddress.call(swapCalldata);
+
         if (!success) {
-            transferFallback(_recipient, _amount);
+            _transferFallback(_recipient, _amount);
         }
     }
 
     function approveExchangeTransfer() public {
-        _approve(address(this), exchangeAddress, uint256(-1));
+        approve(exchangeAddress, uint256(-1));
     }
 
-    function transferFallback(address _recipient, uint256 _amount) public {
+    function approveODaiExchangeTransfer() public {
+        ERC20(oDaiAddress).approve(exchangeAddress, uint256(-1));
+    }
+
+    function _transferFallback(address _recipient, uint256 _amount) internal {
         _transfer(address(this), _recipient, _amount);
+    }
+
+    function _getSwapCalldata(address _recipient, uint256 _amount, uint256 _amountOutMin, address[] memory _exchangePath) internal returns (bytes memory) {
+        uint256 swapDeadline = block.timestamp + swapDeadlineBuffer;
+        return abi.encodeWithSignature(
+            "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",
+            _amount,
+            _amountOutMin,
+            _exchangePath,
+            _recipient,
+            swapDeadline
+        );
     }
 }

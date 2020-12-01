@@ -173,6 +173,7 @@ describe("Full story", () => {
     await expectBalanceOf(l2_bridge, user, '99')
 
     const transfer = new Transfer({
+      layerId: getL2MessengerId('kovan'),
       amount: BigNumber.from('99'),
       nonce: 0,
       recipient: await user.getAddress(),
@@ -180,7 +181,8 @@ describe("Full story", () => {
     })
 
     // User moves funds back to L1 across the liquidity bridge
-    await l2_bridge.connect(user).sendToMainnet(transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee)
+    await l2_bridge.connect(user).sendToMainnet(getL2MessengerId('kovan'), transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee)
+
     await l2_bridge.commitTransfers()
     await l1_messenger.relayNextMessage()
 
@@ -189,7 +191,7 @@ describe("Full story", () => {
     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
-    await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, transfer.amount.add(transfer.relayerFee))
+    await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, [getL2MessengerId('kovan')], [transfer.amount.add(transfer.relayerFee)])
 
     // User withdraws from L1 bridge
     const tree = new MerkleTree([ transfer.getTransferHash() ])
@@ -208,6 +210,7 @@ describe("Full story", () => {
 
   it('Should not allow a transfer root that exceeds the committee bond', async () => {
     const transfer = new Transfer({
+      layerId: getL2MessengerId('kovan'),
       recipient: await user.getAddress(),
       amount: BigNumber.from('98'),
       nonce: 0,
@@ -227,6 +230,7 @@ describe("Full story", () => {
 
   it('Should successfully challenge a malicious transfer root', async () => {
     const transfer = new Transfer({
+      layerId: getL2MessengerId('kovan'),
       recipient: await user.getAddress(),
       amount: BigNumber.from('100'),
       nonce: 0,
@@ -239,7 +243,7 @@ describe("Full story", () => {
     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
-    await l1_bridge.bondTransferRoot(tree.getRoot(), transfer.amount.add(transfer.relayerFee))
+    await l1_bridge.bondTransferRoot(tree.getRoot(), [getL2MessengerId('kovan')], [transfer.amount.add(transfer.relayerFee)])
 
     await l1_poolToken.connect(challenger).approve(l1_bridge.address, BigNumber.from('10'))
     await l1_bridge.connect(challenger).challengeTransferRoot(tree.getRoot())

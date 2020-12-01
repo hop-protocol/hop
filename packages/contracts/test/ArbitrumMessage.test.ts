@@ -3,7 +3,7 @@ import '@nomiclabs/hardhat-waffle'
 import { ethers } from 'hardhat'
 import { BigNumber, BigNumberish, ContractFactory, Signer, Contract } from 'ethers'
 import { getL2MessengerId, setMessengerWrapperDefaults } from './utils'
-import { L2_NAMES } from './constants'
+import { L2_NAMES, ZERO_ADDRESS } from './constants'
 
 const USER_INITIAL_BALANCE = BigNumber.from('100')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
@@ -72,7 +72,7 @@ describe("Full story", () => {
     messengerId = getL2MessengerId('arbitrum')
     await l1_bridge.setL1MessengerWrapper(messengerId, l1_messengerWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
-    await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, weth.address)
+    await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, ZERO_ADDRESS) // This should be l2_ovmBridge.address, but that concept does not exist in this test file.
 
     // Set up bridge
     await l1_messenger.setTargetMessengerAddress(l2_messenger.address)

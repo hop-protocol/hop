@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./Bridge.sol";
 
 import "../libraries/MerkleUtils.sol";
+import "../interfaces/ILayerWrapper.sol";
 
 contract L1_Bridge is Bridge {
     using SafeMath for uint256;
@@ -34,7 +35,7 @@ contract L1_Bridge is Bridge {
         address challenger;
     }
 
-    IERC20 token;
+    mapping(bytes32 => ILayerWrapper) public l1Messenger;
 
     mapping(bytes32 => address) public l1Messenger;
 
@@ -60,7 +61,7 @@ contract L1_Bridge is Bridge {
         token = _token;
     }
 
-    function setL1MessengerWrapper(bytes32 _messengerId, address _l1Messenger) public {
+    function setL1MessengerWrapper(bytes32 _messengerId, ILayerWrapper _l1Messenger) public {
         l1Messenger[_messengerId] = _l1Messenger;
     }
 
@@ -78,7 +79,7 @@ contract L1_Bridge is Bridge {
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
         bytes memory sendMessageCalldata = abi.encodeWithSignature("sendMessageToL2(bytes)", mintCalldata);
 
-        l1Messenger[_messengerId].call(sendMessageCalldata);
+        l1Messenger[_messengerId].sendMessageToL2(mintCalldata);
         token.safeTransferFrom(msg.sender, address(this), _amount);
     }
 
@@ -98,7 +99,7 @@ contract L1_Bridge is Bridge {
         );
         bytes memory sendMessageCalldata = abi.encodeWithSignature("sendMessageToL2(bytes)", mintAndAttemptSwapCalldata);
 
-        l1Messenger[_messengerId].call(sendMessageCalldata);
+        l1Messenger[_messengerId].sendMessageToL2(mintAndAttemptSwapCalldata);
         token.safeTransferFrom(msg.sender, address(this), _amount);
     }
 

@@ -8,23 +8,32 @@ import "../test/mockOVM_CrossDomainMessenger.sol";
 
 import "../libraries/MerkleUtils.sol";
 
+import '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
+
 contract L2_Bridge is ERC20, Bridge {
     using SafeMath for uint256;
     using MerkleProof for bytes32[];
 
     mockOVM_CrossDomainMessenger public messenger;
-    address   public l1BridgeAddress;
+    address public l1BridgeAddress;
     bytes32[] public pendingTransfers;
-    uint256   public pendingAmount;
-    uint256   public swapDeadlineBuffer;
-    address   public exchangeAddress;
-    address   public oDaiAddress;
-    address[] public OH_exchangePath;
-    address[] public HO_exchangePath;
+    uint256 public pendingAmount;
+    uint256 public swapDeadlineBuffer;
+    address public exchangeAddress;
+    address public oDaiAddress;
+    address[] public CH_exchangePath;
+    address[] public HC_exchangePath;
 
     event TransfersCommitted (
         bytes32 root,
         uint256 amount
+    );
+
+    event SentToMainnet (
+        address recipient,
+        uint256 amount,
+        uint256 transferNonce,
+        uint256 relayerFee
     );
 
     constructor (mockOVM_CrossDomainMessenger _messenger) public ERC20("DAI Liquidity Pool Token", "LDAI") {
@@ -41,14 +50,15 @@ contract L2_Bridge is ERC20, Bridge {
         swapDeadlineBuffer = _swapDeadlineBuffer;
         exchangeAddress = _exchangeAddress;
         oDaiAddress = _oDaiAddress;
-        OH_exchangePath = [oDaiAddress, address(this)];
-        HO_exchangePath = [address(this), oDaiAddress];
+        CH_exchangePath = [oDaiAddress, address(this)];
+        HC_exchangePath = [address(this), oDaiAddress];
     }
 
     function setL1BridgeAddress(address _l1BridgeAddress) public {
         l1BridgeAddress = _l1BridgeAddress;
     }
 
+    /// @notice _amount is the amount the user wants to send plus the relayer fee
     function sendToMainnet(
         address _recipient,
         uint256 _amount,
@@ -57,14 +67,16 @@ contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
-        uint256 totalAmount = _amount + _relayerFee;
-        _burn(msg.sender, totalAmount);
+        _burn(msg.sender, _amount);
 
         bytes32 transferHash = getTransferHash(_recipient, _amount, _transferNonce, _relayerFee);
         pendingTransfers.push(transferHash);
-        pendingAmount = pendingAmount.add(totalAmount);
+        pendingAmount = pendingAmount.add(_amount);
+
+        emit SentToMainnet(_recipient, _amount, _transferNonce, _relayerFee);
     }
 
+    /// @notice _amount is the amount the user wants to send plus the relayer fee
     function swapAndSendToMainnet(
         address _recipient,
         uint256 _amount,
@@ -76,15 +88,15 @@ contract L2_Bridge is ERC20, Bridge {
     {
         ERC20(oDaiAddress).transferFrom(msg.sender, address(this), _amount);
 
-        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, OH_exchangePath);
+        address[] memory exchangePath = CH_exchangePath;
+        uint256[] memory swapAmounts = IUniswapV2Router02(exchangeAddress).getAmountsOut(_amount, exchangePath);
+        uint256 swapAmount = swapAmounts[swapAmounts.length - 1];
+
+        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, exchangePath);
         (bool success,) = exchangeAddress.call(swapCalldata);
         require(success, "L2BDG: Swap failed");
 
-        uint256 totalAmount = _amount + _relayerFee;
-        uint256 senderBalance = balanceOf(msg.sender);
-        uint256 senderAmount = totalAmount >= senderBalance ? senderBalance : _amount;
-
-        sendToMainnet(_recipient, senderAmount, _transferNonce, _relayerFee);
+        sendToMainnet(_recipient, swapAmount, _transferNonce, _relayerFee);
     }
 
     function commitTransfersPreHook() internal returns (bytes32, uint256, bytes memory) {
@@ -115,7 +127,7 @@ contract L2_Bridge is ERC20, Bridge {
     function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin) public {
         _mint(address(this), _amount);
 
-        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, HO_exchangePath);
+        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, HC_exchangePath);
         (bool success,) = exchangeAddress.call(swapCalldata);
 
         if (!success) {
@@ -135,7 +147,15 @@ contract L2_Bridge is ERC20, Bridge {
         _transfer(address(this), _recipient, _amount);
     }
 
-    function _getSwapCalldata(address _recipient, uint256 _amount, uint256 _amountOutMin, address[] memory _exchangePath) internal returns (bytes memory) {
+    function _getSwapCalldata(
+        address _recipient,
+        uint256 _amount,
+        uint256 _amountOutMin,
+        address[] memory _exchangePath
+    )
+        internal
+        returns (bytes memory)
+    {
         uint256 swapDeadline = block.timestamp + swapDeadlineBuffer;
         return abi.encodeWithSignature(
             "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",

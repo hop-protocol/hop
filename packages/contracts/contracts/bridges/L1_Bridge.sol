@@ -207,21 +207,18 @@ contract L1_Bridge is Bridge {
             _transferNonce,
             _relayerFee
         );
-        uint256 totalAmount = _amount + _relayerFee;
         TransferRoot storage rootBalance = transferRoots[_transferRoot];
 
         require(!spentTransferHashes[transferHash], "BDG: The transfer has already been withdrawn");
         require(_proof.verify(_transferRoot, transferHash), "BDG: Invalid transfer proof");
-        require(rootBalance.amountWithdrawn.add(totalAmount) <= rootBalance.total, "BDG: Withdrawal exceeds TransferRoot total");
+        require(transferRoots[_transferRoot].createdAt != 0, "BDG: Transfer root not bonded");
+        require(rootBalance.amountWithdrawn.add(_amount) <= rootBalance.total, "BDG: Withdrawal exceeds TransferRoot total");
 
         spentTransferHashes[transferHash] = true;
-        rootBalance.amountWithdrawn = rootBalance.amountWithdrawn.add(totalAmount);
-        token.safeTransfer(_recipient, _amount);
+        rootBalance.amountWithdrawn = rootBalance.amountWithdrawn.add(_amount);
+        token.safeTransfer(_recipient, _amount.sub(_relayerFee));
         token.safeTransfer(msg.sender, _relayerFee);
     }
-
-    // TODO: How else should we have user's deposit funds for fee
-    receive () external payable {}
 
     /**
      * Helpers

@@ -298,21 +298,6 @@ describe("Full story", () => {
     await l2_messenger.relayNextMessage()
     await expectBalanceOf(l2_ovmBridge, user, USER_INITIAL_BALANCE)
 
-    // // User sells ovm token for bridge token
-    // await l2_ovmBridge.connect(user).approve(l2_uniswapRouter.address, USER_INITIAL_BALANCE)
-    // await l2_uniswapRouter.connect(user).swapExactTokensForTokens(
-    //   USER_INITIAL_BALANCE,
-    //   '0',
-    //   [
-    //     l2_ovmBridge.address,
-    //     l2_bridge.address
-    //   ],
-    //   await user.getAddress(),
-    //   '999999999999'
-    // )
-    // await expectBalanceOf(l2_ovmBridge, user, '0')
-    // await expectBalanceOf(l2_bridge, user, '99')
-
     const transfer = new Transfer({
       amount: BigNumber.from('99'),
       nonce: 0,

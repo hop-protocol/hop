@@ -3,6 +3,7 @@ import { Switch, Route, Redirect } from 'react-router-dom'
 import Components from 'src/pages/Components'
 import Send from 'src/pages/Send'
 import Pools from 'src/pages/Pools'
+import Convert from 'src/pages/Convert'
 import Demo from 'src/pages/Demo'
 
 type Props = {}
@@ -12,6 +13,9 @@ const COMPONENT_NAME: FC<Props> = () => {
     <Switch>
       <Route path="/send">
         <Send />
+      </Route>
+      <Route path="/convert">
+        <Convert />
       </Route>
       <Route path="/pool">
         <Pools />

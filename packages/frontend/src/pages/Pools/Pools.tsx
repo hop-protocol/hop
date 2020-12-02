@@ -1,18 +1,14 @@
-import React, { FC, useState, ChangeEvent, useEffect } from 'react'
+import React, { FC, ChangeEvent } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
-import Token from 'src/models/Token'
-import Network from 'src/models/Network'
-import Price from 'src/models/Price'
 import MenuItem from '@material-ui/core/MenuItem'
-import AmountSelectorCard from 'src/pages/Pools/AmountSelectorCard'
-import { formatEther, parseEther } from 'ethers/lib/utils'
 import SendIcon from '@material-ui/icons/Send'
+import AmountSelectorCard from 'src/pages/Pools/AmountSelectorCard'
 import Button from 'src/components/buttons/Button'
-import { usePools } from 'src/pages/Pools/PoolsContext'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
+import { usePools } from 'src/pages/Pools/PoolsContext'
 
 const useStyles = makeStyles(() => ({
   title: {
@@ -28,7 +24,8 @@ const useStyles = makeStyles(() => ({
   },
   pricesBox: {
     width: '51.6rem',
-    marginTop: '4.2rem'
+    marginTop: '4.2rem',
+    marginBottom: '4.2rem'
   },
   priceBox: {
     display: 'flex',
@@ -47,6 +44,20 @@ const useStyles = makeStyles(() => ({
   },
   textSpacing: {
     padding: '0 1rem'
+  },
+  poolPositionBox: {
+    width: '45.6rem',
+    display: 'flex',
+    flexDirection: 'column'
+  },
+  poolPositionCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    width: '100%'
+  },
+  poolPosition: {
+    display: 'flex',
+    justifyContent: 'space-between'
   }
 }))
 
@@ -55,70 +66,29 @@ const Pools: FC = () => {
   let {
     networks,
     tokens,
-    hToken: ht,
+    hopToken,
     address,
-    totalSupply,
-    poolTokenBalance,
-    poolReserves,
-    addLiquidity
-  } = usePools()
-  // TODO
-  const hToken = ht as Token
-  const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
-  const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
-  const [price, setPrice] = useState<string>('0')
-  const [invertedPrice, setInvertedPrice] = useState<string>('0')
-  const [poolSharePercentage, setPoolSharePercentage] = useState<string>('0')
-
-  const [canonicalTokenAmount, setCanonicalTokenAmount] = useState<string>('')
-  const [hopTokenAmount, setHopTokenAmount] = useState<string>('')
-
-  useEffect(() => {
-    if (!totalSupply) return
-    const canonicalTokenRate = selectedToken.rateForNetwork(selectedNetwork)
-    const hTokenRate = hToken.rateForNetwork(selectedNetwork)
-
-    const p = new Price(
-      formatEther(canonicalTokenRate),
-      formatEther(hTokenRate)
-    )
-    setPrice(p.toFixed(2))
-    setInvertedPrice(p.inverted().toFixed(2))
-
-    if (canonicalTokenAmount && hopTokenAmount) {
-      console.log('reserves', poolReserves)
-      console.log('total supply', totalSupply)
-
-      const amount0 =
-        (Number(canonicalTokenAmount) * Number(totalSupply)) /
-        Number(poolReserves[0])
-      const amount1 =
-        (Number(hopTokenAmount) * Number(totalSupply)) / Number(poolReserves[1])
-      const liquidity = Math.min(amount0, amount1)
-      const sharePercentage = Math.max(
-        Math.min(
-          Math.round((liquidity / (Number(totalSupply) + liquidity)) * 100),
-          100
-        ),
-        0
-      )
-      setPoolSharePercentage(sharePercentage.toString())
-    } else {
-      setPoolSharePercentage('0')
-    }
-  }, [
     selectedToken,
-    hToken,
+    setSelectedToken,
     selectedNetwork,
-    canonicalTokenAmount,
-    totalSupply,
-    poolTokenBalance,
-    hopTokenAmount,
-    poolReserves
-  ])
+    setSelectedNetwork,
+    token0Amount,
+    setToken0Amount,
+    token1Amount,
+    setToken1Amount,
+    poolSharePercentage,
+    token0Price,
+    token1Price,
+    token1Rate,
+    addLiquidity,
+    userPoolBalance,
+    userPoolTokenPercentage,
+    token0Deposited,
+    token1Deposited
+  } = usePools()
 
   const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
-    const tokenSymbol = event.target.value
+    const tokenSymbol = event.target.value as string
     const newSelectedToken = tokens.find(token => token.symbol === tokenSymbol)
     if (newSelectedToken) {
       setSelectedToken(newSelectedToken)
@@ -135,23 +105,37 @@ const Pools: FC = () => {
     }
   }
 
-  const handleSubmit = (event: any) => {
-    addLiquidity({
-      tokens: [
-        {
-          token: selectedToken,
-          amount: canonicalTokenAmount
-        },
-        {
-          token: hToken,
-          amount: hopTokenAmount
-        }
-      ],
-      network: selectedNetwork
-    })
+  const handleToken0Change = async (event: ChangeEvent<{ value: unknown }>) => {
+    const token0Value = event.target.value as string
+    if (!token0Value) {
+      setToken0Amount('')
+      setToken1Amount('')
+      return
+    }
+
+    setToken0Amount(token0Value)
+    const token1Value = Number(token0Value) * Number(token1Rate)
+    setToken1Amount(token1Value.toFixed(2))
   }
 
-  const disabled = !address || !canonicalTokenAmount || !hopTokenAmount
+  const handleToken1Change = async (event: ChangeEvent<{ value: unknown }>) => {
+    const token1Value = event.target.value as string
+    if (!token1Value) {
+      setToken0Amount('')
+      setToken1Amount('')
+      return
+    }
+
+    setToken1Amount(token1Value)
+    const token0Value = Number(token1Value) / Number(token1Rate)
+    setToken0Amount(token0Value.toFixed(2))
+  }
+
+  const handleSubmit = () => {
+    addLiquidity()
+  }
+
+  const disabled = !address || !token0Amount || !token1Amount
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -161,7 +145,10 @@ const Pools: FC = () => {
         </Typography>
       </Box>
       <Box display="flex" alignItems="center" className={styles.tokenSelector}>
-        <RaisedSelect value={selectedToken.symbol} onChange={handleTokenSelect}>
+        <RaisedSelect
+          value={selectedToken?.symbol}
+          onChange={handleTokenSelect}
+        >
           {tokens.map(token => (
             <MenuItem value={token.symbol} key={token.symbol}>
               {token.symbol}
@@ -176,7 +163,7 @@ const Pools: FC = () => {
           on
         </Typography>
         <RaisedSelect
-          value={selectedNetwork.slug}
+          value={selectedNetwork?.slug}
           onChange={handleNetworkSelect}
         >
           {networks.map(network => (
@@ -189,26 +176,10 @@ const Pools: FC = () => {
       <Box display="flex" alignItems="center">
         <AmountSelectorCard
           label="Input"
-          title={`${selectedNetwork.name} ${selectedToken.symbol}`}
+          title={`${selectedNetwork?.name} ${selectedToken?.symbol}`}
           token={selectedToken}
-          value={canonicalTokenAmount}
-          onChange={event => {
-            if (!event.target.value) {
-              setCanonicalTokenAmount('')
-              setHopTokenAmount('')
-              return
-            }
-
-            setCanonicalTokenAmount(event.target.value)
-
-            try {
-              const canonicalTokenAmount = parseEther(event.target.value)
-              const hopTokenAmount = canonicalTokenAmount
-                .mul(selectedToken.rateForNetwork(selectedNetwork))
-                .div(hToken.rateForNetwork(selectedNetwork))
-              setHopTokenAmount(formatEther(hopTokenAmount))
-            } catch (e) {}
-          }}
+          value={token0Amount}
+          onChange={handleToken0Change}
           selectedNetwork={selectedNetwork}
         />
       </Box>
@@ -218,60 +189,154 @@ const Pools: FC = () => {
       <Box display="flex" alignItems="center">
         <AmountSelectorCard
           label="Input"
-          title={`Hop ${selectedToken.symbol}`}
-          token={hToken}
-          value={hopTokenAmount}
-          onChange={event => {
-            if (!event.target.value) {
-              setCanonicalTokenAmount('')
-              setHopTokenAmount('')
-              return
-            }
-
-            setHopTokenAmount(event.target.value)
-
-            try {
-              const hopTokenAmount = parseEther(event.target.value)
-              const canonicalTokenAmount = hopTokenAmount
-                .mul(hToken.rateForNetwork(selectedNetwork))
-                .div(selectedToken.rateForNetwork(selectedNetwork))
-              setCanonicalTokenAmount(formatEther(canonicalTokenAmount))
-            } catch (e) {}
-          }}
+          title={`Hop ${selectedToken?.symbol}`}
+          token={hopToken}
+          value={token1Amount}
+          onChange={handleToken1Change}
           selectedNetwork={selectedNetwork}
         />
       </Box>
       <Box alignItems="center" className={styles.pricesBox}>
         <Card className={styles.pricesCard}>
           <Box alignItems="center" className={styles.priceBox}>
-            <Typography variant="subtitle1" color="textSecondary">
-              {price}
+            <Typography
+              variant="subtitle1"
+              color="textSecondary"
+              component="div"
+            >
+              {token0Price}
             </Typography>
-            <Typography variant="subtitle2" color="textSecondary">
-              {hToken.symbol} per{' '}
-              <small>{selectedNetwork.slug.substr(0, 3)}</small>
-              {selectedToken.symbol}
+            <Typography
+              variant="subtitle2"
+              color="textSecondary"
+              component="div"
+            >
+              {hopToken?.symbol} per{' '}
+              <small>{selectedNetwork?.slug.substr(0, 3)}</small>
+              {selectedToken?.symbol}
             </Typography>
           </Box>
           <Box alignItems="center" className={styles.priceBox}>
             <Typography variant="subtitle1" color="textSecondary">
-              {invertedPrice}
+              {token1Price}
             </Typography>
-            <Typography variant="subtitle2" color="textSecondary">
-              <small>{selectedNetwork.slug.substr(0, 3)}</small>
-              {selectedToken.symbol} per {hToken.symbol}
-            </Typography>
-          </Box>
-          <Box alignItems="center" className={styles.priceBox}>
-            <Typography variant="subtitle1" color="textSecondary">
-              {poolSharePercentage}%
-            </Typography>
-            <Typography variant="subtitle2" color="textSecondary">
-              Share of pool
+            <Typography
+              variant="subtitle2"
+              color="textSecondary"
+              component="div"
+            >
+              <small>{selectedNetwork?.slug.substr(0, 3)}</small>
+              {selectedToken?.symbol} per {hopToken?.symbol}
             </Typography>
           </Box>
+          {poolSharePercentage && (
+            <Box alignItems="center" className={styles.priceBox}>
+              <Typography
+                variant="subtitle1"
+                color="textSecondary"
+                component="div"
+              >
+                {poolSharePercentage}%
+              </Typography>
+              <Typography
+                variant="subtitle2"
+                color="textSecondary"
+                component="div"
+              >
+                Share of pool
+              </Typography>
+            </Box>
+          )}
         </Card>
       </Box>
+      {userPoolBalance && (
+        <Box alignItems="center" className={styles.poolPositionBox}>
+          <Card className={styles.poolPositionCard}>
+            <Box alignItems="center" className={styles.poolPosition}>
+              <Typography
+                variant="subtitle2"
+                color="textSecondary"
+                component="div"
+              >
+                Your position
+              </Typography>
+            </Box>
+            {userPoolBalance && (
+              <Box alignItems="center" className={styles.poolPosition}>
+                <Typography
+                  variant="subtitle1"
+                  color="textSecondary"
+                  component="div"
+                >
+                  <small>{selectedNetwork?.slug.substr(0, 3)}</small>
+                  {selectedToken?.symbol}/{hopToken?.symbol}
+                </Typography>
+                <Typography
+                  variant="subtitle1"
+                  color="textSecondary"
+                  component="div"
+                >
+                  {userPoolBalance}
+                </Typography>
+              </Box>
+            )}
+            {userPoolTokenPercentage && (
+              <Box alignItems="center" className={styles.poolPosition}>
+                <Typography
+                  variant="subtitle2"
+                  color="textSecondary"
+                  component="div"
+                >
+                  Your pool share:
+                </Typography>
+                <Typography
+                  variant="subtitle2"
+                  color="textSecondary"
+                  component="div"
+                >
+                  {userPoolTokenPercentage}%
+                </Typography>
+              </Box>
+            )}
+            {token0Deposited && (
+              <Box alignItems="center" className={styles.poolPosition}>
+                <Typography
+                  variant="subtitle2"
+                  color="textSecondary"
+                  component="div"
+                >
+                  {selectedToken?.symbol}:
+                </Typography>
+                <Typography
+                  variant="subtitle2"
+                  color="textSecondary"
+                  component="div"
+                >
+                  {token0Deposited}
+                </Typography>
+              </Box>
+            )}
+            {token1Deposited && (
+              <Box alignItems="center" className={styles.poolPosition}>
+                <Typography
+                  variant="subtitle2"
+                  color="textSecondary"
+                  component="div"
+                >
+                  {hopToken?.symbol}:
+                </Typography>
+                <Typography
+                  variant="subtitle2"
+                  color="textSecondary"
+                  component="div"
+                >
+                  {token1Deposited}
+                </Typography>
+              </Box>
+            )}
+          </Card>
+        </Box>
+      )}
       <Button
         className={styles.sendButton}
         startIcon={<SendIcon />}

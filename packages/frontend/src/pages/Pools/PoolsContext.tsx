@@ -48,6 +48,7 @@ type PoolsContextProps = {
   token0Deposited: string | undefined
   token1Deposited: string | undefined
   txHash: string | undefined
+  sending: boolean
 }
 
 const PoolsContext = createContext<PoolsContextProps>({
@@ -74,7 +75,8 @@ const PoolsContext = createContext<PoolsContextProps>({
   userPoolTokenPercentage: undefined,
   token0Deposited: undefined,
   token1Deposited: undefined,
-  txHash: undefined
+  txHash: undefined,
+  sending: false
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -102,6 +104,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   tokens = tokens.filter((token: Token) => ['DAI'].includes(token.symbol))
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
   const [txHash, setTxHash] = useState<string | undefined>()
+  const [sending, setSending] = useState<boolean>(false)
 
   const updatePrices = useCallback(async () => {
     if (!totalSupply) return
@@ -256,6 +259,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   }
 
   const addLiquidity = async () => {
+    setSending(true)
     let tx = await approveTokens(selectedToken, token0Amount, selectedNetwork)
     await tx?.wait()
     setTxHash(tx?.hash)
@@ -292,6 +296,7 @@ const PoolsContextProvider: FC = ({ children }) => {
 
     setTxHash(tx.hash)
     await tx.wait()
+    setSending(false)
   }
 
   return (
@@ -320,7 +325,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         userPoolTokenPercentage,
         token0Deposited,
         token1Deposited,
-        txHash
+        txHash,
+        sending
       }}
     >
       {children}

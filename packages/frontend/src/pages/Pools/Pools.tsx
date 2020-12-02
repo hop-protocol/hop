@@ -5,6 +5,7 @@ import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import MenuItem from '@material-ui/core/MenuItem'
 import SendIcon from '@material-ui/icons/Send'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import AmountSelectorCard from 'src/pages/Pools/AmountSelectorCard'
 import Button from 'src/components/buttons/Button'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
@@ -58,6 +59,10 @@ const useStyles = makeStyles(() => ({
   poolPosition: {
     display: 'flex',
     justifyContent: 'space-between'
+  },
+  spinner: {
+    display: 'inline-flex',
+    marginLeft: '1rem'
   }
 }))
 
@@ -84,7 +89,9 @@ const Pools: FC = () => {
     userPoolBalance,
     userPoolTokenPercentage,
     token0Deposited,
-    token1Deposited
+    token1Deposited,
+    txHash,
+    sending
   } = usePools()
 
   const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
@@ -343,10 +350,13 @@ const Pools: FC = () => {
         onClick={handleSubmit}
         large
         highlighted
-        disabled={disabled}
+        disabled={disabled || sending}
       >
-        Add liquidity
+        Add liquidity {sending && <div className={styles.spinner}><CircularProgress /></div>}
       </Button>
+      <div>
+        <small>{txHash}</small>
+      </div>
     </Box>
   )
 }

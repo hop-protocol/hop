@@ -3,7 +3,8 @@ import React, {
   createContext,
   useContext,
   useEffect,
-  useState
+  useState,
+  useCallback
 } from 'react'
 import { Contract } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -20,6 +21,7 @@ import Token from 'src/models/Token'
 import Address from 'src/models/Address'
 import Price from 'src/models/Price'
 import { addresses } from 'src/config'
+import useInterval from 'src/hooks/useInterval'
 
 type PoolsContextProps = {
   networks: Network[]
@@ -45,6 +47,7 @@ type PoolsContextProps = {
   userPoolTokenPercentage: string | undefined
   token0Deposited: string | undefined
   token1Deposited: string | undefined
+  txHash: string | undefined
 }
 
 const PoolsContext = createContext<PoolsContextProps>({
@@ -70,7 +73,8 @@ const PoolsContext = createContext<PoolsContextProps>({
   userPoolBalance: undefined,
   userPoolTokenPercentage: undefined,
   token0Deposited: undefined,
-  token1Deposited: undefined
+  token1Deposited: undefined,
+  txHash: undefined
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -97,8 +101,9 @@ const PoolsContextProvider: FC = ({ children }) => {
   networks = networks.filter((network: Network) => !network.isLayer1)
   tokens = tokens.filter((token: Token) => ['DAI'].includes(token.symbol))
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
+  const [txHash, setTxHash] = useState<string | undefined>()
 
-  useEffect(() => {
+  const updatePrices = useCallback(async () => {
     if (!totalSupply) return
     if (token1Rate) {
       const price = new Price(token1Rate, '1')
@@ -114,7 +119,9 @@ const PoolsContextProvider: FC = ({ children }) => {
       const liquidity = Math.min(amount0, amount1)
       const sharePercentage = Math.max(
         Math.min(
-          Math.round((liquidity / (Number(totalSupply) + liquidity)) * 100),
+          Number(
+            ((liquidity / (Number(totalSupply) + liquidity)) * 100).toFixed(2)
+          ),
           100
         ),
         0
@@ -123,14 +130,108 @@ const PoolsContextProvider: FC = ({ children }) => {
     } else {
       setPoolSharePercentage('0')
     }
+  }, [token0Amount, totalSupply, token1Amount, token1Rate, poolReserves])
+
+  useEffect(() => {
+    updatePrices()
   }, [
     hopToken,
     token0Amount,
     totalSupply,
     token1Amount,
     token1Rate,
-    poolReserves
+    poolReserves,
+    updatePrices
   ])
+
+  const updateUserPoolPositions = useCallback(async () => {
+    try {
+      if (!provider) return
+      const factory = new Contract(
+        addresses.arbitrumUniswapFactory,
+        uniswapFactoryArtifact.abi,
+        provider
+      )
+      const pairAddress = await factory.getPair(
+        selectedToken?.addressForNetwork(selectedNetwork).toString(),
+        hopToken?.addressForNetwork(selectedNetwork).toString()
+      )
+      const pair = new Contract(
+        pairAddress,
+        uniswapV2PairArtifact.abi,
+        provider
+      )
+
+      const decimals = await pair.decimals()
+      const totalSupply = await pair.totalSupply()
+      const formattedTotalSupply = formatUnits(totalSupply.toString(), decimals)
+      setTotalSupply(formattedTotalSupply)
+
+      const signer = provider?.getSigner()
+      const address = await signer.getAddress()
+      const balance = await pair.balanceOf(address)
+      const formattedBalance = formatUnits(balance.toString(), decimals)
+      setUserPoolBalance(Number(formattedBalance).toFixed(2))
+
+      const poolPercentage =
+        (Number(formattedBalance) / Number(formattedTotalSupply)) * 100
+      const formattedPoolPercentage =
+        poolPercentage.toFixed(2) === '0.00'
+          ? '<0.01'
+          : poolPercentage.toFixed(2)
+      setUserPoolTokenPercentage(formattedPoolPercentage)
+
+      const reserves = await pair.getReserves()
+      const reserve0 = formatUnits(reserves[0].toString(), decimals)
+      const reserve1 = formatUnits(reserves[1].toString(), decimals)
+      setPoolReserves([reserve0, reserve1])
+
+      const token0Deposited =
+        (Number(formattedBalance) * Number(reserve0)) /
+        Number(formattedTotalSupply)
+      const token1Deposited =
+        (Number(formattedBalance) * Number(reserve1)) /
+        Number(formattedTotalSupply)
+      setToken0Deposited(token0Deposited.toFixed(2))
+      setToken1Deposited(token1Deposited.toFixed(2))
+
+      const routerAddress = arbitrum_uniswap?.address as string
+      const router = new Contract(
+        routerAddress,
+        uniswapRouterArtifact.abi,
+        signer
+      )
+
+      const amountA = parseUnits('1', decimals)
+
+      // note: quote is `amountB = (amountA * reserveB) / reserveA`
+      const amountB = await router.quote(
+        amountA,
+        parseUnits(reserve0, decimals),
+        parseUnits(reserve1, decimals)
+      )
+      const formattedAmountB = formatUnits(amountB, decimals)
+      setToken1Rate(formattedAmountB)
+    } catch (err) {
+      console.error(err)
+    }
+  }, [provider, arbitrum_uniswap, selectedNetwork, selectedToken, hopToken])
+
+  useEffect(() => {
+    updateUserPoolPositions()
+  }, [
+    provider,
+    arbitrum_uniswap,
+    selectedNetwork,
+    selectedToken,
+    hopToken,
+    updateUserPoolPositions
+  ])
+
+  useInterval(() => {
+    updatePrices()
+    updateUserPoolPositions()
+  }, 5 * 1000)
 
   const approveTokens = async (
     token: Token,
@@ -150,14 +251,17 @@ const PoolsContextProvider: FC = ({ children }) => {
 
     if (approved.lt(parsedAmount)) {
       const tx = await contract.approve(address, parsedAmount)
-      await tx.wait()
-      return tx.hash
+      return tx
     }
   }
 
   const addLiquidity = async () => {
-    await approveTokens(selectedToken, token0Amount, selectedNetwork)
-    await approveTokens(hopToken as Token, token1Amount, selectedNetwork)
+    let tx = await approveTokens(selectedToken, token0Amount, selectedNetwork)
+    await tx?.wait()
+    setTxHash(tx?.hash)
+    tx = await approveTokens(hopToken as Token, token1Amount, selectedNetwork)
+    setTxHash(tx?.hash)
+    await tx?.wait()
 
     const address = arbitrum_uniswap?.address as string
     const signer = provider?.getSigner()
@@ -175,7 +279,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     const to = await signer?.getAddress()
     const deadline = (Date.now() / 1000 + 5 * 60) | 0
 
-    const tx = await router.addLiquidity(
+    tx = await router.addLiquidity(
       tokenA,
       tokenB,
       amountADesired,
@@ -186,87 +290,9 @@ const PoolsContextProvider: FC = ({ children }) => {
       deadline
     )
 
-    console.log('TX', tx.hash)
+    setTxHash(tx.hash)
+    await tx.wait()
   }
-
-  useEffect(() => {
-    const update = async () => {
-      try {
-        if (!provider) return
-        const factory = new Contract(
-          addresses.arbitrumUniswapFactory,
-          uniswapFactoryArtifact.abi,
-          provider
-        )
-        const pairAddress = await factory.getPair(
-          selectedToken?.addressForNetwork(selectedNetwork).toString(),
-          hopToken?.addressForNetwork(selectedNetwork).toString()
-        )
-        const pair = new Contract(
-          pairAddress,
-          uniswapV2PairArtifact.abi,
-          provider
-        )
-
-        const decimals = await pair.decimals()
-        const totalSupply = await pair.totalSupply()
-        const formattedTotalSupply = formatUnits(
-          totalSupply.toString(),
-          decimals
-        )
-        setTotalSupply(formattedTotalSupply)
-
-        const signer = provider?.getSigner()
-        const address = await signer.getAddress()
-        const balance = await pair.balanceOf(address)
-        const formattedBalance = formatUnits(balance.toString(), decimals)
-        setUserPoolBalance(Number(formattedBalance).toFixed(2))
-
-        const poolPercentage =
-          (Number(formattedBalance) / Number(formattedTotalSupply)) * 100
-        const formattedPoolPercentage =
-          poolPercentage.toFixed(2) === '0.00'
-            ? '<0.01'
-            : poolPercentage.toFixed(2)
-        setUserPoolTokenPercentage(formattedPoolPercentage)
-
-        const reserves = await pair.getReserves()
-        const reserve0 = formatUnits(reserves[0].toString(), decimals)
-        const reserve1 = formatUnits(reserves[1].toString(), decimals)
-        setPoolReserves([reserve0, reserve1])
-
-        const token0Deposited =
-          (Number(formattedBalance) * Number(reserve0)) /
-          Number(formattedTotalSupply)
-        const token1Deposited =
-          (Number(formattedBalance) * Number(reserve1)) /
-          Number(formattedTotalSupply)
-        setToken0Deposited(token0Deposited.toFixed(2))
-        setToken1Deposited(token1Deposited.toFixed(2))
-
-        const routerAddress = arbitrum_uniswap?.address as string
-        const router = new Contract(
-          routerAddress,
-          uniswapRouterArtifact.abi,
-          signer
-        )
-
-        const amountA = parseUnits('1', decimals)
-        // quote is `amountB = (amountA * reserveB) / reserveA`
-        const amountB = await router.quote(
-          amountA,
-          parseUnits(reserve0, decimals),
-          parseUnits(reserve1, decimals)
-        )
-        const formattedAmountB = formatUnits(amountB, decimals)
-        setToken1Rate(formattedAmountB)
-      } catch (err) {
-        console.error(err)
-      }
-    }
-
-    update()
-  }, [provider, arbitrum_uniswap, selectedNetwork, selectedToken, hopToken])
 
   return (
     <PoolsContext.Provider
@@ -293,7 +319,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         userPoolBalance,
         userPoolTokenPercentage,
         token0Deposited,
-        token1Deposited
+        token1Deposited,
+        txHash
       }}
     >
       {children}

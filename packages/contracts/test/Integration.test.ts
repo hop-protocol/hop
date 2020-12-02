@@ -298,6 +298,21 @@ describe("Full story", () => {
     await l2_messenger.relayNextMessage()
     await expectBalanceOf(l2_ovmBridge, user, USER_INITIAL_BALANCE)
 
+    // // User sells ovm token for bridge token
+    // await l2_ovmBridge.connect(user).approve(l2_uniswapRouter.address, USER_INITIAL_BALANCE)
+    // await l2_uniswapRouter.connect(user).swapExactTokensForTokens(
+    //   USER_INITIAL_BALANCE,
+    //   '0',
+    //   [
+    //     l2_ovmBridge.address,
+    //     l2_bridge.address
+    //   ],
+    //   await user.getAddress(),
+    //   '999999999999'
+    // )
+    // await expectBalanceOf(l2_ovmBridge, user, '0')
+    // await expectBalanceOf(l2_bridge, user, '99')
+
     const transfer = new Transfer({
       amount: BigNumber.from('99'),
       nonce: 0,
@@ -305,11 +320,11 @@ describe("Full story", () => {
       relayerFee: BigNumber.from('0')
     })
 
-    // User moves funds back to L1 via swap and send to mainnet
+    // User moves funds back to L1 across the liquidity bridge
+    await l2_ovmBridge.connect(user).approve(l2_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l2_bridge.connect(user).approve(await user.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l2_bridge.connect(user).approveExchangeTransfer()
     await l2_bridge.connect(user).approveODaiExchangeTransfer()
-    await l2_ovmBridge.connect(user).approve(l2_bridge.address, USER_INITIAL_BALANCE)
     await l2_bridge.connect(user).swapAndSendToMainnet(transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee, 0)
     await l2_bridge.commitTransfers()
     await l1_messenger.relayNextMessage()
@@ -322,18 +337,27 @@ describe("Full story", () => {
     await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, transfer.amount.add(transfer.relayerFee))
 
     // User withdraws from L1 bridge
-    const tree = new MerkleTree([ transfer.getTransferHash() ])
-    const proof = tree.getProof(transfer.getTransferHash())
+    const sentToMainnetEvent = (await l2_bridge.queryFilter(l2_bridge.filters.SentToMainnet()))[0]
+    const outputTransfer = new Transfer({
+      amount: sentToMainnetEvent.args.amount,
+      nonce: transfer.nonce,
+      recipient: transfer.recipient,
+      relayerFee: transfer.relayerFee
+    })
+
+    // User withdraws from L1 bridge
+    const tree = new MerkleTree([ outputTransfer.getTransferHash() ])
+    const proof = tree.getProof(outputTransfer.getTransferHash())
     await l1_bridge.withdraw(
-      transfer.recipient,
-      transfer.amount,
-      transfer.nonce,
-      transfer.relayerFee,
+      outputTransfer.recipient,
+      outputTransfer.amount,
+      outputTransfer.nonce,
+      outputTransfer.relayerFee,
       tree.getRoot(),
       proof
     )
 
-    await expectBalanceOf(l1_poolToken, user, '99')
+    await expectBalanceOf(l1_poolToken, user, '98')
   })
 
   const expectBalanceOf = async (token: Contract, account: Signer | Contract, expectedBalance: BigNumberish) => {

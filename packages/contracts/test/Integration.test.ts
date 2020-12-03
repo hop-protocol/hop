@@ -246,7 +246,7 @@ describe("Full story", () => {
     await l1_bridge.bondTransferRoot(tree.getRoot(), [transfer.layerId], [transfer.amount.add(transfer.relayerFee)])
 
     await l1_poolToken.connect(challenger).approve(l1_bridge.address, BigNumber.from('10'))
-    await l1_bridge.connect(challenger).challengeTransferRoot(tree.getRoot())
+    await l1_bridge.connect(challenger).challengeTransferBond(tree.getRoot())
 
     await ethers.provider.send("evm_increaseTime", [60 * 60 * 24 * 9]) // 9 days
 

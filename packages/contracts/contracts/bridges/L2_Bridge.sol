@@ -9,14 +9,6 @@ import "../test/mockOVM_CrossDomainMessenger.sol";
 import "../libraries/MerkleUtils.sol";
 
 abstract contract L2_Bridge is ERC20, Bridge {
-    using SafeMath for uint256;
-    using MerkleProof for bytes32[];
-
-    struct TransferRoot {
-        uint256 total;
-        uint256 amountWithdrawn;
-    }
-
     address public l1BridgeAddress;
     address public exchangeAddress;
     address public oDaiAddress;
@@ -27,9 +19,6 @@ abstract contract L2_Bridge is ERC20, Bridge {
     bytes32[] public pendingAmountLayerIds;
     mapping(bytes32 => uint256) pendingAmountForLayerId;
 
-    mapping(bytes32 => TransferRoot) transferRoots;
-    mapping(bytes32 => bool) public spentTransferHashes;
-
     event TransfersCommitted (
         bytes32 root,
         uint256 amount
@@ -37,11 +26,6 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     constructor () public ERC20("DAI Hop Token", "hDAI") {}
 
-    /**
-     * Abstract functions
-     */
-
-    function getLayerId() public virtual returns (bytes32);
     function _sendMessageToL1Bridge(bytes memory _message) internal virtual;
 
     /**
@@ -160,40 +144,37 @@ abstract contract L2_Bridge is ERC20, Bridge {
         transferRoots[_rootHash] = TransferRoot(_amount, 0);
     }
 
-    function withdraw(
+    // ToDo: Add withdrawAndAttemptToSwap functionality
+    function withdrawAndSwap(
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
         uint256 _relayerFee,
         bytes32 _transferRoot,
         bytes32[] memory _proof
+        // ToDo: Add minimum output param for Uniswap slippage protection
     )
         public
     {
-        bytes32 transferHash = getTransferHash(
-            getLayerId(),
+        _preWithdraw(
             _recipient,
             _amount,
             _transferNonce,
-            _relayerFee
+            _relayerFee,
+            _transferRoot,
+            _proof
         );
-        uint256 totalAmount = _amount.add(_relayerFee);
-        TransferRoot storage rootBalance = transferRoots[_transferRoot];
+        // Mint the tokens to swap
+        _mint(address(this), _amount);
 
-        require(!spentTransferHashes[transferHash], "BDG: The transfer has already been withdrawn");
-        require(_proof.verify(_transferRoot, transferHash), "BDG: Invalid transfer proof");
-        require(rootBalance.amountWithdrawn.add(totalAmount) <= rootBalance.total, "BDG: Withdrawal exceeds TransferRoot total");
+        // Do Uniswap swap and get output amount
+        // If swap reverts, revert the transaction
 
-        spentTransferHashes[transferHash] = true;
-        rootBalance.amountWithdrawn = rootBalance.amountWithdrawn.add(totalAmount);
-        _mint(_recipient, _amount);
-        _mint(msg.sender, _relayerFee);
+        // Transfer output amount of oDaiAddress to recipient
     }
 
-    // ToDo: withdraw and attempt to swap
-
     /**
-     * Internal functions
+     * Internal Functions
      */
 
     function _addToPendingAmount(bytes32 _layerId, uint256 _amount) internal {
@@ -202,5 +183,9 @@ abstract contract L2_Bridge is ERC20, Bridge {
         }
 
         pendingAmountForLayerId[_layerId] = pendingAmountForLayerId[_layerId].add(_amount);
+    }
+
+    function _transfer(address _recipient, uint256 _amount) internal override {
+        _mint(_recipient, _amount);
     }
 }

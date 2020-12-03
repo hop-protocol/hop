@@ -1,3 +1,10 @@
+import React from 'react'
 import Convert from './Convert'
+import ConvertContext from './ConvertContext'
 
-export default Convert
+const fc = () => (
+  <ConvertContext>
+    <Convert />
+  </ConvertContext>
+)
+export default fc

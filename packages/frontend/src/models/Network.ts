@@ -15,12 +15,14 @@ class Network {
   slug: string
   imageUrl: string
   provider: ethers.providers.Provider
+  rpcUrl: string
   isLayer1: boolean
 
   constructor (props: NetworkProps) {
     this.name = props.name
     this.slug = props.slug
     this.imageUrl = props.imageUrl
+    this.rpcUrl = props.rpcUrl
     this.provider = new ethers.providers.JsonRpcProvider(props.rpcUrl)
     this.isLayer1 = props.isLayer1 ? props.isLayer1 : false
   }

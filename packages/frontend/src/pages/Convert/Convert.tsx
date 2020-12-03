@@ -1,17 +1,27 @@
-import React, { FC, useState } from 'react'
+import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
-import Token from 'src/models/Token'
-import Network from 'src/models/Network'
-import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
+import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import SendIcon from '@material-ui/icons/Send'
+import Network from 'src/models/Network'
+import AmountSelectorCard from 'src/pages/Convert/AmountSelectorCard'
 import Button from 'src/components/buttons/Button'
-import { useApp } from 'src/contexts/AppContext'
+import { useConvert } from 'src/pages/Convert/ConvertContext'
 
 const useStyles = makeStyles(() => ({
   title: {
     marginBottom: '4.2rem'
+  },
+  switchDirectionButton: {
+    padding: 0,
+    minWidth: 0,
+    margin: '1.0rem'
+  },
+  downArrow: {
+    margin: '0.8rem',
+    height: '2.4rem',
+    width: '2.4rem'
   },
   sendButton: {
     marginTop: '6.4rem',
@@ -21,19 +31,36 @@ const useStyles = makeStyles(() => ({
 
 const Convert: FC = () => {
   const styles = useStyles()
-  let { networks, tokens } = useApp()
-  networks = networks.filter((network: Network) =>
-    ['arbitrum', 'optimism'].includes(network.slug)
-  )
+  const {
+    selectedToken,
+    sourceNetwork,
+    setSourceNetwork,
+    sourceNetworks,
+    destNetwork,
+    setDestNetwork,
+    destNetworks,
+    token0Amount,
+    setToken0Amount,
+    token1Amount,
+    setToken1Amount,
+    convertTokens
+  } = useConvert()
 
-  const [selectedToken] = useState<Token>(tokens[0])
-  const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(
-    networks[0]
-  )
-  const [tokenAmount, setTokenAmount] = useState<string>('')
+  const handleToken0AmountChange = (event: any) => {
+    const value = event.target.value
+    if (!value) {
+      setToken0Amount('')
+      return
+    }
+
+    setToken0Amount(value)
+    setToken1Amount(value)
+  }
+
+  const handleToken1AmountChange = (event: any) => {}
 
   const handleSubmit = () => {
-    alert('not implemented')
+    convertTokens()
   }
 
   return (
@@ -44,21 +71,32 @@ const Convert: FC = () => {
         </Typography>
       </Box>
       <AmountSelectorCard
-        value={tokenAmount}
+        value={token0Amount as string}
         token={selectedToken}
-        label={'Amount'}
-        onChange={event => {
-          if (!event.target.value) {
-            setTokenAmount('')
-            return
-          }
-
-          setTokenAmount(event.target.value)
-        }}
-        selectedNetwork={selectedNetwork}
-        networkOptions={networks}
+        label={'From'}
+        onChange={handleToken0AmountChange}
+        selectedNetwork={sourceNetwork}
+        networkOptions={sourceNetworks}
         onNetworkChange={(network: Network | undefined) => {
-          setSelectedNetwork(network)
+          if (network) {
+            setSourceNetwork(network)
+          }
+        }}
+      />
+      <div className={styles.switchDirectionButton}>
+        <ArrowDownIcon color="primary" className={styles.downArrow} />
+      </div>
+      <AmountSelectorCard
+        value={token1Amount as string}
+        token={selectedToken}
+        label={'To'}
+        onChange={handleToken1AmountChange}
+        selectedNetwork={destNetwork}
+        networkOptions={destNetworks}
+        onNetworkChange={(network: Network | undefined) => {
+          if (network) {
+            setDestNetwork(network)
+          }
         }}
       />
       <Button

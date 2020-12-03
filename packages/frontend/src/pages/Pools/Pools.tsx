@@ -352,7 +352,12 @@ const Pools: FC = () => {
         highlighted
         disabled={disabled || sending}
       >
-        Add liquidity {sending && <div className={styles.spinner}><CircularProgress /></div>}
+        Add liquidity{' '}
+        {sending && (
+          <div className={styles.spinner}>
+            <CircularProgress />
+          </div>
+        )}
       </Button>
       <div>
         <small>{txHash}</small>

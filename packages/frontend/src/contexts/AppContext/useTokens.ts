@@ -50,11 +50,13 @@ const useTokens = (networks: Network[]) => {
         tokenName: 'DAI Stablecoin',
         contracts: {
           kovan: l1_dai,
-          arbitrum: arbitrum_dai
+          arbitrum: arbitrum_dai,
+          arbitrum_hop_bridge: arbitrum_bridge_dai
         },
         rates: {
           kovan: ethersUtils.parseEther('1'),
           arbitrum: ethersUtils.parseEther('0.958125000000000000'),
+          arbitrum_hop_bridge: ethersUtils.parseEther('0.958125000000000000'),
           optimism: ethersUtils.parseEther('0.967777000000000000')
         }
       }),

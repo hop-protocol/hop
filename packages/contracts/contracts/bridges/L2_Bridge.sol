@@ -3,8 +3,8 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
 import "./Bridge.sol";
-import '../uniswap/IUniswapV2Router02.sol';
 import "../test/mockOVM_CrossDomainMessenger.sol";
 
 import "../libraries/MerkleUtils.sol";
@@ -24,10 +24,10 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     event TransfersCommitted (
         bytes32 root,
-        uint256 amount
+        uint256[] amounts
     );
 
-    event SentToMainnet (
+    event TransferSent (
         address recipient,
         uint256 amount,
         uint256 transferNonce,
@@ -62,7 +62,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     // ToDo: Rename to Send
     /// @notice _amount is the amount the user wants to send plus the relayer fee
-    function sendToMainnet(
+    function send(
         bytes32 _layerId,
         address _recipient,
         uint256 _amount,
@@ -85,11 +85,12 @@ abstract contract L2_Bridge is ERC20, Bridge {
         // ToDo: Require only allowlisted layer ids
         _addToPendingAmount(_layerId, _amount);
 
-        emit SentToMainnet(_recipient, _amount, _transferNonce, _relayerFee);
+        emit TransferSent(_recipient, _amount, _transferNonce, _relayerFee);
     }
 
     /// @notice _amount is the amount the user wants to send plus the relayer fee
-    function swapAndSendToMainnet(
+    function swapAndSend(
+        bytes32 _layerId,
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
@@ -108,16 +109,14 @@ abstract contract L2_Bridge is ERC20, Bridge {
         (bool success,) = exchangeAddress.call(swapCalldata);
         require(success, "L2BDG: Swap failed");
 
-        sendToMainnet(_recipient, swapAmount, _transferNonce, _relayerFee);
+        send(getMessengerId('kovan'), _recipient, swapAmount, _transferNonce, _relayerFee);
     }
 
     function commitTransfers() public {
-        uint256 pendingAmount = 0;
         uint256[] memory layerAmounts = new uint256[](pendingAmountLayerIds.length);
         for (uint256 i = 0; i < pendingAmountLayerIds.length; i++) {
             bytes32 layerId = pendingAmountLayerIds[i];
             layerAmounts[i] = pendingAmountForLayerId[layerId];
-            pendingAmount = pendingAmount.add(pendingAmountForLayerId[layerId]);
 
             // Clean up for the next batch of transfers as pendingAmountLayerIds is iterated
             pendingAmountForLayerId[layerId] = 0;
@@ -137,7 +136,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
         _sendMessageToL1Bridge(confirmTransferRootMessage);
 
-        emit TransfersCommitted(root, pendingAmount);
+        emit TransfersCommitted(root, layerAmounts);
     }
 
     // onlyCrossDomainBridge

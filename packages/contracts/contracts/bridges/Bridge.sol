@@ -115,13 +115,14 @@ abstract contract Bridge {
             _transferNonce,
             _relayerFee
         );
-        TransferRoot storage rootBalance = transferRoots[_transferRoot];
+        TransferRoot storage transferRoot = transferRoots[_transferRoot];
 
         require(!spentTransferHashes[transferHash], "BDG: The transfer has already been withdrawn");
+        require(transferRoot.total > 0, "BDG: Transfer root not found");
         require(_proof.verify(_transferRoot, transferHash), "BDG: Invalid transfer proof");
-        require(rootBalance.amountWithdrawn.add(_amount) <= rootBalance.total, "BDG: Withdrawal exceeds TransferRoot total");
+        require(transferRoot.amountWithdrawn.add(_amount) <= transferRoot.total, "BDG: Withdrawal exceeds TransferRoot total");
 
         spentTransferHashes[transferHash] = true;
-        rootBalance.amountWithdrawn = rootBalance.amountWithdrawn.add(_amount);
+        transferRoot.amountWithdrawn = transferRoot.amountWithdrawn.add(_amount);
     }
 }

@@ -218,35 +218,6 @@ contract L1_Bridge is Bridge {
         amountChallenged = amountChallenged.sub(transferRoot.total);
     }
 
-    function withdraw(
-        address _recipient,
-        uint256 _amount,
-        uint256 _transferNonce,
-        uint256 _relayerFee,
-        bytes32 _transferRoot,
-        bytes32[] memory _proof
-    )
-        public
-    {
-        bytes32 transferHash = getTransferHash(
-            _recipient,
-            _amount,
-            _transferNonce,
-            _relayerFee
-        );
-        TransferRoot storage rootBalance = transferRoots[_transferRoot];
-
-        require(!spentTransferHashes[transferHash], "BDG: The transfer has already been withdrawn");
-        require(_proof.verify(_transferRoot, transferHash), "BDG: Invalid transfer proof");
-        require(transferRoots[_transferRoot].createdAt != 0, "BDG: Transfer root not bonded");
-        require(rootBalance.amountWithdrawn.add(_amount) <= rootBalance.total, "BDG: Withdrawal exceeds TransferRoot total");
-
-        spentTransferHashes[transferHash] = true;
-        rootBalance.amountWithdrawn = rootBalance.amountWithdrawn.add(_amount);
-        token.safeTransfer(_recipient, _amount.sub(_relayerFee));
-        token.safeTransfer(msg.sender, _relayerFee);
-    }
-
     /**
      * Public Getters
      */

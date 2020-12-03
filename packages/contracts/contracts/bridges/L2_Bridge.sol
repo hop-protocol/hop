@@ -3,42 +3,44 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
 import "./Bridge.sol";
 import "../test/mockOVM_CrossDomainMessenger.sol";
 
 import "../libraries/MerkleUtils.sol";
 
-import '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
-
-contract L2_Bridge is ERC20, Bridge {
-    using SafeMath for uint256;
-    using MerkleProof for bytes32[];
-
-    mockOVM_CrossDomainMessenger public messenger;
+abstract contract L2_Bridge is ERC20, Bridge {
     address public l1BridgeAddress;
-    bytes32[] public pendingTransfers;
-    uint256 public pendingAmount;
-    uint256 public swapDeadlineBuffer;
     address public exchangeAddress;
     address public oDaiAddress;
+    address[] public exchangePath;
+    uint256 public swapDeadlineBuffer;
     address[] public CH_exchangePath;
     address[] public HC_exchangePath;
 
+    bytes32[] public pendingTransfers;
+    bytes32[] public pendingAmountLayerIds;
+    mapping(bytes32 => uint256) pendingAmountForLayerId;
+
     event TransfersCommitted (
         bytes32 root,
-        uint256 amount
+        uint256[] amounts
     );
 
-    event SentToMainnet (
+    event TransferSent (
         address recipient,
         uint256 amount,
         uint256 transferNonce,
         uint256 relayerFee
     );
 
-    constructor (mockOVM_CrossDomainMessenger _messenger) public ERC20("DAI Liquidity Pool Token", "LDAI") {
-        messenger = _messenger;
-    }
+    constructor () public ERC20("DAI Hop Token", "hDAI") {}
+
+    function _sendMessageToL1Bridge(bytes memory _message) internal virtual;
+
+    /**
+     * Public functions
+     */
 
     function setExchangeValues(
         uint256 _swapDeadlineBuffer,
@@ -58,8 +60,10 @@ contract L2_Bridge is ERC20, Bridge {
         l1BridgeAddress = _l1BridgeAddress;
     }
 
+    // ToDo: Rename to Send
     /// @notice _amount is the amount the user wants to send plus the relayer fee
-    function sendToMainnet(
+    function send(
+        bytes32 _layerId,
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
@@ -69,15 +73,24 @@ contract L2_Bridge is ERC20, Bridge {
     {
         _burn(msg.sender, _amount);
 
-        bytes32 transferHash = getTransferHash(_recipient, _amount, _transferNonce, _relayerFee);
+        bytes32 transferHash = getTransferHash(
+            _layerId,
+            _recipient,
+            _amount,
+            _transferNonce,
+            _relayerFee
+        );
         pendingTransfers.push(transferHash);
-        pendingAmount = pendingAmount.add(_amount);
 
-        emit SentToMainnet(_recipient, _amount, _transferNonce, _relayerFee);
+        // ToDo: Require only allowlisted layer ids
+        _addToPendingAmount(_layerId, _amount);
+
+        emit TransferSent(_recipient, _amount, _transferNonce, _relayerFee);
     }
 
     /// @notice _amount is the amount the user wants to send plus the relayer fee
-    function swapAndSendToMainnet(
+    function swapAndSend(
+        bytes32 _layerId,
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
@@ -96,27 +109,34 @@ contract L2_Bridge is ERC20, Bridge {
         (bool success,) = exchangeAddress.call(swapCalldata);
         require(success, "L2BDG: Swap failed");
 
-        sendToMainnet(_recipient, swapAmount, _transferNonce, _relayerFee);
+        send(getMessengerId('kovan'), _recipient, swapAmount, _transferNonce, _relayerFee);
     }
 
-    function commitTransfersPreHook() internal returns (bytes32, uint256, bytes memory) {
-        bytes32[] memory _pendingTransfers = pendingTransfers;
-        bytes32 root = MerkleUtils.getMerkleRoot(_pendingTransfers);
-        uint256 _pendingAmount = pendingAmount;
+    function commitTransfers() public {
+        uint256[] memory layerAmounts = new uint256[](pendingAmountLayerIds.length);
+        for (uint256 i = 0; i < pendingAmountLayerIds.length; i++) {
+            bytes32 layerId = pendingAmountLayerIds[i];
+            layerAmounts[i] = pendingAmountForLayerId[layerId];
 
+            // Clean up for the next batch of transfers as pendingAmountLayerIds is iterated
+            pendingAmountForLayerId[layerId] = 0;
+        }
+
+        bytes32 root = MerkleUtils.getMerkleRoot(pendingTransfers);
+        bytes32 amountHash = getAmountHash(pendingAmountLayerIds, layerAmounts);
+
+        delete pendingAmountLayerIds;
         delete pendingTransfers;
-        pendingAmount = 0;
 
-        bytes memory setTransferRootMessage = abi.encodeWithSignature("confirmTransferRoot(bytes32,uint256)", root, _pendingAmount);
-        return (
+        bytes memory confirmTransferRootMessage = abi.encodeWithSignature(
+            "confirmTransferRoot(bytes32,bytes32)",
             root,
-            _pendingAmount,
-            setTransferRootMessage
+            amountHash
         );
-    }
 
-    function commitTransfersPostHook(bytes32 _root, uint256 _pendingAmount) internal {
-        emit TransfersCommitted(_root, _pendingAmount);
+        _sendMessageToL1Bridge(confirmTransferRootMessage);
+
+        emit TransfersCommitted(root, layerAmounts);
     }
 
     // onlyCrossDomainBridge
@@ -145,6 +165,60 @@ contract L2_Bridge is ERC20, Bridge {
 
     function _transferFallback(address _recipient, uint256 _amount) internal {
         _transfer(address(this), _recipient, _amount);
+    }
+
+    /**
+     * TransferRoots
+     */
+
+    // onlyL1Bridge
+    function setTransferRoot(bytes32 _rootHash, uint256 _amount) public {
+        transferRoots[_rootHash] = TransferRoot(_amount, 0);
+    }
+
+    // ToDo: Add withdrawAndAttemptToSwap functionality
+    function withdrawAndSwap(
+        address _recipient,
+        uint256 _amount,
+        uint256 _transferNonce,
+        uint256 _relayerFee,
+        bytes32 _transferRoot,
+        bytes32[] memory _proof
+        // ToDo: Add minimum output param for Uniswap slippage protection
+    )
+        public
+    {
+        _preWithdraw(
+            _recipient,
+            _amount,
+            _transferNonce,
+            _relayerFee,
+            _transferRoot,
+            _proof
+        );
+        // Mint the tokens to swap
+        _mint(address(this), _amount);
+
+        // Do Uniswap swap and get output amount
+        // If swap reverts, revert the transaction
+
+        // Transfer output amount of oDaiAddress to recipient
+    }
+
+    /**
+     * Internal Functions
+     */
+
+    function _addToPendingAmount(bytes32 _layerId, uint256 _amount) internal {
+        if (pendingAmountForLayerId[_layerId] == 0) {
+            pendingAmountLayerIds.push(_layerId);
+        }
+
+        pendingAmountForLayerId[_layerId] = pendingAmountForLayerId[_layerId].add(_amount);
+    }
+
+    function _transfer(address _recipient, uint256 _amount) internal override {
+        _mint(_recipient, _amount);
     }
 
     function _getSwapCalldata(

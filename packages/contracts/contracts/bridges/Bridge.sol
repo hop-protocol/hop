@@ -1,4 +1,5 @@
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
@@ -18,8 +19,8 @@ abstract contract Bridge {
         uint256 amountWithdrawn;
     }
 
-    mapping(bytes32 => TransferRoot) transferRoots;
-    mapping(bytes32 => bool) public spentTransferHashes;
+    mapping(bytes32 => TransferRoot) private transferRoots;
+    mapping(bytes32 => bool) private spentTransferHashes;
 
     /**
      * Abstract functions
@@ -65,6 +66,10 @@ abstract contract Bridge {
 
     function getMessengerId(string memory _messengerLabel) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(_messengerLabel));
+    }
+
+    function getTransferRoot(bytes32 _rootHash) public returns (TransferRoot memory) {
+        return transferRoots[_rootHash];
     }
 
     /**
@@ -124,5 +129,10 @@ abstract contract Bridge {
 
         spentTransferHashes[transferHash] = true;
         transferRoot.amountWithdrawn = transferRoot.amountWithdrawn.add(_amount);
+    }
+
+    function _setTransferRoot(bytes32 _transferRoot, uint256 _amount) internal {
+        require(transferRoots[_transferRoot].total == 0, "BDG: Transfer root already set");
+        transferRoots[_transferRoot] = TransferRoot(_amount, 0);
     }
 }

@@ -147,7 +147,7 @@ contract L1_Bridge is Bridge {
         for (uint256 i = 0; i < _layerIds.length; i++) {
             if (_layerIds[i] == getMessengerId(LAYER_NAME)) {
                 // Set L1 transfer root
-                transferRoots[_transferRootHash] = TransferRoot(totalAmount, 0);
+                _setTransferRoot(_transferRootHash, totalAmount);
             } else {
                 // Set L2 transfer root
                 bytes memory setTransferRootMessage = abi.encodeWithSignature(
@@ -175,7 +175,7 @@ contract L1_Bridge is Bridge {
      */
 
     function challengeTransferBond(bytes32 _transferRootHash) public {
-        TransferRoot storage transferRoot = transferRoots[_transferRootHash];
+        TransferRoot memory transferRoot = getTransferRoot(_transferRootHash);
         TransferBond storage transferBond = transferBonds[_transferRootHash];
         // Require it's within 4 hour period 
         require(!transferBond.confirmed, "BDG: Transfer root has already been confirmed");
@@ -196,7 +196,7 @@ contract L1_Bridge is Bridge {
     }
 
     function resolveChallenge(bytes32 _transferRootHash) public {
-        TransferRoot storage transferRoot = transferRoots[_transferRootHash];
+        TransferRoot memory transferRoot = getTransferRoot(_transferRootHash);
         TransferBond storage transferBond = transferBonds[_transferRootHash];
 
         require(transferBond.challengeStartTime != 0, "BDG: Transfer root has not been challenged");

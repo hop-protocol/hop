@@ -1,4 +1,5 @@
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
@@ -173,7 +174,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     // onlyL1Bridge
     function setTransferRoot(bytes32 _rootHash, uint256 _amount) public {
-        transferRoots[_rootHash] = TransferRoot(_amount, 0);
+        _setTransferRoot(_rootHash, _amount);
     }
 
     // ToDo: Add withdrawAndAttemptToSwap functionality

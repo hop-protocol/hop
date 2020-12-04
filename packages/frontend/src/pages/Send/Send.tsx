@@ -46,7 +46,8 @@ const useStyles = makeStyles(() => ({
 const Send: FC = () => {
   const styles = useStyles()
 
-  const { user, tokens, networks, contracts } = useApp()
+  let { user, tokens, networks, contracts } = useApp()
+  tokens = tokens.filter((token: Token) => token.symbol !== 'hDAI')
   const { l1_bridge, arbitrum_bridge, arbitrum_uniswap } = contracts
 
   const { provider } = useWeb3Context()

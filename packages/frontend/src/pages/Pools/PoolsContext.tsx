@@ -246,7 +246,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     const contract = new Contract(tokenAddress, erc20Artifact.abi, signer)
 
     const address = arbitrum_uniswap?.address
-    const parsedAmount = parseUnits(amount, token.decimals)
+    const parsedAmount = parseUnits(amount, token.decimals || 18)
     const approved = await contract.allowance(
       await signer?.getAddress(),
       address

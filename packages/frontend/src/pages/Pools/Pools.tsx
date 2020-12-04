@@ -90,7 +90,6 @@ const Pools: FC = () => {
     userPoolTokenPercentage,
     token0Deposited,
     token1Deposited,
-    txHash,
     sending
   } = usePools()
 
@@ -359,9 +358,6 @@ const Pools: FC = () => {
           </div>
         )}
       </Button>
-      <div>
-        <small>{txHash}</small>
-      </div>
     </Box>
   )
 }

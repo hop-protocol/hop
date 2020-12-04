@@ -59,18 +59,6 @@ const useTokens = (networks: Network[]) => {
           arbitrum_hop_bridge: ethersUtils.parseEther('0.958125000000000000'),
           optimism: ethersUtils.parseEther('0.967777000000000000')
         }
-      }),
-      new Token({
-        symbol: 'hDAI',
-        tokenName: 'DAI Stablecoin',
-        contracts: {
-          arbitrum: arbitrum_bridge_dai
-        },
-        rates: {
-          kovan: ethersUtils.parseEther('1'),
-          arbitrum: ethersUtils.parseEther('0.958125000000000000'),
-          optimism: ethersUtils.parseEther('0.967777000000000000')
-        }
       })
     ],
     [l1_dai, arbitrum_dai, arbitrum_bridge_dai]

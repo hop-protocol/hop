@@ -4,7 +4,8 @@ import React, {
   useContext,
   useEffect,
   useState,
-  useCallback
+  useCallback,
+  useMemo
 } from 'react'
 import { Contract } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -98,7 +99,29 @@ const PoolsContextProvider: FC = ({ children }) => {
   const { arbitrum_uniswap } = useContracts([])
   let networks = useNetworks()
   let tokens = useTokens(networks)
-  const hopToken = tokens.find((token: Token) => token.symbol === 'hDAI')
+
+  const hopToken = useMemo(() => {
+    const network = networks.find(_network => _network.slug === 'arbitrum')
+    const arbitrum_bridge_dai = new Contract(
+      addresses.arbitrumBridge,
+      erc20Artifact.abi,
+      network?.provider
+    )
+
+    return new Token({
+      symbol: 'hDAI',
+      tokenName: 'DAI Stablecoin',
+      contracts: {
+        arbitrum: arbitrum_bridge_dai
+      },
+      rates: {
+        kovan: parseUnits('1', 18),
+        arbitrum: parseUnits('0.958125000000000000', 18),
+        optimism: parseUnits('0.967777000000000000', 18)
+      }
+    })
+  }, [networks])
+
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   networks = networks.filter((network: Network) => !network.isLayer1)
   tokens = tokens.filter((token: Token) => ['DAI'].includes(token.symbol))
@@ -206,8 +229,6 @@ const PoolsContextProvider: FC = ({ children }) => {
       )
 
       const amountA = parseUnits('1', decimals)
-
-      // note: quote is `amountB = (amountA * reserveB) / reserveA`
       const amountB = await router.quote(
         amountA,
         parseUnits(reserve0, decimals),
@@ -259,6 +280,10 @@ const PoolsContextProvider: FC = ({ children }) => {
   }
 
   const addLiquidity = async () => {
+    if (!Number(token0Amount) || !Number(token1Amount)) {
+      return
+    }
+
     setSending(true)
     let tx = await approveTokens(selectedToken, token0Amount, selectedNetwork)
     await tx?.wait()
@@ -295,6 +320,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     )
 
     setTxHash(tx.hash)
+    console.log(tx.hash)
     await tx.wait()
     setSending(false)
   }

@@ -114,7 +114,43 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
   }, [networks, sourceNetwork])
 
+  useEffect(() => {
+    const update = async () => {
+      let value = token0Amount
+      if (
+        value &&
+        ((sourceNetwork?.slug === 'arbitrum_hop_bridge' &&
+          destNetwork?.slug === 'arbitrum') ||
+          (sourceNetwork?.slug === 'arbitrum' &&
+            destNetwork?.slug === 'arbitrum_hop_bridge'))
+      ) {
+        const router = new Contract(
+          addresses.arbitrumUniswapRouter,
+          uniswapRouterArtifact.abi,
+          provider
+        )
+
+        let path = [addresses.arbitrumDai, addresses.arbitrumBridge]
+        if (destNetwork?.slug === 'arbitrum') {
+          path = [addresses.arbitrumBridge, addresses.arbitrumDai]
+        }
+
+        const amountsOut = await router.getAmountsOut(value, path)
+
+        value = parseInt(amountsOut[1], 16).toFixed(2)
+      }
+
+      setToken1Amount(value)
+    }
+
+    update()
+  }, [token0Amount, sourceNetwork, destNetwork, provider])
+
   const convertTokens = useCallback(async () => {
+    if (!Number(token0Amount)) {
+      return
+    }
+
     const approveTokens = async (
       token: Token,
       amount: string,

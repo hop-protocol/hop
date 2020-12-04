@@ -42,7 +42,6 @@ const Convert: FC = () => {
     token0Amount,
     setToken0Amount,
     token1Amount,
-    setToken1Amount,
     convertTokens
   } = useConvert()
 
@@ -54,7 +53,6 @@ const Convert: FC = () => {
     }
 
     setToken0Amount(value)
-    setToken1Amount(value)
   }
 
   const handleToken1AmountChange = (event: any) => {}

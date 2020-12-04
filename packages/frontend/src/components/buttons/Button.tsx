@@ -44,6 +44,10 @@ const useStyles = makeStyles(theme => ({
         : flat
         ? '#E5E6Ea'
         : 'rgba(255, 255, 255, 0.2)'
+    },
+    '&:disabled': {
+      background: '#e2e2e8',
+      boxShadow: 'none'
     }
   }),
   disabled: {

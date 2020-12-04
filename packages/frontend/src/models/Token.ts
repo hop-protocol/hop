@@ -37,7 +37,7 @@ class Token {
   }
 
   contractForNetwork (network: Network): Contract {
-    const contract = this.contracts[network.name]
+    const contract = this.contracts[network.slug]
     if (!contract)
       throw new Error(`No token contract for Network '${network.name}'`)
     return contract
@@ -51,7 +51,7 @@ class Token {
     if (!network) {
       return BigNumber.from('0')
     }
-    return this.rates[network.name]
+    return this.rates[network.slug]
   }
 }
 

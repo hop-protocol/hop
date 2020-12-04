@@ -8,16 +8,26 @@ import { addresses } from 'src/config/config'
 
 const useTokens = (networks: Network[]) => {
   const l1_dai = useMemo(() => {
-    const network = networks.find(_network => _network.name === 'kovan')
+    const network = networks.find(_network => _network.slug === 'kovan')
     if (!network) throw new Error('Kovan network not found')
     return new Contract(addresses.l1Dai, erc20Artifact.abi, network.provider)
   }, [networks])
 
   const arbitrum_dai = useMemo(() => {
-    const network = networks.find(_network => _network.name === 'arbitrum')
+    const network = networks.find(_network => _network.slug === 'arbitrum')
     if (!network) throw new Error('Arbitrum network not found')
     return new Contract(
       addresses.arbitrumDai,
+      erc20Artifact.abi,
+      network.provider
+    )
+  }, [networks])
+
+  const arbitrum_bridge_dai = useMemo(() => {
+    const network = networks.find(_network => _network.slug === 'arbitrum')
+    if (!network) throw new Error('Arbitrum network not found')
+    return new Contract(
+      addresses.arbitrumBridge,
       erc20Artifact.abi,
       network.provider
     )
@@ -47,9 +57,21 @@ const useTokens = (networks: Network[]) => {
           arbitrum: ethersUtils.parseEther('0.958125000000000000'),
           optimism: ethersUtils.parseEther('0.967777000000000000')
         }
+      }),
+      new Token({
+        symbol: 'hDAI',
+        tokenName: 'DAI Stablecoin',
+        contracts: {
+          arbitrum: arbitrum_bridge_dai
+        },
+        rates: {
+          kovan: ethersUtils.parseEther('1'),
+          arbitrum: ethersUtils.parseEther('0.958125000000000000'),
+          optimism: ethersUtils.parseEther('0.967777000000000000')
+        }
       })
     ],
-    [l1_dai, arbitrum_dai]
+    [l1_dai, arbitrum_dai, arbitrum_bridge_dai]
   )
 
   return tokens

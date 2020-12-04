@@ -1,11 +1,11 @@
-import React, { FC } from 'react'
+import React, { FC, ReactNode } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import MuiTextField, { TextFieldProps } from '@material-ui/core/TextField'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import Typography from '@material-ui/core/Typography'
 
 type LargeTextFieldProps = {
-  units?: string
+  units?: string | ReactNode
 } & TextFieldProps
 
 const useStyles = makeStyles(theme => ({

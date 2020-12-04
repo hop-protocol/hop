@@ -5,9 +5,7 @@ import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
-import MenuItem from '@material-ui/core/MenuItem'
 import LargeTextField from 'src/components/LargeTextField'
-import FlatSelect from 'src/components/selects/FlatSelect'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import { useApp } from 'src/contexts/AppContext'
@@ -37,23 +35,14 @@ const useStyles = makeStyles(theme => ({
 type Props = {
   value: string
   label: string
+  title: string
   token?: Token
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void
   selectedNetwork?: Network
-  networkOptions: Network[]
-  onNetworkChange: (network?: Network) => void
 }
 
 const AmountSelectorCard: FC<Props> = props => {
-  const {
-    value,
-    label,
-    token,
-    onChange,
-    selectedNetwork,
-    networkOptions,
-    onNetworkChange
-  } = props
+  const { value, label, title, token, onChange, selectedNetwork } = props
   const styles = useStyles()
   const { user } = useApp()
 
@@ -63,7 +52,7 @@ const AmountSelectorCard: FC<Props> = props => {
     const _getBalance = async () => {
       if (user && token && selectedNetwork) {
         const _balance = await user.getBalance(token, selectedNetwork)
-        setBalance(ethersUtils.formatUnits(_balance, 18))
+        setBalance(Number(ethersUtils.formatUnits(_balance, 18)).toFixed(2))
       }
     }
 
@@ -97,41 +86,7 @@ const AmountSelectorCard: FC<Props> = props => {
       </Box>
       <Grid container alignItems="center">
         <Grid item xs={6}>
-          <FlatSelect
-            value={selectedNetwork?.slug || 'default'}
-            onChange={event => {
-              const network = networkOptions.find(
-                _network => _network.slug === event.target.value
-              )
-              onNetworkChange(network)
-            }}
-          >
-            <MenuItem value="default">
-              <Box display="flex" flexDirection="row" alignItems="center">
-                <div className={styles.greyCircle} />
-                <Typography variant="subtitle2" className={styles.networkLabel}>
-                  Select Network
-                </Typography>
-              </Box>
-            </MenuItem>
-            {networkOptions.map(network => (
-              <MenuItem value={network.slug} key={network.slug}>
-                <Box display="flex" flexDirection="row" alignItems="center">
-                  <img
-                    src={network.imageUrl}
-                    className={styles.networkIcon}
-                    alt={network.name}
-                  />
-                  <Typography
-                    variant="subtitle2"
-                    className={styles.networkLabel}
-                  >
-                    {network.name}
-                  </Typography>
-                </Box>
-              </MenuItem>
-            ))}
-          </FlatSelect>
+          {title}
         </Grid>
         <Grid item xs={6}>
           <LargeTextField

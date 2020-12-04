@@ -53,6 +53,6 @@
     ]
   },
   "devDependencies": {
-    "prettier-standard": "^16.4.1"
+    "prettier-standard": "16.4.1"
   }
 }

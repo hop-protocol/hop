@@ -37,7 +37,7 @@ class Address {
   }
 
   eq (address: Addressish): boolean {
-    return (new Address(address)).toLowercase() === this.toLowercase()
+    return new Address(address).toLowercase() === this.toLowercase()
   }
 }
 

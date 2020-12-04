@@ -1,13 +1,17 @@
 {
-  "name": "contracts",
+  "name": "@hop-exchange/contracts",
   "version": "0.0.0",
   "description": "> TODO: description",
-  "author": "Authereum Labs, Inc.",
+  "author": "",
   "homepage": "",
   "license": "ISC",
-  "main": "lib/contracts.js",
+  "files": [
+    "contracts",
+    "artifacts"
+  ],
   "scripts": {
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "build": "hardhat compile"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",

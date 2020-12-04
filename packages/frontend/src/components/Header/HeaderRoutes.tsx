@@ -1,5 +1,5 @@
 import React, { FC, ChangeEvent } from 'react'
-import { useLocation , useHistory} from 'react-router-dom'
+import { useLocation, useHistory } from 'react-router-dom'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 
@@ -16,10 +16,11 @@ const HeaderRoutes: FC<Props> = () => {
 
   return (
     <Tabs value={location.pathname} onChange={handleChange}>
-      <Tab label="Send" value="/send"/>
-      <Tab label="Pool" value="/pool"/>
-      <Tab label="Stake" value="/stake"/>
+      <Tab label="Send" value="/send" />
+      <Tab label="Pool" value="/pool" />
+      <Tab label="Stake" value="/stake" />
       <Tab label="Governance" value="/governance"/>
+      <Tab label="Convert" value="/convert" />
     </Tabs>
   )
 }

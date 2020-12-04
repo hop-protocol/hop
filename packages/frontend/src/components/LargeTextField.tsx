@@ -1,10 +1,14 @@
-import React, { FC } from 'react'
+import React, { FC, ReactNode } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import MuiTextField, { TextFieldProps } from '@material-ui/core/TextField'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import Typography from '@material-ui/core/Typography'
 
-const useStyles = makeStyles((theme) => ({
+type LargeTextFieldProps = {
+  units?: string | ReactNode
+} & TextFieldProps
+
+const useStyles = makeStyles(theme => ({
   root: {
     margin: `-0.8rem -${theme.padding.extraLight}`
   },
@@ -13,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const useInputStyles = makeStyles((theme) => ({
+const useInputStyles = makeStyles(theme => ({
   root: {
     padding: `0.8rem 0`,
     transition: 'box-shadow 0.3s ease-in-out',
@@ -30,7 +34,7 @@ const useInputStyles = makeStyles((theme) => ({
     textAlign: 'right',
     fontSize: theme.typography.h4.fontSize,
     fontWeight: theme.typography.h4.fontWeight,
-    color: theme.palette.text.primary,
+    color: theme.palette.text.primary
   },
   focused: {
     borderRadius: '1.5rem',
@@ -38,10 +42,11 @@ const useInputStyles = makeStyles((theme) => ({
       inset -3px -3px 6px rgba(255, 255, 255, 0.5),
       inset 3px 3px 6px rgba(174, 174, 192, 0.16)
     `
-  },
+  }
 }))
 
-const TextField: FC<TextFieldProps> = (props) => {
+const TextField: FC<LargeTextFieldProps> = props => {
+  const { units, ...textFieldProps } = props
   const styles = useStyles()
   const inputStyles = useInputStyles()
 
@@ -51,17 +56,20 @@ const TextField: FC<TextFieldProps> = (props) => {
       InputProps={{
         classes: inputStyles,
         disableUnderline: true,
-        endAdornment: (
+        endAdornment: units ? (
           <InputAdornment position="end">
-            <Typography variant="h4" color="textPrimary" className={styles.adornment}>
-              ETH
+            <Typography
+              variant="h4"
+              color="textPrimary"
+              className={styles.adornment}
+            >
+              {units}
             </Typography>
           </InputAdornment>
-        ),
+        ) : null
       }}
-      {...props}
-    >
-    </MuiTextField>
+      {...textFieldProps}
+    ></MuiTextField>
   )
 }
 

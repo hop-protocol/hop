@@ -1,32 +1,30 @@
 import React, { FC } from 'react'
-import {
-  Switch,
-  Route,
-  Redirect
-} from 'react-router-dom'
-import Components from './pages/Components'
-import Send from './pages/Send'
+import { Switch, Route, Redirect } from 'react-router-dom'
+import Components from 'src/pages/Components'
+import Send from 'src/pages/Send'
 import Governance from './pages/Governance'
-import Demo from './pages/Demo'
+import Pools from 'src/pages/Pools'
+import Convert from 'src/pages/Convert'
+import Demo from 'src/pages/Demo'
 
 type Props = {}
 
 const COMPONENT_NAME: FC<Props> = () => {
-
   return (
     <Switch>
       <Route path="/send">
         <Send />
       </Route>
-      <Route path="/pool">
-        Pools coming soon
+      <Route path="/convert">
+        <Convert />
       </Route>
-      <Route path="/stake">
-        Staking coming soon
+      <Route path="/pool">
+        <Pools />
       </Route>
       <Route path="/governance">
         <Governance />
       </Route>
+      <Route path="/stake">Staking coming soon</Route>
       <Route path="/demo">
         <Demo />
       </Route>

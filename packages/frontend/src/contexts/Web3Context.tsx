@@ -9,26 +9,28 @@ import React, {
 } from 'react'
 import Onboard from 'bnc-onboard'
 import { ethers } from 'ethers'
-import Address from '../models/Address'
+import Address from 'src/models/Address'
 
 type Props = {
-  onboard: any,
-  provider: ethers.providers.Web3Provider | null,
-  address: Address | null,
+  onboard: any
+  provider: ethers.providers.Web3Provider | undefined
+  address: Address | undefined
   requestWallet: () => void
 }
 
 const initialState = {
-  onboard: null,
-  provider: null,
-  address: null,
+  onboard: undefined,
+  provider: undefined,
+  address: undefined,
   requestWallet: () => {}
 }
 
 const Web3Context = createContext<Props>(initialState)
 
 const Web3ContextProvider: FC = ({ children }) => {
-  const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null)
+  const [provider, setProvider] = useState<
+    ethers.providers.Web3Provider | undefined
+  >()
 
   const onboard = useMemo(() => {
     return Onboard({
@@ -42,7 +44,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     })
   }, [setProvider])
 
-  const [address, setAddress] = useState<Address | null>(null)
+  const [address, setAddress] = useState<Address | undefined>()
 
   const requestWallet = useCallback(() => {
     const _requestWallet = async () => {
@@ -69,12 +71,14 @@ const Web3ContextProvider: FC = ({ children }) => {
   }, [provider])
 
   return (
-    <Web3Context.Provider value={{
-      onboard,
-      provider,
-      address,
-      requestWallet
-    }}>
+    <Web3Context.Provider
+      value={{
+        onboard,
+        provider,
+        address,
+        requestWallet
+      }}
+    >
       {children}
     </Web3Context.Provider>
   )

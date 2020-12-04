@@ -1,0 +1,31 @@
+{
+  "name": "@hop-exchange/bridge-node",
+  "version": "0.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "example": "npm run build && node dist/example/example.js",
+    "start": "node .",
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "lint": "prettier-standard --format",
+    "arbitrum:clean": "rm -rf l2_nodes/arbitrum/data"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@authereum/utils": "^0.1.12",
+    "@types/yargs": "^15.0.10",
+    "dotenv": "^8.2.0",
+    "ethers": "^5.0.19",
+    "module-alias": "^2.2.2",
+    "typescript": "^4.0.5"
+  },
+  "devDependencies": {
+    "prettier-standard": "^16.4.1"
+  },
+  "_moduleAliases": {
+    "src": "src"
+  }
+}

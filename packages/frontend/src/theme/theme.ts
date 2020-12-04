@@ -12,12 +12,11 @@ declare module '@material-ui/core/styles/overrides' {
 }
 
 declare module '@material-ui/core/styles/createMuiTheme' {
-
   interface Theme {
     padding: {
-      thick: CSSProperties['paddingTop'],
-      default: CSSProperties['paddingTop'],
-      light: CSSProperties['paddingTop'],
+      thick: CSSProperties['paddingTop']
+      default: CSSProperties['paddingTop']
+      light: CSSProperties['paddingTop']
       extraLight: CSSProperties['paddingTop']
     }
   }
@@ -25,9 +24,9 @@ declare module '@material-ui/core/styles/createMuiTheme' {
   // allow configuration using `createMuiTheme`
   interface ThemeOptions {
     padding?: {
-      thick?: CSSProperties['paddingTop'],
-      default?: CSSProperties['paddingTop'],
-      light?: CSSProperties['paddingTop'],
+      thick?: CSSProperties['paddingTop']
+      default?: CSSProperties['paddingTop']
+      light?: CSSProperties['paddingTop']
       extraLight?: CSSProperties['paddingTop']
     }
   }
@@ -147,7 +146,7 @@ const theme = createMuiTheme({
     },
     MuiButton: {
       root: {
-        margin: 'inherit',
+        margin: 'inherit'
       }
     },
     MuiTabs: {

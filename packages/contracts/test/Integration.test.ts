@@ -99,7 +99,7 @@ describe("Full story", () => {
     messengerId = getL2MessengerId('optimism')
     await l1_bridge.setL1MessengerWrapper(messengerId, l1_messengerWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
-    await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, weth.address)
+    await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, l2_ovmBridge.address)
 
     // Distribute poolToken
     await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
@@ -173,6 +173,7 @@ describe("Full story", () => {
     await expectBalanceOf(l2_bridge, user, '99')
 
     const transfer = new Transfer({
+      layerId: getL2MessengerId('kovan'),
       amount: BigNumber.from('99'),
       nonce: 0,
       recipient: await user.getAddress(),
@@ -180,7 +181,8 @@ describe("Full story", () => {
     })
 
     // User moves funds back to L1 across the liquidity bridge
-    await l2_bridge.connect(user).sendToMainnet(transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee)
+    await l2_bridge.connect(user).send(transfer.layerId, transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee)
+
     await l2_bridge.commitTransfers()
     await l1_messenger.relayNextMessage()
 
@@ -189,7 +191,7 @@ describe("Full story", () => {
     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
-    await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, transfer.amount.add(transfer.relayerFee))
+    await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, [getL2MessengerId('kovan')], [transfer.amount])
 
     // User withdraws from L1 bridge
     const tree = new MerkleTree([ transfer.getTransferHash() ])
@@ -208,6 +210,7 @@ describe("Full story", () => {
 
   it('Should not allow a transfer root that exceeds the committee bond', async () => {
     const transfer = new Transfer({
+      layerId: getL2MessengerId('kovan'),
       recipient: await user.getAddress(),
       amount: BigNumber.from('98'),
       nonce: 0,
@@ -221,12 +224,13 @@ describe("Full story", () => {
     await l1_bridge.connect(committee).committeeStake('1')
 
     await expect(
-      l1_bridge.bondTransferRoot(tree.getRoot(), transfer.amount.add(transfer.relayerFee))
+      l1_bridge.bondTransferRoot(tree.getRoot(), transfer.amount)
     ).to.be.reverted
   })
 
   it('Should successfully challenge a malicious transfer root', async () => {
     const transfer = new Transfer({
+      layerId: getL2MessengerId('kovan'),
       recipient: await user.getAddress(),
       amount: BigNumber.from('100'),
       nonce: 0,
@@ -239,14 +243,163 @@ describe("Full story", () => {
     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
-    await l1_bridge.bondTransferRoot(tree.getRoot(), transfer.amount.add(transfer.relayerFee))
+    await l1_bridge.bondTransferRoot(tree.getRoot(), [transfer.layerId], [transfer.amount])
 
     await l1_poolToken.connect(challenger).approve(l1_bridge.address, BigNumber.from('10'))
-    await l1_bridge.connect(challenger).challengeTransferRoot(tree.getRoot())
+    await l1_bridge.connect(challenger).challengeTransferBond(tree.getRoot())
 
     await ethers.provider.send("evm_increaseTime", [60 * 60 * 24 * 9]) // 9 days
 
     await l1_bridge.connect(challenger).resolveChallenge(tree.getRoot())
+  })
+
+
+  it('Should complete an l2 to l2 transfer', async () => {
+    /**
+     * User moves funds from L1 to L2 on the liquidity bridge and then L2 to L2 on the liquidity bridge
+     */
+
+    // User moves funds across the messenger
+    await l1_poolToken.connect(user).approve(l1_bridge.address, USER_INITIAL_BALANCE)
+    await l1_bridge.connect(user).sendToL2(messengerId, await user.getAddress(), USER_INITIAL_BALANCE)
+    await l2_messenger.relayNextMessage()
+    await expectBalanceOf(l2_bridge, user, USER_INITIAL_BALANCE)
+
+    const transfer = new Transfer({
+      layerId: messengerId,
+      amount: BigNumber.from('99'),
+      nonce: 0,
+      recipient: await user.getAddress(),
+      relayerFee: BigNumber.from('0')
+    })
+
+    // User moves funds to an L2 across the liquidity bridge
+    // For testing purposes, they are sending to the L2 they are currently on which makes no sense in the real world.
+    await l2_bridge.connect(user).send(transfer.layerId, transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee)
+
+    await l2_bridge.commitTransfers()
+    await l1_messenger.relayNextMessage()
+
+    const transfersCommittedEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransfersCommitted()))[0]
+
+    await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+
+    await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, [transfer.layerId], [transfer.amount])
+    await l2_messenger.relayNextMessage()
+
+    // User withdraws from L1 bridge
+    const tree = new MerkleTree([ transfer.getTransferHash() ])
+    const proof = tree.getProof(transfer.getTransferHash())
+    await l2_bridge.withdraw(
+      transfer.recipient,
+      transfer.amount,
+      transfer.nonce,
+      transfer.relayerFee,
+      tree.getRoot(),
+      proof
+    )
+
+    await expectBalanceOf(l2_bridge, user, USER_INITIAL_BALANCE)
+  })
+
+
+  it('Should swap and transfer from L2 to L1', async () => {
+    /**
+     * Liquidity provider adds liquidity
+     */
+
+    // liquidityProvider moves funds across the messenger
+    await l1_poolToken.connect(liquidityProvider).approve(l1_ovmBridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l1_ovmBridge.connect(liquidityProvider).xDomainTransfer(await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l2_messenger.relayNextMessage()
+    await expectBalanceOf(l2_ovmBridge, liquidityProvider, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+
+    // liquidityProvider moves funds across the liquidity bridge
+    await l1_poolToken.connect(liquidityProvider).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l1_bridge.connect(liquidityProvider).sendToL2(messengerId, await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l2_messenger.relayNextMessage()
+    await expectBalanceOf(l2_bridge, liquidityProvider, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+
+    // liquidityProvider adds liquidity to the pool on L2
+    await l2_ovmBridge.connect(liquidityProvider).approve(l2_uniswapRouter.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l2_bridge.connect(liquidityProvider).approve(l2_uniswapRouter.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l2_uniswapRouter.connect(liquidityProvider).addLiquidity(
+      l2_ovmBridge.address,
+      l2_bridge.address,
+      LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2),
+      LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2),
+      '0',
+      '0',
+      await liquidityProvider.getAddress(),
+      '999999999999'
+    )
+    await expectBalanceOf(l2_ovmBridge, liquidityProvider, '0')
+    await expectBalanceOf(l2_bridge, liquidityProvider, '0')
+
+    const uniswapPairAddress: string = await l2_uniswapFactory.getPair(l2_ovmBridge.address, l2_bridge.address)
+    const uniswapPair = await ethers.getContractAt('@uniswap/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', uniswapPairAddress)
+    await expectBalanceOf(uniswapPair, liquidityProvider, '499000')
+    await expectBalanceOf(l2_ovmBridge, uniswapPair, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await expectBalanceOf(l2_bridge, uniswapPair, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+
+    /**
+     * User moves funds from L1 to L2 on the messenger and back to L1 on the liquidity bridge
+     */
+
+    // User moves funds across the messenger
+    await l1_poolToken.connect(user).approve(l1_ovmBridge.address, USER_INITIAL_BALANCE)
+    await l1_ovmBridge.connect(user).xDomainTransfer(await user.getAddress(), USER_INITIAL_BALANCE)
+    await l2_messenger.relayNextMessage()
+    await expectBalanceOf(l2_ovmBridge, user, USER_INITIAL_BALANCE)
+
+    const transfer = new Transfer({
+      layerId: getL2MessengerId('kovan'),
+      amount: BigNumber.from('99'),
+      nonce: 0,
+      recipient: await user.getAddress(),
+      relayerFee: BigNumber.from('0')
+    })
+
+    // User moves funds back to L1 across the liquidity bridge
+    await l2_ovmBridge.connect(user).approve(l2_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l2_bridge.connect(user).approve(await user.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l2_bridge.connect(user).approveExchangeTransfer()
+    await l2_bridge.connect(user).approveODaiExchangeTransfer()
+    await l2_bridge.connect(user).swapAndSend(transfer.layerId, transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee, 0)
+    await l2_bridge.commitTransfers()
+    await l1_messenger.relayNextMessage()
+
+    const transfersCommittedEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransfersCommitted()))[0]
+
+    await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+
+    await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, [ transfer.layerId ], [ transfer.amount ])
+
+    // User withdraws from L1 bridge
+    const TransferSentEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransferSent()))[0]
+    const outputTransfer = new Transfer({
+      layerId: transfer.layerId,
+      amount: TransferSentEvent.args.amount,
+      nonce: transfer.nonce,
+      recipient: transfer.recipient,
+      relayerFee: transfer.relayerFee
+    })
+
+    // User withdraws from L1 bridge
+    const tree = new MerkleTree([ outputTransfer.getTransferHash() ])
+    const proof = tree.getProof(outputTransfer.getTransferHash())
+    await l1_bridge.withdraw(
+      outputTransfer.recipient,
+      outputTransfer.amount,
+      outputTransfer.nonce,
+      outputTransfer.relayerFee,
+      tree.getRoot(),
+      proof
+    )
+
+    await expectBalanceOf(l1_poolToken, user, '98')
   })
 
   const expectBalanceOf = async (token: Contract, account: Signer | Contract, expectedBalance: BigNumberish) => {

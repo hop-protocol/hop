@@ -2,9 +2,9 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../test/mockOVM_CrossDomainMessenger.sol";
+import "../interfaces/ILayerWrapper.sol";
 
-contract Optimism {
-
+contract Optimism is ILayerWrapper {
     mockOVM_CrossDomainMessenger public l1MessengerAddress;
     address public l2BridgeAddress;
     uint256 public defaultGasLimit;
@@ -21,7 +21,7 @@ contract Optimism {
         defaultGasLimit = _defaultGasLimit;
     }
 
-    function sendMessageToL2(bytes memory _calldata) public {
+    function sendMessageToL2(bytes memory _calldata) public override {
         l1MessengerAddress.sendMessage(
             l2BridgeAddress,
             _calldata,

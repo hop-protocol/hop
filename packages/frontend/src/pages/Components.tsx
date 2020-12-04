@@ -3,10 +3,10 @@ import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Card from '@material-ui/core/Card'
 import Typography from '@material-ui/core/Typography'
-import Button from '../components/buttons/Button'
-import LargeTextField from '../components/LargeTextField'
+import Button from 'src/components/buttons/Button'
+import LargeTextField from 'src/components/LargeTextField'
 import SendIcon from '@material-ui/icons/Send'
-import RaisedSelect from '../components/selects/RaisedSelect'
+import RaisedSelect from 'src/components/selects/RaisedSelect'
 import MenuItem from '@material-ui/core/MenuItem'
 
 const useStyles = makeStyles(() => ({
@@ -34,9 +34,9 @@ const Section: FC<SectionProps> = ({ title, children }) => {
   return (
     <Card className={styles.section}>
       <Typography variant="h4" className={styles.sectionTitle}>
-        { title }
+        {title}
       </Typography>
-      { children }
+      {children}
     </Card>
   )
 }
@@ -48,32 +48,28 @@ const Components: FC = () => {
     <Box display="flex" flexDirection="column" alignItems="center">
       <div className={styles.container}>
         <Section title="Text Fields">
-          <LargeTextField
-            placeholder="Text Field"
-          />
+          <LargeTextField placeholder="Text Field" />
         </Section>
 
         <Section title="Cards">
-          <Typography variant="h6">
-            You're looking at one
-          </Typography>
+          <Typography variant="h6">You're looking at one</Typography>
           <Typography variant="body1">
-            This is a card. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+            This is a card. Lorem ipsum dolor sit amet, consectetur adipiscing
+            elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+            aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+            laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
+            dolor in reprehenderit in voluptate velit esse cillum dolore eu
+            fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+            proident, sunt in culpa qui officia deserunt mollit anim id est
+            laborum.
           </Typography>
         </Section>
 
         <Section title="Buttons">
-          <Button
-            className={styles.largeButton}
-            startIcon={<SendIcon />}
-          >
+          <Button className={styles.largeButton} startIcon={<SendIcon />}>
             Button
           </Button>
-          <Button
-            className={styles.largeButton}
-            startIcon={<SendIcon />}
-            flat
-          >
+          <Button className={styles.largeButton} startIcon={<SendIcon />} flat>
             Button flat
           </Button>
           <Button
@@ -90,11 +86,7 @@ const Components: FC = () => {
           >
             Button disabled
           </Button>
-          <Button
-            className={styles.largeButton}
-            startIcon={<SendIcon />}
-            large
-          >
+          <Button className={styles.largeButton} startIcon={<SendIcon />} large>
             Button large
           </Button>
           <Button
@@ -117,45 +109,43 @@ const Components: FC = () => {
 
         <Section title="Selects">
           <RaisedSelect value="ETH">
-            <MenuItem value="ETH">
-              ETH
-            </MenuItem>
-            <MenuItem value="DAI">
-              DAI
-            </MenuItem>
+            <MenuItem value="ETH">ETH</MenuItem>
+            <MenuItem value="DAI">DAI</MenuItem>
           </RaisedSelect>
         </Section>
 
         <Section title="Typography">
-          <Typography variant="h1">
-            h1. Lorem ipsum
-          </Typography>
-          <Typography variant="h2">
-            h2. Lorem ipsum dolor sit amet
-          </Typography>
-          <Typography variant="h3">
-            h3. Lorem ipsum dolor sit amet
-          </Typography>
-          <Typography variant="h4">
-            h4. Lorem ipsum dolor sit amet
-          </Typography>
-          <Typography variant="h5">
-            h5. Lorem ipsum dolor sit amet
-          </Typography>
-          <Typography variant="h6">
-            h6. Lorem ipsum dolor sit amet
-          </Typography>
+          <Typography variant="h1">h1. Lorem ipsum</Typography>
+          <Typography variant="h2">h2. Lorem ipsum dolor sit amet</Typography>
+          <Typography variant="h3">h3. Lorem ipsum dolor sit amet</Typography>
+          <Typography variant="h4">h4. Lorem ipsum dolor sit amet</Typography>
+          <Typography variant="h5">h5. Lorem ipsum dolor sit amet</Typography>
+          <Typography variant="h6">h6. Lorem ipsum dolor sit amet</Typography>
           <Typography variant="subtitle1">
-            subtitle1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+            subtitle1. Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+            sed do eiusmod
           </Typography>
           <Typography variant="subtitle2">
-            subtitle2. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+            subtitle2. Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+            sed do eiusmod
           </Typography>
           <Typography variant="body1">
-            body1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+            body1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+            do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+            enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
+            ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+            culpa qui officia deserunt mollit anim id est laborum.
           </Typography>
           <Typography variant="body2">
-            body2. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+            body2. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+            do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+            enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
+            ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+            culpa qui officia deserunt mollit anim id est laborum.
           </Typography>
         </Section>
       </div>

@@ -1,10 +1,14 @@
 import React, { FC } from 'react'
+import { Contract } from 'ethers'
+import toHex from 'to-hex'
+import { parseUnits } from 'ethers/lib/utils'
+import l1BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L1_Bridge.sol/L1_Bridge.json'
+import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
-import Button from '../components/buttons/Button'
-import { useWeb3Context } from '../contexts/Web3Context'
-
-import toHex from 'to-hex'
+import Button from 'src/components/buttons/Button'
+import { useWeb3Context } from 'src/contexts/Web3Context'
+import { addresses } from 'src/config'
 
 const useStyles = makeStyles(() => ({
   root: {},
@@ -19,21 +23,110 @@ const Demo: FC<Props> = () => {
   const styles = useStyles()
   const { provider } = useWeb3Context()
 
+  const handleApprove = async () => {
+    const signer = provider?.getSigner()
+    const tx = await signer?.sendTransaction({
+      to: addresses.l1Dai,
+      value: toHex('0', { addPrefix: true }),
+      gasLimit: toHex('1000000', { addPrefix: true }),
+      gasPrice: toHex('10000000000', { addPrefix: true }),
+      data:
+        '0x095ea7b3000000000000000000000000' +
+        addresses.l1Bridge.toLowerCase().replace('0x', '') +
+        'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+    })
+
+    console.log('TX', tx?.hash)
+  }
+
+  const handleSend = async () => {
+    const signer = provider?.getSigner()
+    const recipient = await signer?.getAddress()
+
+    const l1_bridge = new Contract(
+      addresses.l1Bridge,
+      l1BridgeArtifact.abi,
+      signer
+    )
+
+    const messengerId =
+      '0x9186606d55c571b43a756333453d90ab5653c483deb4980cda697bfa36fba5de'
+    const amount = parseUnits('5000', 18)
+    const tx = await l1_bridge.sendToL2(messengerId, recipient, amount, {
+      value: toHex('0', { addPrefix: true }),
+      gasLimit: toHex('2000000', { addPrefix: true }),
+      gasPrice: toHex('10000000000', { addPrefix: true })
+    })
+
+    console.log('TX', tx?.hash)
+  }
+
+  const handleSwap = async () => {
+    const signer = provider?.getSigner()
+
+    const l1_bridge = new Contract(
+      addresses.l1Bridge,
+      l1BridgeArtifact.abi,
+      signer
+    )
+
+    const recipient = await signer?.getAddress()
+    const messengerId =
+      '0x9186606d55c571b43a756333453d90ab5653c483deb4980cda697bfa36fba5de'
+    const amountOutMin = '0'
+    const amount = parseUnits('10', 18)
+    const tx = await l1_bridge.sendToL2AndAttemptSwap(
+      messengerId,
+      recipient,
+      amount,
+      amountOutMin,
+      {
+        value: toHex('0', { addPrefix: true }),
+        gasLimit: toHex('2000000', { addPrefix: true }),
+        gasPrice: toHex('10000000000', { addPrefix: true })
+      }
+    )
+
+    console.log('TX', tx?.hash)
+  }
+
+  const handleL2UniswapSwap = async () => {
+    const signer = provider?.getSigner()
+
+    const router = new Contract(
+      addresses.arbitrumUniswapRouter,
+      uniswapRouterArtifact.abi,
+      signer
+    )
+
+    const recipient = await signer?.getAddress()
+    const amountIn = parseUnits('20', 18)
+    const amountOutMin = '0'
+    const path = [addresses.arbitrumBridge, addresses.arbitrumDai]
+    const to = recipient
+    const deadline = (Date.now() / 1000 + 300) | 0
+
+    const tx = await router.swapExactTokensForTokens(
+      amountIn,
+      amountOutMin,
+      path,
+      to,
+      deadline
+    )
+
+    console.log('TX', tx?.hash)
+  }
+
   return (
-    <Box className={styles.root} display="flex" flexDirection="column" alignItems="center">
+    <Box
+      className={styles.root}
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+    >
       <Button
         className={styles.stepButton}
-        onClick={async () => {
-          const signer = provider?.getSigner()
-          const daiAddress = '0x7d669a64deb8a4a51eea755bb0e19fd39ce25ae9'
-          await signer?.sendTransaction({
-            to: daiAddress,
-            value: toHex('0', { addPrefix: true }),
-            gasLimit: toHex('1000000', { addPrefix: true }),
-            gasPrice: toHex('10000000000', { addPrefix: true }),
-            data: '0x095ea7b3000000000000000000000000c9898e162b6a43dc665b033f1ef6b2bc7b0157b4ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
-          })
-        }}
+        onClick={handleApprove}
         large
         highlighted
       >
@@ -41,17 +134,7 @@ const Demo: FC<Props> = () => {
       </Button>
       <Button
         className={styles.stepButton}
-        onClick={async () => {
-          const signer = provider?.getSigner()
-          const bridgeAddress = '0xC9898E162b6a43dc665B033F1EF6b2bc7B0157B4'
-          await signer?.sendTransaction({
-            to: bridgeAddress,
-            value: toHex('0', { addPrefix: true }),
-            gasLimit: toHex('2000000', { addPrefix: true }),
-            gasPrice: toHex('10000000000', { addPrefix: true }),
-            data: '0xb285f05b9186606d55c571b43a756333453d90ab5653c483deb4980cda697bfa36fba5de00000000000000000000000092e5a4b202f57b3634d6352fbabba9cf2908a14a0000000000000000000000000000000000000000000000000de0b6b3a7640000'
-          })
-        }}
+        onClick={handleSend}
         large
         highlighted
       >
@@ -59,21 +142,19 @@ const Demo: FC<Props> = () => {
       </Button>
       <Button
         className={styles.stepButton}
-        onClick={async () => {
-          const signer = provider?.getSigner()
-          const bridgeAddress = '0xC9898E162b6a43dc665B033F1EF6b2bc7B0157B4'
-          await signer?.sendTransaction({
-            to: bridgeAddress,
-            value: toHex('0', { addPrefix: true }),
-            gasLimit: toHex('2000000', { addPrefix: true }),
-            gasPrice: toHex('10000000000', { addPrefix: true }),
-            data: '0x7f620ce19186606d55c571b43a756333453d90ab5653c483deb4980cda697bfa36fba5de00000000000000000000000092e5a4b202f57b3634d6352fbabba9cf2908a14a00000000000000000000000000000000000000000000000000000000000003e80000000000000000000000000000000000000000000000000000000000000000'
-          })
-        }}
+        onClick={handleSwap}
         large
         highlighted
       >
         Send to L2 (swap)
+      </Button>
+      <Button
+        className={styles.stepButton}
+        onClick={handleL2UniswapSwap}
+        large
+        highlighted
+      >
+        L2 Uniswap swap
       </Button>
     </Box>
   )

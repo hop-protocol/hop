@@ -1,9 +1,10 @@
-pragma solidity 0.5.11;
+pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../interfaces/IGlobalInbox.sol";
+import "../interfaces/ILayerWrapper.sol";
 
-contract Arbitrum {
+contract Arbitrum is ILayerWrapper {
 
     address public arbChain;
     address public l2BridgeAddress;
@@ -41,7 +42,7 @@ contract Arbitrum {
         defaultSubMessageType = _defaultSubMessageType;
     }
 
-    function sendMessageToL2(bytes memory _calldata) public {
+    function sendMessageToL2(bytes memory _calldata) public override {
         bytes memory subMessageWithoutData = abi.encode(
             defaultGasLimit,
             defaultGasPrice,

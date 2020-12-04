@@ -3,9 +3,10 @@ import '@nomiclabs/hardhat-waffle'
 import { ethers } from 'hardhat'
 import { BigNumber, ContractFactory, Signer, Contract } from 'ethers'
 
-const RELAYER_FEE = BigNumber.from('1000000000000000000')
-
+import { getL2MessengerId } from './utils'
 import Transfer from '../lib/Transfer'
+
+const RELAYER_FEE = BigNumber.from('1000000000000000000')
 
 describe('Transfer', () => {
   let accounts: Signer[]
@@ -26,12 +27,14 @@ describe('Transfer', () => {
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
     transfers = [
       new Transfer({
+        layerId: getL2MessengerId('kovan'),
         recipient: await user.getAddress(),
         amount: BigNumber.from('12345'),
         nonce: 0,
         relayerFee: RELAYER_FEE
       }),
       new Transfer({
+        layerId: getL2MessengerId('kovan'),
         recipient: await liquidityProvider.getAddress(),
         amount: BigNumber.from('12345'),
         nonce: 0,
@@ -49,6 +52,7 @@ describe('Transfer', () => {
   describe('getTransferHash()', () => {
     it('should match onchain hash calculation', async () => {
       const onchainHashHex = await bridge.getTransferHash(
+        transfers[0].layerId,
         transfers[0].recipient,
         transfers[0].amount,
         transfers[0].nonce,

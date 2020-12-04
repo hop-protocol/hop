@@ -5,7 +5,7 @@ class TokenAmount {
   amountRaw: BigNumber
   token: Token
 
-  constructor(amount: any, token: Token) {
+  constructor (amount: any, token: Token) {
     this.amountRaw = BigNumber.from(amount)
     this.token = token
   }

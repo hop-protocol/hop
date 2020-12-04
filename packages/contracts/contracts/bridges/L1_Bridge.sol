@@ -142,11 +142,12 @@ contract L1_Bridge is Bridge {
 
         bytes32 amountHash = getAmountHash(_layerIds, _layerAmounts);
 
+        transferBonds[_transferRootHash] = TransferBond(now, amountHash, false, 0, address(0));
+
         for (uint256 i = 0; i < _layerIds.length; i++) {
             if (_layerIds[i] == getMessengerId(LAYER_NAME)) {
                 // Set L1 transfer root
                 transferRoots[_transferRootHash] = TransferRoot(totalAmount, 0);
-                transferBonds[_transferRootHash] = TransferBond(now, amountHash, false, 0, address(0));
             } else {
                 // Set L2 transfer root
                 bytes memory setTransferRootMessage = abi.encodeWithSignature(

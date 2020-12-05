@@ -51,19 +51,19 @@ const useStyles = makeStyles(theme => ({
 }))
 
 type Props = {
-  index: string
+  id: string
   description: string
   status: string
 }
 
 const ProposalPreviewCard: FC<Props> = props => {
-  const { index, description, status } = props
+  const { id, description, status } = props
   const styles = useStyles({ status })
 
   const history = useHistory()
 
   const handleClick = () => {
-    history.push(`/vote/${index}`)
+    history.push(`/vote/${id}`)
   }
 
   return (
@@ -82,7 +82,7 @@ const ProposalPreviewCard: FC<Props> = props => {
             color="textSecondary"
             component="div"
         >
-            { index }
+            { id }
         </Typography>
         </Box>
         <Box alignItems="left" className={styles.previewBox}>

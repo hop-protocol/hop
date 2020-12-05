@@ -24,12 +24,24 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
-interface IProposal {
-  index: string
-  description: string
-  status: string
+interface IProposalDetail {
+  target: string
+  functionSig: string
+  callData: string
 }
 
+interface IProposal {
+  id: string
+  title: string
+  description: string
+  proposer: string
+  status: string
+  forCount: number
+  againstCount: number
+  startBlock: number
+  endBlock: number
+  details: IProposalDetail[]
+}
 
 type VoteProps = {
   proposals: IProposal[]
@@ -50,7 +62,7 @@ const Vote: FC<VoteProps> = props => {
         {
           proposals.map((proposal: IProposal)=>
             <ProposalPreviewCard
-              index={proposal.index}
+              id={proposal.id}
               description={proposal.description}
               status={proposal.status}
             />

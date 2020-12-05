@@ -37,7 +37,7 @@ const useStyles = makeStyles(() => ({
 
 
 interface IProposal {
-  index: string
+  id: string
   description: string
   status: string
 }

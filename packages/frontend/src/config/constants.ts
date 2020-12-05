@@ -8,9 +8,14 @@ export const MAINNET_LOGO_URL =
   'https://liquidity-network-poc.s3.amazonaws.com/mainnet.svg'
 
 export enum PROPOSAL_STATUSES {
-  ONGOING = 'ongoing',
+  PENDING = 'pending',
+  ACTIVE = 'active',
+  CANCELLED = 'cancelled',
+  DEFEATED = 'defeated',
   SUCCEEDED = 'succeeded',
-  DEFEATED = 'defeated'
+  QUEUED = 'queued',
+  EXPIRED = 'expired',
+  EXECUTED = 'executed'
 }
 
 export enum VOTE_STATUS {

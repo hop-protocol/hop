@@ -11,18 +11,18 @@ import Demo from 'src/pages/Demo'
 type Props = {}
 
 interface IProposal {
-  index: string
+  id: string
   description: string
   status: string
 }
 
 const proposals: IProposal[] = [
   {
-    index: '1',
+    id: '1',
     description: 'Reduce HOP Governance Proposal',
     status: 'defeated'
   }, {
-    index: '2',
+    id: '2',
     description: 'Retroactive Proxy Contract Airdrop',
     status: 'passed'
   }

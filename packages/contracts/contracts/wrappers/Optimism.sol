@@ -2,9 +2,9 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../test/mockOVM_CrossDomainMessenger.sol";
-import "../interfaces/ILayerWrapper.sol";
+import "../interfaces/IMessengerWrapper.sol";
 
-contract Optimism is ILayerWrapper {
+contract Optimism is IMessengerWrapper {
     mockOVM_CrossDomainMessenger public l1MessengerAddress;
     address public l2BridgeAddress;
     uint256 public defaultGasLimit;

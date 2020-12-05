@@ -46,6 +46,42 @@ _Bridge System_
 * npx hardhat run scripts/arbitrum/setupArbitrumL1.ts --network kovan
 * npx hardhat run scripts/arbitrum/setupArbitrumL2.ts --network arbitrum
 
+## Definitions
+* **Transfer** - The data for a transfer from one chain to another.
+* **TransferHash** - The hash of a single transfer's data.
+* **TransferRoot** - The merkle root of a tree of TransferHashs and associated metadata such as the destination chainIds and totals for each chain.
+* **Bridge** - A hop bridge contracts on L1 or L2 ("L1 Bridge", "Hop Bridge", "Arbitrum Bridge", "Optimism Bridge")
+* **Canonical Token Bridge** - A Rollup's own token bridge. ("Canonical Arbitrum Bridge", "Canonical Optimism Bridge")
+
+#### Tokens
+
+* **Canonical L1 Token** - The layer 1 token that is being bridged.
+  ("Canonical L1 ETH", "Canonical L1 DAI", "DAI", "ETH")
+* **hToken** - Exists on L2 and represents the right to 1 Token deposited in the L1 bridge.
+  hToken's can be converted to their Canonical L1 Token or vice versa at a 1:1 rate.
+  ("hDAI", "hETH")
+* **Canonical L2 Token** - The primary L2 representation of a Canonical L1 Token. This is the
+  token you get from depositing into a rollup's Canonical Token Bridge.
+
+#### Token Path
+On Hop, tokens are always converted along the following path. To convert DAI to Arbitrum DAI, DAI (on L1) is first converted to hDAI (on L2) using the L1 Hop Bridge. Then the hDAI is swapped for Arbitrum DAI through the Uniswap market. This can be done in one transaction by calling `sendToL2AndAttemptSwap`.
+
+```
+      Layer 1          |      Layer 2
+                       |
+Canonical L1 Token <---|---> hToken <--(Uniswap)--> Canonical L2 Token
+                       |
+``` 
+
+e.g.
+
+```
+      Layer 1          |      Layer 2
+                       |
+DAI <--------------<---|---> hDAI <----(Uniswap)--> Arbitrum DAI
+                       |
+```
+
 ## FAQ
 
 * What are the relevant `messageId`s?

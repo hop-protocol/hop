@@ -1,3 +1,3 @@
 import Governance from './Governance'
 
-export default Governance
+export default Governance 

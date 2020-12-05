@@ -1,5 +1,6 @@
-import React, { FC, ChangeEvent } from 'react'
+import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import { useHistory } from 'react-router-dom'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -16,7 +17,8 @@ const statusColors = {
 const useStyles = makeStyles(theme => ({
   previewsBox: {
     width: '51.6rem',
-    marginBottom: '2rem'
+    marginBottom: '2rem',
+    cursor: 'pointer'
   },
   previewBox: {
     display: 'flex',
@@ -52,43 +54,55 @@ type Props = {
   index: string
   description: string
   status: string
-  onClick?: (event: ChangeEvent<HTMLInputElement>) => void
 }
 
 const ProposalPreviewCard: FC<Props> = props => {
   const { index, description, status } = props
   const styles = useStyles({ status })
 
+  const history = useHistory()
+
+  const handleClick = () => {
+    history.push(`/vote/${index}`)
+  }
+
   return (
-    <Box alignItems="center" className={styles.previewsBox}>
+    <Box
+      alignItems="center"
+      className={styles.previewsBox}
+      onClick={async (event) => {
+        event.preventDefault()
+        handleClick()
+      }}
+    >
       <Card className={styles.previewCard}>
-          <Box alignItems="center" className={styles.previewBox}>
+        <Box alignItems="center" className={styles.previewBox}>
+        <Typography
+            variant="subtitle2"
+            color="textSecondary"
+            component="div"
+        >
+            { index }
+        </Typography>
+        </Box>
+        <Box alignItems="left" className={styles.previewBox}>
+        <Typography
+            variant="subtitle2"
+            color="textSecondary"
+            component="div"
+        >
+          { description }
+        </Typography>
+        </Box>
+        <Box alignItems="center" className={`${styles.proposalStatus}`}>
           <Typography
               variant="subtitle2"
               color="textSecondary"
               component="div"
           >
-              { index }
+            { status }
           </Typography>
-          </Box>
-          <Box alignItems="left" className={styles.previewBox}>
-          <Typography
-              variant="subtitle2"
-              color="textSecondary"
-              component="div"
-          >
-            { description }
-          </Typography>
-          </Box>
-          <Box alignItems="center" className={`${styles.proposalStatus}`}>
-            <Typography
-                variant="subtitle2"
-                color="textSecondary"
-                component="div"
-            >
-              { status }
-            </Typography>
-          </Box>
+        </Box>
       </Card>
     </Box>
   )

@@ -13,14 +13,7 @@ export enum PROPOSAL_STATUSES {
   DEFEATED = 'defeated'
 }
 
-// TODO: These are all the possible states
-// enum ProposalState {
-//   Pending,
-//   Active,
-//   Canceled,
-//   Defeated,
-//   Succeeded,
-//   Queued,
-//   Expired,
-//   Executed
-// }
+export enum VOTE_STATUS {
+  FOR = 'For',
+  AGAINST = 'Against'
+}

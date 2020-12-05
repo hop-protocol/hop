@@ -25,8 +25,6 @@ abstract contract Bridge {
     /**
      * Abstract functions
      */
-
-    function getLayerId() public virtual returns (bytes32);
     function _transfer(address _recipient, uint256 _amount) internal virtual;
 
     /**
@@ -34,7 +32,7 @@ abstract contract Bridge {
      */
 
     function getTransferHash(
-        bytes32 _layerId,
+        uint256 _chainId,
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
@@ -45,7 +43,7 @@ abstract contract Bridge {
         returns (bytes32)
     {
         return keccak256(abi.encode(
-            _layerId,
+            _chainId,
             _recipient,
             _amount,
             _transferNonce,
@@ -54,18 +52,21 @@ abstract contract Bridge {
     }
 
     function getAmountHash(
-        bytes32[] memory _layerIds,
+        uint256[] memory _chainIds,
         uint256[] memory _amounts
     )
         public
         pure
         returns (bytes32)
     {
-        return keccak256(abi.encode("AMOUNT_HASH", _layerIds, _amounts));
+        return keccak256(abi.encode("AMOUNT_HASH", _chainIds, _amounts));
     }
 
-    function getMessengerId(string memory _messengerLabel) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_messengerLabel));
+    /// @notice getChainId can be overriden by  subclasses if needed for compatability or testing purposes.
+    function getChainId() public virtual pure returns (uint256 chainId) {
+        assembly {
+            chainId := chainid()
+        }
     }
 
     function getTransferRoot(bytes32 _rootHash) public returns (TransferRoot memory) {
@@ -114,7 +115,7 @@ abstract contract Bridge {
         public
     {
         bytes32 transferHash = getTransferHash(
-            getLayerId(),
+            getChainId(),
             _recipient,
             _amount,
             _transferNonce,

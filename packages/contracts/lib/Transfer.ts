@@ -1,7 +1,7 @@
 import * as ethers from 'ethers'
 
 export type TransferProps = {
-  layerId: string,
+  chainId: ethers.BigNumber,
   recipient: string,
   amount: ethers.BigNumber,
   nonce: number,
@@ -9,14 +9,14 @@ export type TransferProps = {
 }
 
 export default class Transfer {
-  layerId: string
+  chainId: ethers.BigNumber
   recipient: string
   amount: ethers.BigNumber
   nonce: number
   relayerFee: ethers.BigNumber
 
   constructor(props: TransferProps) {
-    this.layerId = props.layerId
+    this.chainId = props.chainId
     this.recipient = props.recipient
     this.amount = props.amount
     this.nonce = props.nonce
@@ -26,14 +26,14 @@ export default class Transfer {
   getTransferHash(): Buffer {
     const data = ethers.utils.defaultAbiCoder.encode(
       [
-        'bytes32',
+        'uint256',
         'address',
         'uint256',
         'uint256',
         'uint256'
       ],
       [
-        this.layerId,
+        this.chainId,
         this.recipient,
         this.amount,
         this.nonce,

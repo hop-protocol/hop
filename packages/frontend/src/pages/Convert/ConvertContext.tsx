@@ -7,12 +7,7 @@ import React, {
   useMemo,
   useCallback
 } from 'react'
-import { Contract } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
-import L1ArbitrumMessengerArtifact from '@hop-exchange/contracts/artifacts/contracts/test/arbitrum/inbox/GlobalInbox.sol/GlobalInbox.json'
-import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
-import ArbERC20 from 'src/pages/Convert/abis/ArbERC20.json'
-import erc20Artifact from '@hop-exchange/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { useApp } from 'src/contexts/AppContext'
@@ -90,7 +85,12 @@ const ConvertContextProvider: FC = ({ children }) => {
   )
   const [token0Amount, setToken0Amount] = useState<string>('')
   const [token1Amount, setToken1Amount] = useState<string>('')
-  const { arbitrum_uniswap } = useContracts([])
+  const {
+    arbitrumDai,
+    arbitrumUniswapRouter,
+    arbitrumL1Messenger,
+    getErc20Contract
+  } = useContracts([])
 
   useEffect(() => {
     if (sourceNetwork?.slug === 'kovan') {
@@ -124,19 +124,15 @@ const ConvertContextProvider: FC = ({ children }) => {
           (sourceNetwork?.slug === 'arbitrum' &&
             destNetwork?.slug === 'arbitrum_hop_bridge'))
       ) {
-        const router = new Contract(
-          addresses.arbitrumUniswapRouter,
-          uniswapRouterArtifact.abi,
-          provider
-        )
-
         let path = [addresses.arbitrumDai, addresses.arbitrumBridge]
         if (destNetwork?.slug === 'arbitrum') {
           path = [addresses.arbitrumBridge, addresses.arbitrumDai]
         }
 
-        const amountsOut = await router.getAmountsOut(value, path)
-
+        const amountsOut = await arbitrumUniswapRouter?.getAmountsOut(
+          value,
+          path
+        )
         value = parseInt(amountsOut[1], 16).toFixed(2)
       }
 
@@ -144,7 +140,13 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
 
     update()
-  }, [token0Amount, sourceNetwork, destNetwork, provider])
+  }, [
+    token0Amount,
+    sourceNetwork,
+    destNetwork,
+    provider,
+    arbitrumUniswapRouter
+  ])
 
   const convertTokens = useCallback(async () => {
     if (!Number(token0Amount)) {
@@ -158,9 +160,9 @@ const ConvertContextProvider: FC = ({ children }) => {
     ) => {
       const signer = provider?.getSigner()
       const tokenAddress = token.addressForNetwork(network).toString()
-      const contract = new Contract(tokenAddress, erc20Artifact.abi, signer)
+      const contract = getErc20Contract(tokenAddress, signer)
 
-      const address = arbitrum_uniswap?.address
+      const address = arbitrumUniswapRouter?.address
       const parsedAmount = parseUnits(amount, token.decimals || 18)
       const approved = await contract.allowance(
         await signer?.getAddress(),
@@ -189,14 +191,8 @@ const ConvertContextProvider: FC = ({ children }) => {
         const tokenAddress = selectedToken
           .addressForNetwork(sourceNetwork)
           .toString()
-        const arbitrumBridge = new Contract(
-          addresses.l1Messenger,
-          L1ArbitrumMessengerArtifact.abi,
-          signer
-        )
-
         const arbChainAddress = '0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71'
-        const tx = await arbitrumBridge.depositERC20Message(
+        const tx = await arbitrumL1Messenger?.depositERC20Message(
           arbChainAddress,
           tokenAddress,
           address,
@@ -210,28 +206,15 @@ const ConvertContextProvider: FC = ({ children }) => {
         const tokenAddress = selectedToken
           .addressForNetwork(sourceNetwork)
           .toString()
-        const arbitrumBridge = new Contract(
-          addresses.arbitrumDai,
-          ArbERC20.abi,
-          signer
-        )
-
-        const tx = await arbitrumBridge.withdraw(tokenAddress, value)
-
+        const tx = await arbitrumDai?.withdraw(tokenAddress, value)
         console.log(tx?.hash)
       }
       if (destNetwork?.slug === 'arbitrum_hop_bridge') {
-        const router = new Contract(
-          addresses.arbitrumUniswapRouter,
-          uniswapRouterArtifact.abi,
-          signer
-        )
-
         const amountOutMin = '0'
         const path = [addresses.arbitrumDai, addresses.arbitrumBridge]
         const deadline = (Date.now() / 1000 + 300) | 0
 
-        const tx = await router.swapExactTokensForTokens(
+        const tx = await arbitrumUniswapRouter?.swapExactTokensForTokens(
           value,
           amountOutMin,
           path,
@@ -243,17 +226,11 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
     } else if (sourceNetwork?.slug === 'arbitrum_hop_bridge') {
       if (destNetwork?.slug === 'arbitrum') {
-        const router = new Contract(
-          addresses.arbitrumUniswapRouter,
-          uniswapRouterArtifact.abi,
-          signer
-        )
-
         const amountOutMin = '0'
         const path = [addresses.arbitrumBridge, addresses.arbitrumDai]
         const deadline = (Date.now() / 1000 + 300) | 0
 
-        const tx = await router.swapExactTokensForTokens(
+        const tx = await arbitrumUniswapRouter?.swapExactTokensForTokens(
           value,
           amountOutMin,
           path,
@@ -270,7 +247,10 @@ const ConvertContextProvider: FC = ({ children }) => {
     destNetwork,
     sourceNetwork,
     token0Amount,
-    arbitrum_uniswap
+    arbitrumDai,
+    arbitrumL1Messenger,
+    arbitrumUniswapRouter,
+    getErc20Contract
   ])
 
   return (

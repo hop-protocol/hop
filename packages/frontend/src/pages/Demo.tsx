@@ -1,13 +1,11 @@
 import React, { FC } from 'react'
-import { Contract } from 'ethers'
 import toHex from 'to-hex'
 import { parseUnits } from 'ethers/lib/utils'
-import l1BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L1_Bridge.sol/L1_Bridge.json'
-import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Button from 'src/components/buttons/Button'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import useContracts from 'src/contexts/AppContext/useContracts'
 import { addresses } from 'src/config'
 
 const useStyles = makeStyles(() => ({
@@ -22,6 +20,7 @@ type Props = {}
 const Demo: FC<Props> = () => {
   const styles = useStyles()
   const { provider } = useWeb3Context()
+  const { l1Bridge, arbitrumUniswapRouter } = useContracts([])
 
   const handleApprove = async () => {
     const signer = provider?.getSigner()
@@ -42,17 +41,10 @@ const Demo: FC<Props> = () => {
   const handleSend = async () => {
     const signer = provider?.getSigner()
     const recipient = await signer?.getAddress()
-
-    const l1_bridge = new Contract(
-      addresses.l1Bridge,
-      l1BridgeArtifact.abi,
-      signer
-    )
-
     const messengerId =
       '0x9186606d55c571b43a756333453d90ab5653c483deb4980cda697bfa36fba5de'
     const amount = parseUnits('5000', 18)
-    const tx = await l1_bridge.sendToL2(messengerId, recipient, amount, {
+    const tx = await l1Bridge?.sendToL2(messengerId, recipient, amount, {
       value: toHex('0', { addPrefix: true }),
       gasLimit: toHex('2000000', { addPrefix: true }),
       gasPrice: toHex('10000000000', { addPrefix: true })
@@ -63,19 +55,12 @@ const Demo: FC<Props> = () => {
 
   const handleSwap = async () => {
     const signer = provider?.getSigner()
-
-    const l1_bridge = new Contract(
-      addresses.l1Bridge,
-      l1BridgeArtifact.abi,
-      signer
-    )
-
     const recipient = await signer?.getAddress()
     const messengerId =
       '0x9186606d55c571b43a756333453d90ab5653c483deb4980cda697bfa36fba5de'
     const amountOutMin = '0'
     const amount = parseUnits('10', 18)
-    const tx = await l1_bridge.sendToL2AndAttemptSwap(
+    const tx = await l1Bridge?.sendToL2AndAttemptSwap(
       messengerId,
       recipient,
       amount,
@@ -92,13 +77,6 @@ const Demo: FC<Props> = () => {
 
   const handleL2UniswapSwap = async () => {
     const signer = provider?.getSigner()
-
-    const router = new Contract(
-      addresses.arbitrumUniswapRouter,
-      uniswapRouterArtifact.abi,
-      signer
-    )
-
     const recipient = await signer?.getAddress()
     const amountIn = parseUnits('20', 18)
     const amountOutMin = '0'
@@ -106,7 +84,7 @@ const Demo: FC<Props> = () => {
     const to = recipient
     const deadline = (Date.now() / 1000 + 300) | 0
 
-    const tx = await router.swapExactTokensForTokens(
+    const tx = await arbitrumUniswapRouter?.swapExactTokensForTokens(
       amountIn,
       amountOutMin,
       path,

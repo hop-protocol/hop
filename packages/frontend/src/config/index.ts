@@ -1,2 +1,3 @@
-export * from './config'
+export * from './addresses'
+export * from './wallet'
 export * from './constants'

@@ -46,7 +46,7 @@ const ConvertContext = createContext<ConvertContextProps>({
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
-  const { provider } = useWeb3Context()
+  const { provider, setRequiredNetworkId } = useWeb3Context()
   let { networks: nets, tokens } = useApp()
   const networks = useMemo(() => {
     const kovanNetwork = nets.find(
@@ -59,13 +59,15 @@ const ConvertContextProvider: FC = ({ children }) => {
       name: 'Arbitrum Canonical',
       slug: arbitrumNetwork.slug,
       imageUrl: arbitrumNetwork.imageUrl,
-      rpcUrl: arbitrumNetwork.rpcUrl
+      rpcUrl: arbitrumNetwork.rpcUrl,
+      networkId: arbitrumNetwork.networkId
     })
     const arbitrumHopBridgeNetwork = new Network({
       name: 'Arbitrum Hop bridge',
       slug: 'arbitrum_hop_bridge',
       imageUrl: arbitrumNetwork.imageUrl,
-      rpcUrl: arbitrumNetwork.rpcUrl
+      rpcUrl: arbitrumNetwork.rpcUrl,
+      networkId: arbitrumNetwork.networkId
     })
     return [
       kovanNetwork,
@@ -93,6 +95,10 @@ const ConvertContextProvider: FC = ({ children }) => {
   } = useContracts([])
 
   useEffect(() => {
+    if (sourceNetwork) {
+      setRequiredNetworkId(sourceNetwork?.networkId)
+    }
+
     if (sourceNetwork?.slug === 'kovan') {
       const destNetworks = networks.filter((network: Network) =>
         ['arbitrum'].includes(network.slug)
@@ -112,7 +118,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       setDestNetworks(destNetworks)
       setDestNetwork(destNetworks[0])
     }
-  }, [networks, sourceNetwork])
+  }, [networks, sourceNetwork, setRequiredNetworkId])
 
   useEffect(() => {
     const update = async () => {

@@ -1,7 +1,3 @@
-/**
- * Addresses
- */
-
 export const addresses = {
   l1Dai: '0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9',
   l1Messenger: '0xE681857DEfE8b454244e701BA63EfAa078d7eA85',

@@ -49,7 +49,7 @@ const Send: FC = () => {
   const { user, tokens, networks, contracts } = useApp()
   const { l1Bridge, arbitrumBridge, arbitrumUniswapRouter } = contracts
 
-  const { provider } = useWeb3Context()
+  const { provider, setRequiredNetworkId } = useWeb3Context()
 
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [fromNetwork, setFromNetwork] = useState<Network>()
@@ -90,6 +90,12 @@ const Send: FC = () => {
     setToNetwork(fromNetwork)
     setIsFromLastChanged(!isFromLastChanged)
   }
+
+  useEffect(() => {
+    if (fromNetwork) {
+      setRequiredNetworkId(fromNetwork?.networkId)
+    }
+  }, [fromNetwork, setRequiredNetworkId])
 
   // Control toTokenAmount when fromTokenAmount was edited last
   useEffect(() => {

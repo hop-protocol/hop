@@ -3,7 +3,7 @@ import { parseUnits } from 'ethers/lib/utils'
 
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
-import { addresses } from 'src/config/config'
+import { addresses } from 'src/config'
 import useContracts from 'src/contexts/AppContext/useContracts'
 
 const useTokens = (networks: Network[]) => {

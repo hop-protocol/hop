@@ -10,11 +10,14 @@ import React, {
 import Onboard from 'bnc-onboard'
 import { ethers } from 'ethers'
 import Address from 'src/models/Address'
+import { blocknativeDappid, l1NetworkId } from 'src/config'
 
 type Props = {
   onboard: any
   provider: ethers.providers.Web3Provider | undefined
   address: Address | undefined
+  requiredNetworkId: string
+  setRequiredNetworkId: (networkId: string) => void
   requestWallet: () => void
 }
 
@@ -22,6 +25,8 @@ const initialState = {
   onboard: undefined,
   provider: undefined,
   address: undefined,
+  requiredNetworkId: '',
+  setRequiredNetworkId: (networkId: string) => {},
   requestWallet: () => {}
 }
 
@@ -31,18 +36,31 @@ const Web3ContextProvider: FC = ({ children }) => {
   const [provider, setProvider] = useState<
     ethers.providers.Web3Provider | undefined
   >()
-
+  const [requiredNetworkId, setRequiredNetworkId] = useState<string>('')
+  const [walletNetworkId, setWalletNetworkId] = useState<string>('')
   const onboard = useMemo(() => {
-    return Onboard({
-      dappId: '328621b8-952f-4a86-bd39-724ba822d416',
-      networkId: 42,
+    const instance = Onboard({
+      dappId: blocknativeDappid,
+      networkId: Number(l1NetworkId),
       subscriptions: {
-        wallet: wallet => {
+        wallet: (wallet: any) => {
           setProvider(new ethers.providers.Web3Provider(wallet.provider))
+        },
+        network: (walletNetworkId: number) => {
+          setWalletNetworkId(walletNetworkId.toString())
         }
       }
     })
-  }, [setProvider])
+
+    return instance
+  }, [setProvider, setWalletNetworkId])
+
+  useEffect(() => {
+    onboard.config({ networkId: Number(requiredNetworkId) })
+    if (onboard.getState().address) {
+      onboard.walletCheck()
+    }
+  }, [onboard, requiredNetworkId, walletNetworkId])
 
   const [address, setAddress] = useState<Address | undefined>()
 
@@ -76,6 +94,8 @@ const Web3ContextProvider: FC = ({ children }) => {
         onboard,
         provider,
         address,
+        requiredNetworkId,
+        setRequiredNetworkId,
         requestWallet
       }}
     >

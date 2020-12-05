@@ -93,7 +93,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   >('')
   const [token0Deposited, setToken0Deposited] = useState<string>('')
   const [token1Deposited, setToken1Deposited] = useState<string>('')
-  const { address, provider } = useWeb3Context()
+  const { address, provider, setRequiredNetworkId } = useWeb3Context()
   const {
     arbitrumUniswapRouter,
     arbitrumUniswapFactory,
@@ -130,6 +130,10 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
   const [txHash, setTxHash] = useState<string | undefined>()
   const [sending, setSending] = useState<boolean>(false)
+
+  useEffect(() => {
+    setRequiredNetworkId(selectedNetwork?.networkId)
+  }, [setRequiredNetworkId, selectedNetwork])
 
   const updatePrices = useCallback(async () => {
     if (!totalSupply) return

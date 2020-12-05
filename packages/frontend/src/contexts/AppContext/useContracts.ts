@@ -9,7 +9,7 @@ import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/u
 import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { addresses } from 'src/config/config'
+import { addresses } from 'src/config'
 import Network from 'src/models/Network'
 
 export type HopContracts = {

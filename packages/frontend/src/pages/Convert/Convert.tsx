@@ -42,7 +42,8 @@ const Convert: FC = () => {
     token0Amount,
     setToken0Amount,
     token1Amount,
-    convertTokens
+    convertTokens,
+    validFormFields
   } = useConvert()
 
   const handleToken0AmountChange = (event: any) => {
@@ -101,6 +102,7 @@ const Convert: FC = () => {
         className={styles.sendButton}
         startIcon={<SendIcon />}
         onClick={handleSubmit}
+        disabled={!validFormFields}
         large
         highlighted
       >

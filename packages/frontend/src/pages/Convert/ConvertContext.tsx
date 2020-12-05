@@ -28,6 +28,7 @@ type ConvertContextProps = {
   token1Amount: string | undefined
   setToken1Amount: (value: string) => void
   convertTokens: () => void
+  validFormFields: boolean
 }
 
 const ConvertContext = createContext<ConvertContextProps>({
@@ -42,11 +43,16 @@ const ConvertContext = createContext<ConvertContextProps>({
   setToken0Amount: (value: string) => {},
   token1Amount: undefined,
   setToken1Amount: (value: string) => {},
-  convertTokens: () => {}
+  convertTokens: () => {},
+  validFormFields: false
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
-  const { provider, setRequiredNetworkId } = useWeb3Context()
+  const {
+    provider,
+    setRequiredNetworkId,
+    validConnectedNetworkId
+  } = useWeb3Context()
   let { networks: nets, tokens } = useApp()
   const networks = useMemo(() => {
     const kovanNetwork = nets.find(
@@ -259,6 +265,12 @@ const ConvertContextProvider: FC = ({ children }) => {
     getErc20Contract
   ])
 
+  const validFormFields = !!(
+    validConnectedNetworkId &&
+    token0Amount &&
+    token1Amount
+  )
+
   return (
     <ConvertContext.Provider
       value={{
@@ -273,7 +285,8 @@ const ConvertContextProvider: FC = ({ children }) => {
         setToken0Amount,
         token1Amount,
         setToken1Amount,
-        convertTokens
+        convertTokens,
+        validFormFields
       }}
     >
       {children}

@@ -48,6 +48,7 @@ type PoolsContextProps = {
   token1Deposited: string | undefined
   txHash: string | undefined
   sending: boolean
+  validFormFields: boolean
 }
 
 const PoolsContext = createContext<PoolsContextProps>({
@@ -75,7 +76,8 @@ const PoolsContext = createContext<PoolsContextProps>({
   token0Deposited: undefined,
   token1Deposited: undefined,
   txHash: undefined,
-  sending: false
+  sending: false,
+  validFormFields: false
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -93,7 +95,12 @@ const PoolsContextProvider: FC = ({ children }) => {
   >('')
   const [token0Deposited, setToken0Deposited] = useState<string>('')
   const [token1Deposited, setToken1Deposited] = useState<string>('')
-  const { address, provider, setRequiredNetworkId } = useWeb3Context()
+  const {
+    address,
+    provider,
+    setRequiredNetworkId,
+    validConnectedNetworkId
+  } = useWeb3Context()
   const {
     arbitrumUniswapRouter,
     arbitrumUniswapFactory,
@@ -324,6 +331,12 @@ const PoolsContextProvider: FC = ({ children }) => {
     setSending(false)
   }
 
+  const validFormFields = !!(
+    validConnectedNetworkId &&
+    token0Amount &&
+    token1Amount
+  )
+
   return (
     <PoolsContext.Provider
       value={{
@@ -351,7 +364,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         token0Deposited,
         token1Deposited,
         txHash,
-        sending
+        sending,
+        validFormFields
       }}
     >
       {children}

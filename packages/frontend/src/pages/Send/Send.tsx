@@ -49,7 +49,11 @@ const Send: FC = () => {
   const { user, tokens, networks, contracts } = useApp()
   const { l1Bridge, arbitrumBridge, arbitrumUniswapRouter } = contracts
 
-  const { provider, setRequiredNetworkId } = useWeb3Context()
+  const {
+    provider,
+    setRequiredNetworkId,
+    validConnectedNetworkId
+  } = useWeb3Context()
 
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [fromNetwork, setFromNetwork] = useState<Network>()
@@ -207,6 +211,12 @@ const Send: FC = () => {
     // )
   }
 
+  const validFormFields = !!(
+    validConnectedNetworkId &&
+    fromTokenAmount &&
+    toTokenAmount
+  )
+
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <Box display="flex" alignItems="center" className={styles.sendSelect}>
@@ -302,6 +312,7 @@ const Send: FC = () => {
         onClick={approve}
         large
         highlighted
+        disabled={!validFormFields}
       >
         Approve
       </Button>
@@ -311,6 +322,7 @@ const Send: FC = () => {
         onClick={send}
         large
         highlighted
+        disabled={!validFormFields}
       >
         Send
       </Button>

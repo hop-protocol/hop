@@ -72,7 +72,6 @@ const Pools: FC = () => {
     networks,
     tokens,
     hopToken,
-    address,
     selectedToken,
     setSelectedToken,
     selectedNetwork,
@@ -90,7 +89,8 @@ const Pools: FC = () => {
     userPoolTokenPercentage,
     token0Deposited,
     token1Deposited,
-    sending
+    sending,
+    validFormFields
   } = usePools()
 
   const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
@@ -140,8 +140,6 @@ const Pools: FC = () => {
   const handleSubmit = () => {
     addLiquidity()
   }
-
-  const disabled = !address || !token0Amount || !token1Amount
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -349,7 +347,7 @@ const Pools: FC = () => {
         onClick={handleSubmit}
         large
         highlighted
-        disabled={disabled || sending}
+        disabled={!validFormFields || sending}
       >
         Add liquidity{' '}
         {sending && (

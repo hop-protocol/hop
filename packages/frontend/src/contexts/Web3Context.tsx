@@ -10,7 +10,14 @@ import React, {
 import Onboard from 'bnc-onboard'
 import { ethers } from 'ethers'
 import Address from 'src/models/Address'
-import { blocknativeDappid, l1NetworkId } from 'src/config'
+import {
+  l1RpcUrl,
+  l1NetworkId,
+  infuraKey,
+  blocknativeDappid,
+  fortmaticApiKey,
+  portisDappId
+} from 'src/config'
 
 type Props = {
   onboard: any
@@ -39,9 +46,41 @@ const Web3ContextProvider: FC = ({ children }) => {
   const [requiredNetworkId, setRequiredNetworkId] = useState<string>('')
   const [walletNetworkId, setWalletNetworkId] = useState<string>('')
   const onboard = useMemo(() => {
+    const rpcUrl = l1RpcUrl
+    const walletOptions = [
+      { walletName: 'metamask', preferred: true },
+      {
+        walletName: 'walletConnect',
+        infuraKey,
+        preferred: true
+      },
+      { walletName: 'ledger', rpcUrl, preferred: true },
+      {
+        walletName: 'trezor',
+        appUrl: 'hop.exchange',
+        email: 'contact@hop.exchange',
+        rpcUrl,
+        preferred: true
+      },
+      { walletName: 'dapper' },
+      { walletName: 'fortmatic', apiKey: fortmaticApiKey },
+      { walletName: 'portis', apiKey: portisDappId, label: 'Portis' },
+      { walletName: 'torus' },
+      { walletName: 'coinbase' },
+      { walletName: 'trust', rpcUrl },
+      { walletName: 'authereum' },
+      { walletName: 'opera' },
+      { walletName: 'operaTouch' },
+      { walletName: 'status' },
+      { walletName: 'imToken', rpcUrl }
+    ]
+
     const instance = Onboard({
       dappId: blocknativeDappid,
       networkId: Number(l1NetworkId),
+      walletSelect: {
+        wallets: walletOptions
+      },
       subscriptions: {
         wallet: (wallet: any) => {
           setProvider(new ethers.providers.Web3Provider(wallet.provider))

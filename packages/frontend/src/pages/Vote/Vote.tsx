@@ -2,6 +2,7 @@ import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
+import { IProposal } from 'src/config'
 
 import ProposalPreviewCard from 'src/pages/Vote/ProposalPreviewCard'
 
@@ -24,24 +25,7 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
-interface IProposalDetail {
-  target: string
-  functionSig: string
-  callData: string
-}
 
-interface IProposal {
-  id: string
-  title: string
-  description: string
-  proposer: string
-  status: string
-  forCount: number
-  againstCount: number
-  startBlock: number
-  endBlock: number
-  details: IProposalDetail[]
-}
 
 type VoteProps = {
   proposals: IProposal[]

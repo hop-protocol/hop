@@ -8,23 +8,39 @@ import Pools from 'src/pages/Pools'
 import Convert from 'src/pages/Convert'
 import Demo from 'src/pages/Demo'
 
+import { IProposal } from 'src/config'
+
 type Props = {}
 
-interface IProposal {
-  id: string
-  description: string
-  status: string
-}
+const mockDetails = [{
+  target: 'the contract',
+  functionSig: '0x12312312',
+  callData: '0x'
+}]
 
-const proposals: IProposal[] = [
+const mockProposals: IProposal[] = [
   {
     id: '1',
-    description: 'Reduce HOP Governance Proposal',
-    status: 'defeated'
+    title: 'Reduce HOP Governance Proposal',
+    description: 'Wow 1',
+    proposer: '0x92E5A4B202F57B3634d6352fBAbBA9Cf2908a14A',
+    status: 'defeated',
+    forCount: 1,
+    againstCount: 2,
+    startBlock: 123,
+    endBlock: 678,
+    details: mockDetails
   }, {
     id: '2',
-    description: 'Retroactive Proxy Contract Airdrop',
-    status: 'passed'
+    title: 'Retroactive Proxy Contract Airdrop',
+    description: 'Wow 2',
+    proposer: '0x92E5A4B202F57B3634d6352fBAbBA9Cf2908a14A',
+    status: 'passed',
+    forCount: 1,
+    againstCount: 2,
+    startBlock: 123,
+    endBlock: 678,
+    details: mockDetails
   }
 ]
 
@@ -44,12 +60,12 @@ const COMPONENT_NAME: FC<Props> = () => {
       {/* Vote Pages */}
       <Route path="/vote/1">
         <VotePage
-          proposal={proposals[0]}
+          proposal={mockProposals[0]}
         />
       </Route>
       <Route path="/vote">
         <Vote 
-        proposals={proposals}
+        proposals={mockProposals}
       />
 
       </Route>

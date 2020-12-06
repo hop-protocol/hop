@@ -1,17 +1,42 @@
 import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import { useHistory } from 'react-router-dom'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
+import Button from '@material-ui/core/Button'
+import { ArrowLeft } from 'react-feather'
+import { DateTime } from 'luxon'
+
+import { IProposal } from 'src/config'
 
 import VoteStatusCard from './VoteStatusCard'
 
-import { VOTE_STATUS } from 'src/config/constants'
+import { VOTE_STATUS, PROPOSAL_LENGTH_IN_SECS } from 'src/config/constants'
+
+type StyleProps = {
+  status: string
+}
+
+const statusColors = {
+  green: 'rgba(75, 181, 67)',
+  red: 'rgba(252, 16, 13)'
+}
 
 const useStyles = makeStyles(() => ({
+  navStatusBarContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  allProposalsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
   title: {
     marginBottom: '1rem'
   },
-  subTitle: {
+  subtitle: {
     fontSize: '1.5rem',
     opacity: '0.5',
     marginBottom: '1rem'
@@ -33,14 +58,27 @@ const useStyles = makeStyles(() => ({
     fontSize: '1.5rem',
     fontWeight: 300
   },
+  proposalStatus: ({ status }: StyleProps) => ({
+    fontSize: '0.825rem',
+    padding: '0.5rem',
+    width: '10rem',
+    textAlign: 'center',
+    justifySelf: 'flex-end',
+    textTransform: 'uppercase',
+    borderRadius: '1.5rem',
+    boxShadow: status === 'passed'
+    ?
+    `
+      inset -3px -3px 6px ${statusColors.green},
+      inset 3px 3px 6px rgba(174, 192, 177, 0.16)
+    `
+    :
+    `
+      inset -3px -3px 6px ${statusColors.red},
+      inset 3px 3px 6px rgba(174, 192, 177, 0.16)
+    `
+  })
 }))
-
-
-interface IProposal {
-  id: string
-  description: string
-  status: string
-}
 
 
 type VotePageProps = {
@@ -50,31 +88,81 @@ type VotePageProps = {
 
 const VotePage: FC<VotePageProps> = props => {
   const { proposal } = props
-  const styles = useStyles()
+  const styles = useStyles({ status: proposal.status })
+  const history = useHistory()
+
+  const handleArrowClick = () => {
+    history.push(`/vote`)
+  }
+
+  const totalVote: number = Number(proposal.forCount) + Number(proposal.againstCount)
+  const voteForPercentage: number = Number(proposal.forCount) / totalVote
+  const voteAgainstPercentage: number = Number(proposal.againstCount) / totalVote
+
+  // TODO 
+  const startTimestamp: number | undefined = 1607216855 // useTimestampFromBlock(proposal.startBlock)
+  const endDate: DateTime | undefined = startTimestamp
+    ? DateTime.fromSeconds(startTimestamp).plus({ seconds: PROPOSAL_LENGTH_IN_SECS })
+    : undefined
+  const now: DateTime = DateTime.local()
+
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+    >
       <Box
         display="flex"
         flexDirection="column"
         alignItems="left"
         className={styles.componentBox}
         >
+        
+        <div className={styles.navStatusBarContainer}>
+          <Button
+            className={styles.allProposalsContainer}
+            onClick={async (event) => {
+              event.preventDefault()
+              handleArrowClick()
+            }}
+          >
+            <ArrowLeft size={20} /> All Proposals
+          </Button>
+          <Box alignItems="center" className={`${styles.proposalStatus}`}>
+            <Typography
+                variant="subtitle2"
+                color="textSecondary"
+                component="div"
+            >
+              { proposal.status }
+            </Typography>
+          </Box>
+        </div>
+
         <Typography variant="h4" className={styles.title}>
           { proposal.description }
         </Typography>
-        <Typography variant="subtitle1" className={styles.subTitle}>
-          Voting ends now
+        <Typography variant="subtitle1" className={styles.subtitle}>
+          {/* TODO */}
+          {endDate && endDate < now
+            ? 'Voting ended ' + (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL))
+            : proposal
+            ? 'Voting ends approximately ' + (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL))
+            : ''}
         </Typography>
 
         <Box display="flex" alignItems="center" className={styles.statusCardsContainer}>
           <VoteStatusCard
             voteStatus={VOTE_STATUS.FOR}
-            numVotes={'123'}
+            numVotes={proposal.forCount}
+            percentageVotes={voteForPercentage.toString()}
           />
           <VoteStatusCard
             voteStatus={VOTE_STATUS.AGAINST}
-            numVotes={'456'}
+            numVotes={proposal.againstCount}
+            percentageVotes={voteAgainstPercentage.toString()}
           />
         </Box>
 

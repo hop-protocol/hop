@@ -51,6 +51,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     boolean
   >(false)
   const onboard = useMemo(() => {
+    const cacheKey = 'selectedWallet'
     const rpcUrl = l1RpcUrl
     const walletOptions = [
       { walletName: 'metamask', preferred: true },
@@ -88,6 +89,7 @@ const Web3ContextProvider: FC = ({ children }) => {
       },
       subscriptions: {
         wallet: (wallet: any) => {
+          localStorage.setItem(cacheKey, wallet.name)
           setProvider(new ethers.providers.Web3Provider(wallet.provider))
         },
         network: (connectedNetworkId: number) => {
@@ -96,13 +98,20 @@ const Web3ContextProvider: FC = ({ children }) => {
       }
     })
 
+    const cachedWallet = window.localStorage.getItem(cacheKey)
+    if (cachedWallet) {
+      instance.walletSelect(cachedWallet)
+    }
+
     return instance
   }, [setProvider, setConnectedNetworkId])
 
   useEffect(() => {
-    onboard.config({ networkId: Number(requiredNetworkId) })
-    if (onboard.getState().address) {
-      onboard.walletCheck()
+    if (requiredNetworkId) {
+      onboard.config({ networkId: Number(requiredNetworkId) })
+      if (onboard.getState().address) {
+        onboard.walletCheck()
+      }
     }
   }, [onboard, requiredNetworkId, connectedNetworkId])
 

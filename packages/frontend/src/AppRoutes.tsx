@@ -22,7 +22,7 @@ const mockProposals: IProposal[] = [
   {
     id: '1',
     title: 'Reduce HOP Governance Proposal',
-    description: 'Wow 1',
+    description: 'This is a description for 1',
     proposer: '0x92E5A4B202F57B3634d6352fBAbBA9Cf2908a14A',
     status: 'defeated',
     forCount: 1,
@@ -33,7 +33,7 @@ const mockProposals: IProposal[] = [
   }, {
     id: '2',
     title: 'Retroactive Proxy Contract Airdrop',
-    description: 'Wow 2',
+    description: 'This is a description for 2',
     proposer: '0x92E5A4B202F57B3634d6352fBAbBA9Cf2908a14A',
     status: 'passed',
     forCount: 1,

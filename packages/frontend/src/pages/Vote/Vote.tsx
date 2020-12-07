@@ -47,7 +47,7 @@ const Vote: FC<VoteProps> = props => {
           proposals.map((proposal: IProposal)=>
             <ProposalPreviewCard
               id={proposal.id}
-              description={proposal.description}
+              description={proposal.title}
               status={proposal.status}
             />
         )}

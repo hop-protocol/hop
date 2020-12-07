@@ -10,10 +10,12 @@ import { DateTime } from 'luxon'
 import { IProposal } from 'src/config'
 
 import VoteStatusCard from './VoteStatusCard'
+import ProposalStatusCard from './ProposalStatusCard'
 
 import { VOTE_STATUS, PROPOSAL_LENGTH_IN_SECS } from 'src/config/constants'
 
 type StyleProps = {
+  theme?: any
   status: string
 }
 
@@ -22,7 +24,7 @@ const statusColors = {
   red: 'rgba(252, 16, 13)'
 }
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   navStatusBarContainer: {
     display: 'flex',
     flexDirection: 'row',
@@ -57,27 +59,7 @@ const useStyles = makeStyles(() => ({
     marginBottom: '1rem',
     fontSize: '1.5rem',
     fontWeight: 300
-  },
-  proposalStatus: ({ status }: StyleProps) => ({
-    fontSize: '0.825rem',
-    padding: '0.5rem',
-    width: '10rem',
-    textAlign: 'center',
-    justifySelf: 'flex-end',
-    textTransform: 'uppercase',
-    borderRadius: '1.5rem',
-    boxShadow: status === 'passed'
-    ?
-    `
-      inset -3px -3px 6px ${statusColors.green},
-      inset 3px 3px 6px rgba(174, 192, 177, 0.16)
-    `
-    :
-    `
-      inset -3px -3px 6px ${statusColors.red},
-      inset 3px 3px 6px rgba(174, 192, 177, 0.16)
-    `
-  })
+  }
 }))
 
 
@@ -99,13 +81,17 @@ const VotePage: FC<VotePageProps> = props => {
   const voteForPercentage: number = Number(proposal.forCount) / totalVote
   const voteAgainstPercentage: number = Number(proposal.againstCount) / totalVote
 
-  // TODO 
+  // (TODO) Timing
   const startTimestamp: number | undefined = 1607216855 // useTimestampFromBlock(proposal.startBlock)
   const endDate: DateTime | undefined = startTimestamp
     ? DateTime.fromSeconds(startTimestamp).plus({ seconds: PROPOSAL_LENGTH_IN_SECS })
     : undefined
   const now: DateTime = DateTime.local()
 
+  // Votes
+  const totalVotes: number | undefined = proposal ? proposal.forCount + proposal.againstCount : undefined
+  const forPercentage: string = proposal && totalVotes ? ((proposal.forCount * 100) / totalVotes).toFixed(0) + '%' : '0%'
+  const againstPercentage: string = proposal && totalVotes ? ((proposal.againstCount * 100) / totalVotes).toFixed(0) + '%' : '0%'
 
   return (
     <Box
@@ -130,15 +116,9 @@ const VotePage: FC<VotePageProps> = props => {
           >
             <ArrowLeft size={20} /> All Proposals
           </Button>
-          <Box alignItems="center" className={`${styles.proposalStatus}`}>
-            <Typography
-                variant="subtitle2"
-                color="textSecondary"
-                component="div"
-            >
-              { proposal.status }
-            </Typography>
-          </Box>
+          <ProposalStatusCard
+            status={proposal.status}
+          />
         </div>
 
         <Typography variant="h4" className={styles.title}>
@@ -157,12 +137,12 @@ const VotePage: FC<VotePageProps> = props => {
           <VoteStatusCard
             voteStatus={VOTE_STATUS.FOR}
             numVotes={proposal.forCount}
-            percentageVotes={voteForPercentage.toString()}
+            percentageVotes={forPercentage}
           />
           <VoteStatusCard
             voteStatus={VOTE_STATUS.AGAINST}
             numVotes={proposal.againstCount}
-            percentageVotes={voteAgainstPercentage.toString()}
+            percentageVotes={againstPercentage}
           />
         </Box>
 
@@ -170,7 +150,22 @@ const VotePage: FC<VotePageProps> = props => {
           Details
         </Typography>
         <Typography variant="subtitle1" className={styles.contentBody}>
-        1: HOP.transfer(0x967F2c0826AF779a09E42eff7BfAdAD7618b55E5, 5047600000000000000000000)
+          {proposal.details?.map((d, i) => {
+            return (
+              <Typography variant="subtitle1" key={i}>
+                {i + 1}: {d.target}.{d.functionSig}(
+                {d.callData.split(',').map((content, i) => {
+                  return (
+                    <span key={i}>
+                      {content}
+                      {d.callData.split(',').length - 1 === i ? '' : ','}
+                    </span>
+                  )
+                })}
+                )
+              </Typography>
+            )
+          })}
         </Typography>
 
         <Typography variant="h6" className={styles.contentHeader}>
@@ -184,7 +179,9 @@ const VotePage: FC<VotePageProps> = props => {
           Proposer
         </Typography>
         <Typography variant="subtitle1" className={styles.contentBody}>
-          0x7e4A8391C728fEd9069B2962699AB416628B19Fa
+          <a href={`https://etherscan.io/address/${proposal.proposer}`}>
+            { proposal.proposer }
+          </a>
         </Typography>
       </Box>
     </Box>

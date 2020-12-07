@@ -22,13 +22,13 @@ type ConvertContextProps = {
   sourceNetworks: Network[]
   destNetwork: Network | undefined
   setDestNetwork: (network: Network) => void
-  destNetworks: Network[]
-  token0Amount: string | undefined
-  setToken0Amount: (value: string) => void
-  token1Amount: string | undefined
-  setToken1Amount: (value: string) => void
+  sourceTokenAmount: string | undefined
+  setSourceTokenAmount: (value: string) => void
+  destTokenAmount: string | undefined
+  setDestTokenAmount: (value: string) => void
   convertTokens: () => void
   validFormFields: boolean
+  calcAltTokenAmount: (value: string) => Promise<string>
 }
 
 const ConvertContext = createContext<ConvertContextProps>({
@@ -38,13 +38,13 @@ const ConvertContext = createContext<ConvertContextProps>({
   sourceNetworks: [],
   destNetwork: undefined,
   setDestNetwork: (network: Network) => {},
-  destNetworks: [],
-  token0Amount: undefined,
-  setToken0Amount: (value: string) => {},
-  token1Amount: undefined,
-  setToken1Amount: (value: string) => {},
+  sourceTokenAmount: undefined,
+  setSourceTokenAmount: (value: string) => {},
+  destTokenAmount: undefined,
+  setDestTokenAmount: (value: string) => {},
   convertTokens: () => {},
-  validFormFields: false
+  validFormFields: false,
+  calcAltTokenAmount: async (value: string): Promise<string> => ''
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
@@ -82,17 +82,14 @@ const ConvertContextProvider: FC = ({ children }) => {
     ]
   }, [nets])
   const [sourceNetworks] = useState<Network[]>(networks)
-  const [destNetworks, setDestNetworks] = useState<Network[]>([])
   tokens = tokens.filter((token: Token) => ['DAI'].includes(token.symbol))
   const [selectedToken] = useState<Token>(tokens[0])
   const [sourceNetwork, setSourceNetwork] = useState<Network | undefined>(
     sourceNetworks[0]
   )
-  const [destNetwork, setDestNetwork] = useState<Network | undefined>(
-    destNetworks[0]
-  )
-  const [token0Amount, setToken0Amount] = useState<string>('')
-  const [token1Amount, setToken1Amount] = useState<string>('')
+  const [destNetwork, setDestNetwork] = useState<Network | undefined>()
+  const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
+  const [destTokenAmount, setDestTokenAmount] = useState<string>('')
   const {
     arbitrumDai,
     arbitrumUniswapRouter,
@@ -104,64 +101,44 @@ const ConvertContextProvider: FC = ({ children }) => {
     if (sourceNetwork) {
       setRequiredNetworkId(sourceNetwork?.networkId)
     }
-
-    if (sourceNetwork?.slug === 'kovan') {
-      const destNetworks = networks.filter((network: Network) =>
-        ['arbitrum'].includes(network.slug)
-      )
-      setDestNetworks(destNetworks)
-      setDestNetwork(destNetworks[0])
-    } else if (sourceNetwork?.slug === 'arbitrum') {
-      const destNetworks = networks.filter((network: Network) =>
-        ['arbitrumHopBridge', 'kovan'].includes(network.slug)
-      )
-      setDestNetworks(destNetworks)
-      setDestNetwork(destNetworks[0])
-    } else if (sourceNetwork?.slug === 'arbitrumHopBridge') {
-      const destNetworks = networks.filter((network: Network) =>
-        ['arbitrum'].includes(network.slug)
-      )
-      setDestNetworks(destNetworks)
-      setDestNetwork(destNetworks[0])
-    }
   }, [networks, sourceNetwork, setRequiredNetworkId])
 
-  useEffect(() => {
-    const update = async () => {
-      let value = token0Amount
-      if (
-        value &&
-        ((sourceNetwork?.slug === 'arbitrumHopBridge' &&
-          destNetwork?.slug === 'arbitrum') ||
+  const calcAltTokenAmount = useCallback(
+    async (value: string) => {
+      if (value) {
+        if (
+          (sourceNetwork?.slug === 'arbitrumHopBridge' &&
+            destNetwork?.slug === 'arbitrum') ||
           (sourceNetwork?.slug === 'arbitrum' &&
-            destNetwork?.slug === 'arbitrumHopBridge'))
-      ) {
-        let path = [addresses.arbitrumDai, addresses.arbitrumBridge]
-        if (destNetwork?.slug === 'arbitrum') {
-          path = [addresses.arbitrumBridge, addresses.arbitrumDai]
-        }
+            destNetwork?.slug === 'arbitrumHopBridge')
+        ) {
+          let path = [addresses.arbitrumDai, addresses.arbitrumBridge]
+          if (destNetwork?.slug === 'arbitrum') {
+            path = [addresses.arbitrumBridge, addresses.arbitrumDai]
+          }
 
-        const amountsOut = await arbitrumUniswapRouter?.getAmountsOut(
-          value,
-          path
-        )
-        value = parseInt(amountsOut[1], 16).toFixed(2)
+          const amountsOut = await arbitrumUniswapRouter?.getAmountsOut(
+            parseInt(value, 10),
+            path
+          )
+          value = parseInt(amountsOut[1], 16).toFixed(2)
+        }
+        if (
+          (sourceNetwork?.slug === 'kovan' &&
+            destNetwork?.slug === 'arbitrum') ||
+          (sourceNetwork?.slug === 'arbitrum' && destNetwork?.slug === 'kovan')
+        ) {
+          // value is same
+        }
       }
 
-      setToken1Amount(value)
-    }
-
-    update()
-  }, [
-    token0Amount,
-    sourceNetwork,
-    destNetwork,
-    provider,
-    arbitrumUniswapRouter
-  ])
+      return value
+    },
+    [sourceNetwork, destNetwork, arbitrumUniswapRouter]
+  )
 
   const convertTokens = useCallback(async () => {
-    if (!Number(token0Amount)) {
+    if (!Number(sourceTokenAmount)) {
       return
     }
 
@@ -189,11 +166,11 @@ const ConvertContextProvider: FC = ({ children }) => {
 
     const signer = provider?.getSigner()
     const address = await signer?.getAddress()
-    const value = parseUnits(token0Amount, 18)
+    const value = parseUnits(sourceTokenAmount, 18)
 
     let tx = await approveTokens(
       selectedToken,
-      token0Amount,
+      sourceTokenAmount,
       sourceNetwork as Network
     )
     await tx?.wait()
@@ -258,7 +235,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     selectedToken,
     destNetwork,
     sourceNetwork,
-    token0Amount,
+    sourceTokenAmount,
     arbitrumDai,
     arbitrumL1Messenger,
     arbitrumUniswapRouter,
@@ -267,8 +244,8 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   const validFormFields = !!(
     validConnectedNetworkId &&
-    token0Amount &&
-    token1Amount
+    sourceTokenAmount &&
+    destTokenAmount
   )
 
   return (
@@ -280,13 +257,13 @@ const ConvertContextProvider: FC = ({ children }) => {
         sourceNetworks,
         destNetwork,
         setDestNetwork,
-        destNetworks,
-        token0Amount,
-        setToken0Amount,
-        token1Amount,
-        setToken1Amount,
+        sourceTokenAmount,
+        setSourceTokenAmount,
+        destTokenAmount,
+        setDestTokenAmount,
         convertTokens,
-        validFormFields
+        validFormFields,
+        calcAltTokenAmount
       }}
     >
       {children}

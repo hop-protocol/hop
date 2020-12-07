@@ -1,8 +1,9 @@
-import React, { FC } from 'react'
+import React, { FC, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import SendIcon from '@material-ui/icons/Send'
+import MuiButton from '@material-ui/core/Button'
 import Network from 'src/models/Network'
 import AmountSelectorCard from 'src/pages/Convert/AmountSelectorCard'
 import Button from 'src/components/buttons/Button'
@@ -37,36 +38,52 @@ const Convert: FC = () => {
     setSourceNetwork,
     destNetwork,
     setDestNetwork,
-    token0Amount,
-    setToken0Amount,
-    token1Amount,
+    sourceTokenAmount,
+    setSourceTokenAmount,
+    setDestTokenAmount,
+    destTokenAmount,
     convertTokens,
-    validFormFields
+    validFormFields,
+    calcAltTokenAmount
   } = useConvert()
 
-  setSourceNetwork(
-    sourceNetworks.find(
-      (network: Network) => network?.slug === 'kovan'
-    ) as Network
-  )
-  setDestNetwork(
-    sourceNetworks.find(
-      (network: Network) => network?.slug === 'arbitrum'
-    ) as Network
-  )
+  useEffect(() => {
+    setSourceNetwork(
+      sourceNetworks.find(
+        (network: Network) => network?.slug === 'kovan'
+      ) as Network
+    )
+    setDestNetwork(
+      sourceNetworks.find(
+        (network: Network) => network?.slug === 'arbitrum'
+      ) as Network
+    )
+  }, [setSourceNetwork, setDestNetwork, sourceNetworks])
 
-  const handleToken0AmountChange = (event: any) => {
-    const value = event.target.value
-    if (!value) {
-      setToken0Amount('')
-      return
-    }
+  useEffect(() => {
+    setSourceTokenAmount('')
+    setDestTokenAmount('')
+  }, [setSourceTokenAmount, setDestTokenAmount])
 
-    setToken0Amount(value)
+  const handleSwitchDirection = () => {
+    destNetwork && setSourceNetwork(destNetwork)
+    sourceNetwork && setDestNetwork(sourceNetwork)
+    destTokenAmount && setSourceTokenAmount(destTokenAmount)
   }
-
-  const handleToken1AmountChange = (event: any) => {}
-
+  const handleSourceTokenAmountChange = async (event: any) => {
+    try {
+      const value = event.target.value || ''
+      setSourceTokenAmount(value)
+      setDestTokenAmount(await calcAltTokenAmount(value))
+    } catch (err) {}
+  }
+  const handleDestTokenAmountChange = async (event: any) => {
+    try {
+      const value = event.target.value || ''
+      setDestTokenAmount(value)
+      setSourceTokenAmount(await calcAltTokenAmount(value))
+    } catch (err) {}
+  }
   const handleSubmit = () => {
     convertTokens()
   }
@@ -74,20 +91,23 @@ const Convert: FC = () => {
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <AmountSelectorCard
-        value={token0Amount as string}
+        value={sourceTokenAmount as string}
         token={selectedToken}
         label={'From'}
-        onChange={handleToken0AmountChange}
+        onChange={handleSourceTokenAmountChange}
         selectedNetwork={sourceNetwork}
       />
-      <div className={styles.switchDirectionButton}>
+      <MuiButton
+        className={styles.switchDirectionButton}
+        onClick={handleSwitchDirection}
+      >
         <ArrowDownIcon color="primary" className={styles.downArrow} />
-      </div>
+      </MuiButton>
       <AmountSelectorCard
-        value={token1Amount as string}
+        value={destTokenAmount as string}
         token={selectedToken}
         label={'To'}
-        onChange={handleToken1AmountChange}
+        onChange={handleDestTokenAmountChange}
         selectedNetwork={destNetwork}
       />
       <Button

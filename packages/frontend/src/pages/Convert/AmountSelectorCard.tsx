@@ -40,8 +40,8 @@ type Props = {
   token?: Token
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void
   selectedNetwork?: Network
-  networkOptions: Network[]
-  onNetworkChange: (network?: Network) => void
+  networkOptions?: Network[]
+  onNetworkChange?: (network?: Network) => void
 }
 
 const AmountSelectorCard: FC<Props> = props => {
@@ -100,37 +100,46 @@ const AmountSelectorCard: FC<Props> = props => {
           <FlatSelect
             value={selectedNetwork?.slug || 'default'}
             onChange={event => {
-              const network = networkOptions.find(
+              const network = networkOptions?.find(
                 _network => _network.slug === event.target.value
               )
-              onNetworkChange(network)
+              if (onNetworkChange) {
+                onNetworkChange(network)
+              }
             }}
           >
-            <MenuItem value="default">
-              <Box display="flex" flexDirection="row" alignItems="center">
-                <div className={styles.greyCircle} />
-                <Typography variant="subtitle2" className={styles.networkLabel}>
-                  Select Network
-                </Typography>
-              </Box>
-            </MenuItem>
-            {networkOptions.map(network => (
-              <MenuItem value={network.slug} key={network.slug}>
+            {networkOptions && (
+              <MenuItem value="default" key={'select-network'}>
                 <Box display="flex" flexDirection="row" alignItems="center">
-                  <img
-                    src={network.imageUrl}
-                    className={styles.networkIcon}
-                    alt={network.name}
-                  />
+                  <div className={styles.greyCircle} />
                   <Typography
                     variant="subtitle2"
                     className={styles.networkLabel}
                   >
-                    {network.name}
+                    Select Network
                   </Typography>
                 </Box>
               </MenuItem>
-            ))}
+            )}
+            {(networkOptions || [selectedNetwork])?.map(
+              (network: Network | undefined, i: number) => (
+                <MenuItem value={network?.slug} key={i}>
+                  <Box display="flex" flexDirection="row" alignItems="center">
+                    <img
+                      src={network?.imageUrl}
+                      className={styles.networkIcon}
+                      alt={network?.name}
+                    />
+                    <Typography
+                      variant="subtitle2"
+                      className={styles.networkLabel}
+                    >
+                      {network?.name}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              )
+            )}
           </FlatSelect>
         </Grid>
         <Grid item xs={6}>

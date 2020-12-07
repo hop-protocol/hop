@@ -70,7 +70,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     })
     const arbitrumHopBridgeNetwork = new Network({
       name: 'Arbitrum Hop bridge',
-      slug: 'arbitrum_hop_bridge',
+      slug: 'arbitrumHopBridge',
       imageUrl: arbitrumNetwork.imageUrl,
       rpcUrl: arbitrumNetwork.rpcUrl,
       networkId: arbitrumNetwork.networkId
@@ -113,11 +113,11 @@ const ConvertContextProvider: FC = ({ children }) => {
       setDestNetwork(destNetworks[0])
     } else if (sourceNetwork?.slug === 'arbitrum') {
       const destNetworks = networks.filter((network: Network) =>
-        ['arbitrum_hop_bridge', 'kovan'].includes(network.slug)
+        ['arbitrumHopBridge', 'kovan'].includes(network.slug)
       )
       setDestNetworks(destNetworks)
       setDestNetwork(destNetworks[0])
-    } else if (sourceNetwork?.slug === 'arbitrum_hop_bridge') {
+    } else if (sourceNetwork?.slug === 'arbitrumHopBridge') {
       const destNetworks = networks.filter((network: Network) =>
         ['arbitrum'].includes(network.slug)
       )
@@ -131,10 +131,10 @@ const ConvertContextProvider: FC = ({ children }) => {
       let value = token0Amount
       if (
         value &&
-        ((sourceNetwork?.slug === 'arbitrum_hop_bridge' &&
+        ((sourceNetwork?.slug === 'arbitrumHopBridge' &&
           destNetwork?.slug === 'arbitrum') ||
           (sourceNetwork?.slug === 'arbitrum' &&
-            destNetwork?.slug === 'arbitrum_hop_bridge'))
+            destNetwork?.slug === 'arbitrumHopBridge'))
       ) {
         let path = [addresses.arbitrumDai, addresses.arbitrumBridge]
         if (destNetwork?.slug === 'arbitrum') {
@@ -221,7 +221,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         const tx = await arbitrumDai?.withdraw(tokenAddress, value)
         console.log(tx?.hash)
       }
-      if (destNetwork?.slug === 'arbitrum_hop_bridge') {
+      if (destNetwork?.slug === 'arbitrumHopBridge') {
         const amountOutMin = '0'
         const path = [addresses.arbitrumDai, addresses.arbitrumBridge]
         const deadline = (Date.now() / 1000 + 300) | 0
@@ -236,7 +236,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
         console.log(tx?.hash)
       }
-    } else if (sourceNetwork?.slug === 'arbitrum_hop_bridge') {
+    } else if (sourceNetwork?.slug === 'arbitrumHopBridge') {
       if (destNetwork?.slug === 'arbitrum') {
         const amountOutMin = '0'
         const path = [addresses.arbitrumBridge, addresses.arbitrumDai]

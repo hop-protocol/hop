@@ -19,6 +19,8 @@ const statusColors = {
 const useStyles = makeStyles(theme => ({
   previewsBox: {
     width: '51.6rem',
+    marginLeft: '1rem',
+    marginRight: '1rem',
     marginBottom: '2rem',
     cursor: 'pointer'
   },
@@ -63,23 +65,18 @@ const useStyles = makeStyles(theme => ({
     marginTop: '1rem',
     height: '4px',
     borderRadius: '4px',
-    position: 'relative'
+    position: 'relative',
+    backgroundColor: '#abb1ae'
   },
-  progress: ({ status, percentageString }: any) => ({
+  progress: ({ status, percentageVotes }: any) => ({
     height: '4px',
     borderRadius: '4px',
-    width: `${ percentageString }`,
-    backgroundColor: status === 'for'
+    width: `${percentageVotes}`,
+    backgroundColor: status === VOTE_STATUS.FOR
     ?
-    `
-      inset -3px -3px 6px ${statusColors.green},
-      inset 3px 3px 6px rgba(174, 192, 177, 0.16)
-    `
+      `${statusColors.green}`
     :
-    `
-      inset -3px -3px 6px ${statusColors.red},
-      inset 3px 3px 6px rgba(174, 192, 177, 0.16)
-    `
+      `${statusColors.red}`
   })
 }))
 
@@ -112,7 +109,7 @@ const VoteStatusCard: FC<Props> = props => {
               color="textSecondary"
               component="div"
           >
-            { numVotes }
+            { numVotes.toLocaleString(undefined, { maximumFractionDigits: 0 }) }
           </Typography>
         </div>
         <div className={styles.cardBottom}>

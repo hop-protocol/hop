@@ -19,6 +19,7 @@ const useStyles = makeStyles(theme => ({
     justifySelf: 'flex-end',
     textTransform: 'uppercase',
     borderRadius: '1rem',
+    alignSelf: 'flex-start',
     background: status === 'passed'
     ?
       'rgb(218 229 221)'

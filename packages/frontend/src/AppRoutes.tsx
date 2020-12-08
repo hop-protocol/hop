@@ -25,8 +25,8 @@ const mockProposals: IProposal[] = [
     description: 'This is a description for 1',
     proposer: '0x92E5A4B202F57B3634d6352fBAbBA9Cf2908a14A',
     status: 'defeated',
-    forCount: 1,
-    againstCount: 2,
+    forCount: 1222,
+    againstCount: 2245,
     startBlock: 123,
     endBlock: 678,
     details: mockDetails
@@ -36,8 +36,8 @@ const mockProposals: IProposal[] = [
     description: 'This is a description for 2',
     proposer: '0x92E5A4B202F57B3634d6352fBAbBA9Cf2908a14A',
     status: 'passed',
-    forCount: 1,
-    againstCount: 2,
+    forCount: 241,
+    againstCount: 229,
     startBlock: 123,
     endBlock: 678,
     details: mockDetails

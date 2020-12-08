@@ -14,16 +14,6 @@ import ProposalStatusCard from './ProposalStatusCard'
 
 import { VOTE_STATUS, PROPOSAL_LENGTH_IN_SECS } from 'src/config/constants'
 
-type StyleProps = {
-  theme?: any
-  status: string
-}
-
-const statusColors = {
-  green: 'rgba(75, 181, 67)',
-  red: 'rgba(252, 16, 13)'
-}
-
 const useStyles = makeStyles((theme) => ({
   navStatusBarContainer: {
     display: 'flex',
@@ -122,7 +112,7 @@ const VotePage: FC<VotePageProps> = props => {
         </div>
 
         <Typography variant="h4" className={styles.title}>
-          { proposal.description }
+          { proposal.title }
         </Typography>
         <Typography variant="subtitle1" className={styles.subtitle}>
           {/* TODO */}
@@ -179,7 +169,10 @@ const VotePage: FC<VotePageProps> = props => {
           Proposer
         </Typography>
         <Typography variant="subtitle1" className={styles.contentBody}>
-          <a href={`https://etherscan.io/address/${proposal.proposer}`}>
+          <a
+            href={`https://etherscan.io/address/${proposal.proposer}`}
+            style={{ textDecoration: 'none' }}
+          >
             { proposal.proposer }
           </a>
         </Typography>

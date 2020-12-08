@@ -47,9 +47,13 @@ const Send: FC = () => {
   const styles = useStyles()
 
   const { user, tokens, networks, contracts } = useApp()
-  const { l1_bridge, arbitrum_bridge, arbitrum_uniswap } = contracts
+  const { l1Bridge, arbitrumBridge, arbitrumUniswapRouter } = contracts
 
-  const { provider } = useWeb3Context()
+  const {
+    provider,
+    setRequiredNetworkId,
+    validConnectedNetworkId
+  } = useWeb3Context()
 
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [fromNetwork, setFromNetwork] = useState<Network>()
@@ -90,6 +94,12 @@ const Send: FC = () => {
     setToNetwork(fromNetwork)
     setIsFromLastChanged(!isFromLastChanged)
   }
+
+  useEffect(() => {
+    if (fromNetwork) {
+      setRequiredNetworkId(fromNetwork?.networkId)
+    }
+  }, [fromNetwork, setRequiredNetworkId])
 
   // Control toTokenAmount when fromTokenAmount was edited last
   useEffect(() => {
@@ -148,13 +158,13 @@ const Send: FC = () => {
 
     if (fromNetwork.isLayer1) {
       tokenContract.approve(
-        l1_bridge?.address,
+        l1Bridge?.address,
         '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
       )
     } else {
       // ToDo: Get uniswap contract based on from network
       tokenContract.approve(
-        arbitrum_uniswap?.address,
+        arbitrumUniswapRouter?.address,
         '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
       )
     }
@@ -176,12 +186,12 @@ const Send: FC = () => {
 
   const sendl1ToL2 = async () => {
     const signer = provider?.getSigner()
-    if (!l1_bridge || !signer) {
-      throw new Error('Cannot send: l1_bridge or signer does not exist.')
+    if (!l1Bridge || !signer) {
+      throw new Error('Cannot send: l1Bridge or signer does not exist.')
     }
 
     const arbitrumNetwork = networks[1]
-    await l1_bridge.sendToL2AndAttemptSwap(
+    await l1Bridge.sendToL2AndAttemptSwap(
       arbitrumNetwork.key(),
       await signer.getAddress(),
       ethersUtils.parseEther(fromTokenAmount),
@@ -191,15 +201,21 @@ const Send: FC = () => {
 
   const sendl2ToL1 = async () => {
     const signer = provider?.getSigner()
-    if (!arbitrum_bridge || !signer) {
-      throw new Error('Cannot send: l1_bridge or signer does not exist.')
+    if (!arbitrumBridge || !signer) {
+      throw new Error('Cannot send: l1Bridge or signer does not exist.')
     }
 
     // ToDo: Hook up to swapAndSendToMainnet
     // const arbitrumNetwork = networks[1]
-    // await arbitrum_bridge.swapAndSendToMainnet(
+    // await arbitrumBridge.swapAndSendToMainnet(
     // )
   }
+
+  const validFormFields = !!(
+    validConnectedNetworkId &&
+    fromTokenAmount &&
+    toTokenAmount
+  )
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -296,6 +312,7 @@ const Send: FC = () => {
         onClick={approve}
         large
         highlighted
+        disabled={!validFormFields}
       >
         Approve
       </Button>
@@ -305,6 +322,7 @@ const Send: FC = () => {
         onClick={send}
         large
         highlighted
+        disabled={!validFormFields}
       >
         Send
       </Button>

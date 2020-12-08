@@ -79,11 +79,9 @@ const COMPONENT_NAME: FC<Props> = () => {
         <Demo />
       </Route>
 
-
       <Route path="/components">
         <Components />
       </Route>
-
       <Redirect to="/send" />
     </Switch>
   )

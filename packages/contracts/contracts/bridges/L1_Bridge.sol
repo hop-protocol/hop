@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "./Bridge.sol";
 
 import "../libraries/MerkleUtils.sol";
-import "../interfaces/ILayerWrapper.sol";
+import "../interfaces/IMessengerWrapper.sol";
 
 contract L1_Bridge is Bridge {
 
@@ -25,14 +25,13 @@ contract L1_Bridge is Bridge {
     uint256 constant TIME_SLOT_SIZE = 1 hours;
     uint256 constant CHALLENGE_PERIOD = 4 hours;
     uint256 constant CHALLENGE_RESOLUTION_PERIOD = 8 days;
-    string constant LAYER_NAME = "kovan";
 
     /**
      * State
      */
 
     IERC20 public token;
-    mapping(bytes32 => ILayerWrapper) public l1Messenger;
+    mapping(uint256 => IMessengerWrapper) public l1Messenger;
 
     mapping(bytes32 => TransferBond) transferBonds;
 
@@ -40,6 +39,10 @@ contract L1_Bridge is Bridge {
     uint256 public committeeBond;
     mapping(uint256 => uint256) public timeSlotToAmountBonded;
     uint256 public amountChallenged;
+
+    /**
+     * Events
+     */
 
     event DepositsCommitted (
         bytes32 root,
@@ -59,8 +62,8 @@ contract L1_Bridge is Bridge {
      * Public Management Functions
      */
 
-    function setL1MessengerWrapper(bytes32 _messengerId, ILayerWrapper _l1Messenger) public {
-        l1Messenger[_messengerId] = _l1Messenger;
+    function setL1MessengerWrapper(uint256 _chainId, IMessengerWrapper _l1Messenger) public {
+        l1Messenger[_chainId] = _l1Messenger;
     }
 
     /**
@@ -68,7 +71,7 @@ contract L1_Bridge is Bridge {
      */
 
     function sendToL2(
-        bytes32 _messengerId,
+        uint256 _chainId,
         address _recipient,
         uint256 _amount
     )
@@ -77,11 +80,11 @@ contract L1_Bridge is Bridge {
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
 
         token.safeTransferFrom(msg.sender, address(this), _amount);
-        l1Messenger[_messengerId].sendMessageToL2(mintCalldata);
+        l1Messenger[_chainId].sendMessageToL2(mintCalldata);
     }
 
     function sendToL2AndAttemptSwap(
-        bytes32 _messengerId,
+        uint256 _chainId,
         address _recipient,
         uint256 _amount,
         uint256 _amountOutMin
@@ -95,7 +98,7 @@ contract L1_Bridge is Bridge {
             _amountOutMin
         );
 
-        l1Messenger[_messengerId].sendMessageToL2(mintAndAttemptSwapCalldata);
+        l1Messenger[_chainId].sendMessageToL2(mintAndAttemptSwapCalldata);
         token.safeTransferFrom(msg.sender, address(this), _amount);
     }
 
@@ -128,34 +131,35 @@ contract L1_Bridge is Bridge {
      */
 
     // onlyCommittee
-    function bondTransferRoot(bytes32 _transferRootHash, bytes32[] memory _layerIds, uint256[] memory _layerAmounts) public {
-        require(_layerIds.length == _layerAmounts.length, "BDG: layerIds and layerAmounts must be the same length");
+    function bondTransferRoot(bytes32 _transferRootHash, uint256[] memory _chainIds, uint256[] memory _chainAmounts) public {
+        require(_chainIds.length == _chainAmounts.length, "BDG: chainIds and chainAmounts must be the same length");
 
         uint256 totalAmount = 0;
-        for (uint256 i = 0; i < _layerAmounts.length; i++) {
-            totalAmount = totalAmount.add(_layerAmounts[i]);
+        for (uint256 i = 0; i < _chainAmounts.length; i++) {
+            totalAmount = totalAmount.add(_chainAmounts[i]);
         }
         require(getTotalBondedWith(totalAmount) <= committeeBond, "BDG: Amount exceeds committee bond");
 
         uint256 currentTimeSlot = getTimeSlot(now);
         timeSlotToAmountBonded[currentTimeSlot] = timeSlotToAmountBonded[currentTimeSlot].add(totalAmount);
 
-        bytes32 amountHash = getAmountHash(_layerIds, _layerAmounts);
+        bytes32 amountHash = getAmountHash(_chainIds, _chainAmounts);
 
-        for (uint256 i = 0; i < _layerIds.length; i++) {
-            if (_layerIds[i] == getMessengerId(LAYER_NAME)) {
+        transferBonds[_transferRootHash] = TransferBond(now, amountHash, false, 0, address(0));
+
+        for (uint256 i = 0; i < _chainIds.length; i++) {
+            if (_chainIds[i] == getChainId()) {
                 // Set L1 transfer root
-                transferRoots[_transferRootHash] = TransferRoot(totalAmount, 0);
-                transferBonds[_transferRootHash] = TransferBond(now, amountHash, false, 0, address(0));
+                _setTransferRoot(_transferRootHash, totalAmount);
             } else {
                 // Set L2 transfer root
                 bytes memory setTransferRootMessage = abi.encodeWithSignature(
                     "setTransferRoot(bytes32,uint256)",
                     _transferRootHash,
-                    _layerAmounts[i]
+                    _chainAmounts[i]
                 );
 
-                l1Messenger[_layerIds[i]].sendMessageToL2(setTransferRootMessage);
+                l1Messenger[_chainIds[i]].sendMessageToL2(setTransferRootMessage);
             }
         }
 
@@ -174,7 +178,7 @@ contract L1_Bridge is Bridge {
      */
 
     function challengeTransferBond(bytes32 _transferRootHash) public {
-        TransferRoot storage transferRoot = transferRoots[_transferRootHash];
+        TransferRoot memory transferRoot = getTransferRoot(_transferRootHash);
         TransferBond storage transferBond = transferBonds[_transferRootHash];
         // Require it's within 4 hour period 
         require(!transferBond.confirmed, "BDG: Transfer root has already been confirmed");
@@ -195,7 +199,7 @@ contract L1_Bridge is Bridge {
     }
 
     function resolveChallenge(bytes32 _transferRootHash) public {
-        TransferRoot storage transferRoot = transferRoots[_transferRootHash];
+        TransferRoot memory transferRoot = getTransferRoot(_transferRootHash);
         TransferBond storage transferBond = transferBonds[_transferRootHash];
 
         require(transferBond.challengeStartTime != 0, "BDG: Transfer root has not been challenged");
@@ -222,10 +226,6 @@ contract L1_Bridge is Bridge {
      * Public Getters
      */
 
-    function getLayerId() public override returns (bytes32) {
-        return getMessengerId(LAYER_NAME);
-    }
-
     function getTotalBonded() public view returns (uint256) {
         uint256 currentTimeSlot = getTimeSlot(now);
         uint256 bonded = 0;
@@ -251,6 +251,10 @@ contract L1_Bridge is Bridge {
 
     function getTimeSlot(uint256 _time) public pure returns (uint256) {
         return _time / TIME_SLOT_SIZE;
+    }
+
+    function getChainId() public override pure returns (uint256) {
+        return 1;
     }
 
     /**

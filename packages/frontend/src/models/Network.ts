@@ -7,6 +7,7 @@ export type NetworkProps = {
   slug: string
   imageUrl: string
   rpcUrl: string
+  networkId: string
   isLayer1?: boolean
 }
 
@@ -17,6 +18,7 @@ class Network {
   provider: ethers.providers.Provider
   rpcUrl: string
   isLayer1: boolean
+  networkId: string
 
   constructor (props: NetworkProps) {
     this.name = props.name
@@ -25,6 +27,7 @@ class Network {
     this.rpcUrl = props.rpcUrl
     this.provider = new ethers.providers.JsonRpcProvider(props.rpcUrl)
     this.isLayer1 = props.isLayer1 ? props.isLayer1 : false
+    this.networkId = props.networkId
   }
 
   toString () {

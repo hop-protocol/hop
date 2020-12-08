@@ -1,32 +1,48 @@
 import { useMemo } from 'react'
-import { Contract } from 'ethers'
+import { Contract, Signer, providers } from 'ethers'
 import erc20Artifact from '@hop-exchange/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import l1BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L1_Bridge.sol/L1_Bridge.json'
 import l2BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L2_Bridge.sol/L2_Bridge.json'
-import uniswapArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
+import l1ArbitrumMessengerArtifact from '@hop-exchange/contracts/artifacts/contracts/test/arbitrum/inbox/GlobalInbox.sol/GlobalInbox.json'
+import arbErc20Artifact from 'src/abi/ArbERC20.json'
+import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
+import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { addresses } from 'src/config/config'
+import { addresses } from 'src/config'
 import Network from 'src/models/Network'
 
 export type HopContracts = {
-  l1_dai?: Contract
-  l1_bridge?: Contract
-  arbitrum_dai?: Contract
-  arbitrum_bridge?: Contract
-  arbitrum_uniswap?: Contract
+  l1Dai: Contract | undefined
+  l1Bridge: Contract | undefined
+  arbitrumDai: Contract | undefined
+  arbitrumBridge: Contract | undefined
+  arbitrumL1Messenger: Contract | undefined
+  arbitrumUniswapRouter: Contract | undefined
+  arbitrumUniswapFactory: Contract | undefined
 }
 
-const useContracts = (networks: Network[]): HopContracts => {
+interface ContractsHook extends HopContracts {
+  getErc20Contract: (address: string, provider: any) => Contract
+}
+
+const useContracts = (networks: Network[]): ContractsHook => {
   const { provider } = useWeb3Context()
 
-  const l1_dai = useMemo(() => {
+  const getErc20Contract = (
+    address: string,
+    provider: Signer | providers.Provider
+  ): Contract => {
+    return new Contract(address, erc20Artifact.abi, provider)
+  }
+
+  const l1Dai = useMemo(() => {
     return provider
       ? new Contract(addresses.l1Dai, erc20Artifact.abi, provider.getSigner())
       : undefined
   }, [provider])
 
-  const l1_bridge = useMemo(() => {
+  const l1Bridge = useMemo(() => {
     return provider
       ? new Contract(
           addresses.l1Bridge,
@@ -36,17 +52,17 @@ const useContracts = (networks: Network[]): HopContracts => {
       : undefined
   }, [provider])
 
-  const arbitrum_dai = useMemo(() => {
+  const arbitrumDai = useMemo(() => {
     return provider
       ? new Contract(
           addresses.arbitrumDai,
-          erc20Artifact.abi,
+          arbErc20Artifact.abi,
           provider.getSigner()
         )
       : undefined
   }, [provider])
 
-  const arbitrum_bridge = useMemo(() => {
+  const arbitrumBridge = useMemo(() => {
     return provider
       ? new Contract(
           addresses.arbitrumBridge,
@@ -56,22 +72,45 @@ const useContracts = (networks: Network[]): HopContracts => {
       : undefined
   }, [provider])
 
-  const arbitrum_uniswap = useMemo(() => {
+  const arbitrumL1Messenger = useMemo(() => {
+    return provider
+      ? new Contract(
+          addresses.l1Messenger,
+          l1ArbitrumMessengerArtifact.abi,
+          provider.getSigner()
+        )
+      : undefined
+  }, [provider])
+
+  const arbitrumUniswapRouter = useMemo(() => {
     return provider
       ? new Contract(
           addresses.arbitrumUniswapRouter,
-          uniswapArtifact.abi,
+          uniswapRouterArtifact.abi,
+          provider.getSigner()
+        )
+      : undefined
+  }, [provider])
+
+  const arbitrumUniswapFactory = useMemo(() => {
+    return provider
+      ? new Contract(
+          addresses.arbitrumUniswapFactory,
+          uniswapFactoryArtifact.abi,
           provider.getSigner()
         )
       : undefined
   }, [provider])
 
   return {
-    l1_dai,
-    l1_bridge,
-    arbitrum_dai,
-    arbitrum_bridge,
-    arbitrum_uniswap
+    l1Dai,
+    l1Bridge,
+    arbitrumDai,
+    arbitrumBridge,
+    arbitrumL1Messenger,
+    arbitrumUniswapRouter,
+    arbitrumUniswapFactory,
+    getErc20Contract
   }
 }
 

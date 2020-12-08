@@ -1,64 +1,42 @@
 import React, { FC } from 'react'
+import {
+  Switch,
+  Route,
+  Redirect,
+  useHistory,
+  useLocation,
+  useRouteMatch
+} from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
-import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
-import SendIcon from '@material-ui/icons/Send'
-import Network from 'src/models/Network'
-import AmountSelectorCard from 'src/pages/Convert/AmountSelectorCard'
-import Button from 'src/components/buttons/Button'
-import { useConvert } from 'src/pages/Convert/ConvertContext'
+import Grid from '@material-ui/core/Grid'
+import FlatTabs from 'src/components/tabs/FlatTabs'
+import ConvertContext from 'src/pages/Convert/ConvertContext'
+import ConvertViaBridge from 'src/pages/Convert/ConvertViaBridge'
+import ConvertViaUniswap from 'src/pages/Convert/ConvertViaUniswap'
 
 const useStyles = makeStyles(() => ({
   title: {
     marginBottom: '4.2rem'
   },
-  switchDirectionButton: {
-    padding: 0,
-    minWidth: 0,
-    margin: '1.0rem'
+  tabs: {
+    marginBottom: '1rem'
   },
-  downArrow: {
-    margin: '0.8rem',
-    height: '2.4rem',
-    width: '2.4rem'
-  },
-  sendButton: {
-    marginTop: '6.4rem',
-    width: '30.0rem'
+  box: {
+    marginBottom: '4.2rem'
   }
 }))
 
 const Convert: FC = () => {
   const styles = useStyles()
-  const {
-    selectedToken,
-    sourceNetwork,
-    setSourceNetwork,
-    sourceNetworks,
-    destNetwork,
-    setDestNetwork,
-    destNetworks,
-    token0Amount,
-    setToken0Amount,
-    token1Amount,
-    convertTokens
-  } = useConvert()
+  const { pathname } = useLocation()
+  const { path } = useRouteMatch()
+  const history = useHistory()
 
-  const handleToken0AmountChange = (event: any) => {
-    const value = event.target.value
-    if (!value) {
-      setToken0Amount('')
-      return
-    }
-
-    setToken0Amount(value)
-  }
-
-  const handleToken1AmountChange = (event: any) => {}
-
-  const handleSubmit = () => {
-    convertTokens()
+  const lastPathname = pathname.replace(path, '') || '/bridge'
+  const handleTabChange = (value: string) => {
+    history.push(`${path}${value}`)
   }
 
   return (
@@ -68,44 +46,33 @@ const Convert: FC = () => {
           Convert
         </Typography>
       </Box>
-      <AmountSelectorCard
-        value={token0Amount as string}
-        token={selectedToken}
-        label={'From'}
-        onChange={handleToken0AmountChange}
-        selectedNetwork={sourceNetwork}
-        networkOptions={sourceNetworks}
-        onNetworkChange={(network: Network | undefined) => {
-          if (network) {
-            setSourceNetwork(network)
-          }
-        }}
-      />
-      <div className={styles.switchDirectionButton}>
-        <ArrowDownIcon color="primary" className={styles.downArrow} />
-      </div>
-      <AmountSelectorCard
-        value={token1Amount as string}
-        token={selectedToken}
-        label={'To'}
-        onChange={handleToken1AmountChange}
-        selectedNetwork={destNetwork}
-        networkOptions={destNetworks}
-        onNetworkChange={(network: Network | undefined) => {
-          if (network) {
-            setDestNetwork(network)
-          }
-        }}
-      />
-      <Button
-        className={styles.sendButton}
-        startIcon={<SendIcon />}
-        onClick={handleSubmit}
-        large
-        highlighted
-      >
-        Convert
-      </Button>
+      <Grid className={styles.tabs}>
+        <FlatTabs
+          value={lastPathname}
+          onChange={handleTabChange}
+          tabs={[
+            { label: 'via Bridge', value: '/bridge' },
+            { label: 'via Uniswap', value: '/uniswap' }
+          ]}
+        />
+      </Grid>
+      <Switch>
+        <Route path={`${path}/bridge`}>
+          <div className={styles.box}>
+            <ConvertContext>
+              <ConvertViaBridge />
+            </ConvertContext>
+          </div>
+        </Route>
+        <Route path={`${path}/uniswap`}>
+          <div className={styles.box}>
+            <ConvertContext>
+              <ConvertViaUniswap />
+            </ConvertContext>
+          </div>
+        </Route>
+        <Redirect to={`${path}/bridge`} />
+      </Switch>
     </Box>
   )
 }

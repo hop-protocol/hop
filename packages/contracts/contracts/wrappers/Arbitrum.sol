@@ -2,9 +2,9 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../interfaces/IGlobalInbox.sol";
-import "../interfaces/ILayerWrapper.sol";
+import "../interfaces/IMessengerWrapper.sol";
 
-contract Arbitrum is ILayerWrapper {
+contract Arbitrum is IMessengerWrapper {
 
     address public arbChain;
     address public l2BridgeAddress;

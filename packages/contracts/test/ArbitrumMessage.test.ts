@@ -2,18 +2,18 @@ import { expect } from 'chai'
 import '@nomiclabs/hardhat-waffle'
 import { ethers } from 'hardhat'
 import { BigNumber, BigNumberish, ContractFactory, Signer, Contract } from 'ethers'
-import { getL2MessengerId, setMessengerWrapperDefaults } from './utils'
+import { setMessengerWrapperDefaults } from './utils'
 import { L2_NAMES, ZERO_ADDRESS } from './constants'
 
 const USER_INITIAL_BALANCE = BigNumber.from('100')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
 const SWAP_DEADLINE_BUFFER = BigNumber.from('3600')
+const ARBITRUM_CHAIN_ID = 152709604825713
 
-describe("Full story", () => {
+describe("ArbitrumMessage", () => {
   let accounts: Signer[]
   let user: Signer
   let liquidityProvider: Signer
-  let messengerId: string
 
   // Factories
   let L1_Bridge: ContractFactory
@@ -68,9 +68,8 @@ describe("Full story", () => {
     const l2Name = L2_NAMES.ARBITRUM
     await setMessengerWrapperDefaults(l2Name, l1_messengerWrapper, l1_messenger.address, l2_bridge.address)
 
-    // Set up bridges
-    messengerId = getL2MessengerId('arbitrum')
-    await l1_bridge.setL1MessengerWrapper(messengerId, l1_messengerWrapper.address)
+    // Set up bridge
+    await l1_bridge.setL1MessengerWrapper(ARBITRUM_CHAIN_ID, l1_messengerWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
     await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, ZERO_ADDRESS) // This should be l2_ovmBridge.address, but that concept does not exist in this test file.
 
@@ -88,16 +87,9 @@ describe("Full story", () => {
   it('Should send tokens across the bridge with Arbitrum', async () => {
     // liquidityProvider moves funds across the bridge
     await l1_poolToken.connect(liquidityProvider).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
-    await l1_bridge.connect(liquidityProvider).sendToL2(messengerId, await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    await l1_bridge.connect(liquidityProvider).sendToL2(ARBITRUM_CHAIN_ID, await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
     await l2_messenger.relayNextMessage()
     await expectBalanceOf(l2_bridge, liquidityProvider, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
-  })
-
-  it('Should return the correct bridge hash', async () => {
-    const actualMessengerId = getL2MessengerId('arbitrum')
-    const l2Name = L2_NAMES.ARBITRUM
-    const expectedMessengerId = await l1_bridge.getMessengerId(l2Name)
-    expect(actualMessengerId).to.eq(expectedMessengerId)
   })
 
   const expectBalanceOf = async (token: Contract, account: Signer | Contract, expectedBalance: BigNumberish) => {

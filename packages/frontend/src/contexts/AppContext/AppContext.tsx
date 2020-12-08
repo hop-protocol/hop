@@ -11,7 +11,7 @@ import useContracts, { HopContracts } from './useContracts'
 type AppContextProps = {
   user?: User
   networks: Network[]
-  contracts: HopContracts
+  contracts: Partial<HopContracts>
   tokens: Token[]
 }
 

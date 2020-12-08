@@ -10,9 +10,7 @@ import React, {
 import { Contract } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import erc20Artifact from '@hop-exchange/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
-import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
-import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
-import uniswapV2PairArtifact from 'src/pages/Pools/abis/UniswapV2Pair.json'
+import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import useNetworks from 'src/contexts/AppContext/useNetworks'
 import useTokens from 'src/contexts/AppContext/useTokens'
 import useContracts from 'src/contexts/AppContext/useContracts'
@@ -50,6 +48,7 @@ type PoolsContextProps = {
   token1Deposited: string | undefined
   txHash: string | undefined
   sending: boolean
+  validFormFields: boolean
 }
 
 const PoolsContext = createContext<PoolsContextProps>({
@@ -77,7 +76,8 @@ const PoolsContext = createContext<PoolsContextProps>({
   token0Deposited: undefined,
   token1Deposited: undefined,
   txHash: undefined,
-  sending: false
+  sending: false,
+  validFormFields: false
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -95,14 +95,23 @@ const PoolsContextProvider: FC = ({ children }) => {
   >('')
   const [token0Deposited, setToken0Deposited] = useState<string>('')
   const [token1Deposited, setToken1Deposited] = useState<string>('')
-  const { address, provider } = useWeb3Context()
-  const { arbitrum_uniswap } = useContracts([])
+  const {
+    address,
+    provider,
+    setRequiredNetworkId,
+    validConnectedNetworkId
+  } = useWeb3Context()
+  const {
+    arbitrumUniswapRouter,
+    arbitrumUniswapFactory,
+    getErc20Contract
+  } = useContracts([])
   let networks = useNetworks()
   let tokens = useTokens(networks)
 
   const hopToken = useMemo(() => {
-    const network = networks.find(_network => _network.slug === 'arbitrum')
-    const arbitrum_bridge_dai = new Contract(
+    const network = networks.find(network => network.slug === 'arbitrum')
+    const arbitrumBridgeDai = new Contract(
       addresses.arbitrumBridge,
       erc20Artifact.abi,
       network?.provider
@@ -112,7 +121,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       symbol: 'hDAI',
       tokenName: 'DAI Stablecoin',
       contracts: {
-        arbitrum: arbitrum_bridge_dai
+        arbitrum: arbitrumBridgeDai
       },
       rates: {
         kovan: parseUnits('1', 18),
@@ -128,6 +137,10 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
   const [txHash, setTxHash] = useState<string | undefined>()
   const [sending, setSending] = useState<boolean>(false)
+
+  useEffect(() => {
+    setRequiredNetworkId(selectedNetwork?.networkId)
+  }, [setRequiredNetworkId, selectedNetwork])
 
   const updatePrices = useCallback(async () => {
     if (!totalSupply) return
@@ -173,12 +186,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   const updateUserPoolPositions = useCallback(async () => {
     try {
       if (!provider) return
-      const factory = new Contract(
-        addresses.arbitrumUniswapFactory,
-        uniswapFactoryArtifact.abi,
-        provider
-      )
-      const pairAddress = await factory.getPair(
+      const pairAddress = await arbitrumUniswapFactory?.getPair(
         selectedToken?.addressForNetwork(selectedNetwork).toString(),
         hopToken?.addressForNetwork(selectedNetwork).toString()
       )
@@ -221,15 +229,8 @@ const PoolsContextProvider: FC = ({ children }) => {
       setToken0Deposited(token0Deposited.toFixed(2))
       setToken1Deposited(token1Deposited.toFixed(2))
 
-      const routerAddress = arbitrum_uniswap?.address as string
-      const router = new Contract(
-        routerAddress,
-        uniswapRouterArtifact.abi,
-        signer
-      )
-
       const amountA = parseUnits('1', decimals)
-      const amountB = await router.quote(
+      const amountB = await arbitrumUniswapRouter?.quote(
         amountA,
         parseUnits(reserve0, decimals),
         parseUnits(reserve1, decimals)
@@ -239,13 +240,20 @@ const PoolsContextProvider: FC = ({ children }) => {
     } catch (err) {
       console.error(err)
     }
-  }, [provider, arbitrum_uniswap, selectedNetwork, selectedToken, hopToken])
+  }, [
+    provider,
+    arbitrumUniswapRouter,
+    selectedNetwork,
+    selectedToken,
+    hopToken,
+    arbitrumUniswapFactory
+  ])
 
   useEffect(() => {
     updateUserPoolPositions()
   }, [
     provider,
-    arbitrum_uniswap,
+    arbitrumUniswapRouter,
     selectedNetwork,
     selectedToken,
     hopToken,
@@ -264,9 +272,9 @@ const PoolsContextProvider: FC = ({ children }) => {
   ) => {
     const signer = provider?.getSigner()
     const tokenAddress = token.addressForNetwork(network).toString()
-    const contract = new Contract(tokenAddress, erc20Artifact.abi, signer)
+    const contract = getErc20Contract(tokenAddress, signer)
 
-    const address = arbitrum_uniswap?.address
+    const address = arbitrumUniswapRouter?.address
     const parsedAmount = parseUnits(amount, token.decimals || 18)
     const approved = await contract.allowance(
       await signer?.getAddress(),
@@ -292,9 +300,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     setTxHash(tx?.hash)
     await tx?.wait()
 
-    const address = arbitrum_uniswap?.address as string
     const signer = provider?.getSigner()
-    const router = new Contract(address, uniswapRouterArtifact.abi, signer)
 
     const tokenA = selectedToken?.addressForNetwork(selectedNetwork).toString()
     const tokenB = hopToken?.addressForNetwork(selectedNetwork).toString()
@@ -308,7 +314,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     const to = await signer?.getAddress()
     const deadline = (Date.now() / 1000 + 5 * 60) | 0
 
-    tx = await router.addLiquidity(
+    tx = await arbitrumUniswapRouter?.addLiquidity(
       tokenA,
       tokenB,
       amountADesired,
@@ -324,6 +330,12 @@ const PoolsContextProvider: FC = ({ children }) => {
     await tx.wait()
     setSending(false)
   }
+
+  const validFormFields = !!(
+    validConnectedNetworkId &&
+    token0Amount &&
+    token1Amount
+  )
 
   return (
     <PoolsContext.Provider
@@ -352,7 +364,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         token0Deposited,
         token1Deposited,
         txHash,
-        sending
+        sending,
+        validFormFields
       }}
     >
       {children}

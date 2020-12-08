@@ -1,3 +1,4 @@
 {
-  "jsxSingleQuote": false
+  "jsxSingleQuote": false,
+  "no-unused-vars": true
 }

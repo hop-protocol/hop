@@ -1,8 +1,15 @@
 import { useMemo } from 'react'
 
-import { OFFCHAIN_LABS_LOGO_URL as offchainLabsLogoUrl } from 'src/config/constants'
-// import { OPTIMISM_LOGO_URL as optimismLogoUrl } from 'src/config/constants'
-import { MAINNET_LOGO_URL as mainnetLogoUrl } from 'src/config/constants'
+import {
+  OFFCHAIN_LABS_LOGO_URL as offchainLabsLogoUrl,
+  MAINNET_LOGO_URL as mainnetLogoUrl
+} from 'src/config/constants'
+import {
+  l1NetworkId,
+  l1RpcUrl,
+  arbitrumNetworkId,
+  arbitrumRpcUrl
+} from 'src/config'
 import Network from 'src/models/Network'
 
 const useNetworks = () => {
@@ -12,20 +19,23 @@ const useNetworks = () => {
         name: 'Kovan',
         slug: 'kovan',
         imageUrl: mainnetLogoUrl,
-        rpcUrl: 'https://kovan.rpc.authereum.com',
-        isLayer1: true
+        rpcUrl: l1RpcUrl,
+        isLayer1: true,
+        networkId: l1NetworkId
       }),
       new Network({
         name: 'Arbitrum',
         slug: 'arbitrum',
         imageUrl: offchainLabsLogoUrl,
-        rpcUrl: 'https://kovan2.arbitrum.io/rpc'
+        rpcUrl: arbitrumRpcUrl,
+        networkId: arbitrumNetworkId
       })
       // new Network({
       //   name: 'Optimism',
       //   slug: 'optimism',
       //   imageUrl: optimismLogoUrl,
-      //   rpcUrl: ''
+      //   rpcUrl: optimismRpcUrl,
+      //   networkId: optimismNetworkId
       // })
     ],
     []

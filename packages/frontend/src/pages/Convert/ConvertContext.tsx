@@ -7,12 +7,7 @@ import React, {
   useMemo,
   useCallback
 } from 'react'
-import { Contract } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
-import L1ArbitrumMessengerArtifact from '@hop-exchange/contracts/artifacts/contracts/test/arbitrum/inbox/GlobalInbox.sol/GlobalInbox.json'
-import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
-import ArbERC20 from 'src/pages/Convert/abis/ArbERC20.json'
-import erc20Artifact from '@hop-exchange/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { useApp } from 'src/contexts/AppContext'
@@ -27,12 +22,13 @@ type ConvertContextProps = {
   sourceNetworks: Network[]
   destNetwork: Network | undefined
   setDestNetwork: (network: Network) => void
-  destNetworks: Network[]
-  token0Amount: string | undefined
-  setToken0Amount: (value: string) => void
-  token1Amount: string | undefined
-  setToken1Amount: (value: string) => void
+  sourceTokenAmount: string | undefined
+  setSourceTokenAmount: (value: string) => void
+  destTokenAmount: string | undefined
+  setDestTokenAmount: (value: string) => void
   convertTokens: () => void
+  validFormFields: boolean
+  calcAltTokenAmount: (value: string) => Promise<string>
 }
 
 const ConvertContext = createContext<ConvertContextProps>({
@@ -42,16 +38,21 @@ const ConvertContext = createContext<ConvertContextProps>({
   sourceNetworks: [],
   destNetwork: undefined,
   setDestNetwork: (network: Network) => {},
-  destNetworks: [],
-  token0Amount: undefined,
-  setToken0Amount: (value: string) => {},
-  token1Amount: undefined,
-  setToken1Amount: (value: string) => {},
-  convertTokens: () => {}
+  sourceTokenAmount: undefined,
+  setSourceTokenAmount: (value: string) => {},
+  destTokenAmount: undefined,
+  setDestTokenAmount: (value: string) => {},
+  convertTokens: () => {},
+  validFormFields: false,
+  calcAltTokenAmount: async (value: string): Promise<string> => ''
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
-  const { provider } = useWeb3Context()
+  const {
+    provider,
+    setRequiredNetworkId,
+    validConnectedNetworkId
+  } = useWeb3Context()
   let { networks: nets, tokens } = useApp()
   const networks = useMemo(() => {
     const kovanNetwork = nets.find(
@@ -64,13 +65,15 @@ const ConvertContextProvider: FC = ({ children }) => {
       name: 'Arbitrum Canonical',
       slug: arbitrumNetwork.slug,
       imageUrl: arbitrumNetwork.imageUrl,
-      rpcUrl: arbitrumNetwork.rpcUrl
+      rpcUrl: arbitrumNetwork.rpcUrl,
+      networkId: arbitrumNetwork.networkId
     })
     const arbitrumHopBridgeNetwork = new Network({
       name: 'Arbitrum Hop bridge',
-      slug: 'arbitrum_hop_bridge',
+      slug: 'arbitrumHopBridge',
       imageUrl: arbitrumNetwork.imageUrl,
-      rpcUrl: arbitrumNetwork.rpcUrl
+      rpcUrl: arbitrumNetwork.rpcUrl,
+      networkId: arbitrumNetwork.networkId
     })
     return [
       kovanNetwork,
@@ -79,75 +82,63 @@ const ConvertContextProvider: FC = ({ children }) => {
     ]
   }, [nets])
   const [sourceNetworks] = useState<Network[]>(networks)
-  const [destNetworks, setDestNetworks] = useState<Network[]>([])
   tokens = tokens.filter((token: Token) => ['DAI'].includes(token.symbol))
   const [selectedToken] = useState<Token>(tokens[0])
   const [sourceNetwork, setSourceNetwork] = useState<Network | undefined>(
     sourceNetworks[0]
   )
-  const [destNetwork, setDestNetwork] = useState<Network | undefined>(
-    destNetworks[0]
-  )
-  const [token0Amount, setToken0Amount] = useState<string>('')
-  const [token1Amount, setToken1Amount] = useState<string>('')
-  const { arbitrum_uniswap } = useContracts([])
+  const [destNetwork, setDestNetwork] = useState<Network | undefined>()
+  const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
+  const [destTokenAmount, setDestTokenAmount] = useState<string>('')
+  const {
+    arbitrumDai,
+    arbitrumUniswapRouter,
+    arbitrumL1Messenger,
+    getErc20Contract
+  } = useContracts([])
 
   useEffect(() => {
-    if (sourceNetwork?.slug === 'kovan') {
-      const destNetworks = networks.filter((network: Network) =>
-        ['arbitrum'].includes(network.slug)
-      )
-      setDestNetworks(destNetworks)
-      setDestNetwork(destNetworks[0])
-    } else if (sourceNetwork?.slug === 'arbitrum') {
-      const destNetworks = networks.filter((network: Network) =>
-        ['arbitrum_hop_bridge', 'kovan'].includes(network.slug)
-      )
-      setDestNetworks(destNetworks)
-      setDestNetwork(destNetworks[0])
-    } else if (sourceNetwork?.slug === 'arbitrum_hop_bridge') {
-      const destNetworks = networks.filter((network: Network) =>
-        ['arbitrum'].includes(network.slug)
-      )
-      setDestNetworks(destNetworks)
-      setDestNetwork(destNetworks[0])
+    if (sourceNetwork) {
+      setRequiredNetworkId(sourceNetwork?.networkId)
     }
-  }, [networks, sourceNetwork])
+  }, [networks, sourceNetwork, setRequiredNetworkId])
 
-  useEffect(() => {
-    const update = async () => {
-      let value = token0Amount
-      if (
-        value &&
-        ((sourceNetwork?.slug === 'arbitrum_hop_bridge' &&
-          destNetwork?.slug === 'arbitrum') ||
+  const calcAltTokenAmount = useCallback(
+    async (value: string) => {
+      if (value) {
+        if (
+          (sourceNetwork?.slug === 'arbitrumHopBridge' &&
+            destNetwork?.slug === 'arbitrum') ||
           (sourceNetwork?.slug === 'arbitrum' &&
-            destNetwork?.slug === 'arbitrum_hop_bridge'))
-      ) {
-        const router = new Contract(
-          addresses.arbitrumUniswapRouter,
-          uniswapRouterArtifact.abi,
-          provider
-        )
+            destNetwork?.slug === 'arbitrumHopBridge')
+        ) {
+          let path = [addresses.arbitrumDai, addresses.arbitrumBridge]
+          if (destNetwork?.slug === 'arbitrum') {
+            path = [addresses.arbitrumBridge, addresses.arbitrumDai]
+          }
 
-        let path = [addresses.arbitrumDai, addresses.arbitrumBridge]
-        if (destNetwork?.slug === 'arbitrum') {
-          path = [addresses.arbitrumBridge, addresses.arbitrumDai]
+          const amountsOut = await arbitrumUniswapRouter?.getAmountsOut(
+            parseInt(value, 10),
+            path
+          )
+          value = parseInt(amountsOut[1], 16).toFixed(2)
         }
-
-        const amountsOut = await router.getAmountsOut(value, path)
-
-        value = parseInt(amountsOut[1], 16).toFixed(2)
+        if (
+          (sourceNetwork?.slug === 'kovan' &&
+            destNetwork?.slug === 'arbitrum') ||
+          (sourceNetwork?.slug === 'arbitrum' && destNetwork?.slug === 'kovan')
+        ) {
+          // value is same
+        }
       }
 
-      setToken1Amount(value)
-    }
-
-    update()
-  }, [token0Amount, sourceNetwork, destNetwork, provider])
+      return value
+    },
+    [sourceNetwork, destNetwork, arbitrumUniswapRouter]
+  )
 
   const convertTokens = useCallback(async () => {
-    if (!Number(token0Amount)) {
+    if (!Number(sourceTokenAmount)) {
       return
     }
 
@@ -158,9 +149,9 @@ const ConvertContextProvider: FC = ({ children }) => {
     ) => {
       const signer = provider?.getSigner()
       const tokenAddress = token.addressForNetwork(network).toString()
-      const contract = new Contract(tokenAddress, erc20Artifact.abi, signer)
+      const contract = getErc20Contract(tokenAddress, signer)
 
-      const address = arbitrum_uniswap?.address
+      const address = arbitrumUniswapRouter?.address
       const parsedAmount = parseUnits(amount, token.decimals || 18)
       const approved = await contract.allowance(
         await signer?.getAddress(),
@@ -175,11 +166,11 @@ const ConvertContextProvider: FC = ({ children }) => {
 
     const signer = provider?.getSigner()
     const address = await signer?.getAddress()
-    const value = parseUnits(token0Amount, 18)
+    const value = parseUnits(sourceTokenAmount, 18)
 
     let tx = await approveTokens(
       selectedToken,
-      token0Amount,
+      sourceTokenAmount,
       sourceNetwork as Network
     )
     await tx?.wait()
@@ -189,14 +180,8 @@ const ConvertContextProvider: FC = ({ children }) => {
         const tokenAddress = selectedToken
           .addressForNetwork(sourceNetwork)
           .toString()
-        const arbitrumBridge = new Contract(
-          addresses.l1Messenger,
-          L1ArbitrumMessengerArtifact.abi,
-          signer
-        )
-
         const arbChainAddress = '0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71'
-        const tx = await arbitrumBridge.depositERC20Message(
+        const tx = await arbitrumL1Messenger?.depositERC20Message(
           arbChainAddress,
           tokenAddress,
           address,
@@ -210,28 +195,15 @@ const ConvertContextProvider: FC = ({ children }) => {
         const tokenAddress = selectedToken
           .addressForNetwork(sourceNetwork)
           .toString()
-        const arbitrumBridge = new Contract(
-          addresses.arbitrumDai,
-          ArbERC20.abi,
-          signer
-        )
-
-        const tx = await arbitrumBridge.withdraw(tokenAddress, value)
-
+        const tx = await arbitrumDai?.withdraw(tokenAddress, value)
         console.log(tx?.hash)
       }
-      if (destNetwork?.slug === 'arbitrum_hop_bridge') {
-        const router = new Contract(
-          addresses.arbitrumUniswapRouter,
-          uniswapRouterArtifact.abi,
-          signer
-        )
-
+      if (destNetwork?.slug === 'arbitrumHopBridge') {
         const amountOutMin = '0'
         const path = [addresses.arbitrumDai, addresses.arbitrumBridge]
         const deadline = (Date.now() / 1000 + 300) | 0
 
-        const tx = await router.swapExactTokensForTokens(
+        const tx = await arbitrumUniswapRouter?.swapExactTokensForTokens(
           value,
           amountOutMin,
           path,
@@ -241,19 +213,13 @@ const ConvertContextProvider: FC = ({ children }) => {
 
         console.log(tx?.hash)
       }
-    } else if (sourceNetwork?.slug === 'arbitrum_hop_bridge') {
+    } else if (sourceNetwork?.slug === 'arbitrumHopBridge') {
       if (destNetwork?.slug === 'arbitrum') {
-        const router = new Contract(
-          addresses.arbitrumUniswapRouter,
-          uniswapRouterArtifact.abi,
-          signer
-        )
-
         const amountOutMin = '0'
         const path = [addresses.arbitrumBridge, addresses.arbitrumDai]
         const deadline = (Date.now() / 1000 + 300) | 0
 
-        const tx = await router.swapExactTokensForTokens(
+        const tx = await arbitrumUniswapRouter?.swapExactTokensForTokens(
           value,
           amountOutMin,
           path,
@@ -269,9 +235,18 @@ const ConvertContextProvider: FC = ({ children }) => {
     selectedToken,
     destNetwork,
     sourceNetwork,
-    token0Amount,
-    arbitrum_uniswap
+    sourceTokenAmount,
+    arbitrumDai,
+    arbitrumL1Messenger,
+    arbitrumUniswapRouter,
+    getErc20Contract
   ])
+
+  const validFormFields = !!(
+    validConnectedNetworkId &&
+    sourceTokenAmount &&
+    destTokenAmount
+  )
 
   return (
     <ConvertContext.Provider
@@ -282,12 +257,13 @@ const ConvertContextProvider: FC = ({ children }) => {
         sourceNetworks,
         destNetwork,
         setDestNetwork,
-        destNetworks,
-        token0Amount,
-        setToken0Amount,
-        token1Amount,
-        setToken1Amount,
-        convertTokens
+        sourceTokenAmount,
+        setSourceTokenAmount,
+        destTokenAmount,
+        setDestTokenAmount,
+        convertTokens,
+        validFormFields,
+        calcAltTokenAmount
       }}
     >
       {children}

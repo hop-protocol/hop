@@ -150,7 +150,7 @@ contract L1_Bridge is Bridge {
         for (uint256 i = 0; i < _chainIds.length; i++) {
             if (_chainIds[i] == getChainId()) {
                 // Set L1 transfer root
-                _setTransferRoot(_transferRootHash, totalAmount);
+                _setTransferRoot(_transferRootHash, _chainAmounts[i]);
             } else {
                 // Set L2 transfer root
                 bytes memory setTransferRootMessage = abi.encodeWithSignature(

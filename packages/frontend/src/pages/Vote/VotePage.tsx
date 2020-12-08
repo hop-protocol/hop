@@ -77,8 +77,7 @@ const VotePage: FC<VotePageProps> = props => {
     history.push(`/vote`)
   }
 
-  // TODO
-  const startTimestamp: number | undefined = 1607216855 // useTimestampFromBlock(proposal.startBlock)
+  const startTimestamp: number | undefined = useTimestampFromBlock(proposal.startBlock)
   const endDate: DateTime | undefined = startTimestamp
     ? DateTime.fromSeconds(startTimestamp).plus({ seconds: PROPOSAL_LENGTH_IN_SECS })
     : undefined

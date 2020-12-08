@@ -1,11 +1,15 @@
 import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { useHistory } from 'react-router-dom'
+import { ArrowLeft } from 'react-feather'
+import { DateTime } from 'luxon'
+
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
 import Button from '@material-ui/core/Button'
-import { ArrowLeft } from 'react-feather'
-import { DateTime } from 'luxon'
+import Link from '@material-ui/core/Link'
+
+import useTimestampFromBlock from 'src/hooks/useTimestampFromBlock'
 
 import { IProposal } from 'src/config'
 
@@ -72,12 +76,15 @@ const VotePage: FC<VotePageProps> = props => {
   const { proposal } = props
   const styles = useStyles({ status: proposal.status })
   const history = useHistory()
+  // const { chainId, account } = activeWeb3React()
 
   const handleArrowClick = () => {
     history.push(`/vote`)
   }
 
+  // Timing
   const startTimestamp: number | undefined = useTimestampFromBlock(proposal.startBlock)
+  console.log('startTimestamp: ', startTimestamp)
   const endDate: DateTime | undefined = startTimestamp
     ? DateTime.fromSeconds(startTimestamp).plus({ seconds: PROPOSAL_LENGTH_IN_SECS })
     : undefined
@@ -87,6 +94,16 @@ const VotePage: FC<VotePageProps> = props => {
   const totalVotes: number | undefined = proposal ? proposal.forCount + proposal.againstCount : undefined
   const forPercentage: string = proposal && totalVotes ? ((proposal.forCount * 100) / totalVotes).toFixed(0) + '%' : '0%'
   const againstPercentage: string = proposal && totalVotes ? ((proposal.againstCount * 100) / totalVotes).toFixed(0) + '%' : '0%'
+
+  // Show links in proposal details if content is an address if content is contract
+  // with common name, replace address with common name
+  // const linkIfAddress = (content: string) => {
+  //   if (isAddress(content) && chainId) {
+  //     const commonName = COMMON_CONTRACT_NAMES[content] ?? content
+  //     return <ExternalLink href={getEtherscanLink(chainId, content, 'address')}>{commonName}</ExternalLink>
+  //   }
+  //   return <span>{content}</span>
+  // }
 
   return (
     <Box
@@ -98,7 +115,6 @@ const VotePage: FC<VotePageProps> = props => {
         <Box className={styles.navStatusBarContainer}>
           <Button
             className={styles.allProposalsContainer}
-            style={{ background: 'unset '}}
             onClick={async (event) => {
               event.preventDefault()
               handleArrowClick()
@@ -166,12 +182,12 @@ const VotePage: FC<VotePageProps> = props => {
           Proposer
         </Typography>
         <Typography variant="subtitle1" className={styles.contentBody}>
-          <a
+          <Link
             href={`https://etherscan.io/address/${proposal.proposer}`}
-            style={{ textDecoration: 'none' }}
+            underline={'none'}
           >
             { proposal.proposer }
-          </a>
+          </Link>
         </Typography>
       </Box>
     </Box>

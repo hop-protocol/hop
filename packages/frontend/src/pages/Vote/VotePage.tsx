@@ -15,10 +15,25 @@ import ProposalStatusCard from './ProposalStatusCard'
 import { VOTE_STATUS, PROPOSAL_LENGTH_IN_SECS } from 'src/config/constants'
 
 const useStyles = makeStyles((theme) => ({
+  componentBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'left',
+    width: '51.6rem',
+    marginTop: '4.2rem',
+    marginBottom: '4.2rem',
+    padding: '1.8rem',
+    borderRadius: '1.5rem',
+    boxShadow: `
+      inset -3px -3px 6px rgba(255, 255, 255, 0.5),
+      inset 3px 3px 6px rgba(174, 174, 192, 0.16)
+    `
+  },
   navStatusBarContainer: {
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    marginBottom: '1rem'
   },
   allProposalsContainer: {
     display: 'flex',
@@ -32,11 +47,6 @@ const useStyles = makeStyles((theme) => ({
     fontSize: '1.5rem',
     opacity: '0.5',
     marginBottom: '1rem'
-  },
-  componentBox: {
-    width: '51.6rem',
-    marginTop: '4.2rem',
-    marginBottom: '4.2rem'
   },
   statusCardsContainer: {
     marginTop: '1rem',
@@ -67,11 +77,7 @@ const VotePage: FC<VotePageProps> = props => {
     history.push(`/vote`)
   }
 
-  const totalVote: number = Number(proposal.forCount) + Number(proposal.againstCount)
-  const voteForPercentage: number = Number(proposal.forCount) / totalVote
-  const voteAgainstPercentage: number = Number(proposal.againstCount) / totalVote
-
-  // (TODO) Timing
+  // TODO
   const startTimestamp: number | undefined = 1607216855 // useTimestampFromBlock(proposal.startBlock)
   const endDate: DateTime | undefined = startTimestamp
     ? DateTime.fromSeconds(startTimestamp).plus({ seconds: PROPOSAL_LENGTH_IN_SECS })
@@ -89,16 +95,11 @@ const VotePage: FC<VotePageProps> = props => {
       flexDirection="column"
       alignItems="center"
     >
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="left"
-        className={styles.componentBox}
-        >
-        
-        <div className={styles.navStatusBarContainer}>
+      <Box className={styles.componentBox}>
+        <Box className={styles.navStatusBarContainer}>
           <Button
             className={styles.allProposalsContainer}
+            style={{ background: 'unset '}}
             onClick={async (event) => {
               event.preventDefault()
               handleArrowClick()
@@ -109,13 +110,12 @@ const VotePage: FC<VotePageProps> = props => {
           <ProposalStatusCard
             status={proposal.status}
           />
-        </div>
+        </Box>
 
         <Typography variant="h4" className={styles.title}>
           { proposal.title }
         </Typography>
         <Typography variant="subtitle1" className={styles.subtitle}>
-          {/* TODO */}
           {endDate && endDate < now
             ? 'Voting ended ' + (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL))
             : proposal
@@ -139,24 +139,22 @@ const VotePage: FC<VotePageProps> = props => {
         <Typography variant="h6" className={styles.contentHeader}>
           Details
         </Typography>
-        <Typography variant="subtitle1" className={styles.contentBody}>
-          {proposal.details?.map((d, i) => {
-            return (
-              <Typography variant="subtitle1" key={i}>
-                {i + 1}: {d.target}.{d.functionSig}(
-                {d.callData.split(',').map((content, i) => {
-                  return (
-                    <span key={i}>
-                      {content}
-                      {d.callData.split(',').length - 1 === i ? '' : ','}
-                    </span>
-                  )
-                })}
+        {proposal.details?.map((d, i) => {
+          return (
+            <Typography variant="subtitle1" className={styles.contentBody} key={i}>
+              {i + 1}: {d.target}.{d.functionSig}(
+              {d.callData.split(',').map((content, i) => {
+                return (
+                  <span key={i}>
+                    {content}
+                    {d.callData.split(',').length - 1 === i ? '' : ','}
+                  </span>
                 )
-              </Typography>
-            )
-          })}
-        </Typography>
+              })}
+              )
+            </Typography>
+          )
+        })}
 
         <Typography variant="h6" className={styles.contentHeader}>
           Description

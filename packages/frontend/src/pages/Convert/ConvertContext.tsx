@@ -10,6 +10,7 @@ import React, {
 import { parseUnits } from 'ethers/lib/utils'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
+import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import useContracts from 'src/contexts/AppContext/useContracts'
@@ -53,7 +54,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     setRequiredNetworkId,
     validConnectedNetworkId
   } = useWeb3Context()
-  let { networks: nets, tokens } = useApp()
+  let { networks: nets, tokens, transactions, setTransactions } = useApp()
   const networks = useMemo(() => {
     const kovanNetwork = nets.find(
       (network: Network) => network.slug === 'kovan'
@@ -181,37 +182,32 @@ const ConvertContextProvider: FC = ({ children }) => {
           .addressForNetwork(sourceNetwork)
           .toString()
         const arbChainAddress = '0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71'
-        const tx = await arbitrumL1Messenger?.depositERC20Message(
+        tx = await arbitrumL1Messenger?.depositERC20Message(
           arbChainAddress,
           tokenAddress,
           address,
           value
         )
-
-        console.log(tx?.hash)
       }
     } else if (sourceNetwork?.slug === 'arbitrum') {
       if (destNetwork?.slug === 'kovan') {
         const tokenAddress = selectedToken
           .addressForNetwork(sourceNetwork)
           .toString()
-        const tx = await arbitrumDai?.withdraw(tokenAddress, value)
-        console.log(tx?.hash)
+        tx = await arbitrumDai?.withdraw(tokenAddress, value)
       }
       if (destNetwork?.slug === 'arbitrumHopBridge') {
         const amountOutMin = '0'
         const path = [addresses.arbitrumDai, addresses.arbitrumBridge]
         const deadline = (Date.now() / 1000 + 300) | 0
 
-        const tx = await arbitrumUniswapRouter?.swapExactTokensForTokens(
+        tx = await arbitrumUniswapRouter?.swapExactTokensForTokens(
           value,
           amountOutMin,
           path,
           address,
           deadline
         )
-
-        console.log(tx?.hash)
       }
     } else if (sourceNetwork?.slug === 'arbitrumHopBridge') {
       if (destNetwork?.slug === 'arbitrum') {
@@ -219,16 +215,24 @@ const ConvertContextProvider: FC = ({ children }) => {
         const path = [addresses.arbitrumBridge, addresses.arbitrumDai]
         const deadline = (Date.now() / 1000 + 300) | 0
 
-        const tx = await arbitrumUniswapRouter?.swapExactTokensForTokens(
+        tx = await arbitrumUniswapRouter?.swapExactTokensForTokens(
           value,
           amountOutMin,
           path,
           address,
           deadline
         )
-
-        console.log(tx?.hash)
       }
+    }
+
+    if (tx?.hash && sourceNetwork?.name) {
+      const userTxs = transactions
+        .slice()
+        .concat([
+          new Transaction({ hash: tx?.hash, networkName: sourceNetwork?.slug })
+        ])
+
+      setTransactions(userTxs)
     }
   }, [
     provider,
@@ -239,7 +243,9 @@ const ConvertContextProvider: FC = ({ children }) => {
     arbitrumDai,
     arbitrumL1Messenger,
     arbitrumUniswapRouter,
-    getErc20Contract
+    getErc20Contract,
+    transactions,
+    setTransactions
   ])
 
   const validFormFields = !!(

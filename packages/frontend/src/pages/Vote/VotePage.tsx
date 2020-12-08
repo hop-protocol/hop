@@ -9,6 +9,7 @@ import Box from '@material-ui/core/Box'
 import Button from '@material-ui/core/Button'
 import Link from '@material-ui/core/Link'
 
+import { useWeb3Context } from 'src/contexts/Web3Context'
 import useTimestampFromBlock from 'src/hooks/useTimestampFromBlock'
 
 import { IProposal } from 'src/config'
@@ -17,6 +18,8 @@ import VoteStatusCard from './VoteStatusCard'
 import ProposalStatusCard from './ProposalStatusCard'
 
 import { VOTE_STATUS, PROPOSAL_LENGTH_IN_SECS } from 'src/config/constants'
+
+import { isAddress } from '../../utils'
 
 const useStyles = makeStyles((theme) => ({
   componentBox: {
@@ -76,7 +79,7 @@ const VotePage: FC<VotePageProps> = props => {
   const { proposal } = props
   const styles = useStyles({ status: proposal.status })
   const history = useHistory()
-  // const { chainId, account } = activeWeb3React()
+  const { provider } = useWeb3Context()
 
   const handleArrowClick = () => {
     history.push(`/vote`)
@@ -84,7 +87,6 @@ const VotePage: FC<VotePageProps> = props => {
 
   // Timing
   const startTimestamp: number | undefined = useTimestampFromBlock(proposal.startBlock)
-  console.log('startTimestamp: ', startTimestamp)
   const endDate: DateTime | undefined = startTimestamp
     ? DateTime.fromSeconds(startTimestamp).plus({ seconds: PROPOSAL_LENGTH_IN_SECS })
     : undefined
@@ -97,13 +99,13 @@ const VotePage: FC<VotePageProps> = props => {
 
   // Show links in proposal details if content is an address if content is contract
   // with common name, replace address with common name
-  // const linkIfAddress = (content: string) => {
-  //   if (isAddress(content) && chainId) {
-  //     const commonName = COMMON_CONTRACT_NAMES[content] ?? content
-  //     return <ExternalLink href={getEtherscanLink(chainId, content, 'address')}>{commonName}</ExternalLink>
-  //   }
-  //   return <span>{content}</span>
-  // }
+  const linkIfAddress = (content: string) => {
+    if (isAddress(content) && chainId) {
+      const commonName = COMMON_CONTRACT_NAMES[content] ?? content
+      return <ExternalLink href={getEtherscanLink(chainId, content, 'address')}>{commonName}</ExternalLink>
+    }
+    return <span>{content}</span>
+  }
 
   return (
     <Box

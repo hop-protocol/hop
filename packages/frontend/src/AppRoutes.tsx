@@ -13,7 +13,7 @@ import { IProposal } from 'src/config'
 type Props = {}
 
 const mockDetails = [{
-  target: '0x12345601Ed33f7B10D1B67f79CCd84152c5F9397',
+  target: '0x752Ebd504E4faC89397448b434aa3aA4AEcD0B5E',
   functionSig: 'transfer',
   callData: '0x967F2c0826AF779a09E42eff7BfAdAD7618b55E5, 5047600000000000000000000'
 }]

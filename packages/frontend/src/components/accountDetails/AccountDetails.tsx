@@ -7,20 +7,9 @@ import Link from '@material-ui/core/Link'
 import Button from '@material-ui/core/Button'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
+import Modal from 'src/components/accountDetails/Modal'
 
 const useStyles = makeStyles(() => ({
-  root: {
-    width: '500px',
-    minHeight: '500px',
-    position: 'fixed',
-    top: '30%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    zIndex: 1
-  },
-  card: {
-    backgroundColor: '#fff'
-  },
   box: {}
 }))
 
@@ -59,20 +48,15 @@ const AccountDetails = () => {
   }
 
   return (
-    <div className={styles.root}>
-      <Card className={styles.card}>
-        <Box className={styles.box}>
-          {transactions?.length ? (
-            <TransactionsList transactions={transactions} />
-          ) : (
-            <div>Your transactions will appear here...</div>
-          )}
-          <Grid container justify="flex-end">
-            <Button onClick={handleClose}>close</Button>
-          </Grid>
-        </Box>
-      </Card>
-    </div>
+    <Modal onClose={handleClose}>
+      <Box className={styles.box}>
+        {transactions?.length ? (
+          <TransactionsList transactions={transactions} />
+        ) : (
+          <div>Your transactions will appear here...</div>
+        )}
+      </Box>
+    </Modal>
   )
 }
 

@@ -226,13 +226,10 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
 
     if (tx?.hash && sourceNetwork?.name) {
-      const userTxs = transactions
-        .slice()
-        .concat([
-          new Transaction({ hash: tx?.hash, networkName: sourceNetwork?.slug })
-        ])
-
-      setTransactions(userTxs)
+      setTransactions([
+        ...transactions,
+        new Transaction({ hash: tx?.hash, networkName: sourceNetwork?.slug })
+      ])
     }
   }, [
     provider,

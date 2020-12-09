@@ -7,7 +7,7 @@ import Typography from '@material-ui/core/Typography'
 import { VOTE_STATUS } from 'src/config/constants'
 
 type StyleProps = {
-  status : string
+  status: string
   percentageVotes: string
 }
 
@@ -38,8 +38,7 @@ const useStyles = makeStyles(theme => ({
     flexDirection: 'row',
     justifyContent: 'space-between'
   },
-  cardBottom: {
-  },
+  cardBottom: {},
   proposalStatus: ({ status }: StyleProps) => ({
     fontSize: '0.825rem',
     padding: '0.5rem',
@@ -48,14 +47,13 @@ const useStyles = makeStyles(theme => ({
     justifySelf: 'flex-end',
     textTransform: 'uppercase',
     borderRadius: '1.5rem',
-    boxShadow: status === VOTE_STATUS.FOR
-    ?
-    `
+    boxShadow:
+      status === VOTE_STATUS.FOR
+        ? `
       inset -3px -3px 6px ${statusColors.green},
       inset 3px 3px 6px rgba(174, 192, 177, 0.16)
     `
-    :
-    `
+        : `
       inset -3px -3px 6px ${statusColors.red},
       inset 3px 3px 6px rgba(174, 192, 177, 0.16)
     `
@@ -72,11 +70,10 @@ const useStyles = makeStyles(theme => ({
     height: '4px',
     borderRadius: '4px',
     width: `${percentageVotes}`,
-    backgroundColor: status === VOTE_STATUS.FOR
-    ?
-      `${statusColors.green}`
-    :
-      `${statusColors.red}`
+    backgroundColor:
+      status === VOTE_STATUS.FOR
+        ? `${statusColors.green}`
+        : `${statusColors.red}`
   })
 }))
 
@@ -91,25 +88,14 @@ const VoteStatusCard: FC<Props> = props => {
   const styles = useStyles({ status: voteStatus, percentageVotes })
 
   return (
-    <Box
-      alignItems="center"
-      className={styles.previewsBox}
-    >
+    <Box alignItems="center" className={styles.previewsBox}>
       <Card className={styles.previewCard}>
         <div className={styles.cardTop}>
-          <Typography
-              variant="subtitle2"
-              color="textSecondary"
-              component="div"
-          >
-              { voteStatus }
+          <Typography variant="subtitle2" color="textSecondary" component="div">
+            {voteStatus}
           </Typography>
-          <Typography
-              variant="subtitle2"
-              color="textSecondary"
-              component="div"
-          >
-            { numVotes.toLocaleString(undefined, { maximumFractionDigits: 0 }) }
+          <Typography variant="subtitle2" color="textSecondary" component="div">
+            {numVotes.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </Typography>
         </div>
         <div className={styles.cardBottom}>
@@ -122,4 +108,4 @@ const VoteStatusCard: FC<Props> = props => {
   )
 }
 
-export default VoteStatusCard 
+export default VoteStatusCard

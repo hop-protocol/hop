@@ -7,7 +7,7 @@ import Typography from '@material-ui/core/Typography'
 import { VOTE_STATUS } from 'src/config/constants'
 
 type StyleProps = {
-  status : string
+  status: string
 }
 
 const useStyles = makeStyles(theme => ({
@@ -20,18 +20,10 @@ const useStyles = makeStyles(theme => ({
     textTransform: 'uppercase',
     borderRadius: '1rem',
     alignSelf: 'flex-start',
-    background: status === 'passed'
-    ?
-      'rgb(218 229 221)'
-    :
-      'rgb(228, 214, 214)'
+    background: status === 'passed' ? 'rgb(218 229 221)' : 'rgb(228, 214, 214)'
   }),
   proposalStatusText: ({ status }: StyleProps) => ({
-    color: status === 'passed'
-    ?
-      '#00A72F'
-    :
-      '#C50602'
+    color: status === 'passed' ? '#00A72F' : '#C50602'
   })
 }))
 
@@ -46,15 +38,15 @@ const ProposalStatusCard: FC<Props> = props => {
   return (
     <Box alignItems="center" className={`${styles.proposalStatus}`}>
       <Typography
-          variant="subtitle2"
-          color="textSecondary"
-          component="div"
-          className={`${styles.proposalStatusText}`}
+        variant="subtitle2"
+        color="textSecondary"
+        component="div"
+        className={`${styles.proposalStatusText}`}
       >
-        { status }
+        {status}
       </Typography>
     </Box>
   )
 }
 
-export default ProposalStatusCard 
+export default ProposalStatusCard

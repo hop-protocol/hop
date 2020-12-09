@@ -1,11 +1,13 @@
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useState, useEffect } from 'react'
 
-const useTimestampFromBlock = (block: number | undefined): number | undefined => {
+const useTimestampFromBlock = (
+  block: number | undefined
+): number | undefined => {
   const { provider } = useWeb3Context()
   const [timestamp, setTimestamp] = useState<number>()
   useEffect(() => {
-    async function fetchTimestamp() {
+    async function fetchTimestamp () {
       if (block) {
         const blockData = await provider?.getBlock(block)
         blockData && setTimestamp(blockData.timestamp)

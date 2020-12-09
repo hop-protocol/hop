@@ -1,3 +1,7 @@
+import { ethers } from 'ethers'
+import { EventEmitter } from 'events'
+import { l1RpcUrl, arbitrumRpcUrl, optimismRpcUrl } from 'src/config'
+
 interface Config {
   networkName: string
   hash: string
@@ -11,13 +15,30 @@ const standardNetworks = new Set([
   'goerli'
 ])
 
-class Transaction {
+class Transaction extends EventEmitter {
   readonly hash: string
   readonly networkName: string
+  readonly provider: ethers.providers.Provider
+  private _pending: boolean = true
 
   constructor ({ hash, networkName }: Config) {
+    super()
     this.hash = (hash || '').trim().toLowerCase()
     this.networkName = (networkName || 'mainnet').trim().toLowerCase()
+    let rpcUrl = ''
+    if (networkName.startsWith('arbitrum')) {
+      rpcUrl = arbitrumRpcUrl
+    } else if (networkName.startsWith('optimism')) {
+      rpcUrl = optimismRpcUrl
+    } else {
+      rpcUrl = l1RpcUrl
+    }
+
+    this.provider = new ethers.providers.JsonRpcProvider(rpcUrl)
+    this.receipt().then(() => {
+      this._pending = false
+      this.emit('pending', false, this)
+    })
   }
 
   get explorerLink (): string {
@@ -34,6 +55,14 @@ class Transaction {
 
   get truncatedHash (): string {
     return `${this.hash.substring(0, 6)}…${this.hash.substring(62, 66)}`
+  }
+
+  async receipt () {
+    return this.provider.waitForTransaction(this.hash)
+  }
+
+  get pending () {
+    return this._pending
   }
 
   private _etherscanLink () {

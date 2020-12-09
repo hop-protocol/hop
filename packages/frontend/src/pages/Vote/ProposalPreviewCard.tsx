@@ -52,35 +52,24 @@ const ProposalPreviewCard: FC<Props> = props => {
     <Box
       alignItems="center"
       className={styles.previewsBox}
-      onClick={async (event) => {
+      onClick={async event => {
         event.preventDefault()
         handleClick()
       }}
     >
       <Card className={styles.previewCard}>
         <Box alignItems="center" className={styles.previewBox}>
-        <Typography
-            variant="subtitle2"
-            color="textSecondary"
-            component="div"
-        >
-            { id }
-        </Typography>
+          <Typography variant="subtitle2" color="textSecondary" component="div">
+            {id}
+          </Typography>
         </Box>
         <Box alignItems="left" className={styles.previewBox}>
-          <Typography
-              variant="subtitle2"
-              color="textSecondary"
-              component="div"
-          >
-            { description }
+          <Typography variant="subtitle2" color="textSecondary" component="div">
+            {description}
           </Typography>
         </Box>
 
-        <ProposalStatusCard
-          status={status}
-        />
-
+        <ProposalStatusCard status={status} />
       </Card>
     </Box>
   )

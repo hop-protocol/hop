@@ -22,15 +22,12 @@ const useStyles = makeStyles(() => ({
   pricesCard: {
     display: 'flex',
     justifyContent: 'space-between'
-  },
+  }
 }))
-
-
 
 type VoteProps = {
   proposals: IProposal[]
 }
-
 
 const Vote: FC<VoteProps> = props => {
   const { proposals } = props
@@ -38,19 +35,18 @@ const Vote: FC<VoteProps> = props => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-        <Box display="flex" alignItems="center">
-          <Typography variant="h4" className={styles.title}>
-            Proposals
-          </Typography>
-        </Box>
-        {
-          proposals.map((proposal: IProposal)=>
-            <ProposalPreviewCard
-              id={proposal.id}
-              description={proposal.title}
-              status={proposal.status}
-            />
-        )}
+      <Box display="flex" alignItems="center">
+        <Typography variant="h4" className={styles.title}>
+          Proposals
+        </Typography>
+      </Box>
+      {proposals.map((proposal: IProposal) => (
+        <ProposalPreviewCard
+          id={proposal.id}
+          description={proposal.title}
+          status={proposal.status}
+        />
+      ))}
     </Box>
   )
 }

@@ -1,14 +1,20 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import Button from 'src/components/buttons/Button'
 import { useApp } from 'src/contexts/AppContext'
+import Transaction from 'src/models/Transaction'
 
 const useStyles = makeStyles(() => ({
   root: {
     marginRight: '1rem'
   },
-  button: {
+  button: {},
+  pendingButton: {
     backgroundColor: '#bfedff'
+  },
+  spinner: {
+    marginLeft: '1rem'
   }
 }))
 
@@ -20,11 +26,20 @@ const TxPill = () => {
     accountDetails?.show(true)
   }
 
+  const pendingTxs = transactions.filter((tx: Transaction) => {
+    return tx.pending
+  })
+
   return (
     <div className={styles.root}>
-      {transactions?.length ? (
+      {pendingTxs?.length ? (
+        <Button className={styles.pendingButton} flat onClick={handleClick}>
+          {pendingTxs.length} Pending{' '}
+          <CircularProgress size={18} className={styles.spinner} />
+        </Button>
+      ) : transactions.length ? (
         <Button className={styles.button} flat onClick={handleClick}>
-          {transactions.length} Pending
+          Recent transactions
         </Button>
       ) : null}
     </div>

@@ -25,7 +25,7 @@ import {
   COMMON_CONTRACT_NAMES
 } from 'src/config/constants'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   componentBox: {
     display: 'flex',
     flexDirection: 'column',
@@ -60,11 +60,11 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: '1rem'
   },
   statusCardsContainer: {
-    marginTop: '1rem',
+    marginTop: '1rem'
   },
   contentHeader: {
     marginBottom: '2rem',
-    fontSize: '2rem',
+    fontSize: '2rem'
   },
   contentBody: {
     marginBottom: '1rem',
@@ -73,78 +73,92 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-
 type VotePageProps = {
   proposal: IProposal
 }
-
 
 const VotePage: FC<VotePageProps> = props => {
   const { proposal } = props
   const styles = useStyles({ status: proposal.status })
   const history = useHistory()
-  const { connectedNetworkId} = useWeb3Context()
+  const { connectedNetworkId } = useWeb3Context()
 
   const handleArrowClick = () => {
     history.push(`/vote`)
   }
 
   // Timing
-  const startTimestamp: number | undefined = useTimestampFromBlock(proposal.startBlock)
+  const startTimestamp: number | undefined = useTimestampFromBlock(
+    proposal.startBlock
+  )
   const endDate: DateTime | undefined = startTimestamp
-    ? DateTime.fromSeconds(startTimestamp).plus({ seconds: PROPOSAL_LENGTH_IN_SECS })
+    ? DateTime.fromSeconds(startTimestamp).plus({
+        seconds: PROPOSAL_LENGTH_IN_SECS
+      })
     : undefined
   const now: DateTime = DateTime.local()
 
   // Votes
-  const totalVotes: number | undefined = proposal ? proposal.forCount + proposal.againstCount : undefined
-  const forPercentage: string = proposal && totalVotes ? ((proposal.forCount * 100) / totalVotes).toFixed(0) + '%' : '0%'
-  const againstPercentage: string = proposal && totalVotes ? ((proposal.againstCount * 100) / totalVotes).toFixed(0) + '%' : '0%'
+  const totalVotes: number | undefined = proposal
+    ? proposal.forCount + proposal.againstCount
+    : undefined
+  const forPercentage: string =
+    proposal && totalVotes
+      ? ((proposal.forCount * 100) / totalVotes).toFixed(0) + '%'
+      : '0%'
+  const againstPercentage: string =
+    proposal && totalVotes
+      ? ((proposal.againstCount * 100) / totalVotes).toFixed(0) + '%'
+      : '0%'
 
   // Show links in proposal details if content is an address
   // If content is contract with common name, replace address with common name
   const linkIfAddress = (content: string) => {
     if (isAddress(content) && connectedNetworkId) {
       const commonName = COMMON_CONTRACT_NAMES[content] ?? content
-      return <Link href={getEtherscanLink(connectedNetworkId, content, 'address')}>{commonName}</Link>
+      return (
+        <Link href={getEtherscanLink(connectedNetworkId, content, 'address')}>
+          {commonName}
+        </Link>
+      )
     }
     return <span>{content}</span>
   }
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-    >
+    <Box display="flex" flexDirection="column" alignItems="center">
       <Box className={styles.componentBox}>
         <Box className={styles.navStatusBarContainer}>
           <Button
             className={styles.allProposalsContainer}
-            onClick={async (event) => {
+            onClick={async event => {
               event.preventDefault()
               handleArrowClick()
             }}
           >
             <ArrowLeft size={20} /> All Proposals
           </Button>
-          <ProposalStatusCard
-            status={proposal.status}
-          />
+          <ProposalStatusCard status={proposal.status} />
         </Box>
 
         <Typography variant="h4" className={styles.title}>
-          { proposal.title }
+          {proposal.title}
         </Typography>
         <Typography variant="subtitle1" className={styles.subtitle}>
           {endDate && endDate < now
-            ? 'Voting ended ' + (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL))
+            ? 'Voting ended ' +
+              (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL))
             : proposal
-            ? 'Voting ends approximately ' + (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL))
+            ? 'Voting ends approximately ' +
+              (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL))
             : ''}
         </Typography>
 
-        <Box display="flex" alignItems="center" className={styles.statusCardsContainer}>
+        <Box
+          display="flex"
+          alignItems="center"
+          className={styles.statusCardsContainer}
+        >
           <VoteStatusCard
             voteStatus={VOTE_STATUS.FOR}
             numVotes={proposal.forCount}
@@ -162,7 +176,11 @@ const VotePage: FC<VotePageProps> = props => {
         </Typography>
         {proposal.details?.map((d, i) => {
           return (
-            <Typography variant="subtitle1" className={styles.contentBody} key={i}>
+            <Typography
+              variant="subtitle1"
+              className={styles.contentBody}
+              key={i}
+            >
               {i + 1}: {linkIfAddress(d.target)}.{d.functionSig}(
               {d.callData.split(',').map((content, i) => {
                 return (
@@ -181,7 +199,7 @@ const VotePage: FC<VotePageProps> = props => {
           Description
         </Typography>
         <Typography variant="subtitle1" className={styles.contentBody}>
-          { proposal.description }
+          {proposal.description}
         </Typography>
 
         <Typography variant="h6" className={styles.contentHeader}>
@@ -192,7 +210,7 @@ const VotePage: FC<VotePageProps> = props => {
             href={`https://etherscan.io/address/${proposal.proposer}`}
             underline={'none'}
           >
-            { proposal.proposer }
+            {proposal.proposer}
           </Link>
         </Typography>
       </Box>
@@ -200,4 +218,4 @@ const VotePage: FC<VotePageProps> = props => {
   )
 }
 
-export default VotePage 
+export default VotePage

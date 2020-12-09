@@ -21,7 +21,7 @@
     "ethers": "5.0.19",
     "gridplus-sdk": "0.6.1",
     "luxon": "1.25.0",
-    "react": "16.8.0",
+    "react": "16.10.2",
     "react-dom": "16.8.0",
     "react-feather": "2.0.9",
     "react-router-dom": "5.2.0",

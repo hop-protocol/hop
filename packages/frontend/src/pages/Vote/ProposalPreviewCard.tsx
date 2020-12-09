@@ -7,15 +7,6 @@ import Typography from '@material-ui/core/Typography'
 
 import ProposalStatusCard from './ProposalStatusCard'
 
-type StyleProps = {
-  status: string
-}
-
-const statusColors = {
-  green: 'rgba(75, 181, 67)',
-  red: 'rgba(252, 16, 13)'
-}
-
 const useStyles = makeStyles(theme => ({
   previewsBox: {
     width: '51.6rem',

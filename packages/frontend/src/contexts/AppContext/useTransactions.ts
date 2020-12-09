@@ -7,7 +7,7 @@ const useTransactions = () => {
       const cached = sessionStorage.getItem('recentTransactions')
       if (!cached) return []
       const txs = JSON.parse(cached)
-      return txs.map((config: any) => new Transaction(config))
+      return txs.map((obj: any) => Transaction.fromObject(obj))
     } catch (err) {
       return []
     }
@@ -25,11 +25,9 @@ const useTransactions = () => {
 
   useEffect(() => {
     try {
-      const recents = transactions.map(
-        ({ hash, networkName, pending }: Transaction) => {
-          return { hash, networkName, pending }
-        }
-      )
+      const recents = transactions.map((tx: Transaction) => {
+        return tx.toObject()
+      })
       sessionStorage.setItem('recentTransactions', JSON.stringify(recents))
     } catch (err) {
       // noop

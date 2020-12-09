@@ -93,7 +93,7 @@ export type ActivityDetailsProps = {
 const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(
   (props, ref) => {
     const { children, onClose } = props
-    const classes = useStyles()
+    const styles = useStyles()
     const { keyboard } = useEvents()
 
     const handleClose = useCallback(() => {
@@ -122,7 +122,7 @@ const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(
           unmountOnExit={false}
         >
           {(transitionState: string) => (
-            <div className={classnames(classes.root, transitionState)}>
+            <div className={classnames(styles.root, transitionState)}>
               <Transition
                 in={true}
                 timeout={{
@@ -133,16 +133,13 @@ const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(
                 appear={true}
                 unmountOnExit={false}
               >
-                <div className={classnames(classes.container, transitionState)}>
+                <div className={classnames(styles.container, transitionState)}>
                   <ClickAwayListener onClickAway={handleClose}>
-                    <Card className={classes.card} ref={ref}>
-                      <div className={classes.close} onClick={handleClose}>
+                    <Card className={styles.card} ref={ref}>
+                      <div className={styles.close} onClick={handleClose}>
                         ✕
                       </div>
-                      <div className={classes.content}>
-                        {children}
-                        content
-                      </div>
+                      <div className={styles.content}>{children}</div>
                     </Card>
                   </ClickAwayListener>
                 </div>

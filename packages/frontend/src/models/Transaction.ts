@@ -6,6 +6,7 @@ interface Config {
   networkName: string
   hash: string
   pending?: boolean
+  timestamp?: number
 }
 
 const standardNetworks = new Set([
@@ -20,9 +21,11 @@ class Transaction extends EventEmitter {
   readonly hash: string
   readonly networkName: string
   readonly provider: ethers.providers.Provider
-  private _pending: boolean
+  pending: boolean
+  timestamp: number
+  status: null | boolean = null
 
-  constructor ({ hash, networkName, pending = true }: Config) {
+  constructor ({ hash, networkName, pending = true, timestamp }: Config) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
     this.networkName = (networkName || 'mainnet').trim().toLowerCase()
@@ -36,9 +39,11 @@ class Transaction extends EventEmitter {
     }
 
     this.provider = new ethers.providers.JsonRpcProvider(rpcUrl)
-    this._pending = pending
-    this.receipt().then(() => {
-      this._pending = false
+    this.timestamp = timestamp || Date.now()
+    this.pending = pending
+    this.receipt().then((receipt: any) => {
+      this.status = !!receipt.status
+      this.pending = false
       this.emit('pending', false, this)
     })
   }
@@ -63,10 +68,6 @@ class Transaction extends EventEmitter {
     return this.provider.waitForTransaction(this.hash)
   }
 
-  get pending () {
-    return this._pending
-  }
-
   private _etherscanLink () {
     let subdomain = ''
 
@@ -84,6 +85,16 @@ class Transaction extends EventEmitter {
   private _optimismLink () {
     // TODO: get optimism explorer url
     return this._etherscanLink()
+  }
+
+  toObject () {
+    const { hash, networkName, pending, timestamp } = this
+    return { hash, networkName, pending, timestamp }
+  }
+
+  static fromObject (obj: any) {
+    const { hash, networkName, pending, timestamp } = obj
+    return new Transaction({ hash, networkName, pending, timestamp })
   }
 }
 

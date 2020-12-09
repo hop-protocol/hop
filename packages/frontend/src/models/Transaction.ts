@@ -5,6 +5,7 @@ import { l1RpcUrl, arbitrumRpcUrl, optimismRpcUrl } from 'src/config'
 interface Config {
   networkName: string
   hash: string
+  pending?: boolean
 }
 
 const standardNetworks = new Set([
@@ -19,9 +20,9 @@ class Transaction extends EventEmitter {
   readonly hash: string
   readonly networkName: string
   readonly provider: ethers.providers.Provider
-  private _pending: boolean = true
+  private _pending: boolean
 
-  constructor ({ hash, networkName }: Config) {
+  constructor ({ hash, networkName, pending = true }: Config) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
     this.networkName = (networkName || 'mainnet').trim().toLowerCase()
@@ -35,6 +36,7 @@ class Transaction extends EventEmitter {
     }
 
     this.provider = new ethers.providers.JsonRpcProvider(rpcUrl)
+    this._pending = pending
     this.receipt().then(() => {
       this._pending = false
       this.emit('pending', false, this)

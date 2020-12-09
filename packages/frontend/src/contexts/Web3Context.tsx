@@ -29,6 +29,7 @@ type Props = {
   address: Address | undefined
   requiredNetworkId: string
   setRequiredNetworkId: (networkId: string) => void
+  connectedNetworkId: string
   validConnectedNetworkId: boolean
   requestWallet: () => void
 }
@@ -38,6 +39,7 @@ const initialState = {
   provider: undefined,
   address: undefined,
   requiredNetworkId: '',
+  connectedNetworkId: '',
   validConnectedNetworkId: false,
   setRequiredNetworkId: (networkId: string) => {},
   requestWallet: () => {}
@@ -262,6 +264,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         address,
         requiredNetworkId,
         setRequiredNetworkId,
+        connectedNetworkId,
         validConnectedNetworkId,
         requestWallet
       }}

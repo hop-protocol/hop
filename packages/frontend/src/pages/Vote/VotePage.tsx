@@ -14,12 +14,16 @@ import useTimestampFromBlock from 'src/hooks/useTimestampFromBlock'
 
 import { IProposal } from 'src/config'
 
+import { isAddress, getEtherscanLink } from '../../utils'
+
 import VoteStatusCard from './VoteStatusCard'
 import ProposalStatusCard from './ProposalStatusCard'
 
-import { VOTE_STATUS, PROPOSAL_LENGTH_IN_SECS } from 'src/config/constants'
-
-import { isAddress } from '../../utils'
+import {
+  VOTE_STATUS,
+  PROPOSAL_LENGTH_IN_SECS,
+  COMMON_CONTRACT_NAMES
+} from 'src/config/constants'
 
 const useStyles = makeStyles((theme) => ({
   componentBox: {
@@ -79,7 +83,7 @@ const VotePage: FC<VotePageProps> = props => {
   const { proposal } = props
   const styles = useStyles({ status: proposal.status })
   const history = useHistory()
-  const { provider } = useWeb3Context()
+  const { connectedNetworkId} = useWeb3Context()
 
   const handleArrowClick = () => {
     history.push(`/vote`)
@@ -97,12 +101,12 @@ const VotePage: FC<VotePageProps> = props => {
   const forPercentage: string = proposal && totalVotes ? ((proposal.forCount * 100) / totalVotes).toFixed(0) + '%' : '0%'
   const againstPercentage: string = proposal && totalVotes ? ((proposal.againstCount * 100) / totalVotes).toFixed(0) + '%' : '0%'
 
-  // Show links in proposal details if content is an address if content is contract
-  // with common name, replace address with common name
+  // Show links in proposal details if content is an address
+  // If content is contract with common name, replace address with common name
   const linkIfAddress = (content: string) => {
-    if (isAddress(content) && chainId) {
+    if (isAddress(content) && connectedNetworkId) {
       const commonName = COMMON_CONTRACT_NAMES[content] ?? content
-      return <ExternalLink href={getEtherscanLink(chainId, content, 'address')}>{commonName}</ExternalLink>
+      return <Link href={getEtherscanLink(connectedNetworkId, content, 'address')}>{commonName}</Link>
     }
     return <span>{content}</span>
   }
@@ -159,11 +163,11 @@ const VotePage: FC<VotePageProps> = props => {
         {proposal.details?.map((d, i) => {
           return (
             <Typography variant="subtitle1" className={styles.contentBody} key={i}>
-              {i + 1}: {d.target}.{d.functionSig}(
+              {i + 1}: {linkIfAddress(d.target)}.{d.functionSig}(
               {d.callData.split(',').map((content, i) => {
                 return (
                   <span key={i}>
-                    {content}
+                    {linkIfAddress(content)}
                     {d.callData.split(',').length - 1 === i ? '' : ','}
                   </span>
                 )

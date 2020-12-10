@@ -46,7 +46,7 @@ const Send: FC = () => {
   const {
     provider,
     setRequiredNetworkId,
-    validConnectedNetworkId,
+    connectedNetworkId,
     walletConnected
   } = useWeb3Context()
 
@@ -90,11 +90,12 @@ const Send: FC = () => {
     setIsFromLastChanged(!isFromLastChanged)
   }
 
-  useEffect(() => {
+  const checkWalletNetwork = () => {
     if (fromNetwork) {
       setRequiredNetworkId(fromNetwork?.networkId)
     }
-  }, [fromNetwork, setRequiredNetworkId])
+    return connectedNetworkId === fromNetwork?.networkId
+  }
 
   // Control toTokenAmount when fromTokenAmount was edited last
   useEffect(() => {
@@ -201,8 +202,11 @@ const Send: FC = () => {
         throw new Error('A network is undefined')
       }
 
-      setSending(true)
+      if (!checkWalletNetwork()) {
+        return
+      }
 
+      setSending(true)
       await approve(fromTokenAmount)
       if (fromNetwork.isLayer1) {
         await sendl1ToL2()
@@ -260,11 +264,7 @@ const Send: FC = () => {
     // )
   }
 
-  const validFormFields = !!(
-    validConnectedNetworkId &&
-    fromTokenAmount &&
-    toTokenAmount
-  )
+  const validFormFields = !!(fromTokenAmount && toTokenAmount)
 
   let buttonText = 'Send'
   if (!walletConnected) {
@@ -273,8 +273,6 @@ const Send: FC = () => {
     buttonText = 'Select from network'
   } else if (!toNetwork) {
     buttonText = 'Select to network'
-  } else if (!validConnectedNetworkId) {
-    buttonText = 'Change network'
   }
 
   return (

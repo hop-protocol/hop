@@ -4,8 +4,8 @@ import React, {
   useContext,
   useEffect,
   useState,
-  useCallback,
-  useMemo
+  useMemo,
+  useCallback
 } from 'react'
 import { Contract } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -100,7 +100,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     address,
     provider,
     setRequiredNetworkId,
-    validConnectedNetworkId
+    connectedNetworkId
   } = useWeb3Context()
   const {
     arbitrumUniswapRouter,
@@ -140,9 +140,10 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [txHash, setTxHash] = useState<string | undefined>()
   const [sending, setSending] = useState<boolean>(false)
 
-  useEffect(() => {
+  const checkWalletNetwork = () => {
     setRequiredNetworkId(selectedNetwork?.networkId)
-  }, [setRequiredNetworkId, selectedNetwork])
+    return connectedNetworkId === selectedNetwork?.networkId
+  }
 
   const updatePrices = useCallback(async () => {
     if (!totalSupply) return
@@ -303,6 +304,10 @@ const PoolsContextProvider: FC = ({ children }) => {
         return
       }
 
+      if (!checkWalletNetwork()) {
+        return
+      }
+
       setSending(true)
       let tx = await approveTokens(selectedToken, token0Amount, selectedNetwork)
       await tx?.wait()
@@ -361,11 +366,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     setSending(false)
   }
 
-  const validFormFields = !!(
-    validConnectedNetworkId &&
-    token0Amount &&
-    token1Amount
-  )
+  const validFormFields = !!(token0Amount && token1Amount)
 
   return (
     <PoolsContext.Provider

@@ -29,7 +29,7 @@ interface Props {
   onConfirm: (confirmed: boolean) => void
 }
 
-const Swap = (props: Props) => {
+const Convert = (props: Props) => {
   const { source, dest, onConfirm } = props
   const styles = useStyles()
   const [sending, setSending] = useState<boolean>(false)
@@ -48,7 +48,7 @@ const Swap = (props: Props) => {
     <div className={styles.root}>
       <div className={styles.title}>
         <Typography variant="h5" color="textPrimary">
-          Swap {source.amount} {source.token.symbol} for {dest.amount}{' '}
+          Convert {source.amount} {source.token.symbol} for {dest.amount}{' '}
           {dest.token.symbol}
         </Typography>
       </div>
@@ -60,11 +60,11 @@ const Swap = (props: Props) => {
           large
           highlighted
         >
-          Swap
+          Convert
         </Button>
       </div>
     </div>
   )
 }
 
-export default Swap
+export default Convert

@@ -4,7 +4,6 @@ import React, {
   useContext,
   useMemo,
   useEffect,
-  useCallback,
   useState
 } from 'react'
 import Onboard from 'bnc-onboard'
@@ -234,7 +233,7 @@ const Web3ContextProvider: FC = ({ children }) => {
 
   const [address, setAddress] = useState<Address | undefined>()
 
-  const requestWallet = useCallback(() => {
+  const requestWallet = () => {
     const _requestWallet = async () => {
       try {
         await onboard.walletSelect()
@@ -245,7 +244,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     }
 
     _requestWallet()
-  }, [onboard])
+  }
 
   useEffect(() => {
     const getAddress = async () => {

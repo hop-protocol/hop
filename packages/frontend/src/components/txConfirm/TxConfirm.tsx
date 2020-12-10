@@ -1,8 +1,8 @@
-import React, { ReactNode, FC } from 'react'
+import React, { FC } from 'react'
 import Modal from 'src/components/modal/Modal'
 import Approval from 'src/components/txConfirm/Approval'
 import Send from 'src/components/txConfirm/Send'
-import Swap from 'src/components/txConfirm/Swap'
+import Convert from 'src/components/txConfirm/Convert'
 import AddLiquidity from 'src/components/txConfirm/AddLiquidity'
 import { useApp } from 'src/contexts/AppContext'
 
@@ -13,16 +13,15 @@ const TxConfirm: FC = props => {
     return null
   }
   const { kind, inputProps, onConfirm } = txConfirmParams
-  let component: ReactNode = null
-  if (kind === 'approval') {
-    component = <Approval onConfirm={onConfirm} {...inputProps} />
-  } else if (kind === 'send') {
-    component = <Send onConfirm={onConfirm} {...inputProps} />
-  } else if (kind === 'swap') {
-    component = <Swap onConfirm={onConfirm} {...inputProps} />
-  } else if (kind === 'addLiquidity') {
-    component = <AddLiquidity onConfirm={onConfirm} {...inputProps} />
-  } else {
+  const components: { [key: string]: FC<any> } = {
+    approval: Approval,
+    send: Send,
+    convert: Convert,
+    addLiquidity: AddLiquidity
+  }
+
+  const Component: FC = components[kind]
+  if (!Component) {
     return null
   }
 
@@ -30,7 +29,11 @@ const TxConfirm: FC = props => {
     onConfirm()
   }
 
-  return <Modal onClose={handleClose}>{component}</Modal>
+  return (
+    <Modal onClose={handleClose}>
+      <Component onConfirm={onConfirm} {...inputProps} />
+    </Modal>
+  )
 }
 
 export default TxConfirm

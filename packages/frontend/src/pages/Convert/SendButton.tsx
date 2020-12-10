@@ -17,7 +17,7 @@ interface Props {}
 const SendButton: FC = (props: Props) => {
   const styles = useStyles()
   const { validFormFields, convertTokens, sending } = useConvert()
-  const { walletConnected, validConnectedNetworkId } = useWeb3Context()
+  const { walletConnected } = useWeb3Context()
   const handleSubmit = async () => {
     convertTokens()
   }
@@ -25,8 +25,6 @@ const SendButton: FC = (props: Props) => {
   let buttonText = 'Convert'
   if (!walletConnected) {
     buttonText = 'Connect wallet'
-  } else if (!validConnectedNetworkId) {
-    buttonText = 'Change network'
   }
 
   return (

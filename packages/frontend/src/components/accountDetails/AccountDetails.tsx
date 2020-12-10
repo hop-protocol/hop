@@ -7,7 +7,7 @@ import Link from '@material-ui/core/Link'
 import Typography from '@material-ui/core/Typography'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
-import Modal from 'src/components/accountDetails/Modal'
+import Modal from 'src/components/modal/Modal'
 
 const useStyles = makeStyles(() => ({
   header: {

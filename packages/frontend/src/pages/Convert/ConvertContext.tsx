@@ -15,6 +15,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import useContracts from 'src/contexts/AppContext/useContracts'
 import { addresses } from 'src/config'
+import useTxConfirm from 'src/contexts/AppContext/useTxConfirm'
 
 type ConvertContextProps = {
   selectedToken: Token | undefined
@@ -30,6 +31,8 @@ type ConvertContextProps = {
   convertTokens: () => void
   validFormFields: boolean
   calcAltTokenAmount: (value: string) => Promise<string>
+  txConfirm: any
+  sending: boolean
 }
 
 const ConvertContext = createContext<ConvertContextProps>({
@@ -45,7 +48,9 @@ const ConvertContext = createContext<ConvertContextProps>({
   setDestTokenAmount: (value: string) => {},
   convertTokens: () => {},
   validFormFields: false,
-  calcAltTokenAmount: async (value: string): Promise<string> => ''
+  calcAltTokenAmount: async (value: string): Promise<string> => '',
+  txConfirm: null,
+  sending: false
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
@@ -97,6 +102,8 @@ const ConvertContextProvider: FC = ({ children }) => {
     arbitrumL1Messenger,
     getErc20Contract
   } = useContracts([])
+  const { txConfirm, showTxConfirm } = useTxConfirm()
+  const [sending, setSending] = useState<boolean>(false)
 
   useEffect(() => {
     if (sourceNetwork) {
@@ -139,98 +146,175 @@ const ConvertContextProvider: FC = ({ children }) => {
   )
 
   const convertTokens = useCallback(async () => {
-    if (!Number(sourceTokenAmount)) {
-      return
-    }
+    try {
+      if (!Number(sourceTokenAmount)) {
+        return
+      }
 
-    const approveTokens = async (
-      token: Token,
-      amount: string,
-      network: Network
-    ) => {
+      setSending(true)
+      const approveTokens = async (
+        token: Token,
+        amount: string,
+        network: Network
+      ): Promise<any> => {
+        const signer = provider?.getSigner()
+        const tokenAddress = token.addressForNetwork(network).toString()
+        const contract = getErc20Contract(tokenAddress, signer)
+
+        const address = arbitrumUniswapRouter?.address
+        const parsedAmount = parseUnits(amount, token.decimals || 18)
+        const approved = await contract.allowance(
+          await signer?.getAddress(),
+          address
+        )
+
+        if (approved.lt(parsedAmount)) {
+          return showTxConfirm({
+            kind: 'approval',
+            inputProps: {
+              amount,
+              token
+            },
+            onConfirm: async () => {
+              return contract.approve(address, parsedAmount)
+            }
+          })
+        }
+      }
+
       const signer = provider?.getSigner()
-      const tokenAddress = token.addressForNetwork(network).toString()
-      const contract = getErc20Contract(tokenAddress, signer)
+      const address = await signer?.getAddress()
+      const value = parseUnits(sourceTokenAmount, 18)
 
-      const address = arbitrumUniswapRouter?.address
-      const parsedAmount = parseUnits(amount, token.decimals || 18)
-      const approved = await contract.allowance(
-        await signer?.getAddress(),
-        address
+      let tx = await approveTokens(
+        selectedToken,
+        sourceTokenAmount,
+        sourceNetwork as Network
       )
+      await tx?.wait()
 
-      if (approved.lt(parsedAmount)) {
-        const tx = await contract.approve(address, parsedAmount)
-        return tx
+      if (sourceNetwork?.slug === 'kovan') {
+        if (destNetwork?.slug === 'arbitrum') {
+          const tokenAddress = selectedToken
+            .addressForNetwork(sourceNetwork)
+            .toString()
+          const arbChainAddress = '0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71'
+
+          tx = await showTxConfirm({
+            kind: 'swap',
+            inputProps: {
+              source: {
+                amount: sourceTokenAmount,
+                token: selectedToken
+              },
+              dest: {
+                amount: destTokenAmount,
+                token: selectedToken
+              }
+            },
+            onConfirm: async () => {
+              return arbitrumL1Messenger?.depositERC20Message(
+                arbChainAddress,
+                tokenAddress,
+                address,
+                value
+              )
+            }
+          })
+        }
+      } else if (sourceNetwork?.slug === 'arbitrum') {
+        if (destNetwork?.slug === 'kovan') {
+          const tokenAddress = selectedToken
+            .addressForNetwork(sourceNetwork)
+            .toString()
+
+          tx = await showTxConfirm({
+            kind: 'swap',
+            inputProps: {
+              source: {
+                amount: sourceTokenAmount,
+                token: selectedToken
+              },
+              dest: {
+                amount: destTokenAmount,
+                token: selectedToken
+              }
+            },
+            onConfirm: async () => {
+              return arbitrumDai?.withdraw(tokenAddress, value)
+            }
+          })
+        }
+        if (destNetwork?.slug === 'arbitrumHopBridge') {
+          const amountOutMin = '0'
+          const path = [addresses.arbitrumDai, addresses.arbitrumBridge]
+          const deadline = (Date.now() / 1000 + 300) | 0
+
+          tx = await showTxConfirm({
+            kind: 'swap',
+            inputProps: {
+              source: {
+                amount: sourceTokenAmount,
+                token: selectedToken
+              },
+              dest: {
+                amount: destTokenAmount,
+                token: selectedToken
+              }
+            },
+            onConfirm: async () => {
+              return arbitrumUniswapRouter?.swapExactTokensForTokens(
+                value,
+                amountOutMin,
+                path,
+                address,
+                deadline
+              )
+            }
+          })
+        }
+      } else if (sourceNetwork?.slug === 'arbitrumHopBridge') {
+        if (destNetwork?.slug === 'arbitrum') {
+          const amountOutMin = '0'
+          const path = [addresses.arbitrumBridge, addresses.arbitrumDai]
+          const deadline = (Date.now() / 1000 + 300) | 0
+
+          tx = await showTxConfirm({
+            kind: 'swap',
+            inputProps: {
+              source: {
+                amount: sourceTokenAmount,
+                token: selectedToken
+              },
+              dest: {
+                amount: destTokenAmount,
+                token: selectedToken
+              }
+            },
+            onConfirm: async () => {
+              return arbitrumUniswapRouter?.swapExactTokensForTokens(
+                value,
+                amountOutMin,
+                path,
+                address,
+                deadline
+              )
+            }
+          })
+        }
       }
+
+      if (tx?.hash && sourceNetwork?.name) {
+        setTransactions([
+          ...transactions,
+          new Transaction({ hash: tx?.hash, networkName: sourceNetwork?.slug })
+        ])
+      }
+    } catch (err) {
+      console.error(err)
     }
 
-    const signer = provider?.getSigner()
-    const address = await signer?.getAddress()
-    const value = parseUnits(sourceTokenAmount, 18)
-
-    let tx = await approveTokens(
-      selectedToken,
-      sourceTokenAmount,
-      sourceNetwork as Network
-    )
-    await tx?.wait()
-
-    if (sourceNetwork?.slug === 'kovan') {
-      if (destNetwork?.slug === 'arbitrum') {
-        const tokenAddress = selectedToken
-          .addressForNetwork(sourceNetwork)
-          .toString()
-        const arbChainAddress = '0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71'
-        tx = await arbitrumL1Messenger?.depositERC20Message(
-          arbChainAddress,
-          tokenAddress,
-          address,
-          value
-        )
-      }
-    } else if (sourceNetwork?.slug === 'arbitrum') {
-      if (destNetwork?.slug === 'kovan') {
-        const tokenAddress = selectedToken
-          .addressForNetwork(sourceNetwork)
-          .toString()
-        tx = await arbitrumDai?.withdraw(tokenAddress, value)
-      }
-      if (destNetwork?.slug === 'arbitrumHopBridge') {
-        const amountOutMin = '0'
-        const path = [addresses.arbitrumDai, addresses.arbitrumBridge]
-        const deadline = (Date.now() / 1000 + 300) | 0
-
-        tx = await arbitrumUniswapRouter?.swapExactTokensForTokens(
-          value,
-          amountOutMin,
-          path,
-          address,
-          deadline
-        )
-      }
-    } else if (sourceNetwork?.slug === 'arbitrumHopBridge') {
-      if (destNetwork?.slug === 'arbitrum') {
-        const amountOutMin = '0'
-        const path = [addresses.arbitrumBridge, addresses.arbitrumDai]
-        const deadline = (Date.now() / 1000 + 300) | 0
-
-        tx = await arbitrumUniswapRouter?.swapExactTokensForTokens(
-          value,
-          amountOutMin,
-          path,
-          address,
-          deadline
-        )
-      }
-    }
-
-    if (tx?.hash && sourceNetwork?.name) {
-      setTransactions([
-        ...transactions,
-        new Transaction({ hash: tx?.hash, networkName: sourceNetwork?.slug })
-      ])
-    }
+    setSending(false)
   }, [
     provider,
     selectedToken,
@@ -242,7 +326,9 @@ const ConvertContextProvider: FC = ({ children }) => {
     arbitrumUniswapRouter,
     getErc20Contract,
     transactions,
-    setTransactions
+    setTransactions,
+    showTxConfirm,
+    destTokenAmount
   ])
 
   const validFormFields = !!(
@@ -266,7 +352,9 @@ const ConvertContextProvider: FC = ({ children }) => {
         setDestTokenAmount,
         convertTokens,
         validFormFields,
-        calcAltTokenAmount
+        calcAltTokenAmount,
+        txConfirm,
+        sending
       }}
     >
       {children}

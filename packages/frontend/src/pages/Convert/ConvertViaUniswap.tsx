@@ -3,11 +3,11 @@ import { makeStyles } from '@material-ui/core/styles'
 import MuiButton from '@material-ui/core/Button'
 import Box from '@material-ui/core/Box'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
-import SendIcon from '@material-ui/icons/Send'
 import Network from 'src/models/Network'
 import AmountSelectorCard from 'src/pages/Convert/AmountSelectorCard'
-import Button from 'src/components/buttons/Button'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
+import SendButton from 'src/pages/Convert/SendButton'
+import TxConfirm from 'src/components/txConfirm/TxConfirm'
 
 const useStyles = makeStyles(() => ({
   title: {
@@ -22,10 +22,6 @@ const useStyles = makeStyles(() => ({
     margin: '0.8rem',
     height: '2.4rem',
     width: '2.4rem'
-  },
-  sendButton: {
-    marginTop: '6.4rem',
-    width: '30.0rem'
   }
 }))
 
@@ -42,9 +38,8 @@ const Convert: FC = () => {
     setSourceTokenAmount,
     setDestTokenAmount,
     destTokenAmount,
-    convertTokens,
-    validFormFields,
-    calcAltTokenAmount
+    calcAltTokenAmount,
+    txConfirm
   } = useConvert()
 
   useEffect(() => {
@@ -84,9 +79,6 @@ const Convert: FC = () => {
       setSourceTokenAmount(await calcAltTokenAmount(value))
     } catch (err) {}
   }
-  const handleSubmit = () => {
-    convertTokens()
-  }
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -110,16 +102,8 @@ const Convert: FC = () => {
         onChange={handleDestTokenAmountChange}
         selectedNetwork={destNetwork}
       />
-      <Button
-        className={styles.sendButton}
-        startIcon={<SendIcon />}
-        onClick={handleSubmit}
-        disabled={!validFormFields}
-        large
-        highlighted
-      >
-        Convert
-      </Button>
+      <SendButton />
+      <TxConfirm {...txConfirm} />
     </Box>
   )
 }

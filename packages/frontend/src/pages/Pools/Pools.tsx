@@ -4,12 +4,11 @@ import Typography from '@material-ui/core/Typography'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import MenuItem from '@material-ui/core/MenuItem'
-import SendIcon from '@material-ui/icons/Send'
-import CircularProgress from '@material-ui/core/CircularProgress'
 import AmountSelectorCard from 'src/pages/Pools/AmountSelectorCard'
-import Button from 'src/components/buttons/Button'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import { usePools } from 'src/pages/Pools/PoolsContext'
+import SendButton from 'src/pages/Pools/SendButton'
+import TxConfirm from 'src/components/txConfirm/TxConfirm'
 
 const useStyles = makeStyles(() => ({
   title: {
@@ -59,10 +58,6 @@ const useStyles = makeStyles(() => ({
   poolPosition: {
     display: 'flex',
     justifyContent: 'space-between'
-  },
-  spinner: {
-    display: 'inline-flex',
-    marginLeft: '1rem'
   }
 }))
 
@@ -84,13 +79,11 @@ const Pools: FC = () => {
     token0Price,
     token1Price,
     token1Rate,
-    addLiquidity,
     userPoolBalance,
     userPoolTokenPercentage,
     token0Deposited,
     token1Deposited,
-    sending,
-    validFormFields
+    txConfirm
   } = usePools()
 
   const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
@@ -135,10 +128,6 @@ const Pools: FC = () => {
     setToken1Amount(token1Value)
     const token0Value = Number(token1Value) / Number(token1Rate)
     setToken0Amount(token0Value.toFixed(2))
-  }
-
-  const handleSubmit = () => {
-    addLiquidity()
   }
 
   return (
@@ -341,21 +330,8 @@ const Pools: FC = () => {
           </Card>
         </Box>
       )}
-      <Button
-        className={styles.sendButton}
-        startIcon={<SendIcon />}
-        onClick={handleSubmit}
-        large
-        highlighted
-        disabled={!validFormFields || sending}
-      >
-        Add liquidity{' '}
-        {sending && (
-          <div className={styles.spinner}>
-            <CircularProgress />
-          </div>
-        )}
-      </Button>
+      <SendButton />
+      <TxConfirm {...txConfirm} />
     </Box>
   )
 }

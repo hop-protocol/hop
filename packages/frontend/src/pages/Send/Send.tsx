@@ -5,12 +5,12 @@ import Typography from '@material-ui/core/Typography'
 import MenuItem from '@material-ui/core/MenuItem'
 import MuiButton from '@material-ui/core/Button'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
-import SendIcon from '@material-ui/icons/Send'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
-import AmountSelectorCard from './AmountSelectorCard'
-import Button from 'src/components/buttons/Button'
-
-import { utils as ethersUtils } from 'ethers'
+import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
+import SendButton from 'src/pages/Send/SendButton'
+import TxConfirm from 'src/components/txConfirm/TxConfirm'
+import useTxConfirm from 'src/contexts/AppContext/useTxConfirm'
+import { parseEther, formatEther, parseUnits } from 'ethers/lib/utils'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -36,10 +36,6 @@ const useStyles = makeStyles(() => ({
   detailRow: {
     marginTop: '4.2rem',
     width: '46.0rem'
-  },
-  sendButton: {
-    marginTop: '6.4rem',
-    width: '30.0rem'
   }
 }))
 
@@ -52,7 +48,8 @@ const Send: FC = () => {
   const {
     provider,
     setRequiredNetworkId,
-    validConnectedNetworkId
+    validConnectedNetworkId,
+    walletConnected
   } = useWeb3Context()
 
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
@@ -61,6 +58,8 @@ const Send: FC = () => {
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
   const [isFromLastChanged, setIsFromLastChanged] = useState<boolean>(true)
+  const { txConfirm, showTxConfirm } = useTxConfirm()
+  const [sending, setSending] = useState<boolean>(false)
   const exchangeRate = useMemo(() => {
     if (!fromNetwork || !toNetwork) {
       return '-'
@@ -68,9 +67,8 @@ const Send: FC = () => {
 
     let rate
     try {
-      rate = ethersUtils.formatEther(
-        ethersUtils
-          .parseEther('1')
+      rate = formatEther(
+        parseEther('1')
           .mul(selectedToken.rateForNetwork(toNetwork))
           .div(selectedToken.rateForNetwork(fromNetwork))
       )
@@ -105,11 +103,10 @@ const Send: FC = () => {
   useEffect(() => {
     if (isFromLastChanged) {
       try {
-        const toAmount = ethersUtils
-          .parseEther(fromTokenAmount)
+        const toAmount = parseEther(fromTokenAmount)
           .mul(selectedToken.rateForNetwork(toNetwork))
           .div(selectedToken.rateForNetwork(fromNetwork))
-        setToTokenAmount(ethersUtils.formatEther(toAmount))
+        setToTokenAmount(formatEther(toAmount))
       } catch (err) {}
     }
   }, [
@@ -125,11 +122,10 @@ const Send: FC = () => {
   useEffect(() => {
     if (!isFromLastChanged) {
       try {
-        const fromAmount = ethersUtils
-          .parseEther(toTokenAmount)
+        const fromAmount = parseEther(toTokenAmount)
           .mul(selectedToken.rateForNetwork(fromNetwork))
           .div(selectedToken.rateForNetwork(toNetwork))
-        setFromTokenAmount(ethersUtils.formatEther(fromAmount))
+        setFromTokenAmount(formatEther(fromAmount))
       } catch (err) {}
     }
   }, [
@@ -141,7 +137,7 @@ const Send: FC = () => {
     setFromTokenAmount
   ])
 
-  const approve = async () => {
+  const approve = async (amount: string) => {
     const signer = user?.signer()
 
     if (!signer) {
@@ -157,31 +153,71 @@ const Send: FC = () => {
       .connect(signer)
 
     if (fromNetwork.isLayer1) {
-      tokenContract.approve(
-        l1Bridge?.address,
-        '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+      const approved = await tokenContract.allowance(
+        await signer?.getAddress(),
+        l1Bridge?.address
       )
+      const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
+      if (approved.lt(parsedAmount)) {
+        return showTxConfirm({
+          kind: 'approval',
+          inputProps: {
+            amount: 'ALL',
+            token: selectedToken
+          },
+          onConfirm: async () => {
+            return tokenContract.approve(
+              l1Bridge?.address,
+              '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+            )
+          }
+        })
+      }
     } else {
-      // ToDo: Get uniswap contract based on from network
-      tokenContract.approve(
-        arbitrumUniswapRouter?.address,
-        '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+      const approved = await tokenContract.allowance(
+        await signer?.getAddress(),
+        arbitrumUniswapRouter?.address
       )
+      const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
+      if (approved.lt(parsedAmount)) {
+        return showTxConfirm({
+          kind: 'approval',
+          inputProps: {
+            amount: 'ALL',
+            token: selectedToken
+          },
+          onConfirm: async () => {
+            // ToDo: Get uniswap contract based on from network
+            return tokenContract.approve(
+              arbitrumUniswapRouter?.address,
+              '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+            )
+          }
+        })
+      }
     }
   }
 
   const send = async () => {
-    if (!fromNetwork || !toNetwork) {
-      throw new Error('A network is undefined')
-    }
+    try {
+      if (!fromNetwork || !toNetwork) {
+        throw new Error('A network is undefined')
+      }
 
-    if (fromNetwork.isLayer1) {
-      await sendl1ToL2()
-    } else if (!fromNetwork.isLayer1) {
-      await sendl2ToL1()
-    } else {
-      console.log('ToDo: L2 to L2 transfers')
+      setSending(true)
+
+      await approve(fromTokenAmount)
+      if (fromNetwork.isLayer1) {
+        await sendl1ToL2()
+      } else if (!fromNetwork.isLayer1) {
+        await sendl2ToL1()
+      } else {
+        console.log('ToDo: L2 to L2 transfers')
+      }
+    } catch (err) {
+      console.error(err)
     }
+    setSending(false)
   }
 
   const sendl1ToL2 = async () => {
@@ -191,12 +227,28 @@ const Send: FC = () => {
     }
 
     const arbitrumNetwork = networks[1]
-    await l1Bridge.sendToL2AndAttemptSwap(
-      arbitrumNetwork.key(),
-      await signer.getAddress(),
-      ethersUtils.parseEther(fromTokenAmount),
-      '0'
-    )
+
+    return showTxConfirm({
+      kind: 'send',
+      inputProps: {
+        source: {
+          amount: fromTokenAmount,
+          token: selectedToken,
+          network: fromNetwork
+        },
+        dest: {
+          network: toNetwork
+        }
+      },
+      onConfirm: async () => {
+        return l1Bridge.sendToL2AndAttemptSwap(
+          arbitrumNetwork.key(),
+          await signer.getAddress(),
+          parseEther(fromTokenAmount),
+          '0'
+        )
+      }
+    })
   }
 
   const sendl2ToL1 = async () => {
@@ -216,6 +268,17 @@ const Send: FC = () => {
     fromTokenAmount &&
     toTokenAmount
   )
+
+  let buttonText = 'Send'
+  if (!walletConnected) {
+    buttonText = 'Connect wallet'
+  } else if (!fromNetwork) {
+    buttonText = 'Select from network'
+  } else if (!toNetwork) {
+    buttonText = 'Select to network'
+  } else if (!validConnectedNetworkId) {
+    buttonText = 'Change network'
+  }
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -246,11 +309,11 @@ const Send: FC = () => {
           setIsFromLastChanged(true)
 
           try {
-            const fromAmount = ethersUtils.parseEther(event.target.value)
+            const fromAmount = parseEther(event.target.value)
             const toAmount = fromAmount
               .mul(selectedToken.rateForNetwork(toNetwork))
               .div(selectedToken.rateForNetwork(fromNetwork))
-            setToTokenAmount(ethersUtils.formatEther(toAmount))
+            setToTokenAmount(formatEther(toAmount))
           } catch (e) {}
         }}
         selectedNetwork={fromNetwork}
@@ -280,11 +343,11 @@ const Send: FC = () => {
           setIsFromLastChanged(false)
 
           try {
-            const toAmount = ethersUtils.parseEther(event.target.value)
+            const toAmount = parseEther(event.target.value)
             const fromAmount = toAmount
               .mul(selectedToken.rateForNetwork(fromNetwork))
               .div(selectedToken.rateForNetwork(toNetwork))
-            setFromTokenAmount(ethersUtils.formatEther(fromAmount))
+            setFromTokenAmount(formatEther(fromAmount))
           } catch (e) {}
         }}
         selectedNetwork={toNetwork}
@@ -306,26 +369,10 @@ const Send: FC = () => {
           {exchangeRate}
         </Typography>
       </Box>
-      <Button
-        className={styles.sendButton}
-        startIcon={<SendIcon />}
-        onClick={approve}
-        large
-        highlighted
-        disabled={!validFormFields}
-      >
-        Approve
-      </Button>
-      <Button
-        className={styles.sendButton}
-        startIcon={<SendIcon />}
-        onClick={send}
-        large
-        highlighted
-        disabled={!validFormFields}
-      >
-        Send
-      </Button>
+      <SendButton sending={sending} disabled={!validFormFields} onClick={send}>
+        {buttonText}
+      </SendButton>
+      <TxConfirm {...txConfirm} />
     </Box>
   )
 }

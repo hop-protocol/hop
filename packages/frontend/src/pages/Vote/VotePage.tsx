@@ -14,8 +14,9 @@ import useTimestampFromBlock from 'src/hooks/useTimestampFromBlock'
 
 import { IProposal } from 'src/config'
 
-import { isAddress, getEtherscanLink } from '../../utils'
+import { getEtherscanLink } from '../../utils'
 
+import Address from '../../models/Address'
 import VoteStatusCard from './VoteStatusCard'
 import ProposalStatusCard from './ProposalStatusCard'
 
@@ -114,15 +115,14 @@ const VotePage: FC<VotePageProps> = props => {
   // Show links in proposal details if content is an address
   // If content is contract with common name, replace address with common name
   const linkIfAddress = (content: string) => {
-    if (isAddress(content) && connectedNetworkId) {
-      const commonName = COMMON_CONTRACT_NAMES[content] ?? content
-      return (
-        <Link href={getEtherscanLink(connectedNetworkId, content, 'address')}>
-          {commonName}
-        </Link>
-      )
+    try {
+      const address = new Address(content)
+      const commonName = COMMON_CONTRACT_NAMES[address.toString()] ?? address.toString() 
+      return <Link href={getEtherscanLink(connectedNetworkId, address.toString(), 'address')}>{commonName}</Link>
     }
-    return <span>{content}</span>
+    catch {
+      return <span>{content}</span>
+    }
   }
 
   return (

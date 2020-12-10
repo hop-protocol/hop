@@ -14,6 +14,7 @@ describe("ArbitrumMessage", () => {
   let accounts: Signer[]
   let user: Signer
   let liquidityProvider: Signer
+  let committee: Signer
 
   // Factories
   let L1_Bridge: ContractFactory
@@ -40,6 +41,7 @@ describe("ArbitrumMessage", () => {
     accounts = await ethers.getSigners()
     user = accounts[0]
     liquidityProvider = accounts[1]
+    committee = accounts[2]
 
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
     L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
@@ -57,7 +59,7 @@ describe("ArbitrumMessage", () => {
     l2_uniswapRouter = await UniswapRouter.deploy(l2_uniswapFactory.address, weth.address)
 
     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
-    l1_bridge = await L1_Bridge.deploy(l1_poolToken.address)
+    l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await committee.getAddress())
     l1_messenger = await MockMessenger.deploy()
     l1_messengerWrapper = await L1_MessengerWrapper.deploy()
 

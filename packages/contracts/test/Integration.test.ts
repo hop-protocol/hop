@@ -1,11 +1,11 @@
 import '@nomiclabs/hardhat-waffle'
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { BigNumber, BigNumberish, ContractFactory, Signer, Contract } from 'ethers'
+import { BigNumber, ContractFactory, Signer, Contract } from 'ethers'
 import MerkleTree from '../lib/MerkleTree'
 import Transfer from '../lib/Transfer'
 
-import { setMessengerWrapperDefaults } from './utils'
+import { setMessengerWrapperDefaults, expectBalanceOf } from './utils'
 import { L2_NAMES } from './constants'
 
 const USER_INITIAL_BALANCE = BigNumber.from('100')
@@ -72,7 +72,7 @@ describe("Full story", () => {
     // Deploy  L1 contracts
     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
     l1_messenger = await CrossDomainMessenger.deploy(0)
-    l1_bridge = await L1_Bridge.deploy(l1_poolToken.address)
+    l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await committee.getAddress())
     l1_ovmBridge = await L1_OVMTokenBridge.deploy(l1_messenger.address, l1_poolToken.address)
     l1_messengerWrapper = await L1_MessengerWrapper.deploy()
 
@@ -191,7 +191,7 @@ describe("Full story", () => {
     const transfersCommittedEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransfersCommitted()))[0]
 
     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
-    await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
     await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, [MAINNET_CHAIN_ID], [transfer.amount])
 
@@ -223,7 +223,7 @@ describe("Full story", () => {
     const tree = new MerkleTree([ transfer.getTransferHash() ])
 
     await l1_poolToken.connect(committee).approve(l1_bridge.address, '1')
-    await l1_bridge.connect(committee).committeeStake('1')
+    await l1_bridge.connect(committee).stake('1')
 
     await expect(
       l1_bridge.bondTransferRoot(tree.getRoot(), transfer.amount)
@@ -243,7 +243,7 @@ describe("Full story", () => {
     const tree = new MerkleTree([ transfer.getTransferHash() ])
 
     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
-    await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
     await l1_bridge.bondTransferRoot(tree.getRoot(), [transfer.chainId], [transfer.amount])
 
@@ -285,7 +285,7 @@ describe("Full story", () => {
     const transfersCommittedEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransfersCommitted()))[0]
 
     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
-    await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
     await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, [transfer.chainId], [transfer.amount])
     await l2_messenger.relayNextMessage()
@@ -375,7 +375,7 @@ describe("Full story", () => {
     const transfersCommittedEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransfersCommitted()))[0]
 
     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
-    await l1_bridge.connect(committee).committeeStake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
     await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, [ transfer.chainId ], [ transfer.amount ])
 
@@ -403,10 +403,4 @@ describe("Full story", () => {
 
     await expectBalanceOf(l1_poolToken, user, '98')
   })
-
-  const expectBalanceOf = async (token: Contract, account: Signer | Contract, expectedBalance: BigNumberish) => {
-    const accountAddress = account instanceof Signer ? await account.getAddress() : account.address
-    const balance = await token.balanceOf(accountAddress)
-    expect(balance.toString()).to.eq(BigNumber.from(expectedBalance).toString())
-  }
 })

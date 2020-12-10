@@ -5,6 +5,7 @@ import Box from '@material-ui/core/Box'
 import CircularProgress from '@material-ui/core/CircularProgress'
 
 import { Countdown } from './Countdown'
+import useContracts from 'src/contexts/AppContext/useContracts'
 
 const useStyles = makeStyles(() => ({
   title: {
@@ -44,6 +45,7 @@ const useStyles = makeStyles(() => ({
 
 const Earn: FC = () => {
   const styles = useStyles()
+  const { stakingRewards } = useContracts([])
 
   // MOCK DATA
   const mockDate = new Date()
@@ -80,7 +82,8 @@ const Earn: FC = () => {
           ) : stakingInfos?.length !== 0 && stakingInfosWithBalance.length === 0 ? (
             <span> No active pools </span>
           ) : (
-            <span> You are earning! </span>
+            // <span> You are earning! </span>
+            <span> { stakingRewards?.address } </span>
             // stakingInfosWithBalance?.map(stakingInfo => {
             //   // need to sort by added liquidity here
             //   return <PoolCard key={stakingInfo.stakingRewardAddress} stakingInfo={stakingInfo} />

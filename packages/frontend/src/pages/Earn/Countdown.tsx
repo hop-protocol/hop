@@ -14,9 +14,6 @@ export function Countdown({ exactEnd }: { exactEnd?: Date }) {
     exactEnd
   ])
   const begin = useMemo(() => end - REWARDS_DURATION, [end])
-  console.log('aaa', exactEnd)
-  console.log('aaa', begin)
-  console.log('bbb', end)
 
   // get current time
   const [time, setTime] = useState(() => Math.floor(Date.now() / 1000))
@@ -35,13 +32,11 @@ export function Countdown({ exactEnd }: { exactEnd?: Date }) {
 
   let timeRemaining: number
   let message: string
-  console.log('000', timeUntilGenesis)
   if (timeUntilGenesis >= 0) {
     message = 'Rewards begin in'
     timeRemaining = timeUntilGenesis
   } else {
     const ongoing = timeUntilEnd >= 0
-    console.log('111', timeUntilEnd)
     if (ongoing) {
       message = 'Rewards end in'
       timeRemaining = timeUntilEnd

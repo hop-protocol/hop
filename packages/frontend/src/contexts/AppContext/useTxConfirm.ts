@@ -1,9 +1,20 @@
 import { useState } from 'react'
 
-const useTxConfirm = () => {
-  const [txConfirm, setTxConfirm] = useState<any>(null)
+export type TxConfirmParams = {
+  kind: string
+  inputProps: any
+  onConfirm: () => void
+}
 
-  const showTxConfirm = (params: any) => {
+export interface TxConfirm {
+  txConfirmParams: TxConfirmParams
+  show: (params: TxConfirmParams) => void
+}
+
+export const useTxConfirm = (): TxConfirm => {
+  const [txConfirmParams, setTxConfirm] = useState<any>(null)
+
+  const show = (params: TxConfirmParams) => {
     const { kind, inputProps, onConfirm } = params
     return new Promise((resolve, reject) => {
       setTxConfirm({
@@ -27,8 +38,8 @@ const useTxConfirm = () => {
   }
 
   return {
-    txConfirm,
-    showTxConfirm
+    txConfirmParams,
+    show
   }
 }
 

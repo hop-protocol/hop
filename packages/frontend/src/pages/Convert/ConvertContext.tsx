@@ -15,7 +15,6 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import useContracts from 'src/contexts/AppContext/useContracts'
 import { addresses } from 'src/config'
-import useTxConfirm from 'src/contexts/AppContext/useTxConfirm'
 
 type ConvertContextProps = {
   selectedToken: Token | undefined
@@ -31,7 +30,6 @@ type ConvertContextProps = {
   convertTokens: () => void
   validFormFields: boolean
   calcAltTokenAmount: (value: string) => Promise<string>
-  txConfirm: any
   sending: boolean
 }
 
@@ -49,7 +47,6 @@ const ConvertContext = createContext<ConvertContextProps>({
   convertTokens: () => {},
   validFormFields: false,
   calcAltTokenAmount: async (value: string): Promise<string> => '',
-  txConfirm: null,
   sending: false
 })
 
@@ -59,7 +56,13 @@ const ConvertContextProvider: FC = ({ children }) => {
     setRequiredNetworkId,
     validConnectedNetworkId
   } = useWeb3Context()
-  let { networks: nets, tokens, transactions, setTransactions } = useApp()
+  let {
+    networks: nets,
+    tokens,
+    transactions,
+    setTransactions,
+    txConfirm
+  } = useApp()
   const networks = useMemo(() => {
     const kovanNetwork = nets.find(
       (network: Network) => network.slug === 'kovan'
@@ -102,7 +105,6 @@ const ConvertContextProvider: FC = ({ children }) => {
     arbitrumL1Messenger,
     getErc20Contract
   } = useContracts([])
-  const { txConfirm, showTxConfirm } = useTxConfirm()
   const [sending, setSending] = useState<boolean>(false)
 
   useEffect(() => {
@@ -169,7 +171,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         )
 
         if (approved.lt(parsedAmount)) {
-          return showTxConfirm({
+          return txConfirm?.show({
             kind: 'approval',
             inputProps: {
               amount,
@@ -200,7 +202,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             .toString()
           const arbChainAddress = '0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71'
 
-          tx = await showTxConfirm({
+          tx = await txConfirm?.show({
             kind: 'swap',
             inputProps: {
               source: {
@@ -228,7 +230,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             .addressForNetwork(sourceNetwork)
             .toString()
 
-          tx = await showTxConfirm({
+          tx = await txConfirm?.show({
             kind: 'swap',
             inputProps: {
               source: {
@@ -250,7 +252,7 @@ const ConvertContextProvider: FC = ({ children }) => {
           const path = [addresses.arbitrumDai, addresses.arbitrumBridge]
           const deadline = (Date.now() / 1000 + 300) | 0
 
-          tx = await showTxConfirm({
+          tx = await txConfirm?.show({
             kind: 'swap',
             inputProps: {
               source: {
@@ -279,7 +281,7 @@ const ConvertContextProvider: FC = ({ children }) => {
           const path = [addresses.arbitrumBridge, addresses.arbitrumDai]
           const deadline = (Date.now() / 1000 + 300) | 0
 
-          tx = await showTxConfirm({
+          tx = await txConfirm?.show({
             kind: 'swap',
             inputProps: {
               source: {
@@ -327,7 +329,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     getErc20Contract,
     transactions,
     setTransactions,
-    showTxConfirm,
+    txConfirm,
     destTokenAmount
   ])
 
@@ -353,7 +355,6 @@ const ConvertContextProvider: FC = ({ children }) => {
         convertTokens,
         validFormFields,
         calcAltTokenAmount,
-        txConfirm,
         sending
       }}
     >

@@ -1,20 +1,18 @@
-import React, { ReactNode } from 'react'
+import React, { ReactNode, FC } from 'react'
 import Modal from 'src/components/modal/Modal'
 import Approval from 'src/components/txConfirm/Approval'
 import Send from 'src/components/txConfirm/Send'
 import Swap from 'src/components/txConfirm/Swap'
 import AddLiquidity from 'src/components/txConfirm/AddLiquidity'
+import { useApp } from 'src/contexts/AppContext'
 
-type kind = 'approval' | 'send' | 'swap' | 'addLiquidity'
-
-interface Props {
-  kind: kind
-  inputProps?: any
-  onConfirm: (confirmed: boolean) => void
-}
-
-const TxConfirm = (props: Props) => {
-  const { kind, inputProps, onConfirm } = props
+const TxConfirm: FC = props => {
+  const { txConfirm } = useApp()
+  const txConfirmParams = txConfirm?.txConfirmParams
+  if (!txConfirmParams) {
+    return null
+  }
+  const { kind, inputProps, onConfirm } = txConfirmParams
   let component: ReactNode = null
   if (kind === 'approval') {
     component = <Approval onConfirm={onConfirm} {...inputProps} />
@@ -29,7 +27,7 @@ const TxConfirm = (props: Props) => {
   }
 
   const handleClose = () => {
-    onConfirm(false)
+    onConfirm()
   }
 
   return <Modal onClose={handleClose}>{component}</Modal>

@@ -117,10 +117,20 @@ const VotePage: FC<VotePageProps> = props => {
   const linkIfAddress = (content: string) => {
     try {
       const address = new Address(content)
-      const commonName = COMMON_CONTRACT_NAMES[address.toString()] ?? address.toString() 
-      return <Link href={getEtherscanLink(connectedNetworkId, address.toString(), 'address')}>{commonName}</Link>
-    }
-    catch {
+      const commonName =
+        COMMON_CONTRACT_NAMES[address.toString()] ?? address.toString()
+      return (
+        <Link
+          href={getEtherscanLink(
+            connectedNetworkId,
+            address.toString(),
+            'address'
+          )}
+        >
+          {commonName}
+        </Link>
+      )
+    } catch {
       return <span>{content}</span>
     }
   }

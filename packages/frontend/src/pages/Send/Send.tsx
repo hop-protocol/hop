@@ -8,8 +8,6 @@ import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
 import SendButton from 'src/pages/Send/SendButton'
-import TxConfirm from 'src/components/txConfirm/TxConfirm'
-import useTxConfirm from 'src/contexts/AppContext/useTxConfirm'
 import { parseEther, formatEther, parseUnits } from 'ethers/lib/utils'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
@@ -42,7 +40,7 @@ const useStyles = makeStyles(() => ({
 const Send: FC = () => {
   const styles = useStyles()
 
-  const { user, tokens, networks, contracts } = useApp()
+  const { user, tokens, networks, contracts, txConfirm } = useApp()
   const { l1Bridge, arbitrumBridge, arbitrumUniswapRouter } = contracts
 
   const {
@@ -58,7 +56,6 @@ const Send: FC = () => {
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
   const [isFromLastChanged, setIsFromLastChanged] = useState<boolean>(true)
-  const { txConfirm, showTxConfirm } = useTxConfirm()
   const [sending, setSending] = useState<boolean>(false)
   const exchangeRate = useMemo(() => {
     if (!fromNetwork || !toNetwork) {
@@ -159,7 +156,7 @@ const Send: FC = () => {
       )
       const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
       if (approved.lt(parsedAmount)) {
-        return showTxConfirm({
+        return txConfirm?.show({
           kind: 'approval',
           inputProps: {
             amount: 'ALL',
@@ -180,7 +177,7 @@ const Send: FC = () => {
       )
       const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
       if (approved.lt(parsedAmount)) {
-        return showTxConfirm({
+        return txConfirm?.show({
           kind: 'approval',
           inputProps: {
             amount: 'ALL',
@@ -228,7 +225,7 @@ const Send: FC = () => {
 
     const arbitrumNetwork = networks[1]
 
-    return showTxConfirm({
+    return txConfirm?.show({
       kind: 'send',
       inputProps: {
         source: {
@@ -372,7 +369,6 @@ const Send: FC = () => {
       <SendButton sending={sending} disabled={!validFormFields} onClick={send}>
         {buttonText}
       </SendButton>
-      <TxConfirm {...txConfirm} />
     </Box>
   )
 }

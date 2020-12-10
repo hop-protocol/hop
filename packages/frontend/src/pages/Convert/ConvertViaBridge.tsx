@@ -7,7 +7,6 @@ import Network from 'src/models/Network'
 import SendButton from 'src/pages/Convert/SendButton'
 import AmountSelectorCard from 'src/pages/Convert/AmountSelectorCard'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
-import TxConfirm from 'src/components/txConfirm/TxConfirm'
 
 const useStyles = makeStyles(() => ({
   title: {
@@ -38,8 +37,7 @@ const Convert: FC = () => {
     setSourceTokenAmount,
     setDestTokenAmount,
     destTokenAmount,
-    calcAltTokenAmount,
-    txConfirm
+    calcAltTokenAmount
   } = useConvert()
 
   useEffect(() => {
@@ -103,7 +101,6 @@ const Convert: FC = () => {
         selectedNetwork={destNetwork}
       />
       <SendButton />
-      <TxConfirm {...txConfirm} />
     </Box>
   )
 }

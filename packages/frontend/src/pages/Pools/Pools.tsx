@@ -8,7 +8,6 @@ import AmountSelectorCard from 'src/pages/Pools/AmountSelectorCard'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
-import TxConfirm from 'src/components/txConfirm/TxConfirm'
 
 const useStyles = makeStyles(() => ({
   title: {
@@ -82,8 +81,7 @@ const Pools: FC = () => {
     userPoolBalance,
     userPoolTokenPercentage,
     token0Deposited,
-    token1Deposited,
-    txConfirm
+    token1Deposited
   } = usePools()
 
   const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
@@ -331,7 +329,6 @@ const Pools: FC = () => {
         </Box>
       )}
       <SendButton />
-      <TxConfirm {...txConfirm} />
     </Box>
   )
 }

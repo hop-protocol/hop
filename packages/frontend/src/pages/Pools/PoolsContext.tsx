@@ -14,6 +14,7 @@ import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import useNetworks from 'src/contexts/AppContext/useNetworks'
 import useTokens from 'src/contexts/AppContext/useTokens'
 import useContracts from 'src/contexts/AppContext/useContracts'
+import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
@@ -21,7 +22,6 @@ import Address from 'src/models/Address'
 import Price from 'src/models/Price'
 import { addresses } from 'src/config'
 import useInterval from 'src/hooks/useInterval'
-import useTxConfirm from 'src/contexts/AppContext/useTxConfirm'
 
 type PoolsContextProps = {
   networks: Network[]
@@ -50,7 +50,6 @@ type PoolsContextProps = {
   txHash: string | undefined
   sending: boolean
   validFormFields: boolean
-  txConfirm: any
 }
 
 const PoolsContext = createContext<PoolsContextProps>({
@@ -79,8 +78,7 @@ const PoolsContext = createContext<PoolsContextProps>({
   token1Deposited: undefined,
   txHash: undefined,
   sending: false,
-  validFormFields: false,
-  txConfirm: null
+  validFormFields: false
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -111,7 +109,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   } = useContracts([])
   let networks = useNetworks()
   let tokens = useTokens(networks)
-  const { txConfirm, showTxConfirm } = useTxConfirm()
+  const { txConfirm } = useApp()
 
   const hopToken = useMemo(() => {
     const network = networks.find(network => network.slug === 'arbitrum')
@@ -286,7 +284,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     )
 
     if (approved.lt(parsedAmount)) {
-      return showTxConfirm({
+      return txConfirm?.show({
         kind: 'approval',
         inputProps: {
           amount,
@@ -328,7 +326,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       const to = await signer?.getAddress()
       const deadline = (Date.now() / 1000 + 5 * 60) | 0
 
-      tx = await showTxConfirm({
+      tx = await txConfirm?.show({
         kind: 'addLiquidity',
         inputProps: {
           token0: {
@@ -397,8 +395,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         token1Deposited,
         txHash,
         sending,
-        validFormFields,
-        txConfirm
+        validFormFields
       }}
     >
       {children}

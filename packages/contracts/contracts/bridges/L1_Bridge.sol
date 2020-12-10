@@ -16,6 +16,11 @@ contract L1_Bridge is Bridge {
         address challenger;
     }
 
+    struct PendingUnstake {
+        uint256 amount;
+        uint256 startedAt;
+    }
+
     /**
      * Constants
      */
@@ -25,6 +30,7 @@ contract L1_Bridge is Bridge {
     uint256 constant TIME_SLOT_SIZE = 1 hours;
     uint256 constant CHALLENGE_PERIOD = 4 hours;
     uint256 constant CHALLENGE_RESOLUTION_PERIOD = 8 days;
+    uint256 constant UNSTAKE_PERIOD = 9 days;
 
     /**
      * State
@@ -39,6 +45,8 @@ contract L1_Bridge is Bridge {
     uint256 public committeeBond;
     mapping(uint256 => uint256) public timeSlotToAmountBonded;
     uint256 public amountChallenged;
+    mapping(bytes32 => PendingUnstake) public pendingUnstakes;
+    uint256 totalPendingUnstake;
 
     /**
      * Events
@@ -54,8 +62,19 @@ contract L1_Bridge is Bridge {
         uint256 amount
     );
 
-    constructor (IERC20 _token) public {
+    event UnstakeStarted (
+        uint256 amount,
+        bytes32 unstakeId
+    );
+
+    event UnstakeCompleted (
+        uint256 amount,
+        bytes32 unstakeId
+    );
+
+    constructor (IERC20 _token, address _committee) public {
         token = _token;
+        committee = _committee;
     }
 
     /**
@@ -106,16 +125,39 @@ contract L1_Bridge is Bridge {
      * Public Committee Staking Functions
      */
 
-    function committeeStake(uint256 _amount) public {
+    function stake(uint256 _amount) public {
         token.transferFrom(msg.sender, address(this), _amount);
         committeeBond = committeeBond.add(_amount);
     }
 
     // onlyCommittee
-    // ToDo: Add time delay to unstake
-    function committeeUnstake(uint256 _amount) public {
-        committeeBond = committeeBond.sub(_amount, "BDG: Amount exceeds total stake");
-        token.transfer(committee, _amount);
+    function startUnstake(uint256 _amount) public {
+        bytes32 unstakeId = getPendingUnstakeId(_amount, now);
+        require(pendingUnstakes[unstakeId].amount == 0, "BDG: Cannot unstake mulitple times in the same block");
+        require(getTotalBonded().add(_amount) <= committeeBond, "BDG: Amount exceeds committee bond");
+        totalPendingUnstake = totalPendingUnstake.add(_amount);
+        pendingUnstakes[unstakeId] = PendingUnstake(_amount, now);
+
+        emit UnstakeStarted(_amount, unstakeId);
+    }
+
+    // onlyCommittee
+    function completeUnstake(bytes32 _unstakeId) public {
+        PendingUnstake memory unstake = pendingUnstakes[_unstakeId];
+        delete pendingUnstakes[_unstakeId];
+
+        require(unstake.startedAt != 0, "BDG: PendingUnstake does not exist.");
+        require(now > unstake.startedAt.add(UNSTAKE_PERIOD), "BDG: Unstake is still pending.");
+
+        totalPendingUnstake = totalPendingUnstake.sub(unstake.amount);
+        committeeBond = committeeBond.sub(unstake.amount, "BDG: Amount exceeds total stake");
+        token.transfer(committee, unstake.amount);
+
+        emit UnstakeCompleted(unstake.amount, _unstakeId);
+    }
+
+    function getPendingUnstakeId(uint256 _amount, uint256 _startedAt) public pure returns (bytes32) {
+        return keccak256(abi.encode(_amount, _startedAt));
     }
 
     /**
@@ -239,6 +281,9 @@ contract L1_Bridge is Bridge {
 
         // Add amount needed to pay any challengers
         bonded = bonded.add(bonded.mul(CHALLENGE_AMOUNT_MULTIPLIER).div(CHALLENGE_AMOUNT_DIVISOR));
+
+        // Add any amount currently being unstaked
+        bonded = bonded.add(totalPendingUnstake);
 
         return bonded;
     }

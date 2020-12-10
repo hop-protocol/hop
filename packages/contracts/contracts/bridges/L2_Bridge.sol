@@ -64,7 +64,6 @@ abstract contract L2_Bridge is ERC20, Bridge {
         l1BridgeAddress = _l1BridgeAddress;
     }
 
-    // ToDo: Rename to Send
     /// @notice _amount is the amount the user wants to send plus the relayer fee
     function send(
         uint256 _chainId,

@@ -72,6 +72,15 @@ contract L1_Bridge is Bridge {
         bytes32 unstakeId
     );
 
+    /**
+     * Modifiers
+     */
+
+    modifier onlyCommittee {
+        require(msg.sender == committee, "BDG: Caller is not committee");
+        _;
+    }
+
     constructor (IERC20 _token, address _committee) public {
         token = _token;
         committee = _committee;
@@ -130,8 +139,7 @@ contract L1_Bridge is Bridge {
         committeeBond = committeeBond.add(_amount);
     }
 
-    // onlyCommittee
-    function startUnstake(uint256 _amount) public {
+    function startUnstake(uint256 _amount) public onlyCommittee {
         bytes32 unstakeId = getPendingUnstakeId(_amount, now);
         require(pendingUnstakes[unstakeId].amount == 0, "BDG: Cannot unstake mulitple times in the same block");
         require(getTotalBonded().add(_amount) <= committeeBond, "BDG: Amount exceeds committee bond");
@@ -141,8 +149,7 @@ contract L1_Bridge is Bridge {
         emit UnstakeStarted(_amount, unstakeId);
     }
 
-    // onlyCommittee
-    function completeUnstake(bytes32 _unstakeId) public {
+    function completeUnstake(bytes32 _unstakeId) public onlyCommittee {
         PendingUnstake memory unstake = pendingUnstakes[_unstakeId];
         delete pendingUnstakes[_unstakeId];
 
@@ -172,8 +179,14 @@ contract L1_Bridge is Bridge {
      *      where the TransferRoot originated.
      */
 
-    // onlyCommittee
-    function bondTransferRoot(bytes32 _transferRootHash, uint256[] memory _chainIds, uint256[] memory _chainAmounts) public {
+    function bondTransferRoot(
+        bytes32 _transferRootHash,
+        uint256[] memory _chainIds,
+        uint256[] memory _chainAmounts
+    )
+        public
+        onlyCommittee
+    {
         require(_chainIds.length == _chainAmounts.length, "BDG: chainIds and chainAmounts must be the same length");
 
         uint256 totalAmount = 0;

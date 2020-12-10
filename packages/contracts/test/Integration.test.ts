@@ -193,7 +193,7 @@ describe("Full story", () => {
     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
-    await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, [MAINNET_CHAIN_ID], [transfer.amount])
+    await l1_bridge.connect(committee).bondTransferRoot(transfersCommittedEvent.args.root, [MAINNET_CHAIN_ID], [transfer.amount])
 
     // User withdraws from L1 bridge
     const tree = new MerkleTree([ transfer.getTransferHash() ])
@@ -226,7 +226,7 @@ describe("Full story", () => {
     await l1_bridge.connect(committee).stake('1')
 
     await expect(
-      l1_bridge.bondTransferRoot(tree.getRoot(), transfer.amount)
+      l1_bridge.connect(committee).bondTransferRoot(tree.getRoot(), transfer.amount)
     ).to.be.reverted
   })
 
@@ -245,7 +245,7 @@ describe("Full story", () => {
     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
-    await l1_bridge.bondTransferRoot(tree.getRoot(), [transfer.chainId], [transfer.amount])
+    await l1_bridge.connect(committee).bondTransferRoot(tree.getRoot(), [transfer.chainId], [transfer.amount])
 
     await l1_poolToken.connect(challenger).approve(l1_bridge.address, BigNumber.from('10'))
     await l1_bridge.connect(challenger).challengeTransferBond(tree.getRoot())
@@ -287,7 +287,7 @@ describe("Full story", () => {
     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
-    await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, [transfer.chainId], [transfer.amount])
+    await l1_bridge.connect(committee).bondTransferRoot(transfersCommittedEvent.args.root, [transfer.chainId], [transfer.amount])
     await l2_messenger.relayNextMessage()
 
     // User withdraws from L1 bridge
@@ -377,7 +377,7 @@ describe("Full story", () => {
     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
-    await l1_bridge.bondTransferRoot(transfersCommittedEvent.args.root, [ transfer.chainId ], [ transfer.amount ])
+    await l1_bridge.connect(committee).bondTransferRoot(transfersCommittedEvent.args.root, [ transfer.chainId ], [ transfer.amount ])
 
     // User withdraws from L1 bridge
     const transferSentEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransferSent()))[0]

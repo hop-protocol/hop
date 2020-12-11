@@ -1,15 +1,12 @@
-import React, { FC } from 'react'
+import React, { FC, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
-import CircularProgress from '@material-ui/core/CircularProgress'
 
-import { Countdown } from './Countdown'
-import { useStakingInfo } from './useStakingInfo'
-import { useEffect } from 'react'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useStakingInfo } from 'src/pages/Earn/useStakingInfo'
 
 import { useApp } from 'src/contexts/AppContext'
+import { Countdown } from 'src/pages/Earn/Countdown'
 
 const useStyles = makeStyles(() => ({
   title: {
@@ -49,20 +46,19 @@ const useStyles = makeStyles(() => ({
 
 const Earn: FC = () => {
   const styles = useStyles()
-  const { provider } = useWeb3Context()
   const { contracts } = useApp()
-  const { l1Dai, stakingRewards } = contracts
+  const { stakingRewards } = contracts
   const {
     fetchStakingValues,
-    stakingRewardAddress,
-    tokens,
-    stakedAmount,
-    earnedAmount,
-    totalStakedAmount,
-    totalRewardRate,
+    // stakingRewardAddress,
+    // tokens,
+    // stakedAmount,
+    // earnedAmount,
+    // totalStakedAmount,
+    // totalRewardRate,
     rewardRate,
-    periodFinish,
-    active
+    // periodFinish,
+    // active
   } = useStakingInfo()
 
   useEffect(() => {
@@ -93,17 +89,12 @@ const Earn: FC = () => {
         <Box className={styles.poolContainer}>
           { !stakingRewardsExist ? (
             <span> No active pools </span>
-          // ) : stakingInfos?.length !== 0 && stakingInfosWithBalance.length === 0 ? (
-          //   <span> No active pools </span>
           ) : (
-            // <span> You are earning! </span>
-            // <span> { stakingRewards?.address } </span>
-            // <span> hi </span>
-            <span> { rewardRate?.toString() } </span>
-            // stakingInfosWithBalance?.map(stakingInfo => {
-            //   // need to sort by added liquidity here
-            //   return <PoolCard key={stakingInfo.stakingRewardAddress} stakingInfo={stakingInfo} />
-            // })
+            <span>
+              {
+                rewardRate?.toString()
+              }
+            </span>
           )}
         </Box>
       </Box>

@@ -60,7 +60,7 @@ export const useStakingInfo = (): StakingInfo => {
   }, [periodFinish, currentBlockTimestamp])
 
   const fetchStakingValues = useCallback(() => {
-    async function setValues () {
+    async function setValues() {
       setStakedAmount(await stakingRewards?.balanceOf(address?.toString()))
       setEarnedAmount(await stakingRewards?.earned(address?.toString()))
       setTotalStakedAmount(await stakingRewards?.totalSupply())
@@ -69,7 +69,7 @@ export const useStakingInfo = (): StakingInfo => {
       setPeriodFinish(await stakingRewards?.periodFinish())
     }
     setValues()
-  }, [ 
+  }, [
     address,
     stakingRewards,
     setStakedAmount,

@@ -20,6 +20,7 @@
     "react",
     "@typescript-eslint"
   ],
+  "ignorePatterns": ["src/*"],
   "rules": {
     "comma-dangle": 0,
     "semi": 0,

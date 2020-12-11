@@ -11,11 +11,11 @@ interface StyleProps {
   flat: boolean
 }
 
-interface Props extends StyleProps {
+interface StateProps {
   loading: boolean
 }
 
-export type ButtonProps = Partial<Props> & MuiButtonProps
+export type ButtonProps = Partial<StyleProps> & Partial<StateProps> & MuiButtonProps
 
 const useStyles = makeStyles(theme => ({
   root: ({ highlighted, large, flat }: StyleProps) => ({

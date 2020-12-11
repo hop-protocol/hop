@@ -1,5 +1,5 @@
 import React, { FC, createContext, useContext, useState, useMemo } from 'react'
-import { parseUnits } from 'ethers/lib/utils'
+import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
@@ -113,10 +113,10 @@ const ConvertContextProvider: FC = ({ children }) => {
         }
 
         const amountsOut = await arbitrumUniswapRouter?.getAmountsOut(
-          parseInt(value, 10),
+          parseUnits(value, 18),
           path
         )
-        value = parseInt(amountsOut[1], 16).toFixed(2)
+        value = Number(formatUnits(amountsOut[1].toString(), 18)).toFixed(2)
       }
       if (
         (sourceNetwork?.slug === 'kovan' && destNetwork?.slug === 'arbitrum') ||

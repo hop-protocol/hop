@@ -5,7 +5,11 @@ import Box from '@material-ui/core/Box'
 import CircularProgress from '@material-ui/core/CircularProgress'
 
 import { Countdown } from './Countdown'
-import useContracts from 'src/contexts/AppContext/useContracts'
+import { useStakingInfo } from './useStakingInfo'
+import { useEffect } from 'react'
+import { useWeb3Context } from 'src/contexts/Web3Context'
+
+import { useApp } from 'src/contexts/AppContext'
 
 const useStyles = makeStyles(() => ({
   title: {
@@ -45,7 +49,25 @@ const useStyles = makeStyles(() => ({
 
 const Earn: FC = () => {
   const styles = useStyles()
-  const { stakingRewards } = useContracts([])
+  const { provider } = useWeb3Context()
+  const { contracts } = useApp()
+  const { l1Dai, stakingRewards } = contracts
+  const {
+    fetchStakingValues,
+    stakingRewardAddress,
+    tokens,
+    stakedAmount,
+    earnedAmount,
+    totalStakedAmount,
+    totalRewardRate,
+    rewardRate,
+    periodFinish,
+    active
+  } = useStakingInfo()
+
+  useEffect(() => {
+    fetchStakingValues()
+  }, [stakingRewards, fetchStakingValues])
 
   // MOCK DATA
   const mockDate = new Date()
@@ -53,12 +75,6 @@ const Earn: FC = () => {
 
   // MOCK DATA
   const stakingRewardsExist = true
-  const stakingInfos = [{
-    stakingRewardAddress: '0x92E5A4B202F57B3634d6352fBAbBA9Cf2908a14A'
-  }]
-  const stakingInfosWithBalance = [{
-    stakingRewardAddress: '0x92E5A4B202F57B3634d6352fBAbBA9Cf2908a14A'
-  }]
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -75,15 +91,15 @@ const Earn: FC = () => {
       </Box>
       <Box className={styles.poolSection}>
         <Box className={styles.poolContainer}>
-          {stakingRewardsExist && stakingInfos?.length === 0 ? (
-            <CircularProgress />
-          ) : !stakingRewardsExist ? (
+          { !stakingRewardsExist ? (
             <span> No active pools </span>
-          ) : stakingInfos?.length !== 0 && stakingInfosWithBalance.length === 0 ? (
-            <span> No active pools </span>
+          // ) : stakingInfos?.length !== 0 && stakingInfosWithBalance.length === 0 ? (
+          //   <span> No active pools </span>
           ) : (
             // <span> You are earning! </span>
-            <span> { stakingRewards?.address } </span>
+            // <span> { stakingRewards?.address } </span>
+            // <span> hi </span>
+            <span> { rewardRate?.toString() } </span>
             // stakingInfosWithBalance?.map(stakingInfo => {
             //   // need to sort by added liquidity here
             //   return <PoolCard key={stakingInfo.stakingRewardAddress} stakingInfo={stakingInfo} />

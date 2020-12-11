@@ -15,6 +15,7 @@ import { addresses } from 'src/config'
 import Network from 'src/models/Network'
 
 export type HopContracts = {
+  l1Hop: Contract | undefined
   l1Dai: Contract | undefined
   l1Bridge: Contract | undefined
   arbitrumDai: Contract | undefined
@@ -39,6 +40,12 @@ const useContracts = (networks: Network[]): ContractsHook => {
   ): Contract => {
     return new Contract(address, erc20Artifact.abi, provider)
   }
+
+  const l1Hop = useMemo(() => {
+    return provider
+      ? new Contract(addresses.l1Hop, erc20Artifact.abi, provider.getSigner())
+      : undefined
+  }, [provider])
 
   const l1Dai = useMemo(() => {
     return provider
@@ -128,6 +135,7 @@ const useContracts = (networks: Network[]): ContractsHook => {
 
 
   return {
+    l1Hop,
     l1Dai,
     l1Bridge,
     arbitrumDai,

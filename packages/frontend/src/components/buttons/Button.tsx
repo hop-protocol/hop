@@ -3,14 +3,19 @@ import { makeStyles } from '@material-ui/core/styles'
 import MuiButton, {
   ButtonProps as MuiButtonProps
 } from '@material-ui/core/Button'
+import CircularProgress from '@material-ui/core/CircularProgress'
 
-type StyleProps = {
+interface StyleProps {
   highlighted: boolean
   large: boolean
   flat: boolean
 }
 
-export type ButtonProps = Partial<StyleProps> & MuiButtonProps
+interface StateProps {
+  loading: boolean
+}
+
+export type ButtonProps = Partial<StyleProps> & Partial<StateProps> & MuiButtonProps
 
 const useStyles = makeStyles(theme => ({
   root: ({ highlighted, large, flat }: StyleProps) => ({
@@ -57,6 +62,10 @@ const useStyles = makeStyles(theme => ({
       -10px -10px 30px rgba(255, 255, 255, 0.95),
       10px 10px 30px rgba(174, 174, 192, 0.35)
     `
+  },
+  spinner: {
+    display: 'inline-flex',
+    marginLeft: '1rem'
   }
 }))
 
@@ -67,6 +76,8 @@ const LargeButton: FC<ButtonProps> = props => {
     highlighted = false,
     large = false,
     flat = false,
+    disabled = false,
+    loading = false,
     ...buttonProps
   } = props
   const styles = useStyles({ highlighted, large, flat })
@@ -74,10 +85,16 @@ const LargeButton: FC<ButtonProps> = props => {
   return (
     <MuiButton
       {...buttonProps}
+      disabled={disabled || loading}
       className={`${styles.root} ${className}`}
       classes={{ disabled: styles.disabled }}
     >
       {children}
+      {loading ? (
+        <div className={styles.spinner}>
+          <CircularProgress />
+        </div>
+      ) : null}
     </MuiButton>
   )
 }

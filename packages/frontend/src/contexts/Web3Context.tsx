@@ -4,7 +4,6 @@ import React, {
   useContext,
   useMemo,
   useEffect,
-  useCallback,
   useState
 } from 'react'
 import Onboard from 'bnc-onboard'
@@ -32,6 +31,7 @@ type Props = {
   connectedNetworkId: string
   validConnectedNetworkId: boolean
   requestWallet: () => void
+  walletConnected: boolean
 }
 
 const initialState = {
@@ -42,7 +42,8 @@ const initialState = {
   connectedNetworkId: '',
   validConnectedNetworkId: false,
   setRequiredNetworkId: (networkId: string) => {},
-  requestWallet: () => {}
+  requestWallet: () => {},
+  walletConnected: false
 }
 
 const Web3Context = createContext<Props>(initialState)
@@ -232,7 +233,7 @@ const Web3ContextProvider: FC = ({ children }) => {
 
   const [address, setAddress] = useState<Address | undefined>()
 
-  const requestWallet = useCallback(() => {
+  const requestWallet = () => {
     const _requestWallet = async () => {
       try {
         await onboard.walletSelect()
@@ -243,7 +244,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     }
 
     _requestWallet()
-  }, [onboard])
+  }
 
   useEffect(() => {
     const getAddress = async () => {
@@ -256,12 +257,15 @@ const Web3ContextProvider: FC = ({ children }) => {
     getAddress()
   }, [provider])
 
+  const walletConnected = !!address
+
   return (
     <Web3Context.Provider
       value={{
         onboard,
         provider,
         address,
+        walletConnected,
         requiredNetworkId,
         setRequiredNetworkId,
         connectedNetworkId,

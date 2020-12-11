@@ -10,6 +10,7 @@ import useTokens from './useTokens'
 import useTransactions from './useTransactions'
 import useContracts, { HopContracts } from './useContracts'
 import { useAccountDetails, AccountDetails } from './useAccountDetails'
+import { useTxConfirm, TxConfirm } from './useTxConfirm'
 
 type AppContextProps = {
   user?: User
@@ -19,6 +20,7 @@ type AppContextProps = {
   transactions: Transaction[]
   setTransactions: (transactions: Transaction[]) => void
   accountDetails: AccountDetails | undefined
+  txConfirm: TxConfirm | undefined
 }
 
 const AppContext = createContext<AppContextProps>({
@@ -28,7 +30,8 @@ const AppContext = createContext<AppContextProps>({
   tokens: [],
   transactions: [],
   setTransactions: (transactions: Transaction[]) => {},
-  accountDetails: undefined
+  accountDetails: undefined,
+  txConfirm: undefined
 })
 
 const AppContextProvider: FC = ({ children }) => {
@@ -47,6 +50,7 @@ const AppContextProvider: FC = ({ children }) => {
   const tokens = useTokens(networks)
   const { transactions, setTransactions } = useTransactions()
   const accountDetails = useAccountDetails()
+  const txConfirm = useTxConfirm()
 
   return (
     <AppContext.Provider
@@ -57,7 +61,8 @@ const AppContextProvider: FC = ({ children }) => {
         tokens,
         transactions,
         setTransactions,
-        accountDetails
+        accountDetails,
+        txConfirm
       }}
     >
       {children}

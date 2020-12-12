@@ -1,6 +1,7 @@
 import React, { FC, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import Box from '@material-ui/core/Box'
 
 import { useStakingInfo } from 'src/pages/Earn/useStakingInfo'
@@ -40,37 +41,34 @@ const useStyles = makeStyles(() => ({
       inset -3px -3px 6px rgba(255, 255, 255, 0.5),
       inset 3px 3px 6px rgba(174, 174, 192, 0.16)
     `
+  },
+  centerCircularProgress: {
+    alignSelf: 'center'
   }
-
 }))
 
 const Earn: FC = () => {
   const styles = useStyles()
   const { contracts } = useApp()
   const { stakingRewards } = contracts
-  const {
+  let {
     fetchStakingValues,
-    // stakingRewardAddress,
-    // tokens,
-    // stakedAmount,
-    // earnedAmount,
-    // totalStakedAmount,
-    // totalRewardRate,
+    stakingRewardAddress,
+    tokens,
+    stakedAmount,
+    earnedAmount,
+    totalStakedAmount,
+    totalRewardRate,
     rewardRate,
-    // periodFinish,
-    // active
+    periodFinish,
+    active
   } = useStakingInfo()
 
   useEffect(() => {
     fetchStakingValues()
   }, [stakingRewards, fetchStakingValues])
 
-  // MOCK DATA
-  const mockDate = new Date()
-  mockDate.setDate(mockDate.getDate() + 60);
-
-  // MOCK DATA
-  const stakingRewardsExist = true
+  const isStakingOver = periodFinish ? (periodFinish < new Date()) : false
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -83,18 +81,32 @@ const Earn: FC = () => {
         <Typography variant="h6">
           Participating Pools
         </Typography>
-        <Countdown exactEnd={mockDate} />
+        <Countdown exactEnd={periodFinish} />
       </Box>
       <Box className={styles.poolSection}>
         <Box className={styles.poolContainer}>
-          { !stakingRewardsExist ? (
-            <span> No active pools </span>
+          { !active ? (
+            isStakingOver ? (
+              <span> No active pools </span>
+           ) : (
+            <Box className={styles.centerCircularProgress}>
+              <CircularProgress />
+            </Box>
+           )
           ) : (
-            <span>
-              {
-                rewardRate?.toString()
-              }
-            </span>
+            <div>
+              <span> stakingRewardAddress { stakingRewardAddress?.toString() }</span>
+              <br /><br />
+              <span> stakedAmount { stakedAmount?.toString() }</span>
+              <br /><br />
+              <span> earnedAmount { earnedAmount?.toString() }</span>
+              <br /><br />
+              <span> totalStakedAmount { totalStakedAmount?.toString() }</span>
+              <br /><br />
+              <span> totalRewardRate { totalRewardRate?.toString() }</span>
+              <br /><br />
+              <span> rewardRate { rewardRate?.toString() }</span>
+            </div>
           )}
         </Box>
       </Box>

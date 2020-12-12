@@ -1,16 +1,17 @@
 import { useState, useCallback, useMemo } from 'react'
-import { Contract } from 'ethers'
+import { Contract, BigNumber } from 'ethers'
 import useCurrentBlockTimestamp from 'src/hooks/useCurrentBlockTimestamp'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 
+type TokenArrayType = [Contract | undefined, Contract | undefined]
 export interface StakingInfo {
-  fetchStakingValues: any
+  fetchStakingValues: () => void
   // the address of the reward contract
   stakingRewardAddress: string | undefined
   // the tokens involved in this pair
-  tokens: [Contract | undefined, Contract | undefined] | undefined
+  tokens: TokenArrayType | undefined
   // the amount of token currently staked, or undefined if no account
   stakedAmount: string | undefined
   // the amount of reward token earned by the active account, or undefined if no account
@@ -23,7 +24,7 @@ export interface StakingInfo {
   // equivalent to percent of total supply * reward rate
   rewardRate: string | undefined
   // when the period ends
-  periodFinish: Date | string | undefined
+  periodFinish: Date | undefined
   // if pool is active
   active: boolean | undefined
   // calculates a hypothetical amount of token distributed to the active account per second.
@@ -49,24 +50,23 @@ export const useStakingInfo = (): StakingInfo => {
   const [totalStakedAmount, setTotalStakedAmount] = useState<string | undefined>()
   const [totalRewardRate, setTotalRewardRate] = useState<string | undefined>()
   const [rewardRate, setRewardRate] = useState<string | undefined>()
-  const [periodFinish, setPeriodFinish] = useState<Date | string | undefined>()
+  const [periodFinish, setPeriodFinish] = useState<Date | undefined>()
 
   const stakingRewardAddress = stakingRewards?.address.toString()
-  const tokens = useMemo<[Contract | undefined, Contract | undefined]>(() => {
-    return [fromToken, toToken]
-  }, [fromToken, toToken])
-  const active = useMemo<boolean | undefined>(() => {
-    return periodFinish && currentBlockTimestamp ? Number(periodFinish) > Number(currentBlockTimestamp) : true
-  }, [periodFinish, currentBlockTimestamp])
+  const tokens: TokenArrayType = [fromToken, toToken]
+  const active = periodFinish && currentBlockTimestamp ? Number(periodFinish) > Number(currentBlockTimestamp) : false
 
   const fetchStakingValues = useCallback(() => {
     async function setValues() {
       setStakedAmount(await stakingRewards?.balanceOf(address?.toString()))
       setEarnedAmount(await stakingRewards?.earned(address?.toString()))
       setTotalStakedAmount(await stakingRewards?.totalSupply())
-      setTotalRewardRate(await stakingRewards?.rewardRate()) // TODO: What is this
+      setTotalRewardRate(await stakingRewards?.rewardRate())
       setRewardRate(await stakingRewards?.rewardRate())
-      setPeriodFinish(await stakingRewards?.periodFinish())
+      const periodFinishBn: BigNumber = await stakingRewards?.periodFinish()
+      if (periodFinishBn) {
+        setPeriodFinish(new Date(periodFinishBn.toNumber() * 1000))
+      }
     }
     setValues()
   }, [

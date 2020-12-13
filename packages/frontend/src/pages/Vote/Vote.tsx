@@ -6,7 +6,8 @@ import Button from 'src/components/buttons/Button'
 import { IProposal } from 'src/config'
 
 import ProposalPreviewCard from 'src/pages/Vote/ProposalPreviewCard'
-import useDelegateModal from 'src/pages/Vote/useDelegateModal'
+// commenting out because compiler says file not found
+//import useDelegateModal from 'src/pages/Vote/useDelegateModal'
 
 const useStyles = makeStyles(() => ({
   headerWrapper: {
@@ -61,7 +62,7 @@ const Vote: FC<VoteProps> = props => {
             Unlock Voting
           </Button>
         }
-      { showModal && useDelegateModal() }
+    {/* showModal && useDelegateModal() */}
       </Box>
       {proposals.map((proposal: IProposal) => (
         <ProposalPreviewCard

@@ -4,6 +4,8 @@ import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import chalk from 'chalk'
 import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
 import erc20Artifact from '@hop-exchange/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
+import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
+import uniswapV2PairArtifact from '../abi/UniswapV2Pair.json'
 
 const wait = async (t: number) => {
   return new Promise(resolve => setTimeout(() => resolve(), t))
@@ -17,10 +19,15 @@ interface TokenConfig {
   address: string
 }
 
+interface UniswapConfig {
+  router: Partial<TokenConfig>
+  factory: Partial<TokenConfig>
+}
+
 interface Config {
   token0: TokenConfig
   token1: TokenConfig
-  uniswap: Partial<TokenConfig>
+  uniswap: UniswapConfig
   wallet: any
   minThreshold: number
   arbitrageAmount: number
@@ -33,6 +40,7 @@ interface Token {
 
 class ArbBot {
   uniswapRouter: Contract
+  uniswapFactory: Contract
   token0: Token
   token1: Token
   wallet: any
@@ -40,6 +48,8 @@ class ArbBot {
   minThreshold: number
   arbitrageAmount: number
   ready: boolean = false
+  pollTimeSec: number = 10
+  cache: any = {}
 
   constructor (config: Config) {
     this.init(config)
@@ -60,8 +70,14 @@ class ArbBot {
     this.arbitrageAmount = config.arbitrageAmount
 
     this.uniswapRouter = new Contract(
-      config.uniswap.address,
+      config.uniswap.router.address,
       uniswapRouterArtifact.abi,
+      this.wallet
+    )
+
+    this.uniswapFactory = new Contract(
+      config.uniswap.factory.address,
+      uniswapFactoryArtifact.abi,
       this.wallet
     )
 
@@ -140,7 +156,14 @@ class ArbBot {
   private async checkArbitrage () {
     const token0AmountOut = await this.getToken0AmountOut()
     const token1AmountOut = await this.getToken1AmountOut()
+    const cacheKey = `${token0AmountOut},${token1AmountOut}`
+    if (this.cache[cacheKey]) {
+      return
+    }
 
+    this.cache[cacheKey] = true
+
+    console.log('Checking for arbitrage opportunity')
     console.log(
       `${this.arbitrageAmount} ${this.token0.label} = ${token0AmountOut} ${this.token1.label}`
     )
@@ -180,6 +203,8 @@ class ArbBot {
     if (!tx) {
       console.log('No abitrage opportunity')
     }
+
+    this.cache[cacheKey] = false
   }
 
   private async trade (
@@ -199,23 +224,42 @@ class ArbBot {
     )
   }
 
+  private async startWatcher () {
+    const pairAddress = await this.uniswapFactory?.getPair(
+      this.token0.contract.address,
+      this.token1.contract.address
+    )
+    const pair = new Contract(
+      pairAddress,
+      uniswapV2PairArtifact.abi,
+      this.wallet
+    )
+
+    const SWAP_EVENT = 'Swap'
+    pair.on(SWAP_EVENT, event => {
+      console.log('Detected swap event')
+      this.checkArbitrage()
+    })
+  }
+
   public async start () {
     console.log('Starting arbitrage bot')
     await this.tilReady()
     console.log(`account address: ${this.accountAddress}`)
 
-    try {
-      await this.checkBalances()
-      await this.approveTokens()
+    await this.checkBalances()
+    await this.approveTokens()
+    this.startWatcher()
 
-      while (true) {
+    while (true) {
+      try {
         await this.checkArbitrage()
         await this.checkBalances()
-        console.log('Rechecking in 5 seconds')
-        await wait(5 * 1e3)
+        console.log(`Rechecking in ${this.pollTimeSec} seconds`)
+        await wait(this.pollTimeSec * 1e3)
+      } catch (err) {
+        console.error(err)
       }
-    } catch (err) {
-      console.error(err)
     }
   }
 

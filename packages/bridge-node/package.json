@@ -6,20 +6,24 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "example": "npm run build && node dist/example/example.js",
-    "arb-bot": "npm run build && node dist/arb-bot/main.js",
+    "arb-bot": "npm run build && node bin/bridge-node arb-bot",
     "start": "node .",
     "dev": "tsc --watch",
     "build": "tsc",
     "lint": "prettier-standard --format",
     "arbitrum:clean": "rm -rf l2_nodes/arbitrum/data"
   },
+  "bin": {
+    "bridge-node": "bin/bridge-node"
+  },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@authereum/utils": "^0.1.12",
     "@hop-exchange/contracts": "0.0.0",
     "@types/yargs": "^15.0.10",
     "chalk": "4.1.0",
+    "commander": "6.2.0",
     "dotenv": "^8.2.0",
     "ethers": "^5.0.19",
     "module-alias": "^2.2.2",

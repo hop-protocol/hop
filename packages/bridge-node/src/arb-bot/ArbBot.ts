@@ -5,7 +5,7 @@ import chalk from 'chalk'
 import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
 import erc20Artifact from '@hop-exchange/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
-import uniswapV2PairArtifact from '../abi/UniswapV2Pair.json'
+import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 
 const wait = async (t: number) => {
   return new Promise(resolve => setTimeout(() => resolve(), t))

@@ -1,2 +1,2 @@
 export const TransfersCommittedEvent = 'TransfersCommitted'
-export const BondTransferRootEvent = 'BondTransferRoot'
+export const BondTransferRootEvent = 'TransferRootBonded'

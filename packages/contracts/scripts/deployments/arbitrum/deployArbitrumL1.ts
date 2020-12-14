@@ -22,11 +22,13 @@ async function deployArbitrum () {
   const DAI_ADDRESS = '0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9'
   l1_poolToken = MockERC20.attach(DAI_ADDRESS)
 
+  const COMMITTEE_ADDRESS = '0x0000000000000000000000000000000000001234'
+
   /**
    * Deployments
    */
 
-  l1_bridge = await L1_Bridge.deploy(l1_poolToken.address)
+  l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, COMMITTEE_ADDRESS)
   await l1_bridge.deployed()
   l1_messengerWrapper = await L1_MessengerWrapper.deploy()
   await l1_messengerWrapper.deployed()

@@ -12,6 +12,7 @@ describe('Transfer', () => {
   let accounts: Signer[]
   let user: Signer
   let liquidityProvider: Signer
+  let committee: Signer
   let L1_Bridge: ContractFactory
   let MockERC20: ContractFactory
   let transfers: Transfer[]
@@ -23,6 +24,7 @@ describe('Transfer', () => {
     accounts = await ethers.getSigners()
     user = accounts[0]
     liquidityProvider = accounts[1]
+    committee = accounts[2]
     L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
     transfers = [
@@ -46,7 +48,7 @@ describe('Transfer', () => {
   beforeEach(async () => {
     // Deploy contracts
     poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
-    bridge = await L1_Bridge.deploy(poolToken.address)
+    bridge = await L1_Bridge.deploy(poolToken.address, await committee.getAddress())
   })
 
   describe('getTransferHash()', () => {

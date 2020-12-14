@@ -25,18 +25,16 @@ contract L1_Bridge is Bridge {
     uint256 constant TIME_SLOT_SIZE = 1 hours;
     uint256 constant CHALLENGE_PERIOD = 4 hours;
     uint256 constant CHALLENGE_RESOLUTION_PERIOD = 8 days;
+    uint256 constant UNSTAKE_PERIOD = 9 days;
 
     /**
      * State
      */
 
-    IERC20 public token;
+    // IERC20 public token;
     mapping(uint256 => IMessengerWrapper) public l1Messenger;
 
     mapping(bytes32 => TransferBond) transferBonds;
-
-    address public committee;
-    uint256 public committeeBond;
     mapping(uint256 => uint256) public timeSlotToAmountBonded;
     uint256 public amountChallenged;
 
@@ -54,9 +52,7 @@ contract L1_Bridge is Bridge {
         uint256 amount
     );
 
-    constructor (IERC20 _token) public {
-        token = _token;
-    }
+    constructor (IERC20 canonicalToken_, address committee_) public Bridge(canonicalToken_, committee_) {}
 
     /**
      * Public Management Functions
@@ -79,7 +75,7 @@ contract L1_Bridge is Bridge {
     {
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
 
-        token.safeTransferFrom(msg.sender, address(this), _amount);
+        getCanonicalToken().safeTransferFrom(msg.sender, address(this), _amount);
         l1Messenger[_chainId].sendMessageToL2(mintCalldata);
     }
 
@@ -99,23 +95,7 @@ contract L1_Bridge is Bridge {
         );
 
         l1Messenger[_chainId].sendMessageToL2(mintAndAttemptSwapCalldata);
-        token.safeTransferFrom(msg.sender, address(this), _amount);
-    }
-
-    /**
-     * Public Committee Staking Functions
-     */
-
-    function committeeStake(uint256 _amount) public {
-        token.transferFrom(msg.sender, address(this), _amount);
-        committeeBond = committeeBond.add(_amount);
-    }
-
-    // onlyCommittee
-    // ToDo: Add time delay to unstake
-    function committeeUnstake(uint256 _amount) public {
-        committeeBond = committeeBond.sub(_amount, "BDG: Amount exceeds total stake");
-        token.transfer(committee, _amount);
+        getCanonicalToken().safeTransferFrom(msg.sender, address(this), _amount);
     }
 
     /**
@@ -130,18 +110,27 @@ contract L1_Bridge is Bridge {
      *      where the TransferRoot originated.
      */
 
-    // onlyCommittee
-    function bondTransferRoot(bytes32 _transferRootHash, uint256[] memory _chainIds, uint256[] memory _chainAmounts) public {
+    function bondTransferRoot(
+        bytes32 _transferRootHash,
+        uint256[] memory _chainIds,
+        uint256[] memory _chainAmounts
+    )
+        public
+        onlyCommittee
+    {
         require(_chainIds.length == _chainAmounts.length, "BDG: chainIds and chainAmounts must be the same length");
 
         uint256 totalAmount = 0;
         for (uint256 i = 0; i < _chainAmounts.length; i++) {
             totalAmount = totalAmount.add(_chainAmounts[i]);
         }
-        require(getTotalBondedWith(totalAmount) <= committeeBond, "BDG: Amount exceeds committee bond");
+
+        (uint256 credit, uint256 debit) = getCommitteeBalances();
+        uint256 bondAmount = bondForTransferAmount(totalAmount);
+        require(credit >= debit.add(bondAmount), "BDG: Amount exceeds committee bond");
 
         uint256 currentTimeSlot = getTimeSlot(now);
-        timeSlotToAmountBonded[currentTimeSlot] = timeSlotToAmountBonded[currentTimeSlot].add(totalAmount);
+        timeSlotToAmountBonded[currentTimeSlot] = timeSlotToAmountBonded[currentTimeSlot].add(bondAmount);
 
         bytes32 amountHash = getAmountHash(_chainIds, _chainAmounts);
 
@@ -150,7 +139,7 @@ contract L1_Bridge is Bridge {
         for (uint256 i = 0; i < _chainIds.length; i++) {
             if (_chainIds[i] == getChainId()) {
                 // Set L1 transfer root
-                _setTransferRoot(_transferRootHash, totalAmount);
+                _setTransferRoot(_transferRootHash, _chainAmounts[i]);
             } else {
                 // Set L2 transfer root
                 bytes memory setTransferRootMessage = abi.encodeWithSignature(
@@ -187,15 +176,17 @@ contract L1_Bridge is Bridge {
         uint256 challengeStakeAmount = transferRoot.total
             .mul(CHALLENGE_AMOUNT_MULTIPLIER)
             .div(CHALLENGE_AMOUNT_DIVISOR);
-        token.transferFrom(msg.sender, address(this), challengeStakeAmount);
+        getCanonicalToken().transferFrom(msg.sender, address(this), challengeStakeAmount);
 
         transferBond.challengeStartTime = now;
         transferBond.challenger = msg.sender;
 
-        // Move amount from timeSlotToAmountBonded to amountChallenged
+        // Move amount from timeSlotToAmountBonded to debit
         uint256 timeSlot = getTimeSlot(transferBond.createdAt);
-        timeSlotToAmountBonded[timeSlot] = timeSlotToAmountBonded[timeSlot].sub(transferRoot.total);
-        amountChallenged = amountChallenged.add(transferRoot.total);
+        uint256 bondAmount = bondForTransferAmount(transferRoot.total);
+        timeSlotToAmountBonded[timeSlot] = timeSlotToAmountBonded[timeSlot].sub(bondAmount);
+
+        _addDebit(bondAmount);
     }
 
     function resolveChallenge(bytes32 _transferRootHash) public {
@@ -210,43 +201,23 @@ contract L1_Bridge is Bridge {
             .div(CHALLENGE_AMOUNT_DIVISOR);
 
         if (transferBond.confirmed) {
-            // Invalid challenge, send challengers stake to committee
-            token.transfer(committee, challengeStakeAmount);
+            // Invalid challenge
+            // Credit the committee back with the bond amount plus the challenger's stake
+            _addCredit(bondForTransferAmount(transferRoot.total).add(challengeStakeAmount));
         } else {
-            // Valid challenge, reward challenger with their stake times 2 and slash committee by the
-            // transfer root amount plus the challenge stake
-            token.transfer(transferBond.challenger, challengeStakeAmount.mul(2));
-            committeeBond = committeeBond.sub(transferRoot.total).sub(challengeStakeAmount);
+            // Valid challenge
+            // Reward challenger with their stake times two
+            getCanonicalToken().transfer(transferBond.challenger, challengeStakeAmount.mul(2));
         }
-
-        amountChallenged = amountChallenged.sub(transferRoot.total);
     }
 
     /**
      * Public Getters
      */
 
-    function getTotalBonded() public view returns (uint256) {
-        uint256 currentTimeSlot = getTimeSlot(now);
-        uint256 bonded = 0;
-
-        for (uint256 i = 0; i < CHALLENGE_PERIOD/TIME_SLOT_SIZE; i++) {
-            bonded = bonded.add(timeSlotToAmountBonded[currentTimeSlot - i]);
-        }
-
-        // Add any amount that's currently being challenged
-        bonded = bonded.add(amountChallenged);
-
-        // Add amount needed to pay any challengers
-        bonded = bonded.add(bonded.mul(CHALLENGE_AMOUNT_MULTIPLIER).div(CHALLENGE_AMOUNT_DIVISOR));
-
-        return bonded;
-    }
-
-    function getTotalBondedWith(uint256 _amount) public view returns (uint256) {
+    function bondForTransferAmount(uint256 _amount) public view returns (uint256) {
         // Bond covers _amount plus a bounty to pay a potential challenger
-        uint256 bondForAmount = _amount.add(_amount.mul(CHALLENGE_AMOUNT_MULTIPLIER).div(CHALLENGE_AMOUNT_DIVISOR));
-        return getTotalBonded().add(bondForAmount);
+        return _amount.add(_amount.mul(CHALLENGE_AMOUNT_MULTIPLIER).div(CHALLENGE_AMOUNT_DIVISOR));
     }
 
     function getTimeSlot(uint256 _time) public pure returns (uint256) {
@@ -262,6 +233,17 @@ contract L1_Bridge is Bridge {
      */
 
     function _transfer(address _recipient, uint256 _amount) internal override {
-        token.safeTransfer(_recipient, _amount);
+        getCanonicalToken().safeTransfer(_recipient, _amount);
+    }
+
+    function _additionalDebit() internal override returns (uint256) {
+        uint256 currentTimeSlot = getTimeSlot(now);
+        uint256 bonded = 0;
+
+        for (uint256 i = 0; i < CHALLENGE_PERIOD/TIME_SLOT_SIZE; i++) {
+            bonded = bonded.add(timeSlotToAmountBonded[currentTimeSlot - i]);
+        }
+
+        return bonded;
     }
 }

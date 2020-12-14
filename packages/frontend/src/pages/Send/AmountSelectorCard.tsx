@@ -1,5 +1,5 @@
 import React, { FC, ChangeEvent, useState, useEffect, useCallback } from 'react'
-import { utils as ethersUtils } from 'ethers'
+import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
@@ -63,7 +63,7 @@ const AmountSelectorCard: FC<Props> = props => {
     const _getBalance = async () => {
       if (user && token && selectedNetwork) {
         const _balance = await user.getBalance(token, selectedNetwork)
-        setBalance(ethersUtils.formatUnits(_balance, 18))
+        setBalance(Number(formatUnits(_balance, 18)).toFixed(2))
       }
     }
 

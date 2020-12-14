@@ -4,7 +4,8 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import Button from 'src/components/buttons/Button'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import HeaderRoutes from './HeaderRoutes'
+import HeaderRoutes from 'src/components/Header/HeaderRoutes'
+import TxPill from 'src/components/Header/TxPill'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -38,6 +39,7 @@ const Header: FC = () => {
         flex={1}
         justifyContent="flex-end"
       >
+        <TxPill />
         {address ? (
           <Button flat onClick={requestWallet}>
             {address?.truncate()}

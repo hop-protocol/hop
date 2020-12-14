@@ -2,8 +2,8 @@ import { BigNumber, utils as ethersUtils } from 'ethers'
 import Token from './Token'
 
 class TokenAmount {
-  amountRaw: BigNumber
-  token: Token
+  readonly amountRaw: BigNumber
+  readonly token: Token
 
   constructor (amount: any, token: Token) {
     this.amountRaw = BigNumber.from(amount)

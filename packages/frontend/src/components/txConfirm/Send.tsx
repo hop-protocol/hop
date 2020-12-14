@@ -1,0 +1,72 @@
+import React, { useState } from 'react'
+import Button from 'src/components/buttons/Button'
+import { makeStyles } from '@material-ui/core/styles'
+import Token from 'src/models/Token'
+import Network from 'src/models/Network'
+import Typography from '@material-ui/core/Typography'
+
+const useStyles = makeStyles(() => ({
+  root: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    textAlign: 'center'
+  },
+  title: {
+    marginBottom: '2rem'
+  },
+  action: {},
+  sendButton: {}
+}))
+
+interface Party {
+  token: Token
+  network: Network
+  amount: string
+}
+
+interface Props {
+  source: Party
+  dest: Partial<Party>
+  onConfirm: (confirmed: boolean) => void
+}
+
+const Send = (props: Props) => {
+  const { source, dest, onConfirm } = props
+  const styles = useStyles()
+  const [sending, setSending] = useState<boolean>(false)
+
+  const handleSubmit = async () => {
+    try {
+      setSending(true)
+      await onConfirm(true)
+    } catch (err) {
+      console.log(err)
+    }
+    setSending(false)
+  }
+
+  return (
+    <div className={styles.root}>
+      <div className={styles.title}>
+        <Typography variant="h5" color="textPrimary">
+          Send {source.amount} {source.token.symbol} from {source.network.name}{' '}
+          to {dest?.network?.name}
+        </Typography>
+      </div>
+      <div className={styles.action}>
+        <Button
+          className={styles.sendButton}
+          onClick={handleSubmit}
+          loading={sending}
+          large
+          highlighted
+        >
+          Send
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+export default Send

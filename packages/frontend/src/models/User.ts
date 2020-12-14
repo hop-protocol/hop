@@ -4,7 +4,7 @@ import Token from './Token'
 import Network from './Network'
 
 class User {
-  provider: ethers.providers.Web3Provider
+  readonly provider: ethers.providers.Web3Provider
 
   constructor (_provider: ethers.providers.Web3Provider) {
     this.provider = _provider

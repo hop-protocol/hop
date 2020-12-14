@@ -3,7 +3,7 @@ import { utils } from 'ethers'
 export type Addressish = Address | string | undefined
 
 class Address {
-  private _address: string
+  public readonly address: string
 
   constructor (address: Addressish) {
     let _address
@@ -17,7 +17,7 @@ class Address {
       throw new Error('Invalid address')
     }
 
-    this._address = _address
+    this.address = _address
   }
 
   static from (address: Addressish): Address {
@@ -25,15 +25,15 @@ class Address {
   }
 
   toString (): string {
-    return this._address
+    return this.address
   }
 
   truncate (): string {
-    return this._address.slice(0, 6) + '...' + this._address.slice(38, 42)
+    return this.address.slice(0, 6) + '...' + this.address.slice(38, 42)
   }
 
   toLowercase (): string {
-    return this._address.toLowerCase()
+    return this.address.toLowerCase()
   }
 
   eq (address: Addressish): boolean {

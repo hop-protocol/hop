@@ -4,8 +4,8 @@ import React, {
   useContext,
   useEffect,
   useState,
-  useCallback,
-  useMemo
+  useMemo,
+  useCallback
 } from 'react'
 import { Contract } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -14,6 +14,7 @@ import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import useNetworks from 'src/contexts/AppContext/useNetworks'
 import useTokens from 'src/contexts/AppContext/useTokens'
 import useContracts from 'src/contexts/AppContext/useContracts'
+import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
@@ -99,7 +100,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     address,
     provider,
     setRequiredNetworkId,
-    validConnectedNetworkId
+    connectedNetworkId
   } = useWeb3Context()
   const {
     arbitrumUniswapRouter,
@@ -108,6 +109,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   } = useContracts([])
   let networks = useNetworks()
   let tokens = useTokens(networks)
+  const { txConfirm } = useApp()
 
   const hopToken = useMemo(() => {
     const network = networks.find(network => network.slug === 'arbitrum')
@@ -138,9 +140,10 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [txHash, setTxHash] = useState<string | undefined>()
   const [sending, setSending] = useState<boolean>(false)
 
-  useEffect(() => {
+  const checkWalletNetwork = () => {
     setRequiredNetworkId(selectedNetwork?.networkId)
-  }, [setRequiredNetworkId, selectedNetwork])
+    return connectedNetworkId === selectedNetwork?.networkId
+  }
 
   const updatePrices = useCallback(async () => {
     if (!totalSupply) return
@@ -229,13 +232,13 @@ const PoolsContextProvider: FC = ({ children }) => {
       setToken0Deposited(token0Deposited.toFixed(2))
       setToken1Deposited(token1Deposited.toFixed(2))
 
-      const amountA = parseUnits('1', decimals)
-      const amountB = await arbitrumUniswapRouter?.quote(
-        amountA,
+      const amount0 = parseUnits('1', decimals)
+      const amount1 = await arbitrumUniswapRouter?.quote(
+        amount0,
         parseUnits(reserve0, decimals),
         parseUnits(reserve1, decimals)
       )
-      const formattedAmountB = formatUnits(amountB, decimals)
+      const formattedAmountB = formatUnits(amount1, decimals)
       setToken1Rate(formattedAmountB)
     } catch (err) {
       console.error(err)
@@ -269,7 +272,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     token: Token,
     amount: string,
     network: Network
-  ) => {
+  ): Promise<any> => {
     const signer = provider?.getSigner()
     const tokenAddress = token.addressForNetwork(network).toString()
     const contract = getErc20Contract(tokenAddress, signer)
@@ -282,60 +285,88 @@ const PoolsContextProvider: FC = ({ children }) => {
     )
 
     if (approved.lt(parsedAmount)) {
-      const tx = await contract.approve(address, parsedAmount)
-      return tx
+      return txConfirm?.show({
+        kind: 'approval',
+        inputProps: {
+          amount,
+          token
+        },
+        onConfirm: async () => {
+          return contract.approve(address, parsedAmount)
+        }
+      })
     }
   }
 
   const addLiquidity = async () => {
-    if (!Number(token0Amount) || !Number(token1Amount)) {
-      return
+    try {
+      if (!Number(token0Amount) || !Number(token1Amount)) {
+        return
+      }
+
+      if (!checkWalletNetwork()) {
+        return
+      }
+
+      setSending(true)
+      let tx = await approveTokens(selectedToken, token0Amount, selectedNetwork)
+      await tx?.wait()
+      setTxHash(tx?.hash)
+      tx = await approveTokens(hopToken as Token, token1Amount, selectedNetwork)
+      setTxHash(tx?.hash)
+      await tx?.wait()
+
+      const signer = provider?.getSigner()
+      const token0 = selectedToken
+        ?.addressForNetwork(selectedNetwork)
+        .toString()
+      const token1 = hopToken?.addressForNetwork(selectedNetwork).toString()
+      const amount0Desired = parseUnits(
+        token0Amount,
+        selectedToken?.decimals || 18
+      )
+      const amount1Desired = parseUnits(token1Amount, hopToken?.decimals || 18)
+      const amount0Min = 0
+      const amount1Min = 0
+      const to = await signer?.getAddress()
+      const deadline = (Date.now() / 1000 + 5 * 60) | 0
+
+      tx = await txConfirm?.show({
+        kind: 'addLiquidity',
+        inputProps: {
+          token0: {
+            amount: token0Amount,
+            token: selectedToken
+          },
+          token1: {
+            amount: token1Amount,
+            token: hopToken
+          }
+        },
+        onConfirm: async () => {
+          return arbitrumUniswapRouter?.addLiquidity(
+            token0,
+            token1,
+            amount0Desired,
+            amount1Desired,
+            amount0Min,
+            amount1Min,
+            to,
+            deadline
+          )
+        }
+      })
+
+      setTxHash(tx?.hash)
+      await tx?.wait()
+    } catch (err) {
+      console.error(err)
     }
 
-    setSending(true)
-    let tx = await approveTokens(selectedToken, token0Amount, selectedNetwork)
-    await tx?.wait()
-    setTxHash(tx?.hash)
-    tx = await approveTokens(hopToken as Token, token1Amount, selectedNetwork)
-    setTxHash(tx?.hash)
-    await tx?.wait()
-
-    const signer = provider?.getSigner()
-
-    const tokenA = selectedToken?.addressForNetwork(selectedNetwork).toString()
-    const tokenB = hopToken?.addressForNetwork(selectedNetwork).toString()
-    const amountADesired = parseUnits(
-      token0Amount,
-      selectedToken?.decimals || 18
-    )
-    const amountBDesired = parseUnits(token1Amount, hopToken?.decimals || 18)
-    const amountAMin = 0
-    const amountBMin = 0
-    const to = await signer?.getAddress()
-    const deadline = (Date.now() / 1000 + 5 * 60) | 0
-
-    tx = await arbitrumUniswapRouter?.addLiquidity(
-      tokenA,
-      tokenB,
-      amountADesired,
-      amountBDesired,
-      amountAMin,
-      amountBMin,
-      to,
-      deadline
-    )
-
-    setTxHash(tx.hash)
-    console.log(tx.hash)
-    await tx.wait()
     setSending(false)
   }
 
-  const validFormFields = !!(
-    validConnectedNetworkId &&
-    token0Amount &&
-    token1Amount
-  )
+  const validFormFields = !!(token0Amount && token1Amount)
 
   return (
     <PoolsContext.Provider

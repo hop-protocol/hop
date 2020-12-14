@@ -12,13 +12,13 @@ export type NetworkProps = {
 }
 
 class Network {
-  name: string
-  slug: string
-  imageUrl: string
-  provider: ethers.providers.Provider
-  rpcUrl: string
-  isLayer1: boolean
-  networkId: string
+  readonly name: string
+  readonly slug: string
+  readonly imageUrl: string
+  readonly provider: ethers.providers.Provider
+  readonly rpcUrl: string
+  readonly isLayer1: boolean
+  readonly networkId: string
 
   constructor (props: NetworkProps) {
     this.name = props.name

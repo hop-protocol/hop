@@ -7,12 +7,15 @@ import l1ArbitrumMessengerArtifact from '@hop-exchange/contracts/artifacts/contr
 import arbErc20Artifact from 'src/abi/ArbERC20.json'
 import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
 import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
+import stakingRewardsFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/distribution/StakingRewardsFactory.sol/StakingRewardsFactory.json'
+import stakingRewardsArtifact from '@hop-exchange/contracts/artifacts/contracts/distribution/StakingRewardsFactory.sol/StakingRewards.json'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
 import Network from 'src/models/Network'
 
 export type HopContracts = {
+  l1Hop: Contract | undefined
   l1Dai: Contract | undefined
   l1Bridge: Contract | undefined
   arbitrumDai: Contract | undefined
@@ -20,6 +23,8 @@ export type HopContracts = {
   arbitrumL1Messenger: Contract | undefined
   arbitrumUniswapRouter: Contract | undefined
   arbitrumUniswapFactory: Contract | undefined
+  stakingRewardsFactory: Contract | undefined
+  stakingRewards: Contract | undefined
 }
 
 interface ContractsHook extends HopContracts {
@@ -35,6 +40,12 @@ const useContracts = (networks: Network[]): ContractsHook => {
   ): Contract => {
     return new Contract(address, erc20Artifact.abi, provider)
   }
+
+  const l1Hop = useMemo(() => {
+    return provider
+      ? new Contract(addresses.l1Hop, erc20Artifact.abi, provider.getSigner())
+      : undefined
+  }, [provider])
 
   const l1Dai = useMemo(() => {
     return provider
@@ -102,7 +113,29 @@ const useContracts = (networks: Network[]): ContractsHook => {
       : undefined
   }, [provider])
 
+  const stakingRewardsFactory = useMemo(() => {
+    return provider
+      ? new Contract(
+          addresses.stakingRewardsFactory,
+          stakingRewardsFactoryArtifact.abi,
+          provider.getSigner()
+        )
+      : undefined
+  }, [provider])
+
+  const stakingRewards = useMemo(() => {
+    return provider
+      ? new Contract(
+          addresses.stakingRewards,
+          stakingRewardsArtifact.abi,
+          provider.getSigner()
+        )
+      : undefined
+  }, [provider])
+
+
   return {
+    l1Hop,
     l1Dai,
     l1Bridge,
     arbitrumDai,
@@ -110,7 +143,9 @@ const useContracts = (networks: Network[]): ContractsHook => {
     arbitrumL1Messenger,
     arbitrumUniswapRouter,
     arbitrumUniswapFactory,
-    getErc20Contract
+    getErc20Contract,
+    stakingRewardsFactory,
+    stakingRewards
   }
 }
 

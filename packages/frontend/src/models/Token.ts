@@ -11,26 +11,24 @@ type TokenProps = {
 }
 
 class Token {
-  symbol: string
-  tokenName: string
-  decimals: number
-  contracts: { [key: string]: Contract | undefined }
-  addresses: { [key: string]: Address }
-  rates: { [key: string]: BigNumber }
+  readonly symbol: string
+  readonly tokenName: string
+  readonly decimals: number
+  readonly contracts: { [key: string]: Contract | undefined }
+  readonly addresses: { [key: string]: Address } = {}
+  readonly rates: { [key: string]: BigNumber } = {}
 
   constructor (props: TokenProps) {
     this.symbol = props.symbol
     this.tokenName = props.tokenName
     this.decimals = props.decimals || 18
     this.contracts = props.contracts
-    this.addresses = {}
     Object.keys(props.contracts).forEach(key => {
       const contract = props.contracts[key]
       if (contract) {
         this.addresses[key] = new Address(contract.address)
       }
     })
-    this.rates = {}
     Object.keys(props.rates).forEach(
       key => (this.rates[key] = BigNumber.from(props.rates[key]))
     )

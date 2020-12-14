@@ -4,22 +4,34 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import User from 'src/models/User'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
+import Transaction from 'src/models/Transaction'
 import useNetworks from './useNetworks'
 import useTokens from './useTokens'
+import useTransactions from './useTransactions'
 import useContracts, { HopContracts } from './useContracts'
+import { useAccountDetails, AccountDetails } from './useAccountDetails'
+import { useTxConfirm, TxConfirm } from './useTxConfirm'
 
 type AppContextProps = {
   user?: User
   networks: Network[]
   contracts: Partial<HopContracts>
   tokens: Token[]
+  transactions: Transaction[]
+  setTransactions: (transactions: Transaction[]) => void
+  accountDetails: AccountDetails | undefined
+  txConfirm: TxConfirm | undefined
 }
 
 const AppContext = createContext<AppContextProps>({
   user: undefined,
   networks: [],
   contracts: {},
-  tokens: []
+  tokens: [],
+  transactions: [],
+  setTransactions: (transactions: Transaction[]) => {},
+  accountDetails: undefined,
+  txConfirm: undefined
 })
 
 const AppContextProvider: FC = ({ children }) => {
@@ -36,6 +48,9 @@ const AppContextProvider: FC = ({ children }) => {
   const networks = useNetworks()
   const contracts = useContracts(networks)
   const tokens = useTokens(networks)
+  const { transactions, setTransactions } = useTransactions()
+  const accountDetails = useAccountDetails()
+  const txConfirm = useTxConfirm()
 
   return (
     <AppContext.Provider
@@ -43,7 +58,11 @@ const AppContextProvider: FC = ({ children }) => {
         user,
         networks,
         contracts,
-        tokens
+        tokens,
+        transactions,
+        setTransactions,
+        accountDetails,
+        txConfirm
       }}
     >
       {children}

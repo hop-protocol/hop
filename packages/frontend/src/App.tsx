@@ -1,8 +1,10 @@
 import React from 'react'
-import './App.css'
+import 'src/App.css'
 import { makeStyles } from '@material-ui/core/styles'
-import AppRoutes from './AppRoutes'
-import Header from './components/Header'
+import AppRoutes from 'src/AppRoutes'
+import Header from 'src/components/Header'
+import AccountDetails from 'src/components/accountDetails'
+import TxConfirm from 'src/components/txConfirm/TxConfirm'
 
 const useStyles = makeStyles(() => ({
   content: {
@@ -16,9 +18,11 @@ function App () {
   return (
     <div className="App">
       <Header />
+      <AccountDetails />
       <div className={styles.content}>
         <AppRoutes />
       </div>
+      <TxConfirm />
     </div>
   )
 }

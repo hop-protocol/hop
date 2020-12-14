@@ -34,6 +34,7 @@ describe("ArbitrumMessage", () => {
   // L2
   let l2_messenger: Contract
   let l2_bridge: Contract
+  let l2_poolToken: Contract
   let l2_uniswapFactory: Contract
   let l2_uniswapRouter: Contract
 
@@ -63,8 +64,9 @@ describe("ArbitrumMessage", () => {
     l1_messenger = await MockMessenger.deploy()
     l1_messengerWrapper = await L1_MessengerWrapper.deploy()
 
+    l2_poolToken = await MockERC20.deploy('L2 Dai Stable Token', 'L2DAI')
     l2_messenger = await MockMessenger.deploy()
-    l2_bridge = await L2_Bridge.deploy(l2_messenger.address)
+    l2_bridge = await L2_Bridge.deploy(l2_messenger.address, l2_poolToken.address,  await committee.getAddress())
 
     // Initialize bridge wrapper
     const l2Name = L2_NAMES.ARBITRUM
@@ -73,7 +75,7 @@ describe("ArbitrumMessage", () => {
     // Set up bridge
     await l1_bridge.setL1MessengerWrapper(ARBITRUM_CHAIN_ID, l1_messengerWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
-    await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, ZERO_ADDRESS) // This should be l2_ovmBridge.address, but that concept does not exist in this test file.
+    await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address)
 
     // Set up bridge
     await l1_messenger.setTargetMessengerAddress(l2_messenger.address)

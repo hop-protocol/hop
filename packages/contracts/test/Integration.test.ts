@@ -78,8 +78,8 @@ describe("Full story", () => {
 
     // Deploy  L2 contracts
     l2_messenger = await CrossDomainMessenger.deploy(0)
-    l2_bridge = await L2_Bridge.deploy(l2_messenger.address)
     l2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_messenger.address)
+    l2_bridge = await L2_Bridge.deploy(l2_messenger.address, l2_ovmBridge.address, await committee.getAddress())
 
     // Initialize bridge wrapper
     const l2Name = L2_NAMES.OPTIMISM
@@ -101,7 +101,7 @@ describe("Full story", () => {
     // Set up liquidity bridge
     await l1_bridge.setL1MessengerWrapper(OPTIMISM_CHAIN_ID, l1_messengerWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
-    await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, l2_ovmBridge.address)
+    await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address)
 
     // Distribute poolToken
     await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)

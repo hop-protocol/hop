@@ -69,12 +69,6 @@ describe("L1_Bridge", () => {
     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
-    await l1_bridge.connect(committee).startUnstake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
-
-    const unstakeStartedEvent = (await l1_bridge.queryFilter(l1_bridge.filters.UnstakeStarted()))[0]
-
-    await ethers.provider.send("evm_increaseTime", [60 * 60 * 24 * 100]) // 10 days
-    
-    await l1_bridge.connect(committee).completeUnstake(unstakeStartedEvent.args.unstakeId)
+    await l1_bridge.connect(committee).unstake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
   })
 })

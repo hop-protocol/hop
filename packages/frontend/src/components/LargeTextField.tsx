@@ -7,11 +7,23 @@ import Typography from '@material-ui/core/Typography'
 type LargeTextFieldProps = {
   units?: string | ReactNode
   centerAlign?: boolean | undefined
+  defaultShadow?: boolean | undefined
 } & TextFieldProps
 
 interface StyleProps {
   centerAlign: boolean
+  defaultShadow: boolean
 }
+
+const normalShadow = `
+  inset -3px -3px 6px rgba(255, 255, 255, 0.5),
+  inset 3px 3px 6px rgba(174, 174, 192, 0.16)
+`
+
+const boldShadow = `
+  inset -12px -12px 24px rgba(255, 255, 255, 0.5),
+  inset 12px 12px 24px rgba(174, 174, 192, 0.16)
+`
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -23,18 +35,15 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const useInputStyles = makeStyles(theme => ({
-  root: {
+  root: ({ defaultShadow }: StyleProps) => ({
     padding: `0.8rem 0`,
     transition: 'box-shadow 0.3s ease-in-out',
     borderRadius: '1.5rem',
+    boxShadow: defaultShadow ? normalShadow : 'none',
     '&:hover': {
-      borderRadius: '1.5rem',
-      boxShadow: `
-        inset -3px -3px 6px rgba(255, 255, 255, 0.5),
-        inset 3px 3px 6px rgba(174, 174, 192, 0.16)
-      `
+      boxShadow: defaultShadow ? boldShadow : normalShadow
     }
-  },
+  }),
   input: ({ centerAlign }: StyleProps) => ({
     textAlign: centerAlign ? 'center' : 'right',
     fontSize: theme.typography.h4.fontSize,
@@ -43,10 +52,7 @@ const useInputStyles = makeStyles(theme => ({
   }),
   focused: {
     borderRadius: '1.5rem',
-    boxShadow: `
-      inset -3px -3px 6px rgba(255, 255, 255, 0.5),
-      inset 3px 3px 6px rgba(174, 174, 192, 0.16)
-    `
+    boxShadow: normalShadow
   }
 }))
 
@@ -54,10 +60,11 @@ const TextField: FC<LargeTextFieldProps> = props => {
   const {
     units,
     centerAlign = false,
+    defaultShadow = false,
     ...textFieldProps
   } = props
   const styles = useStyles()
-  const inputStyles = useInputStyles({ centerAlign })
+  const inputStyles = useInputStyles({ centerAlign, defaultShadow })
 
   return (
     <MuiTextField

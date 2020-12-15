@@ -49,10 +49,6 @@ const DelegateModal: FC<DelegateModalProps> = props => {
 
   const selfOrOtherText = isOtherDelegate ? '' : 'to Self'
 
-  // TODO: Default large text field to current hover state
-  // TODO: Hover state is a little darker on large text field
-  // TODO: Large text field auto focus
-
   // on chain
   // TODO: What do I do if a user doesn't have votes to make?
   // TODO: Read numVotes from contract
@@ -105,6 +101,8 @@ const DelegateModal: FC<DelegateModalProps> = props => {
                 <LargeTextField
                   onChange={handleAddressInput}
                   centerAlign
+                  defaultShadow
+                  autoFocus
                   placeholder="Wallet Address"
                   className={styles.textFieldContainer}
                 />

@@ -14,6 +14,7 @@ describe("ArbitrumMessage", () => {
   let accounts: Signer[]
   let user: Signer
   let liquidityProvider: Signer
+  let committee: Signer
 
   // Factories
   let L1_Bridge: ContractFactory
@@ -33,6 +34,7 @@ describe("ArbitrumMessage", () => {
   // L2
   let l2_messenger: Contract
   let l2_bridge: Contract
+  let l2_poolToken: Contract
   let l2_uniswapFactory: Contract
   let l2_uniswapRouter: Contract
 
@@ -40,6 +42,7 @@ describe("ArbitrumMessage", () => {
     accounts = await ethers.getSigners()
     user = accounts[0]
     liquidityProvider = accounts[1]
+    committee = accounts[2]
 
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
     L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
@@ -57,21 +60,22 @@ describe("ArbitrumMessage", () => {
     l2_uniswapRouter = await UniswapRouter.deploy(l2_uniswapFactory.address, weth.address)
 
     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
-    l1_bridge = await L1_Bridge.deploy(l1_poolToken.address)
+    l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await committee.getAddress())
     l1_messenger = await MockMessenger.deploy()
     l1_messengerWrapper = await L1_MessengerWrapper.deploy()
 
+    l2_poolToken = await MockERC20.deploy('L2 Dai Stable Token', 'L2DAI')
     l2_messenger = await MockMessenger.deploy()
-    l2_bridge = await L2_Bridge.deploy(l2_messenger.address)
+    l2_bridge = await L2_Bridge.deploy(l2_messenger.address, l2_poolToken.address,  await committee.getAddress())
 
     // Initialize bridge wrapper
     const l2Name = L2_NAMES.ARBITRUM
     await setMessengerWrapperDefaults(l2Name, l1_messengerWrapper, l1_messenger.address, l2_bridge.address)
 
     // Set up bridge
-    await l1_bridge.setL1MessengerWrapper(ARBITRUM_CHAIN_ID, l1_messengerWrapper.address)
+    await l1_bridge.setCrossDomainMessengerWrapper(ARBITRUM_CHAIN_ID, l1_messengerWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
-    await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, ZERO_ADDRESS) // This should be l2_ovmBridge.address, but that concept does not exist in this test file.
+    await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address)
 
     // Set up bridge
     await l1_messenger.setTargetMessengerAddress(l2_messenger.address)

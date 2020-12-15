@@ -6,7 +6,14 @@ import "./L2_Bridge.sol";
 contract L2_OptimismBridge is L2_Bridge {
     mockOVM_CrossDomainMessenger public messenger;
 
-    constructor (mockOVM_CrossDomainMessenger _messenger) public L2_Bridge() {
+    constructor (
+        mockOVM_CrossDomainMessenger _messenger,
+        IERC20 canonicalToken_,
+        address committee_
+    )
+        public
+        L2_Bridge(canonicalToken_, committee_)
+    {
         messenger = _messenger;
     }
 

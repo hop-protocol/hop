@@ -7,7 +7,7 @@
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
       "noImplicitAny": false,
-      "noUnusedLocals": true,
+      "noUnusedLocals": false,
       "moduleResolution": "node",
       "sourceMap": false,
       "outDir": "dist",

@@ -1,6 +1,7 @@
 import { ethers } from 'hardhat'
 import { L2_NAMES, ARB_CHAIN_ADDRESS, DEFAULT_L2_GAS_LIMIT } from './constants'
-import { Contract } from 'ethers'
+import { BigNumber, BigNumberish, Signer, Contract } from 'ethers'
+import { expect } from 'chai'
 
 export const getL2MessengerId = (l2Name: string): string => {
   return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(l2Name))
@@ -42,4 +43,10 @@ export const setOptimismMessengerWrapperDefaults = async (l1MessengerWrapper: Co
   const defaultGasLimit: number = DEFAULT_L2_GAS_LIMIT
 
   await l1MessengerWrapper.setDefaultGasLimit(defaultGasLimit)
+}
+
+export const expectBalanceOf = async (token: Contract, account: Signer | Contract, expectedBalance: BigNumberish) => {
+  const accountAddress = account instanceof Signer ? await account.getAddress() : account.address
+  const balance = await token.balanceOf(accountAddress)
+  expect(balance.toString()).to.eq(BigNumber.from(expectedBalance).toString())
 }

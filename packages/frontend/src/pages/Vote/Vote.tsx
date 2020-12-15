@@ -6,8 +6,7 @@ import Button from 'src/components/buttons/Button'
 import { IProposal } from 'src/config'
 
 import ProposalPreviewCard from 'src/pages/Vote/ProposalPreviewCard'
-// commenting out because compiler says file not found
-//import useDelegateModal from 'src/pages/Vote/useDelegateModal'
+import DelegateModal from 'src/pages/Vote/DelegateModal/DelegateModal'
 
 const useStyles = makeStyles(() => ({
   headerWrapper: {
@@ -42,28 +41,31 @@ type VoteProps = {
 const Vote: FC<VoteProps> = props => {
   const { proposals } = props
   const styles = useStyles()
-  const [showModal, setShowModal] = useState(false)
-  // const toggleDelegateModal = useDelegateModal()
+  const [modalIsOpen, setModalIsOpen] = useState(true) // TODO: Change this back
 
   // Mock data
   const isDelegated = false
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
+      <DelegateModal
+        isOpen={modalIsOpen}
+        onClose={() => setModalIsOpen(false)}
+      />
       <Box display="flex" alignItems="center" className={styles.headerWrapper}>
         <Typography variant="h6">Participating Pools</Typography>
         {!isDelegated && (
           <Button
             className={styles.buttonStyle}
-            onClick={() => setShowModal(true)}
+            onClick={() => setModalIsOpen(true)}
           >
             Unlock Voting
           </Button>
         )}
-        {/* showModal && useDelegateModal() */}
       </Box>
       {proposals.map((proposal: IProposal) => (
         <ProposalPreviewCard
+          key={proposal.id}
           id={proposal.id}
           description={proposal.title}
           status={proposal.status}

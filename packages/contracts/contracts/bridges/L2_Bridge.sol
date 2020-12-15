@@ -13,15 +13,12 @@ import "../libraries/MerkleUtils.sol";
 abstract contract L2_Bridge is ERC20, Bridge {
     address public l1BridgeAddress;
     address public exchangeAddress;
-    address public oDaiAddress;
-    address[] public exchangePath;
     uint256 public swapDeadlineBuffer;
-    address[] public CH_exchangePath;
-    address[] public HC_exchangePath;
 
     bytes32[] public pendingTransfers;
     uint256[] public pendingAmountChainIds;
     mapping(uint256 => uint256) pendingAmountForChainId;
+    mapping(bytes32 => uint256) bondedWithdrawalAmounts;
 
     event TransfersCommitted (
         bytes32 root,
@@ -38,7 +35,14 @@ abstract contract L2_Bridge is ERC20, Bridge {
         uint256 relayerFee
     );
 
-    constructor () public ERC20("DAI Hop Token", "hDAI") {}
+    constructor (
+        IERC20 canonicalToken_,
+        address committee_
+    )
+        public
+        Bridge(canonicalToken_, committee_)
+        ERC20("DAI Hop Token", "hDAI")
+    {}
 
     function _sendMessageToL1Bridge(bytes memory _message) internal virtual;
 
@@ -48,23 +52,18 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     function setExchangeValues(
         uint256 _swapDeadlineBuffer,
-        address _exchangeAddress,
-        address _oDaiAddress
+        address _exchangeAddress
     )
         public
     {
         swapDeadlineBuffer = _swapDeadlineBuffer;
         exchangeAddress = _exchangeAddress;
-        oDaiAddress = _oDaiAddress;
-        CH_exchangePath = [oDaiAddress, address(this)];
-        HC_exchangePath = [address(this), oDaiAddress];
     }
 
     function setL1BridgeAddress(address _l1BridgeAddress) public {
         l1BridgeAddress = _l1BridgeAddress;
     }
 
-    // ToDo: Rename to Send
     /// @notice _amount is the amount the user wants to send plus the relayer fee
     function send(
         uint256 _chainId,
@@ -103,11 +102,14 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
-        ERC20(oDaiAddress).transferFrom(msg.sender, address(this), _amount);
+        IERC20 token = getCanonicalToken();
+        token.transferFrom(msg.sender, address(this), _amount);
 
-        address[] memory exchangePath = CH_exchangePath;
+        address[] memory exchangePath = new address[](2);
+        exchangePath[0] = address(token);
+        exchangePath[1] = address(this);
         uint256[] memory swapAmounts = IUniswapV2Router02(exchangeAddress).getAmountsOut(_amount, exchangePath);
-        uint256 swapAmount = swapAmounts[swapAmounts.length - 1];
+        uint256 swapAmount = swapAmounts[1];
 
         bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, exchangePath);
         (bool success,) = exchangeAddress.call(swapCalldata);
@@ -141,7 +143,6 @@ abstract contract L2_Bridge is ERC20, Bridge {
         );
 
         _sendMessageToL1Bridge(confirmTransferRootMessage);
-
     }
 
     // onlyCrossDomainBridge
@@ -152,7 +153,10 @@ abstract contract L2_Bridge is ERC20, Bridge {
     function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin) public {
         _mint(address(this), _amount);
 
-        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, HC_exchangePath);
+        address[] memory exchangePath = new address[](2);
+        exchangePath[0] = address(this);
+        exchangePath[1] = address(getCanonicalToken());
+        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, exchangePath);
         (bool success,) = exchangeAddress.call(swapCalldata);
 
         if (!success) {
@@ -165,7 +169,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     }
 
     function approveODaiExchangeTransfer() public {
-        ERC20(oDaiAddress).approve(exchangeAddress, uint256(-1));
+        getCanonicalToken().approve(exchangeAddress, uint256(-1));
     }
 
     function _transferFallback(address _recipient, uint256 _amount) internal {
@@ -181,33 +185,51 @@ abstract contract L2_Bridge is ERC20, Bridge {
         _setTransferRoot(_rootHash, _amount);
     }
 
-    // ToDo: Add withdrawAndAttemptToSwap functionality
-    function withdrawAndSwap(
+    /**
+     * Transfers
+     */
+
+    function bondWithdrawal(
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
-        uint256 _relayerFee,
-        bytes32 _transferRoot,
-        bytes32[] memory _proof
-        // ToDo: Add minimum output param for Uniswap slippage protection
+        uint256 _relayerFee
     )
         public
+        onlyCommittee
+        requirePositiveBalance
     {
-        _preWithdraw(
+        bytes32 transferHash = getTransferHash(
+            getChainId(),
             _recipient,
             _amount,
             _transferNonce,
-            _relayerFee,
-            _transferRoot,
-            _proof
+            _relayerFee
         );
-        // Mint the tokens to swap
-        _mint(address(this), _amount);
 
-        // Do Uniswap swap and get output amount
-        // If swap reverts, revert the transaction
+        _addDebit(_amount);
+        bondedWithdrawalAmounts[transferHash] = _amount;
 
-        // Transfer output amount of oDaiAddress to recipient
+        _markTransferSpent(transferHash);
+
+        _transfer(_recipient, _amount.sub(_relayerFee));
+        _transfer(msg.sender, _relayerFee);
+    }
+
+    function settleBondedWithdrawal(
+        bytes32 _transferHash,
+        bytes32 _transferRootHash,
+        bytes32[] memory _proof
+    )
+        public
+    {
+        require(_proof.verify(_transferRootHash, _transferRootHash), "BDG: Invalid transfer proof");
+
+        uint256 amount = bondedWithdrawalAmounts[_transferRootHash];
+        _addToAmountWithdrawn(_transferHash, _transferRootHash, amount);
+
+        bondedWithdrawalAmounts[_transferRootHash] = 0;
+        _addCredit(amount);
     }
 
     /**

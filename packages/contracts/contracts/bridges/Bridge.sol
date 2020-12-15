@@ -9,23 +9,20 @@ import "../test/mockOVM_CrossDomainMessenger.sol";
 
 import "../libraries/MerkleUtils.sol";
 
-abstract contract Bridge {
-    using SafeMath for uint256;
+import "./Accounting.sol";
+
+abstract contract Bridge is Accounting {
     using MerkleProof for bytes32[];
-    using SafeERC20 for IERC20;
 
     struct TransferRoot {
         uint256 total;
         uint256 amountWithdrawn;
     }
 
-    mapping(bytes32 => TransferRoot) private transferRoots;
-    mapping(bytes32 => bool) private spentTransferHashes;
+    mapping(bytes32 => TransferRoot) private _transferRoots;
+    mapping(bytes32 => bool) private _spentTransferHashes;
 
-    /**
-     * Abstract functions
-     */
-    function _transfer(address _recipient, uint256 _amount) internal virtual;
+    constructor(IERC20 _canonicalToken, address _committee) public Accounting(_canonicalToken, _committee) {}
 
     /**
      * Public getters
@@ -70,11 +67,11 @@ abstract contract Bridge {
     }
 
     function getTransferRoot(bytes32 _rootHash) public returns (TransferRoot memory) {
-        return transferRoots[_rootHash];
+        return _transferRoots[_rootHash];
     }
 
     /**
-     * Public functions
+     * User/relayer public functions
      */
 
     function withdraw(
@@ -82,34 +79,7 @@ abstract contract Bridge {
         uint256 _amount,
         uint256 _transferNonce,
         uint256 _relayerFee,
-        bytes32 _transferRoot,
-        bytes32[] memory _proof
-    )
-        public
-    {
-        _preWithdraw(
-            _recipient,
-            _amount,
-            _transferNonce,
-            _relayerFee,
-            _transferRoot,
-            _proof
-        );
-
-        _transfer(_recipient, _amount);
-        _transfer(msg.sender, _relayerFee);
-    }
-
-    /**
-     * Internal functions
-     */
-
-    function _preWithdraw(
-        address _recipient,
-        uint256 _amount,
-        uint256 _transferNonce,
-        uint256 _relayerFee,
-        bytes32 _transferRoot,
+        bytes32 _transferRootHash,
         bytes32[] memory _proof
     )
         public
@@ -121,19 +91,42 @@ abstract contract Bridge {
             _transferNonce,
             _relayerFee
         );
-        TransferRoot storage transferRoot = transferRoots[_transferRoot];
 
-        require(!spentTransferHashes[transferHash], "BDG: The transfer has already been withdrawn");
+        require(_proof.verify(_transferRootHash, transferHash), "BDG: Invalid transfer proof");
+        _addToAmountWithdrawn(transferHash, _transferRootHash, _amount);
+        _markTransferSpent(transferHash);
+
+        _transfer(_recipient, _amount.sub(_relayerFee));
+        _transfer(msg.sender, _relayerFee);
+    }
+
+    /**
+     * Internal functions
+     */
+
+    function _markTransferSpent(bytes32 _transferHash) internal {
+        require(!_spentTransferHashes[_transferHash], "BDG: The transfer has already been withdrawn");
+        _spentTransferHashes[_transferHash] = true;
+    }
+
+    function _addToAmountWithdrawn(
+        bytes32 _transferHash,
+        bytes32 _transferRootHash,
+        uint256 _amount
+    )
+        internal
+    {
+
+        TransferRoot storage transferRoot = _transferRoots[_transferRootHash];
+
         require(transferRoot.total > 0, "BDG: Transfer root not found");
-        require(_proof.verify(_transferRoot, transferHash), "BDG: Invalid transfer proof");
         require(transferRoot.amountWithdrawn.add(_amount) <= transferRoot.total, "BDG: Withdrawal exceeds TransferRoot total");
 
-        spentTransferHashes[transferHash] = true;
         transferRoot.amountWithdrawn = transferRoot.amountWithdrawn.add(_amount);
     }
 
-    function _setTransferRoot(bytes32 _transferRoot, uint256 _amount) internal {
-        require(transferRoots[_transferRoot].total == 0, "BDG: Transfer root already set");
-        transferRoots[_transferRoot] = TransferRoot(_amount, 0);
+    function _setTransferRoot(bytes32 _transferRootHash, uint256 _amount) internal {
+        require(_transferRoots[_transferRootHash].total == 0, "BDG: Transfer root already set");
+        _transferRoots[_transferRootHash] = TransferRoot(_amount, 0);
     }
 }

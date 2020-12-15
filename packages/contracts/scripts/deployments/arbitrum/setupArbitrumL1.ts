@@ -59,7 +59,7 @@ async function deployArbitrum () {
 
   // Set up bridges
   messengerId = getL2MessengerId('arbitrum')
-  await l1_bridge.setL1MessengerWrapper(messengerId, l1_messengerWrapper.address)
+  await l1_bridge.setCrossDomainMessengerWrapper(messengerId, l1_messengerWrapper.address)
 
   // Send canonical token to the user on L2
   await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE.mul(2))

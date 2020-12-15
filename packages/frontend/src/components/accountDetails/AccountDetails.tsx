@@ -67,7 +67,9 @@ const TransactionsList = (props: any) => {
 
 const AccountDetails = () => {
   const styles = useStyles()
-  const { transactions, accountDetails } = useApp()
+  const app = useApp()
+  const { accountDetails } = app
+  const transactions = app.transactions?.transactions
 
   if (!accountDetails?.open) {
     return null

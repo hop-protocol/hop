@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import Transaction from 'src/models/Transaction'
 
-const useTransactions = () => {
+export interface Transactions {
+  transactions: Transaction[]
+  setTransactions: (txs: Transaction[]) => void
+}
+
+const useTransactions = (): Transactions => {
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
       const cached = sessionStorage.getItem('recentTransactions')

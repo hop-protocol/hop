@@ -39,7 +39,8 @@ export interface StakingInfo {
 export const useStakingInfo = (): StakingInfo => {
   const { address } = useWeb3Context()
   const { contracts } = useApp()
-  const { stakingRewards, l1Dai } = contracts
+  const stakingRewards = contracts?.stakingRewards
+  const l1Dai = contracts?.l1Dai
   const fromToken = l1Dai
   const toToken = l1Dai
 
@@ -47,17 +48,22 @@ export const useStakingInfo = (): StakingInfo => {
 
   const [stakedAmount, setStakedAmount] = useState<string | undefined>()
   const [earnedAmount, setEarnedAmount] = useState<string | undefined>()
-  const [totalStakedAmount, setTotalStakedAmount] = useState<string | undefined>()
+  const [totalStakedAmount, setTotalStakedAmount] = useState<
+    string | undefined
+  >()
   const [totalRewardRate, setTotalRewardRate] = useState<string | undefined>()
   const [rewardRate, setRewardRate] = useState<string | undefined>()
   const [periodFinish, setPeriodFinish] = useState<Date | undefined>()
 
   const stakingRewardAddress = stakingRewards?.address.toString()
   const tokens: TokenArrayType = [fromToken, toToken]
-  const active = periodFinish && currentBlockTimestamp ? Number(periodFinish) > Number(currentBlockTimestamp) : false
+  const active =
+    periodFinish && currentBlockTimestamp
+      ? Number(periodFinish) > Number(currentBlockTimestamp)
+      : false
 
   const fetchStakingValues = useCallback(() => {
-    async function setValues() {
+    async function setValues () {
       setStakedAmount(await stakingRewards?.balanceOf(address?.toString()))
       setEarnedAmount(await stakingRewards?.earned(address?.toString()))
       setTotalStakedAmount(await stakingRewards?.totalSupply())

@@ -41,7 +41,9 @@ const Send: FC = () => {
   const styles = useStyles()
 
   const { user, tokens, networks, contracts, txConfirm } = useApp()
-  const { l1Bridge, arbitrumBridge, arbitrumUniswapRouter } = contracts
+  const l1Bridge = contracts?.l1Bridge
+  const arbitrumBridge = contracts?.arbitrumBridge
+  const arbitrumUniswapRouter = contracts?.arbitrumUniswapRouter
 
   const {
     provider,

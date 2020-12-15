@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
 import { EventEmitter } from 'events'
 
-const useEvents = () => {
-  const [keyboard] = useState<EventEmitter>(() => {
+export interface Events {
+  keypress: EventEmitter
+}
+
+const useEvents = (): Events => {
+  const [keypress] = useState<EventEmitter>(() => {
     return new EventEmitter()
   })
 
@@ -13,7 +17,7 @@ const useEvents = () => {
         event.key === 'Esc' ||
         event.keyCode === 27
       ) {
-        keyboard.emit('escape')
+        keypress.emit('escape')
       }
     }
 
@@ -21,10 +25,10 @@ const useEvents = () => {
     return () => {
       window.removeEventListener('keydown', cb, true)
     }
-  }, [keyboard])
+  }, [keypress])
 
   return {
-    keyboard
+    keypress
   }
 }
 

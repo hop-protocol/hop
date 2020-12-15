@@ -7,18 +7,19 @@ import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import useNetworks from './useNetworks'
 import useTokens from './useTokens'
-import useTransactions from './useTransactions'
-import useContracts, { HopContracts } from './useContracts'
+import useTransactions, { Transactions } from './useTransactions'
+import useContracts, { Contracts } from './useContracts'
+import useEvents, { Events } from './useEvents'
 import { useAccountDetails, AccountDetails } from './useAccountDetails'
 import { useTxConfirm, TxConfirm } from './useTxConfirm'
 
 type AppContextProps = {
-  user?: User
+  user: User | undefined
   networks: Network[]
-  contracts: Partial<HopContracts>
+  contracts: Contracts | undefined
   tokens: Token[]
-  transactions: Transaction[]
-  setTransactions: (transactions: Transaction[]) => void
+  events: Events | undefined
+  transactions: Transactions | undefined
   accountDetails: AccountDetails | undefined
   txConfirm: TxConfirm | undefined
 }
@@ -26,10 +27,10 @@ type AppContextProps = {
 const AppContext = createContext<AppContextProps>({
   user: undefined,
   networks: [],
-  contracts: {},
+  contracts: undefined,
   tokens: [],
-  transactions: [],
-  setTransactions: (transactions: Transaction[]) => {},
+  transactions: undefined,
+  events: undefined,
   accountDetails: undefined,
   txConfirm: undefined
 })
@@ -48,7 +49,8 @@ const AppContextProvider: FC = ({ children }) => {
   const networks = useNetworks()
   const contracts = useContracts(networks)
   const tokens = useTokens(networks)
-  const { transactions, setTransactions } = useTransactions()
+  const events = useEvents()
+  const transactions = useTransactions()
   const accountDetails = useAccountDetails()
   const txConfirm = useTxConfirm()
 
@@ -59,8 +61,8 @@ const AppContextProvider: FC = ({ children }) => {
         networks,
         contracts,
         tokens,
+        events,
         transactions,
-        setTransactions,
         accountDetails,
         txConfirm
       }}

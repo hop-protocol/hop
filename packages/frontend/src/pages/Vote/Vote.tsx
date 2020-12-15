@@ -51,18 +51,16 @@ const Vote: FC<VoteProps> = props => {
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <Box display="flex" alignItems="center" className={styles.headerWrapper}>
-        <Typography variant="h6">
-          Participating Pools
-        </Typography>
-        { !isDelegated &&
+        <Typography variant="h6">Participating Pools</Typography>
+        {!isDelegated && (
           <Button
             className={styles.buttonStyle}
             onClick={() => setShowModal(true)}
           >
             Unlock Voting
           </Button>
-        }
-    {/* showModal && useDelegateModal() */}
+        )}
+        {/* showModal && useDelegateModal() */}
       </Box>
       {proposals.map((proposal: IProposal) => (
         <ProposalPreviewCard

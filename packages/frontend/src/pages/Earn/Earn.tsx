@@ -50,7 +50,7 @@ const useStyles = makeStyles(() => ({
 const Earn: FC = () => {
   const styles = useStyles()
   const { contracts } = useApp()
-  const { stakingRewards } = contracts
+  const stakingRewards = contracts?.stakingRewards
   let {
     fetchStakingValues,
     stakingRewardAddress,
@@ -68,7 +68,7 @@ const Earn: FC = () => {
     fetchStakingValues()
   }, [stakingRewards, fetchStakingValues])
 
-  const isStakingOver = periodFinish ? (periodFinish < new Date()) : false
+  const isStakingOver = periodFinish ? periodFinish < new Date() : false
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -78,34 +78,40 @@ const Earn: FC = () => {
         </Typography>
       </Box>
       <Box display="flex" alignItems="center" className={styles.headerWrapper}>
-        <Typography variant="h6">
-          Participating Pools
-        </Typography>
+        <Typography variant="h6">Participating Pools</Typography>
         <Countdown exactEnd={periodFinish} />
       </Box>
       <Box className={styles.poolSection}>
         <Box className={styles.poolContainer}>
-          { !active ? (
+          {!active ? (
             isStakingOver ? (
               <span> No active pools </span>
-           ) : (
-            <Box className={styles.centerCircularProgress}>
-              <CircularProgress />
-            </Box>
-           )
+            ) : (
+              <Box className={styles.centerCircularProgress}>
+                <CircularProgress />
+              </Box>
+            )
           ) : (
             <div>
-              <span> stakingRewardAddress { stakingRewardAddress?.toString() }</span>
-              <br /><br />
-              <span> stakedAmount { stakedAmount?.toString() }</span>
-              <br /><br />
-              <span> earnedAmount { earnedAmount?.toString() }</span>
-              <br /><br />
-              <span> totalStakedAmount { totalStakedAmount?.toString() }</span>
-              <br /><br />
-              <span> totalRewardRate { totalRewardRate?.toString() }</span>
-              <br /><br />
-              <span> rewardRate { rewardRate?.toString() }</span>
+              <span>
+                {' '}
+                stakingRewardAddress {stakingRewardAddress?.toString()}
+              </span>
+              <br />
+              <br />
+              <span> stakedAmount {stakedAmount?.toString()}</span>
+              <br />
+              <br />
+              <span> earnedAmount {earnedAmount?.toString()}</span>
+              <br />
+              <br />
+              <span> totalStakedAmount {totalStakedAmount?.toString()}</span>
+              <br />
+              <br />
+              <span> totalRewardRate {totalRewardRate?.toString()}</span>
+              <br />
+              <br />
+              <span> rewardRate {rewardRate?.toString()}</span>
             </div>
           )}
         </Box>

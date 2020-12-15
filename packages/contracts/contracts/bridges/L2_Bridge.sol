@@ -18,6 +18,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     bytes32[] public pendingTransfers;
     uint256[] public pendingAmountChainIds;
     mapping(uint256 => uint256) pendingAmountForChainId;
+    mapping(bytes32 => uint256) bondedWithdrawalAmounts;
 
     event TransfersCommitted (
         bytes32 root,
@@ -185,33 +186,51 @@ abstract contract L2_Bridge is ERC20, Bridge {
         _setTransferRoot(_rootHash, _amount);
     }
 
-    // ToDo: Add withdrawAndAttemptToSwap functionality
-    function withdrawAndSwap(
+    /**
+     * Transfers
+     */
+
+    function bondWithdrawal(
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
-        uint256 _relayerFee,
-        bytes32 _transferRoot,
-        bytes32[] memory _proof
-        // ToDo: Add minimum output param for Uniswap slippage protection
+        uint256 _relayerFee
     )
         public
+        onlyCommittee
     {
-        _preWithdraw(
+        bytes32 transferHash = getTransferHash(
+            getChainId(),
             _recipient,
             _amount,
             _transferNonce,
-            _relayerFee,
-            _transferRoot,
-            _proof
+            _relayerFee
         );
-        // Mint the tokens to swap
-        _mint(address(this), _amount);
 
-        // Do Uniswap swap and get output amount
-        // If swap reverts, revert the transaction
 
-        // Transfer output amount of oDaiAddress to recipient
+        _addDebit(_amount);
+        bondedWithdrawalAmounts[transferHash] = _amount;
+
+        _markTransferSpent(transferHash);
+
+        _transfer(_recipient, _amount.sub(_relayerFee));
+        _transfer(msg.sender, _relayerFee);
+    }
+
+    function settleBondedWithdrawal(
+        bytes32 _transferHash,
+        bytes32 _transferRootHash,
+        bytes32[] memory _proof
+    )
+        public
+    {
+        require(_proof.verify(_transferRootHash, _transferRootHash), "BDG: Invalid transfer proof");
+
+        uint256 amount = bondedWithdrawalAmounts[_transferRootHash];
+        _addToAmountWithdrawn(_transferHash, _transferRootHash, amount);
+
+        bondedWithdrawalAmounts[_transferRootHash] = 0;
+        _addCredit(amount);
     }
 
     /**

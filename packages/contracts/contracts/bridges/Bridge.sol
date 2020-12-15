@@ -123,21 +123,24 @@ abstract contract Bridge {
         uint256 _amount,
         uint256 _transferNonce,
         uint256 _relayerFee,
-        bytes32 _transferRoot,
+        bytes32 _transferRootHash,
         bytes32[] memory _proof
     )
         public
     {
-        _preWithdraw(
+        bytes32 transferHash = getTransferHash(
+            getChainId(),
             _recipient,
             _amount,
             _transferNonce,
-            _relayerFee,
-            _transferRoot,
-            _proof
+            _relayerFee
         );
 
-        _transfer(_recipient, _amount);
+        require(_proof.verify(_transferRootHash, transferHash), "BDG: Invalid transfer proof");
+        _addToAmountWithdrawn(transferHash, _transferRootHash, _amount);
+        _markTransferSpent(transferHash);
+
+        _transfer(_recipient, _amount.sub(_relayerFee));
         _transfer(msg.sender, _relayerFee);
     }
 
@@ -161,38 +164,30 @@ abstract contract Bridge {
      * Internal functions
      */
 
-    // ToDo: Make internal function for distributing token and move this logic to withdraw()
-    function _preWithdraw(
-        address _recipient,
-        uint256 _amount,
-        uint256 _transferNonce,
-        uint256 _relayerFee,
-        bytes32 _transferRoot,
-        bytes32[] memory _proof
+    function _markTransferSpent(bytes32 _transferHash) internal {
+        require(!_spentTransferHashes[_transferHash], "BDG: The transfer has already been withdrawn");
+        _spentTransferHashes[_transferHash] = true;
+    }
+
+    function _addToAmountWithdrawn(
+        bytes32 _transferHash,
+        bytes32 _transferRootHash,
+        uint256 _amount
     )
         internal
     {
-        bytes32 transferHash = getTransferHash(
-            getChainId(),
-            _recipient,
-            _amount,
-            _transferNonce,
-            _relayerFee
-        );
-        TransferRoot storage transferRoot = _transferRoots[_transferRoot];
 
-        require(!_spentTransferHashes[transferHash], "BDG: The transfer has already been withdrawn");
+        TransferRoot storage transferRoot = _transferRoots[_transferRootHash];
+
         require(transferRoot.total > 0, "BDG: Transfer root not found");
-        require(_proof.verify(_transferRoot, transferHash), "BDG: Invalid transfer proof");
         require(transferRoot.amountWithdrawn.add(_amount) <= transferRoot.total, "BDG: Withdrawal exceeds TransferRoot total");
 
-        _spentTransferHashes[transferHash] = true;
         transferRoot.amountWithdrawn = transferRoot.amountWithdrawn.add(_amount);
     }
 
-    function _setTransferRoot(bytes32 _transferRoot, uint256 _amount) internal {
-        require(_transferRoots[_transferRoot].total == 0, "BDG: Transfer root already set");
-        _transferRoots[_transferRoot] = TransferRoot(_amount, 0);
+    function _setTransferRoot(bytes32 _transferRootHash, uint256 _amount) internal {
+        require(_transferRoots[_transferRootHash].total == 0, "BDG: Transfer root already set");
+        _transferRoots[_transferRootHash] = TransferRoot(_amount, 0);
     }
 
     function _addCredit(uint256 _amount) internal {
@@ -200,6 +195,7 @@ abstract contract Bridge {
     }
 
     function _addDebit(uint256 _amount) internal {
+        //ToDo: require credit >= debit and add force add debit function
         _debit = _debit.add(_amount);
     }
 }

@@ -1,9 +1,10 @@
 import { CSSProperties } from 'react'
 import createBreakpoints from '@material-ui/core/styles/createBreakpoints'
-import { createMuiTheme } from '@material-ui/core/styles'
 import { TypographyOptions } from '@material-ui/core/styles/createTypography'
-
 import { SkeletonClassKey } from '@material-ui/lab/Skeleton'
+
+// https://stackoverflow.com/a/64135466/1439168
+import { unstable_createMuiStrictModeTheme as createMuiTheme } from '@material-ui/core/styles'
 
 declare module '@material-ui/core/styles/overrides' {
   export interface ComponentNameToClassKey {

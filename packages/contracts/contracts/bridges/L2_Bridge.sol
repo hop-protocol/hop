@@ -143,7 +143,6 @@ abstract contract L2_Bridge is ERC20, Bridge {
         );
 
         _sendMessageToL1Bridge(confirmTransferRootMessage);
-
     }
 
     // onlyCrossDomainBridge
@@ -198,6 +197,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
         onlyCommittee
+        requirePositiveBalance
     {
         bytes32 transferHash = getTransferHash(
             getChainId(),
@@ -206,7 +206,6 @@ abstract contract L2_Bridge is ERC20, Bridge {
             _transferNonce,
             _relayerFee
         );
-
 
         _addDebit(_amount);
         bondedWithdrawalAmounts[transferHash] = _amount;

@@ -99,7 +99,7 @@ describe("Full story", () => {
     l2_ovmBridge.setCrossDomainBridgeAddress(l1_ovmBridge.address)
 
     // Set up liquidity bridge
-    await l1_bridge.setL1MessengerWrapper(OPTIMISM_CHAIN_ID, l1_messengerWrapper.address)
+    await l1_bridge.setCrossDomainMessengerWrapper(OPTIMISM_CHAIN_ID, l1_messengerWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
     await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address)
 

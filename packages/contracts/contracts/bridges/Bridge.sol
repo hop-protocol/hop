@@ -9,56 +9,20 @@ import "../test/mockOVM_CrossDomainMessenger.sol";
 
 import "../libraries/MerkleUtils.sol";
 
-abstract contract Bridge {
-    using SafeMath for uint256;
+import "./Accounting.sol";
+
+abstract contract Bridge is Accounting {
     using MerkleProof for bytes32[];
-    using SafeERC20 for IERC20;
 
     struct TransferRoot {
         uint256 total;
         uint256 amountWithdrawn;
     }
 
-    // _token is set to the canonical token of the bridge contract's chain
-    address public _committee;
-    IERC20 private _canonicalToken;
     mapping(bytes32 => TransferRoot) private _transferRoots;
     mapping(bytes32 => bool) private _spentTransferHashes;
 
-    uint256 private _credit;
-    uint256 private _debit;
-
-    event Stake (
-        uint256 amount
-    );
-
-    event Unstake (
-        uint256 amount
-    );
-
-    /**
-     * Modifiers
-     */
-
-    modifier onlyCommittee {
-        require(msg.sender == _committee, "BDG: Caller is not committee");
-        _;
-    }
-
-    constructor(IERC20 canonicalToken_, address committee_) public {
-        _canonicalToken = canonicalToken_;
-        _committee = committee_;
-    }
-
-    /**
-     * Virtual functions
-     */
-
-    function _transfer(address _recipient, uint256 _amount) internal virtual;
-
-    function _additionalDebit() internal virtual returns (uint256) {
-        return 0;
-    }
+    constructor(IERC20 _canonicalToken, address _committee) public Accounting(_canonicalToken, _committee) {}
 
     /**
      * Public getters
@@ -106,14 +70,6 @@ abstract contract Bridge {
         return _transferRoots[_rootHash];
     }
 
-    function getCommitteeBalances() public returns (uint256, uint256) {
-        return (_credit, _debit.add(_additionalDebit()));
-    }
-
-    function getCanonicalToken() public returns (IERC20) {
-        return _canonicalToken;
-    }
-
     /**
      * User/relayer public functions
      */
@@ -145,22 +101,6 @@ abstract contract Bridge {
     }
 
     /**
-     * Committee public functions
-     */
-
-    function stake(uint256 _amount) public {
-        _canonicalToken.transferFrom(msg.sender, address(this), _amount);
-        _credit = _credit.add(_amount);
-    }
-
-    function unstake(uint256 _amount) public {
-        (, uint256 totalDebit) = getCommitteeBalances();
-        require(_credit >= totalDebit.add(_amount));
-        _debit = _debit.add(_amount);
-        _canonicalToken.transfer(_committee, _amount);
-    }
-
-    /**
      * Internal functions
      */
 
@@ -188,14 +128,5 @@ abstract contract Bridge {
     function _setTransferRoot(bytes32 _transferRootHash, uint256 _amount) internal {
         require(_transferRoots[_transferRootHash].total == 0, "BDG: Transfer root already set");
         _transferRoots[_transferRootHash] = TransferRoot(_amount, 0);
-    }
-
-    function _addCredit(uint256 _amount) internal {
-        _credit = _credit.add(_amount);
-    }
-
-    function _addDebit(uint256 _amount) internal {
-        //ToDo: require credit >= debit and add force add debit function
-        _debit = _debit.add(_amount);
     }
 }

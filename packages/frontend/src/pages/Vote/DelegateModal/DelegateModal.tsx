@@ -6,6 +6,7 @@ import Box from '@material-ui/core/Box'
 import LargeTextField from 'src/components/LargeTextField'
 import Typography from '@material-ui/core/Typography'
 
+import Address from 'src/models/Address'
 import DelegateModalTransaction from 'src/pages/Vote/DelegateModal/DelegateModalTransaction'
 
 const useStyles = makeStyles(() => ({
@@ -44,15 +45,18 @@ const DelegateModal: FC<DelegateModalProps> = props => {
 
   const [isSelfDelegate, setIsSelfDelegate] = useState(false)
   const [isOtherDelegate, setIsOtherDelegate] = useState(false)
+  const [delegateAddress, setDelegateAddress] = useState<Address | undefined>()
 
   const selfOrOtherText = isOtherDelegate ? '' : 'to Self'
 
+  // TODO: Default large text field to current hover state
+  // TODO: Hover state is a little darker on large text field
+  // TODO: Large text field auto focus
+
+  // on chain
   // TODO: What do I do if a user doesn't have votes to make?
   // TODO: Read numVotes from contract
-  // TODO: Disable "Delegate" button if no valid address
   // TODO: Add tx
-  // TODO: Add large text field state
-  // TODO: Use address model to store state
 
   const numVotes = 0
 
@@ -70,6 +74,14 @@ const DelegateModal: FC<DelegateModalProps> = props => {
   function handleOtherDelegateClick() {
     setIsSelfDelegate(false)
     setIsOtherDelegate(true)
+  }
+
+  const handleAddressInput = async (event: any) => {
+    try {
+      const value = event.target.value || ''
+      const address = new Address(value)
+      setDelegateAddress(address)
+    } catch (err) {}
   }
 
   return (
@@ -91,6 +103,7 @@ const DelegateModal: FC<DelegateModalProps> = props => {
               </Typography>
               { isOtherDelegate &&
                 <LargeTextField
+                  onChange={handleAddressInput}
                   centerAlign
                   placeholder="Wallet Address"
                   className={styles.textFieldContainer}
@@ -99,6 +112,7 @@ const DelegateModal: FC<DelegateModalProps> = props => {
               <Box display="flex" alignItems="center" className={styles.actionContainer}>
                 <Button
                   highlighted
+                  disabled={isOtherDelegate && !delegateAddress}
                   onClick={handleSelfDelegateClick}
                 >
                   Delegate Votes {`${selfOrOtherText}`}

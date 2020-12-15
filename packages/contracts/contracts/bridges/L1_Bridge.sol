@@ -31,8 +31,7 @@ contract L1_Bridge is Bridge {
      * State
      */
 
-    // IERC20 public token;
-    mapping(uint256 => IMessengerWrapper) public l1Messenger;
+    mapping(uint256 => IMessengerWrapper) public crossDomainMessenger;
 
     mapping(bytes32 => TransferBond) transferBonds;
     mapping(uint256 => uint256) public timeSlotToAmountBonded;
@@ -41,11 +40,6 @@ contract L1_Bridge is Bridge {
     /**
      * Events
      */
-
-    event DepositsCommitted (
-        bytes32 root,
-        uint256 amount
-    );
 
     event TransferRootBonded (
         bytes32 root,
@@ -58,8 +52,8 @@ contract L1_Bridge is Bridge {
      * Public Management Functions
      */
 
-    function setL1MessengerWrapper(uint256 _chainId, IMessengerWrapper _l1Messenger) public {
-        l1Messenger[_chainId] = _l1Messenger;
+    function setCrossDomainMessengerWrapper(uint256 _chainId, IMessengerWrapper _crossDomainMessenger) public {
+        crossDomainMessenger[_chainId] = _crossDomainMessenger;
     }
 
     /**
@@ -76,7 +70,7 @@ contract L1_Bridge is Bridge {
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
 
         getCanonicalToken().safeTransferFrom(msg.sender, address(this), _amount);
-        l1Messenger[_chainId].sendMessageToL2(mintCalldata);
+        crossDomainMessenger[_chainId].sendMessageToL2(mintCalldata);
     }
 
     function sendToL2AndAttemptSwap(
@@ -94,7 +88,7 @@ contract L1_Bridge is Bridge {
             _amountOutMin
         );
 
-        l1Messenger[_chainId].sendMessageToL2(mintAndAttemptSwapCalldata);
+        crossDomainMessenger[_chainId].sendMessageToL2(mintAndAttemptSwapCalldata);
         getCanonicalToken().safeTransferFrom(msg.sender, address(this), _amount);
     }
 
@@ -117,6 +111,7 @@ contract L1_Bridge is Bridge {
     )
         public
         onlyCommittee
+        requirePositiveBalance
     {
         require(_chainIds.length == _chainAmounts.length, "BDG: chainIds and chainAmounts must be the same length");
 
@@ -125,17 +120,14 @@ contract L1_Bridge is Bridge {
             totalAmount = totalAmount.add(_chainAmounts[i]);
         }
 
-        (uint256 credit, uint256 debit) = getCommitteeBalances();
-        uint256 bondAmount = bondForTransferAmount(totalAmount);
-        require(credit >= debit.add(bondAmount), "BDG: Amount exceeds committee bond");
-
         uint256 currentTimeSlot = getTimeSlot(now);
+        uint256 bondAmount = bondForTransferAmount(totalAmount);
         timeSlotToAmountBonded[currentTimeSlot] = timeSlotToAmountBonded[currentTimeSlot].add(bondAmount);
 
         bytes32 amountHash = getAmountHash(_chainIds, _chainAmounts);
-
         transferBonds[_transferRootHash] = TransferBond(now, amountHash, false, 0, address(0));
 
+        // Set TransferRoots on recipient Bridges
         for (uint256 i = 0; i < _chainIds.length; i++) {
             if (_chainIds[i] == getChainId()) {
                 // Set L1 transfer root
@@ -148,7 +140,7 @@ contract L1_Bridge is Bridge {
                     _chainAmounts[i]
                 );
 
-                l1Messenger[_chainIds[i]].sendMessageToL2(setTransferRootMessage);
+                crossDomainMessenger[_chainIds[i]].sendMessageToL2(setTransferRootMessage);
             }
         }
 

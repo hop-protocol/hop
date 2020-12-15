@@ -56,7 +56,7 @@ describe("L1_Bridge", () => {
     await l1_messenger.setTargetMessengerAddress(MOCK_ADDRESS)
 
     // Set up liquidity bridge
-    await l1_bridge.setL1MessengerWrapper(OPTIMISM_CHAIN_ID, l1_messengerWrapper.address)
+    await l1_bridge.setCrossDomainMessengerWrapper(OPTIMISM_CHAIN_ID, l1_messengerWrapper.address)
 
     // Distribute poolToken
     await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)

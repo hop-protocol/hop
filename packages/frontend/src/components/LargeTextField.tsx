@@ -6,7 +6,12 @@ import Typography from '@material-ui/core/Typography'
 
 type LargeTextFieldProps = {
   units?: string | ReactNode
+  centerAlign?: boolean | undefined
 } & TextFieldProps
+
+interface StyleProps {
+  centerAlign: boolean
+}
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -30,12 +35,12 @@ const useInputStyles = makeStyles(theme => ({
       `
     }
   },
-  input: {
-    textAlign: 'right',
+  input: ({ centerAlign }: StyleProps) => ({
+    textAlign: centerAlign ? 'center' : 'right',
     fontSize: theme.typography.h4.fontSize,
     fontWeight: theme.typography.h4.fontWeight,
     color: theme.palette.text.primary
-  },
+  }),
   focused: {
     borderRadius: '1.5rem',
     boxShadow: `
@@ -46,9 +51,13 @@ const useInputStyles = makeStyles(theme => ({
 }))
 
 const TextField: FC<LargeTextFieldProps> = props => {
-  const { units, ...textFieldProps } = props
+  const {
+    units,
+    centerAlign = false,
+    ...textFieldProps
+  } = props
   const styles = useStyles()
-  const inputStyles = useInputStyles()
+  const inputStyles = useInputStyles({ centerAlign })
 
   return (
     <MuiTextField

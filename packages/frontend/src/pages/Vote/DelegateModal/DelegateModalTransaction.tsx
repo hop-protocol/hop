@@ -20,7 +20,6 @@ type DelegateModalTransactionProps = {
   numVotes: string
 }
 
-
 const DelegateModalTransaction: FC<DelegateModalTransactionProps> = props => {
   const { numVotes } = props
   const styles = useStyles()
@@ -29,13 +28,13 @@ const DelegateModalTransaction: FC<DelegateModalTransactionProps> = props => {
     <Box className={styles.selfDelegateContainer}>
       <CircularProgress />
       <Typography variant="h6" className={styles.textContainer}>
-          Unlocking votes
+        Unlocking votes
       </Typography>
       <Typography variant="h6" className={styles.textContainer}>
-          { numVotes }
+        {numVotes}
       </Typography>
       <Typography variant="body1" className={styles.textContainer}>
-          Confirm this transaction in your wallet
+        Confirm this transaction in your wallet
       </Typography>
     </Box>
   )

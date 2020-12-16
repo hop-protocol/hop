@@ -68,18 +68,18 @@ const DelegateModal: FC<DelegateModalProps> = props => {
   // TODO: Add state to show when  you are already delegated
   // TODO: Optimize balance getter
 
-  function handleOnClose() {
+  function handleOnClose () {
     setIsSelfDelegate(false)
     setIsOtherDelegate(false)
     onClose()
   }
 
-  function handleSelfDelegateClick() {
+  function handleSelfDelegateClick () {
     setIsSelfDelegate(true)
     setIsOtherDelegate(false)
   }
 
-  function handleOtherDelegateClick() {
+  function handleOtherDelegateClick () {
     setIsSelfDelegate(false)
     setIsOtherDelegate(true)
   }
@@ -113,22 +113,23 @@ const DelegateModal: FC<DelegateModalProps> = props => {
 
   return (
     <>
-      { isOpen &&
-        <Modal
-          onClose={handleOnClose}
-        >
-          { !isSelfDelegate &&
-            <Box display="flex" alignItems="center" className={styles.modalContainer}>
-              <Typography variant="h6">
-                Participating Pools
-              </Typography>
+      {isOpen && (
+        <Modal onClose={handleOnClose}>
+          {!isSelfDelegate && (
+            <Box
+              display="flex"
+              alignItems="center"
+              className={styles.modalContainer}
+            >
+              <Typography variant="h6">Participating Pools</Typography>
               <Typography variant="body1" className={styles.textContainer}>
                 Earned HOP tokens represent voting shares in Hop governance.
               </Typography>
               <Typography variant="body1" className={styles.textContainer}>
-                You can either vote on each proposal yourself or delegate your votes to a third party.
+                You can either vote on each proposal yourself or delegate your
+                votes to a third party.
               </Typography>
-              { isOtherDelegate &&
+              {isOtherDelegate &&
                 <LargeTextField
                   onChange={handleAddressInput}
                   centerAlign
@@ -146,24 +147,19 @@ const DelegateModal: FC<DelegateModalProps> = props => {
                 >
                   Delegate Votes {`${selfOrOtherText}`}
                 </Button>
-                {
-                  !isOtherDelegate &&
-                    <Button
-                      highlighted
-                      onClick={handleOtherDelegateClick}
-                    >
-                      Add Delegate
-                    </Button>
-                }
+                {!isOtherDelegate && (
+                  <Button highlighted onClick={handleOtherDelegateClick}>
+                    Add Delegate
+                  </Button>
+                )}
               </Box>
             </Box>
-          }
-
+          )}
           {
             isSelfDelegate && <DelegateModalTransaction numVotes={balance} />
           }
         </Modal>
-      }
+      )}
     </>
   )
 }

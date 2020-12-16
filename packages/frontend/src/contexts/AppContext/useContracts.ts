@@ -27,11 +27,11 @@ export type HopContracts = {
   stakingRewards: Contract | undefined
 }
 
-interface ContractsHook extends HopContracts {
+export interface Contracts extends HopContracts {
   getErc20Contract: (address: string, provider: any) => Contract
 }
 
-const useContracts = (networks: Network[]): ContractsHook => {
+const useContracts = (networks: Network[]): Contracts => {
   const { provider } = useWeb3Context()
 
   const getErc20Contract = (
@@ -132,7 +132,6 @@ const useContracts = (networks: Network[]): ContractsHook => {
         )
       : undefined
   }, [provider])
-
 
   return {
     l1Hop,

@@ -5,7 +5,6 @@ import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import useContracts from 'src/contexts/AppContext/useContracts'
 import { addresses } from 'src/config'
 
 type ConvertContextProps = {
@@ -48,13 +47,12 @@ const ConvertContextProvider: FC = ({ children }) => {
     setRequiredNetworkId,
     connectedNetworkId
   } = useWeb3Context()
-  let {
-    networks: nets,
-    tokens,
-    transactions,
-    setTransactions,
-    txConfirm
-  } = useApp()
+  const app = useApp()
+  let { networks: nets, tokens, contracts, txConfirm } = app
+  let transactions = app?.transactions?.transactions
+  const arbitrumDai = contracts?.arbitrumDai
+  const arbitrumUniswapRouter = contracts?.arbitrumUniswapRouter
+  const arbitrumL1Messenger = contracts?.arbitrumL1Messenger
   const networks = useMemo(() => {
     const kovanNetwork = nets.find(
       (network: Network) => network.slug === 'kovan'
@@ -91,12 +89,6 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [destNetwork, setDestNetwork] = useState<Network | undefined>()
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
-  const {
-    arbitrumDai,
-    arbitrumUniswapRouter,
-    arbitrumL1Messenger,
-    getErc20Contract
-  } = useContracts([])
   const [sending, setSending] = useState<boolean>(false)
 
   const calcAltTokenAmount = async (value: string) => {
@@ -154,11 +146,11 @@ const ConvertContextProvider: FC = ({ children }) => {
       ): Promise<any> => {
         const signer = provider?.getSigner()
         const tokenAddress = token.addressForNetwork(network).toString()
-        const contract = getErc20Contract(tokenAddress, signer)
+        const contract = contracts?.getErc20Contract(tokenAddress, signer)
 
         const address = arbitrumUniswapRouter?.address
         const parsedAmount = parseUnits(amount, token.decimals || 18)
-        const approved = await contract.allowance(
+        const approved = await contract?.allowance(
           await signer?.getAddress(),
           address
         )
@@ -171,7 +163,7 @@ const ConvertContextProvider: FC = ({ children }) => {
               token
             },
             onConfirm: async () => {
-              return contract.approve(address, parsedAmount)
+              return contract?.approve(address, parsedAmount)
             }
           })
         }
@@ -299,8 +291,8 @@ const ConvertContextProvider: FC = ({ children }) => {
         }
       }
 
-      if (tx?.hash && sourceNetwork?.name) {
-        setTransactions([
+      if (tx?.hash && sourceNetwork?.name && transactions) {
+        app?.transactions?.setTransactions([
           ...transactions,
           new Transaction({ hash: tx?.hash, networkName: sourceNetwork?.slug })
         ])

@@ -19,14 +19,16 @@ const useStyles = makeStyles(() => ({
 }))
 
 const TxPill = () => {
-  const { transactions, accountDetails } = useApp()
+  const app = useApp()
+  const { accountDetails } = app
+  const transactions = app?.transactions?.transactions
   const styles = useStyles()
 
   const handleClick = () => {
     accountDetails?.show(true)
   }
 
-  const pendingTxs = transactions.filter((tx: Transaction) => {
+  const pendingTxs = transactions?.filter((tx: Transaction) => {
     return tx.pending
   })
 
@@ -37,7 +39,7 @@ const TxPill = () => {
           {pendingTxs.length} Pending{' '}
           <CircularProgress size={18} className={styles.spinner} />
         </Button>
-      ) : transactions.length ? (
+      ) : transactions?.length ? (
         <Button className={styles.button} flat onClick={handleClick}>
           Recent transactions
         </Button>

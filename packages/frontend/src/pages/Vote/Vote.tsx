@@ -53,20 +53,19 @@ const Vote: FC<VoteProps> = props => {
         onClose={() => setModalIsOpen(false)}
       />
       <Box display="flex" alignItems="center" className={styles.headerWrapper}>
-        <Typography variant="h6">
-          Participating Pools
-        </Typography>
-        { !isDelegated &&
+        <Typography variant="h6">Participating Pools</Typography>
+        {!isDelegated && (
           <Button
             className={styles.buttonStyle}
             onClick={() => setModalIsOpen(true)}
           >
             Unlock Voting
           </Button>
-        }
+        )}
       </Box>
       {proposals.map((proposal: IProposal) => (
         <ProposalPreviewCard
+          key={proposal.id}
           id={proposal.id}
           description={proposal.title}
           status={proposal.status}

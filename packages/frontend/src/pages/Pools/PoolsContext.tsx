@@ -11,9 +11,6 @@ import { Contract } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import erc20Artifact from '@hop-exchange/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
-import useNetworks from 'src/contexts/AppContext/useNetworks'
-import useTokens from 'src/contexts/AppContext/useTokens'
-import useContracts from 'src/contexts/AppContext/useContracts'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Network from 'src/models/Network'
@@ -96,20 +93,15 @@ const PoolsContextProvider: FC = ({ children }) => {
   >('')
   const [token0Deposited, setToken0Deposited] = useState<string>('')
   const [token1Deposited, setToken1Deposited] = useState<string>('')
+  let { networks, tokens, contracts, txConfirm } = useApp()
   const {
     address,
     provider,
     setRequiredNetworkId,
     connectedNetworkId
   } = useWeb3Context()
-  const {
-    arbitrumUniswapRouter,
-    arbitrumUniswapFactory,
-    getErc20Contract
-  } = useContracts([])
-  let networks = useNetworks()
-  let tokens = useTokens(networks)
-  const { txConfirm } = useApp()
+  const arbitrumUniswapRouter = contracts?.arbitrumUniswapRouter
+  const arbitrumUniswapFactory = contracts?.arbitrumUniswapFactory
 
   const hopToken = useMemo(() => {
     const network = networks.find(network => network.slug === 'arbitrum')
@@ -275,11 +267,11 @@ const PoolsContextProvider: FC = ({ children }) => {
   ): Promise<any> => {
     const signer = provider?.getSigner()
     const tokenAddress = token.addressForNetwork(network).toString()
-    const contract = getErc20Contract(tokenAddress, signer)
+    const contract = contracts?.getErc20Contract(tokenAddress, signer)
 
     const address = arbitrumUniswapRouter?.address
     const parsedAmount = parseUnits(amount, token.decimals || 18)
-    const approved = await contract.allowance(
+    const approved = await contract?.allowance(
       await signer?.getAddress(),
       address
     )
@@ -292,7 +284,7 @@ const PoolsContextProvider: FC = ({ children }) => {
           token
         },
         onConfirm: async () => {
-          return contract.approve(address, parsedAmount)
+          return contract?.approve(address, parsedAmount)
         }
       })
     }

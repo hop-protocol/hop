@@ -4,7 +4,7 @@ import { Transition } from 'react-transition-group'
 import Card, { CardProps } from '@material-ui/core/Card'
 import { makeStyles, Theme } from '@material-ui/core/styles'
 import ClickAwayListener from '@material-ui/core/ClickAwayListener'
-import useEvents from 'src/contexts/AppContext/useEvents'
+import { useApp } from 'src/contexts/AppContext'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -94,8 +94,8 @@ const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(
   (props, ref) => {
     const { children, onClose } = props
     const styles = useStyles()
-    const { keyboard } = useEvents()
-
+    const { events } = useApp()
+    const keypress = events?.keypress
     const handleClose = useCallback(() => {
       if (onClose) {
         onClose()
@@ -103,11 +103,11 @@ const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(
     }, [onClose])
 
     useEffect(() => {
-      keyboard.on('escape', handleClose)
+      keypress?.on('escape', handleClose)
       return () => {
-        keyboard.off('escape', handleClose)
+        keypress?.off('escape', handleClose)
       }
-    }, [keyboard, handleClose])
+    }, [keypress, handleClose])
 
     return (
       <ClickAwayListener onClickAway={handleClose}>

@@ -6,11 +6,11 @@ import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
 import Button from 'src/components/buttons/Button'
 import { IProposal } from 'src/config'
-
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import ProposalPreviewCard from 'src/pages/Vote/ProposalPreviewCard'
 import DelegateModal from 'src/pages/Vote/DelegateModal/DelegateModal'
+import { ZERO_ADDRESS } from 'src/config/constants'
 
 const useStyles = makeStyles(() => ({
   headerWrapper: {
@@ -57,7 +57,7 @@ const Vote: FC<VoteProps> = props => {
 
   const [modalIsOpen, setModalIsOpen] = useState(false)
   const [balance, setBalance] = useState('0.00')
-  const [delegate, setDelegate] = useState('0x0000000000000000000000000000000000000000')
+  const [delegate, setDelegate] = useState(ZERO_ADDRESS)
   const [humanReadableDelegate, setHumanReadableDelegate] = useState('')
 
   const getBalance = useCallback(() => {
@@ -116,7 +116,7 @@ const Vote: FC<VoteProps> = props => {
       <Box display="flex" alignItems="center" className={styles.headerWrapper}>
         <Typography variant="h6">Participating Pools</Typography>
         {balance !== '0.00' &&
-          delegate === '0x0000000000000000000000000000000000000000' ? (
+          delegate === ZERO_ADDRESS ? (
             <Button
               className={styles.buttonStyle}
               onClick={() => setModalIsOpen(true)}

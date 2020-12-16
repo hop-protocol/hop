@@ -50,9 +50,6 @@ const DelegateModal: FC<DelegateModalProps> = props => {
 
   const selfOrOtherText = isOtherDelegate ? '' : 'to Self'
 
-  // TODO: Add tx
-  // TODO: Optimize balance getter
-
   function handleOnClose () {
     setIsSelfDelegate(false)
     setIsOtherDelegate(false)

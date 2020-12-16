@@ -9,6 +9,7 @@ import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/u
 import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
 import stakingRewardsFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/distribution/StakingRewardsFactory.sol/StakingRewardsFactory.json'
 import stakingRewardsArtifact from '@hop-exchange/contracts/artifacts/contracts/distribution/StakingRewardsFactory.sol/StakingRewards.json'
+import hopArtifact from '@hop-exchange/contracts/artifacts/contracts/governance/Hop.sol/Hop.json'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
@@ -43,7 +44,7 @@ const useContracts = (networks: Network[]): Contracts => {
 
   const l1Hop = useMemo(() => {
     return provider
-      ? new Contract(addresses.l1Hop, erc20Artifact.abi, provider.getSigner())
+      ? new Contract(addresses.l1Hop, hopArtifact.abi, provider.getSigner())
       : undefined
   }, [provider])
 

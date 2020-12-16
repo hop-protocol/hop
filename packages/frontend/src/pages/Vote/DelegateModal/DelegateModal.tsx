@@ -50,9 +50,7 @@ const DelegateModal: FC<DelegateModalProps> = props => {
 
   const selfOrOtherText = isOtherDelegate ? '' : 'to Self'
 
-  // TODO: What do I do if a user doesn't have votes to make?
   // TODO: Add tx
-  // TODO: Add state to show when  you are already delegated
   // TODO: Optimize balance getter
 
   function handleOnClose () {

@@ -9,6 +9,12 @@ import useContracts from 'src/contexts/AppContext/useContracts'
 const useTokens = (networks: Network[]) => {
   const { getErc20Contract } = useContracts([])
 
+  const l1Hop = useMemo(() => {
+    const network = networks.find(network => network.slug === 'kovan')
+    if (!network) throw new Error('Kovan network not found')
+    return getErc20Contract(addresses.l1Hop, network.provider)
+  }, [networks, getErc20Contract])
+
   const l1Dai = useMemo(() => {
     const network = networks.find(network => network.slug === 'kovan')
     if (!network) throw new Error('Kovan network not found')
@@ -53,9 +59,20 @@ const useTokens = (networks: Network[]) => {
           arbitrumHopBridge: parseUnits('0.958125000000000000', 18),
           optimism: parseUnits('0.967777000000000000', 18)
         }
-      })
+      }),
+      new Token({
+        symbol: 'HOP',
+        tokenName: 'Hop',
+        contracts: {
+          kovan: l1Hop,
+        },
+        rates: {
+          kovan: parseUnits('1', 18),
+        }
+      }),
+
     ],
-    [l1Dai, arbitrumDai, arbitrumBridgeDai]
+    [l1Dai, l1Hop, arbitrumDai, arbitrumBridgeDai]
   )
 
   return tokens

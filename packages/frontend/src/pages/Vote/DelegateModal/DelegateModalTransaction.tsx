@@ -17,7 +17,7 @@ const useStyles = makeStyles(() => ({
 }))
 
 type DelegateModalTransactionProps = {
-  numVotes: number
+  numVotes: string
 }
 
 

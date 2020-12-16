@@ -57,7 +57,7 @@ const AmountSelectorCard: FC<Props> = props => {
   const styles = useStyles()
   const { user } = useApp()
 
-  const [balance, setBalance] = useState('0.0')
+  const [balance, setBalance] = useState('0.00')
 
   const getBalance = useCallback(() => {
     const _getBalance = async () => {

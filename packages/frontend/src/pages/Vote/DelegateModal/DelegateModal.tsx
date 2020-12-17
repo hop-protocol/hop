@@ -9,6 +9,8 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import Address from 'src/models/Address'
 import DelegateModalTransaction from 'src/pages/Vote/DelegateModal/DelegateModalTransaction'
 import { Contract } from 'ethers'
+import { useApp } from 'src/contexts/AppContext'
+import Transaction from 'src/models/Transaction'
 
 const useStyles = makeStyles(() => ({
   modalContainer: {
@@ -44,6 +46,8 @@ type DelegateModalProps = {
 
 const DelegateModal: FC<DelegateModalProps> = props => {
   const { isOpen, onClose, numVotes, l1Hop } = props
+  const app = useApp()
+  let transactions = app?.transactions?.transactions
   const styles = useStyles()
   const { address: userAddress } = useWeb3Context()
 
@@ -66,10 +70,20 @@ const DelegateModal: FC<DelegateModalProps> = props => {
     } catch (err) {}
   }
 
-  // TODO: use `setTransactions()` to add to tx pill
   const handleDelegateClick = async () => {
+    setIsTransactionPending(true)
     const _delegateAddress = delegateAddress || userAddress
-    await l1Hop?.delegate(_delegateAddress?.toString())
+    const tx = await l1Hop?.delegate(_delegateAddress?.toString())
+    setIsTransactionPending(false)
+
+    if (transactions) {
+      app?.transactions?.setTransactions([
+        ...transactions,
+        new Transaction({ hash: tx?.hash, networkName: 'kovan' })
+      ])
+    }
+
+    handleOnClose()
   }
 
   return (

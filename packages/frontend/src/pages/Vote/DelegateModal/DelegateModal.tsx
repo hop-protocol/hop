@@ -46,27 +46,16 @@ const DelegateModal: FC<DelegateModalProps> = props => {
   const { isOpen, onClose, numVotes, l1Hop } = props
   const styles = useStyles()
   const { address: userAddress } = useWeb3Context()
-  const [isSelfDelegate, setIsSelfDelegate] = useState(false)
+
   const [isOtherDelegate, setIsOtherDelegate] = useState(false)
+  const [isTransactionPending, setIsTransactionPending] = useState(false)
   const [delegateAddress, setDelegateAddress] = useState<Address | undefined>()
 
-  const selfOrOtherText = isOtherDelegate ? '' : 'to Self'
-
   function handleOnClose () {
-    setIsSelfDelegate(false)
+    setDelegateAddress(undefined)
     setIsOtherDelegate(false)
+    setIsTransactionPending(false)
     onClose()
-  }
-
-  function handleDelegateClick() {
-    setIsSelfDelegate(true)
-    setIsOtherDelegate(false)
-    handleApprove()
-  }
-
-  function handleOtherDelegateClick () {
-    setIsSelfDelegate(false)
-    setIsOtherDelegate(true)
   }
 
   const handleAddressInput = async (event: any) => {
@@ -78,7 +67,7 @@ const DelegateModal: FC<DelegateModalProps> = props => {
   }
 
   // TODO: use `setTransactions()` to add to tx pill
-  const handleApprove = async () => {
+  const handleDelegateClick = async () => {
     const _delegateAddress = delegateAddress || userAddress
     await l1Hop?.delegate(_delegateAddress?.toString())
   }
@@ -87,7 +76,7 @@ const DelegateModal: FC<DelegateModalProps> = props => {
     <>
       {isOpen && (
         <Modal onClose={handleOnClose}>
-          {!isSelfDelegate && (
+          {!isTransactionPending && (
             <Box
               display="flex"
               alignItems="center"
@@ -117,12 +106,12 @@ const DelegateModal: FC<DelegateModalProps> = props => {
                   disabled={isOtherDelegate && !delegateAddress}
                   onClick={handleDelegateClick}
                 >
-                  Delegate Votes {`${selfOrOtherText}`}
+                  Delegate Votes
                 </Button>
                 {!isOtherDelegate && (
                   <Button
                     highlighted
-                    onClick={handleOtherDelegateClick}
+                    onClick={() => setIsOtherDelegate(true)}
                   >
                     Add Delegate
                   </Button>
@@ -131,7 +120,7 @@ const DelegateModal: FC<DelegateModalProps> = props => {
             </Box>
           )}
           {
-            isSelfDelegate && <DelegateModalTransaction numVotes={numVotes} />
+            isTransactionPending && <DelegateModalTransaction numVotes={numVotes} />
           }
         </Modal>
       )}

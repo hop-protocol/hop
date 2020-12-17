@@ -45,7 +45,7 @@ type DelegateModalProps = {
 const DelegateModal: FC<DelegateModalProps> = props => {
   const { isOpen, onClose, numVotes, l1Hop } = props
   const styles = useStyles()
-  const { address } = useWeb3Context()
+  const { address: userAddress } = useWeb3Context()
   const [isSelfDelegate, setIsSelfDelegate] = useState(false)
   const [isOtherDelegate, setIsOtherDelegate] = useState(false)
   const [delegateAddress, setDelegateAddress] = useState<Address | undefined>()
@@ -58,9 +58,7 @@ const DelegateModal: FC<DelegateModalProps> = props => {
     onClose()
   }
 
-  function handleSelfDelegateClick () {
-    const _address = new Address(address)
-    setDelegateAddress(_address)
+  function handleDelegateClick() {
     setIsSelfDelegate(true)
     setIsOtherDelegate(false)
     handleApprove()
@@ -69,19 +67,20 @@ const DelegateModal: FC<DelegateModalProps> = props => {
   function handleOtherDelegateClick () {
     setIsSelfDelegate(false)
     setIsOtherDelegate(true)
-    handleApprove()
   }
 
   const handleAddressInput = async (event: any) => {
     try {
       const value = event.target.value || ''
-      const address = new Address(value)
-      setDelegateAddress(address)
+      const _address = new Address(value)
+      setDelegateAddress(_address)
     } catch (err) {}
   }
 
+  // TODO: use `setTransactions()` to add to tx pill
   const handleApprove = async () => {
-    await l1Hop?.delegate(delegateAddress?.toString())
+    const _delegateAddress = delegateAddress || userAddress
+    await l1Hop?.delegate(_delegateAddress?.toString())
   }
 
   return (
@@ -116,12 +115,15 @@ const DelegateModal: FC<DelegateModalProps> = props => {
                 <Button
                   highlighted
                   disabled={isOtherDelegate && !delegateAddress}
-                  onClick={handleSelfDelegateClick}
+                  onClick={handleDelegateClick}
                 >
                   Delegate Votes {`${selfOrOtherText}`}
                 </Button>
                 {!isOtherDelegate && (
-                  <Button highlighted onClick={handleOtherDelegateClick}>
+                  <Button
+                    highlighted
+                    onClick={handleOtherDelegateClick}
+                  >
                     Add Delegate
                   </Button>
                 )}

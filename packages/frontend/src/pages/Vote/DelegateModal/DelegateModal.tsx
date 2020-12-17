@@ -5,9 +5,10 @@ import Button from 'src/components/buttons/Button'
 import Box from '@material-ui/core/Box'
 import LargeTextField from 'src/components/LargeTextField'
 import Typography from '@material-ui/core/Typography'
-
+import { useWeb3Context } from 'src/contexts/Web3Context'
 import Address from 'src/models/Address'
 import DelegateModalTransaction from 'src/pages/Vote/DelegateModal/DelegateModalTransaction'
+import { Contract } from 'ethers'
 
 const useStyles = makeStyles(() => ({
   modalContainer: {
@@ -38,12 +39,13 @@ type DelegateModalProps = {
   isOpen: boolean
   onClose: () => void
   numVotes: string
+  l1Hop: Contract | undefined
 }
 
 const DelegateModal: FC<DelegateModalProps> = props => {
-  const { isOpen, onClose, numVotes } = props
+  const { isOpen, onClose, numVotes, l1Hop } = props
   const styles = useStyles()
-
+  const { address } = useWeb3Context()
   const [isSelfDelegate, setIsSelfDelegate] = useState(false)
   const [isOtherDelegate, setIsOtherDelegate] = useState(false)
   const [delegateAddress, setDelegateAddress] = useState<Address | undefined>()
@@ -57,13 +59,17 @@ const DelegateModal: FC<DelegateModalProps> = props => {
   }
 
   function handleSelfDelegateClick () {
+    const _address = new Address(address)
+    setDelegateAddress(_address)
     setIsSelfDelegate(true)
     setIsOtherDelegate(false)
+    handleApprove()
   }
 
   function handleOtherDelegateClick () {
     setIsSelfDelegate(false)
     setIsOtherDelegate(true)
+    handleApprove()
   }
 
   const handleAddressInput = async (event: any) => {
@@ -72,6 +78,10 @@ const DelegateModal: FC<DelegateModalProps> = props => {
       const address = new Address(value)
       setDelegateAddress(address)
     } catch (err) {}
+  }
+
+  const handleApprove = async () => {
+    await l1Hop?.delegate(delegateAddress?.toString())
   }
 
   return (

@@ -112,6 +112,7 @@ const Vote: FC<VoteProps> = props => {
         isOpen={modalIsOpen}
         onClose={() => setModalIsOpen(false)}
         numVotes={balance}
+        l1Hop={l1Hop}
       />
       <Box display="flex" alignItems="center" className={styles.headerWrapper}>
         <Typography variant="h6">Participating Pools</Typography>

@@ -22,7 +22,7 @@ abstract contract Bridge is Accounting {
     mapping(bytes32 => TransferRoot) private _transferRoots;
     mapping(bytes32 => bool) private _spentTransferHashes;
 
-    constructor(IERC20 _canonicalToken, address _committee) public Accounting(_canonicalToken, _committee) {}
+    constructor(IERC20 _collateralToken, address _committee) public Accounting(_collateralToken, _committee) {}
 
     /**
      * Public getters
@@ -60,7 +60,7 @@ abstract contract Bridge is Accounting {
     }
 
     /// @notice getChainId can be overriden by  subclasses if needed for compatability or testing purposes.
-    function getChainId() public virtual pure returns (uint256 chainId) {
+    function getChainId() public virtual view returns (uint256 chainId) {
         assembly {
             chainId := chainid()
         }

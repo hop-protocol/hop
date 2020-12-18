@@ -10,7 +10,7 @@ abstract contract Accounting {
     using SafeERC20 for IERC20;
 
     address private _committee;
-    IERC20 private _canonicalToken;
+    IERC20 private _collateralToken;
 
     uint256 private _credit;
     uint256 private _debit;
@@ -37,8 +37,8 @@ abstract contract Accounting {
         require(_credit >= getTotalDebit(), "ACT: Not enough available credit");
     }
 
-    constructor(IERC20 canonicalToken_, address committee_) public {
-        _canonicalToken = canonicalToken_;
+    constructor(IERC20 collateralToken_, address committee_) public {
+        _collateralToken = collateralToken_;
         _committee = committee_;
     }
 
@@ -68,8 +68,8 @@ abstract contract Accounting {
         return _debit.add(_additionalDebit());
     }
 
-    function getCanonicalToken() public returns (IERC20) {
-        return _canonicalToken;
+    function getCollateralToken() public returns (IERC20) {
+        return _collateralToken;
     }
 
     /**
@@ -77,13 +77,13 @@ abstract contract Accounting {
      */
 
     function stake(uint256 _amount) public {
-        _canonicalToken.transferFrom(msg.sender, address(this), _amount);
+        _collateralToken.transferFrom(msg.sender, address(this), _amount);
         _addCredit(_amount);
     }
 
     function unstake(uint256 _amount) public requirePositiveBalance {
         _addDebit(_amount);
-        _canonicalToken.transfer(_committee, _amount);
+        _collateralToken.transfer(_committee, _amount);
     }
 
     /**

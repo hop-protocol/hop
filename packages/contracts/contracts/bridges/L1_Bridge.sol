@@ -69,7 +69,7 @@ contract L1_Bridge is Bridge {
     {
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
 
-        getCanonicalToken().safeTransferFrom(msg.sender, address(this), _amount);
+        getCollateralToken().safeTransferFrom(msg.sender, address(this), _amount);
         crossDomainMessenger[_chainId].sendMessageToL2(mintCalldata);
     }
 
@@ -89,7 +89,7 @@ contract L1_Bridge is Bridge {
         );
 
         crossDomainMessenger[_chainId].sendMessageToL2(mintAndAttemptSwapCalldata);
-        getCanonicalToken().safeTransferFrom(msg.sender, address(this), _amount);
+        getCollateralToken().safeTransferFrom(msg.sender, address(this), _amount);
     }
 
     /**
@@ -168,7 +168,7 @@ contract L1_Bridge is Bridge {
         uint256 challengeStakeAmount = transferRoot.total
             .mul(CHALLENGE_AMOUNT_MULTIPLIER)
             .div(CHALLENGE_AMOUNT_DIVISOR);
-        getCanonicalToken().transferFrom(msg.sender, address(this), challengeStakeAmount);
+        getCollateralToken().transferFrom(msg.sender, address(this), challengeStakeAmount);
 
         transferBond.challengeStartTime = now;
         transferBond.challenger = msg.sender;
@@ -199,7 +199,7 @@ contract L1_Bridge is Bridge {
         } else {
             // Valid challenge
             // Reward challenger with their stake times two
-            getCanonicalToken().transfer(transferBond.challenger, challengeStakeAmount.mul(2));
+            getCollateralToken().transfer(transferBond.challenger, challengeStakeAmount.mul(2));
         }
     }
 
@@ -216,7 +216,7 @@ contract L1_Bridge is Bridge {
         return _time / TIME_SLOT_SIZE;
     }
 
-    function getChainId() public override pure returns (uint256) {
+    function getChainId() public override view returns (uint256) {
         return 1;
     }
 
@@ -225,7 +225,7 @@ contract L1_Bridge is Bridge {
      */
 
     function _transfer(address _recipient, uint256 _amount) internal override {
-        getCanonicalToken().safeTransfer(_recipient, _amount);
+        getCollateralToken().safeTransfer(_recipient, _amount);
     }
 
     function _additionalDebit() internal override returns (uint256) {

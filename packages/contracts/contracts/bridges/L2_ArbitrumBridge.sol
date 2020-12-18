@@ -18,7 +18,7 @@ contract L2_ArbitrumBridge is L2_Bridge {
     }
 
     // ToDo: Pass in chainId
-    function getChainId() public override pure returns (uint256) {
+    function getChainId() public override view returns (uint256) {
         return 152709604825713;
     }
 

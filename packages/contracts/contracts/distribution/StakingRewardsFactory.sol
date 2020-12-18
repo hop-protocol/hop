@@ -1,8 +1,4 @@
-/**
- *Submitted for verification at Etherscan.io on 2020-09-16
-*/
-
-pragma solidity ^0.5.16;
+pragma solidity 0.5.17;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP. Does not include
@@ -85,7 +81,7 @@ interface IERC20 {
  * specific functions.
  *
  * This module is used through inheritance. It will make available the modifier
- * `onlyOwner`, which can be aplied to your functions to restrict their use to
+ * `onlyOwner`, which can be applied to your functions to restrict their use to
  * the owner.
  */
 contract Ownable {
@@ -438,7 +434,7 @@ library SafeERC20 {
  * @dev Contract module that helps prevent reentrant calls to a function.
  *
  * Inheriting from `ReentrancyGuard` will make the `nonReentrant` modifier
- * available, which can be aplied to functions to make sure there are no nested
+ * available, which can be applied to functions to make sure there are no nested
  * (reentrant) calls to them.
  *
  * Note that because there is a single `nonReentrant` guard, functions marked as

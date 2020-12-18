@@ -1,4 +1,4 @@
-pragma solidity ^0.5.16;
+pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 contract GovernorAlpha {
@@ -6,10 +6,10 @@ contract GovernorAlpha {
     string public constant name = "Hop Governor Alpha";
 
     /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
-    function quorumVotes() public pure returns (uint) { return 400000e18; } // 400,000 = 4% of Hop
+    function quorumVotes() public pure returns (uint) { return 40_000_000e18; } // 4% of Hop
 
     /// @notice The number of votes required in order for a voter to become a proposer
-    function proposalThreshold() public pure returns (uint) { return 100000e18; } // 100,000 = 1% of Hop
+    function proposalThreshold() public pure returns (uint) { return 10_000_000e18; } // 1% of Hop
 
     /// @notice The maximum number of actions that can be included in a proposal
     function proposalMaxOperations() public pure returns (uint) { return 10; } // 10 actions
@@ -18,16 +18,13 @@ contract GovernorAlpha {
     function votingDelay() public pure returns (uint) { return 1; } // 1 block
 
     /// @notice The duration of voting on a proposal, in blocks
-    function votingPeriod() public pure returns (uint) { return 17280; } // ~3 days in blocks (assuming 15s blocks)
+    function votingPeriod() public pure returns (uint) { return 40_320; } // ~7 days in blocks (assuming 15s blocks)
 
     /// @notice The address of the Hop Protocol Timelock
     TimelockInterface public timelock;
 
     /// @notice The address of the Hop governance token
     HopInterface public hop;
-
-    /// @notice The address of the Governor Guardian
-    address public guardian;
 
     /// @notice The total number of proposals
     uint public proposalCount;
@@ -127,15 +124,14 @@ contract GovernorAlpha {
     /// @notice An event emitted when a proposal has been executed in the Timelock
     event ProposalExecuted(uint id);
 
-    constructor(address timelock_, address hop_, address guardian_) public {
+    constructor(address timelock_, address hop_) public {
         timelock = TimelockInterface(timelock_);
         hop = HopInterface(hop_);
-        guardian = guardian_;
     }
 
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
         require(hop.getPriorVotes(msg.sender, sub256(block.number, 1)) > proposalThreshold(), "GovernorAlpha::propose: proposer votes below proposal threshold");
-        require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "GovernorAlpha::propose: proposal function information arity mismatch");
+        require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "GovernorAlpha::propose: proposal function information parity mismatch");
         require(targets.length != 0, "GovernorAlpha::propose: must provide actions");
         require(targets.length <= proposalMaxOperations(), "GovernorAlpha::propose: too many actions");
 
@@ -204,7 +200,7 @@ contract GovernorAlpha {
         require(state != ProposalState.Executed, "GovernorAlpha::cancel: cannot cancel executed proposal");
 
         Proposal storage proposal = proposals[proposalId];
-        require(msg.sender == guardian || hop.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold(), "GovernorAlpha::cancel: proposer above threshold");
+        require(hop.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold(), "GovernorAlpha::cancel: proposer above threshold");
 
         proposal.canceled = true;
         for (uint i = 0; i < proposal.targets.length; i++) {
@@ -276,26 +272,6 @@ contract GovernorAlpha {
         receipt.votes = votes;
 
         emit VoteCast(voter, proposalId, support, votes);
-    }
-
-    function __acceptAdmin() public {
-        require(msg.sender == guardian, "GovernorAlpha::__acceptAdmin: sender must be gov guardian");
-        timelock.acceptAdmin();
-    }
-
-    function __abdicate() public {
-        require(msg.sender == guardian, "GovernorAlpha::__abdicate: sender must be gov guardian");
-        guardian = address(0);
-    }
-
-    function __queueSetTimelockPendingAdmin(address newPendingAdmin, uint eta) public {
-        require(msg.sender == guardian, "GovernorAlpha::__queueSetTimelockPendingAdmin: sender must be gov guardian");
-        timelock.queueTransaction(address(timelock), 0, "setPendingAdmin(address)", abi.encode(newPendingAdmin), eta);
-    }
-
-    function __executeSetTimelockPendingAdmin(address newPendingAdmin, uint eta) public {
-        require(msg.sender == guardian, "GovernorAlpha::__executeSetTimelockPendingAdmin: sender must be gov guardian");
-        timelock.executeTransaction(address(timelock), 0, "setPendingAdmin(address)", abi.encode(newPendingAdmin), eta);
     }
 
     function add256(uint256 a, uint256 b) internal pure returns (uint) {

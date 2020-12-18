@@ -49,7 +49,6 @@ const ConvertContextProvider: FC = ({ children }) => {
   } = useWeb3Context()
   const app = useApp()
   let { networks: nets, tokens, contracts, txConfirm } = app
-  let transactions = app?.transactions?.transactions
   const arbitrumDai = contracts?.arbitrumDai
   const arbitrumUniswapRouter = contracts?.arbitrumUniswapRouter
   const arbitrumL1Messenger = contracts?.arbitrumL1Messenger
@@ -291,11 +290,13 @@ const ConvertContextProvider: FC = ({ children }) => {
         }
       }
 
-      if (tx?.hash && sourceNetwork?.name && transactions) {
-        app?.transactions?.setTransactions([
-          ...transactions,
-          new Transaction({ hash: tx?.hash, networkName: sourceNetwork?.slug })
-        ])
+      if (tx?.hash && sourceNetwork?.name) {
+        app?.txHistory?.addTransaction(
+          new Transaction({
+            hash: tx?.hash,
+            networkName: sourceNetwork?.slug
+          })
+        )
       }
     } catch (err) {
       console.error(err)

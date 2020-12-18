@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import Transaction from 'src/models/Transaction'
 
-export interface Transactions {
+export interface TxHistory {
   transactions: Transaction[]
   setTransactions: (txs: Transaction[]) => void
+  addTransaction: (tx: Transaction) => void
 }
 
-const useTransactions = (): Transactions => {
+const useTxHistory = (): TxHistory => {
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
       const cached = sessionStorage.getItem('recentTransactions')
@@ -44,10 +45,15 @@ const useTransactions = (): Transactions => {
     }
   }, [transactions, handleChange])
 
+  const addTransaction = (tx: Transaction) => {
+    setTransactions([...transactions, tx])
+  }
+
   return {
     transactions,
-    setTransactions
+    setTransactions,
+    addTransaction
   }
 }
 
-export default useTransactions
+export default useTxHistory

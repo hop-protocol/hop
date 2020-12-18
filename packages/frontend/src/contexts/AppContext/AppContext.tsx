@@ -7,7 +7,7 @@ import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import useNetworks from './useNetworks'
 import useTokens from './useTokens'
-import useTransactions, { Transactions } from './useTransactions'
+import useTxHistory, { TxHistory } from './useTxHistory'
 import useContracts, { Contracts } from './useContracts'
 import useEvents, { Events } from './useEvents'
 import { useAccountDetails, AccountDetails } from './useAccountDetails'
@@ -19,8 +19,8 @@ type AppContextProps = {
   contracts: Contracts | undefined
   tokens: Token[]
   events: Events | undefined
-  transactions: Transactions | undefined
   accountDetails: AccountDetails | undefined
+  txHistory: TxHistory | undefined
   txConfirm: TxConfirm | undefined
 }
 
@@ -29,9 +29,9 @@ const AppContext = createContext<AppContextProps>({
   networks: [],
   contracts: undefined,
   tokens: [],
-  transactions: undefined,
   events: undefined,
   accountDetails: undefined,
+  txHistory: undefined,
   txConfirm: undefined
 })
 
@@ -50,7 +50,7 @@ const AppContextProvider: FC = ({ children }) => {
   const contracts = useContracts(networks)
   const tokens = useTokens(networks)
   const events = useEvents()
-  const transactions = useTransactions()
+  const txHistory = useTxHistory()
   const accountDetails = useAccountDetails()
   const txConfirm = useTxConfirm()
 
@@ -62,7 +62,7 @@ const AppContextProvider: FC = ({ children }) => {
         contracts,
         tokens,
         events,
-        transactions,
+        txHistory,
         accountDetails,
         txConfirm
       }}

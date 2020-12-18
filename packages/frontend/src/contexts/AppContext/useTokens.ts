@@ -64,13 +64,12 @@ const useTokens = (networks: Network[]) => {
         symbol: 'HOP',
         tokenName: 'Hop',
         contracts: {
-          kovan: l1Hop,
+          kovan: l1Hop
         },
         rates: {
-          kovan: parseUnits('1', 18),
+          kovan: parseUnits('1', 18)
         }
-      }),
-
+      })
     ],
     [l1Dai, l1Hop, arbitrumDai, arbitrumBridgeDai]
   )

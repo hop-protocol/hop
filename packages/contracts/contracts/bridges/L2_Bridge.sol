@@ -14,6 +14,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     address public l1BridgeAddress;
     address public exchangeAddress;
     uint256 public swapDeadlineBuffer;
+    IERC20 public l2CanonicalToken;
 
     bytes32[] public pendingTransfers;
     uint256[] public pendingAmountChainIds;
@@ -36,13 +37,15 @@ abstract contract L2_Bridge is ERC20, Bridge {
     );
 
     constructor (
-        IERC20 canonicalToken_,
+        IERC20 _l2CanonicalToken,
         address committee_
     )
         public
-        Bridge(canonicalToken_, committee_)
+        Bridge(IERC20(this), committee_)
         ERC20("DAI Hop Token", "hDAI")
-    {}
+    {
+        l2CanonicalToken = _l2CanonicalToken;
+    }
 
     function _sendMessageToL1Bridge(bytes memory _message) internal virtual;
 
@@ -102,11 +105,10 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
-        IERC20 token = getCanonicalToken();
-        token.transferFrom(msg.sender, address(this), _amount);
+        l2CanonicalToken.transferFrom(msg.sender, address(this), _amount);
 
         address[] memory exchangePath = new address[](2);
-        exchangePath[0] = address(token);
+        exchangePath[0] = address(l2CanonicalToken);
         exchangePath[1] = address(this);
         uint256[] memory swapAmounts = IUniswapV2Router02(exchangeAddress).getAmountsOut(_amount, exchangePath);
         uint256 swapAmount = swapAmounts[1];
@@ -155,7 +157,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
         address[] memory exchangePath = new address[](2);
         exchangePath[0] = address(this);
-        exchangePath[1] = address(getCanonicalToken());
+        exchangePath[1] = address(l2CanonicalToken);
         bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, exchangePath);
         (bool success,) = exchangeAddress.call(swapCalldata);
 
@@ -169,7 +171,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     }
 
     function approveODaiExchangeTransfer() public {
-        getCanonicalToken().approve(exchangeAddress, uint256(-1));
+        l2CanonicalToken.approve(exchangeAddress, uint256(-1));
     }
 
     function _transferFallback(address _recipient, uint256 _amount) internal {
@@ -223,7 +225,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
-        require(_proof.verify(_transferRootHash, _transferRootHash), "BDG: Invalid transfer proof");
+        require(_proof.verify(_transferRootHash, _transferHash), "BDG: Invalid transfer proof");
 
         uint256 amount = bondedWithdrawalAmounts[_transferRootHash];
         _addToAmountWithdrawn(_transferHash, _transferRootHash, amount);

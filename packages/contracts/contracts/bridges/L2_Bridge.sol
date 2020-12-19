@@ -36,6 +36,11 @@ abstract contract L2_Bridge is ERC20, Bridge {
         uint256 relayerFee
     );
 
+    modifier onlyL1Bridge {
+        _verifySender();
+        _;
+    }
+
     constructor (
         IERC20 _l2CanonicalToken,
         address committee_
@@ -47,7 +52,8 @@ abstract contract L2_Bridge is ERC20, Bridge {
         l2CanonicalToken = _l2CanonicalToken;
     }
 
-    function _sendMessageToL1Bridge(bytes memory _message) internal virtual;
+    function _sendCrossDomainMessage(bytes memory _message) internal virtual;
+    function _verifySender() internal virtual; 
 
     /**
      * Public functions
@@ -144,7 +150,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
             amountHash
         );
 
-        _sendMessageToL1Bridge(confirmTransferRootMessage);
+        _sendCrossDomainMessage(confirmTransferRootMessage);
     }
 
     // onlyCrossDomainBridge

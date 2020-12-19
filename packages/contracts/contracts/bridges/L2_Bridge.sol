@@ -89,6 +89,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
         bytes32 transferHash = getTransferHash(
             _chainId,
+            msg.sender,
             _recipient,
             _amount,
             _transferNonce,
@@ -202,6 +203,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
      */
 
     function bondWithdrawal(
+        address _sender,
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
@@ -213,6 +215,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     {
         bytes32 transferHash = getTransferHash(
             getChainId(),
+            _sender,
             _recipient,
             _amount,
             _transferNonce,

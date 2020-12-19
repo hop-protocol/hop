@@ -30,6 +30,7 @@ describe('Transfer', () => {
     transfers = [
       new Transfer({
         chainId: MAINNET_CHAIN_ID,
+        sender: await user.getAddress(),
         recipient: await user.getAddress(),
         amount: BigNumber.from('12345'),
         nonce: 0,
@@ -37,6 +38,7 @@ describe('Transfer', () => {
       }),
       new Transfer({
         chainId: MAINNET_CHAIN_ID,
+        sender: await liquidityProvider.getAddress(),
         recipient: await liquidityProvider.getAddress(),
         amount: BigNumber.from('12345'),
         nonce: 0,
@@ -55,6 +57,7 @@ describe('Transfer', () => {
     it('should match onchain hash calculation', async () => {
       const onchainHashHex = await bridge.getTransferHash(
         transfers[0].chainId,
+        transfers[0].sender,
         transfers[0].recipient,
         transfers[0].amount,
         transfers[0].nonce,

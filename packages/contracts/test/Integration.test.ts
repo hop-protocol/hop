@@ -178,6 +178,7 @@ describe("Integration", () => {
       chainId: MAINNET_CHAIN_ID ,
       amount: BigNumber.from('99'),
       nonce: 0,
+      sender: await user.getAddress(),
       recipient: await user.getAddress(),
       relayerFee: BigNumber.from('0')
     })
@@ -199,6 +200,7 @@ describe("Integration", () => {
     const tree = new MerkleTree([ transfer.getTransferHash() ])
     const proof = tree.getProof(transfer.getTransferHash())
     await l1_bridge.withdraw(
+      transfer.sender,
       transfer.recipient,
       transfer.amount,
       transfer.nonce,
@@ -213,6 +215,7 @@ describe("Integration", () => {
   it('Should not allow a transfer root that exceeds the committee bond', async () => {
     const transfer = new Transfer({
       chainId: MAINNET_CHAIN_ID,
+      sender: await user.getAddress(),
       recipient: await user.getAddress(),
       amount: BigNumber.from('98'),
       nonce: 0,
@@ -233,6 +236,7 @@ describe("Integration", () => {
   it('Should successfully challenge a malicious transfer root', async () => {
     const transfer = new Transfer({
       chainId: MAINNET_CHAIN_ID,
+      sender: await user.getAddress(),
       recipient: await user.getAddress(),
       amount: BigNumber.from('100'),
       nonce: 0,
@@ -271,6 +275,7 @@ describe("Integration", () => {
       chainId: OPTIMISM_CHAIN_ID,
       amount: BigNumber.from('99'),
       nonce: 0,
+      sender: await user.getAddress(),
       recipient: await user.getAddress(),
       relayerFee: BigNumber.from('0')
     })
@@ -294,6 +299,7 @@ describe("Integration", () => {
     const tree = new MerkleTree([ transfer.getTransferHash() ])
     const proof = tree.getProof(transfer.getTransferHash())
     await l2_bridge.withdraw(
+      transfer.sender,
       transfer.recipient,
       transfer.amount,
       transfer.nonce,
@@ -359,6 +365,7 @@ describe("Integration", () => {
       chainId: MAINNET_CHAIN_ID,
       amount: BigNumber.from('99'),
       nonce: 0,
+      sender: await user.getAddress(),
       recipient: await user.getAddress(),
       relayerFee: BigNumber.from('0')
     })
@@ -385,6 +392,7 @@ describe("Integration", () => {
       chainId: transfer.chainId,
       amount: transferSentEvent.args.amount,
       nonce: transfer.nonce,
+      sender: transfer.sender,
       recipient: transfer.recipient,
       relayerFee: transfer.relayerFee
     })
@@ -393,6 +401,7 @@ describe("Integration", () => {
     const tree = new MerkleTree([ outputTransfer.getTransferHash() ])
     const proof = tree.getProof(outputTransfer.getTransferHash())
     await l1_bridge.withdraw(
+      outputTransfer.sender,
       outputTransfer.recipient,
       outputTransfer.amount,
       outputTransfer.nonce,

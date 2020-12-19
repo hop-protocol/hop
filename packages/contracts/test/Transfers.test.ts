@@ -271,7 +271,7 @@ describe("Transfers", () => {
 
 
     // Bond the withdrawal
-    await l2_ovm2_bridge.connect(committee).bondWithdrawal(user.getAddress(), USER_INITIAL_BALANCE, 0, 0)
+    await l2_ovm2_bridge.connect(committee).bondWithdrawal(user.getAddress(), user.getAddress(), USER_INITIAL_BALANCE, 0, 0)
     await expectBalanceOf(l2_ovm2_bridge, user, USER_INITIAL_BALANCE)
 
     // commit the transfer root

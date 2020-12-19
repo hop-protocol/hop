@@ -28,6 +28,7 @@ abstract contract Bridge is Accounting {
 
     function getTransferHash(
         uint256 _chainId,
+        address _sender,
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
@@ -39,6 +40,7 @@ abstract contract Bridge is Accounting {
     {
         return keccak256(abi.encode(
             _chainId,
+            _sender,
             _recipient,
             _amount,
             _transferNonce,
@@ -74,6 +76,7 @@ abstract contract Bridge is Accounting {
      */
 
     function withdraw(
+        address _sender,
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
@@ -85,6 +88,7 @@ abstract contract Bridge is Accounting {
     {
         bytes32 transferHash = getTransferHash(
             getChainId(),
+            _sender,
             _recipient,
             _amount,
             _transferNonce,

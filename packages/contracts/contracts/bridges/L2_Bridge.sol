@@ -227,8 +227,8 @@ abstract contract L2_Bridge is ERC20, Bridge {
     {
         require(_proof.verify(_transferRootHash, _transferHash), "BDG: Invalid transfer proof");
 
-        uint256 amount = bondedWithdrawalAmounts[_transferRootHash];
-        _addToAmountWithdrawn(_transferHash, _transferRootHash, amount);
+        uint256 amount = bondedWithdrawalAmounts[_transferHash];
+        _addToAmountWithdrawn(_transferRootHash, amount);
 
         bondedWithdrawalAmounts[_transferRootHash] = 0;
         _addCredit(amount);

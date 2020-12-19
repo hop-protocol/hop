@@ -47,7 +47,6 @@ type DelegateModalProps = {
 const DelegateModal: FC<DelegateModalProps> = props => {
   const { isOpen, onClose, numVotes, l1Hop } = props
   const app = useApp()
-  let transactions = app?.transactions?.transactions
   const styles = useStyles()
   const { address: userAddress } = useWeb3Context()
 
@@ -76,12 +75,12 @@ const DelegateModal: FC<DelegateModalProps> = props => {
     const tx = await l1Hop?.delegate(_delegateAddress?.toString())
     setIsTransactionPending(false)
 
-    if (transactions) {
-      app?.transactions?.setTransactions([
-        ...transactions,
-        new Transaction({ hash: tx?.hash, networkName: 'kovan' })
-      ])
-    }
+    app?.txHistory?.addTransaction(
+      new Transaction({
+        hash: tx?.hash,
+        networkName: 'kovan'
+      })
+    )
 
     handleOnClose()
   }
@@ -104,7 +103,7 @@ const DelegateModal: FC<DelegateModalProps> = props => {
                 You can either vote on each proposal yourself or delegate your
                 votes to a third party.
               </Typography>
-              {isOtherDelegate &&
+              {isOtherDelegate && (
                 <LargeTextField
                   onChange={handleAddressInput}
                   centerAlign
@@ -113,8 +112,12 @@ const DelegateModal: FC<DelegateModalProps> = props => {
                   placeholder="Wallet Address"
                   className={styles.textFieldContainer}
                 />
-              }
-              <Box display="flex" alignItems="center" className={styles.actionContainer}>
+              )}
+              <Box
+                display="flex"
+                alignItems="center"
+                className={styles.actionContainer}
+              >
                 <Button
                   highlighted
                   disabled={isOtherDelegate && !delegateAddress}
@@ -123,19 +126,16 @@ const DelegateModal: FC<DelegateModalProps> = props => {
                   Delegate Votes
                 </Button>
                 {!isOtherDelegate && (
-                  <Button
-                    highlighted
-                    onClick={() => setIsOtherDelegate(true)}
-                  >
+                  <Button highlighted onClick={() => setIsOtherDelegate(true)}>
                     Add Delegate
                   </Button>
                 )}
               </Box>
             </Box>
           )}
-          {
-            isTransactionPending && <DelegateModalTransaction numVotes={numVotes} />
-          }
+          {isTransactionPending && (
+            <DelegateModalTransaction numVotes={numVotes} />
+          )}
         </Modal>
       )}
     </>

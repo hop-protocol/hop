@@ -17,7 +17,7 @@ const MAINNET_CHAIN_ID = BigNumber.from('1')
 const OPTIMISM_CHAIN_ID = BigNumber.from('420')
 // const ARBITRUM_CHAIN_ID = BigNumber.from('152709604825713')
 
-describe("Full story", () => {
+describe("Integration", () => {
   let accounts: Signer[]
   let user: Signer
   let liquidityProvider: Signer
@@ -58,7 +58,7 @@ describe("Full story", () => {
 
     L1_MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/Optimism.sol:Optimism')
     L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
-    L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_OptimismBridge.sol:L2_OptimismBridge')
+    L2_Bridge = await ethers.getContractFactory('contracts/test/Mock_L2_OptimismBridge.sol:Mock_L2_OptimismBridge')
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
     CrossDomainMessenger = await ethers.getContractFactory('contracts/test/mockOVM_CrossDomainMessenger.sol:mockOVM_CrossDomainMessenger')
     L1_OVMTokenBridge = await ethers.getContractFactory('contracts/test/L1_OVMTokenBridge.sol:L1_OVMTokenBridge')
@@ -79,7 +79,7 @@ describe("Full story", () => {
     // Deploy  L2 contracts
     l2_messenger = await CrossDomainMessenger.deploy(0)
     l2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_messenger.address)
-    l2_bridge = await L2_Bridge.deploy(l2_messenger.address, l2_ovmBridge.address, await committee.getAddress())
+    l2_bridge = await L2_Bridge.deploy(OPTIMISM_CHAIN_ID, l2_messenger.address, l2_ovmBridge.address, await committee.getAddress())
 
     // Initialize bridge wrapper
     const l2Name = L2_NAMES.OPTIMISM

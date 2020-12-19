@@ -69,7 +69,7 @@ const AccountDetails = () => {
   const styles = useStyles()
   const app = useApp()
   const { accountDetails } = app
-  const transactions = app.transactions?.transactions
+  const transactions = app.txHistory?.transactions
 
   if (!accountDetails?.open) {
     return null

@@ -21,7 +21,7 @@ const useStyles = makeStyles(() => ({
 const TxPill = () => {
   const app = useApp()
   const { accountDetails } = app
-  const transactions = app?.transactions?.transactions
+  const transactions = app?.txHistory?.transactions
   const styles = useStyles()
 
   const handleClick = () => {

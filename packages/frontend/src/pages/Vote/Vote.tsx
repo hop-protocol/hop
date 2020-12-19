@@ -99,12 +99,13 @@ const Vote: FC<VoteProps> = props => {
     if (delegate === address?.toString()) {
       setHumanReadableDelegate('self')
     } else {
-      const _humanReadableDelegateStart = delegate.substr(0,6)
-      const _humanReadableDelegateEnd = delegate.substr(38,4)
-      setHumanReadableDelegate(_humanReadableDelegateStart + '...' + _humanReadableDelegateEnd)
+      const _humanReadableDelegateStart = delegate.substr(0, 6)
+      const _humanReadableDelegateEnd = delegate.substr(38, 4)
+      setHumanReadableDelegate(
+        _humanReadableDelegateStart + '...' + _humanReadableDelegateEnd
+      )
     }
   }, [delegate])
-
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -116,32 +117,22 @@ const Vote: FC<VoteProps> = props => {
       />
       <Box display="flex" alignItems="center" className={styles.headerWrapper}>
         <Typography variant="h6">Participating Pools</Typography>
-        {balance !== '0.00' &&
-          delegate === ZERO_ADDRESS ? (
-            <Button
-              className={styles.buttonStyle}
-              onClick={() => setModalIsOpen(true)}
-            >
-              Unlock Voting
-            </Button>
-          )
-          :
-          (
-            <Box className={styles.delegateOverview}>
-              <Typography variant="body1">
-                { balance } Votes
-              </Typography>
-              <Typography variant="body1">
-                Delegated to { humanReadableDelegate }
-              </Typography>
-            <Button
-              onClick={() => setModalIsOpen(true)}
-            >
-              Edit Delegate
-            </Button>
-            </Box>
-          )
-        }
+        {balance !== '0.00' && delegate === ZERO_ADDRESS ? (
+          <Button
+            className={styles.buttonStyle}
+            onClick={() => setModalIsOpen(true)}
+          >
+            Unlock Voting
+          </Button>
+        ) : (
+          <Box className={styles.delegateOverview}>
+            <Typography variant="body1">{balance} Votes</Typography>
+            <Typography variant="body1">
+              Delegated to {humanReadableDelegate}
+            </Typography>
+            <Button onClick={() => setModalIsOpen(true)}>Edit Delegate</Button>
+          </Box>
+        )}
       </Box>
       {proposals.map((proposal: IProposal) => (
         <ProposalPreviewCard

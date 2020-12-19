@@ -202,15 +202,6 @@ contract Hop {
     /// @notice Address which may mint new tokens
     address public minter;
 
-    /// @notice The timestamp after which minting may occur
-    uint public mintingAllowedAfter;
-
-    /// @notice Minimum time between mints
-    uint32 public constant minimumTimeBetweenMints = 1 days * 365;
-
-    /// @notice Cap on the percentage of totalSupply that can be minted at each mint
-    uint8 public constant mintCap = 2;
-
     /// @notice Allowance amounts on behalf of others
     mapping (address => mapping (address => uint96)) internal allowances;
 
@@ -263,16 +254,12 @@ contract Hop {
      * @notice Construct a new Hop token
      * @param account The initial account to grant all the tokens
      * @param minter_ The account with minting ability
-     * @param mintingAllowedAfter_ The timestamp after which minting may occur
      */
-    constructor(address account, address minter_, uint mintingAllowedAfter_) public {
-        require(mintingAllowedAfter_ >= block.timestamp, "Hop::constructor: minting can only begin after deployment");
-
+    constructor(address account, address minter_) public {
         balances[account] = uint96(totalSupply);
         emit Transfer(address(0), account, totalSupply);
         minter = minter_;
         emit MinterChanged(address(0), minter);
-        mintingAllowedAfter = mintingAllowedAfter_;
     }
 
     /**
@@ -292,15 +279,10 @@ contract Hop {
      */
     function mint(address dst, uint rawAmount) external {
         require(msg.sender == minter, "Hop::mint: only the minter can mint");
-        require(block.timestamp >= mintingAllowedAfter, "Hop::mint: minting not allowed yet");
         require(dst != address(0), "Hop::mint: cannot transfer to the zero address");
-
-        // record the mint
-        mintingAllowedAfter = SafeMath.add(block.timestamp, minimumTimeBetweenMints);
 
         // mint the amount
         uint96 amount = safe96(rawAmount, "Hop::mint: amount exceeds 96 bits");
-        require(amount <= SafeMath.div(SafeMath.mul(totalSupply, mintCap), 100), "Hop::mint: exceeded mint cap");
         totalSupply = safe96(SafeMath.add(totalSupply, amount), "Hop::mint: totalSupply exceeds 96 bits");
 
         // transfer the amount to the recipient

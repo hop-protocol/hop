@@ -42,7 +42,7 @@ contract Arbitrum is IMessengerWrapper {
         defaultSubMessageType = _defaultSubMessageType;
     }
 
-    function sendMessageToL2(bytes memory _calldata) public override {
+    function sendCrossDomainMessage(bytes memory _calldata) public override {
         bytes memory subMessageWithoutData = abi.encode(
             defaultGasLimit,
             defaultGasPrice,
@@ -61,5 +61,10 @@ contract Arbitrum is IMessengerWrapper {
             arbChain,
             prefixedSubMessage
         );
+    }
+
+    function verifySender(bytes memory _data) public override {
+        // ToDo: Verify sender with Arbitrum L1 messenger
+        // Verify that sender is l2BridgeAddress
     }
 }

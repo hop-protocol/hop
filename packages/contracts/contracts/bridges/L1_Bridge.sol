@@ -46,6 +46,17 @@ contract L1_Bridge is Bridge {
         uint256 amount
     );
 
+    /**
+     * Modifiers
+     */
+
+    modifier onlyL2Bridge {
+        // ToDo: Figure out how to check sender against an allowlist
+        // IMessengerWrapper messengerWrapper = crossDomainMessenger[_chainId];
+        // messengerWrapper.verifySender(msg.data);
+        _;
+    }
+
     constructor (IERC20 canonicalToken_, address committee_) public Bridge(canonicalToken_, committee_) {}
 
     /**
@@ -70,7 +81,7 @@ contract L1_Bridge is Bridge {
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
 
         getCollateralToken().safeTransferFrom(msg.sender, address(this), _amount);
-        crossDomainMessenger[_chainId].sendMessageToL2(mintCalldata);
+        crossDomainMessenger[_chainId].sendCrossDomainMessage(mintCalldata);
     }
 
     function sendToL2AndAttemptSwap(
@@ -88,7 +99,7 @@ contract L1_Bridge is Bridge {
             _amountOutMin
         );
 
-        crossDomainMessenger[_chainId].sendMessageToL2(mintAndAttemptSwapCalldata);
+        crossDomainMessenger[_chainId].sendCrossDomainMessage(mintAndAttemptSwapCalldata);
         getCollateralToken().safeTransferFrom(msg.sender, address(this), _amount);
     }
 
@@ -140,15 +151,14 @@ contract L1_Bridge is Bridge {
                     _chainAmounts[i]
                 );
 
-                crossDomainMessenger[_chainIds[i]].sendMessageToL2(setTransferRootMessage);
+                crossDomainMessenger[_chainIds[i]].sendCrossDomainMessage(setTransferRootMessage);
             }
         }
 
         emit TransferRootBonded(_transferRootHash, totalAmount);
     }
 
-    // onlyCrossDomainBridge
-    function confirmTransferRoot(bytes32 _transferRootHash, bytes32 _amountHash) public {
+    function confirmTransferRoot(bytes32 _transferRootHash, bytes32 _amountHash) public onlyL2Bridge {
         TransferBond storage transferBond = transferBonds[_transferRootHash];
         require(transferBond.amountHash == _amountHash, "BDG: Amount hash is invalid");
         transferBond.confirmed = true;

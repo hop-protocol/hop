@@ -83,6 +83,8 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
+        require(_amount >= _relayerFee, "BDG: relayer fee cannot exceed amount");
+
         _burn(msg.sender, _amount);
 
         bytes32 transferHash = getTransferHash(
@@ -111,6 +113,8 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
+        require(_amount >= _relayerFee, "BDG: relayer fee cannot exceed amount");
+
         l2CanonicalToken.transferFrom(msg.sender, address(this), _amount);
 
         address[] memory exchangePath = new address[](2);

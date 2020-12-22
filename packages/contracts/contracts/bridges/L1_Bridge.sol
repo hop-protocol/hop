@@ -5,8 +5,9 @@ import "./Bridge.sol";
 
 import "../libraries/MerkleUtils.sol";
 import "../interfaces/IMessengerWrapper.sol";
+import "./L1_BridgeGovParams.sol";
 
-contract L1_Bridge is Bridge {
+contract L1_Bridge is Bridge, L1_BridgeGovParams {
 
     struct TransferBond {
         uint256 createdAt;
@@ -17,21 +18,8 @@ contract L1_Bridge is Bridge {
     }
 
     /**
-     * Constants
-     */
-
-    uint256 constant CHALLENGE_AMOUNT_MULTIPLIER = 1;
-    uint256 constant CHALLENGE_AMOUNT_DIVISOR = 10;
-    uint256 constant TIME_SLOT_SIZE = 1 hours;
-    uint256 constant CHALLENGE_PERIOD = 4 hours;
-    uint256 constant CHALLENGE_RESOLUTION_PERIOD = 8 days;
-    uint256 constant UNSTAKE_PERIOD = 9 days;
-
-    /**
      * State
      */
-
-    mapping(uint256 => IMessengerWrapper) public crossDomainMessenger;
 
     mapping(bytes32 => TransferBond) transferBonds;
     mapping(uint256 => uint256) public timeSlotToAmountBonded;
@@ -59,12 +47,8 @@ contract L1_Bridge is Bridge {
 
     constructor (IERC20 canonicalToken_, address committee_) public Bridge(canonicalToken_, committee_) {}
 
-    /**
-     * Public Management Functions
-     */
-
-    function setCrossDomainMessengerWrapper(uint256 _chainId, IMessengerWrapper _crossDomainMessenger) public {
-        crossDomainMessenger[_chainId] = _crossDomainMessenger;
+    function getChainId() public override view returns (uint256) {
+        return 1;
     }
 
     /**
@@ -81,7 +65,7 @@ contract L1_Bridge is Bridge {
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
 
         getCollateralToken().safeTransferFrom(msg.sender, address(this), _amount);
-        crossDomainMessenger[_chainId].sendCrossDomainMessage(mintCalldata);
+        getCrossDomainMessenger(_chainId).sendCrossDomainMessage(mintCalldata);
     }
 
     function sendToL2AndAttemptSwap(
@@ -99,7 +83,7 @@ contract L1_Bridge is Bridge {
             _amountOutMin
         );
 
-        crossDomainMessenger[_chainId].sendCrossDomainMessage(mintAndAttemptSwapCalldata);
+        getCrossDomainMessenger(_chainId).sendCrossDomainMessage(mintAndAttemptSwapCalldata);
         getCollateralToken().safeTransferFrom(msg.sender, address(this), _amount);
     }
 
@@ -132,7 +116,7 @@ contract L1_Bridge is Bridge {
         }
 
         uint256 currentTimeSlot = getTimeSlot(now);
-        uint256 bondAmount = bondForTransferAmount(totalAmount);
+        uint256 bondAmount = getBondForTransferAmount(totalAmount);
         timeSlotToAmountBonded[currentTimeSlot] = timeSlotToAmountBonded[currentTimeSlot].add(bondAmount);
 
         bytes32 amountHash = getAmountHash(_chainIds, _chainAmounts);
@@ -151,7 +135,7 @@ contract L1_Bridge is Bridge {
                     _chainAmounts[i]
                 );
 
-                crossDomainMessenger[_chainIds[i]].sendCrossDomainMessage(setTransferRootMessage);
+                getCrossDomainMessenger(_chainIds[i]).sendCrossDomainMessage(setTransferRootMessage);
             }
         }
 
@@ -175,9 +159,7 @@ contract L1_Bridge is Bridge {
         require(!transferBond.confirmed, "BDG: Transfer root has already been confirmed");
 
         // Get stake for challenge
-        uint256 challengeStakeAmount = transferRoot.total
-            .mul(CHALLENGE_AMOUNT_MULTIPLIER)
-            .div(CHALLENGE_AMOUNT_DIVISOR);
+        uint256 challengeStakeAmount = getChallengeAmountForTransferAmount(transferRoot.total);
         getCollateralToken().transferFrom(msg.sender, address(this), challengeStakeAmount);
 
         transferBond.challengeStartTime = now;
@@ -185,7 +167,7 @@ contract L1_Bridge is Bridge {
 
         // Move amount from timeSlotToAmountBonded to debit
         uint256 timeSlot = getTimeSlot(transferBond.createdAt);
-        uint256 bondAmount = bondForTransferAmount(transferRoot.total);
+        uint256 bondAmount = getBondForTransferAmount(transferRoot.total);
         timeSlotToAmountBonded[timeSlot] = timeSlotToAmountBonded[timeSlot].sub(bondAmount);
 
         _addDebit(bondAmount);
@@ -196,38 +178,19 @@ contract L1_Bridge is Bridge {
         TransferBond storage transferBond = transferBonds[_transferRootHash];
 
         require(transferBond.challengeStartTime != 0, "BDG: Transfer root has not been challenged");
-        require(now > transferBond.challengeStartTime.add(CHALLENGE_RESOLUTION_PERIOD), "BDG: Challenge period has not ended");
+        require(now > transferBond.challengeStartTime.add(getChallengeResolutionPeriod()), "BDG: Challenge period has not ended");
 
-        uint256 challengeStakeAmount = transferRoot.total
-            .mul(CHALLENGE_AMOUNT_MULTIPLIER)
-            .div(CHALLENGE_AMOUNT_DIVISOR);
+        uint256 challengeStakeAmount = getChallengeAmountForTransferAmount(transferRoot.total);
 
         if (transferBond.confirmed) {
             // Invalid challenge
             // Credit the committee back with the bond amount plus the challenger's stake
-            _addCredit(bondForTransferAmount(transferRoot.total).add(challengeStakeAmount));
+            _addCredit(getBondForTransferAmount(transferRoot.total).add(challengeStakeAmount));
         } else {
             // Valid challenge
             // Reward challenger with their stake times two
             getCollateralToken().transfer(transferBond.challenger, challengeStakeAmount.mul(2));
         }
-    }
-
-    /**
-     * Public Getters
-     */
-
-    function bondForTransferAmount(uint256 _amount) public view returns (uint256) {
-        // Bond covers _amount plus a bounty to pay a potential challenger
-        return _amount.add(_amount.mul(CHALLENGE_AMOUNT_MULTIPLIER).div(CHALLENGE_AMOUNT_DIVISOR));
-    }
-
-    function getTimeSlot(uint256 _time) public pure returns (uint256) {
-        return _time / TIME_SLOT_SIZE;
-    }
-
-    function getChainId() public override view returns (uint256) {
-        return 1;
     }
 
     /**
@@ -242,7 +205,7 @@ contract L1_Bridge is Bridge {
         uint256 currentTimeSlot = getTimeSlot(now);
         uint256 bonded = 0;
 
-        for (uint256 i = 0; i < CHALLENGE_PERIOD/TIME_SLOT_SIZE; i++) {
+        for (uint256 i = 0; i < getNumberOfChallengableTimeSlots(); i++) {
             bonded = bonded.add(timeSlotToAmountBonded[currentTimeSlot - i]);
         }
 

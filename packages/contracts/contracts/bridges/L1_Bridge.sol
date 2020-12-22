@@ -47,10 +47,6 @@ contract L1_Bridge is Bridge, L1_BridgeGovParams {
 
     constructor (IERC20 canonicalToken_, address committee_) public Bridge(canonicalToken_, committee_) {}
 
-    function getChainId() public override view returns (uint256) {
-        return 1;
-    }
-
     /**
      * Public Transfers Functions
      */

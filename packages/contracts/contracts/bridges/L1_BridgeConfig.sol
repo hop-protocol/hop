@@ -8,7 +8,7 @@ import "../interfaces/IMessengerWrapper.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-contract L1_BridgeGovParams is Ownable {
+contract L1_BridgeConfig is Ownable {
     using SafeMath for uint256;
 
     /**

@@ -5,9 +5,9 @@ import "./Bridge.sol";
 
 import "../libraries/MerkleUtils.sol";
 import "../interfaces/IMessengerWrapper.sol";
-import "./L1_BridgeGovParams.sol";
+import "./L1_BridgeConfig.sol";
 
-contract L1_Bridge is Bridge, L1_BridgeGovParams {
+contract L1_Bridge is Bridge, L1_BridgeConfig {
 
     struct TransferBond {
         uint256 createdAt;

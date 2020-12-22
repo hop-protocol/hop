@@ -57,13 +57,12 @@ describe("Integration", () => {
     challenger = accounts[4]
 
     L1_MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/Optimism.sol:Optimism')
-    L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
+    L1_Bridge = await ethers.getContractFactory('contracts/test/Mock_L1_Bridge.sol:Mock_L1_Bridge')
     L2_Bridge = await ethers.getContractFactory('contracts/test/Mock_L2_OptimismBridge.sol:Mock_L2_OptimismBridge')
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
     CrossDomainMessenger = await ethers.getContractFactory('contracts/test/mockOVM_CrossDomainMessenger.sol:mockOVM_CrossDomainMessenger')
     L1_OVMTokenBridge = await ethers.getContractFactory('contracts/test/L1_OVMTokenBridge.sol:L1_OVMTokenBridge')
     L2_OVMTokenBridge = await ethers.getContractFactory('contracts/test/L2_OVMTokenBridge.sol:L2_OVMTokenBridge')
-    // UniswapRouter = await ethers.getContractFactory('@uniswap/v2-periphery/contracts/UniswapV2Router02.sol:UniswapV2Router02')
     UniswapRouter = await ethers.getContractFactory('contracts/uniswap/UniswapV2Router02.sol:UniswapV2Router02')
     UniswapFactory = await ethers.getContractFactory('@uniswap/v2-core/contracts/UniswapV2Factory.sol:UniswapV2Factory')
   })
@@ -101,7 +100,7 @@ describe("Integration", () => {
     // Set up liquidity bridge
     await l1_bridge.setCrossDomainMessengerWrapper(OPTIMISM_CHAIN_ID, l1_messengerWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
-    await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address)
+    await l2_bridge.setExchangeAddress(l2_uniswapRouter.address)
 
     // Distribute poolToken
     await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
@@ -178,6 +177,7 @@ describe("Integration", () => {
       chainId: MAINNET_CHAIN_ID ,
       amount: BigNumber.from('99'),
       nonce: 0,
+      sender: await user.getAddress(),
       recipient: await user.getAddress(),
       relayerFee: BigNumber.from('0')
     })
@@ -199,6 +199,7 @@ describe("Integration", () => {
     const tree = new MerkleTree([ transfer.getTransferHash() ])
     const proof = tree.getProof(transfer.getTransferHash())
     await l1_bridge.withdraw(
+      transfer.sender,
       transfer.recipient,
       transfer.amount,
       transfer.nonce,
@@ -213,6 +214,7 @@ describe("Integration", () => {
   it('Should not allow a transfer root that exceeds the committee bond', async () => {
     const transfer = new Transfer({
       chainId: MAINNET_CHAIN_ID,
+      sender: await user.getAddress(),
       recipient: await user.getAddress(),
       amount: BigNumber.from('98'),
       nonce: 0,
@@ -233,6 +235,7 @@ describe("Integration", () => {
   it('Should successfully challenge a malicious transfer root', async () => {
     const transfer = new Transfer({
       chainId: MAINNET_CHAIN_ID,
+      sender: await user.getAddress(),
       recipient: await user.getAddress(),
       amount: BigNumber.from('100'),
       nonce: 0,
@@ -271,6 +274,7 @@ describe("Integration", () => {
       chainId: OPTIMISM_CHAIN_ID,
       amount: BigNumber.from('99'),
       nonce: 0,
+      sender: await user.getAddress(),
       recipient: await user.getAddress(),
       relayerFee: BigNumber.from('0')
     })
@@ -294,6 +298,7 @@ describe("Integration", () => {
     const tree = new MerkleTree([ transfer.getTransferHash() ])
     const proof = tree.getProof(transfer.getTransferHash())
     await l2_bridge.withdraw(
+      transfer.sender,
       transfer.recipient,
       transfer.amount,
       transfer.nonce,
@@ -359,6 +364,7 @@ describe("Integration", () => {
       chainId: MAINNET_CHAIN_ID,
       amount: BigNumber.from('99'),
       nonce: 0,
+      sender: await user.getAddress(),
       recipient: await user.getAddress(),
       relayerFee: BigNumber.from('0')
     })
@@ -368,7 +374,15 @@ describe("Integration", () => {
     await l2_bridge.connect(user).approve(await user.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l2_bridge.connect(user).approveExchangeTransfer()
     await l2_bridge.connect(user).approveODaiExchangeTransfer()
-    await l2_bridge.connect(user).swapAndSend(transfer.chainId, transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee, 0)
+    await l2_bridge.connect(user).swapAndSend(
+      transfer.chainId,
+      transfer.recipient,
+      transfer.amount,
+      transfer.nonce,
+      transfer.relayerFee,
+      0,
+      9999999999
+    )
     await l2_bridge.commitTransfers()
     await l1_messenger.relayNextMessage()
 
@@ -385,6 +399,7 @@ describe("Integration", () => {
       chainId: transfer.chainId,
       amount: transferSentEvent.args.amount,
       nonce: transfer.nonce,
+      sender: transfer.sender,
       recipient: transfer.recipient,
       relayerFee: transfer.relayerFee
     })
@@ -393,6 +408,7 @@ describe("Integration", () => {
     const tree = new MerkleTree([ outputTransfer.getTransferHash() ])
     const proof = tree.getProof(outputTransfer.getTransferHash())
     await l1_bridge.withdraw(
+      outputTransfer.sender,
       outputTransfer.recipient,
       outputTransfer.amount,
       outputTransfer.nonce,

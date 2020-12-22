@@ -2,6 +2,7 @@ import * as ethers from 'ethers'
 
 export type TransferProps = {
   chainId: ethers.BigNumber,
+  sender: string,
   recipient: string,
   amount: ethers.BigNumber,
   nonce: number,
@@ -10,6 +11,7 @@ export type TransferProps = {
 
 export default class Transfer {
   chainId: ethers.BigNumber
+  sender: string
   recipient: string
   amount: ethers.BigNumber
   nonce: number
@@ -17,6 +19,7 @@ export default class Transfer {
 
   constructor(props: TransferProps) {
     this.chainId = props.chainId
+    this.sender = props.sender
     this.recipient = props.recipient
     this.amount = props.amount
     this.nonce = props.nonce
@@ -28,12 +31,14 @@ export default class Transfer {
       [
         'uint256',
         'address',
+        'address',
         'uint256',
         'uint256',
         'uint256'
       ],
       [
         this.chainId,
+        this.sender,
         this.recipient,
         this.amount,
         this.nonce,

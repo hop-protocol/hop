@@ -13,7 +13,6 @@ import "../libraries/MerkleUtils.sol";
 abstract contract L2_Bridge is ERC20, Bridge {
     address public l1BridgeAddress;
     address public exchangeAddress;
-    uint256 public swapDeadlineBuffer;
     IERC20 public l2CanonicalToken;
 
     bytes32[] public pendingTransfers;
@@ -36,6 +35,11 @@ abstract contract L2_Bridge is ERC20, Bridge {
         uint256 relayerFee
     );
 
+    modifier onlyL1Bridge {
+        _verifySender();
+        _;
+    }
+
     constructor (
         IERC20 _l2CanonicalToken,
         address committee_
@@ -47,19 +51,18 @@ abstract contract L2_Bridge is ERC20, Bridge {
         l2CanonicalToken = _l2CanonicalToken;
     }
 
-    function _sendMessageToL1Bridge(bytes memory _message) internal virtual;
+    function _sendCrossDomainMessage(bytes memory _message) internal virtual;
+    function _verifySender() internal virtual; 
 
     /**
      * Public functions
      */
 
-    function setExchangeValues(
-        uint256 _swapDeadlineBuffer,
+    function setExchangeAddress(
         address _exchangeAddress
     )
         public
     {
-        swapDeadlineBuffer = _swapDeadlineBuffer;
         exchangeAddress = _exchangeAddress;
     }
 
@@ -77,10 +80,13 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
+        require(_amount >= _relayerFee, "BDG: relayer fee cannot exceed amount");
+
         _burn(msg.sender, _amount);
 
         bytes32 transferHash = getTransferHash(
             _chainId,
+            msg.sender,
             _recipient,
             _amount,
             _transferNonce,
@@ -101,10 +107,13 @@ abstract contract L2_Bridge is ERC20, Bridge {
         uint256 _amount,
         uint256 _transferNonce,
         uint256 _relayerFee,
-        uint256 _amountOutMin
+        uint256 _amountOutMin,
+        uint256 _deadline
     )
         public
     {
+        require(_amount >= _relayerFee, "BDG: relayer fee cannot exceed amount");
+
         l2CanonicalToken.transferFrom(msg.sender, address(this), _amount);
 
         address[] memory exchangePath = new address[](2);
@@ -113,7 +122,13 @@ abstract contract L2_Bridge is ERC20, Bridge {
         uint256[] memory swapAmounts = IUniswapV2Router02(exchangeAddress).getAmountsOut(_amount, exchangePath);
         uint256 swapAmount = swapAmounts[1];
 
-        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, exchangePath);
+        bytes memory swapCalldata = _getSwapCalldata(
+            _recipient,
+            _amount,
+            _amountOutMin,
+            exchangePath,
+            _deadline
+        );
         (bool success,) = exchangeAddress.call(swapCalldata);
         require(success, "L2BDG: Swap failed");
 
@@ -144,7 +159,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
             amountHash
         );
 
-        _sendMessageToL1Bridge(confirmTransferRootMessage);
+        _sendCrossDomainMessage(confirmTransferRootMessage);
     }
 
     // onlyCrossDomainBridge
@@ -152,13 +167,13 @@ abstract contract L2_Bridge is ERC20, Bridge {
         _mint(_recipient, _amount);
     }
 
-    function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin) public {
+    function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) public {
         _mint(address(this), _amount);
 
         address[] memory exchangePath = new address[](2);
         exchangePath[0] = address(this);
         exchangePath[1] = address(l2CanonicalToken);
-        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, exchangePath);
+        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, exchangePath, _deadline);
         (bool success,) = exchangeAddress.call(swapCalldata);
 
         if (!success) {
@@ -192,6 +207,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
      */
 
     function bondWithdrawal(
+        address _sender,
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
@@ -203,6 +219,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     {
         bytes32 transferHash = getTransferHash(
             getChainId(),
+            _sender,
             _recipient,
             _amount,
             _transferNonce,
@@ -227,8 +244,8 @@ abstract contract L2_Bridge is ERC20, Bridge {
     {
         require(_proof.verify(_transferRootHash, _transferHash), "BDG: Invalid transfer proof");
 
-        uint256 amount = bondedWithdrawalAmounts[_transferRootHash];
-        _addToAmountWithdrawn(_transferHash, _transferRootHash, amount);
+        uint256 amount = bondedWithdrawalAmounts[_transferHash];
+        _addToAmountWithdrawn(_transferRootHash, amount);
 
         bondedWithdrawalAmounts[_transferRootHash] = 0;
         _addCredit(amount);
@@ -254,19 +271,19 @@ abstract contract L2_Bridge is ERC20, Bridge {
         address _recipient,
         uint256 _amount,
         uint256 _amountOutMin,
-        address[] memory _exchangePath
+        address[] memory _exchangePath,
+        uint256 _deadline
     )
         internal
         returns (bytes memory)
     {
-        uint256 swapDeadline = block.timestamp + swapDeadlineBuffer;
         return abi.encodeWithSignature(
             "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",
             _amount,
             _amountOutMin,
             _exchangePath,
             _recipient,
-            swapDeadline
+            _deadline
         );
     }
 }

@@ -13,7 +13,6 @@ import "../libraries/MerkleUtils.sol";
 abstract contract L2_Bridge is ERC20, Bridge {
     address public l1BridgeAddress;
     address public exchangeAddress;
-    uint256 public swapDeadlineBuffer;
     IERC20 public l2CanonicalToken;
 
     bytes32[] public pendingTransfers;
@@ -59,13 +58,11 @@ abstract contract L2_Bridge is ERC20, Bridge {
      * Public functions
      */
 
-    function setExchangeValues(
-        uint256 _swapDeadlineBuffer,
+    function setExchangeAddress(
         address _exchangeAddress
     )
         public
     {
-        swapDeadlineBuffer = _swapDeadlineBuffer;
         exchangeAddress = _exchangeAddress;
     }
 
@@ -110,7 +107,8 @@ abstract contract L2_Bridge is ERC20, Bridge {
         uint256 _amount,
         uint256 _transferNonce,
         uint256 _relayerFee,
-        uint256 _amountOutMin
+        uint256 _amountOutMin,
+        uint256 _deadline
     )
         public
     {
@@ -124,7 +122,13 @@ abstract contract L2_Bridge is ERC20, Bridge {
         uint256[] memory swapAmounts = IUniswapV2Router02(exchangeAddress).getAmountsOut(_amount, exchangePath);
         uint256 swapAmount = swapAmounts[1];
 
-        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, exchangePath);
+        bytes memory swapCalldata = _getSwapCalldata(
+            _recipient,
+            _amount,
+            _amountOutMin,
+            exchangePath,
+            _deadline
+        );
         (bool success,) = exchangeAddress.call(swapCalldata);
         require(success, "L2BDG: Swap failed");
 
@@ -163,13 +167,13 @@ abstract contract L2_Bridge is ERC20, Bridge {
         _mint(_recipient, _amount);
     }
 
-    function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin) public {
+    function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) public {
         _mint(address(this), _amount);
 
         address[] memory exchangePath = new address[](2);
         exchangePath[0] = address(this);
         exchangePath[1] = address(l2CanonicalToken);
-        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, exchangePath);
+        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, exchangePath, _deadline);
         (bool success,) = exchangeAddress.call(swapCalldata);
 
         if (!success) {
@@ -267,19 +271,19 @@ abstract contract L2_Bridge is ERC20, Bridge {
         address _recipient,
         uint256 _amount,
         uint256 _amountOutMin,
-        address[] memory _exchangePath
+        address[] memory _exchangePath,
+        uint256 _deadline
     )
         internal
         returns (bytes memory)
     {
-        uint256 swapDeadline = block.timestamp + swapDeadlineBuffer;
         return abi.encodeWithSignature(
             "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",
             _amount,
             _amountOutMin,
             _exchangePath,
             _recipient,
-            swapDeadline
+            _deadline
         );
     }
 }

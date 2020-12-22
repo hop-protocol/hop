@@ -68,15 +68,17 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         uint256 _chainId,
         address _recipient,
         uint256 _amount,
-        uint256 _amountOutMin
+        uint256 _amountOutMin,
+        uint256 _deadline
     )
         public
     {
         bytes memory mintAndAttemptSwapCalldata = abi.encodeWithSignature(
-            "mintAndAttemptSwap(address,uint256,uint256)",
+            "mintAndAttemptSwap(address,uint256,uint256,uint256)",
             _recipient,
             _amount,
-            _amountOutMin
+            _amountOutMin,
+            _deadline
         );
 
         getCrossDomainMessenger(_chainId).sendCrossDomainMessage(mintAndAttemptSwapCalldata);

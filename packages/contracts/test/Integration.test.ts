@@ -100,7 +100,7 @@ describe("Integration", () => {
     // Set up liquidity bridge
     await l1_bridge.setCrossDomainMessengerWrapper(OPTIMISM_CHAIN_ID, l1_messengerWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
-    await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address)
+    await l2_bridge.setExchangeAddress(l2_uniswapRouter.address)
 
     // Distribute poolToken
     await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
@@ -374,7 +374,15 @@ describe("Integration", () => {
     await l2_bridge.connect(user).approve(await user.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l2_bridge.connect(user).approveExchangeTransfer()
     await l2_bridge.connect(user).approveODaiExchangeTransfer()
-    await l2_bridge.connect(user).swapAndSend(transfer.chainId, transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee, 0)
+    await l2_bridge.connect(user).swapAndSend(
+      transfer.chainId,
+      transfer.recipient,
+      transfer.amount,
+      transfer.nonce,
+      transfer.relayerFee,
+      0,
+      9999999999
+    )
     await l2_bridge.commitTransfers()
     await l1_messenger.relayNextMessage()
 

@@ -58,11 +58,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
      * Public functions
      */
 
-    function setExchangeAddress(
-        address _exchangeAddress
-    )
-        public
-    {
+    function setExchangeAddress(address _exchangeAddress) public {
         exchangeAddress = _exchangeAddress;
     }
 
@@ -81,6 +77,9 @@ abstract contract L2_Bridge is ERC20, Bridge {
         public
     {
         require(_amount >= _relayerFee, "BDG: relayer fee cannot exceed amount");
+        if (pendingTransfers.length >= 100) {
+            commitTransfers();
+        }
 
         _burn(msg.sender, _amount);
 

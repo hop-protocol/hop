@@ -28,8 +28,8 @@ export const PROPOSAL_STATUS_COLORS: any = {
     bgColor: '#CCD5E0'
   },
   CANCELLED: {
-    textColor: '#2172E5', // TODO: Should be text
-    bgColor: '#CCD5E0'
+    textColor: '#46525C',
+    bgColor: '#E2E2E5'
   },
   DEFEATED: {
     textColor: '#FF6871',
@@ -40,12 +40,12 @@ export const PROPOSAL_STATUS_COLORS: any = {
     bgColor: '#DAE5DD'
   },
   QUEUED: {
-    textColor: '#2172E5', // TODO: Should be text
-    bgColor: '#CCD5E0'
+    textColor: '#46525C',
+    bgColor: '#E2E2E5'
   },
   EXPIRED: {
-    textColor: '#2172E5', // TODO: Should be text
-    bgColor: '#CCD5E0'
+    textColor: '#46525C',
+    bgColor: '#E2E2E5'
   },
   EXECUTED: {
     textColor: '#27AE60',

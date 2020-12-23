@@ -13,9 +13,9 @@ const useStyles = makeStyles(theme => ({
     marginBottom: '2rem',
     cursor: 'pointer'
   },
-  previewBox: {
-    display: 'flex',
-    flexDirection: 'column'
+  previewText: {
+    flex: 'auto',
+    marginLeft: '3rem'
   },
   previewCard: {
     display: 'flex',
@@ -49,12 +49,12 @@ const ProposalPreviewCard: FC<Props> = props => {
       }}
     >
       <Card className={styles.previewCard}>
-        <Box alignItems="center" className={styles.previewBox}>
+        <Box alignItems="center">
           <Typography variant="subtitle2" color="textSecondary" component="div">
             {id}
           </Typography>
         </Box>
-        <Box alignItems="left" className={styles.previewBox}>
+        <Box alignItems="left" className={styles.previewText}>
           <Typography variant="subtitle2" color="textSecondary" component="div">
             {description}
           </Typography>

@@ -161,12 +161,11 @@ abstract contract L2_Bridge is ERC20, Bridge {
         _sendCrossDomainMessage(confirmTransferRootMessage);
     }
 
-    // onlyCrossDomainBridge
-    function mint(address _recipient, uint256 _amount) public {
+    function mint(address _recipient, uint256 _amount) public onlyL1Bridge {
         _mint(_recipient, _amount);
     }
 
-    function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) public {
+    function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) public onlyL1Bridge {
         _mint(address(this), _amount);
 
         address[] memory exchangePath = new address[](2);
@@ -196,8 +195,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
      * TransferRoots
      */
 
-    // onlyL1Bridge
-    function setTransferRoot(bytes32 _rootHash, uint256 _amount) public {
+    function setTransferRoot(bytes32 _rootHash, uint256 _amount) public onlyL1Bridge {
         _setTransferRoot(_rootHash, _amount);
     }
 

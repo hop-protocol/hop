@@ -3,16 +3,15 @@ import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 
-import { PROPOSAL_STATUS_COLORS, PROPOSAL_STATUS_COLORS_BG } from 'src/config/constants'
+import { PROPOSAL_STATUS_COLORS } from 'src/config/constants'
 
 type StyleProps = {
-  status: string
-  statusColor: string
-  statusColorBg: string
+  textColor: string
+  bgColor: string
 }
 
 const useStyles = makeStyles(theme => ({
-  proposalStatus: ({ statusColorBg }: StyleProps) => ({
+  proposalStatus: ({ bgColor }: StyleProps) => ({
     fontSize: '0.825rem',
     padding: '0.5rem',
     width: '10rem',
@@ -21,10 +20,10 @@ const useStyles = makeStyles(theme => ({
     textTransform: 'uppercase',
     borderRadius: '1rem',
     alignSelf: 'flex-start',
-    background: statusColorBg
+    background: bgColor
   }),
-  proposalStatusText: ({ statusColor }: StyleProps) => ({
-    color: statusColor
+  proposalStatusText: ({ textColor }: StyleProps) => ({
+    color: textColor
   })
 }))
 
@@ -34,9 +33,8 @@ type Props = {
 
 const ProposalStatusCard: FC<Props> = props => {
   const { status } = props
-  const statusColor = PROPOSAL_STATUS_COLORS[status.toUpperCase()]
-  const statusColorBg = PROPOSAL_STATUS_COLORS_BG[status.toUpperCase()]
-  const styles = useStyles({ status, statusColor, statusColorBg })
+  const { textColor, bgColor } = PROPOSAL_STATUS_COLORS[status.toUpperCase()]
+  const styles = useStyles({ textColor, bgColor })
 
   return (
     <Box alignItems="center" className={`${styles.proposalStatus}`}>

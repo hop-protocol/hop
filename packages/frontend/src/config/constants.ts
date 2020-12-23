@@ -7,7 +7,6 @@ export const OPTIMISM_LOGO_URL =
 export const MAINNET_LOGO_URL =
   'https://liquidity-network-poc.s3.amazonaws.com/mainnet.svg'
 
-// TODO: Clean up PROPOSAL_STATUSES, PROPOSAL_STATUS_COLORS, and PROPOSAL_STATUS_COLORS_BG
 export const PROPOSAL_STATUSES: any = {
   PENDING: 'pending',
   ACTIVE: 'active',
@@ -20,25 +19,38 @@ export const PROPOSAL_STATUSES: any = {
 }
 
 export const PROPOSAL_STATUS_COLORS: any = {
-  PENDING: '#2172E5',
-  ACTIVE: '#2172E5',
-  CANCELLED: '#2172E5', // TODO: Should be text
-  DEFEATED: '#FF6871',
-  SUCCEEDED: '#27AE60',
-  QUEUED: '#2172E5', // TODO: Should be text
-  EXPIRED: '#2172E5', // TODO: Should be text
-  EXECUTED: '#27AE60'
-}
-
-export const PROPOSAL_STATUS_COLORS_BG: any = {
-  PENDING: '#CCD5E0',
-  ACTIVE: '#CCD5E0',
-  CANCELLED: '#CCD5E0', // TODO: Should be text
-  DEFEATED: '#E4D6D6',
-  SUCCEEDED: '#DAE5DD',
-  QUEUED: '#CCD5E0', // TODO: Should be text
-  EXPIRED: '#CCD5E0', // TODO: Should be text
-  EXECUTED: '#E5DEDA'
+  PENDING: {
+    textColor: '#2172E5',
+    bgColor: '#CCD5E0'
+  },
+  ACTIVE: {
+    textColor: '#2172E5',
+    bgColor: '#CCD5E0'
+  },
+  CANCELLED: {
+    textColor: '#2172E5', // TODO: Should be text
+    bgColor: '#CCD5E0'
+  },
+  DEFEATED: {
+    textColor: '#FF6871',
+    bgColor: '#E4D6D6'
+  },
+  SUCCEEDED: {
+    textColor: '#27AE60',
+    bgColor: '#DAE5DD'
+  },
+  QUEUED: {
+    textColor: '#2172E5', // TODO: Should be text
+    bgColor: '#CCD5E0'
+  },
+  EXPIRED: {
+    textColor: '#2172E5', // TODO: Should be text
+    bgColor: '#CCD5E0'
+  },
+  EXECUTED: {
+    textColor: '#27AE60',
+    bgColor: '#E5DEDA'
+  }
 }
 
 export enum VOTE_STATUS {

@@ -22,7 +22,12 @@ contract L2_ArbitrumBridge is L2_Bridge {
         return 152709604825713;
     }
 
-    function _sendMessageToL1Bridge(bytes memory _message) internal override {
+    function _sendCrossDomainMessage(bytes memory _message) internal override {
         // TODO: Add the Arbitrum-specific messaging
+    }
+
+    function _verifySender() internal override {
+        // ToDo: verify sender with Arbitrum L2 messenger
+        // sender should be l1BridgeAddress
     }
 }

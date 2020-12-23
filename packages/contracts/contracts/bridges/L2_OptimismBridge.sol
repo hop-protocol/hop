@@ -17,11 +17,16 @@ contract L2_OptimismBridge is L2_Bridge {
         messenger = _messenger;
     }
 
-    function _sendMessageToL1Bridge(bytes memory _message) internal override {
+    function _sendCrossDomainMessage(bytes memory _message) internal override {
         messenger.sendMessage(
             l1BridgeAddress,
             _message,
             200000
         );
+    }
+
+    function _verifySender() internal override {
+        // ToDo: verify sender with Optimism L2 messenger
+        // sender should be l1BridgeAddress
     }
 }

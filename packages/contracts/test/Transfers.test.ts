@@ -155,12 +155,12 @@ describe("Transfers", () => {
     // Set up Optimism 1 liquidity bridge
     await l1_bridge.setCrossDomainMessengerWrapper(OPTIMISM_1_CHAIN_ID, l1_ovm1_messengerWrapper.address)
     await l2_ovm1_bridge.setL1BridgeAddress(l1_bridge.address)
-    await l2_ovm1_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_ovm1_uniswapRouter.address)
+    await l2_ovm1_bridge.setExchangeAddress(l2_ovm1_uniswapRouter.address)
 
     // Set up Optimism 2 liquidity bridge
     await l1_bridge.setCrossDomainMessengerWrapper(OPTIMISM_2_CHAIN_ID, l1_ovm2_messengerWrapper.address)
     await l2_ovm2_bridge.setL1BridgeAddress(l1_bridge.address)
-    await l2_ovm2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_ovm2_uniswapRouter.address)
+    await l2_ovm2_bridge.setExchangeAddress(l2_ovm2_uniswapRouter.address)
 
     // Distribute poolToken
     await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
@@ -271,7 +271,7 @@ describe("Transfers", () => {
 
 
     // Bond the withdrawal
-    await l2_ovm2_bridge.connect(committee).bondWithdrawal(user.getAddress(), USER_INITIAL_BALANCE, 0, 0)
+    await l2_ovm2_bridge.connect(committee).bondWithdrawal(user.getAddress(), user.getAddress(), USER_INITIAL_BALANCE, 0, 0)
     await expectBalanceOf(l2_ovm2_bridge, user, USER_INITIAL_BALANCE)
 
     // commit the transfer root

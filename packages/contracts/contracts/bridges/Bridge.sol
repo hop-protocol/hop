@@ -7,8 +7,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "../test/mockOVM_CrossDomainMessenger.sol";
 
-import "../libraries/MerkleUtils.sol";
-
 import "./Accounting.sol";
 
 abstract contract Bridge is Accounting {
@@ -30,6 +28,7 @@ abstract contract Bridge is Accounting {
 
     function getTransferHash(
         uint256 _chainId,
+        address _sender,
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
@@ -41,6 +40,7 @@ abstract contract Bridge is Accounting {
     {
         return keccak256(abi.encode(
             _chainId,
+            _sender,
             _recipient,
             _amount,
             _transferNonce,
@@ -56,6 +56,7 @@ abstract contract Bridge is Accounting {
         pure
         returns (bytes32)
     {
+        // ToDo: string isn't necessary
         return keccak256(abi.encode("AMOUNT_HASH", _chainIds, _amounts));
     }
 
@@ -75,6 +76,7 @@ abstract contract Bridge is Accounting {
      */
 
     function withdraw(
+        address _sender,
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
@@ -86,6 +88,7 @@ abstract contract Bridge is Accounting {
     {
         bytes32 transferHash = getTransferHash(
             getChainId(),
+            _sender,
             _recipient,
             _amount,
             _transferNonce,
@@ -93,7 +96,7 @@ abstract contract Bridge is Accounting {
         );
 
         require(_proof.verify(_transferRootHash, transferHash), "BDG: Invalid transfer proof");
-        _addToAmountWithdrawn(transferHash, _transferRootHash, _amount);
+        _addToAmountWithdrawn(_transferRootHash, _amount);
         _markTransferSpent(transferHash);
 
         _transfer(_recipient, _amount.sub(_relayerFee));
@@ -110,7 +113,6 @@ abstract contract Bridge is Accounting {
     }
 
     function _addToAmountWithdrawn(
-        bytes32 _transferHash,
         bytes32 _transferRootHash,
         uint256 _amount
     )

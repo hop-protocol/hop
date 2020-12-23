@@ -21,11 +21,16 @@ contract Optimism is IMessengerWrapper {
         defaultGasLimit = _defaultGasLimit;
     }
 
-    function sendMessageToL2(bytes memory _calldata) public override {
+    function sendCrossDomainMessage(bytes memory _calldata) public override {
         l1MessengerAddress.sendMessage(
             l2BridgeAddress,
             _calldata,
             uint32(defaultGasLimit)
         );
+    }
+
+    function verifySender(bytes memory _data) public override {
+        // ToDo: Verify sender with Optimism L1 messenger
+        // Verify that sender is l2BridgeAddress
     }
 }

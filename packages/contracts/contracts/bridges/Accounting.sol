@@ -28,7 +28,7 @@ abstract contract Accounting {
      */
 
     modifier onlyCommittee {
-        require(msg.sender == _committee, "BDG: Caller is not committee");
+        require(msg.sender == _committee, "ACT: Caller is not committee");
         _;
     }
 

@@ -23,6 +23,9 @@ const useStyles = makeStyles(() => ({
   buttonStyle: {
     margin: 'initial'
   },
+  editDelegateButtonStyle: {
+    marginTop: '1rem',
+  },
   pricesBox: {
     width: '51.6rem',
     marginTop: '4.2rem',
@@ -119,6 +122,7 @@ const Vote: FC<VoteProps> = props => {
         <Typography variant="h6">Participating Pools</Typography>
         {balance !== '0.00' && delegate === ZERO_ADDRESS ? (
           <Button
+            flat
             className={styles.buttonStyle}
             onClick={() => setModalIsOpen(true)}
           >
@@ -130,7 +134,12 @@ const Vote: FC<VoteProps> = props => {
             <Typography variant="body1">
               Delegated to {humanReadableDelegate}
             </Typography>
-            <Button onClick={() => setModalIsOpen(true)}>Edit Delegate</Button>
+            <Button
+              className={styles.editDelegateButtonStyle}
+              onClick={() => setModalIsOpen(true)}
+            >
+              Edit Delegate
+            </Button>
           </Box>
         )}
       </Box>

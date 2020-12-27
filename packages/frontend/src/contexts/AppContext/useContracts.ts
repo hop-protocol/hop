@@ -10,6 +10,7 @@ import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/
 import stakingRewardsFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/distribution/StakingRewardsFactory.sol/StakingRewardsFactory.json'
 import stakingRewardsArtifact from '@hop-exchange/contracts/artifacts/contracts/distribution/StakingRewardsFactory.sol/StakingRewards.json'
 import hopArtifact from '@hop-exchange/contracts/artifacts/contracts/governance/Hop.sol/Hop.json'
+import governorAlphaArtifact from '@hop-exchange/contracts/artifacts/contracts/governance/GovernorAlpha.sol/GovernorAlpha.json'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
@@ -26,6 +27,7 @@ export type HopContracts = {
   arbitrumUniswapFactory: Contract | undefined
   stakingRewardsFactory: Contract | undefined
   stakingRewards: Contract | undefined
+  governorAlpha: Contract | undefined
 }
 
 export interface Contracts extends HopContracts {
@@ -134,6 +136,16 @@ const useContracts = (networks: Network[]): Contracts => {
       : undefined
   }, [provider])
 
+  const governorAlpha = useMemo(() => {
+    return provider
+      ? new Contract(
+          addresses.governorAlpha,
+          governorAlphaArtifact.abi,
+          provider.getSigner()
+        )
+      : undefined
+  }, [provider])
+
   return {
     l1Hop,
     l1Dai,
@@ -145,7 +157,8 @@ const useContracts = (networks: Network[]): Contracts => {
     arbitrumUniswapFactory,
     getErc20Contract,
     stakingRewardsFactory,
-    stakingRewards
+    stakingRewards,
+    governorAlpha
   }
 }
 

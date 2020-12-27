@@ -11,6 +11,7 @@ import Button from '@material-ui/core/Button'
 import Link from '@material-ui/core/Link'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useApp } from 'src/contexts/AppContext'
 import useTimestampFromBlock from 'src/hooks/useTimestampFromBlock'
 
 import { IProposal } from 'src/config'
@@ -61,8 +62,26 @@ const useStyles = makeStyles(theme => ({
     fontSize: '1.5rem',
     opacity: '0.5',
   },
-  statusCardsContainer: {
+  statusAndVoteCardsContainer: {
+    display: 'flex',
+    alignItems: 'center',
     marginTop: '1rem'
+  },
+  statusAndVoteContainer: {
+    width: '23.8rem',
+    padding: '1rem',
+    borderRadius: '1.5rem',
+    marginBottom: '1rem',
+    cursor: 'pointer'
+  },
+  voteContainer: {
+    width: '23.8rem',
+    padding: '1rem',
+    borderRadius: '1.5rem',
+    boxShadow: `
+      inset -3px -3px 6px rgba(255, 255, 255, 0.5),
+      inset 3px 3px 6px rgba(174, 174, 192, 0.16)
+    `
   },
   voteDelegationContainer: {
     padding: '1rem',
@@ -92,9 +111,21 @@ const VotePage: FC<VotePageProps> = props => {
   const styles = useStyles({ status: proposal.status })
   const history = useHistory()
   const { connectedNetworkId } = useWeb3Context()
+  const { contracts } = useApp()
+  const governorAlpha = contracts?.governorAlpha
 
   const handleArrowClick = () => {
     history.push(`/vote`)
+  }
+
+  const handleVoteForClick = () => {
+    const forVote: string = '1'
+    governorAlpha?.castVote(proposal.id, forVote)
+  }
+
+  const handleVoteAgainstClick = () => {
+    const forAgainst: string = '0'
+    governorAlpha?.castVote(proposal.id, forAgainst)
   }
 
   // Timing
@@ -182,21 +213,33 @@ const VotePage: FC<VotePageProps> = props => {
             : ''}
         </Typography>
 
-        <Box
-          display="flex"
-          alignItems="center"
-          className={styles.statusCardsContainer}
-        >
-          <VoteStatusCard
-            voteStatus={VOTE_STATUS.FOR}
-            numVotes={proposal.forCount}
-            percentageVotes={forPercentage}
-          />
-          <VoteStatusCard
-            voteStatus={VOTE_STATUS.AGAINST}
-            numVotes={proposal.againstCount}
-            percentageVotes={againstPercentage}
-          />
+        <Box className={styles.statusAndVoteCardsContainer}>
+          <Box className={styles.statusAndVoteContainer}>
+            <Button
+              className={styles.voteContainer}
+              onClick={handleVoteForClick}
+            >
+              Vote For
+            </Button>
+            <VoteStatusCard
+              voteStatus={VOTE_STATUS.FOR}
+              numVotes={proposal.forCount}
+              percentageVotes={forPercentage}
+            />
+          </Box>
+          <Box className={styles.statusAndVoteContainer}>
+            <Button
+              className={styles.voteContainer}
+              onClick={handleVoteAgainstClick}
+            >
+              Vote Against
+            </Button>
+            <VoteStatusCard
+              voteStatus={VOTE_STATUS.AGAINST}
+              numVotes={proposal.againstCount}
+              percentageVotes={againstPercentage}
+            />
+          </Box>
         </Box>
 
         {proposal && proposal.status === PROPOSAL_STATUSES.ACTIVE && !showVotingButtons && (

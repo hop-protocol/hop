@@ -95,10 +95,16 @@ const COMPONENT_NAME: FC<Props> = () => {
 
       {/* Vote Pages */}
       <Route path="/vote/1">
-        <VotePage proposal={mockProposals[0]} />
+        <VotePage proposal={mockProposals[3]} />
       </Route>
       <Route path="/vote/2">
+        <VotePage proposal={mockProposals[2]} />
+      </Route>
+      <Route path="/vote/3">
         <VotePage proposal={mockProposals[1]} />
+      </Route>
+      <Route path="/vote/4">
+        <VotePage proposal={mockProposals[0]} />
       </Route>
       <Route path="/vote">
         <Vote proposals={mockProposals} />

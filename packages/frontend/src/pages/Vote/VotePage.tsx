@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { useHistory } from 'react-router-dom'
 import { ArrowLeft } from 'react-feather'
 import { DateTime } from 'luxon'
+import { BigNumber } from 'ethers'
 
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
@@ -21,6 +22,7 @@ import VoteStatusCard from './VoteStatusCard'
 import ProposalStatusCard from './ProposalStatusCard'
 
 import {
+  PROPOSAL_STATUSES,
   VOTE_STATUS,
   PROPOSAL_LENGTH_IN_SECS,
   COMMON_CONTRACT_NAMES
@@ -58,10 +60,17 @@ const useStyles = makeStyles(theme => ({
   subtitle: {
     fontSize: '1.5rem',
     opacity: '0.5',
-    marginBottom: '1rem'
   },
   statusCardsContainer: {
     marginTop: '1rem'
+  },
+  voteDelegationContainer: {
+    padding: '1rem',
+    borderRadius: '1.5rem',
+    boxShadow: `
+      inset -3px -3px 6px rgba(255, 255, 255, 0.5),
+      inset 3px 3px 6px rgba(174, 174, 192, 0.16)
+    `
   },
   contentHeader: {
     marginBottom: '2rem',
@@ -111,6 +120,15 @@ const VotePage: FC<VotePageProps> = props => {
     proposal && totalVotes
       ? ((proposal.againstCount * 100) / totalVotes).toFixed(0) + '%'
       : '0%'
+
+  // Only show voting if user has > 0 votes at proposal start block and proposal is active
+  // TODO: Get real vote count
+  const availableVotes = 0
+  const showVotingButtons =
+    availableVotes &&
+    BigNumber.from(availableVotes).gte(BigNumber.from(0)) &&
+    proposal &&
+    proposal.status === PROPOSAL_STATUSES.ACTIVE
 
   // Show links in proposal details if content is an address
   // If content is contract with common name, replace address with common name
@@ -180,6 +198,15 @@ const VotePage: FC<VotePageProps> = props => {
             percentageVotes={againstPercentage}
           />
         </Box>
+
+        {proposal && proposal.status === PROPOSAL_STATUSES.ACTIVE && !showVotingButtons && (
+          <Box className={styles.voteDelegationContainer}>
+            <Typography variant="subtitle1" className={styles.subtitle}>
+              Only HOP votes that were self delegated or delegated to another address before block{' '}
+              {proposal.startBlock} are eligible for voting.{' '}
+            </Typography>
+          </Box>
+        )}
 
         <Typography variant="h6" className={styles.contentHeader}>
           Details

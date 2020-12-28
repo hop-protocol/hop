@@ -40,48 +40,48 @@ const ProposalStatusCard: FC<Props> = props => {
 
   switch (status) {
     case PROPOSAL_STATUSES.PENDING: {
-      textColor = theme.palette.info.dark,
-      bgColor = theme.palette.primary.light
-      break
-    }
-    case PROPOSAL_STATUSES.ACTIVE: {
-      textColor = theme.palette.info.dark,
-      bgColor = theme.palette.primary.light
-      break
-    }
-    case PROPOSAL_STATUSES.CANCELLED: {
-      textColor = theme.palette.text.primary,
-      bgColor = theme.palette.text.secondary
-      break
-    }
-    case PROPOSAL_STATUSES.DEFEATED: {
-      textColor = theme.palette.error.dark,
+      textColor = theme.palette.secondary.main,
       bgColor = theme.palette.secondary.light
       break
     }
+    case PROPOSAL_STATUSES.ACTIVE: {
+      textColor = theme.palette.info.main,
+      bgColor = theme.palette.info.light
+      break
+    }
+    case PROPOSAL_STATUSES.CANCELLED: {
+      textColor = theme.palette.secondary.main,
+      bgColor = theme.palette.secondary.light
+      break
+    }
+    case PROPOSAL_STATUSES.DEFEATED: {
+      textColor = theme.palette.error.main,
+      bgColor = theme.palette.error.light
+      break
+    }
     case PROPOSAL_STATUSES.SUCCEEDED: {
-      textColor = theme.palette.success.dark,
+      textColor = theme.palette.success.main,
       bgColor = theme.palette.success.light
       break
     }
     case PROPOSAL_STATUSES.QUEUED: {
-      textColor = theme.palette.text.primary,
-      bgColor = theme.palette.text.secondary
+      textColor = theme.palette.secondary.main,
+      bgColor = theme.palette.secondary.light
       break
     }
     case PROPOSAL_STATUSES.EXPIRED: {
-      textColor = theme.palette.text.primary,
-      bgColor = theme.palette.text.secondary
+      textColor = theme.palette.secondary.main,
+      bgColor = theme.palette.secondary.light
       break
     }
     case PROPOSAL_STATUSES.EXECUTED: {
-      textColor = theme.palette.success.dark,
+      textColor = theme.palette.success.main,
       bgColor = theme.palette.success.light
       break
     }
     default: {
-      textColor = theme.palette.text.primary,
-      bgColor = theme.palette.text.secondary
+      textColor = theme.palette.secondary.main,
+      bgColor = theme.palette.secondary.light
     }
   }
 

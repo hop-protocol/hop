@@ -18,41 +18,6 @@ export const PROPOSAL_STATUSES: any = {
   EXECUTED: 'executed'
 }
 
-export const PROPOSAL_STATUS_COLORS: any = {
-  PENDING: {
-    textColor: '#2172E5',
-    bgColor: '#CCD5E0'
-  },
-  ACTIVE: {
-    textColor: '#2172E5',
-    bgColor: '#CCD5E0'
-  },
-  CANCELLED: {
-    textColor: '#46525C',
-    bgColor: '#E2E2E5'
-  },
-  DEFEATED: {
-    textColor: '#FF6871',
-    bgColor: '#E4D6D6'
-  },
-  SUCCEEDED: {
-    textColor: '#27AE60',
-    bgColor: '#DAE5DD'
-  },
-  QUEUED: {
-    textColor: '#46525C',
-    bgColor: '#E2E2E5'
-  },
-  EXPIRED: {
-    textColor: '#46525C',
-    bgColor: '#E2E2E5'
-  },
-  EXECUTED: {
-    textColor: '#27AE60',
-    bgColor: '#E5DEDA'
-  }
-}
-
 export enum VOTE_STATUS {
   FOR = 'For',
   AGAINST = 'Against'

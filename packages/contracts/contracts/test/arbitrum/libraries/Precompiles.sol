@@ -19,7 +19,7 @@
 pragma solidity ^0.5.11;
 
 ///      This algorithm has been extracted from the implementation of smart pool (https://github.com/smartpool)
-library Precompiles {
+library Precompile {
     function keccakF(uint256[25] memory a) internal pure returns (uint256[25] memory) {
         uint256[5] memory c;
         uint256[5] memory d;

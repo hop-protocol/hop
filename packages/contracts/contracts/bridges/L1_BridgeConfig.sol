@@ -101,7 +101,7 @@ contract L1_BridgeConfig is Ownable {
         return _time / timeSlotSize;
     }
 
-    function getNumberOfChallengableTimeSlots() public view returns (uint256) {
+    function getNumberOfChallengeableTimeSlots() public view returns (uint256) {
         return timeSlotSize / challengePeriod;
     }
 }

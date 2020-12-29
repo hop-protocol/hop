@@ -60,7 +60,7 @@ abstract contract Bridge is Accounting {
         return keccak256(abi.encode("AMOUNT_HASH", _chainIds, _amounts));
     }
 
-    /// @notice getChainId can be overriden by  subclasses if needed for compatability or testing purposes.
+    /// @notice getChainId can be overridden by subclasses if needed for compatibility or testing purposes.
     function getChainId() public virtual view returns (uint256 chainId) {
         assembly {
             chainId := chainid()

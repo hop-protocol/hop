@@ -203,7 +203,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         uint256 currentTimeSlot = getTimeSlot(now);
         uint256 bonded = 0;
 
-        for (uint256 i = 0; i < getNumberOfChallengableTimeSlots(); i++) {
+        for (uint256 i = 0; i < getNumberOfChallengeableTimeSlots(); i++) {
             bonded = bonded.add(timeSlotToAmountBonded[currentTimeSlot - i]);
         }
 

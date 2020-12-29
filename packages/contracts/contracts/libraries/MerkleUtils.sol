@@ -69,7 +69,7 @@ library MerkleUtils {
         bytes[] memory _elements
     )
         internal
-        view
+        pure
         returns (
             bytes32 _root
         )

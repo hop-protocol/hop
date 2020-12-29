@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
@@ -11,9 +13,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 contract L1_BridgeConfig is Ownable {
     using SafeMath for uint256;
 
-    /**
-     * State
-     */
+    /* ========== State ========== */
 
     mapping(uint256 => IMessengerWrapper) private crossDomainMessenger;
     uint256 challengeAmountMultiplier = 1;
@@ -23,9 +23,7 @@ contract L1_BridgeConfig is Ownable {
     uint256 challengeResolutionPeriod = 8 days;
     uint256 unstakePeriod = 9 days; 
 
-    /**
-     * External Management Setters
-     */
+    /* ========== External Management Setters ========== */
 
     function setCrossDomainMessengerWrapper(uint256 _chainId, IMessengerWrapper _crossDomainMessenger) external onlyOwner {
         crossDomainMessenger[_chainId] = _crossDomainMessenger;
@@ -55,35 +53,33 @@ contract L1_BridgeConfig is Ownable {
         unstakePeriod = _unstakePeriod;
     }
 
-    /**
-     * Public Getters
-     */
+    /* ========== Public Getters ========== */
 
-    function getCrossDomainMessenger(uint256 _chainId) public returns(IMessengerWrapper) {
+    function getCrossDomainMessenger(uint256 _chainId) public view returns(IMessengerWrapper) {
         return crossDomainMessenger[_chainId];
     }
 
-    function getChallengeAmountDivisor() public returns(uint256) {
+    function getChallengeAmountDivisor() public view returns(uint256) {
         return challengeAmountDivisor;
     }
 
-    function getTimeSlotSize() public returns(uint256) {
+    function getTimeSlotSize() public view returns(uint256) {
         return timeSlotSize;
     }
 
-    function getChallengePeriod() public returns(uint256) {
+    function getChallengePeriod() public view returns(uint256) {
         return challengePeriod;
     }
 
-    function getChallengeAmountMultiplier() public returns(uint256) {
+    function getChallengeAmountMultiplier() public view returns(uint256) {
         return challengeAmountMultiplier;
     }
 
-    function getChallengeResolutionPeriod() public returns(uint256) {
+    function getChallengeResolutionPeriod() public view returns(uint256) {
         return challengeResolutionPeriod;
     }
 
-    function getUnstakePeriod() public returns(uint256) {
+    function getUnstakePeriod() public view returns(uint256) {
         return unstakePeriod;
     }
 

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
@@ -23,9 +25,7 @@ abstract contract Accounting {
         uint256 amount
     );
 
-    /**
-     * Modifiers
-     */
+     /* ========== Modifiers ========== */
 
     modifier onlyCommittee {
         require(msg.sender == _committee, "ACT: Caller is not committee");
@@ -42,39 +42,34 @@ abstract contract Accounting {
         _committee = committee_;
     }
 
-    /**
-     * Virtual functions
-     */
+     /* ========== Virtual functions ========== */
 
     function _transfer(address _recipient, uint256 _amount) internal virtual;
 
-    function _additionalDebit() internal virtual returns (uint256) {
+    function _additionalDebit() internal view virtual returns (uint256) {
+        this; // Silence state mutability warning without generating any additional byte code
         return 0;
     }
 
-    /**
-     * Public getters
-     */
+     /* ========== Public getters ========== */
 
-    function getCommittee() public returns (address) {
+    function getCommittee() public view returns (address) {
         return _committee;
     }
 
-    function getCommitteeBalances() public returns (uint256, uint256) {
+    function getCommitteeBalances() public view returns (uint256, uint256) {
         return (_credit, getTotalDebit());
     }
 
-    function getTotalDebit() public returns (uint256) {
+    function getTotalDebit() public view returns (uint256) {
         return _debit.add(_additionalDebit());
     }
 
-    function getCollateralToken() public returns (IERC20) {
+    function getCollateralToken() public view returns (IERC20) {
         return _collateralToken;
     }
 
-    /**
-     * Committee public functions
-     */
+     /* ========== Committee public functions ========== */
 
     function stake(uint256 _amount) public {
         _collateralToken.transferFrom(msg.sender, address(this), _amount);
@@ -86,9 +81,7 @@ abstract contract Accounting {
         _collateralToken.transfer(_committee, _amount);
     }
 
-    /**
-     * Internal functions
-     */
+     /* ========== Internal functions ========== */
 
     function _addCredit(uint256 _amount) internal {
         _credit = _credit.add(_amount);

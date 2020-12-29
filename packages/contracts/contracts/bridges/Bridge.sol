@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
@@ -22,9 +24,7 @@ abstract contract Bridge is Accounting {
 
     constructor(IERC20 _collateralToken, address _committee) public Accounting(_collateralToken, _committee) {}
 
-    /**
-     * Public getters
-     */
+     /* ========== Public getters ========== */
 
     function getTransferHash(
         uint256 _chainId,
@@ -32,7 +32,9 @@ abstract contract Bridge is Accounting {
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
-        uint256 _relayerFee
+        uint256 _relayerFee,
+        uint256 _amountOutMin,
+        uint256 _deadline
     )
         public
         pure
@@ -44,7 +46,9 @@ abstract contract Bridge is Accounting {
             _recipient,
             _amount,
             _transferNonce,
-            _relayerFee
+            _relayerFee,
+            _amountOutMin,
+            _deadline
         ));
     }
 
@@ -62,18 +66,17 @@ abstract contract Bridge is Accounting {
 
     /// @notice getChainId can be overridden by subclasses if needed for compatibility or testing purposes.
     function getChainId() public virtual view returns (uint256 chainId) {
+        this; // Silence state mutability warning without generating any additional byte code
         assembly {
             chainId := chainid()
         }
     }
 
-    function getTransferRoot(bytes32 _rootHash) public returns (TransferRoot memory) {
+    function getTransferRoot(bytes32 _rootHash) public view returns (TransferRoot memory) {
         return _transferRoots[_rootHash];
     }
 
-    /**
-     * User/relayer public functions
-     */
+     /* ========== User/relayer public functions ========== */
 
     function withdraw(
         address _sender,
@@ -92,7 +95,9 @@ abstract contract Bridge is Accounting {
             _recipient,
             _amount,
             _transferNonce,
-            _relayerFee
+            _relayerFee,
+            0,
+            0
         );
 
         require(_proof.verify(_transferRootHash, transferHash), "BDG: Invalid transfer proof");
@@ -103,9 +108,7 @@ abstract contract Bridge is Accounting {
         _transfer(msg.sender, _relayerFee);
     }
 
-    /**
-     * Internal functions
-     */
+     /* ========== Internal functions ========== */
 
     function _markTransferSpent(bytes32 _transferHash) internal {
         require(!_spentTransferHashes[_transferHash], "BDG: The transfer has already been withdrawn");

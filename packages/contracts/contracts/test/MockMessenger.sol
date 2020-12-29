@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
+
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
@@ -51,7 +52,7 @@ contract MockMessenger {
         targetBridgeAddress.call(nextMessage.message);
     }
 
-    function decodeMessage(bytes memory _message) public returns (bytes memory) {
+    function decodeMessage(bytes memory _message) public pure returns (bytes memory) {
         uint256 mintStart = 129;
         uint256 mintLength = 68;
         return _message.slice(mintStart, mintLength);

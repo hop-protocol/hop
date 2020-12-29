@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: UNLICENSED
 /*
  * @title Solidity Bytes Arrays Utils
  * @author Gonçalo Sá <goncalo.sa@consensys.net>

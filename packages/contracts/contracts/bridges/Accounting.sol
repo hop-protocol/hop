@@ -46,25 +46,26 @@ abstract contract Accounting {
 
     function _transfer(address _recipient, uint256 _amount) internal virtual;
 
-    function _additionalDebit() internal virtual returns (uint256) {
+    function _additionalDebit() internal view virtual returns (uint256) {
+        this; // Silence state mutability warning without generating any additional byte code
         return 0;
     }
 
      /* ========== Public getters ========== */
 
-    function getCommittee() public returns (address) {
+    function getCommittee() public view returns (address) {
         return _committee;
     }
 
-    function getCommitteeBalances() public returns (uint256, uint256) {
+    function getCommitteeBalances() public view returns (uint256, uint256) {
         return (_credit, getTotalDebit());
     }
 
-    function getTotalDebit() public returns (uint256) {
+    function getTotalDebit() public view returns (uint256) {
         return _debit.add(_additionalDebit());
     }
 
-    function getCollateralToken() public returns (IERC20) {
+    function getCollateralToken() public view returns (IERC20) {
         return _collateralToken;
     }
 

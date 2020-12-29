@@ -187,7 +187,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         getCollateralToken().safeTransfer(_recipient, _amount);
     }
 
-    function _additionalDebit() internal override returns (uint256) {
+    function _additionalDebit() internal view override returns (uint256) {
         uint256 currentTimeSlot = getTimeSlot(now);
         uint256 bonded = 0;
 

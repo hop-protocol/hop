@@ -55,31 +55,31 @@ contract L1_BridgeConfig is Ownable {
 
     /* ========== Public Getters ========== */
 
-    function getCrossDomainMessenger(uint256 _chainId) public returns(IMessengerWrapper) {
+    function getCrossDomainMessenger(uint256 _chainId) public view returns(IMessengerWrapper) {
         return crossDomainMessenger[_chainId];
     }
 
-    function getChallengeAmountDivisor() public returns(uint256) {
+    function getChallengeAmountDivisor() public view returns(uint256) {
         return challengeAmountDivisor;
     }
 
-    function getTimeSlotSize() public returns(uint256) {
+    function getTimeSlotSize() public view returns(uint256) {
         return timeSlotSize;
     }
 
-    function getChallengePeriod() public returns(uint256) {
+    function getChallengePeriod() public view returns(uint256) {
         return challengePeriod;
     }
 
-    function getChallengeAmountMultiplier() public returns(uint256) {
+    function getChallengeAmountMultiplier() public view returns(uint256) {
         return challengeAmountMultiplier;
     }
 
-    function getChallengeResolutionPeriod() public returns(uint256) {
+    function getChallengeResolutionPeriod() public view returns(uint256) {
         return challengeResolutionPeriod;
     }
 
-    function getUnstakePeriod() public returns(uint256) {
+    function getUnstakePeriod() public view returns(uint256) {
         return unstakePeriod;
     }
 

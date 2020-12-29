@@ -309,6 +309,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
         uint256 _deadline
     )
         internal
+        pure
         returns (bytes memory)
     {
         return abi.encodeWithSignature(

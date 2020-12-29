@@ -66,12 +66,13 @@ abstract contract Bridge is Accounting {
 
     /// @notice getChainId can be overriden by  subclasses if needed for compatability or testing purposes.
     function getChainId() public virtual view returns (uint256 chainId) {
+        this; // Silence state mutability warning without generating any additional byte code
         assembly {
             chainId := chainid()
         }
     }
 
-    function getTransferRoot(bytes32 _rootHash) public returns (TransferRoot memory) {
+    function getTransferRoot(bytes32 _rootHash) public view returns (TransferRoot memory) {
         return _transferRoots[_rootHash];
     }
 

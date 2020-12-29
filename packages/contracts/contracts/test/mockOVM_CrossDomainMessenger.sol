@@ -142,7 +142,7 @@ contract mockOVM_CrossDomainMessenger is OVM_BaseCrossDomainMessenger {
         }
 
         xDomainMessageSender = nextMessage.sender;
-        (bool success,) = nextMessage.target.call{gas: nextMessage.gasLimit}(nextMessage.message);
+        nextMessage.target.call{gas: nextMessage.gasLimit}(nextMessage.message);
 
         lastRelayedMessage += 1;
     }

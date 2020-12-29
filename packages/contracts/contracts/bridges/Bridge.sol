@@ -32,7 +32,9 @@ abstract contract Bridge is Accounting {
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
-        uint256 _relayerFee
+        uint256 _relayerFee,
+        uint256 _amountOutMin,
+        uint256 _deadline
     )
         public
         pure
@@ -44,7 +46,9 @@ abstract contract Bridge is Accounting {
             _recipient,
             _amount,
             _transferNonce,
-            _relayerFee
+            _relayerFee,
+            _amountOutMin,
+            _deadline
         ));
     }
 
@@ -92,7 +96,9 @@ abstract contract Bridge is Accounting {
             _recipient,
             _amount,
             _transferNonce,
-            _relayerFee
+            _relayerFee,
+            0,
+            0
         );
 
         require(_proof.verify(_transferRootHash, transferHash), "BDG: Invalid transfer proof");

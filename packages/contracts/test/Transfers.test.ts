@@ -255,7 +255,7 @@ describe("Transfers", () => {
 
     // Send from Optimism 1 to Optimism 2
     // await l2_ovm1_ovmBridge.approve(l2_ovm1_bridge.address, USER_INITIAL_BALANCE)
-    await l2_ovm1_bridge.send(OPTIMISM_2_CHAIN_ID, user.getAddress(), USER_INITIAL_BALANCE, 0, 0)
+    await l2_ovm1_bridge.send(OPTIMISM_2_CHAIN_ID, user.getAddress(), USER_INITIAL_BALANCE, 0, 0, 0, 0)
     const transferSentEvent = (await l2_ovm1_bridge.queryFilter(l2_ovm1_bridge.filters.TransferSent()))[0]
     const transferHash = transferSentEvent.args.transferHash
 

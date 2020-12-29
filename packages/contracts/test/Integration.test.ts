@@ -179,11 +179,13 @@ describe("Integration", () => {
       nonce: 0,
       sender: await user.getAddress(),
       recipient: await user.getAddress(),
-      relayerFee: BigNumber.from('0')
+      relayerFee: BigNumber.from('0'),
+      amountOutMin: BigNumber.from('0'),
+      deadline: BigNumber.from('0')
     })
 
     // User moves funds back to L1 across the liquidity bridge
-    await l2_bridge.connect(user).send(transfer.chainId, transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee)
+    await l2_bridge.connect(user).send(transfer.chainId, transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee, BigNumber.from('0'), BigNumber.from('0'))
 
     await l2_bridge.commitTransfers()
     await l1_messenger.relayNextMessage()
@@ -218,7 +220,9 @@ describe("Integration", () => {
       recipient: await user.getAddress(),
       amount: BigNumber.from('98'),
       nonce: 0,
-      relayerFee: RELAYER_FEE
+      relayerFee: RELAYER_FEE,
+      amountOutMin: BigNumber.from('0'),
+      deadline: BigNumber.from('0')
     })
 
     // User withdraws from L1 bridge
@@ -239,7 +243,9 @@ describe("Integration", () => {
       recipient: await user.getAddress(),
       amount: BigNumber.from('100'),
       nonce: 0,
-      relayerFee: BigNumber.from('0')
+      relayerFee: BigNumber.from('0'),
+      amountOutMin: BigNumber.from('0'),
+      deadline: BigNumber.from('0')
     })
 
     // User withdraws from L1 bridge
@@ -276,12 +282,22 @@ describe("Integration", () => {
       nonce: 0,
       sender: await user.getAddress(),
       recipient: await user.getAddress(),
-      relayerFee: BigNumber.from('0')
+      relayerFee: BigNumber.from('0'),
+      amountOutMin: BigNumber.from('0'),
+      deadline: BigNumber.from('0')
     })
 
     // User moves funds to an L2 across the liquidity bridge
     // For testing purposes, they are sending to the L2 they are currently on which makes no sense in the real world.
-    await l2_bridge.connect(user).send(transfer.chainId, transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee)
+    await l2_bridge.connect(user).send(
+      transfer.chainId,
+      transfer.recipient,
+      transfer.amount,
+      transfer.nonce,
+      transfer.relayerFee,
+      BigNumber.from('0'),
+      BigNumber.from('0')
+    )
 
     await l2_bridge.commitTransfers()
     await l1_messenger.relayNextMessage()
@@ -366,7 +382,9 @@ describe("Integration", () => {
       nonce: 0,
       sender: await user.getAddress(),
       recipient: await user.getAddress(),
-      relayerFee: BigNumber.from('0')
+      relayerFee: BigNumber.from('0'),
+      amountOutMin: BigNumber.from('0'),
+      deadline: BigNumber.from('0')
     })
 
     // User moves funds back to L1 across the liquidity bridge
@@ -381,7 +399,9 @@ describe("Integration", () => {
       transfer.nonce,
       transfer.relayerFee,
       0,
-      9999999999
+      9999999999,
+      0,
+      0
     )
     await l2_bridge.commitTransfers()
     await l1_messenger.relayNextMessage()
@@ -401,7 +421,9 @@ describe("Integration", () => {
       nonce: transfer.nonce,
       sender: transfer.sender,
       recipient: transfer.recipient,
-      relayerFee: transfer.relayerFee
+      relayerFee: transfer.relayerFee,
+      amountOutMin: BigNumber.from('0'),
+      deadline: BigNumber.from('0')
     })
 
     // User withdraws from L1 bridge

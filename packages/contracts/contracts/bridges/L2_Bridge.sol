@@ -72,7 +72,9 @@ abstract contract L2_Bridge is ERC20, Bridge {
         address _recipient,
         uint256 _amount,
         uint256 _transferNonce,
-        uint256 _relayerFee
+        uint256 _relayerFee,
+        uint256 _amountOutMin,
+        uint256 _deadline
     )
         public
     {
@@ -89,7 +91,9 @@ abstract contract L2_Bridge is ERC20, Bridge {
             _recipient,
             _amount,
             _transferNonce,
-            _relayerFee
+            _relayerFee,
+            _amountOutMin,
+            _deadline
         );
         pendingTransfers.push(transferHash);
 
@@ -107,7 +111,9 @@ abstract contract L2_Bridge is ERC20, Bridge {
         uint256 _transferNonce,
         uint256 _relayerFee,
         uint256 _amountOutMin,
-        uint256 _deadline
+        uint256 _deadline,
+        uint256 _destinationAmountOutMin,
+        uint256 _destinationDeadline
     )
         public
     {
@@ -131,7 +137,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
         (bool success,) = exchangeAddress.call(swapCalldata);
         require(success, "L2BDG: Swap failed");
 
-        send(_chainId, _recipient, swapAmount, _transferNonce, _relayerFee);
+        send(_chainId, _recipient, swapAmount, _transferNonce, _relayerFee, _destinationAmountOutMin, _destinationDeadline);
     }
 
     function commitTransfers() public {
@@ -167,7 +173,42 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) public onlyL1Bridge {
         _mint(address(this), _amount);
+        _attemptSwap(_recipient, _amount, _amountOutMin, _deadline);
+    }
 
+    function withdrawAndAttemptSwap(
+        address _sender,
+        address _recipient,
+        uint256 _amount,
+        uint256 _transferNonce,
+        uint256 _relayerFee,
+        bytes32 _transferRootHash,
+        bytes32[] memory _proof,
+        uint256 _amountOutMin,
+        uint256 _deadline
+    )
+        public
+    {
+        bytes32 transferHash = getTransferHash(
+            getChainId(),
+            _sender,
+            _recipient,
+            _amount,
+            _transferNonce,
+            _relayerFee,
+            _amountOutMin,
+            _deadline
+        );
+
+        require(_proof.verify(_transferRootHash, transferHash), "BDG: Invalid transfer proof");
+        _addToAmountWithdrawn(_transferRootHash, _amount);
+        _markTransferSpent(transferHash);
+
+        _transfer(msg.sender, _relayerFee);
+        _attemptSwap(_recipient, _amount.sub(_relayerFee), _amountOutMin, _deadline);
+    }
+
+    function _attemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) public {
         address[] memory exchangePath = new address[](2);
         exchangePath[0] = address(this);
         exchangePath[1] = address(l2CanonicalToken);
@@ -220,7 +261,9 @@ abstract contract L2_Bridge is ERC20, Bridge {
             _recipient,
             _amount,
             _transferNonce,
-            _relayerFee
+            _relayerFee,
+            0,
+            0
         );
 
         _addDebit(_amount);

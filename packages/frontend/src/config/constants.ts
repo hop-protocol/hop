@@ -7,15 +7,15 @@ export const OPTIMISM_LOGO_URL =
 export const MAINNET_LOGO_URL =
   'https://liquidity-network-poc.s3.amazonaws.com/mainnet.svg'
 
-export enum PROPOSAL_STATUSES {
-  PENDING = 'pending',
-  ACTIVE = 'active',
-  CANCELLED = 'cancelled',
-  DEFEATED = 'defeated',
-  SUCCEEDED = 'succeeded',
-  QUEUED = 'queued',
-  EXPIRED = 'expired',
-  EXECUTED = 'executed'
+export const PROPOSAL_STATUSES: any = {
+  PENDING: 'pending',
+  ACTIVE: 'active',
+  CANCELLED: 'cancelled',
+  DEFEATED: 'defeated',
+  SUCCEEDED: 'succeeded',
+  QUEUED: 'queued',
+  EXPIRED: 'expired',
+  EXECUTED: 'executed'
 }
 
 export enum VOTE_STATUS {

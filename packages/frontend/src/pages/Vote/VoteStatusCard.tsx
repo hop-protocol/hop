@@ -17,13 +17,6 @@ const statusColors = {
 }
 
 const useStyles = makeStyles(theme => ({
-  previewsBox: {
-    width: '51.6rem',
-    marginLeft: '1rem',
-    marginRight: '1rem',
-    marginBottom: '2rem',
-    cursor: 'pointer'
-  },
   previewBox: {
     display: 'flex',
     flexDirection: 'column'
@@ -88,23 +81,21 @@ const VoteStatusCard: FC<Props> = props => {
   const styles = useStyles({ status: voteStatus, percentageVotes })
 
   return (
-    <Box alignItems="center" className={styles.previewsBox}>
-      <Card className={styles.previewCard}>
-        <div className={styles.cardTop}>
-          <Typography variant="subtitle2" color="textSecondary" component="div">
-            {voteStatus}
-          </Typography>
-          <Typography variant="subtitle2" color="textSecondary" component="div">
-            {numVotes.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-          </Typography>
+    <Card className={styles.previewCard}>
+      <div className={styles.cardTop}>
+        <Typography variant="subtitle2" color="textSecondary" component="div">
+          {voteStatus}
+        </Typography>
+        <Typography variant="subtitle2" color="textSecondary" component="div">
+          {numVotes.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+        </Typography>
+      </div>
+      <div className={styles.cardBottom}>
+        <div className={styles.progressWrapper}>
+          <div className={styles.progress} />
         </div>
-        <div className={styles.cardBottom}>
-          <div className={styles.progressWrapper}>
-            <div className={styles.progress} />
-          </div>
-        </div>
-      </Card>
-    </Box>
+      </div>
+    </Card>
   )
 }
 

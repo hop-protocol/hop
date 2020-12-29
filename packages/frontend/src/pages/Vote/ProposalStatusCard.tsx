@@ -1,14 +1,17 @@
 import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles, useTheme } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 
+import { PROPOSAL_STATUSES } from 'src/config/constants'
+
 type StyleProps = {
-  status: string
+  textColor: string
+  bgColor: string
 }
 
 const useStyles = makeStyles(theme => ({
-  proposalStatus: ({ status }: StyleProps) => ({
+  proposalStatus: ({ bgColor }: StyleProps) => ({
     fontSize: '0.825rem',
     padding: '0.5rem',
     width: '10rem',
@@ -17,10 +20,10 @@ const useStyles = makeStyles(theme => ({
     textTransform: 'uppercase',
     borderRadius: '1rem',
     alignSelf: 'flex-start',
-    background: status === 'passed' ? 'rgb(218 229 221)' : 'rgb(228, 214, 214)'
+    background: bgColor
   }),
-  proposalStatusText: ({ status }: StyleProps) => ({
-    color: status === 'passed' ? '#00A72F' : '#C50602'
+  proposalStatusText: ({ textColor }: StyleProps) => ({
+    color: textColor
   })
 }))
 
@@ -30,7 +33,59 @@ type Props = {
 
 const ProposalStatusCard: FC<Props> = props => {
   const { status } = props
-  const styles = useStyles({ status })
+  const theme = useTheme()
+
+  let textColor: string
+  let bgColor: string
+
+  switch (status) {
+    case PROPOSAL_STATUSES.PENDING: {
+      textColor = theme.palette.secondary.main,
+      bgColor = theme.palette.secondary.light
+      break
+    }
+    case PROPOSAL_STATUSES.ACTIVE: {
+      textColor = theme.palette.info.main,
+      bgColor = theme.palette.info.light
+      break
+    }
+    case PROPOSAL_STATUSES.CANCELLED: {
+      textColor = theme.palette.secondary.main,
+      bgColor = theme.palette.secondary.light
+      break
+    }
+    case PROPOSAL_STATUSES.DEFEATED: {
+      textColor = theme.palette.error.main,
+      bgColor = theme.palette.error.light
+      break
+    }
+    case PROPOSAL_STATUSES.SUCCEEDED: {
+      textColor = theme.palette.success.main,
+      bgColor = theme.palette.success.light
+      break
+    }
+    case PROPOSAL_STATUSES.QUEUED: {
+      textColor = theme.palette.secondary.main,
+      bgColor = theme.palette.secondary.light
+      break
+    }
+    case PROPOSAL_STATUSES.EXPIRED: {
+      textColor = theme.palette.secondary.main,
+      bgColor = theme.palette.secondary.light
+      break
+    }
+    case PROPOSAL_STATUSES.EXECUTED: {
+      textColor = theme.palette.success.main,
+      bgColor = theme.palette.success.light
+      break
+    }
+    default: {
+      textColor = theme.palette.secondary.main,
+      bgColor = theme.palette.secondary.light
+    }
+  }
+
+  const styles = useStyles({ textColor, bgColor })
 
   return (
     <Box alignItems="center" className={`${styles.proposalStatus}`}>

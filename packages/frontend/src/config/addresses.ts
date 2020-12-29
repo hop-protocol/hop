@@ -11,5 +11,6 @@ export const addresses = {
   arbitrumUniswapRouter: '0xBae19197DFa25105E832b8fAfeAB88aCa275385F',
   arbitrumUniswapExchange: '0xea535dF09be62d5542161D1a4A429A831d329638',
   stakingRewardsFactory: '0x8714CFE33dA280Ab990D1aCD33F1E7caF541dce4',
-  stakingRewards: '0xdB33bf4a7b76b459407Fc5849c33AE9763D66895'
+  stakingRewards: '0xdB33bf4a7b76b459407Fc5849c33AE9763D66895',
+  governorAlpha: '0xadcdb487C45bCB517D3873Bb54F2e01942e4e1d5'
 }

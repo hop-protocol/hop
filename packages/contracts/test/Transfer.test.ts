@@ -34,7 +34,9 @@ describe('Transfer', () => {
         recipient: await user.getAddress(),
         amount: BigNumber.from('12345'),
         nonce: 0,
-        relayerFee: RELAYER_FEE
+        relayerFee: RELAYER_FEE,
+        amountOutMin: BigNumber.from('0'),
+        deadline: BigNumber.from('0')
       }),
       new Transfer({
         chainId: MAINNET_CHAIN_ID,
@@ -42,7 +44,9 @@ describe('Transfer', () => {
         recipient: await liquidityProvider.getAddress(),
         amount: BigNumber.from('12345'),
         nonce: 0,
-        relayerFee: RELAYER_FEE
+        relayerFee: RELAYER_FEE,
+        amountOutMin: BigNumber.from('0'),
+        deadline: BigNumber.from('0')
       })
     ]
   })
@@ -61,7 +65,9 @@ describe('Transfer', () => {
         transfers[0].recipient,
         transfers[0].amount,
         transfers[0].nonce,
-        transfers[0].relayerFee
+        transfers[0].relayerFee,
+        transfers[0].amountOutMin,
+        transfers[0].deadline
       )
       const onchainHash = Buffer.from(
         onchainHashHex.slice(2),

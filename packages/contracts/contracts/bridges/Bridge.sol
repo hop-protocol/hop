@@ -22,9 +22,7 @@ abstract contract Bridge is Accounting {
 
     constructor(IERC20 _collateralToken, address _committee) public Accounting(_collateralToken, _committee) {}
 
-    /**
-     * Public getters
-     */
+     /* ========== Public getters ========== */
 
     function getTransferHash(
         uint256 _chainId,
@@ -75,9 +73,7 @@ abstract contract Bridge is Accounting {
         return _transferRoots[_rootHash];
     }
 
-    /**
-     * User/relayer public functions
-     */
+     /* ========== User/relayer public functions ========== */
 
     function withdraw(
         address _sender,
@@ -109,9 +105,7 @@ abstract contract Bridge is Accounting {
         _transfer(msg.sender, _relayerFee);
     }
 
-    /**
-     * Internal functions
-     */
+     /* ========== Internal functions ========== */
 
     function _markTransferSpent(bytes32 _transferHash) internal {
         require(!_spentTransferHashes[_transferHash], "BDG: The transfer has already been withdrawn");

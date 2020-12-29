@@ -17,26 +17,20 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         address challenger;
     }
 
-    /**
-     * State
-     */
+    /* ========== State ========== */
 
     mapping(bytes32 => TransferBond) transferBonds;
     mapping(uint256 => uint256) public timeSlotToAmountBonded;
     uint256 public amountChallenged;
 
-    /**
-     * Events
-     */
+    /* ========== Events ========== */
 
     event TransferRootBonded (
         bytes32 root,
         uint256 amount
     );
 
-    /**
-     * Modifiers
-     */
+    /* ========== Modifiers ========== */
 
     modifier onlyL2Bridge {
         // ToDo: Figure out how to check sender against an allowlist
@@ -47,9 +41,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
 
     constructor (IERC20 canonicalToken_, address committee_) public Bridge(canonicalToken_, committee_) {}
 
-    /**
-     * Public Transfers Functions
-     */
+    /* ========== Public Transfers Functions ========== */
 
     function sendToL2(
         uint256 _chainId,
@@ -85,17 +77,15 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         getCollateralToken().safeTransferFrom(msg.sender, address(this), _amount);
     }
 
-    /**
-     * Public Transfer Root Functions
-     */
+    /* ========== Public Transfer Root Functions ========== */
 
-    /**
-     * Setting a TransferRoot is a two step process.
-     *   1. The TransferRoot is bonded with `bondTransferRoot`. Withdrawals can now begin on L1
-     *      and recipient L2's
-     *   2. The TransferRoot is confirmed after `confirmTransferRoot` is called by the l2 bridge
-     *      where the TransferRoot originated.
-     */
+
+    /// @dev Setting a TransferRoot is a two step process.
+    /// @dev   1. The TransferRoot is bonded with `bondTransferRoot`. Withdrawals can now begin on L1
+    /// @dev      and recipient L2's
+    /// @dev   2. The TransferRoot is confirmed after `confirmTransferRoot` is called by the l2 bridge
+    /// @dev      where the TransferRoot originated.
+
 
     function bondTransferRoot(
         bytes32 _transferRootHash,
@@ -146,9 +136,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         transferBond.confirmed = true;
     }
 
-    /**
-     * Public TransferRoot Challenges
-     */
+    /* ========== Public TransferRoot Challenges ========== */
 
     function challengeTransferBond(bytes32 _transferRootHash) public {
         TransferRoot memory transferRoot = getTransferRoot(_transferRootHash);
@@ -191,9 +179,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         }
     }
 
-    /**
-     * Internal functions
-     */
+    /* ========== Internal functions ========== */
 
     function _transfer(address _recipient, uint256 _amount) internal override {
         getCollateralToken().safeTransfer(_recipient, _amount);

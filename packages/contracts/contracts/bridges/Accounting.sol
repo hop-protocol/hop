@@ -23,9 +23,7 @@ abstract contract Accounting {
         uint256 amount
     );
 
-    /**
-     * Modifiers
-     */
+     /* ========== Modifiers ========== */
 
     modifier onlyCommittee {
         require(msg.sender == _committee, "ACT: Caller is not committee");
@@ -42,9 +40,7 @@ abstract contract Accounting {
         _committee = committee_;
     }
 
-    /**
-     * Virtual functions
-     */
+     /* ========== Virtual functions ========== */
 
     function _transfer(address _recipient, uint256 _amount) internal virtual;
 
@@ -52,9 +48,7 @@ abstract contract Accounting {
         return 0;
     }
 
-    /**
-     * Public getters
-     */
+     /* ========== Public getters ========== */
 
     function getCommittee() public returns (address) {
         return _committee;
@@ -72,9 +66,7 @@ abstract contract Accounting {
         return _collateralToken;
     }
 
-    /**
-     * Committee public functions
-     */
+     /* ========== Committee public functions ========== */
 
     function stake(uint256 _amount) public {
         _collateralToken.transferFrom(msg.sender, address(this), _amount);
@@ -86,9 +78,7 @@ abstract contract Accounting {
         _collateralToken.transfer(_committee, _amount);
     }
 
-    /**
-     * Internal functions
-     */
+     /* ========== Internal functions ========== */
 
     function _addCredit(uint256 _amount) internal {
         _credit = _credit.add(_amount);

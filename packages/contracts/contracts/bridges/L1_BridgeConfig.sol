@@ -11,9 +11,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 contract L1_BridgeConfig is Ownable {
     using SafeMath for uint256;
 
-    /**
-     * State
-     */
+    /* ========== State ========== */
 
     mapping(uint256 => IMessengerWrapper) private crossDomainMessenger;
     uint256 challengeAmountMultiplier = 1;
@@ -23,9 +21,7 @@ contract L1_BridgeConfig is Ownable {
     uint256 challengeResolutionPeriod = 8 days;
     uint256 unstakePeriod = 9 days; 
 
-    /**
-     * External Management Setters
-     */
+    /* ========== External Management Setters ========== */
 
     function setCrossDomainMessengerWrapper(uint256 _chainId, IMessengerWrapper _crossDomainMessenger) external onlyOwner {
         crossDomainMessenger[_chainId] = _crossDomainMessenger;
@@ -55,9 +51,7 @@ contract L1_BridgeConfig is Ownable {
         unstakePeriod = _unstakePeriod;
     }
 
-    /**
-     * Public Getters
-     */
+    /* ========== Public Getters ========== */
 
     function getCrossDomainMessenger(uint256 _chainId) public returns(IMessengerWrapper) {
         return crossDomainMessenger[_chainId];

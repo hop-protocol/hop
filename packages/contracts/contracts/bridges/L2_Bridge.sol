@@ -54,9 +54,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     function _sendCrossDomainMessage(bytes memory _message) internal virtual;
     function _verifySender() internal virtual; 
 
-    /**
-     * Public functions
-     */
+    /* ========== Public functions ========== */
 
     function setExchangeAddress(address _exchangeAddress) public {
         exchangeAddress = _exchangeAddress;
@@ -232,17 +230,13 @@ abstract contract L2_Bridge is ERC20, Bridge {
         _transfer(address(this), _recipient, _amount);
     }
 
-    /**
-     * TransferRoots
-     */
+    /* ========== TransferRoots ========== */
 
     function setTransferRoot(bytes32 _rootHash, uint256 _amount) public onlyL1Bridge {
         _setTransferRoot(_rootHash, _amount);
     }
 
-    /**
-     * Transfers
-     */
+    /* ========== Transfers ========== */
 
     function bondWithdrawal(
         address _sender,
@@ -291,9 +285,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
         _addCredit(amount);
     }
 
-    /**
-     * Internal Functions
-     */
+    /* ========== Internal Functions ========== */
 
     function _addToPendingAmount(uint256 _chainId, uint256 _amount) internal {
         if (pendingAmountForChainId[_chainId] == 0) {

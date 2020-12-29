@@ -1,16 +1,14 @@
-import React, { FC, useState, useCallback, useEffect } from 'react'
+import React, { FC, useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { formatUnits } from 'ethers/lib/utils'
-import useInterval from 'src/hooks/useInterval'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
 import Button from 'src/components/buttons/Button'
 import { IProposal } from 'src/config'
 import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import ProposalPreviewCard from 'src/pages/Vote/ProposalPreviewCard'
 import DelegateModal from 'src/pages/Vote/DelegateModal/DelegateModal'
 import { ZERO_ADDRESS } from 'src/config/constants'
+import { VoteContextProvider, useVoteContext } from 'src/pages/Vote/VoteContext'
 
 const useStyles = makeStyles(() => ({
   headerWrapper: {
@@ -50,65 +48,18 @@ type VoteProps = {
   proposals: IProposal[]
 }
 
-const Vote: FC<VoteProps> = props => {
+const VoteChild: FC<VoteProps> = props => {
   const { proposals } = props
   const styles = useStyles()
-  const { address } = useWeb3Context()
-  const { user, tokens, contracts, networks } = useApp()
+  const { contracts } = useApp()
+  const {
+    balance,
+    delegate,
+    humanReadableDelegate,
+  } = useVoteContext()
   const l1Hop = contracts?.l1Hop
-  const l1HopToken = tokens[1]
 
   const [modalIsOpen, setModalIsOpen] = useState(false)
-  const [balance, setBalance] = useState('0.00')
-  const [delegate, setDelegate] = useState(ZERO_ADDRESS)
-  const [humanReadableDelegate, setHumanReadableDelegate] = useState('')
-
-  const getBalance = useCallback(() => {
-    const _getBalance = async () => {
-      if (user && l1HopToken) {
-        const _balance = await user.getBalance(l1HopToken, networks[0])
-        setBalance(Number(formatUnits(_balance, 18)).toFixed(2))
-      }
-    }
-
-    _getBalance()
-  }, [user, l1HopToken, networks[0]])
-
-  const getDelegate = useCallback(() => {
-    const _getDelegate = async () => {
-      if (user && l1HopToken) {
-        const _delegate = await l1Hop?.delegates(address?.toString())
-        setDelegate(_delegate)
-      }
-    }
-
-    _getDelegate()
-  }, [user, l1HopToken, networks[0]])
-
-  useEffect(() => {
-    getBalance()
-  }, [getBalance, user, l1HopToken, networks[0]])
-
-  useEffect(() => {
-    getDelegate()
-  }, [getDelegate, user, l1HopToken, networks[0]])
-
-  useInterval(() => {
-    getBalance()
-    getDelegate()
-  }, 20e3)
-
-  useEffect(() => {
-    if (delegate === address?.toString()) {
-      setHumanReadableDelegate('self')
-    } else {
-      const _humanReadableDelegateStart = delegate.substr(0, 6)
-      const _humanReadableDelegateEnd = delegate.substr(38, 4)
-      setHumanReadableDelegate(
-        _humanReadableDelegateStart + '...' + _humanReadableDelegateEnd
-      )
-    }
-  }, [delegate])
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -155,4 +106,13 @@ const Vote: FC<VoteProps> = props => {
   )
 }
 
-export default Vote
+const Vote: FC<VoteProps> = props => {
+  const { proposals } = props
+  return (
+    <VoteContextProvider>
+      <VoteChild proposals={proposals} />
+    </VoteContextProvider>
+  )
+}
+
+export default Vote 

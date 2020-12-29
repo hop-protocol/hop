@@ -12,6 +12,7 @@ import Link from '@material-ui/core/Link'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
+import { VoteContextProvider, useVoteContext } from 'src/pages/Vote/VoteContext'
 import useTimestampFromBlock from 'src/hooks/useTimestampFromBlock'
 
 import { IProposal } from 'src/config'
@@ -106,10 +107,11 @@ type VotePageProps = {
   proposal: IProposal
 }
 
-const VotePage: FC<VotePageProps> = props => {
+const VotePageChild: FC<VotePageProps> = props => {
   const { proposal } = props
   const styles = useStyles({ status: proposal.status })
   const history = useHistory()
+  const { balance } = useVoteContext()
   const { connectedNetworkId } = useWeb3Context()
   const { contracts } = useApp()
   const governorAlpha = contracts?.governorAlpha
@@ -153,11 +155,10 @@ const VotePage: FC<VotePageProps> = props => {
       : '0%'
 
   // Only show voting if user has > 0 votes at proposal start block and proposal is active
-  // TODO: Get real vote count
-  const availableVotes = 0
+  const availableVotes = BigNumber.from(Number(balance))
   const showVotingButtons =
     availableVotes &&
-    BigNumber.from(availableVotes).gte(BigNumber.from(0)) &&
+    availableVotes.gte(BigNumber.from(0)) &&
     proposal &&
     proposal.status === PROPOSAL_STATUSES.ACTIVE
 
@@ -295,6 +296,15 @@ const VotePage: FC<VotePageProps> = props => {
         </Typography>
       </Box>
     </Box>
+  )
+}
+
+const VotePage: FC<VotePageProps> = props => {
+  const { proposal } = props
+  return (
+    <VoteContextProvider>
+      <VotePageChild proposal={proposal} />
+    </VoteContextProvider>
   )
 }
 

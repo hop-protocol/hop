@@ -3,6 +3,42 @@ import { L2_NAMES, ARB_CHAIN_ADDRESS, DEFAULT_L2_GAS_LIMIT } from './constants'
 import { BigNumber, BigNumberish, Signer, Contract } from 'ethers'
 import { expect } from 'chai'
 
+/**
+ * Initialization functions
+ */
+
+export const setUpL1Bridge = async (fixture: any, opts: any) => {
+  const {
+    l1_messenger,
+    l1_bridge,
+    l1_poolToken,
+    l1_messengerWrapper,
+    user,
+    liquidityProvider,
+    committee,
+    challenger
+  } = fixture
+
+  const {
+    messengerAddress,
+    messengerWrapperChainId,
+    userInitialBalance,
+    liquidityProviderInitialBalance,
+    challengerInitialBalance
+  } = opts
+
+  // Set up Cross Domain Messengers
+  await l1_messenger.setTargetMessengerAddress(messengerAddress)
+
+  // Set up liquidity bridge
+  await l1_bridge.setCrossDomainMessengerWrapper(messengerWrapperChainId, l1_messengerWrapper.address)
+
+  // Distribute poolToken
+  await l1_poolToken.mint(await user.getAddress(), userInitialBalance)
+  await l1_poolToken.mint(await liquidityProvider.getAddress(), liquidityProviderInitialBalance)
+  await l1_poolToken.mint(await committee.getAddress(), liquidityProviderInitialBalance)
+  await l1_poolToken.mint(await challenger.getAddress(), challengerInitialBalance)
+}
 
 /**
  * General functions

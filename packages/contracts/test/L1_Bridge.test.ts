@@ -1,74 +1,95 @@
 import '@nomiclabs/hardhat-waffle'
-// import { expect } from 'chai'
-import { ethers } from 'hardhat'
-import { BigNumber, ContractFactory, Signer, Contract } from 'ethers'
-
-// import { setMessengerWrapperDefaults, expectBalanceOf } from './utils'
-
-const USER_INITIAL_BALANCE = BigNumber.from('100')
-const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
-
-// const MAINNET_CHAIN_ID = BigNumber.from('1')
-const OPTIMISM_CHAIN_ID = BigNumber.from('420')
-
-const MOCK_ADDRESS = '0x0000000000000000000000000000000000001234'
+import { expect } from 'chai'
+import { Signer, Contract, BigNumber } from 'ethers'
+import { fixture } from './shared/fixtures'
+import {
+  setUpL1Bridge,
+  setUpL2Bridge,
+  setUpL1AndL2Messengers,
+  distributePoolTokens,
+  expectBalanceOf
+} from './shared/utils'
+import {
+  IFixture,
+  ARBITRUM_CHAIN_ID,
+  MOCK_ADDRESS,
+  USER_INITIAL_BALANCE,
+  LIQUIDITY_PROVIDER_INITIAL_BALANCE,
+  COMMITTEE_INITIAL_BALANCE,
+  CHALLENGER_INITIAL_BALANCE,
+  L2_NAMES
+} from './shared/constants'
 
 describe("L1_Bridge", () => {
-  let accounts: Signer[]
-  let user: Signer
   let liquidityProvider: Signer
   let committee: Signer
-  let challenger: Signer
-
-  // Factories
-  let L1_Bridge: ContractFactory
-  let MockERC20: ContractFactory
-  let L1_MessengerWrapper: ContractFactory
-  let CrossDomainMessenger: ContractFactory
-
-  // L1
   let l1_poolToken: Contract
   let l1_bridge: Contract
-  let l1_messengerWrapper: Contract
-  let l1_messenger: Contract
+  let l2_bridge: Contract
+  let l2_messenger: Contract
+
+  let _fixture: IFixture
 
   before(async () => {
-    accounts = await ethers.getSigners()
-    user = accounts[0]
-    liquidityProvider = accounts[1]
-    committee = accounts[3]
-    challenger = accounts[4]
-
-    L1_MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/Optimism.sol:Optimism')
-    L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
-    MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
-    CrossDomainMessenger = await ethers.getContractFactory('contracts/test/mockOVM_CrossDomainMessenger.sol:mockOVM_CrossDomainMessenger')
+    _fixture = await fixture()
+    liquidityProvider = _fixture.liquidityProvider
+    committee = _fixture.committee
+    l1_poolToken = _fixture.l1_poolToken
+    l1_bridge = _fixture.l1_bridge
+    l2_bridge = _fixture.l2_bridge
+    l2_messenger = _fixture.l2_messenger
   })
 
   beforeEach(async () => {
-    // Deploy  L1 contracts
-    l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
-    l1_messenger = await CrossDomainMessenger.deploy(0)
-    l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await committee.getAddress())
-    l1_messengerWrapper = await L1_MessengerWrapper.deploy()
+    const setUpL1BridgeOpts = {
+      messengerAddress: MOCK_ADDRESS,
+      messengerWrapperChainId: ARBITRUM_CHAIN_ID
+    }
 
-    // Set up Cross Domain Messengers
-    await l1_messenger.setTargetMessengerAddress(MOCK_ADDRESS)
+    const setUpL2BridgeOpts = {
+      l2Name: L2_NAMES.ARBITRUM
+    }
 
-    // Set up liquidity bridge
-    await l1_bridge.setCrossDomainMessengerWrapper(OPTIMISM_CHAIN_ID, l1_messengerWrapper.address)
+    const distributePoolTokensOpts = {
+      userInitialBalance: USER_INITIAL_BALANCE,
+      liquidityProviderInitialBalance: LIQUIDITY_PROVIDER_INITIAL_BALANCE,
+      committeeInitialBalance: COMMITTEE_INITIAL_BALANCE,
+      challengerInitialBalance: CHALLENGER_INITIAL_BALANCE
+    }
 
-    // Distribute poolToken
-    await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
-    await l1_poolToken.mint(await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
-    await l1_poolToken.mint(await committee.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
-    await l1_poolToken.mint(await challenger.getAddress(), BigNumber.from('10'))
+    await setUpL1Bridge(_fixture, setUpL1BridgeOpts)
+    await setUpL2Bridge(_fixture, setUpL2BridgeOpts)
+    await setUpL1AndL2Messengers(_fixture)
+    await distributePoolTokens(_fixture, distributePoolTokensOpts)
   })
 
+  /**
+   * End to end tests
+   */
   it('Should allow committee to deposit bond and then withdraw bond', async () => {
-    await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
-    await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_poolToken.connect(committee).approve(l1_bridge.address, COMMITTEE_INITIAL_BALANCE)
+    await l1_bridge.connect(committee).stake(COMMITTEE_INITIAL_BALANCE)
 
-    await l1_bridge.connect(committee).unstake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(committee).unstake(COMMITTEE_INITIAL_BALANCE)
+  })
+
+  /**
+   * Unit tests
+   */
+
+  it('Should set the collateral token address and the committee address in the constructor', async () => {
+    const collateralTokenAddress = await l1_bridge.getCollateralToken()
+    const committeeAddress = await l1_bridge.getCommittee()
+    expect(collateralTokenAddress).to.eq(l1_poolToken.address)
+    expect(committeeAddress).to.eq(await committee.getAddress())
+  })
+
+  it('Should send tokens across the bridge', async () => {
+    const liquidityProviderBalance: BigNumber = LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2)
+
+    await l1_poolToken.connect(liquidityProvider).approve(l1_bridge.address, liquidityProviderBalance)
+    await l1_bridge.connect(liquidityProvider).sendToL2(ARBITRUM_CHAIN_ID, await liquidityProvider.getAddress(), liquidityProviderBalance)
+    await l2_messenger.relayNextMessage()
+    await expectBalanceOf(l2_bridge, liquidityProvider, liquidityProviderBalance)
   })
 })

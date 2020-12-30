@@ -2,8 +2,8 @@ import { expect } from 'chai'
 import '@nomiclabs/hardhat-waffle'
 import { ethers } from 'hardhat'
 import { BigNumber, BigNumberish, ContractFactory, Signer, Contract } from 'ethers'
-import { setMessengerWrapperDefaults } from './utils'
-import { L2_NAMES, ZERO_ADDRESS } from './constants'
+import { setMessengerWrapperDefaults } from './shared/utils'
+import { L2_NAMES } from './shared/constants'
 
 const USER_INITIAL_BALANCE = BigNumber.from('100')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')

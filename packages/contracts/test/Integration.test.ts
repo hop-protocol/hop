@@ -5,8 +5,8 @@ import { BigNumber, ContractFactory, Signer, Contract } from 'ethers'
 import MerkleTree from '../lib/MerkleTree'
 import Transfer from '../lib/Transfer'
 
-import { setMessengerWrapperDefaults, expectBalanceOf } from './utils'
-import { L2_NAMES } from './constants'
+import { setMessengerWrapperDefaults, expectBalanceOf } from './shared/utils'
+import { L2_NAMES } from './shared/constants'
 
 const USER_INITIAL_BALANCE = BigNumber.from('100')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')

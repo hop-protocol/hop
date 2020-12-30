@@ -60,8 +60,7 @@ abstract contract Bridge is Accounting {
         pure
         returns (bytes32)
     {
-        // ToDo: string isn't necessary
-        return keccak256(abi.encode("AMOUNT_HASH", _chainIds, _amounts));
+        return keccak256(abi.encode(_chainIds, _amounts));
     }
 
     /// @notice getChainId can be overridden by subclasses if needed for compatibility or testing purposes.

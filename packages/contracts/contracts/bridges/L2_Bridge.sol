@@ -155,7 +155,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
         IUniswapV2Router02(exchangeAddress).swapExactTokensForTokens(
             _amount,
             _amountOutMin,
-            _getCHPath(),
+            exchangePath,
             _recipient,
             _deadline
         );
@@ -238,7 +238,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
         approve(exchangeAddress, uint256(-1));
     }
 
-    function approveODaiExchangeTransfer() public {
+    function approveExchangeTransfer() public {
         l2CanonicalToken.approve(exchangeAddress, uint256(-1));
     }
 

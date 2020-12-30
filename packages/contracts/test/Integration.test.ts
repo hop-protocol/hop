@@ -401,7 +401,7 @@ describe("Integration", () => {
     await l2_ovmBridge.connect(user).approve(l2_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l2_bridge.connect(user).approve(await user.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l2_bridge.connect(user).approveExchangeTransfer()
-    await l2_bridge.connect(user).approveODaiExchangeTransfer()
+    await l2_bridge.connect(user).approveExchangeTransfer()
     await l2_bridge.connect(user).swapAndSend(
       transfer.chainId,
       transfer.recipient,

@@ -23,6 +23,7 @@ describe("Integration", () => {
   let liquidityProvider: Signer
   let committee: Signer
   let challenger: Signer
+  let governance: Signer
 
   // Factories
   let L1_Bridge: ContractFactory
@@ -55,6 +56,7 @@ describe("Integration", () => {
     liquidityProvider = accounts[1]
     committee = accounts[3]
     challenger = accounts[4]
+    governance = accounts[5]
 
     L1_MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/Optimism.sol:Optimism')
     L1_Bridge = await ethers.getContractFactory('contracts/test/Mock_L1_Bridge.sol:Mock_L1_Bridge')
@@ -81,6 +83,7 @@ describe("Integration", () => {
     l2_bridge = await L2_Bridge.deploy(
       OPTIMISM_CHAIN_ID,
       l2_messenger.address,
+      governance.getAddress(),
       l2_ovmBridge.address,
       l1_bridge.address,
       [MAINNET_CHAIN_ID, OPTIMISM_CHAIN_ID],

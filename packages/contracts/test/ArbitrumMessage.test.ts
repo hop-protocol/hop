@@ -15,6 +15,7 @@ describe("ArbitrumMessage", () => {
   let user: Signer
   let liquidityProvider: Signer
   let committee: Signer
+  let governance: Signer
 
   // Factories
   let L1_Bridge: ContractFactory
@@ -43,6 +44,7 @@ describe("ArbitrumMessage", () => {
     user = accounts[0]
     liquidityProvider = accounts[1]
     committee = accounts[2]
+    governance = accounts[3]
 
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
     L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
@@ -66,7 +68,7 @@ describe("ArbitrumMessage", () => {
 
     l2_poolToken = await MockERC20.deploy('L2 Dai Stable Token', 'L2DAI')
     l2_messenger = await MockMessenger.deploy()
-    l2_bridge = await L2_Bridge.deploy(l2_messenger.address, l2_poolToken.address, l1_bridge.address, [ARBITRUM_CHAIN_ID], await committee.getAddress())
+    l2_bridge = await L2_Bridge.deploy(l2_messenger.address, governance.getAddress(), l2_poolToken.address, l1_bridge.address, [ARBITRUM_CHAIN_ID], committee.getAddress())
 
     // Initialize bridge wrapper
     const l2Name = L2_NAMES.ARBITRUM

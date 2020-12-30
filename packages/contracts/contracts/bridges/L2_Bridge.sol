@@ -13,6 +13,7 @@ import "../test/mockOVM_CrossDomainMessenger.sol";
 import "../libraries/MerkleUtils.sol";
 
 abstract contract L2_Bridge is ERC20, Bridge {
+    address public l1Governance;
     address public l1BridgeAddress;
     address public exchangeAddress;
     IERC20 public l2CanonicalToken;
@@ -39,11 +40,17 @@ abstract contract L2_Bridge is ERC20, Bridge {
     );
 
     modifier onlyL1Bridge {
-        _verifySender();
+        _verifySender(l1BridgeAddress);
+        _;
+    }
+
+    modifier onlyGovernance {
+        _verifySender(l1Governance);
         _;
     }
 
     constructor (
+        address _l1Governance,
         IERC20 _l2CanonicalToken,
         address _l1BridgeAddress,
         uint256[] memory _supportedChainIds,
@@ -53,6 +60,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
         Bridge(IERC20(this), _committee)
         ERC20("DAI Hop Token", "hDAI")
     {
+        l1Governance = _l1Governance;
         l2CanonicalToken = _l2CanonicalToken;
         l1BridgeAddress = _l1BridgeAddress;
 
@@ -61,24 +69,26 @@ abstract contract L2_Bridge is ERC20, Bridge {
         }
     }
 
+    /* ========== Virtual functions ========== */
+
     function _sendCrossDomainMessage(bytes memory _message) internal virtual;
-    function _verifySender() internal virtual; 
+    function _verifySender(address _expectedSender) internal virtual; 
 
     /* ========== Public functions ========== */
 
-    function setExchangeAddress(address _exchangeAddress) public onlyL1Bridge {
+    function setExchangeAddress(address _exchangeAddress) public onlyGovernance {
         exchangeAddress = _exchangeAddress;
     }
 
-    function setL1BridgeAddress(address _l1BridgeAddress) public onlyL1Bridge {
+    function setL1BridgeAddress(address _l1BridgeAddress) public onlyGovernance {
         l1BridgeAddress = _l1BridgeAddress;
     }
 
-    function addSupportedChainId(uint256 _chainIds) public onlyL1Bridge {
+    function addSupportedChainId(uint256 _chainIds) public onlyGovernance {
         supportedChainIds[_chainIds] = true;
     }
 
-    function removeSupportedChainId(uint256 _chainIds) public onlyL1Bridge {
+    function removeSupportedChainId(uint256 _chainIds) public onlyGovernance {
         supportedChainIds[_chainIds] = false;
     }
 

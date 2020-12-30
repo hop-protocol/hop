@@ -1,41 +1,66 @@
 import '@nomiclabs/hardhat-waffle'
 import { expect } from 'chai'
-import { Signer, Contract } from 'ethers'
+import { Signer, Contract, BigNumber } from 'ethers'
 import { fixture } from './shared/fixtures'
-import { setUpL1Bridge, expectBalanceOf } from './shared/utils'
+import {
+  setUpL1Bridge,
+  setUpL2Bridge,
+  setUpL1AndL2Messengers,
+  distributePoolTokens,
+  expectBalanceOf
+} from './shared/utils'
 import {
   IFixture,
-  OPTIMISM_CHAIN_ID,
+  ARBITRUM_CHAIN_ID,
   MOCK_ADDRESS,
   USER_INITIAL_BALANCE,
   LIQUIDITY_PROVIDER_INITIAL_BALANCE,
   COMMITTEE_INITIAL_BALANCE,
   CHALLENGER_INITIAL_BALANCE,
+  L2_NAMES
 } from './shared/constants'
 
 describe("L1_Bridge", () => {
+  let liquidityProvider: Signer
   let committee: Signer
   let l1_poolToken: Contract
   let l1_bridge: Contract
+  let l2_bridge: Contract
+  let l2_messenger: Contract
+
   let _fixture: IFixture
 
   before(async () => {
     _fixture = await fixture()
+    liquidityProvider = _fixture.liquidityProvider
     committee = _fixture.committee
     l1_poolToken = _fixture.l1_poolToken
     l1_bridge = _fixture.l1_bridge
+    l2_bridge = _fixture.l2_bridge
+    l2_messenger = _fixture.l2_messenger
   })
 
   beforeEach(async () => {
-    const l1BridgeOpts = {
+    const setUpL1BridgeOpts = {
       messengerAddress: MOCK_ADDRESS,
-      messengerWrapperChainId: OPTIMISM_CHAIN_ID,
+      messengerWrapperChainId: ARBITRUM_CHAIN_ID
+    }
+
+    const setUpL2BridgeOpts = {
+      l2Name: L2_NAMES.ARBITRUM
+    }
+
+    const distributePoolTokensOpts = {
       userInitialBalance: USER_INITIAL_BALANCE,
       liquidityProviderInitialBalance: LIQUIDITY_PROVIDER_INITIAL_BALANCE,
       committeeInitialBalance: COMMITTEE_INITIAL_BALANCE,
       challengerInitialBalance: CHALLENGER_INITIAL_BALANCE
     }
-    await setUpL1Bridge(_fixture, l1BridgeOpts)
+
+    await setUpL1Bridge(_fixture, setUpL1BridgeOpts)
+    await setUpL2Bridge(_fixture, setUpL2BridgeOpts)
+    await setUpL1AndL2Messengers(_fixture)
+    await distributePoolTokens(_fixture, distributePoolTokensOpts)
   })
 
   /**
@@ -60,9 +85,11 @@ describe("L1_Bridge", () => {
   })
 
   it('Should send tokens across the bridge', async () => {
-    // await l1_poolToken.connect(liquidityProvider).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
-    // await l1_bridge.connect(liquidityProvider).sendToL2(ARBITRUM_CHAIN_ID, await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
-    // await l2_messenger.relayNextMessage()
-    // await expectBalanceOf(l2_bridge, liquidityProvider, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+    const liquidityProviderBalance: BigNumber = LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2)
+
+    await l1_poolToken.connect(liquidityProvider).approve(l1_bridge.address, liquidityProviderBalance)
+    await l1_bridge.connect(liquidityProvider).sendToL2(ARBITRUM_CHAIN_ID, await liquidityProvider.getAddress(), liquidityProviderBalance)
+    await l2_messenger.relayNextMessage()
+    await expectBalanceOf(l2_bridge, liquidityProvider, liquidityProviderBalance)
   })
 })

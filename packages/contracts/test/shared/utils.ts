@@ -12,21 +12,12 @@ export const setUpL1Bridge = async (fixture: IFixture, opts: any) => {
   const {
     l1_messenger,
     l1_bridge,
-    l1_poolToken,
     l1_messengerWrapper,
-    user,
-    liquidityProvider,
-    committee,
-    challenger
   } = fixture
 
   const {
     messengerAddress,
     messengerWrapperChainId,
-    userInitialBalance,
-    liquidityProviderInitialBalance,
-    committeeInitialBalance,
-    challengerInitialBalance
   } = opts
 
   // Set up Cross Domain Messengers
@@ -34,8 +25,72 @@ export const setUpL1Bridge = async (fixture: IFixture, opts: any) => {
 
   // Set up liquidity bridge
   await l1_bridge.setCrossDomainMessengerWrapper(messengerWrapperChainId, l1_messengerWrapper.address)
+}
 
-  // Distribute poolToken
+export const setUpL2Bridge = async (fixture: IFixture, opts: any) => {
+  const {
+    l2_bridge,
+    l1_messengerWrapper,
+    l1_messenger,
+    l1_bridge,
+    l2_uniswapRouter
+  } = fixture
+
+  const {
+    l2Name,
+  } = opts
+
+  // Initialize bridge wrapper
+  await setMessengerWrapperDefaults(l2Name, l1_messengerWrapper, l1_messenger.address, l2_bridge.address)
+
+  // Set up bridge
+  await l2_bridge.setL1BridgeAddress(l1_bridge.address)
+  await l2_bridge.setExchangeAddress(l2_uniswapRouter.address)
+}
+
+export const setUpL1AndL2Messengers = async (fixture: IFixture) => {
+  await setUpL1Messenger(fixture)
+  await setUpL2Messenger(fixture)
+}
+
+export const setUpL1Messenger = async (fixture: IFixture) => {
+  const {
+    l1_messenger,
+    l2_messenger,
+    l1_bridge,
+  } = fixture
+
+  await l1_messenger.setTargetMessengerAddress(l2_messenger.address)
+  await l1_messenger.setTargetBridgeAddress(l1_bridge.address)
+}
+
+export const setUpL2Messenger = async (fixture: IFixture) => {
+  const {
+    l1_messenger,
+    l2_messenger,
+    l2_bridge
+  } = fixture
+
+  await l2_messenger.setTargetMessengerAddress(l1_messenger.address)
+  await l2_messenger.setTargetBridgeAddress(l2_bridge.address)
+}
+
+export const distributePoolTokens = async (fixture: IFixture, opts: any) => {
+  const {
+    l1_poolToken,
+    user,
+    liquidityProvider,
+    committee,
+    challenger
+  } = fixture
+
+  const {
+    userInitialBalance,
+    liquidityProviderInitialBalance,
+    committeeInitialBalance,
+    challengerInitialBalance
+  } = opts
+
   await l1_poolToken.mint(await user.getAddress(), userInitialBalance)
   await l1_poolToken.mint(await liquidityProvider.getAddress(), liquidityProviderInitialBalance)
   await l1_poolToken.mint(await committee.getAddress(), committeeInitialBalance)

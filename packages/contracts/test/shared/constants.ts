@@ -23,6 +23,7 @@ export const RELAYER_FEE = BigNumber.from('1000000000000000000')
 
 export const MAINNET_CHAIN_ID = BigNumber.from('1')
 export const OPTIMISM_CHAIN_ID = BigNumber.from('420')
+export const ARBITRUM_CHAIN_ID = BigNumber.from('152709604825713')
 
 export interface IFixture {
   // Users

@@ -78,7 +78,14 @@ describe("Integration", () => {
     // Deploy  L2 contracts
     l2_messenger = await CrossDomainMessenger.deploy(0)
     l2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_messenger.address)
-    l2_bridge = await L2_Bridge.deploy(OPTIMISM_CHAIN_ID, l2_messenger.address, l2_ovmBridge.address, await committee.getAddress())
+    l2_bridge = await L2_Bridge.deploy(
+      OPTIMISM_CHAIN_ID,
+      l2_messenger.address,
+      l2_ovmBridge.address,
+      l1_bridge.address,
+      [MAINNET_CHAIN_ID, OPTIMISM_CHAIN_ID],
+      await committee.getAddress()
+    )
 
     // Initialize bridge wrapper
     const l2Name = L2_NAMES.OPTIMISM

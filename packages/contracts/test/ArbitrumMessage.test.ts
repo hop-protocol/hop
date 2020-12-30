@@ -8,7 +8,7 @@ import { L2_NAMES, ZERO_ADDRESS } from './constants'
 const USER_INITIAL_BALANCE = BigNumber.from('100')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
 const SWAP_DEADLINE_BUFFER = BigNumber.from('3600')
-const ARBITRUM_CHAIN_ID = 152709604825713
+const ARBITRUM_CHAIN_ID = BigNumber.from('152709604825713')
 
 describe("ArbitrumMessage", () => {
   let accounts: Signer[]
@@ -66,7 +66,7 @@ describe("ArbitrumMessage", () => {
 
     l2_poolToken = await MockERC20.deploy('L2 Dai Stable Token', 'L2DAI')
     l2_messenger = await MockMessenger.deploy()
-    l2_bridge = await L2_Bridge.deploy(l2_messenger.address, l2_poolToken.address,  await committee.getAddress())
+    l2_bridge = await L2_Bridge.deploy(l2_messenger.address, l2_poolToken.address, l1_bridge.address, [ARBITRUM_CHAIN_ID], await committee.getAddress())
 
     // Initialize bridge wrapper
     const l2Name = L2_NAMES.ARBITRUM

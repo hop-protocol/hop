@@ -106,7 +106,14 @@ describe("Transfers", () => {
     // Deploy  L2 contracts
     l2_ovm1_messenger = await CrossDomainMessenger.deploy(0)
     l2_ovm1_ovmBridge = await L2_OVMTokenBridge.deploy(l2_ovm1_messenger.address)
-    l2_ovm1_bridge = await L2_Bridge.deploy(OPTIMISM_1_CHAIN_ID, l2_ovm1_messenger.address, l2_ovm1_ovmBridge.address, await committee.getAddress())
+    l2_ovm1_bridge = await L2_Bridge.deploy(
+      OPTIMISM_1_CHAIN_ID,
+      l2_ovm1_messenger.address,
+      l2_ovm1_ovmBridge.address,
+      l1_bridge.address,
+      [MAINNET_CHAIN_ID, OPTIMISM_2_CHAIN_ID],
+      await committee.getAddress()
+    )
 
     // Initialize bridge wrapper
     await setMessengerWrapperDefaults(L2_NAMES.OPTIMISM_1, l1_ovm1_messengerWrapper, l1_ovm1_messenger.address, l2_ovm1_bridge.address)
@@ -124,7 +131,14 @@ describe("Transfers", () => {
 
     l2_ovm2_messenger = await CrossDomainMessenger.deploy(0)
     l2_ovm2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_ovm2_messenger.address)
-    l2_ovm2_bridge = await L2_Bridge.deploy(OPTIMISM_2_CHAIN_ID, l2_ovm2_messenger.address, l2_ovm2_ovmBridge.address, await committee.getAddress())
+    l2_ovm2_bridge = await L2_Bridge.deploy(
+      OPTIMISM_2_CHAIN_ID,
+      l2_ovm2_messenger.address,
+      l2_ovm2_ovmBridge.address,
+      l1_bridge.address,
+      [MAINNET_CHAIN_ID, OPTIMISM_1_CHAIN_ID],
+      await committee.getAddress()
+    )
 
     // Initialize bridge wrapper
     await setMessengerWrapperDefaults(L2_NAMES.OPTIMISM_2, l1_ovm2_messengerWrapper, l2_ovm2_messenger.address, l2_ovm2_bridge.address)

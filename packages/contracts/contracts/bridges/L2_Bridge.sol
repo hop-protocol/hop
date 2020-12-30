@@ -16,6 +16,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     address public l1BridgeAddress;
     address public exchangeAddress;
     IERC20 public l2CanonicalToken;
+    mapping(uint256 => bool) public supportedChainIds;
 
     bytes32[] public pendingTransfers;
     uint256[] public pendingAmountChainIds;
@@ -44,13 +45,20 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     constructor (
         IERC20 _l2CanonicalToken,
-        address committee_
+        address _l1BridgeAddress,
+        uint256[] memory _supportedChainIds,
+        address _committee
     )
         public
-        Bridge(IERC20(this), committee_)
+        Bridge(IERC20(this), _committee)
         ERC20("DAI Hop Token", "hDAI")
     {
         l2CanonicalToken = _l2CanonicalToken;
+        l1BridgeAddress = _l1BridgeAddress;
+
+        for (uint256 i = 0; i < _supportedChainIds.length; i++) {
+            supportedChainIds[_supportedChainIds[i]] = true;
+        }
     }
 
     function _sendCrossDomainMessage(bytes memory _message) internal virtual;
@@ -58,12 +66,20 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     /* ========== Public functions ========== */
 
-    function setExchangeAddress(address _exchangeAddress) public {
+    function setExchangeAddress(address _exchangeAddress) public onlyL1Bridge {
         exchangeAddress = _exchangeAddress;
     }
 
-    function setL1BridgeAddress(address _l1BridgeAddress) public {
+    function setL1BridgeAddress(address _l1BridgeAddress) public onlyL1Bridge {
         l1BridgeAddress = _l1BridgeAddress;
+    }
+
+    function addSupportedChainId(uint256 _chainIds) public onlyL1Bridge {
+        supportedChainIds[_chainIds] = true;
+    }
+
+    function removeSupportedChainId(uint256 _chainIds) public onlyL1Bridge {
+        supportedChainIds[_chainIds] = false;
     }
 
     /// @notice _amount is the amount the user wants to send plus the relayer fee
@@ -78,7 +94,9 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
-        require(_amount >= _relayerFee, "BDG: relayer fee cannot exceed amount");
+        require(_amount >= _relayerFee, "BDG: Relayer fee cannot exceed amount");
+        require(supportedChainIds[_chainId], "BDG: _chainId is not supported");
+
         if (pendingTransfers.length >= 100) {
             commitTransfers();
         }
@@ -97,7 +115,6 @@ abstract contract L2_Bridge is ERC20, Bridge {
         );
         pendingTransfers.push(transferHash);
 
-        // ToDo: Require only allowlisted chain ids
         _addToPendingAmount(_chainId, _amount);
 
         emit TransferSent(transferHash, _recipient, _amount, _transferNonce, _relayerFee);

@@ -10,11 +10,13 @@ contract L2_ArbitrumBridge is L2_Bridge {
 
     constructor (
         mockOVM_CrossDomainMessenger _messenger,
-        IERC20 canonicalToken_,
-        address committee_
+        IERC20 _canonicalToken,
+        address _l1BridgeAddress,
+        uint256[] memory _supportedChainIds,
+        address _committee
     )
         public
-        L2_Bridge(canonicalToken_, committee_)
+        L2_Bridge(_canonicalToken, _l1BridgeAddress, _supportedChainIds, _committee)
     {
         messenger = _messenger;
     }

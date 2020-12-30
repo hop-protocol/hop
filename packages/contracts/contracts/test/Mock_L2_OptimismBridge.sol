@@ -12,10 +12,12 @@ contract Mock_L2_OptimismBridge is L2_OptimismBridge {
         uint256 chainId_,
         mockOVM_CrossDomainMessenger _messenger,
         IERC20 _canonicalToken,
+        address _l1BridgeAddress,
+        uint256[] memory _supportedChainIds,
         address _committee
     )
         public
-        L2_OptimismBridge(_messenger, _canonicalToken, _committee)
+        L2_OptimismBridge(_messenger, _canonicalToken, _l1BridgeAddress, _supportedChainIds, _committee)
     {
         _chainId = chainId_;
     }

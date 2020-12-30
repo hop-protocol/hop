@@ -66,10 +66,10 @@ describe("L1_Bridge", () => {
   /**
    * End to end tests
    */
+
   it('Should allow committee to deposit bond and then withdraw bond', async () => {
     await l1_poolToken.connect(committee).approve(l1_bridge.address, COMMITTEE_INITIAL_BALANCE)
     await l1_bridge.connect(committee).stake(COMMITTEE_INITIAL_BALANCE)
-
     await l1_bridge.connect(committee).unstake(COMMITTEE_INITIAL_BALANCE)
   })
 

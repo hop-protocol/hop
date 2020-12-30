@@ -104,8 +104,8 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
-        require(_amount >= _relayerFee, "BDG: Relayer fee cannot exceed amount");
-        require(supportedChainIds[_chainId], "BDG: _chainId is not supported");
+        require(_amount >= _relayerFee, "L2_BRG: Relayer fee cannot exceed amount");
+        require(supportedChainIds[_chainId], "L2_BRG: _chainId is not supported");
 
         if (pendingTransfers.length >= 100) {
             commitTransfers();
@@ -144,7 +144,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
-        require(_amount >= _relayerFee, "BDG: relayer fee cannot exceed amount");
+        require(_amount >= _relayerFee, "L2_BRG: relayer fee cannot exceed amount");
 
         l2CanonicalToken.transferFrom(msg.sender, address(this), _amount);
 
@@ -222,7 +222,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
             _deadline
         );
 
-        require(_proof.verify(_transferRootHash, transferHash), "BDG: Invalid transfer proof");
+        require(_proof.verify(_transferRootHash, transferHash), "L2_BRG: Invalid transfer proof");
         _addToAmountWithdrawn(_transferRootHash, _amount);
         _markTransferSpent(transferHash);
 
@@ -288,7 +288,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
-        require(_proof.verify(_transferRootHash, _transferHash), "BDG: Invalid transfer proof");
+        require(_proof.verify(_transferRootHash, _transferHash), "L2_BRG: Invalid transfer proof");
 
         uint256 amount = bondedWithdrawalAmounts[_transferHash];
         _addToAmountWithdrawn(_transferRootHash, amount);

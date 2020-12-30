@@ -100,7 +100,7 @@ abstract contract Bridge is Accounting {
             0
         );
 
-        require(_proof.verify(_transferRootHash, transferHash), "BDG: Invalid transfer proof");
+        require(_proof.verify(_transferRootHash, transferHash), "BRG: Invalid transfer proof");
         _addToAmountWithdrawn(_transferRootHash, _amount);
         _markTransferSpent(transferHash);
 
@@ -111,7 +111,7 @@ abstract contract Bridge is Accounting {
      /* ========== Internal functions ========== */
 
     function _markTransferSpent(bytes32 _transferHash) internal {
-        require(!_spentTransferHashes[_transferHash], "BDG: The transfer has already been withdrawn");
+        require(!_spentTransferHashes[_transferHash], "BRG: The transfer has already been withdrawn");
         _spentTransferHashes[_transferHash] = true;
     }
 
@@ -124,14 +124,14 @@ abstract contract Bridge is Accounting {
 
         TransferRoot storage transferRoot = _transferRoots[_transferRootHash];
 
-        require(transferRoot.total > 0, "BDG: Transfer root not found");
-        require(transferRoot.amountWithdrawn.add(_amount) <= transferRoot.total, "BDG: Withdrawal exceeds TransferRoot total");
+        require(transferRoot.total > 0, "BRG: Transfer root not found");
+        require(transferRoot.amountWithdrawn.add(_amount) <= transferRoot.total, "BRG: Withdrawal exceeds TransferRoot total");
 
         transferRoot.amountWithdrawn = transferRoot.amountWithdrawn.add(_amount);
     }
 
     function _setTransferRoot(bytes32 _transferRootHash, uint256 _amount) internal {
-        require(_transferRoots[_transferRootHash].total == 0, "BDG: Transfer root already set");
+        require(_transferRoots[_transferRootHash].total == 0, "BRG: Transfer root already set");
         _transferRoots[_transferRootHash] = TransferRoot(_amount, 0);
     }
 }

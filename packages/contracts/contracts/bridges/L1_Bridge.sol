@@ -81,13 +81,11 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
 
     /* ========== Public Transfer Root Functions ========== */
 
-
     /// @dev Setting a TransferRoot is a two step process.
     /// @dev   1. The TransferRoot is bonded with `bondTransferRoot`. Withdrawals can now begin on L1
     /// @dev      and recipient L2's
     /// @dev   2. The TransferRoot is confirmed after `confirmTransferRoot` is called by the l2 bridge
     /// @dev      where the TransferRoot originated.
-
 
     function bondTransferRoot(
         bytes32 _transferRootHash,

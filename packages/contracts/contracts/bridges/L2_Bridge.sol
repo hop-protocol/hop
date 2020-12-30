@@ -13,9 +13,11 @@ import "../test/mockOVM_CrossDomainMessenger.sol";
 import "../libraries/MerkleUtils.sol";
 
 abstract contract L2_Bridge is ERC20, Bridge {
+    address public l1Governance;
     address public l1BridgeAddress;
     address public exchangeAddress;
     IERC20 public l2CanonicalToken;
+    mapping(uint256 => bool) public supportedChainIds;
 
     bytes32[] public pendingTransfers;
     uint256[] public pendingAmountChainIds;
@@ -38,32 +40,56 @@ abstract contract L2_Bridge is ERC20, Bridge {
     );
 
     modifier onlyL1Bridge {
-        _verifySender();
+        _verifySender(l1BridgeAddress);
+        _;
+    }
+
+    modifier onlyGovernance {
+        _verifySender(l1Governance);
         _;
     }
 
     constructor (
+        address _l1Governance,
         IERC20 _l2CanonicalToken,
-        address committee_
+        address _l1BridgeAddress,
+        uint256[] memory _supportedChainIds,
+        address _committee
     )
         public
-        Bridge(IERC20(this), committee_)
+        Bridge(IERC20(this), _committee)
         ERC20("DAI Hop Token", "hDAI")
     {
+        l1Governance = _l1Governance;
         l2CanonicalToken = _l2CanonicalToken;
+        l1BridgeAddress = _l1BridgeAddress;
+
+        for (uint256 i = 0; i < _supportedChainIds.length; i++) {
+            supportedChainIds[_supportedChainIds[i]] = true;
+        }
     }
 
+    /* ========== Virtual functions ========== */
+
     function _sendCrossDomainMessage(bytes memory _message) internal virtual;
-    function _verifySender() internal virtual; 
+    function _verifySender(address _expectedSender) internal virtual; 
 
     /* ========== Public functions ========== */
 
-    function setExchangeAddress(address _exchangeAddress) public {
+    function setExchangeAddress(address _exchangeAddress) public onlyGovernance {
         exchangeAddress = _exchangeAddress;
     }
 
-    function setL1BridgeAddress(address _l1BridgeAddress) public {
+    function setL1BridgeAddress(address _l1BridgeAddress) public onlyGovernance {
         l1BridgeAddress = _l1BridgeAddress;
+    }
+
+    function addSupportedChainId(uint256 _chainIds) public onlyGovernance {
+        supportedChainIds[_chainIds] = true;
+    }
+
+    function removeSupportedChainId(uint256 _chainIds) public onlyGovernance {
+        supportedChainIds[_chainIds] = false;
     }
 
     /// @notice _amount is the amount the user wants to send plus the relayer fee
@@ -78,7 +104,9 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
-        require(_amount >= _relayerFee, "BDG: relayer fee cannot exceed amount");
+        require(_amount >= _relayerFee, "L2_BRG: Relayer fee cannot exceed amount");
+        require(supportedChainIds[_chainId], "L2_BRG: _chainId is not supported");
+
         if (pendingTransfers.length >= 100) {
             commitTransfers();
         }
@@ -97,7 +125,6 @@ abstract contract L2_Bridge is ERC20, Bridge {
         );
         pendingTransfers.push(transferHash);
 
-        // ToDo: Require only allowlisted chain ids
         _addToPendingAmount(_chainId, _amount);
 
         emit TransferSent(transferHash, _recipient, _amount, _transferNonce, _relayerFee);
@@ -117,25 +144,21 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
-        require(_amount >= _relayerFee, "BDG: relayer fee cannot exceed amount");
+        require(_amount >= _relayerFee, "L2_BRG: relayer fee cannot exceed amount");
 
         l2CanonicalToken.transferFrom(msg.sender, address(this), _amount);
 
-        address[] memory exchangePath = new address[](2);
-        exchangePath[0] = address(l2CanonicalToken);
-        exchangePath[1] = address(this);
+        address[] memory exchangePath = _getCHPath();
         uint256[] memory swapAmounts = IUniswapV2Router02(exchangeAddress).getAmountsOut(_amount, exchangePath);
         uint256 swapAmount = swapAmounts[1];
 
-        bytes memory swapCalldata = _getSwapCalldata(
-            _recipient,
+        IUniswapV2Router02(exchangeAddress).swapExactTokensForTokens(
             _amount,
             _amountOutMin,
             exchangePath,
+            _recipient,
             _deadline
         );
-        (bool success,) = exchangeAddress.call(swapCalldata);
-        require(success, "L2BDG: Swap failed");
 
         send(_chainId, _recipient, swapAmount, _transferNonce, _relayerFee, _destinationAmountOutMin, _destinationDeadline);
     }
@@ -172,8 +195,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     }
 
     function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) public onlyL1Bridge {
-        _mint(address(this), _amount);
-        _attemptSwap(_recipient, _amount, _amountOutMin, _deadline);
+        _mintAndAttemptSwap(_recipient, _amount, _amountOutMin, _deadline);
     }
 
     function withdrawAndAttemptSwap(
@@ -200,36 +222,24 @@ abstract contract L2_Bridge is ERC20, Bridge {
             _deadline
         );
 
-        require(_proof.verify(_transferRootHash, transferHash), "BDG: Invalid transfer proof");
+        require(_proof.verify(_transferRootHash, transferHash), "L2_BRG: Invalid transfer proof");
         _addToAmountWithdrawn(_transferRootHash, _amount);
         _markTransferSpent(transferHash);
 
+        // distribute fee
         _transfer(msg.sender, _relayerFee);
-        _attemptSwap(_recipient, _amount.sub(_relayerFee), _amountOutMin, _deadline);
+
+        // Attempt swap to recipient
+        uint256 amountAfterFee = _amount.sub(_relayerFee);
+        _mintAndAttemptSwap(_recipient, amountAfterFee, _amountOutMin, _deadline);
     }
 
-    function _attemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) public {
-        address[] memory exchangePath = new address[](2);
-        exchangePath[0] = address(this);
-        exchangePath[1] = address(l2CanonicalToken);
-        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, exchangePath, _deadline);
-        (bool success,) = exchangeAddress.call(swapCalldata);
-
-        if (!success) {
-            _transferFallback(_recipient, _amount);
-        }
-    }
-
-    function approveExchangeTransfer() public {
+    function approveHTokenExchangeTransfer() public onlyGovernance {
         approve(exchangeAddress, uint256(-1));
     }
 
-    function approveODaiExchangeTransfer() public {
+    function approveCanonicalTokenExchangeTransfer() public onlyGovernance {
         l2CanonicalToken.approve(exchangeAddress, uint256(-1));
-    }
-
-    function _transferFallback(address _recipient, uint256 _amount) internal {
-        _transfer(address(this), _recipient, _amount);
     }
 
     /* ========== TransferRoots ========== */
@@ -278,7 +288,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
-        require(_proof.verify(_transferRootHash, _transferHash), "BDG: Invalid transfer proof");
+        require(_proof.verify(_transferRootHash, _transferHash), "L2_BRG: Invalid transfer proof");
 
         uint256 amount = bondedWithdrawalAmounts[_transferHash];
         _addToAmountWithdrawn(_transferRootHash, amount);
@@ -301,24 +311,32 @@ abstract contract L2_Bridge is ERC20, Bridge {
         _mint(_recipient, _amount);
     }
 
-    function _getSwapCalldata(
-        address _recipient,
-        uint256 _amount,
-        uint256 _amountOutMin,
-        address[] memory _exchangePath,
-        uint256 _deadline
-    )
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return abi.encodeWithSignature(
-            "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",
+    function _mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) internal {
+        _mint(address(this), _amount);
+
+        try IUniswapV2Router02(exchangeAddress).swapExactTokensForTokens(
             _amount,
             _amountOutMin,
-            _exchangePath,
+            _getHCPath(),
             _recipient,
             _deadline
-        );
+        ) returns (uint[] memory) {} catch {
+            // Transfer hToken to recipient if swap fails
+            _transfer(address(this), _recipient, _amount);
+        }
+    }
+
+    function _getHCPath() internal view returns (address[] memory) {
+        address[] memory exchangePath = new address[](2);
+        exchangePath[0] = address(this);
+        exchangePath[1] = address(l2CanonicalToken);
+        return exchangePath;
+    }
+
+    function _getCHPath() internal view returns (address[] memory) {
+        address[] memory exchangePath = new address[](2);
+        exchangePath[0] = address(l2CanonicalToken);
+        exchangePath[1] = address(this);
+        return exchangePath;
     }
 }

@@ -530,7 +530,7 @@ contract OneStepProof is IOneStepProof {
             data[5 * (i % 5) + i / 5] = uint256(uint64(values[i / 4].intVal >> ((i % 4) * 64)));
         }
 
-        data = Precompile.keccakF(data);
+        data = Precompiles.keccakF(data);
 
         Value.Data[] memory outValues = new Value.Data[](7);
         for (uint256 i = 0; i < 7; i++) {
@@ -556,7 +556,7 @@ contract OneStepProof is IOneStepProof {
         uint256 b = val2.intVal;
         uint256 c = val3.intVal;
 
-        pushVal(context.stack, Value.newInt(Precompile.sha256Block([b, c], a)));
+        pushVal(context.stack, Value.newInt(Precompiles.sha256Block([b, c], a)));
     }
 
     // Stack ops

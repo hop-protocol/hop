@@ -11,6 +11,7 @@ export async function fixture(): Promise<IFixture> {
   const liquidityProvider = accounts[1]
   const committee = accounts[2]
   const challenger = accounts[3]
+  const governance = accounts[4]
 
   const MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
   const L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
@@ -35,7 +36,14 @@ export async function fixture(): Promise<IFixture> {
 
   const l2_poolToken = await MockERC20.deploy('L2 Dai Stable Token', 'L2DAI')
   const l2_messenger = await MockMessenger.deploy()
-  const l2_bridge = await L2_Bridge.deploy(l2_messenger.address, l2_poolToken.address,  await committee.getAddress())
+  const l2_bridge = await L2_Bridge.deploy(
+    l2_messenger.address,
+    governance.getAddress(),
+    l2_poolToken.address,
+    l1_bridge.address,
+    [MAINNET_CHAIN_ID],
+    committee.getAddress()
+  )
 
   const transfers = [
       new Transfer({

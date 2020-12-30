@@ -148,21 +148,17 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
         l2CanonicalToken.transferFrom(msg.sender, address(this), _amount);
 
-        address[] memory exchangePath = new address[](2);
-        exchangePath[0] = address(l2CanonicalToken);
-        exchangePath[1] = address(this);
+        address[] memory exchangePath = _getCHPath();
         uint256[] memory swapAmounts = IUniswapV2Router02(exchangeAddress).getAmountsOut(_amount, exchangePath);
         uint256 swapAmount = swapAmounts[1];
 
-        bytes memory swapCalldata = _getSwapCalldata(
-            _recipient,
+        IUniswapV2Router02(exchangeAddress).swapExactTokensForTokens(
             _amount,
             _amountOutMin,
-            exchangePath,
+            _getCHPath(),
+            _recipient,
             _deadline
         );
-        (bool success,) = exchangeAddress.call(swapCalldata);
-        require(success, "L2BDG: Swap failed");
 
         send(_chainId, _recipient, swapAmount, _transferNonce, _relayerFee, _destinationAmountOutMin, _destinationDeadline);
     }
@@ -199,8 +195,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     }
 
     function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) public onlyL1Bridge {
-        _mint(address(this), _amount);
-        _attemptSwap(_recipient, _amount, _amountOutMin, _deadline);
+        _mintAndAttemptSwap(_recipient, _amount, _amountOutMin, _deadline);
     }
 
     function withdrawAndAttemptSwap(
@@ -231,20 +226,12 @@ abstract contract L2_Bridge is ERC20, Bridge {
         _addToAmountWithdrawn(_transferRootHash, _amount);
         _markTransferSpent(transferHash);
 
+        // distribute fee
         _transfer(msg.sender, _relayerFee);
-        _attemptSwap(_recipient, _amount.sub(_relayerFee), _amountOutMin, _deadline);
-    }
 
-    function _attemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) public {
-        address[] memory exchangePath = new address[](2);
-        exchangePath[0] = address(this);
-        exchangePath[1] = address(l2CanonicalToken);
-        bytes memory swapCalldata = _getSwapCalldata(_recipient, _amount, _amountOutMin, exchangePath, _deadline);
-        (bool success,) = exchangeAddress.call(swapCalldata);
-
-        if (!success) {
-            _transferFallback(_recipient, _amount);
-        }
+        // Attempt swap to recipient
+        uint256 amountAfterFee = _amount.sub(_relayerFee);
+        _mintAndAttemptSwap(_recipient, amountAfterFee, _amountOutMin, _deadline);
     }
 
     function approveExchangeTransfer() public {
@@ -253,10 +240,6 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     function approveODaiExchangeTransfer() public {
         l2CanonicalToken.approve(exchangeAddress, uint256(-1));
-    }
-
-    function _transferFallback(address _recipient, uint256 _amount) internal {
-        _transfer(address(this), _recipient, _amount);
     }
 
     /* ========== TransferRoots ========== */
@@ -328,24 +311,32 @@ abstract contract L2_Bridge is ERC20, Bridge {
         _mint(_recipient, _amount);
     }
 
-    function _getSwapCalldata(
-        address _recipient,
-        uint256 _amount,
-        uint256 _amountOutMin,
-        address[] memory _exchangePath,
-        uint256 _deadline
-    )
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return abi.encodeWithSignature(
-            "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",
+    function _mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) internal {
+        _mint(address(this), _amount);
+
+        try IUniswapV2Router02(exchangeAddress).swapExactTokensForTokens(
             _amount,
             _amountOutMin,
-            _exchangePath,
+            _getHCPath(),
             _recipient,
             _deadline
-        );
+        ) returns (uint[] memory) {} catch {
+            // Transfer hToken to recipient if swap fails
+            _transfer(address(this), _recipient, _amount);
+        }
+    }
+
+    function _getHCPath() internal view returns (address[] memory) {
+        address[] memory exchangePath = new address[](2);
+        exchangePath[0] = address(this);
+        exchangePath[1] = address(l2CanonicalToken);
+        return exchangePath;
+    }
+
+    function _getCHPath() internal view returns (address[] memory) {
+        address[] memory exchangePath = new address[](2);
+        exchangePath[0] = address(l2CanonicalToken);
+        exchangePath[1] = address(this);
+        return exchangePath;
     }
 }

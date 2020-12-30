@@ -1,49 +1,11 @@
 import '@nomiclabs/hardhat-waffle'
 import { ethers } from 'hardhat'
-import { BigNumber, ContractFactory, Signer, Contract } from 'ethers'
+import { BigNumber } from 'ethers'
 
+import { IFixture, RELAYER_FEE, MAINNET_CHAIN_ID } from './constants'
 import Transfer from '../../lib/Transfer'
-const RELAYER_FEE = BigNumber.from('1000000000000000000')
-const MAINNET_CHAIN_ID = BigNumber.from('1')
 
-interface Fixture {
-  // Users
-  accounts: Signer[]
-  user: Signer
-  liquidityProvider: Signer
-  committee: Signer
-  challenger: Signer
-
-  // Factories
-  L1_Bridge: ContractFactory
-  L2_Bridge: ContractFactory
-  MockERC20: ContractFactory
-  L1_MessengerWrapper: ContractFactory
-  MockMessenger: ContractFactory
-  CrossDomainMessenger: ContractFactory
-  L1_OVMTokenBridge: ContractFactory
-  L2_OVMTokenBridge: ContractFactory
-  UniswapRouter: ContractFactory
-  UniswapFactory: ContractFactory
-
-  // L1
-  l1_poolToken: Contract
-  l1_messenger: Contract
-  l1_messengerWrapper: Contract
-  l1_bridge: Contract
-  
-  // L2
-  l2_messenger: Contract
-  l2_bridge: Contract
-  l2_poolToken: Contract
-  l2_uniswapFactory: Contract
-  l2_uniswapRouter: Contract
-
-  // Other
-  transfers: Transfer[]
-}
-
-export async function fixture(): Promise<Fixture> {
+export async function fixture(): Promise<IFixture> {
   const accounts = await ethers.getSigners()
   const user = accounts[0]
   const liquidityProvider = accounts[1]

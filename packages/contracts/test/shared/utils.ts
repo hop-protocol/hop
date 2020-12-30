@@ -2,12 +2,13 @@ import { ethers } from 'hardhat'
 import { L2_NAMES, ARB_CHAIN_ADDRESS, DEFAULT_L2_GAS_LIMIT } from './constants'
 import { BigNumber, BigNumberish, Signer, Contract } from 'ethers'
 import { expect } from 'chai'
+import { IFixture } from './constants'
 
 /**
  * Initialization functions
  */
 
-export const setUpL1Bridge = async (fixture: any, opts: any) => {
+export const setUpL1Bridge = async (fixture: IFixture, opts: any) => {
   const {
     l1_messenger,
     l1_bridge,
@@ -24,6 +25,7 @@ export const setUpL1Bridge = async (fixture: any, opts: any) => {
     messengerWrapperChainId,
     userInitialBalance,
     liquidityProviderInitialBalance,
+    committeeInitialBalance,
     challengerInitialBalance
   } = opts
 
@@ -36,13 +38,14 @@ export const setUpL1Bridge = async (fixture: any, opts: any) => {
   // Distribute poolToken
   await l1_poolToken.mint(await user.getAddress(), userInitialBalance)
   await l1_poolToken.mint(await liquidityProvider.getAddress(), liquidityProviderInitialBalance)
-  await l1_poolToken.mint(await committee.getAddress(), liquidityProviderInitialBalance)
+  await l1_poolToken.mint(await committee.getAddress(), committeeInitialBalance)
   await l1_poolToken.mint(await challenger.getAddress(), challengerInitialBalance)
 }
 
 /**
  * General functions
  */
+
 export const getL2MessengerId = (l2Name: string): string => {
   return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(l2Name))
 }

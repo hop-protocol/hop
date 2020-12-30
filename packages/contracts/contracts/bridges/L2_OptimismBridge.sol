@@ -10,11 +10,14 @@ contract L2_OptimismBridge is L2_Bridge {
 
     constructor (
         mockOVM_CrossDomainMessenger _messenger,
-        IERC20 canonicalToken_,
+        address _l1Governance,
+        IERC20 _canonicalToken,
+        address _l1BridgeAddress,
+        uint256[] memory _supportedChainIds,
         address committee_
     )
         public
-        L2_Bridge(canonicalToken_, committee_)
+        L2_Bridge(_l1Governance, _canonicalToken, _l1BridgeAddress, _supportedChainIds, committee_)
     {
         messenger = _messenger;
     }
@@ -27,7 +30,7 @@ contract L2_OptimismBridge is L2_Bridge {
         );
     }
 
-    function _verifySender() internal override {
+    function _verifySender(address _expectedSender) internal override {
         // ToDo: verify sender with Optimism L2 messenger
         // sender should be l1BridgeAddress
     }

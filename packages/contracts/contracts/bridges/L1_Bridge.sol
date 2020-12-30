@@ -81,13 +81,11 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
 
     /* ========== Public Transfer Root Functions ========== */
 
-
     /// @dev Setting a TransferRoot is a two step process.
     /// @dev   1. The TransferRoot is bonded with `bondTransferRoot`. Withdrawals can now begin on L1
     /// @dev      and recipient L2's
     /// @dev   2. The TransferRoot is confirmed after `confirmTransferRoot` is called by the l2 bridge
     /// @dev      where the TransferRoot originated.
-
 
     function bondTransferRoot(
         bytes32 _transferRootHash,
@@ -98,7 +96,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         onlyCommittee
         requirePositiveBalance
     {
-        require(_chainIds.length == _chainAmounts.length, "BDG: chainIds and chainAmounts must be the same length");
+        require(_chainIds.length == _chainAmounts.length, "L1_BRG: chainIds and chainAmounts must be the same length");
 
         uint256 totalAmount = 0;
         for (uint256 i = 0; i < _chainAmounts.length; i++) {
@@ -134,7 +132,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
 
     function confirmTransferRoot(bytes32 _transferRootHash, bytes32 _amountHash) public onlyL2Bridge {
         TransferBond storage transferBond = transferBonds[_transferRootHash];
-        require(transferBond.amountHash == _amountHash, "BDG: Amount hash is invalid");
+        require(transferBond.amountHash == _amountHash, "L1_BRG: Amount hash is invalid");
         transferBond.confirmed = true;
     }
 
@@ -144,7 +142,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         TransferRoot memory transferRoot = getTransferRoot(_transferRootHash);
         TransferBond storage transferBond = transferBonds[_transferRootHash];
         // Require it's within 4 hour period 
-        require(!transferBond.confirmed, "BDG: Transfer root has already been confirmed");
+        require(!transferBond.confirmed, "L1_BRG: Transfer root has already been confirmed");
 
         // Get stake for challenge
         uint256 challengeStakeAmount = getChallengeAmountForTransferAmount(transferRoot.total);
@@ -165,8 +163,8 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         TransferRoot memory transferRoot = getTransferRoot(_transferRootHash);
         TransferBond storage transferBond = transferBonds[_transferRootHash];
 
-        require(transferBond.challengeStartTime != 0, "BDG: Transfer root has not been challenged");
-        require(now > transferBond.challengeStartTime.add(getChallengeResolutionPeriod()), "BDG: Challenge period has not ended");
+        require(transferBond.challengeStartTime != 0, "L1_BRG: Transfer root has not been challenged");
+        require(now > transferBond.challengeStartTime.add(getChallengeResolutionPeriod()), "L1_BRG: Challenge period has not ended");
 
         uint256 challengeStakeAmount = getChallengeAmountForTransferAmount(transferRoot.total);
 

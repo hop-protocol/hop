@@ -66,12 +66,12 @@ abstract contract Accounting {
 
      /* ========== Committee public functions ========== */
 
-    function stake(uint256 _amount) public {
+    function stake(uint256 _amount) external {
         _transferToBridge(msg.sender, _amount);
         _addCredit(_amount);
     }
 
-    function unstake(uint256 _amount) public requirePositiveBalance onlyCommittee {
+    function unstake(uint256 _amount) external requirePositiveBalance onlyCommittee {
         _addDebit(_amount);
         _transferFromBridge(_committee, _amount);
     }

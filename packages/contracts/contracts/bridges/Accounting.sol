@@ -33,7 +33,7 @@ abstract contract Accounting {
 
     modifier requirePositiveBalance {
         _;
-        require(_credit >= getTotalDebit(), "ACT: Not enough available credit");
+        require(_credit >= getDebit(), "ACT: Not enough available credit");
     }
 
     constructor(address committee_) public {
@@ -56,11 +56,11 @@ abstract contract Accounting {
         return _committee;
     }
 
-    function getCommitteeBalances() public view returns (uint256, uint256) {
-        return (_credit, getTotalDebit());
+    function getCredit() external view returns (uint256) {
+        return _credit;
     }
 
-    function getTotalDebit() public view returns (uint256) {
+    function getDebit() public view returns (uint256) {
         return _debit.add(_additionalDebit());
     }
 

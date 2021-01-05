@@ -21,8 +21,10 @@ abstract contract Bridge is Accounting {
 
     mapping(bytes32 => TransferRoot) private _transferRoots;
     mapping(bytes32 => bool) private _spentTransferHashes;
+    // ToDo: Make private
+    mapping(bytes32 => uint256) bondedWithdrawalAmounts;
 
-    constructor(IERC20 _collateralToken, address _committee) public Accounting(_collateralToken, _committee) {}
+    constructor(address _committee) public Accounting(_committee) {}
 
      /* ========== Public getters ========== */
 

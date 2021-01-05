@@ -56,7 +56,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
         address _committee
     )
         public
-        Bridge(IERC20(this), _committee)
+        Bridge(_committee)
         ERC20("DAI Hop Token", "hDAI")
     {
         l1Governance = _l1Governance;
@@ -241,14 +241,11 @@ abstract contract L2_Bridge is ERC20, Bridge {
         l2CanonicalToken.approve(exchangeAddress, uint256(-1));
     }
 
-    /* ========== TransferRoots ========== */
-
     function setTransferRoot(bytes32 _rootHash, uint256 _amount) public onlyL1Bridge {
         _setTransferRoot(_rootHash, _amount);
     }
 
-
-    /* ========== Internal Functions ========== */
+    /* ========== Helper Functions ========== */
 
     function _addToPendingAmount(uint256 _chainId, uint256 _amount) internal {
         if (pendingAmountForChainId[_chainId] == 0) {
@@ -256,10 +253,6 @@ abstract contract L2_Bridge is ERC20, Bridge {
         }
 
         pendingAmountForChainId[_chainId] = pendingAmountForChainId[_chainId].add(_amount);
-    }
-
-    function _transfer(address _recipient, uint256 _amount) internal override {
-        _mint(_recipient, _amount);
     }
 
     function _mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) internal {
@@ -289,5 +282,15 @@ abstract contract L2_Bridge is ERC20, Bridge {
         exchangePath[0] = address(l2CanonicalToken);
         exchangePath[1] = address(this);
         return exchangePath;
+    }
+
+    /* ========== Override Functions ========== */
+
+    function _transfer(address _recipient, uint256 _amount) internal override {
+        _mint(_recipient, _amount);
+    }
+
+    function _transferFrom(address _from, uint256 _amount) internal override {
+        _burn(_from, _amount);
     }
 }

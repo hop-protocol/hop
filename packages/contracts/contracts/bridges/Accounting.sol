@@ -12,7 +12,6 @@ abstract contract Accounting {
     using SafeERC20 for IERC20;
 
     address private _committee;
-    IERC20 private _collateralToken;
 
     uint256 private _credit;
     uint256 private _debit;
@@ -37,14 +36,14 @@ abstract contract Accounting {
         require(_credit >= getTotalDebit(), "ACT: Not enough available credit");
     }
 
-    constructor(IERC20 collateralToken_, address committee_) public {
-        _collateralToken = collateralToken_;
+    constructor(address committee_) public {
         _committee = committee_;
     }
 
      /* ========== Virtual functions ========== */
 
     function _transfer(address _recipient, uint256 _amount) internal virtual;
+    function _transferFrom(address _from, uint256 _amount) internal virtual;
 
     function _additionalDebit() internal view virtual returns (uint256) {
         this; // Silence state mutability warning without generating any additional byte code
@@ -65,20 +64,16 @@ abstract contract Accounting {
         return _debit.add(_additionalDebit());
     }
 
-    function getCollateralToken() public view returns (IERC20) {
-        return _collateralToken;
-    }
-
      /* ========== Committee public functions ========== */
 
     function stake(uint256 _amount) public {
-        _collateralToken.transferFrom(msg.sender, address(this), _amount);
+        _transferFrom(msg.sender, _amount);
         _addCredit(_amount);
     }
 
-    function unstake(uint256 _amount) public requirePositiveBalance {
+    function unstake(uint256 _amount) public requirePositiveBalance onlyCommittee {
         _addDebit(_amount);
-        _collateralToken.transfer(_committee, _amount);
+        _transfer(_committee, _amount);
     }
 
      /* ========== Internal functions ========== */

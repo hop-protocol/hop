@@ -107,7 +107,6 @@ abstract contract Bridge is Accounting {
         require(_proof.verify(_transferRootHash, transferHash), "BRG: Invalid transfer proof");
         _addToAmountWithdrawn(_transferRootHash, _amount);
 
-        // ToDo: _withdraw
         _markTransferSpent(transferHash);
         _transferFromBridge(_recipient, _amount.sub(_relayerFee));
         _transferFromBridge(msg.sender, _relayerFee);
@@ -138,7 +137,6 @@ abstract contract Bridge is Accounting {
         _addDebit(_amount);
         _setBondedWithdrawalAmount(transferHash, _amount);
 
-        // ToDo: _withdraw
         _markTransferSpent(transferHash);
         _transferFromBridge(_recipient, _amount.sub(_relayerFee));
         _transferFromBridge(msg.sender, _relayerFee);

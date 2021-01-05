@@ -226,7 +226,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
         _markTransferSpent(transferHash);
 
         // distribute fee
-        _transfer(msg.sender, _relayerFee);
+        _transferFromBridge(msg.sender, _relayerFee);
 
         // Attempt swap to recipient
         uint256 amountAfterFee = _amount.sub(_relayerFee);
@@ -286,11 +286,11 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     /* ========== Override Functions ========== */
 
-    function _transfer(address _recipient, uint256 _amount) internal override {
+    function _transferFromBridge(address _recipient, uint256 _amount) internal override {
         _mint(_recipient, _amount);
     }
 
-    function _transferFrom(address _from, uint256 _amount) internal override {
+    function _transferToBridge(address _from, uint256 _amount) internal override {
         _burn(_from, _amount);
     }
 }

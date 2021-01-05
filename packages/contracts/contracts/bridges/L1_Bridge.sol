@@ -184,11 +184,11 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
 
     /* ========== Internal functions ========== */
 
-    function _transfer(address _recipient, uint256 _amount) internal override {
+    function _transferFromBridge(address _recipient, uint256 _amount) internal override {
         l1CanonicalToken.safeTransfer(_recipient, _amount);
     }
 
-    function _transferFrom(address _from, uint256 _amount) internal override {
+    function _transferToBridge(address _from, uint256 _amount) internal override {
         l1CanonicalToken.safeTransferFrom(_from, address(this), _amount);
     }
 

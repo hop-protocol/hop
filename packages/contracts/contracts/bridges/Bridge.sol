@@ -108,8 +108,8 @@ abstract contract Bridge is Accounting {
         _addToAmountWithdrawn(_transferRootHash, _amount);
         _markTransferSpent(transferHash);
 
-        _transfer(_recipient, _amount.sub(_relayerFee));
-        _transfer(msg.sender, _relayerFee);
+        _transferFromBridge(_recipient, _amount.sub(_relayerFee));
+        _transferFromBridge(msg.sender, _relayerFee);
     }
 
     function bondWithdrawal(
@@ -139,8 +139,8 @@ abstract contract Bridge is Accounting {
 
         _markTransferSpent(transferHash);
 
-        _transfer(_recipient, _amount.sub(_relayerFee));
-        _transfer(msg.sender, _relayerFee);
+        _transferFromBridge(_recipient, _amount.sub(_relayerFee));
+        _transferFromBridge(msg.sender, _relayerFee);
     }
 
     function settleBondedWithdrawal(

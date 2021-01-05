@@ -42,8 +42,8 @@ abstract contract Accounting {
 
      /* ========== Virtual functions ========== */
 
-    function _transfer(address _recipient, uint256 _amount) internal virtual;
-    function _transferFrom(address _from, uint256 _amount) internal virtual;
+    function _transferFromBridge(address _recipient, uint256 _amount) internal virtual;
+    function _transferToBridge(address _from, uint256 _amount) internal virtual;
 
     function _additionalDebit() internal view virtual returns (uint256) {
         this; // Silence state mutability warning without generating any additional byte code
@@ -67,13 +67,13 @@ abstract contract Accounting {
      /* ========== Committee public functions ========== */
 
     function stake(uint256 _amount) public {
-        _transferFrom(msg.sender, _amount);
+        _transferToBridge(msg.sender, _amount);
         _addCredit(_amount);
     }
 
     function unstake(uint256 _amount) public requirePositiveBalance onlyCommittee {
         _addDebit(_amount);
-        _transfer(_committee, _amount);
+        _transferFromBridge(_committee, _amount);
     }
 
      /* ========== Internal functions ========== */

@@ -21,8 +21,7 @@ abstract contract Bridge is Accounting {
 
     mapping(bytes32 => TransferRoot) private _transferRoots;
     mapping(bytes32 => bool) private _spentTransferHashes;
-    // ToDo: Make private
-    mapping(bytes32 => uint256) bondedWithdrawalAmounts;
+    mapping(bytes32 => uint256) private _bondedWithdrawalAmounts;
 
     constructor(address _committee) public Accounting(_committee) {}
 
@@ -75,6 +74,10 @@ abstract contract Bridge is Accounting {
 
     function getTransferRoot(bytes32 _rootHash) public view returns (TransferRoot memory) {
         return _transferRoots[_rootHash];
+    }
+
+    function getBondedWithdrawalAmount(bytes32 _rootHash) external view returns (uint256) {
+        return _bondedWithdrawalAmounts[_rootHash];
     }
 
      /* ========== User/relayer public functions ========== */
@@ -132,7 +135,7 @@ abstract contract Bridge is Accounting {
         );
 
         _addDebit(_amount);
-        bondedWithdrawalAmounts[transferHash] = _amount;
+        _bondedWithdrawalAmounts[transferHash] = _amount;
 
         _markTransferSpent(transferHash);
 
@@ -149,10 +152,10 @@ abstract contract Bridge is Accounting {
     {
         require(_proof.verify(_transferRootHash, _transferHash), "L2_BRG: Invalid transfer proof");
 
-        uint256 amount = bondedWithdrawalAmounts[_transferHash];
+        uint256 amount = _bondedWithdrawalAmounts[_transferHash];
         _addToAmountWithdrawn(_transferRootHash, amount);
 
-        bondedWithdrawalAmounts[_transferRootHash] = 0;
+        _bondedWithdrawalAmounts[_transferRootHash] = 0;
         _addCredit(amount);
     }
 
@@ -169,7 +172,6 @@ abstract contract Bridge is Accounting {
     )
         internal
     {
-
         TransferRoot storage transferRoot = _transferRoots[_transferRootHash];
 
         require(transferRoot.total > 0, "BRG: Transfer root not found");

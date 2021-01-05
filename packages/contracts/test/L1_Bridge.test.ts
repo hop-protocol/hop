@@ -17,7 +17,9 @@ import {
   LIQUIDITY_PROVIDER_INITIAL_BALANCE,
   COMMITTEE_INITIAL_BALANCE,
   CHALLENGER_INITIAL_BALANCE,
-  L2_NAMES
+  L2_NAMES,
+  DEFAULT_AMOUNT_OUT_MIN,
+  DEFAULT_DEADLINE
 } from './shared/constants'
 
 describe("L1_Bridge", () => {
@@ -66,10 +68,10 @@ describe("L1_Bridge", () => {
   /**
    * End to end tests
    */
+
   it('Should allow committee to deposit bond and then withdraw bond', async () => {
     await l1_poolToken.connect(committee).approve(l1_bridge.address, COMMITTEE_INITIAL_BALANCE)
     await l1_bridge.connect(committee).stake(COMMITTEE_INITIAL_BALANCE)
-
     await l1_bridge.connect(committee).unstake(COMMITTEE_INITIAL_BALANCE)
   })
 
@@ -91,5 +93,26 @@ describe("L1_Bridge", () => {
     await l1_bridge.connect(liquidityProvider).sendToL2(ARBITRUM_CHAIN_ID, await liquidityProvider.getAddress(), liquidityProviderBalance)
     await l2_messenger.relayNextMessage()
     await expectBalanceOf(l2_bridge, liquidityProvider, liquidityProviderBalance)
+  })
+
+  it('Should send tokens across the bridge and attempt to swap', async () => {
+    const liquidityProviderBalance: BigNumber = LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2)
+
+    await l1_poolToken.connect(liquidityProvider).approve(l1_bridge.address, liquidityProviderBalance)
+    await l1_bridge.connect(liquidityProvider).sendToL2AndAttemptSwap(
+      ARBITRUM_CHAIN_ID,
+      await liquidityProvider.getAddress(),
+      liquidityProviderBalance,
+      DEFAULT_AMOUNT_OUT_MIN,
+      DEFAULT_DEADLINE
+    )
+
+    let t = await l2_bridge.balanceOf(l2_bridge.address)
+    console.log('t', t)
+    await l2_messenger.relayNextMessage()
+    t = await l2_bridge.balanceOf(l2_bridge.address)
+    console.log('t', t)
+    
+    // await expectBalanceOf(l2_bridge, liquidityProvider, liquidityProviderBalance)
   })
 })

@@ -25,6 +25,9 @@ export const MAINNET_CHAIN_ID = BigNumber.from('1')
 export const OPTIMISM_CHAIN_ID = BigNumber.from('420')
 export const ARBITRUM_CHAIN_ID = BigNumber.from('152709604825713')
 
+export const DEFAULT_AMOUNT_OUT_MIN = 0
+export const DEFAULT_DEADLINE = 1999361987
+
 export interface IFixture {
   // Users
   accounts: Signer[]

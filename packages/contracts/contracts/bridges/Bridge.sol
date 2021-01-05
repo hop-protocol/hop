@@ -106,10 +106,7 @@ abstract contract Bridge is Accounting {
 
         require(_proof.verify(_transferRootHash, transferHash), "BRG: Invalid transfer proof");
         _addToAmountWithdrawn(_transferRootHash, _amount);
-
-        _markTransferSpent(transferHash);
-        _transferFromBridge(_recipient, _amount.sub(_relayerFee));
-        _transferFromBridge(msg.sender, _relayerFee);
+        _fulfillWithdraw(transferHash, _recipient, _amount, _relayerFee);
     }
 
     function bondWithdrawal(
@@ -136,10 +133,7 @@ abstract contract Bridge is Accounting {
 
         _addDebit(_amount);
         _setBondedWithdrawalAmount(transferHash, _amount);
-
-        _markTransferSpent(transferHash);
-        _transferFromBridge(_recipient, _amount.sub(_relayerFee));
-        _transferFromBridge(msg.sender, _relayerFee);
+        _fulfillWithdraw(transferHash, _recipient, _amount, _relayerFee);
     }
 
     function settleBondedWithdrawal(
@@ -159,6 +153,17 @@ abstract contract Bridge is Accounting {
     }
 
     /* ========== Internal functions ========== */
+
+    function _fulfillWithdraw(
+        bytes32 _transferHash,
+        address _recipient,
+        uint256 _amount,
+        uint256 _relayerFee
+    ) private {
+        _markTransferSpent(_transferHash);
+        _transferFromBridge(_recipient, _amount.sub(_relayerFee));
+        _transferFromBridge(msg.sender, _relayerFee);
+    }
 
     function _markTransferSpent(bytes32 _transferHash) internal {
         require(!_spentTransferHashes[_transferHash], "BRG: The transfer has already been withdrawn");

@@ -21,10 +21,11 @@ abstract contract Bridge is Accounting {
 
     mapping(bytes32 => TransferRoot) private _transferRoots;
     mapping(bytes32 => bool) private _spentTransferHashes;
+    mapping(bytes32 => uint256) private _bondedWithdrawalAmounts;
 
-    constructor(IERC20 _collateralToken, address _committee) public Accounting(_collateralToken, _committee) {}
+    constructor(address _committee) public Accounting(_committee) {}
 
-     /* ========== Public getters ========== */
+    /* ========== Public getters ========== */
 
     function getTransferHash(
         uint256 _chainId,
@@ -75,7 +76,11 @@ abstract contract Bridge is Accounting {
         return _transferRoots[_rootHash];
     }
 
-     /* ========== User/relayer public functions ========== */
+    function getBondedWithdrawalAmount(bytes32 _rootHash) external view returns (uint256) {
+        return _bondedWithdrawalAmounts[_rootHash];
+    }
+
+    /* ========== User/relayer public functions ========== */
 
     function withdraw(
         address _sender,
@@ -101,13 +106,64 @@ abstract contract Bridge is Accounting {
 
         require(_proof.verify(_transferRootHash, transferHash), "BRG: Invalid transfer proof");
         _addToAmountWithdrawn(_transferRootHash, _amount);
-        _markTransferSpent(transferHash);
-
-        _transfer(_recipient, _amount.sub(_relayerFee));
-        _transfer(msg.sender, _relayerFee);
+        _fulfillWithdraw(transferHash, _recipient, _amount, _relayerFee);
     }
 
-     /* ========== Internal functions ========== */
+    function bondWithdrawal(
+        address _sender,
+        address _recipient,
+        uint256 _amount,
+        uint256 _transferNonce,
+        uint256 _relayerFee
+    )
+        public
+        onlyCommittee
+        requirePositiveBalance
+    {
+        bytes32 transferHash = getTransferHash(
+            getChainId(),
+            _sender,
+            _recipient,
+            _amount,
+            _transferNonce,
+            _relayerFee,
+            0,
+            0
+        );
+
+        _addDebit(_amount);
+        _setBondedWithdrawalAmount(transferHash, _amount);
+        _fulfillWithdraw(transferHash, _recipient, _amount, _relayerFee);
+    }
+
+    function settleBondedWithdrawal(
+        bytes32 _transferHash,
+        bytes32 _transferRootHash,
+        bytes32[] memory _proof
+    )
+        public
+    {
+        require(_proof.verify(_transferRootHash, _transferHash), "L2_BRG: Invalid transfer proof");
+
+        uint256 amount = _bondedWithdrawalAmounts[_transferHash];
+        _addToAmountWithdrawn(_transferRootHash, amount);
+
+        _bondedWithdrawalAmounts[_transferRootHash] = 0;
+        _addCredit(amount);
+    }
+
+    /* ========== Internal functions ========== */
+
+    function _fulfillWithdraw(
+        bytes32 _transferHash,
+        address _recipient,
+        uint256 _amount,
+        uint256 _relayerFee
+    ) private {
+        _markTransferSpent(_transferHash);
+        _transferFromBridge(_recipient, _amount.sub(_relayerFee));
+        _transferFromBridge(msg.sender, _relayerFee);
+    }
 
     function _markTransferSpent(bytes32 _transferHash) internal {
         require(!_spentTransferHashes[_transferHash], "BRG: The transfer has already been withdrawn");
@@ -120,7 +176,6 @@ abstract contract Bridge is Accounting {
     )
         internal
     {
-
         TransferRoot storage transferRoot = _transferRoots[_transferRootHash];
 
         require(transferRoot.total > 0, "BRG: Transfer root not found");
@@ -132,5 +187,10 @@ abstract contract Bridge is Accounting {
     function _setTransferRoot(bytes32 _transferRootHash, uint256 _amount) internal {
         require(_transferRoots[_transferRootHash].total == 0, "BRG: Transfer root already set");
         _transferRoots[_transferRootHash] = TransferRoot(_amount, 0);
+    }
+
+    function _setBondedWithdrawalAmount(bytes32 _transferHash, uint256 _amount) internal {
+        require(_bondedWithdrawalAmounts[_transferHash] == 0, "BRG: Withdrawal has already been bonded");
+        _bondedWithdrawalAmounts[_transferHash] = _amount;
     }
 }

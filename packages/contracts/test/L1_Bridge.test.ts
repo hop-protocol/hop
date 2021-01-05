@@ -80,7 +80,7 @@ describe("L1_Bridge", () => {
    */
 
   it('Should set the collateral token address and the committee address in the constructor', async () => {
-    const collateralTokenAddress = await l1_bridge.getCollateralToken()
+    const collateralTokenAddress = await l1_bridge.l1CanonicalToken()
     const committeeAddress = await l1_bridge.getCommittee()
     expect(collateralTokenAddress).to.eq(l1_poolToken.address)
     expect(committeeAddress).to.eq(await committee.getAddress())

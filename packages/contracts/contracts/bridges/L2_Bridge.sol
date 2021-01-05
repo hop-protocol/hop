@@ -223,11 +223,43 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
         require(_proof.verify(_transferRootHash, transferHash), "L2_BRG: Invalid transfer proof");
         _addToAmountWithdrawn(_transferRootHash, _amount);
-        _markTransferSpent(transferHash);
 
+        _markTransferSpent(transferHash);
         // distribute fee
         _transferFromBridge(msg.sender, _relayerFee);
+        // Attempt swap to recipient
+        uint256 amountAfterFee = _amount.sub(_relayerFee);
+        _mintAndAttemptSwap(_recipient, amountAfterFee, _amountOutMin, _deadline);
+    }
 
+    function bondWithdrawalAndAttemptSwap(
+        address _sender,
+        address _recipient,
+        uint256 _amount,
+        uint256 _transferNonce,
+        uint256 _relayerFee,
+        uint256 _amountOutMin,
+        uint256 _deadline
+    )
+        public
+    {
+        bytes32 transferHash = getTransferHash(
+            getChainId(),
+            _sender,
+            _recipient,
+            _amount,
+            _transferNonce,
+            _relayerFee,
+            _amountOutMin,
+            _deadline
+        );
+
+        _addDebit(_amount);
+        _setBondedWithdrawalAmount(transferHash, _amount);
+
+        _markTransferSpent(transferHash);
+        // distribute fee
+        _transferFromBridge(msg.sender, _relayerFee);
         // Attempt swap to recipient
         uint256 amountAfterFee = _amount.sub(_relayerFee);
         _mintAndAttemptSwap(_recipient, amountAfterFee, _amountOutMin, _deadline);

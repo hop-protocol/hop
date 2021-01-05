@@ -25,7 +25,7 @@ abstract contract Bridge is Accounting {
 
     constructor(address _committee) public Accounting(_committee) {}
 
-     /* ========== Public getters ========== */
+    /* ========== Public getters ========== */
 
     function getTransferHash(
         uint256 _chainId,
@@ -80,7 +80,7 @@ abstract contract Bridge is Accounting {
         return _bondedWithdrawalAmounts[_rootHash];
     }
 
-     /* ========== User/relayer public functions ========== */
+    /* ========== User/relayer public functions ========== */
 
     function withdraw(
         address _sender,
@@ -106,8 +106,9 @@ abstract contract Bridge is Accounting {
 
         require(_proof.verify(_transferRootHash, transferHash), "BRG: Invalid transfer proof");
         _addToAmountWithdrawn(_transferRootHash, _amount);
-        _markTransferSpent(transferHash);
 
+        // ToDo: _withdraw
+        _markTransferSpent(transferHash);
         _transferFromBridge(_recipient, _amount.sub(_relayerFee));
         _transferFromBridge(msg.sender, _relayerFee);
     }
@@ -135,10 +136,10 @@ abstract contract Bridge is Accounting {
         );
 
         _addDebit(_amount);
-        _bondedWithdrawalAmounts[transferHash] = _amount;
+        _setBondedWithdrawalAmount(transferHash, _amount);
 
+        // ToDo: _withdraw
         _markTransferSpent(transferHash);
-
         _transferFromBridge(_recipient, _amount.sub(_relayerFee));
         _transferFromBridge(msg.sender, _relayerFee);
     }
@@ -159,7 +160,7 @@ abstract contract Bridge is Accounting {
         _addCredit(amount);
     }
 
-     /* ========== Internal functions ========== */
+    /* ========== Internal functions ========== */
 
     function _markTransferSpent(bytes32 _transferHash) internal {
         require(!_spentTransferHashes[_transferHash], "BRG: The transfer has already been withdrawn");
@@ -183,5 +184,10 @@ abstract contract Bridge is Accounting {
     function _setTransferRoot(bytes32 _transferRootHash, uint256 _amount) internal {
         require(_transferRoots[_transferRootHash].total == 0, "BRG: Transfer root already set");
         _transferRoots[_transferRootHash] = TransferRoot(_amount, 0);
+    }
+
+    function _setBondedWithdrawalAmount(bytes32 _transferHash, uint256 _amount) internal {
+        require(_bondedWithdrawalAmounts[_transferHash] == 0, "BRG: Withdrawal has already been bonded");
+        _bondedWithdrawalAmounts[_transferHash] = _amount;
     }
 }

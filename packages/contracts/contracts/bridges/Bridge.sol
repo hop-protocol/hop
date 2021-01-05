@@ -107,6 +107,53 @@ abstract contract Bridge is Accounting {
         _transfer(msg.sender, _relayerFee);
     }
 
+    function bondWithdrawal(
+        address _sender,
+        address _recipient,
+        uint256 _amount,
+        uint256 _transferNonce,
+        uint256 _relayerFee
+    )
+        public
+        onlyCommittee
+        requirePositiveBalance
+    {
+        bytes32 transferHash = getTransferHash(
+            getChainId(),
+            _sender,
+            _recipient,
+            _amount,
+            _transferNonce,
+            _relayerFee,
+            0,
+            0
+        );
+
+        _addDebit(_amount);
+        bondedWithdrawalAmounts[transferHash] = _amount;
+
+        _markTransferSpent(transferHash);
+
+        _transfer(_recipient, _amount.sub(_relayerFee));
+        _transfer(msg.sender, _relayerFee);
+    }
+
+    function settleBondedWithdrawal(
+        bytes32 _transferHash,
+        bytes32 _transferRootHash,
+        bytes32[] memory _proof
+    )
+        public
+    {
+        require(_proof.verify(_transferRootHash, _transferHash), "L2_BRG: Invalid transfer proof");
+
+        uint256 amount = bondedWithdrawalAmounts[_transferHash];
+        _addToAmountWithdrawn(_transferRootHash, amount);
+
+        bondedWithdrawalAmounts[_transferRootHash] = 0;
+        _addCredit(amount);
+    }
+
      /* ========== Internal functions ========== */
 
     function _markTransferSpent(bytes32 _transferHash) internal {

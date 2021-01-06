@@ -177,11 +177,12 @@ abstract contract Bridge is Accounting {
         internal
     {
         TransferRoot storage transferRoot = _transferRoots[_transferRootHash];
-
         require(transferRoot.total > 0, "BRG: Transfer root not found");
-        require(transferRoot.amountWithdrawn.add(_amount) <= transferRoot.total, "BRG: Withdrawal exceeds TransferRoot total");
 
-        transferRoot.amountWithdrawn = transferRoot.amountWithdrawn.add(_amount);
+        uint256 newAmountWithdrawn = transferRoot.amountWithdrawn.add(_amount);
+        require(newAmountWithdrawn <= transferRoot.total, "BRG: Withdrawal exceeds TransferRoot total");
+
+        transferRoot.amountWithdrawn = newAmountWithdrawn;
     }
 
     function _setTransferRoot(bytes32 _transferRootHash, uint256 _amount) internal {

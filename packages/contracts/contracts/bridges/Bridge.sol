@@ -187,6 +187,7 @@ abstract contract Bridge is Accounting {
 
     function _setTransferRoot(bytes32 _transferRootHash, uint256 _amount) internal {
         require(_transferRoots[_transferRootHash].total == 0, "BRG: Transfer root already set");
+        require(_amount > 0, "BRG: Cannot set TransferRoot amount of 0");
         _transferRoots[_transferRootHash] = TransferRoot(_amount, 0);
     }
 

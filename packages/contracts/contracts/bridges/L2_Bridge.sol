@@ -103,6 +103,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
+        require(_amount > 0, "L2_BRG: Must transfer a non-zero amount");
         require(_amount >= _relayerFee, "L2_BRG: Relayer fee cannot exceed amount");
         require(supportedChainIds[_chainId], "L2_BRG: _chainId is not supported");
 
@@ -163,6 +164,8 @@ abstract contract L2_Bridge is ERC20, Bridge {
     }
 
     function commitTransfers() public {
+        require(pendingTransfers.length > 0, "L2_BRG: Must commit at least 1 Transfer");
+
         bytes32 root = MerkleUtils.getMerkleRoot(pendingTransfers);
 
         uint256[] memory chainAmounts = new uint256[](pendingAmountChainIds.length);

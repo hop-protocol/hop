@@ -126,7 +126,8 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
                     _chainAmounts[i]
                 );
 
-                getCrossDomainMessenger(_chainIds[i]).sendCrossDomainMessage(setTransferRootMessage);
+                IMessengerWrapper messenger = getCrossDomainMessenger(_chainIds[i]);
+                messenger.sendCrossDomainMessage(setTransferRootMessage);
             }
         }
 

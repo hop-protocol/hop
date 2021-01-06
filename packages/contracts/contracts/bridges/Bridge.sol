@@ -154,17 +154,6 @@ abstract contract Bridge is Accounting {
 
     /* ========== Internal functions ========== */
 
-    function _fulfillWithdraw(
-        bytes32 _transferHash,
-        address _recipient,
-        uint256 _amount,
-        uint256 _relayerFee
-    ) private {
-        _markTransferSpent(_transferHash);
-        _transferFromBridge(_recipient, _amount.sub(_relayerFee));
-        _transferFromBridge(msg.sender, _relayerFee);
-    }
-
     function _markTransferSpent(bytes32 _transferHash) internal {
         require(!_spentTransferHashes[_transferHash], "BRG: The transfer has already been withdrawn");
         _spentTransferHashes[_transferHash] = true;
@@ -194,5 +183,18 @@ abstract contract Bridge is Accounting {
     function _setBondedWithdrawalAmount(bytes32 _transferHash, uint256 _amount) internal {
         require(_bondedWithdrawalAmounts[_transferHash] == 0, "BRG: Withdrawal has already been bonded");
         _bondedWithdrawalAmounts[_transferHash] = _amount;
+    }
+
+    /* ========== Private functions ========== */
+
+    function _fulfillWithdraw(
+        bytes32 _transferHash,
+        address _recipient,
+        uint256 _amount,
+        uint256 _relayerFee
+    ) private {
+        _markTransferSpent(_transferHash);
+        _transferFromBridge(_recipient, _amount.sub(_relayerFee));
+        _transferFromBridge(msg.sender, _relayerFee);
     }
 }

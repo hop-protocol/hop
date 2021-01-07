@@ -184,7 +184,6 @@ const ConvertContextProvider: FC = ({ children }) => {
           const tokenAddress = selectedToken
             .addressForNetwork(sourceNetwork)
             .toString()
-          const arbChainAddress = '0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71'
 
           tx = await txConfirm?.show({
             kind: 'convert',
@@ -200,7 +199,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             },
             onConfirm: async () => {
               return arbitrumL1Messenger?.depositERC20Message(
-                arbChainAddress,
+                addresses.arbChain,
                 tokenAddress,
                 address,
                 value

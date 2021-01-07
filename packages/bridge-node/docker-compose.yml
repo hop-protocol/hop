@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  arb-bot:
+    image: 874777227511.dkr.ecr.us-east-1.amazonaws.com/authereum/bridge-node:latest
+    command: arb-bot
+    env_file:
+      - bridgenode.env
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: us-east-1
+        awslogs-group: BridgeNodeKovan
+        awslogs-create-group: "true"
+
+  committee:
+    image: 874777227511.dkr.ecr.us-east-1.amazonaws.com/authereum/bridge-node:latest
+    command: committee
+    env_file:
+      - bridgenode.env
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: us-east-1
+        awslogs-group: BridgeNodeKovan
+        awslogs-create-group: "true"
+
+  challenger:
+    image: 874777227511.dkr.ecr.us-east-1.amazonaws.com/authereum/bridge-node:latest
+    command: challenger
+    env_file:
+      - bridgenode.env
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: us-east-1
+        awslogs-group: BridgeNodeKovan
+        awslogs-create-group: "true"
+
+  relayer:
+    image: 874777227511.dkr.ecr.us-east-1.amazonaws.com/authereum/bridge-node:latest
+    command: relayer
+    env_file:
+      - bridgenode.env
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: us-east-1
+        awslogs-group: BridgeNodeKovan
+        awslogs-create-group: "true"

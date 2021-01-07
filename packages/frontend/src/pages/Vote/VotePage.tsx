@@ -61,7 +61,7 @@ const useStyles = makeStyles(theme => ({
   },
   subtitle: {
     fontSize: '1.5rem',
-    opacity: '0.5',
+    opacity: '0.5'
   },
   statusAndVoteCardsContainer: {
     display: 'flex',
@@ -243,14 +243,17 @@ const VotePageChild: FC<VotePageProps> = props => {
           </Box>
         </Box>
 
-        {proposal && proposal.status === PROPOSAL_STATUSES.ACTIVE && !showVotingButtons && (
-          <Box className={styles.voteDelegationContainer}>
-            <Typography variant="subtitle1" className={styles.subtitle}>
-              Only HOP votes that were self delegated or delegated to another address before block{' '}
-              {proposal.startBlock} are eligible for voting.{' '}
-            </Typography>
-          </Box>
-        )}
+        {proposal &&
+          proposal.status === PROPOSAL_STATUSES.ACTIVE &&
+          !showVotingButtons && (
+            <Box className={styles.voteDelegationContainer}>
+              <Typography variant="subtitle1" className={styles.subtitle}>
+                Only HOP votes that were self delegated or delegated to another
+                address before block {proposal.startBlock} are eligible for
+                voting.{' '}
+              </Typography>
+            </Box>
+          )}
 
         <Typography variant="h6" className={styles.contentHeader}>
           Details

@@ -22,7 +22,7 @@ const useStyles = makeStyles(() => ({
     margin: 'initial'
   },
   editDelegateButtonStyle: {
-    marginTop: '1rem',
+    marginTop: '1rem'
   },
   pricesBox: {
     width: '51.6rem',
@@ -52,11 +52,7 @@ const VoteChild: FC<VoteProps> = props => {
   const { proposals } = props
   const styles = useStyles()
   const { contracts } = useApp()
-  const {
-    balance,
-    delegate,
-    humanReadableDelegate,
-  } = useVoteContext()
+  const { balance, delegate, humanReadableDelegate } = useVoteContext()
   const l1Hop = contracts?.l1Hop
 
   const [modalIsOpen, setModalIsOpen] = useState(false)
@@ -115,4 +111,4 @@ const Vote: FC<VoteProps> = props => {
   )
 }
 
-export default Vote 
+export default Vote

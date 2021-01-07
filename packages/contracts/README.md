@@ -71,7 +71,7 @@ On Hop, tokens are always converted along the following path. To convert DAI to 
                        |
 Canonical L1 Token <---|---> hToken <--(Uniswap)--> Canonical L2 Token
                        |
-``` 
+```
 
 e.g.
 

@@ -4,13 +4,13 @@ import React, {
   useContext,
   useState,
   useEffect,
-  useCallback,
+  useCallback
 } from 'react'
 import { formatUnits } from 'ethers/lib/utils'
 import useInterval from 'src/hooks/useInterval'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { ZERO_ADDRESS } from 'src/config/constants' 
+import { ZERO_ADDRESS } from 'src/config/constants'
 
 type VoteContextProps = {
   balance: string
@@ -52,8 +52,8 @@ export const VoteContextProvider: FC<{}> = ({ children }) => {
   const getDelegate = useCallback(() => {
     const _getDelegate = async () => {
       if (user && l1HopToken) {
-          const _delegate = await l1Hop?.delegates(address?.toString())
-          setDelegate(_delegate)
+        const _delegate = await l1Hop?.delegates(address?.toString())
+        setDelegate(_delegate)
       }
     }
 
@@ -84,13 +84,15 @@ export const VoteContextProvider: FC<{}> = ({ children }) => {
       )
     }
   }, [delegate])
-  
-  return(
-    <VoteContext.Provider value={{
-      balance,
-      delegate,
-      humanReadableDelegate
-    }}>
+
+  return (
+    <VoteContext.Provider
+      value={{
+        balance,
+        delegate,
+        humanReadableDelegate
+      }}
+    >
       {children}
     </VoteContext.Provider>
   )

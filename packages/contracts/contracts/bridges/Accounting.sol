@@ -19,7 +19,6 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
  * use more than its available stake.
  */
 
-
 abstract contract Accounting {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;

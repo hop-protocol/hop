@@ -9,6 +9,11 @@ import "../libraries/MerkleUtils.sol";
 import "../interfaces/IMessengerWrapper.sol";
 import "./L1_BridgeConfig.sol";
 
+/**
+ * @dev L1_Bridge is responsible for the bonding and challenging of TransferRoots. All TransferRoots
+ * originate in the L1_Bridge through `bondTransferRoot` and are propogated up to destination L2s.
+ */
+
 contract L1_Bridge is Bridge, L1_BridgeConfig {
 
     struct TransferBond {
@@ -84,12 +89,20 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
 
     /* ========== Public Transfer Root Functions ========== */
 
-    /// @dev Setting a TransferRoot is a two step process.
-    /// @dev   1. The TransferRoot is bonded with `bondTransferRoot`. Withdrawals can now begin on L1
-    /// @dev      and recipient L2's
-    /// @dev   2. The TransferRoot is confirmed after `confirmTransferRoot` is called by the l2 bridge
-    /// @dev      where the TransferRoot originated.
+    /**
+     * @dev Setting a TransferRoot is a two step process.
+     * @dev   1. The TransferRoot is bonded with `bondTransferRoot`. Withdrawals can now begin on L1
+     * @dev      and recipient L2's
+     * @dev   2. The TransferRoot is confirmed after `confirmTransferRoot` is called by the l2 bridge
+     * @dev      where the TransferRoot originated.
+     */
 
+    /**
+     * @dev Used by the committee to bond a TransferRoot and propogate it up to destination L2s
+     * @param _transferRootHash The Merkle root of the TransferRoot Merkle tree
+     * @param _chainIds The ids of the destination chains
+     * @param _chainAmounts The amounts desitned for each desitination chain
+     */
     function bondTransferRoot(
         bytes32 _transferRootHash,
         uint256[] memory _chainIds,
@@ -134,6 +147,12 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         emit TransferRootBonded(_transferRootHash, totalAmount);
     }
 
+    /**
+     * @dev Used by an L2 bridge to confirm a TransferRoot via cross-domain message. Once a TransferRoot
+     * has been confirmed, any challenge against that TransferRoot can be resolved as unsuccessful.
+     * @param _transferRootHash The Merkle root of the TransferRoot Merkle tree
+     * @param _amountHash The hash of the destination chainIds and amounts
+     */
     function confirmTransferRoot(bytes32 _transferRootHash, bytes32 _amountHash) public onlyL2Bridge {
         TransferBond storage transferBond = transferBonds[_transferRootHash];
         require(transferBond.amountHash == _amountHash, "L1_BRG: Amount hash is invalid");

@@ -27,6 +27,7 @@ export type HopContracts = {
   arbitrumUniswapFactory: Contract | undefined
   stakingRewardsFactory: Contract | undefined
   stakingRewards: Contract | undefined
+  arbitrumProvider: providers.Provider | providers.JsonRpcSigner | undefined
   governorAlpha: Contract | undefined
 }
 
@@ -161,7 +162,8 @@ const useContracts = (networks: Network[]): Contracts => {
     getErc20Contract,
     stakingRewardsFactory,
     stakingRewards,
-    governorAlpha
+    governorAlpha,
+    arbitrumProvider
   }
 }
 

@@ -66,6 +66,7 @@ const Approval = (props: Props) => {
             <Checkbox
               checked={approveAll}
               onChange={handleApproveAll}
+              disabled={amount === 'ALL'}
               color="primary"
             />
           }

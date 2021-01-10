@@ -6,6 +6,7 @@ import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
+import { UINT256 } from 'src/config/constants'
 
 type ConvertContextProps = {
   selectedToken: Token | undefined
@@ -161,8 +162,9 @@ const ConvertContextProvider: FC = ({ children }) => {
               amount,
               token
             },
-            onConfirm: async () => {
-              return contract?.approve(address, parsedAmount)
+            onConfirm: async (approveAll: boolean) => {
+              const approveAmount = approveAll ? UINT256 : parsedAmount
+              return contract?.approve(address, approveAmount)
             }
           })
         }
@@ -184,7 +186,6 @@ const ConvertContextProvider: FC = ({ children }) => {
           const tokenAddress = selectedToken
             .addressForNetwork(sourceNetwork)
             .toString()
-          const arbChainAddress = '0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71'
 
           tx = await txConfirm?.show({
             kind: 'convert',
@@ -200,7 +201,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             },
             onConfirm: async () => {
               return arbitrumL1Messenger?.depositERC20Message(
-                arbChainAddress,
+                addresses.arbChain,
                 tokenAddress,
                 address,
                 value

@@ -22,7 +22,6 @@ abstract contract L2_Bridge is ERC20, Bridge {
     bytes32[] public pendingTransfers;
     uint256[] public pendingAmountChainIds;
     mapping(uint256 => uint256) pendingAmountForChainId;
-    mapping(bytes32 => uint256) bondedWithdrawalAmounts;
 
     event TransfersCommitted (
         bytes32 root,
@@ -57,7 +56,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
         address _committee
     )
         public
-        Bridge(IERC20(this), _committee)
+        Bridge(_committee)
         ERC20("DAI Hop Token", "hDAI")
     {
         l1Governance = _l1Governance;
@@ -104,6 +103,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
+        require(_amount > 0, "L2_BRG: Must transfer a non-zero amount");
         require(_amount >= _relayerFee, "L2_BRG: Relayer fee cannot exceed amount");
         require(supportedChainIds[_chainId], "L2_BRG: _chainId is not supported");
 
@@ -164,6 +164,8 @@ abstract contract L2_Bridge is ERC20, Bridge {
     }
 
     function commitTransfers() public {
+        require(pendingTransfers.length > 0, "L2_BRG: Must commit at least 1 Transfer");
+
         bytes32 root = MerkleUtils.getMerkleRoot(pendingTransfers);
 
         uint256[] memory chainAmounts = new uint256[](pendingAmountChainIds.length);
@@ -224,14 +226,34 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
         require(_proof.verify(_transferRootHash, transferHash), "L2_BRG: Invalid transfer proof");
         _addToAmountWithdrawn(_transferRootHash, _amount);
-        _markTransferSpent(transferHash);
+        _withdrawAndAttemptSwap(transferHash, _recipient, _amount, _relayerFee, _amountOutMin, _deadline);
+    }
 
-        // distribute fee
-        _transfer(msg.sender, _relayerFee);
+    function bondWithdrawalAndAttemptSwap(
+        address _sender,
+        address _recipient,
+        uint256 _amount,
+        uint256 _transferNonce,
+        uint256 _relayerFee,
+        uint256 _amountOutMin,
+        uint256 _deadline
+    )
+        public
+    {
+        bytes32 transferHash = getTransferHash(
+            getChainId(),
+            _sender,
+            _recipient,
+            _amount,
+            _transferNonce,
+            _relayerFee,
+            _amountOutMin,
+            _deadline
+        );
 
-        // Attempt swap to recipient
-        uint256 amountAfterFee = _amount.sub(_relayerFee);
-        _mintAndAttemptSwap(_recipient, amountAfterFee, _amountOutMin, _deadline);
+        _addDebit(_amount);
+        _setBondedWithdrawalAmount(transferHash, _amount);
+        _withdrawAndAttemptSwap(transferHash, _recipient, _amount, _relayerFee, _amountOutMin, _deadline);
     }
 
     function approveHTokenExchangeTransfer() public onlyGovernance {
@@ -242,62 +264,11 @@ abstract contract L2_Bridge is ERC20, Bridge {
         l2CanonicalToken.approve(exchangeAddress, uint256(-1));
     }
 
-    /* ========== TransferRoots ========== */
-
     function setTransferRoot(bytes32 _rootHash, uint256 _amount) public onlyL1Bridge {
         _setTransferRoot(_rootHash, _amount);
     }
 
-    /* ========== Transfers ========== */
-
-    function bondWithdrawal(
-        address _sender,
-        address _recipient,
-        uint256 _amount,
-        uint256 _transferNonce,
-        uint256 _relayerFee
-    )
-        public
-        onlyCommittee
-        requirePositiveBalance
-    {
-        bytes32 transferHash = getTransferHash(
-            getChainId(),
-            _sender,
-            _recipient,
-            _amount,
-            _transferNonce,
-            _relayerFee,
-            0,
-            0
-        );
-
-        _addDebit(_amount);
-        bondedWithdrawalAmounts[transferHash] = _amount;
-
-        _markTransferSpent(transferHash);
-
-        _transfer(_recipient, _amount.sub(_relayerFee));
-        _transfer(msg.sender, _relayerFee);
-    }
-
-    function settleBondedWithdrawal(
-        bytes32 _transferHash,
-        bytes32 _transferRootHash,
-        bytes32[] memory _proof
-    )
-        public
-    {
-        require(_proof.verify(_transferRootHash, _transferHash), "L2_BRG: Invalid transfer proof");
-
-        uint256 amount = bondedWithdrawalAmounts[_transferHash];
-        _addToAmountWithdrawn(_transferRootHash, amount);
-
-        bondedWithdrawalAmounts[_transferRootHash] = 0;
-        _addCredit(amount);
-    }
-
-    /* ========== Internal Functions ========== */
+    /* ========== Helper Functions ========== */
 
     function _addToPendingAmount(uint256 _chainId, uint256 _amount) internal {
         if (pendingAmountForChainId[_chainId] == 0) {
@@ -305,10 +276,6 @@ abstract contract L2_Bridge is ERC20, Bridge {
         }
 
         pendingAmountForChainId[_chainId] = pendingAmountForChainId[_chainId].add(_amount);
-    }
-
-    function _transfer(address _recipient, uint256 _amount) internal override {
-        _mint(_recipient, _amount);
     }
 
     function _mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) internal {
@@ -326,6 +293,22 @@ abstract contract L2_Bridge is ERC20, Bridge {
         }
     }
 
+    function _withdrawAndAttemptSwap(
+        bytes32 _transferHash,
+        address _recipient,
+        uint256 _amount,
+        uint256 _relayerFee,
+        uint256 _amountOutMin,
+        uint256 _deadline
+    ) internal {
+        _markTransferSpent(_transferHash);
+        // distribute fee
+        _transferFromBridge(msg.sender, _relayerFee);
+        // Attempt swap to recipient
+        uint256 amountAfterFee = _amount.sub(_relayerFee);
+        _mintAndAttemptSwap(_recipient, amountAfterFee, _amountOutMin, _deadline);
+    }
+
     function _getHCPath() internal view returns (address[] memory) {
         address[] memory exchangePath = new address[](2);
         exchangePath[0] = address(this);
@@ -338,5 +321,15 @@ abstract contract L2_Bridge is ERC20, Bridge {
         exchangePath[0] = address(l2CanonicalToken);
         exchangePath[1] = address(this);
         return exchangePath;
+    }
+
+    /* ========== Override Functions ========== */
+
+    function _transferFromBridge(address _recipient, uint256 _amount) internal override {
+        _mint(_recipient, _amount);
+    }
+
+    function _transferToBridge(address _from, uint256 _amount) internal override {
+        _burn(_from, _amount);
     }
 }

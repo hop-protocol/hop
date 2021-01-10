@@ -198,7 +198,7 @@ const Web3ContextProvider: FC = ({ children }) => {
       subscriptions: {
         wallet: (wallet: any) => {
           localStorage.setItem(cacheKey, wallet.name)
-          setProvider(new ethers.providers.Web3Provider(wallet.provider))
+          setProvider(new ethers.providers.Web3Provider(wallet.provider, 'any'))
         },
         network: (connectedNetworkId: number) => {
           setConnectedNetworkId(connectedNetworkId.toString())

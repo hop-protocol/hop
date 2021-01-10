@@ -27,6 +27,7 @@ export type HopContracts = {
   arbitrumUniswapFactory: Contract | undefined
   stakingRewardsFactory: Contract | undefined
   stakingRewards: Contract | undefined
+  arbitrumProvider: providers.Provider | providers.JsonRpcSigner | undefined
   governorAlpha: Contract | undefined
 }
 
@@ -35,116 +36,119 @@ export interface Contracts extends HopContracts {
 }
 
 const useContracts = (networks: Network[]): Contracts => {
-  const { provider } = useWeb3Context()
+  const { provider, connectedNetworkId } = useWeb3Context()
+  const arbitrumProvider = useMemo(() => {
+    const arbitrumNetwork = networks.find(
+      (network: Network) => network.slug === 'arbitrum'
+    )
+    if (connectedNetworkId === arbitrumNetwork?.networkId) {
+      return provider?.getSigner()
+    }
+
+    return arbitrumNetwork?.provider
+  }, [networks, connectedNetworkId, provider])
+  const kovanProvider = useMemo(() => {
+    const kovanNetwork = networks.find(
+      (network: Network) => network.slug === 'kovan'
+    )
+    if (connectedNetworkId === kovanNetwork?.networkId) {
+      return provider?.getSigner()
+    }
+
+    return kovanNetwork?.provider
+  }, [networks, connectedNetworkId, provider])
+
+  const getContract = (
+    address: string,
+    abi: any[],
+    provider: Signer | providers.Provider | undefined
+  ): Contract | undefined => {
+    if (!provider) return
+    return new Contract(address, abi, provider)
+  }
 
   const getErc20Contract = (
     address: string,
     provider: Signer | providers.Provider
   ): Contract => {
-    return new Contract(address, erc20Artifact.abi, provider)
+    return getContract(address, erc20Artifact.abi, provider) as Contract
   }
 
   const l1Hop = useMemo(() => {
-    return provider
-      ? new Contract(addresses.l1Hop, hopArtifact.abi, provider.getSigner())
-      : undefined
-  }, [provider])
+    return getContract(addresses.l1Hop, hopArtifact.abi, kovanProvider)
+  }, [kovanProvider])
 
   const l1Dai = useMemo(() => {
-    return provider
-      ? new Contract(addresses.l1Dai, erc20Artifact.abi, provider.getSigner())
-      : undefined
-  }, [provider])
+    return getContract(addresses.l1Dai, erc20Artifact.abi, kovanProvider)
+  }, [kovanProvider])
 
   const l1Bridge = useMemo(() => {
-    return provider
-      ? new Contract(
-          addresses.l1Bridge,
-          l1BridgeArtifact.abi,
-          provider.getSigner()
-        )
-      : undefined
-  }, [provider])
+    return getContract(addresses.l1Bridge, l1BridgeArtifact.abi, kovanProvider)
+  }, [kovanProvider])
 
   const arbitrumDai = useMemo(() => {
-    return provider
-      ? new Contract(
-          addresses.arbitrumDai,
-          arbErc20Artifact.abi,
-          provider.getSigner()
-        )
-      : undefined
-  }, [provider])
+    return getContract(
+      addresses.arbitrumDai,
+      arbErc20Artifact.abi,
+      arbitrumProvider
+    )
+  }, [arbitrumProvider])
 
   const arbitrumBridge = useMemo(() => {
-    return provider
-      ? new Contract(
-          addresses.arbitrumBridge,
-          l2BridgeArtifact.abi,
-          provider.getSigner()
-        )
-      : undefined
-  }, [provider])
+    return getContract(
+      addresses.arbitrumBridge,
+      l2BridgeArtifact.abi,
+      arbitrumProvider
+    )
+  }, [arbitrumProvider])
 
   const arbitrumL1Messenger = useMemo(() => {
-    return provider
-      ? new Contract(
-          addresses.l1Messenger,
-          l1ArbitrumMessengerArtifact.abi,
-          provider.getSigner()
-        )
-      : undefined
-  }, [provider])
+    return getContract(
+      addresses.l1Messenger,
+      l1ArbitrumMessengerArtifact.abi,
+      kovanProvider
+    )
+  }, [kovanProvider])
 
   const arbitrumUniswapRouter = useMemo(() => {
-    return provider
-      ? new Contract(
-          addresses.arbitrumUniswapRouter,
-          uniswapRouterArtifact.abi,
-          provider.getSigner()
-        )
-      : undefined
-  }, [provider])
+    return getContract(
+      addresses.arbitrumUniswapRouter,
+      uniswapRouterArtifact.abi,
+      arbitrumProvider
+    )
+  }, [arbitrumProvider])
 
   const arbitrumUniswapFactory = useMemo(() => {
-    return provider
-      ? new Contract(
-          addresses.arbitrumUniswapFactory,
-          uniswapFactoryArtifact.abi,
-          provider.getSigner()
-        )
-      : undefined
-  }, [provider])
+    return getContract(
+      addresses.arbitrumUniswapFactory,
+      uniswapFactoryArtifact.abi,
+      arbitrumProvider
+    )
+  }, [arbitrumProvider])
 
   const stakingRewardsFactory = useMemo(() => {
-    return provider
-      ? new Contract(
-          addresses.stakingRewardsFactory,
-          stakingRewardsFactoryArtifact.abi,
-          provider.getSigner()
-        )
-      : undefined
-  }, [provider])
+    return getContract(
+      addresses.stakingRewardsFactory,
+      stakingRewardsFactoryArtifact.abi,
+      kovanProvider
+    )
+  }, [kovanProvider])
 
   const stakingRewards = useMemo(() => {
-    return provider
-      ? new Contract(
-          addresses.stakingRewards,
-          stakingRewardsArtifact.abi,
-          provider.getSigner()
-        )
-      : undefined
-  }, [provider])
+    return getContract(
+      addresses.stakingRewards,
+      stakingRewardsArtifact.abi,
+      kovanProvider
+    )
+  }, [kovanProvider])
 
   const governorAlpha = useMemo(() => {
-    return provider
-      ? new Contract(
-          addresses.governorAlpha,
-          governorAlphaArtifact.abi,
-          provider.getSigner()
-        )
-      : undefined
-  }, [provider])
+    return getContract(
+      addresses.governorAlpha,
+      governorAlphaArtifact.abi,
+      kovanProvider
+    )
+  }, [kovanProvider])
 
   return {
     l1Hop,
@@ -158,7 +162,8 @@ const useContracts = (networks: Network[]): Contracts => {
     getErc20Contract,
     stakingRewardsFactory,
     stakingRewards,
-    governorAlpha
+    governorAlpha,
+    arbitrumProvider
   }
 }
 

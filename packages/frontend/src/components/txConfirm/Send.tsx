@@ -39,7 +39,7 @@ const Send = (props: Props) => {
   const handleSubmit = async () => {
     try {
       setSending(true)
-      await onConfirm(true)
+      onConfirm(true)
     } catch (err) {
       console.log(err)
     }

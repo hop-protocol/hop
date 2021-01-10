@@ -58,3 +58,5 @@ export const ETHERSCAN_PREFIXES: { [networkId in NetworkId]: string } = {
 
 export const STAKING_GENESIS = 1600387200 // TODO: Update with real data
 export const REWARDS_DURATION_DAYS = 60
+export const UINT256 =
+  '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'

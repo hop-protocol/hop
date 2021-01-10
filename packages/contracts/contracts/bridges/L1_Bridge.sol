@@ -21,6 +21,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
 
     /* ========== State ========== */
 
+    IERC20 public l1CanonicalToken;
     mapping(bytes32 => TransferBond) transferBonds;
     mapping(uint256 => uint256) public timeSlotToAmountBonded;
     uint256 public amountChallenged;
@@ -41,7 +42,9 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         _;
     }
 
-    constructor (IERC20 canonicalToken_, address committee_) public Bridge(canonicalToken_, committee_) {}
+    constructor (IERC20 _l1CanonicalToken, address committee_) public Bridge(committee_) {
+        l1CanonicalToken = _l1CanonicalToken;
+    }
 
     /* ========== Public Transfers Functions ========== */
 
@@ -54,7 +57,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
     {
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
 
-        getCollateralToken().safeTransferFrom(msg.sender, address(this), _amount);
+        l1CanonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
         getCrossDomainMessenger(_chainId).sendCrossDomainMessage(mintCalldata);
     }
 
@@ -76,7 +79,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         );
 
         getCrossDomainMessenger(_chainId).sendCrossDomainMessage(mintAndAttemptSwapCalldata);
-        getCollateralToken().safeTransferFrom(msg.sender, address(this), _amount);
+        l1CanonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
     }
 
     /* ========== Public Transfer Root Functions ========== */
@@ -123,7 +126,8 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
                     _chainAmounts[i]
                 );
 
-                getCrossDomainMessenger(_chainIds[i]).sendCrossDomainMessage(setTransferRootMessage);
+                IMessengerWrapper messenger = getCrossDomainMessenger(_chainIds[i]);
+                messenger.sendCrossDomainMessage(setTransferRootMessage);
             }
         }
 
@@ -146,7 +150,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
 
         // Get stake for challenge
         uint256 challengeStakeAmount = getChallengeAmountForTransferAmount(transferRoot.total);
-        getCollateralToken().transferFrom(msg.sender, address(this), challengeStakeAmount);
+        l1CanonicalToken.transferFrom(msg.sender, address(this), challengeStakeAmount);
 
         transferBond.challengeStartTime = now;
         transferBond.challenger = msg.sender;
@@ -175,14 +179,18 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         } else {
             // Valid challenge
             // Reward challenger with their stake times two
-            getCollateralToken().transfer(transferBond.challenger, challengeStakeAmount.mul(2));
+            l1CanonicalToken.transfer(transferBond.challenger, challengeStakeAmount.mul(2));
         }
     }
 
     /* ========== Internal functions ========== */
 
-    function _transfer(address _recipient, uint256 _amount) internal override {
-        getCollateralToken().safeTransfer(_recipient, _amount);
+    function _transferFromBridge(address _recipient, uint256 _amount) internal override {
+        l1CanonicalToken.safeTransfer(_recipient, _amount);
+    }
+
+    function _transferToBridge(address _from, uint256 _amount) internal override {
+        l1CanonicalToken.safeTransferFrom(_from, address(this), _amount);
     }
 
     function _additionalDebit() internal view override returns (uint256) {

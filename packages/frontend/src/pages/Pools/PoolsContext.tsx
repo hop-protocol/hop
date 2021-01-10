@@ -18,6 +18,7 @@ import Token from 'src/models/Token'
 import Address from 'src/models/Address'
 import Price from 'src/models/Price'
 import { addresses } from 'src/config'
+import { UINT256 } from 'src/config/constants'
 import useInterval from 'src/hooks/useInterval'
 
 type PoolsContextProps = {
@@ -160,7 +161,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         ),
         0
       )
-      setPoolSharePercentage(sharePercentage.toString())
+      setPoolSharePercentage((sharePercentage || '0').toString())
     } else {
       setPoolSharePercentage('0')
     }
@@ -188,7 +189,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       const pair = new Contract(
         pairAddress,
         uniswapV2PairArtifact.abi,
-        provider
+        contracts?.arbitrumProvider
       )
 
       const decimals = await pair.decimals()
@@ -283,8 +284,8 @@ const PoolsContextProvider: FC = ({ children }) => {
           amount,
           token
         },
-        onConfirm: async () => {
-          return contract?.approve(address, parsedAmount)
+        onConfirm: async (approveAll: boolean) => {
+          return contract?.approve(address, approveAll ? UINT256 : parsedAmount)
         }
       })
     }

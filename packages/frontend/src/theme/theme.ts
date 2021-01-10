@@ -52,19 +52,19 @@ export const palette = {
   },
   secondary: {
     main: 'rgba(70, 82, 92)',
-    light: 'rgba(70, 82, 92, 0.2)',
+    light: 'rgba(70, 82, 92, 0.2)'
   },
   success: {
     main: 'rgba(0, 167, 47)',
-    light: 'rgba(0, 167, 47, 0.2)',
+    light: 'rgba(0, 167, 47, 0.2)'
   },
   error: {
     main: 'rgba(197, 6, 2)',
-    light: 'rgba(197, 6, 2, 0.12)',
+    light: 'rgba(197, 6, 2, 0.12)'
   },
   info: {
     main: 'rgba(33, 114, 229)',
-    light: 'rgba(33, 114, 229, 0.12)',
+    light: 'rgba(33, 114, 229, 0.12)'
   },
   text: {
     primary: '#051524',

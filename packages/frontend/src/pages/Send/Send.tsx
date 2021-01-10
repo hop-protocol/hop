@@ -8,11 +8,20 @@ import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
 import SendButton from 'src/pages/Send/SendButton'
-import { parseEther, formatEther, parseUnits } from 'ethers/lib/utils'
+import { Contract } from 'ethers'
+import {
+  parseEther,
+  parseUnits,
+  formatEther,
+  formatUnits
+} from 'ethers/lib/utils'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
+import { addresses } from 'src/config'
+import { UINT256 } from 'src/config/constants'
+import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 
 const useStyles = makeStyles(() => ({
   sendSelect: {
@@ -44,6 +53,7 @@ const Send: FC = () => {
   const l1Bridge = contracts?.l1Bridge
   const arbitrumBridge = contracts?.arbitrumBridge
   const arbitrumUniswapRouter = contracts?.arbitrumUniswapRouter
+  const arbitrumUniswapFactory = contracts?.arbitrumUniswapFactory
 
   const {
     provider,
@@ -59,22 +69,68 @@ const Send: FC = () => {
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
   const [isFromLastChanged, setIsFromLastChanged] = useState<boolean>(true)
   const [sending, setSending] = useState<boolean>(false)
-  const exchangeRate = useMemo(() => {
-    if (!fromNetwork || !toNetwork) {
-      return '-'
+  let [daiRate, setDaiRate] = useState<number>(0)
+  let [hopDaiRate, setHopDaiRate] = useState<number>(0)
+  const [fromRate, setFromRate] = useState<number>(0)
+  const [toRate, setToRate] = useState<number>(0)
+  const [exchangeRate, setExchangeRate] = useState<number>(0)
+
+  const getRate = async (network: Network): Promise<number> => {
+    if (!network) return 0
+    if (network.slug === 'kovan') {
+      return 1
+    }
+    const hopDai = addresses.arbitrumBridge
+    const dai = addresses.l1Dai
+    const path = [dai, hopDai]
+    const pairAddress = await arbitrumUniswapFactory?.getPair(...path)
+    const pair = new Contract(
+      pairAddress,
+      uniswapV2PairArtifact.abi,
+      contracts?.arbitrumProvider
+    )
+
+    const decimals = await pair.decimals()
+    const reserves = await pair.getReserves()
+    const reserve0 = formatUnits(reserves[0].toString(), decimals)
+    const reserve1 = formatUnits(reserves[1].toString(), decimals)
+    const amount0 = parseUnits('1', decimals)
+    const amount1 = await arbitrumUniswapRouter?.quote(
+      amount0,
+      parseUnits(reserve0, decimals),
+      parseUnits(reserve1, decimals)
+    )
+    const formattedAmountB = formatUnits(amount1, decimals)
+    return Number(formattedAmountB) // token1Rate
+  }
+
+  useEffect(() => {
+    const update = async () => {
+      if (!fromNetwork) return
+      if (!toNetwork) return
+
+      if (!daiRate) {
+        daiRate = await getRate(networks[0])
+        setDaiRate(daiRate)
+      }
+      if (!hopDaiRate) {
+        hopDaiRate = await getRate(networks[1])
+        setHopDaiRate(hopDaiRate)
+      }
+
+      if (fromNetwork.slug === 'kovan') {
+        setFromRate(daiRate)
+        setToRate(hopDaiRate)
+        setExchangeRate((1 * hopDaiRate) / daiRate)
+      } else {
+        setFromRate(hopDaiRate)
+        setToRate(daiRate)
+        setExchangeRate((1 * daiRate) / hopDaiRate)
+      }
     }
 
-    let rate
-    try {
-      rate = formatEther(
-        parseEther('1')
-          .mul(selectedToken.rateForNetwork(toNetwork))
-          .div(selectedToken.rateForNetwork(fromNetwork))
-      )
-    } catch (err) {}
-
-    return rate || '-'
-  }, [toNetwork, fromNetwork, selectedToken])
+    update()
+  }, [fromNetwork, toNetwork])
 
   const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value
@@ -101,41 +157,21 @@ const Send: FC = () => {
 
   // Control toTokenAmount when fromTokenAmount was edited last
   useEffect(() => {
-    if (isFromLastChanged) {
-      try {
-        const toAmount = parseEther(fromTokenAmount)
-          .mul(selectedToken.rateForNetwork(toNetwork))
-          .div(selectedToken.rateForNetwork(fromNetwork))
-        setToTokenAmount(formatEther(toAmount))
-      } catch (err) {}
-    }
-  }, [
-    isFromLastChanged,
-    fromNetwork,
-    toNetwork,
-    selectedToken,
-    fromTokenAmount,
-    setToTokenAmount
-  ])
+    if (!toRate) return
+    if (!fromRate) return
+    if (!isFromLastChanged) return
+    const toAmount = ((Number(fromTokenAmount) * toRate) / fromRate).toFixed(2)
+    setToTokenAmount(toAmount)
+  }, [isFromLastChanged, toRate, fromRate, fromTokenAmount, setToTokenAmount])
 
   // Control fromTokenAmount when toTokenAmount was edited last
   useEffect(() => {
-    if (!isFromLastChanged) {
-      try {
-        const fromAmount = parseEther(toTokenAmount)
-          .mul(selectedToken.rateForNetwork(fromNetwork))
-          .div(selectedToken.rateForNetwork(toNetwork))
-        setFromTokenAmount(formatEther(fromAmount))
-      } catch (err) {}
-    }
-  }, [
-    isFromLastChanged,
-    fromNetwork,
-    toNetwork,
-    selectedToken,
-    toTokenAmount,
-    setFromTokenAmount
-  ])
+    if (!toRate) return
+    if (!fromRate) return
+    if (isFromLastChanged) return
+    const fromAmount = ((Number(toTokenAmount) * fromRate) / toRate).toFixed(2)
+    setFromTokenAmount(fromAmount)
+  }, [isFromLastChanged, toRate, fromRate, toTokenAmount, setFromTokenAmount])
 
   const approve = async (amount: string) => {
     const signer = user?.signer()
@@ -166,10 +202,7 @@ const Send: FC = () => {
             token: selectedToken
           },
           onConfirm: async () => {
-            return tokenContract.approve(
-              l1Bridge?.address,
-              '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
-            )
+            return tokenContract.approve(l1Bridge?.address, UINT256)
           }
         })
       }
@@ -190,7 +223,7 @@ const Send: FC = () => {
             // ToDo: Get uniswap contract based on from network
             return tokenContract.approve(
               arbitrumUniswapRouter?.address,
-              '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+              UINT256
             )
           }
         })
@@ -244,11 +277,13 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
+        const deadline = (Date.now() / 1000 + 5 * 60) | 0
         return l1Bridge.sendToL2AndAttemptSwap(
           arbitrumNetwork.key(),
           await signer.getAddress(),
           parseEther(fromTokenAmount),
-          '0'
+          '0',
+          deadline
         )
       }
     })
@@ -266,7 +301,7 @@ const Send: FC = () => {
     // )
   }
 
-  const validFormFields = !!(fromTokenAmount && toTokenAmount)
+  const validFormFields = !!(fromTokenAmount && toTokenAmount && exchangeRate)
 
   let buttonText = 'Send'
   if (!walletConnected) {
@@ -305,13 +340,11 @@ const Send: FC = () => {
           setFromTokenAmount(event.target.value)
           setIsFromLastChanged(true)
 
-          try {
-            const fromAmount = parseEther(event.target.value)
-            const toAmount = fromAmount
-              .mul(selectedToken.rateForNetwork(toNetwork))
-              .div(selectedToken.rateForNetwork(fromNetwork))
-            setToTokenAmount(formatEther(toAmount))
-          } catch (e) {}
+          if (toRate && fromRate) {
+            const fromAmount = Number(event.target.value)
+            const toAmount = ((fromAmount * toRate) / fromRate).toFixed(2)
+            setToTokenAmount(toAmount)
+          }
         }}
         selectedNetwork={fromNetwork}
         networkOptions={networks}
@@ -339,13 +372,11 @@ const Send: FC = () => {
           setToTokenAmount(event.target.value)
           setIsFromLastChanged(false)
 
-          try {
-            const toAmount = parseEther(event.target.value)
-            const fromAmount = toAmount
-              .mul(selectedToken.rateForNetwork(fromNetwork))
-              .div(selectedToken.rateForNetwork(toNetwork))
-            setFromTokenAmount(formatEther(fromAmount))
-          } catch (e) {}
+          if (toRate && fromRate) {
+            const toAmount = Number(event.target.value)
+            const fromAmount = ((toAmount * fromRate) / toRate).toFixed(2)
+            setFromTokenAmount(fromAmount)
+          }
         }}
         selectedNetwork={toNetwork}
         networkOptions={networks}
@@ -363,7 +394,7 @@ const Send: FC = () => {
           Rate
         </Typography>
         <Typography variant="subtitle2" color="textSecondary">
-          {exchangeRate}
+          {exchangeRate === 0 ? '-' : exchangeRate}
         </Typography>
       </Box>
       <SendButton sending={sending} disabled={!validFormFields} onClick={send}>

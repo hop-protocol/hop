@@ -31,8 +31,8 @@ describe("Integration", () => {
   let MockERC20: ContractFactory
   let L1_MessengerWrapper: ContractFactory
   let CrossDomainMessenger: ContractFactory
-  let L1_OVMTokenBridge: ContractFactory
-  let L2_OVMTokenBridge: ContractFactory
+  let L1_MockTokenBridge: ContractFactory
+  let L2_MockTokenBridge: ContractFactory
   let UniswapRouter: ContractFactory
   let UniswapFactory: ContractFactory
 
@@ -63,8 +63,8 @@ describe("Integration", () => {
     L2_Bridge = await ethers.getContractFactory('contracts/test/Mock_L2_OptimismBridge.sol:Mock_L2_OptimismBridge')
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
     CrossDomainMessenger = await ethers.getContractFactory('contracts/test/mockOVM_CrossDomainMessenger.sol:mockOVM_CrossDomainMessenger')
-    L1_OVMTokenBridge = await ethers.getContractFactory('contracts/test/L1_OVMTokenBridge.sol:L1_OVMTokenBridge')
-    L2_OVMTokenBridge = await ethers.getContractFactory('contracts/test/L2_OVMTokenBridge.sol:L2_OVMTokenBridge')
+    L1_MockTokenBridge = await ethers.getContractFactory('contracts/test/L1_MockTokenBridge.sol:L1_MockTokenBridge')
+    L2_MockTokenBridge = await ethers.getContractFactory('contracts/test/L2_MockTokenBridge.sol:L2_MockTokenBridge')
     UniswapRouter = await ethers.getContractFactory('contracts/uniswap/UniswapV2Router02.sol:UniswapV2Router02')
     UniswapFactory = await ethers.getContractFactory('@uniswap/v2-core/contracts/UniswapV2Factory.sol:UniswapV2Factory')
   })
@@ -74,12 +74,12 @@ describe("Integration", () => {
     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
     l1_messenger = await CrossDomainMessenger.deploy(0)
     l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await committee.getAddress())
-    l1_ovmBridge = await L1_OVMTokenBridge.deploy(l1_messenger.address, l1_poolToken.address)
+    l1_ovmBridge = await L1_MockTokenBridge.deploy(l1_messenger.address, l1_poolToken.address)
     l1_messengerWrapper = await L1_MessengerWrapper.deploy()
 
     // Deploy  L2 contracts
     l2_messenger = await CrossDomainMessenger.deploy(0)
-    l2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_messenger.address)
+    l2_ovmBridge = await L2_MockTokenBridge.deploy(l2_messenger.address)
     l2_bridge = await L2_Bridge.deploy(
       OPTIMISM_CHAIN_ID,
       l2_messenger.address,

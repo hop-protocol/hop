@@ -15,9 +15,8 @@ export const COMMITTEE_INITIAL_BALANCE = BigNumber.from('1000000')
 export const CHALLENGER_INITIAL_BALANCE = BigNumber.from('10')
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
-export const MOCK_ADDRESS = '0x0000000000000000000000000000000000001234'
 export const ARB_CHAIN_ADDRESS = '0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71'
-export const DEFAULT_L2_GAS_LIMIT = 2000000
+export const DEFAULT_L2_GAS_LIMIT = 8000000
 
 export const RELAYER_FEE = BigNumber.from('1000000000000000000')
 
@@ -41,23 +40,21 @@ export interface IFixture {
   L2_Bridge: ContractFactory
   MockERC20: ContractFactory
   L1_MessengerWrapper: ContractFactory
-  MockMessenger: ContractFactory
-  CrossDomainMessenger: ContractFactory
-  L1_OVMTokenBridge: ContractFactory
-  L2_OVMTokenBridge: ContractFactory
+  L1_Messenger: ContractFactory
+  L2_Messenger: ContractFactory
   UniswapRouter: ContractFactory
   UniswapFactory: ContractFactory
 
   // L1
-  l1_poolToken: Contract
+  l1_canonicalToken: Contract
   l1_messenger: Contract
-  l1_messengerWrapper: Contract
   l1_bridge: Contract
+  l1_messengerWrapper: Contract
   
   // L2
+  l2_canonicalToken: Contract
   l2_messenger: Contract
   l2_bridge: Contract
-  l2_poolToken: Contract
   l2_uniswapFactory: Contract
   l2_uniswapRouter: Contract
 

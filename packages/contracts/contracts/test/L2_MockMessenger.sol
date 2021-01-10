@@ -42,11 +42,7 @@ contract L2_MockMessenger is ERC20 {
         );
     }
 
-    address public aaa;
-    bytes public bbb;
     function relayNextMessage() public {
-        aaa = nextMessage.target;
-        bbb = nextMessage.message;
         nextMessage.target.call(nextMessage.message);
     }
 

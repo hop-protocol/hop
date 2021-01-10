@@ -24,7 +24,6 @@ import {
 
 describe("L1_Bridge", () => {
   let user: Signer
-  let liquidityProvider: Signer
   let committee: Signer
   let l1_canonicalToken: Contract
   let l1_bridge: Contract
@@ -37,7 +36,6 @@ describe("L1_Bridge", () => {
   beforeEach(async () => {
     _fixture = await fixture()
     user = _fixture.user
-    liquidityProvider = _fixture.liquidityProvider
     committee = _fixture.committee
     l1_canonicalToken = _fixture.l1_canonicalToken
     l1_bridge = _fixture.l1_bridge
@@ -101,19 +99,18 @@ describe("L1_Bridge", () => {
     await expectBalanceOf(l2_bridge, user, tokenAmount)
   })
 
-  it('Should send tokens across the bridge and attempt to swap', async () => {
-    const liquidityProviderBalance: BigNumber = LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2)
-
-    await l1_canonicalToken.connect(liquidityProvider).approve(l1_bridge.address, liquidityProviderBalance)
-    await l1_bridge.connect(liquidityProvider).sendToL2AndAttemptSwap(
+  it.only('Should send tokens across the bridge and attempt to swap', async () => {
+    const tokenAmount = USER_INITIAL_BALANCE
+    await l1_canonicalToken.connect(user).approve(l1_bridge.address, tokenAmount)
+    await l1_bridge.connect(user).sendToL2AndAttemptSwap(
       ARBITRUM_CHAIN_ID,
-      await liquidityProvider.getAddress(),
-      liquidityProviderBalance,
+      await user.getAddress(),
+      tokenAmount,
       DEFAULT_AMOUNT_OUT_MIN,
       DEFAULT_DEADLINE
     )
-
     await l2_messenger.relayNextMessage()
-    await expectBalanceOf(l2_canonicalToken, liquidityProvider, liquidityProviderBalance)
+
+    await expectBalanceOf(l2_canonicalToken, user, tokenAmount)
   })
 })

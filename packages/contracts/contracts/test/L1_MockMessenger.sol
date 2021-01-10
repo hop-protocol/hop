@@ -71,9 +71,15 @@ contract L1_MockMessenger {
             decodedTarget := mload(add(decodedTargetBytes,20))
         }
 
+        uint256 mintLength;
         uint256 mintStart = 129;
-        uint256 mintLength = 68; // mint = 136 / 2
-        // uint256 mintLength = 132; // mint = 264 / 2
+        uint256 expectedMintMessageLength = 197;
+        if (_message.length == expectedMintMessageLength) {
+            mintLength = 68; // mint(address,uint256) = 136/2
+        } else {
+            mintLength = 132; // mintAndAttemptSwap(address,uint256,uint256,uint256) = 264/2
+        }
+
         bytes memory decodedMessage = _message.slice(mintStart, mintLength);
 
         return (decodedTarget, decodedMessage);

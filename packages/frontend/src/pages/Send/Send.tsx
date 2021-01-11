@@ -4,6 +4,7 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import MenuItem from '@material-ui/core/MenuItem'
 import MuiButton from '@material-ui/core/Button'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
@@ -72,6 +73,7 @@ const Send: FC = () => {
   const [sending, setSending] = useState<boolean>(false)
   let [daiRate, setDaiRate] = useState<number>(0)
   let [hopDaiRate, setHopDaiRate] = useState<number>(0)
+  const [fetchingRate, setFetchingRate] = useState<boolean>(false)
   const [fromRate, setFromRate] = useState<number>(0)
   const [toRate, setToRate] = useState<number>(0)
   const [exchangeRate, setExchangeRate] = useState<number>(0)
@@ -109,6 +111,9 @@ const Send: FC = () => {
     const update = async () => {
       if (!fromNetwork) return
       if (!toNetwork) return
+      if (!fetchingRate) {
+        setFetchingRate(true)
+      }
 
       if (!daiRate) {
         daiRate = await getRate(networks[0])
@@ -128,6 +133,7 @@ const Send: FC = () => {
         setToRate(daiRate)
         setExchangeRate((1 * daiRate) / hopDaiRate)
       }
+      setFetchingRate(false)
     }
 
     update()
@@ -415,7 +421,13 @@ const Send: FC = () => {
           Rate
         </Typography>
         <Typography variant="subtitle2" color="textSecondary">
-          {exchangeRate === 0 ? '-' : exchangeRate}
+          {fetchingRate ? (
+            <CircularProgress size={12} />
+          ) : exchangeRate === 0 ? (
+            '-'
+          ) : (
+            exchangeRate.toFixed(2)
+          )}
         </Typography>
       </Box>
       <SendButton sending={sending} disabled={!validFormFields} onClick={send}>

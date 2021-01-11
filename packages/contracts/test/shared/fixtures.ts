@@ -78,6 +78,7 @@ export async function fixture(): Promise<IFixture> {
     liquidityProvider,
     committee,
     challenger,
+    governance,
     L1_Bridge,
     L2_Bridge,
     MockERC20,

@@ -31,6 +31,10 @@ describe("L1_Bridge", () => {
   let l2_bridge: Contract
   let l2_messenger: Contract
 
+  let liquidityProvider: Signer
+  let l2_uniswapRouter: Contract
+  let l1_messenger: Contract
+
   let _fixture: IFixture
 
   beforeEach(async () => {
@@ -42,6 +46,10 @@ describe("L1_Bridge", () => {
     l2_canonicalToken = _fixture.l2_canonicalToken
     l2_bridge = _fixture.l2_bridge
     l2_messenger = _fixture.l2_messenger
+
+    liquidityProvider = _fixture.liquidityProvider
+    l2_uniswapRouter = _fixture.l2_uniswapRouter
+    l1_messenger = _fixture.l1_messenger
 
     const setUpL1AndL2BridgesOpts = {
       messengerWrapperChainId: ARBITRUM_CHAIN_ID
@@ -111,6 +119,7 @@ describe("L1_Bridge", () => {
     )
     await l2_messenger.relayNextMessage()
 
-    await expectBalanceOf(l2_canonicalToken, user, tokenAmount)
+    const amountAfterSlippage = tokenAmount.sub(1)
+    await expectBalanceOf(l2_canonicalToken, user, amountAfterSlippage)
   })
 })

@@ -10,6 +10,7 @@ import { IFixture } from './constants'
 
 export const setUpL1AndL2Bridges = async (fixture: IFixture, opts: any) => {
   const {
+    governance,
     l1_bridge,
     l1_messengerWrapper,
     l2_bridge,
@@ -26,6 +27,8 @@ export const setUpL1AndL2Bridges = async (fixture: IFixture, opts: any) => {
   // Set up L2
   await l2_bridge.setL1BridgeAddress(l1_bridge.address)
   await l2_bridge.setExchangeAddress(l2_uniswapRouter.address)
+  await l2_bridge.connect(governance).approveHTokenExchangeTransfer()
+  await l2_bridge.connect(governance).approveCanonicalTokenExchangeTransfer()
 }
 
 export const setUpL1AndL2Messengers = async (fixture: IFixture) => {
@@ -87,6 +90,7 @@ export const setUpL2UniswapMarket = async (fixture: IFixture, opts: any) => {
     liquidityProvider,
     l2_uniswapRouter,
     l2_uniswapFactory,
+    l2_canonicalToken
   } = fixture
 
   const {
@@ -96,9 +100,9 @@ export const setUpL2UniswapMarket = async (fixture: IFixture, opts: any) => {
 
   // liquidityProvider moves funds across the messenger
   await l1_canonicalToken.connect(liquidityProvider).approve(l1_messenger.address, liquidityProviderBalance)
-  await l1_messenger.connect(liquidityProvider).xDomainTransfer(await liquidityProvider.getAddress(), liquidityProviderBalance, l2_messenger.address)
+  await l1_messenger.connect(liquidityProvider).xDomainTransfer(await liquidityProvider.getAddress(), liquidityProviderBalance, l2_canonicalToken.address)
   await l2_messenger.relayNextMessage()
-  await expectBalanceOf(l2_messenger, liquidityProvider, liquidityProviderBalance)
+  await expectBalanceOf(l2_canonicalToken, liquidityProvider, liquidityProviderBalance)
 
   // liquidityProvider moves funds across the liquidity bridge
   await l1_canonicalToken.connect(liquidityProvider).approve(l1_bridge.address, liquidityProviderBalance)
@@ -107,10 +111,10 @@ export const setUpL2UniswapMarket = async (fixture: IFixture, opts: any) => {
   await expectBalanceOf(l2_bridge, liquidityProvider, liquidityProviderBalance)
 
   // liquidityProvider adds liquidity to the pool on L2
-  await l2_messenger.connect(liquidityProvider).approve(l2_uniswapRouter.address, liquidityProviderBalance)
+  await l2_canonicalToken.connect(liquidityProvider).approve(l2_uniswapRouter.address, liquidityProviderBalance)
   await l2_bridge.connect(liquidityProvider).approve(l2_uniswapRouter.address, liquidityProviderBalance)
   await l2_uniswapRouter.connect(liquidityProvider).addLiquidity(
-    l2_messenger.address,
+    l2_canonicalToken.address,
     l2_bridge.address,
     liquidityProviderBalance,
     liquidityProviderBalance,
@@ -119,13 +123,13 @@ export const setUpL2UniswapMarket = async (fixture: IFixture, opts: any) => {
     await liquidityProvider.getAddress(),
     '999999999999'
   )
-  await expectBalanceOf(l2_messenger, liquidityProvider, '0')
+  await expectBalanceOf(l2_canonicalToken, liquidityProvider, '0')
   await expectBalanceOf(l2_bridge, liquidityProvider, '0')
 
-  const uniswapPairAddress: string = await l2_uniswapFactory.getPair(l2_messenger.address, l2_bridge.address)
+  const uniswapPairAddress: string = await l2_uniswapFactory.getPair(l2_canonicalToken.address, l2_bridge.address)
   const uniswapPair = await ethers.getContractAt('@uniswap/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', uniswapPairAddress)
   await expectBalanceOf(uniswapPair, liquidityProvider, '499000')
-  await expectBalanceOf(l2_messenger, uniswapPair, liquidityProviderBalance)
+  await expectBalanceOf(l2_canonicalToken, uniswapPair, liquidityProviderBalance)
   await expectBalanceOf(l2_bridge, uniswapPair, liquidityProviderBalance)
 }
 

@@ -33,8 +33,8 @@ describe("Transfers", () => {
   let MockERC20: ContractFactory
   let L1_MessengerWrapper: ContractFactory
   let CrossDomainMessenger: ContractFactory
-  let L1_OVMTokenBridge: ContractFactory
-  let L2_OVMTokenBridge: ContractFactory
+  let L1_MockTokenBridge: ContractFactory
+  let L2_MockTokenBridge: ContractFactory
   let UniswapRouter: ContractFactory
   let UniswapFactory: ContractFactory
 
@@ -77,8 +77,8 @@ describe("Transfers", () => {
     L2_Bridge = await ethers.getContractFactory('contracts/test/Mock_L2_OptimismBridge.sol:Mock_L2_OptimismBridge')
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
     CrossDomainMessenger = await ethers.getContractFactory('contracts/test/mockOVM_CrossDomainMessenger.sol:mockOVM_CrossDomainMessenger')
-    L1_OVMTokenBridge = await ethers.getContractFactory('contracts/test/L1_OVMTokenBridge.sol:L1_OVMTokenBridge')
-    L2_OVMTokenBridge = await ethers.getContractFactory('contracts/test/L2_OVMTokenBridge.sol:L2_OVMTokenBridge')
+    L1_MockTokenBridge = await ethers.getContractFactory('contracts/test/L1_MockTokenBridge.sol:L1_MockTokenBridge')
+    L2_MockTokenBridge = await ethers.getContractFactory('contracts/test/L2_MockTokenBridge.sol:L2_MockTokenBridge')
     // UniswapRouter = await ethers.getContractFactory('@uniswap/v2-periphery/contracts/UniswapV2Router02.sol:UniswapV2Router02')
     UniswapRouter = await ethers.getContractFactory('contracts/uniswap/UniswapV2Router02.sol:UniswapV2Router02')
     UniswapFactory = await ethers.getContractFactory('@uniswap/v2-core/contracts/UniswapV2Factory.sol:UniswapV2Factory')
@@ -93,12 +93,12 @@ describe("Transfers", () => {
   
     // Optimism 1
     l1_ovm1_messenger = await CrossDomainMessenger.deploy(0)
-    l1_ovm1_ovmBridge = await L1_OVMTokenBridge.deploy(l1_ovm1_messenger.address, l1_poolToken.address)
+    l1_ovm1_ovmBridge = await L1_MockTokenBridge.deploy(l1_ovm1_messenger.address, l1_poolToken.address)
     l1_ovm1_messengerWrapper = await L1_MessengerWrapper.deploy()
 
     // Optimism 2
     l1_ovm2_messenger = await CrossDomainMessenger.deploy(0)
-    l1_ovm2_ovmBridge = await L1_OVMTokenBridge.deploy(l1_ovm2_messenger.address, l1_poolToken.address)
+    l1_ovm2_ovmBridge = await L1_MockTokenBridge.deploy(l1_ovm2_messenger.address, l1_poolToken.address)
     l1_ovm2_messengerWrapper = await L1_MessengerWrapper.deploy()
 
     /**
@@ -107,7 +107,7 @@ describe("Transfers", () => {
 
     // Deploy  L2 contracts
     l2_ovm1_messenger = await CrossDomainMessenger.deploy(0)
-    l2_ovm1_ovmBridge = await L2_OVMTokenBridge.deploy(l2_ovm1_messenger.address)
+    l2_ovm1_ovmBridge = await L2_MockTokenBridge.deploy(l2_ovm1_messenger.address)
     l2_ovm1_bridge = await L2_Bridge.deploy(
       OPTIMISM_1_CHAIN_ID,
       l2_ovm1_messenger.address,
@@ -133,7 +133,7 @@ describe("Transfers", () => {
      */
 
     l2_ovm2_messenger = await CrossDomainMessenger.deploy(0)
-    l2_ovm2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_ovm2_messenger.address)
+    l2_ovm2_ovmBridge = await L2_MockTokenBridge.deploy(l2_ovm2_messenger.address)
     l2_ovm2_bridge = await L2_Bridge.deploy(
       OPTIMISM_2_CHAIN_ID,
       l2_ovm2_messenger.address,

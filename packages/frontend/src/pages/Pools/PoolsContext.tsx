@@ -19,6 +19,7 @@ import Address from 'src/models/Address'
 import Price from 'src/models/Price'
 import { addresses } from 'src/config'
 import { UINT256 } from 'src/config/constants'
+import Transaction from 'src/models/Transaction'
 import useInterval from 'src/hooks/useInterval'
 
 type PoolsContextProps = {
@@ -94,7 +95,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   >('')
   const [token0Deposited, setToken0Deposited] = useState<string>('')
   const [token1Deposited, setToken1Deposited] = useState<string>('')
-  let { networks, tokens, contracts, txConfirm } = useApp()
+  let { networks, tokens, contracts, txConfirm, txHistory } = useApp()
   const {
     address,
     provider,
@@ -137,6 +138,20 @@ const PoolsContextProvider: FC = ({ children }) => {
     setRequiredNetworkId(selectedNetwork?.networkId)
     return connectedNetworkId === selectedNetwork?.networkId
   }
+
+  useEffect(() => {
+    if (Number(token0Price) && Number(token0Amount) && !Number(token1Amount)) {
+      const token1Value = Number(token0Amount) * Number(token1Rate)
+      setToken1Amount(token1Value.toFixed(2))
+    }
+  }, [token0Price, token0Amount, token1Amount])
+
+  useEffect(() => {
+    if (Number(token1Price) && Number(token1Amount) && !Number(token0Amount)) {
+      const token0Value = Number(token1Amount) / Number(token1Rate)
+      setToken0Amount(token0Value.toFixed(2))
+    }
+  }, [token1Price, token0Amount, token1Amount])
 
   const updatePrices = useCallback(async () => {
     if (!totalSupply) return
@@ -303,9 +318,25 @@ const PoolsContextProvider: FC = ({ children }) => {
 
       setSending(true)
       let tx = await approveTokens(selectedToken, token0Amount, selectedNetwork)
+      if (tx?.hash && selectedNetwork) {
+        txHistory?.addTransaction(
+          new Transaction({
+            hash: tx?.hash,
+            networkName: selectedNetwork?.slug
+          })
+        )
+      }
       await tx?.wait()
       setTxHash(tx?.hash)
       tx = await approveTokens(hopToken as Token, token1Amount, selectedNetwork)
+      if (tx?.hash && selectedNetwork) {
+        txHistory?.addTransaction(
+          new Transaction({
+            hash: tx?.hash,
+            networkName: selectedNetwork?.slug
+          })
+        )
+      }
       setTxHash(tx?.hash)
       await tx?.wait()
 
@@ -351,6 +382,14 @@ const PoolsContextProvider: FC = ({ children }) => {
       })
 
       setTxHash(tx?.hash)
+      if (tx?.hash && selectedNetwork) {
+        txHistory?.addTransaction(
+          new Transaction({
+            hash: tx?.hash,
+            networkName: selectedNetwork?.slug
+          })
+        )
+      }
       await tx?.wait()
     } catch (err) {
       console.error(err)

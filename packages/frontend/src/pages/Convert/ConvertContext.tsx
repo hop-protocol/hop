@@ -179,6 +179,14 @@ const ConvertContextProvider: FC = ({ children }) => {
         sourceTokenAmount,
         sourceNetwork as Network
       )
+      if (tx?.hash && sourceNetwork) {
+        app?.txHistory?.addTransaction(
+          new Transaction({
+            hash: tx?.hash,
+            networkName: sourceNetwork?.slug
+          })
+        )
+      }
       await tx?.wait()
 
       if (sourceNetwork?.slug === 'kovan') {

@@ -8,6 +8,7 @@ import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
 import SendButton from 'src/pages/Send/SendButton'
+import Transaction from 'src/models/Transaction'
 import { Contract } from 'ethers'
 import {
   parseEther,
@@ -49,7 +50,7 @@ const useStyles = makeStyles(() => ({
 const Send: FC = () => {
   const styles = useStyles()
 
-  const { user, tokens, networks, contracts, txConfirm } = useApp()
+  const { user, tokens, networks, contracts, txConfirm, txHistory } = useApp()
   const l1Bridge = contracts?.l1Bridge
   const arbitrumBridge = contracts?.arbitrumBridge
   const arbitrumUniswapRouter = contracts?.arbitrumUniswapRouter
@@ -188,6 +189,7 @@ const Send: FC = () => {
       .contractForNetwork(fromNetwork)
       .connect(signer)
 
+    let tx: any
     if (fromNetwork.isLayer1) {
       const approved = await tokenContract.allowance(
         await signer?.getAddress(),
@@ -195,7 +197,7 @@ const Send: FC = () => {
       )
       const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
       if (approved.lt(parsedAmount)) {
-        return txConfirm?.show({
+        tx = txConfirm?.show({
           kind: 'approval',
           inputProps: {
             amount: 'ALL',
@@ -213,7 +215,7 @@ const Send: FC = () => {
       )
       const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
       if (approved.lt(parsedAmount)) {
-        return txConfirm?.show({
+        tx = txConfirm?.show({
           kind: 'approval',
           inputProps: {
             amount: 'ALL',
@@ -228,6 +230,15 @@ const Send: FC = () => {
           }
         })
       }
+    }
+
+    if (tx?.hash && fromNetwork) {
+      txHistory?.addTransaction(
+        new Transaction({
+          hash: tx?.hash,
+          networkName: fromNetwork?.slug
+        })
+      )
     }
   }
 
@@ -251,6 +262,7 @@ const Send: FC = () => {
         console.log('ToDo: L2 to L2 transfers')
       }
     } catch (err) {
+      alert(err.message)
       console.error(err)
     }
     setSending(false)
@@ -263,8 +275,7 @@ const Send: FC = () => {
     }
 
     const arbitrumNetwork = networks[1]
-
-    return txConfirm?.show({
+    const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
         source: {
@@ -287,6 +298,15 @@ const Send: FC = () => {
         )
       }
     })
+
+    if (tx?.hash && fromNetwork) {
+      txHistory?.addTransaction(
+        new Transaction({
+          hash: tx?.hash,
+          networkName: fromNetwork?.slug
+        })
+      )
+    }
   }
 
   const sendl2ToL1 = async () => {
@@ -295,6 +315,7 @@ const Send: FC = () => {
       throw new Error('Cannot send: l1Bridge or signer does not exist.')
     }
 
+    alert('not implemented')
     // ToDo: Hook up to swapAndSendToMainnet
     // const arbitrumNetwork = networks[1]
     // await arbitrumBridge.swapAndSendToMainnet(

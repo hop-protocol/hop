@@ -111,8 +111,10 @@ const Pools: FC = () => {
     }
 
     setToken0Amount(token0Value)
-    const token1Value = Number(token0Value) * Number(token1Rate)
-    setToken1Amount(token1Value.toFixed(2))
+    if (token1Rate) {
+      const token1Value = Number(token0Value) * Number(token1Rate)
+      setToken1Amount(token1Value.toFixed(2))
+    }
   }
 
   const handleToken1Change = async (event: ChangeEvent<{ value: unknown }>) => {
@@ -124,8 +126,10 @@ const Pools: FC = () => {
     }
 
     setToken1Amount(token1Value)
-    const token0Value = Number(token1Value) / Number(token1Rate)
-    setToken0Amount(token0Value.toFixed(2))
+    if (token1Rate) {
+      const token0Value = Number(token1Value) / Number(token1Rate)
+      setToken0Amount(token0Value.toFixed(2))
+    }
   }
 
   return (

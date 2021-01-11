@@ -257,7 +257,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     }
 
     function approveHTokenExchangeTransfer() public onlyGovernance {
-        approve(exchangeAddress, uint256(-1));
+        _approve(address(this), exchangeAddress, uint256(-1));
     }
 
     function approveCanonicalTokenExchangeTransfer() public onlyGovernance {

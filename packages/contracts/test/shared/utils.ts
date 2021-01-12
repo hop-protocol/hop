@@ -27,8 +27,6 @@ export const setUpL1AndL2Bridges = async (fixture: IFixture, opts: any) => {
   // Set up L2
   await l2_bridge.setL1BridgeAddress(l1_bridge.address)
   await l2_bridge.setExchangeAddress(l2_uniswapRouter.address)
-  await l2_bridge.connect(governance).approveHTokenExchangeTransfer()
-  await l2_bridge.connect(governance).approveCanonicalTokenExchangeTransfer()
 }
 
 export const setUpL1AndL2Messengers = async (fixture: IFixture) => {

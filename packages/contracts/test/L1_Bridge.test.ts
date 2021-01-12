@@ -99,7 +99,7 @@ describe("L1_Bridge", () => {
     await expectBalanceOf(l2_bridge, user, tokenAmount)
   })
 
-  it('Should send tokens across the bridge and attempt to swap', async () => {
+  it('Should send tokens across the bridge and swap', async () => {
     const tokenAmount = USER_INITIAL_BALANCE
     await l1_canonicalToken.connect(user).approve(l1_bridge.address, tokenAmount)
     await l1_bridge.connect(user).sendToL2AndAttemptSwap(

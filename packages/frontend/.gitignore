@@ -27,3 +27,6 @@ yarn.lock
 .node-version
 .nvmrc
 .prettierignore
+
+# Local Netlify folder
+.netlify

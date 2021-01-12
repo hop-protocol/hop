@@ -13,7 +13,8 @@ import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
 import FlatTabs from 'src/components/tabs/FlatTabs'
 import ConvertContext from 'src/pages/Convert/ConvertContext'
-import ConvertViaBridge from 'src/pages/Convert/ConvertViaBridge'
+import ConvertViaHopBridge from 'src/pages/Convert/ConvertViaHopBridge'
+import ConvertViaL2Bridge from 'src/pages/Convert/ConvertViaL2Bridge'
 import ConvertViaUniswap from 'src/pages/Convert/ConvertViaUniswap'
 
 const useStyles = makeStyles(() => ({
@@ -51,16 +52,24 @@ const Convert: FC = () => {
           value={lastPathname}
           onChange={handleTabChange}
           tabs={[
-            { label: 'via Bridge', value: '/bridge' },
+            { label: 'via Hop Bridge', value: '/hop' },
+            { label: 'via Canonical Bridge', value: '/bridge' },
             { label: 'via Uniswap', value: '/uniswap' }
           ]}
         />
       </Grid>
       <Switch>
+        <Route path={`${path}/hop`}>
+          <div className={styles.box}>
+            <ConvertContext>
+              <ConvertViaHopBridge />
+            </ConvertContext>
+          </div>
+        </Route>
         <Route path={`${path}/bridge`}>
           <div className={styles.box}>
             <ConvertContext>
-              <ConvertViaBridge />
+              <ConvertViaL2Bridge />
             </ConvertContext>
           </div>
         </Route>

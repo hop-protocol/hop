@@ -51,7 +51,15 @@ const useStyles = makeStyles(() => ({
 const Send: FC = () => {
   const styles = useStyles()
 
-  const { user, tokens, networks, contracts, txConfirm, txHistory } = useApp()
+  const {
+    user,
+    tokens: allTokens,
+    networks,
+    contracts,
+    txConfirm,
+    txHistory
+  } = useApp()
+  const tokens = allTokens.filter((token: Token) => token.symbol === 'DAI')
   const l1Bridge = contracts?.l1Bridge
   const arbitrumBridge = contracts?.arbitrumBridge
   const arbitrumUniswapRouter = contracts?.arbitrumUniswapRouter
@@ -294,13 +302,13 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
-        const deadline = (Date.now() / 1000 + 5 * 60) | 0
+        //const deadline = (Date.now() / 1000 + 5 * 60) | 0
         return l1Bridge.sendToL2AndAttemptSwap(
           arbitrumNetwork.key(),
           await signer.getAddress(),
           parseEther(fromTokenAmount),
-          '0',
-          deadline
+          '0'
+          //deadline
         )
       }
     })

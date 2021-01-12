@@ -34,6 +34,7 @@ export interface IFixture {
   liquidityProvider: Signer
   committee: Signer
   challenger: Signer
+  governance: Signer
 
   // Factories
   L1_Bridge: ContractFactory

@@ -3,14 +3,14 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/IL1_OptimismMessenger.sol";
+import "../interfaces/optimism/messengers/iOVM_L1CrossDomainMessenger.sol";
 
 contract Optimism {
-    IL1_OptimismMessenger public l1MessengerAddress;
+    iOVM_L1CrossDomainMessenger public l1MessengerAddress;
     address public l2BridgeAddress;
     uint256 public defaultGasLimit;
 
-    function setL1MessengerAddress(IL1_OptimismMessenger _l1MessengerAddress) public {
+    function setL1MessengerAddress(iOVM_L1CrossDomainMessenger _l1MessengerAddress) public {
         l1MessengerAddress = _l1MessengerAddress;
     }
 

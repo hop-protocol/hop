@@ -3,14 +3,14 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/IL2_ArbitrumMessenger.sol";
+import "../interfaces/arbitrum/messengers/IGlobalInbox.sol";
 import "./L2_Bridge.sol";
 
 contract L2_ArbitrumBridge is L2_Bridge {
-    IL2_ArbitrumMessenger public messenger;
+    IGlobalInbox public messenger;
 
     constructor (
-        IL2_ArbitrumMessenger _messenger,
+        IGlobalInbox _messenger,
         address _l1Governance,
         IERC20 _canonicalToken,
         address _l1BridgeAddress,

@@ -6,7 +6,7 @@ import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
-import { UINT256 } from 'src/config/constants'
+import { UINT256, ARBITRUM_MESSENGER_ID } from 'src/config/constants'
 
 type ConvertContextProps = {
   selectedToken: Token | undefined
@@ -53,6 +53,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const arbitrumDai = contracts?.arbitrumDai
   const arbitrumUniswapRouter = contracts?.arbitrumUniswapRouter
   const arbitrumL1Messenger = contracts?.arbitrumL1Messenger
+  const l1Bridge = contracts?.l1Bridge
   const networks = useMemo(() => {
     const kovanNetwork = nets.find(
       (network: Network) => network.slug === 'kovan'
@@ -216,6 +217,27 @@ const ConvertContextProvider: FC = ({ children }) => {
               )
             }
           })
+        } else if (destNetwork?.slug === 'arbitrumHopBridge') {
+          const tokenAddress = selectedToken
+            .addressForNetwork(sourceNetwork)
+            .toString()
+
+          tx = await txConfirm?.show({
+            kind: 'convert',
+            inputProps: {
+              source: {
+                amount: sourceTokenAmount,
+                token: selectedToken
+              },
+              dest: {
+                amount: destTokenAmount,
+                token: selectedToken
+              }
+            },
+            onConfirm: async () => {
+              return l1Bridge?.sendToL2(ARBITRUM_MESSENGER_ID, address, value)
+            }
+          })
         }
       } else if (sourceNetwork?.slug === 'arbitrum') {
         if (destNetwork?.slug === 'kovan') {
@@ -296,6 +318,8 @@ const ConvertContextProvider: FC = ({ children }) => {
               )
             }
           })
+        } else if (destNetwork?.slug === 'kovan') {
+          alert('not implemented')
         }
       }
 

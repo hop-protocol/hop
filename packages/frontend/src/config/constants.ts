@@ -60,3 +60,6 @@ export const STAKING_GENESIS = 1600387200 // TODO: Update with real data
 export const REWARDS_DURATION_DAYS = 60
 export const UINT256 =
   '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+
+export const ARBITRUM_MESSENGER_ID =
+  '0x9186606d55c571b43a756333453d90ab5653c483deb4980cda697bfa36fba5de'

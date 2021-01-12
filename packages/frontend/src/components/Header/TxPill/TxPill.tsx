@@ -4,6 +4,7 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import Button from 'src/components/buttons/Button'
 import { useApp } from 'src/contexts/AppContext'
 import Transaction from 'src/models/Transaction'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -21,6 +22,7 @@ const useStyles = makeStyles(() => ({
 const TxPill = () => {
   const app = useApp()
   const { accountDetails } = app
+  const { address } = useWeb3Context()
   const transactions = app?.txHistory?.transactions
   const styles = useStyles()
 
@@ -39,11 +41,11 @@ const TxPill = () => {
           {pendingTxs.length} Pending{' '}
           <CircularProgress size={18} className={styles.spinner} />
         </Button>
-      ) : transactions?.length ? (
-        <Button className={styles.button} flat onClick={handleClick}>
-          Recent transactions
+      ) : (
+        <Button flat onClick={handleClick}>
+          {address?.truncate()}
         </Button>
-      ) : null}
+      )}
     </div>
   )
 }

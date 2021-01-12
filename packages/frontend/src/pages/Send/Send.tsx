@@ -294,13 +294,13 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
-        const deadline = (Date.now() / 1000 + 5 * 60) | 0
+        //const deadline = (Date.now() / 1000 + 5 * 60) | 0
         return l1Bridge.sendToL2AndAttemptSwap(
           arbitrumNetwork.key(),
           await signer.getAddress(),
           parseEther(fromTokenAmount),
-          '0',
-          deadline
+          '0'
+          //deadline
         )
       }
     })

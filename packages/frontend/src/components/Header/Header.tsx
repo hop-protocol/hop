@@ -39,11 +39,8 @@ const Header: FC = () => {
         flex={1}
         justifyContent="flex-end"
       >
-        <TxPill />
         {address ? (
-          <Button flat onClick={requestWallet}>
-            {address?.truncate()}
-          </Button>
+          <TxPill />
         ) : (
           <Button highlighted onClick={requestWallet}>
             Connect a Wallet

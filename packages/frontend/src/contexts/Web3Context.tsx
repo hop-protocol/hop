@@ -31,7 +31,9 @@ type Props = {
   connectedNetworkId: string
   validConnectedNetworkId: boolean
   requestWallet: () => void
+  disconnectWallet: () => void
   walletConnected: boolean
+  walletName: string
 }
 
 const initialState = {
@@ -43,7 +45,9 @@ const initialState = {
   validConnectedNetworkId: false,
   setRequiredNetworkId: (networkId: string) => {},
   requestWallet: () => {},
-  walletConnected: false
+  disconnectWallet: () => {},
+  walletConnected: false,
+  walletName: ''
 }
 
 const Web3Context = createContext<Props>(initialState)
@@ -57,6 +61,7 @@ const Web3ContextProvider: FC = ({ children }) => {
   const [validConnectedNetworkId, setValidConnectedNetworkId] = useState<
     boolean
   >(false)
+  const [walletName, setWalletName] = useState<string>('')
   const onboard = useMemo(() => {
     const cacheKey = 'selectedWallet'
     const rpcUrl = l1RpcUrl
@@ -197,11 +202,23 @@ const Web3ContextProvider: FC = ({ children }) => {
       ],
       subscriptions: {
         wallet: (wallet: any) => {
-          localStorage.setItem(cacheKey, wallet.name)
-          setProvider(new ethers.providers.Web3Provider(wallet.provider, 'any'))
+          const { name, provider } = wallet
+          if (provider) {
+            localStorage.setItem(cacheKey, name)
+            setProvider(new ethers.providers.Web3Provider(provider, 'any'))
+            setWalletName(name)
+          } else {
+            setWalletName('')
+            setProvider(undefined)
+            setAddress(undefined)
+          }
         },
         network: (connectedNetworkId: number) => {
-          setConnectedNetworkId(connectedNetworkId.toString())
+          if (connectedNetworkId) {
+            setConnectedNetworkId(connectedNetworkId.toString())
+          } else {
+            setConnectedNetworkId('')
+          }
         }
       }
     })
@@ -246,6 +263,16 @@ const Web3ContextProvider: FC = ({ children }) => {
     _requestWallet()
   }
 
+  const disconnectWallet = () => {
+    ;(async () => {
+      try {
+        await onboard.walletReset()
+      } catch (err) {
+        console.error(err)
+      }
+    })()
+  }
+
   useEffect(() => {
     const getAddress = async () => {
       const addressString = await provider?.getSigner().getAddress()
@@ -270,7 +297,9 @@ const Web3ContextProvider: FC = ({ children }) => {
         setRequiredNetworkId,
         connectedNetworkId,
         validConnectedNetworkId,
-        requestWallet
+        requestWallet,
+        disconnectWallet,
+        walletName
       }}
     >
       {children}

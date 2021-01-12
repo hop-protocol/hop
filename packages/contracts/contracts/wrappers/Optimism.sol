@@ -3,15 +3,14 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../test/mockOVM_CrossDomainMessenger.sol";
-import "../interfaces/IMessengerWrapper.sol";
+import "../interfaces/IL1_OptimismMessenger.sol";
 
-contract Optimism is IMessengerWrapper {
-    mockOVM_CrossDomainMessenger public l1MessengerAddress;
+contract Optimism {
+    IL1_OptimismMessenger public l1MessengerAddress;
     address public l2BridgeAddress;
     uint256 public defaultGasLimit;
 
-    function setL1MessengerAddress(mockOVM_CrossDomainMessenger _l1MessengerAddress) public {
+    function setL1MessengerAddress(IL1_OptimismMessenger _l1MessengerAddress) public {
         l1MessengerAddress = _l1MessengerAddress;
     }
 
@@ -23,7 +22,7 @@ contract Optimism is IMessengerWrapper {
         defaultGasLimit = _defaultGasLimit;
     }
 
-    function sendCrossDomainMessage(bytes memory _calldata) public override {
+    function sendCrossDomainMessage(bytes memory _calldata) public {
         l1MessengerAddress.sendMessage(
             l2BridgeAddress,
             _calldata,
@@ -31,7 +30,7 @@ contract Optimism is IMessengerWrapper {
         );
     }
 
-    function verifySender(bytes memory _data) public override {
+    function verifySender(bytes memory _data) public {
         // ToDo: Verify sender with Optimism L1 messenger
         // Verify that sender is l2BridgeAddress
     }

@@ -3,7 +3,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/IGlobalInbox.sol";
+import "../interfaces/IL1_ArbitrumMessenger.sol";
 import "../interfaces/IMessengerWrapper.sol";
 
 contract Arbitrum is IMessengerWrapper {
@@ -14,9 +14,9 @@ contract Arbitrum is IMessengerWrapper {
     uint256 public defaultGasPrice;
     uint256 public defaultCallValue;
     byte  public defaultSubMessageType;
-    IGlobalInbox public l1MessengerAddress;
+    IL1_ArbitrumMessenger public l1MessengerAddress;
 
-    function setL1MessengerAddress(IGlobalInbox _l1MessengerAddress) public {
+    function setL1MessengerAddress(IL1_ArbitrumMessenger _l1MessengerAddress) public {
         l1MessengerAddress = _l1MessengerAddress;
     }
 

@@ -1,6 +1,6 @@
 import '@nomiclabs/hardhat-waffle'
 import { expect } from 'chai'
-import { Signer, Contract, BigNumber } from 'ethers'
+import { Signer, Contract } from 'ethers'
 import { fixture } from './shared/fixtures'
 import {
   setUpL1AndL2Bridges,
@@ -31,10 +31,6 @@ describe("L1_Bridge", () => {
   let l2_bridge: Contract
   let l2_messenger: Contract
 
-  let liquidityProvider: Signer
-  let l2_uniswapRouter: Contract
-  let l1_messenger: Contract
-
   let _fixture: IFixture
 
   beforeEach(async () => {
@@ -46,10 +42,6 @@ describe("L1_Bridge", () => {
     l2_canonicalToken = _fixture.l2_canonicalToken
     l2_bridge = _fixture.l2_bridge
     l2_messenger = _fixture.l2_messenger
-
-    liquidityProvider = _fixture.liquidityProvider
-    l2_uniswapRouter = _fixture.l2_uniswapRouter
-    l1_messenger = _fixture.l1_messenger
 
     const setUpL1AndL2BridgesOpts = {
       messengerWrapperChainId: ARBITRUM_CHAIN_ID
@@ -107,7 +99,7 @@ describe("L1_Bridge", () => {
     await expectBalanceOf(l2_bridge, user, tokenAmount)
   })
 
-  it.only('Should send tokens across the bridge and attempt to swap', async () => {
+  it('Should send tokens across the bridge and attempt to swap', async () => {
     const tokenAmount = USER_INITIAL_BALANCE
     await l1_canonicalToken.connect(user).approve(l1_bridge.address, tokenAmount)
     await l1_bridge.connect(user).sendToL2AndAttemptSwap(

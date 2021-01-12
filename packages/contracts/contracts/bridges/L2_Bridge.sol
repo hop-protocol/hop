@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
 import "./Bridge.sol";
-import "../test/mockOVM_CrossDomainMessenger.sol";
 
 import "../libraries/MerkleUtils.sol";
 

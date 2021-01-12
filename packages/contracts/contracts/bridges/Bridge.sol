@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "../test/mockOVM_CrossDomainMessenger.sol";
 
 import "./Accounting.sol";
 
@@ -111,10 +110,10 @@ abstract contract Bridge is Accounting {
 
     /**
      * @dev Get the TransferRoot for a given rootHash
-     * @param _tansferHash The Transfer's unique identifier
+     * @param _transferHash The Transfer's unique identifier
      */
-    function getBondedWithdrawalAmount(bytes32 _tansferHash) external view returns (uint256) {
-        return _bondedWithdrawalAmounts[_tansferHash];
+    function getBondedWithdrawalAmount(bytes32 _transferHash) external view returns (uint256) {
+        return _bondedWithdrawalAmounts[_transferHash];
     }
 
     /* ========== User/relayer public functions ========== */

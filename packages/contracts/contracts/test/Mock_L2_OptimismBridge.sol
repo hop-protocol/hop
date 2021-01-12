@@ -10,7 +10,7 @@ contract Mock_L2_OptimismBridge is L2_OptimismBridge {
 
     constructor (
         uint256 chainId_,
-        mockOVM_CrossDomainMessenger _messenger,
+        IL2_OptimismMessenger _messenger,
         address _l1Governance,
         IERC20 _canonicalToken,
         address _l1BridgeAddress,

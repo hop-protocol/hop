@@ -51,7 +51,15 @@ const useStyles = makeStyles(() => ({
 const Send: FC = () => {
   const styles = useStyles()
 
-  const { user, tokens, networks, contracts, txConfirm, txHistory } = useApp()
+  const {
+    user,
+    tokens: allTokens,
+    networks,
+    contracts,
+    txConfirm,
+    txHistory
+  } = useApp()
+  const tokens = allTokens.filter((token: Token) => token.symbol === 'DAI')
   const l1Bridge = contracts?.l1Bridge
   const arbitrumBridge = contracts?.arbitrumBridge
   const arbitrumUniswapRouter = contracts?.arbitrumUniswapRouter

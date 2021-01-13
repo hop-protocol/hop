@@ -46,9 +46,14 @@ type PoolsContextProps = {
   userPoolTokenPercentage: string | undefined
   token0Deposited: string | undefined
   token1Deposited: string | undefined
+  token0Balance: number
+  token1Balance: number
+  setToken0Balance: (balance: number) => void
+  setToken1Balance: (balance: number) => void
   txHash: string | undefined
   sending: boolean
   validFormFields: boolean
+  sendButtonText: string
 }
 
 const PoolsContext = createContext<PoolsContextProps>({
@@ -75,9 +80,14 @@ const PoolsContext = createContext<PoolsContextProps>({
   userPoolTokenPercentage: undefined,
   token0Deposited: undefined,
   token1Deposited: undefined,
+  token0Balance: 0,
+  token1Balance: 0,
+  setToken0Balance: (balance: number) => {},
+  setToken1Balance: (balance: number) => {},
   txHash: undefined,
   sending: false,
-  validFormFields: false
+  validFormFields: false,
+  sendButtonText: ''
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -95,6 +105,8 @@ const PoolsContextProvider: FC = ({ children }) => {
   >('')
   const [token0Deposited, setToken0Deposited] = useState<string>('')
   const [token1Deposited, setToken1Deposited] = useState<string>('')
+  const [token0Balance, setToken0Balance] = useState<number>(0)
+  const [token1Balance, setToken1Balance] = useState<number>(0)
   let { networks, tokens, contracts, txConfirm, txHistory } = useApp()
   const {
     address,
@@ -398,7 +410,14 @@ const PoolsContextProvider: FC = ({ children }) => {
     setSending(false)
   }
 
-  const validFormFields = !!(token0Amount && token1Amount)
+  const enoughToken0Balance = token0Balance >= Number(token0Amount)
+  const enoughToken1Balance = token1Balance >= Number(token1Amount)
+  const enoughBalance = enoughToken0Balance && enoughToken1Balance
+  const validFormFields = !!(token0Amount && token1Amount && enoughBalance)
+  let sendButtonText = 'Add Liquidity'
+  if (!enoughBalance) {
+    sendButtonText = 'Insufficient funds'
+  }
 
   return (
     <PoolsContext.Provider
@@ -428,7 +447,12 @@ const PoolsContextProvider: FC = ({ children }) => {
         token1Deposited,
         txHash,
         sending,
-        validFormFields
+        validFormFields,
+        token0Balance,
+        token1Balance,
+        setToken0Balance,
+        setToken1Balance,
+        sendButtonText
       }}
     >
       {children}

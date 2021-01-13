@@ -42,6 +42,7 @@ type Props = {
   selectedNetwork?: Network
   networkOptions?: Network[]
   onNetworkChange?: (network?: Network) => void
+  onBalanceChange?: (balance: number) => void
 }
 
 const AmountSelectorCard: FC<Props> = props => {
@@ -52,12 +53,19 @@ const AmountSelectorCard: FC<Props> = props => {
     onChange,
     selectedNetwork,
     networkOptions,
-    onNetworkChange
+    onNetworkChange,
+    onBalanceChange
   } = props
   const styles = useStyles()
   const { user } = useApp()
 
   const [balance, setBalance] = useState('0.00')
+
+  useEffect(() => {
+    if (onBalanceChange) {
+      onBalanceChange(Number(balance))
+    }
+  }, [balance])
 
   const getBalance = useCallback(() => {
     const _getBalance = async () => {

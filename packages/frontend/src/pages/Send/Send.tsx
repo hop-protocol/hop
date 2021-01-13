@@ -85,6 +85,8 @@ const Send: FC = () => {
   const [fromRate, setFromRate] = useState<number>(0)
   const [toRate, setToRate] = useState<number>(0)
   const [exchangeRate, setExchangeRate] = useState<number>(0)
+  const [fromBalance, setFromBalance] = useState<number>(0)
+  const [toBalance, setToBalance] = useState<number>(0)
 
   const getRate = async (network: Network): Promise<number> => {
     if (!network) return 0
@@ -336,7 +338,14 @@ const Send: FC = () => {
     // )
   }
 
-  const validFormFields = !!(fromTokenAmount && toTokenAmount && exchangeRate)
+  const enoughBalance =
+    fromBalance >= Number(isFromLastChanged ? fromTokenAmount : toTokenAmount)
+  const validFormFields = !!(
+    fromTokenAmount &&
+    toTokenAmount &&
+    exchangeRate &&
+    enoughBalance
+  )
 
   let buttonText = 'Send'
   if (!walletConnected) {
@@ -345,6 +354,10 @@ const Send: FC = () => {
     buttonText = 'Select from network'
   } else if (!toNetwork) {
     buttonText = 'Select to network'
+  } else if (!enoughBalance) {
+    buttonText = 'Insufficient funds'
+  } else if (fetchingRate) {
+    buttonText = 'Fetching rate...'
   }
 
   return (
@@ -386,6 +399,9 @@ const Send: FC = () => {
         onNetworkChange={network => {
           setFromNetwork(network)
         }}
+        onBalanceChange={balance => {
+          setFromBalance(balance)
+        }}
       />
       <MuiButton
         className={styles.switchDirectionButton}
@@ -417,6 +433,9 @@ const Send: FC = () => {
         networkOptions={networks}
         onNetworkChange={network => {
           setToNetwork(network)
+        }}
+        onBalanceChange={balance => {
+          setToBalance(balance)
         }}
       />
       <Box

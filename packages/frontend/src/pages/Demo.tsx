@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Button from 'src/components/buttons/Button'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import useContracts from 'src/contexts/AppContext/useContracts'
+import { useApp } from 'src/contexts/AppContext'
 import { addresses } from 'src/config'
 
 const useStyles = makeStyles(() => ({
@@ -20,7 +20,9 @@ type Props = {}
 const Demo: FC<Props> = () => {
   const styles = useStyles()
   const { provider } = useWeb3Context()
-  const { l1Bridge, arbitrumUniswapRouter } = useContracts([])
+  const app = useApp()
+  const l1Bridge = app?.contracts?.l1Bridge
+  const arbitrumUniswapRouter = app?.contracts?.arbitrumUniswapRouter
 
   const handleApprove = async () => {
     const signer = provider?.getSigner()

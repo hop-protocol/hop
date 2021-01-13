@@ -372,11 +372,13 @@ const PoolsContextProvider: FC = ({ children }) => {
         inputProps: {
           token0: {
             amount: token0Amount,
-            token: selectedToken
+            token: selectedToken,
+            network: selectedNetwork
           },
           token1: {
             amount: token1Amount,
-            token: hopToken
+            token: hopToken,
+            network: selectedNetwork
           }
         },
         onConfirm: async () => {

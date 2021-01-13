@@ -312,7 +312,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {selectedToken?.symbol}:
+                  {selectedToken?.networkSymbol(selectedNetwork)}:
                 </Typography>
                 <Typography
                   variant="subtitle2"

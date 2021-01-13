@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Button from 'src/components/buttons/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import Token from 'src/models/Token'
+import Network from 'src/models/Network'
 import Typography from '@material-ui/core/Typography'
 
 const useStyles = makeStyles(() => ({
@@ -19,6 +20,7 @@ const useStyles = makeStyles(() => ({
 }))
 
 interface Party {
+  network: Network
   token: Token
   amount: string
 }
@@ -51,8 +53,8 @@ const Swap = (props: Props) => {
           Add Liquidity
         </Typography>
         <Typography variant="h6" color="textPrimary">
-          {token0.amount} {token0.token.symbol} + {token1.amount}{' '}
-          {token1.token.symbol}
+          {token0.amount} {token0.token.networkSymbol(token0.network)} +{' '}
+          {token1.amount} {token1.token.networkSymbol(token1.network)}
         </Typography>
       </div>
       <div className={styles.action}>

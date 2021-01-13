@@ -1,11 +1,19 @@
 import '@nomiclabs/hardhat-waffle'
 import { ethers } from 'hardhat'
 import { BigNumber } from 'ethers'
-
-import { IFixture, RELAYER_FEE, MAINNET_CHAIN_ID } from './constants'
 import Transfer from '../../lib/Transfer'
+import {
+  IFixture,
+  L2_NAMES,
+  RELAYER_FEE,
+  MAINNET_CHAIN_ID
+} from './constants'
 
-export async function fixture(): Promise<IFixture> {
+export async function fixture(l2Name: string): Promise<IFixture> {
+  const {
+    l2BridgeArtifact,
+    messengerWrapperArtifact
+  } = getL2SpecificArtifact(l2Name)
   const accounts = await ethers.getSigners()
   const user = accounts[0]
   const liquidityProvider = accounts[1]
@@ -15,8 +23,8 @@ export async function fixture(): Promise<IFixture> {
 
   const MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
   const L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
-  const L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_ArbitrumBridge.sol:L2_ArbitrumBridge')
-  const L1_MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/ArbitrumMessengerWrapper.sol:ArbitrumMessengerWrapper')
+  const L2_Bridge = await ethers.getContractFactory(`contracts/bridges/${l2BridgeArtifact}`)
+  const L1_MessengerWrapper = await ethers.getContractFactory(`contracts/wrappers/${messengerWrapperArtifact}`)
   const L1_Messenger = await ethers.getContractFactory('contracts/test/L1_MockMessenger.sol:L1_MockMessenger')
   const L2_Messenger = await ethers.getContractFactory('contracts/test/L2_MockMessenger.sol:L2_MockMessenger')
   const UniswapRouter = await ethers.getContractFactory('contracts/uniswap/UniswapV2Router02.sol:UniswapV2Router02')
@@ -97,5 +105,28 @@ export async function fixture(): Promise<IFixture> {
     l2_uniswapFactory,
     l2_uniswapRouter,
     transfers
+  }
+}
+
+const getL2SpecificArtifact = (l2Name: string) => {
+  let l2BridgeArtifact: string
+  let messengerWrapperArtifact: string
+
+  switch(l2Name) {
+    case L2_NAMES.ARBITRUM: {
+      l2BridgeArtifact = 'L2_ArbitrumBridge.sol:L2_ArbitrumBridge'
+      messengerWrapperArtifact = 'ArbitrumMessengerWrapper.sol:ArbitrumMessengerWrapper'
+      break
+    }
+    case L2_NAMES.OPTIMISM: {
+      l2BridgeArtifact = 'L2_OptimismBridge.sol:L2_OptimismBridge'
+      messengerWrapperArtifact = 'OptimismMessengerWrapper.sol:OptimismMessengerWrapper'
+      break
+    }
+  }
+
+  return  {
+    l2BridgeArtifact,
+    messengerWrapperArtifact
   }
 }

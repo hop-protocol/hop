@@ -15,7 +15,7 @@ contract L1_BridgeConfig is Ownable {
 
     /* ========== State ========== */
 
-    mapping(uint256 => IMessengerWrapper) private crossDomainMessenger;
+    mapping(uint256 => IMessengerWrapper) private crossDomainMessengerWrapper;
     uint256 challengeAmountMultiplier = 1;
     uint256 challengeAmountDivisor = 10;
     uint256 timeSlotSize = 1 hours;
@@ -25,8 +25,8 @@ contract L1_BridgeConfig is Ownable {
 
     /* ========== External Management Setters ========== */
 
-    function setCrossDomainMessengerWrapper(uint256 _chainId, IMessengerWrapper _crossDomainMessenger) external onlyOwner {
-        crossDomainMessenger[_chainId] = _crossDomainMessenger;
+    function setCrossDomainMessengerWrapper(uint256 _chainId, IMessengerWrapper _crossDomainMessengerWrapper) external onlyOwner {
+        crossDomainMessengerWrapper[_chainId] = _crossDomainMessengerWrapper;
     }
 
     function setChallengeAmountDivisor(uint256 _challengeAmountDivisor) external onlyOwner {
@@ -55,8 +55,8 @@ contract L1_BridgeConfig is Ownable {
 
     /* ========== Public Getters ========== */
 
-    function getCrossDomainMessenger(uint256 _chainId) public view returns(IMessengerWrapper) {
-        return crossDomainMessenger[_chainId];
+    function getCrossDomainMessengerWrapper(uint256 _chainId) public view returns(IMessengerWrapper) {
+        return crossDomainMessengerWrapper[_chainId];
     }
 
     function getChallengeAmountDivisor() public view returns(uint256) {

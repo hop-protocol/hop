@@ -24,13 +24,7 @@ contract L2_MockMessenger is MockMessenger {
     )
         public
     {
-        // bytes memory _messageCalldata = decodeMessage(_message);
-        // bytes memory setMessageData = abi.encodeWithSignature("setMessage(address,bytes)", _arbChain, _messageCalldata);
-        // address(targetMessengerAddress).call(setMessageData);
-        // targetMessenger.sendMessage(
-        //     targetBridgeAddress,
-        //     _messageCalldata
-        // );
+        // TODO
     }
 
     /* ========== Optimism ========== */
@@ -44,7 +38,7 @@ contract L2_MockMessenger is MockMessenger {
             _amount
         );
 
-        targetMessenger.sendMessage(
+        targetMessenger.receiveMessage(
             _target,
             transferMessage
         );

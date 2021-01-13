@@ -264,7 +264,6 @@ const Web3ContextProvider: FC = ({ children }) => {
     const _requestWallet = async () => {
       try {
         await onboard.walletSelect()
-        await onboard.walletCheck()
       } catch (err) {
         console.error(err)
       }

@@ -1,12 +1,15 @@
 import '@nomiclabs/hardhat-waffle'
 import { expect } from 'chai'
-import { Signer, Contract } from 'ethers'
+import { Signer, Contract, BigNumber } from 'ethers'
 import { fixture } from './shared/fixtures'
-import { setUpDefaults, expectBalanceOf } from './shared/utils'
+import {
+  setUpDefaults,
+  getChainIdFromName,
+  expectBalanceOf
+} from './shared/utils'
 import {
   L2_NAMES,
   IFixture,
-  ARBITRUM_CHAIN_ID,
   USER_INITIAL_BALANCE,
   COMMITTEE_INITIAL_BALANCE,
   DEFAULT_AMOUNT_OUT_MIN,
@@ -14,6 +17,9 @@ import {
 } from './shared/constants'
 
 describe("L1_Bridge", () => {
+  let _fixture: IFixture
+  let l2ChainId: BigNumber
+
   let user: Signer
   let committee: Signer
   let l1_canonicalToken: Contract
@@ -22,11 +28,10 @@ describe("L1_Bridge", () => {
   let l2_bridge: Contract
   let l2_messenger: Contract
 
-  let _fixture: IFixture
-
   beforeEach(async () => {
-    _fixture = await fixture()
-    const l2Name = L2_NAMES.ARBITRUM
+    const l2Name = L2_NAMES.OPTIMISM
+    _fixture = await fixture(l2Name)
+    l2ChainId = getChainIdFromName(l2Name)
     await setUpDefaults(_fixture, l2Name)
 
     ;({ 
@@ -64,7 +69,7 @@ describe("L1_Bridge", () => {
   it('Should send tokens across the bridge', async () => {
     const tokenAmount = USER_INITIAL_BALANCE
     await l1_canonicalToken.connect(user).approve(l1_bridge.address, tokenAmount)
-    await l1_bridge.connect(user).sendToL2(ARBITRUM_CHAIN_ID, await user.getAddress(), tokenAmount)
+    await l1_bridge.connect(user).sendToL2(l2ChainId.toString(), await user.getAddress(), tokenAmount)
     await l2_messenger.relayNextMessage()
     await expectBalanceOf(l2_bridge, user, tokenAmount)
   })
@@ -73,7 +78,7 @@ describe("L1_Bridge", () => {
     const tokenAmount = USER_INITIAL_BALANCE
     await l1_canonicalToken.connect(user).approve(l1_bridge.address, tokenAmount)
     await l1_bridge.connect(user).sendToL2AndAttemptSwap(
-      ARBITRUM_CHAIN_ID,
+      l2ChainId.toString(),
       await user.getAddress(),
       tokenAmount,
       DEFAULT_AMOUNT_OUT_MIN,

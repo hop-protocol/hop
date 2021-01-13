@@ -24,7 +24,11 @@ abstract contract MockMessenger {
         canonicalToken = _canonicalToken;
     }
 
-    function sendMessage(
+    function relayNextMessage() public {
+        nextMessage.target.call(nextMessage.message);
+    }
+
+    function receiveMessage(
         address _target,
         bytes memory _message
     )
@@ -34,9 +38,5 @@ abstract contract MockMessenger {
             _target,
             _message
         );
-    }
-
-    function relayNextMessage() public {
-        nextMessage.target.call(nextMessage.message);
     }
 }

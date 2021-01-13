@@ -26,7 +26,7 @@ contract L1_MockMessenger is MockMessenger {
     {
         (address decodedTarget, bytes memory decodedMessage) = decodeMessage(_message);
 
-        targetMessenger.sendMessage(
+        targetMessenger.receiveMessage(
             decodedTarget,
             decodedMessage
         );
@@ -57,24 +57,42 @@ contract L1_MockMessenger is MockMessenger {
 
     /* ========== Optimism ========== */
 
-    // TODO: We might have to take _target out in order to mimic Optimism
-    function xDomainTransfer(address _recipient, uint256 _amount, address _target) public {
-        canonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
-
-        bytes memory message = abi.encodeWithSignature(
-            "mint(address,uint256)",
-            _recipient,
-            _amount
-        );
-
-        targetMessenger.sendMessage(
+    function sendMessage(
+        address _target,
+        bytes calldata _message,
+        uint32 _gasLimit
+    )
+        public
+    {
+        targetMessenger.receiveMessage(
             _target,
-            message
+            _message
         );
     }
 
     // TODO: I believe this should go in L2_MockMessenger
     function xDomainRelease(address _recipient, uint256 _amount) public {
         canonicalToken.safeTransfer(_recipient, _amount);
+    }
+
+    /* ========== Chain Agnostic ========== */
+
+    /// @dev This function is L2 agnostic and should be used only during testing
+    /// @dev when sending tokens over the canonical bridge.
+    /// @dev This basically replaces the canonical bridge.
+    function sendMessageFromL1Bridge(
+        address _target,
+        address _recipient,
+        uint256 _amount
+    )
+        public
+    {
+        bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
+
+        canonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
+        targetMessenger.receiveMessage(
+            _target,
+            mintCalldata
+        );
     }
 }

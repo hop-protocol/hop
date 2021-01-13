@@ -136,13 +136,13 @@ export const setUpL2UniswapMarket = async (fixture: IFixture, opts: any) => {
     liquidityProviderBalance
   } = opts
 
-  // liquidityProvider moves funds across the messenger
+  // liquidityProvider moves funds across the canonical messenger
   await l1_canonicalToken.connect(liquidityProvider).approve(l1_messenger.address, liquidityProviderBalance)
-  await l1_messenger.connect(liquidityProvider).xDomainTransfer(await liquidityProvider.getAddress(), liquidityProviderBalance, l2_canonicalToken.address)
+  await l1_messenger.connect(liquidityProvider).sendMessageFromL1Bridge(l2_canonicalToken.address, await liquidityProvider.getAddress(), liquidityProviderBalance)
   await l2_messenger.relayNextMessage()
   await expectBalanceOf(l2_canonicalToken, liquidityProvider, liquidityProviderBalance)
 
-  // liquidityProvider moves funds across the liquidity bridge
+  // liquidityProvider moves funds across the Hop liquidity bridge
   await l1_canonicalToken.connect(liquidityProvider).approve(l1_bridge.address, liquidityProviderBalance)
   await l1_bridge.connect(liquidityProvider).sendToL2(l2ChainId, await liquidityProvider.getAddress(), liquidityProviderBalance)
   await l2_messenger.relayNextMessage()
@@ -179,7 +179,7 @@ export const getL2MessengerId = (l2Name: string): string => {
   return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(l2Name))
 }
 
-const getChainIdFromName = async (l2Name: string) => {
+export const getChainIdFromName = (l2Name: string): BigNumber => {
   switch(l2Name) {
     case L2_NAMES.ARBITRUM: {
       return ARBITRUM_CHAIN_ID
@@ -205,33 +205,29 @@ const setMessengerWrapperDefaults = async (
 
   await l1MessengerWrapper.setL1MessengerAddress(l1BridgeAddress)
   await l1MessengerWrapper.setL2BridgeAddress(l2BridgeAddress)
+  await l1MessengerWrapper.setDefaultGasLimit(DEFAULT_L2_GAS_LIMIT)
 
   if (l2Name === L2_NAMES.ARBITRUM) {
     return setArbitrumMessengerWrapperDefaults(l1MessengerWrapper)
   } else if (l2Name === L2_NAMES.OPTIMISM) {
     return setOptimismMessengerWrapperDefaults(l1MessengerWrapper)
   }
-
 }
 
 const setArbitrumMessengerWrapperDefaults = async (l1MessengerWrapper: Contract) => {
   const arbChain: string = ARB_CHAIN_ADDRESS
-  const defaultGasLimit: number = DEFAULT_L2_GAS_LIMIT
   const defaultGasPrice: number = 0
   const defaultCallValue: number = 0
   const defaultSubMessageType: string = '0x01'
 
   await l1MessengerWrapper.setArbChain(arbChain)
-  await l1MessengerWrapper.setDefaultGasLimit(defaultGasLimit)
   await l1MessengerWrapper.setDefaultGasPrice(defaultGasPrice)
   await l1MessengerWrapper.setDefaultCallValue(defaultCallValue)
   await l1MessengerWrapper.setDefaultSubMessageType(defaultSubMessageType)
 }
 
 const setOptimismMessengerWrapperDefaults = async (l1MessengerWrapper: Contract) => {
-  const defaultGasLimit: number = DEFAULT_L2_GAS_LIMIT
-
-  await l1MessengerWrapper.setDefaultGasLimit(defaultGasLimit)
+  // Nothing unique is set here. This function exists for consistency.
 }
 
 export const expectBalanceOf = async (token: Contract, account: Signer | Contract, expectedBalance: BigNumberish) => {

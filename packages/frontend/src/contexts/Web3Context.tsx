@@ -62,6 +62,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     boolean
   >(false)
   const [walletName, setWalletName] = useState<string>('')
+  const [address, setAddress] = useState<Address | undefined>()
   const onboard = useMemo(() => {
     const cacheKey = 'selectedWallet'
     const rpcUrl = l1RpcUrl
@@ -201,11 +202,22 @@ const Web3ContextProvider: FC = ({ children }) => {
         { checkName: 'balance' }
       ],
       subscriptions: {
+        address: async (address: string) => {
+          console.debug('address', address)
+          if (address) {
+            setAddress(Address.from(address))
+          }
+        },
         wallet: (wallet: any) => {
+          console.debug('wallet', wallet)
           const { name, provider } = wallet
           if (provider) {
             localStorage.setItem(cacheKey, name)
-            setProvider(new ethers.providers.Web3Provider(provider, 'any'))
+            const ethersProvider = new ethers.providers.Web3Provider(
+              provider,
+              'any'
+            )
+            setProvider(ethersProvider)
             setWalletName(name)
           } else {
             setWalletName('')
@@ -248,8 +260,6 @@ const Web3ContextProvider: FC = ({ children }) => {
     }
   }, [onboard, connectedNetworkId, requiredNetworkId])
 
-  const [address, setAddress] = useState<Address | undefined>()
-
   const requestWallet = () => {
     const _requestWallet = async () => {
       try {
@@ -272,17 +282,6 @@ const Web3ContextProvider: FC = ({ children }) => {
       }
     })()
   }
-
-  useEffect(() => {
-    const getAddress = async () => {
-      const addressString = await provider?.getSigner().getAddress()
-      if (addressString) {
-        setAddress(Address.from(addressString))
-      }
-    }
-
-    getAddress()
-  }, [provider])
 
   const walletConnected = !!address
 

@@ -34,7 +34,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "dev": "npm start",
+    "dev": "BROWSER=none npm start",
     "lint": "prettier-standard --format",
     "build": "react-scripts build",
     "test": "react-scripts test",

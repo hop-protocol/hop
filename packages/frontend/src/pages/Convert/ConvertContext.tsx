@@ -136,7 +136,13 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   const checkWalletNetwork = () => {
     if (sourceNetwork) {
-      setRequiredNetworkId(sourceNetwork?.networkId)
+      // react doesn't invoke useEffect if it's the same value,
+      // so here we set a dummy value and then retrigger the setState
+      // in order to reshow the onboard network change modal
+      setRequiredNetworkId('')
+      setTimeout(() => {
+        setRequiredNetworkId(sourceNetwork?.networkId)
+      }, 10)
     }
     return connectedNetworkId === sourceNetwork?.networkId
   }

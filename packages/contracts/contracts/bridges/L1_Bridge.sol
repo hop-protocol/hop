@@ -37,7 +37,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
 
     modifier onlyL2Bridge {
         // ToDo: Figure out how to check sender against an allowlist
-        // IMessengerWrapper messengerWrapper = crossDomainMessenger[_chainId];
+        // IMessengerWrapper messengerWrapper = crossDomainMessengerWrapper[_chainId];
         // messengerWrapper.verifySender(msg.data);
         _;
     }
@@ -58,7 +58,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
 
         l1CanonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
-        getCrossDomainMessenger(_chainId).sendCrossDomainMessage(mintCalldata);
+        getCrossDomainMessengerWrapper(_chainId).sendCrossDomainMessage(mintCalldata);
     }
 
     function sendToL2AndAttemptSwap(
@@ -78,7 +78,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
             _deadline
         );
 
-        getCrossDomainMessenger(_chainId).sendCrossDomainMessage(mintAndAttemptSwapCalldata);
+        getCrossDomainMessengerWrapper(_chainId).sendCrossDomainMessage(mintAndAttemptSwapCalldata);
         l1CanonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
     }
 
@@ -126,8 +126,8 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
                     _chainAmounts[i]
                 );
 
-                IMessengerWrapper messenger = getCrossDomainMessenger(_chainIds[i]);
-                messenger.sendCrossDomainMessage(setTransferRootMessage);
+                IMessengerWrapper messengerWrapper = getCrossDomainMessengerWrapper(_chainIds[i]);
+                messengerWrapper.sendCrossDomainMessage(setTransferRootMessage);
             }
         }
 

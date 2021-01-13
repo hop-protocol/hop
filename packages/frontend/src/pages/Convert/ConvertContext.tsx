@@ -23,6 +23,11 @@ type ConvertContextProps = {
   validFormFields: boolean
   calcAltTokenAmount: (value: string) => Promise<string>
   sending: boolean
+  sendButtonText: string
+  sourceTokenBalance: number
+  destTokenBalance: number
+  setSourceTokenBalance: (balance: number) => void
+  setDestTokenBalance: (balance: number) => void
 }
 
 const ConvertContext = createContext<ConvertContextProps>({
@@ -39,7 +44,12 @@ const ConvertContext = createContext<ConvertContextProps>({
   convertTokens: () => {},
   validFormFields: false,
   calcAltTokenAmount: async (value: string): Promise<string> => '',
-  sending: false
+  sending: false,
+  sendButtonText: '',
+  sourceTokenBalance: 0,
+  destTokenBalance: 0,
+  setSourceTokenBalance: (balance: number) => {},
+  setDestTokenBalance: (balance: number) => {}
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
@@ -91,6 +101,8 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
   const [sending, setSending] = useState<boolean>(false)
+  const [sourceTokenBalance, setSourceTokenBalance] = useState<number>(0)
+  const [destTokenBalance, setDestTokenBalance] = useState<number>(0)
 
   const calcAltTokenAmount = async (value: string) => {
     if (value) {
@@ -124,7 +136,13 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   const checkWalletNetwork = () => {
     if (sourceNetwork) {
-      setRequiredNetworkId(sourceNetwork?.networkId)
+      // react doesn't invoke useEffect if it's the same value,
+      // so here we set a dummy value and then retrigger the setState
+      // in order to reshow the onboard network change modal
+      setRequiredNetworkId('')
+      setTimeout(() => {
+        setRequiredNetworkId(sourceNetwork?.networkId)
+      }, 10)
     }
     return connectedNetworkId === sourceNetwork?.networkId
   }
@@ -332,13 +350,28 @@ const ConvertContextProvider: FC = ({ children }) => {
         )
       }
     } catch (err) {
+      if (!/cancelled/gi.test(err.message)) {
+        alert(err.message)
+      }
       console.error(err)
     }
 
     setSending(false)
   }
 
-  const validFormFields = !!(sourceTokenAmount && destTokenAmount)
+  const enoughSourceTokenBalance =
+    sourceTokenBalance >= Number(sourceTokenAmount)
+  const enoughDestTokenBalance = destTokenBalance >= Number(destTokenAmount)
+  const enoughBalance = enoughSourceTokenBalance && enoughDestTokenBalance
+  const validFormFields = !!(
+    sourceTokenAmount &&
+    destTokenAmount &&
+    enoughBalance
+  )
+  let sendButtonText = 'Convert'
+  if (!enoughBalance) {
+    sendButtonText = 'Insufficient funds'
+  }
 
   return (
     <ConvertContext.Provider
@@ -356,7 +389,12 @@ const ConvertContextProvider: FC = ({ children }) => {
         convertTokens,
         validFormFields,
         calcAltTokenAmount,
-        sending
+        sending,
+        sendButtonText,
+        sourceTokenBalance,
+        destTokenBalance,
+        setSourceTokenBalance,
+        setDestTokenBalance
       }}
     >
       {children}

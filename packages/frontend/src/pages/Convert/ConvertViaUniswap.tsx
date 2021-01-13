@@ -37,7 +37,9 @@ const Convert: FC = () => {
     setSourceTokenAmount,
     setDestTokenAmount,
     destTokenAmount,
-    calcAltTokenAmount
+    calcAltTokenAmount,
+    setSourceTokenBalance,
+    setDestTokenBalance
   } = useConvert()
 
   useEffect(() => {
@@ -86,6 +88,7 @@ const Convert: FC = () => {
         label={'From'}
         onChange={handleSourceTokenAmountChange}
         selectedNetwork={sourceNetwork}
+        onBalanceChange={setSourceTokenBalance}
       />
       <MuiButton
         className={styles.switchDirectionButton}
@@ -99,6 +102,7 @@ const Convert: FC = () => {
         label={'To'}
         onChange={handleDestTokenAmountChange}
         selectedNetwork={destNetwork}
+        onBalanceChange={setDestTokenBalance}
       />
       <SendButton />
     </Box>

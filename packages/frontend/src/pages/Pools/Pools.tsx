@@ -81,7 +81,9 @@ const Pools: FC = () => {
     userPoolBalance,
     userPoolTokenPercentage,
     token0Deposited,
-    token1Deposited
+    token1Deposited,
+    setToken0Balance,
+    setToken1Balance
   } = usePools()
 
   const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
@@ -132,6 +134,14 @@ const Pools: FC = () => {
     }
   }
 
+  const handleToken0BalanceChange = (balance: number) => {
+    setToken0Balance(balance)
+  }
+
+  const handleToken1BalanceChange = (balance: number) => {
+    setToken1Balance(balance)
+  }
+
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <Box display="flex" alignItems="center">
@@ -176,6 +186,7 @@ const Pools: FC = () => {
           value={token0Amount}
           onChange={handleToken0Change}
           selectedNetwork={selectedNetwork}
+          onBalanceChange={handleToken0BalanceChange}
         />
       </Box>
       <Box display="flex" alignItems="center">
@@ -189,6 +200,7 @@ const Pools: FC = () => {
           value={token1Amount}
           onChange={handleToken1Change}
           selectedNetwork={selectedNetwork}
+          onBalanceChange={handleToken1BalanceChange}
         />
       </Box>
       <Box alignItems="center" className={styles.pricesBox}>
@@ -300,7 +312,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {selectedToken?.symbol}:
+                  {selectedToken?.networkSymbol(selectedNetwork)}:
                 </Typography>
                 <Typography
                   variant="subtitle2"

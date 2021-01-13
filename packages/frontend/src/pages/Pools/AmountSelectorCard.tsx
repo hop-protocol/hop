@@ -39,14 +39,29 @@ type Props = {
   token?: Token
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void
   selectedNetwork?: Network
+  onBalanceChange?: (balance: number) => void
 }
 
 const AmountSelectorCard: FC<Props> = props => {
-  const { value, label, title, token, onChange, selectedNetwork } = props
+  const {
+    value,
+    label,
+    title,
+    token,
+    onChange,
+    selectedNetwork,
+    onBalanceChange
+  } = props
   const styles = useStyles()
   const { user } = useApp()
 
   const [balance, setBalance] = useState('0.00')
+
+  useEffect(() => {
+    if (onBalanceChange) {
+      onBalanceChange(Number(balance))
+    }
+  }, [balance])
 
   const getBalance = useCallback(() => {
     const _getBalance = async () => {
@@ -93,7 +108,7 @@ const AmountSelectorCard: FC<Props> = props => {
             value={value}
             onChange={onChange}
             placeholder="0.0"
-            units={token?.symbol}
+            units={token?.networkSymbol(selectedNetwork)}
           />
         </Grid>
       </Grid>

@@ -213,7 +213,7 @@ const Send: FC = () => {
       )
       const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
       if (approved.lt(parsedAmount)) {
-        tx = txConfirm?.show({
+        tx = await txConfirm?.show({
           kind: 'approval',
           inputProps: {
             amount: 'ALL',
@@ -223,6 +223,15 @@ const Send: FC = () => {
             return tokenContract.approve(l1Bridge?.address, UINT256)
           }
         })
+        await tx?.wait()
+        if (tx?.hash && fromNetwork) {
+          txHistory?.addTransaction(
+            new Transaction({
+              hash: tx?.hash,
+              networkName: fromNetwork?.slug
+            })
+          )
+        }
       }
     } else {
       const approved = await tokenContract.allowance(
@@ -231,7 +240,7 @@ const Send: FC = () => {
       )
       const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
       if (approved.lt(parsedAmount)) {
-        tx = txConfirm?.show({
+        tx = await txConfirm?.show({
           kind: 'approval',
           inputProps: {
             amount: 'ALL',

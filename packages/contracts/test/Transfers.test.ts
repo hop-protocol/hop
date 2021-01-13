@@ -31,7 +31,7 @@ describe("Transfers", () => {
   let L1_Bridge: ContractFactory
   let L2_Bridge: ContractFactory
   let MockERC20: ContractFactory
-  let L1_MessengerWrapper: ContractFactory
+  let MessengerWrapper: ContractFactory
   let CrossDomainMessenger: ContractFactory
   let L1_MockTokenBridge: ContractFactory
   let L2_MockTokenBridge: ContractFactory
@@ -72,7 +72,7 @@ describe("Transfers", () => {
     challenger = accounts[4]
     governance = accounts[5]
 
-    L1_MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/Optimism.sol:Optimism')
+    MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/Optimism.sol:Optimism')
     L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
     L2_Bridge = await ethers.getContractFactory('contracts/test/Mock_L2_OptimismBridge.sol:Mock_L2_OptimismBridge')
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
@@ -94,12 +94,12 @@ describe("Transfers", () => {
     // Optimism 1
     l1_ovm1_messenger = await CrossDomainMessenger.deploy(0)
     l1_ovm1_ovmBridge = await L1_MockTokenBridge.deploy(l1_ovm1_messenger.address, l1_poolToken.address)
-    l1_ovm1_messengerWrapper = await L1_MessengerWrapper.deploy()
+    l1_ovm1_messengerWrapper = await MessengerWrapper.deploy()
 
     // Optimism 2
     l1_ovm2_messenger = await CrossDomainMessenger.deploy(0)
     l1_ovm2_ovmBridge = await L1_MockTokenBridge.deploy(l1_ovm2_messenger.address, l1_poolToken.address)
-    l1_ovm2_messengerWrapper = await L1_MessengerWrapper.deploy()
+    l1_ovm2_messengerWrapper = await MessengerWrapper.deploy()
 
     /**
      * Setup Optimism 1 contracts

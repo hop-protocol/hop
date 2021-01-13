@@ -24,8 +24,8 @@ export async function fixture(l2Name: string): Promise<IFixture> {
   const MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
   const L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
   const L2_Bridge = await ethers.getContractFactory(`contracts/bridges/${l2BridgeArtifact}`)
-  const L1_MessengerWrapper = await ethers.getContractFactory(`contracts/wrappers/${messengerWrapperArtifact}`)
   const L1_Messenger = await ethers.getContractFactory('contracts/test/L1_MockMessenger.sol:L1_MockMessenger')
+  const MessengerWrapper = await ethers.getContractFactory(`contracts/wrappers/${messengerWrapperArtifact}`)
   const L2_Messenger = await ethers.getContractFactory('contracts/test/L2_MockMessenger.sol:L2_MockMessenger')
   const UniswapRouter = await ethers.getContractFactory('contracts/uniswap/UniswapV2Router02.sol:UniswapV2Router02')
   const UniswapFactory = await ethers.getContractFactory('@uniswap/v2-core/contracts/UniswapV2Factory.sol:UniswapV2Factory')
@@ -40,7 +40,7 @@ export async function fixture(l2Name: string): Promise<IFixture> {
 
   // Deploy Hop L1 contracts
   const l1_bridge = await L1_Bridge.deploy(l1_canonicalToken.address, await committee.getAddress())
-  const l1_messengerWrapper = await L1_MessengerWrapper.deploy()
+  const messengerWrapper = await MessengerWrapper.deploy()
 
   // Deploy Hop L2 contracts
   const l2_bridge = await L2_Bridge.deploy(
@@ -90,14 +90,14 @@ export async function fixture(l2Name: string): Promise<IFixture> {
     L1_Bridge,
     L2_Bridge,
     MockERC20,
-    L1_MessengerWrapper,
+    MessengerWrapper,
     L1_Messenger,
     L2_Messenger,
     UniswapRouter,
     UniswapFactory,
     l1_canonicalToken,
     l1_messenger,
-    l1_messengerWrapper,
+    messengerWrapper,
     l1_bridge,
     l2_messenger,
     l2_bridge,

@@ -29,7 +29,7 @@ describe("Integration", () => {
   let L1_Bridge: ContractFactory
   let L2_Bridge: ContractFactory
   let MockERC20: ContractFactory
-  let L1_MessengerWrapper: ContractFactory
+  let MessengerWrapper: ContractFactory
   let CrossDomainMessenger: ContractFactory
   let L1_MockTokenBridge: ContractFactory
   let L2_MockTokenBridge: ContractFactory
@@ -39,7 +39,7 @@ describe("Integration", () => {
   // L1
   let l1_poolToken: Contract
   let l1_bridge: Contract
-  let l1_messengerWrapper: Contract
+  let messengerWrapper: Contract
   let l1_messenger: Contract
   let l1_ovmBridge: Contract
   
@@ -58,7 +58,7 @@ describe("Integration", () => {
     challenger = accounts[4]
     governance = accounts[5]
 
-    L1_MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/Optimism.sol:Optimism')
+    MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/Optimism.sol:Optimism')
     L1_Bridge = await ethers.getContractFactory('contracts/test/Mock_L1_Bridge.sol:Mock_L1_Bridge')
     L2_Bridge = await ethers.getContractFactory('contracts/test/Mock_L2_OptimismBridge.sol:Mock_L2_OptimismBridge')
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
@@ -75,7 +75,7 @@ describe("Integration", () => {
     l1_messenger = await CrossDomainMessenger.deploy(0)
     l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await committee.getAddress())
     l1_ovmBridge = await L1_MockTokenBridge.deploy(l1_messenger.address, l1_poolToken.address)
-    l1_messengerWrapper = await L1_MessengerWrapper.deploy()
+    messengerWrapper = await MessengerWrapper.deploy()
 
     // Deploy  L2 contracts
     l2_messenger = await CrossDomainMessenger.deploy(0)
@@ -92,7 +92,7 @@ describe("Integration", () => {
 
     // Initialize bridge wrapper
     const l2Name = L2_NAMES.OPTIMISM
-    await setMessengerWrapperDefaults(l2Name, l1_messengerWrapper, l1_messenger.address, l2_bridge.address)
+    await setMessengerWrapperDefaults(l2Name, messengerWrapper, l1_messenger.address, l2_bridge.address)
 
     // Uniswap
     l2_uniswapFactory = await UniswapFactory.deploy(await user.getAddress())
@@ -108,7 +108,7 @@ describe("Integration", () => {
     l2_ovmBridge.setCrossDomainBridgeAddress(l1_ovmBridge.address)
 
     // Set up liquidity bridge
-    await l1_bridge.setCrossDomainMessengerWrapper(OPTIMISM_CHAIN_ID, l1_messengerWrapper.address)
+    await l1_bridge.setCrossDomainMessengerWrapper(OPTIMISM_CHAIN_ID, messengerWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
     await l2_bridge.setExchangeAddress(l2_uniswapRouter.address)
 

@@ -52,7 +52,7 @@ export const setUpDefaults = async (fixture: IFixture, l2Name: string) => {
 export const setUpL1AndL2Bridges = async (fixture: IFixture, opts: any) => {
   const {
     l1_bridge,
-    l1_messengerWrapper,
+    messengerWrapper,
     l2_bridge,
     l2_uniswapRouter
   } = fixture
@@ -62,7 +62,7 @@ export const setUpL1AndL2Bridges = async (fixture: IFixture, opts: any) => {
   } = opts
 
   // Set up L1
-  await l1_bridge.setCrossDomainMessengerWrapper(messengerWrapperChainId, l1_messengerWrapper.address)
+  await l1_bridge.setCrossDomainMessengerWrapper(messengerWrapperChainId, messengerWrapper.address)
 
   // Set up L2
   await l2_bridge.setL1BridgeAddress(l1_bridge.address)
@@ -85,7 +85,7 @@ export const setUpL1AndL2Messengers = async (fixture: IFixture) => {
 export const setUpL1MessengerWrapper = async (fixture: IFixture, opts: any) => {
   const {
     l2_bridge,
-    l1_messengerWrapper,
+    messengerWrapper,
     l1_messenger,
   } = fixture
 
@@ -93,7 +93,7 @@ export const setUpL1MessengerWrapper = async (fixture: IFixture, opts: any) => {
     l2Name
   } = opts
 
-  await setMessengerWrapperDefaults(l2Name, l1_messengerWrapper, l1_messenger.address, l2_bridge.address)
+  await setMessengerWrapperDefaults(l2Name, messengerWrapper, l1_messenger.address, l2_bridge.address)
 }
 
 export const distributeCanonicalTokens = async (fixture: IFixture, opts: any) => {

@@ -278,7 +278,9 @@ const Send: FC = () => {
         console.log('ToDo: L2 to L2 transfers')
       }
     } catch (err) {
-      alert(err.message)
+      if (!/cancelled/gi.test(err.message)) {
+        alert(err.message)
+      }
       console.error(err)
     }
     setSending(false)

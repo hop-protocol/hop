@@ -26,9 +26,7 @@ const useStyles = makeStyles(() => ({
   },
   statusIcon: {},
   network: {
-    minWidth: '75px',
     display: 'inline-block',
-    textAlign: 'right',
     marginRight: '0.5rem'
   },
   connectedWallet: {

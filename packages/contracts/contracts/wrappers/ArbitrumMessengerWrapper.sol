@@ -4,17 +4,15 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../interfaces/arbitrum/messengers/IGlobalInbox.sol";
-import "../interfaces/IMessengerWrapper.sol";
+import "./MessengerWrapper.sol";
 
-contract Arbitrum is IMessengerWrapper {
+contract ArbitrumMessengerWrapper is MessengerWrapper {
 
+    IGlobalInbox public l1MessengerAddress;
     address public arbChain;
-    address public l2BridgeAddress;
-    uint256 public defaultGasLimit;
+    byte public defaultSubMessageType;
     uint256 public defaultGasPrice;
     uint256 public defaultCallValue;
-    byte public defaultSubMessageType;
-    IGlobalInbox public l1MessengerAddress;
 
     function setL1MessengerAddress(IGlobalInbox _l1MessengerAddress) public {
         l1MessengerAddress = _l1MessengerAddress;
@@ -24,12 +22,8 @@ contract Arbitrum is IMessengerWrapper {
         arbChain = _arbChain;
     }
 
-    function setL2BridgeAddress(address _l2BridgeAddress) public {
-        l2BridgeAddress = _l2BridgeAddress;
-    }
-
-    function setDefaultGasLimit(uint256 _defaultGasLimit) public {
-        defaultGasLimit = _defaultGasLimit;
+    function setDefaultSubMessageType(byte _defaultSubMessageType) public {
+        defaultSubMessageType = _defaultSubMessageType;
     }
 
     function setDefaultGasPrice(uint256 _defaultGasPrice) public {
@@ -38,10 +32,6 @@ contract Arbitrum is IMessengerWrapper {
 
     function setDefaultCallValue(uint256 _defaultCallValue) public {
         defaultCallValue = _defaultCallValue;
-    }
-
-    function setDefaultSubMessageType(byte _defaultSubMessageType) public {
-        defaultSubMessageType = _defaultSubMessageType;
     }
 
     function sendCrossDomainMessage(bytes memory _calldata) public override {

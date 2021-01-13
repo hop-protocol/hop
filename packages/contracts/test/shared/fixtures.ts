@@ -16,7 +16,7 @@ export async function fixture(): Promise<IFixture> {
   const MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
   const L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
   const L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_ArbitrumBridge.sol:L2_ArbitrumBridge')
-  const L1_MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/Arbitrum.sol:Arbitrum')
+  const L1_MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/ArbitrumMessengerWrapper.sol:ArbitrumMessengerWrapper')
   const L1_Messenger = await ethers.getContractFactory('contracts/test/L1_MockMessenger.sol:L1_MockMessenger')
   const L2_Messenger = await ethers.getContractFactory('contracts/test/L2_MockMessenger.sol:L2_MockMessenger')
   const UniswapRouter = await ethers.getContractFactory('contracts/uniswap/UniswapV2Router02.sol:UniswapV2Router02')

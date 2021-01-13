@@ -406,6 +406,9 @@ const PoolsContextProvider: FC = ({ children }) => {
       }
       await tx?.wait()
     } catch (err) {
+      if (!/cancelled/gi.test(err.message)) {
+        alert(err.message)
+      }
       console.error(err)
     }
 

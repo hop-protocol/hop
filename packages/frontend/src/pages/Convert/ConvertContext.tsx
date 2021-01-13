@@ -344,6 +344,9 @@ const ConvertContextProvider: FC = ({ children }) => {
         )
       }
     } catch (err) {
+      if (!/cancelled/gi.test(err.message)) {
+        alert(err.message)
+      }
       console.error(err)
     }
 

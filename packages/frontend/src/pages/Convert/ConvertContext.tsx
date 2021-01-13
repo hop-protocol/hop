@@ -359,10 +359,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     setSending(false)
   }
 
-  const enoughSourceTokenBalance =
-    sourceTokenBalance >= Number(sourceTokenAmount)
-  const enoughDestTokenBalance = destTokenBalance >= Number(destTokenAmount)
-  const enoughBalance = enoughSourceTokenBalance && enoughDestTokenBalance
+  const enoughBalance = sourceTokenBalance >= Number(sourceTokenAmount)
   const validFormFields = !!(
     sourceTokenAmount &&
     destTokenAmount &&

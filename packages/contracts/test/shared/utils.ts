@@ -1,16 +1,56 @@
 import { ethers } from 'hardhat'
-import { L2_NAMES, ARB_CHAIN_ADDRESS, DEFAULT_L2_GAS_LIMIT } from './constants'
 import { BigNumber, BigNumberish, Signer, Contract } from 'ethers'
 import { expect } from 'chai'
-import { IFixture } from './constants'
+import {
+  IFixture,
+  USER_INITIAL_BALANCE,
+  LIQUIDITY_PROVIDER_INITIAL_BALANCE,
+  LIQUIDITY_PROVIDER_UNISWAP_BALANCE,
+  COMMITTEE_INITIAL_BALANCE,
+  CHALLENGER_INITIAL_BALANCE,
+  L2_NAMES,
+  ARB_CHAIN_ADDRESS,
+  DEFAULT_L2_GAS_LIMIT,
+  OPTIMISM_CHAIN_ID,
+  ARBITRUM_CHAIN_ID
+} from './constants'
 
 /**
  * Initialization functions
  */
 
+export const setUpDefaults = async (fixture: IFixture, l2Name: string) => {
+  const l2ChainId = getChainIdFromName(l2Name)
+
+  const setUpL1AndL2BridgesOpts = {
+    messengerWrapperChainId: l2ChainId
+  }
+
+  const setUpL1MessengerWrapperOpts = {
+    l2Name
+  }
+
+  const distributeCanonicalTokensOpts = {
+    userInitialBalance: USER_INITIAL_BALANCE,
+    liquidityProviderInitialBalance: LIQUIDITY_PROVIDER_INITIAL_BALANCE,
+    committeeInitialBalance: COMMITTEE_INITIAL_BALANCE,
+    challengerInitialBalance: CHALLENGER_INITIAL_BALANCE
+  }
+
+  const setUpL2UniswapMarketOpts = {
+    l2ChainId: l2ChainId,
+    liquidityProviderBalance: LIQUIDITY_PROVIDER_UNISWAP_BALANCE
+  }
+
+  await setUpL1AndL2Bridges(fixture, setUpL1AndL2BridgesOpts)
+  await setUpL1AndL2Messengers(fixture)
+  await setUpL1MessengerWrapper(fixture, setUpL1MessengerWrapperOpts)
+  await distributeCanonicalTokens(fixture, distributeCanonicalTokensOpts)
+  await setUpL2UniswapMarket(fixture, setUpL2UniswapMarketOpts)
+}
+
 export const setUpL1AndL2Bridges = async (fixture: IFixture, opts: any) => {
   const {
-    governance,
     l1_bridge,
     l1_messengerWrapper,
     l2_bridge,
@@ -137,6 +177,23 @@ export const setUpL2UniswapMarket = async (fixture: IFixture, opts: any) => {
 
 export const getL2MessengerId = (l2Name: string): string => {
   return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(l2Name))
+}
+
+const getChainIdFromName = async (l2Name: string) => {
+  switch(l2Name) {
+    case L2_NAMES.ARBITRUM: {
+      return ARBITRUM_CHAIN_ID
+    }
+    case L2_NAMES.OPTIMISM: {
+      return OPTIMISM_CHAIN_ID
+    }
+    case L2_NAMES.OPTIMISM_1: {
+      return OPTIMISM_CHAIN_ID
+    }
+    case L2_NAMES.OPTIMISM_2: {
+      return OPTIMISM_CHAIN_ID
+    }
+  }
 }
 
 const setMessengerWrapperDefaults = async (

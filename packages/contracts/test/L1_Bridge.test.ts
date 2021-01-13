@@ -2,23 +2,13 @@ import '@nomiclabs/hardhat-waffle'
 import { expect } from 'chai'
 import { Signer, Contract } from 'ethers'
 import { fixture } from './shared/fixtures'
+import { setUpDefaults, expectBalanceOf } from './shared/utils'
 import {
-  setUpL1AndL2Bridges,
-  setUpL1AndL2Messengers,
-  setUpL1MessengerWrapper,
-  distributeCanonicalTokens,
-  setUpL2UniswapMarket,
-  expectBalanceOf
-} from './shared/utils'
-import {
+  L2_NAMES,
   IFixture,
   ARBITRUM_CHAIN_ID,
   USER_INITIAL_BALANCE,
-  LIQUIDITY_PROVIDER_INITIAL_BALANCE,
-  LIQUIDITY_PROVIDER_UNISWAP_BALANCE,
   COMMITTEE_INITIAL_BALANCE,
-  CHALLENGER_INITIAL_BALANCE,
-  L2_NAMES,
   DEFAULT_AMOUNT_OUT_MIN,
   DEFAULT_DEADLINE
 } from './shared/constants'
@@ -36,6 +26,8 @@ describe("L1_Bridge", () => {
 
   beforeEach(async () => {
     _fixture = await fixture()
+    const l2Name = L2_NAMES.ARBITRUM
+    await setUpDefaults(_fixture, l2Name)
 
     ;({ 
       user,
@@ -46,32 +38,6 @@ describe("L1_Bridge", () => {
       l2_bridge,
       l2_messenger
     } = _fixture);
-
-    const setUpL1AndL2BridgesOpts = {
-      messengerWrapperChainId: ARBITRUM_CHAIN_ID
-    }
-
-    const setUpL1MessengerWrapperOpts = {
-      l2Name: L2_NAMES.ARBITRUM
-    }
-
-    const distributeCanonicalTokensOpts = {
-      userInitialBalance: USER_INITIAL_BALANCE,
-      liquidityProviderInitialBalance: LIQUIDITY_PROVIDER_INITIAL_BALANCE,
-      committeeInitialBalance: COMMITTEE_INITIAL_BALANCE,
-      challengerInitialBalance: CHALLENGER_INITIAL_BALANCE
-    }
-
-    const setUpL2UniswapMarketOpts = {
-      l2ChainId: ARBITRUM_CHAIN_ID,
-      liquidityProviderBalance: LIQUIDITY_PROVIDER_UNISWAP_BALANCE
-    }
-
-    await setUpL1AndL2Bridges(_fixture, setUpL1AndL2BridgesOpts)
-    await setUpL1AndL2Messengers(_fixture)
-    await setUpL1MessengerWrapper(_fixture, setUpL1MessengerWrapperOpts)
-    await distributeCanonicalTokens(_fixture, distributeCanonicalTokensOpts)
-    await setUpL2UniswapMarket(_fixture, setUpL2UniswapMarketOpts)
   })
 
   /**

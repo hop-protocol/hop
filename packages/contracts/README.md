@@ -82,6 +82,33 @@ DAI <--------------<---|---> hDAI <----(Uniswap)--> Arbitrum DAI
                        |
 ```
 
+## Steps to Integrate a New L2
+
+The following steps are to add a new L2 (Xyz, for example) to the Hop System:
+
+* Contract updates
+  * Add the Xyz messenger interface in `./contracts/interfaces/xyz/messengers/IXyz.sol`
+  * Add a wrapper for the Xyz messenger in `./contracts/wrappers/XyzMessengerWrapper.sol`
+  * Add messenger logic for Xyz to the L1 mock messenger in `./contracts/test/L1_MockMessenger.sol`
+  * Add messenger logic for Xyz to the L2 mock messenger in `./contracts/test/L2_MockMessenger.sol`
+  * Add an L2 Bridge for Xyz to `./contracts/bridges/L2_XyzBridge.sol`
+  * Add a mock L2 Bridge for Xyz to `./contracts/test/Mock_L2_XyzBridge.sol`
+
+* Testing updates
+  * Add Xyz to `L2_NAMES` in `./test/shared/constants.ts`
+  * Add `XYZ_CHAIN_ID` in `./test/shared/constants.ts`
+  * Add Xyz contract artifacts to `getL2SpecificArtifact()` in `./test/shared/fixtures.ts`
+  * Add Xyz to `getChainIdFromName()` in `./test/shared/utils.ts`
+  * Add `setXyzMessengerWrapperDefaults()` to `./test/shared/utils.ts`
+  * Add Xyz to `setMessengerWrapperDefaults()` in `./test/shared/utils.ts`
+
+* Config updates
+  * Add the L2 and its URL to `./hardhat.config.ts`
+
+* Other updates
+  * If necessary, write a script to deploy the contracts on Xyz chain in `./scripts/deployment/Xyz`
+
+
 ## FAQ
 
 * What are the relevant `messageId`s?

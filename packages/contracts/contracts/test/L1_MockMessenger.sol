@@ -3,47 +3,17 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-
+import "./MockMessenger.sol";
 import "./L2_MockMessenger.sol";
-import "./BytesLib.sol";
 
-contract L1_MockMessenger {
-    using SafeERC20 for IERC20;
-    using BytesLib for bytes;
+contract L1_MockMessenger is MockMessenger {
 
-    struct Message {
-        address target;
-        bytes message;
-    }
-
-    Message public nextMessage;
-    IERC20 public canonicalToken;
     L2_MockMessenger public targetMessenger;
 
-    constructor(IERC20 _canonicalToken) public {
-        canonicalToken = _canonicalToken;
-    }
+    constructor (IERC20 _canonicalToken) public MockMessenger(_canonicalToken) {}
 
     function setTargetMessenger(address _targetMessenger) public {
         targetMessenger = L2_MockMessenger(_targetMessenger);
-    }
-
-    function sendMessage(
-        address _target,
-        bytes memory _message
-    )
-        public
-    {
-        nextMessage = Message(
-            _target,
-            _message
-        );
-    }
-
-    function relayNextMessage() public {
-        nextMessage.target.call(nextMessage.message);
     }
 
     /* ========== Arbitrum ========== */

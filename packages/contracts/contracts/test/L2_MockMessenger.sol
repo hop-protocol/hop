@@ -24,27 +24,22 @@ contract L2_MockMessenger is MockMessenger {
     )
         public
     {
-        // TODO
+        // TODO: This whole function should be revisited
     }
 
     /* ========== Optimism ========== */
 
-    function xDomainTransfer(address _recipient, uint256 _amount, address _target) public {
-        canonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
-
-        bytes memory transferMessage = abi.encodeWithSignature(
-            "mint(address,uint256)",
-            _recipient,
-            _amount
-        );
-
-        targetMessenger.receiveMessage(
-            _target,
-            transferMessage
-        );
+    function xDomainTransfer(
+        address _recipient,
+        uint256 _amount,
+        address _target
+    )
+        public
+    {
+        // TODO: This whole function should be revisited
     }
 
     function xDomainRelease(address _recipient, uint256 _amount) public {
-        canonicalToken.safeTransfer(_recipient, _amount);
+        // TODO: This whole function should be revisited
     }
 }

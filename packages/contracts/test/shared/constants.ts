@@ -11,6 +11,7 @@ export const L2_NAMES = {
 
 export const USER_INITIAL_BALANCE = BigNumber.from('100')
 export const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
+export const LIQUIDITY_PROVIDER_UNISWAP_BALANCE = LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2)
 export const COMMITTEE_INITIAL_BALANCE = BigNumber.from('1000000')
 export const CHALLENGER_INITIAL_BALANCE = BigNumber.from('10')
 
@@ -25,7 +26,7 @@ export const OPTIMISM_CHAIN_ID = BigNumber.from('420')
 export const ARBITRUM_CHAIN_ID = BigNumber.from('152709604825713')
 
 export const DEFAULT_AMOUNT_OUT_MIN = 0
-export const DEFAULT_DEADLINE = 1999361987
+export const DEFAULT_DEADLINE = 9999999999
 
 export interface IFixture {
   // Users

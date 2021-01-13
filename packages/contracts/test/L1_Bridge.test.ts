@@ -15,6 +15,7 @@ import {
   ARBITRUM_CHAIN_ID,
   USER_INITIAL_BALANCE,
   LIQUIDITY_PROVIDER_INITIAL_BALANCE,
+  LIQUIDITY_PROVIDER_UNISWAP_BALANCE,
   COMMITTEE_INITIAL_BALANCE,
   CHALLENGER_INITIAL_BALANCE,
   L2_NAMES,
@@ -35,13 +36,16 @@ describe("L1_Bridge", () => {
 
   beforeEach(async () => {
     _fixture = await fixture()
-    user = _fixture.user
-    committee = _fixture.committee
-    l1_canonicalToken = _fixture.l1_canonicalToken
-    l1_bridge = _fixture.l1_bridge
-    l2_canonicalToken = _fixture.l2_canonicalToken
-    l2_bridge = _fixture.l2_bridge
-    l2_messenger = _fixture.l2_messenger
+
+    ;({ 
+      user,
+      committee,
+      l1_canonicalToken,
+      l1_bridge,
+      l2_canonicalToken,
+      l2_bridge,
+      l2_messenger
+    } = _fixture);
 
     const setUpL1AndL2BridgesOpts = {
       messengerWrapperChainId: ARBITRUM_CHAIN_ID
@@ -60,7 +64,7 @@ describe("L1_Bridge", () => {
 
     const setUpL2UniswapMarketOpts = {
       l2ChainId: ARBITRUM_CHAIN_ID,
-      liquidityProviderBalance: LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2)
+      liquidityProviderBalance: LIQUIDITY_PROVIDER_UNISWAP_BALANCE
     }
 
     await setUpL1AndL2Bridges(_fixture, setUpL1AndL2BridgesOpts)

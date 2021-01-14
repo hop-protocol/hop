@@ -1,9 +1,17 @@
-import React, { FC, ChangeEvent, useState, useEffect, useCallback } from 'react'
+import React, {
+  FC,
+  ChangeEvent,
+  useState,
+  useEffect,
+  useCallback,
+  useRef
+} from 'react'
 import { utils as ethersUtils } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import Typography from '@material-ui/core/Typography'
 import MenuItem from '@material-ui/core/MenuItem'
 import LargeTextField from 'src/components/LargeTextField'
@@ -42,7 +50,7 @@ type Props = {
   selectedNetwork?: Network
   networkOptions?: Network[]
   onNetworkChange?: (network?: Network) => void
-  onBalanceChange?: (balance: number) => void
+  onBalanceChange?: (balance: number | null) => void
 }
 
 const AmountSelectorCard: FC<Props> = props => {
@@ -59,7 +67,9 @@ const AmountSelectorCard: FC<Props> = props => {
   const styles = useStyles()
   const { user } = useApp()
 
-  const [balance, setBalance] = useState('0.00')
+  const [balance, setBalance] = useState<string | null>(null)
+  // request tracker so only latest request response is set
+  const tracker = useRef<number>(0)
 
   useEffect(() => {
     if (onBalanceChange) {
@@ -68,10 +78,13 @@ const AmountSelectorCard: FC<Props> = props => {
   }, [balance])
 
   const getBalance = useCallback(() => {
+    const ctx = tracker.current
     const _getBalance = async () => {
       if (user && token && selectedNetwork) {
         const _balance = await user.getBalance(token, selectedNetwork)
-        setBalance(Number(ethersUtils.formatUnits(_balance, 18)).toFixed(2))
+        if (ctx === tracker.current) {
+          setBalance(Number(ethersUtils.formatUnits(_balance, 18)).toFixed(2))
+        }
       }
     }
 
@@ -79,8 +92,21 @@ const AmountSelectorCard: FC<Props> = props => {
   }, [user, token, selectedNetwork])
 
   useEffect(() => {
+    // switching tabs will cause getBalance to be called with incorrect token
+    // so we wait until there's no more switching to get balance
+    tracker.current++
+    setBalance(null)
+    const t = setTimeout(() => {
+      getBalance()
+    }, 10)
+    return () => {
+      clearTimeout(t)
+    }
+  }, [selectedNetwork])
+
+  useEffect(() => {
     getBalance()
-  }, [getBalance, user, token, selectedNetwork])
+  }, [getBalance, user, token, selectedNetwork, tracker.current])
 
   useInterval(() => {
     getBalance()
@@ -97,11 +123,16 @@ const AmountSelectorCard: FC<Props> = props => {
         <Typography variant="subtitle2" color="textSecondary">
           {label}
         </Typography>
-        {balance ? (
-          <Typography variant="subtitle2" color="textSecondary">
-            Balance: {balance}
-          </Typography>
-        ) : null}
+        <Typography variant="subtitle2" color="textSecondary">
+          Balance:{' '}
+          {!user ? (
+            '0.00'
+          ) : balance === null ? (
+            <CircularProgress size={12} />
+          ) : (
+            balance
+          )}
+        </Typography>
       </Box>
       <Grid container alignItems="center">
         <Grid item xs={6}>

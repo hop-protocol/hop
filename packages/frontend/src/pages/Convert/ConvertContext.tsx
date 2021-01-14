@@ -24,10 +24,10 @@ type ConvertContextProps = {
   calcAltTokenAmount: (value: string) => Promise<string>
   sending: boolean
   sendButtonText: string
-  sourceTokenBalance: number
-  destTokenBalance: number
-  setSourceTokenBalance: (balance: number) => void
-  setDestTokenBalance: (balance: number) => void
+  sourceTokenBalance: number | null
+  destTokenBalance: number | null
+  setSourceTokenBalance: (balance: number | null) => void
+  setDestTokenBalance: (balance: number | null) => void
 }
 
 const ConvertContext = createContext<ConvertContextProps>({
@@ -46,10 +46,10 @@ const ConvertContext = createContext<ConvertContextProps>({
   calcAltTokenAmount: async (value: string): Promise<string> => '',
   sending: false,
   sendButtonText: '',
-  sourceTokenBalance: 0,
-  destTokenBalance: 0,
-  setSourceTokenBalance: (balance: number) => {},
-  setDestTokenBalance: (balance: number) => {}
+  sourceTokenBalance: null,
+  destTokenBalance: null,
+  setSourceTokenBalance: (balance: number | null) => {},
+  setDestTokenBalance: (balance: number | null) => {}
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
@@ -101,8 +101,10 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
   const [sending, setSending] = useState<boolean>(false)
-  const [sourceTokenBalance, setSourceTokenBalance] = useState<number>(0)
-  const [destTokenBalance, setDestTokenBalance] = useState<number>(0)
+  const [sourceTokenBalance, setSourceTokenBalance] = useState<number | null>(
+    null
+  )
+  const [destTokenBalance, setDestTokenBalance] = useState<number | null>(null)
 
   const calcAltTokenAmount = async (value: string) => {
     if (value) {
@@ -392,14 +394,16 @@ const ConvertContextProvider: FC = ({ children }) => {
     setSending(false)
   }
 
-  const enoughBalance = sourceTokenBalance >= Number(sourceTokenAmount)
+  const enoughBalance = Number(sourceTokenBalance) >= Number(sourceTokenAmount)
   const validFormFields = !!(
     sourceTokenAmount &&
     destTokenAmount &&
     enoughBalance
   )
   let sendButtonText = 'Convert'
-  if (!enoughBalance) {
+  if (sourceTokenBalance === null) {
+    sendButtonText = 'Fetching balance...'
+  } else if (!enoughBalance) {
     sendButtonText = 'Insufficient funds'
   }
 

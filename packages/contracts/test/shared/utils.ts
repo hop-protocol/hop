@@ -122,7 +122,7 @@ export const setUpL2UniswapMarket = async (fixture: IFixture, opts: any) => {
   const {
     l1_bridge,
     l1_canonicalToken,
-    l1_messenger,
+    l1_canonicalBridge,
     l2_bridge,
     l2_messenger,
     liquidityProvider,
@@ -136,9 +136,9 @@ export const setUpL2UniswapMarket = async (fixture: IFixture, opts: any) => {
     liquidityProviderBalance
   } = opts
 
-  // liquidityProvider moves funds across the canonical messenger
-  await l1_canonicalToken.connect(liquidityProvider).approve(l1_messenger.address, liquidityProviderBalance)
-  await l1_messenger.connect(liquidityProvider).sendMessageFromL1Bridge(l2_canonicalToken.address, await liquidityProvider.getAddress(), liquidityProviderBalance)
+  // liquidityProvider moves funds across the canonical bridge
+  await l1_canonicalToken.connect(liquidityProvider).approve(l1_canonicalBridge.address, liquidityProviderBalance)
+  await l1_canonicalBridge.connect(liquidityProvider).sendMessage(l2_canonicalToken.address, await liquidityProvider.getAddress(), liquidityProviderBalance)
   await l2_messenger.relayNextMessage()
   await expectBalanceOf(l2_canonicalToken, liquidityProvider, liquidityProviderBalance)
 

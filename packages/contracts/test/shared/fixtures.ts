@@ -22,6 +22,7 @@ export async function fixture(l2Name: string): Promise<IFixture> {
   const governance = accounts[4]
 
   const MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
+  const L1_CanonicalBridge = await ethers.getContractFactory('contracts/test/Mock_L1_CanonicalBridge.sol:Mock_L1_CanonicalBridge')
   const L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
   const L2_Bridge = await ethers.getContractFactory(`contracts/bridges/${l2BridgeArtifact}`)
   const L1_Messenger = await ethers.getContractFactory('contracts/test/L1_MockMessenger.sol:L1_MockMessenger')
@@ -37,6 +38,9 @@ export async function fixture(l2Name: string): Promise<IFixture> {
   // Deploy canonical messengers
   const l1_messenger = await L1_Messenger.deploy(l1_canonicalToken.address)
   const l2_messenger = await L2_Messenger.deploy(l2_canonicalToken.address)
+
+  // Deploy canonical bridges
+  const l1_canonicalBridge = await L1_CanonicalBridge.deploy(l1_canonicalToken.address, l1_messenger.address)
 
   // Deploy Hop L1 contracts
   const l1_bridge = await L1_Bridge.deploy(l1_canonicalToken.address, await committee.getAddress())
@@ -87,6 +91,7 @@ export async function fixture(l2Name: string): Promise<IFixture> {
     committee,
     challenger,
     governance,
+    L1_CanonicalBridge,
     L1_Bridge,
     L2_Bridge,
     MockERC20,
@@ -96,6 +101,7 @@ export async function fixture(l2Name: string): Promise<IFixture> {
     UniswapRouter,
     UniswapFactory,
     l1_canonicalToken,
+    l1_canonicalBridge,
     l1_messenger,
     messengerWrapper,
     l1_bridge,

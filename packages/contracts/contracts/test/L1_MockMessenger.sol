@@ -74,25 +74,4 @@ contract L1_MockMessenger is MockMessenger {
     function xDomainRelease(address _recipient, uint256 _amount) public {
         canonicalToken.safeTransfer(_recipient, _amount);
     }
-
-    /* ========== Chain Agnostic ========== */
-
-    /// @dev This function is L2 agnostic and should be used only during testing
-    /// @dev when sending tokens over the canonical bridge.
-    /// @dev This basically replaces the canonical bridge.
-    function sendMessageFromL1Bridge(
-        address _target,
-        address _recipient,
-        uint256 _amount
-    )
-        public
-    {
-        bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
-
-        canonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
-        targetMessenger.receiveMessage(
-            _target,
-            mintCalldata
-        );
-    }
 }

@@ -23,11 +23,6 @@ contract L2_ArbitrumBridge is L2_Bridge {
         messenger = _messenger;
     }
 
-    // ToDo: Pass in chainId
-    function getChainId() public override view returns (uint256) {
-        return 152709604825713;
-    }
-
     function _sendCrossDomainMessage(bytes memory _message) internal override {
         // TODO: Add the Arbitrum-specific messaging
     }

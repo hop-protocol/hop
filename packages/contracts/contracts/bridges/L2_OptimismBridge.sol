@@ -24,7 +24,7 @@ contract L2_OptimismBridge is L2_Bridge {
     }
 
     function _sendCrossDomainMessage(bytes memory _message) internal override {
-        // TODO
+        // TODO: Add the Optimism-specific messaging
     }
 
     function _verifySender(address _expectedSender) internal override {

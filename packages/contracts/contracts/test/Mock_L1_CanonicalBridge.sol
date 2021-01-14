@@ -6,17 +6,17 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import "./L1_MockMessenger.sol";
+import "./Mock_L1_Messenger.sol";
 
 contract Mock_L1_CanonicalBridge {
     using SafeERC20 for IERC20;
 
     IERC20 public canonicalToken;
-    L1_MockMessenger public messenger;
+    Mock_L1_Messenger public messenger;
 
     constructor (
         IERC20 _canonicalToken,
-        L1_MockMessenger _messenger
+        Mock_L1_Messenger _messenger
     )
          public
     {

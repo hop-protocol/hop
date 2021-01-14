@@ -4,16 +4,16 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "./MockMessenger.sol";
-import "./L1_MockMessenger.sol";
+import "./Mock_L1_Messenger.sol";
 
-contract L2_MockMessenger is MockMessenger {
+contract Mock_L2_Messenger is MockMessenger {
 
-    L1_MockMessenger public targetMessenger;
+    Mock_L1_Messenger public targetMessenger;
 
     constructor (IERC20 _canonicalToken) public MockMessenger(_canonicalToken) {}
 
     function setTargetMessenger(address _targetMessenger) public {
-        targetMessenger = L1_MockMessenger(_targetMessenger);
+        targetMessenger = Mock_L1_Messenger(_targetMessenger);
     }
 
     /* ========== Arbitrum ========== */

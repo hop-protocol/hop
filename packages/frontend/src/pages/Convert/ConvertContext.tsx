@@ -161,21 +161,22 @@ const ConvertContextProvider: FC = ({ children }) => {
       const approveTokens = async (
         token: Token,
         amount: string,
-        network: Network
+        network: Network,
+        targetAddress: string
       ): Promise<any> => {
         const signer = provider?.getSigner()
         const tokenAddress = token.addressForNetwork(network).toString()
         const contract = contracts?.getErc20Contract(tokenAddress, signer)
 
-        const address = arbitrumUniswapRouter?.address
         const parsedAmount = parseUnits(amount, token.decimals || 18)
         const approved = await contract?.allowance(
           await signer?.getAddress(),
-          address
+          targetAddress
         )
 
+        let tx: any
         if (approved.lt(parsedAmount)) {
-          return txConfirm?.show({
+          tx = await txConfirm?.show({
             kind: 'approval',
             inputProps: {
               amount,
@@ -183,33 +184,37 @@ const ConvertContextProvider: FC = ({ children }) => {
             },
             onConfirm: async (approveAll: boolean) => {
               const approveAmount = approveAll ? UINT256 : parsedAmount
-              return contract?.approve(address, approveAmount)
+              return contract?.approve(targetAddress, approveAmount)
             }
           })
         }
+
+        if (tx?.hash && sourceNetwork) {
+          app?.txHistory?.addTransaction(
+            new Transaction({
+              hash: tx?.hash,
+              networkName: sourceNetwork?.slug
+            })
+          )
+        }
+        await tx?.wait()
+        return tx
       }
 
       const signer = provider?.getSigner()
       const address = await signer?.getAddress()
       const value = parseUnits(sourceTokenAmount, 18)
 
-      let tx = await approveTokens(
-        selectedToken,
-        sourceTokenAmount,
-        sourceNetwork as Network
-      )
-      if (tx?.hash && sourceNetwork) {
-        app?.txHistory?.addTransaction(
-          new Transaction({
-            hash: tx?.hash,
-            networkName: sourceNetwork?.slug
-          })
-        )
-      }
-      await tx?.wait()
-
+      let tx: any
       if (sourceNetwork?.slug === 'kovan') {
         if (destNetwork?.slug === 'arbitrum') {
+          await approveTokens(
+            selectedToken,
+            sourceTokenAmount,
+            sourceNetwork as Network,
+            arbitrumL1Messenger?.address as string
+          )
+
           const tokenAddress = selectedToken
             .addressForNetwork(sourceNetwork)
             .toString()
@@ -236,6 +241,13 @@ const ConvertContextProvider: FC = ({ children }) => {
             }
           })
         } else if (destNetwork?.slug === 'arbitrumHopBridge') {
+          await approveTokens(
+            selectedToken,
+            sourceTokenAmount,
+            sourceNetwork as Network,
+            l1Bridge?.address as string
+          )
+
           const tokenAddress = selectedToken
             .addressForNetwork(sourceNetwork)
             .toString()
@@ -259,6 +271,13 @@ const ConvertContextProvider: FC = ({ children }) => {
         }
       } else if (sourceNetwork?.slug === 'arbitrum') {
         if (destNetwork?.slug === 'kovan') {
+          await approveTokens(
+            selectedToken,
+            sourceTokenAmount,
+            sourceNetwork as Network,
+            arbitrumDai?.address as string
+          )
+
           const tokenAddress = selectedToken
             .addressForNetwork(sourceNetwork)
             .toString()
@@ -281,6 +300,13 @@ const ConvertContextProvider: FC = ({ children }) => {
           })
         }
         if (destNetwork?.slug === 'arbitrumHopBridge') {
+          await approveTokens(
+            selectedToken,
+            sourceTokenAmount,
+            sourceNetwork as Network,
+            arbitrumUniswapRouter?.address as string
+          )
+
           const amountOutMin = '0'
           const path = [addresses.arbitrumDai, addresses.arbitrumBridge]
           const deadline = (Date.now() / 1000 + 300) | 0
@@ -310,6 +336,13 @@ const ConvertContextProvider: FC = ({ children }) => {
         }
       } else if (sourceNetwork?.slug === 'arbitrumHopBridge') {
         if (destNetwork?.slug === 'arbitrum') {
+          await approveTokens(
+            selectedToken,
+            sourceTokenAmount,
+            sourceNetwork as Network,
+            arbitrumUniswapRouter?.address as string
+          )
+
           const amountOutMin = '0'
           const path = [addresses.arbitrumBridge, addresses.arbitrumDai]
           const deadline = (Date.now() / 1000 + 300) | 0

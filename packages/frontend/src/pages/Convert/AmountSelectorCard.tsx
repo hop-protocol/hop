@@ -24,13 +24,18 @@ import useInterval from 'src/hooks/useInterval'
 const useStyles = makeStyles(theme => ({
   root: {
     width: '51.6rem',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
+    [theme.breakpoints.down('xs')]: {
+      width: 'auto'
+    }
   },
   topRow: {
     marginBottom: '1.8rem'
   },
   networkLabel: {
-    marginLeft: theme.padding.extraLight
+    marginLeft: theme.padding.extraLight,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis'
   },
   networkIcon: {
     height: '3.6rem'
@@ -68,8 +73,8 @@ const AmountSelectorCard: FC<Props> = props => {
   const { user } = useApp()
 
   const [balance, setBalance] = useState<string | null>(null)
-  // request tracker so only latest request response is set
-  const tracker = useRef<number>(0)
+  // request debouncer so only latest request response is set
+  const debouncer = useRef<number>(0)
 
   useEffect(() => {
     if (onBalanceChange) {
@@ -78,11 +83,11 @@ const AmountSelectorCard: FC<Props> = props => {
   }, [balance])
 
   const getBalance = useCallback(() => {
-    const ctx = tracker.current
+    const ctx = debouncer.current
     const _getBalance = async () => {
       if (user && token && selectedNetwork) {
         const _balance = await user.getBalance(token, selectedNetwork)
-        if (ctx === tracker.current) {
+        if (ctx === debouncer.current) {
           setBalance(Number(ethersUtils.formatUnits(_balance, 18)).toFixed(2))
         }
       }
@@ -94,7 +99,7 @@ const AmountSelectorCard: FC<Props> = props => {
   useEffect(() => {
     // switching tabs will cause getBalance to be called with incorrect token
     // so we wait until there's no more switching to get balance
-    tracker.current++
+    debouncer.current++
     setBalance(null)
     const t = setTimeout(() => {
       getBalance()
@@ -106,7 +111,7 @@ const AmountSelectorCard: FC<Props> = props => {
 
   useEffect(() => {
     getBalance()
-  }, [getBalance, user, token, selectedNetwork, tracker.current])
+  }, [getBalance, user, token, selectedNetwork, debouncer.current])
 
   useInterval(() => {
     getBalance()

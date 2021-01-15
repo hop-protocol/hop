@@ -9,7 +9,7 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   title: {
     marginBottom: '4.2rem'
   },
@@ -24,7 +24,10 @@ const useStyles = makeStyles(() => ({
   pricesBox: {
     width: '51.6rem',
     marginTop: '4.2rem',
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
+    [theme.breakpoints.down('xs')]: {
+      width: '95%'
+    }
   },
   priceBox: {
     display: 'flex',
@@ -47,7 +50,10 @@ const useStyles = makeStyles(() => ({
   poolPositionBox: {
     width: '45.6rem',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    [theme.breakpoints.down('xs')]: {
+      width: '85%'
+    }
   },
   poolPositionCard: {
     display: 'flex',

@@ -14,7 +14,10 @@ import useInterval from 'src/hooks/useInterval'
 const useStyles = makeStyles(theme => ({
   root: {
     width: '51.6rem',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
+    [theme.breakpoints.down('xs')]: {
+      width: 'auto'
+    }
   },
   topRow: {
     marginBottom: '1.8rem'

@@ -73,6 +73,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     '&.exited': {
       opacity: 0,
       transform: 'translate(-50%, -50%) scale(0)'
+    },
+    [theme.breakpoints.down('xs')]: {
+      maxWidth: '90%'
     }
   },
   card: {
@@ -82,7 +85,10 @@ const useStyles = makeStyles((theme: Theme) => ({
     maxHeight: '100%'
   },
   content: {
-    padding: '4rem'
+    padding: '4rem',
+    [theme.breakpoints.down('xs')]: {
+      padding: '4rem 2rem'
+    }
   }
 }))
 

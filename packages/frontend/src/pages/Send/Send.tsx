@@ -25,7 +25,7 @@ import { addresses } from 'src/config'
 import { UINT256 } from 'src/config/constants'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   sendSelect: {
     marginBottom: '4.2rem'
   },
@@ -44,7 +44,10 @@ const useStyles = makeStyles(() => ({
   },
   detailRow: {
     marginTop: '4.2rem',
-    width: '46.0rem'
+    width: '46.0rem',
+    [theme.breakpoints.down('xs')]: {
+      width: '90%'
+    }
   }
 }))
 

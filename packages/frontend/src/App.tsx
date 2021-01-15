@@ -6,9 +6,12 @@ import Header from 'src/components/Header'
 import AccountDetails from 'src/components/accountDetails'
 import TxConfirm from 'src/components/txConfirm/TxConfirm'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   content: {
-    padding: '4.2rem'
+    padding: '4.2rem',
+    [theme.breakpoints.down('xs')]: {
+      padding: '2.2rem'
+    }
   }
 }))
 

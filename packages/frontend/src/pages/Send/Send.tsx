@@ -107,7 +107,7 @@ const Send: FC = () => {
     const hopDai = addresses.arbitrumBridge
     const dai = addresses.l1Dai
     const decimals = 18
-    const path = fromNetwork.slug === 'kovan' ? [dai, hopDai] : [hopDai, dai]
+    const path = fromNetwork.isLayer1 ? [hopDai, dai] : [dai, hopDai]
     if (isAmountIn) {
       const amount0 = parseUnits(amount, decimals)
       const amountsOut = await arbitrumUniswapRouter?.getAmountsOut(
@@ -127,7 +127,7 @@ const Send: FC = () => {
       if (!amountIn || !toNetwork) return
       const ctx = ++debouncer.current
       const amountOut = await calcAmount(amountIn, true)
-      const rate = Number(amountIn) / amountOut
+      const rate = amountOut / Number(amountIn)
       if (ctx !== debouncer.current) return
       setToTokenAmount((Number(amountIn) * rate).toFixed(2))
       setExchangeRate(rate)
@@ -141,7 +141,7 @@ const Send: FC = () => {
       if (!amountOut || !fromNetwork) return
       const ctx = ++debouncer.current
       const amountIn = await calcAmount(amountOut, false)
-      const rate = amountIn / Number(amountOut)
+      const rate = Number(amountOut) / amountIn
       if (ctx !== debouncer.current) return
       setFromTokenAmount((Number(amountOut) / rate).toFixed(2))
       setExchangeRate(rate)

@@ -14,10 +14,34 @@ const contracts = require('contracts');
 
 ### Arbitrum
 
-#### L1
+#### Testnet #3
+##### L1
 
 _Pre Deployed_
-* L1 DAI (Pool Token): `0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`
+* L1 DAI: `0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`
+* L1 Messenger: `0xE681857DEfE8b454244e701BA63EfAa078d7eA85`
+
+_Bridge System_
+* L1 Bridge: `0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE`
+* L1 Messenger Wrapper: `0x36501dcD0007aA4DB373667d730C5AE91a7b3cc8`
+
+##### L2
+
+_Pre Deployed_
+* L2 DAI: `0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`
+* L2 Messenger: `0x0000000000000000000000000000000000000064`
+
+_Bridge System_
+* L2 Bridge: `0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde`
+* L2 Uniswap Factory: `0xd28B241aB439220b85b8B90B912799DefECA8CCe`
+* L2 Uniswap Router: `0x2B6812d2282CF676044cBdE2D0222c08e6E1bdb2`
+* L2 Uniswap Exchange: `0xD637bf04dF4FDFDf951C06e3c87f7801c85b161f`
+
+#### Testnet #2
+##### L1
+
+_Pre Deployed_
+* L1 DAI: `0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`
 * L1 Messenger: `0xE681857DEfE8b454244e701BA63EfAa078d7eA85`
 
 _Bridge System_
@@ -25,10 +49,10 @@ _Bridge System_
 * L1 Bridge Wrapper: `0xb5cAC377180fcE007664Cc65ff044d685e0F1A3b`
 
 
-#### L2
+##### L2
 
 _Pre Deployed_
-* L2 DAI (oDAI): `0x7d669a64deb8a4a51eea755bb0e19fd39ce25ae9`
+* L2: `0x7d669a64deb8a4a51eea755bb0e19fd39ce25ae9`
 * L2 Messenger: `0x0000000000000000000000000000000000000064`
 
 _Bridge System_
@@ -49,7 +73,7 @@ _Bridge System_
 ## Definitions
 * **Transfer** - The data for a transfer from one chain to another.
 * **TransferHash** - The hash of a single transfer's data.
-* **TransferRoot** - The merkle root of a tree of TransferHashs and associated metadata such as the destination chainIds and totals for each chain.
+* **TransferRoot** - The merkle root of a tree of TransferHashes and associated metadata such as the destination chainIds and totals for each chain.
 * **Bridge** - A hop bridge contracts on L1 or L2 ("L1 Bridge", "Hop Bridge", "Arbitrum Bridge", "Optimism Bridge")
 * **Canonical Token Bridge** - A Rollup's own token bridge. ("Canonical Arbitrum Bridge", "Canonical Optimism Bridge")
 

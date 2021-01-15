@@ -42,15 +42,16 @@ async function deployArbitrum () {
    */
 
   // Connect Contracts
-  l1_bridge = L1_Bridge.attach('0xC9898E162b6a43dc665B033F1EF6b2bc7B0157B4')
+  l1_bridge = L1_Bridge.attach('0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE')
 
-  l2_bridge = L2_Bridge.attach('0xf8E96392b1Ba3B2FD88041894a93e089E93C0dcd')
+  l2_bridge = L2_Bridge.attach('0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde')
   l2_oDai = MockERC20.attach('0x7d669a64deb8a4a51eea755bb0e19fd39ce25ae9')
-  l2_uniswapRouter = UniswapRouter.attach('0xBae19197DFa25105E832b8fAfeAB88aCa275385F')
-  l2_uniswapFactory = UniswapFactory.attach('0xEaAec7a29B6ccE9e831C8d07e989fa4163026177')
+  l2_uniswapRouter = UniswapRouter.attach('0xd28B241aB439220b85b8B90B912799DefECA8CCe')
+  l2_uniswapFactory = UniswapFactory.attach('0x2B6812d2282CF676044cBdE2D0222c08e6E1bdb2')
 
   // Set up bridges
   await l2_bridge.setL1BridgeAddress(l1_bridge.address)
+  await l2_bridge.setExchangeAddress(l2_uniswapRouter.address)
 
   // Set up Uniswap
   await l2_oDai.approve(l2_uniswapRouter.address, USER_INITIAL_BALANCE.div(2))
@@ -65,11 +66,6 @@ async function deployArbitrum () {
     await user.getAddress(),
     '999999999999'
   )
-
-  // Finalize bridge
-  await l2_bridge.setExchangeValues(SWAP_DEADLINE_BUFFER, l2_uniswapRouter.address, l2_oDai.address)
-  await l2_bridge.approveExchangeTransfer()
-
 }
 
 /* tslint:disable-next-line */

@@ -196,7 +196,7 @@ export const getChainIdFromName = (l2Name: string): BigNumber => {
   }
 }
 
-const setMessengerWrapperDefaults = async (
+export const setMessengerWrapperDefaults = async (
   l2Name: string,
   l1MessengerWrapper: Contract,
   l1BridgeAddress: string,

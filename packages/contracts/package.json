@@ -1,6 +1,6 @@
 {
   "name": "@hop-exchange/contracts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "> TODO: description",
   "author": "",
   "homepage": "",
@@ -11,7 +11,10 @@
   ],
   "scripts": {
     "test": "hardhat test",
-    "build": "hardhat compile"
+    "build": "hardhat compile",
+    "publish-module": "npm publish --tag beta --access public",
+    "clean": "rimraf dist",
+    "release": "npm run clean && npm run publish-module"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",

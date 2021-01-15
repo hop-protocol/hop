@@ -23,7 +23,7 @@ export async function fixture(l2Name: string): Promise<IFixture> {
 
   const MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
   const L1_CanonicalBridge = await ethers.getContractFactory('contracts/test/Mock_L1_CanonicalBridge.sol:Mock_L1_CanonicalBridge')
-  const L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
+  const L1_Bridge = await ethers.getContractFactory('contracts/test/Mock_L1_Bridge.sol:Mock_L1_Bridge')
   const L2_Bridge = await ethers.getContractFactory(`contracts/bridges/${l2BridgeArtifact}`)
   const L1_Messenger = await ethers.getContractFactory('contracts/test/Mock_L1_Messenger.sol:Mock_L1_Messenger')
   const MessengerWrapper = await ethers.getContractFactory(`contracts/wrappers/${messengerWrapperArtifact}`)

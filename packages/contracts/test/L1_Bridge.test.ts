@@ -59,6 +59,12 @@ describe("L1_Bridge", () => {
    * Unit tests
    */
 
+  it('Should get the correct chainId', async () => {
+    const chainId = await l1_bridge.getChainId()
+    const expectedChainId = 1;
+    expect(chainId).to.eq(expectedChainId)
+  })
+
   it('Should set the collateral token address and the committee address in the constructor', async () => {
     const collateralTokenAddress = await l1_bridge.l1CanonicalToken()
     const committeeAddress = await l1_bridge.getCommittee()
@@ -66,7 +72,7 @@ describe("L1_Bridge", () => {
     expect(committeeAddress).to.eq(await committee.getAddress())
   })
 
-  it('Should send tokens across the bridge', async () => {
+  it('Should send tokens across the bridge via sendToL2', async () => {
     const tokenAmount = USER_INITIAL_BALANCE
     await l1_canonicalToken.connect(user).approve(l1_bridge.address, tokenAmount)
     await l1_bridge.connect(user).sendToL2(l2ChainId.toString(), await user.getAddress(), tokenAmount)
@@ -74,7 +80,7 @@ describe("L1_Bridge", () => {
     await expectBalanceOf(l2_bridge, user, tokenAmount)
   })
 
-  it('Should send tokens across the bridge and swap', async () => {
+  it('Should send tokens across the bridge and swap via sendToL2AndAttemptSwap', async () => {
     const tokenAmount = USER_INITIAL_BALANCE
     await l1_canonicalToken.connect(user).approve(l1_bridge.address, tokenAmount)
     await l1_bridge.connect(user).sendToL2AndAttemptSwap(

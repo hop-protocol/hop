@@ -4,16 +4,16 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "./MockMessenger.sol";
-import "./L2_MockMessenger.sol";
+import "./Mock_L2_Messenger.sol";
 
-contract L1_MockMessenger is MockMessenger {
+contract Mock_L1_Messenger is MockMessenger {
 
-    L2_MockMessenger public targetMessenger;
+    Mock_L2_Messenger public targetMessenger;
 
     constructor (IERC20 _canonicalToken) public MockMessenger(_canonicalToken) {}
 
     function setTargetMessenger(address _targetMessenger) public {
-        targetMessenger = L2_MockMessenger(_targetMessenger);
+        targetMessenger = Mock_L2_Messenger(_targetMessenger);
     }
 
     /* ========== Arbitrum ========== */
@@ -70,29 +70,8 @@ contract L1_MockMessenger is MockMessenger {
         );
     }
 
-    // TODO: I believe this should go in L2_MockMessenger
+    // TODO: I believe this should go in Mock_L2_Messenger
     function xDomainRelease(address _recipient, uint256 _amount) public {
         canonicalToken.safeTransfer(_recipient, _amount);
-    }
-
-    /* ========== Chain Agnostic ========== */
-
-    /// @dev This function is L2 agnostic and should be used only during testing
-    /// @dev when sending tokens over the canonical bridge.
-    /// @dev This basically replaces the canonical bridge.
-    function sendMessageFromL1Bridge(
-        address _target,
-        address _recipient,
-        uint256 _amount
-    )
-        public
-    {
-        bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
-
-        canonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
-        targetMessenger.receiveMessage(
-            _target,
-            mintCalldata
-        );
     }
 }

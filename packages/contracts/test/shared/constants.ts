@@ -38,6 +38,7 @@ export interface IFixture {
   governance: Signer
 
   // Factories
+  L1_CanonicalBridge: ContractFactory
   L1_Bridge: ContractFactory
   L2_Bridge: ContractFactory
   MockERC20: ContractFactory
@@ -48,6 +49,7 @@ export interface IFixture {
   UniswapFactory: ContractFactory
 
   // L1
+  l1_canonicalBridge: Contract
   l1_canonicalToken: Contract
   l1_messenger: Contract
   l1_bridge: Contract

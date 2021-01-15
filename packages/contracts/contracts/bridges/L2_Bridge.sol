@@ -4,11 +4,9 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
 import '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
-import "./Bridge.sol";
 
+import "./Bridge.sol";
 import "../libraries/MerkleUtils.sol";
 
 abstract contract L2_Bridge is ERC20, Bridge {

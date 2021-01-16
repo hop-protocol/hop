@@ -120,3 +120,11 @@ The following steps are to add a new L2 (Xyz, for example) to the Hop System:
 
     * Arbitrum = `0x9186606d55c571b43a756333453d90ab5653c483deb4980cda697bfa36fba5de`
       Optimism = `0x09d0f27659ee556a8134fa56941e42400e672aecc2d4cfc61cdb0fcea4590e05`
+
+* How can I verify the contracts on Etherscan?
+
+  * To do it manually:
+    1. Flatten the contract with `npx hardhat flatten ./contracts/bridges/L1_Bridge.sol > flat.txt`
+    2. Keep one SPDX license at the top of the file. Remove all the others. 
+    3. Keep one Solidity pragma and ABIEncoder definition at the top of the file. Remove all others.
+    4. Verify on Etherscan.

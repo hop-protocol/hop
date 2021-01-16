@@ -205,12 +205,15 @@ const Send: FC = () => {
       throw new Error('No fromNetwork selected')
     }
 
-    const tokenContract = selectedToken
-      .contractForNetwork(fromNetwork)
-      .connect(signer)
+    if (!toNetwork) {
+      throw new Error('No toNetwork selected')
+    }
 
     let tx: any
-    if (fromNetwork.isLayer1) {
+    if (fromNetwork?.isLayer1) {
+      const tokenContract = selectedToken
+        .contractForNetwork(fromNetwork)
+        .connect(signer)
       const approved = await tokenContract.allowance(
         await signer?.getAddress(),
         l1Bridge?.address
@@ -238,6 +241,9 @@ const Send: FC = () => {
         }
       }
     } else {
+      const tokenContract = selectedToken
+        .contractForNetwork(fromNetwork)
+        .connect(signer)
       const approved = await tokenContract.allowance(
         await signer?.getAddress(),
         arbitrumUniswapRouter?.address
@@ -258,6 +264,15 @@ const Send: FC = () => {
             )
           }
         })
+        await tx?.wait()
+        if (tx?.hash && fromNetwork) {
+          txHistory?.addTransaction(
+            new Transaction({
+              hash: tx?.hash,
+              networkName: fromNetwork?.slug
+            })
+          )
+        }
       }
     }
 
@@ -319,13 +334,13 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
-        //const deadline = (Date.now() / 1000 + 5 * 60) | 0
+        const deadline = (Date.now() / 1000 + 300) | 0
         return l1Bridge.sendToL2AndAttemptSwap(
           arbitrumNetwork.key(),
           await signer.getAddress(),
           parseEther(fromTokenAmount),
-          '0'
-          //deadline
+          '0',
+          deadline
         )
       }
     })
@@ -346,11 +361,40 @@ const Send: FC = () => {
       throw new Error('Cannot send: l1Bridge or signer does not exist.')
     }
 
-    alert('not implemented')
-    // ToDo: Hook up to swapAndSendToMainnet
-    // const arbitrumNetwork = networks[1]
-    // await arbitrumBridge.swapAndSendToMainnet(
-    // )
+    const tx: any = await txConfirm?.show({
+      kind: 'send',
+      inputProps: {
+        source: {
+          amount: fromTokenAmount,
+          token: selectedToken,
+          network: fromNetwork
+        },
+        dest: {
+          network: toNetwork
+        }
+      },
+      onConfirm: async () => {
+        const kovanNetwork = networks[0]
+        return arbitrumBridge.send(
+          '1',
+          await signer.getAddress(),
+          parseEther(fromTokenAmount),
+          Date.now(),
+          '0',
+          '0',
+          '0'
+        )
+      }
+    })
+
+    if (tx?.hash && fromNetwork) {
+      txHistory?.addTransaction(
+        new Transaction({
+          hash: tx?.hash,
+          networkName: fromNetwork?.slug
+        })
+      )
+    }
   }
 
   const enoughBalance = fromBalance >= Number(fromTokenAmount)

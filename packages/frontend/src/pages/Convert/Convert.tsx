@@ -86,7 +86,7 @@ const Convert: FC = () => {
             </ConvertContext>
           </div>
         </Route>
-        <Redirect to={`${path}/bridge`} />
+        <Redirect to={`${path}/hop`} />
       </Switch>
     </Box>
   )

@@ -46,8 +46,8 @@ async function deployArbitrum () {
 
   l2_bridge = L2_Bridge.attach('0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde')
   l2_oDai = MockERC20.attach('0x7d669a64deb8a4a51eea755bb0e19fd39ce25ae9')
-  l2_uniswapRouter = UniswapRouter.attach('0xd28B241aB439220b85b8B90B912799DefECA8CCe')
-  l2_uniswapFactory = UniswapFactory.attach('0x2B6812d2282CF676044cBdE2D0222c08e6E1bdb2')
+  l2_uniswapRouter = UniswapRouter.attach('0x2B6812d2282CF676044cBdE2D0222c08e6E1bdb2')
+  l2_uniswapFactory = UniswapFactory.attach('0xd28B241aB439220b85b8B90B912799DefECA8CCe')
 
   // Set up bridges
   await l2_bridge.setL1BridgeAddress(l1_bridge.address)

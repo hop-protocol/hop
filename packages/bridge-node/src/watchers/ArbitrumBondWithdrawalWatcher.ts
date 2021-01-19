@@ -7,30 +7,34 @@ import { L1Provider } from 'src/wallets/L1Wallet'
 import { L2ArbitrumProvider } from 'src/wallets/L2ArbitrumWallet'
 import { TransferSentEvent } from 'src/constants'
 import { store } from 'src/store'
+import chalk from 'chalk'
+import Logger from 'src/logger'
+
+const logger = new Logger('[bondWithdrawalWatcher]', { color: 'green' })
 
 class BondWithdrawalWatcher {
   async start () {
-    console.log(
+    logger.log(
       'starting L2 Arbitrum TransferSent event watcher for L1 bondWithdrawal tx'
     )
 
     try {
       await this.watch()
     } catch (err) {
-      console.error('BondWithdrawalWatcher error', err)
+      logger.error('BondWithdrawalWatcher error:', err)
     }
   }
 
   async watch () {
     const credit = (await L1BridgeContract.getCredit()).toString()
     const debit = (await L1BridgeContract.getDebit()).toString()
-    console.log('L1 credit:', formatUnits(credit, 18))
-    console.log('L1 debit:', formatUnits(debit, 18))
+    logger.log('L1 credit balance:', formatUnits(credit, 18))
+    logger.log('L1 debit balance:', formatUnits(debit, 18))
 
     if (credit === '0') {
       const amount = parseUnits('1000', 18)
       const tx = await L1BridgeContract.stake(amount)
-      console.log('stake tx:', tx?.hash)
+      logger.log('stake tx:', tx?.hash)
     }
 
     L2ArbitrumBridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
@@ -85,8 +89,8 @@ class BondWithdrawalWatcher {
   ) => {
     try {
       const { transactionHash } = meta
-      console.log('received L2 Arbitrum TransferSentEvent event')
-      console.log('transferHash', transferHash)
+      logger.log('received L2 Arbitrum TransferSentEvent event')
+      logger.log('transferHash:', transferHash)
 
       await wait(2 * 1000)
       const { from: sender, data } = await L2ArbitrumProvider.getTransaction(
@@ -122,9 +126,9 @@ class BondWithdrawalWatcher {
         relayerFee,
         attemptSwap: false // TODO: set to true if it's L2 -> L2 transfer
       })
-      console.log('L1 bondWithdrawal tx', tx.hash)
+      logger.log('L1 bondWithdrawal tx:', chalk.yellow(tx.hash))
     } catch (err) {
-      console.error('bondWithdrawal error', err)
+      logger.error('bondWithdrawal tx error:', err)
     }
   }
 }

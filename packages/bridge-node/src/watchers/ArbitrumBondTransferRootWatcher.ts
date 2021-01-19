@@ -5,17 +5,21 @@ import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
 import { L2ArbitrumProvider } from 'src/wallets/L2ArbitrumWallet'
 import { TransfersCommittedEvent } from 'src/constants'
 import { store } from 'src/store'
+import chalk from 'chalk'
+import Logger from 'src/logger'
+
+const logger = new Logger('[bondTransferRootWatcher]', { color: 'cyan' })
 
 class BondTransferRootWatcher {
   async start () {
-    console.log(
+    logger.log(
       'starting L2 Arbitrum TransfersCommitted event watcher for L1 bondTransferRoot tx'
     )
 
     try {
       await this.watch()
     } catch (err) {
-      console.error('bondTransferRootWatcher error', err)
+      logger.error('watcher error:', err)
     }
   }
 
@@ -50,13 +54,13 @@ class BondTransferRootWatcher {
   ) => {
     try {
       const { transactionHash } = meta
-      console.log('received L2 Arbitrum TransfersCommittedEvent event')
-      console.log('transferRootHash', transferRootHash)
-      console.log(
+      logger.log('received L2 Arbitrum TransfersCommittedEvent event')
+      logger.log('transferRootHash', transferRootHash)
+      logger.log(
         'chainIds',
         chainIds.map(x => x.toString())
       )
-      console.log(
+      logger.log(
         'chainAmounts',
         chainAmounts.map(x => x.toString())
       )
@@ -72,9 +76,9 @@ class BondTransferRootWatcher {
         chainIds,
         chainAmounts
       )
-      console.log('L1 bondTransferRoot tx', tx.hash)
+      logger.log('L1 bondTransferRoot tx', chalk.yellow(tx.hash))
     } catch (err) {
-      console.error('bondTransferRoot error', err)
+      logger.error('bondTransferRoot tx error:', err)
     }
   }
 }

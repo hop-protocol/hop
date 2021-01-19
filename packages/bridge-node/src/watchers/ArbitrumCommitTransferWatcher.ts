@@ -3,14 +3,18 @@ import assert from 'assert'
 import * as ethers from 'ethers'
 import wait from '@authereum/utils/core/wait'
 import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
+import chalk from 'chalk'
+import Logger from 'src/logger'
+
+const logger = new Logger('[commitTransferWatcher]', { color: 'yellow' })
 
 class CommitTransfersWatcher {
   async start () {
-    console.log('starting L2 Arbitrum commitTransfers scheduler')
+    logger.log('starting L2 Arbitrum commitTransfers scheduler')
     try {
       await this.watch()
     } catch (err) {
-      console.error(err)
+      logger.error('watcher error:', err)
     }
   }
 
@@ -31,7 +35,7 @@ class CommitTransfersWatcher {
     }
 
     const tx = await this.sendTx()
-    console.log('L2 Arbitrum commitTransfers tx:', tx.hash)
+    logger.log('L2 Arbitrum commitTransfers tx:', chalk.yellow(tx.hash))
     const receipt = await tx.wait()
     assert(receipt.status === 1)
   }
@@ -42,7 +46,7 @@ class CommitTransfersWatcher {
       try {
         await this.check()
       } catch (err) {
-        console.error('commitTransfers error', err.message)
+        logger.error('commitTransfers tx error:', err.message)
         await wait(20 * 1000)
       }
     }

@@ -3,6 +3,9 @@ import L1BridgeContract from 'src/contracts/L1BridgeContract'
 import { BondTransferRootEvent, TransfersCommittedEvent } from 'src/constants'
 import { L2ArbitrumProvider } from 'src/wallets/L2ArbitrumWallet'
 import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
+import Logger from 'src/logger'
+
+const logger = new Logger('[challengeWatcher]', { color: 'red' })
 
 // notes:
 // - challenge watcher
@@ -14,11 +17,11 @@ import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
 // TODO: fix
 class ChallengeWatcher {
   async start () {
-    console.log('starting L1 BondTransferRoot event watcher')
+    logger.log('starting L1 BondTransferRoot event watcher')
     try {
       await this.watch()
     } catch (err) {
-      console.error(err)
+      logger.error('watcher error:', err)
     }
   }
 
@@ -29,7 +32,7 @@ class ChallengeWatcher {
       meta: any
     ) => {
       const { transactionHash } = meta
-      console.log(
+      logger.log(
         'received L1 BondTransferRoot event',
         bondRoot,
         bondAmount.toString(),
@@ -41,7 +44,7 @@ class ChallengeWatcher {
         TransfersCommittedEvent as any,
         L2BlockNumber - 100
       )
-      console.log('recent events', recentTransferCommitEvents)
+      logger.log('recent events:', recentTransferCommitEvents)
 
       let found = false
       for (let i = 0; i < recentTransferCommitEvents.length; i++) {
@@ -57,7 +60,7 @@ class ChallengeWatcher {
       }
 
       if (!found) {
-        console.warn('Transfer root not committed!')
+        logger.warn('Transfer root not committed!')
       }
     }
 
@@ -68,7 +71,7 @@ class ChallengeWatcher {
     //L2ArbitrumBridgeContract.filters.TransfersCommitted(),
     //L2BlockNumber - 100
     //)
-    //console.log('recent events', recentTransferCommitEvents)
+    //logger.log('recent events:', recentTransferCommitEvents)
   }
 }
 

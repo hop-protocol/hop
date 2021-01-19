@@ -16,6 +16,7 @@ program
     ArbitrumBondTransferRootWatcher.start()
     ArbitrumBondWithdrawalWatcher.start()
     SettleBondedWithdrawalWatcher.start()
+    ArbitrumCommitTransferWatcher.start()
   })
 
 program

@@ -13,9 +13,9 @@ services:
         awslogs-group: BridgeNodeKovan
         awslogs-create-group: 'true'
 
-  committee:
+  bonder:
     image: 874777227511.dkr.ecr.us-east-1.amazonaws.com/authereum/bridge-node:latest
-    command: committee
+    command: bonder
     env_file:
       - bridgenode.env
     logging:

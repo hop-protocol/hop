@@ -10,8 +10,8 @@ import { arbBot } from 'src/arb-bot'
 const program = new Command()
 
 program
-  .command('committee')
-  .description('Start the committee watcher')
+  .command('bonder')
+  .description('Start the bonder watchers')
   .action(() => {
     ArbitrumBondTransferRootWatcher.start()
     ArbitrumBondWithdrawalWatcher.start()

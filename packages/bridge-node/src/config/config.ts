@@ -1,7 +1,8 @@
 require('dotenv').config()
 import * as config from './default.json'
 
-export const committeePrivateKey = process.env.COMMITTEE_PRIVATE_KEY
+export const bonderPrivateKey =
+  process.env.BONDER_PRIVATE_KEY || process.env.COMMITTEE_PRIVATE_KEY
 export const L1EthRpcUrl = process.env.L1_ETH_RPC_URL || config.L1EthRpcUrl
 export const L2ArbitrumRpcUrl =
   process.env.L2_ARBITRUM_RPC_URL || config.L2ArbitrumRpcUrl

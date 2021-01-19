@@ -1,4 +1,4 @@
-version: "3.9"
+version: '3.9'
 
 services:
   arb-bot:
@@ -11,7 +11,7 @@ services:
       options:
         awslogs-region: us-east-1
         awslogs-group: BridgeNodeKovan
-        awslogs-create-group: "true"
+        awslogs-create-group: 'true'
 
   committee:
     image: 874777227511.dkr.ecr.us-east-1.amazonaws.com/authereum/bridge-node:latest
@@ -23,7 +23,7 @@ services:
       options:
         awslogs-region: us-east-1
         awslogs-group: BridgeNodeKovan
-        awslogs-create-group: "true"
+        awslogs-create-group: 'true'
 
   challenger:
     image: 874777227511.dkr.ecr.us-east-1.amazonaws.com/authereum/bridge-node:latest
@@ -35,7 +35,7 @@ services:
       options:
         awslogs-region: us-east-1
         awslogs-group: BridgeNodeKovan
-        awslogs-create-group: "true"
+        awslogs-create-group: 'true'
 
   relayer:
     image: 874777227511.dkr.ecr.us-east-1.amazonaws.com/authereum/bridge-node:latest
@@ -47,4 +47,4 @@ services:
       options:
         awslogs-region: us-east-1
         awslogs-group: BridgeNodeKovan
-        awslogs-create-group: "true"
+        awslogs-create-group: 'true'

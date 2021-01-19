@@ -244,9 +244,10 @@ const Send: FC = () => {
       const tokenContract = selectedToken
         .contractForNetwork(fromNetwork)
         .connect(signer)
+
       const approved = await tokenContract.allowance(
         await signer?.getAddress(),
-        arbitrumUniswapRouter?.address
+        arbitrumBridge?.address
       )
       const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
       if (approved.lt(parsedAmount)) {
@@ -257,11 +258,7 @@ const Send: FC = () => {
             token: selectedToken
           },
           onConfirm: async () => {
-            // ToDo: Get uniswap contract based on from network
-            return tokenContract.approve(
-              arbitrumUniswapRouter?.address,
-              UINT256
-            )
+            return tokenContract.approve(arbitrumBridge?.address, UINT256)
           }
         })
         await tx?.wait()
@@ -335,11 +332,12 @@ const Send: FC = () => {
       },
       onConfirm: async () => {
         const deadline = (Date.now() / 1000 + 300) | 0
+        const amountOutMin = '0'
         return l1Bridge.sendToL2AndAttemptSwap(
           arbitrumNetwork.key(),
           await signer.getAddress(),
           parseEther(fromTokenAmount),
-          '0',
+          amountOutMin,
           deadline
         )
       }
@@ -374,15 +372,22 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
-        const kovanNetwork = networks[0]
-        return arbitrumBridge.send(
-          '1',
-          await signer.getAddress(),
+        const deadline = (Date.now() / 1000 + 300) | 0
+        const chainId = toNetwork?.networkId
+        const transferNonce = Date.now()
+        const relayerFee = '0'
+        const amountOutIn = '0'
+        const destinationAmountOutMin = '0'
+        return arbitrumBridge?.swapAndSend(
+          chainId,
+          await signer?.getAddress(),
           parseEther(fromTokenAmount),
-          Date.now(),
-          '0',
-          '0',
-          '0'
+          transferNonce,
+          relayerFee,
+          amountOutIn,
+          deadline,
+          destinationAmountOutMin,
+          deadline
         )
       }
     })

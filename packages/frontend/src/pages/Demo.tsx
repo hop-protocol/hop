@@ -22,6 +22,7 @@ const Demo: FC<Props> = () => {
   const { provider } = useWeb3Context()
   const app = useApp()
   const l1Bridge = app?.contracts?.l1Bridge
+  const arbitrumBridge = app?.contracts?.arbitrumBridge
   const arbitrumUniswapRouter = app?.contracts?.arbitrumUniswapRouter
 
   const handleApprove = async () => {

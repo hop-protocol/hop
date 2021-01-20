@@ -74,7 +74,7 @@ describe("ArbitrumMessage", () => {
 
     // Deploy messenger wrapper
     const l2Name = L2_NAMES.ARBITRUM
-    const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = await getMessengerWrapperDefaults(l2Name, l2_bridge.address, l1_messenger.address)
+    const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = getMessengerWrapperDefaults(l2Name, l2_bridge.address, l1_messenger.address)
     messengerWrapper = await MessengerWrapper.deploy(...messengerWrapperDefaults)
 
     // Set up bridge

@@ -6,6 +6,7 @@ services:
     command: arb-bot
     env_file:
       - bridgenode.env
+    restart: unless-stopped
     logging:
       driver: awslogs
       options:
@@ -18,6 +19,7 @@ services:
     command: bonder
     env_file:
       - bridgenode.env
+    restart: unless-stopped
     logging:
       driver: awslogs
       options:
@@ -30,6 +32,7 @@ services:
     command: challenger
     env_file:
       - bridgenode.env
+    restart: unless-stopped
     logging:
       driver: awslogs
       options:

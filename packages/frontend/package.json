@@ -38,7 +38,9 @@
     "lint": "prettier-standard --format",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "deploy": "netlify deploy --prod",
+    "deploy:ipfs": "ipd -p pinata build --no-open"
   },
   "eslintConfig": {
     "extends": [
@@ -67,6 +69,7 @@
     "eslint-plugin-jsx-a11y": "6.4.1",
     "eslint-plugin-react": "7.21.5",
     "eslint-plugin-react-hooks": "4.2.0",
+    "ipfs-deploy": "8.0.1",
     "prettier-standard": "16.4.1"
   }
 }

@@ -8,6 +8,8 @@ import Logger from 'src/logger'
 
 const logger = new Logger('[commitTransferWatcher]', { color: 'yellow' })
 
+// TODO: trigger on event
+
 class CommitTransfersWatcher {
   async start () {
     logger.log('starting L2 Arbitrum commitTransfers scheduler')

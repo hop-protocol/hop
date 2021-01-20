@@ -33,7 +33,7 @@ describe('Transfer', () => {
         sender: await user.getAddress(),
         recipient: await user.getAddress(),
         amount: BigNumber.from('12345'),
-        nonce: 0,
+        transferNonce: 0,
         relayerFee: RELAYER_FEE,
         amountOutMin: BigNumber.from('0'),
         deadline: BigNumber.from('0')
@@ -43,7 +43,7 @@ describe('Transfer', () => {
         sender: await liquidityProvider.getAddress(),
         recipient: await liquidityProvider.getAddress(),
         amount: BigNumber.from('12345'),
-        nonce: 0,
+        transferNonce: 0,
         relayerFee: RELAYER_FEE,
         amountOutMin: BigNumber.from('0'),
         deadline: BigNumber.from('0')
@@ -64,7 +64,7 @@ describe('Transfer', () => {
         transfers[0].sender,
         transfers[0].recipient,
         transfers[0].amount,
-        transfers[0].nonce,
+        transfers[0].transferNonce,
         transfers[0].relayerFee,
         transfers[0].amountOutMin,
         transfers[0].deadline

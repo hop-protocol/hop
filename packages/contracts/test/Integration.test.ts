@@ -186,7 +186,7 @@ describe("Integration", () => {
     const transfer = new Transfer({
       chainId: MAINNET_CHAIN_ID ,
       amount: BigNumber.from('99'),
-      nonce: 0,
+      transferNonce: 0,
       sender: await user.getAddress(),
       recipient: await user.getAddress(),
       relayerFee: BigNumber.from('0'),
@@ -195,7 +195,7 @@ describe("Integration", () => {
     })
 
     // User moves funds back to L1 across the liquidity bridge
-    await l2_bridge.connect(user).send(transfer.chainId, transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee, BigNumber.from('0'), BigNumber.from('0'))
+    await l2_bridge.connect(user).send(transfer.chainId, transfer.recipient, transfer.amount, transfer.transferNonce, transfer.relayerFee, BigNumber.from('0'), BigNumber.from('0'))
 
     await l2_bridge.commitTransfers()
     await l1_messenger.relayNextMessage()
@@ -214,7 +214,7 @@ describe("Integration", () => {
       transfer.sender,
       transfer.recipient,
       transfer.amount,
-      transfer.nonce,
+      transfer.transferNonce,
       transfer.relayerFee,
       tree.getRoot(),
       proof
@@ -229,7 +229,7 @@ describe("Integration", () => {
       sender: await user.getAddress(),
       recipient: await user.getAddress(),
       amount: BigNumber.from('98'),
-      nonce: 0,
+      transferNonce: 0,
       relayerFee: RELAYER_FEE,
       amountOutMin: BigNumber.from('0'),
       deadline: BigNumber.from('0')
@@ -252,7 +252,7 @@ describe("Integration", () => {
       sender: await user.getAddress(),
       recipient: await user.getAddress(),
       amount: BigNumber.from('100'),
-      nonce: 0,
+      transferNonce: 0,
       relayerFee: BigNumber.from('0'),
       amountOutMin: BigNumber.from('0'),
       deadline: BigNumber.from('0')
@@ -289,7 +289,7 @@ describe("Integration", () => {
     const transfer = new Transfer({
       chainId: OPTIMISM_CHAIN_ID,
       amount: BigNumber.from('99'),
-      nonce: 0,
+      transferNonce: 0,
       sender: await user.getAddress(),
       recipient: await user.getAddress(),
       relayerFee: BigNumber.from('0'),
@@ -303,7 +303,7 @@ describe("Integration", () => {
       transfer.chainId,
       transfer.recipient,
       transfer.amount,
-      transfer.nonce,
+      transfer.transferNonce,
       transfer.relayerFee,
       BigNumber.from('0'),
       BigNumber.from('0')
@@ -327,7 +327,7 @@ describe("Integration", () => {
       transfer.sender,
       transfer.recipient,
       transfer.amount,
-      transfer.nonce,
+      transfer.transferNonce,
       transfer.relayerFee,
       tree.getRoot(),
       proof
@@ -389,7 +389,7 @@ describe("Integration", () => {
     const transfer = new Transfer({
       chainId: MAINNET_CHAIN_ID,
       amount: BigNumber.from('99'),
-      nonce: 0,
+      transferNonce: 0,
       sender: await user.getAddress(),
       recipient: await user.getAddress(),
       relayerFee: BigNumber.from('0'),
@@ -406,7 +406,7 @@ describe("Integration", () => {
       transfer.chainId,
       transfer.recipient,
       transfer.amount,
-      transfer.nonce,
+      transfer.transferNonce,
       transfer.relayerFee,
       0,
       9999999999,
@@ -428,7 +428,7 @@ describe("Integration", () => {
     const outputTransfer = new Transfer({
       chainId: transfer.chainId,
       amount: transferSentEvent.args.amount,
-      nonce: transfer.nonce,
+      transferNonce: transfer.transferNonce,
       sender: transfer.sender,
       recipient: transfer.recipient,
       relayerFee: transfer.relayerFee,
@@ -443,7 +443,7 @@ describe("Integration", () => {
       outputTransfer.sender,
       outputTransfer.recipient,
       outputTransfer.amount,
-      outputTransfer.nonce,
+      outputTransfer.transferNonce,
       outputTransfer.relayerFee,
       tree.getRoot(),
       proof

@@ -75,7 +75,7 @@ export async function fixture(l2Name: string): Promise<IFixture> {
         sender: await user.getAddress(),
         recipient: await user.getAddress(),
         amount: BigNumber.from('12345'),
-        nonce: 0,
+        transferNonce: 0,
         relayerFee: RELAYER_FEE,
         amountOutMin: BigNumber.from('0'),
         deadline: BigNumber.from('0')
@@ -85,7 +85,7 @@ export async function fixture(l2Name: string): Promise<IFixture> {
         sender: await liquidityProvider.getAddress(),
         recipient: await liquidityProvider.getAddress(),
         amount: BigNumber.from('12345'),
-        nonce: 0,
+        transferNonce: 0,
         relayerFee: RELAYER_FEE,
         amountOutMin: BigNumber.from('0'),
         deadline: BigNumber.from('0')

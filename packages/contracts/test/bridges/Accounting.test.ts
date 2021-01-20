@@ -3,12 +3,11 @@ import { expect } from 'chai'
 import { Signer, Contract, BigNumber } from 'ethers'
 import { fixture } from '../shared/fixtures'
 import {
-  setUpDefaults,
-  getChainIdFromName,
+  setUpDefaults
 } from '../shared/utils'
 import {
   L2_NAMES,
-  IFixture,
+  IFixture
 } from '../shared/constants'
 
 describe("Accounting", () => {

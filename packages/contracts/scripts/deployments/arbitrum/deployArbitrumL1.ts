@@ -2,6 +2,11 @@ require('dotenv').config()
 
 import { ethers } from 'hardhat'
 import { ContractFactory, Contract } from 'ethers'
+import { getMessengerWrapperDefaults } from '../../../test/shared/utils'
+import {
+  L2_NAMES,
+  IGetMessengerWrapperDefaults
+} from '../../../test/shared/constants'
 
 async function deployArbitrum () {
   // Factories
@@ -30,7 +35,12 @@ async function deployArbitrum () {
 
   l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, COMMITTEE_ADDRESS)
   await l1_bridge.deployed()
-  messengerWrapper = await MessengerWrapper.deploy()
+
+  // Deploy Messenger Wrapper
+  const l2Name: string = L2_NAMES.ARBITRUM
+  // TODO: Fix this
+  const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = getMessengerWrapperDefaults(l2Name, l2_bridge.address, l1_messenger.address)
+  messengerWrapper = await MessengerWrapper.deploy(...messengerWrapperDefaults)
   await messengerWrapper.deployed()
 
   console.log('L1 Bridge            :', l1_bridge.address)

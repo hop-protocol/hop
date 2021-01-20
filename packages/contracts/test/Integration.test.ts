@@ -5,8 +5,14 @@ import { BigNumber, ContractFactory, Signer, Contract } from 'ethers'
 import MerkleTree from '../lib/MerkleTree'
 import Transfer from '../lib/Transfer'
 
-import { setMessengerWrapperDefaults, expectBalanceOf } from './shared/utils'
-import { L2_NAMES } from './shared/constants'
+import {
+  getMessengerWrapperDefaults,
+  expectBalanceOf
+} from './shared/utils'
+import {
+  L2_NAMES,
+  IGetMessengerWrapperDefaults
+} from './shared/constants'
 
 const USER_INITIAL_BALANCE = BigNumber.from('100')
 const LIQUIDITY_PROVIDER_INITIAL_BALANCE = BigNumber.from('1000000')
@@ -75,7 +81,6 @@ describe("Integration", () => {
     l1_messenger = await CrossDomainMessenger.deploy(0)
     l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await committee.getAddress())
     l1_ovmBridge = await L1_MockTokenBridge.deploy(l1_messenger.address, l1_poolToken.address)
-    messengerWrapper = await MessengerWrapper.deploy()
 
     // Deploy  L2 contracts
     l2_messenger = await CrossDomainMessenger.deploy(0)
@@ -90,9 +95,10 @@ describe("Integration", () => {
       await committee.getAddress()
     )
 
-    // Initialize bridge wrapper
+    // Deploy messenger wrapper
     const l2Name = L2_NAMES.OPTIMISM
-    await setMessengerWrapperDefaults(l2Name, messengerWrapper, l1_messenger.address, l2_bridge.address)
+    const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = await getMessengerWrapperDefaults(l2Name, l2_bridge.address, l1_messenger.address)
+    messengerWrapper = await MessengerWrapper.deploy(...messengerWrapperDefaults)
 
     // Uniswap
     l2_uniswapFactory = await UniswapFactory.deploy(await user.getAddress())

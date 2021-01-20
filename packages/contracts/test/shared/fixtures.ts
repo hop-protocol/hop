@@ -4,10 +4,14 @@ import { BigNumber } from 'ethers'
 import Transfer from '../../lib/Transfer'
 import {
   IFixture,
+  IGetMessengerWrapperDefaults,
   L2_NAMES,
   RELAYER_FEE,
   MAINNET_CHAIN_ID
 } from './constants'
+import {
+  getMessengerWrapperDefaults
+} from './utils'
 
 export async function fixture(l2Name: string): Promise<IFixture> {
   const {
@@ -49,7 +53,6 @@ export async function fixture(l2Name: string): Promise<IFixture> {
 
   // Deploy Hop L1 contracts
   const l1_bridge = await L1_Bridge.deploy(l1_canonicalToken.address, await committee.getAddress())
-  const messengerWrapper = await MessengerWrapper.deploy()
 
   // Deploy Hop L2 contracts
   const l2_bridge = await L2_Bridge.deploy(
@@ -60,6 +63,10 @@ export async function fixture(l2Name: string): Promise<IFixture> {
     [MAINNET_CHAIN_ID],
     committee.getAddress()
   )
+
+  // Deploy Messenger Wrapper
+  const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = getMessengerWrapperDefaults(l2Name, l2_bridge.address, l1_messenger.address)
+  const messengerWrapper = await MessengerWrapper.deploy(...messengerWrapperDefaults)
 
   // Deploy auxiliary contracts
   const weth = await MockERC20.deploy('WETH', 'WETH')

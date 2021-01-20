@@ -17,7 +17,11 @@ export const CHALLENGER_INITIAL_BALANCE = BigNumber.from('10')
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 export const ARB_CHAIN_ADDRESS = '0x2e8aF9f74046D3E55202Fcfb893348316B142230'
-export const DEFAULT_L2_GAS_LIMIT = 8000000
+
+export const DEFAULT_MESSENGER_WRAPPER_GAS_LIMIT = 8000000
+export const DEFAULT_MESSENGER_WRAPPER_GAS_PRICE = 0
+export const DEFAULT_MESSENGER_WRAPPER_GAS_CALL_VALUE = 0
+export const DEFAULT_MESSENGER_WRAPPER_SUB_MESSAGE_TYPE = '0x01'
 
 export const RELAYER_FEE = BigNumber.from('1000000000000000000')
 
@@ -73,3 +77,5 @@ export interface IFixture {
   // Other
   transfers: Transfer[]
 }
+
+export type IGetMessengerWrapperDefaults = string | number | undefined

@@ -18,7 +18,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     bytes32[] public pendingTransfers;
     uint256[] public pendingAmountChainIds;
-    mapping(uint256 => uint256) pendingAmountForChainId;
+    mapping(uint256 => uint256) public pendingAmountForChainId;
 
     event TransfersCommitted (
         bytes32 indexed root,

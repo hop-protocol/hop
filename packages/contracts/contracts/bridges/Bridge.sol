@@ -157,6 +157,8 @@ abstract contract Bridge is Accounting {
         _fulfillWithdraw(transferHash, _recipient, _amount, _relayerFee);
     }
 
+    // ToDo: enforce _transferNonce can't collide on send or autogenerate nonce
+
     /**
      * @dev Allows the committee to bond individual withdrawals before their TransferRoot has been committed.
      * @param _sender The address sending the Transfer

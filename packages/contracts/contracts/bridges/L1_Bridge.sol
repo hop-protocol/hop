@@ -27,7 +27,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
     /* ========== State ========== */
 
     IERC20 public l1CanonicalToken;
-    mapping(bytes32 => TransferBond) transferBonds;
+    mapping(bytes32 => TransferBond) public transferBonds;
     mapping(uint256 => uint256) public timeSlotToAmountBonded;
     uint256 public amountChallenged;
 
@@ -60,9 +60,9 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
     )
         public
     {
-        bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
-
         l1CanonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
+
+        bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
         getCrossDomainMessenger(_chainId).sendCrossDomainMessage(mintCalldata);
     }
 
@@ -75,6 +75,8 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
     )
         public
     {
+        l1CanonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
+
         bytes memory mintAndAttemptSwapCalldata = abi.encodeWithSignature(
             "mintAndAttemptSwap(address,uint256,uint256,uint256)",
             _recipient,
@@ -82,9 +84,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
             _amountOutMin,
             _deadline
         );
-
         getCrossDomainMessenger(_chainId).sendCrossDomainMessage(mintAndAttemptSwapCalldata);
-        l1CanonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
     }
 
     /* ========== Public Transfer Root Functions ========== */
@@ -153,6 +153,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
      * @param _transferRootHash The Merkle root of the TransferRoot Merkle tree
      * @param _amountHash The hash of the destination chainIds and amounts
      */
+    // ToDo: Handle case when TransferRoot hasn't been bonded
     function confirmTransferRoot(bytes32 _transferRootHash, bytes32 _amountHash) public onlyL2Bridge {
         TransferBond storage transferBond = transferBonds[_transferRootHash];
         require(transferBond.amountHash == _amountHash, "L1_BRG: Amount hash is invalid");
@@ -164,7 +165,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
     function challengeTransferBond(bytes32 _transferRootHash) public {
         TransferRoot memory transferRoot = getTransferRoot(_transferRootHash);
         TransferBond storage transferBond = transferBonds[_transferRootHash];
-        // Require it's within 4 hour period 
+        // ToDo: Require it's within 4 hour period 
         require(!transferBond.confirmed, "L1_BRG: Transfer root has already been confirmed");
 
         // Get stake for challenge
@@ -216,7 +217,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         uint256 currentTimeSlot = getTimeSlot(now);
         uint256 bonded = 0;
 
-        for (uint256 i = 0; i < getNumberOfChallengeableTimeSlots(); i++) {
+        for (uint256 i = 0; i < 4; i++) {
             bonded = bonded.add(timeSlotToAmountBonded[currentTimeSlot - i]);
         }
 

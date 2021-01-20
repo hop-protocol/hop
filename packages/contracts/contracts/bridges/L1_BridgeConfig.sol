@@ -15,6 +15,7 @@ contract L1_BridgeConfig is Ownable {
 
     /* ========== State ========== */
 
+    // ToDo: Make these private
     mapping(uint256 => IMessengerWrapper) private crossDomainMessenger;
     uint256 challengeAmountMultiplier = 1;
     uint256 challengeAmountDivisor = 10;

@@ -92,6 +92,7 @@ abstract contract Accounting {
         _transferToBridge(msg.sender, _amount);
         _addCredit(_amount);
     }
+
     /**
      * @dev Allows the committee to withdraw any available balance and add to its debit balance
      * @param _amount The amount being staked

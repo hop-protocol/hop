@@ -50,6 +50,7 @@ export interface IFixture {
   // Mock Factories
   MockERC20: ContractFactory
   MockAccounting: ContractFactory
+  MockBridge: ContractFactory
 
   // L1
   l1_canonicalBridge: Contract
@@ -67,6 +68,7 @@ export interface IFixture {
 
   // Mocks
   accounting: Contract
+  bridge: Contract
 
   // Other
   transfers: Transfer[]

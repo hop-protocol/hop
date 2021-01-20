@@ -34,6 +34,7 @@ export async function fixture(l2Name: string): Promise<IFixture> {
   // Mock Factories
   const MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
   const MockAccounting = await ethers.getContractFactory('contracts/test/Mock_Accounting.sol:Mock_Accounting')
+  const MockBridge = await ethers.getContractFactory('contracts/test/Mock_Bridge.sol:Mock_Bridge')
 
   // Deploy canonical tokens
   const l1_canonicalToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
@@ -67,9 +68,10 @@ export async function fixture(l2Name: string): Promise<IFixture> {
 
   // Mocks
   const accounting = await MockAccounting.deploy(await committee.getAddress())
+  const bridge = await MockBridge.deploy(await committee.getAddress())
 
   // Transfers
-  const transfers = [
+  const transfers: Transfer[] = [
       new Transfer({
         chainId: MAINNET_CHAIN_ID,
         sender: await user.getAddress(),
@@ -109,6 +111,7 @@ export async function fixture(l2Name: string): Promise<IFixture> {
     UniswapRouter,
     UniswapFactory,
     MockAccounting,
+    MockBridge,
     l1_canonicalToken,
     l1_canonicalBridge,
     l1_messenger,
@@ -120,6 +123,7 @@ export async function fixture(l2Name: string): Promise<IFixture> {
     l2_uniswapFactory,
     l2_uniswapRouter,
     accounting,
+    bridge,
     transfers
   }
 }

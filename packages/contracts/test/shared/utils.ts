@@ -235,3 +235,18 @@ export const expectBalanceOf = async (token: Contract, account: Signer | Contrac
   const balance = await token.balanceOf(accountAddress)
   expect(balance.toString()).to.eq(BigNumber.from(expectedBalance).toString())
 }
+
+export const generateAmountHash = (chainIds: Number[], amounts: Number[]): Buffer => {
+  const data = ethers.utils.defaultAbiCoder.encode(
+    [
+      'uint256[]',
+      'uint256[]'
+    ],
+    [
+      chainIds,
+      amounts
+    ]
+  )
+  const hash = ethers.utils.keccak256(data)
+  return Buffer.from(hash.slice(2), 'hex')
+}

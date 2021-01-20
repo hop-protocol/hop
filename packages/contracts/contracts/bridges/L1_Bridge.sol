@@ -34,7 +34,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
     /* ========== Events ========== */
 
     event TransferRootBonded (
-        bytes32 root,
+        bytes32 indexed root,
         uint256 amount
     );
 

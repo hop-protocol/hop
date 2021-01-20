@@ -28,12 +28,21 @@ const FaucetContext = createContext<FaucetContextProps>({
 const FaucetContextProvider: FC = ({ children }) => {
   const [mintAmount, setMintAmount] = useState<string>('10')
   const [isMinting, setMinting] = useState<boolean>(false)
-  let { contracts, txHistory } = useApp()
+  let { contracts, txHistory, networks } = useApp()
   const l1Dai = contracts?.l1Dai
-  const { address } = useWeb3Context()
+  const { address, setRequiredNetworkId, connectedNetworkId } = useWeb3Context()
+  const selectedNetwork = networks[0]
+
+  const checkWalletNetwork = () => {
+    setRequiredNetworkId(selectedNetwork?.networkId)
+    return connectedNetworkId === selectedNetwork?.networkId
+  }
 
   const mintToken = async () => {
     try {
+      if (!checkWalletNetwork()) {
+        return
+      }
       setMinting(true)
       const recipient = address?.toString()
       const parsedAmount = parseUnits(mintAmount, 18)

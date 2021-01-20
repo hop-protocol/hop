@@ -21,6 +21,7 @@ const Demo: FC<Props> = () => {
   const styles = useStyles()
   const { provider } = useWeb3Context()
   const app = useApp()
+  const l1Dai = app?.contracts?.l1Dai
   const l1Bridge = app?.contracts?.l1Bridge
   const arbitrumBridge = app?.contracts?.arbitrumBridge
   const arbitrumUniswapRouter = app?.contracts?.arbitrumUniswapRouter
@@ -98,6 +99,15 @@ const Demo: FC<Props> = () => {
     console.log('TX', tx?.hash)
   }
 
+  const handleMintDai = async () => {
+    const signer = provider?.getSigner()
+    const recipient = await signer?.getAddress()
+    const amount = parseUnits('10', 18)
+    const tx = await l1Dai?.mint(recipient, amount)
+
+    console.log('TX', tx?.hash)
+  }
+
   return (
     <Box
       className={styles.root}
@@ -136,6 +146,14 @@ const Demo: FC<Props> = () => {
         highlighted
       >
         L2 Uniswap swap
+      </Button>
+      <Button
+        className={styles.stepButton}
+        onClick={handleMintDai}
+        large
+        highlighted
+      >
+        Mint Kovan DAI
       </Button>
     </Box>
   )

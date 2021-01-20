@@ -5,6 +5,7 @@ import Send from 'src/pages/Send'
 import Vote from './pages/Vote'
 import VotePage from './pages/Vote/VotePage'
 import Pools from 'src/pages/Pools'
+import Faucet from 'src/pages/Faucet'
 import Earn from 'src/pages/Earn'
 import Convert from 'src/pages/Convert'
 import Demo from 'src/pages/Demo'
@@ -88,6 +89,9 @@ const COMPONENT_NAME: FC<Props> = () => {
       </Route>
       <Route path="/pool">
         <Pools />
+      </Route>
+      <Route path="/faucet">
+        <Faucet />
       </Route>
       <Route path="/earn">
         <Earn />

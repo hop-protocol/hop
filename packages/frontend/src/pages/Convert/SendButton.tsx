@@ -12,17 +12,22 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-interface Props {}
+type Props = {}
 
-const SendButton: FC = (props: Props) => {
+const SendButton: FC<Props> = (props: Props) => {
   const styles = useStyles()
-  const { validFormFields, convertTokens, sending } = useConvert()
+  const {
+    validFormFields,
+    convertTokens,
+    sending,
+    sendButtonText
+  } = useConvert()
   const { walletConnected } = useWeb3Context()
   const handleSubmit = async () => {
     convertTokens()
   }
 
-  let buttonText = 'Convert'
+  let buttonText = sendButtonText
   if (!walletConnected) {
     buttonText = 'Connect wallet'
   }

@@ -16,13 +16,18 @@ import useInterval from 'src/hooks/useInterval'
 const useStyles = makeStyles(theme => ({
   root: {
     width: '51.6rem',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
+    [theme.breakpoints.down('xs')]: {
+      width: 'auto'
+    }
   },
   topRow: {
     marginBottom: '1.8rem'
   },
   networkLabel: {
-    marginLeft: theme.padding.extraLight
+    marginLeft: theme.padding.extraLight,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis'
   },
   networkIcon: {
     height: '3.6rem'
@@ -42,6 +47,7 @@ type Props = {
   selectedNetwork?: Network
   networkOptions: Network[]
   onNetworkChange: (network?: Network) => void
+  onBalanceChange?: (balance: number) => void
 }
 
 const AmountSelectorCard: FC<Props> = props => {
@@ -52,12 +58,19 @@ const AmountSelectorCard: FC<Props> = props => {
     onChange,
     selectedNetwork,
     networkOptions,
-    onNetworkChange
+    onNetworkChange,
+    onBalanceChange
   } = props
   const styles = useStyles()
   const { user } = useApp()
 
   const [balance, setBalance] = useState('0.00')
+
+  useEffect(() => {
+    if (onBalanceChange) {
+      onBalanceChange(Number(balance))
+    }
+  }, [balance])
 
   const getBalance = useCallback(() => {
     const _getBalance = async () => {

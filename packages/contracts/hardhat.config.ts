@@ -16,7 +16,7 @@ export default {
       accounts: [process.env.USER_PRIVATE_KEY, process.env.LIQUIDITY_PROVIDER_PRIVATE_KEY]
     },
     arbitrum: {
-      url: "https://kovan2.arbitrum.io/rpc",
+      url: "https://kovan3.arbitrum.io/rpc",
       accounts: [process.env.USER_PRIVATE_KEY, process.env.LIQUIDITY_PROVIDER_PRIVATE_KEY],
       gasPrice: 0
     }

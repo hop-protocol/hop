@@ -4,12 +4,9 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/cryptography/MerkleProof.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
 import '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
-import "./Bridge.sol";
-import "../test/mockOVM_CrossDomainMessenger.sol";
 
+import "./Bridge.sol";
 import "../libraries/MerkleUtils.sol";
 
 abstract contract L2_Bridge is ERC20, Bridge {
@@ -152,6 +149,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
         uint256[] memory swapAmounts = IUniswapV2Router02(exchangeAddress).getAmountsOut(_amount, exchangePath);
         uint256 swapAmount = swapAmounts[1];
 
+        l2CanonicalToken.approve(exchangeAddress, swapAmount);
         IUniswapV2Router02(exchangeAddress).swapExactTokensForTokens(
             _amount,
             _amountOutMin,
@@ -256,14 +254,6 @@ abstract contract L2_Bridge is ERC20, Bridge {
         _withdrawAndAttemptSwap(transferHash, _recipient, _amount, _relayerFee, _amountOutMin, _deadline);
     }
 
-    function approveHTokenExchangeTransfer() public onlyGovernance {
-        approve(exchangeAddress, uint256(-1));
-    }
-
-    function approveCanonicalTokenExchangeTransfer() public onlyGovernance {
-        l2CanonicalToken.approve(exchangeAddress, uint256(-1));
-    }
-
     function setTransferRoot(bytes32 _rootHash, uint256 _amount) public onlyL1Bridge {
         _setTransferRoot(_rootHash, _amount);
     }
@@ -280,6 +270,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     function _mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) internal {
         _mint(address(this), _amount);
+        _approve(address(this), exchangeAddress, _amount);
 
         try IUniswapV2Router02(exchangeAddress).swapExactTokensForTokens(
             _amount,

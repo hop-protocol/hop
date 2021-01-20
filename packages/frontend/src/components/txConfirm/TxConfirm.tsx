@@ -26,7 +26,7 @@ const TxConfirm: FC = props => {
   }
 
   const handleClose = () => {
-    onConfirm()
+    onConfirm(false)
   }
 
   return (

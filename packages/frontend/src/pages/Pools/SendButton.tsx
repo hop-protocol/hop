@@ -12,17 +12,17 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-interface Props {}
+type Props = {}
 
-const SendButton: FC = (props: Props) => {
+const SendButton: FC<Props> = (props: Props) => {
   const styles = useStyles()
-  const { validFormFields, addLiquidity, sending } = usePools()
+  const { validFormFields, addLiquidity, sending, sendButtonText } = usePools()
   const { walletConnected } = useWeb3Context()
   const handleSubmit = async () => {
     addLiquidity()
   }
 
-  let buttonText = 'Add liquidity'
+  let buttonText = sendButtonText
   if (!walletConnected) {
     buttonText = 'Connect wallet'
   }
@@ -30,7 +30,7 @@ const SendButton: FC = (props: Props) => {
   return (
     <Button
       className={styles.sendButton}
-      startIcon={!validFormFields && <SendIcon />}
+      startIcon={validFormFields && <SendIcon />}
       onClick={handleSubmit}
       disabled={!validFormFields}
       loading={sending}

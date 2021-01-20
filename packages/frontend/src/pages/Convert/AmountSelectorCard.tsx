@@ -1,9 +1,17 @@
-import React, { FC, ChangeEvent, useState, useEffect, useCallback } from 'react'
+import React, {
+  FC,
+  ChangeEvent,
+  useState,
+  useEffect,
+  useCallback,
+  useRef
+} from 'react'
 import { utils as ethersUtils } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import Typography from '@material-ui/core/Typography'
 import MenuItem from '@material-ui/core/MenuItem'
 import LargeTextField from 'src/components/LargeTextField'
@@ -16,13 +24,18 @@ import useInterval from 'src/hooks/useInterval'
 const useStyles = makeStyles(theme => ({
   root: {
     width: '51.6rem',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
+    [theme.breakpoints.down('xs')]: {
+      width: 'auto'
+    }
   },
   topRow: {
     marginBottom: '1.8rem'
   },
   networkLabel: {
-    marginLeft: theme.padding.extraLight
+    marginLeft: theme.padding.extraLight,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis'
   },
   networkIcon: {
     height: '3.6rem'
@@ -42,6 +55,7 @@ type Props = {
   selectedNetwork?: Network
   networkOptions?: Network[]
   onNetworkChange?: (network?: Network) => void
+  onBalanceChange?: (balance: number | null) => void
 }
 
 const AmountSelectorCard: FC<Props> = props => {
@@ -52,18 +66,30 @@ const AmountSelectorCard: FC<Props> = props => {
     onChange,
     selectedNetwork,
     networkOptions,
-    onNetworkChange
+    onNetworkChange,
+    onBalanceChange
   } = props
   const styles = useStyles()
   const { user } = useApp()
 
-  const [balance, setBalance] = useState('0.00')
+  const [balance, setBalance] = useState<string | null>(null)
+  // request debouncer so only latest request response is set
+  const debouncer = useRef<number>(0)
+
+  useEffect(() => {
+    if (onBalanceChange) {
+      onBalanceChange(Number(balance))
+    }
+  }, [balance])
 
   const getBalance = useCallback(() => {
+    const ctx = debouncer.current
     const _getBalance = async () => {
       if (user && token && selectedNetwork) {
         const _balance = await user.getBalance(token, selectedNetwork)
-        setBalance(Number(ethersUtils.formatUnits(_balance, 18)).toFixed(2))
+        if (ctx === debouncer.current) {
+          setBalance(Number(ethersUtils.formatUnits(_balance, 18)).toFixed(2))
+        }
       }
     }
 
@@ -71,8 +97,21 @@ const AmountSelectorCard: FC<Props> = props => {
   }, [user, token, selectedNetwork])
 
   useEffect(() => {
+    // switching tabs will cause getBalance to be called with incorrect token
+    // so we wait until there's no more switching to get balance
+    debouncer.current++
+    setBalance(null)
+    const t = setTimeout(() => {
+      getBalance()
+    }, 10)
+    return () => {
+      clearTimeout(t)
+    }
+  }, [selectedNetwork])
+
+  useEffect(() => {
     getBalance()
-  }, [getBalance, user, token, selectedNetwork])
+  }, [getBalance, user, token, selectedNetwork, debouncer.current])
 
   useInterval(() => {
     getBalance()
@@ -89,11 +128,16 @@ const AmountSelectorCard: FC<Props> = props => {
         <Typography variant="subtitle2" color="textSecondary">
           {label}
         </Typography>
-        {balance ? (
-          <Typography variant="subtitle2" color="textSecondary">
-            Balance: {balance}
-          </Typography>
-        ) : null}
+        <Typography variant="subtitle2" color="textSecondary">
+          Balance:{' '}
+          {!user ? (
+            '0.00'
+          ) : balance === null ? (
+            <CircularProgress size={12} />
+          ) : (
+            balance
+          )}
+        </Typography>
       </Box>
       <Grid container alignItems="center">
         <Grid item xs={6}>

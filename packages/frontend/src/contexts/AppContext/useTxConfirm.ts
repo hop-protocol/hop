@@ -3,7 +3,7 @@ import { useState } from 'react'
 export type TxConfirmParams = {
   kind: string
   inputProps: any
-  onConfirm: () => void
+  onConfirm: (params?: any) => void
 }
 
 export interface TxConfirm {
@@ -20,14 +20,13 @@ export const useTxConfirm = (): TxConfirm => {
       setTxConfirm({
         kind,
         inputProps,
-        onConfirm: async (confirmed: true) => {
+        onConfirm: async (confirmed: true, params?: any) => {
           try {
             if (!confirmed) {
               throw new Error('Cancelled')
             }
 
-            const result = await onConfirm()
-            resolve(result)
+            resolve(onConfirm(params))
           } catch (err) {
             reject(err)
           }

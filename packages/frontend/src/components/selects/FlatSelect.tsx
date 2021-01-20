@@ -18,6 +18,9 @@ const useStyles = makeStyles(theme => ({
     '&:focus': {
       borderRadius: '2.3rem',
       backgroundColor: 'white'
+    },
+    [theme.breakpoints.down('xs')]: {
+      width: '12.4rem'
     }
   },
   selectMenu: {

@@ -3,13 +3,14 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "../interfaces/arbitrum/messengers/IGlobalInbox.sol";
 import "./L2_Bridge.sol";
 
 contract L2_ArbitrumBridge is L2_Bridge {
-    mockOVM_CrossDomainMessenger public messenger;
+    IGlobalInbox public messenger;
 
     constructor (
-        mockOVM_CrossDomainMessenger _messenger,
+        IGlobalInbox _messenger,
         address _l1Governance,
         IERC20 _canonicalToken,
         address _l1BridgeAddress,
@@ -20,11 +21,6 @@ contract L2_ArbitrumBridge is L2_Bridge {
         L2_Bridge(_l1Governance, _canonicalToken, _l1BridgeAddress, _supportedChainIds, _committee)
     {
         messenger = _messenger;
-    }
-
-    // ToDo: Pass in chainId
-    function getChainId() public override view returns (uint256) {
-        return 152709604825713;
     }
 
     function _sendCrossDomainMessage(bytes memory _message) internal override {

@@ -9,7 +9,7 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   title: {
     marginBottom: '4.2rem'
   },
@@ -24,7 +24,10 @@ const useStyles = makeStyles(() => ({
   pricesBox: {
     width: '51.6rem',
     marginTop: '4.2rem',
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
+    [theme.breakpoints.down('xs')]: {
+      width: '95%'
+    }
   },
   priceBox: {
     display: 'flex',
@@ -47,7 +50,10 @@ const useStyles = makeStyles(() => ({
   poolPositionBox: {
     width: '45.6rem',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    [theme.breakpoints.down('xs')]: {
+      width: '85%'
+    }
   },
   poolPositionCard: {
     display: 'flex',
@@ -81,7 +87,9 @@ const Pools: FC = () => {
     userPoolBalance,
     userPoolTokenPercentage,
     token0Deposited,
-    token1Deposited
+    token1Deposited,
+    setToken0Balance,
+    setToken1Balance
   } = usePools()
 
   const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
@@ -111,8 +119,10 @@ const Pools: FC = () => {
     }
 
     setToken0Amount(token0Value)
-    const token1Value = Number(token0Value) * Number(token1Rate)
-    setToken1Amount(token1Value.toFixed(2))
+    if (token1Rate) {
+      const token1Value = Number(token0Value) * Number(token1Rate)
+      setToken1Amount(token1Value.toFixed(2))
+    }
   }
 
   const handleToken1Change = async (event: ChangeEvent<{ value: unknown }>) => {
@@ -124,8 +134,18 @@ const Pools: FC = () => {
     }
 
     setToken1Amount(token1Value)
-    const token0Value = Number(token1Value) / Number(token1Rate)
-    setToken0Amount(token0Value.toFixed(2))
+    if (token1Rate) {
+      const token0Value = Number(token1Value) / Number(token1Rate)
+      setToken0Amount(token0Value.toFixed(2))
+    }
+  }
+
+  const handleToken0BalanceChange = (balance: number) => {
+    setToken0Balance(balance)
+  }
+
+  const handleToken1BalanceChange = (balance: number) => {
+    setToken1Balance(balance)
   }
 
   return (
@@ -172,6 +192,7 @@ const Pools: FC = () => {
           value={token0Amount}
           onChange={handleToken0Change}
           selectedNetwork={selectedNetwork}
+          onBalanceChange={handleToken0BalanceChange}
         />
       </Box>
       <Box display="flex" alignItems="center">
@@ -185,6 +206,7 @@ const Pools: FC = () => {
           value={token1Amount}
           onChange={handleToken1Change}
           selectedNetwork={selectedNetwork}
+          onBalanceChange={handleToken1BalanceChange}
         />
       </Box>
       <Box alignItems="center" className={styles.pricesBox}>
@@ -296,7 +318,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {selectedToken?.symbol}:
+                  {selectedToken?.networkSymbol(selectedNetwork)}:
                 </Typography>
                 <Typography
                   variant="subtitle2"

@@ -29,17 +29,17 @@ describe("Integration", () => {
   let L1_Bridge: ContractFactory
   let L2_Bridge: ContractFactory
   let MockERC20: ContractFactory
-  let L1_MessengerWrapper: ContractFactory
+  let MessengerWrapper: ContractFactory
   let CrossDomainMessenger: ContractFactory
-  let L1_OVMTokenBridge: ContractFactory
-  let L2_OVMTokenBridge: ContractFactory
+  let L1_MockTokenBridge: ContractFactory
+  let L2_MockTokenBridge: ContractFactory
   let UniswapRouter: ContractFactory
   let UniswapFactory: ContractFactory
 
   // L1
   let l1_poolToken: Contract
   let l1_bridge: Contract
-  let l1_messengerWrapper: Contract
+  let messengerWrapper: Contract
   let l1_messenger: Contract
   let l1_ovmBridge: Contract
   
@@ -58,13 +58,13 @@ describe("Integration", () => {
     challenger = accounts[4]
     governance = accounts[5]
 
-    L1_MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/Optimism.sol:Optimism')
+    MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/Optimism.sol:Optimism')
     L1_Bridge = await ethers.getContractFactory('contracts/test/Mock_L1_Bridge.sol:Mock_L1_Bridge')
     L2_Bridge = await ethers.getContractFactory('contracts/test/Mock_L2_OptimismBridge.sol:Mock_L2_OptimismBridge')
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
     CrossDomainMessenger = await ethers.getContractFactory('contracts/test/mockOVM_CrossDomainMessenger.sol:mockOVM_CrossDomainMessenger')
-    L1_OVMTokenBridge = await ethers.getContractFactory('contracts/test/L1_OVMTokenBridge.sol:L1_OVMTokenBridge')
-    L2_OVMTokenBridge = await ethers.getContractFactory('contracts/test/L2_OVMTokenBridge.sol:L2_OVMTokenBridge')
+    L1_MockTokenBridge = await ethers.getContractFactory('contracts/test/L1_MockTokenBridge.sol:L1_MockTokenBridge')
+    L2_MockTokenBridge = await ethers.getContractFactory('contracts/test/L2_MockTokenBridge.sol:L2_MockTokenBridge')
     UniswapRouter = await ethers.getContractFactory('contracts/uniswap/UniswapV2Router02.sol:UniswapV2Router02')
     UniswapFactory = await ethers.getContractFactory('@uniswap/v2-core/contracts/UniswapV2Factory.sol:UniswapV2Factory')
   })
@@ -74,12 +74,12 @@ describe("Integration", () => {
     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
     l1_messenger = await CrossDomainMessenger.deploy(0)
     l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await committee.getAddress())
-    l1_ovmBridge = await L1_OVMTokenBridge.deploy(l1_messenger.address, l1_poolToken.address)
-    l1_messengerWrapper = await L1_MessengerWrapper.deploy()
+    l1_ovmBridge = await L1_MockTokenBridge.deploy(l1_messenger.address, l1_poolToken.address)
+    messengerWrapper = await MessengerWrapper.deploy()
 
     // Deploy  L2 contracts
     l2_messenger = await CrossDomainMessenger.deploy(0)
-    l2_ovmBridge = await L2_OVMTokenBridge.deploy(l2_messenger.address)
+    l2_ovmBridge = await L2_MockTokenBridge.deploy(l2_messenger.address)
     l2_bridge = await L2_Bridge.deploy(
       OPTIMISM_CHAIN_ID,
       l2_messenger.address,
@@ -92,7 +92,7 @@ describe("Integration", () => {
 
     // Initialize bridge wrapper
     const l2Name = L2_NAMES.OPTIMISM
-    await setMessengerWrapperDefaults(l2Name, l1_messengerWrapper, l1_messenger.address, l2_bridge.address)
+    await setMessengerWrapperDefaults(l2Name, messengerWrapper, l1_messenger.address, l2_bridge.address)
 
     // Uniswap
     l2_uniswapFactory = await UniswapFactory.deploy(await user.getAddress())
@@ -108,7 +108,7 @@ describe("Integration", () => {
     l2_ovmBridge.setCrossDomainBridgeAddress(l1_ovmBridge.address)
 
     // Set up liquidity bridge
-    await l1_bridge.setCrossDomainMessengerWrapper(OPTIMISM_CHAIN_ID, l1_messengerWrapper.address)
+    await l1_bridge.setCrossDomainMessengerWrapper(OPTIMISM_CHAIN_ID, messengerWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
     await l2_bridge.setExchangeAddress(l2_uniswapRouter.address)
 
@@ -186,7 +186,7 @@ describe("Integration", () => {
     const transfer = new Transfer({
       chainId: MAINNET_CHAIN_ID ,
       amount: BigNumber.from('99'),
-      nonce: 0,
+      transferNonce: 0,
       sender: await user.getAddress(),
       recipient: await user.getAddress(),
       relayerFee: BigNumber.from('0'),
@@ -195,7 +195,7 @@ describe("Integration", () => {
     })
 
     // User moves funds back to L1 across the liquidity bridge
-    await l2_bridge.connect(user).send(transfer.chainId, transfer.recipient, transfer.amount, transfer.nonce, transfer.relayerFee, BigNumber.from('0'), BigNumber.from('0'))
+    await l2_bridge.connect(user).send(transfer.chainId, transfer.recipient, transfer.amount, transfer.transferNonce, transfer.relayerFee, BigNumber.from('0'), BigNumber.from('0'))
 
     await l2_bridge.commitTransfers()
     await l1_messenger.relayNextMessage()
@@ -214,7 +214,7 @@ describe("Integration", () => {
       transfer.sender,
       transfer.recipient,
       transfer.amount,
-      transfer.nonce,
+      transfer.transferNonce,
       transfer.relayerFee,
       tree.getRoot(),
       proof
@@ -229,7 +229,7 @@ describe("Integration", () => {
       sender: await user.getAddress(),
       recipient: await user.getAddress(),
       amount: BigNumber.from('98'),
-      nonce: 0,
+      transferNonce: 0,
       relayerFee: RELAYER_FEE,
       amountOutMin: BigNumber.from('0'),
       deadline: BigNumber.from('0')
@@ -252,7 +252,7 @@ describe("Integration", () => {
       sender: await user.getAddress(),
       recipient: await user.getAddress(),
       amount: BigNumber.from('100'),
-      nonce: 0,
+      transferNonce: 0,
       relayerFee: BigNumber.from('0'),
       amountOutMin: BigNumber.from('0'),
       deadline: BigNumber.from('0')
@@ -289,7 +289,7 @@ describe("Integration", () => {
     const transfer = new Transfer({
       chainId: OPTIMISM_CHAIN_ID,
       amount: BigNumber.from('99'),
-      nonce: 0,
+      transferNonce: 0,
       sender: await user.getAddress(),
       recipient: await user.getAddress(),
       relayerFee: BigNumber.from('0'),
@@ -303,7 +303,7 @@ describe("Integration", () => {
       transfer.chainId,
       transfer.recipient,
       transfer.amount,
-      transfer.nonce,
+      transfer.transferNonce,
       transfer.relayerFee,
       BigNumber.from('0'),
       BigNumber.from('0')
@@ -327,7 +327,7 @@ describe("Integration", () => {
       transfer.sender,
       transfer.recipient,
       transfer.amount,
-      transfer.nonce,
+      transfer.transferNonce,
       transfer.relayerFee,
       tree.getRoot(),
       proof
@@ -389,7 +389,7 @@ describe("Integration", () => {
     const transfer = new Transfer({
       chainId: MAINNET_CHAIN_ID,
       amount: BigNumber.from('99'),
-      nonce: 0,
+      transferNonce: 0,
       sender: await user.getAddress(),
       recipient: await user.getAddress(),
       relayerFee: BigNumber.from('0'),
@@ -406,7 +406,7 @@ describe("Integration", () => {
       transfer.chainId,
       transfer.recipient,
       transfer.amount,
-      transfer.nonce,
+      transfer.transferNonce,
       transfer.relayerFee,
       0,
       9999999999,
@@ -428,7 +428,7 @@ describe("Integration", () => {
     const outputTransfer = new Transfer({
       chainId: transfer.chainId,
       amount: transferSentEvent.args.amount,
-      nonce: transfer.nonce,
+      transferNonce: transfer.transferNonce,
       sender: transfer.sender,
       recipient: transfer.recipient,
       relayerFee: transfer.relayerFee,
@@ -443,7 +443,7 @@ describe("Integration", () => {
       outputTransfer.sender,
       outputTransfer.recipient,
       outputTransfer.amount,
-      outputTransfer.nonce,
+      outputTransfer.transferNonce,
       outputTransfer.relayerFee,
       tree.getRoot(),
       proof

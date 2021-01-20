@@ -21,7 +21,7 @@ describe("ArbitrumMessage", () => {
   let L1_Bridge: ContractFactory
   let L2_Bridge: ContractFactory
   let MockERC20: ContractFactory
-  let L1_MessengerWrapper: ContractFactory
+  let MessengerWrapper: ContractFactory
   let MockMessenger: ContractFactory
   let UniswapRouter: ContractFactory
   let UniswapFactory: ContractFactory
@@ -29,8 +29,8 @@ describe("ArbitrumMessage", () => {
   // L1
   let l1_poolToken: Contract
   let l1_messenger: Contract
-  let l1_messengerWrapper: Contract
   let l1_bridge: Contract
+  let messengerWrapper: Contract
   
   // L2
   let l2_messenger: Contract
@@ -49,7 +49,7 @@ describe("ArbitrumMessage", () => {
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
     L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
     L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_ArbitrumBridge.sol:L2_ArbitrumBridge')
-    L1_MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/Arbitrum.sol:Arbitrum')
+    MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/ArbitrumMessengerWrapper.sol:ArbitrumMessengerWrapper')
     MockMessenger = await ethers.getContractFactory('contracts/test/MockMessenger.sol:MockMessenger')
     UniswapRouter = await ethers.getContractFactory('contracts/uniswap/UniswapV2Router02.sol:UniswapV2Router02')
     UniswapFactory = await ethers.getContractFactory('@uniswap/v2-core/contracts/UniswapV2Factory.sol:UniswapV2Factory')
@@ -64,7 +64,7 @@ describe("ArbitrumMessage", () => {
     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
     l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await committee.getAddress())
     l1_messenger = await MockMessenger.deploy()
-    l1_messengerWrapper = await L1_MessengerWrapper.deploy()
+    messengerWrapper = await MessengerWrapper.deploy()
 
     l2_poolToken = await MockERC20.deploy('L2 Dai Stable Token', 'L2DAI')
     l2_messenger = await MockMessenger.deploy()
@@ -72,10 +72,10 @@ describe("ArbitrumMessage", () => {
 
     // Initialize bridge wrapper
     const l2Name = L2_NAMES.ARBITRUM
-    await setMessengerWrapperDefaults(l2Name, l1_messengerWrapper, l1_messenger.address, l2_bridge.address)
+    await setMessengerWrapperDefaults(l2Name, messengerWrapper, l1_messenger.address, l2_bridge.address)
 
     // Set up bridge
-    await l1_bridge.setCrossDomainMessengerWrapper(ARBITRUM_CHAIN_ID, l1_messengerWrapper.address)
+    await l1_bridge.setCrossDomainMessengerWrapper(ARBITRUM_CHAIN_ID, messengerWrapper.address)
     await l2_bridge.setL1BridgeAddress(l1_bridge.address)
     await l2_bridge.setExchangeAddress(l2_uniswapRouter.address)
 

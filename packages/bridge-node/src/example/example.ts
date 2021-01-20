@@ -4,7 +4,7 @@ import * as ethers from 'ethers'
 import MerkleTree from '@authereum/utils/core/MerkleTree'
 import Transfer from 'src/lib/Transfer'
 import { ARBITRUM_MESSENGER_ID } from 'src/constants'
-import L1PoolTokenContract from 'src/contracts/L1PoolTokenContract'
+import L1DaiTokenContract from 'src/contracts/L1DaiTokenContract'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
 import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
 import { L1BridgeAddress } from 'src/config'
@@ -16,7 +16,7 @@ async function main () {
   const amount = ethers.utils.parseUnits(parsedAmount.toString(), 18)
   console.log('using amount', parsedAmount)
 
-  const tx1 = await L1PoolTokenContract.approve(L1BridgeAddress, amount)
+  const tx1 = await L1DaiTokenContract.approve(L1BridgeAddress, amount)
   console.log('L1 token approve', tx1.hash)
   const receipt1 = await tx1.wait()
   assert(receipt1.status === 1)
@@ -37,7 +37,7 @@ async function main () {
   )
   console.log('L2 Arbitrum bridge balance', parsedBridgeBalance)
 
-  const tokenBalance = await L1PoolTokenContract.balanceOf(accountAddress)
+  const tokenBalance = await L1DaiTokenContract.balanceOf(accountAddress)
   const parsedTokenBalance = Number(
     ethers.utils.formatUnits(tokenBalance.toString(), 18)
   )
@@ -45,13 +45,13 @@ async function main () {
 
   if (parsedTokenBalance < 0.01) {
     const mintAmount = ethers.utils.parseUnits('100', 18)
-    const tx = await L1PoolTokenContract.mint(accountAddress, mintAmount)
+    const tx = await L1DaiTokenContract.mint(accountAddress, mintAmount)
     console.log('L1 token mint tx', tx.hash)
     const receipt = await tx.wait()
     assert(receipt.status === 1)
   }
 
-  const approved = await L1PoolTokenContract.allowance(
+  const approved = await L1DaiTokenContract.allowance(
     accountAddress,
     L1BridgeAddress
   )
@@ -60,7 +60,7 @@ async function main () {
   )
   if (parsedApproved < parsedAmount) {
     const approveAmount = ethers.utils.parseUnits('100', 18)
-    const tx = await L1PoolTokenContract.approve(L1BridgeAddress, approveAmount)
+    const tx = await L1DaiTokenContract.approve(L1BridgeAddress, approveAmount)
     console.log('L1 token approve tx', tx.hash)
     const receipt = await tx.wait()
     assert(receipt.status === 1)

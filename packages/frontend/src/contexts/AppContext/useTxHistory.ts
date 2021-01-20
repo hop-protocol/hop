@@ -5,6 +5,7 @@ export interface TxHistory {
   transactions: Transaction[]
   setTransactions: (txs: Transaction[]) => void
   addTransaction: (tx: Transaction) => void
+  clear: () => void
 }
 
 const useTxHistory = (): TxHistory => {
@@ -49,10 +50,16 @@ const useTxHistory = (): TxHistory => {
     setTransactions([...transactions, tx])
   }
 
+  const clear = () => {
+    sessionStorage.setItem('recentTransactions', JSON.stringify([]))
+    setTransactions([])
+  }
+
   return {
     transactions,
     setTransactions,
-    addTransaction
+    addTransaction,
+    clear
   }
 }
 

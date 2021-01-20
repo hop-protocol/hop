@@ -18,6 +18,8 @@ import Token from 'src/models/Token'
 import Address from 'src/models/Address'
 import Price from 'src/models/Price'
 import { addresses } from 'src/config'
+import { UINT256 } from 'src/config/constants'
+import Transaction from 'src/models/Transaction'
 import useInterval from 'src/hooks/useInterval'
 
 type PoolsContextProps = {
@@ -44,9 +46,14 @@ type PoolsContextProps = {
   userPoolTokenPercentage: string | undefined
   token0Deposited: string | undefined
   token1Deposited: string | undefined
+  token0Balance: number
+  token1Balance: number
+  setToken0Balance: (balance: number) => void
+  setToken1Balance: (balance: number) => void
   txHash: string | undefined
   sending: boolean
   validFormFields: boolean
+  sendButtonText: string
 }
 
 const PoolsContext = createContext<PoolsContextProps>({
@@ -73,9 +80,14 @@ const PoolsContext = createContext<PoolsContextProps>({
   userPoolTokenPercentage: undefined,
   token0Deposited: undefined,
   token1Deposited: undefined,
+  token0Balance: 0,
+  token1Balance: 0,
+  setToken0Balance: (balance: number) => {},
+  setToken1Balance: (balance: number) => {},
   txHash: undefined,
   sending: false,
-  validFormFields: false
+  validFormFields: false,
+  sendButtonText: ''
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -93,7 +105,9 @@ const PoolsContextProvider: FC = ({ children }) => {
   >('')
   const [token0Deposited, setToken0Deposited] = useState<string>('')
   const [token1Deposited, setToken1Deposited] = useState<string>('')
-  let { networks, tokens, contracts, txConfirm } = useApp()
+  const [token0Balance, setToken0Balance] = useState<number>(0)
+  const [token1Balance, setToken1Balance] = useState<number>(0)
+  let { networks, tokens, contracts, txConfirm, txHistory } = useApp()
   const {
     address,
     provider,
@@ -137,6 +151,20 @@ const PoolsContextProvider: FC = ({ children }) => {
     return connectedNetworkId === selectedNetwork?.networkId
   }
 
+  useEffect(() => {
+    if (Number(token0Price) && Number(token0Amount) && !Number(token1Amount)) {
+      const token1Value = Number(token0Amount) * Number(token1Rate)
+      setToken1Amount(token1Value.toFixed(2))
+    }
+  }, [token0Price, token0Amount, token1Amount])
+
+  useEffect(() => {
+    if (Number(token1Price) && Number(token1Amount) && !Number(token0Amount)) {
+      const token0Value = Number(token1Amount) / Number(token1Rate)
+      setToken0Amount(token0Value.toFixed(2))
+    }
+  }, [token1Price, token0Amount, token1Amount])
+
   const updatePrices = useCallback(async () => {
     if (!totalSupply) return
     if (token1Rate) {
@@ -160,7 +188,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         ),
         0
       )
-      setPoolSharePercentage(sharePercentage.toString())
+      setPoolSharePercentage((sharePercentage || '0').toString())
     } else {
       setPoolSharePercentage('0')
     }
@@ -188,7 +216,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       const pair = new Contract(
         pairAddress,
         uniswapV2PairArtifact.abi,
-        provider
+        contracts?.arbitrumProvider
       )
 
       const decimals = await pair.decimals()
@@ -283,8 +311,8 @@ const PoolsContextProvider: FC = ({ children }) => {
           amount,
           token
         },
-        onConfirm: async () => {
-          return contract?.approve(address, parsedAmount)
+        onConfirm: async (approveAll: boolean) => {
+          return contract?.approve(address, approveAll ? UINT256 : parsedAmount)
         }
       })
     }
@@ -302,9 +330,25 @@ const PoolsContextProvider: FC = ({ children }) => {
 
       setSending(true)
       let tx = await approveTokens(selectedToken, token0Amount, selectedNetwork)
+      if (tx?.hash && selectedNetwork) {
+        txHistory?.addTransaction(
+          new Transaction({
+            hash: tx?.hash,
+            networkName: selectedNetwork?.slug
+          })
+        )
+      }
       await tx?.wait()
       setTxHash(tx?.hash)
       tx = await approveTokens(hopToken as Token, token1Amount, selectedNetwork)
+      if (tx?.hash && selectedNetwork) {
+        txHistory?.addTransaction(
+          new Transaction({
+            hash: tx?.hash,
+            networkName: selectedNetwork?.slug
+          })
+        )
+      }
       setTxHash(tx?.hash)
       await tx?.wait()
 
@@ -328,11 +372,13 @@ const PoolsContextProvider: FC = ({ children }) => {
         inputProps: {
           token0: {
             amount: token0Amount,
-            token: selectedToken
+            token: selectedToken,
+            network: selectedNetwork
           },
           token1: {
             amount: token1Amount,
-            token: hopToken
+            token: hopToken,
+            network: selectedNetwork
           }
         },
         onConfirm: async () => {
@@ -350,15 +396,31 @@ const PoolsContextProvider: FC = ({ children }) => {
       })
 
       setTxHash(tx?.hash)
+      if (tx?.hash && selectedNetwork) {
+        txHistory?.addTransaction(
+          new Transaction({
+            hash: tx?.hash,
+            networkName: selectedNetwork?.slug
+          })
+        )
+      }
       await tx?.wait()
     } catch (err) {
+      if (!/cancelled/gi.test(err.message)) {
+        alert(err.message)
+      }
       console.error(err)
     }
 
     setSending(false)
   }
 
-  const validFormFields = !!(token0Amount && token1Amount)
+  const enoughBalance = token0Balance >= Number(token0Amount)
+  const validFormFields = !!(token0Amount && token1Amount && enoughBalance)
+  let sendButtonText = 'Add Liquidity'
+  if (!enoughBalance) {
+    sendButtonText = 'Insufficient funds'
+  }
 
   return (
     <PoolsContext.Provider
@@ -388,7 +450,12 @@ const PoolsContextProvider: FC = ({ children }) => {
         token1Deposited,
         txHash,
         sending,
-        validFormFields
+        validFormFields,
+        token0Balance,
+        token1Balance,
+        setToken0Balance,
+        setToken1Balance,
+        sendButtonText
       }}
     >
       {children}

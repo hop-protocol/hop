@@ -10,11 +10,11 @@ import ArbBot from './ArbBot'
 
 const bot = new ArbBot({
   token0: {
-    label: 'canonicalDAI',
+    label: 'hopDai',
     address: L2ArbitrumBridgeAddress
   },
   token1: {
-    label: 'hopDAI',
+    label: 'canonicalDAI',
     address: L2ArbitrumTokenAddress
   },
   uniswap: {

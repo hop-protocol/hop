@@ -3,13 +3,14 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "../interfaces/optimism/messengers/iOVM_L2CrossDomainMessenger.sol";
 import "./L2_Bridge.sol";
 
 contract L2_OptimismBridge is L2_Bridge {
-    mockOVM_CrossDomainMessenger public messenger;
+    iOVM_L2CrossDomainMessenger public messenger;
 
     constructor (
-        mockOVM_CrossDomainMessenger _messenger,
+        iOVM_L2CrossDomainMessenger _messenger,
         address _l1Governance,
         IERC20 _canonicalToken,
         address _l1BridgeAddress,
@@ -23,11 +24,7 @@ contract L2_OptimismBridge is L2_Bridge {
     }
 
     function _sendCrossDomainMessage(bytes memory _message) internal override {
-        messenger.sendMessage(
-            l1BridgeAddress,
-            _message,
-            200000
-        );
+        // TODO: Add the Optimism-specific messaging
     }
 
     function _verifySender(address _expectedSender) internal override {

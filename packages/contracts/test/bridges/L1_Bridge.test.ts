@@ -1,12 +1,12 @@
 import '@nomiclabs/hardhat-waffle'
 import { expect } from 'chai'
 import { Signer, Contract, BigNumber } from 'ethers'
-import { fixture } from './shared/fixtures'
+import { fixture } from '../shared/fixtures'
 import {
   setUpDefaults,
   getChainIdFromName,
   expectBalanceOf
-} from './shared/utils'
+} from '../shared/utils'
 import {
   L2_NAMES,
   IFixture,
@@ -14,7 +14,7 @@ import {
   COMMITTEE_INITIAL_BALANCE,
   DEFAULT_AMOUNT_OUT_MIN,
   DEFAULT_DEADLINE
-} from './shared/constants'
+} from '../shared/constants'
 
 describe("L1_Bridge", () => {
   let _fixture: IFixture
@@ -22,6 +22,7 @@ describe("L1_Bridge", () => {
 
   let user: Signer
   let committee: Signer
+
   let l1_canonicalToken: Contract
   let l1_bridge: Contract
   let l2_canonicalToken: Contract
@@ -31,8 +32,9 @@ describe("L1_Bridge", () => {
   beforeEach(async () => {
     const l2Name = L2_NAMES.OPTIMISM
     _fixture = await fixture(l2Name)
-    l2ChainId = getChainIdFromName(l2Name)
     await setUpDefaults(_fixture, l2Name)
+
+    l2ChainId = getChainIdFromName(l2Name)
 
     ;({ 
       user,
@@ -61,7 +63,7 @@ describe("L1_Bridge", () => {
 
   it('Should get the correct chainId', async () => {
     const chainId = await l1_bridge.getChainId()
-    const expectedChainId = 1;
+    const expectedChainId = 1
     expect(chainId).to.eq(expectedChainId)
   })
 

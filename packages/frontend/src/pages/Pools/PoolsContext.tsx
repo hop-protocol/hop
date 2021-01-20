@@ -415,9 +415,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     setSending(false)
   }
 
-  const enoughToken0Balance = token0Balance >= Number(token0Amount)
-  const enoughToken1Balance = token1Balance >= Number(token1Amount)
-  const enoughBalance = enoughToken0Balance && enoughToken1Balance
+  const enoughBalance = token0Balance >= Number(token0Amount)
   const validFormFields = !!(token0Amount && token1Amount && enoughBalance)
   let sendButtonText = 'Add Liquidity'
   if (!enoughBalance) {

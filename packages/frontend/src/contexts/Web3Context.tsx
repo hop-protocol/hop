@@ -208,21 +208,28 @@ const Web3ContextProvider: FC = ({ children }) => {
             setAddress(Address.from(address))
           }
         },
-        wallet: (wallet: any) => {
-          console.debug('wallet', wallet)
-          const { name, provider } = wallet
-          if (provider) {
-            localStorage.setItem(cacheKey, name)
-            const ethersProvider = new ethers.providers.Web3Provider(
-              provider,
-              'any'
-            )
-            setProvider(ethersProvider)
-            setWalletName(name)
-          } else {
-            setWalletName('')
-            setProvider(undefined)
-            setAddress(undefined)
+        wallet: async (wallet: any) => {
+          try {
+            console.debug('wallet', wallet)
+            const { name, provider } = wallet
+            if (provider) {
+              localStorage.setItem(cacheKey, name)
+              const ethersProvider = new ethers.providers.Web3Provider(
+                provider,
+                'any'
+              )
+              setProvider(ethersProvider)
+              setWalletName(name)
+              if (provider.enable) {
+                await provider.enable()
+              }
+            } else {
+              setWalletName('')
+              setProvider(undefined)
+              setAddress(undefined)
+            }
+          } catch (err) {
+            console.error(err)
           }
         },
         network: (connectedNetworkId: number) => {

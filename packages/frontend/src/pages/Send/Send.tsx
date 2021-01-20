@@ -205,12 +205,15 @@ const Send: FC = () => {
       throw new Error('No fromNetwork selected')
     }
 
-    const tokenContract = selectedToken
-      .contractForNetwork(fromNetwork)
-      .connect(signer)
+    if (!toNetwork) {
+      throw new Error('No toNetwork selected')
+    }
 
     let tx: any
-    if (fromNetwork.isLayer1) {
+    if (fromNetwork?.isLayer1) {
+      const tokenContract = selectedToken
+        .contractForNetwork(fromNetwork)
+        .connect(signer)
       const approved = await tokenContract.allowance(
         await signer?.getAddress(),
         l1Bridge?.address
@@ -238,9 +241,13 @@ const Send: FC = () => {
         }
       }
     } else {
+      const tokenContract = selectedToken
+        .contractForNetwork(fromNetwork)
+        .connect(signer)
+
       const approved = await tokenContract.allowance(
         await signer?.getAddress(),
-        arbitrumUniswapRouter?.address
+        arbitrumBridge?.address
       )
       const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
       if (approved.lt(parsedAmount)) {
@@ -251,13 +258,18 @@ const Send: FC = () => {
             token: selectedToken
           },
           onConfirm: async () => {
-            // ToDo: Get uniswap contract based on from network
-            return tokenContract.approve(
-              arbitrumUniswapRouter?.address,
-              UINT256
-            )
+            return tokenContract.approve(arbitrumBridge?.address, UINT256)
           }
         })
+        await tx?.wait()
+        if (tx?.hash && fromNetwork) {
+          txHistory?.addTransaction(
+            new Transaction({
+              hash: tx?.hash,
+              networkName: fromNetwork?.slug
+            })
+          )
+        }
       }
     }
 
@@ -319,13 +331,14 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
-        //const deadline = (Date.now() / 1000 + 5 * 60) | 0
+        const deadline = (Date.now() / 1000 + 300) | 0
+        const amountOutMin = '0'
         return l1Bridge.sendToL2AndAttemptSwap(
           arbitrumNetwork.key(),
           await signer.getAddress(),
           parseEther(fromTokenAmount),
-          '0'
-          //deadline
+          amountOutMin,
+          deadline
         )
       }
     })
@@ -346,11 +359,47 @@ const Send: FC = () => {
       throw new Error('Cannot send: l1Bridge or signer does not exist.')
     }
 
-    alert('not implemented')
-    // ToDo: Hook up to swapAndSendToMainnet
-    // const arbitrumNetwork = networks[1]
-    // await arbitrumBridge.swapAndSendToMainnet(
-    // )
+    const tx: any = await txConfirm?.show({
+      kind: 'send',
+      inputProps: {
+        source: {
+          amount: fromTokenAmount,
+          token: selectedToken,
+          network: fromNetwork
+        },
+        dest: {
+          network: toNetwork
+        }
+      },
+      onConfirm: async () => {
+        const deadline = (Date.now() / 1000 + 300) | 0
+        const chainId = toNetwork?.networkId
+        const transferNonce = Date.now()
+        const relayerFee = '0'
+        const amountOutIn = '0'
+        const destinationAmountOutMin = '0'
+        return arbitrumBridge?.swapAndSend(
+          chainId,
+          await signer?.getAddress(),
+          parseEther(fromTokenAmount),
+          transferNonce,
+          relayerFee,
+          amountOutIn,
+          deadline,
+          destinationAmountOutMin,
+          deadline
+        )
+      }
+    })
+
+    if (tx?.hash && fromNetwork) {
+      txHistory?.addTransaction(
+        new Transaction({
+          hash: tx?.hash,
+          networkName: fromNetwork?.slug
+        })
+      )
+    }
   }
 
   const enoughBalance = fromBalance >= Number(fromTokenAmount)

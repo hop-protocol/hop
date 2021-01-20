@@ -63,6 +63,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const arbitrumDai = contracts?.arbitrumDai
   const arbitrumUniswapRouter = contracts?.arbitrumUniswapRouter
   const arbitrumL1Messenger = contracts?.arbitrumL1Messenger
+  const arbitrumBridge = contracts?.arbitrumBridge
   const l1Bridge = contracts?.l1Bridge
   const networks = useMemo(() => {
     const kovanNetwork = nets.find(
@@ -372,7 +373,30 @@ const ConvertContextProvider: FC = ({ children }) => {
             }
           })
         } else if (destNetwork?.slug === 'kovan') {
-          alert('not implemented')
+          tx = await txConfirm?.show({
+            kind: 'convert',
+            inputProps: {
+              source: {
+                amount: sourceTokenAmount,
+                token: selectedToken
+              },
+              dest: {
+                amount: destTokenAmount,
+                token: selectedToken
+              }
+            },
+            onConfirm: async () => {
+              return arbitrumBridge?.send(
+                '1',
+                address,
+                value,
+                Date.now(),
+                '0',
+                '0',
+                '0'
+              )
+            }
+          })
         }
       }
 

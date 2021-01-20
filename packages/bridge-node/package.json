@@ -20,7 +20,7 @@
   "license": "MIT",
   "dependencies": {
     "@authereum/utils": "^0.1.12",
-    "@hop-exchange/contracts": "0.0.0",
+    "@hop-exchange/contracts": "0.0.2",
     "@types/yargs": "^15.0.10",
     "chalk": "4.1.0",
     "commander": "6.2.0",

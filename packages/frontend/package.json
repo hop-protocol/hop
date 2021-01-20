@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@ethersproject/address": "5.0.8",
-    "@hop-exchange/contracts": "0.0.1",
+    "@hop-exchange/contracts": "0.0.2",
     "@material-ui/core": "4.11.0",
     "@material-ui/icons": "4.9.1",
     "@material-ui/lab": "4.0.0-alpha.56",
@@ -38,7 +38,9 @@
     "lint": "prettier-standard --format",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "deploy": "netlify deploy --prod",
+    "deploy:ipfs": "ipd -p pinata build --no-open"
   },
   "eslintConfig": {
     "extends": [
@@ -67,6 +69,7 @@
     "eslint-plugin-jsx-a11y": "6.4.1",
     "eslint-plugin-react": "7.21.5",
     "eslint-plugin-react-hooks": "4.2.0",
+    "ipfs-deploy": "8.0.1",
     "prettier-standard": "16.4.1"
   }
 }

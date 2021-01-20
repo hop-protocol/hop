@@ -6,6 +6,9 @@ import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/u
 import erc20Artifact from '@hop-exchange/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
+import Logger from 'src/logger'
+
+const logger = new Logger('[arbBot]', { color: 'green' })
 
 const wait = async (t: number) => {
   return new Promise(resolve => setTimeout(() => resolve(), t))
@@ -127,13 +130,13 @@ class ArbBot {
   private async approveTokens () {
     let tx = await this.approveToken(this.token0)
     if (tx) {
-      console.log(`${this.token0.label} approve tx: ${tx?.hash}`)
+      logger.log(`${this.token0.label} approve tx: ${tx?.hash}`)
       await tx?.wait()
     }
 
     tx = await this.approveToken(this.token1)
     if (tx) {
-      console.log(`${this.token1.label} approve tx: ${tx?.hash}`)
+      logger.log(`${this.token1.label} approve tx: ${tx?.hash}`)
       await tx?.wait()
     }
   }
@@ -147,10 +150,10 @@ class ArbBot {
 
   private async checkBalances () {
     const token0Balance = await this.getToken0Balance()
-    console.log(`${this.token0.label} balance: ${token0Balance}`)
+    logger.log(`${this.token0.label} balance: ${token0Balance}`)
 
     const token1Balance = await this.getToken1Balance()
-    console.log(`${this.token1.label} balance: ${token1Balance}`)
+    logger.log(`${this.token1.label} balance: ${token1Balance}`)
   }
 
   private async checkArbitrage () {
@@ -163,18 +166,18 @@ class ArbBot {
 
     this.cache[cacheKey] = true
 
-    console.log('Checking for arbitrage opportunity')
-    console.log(
+    logger.log('Checking for arbitrage opportunity')
+    logger.log(
       `${this.arbitrageAmount} ${this.token0.label} = ${token0AmountOut} ${this.token1.label}`
     )
-    console.log(
+    logger.log(
       `${this.arbitrageAmount} ${this.token1.label} = ${token1AmountOut} ${this.token0.label}`
     )
 
     let tx: any
     if (token0AmountOut > this.arbitrageAmount * this.minThreshold) {
       const profit = token0AmountOut - this.arbitrageAmount
-      console.log(
+      logger.log(
         chalk.green(
           `Arbitrage opportunity: ${this.token0.label} 🡒 ${this.token1.label} (+${profit} ${this.token1.label})`
         )
@@ -182,13 +185,13 @@ class ArbBot {
 
       const path = [this.token0.contract.address, this.token1.contract.address]
       tx = await this.trade(path, this.arbitrageAmount)
-      console.log(chalk.yellow(`trade tx: ${tx?.hash}`))
+      logger.log(chalk.yellow(`trade tx: ${tx?.hash}`))
       await tx?.wait()
     }
 
     if (token1AmountOut > this.arbitrageAmount * this.minThreshold) {
       const profit = token1AmountOut - this.arbitrageAmount
-      console.log(
+      logger.log(
         chalk.green(
           `Arbitrage opportunity: ${this.token1.label} 🡒 ${this.token0.label} (+${profit} ${this.token0.label})`
         )
@@ -196,12 +199,12 @@ class ArbBot {
 
       const path = [this.token1.contract.address, this.token0.contract.address]
       tx = await this.trade(path, this.arbitrageAmount)
-      console.log(chalk.yellow(`trade tx: ${tx?.hash}`))
+      logger.log(chalk.yellow(`trade tx: ${tx?.hash}`))
       await tx?.wait()
     }
 
     if (!tx) {
-      console.log('No abitrage opportunity')
+      logger.log('No abitrage opportunity')
     }
 
     this.cache[cacheKey] = false
@@ -237,15 +240,15 @@ class ArbBot {
 
     const SWAP_EVENT = 'Swap'
     pair.on(SWAP_EVENT, event => {
-      console.log('Detected swap event')
+      logger.log('Detected swap event')
       this.checkArbitrage()
     })
   }
 
   public async start () {
-    console.log('Starting arbitrage bot')
+    logger.log('Starting arbitrage bot')
     await this.tilReady()
-    console.log(`account address: ${this.accountAddress}`)
+    logger.log(`account address: ${this.accountAddress}`)
 
     await this.checkBalances()
     await this.approveTokens()
@@ -255,10 +258,10 @@ class ArbBot {
       try {
         await this.checkArbitrage()
         await this.checkBalances()
-        console.log(`Rechecking in ${this.pollTimeSec} seconds`)
+        logger.log(`Rechecking in ${this.pollTimeSec} seconds`)
         await wait(this.pollTimeSec * 1e3)
       } catch (err) {
-        console.error(err)
+        logger.error(err)
       }
     }
   }

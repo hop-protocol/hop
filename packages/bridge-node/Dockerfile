@@ -16,4 +16,4 @@ COPY --chown=node:node . .
 RUN npm run build
 
 ENTRYPOINT [ "./bin/bridge-node" ]
-CMD [ "committee" ]
+CMD [ "bonder" ]

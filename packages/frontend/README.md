@@ -44,3 +44,17 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+## IPFS
+
+Deploy build to IPFS (using [pinata](https://pinata.cloud/)):
+
+```bash
+npm run deploy:ipfs
+```
+
+Update DNS TXT record `_dnslink.hop.exchange` with updated multihash:
+
+```
+dnslink=/ipfs/QmUAoLVVYMd9TXg53s7J1zasY4hq5py5q2rsBtoYQ8HVm5
+```

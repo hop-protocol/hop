@@ -1,15 +1,15 @@
 {
   "L1EthRpcUrl": "https://kovan.rpc.authereum.com",
-  "L2ArbitrumRpcUrl": "https://kovan2.arbitrum.io/rpc",
-  "L1BridgeAddress": "0xC9898E162b6a43dc665B033F1EF6b2bc7B0157B4",
-  "L2ArbitrumBridgeAddress": "0xf8E96392b1Ba3B2FD88041894a93e089E93C0dcd",
+  "L2ArbitrumRpcUrl": "https://kovan3.arbitrum.io/rpc",
+  "L1BridgeAddress": "0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE",
+  "L2ArbitrumBridgeAddress": "0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde",
   "L2OptimismBridgeAddress": "",
   "L1PoolTokenAddress": "0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9",
-  "L1MessengerAddress": "0x7b542e47Bf4aeC075cC2a3bB1871890AAfB0D5d9",
-  "L1MessengerWrapperAddress": "0xaE254AC0EA0aA32bBdEb207C1F58e1bA98F0cF26",
+  "L1MessengerAddress": "0xE681857DEfE8b454244e701BA63EfAa078d7eA85",
+  "L1MessengerWrapperAddress": "0x36501dcD0007aA4DB373667d730C5AE91a7b3cc8",
   "L2ArbitrumTokenAddress": "0x7d669a64deb8a4a51eea755bb0e19fd39ce25ae9",
   "L2ArbitrumMessengerAddress": "0xDc08a1D8b62f02F55149D51F68504412fdF2Ce3c",
-  "L2ArbitrumUniswapFactory": "0xEaAec7a29B6ccE9e831C8d07e989fa4163026177",
-  "L2ArbitrumUniswapRouter": "0xBae19197DFa25105E832b8fAfeAB88aCa275385F",
+  "L2ArbitrumUniswapFactory": "0xd28B241aB439220b85b8B90B912799DefECA8CCe",
+  "L2ArbitrumUniswapRouter": "0x2B6812d2282CF676044cBdE2D0222c08e6E1bdb2",
   "L2ArbitrumCanonicalBridge": "0x0000000000000000000000000000000000000064"
 }

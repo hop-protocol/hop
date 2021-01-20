@@ -21,7 +21,7 @@ export async function fixture(l2Name: string): Promise<IFixture> {
   const challenger = accounts[3]
   const governance = accounts[4]
 
-  const MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
+  // Factories
   const L1_CanonicalBridge = await ethers.getContractFactory('contracts/test/Mock_L1_CanonicalBridge.sol:Mock_L1_CanonicalBridge')
   const L1_Bridge = await ethers.getContractFactory('contracts/test/Mock_L1_Bridge.sol:Mock_L1_Bridge')
   const L2_Bridge = await ethers.getContractFactory(`contracts/bridges/${l2BridgeArtifact}`)
@@ -30,6 +30,10 @@ export async function fixture(l2Name: string): Promise<IFixture> {
   const L2_Messenger = await ethers.getContractFactory('contracts/test/Mock_L2_Messenger.sol:Mock_L2_Messenger')
   const UniswapRouter = await ethers.getContractFactory('contracts/uniswap/UniswapV2Router02.sol:UniswapV2Router02')
   const UniswapFactory = await ethers.getContractFactory('@uniswap/v2-core/contracts/UniswapV2Factory.sol:UniswapV2Factory')
+
+  // Mock Factories
+  const MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
+  const MockAccounting = await ethers.getContractFactory('contracts/test/Mock_Accounting.sol:Mock_Accounting')
 
   // Deploy canonical tokens
   const l1_canonicalToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
@@ -61,6 +65,10 @@ export async function fixture(l2Name: string): Promise<IFixture> {
   const l2_uniswapFactory = await UniswapFactory.deploy(await user.getAddress())
   const l2_uniswapRouter = await UniswapRouter.deploy(l2_uniswapFactory.address, weth.address)
 
+  // Mocks
+  const accounting = await MockAccounting.deploy(await committee.getAddress())
+
+  // Transfers
   const transfers = [
       new Transfer({
         chainId: MAINNET_CHAIN_ID,
@@ -100,6 +108,7 @@ export async function fixture(l2Name: string): Promise<IFixture> {
     L2_Messenger,
     UniswapRouter,
     UniswapFactory,
+    MockAccounting,
     l1_canonicalToken,
     l1_canonicalBridge,
     l1_messenger,
@@ -110,6 +119,7 @@ export async function fixture(l2Name: string): Promise<IFixture> {
     l2_canonicalToken,
     l2_uniswapFactory,
     l2_uniswapRouter,
+    accounting,
     transfers
   }
 }

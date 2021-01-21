@@ -17,3 +17,9 @@ Stop verifier:
 ```bash
 ./docker.sh down
 ```
+
+Optimism Kovan RPC URL:
+
+```
+https://kovan.optimism.rpc.hop.exchange
+```

@@ -29,7 +29,7 @@
 //   let accounts: Signer[]
 //   let user: Signer
 //   let liquidityProvider: Signer
-//   let committee: Signer
+//   let bonder: Signer
 //   let challenger: Signer
 //   let governance: Signer
 
@@ -74,7 +74,7 @@
 //     accounts = await ethers.getSigners()
 //     user = accounts[0]
 //     liquidityProvider = accounts[1]
-//     committee = accounts[3]
+//     bonder = accounts[3]
 //     challenger = accounts[4]
 //     governance = accounts[5]
 
@@ -95,7 +95,7 @@
 //      * Setup  L1 contracts
 //      */
 //     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
-//     l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await committee.getAddress())
+//     l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await bonder.getAddress())
   
 //     // Optimism 1
 //     l1_ovm1_messenger = await CrossDomainMessenger.deploy(0)
@@ -121,7 +121,7 @@
 //       l2_ovm1_ovmBridge.address,
 //       l1_bridge.address,
 //       [MAINNET_CHAIN_ID, OPTIMISM_2_CHAIN_ID],
-//       committee.getAddress()
+//       bonder.getAddress()
 //     )
 
 //     // Initialize bridge wrapper
@@ -147,7 +147,7 @@
 //       l2_ovm2_ovmBridge.address,
 //       l1_bridge.address,
 //       [MAINNET_CHAIN_ID, OPTIMISM_1_CHAIN_ID],
-//       await committee.getAddress()
+//       await bonder.getAddress()
 //     )
 
 //     // Initialize bridge wrapper
@@ -189,7 +189,7 @@
 //     // Distribute poolToken
 //     await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
 //     await l1_poolToken.mint(await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
-//     await l1_poolToken.mint(await committee.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+//     await l1_poolToken.mint(await bonder.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 //     await l1_poolToken.mint(await challenger.getAddress(), BigNumber.from('10'))
 //   })
 
@@ -283,19 +283,19 @@
 //     const transferSentEvent = (await l2_ovm1_bridge.queryFilter(l2_ovm1_bridge.filters.TransferSent()))[0]
 //     const transferHash = transferSentEvent.args.transferHash
 
-//     // Committee moves funds to Optimism 2
-//     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
-//     await l1_bridge.connect(committee).sendToL2(OPTIMISM_2_CHAIN_ID, committee.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+//     // Bonder moves funds to Optimism 2
+//     await l1_poolToken.connect(bonder).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+//     await l1_bridge.connect(bonder).sendToL2(OPTIMISM_2_CHAIN_ID, bonder.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
 //     await l2_ovm2_messenger.relayNextMessage()
-//     await expectBalanceOf(l2_ovm2_bridge, committee, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+//     await expectBalanceOf(l2_ovm2_bridge, bonder, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
 
-//     // Committee stakes on Optimism 2
-//     await l2_ovm2_bridge.connect(committee).approve(l2_ovm2_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
-//     await l2_ovm2_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+//     // Bonder stakes on Optimism 2
+//     await l2_ovm2_bridge.connect(bonder).approve(l2_ovm2_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+//     await l2_ovm2_bridge.connect(bonder).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
 
 
 //     // Bond the withdrawal
-//     await l2_ovm2_bridge.connect(committee).bondWithdrawal(user.getAddress(), user.getAddress(), USER_INITIAL_BALANCE, 0, 0)
+//     await l2_ovm2_bridge.connect(bonder).bondWithdrawal(user.getAddress(), user.getAddress(), USER_INITIAL_BALANCE, 0, 0)
 //     await expectBalanceOf(l2_ovm2_bridge, user, USER_INITIAL_BALANCE)
 
 //     // commit the transfer root
@@ -303,18 +303,18 @@
 //     const transfersCommittedEvent = (await l2_ovm1_bridge.queryFilter(l2_ovm1_bridge.filters.TransfersCommitted()))[0]
 //     const transferRootHash = transfersCommittedEvent.args.root
 
-//     // Committee stakes on L1 Hop Bridge
-//     await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
-//     await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+//     // Bonder stakes on L1 Hop Bridge
+//     await l1_poolToken.connect(bonder).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+//     await l1_bridge.connect(bonder).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
 
 //     // Bond the transfer root on L1
-//     await l1_bridge.connect(committee).bondTransferRoot(transferRootHash, [OPTIMISM_2_CHAIN_ID], [USER_INITIAL_BALANCE])
+//     await l1_bridge.connect(bonder).bondTransferRoot(transferRootHash, [OPTIMISM_2_CHAIN_ID], [USER_INITIAL_BALANCE])
 //     await l2_ovm2_messenger.relayNextMessage()
 
 //     // Settle the withdrawal bond
 //     await l2_ovm2_bridge.settleBondedWithdrawal(transferHash, transferRootHash, [])
 
-//     await l2_ovm2_bridge.connect(committee).unstake(LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
-//     await expectBalanceOf(l2_ovm2_bridge, committee, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+//     await l2_ovm2_bridge.connect(bonder).unstake(LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
+//     await expectBalanceOf(l2_ovm2_bridge, bonder, LIQUIDITY_PROVIDER_INITIAL_BALANCE.div(2))
 //   })
 // })

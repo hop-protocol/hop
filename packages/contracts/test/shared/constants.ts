@@ -37,7 +37,7 @@ export interface IFixture {
   accounts: Signer[]
   user: Signer
   liquidityProvider: Signer
-  committee: Signer
+  bonder: Signer
   challenger: Signer
   governance: Signer
 

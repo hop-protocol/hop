@@ -15,7 +15,7 @@ import {
 describe("Bridge", () => {
   let _fixture: IFixture
 
-  let committee: Signer
+  let bonder: Signer
 
   let bridge: Contract
   let transfers: Transfer[]
@@ -26,7 +26,7 @@ describe("Bridge", () => {
     await setUpDefaults(_fixture, l2ChainId)
 
     ;({ 
-      committee,
+      bonder,
       bridge,
       transfers
     } = _fixture);

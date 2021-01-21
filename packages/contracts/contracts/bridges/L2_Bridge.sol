@@ -18,20 +18,19 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     bytes32[] public pendingTransfers;
     uint256[] public pendingAmountChainIds;
-    mapping(uint256 => uint256) pendingAmountForChainId;
+    mapping(uint256 => uint256) public pendingAmountForChainId;
 
     event TransfersCommitted (
-        bytes32 root,
-        bytes32 amountHash,
+        bytes32 indexed root,
         uint256[] chainIds,
         uint256[] amounts
     );
 
     event TransferSent (
-        bytes32 transferHash,
-        address recipient,
+        bytes32 indexed transferHash,
+        address indexed recipient,
         uint256 amount,
-        uint256 transferNonce,
+        uint256 indexed transferNonce,
         uint256 relayerFee
     );
 
@@ -50,10 +49,10 @@ abstract contract L2_Bridge is ERC20, Bridge {
         IERC20 _l2CanonicalToken,
         address _l1BridgeAddress,
         uint256[] memory _supportedChainIds,
-        address _committee
+        address _bonder
     )
         public
-        Bridge(_committee)
+        Bridge(_bonder)
         ERC20("DAI Hop Token", "hDAI")
     {
         l1Governance = _l1Governance;
@@ -174,18 +173,18 @@ abstract contract L2_Bridge is ERC20, Bridge {
             // Clean up for the next batch of transfers as pendingAmountChainIds is iterated
             pendingAmountForChainId[chainId] = 0;
         }
-        bytes32 amountHash = getAmountHash(pendingAmountChainIds, chainAmounts);
 
-        emit TransfersCommitted(root, amountHash, pendingAmountChainIds, chainAmounts);
+        emit TransfersCommitted(root, pendingAmountChainIds, chainAmounts);
+
+        bytes memory confirmTransferRootMessage = abi.encodeWithSignature(
+            "confirmTransferRoot(bytes32,uint256[],uint256[])",
+            root,
+            pendingAmountChainIds,
+            chainAmounts
+        );
 
         delete pendingAmountChainIds;
         delete pendingTransfers;
-
-        bytes memory confirmTransferRootMessage = abi.encodeWithSignature(
-            "confirmTransferRoot(bytes32,bytes32)",
-            root,
-            amountHash
-        );
 
         _sendCrossDomainMessage(confirmTransferRootMessage);
     }

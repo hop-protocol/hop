@@ -21,7 +21,7 @@ export async function fixture(l2ChainId: BigNumber): Promise<IFixture> {
   const accounts = await ethers.getSigners()
   const user = accounts[0]
   const liquidityProvider = accounts[1]
-  const committee = accounts[2]
+  const bonder = accounts[2]
   const challenger = accounts[3]
   const governance = accounts[4]
 
@@ -52,7 +52,7 @@ export async function fixture(l2ChainId: BigNumber): Promise<IFixture> {
   const l1_canonicalBridge = await L1_CanonicalBridge.deploy(l1_canonicalToken.address, l1_messenger.address)
 
   // Deploy Hop L1 contracts
-  const l1_bridge = await L1_Bridge.deploy(l1_canonicalToken.address, await committee.getAddress())
+  const l1_bridge = await L1_Bridge.deploy(l1_canonicalToken.address, await bonder.getAddress())
 
   // Deploy Hop L2 contracts
   const l2_bridge = await L2_Bridge.deploy(
@@ -61,7 +61,7 @@ export async function fixture(l2ChainId: BigNumber): Promise<IFixture> {
     l2_canonicalToken.address,
     l1_bridge.address,
     [MAINNET_CHAIN_ID],
-    committee.getAddress()
+    bonder.getAddress()
   )
 
   // Deploy Messenger Wrapper
@@ -74,8 +74,8 @@ export async function fixture(l2ChainId: BigNumber): Promise<IFixture> {
   const l2_uniswapRouter = await UniswapRouter.deploy(l2_uniswapFactory.address, weth.address)
 
   // Mocks
-  const accounting = await MockAccounting.deploy(await committee.getAddress())
-  const bridge = await MockBridge.deploy(await committee.getAddress())
+  const accounting = await MockAccounting.deploy(await bonder.getAddress())
+  const bridge = await MockBridge.deploy(await bonder.getAddress())
 
   // Transfers
   const transfers: Transfer[] = [
@@ -105,7 +105,7 @@ export async function fixture(l2ChainId: BigNumber): Promise<IFixture> {
     accounts,
     user,
     liquidityProvider,
-    committee,
+    bonder,
     challenger,
     governance,
     L1_CanonicalBridge,

@@ -7,7 +7,7 @@ import Button from 'src/components/buttons/Button'
 
 const useStyles = makeStyles(() => ({
   sendButton: {
-    marginTop: '6.4rem',
+    marginTop: '1rem',
     width: '30.0rem'
   }
 }))

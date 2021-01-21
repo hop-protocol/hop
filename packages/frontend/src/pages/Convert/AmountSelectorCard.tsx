@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useRef
 } from 'react'
+import clsx from 'clsx'
 import { utils as ethersUtils } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
@@ -56,6 +57,7 @@ type Props = {
   networkOptions?: Network[]
   onNetworkChange?: (network?: Network) => void
   onBalanceChange?: (balance: number | null) => void
+  className?: string
 }
 
 const AmountSelectorCard: FC<Props> = props => {
@@ -67,7 +69,8 @@ const AmountSelectorCard: FC<Props> = props => {
     selectedNetwork,
     networkOptions,
     onNetworkChange,
-    onBalanceChange
+    onBalanceChange,
+    className
   } = props
   const styles = useStyles()
   const { user } = useApp()
@@ -118,7 +121,7 @@ const AmountSelectorCard: FC<Props> = props => {
   }, 5e3)
 
   return (
-    <Card className={styles.root}>
+    <Card className={clsx(styles.root, className)}>
       <Box
         display="flex"
         flexDirection="row"

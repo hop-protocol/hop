@@ -3,14 +3,18 @@ import { BigNumber, BigNumberish, Signer, Contract } from 'ethers'
 import { expect } from 'chai'
 import {
   IFixture,
+  IGetMessengerWrapperDefaults,
   USER_INITIAL_BALANCE,
   LIQUIDITY_PROVIDER_INITIAL_BALANCE,
   LIQUIDITY_PROVIDER_UNISWAP_BALANCE,
   COMMITTEE_INITIAL_BALANCE,
   CHALLENGER_INITIAL_BALANCE,
-  L2_NAMES,
+  L2_CHAIN_IDS,
   ARB_CHAIN_ADDRESS,
-  DEFAULT_L2_GAS_LIMIT,
+  DEFAULT_MESSENGER_WRAPPER_GAS_LIMIT,
+  DEFAULT_MESSENGER_WRAPPER_GAS_PRICE,
+  DEFAULT_MESSENGER_WRAPPER_GAS_CALL_VALUE,
+  DEFAULT_MESSENGER_WRAPPER_SUB_MESSAGE_TYPE,
   OPTIMISM_CHAIN_ID,
   ARBITRUM_CHAIN_ID
 } from './constants'
@@ -19,15 +23,9 @@ import {
  * Initialization functions
  */
 
-export const setUpDefaults = async (fixture: IFixture, l2Name: string) => {
-  const l2ChainId = getChainIdFromName(l2Name)
-
+export const setUpDefaults = async (fixture: IFixture, l2ChainId: BigNumber) => {
   const setUpL1AndL2BridgesOpts = {
     messengerWrapperChainId: l2ChainId
-  }
-
-  const setUpL1MessengerWrapperOpts = {
-    l2Name
   }
 
   const distributeCanonicalTokensOpts = {
@@ -44,7 +42,6 @@ export const setUpDefaults = async (fixture: IFixture, l2Name: string) => {
 
   await setUpL1AndL2Bridges(fixture, setUpL1AndL2BridgesOpts)
   await setUpL1AndL2Messengers(fixture)
-  await setUpL1MessengerWrapper(fixture, setUpL1MessengerWrapperOpts)
   await distributeCanonicalTokens(fixture, distributeCanonicalTokensOpts)
   await setUpL2UniswapMarket(fixture, setUpL2UniswapMarketOpts)
 }
@@ -80,20 +77,6 @@ export const setUpL1AndL2Messengers = async (fixture: IFixture) => {
 
   // Set up L2
   await l2_messenger.setTargetMessenger(l1_messenger.address)
-}
-
-export const setUpL1MessengerWrapper = async (fixture: IFixture, opts: any) => {
-  const {
-    l2_bridge,
-    messengerWrapper,
-    l1_messenger,
-  } = fixture
-
-  const {
-    l2Name
-  } = opts
-
-  await setMessengerWrapperDefaults(l2Name, messengerWrapper, l1_messenger.address, l2_bridge.address)
 }
 
 export const distributeCanonicalTokens = async (fixture: IFixture, opts: any) => {
@@ -175,59 +158,39 @@ export const setUpL2UniswapMarket = async (fixture: IFixture, opts: any) => {
  * General functions
  */
 
-export const getL2MessengerId = (l2Name: string): string => {
-  return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(l2Name))
-}
-
-export const getChainIdFromName = (l2Name: string): BigNumber => {
-  switch(l2Name) {
-    case L2_NAMES.ARBITRUM: {
-      return ARBITRUM_CHAIN_ID
-    }
-    case L2_NAMES.OPTIMISM: {
-      return OPTIMISM_CHAIN_ID
-    }
-    case L2_NAMES.OPTIMISM_1: {
-      return OPTIMISM_CHAIN_ID
-    }
-    case L2_NAMES.OPTIMISM_2: {
-      return OPTIMISM_CHAIN_ID
-    }
-  }
-}
-
-export const setMessengerWrapperDefaults = async (
-  l2Name: string,
-  l1MessengerWrapper: Contract,
+export const getMessengerWrapperDefaults = (
+  l2ChainId: BigNumber,
   l1BridgeAddress: string,
-  l2BridgeAddress: string
-) => {
+  l2BridgeAddress: string,
+  l1MessengerAddress: string
+): IGetMessengerWrapperDefaults[] => {
+  let defaults: IGetMessengerWrapperDefaults[] = []
 
-  await l1MessengerWrapper.setL1MessengerAddress(l1BridgeAddress)
-  await l1MessengerWrapper.setL2BridgeAddress(l2BridgeAddress)
-  await l1MessengerWrapper.setDefaultGasLimit(DEFAULT_L2_GAS_LIMIT)
+  defaults.push(
+    l1BridgeAddress,
+    l2BridgeAddress,
+    DEFAULT_MESSENGER_WRAPPER_GAS_LIMIT,
+    l1MessengerAddress
+  )
 
-  if (l2Name === L2_NAMES.ARBITRUM) {
-    return setArbitrumMessengerWrapperDefaults(l1MessengerWrapper)
-  } else if (l2Name === L2_NAMES.OPTIMISM) {
-    return setOptimismMessengerWrapperDefaults(l1MessengerWrapper)
+  if (
+    l2ChainId === L2_CHAIN_IDS.ARBITRUM_TESTNET_2 ||
+    l2ChainId === L2_CHAIN_IDS.ARBITRUM_TESTNET_3
+  ) {
+    defaults.push(
+      ARB_CHAIN_ADDRESS,
+      DEFAULT_MESSENGER_WRAPPER_SUB_MESSAGE_TYPE,
+      DEFAULT_MESSENGER_WRAPPER_GAS_PRICE,
+      DEFAULT_MESSENGER_WRAPPER_GAS_CALL_VALUE
+    )
+  } else if (
+    l2ChainId === L2_CHAIN_IDS.OPTIMISM_TESTNET_1 ||
+    l2ChainId === L2_CHAIN_IDS.OPTIMISM_SYNTHETIX_DEMO
+  ) {
+    // Nothing unique here. This function exists for consistency.
   }
-}
 
-const setArbitrumMessengerWrapperDefaults = async (l1MessengerWrapper: Contract) => {
-  const arbChain: string = ARB_CHAIN_ADDRESS
-  const defaultGasPrice: number = 0
-  const defaultCallValue: number = 0
-  const defaultSubMessageType: string = '0x01'
-
-  await l1MessengerWrapper.setArbChain(arbChain)
-  await l1MessengerWrapper.setDefaultGasPrice(defaultGasPrice)
-  await l1MessengerWrapper.setDefaultCallValue(defaultCallValue)
-  await l1MessengerWrapper.setDefaultSubMessageType(defaultSubMessageType)
-}
-
-const setOptimismMessengerWrapperDefaults = async (l1MessengerWrapper: Contract) => {
-  // Nothing unique is set here. This function exists for consistency.
+  return defaults
 }
 
 export const expectBalanceOf = async (token: Contract, account: Signer | Contract, expectedBalance: BigNumberish) => {

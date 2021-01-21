@@ -20,6 +20,7 @@
     "@types/react-router-dom": "5.1.6",
     "bnc-onboard": "1.14.0",
     "classnames": "2.2.6",
+    "clsx": "1.1.1",
     "ethers": "5.0.19",
     "gridplus-sdk": "0.6.1",
     "luxon": "1.25.0",

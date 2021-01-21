@@ -17,6 +17,7 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
 import SendButton from 'src/pages/Send/SendButton'
 import Transaction from 'src/models/Transaction'
+import Alert from 'src/components/alert/Alert'
 import { Contract } from 'ethers'
 import {
   parseEther,
@@ -51,6 +52,7 @@ const useStyles = makeStyles(theme => ({
   },
   detailRow: {
     marginTop: '4.2rem',
+    marginBottom: '5.4rem',
     width: '46.0rem',
     [theme.breakpoints.down('xs')]: {
       width: '90%'
@@ -89,12 +91,11 @@ const Send: FC = () => {
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
   const [isFromLastChanged, setIsFromLastChanged] = useState<boolean>(true)
   const [sending, setSending] = useState<boolean>(false)
-  let [daiRate, setDaiRate] = useState<number>(0)
-  let [hopDaiRate, setHopDaiRate] = useState<number>(0)
   const [fetchingRate, setFetchingRate] = useState<boolean>(false)
   const [exchangeRate, setExchangeRate] = useState<number>(0)
   const [fromBalance, setFromBalance] = useState<number>(0)
   const [toBalance, setToBalance] = useState<number>(0)
+  const [error, setError] = useState<string | null | undefined>(null)
   const debouncer = useRef<number>(0)
 
   const calcAmount = async (
@@ -304,7 +305,7 @@ const Send: FC = () => {
       }
     } catch (err) {
       if (!/cancelled/gi.test(err.message)) {
-        alert(err.message)
+        setError(err.message)
       }
       console.error(err)
     }
@@ -517,6 +518,7 @@ const Send: FC = () => {
           )}
         </Typography>
       </Box>
+      <Alert severity="error" onClose={() => setError(null)} text={error} />
       <SendButton sending={sending} disabled={!validFormFields} onClick={send}>
         {buttonText}
       </SendButton>

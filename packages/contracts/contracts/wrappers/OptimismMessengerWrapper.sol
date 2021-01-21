@@ -10,11 +10,21 @@ contract OptimismMessengerWrapper is MessengerWrapper {
 
     iOVM_L1CrossDomainMessenger public l1MessengerAddress;
 
-    function setL1MessengerAddress(iOVM_L1CrossDomainMessenger _l1MessengerAddress) public {
+    constructor(
+        address _l1BridgeAddress,
+        address _l2BridgeAddress,
+        uint256 _defaultGasLimit,
+        iOVM_L1CrossDomainMessenger _l1MessengerAddress
+    )
+        public
+    {
+        l1BridgeAddress = _l1BridgeAddress;
+        l2BridgeAddress = _l2BridgeAddress;
+        defaultGasLimit = _defaultGasLimit;
         l1MessengerAddress = _l1MessengerAddress;
     }
 
-    function sendCrossDomainMessage(bytes memory _calldata) public override {
+    function sendCrossDomainMessage(bytes memory _calldata) public override onlyL1Bridge {
         l1MessengerAddress.sendMessage(
             l2BridgeAddress,
             _calldata,

@@ -4,6 +4,7 @@ import Typography from '@material-ui/core/Typography'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import MenuItem from '@material-ui/core/MenuItem'
+import Alert from 'src/components/alert/Alert'
 import AmountSelectorCard from 'src/pages/Pools/AmountSelectorCard'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import { usePools } from 'src/pages/Pools/PoolsContext'
@@ -49,6 +50,7 @@ const useStyles = makeStyles(theme => ({
   },
   poolPositionBox: {
     width: '45.6rem',
+    marginBottom: '5.4rem',
     display: 'flex',
     flexDirection: 'column',
     [theme.breakpoints.down('xs')]: {
@@ -89,7 +91,9 @@ const Pools: FC = () => {
     token0Deposited,
     token1Deposited,
     setToken0Balance,
-    setToken1Balance
+    setToken1Balance,
+    error,
+    setError
   } = usePools()
 
   const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
@@ -350,6 +354,7 @@ const Pools: FC = () => {
           </Card>
         </Box>
       )}
+      <Alert severity="error" onClose={() => setError(null)} text={error} />
       <SendButton />
     </Box>
   )

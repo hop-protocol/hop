@@ -28,6 +28,8 @@ type ConvertContextProps = {
   destTokenBalance: number | null
   setSourceTokenBalance: (balance: number | null) => void
   setDestTokenBalance: (balance: number | null) => void
+  error: string | null | undefined
+  setError: (error: string | null | undefined) => void
 }
 
 const ConvertContext = createContext<ConvertContextProps>({
@@ -49,7 +51,9 @@ const ConvertContext = createContext<ConvertContextProps>({
   sourceTokenBalance: null,
   destTokenBalance: null,
   setSourceTokenBalance: (balance: number | null) => {},
-  setDestTokenBalance: (balance: number | null) => {}
+  setDestTokenBalance: (balance: number | null) => {},
+  error: null,
+  setError: (error: string | null | undefined) => {}
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
@@ -106,6 +110,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     null
   )
   const [destTokenBalance, setDestTokenBalance] = useState<number | null>(null)
+  const [error, setError] = useState<string | null | undefined>()
 
   const calcAltTokenAmount = async (value: string) => {
     if (value) {
@@ -410,7 +415,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
     } catch (err) {
       if (!/cancelled/gi.test(err.message)) {
-        alert(err.message)
+        setError(err.message)
       }
       console.error(err)
     }
@@ -452,7 +457,9 @@ const ConvertContextProvider: FC = ({ children }) => {
         sourceTokenBalance,
         destTokenBalance,
         setSourceTokenBalance,
-        setDestTokenBalance
+        setDestTokenBalance,
+        error,
+        setError
       }}
     >
       {children}

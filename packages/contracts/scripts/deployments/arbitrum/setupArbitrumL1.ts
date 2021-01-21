@@ -2,8 +2,8 @@ require('dotenv').config()
 
 import { ethers } from 'hardhat'
 import { BigNumber, ContractFactory, Signer, Wallet, Contract } from 'ethers'
-import { getL2MessengerId } from '../../../test/shared/utils'
 import { ARB_CHAIN_ADDRESS } from '../../../test/shared/constants'
+import { getChainIdFromName } from '../../../test/shared/utils'
 
 const USER_INITIAL_BALANCE = BigNumber.from('500000000000000000000')
 const LARGE_APPROVAL = BigNumber.from('999999999999999999999999999999999999')
@@ -11,7 +11,6 @@ const LARGE_APPROVAL = BigNumber.from('999999999999999999999999999999999999')
 async function deployArbitrum () {
   let accounts: Signer[]
   let user: Signer | Wallet
-  let messengerId: string
 
   // Factories
   let MockERC20: ContractFactory
@@ -54,8 +53,9 @@ async function deployArbitrum () {
   l2_bridge = L2_Bridge.attach('0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde')
 
   // Set up bridges
-  messengerId = getL2MessengerId('arbitrum')
-  await l1_bridge.setCrossDomainMessengerWrapper(messengerId, messengerWrapper.address)
+  const l2Name = 'arbitrum'
+  const l2ChainId = getChainIdFromName(l2Name)
+  await l1_bridge.setCrossDomainMessengerWrapper(l2ChainId, messengerWrapper.address)
 
   // Send canonical token to the user on L2
   await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE.mul(2))
@@ -64,8 +64,8 @@ async function deployArbitrum () {
 
   // Mint our token on L2
   await l1_poolToken.approve(l1_bridge.address, USER_INITIAL_BALANCE)
-  await l1_bridge.sendToL2(messengerId, '0x02b260F6f47FF328496Be632678d06a564B8c4AB', USER_INITIAL_BALANCE)
-  await l1_bridge.sendToL2(messengerId, await user.getAddress(), USER_INITIAL_BALANCE)
+  await l1_bridge.sendToL2(l2ChainId, '0x02b260F6f47FF328496Be632678d06a564B8c4AB', USER_INITIAL_BALANCE)
+  await l1_bridge.sendToL2(l2ChainId, await user.getAddress(), USER_INITIAL_BALANCE)
 }
 
 /* tslint:disable-next-line */

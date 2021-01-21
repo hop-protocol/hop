@@ -160,10 +160,6 @@ export const setUpL2UniswapMarket = async (fixture: IFixture, opts: any) => {
  * General functions
  */
 
-export const getL2MessengerId = (l2Name: string): string => {
-  return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(l2Name))
-}
-
 export const getChainIdFromName = (l2Name: string): BigNumber => {
   switch(l2Name) {
     case L2_NAMES.ARBITRUM: {

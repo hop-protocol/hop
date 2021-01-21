@@ -19,8 +19,8 @@ contract L1_BridgeConfig is Ownable {
     mapping(uint256 => IMessengerWrapper) private crossDomainMessengerWrapper;
     uint256 challengeAmountMultiplier = 1;
     uint256 challengeAmountDivisor = 10;
-    uint256 timeSlotSize = 1 hours;
-    uint256 challengePeriod = 4 hours;
+    uint256 timeSlotSize = 3 hours;
+    uint256 challengePeriod = 1 days;
     uint256 challengeResolutionPeriod = 8 days;
     uint256 unstakePeriod = 9 days; 
 

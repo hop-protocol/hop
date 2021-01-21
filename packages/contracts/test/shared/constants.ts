@@ -2,11 +2,11 @@ import { BigNumber, ContractFactory, Signer, Contract } from 'ethers'
 
 import Transfer from '../../lib/Transfer'
 
-export const L2_NAMES = {
-  ARBITRUM: 'arbitrum',
-  OPTIMISM: 'optimism',
-  OPTIMISM_1: 'optimism1',
-  OPTIMISM_2: 'optimism2',
+export const L2_CHAIN_IDS = {
+  OPTIMISM_SYNTHETIX_DEMO: BigNumber.from(10),
+  OPTIMISM_TESTNET_1: BigNumber.from(420),
+  ARBITRUM_TESTNET_2: BigNumber.from(152709604825713),
+  ARBITRUM_TESTNET_3: BigNumber.from(79377087078960)
 }
 
 export const USER_INITIAL_BALANCE = BigNumber.from('100')

@@ -10,7 +10,7 @@
 //   expectBalanceOf
 // } from './shared/utils'
 // import {
-//   L2_NAMES,
+//   L2_CHAIN_IDS,
 //   IGetMessengerWrapperDefaults
 // } from './shared/constants'
 
@@ -125,7 +125,7 @@
 //     )
 
 //     // Initialize bridge wrapper
-//     await IGetMessengerWrapperDefaults(L2_NAMES.OPTIMISM_1, l1_ovm1_messenger.address, l2_ovm1_bridge.address)
+//     await IGetMessengerWrapperDefaults(L2_CHAIN_IDS.OPTIMISM_TESTNET_1, l1_ovm1_messenger.address, l2_ovm1_bridge.address)
 //     await l1_ovm1_messengerWrapper.setL1MessengerAddress(l1_ovm1_messenger.address)
 //     await l1_ovm1_messengerWrapper.setL2BridgeAddress(l2_ovm1_bridge.address)
 //     await l1_ovm1_messengerWrapper.setDefaultGasLimit(DEFAULT_MESSENGER_WRAPPER_GAS_LIMIT)
@@ -151,7 +151,7 @@
 //     )
 
 //     // Initialize bridge wrapper
-//     await getMessengerWrapperDefaults(L2_NAMES.OPTIMISM_2, l1_ovm2_messengerWrapper, l2_ovm2_messenger.address, l2_ovm2_bridge.address)
+//     await getMessengerWrapperDefaults(L2_CHAIN_IDS.OPTIMISM_TESTNET_1, l1_ovm2_messengerWrapper, l2_ovm2_messenger.address, l2_ovm2_bridge.address)
 //     await l1_ovm2_messengerWrapper.setL1MessengerAddress(l1_ovm2_messenger.address)
 //     await l1_ovm2_messengerWrapper.setL2BridgeAddress(l2_ovm2_bridge.address)
 //     await l1_ovm2_messengerWrapper.setDefaultGasLimit(DEFAULT_MESSENGER_WRAPPER_GAS_LIMIT)

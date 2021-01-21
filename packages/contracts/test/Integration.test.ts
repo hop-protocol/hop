@@ -10,7 +10,7 @@ import {
   expectBalanceOf
 } from './shared/utils'
 import {
-  L2_NAMES,
+  L2_CHAIN_IDS,
   IGetMessengerWrapperDefaults
 } from './shared/constants'
 
@@ -96,8 +96,8 @@ describe("Integration", () => {
     )
 
     // Deploy messenger wrapper
-    const l2Name = L2_NAMES.OPTIMISM
-    const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = getMessengerWrapperDefaults(l2Name, l1_bridge.address, l2_bridge.address, l1_messenger.address)
+    const l2ChainId: BigNumber = L2_CHAIN_IDS.OPTIMISM_TESTNET_1
+    const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = getMessengerWrapperDefaults(l2ChainId, l1_bridge.address, l2_bridge.address, l1_messenger.address)
     messengerWrapper = await MessengerWrapper.deploy(...messengerWrapperDefaults)
 
     // Uniswap

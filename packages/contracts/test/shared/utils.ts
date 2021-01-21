@@ -9,7 +9,7 @@ import {
   LIQUIDITY_PROVIDER_UNISWAP_BALANCE,
   COMMITTEE_INITIAL_BALANCE,
   CHALLENGER_INITIAL_BALANCE,
-  L2_NAMES,
+  L2_CHAIN_IDS,
   ARB_CHAIN_ADDRESS,
   DEFAULT_MESSENGER_WRAPPER_GAS_LIMIT,
   DEFAULT_MESSENGER_WRAPPER_GAS_PRICE,
@@ -23,9 +23,7 @@ import {
  * Initialization functions
  */
 
-export const setUpDefaults = async (fixture: IFixture, l2Name: string) => {
-  const l2ChainId = getChainIdFromName(l2Name)
-
+export const setUpDefaults = async (fixture: IFixture, l2ChainId: BigNumber) => {
   const setUpL1AndL2BridgesOpts = {
     messengerWrapperChainId: l2ChainId
   }
@@ -160,25 +158,8 @@ export const setUpL2UniswapMarket = async (fixture: IFixture, opts: any) => {
  * General functions
  */
 
-export const getChainIdFromName = (l2Name: string): BigNumber => {
-  switch(l2Name) {
-    case L2_NAMES.ARBITRUM: {
-      return ARBITRUM_CHAIN_ID
-    }
-    case L2_NAMES.OPTIMISM: {
-      return OPTIMISM_CHAIN_ID
-    }
-    case L2_NAMES.OPTIMISM_1: {
-      return OPTIMISM_CHAIN_ID
-    }
-    case L2_NAMES.OPTIMISM_2: {
-      return OPTIMISM_CHAIN_ID
-    }
-  }
-}
-
 export const getMessengerWrapperDefaults = (
-  l2Name: string,
+  l2ChainId: BigNumber,
   l1BridgeAddress: string,
   l2BridgeAddress: string,
   l1MessengerAddress: string
@@ -192,14 +173,20 @@ export const getMessengerWrapperDefaults = (
     l1MessengerAddress
   )
 
-  if (l2Name === L2_NAMES.ARBITRUM) {
+  if (
+    l2ChainId === L2_CHAIN_IDS.ARBITRUM_TESTNET_2 ||
+    l2ChainId === L2_CHAIN_IDS.ARBITRUM_TESTNET_3
+  ) {
     defaults.push(
       ARB_CHAIN_ADDRESS,
       DEFAULT_MESSENGER_WRAPPER_SUB_MESSAGE_TYPE,
       DEFAULT_MESSENGER_WRAPPER_GAS_PRICE,
       DEFAULT_MESSENGER_WRAPPER_GAS_CALL_VALUE
     )
-  } else if (l2Name === L2_NAMES.OPTIMISM) {
+  } else if (
+    l2ChainId === L2_CHAIN_IDS.OPTIMISM_TESTNET_1 ||
+    l2ChainId === L2_CHAIN_IDS.OPTIMISM_SYNTHETIX_DEMO
+  ) {
     // Nothing unique here. This function exists for consistency.
   }
 

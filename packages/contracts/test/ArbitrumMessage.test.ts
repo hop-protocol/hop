@@ -4,7 +4,7 @@ import { ethers } from 'hardhat'
 import { BigNumber, BigNumberish, ContractFactory, Signer, Contract } from 'ethers'
 import { getMessengerWrapperDefaults } from './shared/utils'
 import {
-  L2_NAMES,
+  L2_CHAIN_IDS,
   IGetMessengerWrapperDefaults
 } from './shared/constants'
 
@@ -73,8 +73,8 @@ describe("ArbitrumMessage", () => {
     l2_bridge = await L2_Bridge.deploy(l2_messenger.address, governance.getAddress(), l2_poolToken.address, l1_bridge.address, [ARBITRUM_CHAIN_ID], committee.getAddress())
 
     // Deploy messenger wrapper
-    const l2Name = L2_NAMES.ARBITRUM
-    const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = getMessengerWrapperDefaults(l2Name, l1_bridge.address,l2_bridge.address, l1_messenger.address)
+    const l2ChainId: BigNumber = L2_CHAIN_IDS.ARBITRUM_TESTNET_3
+    const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = getMessengerWrapperDefaults(l2ChainId, l1_bridge.address,l2_bridge.address, l1_messenger.address)
     messengerWrapper = await MessengerWrapper.deploy(...messengerWrapperDefaults)
 
     // Set up bridge

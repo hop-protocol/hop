@@ -65,7 +65,7 @@ export async function fixture(l2Name: string): Promise<IFixture> {
   )
 
   // Deploy Messenger Wrapper
-  const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = getMessengerWrapperDefaults(l2Name, l2_bridge.address, l1_messenger.address)
+  const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = getMessengerWrapperDefaults(l2Name, l1_bridge.address, l2_bridge.address, l1_messenger.address)
   const messengerWrapper = await MessengerWrapper.deploy(...messengerWrapperDefaults)
 
   // Deploy auxiliary contracts

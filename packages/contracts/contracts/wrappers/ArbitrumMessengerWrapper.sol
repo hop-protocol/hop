@@ -15,6 +15,7 @@ contract ArbitrumMessengerWrapper is MessengerWrapper {
     uint256 public defaultCallValue;
 
     constructor(
+        address _l1BridgeAddress,
         address _l2BridgeAddress,
         uint256 _defaultGasLimit,
         IGlobalInbox _l1MessengerAddress,
@@ -25,6 +26,7 @@ contract ArbitrumMessengerWrapper is MessengerWrapper {
     )
         public
     {
+        l1BridgeAddress = _l1BridgeAddress;
         l2BridgeAddress = _l2BridgeAddress;
         defaultGasLimit = _defaultGasLimit;
         l1MessengerAddress = _l1MessengerAddress;
@@ -34,8 +36,7 @@ contract ArbitrumMessengerWrapper is MessengerWrapper {
         defaultCallValue = _defaultCallValue;
     }
 
-    // TODO: Add onlyL1Bridge modifier
-    function sendCrossDomainMessage(bytes memory _calldata) public override {
+    function sendCrossDomainMessage(bytes memory _calldata) public override onlyL1Bridge {
         bytes memory subMessageWithoutData = abi.encode(
             defaultGasLimit,
             defaultGasPrice,

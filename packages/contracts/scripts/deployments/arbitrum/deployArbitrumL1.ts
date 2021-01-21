@@ -39,7 +39,7 @@ async function deployArbitrum () {
   // Deploy Messenger Wrapper
   const l2Name: string = L2_NAMES.ARBITRUM
   // TODO: Fix this
-  const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = getMessengerWrapperDefaults(l2Name, l2_bridge.address, l1_messenger.address)
+  const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = getMessengerWrapperDefaults(l2Name, l1_bridge.address, l2_bridge.address, l1_messenger.address)
   messengerWrapper = await MessengerWrapper.deploy(...messengerWrapperDefaults)
   await messengerWrapper.deployed()
 

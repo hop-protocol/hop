@@ -183,12 +183,14 @@ export const getChainIdFromName = (l2Name: string): BigNumber => {
 
 export const getMessengerWrapperDefaults = (
   l2Name: string,
+  l1BridgeAddress: string,
   l2BridgeAddress: string,
   l1MessengerAddress: string
 ): IGetMessengerWrapperDefaults[] => {
   let defaults: IGetMessengerWrapperDefaults[] = []
 
   defaults.push(
+    l1BridgeAddress,
     l2BridgeAddress,
     DEFAULT_MESSENGER_WRAPPER_GAS_LIMIT,
     l1MessengerAddress

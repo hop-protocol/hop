@@ -2,11 +2,11 @@ import { BigNumber, ContractFactory, Signer, Contract } from 'ethers'
 
 import Transfer from '../../lib/Transfer'
 
-export const L2_NAMES = {
-  ARBITRUM: 'arbitrum',
-  OPTIMISM: 'optimism',
-  OPTIMISM_1: 'optimism1',
-  OPTIMISM_2: 'optimism2',
+export const L2_CHAIN_IDS = {
+  OPTIMISM_SYNTHETIX_DEMO: BigNumber.from(10),
+  OPTIMISM_TESTNET_1: BigNumber.from(420),
+  ARBITRUM_TESTNET_2: BigNumber.from(152709604825713),
+  ARBITRUM_TESTNET_3: BigNumber.from(79377087078960)
 }
 
 export const USER_INITIAL_BALANCE = BigNumber.from('100')
@@ -17,7 +17,11 @@ export const CHALLENGER_INITIAL_BALANCE = BigNumber.from('10')
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 export const ARB_CHAIN_ADDRESS = '0x2e8aF9f74046D3E55202Fcfb893348316B142230'
-export const DEFAULT_L2_GAS_LIMIT = 8000000
+
+export const DEFAULT_MESSENGER_WRAPPER_GAS_LIMIT = 8000000
+export const DEFAULT_MESSENGER_WRAPPER_GAS_PRICE = 0
+export const DEFAULT_MESSENGER_WRAPPER_GAS_CALL_VALUE = 0
+export const DEFAULT_MESSENGER_WRAPPER_SUB_MESSAGE_TYPE = '0x01'
 
 export const RELAYER_FEE = BigNumber.from('1000000000000000000')
 
@@ -73,3 +77,5 @@ export interface IFixture {
   // Other
   transfers: Transfer[]
 }
+
+export type IGetMessengerWrapperDefaults = string | number | undefined

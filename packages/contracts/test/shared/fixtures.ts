@@ -4,16 +4,20 @@ import { BigNumber } from 'ethers'
 import Transfer from '../../lib/Transfer'
 import {
   IFixture,
-  L2_NAMES,
+  IGetMessengerWrapperDefaults,
+  L2_CHAIN_IDS,
   RELAYER_FEE,
   MAINNET_CHAIN_ID
 } from './constants'
+import {
+  getMessengerWrapperDefaults
+} from './utils'
 
-export async function fixture(l2Name: string): Promise<IFixture> {
+export async function fixture(l2ChainId: BigNumber): Promise<IFixture> {
   const {
     l2BridgeArtifact,
     messengerWrapperArtifact
-  } = getL2SpecificArtifact(l2Name)
+  } = getL2SpecificArtifact(l2ChainId)
   const accounts = await ethers.getSigners()
   const user = accounts[0]
   const liquidityProvider = accounts[1]
@@ -49,7 +53,6 @@ export async function fixture(l2Name: string): Promise<IFixture> {
 
   // Deploy Hop L1 contracts
   const l1_bridge = await L1_Bridge.deploy(l1_canonicalToken.address, await committee.getAddress())
-  const messengerWrapper = await MessengerWrapper.deploy()
 
   // Deploy Hop L2 contracts
   const l2_bridge = await L2_Bridge.deploy(
@@ -60,6 +63,10 @@ export async function fixture(l2Name: string): Promise<IFixture> {
     [MAINNET_CHAIN_ID],
     committee.getAddress()
   )
+
+  // Deploy Messenger Wrapper
+  const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = getMessengerWrapperDefaults(l2ChainId, l1_bridge.address, l2_bridge.address, l1_messenger.address)
+  const messengerWrapper = await MessengerWrapper.deploy(...messengerWrapperDefaults)
 
   // Deploy auxiliary contracts
   const weth = await MockERC20.deploy('WETH', 'WETH')
@@ -128,21 +135,22 @@ export async function fixture(l2Name: string): Promise<IFixture> {
   }
 }
 
-const getL2SpecificArtifact = (l2Name: string) => {
+const getL2SpecificArtifact = (l2ChainId: BigNumber) => {
   let l2BridgeArtifact: string
   let messengerWrapperArtifact: string
 
-  switch(l2Name) {
-    case L2_NAMES.ARBITRUM: {
-      l2BridgeArtifact = 'L2_ArbitrumBridge.sol:L2_ArbitrumBridge'
-      messengerWrapperArtifact = 'ArbitrumMessengerWrapper.sol:ArbitrumMessengerWrapper'
-      break
-    }
-    case L2_NAMES.OPTIMISM: {
-      l2BridgeArtifact = 'L2_OptimismBridge.sol:L2_OptimismBridge'
-      messengerWrapperArtifact = 'OptimismMessengerWrapper.sol:OptimismMessengerWrapper'
-      break
-    }
+  if (
+    l2ChainId === L2_CHAIN_IDS.ARBITRUM_TESTNET_2 ||
+    l2ChainId === L2_CHAIN_IDS.ARBITRUM_TESTNET_3
+  ) {
+    l2BridgeArtifact = 'L2_ArbitrumBridge.sol:L2_ArbitrumBridge'
+    messengerWrapperArtifact = 'ArbitrumMessengerWrapper.sol:ArbitrumMessengerWrapper'
+  } else if (
+    l2ChainId === L2_CHAIN_IDS.OPTIMISM_TESTNET_1 ||
+    l2ChainId === L2_CHAIN_IDS.OPTIMISM_SYNTHETIX_DEMO
+  ) {
+    l2BridgeArtifact = 'L2_OptimismBridge.sol:L2_OptimismBridge'
+    messengerWrapperArtifact = 'OptimismMessengerWrapper.sol:OptimismMessengerWrapper'
   }
 
   return  {

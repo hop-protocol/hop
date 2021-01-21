@@ -14,27 +14,29 @@ contract ArbitrumMessengerWrapper is MessengerWrapper {
     uint256 public defaultGasPrice;
     uint256 public defaultCallValue;
 
-    function setL1MessengerAddress(IGlobalInbox _l1MessengerAddress) public {
+    constructor(
+        address _l1BridgeAddress,
+        address _l2BridgeAddress,
+        uint256 _defaultGasLimit,
+        IGlobalInbox _l1MessengerAddress,
+        address _arbChain,
+        byte _defaultSubMessageType,
+        uint256 _defaultGasPrice,
+        uint256 _defaultCallValue
+    )
+        public
+    {
+        l1BridgeAddress = _l1BridgeAddress;
+        l2BridgeAddress = _l2BridgeAddress;
+        defaultGasLimit = _defaultGasLimit;
         l1MessengerAddress = _l1MessengerAddress;
-    }
-
-    function setArbChain(address _arbChain) public {
         arbChain = _arbChain;
-    }
-
-    function setDefaultSubMessageType(byte _defaultSubMessageType) public {
         defaultSubMessageType = _defaultSubMessageType;
-    }
-
-    function setDefaultGasPrice(uint256 _defaultGasPrice) public {
         defaultGasPrice = _defaultGasPrice;
-    }
-
-    function setDefaultCallValue(uint256 _defaultCallValue) public {
         defaultCallValue = _defaultCallValue;
     }
 
-    function sendCrossDomainMessage(bytes memory _calldata) public override {
+    function sendCrossDomainMessage(bytes memory _calldata) public override onlyL1Bridge {
         bytes memory subMessageWithoutData = abi.encode(
             defaultGasLimit,
             defaultGasPrice,

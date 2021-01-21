@@ -6,15 +6,12 @@ pragma experimental ABIEncoderV2;
 import "../interfaces/IMessengerWrapper.sol";
 
 abstract contract MessengerWrapper is IMessengerWrapper {
+    address public l1BridgeAddress;
+    address public l2BridgeAddress;
+    uint256 public defaultGasLimit;
 
-    address public override l2BridgeAddress;
-    uint256 public override defaultGasLimit;
-
-    function setL2BridgeAddress(address _l2BridgeAddress) public override {
-        l2BridgeAddress = _l2BridgeAddress;
-    }
-
-    function setDefaultGasLimit(uint256 _defaultGasLimit) public override {
-        defaultGasLimit = _defaultGasLimit;
+    modifier onlyL1Bridge {
+        require(msg.sender == l1BridgeAddress, "MW: Sender must be the L1 Bridge");
+        _;
     }
 }

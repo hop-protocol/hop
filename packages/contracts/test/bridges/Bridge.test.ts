@@ -8,7 +8,7 @@ import {
   generateAmountHash
 } from '../shared/utils'
 import {
-  L2_NAMES,
+  L2_CHAIN_IDS,
   IFixture
 } from '../shared/constants'
 
@@ -21,9 +21,9 @@ describe("Bridge", () => {
   let transfers: Transfer[]
 
   beforeEach(async () => {
-    const l2Name = L2_NAMES.OPTIMISM
-    _fixture = await fixture(l2Name)
-    await setUpDefaults(_fixture, l2Name)
+    const l2ChainId: BigNumber = L2_CHAIN_IDS.OPTIMISM_TESTNET_1
+    _fixture = await fixture(l2ChainId)
+    await setUpDefaults(_fixture, l2ChainId)
 
     ;({ 
       committee,

@@ -1,7 +1,12 @@
 require('dotenv').config()
 
 import { ethers } from 'hardhat'
-import { ContractFactory, Contract } from 'ethers'
+import { ContractFactory, Contract, BigNumber } from 'ethers'
+import { getMessengerWrapperDefaults } from '../../../test/shared/utils'
+import {
+  L2_CHAIN_IDS,
+  IGetMessengerWrapperDefaults
+} from '../../../test/shared/constants'
 
 async function deployArbitrum () {
   // Factories
@@ -30,7 +35,13 @@ async function deployArbitrum () {
 
   l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, COMMITTEE_ADDRESS)
   await l1_bridge.deployed()
-  messengerWrapper = await MessengerWrapper.deploy()
+
+  // Deploy Messenger Wrapper
+  const l2ChainId: BigNumber = L2_CHAIN_IDS.ARBITRUM_TESTNET_3
+  // TODO: This will not work, as we need access to the not-yet-deployed L2 bridge address.
+  // TODO: This whole section will be removed when DRYing up and optimizing the script/test deployments and assertions
+  const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = getMessengerWrapperDefaults(l2Name, l1_bridge.address, l2_bridge.address, l1_messenger.address)
+  messengerWrapper = await MessengerWrapper.deploy(...messengerWrapperDefaults)
   await messengerWrapper.deployed()
 
   console.log('L1 Bridge            :', l1_bridge.address)

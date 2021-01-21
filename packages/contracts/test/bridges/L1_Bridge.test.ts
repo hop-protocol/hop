@@ -20,7 +20,7 @@ describe("L1_Bridge", () => {
   let l2ChainId: BigNumber
 
   let user: Signer
-  let committee: Signer
+  let bonder: Signer
 
   let l1_canonicalToken: Contract
   let l1_bridge: Contract
@@ -35,7 +35,7 @@ describe("L1_Bridge", () => {
 
     ;({ 
       user,
-      committee,
+      bonder,
       l1_canonicalToken,
       l1_bridge,
       l2_canonicalToken,
@@ -48,10 +48,10 @@ describe("L1_Bridge", () => {
    * End to end tests
    */
 
-  it('Should allow committee to deposit bond and then withdraw bond', async () => {
-    await l1_canonicalToken.connect(committee).approve(l1_bridge.address, COMMITTEE_INITIAL_BALANCE)
-    await l1_bridge.connect(committee).stake(COMMITTEE_INITIAL_BALANCE)
-    await l1_bridge.connect(committee).unstake(COMMITTEE_INITIAL_BALANCE)
+  it('Should allow bonder to deposit bond and then withdraw bond', async () => {
+    await l1_canonicalToken.connect(bonder).approve(l1_bridge.address, COMMITTEE_INITIAL_BALANCE)
+    await l1_bridge.connect(bonder).stake(COMMITTEE_INITIAL_BALANCE)
+    await l1_bridge.connect(bonder).unstake(COMMITTEE_INITIAL_BALANCE)
   })
 
   /**
@@ -64,11 +64,11 @@ describe("L1_Bridge", () => {
     expect(chainId).to.eq(expectedChainId)
   })
 
-  it('Should set the collateral token address and the committee address in the constructor', async () => {
+  it('Should set the collateral token address and the bonder address in the constructor', async () => {
     const collateralTokenAddress = await l1_bridge.l1CanonicalToken()
-    const committeeAddress = await l1_bridge.getCommittee()
+    const bonderAddress = await l1_bridge.getBonder()
     expect(collateralTokenAddress).to.eq(l1_canonicalToken.address)
-    expect(committeeAddress).to.eq(await committee.getAddress())
+    expect(bonderAddress).to.eq(await bonder.getAddress())
   })
 
   it('Should send tokens across the bridge via sendToL2', async () => {

@@ -31,7 +31,7 @@ export const setUpDefaults = async (fixture: IFixture, l2ChainId: BigNumber) => 
   const distributeCanonicalTokensOpts = {
     userInitialBalance: USER_INITIAL_BALANCE,
     liquidityProviderInitialBalance: LIQUIDITY_PROVIDER_INITIAL_BALANCE,
-    committeeInitialBalance: COMMITTEE_INITIAL_BALANCE,
+    bonderInitialBalance: COMMITTEE_INITIAL_BALANCE,
     challengerInitialBalance: CHALLENGER_INITIAL_BALANCE
   }
 
@@ -84,20 +84,20 @@ export const distributeCanonicalTokens = async (fixture: IFixture, opts: any) =>
     l1_canonicalToken,
     user,
     liquidityProvider,
-    committee,
+    bonder,
     challenger
   } = fixture
 
   const {
     userInitialBalance,
     liquidityProviderInitialBalance,
-    committeeInitialBalance,
+    bonderInitialBalance,
     challengerInitialBalance
   } = opts
 
   await l1_canonicalToken.mint(await user.getAddress(), userInitialBalance)
   await l1_canonicalToken.mint(await liquidityProvider.getAddress(), liquidityProviderInitialBalance)
-  await l1_canonicalToken.mint(await committee.getAddress(), committeeInitialBalance)
+  await l1_canonicalToken.mint(await bonder.getAddress(), bonderInitialBalance)
   await l1_canonicalToken.mint(await challenger.getAddress(), challengerInitialBalance)
 }
 

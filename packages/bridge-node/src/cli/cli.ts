@@ -13,31 +13,31 @@ program
   .command('bonder')
   .description('Start the bonder watchers')
   .action(() => {
-    ArbitrumBondTransferRootWatcher.start()
-    ArbitrumBondWithdrawalWatcher.start()
-    SettleBondedWithdrawalWatcher.start()
-    ArbitrumCommitTransferWatcher.start()
+    ArbitrumBondTransferRootWatcher.start().catch(console.error)
+    ArbitrumBondWithdrawalWatcher.start().catch(console.error)
+    SettleBondedWithdrawalWatcher.start().catch(console.error)
+    ArbitrumCommitTransferWatcher.start().catch(console.error)
   })
 
 program
   .command('challenger')
   .description('Start the challenger watcher')
   .action(() => {
-    ArbitrumChallengeWatcher.start()
+    ArbitrumChallengeWatcher.start().catch(console.error)
   })
 
 program
   .command('relayer')
   .description('Start the relayer watcher')
   .action(() => {
-    ArbitrumCommitTransferWatcher.start()
+    ArbitrumCommitTransferWatcher.start().catch(console.error)
   })
 
 program
   .command('arb-bot')
   .description('Start the arbitrage bot')
   .action(() => {
-    arbBot.start()
+    arbBot.start().catch(console.error)
   })
 
 program.parse(process.argv)

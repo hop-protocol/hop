@@ -27,6 +27,7 @@ const HeaderRoutes: FC<Props> = () => {
       {/* <Tab label="HOP" value="/earn" /> */}
       {/* <Tab label="Vote" value="/vote" /> */}
       <Tab label="Convert" value="/convert" />
+      <Tab label="Faucet" value="/faucet" />
     </Tabs>
   )
 }

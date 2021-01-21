@@ -15,7 +15,7 @@ const wait = async (t: number) => {
 }
 
 const UINT256 =
-  '115792089237316195423570985008687907853269984665640564039457584007913129639935'
+  '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
 
 interface TokenConfig {
   label: string
@@ -58,7 +58,46 @@ class ArbBot {
     this.init(config)
   }
 
-  async tilReady () {
+  public async start () {
+    logger.log('Starting arbitrage bot')
+    await this.tilReady()
+    logger.log(`account address: ${this.accountAddress}`)
+
+    await this.checkBalances()
+    await this.approveTokens()
+    this.startWatcher().catch(logger.error)
+
+    while (true) {
+      try {
+        await this.checkArbitrage()
+        await this.checkBalances()
+        logger.log(`Rechecking in ${this.pollTimeSec} seconds`)
+        await wait(this.pollTimeSec * 1e3)
+      } catch (err) {
+        logger.error(err)
+      }
+    }
+  }
+
+  public async getToken0Balance () {
+    return this.getTokenBalance(this.token0)
+  }
+
+  public async getToken1Balance () {
+    return this.getTokenBalance(this.token1)
+  }
+
+  public async getToken0AmountOut () {
+    const path = [this.token0.contract.address, this.token1.contract.address]
+    return this.getAmountOut(path)
+  }
+
+  public async getToken1AmountOut () {
+    const path = [this.token1.contract.address, this.token0.contract.address]
+    return this.getAmountOut(path)
+  }
+
+  private async tilReady () {
     if (this.ready) {
       return true
     }
@@ -113,7 +152,8 @@ class ArbBot {
   }
 
   private async approveToken (token: Token) {
-    const approveAmount = BigNumber.from(UINT256)
+    const maxApproval = parseUnits('1000000', 18)
+    const approveAmount = BigNumber.from(maxApproval)
     const approved = await token.contract.allowance(
       this.accountAddress,
       this.uniswapRouter.address
@@ -183,8 +223,8 @@ class ArbBot {
         )
       )
 
-      const path = [this.token0.contract.address, this.token1.contract.address]
-      tx = await this.trade(path, this.arbitrageAmount)
+      const pathTokens = [this.token0, this.token1]
+      tx = await this.trade(pathTokens, this.arbitrageAmount)
       logger.log(chalk.yellow(`trade tx: ${tx?.hash}`))
       await tx?.wait()
     }
@@ -197,8 +237,8 @@ class ArbBot {
         )
       )
 
-      const path = [this.token1.contract.address, this.token0.contract.address]
-      tx = await this.trade(path, this.arbitrageAmount)
+      const pathTokens = [this.token1, this.token0]
+      tx = await this.trade(pathTokens, this.arbitrageAmount)
       logger.log(chalk.yellow(`trade tx: ${tx?.hash}`))
       await tx?.wait()
     }
@@ -211,13 +251,32 @@ class ArbBot {
   }
 
   private async trade (
-    path: string[],
+    pathTokens: Token[],
     amountInNum: number,
     amountOutMinNum: number = 0
   ) {
     const amountIn = parseUnits(amountInNum.toString(), 18)
     const amountOutMin = parseUnits(amountOutMinNum.toString(), 18)
     const deadline = (Date.now() / 1000 + 300) | 0
+    const path = pathTokens.map(token => token.contract.address)
+    logger.log('trade params:')
+    logger.log('amountIn:', amountInNum)
+    logger.log('amountOutMin:', amountOutMinNum)
+    logger.log(
+      'pathTokens:',
+      pathTokens.map(token => token.label)
+    )
+    logger.log('path:', path)
+    logger.log('deadline:', deadline)
+
+    const inputToken = pathTokens[0]
+    const pathToken0Balance = await this.getTokenBalance(inputToken)
+    if (pathToken0Balance < amountInNum) {
+      throw new Error(
+        `Not enough ${inputToken.label} tokens. Need ${amountInNum}, have ${pathToken0Balance}`
+      )
+    }
+
     return this.uniswapRouter?.swapExactTokensForTokens(
       amountIn.toString(),
       amountOutMin,
@@ -243,45 +302,6 @@ class ArbBot {
       logger.log('Detected swap event')
       this.checkArbitrage()
     })
-  }
-
-  public async start () {
-    logger.log('Starting arbitrage bot')
-    await this.tilReady()
-    logger.log(`account address: ${this.accountAddress}`)
-
-    await this.checkBalances()
-    await this.approveTokens()
-    this.startWatcher()
-
-    while (true) {
-      try {
-        await this.checkArbitrage()
-        await this.checkBalances()
-        logger.log(`Rechecking in ${this.pollTimeSec} seconds`)
-        await wait(this.pollTimeSec * 1e3)
-      } catch (err) {
-        logger.error(err)
-      }
-    }
-  }
-
-  public async getToken0Balance () {
-    return this.getTokenBalance(this.token0)
-  }
-
-  public async getToken1Balance () {
-    return this.getTokenBalance(this.token1)
-  }
-
-  public async getToken0AmountOut () {
-    const path = [this.token0.contract.address, this.token1.contract.address]
-    return this.getAmountOut(path)
-  }
-
-  public async getToken1AmountOut () {
-    const path = [this.token1.contract.address, this.token0.contract.address]
-    return this.getAmountOut(path)
   }
 }
 

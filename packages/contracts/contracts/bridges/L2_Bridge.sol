@@ -22,7 +22,6 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     event TransfersCommitted (
         bytes32 indexed root,
-        bytes32 indexed amountHash,
         uint256[] chainIds,
         uint256[] amounts
     );
@@ -174,18 +173,18 @@ abstract contract L2_Bridge is ERC20, Bridge {
             // Clean up for the next batch of transfers as pendingAmountChainIds is iterated
             pendingAmountForChainId[chainId] = 0;
         }
-        bytes32 amountHash = getAmountHash(pendingAmountChainIds, chainAmounts);
 
-        emit TransfersCommitted(root, amountHash, pendingAmountChainIds, chainAmounts);
+        emit TransfersCommitted(root, pendingAmountChainIds, chainAmounts);
+
+        bytes memory confirmTransferRootMessage = abi.encodeWithSignature(
+            "confirmTransferRoot(bytes32,uint256[],uint256[])",
+            root,
+            pendingAmountChainIds,
+            chainAmounts
+        );
 
         delete pendingAmountChainIds;
         delete pendingTransfers;
-
-        bytes memory confirmTransferRootMessage = abi.encodeWithSignature(
-            "confirmTransferRoot(bytes32,bytes32)",
-            root,
-            amountHash
-        );
 
         _sendCrossDomainMessage(confirmTransferRootMessage);
     }

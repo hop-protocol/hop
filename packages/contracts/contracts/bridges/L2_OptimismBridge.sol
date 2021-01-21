@@ -15,10 +15,10 @@ contract L2_OptimismBridge is L2_Bridge {
         IERC20 _canonicalToken,
         address _l1BridgeAddress,
         uint256[] memory _supportedChainIds,
-        address committee_
+        address bonder_
     )
         public
-        L2_Bridge(_l1Governance, _canonicalToken, _l1BridgeAddress, _supportedChainIds, committee_)
+        L2_Bridge(_l1Governance, _canonicalToken, _l1BridgeAddress, _supportedChainIds, bonder_)
     {
         messenger = _messenger;
     }

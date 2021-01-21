@@ -10,12 +10,12 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 /**
  * @dev Accounting is an abstract contract that encapsulates the most critical logic in the Hop system.
  * The accounting system works by using two balances that can only increase `_credit` and `_debit`.
- * The committee's available balance is the total credit minus the total debit. The contract exposes
- * two external functions that allow the committee to stake and unstake and exposes two internal
+ * The bonder's available balance is the total credit minus the total debit. The contract exposes
+ * two external functions that allows the bonder to stake and unstake and exposes two internal
  * functions to it's parent contracts that allows the parent contract to add to the
  * credit and debit balance. In addition, parent contracts can override `_additionalDebit` to account
  * for any additional debit balance in an alternative way. Lastly, it exposes a modifier,
- * `requirePositiveBalance`, that can be used by parent contracts to ensure the committee does not
+ * `requirePositiveBalance`, that can be used by parent contracts to ensure the bonder does not
  * use more than its available stake.
  */
 
@@ -23,7 +23,7 @@ abstract contract Accounting {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    address private _committee;
+    address private _bonder;
 
     uint256 private _credit;
     uint256 private _debit;
@@ -38,20 +38,20 @@ abstract contract Accounting {
 
     /* ========== Modifiers ========== */
 
-    modifier onlyCommittee {
-        require(msg.sender == _committee, "ACT: Caller is not committee");
+    modifier onlyBonder {
+        require(msg.sender == _bonder, "ACT: Caller is not bonder");
         _;
     }
 
-    /// @dev Used by parent contract to ensure that the committee is solvent at the end of the transaction.
+    /// @dev Used by parent contract to ensure that the bonder is solvent at the end of the transaction.
     modifier requirePositiveBalance {
         _;
         require(_credit >= getDebit(), "ACT: Not enough available credit");
     }
 
-    /// @dev Sets the committee address
-    constructor(address committee_) public {
-        _committee = committee_;
+    /// @dev Sets the bonder address
+    constructor(address bonder_) public {
+        _bonder = bonder_;
     }
 
     /* ========== Virtual functions ========== */
@@ -70,8 +70,8 @@ abstract contract Accounting {
 
     /* ========== Public getters ========== */
 
-    function getCommittee() public view returns (address) {
-        return _committee;
+    function getBonder() public view returns (address) {
+        return _bonder;
     }
 
     function getCredit() external view returns (uint256) {
@@ -82,10 +82,10 @@ abstract contract Accounting {
         return _debit.add(_additionalDebit());
     }
 
-    /* ========== Committee public functions ========== */
+    /* ========== Bonder public functions ========== */
 
     /** 
-     * @dev Allows the committee to deposit tokens and increase its credit balance
+     * @dev Allows the bonder to deposit tokens and increase its credit balance
      * @param _amount The amount being staked
      */
     function stake(uint256 _amount) external {
@@ -94,12 +94,12 @@ abstract contract Accounting {
     }
 
     /**
-     * @dev Allows the committee to withdraw any available balance and add to its debit balance
+     * @dev Allows the bonder to withdraw any available balance and add to its debit balance
      * @param _amount The amount being staked
      */
-    function unstake(uint256 _amount) external requirePositiveBalance onlyCommittee {
+    function unstake(uint256 _amount) external requirePositiveBalance onlyBonder {
         _addDebit(_amount);
-        _transferFromBridge(_committee, _amount);
+        _transferFromBridge(_bonder, _amount);
     }
 
     /* ========== Internal functions ========== */

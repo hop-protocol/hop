@@ -49,10 +49,10 @@ abstract contract L2_Bridge is ERC20, Bridge {
         IERC20 _l2CanonicalToken,
         address _l1BridgeAddress,
         uint256[] memory _supportedChainIds,
-        address _committee
+        address _bonder
     )
         public
-        Bridge(_committee)
+        Bridge(_bonder)
         ERC20("DAI Hop Token", "hDAI")
     {
         l1Governance = _l1Governance;

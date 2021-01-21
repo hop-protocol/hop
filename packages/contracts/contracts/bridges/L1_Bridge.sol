@@ -48,7 +48,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         _;
     }
 
-    constructor (IERC20 _l1CanonicalToken, address committee_) public Bridge(committee_) {
+    constructor (IERC20 _l1CanonicalToken, address bonder_) public Bridge(bonder_) {
         l1CanonicalToken = _l1CanonicalToken;
     }
 
@@ -100,7 +100,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
      */
 
     /**
-     * @dev Used by the committee to bond a TransferRoot and propogate it up to destination L2s
+     * @dev Used by the bonder to bond a TransferRoot and propogate it up to destination L2s
      * @param _transferRootHash The Merkle root of the TransferRoot Merkle tree
      * @param _chainIds The ids of the destination chains
      * @param _chainAmounts The amounts desitned for each desitination chain
@@ -111,7 +111,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         uint256[] memory _chainAmounts
     )
         external
-        onlyCommittee
+        onlyBonder
         requirePositiveBalance
     {
         require(_chainIds.length == _chainAmounts.length, "L1_BRG: chainIds and chainAmounts must be the same length");
@@ -225,7 +225,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
 
         if (transferRootConfirmed[_transferRootHash]) {
             // Invalid challenge
-            // Credit the committee back with the bond amount plus the challenger's stake
+            // Credit the bonder back with the bond amount plus the challenger's stake
             _addCredit(getBondForTransferAmount(transferRoot.total).add(challengeStakeAmount));
         } else {
             // Valid challenge

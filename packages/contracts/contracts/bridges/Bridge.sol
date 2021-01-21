@@ -10,7 +10,7 @@ import "./Accounting.sol";
 /**
  * @dev Bridge extends the accounting system and encapsulates the logic that is shared by both the
  * L1 and L2 Bridges. It allows to TransferRoots to be set by parent contracts and for those
- * TransferRoots to be withdrawn against. It also allows the committee to bond and withdraw Transfers
+ * TransferRoots to be withdrawn against. It also allows the bonder to bond and withdraw Transfers
  * directly through `bondWithdrawal` and then settle those bonds against their TransferRoot once it
  * has been set.
  */
@@ -27,7 +27,7 @@ abstract contract Bridge is Accounting {
     mapping(bytes32 => bool) private _spentTransferHashes;
     mapping(bytes32 => uint256) private _bondedWithdrawalAmounts;
 
-    constructor(address _committee) public Accounting(_committee) {}
+    constructor(address _bonder) public Accounting(_bonder) {}
 
     /* ========== Public getters ========== */
 
@@ -156,7 +156,7 @@ abstract contract Bridge is Accounting {
     // ToDo: enforce _transferNonce can't collide on send or autogenerate nonce
 
     /**
-     * @dev Allows the committee to bond individual withdrawals before their TransferRoot has been committed.
+     * @dev Allows the bonder to bond individual withdrawals before their TransferRoot has been committed.
      * @param _sender The address sending the Transfer
      * @param _recipient The address receiving the Transfer
      * @param _amount The amount being transferred including the `_relayerFee`
@@ -171,7 +171,7 @@ abstract contract Bridge is Accounting {
         uint256 _relayerFee
     )
         public
-        onlyCommittee
+        onlyBonder
         requirePositiveBalance
     {
         bytes32 transferHash = getTransferHash(
@@ -191,7 +191,7 @@ abstract contract Bridge is Accounting {
     }
 
     /**
-     * @dev Refunds the committees stake from a bonded withdrawal and counts that withdrawal against
+     * @dev Refunds the bonders stake from a bonded withdrawal and counts that withdrawal against
      * its TransferRoot.
      * @param _transferHash The Transfer's unique identifier
      * @param _rootHash The merkle root of the TransferRoot

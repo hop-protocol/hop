@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
+import Alert from 'src/components/alert/Alert'
 import { useFaucet } from 'src/pages/Faucet/FaucetContext'
 import Button from 'src/components/buttons/Button'
 
@@ -19,12 +20,16 @@ const useStyles = makeStyles(theme => ({
     marginBottom: '1rem',
     fontSize: '2rem'
   },
-  button: {}
+  button: {},
+  alert: {
+    marginTop: '2rem',
+    marginBottom: '1.2rem'
+  }
 }))
 
 const Pools: FC = () => {
   const styles = useStyles()
-  let { mintToken, mintAmount, isMinting } = useFaucet()
+  let { mintToken, mintAmount, isMinting, error, setError } = useFaucet()
 
   const handleMint = () => {
     mintToken()
@@ -46,6 +51,12 @@ const Pools: FC = () => {
         <Typography variant="body1" className={styles.text}>
           Mint {mintAmount} Kovan DAI
         </Typography>
+        <Alert
+          className={styles.alert}
+          severity="error"
+          onClose={() => setError(null)}
+          text={error}
+        />
         <Button
           className={styles.button}
           onClick={handleMint}

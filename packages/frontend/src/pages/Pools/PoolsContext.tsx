@@ -54,6 +54,8 @@ type PoolsContextProps = {
   sending: boolean
   validFormFields: boolean
   sendButtonText: string
+  error: string | null | undefined
+  setError: (error: string | null | undefined) => void
 }
 
 const PoolsContext = createContext<PoolsContextProps>({
@@ -87,7 +89,9 @@ const PoolsContext = createContext<PoolsContextProps>({
   txHash: undefined,
   sending: false,
   validFormFields: false,
-  sendButtonText: ''
+  sendButtonText: '',
+  error: null,
+  setError: (error: string | null | undefined) => {}
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -116,6 +120,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   } = useWeb3Context()
   const arbitrumUniswapRouter = contracts?.arbitrumUniswapRouter
   const arbitrumUniswapFactory = contracts?.arbitrumUniswapFactory
+  const [error, setError] = useState<string | null | undefined>(null)
 
   const hopToken = useMemo(() => {
     const network = networks.find(network => network.slug === 'arbitrum')
@@ -407,7 +412,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       await tx?.wait()
     } catch (err) {
       if (!/cancelled/gi.test(err.message)) {
-        alert(err.message)
+        setError(err.message)
       }
       console.error(err)
     }
@@ -455,7 +460,9 @@ const PoolsContextProvider: FC = ({ children }) => {
         token1Balance,
         setToken0Balance,
         setToken1Balance,
-        sendButtonText
+        sendButtonText,
+        error,
+        setError
       }}
     >
       {children}

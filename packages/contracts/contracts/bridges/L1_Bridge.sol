@@ -196,7 +196,8 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         TransferRoot memory transferRoot = getTransferRoot(_transferRootHash);
         TransferBond storage transferBond = transferBonds[_transferRootHash];
         require(transferRootConfirmed[_transferRootHash] == false, "L1_BRG: Transfer root has already been confirmed");
-        // ToDo: Require it's within 4 hour period 
+        uint256 challengePeriodEnd = transferBond.createdAt.add(getChallengePeriod());
+        require(challengePeriodEnd >= block.timestamp, "L1_BRG: Transfer root cannot be challenged after challenge period");
 
         // Get stake for challenge
         uint256 challengeStakeAmount = getChallengeAmountForTransferAmount(transferRoot.total);

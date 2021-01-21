@@ -7,6 +7,7 @@ services:
       - verifier:/root/.ethereum:rw
     env_file:
       - docker-compose.env
+    restart: unless-stopped
     environment:
       - ROLLUP_VERIFIER_ENABLE=true
       - CHAIN_ID=69
@@ -49,6 +50,7 @@ services:
     image: ethereumoptimism/fraud-prover:latest
     env_file:
       - docker-compose.env
+    restart: unless-stopped
     environment:
       - NO_TIMEOUT=true
       - L2_NODE_WEB3_URL=http://verifier:8045

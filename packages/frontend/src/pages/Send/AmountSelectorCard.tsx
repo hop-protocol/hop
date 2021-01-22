@@ -24,13 +24,27 @@ const useStyles = makeStyles(theme => ({
   topRow: {
     marginBottom: '1.8rem'
   },
+  networkSelectionBox: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
   networkLabel: {
+    display: 'flex',
+    flexDirection: 'row',
     marginLeft: theme.padding.extraLight,
     overflow: 'hidden',
     textOverflow: 'ellipsis'
   },
+  networkIconContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    width: '4rem',
+    height: '4rem'
+  },
   networkIcon: {
-    height: '3.6rem'
+    display: 'flex',
+    height: '3.6rem',
   },
   greyCircle: {
     padding: '1.8rem',
@@ -129,12 +143,14 @@ const AmountSelectorCard: FC<Props> = props => {
             </MenuItem>
             {networkOptions.map(network => (
               <MenuItem value={network.slug} key={network.slug}>
-                <Box display="flex" flexDirection="row" alignItems="center">
-                  <img
-                    src={network.imageUrl}
-                    className={styles.networkIcon}
-                    alt={network.name}
-                  />
+                <Box className={styles.networkSelectionBox}>
+                  <Box className={styles.networkIconContainer}>
+                    <img
+                      src={network.imageUrl}
+                      className={styles.networkIcon}
+                      alt={network.name}
+                    />
+                  </Box>
                   <Typography
                     variant="subtitle2"
                     className={styles.networkLabel}

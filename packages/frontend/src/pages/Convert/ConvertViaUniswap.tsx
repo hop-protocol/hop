@@ -7,6 +7,7 @@ import Network from 'src/models/Network'
 import AmountSelectorCard from 'src/pages/Convert/AmountSelectorCard'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 import SendButton from 'src/pages/Convert/SendButton'
+import Alert from 'src/components/alert/Alert'
 
 const useStyles = makeStyles(() => ({
   title: {
@@ -21,6 +22,9 @@ const useStyles = makeStyles(() => ({
     margin: '0.8rem',
     height: '2.4rem',
     width: '2.4rem'
+  },
+  lastSelector: {
+    marginBottom: '5.4rem'
   }
 }))
 
@@ -39,7 +43,9 @@ const Convert: FC = () => {
     destTokenAmount,
     calcAltTokenAmount,
     setSourceTokenBalance,
-    setDestTokenBalance
+    setDestTokenBalance,
+    error,
+    setError
   } = useConvert()
 
   useEffect(() => {
@@ -97,6 +103,7 @@ const Convert: FC = () => {
         <ArrowDownIcon color="primary" className={styles.downArrow} />
       </MuiButton>
       <AmountSelectorCard
+        className={styles.lastSelector}
         value={destTokenAmount as string}
         token={selectedToken}
         label={'To'}
@@ -104,6 +111,7 @@ const Convert: FC = () => {
         selectedNetwork={destNetwork}
         onBalanceChange={setDestTokenBalance}
       />
+      <Alert severity="error" onClose={() => setError(null)} text={error} />
       <SendButton />
     </Box>
   )

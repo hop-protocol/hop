@@ -27,7 +27,7 @@ describe("Integration", () => {
   let accounts: Signer[]
   let user: Signer
   let liquidityProvider: Signer
-  let committee: Signer
+  let bonder: Signer
   let challenger: Signer
   let governance: Signer
 
@@ -60,7 +60,7 @@ describe("Integration", () => {
     accounts = await ethers.getSigners()
     user = accounts[0]
     liquidityProvider = accounts[1]
-    committee = accounts[3]
+    bonder = accounts[3]
     challenger = accounts[4]
     governance = accounts[5]
 
@@ -79,7 +79,7 @@ describe("Integration", () => {
     // Deploy  L1 contracts
     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
     l1_messenger = await CrossDomainMessenger.deploy(0)
-    l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await committee.getAddress())
+    l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await bonder.getAddress())
     l1_ovmBridge = await L1_MockTokenBridge.deploy(l1_messenger.address, l1_poolToken.address)
 
     // Deploy  L2 contracts
@@ -92,7 +92,7 @@ describe("Integration", () => {
       l2_ovmBridge.address,
       l1_bridge.address,
       [MAINNET_CHAIN_ID, OPTIMISM_CHAIN_ID],
-      await committee.getAddress()
+      await bonder.getAddress()
     )
 
     // Deploy messenger wrapper
@@ -121,7 +121,7 @@ describe("Integration", () => {
     // Distribute poolToken
     await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE)
     await l1_poolToken.mint(await liquidityProvider.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
-    await l1_poolToken.mint(await committee.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_poolToken.mint(await bonder.getAddress(), LIQUIDITY_PROVIDER_INITIAL_BALANCE)
     await l1_poolToken.mint(await challenger.getAddress(), BigNumber.from('10'))
   })
 
@@ -208,10 +208,10 @@ describe("Integration", () => {
 
     const transfersCommittedEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransfersCommitted()))[0]
 
-    await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
-    await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_poolToken.connect(bonder).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(bonder).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
-    await l1_bridge.connect(committee).bondTransferRoot(transfersCommittedEvent.args.root, [MAINNET_CHAIN_ID], [transfer.amount])
+    await l1_bridge.connect(bonder).bondTransferRoot(transfersCommittedEvent.args.root, [MAINNET_CHAIN_ID], [transfer.amount])
 
     // User withdraws from L1 bridge
     const tree = new MerkleTree([ transfer.getTransferHash() ])
@@ -229,7 +229,7 @@ describe("Integration", () => {
     await expectBalanceOf(l1_poolToken, user, '99')
   })
 
-  it('Should not allow a transfer root that exceeds the committee bond', async () => {
+  it('Should not allow a transfer root that exceeds the bonder bond', async () => {
     const transfer = new Transfer({
       chainId: MAINNET_CHAIN_ID,
       sender: await user.getAddress(),
@@ -244,11 +244,11 @@ describe("Integration", () => {
     // User withdraws from L1 bridge
     const tree = new MerkleTree([ transfer.getTransferHash() ])
 
-    await l1_poolToken.connect(committee).approve(l1_bridge.address, '1')
-    await l1_bridge.connect(committee).stake('1')
+    await l1_poolToken.connect(bonder).approve(l1_bridge.address, '1')
+    await l1_bridge.connect(bonder).stake('1')
 
     await expect(
-      l1_bridge.connect(committee).bondTransferRoot(tree.getRoot(), transfer.amount)
+      l1_bridge.connect(bonder).bondTransferRoot(tree.getRoot(), transfer.amount)
     ).to.be.reverted
   })
 
@@ -267,10 +267,10 @@ describe("Integration", () => {
     // User withdraws from L1 bridge
     const tree = new MerkleTree([ transfer.getTransferHash() ])
 
-    await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
-    await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_poolToken.connect(bonder).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(bonder).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
-    await l1_bridge.connect(committee).bondTransferRoot(tree.getRoot(), [transfer.chainId], [transfer.amount])
+    await l1_bridge.connect(bonder).bondTransferRoot(tree.getRoot(), [transfer.chainId], [transfer.amount])
 
     await l1_poolToken.connect(challenger).approve(l1_bridge.address, BigNumber.from('10'))
     await l1_bridge.connect(challenger).challengeTransferBond(tree.getRoot())
@@ -320,10 +320,10 @@ describe("Integration", () => {
 
     const transfersCommittedEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransfersCommitted()))[0]
 
-    await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
-    await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_poolToken.connect(bonder).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(bonder).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
-    await l1_bridge.connect(committee).bondTransferRoot(transfersCommittedEvent.args.root, [transfer.chainId], [transfer.amount])
+    await l1_bridge.connect(bonder).bondTransferRoot(transfersCommittedEvent.args.root, [transfer.chainId], [transfer.amount])
     await l2_messenger.relayNextMessage()
 
     // User withdraws from L1 bridge
@@ -424,10 +424,10 @@ describe("Integration", () => {
 
     const transfersCommittedEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransfersCommitted()))[0]
 
-    await l1_poolToken.connect(committee).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
-    await l1_bridge.connect(committee).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_poolToken.connect(bonder).approve(l1_bridge.address, LIQUIDITY_PROVIDER_INITIAL_BALANCE)
+    await l1_bridge.connect(bonder).stake(LIQUIDITY_PROVIDER_INITIAL_BALANCE)
 
-    await l1_bridge.connect(committee).bondTransferRoot(transfersCommittedEvent.args.root, [ transfer.chainId ], [ transfer.amount ])
+    await l1_bridge.connect(bonder).bondTransferRoot(transfersCommittedEvent.args.root, [ transfer.chainId ], [ transfer.amount ])
 
     // User withdraws from L1 bridge
     const transferSentEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransferSent()))[0]

@@ -15,10 +15,10 @@ contract Mock_L2_OptimismBridge is L2_OptimismBridge {
         IERC20 _canonicalToken,
         address _l1BridgeAddress,
         uint256[] memory _supportedChainIds,
-        address _committee
+        address _bonder
     )
         public
-        L2_OptimismBridge(_messenger, _l1Governance, _canonicalToken, _l1BridgeAddress, _supportedChainIds, _committee)
+        L2_OptimismBridge(_messenger, _l1Governance, _canonicalToken, _l1BridgeAddress, _supportedChainIds, _bonder)
     {
         _chainId = chainId_;
     }

@@ -9,6 +9,11 @@ import "../libraries/MerkleUtils.sol";
 import "../interfaces/IMessengerWrapper.sol";
 import "./L1_BridgeConfig.sol";
 
+/**
+ * @dev L1_Bridge is responsible for the bonding and challenging of TransferRoots. All TransferRoots
+ * originate in the L1_Bridge through `bondTransferRoot` and are propogated up to destination L2s.
+ */
+
 contract L1_Bridge is Bridge, L1_BridgeConfig {
 
     struct TransferBond {
@@ -22,6 +27,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
     /* ========== State ========== */
 
     IERC20 public l1CanonicalToken;
+    mapping(bytes32 => bool) transferRootConfirmed;
     mapping(bytes32 => TransferBond) public transferBonds;
     mapping(uint256 => uint256) public timeSlotToAmountBonded;
     uint256 public amountChallenged;
@@ -29,7 +35,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
     /* ========== Events ========== */
 
     event TransferRootBonded (
-        bytes32 root,
+        bytes32 indexed root,
         uint256 amount
     );
 
@@ -42,7 +48,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         _;
     }
 
-    constructor (IERC20 _l1CanonicalToken, address committee_) public Bridge(committee_) {
+    constructor (IERC20 _l1CanonicalToken, address bonder_) public Bridge(bonder_) {
         l1CanonicalToken = _l1CanonicalToken;
     }
 
@@ -55,9 +61,9 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
     )
         public
     {
-        bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
-
         l1CanonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
+
+        bytes memory mintCalldata = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
         getCrossDomainMessengerWrapper(_chainId).sendCrossDomainMessage(mintCalldata);
     }
 
@@ -70,6 +76,8 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
     )
         public
     {
+        l1CanonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
+
         bytes memory mintAndAttemptSwapCalldata = abi.encodeWithSignature(
             "mintAndAttemptSwap(address,uint256,uint256,uint256)",
             _recipient,
@@ -79,40 +87,90 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         );
 
         getCrossDomainMessengerWrapper(_chainId).sendCrossDomainMessage(mintAndAttemptSwapCalldata);
-        l1CanonicalToken.safeTransferFrom(msg.sender, address(this), _amount);
     }
 
     /* ========== Public Transfer Root Functions ========== */
 
-    /// @dev Setting a TransferRoot is a two step process.
-    /// @dev   1. The TransferRoot is bonded with `bondTransferRoot`. Withdrawals can now begin on L1
-    /// @dev      and recipient L2's
-    /// @dev   2. The TransferRoot is confirmed after `confirmTransferRoot` is called by the l2 bridge
-    /// @dev      where the TransferRoot originated.
+    /**
+     * @dev Setting a TransferRoot is a two step process.
+     * @dev   1. The TransferRoot is bonded with `bondTransferRoot`. Withdrawals can now begin on L1
+     * @dev      and recipient L2's
+     * @dev   2. The TransferRoot is confirmed after `confirmTransferRoot` is called by the l2 bridge
+     * @dev      where the TransferRoot originated.
+     */
 
+    /**
+     * @dev Used by the bonder to bond a TransferRoot and propogate it up to destination L2s
+     * @param _transferRootHash The Merkle root of the TransferRoot Merkle tree
+     * @param _chainIds The ids of the destination chains
+     * @param _chainAmounts The amounts desitned for each desitination chain
+     */
     function bondTransferRoot(
         bytes32 _transferRootHash,
         uint256[] memory _chainIds,
         uint256[] memory _chainAmounts
     )
-        public
-        onlyCommittee
+        external
+        onlyBonder
         requirePositiveBalance
     {
         require(_chainIds.length == _chainAmounts.length, "L1_BRG: chainIds and chainAmounts must be the same length");
+        require(transferRootConfirmed[_transferRootHash] == false, "L1_BRG: Tranfer Root has already been confirmed");
+        require(transferBonds[_transferRootHash].createdAt == 0, "L1_BRG: Transfer Root has already been bonded");
 
         uint256 totalAmount = 0;
         for (uint256 i = 0; i < _chainAmounts.length; i++) {
             totalAmount = totalAmount.add(_chainAmounts[i]);
         }
 
-        uint256 currentTimeSlot = getTimeSlot(now);
+        uint256 currentTimeSlot = getTimeSlot(block.timestamp);
         uint256 bondAmount = getBondForTransferAmount(totalAmount);
         timeSlotToAmountBonded[currentTimeSlot] = timeSlotToAmountBonded[currentTimeSlot].add(bondAmount);
 
         bytes32 amountHash = getAmountHash(_chainIds, _chainAmounts);
-        transferBonds[_transferRootHash] = TransferBond(now, amountHash, false, 0, address(0));
+        transferBonds[_transferRootHash] = TransferBond(block.timestamp, amountHash, false, 0, address(0));
 
+        _distributeTransferRoot(_transferRootHash, _chainIds, _chainAmounts);
+
+        emit TransferRootBonded(_transferRootHash, totalAmount);
+    }
+
+    /**
+     * @dev Used by an L2 bridge to confirm a TransferRoot via cross-domain message. Once a TransferRoot
+     * has been confirmed, any challenge against that TransferRoot can be resolved as unsuccessful.
+     * @param _transferRootHash The Merkle root of the TransferRoot Merkle tree
+     * @param _chainIds The ids of the destination chains
+     * @param _chainAmounts The amounts desitned for each desitination chain
+     */
+    function confirmTransferRoot(
+        bytes32 _transferRootHash,
+        uint256[] memory _chainIds,
+        uint256[] memory _chainAmounts
+    )
+        public
+        onlyL2Bridge
+    {
+        require(transferRootConfirmed[_transferRootHash] == false, "L1_BRG: TransferRoot already confirmed");
+        transferRootConfirmed[_transferRootHash] = true;
+
+        // If the TransferRoot was never bonded, distribute the TransferRoot. If it has been bonded, 
+        // require that the chainIds and chainAmounts match the values coming from the L2_Bridge.
+        TransferBond storage transferBond = transferBonds[_transferRootHash];
+        if (transferBond.createdAt == 0) {
+            _distributeTransferRoot(_transferRootHash, _chainIds, _chainAmounts);
+        } else {
+            bytes32 amountHash = getAmountHash(_chainIds, _chainAmounts);
+            require(transferBond.amountHash == amountHash, "L1_BRG: Amount hash is invalid");
+        }
+    }
+
+    function _distributeTransferRoot(
+        bytes32 _transferRootHash,
+        uint256[] memory _chainIds,
+        uint256[] memory _chainAmounts
+    )
+        internal
+    {
         // Set TransferRoots on recipient Bridges
         for (uint256 i = 0; i < _chainIds.length; i++) {
             if (_chainIds[i] == getChainId()) {
@@ -130,14 +188,6 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
                 messengerWrapper.sendCrossDomainMessage(setTransferRootMessage);
             }
         }
-
-        emit TransferRootBonded(_transferRootHash, totalAmount);
-    }
-
-    function confirmTransferRoot(bytes32 _transferRootHash, bytes32 _amountHash) public onlyL2Bridge {
-        TransferBond storage transferBond = transferBonds[_transferRootHash];
-        require(transferBond.amountHash == _amountHash, "L1_BRG: Amount hash is invalid");
-        transferBond.confirmed = true;
     }
 
     /* ========== Public TransferRoot Challenges ========== */
@@ -145,8 +195,9 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
     function challengeTransferBond(bytes32 _transferRootHash) public {
         TransferRoot memory transferRoot = getTransferRoot(_transferRootHash);
         TransferBond storage transferBond = transferBonds[_transferRootHash];
-        // Require it's within 4 hour period 
-        require(!transferBond.confirmed, "L1_BRG: Transfer root has already been confirmed");
+        require(transferRootConfirmed[_transferRootHash] == false, "L1_BRG: Transfer root has already been confirmed");
+        uint256 challengePeriodEnd = transferBond.createdAt.add(getChallengePeriod());
+        require(challengePeriodEnd >= block.timestamp, "L1_BRG: Transfer root cannot be challenged after challenge period");
 
         // Get stake for challenge
         uint256 challengeStakeAmount = getChallengeAmountForTransferAmount(transferRoot.total);
@@ -172,9 +223,9 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
 
         uint256 challengeStakeAmount = getChallengeAmountForTransferAmount(transferRoot.total);
 
-        if (transferBond.confirmed) {
+        if (transferRootConfirmed[_transferRootHash]) {
             // Invalid challenge
-            // Credit the committee back with the bond amount plus the challenger's stake
+            // Credit the bonder back with the bond amount plus the challenger's stake
             _addCredit(getBondForTransferAmount(transferRoot.total).add(challengeStakeAmount));
         } else {
             // Valid challenge
@@ -197,7 +248,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         uint256 currentTimeSlot = getTimeSlot(now);
         uint256 bonded = 0;
 
-        for (uint256 i = 0; i < getNumberOfChallengeableTimeSlots(); i++) {
+        for (uint256 i = 0; i < 4; i++) {
             bonded = bonded.add(timeSlotToAmountBonded[currentTimeSlot - i]);
         }
 

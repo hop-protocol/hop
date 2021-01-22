@@ -17,12 +17,16 @@ type FaucetContextProps = {
   mintToken: () => void
   mintAmount: string
   isMinting: boolean
+  error: string | null | undefined
+  setError: (error: string | null | undefined) => void
 }
 
 const FaucetContext = createContext<FaucetContextProps>({
   mintToken: () => {},
   mintAmount: '',
-  isMinting: false
+  isMinting: false,
+  error: null,
+  setError: (error: string | null | undefined) => {}
 })
 
 const FaucetContextProvider: FC = ({ children }) => {
@@ -32,6 +36,7 @@ const FaucetContextProvider: FC = ({ children }) => {
   const l1Dai = contracts?.l1Dai
   const { address, setRequiredNetworkId, connectedNetworkId } = useWeb3Context()
   const selectedNetwork = networks[0]
+  const [error, setError] = useState<string | null | undefined>(null)
 
   const checkWalletNetwork = () => {
     setRequiredNetworkId(selectedNetwork?.networkId)
@@ -56,7 +61,7 @@ const FaucetContextProvider: FC = ({ children }) => {
       )
       await tx?.wait()
     } catch (err) {
-      alert(err.message)
+      setError(err.message)
       console.error(err)
     }
     setMinting(false)
@@ -67,7 +72,9 @@ const FaucetContextProvider: FC = ({ children }) => {
       value={{
         mintToken,
         mintAmount,
-        isMinting
+        isMinting,
+        error,
+        setError
       }}
     >
       {children}

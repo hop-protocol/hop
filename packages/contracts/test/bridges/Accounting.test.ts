@@ -13,7 +13,7 @@ import {
 describe("Accounting", () => {
   let _fixture: IFixture
 
-  let committee: Signer
+  let bonder: Signer
 
   let accounting: Contract
 
@@ -23,7 +23,7 @@ describe("Accounting", () => {
     await setUpDefaults(_fixture, l2ChainId)
 
     ;({ 
-      committee,
+      bonder,
       accounting
     } = _fixture);
   })
@@ -32,10 +32,10 @@ describe("Accounting", () => {
    * Happy Path
    */
 
-  it('Should get the correct committee address', async () => {
-    const expectedCommitteeAddress = await accounting.getCommittee()
-    const committeeAddress = await committee.getAddress()
-    expect(committeeAddress).to.eq(expectedCommitteeAddress)
+  it('Should get the correct bonder address', async () => {
+    const expectedBonderAddress = await accounting.getBonder()
+    const bonderAddress = await bonder.getAddress()
+    expect(bonderAddress).to.eq(expectedBonderAddress)
   })
 
   it('Should get the correct credit', async () => {
@@ -75,7 +75,7 @@ describe("Accounting", () => {
     expect(credit).to.eq(stakeAmount)
     expect(debit).to.eq(0)
 
-    await accounting.connect(committee).unstake(stakeAmount)
+    await accounting.connect(bonder).unstake(stakeAmount)
     credit = await accounting.getCredit()
     debit = await accounting.getDebit()
     expect(credit).to.eq(stakeAmount)
@@ -87,7 +87,7 @@ describe("Accounting", () => {
     expect(credit).to.eq(stakeAmount.mul(3))
     expect(debit).to.eq(stakeAmount)
 
-    await accounting.connect(committee).unstake(stakeAmount)
+    await accounting.connect(bonder).unstake(stakeAmount)
     credit = await accounting.getCredit()
     debit = await accounting.getDebit()
     expect(credit).to.eq(stakeAmount.mul(3))
@@ -103,12 +103,12 @@ describe("Accounting", () => {
     const stakeAmount = BigNumber.from(10)
 
     await expect(
-      accounting.connect(committee).unstake(stakeAmount)
+      accounting.connect(bonder).unstake(stakeAmount)
     ).to.be.revertedWith(expectedError)
   })
 
-  it('Should not allow someone outside of the committee to unstake', async () => {
-    const expectedError = 'ACT: Caller is not committee'
+  it('Should not allow someone outside of the bonder to unstake', async () => {
+    const expectedError = 'ACT: Caller is not bonder'
     const stakeAmount = BigNumber.from(10)
 
     await accounting.stake(stakeAmount)

@@ -17,7 +17,7 @@ describe("ArbitrumMessage", () => {
   let accounts: Signer[]
   let user: Signer
   let liquidityProvider: Signer
-  let committee: Signer
+  let bonder: Signer
   let governance: Signer
 
   // Factories
@@ -46,7 +46,7 @@ describe("ArbitrumMessage", () => {
     accounts = await ethers.getSigners()
     user = accounts[0]
     liquidityProvider = accounts[1]
-    committee = accounts[2]
+    bonder = accounts[2]
     governance = accounts[3]
 
     MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
@@ -65,12 +65,12 @@ describe("ArbitrumMessage", () => {
     l2_uniswapRouter = await UniswapRouter.deploy(l2_uniswapFactory.address, weth.address)
 
     l1_poolToken = await MockERC20.deploy('Dai Stable Token', 'DAI')
-    l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await committee.getAddress())
+    l1_bridge = await L1_Bridge.deploy(l1_poolToken.address, await bonder.getAddress())
     l1_messenger = await MockMessenger.deploy()
 
     l2_poolToken = await MockERC20.deploy('L2 Dai Stable Token', 'L2DAI')
     l2_messenger = await MockMessenger.deploy()
-    l2_bridge = await L2_Bridge.deploy(l2_messenger.address, governance.getAddress(), l2_poolToken.address, l1_bridge.address, [ARBITRUM_CHAIN_ID], committee.getAddress())
+    l2_bridge = await L2_Bridge.deploy(l2_messenger.address, governance.getAddress(), l2_poolToken.address, l1_bridge.address, [ARBITRUM_CHAIN_ID], bonder.getAddress())
 
     // Deploy messenger wrapper
     const l2ChainId: BigNumber = L2_CHAIN_IDS.ARBITRUM_TESTNET_3

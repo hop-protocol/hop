@@ -6,6 +6,7 @@ import Button from 'src/components/buttons/Button'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import HeaderRoutes from 'src/components/Header/HeaderRoutes'
 import TxPill from 'src/components/Header/TxPill'
+import logoFullColor from 'src/assets/svg/logoFullColor.svg'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -31,9 +32,7 @@ const Header: FC = () => {
         flex={1}
         justifyContent="flex-start"
       >
-        <Typography variant="h5" color="textSecondary">
-          🐰 Hop
-        </Typography>
+        <img width={'200px'} src={logoFullColor} alt="Hop icon" />
       </Box>
       <Box display="flex" flexDirection="row" flex={1} justifyContent="center">
         <HeaderRoutes />

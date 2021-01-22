@@ -63,12 +63,10 @@ describe("Bridge", () => {
     expect(amountHash).to.eq('0x' + expectedAmountHash.toString('hex'))
   })
 
-  it('Should get the correct transfer root from a root hash', async () => {
-    // TODO
-  })
-
-  it('Should get the correct bonded withdrawal amount from a transfer hash', async () => {
-    // TODO
+  it('Should get the correct chainId', async () => {
+    const chainId = await bridge.getChainId()
+    const expectedChainId = 1
+    expect(chainId).to.eq(expectedChainId)
   })
 
   /**

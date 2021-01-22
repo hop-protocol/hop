@@ -27,7 +27,8 @@ export const DEFAULT_MESSENGER_WRAPPER_GAS_PRICE = 0
 export const DEFAULT_MESSENGER_WRAPPER_GAS_CALL_VALUE = 0
 export const DEFAULT_MESSENGER_WRAPPER_SUB_MESSAGE_TYPE = '0x01'
 
-export const RELAYER_FEE = BigNumber.from('1000000000000000000')
+export const TRANSFER_AMOUNT = BigNumber.from('10')
+export const RELAYER_FEE = BigNumber.from('1')
 
 export const DEFAULT_AMOUNT_OUT_MIN = 0
 export const DEFAULT_DEADLINE = 9999999999
@@ -40,6 +41,8 @@ export interface IFixture {
   bonder: Signer
   challenger: Signer
   governance: Signer
+  relayer: Signer
+  otherAccount: Signer
 
   // Factories
   L1_CanonicalBridge: ContractFactory

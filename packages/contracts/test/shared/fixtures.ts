@@ -6,7 +6,8 @@ import {
   IFixture,
   IGetMessengerWrapperDefaults,
   CHAIN_IDS,
-  RELAYER_FEE
+  RELAYER_FEE,
+  TRANSFER_AMOUNT
 } from './constants'
 import {
   getMessengerWrapperDefaults
@@ -23,6 +24,8 @@ export async function fixture(l2ChainId: BigNumber): Promise<IFixture> {
   const bonder = accounts[2]
   const challenger = accounts[3]
   const governance = accounts[4]
+  const relayer = accounts[5]
+  const otherAccount = accounts[6]
 
   // Factories
   const L1_CanonicalBridge = await ethers.getContractFactory('contracts/test/Mock_L1_CanonicalBridge.sol:Mock_L1_CanonicalBridge')
@@ -79,20 +82,20 @@ export async function fixture(l2ChainId: BigNumber): Promise<IFixture> {
   // Transfers
   const transfers: Transfer[] = [
       new Transfer({
-        chainId: CHAIN_IDS.MAINNET,
+        chainId: CHAIN_IDS.ARBITRUM_TESTNET_3,
         sender: await user.getAddress(),
-        recipient: await user.getAddress(),
-        amount: BigNumber.from('12345'),
+        recipient: await otherAccount.getAddress(),
+        amount: TRANSFER_AMOUNT,
         transferNonce: 0,
         relayerFee: RELAYER_FEE,
         amountOutMin: BigNumber.from('0'),
         deadline: BigNumber.from('0')
       }),
       new Transfer({
-        chainId: CHAIN_IDS.MAINNET,
+        chainId: CHAIN_IDS.ARBITRUM_TESTNET_3,
         sender: await liquidityProvider.getAddress(),
         recipient: await liquidityProvider.getAddress(),
-        amount: BigNumber.from('12345'),
+        amount: TRANSFER_AMOUNT,
         transferNonce: 0,
         relayerFee: RELAYER_FEE,
         amountOutMin: BigNumber.from('0'),
@@ -107,6 +110,8 @@ export async function fixture(l2ChainId: BigNumber): Promise<IFixture> {
     bonder,
     challenger,
     governance,
+    relayer,
+    otherAccount,
     L1_CanonicalBridge,
     L1_Bridge,
     L2_Bridge,

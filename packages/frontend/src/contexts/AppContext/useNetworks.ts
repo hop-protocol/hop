@@ -1,9 +1,6 @@
 import { useMemo } from 'react'
-
-import {
-  ARBITRUM_LOGO_URL as arbitrumLogoUrl,
-  MAINNET_LOGO_URL as mainnetLogoUrl
-} from 'src/config/constants'
+import MainnetLogo from 'src/assets/logos/mainnet.svg'
+import ArbitrumLogo from 'src/assets/logos/arbitrum.png'
 import {
   l1NetworkId,
   l1RpcUrl,
@@ -18,7 +15,7 @@ const useNetworks = () => {
       new Network({
         name: 'Kovan',
         slug: 'kovan',
-        imageUrl: mainnetLogoUrl,
+        imageUrl: MainnetLogo,
         rpcUrl: l1RpcUrl,
         isLayer1: true,
         networkId: l1NetworkId
@@ -26,7 +23,7 @@ const useNetworks = () => {
       new Network({
         name: 'Arbitrum',
         slug: 'arbitrum',
-        imageUrl: arbitrumLogoUrl,
+        imageUrl: ArbitrumLogo,
         rpcUrl: arbitrumRpcUrl,
         networkId: arbitrumNetworkId
       })

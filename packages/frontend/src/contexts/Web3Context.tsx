@@ -9,6 +9,7 @@ import React, {
 import Onboard from 'bnc-onboard'
 import { ethers } from 'ethers'
 import Address from 'src/models/Address'
+import { getNetworkSpecificMetamaskImage } from 'src/utils'
 import {
   l1RpcUrl,
   l1NetworkId,
@@ -21,6 +22,12 @@ import {
   arbitrumRpcUrl,
   optimismRpcUrl
 } from 'src/config'
+
+import MetamaskAccountsSettingsHighlight from 'src/assets/onboard/metamask-accounts-settings-highlight.png'
+import MetamaskSettingsHighlight from 'src/assets/onboard/metamask-settings-highlight.png'
+import MetamaskAddNetworkHighlight from 'src/assets/onboard/metamask-add-network-highlight.png'
+import MetamaskNewArbitrumNetworkHighlight from 'src/assets/onboard/metamask-new-arbitrum-network-highlight.png'
+import MetamaskArbitrumNetworkHighlight from 'src/assets/onboard/metamask-arbitrum-network-highlight.png'
 
 type Props = {
   onboard: any
@@ -129,23 +136,24 @@ const Web3ContextProvider: FC = ({ children }) => {
           wantNetworkId === optimismNetworkId
         ) {
           stepImages = [
-            'https://hop-exchange.s3.amazonaws.com/onboard/metamask-accounts-settings-highlight.png',
-            'https://hop-exchange.s3.amazonaws.com/onboard/metamask-settings-highlight.png',
-            'https://hop-exchange.s3.amazonaws.com/onboard/metamask-add-network-highlight.png',
-            'https://hop-exchange.s3.amazonaws.com/onboard/metamask-new-arbitrum-network-highlight.png',
-            'https://hop-exchange.s3.amazonaws.com/onboard/metamask-arbitrum-network-highlight.png'
+            MetamaskAccountsSettingsHighlight,
+            MetamaskSettingsHighlight,
+            MetamaskAddNetworkHighlight,
+            MetamaskNewArbitrumNetworkHighlight,
+            MetamaskArbitrumNetworkHighlight
           ]
         } else if (
           ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
             wantNetworkName
           )
         ) {
+          const metamaskImage = getNetworkSpecificMetamaskImage(wantNetworkName)
           stepImages = [
-            `https://hop-exchange.s3.amazonaws.com/onboard/metamask-network-${wantNetworkName.toLowerCase()}.png`
+            metamaskImage
           ]
         } else {
           stepImages = [
-            'https://hop-exchange.s3.amazonaws.com/onboard/metamask-accounts-settings-highlight.png'
+            MetamaskAccountsSettingsHighlight
           ]
         }
 

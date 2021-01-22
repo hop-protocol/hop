@@ -1,12 +1,11 @@
 import React, { FC } from 'react'
 import { Theme, makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
 import Button from 'src/components/buttons/Button'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import HeaderRoutes from 'src/components/Header/HeaderRoutes'
 import TxPill from 'src/components/Header/TxPill'
-import { HOP_LOGO_FULL_COLOR as hopLogoFullColor } from 'src/config/constants'
+import HopLogoFullColor from 'src/assets/logos/hop-logo-full-color.svg'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -32,7 +31,7 @@ const Header: FC = () => {
         flex={1}
         justifyContent="flex-start"
       >
-        <img width={'200px'} src={hopLogoFullColor} alt="Hop icon" />
+        <img width={'200px'} src={HopLogoFullColor} alt="Hop icon" />
       </Box>
       <Box display="flex" flexDirection="row" flex={1} justifyContent="center">
         <HeaderRoutes />

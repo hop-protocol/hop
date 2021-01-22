@@ -118,16 +118,25 @@ export const setUpL2UniswapMarket = async (fixture: IFixture, opts: any) => {
   } = opts
 
   // liquidityProvider moves funds across the canonical bridge
-  await l1_canonicalToken.connect(liquidityProvider).approve(l1_canonicalBridge.address, liquidityProviderBalance)
-  await l1_canonicalBridge.connect(liquidityProvider).sendMessage(l2_canonicalToken.address, await liquidityProvider.getAddress(), liquidityProviderBalance)
-  await l2_messenger.relayNextMessage()
-  await expectBalanceOf(l2_canonicalToken, liquidityProvider, liquidityProviderBalance)
+  await sendTokensAcrossCanonicalBridge(
+    l1_canonicalToken,
+    l1_canonicalBridge,
+    l2_canonicalToken,
+    l2_messenger,
+    liquidityProvider,
+    liquidityProviderBalance
+  )
 
   // liquidityProvider moves funds across the Hop liquidity bridge
-  await l1_canonicalToken.connect(liquidityProvider).approve(l1_bridge.address, liquidityProviderBalance)
-  await l1_bridge.connect(liquidityProvider).sendToL2(l2ChainId, await liquidityProvider.getAddress(), liquidityProviderBalance)
-  await l2_messenger.relayNextMessage()
-  await expectBalanceOf(l2_bridge, liquidityProvider, liquidityProviderBalance)
+  await sendTokensAcrossHopBridge(
+    l1_canonicalToken,
+    l1_bridge,
+    l2_bridge,
+    l2_messenger,
+    liquidityProvider,
+    liquidityProviderBalance,
+    l2ChainId
+  )
 
   // liquidityProvider adds liquidity to the pool on L2
   await l2_canonicalToken.connect(liquidityProvider).approve(l2_uniswapRouter.address, liquidityProviderBalance)
@@ -210,4 +219,33 @@ export const generateAmountHash = (chainIds: Number[], amounts: Number[]): Buffe
   )
   const hash = ethers.utils.keccak256(data)
   return Buffer.from(hash.slice(2), 'hex')
+}
+
+export const sendTokensAcrossCanonicalBridge = async (
+  l1_canonicalToken: Contract,
+  l1_canonicalBridge: Contract,
+  l2_canonicalToken: Contract,
+  l2_messenger: Contract,
+  account: Signer,
+  amount: BigNumber
+) => {
+  await l1_canonicalToken.connect(account).approve(l1_canonicalBridge.address, amount)
+  await l1_canonicalBridge.connect(account).sendMessage(l2_canonicalToken.address, await account.getAddress(), amount)
+  await l2_messenger.relayNextMessage()
+  await expectBalanceOf(l2_canonicalToken, account, amount)
+}
+
+export const sendTokensAcrossHopBridge = async (
+  l1_canonicalToken: Contract,
+  l1_bridge: Contract,
+  l2_bridge: Contract,
+  l2_messenger: Contract,
+  account: Signer,
+  amount: BigNumber,
+  l2ChainId: BigNumber
+) => {
+  await l1_canonicalToken.connect(account).approve(l1_bridge.address, amount)
+  await l1_bridge.connect(account).sendToL2(l2ChainId, await account.getAddress(), amount)
+  await l2_messenger.relayNextMessage()
+  await expectBalanceOf(l2_bridge, account, amount)
 }

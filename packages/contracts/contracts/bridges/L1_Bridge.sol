@@ -11,7 +11,7 @@ import "./L1_BridgeConfig.sol";
 
 /**
  * @dev L1_Bridge is responsible for the bonding and challenging of TransferRoots. All TransferRoots
- * originate in the L1_Bridge through `bondTransferRoot` and are propogated up to destination L2s.
+ * originate in the L1_Bridge through `bondTransferRoot` and are propagated up to destination L2s.
  */
 
 contract L1_Bridge is Bridge, L1_BridgeConfig {
@@ -100,10 +100,10 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
      */
 
     /**
-     * @dev Used by the bonder to bond a TransferRoot and propogate it up to destination L2s
+     * @dev Used by the bonder to bond a TransferRoot and propagate it up to destination L2s
      * @param _transferRootHash The Merkle root of the TransferRoot Merkle tree
      * @param _chainIds The ids of the destination chains
-     * @param _chainAmounts The amounts desitned for each desitination chain
+     * @param _chainAmounts The amounts destined for each destination chain
      */
     function bondTransferRoot(
         bytes32 _transferRootHash,
@@ -115,7 +115,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
         requirePositiveBalance
     {
         require(_chainIds.length == _chainAmounts.length, "L1_BRG: chainIds and chainAmounts must be the same length");
-        require(transferRootConfirmed[_transferRootHash] == false, "L1_BRG: Tranfer Root has already been confirmed");
+        require(transferRootConfirmed[_transferRootHash] == false, "L1_BRG: Transfer Root has already been confirmed");
         require(transferBonds[_transferRootHash].createdAt == 0, "L1_BRG: Transfer Root has already been bonded");
 
         uint256 totalAmount = 0;
@@ -140,7 +140,7 @@ contract L1_Bridge is Bridge, L1_BridgeConfig {
      * has been confirmed, any challenge against that TransferRoot can be resolved as unsuccessful.
      * @param _transferRootHash The Merkle root of the TransferRoot Merkle tree
      * @param _chainIds The ids of the destination chains
-     * @param _chainAmounts The amounts desitned for each desitination chain
+     * @param _chainAmounts The amounts destined for each destination chain
      */
     function confirmTransferRoot(
         bytes32 _transferRootHash,

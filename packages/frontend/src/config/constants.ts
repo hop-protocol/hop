@@ -1,11 +1,13 @@
 export const DEVERSIFI_LOGO_URL =
-  'https://liquidity-network-poc.s3.amazonaws.com/deversifi.svg'
-export const OFFCHAIN_LABS_LOGO_URL =
-  'https://liquidity-network-poc.s3.amazonaws.com/offchain-labs.png'
+  'https://hop-exchange.s3.amazonaws.com/deversifi.svg'
+export const ARBITRUM_LOGO_URL =
+  'https://hop-exchange.s3.amazonaws.com/arbitrum.png'
 export const OPTIMISM_LOGO_URL =
-  'https://liquidity-network-poc.s3.amazonaws.com/optimism.svg'
+  'https://hop-exchange.s3.amazonaws.com/optimism.svg'
 export const MAINNET_LOGO_URL =
-  'https://liquidity-network-poc.s3.amazonaws.com/mainnet.svg'
+  'https://hop-exchange.s3.amazonaws.com/mainnet.svg'
+export const HOP_LOGO_FULL_COLOR =
+  'https://hop-exchange.s3.amazonaws.com/hop-logo-full-color.svg'
 
 export const PROPOSAL_STATUSES: any = {
   PENDING: 'pending',

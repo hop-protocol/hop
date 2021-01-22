@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 
 import {
-  OFFCHAIN_LABS_LOGO_URL as offchainLabsLogoUrl,
+  ARBITRUM_LOGO_URL as arbitrumLogoUrl,
   MAINNET_LOGO_URL as mainnetLogoUrl
 } from 'src/config/constants'
 import {
@@ -26,7 +26,7 @@ const useNetworks = () => {
       new Network({
         name: 'Arbitrum',
         slug: 'arbitrum',
-        imageUrl: offchainLabsLogoUrl,
+        imageUrl: arbitrumLogoUrl,
         rpcUrl: arbitrumRpcUrl,
         networkId: arbitrumNetworkId
       })

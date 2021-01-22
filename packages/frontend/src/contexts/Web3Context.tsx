@@ -129,11 +129,11 @@ const Web3ContextProvider: FC = ({ children }) => {
           wantNetworkId === optimismNetworkId
         ) {
           stepImages = [
-            'https://liquidity-network-poc.s3.amazonaws.com/onboard/metamask-accounts-settings-highlight.png',
-            'https://liquidity-network-poc.s3.amazonaws.com/onboard/metamask-settings-highlight.png',
-            'https://liquidity-network-poc.s3.amazonaws.com/onboard/metamask-add-network-highlight.png',
-            'https://liquidity-network-poc.s3.amazonaws.com/onboard/metamask-new-arbitrum-network-highlight.png',
-            'https://liquidity-network-poc.s3.amazonaws.com/onboard/metamask-arbitrum-network-highlight.png'
+            'https://hop-exchange.s3.amazonaws.com/onboard/metamask-accounts-settings-highlight.png',
+            'https://hop-exchange.s3.amazonaws.com/onboard/metamask-settings-highlight.png',
+            'https://hop-exchange.s3.amazonaws.com/onboard/metamask-add-network-highlight.png',
+            'https://hop-exchange.s3.amazonaws.com/onboard/metamask-new-arbitrum-network-highlight.png',
+            'https://hop-exchange.s3.amazonaws.com/onboard/metamask-arbitrum-network-highlight.png'
           ]
         } else if (
           ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
@@ -141,11 +141,11 @@ const Web3ContextProvider: FC = ({ children }) => {
           )
         ) {
           stepImages = [
-            `https://liquidity-network-poc.s3.amazonaws.com/onboard/metamask-network-${wantNetworkName.toLowerCase()}.png`
+            `https://hop-exchange.s3.amazonaws.com/onboard/metamask-network-${wantNetworkName.toLowerCase()}.png`
           ]
         } else {
           stepImages = [
-            'https://liquidity-network-poc.s3.amazonaws.com/onboard/metamask-accounts-settings-highlight.png'
+            'https://hop-exchange.s3.amazonaws.com/onboard/metamask-accounts-settings-highlight.png'
           ]
         }
 

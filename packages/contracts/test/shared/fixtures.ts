@@ -5,9 +5,8 @@ import Transfer from '../../lib/Transfer'
 import {
   IFixture,
   IGetMessengerWrapperDefaults,
-  L2_CHAIN_IDS,
-  RELAYER_FEE,
-  MAINNET_CHAIN_ID
+  CHAIN_IDS,
+  RELAYER_FEE
 } from './constants'
 import {
   getMessengerWrapperDefaults
@@ -60,7 +59,7 @@ export async function fixture(l2ChainId: BigNumber): Promise<IFixture> {
     governance.getAddress(),
     l2_canonicalToken.address,
     l1_bridge.address,
-    [MAINNET_CHAIN_ID],
+    [CHAIN_IDS.MAINNET],
     bonder.getAddress()
   )
 
@@ -80,7 +79,7 @@ export async function fixture(l2ChainId: BigNumber): Promise<IFixture> {
   // Transfers
   const transfers: Transfer[] = [
       new Transfer({
-        chainId: MAINNET_CHAIN_ID,
+        chainId: CHAIN_IDS.MAINNET,
         sender: await user.getAddress(),
         recipient: await user.getAddress(),
         amount: BigNumber.from('12345'),
@@ -90,7 +89,7 @@ export async function fixture(l2ChainId: BigNumber): Promise<IFixture> {
         deadline: BigNumber.from('0')
       }),
       new Transfer({
-        chainId: MAINNET_CHAIN_ID,
+        chainId: CHAIN_IDS.MAINNET,
         sender: await liquidityProvider.getAddress(),
         recipient: await liquidityProvider.getAddress(),
         amount: BigNumber.from('12345'),
@@ -140,14 +139,14 @@ const getL2SpecificArtifact = (l2ChainId: BigNumber) => {
   let messengerWrapperArtifact: string
 
   if (
-    l2ChainId === L2_CHAIN_IDS.ARBITRUM_TESTNET_2 ||
-    l2ChainId === L2_CHAIN_IDS.ARBITRUM_TESTNET_3
+    l2ChainId === CHAIN_IDS.ARBITRUM_TESTNET_2 ||
+    l2ChainId === CHAIN_IDS.ARBITRUM_TESTNET_3
   ) {
     l2BridgeArtifact = 'L2_ArbitrumBridge.sol:L2_ArbitrumBridge'
     messengerWrapperArtifact = 'ArbitrumMessengerWrapper.sol:ArbitrumMessengerWrapper'
   } else if (
-    l2ChainId === L2_CHAIN_IDS.OPTIMISM_TESTNET_1 ||
-    l2ChainId === L2_CHAIN_IDS.OPTIMISM_SYNTHETIX_DEMO
+    l2ChainId === CHAIN_IDS.OPTIMISM_TESTNET_1 ||
+    l2ChainId === CHAIN_IDS.OPTIMISM_SYNTHETIX_DEMO
   ) {
     l2BridgeArtifact = 'L2_OptimismBridge.sol:L2_OptimismBridge'
     messengerWrapperArtifact = 'OptimismMessengerWrapper.sol:OptimismMessengerWrapper'

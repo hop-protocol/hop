@@ -4,7 +4,7 @@ import { ethers } from 'hardhat'
 import { ContractFactory, Contract, BigNumber } from 'ethers'
 import { getMessengerWrapperDefaults } from '../../../test/shared/utils'
 import {
-  L2_CHAIN_IDS,
+  CHAIN_IDS,
   IGetMessengerWrapperDefaults
 } from '../../../test/shared/constants'
 
@@ -37,7 +37,7 @@ async function deployArbitrum () {
   await l1_bridge.deployed()
 
   // Deploy Messenger Wrapper
-  const l2ChainId: BigNumber = L2_CHAIN_IDS.ARBITRUM_TESTNET_3
+  const l2ChainId: BigNumber = CHAIN_IDS.ARBITRUM_TESTNET_3
   // TODO: This will not work, as we need access to the not-yet-deployed L2 bridge address.
   // TODO: This whole section will be removed when DRYing up and optimizing the script/test deployments and assertions
   const messengerWrapperDefaults: IGetMessengerWrapperDefaults[] = getMessengerWrapperDefaults(l2Name, l1_bridge.address, l2_bridge.address, l1_messenger.address)

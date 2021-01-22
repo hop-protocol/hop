@@ -2,7 +2,10 @@ import { BigNumber, ContractFactory, Signer, Contract } from 'ethers'
 
 import Transfer from '../../lib/Transfer'
 
-export const L2_CHAIN_IDS = {
+export const CHAIN_IDS = {
+  MAINNET: BigNumber.from(1),
+  GOERLI: BigNumber.from(5),
+  KOVAN: BigNumber.from(42),
   OPTIMISM_SYNTHETIX_DEMO: BigNumber.from(10),
   OPTIMISM_TESTNET_1: BigNumber.from(420),
   ARBITRUM_TESTNET_2: BigNumber.from(152709604825713),
@@ -16,6 +19,7 @@ export const COMMITTEE_INITIAL_BALANCE = BigNumber.from('1000000')
 export const CHALLENGER_INITIAL_BALANCE = BigNumber.from('10')
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+export const ONE_ADDRESS = '0x0000000000000000000000000000000000000001'
 export const ARB_CHAIN_ADDRESS = '0x2e8aF9f74046D3E55202Fcfb893348316B142230'
 
 export const DEFAULT_MESSENGER_WRAPPER_GAS_LIMIT = 8000000
@@ -24,10 +28,6 @@ export const DEFAULT_MESSENGER_WRAPPER_GAS_CALL_VALUE = 0
 export const DEFAULT_MESSENGER_WRAPPER_SUB_MESSAGE_TYPE = '0x01'
 
 export const RELAYER_FEE = BigNumber.from('1000000000000000000')
-
-export const MAINNET_CHAIN_ID = BigNumber.from('1')
-export const OPTIMISM_CHAIN_ID = BigNumber.from('420')
-export const ARBITRUM_CHAIN_ID = BigNumber.from('152709604825713')
 
 export const DEFAULT_AMOUNT_OUT_MIN = 0
 export const DEFAULT_DEADLINE = 9999999999

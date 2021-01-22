@@ -7,7 +7,7 @@ import {
   expectBalanceOf
 } from '../shared/utils'
 import {
-  L2_CHAIN_IDS,
+  CHAIN_IDS,
   IFixture,
   USER_INITIAL_BALANCE,
   COMMITTEE_INITIAL_BALANCE,
@@ -29,7 +29,7 @@ describe("L1_Bridge", () => {
   let l2_messenger: Contract
 
   beforeEach(async () => {
-    l2ChainId = L2_CHAIN_IDS.OPTIMISM_TESTNET_1
+    l2ChainId = CHAIN_IDS.OPTIMISM_TESTNET_1
     _fixture = await fixture(l2ChainId)
     await setUpDefaults(_fixture, l2ChainId)
 

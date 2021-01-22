@@ -6,7 +6,7 @@ import {
   setUpDefaults
 } from '../shared/utils'
 import {
-  L2_CHAIN_IDS,
+  CHAIN_IDS,
   IFixture
 } from '../shared/constants'
 
@@ -18,7 +18,7 @@ describe("Accounting", () => {
   let accounting: Contract
 
   beforeEach(async () => {
-    const l2ChainId: BigNumber = L2_CHAIN_IDS.OPTIMISM_TESTNET_1
+    const l2ChainId: BigNumber = CHAIN_IDS.OPTIMISM_TESTNET_1
     _fixture = await fixture(l2ChainId)
     await setUpDefaults(_fixture, l2ChainId)
 

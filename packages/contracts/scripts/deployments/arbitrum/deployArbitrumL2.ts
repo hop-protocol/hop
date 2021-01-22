@@ -3,7 +3,7 @@ require('dotenv').config()
 import { ethers } from 'hardhat'
 import { ContractFactory, Signer, Wallet, Contract } from 'ethers'
 
-import { ZERO_ADDRESS, MAINNET_CHAIN_ID } from '../../../test/shared/constants'
+import { ZERO_ADDRESS, CHAIN_IDS } from '../../../test/shared/constants'
 
 async function deployArbitrum () {
   let accounts: Signer[]
@@ -56,7 +56,7 @@ async function deployArbitrum () {
     await user.getAddress(),
     l2_oDai.address,
     l1_bridge.address,
-    [MAINNET_CHAIN_ID],
+    [CHAIN_IDS.MAINNET],
     COMMITTEE_ADDRESS
   )
   await l2_bridge.deployed()

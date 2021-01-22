@@ -2,7 +2,7 @@ require('dotenv').config()
 
 import { ethers } from 'hardhat'
 import { BigNumber, ContractFactory, Signer, Wallet, Contract } from 'ethers'
-import { ARB_CHAIN_ADDRESS, L2_CHAIN_IDS } from '../../../test/shared/constants'
+import { ARB_CHAIN_ADDRESS, CHAIN_IDS } from '../../../test/shared/constants'
 
 const USER_INITIAL_BALANCE = BigNumber.from('500000000000000000000')
 const LARGE_APPROVAL = BigNumber.from('999999999999999999999999999999999999')
@@ -52,7 +52,7 @@ async function deployArbitrum () {
   l2_bridge = L2_Bridge.attach('0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde')
 
   // Set up bridges
-  const l2ChainId: BigNumber = L2_CHAIN_IDS.ARBITRUM_TESTNET_3
+  const l2ChainId: BigNumber = CHAIN_IDS.ARBITRUM_TESTNET_3
   await l1_bridge.setCrossDomainMessengerWrapper(l2ChainId, messengerWrapper.address)
 
   // Send canonical token to the user on L2

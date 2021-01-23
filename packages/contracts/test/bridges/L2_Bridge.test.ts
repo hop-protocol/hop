@@ -5,7 +5,8 @@ import { fixture } from '../shared/fixtures'
 import Transfer from '../../lib/Transfer'
 import {
   setUpDefaults,
-  expectBalanceOf
+  expectBalanceOf,
+  sendTokensAcrossHopBridge
 } from '../shared/utils'
 import {
   CHAIN_IDS,
@@ -131,11 +132,16 @@ describe("L2_Bridge", () => {
   it.only('Should send tokens across the bridge via sendToL2', async () => {
     const transfer = transfers[0]
 
-    // Add hToken to the users' account
-    await l1_canonicalToken.connect(user).approve(l1_bridge.address, sendTokenInitialBalance)
-    await l1_bridge.connect(user).sendToL2(l2ChainId.toString(), await user.getAddress(), sendTokenInitialBalance)
-    await l2_messenger.relayNextMessage()
-    await expectBalanceOf(l2_bridge, user, sendTokenInitialBalance)
+    // Add hToken to the users' address on L2
+    await sendTokensAcrossHopBridge(
+      l1_canonicalToken,
+      l1_bridge,
+      l2_bridge,
+      l2_messenger,
+      user,
+      sendTokenInitialBalance,
+      l2ChainId
+    )
 
     // Execute transaction
     await l2_bridge.connect(governance).addSupportedChainId(transfer.chainId)

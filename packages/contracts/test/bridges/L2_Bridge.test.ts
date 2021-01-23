@@ -3,6 +3,7 @@ import { expect } from 'chai'
 import { Signer, Contract, BigNumber } from 'ethers'
 import { fixture } from '../shared/fixtures'
 import Transfer from '../../lib/Transfer'
+import MerkleTree from '../../lib/MerkleTree'
 import {
   setUpDefaults,
   expectBalanceOf,
@@ -184,7 +185,7 @@ describe("L2_Bridge", () => {
     expect(transferSentArgs[4]).to.eq(transfer.relayerFee)
   })
 
-  it.only('Should send tokens across the bridge via sendToL2', async () => {
+  it('Should send tokens across the bridge via sendToL2', async () => {
     let transfer: any = transfers[0]
     transfer.destinationAmountOutMin = BigNumber.from(0)
     transfer.destinationDeadline = BigNumber.from(DEFAULT_DEADLINE)
@@ -241,7 +242,84 @@ describe("L2_Bridge", () => {
     expect(transferSentArgs[4]).to.eq(transfer.relayerFee)
   })
 
+  it.only('Should commit a transfer', async () => {
+    const transfer = transfers[0]
+
+    // Add hToken to the users' address on L2
+    await sendTokensAcrossHopBridge(
+      l1_canonicalToken,
+      l1_bridge,
+      l2_bridge,
+      l2_messenger,
+      user,
+      sendTokenInitialBalance,
+      l2ChainId
+    )
+
+    // Execute transaction
+    await l2_bridge.connect(governance).addSupportedChainId(transfer.chainId)
+    await l2_bridge.connect(user).send(
+      transfer.chainId,
+      transfer.recipient,
+      transfer.amount,
+      transfer.transferNonce,
+      transfer.relayerFee,
+      transfer.amountOutMin,
+      transfer.deadline
+    )
+
+    // Verify state pre-transaction
+    let pendingAmountForChainId = await l2_bridge.pendingAmountForChainId(transfer.chainId)
+    expect(pendingAmountForChainId).to.eq(BigNumber.from(10))
+
+    // Send transaction
+    await l2_bridge.connect(bonder).commitTransfers()
+
+    // Verify state post-transaction
+    pendingAmountForChainId = await l2_bridge.pendingAmountForChainId(transfer.chainId)
+    expect(pendingAmountForChainId).to.eq(0)
+
+    const expectedMerkleTree = new MerkleTree([ transfer.getTransferHash() ])
+
+    const transfersCommittedEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransfersCommitted()))[0]
+    const transfersCommittedArgs = transfersCommittedEvent.args
+    expect(transfersCommittedArgs[0]).to.eq(expectedMerkleTree.getHexRoot())
+    console.log('1', transfersCommittedArgs[1])
+    console.log('1', [transfer.chainId])
+    expect(transfersCommittedArgs[1]).to.deep.include({ BigNumber: transfer.chainId })
+    // expect(transfersCommittedArgs[1]).to.have.deep.property('[0].chainId', );
+
+    console.log('2')
+    expect(transfersCommittedArgs[2]).to.eq([transfer.amount])
+    console.log('3')
+
+    // const expectedCurrentBridgeBal = sendTokenInitialBalance.sub(TRANSFER_AMOUNT)
+    // await expectBalanceOf(l2_bridge, user, expectedCurrentBridgeBal)
+
+    // const pendingTransferHash = await l2_bridge.pendingTransfers(0)
+    // const expectedPendingTransferHash: Buffer = transfer.getTransferHash()
+    // expect(pendingTransferHash).to.eq('0x' + expectedPendingTransferHash.toString('hex'))
+
+    // const pendingAmountChainId = await l2_bridge.pendingAmountChainIds(0)
+    // const expectedPendingAmountChainId = transfer.chainId
+    // expect(pendingAmountChainId).to.eq(expectedPendingAmountChainId)
+
+    // const pendingAmount = await l2_bridge.pendingAmountForChainId(transfer.chainId)
+    // const expectedPendingAmount = transfer.amount
+    // expect(pendingAmount).to.eq(expectedPendingAmount)
+
+    // const transfersSentEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransferSent()))[0]
+    // const transferSentArgs = transfersSentEvent.args
+    // expect(transferSentArgs[0]).to.eq('0x' + expectedPendingTransferHash.toString('hex'))
+    // expect(transferSentArgs[1]).to.eq(transfer.recipient)
+    // expect(transferSentArgs[2]).to.eq(TRANSFER_AMOUNT)
+    // expect(transferSentArgs[3]).to.eq(transfer.transferNonce)
+    // expect(transferSentArgs[4]).to.eq(transfer.relayerFee)
+  })
+
   // TODO: Over 100 pending transfers in send()
+  // TODO: swapAndSend to same user on a different L2
+  // TODO: swapAndSend to self on a different L2
 
   /**
    * Non-Happy Path
@@ -249,6 +327,5 @@ describe("L2_Bridge", () => {
 
    // TODO: only governance
    // TODO: all requires
-
-
+   // TODO: modifiers
 })

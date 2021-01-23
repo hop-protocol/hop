@@ -6,6 +6,7 @@ import Transfer from '../../lib/Transfer'
 import {
   setUpDefaults,
   expectBalanceOf,
+  sendTokensAcrossCanonicalBridge,
   sendTokensAcrossHopBridge
 } from '../shared/utils'
 import {
@@ -13,7 +14,8 @@ import {
   IFixture,
   ONE_ADDRESS,
   USER_INITIAL_BALANCE,
-  TRANSFER_AMOUNT
+  TRANSFER_AMOUNT,
+  DEFAULT_DEADLINE
 } from '../shared/constants'
 
 /**
@@ -30,6 +32,7 @@ describe("L2_Bridge", () => {
   let governance: Signer
   let otherAccount: Signer
 
+  let l1_canonicalBridge: Contract
   let l1_canonicalToken: Contract
   let l1_bridge: Contract
   let l2_canonicalToken: Contract
@@ -50,6 +53,7 @@ describe("L2_Bridge", () => {
       bonder,
       governance,
       otherAccount,
+      l1_canonicalBridge,
       l1_canonicalToken,
       l1_bridge,
       l2_canonicalToken,
@@ -129,7 +133,7 @@ describe("L2_Bridge", () => {
     expect(isChainIdSupported).to.eq(false)
   })
 
-  it.only('Should send tokens across the bridge via sendToL2', async () => {
+  it('Should send tokens across the bridge via sendToL2', async () => {
     const transfer = transfers[0]
 
     // Add hToken to the users' address on L2
@@ -145,7 +149,6 @@ describe("L2_Bridge", () => {
 
     // Execute transaction
     await l2_bridge.connect(governance).addSupportedChainId(transfer.chainId)
-    await l2_bridge.connect(user).approve(l2_bridge.address, sendTokenInitialBalance)
     await l2_bridge.connect(user).send(
       transfer.chainId,
       transfer.recipient,
@@ -177,6 +180,63 @@ describe("L2_Bridge", () => {
     expect(transferSentArgs[0]).to.eq('0x' + expectedPendingTransferHash.toString('hex'))
     expect(transferSentArgs[1]).to.eq(transfer.recipient)
     expect(transferSentArgs[2]).to.eq(TRANSFER_AMOUNT)
+    expect(transferSentArgs[3]).to.eq(transfer.transferNonce)
+    expect(transferSentArgs[4]).to.eq(transfer.relayerFee)
+  })
+
+  it.only('Should send tokens across the bridge via sendToL2', async () => {
+    let transfer: any = transfers[0]
+    transfer.destinationAmountOutMin = BigNumber.from(0)
+    transfer.destinationDeadline = BigNumber.from(DEFAULT_DEADLINE)
+
+    // Add the canonical token to the users' address on L2
+    await sendTokensAcrossCanonicalBridge(
+      l1_canonicalToken,
+      l1_canonicalBridge,
+      l2_canonicalToken,
+      l2_messenger,
+      user,
+      sendTokenInitialBalance
+    ) 
+
+    // Execute transaction
+    await l2_bridge.connect(governance).addSupportedChainId(transfer.chainId)
+    await l2_canonicalToken.connect(user).approve(l2_bridge.address, sendTokenInitialBalance)
+    await l2_bridge.connect(user).swapAndSend(
+      transfer.chainId,
+      transfer.recipient,
+      transfer.amount,
+      transfer.transferNonce,
+      transfer.relayerFee,
+      transfer.amountOutMin,
+      transfer.deadline,
+      transfer.destinationAmountOutMin,
+      transfer.destinationDeadline
+    )
+
+    // Verify state
+    const expectedCurrentCanonicalTokenBal = sendTokenInitialBalance.sub(TRANSFER_AMOUNT)
+    await expectBalanceOf(l2_canonicalToken, user, expectedCurrentCanonicalTokenBal)
+
+    const transferAmountAfterSlippage = transfer.amount.sub(1)
+    transfer.amount = transferAmountAfterSlippage
+    const pendingTransferHash = await l2_bridge.pendingTransfers(0)
+    const expectedPendingTransferHash: Buffer = transfer.getTransferHash()
+    expect(pendingTransferHash).to.eq('0x' + expectedPendingTransferHash.toString('hex'))
+
+    const pendingAmountChainId = await l2_bridge.pendingAmountChainIds(0)
+    const expectedPendingAmountChainId = transfer.chainId
+    expect(pendingAmountChainId).to.eq(expectedPendingAmountChainId)
+
+    const pendingAmount = await l2_bridge.pendingAmountForChainId(transfer.chainId)
+    const expectedPendingAmount = transfer.amount
+    expect(pendingAmount).to.eq(expectedPendingAmount)
+
+    const transfersSentEvent = (await l2_bridge.queryFilter(l2_bridge.filters.TransferSent()))[0]
+    const transferSentArgs = transfersSentEvent.args
+    expect(transferSentArgs[0]).to.eq('0x' + expectedPendingTransferHash.toString('hex'))
+    expect(transferSentArgs[1]).to.eq(transfer.recipient)
+    expect(transferSentArgs[2]).to.eq(transferAmountAfterSlippage)
     expect(transferSentArgs[3]).to.eq(transfer.transferNonce)
     expect(transferSentArgs[4]).to.eq(transfer.relayerFee)
   })

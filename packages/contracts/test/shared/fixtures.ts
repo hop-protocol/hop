@@ -7,7 +7,8 @@ import {
   IGetMessengerWrapperDefaults,
   CHAIN_IDS,
   RELAYER_FEE,
-  TRANSFER_AMOUNT
+  TRANSFER_AMOUNT,
+  DEFAULT_DEADLINE
 } from './constants'
 import {
   getMessengerWrapperDefaults
@@ -89,7 +90,7 @@ export async function fixture(l2ChainId: BigNumber): Promise<IFixture> {
         transferNonce: 0,
         relayerFee: RELAYER_FEE,
         amountOutMin: BigNumber.from('0'),
-        deadline: BigNumber.from('0')
+        deadline: BigNumber.from(DEFAULT_DEADLINE)
       }),
       new Transfer({
         chainId: CHAIN_IDS.ARBITRUM_TESTNET_3,
@@ -99,7 +100,7 @@ export async function fixture(l2ChainId: BigNumber): Promise<IFixture> {
         transferNonce: 0,
         relayerFee: RELAYER_FEE,
         amountOutMin: BigNumber.from('0'),
-        deadline: BigNumber.from('0')
+        deadline: BigNumber.from(DEFAULT_DEADLINE)
       })
     ]
 

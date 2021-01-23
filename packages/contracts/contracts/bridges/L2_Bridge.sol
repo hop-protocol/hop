@@ -148,19 +148,19 @@ abstract contract L2_Bridge is ERC20, Bridge {
         uint256[] memory swapAmounts = IUniswapV2Router02(exchangeAddress).getAmountsOut(_amount, exchangePath);
         uint256 swapAmount = swapAmounts[1];
 
-        l2CanonicalToken.approve(exchangeAddress, swapAmount);
+        l2CanonicalToken.approve(exchangeAddress, _amount);
         IUniswapV2Router02(exchangeAddress).swapExactTokensForTokens(
             _amount,
             _amountOutMin,
             exchangePath,
-            _recipient,
+            msg.sender,
             _deadline
         );
 
         send(_chainId, _recipient, swapAmount, _transferNonce, _relayerFee, _destinationAmountOutMin, _destinationDeadline);
     }
 
-    function commitTransfers() public {
+    function commitTransfers() public onlyBonder {
         require(pendingTransfers.length > 0, "L2_BRG: Must commit at least 1 Transfer");
 
         bytes32 root = MerkleUtils.getMerkleRoot(pendingTransfers);

@@ -5,7 +5,6 @@ pragma experimental ABIEncoderV2;
 
 import "./Bridge.sol";
 
-import "../libraries/MerkleUtils.sol";
 import "../interfaces/IMessengerWrapper.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";

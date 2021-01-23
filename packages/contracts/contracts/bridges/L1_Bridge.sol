@@ -5,7 +5,6 @@ pragma experimental ABIEncoderV2;
 
 import "./Bridge.sol";
 
-import "../libraries/MerkleUtils.sol";
 import "../interfaces/IMessengerWrapper.sol";
 import "./L1_BridgeConfig.sol";
 

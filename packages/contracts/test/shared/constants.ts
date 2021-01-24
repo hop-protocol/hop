@@ -8,6 +8,7 @@ export const CHAIN_IDS = {
   KOVAN: BigNumber.from(42),
   OPTIMISM_SYNTHETIX_DEMO: BigNumber.from(10),
   OPTIMISM_TESTNET_1: BigNumber.from(420),
+  OPTIMISM_HOP_TESTNET: BigNumber.from(69),
   ARBITRUM_TESTNET_2: BigNumber.from(152709604825713),
   ARBITRUM_TESTNET_3: BigNumber.from(79377087078960)
 }

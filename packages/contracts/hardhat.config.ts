@@ -1,6 +1,8 @@
 require('dotenv').config()
 
 import "@nomiclabs/hardhat-waffle"
+import '@eth-optimism/plugins/hardhat/compiler'
+import '@eth-optimism/plugins/hardhat/ethers'
 
 // You have to export an object to set up your config
 // This object can have the following optional entries:
@@ -19,6 +21,12 @@ export default {
       url: "https://kovan3.arbitrum.io/rpc",
       accounts: [process.env.USER_PRIVATE_KEY, process.env.LIQUIDITY_PROVIDER_PRIVATE_KEY],
       gasPrice: 0
+    },
+    optimism: {
+      url: "https://kovan.optimism.rpc.hop.exchange",
+      accounts: [process.env.USER_PRIVATE_KEY, process.env.LIQUIDITY_PROVIDER_PRIVATE_KEY],
+      gasPrice: 0,
+      gas: 9000000
     }
   },
   solidity: {

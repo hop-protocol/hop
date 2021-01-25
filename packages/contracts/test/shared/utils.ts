@@ -192,7 +192,8 @@ export const getMessengerWrapperDefaults = (
     )
   } else if (
     l2ChainId === CHAIN_IDS.OPTIMISM_TESTNET_1 ||
-    l2ChainId === CHAIN_IDS.OPTIMISM_SYNTHETIX_DEMO
+    l2ChainId === CHAIN_IDS.OPTIMISM_SYNTHETIX_DEMO ||
+    l2ChainId === CHAIN_IDS.OPTIMISM_HOP_TESTNET
   ) {
     // Nothing unique here. This function exists for consistency.
   }

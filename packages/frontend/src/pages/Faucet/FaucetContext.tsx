@@ -33,7 +33,7 @@ const FaucetContextProvider: FC = ({ children }) => {
   const [mintAmount, setMintAmount] = useState<string>('10')
   const [isMinting, setMinting] = useState<boolean>(false)
   let { contracts, txHistory, networks } = useApp()
-  const l1Dai = contracts?.l1Dai
+  const l1Dai = contracts?.l1Token
   const { address, setRequiredNetworkId, connectedNetworkId } = useWeb3Context()
   const selectedNetwork = networks[0]
   const [error, setError] = useState<string | null | undefined>(null)

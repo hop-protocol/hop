@@ -50,7 +50,7 @@ const useStyles = makeStyles(() => ({
 const Earn: FC = () => {
   const styles = useStyles()
   const { contracts } = useApp()
-  const stakingRewards = contracts?.stakingRewards
+  const stakingRewards = contracts?.governance.stakingRewards
   let {
     fetchStakingValues,
     stakingRewardAddress,

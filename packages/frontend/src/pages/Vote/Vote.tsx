@@ -53,7 +53,7 @@ const VoteChild: FC<VoteProps> = props => {
   const styles = useStyles()
   const { contracts } = useApp()
   const { balance, delegate, humanReadableDelegate } = useVoteContext()
-  const l1Hop = contracts?.l1Hop
+  const l1Hop = contracts?.governance.l1Hop
 
   const [modalIsOpen, setModalIsOpen] = useState(false)
 

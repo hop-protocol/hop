@@ -21,10 +21,10 @@ const Demo: FC<Props> = () => {
   const styles = useStyles()
   const { provider } = useWeb3Context()
   const app = useApp()
-  const l1Dai = app?.contracts?.l1Dai
+  const l1Dai = app?.contracts?.l1Token
   const l1Bridge = app?.contracts?.l1Bridge
-  const arbitrumBridge = app?.contracts?.arbitrumBridge
-  const arbitrumUniswapRouter = app?.contracts?.arbitrumUniswapRouter
+  const arbitrumBridge = app?.contracts?.networks.arbitrum.l2Bridge
+  const arbitrumUniswapRouter = app?.contracts?.networks.arbitrum.uniswapRouter
 
   const handleApprove = async () => {
     const signer = provider?.getSigner()

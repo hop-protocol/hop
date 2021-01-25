@@ -31,7 +31,7 @@ export const useVoteContext = () => useContext(VoteContext)
 export const VoteContextProvider: FC<{}> = ({ children }) => {
   const { address } = useWeb3Context()
   const { user, tokens, contracts, networks } = useApp()
-  const l1Hop = contracts?.l1Hop
+  const l1Hop = contracts?.governance.l1Hop
   const l1HopToken = tokens[1]
 
   const [balance, setBalance] = useState('0.00')

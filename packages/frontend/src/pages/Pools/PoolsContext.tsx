@@ -118,8 +118,8 @@ const PoolsContextProvider: FC = ({ children }) => {
     setRequiredNetworkId,
     connectedNetworkId
   } = useWeb3Context()
-  const arbitrumUniswapRouter = contracts?.arbitrumUniswapRouter
-  const arbitrumUniswapFactory = contracts?.arbitrumUniswapFactory
+  const arbitrumUniswapRouter = contracts?.networks.arbitrum.uniswapRouter
+  const arbitrumUniswapFactory = contracts?.networks.arbitrum.uniswapFactory
   const [error, setError] = useState<string | null | undefined>(null)
 
   const hopToken = useMemo(() => {

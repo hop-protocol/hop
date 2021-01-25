@@ -64,10 +64,10 @@ const ConvertContextProvider: FC = ({ children }) => {
   } = useWeb3Context()
   const app = useApp()
   let { networks: nets, tokens, contracts, txConfirm } = app
-  const arbitrumDai = contracts?.arbitrumDai
-  const arbitrumUniswapRouter = contracts?.arbitrumUniswapRouter
-  const arbitrumL1Messenger = contracts?.arbitrumL1Messenger
-  const arbitrumBridge = contracts?.arbitrumBridge
+  const arbitrumDai = contracts?.networks.arbitrum.l2CanonicalToken
+  const arbitrumUniswapRouter = contracts?.networks.arbitrum.uniswapRouter
+  const arbitrumL1Messenger = contracts?.networks.arbitrum.l1CanonicalBridge
+  const arbitrumBridge = contracts?.networks.arbitrum.l2Bridge
   const l1Bridge = contracts?.l1Bridge
   const networks = useMemo(() => {
     const kovanNetwork = nets.find(

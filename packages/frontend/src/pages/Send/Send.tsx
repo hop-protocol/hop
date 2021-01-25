@@ -73,9 +73,9 @@ const Send: FC = () => {
   } = useApp()
   const tokens = allTokens.filter((token: Token) => token.symbol === 'DAI')
   const l1Bridge = contracts?.l1Bridge
-  const arbitrumBridge = contracts?.arbitrumBridge
-  const arbitrumUniswapRouter = contracts?.arbitrumUniswapRouter
-  const arbitrumUniswapFactory = contracts?.arbitrumUniswapFactory
+  const arbitrumBridge = contracts?.networks.arbitrum.l2Bridge
+  const arbitrumUniswapRouter = contracts?.networks.arbitrum.uniswapRouter
+  const arbitrumUniswapFactory = contracts?.networks.arbitrum.uniswapFactory
 
   const {
     provider,

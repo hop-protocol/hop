@@ -114,7 +114,7 @@ const VotePageChild: FC<VotePageProps> = props => {
   const { balance } = useVoteContext()
   const { connectedNetworkId } = useWeb3Context()
   const { contracts } = useApp()
-  const governorAlpha = contracts?.governorAlpha
+  const governorAlpha = contracts?.governance.governorAlpha
 
   const handleArrowClick = () => {
     history.push(`/vote`)

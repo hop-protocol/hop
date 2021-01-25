@@ -39,8 +39,8 @@ export interface StakingInfo {
 export const useStakingInfo = (): StakingInfo => {
   const { address } = useWeb3Context()
   const { contracts } = useApp()
-  const stakingRewards = contracts?.stakingRewards
-  const l1Dai = contracts?.l1Dai
+  const stakingRewards = contracts?.governance.stakingRewards
+  const l1Dai = contracts?.l1Token
   const fromToken = l1Dai
   const toToken = l1Dai
 

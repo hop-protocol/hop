@@ -41,36 +41,43 @@ const useContracts = (networks: Network[]): Contracts => {
     return getContract(address, erc20Artifact.abi, provider) as Contract
   }
 
-  const arbitrumProvider = useMemo(() => {
-    const arbitrumNetwork = networks.find(
+  const l2Network = useMemo(() => {
+    return networks.find(
       (network: Network) => network.slug === 'arbitrum'
     )
-    if (connectedNetworkId === arbitrumNetwork?.networkId) {
+  }, [networks]) as Network
+
+  const arbitrumProvider = useMemo(() => {
+    if (connectedNetworkId === l2Network?.networkId) {
       return provider?.getSigner()
     }
 
-    return arbitrumNetwork?.provider
-  }, [networks, connectedNetworkId, provider])
-  const kovanProvider = useMemo(() => {
-    const kovanNetwork = networks.find(
+    return l2Network?.provider
+  }, [l2Network, connectedNetworkId, provider])
+
+  const l1Network = useMemo(() => {
+    return networks.find(
       (network: Network) => network.slug === 'kovan'
     )
-    if (connectedNetworkId === kovanNetwork?.networkId) {
+  }, [networks]) as Network
+
+  const l1Provider = useMemo(() => {
+    if (connectedNetworkId === l1Network?.networkId) {
       return provider?.getSigner()
     }
 
-    return kovanNetwork?.provider
-  }, [networks, connectedNetworkId, provider])
+    return l1Network?.provider
+  }, [l1Network, connectedNetworkId, provider])
 
   const l1Token = useMemo(() => {
-    return new Contract(addresses.l1Dai, erc20Artifact.abi, kovanProvider)
-  }, [kovanProvider])
+    return new Contract(addresses.l1Token, erc20Artifact.abi, l1Provider)
+  }, [l1Provider])
 
   const governanceContracts = useGovernanceContracts(networks)
 
   const l1Bridge = useL1BridgeContract(networks)
 
-  const arbitrumContracts = useNetworkSpecificContracts(networks)
+  const arbitrumContracts = useNetworkSpecificContracts(l1Network, l2Network)
 
   return {
     l1Token,

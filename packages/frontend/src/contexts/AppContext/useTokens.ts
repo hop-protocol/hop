@@ -12,25 +12,25 @@ const useTokens = (networks: Network[]) => {
   const l1Hop = useMemo(() => {
     const network = networks.find(network => network.slug === 'kovan')
     if (!network) throw new Error('Kovan network not found')
-    return getErc20Contract(addresses.l1Hop, network.provider)
+    return getErc20Contract(addresses.l1Token, network.provider)
   }, [networks, getErc20Contract])
 
   const l1Dai = useMemo(() => {
     const network = networks.find(network => network.slug === 'kovan')
     if (!network) throw new Error('Kovan network not found')
-    return getErc20Contract(addresses.l1Dai, network.provider)
+    return getErc20Contract(addresses.l1Token, network.provider)
   }, [networks, getErc20Contract])
 
   const arbitrumDai = useMemo(() => {
     const network = networks.find(network => network.slug === 'arbitrum')
     if (!network) throw new Error('Arbitrum network not found')
-    return getErc20Contract(addresses.arbitrumDai, network.provider)
+    return getErc20Contract(addresses.networks.arbitrum.l2CanonicalToken, network.provider)
   }, [networks, getErc20Contract])
 
   const arbitrumBridgeDai = useMemo(() => {
     const network = networks.find(network => network.slug === 'arbitrum')
     if (!network) throw new Error('Arbitrum network not found')
-    return getErc20Contract(addresses.arbitrumBridge, network.provider)
+    return getErc20Contract(addresses.networks.arbitrum.l2Bridge, network.provider)
   }, [networks, getErc20Contract])
 
   const tokens = useMemo<Token[]>(

@@ -1,11 +1,14 @@
 import { useMemo } from 'react'
 import MainnetLogo from 'src/assets/logos/mainnet.svg'
 import ArbitrumLogo from 'src/assets/logos/arbitrum.png'
+import OptimismLogo from 'src/assets/logos/optimism.svg'
 import {
   l1NetworkId,
   l1RpcUrl,
   arbitrumNetworkId,
-  arbitrumRpcUrl
+  arbitrumRpcUrl,
+  optimismNetworkId,
+  optimismRpcUrl
 } from 'src/config'
 import Network from 'src/models/Network'
 
@@ -26,14 +29,14 @@ const useNetworks = () => {
         imageUrl: ArbitrumLogo,
         rpcUrl: arbitrumRpcUrl,
         networkId: arbitrumNetworkId
+      }),
+      new Network({
+        name: 'Optimism',
+        slug: 'optimism',
+        imageUrl: OptimismLogo,
+        rpcUrl: optimismRpcUrl,
+        networkId: optimismNetworkId
       })
-      // new Network({
-      //   name: 'Optimism',
-      //   slug: 'optimism',
-      //   imageUrl: optimismLogoUrl,
-      //   rpcUrl: optimismRpcUrl,
-      //   networkId: optimismNetworkId
-      // })
     ],
     []
   )

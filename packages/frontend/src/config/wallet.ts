@@ -9,5 +9,5 @@ export const l1RpcUrl = 'https://kovan.rpc.authereum.com'
 export const arbitrumNetworkId = '79377087078960'
 export const arbitrumRpcUrl = 'https://kovan3.arbitrum.io/rpc'
 
-export const optimismNetworkId = '420'
-export const optimismRpcUrl = ''
+export const optimismNetworkId = '69'
+export const optimismRpcUrl = 'https://kovan.optimism.rpc.hop.exchange/'

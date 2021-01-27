@@ -29,3 +29,8 @@ export const L2ArbitrumUniswapRouter =
   process.env.L2_ARBITRUM_UNISWAP_ROUTER || config.L2ArbitrumUniswapRouter
 export const L2ArbitrumCanonicalBridge =
   process.env.L2_ARBITRUM_CANONICAL_BRIDGE || config.L2ArbitrumCanonicalBridge
+
+
+export const L2OptimismTokenAddress = '0x57eaeE3D9C99b93D8FD1b50EF274579bFEC8e14B'
+export const L2OptimismUniswapRouter = '0x3C67B82D67B4f31A54C0A516dE8d3e93D010EDb3'
+export const L2OptimismUniswapFactory = '0x3e4CFaa8730092552d9425575E49bB542e329981'

@@ -5,7 +5,7 @@ import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
-import { arbBot } from 'src/arb-bot'
+import { bot, bot2 } from 'src/arb-bot/bot'
 import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
 import L2OptimismBridgeContract from 'src/contracts/L2OptimismBridgeContract'
 import { L2ArbitrumProvider } from 'src/wallets/L2ArbitrumWallet'
@@ -85,7 +85,8 @@ program
   .command('arb-bot')
   .description('Start the arbitrage bot')
   .action(() => {
-    arbBot.start()
+    bot.start()
+    bot2.start()
   })
 
 program.parse(process.argv)

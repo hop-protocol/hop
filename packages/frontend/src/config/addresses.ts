@@ -1,4 +1,20 @@
-export const addresses = {
+type HopAddresses = {
+  l1Token: string,
+  l1Bridge: string,
+  governance: {
+    l1Hop: string,
+    stakingRewardsFactory: string,
+    stakingRewards: string,
+    governorAlpha: string
+  },
+  networks: {
+    [key: string]: {
+      [key: string]: string
+    }
+  }
+}
+
+export const addresses: HopAddresses = {
   l1Token: '0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9',
   l1Bridge: '0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE',
   governance: {
@@ -19,7 +35,7 @@ export const addresses = {
     },
     optimism: {
       l1CanonicalBridge: '0xA6e9F1409fe85c84CEACD5936800A12d721009cE',
-      l2CanonicalBridge: '0x6d2f304CFF4e0B67dA4ab38C6A5C8184a2424D05',
+      l2CanonicalBridge: '0x61cBe9766fe7392A4DE03A54b2069c103AE674eb',
       l2CanonicalToken: '0x57eaeE3D9C99b93D8FD1b50EF274579bFEC8e14B', // Temp
       l2Bridge: '0x6d2f304CFF4e0B67dA4ab38C6A5C8184a2424D05',
       uniswapRouter: '0x3C67B82D67B4f31A54C0A516dE8d3e93D010EDb3',

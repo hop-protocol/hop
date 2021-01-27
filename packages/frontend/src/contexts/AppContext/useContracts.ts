@@ -93,6 +93,7 @@ const useContracts = (networks: Network[]): Contracts => {
 
     return l2NetworkOptimism?.provider
   }, [l2NetworkOptimism, connectedNetworkId, provider])
+
   const optimismContracts = useNetworkSpecificContracts(l1Network, l2NetworkOptimism)
 
   return {

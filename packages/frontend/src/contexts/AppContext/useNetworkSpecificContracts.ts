@@ -21,25 +21,23 @@ export type NetworkSpecificContracts = {
 const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): NetworkSpecificContracts => {
   const { provider, connectedNetworkId } = useWeb3Context()
 
-  let l1CanonicalBridgeAddress: string
-  let l2CanonicalTokenAddress: string 
-  let l2BridgeAddress: string
-  let uniswapRouterAddress: string
-  let uniswapFactoryAddress: string
+  // console.log('l2 slug', l2Network.slug)
 
-  if (l2Network?.name === 'Arbitrum') {
-    l1CanonicalBridgeAddress = addresses.networks.arbitrum.l1CanonicalBridge
-    l2CanonicalTokenAddress = addresses.networks.arbitrum.l2CanonicalToken
-    l2BridgeAddress = addresses.networks.arbitrum.l2Bridge
-    uniswapRouterAddress = addresses.networks.arbitrum.uniswapRouter
-    uniswapFactoryAddress = addresses.networks.arbitrum.uniswapFactory
-  } else {
-    l1CanonicalBridgeAddress = addresses.networks.optimism.l1CanonicalBridge
-    l2CanonicalTokenAddress = addresses.networks.optimism.l2CanonicalToken
-    l2BridgeAddress = addresses.networks.optimism.l2Bridge
-    uniswapRouterAddress = addresses.networks.optimism.uniswapRouter
-    uniswapFactoryAddress = addresses.networks.optimism.uniswapFactory
+  if (!l2Network?.slug) {
+    return {
+      l1CanonicalBridge: undefined,
+      l2CanonicalToken: undefined,
+      l2Bridge: undefined,
+      uniswapRouter: undefined,
+      uniswapFactory: undefined,
+    }
   }
+
+  let l1CanonicalBridgeAddress: string = addresses.networks[l2Network?.slug].l1CanonicalBridge
+  let l2CanonicalTokenAddress: string  = addresses.networks[l2Network?.slug].l2CanonicalToken
+  let l2BridgeAddress: string = addresses.networks[l2Network?.slug].l2Bridge
+  let uniswapRouterAddress: string = addresses.networks[l2Network?.slug].uniswapRouter
+  let uniswapFactoryAddress: string = addresses.networks[l2Network?.slug].uniswapFactory
 
   const l2Provider = useMemo(() => {
     if (connectedNetworkId === l2Network?.networkId) {

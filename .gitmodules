@@ -1,6 +1,3 @@
 [submodule "packages/contracts"]
 	path = packages/contracts
 	url = git@github.com:hop-exchange/contracts.git
-[submodule "contracts"]
-	path = packages/contracts
-	url = git@github.com:hop-exchange/contracts.git

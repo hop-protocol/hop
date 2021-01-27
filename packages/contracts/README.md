@@ -12,6 +12,21 @@ const contracts = require('contracts');
 
 ## Contract Addresses
 
+### Optimism Hop Testnet
+
+| Contract Name | Layer | Hop Protocol Contract | Address |
+|---|---|---|---|
+| L1 DAI               | 1 | No  | [`0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`](https://kovan.etherscan.io/address/0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9)
+| L1 Messenger         | 1 | No  | [`0x61cBe9766fe7392A4DE03A54b2069c103AE674eb`](https://kovan.etherscan.io/address/0x61cBe9766fe7392A4DE03A54b2069c103AE674eb)
+| L1 Bridge            | 1 | Yes | [`0xf7511f94161aA90Da8babc08D7F1D11cD60505F3`](https://kovan.etherscan.io/address/0xf7511f94161aA90Da8babc08D7F1D11cD60505F3)
+| L1 Messenger Wrapper | 1 | Yes | [`0xB3FdF320A0bb4b9eBedf4726F0C9Bf49D1268cf9`](https://kovan.etherscan.io/address/0xB3FdF320A0bb4b9eBedf4726F0C9Bf49D1268cf9)
+| L2 DAI               | 2 | No  | [`0x55422e97002ECB18F493Fb5ecf1a5D1f3D473122`](https://todo/0x55422e97002ECB18F493Fb5ecf1a5D1f3D473122)
+| L2 Messenger         | 2 | No  | [`0x2B6693087C513a3be8d5d94712bf1CAda09C19F4`](https://todo/0x2B6693087C513a3be8d5d94712bf1CAda09C19F4)
+| L2 Bridge            | 2 | Yes | [`0x7De02a4D7fAEfBB1b4A286FaDa492e5F91F35c4B`](https://todo/0x7De02a4D7fAEfBB1b4A286FaDa492e5F91F35c4B)
+| L2 Uniswap Factory   | 2 | Yes | [`0x458E569A48DB7457a2Ac9A1D13996ACd6e200D19`](https://todo/0x458E569A48DB7457a2Ac9A1D13996ACd6e200D19)
+| L2 Uniswap Router    | 2 | Yes | [`0xfc8bFcD71d09f4F3f9454cf5fa2DB07159f84DF9`](https://todo/0xfc8bFcD71d09f4F3f9454cf5fa2DB07159f84DF9)
+| L2 Uniswap Exchange  | 2 | Yes | [`0x3133Be0BaaFE5E6758DaD7998413B4D44ee36F62`](https://todo/0x3133Be0BaaFE5E6758DaD7998413B4D44ee36F62)
+
 ### Arbitrum Testnet 3
 
 | Contract Name | Network | Hop Protocol Contract | Address |

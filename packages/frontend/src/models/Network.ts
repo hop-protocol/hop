@@ -33,10 +33,6 @@ class Network {
   toString () {
     return this.name
   }
-
-  key () {
-    return ethers.utils.solidityKeccak256(['string'], [this.slug])
-  }
 }
 
 export default Network

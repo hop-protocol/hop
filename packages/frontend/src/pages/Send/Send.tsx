@@ -356,8 +356,9 @@ const Send: FC = () => {
       onConfirm: async () => {
         const deadline = (Date.now() / 1000 + 300) | 0
         const amountOutMin = '0'
+        const chainId = toNetwork?.networkId
         return l1Bridge.sendToL2AndAttemptSwap(
-          l2Network?.key(),
+          chainId,
           await signer.getAddress(),
           parseEther(fromTokenAmount),
           amountOutMin,
@@ -450,7 +451,6 @@ const Send: FC = () => {
         const relayerFee = '0'
         const amountOutIn = '0'
         const destinationAmountOutMin = '0'
-        console.log('l2', l2Bridge.address)
         return l2Bridge?.swapAndSend(
           chainId,
           await signer?.getAddress(),

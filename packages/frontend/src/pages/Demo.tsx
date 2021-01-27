@@ -29,7 +29,7 @@ const Demo: FC<Props> = () => {
   const handleApprove = async () => {
     const signer = provider?.getSigner()
     const tx = await signer?.sendTransaction({
-      to: addresses.l1Dai,
+      to: addresses.l1Token,
       value: toHex('0', { addPrefix: true }),
       gasLimit: toHex('1000000', { addPrefix: true }),
       gasPrice: toHex('10000000000', { addPrefix: true }),
@@ -84,7 +84,7 @@ const Demo: FC<Props> = () => {
     const recipient = await signer?.getAddress()
     const amountIn = parseUnits('20', 18)
     const amountOutMin = '0'
-    const path = [addresses.arbitrumBridge, addresses.arbitrumDai]
+    const path = [addresses.networks.arbitrum.l2Bridge, addresses.networks.arbitrum.l2CanonicalToken]
     const to = recipient
     const deadline = (Date.now() / 1000 + 300) | 0
 

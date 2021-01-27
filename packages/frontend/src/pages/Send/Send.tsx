@@ -73,9 +73,8 @@ const Send: FC = () => {
   } = useApp()
   const tokens = allTokens.filter((token: Token) => token.symbol === 'DAI')
   const l1Bridge = contracts?.l1Bridge
-  const arbitrumBridge = contracts?.networks.arbitrum.l2Bridge
-  const arbitrumUniswapRouter = contracts?.networks.arbitrum.uniswapRouter
-  const arbitrumUniswapFactory = contracts?.networks.arbitrum.uniswapFactory
+  const l2Bridge = contracts?.networks.arbitrum.l2Bridge
+  const uniswapRouter = contracts?.networks.arbitrum.uniswapRouter
 
   const {
     provider,
@@ -105,20 +104,20 @@ const Send: FC = () => {
     if (!fromNetwork) return 0
     if (!toNetwork) return 0
     if (!amount) return 0
-    const hopDai = addresses.arbitrumBridge
-    const dai = addresses.l1Dai
+    const l2Bridge = addresses.networks.arbitrum.l2Bridge
+    const dai = addresses.l1Token
     const decimals = 18
-    const path = fromNetwork.isLayer1 ? [hopDai, dai] : [dai, hopDai]
+    const path = fromNetwork.isLayer1 ? [l2Bridge, dai] : [dai, l2Bridge]
     if (isAmountIn) {
       const amount0 = parseUnits(amount, decimals)
-      const amountsOut = await arbitrumUniswapRouter?.getAmountsOut(
+      const amountsOut = await uniswapRouter?.getAmountsOut(
         amount0,
         path
       )
       return Number(formatUnits(amountsOut[1], decimals))
     } else {
       const amount1 = parseUnits(amount, decimals)
-      const amountsIn = await arbitrumUniswapRouter?.getAmountsIn(amount1, path)
+      const amountsIn = await uniswapRouter?.getAmountsIn(amount1, path)
       return Number(formatUnits(amountsIn[0], decimals))
     }
   }
@@ -248,7 +247,7 @@ const Send: FC = () => {
 
       const approved = await tokenContract.allowance(
         await signer?.getAddress(),
-        arbitrumBridge?.address
+        l2Bridge?.address
       )
       const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
       if (approved.lt(parsedAmount)) {
@@ -259,7 +258,7 @@ const Send: FC = () => {
             token: selectedToken
           },
           onConfirm: async () => {
-            return tokenContract.approve(arbitrumBridge?.address, UINT256)
+            return tokenContract.approve(l2Bridge?.address, UINT256)
           }
         })
         await tx?.wait()
@@ -318,7 +317,7 @@ const Send: FC = () => {
       throw new Error('Cannot send: l1Bridge or signer does not exist.')
     }
 
-    const arbitrumNetwork = networks[1]
+    const l2Network = networks[1]
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
@@ -335,7 +334,7 @@ const Send: FC = () => {
         const deadline = (Date.now() / 1000 + 300) | 0
         const amountOutMin = '0'
         return l1Bridge.sendToL2AndAttemptSwap(
-          arbitrumNetwork.key(),
+          l2Network.key(),
           await signer.getAddress(),
           parseEther(fromTokenAmount),
           amountOutMin,
@@ -356,7 +355,7 @@ const Send: FC = () => {
 
   const sendl2ToL1 = async () => {
     const signer = provider?.getSigner()
-    if (!arbitrumBridge || !signer) {
+    if (!l2Bridge || !signer) {
       throw new Error('Cannot send: l1Bridge or signer does not exist.')
     }
 
@@ -379,7 +378,7 @@ const Send: FC = () => {
         const relayerFee = '0'
         const amountOutIn = '0'
         const destinationAmountOutMin = '0'
-        return arbitrumBridge?.swapAndSend(
+        return l2Bridge?.swapAndSend(
           chainId,
           await signer?.getAddress(),
           parseEther(fromTokenAmount),

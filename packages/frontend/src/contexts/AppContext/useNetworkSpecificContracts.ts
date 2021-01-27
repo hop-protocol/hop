@@ -18,68 +18,62 @@ export type NetworkSpecificContracts = {
   uniswapFactory: Contract | undefined
 }
 
-const useNetworkSpecificContracts = (networks: Network[]): NetworkSpecificContracts => {
+const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): NetworkSpecificContracts => {
   const { provider, connectedNetworkId } = useWeb3Context()
-  const arbitrumProvider = useMemo(() => {
-    const arbitrumNetwork = networks.find(
-      (network: Network) => network.slug === 'arbitrum'
-    )
-    if (connectedNetworkId === arbitrumNetwork?.networkId) {
+  const l2Provider = useMemo(() => {
+    if (connectedNetworkId === l2Network?.networkId) {
       return provider?.getSigner()
     }
 
-    return arbitrumNetwork?.provider
-  }, [networks, connectedNetworkId, provider])
-  const kovanProvider = useMemo(() => {
-    const kovanNetwork = networks.find(
-      (network: Network) => network.slug === 'kovan'
-    )
-    if (connectedNetworkId === kovanNetwork?.networkId) {
+    return l2Network?.provider
+  }, [l2Network, connectedNetworkId, provider])
+  const l1Provider = useMemo(() => {
+    if (connectedNetworkId === l1Network?.networkId) {
       return provider?.getSigner()
     }
 
-    return kovanNetwork?.provider
-  }, [networks, connectedNetworkId, provider])
+    return l1Network?.provider
+  }, [l1Network, connectedNetworkId, provider])
 
   const l1CanonicalBridge = useMemo(() => {
     return new Contract(
-      addresses.l1Messenger,
+      addresses.networks.arbitrum.l1CanonicalBridge,
       l1ArbitrumMessengerArtifact.abi,
-      kovanProvider
+      l1Provider
     )
-  }, [kovanProvider])
+  }, [l1Provider])
 
   const l2CanonicalToken = useMemo(() => {
     return new Contract(
-      addresses.arbitrumDai,
+      addresses.networks.arbitrum.l2CanonicalToken,
       arbErc20Artifact.abi,
-      arbitrumProvider
+      l2Provider
     )
-  }, [arbitrumProvider])
+  }, [l2Provider])
 
   const l2Bridge = useMemo(() => {
     return new Contract(
-      addresses.arbitrumBridge,
+      addresses.networks.arbitrum.l2Bridge,
       l2BridgeArtifact.abi,
-      arbitrumProvider
+      l2Provider
     )
-  }, [arbitrumProvider])
+  }, [l2Provider])
 
   const uniswapRouter = useMemo(() => {
     return new Contract(
-      addresses.arbitrumUniswapRouter,
+      addresses.networks.arbitrum.uniswapRouter,
       uniswapRouterArtifact.abi,
-      arbitrumProvider
+      l2Provider
     )
-  }, [arbitrumProvider])
+  }, [l2Provider])
 
   const uniswapFactory = useMemo(() => {
     return new Contract(
-      addresses.arbitrumUniswapFactory,
+      addresses.networks.arbitrum.uniswapFactory,
       uniswapFactoryArtifact.abi,
-      arbitrumProvider
+      l2Provider
     )
-  }, [arbitrumProvider])
+  }, [l2Provider])
 
   return {
     l1CanonicalBridge,

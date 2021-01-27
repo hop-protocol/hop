@@ -120,9 +120,9 @@ const ConvertContextProvider: FC = ({ children }) => {
         (sourceNetwork?.slug === 'arbitrum' &&
           destNetwork?.slug === 'arbitrumHopBridge')
       ) {
-        let path = [addresses.arbitrumDai, addresses.arbitrumBridge]
+        let path = [addresses.networks.arbitrum.l2CanonicalToken, addresses.networks.arbitrum.l2Bridge]
         if (destNetwork?.slug === 'arbitrum') {
-          path = [addresses.arbitrumBridge, addresses.arbitrumDai]
+          path = [addresses.networks.arbitrum.l2Bridge, addresses.networks.arbitrum.l2CanonicalToken]
         }
 
         const amountsOut = await arbitrumUniswapRouter?.getAmountsOut(
@@ -241,7 +241,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             },
             onConfirm: async () => {
               return arbitrumL1Messenger?.depositERC20Message(
-                addresses.arbChain,
+                addresses.networks.arbitrum?.arbChain,
                 tokenAddress,
                 address,
                 value
@@ -316,7 +316,7 @@ const ConvertContextProvider: FC = ({ children }) => {
           )
 
           const amountOutMin = '0'
-          const path = [addresses.arbitrumDai, addresses.arbitrumBridge]
+          const path = [addresses.networks.arbitrum.l2CanonicalToken, addresses.networks.arbitrum.l2Bridge]
           const deadline = (Date.now() / 1000 + 300) | 0
 
           tx = await txConfirm?.show({
@@ -352,7 +352,7 @@ const ConvertContextProvider: FC = ({ children }) => {
           )
 
           const amountOutMin = '0'
-          const path = [addresses.arbitrumBridge, addresses.arbitrumDai]
+          const path = [addresses.networks.arbitrum.l2Bridge, addresses.networks.arbitrum.l2CanonicalToken]
           const deadline = (Date.now() / 1000 + 300) | 0
 
           tx = await txConfirm?.show({

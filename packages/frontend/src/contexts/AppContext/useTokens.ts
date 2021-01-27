@@ -12,25 +12,37 @@ const useTokens = (networks: Network[]) => {
   const l1Hop = useMemo(() => {
     const network = networks.find(network => network.slug === 'kovan')
     if (!network) throw new Error('Kovan network not found')
-    return getErc20Contract(addresses.l1Hop, network.provider)
+    return getErc20Contract(addresses.l1Token, network.provider)
   }, [networks, getErc20Contract])
 
   const l1Dai = useMemo(() => {
     const network = networks.find(network => network.slug === 'kovan')
     if (!network) throw new Error('Kovan network not found')
-    return getErc20Contract(addresses.l1Dai, network.provider)
+    return getErc20Contract(addresses.l1Token, network.provider)
   }, [networks, getErc20Contract])
 
   const arbitrumDai = useMemo(() => {
     const network = networks.find(network => network.slug === 'arbitrum')
     if (!network) throw new Error('Arbitrum network not found')
-    return getErc20Contract(addresses.arbitrumDai, network.provider)
+    return getErc20Contract(addresses.networks.arbitrum.l2CanonicalToken, network.provider)
   }, [networks, getErc20Contract])
 
   const arbitrumBridgeDai = useMemo(() => {
     const network = networks.find(network => network.slug === 'arbitrum')
     if (!network) throw new Error('Arbitrum network not found')
-    return getErc20Contract(addresses.arbitrumBridge, network.provider)
+    return getErc20Contract(addresses.networks.arbitrum.l2Bridge, network.provider)
+  }, [networks, getErc20Contract])
+
+  const optimismDai = useMemo(() => {
+    const network = networks.find(network => network.slug === 'optimism')
+    if (!network) throw new Error('Optimism network not found')
+    return getErc20Contract(addresses.networks.optimism.l2CanonicalToken, network.provider)
+  }, [networks, getErc20Contract])
+
+  const optimismBridgeDai = useMemo(() => {
+    const network = networks.find(network => network.slug === 'optimism')
+    if (!network) throw new Error('Optimism network not found')
+    return getErc20Contract(addresses.networks.optimism.l2Bridge, network.provider)
   }, [networks, getErc20Contract])
 
   const tokens = useMemo<Token[]>(
@@ -51,7 +63,9 @@ const useTokens = (networks: Network[]) => {
         contracts: {
           kovan: l1Dai,
           arbitrum: arbitrumDai,
-          arbitrumHopBridge: arbitrumBridgeDai
+          arbitrumHopBridge: arbitrumBridgeDai,
+          optimism: optimismDai,
+          optimismHopBridge: optimismBridgeDai
         },
         rates: {
           kovan: parseUnits('1', 18),

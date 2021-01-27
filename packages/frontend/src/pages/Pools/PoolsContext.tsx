@@ -125,7 +125,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   const hopToken = useMemo(() => {
     const network = networks.find(network => network.slug === 'arbitrum')
     const arbitrumBridgeDai = new Contract(
-      addresses.arbitrumBridge,
+      addresses.networks.arbitrum.l2Bridge,
       erc20Artifact.abi,
       network?.provider
     )

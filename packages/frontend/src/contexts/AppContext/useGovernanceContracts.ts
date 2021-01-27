@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Contract, Signer, providers } from 'ethers'
+import { Contract } from 'ethers'
 import stakingRewardsFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/distribution/StakingRewardsFactory.sol/StakingRewardsFactory.json'
 import stakingRewardsArtifact from '@hop-exchange/contracts/artifacts/contracts/distribution/StakingRewardsFactory.sol/StakingRewards.json'
 import hopArtifact from '@hop-exchange/contracts/artifacts/contracts/governance/Hop.sol/Hop.json'
@@ -31,12 +31,12 @@ const useGovernanceContracts = (networks: Network[]): GovernanceContracts => {
   }, [networks, connectedNetworkId, provider])
 
   const l1Hop = useMemo(() => {
-    return new Contract(addresses.l1Hop, hopArtifact.abi, kovanProvider)
+    return new Contract(addresses.governance.l1Hop, hopArtifact.abi, kovanProvider)
   }, [kovanProvider])
 
   const stakingRewardsFactory = useMemo(() => {
     return new Contract(
-      addresses.stakingRewardsFactory,
+      addresses.governance.stakingRewardsFactory,
       stakingRewardsFactoryArtifact.abi,
       kovanProvider
     )
@@ -44,7 +44,7 @@ const useGovernanceContracts = (networks: Network[]): GovernanceContracts => {
 
   const stakingRewards = useMemo(() => {
     return new Contract(
-      addresses.stakingRewards,
+      addresses.governance.stakingRewards,
       stakingRewardsArtifact.abi,
       kovanProvider
     )
@@ -52,7 +52,7 @@ const useGovernanceContracts = (networks: Network[]): GovernanceContracts => {
 
   const governorAlpha = useMemo(() => {
     return new Contract(
-      addresses.governorAlpha,
+      addresses.governance.governorAlpha,
       governorAlphaArtifact.abi,
       kovanProvider
     )

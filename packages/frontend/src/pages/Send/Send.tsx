@@ -107,15 +107,18 @@ const Send: FC = () => {
     if (!amount) return 0
 
     let l2BridgeAddress
+    let uniswapRouter
     if (toNetwork?.name === 'Arbitrum') {
       l2BridgeAddress = contracts?.networks.arbitrum.l2Bridge?.address
+      uniswapRouter = contracts?.networks.arbitrum.uniswapRouter
     } else if (toNetwork?.name === 'Optimism') {
       l2BridgeAddress = contracts?.networks.optimism.l2Bridge?.address
+      uniswapRouter = contracts?.networks.optimism.uniswapRouter
     }
 
     const dai = addresses.l1Token
     const decimals = 18
-    const path = fromNetwork.isLayer1 ? [l2Bridge, dai] : [dai, l2Bridge]
+    const path = fromNetwork.isLayer1 ? [l2BridgeAddress, dai] : [dai, l2BridgeAddress]
     if (isAmountIn) {
       const amount0 = parseUnits(amount, decimals)
       const amountsOut = await uniswapRouter?.getAmountsOut(

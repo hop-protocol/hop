@@ -1,8 +1,6 @@
 import '../moduleAlias'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
 import { BondTransferRootEvent, TransfersCommittedEvent } from 'src/constants'
-import { L2ArbitrumProvider } from 'src/wallets/L2ArbitrumWallet'
-import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
 import Logger from 'src/logger'
 
 const logger = new Logger('[challengeWatcher]', { color: 'red' })
@@ -14,8 +12,24 @@ const logger = new Logger('[challengeWatcher]', { color: 'red' })
 // - if TransferCommitted event not exist then mark as fraud
 // - TransferCommitted should be emitted on L2 after BondTransferRoot on L1
 
+export interface Config {
+  L2BridgeContract: any
+  L2Provider: any
+  label: string
+}
+
 // TODO: fix
 class ChallengeWatcher {
+  L2BridgeContract: any
+  L2Provider: any
+  label: string
+
+  constructor(config: Config) {
+    this.L2BridgeContract = config.L2BridgeContract
+    this.L2Provider = config.L2Provider
+    this.label = config.label
+  }
+
   async start () {
     logger.log('starting L1 BondTransferRoot event watcher')
     try {
@@ -39,8 +53,8 @@ class ChallengeWatcher {
         transactionHash
       )
 
-      const L2BlockNumber = await L2ArbitrumProvider.getBlockNumber()
-      const recentTransferCommitEvents = await L2ArbitrumBridgeContract.queryFilter(
+      const L2BlockNumber = await this.L2Provider.getBlockNumber()
+      const recentTransferCommitEvents = await this.L2BridgeContract.queryFilter(
         TransfersCommittedEvent as any,
         L2BlockNumber - 100
       )
@@ -66,13 +80,13 @@ class ChallengeWatcher {
 
     L1BridgeContract.on(BondTransferRootEvent, handleBondTransferEvent)
 
-    //const L2BlockNumber = await L2ArbitrumProvider.getBlockNumber()
-    //const recentTransferCommitEvents = await L2ArbitrumBridgeContract.queryFilter(
-    //L2ArbitrumBridgeContract.filters.TransfersCommitted(),
+    //const L2BlockNumber = await this.L2Provider.getBlockNumber()
+    //const recentTransferCommitEvents = await this.L2BridgeContract.queryFilter(
+    //L2BridgeContract.filters.TransfersCommitted(),
     //L2BlockNumber - 100
     //)
     //logger.log('recent events:', recentTransferCommitEvents)
   }
 }
 
-export default new ChallengeWatcher()
+export default ChallengeWatcher

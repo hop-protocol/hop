@@ -1,8 +1,6 @@
 import '../moduleAlias'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
 import { BondTransferRootEvent, TransfersCommittedEvent } from 'src/constants'
-import { L2ArbitrumProvider } from 'src/wallets/L2ArbitrumWallet'
-import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
 import { store } from 'src/store'
 import chalk from 'chalk'
 import Logger from 'src/logger'
@@ -11,7 +9,20 @@ const logger = new Logger('[settleBondedWithdrawalWatcher]', {
   color: 'magenta'
 })
 
+export interface Config {
+  L2BridgeContract: any
+  label: string
+}
+
 class SettleBondedWithdrawalWatcher {
+  L2BridgeContract: any
+  label: string
+
+  constructor(config: Config) {
+    this.L2BridgeContract = config.L2BridgeContract
+    this.label = config.label
+  }
+
   async start () {
     logger.log('starting L1 BondTransferRoot event watcher')
     try {
@@ -39,7 +50,7 @@ class SettleBondedWithdrawalWatcher {
         proof
       )
     } else {
-      return L2ArbitrumBridgeContract.settleBondedWithdrawal(
+      return this.L2BridgeContract.settleBondedWithdrawal(
         transferHash,
         rootHash,
         proof
@@ -83,4 +94,4 @@ class SettleBondedWithdrawalWatcher {
   }
 }
 
-export default new SettleBondedWithdrawalWatcher()
+export default SettleBondedWithdrawalWatcher

@@ -1,8 +1,6 @@
 import '../moduleAlias'
 import wait from '@authereum/utils/core/wait'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
-import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
-import { L2ArbitrumProvider } from 'src/wallets/L2ArbitrumWallet'
 import { TransfersCommittedEvent } from 'src/constants'
 import { store } from 'src/store'
 import chalk from 'chalk'
@@ -10,10 +8,23 @@ import Logger from 'src/logger'
 
 const logger = new Logger('[bondTransferRootWatcher]', { color: 'cyan' })
 
+export interface Config {
+  L2BridgeContract: any
+  label: string
+}
+
 class BondTransferRootWatcher {
+  L2BridgeContract: any
+  label: string
+
+  constructor(config: Config) {
+    this.L2BridgeContract = config.L2BridgeContract
+    this.label = config.label
+  }
+
   async start () {
     logger.log(
-      'starting L2 Arbitrum TransfersCommitted event watcher for L1 bondTransferRoot tx'
+      `starting L2 ${this.label} TransfersCommitted event watcher for L1 bondTransferRoot tx`
     )
 
     try {
@@ -24,7 +35,7 @@ class BondTransferRootWatcher {
   }
 
   async watch () {
-    L2ArbitrumBridgeContract.on(
+    this.L2BridgeContract.on(
       TransfersCommittedEvent,
       this.handleTransferCommittedEvent
     )
@@ -54,7 +65,7 @@ class BondTransferRootWatcher {
   ) => {
     try {
       const { transactionHash } = meta
-      logger.log('received L2 Arbitrum TransfersCommittedEvent event')
+      logger.log(`received L2 ${this.label} TransfersCommittedEvent event`)
       logger.log('transferRootHash', transferRootHash)
       logger.log(
         'chainIds',
@@ -83,4 +94,4 @@ class BondTransferRootWatcher {
   }
 }
 
-export default new BondTransferRootWatcher()
+export default BondTransferRootWatcher

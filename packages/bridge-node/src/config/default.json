@@ -1,9 +1,10 @@
 {
   "L1EthRpcUrl": "https://kovan.rpc.authereum.com",
   "L2ArbitrumRpcUrl": "https://kovan3.arbitrum.io/rpc",
+  "L2OptimismRpcUrl": "https://kovan.optimism.rpc.hop.exchange",
   "L1BridgeAddress": "0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE",
   "L2ArbitrumBridgeAddress": "0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde",
-  "L2OptimismBridgeAddress": "",
+  "L2OptimismBridgeAddress": "0x6d2f304CFF4e0B67dA4ab38C6A5C8184a2424D05",
   "L1DaiAddress": "0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9",
   "L1MessengerAddress": "0xE681857DEfE8b454244e701BA63EfAa078d7eA85",
   "L1MessengerWrapperAddress": "0x36501dcD0007aA4DB373667d730C5AE91a7b3cc8",

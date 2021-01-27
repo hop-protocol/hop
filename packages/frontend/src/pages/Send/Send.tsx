@@ -106,17 +106,20 @@ const Send: FC = () => {
     if (!toNetwork) return 0
     if (!amount) return 0
 
+    let l2CanonicalTokenAddress
     let l2BridgeAddress
     let uniswapRouter
     if (toNetwork?.name === 'Arbitrum') {
+      l2CanonicalTokenAddress = contracts?.networks.arbitrum.l2CanonicalToken?.address
       l2BridgeAddress = contracts?.networks.arbitrum.l2Bridge?.address
       uniswapRouter = contracts?.networks.arbitrum.uniswapRouter
     } else if (toNetwork?.name === 'Optimism') {
+      l2CanonicalTokenAddress = contracts?.networks.optimism.l2CanonicalToken?.address
       l2BridgeAddress = contracts?.networks.optimism.l2Bridge?.address
       uniswapRouter = contracts?.networks.optimism.uniswapRouter
     }
 
-    const dai = addresses.l1Token
+    const dai = l2CanonicalTokenAddress
     const decimals = 18
     const path = fromNetwork.isLayer1 ? [l2BridgeAddress, dai] : [dai, l2BridgeAddress]
     if (isAmountIn) {
@@ -137,11 +140,12 @@ const Send: FC = () => {
     try {
       if (!amountIn || !toNetwork) return
       const ctx = ++debouncer.current
-      const amountOut = await calcAmount(amountIn, true)
-      const rate = amountOut / Number(amountIn)
+      const rate = 1
+      // const amountOut = await calcAmount(amountIn, true)
+      // const rate = amountOut / Number(amountIn)
       if (ctx !== debouncer.current) return
       setToTokenAmount((Number(amountIn) * rate).toFixed(2))
-      setExchangeRate(rate)
+      setExchangeRate(1)
     } catch (err) {
       console.error(err)
     }
@@ -151,11 +155,12 @@ const Send: FC = () => {
     try {
       if (!amountOut || !fromNetwork) return
       const ctx = ++debouncer.current
-      const amountIn = await calcAmount(amountOut, false)
-      const rate = Number(amountOut) / amountIn
+      const rate = 1
+      // const amountIn = await calcAmount(amountOut, false)
+      // const rate = Number(amountOut) / amountIn
       if (ctx !== debouncer.current) return
       setFromTokenAmount((Number(amountOut) / rate).toFixed(2))
-      setExchangeRate(rate)
+      setExchangeRate(1)
     } catch (err) {
       console.error(err)
     }

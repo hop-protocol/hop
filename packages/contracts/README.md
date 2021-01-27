@@ -16,31 +16,31 @@ const contracts = require('contracts');
 
 | Contract Name | Network | Hop Protocol Contract | Address |
 |---|---|---|---|
-| L1 DAI               | Kovan              | No  | [`0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`](https://kovan.etherscan.io/address/0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9)
-| L1 Messenger         | Kovan              | No  | [`0xE681857DEfE8b454244e701BA63EfAa078d7eA85`](https://kovan.etherscan.io/address/0xE681857DEfE8b454244e701BA63EfAa078d7eA85)
-| L1 Bridge            | Kovan              | Yes | [`0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE`](https://kovan.etherscan.io/address/0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE)
-| L1 Messenger Wrapper | Kovan              | Yes | [`0x36501dcD0007aA4DB373667d730C5AE91a7b3cc8`](https://kovan.etherscan.io/address/0x36501dcD0007aA4DB373667d730C5AE91a7b3cc8)
-| L2 DAI               | Arbitrum Testnet 3 | No  | [`0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`](https://explorer.offchainlabs.com/#/address/0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9)
-| L2 Messenger         | Arbitrum Testnet 3 | No  | [`0x0000000000000000000000000000000000000064`](https://explorer.offchainlabs.com/#/address/0x0000000000000000000000000000000000000064)
-| L2 Bridge            | Arbitrum Testnet 3 | Yes | [`0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde`](https://explorer.offchainlabs.com/#/address/0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde)
-| L2 Uniswap Factory   | Arbitrum Testnet 3 | Yes | [`0xd28B241aB439220b85b8B90B912799DefECA8CCe`](https://explorer.offchainlabs.com/#/address/0xd28B241aB439220b85b8B90B912799DefECA8CCe)
-| L2 Uniswap Router    | Arbitrum Testnet 3 | Yes | [`0x2B6812d2282CF676044cBdE2D0222c08e6E1bdb2`](https://explorer.offchainlabs.com/#/address/0x2B6812d2282CF676044cBdE2D0222c08e6E1bdb2)
-| L2 Uniswap Exchange  | Arbitrum Testnet 3 | Yes | [`0xD637bf04dF4FDFDf951C06e3c87f7801c85b161f`](https://explorer.offchainlabs.com/#/address/0xD637bf04dF4FDFDf951C06e3c87f7801c85b161f)
+| L1 DAI               | 1 | No  | [`0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`](https://kovan.etherscan.io/address/0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9)
+| L1 Messenger         | 1 | No  | [`0xE681857DEfE8b454244e701BA63EfAa078d7eA85`](https://kovan.etherscan.io/address/0xE681857DEfE8b454244e701BA63EfAa078d7eA85)
+| L1 Bridge            | 1 | Yes | [`0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE`](https://kovan.etherscan.io/address/0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE)
+| L1 Messenger Wrapper | 1 | Yes | [`0x36501dcD0007aA4DB373667d730C5AE91a7b3cc8`](https://kovan.etherscan.io/address/0x36501dcD0007aA4DB373667d730C5AE91a7b3cc8)
+| L2 DAI               | 2 | No  | [`0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`](https://explorer.offchainlabs.com/#/address/0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9)
+| L2 Messenger         | 2 | No  | [`0x0000000000000000000000000000000000000064`](https://explorer.offchainlabs.com/#/address/0x0000000000000000000000000000000000000064)
+| L2 Bridge            | 2 | Yes | [`0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde`](https://explorer.offchainlabs.com/#/address/0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde)
+| L2 Uniswap Factory   | 2 | Yes | [`0xd28B241aB439220b85b8B90B912799DefECA8CCe`](https://explorer.offchainlabs.com/#/address/0xd28B241aB439220b85b8B90B912799DefECA8CCe)
+| L2 Uniswap Router    | 2 | Yes | [`0x2B6812d2282CF676044cBdE2D0222c08e6E1bdb2`](https://explorer.offchainlabs.com/#/address/0x2B6812d2282CF676044cBdE2D0222c08e6E1bdb2)
+| L2 Uniswap Exchange  | 2 | Yes | [`0xD637bf04dF4FDFDf951C06e3c87f7801c85b161f`](https://explorer.offchainlabs.com/#/address/0xD637bf04dF4FDFDf951C06e3c87f7801c85b161f)
 
 ### Arbitrum Testnet 2
 
 | Contract Name | Network | Hop Protocol Contract | Address |
 |---|---|---|---|
-| L1 DAI               | Kovan              | No  | [`0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`](https://kovan.etherscan.io/address/0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9)
-| L1 Messenger         | Kovan              | No  | [`0xE681857DEfE8b454244e701BA63EfAa078d7eA85`](https://kovan.etherscan.io/address/0xE681857DEfE8b454244e701BA63EfAa078d7eA85)
-| L1 Bridge            | Kovan              | Yes | [`0xC9898E162b6a43dc665B033F1EF6b2bc7B0157B4`](https://kovan.etherscan.io/address/0xC9898E162b6a43dc665B033F1EF6b2bc7B0157B4)
-| L1 Messenger Wrapper | Kovan              | Yes | [`0xb5cAC377180fcE007664Cc65ff044d685e0F1A3b`](https://kovan.etherscan.io/address/0xb5cAC377180fcE007664Cc65ff044d685e0F1A3b)
-| L2 DAI               | Arbitrum Testnet 3 | No  | [`0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`](https://explorer.offchainlabs.com/#/address/0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9)
-| L2 Messenger         | Arbitrum Testnet 3 | No  | [`0x0000000000000000000000000000000000000064`](https://explorer.offchainlabs.com/#/address/0x0000000000000000000000000000000000000064)
-| L2 Bridge            | Arbitrum Testnet 3 | Yes | [`0xf8E96392b1Ba3B2FD88041894a93e089E93C0dcd`](https://explorer.offchainlabs.com/#/address/0xf8E96392b1Ba3B2FD88041894a93e089E93C0dcd)
-| L2 Uniswap Factory   | Arbitrum Testnet 3 | Yes | [`0xEaAec7a29B6ccE9e831C8d07e989fa4163026177`](https://explorer.offchainlabs.com/#/address/0xEaAec7a29B6ccE9e831C8d07e989fa4163026177)
-| L2 Uniswap Router    | Arbitrum Testnet 3 | Yes | [`0xBae19197DFa25105E832b8fAfeAB88aCa275385F`](https://explorer.offchainlabs.com/#/address/0xBae19197DFa25105E832b8fAfeAB88aCa275385F)
-| L2 Uniswap Exchange  | Arbitrum Testnet 3 | Yes | [`0xea535dF09be62d5542161D1a4A429A831d329638`](https://explorer.offchainlabs.com/#/address/0xea535dF09be62d5542161D1a4A429A831d329638)
+| L1 DAI               | 1 | No  | [`0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`](https://kovan.etherscan.io/address/0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9)
+| L1 Messenger         | 1 | No  | [`0xE681857DEfE8b454244e701BA63EfAa078d7eA85`](https://kovan.etherscan.io/address/0xE681857DEfE8b454244e701BA63EfAa078d7eA85)
+| L1 Bridge            | 1 | Yes | [`0xC9898E162b6a43dc665B033F1EF6b2bc7B0157B4`](https://kovan.etherscan.io/address/0xC9898E162b6a43dc665B033F1EF6b2bc7B0157B4)
+| L1 Messenger Wrapper | 1 | Yes | [`0xb5cAC377180fcE007664Cc65ff044d685e0F1A3b`](https://kovan.etherscan.io/address/0xb5cAC377180fcE007664Cc65ff044d685e0F1A3b)
+| L2 DAI               | 2 | No  | [`0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`](https://explorer.offchainlabs.com/#/address/0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9)
+| L2 Messenger         | 2 | No  | [`0x0000000000000000000000000000000000000064`](https://explorer.offchainlabs.com/#/address/0x0000000000000000000000000000000000000064)
+| L2 Bridge            | 2 | Yes | [`0xf8E96392b1Ba3B2FD88041894a93e089E93C0dcd`](https://explorer.offchainlabs.com/#/address/0xf8E96392b1Ba3B2FD88041894a93e089E93C0dcd)
+| L2 Uniswap Factory   | 2 | Yes | [`0xEaAec7a29B6ccE9e831C8d07e989fa4163026177`](https://explorer.offchainlabs.com/#/address/0xEaAec7a29B6ccE9e831C8d07e989fa4163026177)
+| L2 Uniswap Router    | 2 | Yes | [`0xBae19197DFa25105E832b8fAfeAB88aCa275385F`](https://explorer.offchainlabs.com/#/address/0xBae19197DFa25105E832b8fAfeAB88aCa275385F)
+| L2 Uniswap Exchange  | 2 | Yes | [`0xea535dF09be62d5542161D1a4A429A831d329638`](https://explorer.offchainlabs.com/#/address/0xea535dF09be62d5542161D1a4A429A831d329638)
 
 ## Scripts
 

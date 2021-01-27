@@ -18,12 +18,12 @@ export const addresses = {
       arbChain: '0x2e8aF9f74046D3E55202Fcfb893348316B142230'
     },
     optimism: {
-      l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-      l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
-      l2CanonicalToken: '0x69d28EA3c687aEc89477B0b6407b385A4941dC8D', // Temp
-      l2Bridge: '0xb7F6458b6Ab078241437bB771404912582dD6f47',
-      uniswapRouter: '0xa1faF62b538206Aafd556237dDeBF71e5e2253f5',
-      uniswapFactory: '0xB90B4418b15ac78eE592F12f1668E066745FAb89'
+      l1CanonicalBridge: '0xA6e9F1409fe85c84CEACD5936800A12d721009cE',
+      l2CanonicalBridge: '0x6d2f304CFF4e0B67dA4ab38C6A5C8184a2424D05',
+      l2CanonicalToken: '0x57eaeE3D9C99b93D8FD1b50EF274579bFEC8e14B', // Temp
+      l2Bridge: '0x6d2f304CFF4e0B67dA4ab38C6A5C8184a2424D05',
+      uniswapRouter: '0x3C67B82D67B4f31A54C0A516dE8d3e93D010EDb3',
+      uniswapFactory: '0x3e4CFaa8730092552d9425575E49bB542e329981'
     }
   }
 }

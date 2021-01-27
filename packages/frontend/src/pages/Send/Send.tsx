@@ -73,8 +73,6 @@ const Send: FC = () => {
   } = useApp()
   const tokens = allTokens.filter((token: Token) => token.symbol === 'DAI')
   const l1Bridge = contracts?.l1Bridge
-  const l2Bridge = contracts?.networks.arbitrum.l2Bridge
-  const uniswapRouter = contracts?.networks.arbitrum.uniswapRouter
 
   const {
     provider,
@@ -82,6 +80,9 @@ const Send: FC = () => {
     connectedNetworkId,
     walletConnected
   } = useWeb3Context()
+
+  const [l2Bridge, setL2Bridge] = useState<Contract | undefined>()
+  const [uniswapRouter, setUniswapRouter] = useState<Contract | undefined>()
 
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [fromNetwork, setFromNetwork] = useState<Network>()
@@ -104,7 +105,14 @@ const Send: FC = () => {
     if (!fromNetwork) return 0
     if (!toNetwork) return 0
     if (!amount) return 0
-    const l2Bridge = addresses.networks.arbitrum.l2Bridge
+
+    let l2BridgeAddress
+    if (toNetwork?.name === 'Arbitrum') {
+      l2BridgeAddress = contracts?.networks.arbitrum.l2Bridge?.address
+    } else if (toNetwork?.name === 'Optimism') {
+      l2BridgeAddress = contracts?.networks.optimism.l2Bridge?.address
+    }
+
     const dai = addresses.l1Token
     const decimals = 18
     const path = fromNetwork.isLayer1 ? [l2Bridge, dai] : [dai, l2Bridge]
@@ -164,6 +172,14 @@ const Send: FC = () => {
     setFromNetwork(toNetwork)
     setToNetwork(fromNetwork)
     setIsFromLastChanged(!isFromLastChanged)
+
+    if (toNetwork?.name === 'Arbitrum') {
+      setL2Bridge(contracts?.networks.arbitrum.l2Bridge)
+      setUniswapRouter(contracts?.networks.arbitrum.uniswapRouter)
+    } else if (toNetwork?.name === 'Optimism') {
+      setL2Bridge(contracts?.networks.optimism.l2Bridge)
+      setUniswapRouter(contracts?.networks.optimism.uniswapRouter)
+    }
   }
 
   const checkWalletNetwork = () => {
@@ -297,10 +313,10 @@ const Send: FC = () => {
       await approve(fromTokenAmount)
       if (fromNetwork.isLayer1) {
         await sendl1ToL2()
-      } else if (!fromNetwork.isLayer1) {
+      } else if (!fromNetwork.isLayer1 && toNetwork.isLayer1) {
         await sendl2ToL1()
       } else {
-        console.log('ToDo: L2 to L2 transfers')
+        await sendl2ToL2()
       }
     } catch (err) {
       if (!/cancelled/gi.test(err.message)) {
@@ -317,7 +333,7 @@ const Send: FC = () => {
       throw new Error('Cannot send: l1Bridge or signer does not exist.')
     }
 
-    const l2Network = networks[1]
+    const l2Network = toNetwork
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
@@ -334,7 +350,7 @@ const Send: FC = () => {
         const deadline = (Date.now() / 1000 + 300) | 0
         const amountOutMin = '0'
         return l1Bridge.sendToL2AndAttemptSwap(
-          l2Network.key(),
+          l2Network?.key(),
           await signer.getAddress(),
           parseEther(fromTokenAmount),
           amountOutMin,
@@ -354,6 +370,55 @@ const Send: FC = () => {
   }
 
   const sendl2ToL1 = async () => {
+    const signer = provider?.getSigner()
+    if (!l2Bridge || !signer) {
+      throw new Error('Cannot send: l1Bridge or signer does not exist.')
+    }
+
+    const tx: any = await txConfirm?.show({
+      kind: 'send',
+      inputProps: {
+        source: {
+          amount: fromTokenAmount,
+          token: selectedToken,
+          network: fromNetwork
+        },
+        dest: {
+          network: toNetwork
+        }
+      },
+      onConfirm: async () => {
+        const deadline = (Date.now() / 1000 + 300) | 0
+        const chainId = toNetwork?.networkId
+        const transferNonce = Date.now()
+        const relayerFee = '0'
+        const amountOutIn = '0'
+        const destinationAmountOutMin = '0'
+        return l2Bridge?.swapAndSend(
+          chainId,
+          await signer?.getAddress(),
+          parseEther(fromTokenAmount),
+          transferNonce,
+          relayerFee,
+          amountOutIn,
+          deadline,
+          destinationAmountOutMin,
+          deadline
+        )
+      }
+    })
+
+    if (tx?.hash && fromNetwork) {
+      txHistory?.addTransaction(
+        new Transaction({
+          hash: tx?.hash,
+          networkName: fromNetwork?.slug
+        })
+      )
+    }
+  }
+
+  const sendl2ToL2 = async () => {
     const signer = provider?.getSigner()
     if (!l2Bridge || !signer) {
       throw new Error('Cannot send: l1Bridge or signer does not exist.')
@@ -458,6 +523,14 @@ const Send: FC = () => {
         networkOptions={networks}
         onNetworkChange={network => {
           setFromNetwork(network)
+
+          if (network?.name === 'Arbitrum') {
+            setL2Bridge(contracts?.networks.arbitrum.l2Bridge)
+            setUniswapRouter(contracts?.networks.arbitrum.uniswapRouter)
+          } else if (network?.name === 'Optimism') {
+            setL2Bridge(contracts?.networks.optimism.l2Bridge)
+            setUniswapRouter(contracts?.networks.optimism.uniswapRouter)
+          }
         }}
         onBalanceChange={balance => {
           setFromBalance(balance)

@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     }
   },
   hopLogo: {
-    marginTop: '-0.8rem',
+    marginTop: '-1.0rem',
     width: '9rem'
   }
 }))

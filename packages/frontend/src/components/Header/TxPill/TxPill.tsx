@@ -7,9 +7,7 @@ import Transaction from 'src/models/Transaction'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const useStyles = makeStyles(() => ({
-  root: {
-    marginRight: '1rem'
-  },
+  root: {},
   button: {},
   pendingButton: {
     backgroundColor: '#bfedff'

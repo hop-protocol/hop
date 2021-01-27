@@ -59,12 +59,25 @@ class BondTransferRootWatcher {
   }
 
   handleTransferCommittedEvent = async (
-    transferRootHash: string,
-    amountHash: string,
-    chainIds: string[],
-    chainAmounts: string[],
+    a: any,
+    b: any,
+    c: any,
+    d: any,
     meta: any
   ) => {
+    let transferRootHash: string
+    let chainIds: string[]
+    let chainAmounts: string[]
+    if (meta) {
+      transferRootHash = a
+      chainIds = c
+      chainAmounts = d
+    } else {
+      transferRootHash = a
+      chainIds = b
+      chainAmounts = c
+      meta = d
+    }
     try {
       const { transactionHash } = meta
       logger.log(`received L2 ${this.label} TransfersCommittedEvent event`)

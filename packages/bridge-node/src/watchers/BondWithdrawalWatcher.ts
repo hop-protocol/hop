@@ -2,6 +2,8 @@ import '../moduleAlias'
 import wait from '@authereum/utils/core/wait'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
+import L2OptimismBridgeContract from 'src/contracts/L2OptimismBridgeContract'
+import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
 import { L1Provider } from 'src/wallets/L1Wallet'
 import { TransferSentEvent } from 'src/constants'
 import { store } from 'src/store'
@@ -50,34 +52,36 @@ class BondWithdrawalWatcher {
       logger.log('stake tx:', tx?.hash)
     }
 
-    //this.L2BridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
-    // eventPoller(
-    //   this.L2BridgeContract,
-    //   this.L2Provider,
-    //   TransferSentEvent,
-    //   this.handleTransferSentEvent
-    // )
-    let filter = {
-      address: '0x6d2f304CFF4e0B67dA4ab38C6A5C8184a2424D05',
-      topics: [ '0x30184d17358bc1e4120ae52a274a8279c1c0258108596a2c24c87123a347132c' ]
-    this.L2BridgeContract.on(filter, this.handleTransferSentEvent)
-    // this.L2BridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
+    this.L2BridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
+    /*
+    eventPoller(
+      this.L2BridgeContract,
+      this.L2Provider,
+      TransferSentEvent,
+      this.handleTransferSentEvent
+    )
+    */
   }
 
-  sendL1BondWithdrawalTx = (params: any) => {
+  sendBondWithdrawalTx = (params: any) => {
     const {
       sender,
       recipient,
       amount,
       transferNonce,
       relayerFee,
-      attemptSwap
+      attemptSwap,
+      chainId
     } = params
 
     if (attemptSwap) {
       const amountOutMin = '0'
       const deadline = (Date.now() / 1000 + 300) | 0
-      return this.L2BridgeContract.functions.bondWithdrawalAndAttemptSwap(
+      const contract =
+        chainId === '69' ? L2OptimismBridgeContract : L2ArbitrumBridgeContract
+      logger.log('amount:', amount.toString())
+      logger.log('recipient:', recipient)
+      return contract.bondWithdrawalAndAttemptSwap(
         sender,
         recipient,
         amount,
@@ -147,17 +151,23 @@ class BondWithdrawalWatcher {
         transferHash,
         chainId
       }
+      logger.log('chainId:', chainId)
+      logger.log('attemptSwap:', attemptSwap)
 
       await wait(2 * 1000)
-      const tx = await this.sendL1BondWithdrawalTx({
+      const tx = await this.sendBondWithdrawalTx({
         sender,
         recipient,
         amount,
         transferNonce,
         relayerFee,
-        attemptSwap
+        attemptSwap,
+        chainId
       })
-      logger.log('L1 bondWithdrawal tx:', chalk.yellow(tx.hash))
+      logger.log(
+        `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx:`,
+        chalk.yellow(tx.hash)
+      )
     } catch (err) {
       logger.error('bondWithdrawal tx error:', err.message)
     }

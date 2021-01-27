@@ -18,7 +18,7 @@ const contracts = require('contracts');
 |---|---|---|---|
 | L1 DAI               | 1 | No  | [`0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9`](https://kovan.etherscan.io/address/0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9)
 | L1 Messenger         | 1 | No  | [`0x61cBe9766fe7392A4DE03A54b2069c103AE674eb`](https://kovan.etherscan.io/address/0x61cBe9766fe7392A4DE03A54b2069c103AE674eb)
-| L1 Bridge            | 1 | Yes | [`0xf7511f94161aA90Da8babc08D7F1D11cD60505F3`](https://kovan.etherscan.io/address/0xf7511f94161aA90Da8babc08D7F1D11cD60505F3)
+| L1 Bridge            | 1 | Yes | [`0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE`](https://kovan.etherscan.io/address/0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE)
 | L1 Messenger Wrapper | 1 | Yes | [`0xB3FdF320A0bb4b9eBedf4726F0C9Bf49D1268cf9`](https://kovan.etherscan.io/address/0xB3FdF320A0bb4b9eBedf4726F0C9Bf49D1268cf9)
 | L2 DAI               | 2 | No  | [`0x55422e97002ECB18F493Fb5ecf1a5D1f3D473122`](https://todo/0x55422e97002ECB18F493Fb5ecf1a5D1f3D473122)
 | L2 Messenger         | 2 | No  | [`0x2B6693087C513a3be8d5d94712bf1CAda09C19F4`](https://todo/0x2B6693087C513a3be8d5d94712bf1CAda09C19F4)

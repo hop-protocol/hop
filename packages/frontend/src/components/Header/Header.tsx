@@ -5,7 +5,7 @@ import Button from 'src/components/buttons/Button'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import HeaderRoutes from 'src/components/Header/HeaderRoutes'
 import TxPill from 'src/components/Header/TxPill'
-import HopLogoFullColor from 'src/assets/logos/hop-logo-full-color.svg'
+import HopLogoFullColor from 'src/assets/logos/SL_Color.svg'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -16,6 +16,10 @@ const useStyles = makeStyles((theme: Theme) => ({
       paddingTop: '2rem',
       marginBottom: '4rem'
     }
+  },
+  hopLogo: {
+    marginTop: '-0.8rem',
+    width: '9rem'
   }
 }))
 
@@ -31,7 +35,7 @@ const Header: FC = () => {
         flex={1}
         justifyContent="flex-start"
       >
-        <img width={'200px'} src={HopLogoFullColor} alt="Hop icon" />
+        <img className={styles.hopLogo} src={HopLogoFullColor} alt="Hop icon" />
       </Box>
       <Box display="flex" flexDirection="row" flex={1} justifyContent="center">
         <HeaderRoutes />

@@ -67,6 +67,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const arbitrumDai = contracts?.networks.arbitrum.l2CanonicalToken
   const arbitrumUniswapRouter = contracts?.networks.arbitrum.uniswapRouter
   const arbitrumL1Messenger = contracts?.networks.arbitrum.l1CanonicalBridge
+  const optimismL1Messenger = contracts?.networks.optimism.l1CanonicalBridge
   const arbitrumBridge = contracts?.networks.arbitrum.l2Bridge
   const l1Bridge = contracts?.l1Bridge
   const networks = useMemo(() => {
@@ -75,6 +76,9 @@ const ConvertContextProvider: FC = ({ children }) => {
     ) as Network
     const arbitrumNetwork = nets.find(
       (network: Network) => network.slug === 'arbitrum'
+    ) as Network
+    const optimismNetwork = nets.find(
+      (network: Network) => network.slug === 'optimism'
     ) as Network
     const arbitrumCanonicalBridgeNetwork = new Network({
       name: 'Arbitrum Canonical',
@@ -90,9 +94,17 @@ const ConvertContextProvider: FC = ({ children }) => {
       rpcUrl: arbitrumNetwork.rpcUrl,
       networkId: arbitrumNetwork.networkId
     })
+    const optimismCanonicalBridgeNetwork = new Network({
+      name: 'Optimism Canonical',
+      slug: optimismNetwork.slug,
+      imageUrl: optimismNetwork.imageUrl,
+      rpcUrl: optimismNetwork.rpcUrl,
+      networkId: optimismNetwork.networkId
+    })
     return [
       kovanNetwork,
       arbitrumCanonicalBridgeNetwork,
+      optimismCanonicalBridgeNetwork,
       arbitrumHopBridgeNetwork
     ]
   }, [nets])
@@ -245,6 +257,40 @@ const ConvertContextProvider: FC = ({ children }) => {
                 tokenAddress,
                 address,
                 value
+              )
+            }
+          })
+        } else if (destNetwork?.slug === 'optimism') {
+          await approveTokens(
+            selectedToken,
+            sourceTokenAmount,
+            sourceNetwork as Network,
+            optimismL1Messenger?.address as string
+          )
+
+          const tokenAddress = selectedToken
+            .addressForNetwork(sourceNetwork)
+            .toString()
+
+          tx = await txConfirm?.show({
+            kind: 'convert',
+            inputProps: {
+              source: {
+                amount: sourceTokenAmount,
+                token: selectedToken
+              },
+              dest: {
+                amount: destTokenAmount,
+                token: selectedToken
+              }
+            },
+            onConfirm: async () => {
+              return optimismL1Messenger?.deposit(
+                // TODO: get address
+                '',
+                address,
+                value,
+                true
               )
             }
           })

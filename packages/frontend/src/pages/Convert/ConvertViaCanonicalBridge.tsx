@@ -30,7 +30,7 @@ const useStyles = makeStyles(() => ({
 
 const Convert: FC = () => {
   const styles = useStyles()
-  const {
+  let {
     selectedToken,
     sourceNetwork,
     sourceNetworks,
@@ -86,6 +86,33 @@ const Convert: FC = () => {
     } catch (err) {}
   }
 
+  const destNetworks = sourceNetworks.filter((network: Network) => {
+    return network.slug === 'kovan' || network.slug === 'optimism' || network.slug === 'arbitrum'
+  })
+  .filter((network: Network) => {
+    return network.slug !== sourceNetwork?.slug
+  })
+
+  sourceNetworks = sourceNetworks.filter((network: Network) => {
+    return network.slug === 'kovan' || network.slug === 'optimism' || network.slug === 'arbitrum'
+  })
+  .filter((network: Network) => {
+    return network.slug !== destNetwork?.slug
+  })
+
+  const handleSourceNetworkChange = (network: Network | undefined) => {
+    if (network) {
+      setSourceNetwork(network)
+    }
+  }
+
+  const handleDestNetworkChange = (network: Network | undefined) => {
+    if (network) {
+      setDestNetwork(network)
+    }
+  }
+
+
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <AmountSelectorCard
@@ -95,6 +122,8 @@ const Convert: FC = () => {
         onChange={handleSourceTokenAmountChange}
         selectedNetwork={sourceNetwork}
         onBalanceChange={setSourceTokenBalance}
+        networkOptions={sourceNetworks}
+        onNetworkChange={handleSourceNetworkChange}
       />
       <MuiButton
         className={styles.switchDirectionButton}
@@ -110,6 +139,8 @@ const Convert: FC = () => {
         onChange={handleDestTokenAmountChange}
         selectedNetwork={destNetwork}
         onBalanceChange={setDestTokenBalance}
+        networkOptions={destNetworks}
+        onNetworkChange={handleDestNetworkChange}
       />
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <SendButton />

@@ -71,25 +71,34 @@ async function deployArbitrum () {
 
   // Connect Contracts
   l1_bridge = L1_Bridge.attach('0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE')
-  l2_oDai = MockERC20.attach('0x57eaeE3D9C99b93D8FD1b50EF274579bFEC8e14B')
+  l2_oDai = MockERC20.attach('0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9')
 
-  l2_bridge = L2_Bridge.attach('0x6d2f304CFF4e0B67dA4ab38C6A5C8184a2424D05')
+  l2_bridge = L2_Bridge.attach('0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde')
   l2_uniswapFactory = UniswapFactory.attach('0x3e4CFaa8730092552d9425575E49bB542e329981')
   l2_uniswapRouter = UniswapRouter.attach('0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde')
 
-  console.log('0')
-  await l2_bridge.addSupportedChainId(CHAIN_IDS.ARBITRUM_TESTNET_2)
-  console.log('1')
-  await l2_bridge.addSupportedChainId(CHAIN_IDS.ARBITRUM_TESTNET_3)
-  console.log('2')
-  await l2_bridge.addSupportedChainId(CHAIN_IDS.MAINNET)
-  console.log('3')
-  await l2_bridge.addSupportedChainId(CHAIN_IDS.OPTIMISM_HOP_TESTNET)
-  console.log('4')
-  await l2_bridge.addSupportedChainId(CHAIN_IDS.KOVAN)
-  console.log('5')
-  const isSupport = await l2_bridge.supportedChainIds(CHAIN_IDS.OPTIMISM_HOP_TESTNET)
-  console.log(isSupport)
+  let cdmw = await l1_bridge.getCrossDomainMessengerWrapper(CHAIN_IDS.OPTIMISM_HOP_TESTNET)
+  console.log('aa', cdmw)
+  await l1_bridge.setCrossDomainMessengerWrapper(CHAIN_IDS.OPTIMISM_HOP_TESTNET, '0x2673a37B287b9896fbc9fB8E29Ed1d899BD4281E')
+  cdmw = await l1_bridge.getCrossDomainMessengerWrapper(CHAIN_IDS.OPTIMISM_HOP_TESTNET)
+  console.log('aa', cdmw)
+  
+
+  // console.log('0')
+  // const a = await l2_bridge.balanceOf('0x023fFdC1530468eb8c8EEbC3e38380b5bc19Cc5d')
+  // console.log('L2 Hop Dai', a)
+  // console.log('L2 Hop Dai', a.toString())
+  // const b = await l2_oDai.balanceOf('0x023fFdC1530468eb8c8EEbC3e38380b5bc19Cc5d')
+  // console.log('L2 Canonical Dai')
+  // console.log('L2 Canonical Dai', b.toString())
+  // await l2_bridge.addSupportedChainId(CHAIN_IDS.MAINNET)
+  // console.log('3')
+  // await l2_bridge.addSupportedChainId(CHAIN_IDS.OPTIMISM_HOP_TESTNET)
+  // console.log('4')
+  // await l2_bridge.addSupportedChainId(CHAIN_IDS.KOVAN)
+  // console.log('5')
+  // const isSupport = await l2_bridge.supportedChainIds(CHAIN_IDS.OPTIMISM_HOP_TESTNET)
+  // console.log(isSupport)
   // // Other
   // // tokenOne = await TokenOne.deploy('Optimism Dai', 'Dai')
   // // tokenOne.deployed()
@@ -109,25 +118,25 @@ async function deployArbitrum () {
   // await l2_bridge.mint('0x023fFdC1530468eb8c8EEbC3e38380b5bc19Cc5d', USER_INITIAL_BALANCE.mul(2))
   // await tokenTwo.mint('0x023fFdC1530468eb8c8EEbC3e38380b5bc19Cc5d', USER_INITIAL_BALANCE.mul(2))
 
-  console.log('DONE')
-  const a_canonicalToken = await l2_bridge.l2CanonicalToken()
-  console.log('a_canonicalToken', a_canonicalToken)
-  let a_allowance = await l2_oDai.allowance(await user.getAddress(), l2_bridge.address)
-  console.log('a_allowance', a_allowance)
-  await l2_oDai.approve(l2_bridge.address, USER_INITIAL_BALANCE.mul(2))
-  a_allowance = await l2_oDai.allowance(await user.getAddress(), l2_bridge.address)
-  console.log('a_allowance', a_allowance)
-  // Set up bridges
-  console.log('000')
-  // await l2_bridge.setL1BridgeAddress(l1_bridge.address)
-  console.log('111')
-  // let test = await l2_bridge.balanceOf(await user.getAddress())
-  // await l2_bridge.approve(l2_bridge.address, USER_INITIAL_BALANCE.mul(2))
-  // let test = await l2_bridge.allowance(await user.getAddress(), l2_bridge.address)
-  // console.log('222', test)
-  let test = await l2_oDai.balanceOf(await user.getAddress())
-  console.log('222', test.toString())
-  // await l2_bridge.setExchangeAddress(l2_uniswapRouter.address)
+  // console.log('DONE')
+  // const a_canonicalToken = await l2_bridge.l2CanonicalToken()
+  // console.log('a_canonicalToken', a_canonicalToken)
+  // let a_allowance = await l2_oDai.allowance(await user.getAddress(), l2_bridge.address)
+  // console.log('a_allowance', a_allowance)
+  // await l2_oDai.approve(l2_bridge.address, USER_INITIAL_BALANCE.mul(2))
+  // a_allowance = await l2_oDai.allowance(await user.getAddress(), l2_bridge.address)
+  // console.log('a_allowance', a_allowance)
+  // // Set up bridges
+  // console.log('000')
+  // // await l2_bridge.setL1BridgeAddress(l1_bridge.address)
+  // console.log('111')
+  // // let test = await l2_bridge.balanceOf(await user.getAddress())
+  // // await l2_bridge.approve(l2_bridge.address, USER_INITIAL_BALANCE.mul(2))
+  // // let test = await l2_bridge.allowance(await user.getAddress(), l2_bridge.address)
+  // // console.log('222', test)
+  // let test = await l2_oDai.balanceOf(await user.getAddress())
+  // console.log('222', test.toString())
+  // // await l2_bridge.setExchangeAddress(l2_uniswapRouter.address)
   // const _chainId = CHAIN_IDS.ARBITRUM_TESTNET_3
   // const _recipient = await user.getAddress()
   // const _amount = BigNumber.from('1000000000000000000')
@@ -171,8 +180,8 @@ async function deployArbitrum () {
   // await l2_uniswapRouter.addLiquidity(
   //   l2_bridge.address,
   //   tokenTwo.address,
-  //   // l2_oDai.address,
-  //   // l2_bridge.address,
+  //   l2_oDai.address,
+  //   l2_bridge.address,
   //   USER_INITIAL_BALANCE.div(2),
   //   USER_INITIAL_BALANCE.div(2),
   //   '0',

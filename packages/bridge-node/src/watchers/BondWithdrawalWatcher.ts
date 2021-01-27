@@ -10,6 +10,7 @@ import { store } from 'src/store'
 import chalk from 'chalk'
 import Logger from 'src/logger'
 import eventPoller from 'src/utils/eventPoller'
+import * as a from 'src/config'
 
 const logger = new Logger('[bondWithdrawalWatcher]', { color: 'green' })
 
@@ -60,7 +61,7 @@ class BondWithdrawalWatcher {
       TransferSentEvent,
       this.handleTransferSentEvent
     )
-    */
+		*/
   }
 
   sendBondWithdrawalTx = (params: any) => {

@@ -1,5 +1,4 @@
 import '../moduleAlias'
-import wait from '@authereum/utils/core/wait'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
 import L2OptimismBridgeContract from 'src/contracts/L2OptimismBridgeContract'
@@ -10,6 +9,7 @@ import { store } from 'src/store'
 import chalk from 'chalk'
 import Logger from 'src/logger'
 import eventPoller from 'src/utils/eventPoller'
+import { wait } from 'src/utils'
 import * as a from 'src/config'
 
 const logger = new Logger('[bondWithdrawalWatcher]', { color: 'green' })
@@ -46,6 +46,8 @@ class BondWithdrawalWatcher {
   async watch () {
     const credit = (await L1BridgeContract.getCredit()).toString()
     const debit = (await L1BridgeContract.getDebit()).toString()
+    //logger.log('L1 credit balance:', formatUnits(credit, 18))
+    //logger.log('L1 debit balance:', formatUnits(debit, 18))
 
     if (credit === '0') {
       const amount = parseUnits('1000', 18)
@@ -118,7 +120,6 @@ class BondWithdrawalWatcher {
   ) => {
     try {
       const { transactionHash } = meta
-      logger.log('here')
       logger.log(`received L2 ${this.label} TransferSentEvent event`)
       logger.log('transferHash:', transferHash)
 
@@ -136,9 +137,11 @@ class BondWithdrawalWatcher {
         )
         chainId = decoded._chainId.toString()
 
-        // L2 to L2 transfers have uniswap parameters set
-        if (Number(decoded._destinationDeadline.toString()) > 0) {
-          attemptSwap = true
+        if (!(chainId === '42' || chainId === '1')) {
+          // L2 to L2 transfers have uniswap parameters set
+          if (Number(decoded._destinationDeadline.toString()) > 0) {
+            attemptSwap = true
+          }
         }
       } catch (err) {
         const decoded = await this.L2BridgeContract.interface.decodeFunctionData(

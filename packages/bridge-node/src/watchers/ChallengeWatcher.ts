@@ -35,7 +35,7 @@ class ChallengeWatcher {
     try {
       await this.watch()
     } catch (err) {
-      logger.error('watcher error:', err)
+      logger.error('watcher error:', err.message)
     }
   }
 

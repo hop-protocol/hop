@@ -1,7 +1,7 @@
 import '../moduleAlias'
-import wait from '@authereum/utils/core/wait'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
 import { TransfersCommittedEvent } from 'src/constants'
+import { wait } from 'src/utils'
 import { store } from 'src/store'
 import chalk from 'chalk'
 import Logger from 'src/logger'

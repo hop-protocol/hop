@@ -84,7 +84,7 @@ class SettleBondedWithdrawalWatcher {
         )
         delete store.transferHashes[transferHash]
       } catch (err) {
-        logger.error('settleBondedWithdrawal tx error:', err)
+        logger.error('settleBondedWithdrawal tx error:', err.message)
       }
     }
   }

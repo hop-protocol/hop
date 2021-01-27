@@ -1,7 +1,7 @@
 import '../moduleAlias'
 import assert from 'assert'
 import * as ethers from 'ethers'
-import wait from '@authereum/utils/core/wait'
+import { wait } from 'src/utils'
 import { TransferSentEvent } from 'src/constants'
 import chalk from 'chalk'
 import Logger from 'src/logger'

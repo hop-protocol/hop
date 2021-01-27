@@ -25,6 +25,7 @@ const eventPoller = async (
   ;(async () => {
     while (true) {
       const events = await poll()
+      //console.log('events count:', events.length)
       for (let event of events) {
         console.log(event)
         if (event.args) {

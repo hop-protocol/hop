@@ -18,6 +18,7 @@ export type Contracts = {
     [key: string]: NetworkSpecificContracts
   }
   arbitrumProvider: providers.Provider | providers.JsonRpcSigner | undefined
+  optimismProvider: providers.Provider | providers.JsonRpcSigner | undefined
   getContract: (address: string, abi: any[], provider: any) => Contract | undefined
   getErc20Contract: (address: string, provider: any) => Contract
 }
@@ -79,14 +80,31 @@ const useContracts = (networks: Network[]): Contracts => {
 
   const arbitrumContracts = useNetworkSpecificContracts(l1Network, l2Network)
 
+  const l2NetworkOptimism = useMemo(() => {
+    return networks.find(
+      (network: Network) => network.slug === 'optimism'
+    )
+  }, [networks]) as Network
+
+  const optimismProvider = useMemo(() => {
+    if (connectedNetworkId === l2NetworkOptimism?.networkId) {
+      return provider?.getSigner()
+    }
+
+    return l2NetworkOptimism?.provider
+  }, [l2NetworkOptimism, connectedNetworkId, provider])
+  const optimismContracts = useNetworkSpecificContracts(l1Network, l2NetworkOptimism)
+
   return {
     l1Token,
     l1Bridge,
     governance: governanceContracts,
     networks: {
-      arbitrum: arbitrumContracts
+      arbitrum: arbitrumContracts,
+      optimism: optimismContracts
     },
     arbitrumProvider,
+    optimismProvider,
     getContract,
     getErc20Contract
   }

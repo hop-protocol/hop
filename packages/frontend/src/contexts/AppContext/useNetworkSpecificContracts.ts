@@ -20,6 +20,27 @@ export type NetworkSpecificContracts = {
 
 const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): NetworkSpecificContracts => {
   const { provider, connectedNetworkId } = useWeb3Context()
+
+  let l1CanonicalBridgeAddress: string
+  let l2CanonicalTokenAddress: string 
+  let l2BridgeAddress: string
+  let uniswapRouterAddress: string
+  let uniswapFactoryAddress: string
+
+  if (l2Network?.name === 'Arbitrum') {
+    l1CanonicalBridgeAddress = addresses.networks.arbitrum.l1CanonicalBridge
+    l2CanonicalTokenAddress = addresses.networks.arbitrum.l2CanonicalToken
+    l2BridgeAddress = addresses.networks.arbitrum.l2Bridge
+    uniswapRouterAddress = addresses.networks.arbitrum.uniswapRouter
+    uniswapFactoryAddress = addresses.networks.arbitrum.uniswapFactory
+  } else {
+    l1CanonicalBridgeAddress = addresses.networks.optimism.l1CanonicalBridge
+    l2CanonicalTokenAddress = addresses.networks.optimism.l2CanonicalToken
+    l2BridgeAddress = addresses.networks.optimism.l2Bridge
+    uniswapRouterAddress = addresses.networks.optimism.uniswapRouter
+    uniswapFactoryAddress = addresses.networks.optimism.uniswapFactory
+  }
+
   const l2Provider = useMemo(() => {
     if (connectedNetworkId === l2Network?.networkId) {
       return provider?.getSigner()
@@ -37,7 +58,7 @@ const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): Ne
 
   const l1CanonicalBridge = useMemo(() => {
     return new Contract(
-      addresses.networks.arbitrum.l1CanonicalBridge,
+      l1CanonicalBridgeAddress,
       l1ArbitrumMessengerArtifact.abi,
       l1Provider
     )
@@ -45,7 +66,7 @@ const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): Ne
 
   const l2CanonicalToken = useMemo(() => {
     return new Contract(
-      addresses.networks.arbitrum.l2CanonicalToken,
+      l2CanonicalTokenAddress,
       arbErc20Artifact.abi,
       l2Provider
     )
@@ -53,7 +74,7 @@ const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): Ne
 
   const l2Bridge = useMemo(() => {
     return new Contract(
-      addresses.networks.arbitrum.l2Bridge,
+      l2BridgeAddress,
       l2BridgeArtifact.abi,
       l2Provider
     )
@@ -61,7 +82,7 @@ const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): Ne
 
   const uniswapRouter = useMemo(() => {
     return new Contract(
-      addresses.networks.arbitrum.uniswapRouter,
+      uniswapRouterAddress,
       uniswapRouterArtifact.abi,
       l2Provider
     )
@@ -69,7 +90,7 @@ const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): Ne
 
   const uniswapFactory = useMemo(() => {
     return new Contract(
-      addresses.networks.arbitrum.uniswapFactory,
+      uniswapFactoryAddress,
       uniswapFactoryArtifact.abi,
       l2Provider
     )

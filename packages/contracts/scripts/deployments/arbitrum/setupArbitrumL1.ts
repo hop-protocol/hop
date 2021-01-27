@@ -34,8 +34,8 @@ async function deployArbitrum () {
   // Get the contract Factories
   MockERC20 = await ethers.getContractFactory('contracts/test/MockERC20.sol:MockERC20')
   L1_Bridge = await ethers.getContractFactory('contracts/bridges/L1_Bridge.sol:L1_Bridge')
-  MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/ArbitrumMessengerWrapper.sol:ArbitrumMessengerWrapper')
-  GlobalInbox = await ethers.getContractFactory('contracts/test/arbitrum/inbox/GlobalInbox.sol:GlobalInbox')
+  MessengerWrapper = await ethers.getContractFactory('contracts/wrappers/OptimismMessengerWrapper.sol:OptimismMessengerWrapper')
+  GlobalInbox = await ethers.getContractFactory('contracts/test/Arbitrum/GlobalInbox.sol:GlobalInbox')
   L2_Bridge = await ethers.getContractFactory('contracts/bridges/L2_ArbitrumBridge.sol:L2_ArbitrumBridge')
 
   /**
@@ -43,27 +43,33 @@ async function deployArbitrum () {
    */
 
   // Connect Contracts
-  l1_arbitrumBridge = GlobalInbox.attach('0xE681857DEfE8b454244e701BA63EfAa078d7eA85')
+  l1_arbitrumBridge = GlobalInbox.attach('0xA6e9F1409fe85c84CEACD5936800A12d721009cE')
   l1_poolToken = MockERC20.attach('0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9')
 
   l1_bridge = L1_Bridge.attach('0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE')
-  messengerWrapper = MessengerWrapper.attach('0x36501dcD0007aA4DB373667d730C5AE91a7b3cc8')
+  messengerWrapper = MessengerWrapper.attach('0x2673a37B287b9896fbc9fB8E29Ed1d899BD4281E')
 
-  l2_bridge = L2_Bridge.attach('0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde')
+  l2_bridge = L2_Bridge.attach('0x6d2f304CFF4e0B67dA4ab38C6A5C8184a2424D05')
 
   // Set up bridges
-  const l2ChainId: BigNumber = CHAIN_IDS.ARBITRUM_TESTNET_3
+  const l2ChainId: BigNumber = CHAIN_IDS.OPTIMISM_HOP_TESTNET
   await l1_bridge.setCrossDomainMessengerWrapper(l2ChainId, messengerWrapper.address)
 
   // Send canonical token to the user on L2
-  await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE.mul(2))
-  await l1_poolToken.approve(l1_arbitrumBridge.address, LARGE_APPROVAL)
-  await l1_arbitrumBridge.depositERC20Message(ARB_CHAIN_ADDRESS, l1_poolToken.address, await user.getAddress(), USER_INITIAL_BALANCE)
+  console.log('000')
+  // await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE.mul(2))
+  console.log('111')
+  // await l1_poolToken.approve(l1_arbitrumBridge.address, LARGE_APPROVAL)
+  console.log('222')
+  // await l1_arbitrumBridge.deposit(await user.getAddress(), USER_INITIAL_BALANCE, true)
+  // await l1_arbitrumBridge.depositERC20Message(ARB_CHAIN_ADDRESS, l1_poolToken.address, await user.getAddress(), USER_INITIAL_BALANCE)
 
   // Mint our token on L2
+  console.log('333')
+  await l1_poolToken.mint(await user.getAddress(), USER_INITIAL_BALANCE.mul(2))
   await l1_poolToken.approve(l1_bridge.address, USER_INITIAL_BALANCE)
-  await l1_bridge.sendToL2(l2ChainId, '0x02b260F6f47FF328496Be632678d06a564B8c4AB', USER_INITIAL_BALANCE)
-  await l1_bridge.sendToL2(l2ChainId, await user.getAddress(), USER_INITIAL_BALANCE)
+  console.log('444')
+  await l1_bridge.sendToL2(l2ChainId,  await user.getAddress(), USER_INITIAL_BALANCE)
 }
 
 /* tslint:disable-next-line */

@@ -11,7 +11,7 @@ import Logger from 'src/logger'
 const logger = new Logger('[arbBot]', { color: 'green' })
 
 const wait = async (t: number) => {
-  return new Promise(resolve => setTimeout(() => resolve(), t))
+  // return new Promise(resolve => setTimeout(() => resolve(), t))
 }
 
 const UINT256 =

@@ -450,6 +450,7 @@ const Send: FC = () => {
         const relayerFee = '0'
         const amountOutIn = '0'
         const destinationAmountOutMin = '0'
+        console.log('l2', l2Bridge.address)
         return l2Bridge?.swapAndSend(
           chainId,
           await signer?.getAddress(),

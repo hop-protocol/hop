@@ -3,7 +3,8 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "../test/MockERC20OVM.sol";
+// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
 
 import "./Bridge.sol";
@@ -34,15 +35,15 @@ abstract contract L2_Bridge is ERC20, Bridge {
         uint256 relayerFee
     );
 
-    modifier onlyL1Bridge {
-        _verifySender(l1BridgeAddress);
-        _;
-    }
+    // modifier onlyL1Bridge {
+    //     _verifySender(l1BridgeAddress);
+    //     _;
+    // }
 
-    modifier onlyGovernance {
-        _verifySender(l1Governance);
-        _;
-    }
+    // modifier onlyGovernance {
+    //     _verifySender(l1Governance);
+    //     _;
+    // }
 
     constructor (
         address _l1Governance,
@@ -71,19 +72,23 @@ abstract contract L2_Bridge is ERC20, Bridge {
 
     /* ========== Public functions ========== */
 
-    function setExchangeAddress(address _exchangeAddress) public onlyGovernance {
+    function setExchangeAddress(address _exchangeAddress) public {
+    // function setExchangeAddress(address _exchangeAddress) public onlyGovernance {
         exchangeAddress = _exchangeAddress;
     }
 
-    function setL1BridgeAddress(address _l1BridgeAddress) public onlyGovernance {
+    function setL1BridgeAddress(address _l1BridgeAddress) public {
+    // function setL1BridgeAddress(address _l1BridgeAddress) public onlyGovernance {
         l1BridgeAddress = _l1BridgeAddress;
     }
 
-    function addSupportedChainId(uint256 _chainIds) public onlyGovernance {
+    function addSupportedChainId(uint256 _chainIds) public {
+    // function addSupportedChainId(uint256 _chainIds) public onlyGovernance {
         supportedChainIds[_chainIds] = true;
     }
 
-    function removeSupportedChainId(uint256 _chainIds) public onlyGovernance {
+    function removeSupportedChainId(uint256 _chainIds) public {
+    // function removeSupportedChainId(uint256 _chainIds) public onlyGovernance {
         supportedChainIds[_chainIds] = false;
     }
 
@@ -99,9 +104,9 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
-        require(_amount > 0, "L2_BRG: Must transfer a non-zero amount");
-        require(_amount >= _relayerFee, "L2_BRG: Relayer fee cannot exceed amount");
-        require(supportedChainIds[_chainId], "L2_BRG: _chainId is not supported");
+        // require(_amount > 0, "L2_BRG: Must transfer a non-zero amount");
+        // require(_amount >= _relayerFee, "L2_BRG: Relayer fee cannot exceed amount");
+        // require(supportedChainIds[_chainId], "L2_BRG: _chainId is not supported");
 
         if (pendingTransfers.length >= 100) {
             commitTransfers();
@@ -140,7 +145,7 @@ abstract contract L2_Bridge is ERC20, Bridge {
     )
         public
     {
-        require(_amount >= _relayerFee, "L2_BRG: relayer fee cannot exceed amount");
+        // require(_amount >= _relayerFee, "L2_BRG: relayer fee cannot exceed amount");
 
         l2CanonicalToken.transferFrom(msg.sender, address(this), _amount);
 
@@ -160,8 +165,9 @@ abstract contract L2_Bridge is ERC20, Bridge {
         send(_chainId, _recipient, swapAmount, _transferNonce, _relayerFee, _destinationAmountOutMin, _destinationDeadline);
     }
 
-    function commitTransfers() public onlyBonder {
-        require(pendingTransfers.length > 0, "L2_BRG: Must commit at least 1 Transfer");
+    // function commitTransfers() public onlyBonder {
+    function commitTransfers() public {
+        // require(pendingTransfers.length > 0, "L2_BRG: Must commit at least 1 Transfer");
 
         bytes32 root = MerkleUtils.getMerkleRoot(pendingTransfers);
 
@@ -189,42 +195,44 @@ abstract contract L2_Bridge is ERC20, Bridge {
         _sendCrossDomainMessage(confirmTransferRootMessage);
     }
 
-    function mint(address _recipient, uint256 _amount) public onlyL1Bridge {
+    function mint(address _recipient, uint256 _amount) public {
+    // function mint(address _recipient, uint256 _amount) public onlyL1Bridge {
         _mint(_recipient, _amount);
     }
 
-    function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) public onlyL1Bridge {
+    function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) public {
+    // function mintAndAttemptSwap(address _recipient, uint256 _amount, uint256 _amountOutMin, uint256 _deadline) public onlyL1Bridge {
         _mintAndAttemptSwap(_recipient, _amount, _amountOutMin, _deadline);
     }
 
-    function withdrawAndAttemptSwap(
-        address _sender,
-        address _recipient,
-        uint256 _amount,
-        uint256 _transferNonce,
-        uint256 _relayerFee,
-        bytes32 _transferRootHash,
-        bytes32[] memory _proof,
-        uint256 _amountOutMin,
-        uint256 _deadline
-    )
-        public
-    {
-        bytes32 transferHash = getTransferHash(
-            getChainId(),
-            _sender,
-            _recipient,
-            _amount,
-            _transferNonce,
-            _relayerFee,
-            _amountOutMin,
-            _deadline
-        );
+    // function withdrawAndAttemptSwap(
+    //     address _sender,
+    //     address _recipient,
+    //     uint256 _amount,
+    //     uint256 _transferNonce,
+    //     uint256 _relayerFee,
+    //     bytes32 _transferRootHash,
+    //     bytes32[] memory _proof,
+    //     uint256 _amountOutMin,
+    //     uint256 _deadline
+    // )
+    //     public
+    // {
+    //     bytes32 transferHash = getTransferHash(
+    //         getChainId(),
+    //         _sender,
+    //         _recipient,
+    //         _amount,
+    //         _transferNonce,
+    //         _relayerFee,
+    //         _amountOutMin,
+    //         _deadline
+    //     );
 
-        require(_proof.verify(_transferRootHash, transferHash), "L2_BRG: Invalid transfer proof");
-        _addToAmountWithdrawn(_transferRootHash, _amount);
-        _withdrawAndAttemptSwap(transferHash, _recipient, _amount, _relayerFee, _amountOutMin, _deadline);
-    }
+    //     require(_proof.verify(_transferRootHash, transferHash), "L2_BRG: Invalid transfer proof");
+    //     _addToAmountWithdrawn(_transferRootHash, _amount);
+    //     _withdrawAndAttemptSwap(transferHash, _recipient, _amount, _relayerFee, _amountOutMin, _deadline);
+    // }
 
     function bondWithdrawalAndAttemptSwap(
         address _sender,
@@ -253,7 +261,8 @@ abstract contract L2_Bridge is ERC20, Bridge {
         _withdrawAndAttemptSwap(transferHash, _recipient, _amount, _relayerFee, _amountOutMin, _deadline);
     }
 
-    function setTransferRoot(bytes32 _rootHash, uint256 _amount) public onlyL1Bridge {
+    function setTransferRoot(bytes32 _rootHash, uint256 _amount) public {
+    // function setTransferRoot(bytes32 _rootHash, uint256 _amount) public onlyL1Bridge {
         _setTransferRoot(_rootHash, _amount);
     }
 

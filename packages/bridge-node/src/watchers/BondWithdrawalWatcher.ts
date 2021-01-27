@@ -43,8 +43,6 @@ class BondWithdrawalWatcher {
   async watch () {
     const credit = (await L1BridgeContract.getCredit()).toString()
     const debit = (await L1BridgeContract.getDebit()).toString()
-    logger.log('L1 credit balance:', formatUnits(credit, 18))
-    logger.log('L1 debit balance:', formatUnits(debit, 18))
 
     if (credit === '0') {
       const amount = parseUnits('1000', 18)
@@ -53,12 +51,17 @@ class BondWithdrawalWatcher {
     }
 
     //this.L2BridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
-    eventPoller(
-      this.L2BridgeContract,
-      this.L2Provider,
-      TransferSentEvent,
-      this.handleTransferSentEvent
-    )
+    // eventPoller(
+    //   this.L2BridgeContract,
+    //   this.L2Provider,
+    //   TransferSentEvent,
+    //   this.handleTransferSentEvent
+    // )
+    let filter = {
+      address: '0x6d2f304CFF4e0B67dA4ab38C6A5C8184a2424D05',
+      topics: [ '0x30184d17358bc1e4120ae52a274a8279c1c0258108596a2c24c87123a347132c' ]
+    this.L2BridgeContract.on(filter, this.handleTransferSentEvent)
+    // this.L2BridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
   }
 
   sendL1BondWithdrawalTx = (params: any) => {
@@ -110,6 +113,7 @@ class BondWithdrawalWatcher {
   ) => {
     try {
       const { transactionHash } = meta
+      logger.log('here')
       logger.log(`received L2 ${this.label} TransferSentEvent event`)
       logger.log('transferHash:', transferHash)
 

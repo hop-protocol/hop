@@ -40,4 +40,11 @@ interface IGlobalInbox {
         uint256 payment,
         bytes calldata contractData
     ) external;
+
+    // Added on 20210126 for testing. Remove.
+    function deposit(
+        address _depositer,
+        uint256 _amount,
+        bool _send
+    ) external;
 }

@@ -20,6 +20,25 @@ export type NetworkSpecificContracts = {
 
 const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): NetworkSpecificContracts => {
   const { provider, connectedNetworkId } = useWeb3Context()
+
+  // console.log('l2 slug', l2Network.slug)
+
+  if (!l2Network?.slug) {
+    return {
+      l1CanonicalBridge: undefined,
+      l2CanonicalToken: undefined,
+      l2Bridge: undefined,
+      uniswapRouter: undefined,
+      uniswapFactory: undefined,
+    }
+  }
+
+  let l1CanonicalBridgeAddress: string = addresses.networks[l2Network?.slug].l1CanonicalBridge
+  let l2CanonicalTokenAddress: string  = addresses.networks[l2Network?.slug].l2CanonicalToken
+  let l2BridgeAddress: string = addresses.networks[l2Network?.slug].l2Bridge
+  let uniswapRouterAddress: string = addresses.networks[l2Network?.slug].uniswapRouter
+  let uniswapFactoryAddress: string = addresses.networks[l2Network?.slug].uniswapFactory
+
   const l2Provider = useMemo(() => {
     if (connectedNetworkId === l2Network?.networkId) {
       return provider?.getSigner()
@@ -37,7 +56,7 @@ const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): Ne
 
   const l1CanonicalBridge = useMemo(() => {
     return new Contract(
-      addresses.networks.arbitrum.l1CanonicalBridge,
+      l1CanonicalBridgeAddress,
       l1ArbitrumMessengerArtifact.abi,
       l1Provider
     )
@@ -45,7 +64,7 @@ const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): Ne
 
   const l2CanonicalToken = useMemo(() => {
     return new Contract(
-      addresses.networks.arbitrum.l2CanonicalToken,
+      l2CanonicalTokenAddress,
       arbErc20Artifact.abi,
       l2Provider
     )
@@ -53,7 +72,7 @@ const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): Ne
 
   const l2Bridge = useMemo(() => {
     return new Contract(
-      addresses.networks.arbitrum.l2Bridge,
+      l2BridgeAddress,
       l2BridgeArtifact.abi,
       l2Provider
     )
@@ -61,7 +80,7 @@ const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): Ne
 
   const uniswapRouter = useMemo(() => {
     return new Contract(
-      addresses.networks.arbitrum.uniswapRouter,
+      uniswapRouterAddress,
       uniswapRouterArtifact.abi,
       l2Provider
     )
@@ -69,7 +88,7 @@ const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): Ne
 
   const uniswapFactory = useMemo(() => {
     return new Contract(
-      addresses.networks.arbitrum.uniswapFactory,
+      uniswapFactoryAddress,
       uniswapFactoryArtifact.abi,
       l2Provider
     )

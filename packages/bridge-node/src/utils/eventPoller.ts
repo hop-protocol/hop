@@ -26,6 +26,7 @@ const eventPoller = async (
     while (true) {
       const events = await poll()
       for (let event of events) {
+        console.log(event)
         if (event.args) {
           if (!cache[event.transactionHash]) {
             console.log(event)

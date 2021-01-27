@@ -52,13 +52,15 @@ class BondWithdrawalWatcher {
       logger.log('stake tx:', tx?.hash)
     }
 
-    //this.L2BridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
+    this.L2BridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
+    /*
     eventPoller(
       this.L2BridgeContract,
       this.L2Provider,
       TransferSentEvent,
       this.handleTransferSentEvent
     )
+		*/
   }
 
   sendL1BondWithdrawalTx = (params: any) => {

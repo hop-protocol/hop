@@ -2,9 +2,7 @@ import '../moduleAlias'
 import wait from '@authereum/utils/core/wait'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
-import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
 import { L1Provider } from 'src/wallets/L1Wallet'
-import { L2ArbitrumProvider } from 'src/wallets/L2ArbitrumWallet'
 import { TransferSentEvent } from 'src/constants'
 import { store } from 'src/store'
 import chalk from 'chalk'
@@ -12,10 +10,26 @@ import Logger from 'src/logger'
 
 const logger = new Logger('[bondWithdrawalWatcher]', { color: 'green' })
 
+export interface Config {
+  L2BridgeContract: any
+  L2Provider: any
+  label: string
+}
+
 class BondWithdrawalWatcher {
+  L2BridgeContract: any
+  L2Provider: any
+  label: string
+
+  constructor(config: Config) {
+    this.L2BridgeContract = config.L2BridgeContract
+    this.L2Provider = config.L2Provider
+    this.label = config.label
+  }
+
   async start () {
     logger.log(
-      'starting L2 Arbitrum TransferSent event watcher for L1 bondWithdrawal tx'
+      `starting L2 ${this.label} TransferSent event watcher for L1 bondWithdrawal tx`
     )
 
     try {
@@ -37,7 +51,7 @@ class BondWithdrawalWatcher {
       logger.log('stake tx:', tx?.hash)
     }
 
-    L2ArbitrumBridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
+    this.L2BridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
   }
 
   sendL1BondWithdrawalTx = (params: any) => {
@@ -47,13 +61,13 @@ class BondWithdrawalWatcher {
       amount,
       transferNonce,
       relayerFee,
-      attemptSwap
+      attemptSwap,
     } = params
 
     if (attemptSwap) {
       const amountOutMin = '0'
       const deadline = (Date.now() / 1000 + 300) | 0
-      return L2ArbitrumBridgeContract.functions.bondWithdrawalAndAttemptSwap(
+      return this.L2BridgeContract.functions.bondWithdrawalAndAttemptSwap(
         sender,
         recipient,
         amount,
@@ -89,23 +103,29 @@ class BondWithdrawalWatcher {
   ) => {
     try {
       const { transactionHash } = meta
-      logger.log('received L2 Arbitrum TransferSentEvent event')
+      logger.log(`received L2 ${this.label} TransferSentEvent event`)
       logger.log('transferHash:', transferHash)
 
       await wait(2 * 1000)
-      const { from: sender, data } = await L2ArbitrumProvider.getTransaction(
+      const { from: sender, data } = await this.L2Provider.getTransaction(
         transactionHash
       )
 
       let chainId = ''
+      let attemptSwap = false
       try {
-        const decoded = await L2ArbitrumBridgeContract.interface.decodeFunctionData(
+        const decoded = await this.L2BridgeContract.interface.decodeFunctionData(
           'swapAndSend',
           data
         )
         chainId = decoded._chainId.toString()
+
+        // L2 to L2 transfers have uniswap parameters set
+        if (Number(decoded._destinationDeadline.toString()) > 0) {
+          attemptSwap = true
+        }
       } catch (err) {
-        const decoded = await L2ArbitrumBridgeContract.interface.decodeFunctionData(
+        const decoded = await this.L2BridgeContract.interface.decodeFunctionData(
           'send',
           data
         )
@@ -124,7 +144,7 @@ class BondWithdrawalWatcher {
         amount,
         transferNonce,
         relayerFee,
-        attemptSwap: false // TODO: set to true if it's L2 -> L2 transfer
+        attemptSwap
       })
       logger.log('L1 bondWithdrawal tx:', chalk.yellow(tx.hash))
     } catch (err) {
@@ -133,4 +153,4 @@ class BondWithdrawalWatcher {
   }
 }
 
-export default new BondWithdrawalWatcher()
+export default BondWithdrawalWatcher

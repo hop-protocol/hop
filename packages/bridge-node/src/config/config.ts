@@ -6,6 +6,8 @@ export const bonderPrivateKey =
 export const L1EthRpcUrl = process.env.L1_ETH_RPC_URL || config.L1EthRpcUrl
 export const L2ArbitrumRpcUrl =
   process.env.L2_ARBITRUM_RPC_URL || config.L2ArbitrumRpcUrl
+export const L2OptimismRpcUrl =
+  process.env.L2_OPTIMISM_RPC_URL || config.L2OptimismRpcUrl
 export const L1BridgeAddress =
   process.env.L1_BRIDGE_ADDRESS || config.L1BridgeAddress
 export const L2ArbitrumBridgeAddress =

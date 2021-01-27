@@ -60,22 +60,26 @@ class ArbBot {
 
   public async start () {
     logger.log('Starting arbitrage bot')
-    await this.tilReady()
-    logger.log(`account address: ${this.accountAddress}`)
+    try {
+      await this.tilReady()
+      logger.log(`account address: ${this.accountAddress}`)
 
-    await this.checkBalances()
-    await this.approveTokens()
-    this.startWatcher().catch(logger.error)
+      await this.checkBalances()
+      await this.approveTokens()
+      this.startWatcher().catch(logger.error)
 
-    while (true) {
-      try {
-        await this.checkArbitrage()
-        await this.checkBalances()
-        logger.log(`Rechecking in ${this.pollTimeSec} seconds`)
-        await wait(this.pollTimeSec * 1e3)
-      } catch (err) {
-        logger.error(err)
+      while (true) {
+        try {
+          await this.checkArbitrage()
+          await this.checkBalances()
+          logger.log(`Rechecking in ${this.pollTimeSec} seconds`)
+          await wait(this.pollTimeSec * 1e3)
+        } catch (err) {
+          logger.error(err)
+        }
       }
+    } catch(err) {
+      logger.error('arb bot error:', err.message)
     }
   }
 

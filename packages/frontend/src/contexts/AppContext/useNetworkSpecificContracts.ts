@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Contract } from 'ethers'
 import l2BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L2_Bridge.sol/L2_Bridge.json'
 import l1ArbitrumMessengerArtifact from 'src/abi/GlobalInbox.json'
+import l1OptimismTokenBridgeArtifact from 'src/abi/L1OptimismTokenBridge.json'
 import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
 import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
 import arbErc20Artifact from 'src/abi/ArbERC20.json'
@@ -18,7 +19,10 @@ export type NetworkSpecificContracts = {
   uniswapFactory: Contract | undefined
 }
 
-const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): NetworkSpecificContracts => {
+const useNetworkSpecificContracts = (
+  l1Network: Network,
+  l2Network: Network
+): NetworkSpecificContracts => {
   const { provider, connectedNetworkId } = useWeb3Context()
 
   // console.log('l2 slug', l2Network.slug)
@@ -29,15 +33,19 @@ const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): Ne
       l2CanonicalToken: undefined,
       l2Bridge: undefined,
       uniswapRouter: undefined,
-      uniswapFactory: undefined,
+      uniswapFactory: undefined
     }
   }
 
-  let l1CanonicalBridgeAddress: string = addresses.networks[l2Network?.slug].l1CanonicalBridge
-  let l2CanonicalTokenAddress: string  = addresses.networks[l2Network?.slug].l2CanonicalToken
+  let l1CanonicalBridgeAddress: string =
+    addresses.networks[l2Network?.slug].l1CanonicalBridge
+  let l2CanonicalTokenAddress: string =
+    addresses.networks[l2Network?.slug].l2CanonicalToken
   let l2BridgeAddress: string = addresses.networks[l2Network?.slug].l2Bridge
-  let uniswapRouterAddress: string = addresses.networks[l2Network?.slug].uniswapRouter
-  let uniswapFactoryAddress: string = addresses.networks[l2Network?.slug].uniswapFactory
+  let uniswapRouterAddress: string =
+    addresses.networks[l2Network?.slug].uniswapRouter
+  let uniswapFactoryAddress: string =
+    addresses.networks[l2Network?.slug].uniswapFactory
 
   const l2Provider = useMemo(() => {
     if (connectedNetworkId === l2Network?.networkId) {
@@ -55,6 +63,21 @@ const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): Ne
   }, [l1Network, connectedNetworkId, provider])
 
   const l1CanonicalBridge = useMemo(() => {
+    // TODO: better way
+    console.log(
+      l1CanonicalBridgeAddress,
+      addresses.networks.optimism.l2CanonicalToken
+    )
+    if (
+      l1CanonicalBridgeAddress === addresses.networks.optimism.l2CanonicalToken
+    ) {
+      return new Contract(
+        l1CanonicalBridgeAddress,
+        l1OptimismTokenBridgeArtifact.abi,
+        l1Provider
+      )
+    }
+
     return new Contract(
       l1CanonicalBridgeAddress,
       l1ArbitrumMessengerArtifact.abi,
@@ -71,11 +94,7 @@ const useNetworkSpecificContracts = (l1Network: Network, l2Network: Network): Ne
   }, [l2Provider])
 
   const l2Bridge = useMemo(() => {
-    return new Contract(
-      l2BridgeAddress,
-      l2BridgeArtifact.abi,
-      l2Provider
-    )
+    return new Contract(l2BridgeAddress, l2BridgeArtifact.abi, l2Provider)
   }, [l2Provider])
 
   const uniswapRouter = useMemo(() => {

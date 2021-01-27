@@ -30,7 +30,7 @@ program
 
     new SettleBondedWithdrawalWatcher({
       label: 'Arbitrum',
-      L2BridgeContract: L2ArbitrumBridgeContract,
+      L2BridgeContract: L2ArbitrumBridgeContract
     }).start()
 
     new CommitTransferWatcher({
@@ -51,7 +51,7 @@ program
 
     new SettleBondedWithdrawalWatcher({
       label: 'Optimism',
-      L2BridgeContract: L2OptimismBridgeContract,
+      L2BridgeContract: L2OptimismBridgeContract
     }).start()
 
     new CommitTransferWatcher({

@@ -18,7 +18,7 @@ class SettleBondedWithdrawalWatcher {
   L2BridgeContract: any
   label: string
 
-  constructor(config: Config) {
+  constructor (config: Config) {
     this.L2BridgeContract = config.L2BridgeContract
     this.label = config.label
   }

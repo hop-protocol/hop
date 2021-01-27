@@ -24,25 +24,37 @@ const useTokens = (networks: Network[]) => {
   const arbitrumDai = useMemo(() => {
     const network = networks.find(network => network.slug === 'arbitrum')
     if (!network) throw new Error('Arbitrum network not found')
-    return getErc20Contract(addresses.networks.arbitrum.l2CanonicalToken, network.provider)
+    return getErc20Contract(
+      addresses.networks.arbitrum.l2CanonicalToken,
+      network.provider
+    )
   }, [networks, getErc20Contract])
 
   const arbitrumBridgeDai = useMemo(() => {
     const network = networks.find(network => network.slug === 'arbitrum')
     if (!network) throw new Error('Arbitrum network not found')
-    return getErc20Contract(addresses.networks.arbitrum.l2Bridge, network.provider)
+    return getErc20Contract(
+      addresses.networks.arbitrum.l2Bridge,
+      network.provider
+    )
   }, [networks, getErc20Contract])
 
   const optimismDai = useMemo(() => {
     const network = networks.find(network => network.slug === 'optimism')
     if (!network) throw new Error('Optimism network not found')
-    return getErc20Contract(addresses.networks.optimism.l2CanonicalToken, network.provider)
+    return getErc20Contract(
+      addresses.networks.optimism.l2CanonicalToken,
+      network.provider
+    )
   }, [networks, getErc20Contract])
 
   const optimismBridgeDai = useMemo(() => {
     const network = networks.find(network => network.slug === 'optimism')
     if (!network) throw new Error('Optimism network not found')
-    return getErc20Contract(addresses.networks.optimism.l2Bridge, network.provider)
+    return getErc20Contract(
+      addresses.networks.optimism.l2Bridge,
+      network.provider
+    )
   }, [networks, getErc20Contract])
 
   const tokens = useMemo<Token[]>(

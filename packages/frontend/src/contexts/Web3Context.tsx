@@ -148,13 +148,9 @@ const Web3ContextProvider: FC = ({ children }) => {
           )
         ) {
           const metamaskImage = getNetworkSpecificMetamaskImage(wantNetworkName)
-          stepImages = [
-            metamaskImage
-          ]
+          stepImages = [metamaskImage]
         } else {
-          stepImages = [
-            MetamaskAccountsSettingsHighlight
-          ]
+          stepImages = [MetamaskAccountsSettingsHighlight]
         }
 
         html = `

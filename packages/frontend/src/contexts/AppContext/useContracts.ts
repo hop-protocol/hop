@@ -6,9 +6,13 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
 import Network from 'src/models/Network'
 
-import useGovernanceContracts, { GovernanceContracts } from 'src/contexts/AppContext/useGovernanceContracts'
+import useGovernanceContracts, {
+  GovernanceContracts
+} from 'src/contexts/AppContext/useGovernanceContracts'
 import useL1BridgeContract from 'src/contexts/AppContext/useL1BridgeContract'
-import useNetworkSpecificContracts, { NetworkSpecificContracts } from 'src/contexts/AppContext/useNetworkSpecificContracts'
+import useNetworkSpecificContracts, {
+  NetworkSpecificContracts
+} from 'src/contexts/AppContext/useNetworkSpecificContracts'
 
 export type Contracts = {
   l1Token: Contract | undefined
@@ -19,7 +23,11 @@ export type Contracts = {
   }
   arbitrumProvider: providers.Provider | providers.JsonRpcSigner | undefined
   optimismProvider: providers.Provider | providers.JsonRpcSigner | undefined
-  getContract: (address: string, abi: any[], provider: any) => Contract | undefined
+  getContract: (
+    address: string,
+    abi: any[],
+    provider: any
+  ) => Contract | undefined
   getErc20Contract: (address: string, provider: any) => Contract
 }
 
@@ -43,9 +51,7 @@ const useContracts = (networks: Network[]): Contracts => {
   }
 
   const l2Network = useMemo(() => {
-    return networks.find(
-      (network: Network) => network.slug === 'arbitrum'
-    )
+    return networks.find((network: Network) => network.slug === 'arbitrum')
   }, [networks]) as Network
 
   const arbitrumProvider = useMemo(() => {
@@ -57,9 +63,7 @@ const useContracts = (networks: Network[]): Contracts => {
   }, [l2Network, connectedNetworkId, provider])
 
   const l1Network = useMemo(() => {
-    return networks.find(
-      (network: Network) => network.slug === 'kovan'
-    )
+    return networks.find((network: Network) => network.slug === 'kovan')
   }, [networks]) as Network
 
   const l1Provider = useMemo(() => {
@@ -81,9 +85,7 @@ const useContracts = (networks: Network[]): Contracts => {
   const arbitrumContracts = useNetworkSpecificContracts(l1Network, l2Network)
 
   const l2NetworkOptimism = useMemo(() => {
-    return networks.find(
-      (network: Network) => network.slug === 'optimism'
-    )
+    return networks.find((network: Network) => network.slug === 'optimism')
   }, [networks]) as Network
 
   const optimismProvider = useMemo(() => {
@@ -94,7 +96,10 @@ const useContracts = (networks: Network[]): Contracts => {
     return l2NetworkOptimism?.provider
   }, [l2NetworkOptimism, connectedNetworkId, provider])
 
-  const optimismContracts = useNetworkSpecificContracts(l1Network, l2NetworkOptimism)
+  const optimismContracts = useNetworkSpecificContracts(
+    l1Network,
+    l2NetworkOptimism
+  )
 
   return {
     l1Token,

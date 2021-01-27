@@ -84,7 +84,10 @@ const Demo: FC<Props> = () => {
     const recipient = await signer?.getAddress()
     const amountIn = parseUnits('20', 18)
     const amountOutMin = '0'
-    const path = [addresses.networks.arbitrum.l2Bridge, addresses.networks.arbitrum.l2CanonicalToken]
+    const path = [
+      addresses.networks.arbitrum.l2Bridge,
+      addresses.networks.arbitrum.l2CanonicalToken
+    ]
     const to = recipient
     const deadline = (Date.now() / 1000 + 300) | 0
 

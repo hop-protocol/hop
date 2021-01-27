@@ -86,19 +86,29 @@ const Convert: FC = () => {
     } catch (err) {}
   }
 
-  const destNetworks = sourceNetworks.filter((network: Network) => {
-    return network.slug === 'kovan' || network.slug === 'optimism' || network.slug === 'arbitrum'
-  })
-  .filter((network: Network) => {
-    return network.slug !== sourceNetwork?.slug
-  })
+  const destNetworks = sourceNetworks
+    .filter((network: Network) => {
+      return (
+        network.slug === 'kovan' ||
+        network.slug === 'optimism' ||
+        network.slug === 'arbitrum'
+      )
+    })
+    .filter((network: Network) => {
+      return network.slug !== sourceNetwork?.slug
+    })
 
-  sourceNetworks = sourceNetworks.filter((network: Network) => {
-    return network.slug === 'kovan' || network.slug === 'optimism' || network.slug === 'arbitrum'
-  })
-  .filter((network: Network) => {
-    return network.slug !== destNetwork?.slug
-  })
+  sourceNetworks = sourceNetworks
+    .filter((network: Network) => {
+      return (
+        network.slug === 'kovan' ||
+        network.slug === 'optimism' ||
+        network.slug === 'arbitrum'
+      )
+    })
+    .filter((network: Network) => {
+      return network.slug !== destNetwork?.slug
+    })
 
   const handleSourceNetworkChange = (network: Network | undefined) => {
     if (network) {
@@ -111,7 +121,6 @@ const Convert: FC = () => {
       setDestNetwork(network)
     }
   }
-
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">

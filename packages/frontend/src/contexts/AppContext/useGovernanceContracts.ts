@@ -31,7 +31,11 @@ const useGovernanceContracts = (networks: Network[]): GovernanceContracts => {
   }, [networks, connectedNetworkId, provider])
 
   const l1Hop = useMemo(() => {
-    return new Contract(addresses.governance.l1Hop, hopArtifact.abi, kovanProvider)
+    return new Contract(
+      addresses.governance.l1Hop,
+      hopArtifact.abi,
+      kovanProvider
+    )
   }, [kovanProvider])
 
   const stakingRewardsFactory = useMemo(() => {

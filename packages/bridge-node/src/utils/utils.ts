@@ -11,3 +11,7 @@ export const throttle = (fn: any, interval) => {
   const t = pThrottle({ limit: 1, interval })
   return t(fn)
 }
+
+export const wait = async (t: number) => {
+  return new Promise(resolve => setTimeout(() => resolve(), t))
+}

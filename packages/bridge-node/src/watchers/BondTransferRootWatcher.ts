@@ -5,6 +5,7 @@ import { TransfersCommittedEvent } from 'src/constants'
 import { store } from 'src/store'
 import chalk from 'chalk'
 import Logger from 'src/logger'
+import eventPoller from 'src/utils/eventPoller'
 
 const logger = new Logger('[bondTransferRootWatcher]', { color: 'cyan' })
 
@@ -17,7 +18,7 @@ class BondTransferRootWatcher {
   L2BridgeContract: any
   label: string
 
-  constructor(config: Config) {
+  constructor (config: Config) {
     this.L2BridgeContract = config.L2BridgeContract
     this.label = config.label
   }
@@ -30,7 +31,7 @@ class BondTransferRootWatcher {
     try {
       await this.watch()
     } catch (err) {
-      logger.error('watcher error:', err)
+      logger.error('watcher error:', err.message)
     }
   }
 
@@ -39,6 +40,7 @@ class BondTransferRootWatcher {
       TransfersCommittedEvent,
       this.handleTransferCommittedEvent
     )
+    //eventPoller(this.L2BridgeContract, this.L2Provider, TransfersCommittedEvent, this.handleTransferCommittedEvent)
   }
 
   sendL1TransferRootTx = (
@@ -89,7 +91,7 @@ class BondTransferRootWatcher {
       )
       logger.log('L1 bondTransferRoot tx', chalk.yellow(tx.hash))
     } catch (err) {
-      logger.error('bondTransferRoot tx error:', err)
+      logger.error('bondTransferRoot tx error:', err.message)
     }
   }
 }

@@ -78,7 +78,7 @@ class ArbBot {
           logger.error(err)
         }
       }
-    } catch(err) {
+    } catch (err) {
       logger.error('arb bot error:', err.message)
     }
   }

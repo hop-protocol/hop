@@ -45,7 +45,9 @@ export const prettifyErrorMessage = (str: string = '') => {
   return str.replace(/.*\[ethjs-query\].*"message":"(.*)\"\}.*/, '$1')
 }
 
-export const getNetworkSpecificMetamaskImage = (networkName: string): string => {
+export const getNetworkSpecificMetamaskImage = (
+  networkName: string
+): string => {
   const name = networkName.toLowerCase()
 
   if (name === 'mainnet') {

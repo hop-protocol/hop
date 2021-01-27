@@ -1,12 +1,12 @@
 type HopAddresses = {
-  l1Token: string,
-  l1Bridge: string,
+  l1Token: string
+  l1Bridge: string
   governance: {
-    l1Hop: string,
-    stakingRewardsFactory: string,
-    stakingRewards: string,
+    l1Hop: string
+    stakingRewardsFactory: string
+    stakingRewards: string
     governorAlpha: string
-  },
+  }
   networks: {
     [key: string]: {
       [key: string]: string

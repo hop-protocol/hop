@@ -118,13 +118,12 @@ const Send: FC = () => {
 
     const dai = addresses.l1Token
     const decimals = 18
-    const path = fromNetwork.isLayer1 ? [l2BridgeAddress, dai] : [dai, l2BridgeAddress]
+    const path = fromNetwork.isLayer1
+      ? [l2BridgeAddress, dai]
+      : [dai, l2BridgeAddress]
     if (isAmountIn) {
       const amount0 = parseUnits(amount, decimals)
-      const amountsOut = await uniswapRouter?.getAmountsOut(
-        amount0,
-        path
-      )
+      const amountsOut = await uniswapRouter?.getAmountsOut(amount0, path)
       return Number(formatUnits(amountsOut[1], decimals))
     } else {
       const amount1 = parseUnits(amount, decimals)

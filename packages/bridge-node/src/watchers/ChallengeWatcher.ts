@@ -24,7 +24,7 @@ class ChallengeWatcher {
   L2Provider: any
   label: string
 
-  constructor(config: Config) {
+  constructor (config: Config) {
     this.L2BridgeContract = config.L2BridgeContract
     this.L2Provider = config.L2Provider
     this.label = config.label

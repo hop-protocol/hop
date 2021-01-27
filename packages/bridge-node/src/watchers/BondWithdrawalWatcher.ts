@@ -7,6 +7,7 @@ import { TransferSentEvent } from 'src/constants'
 import { store } from 'src/store'
 import chalk from 'chalk'
 import Logger from 'src/logger'
+import eventPoller from 'src/utils/eventPoller'
 
 const logger = new Logger('[bondWithdrawalWatcher]', { color: 'green' })
 
@@ -21,7 +22,7 @@ class BondWithdrawalWatcher {
   L2Provider: any
   label: string
 
-  constructor(config: Config) {
+  constructor (config: Config) {
     this.L2BridgeContract = config.L2BridgeContract
     this.L2Provider = config.L2Provider
     this.label = config.label
@@ -35,7 +36,7 @@ class BondWithdrawalWatcher {
     try {
       await this.watch()
     } catch (err) {
-      logger.error('BondWithdrawalWatcher error:', err)
+      logger.error('BondWithdrawalWatcher error:', err.message)
     }
   }
 
@@ -51,7 +52,13 @@ class BondWithdrawalWatcher {
       logger.log('stake tx:', tx?.hash)
     }
 
-    this.L2BridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
+    //this.L2BridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
+    eventPoller(
+      this.L2BridgeContract,
+      this.L2Provider,
+      TransferSentEvent,
+      this.handleTransferSentEvent
+    )
   }
 
   sendL1BondWithdrawalTx = (params: any) => {
@@ -61,7 +68,7 @@ class BondWithdrawalWatcher {
       amount,
       transferNonce,
       relayerFee,
-      attemptSwap,
+      attemptSwap
     } = params
 
     if (attemptSwap) {
@@ -148,7 +155,7 @@ class BondWithdrawalWatcher {
       })
       logger.log('L1 bondWithdrawal tx:', chalk.yellow(tx.hash))
     } catch (err) {
-      logger.error('bondWithdrawal tx error:', err)
+      logger.error('bondWithdrawal tx error:', err.message)
     }
   }
 }

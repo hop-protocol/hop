@@ -1,4 +1,5 @@
 import React, { FC, createContext, useContext, useState, useMemo } from 'react'
+import { Contract } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
@@ -7,6 +8,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
 import { UINT256, ARBITRUM_MESSENGER_ID } from 'src/config/constants'
+import l1OptimismTokenBridgeArtifact from 'src/abi/L1OptimismTokenBridge.json'
 
 type ConvertContextProps = {
   selectedToken: Token | undefined
@@ -67,7 +69,6 @@ const ConvertContextProvider: FC = ({ children }) => {
   const arbitrumDai = contracts?.networks.arbitrum.l2CanonicalToken
   const arbitrumUniswapRouter = contracts?.networks.arbitrum.uniswapRouter
   const arbitrumL1Messenger = contracts?.networks.arbitrum.l1CanonicalBridge
-  const optimismL1Messenger = contracts?.networks.optimism.l1CanonicalBridge
   const arbitrumBridge = contracts?.networks.arbitrum.l2Bridge
   const l1Bridge = contracts?.l1Bridge
   const networks = useMemo(() => {
@@ -132,9 +133,15 @@ const ConvertContextProvider: FC = ({ children }) => {
         (sourceNetwork?.slug === 'arbitrum' &&
           destNetwork?.slug === 'arbitrumHopBridge')
       ) {
-        let path = [addresses.networks.arbitrum.l2CanonicalToken, addresses.networks.arbitrum.l2Bridge]
+        let path = [
+          addresses.networks.arbitrum.l2CanonicalToken,
+          addresses.networks.arbitrum.l2Bridge
+        ]
         if (destNetwork?.slug === 'arbitrum') {
-          path = [addresses.networks.arbitrum.l2Bridge, addresses.networks.arbitrum.l2CanonicalToken]
+          path = [
+            addresses.networks.arbitrum.l2Bridge,
+            addresses.networks.arbitrum.l2CanonicalToken
+          ]
         }
 
         const amountsOut = await arbitrumUniswapRouter?.getAmountsOut(
@@ -261,6 +268,13 @@ const ConvertContextProvider: FC = ({ children }) => {
             }
           })
         } else if (destNetwork?.slug === 'optimism') {
+          const l1Provider = provider?.getSigner()
+          const optimismL1Messenger = new Contract(
+            addresses.networks.optimism.l1CanonicalBridge,
+            l1OptimismTokenBridgeArtifact.abi,
+            l1Provider
+          )
+
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
@@ -285,13 +299,7 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              return optimismL1Messenger?.deposit(
-                // TODO: get address
-                '',
-                address,
-                value,
-                true
-              )
+              return optimismL1Messenger?.deposit(address, value, true)
             }
           })
         } else if (destNetwork?.slug === 'arbitrumHopBridge') {
@@ -362,7 +370,10 @@ const ConvertContextProvider: FC = ({ children }) => {
           )
 
           const amountOutMin = '0'
-          const path = [addresses.networks.arbitrum.l2CanonicalToken, addresses.networks.arbitrum.l2Bridge]
+          const path = [
+            addresses.networks.arbitrum.l2CanonicalToken,
+            addresses.networks.arbitrum.l2Bridge
+          ]
           const deadline = (Date.now() / 1000 + 300) | 0
 
           tx = await txConfirm?.show({
@@ -398,7 +409,10 @@ const ConvertContextProvider: FC = ({ children }) => {
           )
 
           const amountOutMin = '0'
-          const path = [addresses.networks.arbitrum.l2Bridge, addresses.networks.arbitrum.l2CanonicalToken]
+          const path = [
+            addresses.networks.arbitrum.l2Bridge,
+            addresses.networks.arbitrum.l2CanonicalToken
+          ]
           const deadline = (Date.now() / 1000 + 300) | 0
 
           tx = await txConfirm?.show({

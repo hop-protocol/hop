@@ -44,7 +44,7 @@ const useStyles = makeStyles(theme => ({
   },
   networkIcon: {
     display: 'flex',
-    height: '3.6rem',
+    height: '3.6rem'
   },
   greyCircle: {
     padding: '1.8rem',

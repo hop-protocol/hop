@@ -5,7 +5,7 @@ import Button from 'src/components/buttons/Button'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import HeaderRoutes from 'src/components/Header/HeaderRoutes'
 import TxPill from 'src/components/Header/TxPill'
-import HopLogoFullColor from 'src/assets/logos/SL_Color.svg'
+import HopLogoFullColor from 'src/assets/logos/hop-logo-full-color.svg'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   hopLogo: {
     marginTop: '-1.0rem',
-    width: '9rem'
+    width: '19.1rem'
   }
 }))
 

@@ -63,21 +63,6 @@ const useNetworkSpecificContracts = (
   }, [l1Network, connectedNetworkId, provider])
 
   const l1CanonicalBridge = useMemo(() => {
-    // TODO: better way
-    console.log(
-      l1CanonicalBridgeAddress,
-      addresses.networks.optimism.l2CanonicalToken
-    )
-    if (
-      l1CanonicalBridgeAddress === addresses.networks.optimism.l2CanonicalToken
-    ) {
-      return new Contract(
-        l1CanonicalBridgeAddress,
-        l1OptimismTokenBridgeArtifact.abi,
-        l1Provider
-      )
-    }
-
     return new Contract(
       l1CanonicalBridgeAddress,
       l1ArbitrumMessengerArtifact.abi,

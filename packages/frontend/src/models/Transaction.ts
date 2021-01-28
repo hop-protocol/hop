@@ -83,8 +83,7 @@ class Transaction extends EventEmitter {
   }
 
   private _optimismLink () {
-    // TODO: get optimism explorer url
-    return this._etherscanLink()
+    return `https://kovan-l2-explorer.surge.sh/tx/${this.hash}`
   }
 
   toObject () {

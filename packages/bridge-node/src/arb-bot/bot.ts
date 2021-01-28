@@ -6,11 +6,10 @@ import {
   L2ArbitrumTokenAddress,
   L2ArbitrumUniswapRouter,
   L2ArbitrumUniswapFactory,
-
   L2OptimismBridgeAddress,
   L2OptimismTokenAddress,
   L2OptimismUniswapRouter,
-  L2OptimismUniswapFactory,
+  L2OptimismUniswapFactory
 } from 'src/config'
 import ArbBot from './ArbBot'
 

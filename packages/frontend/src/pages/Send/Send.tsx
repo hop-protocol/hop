@@ -110,11 +110,13 @@ const Send: FC = () => {
     let l2BridgeAddress
     let uniswapRouter
     if (toNetwork?.name === 'Arbitrum') {
-      l2CanonicalTokenAddress = contracts?.networks.arbitrum.l2CanonicalToken?.address
+      l2CanonicalTokenAddress =
+        contracts?.networks.arbitrum.l2CanonicalToken?.address
       l2BridgeAddress = contracts?.networks.arbitrum.l2Bridge?.address
       uniswapRouter = contracts?.networks.arbitrum.uniswapRouter
     } else if (toNetwork?.name === 'Optimism') {
-      l2CanonicalTokenAddress = contracts?.networks.optimism.l2CanonicalToken?.address
+      l2CanonicalTokenAddress =
+        contracts?.networks.optimism.l2CanonicalToken?.address
       l2BridgeAddress = contracts?.networks.optimism.l2Bridge?.address
       uniswapRouter = contracts?.networks.optimism.uniswapRouter
     }

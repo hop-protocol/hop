@@ -39,22 +39,11 @@ class BondWithdrawalWatcher {
     try {
       await this.watch()
     } catch (err) {
-      logger.error('BondWithdrawalWatcher error:', err.message)
+      logger.error(`BondWithdrawalWatcher ${this.label} error:`, err.message)
     }
   }
 
   async watch () {
-    const credit = (await L1BridgeContract.getCredit()).toString()
-    const debit = (await L1BridgeContract.getDebit()).toString()
-    //logger.log('L1 credit balance:', formatUnits(credit, 18))
-    //logger.log('L1 debit balance:', formatUnits(debit, 18))
-
-    if (credit === '0') {
-      const amount = parseUnits('1000', 18)
-      const tx = await L1BridgeContract.stake(amount)
-      logger.log('stake tx:', tx?.hash)
-    }
-
     this.L2BridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
     /*
     eventPoller(
@@ -120,6 +109,7 @@ class BondWithdrawalWatcher {
   ) => {
     try {
       const { transactionHash } = meta
+      console.log('transfer event amount:', amount.toString())
       logger.log(`received L2 ${this.label} TransferSentEvent event`)
       logger.log('transferHash:', transferHash)
 

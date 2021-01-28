@@ -96,6 +96,7 @@ const Send: FC = () => {
   const [fromBalance, setFromBalance] = useState<number>(0)
   const [toBalance, setToBalance] = useState<number>(0)
   const [error, setError] = useState<string | null | undefined>(null)
+  const [info, setInfo] = useState<string | null | undefined>(null)
   const debouncer = useRef<number>(0)
 
   const calcAmount = async (
@@ -340,7 +341,6 @@ const Send: FC = () => {
       throw new Error('Cannot send: l1Bridge or signer does not exist.')
     }
 
-    const l2Network = toNetwork
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
@@ -366,6 +366,10 @@ const Send: FC = () => {
         )
       }
     })
+
+    if (toNetwork?.slug === 'optimism') {
+      setInfo('You must wait 10 blocks before your funds are available on Optimism.')
+    }
 
     if (tx?.hash && fromNetwork) {
       txHistory?.addTransaction(
@@ -602,6 +606,8 @@ const Send: FC = () => {
       <SendButton sending={sending} disabled={!validFormFields} onClick={send}>
         {buttonText}
       </SendButton>
+      <br />
+      <Alert severity="info" onClose={() => setInfo(null)} text={info} />
     </Box>
   )
 }

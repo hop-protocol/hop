@@ -1,34 +1,35 @@
 import '../moduleAlias'
 import assert from 'assert'
-import * as ethers from 'ethers'
 import { wait } from 'src/utils'
 import { TransferSentEvent } from 'src/constants'
 import chalk from 'chalk'
-import Logger from 'src/logger'
 import { throttle } from 'src/utils'
-
-const logger = new Logger('[commitTransferWatcher]', { color: 'yellow' })
+import BaseWatcher from 'src/watchers/BaseWatcher'
 
 export interface Config {
   L2BridgeContract: any
   label: string
 }
 
-class CommitTransfersWatcher {
+class CommitTransfersWatcher extends BaseWatcher {
   L2BridgeContract: any
   label: string
 
   constructor (config: Config) {
+    super({
+      label: 'commitTransferWatcher',
+      logColor: 'yellow'
+    })
     this.L2BridgeContract = config.L2BridgeContract
     this.label = config.label
   }
 
   async start () {
-    logger.log(`starting L2 ${this.label} commitTransfers scheduler`)
+    this.logger.log(`starting L2 ${this.label} commitTransfers scheduler`)
     try {
       await this.watch()
     } catch (err) {
-      logger.error('watcher error:', err)
+      this.logger.error('watcher error:', err)
     }
   }
 
@@ -49,7 +50,10 @@ class CommitTransfersWatcher {
     }
 
     const tx = await this.sendTx()
-    logger.log(`L2 ${this.label} commitTransfers tx:`, chalk.yellow(tx.hash))
+    this.logger.log(
+      `L2 ${this.label} commitTransfers tx:`,
+      chalk.yellow(tx.hash)
+    )
     const receipt = await tx.wait()
     assert(receipt.status === 1)
   }, 15 * 1000)
@@ -65,7 +69,7 @@ class CommitTransfersWatcher {
     try {
       await this.check()
     } catch (err) {
-      logger.error('commitTransfers tx error:', err.message)
+      this.logger.error('commitTransfers tx error:', err.message)
     }
   }
 
@@ -77,7 +81,7 @@ class CommitTransfersWatcher {
         await this.check()
         await wait(10 * 1000)
       } catch (err) {
-        logger.error('commitTransfers tx error:', err.message)
+        this.logger.error('commitTransfers tx error:', err.message)
         await wait(20 * 1000)
       }
     }

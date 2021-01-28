@@ -1,22 +1,21 @@
 import '../moduleAlias'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { wait } from 'src/utils'
-import L1BridgeContract from 'src/contracts/L1BridgeContract'
-import L2OptimismBridgeContract from 'src/contracts/L2OptimismBridgeContract'
-import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
-import Logger from 'src/logger'
-
-const logger = new Logger('[stakeWatcher]', { color: 'green' })
+import BaseWatcher from 'src/watchers/BaseWatcher'
 
 export interface Config {
   chains: any[]
 }
 
-class StakeWatcher {
+class StakeWatcher extends BaseWatcher {
   chains: any[]
   interval: number = 60 * 1000
 
   constructor (config: Config) {
+    super({
+      label: 'stakeWatcher',
+      logColor: 'green'
+    })
     this.chains = config.chains
   }
 
@@ -27,7 +26,7 @@ class StakeWatcher {
         await wait(this.interval)
       }
     } catch (err) {
-      logger.log(`stake watcher error:`, err.message)
+      this.logger.log(`stake watcher error:`, err.message)
     }
   }
 
@@ -39,17 +38,17 @@ class StakeWatcher {
       try {
         const credit = await this.getCredit(contract)
         const debit = await this.getDebit(contract)
-        logger.log(`${label} credit balance:`, credit)
-        logger.log(`${label} debit balance:`, debit)
+        this.logger.log(`${label} credit balance:`, credit)
+        this.logger.log(`${label} debit balance:`, debit)
 
         if (credit < threshold) {
           const parsedAmount = parseUnits(amount.toString(), 18)
-          logger.log(`staking ${amount}`)
+          this.logger.log(`staking ${amount}`)
           const tx = await contract.stake(parsedAmount)
-          logger.log(`stake ${label} tx:`, tx?.hash)
+          this.logger.log(`stake ${label} tx:`, tx?.hash)
         }
       } catch (err) {
-        logger.log(`${label} stake tx error:`, err.message)
+        this.logger.log(`${label} stake tx error:`, err.message)
       }
     }
   }

@@ -75,7 +75,7 @@ class ArbBot {
           logger.log(`Rechecking in ${this.pollTimeSec} seconds`)
           await wait(this.pollTimeSec * 1e3)
         } catch (err) {
-          logger.error(err)
+          logger.error('arb bot error:', err.message)
         }
       }
     } catch (err) {

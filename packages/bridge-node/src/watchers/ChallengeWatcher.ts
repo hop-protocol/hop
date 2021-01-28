@@ -1,9 +1,7 @@
 import '../moduleAlias'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
 import { BondTransferRootEvent, TransfersCommittedEvent } from 'src/constants'
-import Logger from 'src/logger'
-
-const logger = new Logger('[challengeWatcher]', { color: 'red' })
+import BaseWatcher from 'src/watchers/BaseWatcher'
 
 // notes:
 // - challenge watcher
@@ -19,23 +17,27 @@ export interface Config {
 }
 
 // TODO: fix
-class ChallengeWatcher {
+class ChallengeWatcher extends BaseWatcher {
   L2BridgeContract: any
   L2Provider: any
   label: string
 
   constructor (config: Config) {
+    super({
+      label: 'challengeWatcher',
+      logColor: 'red'
+    })
     this.L2BridgeContract = config.L2BridgeContract
     this.L2Provider = config.L2Provider
     this.label = config.label
   }
 
   async start () {
-    logger.log('starting L1 BondTransferRoot event watcher')
+    this.logger.log('starting L1 BondTransferRoot event watcher')
     try {
       await this.watch()
     } catch (err) {
-      logger.error('watcher error:', err.message)
+      this.logger.error('watcher error:', err.message)
     }
   }
 
@@ -46,7 +48,7 @@ class ChallengeWatcher {
       meta: any
     ) => {
       const { transactionHash } = meta
-      logger.log(
+      this.logger.log(
         'received L1 BondTransferRoot event',
         bondRoot,
         bondAmount.toString(),
@@ -58,7 +60,7 @@ class ChallengeWatcher {
         TransfersCommittedEvent as any,
         L2BlockNumber - 100
       )
-      logger.log('recent events:', recentTransferCommitEvents)
+      this.logger.log('recent events:', recentTransferCommitEvents)
 
       let found = false
       for (let i = 0; i < recentTransferCommitEvents.length; i++) {
@@ -74,7 +76,7 @@ class ChallengeWatcher {
       }
 
       if (!found) {
-        logger.warn('Transfer root not committed!')
+        this.logger.warn('Transfer root not committed!')
       }
     }
 
@@ -85,7 +87,7 @@ class ChallengeWatcher {
     //L2BridgeContract.filters.TransfersCommitted(),
     //L2BlockNumber - 100
     //)
-    //logger.log('recent events:', recentTransferCommitEvents)
+    //this.logger.log('recent events:', recentTransferCommitEvents)
   }
 }
 

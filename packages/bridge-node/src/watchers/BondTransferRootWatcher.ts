@@ -5,33 +5,36 @@ import { wait } from 'src/utils'
 import { store } from 'src/store'
 import chalk from 'chalk'
 import Logger from 'src/logger'
-import eventPoller from 'src/utils/eventPoller'
-
-const logger = new Logger('[bondTransferRootWatcher]', { color: 'cyan' })
+import BaseWatcher from 'src/watchers/BaseWatcher'
+//import eventPoller from 'src/utils/eventPoller'
 
 export interface Config {
   L2BridgeContract: any
   label: string
 }
 
-class BondTransferRootWatcher {
+class BondTransferRootWatcher extends BaseWatcher {
   L2BridgeContract: any
   label: string
 
   constructor (config: Config) {
+    super({
+      label: 'bondTransferRootWatcher',
+      logColor: 'cyan'
+    })
     this.L2BridgeContract = config.L2BridgeContract
     this.label = config.label
   }
 
   async start () {
-    logger.log(
+    this.logger.log(
       `starting L2 ${this.label} TransfersCommitted event watcher for L1 bondTransferRoot tx`
     )
 
     try {
       await this.watch()
     } catch (err) {
-      logger.error('watcher error:', err.message)
+      this.logger.error('watcher error:', err.message)
     }
   }
 
@@ -80,13 +83,13 @@ class BondTransferRootWatcher {
     }
     try {
       const { transactionHash } = meta
-      logger.log(`received L2 ${this.label} TransfersCommittedEvent event`)
-      logger.log('transferRootHash', transferRootHash)
-      logger.log(
+      this.logger.log(`received L2 ${this.label} TransfersCommittedEvent event`)
+      this.logger.log('transferRootHash', transferRootHash)
+      this.logger.log(
         'chainIds',
         chainIds.map(x => x.toString())
       )
-      logger.log(
+      this.logger.log(
         'chainAmounts',
         chainAmounts.map(x => x.toString())
       )
@@ -102,9 +105,9 @@ class BondTransferRootWatcher {
         chainIds,
         chainAmounts
       )
-      logger.log('L1 bondTransferRoot tx', chalk.yellow(tx.hash))
+      this.logger.log('L1 bondTransferRoot tx', chalk.yellow(tx.hash))
     } catch (err) {
-      logger.error('bondTransferRoot tx error:', err.message)
+      this.logger.error('bondTransferRoot tx error:', err.message)
     }
   }
 }

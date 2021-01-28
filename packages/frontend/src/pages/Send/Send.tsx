@@ -18,7 +18,7 @@ import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
 import SendButton from 'src/pages/Send/SendButton'
 import Transaction from 'src/models/Transaction'
 import Alert from 'src/components/alert/Alert'
-import { Contract } from 'ethers'
+import { Contract, BigNumber } from 'ethers'
 import {
   parseEther,
   parseUnits,
@@ -96,6 +96,7 @@ const Send: FC = () => {
   const [fromBalance, setFromBalance] = useState<number>(0)
   const [toBalance, setToBalance] = useState<number>(0)
   const [error, setError] = useState<string | null | undefined>(null)
+  const [info, setInfo] = useState<string | null | undefined>(null)
   const debouncer = useRef<number>(0)
 
   const calcAmount = async (
@@ -106,34 +107,68 @@ const Send: FC = () => {
     if (!toNetwork) return 0
     if (!amount) return 0
 
-    let l2CanonicalTokenAddress
-    let l2BridgeAddress
-    let uniswapRouter
-    if (toNetwork?.name === 'Arbitrum') {
-      l2CanonicalTokenAddress =
-        contracts?.networks.arbitrum.l2CanonicalToken?.address
-      l2BridgeAddress = contracts?.networks.arbitrum.l2Bridge?.address
-      uniswapRouter = contracts?.networks.arbitrum.uniswapRouter
-    } else if (toNetwork?.name === 'Optimism') {
-      l2CanonicalTokenAddress =
-        contracts?.networks.optimism.l2CanonicalToken?.address
-      l2BridgeAddress = contracts?.networks.optimism.l2Bridge?.address
-      uniswapRouter = contracts?.networks.optimism.uniswapRouter
+    const amountBN = parseEther(amount)
+
+    const decimals = 18
+    // L1 -> L2 or L2 -> L1
+    if (fromNetwork?.isLayer1 || toNetwork?.isLayer1) {
+      const _amount = await _calcAmount(
+        amountBN,
+        isAmountIn,
+        fromNetwork,
+        toNetwork
+      )
+      return Number(formatUnits(_amount, decimals))
     }
 
-    const dai = l2CanonicalTokenAddress
-    const decimals = 18
-    const path = fromNetwork.isLayer1
-      ? [l2BridgeAddress, dai]
-      : [dai, l2BridgeAddress]
-    if (isAmountIn) {
-      const amount0 = parseUnits(amount, decimals)
-      const amountsOut = await uniswapRouter?.getAmountsOut(amount0, path)
-      return Number(formatUnits(amountsOut[1], decimals))
+    // L2 -> L2
+    const layer1Network = networks.find(network => network.isLayer1) as Network
+    const amountOut1 = await _calcAmount(
+      amountBN,
+      true,
+      fromNetwork,
+      layer1Network
+    )
+    const amountOut2 = await _calcAmount(
+      amountOut1,
+      true,
+      layer1Network,
+      toNetwork
+    )
+
+    return Number(formatUnits(amountOut2, decimals))
+  }
+
+  const _calcAmount = async (
+    amount: BigNumber,
+    isAmountIn: boolean,
+    _fromNetwork: Network,
+    _toNetwork: Network
+  ): Promise<BigNumber> => {
+    let path
+    let uniswapRouter
+    if (_fromNetwork.isLayer1) {
+      let l2CanonicalTokenAddress =
+        contracts?.networks[_toNetwork.slug].l2CanonicalToken?.address
+      let l2BridgeAddress =
+        contracts?.networks[_toNetwork.slug].l2Bridge?.address
+      path = [l2BridgeAddress, l2CanonicalTokenAddress]
+      uniswapRouter = contracts?.networks[_toNetwork.slug].uniswapRouter
     } else {
-      const amount1 = parseUnits(amount, decimals)
-      const amountsIn = await uniswapRouter?.getAmountsIn(amount1, path)
-      return Number(formatUnits(amountsIn[0], decimals))
+      let l2CanonicalTokenAddress =
+        contracts?.networks[_fromNetwork.slug].l2CanonicalToken?.address
+      let l2BridgeAddress =
+        contracts?.networks[_fromNetwork.slug].l2Bridge?.address
+      path = [l2CanonicalTokenAddress, l2BridgeAddress]
+      uniswapRouter = contracts?.networks[_fromNetwork.slug].uniswapRouter
+    }
+
+    if (isAmountIn) {
+      const amountsOut = await uniswapRouter?.getAmountsOut(amount, path)
+      return amountsOut[1]
+    } else {
+      const amountsIn = await uniswapRouter?.getAmountsIn(amount, path)
+      return amountsIn[0]
     }
   }
 
@@ -141,12 +176,11 @@ const Send: FC = () => {
     try {
       if (!amountIn || !toNetwork) return
       const ctx = ++debouncer.current
-      const rate = 1
-      // const amountOut = await calcAmount(amountIn, true)
-      // const rate = amountOut / Number(amountIn)
+      const amountOut = await calcAmount(amountIn, true)
+      const rate = amountOut / Number(amountIn)
       if (ctx !== debouncer.current) return
       setToTokenAmount((Number(amountIn) * rate).toFixed(2))
-      setExchangeRate(1)
+      setExchangeRate(rate)
     } catch (err) {
       console.error(err)
     }
@@ -156,12 +190,11 @@ const Send: FC = () => {
     try {
       if (!amountOut || !fromNetwork) return
       const ctx = ++debouncer.current
-      const rate = 1
-      // const amountIn = await calcAmount(amountOut, false)
-      // const rate = Number(amountOut) / amountIn
+      const amountIn = await calcAmount(amountOut, false)
+      const rate = Number(amountOut) / amountIn
       if (ctx !== debouncer.current) return
       setFromTokenAmount((Number(amountOut) / rate).toFixed(2))
-      setExchangeRate(1)
+      setExchangeRate(rate)
     } catch (err) {
       console.error(err)
     }
@@ -342,7 +375,6 @@ const Send: FC = () => {
       throw new Error('Cannot send: l1Bridge or signer does not exist.')
     }
 
-    const l2Network = toNetwork
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
@@ -368,6 +400,12 @@ const Send: FC = () => {
         )
       }
     })
+
+    if (toNetwork?.slug === 'optimism') {
+      setInfo(
+        'You must wait 10 blocks before your funds are available on Optimism.'
+      )
+    }
 
     if (tx?.hash && fromNetwork) {
       txHistory?.addTransaction(
@@ -604,6 +642,8 @@ const Send: FC = () => {
       <SendButton sending={sending} disabled={!validFormFields} onClick={send}>
         {buttonText}
       </SendButton>
+      <br />
+      <Alert severity="info" onClose={() => setInfo(null)} text={info} />
     </Box>
   )
 }

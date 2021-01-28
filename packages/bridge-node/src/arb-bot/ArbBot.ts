@@ -1,6 +1,7 @@
 import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
+import { wait } from 'src/utils'
 import chalk from 'chalk'
 import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
 import erc20Artifact from '@hop-exchange/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
@@ -9,10 +10,6 @@ import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import Logger from 'src/logger'
 
 const logger = new Logger('[arbBot]', { color: 'green' })
-
-const wait = async (t: number) => {
-  // return new Promise(resolve => setTimeout(() => resolve(), t))
-}
 
 const UINT256 =
   '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
@@ -66,7 +63,7 @@ class ArbBot {
 
       await this.checkBalances()
       await this.approveTokens()
-      this.startWatcher().catch(logger.error)
+      this.startEventWatcher().catch(logger.error)
 
       while (true) {
         try {
@@ -290,7 +287,7 @@ class ArbBot {
     )
   }
 
-  private async startWatcher () {
+  private async startEventWatcher () {
     const pairAddress = await this.uniswapFactory?.getPair(
       this.token0.contract.address,
       this.token1.contract.address
@@ -302,9 +299,13 @@ class ArbBot {
     )
 
     const SWAP_EVENT = 'Swap'
-    pair.on(SWAP_EVENT, event => {
+    pair.on(SWAP_EVENT, async event => {
       logger.log('Detected swap event')
-      this.checkArbitrage()
+      try {
+        await this.checkArbitrage()
+      } catch (err) {
+        logger.error('arb bot error:', err.message)
+      }
     })
   }
 }

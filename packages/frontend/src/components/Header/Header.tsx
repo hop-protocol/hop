@@ -16,6 +16,10 @@ const useStyles = makeStyles((theme: Theme) => ({
       paddingTop: '2rem',
       marginBottom: '4rem'
     }
+  },
+  hopLogo: {
+    marginTop: '-1.0rem',
+    width: '19.1rem'
   }
 }))
 
@@ -31,7 +35,7 @@ const Header: FC = () => {
         flex={1}
         justifyContent="flex-start"
       >
-        <img width={'200px'} src={HopLogoFullColor} alt="Hop icon" />
+        <img className={styles.hopLogo} src={HopLogoFullColor} alt="Hop icon" />
       </Box>
       <Box display="flex" flexDirection="row" flex={1} justifyContent="center">
         <HeaderRoutes />

@@ -22,8 +22,7 @@ const useStyles = makeStyles(theme => ({
   topRow: {
     marginBottom: '1.8rem'
   },
-  networkLabel: {
-  },
+  networkLabel: {},
   networkIcon: {
     height: '3.6rem'
   },

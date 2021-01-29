@@ -6,7 +6,7 @@ import { useApp } from 'src/contexts/AppContext'
 import Transaction from 'src/models/Transaction'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {},
   button: {},
   pendingButton: {

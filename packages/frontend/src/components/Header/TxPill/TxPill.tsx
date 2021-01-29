@@ -6,11 +6,11 @@ import { useApp } from 'src/contexts/AppContext'
 import Transaction from 'src/models/Transaction'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {},
   button: {},
   pendingButton: {
-    backgroundColor: '#bfedff'
+    backgroundColor: 'rgba(179, 46, 255, 0.12)'
   },
   spinner: {
     marginLeft: '1rem'

@@ -35,9 +35,9 @@ declare module '@material-ui/core/styles/createMuiTheme' {
 
 export const palette = {
   primary: {
-    light: '#55CCF2',
-    main: '#00ACE2',
-    dark: '#1AA7D3',
+    light: '#c462fc',
+    main: '#B32EFF',
+    dark: '#7213a8',
     contrastText: 'white'
   },
   background: {
@@ -45,9 +45,9 @@ export const palette = {
     paper: '#F0F0F3'
   },
   action: {
-    active: '#00ACE2',
-    hover: '#55CCF2',
-    selected: '#00ACE2',
+    active: '#B32EFF',
+    hover: '#c462fc',
+    selected: '#B32EFF',
     disabled: 'rgba(5, 21, 36, 0.2)'
   },
   secondary: {
@@ -180,6 +180,33 @@ const theme = createMuiTheme({
         '&$selected': {
           color: palette.primary.main
         }
+      }
+    },
+    MuiListItem: {
+      root: {
+        '&$selected': {
+          backgroundColor: 'rgba(179, 46, 255, 0.1)',
+          '&:hover': {
+            backgroundColor: 'rgba(179, 46, 255, 0.12)',
+          }
+        },
+      },
+      button: {
+        '&:hover': {
+          backgroundColor: 'rgba(179, 46, 255, 0.05)'
+        }
+      }
+    },
+    MuiMenuItem: {
+      root: {
+        fontWeight: 700,
+        fontSize: '1.8rem'
+      }
+    },
+    MuiPopover: {
+      paper: {
+        borderRadius: '3.0rem',
+        boxShadow: '0px 5px 15px -3px rgba(0,0,0,0.1), 0px 8px 20px 1px rgba(0,0,0,0.07), 0px 3px 24px 2px rgba(0,0,0,0.06);'
       }
     }
   }

@@ -32,7 +32,7 @@ const useStyles = makeStyles(theme => ({
   networkLabel: {
     display: 'flex',
     flexDirection: 'row',
-    marginLeft: theme.padding.extraLight,
+    marginLeft: '0.4rem',
     overflow: 'hidden',
     textOverflow: 'ellipsis'
   },
@@ -44,10 +44,12 @@ const useStyles = makeStyles(theme => ({
   },
   networkIcon: {
     display: 'flex',
-    height: '3.6rem'
+    height: '2.6rem',
+    margin: '0.5rem'
   },
   greyCircle: {
-    padding: '1.8rem',
+    margin: '0.5rem',
+    padding: '1.3rem',
     borderRadius: '1.8rem',
     backgroundColor: '#C4C4C4'
   }

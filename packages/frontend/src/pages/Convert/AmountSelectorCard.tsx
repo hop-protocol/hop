@@ -39,7 +39,8 @@ const useStyles = makeStyles(theme => ({
     textOverflow: 'ellipsis'
   },
   networkIcon: {
-    height: '3.6rem'
+    height: '2.6rem',
+    margin: '0.5rem'
   },
   greyCircle: {
     padding: '1.8rem',

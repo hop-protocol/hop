@@ -23,13 +23,13 @@ const useStyles = makeStyles(theme => ({
     marginBottom: '1.8rem'
   },
   networkLabel: {
-    marginLeft: theme.padding.extraLight
   },
   networkIcon: {
     height: '3.6rem'
   },
   greyCircle: {
-    padding: '1.8rem',
+    margin: '0.5rem',
+    padding: '1.3rem',
     borderRadius: '1.8rem',
     backgroundColor: '#C4C4C4'
   }

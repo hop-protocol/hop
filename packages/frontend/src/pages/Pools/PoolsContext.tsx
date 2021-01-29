@@ -17,7 +17,7 @@ import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import Address from 'src/models/Address'
 import Price from 'src/models/Price'
-import { addresses, arbitrumNetworkId, optimismNetworkId } from 'src/config'
+import { addresses } from 'src/config'
 import { UINT256 } from 'src/config/constants'
 import Transaction from 'src/models/Transaction'
 import useInterval from 'src/hooks/useInterval'
@@ -118,20 +118,25 @@ const PoolsContextProvider: FC = ({ children }) => {
     setRequiredNetworkId,
     connectedNetworkId
   } = useWeb3Context()
-  const arbitrumUniswapRouter = contracts?.networks.arbitrum.uniswapRouter
-  const arbitrumUniswapFactory = contracts?.networks.arbitrum.uniswapFactory
+  const contractProviders: any = {
+    arbitrum: contracts?.arbitrumProvider,
+    optimism: contracts?.optimismProvider
+  }
   const [error, setError] = useState<string | null | undefined>(null)
 
   const hopToken = useMemo(() => {
-    // ToDo: Refactor to be network-agnostic
-    const arbitrumNetwork = networks.find(network => network.slug === 'arbitrum')
+    const arbitrumNetwork = networks.find(
+      network => network.slug === 'arbitrum'
+    )
     const arbitrumBridgeDai = new Contract(
       addresses.networks.arbitrum.l2Bridge,
       erc20Artifact.abi,
       arbitrumNetwork?.provider
     )
 
-    const optimismNetwork = networks.find(network => network.slug === 'optimism')
+    const optimismNetwork = networks.find(
+      network => network.slug === 'optimism'
+    )
     const optimismBridgeDai = new Contract(
       addresses.networks.optimism.l2Bridge,
       erc20Artifact.abi,
@@ -155,6 +160,10 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
   const [txHash, setTxHash] = useState<string | undefined>()
   const [sending, setSending] = useState<boolean>(false)
+  const selectedNetworkSlug = selectedNetwork?.slug
+  const uniswapRouter = contracts?.networks[selectedNetworkSlug]?.uniswapRouter
+  const uniswapFactory =
+    contracts?.networks[selectedNetworkSlug]?.uniswapFactory
 
   const checkWalletNetwork = () => {
     setRequiredNetworkId(selectedNetwork?.networkId)
@@ -219,14 +228,16 @@ const PoolsContextProvider: FC = ({ children }) => {
   const updateUserPoolPositions = useCallback(async () => {
     try {
       if (!provider) return
-      const pairAddress = await arbitrumUniswapFactory?.getPair(
+      const contractProvider = contractProviders[selectedNetworkSlug]
+      if (!contractProvider) return
+      const pairAddress = await uniswapFactory?.getPair(
         selectedToken?.addressForNetwork(selectedNetwork).toString(),
         hopToken?.addressForNetwork(selectedNetwork).toString()
       )
       const pair = new Contract(
         pairAddress,
         uniswapV2PairArtifact.abi,
-        contracts?.arbitrumProvider
+        contractProvider
       )
 
       const decimals = await pair.decimals()
@@ -263,7 +274,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       setToken1Deposited(token1Deposited.toFixed(2))
 
       const amount0 = parseUnits('1', decimals)
-      const amount1 = await arbitrumUniswapRouter?.quote(
+      const amount1 = await uniswapRouter?.quote(
         amount0,
         parseUnits(reserve0, decimals),
         parseUnits(reserve1, decimals)
@@ -275,18 +286,18 @@ const PoolsContextProvider: FC = ({ children }) => {
     }
   }, [
     provider,
-    arbitrumUniswapRouter,
+    uniswapRouter,
     selectedNetwork,
     selectedToken,
     hopToken,
-    arbitrumUniswapFactory
+    uniswapFactory
   ])
 
   useEffect(() => {
     updateUserPoolPositions()
   }, [
     provider,
-    arbitrumUniswapRouter,
+    uniswapRouter,
     selectedNetwork,
     selectedToken,
     hopToken,
@@ -307,7 +318,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     const tokenAddress = token.addressForNetwork(network).toString()
     const contract = contracts?.getErc20Contract(tokenAddress, signer)
 
-    const address = arbitrumUniswapRouter?.address
+    const address = uniswapRouter?.address
     const parsedAmount = parseUnits(amount, token.decimals || 18)
     const approved = await contract?.allowance(
       await signer?.getAddress(),
@@ -392,7 +403,7 @@ const PoolsContextProvider: FC = ({ children }) => {
           }
         },
         onConfirm: async () => {
-          return arbitrumUniswapRouter?.addLiquidity(
+          return uniswapRouter?.addLiquidity(
             token0,
             token1,
             amount0Desired,

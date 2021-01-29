@@ -56,7 +56,8 @@ const initialState = {
   disconnectWallet: () => {},
   walletConnected: false,
   walletName: '',
-  getWriteContract: async (contract: Contract): Promise<Contract | undefined> => undefined
+  getWriteContract: async (contract: Contract): Promise<Contract | undefined> =>
+    undefined
 }
 
 const Web3Context = createContext<Props>(initialState)
@@ -297,10 +298,12 @@ const Web3ContextProvider: FC = ({ children }) => {
 
   const walletConnected = !!address
 
-  const getWriteContract = async (contract: Contract): Promise<Contract | undefined> => {
+  const getWriteContract = async (
+    contract: Contract
+  ): Promise<Contract | undefined> => {
     const signerNetworkId = (await provider?.getNetwork())?.chainId
     const contractNetworkId = (await contract.provider.getNetwork()).chainId
-    if(signerNetworkId != contractNetworkId) {
+    if (signerNetworkId != contractNetworkId) {
       onboard.config({ networkId: Number(contractNetworkId) })
       if (onboard.getState().address) {
         onboard.walletCheck()

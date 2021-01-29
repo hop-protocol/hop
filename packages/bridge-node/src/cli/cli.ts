@@ -5,7 +5,9 @@ import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
-import { bot, bot2 } from 'src/arb-bot/bot'
+import StakeWatcher from 'src/watchers/StakeWatcher'
+import { arbitrumBot, optimismBot } from 'src/arb-bot/bot'
+import L1BridgeContract from 'src/contracts/L1BridgeContract'
 import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
 import L2OptimismBridgeContract from 'src/contracts/L2OptimismBridgeContract'
 import { L2ArbitrumProvider } from 'src/wallets/L2ArbitrumWallet'
@@ -58,6 +60,23 @@ program
       label: 'Optimism',
       L2BridgeContract: L2OptimismBridgeContract
     }).start()
+
+    new StakeWatcher({
+      chains: [
+        {
+          label: 'L1',
+          contract: L1BridgeContract
+        },
+        {
+          label: 'Optimism',
+          contract: L2OptimismBridgeContract
+        },
+        {
+          label: 'Arbitrum',
+          contract: L2ArbitrumBridgeContract
+        }
+      ]
+    }).start()
   })
 
 program
@@ -85,8 +104,30 @@ program
   .command('arb-bot')
   .description('Start the arbitrage bot')
   .action(() => {
-    bot.start()
-    bot2.start()
+    arbitrumBot.start()
+    optimismBot.start()
+  })
+
+program
+  .command('stake')
+  .description('Start the stake watcher')
+  .action(() => {
+    new StakeWatcher({
+      chains: [
+        {
+          label: 'L1',
+          contract: L1BridgeContract
+        },
+        {
+          label: 'Optimism',
+          contract: L2OptimismBridgeContract
+        },
+        {
+          label: 'Arbitrum',
+          contract: L2ArbitrumBridgeContract
+        }
+      ]
+    }).start()
   })
 
 program.parse(process.argv)

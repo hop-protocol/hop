@@ -6,15 +6,14 @@ import {
   L2ArbitrumTokenAddress,
   L2ArbitrumUniswapRouter,
   L2ArbitrumUniswapFactory,
-
   L2OptimismBridgeAddress,
   L2OptimismTokenAddress,
   L2OptimismUniswapRouter,
-  L2OptimismUniswapFactory,
+  L2OptimismUniswapFactory
 } from 'src/config'
 import ArbBot from './ArbBot'
 
-const bot = new ArbBot({
+const arbitrumBot = new ArbBot({
   token0: {
     label: 'arbitrum hopDai',
     address: L2ArbitrumBridgeAddress
@@ -36,7 +35,7 @@ const bot = new ArbBot({
   arbitrageAmount: 10
 })
 
-const bot2 = new ArbBot({
+const optimismBot = new ArbBot({
   token0: {
     label: 'optimism hopDai',
     address: L2OptimismBridgeAddress
@@ -58,4 +57,4 @@ const bot2 = new ArbBot({
   arbitrageAmount: 10
 })
 
-export { bot, bot2 }
+export { arbitrumBot, optimismBot }

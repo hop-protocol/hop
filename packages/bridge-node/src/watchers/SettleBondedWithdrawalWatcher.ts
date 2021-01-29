@@ -1,34 +1,34 @@
 import '../moduleAlias'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
-import { BondTransferRootEvent, TransfersCommittedEvent } from 'src/constants'
+import { BondTransferRootEvent } from 'src/constants'
 import { store } from 'src/store'
 import chalk from 'chalk'
-import Logger from 'src/logger'
-
-const logger = new Logger('[settleBondedWithdrawalWatcher]', {
-  color: 'magenta'
-})
+import BaseWatcher from 'src/watchers/BaseWatcher'
 
 export interface Config {
   L2BridgeContract: any
   label: string
 }
 
-class SettleBondedWithdrawalWatcher {
+class SettleBondedWithdrawalWatcher extends BaseWatcher {
   L2BridgeContract: any
   label: string
 
   constructor (config: Config) {
+    super({
+      label: 'settleBondedWithdrawalWatcher',
+      logColor: 'magenta'
+    })
     this.L2BridgeContract = config.L2BridgeContract
     this.label = config.label
   }
 
   async start () {
-    logger.log('starting L1 BondTransferRoot event watcher')
+    this.logger.log('starting L1 BondTransferRoot event watcher')
     try {
       await this.watch()
     } catch (err) {
-      logger.error('watcher error:', err)
+      this.logger.error('watcher error:', err)
     }
   }
 
@@ -38,11 +38,11 @@ class SettleBondedWithdrawalWatcher {
     rootHash: string,
     proof: string[]
   ) => {
-    logger.log('settleBondedWithdrawal params:')
-    logger.log('chainId:', chainId)
-    logger.log('transferHash:', transferHash)
-    logger.log('rootHash:', rootHash)
-    logger.log('proof:', proof)
+    this.logger.log('settleBondedWithdrawal params:')
+    this.logger.log('chainId:', chainId)
+    this.logger.log('transferHash:', transferHash)
+    this.logger.log('rootHash:', rootHash)
+    this.logger.log('proof:', proof)
     if (chainId === '1' || chainId === '42') {
       return L1BridgeContract.settleBondedWithdrawal(
         transferHash,
@@ -64,7 +64,7 @@ class SettleBondedWithdrawalWatcher {
     meta: any
   ) => {
     const { transactionHash } = meta
-    logger.log(
+    this.logger.log(
       'received L1 BondTransferRoot event:',
       bondRoot,
       bondAmount.toString(),
@@ -77,14 +77,14 @@ class SettleBondedWithdrawalWatcher {
       try {
         const { transferHash, chainId } = item
         const tx = await this.sendTx(chainId, transferHash, bondRoot, proof)
-        logger.log(
+        this.logger.log(
           `settleBondedWithdrawal on chain ${chainId} tx: ${chalk.yellow(
             tx.hash
           )}`
         )
         delete store.transferHashes[transferHash]
       } catch (err) {
-        logger.error('settleBondedWithdrawal tx error:', err.message)
+        this.logger.error('settleBondedWithdrawal tx error:', err.message)
       }
     }
   }

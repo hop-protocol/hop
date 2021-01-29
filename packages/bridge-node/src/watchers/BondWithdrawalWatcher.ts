@@ -1,18 +1,13 @@
 import '../moduleAlias'
-import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import L1BridgeContract from 'src/contracts/L1BridgeContract'
 import L2OptimismBridgeContract from 'src/contracts/L2OptimismBridgeContract'
 import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
-import { L1Provider } from 'src/wallets/L1Wallet'
 import { TransferSentEvent } from 'src/constants'
 import { store } from 'src/store'
 import chalk from 'chalk'
-import Logger from 'src/logger'
-import eventPoller from 'src/utils/eventPoller'
+//import eventPoller from 'src/utils/eventPoller'
 import { wait } from 'src/utils'
-import * as a from 'src/config'
-
-const logger = new Logger('[bondWithdrawalWatcher]', { color: 'green' })
+import BaseWatcher from 'src/watchers/BaseWatcher'
 
 export interface Config {
   L2BridgeContract: any
@@ -20,41 +15,37 @@ export interface Config {
   label: string
 }
 
-class BondWithdrawalWatcher {
+class BondWithdrawalWatcher extends BaseWatcher {
   L2BridgeContract: any
   L2Provider: any
   label: string
 
   constructor (config: Config) {
+    super({
+      label: 'bondWithdrawalWatcher',
+      logColor: 'green'
+    })
     this.L2BridgeContract = config.L2BridgeContract
     this.L2Provider = config.L2Provider
     this.label = config.label
   }
 
   async start () {
-    logger.log(
+    this.logger.log(
       `starting L2 ${this.label} TransferSent event watcher for L1 bondWithdrawal tx`
     )
 
     try {
       await this.watch()
     } catch (err) {
-      logger.error('BondWithdrawalWatcher error:', err.message)
+      this.logger.error(
+        `BondWithdrawalWatcher ${this.label} error:`,
+        err.message
+      )
     }
   }
 
   async watch () {
-    const credit = (await L1BridgeContract.getCredit()).toString()
-    const debit = (await L1BridgeContract.getDebit()).toString()
-    //logger.log('L1 credit balance:', formatUnits(credit, 18))
-    //logger.log('L1 debit balance:', formatUnits(debit, 18))
-
-    if (credit === '0') {
-      const amount = parseUnits('1000', 18)
-      const tx = await L1BridgeContract.stake(amount)
-      logger.log('stake tx:', tx?.hash)
-    }
-
     this.L2BridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
     /*
     eventPoller(
@@ -82,8 +73,8 @@ class BondWithdrawalWatcher {
       const deadline = (Date.now() / 1000 + 300) | 0
       const contract =
         chainId === '69' ? L2OptimismBridgeContract : L2ArbitrumBridgeContract
-      logger.log('amount:', amount.toString())
-      logger.log('recipient:', recipient)
+      this.logger.log('amount:', amount.toString())
+      this.logger.log('recipient:', recipient)
       return contract.bondWithdrawalAndAttemptSwap(
         sender,
         recipient,
@@ -120,8 +111,9 @@ class BondWithdrawalWatcher {
   ) => {
     try {
       const { transactionHash } = meta
-      logger.log(`received L2 ${this.label} TransferSentEvent event`)
-      logger.log('transferHash:', transferHash)
+      this.logger.log('transfer event amount:', amount.toString())
+      this.logger.log(`received L2 ${this.label} TransferSentEvent event`)
+      this.logger.log('transferHash:', transferHash)
 
       await wait(2 * 1000)
       const { from: sender, data } = await this.L2Provider.getTransaction(
@@ -155,8 +147,8 @@ class BondWithdrawalWatcher {
         transferHash,
         chainId
       }
-      logger.log('chainId:', chainId)
-      logger.log('attemptSwap:', attemptSwap)
+      this.logger.log('chainId:', chainId)
+      this.logger.log('attemptSwap:', attemptSwap)
 
       await wait(2 * 1000)
       const tx = await this.sendBondWithdrawalTx({
@@ -168,12 +160,12 @@ class BondWithdrawalWatcher {
         attemptSwap,
         chainId
       })
-      logger.log(
+      this.logger.log(
         `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx:`,
         chalk.yellow(tx.hash)
       )
     } catch (err) {
-      logger.error('bondWithdrawal tx error:', err.message)
+      this.logger.error('bondWithdrawal tx error:', err.message)
     }
   }
 }

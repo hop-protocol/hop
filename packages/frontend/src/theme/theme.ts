@@ -35,9 +35,9 @@ declare module '@material-ui/core/styles/createMuiTheme' {
 
 export const palette = {
   primary: {
-    light: '#55CCF2',
-    main: '#00ACE2',
-    dark: '#1AA7D3',
+    light: '#c462fc',
+    main: '#B32EFF',
+    dark: '#7213a8',
     contrastText: 'white'
   },
   background: {
@@ -45,9 +45,9 @@ export const palette = {
     paper: '#F0F0F3'
   },
   action: {
-    active: '#00ACE2',
-    hover: '#55CCF2',
-    selected: '#00ACE2',
+    active: '#B32EFF',
+    hover: '#c462fc',
+    selected: '#B32EFF',
     disabled: 'rgba(5, 21, 36, 0.2)'
   },
   secondary: {

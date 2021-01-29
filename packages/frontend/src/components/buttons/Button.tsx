@@ -28,7 +28,7 @@ const useStyles = makeStyles(theme => ({
     fontSize: large ? '2.2rem' : '1.6rem',
     color: highlighted ? 'white' : theme.palette.text.secondary,
     background: highlighted
-      ? 'linear-gradient(127.75deg, #36BFEA 25.27%, #1AA7D3 71.82%)'
+      ? 'linear-gradient(99.85deg, #B32EFF -18.29%, #F2A498 109.86%)'
       : flat
       ? '#E2E2E5'
       : 'none',
@@ -36,8 +36,8 @@ const useStyles = makeStyles(theme => ({
       ? `
         -10px -10px 30px #FFFFFF,
         10px 10px 30px rgba(174, 174, 192, 0.4),
-        inset -15px -15px 25px rgba(22, 156, 199, 0.15),
-        inset 15px 15px 25px rgba(203, 243, 255, 0.1)
+        inset -15px -15px 25px rgba(179, 46, 255, 0.15),
+        inset 15px 15px 25px rgba(179, 46, 255, 0.1)
       `
       : flat
       ? 'none'
@@ -47,7 +47,7 @@ const useStyles = makeStyles(theme => ({
       `,
     '&:hover': {
       background: highlighted
-        ? 'linear-gradient(127.75deg, #4DC9F0 25.27%, #31B0D8 71.82%)'
+        ? 'linear-gradient(99.85deg, #c462fc -18.29%, #f7bdb5 109.86%)'
         : flat
         ? '#E5E6Ea'
         : 'rgba(255, 255, 255, 0.2)'

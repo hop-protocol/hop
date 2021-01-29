@@ -6,7 +6,7 @@ import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { addresses } from 'src/config'
+import { addresses, optimismNetworkId } from 'src/config'
 import { UINT256, ARBITRUM_MESSENGER_ID } from 'src/config/constants'
 import l1OptimismTokenBridgeArtifact from 'src/abi/L1OptimismTokenBridge.json'
 import l2OptimismTokenArtifact from 'src/abi/L2_OptimismERC20.json'
@@ -69,8 +69,10 @@ const ConvertContextProvider: FC = ({ children }) => {
   let { networks: nets, tokens, contracts, txConfirm } = app
   const arbitrumDai = contracts?.networks.arbitrum.l2CanonicalToken
   const arbitrumUniswapRouter = contracts?.networks.arbitrum.uniswapRouter
+  const optimismUniswapRouter = contracts?.networks.optimism.uniswapRouter
   const arbitrumL1Messenger = contracts?.networks.arbitrum.l1CanonicalBridge
   const arbitrumBridge = contracts?.networks.arbitrum.l2Bridge
+  const optimismBridge = contracts?.networks.optimism.l2Bridge
   const l1Bridge = contracts?.l1Bridge
   const networks = useMemo(() => {
     const kovanNetwork = nets.find(
@@ -103,11 +105,19 @@ const ConvertContextProvider: FC = ({ children }) => {
       rpcUrl: optimismNetwork.rpcUrl,
       networkId: optimismNetwork.networkId
     })
+    const optimismHopBridgeNetwork = new Network({
+      name: 'Optimism Hop bridge',
+      slug: 'optimismHopBridge',
+      imageUrl: optimismNetwork.imageUrl,
+      rpcUrl: optimismNetwork.rpcUrl,
+      networkId: optimismNetwork.networkId
+    })
     return [
       kovanNetwork,
       arbitrumCanonicalBridgeNetwork,
       optimismCanonicalBridgeNetwork,
-      arbitrumHopBridgeNetwork
+      arbitrumHopBridgeNetwork,
+      optimismHopBridgeNetwork
     ]
   }, [nets])
   const [sourceNetworks] = useState<Network[]>(networks)
@@ -152,8 +162,33 @@ const ConvertContextProvider: FC = ({ children }) => {
         value = Number(formatUnits(amountsOut[1].toString(), 18)).toFixed(2)
       }
       if (
+        (sourceNetwork?.slug === 'optimismHopBridge' &&
+          destNetwork?.slug === 'optimism') ||
+        (sourceNetwork?.slug === 'optimism' &&
+          destNetwork?.slug === 'optimismHopBridge')
+      ) {
+        let path = [
+          addresses.networks.optimism.l2CanonicalToken,
+          addresses.networks.optimism.l2Bridge
+        ]
+        if (destNetwork?.slug === 'optimism') {
+          path = [
+            addresses.networks.optimism.l2Bridge,
+            addresses.networks.optimism.l2CanonicalToken
+          ]
+        }
+
+        const amountsOut = await optimismUniswapRouter?.getAmountsOut(
+          parseUnits(value, 18),
+          path
+        )
+        value = Number(formatUnits(amountsOut[1].toString(), 18)).toFixed(2)
+      }
+      if (
         (sourceNetwork?.slug === 'kovan' && destNetwork?.slug === 'arbitrum') ||
-        (sourceNetwork?.slug === 'arbitrum' && destNetwork?.slug === 'kovan')
+        (sourceNetwork?.slug === 'arbitrum' && destNetwork?.slug === 'kovan') ||
+        (sourceNetwork?.slug === 'kovan' && destNetwork?.slug === 'optimism') ||
+        (sourceNetwork?.slug === 'optimism' && destNetwork?.slug === 'kovan')
       ) {
         // value is same
       }
@@ -331,6 +366,34 @@ const ConvertContextProvider: FC = ({ children }) => {
               return l1Bridge?.sendToL2(ARBITRUM_MESSENGER_ID, address, value)
             }
           })
+        } else if (destNetwork?.slug === 'optimismHopBridge') {
+          await approveTokens(
+            selectedToken,
+            sourceTokenAmount,
+            sourceNetwork as Network,
+            l1Bridge?.address as string
+          )
+
+          const tokenAddress = selectedToken
+            .addressForNetwork(sourceNetwork)
+            .toString()
+
+          tx = await txConfirm?.show({
+            kind: 'convert',
+            inputProps: {
+              source: {
+                amount: sourceTokenAmount,
+                token: selectedToken
+              },
+              dest: {
+                amount: destTokenAmount,
+                token: selectedToken
+              }
+            },
+            onConfirm: async () => {
+              return l1Bridge?.sendToL2(optimismNetworkId, address, value)
+            }
+          })
         }
       } else if (sourceNetwork?.slug === 'arbitrum') {
         if (destNetwork?.slug === 'kovan') {
@@ -400,19 +463,30 @@ const ConvertContextProvider: FC = ({ children }) => {
             }
           })
         }
-      } else if (sourceNetwork?.slug === 'arbitrumHopBridge') {
-        if (destNetwork?.slug === 'arbitrum') {
+      } else if (
+        sourceNetwork?.slug === 'arbitrumHopBridge' ||
+        sourceNetwork?.slug === 'optimismHopBridge'
+      ) {
+        const destNetworkSlug = destNetwork?.slug
+        let uniswapRouter =
+          destNetworkSlug === 'arbitrum'
+            ? arbitrumUniswapRouter
+            : optimismUniswapRouter
+        let bridge =
+          destNetworkSlug === 'arbitrum' ? arbitrumBridge : optimismBridge
+
+        if (destNetworkSlug === 'arbitrum' || destNetworkSlug === 'optimism') {
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
             sourceNetwork as Network,
-            arbitrumUniswapRouter?.address as string
+            uniswapRouter?.address as string
           )
 
           const amountOutMin = '0'
           const path = [
-            addresses.networks.arbitrum.l2Bridge,
-            addresses.networks.arbitrum.l2CanonicalToken
+            addresses.networks[destNetworkSlug].l2Bridge,
+            addresses.networks[destNetworkSlug].l2CanonicalToken
           ]
           const deadline = (Date.now() / 1000 + 300) | 0
 
@@ -429,7 +503,7 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              return arbitrumUniswapRouter?.swapExactTokensForTokens(
+              return uniswapRouter?.swapExactTokensForTokens(
                 value,
                 amountOutMin,
                 path,
@@ -438,7 +512,7 @@ const ConvertContextProvider: FC = ({ children }) => {
               )
             }
           })
-        } else if (destNetwork?.slug === 'kovan') {
+        } else if (destNetworkSlug === 'kovan') {
           tx = await txConfirm?.show({
             kind: 'convert',
             inputProps: {
@@ -452,7 +526,7 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              return arbitrumBridge?.send(
+              return bridge?.send(
                 '1',
                 address,
                 value,

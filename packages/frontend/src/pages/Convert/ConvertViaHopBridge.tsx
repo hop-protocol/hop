@@ -30,7 +30,7 @@ const useStyles = makeStyles(() => ({
 
 const Convert: FC = () => {
   const styles = useStyles()
-  const {
+  let {
     selectedToken,
     sourceNetwork,
     sourceNetworks,
@@ -49,6 +49,11 @@ const Convert: FC = () => {
   } = useConvert()
 
   useEffect(() => {
+    setSourceTokenAmount('')
+    setDestTokenAmount('')
+  }, [setSourceTokenAmount, setDestTokenAmount])
+
+  useEffect(() => {
     setSourceNetwork(
       sourceNetworks.find(
         (network: Network) => network?.slug === 'kovan'
@@ -60,11 +65,6 @@ const Convert: FC = () => {
       ) as Network
     )
   }, [setSourceNetwork, setDestNetwork, sourceNetworks])
-
-  useEffect(() => {
-    setSourceTokenAmount('')
-    setDestTokenAmount('')
-  }, [setSourceTokenAmount, setDestTokenAmount])
 
   const handleSwitchDirection = () => {
     destNetwork && setSourceNetwork(destNetwork)
@@ -86,6 +86,56 @@ const Convert: FC = () => {
     } catch (err) {}
   }
 
+  const destNetworks = sourceNetworks.filter((network: Network) => {
+    return (
+      network.slug === 'kovan' ||
+      network.slug === 'optimismHopBridge' ||
+      network.slug === 'arbitrumHopBridge'
+    )
+  })
+
+  sourceNetworks = sourceNetworks.filter((network: Network) => {
+    return (
+      network.slug === 'kovan' ||
+      network.slug === 'optimismHopBridge' ||
+      network.slug === 'arbitrumHopBridge'
+    )
+  })
+
+  const handleSourceNetworkChange = (network: Network | undefined) => {
+    if (network) {
+      setSourceNetwork(network)
+
+      // check both networks aren't the same
+      if (destNetwork === network) {
+        setDestNetwork(
+          destNetworks[0] === network ? destNetworks[1] : destNetworks[0]
+        )
+
+        // only allow L1<>L2
+      } else if (!destNetwork?.isLayer1 && !network.isLayer1) {
+        setDestNetwork(destNetworks[0])
+      }
+    }
+  }
+
+  const handleDestNetworkChange = (network: Network | undefined) => {
+    if (network) {
+      setDestNetwork(network)
+
+      // check both networks aren't the same
+      if (sourceNetwork === network) {
+        setSourceNetwork(
+          sourceNetworks[0] === network ? sourceNetworks[1] : sourceNetworks[0]
+        )
+
+        // only allow L1<>L2
+      } else if (!sourceNetwork?.isLayer1 && !network.isLayer1) {
+        setDestNetwork(sourceNetworks[0])
+      }
+    }
+  }
+
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <AmountSelectorCard
@@ -95,6 +145,8 @@ const Convert: FC = () => {
         onChange={handleSourceTokenAmountChange}
         selectedNetwork={sourceNetwork}
         onBalanceChange={setSourceTokenBalance}
+        networkOptions={sourceNetworks}
+        onNetworkChange={handleSourceNetworkChange}
       />
       <MuiButton
         className={styles.switchDirectionButton}
@@ -110,6 +162,8 @@ const Convert: FC = () => {
         onChange={handleDestTokenAmountChange}
         selectedNetwork={destNetwork}
         onBalanceChange={setDestTokenBalance}
+        networkOptions={destNetworks}
+        onNetworkChange={handleDestNetworkChange}
       />
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <SendButton />

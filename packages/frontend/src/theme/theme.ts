@@ -181,6 +181,33 @@ const theme = createMuiTheme({
           color: palette.primary.main
         }
       }
+    },
+    MuiListItem: {
+      root: {
+        '&$selected': {
+          backgroundColor: 'rgba(179, 46, 255, 0.1)',
+          '&:hover': {
+            backgroundColor: 'rgba(179, 46, 255, 0.12)',
+          }
+        },
+      },
+      button: {
+        '&:hover': {
+          backgroundColor: 'rgba(179, 46, 255, 0.05)'
+        }
+      }
+    },
+    MuiMenuItem: {
+      root: {
+        fontWeight: 700,
+        fontSize: '1.8rem'
+      }
+    },
+    MuiPopover: {
+      paper: {
+        borderRadius: '3.0rem',
+        boxShadow: '0px 5px 15px -3px rgba(0,0,0,0.1), 0px 8px 20px 1px rgba(0,0,0,0.07), 0px 3px 24px 2px rgba(0,0,0,0.06);'
+      }
     }
   }
 })

@@ -1,13 +1,19 @@
 import { useMemo } from 'react'
 import { parseUnits } from 'ethers/lib/utils'
+import { Contract, Signer, providers } from 'ethers'
+import erc20Artifact from 'src/abi/ERC20.json'
 
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { addresses } from 'src/config'
-import useContracts from 'src/contexts/AppContext/useContracts'
 
 const useTokens = (networks: Network[]) => {
-  const { getErc20Contract } = useContracts([])
+  const getErc20Contract = (
+    address: string,
+    provider: Signer | providers.Provider
+  ): Contract => {
+    return new Contract(address, erc20Artifact.abi, provider) as Contract
+  }
 
   const l1Hop = useMemo(() => {
     const network = networks.find(network => network.slug === 'kovan')

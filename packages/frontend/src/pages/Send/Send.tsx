@@ -78,7 +78,8 @@ const Send: FC = () => {
     provider,
     setRequiredNetworkId,
     connectedNetworkId,
-    walletConnected
+    walletConnected,
+    getWriteContract
   } = useWeb3Context()
 
   const [l2Bridge, setL2Bridge] = useState<Contract | undefined>()
@@ -442,7 +443,9 @@ const Send: FC = () => {
         const relayerFee = '0'
         const amountOutIn = '0'
         const destinationAmountOutMin = '0'
-        return l2Bridge?.swapAndSend(
+
+        const l2BridgeWrite = await getWriteContract(l2Bridge)
+        return l2BridgeWrite?.swapAndSend(
           chainId,
           await signer?.getAddress(),
           parseEther(fromTokenAmount),
@@ -491,7 +494,9 @@ const Send: FC = () => {
         const relayerFee = '0'
         const amountOutIn = '0'
         const destinationAmountOutMin = '0'
-        return l2Bridge?.swapAndSend(
+
+        const l2BridgeWrite = await getWriteContract(l2Bridge)
+        return l2BridgeWrite?.swapAndSend(
           chainId,
           await signer?.getAddress(),
           parseEther(fromTokenAmount),

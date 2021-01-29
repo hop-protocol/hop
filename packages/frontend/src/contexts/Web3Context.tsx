@@ -7,7 +7,7 @@ import React, {
   useState
 } from 'react'
 import Onboard from 'bnc-onboard'
-import { ethers } from 'ethers'
+import { ethers, Contract } from 'ethers'
 import Address from 'src/models/Address'
 import { getNetworkSpecificMetamaskImage } from 'src/utils'
 import {
@@ -41,6 +41,7 @@ type Props = {
   disconnectWallet: () => void
   walletConnected: boolean
   walletName: string
+  getWriteContract: (contract: Contract) => Promise<Contract | undefined>
 }
 
 const initialState = {
@@ -54,7 +55,8 @@ const initialState = {
   requestWallet: () => {},
   disconnectWallet: () => {},
   walletConnected: false,
-  walletName: ''
+  walletName: '',
+  getWriteContract: async (contract: Contract): Promise<Contract | undefined> => undefined
 }
 
 const Web3Context = createContext<Props>(initialState)
@@ -295,6 +297,30 @@ const Web3ContextProvider: FC = ({ children }) => {
 
   const walletConnected = !!address
 
+  const getWriteContract = async (contract: Contract): Promise<Contract | undefined> => {
+    const signerNetworkId = (await provider?.getNetwork())?.chainId
+    const contractNetworkId = (await contract.provider.getNetwork()).chainId
+    if(signerNetworkId != contractNetworkId) {
+      onboard.config({ networkId: Number(contractNetworkId) })
+      if (onboard.getState().address) {
+        onboard.walletCheck()
+      }
+
+      return
+    }
+
+    if (!provider) {
+      throw new Error('Provider is undefined')
+    }
+
+    const signer = provider?.getSigner()
+    if (!signer) {
+      throw new Error('Provider has no signer')
+    }
+
+    return contract.connect(signer)
+  }
+
   return (
     <Web3Context.Provider
       value={{
@@ -308,7 +334,8 @@ const Web3ContextProvider: FC = ({ children }) => {
         validConnectedNetworkId,
         requestWallet,
         disconnectWallet,
-        walletName
+        walletName,
+        getWriteContract
       }}
     >
       {children}

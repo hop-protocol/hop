@@ -17,7 +17,7 @@ import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import Address from 'src/models/Address'
 import Price from 'src/models/Price'
-import { addresses } from 'src/config'
+import { addresses, arbitrumNetworkId, optimismNetworkId } from 'src/config'
 import { UINT256 } from 'src/config/constants'
 import Transaction from 'src/models/Transaction'
 import useInterval from 'src/hooks/useInterval'
@@ -123,24 +123,29 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [error, setError] = useState<string | null | undefined>(null)
 
   const hopToken = useMemo(() => {
-    const network = networks.find(network => network.slug === 'arbitrum')
+    // ToDo: Refactor to be network-agnostic
+    const arbitrumNetwork = networks.find(network => network.slug === 'arbitrum')
     const arbitrumBridgeDai = new Contract(
       addresses.networks.arbitrum.l2Bridge,
       erc20Artifact.abi,
-      network?.provider
+      arbitrumNetwork?.provider
+    )
+
+    const optimismNetwork = networks.find(network => network.slug === 'optimism')
+    const optimismBridgeDai = new Contract(
+      addresses.networks.optimism.l2Bridge,
+      erc20Artifact.abi,
+      optimismNetwork?.provider
     )
 
     return new Token({
       symbol: 'hDAI',
       tokenName: 'DAI Stablecoin',
       contracts: {
-        arbitrum: arbitrumBridgeDai
+        arbitrum: arbitrumBridgeDai,
+        optimism: optimismBridgeDai
       },
-      rates: {
-        kovan: parseUnits('1', 18),
-        arbitrum: parseUnits('0.958125000000000000', 18),
-        optimism: parseUnits('0.967777000000000000', 18)
-      }
+      rates: {}
     })
   }, [networks])
 

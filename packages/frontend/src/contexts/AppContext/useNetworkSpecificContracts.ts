@@ -25,8 +25,6 @@ const useNetworkSpecificContracts = (
 ): NetworkSpecificContracts => {
   const { provider, connectedNetworkId } = useWeb3Context()
 
-  // console.log('l2 slug', l2Network.slug)
-
   if (!l2Network?.slug) {
     return {
       l1CanonicalBridge: undefined,
@@ -48,12 +46,15 @@ const useNetworkSpecificContracts = (
     addresses.networks[l2Network?.slug].uniswapFactory
 
   const l2Provider = useMemo(() => {
+    console.log('connectedNetworkId: ', connectedNetworkId)
+    console.log('l2Network?.networkId: ', l2Network?.networkId)
     if (connectedNetworkId === l2Network?.networkId) {
       return provider?.getSigner()
     }
 
     return l2Network?.provider
   }, [l2Network, connectedNetworkId, provider])
+  console.log('l2Provider: ', l2Provider)
   const l1Provider = useMemo(() => {
     if (connectedNetworkId === l1Network?.networkId) {
       return provider?.getSigner()

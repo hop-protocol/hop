@@ -86,39 +86,53 @@ const Convert: FC = () => {
     } catch (err) {}
   }
 
-  const destNetworks = sourceNetworks
-    .filter((network: Network) => {
-      return (
-        network.slug === 'kovan' ||
-        network.slug === 'optimism' ||
-        network.slug === 'arbitrum'
-      )
-    })
-    .filter((network: Network) => {
-      return network.slug !== sourceNetwork?.slug
-    })
+  const destNetworks = sourceNetworks.filter((network: Network) => {
+    return (
+      network.slug === 'kovan' ||
+      network.slug === 'optimism' ||
+      network.slug === 'arbitrum'
+    )
+  })
 
-  sourceNetworks = sourceNetworks
-    .filter((network: Network) => {
-      return (
-        network.slug === 'kovan' ||
-        network.slug === 'optimism' ||
-        network.slug === 'arbitrum'
-      )
-    })
-    .filter((network: Network) => {
-      return network.slug !== destNetwork?.slug
-    })
+  sourceNetworks = sourceNetworks.filter((network: Network) => {
+    return (
+      network.slug === 'kovan' ||
+      network.slug === 'optimism' ||
+      network.slug === 'arbitrum'
+    )
+  })
 
   const handleSourceNetworkChange = (network: Network | undefined) => {
     if (network) {
       setSourceNetwork(network)
+
+      // check both networks aren't the same
+      if (destNetwork === network) {
+        setDestNetwork(
+          destNetworks[0] === network ? destNetworks[1] : destNetworks[0]
+        )
+
+        // only allow L1<>L2
+      } else if (!destNetwork?.isLayer1 && !network.isLayer1) {
+        setDestNetwork(destNetworks[0])
+      }
     }
   }
 
   const handleDestNetworkChange = (network: Network | undefined) => {
     if (network) {
       setDestNetwork(network)
+
+      // check both networks aren't the same
+      if (sourceNetwork === network) {
+        setSourceNetwork(
+          sourceNetworks[0] === network ? sourceNetworks[1] : sourceNetworks[0]
+        )
+
+        // only allow L1<>L2
+      } else if (!sourceNetwork?.isLayer1 && !network.isLayer1) {
+        setDestNetwork(sourceNetworks[0])
+      }
     }
   }
 

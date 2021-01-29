@@ -9,6 +9,7 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
 import { UINT256, ARBITRUM_MESSENGER_ID } from 'src/config/constants'
 import l1OptimismTokenBridgeArtifact from 'src/abi/L1OptimismTokenBridge.json'
+import l2OptimismTokenArtifact from 'src/abi/L2_OptimismERC20.json'
 
 type ConvertContextProps = {
   selectedToken: Token | undefined
@@ -460,6 +461,32 @@ const ConvertContextProvider: FC = ({ children }) => {
                 '0',
                 '0'
               )
+            }
+          })
+        }
+      } else if (sourceNetwork?.slug === 'optimism') {
+        if (destNetwork?.slug === 'kovan') {
+          const l2Provider = provider?.getSigner()
+          const optimismL2Token = new Contract(
+            addresses.networks.optimism.l2CanonicalToken,
+            l2OptimismTokenArtifact.abi,
+            l2Provider
+          )
+
+          tx = await txConfirm?.show({
+            kind: 'convert',
+            inputProps: {
+              source: {
+                amount: sourceTokenAmount,
+                token: selectedToken
+              },
+              dest: {
+                amount: destTokenAmount,
+                token: selectedToken
+              }
+            },
+            onConfirm: async () => {
+              return optimismL2Token?.withdraw(value)
             }
           })
         }

@@ -13,6 +13,8 @@ import l2OptimismTokenArtifact from 'src/abi/L2_OptimismERC20.json'
 
 type ConvertContextProps = {
   selectedToken: Token | undefined
+  selectedNetwork: Network | undefined
+  setSelectedNetwork: (network: Network | undefined) => void
   sourceNetwork: Network | undefined
   setSourceNetwork: (network: Network) => void
   sourceNetworks: Network[]
@@ -37,6 +39,8 @@ type ConvertContextProps = {
 
 const ConvertContext = createContext<ConvertContextProps>({
   selectedToken: undefined,
+  selectedNetwork: undefined,
+  setSelectedNetwork: (network: Network | undefined) => {},
   sourceNetwork: undefined,
   setSourceNetwork: (network: Network) => {},
   sourceNetworks: [],
@@ -123,6 +127,9 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [sourceNetworks] = useState<Network[]>(networks)
   tokens = tokens.filter((token: Token) => ['DAI'].includes(token.symbol))
   const [selectedToken] = useState<Token>(tokens[0])
+  const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(
+    undefined
+  )
   const [sourceNetwork, setSourceNetwork] = useState<Network | undefined>(
     sourceNetworks[0]
   )
@@ -424,8 +431,7 @@ const ConvertContextProvider: FC = ({ children }) => {
               return arbitrumDai?.withdraw(tokenAddress, value)
             }
           })
-        }
-        if (destNetwork?.slug === 'arbitrumHopBridge') {
+        } else if (destNetwork?.slug === 'arbitrumHopBridge') {
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
@@ -563,6 +569,43 @@ const ConvertContextProvider: FC = ({ children }) => {
               return optimismL2Token?.withdraw(value)
             }
           })
+        } else if (destNetwork?.slug === 'optimismHopBridge') {
+          await approveTokens(
+            selectedToken,
+            sourceTokenAmount,
+            sourceNetwork as Network,
+            optimismUniswapRouter?.address as string
+          )
+
+          const amountOutMin = '0'
+          const path = [
+            addresses.networks.optimism.l2CanonicalToken,
+            addresses.networks.optimism.l2Bridge
+          ]
+          const deadline = (Date.now() / 1000 + 300) | 0
+
+          tx = await txConfirm?.show({
+            kind: 'convert',
+            inputProps: {
+              source: {
+                amount: sourceTokenAmount,
+                token: selectedToken
+              },
+              dest: {
+                amount: destTokenAmount,
+                token: selectedToken
+              }
+            },
+            onConfirm: async () => {
+              return optimismUniswapRouter?.swapExactTokensForTokens(
+                value,
+                amountOutMin,
+                path,
+                address,
+                deadline
+              )
+            }
+          })
         }
       }
 
@@ -601,6 +644,8 @@ const ConvertContextProvider: FC = ({ children }) => {
     <ConvertContext.Provider
       value={{
         selectedToken,
+        selectedNetwork,
+        setSelectedNetwork,
         sourceNetwork,
         setSourceNetwork,
         sourceNetworks,

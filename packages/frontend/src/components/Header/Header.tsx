@@ -9,7 +9,7 @@ import HopLogoFullColor from 'src/assets/logos/hop-logo-full-color.svg'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
-    height: '10.0rem',
+    minHeight: '10.0rem',
     padding: '0 4.2rem',
     [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',
@@ -35,7 +35,9 @@ const Header: FC = () => {
         flex={1}
         justifyContent="flex-start"
       >
-        <img className={styles.hopLogo} src={HopLogoFullColor} alt="Hop icon" />
+        <h1>
+          <img className={styles.hopLogo} src={HopLogoFullColor} alt="Hop" />
+        </h1>
       </Box>
       <Box display="flex" flexDirection="row" flex={1} justifyContent="center">
         <HeaderRoutes />

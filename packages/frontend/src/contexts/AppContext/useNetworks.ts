@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import MainnetLogo from 'src/assets/logos/mainnet.svg'
-import ArbitrumLogo from 'src/assets/logos/arbitrum.png'
+import ArbitrumLogo from 'src/assets/logos/arbitrum.svg'
 import OptimismLogo from 'src/assets/logos/optimism.svg'
 import {
   l1NetworkId,

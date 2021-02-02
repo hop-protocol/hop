@@ -4,26 +4,42 @@ const {
   ChangeResourceRecordSetsCommand
 } = require('@aws-sdk/client-route-53')
 
-const awsProfile = process.env.AWS_PROFILE
-const hostZoneId = process.env.AWS_ROUTE53_HOST_ZONE_ID
+const awsAccessKeyId = process.env.IPFS_DEPLOY_AWS_ACCESS_KEY_ID
+const awsSecretAccessKey = process.env.IPFS_DEPLOY_AWS_SECRET_ACCESS_KEY
+const awsProfile = process.env.IPFS_DEPLOY_AWS_PROFILE
+const awsRegion = process.env.IPFS_DEPLOY_AWS_REGION || 'us-east-1'
+const hostZoneId = process.env.IPFS_DEPLOY_AWS_ROUTE53_HOST_ZONE_ID
 const ipfsHash = process.env.IPFS_HASH
-const domain = process.env.DNSLINK_DOMAIN || '_dnslink.hop.exchange.'
+const host = process.env.IPFS_DEPLOY_DNSLINK_HOST // e.g. '_dnslink.hop.exchange.'
 
 if (!ipfsHash) {
   throw new Error('IPFS_HASH is required')
 }
 
 if (!hostZoneId) {
-  throw new Error('AWS_ROUTE53_HOST_ZONE_ID is required')
+  throw new Error('IPFS_DEPLOY_AWS_ROUTE53_HOST_ZONE_ID is required')
+}
+
+let credentials
+if (awsAccessKeyId) {
+  credentials = {
+    accessKeyId: awsAccessKeyId,
+    secretAccessKey: awsSecretAccessKey
+  }
 }
 
 const client = new Route53Client({
-  region: 'us-east-1',
-  profile: awsProfile
+  region: awsRegion,
+  profile: awsProfile,
+  credentials
 })
 
 const dnslink = `dnslink=/ipfs/${ipfsHash}`
 const txtValue = `\"${dnslink}\"`
+
+console.log('updating DNS TXT...')
+console.log('Host:', host)
+console.log('Value:', txtValue)
 
 const command = new ChangeResourceRecordSetsCommand({
   HostedZoneId: hostZoneId,
@@ -32,7 +48,7 @@ const command = new ChangeResourceRecordSetsCommand({
       {
         Action: 'UPSERT',
         ResourceRecordSet: {
-          Name: domain,
+          Name: host,
           Type: 'TXT',
           TTL: 300,
           ResourceRecords: [

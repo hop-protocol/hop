@@ -7,6 +7,7 @@ import Button from 'src/components/buttons/Button'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import { addresses } from 'src/config'
+import logger from 'src/logger'
 
 const useStyles = makeStyles(() => ({
   root: {},
@@ -39,7 +40,7 @@ const Demo: FC<Props> = () => {
         'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
     })
 
-    console.log('TX', tx?.hash)
+    logger.debug('TX', tx?.hash)
   }
 
   const handleSend = async () => {
@@ -54,7 +55,7 @@ const Demo: FC<Props> = () => {
       gasPrice: toHex('10000000000', { addPrefix: true })
     })
 
-    console.log('TX', tx?.hash)
+    logger.debug('TX', tx?.hash)
   }
 
   const handleSwap = async () => {
@@ -76,7 +77,7 @@ const Demo: FC<Props> = () => {
       }
     )
 
-    console.log('TX', tx?.hash)
+    logger.debug('TX', tx?.hash)
   }
 
   const handleL2UniswapSwap = async () => {
@@ -99,7 +100,7 @@ const Demo: FC<Props> = () => {
       deadline
     )
 
-    console.log('TX', tx?.hash)
+    logger.debug('TX', tx?.hash)
   }
 
   const handleMintDai = async () => {
@@ -108,7 +109,7 @@ const Demo: FC<Props> = () => {
     const amount = parseUnits('10', 18)
     const tx = await l1Dai?.mint(recipient, amount)
 
-    console.log('TX', tx?.hash)
+    logger.debug('TX', tx?.hash)
   }
 
   return (

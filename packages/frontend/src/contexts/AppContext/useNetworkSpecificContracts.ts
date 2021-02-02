@@ -10,6 +10,7 @@ import arbErc20Artifact from 'src/abi/ArbERC20.json'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
 import Network from 'src/models/Network'
+import logger from 'src/logger'
 
 export type NetworkSpecificContracts = {
   l1CanonicalBridge: Contract | undefined
@@ -23,6 +24,7 @@ const useNetworkSpecificContracts = (
   l1Network: Network,
   l2Network: Network
 ): NetworkSpecificContracts => {
+  logger.debug('useNetworkSpecificContracts render')
   const { provider, connectedNetworkId } = useWeb3Context()
 
   if (!l2Network?.slug) {

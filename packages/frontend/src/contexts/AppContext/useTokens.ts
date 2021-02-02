@@ -5,8 +5,10 @@ import erc20Artifact from 'src/abi/ERC20.json'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { addresses } from 'src/config'
+import logger from 'src/logger'
 
 const useTokens = (networks: Network[]) => {
+  logger.debug('useTokens render')
   const getErc20Contract = (
     address: string,
     provider: Signer | providers.Provider

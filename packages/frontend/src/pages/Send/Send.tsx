@@ -32,6 +32,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { addresses } from 'src/config'
 import { UINT256 } from 'src/config/constants'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
+import logger from 'src/logger'
 
 const useStyles = makeStyles(theme => ({
   sendSelect: {
@@ -183,7 +184,7 @@ const Send: FC = () => {
       setToTokenAmount((Number(amountIn) * rate).toFixed(2))
       setExchangeRate(rate)
     } catch (err) {
-      console.error(err)
+      logger.error(err)
     }
   }
 
@@ -197,7 +198,7 @@ const Send: FC = () => {
       setFromTokenAmount((Number(amountOut) / rate).toFixed(2))
       setExchangeRate(rate)
     } catch (err) {
-      console.error(err)
+      logger.error(err)
     }
   }
 
@@ -365,7 +366,7 @@ const Send: FC = () => {
       if (!/cancelled/gi.test(err.message)) {
         setError(err.message)
       }
-      console.error(err)
+      logger.error(err)
     }
     setSending(false)
   }

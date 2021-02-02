@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import Typography from '@material-ui/core/Typography'
+import logger from 'src/logger'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -41,7 +42,7 @@ const Send = (props: Props) => {
       setSending(true)
       onConfirm(true)
     } catch (err) {
-      console.log(err)
+      logger.error(err)
     }
     setSending(false)
   }

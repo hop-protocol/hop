@@ -12,6 +12,7 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Transaction from 'src/models/Transaction'
+import logger from 'src/logger'
 
 type FaucetContextProps = {
   mintToken: () => void
@@ -52,7 +53,7 @@ const FaucetContextProvider: FC = ({ children }) => {
       const recipient = address?.toString()
       const parsedAmount = parseUnits(mintAmount, 18)
       const tx = await l1Dai?.mint(recipient, parsedAmount)
-      console.log(tx?.hash)
+      logger.debug('mint:', tx?.hash)
       txHistory?.addTransaction(
         new Transaction({
           hash: tx?.hash,
@@ -62,7 +63,7 @@ const FaucetContextProvider: FC = ({ children }) => {
       await tx?.wait()
     } catch (err) {
       setError(err.message)
-      console.error(err)
+      logger.error(err)
     }
     setMinting(false)
   }

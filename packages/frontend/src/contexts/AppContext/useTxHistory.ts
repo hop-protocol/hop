@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import Transaction from 'src/models/Transaction'
+import logger from 'src/logger'
 
 export interface TxHistory {
   transactions: Transaction[]
@@ -9,6 +10,7 @@ export interface TxHistory {
 }
 
 const useTxHistory = (): TxHistory => {
+  logger.debug('useTxHistory render')
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
       const cached = sessionStorage.getItem('recentTransactions')

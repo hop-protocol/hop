@@ -21,6 +21,7 @@ import { addresses } from 'src/config'
 import { UINT256 } from 'src/config/constants'
 import Transaction from 'src/models/Transaction'
 import useInterval from 'src/hooks/useInterval'
+import logger from 'src/logger'
 
 type PoolsContextProps = {
   networks: Network[]
@@ -264,7 +265,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       const formattedAmountB = formatUnits(amount1, decimals)
       setToken1Rate(formattedAmountB)
     } catch (err) {
-      console.error(err)
+      logger.error(err)
     }
   }, [
     provider,
@@ -412,7 +413,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       if (!/cancelled/gi.test(err.message)) {
         setError(err.message)
       }
-      console.error(err)
+      logger.error(err)
     }
 
     setSending(false)

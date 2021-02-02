@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import logger from 'src/logger'
 
 export type TxConfirmParams = {
   kind: string
@@ -12,6 +13,7 @@ export interface TxConfirm {
 }
 
 export const useTxConfirm = (): TxConfirm => {
+  logger.debug('useTxConfirm debug')
   const [txConfirmParams, setTxConfirm] = useState<any>(null)
 
   const show = (params: TxConfirmParams) => {

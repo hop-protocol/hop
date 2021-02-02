@@ -11,8 +11,10 @@ import {
   optimismRpcUrl
 } from 'src/config'
 import Network from 'src/models/Network'
+import logger from 'src/logger'
 
 const useNetworks = () => {
+  logger.debug('useNetworks render')
   const networks = useMemo<Network[]>(
     () => [
       new Network({

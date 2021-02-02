@@ -15,6 +15,7 @@ import {
 } from 'src/config/constants'
 import l1OptimismTokenBridgeArtifact from 'src/abi/L1OptimismTokenBridge.json'
 import l2OptimismTokenArtifact from 'src/abi/L2_OptimismERC20.json'
+import logger from 'src/logger'
 
 type ConvertContextProps = {
   selectedToken: Token | undefined
@@ -539,7 +540,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       if (!/cancelled/gi.test(err.message)) {
         setError(err.message)
       }
-      console.error(err)
+      logger.error(err)
     }
 
     setSending(false)

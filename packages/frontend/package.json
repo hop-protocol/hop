@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
+    "@aws-sdk/client-route-53": "3.4.1",
     "@ethersproject/address": "5.0.8",
     "@hop-exchange/contracts": "0.0.2",
     "@material-ui/core": "4.11.0",
@@ -21,6 +22,7 @@
     "bnc-onboard": "1.14.0",
     "classnames": "2.2.6",
     "clsx": "1.1.1",
+    "dotenv": "8.2.0",
     "ethers": "5.0.19",
     "gridplus-sdk": "0.6.1",
     "luxon": "1.25.0",
@@ -63,10 +65,8 @@
     ]
   },
   "devDependencies": {
-    "@aws-sdk/client-route-53": "^3.4.1",
     "@typescript-eslint/eslint-plugin": "4.9.1",
     "@typescript-eslint/parser": "4.9.1",
-    "dotenv": "^8.2.0",
     "eslint": "7.15.0",
     "eslint-config-airbnb": "18.2.1",
     "eslint-plugin-import": "2.22.1",

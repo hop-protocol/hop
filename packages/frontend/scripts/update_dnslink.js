@@ -9,8 +9,8 @@ const awsSecretAccessKey = process.env.IPFS_DEPLOY_AWS_SECRET_ACCESS_KEY
 const awsProfile = process.env.IPFS_DEPLOY_AWS_PROFILE
 const awsRegion = process.env.IPFS_DEPLOY_AWS_REGION || 'us-east-1'
 const hostZoneId = process.env.IPFS_DEPLOY_AWS_ROUTE53_HOST_ZONE_ID
-const ipfsHash = process.env.IPFS_HASH
-const host = process.env.IPFS_DEPLOY_DNSLINK_HOST // e.g. '_dnslink.hop.exchange.'
+const ipfsHash = (process.env.IPFS_HASH || '').trim()
+const host = (process.env.IPFS_DEPLOY_DNSLINK_HOST || '').trim() // e.g. '_dnslink.hop.exchange.'
 
 if (!ipfsHash) {
   throw new Error('IPFS_HASH is required')
@@ -18,6 +18,18 @@ if (!ipfsHash) {
 
 if (!hostZoneId) {
   throw new Error('IPFS_DEPLOY_AWS_ROUTE53_HOST_ZONE_ID is required')
+}
+
+if (!host) {
+  throw new Error('IPFS_DEPLOY_DNSLINK_HOST is required')
+}
+
+if (!host.startsWith('_dnslink.')) {
+  throw new Error(`dnslink host "${host}" is invalid`)
+}
+
+if (!ipfsHash.startsWith('Qm')) {
+  throw new Error(`ipfs hash "${ipfsHash}" is invalid`)
 }
 
 let credentials
@@ -35,7 +47,7 @@ const client = new Route53Client({
 })
 
 const dnslink = `dnslink=/ipfs/${ipfsHash}`
-const txtValue = `\"${dnslink}\"`
+const txtValue = `"${dnslink}"`
 
 console.log('updating DNS TXT...')
 console.log('Host:', host)

@@ -52,8 +52,10 @@ export const REWARDS_DURATION_DAYS = 60
 export const UINT256 =
   '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
 
+export const KOVAN = 'kovan'
+export const ARBITRUM = 'arbitrum'
+export const OPTIMISM = 'optimism'
 export const ARBITRUM_MESSENGER_ID =
   '0x9186606d55c571b43a756333453d90ab5653c483deb4980cda697bfa36fba5de'
-
 export const OPTIMISM_MESSENGER_ID =
   '0x09d0f27659ee556a8134fa56941e42400e672aecc2d4cfc61cdb0fcea4590e05'

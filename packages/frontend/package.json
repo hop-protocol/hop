@@ -41,7 +41,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "deploy": "netlify deploy --prod",
-    "deploy:ipfs": "ipd -p pinata build --no-open"
+    "deploy:ipfs": "ipd -p pinata build --no-open --no-clipboard",
+    "dnslink": "IPFS_HASH=$(npm run deploy:ipfs 2>1 | tail -1) node ./scripts/update_dnslink.js"
   },
   "eslintConfig": {
     "extends": [
@@ -62,8 +63,10 @@
     ]
   },
   "devDependencies": {
+    "@aws-sdk/client-route-53": "^3.4.1",
     "@typescript-eslint/eslint-plugin": "4.9.1",
     "@typescript-eslint/parser": "4.9.1",
+    "dotenv": "^8.2.0",
     "eslint": "7.15.0",
     "eslint-config-airbnb": "18.2.1",
     "eslint-plugin-import": "2.22.1",

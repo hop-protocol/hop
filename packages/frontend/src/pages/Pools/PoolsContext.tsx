@@ -118,43 +118,25 @@ const PoolsContextProvider: FC = ({ children }) => {
     setRequiredNetworkId,
     connectedNetworkId
   } = useWeb3Context()
-  const contractProviders: any = {
-    arbitrum: contracts?.arbitrumProvider,
-    optimism: contracts?.optimismProvider
-  }
+  const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [error, setError] = useState<string | null | undefined>(null)
 
   const hopToken = useMemo(() => {
-    const arbitrumNetwork = networks.find(
-      network => network.slug === 'arbitrum'
-    )
-    const arbitrumBridgeDai = new Contract(
-      addresses.networks.arbitrum.l2Bridge,
-      erc20Artifact.abi,
-      arbitrumNetwork?.provider
-    )
-
-    const optimismNetwork = networks.find(
-      network => network.slug === 'optimism'
-    )
-    const optimismBridgeDai = new Contract(
-      addresses.networks.optimism.l2Bridge,
-      erc20Artifact.abi,
-      optimismNetwork?.provider
-    )
+    const token = tokens.find(token => token.symbol === selectedToken?.symbol)
+    if (!token) {
+      return
+    }
 
     return new Token({
-      symbol: 'hDAI',
-      tokenName: 'DAI Stablecoin',
+      symbol: `h${token?.symbol}`,
+      tokenName: token?.tokenName,
       contracts: {
-        arbitrum: arbitrumBridgeDai,
-        optimism: optimismBridgeDai
-      },
-      rates: {}
+        arbitrum: token?.contracts?.arbitrumHopBridge,
+        optimism: token?.contracts?.optimismHopBridge
+      }
     })
-  }, [networks])
+  }, [tokens, selectedToken])
 
-  const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   networks = networks.filter((network: Network) => !network.isLayer1)
   tokens = tokens.filter((token: Token) => ['DAI'].includes(token.symbol))
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
@@ -228,11 +210,11 @@ const PoolsContextProvider: FC = ({ children }) => {
   const updateUserPoolPositions = useCallback(async () => {
     try {
       if (!provider) return
-      const contractProvider = contractProviders[selectedNetworkSlug]
+      const contractProvider = selectedNetwork.provider
       if (!contractProvider) return
       const pairAddress = await uniswapFactory?.getPair(
-        selectedToken?.addressForNetwork(selectedNetwork).toString(),
-        hopToken?.addressForNetwork(selectedNetwork).toString()
+        selectedToken?.addressForNetwork(selectedNetwork)?.toString(),
+        hopToken?.addressForNetwork(selectedNetwork)?.toString()
       )
       const pair = new Contract(
         pairAddress,

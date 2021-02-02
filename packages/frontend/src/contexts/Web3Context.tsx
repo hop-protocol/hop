@@ -178,7 +178,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         eventCode: 'network',
         heading: 'You Must Change Networks',
         description: `
-        <p>We've detected that you need to switch your wallet's network from <strong>${gotNetworkName}</strong> to the <strong>${wantNetworkName}</strong> network to continue.</p>
+        <p>We've detected that you need to switch your wallet's network from ${gotNetworkName} to the <strong>${wantNetworkName}</strong> network to continue.</p>
         <p>Requirements:</p>
         <p>
         Network ID: <strong>${wantNetworkId}</strong>

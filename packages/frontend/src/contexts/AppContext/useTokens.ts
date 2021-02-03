@@ -1,13 +1,14 @@
 import { useMemo } from 'react'
-import { parseUnits } from 'ethers/lib/utils'
 import { Contract, Signer, providers } from 'ethers'
 import erc20Artifact from 'src/abi/ERC20.json'
 
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { addresses } from 'src/config'
+import logger from 'src/logger'
 
 const useTokens = (networks: Network[]) => {
+  //logger.debug('useTokens render')
   const getErc20Contract = (
     address: string,
     provider: Signer | providers.Provider
@@ -63,17 +64,12 @@ const useTokens = (networks: Network[]) => {
     )
   }, [networks, getErc20Contract])
 
-  const tokens = useMemo<Token[]>(
-    () => [
+  const tokens = useMemo<Token[]>(() => {
+    return [
       // new Token({
       //   symbol: 'ETH',
       //   tokenName: 'Ether',
       //   contracts: {},
-      //   rates: {
-      //     kovan: parseUnits('1', 18),
-      //     arbitrum: parseUnits('0.998125000000000000', 18),
-      //     optimism: parseUnits('0.977777000000000000', 18)
-      //   }
       // }),
       new Token({
         symbol: 'DAI',
@@ -84,12 +80,6 @@ const useTokens = (networks: Network[]) => {
           arbitrumHopBridge: arbitrumBridgeDai,
           optimism: optimismDai,
           optimismHopBridge: optimismBridgeDai
-        },
-        rates: {
-          kovan: parseUnits('1', 18),
-          arbitrum: parseUnits('0.958125000000000000', 18),
-          arbitrumHopBridge: parseUnits('0.958125000000000000', 18),
-          optimism: parseUnits('0.967777000000000000', 18)
         }
       }),
       new Token({
@@ -97,14 +87,17 @@ const useTokens = (networks: Network[]) => {
         tokenName: 'Hop',
         contracts: {
           kovan: l1Hop
-        },
-        rates: {
-          kovan: parseUnits('1', 18)
         }
       })
-    ],
-    [l1Dai, l1Hop, arbitrumDai, arbitrumBridgeDai]
-  )
+    ]
+  }, [
+    l1Dai,
+    l1Hop,
+    optimismDai,
+    arbitrumDai,
+    arbitrumBridgeDai,
+    optimismBridgeDai
+  ])
 
   return tokens
 }

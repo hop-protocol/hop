@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import logger from 'src/logger'
 
 export type TxConfirmParams = {
   kind: string
@@ -12,6 +13,7 @@ export interface TxConfirm {
 }
 
 export const useTxConfirm = (): TxConfirm => {
+  //logger.debug('useTxConfirm debug')
   const [txConfirmParams, setTxConfirm] = useState<any>(null)
 
   const show = (params: TxConfirmParams) => {
@@ -26,9 +28,15 @@ export const useTxConfirm = (): TxConfirm => {
               throw new Error('Cancelled')
             }
 
-            resolve(onConfirm(params))
+            const res = await onConfirm(params)
+            resolve(res)
           } catch (err) {
-            reject(err)
+            // MetaMask cancel error
+            if (/denied transaction/gi.test(err.message)) {
+              reject(new Error('Cancelled'))
+            } else {
+              reject(err)
+            }
           }
           setTxConfirm(null)
         }

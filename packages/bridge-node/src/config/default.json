@@ -1,5 +1,5 @@
 {
-  "L1EthRpcUrl": "https://kovan.rpc.authereum.com",
+  "L1EthRpcUrl": "https://kovan.rpc.hop.exchange",
   "L2ArbitrumRpcUrl": "https://kovan3.arbitrum.io/rpc",
   "L2OptimismRpcUrl": "https://kovan.optimism.rpc.hop.exchange",
   "L1BridgeAddress": "0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE",

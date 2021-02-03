@@ -13,6 +13,7 @@ import useL1BridgeContract from 'src/contexts/AppContext/useL1BridgeContract'
 import useNetworkSpecificContracts, {
   NetworkSpecificContracts
 } from 'src/contexts/AppContext/useNetworkSpecificContracts'
+import logger from 'src/logger'
 
 export type Contracts = {
   l1Token: Contract | undefined
@@ -32,6 +33,7 @@ export type Contracts = {
 }
 
 const useContracts = (networks: Network[]): Contracts => {
+  //logger.debug('useContracts render')
   const { provider, connectedNetworkId } = useWeb3Context()
 
   const getContract = (

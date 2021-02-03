@@ -53,15 +53,16 @@ const Convert: FC = () => {
     setDestTokenAmount('')
   }, [setSourceTokenAmount, setDestTokenAmount])
 
+  const filteredNetworks = ['kovan', 'arbitrumHopBridge', 'optimismHopBridge']
   useEffect(() => {
     setSourceNetwork(
       sourceNetworks.find(
-        (network: Network) => network?.slug === 'kovan'
+        (network: Network) => network?.slug === filteredNetworks[0]
       ) as Network
     )
     setDestNetwork(
       sourceNetworks.find(
-        (network: Network) => network?.slug === 'arbitrumHopBridge'
+        (network: Network) => network?.slug === filteredNetworks[1]
       ) as Network
     )
   }, [setSourceNetwork, setDestNetwork, sourceNetworks])
@@ -87,19 +88,10 @@ const Convert: FC = () => {
   }
 
   const destNetworks = sourceNetworks.filter((network: Network) => {
-    return (
-      network.slug === 'kovan' ||
-      network.slug === 'optimismHopBridge' ||
-      network.slug === 'arbitrumHopBridge'
-    )
+    return filteredNetworks.includes(network.slug)
   })
-
   sourceNetworks = sourceNetworks.filter((network: Network) => {
-    return (
-      network.slug === 'kovan' ||
-      network.slug === 'optimismHopBridge' ||
-      network.slug === 'arbitrumHopBridge'
-    )
+    return filteredNetworks.includes(network.slug)
   })
 
   const handleSourceNetworkChange = (network: Network | undefined) => {

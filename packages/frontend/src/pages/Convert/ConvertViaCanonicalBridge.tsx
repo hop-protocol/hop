@@ -48,15 +48,16 @@ const Convert: FC = () => {
     setError
   } = useConvert()
 
+  const filteredNetworks = ['kovan', 'arbitrum', 'optimism']
   useEffect(() => {
     setSourceNetwork(
       sourceNetworks.find(
-        (network: Network) => network?.slug === 'kovan'
+        (network: Network) => network?.slug === filteredNetworks[0]
       ) as Network
     )
     setDestNetwork(
       sourceNetworks.find(
-        (network: Network) => network?.slug === 'arbitrum'
+        (network: Network) => network?.slug === filteredNetworks[1]
       ) as Network
     )
   }, [setSourceNetwork, setDestNetwork, sourceNetworks])
@@ -87,19 +88,11 @@ const Convert: FC = () => {
   }
 
   const destNetworks = sourceNetworks.filter((network: Network) => {
-    return (
-      network.slug === 'kovan' ||
-      network.slug === 'optimism' ||
-      network.slug === 'arbitrum'
-    )
+    return filteredNetworks.includes(network.slug)
   })
 
   sourceNetworks = sourceNetworks.filter((network: Network) => {
-    return (
-      network.slug === 'kovan' ||
-      network.slug === 'optimism' ||
-      network.slug === 'arbitrum'
-    )
+    return filteredNetworks.includes(network.slug)
   })
 
   const handleSourceNetworkChange = (network: Network | undefined) => {

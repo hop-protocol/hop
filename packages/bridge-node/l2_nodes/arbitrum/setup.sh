@@ -2,7 +2,7 @@
 
 DIR_PATH=${DIR_PATH:-$PWD/data}
 ROLLUP=${ROLLUP:-0xC34Fd04E698dB75f8381BFA7298e8Ae379bFDA71}
-ETH_RPC=${ETH_RPC:-https://kovan.rpc.authereum.com}
+ETH_RPC=${ETH_RPC:-https://kovan.rpc.hop.exchange}
 PASS=${PASS:-secret}
 DOCKER_IMAGE="874777227511.dkr.ecr.us-east-1.amazonaws.com/arbitrum-validator-setup:latest"
 

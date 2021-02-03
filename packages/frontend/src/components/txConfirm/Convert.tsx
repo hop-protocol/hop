@@ -3,6 +3,7 @@ import Button from 'src/components/buttons/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import Token from 'src/models/Token'
 import Typography from '@material-ui/core/Typography'
+import logger from 'src/logger'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -39,7 +40,7 @@ const Convert = (props: Props) => {
       setSending(true)
       onConfirm(true)
     } catch (err) {
-      console.log(err)
+      logger.error(err)
     }
     setSending(false)
   }

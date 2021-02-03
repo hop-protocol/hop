@@ -25,7 +25,7 @@ class Network {
     this.slug = props.slug
     this.imageUrl = props.imageUrl
     this.rpcUrl = props.rpcUrl
-    this.provider = new ethers.providers.JsonRpcProvider(props.rpcUrl)
+    this.provider = new ethers.providers.StaticJsonRpcProvider(props.rpcUrl)
     this.isLayer1 = props.isLayer1 ? props.isLayer1 : false
     this.networkId = props.networkId
   }

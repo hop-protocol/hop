@@ -5,6 +5,7 @@ import Token from 'src/models/Token'
 import Typography from '@material-ui/core/Typography'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Checkbox from '@material-ui/core/Checkbox'
+import logger from 'src/logger'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -43,7 +44,7 @@ const Approval = (props: Props) => {
       setSending(true)
       onConfirm(true, approveAll)
     } catch (err) {
-      console.log(err)
+      logger.error(err)
     }
     setSending(false)
   }

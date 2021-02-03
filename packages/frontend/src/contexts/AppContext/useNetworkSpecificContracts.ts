@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Contract } from 'ethers'
 import l2BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L2_Bridge.sol/L2_Bridge.json'
 import l1ArbitrumMessengerArtifact from 'src/abi/GlobalInbox.json'
-import l1OptimismTokenBridgeArtifact from 'src/abi/L1OptimismTokenBridge.json'
+//import l1OptimismTokenBridgeArtifact from 'src/abi/L1OptimismTokenBridge.json'
 import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
 import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
 import arbErc20Artifact from 'src/abi/ArbERC20.json'
@@ -10,6 +10,7 @@ import arbErc20Artifact from 'src/abi/ArbERC20.json'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
 import Network from 'src/models/Network'
+import logger from 'src/logger'
 
 export type NetworkSpecificContracts = {
   l1CanonicalBridge: Contract | undefined
@@ -23,6 +24,7 @@ const useNetworkSpecificContracts = (
   l1Network: Network,
   l2Network: Network
 ): NetworkSpecificContracts => {
+  //logger.debug('useNetworkSpecificContracts render')
   const { provider, connectedNetworkId } = useWeb3Context()
 
   if (!l2Network?.slug) {

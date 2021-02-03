@@ -5,8 +5,10 @@ import l1BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridge
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
 import Network from 'src/models/Network'
+import logger from 'src/logger'
 
 const useL1BridgeContracts = (networks: Network[]): Contract | undefined => {
+  //logger.debug('useL1BridgeContracts render')
   const { provider, connectedNetworkId } = useWeb3Context()
 
   const kovanProvider = useMemo(() => {

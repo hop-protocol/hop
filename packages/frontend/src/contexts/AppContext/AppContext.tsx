@@ -11,6 +11,7 @@ import useContracts, { Contracts } from './useContracts'
 import useEvents, { Events } from './useEvents'
 import { useAccountDetails, AccountDetails } from './useAccountDetails'
 import { useTxConfirm, TxConfirm } from './useTxConfirm'
+import logger from 'src/logger'
 
 type AppContextProps = {
   user: User | undefined
@@ -35,6 +36,7 @@ const AppContext = createContext<AppContextProps>({
 })
 
 const AppContextProvider: FC = ({ children }) => {
+  //logger.debug('AppContextProvider render')
   const { provider } = useWeb3Context()
 
   const user = useMemo(() => {

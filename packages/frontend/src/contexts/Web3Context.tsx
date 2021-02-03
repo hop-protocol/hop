@@ -28,6 +28,7 @@ import MetamaskSettingsHighlight from 'src/assets/onboard/metamask-settings-high
 import MetamaskAddNetworkHighlight from 'src/assets/onboard/metamask-add-network-highlight.png'
 import MetamaskNewArbitrumNetworkHighlight from 'src/assets/onboard/metamask-new-arbitrum-network-highlight.png'
 import MetamaskArbitrumNetworkHighlight from 'src/assets/onboard/metamask-arbitrum-network-highlight.png'
+import logger from 'src/logger'
 
 type Props = {
   onboard: any
@@ -65,6 +66,7 @@ const initialState = {
 const Web3Context = createContext<Props>(initialState)
 
 const Web3ContextProvider: FC = ({ children }) => {
+  //logger.debug('Web3ContextProvider render')
   const [provider, setProvider] = useState<
     ethers.providers.Web3Provider | undefined
   >()
@@ -180,7 +182,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         eventCode: 'network',
         heading: 'You Must Change Networks',
         description: `
-        <p>We've detected that you need to switch your wallet's network from <strong>${gotNetworkName}</strong> to the <strong>${wantNetworkName}</strong> network to continue.</p>
+        <p>We've detected that you need to switch your wallet's network from ${gotNetworkName} to the <strong>${wantNetworkName}</strong> network to continue.</p>
         <p>Requirements:</p>
         <p>
         Network ID: <strong>${wantNetworkId}</strong>
@@ -212,14 +214,14 @@ const Web3ContextProvider: FC = ({ children }) => {
       ],
       subscriptions: {
         address: async (address: string) => {
-          console.debug('address', address)
+          logger.debug('wallet address:', address)
           if (address) {
             setAddress(Address.from(address))
           }
         },
         wallet: async (wallet: any) => {
           try {
-            console.debug('wallet', wallet)
+            logger.debug('wallet name:', wallet.name)
             const { name, provider } = wallet
             if (provider) {
               localStorage.setItem(cacheKey, name)
@@ -238,7 +240,7 @@ const Web3ContextProvider: FC = ({ children }) => {
               setAddress(undefined)
             }
           } catch (err) {
-            console.error(err)
+            logger.error(err)
           }
         },
         network: (connectedNetworkId: number) => {
@@ -281,7 +283,7 @@ const Web3ContextProvider: FC = ({ children }) => {
       try {
         await onboard.walletSelect()
       } catch (err) {
-        console.error(err)
+        logger.error(err)
       }
     }
 
@@ -293,7 +295,7 @@ const Web3ContextProvider: FC = ({ children }) => {
       try {
         await onboard.walletReset()
       } catch (err) {
-        console.error(err)
+        logger.error(err)
       }
     })()
   }

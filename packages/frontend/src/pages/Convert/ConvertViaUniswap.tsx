@@ -48,15 +48,23 @@ const Convert: FC = () => {
     setError
   } = useConvert()
 
+  const networkPairMap: any = {
+    arbitrum: 'arbitrumHopBridge',
+    optimism: 'optimismHopBridge',
+    arbitrumHopBridge: 'arbitrum',
+    optimismHopBridge: 'optimism'
+  }
+  const defaultNetwork = Object.keys(networkPairMap)[0]
+
   useEffect(() => {
     setSourceNetwork(
       sourceNetworks.find(
-        (network: Network) => network?.slug === 'arbitrum'
+        (network: Network) => network?.slug === defaultNetwork
       ) as Network
     )
     setDestNetwork(
       sourceNetworks.find(
-        (network: Network) => network?.slug === 'arbitrumHopBridge'
+        (network: Network) => network?.slug === networkPairMap[defaultNetwork]
       ) as Network
     )
   }, [setSourceNetwork, setDestNetwork, sourceNetworks])
@@ -87,29 +95,12 @@ const Convert: FC = () => {
   }
 
   const destNetworks = sourceNetworks.filter((network: Network) => {
-    return (
-      network.slug === 'optimism' ||
-      network.slug === 'optimismHopBridge' ||
-      network.slug === 'arbitrum' ||
-      network.slug === 'arbitrumHopBridge'
-    )
+    return Object.keys(networkPairMap).includes(network.slug)
   })
 
   sourceNetworks = sourceNetworks.filter((network: Network) => {
-    return (
-      network.slug === 'optimism' ||
-      network.slug === 'optimismHopBridge' ||
-      network.slug === 'arbitrum' ||
-      network.slug === 'arbitrumHopBridge'
-    )
+    return Object.keys(networkPairMap).includes(network.slug)
   })
-
-  const networkPairMap: any = {
-    optimism: 'optimismHopBridge',
-    arbitrum: 'arbitrumHopBridge',
-    optimismHopBridge: 'optimism',
-    arbitrumHopBridge: 'arbitrum'
-  }
 
   const handleSourceNetworkChange = (network: Network | undefined) => {
     if (network) {

@@ -1,21 +1,13 @@
 Create `docker-compose.env` with the following variables:
 
 ```
-ETH1_HTTP=https://kovan.rpc.authereum.com
-L1_NODE_WEB3_URL=https://kovan.rpc.authereum.com
-L1_WALLET_KEY=0xYOUR_PRIVATE_KEY
+TODO
 ```
 
-Start verifier:
+Start L2 node:
 
 ```bash
-./docker.sh up
-```
-
-Stop verifier:
-
-```bash
-./docker.sh down
+docker-compose up
 ```
 
 Optimism Kovan RPC URL:

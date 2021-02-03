@@ -7,9 +7,15 @@ import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses, optimismNetworkId } from 'src/config'
-import { UINT256, ARBITRUM_MESSENGER_ID } from 'src/config/constants'
+import {
+  UINT256,
+  ARBITRUM,
+  OPTIMISM,
+  ARBITRUM_MESSENGER_ID
+} from 'src/config/constants'
 import l1OptimismTokenBridgeArtifact from 'src/abi/L1OptimismTokenBridge.json'
 import l2OptimismTokenArtifact from 'src/abi/L2_OptimismERC20.json'
+import logger from 'src/logger'
 
 type ConvertContextProps = {
   selectedToken: Token | undefined
@@ -75,18 +81,24 @@ const ConvertContextProvider: FC = ({ children }) => {
   const arbitrumUniswapRouter = contracts?.networks.arbitrum.uniswapRouter
   const optimismUniswapRouter = contracts?.networks.optimism.uniswapRouter
   const arbitrumL1Messenger = contracts?.networks.arbitrum.l1CanonicalBridge
-  const arbitrumBridge = contracts?.networks.arbitrum.l2Bridge
-  const optimismBridge = contracts?.networks.optimism.l2Bridge
   const l1Bridge = contracts?.l1Bridge
+
+  const optimismL1Messenger = useMemo(() => {
+    return new Contract(
+      addresses.networks.optimism.l1CanonicalBridge,
+      l1OptimismTokenBridgeArtifact.abi,
+      provider?.getSigner()
+    )
+  }, [provider])
   const networks = useMemo(() => {
-    const kovanNetwork = nets.find(
-      (network: Network) => network.slug === 'kovan'
+    const l1Network = nets.find(
+      (network: Network) => network.isLayer1
     ) as Network
     const arbitrumNetwork = nets.find(
-      (network: Network) => network.slug === 'arbitrum'
+      (network: Network) => network.slug === ARBITRUM
     ) as Network
     const optimismNetwork = nets.find(
-      (network: Network) => network.slug === 'optimism'
+      (network: Network) => network.slug === OPTIMISM
     ) as Network
     const arbitrumCanonicalBridgeNetwork = new Network({
       name: 'Arbitrum Canonical',
@@ -117,7 +129,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       networkId: optimismNetwork.networkId
     })
     return [
-      kovanNetwork,
+      l1Network,
       arbitrumCanonicalBridgeNetwork,
       optimismCanonicalBridgeNetwork,
       arbitrumHopBridgeNetwork,
@@ -143,61 +155,65 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [destTokenBalance, setDestTokenBalance] = useState<number | null>(null)
   const [error, setError] = useState<string | null | undefined>()
 
+  const networkPairMap: any = {
+    arbitrum: 'arbitrumHopBridge',
+    optimism: 'optimismHopBridge',
+    arbitrumHopBridge: 'arbitrum',
+    optimismHopBridge: 'optimism'
+  }
+  const routers: any = {
+    arbitrum: arbitrumUniswapRouter,
+    optimism: optimismUniswapRouter
+  }
+  const messengers: any = {
+    arbitrum: arbitrumL1Messenger,
+    optimism: optimismL1Messenger
+  }
+  const chainIds: any = {
+    arbitrum: ARBITRUM_MESSENGER_ID,
+    optimism: optimismNetworkId
+  }
+  const canonicalSlug: any = {
+    arbitrum: 'arbitrum',
+    optimism: 'optimism',
+    arbitrumHopBridge: 'arbitrum',
+    optimismHopBridge: 'optimism'
+  }
+  const isHopBridge = (slug: string | undefined) => {
+    if (!slug) return false
+    return slug.includes('Bridge')
+  }
+
   const calcAltTokenAmount = async (value: string) => {
     if (value) {
-      if (
-        (sourceNetwork?.slug === 'arbitrumHopBridge' &&
-          destNetwork?.slug === 'arbitrum') ||
-        (sourceNetwork?.slug === 'arbitrum' &&
-          destNetwork?.slug === 'arbitrumHopBridge')
-      ) {
+      if (!sourceNetwork) {
+        return ''
+      }
+      if (!destNetwork) {
+        return ''
+      }
+      const slug = canonicalSlug[sourceNetwork?.slug]
+      if (!slug) {
+        return value
+      }
+      const router = routers[slug]
+      if (networkPairMap[sourceNetwork?.slug] === destNetwork?.slug) {
         let path = [
-          addresses.networks.arbitrum.l2CanonicalToken,
-          addresses.networks.arbitrum.l2Bridge
+          addresses.networks[slug].l2CanonicalToken,
+          addresses.networks[slug].l2Bridge
         ]
-        if (destNetwork?.slug === 'arbitrum') {
+        if (destNetwork?.slug === slug) {
           path = [
-            addresses.networks.arbitrum.l2Bridge,
-            addresses.networks.arbitrum.l2CanonicalToken
+            addresses.networks[slug].l2Bridge,
+            addresses.networks[slug].l2CanonicalToken
           ]
         }
 
-        const amountsOut = await arbitrumUniswapRouter?.getAmountsOut(
+        const amountsOut = await router?.getAmountsOut(
           parseUnits(value, 18),
           path
         )
         value = Number(formatUnits(amountsOut[1].toString(), 18)).toFixed(2)
-      }
-      if (
-        (sourceNetwork?.slug === 'optimismHopBridge' &&
-          destNetwork?.slug === 'optimism') ||
-        (sourceNetwork?.slug === 'optimism' &&
-          destNetwork?.slug === 'optimismHopBridge')
-      ) {
-        let path = [
-          addresses.networks.optimism.l2CanonicalToken,
-          addresses.networks.optimism.l2Bridge
-        ]
-        if (destNetwork?.slug === 'optimism') {
-          path = [
-            addresses.networks.optimism.l2Bridge,
-            addresses.networks.optimism.l2CanonicalToken
-          ]
-        }
-
-        const amountsOut = await optimismUniswapRouter?.getAmountsOut(
-          parseUnits(value, 18),
-          path
-        )
-        value = Number(formatUnits(amountsOut[1].toString(), 18)).toFixed(2)
-      }
-      if (
-        (sourceNetwork?.slug === 'kovan' && destNetwork?.slug === 'arbitrum') ||
-        (sourceNetwork?.slug === 'arbitrum' && destNetwork?.slug === 'kovan') ||
-        (sourceNetwork?.slug === 'kovan' && destNetwork?.slug === 'optimism') ||
-        (sourceNetwork?.slug === 'optimism' && destNetwork?.slug === 'kovan')
-      ) {
-        // value is same
       }
     }
 
@@ -224,6 +240,10 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
 
       if (!checkWalletNetwork()) {
+        return
+      }
+
+      if (!sourceNetwork) {
         return
       }
 
@@ -273,16 +293,19 @@ const ConvertContextProvider: FC = ({ children }) => {
 
       const signer = provider?.getSigner()
       const address = await signer?.getAddress()
-      const value = parseUnits(sourceTokenAmount, 18)
-
+      const value = parseUnits(sourceTokenAmount, 18).toString()
       let tx: any
-      if (sourceNetwork?.slug === 'kovan') {
-        if (destNetwork?.slug === 'arbitrum') {
+      const sourceSlug = canonicalSlug[sourceNetwork?.slug]
+
+      // source network is L1 ( L1 -> L2 )
+      if (sourceNetwork?.isLayer1) {
+        // destination network is L2 hop bridge ( L1 -> L2 Hop )
+        if (destNetwork && isHopBridge(destNetwork?.slug)) {
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
             sourceNetwork as Network,
-            arbitrumL1Messenger?.address as string
+            l1Bridge?.address as string
           )
 
           const tokenAddress = selectedToken
@@ -302,27 +325,22 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              return arbitrumL1Messenger?.depositERC20Message(
-                addresses.networks.arbitrum?.arbChain,
-                tokenAddress,
+              return l1Bridge?.sendToL2(
+                chainIds[canonicalSlug[destNetwork?.slug]],
                 address,
                 value
               )
             }
           })
-        } else if (destNetwork?.slug === 'optimism') {
-          const l1Provider = provider?.getSigner()
-          const optimismL1Messenger = new Contract(
-            addresses.networks.optimism.l1CanonicalBridge,
-            l1OptimismTokenBridgeArtifact.abi,
-            l1Provider
-          )
 
+          // destination network is canonical bridge (L1 -> L2 canonical)
+        } else if (destNetwork && !isHopBridge(destNetwork?.slug)) {
+          const destSlug = destNetwork?.slug
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
             sourceNetwork as Network,
-            optimismL1Messenger?.address as string
+            messengers[destSlug].address as string
           )
 
           const tokenAddress = selectedToken
@@ -342,157 +360,73 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              return optimismL1Messenger?.deposit(address, value, true)
-            }
-          })
-        } else if (destNetwork?.slug === 'arbitrumHopBridge') {
-          await approveTokens(
-            selectedToken,
-            sourceTokenAmount,
-            sourceNetwork as Network,
-            l1Bridge?.address as string
-          )
-
-          const tokenAddress = selectedToken
-            .addressForNetwork(sourceNetwork)
-            .toString()
-
-          tx = await txConfirm?.show({
-            kind: 'convert',
-            inputProps: {
-              source: {
-                amount: sourceTokenAmount,
-                token: selectedToken
-              },
-              dest: {
-                amount: destTokenAmount,
-                token: selectedToken
+              if (destSlug === ARBITRUM) {
+                return messengers[destSlug]?.depositERC20Message(
+                  addresses.networks.arbitrum?.arbChain,
+                  tokenAddress,
+                  address,
+                  value
+                )
+              } else if (destSlug === OPTIMISM) {
+                return messengers[destSlug]?.deposit(address, value, true)
               }
-            },
-            onConfirm: async () => {
-              return l1Bridge?.sendToL2(ARBITRUM_MESSENGER_ID, address, value)
-            }
-          })
-        } else if (destNetwork?.slug === 'optimismHopBridge') {
-          await approveTokens(
-            selectedToken,
-            sourceTokenAmount,
-            sourceNetwork as Network,
-            l1Bridge?.address as string
-          )
-
-          const tokenAddress = selectedToken
-            .addressForNetwork(sourceNetwork)
-            .toString()
-
-          tx = await txConfirm?.show({
-            kind: 'convert',
-            inputProps: {
-              source: {
-                amount: sourceTokenAmount,
-                token: selectedToken
-              },
-              dest: {
-                amount: destTokenAmount,
-                token: selectedToken
-              }
-            },
-            onConfirm: async () => {
-              return l1Bridge?.sendToL2(optimismNetworkId, address, value)
             }
           })
         }
-      } else if (sourceNetwork?.slug === 'arbitrum') {
-        if (destNetwork?.slug === 'kovan') {
-          await approveTokens(
-            selectedToken,
-            sourceTokenAmount,
-            sourceNetwork as Network,
-            arbitrumDai?.address as string
-          )
 
-          const tokenAddress = selectedToken
-            .addressForNetwork(sourceNetwork)
-            .toString()
-
-          tx = await txConfirm?.show({
-            kind: 'convert',
-            inputProps: {
-              source: {
-                amount: sourceTokenAmount,
-                token: selectedToken
-              },
-              dest: {
-                amount: destTokenAmount,
-                token: selectedToken
-              }
-            },
-            onConfirm: async () => {
-              return arbitrumDai?.withdraw(tokenAddress, value)
-            }
-          })
-        } else if (destNetwork?.slug === 'arbitrumHopBridge') {
-          await approveTokens(
-            selectedToken,
-            sourceTokenAmount,
-            sourceNetwork as Network,
-            arbitrumUniswapRouter?.address as string
-          )
-
-          const amountOutMin = '0'
-          const path = [
-            addresses.networks.arbitrum.l2CanonicalToken,
-            addresses.networks.arbitrum.l2Bridge
-          ]
-          const deadline = (Date.now() / 1000 + 300) | 0
-
-          tx = await txConfirm?.show({
-            kind: 'convert',
-            inputProps: {
-              source: {
-                amount: sourceTokenAmount,
-                token: selectedToken
-              },
-              dest: {
-                amount: destTokenAmount,
-                token: selectedToken
-              }
-            },
-            onConfirm: async () => {
-              return arbitrumUniswapRouter?.swapExactTokensForTokens(
-                value,
-                amountOutMin,
-                path,
-                address,
-                deadline
-              )
-            }
-          })
-        }
+        // source network is L2 canonical bridge ( L2 canonical -> L1 or L2 )
       } else if (
-        sourceNetwork?.slug === 'arbitrumHopBridge' ||
-        sourceNetwork?.slug === 'optimismHopBridge'
+        sourceNetwork &&
+        !sourceNetwork?.isLayer1 &&
+        !isHopBridge(sourceNetwork?.slug)
       ) {
-        const destNetworkSlug = destNetwork?.slug
-        let uniswapRouter =
-          destNetworkSlug === 'arbitrum'
-            ? arbitrumUniswapRouter
-            : optimismUniswapRouter
-        let bridge =
-          destNetworkSlug === 'arbitrum' ? arbitrumBridge : optimismBridge
+        // destination network is L1 ( L2 canonical -> L1 )
+        if (destNetwork?.isLayer1) {
+          const tokenAddress = selectedToken
+            .addressForNetwork(sourceNetwork)
+            .toString()
 
-        if (destNetworkSlug === 'arbitrum' || destNetworkSlug === 'optimism') {
+          tx = await txConfirm?.show({
+            kind: 'convert',
+            inputProps: {
+              source: {
+                amount: sourceTokenAmount,
+                token: selectedToken
+              },
+              dest: {
+                amount: destTokenAmount,
+                token: selectedToken
+              }
+            },
+            onConfirm: async () => {
+              if (sourceSlug === ARBITRUM) {
+                return arbitrumDai?.withdraw(tokenAddress, value)
+              } else if (sourceSlug === OPTIMISM) {
+                const l2Provider = provider?.getSigner()
+                const optimismL2Token = new Contract(
+                  addresses.networks.optimism.l2CanonicalToken,
+                  l2OptimismTokenArtifact.abi,
+                  l2Provider
+                )
+                return optimismL2Token?.withdraw(value)
+              }
+            }
+          })
+
+          // destination network is L2 hop bridge (L2 canonical -> L2 Hop)
+        } else if (isHopBridge(destNetwork?.slug)) {
+          const router = routers[sourceSlug]
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
             sourceNetwork as Network,
-            uniswapRouter?.address as string
+            router?.address as string
           )
 
           const amountOutMin = '0'
           const path = [
-            addresses.networks[destNetworkSlug].l2Bridge,
-            addresses.networks[destNetworkSlug].l2CanonicalToken
+            addresses.networks[sourceSlug].l2CanonicalToken,
+            addresses.networks[sourceSlug].l2Bridge
           ]
           const deadline = (Date.now() / 1000 + 300) | 0
 
@@ -509,7 +443,7 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              return uniswapRouter?.swapExactTokensForTokens(
+              return router?.swapExactTokensForTokens(
                 value,
                 amountOutMin,
                 path,
@@ -518,7 +452,16 @@ const ConvertContextProvider: FC = ({ children }) => {
               )
             }
           })
-        } else if (destNetworkSlug === 'kovan') {
+        }
+
+        // source network is L2 hop bridge ( L2 Hop -> L1 or L2 )
+      } else if (isHopBridge(sourceNetwork?.slug) && destNetwork) {
+        const destNetworkSlug = destNetwork?.slug
+        const router = routers[destNetworkSlug]
+        const bridge = contracts?.networks[sourceSlug].l2Bridge
+
+        // destination network is L1 ( L2 Hop -> L1 )
+        if (destNetwork?.isLayer1) {
           tx = await txConfirm?.show({
             kind: 'convert',
             inputProps: {
@@ -543,44 +486,20 @@ const ConvertContextProvider: FC = ({ children }) => {
               )
             }
           })
-        }
-      } else if (sourceNetwork?.slug === 'optimism') {
-        if (destNetwork?.slug === 'kovan') {
-          const l2Provider = provider?.getSigner()
-          const optimismL2Token = new Contract(
-            addresses.networks.optimism.l2CanonicalToken,
-            l2OptimismTokenArtifact.abi,
-            l2Provider
-          )
 
-          tx = await txConfirm?.show({
-            kind: 'convert',
-            inputProps: {
-              source: {
-                amount: sourceTokenAmount,
-                token: selectedToken
-              },
-              dest: {
-                amount: destTokenAmount,
-                token: selectedToken
-              }
-            },
-            onConfirm: async () => {
-              return optimismL2Token?.withdraw(value)
-            }
-          })
-        } else if (destNetwork?.slug === 'optimismHopBridge') {
+          // destination network is L2 uniswap ( L1 -> L2 Uniswap )
+        } else {
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
             sourceNetwork as Network,
-            optimismUniswapRouter?.address as string
+            router?.address as string
           )
 
           const amountOutMin = '0'
           const path = [
-            addresses.networks.optimism.l2CanonicalToken,
-            addresses.networks.optimism.l2Bridge
+            addresses.networks[destNetworkSlug].l2Bridge,
+            addresses.networks[destNetworkSlug].l2CanonicalToken
           ]
           const deadline = (Date.now() / 1000 + 300) | 0
 
@@ -597,7 +516,7 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              return optimismUniswapRouter?.swapExactTokensForTokens(
+              return router?.swapExactTokensForTokens(
                 value,
                 amountOutMin,
                 path,
@@ -621,7 +540,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       if (!/cancelled/gi.test(err.message)) {
         setError(err.message)
       }
-      console.error(err)
+      logger.error(err)
     }
 
     setSending(false)

@@ -8,7 +8,7 @@ import { addresses } from 'src/config'
 import logger from 'src/logger'
 
 const useTokens = (networks: Network[]) => {
-  logger.debug('useTokens render')
+  //logger.debug('useTokens render')
   const getErc20Contract = (
     address: string,
     provider: Signer | providers.Provider

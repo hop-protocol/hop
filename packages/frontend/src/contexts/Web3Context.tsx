@@ -64,7 +64,7 @@ const initialState = {
 const Web3Context = createContext<Props>(initialState)
 
 const Web3ContextProvider: FC = ({ children }) => {
-  logger.debug('Web3ContextProvider render')
+  //logger.debug('Web3ContextProvider render')
   const [provider, setProvider] = useState<
     ethers.providers.Web3Provider | undefined
   >()
@@ -219,7 +219,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         },
         wallet: async (wallet: any) => {
           try {
-            logger.debug('wallet instance:', wallet)
+            logger.debug('wallet name:', wallet.name)
             const { name, provider } = wallet
             if (provider) {
               localStorage.setItem(cacheKey, name)

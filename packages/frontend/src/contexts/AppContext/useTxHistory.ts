@@ -10,7 +10,7 @@ export interface TxHistory {
 }
 
 const useTxHistory = (): TxHistory => {
-  logger.debug('useTxHistory render')
+  //logger.debug('useTxHistory render')
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
       const cached = sessionStorage.getItem('recentTransactions')

@@ -7,7 +7,7 @@ export interface Events {
 }
 
 const useEvents = (): Events => {
-  logger.debug('useEvents render')
+  //logger.debug('useEvents render')
   const [keypress] = useState<EventEmitter>(() => {
     return new EventEmitter()
   })

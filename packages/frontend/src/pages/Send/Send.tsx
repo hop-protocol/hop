@@ -150,6 +150,9 @@ const Send: FC = () => {
     let path
     let uniswapRouter
     if (_fromNetwork.isLayer1) {
+      if (!_toNetwork) {
+        return BigNumber.from('0')
+      }
       let l2CanonicalTokenAddress =
         contracts?.networks[_toNetwork.slug].l2CanonicalToken?.address
       let l2BridgeAddress =
@@ -157,6 +160,9 @@ const Send: FC = () => {
       path = [l2BridgeAddress, l2CanonicalTokenAddress]
       uniswapRouter = contracts?.networks[_toNetwork.slug].uniswapRouter
     } else {
+      if (!_fromNetwork) {
+        return BigNumber.from('0')
+      }
       let l2CanonicalTokenAddress =
         contracts?.networks[_fromNetwork.slug].l2CanonicalToken?.address
       let l2BridgeAddress =
@@ -165,6 +171,9 @@ const Send: FC = () => {
       uniswapRouter = contracts?.networks[_fromNetwork.slug].uniswapRouter
     }
 
+    if (!path) {
+      return BigNumber.from('0')
+    }
     if (isAmountIn) {
       const amountsOut = await uniswapRouter?.getAmountsOut(amount, path)
       return amountsOut[1]

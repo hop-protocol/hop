@@ -38,7 +38,7 @@ class Transaction extends EventEmitter {
       rpcUrl = l1RpcUrl
     }
 
-    this.provider = new ethers.providers.JsonRpcProvider(rpcUrl)
+    this.provider = new ethers.providers.StaticJsonRpcProvider(rpcUrl)
     this.timestamp = timestamp || Date.now()
     this.pending = pending
     this.receipt().then((receipt: any) => {

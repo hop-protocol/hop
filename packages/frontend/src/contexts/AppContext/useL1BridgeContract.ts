@@ -8,7 +8,7 @@ import Network from 'src/models/Network'
 import logger from 'src/logger'
 
 const useL1BridgeContracts = (networks: Network[]): Contract | undefined => {
-  logger.debug('useL1BridgeContracts render')
+  //logger.debug('useL1BridgeContracts render')
   const { provider, connectedNetworkId } = useWeb3Context()
 
   const kovanProvider = useMemo(() => {

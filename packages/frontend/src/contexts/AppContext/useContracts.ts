@@ -33,7 +33,7 @@ export type Contracts = {
 }
 
 const useContracts = (networks: Network[]): Contracts => {
-  logger.debug('useContracts render')
+  //logger.debug('useContracts render')
   const { provider, connectedNetworkId } = useWeb3Context()
 
   const getContract = (

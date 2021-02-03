@@ -116,8 +116,8 @@ const PoolsContextProvider: FC = ({ children }) => {
   const {
     address,
     provider,
-    setRequiredNetworkId,
-    connectedNetworkId
+    checkConnectedNetworkId,
+    getWriteContract
   } = useWeb3Context()
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [error, setError] = useState<string | null | undefined>(null)
@@ -147,11 +147,6 @@ const PoolsContextProvider: FC = ({ children }) => {
   const uniswapRouter = contracts?.networks[selectedNetworkSlug]?.uniswapRouter
   const uniswapFactory =
     contracts?.networks[selectedNetworkSlug]?.uniswapFactory
-
-  const checkWalletNetwork = () => {
-    setRequiredNetworkId(selectedNetwork?.networkId)
-    return connectedNetworkId === selectedNetwork?.networkId
-  }
 
   useEffect(() => {
     if (Number(token0Price) && Number(token0Amount) && !Number(token1Amount)) {
@@ -328,9 +323,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         return
       }
 
-      if (!checkWalletNetwork()) {
-        return
-      }
+      const uniswapRouterWrite = await getWriteContract(uniswapRouter)
+      if (!uniswapRouterWrite) return
 
       setSending(true)
       let tx = await approveTokens(selectedToken, token0Amount, selectedNetwork)
@@ -386,7 +380,7 @@ const PoolsContextProvider: FC = ({ children }) => {
           }
         },
         onConfirm: async () => {
-          return uniswapRouter?.addLiquidity(
+          return uniswapRouterWrite.addLiquidity(
             token0,
             token1,
             amount0Desired,

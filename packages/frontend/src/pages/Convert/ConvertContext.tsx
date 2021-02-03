@@ -72,8 +72,7 @@ const ConvertContext = createContext<ConvertContextProps>({
 const ConvertContextProvider: FC = ({ children }) => {
   const {
     provider,
-    setRequiredNetworkId,
-    connectedNetworkId
+    getWriteContract
   } = useWeb3Context()
   const app = useApp()
   let { networks: nets, tokens, contracts, txConfirm } = app
@@ -220,26 +219,9 @@ const ConvertContextProvider: FC = ({ children }) => {
     return value
   }
 
-  const checkWalletNetwork = () => {
-    if (sourceNetwork) {
-      // react doesn't invoke useEffect if it's the same value,
-      // so here we set a dummy value and then retrigger the setState
-      // in order to reshow the onboard network change modal
-      setRequiredNetworkId('')
-      setTimeout(() => {
-        setRequiredNetworkId(sourceNetwork?.networkId)
-      }, 10)
-    }
-    return connectedNetworkId === sourceNetwork?.networkId
-  }
-
   const convertTokens = async () => {
     try {
       if (!Number(sourceTokenAmount)) {
-        return
-      }
-
-      if (!checkWalletNetwork()) {
         return
       }
 
@@ -256,7 +238,8 @@ const ConvertContextProvider: FC = ({ children }) => {
       ): Promise<any> => {
         const signer = provider?.getSigner()
         const tokenAddress = token.addressForNetwork(network).toString()
-        const contract = contracts?.getErc20Contract(tokenAddress, signer)
+        const contractRead = contracts?.getErc20Contract(tokenAddress, signer)
+        let contract = await getWriteContract(contractRead)
 
         const parsedAmount = parseUnits(amount, token.decimals || 18)
         const approved = await contract?.allowance(
@@ -325,7 +308,8 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              return l1Bridge?.sendToL2(
+              const l1BridgeWrite = await getWriteContract(l1Bridge)
+              return l1BridgeWrite?.sendToL2(
                 chainIds[canonicalSlug[destNetwork?.slug]],
                 address,
                 value
@@ -361,7 +345,9 @@ const ConvertContextProvider: FC = ({ children }) => {
             },
             onConfirm: async () => {
               if (destSlug === ARBITRUM) {
-                return messengers[destSlug]?.depositERC20Message(
+                const messenger = messengers[destSlug]
+                const messengerWrite = await getWriteContract(messenger)
+                return messengerWrite?.depositERC20Message(
                   addresses.networks.arbitrum?.arbChain,
                   tokenAddress,
                   address,
@@ -400,7 +386,8 @@ const ConvertContextProvider: FC = ({ children }) => {
             },
             onConfirm: async () => {
               if (sourceSlug === ARBITRUM) {
-                return arbitrumDai?.withdraw(tokenAddress, value)
+                const arbitrumDaiWrite = await getWriteContract(arbitrumDai)
+                return arbitrumDaiWrite?.withdraw(tokenAddress, value)
               } else if (sourceSlug === OPTIMISM) {
                 const l2Provider = provider?.getSigner()
                 const optimismL2Token = new Contract(
@@ -408,7 +395,8 @@ const ConvertContextProvider: FC = ({ children }) => {
                   l2OptimismTokenArtifact.abi,
                   l2Provider
                 )
-                return optimismL2Token?.withdraw(value)
+                const optimismL2TokenWrite = await getWriteContract(optimismL2Token)
+                return optimismL2TokenWrite?.withdraw(value)
               }
             }
           })
@@ -443,7 +431,8 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              return router?.swapExactTokensForTokens(
+              const routerWrite = await getWriteContract(router)
+              return routerWrite?.swapExactTokensForTokens(
                 value,
                 amountOutMin,
                 path,
@@ -475,7 +464,8 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              return bridge?.send(
+              const bridgeWrite = await getWriteContract(bridge)
+              return bridgeWrite?.send(
                 '1',
                 address,
                 value,
@@ -516,7 +506,8 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              return router?.swapExactTokensForTokens(
+              const routerWrite = await getWriteContract(router)
+              return routerWrite?.swapExactTokensForTokens(
                 value,
                 amountOutMin,
                 path,

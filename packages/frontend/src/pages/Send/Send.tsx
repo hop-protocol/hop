@@ -77,9 +77,8 @@ const Send: FC = () => {
 
   const {
     provider,
-    setRequiredNetworkId,
-    connectedNetworkId,
     walletConnected,
+    checkConnectedNetworkId,
     getWriteContract
   } = useWeb3Context()
 
@@ -235,13 +234,6 @@ const Send: FC = () => {
     }
   }
 
-  const checkWalletNetwork = () => {
-    if (fromNetwork) {
-      setRequiredNetworkId(fromNetwork?.networkId)
-    }
-    return connectedNetworkId === fromNetwork?.networkId
-  }
-
   useEffect(() => {
     updateAmountOut(fromTokenAmount)
   }, [fromNetwork])
@@ -278,16 +270,17 @@ const Send: FC = () => {
       throw new Error('No toNetwork selected')
     }
 
+    const tokenContractRead = selectedToken
+        .contractForNetwork(fromNetwork)
+    const tokenContract = await getWriteContract(tokenContractRead)
+    if (!tokenContract) return // User needs to switch networks
+    const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
     let tx: any
     if (fromNetwork?.isLayer1) {
-      const tokenContract = selectedToken
-        .contractForNetwork(fromNetwork)
-        .connect(signer)
       const approved = await tokenContract.allowance(
         await signer?.getAddress(),
         l1Bridge?.address
       )
-      const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
       if (approved.lt(parsedAmount)) {
         tx = await txConfirm?.show({
           kind: 'approval',
@@ -310,15 +303,10 @@ const Send: FC = () => {
         }
       }
     } else {
-      const tokenContract = selectedToken
-        .contractForNetwork(fromNetwork)
-        .connect(signer)
-
       const approved = await tokenContract.allowance(
         await signer?.getAddress(),
         l2Bridge?.address
       )
-      const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
       if (approved.lt(parsedAmount)) {
         tx = await txConfirm?.show({
           kind: 'approval',
@@ -358,9 +346,9 @@ const Send: FC = () => {
         throw new Error('A network is undefined')
       }
 
-      if (!checkWalletNetwork()) {
-        return
-      }
+      const networkId = Number(fromNetwork.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if(!isNetworkConnected) return
 
       setSending(true)
       await approve(fromTokenAmount)

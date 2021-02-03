@@ -35,25 +35,24 @@ const FaucetContextProvider: FC = ({ children }) => {
   const [isMinting, setMinting] = useState<boolean>(false)
   let { contracts, txHistory, networks } = useApp()
   const l1Dai = contracts?.l1Token
-  const { address, setRequiredNetworkId, connectedNetworkId } = useWeb3Context()
+  const { address, getWriteContract } = useWeb3Context()
   const selectedNetwork = networks[0]
   const [error, setError] = useState<string | null | undefined>(null)
 
-  const checkWalletNetwork = () => {
-    setRequiredNetworkId(selectedNetwork?.networkId)
-    return connectedNetworkId === selectedNetwork?.networkId
-  }
-
   const mintToken = async () => {
     try {
-      if (!checkWalletNetwork()) {
+      let l1DaiWrite
+      l1DaiWrite = await getWriteContract(l1Dai)
+      if (!l1DaiWrite) {
         return
       }
       setMinting(true)
       const recipient = address?.toString()
       const parsedAmount = parseUnits(mintAmount, 18)
-      const tx = await l1Dai?.mint(recipient, parsedAmount)
+
+      const tx = await l1DaiWrite?.mint(recipient, parsedAmount)
       logger.debug('mint:', tx?.hash)
+
       txHistory?.addTransaction(
         new Transaction({
           hash: tx?.hash,

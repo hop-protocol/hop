@@ -42,7 +42,8 @@ type Props = {
   disconnectWallet: () => void
   walletConnected: boolean
   walletName: string
-  getWriteContract: (contract: Contract) => Promise<Contract | undefined>
+  checkConnectedNetworkId: (networkId: number) => Promise<boolean>
+  getWriteContract: (contract: Contract | undefined) => Promise<Contract | undefined>
 }
 
 const initialState = {
@@ -57,7 +58,8 @@ const initialState = {
   disconnectWallet: () => {},
   walletConnected: false,
   walletName: '',
-  getWriteContract: async (contract: Contract): Promise<Contract | undefined> =>
+  checkConnectedNetworkId: async (networkId: number): Promise<boolean> => false,
+  getWriteContract: async (contract: Contract | undefined): Promise<Contract | undefined> =>
     undefined
 }
 
@@ -300,9 +302,24 @@ const Web3ContextProvider: FC = ({ children }) => {
 
   const walletConnected = !!address
 
+  const checkConnectedNetworkId = async (networkId: number): Promise<boolean> => {
+    console.log('checkConnectedNetworkId')
+    const signerNetworkId = (await provider?.getNetwork())?.chainId
+    if (networkId != signerNetworkId) {
+      onboard.config({ networkId })
+      if (onboard.getState().address) {
+        onboard.walletCheck()
+      }
+      return false
+    }
+
+    return true
+  }
+
   const getWriteContract = async (
-    contract: Contract
+    contract?: Contract
   ): Promise<Contract | undefined> => {
+    if (!contract) return
     const signerNetworkId = (await provider?.getNetwork())?.chainId
     const contractNetworkId = (await contract.provider.getNetwork()).chainId
     if (signerNetworkId != contractNetworkId) {
@@ -340,6 +357,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         requestWallet,
         disconnectWallet,
         walletName,
+        checkConnectedNetworkId,
         getWriteContract
       }}
     >

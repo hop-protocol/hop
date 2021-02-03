@@ -25,7 +25,7 @@ export const addresses: HopAddresses = {
   },
   networks: {
     arbitrum: {
-      l1CanonicalBridge: '0x2e8aF9f74046D3E55202Fcfb893348316B142230',
+      l1CanonicalBridge: '0xE681857DEfE8b454244e701BA63EfAa078d7eA85',
       l2CanonicalBridge: '0x0000000000000000000000000000000000000064',
       l2CanonicalToken: '0x7d669a64deb8a4a51eea755bb0e19fd39ce25ae9',
       l2Bridge: '0xf3af9B1Edc17c1FcA2b85dd64595F914fE2D3Dde',

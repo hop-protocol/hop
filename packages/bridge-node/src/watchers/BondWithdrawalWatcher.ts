@@ -46,7 +46,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async watch () {
-    this.L2BridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
+    this.L2BridgeContract.on(
+      TransferSentEvent,
+      this.handleTransferSentEvent
+    ).on('error', err => {
+      this.logger.error('event watcher error:', err.message)
+    })
     /*
     eventPoller(
       this.L2BridgeContract,

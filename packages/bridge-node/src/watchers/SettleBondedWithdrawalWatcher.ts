@@ -90,7 +90,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async watch () {
-    L1BridgeContract.on(BondTransferRootEvent, this.handleBondTransferEvent)
+    L1BridgeContract.on(BondTransferRootEvent, this.handleBondTransferEvent).on(
+      'error',
+      err => {
+        this.logger.error('event watcher error:', err.message)
+      }
+    )
   }
 }
 

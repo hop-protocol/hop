@@ -80,7 +80,12 @@ class ChallengeWatcher extends BaseWatcher {
       }
     }
 
-    L1BridgeContract.on(BondTransferRootEvent, handleBondTransferEvent)
+    L1BridgeContract.on(BondTransferRootEvent, handleBondTransferEvent).on(
+      'error',
+      err => {
+        this.logger.error('event watcher error:', err.message)
+      }
+    )
 
     //const L2BlockNumber = await this.L2Provider.getBlockNumber()
     //const recentTransferCommitEvents = await this.L2BridgeContract.queryFilter(

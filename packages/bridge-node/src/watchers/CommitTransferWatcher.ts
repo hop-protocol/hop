@@ -74,7 +74,12 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   async watch () {
-    this.L2BridgeContract.on(TransferSentEvent, this.handleTransferSentEvent)
+    this.L2BridgeContract.on(
+      TransferSentEvent,
+      this.handleTransferSentEvent
+    ).on('error', err => {
+      this.logger.error('event watcher error:', err.message)
+    })
 
     while (true) {
       try {

@@ -42,7 +42,9 @@ class BondTransferRootWatcher extends BaseWatcher {
     this.L2BridgeContract.on(
       TransfersCommittedEvent,
       this.handleTransferCommittedEvent
-    )
+    ).on('error', err => {
+      this.logger.error('event watcher error:', err.message)
+    })
     //eventPoller(this.L2BridgeContract, this.L2Provider, TransfersCommittedEvent, this.handleTransferCommittedEvent)
   }
 

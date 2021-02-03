@@ -73,6 +73,7 @@ class ArbBot {
           await wait(this.pollTimeSec * 1e3)
         } catch (err) {
           logger.error('arb bot error:', err.message)
+          await wait(this.pollTimeSec * 1e3)
         }
       }
     } catch (err) {
@@ -299,14 +300,18 @@ class ArbBot {
     )
 
     const SWAP_EVENT = 'Swap'
-    pair.on(SWAP_EVENT, async event => {
-      logger.log('Detected swap event')
-      try {
-        await this.checkArbitrage()
-      } catch (err) {
-        logger.error('arb bot error:', err.message)
-      }
-    })
+    pair
+      .on(SWAP_EVENT, async event => {
+        logger.log('Detected swap event')
+        try {
+          await this.checkArbitrage()
+        } catch (err) {
+          logger.error('arb bot checkArbitrage error:', err.message)
+        }
+      })
+      .on('error', err => {
+        logger.error('arb bot swap event watcher error:', err.message)
+      })
   }
 }
 

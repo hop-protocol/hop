@@ -348,9 +348,8 @@ const Send: FC = () => {
 
       const networkId = Number(fromNetwork.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if(!isNetworkConnected) {
-        return
-      }
+      if(!isNetworkConnected) return
+
       setSending(true)
       await approve(fromTokenAmount)
       if (fromNetwork.isLayer1) {

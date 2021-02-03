@@ -42,9 +42,7 @@ const FaucetContextProvider: FC = ({ children }) => {
   const mintToken = async () => {
     try {
       let l1DaiWrite
-      if (l1Dai) {
-        l1DaiWrite = await getWriteContract(l1Dai)
-      }
+      l1DaiWrite = await getWriteContract(l1Dai)
       if (!l1DaiWrite) {
         return
       }

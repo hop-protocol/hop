@@ -43,7 +43,7 @@ type Props = {
   walletConnected: boolean
   walletName: string
   checkConnectedNetworkId: (networkId: number) => Promise<boolean>
-  getWriteContract: (contract: Contract) => Promise<Contract | undefined>
+  getWriteContract: (contract: Contract | undefined) => Promise<Contract | undefined>
 }
 
 const initialState = {
@@ -59,7 +59,7 @@ const initialState = {
   walletConnected: false,
   walletName: '',
   checkConnectedNetworkId: async (networkId: number): Promise<boolean> => false,
-  getWriteContract: async (contract: Contract): Promise<Contract | undefined> =>
+  getWriteContract: async (contract: Contract | undefined): Promise<Contract | undefined> =>
     undefined
 }
 
@@ -317,8 +317,9 @@ const Web3ContextProvider: FC = ({ children }) => {
   }
 
   const getWriteContract = async (
-    contract: Contract
+    contract?: Contract
   ): Promise<Contract | undefined> => {
+    if (!contract) return
     const signerNetworkId = (await provider?.getNetwork())?.chainId
     const contractNetworkId = (await contract.provider.getNetwork()).chainId
     if (signerNetworkId != contractNetworkId) {

@@ -9,6 +9,7 @@ import AmountSelectorCard from 'src/pages/Pools/AmountSelectorCard'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
+import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -221,7 +222,7 @@ const Pools: FC = () => {
               color="textSecondary"
               component="div"
             >
-              {token0Price}
+              {commafy(token0Price)}
             </Typography>
             <Typography
               variant="subtitle2"
@@ -235,7 +236,7 @@ const Pools: FC = () => {
           </Box>
           <Box alignItems="center" className={styles.priceBox}>
             <Typography variant="subtitle1" color="textSecondary">
-              {token1Price}
+              {commafy(token1Price)}
             </Typography>
             <Typography
               variant="subtitle2"
@@ -253,7 +254,7 @@ const Pools: FC = () => {
                 color="textSecondary"
                 component="div"
               >
-                {poolSharePercentage}%
+                {commafy(poolSharePercentage)}%
               </Typography>
               <Typography
                 variant="subtitle2"
@@ -311,7 +312,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {userPoolTokenPercentage}%
+                  {commafy(userPoolTokenPercentage)}%
                 </Typography>
               </Box>
             )}
@@ -329,7 +330,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {token0Deposited}
+                  {commafy(token0Deposited)}
                 </Typography>
               </Box>
             )}
@@ -347,7 +348,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {token1Deposited}
+                  {commafy(token1Deposited)}
                 </Typography>
               </Box>
             )}

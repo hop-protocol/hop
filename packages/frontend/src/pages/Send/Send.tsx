@@ -33,6 +33,7 @@ import { addresses } from 'src/config'
 import { UINT256 } from 'src/config/constants'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import logger from 'src/logger'
+import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   sendSelect: {
@@ -270,8 +271,7 @@ const Send: FC = () => {
       throw new Error('No toNetwork selected')
     }
 
-    const tokenContractRead = selectedToken
-        .contractForNetwork(fromNetwork)
+    const tokenContractRead = selectedToken.contractForNetwork(fromNetwork)
     const tokenContract = await getWriteContract(tokenContractRead)
     if (!tokenContract) return // User needs to switch networks
     const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
@@ -348,7 +348,7 @@ const Send: FC = () => {
 
       const networkId = Number(fromNetwork.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if(!isNetworkConnected) return
+      if (!isNetworkConnected) return
 
       setSending(true)
       await approve(fromTokenAmount)
@@ -399,12 +399,6 @@ const Send: FC = () => {
         )
       }
     })
-
-    if (toNetwork?.slug === 'optimism') {
-      setInfo(
-        'You must wait 10 blocks before your funds are available on Optimism.'
-      )
-    }
 
     if (tx?.hash && fromNetwork) {
       txHistory?.addTransaction(
@@ -637,7 +631,7 @@ const Send: FC = () => {
           ) : exchangeRate === 0 ? (
             '-'
           ) : (
-            exchangeRate.toFixed(2)
+            commafy(exchangeRate)
           )}
         </Typography>
       </Box>

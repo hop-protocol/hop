@@ -12,6 +12,7 @@ import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import { useApp } from 'src/contexts/AppContext'
 import useInterval from 'src/hooks/useInterval'
+import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -92,7 +93,7 @@ const AmountSelectorCard: FC<Props> = props => {
     const _getBalance = async () => {
       if (user && token && selectedNetwork) {
         const _balance = await user.getBalance(token, selectedNetwork)
-        setBalance(Number(formatUnits(_balance, 18)).toFixed(2))
+        setBalance(formatUnits(_balance, 18))
       }
     }
 
@@ -120,7 +121,7 @@ const AmountSelectorCard: FC<Props> = props => {
         </Typography>
         {balance ? (
           <Typography variant="subtitle2" color="textSecondary">
-            Balance: {balance}
+            Balance: {commafy(balance)}
           </Typography>
         ) : null}
       </Box>

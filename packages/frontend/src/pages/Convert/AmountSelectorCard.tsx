@@ -21,6 +21,7 @@ import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import { useApp } from 'src/contexts/AppContext'
 import useInterval from 'src/hooks/useInterval'
+import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -92,7 +93,7 @@ const AmountSelectorCard: FC<Props> = props => {
       if (user && token && selectedNetwork) {
         const _balance = await user.getBalance(token, selectedNetwork)
         if (ctx === debouncer.current) {
-          setBalance(Number(ethersUtils.formatUnits(_balance, 18)).toFixed(2))
+          setBalance(ethersUtils.formatUnits(_balance, 18))
         }
       }
     }
@@ -139,7 +140,7 @@ const AmountSelectorCard: FC<Props> = props => {
           ) : balance === null ? (
             <CircularProgress size={12} />
           ) : (
-            balance
+            commafy(balance)
           )}
         </Typography>
       </Box>

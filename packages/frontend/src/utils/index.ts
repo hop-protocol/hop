@@ -1,6 +1,6 @@
 import { getAddress } from '@ethersproject/address'
-
 import { ETHERSCAN_PREFIXES, NetworkId } from 'src/config/constants'
+import numeral from 'numeral'
 
 import MetamaskNetworkMainnet from 'src/assets/onboard/metamask-network-mainnet.png'
 import MetamaskNetworkKovan from 'src/assets/onboard/metamask-network-kovan.png'
@@ -63,4 +63,21 @@ export const getNetworkSpecificMetamaskImage = (
   } else {
     throw new Error('Invalid network name')
   }
+}
+
+export const commafy = (
+  value: string | number | undefined,
+  decimals: number = 2
+) => {
+  if (value === undefined) {
+    return ''
+  }
+  if (typeof decimals === 'string') {
+    decimals = Number(decimals)
+  }
+  if (decimals === null) {
+    decimals = 2
+  }
+
+  return numeral(value).format(`0,0.[${'0'.repeat(decimals)}]`)
 }

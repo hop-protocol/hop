@@ -9,7 +9,6 @@ import React, {
 } from 'react'
 import { Contract } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import erc20Artifact from '@hop-exchange/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -17,7 +16,6 @@ import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import Address from 'src/models/Address'
 import Price from 'src/models/Price'
-import { addresses } from 'src/config'
 import { UINT256 } from 'src/config/constants'
 import Transaction from 'src/models/Transaction'
 import useInterval from 'src/hooks/useInterval'
@@ -113,12 +111,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [token0Balance, setToken0Balance] = useState<number>(0)
   const [token1Balance, setToken1Balance] = useState<number>(0)
   let { networks, tokens, contracts, txConfirm, txHistory } = useApp()
-  const {
-    address,
-    provider,
-    checkConnectedNetworkId,
-    getWriteContract
-  } = useWeb3Context()
+  const { address, provider, getWriteContract } = useWeb3Context()
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [error, setError] = useState<string | null | undefined>(null)
 
@@ -212,6 +205,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         selectedToken?.addressForNetwork(selectedNetwork)?.toString(),
         hopToken?.addressForNetwork(selectedNetwork)?.toString()
       )
+      //logger.debug('pair address:', pairAddress)
       const pair = new Contract(
         pairAddress,
         uniswapV2PairArtifact.abi,

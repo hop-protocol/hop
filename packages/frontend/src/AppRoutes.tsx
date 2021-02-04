@@ -8,6 +8,7 @@ import Pools from 'src/pages/Pools'
 import Faucet from 'src/pages/Faucet'
 import Earn from 'src/pages/Earn'
 import Convert from 'src/pages/Convert'
+import Stats from 'src/pages/Stats'
 import Demo from 'src/pages/Demo'
 
 import { IProposal } from 'src/config'
@@ -95,6 +96,9 @@ const COMPONENT_NAME: FC<Props> = () => {
       </Route>
       <Route path="/earn">
         <Earn />
+      </Route>
+      <Route path="/stats">
+        <Stats />
       </Route>
 
       {/* Vote Pages */}

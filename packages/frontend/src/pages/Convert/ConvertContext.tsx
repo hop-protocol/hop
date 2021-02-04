@@ -70,10 +70,7 @@ const ConvertContext = createContext<ConvertContextProps>({
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
-  const {
-    provider,
-    getWriteContract
-  } = useWeb3Context()
+  const { provider, getWriteContract } = useWeb3Context()
   const app = useApp()
   let { networks: nets, tokens, contracts, txConfirm } = app
   const arbitrumDai = contracts?.networks.arbitrum.l2CanonicalToken
@@ -395,7 +392,9 @@ const ConvertContextProvider: FC = ({ children }) => {
                   l2OptimismTokenArtifact.abi,
                   l2Provider
                 )
-                const optimismL2TokenWrite = await getWriteContract(optimismL2Token)
+                const optimismL2TokenWrite = await getWriteContract(
+                  optimismL2Token
+                )
                 return optimismL2TokenWrite?.withdraw(value)
               }
             }

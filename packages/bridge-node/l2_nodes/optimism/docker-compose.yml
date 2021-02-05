@@ -3,8 +3,9 @@ version: '3'
 services:
   geth_l2:
     image: ethereumoptimism/go-ethereum:latest
+    restart: unless-stopped
     volumes:
-      - geth:/l2-node/l2:rw
+      - geth:/root/.ethereum:rw
     env_file:
       - docker-compose.env
     ports:
@@ -12,6 +13,7 @@ services:
       - 8546:8546
 
   batch_submitter:
+    restart: unless-stopped
     image: ethereumoptimism/batch-submitter:latest
     env_file:
       - docker-compose.env

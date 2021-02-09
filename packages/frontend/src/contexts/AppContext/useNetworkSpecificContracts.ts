@@ -1,11 +1,13 @@
 import { useMemo } from 'react'
 import { Contract } from 'ethers'
 import l2BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L2_Bridge.sol/L2_Bridge.json'
+import l2OptimismBridgeArtifact from 'src/abi/L2OptimismBridge.json'
 import l1ArbitrumMessengerArtifact from 'src/abi/GlobalInbox.json'
 //import l1OptimismTokenBridgeArtifact from 'src/abi/L1OptimismTokenBridge.json'
 import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
 import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
 import arbErc20Artifact from 'src/abi/ArbERC20.json'
+import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
@@ -18,6 +20,7 @@ export type NetworkSpecificContracts = {
   l2Bridge: Contract | undefined
   uniswapRouter: Contract | undefined
   uniswapFactory: Contract | undefined
+  uniswapExchange: Contract | undefined
 }
 
 const useNetworkSpecificContracts = (
@@ -33,7 +36,8 @@ const useNetworkSpecificContracts = (
       l2CanonicalToken: undefined,
       l2Bridge: undefined,
       uniswapRouter: undefined,
-      uniswapFactory: undefined
+      uniswapFactory: undefined,
+      uniswapExchange: undefined
     }
   }
 
@@ -46,6 +50,8 @@ const useNetworkSpecificContracts = (
     addresses.networks[l2Network?.slug].uniswapRouter
   let uniswapFactoryAddress: string =
     addresses.networks[l2Network?.slug].uniswapFactory
+  let uniswapExchangeAddress: string =
+    addresses.networks[l2Network?.slug].uniswapExchange
 
   const l2Provider = useMemo(() => {
     if (connectedNetworkId === l2Network?.networkId) {
@@ -79,6 +85,15 @@ const useNetworkSpecificContracts = (
   }, [l2Provider])
 
   const l2Bridge = useMemo(() => {
+    if (l2BridgeAddress === addresses.networks.optimism.l2Bridge) {
+      // Optimism L2 Bridge's ABI differs from Arbitrum's L2 Bridge ABI (contains indexed logs)
+      return new Contract(
+        l2BridgeAddress,
+        l2OptimismBridgeArtifact.abi,
+        l2Provider
+      )
+    }
+
     return new Contract(l2BridgeAddress, l2BridgeArtifact.abi, l2Provider)
   }, [l2Provider])
 
@@ -98,12 +113,21 @@ const useNetworkSpecificContracts = (
     )
   }, [l2Provider])
 
+  const uniswapExchange = useMemo(() => {
+    return new Contract(
+      uniswapExchangeAddress,
+      uniswapV2PairArtifact.abi,
+      l2Provider
+    )
+  }, [l2Provider])
+
   return {
     l1CanonicalBridge,
     l2CanonicalToken,
     l2Bridge,
     uniswapRouter,
-    uniswapFactory
+    uniswapFactory,
+    uniswapExchange
   }
 }
 

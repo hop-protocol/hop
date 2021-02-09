@@ -22,6 +22,7 @@ export type Contracts = {
   networks: {
     [key: string]: NetworkSpecificContracts
   }
+  l1Provider: providers.Provider | providers.JsonRpcSigner | undefined
   arbitrumProvider: providers.Provider | providers.JsonRpcSigner | undefined
   optimismProvider: providers.Provider | providers.JsonRpcSigner | undefined
   getContract: (
@@ -111,6 +112,7 @@ const useContracts = (networks: Network[]): Contracts => {
       arbitrum: arbitrumContracts,
       optimism: optimismContracts
     },
+    l1Provider,
     arbitrumProvider,
     optimismProvider,
     getContract,

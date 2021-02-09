@@ -4,6 +4,7 @@ import { l1RpcUrl, arbitrumRpcUrl, optimismRpcUrl } from 'src/config'
 
 interface Config {
   networkName: string
+  destNetworkName?: string | null
   hash: string
   pending?: boolean
   timestamp?: number
@@ -20,12 +21,19 @@ const standardNetworks = new Set([
 class Transaction extends EventEmitter {
   readonly hash: string
   readonly networkName: string
+  readonly destNetworkName: string | null = null
   readonly provider: ethers.providers.Provider
   pending: boolean
   timestamp: number
   status: null | boolean = null
 
-  constructor ({ hash, networkName, pending = true, timestamp }: Config) {
+  constructor ({
+    hash,
+    networkName,
+    destNetworkName,
+    pending = true,
+    timestamp
+  }: Config) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
     this.networkName = (networkName || 'mainnet').trim().toLowerCase()
@@ -36,6 +44,9 @@ class Transaction extends EventEmitter {
       rpcUrl = optimismRpcUrl
     } else {
       rpcUrl = l1RpcUrl
+    }
+    if (destNetworkName) {
+      this.destNetworkName = destNetworkName
     }
 
     this.provider = new ethers.providers.StaticJsonRpcProvider(rpcUrl)
@@ -66,6 +77,10 @@ class Transaction extends EventEmitter {
 
   async receipt () {
     return this.provider.waitForTransaction(this.hash)
+  }
+
+  async getTransaction () {
+    return this.provider.getTransaction(this.hash)
   }
 
   private _etherscanLink () {

@@ -18,6 +18,8 @@ import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
 import SendButton from 'src/pages/Send/SendButton'
 import Transaction from 'src/models/Transaction'
 import Alert from 'src/components/alert/Alert'
+import TxStatus from 'src/components/txStatus'
+import Modal from 'src/components/modal'
 import { Contract, BigNumber } from 'ethers'
 import {
   parseEther,
@@ -99,6 +101,7 @@ const Send: FC = () => {
   const [toBalance, setToBalance] = useState<number>(0)
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
+  const [tx, setTx] = useState<any>(null)
   const debouncer = useRef<number>(0)
 
   const calcAmount = async (
@@ -345,6 +348,7 @@ const Send: FC = () => {
       if (!fromNetwork || !toNetwork) {
         throw new Error('A network is undefined')
       }
+      setTx(null)
 
       const networkId = Number(fromNetwork.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
@@ -352,12 +356,17 @@ const Send: FC = () => {
 
       setSending(true)
       await approve(fromTokenAmount)
+      let tx: any = null
       if (fromNetwork.isLayer1) {
-        await sendl1ToL2()
+        tx = await sendl1ToL2()
       } else if (!fromNetwork.isLayer1 && toNetwork.isLayer1) {
-        await sendl2ToL1()
+        tx = await sendl2ToL1()
       } else {
-        await sendl2ToL2()
+        tx = await sendl2ToL2()
+      }
+
+      if (tx) {
+        setTx(tx)
       }
     } catch (err) {
       if (!/cancelled/gi.test(err.message)) {
@@ -404,10 +413,13 @@ const Send: FC = () => {
       txHistory?.addTransaction(
         new Transaction({
           hash: tx?.hash,
-          networkName: fromNetwork?.slug
+          networkName: fromNetwork?.slug,
+          destNetworkName: toNetwork?.slug
         })
       )
     }
+
+    return tx
   }
 
   const sendl2ToL1 = async () => {
@@ -455,10 +467,13 @@ const Send: FC = () => {
       txHistory?.addTransaction(
         new Transaction({
           hash: tx?.hash,
-          networkName: fromNetwork?.slug
+          networkName: fromNetwork?.slug,
+          destNetworkName: toNetwork?.slug
         })
       )
     }
+
+    return tx
   }
 
   const sendl2ToL2 = async () => {
@@ -506,10 +521,13 @@ const Send: FC = () => {
       txHistory?.addTransaction(
         new Transaction({
           hash: tx?.hash,
-          networkName: fromNetwork?.slug
+          networkName: fromNetwork?.slug,
+          destNetworkName: toNetwork?.slug
         })
       )
     }
+
+    return tx
   }
 
   const enoughBalance = fromBalance >= Number(fromTokenAmount)
@@ -532,6 +550,10 @@ const Send: FC = () => {
     buttonText = 'Insufficient funds'
   } else if (fetchingRate) {
     buttonText = 'Fetching rate...'
+  }
+
+  const handleTxStatusClose = () => {
+    setTx(null)
   }
 
   return (
@@ -641,6 +663,13 @@ const Send: FC = () => {
       </SendButton>
       <br />
       <Alert severity="info" onClose={() => setInfo(null)} text={info} />
+      {/*
+      {tx ? (
+        <Modal onClose={handleTxStatusClose}>
+          <TxStatus />
+        </Modal>
+      ) : null}
+      */}
     </Box>
   )
 }

@@ -11,6 +11,11 @@ export interface TxHistory {
 
 const useTxHistory = (): TxHistory => {
   //logger.debug('useTxHistory render')
+
+  const sort = (list: Transaction[]) => {
+    return list.sort((a: any, b: any) => b.timestamp - a.timestamp)
+  }
+
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
       const cached = sessionStorage.getItem('recentTransactions')
@@ -27,7 +32,7 @@ const useTxHistory = (): TxHistory => {
       const filtered = transactions.filter(
         (t: Transaction) => t.hash !== tx.hash
       )
-      setTransactions([...filtered, tx])
+      setTransactions(sort([...filtered, tx]).slice(0, 3))
     },
     [transactions]
   )
@@ -49,7 +54,7 @@ const useTxHistory = (): TxHistory => {
   }, [transactions, handleChange])
 
   const addTransaction = (tx: Transaction) => {
-    setTransactions([...transactions, tx])
+    setTransactions(sort([...transactions, tx]).slice(0, 3))
   }
 
   const clear = () => {

@@ -74,29 +74,27 @@ const TransactionsList = (props: any) => {
           (clear all)
         </Button>
       </div>
-      {transactions
-        .sort((a: any, b: any) => b.timestamp - a.timestamp)
-        ?.map((tx: Transaction) => {
-          return (
-            <div key={tx.hash} className={styles.row}>
-              <Link
-                href={tx.explorerLink}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <span className={styles.network}>{tx.networkName}:</span>{' '}
-                {tx.truncatedHash} ↗
-              </Link>
-              <div className={styles.statusIcon}>
-                {tx.pending ? (
-                  <CircularProgress size={12} />
-                ) : (
-                  <Check color="primary" />
-                )}
-              </div>
+      {transactions?.map((tx: Transaction) => {
+        return (
+          <div key={tx.hash} className={styles.row}>
+            <Link
+              href={tx.explorerLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className={styles.network}>{tx.networkName}:</span>{' '}
+              {tx.truncatedHash} ↗
+            </Link>
+            <div className={styles.statusIcon}>
+              {tx.pending ? (
+                <CircularProgress size={12} />
+              ) : (
+                <Check color="primary" />
+              )}
             </div>
-          )
-        })}
+          </div>
+        )
+      })}
     </>
   )
 }

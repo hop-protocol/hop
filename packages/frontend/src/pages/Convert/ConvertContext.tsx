@@ -125,7 +125,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     null
   )
   const [destTokenBalance, setDestTokenBalance] = useState<number | null>(null)
-  const [error, setError] = useState<string | null | undefined>()
+  const [error, setError] = useState<string | null | undefined>(null)
   const canonicalSlug = (network: Network) => {
     if (network?.isLayer1) {
       return ''
@@ -142,7 +142,6 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
     if (isHopBridge(network?.slug)) {
       obj[canonicalSlug(network)] = network?.slug
-    } else {
       obj[network?.slug] = canonicalSlug(network)
     }
     return obj
@@ -186,6 +185,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   const convertTokens = async () => {
     try {
+      setError(null)
       if (!Number(sourceTokenAmount)) {
         return
       }
@@ -231,7 +231,7 @@ const ConvertContextProvider: FC = ({ children }) => {
           app?.txHistory?.addTransaction(
             new Transaction({
               hash: tx?.hash,
-              networkName: sourceNetwork?.slug
+              networkName: canonicalSlug(sourceNetwork)
             })
           )
         }
@@ -413,8 +413,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
         // source network is L2 hop bridge ( L2 Hop -> L1 or L2 )
       } else if (isHopBridge(sourceNetwork?.slug) && destNetwork) {
-        const destNetworkSlug = destNetwork?.slug
-        const router = contracts?.networks[destNetworkSlug].uniswapRouter
+        const router = contracts?.networks[sourceSlug].uniswapRouter
         const bridge = contracts?.networks[sourceSlug].l2Bridge
 
         // destination network is L1 ( L2 Hop -> L1 )
@@ -456,8 +455,8 @@ const ConvertContextProvider: FC = ({ children }) => {
 
           const amountOutMin = '0'
           const path = [
-            addresses.networks[destNetworkSlug].l2Bridge,
-            addresses.networks[destNetworkSlug].l2CanonicalToken
+            addresses.networks[sourceSlug].l2Bridge,
+            addresses.networks[sourceSlug].l2CanonicalToken
           ]
           const deadline = (Date.now() / 1000 + 300) | 0
 
@@ -491,7 +490,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         app?.txHistory?.addTransaction(
           new Transaction({
             hash: tx?.hash,
-            networkName: sourceNetwork?.slug
+            networkName: canonicalSlug(sourceNetwork)
           })
         )
       }

@@ -4,7 +4,7 @@ import { Theme, makeStyles } from '@material-ui/core/styles'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 import Box from '@material-ui/core/Box'
-import LaunchIcon from '@material-ui/icons/Launch';
+import LaunchIcon from '@material-ui/icons/Launch'
 
 type Props = {}
 
@@ -12,7 +12,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   whitepaperTabContainer: {
     display: 'flex',
     [theme.breakpoints.down('xs')]: {
-      display: 'none',
+      display: 'none'
     },
     flexDirection: 'row',
     padding: '6px 12px',

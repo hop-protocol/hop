@@ -229,12 +229,11 @@ const Send: FC = () => {
     setToNetwork(fromNetwork)
     setIsFromLastChanged(!isFromLastChanged)
 
-    if (toNetwork?.name === 'Arbitrum') {
-      setL2Bridge(contracts?.networks.arbitrum.l2Bridge)
-      setUniswapRouter(contracts?.networks.arbitrum.uniswapRouter)
-    } else if (toNetwork?.name === 'Optimism') {
-      setL2Bridge(contracts?.networks.optimism.l2Bridge)
-      setUniswapRouter(contracts?.networks.optimism.uniswapRouter)
+    if (toNetwork && !toNetwork?.isLayer1) {
+      setL2Bridge(contracts?.networks[toNetwork?.slug as string].l2Bridge)
+      setUniswapRouter(
+        contracts?.networks[toNetwork?.slug as string].uniswapRouter
+      )
     }
   }
 
@@ -591,12 +590,11 @@ const Send: FC = () => {
         onNetworkChange={network => {
           setFromNetwork(network)
 
-          if (network?.name === 'Arbitrum') {
-            setL2Bridge(contracts?.networks.arbitrum.l2Bridge)
-            setUniswapRouter(contracts?.networks.arbitrum.uniswapRouter)
-          } else if (network?.name === 'Optimism') {
-            setL2Bridge(contracts?.networks.optimism.l2Bridge)
-            setUniswapRouter(contracts?.networks.optimism.uniswapRouter)
+          if (network && !network?.isLayer1) {
+            setL2Bridge(contracts?.networks[network?.slug as string].l2Bridge)
+            setUniswapRouter(
+              contracts?.networks[network?.slug as string].uniswapRouter
+            )
           }
         }}
         onBalanceChange={balance => {

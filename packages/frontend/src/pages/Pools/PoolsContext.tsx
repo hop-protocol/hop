@@ -121,15 +121,18 @@ const PoolsContextProvider: FC = ({ children }) => {
       return
     }
 
+    const l2Networks = networks.filter(network => !network.isLayer1)
+    const hopBridgeContracts = l2Networks.reduce((obj, network) => {
+      obj[network.slug] = token?.contracts[`${network.slug}HopBridge`]
+      return obj
+    }, {} as any)
+
     return new Token({
       symbol: `h${token?.symbol}`,
       tokenName: token?.tokenName,
-      contracts: {
-        arbitrum: token?.contracts?.arbitrumHopBridge,
-        optimism: token?.contracts?.optimismHopBridge
-      }
+      contracts: hopBridgeContracts
     })
-  }, [tokens, selectedToken])
+  }, [tokens, selectedToken, networks])
 
   networks = networks.filter((network: Network) => !network.isLayer1)
   tokens = tokens.filter((token: Token) => ['DAI'].includes(token.symbol))

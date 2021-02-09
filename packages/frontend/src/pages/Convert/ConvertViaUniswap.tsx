@@ -44,16 +44,10 @@ const Convert: FC = () => {
     calcAltTokenAmount,
     setSourceTokenBalance,
     setDestTokenBalance,
+    networkPairMap,
     error,
     setError
   } = useConvert()
-
-  const networkPairMap: any = {
-    arbitrum: 'arbitrumHopBridge',
-    optimism: 'optimismHopBridge',
-    arbitrumHopBridge: 'arbitrum',
-    optimismHopBridge: 'optimism'
-  }
   const defaultNetwork = Object.keys(networkPairMap)[0]
 
   useEffect(() => {

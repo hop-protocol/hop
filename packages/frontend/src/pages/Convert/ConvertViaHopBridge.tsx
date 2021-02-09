@@ -44,6 +44,7 @@ const Convert: FC = () => {
     calcAltTokenAmount,
     setSourceTokenBalance,
     setDestTokenBalance,
+    convertHopBridgeNetworks,
     error,
     setError
   } = useConvert()
@@ -53,16 +54,15 @@ const Convert: FC = () => {
     setDestTokenAmount('')
   }, [setSourceTokenAmount, setDestTokenAmount])
 
-  const filteredNetworks = ['kovan', 'arbitrumHopBridge', 'optimismHopBridge']
   useEffect(() => {
     setSourceNetwork(
       sourceNetworks.find(
-        (network: Network) => network?.slug === filteredNetworks[0]
+        (network: Network) => network?.slug === convertHopBridgeNetworks[0]
       ) as Network
     )
     setDestNetwork(
       sourceNetworks.find(
-        (network: Network) => network?.slug === filteredNetworks[1]
+        (network: Network) => network?.slug === convertHopBridgeNetworks[1]
       ) as Network
     )
   }, [setSourceNetwork, setDestNetwork, sourceNetworks])
@@ -88,10 +88,10 @@ const Convert: FC = () => {
   }
 
   const destNetworks = sourceNetworks.filter((network: Network) => {
-    return filteredNetworks.includes(network.slug)
+    return convertHopBridgeNetworks.includes(network.slug)
   })
   sourceNetworks = sourceNetworks.filter((network: Network) => {
-    return filteredNetworks.includes(network.slug)
+    return convertHopBridgeNetworks.includes(network.slug)
   })
 
   const handleSourceNetworkChange = (network: Network | undefined) => {

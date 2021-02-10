@@ -13,7 +13,9 @@ import logger from 'src/logger'
 import { contractNetworkSlugToChainId } from 'src/utils'
 
 type ConvertContextProps = {
+  tokens: Token[]
   selectedToken: Token | undefined
+  setSelectedToken: (token: Token) => void
   selectedNetwork: Network | undefined
   setSelectedNetwork: (network: Network | undefined) => void
   sourceNetwork: Network | undefined
@@ -42,7 +44,9 @@ type ConvertContextProps = {
 }
 
 const ConvertContext = createContext<ConvertContextProps>({
+  tokens: [],
   selectedToken: undefined,
+  setSelectedToken: (token: Token) => {},
   selectedNetwork: undefined,
   setSelectedNetwork: (network: Network | undefined) => {},
   sourceNetwork: undefined,
@@ -109,8 +113,8 @@ const ConvertContextProvider: FC = ({ children }) => {
     })
     .map((network: Network) => network.slug)
   const [sourceNetworks] = useState<Network[]>(networks)
-  tokens = tokens.filter((token: Token) => ['DAI'].includes(token.symbol))
-  const [selectedToken] = useState<Token>(tokens[0])
+  tokens = tokens.filter((token: Token) => token.symbol !== 'HOP')
+  const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(
     undefined
   )
@@ -520,7 +524,9 @@ const ConvertContextProvider: FC = ({ children }) => {
   return (
     <ConvertContext.Provider
       value={{
+        tokens,
         selectedToken,
+        setSelectedToken,
         selectedNetwork,
         setSelectedNetwork,
         sourceNetwork,

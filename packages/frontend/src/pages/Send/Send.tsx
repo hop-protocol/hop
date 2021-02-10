@@ -75,7 +75,7 @@ const Send: FC = () => {
     txConfirm,
     txHistory
   } = useApp()
-  const tokens = allTokens.filter((token: Token) => token.symbol === 'DAI')
+  const tokens = allTokens.filter((token: Token) => token.symbol !== 'HOP')
   const l1Bridge = contracts?.l1Bridge
 
   const {

@@ -135,7 +135,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   }, [tokens, selectedToken, networks])
 
   networks = networks.filter((network: Network) => !network.isLayer1)
-  tokens = tokens.filter((token: Token) => ['DAI'].includes(token.symbol))
+  tokens = tokens.filter((token: Token) => token.symbol != 'HOP')
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
   const [txHash, setTxHash] = useState<string | undefined>()
   const [sending, setSending] = useState<boolean>(false)

@@ -11,19 +11,33 @@ import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
-import ConvertContext from 'src/pages/Convert/ConvertContext'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import MenuItem from '@material-ui/core/MenuItem'
 import ConvertViaHopBridge from 'src/pages/Convert/ConvertViaHopBridge'
 import ConvertViaCanonicalBridge from 'src/pages/Convert/ConvertViaCanonicalBridge'
 import ConvertViaUniswap from 'src/pages/Convert/ConvertViaUniswap'
+import Token from 'src/models/Token'
+import { useConvert } from 'src/pages/Convert/ConvertContext'
 
 const useStyles = makeStyles(theme => ({
   title: {
     marginBottom: '4.2rem'
   },
-  tabs: {
-    marginBottom: '4.4rem'
+  selects: {
+    marginBottom: '4.4rem',
+    display: 'flex',
+    [theme.breakpoints.down('xs')]: {
+      flexDirection: 'column',
+      textAlign: 'center'
+    }
+  },
+  select: {
+    display: 'block',
+    marginLeft: '1rem',
+    [theme.breakpoints.down('xs')]: {
+      marginLeft: '0',
+      marginBottom: '1rem'
+    }
   },
   box: {
     marginBottom: '4.2rem'
@@ -32,9 +46,18 @@ const useStyles = makeStyles(theme => ({
 
 const Convert: FC = () => {
   const styles = useStyles()
+  const { tokens, selectedToken, setSelectedToken } = useConvert()
   const { pathname } = useLocation()
   const { path } = useRouteMatch()
   const history = useHistory()
+
+  const handleTokenChange = (event: ChangeEvent<{ value: unknown }>) => {
+    const tokenSymbol = event.target.value as string
+    const token = tokens.find((token: Token) => token.symbol === tokenSymbol)
+    if (token) {
+      setSelectedToken(token)
+    }
+  }
 
   const lastPathname = pathname.replace(path, '') || '/bridge'
   const handleTabChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -55,35 +78,43 @@ const Convert: FC = () => {
           Convert
         </Typography>
       </Box>
-      <Grid className={styles.tabs}>
-        <RaisedSelect value={lastPathname} onChange={handleTabChange}>
-          {tabs.map(tab => (
-            <MenuItem value={tab.value} key={tab.value}>
-              {tab.label}
-            </MenuItem>
-          ))}
-        </RaisedSelect>
+      <Grid className={styles.selects}>
+        <div className={styles.select}>
+          <RaisedSelect
+            value={selectedToken?.symbol}
+            onChange={handleTokenChange}
+          >
+            {tokens.map(token => (
+              <MenuItem value={token.symbol} key={token.symbol}>
+                {token.symbol}
+              </MenuItem>
+            ))}
+          </RaisedSelect>
+        </div>
+        <div className={styles.select}>
+          <RaisedSelect value={lastPathname} onChange={handleTabChange}>
+            {tabs.map(tab => (
+              <MenuItem value={tab.value} key={tab.value}>
+                {tab.label}
+              </MenuItem>
+            ))}
+          </RaisedSelect>
+        </div>
       </Grid>
       <Switch>
         <Route path={`${path}/hop`}>
           <div className={styles.box}>
-            <ConvertContext>
-              <ConvertViaHopBridge />
-            </ConvertContext>
+            <ConvertViaHopBridge />
           </div>
         </Route>
         <Route path={`${path}/bridge`}>
           <div className={styles.box}>
-            <ConvertContext>
-              <ConvertViaCanonicalBridge />
-            </ConvertContext>
+            <ConvertViaCanonicalBridge />
           </div>
         </Route>
         <Route path={`${path}/uniswap`}>
           <div className={styles.box}>
-            <ConvertContext>
-              <ConvertViaUniswap />
-            </ConvertContext>
+            <ConvertViaUniswap />
           </div>
         </Route>
         <Redirect to={`${path}/hop`} />

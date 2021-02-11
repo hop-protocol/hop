@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { Contract, BigNumber } from 'ethers'
 import useCurrentBlockTimestamp from 'src/hooks/useCurrentBlockTimestamp'
+import Token from 'src/models/Token'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
@@ -38,9 +39,10 @@ export interface StakingInfo {
 // gets the staking info from the network for the active chain id
 export const useStakingInfo = (): StakingInfo => {
   const { address } = useWeb3Context()
-  const { contracts } = useApp()
-  const stakingRewards = contracts?.governance.stakingRewards
-  const l1Dai = contracts?.l1Token
+  const app = useApp()
+  const token = app?.tokens.find(token => token.symbol) as Token
+  const stakingRewards = app?.contracts?.governance.stakingRewards
+  const l1Dai = app?.contracts?.tokens[token.symbol].kovan.l1CanonicalToken
   const fromToken = l1Dai
   const toToken = l1Dai
 

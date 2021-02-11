@@ -7,6 +7,7 @@ import Button from 'src/components/buttons/Button'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import { addresses } from 'src/config'
+import Token from 'src/models/Token'
 import logger from 'src/logger'
 
 const useStyles = makeStyles(() => ({
@@ -22,21 +23,25 @@ const Demo: FC<Props> = () => {
   const styles = useStyles()
   const { provider } = useWeb3Context()
   const app = useApp()
-  const l1Dai = app?.contracts?.l1Token
-  const l1Bridge = app?.contracts?.l1Bridge
-  const arbitrumBridge = app?.contracts?.networks.arbitrum.l2Bridge
-  const arbitrumUniswapRouter = app?.contracts?.networks.arbitrum.uniswapRouter
+  const token = app?.tokens.find(token => token.symbol === 'DAI') as Token
+  const l1Dai = app?.contracts?.tokens[token.symbol].kovan.l1CanonicalToken
+  const l1Bridge = app?.contracts?.tokens[token.symbol].kovan.l1Bridge
+  const arbitrumBridge = app?.contracts?.tokens[token.symbol].arbitrum.l2Bridge
+  const arbitrumUniswapRouter =
+    app?.contracts?.tokens[token.symbol].arbitrum.uniswapRouter
 
   const handleApprove = async () => {
     const signer = provider?.getSigner()
     const tx = await signer?.sendTransaction({
-      to: addresses.l1Token,
+      to: addresses.tokens[token.symbol].kovan.l1CanonicalToken,
       value: toHex('0', { addPrefix: true }),
       gasLimit: toHex('1000000', { addPrefix: true }),
       gasPrice: toHex('10000000000', { addPrefix: true }),
       data:
         '0x095ea7b3000000000000000000000000' +
-        addresses.l1Bridge.toLowerCase().replace('0x', '') +
+        addresses.tokens[token.symbol].kovan.l1Bridge
+          .toLowerCase()
+          .replace('0x', '') +
         'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
     })
 
@@ -86,8 +91,8 @@ const Demo: FC<Props> = () => {
     const amountIn = parseUnits('20', 18)
     const amountOutMin = '0'
     const path = [
-      addresses.networks.arbitrum.l2Bridge,
-      addresses.networks.arbitrum.l2CanonicalToken
+      addresses.tokens[token.symbol].arbitrum.l2Bridge,
+      addresses.tokens[token.symbol].arbitrum.l2CanonicalToken
     ]
     const to = recipient
     const deadline = (Date.now() / 1000 + 300) | 0

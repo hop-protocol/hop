@@ -59,7 +59,7 @@ const Pools: FC = () => {
                 {fetching
                   ? Array(2)
                       .fill(null)
-                      .map(i => {
+                      .map((x, i) => {
                         return (
                           <TableRow key={i}>
                             <TableCell colSpan={6}>

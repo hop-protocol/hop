@@ -7,6 +7,7 @@ import React, {
 } from 'react'
 import { Contract } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
+import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import Address from 'src/models/Address'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
@@ -30,15 +31,17 @@ const StatsContextProvider: FC = ({ children }) => {
   const [fetching, setFetching] = useState<boolean>(false)
   const filteredNetworks = networks?.filter(token => !token.isLayer1)
 
-  async function fetchStats (selectedNetwork: any) {
+  async function fetchStats (selectedNetwork: Network, selectedToken: Token) {
     if (!selectedNetwork) {
       return
     }
     const selectedNetworkSlug = selectedNetwork?.slug
+    if (!contracts?.tokens[selectedToken.symbol][selectedNetworkSlug]) {
+      return
+    }
     const uniswapFactory =
-      contracts?.networks[selectedNetworkSlug]?.uniswapFactory
-
-    const selectedToken = tokens[0]
+      contracts?.tokens[selectedToken.symbol][selectedNetworkSlug]
+        ?.uniswapFactory
     const token = tokens.find(token => token.symbol === selectedToken?.symbol)
     if (!token) {
       return
@@ -52,12 +55,10 @@ const StatsContextProvider: FC = ({ children }) => {
         optimism: token?.contracts?.optimismHopBridge
       }
     })
-
     const pairAddress = await uniswapFactory?.getPair(
       selectedToken?.addressForNetwork(selectedNetwork)?.toString(),
       hopToken?.addressForNetwork(selectedNetwork)?.toString()
     )
-
     const contractProvider = selectedNetwork.provider
     const pair = new Contract(
       pairAddress,
@@ -94,9 +95,17 @@ const StatsContextProvider: FC = ({ children }) => {
         return
       }
       setFetching(true)
-      const result = await Promise.all(filteredNetworks.map(fetchStats))
+      const results: any = []
+      for (let network of filteredNetworks) {
+        for (let token of tokens.slice(0, 2)) {
+          const result = await fetchStats(network, token)
+          if (result) {
+            results.push(result)
+          }
+        }
+      }
       setFetching(false)
-      setStats(result)
+      setStats(results)
     }
 
     update().catch(logger.error)

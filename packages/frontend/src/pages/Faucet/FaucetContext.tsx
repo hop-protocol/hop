@@ -12,6 +12,7 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Transaction from 'src/models/Transaction'
+import Token from 'src/models/Token'
 import logger from 'src/logger'
 
 type FaucetContextProps = {
@@ -33,8 +34,9 @@ const FaucetContext = createContext<FaucetContextProps>({
 const FaucetContextProvider: FC = ({ children }) => {
   const [mintAmount, setMintAmount] = useState<string>('10')
   const [isMinting, setMinting] = useState<boolean>(false)
-  let { contracts, txHistory, networks } = useApp()
-  const l1Dai = contracts?.l1Token
+  let { contracts, txHistory, networks, tokens } = useApp()
+  const token = tokens.find(token => token.symbol === 'DAI') as Token
+  const l1Dai = contracts?.tokens[token.symbol].kovan.l1CanonicalToken
   const { address, getWriteContract } = useWeb3Context()
   const selectedNetwork = networks[0]
   const [error, setError] = useState<string | null | undefined>(null)

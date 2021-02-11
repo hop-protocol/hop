@@ -34,8 +34,12 @@ const StatusContextProvider: FC = ({ children }) => {
   const [activeStep, setActiveStep] = React.useState(0)
   const [fetching, setFetching] = useState<boolean>(false)
   const [tx, setTx] = useState<Transaction | null>(null)
-  const l1Provider = contracts?.l1Provider
-  const l1Bridge = contracts?.l1Bridge
+  const token = {
+    // TODO
+    symbol: 'DAI'
+  }
+  const l1Provider = contracts?.providers.kovan
+  const l1Bridge = contracts?.tokens[token.symbol].kovan.l1Bridge
 
   async function updateStatus () {
     if (!tx) return
@@ -73,8 +77,8 @@ const StatusContextProvider: FC = ({ children }) => {
       const destSlug = networkIdToSlug[networkId]
       destNetwork = networks.find(network => network.slug === destSlug)
       setSteps(['Initiated', sourceNetwork?.name, destNetwork?.name])
-      const bridge = contracts?.networks[destSlug].l2Bridge
-      const exchange = contracts?.networks[destSlug].uniswapExchange
+      const bridge = contracts?.tokens[token.symbol][destSlug].l2Bridge
+      const exchange = contracts?.tokens[token.symbol][destSlug].uniswapExchange
       const pollDest = async () => {
         const blockNumber = await bridge?.provider.getBlockNumber()
         if (!blockNumber) {
@@ -127,7 +131,7 @@ const StatusContextProvider: FC = ({ children }) => {
     // L2 -> L1
     if (!sourceNetwork.isLayer1 && destNetwork?.isLayer1) {
       const sourceSlug = sourceNetwork.slug
-      const bridge = contracts?.networks[sourceSlug].l2Bridge
+      const bridge = contracts?.tokens[token.symbol][sourceSlug].l2Bridge
       const decodedSource = bridge?.interface.decodeFunctionData(
         'swapAndSend',
         sourceTx.data
@@ -186,7 +190,7 @@ const StatusContextProvider: FC = ({ children }) => {
     // L2 -> L2
     if (!sourceNetwork.isLayer1 && !destNetwork?.isLayer1) {
       const sourceSlug = sourceNetwork.slug
-      const bridge = contracts?.networks[sourceSlug].l2Bridge
+      const bridge = contracts?.tokens[token.symbol][sourceSlug].l2Bridge
       const decodedSource = bridge?.interface.decodeFunctionData(
         'swapAndSend',
         sourceTx.data

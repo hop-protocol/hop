@@ -48,8 +48,8 @@ const AppContextProvider: FC = ({ children }) => {
   }, [provider])
 
   const networks = useNetworks()
-  const contracts = useContracts(networks)
   const tokens = useTokens(networks)
+  const contracts = useContracts(networks, tokens)
   const events = useEvents()
   const txHistory = useTxHistory()
   const accountDetails = useAccountDetails()

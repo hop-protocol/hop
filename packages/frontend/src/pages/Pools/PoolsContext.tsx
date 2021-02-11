@@ -135,14 +135,14 @@ const PoolsContextProvider: FC = ({ children }) => {
   }, [tokens, selectedToken, networks])
 
   networks = networks.filter((network: Network) => !network.isLayer1)
-  tokens = tokens.filter((token: Token) => token.symbol != 'HOP')
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
   const [txHash, setTxHash] = useState<string | undefined>()
   const [sending, setSending] = useState<boolean>(false)
   const selectedNetworkSlug = selectedNetwork?.slug
-  const uniswapRouter = contracts?.networks[selectedNetworkSlug]?.uniswapRouter
+  const uniswapRouter =
+    contracts?.tokens[selectedToken.symbol][selectedNetworkSlug]?.uniswapRouter
   const uniswapFactory =
-    contracts?.networks[selectedNetworkSlug]?.uniswapFactory
+    contracts?.tokens[selectedToken.symbol][selectedNetworkSlug]?.uniswapFactory
 
   useEffect(() => {
     if (Number(token0Price) && Number(token0Amount) && !Number(token1Amount)) {

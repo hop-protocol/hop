@@ -31,7 +31,6 @@ import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
-import { addresses } from 'src/config'
 import { UINT256 } from 'src/config/constants'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import logger from 'src/logger'
@@ -67,27 +66,15 @@ const useStyles = makeStyles(theme => ({
 const Send: FC = () => {
   const styles = useStyles()
 
-  const {
-    user,
-    tokens: allTokens,
-    networks,
-    contracts,
-    txConfirm,
-    txHistory
-  } = useApp()
-  const tokens = allTokens.filter((token: Token) => token.symbol !== 'HOP')
-  const l1Bridge = contracts?.l1Bridge
-
+  const { user, tokens, networks, contracts, txConfirm, txHistory } = useApp()
   const {
     provider,
     walletConnected,
     checkConnectedNetworkId,
     getWriteContract
   } = useWeb3Context()
-
   const [l2Bridge, setL2Bridge] = useState<Contract | undefined>()
   const [uniswapRouter, setUniswapRouter] = useState<Contract | undefined>()
-
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [fromNetwork, setFromNetwork] = useState<Network>()
   const [toNetwork, setToNetwork] = useState<Network>()
@@ -102,6 +89,7 @@ const Send: FC = () => {
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [tx, setTx] = useState<any>(null)
+  const l1Bridge = contracts?.tokens[selectedToken.symbol].kovan.l1Bridge
   const debouncer = useRef<number>(0)
 
   const calcAmount = async (
@@ -157,23 +145,28 @@ const Send: FC = () => {
         return BigNumber.from('0')
       }
       let l2CanonicalTokenAddress =
-        contracts?.networks[_toNetwork.slug].l2CanonicalToken?.address
+        contracts?.tokens[selectedToken.symbol][_toNetwork.slug]
+          .l2CanonicalToken?.address
       let l2BridgeAddress =
-        contracts?.networks[_toNetwork.slug].l2Bridge?.address
+        contracts?.tokens[selectedToken.symbol][_toNetwork.slug].l2Bridge
+          ?.address
       path = [l2BridgeAddress, l2CanonicalTokenAddress]
-      uniswapRouter = contracts?.networks[_toNetwork.slug].uniswapRouter
+      uniswapRouter =
+        contracts?.tokens[selectedToken.symbol][_toNetwork.slug].uniswapRouter
     } else {
       if (!_fromNetwork) {
         return BigNumber.from('0')
       }
       let l2CanonicalTokenAddress =
-        contracts?.networks[_fromNetwork.slug].l2CanonicalToken?.address
+        contracts?.tokens[selectedToken.symbol][_fromNetwork.slug]
+          .l2CanonicalToken?.address
       let l2BridgeAddress =
-        contracts?.networks[_fromNetwork.slug].l2Bridge?.address
+        contracts?.tokens[selectedToken.symbol][_fromNetwork.slug].l2Bridge
+          ?.address
       path = [l2CanonicalTokenAddress, l2BridgeAddress]
-      uniswapRouter = contracts?.networks[_fromNetwork.slug].uniswapRouter
+      uniswapRouter =
+        contracts?.tokens[selectedToken.symbol][_fromNetwork.slug].uniswapRouter
     }
-
     if (!path) {
       return BigNumber.from('0')
     }
@@ -230,9 +223,13 @@ const Send: FC = () => {
     setIsFromLastChanged(!isFromLastChanged)
 
     if (toNetwork && !toNetwork?.isLayer1) {
-      setL2Bridge(contracts?.networks[toNetwork?.slug as string].l2Bridge)
+      setL2Bridge(
+        contracts?.tokens[selectedToken.symbol][toNetwork?.slug as string]
+          .l2Bridge
+      )
       setUniswapRouter(
-        contracts?.networks[toNetwork?.slug as string].uniswapRouter
+        contracts?.tokens[selectedToken.symbol][toNetwork?.slug as string]
+          .uniswapRouter
       )
     }
   }
@@ -591,9 +588,13 @@ const Send: FC = () => {
           setFromNetwork(network)
 
           if (network && !network?.isLayer1) {
-            setL2Bridge(contracts?.networks[network?.slug as string].l2Bridge)
+            setL2Bridge(
+              contracts?.tokens[selectedToken.symbol][network?.slug as string]
+                .l2Bridge
+            )
             setUniswapRouter(
-              contracts?.networks[network?.slug as string].uniswapRouter
+              contracts?.tokens[selectedToken.symbol][network?.slug as string]
+                .uniswapRouter
             )
           }
         }}

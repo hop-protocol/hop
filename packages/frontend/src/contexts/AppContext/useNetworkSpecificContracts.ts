@@ -12,6 +12,7 @@ import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
 import Network from 'src/models/Network'
+import Token from 'src/models/Token'
 import logger from 'src/logger'
 
 export type NetworkSpecificContracts = {
@@ -25,7 +26,8 @@ export type NetworkSpecificContracts = {
 
 const useNetworkSpecificContracts = (
   l1Network: Network,
-  l2Network: Network
+  l2Network: Network,
+  token: Token
 ): NetworkSpecificContracts => {
   //logger.debug('useNetworkSpecificContracts render')
   const { provider, connectedNetworkId } = useWeb3Context()
@@ -42,16 +44,17 @@ const useNetworkSpecificContracts = (
   }
 
   let l1CanonicalBridgeAddress: string =
-    addresses.networks[l2Network?.slug].l1CanonicalBridge
+    addresses.tokens[token.symbol][l2Network?.slug].l1CanonicalBridge
   let l2CanonicalTokenAddress: string =
-    addresses.networks[l2Network?.slug].l2CanonicalToken
-  let l2BridgeAddress: string = addresses.networks[l2Network?.slug].l2Bridge
+    addresses.tokens[token.symbol][l2Network?.slug].l2CanonicalToken
+  let l2BridgeAddress: string =
+    addresses.tokens[token.symbol][l2Network?.slug].l2Bridge
   let uniswapRouterAddress: string =
-    addresses.networks[l2Network?.slug].uniswapRouter
+    addresses.tokens[token.symbol][l2Network?.slug].uniswapRouter
   let uniswapFactoryAddress: string =
-    addresses.networks[l2Network?.slug].uniswapFactory
+    addresses.tokens[token.symbol][l2Network?.slug].uniswapFactory
   let uniswapExchangeAddress: string =
-    addresses.networks[l2Network?.slug].uniswapExchange
+    addresses.tokens[token.symbol][l2Network?.slug].uniswapExchange
 
   const l2Provider = useMemo(() => {
     if (connectedNetworkId === l2Network?.networkId) {
@@ -71,7 +74,8 @@ const useNetworkSpecificContracts = (
   const l1CanonicalBridge = useMemo(() => {
     // Optimism Canonical Bridge is different than Arbitrum's Canonical Bridge contract
     if (
-      l1CanonicalBridgeAddress === addresses.networks.optimism.l1CanonicalBridge
+      l1CanonicalBridgeAddress ===
+      addresses.tokens[token.symbol]?.optimism?.l1CanonicalBridge
     ) {
       return new Contract(
         l1CanonicalBridgeAddress,
@@ -96,7 +100,9 @@ const useNetworkSpecificContracts = (
   }, [l2Provider])
 
   const l2Bridge = useMemo(() => {
-    if (l2BridgeAddress === addresses.networks.optimism.l2Bridge) {
+    if (
+      l2BridgeAddress === addresses.tokens[token.symbol]?.optimism?.l2Bridge
+    ) {
       // Optimism L2 Bridge's ABI differs from Arbitrum's L2 Bridge ABI (contains indexed logs)
       return new Contract(
         l2BridgeAddress,

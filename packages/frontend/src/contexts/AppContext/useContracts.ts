@@ -5,6 +5,7 @@ import erc20Artifact from 'src/abi/ERC20.json'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
 import Network from 'src/models/Network'
+import Token from 'src/models/Token'
 
 import useGovernanceContracts, {
   GovernanceContracts
@@ -16,15 +17,17 @@ import useNetworkSpecificContracts, {
 import logger from 'src/logger'
 
 export type Contracts = {
-  l1Token: Contract | undefined
-  l1Bridge: Contract | undefined
   governance: GovernanceContracts
-  networks: {
-    [key: string]: NetworkSpecificContracts
+  tokens: {
+    [key: string]: {
+      [key: string]: {
+        [key: string]: Contract
+      }
+    }
   }
-  l1Provider: providers.Provider | providers.JsonRpcSigner | undefined
-  arbitrumProvider: providers.Provider | providers.JsonRpcSigner | undefined
-  optimismProvider: providers.Provider | providers.JsonRpcSigner | undefined
+  providers: {
+    [key: string]: providers.Provider
+  }
   getContract: (
     address: string,
     abi: any[],
@@ -33,7 +36,7 @@ export type Contracts = {
   getErc20Contract: (address: string, provider: any) => Contract
 }
 
-const useContracts = (networks: Network[]): Contracts => {
+const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
   //logger.debug('useContracts render')
   const { provider, connectedNetworkId } = useWeb3Context()
 
@@ -53,68 +56,55 @@ const useContracts = (networks: Network[]): Contracts => {
     return getContract(address, erc20Artifact.abi, provider) as Contract
   }
 
-  const l2Network = useMemo(() => {
-    return networks.find((network: Network) => network.slug === 'arbitrum')
-  }, [networks]) as Network
-
-  const arbitrumProvider = useMemo(() => {
-    if (connectedNetworkId === l2Network?.networkId) {
-      return provider?.getSigner()
-    }
-
-    return l2Network?.provider
-  }, [l2Network, connectedNetworkId, provider])
-
   const l1Network = useMemo(() => {
-    return networks.find((network: Network) => network.slug === 'kovan')
+    return networks.find((network: Network) => network.isLayer1)
   }, [networks]) as Network
 
-  const l1Provider = useMemo(() => {
-    if (connectedNetworkId === l1Network?.networkId) {
-      return provider?.getSigner()
-    }
+  const providers = useMemo(() => {
+    return networks.reduce((obj, network) => {
+      obj[network.slug] = network.provider
+      if (connectedNetworkId === network?.networkId) {
+        obj[network.slug] = provider?.getSigner()
+      }
 
-    return l1Network?.provider
-  }, [l1Network, connectedNetworkId, provider])
+      return obj
+    }, {} as any)
+  }, [networks, connectedNetworkId, provider])
 
-  const l1Token = useMemo(() => {
-    return new Contract(addresses.l1Token, erc20Artifact.abi, l1Provider)
-  }, [l1Provider])
+  const tokenMap = tokens.reduce((obj, token) => {
+    obj[token.symbol] = networks.reduce((networkMap, network) => {
+      if (!addresses.tokens[token.symbol]) {
+        return obj
+      }
+      if (network.isLayer1) {
+        networkMap[network.slug] = {
+          l1CanonicalToken: new Contract(
+            addresses.tokens[token.symbol][network.slug].l1CanonicalToken,
+            erc20Artifact.abi,
+            providers[network.slug]
+          ),
+          l1Bridge: useL1BridgeContract(providers[network.slug], token)
+        }
+      } else {
+        if (addresses.tokens[token.symbol][network.slug]) {
+          networkMap[network.slug] = useNetworkSpecificContracts(
+            l1Network,
+            network,
+            token
+          )
+        }
+      }
+      return networkMap
+    }, {} as any)
+    return obj
+  }, {} as any)
 
   const governanceContracts = useGovernanceContracts(networks)
 
-  const l1Bridge = useL1BridgeContract(networks)
-
-  const arbitrumContracts = useNetworkSpecificContracts(l1Network, l2Network)
-
-  const l2NetworkOptimism = useMemo(() => {
-    return networks.find((network: Network) => network.slug === 'optimism')
-  }, [networks]) as Network
-
-  const optimismProvider = useMemo(() => {
-    if (connectedNetworkId === l2NetworkOptimism?.networkId) {
-      return provider?.getSigner()
-    }
-
-    return l2NetworkOptimism?.provider
-  }, [l2NetworkOptimism, connectedNetworkId, provider])
-
-  const optimismContracts = useNetworkSpecificContracts(
-    l1Network,
-    l2NetworkOptimism
-  )
-
   return {
-    l1Token,
-    l1Bridge,
     governance: governanceContracts,
-    networks: {
-      arbitrum: arbitrumContracts,
-      optimism: optimismContracts
-    },
-    l1Provider,
-    arbitrumProvider,
-    optimismProvider,
+    tokens: tokenMap,
+    providers,
     getContract,
     getErc20Contract
   }

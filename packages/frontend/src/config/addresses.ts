@@ -62,6 +62,17 @@ export const addresses: HopAddresses = {
         uniswapExchange: '0xeA7BC91aB88759039a977AB8E774f09BF33c9A20',
         arbChain: '0x2e8aF9f74046D3E55202Fcfb893348316B142230'
       }
+      /*
+      optimism: {
+        l1CanonicalBridge: '0x5a422cD617a1f33228dd253d5e885406108cF1B3',
+        l2CanonicalBridge: '0xdE36eA45af1846fa4d655ceb032F0988dFB4dB0f',
+        l2CanonicalToken: '0xdE36eA45af1846fa4d655ceb032F0988dFB4dB0f', // Temp
+        l2Bridge: '',
+        uniswapRouter: '0x3C67B82D67B4f31A54C0A516dE8d3e93D010EDb3',
+        uniswapFactory: '0x3e4CFaa8730092552d9425575E49bB542e329981',
+        uniswapExchange: '0x65F72DF8a668BC6272B059BB7F53ADc91066540C'
+      }
+      */
     }
   }
 }

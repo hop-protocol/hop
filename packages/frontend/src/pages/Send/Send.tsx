@@ -212,6 +212,27 @@ const Send: FC = () => {
     const newSelectedToken = tokens.find(token => token.symbol === tokenSymbol)
     if (newSelectedToken) {
       setSelectedToken(newSelectedToken)
+      if (fromNetwork && !fromNetwork?.isLayer1) {
+        setL2Bridge(
+          contracts?.tokens[newSelectedToken.symbol][
+            fromNetwork?.slug as string
+          ].l2Bridge
+        )
+        setUniswapRouter(
+          contracts?.tokens[newSelectedToken.symbol][
+            fromNetwork?.slug as string
+          ].uniswapRouter
+        )
+      } else if (toNetwork && !toNetwork?.isLayer1) {
+        setL2Bridge(
+          contracts?.tokens[newSelectedToken.symbol][toNetwork?.slug as string]
+            .l2Bridge
+        )
+        setUniswapRouter(
+          contracts?.tokens[newSelectedToken.symbol][toNetwork?.slug as string]
+            .uniswapRouter
+        )
+      }
     }
   }
 
@@ -586,7 +607,6 @@ const Send: FC = () => {
         networkOptions={networks}
         onNetworkChange={network => {
           setFromNetwork(network)
-
           if (network && !network?.isLayer1) {
             setL2Bridge(
               contracts?.tokens[selectedToken.symbol][network?.slug as string]

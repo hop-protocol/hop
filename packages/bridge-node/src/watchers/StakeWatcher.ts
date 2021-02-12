@@ -31,8 +31,8 @@ class StakeWatcher extends BaseWatcher {
   }
 
   async check () {
-    const threshold = 10000
-    const amount = 1000000
+    const threshold = 1000
+    const amount = 1000
 
     for (let { label, contract } of this.chains) {
       try {
@@ -42,6 +42,7 @@ class StakeWatcher extends BaseWatcher {
         this.logger.log(`${label} debit balance:`, debit)
 
         if (credit < threshold) {
+          // TODO: check balance and approval
           const parsedAmount = parseUnits(amount.toString(), 18)
           this.logger.log(`staking ${amount}`)
           const tx = await contract.stake(parsedAmount)
@@ -61,6 +62,13 @@ class StakeWatcher extends BaseWatcher {
   async getDebit (contract: any) {
     const debit = (await contract.getDebit()).toString()
     return Number(formatUnits(debit, 18))
+  }
+
+  private async getTokenBalance (contract: any) {
+    const address = await contract.signer.getAddress()
+    const balance = await contract.balanceOf(address)
+    const formattedBalance = Number(formatUnits(balance, 18))
+    return formattedBalance
   }
 }
 

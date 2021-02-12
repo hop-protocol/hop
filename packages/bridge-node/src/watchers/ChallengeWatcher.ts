@@ -1,5 +1,4 @@
 import '../moduleAlias'
-import L1BridgeContract from 'src/contracts/L1BridgeContract'
 import { BondTransferRootEvent, TransfersCommittedEvent } from 'src/constants'
 import BaseWatcher from 'src/watchers/BaseWatcher'
 
@@ -11,6 +10,7 @@ import BaseWatcher from 'src/watchers/BaseWatcher'
 // - TransferCommitted should be emitted on L2 after BondTransferRoot on L1
 
 export interface Config {
+  L1BridgeContract: any
   L2BridgeContract: any
   L2Provider: any
   label: string
@@ -18,6 +18,7 @@ export interface Config {
 
 // TODO: fix
 class ChallengeWatcher extends BaseWatcher {
+  L1BridgeContract: any
   L2BridgeContract: any
   L2Provider: any
   label: string
@@ -27,6 +28,7 @@ class ChallengeWatcher extends BaseWatcher {
       label: 'challengeWatcher',
       logColor: 'red'
     })
+    this.L1BridgeContract = config.L1BridgeContract
     this.L2BridgeContract = config.L2BridgeContract
     this.L2Provider = config.L2Provider
     this.label = config.label
@@ -80,7 +82,7 @@ class ChallengeWatcher extends BaseWatcher {
       }
     }
 
-    L1BridgeContract.on(BondTransferRootEvent, handleBondTransferEvent).on(
+    this.L1BridgeContract.on(BondTransferRootEvent, handleBondTransferEvent).on(
       'error',
       err => {
         this.logger.error('event watcher error:', err.message)

@@ -1,16 +1,17 @@
 import '../moduleAlias'
-import L1BridgeContract from 'src/contracts/L1BridgeContract'
 import { BondTransferRootEvent } from 'src/constants'
 import { store } from 'src/store'
 import chalk from 'chalk'
 import BaseWatcher from 'src/watchers/BaseWatcher'
 
 export interface Config {
+  L1BridgeContract: any
   L2BridgeContract: any
   label: string
 }
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
+  L1BridgeContract: any
   L2BridgeContract: any
   label: string
 
@@ -19,6 +20,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       label: 'settleBondedWithdrawalWatcher',
       logColor: 'magenta'
     })
+    this.L1BridgeContract = config.L1BridgeContract
     this.L2BridgeContract = config.L2BridgeContract
     this.label = config.label
   }
@@ -44,7 +46,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     this.logger.log('rootHash:', rootHash)
     this.logger.log('proof:', proof)
     if (chainId === '1' || chainId === '42') {
-      return L1BridgeContract.settleBondedWithdrawal(
+      return this.L1BridgeContract.settleBondedWithdrawal(
         transferHash,
         rootHash,
         proof
@@ -90,12 +92,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async watch () {
-    L1BridgeContract.on(BondTransferRootEvent, this.handleBondTransferEvent).on(
-      'error',
-      err => {
-        this.logger.error('event watcher error:', err.message)
-      }
-    )
+    this.L1BridgeContract.on(
+      BondTransferRootEvent,
+      this.handleBondTransferEvent
+    ).on('error', err => {
+      this.logger.error('event watcher error:', err.message)
+    })
   }
 }
 

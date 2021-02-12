@@ -1,133 +1,145 @@
 import '../moduleAlias'
 import { Command } from 'commander'
+import * as config from 'src/config'
+import { contracts } from 'src/contracts'
 import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
 import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
-import { arbitrumBot, optimismBot } from 'src/arb-bot/bot'
-import L1BridgeContract from 'src/contracts/L1BridgeContract'
-import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
-import L2OptimismBridgeContract from 'src/contracts/L2OptimismBridgeContract'
+import arbot from 'src/arb-bot/bot'
 import { L2ArbitrumProvider } from 'src/wallets/L2ArbitrumWallet'
 import { L2OptimismProvider } from 'src/wallets/L2OptimismWallet'
+import l1WalletOld from 'src/wallets/L1WalletOld'
+
+const providers: any = {
+  arbitrum: L2ArbitrumProvider,
+  optimism: L2OptimismProvider
+}
 
 const program = new Command()
+
+const tokens = Object.keys(config.tokens)
+const networks = ['arbitrum', 'optimism']
+
+const startStakeWatchers = () => {
+  for (let token of tokens) {
+    new StakeWatcher({
+      chains: [
+        {
+          label: 'L1',
+          contract: contracts[token]['kovan'].l1Bridge
+        },
+        ...networks
+          .filter(network => {
+            return !!contracts[token][network]
+          })
+          .map(network => {
+            return {
+              label: `${network} ${token}`,
+              contract: contracts[token][network].l2Bridge
+            }
+          })
+      ]
+    }).start()
+  }
+}
 
 program
   .command('bonder')
   .description('Start the bonder watchers')
   .action(() => {
-    new BondTransferRootWatcher({
-      label: 'Arbitrum',
-      L2BridgeContract: L2ArbitrumBridgeContract
-    }).start()
-
-    new BondWithdrawalWatcher({
-      label: 'Arbitrum',
-      L2BridgeContract: L2ArbitrumBridgeContract,
-      L2Provider: L2ArbitrumProvider
-    }).start()
-
-    new SettleBondedWithdrawalWatcher({
-      label: 'Arbitrum',
-      L2BridgeContract: L2ArbitrumBridgeContract
-    }).start()
-
-    new CommitTransferWatcher({
-      label: 'Arbitrum',
-      L2BridgeContract: L2ArbitrumBridgeContract
-    }).start()
-
-    new BondTransferRootWatcher({
-      label: 'Optimism',
-      L2BridgeContract: L2OptimismBridgeContract
-    }).start()
-
-    new BondWithdrawalWatcher({
-      label: 'Optimism',
-      L2BridgeContract: L2OptimismBridgeContract,
-      L2Provider: L2OptimismProvider
-    }).start()
-
-    new SettleBondedWithdrawalWatcher({
-      label: 'Optimism',
-      L2BridgeContract: L2OptimismBridgeContract
-    }).start()
-
-    new CommitTransferWatcher({
-      label: 'Optimism',
-      L2BridgeContract: L2OptimismBridgeContract
-    }).start()
-
-    new StakeWatcher({
-      chains: [
-        {
-          label: 'L1',
-          contract: L1BridgeContract
-        },
-        {
-          label: 'Optimism',
-          contract: L2OptimismBridgeContract
-        },
-        {
-          label: 'Arbitrum',
-          contract: L2ArbitrumBridgeContract
+    for (let network of networks) {
+      for (let token of tokens) {
+        if (!contracts[token][network]) {
+          continue
         }
-      ]
-    }).start()
+        const label = `${network} ${token}`
+        let l1Bridge = contracts[token].kovan.l1Bridge
+        if (
+          (token === 'DAI' && network === 'arbitrum') ||
+          (token === 'DAI' && network === 'optimism')
+        ) {
+          l1Bridge = l1Bridge.connect(l1WalletOld)
+        }
+
+        new BondTransferRootWatcher({
+          label,
+          L1BridgeContract: l1Bridge,
+          L2BridgeContract: contracts[token][network].l2Bridge
+        }).start()
+
+        new BondWithdrawalWatcher({
+          label,
+          L1BridgeContract: l1Bridge,
+          L2BridgeContract: contracts[token][network].l2Bridge,
+          // TODO
+          contracts: {
+            '69': contracts[token].optimism?.l2Bridge,
+            '79377087078960': contracts[token].arbitrum?.l2Bridge
+          },
+          L2Provider: providers[network]
+        }).start()
+
+        new SettleBondedWithdrawalWatcher({
+          label,
+          L1BridgeContract: l1Bridge,
+          L2BridgeContract: contracts[token][network].l2Bridge
+        }).start()
+
+        new CommitTransferWatcher({
+          label,
+          L2BridgeContract: contracts[token][network].l2Bridge
+        }).start()
+      }
+    }
+
+    startStakeWatchers()
   })
 
 program
   .command('challenger')
   .description('Start the challenger watcher')
   .action(() => {
-    new ChallengeWatcher({
-      label: 'Arbitrum',
-      L2BridgeContract: L2ArbitrumBridgeContract,
-      L2Provider: L2ArbitrumProvider
-    }).start()
+    for (let network of networks) {
+      for (let token of tokens) {
+        new ChallengeWatcher({
+          label: network,
+          L1BridgeContract: contracts[token].kovan.l1Bridge,
+          L2BridgeContract: contracts[token][network].l2Bridge,
+          L2Provider: providers[network]
+        }).start()
+      }
+    }
   })
 
 program
   .command('relayer')
   .description('Start the relayer watcher')
   .action(() => {
-    new CommitTransferWatcher({
-      label: 'Arbitrum',
-      L2BridgeContract: L2ArbitrumBridgeContract
-    }).start()
+    for (let network of networks) {
+      for (let token of tokens) {
+        new CommitTransferWatcher({
+          label: network,
+          L2BridgeContract: contracts[token][network].l2Bridge
+        }).start()
+      }
+    }
   })
 
 program
   .command('arb-bot')
   .description('Start the arbitrage bot')
   .action(() => {
-    arbitrumBot.start()
-    optimismBot.start()
+    arbot.start()
   })
 
 program
   .command('stake')
   .description('Start the stake watcher')
   .action(() => {
-    new StakeWatcher({
-      chains: [
-        {
-          label: 'L1',
-          contract: L1BridgeContract
-        },
-        {
-          label: 'Optimism',
-          contract: L2OptimismBridgeContract
-        },
-        {
-          label: 'Arbitrum',
-          contract: L2ArbitrumBridgeContract
-        }
-      ]
-    }).start()
+    startStakeWatchers()
   })
 
 program.parse(process.argv)

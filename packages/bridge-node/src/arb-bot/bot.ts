@@ -1,60 +1,51 @@
 import '../moduleAlias'
 import L2ArbitrumWallet from 'src/wallets/L2ArbitrumWallet'
 import L2OptimismWallet from 'src/wallets/L2OptimismWallet'
-import {
-  L2ArbitrumBridgeAddress,
-  L2ArbitrumTokenAddress,
-  L2ArbitrumUniswapRouter,
-  L2ArbitrumUniswapFactory,
-  L2OptimismBridgeAddress,
-  L2OptimismTokenAddress,
-  L2OptimismUniswapRouter,
-  L2OptimismUniswapFactory
-} from 'src/config'
 import ArbBot from './ArbBot'
+import { tokens } from 'src/config'
 
-const arbitrumBot = new ArbBot({
-  token0: {
-    label: 'arbitrum hopDai',
-    address: L2ArbitrumBridgeAddress
-  },
-  token1: {
-    label: 'arbitrum canonicalDAI',
-    address: L2ArbitrumTokenAddress
-  },
-  uniswap: {
-    router: {
-      address: L2ArbitrumUniswapRouter
-    },
-    factory: {
-      address: L2ArbitrumUniswapFactory
+const tokenSymbols = Object.keys(tokens)
+const networks = ['arbitrum', 'optimism']
+
+const wallets = {
+  arbitrum: L2ArbitrumWallet,
+  optimism: L2OptimismWallet
+}
+
+const bots: ArbBot[] = []
+for (let network of networks) {
+  for (let token of tokenSymbols) {
+    if (!tokens[token][network]) {
+      continue
     }
-  },
-  wallet: L2ArbitrumWallet,
-  minThreshold: 1.01,
-  arbitrageAmount: 10
-})
+    const bot = new ArbBot({
+      token0: {
+        label: `${network} hop${token}`,
+        address: tokens[token][network].l2Bridge
+      },
+      token1: {
+        label: `${network} canonical${token}`,
+        address: tokens[token][network].l2CanonicalToken
+      },
+      uniswap: {
+        router: {
+          address: tokens[token][network].uniswapRouter
+        },
+        factory: {
+          address: tokens[token][network].uniswapFactory
+        }
+      },
+      wallet: wallets[network],
+      minThreshold: 1.01,
+      arbitrageAmount: 10
+    })
 
-const optimismBot = new ArbBot({
-  token0: {
-    label: 'optimism hopDai',
-    address: L2OptimismBridgeAddress
-  },
-  token1: {
-    label: 'optimism canonicalDAI',
-    address: L2OptimismTokenAddress
-  },
-  uniswap: {
-    router: {
-      address: L2OptimismUniswapRouter
-    },
-    factory: {
-      address: L2OptimismUniswapFactory
-    }
-  },
-  wallet: L2OptimismWallet,
-  minThreshold: 1.01,
-  arbitrageAmount: 10
-})
+    bots.push(bot)
+  }
+}
 
-export { arbitrumBot, optimismBot }
+export default {
+  start: () => {
+    bots.forEach(bot => bot.start())
+  }
+}

@@ -1,5 +1,4 @@
 import '../moduleAlias'
-import L1BridgeContract from 'src/contracts/L1BridgeContract'
 import { TransfersCommittedEvent } from 'src/constants'
 import { wait } from 'src/utils'
 import { store } from 'src/store'
@@ -9,11 +8,13 @@ import BaseWatcher from 'src/watchers/BaseWatcher'
 //import eventPoller from 'src/utils/eventPoller'
 
 export interface Config {
+  L1BridgeContract: any
   L2BridgeContract: any
   label: string
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
+  L1BridgeContract: any
   L2BridgeContract: any
   label: string
 
@@ -22,6 +23,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       label: 'bondTransferRootWatcher',
       logColor: 'cyan'
     })
+    this.L1BridgeContract = config.L1BridgeContract
     this.L2BridgeContract = config.L2BridgeContract
     this.label = config.label
   }
@@ -53,7 +55,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     chainIds: string[],
     chainAmounts: string[]
   ) => {
-    return L1BridgeContract.bondTransferRoot(
+    return this.L1BridgeContract.bondTransferRoot(
       transferRootHash,
       chainIds,
       chainAmounts,

@@ -1,7 +1,4 @@
 import '../moduleAlias'
-import L1BridgeContract from 'src/contracts/L1BridgeContract'
-import L2OptimismBridgeContract from 'src/contracts/L2OptimismBridgeContract'
-import L2ArbitrumBridgeContract from 'src/contracts/L2ArbitrumBridgeContract'
 import { TransferSentEvent } from 'src/constants'
 import { store } from 'src/store'
 import chalk from 'chalk'
@@ -10,14 +7,18 @@ import { wait } from 'src/utils'
 import BaseWatcher from 'src/watchers/BaseWatcher'
 
 export interface Config {
+  L1BridgeContract: any
   L2BridgeContract: any
   L2Provider: any
+  contracts: any
   label: string
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
+  L1BridgeContract: any
   L2BridgeContract: any
   L2Provider: any
+  contracts: any
   label: string
 
   constructor (config: Config) {
@@ -25,8 +26,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
       label: 'bondWithdrawalWatcher',
       logColor: 'green'
     })
+    this.L1BridgeContract = config.L1BridgeContract
     this.L2BridgeContract = config.L2BridgeContract
     this.L2Provider = config.L2Provider
+    this.contracts = config.contracts
     this.label = config.label
   }
 
@@ -62,7 +65,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 		*/
   }
 
-  sendBondWithdrawalTx = (params: any) => {
+  sendBondWithdrawalTx = async (params: any) => {
     const {
       sender,
       recipient,
@@ -76,8 +79,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     if (attemptSwap) {
       const amountOutMin = '0'
       const deadline = (Date.now() / 1000 + 300) | 0
-      const contract =
-        chainId === '69' ? L2OptimismBridgeContract : L2ArbitrumBridgeContract
+      // TODO
+      const contract = this.contracts[chainId] || this.L2BridgeContract
       this.logger.log('amount:', amount.toString())
       this.logger.log('recipient:', recipient)
       return contract.bondWithdrawalAndAttemptSwap(
@@ -89,18 +92,18 @@ class BondWithdrawalWatcher extends BaseWatcher {
         amountOutMin,
         deadline,
         {
-          //gasLimit: 100000
+          //gasLimit: 1000000
         }
       )
     } else {
-      return L1BridgeContract.bondWithdrawal(
+      return this.L1BridgeContract.bondWithdrawal(
         sender,
         recipient,
         amount,
         transferNonce,
         relayerFee,
         {
-          //gasLimit: 100000
+          gasLimit: 1000000
         }
       )
     }
@@ -170,7 +173,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         chalk.yellow(tx.hash)
       )
     } catch (err) {
-      this.logger.error('bondWithdrawal tx error:', err.message)
+      this.logger.error(`${this.label} bondWithdrawal tx error:`, err.message)
     }
   }
 }

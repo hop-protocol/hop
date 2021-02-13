@@ -1,16 +1,10 @@
 import '../moduleAlias'
-import L2ArbitrumWallet from 'src/wallets/L2ArbitrumWallet'
-import L2OptimismWallet from 'src/wallets/L2OptimismWallet'
 import ArbBot from './ArbBot'
+import { wallets } from 'src/wallets'
 import { tokens } from 'src/config'
 
 const tokenSymbols = Object.keys(tokens)
 const networks = ['arbitrum', 'optimism']
-
-const wallets = {
-  arbitrum: L2ArbitrumWallet,
-  optimism: L2OptimismWallet
-}
 
 const bots: ArbBot[] = []
 for (let network of networks) {

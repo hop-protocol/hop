@@ -2,22 +2,21 @@ import '../moduleAlias'
 import { TransferSentEvent } from 'src/constants'
 import { store } from 'src/store'
 import chalk from 'chalk'
-//import eventPoller from 'src/utils/eventPoller'
 import { wait } from 'src/utils'
 import BaseWatcher from 'src/watchers/BaseWatcher'
 
 export interface Config {
-  L1BridgeContract: any
-  L2BridgeContract: any
-  L2Provider: any
+  l1BridgeContract: any
+  l2BridgeContract: any
+  l2Provider: any
   contracts: any
   label: string
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
-  L1BridgeContract: any
-  L2BridgeContract: any
-  L2Provider: any
+  l1BridgeContract: any
+  l2BridgeContract: any
+  l2Provider: any
   contracts: any
   label: string
 
@@ -26,9 +25,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
       label: 'bondWithdrawalWatcher',
       logColor: 'green'
     })
-    this.L1BridgeContract = config.L1BridgeContract
-    this.L2BridgeContract = config.L2BridgeContract
-    this.L2Provider = config.L2Provider
+    this.l1BridgeContract = config.l1BridgeContract
+    this.l2BridgeContract = config.l2BridgeContract
+    this.l2Provider = config.l2Provider
     this.contracts = config.contracts
     this.label = config.label
   }
@@ -49,20 +48,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async watch () {
-    this.L2BridgeContract.on(
-      TransferSentEvent,
-      this.handleTransferSentEvent
-    ).on('error', err => {
-      this.logger.error('event watcher error:', err.message)
-    })
-    /*
-    eventPoller(
-      this.L2BridgeContract,
-      this.L2Provider,
-      TransferSentEvent,
-      this.handleTransferSentEvent
-    )
-		*/
+    this.l2BridgeContract
+      .on(TransferSentEvent, this.handleTransferSentEvent)
+      .on('error', err => {
+        this.logger.error('event watcher error:', err.message)
+      })
   }
 
   sendBondWithdrawalTx = async (params: any) => {
@@ -80,7 +70,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const amountOutMin = '0'
       const deadline = (Date.now() / 1000 + 300) | 0
       // TODO
-      const contract = this.contracts[chainId] || this.L2BridgeContract
+      const contract = this.contracts[chainId] || this.l2BridgeContract
       this.logger.log('amount:', amount.toString())
       this.logger.log('recipient:', recipient)
       return contract.bondWithdrawalAndAttemptSwap(
@@ -96,7 +86,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         }
       )
     } else {
-      return this.L1BridgeContract.bondWithdrawal(
+      return this.l1BridgeContract.bondWithdrawal(
         sender,
         recipient,
         amount,
@@ -124,14 +114,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
       this.logger.log('transferHash:', transferHash)
 
       await wait(2 * 1000)
-      const { from: sender, data } = await this.L2Provider.getTransaction(
+      const { from: sender, data } = await this.l2Provider.getTransaction(
         transactionHash
       )
 
       let chainId = ''
       let attemptSwap = false
       try {
-        const decoded = await this.L2BridgeContract.interface.decodeFunctionData(
+        const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
           'swapAndSend',
           data
         )
@@ -144,7 +134,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
           }
         }
       } catch (err) {
-        const decoded = await this.L2BridgeContract.interface.decodeFunctionData(
+        const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
           'send',
           data
         )

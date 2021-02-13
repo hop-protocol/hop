@@ -5,9 +5,9 @@ import l2BridgeArtifactOld from '@hop-exchange/contracts/artifacts/contracts/bri
 import l2BridgeArtifact from 'src/abi/L2OptimismBridge.json'
 
 import { tokens } from 'src/config'
-import l1Wallet from 'src/wallets/L1Wallet'
-import l2ArbitrumWallet from 'src/wallets/L2ArbitrumWallet'
-import l2OptimismWallet from 'src/wallets/L2OptimismWallet'
+import l1Wallet from 'src/wallets/l1Wallet'
+import l2ArbitrumWallet from 'src/wallets/l2ArbitrumWallet'
+import l2OptimismWallet from 'src/wallets/l2OptimismWallet'
 
 const getL1BridgeContract = (tokenSymbol: string) => {
   return new ethers.Contract(

@@ -10,17 +10,17 @@ import BaseWatcher from 'src/watchers/BaseWatcher'
 // - TransferCommitted should be emitted on L2 after BondTransferRoot on L1
 
 export interface Config {
-  L1BridgeContract: any
-  L2BridgeContract: any
-  L2Provider: any
+  l1BridgeContract: any
+  l2BridgeContract: any
+  l2Provider: any
   label: string
 }
 
 // TODO: fix
 class ChallengeWatcher extends BaseWatcher {
-  L1BridgeContract: any
-  L2BridgeContract: any
-  L2Provider: any
+  l1BridgeContract: any
+  l2BridgeContract: any
+  l2Provider: any
   label: string
 
   constructor (config: Config) {
@@ -28,9 +28,9 @@ class ChallengeWatcher extends BaseWatcher {
       label: 'challengeWatcher',
       logColor: 'red'
     })
-    this.L1BridgeContract = config.L1BridgeContract
-    this.L2BridgeContract = config.L2BridgeContract
-    this.L2Provider = config.L2Provider
+    this.l1BridgeContract = config.l1BridgeContract
+    this.l2BridgeContract = config.l2BridgeContract
+    this.l2Provider = config.l2Provider
     this.label = config.label
   }
 
@@ -57,10 +57,10 @@ class ChallengeWatcher extends BaseWatcher {
         transactionHash
       )
 
-      const L2BlockNumber = await this.L2Provider.getBlockNumber()
-      const recentTransferCommitEvents = await this.L2BridgeContract.queryFilter(
+      const l2BlockNumber = await this.l2Provider.getBlockNumber()
+      const recentTransferCommitEvents = await this.l2BridgeContract.queryFilter(
         TransfersCommittedEvent as any,
-        L2BlockNumber - 100
+        l2BlockNumber - 100
       )
       this.logger.log('recent events:', recentTransferCommitEvents)
 
@@ -82,17 +82,16 @@ class ChallengeWatcher extends BaseWatcher {
       }
     }
 
-    this.L1BridgeContract.on(BondTransferRootEvent, handleBondTransferEvent).on(
-      'error',
-      err => {
+    this.l1BridgeContract
+      .on(BondTransferRootEvent, handleBondTransferEvent)
+      .on('error', err => {
         this.logger.error('event watcher error:', err.message)
-      }
-    )
+      })
 
-    //const L2BlockNumber = await this.L2Provider.getBlockNumber()
-    //const recentTransferCommitEvents = await this.L2BridgeContract.queryFilter(
-    //L2BridgeContract.filters.TransfersCommitted(),
-    //L2BlockNumber - 100
+    //const l2BlockNumber = await this.l2Provider.getBlockNumber()
+    //const recentTransferCommitEvents = await this.l2BridgeContract.queryFilter(
+    //l2BridgeContract.filters.TransfersCommitted(),
+    //l2BlockNumber - 100
     //)
     //this.logger.log('recent events:', recentTransferCommitEvents)
   }

@@ -5,17 +5,16 @@ import { store } from 'src/store'
 import chalk from 'chalk'
 import Logger from 'src/logger'
 import BaseWatcher from 'src/watchers/BaseWatcher'
-//import eventPoller from 'src/utils/eventPoller'
 
 export interface Config {
-  L1BridgeContract: any
-  L2BridgeContract: any
+  l1BridgeContract: any
+  l2BridgeContract: any
   label: string
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
-  L1BridgeContract: any
-  L2BridgeContract: any
+  l1BridgeContract: any
+  l2BridgeContract: any
   label: string
 
   constructor (config: Config) {
@@ -23,8 +22,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       label: 'bondTransferRootWatcher',
       logColor: 'cyan'
     })
-    this.L1BridgeContract = config.L1BridgeContract
-    this.L2BridgeContract = config.L2BridgeContract
+    this.l1BridgeContract = config.l1BridgeContract
+    this.l2BridgeContract = config.l2BridgeContract
     this.label = config.label
   }
 
@@ -41,13 +40,11 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async watch () {
-    this.L2BridgeContract.on(
-      TransfersCommittedEvent,
-      this.handleTransferCommittedEvent
-    ).on('error', err => {
-      this.logger.error('event watcher error:', err.message)
-    })
-    //eventPoller(this.L2BridgeContract, this.L2Provider, TransfersCommittedEvent, this.handleTransferCommittedEvent)
+    this.l2BridgeContract
+      .on(TransfersCommittedEvent, this.handleTransferCommittedEvent)
+      .on('error', err => {
+        this.logger.error('event watcher error:', err.message)
+      })
   }
 
   sendL1TransferRootTx = (
@@ -55,7 +52,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     chainIds: string[],
     chainAmounts: string[]
   ) => {
-    return this.L1BridgeContract.bondTransferRoot(
+    return this.l1BridgeContract.bondTransferRoot(
       transferRootHash,
       chainIds,
       chainAmounts,

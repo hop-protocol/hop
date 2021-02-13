@@ -8,11 +8,9 @@ import erc20Artifact from '@hop-exchange/contracts/artifacts/@openzeppelin/contr
 import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import Logger from 'src/logger'
+import { UINT256 } from 'src/constants'
 
 const logger = new Logger('[arbBot]', { color: 'green' })
-
-const UINT256 =
-  '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
 
 interface TokenConfig {
   label: string

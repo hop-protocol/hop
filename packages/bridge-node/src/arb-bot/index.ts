@@ -1,3 +1,1 @@
-import ArbBot from './ArbBot'
-
-export { ArbBot }
+export { default as ArbBot } from './ArbBot'

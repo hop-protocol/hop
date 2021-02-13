@@ -2,8 +2,8 @@ import * as ethers from 'ethers'
 import debounce from 'debounce-promise'
 import pThrottle from 'p-throttle'
 
-export const getL2MessengerId = (L2Name: string): string => {
-  return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(L2Name))
+export const getL2MessengerId = (l2Name: string): string => {
+  return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(l2Name))
 }
 
 export { debounce }

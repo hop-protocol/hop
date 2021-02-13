@@ -16,24 +16,28 @@ import useNetworkSpecificContracts, {
 } from 'src/contexts/AppContext/useNetworkSpecificContracts'
 import logger from 'src/logger'
 
+type ABI = any
+type Provider = providers.Provider | Signer | undefined
 export type Contracts = {
   governance: GovernanceContracts
-  tokens: {
-    [key: string]: {
-      [key: string]: {
-        [key: string]: Contract
-      }
-    }
-  }
+  tokens: TokenContracts
   providers: {
-    [key: string]: providers.Provider
+    [key: string]: Provider
   }
   getContract: (
     address: string,
-    abi: any[],
-    provider: any
+    abi: ABI[],
+    provider: Provider
   ) => Contract | undefined
-  getErc20Contract: (address: string, provider: any) => Contract
+  getErc20Contract: (address: string, provider: Provider) => Contract
+}
+
+type TokenContracts = {
+  [key: string]: {
+    [key: string]: {
+      [key: string]: Contract
+    }
+  }
 }
 
 const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
@@ -42,17 +46,14 @@ const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
 
   const getContract = (
     address: string,
-    abi: any[],
-    provider: Signer | providers.Provider | undefined
+    abi: ABI[],
+    provider: Provider
   ): Contract | undefined => {
     if (!provider) return
     return new Contract(address, abi, provider)
   }
 
-  const getErc20Contract = (
-    address: string,
-    provider: Signer | providers.Provider
-  ): Contract => {
+  const getErc20Contract = (address: string, provider: Provider): Contract => {
     return getContract(address, erc20Artifact.abi, provider) as Contract
   }
 
@@ -68,42 +69,43 @@ const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
       }
 
       return obj
-    }, {} as any)
+    }, {} as { [key: string]: Provider })
   }, [networks, connectedNetworkId, provider])
 
-  const tokenMap = tokens.reduce((obj, token) => {
+  const tokenContracts = tokens.reduce((obj, token) => {
     obj[token.symbol] = networks.reduce((networkMap, network) => {
       if (!addresses.tokens[token.symbol]) {
         return obj
       }
+      const tokenConfig = addresses.tokens[token.symbol][network.slug]
       if (network.isLayer1) {
         networkMap[network.slug] = {
           l1CanonicalToken: new Contract(
-            addresses.tokens[token.symbol][network.slug].l1CanonicalToken,
+            tokenConfig.l1CanonicalToken,
             erc20Artifact.abi,
             providers[network.slug]
           ),
-          l1Bridge: useL1BridgeContract(providers[network.slug], token)
-        }
-      } else {
-        if (addresses.tokens[token.symbol][network.slug]) {
-          networkMap[network.slug] = useNetworkSpecificContracts(
-            l1Network,
-            network,
+          l1Bridge: useL1BridgeContract(
+            providers[network.slug] as providers.Provider,
             token
           )
         }
+      } else if (tokenConfig) {
+        networkMap[network.slug] = useNetworkSpecificContracts(
+          l1Network,
+          network,
+          token
+        )
       }
       return networkMap
-    }, {} as any)
+    }, {} as { [key: string]: { [key: string]: any } })
     return obj
-  }, {} as any)
-
+  }, {} as TokenContracts)
   const governanceContracts = useGovernanceContracts(networks)
 
   return {
     governance: governanceContracts,
-    tokens: tokenMap,
+    tokens: tokenContracts,
     providers,
     getContract,
     getErc20Contract

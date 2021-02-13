@@ -4,8 +4,14 @@ import erc20Artifact from 'src/abi/ERC20.json'
 
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
-import { addresses } from 'src/config'
+import { addresses, metadata } from 'src/config'
 import logger from 'src/logger'
+
+type Contracts = {
+  [key: string]: {
+    [key: string]: Contract
+  }
+}
 
 const useTokens = (networks: Network[]) => {
   //logger.debug('useTokens render')
@@ -16,48 +22,46 @@ const useTokens = (networks: Network[]) => {
     return new Contract(address, erc20Artifact.abi, provider) as Contract
   }
 
-  const contracts = Object.keys(addresses.tokens).reduce((acc, symbol) => {
-    acc[symbol] = Object.keys(addresses.tokens[symbol]).reduce(
-      (obj, networkSlug) => {
-        const network = networks.find(network => network.slug === networkSlug)
-        if (!network) {
-          return obj
-        }
-        if (networkSlug === 'kovan') {
-          obj[networkSlug] = getErc20Contract(
-            addresses.tokens[symbol][networkSlug].l1CanonicalToken,
-            network.provider
+  const contracts = useMemo<Contracts>(() => {
+    return Object.keys(addresses.tokens).reduce((acc, symbol) => {
+      acc[symbol] = Object.keys(addresses.tokens[symbol]).reduce(
+        (obj, networkSlug) => {
+          const network = networks.find(network => network.slug === networkSlug)
+          if (!network) {
+            return obj
+          }
+          const config = addresses.tokens[symbol][networkSlug]
+          const { provider } = network
+          if (networkSlug === 'kovan') {
+            obj[networkSlug] = getErc20Contract(
+              config.l1CanonicalToken,
+              provider
+            )
+            return obj
+          }
+          obj[networkSlug] = getErc20Contract(config.l2CanonicalToken, provider)
+          obj[`${networkSlug}HopBridge`] = getErc20Contract(
+            config.l2Bridge,
+            provider
           )
           return obj
-        }
-        obj[networkSlug] = getErc20Contract(
-          addresses.tokens[symbol][networkSlug].l2CanonicalToken,
-          network.provider
-        )
-        obj[`${networkSlug}HopBridge`] = getErc20Contract(
-          addresses.tokens[symbol][networkSlug].l2Bridge,
-          network.provider
-        )
-        return obj
-      },
-      {} as any
-    )
-    return acc
-  }, {} as any)
+        },
+        {} as { [key: string]: Contract }
+      )
+      return acc
+    }, {} as Contracts)
+  }, [networks])
 
   const tokens = useMemo<Token[]>(() => {
-    return [
-      new Token({
-        symbol: 'DAI',
-        tokenName: 'DAI Stablecoin',
-        contracts: contracts['DAI']
-      }),
-      new Token({
-        symbol: 'ARB',
-        tokenName: 'ARB Token',
-        contracts: contracts['ARB']
+    return Object.keys(addresses.tokens).map(symbol => {
+      const tokenMeta = metadata.tokens[symbol]
+      return new Token({
+        symbol: tokenMeta.symbol,
+        tokenName: tokenMeta.name,
+        decimals: tokenMeta.decimals,
+        contracts: contracts[symbol]
       })
-    ]
+    })
   }, [contracts])
 
   return tokens

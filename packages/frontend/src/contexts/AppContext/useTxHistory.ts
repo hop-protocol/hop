@@ -13,7 +13,9 @@ const useTxHistory = (): TxHistory => {
   //logger.debug('useTxHistory render')
 
   const sort = (list: Transaction[]) => {
-    return list.sort((a: any, b: any) => b.timestamp - a.timestamp)
+    return list.sort(
+      (a: Transaction, b: Transaction) => b.timestamp - a.timestamp
+    )
   }
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
@@ -21,7 +23,7 @@ const useTxHistory = (): TxHistory => {
       const cached = sessionStorage.getItem('recentTransactions')
       if (!cached) return []
       const txs = JSON.parse(cached)
-      return txs.map((obj: any) => Transaction.fromObject(obj))
+      return txs.map((obj: Transaction) => Transaction.fromObject(obj))
     } catch (err) {
       return []
     }

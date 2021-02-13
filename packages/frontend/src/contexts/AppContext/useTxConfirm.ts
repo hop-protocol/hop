@@ -1,20 +1,22 @@
 import { useState } from 'react'
 import logger from 'src/logger'
 
+type InputProps = any
+type ConfirmParams = any
 export type TxConfirmParams = {
   kind: string
-  inputProps: any
-  onConfirm: (params?: any) => void
+  inputProps: InputProps
+  onConfirm: (params?: ConfirmParams) => void
 }
 
 export interface TxConfirm {
   txConfirmParams: TxConfirmParams
-  show: (params: TxConfirmParams) => void
+  show: (params: TxConfirmParams) => Promise<any>
 }
 
 export const useTxConfirm = (): TxConfirm => {
   //logger.debug('useTxConfirm debug')
-  const [txConfirmParams, setTxConfirm] = useState<any>(null)
+  const [txConfirmParams, setTxConfirm] = useState<ConfirmParams>(null)
 
   const show = (params: TxConfirmParams) => {
     const { kind, inputProps, onConfirm } = params
@@ -22,7 +24,7 @@ export const useTxConfirm = (): TxConfirm => {
       setTxConfirm({
         kind,
         inputProps,
-        onConfirm: async (confirmed: true, params?: any) => {
+        onConfirm: async (confirmed: true, params?: ConfirmParams) => {
           try {
             if (!confirmed) {
               throw new Error('Cancelled')

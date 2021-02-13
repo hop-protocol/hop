@@ -22,22 +22,24 @@ const useNetworks = () => {
         slug: 'kovan',
         imageUrl: MainnetLogo,
         rpcUrl: l1RpcUrl,
-        isLayer1: true,
-        networkId: l1NetworkId
+        networkId: l1NetworkId,
+        isLayer1: true
       }),
       new Network({
         name: 'Arbitrum',
         slug: 'arbitrum',
         imageUrl: ArbitrumLogo,
         rpcUrl: arbitrumRpcUrl,
-        networkId: arbitrumNetworkId
+        networkId: arbitrumNetworkId,
+        isLayer1: false
       }),
       new Network({
         name: 'Optimism',
         slug: 'optimism',
         imageUrl: OptimismLogo,
         rpcUrl: optimismRpcUrl,
-        networkId: optimismNetworkId
+        networkId: optimismNetworkId,
+        isLayer1: false
       })
     ],
     []

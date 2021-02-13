@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useCallback
 } from 'react'
-import { Contract } from 'ethers'
+import { ethers, Contract } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import { useApp } from 'src/contexts/AppContext'
@@ -120,12 +120,14 @@ const PoolsContextProvider: FC = ({ children }) => {
     if (!token) {
       return
     }
-
     const l2Networks = networks.filter(network => !network.isLayer1)
     const hopBridgeContracts = l2Networks.reduce((obj, network) => {
-      obj[network.slug] = token?.contracts[`${network.slug}HopBridge`]
+      const contract = token?.contracts[`${network.slug}HopBridge`]
+      if (contract) {
+        obj[network.slug] = contract
+      }
       return obj
-    }, {} as any)
+    }, {} as { [key: string]: Contract })
 
     return new Token({
       symbol: `h${token?.symbol}`,
@@ -143,6 +145,9 @@ const PoolsContextProvider: FC = ({ children }) => {
     contracts?.tokens[selectedToken.symbol][selectedNetworkSlug]?.uniswapRouter
   const uniswapFactory =
     contracts?.tokens[selectedToken.symbol][selectedNetworkSlug]?.uniswapFactory
+  const uniswapExchange =
+    contracts?.tokens[selectedToken.symbol][selectedNetworkSlug]
+      ?.uniswapExchange
 
   useEffect(() => {
     if (Number(token0Price) && Number(token0Amount) && !Number(token1Amount)) {
@@ -204,25 +209,23 @@ const PoolsContextProvider: FC = ({ children }) => {
       if (!provider) return
       const contractProvider = selectedNetwork.provider
       if (!contractProvider) return
-      const pairAddress = await uniswapFactory?.getPair(
-        selectedToken?.addressForNetwork(selectedNetwork)?.toString(),
-        hopToken?.addressForNetwork(selectedNetwork)?.toString()
-      )
-      //logger.debug('pair address:', pairAddress)
-      const pair = new Contract(
-        pairAddress,
-        uniswapV2PairArtifact.abi,
-        contractProvider
-      )
-
-      const decimals = await pair.decimals()
-      const totalSupply = await pair.totalSupply()
-      const formattedTotalSupply = formatUnits(totalSupply.toString(), decimals)
-      setTotalSupply(formattedTotalSupply)
-
+      if (!uniswapExchange) return
       const signer = provider?.getSigner()
       const address = await signer.getAddress()
-      const balance = await pair.balanceOf(address)
+
+      const [decimals, totalSupply, balance, reserves] = await Promise.all([
+        uniswapExchange.decimals(),
+        uniswapExchange.totalSupply(),
+        uniswapExchange.balanceOf(address),
+        uniswapExchange.getReserves()
+      ])
+
+      const formattedTotalSupply = formatUnits(
+        totalSupply.toString(),
+        Number(decimals.toString())
+      )
+      setTotalSupply(formattedTotalSupply)
+
       const formattedBalance = formatUnits(balance.toString(), decimals)
       setUserPoolBalance(Number(formattedBalance).toFixed(2))
 
@@ -234,7 +237,6 @@ const PoolsContextProvider: FC = ({ children }) => {
           : poolPercentage.toFixed(2)
       setUserPoolTokenPercentage(formattedPoolPercentage)
 
-      const reserves = await pair.getReserves()
       const reserve0 = formatUnits(reserves[0].toString(), decimals)
       const reserve1 = formatUnits(reserves[1].toString(), decimals)
       setPoolReserves([reserve0, reserve1])
@@ -281,14 +283,13 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   useInterval(() => {
     updatePrices()
-    updateUserPoolPositions()
   }, 5 * 1000)
 
   const approveTokens = async (
     token: Token,
     amount: string,
     network: Network
-  ): Promise<any> => {
+  ): Promise<ethers.providers.TransactionResponse | undefined> => {
     const signer = provider?.getSigner()
     const tokenAddress = token.addressForNetwork(network).toString()
     const contract = contracts?.getErc20Contract(tokenAddress, signer)

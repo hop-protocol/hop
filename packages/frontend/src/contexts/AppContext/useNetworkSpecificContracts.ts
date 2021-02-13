@@ -43,18 +43,13 @@ const useNetworkSpecificContracts = (
     }
   }
 
-  let l1CanonicalBridgeAddress: string =
-    addresses.tokens[token.symbol][l2Network?.slug].l1CanonicalBridge
-  let l2CanonicalTokenAddress: string =
-    addresses.tokens[token.symbol][l2Network?.slug].l2CanonicalToken
-  let l2BridgeAddress: string =
-    addresses.tokens[token.symbol][l2Network?.slug].l2Bridge
-  let uniswapRouterAddress: string =
-    addresses.tokens[token.symbol][l2Network?.slug].uniswapRouter
-  let uniswapFactoryAddress: string =
-    addresses.tokens[token.symbol][l2Network?.slug].uniswapFactory
-  let uniswapExchangeAddress: string =
-    addresses.tokens[token.symbol][l2Network?.slug].uniswapExchange
+  const tokenConfig = addresses.tokens[token.symbol][l2Network?.slug]
+  const l1CanonicalBridgeAddress: string = tokenConfig.l1CanonicalBridge
+  const l2CanonicalTokenAddress: string = tokenConfig.l2CanonicalToken
+  const l2BridgeAddress: string = tokenConfig.l2Bridge
+  const uniswapRouterAddress: string = tokenConfig.uniswapRouter
+  const uniswapFactoryAddress: string = tokenConfig.uniswapFactory
+  const uniswapExchangeAddress: string = tokenConfig.uniswapExchange
 
   const l2Provider = useMemo(() => {
     if (connectedNetworkId === l2Network?.networkId) {
@@ -70,7 +65,6 @@ const useNetworkSpecificContracts = (
 
     return l1Network?.provider
   }, [l1Network, connectedNetworkId, provider])
-
   const l1CanonicalBridge = useMemo(() => {
     // Optimism Canonical Bridge is different than Arbitrum's Canonical Bridge contract
     if (
@@ -90,7 +84,6 @@ const useNetworkSpecificContracts = (
       l1Provider
     )
   }, [l1Provider])
-
   const l2CanonicalToken = useMemo(() => {
     return new Contract(
       l2CanonicalTokenAddress,
@@ -98,7 +91,6 @@ const useNetworkSpecificContracts = (
       l2Provider
     )
   }, [l2Provider])
-
   const l2Bridge = useMemo(() => {
     if (
       l2BridgeAddress === addresses.tokens[token.symbol]?.optimism?.l2Bridge
@@ -113,7 +105,6 @@ const useNetworkSpecificContracts = (
 
     return new Contract(l2BridgeAddress, l2BridgeArtifact.abi, l2Provider)
   }, [l2Provider])
-
   const uniswapRouter = useMemo(() => {
     return new Contract(
       uniswapRouterAddress,
@@ -121,7 +112,6 @@ const useNetworkSpecificContracts = (
       l2Provider
     )
   }, [l2Provider])
-
   const uniswapFactory = useMemo(() => {
     return new Contract(
       uniswapFactoryAddress,
@@ -129,7 +119,6 @@ const useNetworkSpecificContracts = (
       l2Provider
     )
   }, [l2Provider])
-
   const uniswapExchange = useMemo(() => {
     return new Contract(
       uniswapExchangeAddress,

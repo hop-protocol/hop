@@ -21,6 +21,7 @@
     "@types/react-dom": "16.9.8",
     "@types/react-router-dom": "5.1.6",
     "bnc-onboard": "1.14.0",
+    "cache-promise-result": "0.0.1",
     "classnames": "2.2.6",
     "clsx": "1.1.1",
     "dotenv": "8.2.0",

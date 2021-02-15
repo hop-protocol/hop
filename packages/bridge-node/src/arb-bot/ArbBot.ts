@@ -3,10 +3,6 @@ import { Contract, BigNumber } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { wait } from 'src/utils'
 import chalk from 'chalk'
-import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
-import erc20Artifact from '@hop-exchange/contracts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
-import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
-import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import Logger from 'src/logger'
 import { UINT256 } from 'src/constants'
 
@@ -14,12 +10,13 @@ const logger = new Logger('[arbBot]', { color: 'green' })
 
 interface TokenConfig {
   label: string
-  address: string
+  contract: Contract
 }
 
 interface UniswapConfig {
   router: Partial<TokenConfig>
   factory: Partial<TokenConfig>
+  exchange: Partial<TokenConfig>
 }
 
 interface Config {
@@ -39,6 +36,7 @@ interface Token {
 class ArbBot {
   uniswapRouter: Contract
   uniswapFactory: Contract
+  uniswapExchange: Contract
   token0: Token
   token1: Token
   wallet: any
@@ -54,7 +52,9 @@ class ArbBot {
   }
 
   public async start () {
-    logger.log('Starting arbitrage bot')
+    logger.log(
+      `Starting ${this.token0.label}<->${this.token1.label} arbitrage bot`
+    )
     try {
       await this.tilReady()
       logger.log(`account address: ${this.accountAddress}`)
@@ -110,35 +110,16 @@ class ArbBot {
     this.wallet = config.wallet
     this.minThreshold = config.minThreshold
     this.arbitrageAmount = config.arbitrageAmount
-
-    this.uniswapRouter = new Contract(
-      config.uniswap.router.address,
-      uniswapRouterArtifact.abi,
-      this.wallet
-    )
-
-    this.uniswapFactory = new Contract(
-      config.uniswap.factory.address,
-      uniswapFactoryArtifact.abi,
-      this.wallet
-    )
-
+    this.uniswapRouter = config.uniswap.router.contract
+    this.uniswapFactory = config.uniswap.factory.contract
+    this.uniswapExchange = config.uniswap.exchange.contract
     this.token0 = {
       label: config.token0.label,
-      contract: new Contract(
-        config.token0.address,
-        erc20Artifact.abi,
-        this.wallet
-      )
+      contract: config.token0.contract
     }
-
     this.token1 = {
       label: config.token1.label,
-      contract: new Contract(
-        config.token1.address,
-        erc20Artifact.abi,
-        this.wallet
-      )
+      contract: config.token1.contract
     }
 
     this.accountAddress = await this.wallet.getAddress()
@@ -287,18 +268,8 @@ class ArbBot {
   }
 
   private async startEventWatcher () {
-    const pairAddress = await this.uniswapFactory?.getPair(
-      this.token0.contract.address,
-      this.token1.contract.address
-    )
-    const pair = new Contract(
-      pairAddress,
-      uniswapV2PairArtifact.abi,
-      this.wallet
-    )
-
     const SWAP_EVENT = 'Swap'
-    pair
+    this.uniswapExchange
       .on(SWAP_EVENT, async event => {
         logger.log('Detected swap event')
         try {

@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Contract } from 'ethers'
 import l2BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L2_Bridge.sol/L2_Bridge.json'
 import l2OptimismBridgeArtifact from 'src/abi/L2OptimismBridge.json'
+import l2OptimismTokenArtifact from 'src/abi/L2_OptimismERC20.json'
 import l1ArbitrumMessengerArtifact from 'src/abi/GlobalInbox.json'
 import l1OptimismTokenBridgeArtifact from 'src/abi/L1OptimismTokenBridge.json'
 import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
@@ -85,6 +86,17 @@ const useNetworkSpecificContracts = (
     )
   }, [l1Provider])
   const l2CanonicalToken = useMemo(() => {
+    if (
+      l2CanonicalTokenAddress ===
+      addresses.tokens[token.symbol]?.optimism?.l2CanonicalToken
+    ) {
+      return new Contract(
+        l2CanonicalTokenAddress,
+        l2OptimismTokenArtifact.abi,
+        l2Provider
+      )
+    }
+
     return new Contract(
       l2CanonicalTokenAddress,
       arbErc20Artifact.abi,

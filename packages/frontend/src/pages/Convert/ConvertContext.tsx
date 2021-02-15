@@ -162,16 +162,17 @@ const ConvertContextProvider: FC = ({ children }) => {
       if (!slug) {
         return value
       }
-      const router = contracts?.tokens[selectedToken.symbol][slug].uniswapRouter
+      const tokenContracts = contracts?.tokens[selectedToken.symbol][slug]
+      const router = tokenContracts?.uniswapRouter
       if (networkPairMap[sourceNetwork?.slug] === destNetwork?.slug) {
         let path = [
-          addresses.tokens[selectedToken.symbol][slug].l2CanonicalToken,
-          addresses.tokens[selectedToken.symbol][slug].l2Bridge
+          tokenContracts?.l2CanonicalToken.address,
+          tokenContracts?.l2Bridge.address
         ]
         if (destNetwork?.slug === slug) {
           path = [
-            addresses.tokens[selectedToken.symbol][slug].l2Bridge,
-            addresses.tokens[selectedToken.symbol][slug].l2CanonicalToken
+            tokenContracts?.l2Bridge.address,
+            tokenContracts?.l2CanonicalToken.address
           ]
         }
 
@@ -246,7 +247,9 @@ const ConvertContextProvider: FC = ({ children }) => {
       const address = await signer?.getAddress()
       const value = parseUnits(sourceTokenAmount, 18).toString()
       let tx: any
-      let sourceSlug = canonicalSlug(sourceNetwork)
+      const sourceSlug = canonicalSlug(sourceNetwork)
+      const sourceTokenContracts =
+        contracts?.tokens[selectedToken.symbol][sourceSlug]
 
       // source network is L1 ( L1 -> L2 )
       if (sourceNetwork?.isLayer1) {
@@ -288,8 +291,9 @@ const ConvertContextProvider: FC = ({ children }) => {
           // destination network is canonical bridge (L1 -> L2 canonical)
         } else if (destNetwork && !isHopBridge(destNetwork?.slug)) {
           const destSlug = destNetwork?.slug
-          const messenger =
-            contracts?.tokens[selectedToken.symbol][destSlug]?.l1CanonicalBridge
+          const destTokenContracts =
+            contracts?.tokens[selectedToken.symbol][destSlug]
+          const messenger = destTokenContracts?.l1CanonicalBridge
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
@@ -352,20 +356,13 @@ const ConvertContextProvider: FC = ({ children }) => {
             onConfirm: async () => {
               if (sourceSlug === ARBITRUM) {
                 const contract = await getWriteContract(
-                  contracts?.tokens[selectedToken.symbol][sourceSlug]
-                    .l2CanonicalToken
+                  sourceTokenContracts?.l2CanonicalToken
                 )
                 return contract?.withdraw(await signer?.getAddress(), value)
               } else if (sourceSlug === OPTIMISM) {
                 const l2Provider = provider?.getSigner()
                 const l2Token = await getWriteContract(
-                  new Contract(
-                    addresses.tokens[selectedToken.symbol][
-                      sourceSlug
-                    ].l2CanonicalToken,
-                    l2OptimismTokenArtifact.abi,
-                    l2Provider
-                  )
+                  sourceTokenContracts?.l2CanonicalToken
                 )
                 return l2Token?.withdraw(value)
               }
@@ -374,8 +371,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
           // destination network is L2 hop bridge (L2 canonical -> L2 Hop)
         } else if (isHopBridge(destNetwork?.slug)) {
-          const router =
-            contracts?.tokens[selectedToken.symbol][sourceSlug].uniswapRouter
+          const router = sourceTokenContracts?.uniswapRouter
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
@@ -385,8 +381,8 @@ const ConvertContextProvider: FC = ({ children }) => {
 
           const amountOutMin = '0'
           const path = [
-            addresses.tokens[selectedToken.symbol][sourceSlug].l2CanonicalToken,
-            addresses.tokens[selectedToken.symbol][sourceSlug].l2Bridge
+            sourceTokenContracts?.l2CanonicalToken.address,
+            sourceTokenContracts?.l2Bridge.address
           ]
           const deadline = (Date.now() / 1000 + 300) | 0
 
@@ -417,10 +413,8 @@ const ConvertContextProvider: FC = ({ children }) => {
 
         // source network is L2 hop bridge ( L2 Hop -> L1 or L2 )
       } else if (isHopBridge(sourceNetwork?.slug) && destNetwork) {
-        const router =
-          contracts?.tokens[selectedToken.symbol][sourceSlug].uniswapRouter
-        const bridge =
-          contracts?.tokens[selectedToken.symbol][sourceSlug].l2Bridge
+        const router = sourceTokenContracts?.uniswapRouter
+        const bridge = sourceTokenContracts?.l2Bridge
 
         // destination network is L1 ( L2 Hop -> L1 )
         if (destNetwork?.isLayer1) {
@@ -461,8 +455,8 @@ const ConvertContextProvider: FC = ({ children }) => {
 
           const amountOutMin = '0'
           const path = [
-            addresses.tokens[selectedToken.symbol][sourceSlug].l2Bridge,
-            addresses.tokens[selectedToken.symbol][sourceSlug].l2CanonicalToken
+            sourceTokenContracts?.l2Bridge.address,
+            sourceTokenContracts?.l2CanonicalToken.address
           ]
           const deadline = (Date.now() / 1000 + 300) | 0
 

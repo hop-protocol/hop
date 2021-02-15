@@ -10,7 +10,6 @@ import { formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import Address from 'src/models/Address'
-import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
@@ -39,9 +38,9 @@ const StatsContextProvider: FC = ({ children }) => {
     if (!contracts?.tokens[selectedToken.symbol][selectedNetworkSlug]) {
       return
     }
-    const uniswapFactory =
+    const uniswapExchange =
       contracts?.tokens[selectedToken.symbol][selectedNetworkSlug]
-        ?.uniswapFactory
+        ?.uniswapExchange
     const token = tokens.find(token => token.symbol === selectedToken?.symbol)
     if (!token) {
       return
@@ -55,17 +54,7 @@ const StatsContextProvider: FC = ({ children }) => {
         optimism: token?.contracts?.optimismHopBridge
       }
     })
-    const pairAddress = await uniswapFactory?.getPair(
-      selectedToken?.addressForNetwork(selectedNetwork)?.toString(),
-      hopToken?.addressForNetwork(selectedNetwork)?.toString()
-    )
-    const contractProvider = selectedNetwork.provider
-    const pair = new Contract(
-      pairAddress,
-      uniswapV2PairArtifact.abi,
-      contractProvider
-    )
-    const decimals = await pair.decimals()
+    const decimals = await uniswapExchange.decimals()
     const token0 = {
       symbol: selectedToken?.networkSymbol(selectedNetwork)
     }
@@ -73,12 +62,12 @@ const StatsContextProvider: FC = ({ children }) => {
       symbol: hopToken.networkSymbol(selectedNetwork)
     }
 
-    const reserves = await pair.getReserves()
+    const reserves = await uniswapExchange.getReserves()
     const reserve0 = Number(formatUnits(reserves[0].toString(), decimals))
     const reserve1 = Number(formatUnits(reserves[1].toString(), decimals))
 
     return {
-      pairAddress: Address.from(pairAddress),
+      pairAddress: Address.from(uniswapExchange.address),
       pairUrl: '#',
       totalLiquidity: reserve0 + reserve1,
       token0,
@@ -95,17 +84,15 @@ const StatsContextProvider: FC = ({ children }) => {
         return
       }
       setFetching(true)
-      const results: any = []
+      const promises: Promise<any>[] = []
       for (let network of filteredNetworks) {
         for (let token of tokens.slice(0, 2)) {
-          const result = await fetchStats(network, token)
-          if (result) {
-            results.push(result)
-          }
+          promises.push(fetchStats(network, token))
         }
       }
+      const results: any[] = await Promise.all(promises)
       setFetching(false)
-      setStats(results)
+      setStats(results.filter(x => x))
     }
 
     update().catch(logger.error)

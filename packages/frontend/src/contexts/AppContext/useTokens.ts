@@ -55,11 +55,13 @@ const useTokens = (networks: Network[]) => {
   const tokens = useMemo<Token[]>(() => {
     return Object.keys(addresses.tokens).map(symbol => {
       const tokenMeta = metadata.tokens[symbol]
+      const supportedNetworks = Object.keys(addresses.tokens[symbol])
       return new Token({
         symbol: tokenMeta.symbol,
         tokenName: tokenMeta.name,
         decimals: tokenMeta.decimals,
-        contracts: contracts[symbol]
+        contracts: contracts[symbol],
+        supportedNetworks
       })
     })
   }, [contracts])

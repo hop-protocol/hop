@@ -53,7 +53,6 @@ const Convert: FC = () => {
     setSourceTokenAmount('')
     setDestTokenAmount('')
   }, [setSourceTokenAmount, setDestTokenAmount])
-
   useEffect(() => {
     setSourceNetwork(
       sourceNetworks.find(

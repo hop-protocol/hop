@@ -48,21 +48,6 @@ const Convert: FC = () => {
     error,
     setError
   } = useConvert()
-  const defaultNetwork = Object.keys(networkPairMap)[0]
-
-  useEffect(() => {
-    setSourceNetwork(
-      sourceNetworks.find(
-        (network: Network) => network?.slug === defaultNetwork
-      ) as Network
-    )
-    setDestNetwork(
-      sourceNetworks.find(
-        (network: Network) => network?.slug === networkPairMap[defaultNetwork]
-      ) as Network
-    )
-  }, [setSourceNetwork, setDestNetwork, sourceNetworks])
-
   useEffect(() => {
     setSourceTokenAmount('')
     setDestTokenAmount('')
@@ -88,13 +73,47 @@ const Convert: FC = () => {
     } catch (err) {}
   }
 
-  const destNetworks = sourceNetworks.filter((network: Network) => {
-    return Object.keys(networkPairMap).includes(network.slug)
+  sourceNetworks = sourceNetworks.filter((network: Network) => {
+    return (
+      !network.isLayer1 &&
+      selectedToken?.supportedNetworks.includes(
+        network.slug?.replace('HopBridge', '')
+      )
+    )
   })
 
-  sourceNetworks = sourceNetworks.filter((network: Network) => {
-    return Object.keys(networkPairMap).includes(network.slug)
+  const destNetworks = sourceNetworks.filter((network: Network) => {
+    return (
+      !network.isLayer1 &&
+      selectedToken?.supportedNetworks.includes(
+        network.slug?.replace('HopBridge', '')
+      )
+    )
   })
+
+  useEffect(() => {
+    const defaultNetwork = sourceNetworks[0].slug
+    if (!sourceNetwork || sourceNetwork.isLayer1) {
+      setSourceNetwork(
+        sourceNetworks.find(
+          (network: Network) => network?.slug === defaultNetwork
+        ) as Network
+      )
+    }
+    if (!destNetwork || destNetwork.isLayer1) {
+      setDestNetwork(
+        sourceNetworks.find(
+          (network: Network) => network?.slug === networkPairMap[defaultNetwork]
+        ) as Network
+      )
+    }
+  }, [
+    setSourceNetwork,
+    setDestNetwork,
+    sourceNetworks,
+    sourceNetwork,
+    destNetwork
+  ])
 
   const handleSourceNetworkChange = (network: Network | undefined) => {
     if (network) {

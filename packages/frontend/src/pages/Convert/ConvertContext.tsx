@@ -78,6 +78,17 @@ const ConvertContextProvider: FC = ({ children }) => {
   const { provider, getWriteContract } = useWeb3Context()
   const app = useApp()
   let { networks: nets, tokens, contracts, txConfirm } = app
+  const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
+  const canonicalSlug = (network: Network) => {
+    if (network?.isLayer1) {
+      return ''
+    }
+    return network?.slug?.replace('HopBridge', '')
+  }
+  const isHopBridge = (slug: string | undefined) => {
+    if (!slug) return false
+    return slug.includes('Bridge')
+  }
   const networks: Network[] = useMemo(() => {
     const l1Networks = nets.filter((network: Network) => network.isLayer1)
     const l2Networks = nets.filter((network: Network) => !network.isLayer1)
@@ -105,14 +116,25 @@ const ConvertContextProvider: FC = ({ children }) => {
     .filter((network: Network) => {
       return network.isLayer1 || !network.slug.includes('Bridge')
     })
+    .filter(network => {
+      return (
+        network.isLayer1 ||
+        selectedToken.supportedNetworks.includes(canonicalSlug(network))
+      )
+    })
     .map((network: Network) => network.slug)
   const convertHopBridgeNetworks = networks
     .filter((network: Network) => {
       return network.isLayer1 || network.slug.includes('Bridge')
     })
+    .filter(network => {
+      return (
+        network.isLayer1 ||
+        selectedToken.supportedNetworks.includes(canonicalSlug(network))
+      )
+    })
     .map((network: Network) => network.slug)
   const [sourceNetworks] = useState<Network[]>(networks)
-  const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(
     undefined
   )
@@ -129,16 +151,6 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [destTokenBalance, setDestTokenBalance] = useState<number | null>(null)
   const [error, setError] = useState<string | null | undefined>(null)
   const l1Bridge = contracts?.tokens[selectedToken.symbol].kovan.l1Bridge
-  const canonicalSlug = (network: Network) => {
-    if (network?.isLayer1) {
-      return ''
-    }
-    return network?.slug?.replace('HopBridge', '')
-  }
-  const isHopBridge = (slug: string | undefined) => {
-    if (!slug) return false
-    return slug.includes('Bridge')
-  }
   const networkPairMap = networks.reduce((obj, network) => {
     if (network.isLayer1) {
       return obj

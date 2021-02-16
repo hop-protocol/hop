@@ -7,6 +7,7 @@ type TokenProps = {
   tokenName: string
   decimals?: number
   contracts: { [key: string]: Contract | undefined }
+  supportedNetworks?: string[]
 }
 
 class Token {
@@ -15,12 +16,14 @@ class Token {
   readonly decimals: number
   readonly contracts: { [key: string]: Contract | undefined }
   readonly addresses: { [key: string]: Address } = {}
+  readonly supportedNetworks: string[] = []
 
   constructor (props: TokenProps) {
     this.symbol = props.symbol
     this.tokenName = props.tokenName
     this.decimals = props.decimals || 18
     this.contracts = props.contracts
+    this.supportedNetworks = props.supportedNetworks || []
     Object.keys(props.contracts).forEach(key => {
       const contract = props.contracts[key]
       if (contract) {

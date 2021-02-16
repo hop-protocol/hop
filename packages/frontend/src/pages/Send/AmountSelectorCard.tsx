@@ -13,6 +13,7 @@ import Token from 'src/models/Token'
 import { useApp } from 'src/contexts/AppContext'
 import useInterval from 'src/hooks/useInterval'
 import { commafy } from 'src/utils'
+import logger from 'src/logger'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -92,12 +93,17 @@ const AmountSelectorCard: FC<Props> = props => {
   const getBalance = useCallback(() => {
     const _getBalance = async () => {
       if (user && token && selectedNetwork) {
-        const _balance = await user.getBalance(token, selectedNetwork)
-        setBalance(formatUnits(_balance, 18))
+        try {
+          const _balance = await user.getBalance(token, selectedNetwork)
+          setBalance(formatUnits(_balance, 18))
+        } catch (err) {
+          setBalance('')
+          throw err
+        }
       }
     }
 
-    _getBalance()
+    _getBalance().catch(logger.error)
   }, [user, token, selectedNetwork])
 
   useEffect(() => {

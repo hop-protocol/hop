@@ -136,7 +136,11 @@ const PoolsContextProvider: FC = ({ children }) => {
     })
   }, [tokens, selectedToken, networks])
 
-  networks = networks.filter((network: Network) => !network.isLayer1)
+  networks = networks.filter(
+    (network: Network) =>
+      !network.isLayer1 &&
+      selectedToken.supportedNetworks.includes(network.slug)
+  )
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
   const [txHash, setTxHash] = useState<string | undefined>()
   const [sending, setSending] = useState<boolean>(false)
@@ -150,12 +154,16 @@ const PoolsContextProvider: FC = ({ children }) => {
       ?.uniswapExchange
 
   useEffect(() => {
+    if (!networks.includes(selectedNetwork)) {
+      setSelectedNetwork(networks[0])
+    }
+  }, [networks])
+  useEffect(() => {
     if (Number(token0Price) && Number(token0Amount) && !Number(token1Amount)) {
       const token1Value = Number(token0Amount) * Number(token1Rate)
       setToken1Amount(token1Value.toFixed(2))
     }
   }, [token0Price, token0Amount, token1Amount])
-
   useEffect(() => {
     if (Number(token1Price) && Number(token1Amount) && !Number(token0Amount)) {
       const token0Value = Number(token1Amount) / Number(token1Rate)

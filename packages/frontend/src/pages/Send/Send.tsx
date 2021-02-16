@@ -6,6 +6,7 @@ import React, {
   useEffect,
   ChangeEvent
 } from 'react'
+import { useLocation } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -34,7 +35,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { UINT256 } from 'src/config/constants'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import logger from 'src/logger'
-import { commafy } from 'src/utils'
+import { commafy, intersection } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   sendSelect: {
@@ -65,14 +66,34 @@ const useStyles = makeStyles(theme => ({
 
 const Send: FC = () => {
   const styles = useStyles()
-
-  const { user, tokens, networks, contracts, txConfirm, txHistory } = useApp()
+  const { pathname } = useLocation()
+  let { user, tokens, networks, contracts, txConfirm, txHistory } = useApp()
   const {
     provider,
     walletConnected,
     checkConnectedNetworkId,
     getWriteContract
   } = useWeb3Context()
+
+  const networkSlugs = networks.map(network => network.slug)
+  const pathNetwork = pathname.replace(/^\//, '')
+  if (networkSlugs.includes(pathNetwork)) {
+    // show only tokens supported by network
+    tokens = tokens.filter(token => {
+      return token.supportedNetworks.includes(pathNetwork)
+    })
+    networks = networks.filter(network => {
+      return network.isLayer1 || network.slug == pathNetwork
+    })
+  } else {
+    // show tokens supported by all networks
+    tokens = tokens.filter(token => {
+      return (
+        intersection([networkSlugs, token.supportedNetworks]).length ===
+        networkSlugs.length
+      )
+    })
+  }
   const [l2Bridge, setL2Bridge] = useState<Contract | undefined>()
   const [uniswapRouter, setUniswapRouter] = useState<Contract | undefined>()
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
@@ -92,6 +113,11 @@ const Send: FC = () => {
   const l1Bridge = contracts?.tokens[selectedToken.symbol].kovan.l1Bridge
   const debouncer = useRef<number>(0)
 
+  useEffect(() => {
+    if (!tokens.includes(selectedToken)) {
+      setSelectedToken(tokens[0])
+    }
+  }, [networks])
   const calcAmount = async (
     amount: string,
     isAmountIn: boolean

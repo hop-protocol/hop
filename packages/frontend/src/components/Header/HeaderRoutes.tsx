@@ -63,7 +63,7 @@ const HeaderRoutes: FC<Props> = () => {
         <a
           className={styles.whitepaperTab}
           rel="noopener noreferrer"
-          href="http://localhost:3000/whitepaper.pdf"
+          href="/whitepaper.pdf"
           target="_blank"
         >
           Whitepaper

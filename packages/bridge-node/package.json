@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "example": "npm run build && node dist/example/example.js",
+    "example": "ts-node src/scripts/optimismToArbitrum.ts",
     "arb-bot": "npm run build && node bin/bridge-node arb-bot",
     "start": "node .",
     "dev": "tsc --watch",

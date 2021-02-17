@@ -9,11 +9,13 @@ import BaseWatcher from 'src/watchers/BaseWatcher'
 export interface Config {
   l2BridgeContract: any
   label: string
+  order: number
 }
 
 class CommitTransfersWatcher extends BaseWatcher {
   l2BridgeContract: any
   label: string
+  order: number
 
   constructor (config: Config) {
     super({
@@ -22,6 +24,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     })
     this.l2BridgeContract = config.l2BridgeContract
     this.label = config.label
+    this.order = config.order
   }
 
   async start () {
@@ -39,6 +42,7 @@ class CommitTransfersWatcher extends BaseWatcher {
 
   check = throttle(async () => {
     try {
+      await wait(this.order * 10 * 1000)
       const pendingTransfer = await this.l2BridgeContract.pendingTransfers(0)
       // check if pending transfers exist
       if (!pendingTransfer) {
@@ -52,7 +56,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     const tx = await this.sendTx()
     this.logger.log(
       `L2 ${this.label} commitTransfers tx:`,
-      chalk.yellow(tx.hash)
+      chalk.bgYellow.black.bold(tx.hash)
     )
     const receipt = await tx.wait()
     assert(receipt.status === 1)
@@ -69,7 +73,9 @@ class CommitTransfersWatcher extends BaseWatcher {
     try {
       await this.check()
     } catch (err) {
-      this.logger.error('commitTransfers tx error:', err.message)
+      if (err.message !== 'cancelled') {
+        this.logger.error('commitTransfers tx error:', err.message)
+      }
     }
   }
 
@@ -79,16 +85,6 @@ class CommitTransfersWatcher extends BaseWatcher {
       .on('error', err => {
         this.logger.error('event watcher error:', err.message)
       })
-
-    while (true) {
-      try {
-        await this.check()
-        await wait(10 * 1000)
-      } catch (err) {
-        this.logger.error('commitTransfers tx error:', err.message)
-        await wait(20 * 1000)
-      }
-    }
   }
 }
 

@@ -47,8 +47,11 @@ const startStakeWatchers = () => {
 
 program
   .command('bonder')
+  .option('-o, --order <order>', 'Bonder order')
   .description('Start the bonder watchers')
-  .action(() => {
+  .action(source => {
+    const order = Number(source.order)
+
     for (let network of networks) {
       for (let token of tokens) {
         if (!contracts[token][network]) {
@@ -64,17 +67,20 @@ program
         }
 
         new BondTransferRootWatcher({
+          order,
           label,
           l1BridgeContract: l1Bridge,
           l2BridgeContract: contracts[token][network].l2Bridge
         }).start()
 
         new BondWithdrawalWatcher({
+          order,
           label,
           l1BridgeContract: l1Bridge,
           l2BridgeContract: contracts[token][network].l2Bridge,
           // TODO
           contracts: {
+            '42': contracts[token].kovan?.l1Bridge,
             '69': contracts[token].optimism?.l2Bridge,
             '79377087078960': contracts[token].arbitrum?.l2Bridge
           },
@@ -82,12 +88,14 @@ program
         }).start()
 
         new SettleBondedWithdrawalWatcher({
+          order,
           label,
           l1BridgeContract: l1Bridge,
           l2BridgeContract: contracts[token][network].l2Bridge
         }).start()
 
         new CommitTransferWatcher({
+          order,
           label,
           l2BridgeContract: contracts[token][network].l2Bridge
         }).start()
@@ -120,6 +128,7 @@ program
     for (let network of networks) {
       for (let token of tokens) {
         new CommitTransferWatcher({
+          order: 0,
           label: network,
           l2BridgeContract: contracts[token][network].l2Bridge
         }).start()

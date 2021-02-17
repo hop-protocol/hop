@@ -1,5 +1,7 @@
 import '../moduleAlias'
-import { TransferSentEvent } from 'src/constants'
+import { BigNumber } from 'ethers'
+import { formatUnits } from 'ethers/lib/utils'
+import { TransferSentEvent, UINT256 } from 'src/constants'
 import { store } from 'src/store'
 import chalk from 'chalk'
 import { wait } from 'src/utils'
@@ -11,6 +13,7 @@ export interface Config {
   l2Provider: any
   contracts: any
   label: string
+  order: number
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
@@ -19,6 +22,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   l2Provider: any
   contracts: any
   label: string
+  order: number
 
   constructor (config: Config) {
     super({
@@ -30,6 +34,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.l2Provider = config.l2Provider
     this.contracts = config.contracts
     this.label = config.label
+    this.order = config.order
   }
 
   async start () {
@@ -57,22 +62,22 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   sendBondWithdrawalTx = async (params: any) => {
     const {
+      chainId,
       sender,
       recipient,
       amount,
       transferNonce,
       relayerFee,
       attemptSwap,
-      chainId
+      amountOutMin,
+      deadline
     } = params
 
     if (attemptSwap) {
-      const amountOutMin = '0'
-      const deadline = (Date.now() / 1000 + 300) | 0
-      // TODO
-      const contract = this.contracts[chainId] || this.l2BridgeContract
+      const contract = this.contracts[chainId]
       this.logger.log('amount:', amount.toString())
       this.logger.log('recipient:', recipient)
+      this.logger.log(`${chainId} bondWithdrawalAndAttemptSwap`)
       return contract.bondWithdrawalAndAttemptSwap(
         sender,
         recipient,
@@ -86,6 +91,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         }
       )
     } else {
+      this.logger.log('L1 bondWithdrawal')
       return this.l1BridgeContract.bondWithdrawal(
         sender,
         recipient,
@@ -141,14 +147,30 @@ class BondWithdrawalWatcher extends BaseWatcher {
         chainId = decoded._chainId.toString()
       }
 
-      store.transferHashes[transferHash] = {
-        transferHash,
-        chainId
-      }
       this.logger.log('chainId:', chainId)
       this.logger.log('attemptSwap:', attemptSwap)
 
-      await wait(2 * 1000)
+      const contract = this.contracts[chainId]
+      const amountOutMin = '0'
+      const deadline = BigNumber.from(UINT256)
+      const computedTransferHash = await contract.getTransferHash(
+        chainId,
+        sender,
+        recipient,
+        amount,
+        transferNonce,
+        relayerFee,
+        attemptSwap ? amountOutMin : 0,
+        attemptSwap ? deadline : 0
+      )
+      this.logger.log('computed transfer hash:', computedTransferHash)
+      store.transferHashes[transferHash] = {
+        transferHash,
+        computedTransferHash,
+        chainId
+      }
+
+      await this.waitTimeout(computedTransferHash, chainId)
       const tx = await this.sendBondWithdrawalTx({
         sender,
         recipient,
@@ -156,15 +178,46 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transferNonce,
         relayerFee,
         attemptSwap,
-        chainId
+        chainId,
+        amountOutMin,
+        deadline
       })
       this.logger.log(
         `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx:`,
-        chalk.yellow(tx.hash)
+        chalk.bgYellow.black.bold(tx.hash)
       )
     } catch (err) {
-      this.logger.error(`${this.label} bondWithdrawal tx error:`, err.message)
+      if (err.message !== 'cancelled') {
+        this.logger.error(`${this.label} bondWithdrawal tx error:`, err.message)
+      }
     }
+  }
+
+  async waitTimeout (transferHash: string, chainId: string) {
+    await wait(2 * 1000)
+    if (!this.order) {
+      return
+    }
+    this.logger.debug(
+      `waiting for bondWithdrawal event. transfer hash: ${transferHash} chain id: ${chainId}`
+    )
+    const contract = this.contracts[chainId]
+    let timeout = this.order * 15 * 1000
+    while (timeout > 0) {
+      const bondedBn = await contract.getBondedWithdrawalAmount(transferHash)
+      const bondedAmount = Number(formatUnits(bondedBn.toString(), 18))
+      if (bondedAmount !== 0) {
+        break
+      }
+      const delay = 2 * 1000
+      timeout -= delay
+      await wait(delay)
+    }
+    if (timeout <= 0) {
+      return
+    }
+    this.logger.debug(`transfer hash already bonded ${transferHash}`)
+    throw new Error('cancelled')
   }
 }
 

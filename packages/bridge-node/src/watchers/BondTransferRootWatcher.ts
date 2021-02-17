@@ -10,12 +10,14 @@ export interface Config {
   l1BridgeContract: any
   l2BridgeContract: any
   label: string
+  order: number
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
   l1BridgeContract: any
   l2BridgeContract: any
   label: string
+  order: number
 
   constructor (config: Config) {
     super({
@@ -25,6 +27,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     this.l1BridgeContract = config.l1BridgeContract
     this.l2BridgeContract = config.l2BridgeContract
     this.label = config.label
+    this.order = config.order
   }
 
   async start () {
@@ -100,16 +103,46 @@ class BondTransferRootWatcher extends BaseWatcher {
         chainAmounts
       }
 
-      await wait(2 * 1000)
+      await this.waitTimeout(transferRootHash)
       const tx = await this.sendL1TransferRootTx(
         transferRootHash,
         chainIds,
         chainAmounts
       )
-      this.logger.log('L1 bondTransferRoot tx', chalk.yellow(tx.hash))
+      this.logger.log(
+        'L1 bondTransferRoot tx',
+        chalk.bgYellow.black.bold(tx.hash)
+      )
     } catch (err) {
-      this.logger.error('bondTransferRoot tx error:', err.message)
+      if (err.message !== 'cancelled') {
+        this.logger.error('bondTransferRoot tx error:', err.message)
+      }
     }
+  }
+
+  async waitTimeout (transferRootHash: string) {
+    await wait(2 * 1000)
+    if (!this.order) {
+      return
+    }
+    this.logger.debug(
+      `waiting for bond root event. transfer root hash: ${transferRootHash}`
+    )
+    let timeout = this.order * 15 * 1000
+    while (timeout > 0) {
+      const bond = await this.l1BridgeContract.transferBonds(transferRootHash)
+      if (bond.createdAt.toNumber() > 0) {
+        break
+      }
+      const delay = 2 * 1000
+      timeout -= delay
+      await wait(delay)
+    }
+    if (timeout <= 0) {
+      return
+    }
+    this.logger.debug(`transfer root hash already bonded ${transferRootHash}`)
+    throw new Error('cancelled')
   }
 }
 

@@ -9,22 +9,21 @@ import BaseWatcher from 'src/watchers/BaseWatcher'
 export interface Config {
   l2BridgeContract: any
   label: string
-  order: number
+  order?: () => number
 }
 
 class CommitTransfersWatcher extends BaseWatcher {
   l2BridgeContract: any
   label: string
-  order: number
 
   constructor (config: Config) {
     super({
       label: 'commitTransferWatcher',
-      logColor: 'yellow'
+      logColor: 'yellow',
+      order: config.order
     })
     this.l2BridgeContract = config.l2BridgeContract
     this.label = config.label
-    this.order = config.order
   }
 
   async start () {
@@ -42,7 +41,7 @@ class CommitTransfersWatcher extends BaseWatcher {
 
   check = throttle(async () => {
     try {
-      await wait(this.order * 10 * 1000)
+      await wait(this.order() * 10 * 1000)
       const pendingTransfer = await this.l2BridgeContract.pendingTransfers(0)
       // check if pending transfers exist
       if (!pendingTransfer) {

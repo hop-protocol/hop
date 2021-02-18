@@ -11,7 +11,7 @@ export interface Config {
   l1BridgeContract: any
   l2BridgeContract: any
   label: string
-  order: number
+  order?: () => number
 }
 
 const cache: { [key: string]: boolean } = {}
@@ -20,17 +20,16 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   l1BridgeContract: any
   l2BridgeContract: any
   label: string
-  order: number
 
   constructor (config: Config) {
     super({
       label: 'settleBondedWithdrawalWatcher',
-      logColor: 'magenta'
+      logColor: 'magenta',
+      order: config.order
     })
     this.l1BridgeContract = config.l1BridgeContract
     this.l2BridgeContract = config.l2BridgeContract
     this.label = config.label
-    this.order = config.order
   }
 
   async start () {

@@ -12,6 +12,8 @@ import arbbots from 'src/arb-bot/bots'
 import { l2ArbitrumProvider } from 'src/wallets/l2ArbitrumWallet'
 import { l2OptimismProvider } from 'src/wallets/l2OptimismWallet'
 import l1WalletOld from 'src/wallets/l1WalletOld'
+import { store } from 'src/store'
+import PubSub from 'src/pubsub/PubSub'
 
 const providers: any = {
   arbitrum: l2ArbitrumProvider,
@@ -50,7 +52,78 @@ program
   .option('-o, --order <order>', 'Bonder order')
   .description('Start the bonder watchers')
   .action(source => {
-    const order = Number(source.order)
+    const orderNum = Number(source.order) || 0
+
+    try {
+      const hostname = config.hostname
+      const pubsub = new PubSub()
+      const topic = '/hop-exchange/bonders'
+      pubsub.subscribe(topic, (data: any) => {
+        if (!(data && data.hostname)) {
+          return
+        }
+
+        if (data.hostname === hostname) {
+          return
+        }
+
+        if (!store.bonders[data.hostname]) {
+          if (data.order === orderNum) {
+            console.warn(
+              `Warning: host "${hostname}" has same order number "${data.order}"`
+            )
+          }
+
+          console.log(`Bonder "${hostname}" (order ${data.order}) is online`)
+        }
+
+        if (store.bonders[data.hostname] && !store.bonders[data.hostname].up) {
+          console.log(
+            `Bonder "${hostname}" (order ${data.order}) is back online`
+          )
+        }
+
+        store.bonders[data.hostname] = {
+          hostname: data.hostname,
+          order: data.order,
+          timestamp: Date.now(),
+          up: true
+        }
+      })
+
+      setInterval(() => {
+        pubsub.publish(topic, {
+          hostname,
+          order: orderNum
+        })
+
+        for (let k in store.bonders) {
+          const v = store.bonders[k]
+          if (v.up) {
+            if (Date.now() - v.timestamp > 10 * 1000) {
+              console.log(
+                `Bonder "${v.hostname}" (order ${v.order}) appears to be down`
+              )
+              v.up = false
+            }
+          }
+        }
+      }, 3 * 1000)
+    } catch (err) {
+      console.error(err)
+    }
+
+    const order = () => {
+      let delta = 0
+      for (let k in store.bonders) {
+        const v = store.bonders[k]
+        if (!v.up && v.order === orderNum - 1) {
+          delta = 1
+        }
+      }
+
+      return Math.max(orderNum - delta, 0)
+    }
 
     for (let network of networks) {
       for (let token of tokens) {
@@ -128,7 +201,6 @@ program
     for (let network of networks) {
       for (let token of tokens) {
         new CommitTransferWatcher({
-          order: 0,
           label: network,
           l2BridgeContract: contracts[token][network].l2Bridge
         }).start()

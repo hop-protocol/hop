@@ -10,24 +10,23 @@ export interface Config {
   l1BridgeContract: any
   l2BridgeContract: any
   label: string
-  order: number
+  order?: () => number
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
   l1BridgeContract: any
   l2BridgeContract: any
   label: string
-  order: number
 
   constructor (config: Config) {
     super({
       label: 'bondTransferRootWatcher',
-      logColor: 'cyan'
+      logColor: 'cyan',
+      order: config.order
     })
     this.l1BridgeContract = config.l1BridgeContract
     this.l2BridgeContract = config.l2BridgeContract
     this.label = config.label
-    this.order = config.order
   }
 
   async start () {
@@ -122,13 +121,13 @@ class BondTransferRootWatcher extends BaseWatcher {
 
   async waitTimeout (transferRootHash: string) {
     await wait(2 * 1000)
-    if (!this.order) {
+    if (!this.order()) {
       return
     }
     this.logger.debug(
       `waiting for bond root event. transfer root hash: ${transferRootHash}`
     )
-    let timeout = this.order * 15 * 1000
+    let timeout = this.order() * 15 * 1000
     while (timeout > 0) {
       const bond = await this.l1BridgeContract.transferBonds(transferRootHash)
       if (bond.createdAt.toNumber() > 0) {

@@ -51,3 +51,9 @@ services:
         awslogs-region: us-east-1
         awslogs-group: BridgeNodeKovan
         awslogs-create-group: 'true'
+
+  ipfs:
+    image: ipfs/go-ipfs
+    ports:
+      - 5001:5001
+    command: daemon --enable-pubsub-experiment

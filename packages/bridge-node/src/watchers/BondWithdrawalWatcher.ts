@@ -13,7 +13,7 @@ export interface Config {
   l2Provider: any
   contracts: any
   label: string
-  order: number
+  order?: () => number
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
@@ -22,19 +22,18 @@ class BondWithdrawalWatcher extends BaseWatcher {
   l2Provider: any
   contracts: any
   label: string
-  order: number
 
   constructor (config: Config) {
     super({
       label: 'bondWithdrawalWatcher',
-      logColor: 'green'
+      logColor: 'green',
+      order: config.order
     })
     this.l1BridgeContract = config.l1BridgeContract
     this.l2BridgeContract = config.l2BridgeContract
     this.l2Provider = config.l2Provider
     this.contracts = config.contracts
     this.label = config.label
-    this.order = config.order
   }
 
   async start () {
@@ -195,14 +194,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   async waitTimeout (transferHash: string, chainId: string) {
     await wait(2 * 1000)
-    if (!this.order) {
+    if (!this.order()) {
       return
     }
     this.logger.debug(
       `waiting for bondWithdrawal event. transfer hash: ${transferHash} chain id: ${chainId}`
     )
     const contract = this.contracts[chainId]
-    let timeout = this.order * 15 * 1000
+    let timeout = this.order() * 15 * 1000
     while (timeout > 0) {
       const bondedBn = await contract.getBondedWithdrawalAmount(transferHash)
       const bondedAmount = Number(formatUnits(bondedBn.toString(), 18))

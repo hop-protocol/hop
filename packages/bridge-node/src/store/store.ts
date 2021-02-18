@@ -1,6 +1,7 @@
 const store: any = {
   transferHashes: {},
-  transferRoots: {}
+  transferRoots: {},
+  bonders: {}
 }
 
 export default store

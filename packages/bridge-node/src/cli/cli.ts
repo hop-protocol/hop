@@ -14,6 +14,7 @@ import { l2OptimismProvider } from 'src/wallets/l2OptimismWallet'
 import l1WalletOld from 'src/wallets/l1WalletOld'
 import { store } from 'src/store'
 import PubSub from 'src/pubsub/PubSub'
+import Logger from 'src/logger'
 
 const providers: any = {
   arbitrum: l2ArbitrumProvider,
@@ -24,6 +25,7 @@ const program = new Command()
 
 const tokens = Object.keys(config.tokens)
 const networks = ['arbitrum', 'optimism']
+const pubsubLogger = new Logger('[pubsub]', { color: 'magenta' })
 
 const startStakeWatchers = () => {
   for (let token of tokens) {
@@ -69,17 +71,19 @@ program
 
         if (!store.bonders[data.hostname]) {
           if (data.order === orderNum) {
-            console.warn(
+            pubsubLogger.warn(
               `Warning: host "${hostname}" has same order number "${data.order}"`
             )
           }
 
-          console.log(`Bonder "${hostname}" (order ${data.order}) is online`)
+          pubsubLogger.log(
+            `Bonder "${data.hostname}" (order ${data.order}) is online`
+          )
         }
 
         if (store.bonders[data.hostname] && !store.bonders[data.hostname].up) {
-          console.log(
-            `Bonder "${hostname}" (order ${data.order}) is back online`
+          pubsubLogger.log(
+            `Bonder "${data.hostname}" (order ${data.order}) is back online`
           )
         }
 
@@ -101,7 +105,7 @@ program
           const v = store.bonders[k]
           if (v.up) {
             if (Date.now() - v.timestamp > 10 * 1000) {
-              console.log(
+              pubsubLogger.log(
                 `Bonder "${v.hostname}" (order ${v.order}) appears to be down`
               )
               v.up = false
@@ -110,7 +114,7 @@ program
         }
       }, 3 * 1000)
     } catch (err) {
-      console.error(err)
+      pubsubLogger.error(err)
     }
 
     const order = () => {

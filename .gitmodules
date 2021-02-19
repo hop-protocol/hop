@@ -1,3 +1,0 @@
-[submodule "packages/contracts"]
-	path = packages/contracts
-	url = https://github.com/hop-exchange/contracts.git

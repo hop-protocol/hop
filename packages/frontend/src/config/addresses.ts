@@ -40,11 +40,20 @@ export const addresses: HopAddresses = {
       optimism: {
         l1CanonicalBridge: '0xA6e9F1409fe85c84CEACD5936800A12d721009cE',
         l2CanonicalBridge: '0x61cBe9766fe7392A4DE03A54b2069c103AE674eb',
-        l2CanonicalToken: '0x57eaeE3D9C99b93D8FD1b50EF274579bFEC8e14B', // Temp
+        l2CanonicalToken: '0x57eaeE3D9C99b93D8FD1b50EF274579bFEC8e14B',
         l2Bridge: '0x6d2f304CFF4e0B67dA4ab38C6A5C8184a2424D05',
         uniswapRouter: '0x3C67B82D67B4f31A54C0A516dE8d3e93D010EDb3',
         uniswapFactory: '0x3e4CFaa8730092552d9425575E49bB542e329981',
         uniswapExchange: '0x65F72DF8a668BC6272B059BB7F53ADc91066540C'
+      },
+      xdai: {
+        l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
+        l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
+        l2CanonicalToken: '0x714983a8Dc3329bf3BeB8F36b49878CF944E5A3B',
+        l2Bridge: '0x2d8948542E732c1fDaDdC36164219D7B4d178965',
+        uniswapRouter: '0x47a83B71AB3F8086c31Bfe518D64262Baf86145e',
+        uniswapFactory: '0x2C4c5e8F1057Ca7B0cB91b7e3B51f4B2E773B5eB',
+        uniswapExchange: '0x7D2E076711D5c7a26564CCc0c64663003A8c038E'
       }
     },
     ARB: {
@@ -62,17 +71,6 @@ export const addresses: HopAddresses = {
         uniswapExchange: '0xeA7BC91aB88759039a977AB8E774f09BF33c9A20',
         arbChain: '0x2e8aF9f74046D3E55202Fcfb893348316B142230'
       }
-      /*
-      optimism: {
-        l1CanonicalBridge: '0x5a422cD617a1f33228dd253d5e885406108cF1B3',
-        l2CanonicalBridge: '0xdE36eA45af1846fa4d655ceb032F0988dFB4dB0f',
-        l2CanonicalToken: '0xdE36eA45af1846fa4d655ceb032F0988dFB4dB0f', // Temp
-        l2Bridge: '',
-        uniswapRouter: '0x3C67B82D67B4f31A54C0A516dE8d3e93D010EDb3',
-        uniswapFactory: '0x3e4CFaa8730092552d9425575E49bB542e329981',
-        uniswapExchange: '0x65F72DF8a668BC6272B059BB7F53ADc91066540C'
-      }
-      */
     }
   }
 }

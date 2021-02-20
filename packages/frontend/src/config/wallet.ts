@@ -10,4 +10,7 @@ export const arbitrumNetworkId = '79377087078960'
 export const arbitrumRpcUrl = 'https://kovan3.arbitrum.io/rpc'
 
 export const optimismNetworkId = '69'
-export const optimismRpcUrl = 'https://kovan.optimism.rpc.hop.exchange/'
+export const optimismRpcUrl = 'https://kovan.optimism.rpc.hop.exchange'
+
+export const xDaiNetworkId = '77'
+export const xDaiRpcUrl = 'https://sokol.poa.network'

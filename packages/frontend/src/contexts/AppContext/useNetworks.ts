@@ -2,13 +2,16 @@ import { useMemo } from 'react'
 import MainnetLogo from 'src/assets/logos/mainnet.svg'
 import ArbitrumLogo from 'src/assets/logos/arbitrum.svg'
 import OptimismLogo from 'src/assets/logos/optimism.svg'
+import xDaiLogo from 'src/assets/logos/xdai.svg'
 import {
   l1NetworkId,
   l1RpcUrl,
   arbitrumNetworkId,
   arbitrumRpcUrl,
   optimismNetworkId,
-  optimismRpcUrl
+  optimismRpcUrl,
+  xDaiNetworkId,
+  xDaiRpcUrl
 } from 'src/config'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
@@ -39,6 +42,14 @@ const useNetworks = () => {
         imageUrl: OptimismLogo,
         rpcUrl: optimismRpcUrl,
         networkId: optimismNetworkId,
+        isLayer1: false
+      }),
+      new Network({
+        name: 'xDai',
+        slug: 'xdai',
+        imageUrl: xDaiLogo,
+        rpcUrl: xDaiRpcUrl,
+        networkId: xDaiNetworkId,
         isLayer1: false
       })
     ],

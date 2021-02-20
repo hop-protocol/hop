@@ -7,7 +7,7 @@ import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
-import { UINT256, ARBITRUM, OPTIMISM } from 'src/config/constants'
+import { UINT256, ARBITRUM, OPTIMISM, XDAI } from 'src/config/constants'
 import l2OptimismTokenArtifact from 'src/abi/L2_OptimismERC20.json'
 import logger from 'src/logger'
 import { contractNetworkSlugToChainId } from 'src/utils'
@@ -330,8 +330,8 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
+              const messengerWrite = await getWriteContract(messenger)
               if (destSlug === ARBITRUM) {
-                const messengerWrite = await getWriteContract(messenger)
                 return messengerWrite?.depositERC20Message(
                   addresses.tokens[selectedToken.symbol][destSlug].arbChain,
                   tokenAddress,
@@ -339,7 +339,11 @@ const ConvertContextProvider: FC = ({ children }) => {
                   value
                 )
               } else if (destSlug === OPTIMISM) {
-                return messenger?.deposit(address, value, true)
+                return messengerWrite?.deposit(address, value, true)
+              } else if (destSlug === XDAI) {
+                return messengerWrite?.relayTokens(address, value)
+              } else {
+                throw new Error('not implemented')
               }
             }
           })

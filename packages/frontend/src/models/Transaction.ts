@@ -1,6 +1,11 @@
 import { ethers } from 'ethers'
 import { EventEmitter } from 'events'
-import { l1RpcUrl, arbitrumRpcUrl, optimismRpcUrl } from 'src/config'
+import {
+  l1RpcUrl,
+  arbitrumRpcUrl,
+  optimismRpcUrl,
+  xDaiRpcUrl
+} from 'src/config'
 
 interface Config {
   networkName: string
@@ -42,6 +47,8 @@ class Transaction extends EventEmitter {
       rpcUrl = arbitrumRpcUrl
     } else if (networkName.startsWith('optimism')) {
       rpcUrl = optimismRpcUrl
+    } else if (networkName.startsWith('xdai')) {
+      rpcUrl = xDaiRpcUrl
     } else {
       rpcUrl = l1RpcUrl
     }
@@ -66,6 +73,8 @@ class Transaction extends EventEmitter {
       return this._arbitrumLink()
     } else if (this.networkName.startsWith('optimism')) {
       return this._optimismLink()
+    } else if (this.networkName.startsWith('xdai')) {
+      return this._xdaiLink()
     } else {
       return ''
     }
@@ -99,6 +108,10 @@ class Transaction extends EventEmitter {
 
   private _optimismLink () {
     return `https://kovan-l2-explorer.surge.sh/tx/${this.hash}`
+  }
+
+  private _xdaiLink () {
+    return `https://blockscout.com/poa/sokol/tx/${this.hash}`
   }
 
   toObject () {

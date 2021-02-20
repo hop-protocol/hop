@@ -5,6 +5,7 @@ import l2OptimismBridgeArtifact from 'src/abi/L2OptimismBridge.json'
 import l2OptimismTokenArtifact from 'src/abi/L2_OptimismERC20.json'
 import l1ArbitrumMessengerArtifact from 'src/abi/GlobalInbox.json'
 import l1OptimismTokenBridgeArtifact from 'src/abi/L1OptimismTokenBridge.json'
+import l1xDaiForeignOmnibridge from 'src/abi/L1_xDaiForeignOmnibridge.json'
 import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
 import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
 import arbErc20Artifact from 'src/abi/ArbERC20.json'
@@ -67,7 +68,6 @@ const useNetworkSpecificContracts = (
     return l1Network?.provider
   }, [l1Network, connectedNetworkId, provider])
   const l1CanonicalBridge = useMemo(() => {
-    // Optimism Canonical Bridge is different than Arbitrum's Canonical Bridge contract
     if (
       l1CanonicalBridgeAddress ===
       addresses.tokens[token.symbol]?.optimism?.l1CanonicalBridge
@@ -75,6 +75,17 @@ const useNetworkSpecificContracts = (
       return new Contract(
         l1CanonicalBridgeAddress,
         l1OptimismTokenBridgeArtifact.abi,
+        l1Provider
+      )
+    }
+
+    if (
+      l1CanonicalBridgeAddress ===
+      addresses.tokens[token.symbol]?.xdai?.l1CanonicalBridge
+    ) {
+      return new Contract(
+        l1CanonicalBridgeAddress,
+        l1xDaiForeignOmnibridge.abi,
         l1Provider
       )
     }

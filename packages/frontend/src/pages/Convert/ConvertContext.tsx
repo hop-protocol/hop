@@ -381,6 +381,8 @@ const ConvertContextProvider: FC = ({ children }) => {
                   sourceTokenContracts?.l2CanonicalToken
                 )
                 return l2Token?.withdraw(value)
+              } else {
+                throw new Error('not implemented')
               }
             }
           })

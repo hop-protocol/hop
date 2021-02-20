@@ -1,5 +1,5 @@
-import { ARBITRUM, OPTIMISM } from 'src/config/constants'
-import { arbitrumNetworkId, optimismNetworkId } from 'src/config'
+import { ARBITRUM, OPTIMISM, XDAI } from 'src/config/constants'
+import { arbitrumNetworkId, optimismNetworkId, xDaiNetworkId } from 'src/config'
 
 const contractNetworkSlugToChainId = (slug: string) => {
   switch (slug) {
@@ -7,6 +7,8 @@ const contractNetworkSlugToChainId = (slug: string) => {
       return arbitrumNetworkId
     case OPTIMISM:
       return optimismNetworkId
+    case XDAI:
+      return xDaiNetworkId
   }
 }
 

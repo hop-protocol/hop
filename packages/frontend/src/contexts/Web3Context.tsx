@@ -16,11 +16,13 @@ import {
   infuraKey,
   arbitrumNetworkId,
   optimismNetworkId,
+  xDaiNetworkId,
   blocknativeDappid,
   fortmaticApiKey,
   portisDappId,
   arbitrumRpcUrl,
-  optimismRpcUrl
+  optimismRpcUrl,
+  xDaiRpcUrl
 } from 'src/config'
 
 import MetamaskAccountsSettingsHighlight from 'src/assets/onboard/metamask-accounts-settings-highlight.png'
@@ -119,7 +121,8 @@ const Web3ContextProvider: FC = ({ children }) => {
         '5': 'Goerli',
         '42': 'Kovan',
         [arbitrumNetworkId]: 'Arbitrum',
-        [optimismNetworkId]: 'Optimism'
+        [optimismNetworkId]: 'Optimism',
+        [xDaiNetworkId]: 'xDai'
       }
       const walletName = state.wallet.name
       const gotNetworkId = state.network.toString()
@@ -137,13 +140,17 @@ const Web3ContextProvider: FC = ({ children }) => {
       if (wantNetworkId === optimismNetworkId) {
         wantRpcUrl = optimismRpcUrl
       }
+      if (wantNetworkId === xDaiNetworkId) {
+        wantRpcUrl = xDaiRpcUrl
+      }
 
       let html = ''
       if (walletName === 'MetaMask') {
         let stepImages: string[] = []
         if (
           wantNetworkId === arbitrumNetworkId ||
-          wantNetworkId === optimismNetworkId
+          wantNetworkId === optimismNetworkId ||
+          wantNetworkId === xDaiNetworkId
         ) {
           stepImages = [
             MetamaskAccountsSettingsHighlight,

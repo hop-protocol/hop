@@ -341,7 +341,7 @@ const ConvertContextProvider: FC = ({ children }) => {
               } else if (destSlug === OPTIMISM) {
                 return messengerWrite?.deposit(address, value, true)
               } else if (destSlug === XDAI) {
-                return messengerWrite?.relayTokens(address, value)
+                return messengerWrite?.relayTokens(tokenAddress, address, value)
               } else {
                 throw new Error('not implemented')
               }

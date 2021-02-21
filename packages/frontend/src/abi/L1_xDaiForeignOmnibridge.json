@@ -4,6 +4,10 @@
       "constant": false,
       "inputs": [
         {
+          "name": "token",
+          "type": "address"
+        },
+        {
           "name": "_receiver",
           "type": "address"
         },

@@ -4,7 +4,7 @@ import { wallets } from 'src/wallets'
 import { contracts } from 'src/contracts'
 
 const tokenSymbols = Object.keys(contracts)
-const networks = ['arbitrum', 'optimism']
+const networks = ['arbitrum', 'optimism', 'xdai']
 
 const bots: ArbBot[] = []
 for (let network of networks) {

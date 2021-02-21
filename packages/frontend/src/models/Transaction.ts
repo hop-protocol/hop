@@ -41,7 +41,7 @@ class Transaction extends EventEmitter {
   }: Config) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
-    this.networkName = (networkName || '').trim().toLowerCase()
+    this.networkName = (networkName || 'kovan').trim().toLowerCase()
     let rpcUrl = ''
     if (networkName.startsWith('arbitrum')) {
       rpcUrl = arbitrumRpcUrl

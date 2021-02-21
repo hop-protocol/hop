@@ -11,6 +11,7 @@ import { tokens } from 'src/config'
 import l1Wallet from 'src/wallets/l1Wallet'
 import l2ArbitrumWallet from 'src/wallets/l2ArbitrumWallet'
 import l2OptimismWallet from 'src/wallets/l2OptimismWallet'
+import l2xDaiWallet from 'src/wallets/l2xDaiWallet'
 
 const getL1BridgeContract = (token: string) => {
   return new ethers.Contract(
@@ -147,6 +148,22 @@ export const contracts = Object.keys(tokens).reduce((acc, token) => {
           token,
           network,
           l2OptimismWallet
+        )
+      }
+    } else if (network === 'xdai') {
+      obj[network] = {
+        l2Bridge: getL2BridgeContract(token, network, l2xDaiWallet),
+        l2CanonicalToken: getL2TokenContract(token, network, l2xDaiWallet),
+        uniswapRouter: getL2UniswapRouterContract(token, network, l2xDaiWallet),
+        uniswapFactory: getL2UniswapFactoryContract(
+          token,
+          network,
+          l2xDaiWallet
+        ),
+        uniswapExchange: getL2UniswapExchangeContract(
+          token,
+          network,
+          l2xDaiWallet
         )
       }
     }

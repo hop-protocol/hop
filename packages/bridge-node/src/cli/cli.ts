@@ -24,7 +24,7 @@ const providers: any = {
 const program = new Command()
 
 const tokens = Object.keys(config.tokens)
-const networks = ['arbitrum', 'optimism']
+const networks = ['arbitrum', 'optimism', 'xdai']
 const pubsubLogger = new Logger('[pubsub]', { color: 'magenta' })
 
 const startStakeWatchers = () => {
@@ -138,7 +138,8 @@ program
         let l1Bridge = contracts[token].kovan.l1Bridge
         if (
           (token === 'DAI' && network === 'arbitrum') ||
-          (token === 'DAI' && network === 'optimism')
+          (token === 'DAI' && network === 'optimism') ||
+          (token === 'DAI' && network === 'xdai')
         ) {
           l1Bridge = l1Bridge.connect(l1WalletOld)
         }
@@ -159,7 +160,8 @@ program
           contracts: {
             '42': contracts[token].kovan?.l1Bridge,
             '69': contracts[token].optimism?.l2Bridge,
-            '79377087078960': contracts[token].arbitrum?.l2Bridge
+            '79377087078960': contracts[token].arbitrum?.l2Bridge,
+            '77': contracts[token].xdai?.l2Bridge
           },
           l2Provider: providers[network]
         }).start()

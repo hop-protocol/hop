@@ -31,13 +31,18 @@ const Pools: FC = () => {
   const styles = useStyles()
   let { mintToken, mintAmount, isMinting, error, setError } = useFaucet()
 
-  const handleMint = () => {
+  const handleDaiMint = () => {
     mintToken()
   }
 
-  const handleFaucetClick = (event: SyntheticEvent) => {
+  const handleKethFaucetClick = (event: SyntheticEvent) => {
     event.preventDefault()
     window.open('https://faucet.kovan.network/', '_blank')
+  }
+
+  const handlexDaiFaucetClick = (event: SyntheticEvent) => {
+    event.preventDefault()
+    window.open('https://blockscout.com/poa/sokol/faucet', '_blank')
   }
 
   return (
@@ -59,7 +64,7 @@ const Pools: FC = () => {
         />
         <Button
           className={styles.button}
-          onClick={handleMint}
+          onClick={handleDaiMint}
           large
           highlighted
           loading={isMinting}
@@ -73,11 +78,24 @@ const Pools: FC = () => {
         </Typography>
         <Button
           className={styles.button}
-          onClick={handleFaucetClick}
+          onClick={handleKethFaucetClick}
           large
           highlighted
         >
           Get kETH ↗
+        </Button>
+      </Box>
+      <Box display="flex" alignItems="center" className={styles.box}>
+        <Typography variant="body1" className={styles.text}>
+          Get xDAI Sokol ETH (SPOA)
+        </Typography>
+        <Button
+          className={styles.button}
+          onClick={handlexDaiFaucetClick}
+          large
+          highlighted
+        >
+          Get xDai ETH ↗
         </Button>
       </Box>
     </Box>

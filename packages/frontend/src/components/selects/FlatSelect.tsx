@@ -7,7 +7,7 @@ const useStyles = makeStyles(theme => ({
   root: {
     color: theme.palette.text.secondary,
     backgroundColor: 'rgba(255, 255, 255, 0.55)',
-    width: '17.4rem',
+    width: '17.6rem',
     borderRadius: '2.3rem',
     padding: '0 2.8rem 0 0',
     '&.MuiSelect-select': {
@@ -41,7 +41,13 @@ const FlatSelect: FC<SelectProps & { children: any }> = props => {
   const icon = isSingle ? () => null : ArrowDropDownIcon
 
   return (
-    <Select IconComponent={icon} {...props} classes={styles} disableUnderline />
+    <Select
+      disabled={isSingle}
+      IconComponent={icon}
+      {...props}
+      classes={styles}
+      disableUnderline
+    />
   )
 }
 

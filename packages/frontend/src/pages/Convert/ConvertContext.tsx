@@ -90,7 +90,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     const l1Networks = nets.filter((network: Network) => network.isLayer1)
     const l2CanonicalNetworks = l2Networks.map((network: Network) => {
       return new Network({
-        name: `${network.name} Canonical`,
+        name: `Canonical Bridge`,
         slug: network.slug,
         imageUrl: network.imageUrl,
         rpcUrl: network.rpcUrl,
@@ -99,7 +99,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     })
     const l2HopBridges = l2Networks.map((network: Network) => {
       return new Network({
-        name: `${network.name} Hop Bridge`,
+        name: `Hop Bridge`,
         slug: `${network.slug}HopBridge`,
         imageUrl: network.imageUrl,
         rpcUrl: network.rpcUrl,

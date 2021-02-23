@@ -64,6 +64,15 @@ const Convert: FC = () => {
     const token = tokens.find((token: Token) => token.symbol === tokenSymbol)
     if (token) {
       setSelectedToken(token)
+
+      if (!token?.supportedNetworks?.includes(selectedNetwork?.slug || '')) {
+        const network = l2Networks.find((network: Network) =>
+          token.supportedNetworks.includes(network.slug)
+        )
+        if (network) {
+          setSelectedNetwork(network)
+        }
+      }
     }
   }
 
@@ -72,6 +81,15 @@ const Convert: FC = () => {
     const network = l2Networks.find((network: Network) => network.slug === slug)
     if (network) {
       setSelectedNetwork(network)
+
+      if (!selectedToken?.supportedNetworks?.includes(network?.slug || '')) {
+        const token = tokens.find((token: Token) =>
+          token.supportedNetworks.includes(network.slug)
+        )
+        if (token) {
+          setSelectedToken(token)
+        }
+      }
     }
   }
 

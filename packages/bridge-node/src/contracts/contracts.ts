@@ -3,6 +3,7 @@ import erc20Abi from 'src/abi/ERC20.json'
 import l1BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L1_Bridge.sol/L1_Bridge.json'
 import l2BridgeArtifactOld from '@hop-exchange/contracts/artifacts/contracts/bridges/L2_Bridge.sol/L2_Bridge.json'
 import l2BridgeArtifact from 'src/abi/L2OptimismBridge.json'
+import l2xDaiBridgeArtifact from 'src/abi/L2xDaiBridge.json'
 import uniswapRouterArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Router02.sol/UniswapV2Router02.json'
 import uniswapFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/uniswap/UniswapV2Library.sol/Factory.json'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
@@ -33,6 +34,18 @@ const getL2TokenContract = (token: string, network: string, wallet: any) => {
   return new ethers.Contract(
     tokens[token][network].l2CanonicalToken,
     erc20Abi,
+    wallet
+  )
+}
+
+const getL2BridgeContractxDai = (
+  token: string,
+  network: string,
+  wallet: any
+) => {
+  return new ethers.Contract(
+    tokens[token][network].l2Bridge,
+    l2xDaiBridgeArtifact.abi,
     wallet
   )
 }
@@ -152,7 +165,7 @@ export const contracts = Object.keys(tokens).reduce((acc, token) => {
       }
     } else if (network === 'xdai') {
       obj[network] = {
-        l2Bridge: getL2BridgeContract(token, network, l2xDaiWallet),
+        l2Bridge: getL2BridgeContractxDai(token, network, l2xDaiWallet),
         l2CanonicalToken: getL2TokenContract(token, network, l2xDaiWallet),
         uniswapRouter: getL2UniswapRouterContract(token, network, l2xDaiWallet),
         uniswapFactory: getL2UniswapFactoryContract(

@@ -1,4 +1,11 @@
-import React, { FC, createContext, useContext, useState, useMemo } from 'react'
+import React, {
+  FC,
+  createContext,
+  useEffect,
+  useContext,
+  useState,
+  useMemo
+} from 'react'
 import { Contract } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Token from 'src/models/Token'
@@ -71,7 +78,11 @@ const ConvertContext = createContext<ConvertContextProps>({
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
-  const { provider, getWriteContract } = useWeb3Context()
+  const {
+    provider,
+    checkConnectedNetworkId,
+    getWriteContract
+  } = useWeb3Context()
   const app = useApp()
   let { networks: nets, tokens, contracts, txConfirm } = app
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
@@ -132,7 +143,6 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
     return obj
   }, {} as any)
-
   const calcAltTokenAmount = async (value: string) => {
     if (value) {
       if (!sourceNetwork) {
@@ -172,6 +182,10 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   const convertTokens = async () => {
     try {
+      const networkId = Number(sourceNetwork?.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+
       setError(null)
       if (!Number(sourceTokenAmount)) {
         return

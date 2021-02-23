@@ -36,8 +36,6 @@ type Props = {
   onboard: any
   provider: ethers.providers.Web3Provider | undefined
   address: Address | undefined
-  requiredNetworkId: string
-  setRequiredNetworkId: (networkId: string) => void
   connectedNetworkId: string
   validConnectedNetworkId: boolean
   requestWallet: () => void
@@ -54,7 +52,6 @@ const initialState = {
   onboard: undefined,
   provider: undefined,
   address: undefined,
-  requiredNetworkId: '',
   connectedNetworkId: '',
   validConnectedNetworkId: false,
   setRequiredNetworkId: (networkId: string) => {},
@@ -75,7 +72,6 @@ const Web3ContextProvider: FC = ({ children }) => {
   const [provider, setProvider] = useState<
     ethers.providers.Web3Provider | undefined
   >()
-  const [requiredNetworkId, setRequiredNetworkId] = useState<string>('')
   const [connectedNetworkId, setConnectedNetworkId] = useState<string>('')
   const [validConnectedNetworkId, setValidConnectedNetworkId] = useState<
     boolean
@@ -271,23 +267,6 @@ const Web3ContextProvider: FC = ({ children }) => {
     return instance
   }, [setProvider, setConnectedNetworkId])
 
-  useEffect(() => {
-    if (requiredNetworkId) {
-      onboard.config({ networkId: Number(requiredNetworkId) })
-      if (onboard.getState().address) {
-        onboard.walletCheck()
-      }
-    }
-  }, [onboard, requiredNetworkId, connectedNetworkId])
-
-  useEffect(() => {
-    if (onboard.getState().address) {
-      setValidConnectedNetworkId(connectedNetworkId === requiredNetworkId)
-    } else {
-      setValidConnectedNetworkId(false)
-    }
-  }, [onboard, connectedNetworkId, requiredNetworkId])
-
   const requestWallet = () => {
     const _requestWallet = async () => {
       try {
@@ -315,7 +294,7 @@ const Web3ContextProvider: FC = ({ children }) => {
   const checkConnectedNetworkId = async (
     networkId: number
   ): Promise<boolean> => {
-    console.log('checkConnectedNetworkId')
+    logger.debug('checkConnectedNetworkId')
     const signerNetworkId = (await provider?.getNetwork())?.chainId
     if (networkId != signerNetworkId) {
       onboard.config({ networkId })
@@ -362,8 +341,6 @@ const Web3ContextProvider: FC = ({ children }) => {
         provider,
         address,
         walletConnected,
-        requiredNetworkId,
-        setRequiredNetworkId,
         connectedNetworkId,
         validConnectedNetworkId,
         requestWallet,

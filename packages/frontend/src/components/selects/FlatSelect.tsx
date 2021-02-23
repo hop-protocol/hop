@@ -1,6 +1,7 @@
 import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Select, { SelectProps } from '@material-ui/core/Select'
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -34,10 +35,14 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const FlatSelect: FC<SelectProps> = props => {
+const FlatSelect: FC<SelectProps & { children: any }> = props => {
   const styles = useStyles()
+  const isSingle = props?.children?.filter((x: any) => x).length <= 1
+  const icon = isSingle ? () => null : ArrowDropDownIcon
 
-  return <Select {...props} classes={styles} disableUnderline />
+  return (
+    <Select IconComponent={icon} {...props} classes={styles} disableUnderline />
+  )
 }
 
 export default FlatSelect

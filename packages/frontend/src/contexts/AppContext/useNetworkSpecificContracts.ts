@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Contract } from 'ethers'
+import l1BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L1_Bridge.sol/L1_Bridge.json'
 import l2BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L2_Bridge.sol/L2_Bridge.json'
 import l2OptimismBridgeArtifact from 'src/abi/L2OptimismBridge.json'
 import l2OptimismTokenArtifact from 'src/abi/L2_OptimismERC20.json'
@@ -18,6 +19,7 @@ import Token from 'src/models/Token'
 import logger from 'src/logger'
 
 export type NetworkSpecificContracts = {
+  l1Bridge: Contract | undefined
   l1CanonicalBridge: Contract | undefined
   l2CanonicalToken: Contract | undefined
   l2Bridge: Contract | undefined
@@ -36,6 +38,7 @@ const useNetworkSpecificContracts = (
 
   if (!l2Network?.slug) {
     return {
+      l1Bridge: undefined,
       l1CanonicalBridge: undefined,
       l2CanonicalToken: undefined,
       l2Bridge: undefined,
@@ -46,6 +49,7 @@ const useNetworkSpecificContracts = (
   }
 
   const tokenConfig = addresses.tokens[token.symbol][l2Network?.slug]
+  const l1BridgeAddress: string = tokenConfig.l1Bridge
   const l1CanonicalBridgeAddress: string = tokenConfig.l1CanonicalBridge
   const l2CanonicalTokenAddress: string = tokenConfig.l2CanonicalToken
   const l2BridgeAddress: string = tokenConfig.l2Bridge
@@ -67,6 +71,13 @@ const useNetworkSpecificContracts = (
 
     return l1Network?.provider
   }, [l1Network, connectedNetworkId, provider])
+  const l1Bridge = useMemo(() => {
+    if (!l1BridgeAddress) {
+      return undefined
+    }
+
+    return new Contract(l1BridgeAddress, l1BridgeArtifact.abi, l1Provider)
+  }, [l1Provider])
   const l1CanonicalBridge = useMemo(() => {
     if (
       l1CanonicalBridgeAddress ===
@@ -151,6 +162,7 @@ const useNetworkSpecificContracts = (
   }, [l2Provider])
 
   return {
+    l1Bridge,
     l1CanonicalBridge,
     l2CanonicalToken,
     l2Bridge,

@@ -17,6 +17,7 @@ import ConvertViaHopBridge from 'src/pages/Convert/ConvertViaHopBridge'
 import ConvertViaCanonicalBridge from 'src/pages/Convert/ConvertViaCanonicalBridge'
 import ConvertViaUniswap from 'src/pages/Convert/ConvertViaUniswap'
 import Token from 'src/models/Token'
+import Network from 'src/models/Network'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 
 const useStyles = makeStyles(theme => ({
@@ -46,7 +47,14 @@ const useStyles = makeStyles(theme => ({
 
 const Convert: FC = () => {
   const styles = useStyles()
-  const { tokens, selectedToken, setSelectedToken } = useConvert()
+  const {
+    tokens,
+    selectedToken,
+    setSelectedToken,
+    l2Networks,
+    selectedNetwork,
+    setSelectedNetwork
+  } = useConvert()
   const { pathname } = useLocation()
   const { path } = useRouteMatch()
   const history = useHistory()
@@ -56,6 +64,14 @@ const Convert: FC = () => {
     const token = tokens.find((token: Token) => token.symbol === tokenSymbol)
     if (token) {
       setSelectedToken(token)
+    }
+  }
+
+  const handleNetworkChange = (event: ChangeEvent<{ value: unknown }>) => {
+    const slug = event.target.value as string
+    const network = l2Networks.find((network: Network) => network.slug === slug)
+    if (network) {
+      setSelectedNetwork(network)
     }
   }
 
@@ -96,6 +112,18 @@ const Convert: FC = () => {
             {tabs.map(tab => (
               <MenuItem value={tab.value} key={tab.value}>
                 {tab.label}
+              </MenuItem>
+            ))}
+          </RaisedSelect>
+        </div>
+        <div className={styles.select}>
+          <RaisedSelect
+            value={selectedNetwork?.slug}
+            onChange={handleNetworkChange}
+          >
+            {l2Networks.map(network => (
+              <MenuItem value={network.slug} key={network.slug}>
+                on {network.name}
               </MenuItem>
             ))}
           </RaisedSelect>

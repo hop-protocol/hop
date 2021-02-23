@@ -31,10 +31,11 @@ const useStyles = makeStyles(() => ({
 const Convert: FC = () => {
   const styles = useStyles()
   let {
+    networks,
     selectedToken,
     sourceNetwork,
+    selectedNetwork,
     setSourceNetwork,
-    sourceNetworks,
     destNetwork,
     setDestNetwork,
     sourceTokenAmount,
@@ -44,7 +45,6 @@ const Convert: FC = () => {
     calcAltTokenAmount,
     setSourceTokenBalance,
     setDestTokenBalance,
-    networkPairMap,
     error,
     setError
   } = useConvert()
@@ -52,6 +52,23 @@ const Convert: FC = () => {
     setSourceTokenAmount('')
     setDestTokenAmount('')
   }, [setSourceTokenAmount, setDestTokenAmount])
+
+  useEffect(() => {
+    const sourceNets = networks.filter((network: Network) => {
+      return (
+        network.name.includes('Canonical') &&
+        network?.slug?.includes(selectedNetwork?.slug ?? '')
+      )
+    })
+    setSourceNetwork(sourceNets[0])
+    const destNets = networks.filter((network: Network) => {
+      return (
+        network.slug.includes('HopBridge') &&
+        network?.slug?.includes(selectedNetwork?.slug ?? '')
+      )
+    })
+    setDestNetwork(destNets[0])
+  }, [networks, selectedNetwork])
 
   const handleSwitchDirection = () => {
     destNetwork && setSourceNetwork(destNetwork)
@@ -73,74 +90,6 @@ const Convert: FC = () => {
     } catch (err) {}
   }
 
-  sourceNetworks = sourceNetworks.filter((network: Network) => {
-    return (
-      !network.isLayer1 &&
-      selectedToken?.supportedNetworks.includes(
-        network.slug?.replace('HopBridge', '')
-      )
-    )
-  })
-
-  const destNetworks = sourceNetworks.filter((network: Network) => {
-    return (
-      !network.isLayer1 &&
-      selectedToken?.supportedNetworks.includes(
-        network.slug?.replace('HopBridge', '')
-      )
-    )
-  })
-
-  useEffect(() => {
-    const defaultNetwork = sourceNetworks[0].slug
-    if (!sourceNetwork || sourceNetwork.isLayer1) {
-      setSourceNetwork(
-        sourceNetworks.find(
-          (network: Network) => network?.slug === defaultNetwork
-        ) as Network
-      )
-    }
-    if (!destNetwork || destNetwork.isLayer1) {
-      setDestNetwork(
-        sourceNetworks.find(
-          (network: Network) => network?.slug === networkPairMap[defaultNetwork]
-        ) as Network
-      )
-    }
-  }, [
-    setSourceNetwork,
-    setDestNetwork,
-    sourceNetworks,
-    sourceNetwork,
-    destNetwork
-  ])
-
-  const handleSourceNetworkChange = (network: Network | undefined) => {
-    if (network) {
-      setSourceNetwork(network)
-
-      const dest = sourceNetworks?.find(
-        (net: Network) => net?.slug === networkPairMap[network?.slug]
-      )
-      if (dest) {
-        setDestNetwork(dest)
-      }
-    }
-  }
-
-  const handleDestNetworkChange = (network: Network | undefined) => {
-    if (network) {
-      setDestNetwork(network)
-
-      const source = sourceNetworks?.find(
-        (net: Network) => net?.slug === networkPairMap[network?.slug]
-      )
-      if (source) {
-        setSourceNetwork(source)
-      }
-    }
-  }
-
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <AmountSelectorCard
@@ -150,8 +99,6 @@ const Convert: FC = () => {
         onChange={handleSourceTokenAmountChange}
         selectedNetwork={sourceNetwork}
         onBalanceChange={setSourceTokenBalance}
-        networkOptions={sourceNetworks}
-        onNetworkChange={handleSourceNetworkChange}
       />
       <MuiButton
         className={styles.switchDirectionButton}
@@ -167,8 +114,6 @@ const Convert: FC = () => {
         onChange={handleDestTokenAmountChange}
         selectedNetwork={destNetwork}
         onBalanceChange={setDestTokenBalance}
-        networkOptions={destNetworks}
-        onNetworkChange={handleDestNetworkChange}
       />
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <SendButton />

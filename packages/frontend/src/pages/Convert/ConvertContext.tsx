@@ -16,11 +16,12 @@ type ConvertContextProps = {
   tokens: Token[]
   selectedToken: Token | undefined
   setSelectedToken: (token: Token) => void
+  networks: Network[]
+  l2Networks: Network[]
   selectedNetwork: Network | undefined
   setSelectedNetwork: (network: Network | undefined) => void
   sourceNetwork: Network | undefined
   setSourceNetwork: (network: Network) => void
-  sourceNetworks: Network[]
   destNetwork: Network | undefined
   setDestNetwork: (network: Network) => void
   sourceTokenAmount: string | undefined
@@ -36,9 +37,6 @@ type ConvertContextProps = {
   destTokenBalance: number | null
   setSourceTokenBalance: (balance: number | null) => void
   setDestTokenBalance: (balance: number | null) => void
-  networkPairMap: any
-  convertCanonicalBridgeNetworks: string[]
-  convertHopBridgeNetworks: string[]
   error: string | null | undefined
   setError: (error: string | null | undefined) => void
 }
@@ -47,11 +45,12 @@ const ConvertContext = createContext<ConvertContextProps>({
   tokens: [],
   selectedToken: undefined,
   setSelectedToken: (token: Token) => {},
+  networks: [],
+  l2Networks: [],
   selectedNetwork: undefined,
   setSelectedNetwork: (network: Network | undefined) => {},
   sourceNetwork: undefined,
   setSourceNetwork: (network: Network) => {},
-  sourceNetworks: [],
   destNetwork: undefined,
   setDestNetwork: (network: Network) => {},
   sourceTokenAmount: undefined,
@@ -67,9 +66,6 @@ const ConvertContext = createContext<ConvertContextProps>({
   destTokenBalance: null,
   setSourceTokenBalance: (balance: number | null) => {},
   setDestTokenBalance: (balance: number | null) => {},
-  networkPairMap: {},
-  convertCanonicalBridgeNetworks: [],
-  convertHopBridgeNetworks: [],
   error: null,
   setError: (error: string | null | undefined) => {}
 })
@@ -89,9 +85,9 @@ const ConvertContextProvider: FC = ({ children }) => {
     if (!slug) return false
     return slug.includes('Bridge')
   }
+  const l2Networks = nets.filter((network: Network) => !network.isLayer1)
   const networks: Network[] = useMemo(() => {
     const l1Networks = nets.filter((network: Network) => network.isLayer1)
-    const l2Networks = nets.filter((network: Network) => !network.isLayer1)
     const l2CanonicalNetworks = l2Networks.map((network: Network) => {
       return new Network({
         name: `${network.name} Canonical`,
@@ -112,35 +108,10 @@ const ConvertContextProvider: FC = ({ children }) => {
     })
     return [...l1Networks, ...l2CanonicalNetworks, ...l2HopBridges]
   }, [nets])
-  const convertCanonicalBridgeNetworks = networks
-    .filter((network: Network) => {
-      return network.isLayer1 || !network.slug.includes('Bridge')
-    })
-    .filter(network => {
-      return (
-        network.isLayer1 ||
-        selectedToken.supportedNetworks.includes(canonicalSlug(network))
-      )
-    })
-    .map((network: Network) => network.slug)
-  const convertHopBridgeNetworks = networks
-    .filter((network: Network) => {
-      return network.isLayer1 || network.slug.includes('Bridge')
-    })
-    .filter(network => {
-      return (
-        network.isLayer1 ||
-        selectedToken.supportedNetworks.includes(canonicalSlug(network))
-      )
-    })
-    .map((network: Network) => network.slug)
-  const [sourceNetworks] = useState<Network[]>(networks)
   const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(
-    undefined
+    l2Networks[0]
   )
-  const [sourceNetwork, setSourceNetwork] = useState<Network | undefined>(
-    sourceNetworks[0]
-  )
+  const [sourceNetwork, setSourceNetwork] = useState<Network | undefined>()
   const [destNetwork, setDestNetwork] = useState<Network | undefined>()
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
@@ -267,6 +238,10 @@ const ConvertContextProvider: FC = ({ children }) => {
       if (sourceNetwork?.isLayer1) {
         // destination network is L2 hop bridge ( L1 -> L2 Hop )
         if (destNetwork && isHopBridge(destNetwork?.slug)) {
+          const chainId = contractNetworkSlugToChainId(
+            canonicalSlug(destNetwork)
+          )
+
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
@@ -292,11 +267,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             },
             onConfirm: async () => {
               const l1BridgeWrite = await getWriteContract(l1Bridge)
-              return l1BridgeWrite?.sendToL2(
-                contractNetworkSlugToChainId(canonicalSlug(destNetwork)),
-                address,
-                value
-              )
+              return l1BridgeWrite?.sendToL2(chainId, address, value)
             }
           })
 
@@ -541,11 +512,12 @@ const ConvertContextProvider: FC = ({ children }) => {
         tokens,
         selectedToken,
         setSelectedToken,
+        networks,
+        l2Networks,
         selectedNetwork,
         setSelectedNetwork,
         sourceNetwork,
         setSourceNetwork,
-        sourceNetworks,
         destNetwork,
         setDestNetwork,
         sourceTokenAmount,
@@ -561,9 +533,6 @@ const ConvertContextProvider: FC = ({ children }) => {
         destTokenBalance,
         setSourceTokenBalance,
         setDestTokenBalance,
-        networkPairMap,
-        convertCanonicalBridgeNetworks,
-        convertHopBridgeNetworks,
         error,
         setError
       }}

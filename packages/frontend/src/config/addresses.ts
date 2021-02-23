@@ -50,10 +50,10 @@ export const addresses: HopAddresses = {
         l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
         l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
         l2CanonicalToken: '0x714983a8Dc3329bf3BeB8F36b49878CF944E5A3B',
-        l2Bridge: '0x2d8948542E732c1fDaDdC36164219D7B4d178965',
-        uniswapRouter: '0x47a83B71AB3F8086c31Bfe518D64262Baf86145e',
-        uniswapFactory: '0x2C4c5e8F1057Ca7B0cB91b7e3B51f4B2E773B5eB',
-        uniswapExchange: '0x7D2E076711D5c7a26564CCc0c64663003A8c038E'
+        l2Bridge: '0x774CAB547c3BD28eC0e688639bC74e87748C187f',
+        uniswapRouter: '0xA7f6C324c44ba178938Ce804F3E877340B48d918',
+        uniswapFactory: '0x81190779A522B1fBA5f80abd9BADA3618A66ca02',
+        uniswapExchange: '0xdB00b4f81c69D8b59B75EAF859dcAEb52bfBee05'
       }
     },
     ARB: {

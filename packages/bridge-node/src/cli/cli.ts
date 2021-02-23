@@ -11,6 +11,7 @@ import StakeWatcher from 'src/watchers/StakeWatcher'
 import arbbots from 'src/arb-bot/bots'
 import { l2ArbitrumProvider } from 'src/wallets/l2ArbitrumWallet'
 import { l2OptimismProvider } from 'src/wallets/l2OptimismWallet'
+import { l2xDaiProvider } from 'src/wallets/l2xDaiWallet'
 import l1WalletOld from 'src/wallets/l1WalletOld'
 import { store } from 'src/store'
 import PubSub from 'src/pubsub/PubSub'
@@ -18,7 +19,8 @@ import Logger from 'src/logger'
 
 const providers: any = {
   arbitrum: l2ArbitrumProvider,
-  optimism: l2OptimismProvider
+  optimism: l2OptimismProvider,
+  xdai: l2xDaiProvider
 }
 
 const program = new Command()

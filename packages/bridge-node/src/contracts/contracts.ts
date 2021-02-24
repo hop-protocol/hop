@@ -1,3 +1,4 @@
+import '../moduleAlias'
 import * as ethers from 'ethers'
 import erc20Abi from 'src/abi/ERC20.json'
 import l1BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L1_Bridge.sol/L1_Bridge.json'

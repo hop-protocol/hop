@@ -27,12 +27,18 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   async start () {
+    this.started = true
     this.logger.log(`starting L2 ${this.label} commitTransfers scheduler`)
     try {
       await this.watch()
     } catch (err) {
       this.logger.error('watcher error:', err)
     }
+  }
+
+  async stop () {
+    this.l2BridgeContract.off(TransferSentEvent, this.handleTransferSentEvent)
+    this.started = false
   }
 
   sendTx = async () => {

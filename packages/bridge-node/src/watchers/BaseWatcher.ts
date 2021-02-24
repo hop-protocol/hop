@@ -10,6 +10,7 @@ class BaseWatcher {
   logger: Logger
   label: string
   order: () => number = () => 0
+  started: boolean = false
 
   constructor (config: Config) {
     this.label = config.label
@@ -19,7 +20,11 @@ class BaseWatcher {
     }
   }
 
-  start () {
+  async start () {
+    this.logger.warn('not implemented: implement in child class')
+  }
+
+  async stop () {
     this.logger.warn('not implemented: implement in child class')
   }
 }

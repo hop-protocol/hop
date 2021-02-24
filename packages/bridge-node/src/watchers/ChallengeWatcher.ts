@@ -35,6 +35,7 @@ class ChallengeWatcher extends BaseWatcher {
   }
 
   async start () {
+    this.started = true
     this.logger.log('starting L1 BondTransferRoot event watcher')
     try {
       await this.watch()
@@ -43,47 +44,55 @@ class ChallengeWatcher extends BaseWatcher {
     }
   }
 
-  async watch () {
-    const handleBondTransferEvent = async (
-      bondRoot: string,
-      bondAmount: string,
-      meta: any
-    ) => {
-      const { transactionHash } = meta
-      this.logger.log(
-        'received L1 BondTransferRoot event',
-        bondRoot,
-        bondAmount.toString(),
-        transactionHash
-      )
+  async stop () {
+    this.l1BridgeContract.off(
+      BondTransferRootEvent,
+      this.handleBondTransferEvent
+    )
+    this.started = false
+  }
 
-      const l2BlockNumber = await this.l2Provider.getBlockNumber()
-      const recentTransferCommitEvents = await this.l2BridgeContract.queryFilter(
-        TransfersCommittedEvent as any,
-        l2BlockNumber - 100
-      )
-      this.logger.log('recent events:', recentTransferCommitEvents)
+  handleBondTransferEvent = async (
+    bondRoot: string,
+    bondAmount: string,
+    meta: any
+  ) => {
+    const { transactionHash } = meta
+    this.logger.log(
+      'received L1 BondTransferRoot event',
+      bondRoot,
+      bondAmount.toString(),
+      transactionHash
+    )
 
-      let found = false
-      for (let i = 0; i < recentTransferCommitEvents.length; i++) {
-        const { args } = recentTransferCommitEvents[i]
-        const root = args[0]
-        const amount = args[1]
+    const l2BlockNumber = await this.l2Provider.getBlockNumber()
+    const recentTransferCommitEvents = await this.l2BridgeContract.queryFilter(
+      TransfersCommittedEvent as any,
+      l2BlockNumber - 100
+    )
+    this.logger.log('recent events:', recentTransferCommitEvents)
 
-        if (root == bondRoot && bondAmount.toString() === amount.toString()) {
-          found = true
-        }
+    let found = false
+    for (let i = 0; i < recentTransferCommitEvents.length; i++) {
+      const { args } = recentTransferCommitEvents[i]
+      const root = args[0]
+      const amount = args[1]
 
-        break
+      if (root == bondRoot && bondAmount.toString() === amount.toString()) {
+        found = true
       }
 
-      if (!found) {
-        this.logger.warn('Transfer root not committed!')
-      }
+      break
     }
 
+    if (!found) {
+      this.logger.warn('Transfer root not committed!')
+    }
+  }
+
+  async watch () {
     this.l1BridgeContract
-      .on(BondTransferRootEvent, handleBondTransferEvent)
+      .on(BondTransferRootEvent, this.handleBondTransferEvent)
       .on('error', err => {
         this.logger.error('event watcher error:', err.message)
       })

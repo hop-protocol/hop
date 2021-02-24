@@ -496,46 +496,46 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "_chainId",
+          "name": "chainId",
           "type": "uint256"
         },
         {
           "internalType": "address",
-          "name": "_sender",
+          "name": "sender",
           "type": "address"
         },
         {
           "internalType": "address",
-          "name": "_recipient",
+          "name": "recipient",
           "type": "address"
         },
         {
           "internalType": "uint256",
-          "name": "_amount",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "transferNonce",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "relayerFee",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
-          "name": "_transferNonce",
+          "name": "amountOutMin",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
-          "name": "_relayerFee",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_amountOutMin",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_deadline",
+          "name": "deadline",
           "type": "uint256"
         }
       ],
-      "name": "getTransferHash",
+      "name": "getTransferId",
       "outputs": [
         {
           "internalType": "bytes32",

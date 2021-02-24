@@ -33,12 +33,21 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async start () {
+    this.started = true
     this.logger.log('starting L1 BondTransferRoot event watcher')
     try {
       await this.watch()
     } catch (err) {
       this.logger.error('watcher error:', err)
     }
+  }
+
+  async stop () {
+    this.l1BridgeContract.off(
+      BondTransferRootEvent,
+      this.handleBondTransferEvent
+    )
+    this.started = false
   }
 
   sendTx = async (

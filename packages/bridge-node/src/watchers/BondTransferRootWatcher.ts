@@ -30,6 +30,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async start () {
+    this.started = true
     this.logger.log(
       `starting L2 ${this.label} TransfersCommitted event watcher for L1 bondTransferRoot tx`
     )
@@ -39,6 +40,14 @@ class BondTransferRootWatcher extends BaseWatcher {
     } catch (err) {
       this.logger.error('watcher error:', err.message)
     }
+  }
+
+  async stop () {
+    this.l2BridgeContract.off(
+      TransfersCommittedEvent,
+      this.handleTransferCommittedEvent
+    )
+    this.started = false
   }
 
   async watch () {
@@ -129,6 +138,9 @@ class BondTransferRootWatcher extends BaseWatcher {
     )
     let timeout = this.order() * 15 * 1000
     while (timeout > 0) {
+      if (!this.started) {
+        return
+      }
       const bond = await this.l1BridgeContract.transferBonds(transferRootHash)
       if (bond.createdAt.toNumber() > 0) {
         break

@@ -29,7 +29,15 @@ const useStyles = makeStyles(theme => ({
 
 const Pools: FC = () => {
   const styles = useStyles()
-  let { mintToken, mintAmount, isMinting, error, setError } = useFaucet()
+  let {
+    mintToken,
+    mintAmount,
+    isMinting,
+    claimTokens,
+    isClaiming,
+    error,
+    setError
+  } = useFaucet()
 
   const handleDaiMint = () => {
     mintToken()
@@ -43,6 +51,10 @@ const Pools: FC = () => {
   const handlexDaiFaucetClick = (event: SyntheticEvent) => {
     event.preventDefault()
     window.open('https://blockscout.com/poa/sokol/faucet', '_blank')
+  }
+
+  const handleDaiClaim = () => {
+    claimTokens()
   }
 
   return (
@@ -98,6 +110,22 @@ const Pools: FC = () => {
           Get xDai ETH ↗
         </Button>
       </Box>
+      {/*
+      <Box display="flex" alignItems="center" className={styles.box}>
+        <Typography variant="body1" className={styles.text}>
+          Claim Sokol DAI
+        </Typography>
+        <Button
+          className={styles.button}
+          onClick={handleDaiClaim}
+          large
+          highlighted
+          loading={isClaiming}
+        >
+          Claim Sokol DAI
+        </Button>
+      </Box>
+			*/}
     </Box>
   )
 }

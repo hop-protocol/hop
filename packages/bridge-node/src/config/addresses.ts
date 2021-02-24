@@ -27,6 +27,7 @@ export const tokens = {
     },
     xdai: {
       l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
+      l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
       l2CanonicalToken: '0x714983a8Dc3329bf3BeB8F36b49878CF944E5A3B',
       l2Bridge: '0x774CAB547c3BD28eC0e688639bC74e87748C187f',
       uniswapRouter: '0xA7f6C324c44ba178938Ce804F3E877340B48d918',

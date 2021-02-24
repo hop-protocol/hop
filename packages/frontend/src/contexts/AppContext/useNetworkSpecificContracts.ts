@@ -4,6 +4,7 @@ import l1BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridge
 import l2BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L2_Bridge.sol/L2_Bridge.json'
 import l2OptimismBridgeArtifact from 'src/abi/L2OptimismBridge.json'
 import l2OptimismTokenArtifact from 'src/abi/L2_OptimismERC20.json'
+import l2xDaiTokenArtifact from 'src/abi/L2_xDaiToken.json'
 import l1ArbitrumMessengerArtifact from 'src/abi/GlobalInbox.json'
 import l1OptimismTokenBridgeArtifact from 'src/abi/L1OptimismTokenBridge.json'
 import l1xDaiForeignOmnibridge from 'src/abi/L1_xDaiForeignOmnibridge.json'
@@ -21,6 +22,7 @@ import logger from 'src/logger'
 export type NetworkSpecificContracts = {
   l1Bridge: Contract | undefined
   l1CanonicalBridge: Contract | undefined
+  l2CanonicalBridge: Contract | undefined
   l2CanonicalToken: Contract | undefined
   l2Bridge: Contract | undefined
   uniswapRouter: Contract | undefined
@@ -40,6 +42,7 @@ const useNetworkSpecificContracts = (
     return {
       l1Bridge: undefined,
       l1CanonicalBridge: undefined,
+      l2CanonicalBridge: undefined,
       l2CanonicalToken: undefined,
       l2Bridge: undefined,
       uniswapRouter: undefined,
@@ -51,6 +54,7 @@ const useNetworkSpecificContracts = (
   const tokenConfig = addresses.tokens[token.symbol][l2Network?.slug]
   const l1BridgeAddress: string = tokenConfig.l1Bridge
   const l1CanonicalBridgeAddress: string = tokenConfig.l1CanonicalBridge
+  const l2CanonicalBridgeAddress: string = tokenConfig.l2CanonicalBridge
   const l2CanonicalTokenAddress: string = tokenConfig.l2CanonicalToken
   const l2BridgeAddress: string = tokenConfig.l2Bridge
   const uniswapRouterAddress: string = tokenConfig.uniswapRouter
@@ -107,6 +111,18 @@ const useNetworkSpecificContracts = (
       l1Provider
     )
   }, [l1Provider])
+  const l2CanonicalBridge = useMemo(() => {
+    if (
+      l2CanonicalBridgeAddress ===
+      addresses.tokens[token.symbol]?.xdai?.l2CanonicalBridge
+    ) {
+      return new Contract(
+        l2CanonicalBridgeAddress,
+        l1xDaiForeignOmnibridge.abi,
+        l2Provider
+      )
+    }
+  }, [l2Provider])
   const l2CanonicalToken = useMemo(() => {
     if (
       l2CanonicalTokenAddress ===
@@ -115,6 +131,17 @@ const useNetworkSpecificContracts = (
       return new Contract(
         l2CanonicalTokenAddress,
         l2OptimismTokenArtifact.abi,
+        l2Provider
+      )
+    }
+
+    if (
+      l2CanonicalTokenAddress ===
+      addresses.tokens[token.symbol]?.xdai?.l2CanonicalToken
+    ) {
+      return new Contract(
+        l2CanonicalTokenAddress,
+        l2xDaiTokenArtifact.abi,
         l2Provider
       )
     }
@@ -164,6 +191,7 @@ const useNetworkSpecificContracts = (
   return {
     l1Bridge,
     l1CanonicalBridge,
+    l2CanonicalBridge,
     l2CanonicalToken,
     l2Bridge,
     uniswapRouter,

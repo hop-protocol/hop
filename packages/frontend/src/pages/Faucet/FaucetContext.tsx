@@ -19,6 +19,8 @@ type FaucetContextProps = {
   mintToken: () => void
   mintAmount: string
   isMinting: boolean
+  claimTokens: () => void
+  isClaiming: boolean
   error: string | null | undefined
   setError: (error: string | null | undefined) => void
 }
@@ -27,6 +29,8 @@ const FaucetContext = createContext<FaucetContextProps>({
   mintToken: () => {},
   mintAmount: '',
   isMinting: false,
+  claimTokens: () => {},
+  isClaiming: false,
   error: null,
   setError: (error: string | null | undefined) => {}
 })
@@ -34,6 +38,7 @@ const FaucetContext = createContext<FaucetContextProps>({
 const FaucetContextProvider: FC = ({ children }) => {
   const [mintAmount, setMintAmount] = useState<string>('10')
   const [isMinting, setMinting] = useState<boolean>(false)
+  const [isClaiming, setClaiming] = useState<boolean>(false)
   let { contracts, txHistory, networks, tokens } = useApp()
   const token = tokens.find(token => token.symbol === 'DAI') as Token
   const l1Dai = contracts?.tokens[token.symbol].kovan.l1CanonicalToken
@@ -69,12 +74,42 @@ const FaucetContextProvider: FC = ({ children }) => {
     setMinting(false)
   }
 
+  const claimTokens = async () => {
+    try {
+      setClaiming(true)
+      const sourceTokenContracts = contracts?.tokens['DAI']
+      const l1TokenAddress =
+        sourceTokenContracts?.kovan.l1CanonicalToken.address
+      const l1Messenger = sourceTokenContracts?.xdai.l1CanonicalBridge
+      const l1MessengerWrite = await getWriteContract(l1Messenger)
+      const tx = await l1MessengerWrite?.claimTokens(
+        l1TokenAddress,
+        address?.toString()
+      )
+      logger.debug('claim:', tx?.hash)
+
+      txHistory?.addTransaction(
+        new Transaction({
+          hash: tx?.hash,
+          networkName: 'kovan'
+        })
+      )
+      await tx?.wait()
+    } catch (err) {
+      setError(err.message)
+      logger.error(err)
+    }
+    setClaiming(false)
+  }
+
   return (
     <FaucetContext.Provider
       value={{
         mintToken,
         mintAmount,
         isMinting,
+        claimTokens,
+        isClaiming,
         error,
         setError
       }}

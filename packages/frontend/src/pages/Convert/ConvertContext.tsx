@@ -361,11 +361,29 @@ const ConvertContextProvider: FC = ({ children }) => {
                 )
                 return contract?.withdraw(await signer?.getAddress(), value)
               } else if (sourceSlug === OPTIMISM) {
-                const l2Provider = provider?.getSigner()
                 const l2Token = await getWriteContract(
                   sourceTokenContracts?.l2CanonicalToken
                 )
                 return l2Token?.withdraw(value)
+              } else if (sourceSlug === XDAI) {
+                const destTokenContracts =
+                  contracts?.tokens[selectedToken.symbol][sourceSlug]
+                const messenger = destTokenContracts?.l2CanonicalBridge
+                await approveTokens(
+                  selectedToken,
+                  sourceTokenAmount,
+                  sourceNetwork as Network,
+                  messenger?.address as string
+                )
+                const tokenAddress =
+                  sourceTokenContracts?.l2CanonicalToken.address
+                const messengerWrite = await getWriteContract(messenger)
+                const address = sourceTokenContracts?.l2CanonicalBridge.address
+                return sourceTokenContracts?.l2CanonicalToken?.transferAndCall(
+                  address,
+                  value,
+                  '0x'
+                )
               } else {
                 throw new Error('not implemented')
               }

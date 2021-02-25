@@ -6,6 +6,7 @@ import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
 import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
+import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
 import arbbots from 'src/arb-bot/bots'
@@ -58,65 +59,71 @@ program
   .action(source => {
     const orderNum = Number(source.order) || 0
 
-    try {
-      const hostname = config.hostname
-      const pubsub = new PubSub()
-      const topic = '/hop-exchange/bonders'
-      pubsub.subscribe(topic, (data: any) => {
-        if (!(data && data.hostname)) {
-          return
-        }
+    const usePubSub = false
+    if (usePubSub) {
+      try {
+        const hostname = config.hostname
+        const pubsub = new PubSub()
+        const topic = '/hop-exchange/bonders'
+        pubsub.subscribe(topic, (data: any) => {
+          if (!(data && data.hostname)) {
+            return
+          }
 
-        if (data.hostname === hostname) {
-          return
-        }
+          if (data.hostname === hostname) {
+            return
+          }
 
-        if (!store.bonders[data.hostname]) {
-          if (data.order === orderNum) {
-            pubsubLogger.warn(
-              `Warning: host "${hostname}" has same order number "${data.order}"`
+          if (!store.bonders[data.hostname]) {
+            if (data.order === orderNum) {
+              pubsubLogger.warn(
+                `Warning: host "${hostname}" has same order number "${data.order}"`
+              )
+            }
+
+            pubsubLogger.log(
+              `Bonder "${data.hostname}" (order ${data.order}) is online`
             )
           }
 
-          pubsubLogger.log(
-            `Bonder "${data.hostname}" (order ${data.order}) is online`
-          )
-        }
+          if (
+            store.bonders[data.hostname] &&
+            !store.bonders[data.hostname].up
+          ) {
+            pubsubLogger.log(
+              `Bonder "${data.hostname}" (order ${data.order}) is back online`
+            )
+          }
 
-        if (store.bonders[data.hostname] && !store.bonders[data.hostname].up) {
-          pubsubLogger.log(
-            `Bonder "${data.hostname}" (order ${data.order}) is back online`
-          )
-        }
-
-        store.bonders[data.hostname] = {
-          hostname: data.hostname,
-          order: data.order,
-          timestamp: Date.now(),
-          up: true
-        }
-      })
-
-      setInterval(() => {
-        pubsub.publish(topic, {
-          hostname,
-          order: orderNum
+          store.bonders[data.hostname] = {
+            hostname: data.hostname,
+            order: data.order,
+            timestamp: Date.now(),
+            up: true
+          }
         })
 
-        for (let k in store.bonders) {
-          const v = store.bonders[k]
-          if (v.up) {
-            if (Date.now() - v.timestamp > 10 * 1000) {
-              pubsubLogger.log(
-                `Bonder "${v.hostname}" (order ${v.order}) appears to be down`
-              )
-              v.up = false
+        setInterval(() => {
+          pubsub.publish(topic, {
+            hostname,
+            order: orderNum
+          })
+
+          for (let k in store.bonders) {
+            const v = store.bonders[k]
+            if (v.up) {
+              if (Date.now() - v.timestamp > 10 * 1000) {
+                pubsubLogger.log(
+                  `Bonder "${v.hostname}" (order ${v.order}) appears to be down`
+                )
+                v.up = false
+              }
             }
           }
-        }
-      }, 3 * 1000)
-    } catch (err) {
-      pubsubLogger.error(err)
+        }, 3 * 1000)
+      } catch (err) {
+        pubsubLogger.error(err)
+      }
     }
 
     const order = () => {
@@ -184,6 +191,8 @@ program
     }
 
     startStakeWatchers()
+
+    new xDaiBridgeWatcher().start()
   })
 
 program

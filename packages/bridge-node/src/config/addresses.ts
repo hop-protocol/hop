@@ -32,7 +32,9 @@ export const tokens = {
       l2Bridge: '0x774CAB547c3BD28eC0e688639bC74e87748C187f',
       uniswapRouter: '0xA7f6C324c44ba178938Ce804F3E877340B48d918',
       uniswapFactory: '0x81190779A522B1fBA5f80abd9BADA3618A66ca02',
-      uniswapExchange: '0xdB00b4f81c69D8b59B75EAF859dcAEb52bfBee05'
+      uniswapExchange: '0xdB00b4f81c69D8b59B75EAF859dcAEb52bfBee05',
+      l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
+      l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560'
     }
   },
   ARB: {

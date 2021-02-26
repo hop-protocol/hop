@@ -26,14 +26,22 @@ class StakeWatcher extends BaseWatcher {
   }
 
   async start () {
+    this.started = true
     try {
       while (true) {
+        if (!this.started) {
+          return
+        }
         await this.check()
         await wait(this.interval)
       }
     } catch (err) {
       this.logger.log(`stake watcher error:`, err.message)
     }
+  }
+
+  async stop () {
+    this.started = false
   }
 
   async check () {

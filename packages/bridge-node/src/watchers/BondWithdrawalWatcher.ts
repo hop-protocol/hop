@@ -37,6 +37,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async start () {
+    this.started = true
     this.logger.log(
       `starting L2 ${this.label} TransferSent event watcher for L1 bondWithdrawal tx`
     )
@@ -49,6 +50,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
         err.message
       )
     }
+  }
+
+  async stop () {
+    this.l2BridgeContract.off(TransferSentEvent, this.handleTransferSentEvent)
+    this.started = false
   }
 
   async watch () {
@@ -108,7 +114,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     transferHash: string,
     recipient: string,
     amount: string,
-    transferNonce: string,
+    transferNonce: any,
     relayerFee: string,
     meta: any
   ) => {
@@ -146,22 +152,28 @@ class BondWithdrawalWatcher extends BaseWatcher {
         chainId = decoded._chainId.toString()
       }
 
+      this.logger.log('transferNonce:', transferNonce)
       this.logger.log('chainId:', chainId)
       this.logger.log('attemptSwap:', attemptSwap)
 
       const contract = this.contracts[chainId]
       const amountOutMin = '0'
       const deadline = BigNumber.from(UINT256)
-      const computedTransferHash = await contract.getTransferHash(
-        chainId,
-        sender,
-        recipient,
-        amount,
-        transferNonce,
-        relayerFee,
-        attemptSwap ? amountOutMin : 0,
-        attemptSwap ? deadline : 0
-      )
+      let computedTransferHash: string
+      if (chainId === '77') {
+        computedTransferHash = transferHash
+      } else {
+        computedTransferHash = await contract.getTransferHash(
+          chainId,
+          sender,
+          recipient,
+          amount,
+          transferNonce.toString(),
+          relayerFee,
+          attemptSwap ? amountOutMin : 0,
+          attemptSwap ? deadline : 0
+        )
+      }
       this.logger.log('computed transfer hash:', computedTransferHash)
       store.transferHashes[transferHash] = {
         transferHash,
@@ -203,6 +215,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const contract = this.contracts[chainId]
     let timeout = this.order() * 15 * 1000
     while (timeout > 0) {
+      if (!this.started) {
+        return
+      }
       const bondedBn = await contract.getBondedWithdrawalAmount(transferHash)
       const bondedAmount = Number(formatUnits(bondedBn.toString(), 18))
       if (bondedAmount !== 0) {

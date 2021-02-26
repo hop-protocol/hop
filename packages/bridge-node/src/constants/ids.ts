@@ -12,3 +12,8 @@ export const optimismNetworkId = '69'
 export const optimismRpcUrl = 'https://kovan.optimism.rpc.hop.exchange'
 export const xDaiNetworkId = '77'
 export const xDaiRpcUrl = 'https://sokol.poa.network'
+
+export const KOVAN = 'kovan'
+export const OPTIMISM = 'optimism'
+export const ARBITRUM = 'arbitrum'
+export const XDAI = 'xdai'

@@ -13,7 +13,10 @@ export const optimismRpcUrl = 'https://kovan.optimism.rpc.hop.exchange'
 export const xDaiNetworkId = '77'
 export const xDaiRpcUrl = 'https://sokol.poa.network'
 
+export const MAINNET = 'mainnet'
 export const KOVAN = 'kovan'
+// TODO: change this to mainnet on mainnet production
+export const L1_NETWORK = KOVAN
 export const OPTIMISM = 'optimism'
 export const ARBITRUM = 'arbitrum'
 export const XDAI = 'xdai'

@@ -3,7 +3,7 @@ import { makeStyles, useTheme } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 
-import { PROPOSAL_STATUSES } from 'src/config/constants'
+import { PROPOSAL_STATUSES } from 'src/constants'
 
 type StyleProps = {
   textColor: string

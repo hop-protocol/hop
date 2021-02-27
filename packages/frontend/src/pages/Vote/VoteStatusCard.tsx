@@ -4,7 +4,7 @@ import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 
-import { VOTE_STATUS } from 'src/config/constants'
+import { VOTE_STATUS } from 'src/constants'
 
 type StyleProps = {
   status: string

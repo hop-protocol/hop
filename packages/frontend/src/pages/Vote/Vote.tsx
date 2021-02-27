@@ -7,7 +7,7 @@ import { IProposal } from 'src/config'
 import { useApp } from 'src/contexts/AppContext'
 import ProposalPreviewCard from 'src/pages/Vote/ProposalPreviewCard'
 import DelegateModal from 'src/pages/Vote/DelegateModal/DelegateModal'
-import { ZERO_ADDRESS } from 'src/config/constants'
+import { ZERO_ADDRESS } from 'src/constants'
 import { VoteContextProvider, useVoteContext } from 'src/pages/Vote/VoteContext'
 
 const useStyles = makeStyles(() => ({

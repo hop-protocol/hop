@@ -15,6 +15,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import { wait, networkIdToSlug } from 'src/utils'
+import { L1_NETWORK } from 'src/constants'
 
 type StatusContextProps = {
   steps: any[]
@@ -38,8 +39,8 @@ const StatusContextProvider: FC = ({ children }) => {
     // TODO
     symbol: 'DAI'
   }
-  const l1Provider = contracts?.providers.kovan
-  const l1Bridge = contracts?.tokens[token.symbol].kovan.l1Bridge
+  const l1Provider = contracts?.providers[L1_NETWORK]
+  const l1Bridge = contracts?.tokens[token.symbol][L1_NETWORK].l1Bridge
 
   async function updateStatus () {
     if (!tx) return
@@ -74,7 +75,7 @@ const StatusContextProvider: FC = ({ children }) => {
         sourceTx.data
       )
       const networkId = decodedSource?._chainId
-      const destSlug = networkIdToSlug[networkId]
+      const destSlug = networkIdToSlug(networkId)
       destNetwork = networks.find(network => network.slug === destSlug)
       setSteps(['Initiated', sourceNetwork?.name, destNetwork?.name])
       const bridge = contracts?.tokens[token.symbol][destSlug].l2Bridge

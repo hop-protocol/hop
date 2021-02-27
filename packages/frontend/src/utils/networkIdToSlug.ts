@@ -1,16 +1,14 @@
-import { KOVAN, ARBITRUM, OPTIMISM, XDAI } from 'src/config/constants'
-import {
-  l1NetworkId,
-  arbitrumNetworkId,
-  optimismNetworkId,
-  xDaiNetworkId
-} from 'src/config'
+import { networks } from 'src/config'
 
-export const networkIdToSlug: { [key: string]: string } = {
-  [l1NetworkId]: KOVAN,
-  [arbitrumNetworkId]: ARBITRUM,
-  [optimismNetworkId]: OPTIMISM,
-  [xDaiNetworkId]: XDAI
+export const networkIdToSlug = (networkId: string | number) => {
+  for (let key in networks) {
+    const v = networks[key]
+    if (v.networkId == networkId.toString()) {
+      return key
+    }
+  }
+
+  return ''
 }
 
 export default networkIdToSlug

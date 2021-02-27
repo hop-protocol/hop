@@ -1,7 +1,16 @@
-export const l1EthRpcUrl = 'https://kovan.rpc.hop.exchange'
-export const l2ArbitrumRpcUrl = 'https://kovan3.arbitrum.io/rpc'
-export const l2OptimismRpcUrl = 'https://kovan.optimism.rpc.hop.exchange'
-export const l2xDaiRpcUrl = 'https://sokol.poa.network'
+export const rpcUrls = {
+  kovan: 'https://kovan.rpc.hop.exchange',
+  optimism: 'https://kovan.optimism.rpc.hop.exchange',
+  arbitrum: 'https://kovan3.arbitrum.io/rpc',
+  xdai: 'https://sokol.poa.network'
+}
+
+export const networkIds = {
+  kovan: '42',
+  optimism: '69',
+  arbitrum: '79377087078960',
+  xdai: '77'
+}
 
 export const tokens = {
   DAI: {

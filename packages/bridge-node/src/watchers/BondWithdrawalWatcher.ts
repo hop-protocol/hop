@@ -4,7 +4,7 @@ import { formatUnits } from 'ethers/lib/utils'
 import { TransferSentEvent, UINT256 } from 'src/constants'
 import { store } from 'src/store'
 import chalk from 'chalk'
-import { wait } from 'src/utils'
+import { wait, networkIdToSlug } from 'src/utils'
 import BaseWatcher from 'src/watchers/BaseWatcher'
 
 export interface Config {
@@ -192,6 +192,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
         chainId,
         amountOutMin,
         deadline
+      })
+
+      tx?.wait().then(() => {
+        this.emit('bondWithdrawal', {
+          recipient,
+          destNetworkName: networkIdToSlug(chainId),
+          destNetworkId: chainId
+        })
       })
       this.logger.log(
         `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx:`,

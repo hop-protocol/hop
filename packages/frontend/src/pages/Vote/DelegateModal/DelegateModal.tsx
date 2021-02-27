@@ -11,6 +11,7 @@ import DelegateModalTransaction from 'src/pages/Vote/DelegateModal/DelegateModal
 import { Contract } from 'ethers'
 import { useApp } from 'src/contexts/AppContext'
 import Transaction from 'src/models/Transaction'
+import { L1_NETWORK } from 'src/constants'
 
 const useStyles = makeStyles(() => ({
   modalContainer: {
@@ -78,7 +79,7 @@ const DelegateModal: FC<DelegateModalProps> = props => {
     app?.txHistory?.addTransaction(
       new Transaction({
         hash: tx?.hash,
-        networkName: 'kovan'
+        networkName: L1_NETWORK
       })
     )
 

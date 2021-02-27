@@ -1,62 +1,29 @@
 import { useMemo } from 'react'
-import MainnetLogo from 'src/assets/logos/mainnet.svg'
-import ArbitrumLogo from 'src/assets/logos/arbitrum.svg'
-import OptimismLogo from 'src/assets/logos/optimism.svg'
-import xDaiLogo from 'src/assets/logos/xdai.svg'
-import {
-  l1NetworkId,
-  l1RpcUrl,
-  arbitrumNetworkId,
-  arbitrumRpcUrl,
-  optimismNetworkId,
-  optimismRpcUrl,
-  xDaiNetworkId,
-  xDaiRpcUrl
-} from 'src/config'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
+import { L1_NETWORK } from 'src/constants'
+import { networks, metadata } from 'src/config'
 
 const useNetworks = () => {
   //logger.debug('useNetworks render')
-  const networks = useMemo<Network[]>(
-    () => [
-      new Network({
-        name: 'Kovan',
-        slug: 'kovan',
-        imageUrl: MainnetLogo,
-        rpcUrl: l1RpcUrl,
-        networkId: l1NetworkId,
-        isLayer1: true
-      }),
-      new Network({
-        name: 'Arbitrum',
-        slug: 'arbitrum',
-        imageUrl: ArbitrumLogo,
-        rpcUrl: arbitrumRpcUrl,
-        networkId: arbitrumNetworkId,
-        isLayer1: false
-      }),
-      new Network({
-        name: 'Optimism',
-        slug: 'optimism',
-        imageUrl: OptimismLogo,
-        rpcUrl: optimismRpcUrl,
-        networkId: optimismNetworkId,
-        isLayer1: false
-      }),
-      new Network({
-        name: 'xDai',
-        slug: 'xdai',
-        imageUrl: xDaiLogo,
-        rpcUrl: xDaiRpcUrl,
-        networkId: xDaiNetworkId,
-        isLayer1: false
-      })
-    ],
-    []
-  )
-
-  return networks
+  return useMemo<Network[]>(() => {
+    const nets: Network[] = []
+    for (let key in networks) {
+      const net = networks[key]
+      const meta = metadata.networks[key]
+      nets.push(
+        new Network({
+          name: meta.name,
+          slug: key,
+          imageUrl: meta.image,
+          rpcUrl: net.rpcUrl,
+          networkId: net.networkId,
+          isLayer1: meta.isLayer1
+        })
+      )
+    }
+    return nets
+  }, [])
 }
 
 export default useNetworks

@@ -6,6 +6,7 @@ import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { addresses, metadata } from 'src/config'
 import logger from 'src/logger'
+import { L1_NETWORK } from 'src/constants'
 
 type Contracts = {
   [key: string]: {
@@ -32,7 +33,7 @@ const useTokens = (networks: Network[]) => {
           }
           const config = addresses.tokens[symbol][networkSlug]
           const { provider } = network
-          if (networkSlug === 'kovan') {
+          if (networkSlug === L1_NETWORK) {
             obj[networkSlug] = getErc20Contract(
               config.l1CanonicalToken,
               provider

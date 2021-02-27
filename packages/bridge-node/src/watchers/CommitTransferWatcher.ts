@@ -59,6 +59,9 @@ class CommitTransfersWatcher extends BaseWatcher {
     }
 
     const tx = await this.sendTx()
+    tx?.wait().then(() => {
+      this.emit('commitTransfers', {})
+    })
     this.logger.log(
       `L2 ${this.label} commitTransfers tx:`,
       chalk.bgYellow.black.bold(tx.hash)

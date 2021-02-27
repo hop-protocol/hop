@@ -32,7 +32,7 @@ import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
-import { UINT256 } from 'src/config/constants'
+import { UINT256, L1_NETWORK } from 'src/constants'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import logger from 'src/logger'
 import { commafy, intersection } from 'src/utils'
@@ -110,7 +110,7 @@ const Send: FC = () => {
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [tx, setTx] = useState<any>(null)
-  const l1Bridge = contracts?.tokens[selectedToken.symbol].kovan.l1Bridge
+  const l1Bridge = contracts?.tokens[selectedToken.symbol][L1_NETWORK].l1Bridge
   const debouncer = useRef<number>(0)
 
   useEffect(() => {

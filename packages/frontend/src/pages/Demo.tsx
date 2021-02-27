@@ -9,6 +9,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { addresses } from 'src/config'
 import Token from 'src/models/Token'
 import logger from 'src/logger'
+import { L1_NETWORK } from 'src/constants'
 
 const useStyles = makeStyles(() => ({
   root: {},
@@ -24,8 +25,9 @@ const Demo: FC<Props> = () => {
   const { provider } = useWeb3Context()
   const app = useApp()
   const token = app?.tokens.find(token => token.symbol === 'DAI') as Token
-  const l1Dai = app?.contracts?.tokens[token.symbol].kovan.l1CanonicalToken
-  const l1Bridge = app?.contracts?.tokens[token.symbol].kovan.l1Bridge
+  const l1Dai =
+    app?.contracts?.tokens[token.symbol][L1_NETWORK].l1CanonicalToken
+  const l1Bridge = app?.contracts?.tokens[token.symbol][L1_NETWORK].l1Bridge
   const arbitrumBridge = app?.contracts?.tokens[token.symbol].arbitrum.l2Bridge
   const arbitrumUniswapRouter =
     app?.contracts?.tokens[token.symbol].arbitrum.uniswapRouter
@@ -33,13 +35,13 @@ const Demo: FC<Props> = () => {
   const handleApprove = async () => {
     const signer = provider?.getSigner()
     const tx = await signer?.sendTransaction({
-      to: addresses.tokens[token.symbol].kovan.l1CanonicalToken,
+      to: addresses.tokens[token.symbol][L1_NETWORK].l1CanonicalToken,
       value: toHex('0', { addPrefix: true }),
       gasLimit: toHex('1000000', { addPrefix: true }),
       gasPrice: toHex('10000000000', { addPrefix: true }),
       data:
         '0x095ea7b3000000000000000000000000' +
-        addresses.tokens[token.symbol].kovan.l1Bridge
+        addresses.tokens[token.symbol][L1_NETWORK].l1Bridge
           .toLowerCase()
           .replace('0x', '') +
         'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'

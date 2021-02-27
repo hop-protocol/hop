@@ -8,6 +8,7 @@ import governorAlphaArtifact from '@hop-exchange/contracts/artifacts/contracts/g
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
 import Network from 'src/models/Network'
+import { L1_NETWORK } from 'src/constants'
 
 export type GovernanceContracts = {
   l1Hop: Contract | undefined
@@ -19,48 +20,44 @@ export type GovernanceContracts = {
 const useGovernanceContracts = (networks: Network[]): GovernanceContracts => {
   const { provider, connectedNetworkId } = useWeb3Context()
 
-  const kovanProvider = useMemo(() => {
-    const kovanNetwork = networks.find(
-      (network: Network) => network.slug === 'kovan'
+  const l1Provider = useMemo(() => {
+    const network = networks.find(
+      (network: Network) => network.slug === L1_NETWORK
     )
-    if (connectedNetworkId === kovanNetwork?.networkId) {
+    if (connectedNetworkId === network?.networkId) {
       return provider?.getSigner()
     }
 
-    return kovanNetwork?.provider
+    return network?.provider
   }, [networks, connectedNetworkId, provider])
 
   const l1Hop = useMemo(() => {
-    return new Contract(
-      addresses.governance.l1Hop,
-      hopArtifact.abi,
-      kovanProvider
-    )
-  }, [kovanProvider])
+    return new Contract(addresses.governance.l1Hop, hopArtifact.abi, l1Provider)
+  }, [l1Provider])
 
   const stakingRewardsFactory = useMemo(() => {
     return new Contract(
       addresses.governance.stakingRewardsFactory,
       stakingRewardsFactoryArtifact.abi,
-      kovanProvider
+      l1Provider
     )
-  }, [kovanProvider])
+  }, [l1Provider])
 
   const stakingRewards = useMemo(() => {
     return new Contract(
       addresses.governance.stakingRewards,
       stakingRewardsArtifact.abi,
-      kovanProvider
+      l1Provider
     )
-  }, [kovanProvider])
+  }, [l1Provider])
 
   const governorAlpha = useMemo(() => {
     return new Contract(
       addresses.governance.governorAlpha,
       governorAlphaArtifact.abi,
-      kovanProvider
+      l1Provider
     )
-  }, [kovanProvider])
+  }, [l1Provider])
 
   return {
     l1Hop,

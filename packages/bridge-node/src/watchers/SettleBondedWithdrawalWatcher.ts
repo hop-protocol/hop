@@ -1,7 +1,7 @@
 import '../moduleAlias'
 import { Contract } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
-import { wait } from 'src/utils'
+import { wait, networkIdToSlug } from 'src/utils'
 import { BondTransferRootEvent } from 'src/constants'
 import { store } from 'src/store'
 import chalk from 'chalk'
@@ -123,6 +123,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       try {
         const { transferHash, computedTransferHash, chainId } = item
         const tx = await this.sendTx(chainId, transferHash, bondRoot, proof)
+        tx?.wait().then(() => {
+          this.emit('settleBondedWithdrawal', {
+            networkName: networkIdToSlug(chainId),
+            networkId: chainId,
+            transferHash
+          })
+        })
         this.logger.log(
           `settleBondedWithdrawal on chain ${chainId} tx: ${chalk.bgYellow.black.bold(
             tx.hash

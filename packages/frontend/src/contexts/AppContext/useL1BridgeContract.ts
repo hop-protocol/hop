@@ -5,6 +5,7 @@ import { addresses } from 'src/config'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import logger from 'src/logger'
+import { L1_NETWORK } from 'src/constants'
 
 const useL1BridgeContracts = (
   provider: providers.Provider,
@@ -14,7 +15,7 @@ const useL1BridgeContracts = (
 
   const l1Bridge = useMemo(() => {
     return new Contract(
-      addresses.tokens[token.symbol].kovan.l1Bridge,
+      addresses.tokens[token.symbol][L1_NETWORK].l1Bridge,
       l1BridgeArtifact.abi,
       provider
     )

@@ -7,27 +7,8 @@ import l2xDaiBridgeArtifact from 'src/abi/L2xDaiBridge.json'
 import l2OptimismBridgeArtifact from 'src/abi/L2OptimismBridge.json'
 import l2ArbitrumBridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L2_Bridge.sol/L2_Bridge.json'
 import erc20Abi from 'src/abi/ERC20.json'
-import {
-  l1EthRpcUrl,
-  l2OptimismRpcUrl,
-  l2ArbitrumRpcUrl,
-  l2xDaiRpcUrl
-} from 'src/config'
 import { UINT256, KOVAN, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
-
-const providerUrls: any = {
-  kovan: l1EthRpcUrl,
-  optimism: l2OptimismRpcUrl,
-  arbitrum: l2ArbitrumRpcUrl,
-  xdai: l2xDaiRpcUrl
-}
-
-const chainIds: any = {
-  kovan: '42',
-  optimism: '69',
-  arbitrum: '79377087078960',
-  xdai: '77'
-}
+import { getRpcUrl, networkSlugToId } from 'src/utils'
 
 export class User {
   privateKey: string
@@ -38,7 +19,7 @@ export class User {
   }
 
   getProvider (network: string) {
-    const url = providerUrls[network]
+    const url = getRpcUrl(network)
     return new ethers.providers.StaticJsonRpcProvider(url)
   }
 
@@ -47,7 +28,7 @@ export class User {
     return new ethers.Wallet(this.privateKey, provider)
   }
 
-  async getBalance (network: string, token: string = '') {
+  async getBalance (network: string = KOVAN, token: string = '') {
     const address = await this.getAddress()
     if (!token) {
       const provider = this.getProvider(network)
@@ -154,9 +135,13 @@ export class User {
   ) {
     const deadline = (Date.now() / 1000 + 300) | 0
     const amountOutMin = '0'
-    const chainId = chainIds[destNetwork]
+    const chainId = networkSlugToId(destNetwork)
     const recipient = await this.getAddress()
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
+    const ethBalance = await this.getBalance()
+    if (ethBalance < 0.0001) {
+      throw new Error('Not enough ETH balance for transfer')
+    }
     return bridge.sendToL2AndAttemptSwap(
       chainId,
       recipient,
@@ -173,7 +158,7 @@ export class User {
     amount: string | number
   ) {
     const deadline = (Date.now() / 1000 + 300) | 0
-    const chainId = chainIds[destNetwork]
+    const chainId = networkSlugToId(destNetwork)
     const transferNonce = Date.now()
     const relayerFee = '0'
     const amountOutIn = '0'
@@ -201,7 +186,7 @@ export class User {
     amount: string | number
   ) {
     const deadline = (Date.now() / 1000 + 300) | 0
-    const chainId = chainIds[destNetwork]
+    const chainId = networkSlugToId(destNetwork)
     const transferNonce = Date.now()
     const relayerFee = '0'
     const amountOutIn = '0'

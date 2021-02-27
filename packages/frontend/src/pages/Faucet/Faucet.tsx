@@ -29,13 +29,7 @@ const useStyles = makeStyles(theme => ({
 
 const Pools: FC = () => {
   const styles = useStyles()
-  let {
-    mintToken,
-    mintAmount,
-    isMinting,
-    error,
-    setError
-  } = useFaucet()
+  let { mintToken, mintAmount, isMinting, error, setError } = useFaucet()
 
   const handleDaiMint = () => {
     mintToken()

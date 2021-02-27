@@ -14,10 +14,10 @@ import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
-import { UINT256, ARBITRUM, OPTIMISM, XDAI } from 'src/config/constants'
+import { UINT256, L1_NETWORK, ARBITRUM, OPTIMISM, XDAI } from 'src/constants'
 import l2OptimismTokenArtifact from 'src/abi/L2_OptimismERC20.json'
 import logger from 'src/logger'
-import { contractNetworkSlugToChainId } from 'src/utils'
+import { networkSlugToId } from 'src/utils'
 
 type ConvertContextProps = {
   tokens: Token[]
@@ -132,7 +132,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   )
   const [destTokenBalance, setDestTokenBalance] = useState<number | null>(null)
   const [error, setError] = useState<string | null | undefined>(null)
-  const l1Bridge = contracts?.tokens[selectedToken.symbol].kovan.l1Bridge
+  const l1Bridge = contracts?.tokens[selectedToken.symbol][L1_NETWORK].l1Bridge
   const networkPairMap = networks.reduce((obj, network) => {
     if (network.isLayer1) {
       return obj
@@ -252,9 +252,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       if (sourceNetwork?.isLayer1) {
         // destination network is L2 hop bridge ( L1 -> L2 Hop )
         if (destNetwork && isHopBridge(destNetwork?.slug)) {
-          const chainId = contractNetworkSlugToChainId(
-            canonicalSlug(destNetwork)
-          )
+          const chainId = networkSlugToId(canonicalSlug(destNetwork))
 
           await approveTokens(
             selectedToken,

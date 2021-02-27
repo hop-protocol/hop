@@ -117,6 +117,13 @@ class BondTransferRootWatcher extends BaseWatcher {
         chainIds,
         chainAmounts
       )
+      tx?.wait().then(() => {
+        this.emit('bondTransferRoot', {
+          transferRootHash,
+          chainIds,
+          chainAmounts
+        })
+      })
       this.logger.log(
         'L1 bondTransferRoot tx',
         chalk.bgYellow.black.bold(tx.hash)

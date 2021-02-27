@@ -197,7 +197,7 @@ function startWatchers (orderNum: number = 0) {
     })
   }
 
-  return stop
+  return { stop, watchers }
 }
 
 function startChallengeWatchers () {

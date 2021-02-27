@@ -4,22 +4,17 @@ import MetamaskNetworkGoerli from 'src/assets/onboard/metamask-network-goerli.pn
 import MetamaskNetworkRinkeby from 'src/assets/onboard/metamask-network-rinkeby.png'
 import MetamaskNetworkRopsten from 'src/assets/onboard/metamask-network-ropsten.png'
 
+const images: any = {
+  mainnet: MetamaskNetworkMainnet,
+  kovan: MetamaskNetworkKovan,
+  goerli: MetamaskNetworkGoerli,
+  ropsten: MetamaskNetworkRopsten,
+  rinkeby: MetamaskNetworkRinkeby
+}
+
 const getNetworkSpecificMetamaskImage = (networkName: string): string => {
   const name = networkName.toLowerCase()
-
-  if (name === 'mainnet') {
-    return MetamaskNetworkMainnet
-  } else if (name === 'kovan') {
-    return MetamaskNetworkKovan
-  } else if (name === 'goerli') {
-    return MetamaskNetworkGoerli
-  } else if (name === 'ropsten') {
-    return MetamaskNetworkRopsten
-  } else if (name === 'rinkeby') {
-    return MetamaskNetworkRinkeby
-  } else {
-    throw new Error('Invalid network name')
-  }
+  return images[name] || ''
 }
 
 export default getNetworkSpecificMetamaskImage

@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events'
 import Logger from 'src/logger'
 
 interface Config {
@@ -6,13 +7,14 @@ interface Config {
   order?: () => number
 }
 
-class BaseWatcher {
+class BaseWatcher extends EventEmitter {
   logger: Logger
   label: string
   order: () => number = () => 0
   started: boolean = false
 
   constructor (config: Config) {
+    super()
     this.label = config.label
     this.logger = new Logger(`[${this.label}]`, { color: config.logColor })
     if (config.order) {

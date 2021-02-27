@@ -1,9 +1,9 @@
 import * as ethers from 'ethers'
-import { bonderPrivateKeyOld, l2OptimismRpcUrl } from 'src/config'
+import { bonderPrivateKeyOld } from 'src/config'
+import { getRpcUrl } from 'src/utils'
 
-const l2OptimismProvider = new ethers.providers.JsonRpcProvider(
-  l2OptimismRpcUrl
-)
+const rpcUrl = getRpcUrl('optimism')
+const l2OptimismProvider = new ethers.providers.JsonRpcProvider(rpcUrl)
 const L2OptimismWallet = new ethers.Wallet(
   bonderPrivateKeyOld,
   l2OptimismProvider

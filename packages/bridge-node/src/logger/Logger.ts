@@ -15,7 +15,7 @@ class Logger {
     }
   ) {
     this.prefix = chalk[opts.color](prefix)
-    if (process.env.DISABLE_LOGS) {
+    if (process.env.DISABLE_LOGGER) {
       this.enabled = false
     }
   }

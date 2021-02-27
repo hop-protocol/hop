@@ -11,19 +11,13 @@ import { ethers, Contract } from 'ethers'
 import Address from 'src/models/Address'
 import { getNetworkSpecificMetamaskImage } from 'src/utils'
 import {
-  l1RpcUrl,
-  l1NetworkId,
+  networks,
   infuraKey,
-  arbitrumNetworkId,
-  optimismNetworkId,
-  xDaiNetworkId,
   blocknativeDappid,
   fortmaticApiKey,
-  portisDappId,
-  arbitrumRpcUrl,
-  optimismRpcUrl,
-  xDaiRpcUrl
+  portisDappId
 } from 'src/config'
+import { L1_NETWORK } from 'src/constants'
 
 import MetamaskAccountsSettingsHighlight from 'src/assets/onboard/metamask-accounts-settings-highlight.png'
 import MetamaskSettingsHighlight from 'src/assets/onboard/metamask-settings-highlight.png'
@@ -80,7 +74,7 @@ const Web3ContextProvider: FC = ({ children }) => {
   const [address, setAddress] = useState<Address | undefined>()
   const onboard = useMemo(() => {
     const cacheKey = 'selectedWallet'
-    const rpcUrl = l1RpcUrl
+    const rpcUrl = networks[L1_NETWORK].rpcUrl
     const walletOptions = [
       { walletName: 'metamask', preferred: true },
       {
@@ -116,9 +110,10 @@ const Web3ContextProvider: FC = ({ children }) => {
         '4': 'Rinkeby',
         '5': 'Goerli',
         '42': 'Kovan',
-        [arbitrumNetworkId]: 'Arbitrum',
-        [optimismNetworkId]: 'Optimism',
-        [xDaiNetworkId]: 'xDai'
+        [networks['arbitrum'].networkId]: 'Arbitrum',
+        [networks['optimism'].networkId]: 'Optimism',
+        [networks['xdai'].networkId]: 'xDai',
+        [networks['matic'].networkId]: 'Matic'
       }
       const walletName = state.wallet.name
       const gotNetworkId = state.network.toString()
@@ -130,23 +125,27 @@ const Web3ContextProvider: FC = ({ children }) => {
       const gotNetworkName = networkNames[gotNetworkId] || 'local'
       const wantNetworkName = networkNames[wantNetworkId] || 'local'
       let wantRpcUrl = ''
-      if (wantNetworkId === arbitrumNetworkId) {
-        wantRpcUrl = arbitrumRpcUrl
+      if (wantNetworkId === networks['arbitrum'].networkId) {
+        wantRpcUrl = networks['arbitrum'].rpcUrl
       }
-      if (wantNetworkId === optimismNetworkId) {
-        wantRpcUrl = optimismRpcUrl
+      if (wantNetworkId === networks['optimism'].networkId) {
+        wantRpcUrl = networks['optimism'].rpcUrl
       }
-      if (wantNetworkId === xDaiNetworkId) {
-        wantRpcUrl = xDaiRpcUrl
+      if (wantNetworkId === networks['xdai'].networkId) {
+        wantRpcUrl = networks['xdai'].rpcUrl
+      }
+      if (wantNetworkId === networks['matic'].networkId) {
+        wantRpcUrl = networks['matic'].rpcUrl
       }
 
       let html = ''
       if (walletName === 'MetaMask') {
         let stepImages: string[] = []
         if (
-          wantNetworkId === arbitrumNetworkId ||
-          wantNetworkId === optimismNetworkId ||
-          wantNetworkId === xDaiNetworkId
+          wantNetworkId === networks['arbitrum'].networkId ||
+          wantNetworkId === networks['optimism'].networkId ||
+          wantNetworkId === networks['xdai'].networkId ||
+          wantNetworkId === networks['matic'].networkId
         ) {
           stepImages = [
             MetamaskAccountsSettingsHighlight,
@@ -206,7 +205,7 @@ const Web3ContextProvider: FC = ({ children }) => {
 
     const instance = Onboard({
       dappId: blocknativeDappid,
-      networkId: Number(l1NetworkId),
+      networkId: Number(networks[L1_NETWORK].networkId),
       walletSelect: {
         wallets: walletOptions
       },

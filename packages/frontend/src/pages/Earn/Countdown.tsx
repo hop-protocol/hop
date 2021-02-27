@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { STAKING_GENESIS, REWARDS_DURATION_DAYS } from '../../config/constants'
+import { STAKING_GENESIS, REWARDS_DURATION_DAYS } from 'src/constants'
 
 import Typography from '@material-ui/core/Typography'
 

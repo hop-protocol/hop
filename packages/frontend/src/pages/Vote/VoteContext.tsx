@@ -10,7 +10,7 @@ import { formatUnits } from 'ethers/lib/utils'
 import useInterval from 'src/hooks/useInterval'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { ZERO_ADDRESS } from 'src/config/constants'
+import { ZERO_ADDRESS } from 'src/constants'
 
 type VoteContextProps = {
   balance: string

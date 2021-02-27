@@ -1,11 +1,7 @@
 import { ethers } from 'ethers'
 import { EventEmitter } from 'events'
-import {
-  l1RpcUrl,
-  arbitrumRpcUrl,
-  optimismRpcUrl,
-  xDaiRpcUrl
-} from 'src/config'
+import { L1_NETWORK } from 'src/constants'
+import { getRpcUrl } from 'src/utils'
 
 interface Config {
   networkName: string
@@ -44,13 +40,15 @@ class Transaction extends EventEmitter {
     this.networkName = (networkName || 'kovan').trim().toLowerCase()
     let rpcUrl = ''
     if (networkName.startsWith('arbitrum')) {
-      rpcUrl = arbitrumRpcUrl
+      rpcUrl = getRpcUrl('arbitrum')
     } else if (networkName.startsWith('optimism')) {
-      rpcUrl = optimismRpcUrl
+      rpcUrl = getRpcUrl('optimism')
     } else if (networkName.startsWith('xdai')) {
-      rpcUrl = xDaiRpcUrl
+      rpcUrl = getRpcUrl('xdai')
+    } else if (networkName.startsWith('matc')) {
+      rpcUrl = getRpcUrl('matic')
     } else {
-      rpcUrl = l1RpcUrl
+      rpcUrl = getRpcUrl(L1_NETWORK)
     }
     if (destNetworkName) {
       this.destNetworkName = destNetworkName
@@ -75,6 +73,8 @@ class Transaction extends EventEmitter {
       return this._optimismLink()
     } else if (this.networkName.startsWith('xdai')) {
       return this._xdaiLink()
+    } else if (this.networkName.startsWith('matic')) {
+      return this._maticLink()
     } else {
       return ''
     }
@@ -112,6 +112,10 @@ class Transaction extends EventEmitter {
 
   private _xdaiLink () {
     return `https://blockscout.com/poa/sokol/tx/${this.hash}`
+  }
+
+  private _maticLink () {
+    return ''
   }
 
   toObject () {

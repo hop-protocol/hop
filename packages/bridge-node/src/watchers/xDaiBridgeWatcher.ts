@@ -67,6 +67,9 @@ class xDaiBridgeWatcher extends BaseWatcher {
             }
             const packedSigs = packSignatures(sigs)
             const tx = await l1Amb.executeSignatures(message, packedSigs)
+            tx?.wait().then(() => {
+              this.emit('executeSignatures', {})
+            })
             this.logger.debug('executeSignatures messageHash:', msgHash)
             this.logger.debug(
               'executeSignatures tx hash:',

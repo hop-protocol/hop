@@ -1,17 +1,22 @@
 require('dotenv').config()
 import { startWatchers } from 'src/watchers/watchers'
 import { tokens } from 'src/config'
-import { wait } from 'src/utils'
+import { wait, isL1 } from 'src/utils'
 import { KOVAN, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
 import { User } from './helpers'
 
 const paths = [
+  // L1 -> L2
   [KOVAN, ARBITRUM],
   [KOVAN, OPTIMISM],
   [KOVAN, XDAI],
+
+  // L2 -> L1
   [ARBITRUM, KOVAN],
   [OPTIMISM, KOVAN],
   [XDAI, KOVAN],
+
+  // L2 -> L2
   [OPTIMISM, ARBITRUM],
   [OPTIMISM, XDAI],
   [ARBITRUM, OPTIMISM],
@@ -26,14 +31,18 @@ const privateKey = process.env.TEST_USER_PRIVATE_KEY
 
 for (let path of paths) {
   const [sourceNetwork, destNetwork] = path
+  const label = `${sourceNetwork} -> ${destNetwork}`
   test(
-    `${sourceNetwork} -> ${destNetwork}`,
+    label,
     async () => {
+      console.log(label)
       await prepareAccount(sourceNetwork, TOKEN)
       const user = new User(privateKey)
-      const stop = startWatchers()
+      const address = await user.getAddress()
+      const { stop, watchers } = startWatchers()
       const sourceBalanceBefore = await user.getBalance(sourceNetwork, TOKEN)
       const destBalanceBefore = await user.getBalance(destNetwork, TOKEN)
+      console.log('before:', sourceBalanceBefore, destBalanceBefore)
       const receipt = await user.sendAndWaitForReceipt(
         sourceNetwork,
         destNetwork,
@@ -41,24 +50,46 @@ for (let path of paths) {
         TRANSFER_AMOUNT
       )
       expect(receipt.status).toBe(1)
-      // TODO: read event emitted from watcher
-      await wait(50 * 1000)
+      if (isL1(sourceNetwork)) {
+        await wait(10 * 1000)
+      } else {
+        await waitForEvent(
+          watchers,
+          'bondWithdrawal',
+          data => data.recipient === address
+        )
+      }
       const sourceBalanceAfter = await user.getBalance(sourceNetwork, TOKEN)
       const destBalanceAfter = await user.getBalance(destNetwork, TOKEN)
       expect(sourceBalanceAfter + TRANSFER_AMOUNT).toBe(sourceBalanceBefore)
-      console.log(destBalanceAfter, destBalanceBefore)
+      console.log('after:', destBalanceAfter, destBalanceBefore)
       expect(destBalanceAfter > destBalanceBefore).toBe(true)
       await stop()
-      await wait(5 * 1000)
     },
     300 * 1000
   )
 }
 
+async function waitForEvent (
+  watchers: any[],
+  eventName: string,
+  predicate: any
+) {
+  return new Promise(resolve => {
+    watchers.forEach(watcher => {
+      watcher.on(eventName, data => {
+        console.log('event:', eventName, data)
+        if (predicate(data)) {
+          resolve()
+        }
+      })
+    })
+  })
+}
+
 async function prepareAccount (sourceNetwork: string, token: string) {
   const user = new User(privateKey)
   const balance = await user.getBalance(sourceNetwork, token)
-  console.log('balance:', balance)
   if (balance < 10) {
     // TODO: sent L1 token to L2 over bridge instead of mint (mint not always supported)
     const tx = await user.mint(sourceNetwork, token, 1000)

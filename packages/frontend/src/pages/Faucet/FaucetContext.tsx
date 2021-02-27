@@ -14,9 +14,7 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import Transaction from 'src/models/Transaction'
 import Token from 'src/models/Token'
 import logger from 'src/logger'
-import xDaiHelperAbi from 'src/abi/L2xDaiErc20ToNativeBridgeHelper.json'
-import l1xDaiAmbAbi from 'src/abi/L1_xDaiAMB.json'
-import { signatureToVRS, packSignatures } from 'src/utils/xdaiUtils'
+import { L1_NETWORK } from 'src/constants'
 
 type FaucetContextProps = {
   mintToken: () => void
@@ -39,8 +37,12 @@ const FaucetContextProvider: FC = ({ children }) => {
   const [isMinting, setMinting] = useState<boolean>(false)
   let { contracts, txHistory, networks, tokens } = useApp()
   const token = tokens.find(token => token.symbol === 'DAI') as Token
-  const l1Dai = contracts?.tokens[token.symbol].kovan.l1CanonicalToken
-  const { address, getWriteContract, checkConnectedNetworkId } = useWeb3Context()
+  const l1Dai = contracts?.tokens[token.symbol][L1_NETWORK].l1CanonicalToken
+  const {
+    address,
+    getWriteContract,
+    checkConnectedNetworkId
+  } = useWeb3Context()
   const selectedNetwork = networks[0]
   const [error, setError] = useState<string | null | undefined>(null)
 
@@ -61,7 +63,7 @@ const FaucetContextProvider: FC = ({ children }) => {
       txHistory?.addTransaction(
         new Transaction({
           hash: tx?.hash,
-          networkName: 'kovan'
+          networkName: L1_NETWORK
         })
       )
       await tx?.wait()

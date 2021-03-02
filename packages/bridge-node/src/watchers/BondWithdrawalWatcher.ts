@@ -159,10 +159,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const contract = this.contracts[chainId]
       const amountOutMin = '0'
       const deadline = BigNumber.from(UINT256)
-      let computedTransferHash: string
-      if (chainId === '77') {
-        computedTransferHash = transferHash
-      } else {
+      let computedTransferHash = transferHash
+      if (chainId === '69') {
         computedTransferHash = await contract.getTransferHash(
           chainId,
           sender,

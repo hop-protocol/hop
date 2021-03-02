@@ -412,6 +412,11 @@
     {
       "inputs": [
         {
+          "internalType": "address",
+          "name": "_bonder",
+          "type": "address"
+        },
+        {
           "internalType": "bytes32",
           "name": "_transferHash",
           "type": "bytes32"
@@ -859,6 +864,11 @@
     {
       "inputs": [
         {
+          "internalType": "address",
+          "name": "_bonder",
+          "type": "address"
+        },
+        {
           "internalType": "bytes32",
           "name": "_transferHash",
           "type": "bytes32"
@@ -867,6 +877,11 @@
           "internalType": "bytes32",
           "name": "_rootHash",
           "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "transferRootTotalAmount",
+          "type": "uint256"
         },
         {
           "internalType": "bytes32[]",

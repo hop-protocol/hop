@@ -20,6 +20,7 @@
   "license": "MIT",
   "dependencies": {
     "@authereum/utils": "^0.1.12",
+    "@ethersproject/hdnode": "^5.0.9",
     "@hop-exchange/contracts": "0.0.2",
     "@types/yargs": "^15.0.10",
     "chalk": "4.1.0",
@@ -27,7 +28,8 @@
     "debounce-promise": "3.1.2",
     "dotenv": "^8.2.0",
     "ethers": "^5.0.28",
-    "ipfs-http-client": "^49.0.2",
+    "leveldown": "^5.6.0",
+    "levelup": "^4.4.0",
     "module-alias": "^2.2.2",
     "node-fetch": "^2.6.1",
     "p-throttle": "4.0.0",

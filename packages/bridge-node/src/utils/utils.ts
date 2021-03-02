@@ -14,7 +14,7 @@ export const throttle = (fn: any, interval) => {
 }
 
 export const wait = async (t: number) => {
-  return new Promise(resolve => setTimeout(() => resolve(), t))
+  return new Promise(resolve => setTimeout(() => resolve(null), t))
 }
 
 export const getRpcUrl = (network: string): string | undefined => {

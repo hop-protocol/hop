@@ -56,6 +56,17 @@ export class User {
     return contract.mint(recipient, parseUnits(amount.toString(), 18))
   }
 
+  async transfer (
+    network: string,
+    token: string,
+    amount: string | number,
+    recipient: string
+  ) {
+    const wallet = this.getWallet(network)
+    const contract = this.getTokenContract(network, token)
+    return contract.transfer(recipient, parseUnits(amount.toString(), 18))
+  }
+
   getHopBridgeContract (network: string, token: string) {
     let tokenAddress = tokens[token][network].l2Bridge
     if (network === KOVAN) {
@@ -220,4 +231,35 @@ export class User {
     const tx = await this.send(sourceNetwork, destNetwork, token, amount)
     return this.waitForTransactionReceipt(sourceNetwork, tx.hash)
   }
+
+  async sendEth (amount: number | string, recipient: string) {
+    const wallet = this.getWallet()
+    return wallet.sendTransaction({
+      to: recipient,
+      value: parseUnits(amount.toString(), 18)
+    })
+  }
+
+  getBridgeAddress (network: string, token: string) {
+    let address = tokens[token][network].l2Bridge
+    if (network === KOVAN) {
+      address = tokens[token][network].l1Bridge
+    }
+    return address
+  }
+}
+
+export async function checkApproval (
+  user: User,
+  network: string,
+  token: string,
+  spender: string
+) {
+  let allowance = await user.getAllowance(network, token, spender)
+  if (allowance < 1000) {
+    const tx = await user.approve(network, token, spender)
+    await tx?.wait()
+  }
+  allowance = await user.getAllowance(network, token, spender)
+  expect(allowance > 0).toBe(true)
 }

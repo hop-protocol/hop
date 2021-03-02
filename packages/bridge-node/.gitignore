@@ -10,3 +10,4 @@ package-lock.json
 yarn.lock
 docker/arbitrum/data
 docker/arbitrum/docker-compose.yml
+src/db/db_data

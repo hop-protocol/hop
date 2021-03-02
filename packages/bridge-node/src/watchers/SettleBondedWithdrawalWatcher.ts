@@ -1,6 +1,6 @@
 import '../moduleAlias'
 import { Contract } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
+import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { wait, networkIdToSlug } from 'src/utils'
 import { BondTransferRootEvent } from 'src/constants'
 import { store } from 'src/store'
@@ -10,6 +10,7 @@ import BaseWatcher from 'src/watchers/BaseWatcher'
 export interface Config {
   l1BridgeContract: any
   l2BridgeContract: any
+  contracts: any
   label: string
   order?: () => number
 }
@@ -19,6 +20,7 @@ const cache: { [key: string]: boolean } = {}
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
   l1BridgeContract: any
   l2BridgeContract: any
+  contracts: any
   label: string
 
   constructor (config: Config) {
@@ -29,6 +31,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     })
     this.l1BridgeContract = config.l1BridgeContract
     this.l2BridgeContract = config.l2BridgeContract
+    this.contracts = config.contracts
     this.label = config.label
   }
 
@@ -66,39 +69,53 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     this.logger.log('rootHash:', rootHash)
     this.logger.log('proof:', proof)
     cache[cacheKey] = true
-    if (chainId === '1' || chainId === '42') {
-      const bondedAmount = await this.getBondedAmount(
-        transferHash,
-        this.l1BridgeContract
-      )
-      if (bondedAmount === 0) {
-        throw new Error('cancelled')
-      }
-      this.logger.log(`${this.label} l1 settleBondedWithdrawal`)
-      return this.l1BridgeContract.settleBondedWithdrawal(
+    const bondedAmount = await this.getBondedAmount(transferHash, chainId)
+    if (bondedAmount === 0) {
+      throw new Error('cancelled')
+    }
+    this.logger.log(
+      `${this.label} l1 settleBondedWithdrawal amount: ${bondedAmount}`
+    )
+    return this.settleBondedWithdrawal(
+      transferHash,
+      rootHash,
+      bondedAmount.toString(),
+      proof,
+      chainId
+    )
+  }
+
+  settleBondedWithdrawal = async (
+    transferHash: string,
+    rootHash: string,
+    rootTotal: string,
+    proof: any[],
+    chainId: string
+  ) => {
+    const bridge = this.contracts[chainId]
+    if (chainId === '77') {
+      const bonder = await this.getBonderAddress()
+      return bridge.settleBondedWithdrawal(
+        bonder,
         transferHash,
         rootHash,
-        proof
-      )
-    } else {
-      const bondedAmount = await this.getBondedAmount(
-        transferHash,
-        this.l2BridgeContract
-      )
-      if (bondedAmount === 0) {
-        throw new Error('cancelled')
-      }
-      this.logger.log(`${this.label} l2 settleBondedWithdrawal`)
-      return this.l2BridgeContract.settleBondedWithdrawal(
-        transferHash,
-        rootHash,
+        parseUnits(rootTotal, 18),
         proof
       )
     }
+
+    return bridge.settleBondedWithdrawal(transferHash, rootHash, proof)
   }
 
-  getBondedAmount = async (transferHash: string, bridge: Contract) => {
-    const bondedBn = await bridge.getBondedWithdrawalAmount(transferHash)
+  getBondedAmount = async (transferHash: string, chainId: string) => {
+    let bondedBn: any
+    const bridge = this.contracts[chainId]
+    if (chainId === '77') {
+      const bonder = await this.getBonderAddress()
+      bondedBn = await bridge.getBondedWithdrawalAmount(bonder, transferHash)
+    } else {
+      bondedBn = await bridge.getBondedWithdrawalAmount(transferHash)
+    }
     const bondedAmount = Number(formatUnits(bondedBn.toString(), 18))
     return bondedAmount
   }
@@ -119,10 +136,16 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
     const proof = []
     const transfers: any[] = Object.values(store.transferHashes)
+    this.logger.log('transfers:', transfers.length)
     for (let item of transfers) {
       try {
         const { transferHash, computedTransferHash, chainId } = item
-        const tx = await this.sendTx(chainId, transferHash, bondRoot, proof)
+        const tx = await this.sendTx(
+          chainId,
+          computedTransferHash,
+          bondRoot,
+          proof
+        )
         tx?.wait().then(() => {
           this.emit('settleBondedWithdrawal', {
             networkName: networkIdToSlug(chainId),
@@ -150,6 +173,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       .on('error', err => {
         this.logger.error('event watcher error:', err.message)
       })
+  }
+
+  async getBonderAddress () {
+    return this.l1BridgeContract.signer.getAddress()
   }
 }
 

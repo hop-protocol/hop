@@ -93,29 +93,23 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     chainId: string
   ) => {
     const bridge = this.contracts[chainId]
-    if (chainId === '77') {
-      const bonder = await this.getBonderAddress()
-      return bridge.settleBondedWithdrawal(
-        bonder,
-        transferHash,
-        rootHash,
-        parseUnits(rootTotal, 18),
-        proof
-      )
-    }
-
-    return bridge.settleBondedWithdrawal(transferHash, rootHash, proof)
+    const bonder = await this.getBonderAddress()
+    return bridge.settleBondedWithdrawal(
+      bonder,
+      transferHash,
+      rootHash,
+      parseUnits(rootTotal, 18),
+      proof
+    )
   }
 
   getBondedAmount = async (transferHash: string, chainId: string) => {
-    let bondedBn: any
     const bridge = this.contracts[chainId]
-    if (chainId === '77') {
-      const bonder = await this.getBonderAddress()
-      bondedBn = await bridge.getBondedWithdrawalAmount(bonder, transferHash)
-    } else {
-      bondedBn = await bridge.getBondedWithdrawalAmount(transferHash)
-    }
+    const bonder = await this.getBonderAddress()
+    const bondedBn = await bridge.getBondedWithdrawalAmount(
+      bonder,
+      transferHash
+    )
     const bondedAmount = Number(formatUnits(bondedBn.toString(), 18))
     return bondedAmount
   }

@@ -32,7 +32,7 @@ const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 1
 const privateKey = process.env.TEST_USER_PRIVATE_KEY
 
-describe.only('settleBondedWithdrawal', () => {
+describe('settleBondedWithdrawal', () => {
   const sourceNetwork = OPTIMISM
   const destNetwork = XDAI
   const label = `${sourceNetwork} -> ${destNetwork}`
@@ -49,17 +49,17 @@ describe.only('settleBondedWithdrawal', () => {
       )
       expect(receipt.status).toBe(1)
       await waitForEvent(watchers, 'settleBondedWithdrawal', data => {
-        console.log('DATA', data)
+        console.log('data:', data)
         return true
       })
-      console.log('RE', receipt)
+      console.log('receipt:', receipt)
       await stop()
     },
     300 * 1000
   )
 })
 
-describe('bondWithdrawal', () => {
+describe.only('bondWithdrawal', () => {
   for (let path of paths) {
     const [sourceNetwork, destNetwork] = path
     const label = `${sourceNetwork} -> ${destNetwork}`
@@ -72,6 +72,7 @@ describe('bondWithdrawal', () => {
         const address = await user.getAddress()
         const { stop, watchers } = startWatchers()
         const sourceBalanceBefore = await user.getBalance(sourceNetwork, TOKEN)
+        expect(sourceBalanceBefore > TRANSFER_AMOUNT).toBe(true)
         const destBalanceBefore = await user.getBalance(destNetwork, TOKEN)
         console.log('before:', sourceBalanceBefore, destBalanceBefore)
         const receipt = await user.sendAndWaitForReceipt(
@@ -82,7 +83,7 @@ describe('bondWithdrawal', () => {
         )
         expect(receipt.status).toBe(1)
         if (isL1(sourceNetwork)) {
-          await wait(10 * 1000)
+          await wait(20 * 1000)
         } else {
           await waitForEvent(
             watchers,

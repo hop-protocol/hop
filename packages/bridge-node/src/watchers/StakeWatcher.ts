@@ -2,6 +2,7 @@ import '../moduleAlias'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { wait } from 'src/utils'
 import BaseWatcher from 'src/watchers/BaseWatcher'
+import { UINT256 } from 'src/constants'
 
 export interface Config {
   label: string
@@ -49,6 +50,11 @@ class StakeWatcher extends BaseWatcher {
     const amount = 1000
 
     try {
+      const isBonder = await this.isBonder()
+      if (!isBonder) {
+        throw new Error('Not a bonder')
+      }
+
       const credit = await this.getCredit()
       const debit = await this.getDebit()
       this.logger.log(`${this.label} credit balance:`, credit)
@@ -62,7 +68,7 @@ class StakeWatcher extends BaseWatcher {
       if (credit < threshold) {
         if (balance < amount) {
           throw new Error(
-            `${this.label} not enough balance to stake. Have ${balance}, need ${amount}`
+            `${this.label} not enough hop token balance to stake. Have ${balance}, need ${amount}`
           )
         }
         if (allowance < amount) {
@@ -73,9 +79,12 @@ class StakeWatcher extends BaseWatcher {
         allowance = await this.getTokenAllowance()
         if (allowance < amount) {
           throw new Error(
-            `${this.label} not enough allowance for bridge to stake. Have ${allowance}, need ${amount}`
+            `${this.label} not enough hop token allowance for bridge to stake. Have ${allowance}, need ${amount}`
           )
         }
+        this.logger.log(
+          `${this.label} attempting to stake: ${amount.toString()}`
+        )
         const tx = await this.stake(amount.toString())
         this.logger.log(`stake ${this.label} tx:`, tx?.hash)
       }
@@ -85,39 +94,30 @@ class StakeWatcher extends BaseWatcher {
   }
 
   async getCredit () {
-    let credit: string
-    if (/xdai/i.test(this.label)) {
-      const bonder = await this.getBonderAddress()
-      credit = (await this.bridgeContract.getCredit(bonder)).toString()
-    } else {
-      credit = (await this.bridgeContract.getCredit()).toString()
-    }
+    const bonder = await this.getBonderAddress()
+    const credit = (await this.bridgeContract.getCredit(bonder)).toString()
 
     return Number(formatUnits(credit, 18))
   }
 
   async getDebit () {
-    let debit: string
-    if (/xdai/i.test(this.label)) {
-      const bonder = await this.getBonderAddress()
-      debit = (
-        await this.bridgeContract.getDebitAndAdditionalDebit(bonder)
-      ).toString()
-    } else {
-      debit = (await this.bridgeContract.getDebit()).toString()
-    }
+    const bonder = await this.getBonderAddress()
+    const debit = (
+      await this.bridgeContract.getDebitAndAdditionalDebit(bonder)
+    ).toString()
     return Number(formatUnits(debit, 18))
   }
 
   async stake (amount: string) {
     const parsedAmount = parseUnits(amount, 18)
     this.logger.log(`${this.label} staking ${amount}`)
-    if (/xdai/i.test(this.label)) {
-      const bonder = await this.getBonderAddress()
-      return this.bridgeContract.stake(bonder, parsedAmount)
-    } else {
-      return this.bridgeContract.stake(parsedAmount)
-    }
+    const bonder = await this.getBonderAddress()
+    return this.bridgeContract.stake(bonder, parsedAmount)
+  }
+
+  async isBonder () {
+    const bonder = await this.getBonderAddress()
+    return this.bridgeContract.getIsBonder(bonder)
   }
 
   async getTokenBalance () {
@@ -128,7 +128,7 @@ class StakeWatcher extends BaseWatcher {
   }
 
   async approveTokens () {
-    const maxApproval = parseUnits('1000000', 18)
+    const maxApproval = parseUnits(UINT256, 18)
     const spender = this.bridgeContract.address
     return this.tokenContract.approve(spender, maxApproval)
   }

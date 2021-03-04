@@ -11,7 +11,7 @@ import arbbots from 'src/arb-bot/bots'
 import { l2ArbitrumProvider } from 'src/wallets/l2ArbitrumWallet'
 import { l2OptimismProvider } from 'src/wallets/l2OptimismWallet'
 import { l2xDaiProvider } from 'src/wallets/l2xDaiWallet'
-import l1WalletOld from 'src/wallets/l1WalletOld'
+import l1Wallet from 'src/wallets/l1Wallet'
 import { store } from 'src/store'
 import PubSub from 'src/pubsub/PubSub'
 import Logger from 'src/logger'
@@ -35,7 +35,7 @@ const startStakeWatchers = () => {
         continue
       }
       let bridgeContract = tokenContracts.l2Bridge
-      let tokenContract = tokenContracts.l2CanonicalToken
+      let tokenContract = tokenContracts.l2HopBridgeToken
       if (network === 'kovan') {
         bridgeContract = tokenContracts.l1Bridge
         tokenContract = tokenContracts.l1CanonicalToken
@@ -134,14 +134,7 @@ function startWatchers (orderNum: number = 0) {
         continue
       }
       const label = `${network} ${token}`
-      let l1Bridge = contracts[token].kovan.l1Bridge
-      if (
-        (token === 'DAI' && network === 'arbitrum') ||
-        (token === 'DAI' && network === 'optimism') ||
-        (token === 'DAI' && network === 'xdai')
-      ) {
-        l1Bridge = l1Bridge.connect(l1WalletOld)
-      }
+      const l1Bridge = contracts[token].kovan.l1Bridge
 
       watchers.push(
         new BondTransferRootWatcher({

@@ -2,11 +2,11 @@ import { ethers, Contract } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { tokens } from 'src/config'
 import { arbitrumNetworkId } from 'src/constants'
-import l1BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L1_Bridge.sol/L1_Bridge.json'
-import l2xDaiBridgeArtifact from 'src/abi/L2xDaiBridge.json'
-import l2OptimismBridgeArtifact from 'src/abi/L2OptimismBridge.json'
-import l2ArbitrumBridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L2_Bridge.sol/L2_Bridge.json'
-import erc20Abi from 'src/abi/ERC20.json'
+import l1BridgeArtifact from 'src/abi/L1_Bridge.json'
+import l2BridgeArtifact from 'src/abi/L2_Bridge.json'
+import erc20Artifact from 'src/abi/ERC20.json'
+import uniswapRouterArtifact from 'src/abi/UniswapV2Router02.json'
+import uniswapPairArtifact from 'src/abi/UniswapV2Pair.json'
 import { UINT256, KOVAN, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
 import { getRpcUrl, networkSlugToId } from 'src/utils'
 
@@ -28,16 +28,26 @@ export class User {
     return new ethers.Wallet(this.privateKey, provider)
   }
 
-  async getBalance (network: string = KOVAN, token: string = '') {
+  async getBalance (network: string = KOVAN, token: string | Contract = '') {
     const address = await this.getAddress()
     if (!token) {
       const provider = this.getProvider(network)
       const balance = await provider.getBalance(address)
       return Number(formatUnits(balance, 18))
     }
-    const contract = this.getTokenContract(network, token)
+    let contract: Contract
+    if (typeof token === 'string') {
+      contract = this.getTokenContract(network, token)
+    } else {
+      contract = token
+    }
     const balance = await contract.balanceOf(address)
     return Number(formatUnits(balance, 18))
+  }
+
+  async getHopBalance (network: string = KOVAN, token: string = '') {
+    const contract = this.getHopBridgeTokenContract(network, token)
+    return this.getBalance(network, contract)
   }
 
   getTokenContract (network: string, token: string) {
@@ -46,7 +56,19 @@ export class User {
       tokenAddress = tokens[token][network].l1CanonicalToken
     }
     const wallet = this.getWallet(network)
-    return new Contract(tokenAddress, erc20Abi, wallet)
+    return new Contract(tokenAddress, erc20Artifact.abi, wallet)
+  }
+
+  getUniswapRouterContract (network: string, token: string) {
+    let routerAddress = tokens[token][network].uniswapRouter
+    const wallet = this.getWallet(network)
+    return new Contract(routerAddress, uniswapRouterArtifact.abi, wallet)
+  }
+
+  getUniswapPairContract (network: string, token: string) {
+    let pairAddress = tokens[token][network].uniswapExchange
+    const wallet = this.getWallet(network)
+    return new Contract(pairAddress, uniswapPairArtifact.abi, wallet)
   }
 
   async mint (network: string, token: string, amount: string | number) {
@@ -68,31 +90,38 @@ export class User {
   }
 
   getHopBridgeContract (network: string, token: string) {
-    let tokenAddress = tokens[token][network].l2Bridge
+    let bridgeAddress: string
+    let artifact: any
     if (network === KOVAN) {
-      tokenAddress = tokens[token][network].l1Bridge
-    }
-
-    let artifact: any = l1BridgeArtifact
-    if (network === OPTIMISM) {
-      artifact = l2OptimismBridgeArtifact
-    } else if (network === XDAI) {
-      artifact = l2xDaiBridgeArtifact
-    } else if (network === ARBITRUM) {
-      artifact = l2ArbitrumBridgeArtifact
+      bridgeAddress = tokens[token][network].l1Bridge
+      artifact = l1BridgeArtifact
+    } else {
+      bridgeAddress = tokens[token][network].l2Bridge
+      artifact = l2BridgeArtifact
     }
 
     const wallet = this.getWallet(network)
-    return new Contract(tokenAddress, artifact.abi, wallet)
+    return new Contract(bridgeAddress, artifact.abi, wallet)
+  }
+
+  getHopBridgeTokenContract (network: string, token: string) {
+    let tokenAddress = tokens[token][network].l2HopBridgeToken
+    const wallet = this.getWallet(network)
+    return new Contract(tokenAddress, erc20Artifact.abi, wallet)
   }
 
   async approve (
     network: string,
-    token: string,
+    token: string | Contract,
     spender: string,
     amount?: string | number
   ) {
-    const contract = this.getTokenContract(network, token)
+    let contract: Contract
+    if (typeof token === 'string') {
+      contract = this.getTokenContract(network, token)
+    } else {
+      contract = token
+    }
     let approveAmount = UINT256
     if (amount) {
       approveAmount = parseUnits(amount.toString(), 18).toString()
@@ -100,9 +129,18 @@ export class User {
     return contract.approve(spender, approveAmount)
   }
 
-  async getAllowance (network: string, token: string, spender: string) {
+  async getAllowance (
+    network: string,
+    token: string | Contract,
+    spender: string
+  ) {
     const address = await this.getAddress()
-    const contract = this.getTokenContract(network, token)
+    let contract: Contract
+    if (typeof token === 'string') {
+      contract = this.getTokenContract(network, token)
+    } else {
+      contract = token
+    }
     const allowance = await contract.allowance(address, spender)
     return Number(formatUnits(allowance, 18))
   }
@@ -246,6 +284,133 @@ export class User {
       address = tokens[token][network].l1Bridge
     }
     return address
+  }
+
+  async calcToken1Rate (network: string, token: string) {
+    const address = await this.getAddress()
+    const uniswapRouter = this.getUniswapRouterContract(network, token)
+    const uniswapExchange = this.getUniswapPairContract(network, token)
+
+    const [decimals, totalSupply, balance, reserves] = await Promise.all([
+      uniswapExchange.decimals(),
+      uniswapExchange.totalSupply(),
+      uniswapExchange.balanceOf(address),
+      uniswapExchange.getReserves()
+    ])
+
+    const formattedTotalSupply = formatUnits(
+      totalSupply.toString(),
+      Number(decimals.toString())
+    )
+
+    // user pool balance
+    const formattedBalance = formatUnits(balance.toString(), decimals)
+
+    const poolPercentage =
+      (Number(formattedBalance) / Number(formattedTotalSupply)) * 100
+
+    // user pool token percentage
+    const formattedPoolPercentage =
+      poolPercentage.toFixed(2) === '0.00' ? '<0.01' : poolPercentage.toFixed(2)
+
+    const reserve0 = formatUnits(reserves[0].toString(), decimals)
+    const reserve1 = formatUnits(reserves[1].toString(), decimals)
+
+    const token0Deposited =
+      (Number(formattedBalance) * Number(reserve0)) /
+      Number(formattedTotalSupply)
+    const token1Deposited =
+      (Number(formattedBalance) * Number(reserve1)) /
+      Number(formattedTotalSupply)
+
+    const amount0 = parseUnits('1', decimals)
+    const amount1 = await uniswapRouter?.quote(
+      amount0,
+      parseUnits(reserve0, decimals),
+      parseUnits(reserve1, decimals)
+    )
+    const formattedAmountB = formatUnits(amount1, decimals)
+    const token1Rate = formattedAmountB
+    return token1Rate
+  }
+
+  async getPoolBalance (network: string, token: string) {
+    const uniswapExchange = this.getUniswapPairContract(network, token)
+    const address = await this.getAddress()
+    const [balance, decimals] = await Promise.all([
+      uniswapExchange.balanceOf(address),
+      uniswapExchange.decimals()
+    ])
+    return formatUnits(balance.toString(), decimals)
+  }
+
+  async canonicalTokenToHopToken (
+    destNetwork: string,
+    token: string,
+    amount: string | number
+  ) {
+    const l1Bridge = this.getHopBridgeContract(KOVAN, token)
+    const recipient = await this.getAddress()
+    const value = parseUnits(amount.toString(), 18)
+    return l1Bridge.sendToL2(networkSlugToId(destNetwork), recipient, value)
+  }
+
+  async addLiquidity (
+    network: string,
+    token: string,
+    token0Amount: string | number
+  ) {
+    const token1Rate = await this.calcToken1Rate(network, token)
+    const token1Amount = Number(token0Amount) * Number(token1Rate)
+
+    const uniswapRouter = this.getUniswapRouterContract(network, token)
+    const uniswapRouterAddress = uniswapRouter.address
+    const tokenContract = this.getTokenContract(network, token)
+    const hTokenContract = this.getHopBridgeTokenContract(network, token)
+
+    let allowance = await this.getAllowance(
+      network,
+      token,
+      uniswapRouterAddress
+    )
+    if (allowance < 1000) {
+      const tx = await this.approve(network, token, uniswapRouterAddress)
+      await tx?.wait()
+    }
+
+    allowance = await this.getAllowance(
+      network,
+      hTokenContract,
+      uniswapRouterAddress
+    )
+    if (allowance < 1000) {
+      const tx = await this.approve(
+        network,
+        hTokenContract,
+        uniswapRouterAddress
+      )
+      await tx?.wait()
+    }
+
+    const token0 = tokenContract.address
+    const token1 = hTokenContract.address
+    const amount0Desired = parseUnits(token0Amount.toString(), 18)
+    const amount1Desired = parseUnits(token1Amount.toString(), 18)
+    const amount0Min = 0
+    const amount1Min = 0
+    const recipient = await this.getAddress()
+    const deadline = (Date.now() / 1000 + 5 * 60) | 0
+
+    return uniswapRouter.addLiquidity(
+      token0,
+      token1,
+      amount0Desired,
+      amount1Desired,
+      amount0Min,
+      amount1Min,
+      recipient,
+      deadline
+    )
   }
 }
 

@@ -160,6 +160,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const amountOutMin = '0'
       const deadline = BigNumber.from(UINT256)
       let computedTransferHash = transferHash
+      /*
       if (chainId === '69') {
         computedTransferHash = await contract.getTransferHash(
           chainId,
@@ -172,6 +173,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
           attemptSwap ? deadline : 0
         )
       }
+      */
       this.logger.log('computed transfer hash:', computedTransferHash)
       store.transferHashes[transferHash] = {
         transferHash,

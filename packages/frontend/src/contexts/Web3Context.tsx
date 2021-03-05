@@ -9,7 +9,12 @@ import React, {
 import Onboard from 'bnc-onboard'
 import { ethers, Contract } from 'ethers'
 import Address from 'src/models/Address'
-import { getNetworkSpecificMetamaskImage } from 'src/utils'
+import {
+  getNetworkSpecificMetamaskImage,
+  networkIdToSlug,
+  getRpcUrl,
+  getBaseExplorerUrl
+} from 'src/utils'
 import {
   networks,
   infuraKey,
@@ -59,6 +64,18 @@ const initialState = {
   ): Promise<Contract | undefined> => undefined
 }
 
+const networkNames: any = {
+  '1': 'Mainnet',
+  '3': 'Ropsten',
+  '4': 'Rinkeby',
+  '5': 'Goerli',
+  '42': 'Kovan',
+  [networks['arbitrum'].networkId]: 'Arbitrum',
+  [networks['optimism'].networkId]: 'Optimism',
+  [networks['xdai'].networkId]: 'xDai'
+  //[networks['matic'].networkId]: 'Matic'
+}
+
 const Web3Context = createContext<Props>(initialState)
 
 const Web3ContextProvider: FC = ({ children }) => {
@@ -104,17 +121,6 @@ const Web3ContextProvider: FC = ({ children }) => {
     ]
 
     const networkCheck = async (state: any): Promise<any> => {
-      const networkNames: any = {
-        '1': 'Mainnet',
-        '3': 'Ropsten',
-        '4': 'Rinkeby',
-        '5': 'Goerli',
-        '42': 'Kovan',
-        [networks['arbitrum'].networkId]: 'Arbitrum',
-        [networks['optimism'].networkId]: 'Optimism',
-        [networks['xdai'].networkId]: 'xDai',
-        [networks['matic'].networkId]: 'Matic'
-      }
       const walletName = state.wallet.name
       const gotNetworkId = state.network.toString()
       const wantNetworkId = state.appNetworkId.toString()
@@ -134,9 +140,9 @@ const Web3ContextProvider: FC = ({ children }) => {
       if (wantNetworkId === networks['xdai'].networkId) {
         wantRpcUrl = networks['xdai'].rpcUrl
       }
-      if (wantNetworkId === networks['matic'].networkId) {
-        wantRpcUrl = networks['matic'].rpcUrl
-      }
+      //if (wantNetworkId === networks['matic'].networkId) {
+      //wantRpcUrl = networks['matic'].rpcUrl
+      //}
 
       let html = ''
       if (walletName === 'MetaMask') {
@@ -144,8 +150,8 @@ const Web3ContextProvider: FC = ({ children }) => {
         if (
           wantNetworkId === networks['arbitrum'].networkId ||
           wantNetworkId === networks['optimism'].networkId ||
-          wantNetworkId === networks['xdai'].networkId ||
-          wantNetworkId === networks['matic'].networkId
+          wantNetworkId === networks['xdai'].networkId
+          //wantNetworkId === networks['matic'].networkId
         ) {
           stepImages = [
             MetamaskAccountsSettingsHighlight,
@@ -298,6 +304,30 @@ const Web3ContextProvider: FC = ({ children }) => {
     if (networkId != signerNetworkId) {
       onboard.config({ networkId })
       if (onboard.getState().address) {
+        try {
+          if ((window as any).ethereum && networkId) {
+            await (window as any).ethereum.request({
+              id: 1,
+              jsonrpc: '2.0',
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId: `0x${Number(networkId).toString(16)}`,
+                  chainName: networkNames[networkId.toString()],
+                  rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
+                  blockExplorerUrls: [
+                    getBaseExplorerUrl(networkIdToSlug(networkId.toString()))
+                  ]
+                }
+              ]
+            })
+          }
+
+          return true
+        } catch (err) {
+          logger.error(err)
+        }
+
         onboard.walletCheck()
       }
       return false

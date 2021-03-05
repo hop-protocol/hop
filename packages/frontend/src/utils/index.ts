@@ -1,4 +1,5 @@
 export { default as commafy } from './commafy'
+export { default as getBaseExplorerUrl } from './getBaseExplorerUrl'
 export { default as networkSlugToId } from './networkSlugToId'
 export { default as getEtherscanLink } from './getEtherscanLink'
 export { default as getNetworkSpecificMetamaskImage } from './getNetworkSpecificMetamaskImage'

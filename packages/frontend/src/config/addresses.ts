@@ -85,18 +85,22 @@ export const portisDappId = 'fbde3745-1363-4ae4-a517-00d98ab2dfbc'
 export const networks: any = {
   kovan: {
     networkId: '42',
-    rpcUrl: 'https://kovan.rpc.hop.exchange'
+    rpcUrl: 'https://kovan.rpc.hop.exchange',
+    explorerUrl: 'https://kovan.etherscan.io/tx/'
   },
   arbitrum: {
     networkId: '79377087078960',
-    rpcUrl: 'https://kovan3.arbitrum.io/rpc'
+    rpcUrl: 'https://kovan3.arbitrum.io/rpc',
+    explorerUrl: 'https://explorer.offchainlabs.com/#/tx/'
   },
   optimism: {
     networkId: '69',
-    rpcUrl: 'https://kovan.optimism.rpc.hop.exchange'
+    rpcUrl: 'https://kovan.optimism.rpc.hop.exchange',
+    explorerUrl: 'https://kovan-l2-explorer.surge.sh/tx/'
   },
   xdai: {
     networkId: '77',
-    rpcUrl: 'https://sokol.poa.network'
+    rpcUrl: 'https://sokol.poa.network',
+    explorerUrl: 'https://blockscout.com/poa/sokol/tx/'
   }
 }

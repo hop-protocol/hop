@@ -1,7 +1,7 @@
 import '../moduleAlias'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
-import { TransferSentEvent, UINT256 } from 'src/constants'
+import { UINT256 } from 'src/constants'
 import { store } from 'src/store'
 import chalk from 'chalk'
 import { wait, networkIdToSlug } from 'src/utils'
@@ -53,13 +53,19 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async stop () {
-    this.l2BridgeContract.off(TransferSentEvent, this.handleTransferSentEvent)
+    this.l2BridgeContract.off(
+      this.l2BridgeContract.filters.TransferSent(),
+      this.handleTransferSentEvent
+    )
     this.started = false
   }
 
   async watch () {
     this.l2BridgeContract
-      .on(TransferSentEvent, this.handleTransferSentEvent)
+      .on(
+        this.l2BridgeContract.filters.TransferSent(),
+        this.handleTransferSentEvent
+      )
       .on('error', err => {
         this.logger.error('event watcher error:', err.message)
       })
@@ -78,13 +84,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
       deadline
     } = params
 
+    const contract = this.contracts[chainId]
+    this.logger.log(`${this.label} amount:`, amount.toString())
+    this.logger.log(`${this.label} recipient:`, recipient)
+    this.logger.log(`${this.label} transferNonce:`, transferNonce)
+    this.logger.log(`${this.label} relayerFee:`, relayerFee.toString())
     if (attemptSwap) {
-      const contract = this.contracts[chainId]
-      this.logger.log('amount:', amount.toString())
-      this.logger.log('recipient:', recipient)
-      this.logger.log(`${chainId} bondWithdrawalAndAttemptSwap`)
+      this.logger.log(`${this.label} ${chainId} bondWithdrawalAndAttemptSwap`)
       return contract.bondWithdrawalAndAttemptSwap(
-        sender,
         recipient,
         amount,
         transferNonce,
@@ -96,15 +103,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
         }
       )
     } else {
-      this.logger.log('L1 bondWithdrawal')
-      return this.l1BridgeContract.bondWithdrawal(
-        sender,
+      this.logger.log(`${this.label} ${chainId} bondWithdrawal`)
+      return contract.bondWithdrawal(
         recipient,
         amount,
         transferNonce,
         relayerFee,
         {
-          gasLimit: 1000000
+          //  gasLimit: 1000000
         }
       )
     }
@@ -129,6 +135,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transactionHash
       )
 
+      const sourceChainId = (
+        await this.l2BridgeContract.getChainId()
+      ).toString()
       let chainId = ''
       let attemptSwap = false
       try {
@@ -136,11 +145,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
           'swapAndSend',
           data
         )
-        chainId = decoded._chainId.toString()
+        chainId = decoded.chainId.toString()
 
         if (!(chainId === '42' || chainId === '1')) {
           // L2 to L2 transfers have uniswap parameters set
-          if (Number(decoded._destinationDeadline.toString()) > 0) {
+          if (Number(decoded.destinationDeadline.toString()) > 0) {
             attemptSwap = true
           }
         }
@@ -149,7 +158,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
           'send',
           data
         )
-        chainId = decoded._chainId.toString()
+        chainId = decoded.chainId.toString()
       }
 
       this.logger.log('transferNonce:', transferNonce)
@@ -159,29 +168,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const contract = this.contracts[chainId]
       const amountOutMin = '0'
       const deadline = BigNumber.from(UINT256)
-      let computedTransferHash = transferHash
-      /*
-      if (chainId === '69') {
-        computedTransferHash = await contract.getTransferHash(
-          chainId,
-          sender,
-          recipient,
-          amount,
-          transferNonce.toString(),
-          relayerFee,
-          attemptSwap ? amountOutMin : 0,
-          attemptSwap ? deadline : 0
-        )
-      }
-      */
-      this.logger.log('computed transfer hash:', computedTransferHash)
       store.transferHashes[transferHash] = {
         transferHash,
-        computedTransferHash,
-        chainId
+        chainId,
+        sourceChainId
       }
 
-      await this.waitTimeout(computedTransferHash, chainId)
+      await this.waitTimeout(transferHash, chainId)
       const tx = await this.sendBondWithdrawalTx({
         sender,
         recipient,
@@ -194,12 +187,34 @@ class BondWithdrawalWatcher extends BaseWatcher {
         deadline
       })
 
-      tx?.wait().then(() => {
+      const cb = (...args: any[]) => {
+        contract.off(contract.filters.WithdrawalBonded(), cb)
+        this.handleWithdrawalBondedEvent(
+          args[0],
+          args[1],
+          args[2],
+          args[3],
+          args[4],
+          args[5]
+        )
+      }
+
+      contract.on(contract.filters.WithdrawalBonded(), cb).on('error', err => {
+        this.logger.error('event watcher error:', err.message)
+      })
+
+      tx?.wait().then(async () => {
         this.emit('bondWithdrawal', {
           recipient,
           destNetworkName: networkIdToSlug(chainId),
           destNetworkId: chainId
         })
+
+        const bondedAmount = await this.getBondedAmount(transferHash, chainId)
+        this.logger.debug(
+          `${this.label} ${chainId} bondWithdrawal amount:`,
+          bondedAmount
+        )
       })
       this.logger.log(
         `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx:`,
@@ -212,13 +227,30 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
+  handleWithdrawalBondedEvent = async (
+    transferHash: string,
+    recipient: string,
+    amount: any,
+    transferNonce: string,
+    relayerFee: any,
+    meta: any
+  ) => {
+    const { transactionHash } = meta
+    this.logger.log(`${this.label} received WithdrawalBonded event`)
+    this.logger.log('transferHash:', transferHash)
+    this.logger.log(`recipient:`, recipient)
+    this.logger.log('amount:', amount.toString())
+    this.logger.log('transferNonce:', transferNonce)
+    this.logger.log('relayerFee:', relayerFee.toString())
+  }
+
   async waitTimeout (transferHash: string, chainId: string) {
     await wait(2 * 1000)
     if (!this.order()) {
       return
     }
     this.logger.debug(
-      `waiting for bondWithdrawal event. transfer hash: ${transferHash} chain id: ${chainId}`
+      `waiting for bondWithdrawal event. transferHash: ${transferHash} chainId: ${chainId}`
     )
     const contract = this.contracts[chainId]
     let timeout = this.order() * 15 * 1000
@@ -240,6 +272,21 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
     this.logger.debug(`transfer hash already bonded ${transferHash}`)
     throw new Error('cancelled')
+  }
+
+  getBondedAmount = async (transferHash: string, chainId: string) => {
+    const bridge = this.contracts[chainId]
+    const bonder = await this.getBonderAddress()
+    const bondedBn = await bridge.getBondedWithdrawalAmount(
+      bonder,
+      transferHash
+    )
+    const bondedAmount = Number(formatUnits(bondedBn.toString(), 18))
+    return bondedAmount
+  }
+
+  async getBonderAddress () {
+    return this.l1BridgeContract.signer.getAddress()
   }
 }
 

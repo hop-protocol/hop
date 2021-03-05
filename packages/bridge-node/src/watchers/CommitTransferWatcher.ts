@@ -2,7 +2,6 @@ import '../moduleAlias'
 import assert from 'assert'
 import chalk from 'chalk'
 import { wait } from 'src/utils'
-import { TransferSentEvent } from 'src/constants'
 import { throttle } from 'src/utils'
 import BaseWatcher from 'src/watchers/BaseWatcher'
 
@@ -37,28 +36,29 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   async stop () {
-    this.l2BridgeContract.off(TransferSentEvent, this.handleTransferSentEvent)
+    this.l2BridgeContract.off(
+      this.l2BridgeContract.filters.TransferSent(),
+      this.handleTransferSentEvent
+    )
     this.started = false
   }
 
-  sendTx = async () => {
-    return this.l2BridgeContract.commitTransfers()
+  sendTx = async (chainId: string) => {
+    return this.l2BridgeContract.commitTransfers(chainId)
   }
 
-  check = throttle(async () => {
-    try {
-      await wait(this.order() * 10 * 1000)
-      const pendingTransfer = await this.l2BridgeContract.pendingTransfers(0)
-      // check if pending transfers exist
-      if (!pendingTransfer) {
-        return
-      }
-    } catch (err) {
-      // noop
+  check = throttle(async (chainId: string) => {
+    if (!chainId) {
+      throw new Error('chainId is required')
+    }
+    const pendingAmount = Number(
+      (await this.l2BridgeContract.pendingAmountForChainId(chainId)).toString()
+    )
+    if (pendingAmount <= 0) {
       return
     }
 
-    const tx = await this.sendTx()
+    const tx = await this.sendTx(chainId)
     tx?.wait().then(() => {
       this.emit('commitTransfers', {})
     })
@@ -79,7 +79,31 @@ class CommitTransfersWatcher extends BaseWatcher {
     meta: any
   ) => {
     try {
-      await this.check()
+      this.logger.log(`${this.label} received TransferSent event`)
+      this.logger.log(`${this.label} waiting`)
+      await wait(20 * 1000)
+      const { transactionHash } = meta
+      const {
+        from: sender,
+        data
+      } = await this.l2BridgeContract.provider.getTransaction(transactionHash)
+
+      let chainId = ''
+      try {
+        const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
+          'swapAndSend',
+          data
+        )
+        chainId = decoded.chainId.toString()
+      } catch (err) {
+        const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
+          'send',
+          data
+        )
+        chainId = decoded.chainId.toString()
+      }
+
+      await this.check(chainId)
     } catch (err) {
       if (err.message !== 'cancelled') {
         this.logger.error('commitTransfers tx error:', err.message)
@@ -89,7 +113,10 @@ class CommitTransfersWatcher extends BaseWatcher {
 
   async watch () {
     this.l2BridgeContract
-      .on(TransferSentEvent, this.handleTransferSentEvent)
+      .on(
+        this.l2BridgeContract.filters.TransferSent(),
+        this.handleTransferSentEvent
+      )
       .on('error', err => {
         this.logger.error('event watcher error:', err.message)
       })

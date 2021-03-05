@@ -26,10 +26,13 @@ const tokens = Object.keys(config.tokens)
 const networks = ['arbitrum', 'optimism', 'xdai']
 const pubsubLogger = new Logger('[pubsub]', { color: 'magenta' })
 
-const startStakeWatchers = () => {
+const startStakeWatchers = (_tokens: string[] = tokens) => {
   const watchers: any[] = []
-  for (let token of tokens) {
+  for (let token of _tokens) {
     for (let network of ['kovan'].concat(networks)) {
+      if (!contracts[token]) {
+        continue
+      }
       const tokenContracts = contracts[token][network]
       if (!tokenContracts) {
         continue
@@ -53,7 +56,7 @@ const startStakeWatchers = () => {
   return watchers
 }
 
-function startWatchers (orderNum: number = 0) {
+function startWatchers (orderNum: number = 0, _tokens: string[] = tokens) {
   const watchers: any[] = []
   try {
     const hostname = config.hostname
@@ -189,7 +192,7 @@ function startWatchers (orderNum: number = 0) {
   }
 
   watchers.forEach(watcher => watcher.start())
-  watchers.push(...startStakeWatchers())
+  watchers.push(...startStakeWatchers(_tokens))
 
   const stop = () => {
     return watchers.map(watcher => {

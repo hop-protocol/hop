@@ -1,5 +1,4 @@
 import '../moduleAlias'
-import { BondTransferRootEvent, TransfersCommittedEvent } from 'src/constants'
 import BaseWatcher from 'src/watchers/BaseWatcher'
 
 // notes:
@@ -46,7 +45,7 @@ class ChallengeWatcher extends BaseWatcher {
 
   async stop () {
     this.l1BridgeContract.off(
-      BondTransferRootEvent,
+      this.l2BridgeContract.filters.TransferRootBonded(),
       this.handleBondTransferEvent
     )
     this.started = false
@@ -67,7 +66,7 @@ class ChallengeWatcher extends BaseWatcher {
 
     const l2BlockNumber = await this.l2Provider.getBlockNumber()
     const recentTransferCommitEvents = await this.l2BridgeContract.queryFilter(
-      TransfersCommittedEvent as any,
+      this.l2BridgeContract.filters.TransfersCommitted(),
       l2BlockNumber - 100
     )
     this.logger.log('recent events:', recentTransferCommitEvents)
@@ -92,7 +91,10 @@ class ChallengeWatcher extends BaseWatcher {
 
   async watch () {
     this.l1BridgeContract
-      .on(BondTransferRootEvent, this.handleBondTransferEvent)
+      .on(
+        this.l2BridgeContract.filters.TransferRootBonded(),
+        this.handleBondTransferEvent
+      )
       .on('error', err => {
         this.logger.error('event watcher error:', err.message)
       })

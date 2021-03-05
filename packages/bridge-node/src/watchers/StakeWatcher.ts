@@ -37,7 +37,7 @@ class StakeWatcher extends BaseWatcher {
         await wait(this.interval)
       }
     } catch (err) {
-      this.logger.log(`stake watcher error:`, err.message)
+      this.logger.log(`${this.label} stake watcher error:`, err.message)
     }
   }
 
@@ -73,7 +73,7 @@ class StakeWatcher extends BaseWatcher {
         }
         if (allowance < amount) {
           const tx = await this.approveTokens()
-          this.logger.log(`stake ${this.label} approve tx:`, tx?.hash)
+          this.logger.log(`${this.label} stake approve tx:`, tx?.hash)
           await tx?.wait()
         }
         allowance = await this.getTokenAllowance()
@@ -86,7 +86,7 @@ class StakeWatcher extends BaseWatcher {
           `${this.label} attempting to stake: ${amount.toString()}`
         )
         const tx = await this.stake(amount.toString())
-        this.logger.log(`stake ${this.label} tx:`, tx?.hash)
+        this.logger.log(`${this.label} stake tx:`, tx?.hash)
       }
     } catch (err) {
       this.logger.log(`${this.label} stake tx error:`, err.message)
@@ -128,9 +128,8 @@ class StakeWatcher extends BaseWatcher {
   }
 
   async approveTokens () {
-    const maxApproval = parseUnits(UINT256, 18)
     const spender = this.bridgeContract.address
-    return this.tokenContract.approve(spender, maxApproval)
+    return this.tokenContract.approve(spender, UINT256)
   }
 
   async getTokenAllowance () {

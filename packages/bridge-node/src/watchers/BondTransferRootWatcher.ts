@@ -1,6 +1,6 @@
 import '../moduleAlias'
-import { TransfersCommittedEvent } from 'src/constants'
 import { wait } from 'src/utils'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { store } from 'src/store'
 import chalk from 'chalk'
 import Logger from 'src/logger'
@@ -38,13 +38,13 @@ class BondTransferRootWatcher extends BaseWatcher {
     try {
       await this.watch()
     } catch (err) {
-      this.logger.error('watcher error:', err.message)
+      this.logger.error(`${this.label} watcher error:`, err.message)
     }
   }
 
   async stop () {
     this.l2BridgeContract.off(
-      TransfersCommittedEvent,
+      this.l2BridgeContract.filters.TransfersCommitted(),
       this.handleTransferCommittedEvent
     )
     this.started = false
@@ -52,7 +52,10 @@ class BondTransferRootWatcher extends BaseWatcher {
 
   async watch () {
     this.l2BridgeContract
-      .on(TransfersCommittedEvent, this.handleTransferCommittedEvent)
+      .on(
+        this.l2BridgeContract.filters.TransfersCommitted(),
+        this.handleTransferCommittedEvent
+      )
       .on('error', err => {
         this.logger.error('event watcher error:', err.message)
       })
@@ -60,13 +63,21 @@ class BondTransferRootWatcher extends BaseWatcher {
 
   sendL1TransferRootTx = (
     transferRootHash: string,
-    chainIds: string[],
-    chainAmounts: string[]
+    chainId: string,
+    totalAmount: number
   ) => {
+    this.logger.log(`${this.label} bondTransferRoot`)
+    this.logger.log(
+      `${this.label} bondTransferRoot transferRootHash:`,
+      transferRootHash
+    )
+    this.logger.log(`${this.label} bondTransferRoot chainId:`, chainId)
+    this.logger.log(`${this.label} bondTransferRoot totalAmount:`, totalAmount)
+
     return this.l1BridgeContract.bondTransferRoot(
       transferRootHash,
-      chainIds,
-      chainAmounts,
+      chainId,
+      parseUnits(totalAmount.toString(), 18),
       {
         //gasLimit: 100000
       }
@@ -74,57 +85,49 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   handleTransferCommittedEvent = async (
-    a: any,
-    b: any,
-    c: any,
-    d: any,
+    transferRootHash: any,
+    _totalAmount: any,
     meta: any
   ) => {
-    let transferRootHash: string
-    let chainIds: string[]
-    let chainAmounts: string[]
-    if (meta) {
-      transferRootHash = a
-      chainIds = c
-      chainAmounts = d
-    } else {
-      transferRootHash = a
-      chainIds = b
-      chainAmounts = c
-      meta = d
-    }
     try {
       const { transactionHash } = meta
-      this.logger.log(`received L2 ${this.label} TransfersCommittedEvent event`)
-      this.logger.log('transferRootHash', transferRootHash)
-      this.logger.log(
-        'chainIds',
-        chainIds.map(x => x.toString())
+      this.logger.log(`${this.label} received L2 TransfersCommittedEvent event`)
+      this.logger.log(`${this.label} transferRootHash`, transferRootHash)
+      await wait(2 * 1000)
+      const {
+        from: sender,
+        data
+      } = await this.l2BridgeContract.provider.getTransaction(transactionHash)
+      const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
+        'commitTransfers',
+        data
       )
-      this.logger.log(
-        'chainAmounts',
-        chainAmounts.map(x => x.toString())
-      )
+      const chainId = decoded.destinationChainId.toString()
+
+      const totalAmount = Number(formatUnits(_totalAmount.toString(), 18))
+      this.logger.log(this.label, 'chainId:', chainId)
+      this.logger.log(this.label, 'totalAmount:', totalAmount)
       store.transferRoots[transferRootHash] = {
         transferRootHash,
-        chainIds,
-        chainAmounts
+        totalAmount,
+        chainId
       }
 
       await this.waitTimeout(transferRootHash)
       const tx = await this.sendL1TransferRootTx(
         transferRootHash,
-        chainIds,
-        chainAmounts
+        chainId,
+        totalAmount
       )
       tx?.wait().then(() => {
         this.emit('bondTransferRoot', {
           transferRootHash,
-          chainIds,
-          chainAmounts
+          chainId,
+          totalAmount
         })
       })
       this.logger.log(
+        this.label,
         'L1 bondTransferRoot tx',
         chalk.bgYellow.black.bold(tx.hash)
       )

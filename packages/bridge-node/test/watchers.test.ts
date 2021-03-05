@@ -4,77 +4,46 @@ import { tokens } from 'src/config'
 import { wait, isL1 } from 'src/utils'
 import { KOVAN, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
 import { User, checkApproval } from './helpers'
+import { privateKey } from './config'
+import Logger from 'src/logger'
 
 const L1ToL2Paths = [
   [KOVAN, ARBITRUM],
-  [KOVAN, OPTIMISM],
+  //[KOVAN, OPTIMISM],
   [KOVAN, XDAI]
 ]
 
 const L2ToL1Paths = [
   [ARBITRUM, KOVAN],
-  [OPTIMISM, KOVAN],
+  //[OPTIMISM, KOVAN],
   [XDAI, KOVAN]
 ]
 
 const L2ToL2Paths = [
-  [OPTIMISM, ARBITRUM],
-  [OPTIMISM, XDAI],
-  [ARBITRUM, OPTIMISM],
+  //[OPTIMISM, ARBITRUM],
+  //[OPTIMISM, XDAI],
+  //[ARBITRUM, OPTIMISM],
   [ARBITRUM, XDAI],
-  [XDAI, OPTIMISM],
+  //[XDAI, OPTIMISM],
   [XDAI, ARBITRUM]
 ]
 
-const paths = [...L1ToL2Paths, ...L2ToL1Paths, ...L2ToL2Paths]
-
 const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 1
-const privateKey = process.env.TEST_USER_PRIVATE_KEY
+const logger = new Logger('[TEST]')
 
-describe('settleBondedWithdrawal', () => {
-  const sourceNetwork = OPTIMISM
-  const destNetwork = XDAI
-  const label = `${sourceNetwork} -> ${destNetwork}`
-  it(
-    label,
-    async () => {
-      const user = new User(privateKey)
-      const { stop, watchers } = startWatchers()
-      const receipt = await user.sendAndWaitForReceipt(
-        sourceNetwork,
-        destNetwork,
-        TOKEN,
-        TRANSFER_AMOUNT
-      )
-      expect(receipt.status).toBe(1)
-      await waitForEvent(watchers, 'settleBondedWithdrawal', data => {
-        console.log('data:', data)
-        return true
-      })
-      console.log('receipt:', receipt)
-      await stop()
-    },
-    300 * 1000
-  )
-})
-
-describe.only('bondWithdrawal', () => {
-  for (let path of paths) {
+describe.only('settleBondedWithdrawal', () => {
+  const testPaths = [...L2ToL1Paths, ...L2ToL2Paths]
+  for (let path of testPaths) {
     const [sourceNetwork, destNetwork] = path
     const label = `${sourceNetwork} -> ${destNetwork}`
     it(
       label,
       async () => {
-        console.log(label)
-        await prepareAccount(sourceNetwork, TOKEN)
+        logger.log(label)
         const user = new User(privateKey)
-        const address = await user.getAddress()
         const { stop, watchers } = startWatchers()
-        const sourceBalanceBefore = await user.getBalance(sourceNetwork, TOKEN)
-        expect(sourceBalanceBefore > TRANSFER_AMOUNT).toBe(true)
-        const destBalanceBefore = await user.getBalance(destNetwork, TOKEN)
-        console.log('before:', sourceBalanceBefore, destBalanceBefore)
+        logger.log('sending and waiting for receipt')
         const receipt = await user.sendAndWaitForReceipt(
           sourceNetwork,
           destNetwork,
@@ -82,8 +51,50 @@ describe.only('bondWithdrawal', () => {
           TRANSFER_AMOUNT
         )
         expect(receipt.status).toBe(1)
+        logger.log('waiting for event')
+        await waitForEvent(watchers, 'settleBondedWithdrawal', data => {
+          logger.log('data:', data)
+          return true
+        })
+        logger.log('receipt:', receipt)
+        await stop()
+        await wait(2 * 20000)
+      },
+      500 * 1000
+    )
+  }
+})
+
+describe('bondWithdrawal', () => {
+  const testPaths = [...L1ToL2Paths, ...L2ToL1Paths, ...L2ToL2Paths]
+  for (let path of testPaths) {
+    const [sourceNetwork, destNetwork] = path
+    const label = `${sourceNetwork} -> ${destNetwork}`
+    it(
+      label,
+      async () => {
+        logger.log(label)
+        await prepareAccount(sourceNetwork, TOKEN)
+        const user = new User(privateKey)
+        const address = await user.getAddress()
+        const { stop, watchers } = startWatchers()
+        const sourceBalanceBefore = await user.getBalance(sourceNetwork, TOKEN)
+        expect(sourceBalanceBefore > TRANSFER_AMOUNT).toBe(true)
+        const destBalanceBefore = await user.getBalance(destNetwork, TOKEN)
+        logger.log('source balance before:', sourceBalanceBefore)
+        logger.log('dest balance before:', destBalanceBefore)
+        logger.log('send and wait for receipt')
+        const receipt = await user.sendAndWaitForReceipt(
+          sourceNetwork,
+          destNetwork,
+          TOKEN,
+          TRANSFER_AMOUNT
+        )
+        expect(receipt.status).toBe(1)
+        logger.log('got receipt')
         if (isL1(sourceNetwork)) {
-          await wait(20 * 1000)
+          logger.log('waiting')
+          await wait(40 * 1000)
         } else {
           await waitForEvent(
             watchers,
@@ -94,7 +105,8 @@ describe.only('bondWithdrawal', () => {
         const sourceBalanceAfter = await user.getBalance(sourceNetwork, TOKEN)
         const destBalanceAfter = await user.getBalance(destNetwork, TOKEN)
         expect(sourceBalanceAfter + TRANSFER_AMOUNT).toBe(sourceBalanceBefore)
-        console.log('after:', destBalanceAfter, destBalanceBefore)
+        logger.log('source balance after:', sourceBalanceAfter)
+        logger.log('dest balance after:', destBalanceAfter)
         expect(destBalanceAfter > destBalanceBefore).toBe(true)
         if (!(destBalanceAfter > destBalanceBefore)) {
           process.exit(0)
@@ -114,7 +126,7 @@ async function waitForEvent (
   return new Promise(resolve => {
     watchers.forEach(watcher => {
       watcher.on(eventName, data => {
-        console.log('event:', eventName, data)
+        logger.log('received event:', eventName, data)
         if (typeof predicate !== 'function') {
           resolve(null)
           return

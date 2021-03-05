@@ -14,10 +14,18 @@ const program = new Command()
 program
   .command('bonder')
   .option('-o, --order <order>', 'Bonder order')
+  .option(
+    '-t, --tokens <symbol>',
+    'List of token by symbol to bond, comma separated'
+  )
   .description('Start the bonder watchers')
   .action(source => {
     const orderNum = Number(source.order) || 0
-    startWatchers(orderNum)
+    const tokens = (source.tokens || '')
+      .split(',')
+      .map(value => value.trim().toUpperCase())
+      .filter(x => x)
+    startWatchers(orderNum, tokens)
     new xDaiBridgeWatcher().start()
   })
 

@@ -208,23 +208,27 @@ export class User {
   ) {
     const deadline = (Date.now() / 1000 + 300) | 0
     const chainId = networkSlugToId(destNetwork)
-    const transferNonce = Date.now()
     const relayerFee = '0'
     const amountOutIn = '0'
-    const destinationAmountOutMin = '0'
     const recipient = await this.getAddress()
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
+    let destinationAmountOutMin = '0'
+    let destinationDeadline = deadline
+
+    if (destNetwork === KOVAN) {
+      destinationAmountOutMin = '0'
+      destinationDeadline = 0
+    }
 
     return bridge.swapAndSend(
       chainId,
       recipient,
       parseUnits(amount.toString(), 18),
-      transferNonce,
       relayerFee,
       amountOutIn,
       deadline,
       destinationAmountOutMin,
-      deadline
+      destinationDeadline
     )
   }
 
@@ -236,7 +240,6 @@ export class User {
   ) {
     const deadline = (Date.now() / 1000 + 300) | 0
     const chainId = networkSlugToId(destNetwork)
-    const transferNonce = Date.now()
     const relayerFee = '0'
     const amountOutIn = '0'
     const destinationAmountOutMin = '0'
@@ -249,7 +252,6 @@ export class User {
       chainId,
       recipient,
       parsedAmount,
-      transferNonce,
       relayerFee,
       amountOutIn,
       deadline,

@@ -1,36 +1,36 @@
 import '../moduleAlias'
-import assert from 'assert'
+import { Contract } from 'ethers'
 import chalk from 'chalk'
 import { wait } from 'src/utils'
 import { throttle } from 'src/utils'
 import BaseWatcher from 'src/watchers/BaseWatcher'
 
 export interface Config {
-  l2BridgeContract: any
+  l2BridgeContract: Contract
   label: string
   order?: () => number
 }
 
 class CommitTransfersWatcher extends BaseWatcher {
-  l2BridgeContract: any
-  label: string
+  l2BridgeContract: Contract
 
   constructor (config: Config) {
     super({
-      label: 'commitTransferWatcher',
+      tag: 'commitTransferWatcher',
+      prefix: config.label,
       logColor: 'yellow',
       order: config.order
     })
     this.l2BridgeContract = config.l2BridgeContract
-    this.label = config.label
   }
 
   async start () {
     this.started = true
-    this.logger.log(`starting L2 ${this.label} commitTransfers scheduler`)
+    this.logger.log(`starting L2 commitTransfers scheduler`)
     try {
       await this.watch()
     } catch (err) {
+      this.emit('error', err)
       this.logger.error('watcher error:', err)
     }
   }
@@ -43,7 +43,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     this.started = false
   }
 
-  sendTx = async (chainId: string) => {
+  sendCommitTransfersTx = async (chainId: string) => {
     return this.l2BridgeContract.commitTransfers(chainId)
   }
 
@@ -58,16 +58,16 @@ class CommitTransfersWatcher extends BaseWatcher {
       return
     }
 
-    const tx = await this.sendTx(chainId)
+    const tx = await this.sendCommitTransfersTx(chainId)
     tx?.wait().then(() => {
-      this.emit('commitTransfers', {})
+      this.emit('commitTransfers', {
+        chainId
+      })
     })
     this.logger.log(
-      `L2 ${this.label} commitTransfers tx:`,
+      `L2 commitTransfers tx:`,
       chalk.bgYellow.black.bold(tx.hash)
     )
-    const receipt = await tx.wait()
-    assert(receipt.status === 1)
   }, 15 * 1000)
 
   handleTransferSentEvent = async (
@@ -79,8 +79,9 @@ class CommitTransfersWatcher extends BaseWatcher {
     meta: any
   ) => {
     try {
-      this.logger.log(`${this.label} received TransferSent event`)
-      this.logger.log(`${this.label} waiting`)
+      this.logger.log(`received TransferSent event`)
+      this.logger.log(`waiting`)
+      // TODO: batch
       await wait(20 * 1000)
       const { transactionHash } = meta
       const {
@@ -97,7 +98,7 @@ class CommitTransfersWatcher extends BaseWatcher {
         chainId = decoded.chainId.toString()
       } catch (err) {
         const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
-          'send',
+          'send()',
           data
         )
         chainId = decoded.chainId.toString()
@@ -106,6 +107,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       await this.check(chainId)
     } catch (err) {
       if (err.message !== 'cancelled') {
+        this.emit('error', err)
         this.logger.error('commitTransfers tx error:', err.message)
       }
     }
@@ -118,6 +120,7 @@ class CommitTransfersWatcher extends BaseWatcher {
         this.handleTransferSentEvent
       )
       .on('error', err => {
+        this.emit('error', err)
         this.logger.error('event watcher error:', err.message)
       })
   }

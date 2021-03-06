@@ -1,54 +1,49 @@
 import '../moduleAlias'
-import { BigNumber } from 'ethers'
+import { Contract, BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { UINT256 } from 'src/constants'
 import { store } from 'src/store'
 import chalk from 'chalk'
-import { wait, networkIdToSlug } from 'src/utils'
+import { wait, isL1NetworkId, networkIdToSlug } from 'src/utils'
 import BaseWatcher from 'src/watchers/BaseWatcher'
 
 export interface Config {
-  l1BridgeContract: any
-  l2BridgeContract: any
-  l2Provider: any
-  contracts: any
+  l1BridgeContract: Contract
+  l2BridgeContract: Contract
+  contracts: { [networkId: string]: Contract }
   label: string
   order?: () => number
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
-  l1BridgeContract: any
-  l2BridgeContract: any
-  l2Provider: any
-  contracts: any
-  label: string
+  l1BridgeContract: Contract
+  l2BridgeContract: Contract
+  contracts: { [networkId: string]: Contract }
 
   constructor (config: Config) {
     super({
-      label: 'bondWithdrawalWatcher',
+      tag: 'bondWithdrawalWatcher',
+      prefix: config.label,
       logColor: 'green',
       order: config.order
     })
-    this.l1BridgeContract = config.l1BridgeContract
-    this.l2BridgeContract = config.l2BridgeContract
-    this.l2Provider = config.l2Provider
-    this.contracts = config.contracts
-    this.label = config.label
+    const { l1BridgeContract, l2BridgeContract, contracts } = config
+    this.l1BridgeContract = l1BridgeContract
+    this.l2BridgeContract = l2BridgeContract
+    this.contracts = contracts
   }
 
   async start () {
     this.started = true
     this.logger.log(
-      `starting L2 ${this.label} TransferSent event watcher for L1 bondWithdrawal tx`
+      `starting L2 TransferSent event watcher for L1 bondWithdrawal tx`
     )
 
     try {
       await this.watch()
     } catch (err) {
-      this.logger.error(
-        `BondWithdrawalWatcher ${this.label} error:`,
-        err.message
-      )
+      this.emit('error', err)
+      this.logger.error(`BondWithdrawalWatcher error:`, err.message)
     }
   }
 
@@ -67,6 +62,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         this.handleTransferSentEvent
       )
       .on('error', err => {
+        this.emit('error', err)
         this.logger.error('event watcher error:', err.message)
       })
   }
@@ -85,12 +81,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = params
 
     const contract = this.contracts[chainId]
-    this.logger.log(`${this.label} amount:`, amount.toString())
-    this.logger.log(`${this.label} recipient:`, recipient)
-    this.logger.log(`${this.label} transferNonce:`, transferNonce)
-    this.logger.log(`${this.label} relayerFee:`, relayerFee.toString())
+    this.logger.log(`amount:`, amount.toString())
+    this.logger.log(`recipient:`, recipient)
+    this.logger.log(`transferNonce:`, transferNonce)
+    this.logger.log(`relayerFee:`, relayerFee.toString())
     if (attemptSwap) {
-      this.logger.log(`${this.label} ${chainId} bondWithdrawalAndAttemptSwap`)
+      this.logger.log(`chain ${chainId} bondWithdrawalAndAttemptSwap`)
       return contract.bondWithdrawalAndAttemptSwap(
         recipient,
         amount,
@@ -103,7 +99,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         }
       )
     } else {
-      this.logger.log(`${this.label} ${chainId} bondWithdrawal`)
+      this.logger.log(`chain ${chainId} bondWithdrawal`)
       return contract.bondWithdrawal(
         recipient,
         amount,
@@ -120,20 +116,21 @@ class BondWithdrawalWatcher extends BaseWatcher {
     transferHash: string,
     recipient: string,
     amount: string,
-    transferNonce: any,
+    transferNonce: string,
     relayerFee: string,
     meta: any
   ) => {
     try {
       const { transactionHash } = meta
       this.logger.log('transfer event amount:', amount.toString())
-      this.logger.log(`received L2 ${this.label} TransferSentEvent event`)
+      this.logger.log(`received L2 TransferSentEvent event`)
       this.logger.log('transferHash:', transferHash)
 
       await wait(2 * 1000)
-      const { from: sender, data } = await this.l2Provider.getTransaction(
-        transactionHash
-      )
+      const {
+        from: sender,
+        data
+      } = await this.l2BridgeContract.provider.getTransaction(transactionHash)
 
       const sourceChainId = (
         await this.l2BridgeContract.getChainId()
@@ -147,7 +144,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         )
         chainId = decoded.chainId.toString()
 
-        if (!(chainId === '42' || chainId === '1')) {
+        if (!isL1NetworkId(chainId)) {
           // L2 to L2 transfers have uniswap parameters set
           if (Number(decoded.destinationDeadline.toString()) > 0) {
             attemptSwap = true
@@ -212,7 +209,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
         const bondedAmount = await this.getBondedAmount(transferHash, chainId)
         this.logger.debug(
-          `${this.label} ${chainId} bondWithdrawal amount:`,
+          `chain ${chainId} bondWithdrawal amount:`,
           bondedAmount
         )
       })
@@ -222,7 +219,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       )
     } catch (err) {
       if (err.message !== 'cancelled') {
-        this.logger.error(`${this.label} bondWithdrawal tx error:`, err.message)
+        this.emit('error', err)
+        this.logger.error(`bondWithdrawal tx error:`, err.message)
       }
     }
   }
@@ -230,13 +228,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
   handleWithdrawalBondedEvent = async (
     transferHash: string,
     recipient: string,
-    amount: any,
+    amount: BigNumber,
     transferNonce: string,
-    relayerFee: any,
+    relayerFee: BigNumber,
     meta: any
   ) => {
     const { transactionHash } = meta
-    this.logger.log(`${this.label} received WithdrawalBonded event`)
+    this.logger.log(`received WithdrawalBonded event`)
     this.logger.log('transferHash:', transferHash)
     this.logger.log(`recipient:`, recipient)
     this.logger.log('amount:', amount.toString())

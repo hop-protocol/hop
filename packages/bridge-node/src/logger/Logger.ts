@@ -1,20 +1,32 @@
 import chalk from 'chalk'
 
 export interface Options {
+  tag?: string
+  prefix?: string
   color: string
 }
 
 class Logger {
-  private prefix: string
+  private tag: string = ''
+  private prefix: string = ''
   enabled: boolean = true
 
   constructor (
-    prefix: string = '',
+    tag: Partial<Options> | string = '',
     opts: Partial<Options> = {
       color: 'white'
     }
   ) {
-    this.prefix = chalk[opts.color](prefix)
+    if (tag instanceof Object) {
+      opts = tag
+      tag = opts.tag
+    }
+    if (opts.prefix) {
+      this.prefix = `<${opts.prefix}>`
+    }
+    if (tag) {
+      this.tag = chalk[opts.color](`[${tag}]`)
+    }
     if (process.env.DISABLE_LOGGER) {
       this.enabled = false
     }
@@ -22,32 +34,32 @@ class Logger {
 
   critical = (...input: any[]) => {
     if (!this.enabled) return
-    console.error(this.prefix, ...input)
+    console.error(this.tag, ...input)
   }
 
   debug = (...input: any[]) => {
     if (!this.enabled) return
-    console.debug(this.prefix, ...input)
+    console.debug(this.tag, this.prefix, ...input)
   }
 
   error = (...input: any[]) => {
     if (!this.enabled) return
-    console.error(this.prefix, ...input)
+    console.error(this.tag, this.prefix, ...input)
   }
 
   info = (...input: any[]) => {
     if (!this.enabled) return
-    console.info(this.prefix, ...input)
+    console.info(this.tag, this.prefix, ...input)
   }
 
   log = (...input: any[]) => {
     if (!this.enabled) return
-    console.log(this.prefix, ...input)
+    console.log(this.tag, this.prefix, ...input)
   }
 
   warn = (...input: any[]) => {
     if (!this.enabled) return
-    console.warn(this.prefix, ...input)
+    console.warn(this.tag, this.prefix, ...input)
   }
 }
 

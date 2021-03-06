@@ -1,4 +1,5 @@
 import '../moduleAlias'
+import { Contract } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { wait } from 'src/utils'
 import BaseWatcher from 'src/watchers/BaseWatcher'
@@ -6,22 +7,25 @@ import { UINT256 } from 'src/constants'
 
 export interface Config {
   label: string
-  bridgeContract: any
-  tokenContract: any
+  bridgeContract: Contract
+  tokenContract: Contract
+  stakeMinThreshold: number
+  stakeAmount: number
 }
 
 class StakeWatcher extends BaseWatcher {
-  label: string
-  bridgeContract: any
-  tokenContract: any
+  bridgeContract: Contract
+  tokenContract: Contract
+  stakeMinThreshold: number
+  stakeAmount: number
   interval: number = 60 * 1000
 
   constructor (config: Config) {
     super({
-      label: 'stakeWatcher',
+      tag: 'stakeWatcher',
+      prefix: config.label,
       logColor: 'green'
     })
-    this.label = config.label
     this.bridgeContract = config.bridgeContract
     this.tokenContract = config.tokenContract
   }
@@ -37,7 +41,8 @@ class StakeWatcher extends BaseWatcher {
         await wait(this.interval)
       }
     } catch (err) {
-      this.logger.log(`${this.label} stake watcher error:`, err.message)
+      this.emit('error', err)
+      this.logger.log(`stake watcher error:`, err.message)
     }
   }
 
@@ -46,9 +51,6 @@ class StakeWatcher extends BaseWatcher {
   }
 
   async check () {
-    const threshold = 1000
-    const amount = 1000
-
     try {
       const isBonder = await this.isBonder()
       if (!isBonder) {
@@ -57,46 +59,44 @@ class StakeWatcher extends BaseWatcher {
 
       const credit = await this.getCredit()
       const debit = await this.getDebit()
-      this.logger.log(`${this.label} credit balance:`, credit)
-      this.logger.log(`${this.label} debit balance:`, debit)
+      this.logger.log(`credit balance:`, credit)
+      this.logger.log(`debit balance:`, debit)
 
       let [balance, allowance] = await Promise.all([
         this.getTokenBalance(),
         this.getTokenAllowance()
       ])
 
-      if (credit < threshold) {
-        if (balance < amount) {
+      if (credit < this.stakeMinThreshold) {
+        if (balance < this.stakeAmount) {
           throw new Error(
-            `${this.label} not enough hop token balance to stake. Have ${balance}, need ${amount}`
+            `not enough hop token balance to stake. Have ${balance}, need ${this.stakeAmount}`
           )
         }
-        if (allowance < amount) {
+        if (allowance < this.stakeAmount) {
           const tx = await this.approveTokens()
-          this.logger.log(`${this.label} stake approve tx:`, tx?.hash)
+          this.logger.log(`stake approve tx:`, tx?.hash)
           await tx?.wait()
         }
         allowance = await this.getTokenAllowance()
-        if (allowance < amount) {
+        if (allowance < this.stakeAmount) {
           throw new Error(
-            `${this.label} not enough hop token allowance for bridge to stake. Have ${allowance}, need ${amount}`
+            `not enough hop token allowance for bridge to stake. Have ${allowance}, need ${this.stakeAmount}`
           )
         }
-        this.logger.log(
-          `${this.label} attempting to stake: ${amount.toString()}`
-        )
-        const tx = await this.stake(amount.toString())
-        this.logger.log(`${this.label} stake tx:`, tx?.hash)
+        this.logger.log(`attempting to stake: ${this.stakeAmount.toString()}`)
+        const tx = await this.stake(this.stakeAmount.toString())
+        this.logger.log(`stake tx:`, tx?.hash)
       }
     } catch (err) {
-      this.logger.log(`${this.label} stake tx error:`, err.message)
+      this.emit('error', err)
+      this.logger.log(`stake tx error:`, err.message)
     }
   }
 
   async getCredit () {
     const bonder = await this.getBonderAddress()
     const credit = (await this.bridgeContract.getCredit(bonder)).toString()
-
     return Number(formatUnits(credit, 18))
   }
 
@@ -110,7 +110,7 @@ class StakeWatcher extends BaseWatcher {
 
   async stake (amount: string) {
     const parsedAmount = parseUnits(amount, 18)
-    this.logger.log(`${this.label} staking ${amount}`)
+    this.logger.log(`staking ${amount}`)
     const bonder = await this.getBonderAddress()
     return this.bridgeContract.stake(bonder, parsedAmount)
   }

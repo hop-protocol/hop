@@ -1,4 +1,5 @@
 import '../moduleAlias'
+import { Contract } from 'ethers'
 import BaseWatcher from 'src/watchers/BaseWatcher'
 
 // notes:
@@ -9,28 +10,24 @@ import BaseWatcher from 'src/watchers/BaseWatcher'
 // - TransferCommitted should be emitted on L2 after BondTransferRoot on L1
 
 export interface Config {
-  l1BridgeContract: any
-  l2BridgeContract: any
-  l2Provider: any
+  l1BridgeContract: Contract
+  l2BridgeContract: Contract
   label: string
 }
 
 // TODO: fix
 class ChallengeWatcher extends BaseWatcher {
-  l1BridgeContract: any
-  l2BridgeContract: any
-  l2Provider: any
-  label: string
+  l1BridgeContract: Contract
+  l2BridgeContract: Contract
 
   constructor (config: Config) {
     super({
-      label: 'challengeWatcher',
+      tag: 'challengeWatcher',
+      prefix: config.label,
       logColor: 'red'
     })
     this.l1BridgeContract = config.l1BridgeContract
     this.l2BridgeContract = config.l2BridgeContract
-    this.l2Provider = config.l2Provider
-    this.label = config.label
   }
 
   async start () {
@@ -39,6 +36,7 @@ class ChallengeWatcher extends BaseWatcher {
     try {
       await this.watch()
     } catch (err) {
+      this.emit('error', err)
       this.logger.error('watcher error:', err.message)
     }
   }
@@ -52,19 +50,17 @@ class ChallengeWatcher extends BaseWatcher {
   }
 
   handleBondTransferEvent = async (
-    bondRoot: string,
-    bondAmount: string,
+    transferRootHash: string,
+    totalAmount: string,
     meta: any
   ) => {
     const { transactionHash } = meta
-    this.logger.log(
-      'received L1 BondTransferRoot event',
-      bondRoot,
-      bondAmount.toString(),
-      transactionHash
-    )
+    this.logger.log('received L1 BondTransferRoot event')
+    this.logger.log('transferRootHash:', transferRootHash)
+    this.logger.log('totalAmount:', totalAmount.toString())
+    this.logger.log('event tx hash:', transactionHash)
 
-    const l2BlockNumber = await this.l2Provider.getBlockNumber()
+    const l2BlockNumber = await this.l2BridgeContract.provider.getBlockNumber()
     const recentTransferCommitEvents = await this.l2BridgeContract.queryFilter(
       this.l2BridgeContract.filters.TransfersCommitted(),
       l2BlockNumber - 100
@@ -77,7 +73,10 @@ class ChallengeWatcher extends BaseWatcher {
       const root = args[0]
       const amount = args[1]
 
-      if (root == bondRoot && bondAmount.toString() === amount.toString()) {
+      if (
+        root == transferRootHash &&
+        totalAmount.toString() === amount.toString()
+      ) {
         found = true
       }
 
@@ -96,15 +95,9 @@ class ChallengeWatcher extends BaseWatcher {
         this.handleBondTransferEvent
       )
       .on('error', err => {
+        this.emit('error', err)
         this.logger.error('event watcher error:', err.message)
       })
-
-    //const l2BlockNumber = await this.l2Provider.getBlockNumber()
-    //const recentTransferCommitEvents = await this.l2BridgeContract.queryFilter(
-    //l2BridgeContract.filters.TransfersCommitted(),
-    //l2BlockNumber - 100
-    //)
-    //this.logger.log('recent events:', recentTransferCommitEvents)
   }
 }
 

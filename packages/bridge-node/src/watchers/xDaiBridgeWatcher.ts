@@ -15,7 +15,7 @@ import BaseWatcher from 'src/watchers/BaseWatcher'
 class xDaiBridgeWatcher extends BaseWatcher {
   constructor () {
     super({
-      label: 'xDaiBridgeWatcher',
+      tag: 'xDaiBridgeWatcher',
       logColor: 'yellow'
     })
   }
@@ -68,7 +68,10 @@ class xDaiBridgeWatcher extends BaseWatcher {
             const packedSigs = packSignatures(sigs)
             const tx = await l1Amb.executeSignatures(message, packedSigs)
             tx?.wait().then(() => {
-              this.emit('executeSignatures', {})
+              this.emit('executeSignatures', {
+                message,
+                packedSigs
+              })
             })
             this.logger.debug('executeSignatures messageHash:', msgHash)
             this.logger.debug(
@@ -77,12 +80,14 @@ class xDaiBridgeWatcher extends BaseWatcher {
             )
             await tx?.wait()
           } catch (err) {
+            this.emit('error', err)
             this.logger.error('tx error:', err.message)
           }
         }
         await wait(10 * 1000)
       }
     } catch (err) {
+      this.emit('error', err)
       this.logger.error('watcher error:', err.message)
     }
   }

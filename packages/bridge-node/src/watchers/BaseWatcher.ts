@@ -2,23 +2,27 @@ import { EventEmitter } from 'events'
 import Logger from 'src/logger'
 
 interface Config {
-  label: string
-  logColor: string
+  tag: string
+  prefix?: string
+  logColor?: string
   order?: () => number
 }
 
 class BaseWatcher extends EventEmitter {
   logger: Logger
-  label: string
   order: () => number = () => 0
   started: boolean = false
 
   constructor (config: Config) {
     super()
-    this.label = config.label
-    this.logger = new Logger(`[${this.label}]`, { color: config.logColor })
-    if (config.order) {
-      this.order = config.order
+    const { tag, prefix, order, logColor } = config
+    this.logger = new Logger({
+      tag,
+      prefix,
+      color: logColor
+    })
+    if (order) {
+      this.order = order
     }
   }
 

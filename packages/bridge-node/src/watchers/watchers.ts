@@ -47,7 +47,9 @@ const startStakeWatchers = (_tokens: string[] = tokens) => {
         new StakeWatcher({
           label: `${network} ${token}`,
           bridgeContract,
-          tokenContract
+          tokenContract,
+          stakeMinThreshold: 1000,
+          stakeAmount: 1000
         })
       )
     }
@@ -160,8 +162,7 @@ function startWatchers (orderNum: number = 0, _tokens: string[] = tokens) {
             '69': contracts[token].optimism?.l2Bridge,
             '79377087078960': contracts[token].arbitrum?.l2Bridge,
             '77': contracts[token].xdai?.l2Bridge
-          },
-          l2Provider: providers[network]
+          }
         })
       )
 
@@ -211,8 +212,7 @@ function startChallengeWatchers () {
         new ChallengeWatcher({
           label: network,
           l1BridgeContract: contracts[token].kovan.l1Bridge,
-          l2BridgeContract: contracts[token][network].l2Bridge,
-          l2Provider: providers[network]
+          l2BridgeContract: contracts[token][network].l2Bridge
         })
       )
     }

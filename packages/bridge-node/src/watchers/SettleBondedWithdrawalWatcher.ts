@@ -7,9 +7,9 @@ import chalk from 'chalk'
 import BaseWatcher from 'src/watchers/BaseWatcher'
 
 export interface Config {
-  l1BridgeContract: any
-  l2BridgeContract: any
-  contracts: any
+  l1BridgeContract: Contract
+  l2BridgeContract: Contract
+  contracts: { [networkId: string]: Contract }
   label: string
   order?: () => number
 }
@@ -17,30 +17,30 @@ export interface Config {
 const cache: { [key: string]: boolean } = {}
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
-  l1BridgeContract: any
-  l2BridgeContract: any
-  contracts: any
-  label: string
+  l1BridgeContract: Contract
+  l2BridgeContract: Contract
+  contracts: { [networkId: string]: Contract }
 
   constructor (config: Config) {
     super({
-      label: 'settleBondedWithdrawalWatcher',
+      tag: 'settleBondedWithdrawalWatcher',
+      prefix: config.label,
       logColor: 'magenta',
       order: config.order
     })
     this.l1BridgeContract = config.l1BridgeContract
     this.l2BridgeContract = config.l2BridgeContract
     this.contracts = config.contracts
-    this.label = config.label
   }
 
   async start () {
     this.started = true
-    this.logger.log(`starting L1 ${this.label} BondTransferRoot event watcher`)
+    this.logger.log(`starting L1 BondTransferRoot event watcher`)
     try {
       await this.watch()
     } catch (err) {
-      this.logger.error(`${this.label} watcher error:`, err)
+      this.emit('error', err)
+      this.logger.error(`watcher error:`, err)
     }
   }
 
@@ -55,35 +55,32 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   sendTx = async (
     chainId: string,
     transferHash: string,
-    rootHash: string,
+    transferRootHash: string,
     totalAmount: number,
     proof: string[]
   ) => {
-    const cacheKey = `${rootHash}${chainId}`
+    const cacheKey = `${transferRootHash}${chainId}`
     if (cache[cacheKey]) {
       throw new Error('cancelled')
     }
     const onchainRoot = await this.l1BridgeContract.getTransferRoot(
-      rootHash,
+      transferRootHash,
       parseUnits(totalAmount.toString(), 18)
     )
-    this.logger.log(`${this.label} onchain rootHash:`, onchainRoot)
-    this.logger.log(`${this.label} rootHash:`, rootHash)
-    this.logger.log(this.label, 'settleBondedWithdrawal params:')
-    this.logger.log(this.label, 'chainId:', chainId)
-    this.logger.log(this.label, 'transferHash:', transferHash)
-    this.logger.log(this.label, 'rootHash:', rootHash)
-    this.logger.log(this.label, 'proof:', proof)
+    this.logger.log('settleBondedWithdrawal params:')
+    this.logger.log('chainId:', chainId)
+    this.logger.log('transferHash:', transferHash)
+    this.logger.log('transferRootHash:', transferRootHash)
+    this.logger.log(`onchain transferRootHash:`, onchainRoot)
+    this.logger.log('proof:', proof)
     const bondedAmount = await this.getBondedAmount(transferHash, chainId)
-    this.logger.log(this.label, 'bonded amount:', bondedAmount)
-    this.logger.log(this.label, 'total amount:', totalAmount)
-    this.logger.log(
-      `${this.label} l1 settleBondedWithdrawal amount: ${bondedAmount}`
-    )
+    this.logger.log('bonded amount:', bondedAmount)
+    this.logger.log('total amount:', totalAmount)
+    this.logger.log(`l1 settleBondedWithdrawal amount: ${bondedAmount}`)
     cache[cacheKey] = true
     return this.settleBondedWithdrawal(
       transferHash,
-      rootHash,
+      transferRootHash,
       totalAmount,
       proof,
       chainId
@@ -92,18 +89,19 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
   settleBondedWithdrawal = async (
     transferHash: string,
-    rootHash: string,
+    transferRootHash: string,
     totalAmount: number,
-    proof: any[],
+    proof: string[],
     chainId: string
   ) => {
     const bridge = this.contracts[chainId]
     const bonder = await this.getBonderAddress()
+    const parsedAmount = parseUnits(totalAmount.toString(), 18)
     return bridge.settleBondedWithdrawal(
       bonder,
       transferHash,
-      rootHash,
-      parseUnits(totalAmount.toString(), 18),
+      transferRootHash,
+      parsedAmount,
       proof
     )
   }
@@ -120,27 +118,28 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   handleTransferRootBondedEvent = async (
-    rootHash: string,
+    transferRootHash: string,
     _totalAmount: string,
     meta: any
   ) => {
     const { transactionHash } = meta
     const totalAmount = Number(formatUnits(_totalAmount, 18))
-    this.logger.log(`${this.label} received L1 BondTransferRoot event:`)
-    this.logger.log(`${this.label} bondRoot: ${rootHash}`)
-    this.logger.log(`${this.label} bondAmount: ${totalAmount}`)
-    this.logger.log(`${this.label} event transactionHash: ${transactionHash}`)
+    this.logger.log(`received L1 BondTransferRoot event:`)
+    this.logger.log(`bondRoot: ${transferRootHash}`)
+    this.logger.log(`bondAmount: ${totalAmount}`)
+    this.logger.log(`event transactionHash: ${transactionHash}`)
 
+    // TODO: batch
     const proof = []
     const transfers: any[] = Object.values(store.transferHashes)
-    this.logger.log(`${this.label} transfers:`, transfers.length)
+    this.logger.log(`transfers:`, transfers.length)
     for (let item of transfers) {
       try {
         const { transferHash, chainId } = item
         const tx = await this.sendTx(
           chainId,
           transferHash,
-          rootHash,
+          transferRootHash,
           totalAmount,
           proof
         )
@@ -152,19 +151,15 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           })
         })
         this.logger.log(
-          `${
-            this.label
-          } settleBondedWithdrawal on chain ${chainId} tx: ${chalk.bgYellow.black.bold(
+          `settleBondedWithdrawal on chain ${chainId} tx: ${chalk.bgYellow.black.bold(
             tx.hash
           )}`
         )
         delete store.transferHashes[transferHash]
       } catch (err) {
         if (err.message !== 'cancelled') {
-          this.logger.error(
-            `${this.label} settleBondedWithdrawal tx error:`,
-            err.message
-          )
+          this.emit('error', err)
+          this.logger.error(`settleBondedWithdrawal tx error:`, err.message)
         }
       }
     }
@@ -177,7 +172,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         this.handleTransferRootBondedEvent
       )
       .on('error', err => {
-        this.logger.error(`${this.label} event watcher error:`, err.message)
+        this.emit('error', err)
+        this.logger.error(`event watcher error:`, err.message)
       })
   }
 

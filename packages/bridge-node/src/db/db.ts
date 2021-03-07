@@ -1,18 +1,7 @@
-const levelup = require('levelup')
-const leveldown = require('leveldown')
-const db = levelup(leveldown('src/db/db_data'))
+import TransfersDb from './TransfersDb'
+import TransferRootsDb from './TransferRootsDb'
 
-class Db {
-  async setItem (key: string, value: string) {
-    return db.put(key, value)
-  }
-
-  async getItem (key: string) {
-    const result = await db.get(key)
-    if (result) {
-      return result.toString()
-    }
-  }
+export default {
+  transfers: new TransfersDb('transfers'),
+  transferRoots: new TransferRootsDb('transferRoots')
 }
-
-export default new Db()

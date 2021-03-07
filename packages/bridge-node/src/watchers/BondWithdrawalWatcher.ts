@@ -2,7 +2,7 @@ import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { UINT256 } from 'src/constants'
-import { store } from 'src/store'
+import db from 'src/db'
 import chalk from 'chalk'
 import { wait, isL1NetworkId, networkIdToSlug } from 'src/utils'
 import BaseWatcher from 'src/watchers/BaseWatcher'
@@ -27,10 +27,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logColor: 'green',
       order: config.order
     })
-    const { l1BridgeContract, l2BridgeContract, contracts } = config
-    this.l1BridgeContract = l1BridgeContract
-    this.l2BridgeContract = l2BridgeContract
-    this.contracts = contracts
+    this.l1BridgeContract = config.l1BridgeContract
+    this.l2BridgeContract = config.l2BridgeContract
+    this.contracts = config.contracts
   }
 
   async start () {
@@ -165,11 +164,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const contract = this.contracts[chainId]
       const amountOutMin = '0'
       const deadline = BigNumber.from(UINT256)
-      store.transferHashes[transferHash] = {
+      await db.transfers.update(transferHash, {
         transferHash,
         chainId,
         sourceChainId
-      }
+      })
 
       await this.waitTimeout(transferHash, chainId)
       const tx = await this.sendBondWithdrawalTx({
@@ -184,15 +183,22 @@ class BondWithdrawalWatcher extends BaseWatcher {
         deadline
       })
 
-      const cb = (...args: any[]) => {
+      const cb = (
+        transferHash: string,
+        recipient: string,
+        amount: BigNumber,
+        transferNonce: string,
+        relayerFee: BigNumber,
+        meta: any
+      ) => {
         contract.off(contract.filters.WithdrawalBonded(), cb)
         this.handleWithdrawalBondedEvent(
-          args[0],
-          args[1],
-          args[2],
-          args[3],
-          args[4],
-          args[5]
+          transferHash,
+          recipient,
+          amount,
+          transferNonce,
+          relayerFee,
+          meta
         )
       }
 
@@ -240,6 +246,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.log('amount:', amount.toString())
     this.logger.log('transferNonce:', transferNonce)
     this.logger.log('relayerFee:', relayerFee.toString())
+
+    await db.transfers.update(transferHash, {
+      withdrawalBonded: true
+    })
   }
 
   async waitTimeout (transferHash: string, chainId: string) {

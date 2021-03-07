@@ -2,7 +2,7 @@ import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
 import { wait } from 'src/utils'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { store } from 'src/store'
+import db from 'src/db'
 import chalk from 'chalk'
 import Logger from 'src/logger'
 import BaseWatcher from 'src/watchers/BaseWatcher'
@@ -25,9 +25,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       logColor: 'cyan',
       order: config.order
     })
-    const { l1BridgeContract, l2BridgeContract } = config
-    this.l1BridgeContract = l1BridgeContract
-    this.l2BridgeContract = l2BridgeContract
+    this.l1BridgeContract = config.l1BridgeContract
+    this.l2BridgeContract = config.l2BridgeContract
   }
 
   async start () {
@@ -103,14 +102,19 @@ class BondTransferRootWatcher extends BaseWatcher {
         data
       )
       const chainId = decoded.destinationChainId.toString()
+      const sourceChainId = (
+        await this.l2BridgeContract.getChainId()
+      ).toString()
       const totalAmount = Number(formatUnits(_totalAmount.toString(), 18))
       this.logger.log('chainId:', chainId)
       this.logger.log('totalAmount:', totalAmount)
-      store.transferRoots[transferRootHash] = {
+      await db.transferRoots.update(transferRootHash, {
         transferRootHash,
         totalAmount,
-        chainId
-      }
+        chainId,
+        sourceChainId,
+        commited: true
+      })
 
       await this.waitTimeout(transferRootHash)
       const tx = await this.sendBondTransferRootTx(
@@ -123,6 +127,10 @@ class BondTransferRootWatcher extends BaseWatcher {
           transferRootHash,
           chainId,
           totalAmount
+        })
+
+        db.transferRoots.update(transferRootHash, {
+          bonded: true
         })
       })
       this.logger.log(

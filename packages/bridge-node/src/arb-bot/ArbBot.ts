@@ -6,7 +6,7 @@ import chalk from 'chalk'
 import Logger from 'src/logger'
 import { UINT256 } from 'src/constants'
 
-const logger = new Logger('[arbBot]', { color: 'green' })
+const logger = new Logger('arbBot', { color: 'green' })
 
 interface TokenConfig {
   label: string

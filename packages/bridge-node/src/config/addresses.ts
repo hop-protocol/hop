@@ -25,7 +25,8 @@ export const tokens = {
       l2HopBridgeToken: '0xac9db0707bBC106B1Acd9CCDc07EdB9ED190108b',
       uniswapRouter: '0x5B64A7A5c5C4F61e8bEABB721c5988016D9b1587',
       uniswapFactory: '0x5006BB088D06dEBA783a54769Bf8a883bBaDDA6a',
-      uniswapExchange: '0x3cb14029f46D7A4Ee346A2b1F61C8e5bACD86341'
+      uniswapExchange: '0x3cb14029f46D7A4Ee346A2b1F61C8e5bACD86341',
+      arbChain: '0x2e8aF9f74046D3E55202Fcfb893348316B142230'
     },
     /*
     optimism: {

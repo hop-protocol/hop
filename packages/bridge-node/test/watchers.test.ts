@@ -30,7 +30,7 @@ const L2ToL2Paths = [
 
 const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 1
-const logger = new Logger('[TEST]')
+const logger = new Logger('TEST')
 
 describe.only('settleBondedWithdrawal', () => {
   const testPaths = [...L2ToL1Paths, ...L2ToL2Paths]
@@ -108,9 +108,6 @@ describe('bondWithdrawal', () => {
         logger.log('source balance after:', sourceBalanceAfter)
         logger.log('dest balance after:', destBalanceAfter)
         expect(destBalanceAfter > destBalanceBefore).toBe(true)
-        if (!(destBalanceAfter > destBalanceBefore)) {
-          process.exit(0)
-        }
         await stop()
       },
       300 * 1000

@@ -24,7 +24,7 @@ const providers: any = {
 
 const tokens = Object.keys(config.tokens)
 const networks = ['arbitrum', 'optimism', 'xdai']
-const pubsubLogger = new Logger('[pubsub]', { color: 'magenta' })
+const pubsubLogger = new Logger('pubsub', { color: 'magenta' })
 
 const startStakeWatchers = (_tokens: string[] = tokens) => {
   const watchers: any[] = []

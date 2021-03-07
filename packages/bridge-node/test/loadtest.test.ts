@@ -2,22 +2,22 @@ require('dotenv').config()
 import { ethers, Wallet, providers } from 'ethers'
 import { HDNode } from '@ethersproject/hdnode'
 import { getRpcUrl, wait } from 'src/utils'
-import { User, checkApproval } from './helpers'
 import { KOVAN, ARBITRUM, OPTIMISM, XDAI } from 'src/constants'
 import { startWatchers } from 'src/watchers/watchers'
+import { User, checkApproval } from './helpers'
+import { faucetPrivateKey, mnemonic } from './config'
 
-const mnemonic = process.env.TEST_MNEMONIC
-const provider = new providers.StaticJsonRpcProvider(getRpcUrl(KOVAN))
-
-const sourceNetwork = OPTIMISM
-const destNetwork = ARBITRUM
+const sourceNetwork = ARBITRUM
+const destNetwork = KOVAN
 const token = 'DAI'
 const TRANSFER_AMOUNT = 1
+const NUM_USERS = 5
+const provider = new providers.StaticJsonRpcProvider(getRpcUrl(KOVAN))
 
 test(
   'loadtest',
   async () => {
-    const users = generateUsers(1)
+    const users = generateUsers(NUM_USERS)
     await prepareAccounts(users)
     const { stop, watchers } = startWatchers()
 
@@ -50,9 +50,6 @@ test(
       const destBalanceAfter = destBalancesAfter[i]
       expect(sourceBalanceAfter + TRANSFER_AMOUNT).toBe(sourceBalanceBefore)
       expect(destBalanceAfter > destBalanceBefore).toBe(true)
-      if (!(destBalanceAfter > destBalanceBefore)) {
-        process.exit(0)
-      }
     }
 
     await stop()
@@ -76,23 +73,23 @@ function generateUsers (count: number = 1) {
 }
 
 async function prepareAccounts (users: User[]) {
-  const faucetPrivateKey = process.env.TEST_FAUCET_PRIVATE_KEY
   const faucet = new User(faucetPrivateKey)
   for (let user of users) {
     const address = await user.getAddress()
-    let ethBal = await user.getBalance(KOVAN)
-    if (ethBal < 0.01) {
-      const tx = await faucet.sendEth(0.1, address)
-      await tx.wait()
-      ethBal = await user.getBalance()
+    if ([KOVAN, XDAI].includes(sourceNetwork)) {
+      let ethBal = await user.getBalance(sourceNetwork)
+      if (ethBal < 0.01) {
+        const tx = await faucet.sendEth(0.1, address)
+        await tx.wait()
+        ethBal = await user.getBalance()
+      }
+      expect(ethBal >= 0.01).toBe(true)
     }
-    expect(ethBal >= 0.01).toBe(true)
-    let tokenBal = await user.getBalance(KOVAN, token)
+    let tokenBal = await user.getBalance(sourceNetwork, token)
     if (tokenBal < 1) {
-      console.log('minting')
-      const tx = await user.mint(KOVAN, token, 1000)
+      const tx = await faucet.sendTokens(sourceNetwork, token, 1000, address)
       await tx.wait()
-      tokenBal = await user.getBalance(KOVAN, token)
+      tokenBal = await user.getBalance(sourceNetwork, token)
     }
     expect(tokenBal >= 1).toBe(true)
   }

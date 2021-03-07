@@ -7,6 +7,7 @@ import l2BridgeArtifact from 'src/abi/L2_Bridge.json'
 import erc20Artifact from 'src/abi/ERC20.json'
 import uniswapRouterArtifact from 'src/abi/UniswapV2Router02.json'
 import uniswapPairArtifact from 'src/abi/UniswapV2Pair.json'
+import globalInboxArtifact from 'src/abi/GlobalInbox.json'
 import { UINT256, KOVAN, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
 import { getRpcUrl, networkSlugToId } from 'src/utils'
 
@@ -280,6 +281,17 @@ export class User {
     })
   }
 
+  async sendTokens (
+    network: string,
+    token: string,
+    amount: number | string,
+    recipient: string
+  ) {
+    const wallet = this.getWallet()
+    const tokenContract = this.getTokenContract(network, token)
+    return tokenContract.transfer(recipient, parseUnits(amount.toString(), 18))
+  }
+
   getBridgeAddress (network: string, token: string) {
     let address = tokens[token][network].l2Bridge
     if (network === KOVAN) {
@@ -344,6 +356,39 @@ export class User {
       uniswapExchange.decimals()
     ])
     return formatUnits(balance.toString(), decimals)
+  }
+
+  getCanonicalBridgeContract (destNetwork: string, token: string) {
+    const wallet = this.getWallet(KOVAN)
+    if (destNetwork === ARBITRUM) {
+      return new Contract(
+        tokens[token][destNetwork].l1CanonicalBridge,
+        globalInboxArtifact.abi,
+        wallet
+      )
+    } else {
+      throw new Error('not implemented')
+    }
+  }
+
+  async convertToCanonicalToken (
+    destNetwork: string,
+    token: string,
+    amount: string | number
+  ) {
+    const recipient = await this.getAddress()
+    const value = parseUnits(amount.toString(), 18)
+    if (destNetwork === ARBITRUM) {
+      const messenger = this.getCanonicalBridgeContract(destNetwork, token)
+      return messenger.depositERC20Message(
+        tokens[token][destNetwork].arbChain,
+        tokens[token][KOVAN].l1CanonicalToken,
+        recipient,
+        value
+      )
+    } else {
+      throw new Error('not implemented')
+    }
   }
 
   async canonicalTokenToHopToken (

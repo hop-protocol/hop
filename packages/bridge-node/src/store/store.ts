@@ -1,6 +1,4 @@
 const store: any = {
-  transferHashes: {},
-  transferRoots: {},
   bonders: {}
 }
 

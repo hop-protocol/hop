@@ -2,7 +2,8 @@ import '../moduleAlias'
 import { Contract } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { wait, networkIdToSlug } from 'src/utils'
-import { store } from 'src/store'
+import db from 'src/db'
+import { Transfer } from 'src/db/TransfersDb'
 import chalk from 'chalk'
 import BaseWatcher from 'src/watchers/BaseWatcher'
 
@@ -131,11 +132,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
     // TODO: batch
     const proof = []
-    const transfers: any[] = Object.values(store.transferHashes)
+    const transfers: Transfer[] = await db.transfers.getUnsettledBondedWithdrawalTransfers()
     this.logger.log(`transfers:`, transfers.length)
-    for (let item of transfers) {
+    for (let transfer of transfers) {
       try {
-        const { transferHash, chainId } = item
+        const { transferHash, chainId } = transfer
         const tx = await this.sendTx(
           chainId,
           transferHash,
@@ -149,13 +150,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
             networkId: chainId,
             transferHash
           })
+
+          db.transfers.update(transferHash, { withdrawalBondSettled: true })
         })
         this.logger.log(
           `settleBondedWithdrawal on chain ${chainId} tx: ${chalk.bgYellow.black.bold(
             tx.hash
           )}`
         )
-        delete store.transferHashes[transferHash]
       } catch (err) {
         if (err.message !== 'cancelled') {
           this.emit('error', err)

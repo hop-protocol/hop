@@ -3,6 +3,7 @@ import { Contract } from 'ethers'
 import chalk from 'chalk'
 import { wait } from 'src/utils'
 import { throttle } from 'src/utils'
+import db from 'src/db'
 import BaseWatcher from 'src/watchers/BaseWatcher'
 
 export interface Config {
@@ -44,7 +45,9 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   sendCommitTransfersTx = async (chainId: string) => {
-    return this.l2BridgeContract.commitTransfers(chainId)
+    return this.l2BridgeContract.commitTransfers(chainId, {
+      gasLimit: '0xf4240'
+    })
   }
 
   check = throttle(async (chainId: string) => {
@@ -103,6 +106,15 @@ class CommitTransfersWatcher extends BaseWatcher {
         )
         chainId = decoded.chainId.toString()
       }
+
+      const sourceChainId = (
+        await this.l2BridgeContract.getChainId()
+      ).toString()
+      await db.transfers.update(transferHash, {
+        transferHash,
+        chainId,
+        sourceChainId
+      })
 
       await this.check(chainId)
     } catch (err) {

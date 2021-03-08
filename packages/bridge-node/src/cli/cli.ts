@@ -18,6 +18,10 @@ program
     '-t, --tokens <symbol>',
     'List of token by symbol to bond, comma separated'
   )
+  .option(
+    '-n, --networks <network>',
+    'List of networks to bond, comma separated'
+  )
   .description('Start the bonder watchers')
   .action(source => {
     const orderNum = Number(source.order) || 0
@@ -25,7 +29,15 @@ program
       .split(',')
       .map(value => value.trim().toUpperCase())
       .filter(x => x)
-    startWatchers(orderNum, tokens)
+    const networks = (source.networks || '')
+      .split(',')
+      .map(value => value.trim().toLowerCase())
+      .filter(x => x)
+    startWatchers({
+      order: orderNum,
+      tokens,
+      networks
+    })
     new xDaiBridgeWatcher().start()
   })
 

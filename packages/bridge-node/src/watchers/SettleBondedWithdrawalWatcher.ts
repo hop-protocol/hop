@@ -4,8 +4,10 @@ import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { wait, networkIdToSlug } from 'src/utils'
 import db from 'src/db'
 import { Transfer } from 'src/db/TransfersDb'
+import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
 import BaseWatcher from 'src/watchers/BaseWatcher'
+import MerkleTree from 'src/lib/MerkleTree'
 
 export interface Config {
   l1BridgeContract: Contract
@@ -14,8 +16,6 @@ export interface Config {
   label: string
   order?: () => number
 }
-
-const cache: { [key: string]: boolean } = {}
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
   l1BridgeContract: Contract
@@ -51,59 +51,32 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       this.handleTransferRootBondedEvent
     )
     this.started = false
+    this.logger.setEnabled(false)
   }
 
   sendTx = async (
     chainId: string,
-    transferHash: string,
-    transferRootHash: string,
-    totalAmount: number,
-    proof: string[]
+    transferHashes: string[],
+    totalAmount: number
   ) => {
-    const cacheKey = `${transferRootHash}${chainId}`
-    if (cache[cacheKey]) {
-      throw new Error('cancelled')
-    }
-    const onchainRoot = await this.l1BridgeContract.getTransferRoot(
-      transferRootHash,
-      parseUnits(totalAmount.toString(), 18)
-    )
-    this.logger.log('settleBondedWithdrawal params:')
-    this.logger.log('chainId:', chainId)
-    this.logger.log('transferHash:', transferHash)
-    this.logger.log('transferRootHash:', transferRootHash)
-    this.logger.log(`onchain transferRootHash:`, onchainRoot)
-    this.logger.log('proof:', proof)
-    const bondedAmount = await this.getBondedAmount(transferHash, chainId)
-    this.logger.log('bonded amount:', bondedAmount)
-    this.logger.log('total amount:', totalAmount)
-    this.logger.log(`l1 settleBondedWithdrawal amount: ${bondedAmount}`)
-    cache[cacheKey] = true
-    return this.settleBondedWithdrawal(
-      transferHash,
-      transferRootHash,
-      totalAmount,
-      proof,
-      chainId
-    )
+    return this.settleBondedWithdrawal(transferHashes, totalAmount, chainId)
   }
 
   settleBondedWithdrawal = async (
-    transferHash: string,
-    transferRootHash: string,
+    transferHashes: string[],
     totalAmount: number,
-    proof: string[],
     chainId: string
   ) => {
     const bridge = this.contracts[chainId]
     const bonder = await this.getBonderAddress()
     const parsedAmount = parseUnits(totalAmount.toString(), 18)
-    return bridge.settleBondedWithdrawal(
+    return bridge.settleBondedWithdrawals(
       bonder,
-      transferHash,
-      transferRootHash,
+      transferHashes,
       parsedAmount,
-      proof
+      {
+        //gasLimit: 1000000
+      }
     )
   }
 
@@ -118,40 +91,61 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     return bondedAmount
   }
 
-  handleTransferRootBondedEvent = async (
-    transferRootHash: string,
-    _totalAmount: string,
-    meta: any
-  ) => {
-    const { transactionHash } = meta
-    const totalAmount = Number(formatUnits(_totalAmount, 18))
-    this.logger.log(`received L1 BondTransferRoot event:`)
-    this.logger.log(`bondRoot: ${transferRootHash}`)
-    this.logger.log(`bondAmount: ${totalAmount}`)
-    this.logger.log(`event transactionHash: ${transactionHash}`)
+  check = async () => {
+    const transferRoots: TransferRoot[] = await db.transferRoots.getUnsettledBondedTransferRoots()
 
-    // TODO: batch
-    const proof = []
-    const transfers: Transfer[] = await db.transfers.getUnsettledBondedWithdrawalTransfers()
-    this.logger.log(`transfers:`, transfers.length)
-    for (let transfer of transfers) {
+    for (let transferRoot of transferRoots) {
+      let transferHashes = Object.values(transferRoot.transferHashes || [])
+      const totalAmount = transferRoot.totalAmount
+      const chainId = transferRoot.chainId
       try {
-        const { transferHash, chainId } = transfer
+        this.logger.log(
+          'transferRootHash:',
+          chalk.bgMagenta.black(transferRoot.transferRootHash)
+        )
+        if (!transferHashes.length) {
+          this.logger.log('no transfer hashes to settle')
+          return
+        }
+        const transferHashBuffers = transferHashes.map(transferHash =>
+          Buffer.from(transferHash.replace('0x', ''), 'hex')
+        )
+        const tree = new MerkleTree(transferHashBuffers)
+        const transferRootHash = tree.getHexRoot()
+        this.logger.log('chainId:', chainId)
+        this.logger.log('transferHashes:', transferHashes)
+        this.logger.log('transferRootHash:', transferRootHash)
+        this.logger.log('totalAmount:', totalAmount)
+
+        const t: TransferRoot = await db.transferRoots.getByTransferRootHash(
+          transferRootHash
+        )
+        if (t?.sentSettleTx) return
+
+        await db.transferRoots.update(transferRootHash, {
+          sentSettleTx: true
+        })
+
+        this.logger.log('sending')
         const tx = await this.sendTx(
           chainId,
-          transferHash,
-          transferRootHash,
-          totalAmount,
-          proof
+          transferHashes,
+          Number(totalAmount)
         )
-        tx?.wait().then(() => {
-          this.emit('settleBondedWithdrawal', {
-            networkName: networkIdToSlug(chainId),
-            networkId: chainId,
-            transferHash
+        tx?.wait().then(async () => {
+          await db.transferRoots.update(transferRootHash, {
+            settled: true
           })
+          for (let transferHash of transferHashes) {
+            this.emit('settleBondedWithdrawal', {
+              transferRootHash,
+              networkName: networkIdToSlug(chainId),
+              networkId: chainId,
+              transferHash
+            })
 
-          db.transfers.update(transferHash, { withdrawalBondSettled: true })
+            db.transfers.update(transferHash, { withdrawalBondSettled: true })
+          }
         })
         this.logger.log(
           `settleBondedWithdrawal on chain ${chainId} tx: ${chalk.bgYellow.black.bold(
@@ -167,6 +161,23 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
   }
 
+  handleTransferRootBondedEvent = async (
+    transferRootHash: string,
+    _totalAmount: string,
+    meta: any
+  ) => {
+    const { transactionHash } = meta
+    const totalAmount = Number(formatUnits(_totalAmount, 18))
+    this.logger.log(`received L1 BondTransferRoot event:`)
+    this.logger.log(`transferRootHash from event: ${transferRootHash}`)
+    this.logger.log(`bondAmount: ${totalAmount}`)
+    this.logger.log(`event transactionHash: ${transactionHash}`)
+    await db.transferRoots.update(transferRootHash, {
+      committed: true,
+      bonded: true
+    })
+  }
+
   async watch () {
     this.l1BridgeContract
       .on(
@@ -177,6 +188,18 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         this.emit('error', err)
         this.logger.error(`event watcher error:`, err.message)
       })
+
+    while (true) {
+      try {
+        if (!this.started) {
+          return
+        }
+        await this.check()
+      } catch (err) {
+        this.logger.error('error checking:', err.message)
+      }
+      await wait(10 * 1000)
+    }
   }
 
   async getBonderAddress () {

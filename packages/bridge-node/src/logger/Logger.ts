@@ -11,6 +11,10 @@ class Logger {
   private prefix: string = ''
   enabled: boolean = true
 
+  setEnabled (enabled: boolean) {
+    this.enabled = enabled
+  }
+
   constructor (
     tag: Partial<Options> | string = '',
     opts: Partial<Options> = {

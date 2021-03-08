@@ -7,27 +7,14 @@ export type TransferRoot = {
   sourceChainID?: string
   commited?: boolean
   bonded?: boolean
+  settled?: boolean
+  sentSettleTx?: boolean
+  transferHashes?: string[]
 }
 
 class TransferRootsDb extends BaseDb {
   constructor (prefix: string = 'transferRoots') {
     super(prefix)
-  }
-
-  handleDataEvent = async (err, data) => {
-    if (err) {
-      throw err
-    }
-    if (!data) {
-      return
-    }
-    const { key, value } = data
-    if (key === 'ids') {
-      return
-    }
-    const transfers = await this.getTransferRootHashes()
-    const unique = new Set(transfers.concat(key))
-    return this.update('ids', Array.from(unique), false)
   }
 
   async getByTransferRootHash (
@@ -37,7 +24,30 @@ class TransferRootsDb extends BaseDb {
   }
 
   async getTransferRootHashes (): Promise<string[]> {
-    return Object.values(await this.getById('ids', []))
+    return this.getKeys()
+  }
+
+  async getTransferRoots (): Promise<TransferRoot[]> {
+    const transferRootHashes = await this.getTransferRootHashes()
+    return await Promise.all(
+      transferRootHashes.map(transferRootHash => {
+        return this.getByTransferRootHash(transferRootHash)
+      })
+    )
+  }
+
+  async getUnsettledBondedTransferRoots (): Promise<TransferRoot[]> {
+    const transfers = await this.getTransferRoots()
+    return transfers.filter(item => {
+      return item.bonded && !item.settled
+    })
+  }
+
+  async getUncommittedBondedTransferRoots (): Promise<TransferRoot[]> {
+    const transfers = await this.getTransferRoots()
+    return transfers.filter(item => {
+      return !item.commited
+    })
   }
 }
 

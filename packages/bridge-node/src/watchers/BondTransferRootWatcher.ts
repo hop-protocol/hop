@@ -3,9 +3,11 @@ import { Contract, BigNumber } from 'ethers'
 import { wait } from 'src/utils'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import db from 'src/db'
+import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
 import Logger from 'src/logger'
 import BaseWatcher from 'src/watchers/BaseWatcher'
+import MerkleTree from 'src/lib/MerkleTree'
 
 export interface Config {
   l1BridgeContract: Contract
@@ -49,6 +51,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       this.handleTransferCommittedEvent
     )
     this.started = false
+    this.logger.setEnabled(false)
   }
 
   async watch () {
@@ -63,22 +66,34 @@ class BondTransferRootWatcher extends BaseWatcher {
       })
   }
 
-  sendBondTransferRootTx = (
+  sendBondTransferRootTx = async (
     transferRootHash: string,
     chainId: string,
     totalAmount: number
   ) => {
     this.logger.log(`bondTransferRoot`)
-    this.logger.log(`bondTransferRoot transferRootHash:`, transferRootHash)
+    this.logger.log(
+      `bondTransferRoot transferRootHash:`,
+      chalk.bgMagenta.black(transferRootHash)
+    )
     this.logger.log(`bondTransferRoot chainId:`, chainId)
     this.logger.log(`bondTransferRoot totalAmount:`, totalAmount)
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
+
+    const credit = await this.getCredit()
+    const debit = await this.getDebit()
+    this.logger.log(`bondTransferRoot credit:`, credit)
+    this.logger.log(`bondTransferRoot debit:`, debit)
+    if (credit < debit) {
+      this.logger.log('not enough available credit')
+    }
+
     return this.l1BridgeContract.bondTransferRoot(
       transferRootHash,
       chainId,
       parsedTotalAmount,
       {
-        //gasLimit: 100000
+        //gasLimit: 1000000
       }
     )
   }
@@ -90,8 +105,15 @@ class BondTransferRootWatcher extends BaseWatcher {
   ) => {
     try {
       const { transactionHash } = meta
-      this.logger.log(`received L2 TransfersCommittedEvent event`)
-      this.logger.log(`transferRootHash:`, transferRootHash)
+      const sourceChainId = (
+        await this.l2BridgeContract.getChainId()
+      ).toString()
+      this.logger.log(`received L2 TransfersCommitted event`)
+      this.logger.log(
+        sourceChainId,
+        `transferRootHash:`,
+        chalk.bgMagenta.black(transferRootHash)
+      )
       await wait(2 * 1000)
       const {
         from: sender,
@@ -102,9 +124,6 @@ class BondTransferRootWatcher extends BaseWatcher {
         data
       )
       const chainId = decoded.destinationChainId.toString()
-      const sourceChainId = (
-        await this.l2BridgeContract.getChainId()
-      ).toString()
       const totalAmount = Number(formatUnits(_totalAmount.toString(), 18))
       this.logger.log('chainId:', chainId)
       this.logger.log('totalAmount:', totalAmount)
@@ -117,6 +136,31 @@ class BondTransferRootWatcher extends BaseWatcher {
       })
 
       await this.waitTimeout(transferRootHash)
+
+      const transferRoot: TransferRoot = await db.transferRoots.getById(
+        transferRootHash
+      )
+      if (!transferRoot) {
+        this.logger.log('no transfer root')
+        return
+      }
+
+      this.logger.log('transferRoot:', transferRoot)
+      const pendingTransfers: string[] = Object.values(
+        transferRoot.transferHashes || []
+      )
+      this.logger.log('transferRootHash transferHashes:', pendingTransfers)
+      if (pendingTransfers.length) {
+        const tree = new MerkleTree(
+          pendingTransfers.map(x => Buffer.from(x.replace('0x', ''), 'hex'))
+        )
+        const rootHash = tree.getHexRoot()
+        this.logger.log('calculated transfer root hash:', rootHash)
+        if (rootHash !== transferRootHash) {
+          this.logger.log('calculated transfer root hash does not match')
+        }
+      }
+
       const tx = await this.sendBondTransferRootTx(
         transferRootHash,
         chainId,
@@ -143,6 +187,24 @@ class BondTransferRootWatcher extends BaseWatcher {
         this.logger.error('bondTransferRoot tx error:', err.message)
       }
     }
+  }
+
+  async getCredit () {
+    const bonder = await this.getBonderAddress()
+    const credit = (await this.l1BridgeContract.getCredit(bonder)).toString()
+    return Number(formatUnits(credit, 18))
+  }
+
+  async getDebit () {
+    const bonder = await this.getBonderAddress()
+    const debit = (
+      await this.l1BridgeContract.getDebitAndAdditionalDebit(bonder)
+    ).toString()
+    return Number(formatUnits(debit, 18))
+  }
+
+  async getBonderAddress () {
+    return this.l1BridgeContract.signer.getAddress()
   }
 
   async waitTimeout (transferRootHash: string) {

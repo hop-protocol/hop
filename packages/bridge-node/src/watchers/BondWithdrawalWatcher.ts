@@ -52,6 +52,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       this.handleTransferSentEvent
     )
     this.started = false
+    this.logger.setEnabled(false)
   }
 
   async watch () {
@@ -123,7 +124,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const { transactionHash } = meta
       this.logger.log('transfer event amount:', amount.toString())
       this.logger.log(`received L2 TransferSentEvent event`)
-      this.logger.log('transferHash:', transferHash)
+      this.logger.log('transferHash:', chalk.bgCyan.black(transferHash))
 
       await wait(2 * 1000)
       const {
@@ -210,7 +211,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
         this.emit('bondWithdrawal', {
           recipient,
           destNetworkName: networkIdToSlug(chainId),
-          destNetworkId: chainId
+          destNetworkId: chainId,
+          transferHash
         })
 
         const bondedAmount = await this.getBondedAmount(transferHash, chainId)

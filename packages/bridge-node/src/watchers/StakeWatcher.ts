@@ -28,6 +28,8 @@ class StakeWatcher extends BaseWatcher {
     })
     this.bridgeContract = config.bridgeContract
     this.tokenContract = config.tokenContract
+    this.stakeMinThreshold = config.stakeMinThreshold
+    this.stakeAmount = config.stakeAmount
   }
 
   async start () {
@@ -48,6 +50,7 @@ class StakeWatcher extends BaseWatcher {
 
   async stop () {
     this.started = false
+    this.logger.setEnabled(false)
   }
 
   async check () {
@@ -57,15 +60,15 @@ class StakeWatcher extends BaseWatcher {
         throw new Error('Not a bonder')
       }
 
-      const credit = await this.getCredit()
-      const debit = await this.getDebit()
-      this.logger.log(`credit balance:`, credit)
-      this.logger.log(`debit balance:`, debit)
-
-      let [balance, allowance] = await Promise.all([
+      let [credit, debit, balance, allowance] = await Promise.all([
+        this.getCredit(),
+        this.getDebit(),
         this.getTokenBalance(),
         this.getTokenAllowance()
       ])
+
+      this.logger.log(`credit balance:`, credit)
+      this.logger.log(`debit balance:`, debit)
 
       if (credit < this.stakeMinThreshold) {
         if (balance < this.stakeAmount) {

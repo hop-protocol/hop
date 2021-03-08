@@ -13,28 +13,12 @@ class TransfersDb extends BaseDb {
     super(prefix)
   }
 
-  handleDataEvent = async (err, data) => {
-    if (err) {
-      throw err
-    }
-    if (!data) {
-      return
-    }
-    const { key, value } = data
-    if (key === 'ids') {
-      return
-    }
-    const transfers = await this.getTransferHashes()
-    const unique = new Set(transfers.concat(key))
-    return this.update('ids', Array.from(unique), false)
-  }
-
   async getByTransferHash (transferHash: string): Promise<Transfer> {
     return this.getById(transferHash)
   }
 
   async getTransferHashes (): Promise<string[]> {
-    return Object.values(await this.getById('ids', []))
+    return this.getKeys()
   }
 
   async getTransfers (): Promise<Transfer[]> {

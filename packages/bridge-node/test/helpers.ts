@@ -1,4 +1,5 @@
 import { ethers, Contract } from 'ethers'
+import { NonceManager } from '@ethersproject/experimental'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { tokens } from 'src/config'
 import { arbitrumNetworkId } from 'src/constants'
@@ -13,7 +14,7 @@ import { getRpcUrl, networkSlugToId } from 'src/utils'
 
 export class User {
   privateKey: string
-  wallet: ethers.Wallet
+  nonceManagers: any = {}
 
   constructor (privateKey: string) {
     this.privateKey = privateKey
@@ -25,8 +26,16 @@ export class User {
   }
 
   getWallet (network: string = KOVAN) {
-    const provider = this.getProvider(network)
-    return new ethers.Wallet(this.privateKey, provider)
+    //const provider = this.getProvider(network)
+    //return new ethers.Wallet(this.privateKey, provider)
+
+    if (!this.nonceManagers[network]) {
+      const provider = this.getProvider(network)
+      const wallet = new ethers.Wallet(this.privateKey, provider)
+      //const wallet = this.getWallet(network)
+      this.nonceManagers[network] = new NonceManager(wallet)
+    }
+    return this.nonceManagers[network]
   }
 
   async getBalance (network: string = KOVAN, token: string | Contract = '') {
@@ -192,13 +201,18 @@ export class User {
     if (ethBalance < 0.0001) {
       throw new Error('Not enough ETH balance for transfer')
     }
-    return bridge.sendToL2AndAttemptSwap(
+
+    const tx = bridge.sendToL2AndAttemptSwap(
       chainId,
       recipient,
       parseUnits(amount.toString(), 18),
       amountOutMin,
-      deadline
+      deadline,
+      {}
     )
+
+    this.getWallet(sourceNetwork).incrementTransactionNonce()
+    return tx
   }
 
   async sendL2ToL1 (

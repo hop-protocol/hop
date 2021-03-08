@@ -47,6 +47,7 @@ class ChallengeWatcher extends BaseWatcher {
       this.handleBondTransferEvent
     )
     this.started = false
+    this.logger.setEnabled(false)
   }
 
   handleBondTransferEvent = async (

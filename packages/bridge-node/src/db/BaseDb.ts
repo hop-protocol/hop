@@ -1,50 +1,53 @@
-import { promisify } from 'util'
-import levelup from 'levelup'
-import leveldown from 'leveldown'
-import sub from 'level-sublevel'
+import level from 'level'
+import sub from 'subleveldown'
 import TransfersDb from './TransfersDb'
 
-export const db = sub(levelup(leveldown('src/db/db_data')), {
-  valueEncoding: 'json'
-})
+export const db = level('src/db/db_data')
 
 class BaseDb {
-  protected db: any
+  public db: any
+  prefix: string
 
   constructor (prefix: string) {
-    this.db = db.sublevel(prefix)
+    this.prefix = prefix
+    this.db = sub(db, prefix, { valueEncoding: 'json' })
   }
 
-  handleDataEvent = (err, data) => {
-    // abstract
+  handleDataEvent = async (err, data) => {
+    if (err) {
+      throw err
+    }
+    if (!data) {
+      return
+    }
+    const { key, value } = data
+    if (key === 'ids') {
+      return
+    }
+    const list = await this.getKeys()
+    const unique = new Set(list.concat(key))
+    return this.update('ids', Array.from(unique), false)
   }
 
-  async update (id: string, data: any, dataCb: boolean = true) {
-    const entry = await this.getById(id, {})
-    await promisify(this.db.put)(id, { ...entry, ...data })
-
-    return new Promise((resolve, reject) => {
-      if (!dataCb) {
-        resolve(null)
-        return
-      }
-      this.db.createReadStream().on('data', async (data, err, f) => {
-        try {
-          await this.handleDataEvent(err, data)
-        } catch (err) {
-          return reject(err)
-        }
-        resolve(data)
-      })
-    })
+  async update (key: string, data: any, dataCb: boolean = true) {
+    const entry = await this.getById(key, {})
+    const value = Object.assign({}, entry, data)
+    if (dataCb) {
+      await this.handleDataEvent(undefined, { key, value })
+    }
+    return this.db.put(key, value)
   }
 
   async getById (id: string, defaultValue: any = null) {
     try {
-      return await promisify(this.db.get)(id)
+      return await this.db.get(id)
     } catch (err) {
       return defaultValue
     }
+  }
+
+  async getKeys (): Promise<string[]> {
+    return Object.values(await this.getById('ids', []))
   }
 }
 

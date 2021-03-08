@@ -26,10 +26,14 @@ const tokens = Object.keys(config.tokens)
 const networks = ['arbitrum', 'optimism', 'xdai']
 const pubsubLogger = new Logger('pubsub', { color: 'magenta' })
 
-const startStakeWatchers = (_tokens: string[] = tokens) => {
+const startStakeWatchers = (
+  _tokens: string[] = tokens,
+  _networks: string[] = networks
+) => {
+  _networks = (_networks || networks).filter(x => networks.includes(x))
   const watchers: any[] = []
   for (let token of _tokens) {
-    for (let network of ['kovan'].concat(networks)) {
+    for (let network of ['kovan'].concat(_networks)) {
       if (!contracts[token]) {
         continue
       }
@@ -48,8 +52,8 @@ const startStakeWatchers = (_tokens: string[] = tokens) => {
           label: `${network} ${token}`,
           bridgeContract,
           tokenContract,
-          stakeMinThreshold: 1000,
-          stakeAmount: 1000
+          stakeMinThreshold: 0,
+          stakeAmount: 0
         })
       )
     }
@@ -58,7 +62,24 @@ const startStakeWatchers = (_tokens: string[] = tokens) => {
   return watchers
 }
 
-function startWatchers (orderNum: number = 0, _tokens: string[] = tokens) {
+type Config = {
+  order?: number
+  tokens?: string[]
+  networks?: string[]
+}
+
+function startWatchers (_config: Config = {}) {
+  const orderNum = _config.order || 0
+  let _tokens = _config.tokens || tokens
+  let _networks = (_config.networks || networks).filter(x =>
+    networks.includes(x)
+  )
+  if (!_tokens.length) {
+    _tokens = tokens
+  }
+  if (!_networks.length) {
+    _networks = networks
+  }
   const watchers: any[] = []
   try {
     const hostname = config.hostname
@@ -133,8 +154,11 @@ function startWatchers (orderNum: number = 0, _tokens: string[] = tokens) {
     return Math.max(orderNum - delta, 0)
   }
 
-  for (let network of networks) {
-    for (let token of tokens) {
+  for (let network of _networks) {
+    for (let token of _tokens) {
+      if (!contracts[token]) {
+        continue
+      }
       if (!contracts[token][network]) {
         continue
       }
@@ -186,14 +210,21 @@ function startWatchers (orderNum: number = 0, _tokens: string[] = tokens) {
         new CommitTransferWatcher({
           order,
           label,
-          l2BridgeContract: contracts[token][network].l2Bridge
+          l2BridgeContract: contracts[token][network].l2Bridge,
+          // TODO
+          contracts: {
+            '42': contracts[token].kovan?.l1Bridge,
+            '69': contracts[token].optimism?.l2Bridge,
+            '79377087078960': contracts[token].arbitrum?.l2Bridge,
+            '77': contracts[token].xdai?.l2Bridge
+          }
         })
       )
     }
   }
 
   watchers.forEach(watcher => watcher.start())
-  watchers.push(...startStakeWatchers(_tokens))
+  watchers.push(...startStakeWatchers(_tokens, _networks))
 
   const stop = () => {
     return watchers.map(watcher => {
@@ -228,7 +259,14 @@ function startCommitTransferWatchers () {
       watchers.push(
         new CommitTransferWatcher({
           label: network,
-          l2BridgeContract: contracts[token][network].l2Bridge
+          l2BridgeContract: contracts[token][network].l2Bridge,
+          // TODO
+          contracts: {
+            '42': contracts[token].kovan?.l1Bridge,
+            '69': contracts[token].optimism?.l2Bridge,
+            '79377087078960': contracts[token].arbitrum?.l2Bridge,
+            '77': contracts[token].xdai?.l2Bridge
+          }
         })
       )
     }

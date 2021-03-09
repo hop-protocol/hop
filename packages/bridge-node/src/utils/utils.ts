@@ -8,7 +8,7 @@ export const getL2MessengerId = (l2Name: string): string => {
 }
 
 export { debounce }
-export const throttle = (fn: any, interval) => {
+export const throttle = (fn: any, interval: number) => {
   const t = pThrottle({ limit: 1, interval })
   return t(fn)
 }

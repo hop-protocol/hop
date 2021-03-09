@@ -1,6 +1,8 @@
 import '../moduleAlias'
 import { Contract } from 'ethers'
-import BaseWatcher from 'src/watchers/BaseWatcher'
+import BaseWatcher from './base/BaseWatcher'
+import L1Bridge from './base/L1Bridge'
+import L2Bridge from './base/L2Bridge'
 
 // notes:
 // - challenge watcher
@@ -17,8 +19,8 @@ export interface Config {
 
 // TODO: fix
 class ChallengeWatcher extends BaseWatcher {
-  l1BridgeContract: Contract
-  l2BridgeContract: Contract
+  l1Bridge: L1Bridge
+  l2Bridge: L2Bridge
 
   constructor (config: Config) {
     super({
@@ -26,8 +28,8 @@ class ChallengeWatcher extends BaseWatcher {
       prefix: config.label,
       logColor: 'red'
     })
-    this.l1BridgeContract = config.l1BridgeContract
-    this.l2BridgeContract = config.l2BridgeContract
+    this.l1Bridge = new L1Bridge(config.l1BridgeContract)
+    this.l2Bridge = new L2Bridge(config.l2BridgeContract)
   }
 
   async start () {
@@ -42,10 +44,8 @@ class ChallengeWatcher extends BaseWatcher {
   }
 
   async stop () {
-    this.l1BridgeContract.off(
-      this.l2BridgeContract.filters.TransferRootBonded(),
-      this.handleBondTransferEvent
-    )
+    this.l1Bridge.removeAllListeners()
+    this.l2Bridge.removeAllListeners()
     this.started = false
     this.logger.setEnabled(false)
   }
@@ -61,10 +61,10 @@ class ChallengeWatcher extends BaseWatcher {
     this.logger.log('totalAmount:', totalAmount.toString())
     this.logger.log('event tx hash:', transactionHash)
 
-    const l2BlockNumber = await this.l2BridgeContract.provider.getBlockNumber()
-    const recentTransferCommitEvents = await this.l2BridgeContract.queryFilter(
-      this.l2BridgeContract.filters.TransfersCommitted(),
-      l2BlockNumber - 100
+    const blockNumber = await this.l2Bridge.getBlockNumber()
+    const recentTransferCommitEvents = await this.l2Bridge.getTransfersCommitedEvents(
+      blockNumber - 100,
+      blockNumber
     )
     this.logger.log('recent events:', recentTransferCommitEvents)
 
@@ -90,11 +90,8 @@ class ChallengeWatcher extends BaseWatcher {
   }
 
   async watch () {
-    this.l1BridgeContract
-      .on(
-        this.l2BridgeContract.filters.TransferRootBonded(),
-        this.handleBondTransferEvent
-      )
+    this.l1Bridge
+      .on(this.l1Bridge.TransferRootBonded, this.handleBondTransferEvent)
       .on('error', err => {
         this.emit('error', err)
         this.logger.error('event watcher error:', err.message)

@@ -1,8 +1,7 @@
 require('dotenv').config()
 import { startWatchers } from 'src/watchers/watchers'
-import { tokens } from 'src/config'
 import { wait, isL1 } from 'src/utils'
-import { KOVAN, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
+import { KOVAN, ARBITRUM, XDAI } from 'src/constants'
 import { User, checkApproval } from './helpers'
 import { privateKey } from './config'
 import Logger from 'src/logger'
@@ -128,7 +127,7 @@ describe.only('settleBondedWithdrawal', () => {
   for (let path of testPaths) {
     const [sourceNetwork, destNetwork] = path
     const label = `${sourceNetwork} -> ${destNetwork}`
-    const txCount = 4
+    const txCount = 1
     it(
       label,
       async () => {
@@ -191,7 +190,7 @@ async function waitForEvent (
 ) {
   return new Promise(resolve => {
     watchers.forEach(watcher => {
-      watcher.on(eventName, data => {
+      watcher.on(eventName, (data: any) => {
         logger.log('received event:', eventName, data)
         if (typeof predicate !== 'function') {
           resolve(null)

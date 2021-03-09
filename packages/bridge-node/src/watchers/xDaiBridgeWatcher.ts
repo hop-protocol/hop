@@ -1,6 +1,5 @@
 import { ethers, Contract } from 'ethers'
 import chalk from 'chalk'
-import Logger from 'src/logger'
 import l2xDaiAmbAbi from 'src/abi/L2_xDaiAMB.json'
 import l1xDaiAmbAbi from 'src/abi/L1_xDaiAMB.json'
 import * as config from 'src/config'
@@ -8,7 +7,7 @@ import l1Wallet from 'src/wallets/l1Wallet'
 import { l2xDaiProvider } from 'src/wallets/l2xDaiWallet'
 import { signatureToVRS, packSignatures, strip0x } from 'src/utils/xdaiUtils'
 import { wait } from 'src/utils'
-import BaseWatcher from 'src/watchers/BaseWatcher'
+import BaseWatcher from './base/BaseWatcher'
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149

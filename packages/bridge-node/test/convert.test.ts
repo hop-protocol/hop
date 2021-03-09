@@ -1,7 +1,7 @@
 require('dotenv').config()
 import { User, checkApproval } from './helpers'
 import { wait } from 'src/utils'
-import { KOVAN, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
+import { KOVAN, ARBITRUM } from 'src/constants'
 import Logger from 'src/logger'
 import { privateKey } from './config'
 

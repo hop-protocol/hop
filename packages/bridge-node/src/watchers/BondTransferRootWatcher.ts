@@ -1,13 +1,14 @@
 import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
 import { wait } from 'src/utils'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { formatUnits } from 'ethers/lib/utils'
 import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
-import Logger from 'src/logger'
-import BaseWatcher from 'src/watchers/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
+import BaseWatcher from './base/BaseWatcher'
+import L1Bridge from './base/L1Bridge'
+import L2Bridge from './base/L2Bridge'
 
 export interface Config {
   l1BridgeContract: Contract
@@ -17,8 +18,8 @@ export interface Config {
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
-  l1BridgeContract: Contract
-  l2BridgeContract: Contract
+  l1Bridge: L1Bridge
+  l2Bridge: L2Bridge
 
   constructor (config: Config) {
     super({
@@ -27,8 +28,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       logColor: 'cyan',
       order: config.order
     })
-    this.l1BridgeContract = config.l1BridgeContract
-    this.l2BridgeContract = config.l2BridgeContract
+    this.l1Bridge = new L1Bridge(config.l1BridgeContract)
+    this.l2Bridge = new L2Bridge(config.l2BridgeContract)
   }
 
   async start () {
@@ -46,56 +47,21 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async stop () {
-    this.l2BridgeContract.off(
-      this.l2BridgeContract.filters.TransfersCommitted(),
-      this.handleTransferCommittedEvent
-    )
+    this.l1Bridge.removeAllListeners()
+    this.l2Bridge.removeAllListeners()
     this.started = false
     this.logger.setEnabled(false)
   }
 
   async watch () {
-    this.l2BridgeContract
-      .on(
-        this.l2BridgeContract.filters.TransfersCommitted(),
-        this.handleTransferCommittedEvent
-      )
-      .on('error', err => {
-        this.emit('error', err)
-        this.logger.error('event watcher error:', err.message)
-      })
-  }
-
-  sendBondTransferRootTx = async (
-    transferRootHash: string,
-    chainId: string,
-    totalAmount: number
-  ) => {
-    this.logger.log(`bondTransferRoot`)
-    this.logger.log(
-      `bondTransferRoot transferRootHash:`,
-      chalk.bgMagenta.black(transferRootHash)
+    this.l2Bridge.on(
+      this.l2Bridge.TransfersCommitted,
+      this.handleTransferCommittedEvent
     )
-    this.logger.log(`bondTransferRoot chainId:`, chainId)
-    this.logger.log(`bondTransferRoot totalAmount:`, totalAmount)
-    const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
-
-    const credit = await this.getCredit()
-    const debit = await this.getDebit()
-    this.logger.log(`bondTransferRoot credit:`, credit)
-    this.logger.log(`bondTransferRoot debit:`, debit)
-    if (credit < debit) {
-      this.logger.log('not enough available credit')
-    }
-
-    return this.l1BridgeContract.bondTransferRoot(
-      transferRootHash,
-      chainId,
-      parsedTotalAmount,
-      {
-        //gasLimit: 1000000
-      }
-    )
+    this.l2Bridge.on('error', err => {
+      this.emit('error', err)
+      this.logger.error('event watcher error:', err.message)
+    })
   }
 
   handleTransferCommittedEvent = async (
@@ -105,9 +71,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   ) => {
     try {
       const { transactionHash } = meta
-      const sourceChainId = (
-        await this.l2BridgeContract.getChainId()
-      ).toString()
+      const sourceChainId = await this.l2Bridge.getChainId()
       this.logger.log(`received L2 TransfersCommitted event`)
       this.logger.log(
         sourceChainId,
@@ -115,15 +79,10 @@ class BondTransferRootWatcher extends BaseWatcher {
         chalk.bgMagenta.black(transferRootHash)
       )
       await wait(2 * 1000)
+      const { data } = await this.l2Bridge.getTransaction(transactionHash)
       const {
-        from: sender,
-        data
-      } = await this.l2BridgeContract.provider.getTransaction(transactionHash)
-      const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
-        'commitTransfers',
-        data
-      )
-      const chainId = decoded.destinationChainId.toString()
+        destinationChainId: chainId
+      } = await this.l2Bridge.decodeCommitTransfersData(data)
       const totalAmount = Number(formatUnits(_totalAmount.toString(), 18))
       this.logger.log('chainId:', chainId)
       this.logger.log('totalAmount:', totalAmount)
@@ -159,7 +118,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         }
       }
 
-      const tx = await this.sendBondTransferRootTx(
+      const tx = await this.l1Bridge.bondTransferRoot(
         transferRootHash,
         chainId,
         totalAmount
@@ -187,24 +146,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
   }
 
-  async getCredit () {
-    const bonder = await this.getBonderAddress()
-    const credit = (await this.l1BridgeContract.getCredit(bonder)).toString()
-    return Number(formatUnits(credit, 18))
-  }
-
-  async getDebit () {
-    const bonder = await this.getBonderAddress()
-    const debit = (
-      await this.l1BridgeContract.getDebitAndAdditionalDebit(bonder)
-    ).toString()
-    return Number(formatUnits(debit, 18))
-  }
-
-  async getBonderAddress () {
-    return this.l1BridgeContract.signer.getAddress()
-  }
-
   async waitTimeout (transferRootHash: string) {
     await wait(2 * 1000)
     if (!this.order()) {
@@ -218,7 +159,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       if (!this.started) {
         return
       }
-      const bond = await this.l1BridgeContract.transferBonds(transferRootHash)
+      const bond = await this.l1Bridge.getTransferBond(transferRootHash)
       if (bond.createdAt.toNumber() > 0) {
         break
       }

@@ -11,3 +11,5 @@ yarn.lock
 docker/arbitrum/data
 docker/arbitrum/docker-compose.yml
 src/db/db_data
+src/db_data
+db_data

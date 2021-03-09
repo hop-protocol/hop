@@ -3,10 +3,11 @@ import { Contract } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { wait, networkIdToSlug } from 'src/utils'
 import db from 'src/db'
-import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
-import BaseWatcher from 'src/watchers/BaseWatcher'
+import BaseWatcher from './base/BaseWatcher'
+import L1Bridge from './base/L1Bridge'
+import L2Bridge from './base/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 
 export interface Config {
@@ -18,8 +19,8 @@ export interface Config {
 }
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
-  l1BridgeContract: Contract
-  l2BridgeContract: Contract
+  l1Bridge: L1Bridge
+  l2Bridge: L2Bridge
   contracts: { [networkId: string]: Contract }
 
   constructor (config: Config) {
@@ -29,8 +30,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       logColor: 'magenta',
       order: config.order
     })
-    this.l1BridgeContract = config.l1BridgeContract
-    this.l2BridgeContract = config.l2BridgeContract
+    this.l1Bridge = new L1Bridge(config.l1BridgeContract)
+    this.l2Bridge = new L2Bridge(config.l2BridgeContract)
     this.contracts = config.contracts
   }
 
@@ -46,20 +47,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async stop () {
-    this.l1BridgeContract.off(
-      this.l1BridgeContract.filters.TransferRootBonded(),
-      this.handleTransferRootBondedEvent
-    )
+    this.l1Bridge.removeAllListeners()
+    this.l2Bridge.removeAllListeners()
     this.started = false
     this.logger.setEnabled(false)
-  }
-
-  sendTx = async (
-    chainId: string,
-    transferHashes: string[],
-    totalAmount: number
-  ) => {
-    return this.settleBondedWithdrawal(transferHashes, totalAmount, chainId)
   }
 
   settleBondedWithdrawal = async (
@@ -68,7 +59,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     chainId: string
   ) => {
     const bridge = this.contracts[chainId]
-    const bonder = await this.getBonderAddress()
+    const bonder = await this.l1Bridge.getBonderAddress()
     const parsedAmount = parseUnits(totalAmount.toString(), 18)
     return bridge.settleBondedWithdrawals(
       bonder,
@@ -82,7 +73,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
   getBondedAmount = async (transferHash: string, chainId: string) => {
     const bridge = this.contracts[chainId]
-    const bonder = await this.getBonderAddress()
+    const bonder = await this.l1Bridge.getBonderAddress()
     const bondedBn = await bridge.getBondedWithdrawalAmount(
       bonder,
       transferHash
@@ -117,17 +108,20 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         const t: TransferRoot = await db.transferRoots.getByTransferRootHash(
           transferRootHash
         )
-        if (t?.sentSettleTx) return
+        if (t?.sentSettleTx || t?.settled) {
+          this.logger.log('sent?:', t.sentSettleTx, 'settled?:', t.settled)
+          return
+        }
 
         await db.transferRoots.update(transferRootHash, {
           sentSettleTx: true
         })
 
         this.logger.log('sending')
-        const tx = await this.sendTx(
-          chainId,
+        const tx = await this.settleBondedWithdrawal(
           transferHashes,
-          Number(totalAmount)
+          Number(totalAmount),
+          chainId
         )
         tx?.wait().then(async () => {
           await db.transferRoots.update(transferRootHash, {
@@ -176,11 +170,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async watch () {
-    this.l1BridgeContract
-      .on(
-        this.l1BridgeContract.filters.TransferRootBonded(),
-        this.handleTransferRootBondedEvent
-      )
+    this.l1Bridge
+      .on(this.l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
       .on('error', err => {
         this.emit('error', err)
         this.logger.error(`event watcher error:`, err.message)
@@ -197,10 +188,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
       await wait(10 * 1000)
     }
-  }
-
-  async getBonderAddress () {
-    return this.l1BridgeContract.signer.getAddress()
   }
 }
 

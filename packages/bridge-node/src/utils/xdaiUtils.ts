@@ -9,7 +9,7 @@ export function createMessage ({
   transactionHash,
   bridgeAddress,
   expectedMessageLength
-}) {
+}: any) {
   recipient = strip0x(recipient)
   assert.strictEqual(recipient.length, 20 * 2)
 
@@ -30,7 +30,7 @@ export function createMessage ({
   return message
 }
 
-export function parseMessage (message) {
+export function parseMessage (message: any) {
   message = strip0x(message)
 
   const recipientStart = 0
@@ -63,7 +63,7 @@ export function parseMessage (message) {
   }
 }
 
-export function signatureToVRS (rawSignature) {
+export function signatureToVRS (rawSignature: any) {
   const signature = strip0x(rawSignature)
   assert.strictEqual(signature.length, 2 + 32 * 2 + 32 * 2)
   const v = signature.substr(64 * 2)
@@ -72,7 +72,7 @@ export function signatureToVRS (rawSignature) {
   return { v, r, s }
 }
 
-export function packSignatures (array) {
+export function packSignatures (array: any[]) {
   const length = strip0x(toHex(array.length))
   const msgLength = length.length === 1 ? `0${length}` : length
   let v = ''
@@ -86,7 +86,7 @@ export function packSignatures (array) {
   return `0x${msgLength}${v}${r}${s}`
 }
 
-export function parseAMBHeader (message) {
+export function parseAMBHeader (message: any) {
   message = strip0x(message)
 
   const messageIdStart = 0

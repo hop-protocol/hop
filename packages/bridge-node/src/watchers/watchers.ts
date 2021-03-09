@@ -7,20 +7,9 @@ import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
-import arbbots from 'src/arb-bot/bots'
-import { l2ArbitrumProvider } from 'src/wallets/l2ArbitrumWallet'
-import { l2OptimismProvider } from 'src/wallets/l2OptimismWallet'
-import { l2xDaiProvider } from 'src/wallets/l2xDaiWallet'
-import l1Wallet from 'src/wallets/l1Wallet'
 import { store } from 'src/store'
 import PubSub from 'src/pubsub/PubSub'
 import Logger from 'src/logger'
-
-const providers: any = {
-  arbitrum: l2ArbitrumProvider,
-  optimism: l2OptimismProvider,
-  xdai: l2xDaiProvider
-}
 
 const tokens = Object.keys(config.tokens)
 const networks = ['arbitrum', 'optimism', 'xdai']

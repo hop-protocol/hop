@@ -1,5 +1,5 @@
 //const ipfsClient = require('ipfs-http-client')
-import { ipfsHost } from 'src/config'
+//import { ipfsHost } from 'src/config'
 
 class PubSub {
   client: any

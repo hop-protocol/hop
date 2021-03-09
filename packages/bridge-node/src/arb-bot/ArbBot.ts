@@ -4,7 +4,6 @@ import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { wait } from 'src/utils'
 import chalk from 'chalk'
 import Logger from 'src/logger'
-import { UINT256 } from 'src/constants'
 
 const logger = new Logger('arbBot', { color: 'green' })
 
@@ -97,7 +96,7 @@ class ArbBot {
     return this.getAmountOut(path)
   }
 
-  private async tilReady () {
+  private async tilReady (): Promise<boolean> {
     if (this.ready) {
       return true
     }

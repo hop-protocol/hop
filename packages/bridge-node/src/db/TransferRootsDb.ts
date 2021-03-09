@@ -39,14 +39,19 @@ class TransferRootsDb extends BaseDb {
   async getUnsettledBondedTransferRoots (): Promise<TransferRoot[]> {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
-      return item.bonded && !item.settled
+      return (
+        !item.sentSettleTx &&
+        item.bonded &&
+        !item.settled &&
+        item?.transferHashes?.length
+      )
     })
   }
 
   async getUncommittedBondedTransferRoots (): Promise<TransferRoot[]> {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
-      return !item.commited
+      return !item.commited && item?.transferHashes?.length
     })
   }
 }

@@ -4,8 +4,9 @@ import chalk from 'chalk'
 import { wait } from 'src/utils'
 import { throttle } from 'src/utils'
 import db from 'src/db'
-import BaseWatcher from 'src/watchers/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
+import BaseWatcher from './base/BaseWatcher'
+import L2Bridge from './base/L2Bridge'
 
 export interface Config {
   l2BridgeContract: Contract
@@ -15,7 +16,7 @@ export interface Config {
 }
 
 class CommitTransfersWatcher extends BaseWatcher {
-  l2BridgeContract: Contract
+  l2Bridge: L2Bridge
   contracts: { [networkId: string]: Contract }
 
   constructor (config: Config) {
@@ -25,14 +26,13 @@ class CommitTransfersWatcher extends BaseWatcher {
       logColor: 'yellow',
       order: config.order
     })
-    this.l2BridgeContract = config.l2BridgeContract
+    this.l2Bridge = new L2Bridge(config.l2BridgeContract)
     this.contracts = config.contracts
   }
 
   async start () {
     this.started = true
     this.logger.log(`starting L2 commitTransfers scheduler`)
-    this.getRecentTransferHashesForCommittedRoots().then(this.logger.error)
     try {
       await this.watch()
     } catch (err) {
@@ -42,40 +42,29 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   async stop () {
-    this.l2BridgeContract.off(
-      this.l2BridgeContract.filters.TransferSent(),
-      this.handleTransferSentEvent
-    )
+    this.l2Bridge.removeAllListeners()
     this.started = false
     this.logger.setEnabled(false)
-  }
-
-  sendCommitTransfersTx = async (chainId: string) => {
-    return this.l2BridgeContract.commitTransfers(chainId, {
-      //gasLimit: '0xf4240'
-    })
   }
 
   check = throttle(async (chainId: string) => {
     if (!chainId) {
       throw new Error('chainId is required')
     }
-    const pendingAmount = Number(
-      (await this.l2BridgeContract.pendingAmountForChainId(chainId)).toString()
+    const pendingAmount = await this.l2Bridge.getPendingAmountForChainId(
+      chainId
     )
     if (pendingAmount <= 0) {
       return
     }
 
-    const lastCommitTime = (
-      await this.l2BridgeContract.lastCommitTimeForChainId(chainId)
-    ).toNumber()
-    const minimumForceCommitDelay = (
-      await this.l2BridgeContract.minimumForceCommitDelay()
-    ).toNumber()
+    const lastCommitTime = await this.l2Bridge.getLastCommitTimeForChainId(
+      chainId
+    )
+    const minimumForceCommitDelay = await this.l2Bridge.getMinimumForceCommitDelay()
     const minForceCommitTime = lastCommitTime + minimumForceCommitDelay
-    const isBonder = await this.isBonder()
-    const l2ChainId = (await this.l2BridgeContract.getChainId()).toNumber()
+    const isBonder = await this.l2Bridge.isBonder()
+    const l2ChainId = await this.l2Bridge.getChainId()
     this.logger.log('chainId:', l2ChainId)
     this.logger.log('destinationChainId:', chainId)
     this.logger.log('lastCommitTime:', lastCommitTime)
@@ -87,8 +76,10 @@ class CommitTransfersWatcher extends BaseWatcher {
       this.logger.warn('only Bonder can commit before min delay')
     }
 
-    const pendingTransfers: string[] = await this.getPendingTransfers(chainId)
-    this.logger.log('onchain pendingTransfers', pendingTransfers)
+    const pendingTransfers: string[] = await this.l2Bridge.getPendingTransfers(
+      chainId
+    )
+    this.logger.log(chainId, 'onchain pendingTransfers', pendingTransfers)
     const tree = new MerkleTree(pendingTransfers)
     const transferRootHash = tree.getHexRoot()
     this.logger.log(
@@ -101,7 +92,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       transferHashes: pendingTransfers
     })
 
-    const tx = await this.sendCommitTransfersTx(chainId)
+    const tx = await this.l2Bridge.commitTransfers(chainId)
     tx?.wait().then(() => {
       this.emit('commitTransfers', {
         chainId
@@ -126,29 +117,10 @@ class CommitTransfersWatcher extends BaseWatcher {
       this.logger.log(`waiting`)
       // TODO: batch
       const { transactionHash } = meta
-      const {
-        from: sender,
-        data
-      } = await this.l2BridgeContract.provider.getTransaction(transactionHash)
+      const { data } = await this.l2Bridge.getTransaction(transactionHash)
 
-      let chainId = ''
-      try {
-        const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
-          'swapAndSend',
-          data
-        )
-        chainId = decoded.chainId.toString()
-      } catch (err) {
-        const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
-          'send()',
-          data
-        )
-        chainId = decoded.chainId.toString()
-      }
-
-      const sourceChainId = (
-        await this.l2BridgeContract.getChainId()
-      ).toString()
+      const { chainId } = await this.l2Bridge.decodeSendData(data)
+      const sourceChainId = await this.l2Bridge.getChainId()
       await db.transfers.update(transferHash, {
         transferHash,
         chainId,
@@ -163,11 +135,8 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   async watch () {
-    this.l2BridgeContract
-      .on(
-        this.l2BridgeContract.filters.TransferSent(),
-        this.handleTransferSentEvent
-      )
+    this.l2Bridge
+      .on(this.l2Bridge.TransferSent, this.handleTransferSentEvent)
       .on('error', err => {
         this.emit('error', err)
         this.logger.error('event watcher error:', err.message)
@@ -178,8 +147,10 @@ class CommitTransfersWatcher extends BaseWatcher {
       try {
         const chainIds = Object.keys(this.contracts)
         for (let chainId of chainIds) {
-          //const transferRoots = await db.transferRoots.getUncommittedBondedTransferRoots()
-          const pendingTransfers = await this.getPendingTransfers(chainId)
+          //await this.getRecentTransferHashesForCommittedRoots()
+          const pendingTransfers = await this.l2Bridge.getPendingTransfers(
+            chainId
+          )
           if (pendingTransfers.length > 0) {
             await this.check(chainId)
           }
@@ -191,57 +162,23 @@ class CommitTransfersWatcher extends BaseWatcher {
     }
   }
 
-  async isBonder () {
-    const bonder = await this.getBonderAddress()
-    return this.l2BridgeContract.getIsBonder(bonder)
-  }
-
-  async getBonderAddress () {
-    return this.l2BridgeContract.signer.getAddress()
-  }
-
-  async getPendingTransfers (chainId: string) {
-    const pendingTransfers: string[] = []
-    const max = (await this.l2BridgeContract.maxPendingTransfers()).toNumber()
-    for (let i = 0; i < max; i++) {
-      try {
-        const pendingTransfer = await this.l2BridgeContract.pendingTransferIdsForChainId(
-          chainId,
-          i
-        )
-        pendingTransfers.push(pendingTransfer)
-      } catch (err) {
-        break
-      }
-    }
-
-    return pendingTransfers
-  }
-
   async getRecentTransferHashesForCommittedRoots () {
-    const blockNumber = await this.l2BridgeContract.provider.getBlockNumber()
+    const blockNumber = await this.l2Bridge.getBlockNumber()
     let start = blockNumber - 1000
-    const transferCommits = await this.l2BridgeContract.queryFilter(
-      this.l2BridgeContract.filters.TransfersCommitted(),
-      start
+    const transferCommits = await this.l2Bridge.getTransfersCommitedEvents(
+      start,
+      blockNumber
     )
     if (!transferCommits.length) {
       return
     }
     const transferCommitsMap: any = {}
-    for (let i = 0; i < transferCommits.length; i++) {
+    for (let i = 1; i < transferCommits.length; i++) {
       let { topics, blockNumber, transactionHash } = transferCommits[i]
-      const { data } = await this.l2BridgeContract.provider.getTransaction(
-        transactionHash
-      )
-      let chainId = ''
-      try {
-        const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
-          'commitTransfers',
-          data
-        )
-        chainId = decoded.destinationChainId.toString()
-      } catch (err) {}
+      const { data } = await this.l2Bridge.getTransaction(transactionHash)
+      const {
+        destinationChainId: chainId
+      } = await this.l2Bridge.decodeCommitTransfersData(data)
       if (!chainId) {
         continue
       }
@@ -251,16 +188,13 @@ class CommitTransfersWatcher extends BaseWatcher {
       if (!transferCommitsMap[chainId]) {
         transferCommitsMap[chainId] = {}
       }
-      transferCommitsMap[chainId] = {
-        [transferRootHash]: {
-          transferRootHash,
-          transferHashes: [],
-          prevBlockNumber,
-          blockNumber
-        }
+      transferCommitsMap[chainId][transferRootHash] = {
+        transferRootHash,
+        transferHashes: [],
+        prevBlockNumber,
+        blockNumber
       }
     }
-
     for (let destChainId in transferCommitsMap) {
       for (let transferRootHash in transferCommitsMap[destChainId]) {
         let {
@@ -268,37 +202,20 @@ class CommitTransfersWatcher extends BaseWatcher {
           blockNumber,
           transferHashes
         } = transferCommitsMap[destChainId][transferRootHash]
-        const recentEvents = await this.l2BridgeContract.queryFilter(
-          this.l2BridgeContract.filters.TransferSent(),
-          prevBlockNumber - 1,
-          blockNumber + 1
+        const recentEvents = await this.l2Bridge.getTransferSentEvents(
+          prevBlockNumber,
+          blockNumber
         )
-
         for (let event of recentEvents) {
-          const { data } = await this.l2BridgeContract.provider.getTransaction(
+          const { data } = await this.l2Bridge.getTransaction(
             event.transactionHash
           )
 
-          let chainId = ''
-          try {
-            const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
-              'swapAndSend',
-              data
-            )
-            chainId = decoded.chainId.toString()
-          } catch (err) {
-            const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
-              'send()',
-              data
-            )
-            chainId = decoded.chainId.toString()
-          }
-
+          const { chainId } = await this.l2Bridge.decodeSendData(data)
           if (chainId === destChainId) {
             transferHashes.push(event.topics[1])
           }
         }
-
         if (transferHashes.length) {
           const tree = new MerkleTree(transferHashes)
           if (tree.getHexRoot() === transferRootHash) {
@@ -307,7 +224,7 @@ class CommitTransfersWatcher extends BaseWatcher {
               commited: true
             })
           } else {
-            this.logger.error(
+            this.logger.log(
               'merkle hex root does not match commited transfer root'
             )
           }

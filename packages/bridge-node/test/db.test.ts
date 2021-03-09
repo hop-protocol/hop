@@ -1,5 +1,4 @@
 require('dotenv').config()
-import { promisify } from 'util'
 import TransfersDb from 'src/db/TransfersDb'
 
 describe('db', () => {

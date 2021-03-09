@@ -1,32 +1,35 @@
+// @ts-ignore
 import level from 'level'
 import sub from 'subleveldown'
-import TransfersDb from './TransfersDb'
+import path from 'path'
 
-export const db = level('src/db/db_data')
+const dbpath = path.resolve(__dirname, '../../db_data')
+export const db = level(dbpath)
 
 class BaseDb {
   public db: any
-  prefix: string
+  public prefix: string
+  public IDS = 'ids'
 
   constructor (prefix: string) {
     this.prefix = prefix
     this.db = sub(db, prefix, { valueEncoding: 'json' })
   }
 
-  handleDataEvent = async (err, data) => {
+  handleDataEvent = async (err: Error, data: any) => {
     if (err) {
       throw err
     }
     if (!data) {
       return
     }
-    const { key, value } = data
-    if (key === 'ids') {
+    const { key } = data
+    if (key === this.IDS) {
       return
     }
     const list = await this.getKeys()
     const unique = new Set(list.concat(key))
-    return this.update('ids', Array.from(unique), false)
+    return this.update(this.IDS, Array.from(unique), false)
   }
 
   async update (key: string, data: any, dataCb: boolean = true) {
@@ -47,7 +50,7 @@ class BaseDb {
   }
 
   async getKeys (): Promise<string[]> {
-    return Object.values(await this.getById('ids', []))
+    return Object.values(await this.getById(this.IDS, []))
   }
 }
 

@@ -1,7 +1,7 @@
 require('dotenv').config()
 import { User, checkApproval } from './helpers'
 import { wait } from 'src/utils'
-import { KOVAN, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
+import { KOVAN, ARBITRUM, XDAI } from 'src/constants'
 
 const privateKey = process.env.TEST_USER_PRIVATE_KEY
 const TOKEN = 'DAI'

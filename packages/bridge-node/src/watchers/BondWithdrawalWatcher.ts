@@ -4,8 +4,10 @@ import { formatUnits } from 'ethers/lib/utils'
 import { UINT256 } from 'src/constants'
 import db from 'src/db'
 import chalk from 'chalk'
-import { wait, isL1NetworkId, networkIdToSlug } from 'src/utils'
-import BaseWatcher from 'src/watchers/BaseWatcher'
+import { wait, networkIdToSlug } from 'src/utils'
+import BaseWatcher from './base/BaseWatcher'
+import L1Bridge from './base/L1Bridge'
+import L2Bridge from './base/L2Bridge'
 
 export interface Config {
   l1BridgeContract: Contract
@@ -16,8 +18,8 @@ export interface Config {
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
-  l1BridgeContract: Contract
-  l2BridgeContract: Contract
+  l1Bridge: L1Bridge
+  l2Bridge: L2Bridge
   contracts: { [networkId: string]: Contract }
 
   constructor (config: Config) {
@@ -27,8 +29,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logColor: 'green',
       order: config.order
     })
-    this.l1BridgeContract = config.l1BridgeContract
-    this.l2BridgeContract = config.l2BridgeContract
+    this.l1Bridge = new L1Bridge(config.l1BridgeContract)
+    this.l2Bridge = new L2Bridge(config.l2BridgeContract)
     this.contracts = config.contracts
   }
 
@@ -47,20 +49,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async stop () {
-    this.l2BridgeContract.off(
-      this.l2BridgeContract.filters.TransferSent(),
-      this.handleTransferSentEvent
-    )
+    this.l1Bridge.removeAllListeners()
+    this.l2Bridge.removeAllListeners()
     this.started = false
     this.logger.setEnabled(false)
   }
 
   async watch () {
-    this.l2BridgeContract
-      .on(
-        this.l2BridgeContract.filters.TransferSent(),
-        this.handleTransferSentEvent
-      )
+    this.l2Bridge
+      .on(this.l2Bridge.TransferSent, this.handleTransferSentEvent)
       .on('error', err => {
         this.emit('error', err)
         this.logger.error('event watcher error:', err.message)
@@ -70,7 +67,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
   sendBondWithdrawalTx = async (params: any) => {
     const {
       chainId,
-      sender,
       recipient,
       amount,
       transferNonce,
@@ -127,36 +123,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
       this.logger.log('transferHash:', chalk.bgCyan.black(transferHash))
 
       await wait(2 * 1000)
-      const {
-        from: sender,
-        data
-      } = await this.l2BridgeContract.provider.getTransaction(transactionHash)
+      const { from: sender, data } = await this.l2Bridge.getTransaction(
+        transactionHash
+      )
 
-      const sourceChainId = (
-        await this.l2BridgeContract.getChainId()
-      ).toString()
-      let chainId = ''
-      let attemptSwap = false
-      try {
-        const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
-          'swapAndSend',
-          data
-        )
-        chainId = decoded.chainId.toString()
-
-        if (!isL1NetworkId(chainId)) {
-          // L2 to L2 transfers have uniswap parameters set
-          if (Number(decoded.destinationDeadline.toString()) > 0) {
-            attemptSwap = true
-          }
-        }
-      } catch (err) {
-        const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
-          'send',
-          data
-        )
-        chainId = decoded.chainId.toString()
-      }
+      const sourceChainId = await this.l2Bridge.getChainId()
+      const { chainId, attemptSwap } = await this.l2Bridge.decodeSendData(data)
 
       this.logger.log('transferNonce:', transferNonce)
       this.logger.log('chainId:', chainId)
@@ -241,7 +213,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     relayerFee: BigNumber,
     meta: any
   ) => {
-    const { transactionHash } = meta
     this.logger.log(`received WithdrawalBonded event`)
     this.logger.log('transferHash:', transferHash)
     this.logger.log(`recipient:`, recipient)
@@ -286,17 +257,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   getBondedAmount = async (transferHash: string, chainId: string) => {
     const bridge = this.contracts[chainId]
-    const bonder = await this.getBonderAddress()
+    const bonder = await this.l1Bridge.getBonderAddress()
     const bondedBn = await bridge.getBondedWithdrawalAmount(
       bonder,
       transferHash
     )
     const bondedAmount = Number(formatUnits(bondedBn.toString(), 18))
     return bondedAmount
-  }
-
-  async getBonderAddress () {
-    return this.l1BridgeContract.signer.getAddress()
   }
 }
 

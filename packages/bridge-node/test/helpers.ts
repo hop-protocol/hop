@@ -2,14 +2,13 @@ import { ethers, Contract } from 'ethers'
 import { NonceManager } from '@ethersproject/experimental'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { tokens } from 'src/config'
-import { arbitrumNetworkId } from 'src/constants'
 import l1BridgeArtifact from 'src/abi/L1_Bridge.json'
 import l2BridgeArtifact from 'src/abi/L2_Bridge.json'
 import erc20Artifact from 'src/abi/ERC20.json'
 import uniswapRouterArtifact from 'src/abi/UniswapV2Router02.json'
 import uniswapPairArtifact from 'src/abi/UniswapV2Pair.json'
 import globalInboxArtifact from 'src/abi/GlobalInbox.json'
-import { UINT256, KOVAN, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
+import { UINT256, KOVAN, ARBITRUM } from 'src/constants'
 import { getRpcUrl, networkSlugToId } from 'src/utils'
 
 export class User {
@@ -82,7 +81,6 @@ export class User {
   }
 
   async mint (network: string, token: string, amount: string | number) {
-    const wallet = this.getWallet(network)
     const contract = this.getTokenContract(network, token)
     const recipient = await this.getAddress()
     return contract.mint(recipient, parseUnits(amount.toString(), 18))
@@ -94,7 +92,6 @@ export class User {
     amount: string | number,
     recipient: string
   ) {
-    const wallet = this.getWallet(network)
     const contract = this.getTokenContract(network, token)
     return contract.transfer(recipient, parseUnits(amount.toString(), 18))
   }
@@ -259,7 +256,6 @@ export class User {
     const amountOutIn = '0'
     const destinationAmountOutMin = '0'
     const parsedAmount = parseUnits(amount.toString(), 18)
-    const wallet = this.getWallet(sourceNetwork)
 
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
     const recipient = await this.getAddress()
@@ -301,7 +297,6 @@ export class User {
     amount: number | string,
     recipient: string
   ) {
-    const wallet = this.getWallet()
     const tokenContract = this.getTokenContract(network, token)
     return tokenContract.transfer(recipient, parseUnits(amount.toString(), 18))
   }
@@ -315,41 +310,32 @@ export class User {
   }
 
   async calcToken1Rate (network: string, token: string) {
-    const address = await this.getAddress()
+    //const address = await this.getAddress()
     const uniswapRouter = this.getUniswapRouterContract(network, token)
     const uniswapExchange = this.getUniswapPairContract(network, token)
 
-    const [decimals, totalSupply, balance, reserves] = await Promise.all([
+    const [decimals, reserves] = await Promise.all([
       uniswapExchange.decimals(),
-      uniswapExchange.totalSupply(),
-      uniswapExchange.balanceOf(address),
+      //uniswapExchange.totalSupply(),
+      //uniswapExchange.balanceOf(address),
       uniswapExchange.getReserves()
     ])
 
-    const formattedTotalSupply = formatUnits(
-      totalSupply.toString(),
-      Number(decimals.toString())
-    )
+    //const formattedTotalSupply = formatUnits( totalSupply.toString(), Number(decimals.toString()))
 
     // user pool balance
-    const formattedBalance = formatUnits(balance.toString(), decimals)
+    //const formattedBalance = formatUnits(balance.toString(), decimals)
 
-    const poolPercentage =
-      (Number(formattedBalance) / Number(formattedTotalSupply)) * 100
+    //const poolPercentage = (Number(formattedBalance) / Number(formattedTotalSupply)) * 100
 
     // user pool token percentage
-    const formattedPoolPercentage =
-      poolPercentage.toFixed(2) === '0.00' ? '<0.01' : poolPercentage.toFixed(2)
+    //const formattedPoolPercentage = poolPercentage.toFixed(2) === '0.00' ? '<0.01' : poolPercentage.toFixed(2)
 
     const reserve0 = formatUnits(reserves[0].toString(), decimals)
     const reserve1 = formatUnits(reserves[1].toString(), decimals)
 
-    const token0Deposited =
-      (Number(formattedBalance) * Number(reserve0)) /
-      Number(formattedTotalSupply)
-    const token1Deposited =
-      (Number(formattedBalance) * Number(reserve1)) /
-      Number(formattedTotalSupply)
+    //const token0Deposited = (Number(formattedBalance) * Number(reserve0)) / Number(formattedTotalSupply)
+    //const token1Deposited = (Number(formattedBalance) * Number(reserve1)) / Number(formattedTotalSupply)
 
     const amount0 = parseUnits('1', decimals)
     const amount1 = await uniswapRouter?.quote(

@@ -27,12 +27,12 @@ program
     const orderNum = Number(source.order) || 0
     const tokens = (source.tokens || '')
       .split(',')
-      .map(value => value.trim().toUpperCase())
-      .filter(x => x)
+      .map((value: string) => value.trim().toUpperCase())
+      .filter((value: string) => value)
     const networks = (source.networks || '')
       .split(',')
-      .map(value => value.trim().toLowerCase())
-      .filter(x => x)
+      .map((value: string) => value.trim().toLowerCase())
+      .filter((value: string) => value)
     startWatchers({
       order: orderNum,
       tokens,

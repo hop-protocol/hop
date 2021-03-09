@@ -1,18 +1,20 @@
-export const rpcUrls = {
+export const rpcUrls: { [key: string]: string } = {
   kovan: 'https://kovan.rpc.hop.exchange',
   optimism: 'https://kovan.optimism.rpc.hop.exchange',
   arbitrum: 'https://kovan3.arbitrum.io/rpc',
   xdai: 'https://sokol.poa.network'
 }
 
-export const networkIds = {
+export const networkIds: { [key: string]: string } = {
   kovan: '42',
   optimism: '69',
   arbitrum: '79377087078960',
   xdai: '77'
 }
 
-export const tokens = {
+export const tokens: {
+  [key: string]: { [key: string]: { [key: string]: string } }
+} = {
   DAI: {
     kovan: {
       l1CanonicalToken: '0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9',

@@ -29,7 +29,7 @@ class Logger {
       this.prefix = `<${opts.prefix}>`
     }
     if (tag) {
-      this.tag = chalk[opts.color](`[${tag}]`)
+      this.tag = (chalk as any)[opts.color](`[${tag}]`)
     }
     if (process.env.DISABLE_LOGGER) {
       this.enabled = false

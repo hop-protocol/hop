@@ -1,9 +1,8 @@
 require('dotenv').config()
-import { ethers, Wallet, providers } from 'ethers'
 import { HDNode } from '@ethersproject/hdnode'
-import { getRpcUrl, wait } from 'src/utils'
-import { KOVAN, ARBITRUM, OPTIMISM, XDAI } from 'src/constants'
+import { KOVAN, ARBITRUM, XDAI } from 'src/constants'
 import { startWatchers } from 'src/watchers/watchers'
+import { wait } from 'src/utils'
 import { User, checkApproval } from './helpers'
 import { faucetPrivateKey, mnemonic } from './config'
 
@@ -12,14 +11,13 @@ const destNetwork = KOVAN
 const token = 'DAI'
 const TRANSFER_AMOUNT = 1
 const NUM_USERS = 5
-const provider = new providers.StaticJsonRpcProvider(getRpcUrl(KOVAN))
 
 test(
   'loadtest',
   async () => {
     const users = generateUsers(NUM_USERS)
     await prepareAccounts(users)
-    const { stop, watchers } = startWatchers()
+    const { stop } = startWatchers()
 
     const [sourceBalancesBefore, destBalancesBefore] = await getBalances(users)
     for (let i = 0; i < users.length; i++) {
@@ -96,9 +94,11 @@ async function prepareAccounts (users: User[]) {
   return users
 }
 
-async function getBalances (users): Promise<any[]> {
+async function getBalances (users: User[]): Promise<any[]> {
   return Promise.all([
-    Promise.all(users.map(user => user.getBalance(sourceNetwork, token))),
-    Promise.all(users.map(user => user.getBalance(destNetwork, token)))
+    Promise.all(
+      users.map((user: User) => user.getBalance(sourceNetwork, token))
+    ),
+    Promise.all(users.map((user: User) => user.getBalance(destNetwork, token)))
   ])
 }

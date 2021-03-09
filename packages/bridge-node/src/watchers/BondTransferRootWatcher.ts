@@ -7,7 +7,7 @@ import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
 import Logger from 'src/logger'
 import BaseWatcher from 'src/watchers/BaseWatcher'
-import MerkleTree from 'src/lib/MerkleTree'
+import MerkleTree from 'src/utils/MerkleTree'
 
 export interface Config {
   l1BridgeContract: Contract
@@ -151,9 +151,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       )
       this.logger.log('transferRootHash transferHashes:', pendingTransfers)
       if (pendingTransfers.length) {
-        const tree = new MerkleTree(
-          pendingTransfers.map(x => Buffer.from(x.replace('0x', ''), 'hex'))
-        )
+        const tree = new MerkleTree(pendingTransfers)
         const rootHash = tree.getHexRoot()
         this.logger.log('calculated transfer root hash:', rootHash)
         if (rootHash !== transferRootHash) {

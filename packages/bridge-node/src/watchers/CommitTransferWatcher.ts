@@ -5,7 +5,7 @@ import { wait } from 'src/utils'
 import { throttle } from 'src/utils'
 import db from 'src/db'
 import BaseWatcher from 'src/watchers/BaseWatcher'
-import MerkleTree from 'src/lib/MerkleTree'
+import MerkleTree from 'src/utils/MerkleTree'
 
 export interface Config {
   l2BridgeContract: Contract
@@ -87,11 +87,8 @@ class CommitTransfersWatcher extends BaseWatcher {
       this.logger.warn('only Bonder can commit before min delay')
     }
 
-    const pendingTransfers: Buffer[] = await this.getPendingTransfers(chainId)
-    const pendingTransfersHex = pendingTransfers.map(
-      x => '0x' + x.toString('hex')
-    )
-    this.logger.log('onchain pendingTransfers', pendingTransfersHex)
+    const pendingTransfers: string[] = await this.getPendingTransfers(chainId)
+    this.logger.log('onchain pendingTransfers', pendingTransfers)
     const tree = new MerkleTree(pendingTransfers)
     const transferRootHash = tree.getHexRoot()
     this.logger.log(
@@ -101,7 +98,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     )
     await db.transferRoots.update(transferRootHash, {
       transferRootHash,
-      transferHashes: pendingTransfersHex
+      transferHashes: pendingTransfers
     })
 
     const tx = await this.sendCommitTransfersTx(chainId)
@@ -204,7 +201,7 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   async getPendingTransfers (chainId: string) {
-    const pendingTransfers: Buffer[] = []
+    const pendingTransfers: string[] = []
     const max = (await this.l2BridgeContract.maxPendingTransfers()).toNumber()
     for (let i = 0; i < max; i++) {
       try {
@@ -212,9 +209,7 @@ class CommitTransfersWatcher extends BaseWatcher {
           chainId,
           i
         )
-        pendingTransfers.push(
-          Buffer.from(pendingTransfer.replace('0x', ''), 'hex')
-        )
+        pendingTransfers.push(pendingTransfer)
       } catch (err) {
         break
       }
@@ -304,11 +299,8 @@ class CommitTransfersWatcher extends BaseWatcher {
           }
         }
 
-        const leaves = transferHashes.map(x =>
-          Buffer.from(x.replace('0x', ''), 'hex')
-        )
-        if (leaves.length) {
-          const tree = new MerkleTree(leaves)
+        if (transferHashes.length) {
+          const tree = new MerkleTree(transferHashes)
           if (tree.getHexRoot() === transferRootHash) {
             db.transferRoots.update(transferRootHash, {
               transferHashes: transferHashes,

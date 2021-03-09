@@ -1,4 +1,4 @@
-import MerkleTree from 'src/lib/MerkleTree'
+import MerkleTree from 'src/utils/MerkleTree'
 
 test('merkle', () => {
   const transferHashes = [
@@ -8,12 +8,8 @@ test('merkle', () => {
     '0x1013ee8287f8e0f49f8d1d20dca588da58555df97df75a2433c649d2359155d5'
   ]
 
-  const tree = new MerkleTree(
-    transferHashes.map(x => Buffer.from(x.replace('0x', ''), 'hex'))
-  )
+  const tree = new MerkleTree(transferHashes)
 
-  // sorted
-  //expect(tree.getHexRoot()).toBe('0xe27ebc97749feacc273d1b296f9c4c6a2ba756056438615ba685a14511fa30f5')
   expect(tree.getHexRoot()).toBe(
     '0xcb157ea8a7e9f050dcc0f02d1e5fa400b7cc481cb33ed51925a0cdf510d7eab1'
   )

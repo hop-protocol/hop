@@ -7,7 +7,7 @@ import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
 import BaseWatcher from 'src/watchers/BaseWatcher'
-import MerkleTree from 'src/lib/MerkleTree'
+import MerkleTree from 'src/utils/MerkleTree'
 
 export interface Config {
   l1BridgeContract: Contract
@@ -107,10 +107,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           this.logger.log('no transfer hashes to settle')
           return
         }
-        const transferHashBuffers = transferHashes.map(transferHash =>
-          Buffer.from(transferHash.replace('0x', ''), 'hex')
-        )
-        const tree = new MerkleTree(transferHashBuffers)
+        const tree = new MerkleTree(transferHashes)
         const transferRootHash = tree.getHexRoot()
         this.logger.log('chainId:', chainId)
         this.logger.log('transferHashes:', transferHashes)

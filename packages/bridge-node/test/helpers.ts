@@ -8,7 +8,7 @@ import erc20Artifact from 'src/abi/ERC20.json'
 import uniswapRouterArtifact from 'src/abi/UniswapV2Router02.json'
 import uniswapPairArtifact from 'src/abi/UniswapV2Pair.json'
 import globalInboxArtifact from 'src/abi/GlobalInbox.json'
-import { UINT256, KOVAN, ARBITRUM } from 'src/constants'
+import { UINT256, KOVAN, ARBITRUM, DAI } from 'src/constants'
 import { getRpcUrl, networkSlugToId } from 'src/utils'
 
 export class User {
@@ -457,6 +457,94 @@ export class User {
       amount1Min,
       recipient,
       deadline
+    )
+  }
+
+  async bondTransferRoot (
+    transferRootHash: string,
+    chainId: string,
+    totalAmount: number
+  ) {
+    const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
+    const bridge = this.getHopBridgeContract(KOVAN, DAI)
+    return bridge.bondTransferRoot(
+      transferRootHash,
+      chainId,
+      parsedTotalAmount,
+      {
+        //gasLimit: 1000000
+      }
+    )
+  }
+
+  async bondTransferRootAndWaitForReceipt (
+    transferRootHash: string,
+    chainId: string,
+    totalAmount: number
+  ) {
+    const tx = await this.bondTransferRoot(
+      transferRootHash,
+      chainId,
+      totalAmount
+    )
+    return this.waitForTransactionReceipt(KOVAN, tx.hash)
+  }
+
+  async challengeTransferRoot (transferRootHash: string, totalAmount: number) {
+    const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
+    const bridge = this.getHopBridgeContract(KOVAN, DAI)
+    return bridge.challengeTransferBond(transferRootHash, parsedTotalAmount, {
+      //gasLimit: 1000000
+    })
+  }
+
+  async challengeTransferRootAndWaitForReceipt (
+    transferRootHash: string,
+    totalAmount: number
+  ) {
+    const tx = await this.challengeTransferRoot(transferRootHash, totalAmount)
+    return this.waitForTransactionReceipt(KOVAN, tx.hash)
+  }
+
+  async resolveChallenge (transferRootHash: string, totalAmount: number) {
+    const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
+    const bridge = this.getHopBridgeContract(KOVAN, DAI)
+    return bridge.resolveChallenge(transferRootHash, parsedTotalAmount, {
+      gasLimit: 1000000
+    })
+  }
+
+  async resolveChallengeAndWaitForReceipt (
+    transferRootHash: string,
+    totalAmount: number
+  ) {
+    const tx = await this.resolveChallenge(transferRootHash, totalAmount)
+    console.log(tx?.hash)
+    return this.waitForTransactionReceipt(KOVAN, tx.hash)
+  }
+
+  async getChallengePeriod () {
+    const bridge = this.getHopBridgeContract(KOVAN, DAI)
+    return Number((await bridge.challengePeriod()).toString())
+  }
+
+  async getChallengeResolutionPeriod () {
+    const bridge = this.getHopBridgeContract(KOVAN, DAI)
+    return Number((await bridge.challengeResolutionPeriod()).toString())
+  }
+
+  async setChallengePeriodAndTimeSlotSize (
+    challengePeriod: number,
+    timeSlotSize: number
+  ) {
+    const bridge = this.getHopBridgeContract(KOVAN, DAI)
+    const governance = await bridge.governance()
+    if (governance !== (await this.getAddress())) {
+      throw new Error('must be governance')
+    }
+    return bridge.setChallengePeriodAndTimeSlotSize(
+      challengePeriod,
+      timeSlotSize
     )
   }
 }

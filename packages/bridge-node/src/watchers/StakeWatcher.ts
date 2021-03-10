@@ -40,7 +40,7 @@ class StakeWatcher extends BaseWatcher {
         if (!this.started) {
           return
         }
-        await this.check()
+        await this.checkStake()
         await wait(this.interval)
       }
     } catch (err) {
@@ -55,7 +55,7 @@ class StakeWatcher extends BaseWatcher {
     this.logger.setEnabled(false)
   }
 
-  async check () {
+  async checkStake () {
     try {
       const isBonder = await this.bridge.isBonder()
       if (!isBonder) {

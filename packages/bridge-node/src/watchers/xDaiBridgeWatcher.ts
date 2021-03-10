@@ -20,6 +20,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
   }
 
   async start () {
+    this.started = true
     try {
       const l1AmbAddress = config.tokens.DAI.xdai.l1Amb
       const l2AmbAddress = config.tokens.DAI.xdai.l2Amb
@@ -27,6 +28,9 @@ class xDaiBridgeWatcher extends BaseWatcher {
       const l1Amb = new Contract(l1AmbAddress, l1xDaiAmbAbi.abi, l1Wallet)
 
       while (true) {
+        if (!this.started) {
+          return
+        }
         const blockNumber = await l2xDaiProvider.getBlockNumber()
         const events = await l2Amb?.queryFilter(
           l2Amb.filters.UserRequestForSignature(),
@@ -89,6 +93,10 @@ class xDaiBridgeWatcher extends BaseWatcher {
       this.emit('error', err)
       this.logger.error('watcher error:', err.message)
     }
+  }
+
+  async stop () {
+    this.started = false
   }
 }
 export default xDaiBridgeWatcher

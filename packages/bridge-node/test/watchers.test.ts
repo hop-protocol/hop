@@ -1,9 +1,10 @@
 require('dotenv').config()
 import { startWatchers } from 'src/watchers/watchers'
-import { wait, isL1 } from 'src/utils'
+import { wait, isL1, networkSlugToId } from 'src/utils'
 import { KOVAN, ARBITRUM, XDAI } from 'src/constants'
 import { User, checkApproval } from './helpers'
-import { privateKey } from './config'
+import { privateKey, bonderPrivateKey, governancePrivateKey } from './config'
+import { keccak256 } from 'ethereumjs-util'
 import Logger from 'src/logger'
 
 const L1ToL2Paths = [
@@ -121,7 +122,7 @@ describe('bondTransferRoot', () => {
   }
 })
 
-describe.only('settleBondedWithdrawal', () => {
+describe('settleBondedWithdrawal', () => {
   //const testPaths = [...L2ToL1Paths, ...L2ToL2Paths]
   const testPaths = [[XDAI, KOVAN]]
   for (let path of testPaths) {
@@ -183,6 +184,57 @@ describe.only('settleBondedWithdrawal', () => {
   }
 })
 
+describe.only('challenge', () => {
+  const networks = [KOVAN]
+  for (let network of networks) {
+    const chainId = networkSlugToId(network)
+    const label = `${network}`
+    it(
+      label,
+      async () => {
+        logger.log(label)
+        const user = new User(privateKey)
+        const bonder = new User(bonderPrivateKey)
+        const { stop, watchers } = startWatchers({ networks: [KOVAN, XDAI] })
+        logger.log('sending and waiting for receipt')
+        const sourceNetwork = XDAI
+        const destNetwork = KOVAN
+        let receipt = await user.sendAndWaitForReceipt(
+          sourceNetwork,
+          destNetwork,
+          TOKEN,
+          TRANSFER_AMOUNT
+        )
+        logger.log('got transfer receipt')
+
+        const invalidTransferRoot =
+          '0x' + keccak256(Buffer.from(Date.now().toString())).toString('hex')
+        const totalAmount = 1
+        logger.log('bonding invalid transfer root')
+        logger.log('invalid transferRootHash:', invalidTransferRoot)
+        receipt = await bonder.bondTransferRootAndWaitForReceipt(
+          invalidTransferRoot,
+          chainId,
+          totalAmount
+        )
+        expect(receipt.status).toBe(1)
+        logger.log('got bond invalid transfer root receipt')
+        await waitForEvent(
+          watchers,
+          'challengeTransferRootBond',
+          data => data.transferRootHash === invalidTransferRoot
+        )
+        await stop()
+      },
+      500 * 1000
+    )
+  }
+})
+
+test.skip('updateChallengePeriod', async () => {
+  await updateChallengePeriod()
+})
+
 async function waitForEvent (
   watchers: any[],
   eventName: string,
@@ -192,13 +244,13 @@ async function waitForEvent (
     watchers.forEach(watcher => {
       watcher.on(eventName, (data: any) => {
         logger.log('received event:', eventName, data)
-        if (typeof predicate !== 'function') {
-          resolve(null)
-          return
+        if (typeof predicate === 'function') {
+          if (predicate(data)) {
+            resolve(null)
+            return
+          }
         }
-        if (predicate(data)) {
-          resolve(null)
-        }
+        resolve(null)
       })
     })
   })
@@ -221,4 +273,10 @@ async function prepareAccount (sourceNetwork: string, token: string) {
     const ethBalance = await user.getBalance(sourceNetwork)
     expect(ethBalance > 0).toBe(true)
   }
+}
+
+async function updateChallengePeriod () {
+  const gov = new User(governancePrivateKey)
+  const tx = await gov.setChallengePeriodAndTimeSlotSize(300, 180)
+  console.log(tx?.hash)
 }

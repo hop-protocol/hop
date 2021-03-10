@@ -47,7 +47,35 @@ class CommitTransfersWatcher extends BaseWatcher {
     this.logger.setEnabled(false)
   }
 
-  check = throttle(async (chainId: string) => {
+  async watch () {
+    this.l2Bridge
+      .on(this.l2Bridge.TransferSent, this.handleTransferSentEvent)
+      .on('error', err => {
+        this.emit('error', err)
+        this.logger.error('event watcher error:', err.message)
+      })
+
+    while (true) {
+      if (!this.started) return
+      try {
+        const chainIds = Object.keys(this.contracts)
+        for (let chainId of chainIds) {
+          //await this.getRecentTransferHashesForCommittedRoots()
+          const pendingTransfers = await this.l2Bridge.getPendingTransfers(
+            chainId
+          )
+          if (pendingTransfers.length > 0) {
+            await this.checkTransferSent(chainId)
+          }
+        }
+      } catch (err) {
+        this.logger.error('error checking:', err.message)
+      }
+      await wait(10 * 1000)
+    }
+  }
+
+  checkTransferSent = throttle(async (chainId: string) => {
     if (!chainId) {
       throw new Error('chainId is required')
     }
@@ -95,7 +123,9 @@ class CommitTransfersWatcher extends BaseWatcher {
     const tx = await this.l2Bridge.commitTransfers(chainId)
     tx?.wait().then(() => {
       this.emit('commitTransfers', {
-        chainId
+        chainId,
+        transferRootHash,
+        transferHashes: pendingTransfers
       })
     })
     this.logger.log(
@@ -131,34 +161,6 @@ class CommitTransfersWatcher extends BaseWatcher {
         this.emit('error', err)
         this.logger.error('commitTransfers tx error:', err.message)
       }
-    }
-  }
-
-  async watch () {
-    this.l2Bridge
-      .on(this.l2Bridge.TransferSent, this.handleTransferSentEvent)
-      .on('error', err => {
-        this.emit('error', err)
-        this.logger.error('event watcher error:', err.message)
-      })
-
-    while (true) {
-      if (!this.started) return
-      try {
-        const chainIds = Object.keys(this.contracts)
-        for (let chainId of chainIds) {
-          //await this.getRecentTransferHashesForCommittedRoots()
-          const pendingTransfers = await this.l2Bridge.getPendingTransfers(
-            chainId
-          )
-          if (pendingTransfers.length > 0) {
-            await this.check(chainId)
-          }
-        }
-      } catch (err) {
-        this.logger.error('error checking:', err.message)
-      }
-      await wait(10 * 1000)
     }
   }
 

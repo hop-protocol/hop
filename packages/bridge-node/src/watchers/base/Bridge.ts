@@ -48,4 +48,13 @@ export default class Bridge extends EventEmitter {
   getAddress () {
     return this.bridgeContract.address
   }
+
+  async getBondedAmount (transferHash: string) {
+    const bonder = await this.getBonderAddress()
+    const bondedBn = await this.bridgeContract.getBondedWithdrawalAmount(
+      bonder,
+      transferHash
+    )
+    return Number(formatUnits(bondedBn.toString(), 18))
+  }
 }

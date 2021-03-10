@@ -6,6 +6,7 @@ import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
 import BaseWatcher from './base/BaseWatcher'
+import Bridge from './base/Bridge'
 import L1Bridge from './base/L1Bridge'
 import L2Bridge from './base/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
@@ -53,6 +54,27 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     this.logger.setEnabled(false)
   }
 
+  async watch () {
+    this.l1Bridge
+      .on(this.l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
+      .on('error', err => {
+        this.emit('error', err)
+        this.logger.error(`event watcher error:`, err.message)
+      })
+
+    while (true) {
+      try {
+        if (!this.started) {
+          return
+        }
+        await this.checkTransferRoot()
+      } catch (err) {
+        this.logger.error('error checking:', err.message)
+      }
+      await wait(10 * 1000)
+    }
+  }
+
   settleBondedWithdrawal = async (
     transferHashes: string[],
     totalAmount: number,
@@ -72,17 +94,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   getBondedAmount = async (transferHash: string, chainId: string) => {
-    const bridge = this.contracts[chainId]
-    const bonder = await this.l1Bridge.getBonderAddress()
-    const bondedBn = await bridge.getBondedWithdrawalAmount(
-      bonder,
-      transferHash
-    )
-    const bondedAmount = Number(formatUnits(bondedBn.toString(), 18))
-    return bondedAmount
+    const bridge = new Bridge(this.contracts[chainId])
+    return bridge.getBondedAmount(transferHash)
   }
 
-  check = async () => {
+  checkTransferRoot = async () => {
     const transferRoots: TransferRoot[] = await db.transferRoots.getUnsettledBondedTransferRoots()
 
     for (let transferRoot of transferRoots) {
@@ -167,27 +183,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       committed: true,
       bonded: true
     })
-  }
-
-  async watch () {
-    this.l1Bridge
-      .on(this.l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
-      .on('error', err => {
-        this.emit('error', err)
-        this.logger.error(`event watcher error:`, err.message)
-      })
-
-    while (true) {
-      try {
-        if (!this.started) {
-          return
-        }
-        await this.check()
-      } catch (err) {
-        this.logger.error('error checking:', err.message)
-      }
-      await wait(10 * 1000)
-    }
   }
 }
 

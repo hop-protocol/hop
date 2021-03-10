@@ -15,8 +15,10 @@ export const xDaiRpcUrl = 'https://sokol.poa.network'
 
 export const MAINNET = 'mainnet'
 export const KOVAN = 'kovan'
-// TODO: change this to mainnet on mainnet production
-export const L1_NETWORK = KOVAN
 export const OPTIMISM = 'optimism'
 export const ARBITRUM = 'arbitrum'
 export const XDAI = 'xdai'
+export const DAI = 'DAI'
+
+// TODO: change this to mainnet on mainnet production
+export const L1_NETWORK = KOVAN

@@ -214,6 +214,7 @@ function startWatchers (_config: Config = {}) {
 
   watchers.forEach(watcher => watcher.start())
   watchers.push(...startStakeWatchers(_tokens, _networks))
+  watchers.push(...startChallengeWatchers(_tokens, _networks))
 
   const stop = () => {
     return watchers.map(watcher => {
@@ -224,15 +225,30 @@ function startWatchers (_config: Config = {}) {
   return { stop, watchers }
 }
 
-function startChallengeWatchers () {
+function startChallengeWatchers (
+  _tokens: string[] = tokens,
+  _networks: string[] = networks
+) {
   const watchers: any[] = []
-  for (let network of networks) {
-    for (let token of tokens) {
+  for (let network of _networks) {
+    for (let token of _tokens) {
+      if (!contracts[token]) {
+        continue
+      }
+      if (!contracts[token][network]) {
+        continue
+      }
       watchers.push(
         new ChallengeWatcher({
           label: network,
           l1BridgeContract: contracts[token].kovan.l1Bridge,
-          l2BridgeContract: contracts[token][network].l2Bridge
+          l2BridgeContract: contracts[token][network].l2Bridge,
+          contracts: {
+            '42': contracts[token].kovan?.l1Bridge,
+            '69': contracts[token].optimism?.l2Bridge,
+            '79377087078960': contracts[token].arbitrum?.l2Bridge,
+            '77': contracts[token].xdai?.l2Bridge
+          }
         })
       )
     }

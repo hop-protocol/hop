@@ -64,80 +64,87 @@ class BondTransferRootWatcher extends BaseWatcher {
     })
   }
 
+  checkTransferCommited = async (
+    transferRootHash: string,
+    totalAmount: number,
+    chainId: string
+  ) => {
+    const sourceChainId = await this.l2Bridge.getChainId()
+    this.logger.log(
+      sourceChainId,
+      `transferRootHash:`,
+      chalk.bgMagenta.black(transferRootHash)
+    )
+    this.logger.log('chainId:', chainId)
+    this.logger.log('totalAmount:', totalAmount)
+    await db.transferRoots.update(transferRootHash, {
+      transferRootHash,
+      totalAmount,
+      chainId,
+      sourceChainId,
+      commited: true
+    })
+
+    await this.waitTimeout(transferRootHash)
+
+    const transferRoot: TransferRoot = await db.transferRoots.getById(
+      transferRootHash
+    )
+    if (!transferRoot) {
+      this.logger.log('no transfer root')
+      return
+    }
+
+    this.logger.log('transferRoot:', transferRoot)
+    const pendingTransfers: string[] = Object.values(
+      transferRoot.transferHashes || []
+    )
+    this.logger.log('transferRootHash transferHashes:', pendingTransfers)
+    if (pendingTransfers.length) {
+      const tree = new MerkleTree(pendingTransfers)
+      const rootHash = tree.getHexRoot()
+      this.logger.log('calculated transfer root hash:', rootHash)
+      if (rootHash !== transferRootHash) {
+        this.logger.log('calculated transfer root hash does not match')
+      }
+    }
+
+    const tx = await this.l1Bridge.bondTransferRoot(
+      transferRootHash,
+      chainId,
+      totalAmount
+    )
+    tx?.wait().then(() => {
+      this.emit('bondTransferRoot', {
+        transferRootHash,
+        chainId,
+        totalAmount
+      })
+
+      db.transferRoots.update(transferRootHash, {
+        bonded: true
+      })
+    })
+    this.logger.log(
+      'L1 bondTransferRoot tx',
+      chalk.bgYellow.black.bold(tx.hash)
+    )
+  }
+
   handleTransferCommittedEvent = async (
     transferRootHash: string,
     _totalAmount: BigNumber,
     meta: any
   ) => {
     try {
-      const { transactionHash } = meta
-      const sourceChainId = await this.l2Bridge.getChainId()
       this.logger.log(`received L2 TransfersCommitted event`)
-      this.logger.log(
-        sourceChainId,
-        `transferRootHash:`,
-        chalk.bgMagenta.black(transferRootHash)
-      )
-      await wait(2 * 1000)
+      const { transactionHash } = meta
       const { data } = await this.l2Bridge.getTransaction(transactionHash)
       const {
         destinationChainId: chainId
       } = await this.l2Bridge.decodeCommitTransfersData(data)
       const totalAmount = Number(formatUnits(_totalAmount.toString(), 18))
-      this.logger.log('chainId:', chainId)
-      this.logger.log('totalAmount:', totalAmount)
-      await db.transferRoots.update(transferRootHash, {
-        transferRootHash,
-        totalAmount,
-        chainId,
-        sourceChainId,
-        commited: true
-      })
-
-      await this.waitTimeout(transferRootHash)
-
-      const transferRoot: TransferRoot = await db.transferRoots.getById(
-        transferRootHash
-      )
-      if (!transferRoot) {
-        this.logger.log('no transfer root')
-        return
-      }
-
-      this.logger.log('transferRoot:', transferRoot)
-      const pendingTransfers: string[] = Object.values(
-        transferRoot.transferHashes || []
-      )
-      this.logger.log('transferRootHash transferHashes:', pendingTransfers)
-      if (pendingTransfers.length) {
-        const tree = new MerkleTree(pendingTransfers)
-        const rootHash = tree.getHexRoot()
-        this.logger.log('calculated transfer root hash:', rootHash)
-        if (rootHash !== transferRootHash) {
-          this.logger.log('calculated transfer root hash does not match')
-        }
-      }
-
-      const tx = await this.l1Bridge.bondTransferRoot(
-        transferRootHash,
-        chainId,
-        totalAmount
-      )
-      tx?.wait().then(() => {
-        this.emit('bondTransferRoot', {
-          transferRootHash,
-          chainId,
-          totalAmount
-        })
-
-        db.transferRoots.update(transferRootHash, {
-          bonded: true
-        })
-      })
-      this.logger.log(
-        'L1 bondTransferRoot tx',
-        chalk.bgYellow.black.bold(tx.hash)
-      )
+      await this.checkTransferCommited(transferRootHash, totalAmount, chainId)
     } catch (err) {
       if (err.message !== 'cancelled') {
         this.emit('error', err)

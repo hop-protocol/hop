@@ -6,6 +6,7 @@ import db from 'src/db'
 import chalk from 'chalk'
 import { wait, networkIdToSlug } from 'src/utils'
 import BaseWatcher from './base/BaseWatcher'
+import Bridge from './base/Bridge'
 import L1Bridge from './base/L1Bridge'
 import L2Bridge from './base/L2Bridge'
 
@@ -225,6 +226,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
     })
   }
 
+  getBondedAmount = async (transferHash: string, chainId: string) => {
+    const bridge = new Bridge(this.contracts[chainId])
+    return bridge.getBondedAmount(transferHash)
+  }
+
   async waitTimeout (transferHash: string, chainId: string) {
     await wait(2 * 1000)
     if (!this.order()) {
@@ -253,17 +259,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
     this.logger.debug(`transfer hash already bonded ${transferHash}`)
     throw new Error('cancelled')
-  }
-
-  getBondedAmount = async (transferHash: string, chainId: string) => {
-    const bridge = this.contracts[chainId]
-    const bonder = await this.l1Bridge.getBonderAddress()
-    const bondedBn = await bridge.getBondedWithdrawalAmount(
-      bonder,
-      transferHash
-    )
-    const bondedAmount = Number(formatUnits(bondedBn.toString(), 18))
-    return bondedAmount
   }
 }
 

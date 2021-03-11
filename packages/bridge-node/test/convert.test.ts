@@ -37,7 +37,7 @@ describe.only('convert to canonical', () => {
       await wait(20 * 1000)
       const tokenBalanceAfter = await user.getBalance(L2_NETWORK, TOKEN)
       logger.log(`hop ${TOKEN} balance: ${tokenBalanceAfter}`)
-      expect(tokenBalanceAfter > tokenBalanceBefore).toBe(true)
+      expect(tokenBalanceAfter).toBeGreaterThan(tokenBalanceBefore)
     },
     300 * 1000
   )
@@ -67,7 +67,7 @@ describe('convert to hop', () => {
       await wait(20 * 1000)
       const hopBalanceAfter = await user.getHopBalance(L2_NETWORK, TOKEN)
       logger.log(`hop ${TOKEN} balance: ${hopBalanceAfter}`)
-      expect(hopBalanceAfter > hopBalanceBefore).toBe(true)
+      expect(hopBalanceAfter).toBeGreaterThan(hopBalanceBefore)
     },
     300 * 1000
   )

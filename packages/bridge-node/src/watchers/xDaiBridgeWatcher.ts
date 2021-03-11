@@ -7,7 +7,7 @@ import l1Wallet from 'src/wallets/l1Wallet'
 import { l2xDaiProvider } from 'src/wallets/l2xDaiWallet'
 import { signatureToVRS, packSignatures, strip0x } from 'src/utils/xdaiUtils'
 import { wait } from 'src/utils'
-import BaseWatcher from './base/BaseWatcher'
+import BaseWatcher from './helpers/BaseWatcher'
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
@@ -83,14 +83,12 @@ class xDaiBridgeWatcher extends BaseWatcher {
             )
             await tx?.wait()
           } catch (err) {
-            this.emit('error', err)
             this.logger.error('tx error:', err.message)
           }
         }
         await wait(10 * 1000)
       }
     } catch (err) {
-      this.emit('error', err)
       this.logger.error('watcher error:', err.message)
     }
   }

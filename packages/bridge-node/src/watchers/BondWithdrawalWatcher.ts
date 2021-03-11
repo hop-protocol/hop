@@ -5,10 +5,10 @@ import { UINT256 } from 'src/constants'
 import db from 'src/db'
 import chalk from 'chalk'
 import { wait, networkIdToSlug } from 'src/utils'
-import BaseWatcher from './base/BaseWatcher'
-import Bridge from './base/Bridge'
-import L1Bridge from './base/L1Bridge'
-import L2Bridge from './base/L2Bridge'
+import BaseWatcher from './helpers/BaseWatcher'
+import Bridge from './helpers/Bridge'
+import L1Bridge from './helpers/L1Bridge'
+import L2Bridge from './helpers/L2Bridge'
 
 export interface Config {
   l1BridgeContract: Contract
@@ -44,7 +44,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     try {
       await this.watch()
     } catch (err) {
-      this.emit('error', err)
       this.logger.error(`BondWithdrawalWatcher error:`, err.message)
     }
   }
@@ -59,8 +58,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
   async watch () {
     this.l2Bridge
       .on(this.l2Bridge.TransferSent, this.handleTransferSentEvent)
+      .on(this.l2Bridge.WithdrawalBonded, this.handleWithdrawalBondedEvent)
       .on('error', err => {
-        this.emit('error', err)
         this.logger.error('event watcher error:', err.message)
       })
   }
@@ -77,35 +76,25 @@ class BondWithdrawalWatcher extends BaseWatcher {
       deadline
     } = params
 
-    const contract = this.contracts[chainId]
     this.logger.log(`amount:`, amount.toString())
     this.logger.log(`recipient:`, recipient)
     this.logger.log(`transferNonce:`, transferNonce)
     this.logger.log(`relayerFee:`, relayerFee.toString())
     if (attemptSwap) {
       this.logger.log(`chain ${chainId} bondWithdrawalAndAttemptSwap`)
-      return contract.bondWithdrawalAndAttemptSwap(
+      const l2Bridge = new L2Bridge(this.contracts[chainId])
+      return l2Bridge.bondWithdrawalAndAttemptSwap(
         recipient,
         amount,
         transferNonce,
         relayerFee,
         amountOutMin,
-        deadline,
-        {
-          //gasLimit: 1000000
-        }
+        deadline
       )
     } else {
+      const bridge = new Bridge(this.contracts[chainId])
       this.logger.log(`chain ${chainId} bondWithdrawal`)
-      return contract.bondWithdrawal(
-        recipient,
-        amount,
-        transferNonce,
-        relayerFee,
-        {
-          //  gasLimit: 1000000
-        }
-      )
+      return bridge.bondWithdrawal(recipient, amount, transferNonce, relayerFee)
     }
   }
 
@@ -135,7 +124,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       this.logger.log('chainId:', chainId)
       this.logger.log('attemptSwap:', attemptSwap)
 
-      const contract = this.contracts[chainId]
       const amountOutMin = '0'
       const deadline = BigNumber.from(UINT256)
       await db.transfers.update(transferHash, {
@@ -145,6 +133,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       })
 
       await this.waitTimeout(transferHash, chainId)
+      this.logger.log('sending bondWithdrawal tx')
       const tx = await this.sendBondWithdrawalTx({
         sender,
         recipient,
@@ -155,29 +144,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
         chainId,
         amountOutMin,
         deadline
-      })
-
-      const cb = (
-        transferHash: string,
-        recipient: string,
-        amount: BigNumber,
-        transferNonce: string,
-        relayerFee: BigNumber,
-        meta: any
-      ) => {
-        contract.off(contract.filters.WithdrawalBonded(), cb)
-        this.handleWithdrawalBondedEvent(
-          transferHash,
-          recipient,
-          amount,
-          transferNonce,
-          relayerFee,
-          meta
-        )
-      }
-
-      contract.on(contract.filters.WithdrawalBonded(), cb).on('error', err => {
-        this.logger.error('event watcher error:', err.message)
       })
 
       tx?.wait().then(async () => {
@@ -200,7 +166,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       )
     } catch (err) {
       if (err.message !== 'cancelled') {
-        this.emit('error', err)
         this.logger.error(`bondWithdrawal tx error:`, err.message)
       }
     }

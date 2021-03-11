@@ -1,10 +1,9 @@
 import '../moduleAlias'
 import { Contract } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
 import { wait } from 'src/utils'
-import { UINT256 } from 'src/constants'
-import BaseWatcher from './base/BaseWatcher'
-import Bridge from './base/Bridge'
+import BaseWatcher from './helpers/BaseWatcher'
+import Bridge from './helpers/Bridge'
+import Token from './helpers/Token'
 
 export interface Config {
   label: string
@@ -16,7 +15,7 @@ export interface Config {
 
 class StakeWatcher extends BaseWatcher {
   bridge: Bridge
-  tokenContract: Contract
+  token: Token
   stakeMinThreshold: number
   stakeAmount: number
   interval: number = 60 * 1000
@@ -28,7 +27,7 @@ class StakeWatcher extends BaseWatcher {
       logColor: 'green'
     })
     this.bridge = new Bridge(config.bridgeContract)
-    this.tokenContract = config.tokenContract
+    this.token = new Token(config.tokenContract)
     this.stakeMinThreshold = config.stakeMinThreshold
     this.stakeAmount = config.stakeAmount
   }
@@ -44,7 +43,6 @@ class StakeWatcher extends BaseWatcher {
         await wait(this.interval)
       }
     } catch (err) {
-      this.emit('error', err)
       this.logger.log(`stake watcher error:`, err.message)
     }
   }
@@ -65,7 +63,7 @@ class StakeWatcher extends BaseWatcher {
       let [credit, debit, balance, allowance] = await Promise.all([
         this.bridge.getCredit(),
         this.bridge.getDebit(),
-        this.getTokenBalance(),
+        this.token.getBalance(),
         this.getTokenAllowance()
       ])
 
@@ -94,29 +92,18 @@ class StakeWatcher extends BaseWatcher {
         this.logger.log(`stake tx:`, tx?.hash)
       }
     } catch (err) {
-      this.emit('error', err)
       this.logger.log(`stake tx error:`, err.message)
     }
   }
 
-  async getTokenBalance () {
-    const address = await this.tokenContract.signer.getAddress()
-    const balance = await this.tokenContract.balanceOf(address)
-    const formattedBalance = Number(formatUnits(balance, 18))
-    return formattedBalance
-  }
-
   async approveTokens () {
     const spender = this.bridge.getAddress()
-    return this.tokenContract.approve(spender, UINT256)
+    return this.token.approve(spender)
   }
 
   async getTokenAllowance () {
-    const owner = await this.tokenContract.signer.getAddress()
     const spender = this.bridge.getAddress()
-    const allowance = await this.tokenContract.allowance(owner, spender)
-    const formattedBalance = Number(formatUnits(allowance, 18))
-    return formattedBalance
+    return this.token.getAllowance(spender)
   }
 }
 

@@ -1,9 +1,9 @@
 import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
 import { isL1 } from 'src/utils'
-import BaseWatcher from './base/BaseWatcher'
-import L1Bridge from './base/L1Bridge'
-import L2Bridge from './base/L2Bridge'
+import BaseWatcher from './helpers/BaseWatcher'
+import L1Bridge from './helpers/L1Bridge'
+import L2Bridge from './helpers/L2Bridge'
 
 export interface Config {
   l1BridgeContract: Contract
@@ -34,7 +34,6 @@ class ChallengeWatcher extends BaseWatcher {
     try {
       await this.watch()
     } catch (err) {
-      this.emit('error', err)
       this.logger.error('watcher error:', err.message)
     }
   }
@@ -50,7 +49,6 @@ class ChallengeWatcher extends BaseWatcher {
     this.l1Bridge
       .on(this.l1Bridge.TransferRootBonded, this.handleBondTransferEvent)
       .on('error', err => {
-        this.emit('error', err)
         this.logger.error('event watcher error:', err.message)
       })
 
@@ -60,7 +58,6 @@ class ChallengeWatcher extends BaseWatcher {
         this.handleTransferRootConfirmedEvent
       )
       .on('error', err => {
-        this.emit('error', err)
         this.logger.error('event watcher error:', err.message)
       })
   }

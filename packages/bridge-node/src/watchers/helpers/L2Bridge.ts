@@ -1,6 +1,7 @@
 import { Contract } from 'ethers'
 import { isL1NetworkId } from 'src/utils'
 import Bridge from './Bridge'
+import queue from './queue'
 
 export default class L2Bridge extends Bridge {
   l2BridgeContract: Contract
@@ -10,10 +11,10 @@ export default class L2Bridge extends Bridge {
   constructor (l2BridgeContract: Contract) {
     super(l2BridgeContract)
     this.l2BridgeContract = l2BridgeContract
-    this.startListeners()
+    this.l2StartListeners()
   }
 
-  startListeners () {
+  l2StartListeners () {
     this.l2BridgeContract
       .on(
         this.l2BridgeContract.filters.TransfersCommitted(),
@@ -95,12 +96,6 @@ export default class L2Bridge extends Bridge {
     }
   }
 
-  commitTransfers (destinationChainId: string) {
-    return this.l2BridgeContract.commitTransfers(destinationChainId, {
-      //gasLimit: '0xf4240'
-    })
-  }
-
   async getLastCommitTimeForChainId (chainId: string) {
     return Number(
       (await this.l2BridgeContract.lastCommitTimeForChainId(chainId)).toString()
@@ -141,5 +136,34 @@ export default class L2Bridge extends Bridge {
     }
 
     return pendingTransfers
+  }
+
+  @queue
+  async commitTransfers (destinationChainId: string) {
+    return this.l2BridgeContract.commitTransfers(destinationChainId, {
+      //gasLimit: '0xf4240'
+    })
+  }
+
+  @queue
+  async bondWithdrawalAndAttemptSwap (
+    recipient: string,
+    amount: string,
+    transferNonce: string,
+    relayerFee: string,
+    amountOutMin: string,
+    deadline: string
+  ) {
+    return this.l2BridgeContract.bondWithdrawalAndAttemptSwap(
+      recipient,
+      amount,
+      transferNonce,
+      relayerFee,
+      amountOutMin,
+      deadline,
+      {
+        //gasLimit: 1000000
+      }
+    )
   }
 }

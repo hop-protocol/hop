@@ -1,5 +1,4 @@
 import { ethers, Contract } from 'ethers'
-import { NonceManager } from '@ethersproject/experimental'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { tokens } from 'src/config'
 import l1BridgeArtifact from 'src/abi/L1_Bridge.json'
@@ -10,13 +9,17 @@ import uniswapPairArtifact from 'src/abi/UniswapV2Pair.json'
 import globalInboxArtifact from 'src/abi/GlobalInbox.json'
 import { UINT256, KOVAN, ARBITRUM, DAI } from 'src/constants'
 import { getRpcUrl, networkSlugToId } from 'src/utils'
+import queue from 'src/watchers/helpers/queue'
 
 export class User {
   privateKey: string
-  nonceManagers: any = {}
 
   constructor (privateKey: string) {
     this.privateKey = privateKey
+  }
+
+  get queueGroup () {
+    return this.privateKey
   }
 
   getProvider (network: string) {
@@ -25,16 +28,8 @@ export class User {
   }
 
   getWallet (network: string = KOVAN) {
-    //const provider = this.getProvider(network)
-    //return new ethers.Wallet(this.privateKey, provider)
-
-    if (!this.nonceManagers[network]) {
-      const provider = this.getProvider(network)
-      const wallet = new ethers.Wallet(this.privateKey, provider)
-      //const wallet = this.getWallet(network)
-      this.nonceManagers[network] = new NonceManager(wallet)
-    }
-    return this.nonceManagers[network]
+    const provider = this.getProvider(network)
+    return new ethers.Wallet(this.privateKey, provider)
   }
 
   async getBalance (network: string = KOVAN, token: string | Contract = '') {
@@ -86,6 +81,7 @@ export class User {
     return contract.mint(recipient, parseUnits(amount.toString(), 18))
   }
 
+  @queue
   async transfer (
     network: string,
     token: string,
@@ -117,6 +113,7 @@ export class User {
     return new Contract(tokenAddress, erc20Artifact.abi, wallet)
   }
 
+  @queue
   async approve (
     network: string,
     token: string | Contract,
@@ -167,6 +164,7 @@ export class User {
     return provider.waitForTransaction(txHash)
   }
 
+  @queue
   async send (
     sourceNetwork: string,
     destNetwork: string,
@@ -208,7 +206,6 @@ export class User {
       {}
     )
 
-    this.getWallet(sourceNetwork).incrementTransactionNonce()
     return tx
   }
 
@@ -283,8 +280,9 @@ export class User {
     return this.waitForTransactionReceipt(sourceNetwork, tx.hash)
   }
 
-  async sendEth (amount: number | string, recipient: string) {
-    const wallet = this.getWallet()
+  @queue
+  async sendEth (amount: number | string, recipient: string, network?: string) {
+    const wallet = this.getWallet(network)
     return wallet.sendTransaction({
       to: recipient,
       value: parseUnits(amount.toString(), 18)
@@ -355,7 +353,7 @@ export class User {
       uniswapExchange.balanceOf(address),
       uniswapExchange.decimals()
     ])
-    return formatUnits(balance.toString(), decimals)
+    return Number(formatUnits(balance.toString(), decimals))
   }
 
   getCanonicalBridgeContract (destNetwork: string, token: string) {
@@ -371,6 +369,7 @@ export class User {
     }
   }
 
+  @queue
   async convertToCanonicalToken (
     destNetwork: string,
     token: string,
@@ -391,6 +390,7 @@ export class User {
     }
   }
 
+  @queue
   async canonicalTokenToHopToken (
     destNetwork: string,
     token: string,
@@ -519,7 +519,6 @@ export class User {
     totalAmount: number
   ) {
     const tx = await this.resolveChallenge(transferRootHash, totalAmount)
-    console.log(tx?.hash)
     return this.waitForTransactionReceipt(KOVAN, tx.hash)
   }
 
@@ -559,7 +558,32 @@ export async function checkApproval (
   if (allowance < 1000) {
     const tx = await user.approve(network, token, spender)
     await tx?.wait()
+    allowance = await user.getAllowance(network, token, spender)
   }
-  allowance = await user.getAllowance(network, token, spender)
-  expect(allowance > 0).toBe(true)
+  expect(allowance).toBeGreaterThan(0)
+}
+
+export async function waitForEvent (
+  watchers: any[],
+  eventName: string,
+  predicate?: (data: any) => boolean
+) {
+  return new Promise((resolve, reject) => {
+    watchers.forEach(watcher => {
+      watcher
+        .on(eventName, (data: any) => {
+          console.log('received event:', eventName, data)
+          if (typeof predicate === 'function') {
+            if (predicate(data)) {
+              resolve(null)
+              return
+            }
+          }
+          resolve(null)
+        })
+        .on('error', (err: Error) => {
+          reject(err)
+        })
+    })
+  })
 }

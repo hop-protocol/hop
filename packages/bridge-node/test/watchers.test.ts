@@ -2,7 +2,7 @@ require('dotenv').config()
 import { startWatchers } from 'src/watchers/watchers'
 import { wait, isL1, networkSlugToId } from 'src/utils'
 import { KOVAN, ARBITRUM, XDAI } from 'src/constants'
-import { User, checkApproval } from './helpers'
+import { User, checkApproval, waitForEvent } from './helpers'
 import { privateKey, bonderPrivateKey, governancePrivateKey } from './config'
 import { keccak256 } from 'ethereumjs-util'
 import Logger from 'src/logger'
@@ -46,7 +46,7 @@ describe('bondWithdrawal', () => {
         const recipient = await user.getAddress()
         const { stop, watchers } = startWatchers({ networks: path })
         const sourceBalanceBefore = await user.getBalance(sourceNetwork, TOKEN)
-        expect(sourceBalanceBefore > TRANSFER_AMOUNT).toBe(true)
+        expect(sourceBalanceBefore).toBeGreaterThan(TRANSFER_AMOUNT)
         const destBalanceBefore = await user.getBalance(destNetwork, TOKEN)
         logger.log('source balance before:', sourceBalanceBefore)
         logger.log('dest balance before:', destBalanceBefore)
@@ -74,7 +74,7 @@ describe('bondWithdrawal', () => {
         expect(sourceBalanceAfter + TRANSFER_AMOUNT).toBe(sourceBalanceBefore)
         logger.log('source balance after:', sourceBalanceAfter)
         logger.log('dest balance after:', destBalanceAfter)
-        expect(destBalanceAfter > destBalanceBefore).toBe(true)
+        expect(destBalanceAfter).toBeGreaterThan(destBalanceBefore)
         await stop()
       },
       300 * 1000
@@ -122,7 +122,7 @@ describe('bondTransferRoot', () => {
   }
 })
 
-describe('settleBondedWithdrawal', () => {
+describe.only('settleBondedWithdrawal', () => {
   //const testPaths = [...L2ToL1Paths, ...L2ToL2Paths]
   const testPaths = [[XDAI, KOVAN]]
   for (let path of testPaths) {
@@ -184,7 +184,7 @@ describe('settleBondedWithdrawal', () => {
   }
 })
 
-describe.only('challenge', () => {
+describe('challenge', () => {
   const networks = [KOVAN]
   for (let network of networks) {
     const chainId = networkSlugToId(network)
@@ -235,27 +235,6 @@ test.skip('updateChallengePeriod', async () => {
   await updateChallengePeriod()
 })
 
-async function waitForEvent (
-  watchers: any[],
-  eventName: string,
-  predicate?: (data: any) => boolean
-) {
-  return new Promise(resolve => {
-    watchers.forEach(watcher => {
-      watcher.on(eventName, (data: any) => {
-        logger.log('received event:', eventName, data)
-        if (typeof predicate === 'function') {
-          if (predicate(data)) {
-            resolve(null)
-            return
-          }
-        }
-        resolve(null)
-      })
-    })
-  })
-}
-
 async function prepareAccount (sourceNetwork: string, token: string) {
   const user = new User(privateKey)
   const balance = await user.getBalance(sourceNetwork, token)
@@ -264,14 +243,14 @@ async function prepareAccount (sourceNetwork: string, token: string) {
     const tx = await user.mint(sourceNetwork, token, 1000)
     await tx?.wait()
   }
-  expect(balance > 0).toBe(true)
+  expect(balance).toBeGreaterThan(0)
   const spender = user.getBridgeAddress(sourceNetwork, token)
   await checkApproval(user, sourceNetwork, token, spender)
   // NOTE: xDai SPOA token is required for fees.
   // faucet: https://blockscout.com/poa/sokol/faucet
   if (sourceNetwork === XDAI) {
     const ethBalance = await user.getBalance(sourceNetwork)
-    expect(ethBalance > 0).toBe(true)
+    expect(ethBalance).toBeGreaterThan(0)
   }
 }
 

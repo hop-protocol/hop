@@ -1,11 +1,25 @@
-import { EventEmitter } from 'events'
 import { Contract } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
+import ContractBase from './ContractBase'
+import queue from './queue'
 
-export default class Bridge extends EventEmitter {
+export default class Bridge extends ContractBase {
+  WithdrawalBonded: string = 'WithdrawalBonded'
+
   constructor (public bridgeContract: Contract) {
-    super()
+    super(bridgeContract)
     this.bridgeContract = bridgeContract
+    this.bridgeStartListeners()
+  }
+
+  bridgeStartListeners () {
+    this.bridgeContract
+      .on(this.bridgeContract.filters.WithdrawalBonded(), (...args: any[]) =>
+        this.emit(this.WithdrawalBonded, ...args)
+      )
+      .on('error', err => {
+        this.emit('error', err)
+      })
   }
 
   getTransaction (txHash: string) {
@@ -39,12 +53,6 @@ export default class Bridge extends EventEmitter {
     return Number(formatUnits(debit, 18))
   }
 
-  async stake (amount: string) {
-    const parsedAmount = parseUnits(amount, 18)
-    const bonder = await this.getBonderAddress()
-    return this.bridgeContract.stake(bonder, parsedAmount)
-  }
-
   getAddress () {
     return this.bridgeContract.address
   }
@@ -56,5 +64,46 @@ export default class Bridge extends EventEmitter {
       transferHash
     )
     return Number(formatUnits(bondedBn.toString(), 18))
+  }
+
+  @queue
+  async stake (amount: string) {
+    const parsedAmount = parseUnits(amount, 18)
+    const bonder = await this.getBonderAddress()
+    return this.bridgeContract.stake(bonder, parsedAmount)
+  }
+
+  @queue
+  async bondWithdrawal (
+    recipient: string,
+    amount: string,
+    transferNonce: string,
+    relayerFee: string
+  ) {
+    return this.bridgeContract.bondWithdrawal(
+      recipient,
+      amount,
+      transferNonce,
+      relayerFee,
+      {
+        //  gasLimit: 1000000
+      }
+    )
+  }
+
+  @queue
+  async settleBondedWithdrawals (
+    bonder: string,
+    transferHashes: string[],
+    parsedAmount: string
+  ) {
+    return this.bridgeContract.settleBondedWithdrawals(
+      bonder,
+      transferHashes,
+      parsedAmount,
+      {
+        //gasLimit: 1000000
+      }
+    )
   }
 }

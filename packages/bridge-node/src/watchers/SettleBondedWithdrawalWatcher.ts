@@ -5,10 +5,10 @@ import { wait, networkIdToSlug } from 'src/utils'
 import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
-import BaseWatcher from './base/BaseWatcher'
-import Bridge from './base/Bridge'
-import L1Bridge from './base/L1Bridge'
-import L2Bridge from './base/L2Bridge'
+import BaseWatcher from './helpers/BaseWatcher'
+import Bridge from './helpers/Bridge'
+import L1Bridge from './helpers/L1Bridge'
+import L2Bridge from './helpers/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 
 export interface Config {
@@ -42,8 +42,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     try {
       await this.watch()
     } catch (err) {
-      this.emit('error', err)
-      this.logger.error(`watcher error:`, err)
+      this.logger.error(`watcher error:`, err.message)
     }
   }
 
@@ -58,7 +57,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     this.l1Bridge
       .on(this.l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
       .on('error', err => {
-        this.emit('error', err)
         this.logger.error(`event watcher error:`, err.message)
       })
 
@@ -80,17 +78,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     totalAmount: number,
     chainId: string
   ) => {
-    const bridge = this.contracts[chainId]
+    const bridge = new Bridge(this.contracts[chainId])
     const bonder = await this.l1Bridge.getBonderAddress()
-    const parsedAmount = parseUnits(totalAmount.toString(), 18)
-    return bridge.settleBondedWithdrawals(
-      bonder,
-      transferHashes,
-      parsedAmount,
-      {
-        //gasLimit: 1000000
-      }
-    )
+    const parsedAmount = parseUnits(totalAmount.toString(), 18).toString()
+    return bridge.settleBondedWithdrawals(bonder, transferHashes, parsedAmount)
   }
 
   getBondedAmount = async (transferHash: string, chainId: string) => {
@@ -161,7 +152,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         )
       } catch (err) {
         if (err.message !== 'cancelled') {
-          this.emit('error', err)
           this.logger.error(`settleBondedWithdrawal tx error:`, err.message)
         }
       }

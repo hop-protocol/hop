@@ -5,8 +5,8 @@ import { wait } from 'src/utils'
 import { throttle } from 'src/utils'
 import db from 'src/db'
 import MerkleTree from 'src/utils/MerkleTree'
-import BaseWatcher from './base/BaseWatcher'
-import L2Bridge from './base/L2Bridge'
+import BaseWatcher from './helpers/BaseWatcher'
+import L2Bridge from './helpers/L2Bridge'
 
 export interface Config {
   l2BridgeContract: Contract
@@ -36,7 +36,6 @@ class CommitTransfersWatcher extends BaseWatcher {
     try {
       await this.watch()
     } catch (err) {
-      this.emit('error', err)
       this.logger.error('watcher error:', err)
     }
   }
@@ -51,7 +50,6 @@ class CommitTransfersWatcher extends BaseWatcher {
     this.l2Bridge
       .on(this.l2Bridge.TransferSent, this.handleTransferSentEvent)
       .on('error', err => {
-        this.emit('error', err)
         this.logger.error('event watcher error:', err.message)
       })
 
@@ -158,7 +156,6 @@ class CommitTransfersWatcher extends BaseWatcher {
       })
     } catch (err) {
       if (err.message !== 'cancelled') {
-        this.emit('error', err)
         this.logger.error('commitTransfers tx error:', err.message)
       }
     }

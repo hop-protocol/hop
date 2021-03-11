@@ -36,7 +36,7 @@ async function addLiquidity (l2Network: string, amount: number) {
     await tx?.wait()
     await wait(20 * 1000)
     hopBalance = await user.getHopBalance(l2Network, TOKEN)
-    expect(hopBalance >= amount).toBe(true)
+    expect(hopBalance).toBeGreaterThanOrEqual(amount)
     console.log(`hop ${TOKEN} balance: ${hopBalance}`)
   }
 
@@ -66,7 +66,7 @@ async function addLiquidity (l2Network: string, amount: number) {
     user.getPoolBalance(l2Network, TOKEN)
   ])
 
-  expect(tokenBalanceAfter < tokenBalanceBefore).toBe(true)
-  expect(hopTokenBalanceAfter < hopTokenBalanceBefore).toBe(true)
-  expect(poolBalanceAfter > poolBalanceBefore).toBe(true)
+  expect(tokenBalanceAfter).toBeLessThan(tokenBalanceBefore)
+  expect(hopTokenBalanceAfter).toBeLessThan(hopTokenBalanceBefore)
+  expect(poolBalanceAfter).toBeGreaterThan(poolBalanceBefore)
 }

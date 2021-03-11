@@ -6,7 +6,7 @@
     "allowSyntheticDefaultImports": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "target": "es2016",
+    "target": "ES2017",
     "noImplicitAny": true,
     "noUnusedLocals": true,
     "moduleResolution": "node",
@@ -14,6 +14,7 @@
     "sourceMap": false,
     "outDir": "dist",
     "baseUrl": "src",
+    "experimentalDecorators": true,
     "paths": {
       "*": ["node_modules/*", "src/types/*"],
       "src/*": ["*"]

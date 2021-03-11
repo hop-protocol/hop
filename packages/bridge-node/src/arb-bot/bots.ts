@@ -9,6 +9,9 @@ const networks = ['arbitrum', 'optimism', 'xdai']
 const bots: ArbBot[] = []
 for (let network of networks) {
   for (let token of tokenSymbols) {
+    if (!contracts[token]) {
+      continue
+    }
     if (!contracts[token][network]) {
       continue
     }

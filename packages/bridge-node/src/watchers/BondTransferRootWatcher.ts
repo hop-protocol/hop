@@ -6,9 +6,9 @@ import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
 import MerkleTree from 'src/utils/MerkleTree'
-import BaseWatcher from './base/BaseWatcher'
-import L1Bridge from './base/L1Bridge'
-import L2Bridge from './base/L2Bridge'
+import BaseWatcher from './helpers/BaseWatcher'
+import L1Bridge from './helpers/L1Bridge'
+import L2Bridge from './helpers/L2Bridge'
 
 export interface Config {
   l1BridgeContract: Contract
@@ -41,7 +41,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     try {
       await this.watch()
     } catch (err) {
-      this.emit('error', err)
       this.logger.error(`watcher error:`, err.message)
     }
   }
@@ -59,7 +58,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       this.handleTransferCommittedEvent
     )
     this.l2Bridge.on('error', err => {
-      this.emit('error', err)
       this.logger.error('event watcher error:', err.message)
     })
   }
@@ -147,7 +145,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       await this.checkTransferCommited(transferRootHash, totalAmount, chainId)
     } catch (err) {
       if (err.message !== 'cancelled') {
-        this.emit('error', err)
         this.logger.error('bondTransferRoot tx error:', err.message)
       }
     }

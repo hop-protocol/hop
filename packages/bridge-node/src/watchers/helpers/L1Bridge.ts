@@ -1,6 +1,7 @@
 import { Contract } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
 import Bridge from './Bridge'
+import queue from './queue'
 
 export default class L1Bridge extends Bridge {
   l1BridgeContract: Contract
@@ -12,10 +13,10 @@ export default class L1Bridge extends Bridge {
   constructor (l1BridgeContract: Contract) {
     super(l1BridgeContract)
     this.l1BridgeContract = l1BridgeContract
-    this.startListeners()
+    this.l1StartListeners()
   }
 
-  startListeners () {
+  l1StartListeners () {
     this.l1BridgeContract
       .on(
         this.l1BridgeContract.filters.TransferRootBonded(),
@@ -37,6 +38,26 @@ export default class L1Bridge extends Bridge {
       })
   }
 
+  async decodeBondTransferRootData (data: string) {
+    const decoded = await this.l1BridgeContract.interface.decodeFunctionData(
+      'bondTransferRoot',
+      data
+    )
+    const transferRootHash = decoded.rootHash.toString()
+    const destinationChainId = decoded.destinationChainId.toString()
+    const totalAmount = decoded.totalAmount.toString()
+    return {
+      transferRootHash,
+      destinationChainId,
+      totalAmount
+    }
+  }
+
+  async getTransferBond (transferRootHash: string) {
+    return this.l1BridgeContract.transferBonds(transferRootHash)
+  }
+
+  @queue
   async bondTransferRoot (
     transferRootHash: string,
     chainId: string,
@@ -59,25 +80,7 @@ export default class L1Bridge extends Bridge {
     )
   }
 
-  async decodeBondTransferRootData (data: string) {
-    const decoded = await this.l1BridgeContract.interface.decodeFunctionData(
-      'bondTransferRoot',
-      data
-    )
-    const transferRootHash = decoded.rootHash.toString()
-    const destinationChainId = decoded.destinationChainId.toString()
-    const totalAmount = decoded.totalAmount.toString()
-    return {
-      transferRootHash,
-      destinationChainId,
-      totalAmount
-    }
-  }
-
-  async getTransferBond (transferRootHash: string) {
-    return this.l1BridgeContract.transferBonds(transferRootHash)
-  }
-
+  @queue
   async challengeTransferRootBond (
     transferRootHash: string,
     totalAmount: string
@@ -91,6 +94,7 @@ export default class L1Bridge extends Bridge {
     )
   }
 
+  @queue
   async resolveChallenge (transferRootHash: string, totalAmount: string) {
     return this.l1BridgeContract.resolveChallenge(
       transferRootHash,

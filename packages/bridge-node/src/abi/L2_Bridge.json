@@ -18,11 +18,6 @@
           "type": "address"
         },
         {
-          "internalType": "bool",
-          "name": "_l2CanonicalTokenIsEth",
-          "type": "bool"
-        },
-        {
           "internalType": "address",
           "name": "_l1BridgeAddress",
           "type": "address"
@@ -31,11 +26,6 @@
           "internalType": "uint256[]",
           "name": "_supportedChainIds",
           "type": "uint256[]"
-        },
-        {
-          "internalType": "address",
-          "name": "_exchangeAddress",
-          "type": "address"
         },
         {
           "internalType": "address[]",
@@ -133,7 +123,13 @@
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "relayerFee",
+          "name": "bonderFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "index",
           "type": "uint256"
         }
       ],
@@ -153,6 +149,12 @@
           "indexed": false,
           "internalType": "uint256",
           "name": "totalAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "rootCommittedAt",
           "type": "uint256"
         }
       ],
@@ -227,7 +229,7 @@
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "relayerFee",
+          "name": "bonderFee",
           "type": "uint256"
         }
       ],
@@ -260,12 +262,6 @@
           "internalType": "bytes32",
           "name": "transferNonce",
           "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "relayerFee",
-          "type": "uint256"
         }
       ],
       "name": "Withdrew",
@@ -316,7 +312,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "relayerFee",
+          "name": "bonderFee",
           "type": "uint256"
         }
       ],
@@ -344,7 +340,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "relayerFee",
+          "name": "bonderFee",
           "type": "uint256"
         },
         {
@@ -358,7 +354,7 @@
           "type": "uint256"
         }
       ],
-      "name": "bondWithdrawalAndAttemptSwap",
+      "name": "bondWithdrawalAndDistribute",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -377,16 +373,36 @@
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "exchangeAddress",
-      "outputs": [
+      "inputs": [
         {
           "internalType": "address",
-          "name": "",
+          "name": "recipient",
           "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amountOutMin",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "deadline",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "relayerFee",
+          "type": "uint256"
         }
       ],
-      "stateMutability": "view",
+      "name": "distribute",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -539,7 +555,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "relayerFee",
+          "name": "bonderFee",
           "type": "uint256"
         },
         {
@@ -590,6 +606,11 @@
               "internalType": "uint256",
               "name": "amountWithdrawn",
               "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "createdAt",
+              "type": "uint256"
             }
           ],
           "internalType": "struct Bridge.TransferRoot",
@@ -638,6 +659,25 @@
       "type": "function"
     },
     {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "transferId",
+          "type": "bytes32"
+        }
+      ],
+      "name": "isTransferIdSpent",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "l1BridgeAddress",
       "outputs": [
@@ -665,10 +705,10 @@
     },
     {
       "inputs": [],
-      "name": "l2CanonicalToken",
+      "name": "l1MessengerWrapperAddress",
       "outputs": [
         {
-          "internalType": "contract IERC20",
+          "internalType": "address",
           "name": "",
           "type": "address"
         }
@@ -678,12 +718,12 @@
     },
     {
       "inputs": [],
-      "name": "l2CanonicalTokenIsEth",
+      "name": "l2CanonicalToken",
       "outputs": [
         {
-          "internalType": "bool",
+          "internalType": "contract IERC20",
           "name": "",
-          "type": "bool"
+          "type": "address"
         }
       ],
       "stateMutability": "view",
@@ -736,7 +776,7 @@
     },
     {
       "inputs": [],
-      "name": "minimumForceCommitDelay",
+      "name": "minBonderBps",
       "outputs": [
         {
           "internalType": "uint256",
@@ -748,49 +788,29 @@
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "recipient",
-          "type": "address"
-        },
+      "inputs": [],
+      "name": "minBonderFeeAbsolute",
+      "outputs": [
         {
           "internalType": "uint256",
-          "name": "amount",
+          "name": "",
           "type": "uint256"
         }
       ],
-      "name": "mint",
-      "outputs": [],
-      "stateMutability": "nonpayable",
+      "stateMutability": "view",
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "recipient",
-          "type": "address"
-        },
+      "inputs": [],
+      "name": "minimumForceCommitDelay",
+      "outputs": [
         {
           "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amountOutMin",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "deadline",
+          "name": "",
           "type": "uint256"
         }
       ],
-      "name": "mintAndAttemptSwap",
-      "outputs": [],
-      "stateMutability": "nonpayable",
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -865,6 +885,29 @@
     {
       "inputs": [
         {
+          "internalType": "bytes32",
+          "name": "rootHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "originalAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        }
+      ],
+      "name": "rescueTransferRoot",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "uint256",
           "name": "chainId",
           "type": "uint256"
@@ -881,7 +924,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "relayerFee",
+          "name": "bonderFee",
           "type": "uint256"
         },
         {
@@ -896,19 +939,6 @@
         }
       ],
       "name": "send",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_exchangeAddress",
-          "type": "address"
-        }
-      ],
-      "name": "setExchangeAddress",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -935,6 +965,19 @@
         }
       ],
       "name": "setL1BridgeAddress",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_l1MessengerWrapperAddress",
+          "type": "address"
+        }
+      ],
+      "name": "setL1MessengerWrapperAddress",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -969,6 +1012,24 @@
       "inputs": [
         {
           "internalType": "uint256",
+          "name": "_minBonderBps",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_minBonderFeeAbsolute",
+          "type": "uint256"
+        }
+      ],
+      "name": "setMinimumBonderFeeRequirements",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
           "name": "_minimumForceCommitDelay",
           "type": "uint256"
         }
@@ -992,6 +1053,19 @@
         }
       ],
       "name": "setTransferRoot",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "contract L2_UniswapWrapper",
+          "name": "_uniswapWrapper",
+          "type": "address"
+        }
+      ],
+      "name": "setUniswapWrapper",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -1090,54 +1164,6 @@
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "chainId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "recipient",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "relayerFee",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amountOutMin",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "deadline",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "destinationAmountOutMin",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "destinationDeadline",
-          "type": "uint256"
-        }
-      ],
-      "name": "swapAndSend",
-      "outputs": [],
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
       "inputs": [],
       "name": "transferNonceIncrementer",
       "outputs": [
@@ -1145,6 +1171,19 @@
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "uniswapWrapper",
+      "outputs": [
+        {
+          "internalType": "contract L2_UniswapWrapper",
+          "name": "",
+          "type": "address"
         }
       ],
       "stateMutability": "view",
@@ -1182,56 +1221,8 @@
         },
         {
           "internalType": "uint256",
-          "name": "relayerFee",
+          "name": "bonderFee",
           "type": "uint256"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "transferRootId",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32[]",
-          "name": "proof",
-          "type": "bytes32[]"
-        }
-      ],
-      "name": "withdraw",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "recipient",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "transferNonce",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint256",
-          "name": "relayerFee",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "rootHash",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32[]",
-          "name": "proof",
-          "type": "bytes32[]"
         },
         {
           "internalType": "uint256",
@@ -1242,9 +1233,24 @@
           "internalType": "uint256",
           "name": "deadline",
           "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "rootHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "transferRootTotalAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32[]",
+          "name": "proof",
+          "type": "bytes32[]"
         }
       ],
-      "name": "withdrawAndAttemptSwap",
+      "name": "withdraw",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

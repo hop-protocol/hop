@@ -46,5 +46,5 @@ export const isL2 = (network: string) => {
 
 export const isL1NetworkId = (networkId: number | string) => {
   networkId = networkId.toString()
-  return !(networkId === '42' || networkId === '1')
+  return networkId === '42' || networkId === '1'
 }

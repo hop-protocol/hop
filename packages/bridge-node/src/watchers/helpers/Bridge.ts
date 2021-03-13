@@ -78,13 +78,13 @@ export default class Bridge extends ContractBase {
     recipient: string,
     amount: string,
     transferNonce: string,
-    relayerFee: string
+    bonderFee: string
   ) {
     return this.bridgeContract.bondWithdrawal(
       recipient,
       amount,
       transferNonce,
-      relayerFee,
+      bonderFee,
       {
         //  gasLimit: 1000000
       }

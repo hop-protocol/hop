@@ -70,7 +70,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       recipient,
       amount,
       transferNonce,
-      relayerFee,
+      bonderFee,
       attemptSwap,
       amountOutMin,
       deadline
@@ -79,7 +79,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.log(`amount:`, amount.toString())
     this.logger.log(`recipient:`, recipient)
     this.logger.log(`transferNonce:`, transferNonce)
-    this.logger.log(`relayerFee:`, relayerFee.toString())
+    this.logger.log(`bonderFee:`, bonderFee.toString())
     if (attemptSwap) {
       this.logger.log(`chain ${chainId} bondWithdrawalAndAttemptSwap`)
       const l2Bridge = new L2Bridge(this.contracts[chainId])
@@ -87,14 +87,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
         recipient,
         amount,
         transferNonce,
-        relayerFee,
+        bonderFee,
         amountOutMin,
         deadline
       )
     } else {
       const bridge = new Bridge(this.contracts[chainId])
       this.logger.log(`chain ${chainId} bondWithdrawal`)
-      return bridge.bondWithdrawal(recipient, amount, transferNonce, relayerFee)
+      return bridge.bondWithdrawal(recipient, amount, transferNonce, bonderFee)
     }
   }
 
@@ -103,7 +103,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     recipient: string,
     amount: string,
     transferNonce: string,
-    relayerFee: string,
+    bonderFee: string,
+    index: BigNumber,
     meta: any
   ) => {
     try {
@@ -139,7 +140,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         recipient,
         amount,
         transferNonce,
-        relayerFee,
+        bonderFee,
         attemptSwap,
         chainId,
         amountOutMin,
@@ -176,7 +177,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     recipient: string,
     amount: BigNumber,
     transferNonce: string,
-    relayerFee: BigNumber,
+    bonderFee: BigNumber,
+    index: BigNumber,
     meta: any
   ) => {
     this.logger.log(`received WithdrawalBonded event`)
@@ -184,7 +186,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.log(`recipient:`, recipient)
     this.logger.log('amount:', amount.toString())
     this.logger.log('transferNonce:', transferNonce)
-    this.logger.log('relayerFee:', relayerFee.toString())
+    this.logger.log('bonderFee:', bonderFee.toString())
+    this.logger.log('index:', index.toString())
 
     await db.transfers.update(transferHash, {
       withdrawalBonded: true

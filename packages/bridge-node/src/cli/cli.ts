@@ -7,7 +7,7 @@ import {
   startChallengeWatchers,
   startCommitTransferWatchers
 } from 'src/watchers/watchers'
-import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
+//import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 
 const program = new Command()
 
@@ -38,7 +38,7 @@ program
       tokens,
       networks
     })
-    new xDaiBridgeWatcher().start()
+    //new xDaiBridgeWatcher().start()
   })
 
 program

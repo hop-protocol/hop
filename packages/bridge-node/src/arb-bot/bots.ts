@@ -20,7 +20,7 @@ for (let network of networks) {
     const bot = new ArbBot({
       token0: {
         label: `${network} hop${token}`,
-        contract: tokenContracts.l2Bridge
+        contract: tokenContracts.l2HopBridgeToken
       },
       token1: {
         label: `${network} canonical${token}`,

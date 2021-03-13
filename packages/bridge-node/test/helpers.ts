@@ -1,13 +1,22 @@
 import { ethers, Contract } from 'ethers'
+import { HDNode } from '@ethersproject/hdnode'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { tokens } from 'src/config'
 import l1BridgeArtifact from 'src/abi/L1_Bridge.json'
 import l2BridgeArtifact from 'src/abi/L2_Bridge.json'
 import erc20Artifact from 'src/abi/ERC20.json'
+import l2UniswapWrapperArtifact from 'src/abi/L2_UniswapWrapper.json'
 import uniswapRouterArtifact from 'src/abi/UniswapV2Router02.json'
 import uniswapPairArtifact from 'src/abi/UniswapV2Pair.json'
 import globalInboxArtifact from 'src/abi/GlobalInbox.json'
-import { UINT256, KOVAN, ARBITRUM, DAI } from 'src/constants'
+import {
+  UINT256,
+  ZERO_ADDRESS,
+  KOVAN,
+  ARBITRUM,
+  XDAI,
+  DAI
+} from 'src/constants'
 import { getRpcUrl, networkSlugToId } from 'src/utils'
 import queue from 'src/watchers/helpers/queue'
 
@@ -92,7 +101,7 @@ export class User {
     return contract.transfer(recipient, parseUnits(amount.toString(), 18))
   }
 
-  getHopBridgeContract (network: string, token: string) {
+  getHopBridgeContract (network: string, token: string = DAI) {
     let bridgeAddress: string
     let artifact: any
     if (network === KOVAN) {
@@ -111,6 +120,12 @@ export class User {
     let tokenAddress = tokens[token][network].l2HopBridgeToken
     const wallet = this.getWallet(network)
     return new Contract(tokenAddress, erc20Artifact.abi, wallet)
+  }
+
+  getUniswapWrapperContract (network: string, token: string = DAI) {
+    const wrapperAddress = tokens[token][network].l2UniswapWrapper
+    const wallet = this.getWallet(network)
+    return new Contract(wrapperAddress, l2UniswapWrapperArtifact.abi, wallet)
   }
 
   @queue
@@ -191,18 +206,21 @@ export class User {
     const amountOutMin = '0'
     const chainId = networkSlugToId(destNetwork)
     const recipient = await this.getAddress()
+    const relayerFee = '0'
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
     const ethBalance = await this.getBalance()
     if (ethBalance < 0.0001) {
       throw new Error('Not enough ETH balance for transfer')
     }
 
-    const tx = bridge.sendToL2AndAttemptSwap(
+    const parsedAmount = parseUnits(amount.toString(), 18)
+    const tx = bridge.sendToL2(
       chainId,
       recipient,
-      parseUnits(amount.toString(), 18),
+      parsedAmount,
       amountOutMin,
       deadline,
+      relayerFee,
       {}
     )
 
@@ -217,24 +235,29 @@ export class User {
   ) {
     const deadline = (Date.now() / 1000 + 300) | 0
     const chainId = networkSlugToId(destNetwork)
-    const relayerFee = '0'
-    const amountOutIn = '0'
+    const bonderFee = await this.getBonderFee(
+      sourceNetwork,
+      token,
+      amount.toString()
+    )
+    const amountOutMin = '0'
     const recipient = await this.getAddress()
-    const bridge = this.getHopBridgeContract(sourceNetwork, token)
     let destinationAmountOutMin = '0'
     let destinationDeadline = deadline
+    let parsedAmount = parseUnits(amount.toString(), 18)
 
     if (destNetwork === KOVAN) {
       destinationAmountOutMin = '0'
       destinationDeadline = 0
     }
 
-    return bridge.swapAndSend(
+    const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
+    return wrapper.swapAndSend(
       chainId,
       recipient,
-      parseUnits(amount.toString(), 18),
-      relayerFee,
-      amountOutIn,
+      parsedAmount,
+      bonderFee,
+      amountOutMin,
       deadline,
       destinationAmountOutMin,
       destinationDeadline
@@ -247,27 +270,42 @@ export class User {
     token: string,
     amount: string | number
   ) {
+    const recipient = await this.getAddress()
     const deadline = (Date.now() / 1000 + 300) | 0
+    const sourceChainId = networkSlugToId(sourceNetwork)
     const chainId = networkSlugToId(destNetwork)
-    const relayerFee = '0'
-    const amountOutIn = '0'
+    const bonderFee = await this.getBonderFee(
+      sourceNetwork,
+      token,
+      amount.toString()
+    )
+    const amountOutMin = '0'
     const destinationAmountOutMin = '0'
+    const destinationDeadline = (Date.now() / 1000 + 300) | 0
     const parsedAmount = parseUnits(amount.toString(), 18)
 
-    const bridge = this.getHopBridgeContract(sourceNetwork, token)
-    const recipient = await this.getAddress()
-    const tx = await bridge.swapAndSend(
+    await this.validateChainId(sourceChainId)
+    //const bridge = this.getHopBridgeContract(sourceNetwork, token)
+    const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
+    //const router = this.getUniswapRouterContract(sourceNetwork, token)
+    //const path = [await wrapper.hToken(), await wrapper.l2CanonicalToken()]
+    //const amountOut = await router.getAmountsOut(parsedAmount, path)
+    //console.log('amount out 0:', formatUnits(amountOut[0], 18).toString())
+    //console.log('amount out 1:', formatUnits(amountOut[1], 18).toString())
+
+    return wrapper.swapAndSend(
       chainId,
       recipient,
       parsedAmount,
-      relayerFee,
-      amountOutIn,
+      bonderFee,
+      amountOutMin,
       deadline,
       destinationAmountOutMin,
-      deadline
+      destinationDeadline,
+      {
+        //gasLimit: '1000000'
+      }
     )
-
-    return tx
   }
 
   async sendAndWaitForReceipt (
@@ -299,12 +337,29 @@ export class User {
     return tokenContract.transfer(recipient, parseUnits(amount.toString(), 18))
   }
 
+  async getBonderFee (network: string, token: string, amount: string) {
+    const bridge = this.getHopBridgeContract(network, token)
+    const minBonderBps = await bridge.minBonderBps()
+    const minBonderFeeAbsolute = await bridge.minBonderFeeAbsolute()
+    const minBonderFeeRelative = parseUnits(amount, 18)
+      .mul(minBonderBps)
+      .div(10000)
+    const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
+      ? minBonderFeeRelative
+      : minBonderFeeAbsolute
+    return minBonderFee
+  }
+
   getBridgeAddress (network: string, token: string) {
     let address = tokens[token][network].l2Bridge
     if (network === KOVAN) {
       address = tokens[token][network].l1Bridge
     }
     return address
+  }
+
+  getUniswapWrapperAddress (network: string, token: string) {
+    return tokens[token][network].l2UniswapWrapper
   }
 
   async calcToken1Rate (network: string, token: string) {
@@ -397,9 +452,21 @@ export class User {
     amount: string | number
   ) {
     const l1Bridge = this.getHopBridgeContract(KOVAN, token)
+    const chainId = networkSlugToId(destNetwork)
     const recipient = await this.getAddress()
     const value = parseUnits(amount.toString(), 18)
-    return l1Bridge.sendToL2(networkSlugToId(destNetwork), recipient, value)
+    const deadline = '0'
+    const relayerFee = '0'
+    const amountOutMin = '0'
+
+    return l1Bridge.sendToL2(
+      chainId,
+      recipient,
+      value,
+      amountOutMin,
+      deadline,
+      relayerFee
+    )
   }
 
   async addLiquidity (
@@ -466,7 +533,7 @@ export class User {
     totalAmount: number
   ) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
-    const bridge = this.getHopBridgeContract(KOVAN, DAI)
+    const bridge = this.getHopBridgeContract(KOVAN)
     return bridge.bondTransferRoot(
       transferRootHash,
       chainId,
@@ -492,7 +559,7 @@ export class User {
 
   async challengeTransferRoot (transferRootHash: string, totalAmount: number) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
-    const bridge = this.getHopBridgeContract(KOVAN, DAI)
+    const bridge = this.getHopBridgeContract(KOVAN)
     return bridge.challengeTransferBond(transferRootHash, parsedTotalAmount, {
       //gasLimit: 1000000
     })
@@ -508,9 +575,9 @@ export class User {
 
   async resolveChallenge (transferRootHash: string, totalAmount: number) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
-    const bridge = this.getHopBridgeContract(KOVAN, DAI)
+    const bridge = this.getHopBridgeContract(KOVAN)
     return bridge.resolveChallenge(transferRootHash, parsedTotalAmount, {
-      gasLimit: 1000000
+      //gasLimit: 1000000
     })
   }
 
@@ -523,12 +590,12 @@ export class User {
   }
 
   async getChallengePeriod () {
-    const bridge = this.getHopBridgeContract(KOVAN, DAI)
+    const bridge = this.getHopBridgeContract(KOVAN)
     return Number((await bridge.challengePeriod()).toString())
   }
 
   async getChallengeResolutionPeriod () {
-    const bridge = this.getHopBridgeContract(KOVAN, DAI)
+    const bridge = this.getHopBridgeContract(KOVAN)
     return Number((await bridge.challengeResolutionPeriod()).toString())
   }
 
@@ -536,7 +603,7 @@ export class User {
     challengePeriod: number,
     timeSlotSize: number
   ) {
-    const bridge = this.getHopBridgeContract(KOVAN, DAI)
+    const bridge = this.getHopBridgeContract(KOVAN)
     const governance = await bridge.governance()
     if (governance !== (await this.getAddress())) {
       throw new Error('must be governance')
@@ -545,6 +612,82 @@ export class User {
       challengePeriod,
       timeSlotSize
     )
+  }
+
+  async isChainIdPaused (chainId: string) {
+    const bridge = this.getHopBridgeContract(KOVAN)
+    return bridge.isChainIdPaused(chainId)
+  }
+
+  async getCrossDomainMessengerWrapperAddress (chainId: string) {
+    const bridge = this.getHopBridgeContract(KOVAN)
+    return bridge.crossDomainMessengerWrappers(chainId)
+  }
+
+  async setMaxPendingTransfers (network: string, max: number) {
+    const bridge = this.getHopBridgeContract(network)
+    return bridge.setMaxPendingTransfers(max)
+  }
+
+  async validateChainId (chainId: string) {
+    const isPaused = await this.isChainIdPaused(chainId)
+    if (isPaused) {
+      throw new Error('chain id is paused')
+    }
+
+    const wrapperAddress = await this.getCrossDomainMessengerWrapperAddress(
+      chainId
+    )
+    if (wrapperAddress === ZERO_ADDRESS) {
+      throw new Error('wrapper address not set')
+    }
+  }
+
+  async getMaxPendingTransfers (network: string) {
+    const bridge = this.getHopBridgeContract(network)
+    return Number((await bridge.maxPendingTransfers()).toString())
+  }
+
+  async getPendingTransfers (
+    sourceNetwork: string,
+    token: string,
+    destNetwork: string
+  ) {
+    const destChainId = networkSlugToId(destNetwork)
+    const bridge = this.getHopBridgeContract(sourceNetwork, token)
+    const maxPendingTransfers = await this.getMaxPendingTransfers(sourceNetwork)
+    const pendingTransfers: string[] = []
+    for (let i = 0; i < maxPendingTransfers; i++) {
+      try {
+        const pendingTransfer = await bridge.pendingTransferIdsForChainId(
+          destChainId,
+          i
+        )
+        pendingTransfers.push(pendingTransfer)
+      } catch (err) {
+        break
+      }
+    }
+
+    return pendingTransfers
+  }
+
+  async commitTransfers (
+    sourceNetwork: string,
+    token: string,
+    destNetwork: string
+  ) {
+    const bridge = this.getHopBridgeContract(sourceNetwork, token)
+    const destChainId = networkSlugToId(destNetwork)
+    return bridge.commitTransfers(destChainId, {
+      //gasLimit: 1000000
+    })
+  }
+
+  async isBonder (sourceNetwork: string, token: string) {
+    const bridge = this.getHopBridgeContract(sourceNetwork, token)
+    const address = await this.getAddress()
+    return bridge.getIsBonder(address)
   }
 }
 
@@ -586,4 +729,45 @@ export async function waitForEvent (
         })
     })
   })
+}
+
+export function generateUsers (count: number = 1, mnemonic: string) {
+  const users: User[] = []
+  for (let i = 0; i < count; i++) {
+    const path = `m/44'/60'/0'/0/${i}`
+    let hdnode = HDNode.fromMnemonic(mnemonic)
+    hdnode = hdnode.derivePath(path)
+    const privateKey = hdnode.privateKey
+    const user = new User(privateKey)
+    users.push(user)
+  }
+
+  return users
+}
+
+export async function prepareAccount (
+  user: User,
+  sourceNetwork: string,
+  token: string
+) {
+  const balance = await user.getBalance(sourceNetwork, token)
+  if (balance < 10) {
+    // TODO: sent L1 token to L2 over bridge instead of mint (mint not always supported)
+    const tx = await user.mint(sourceNetwork, token, 1000)
+    await tx?.wait()
+  }
+  expect(balance).toBeGreaterThan(0)
+  let spender: string
+  if (sourceNetwork === KOVAN) {
+    spender = user.getBridgeAddress(sourceNetwork, token)
+  } else {
+    spender = user.getUniswapWrapperAddress(sourceNetwork, token)
+  }
+  await checkApproval(user, sourceNetwork, token, spender)
+  // NOTE: xDai SPOA token is required for fees.
+  // faucet: https://blockscout.com/poa/sokol/faucet
+  if (sourceNetwork === XDAI) {
+    const ethBalance = await user.getBalance(sourceNetwork)
+    expect(ethBalance).toBeGreaterThan(0)
+  }
 }

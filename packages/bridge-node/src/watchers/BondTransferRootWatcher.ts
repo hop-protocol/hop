@@ -132,10 +132,12 @@ class BondTransferRootWatcher extends BaseWatcher {
   handleTransferCommittedEvent = async (
     transferRootHash: string,
     _totalAmount: BigNumber,
+    commitedAt: BigNumber,
     meta: any
   ) => {
     try {
       this.logger.log(`received L2 TransfersCommitted event`)
+      this.logger.log(`commitedAt:`, commitedAt.toString())
       const { transactionHash } = meta
       const { data } = await this.l2Bridge.getTransaction(transactionHash)
       const {

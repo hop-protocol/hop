@@ -1,9 +1,8 @@
 require('dotenv').config()
-import { HDNode } from '@ethersproject/hdnode'
 import { KOVAN, XDAI } from 'src/constants'
 import { startWatchers } from 'src/watchers/watchers'
 import { wait } from 'src/utils'
-import { User, checkApproval, waitForEvent } from './helpers'
+import { User, checkApproval, waitForEvent, generateUsers } from './helpers'
 import { faucetPrivateKey, mnemonic } from './config'
 import Logger from 'src/logger'
 
@@ -17,7 +16,7 @@ const logger = new Logger('TEST')
 test(
   'loadtest',
   async () => {
-    const users = generateUsers(NUM_USERS)
+    const users = generateUsers(NUM_USERS, mnemonic)
     await prepareAccounts(users)
     const { stop, watchers } = startWatchers({
       networks: [sourceNetwork, destNetwork]
@@ -72,21 +71,7 @@ test(
   300 * 1000
 )
 
-function generateUsers (count: number = 1) {
-  const users: User[] = []
-  for (let i = 0; i < count; i++) {
-    const path = `m/44'/60'/0'/0/${i}`
-    let hdnode = HDNode.fromMnemonic(mnemonic)
-    hdnode = hdnode.derivePath(path)
-    const privateKey = hdnode.privateKey
-    const user = new User(privateKey)
-    users.push(user)
-  }
-
-  return users
-}
-
-async function prepareAccounts (users: User[]) {
+export async function prepareAccounts (users: User[]) {
   const faucet = new User(faucetPrivateKey)
   for (let user of users) {
     logger.log('preparing account')
@@ -114,7 +99,7 @@ async function prepareAccounts (users: User[]) {
   return users
 }
 
-async function getBalances (users: User[]): Promise<any[]> {
+export async function getBalances (users: User[]): Promise<any[]> {
   return Promise.all([
     Promise.all(
       users.map((user: User) => user.getBalance(sourceNetwork, token))

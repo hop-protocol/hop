@@ -102,9 +102,16 @@ class CommitTransfersWatcher extends BaseWatcher {
       this.logger.warn('only Bonder can commit before min delay')
     }
 
+    const messengerAddress = await this.l2Bridge.l2BridgeWrapper.getMessengerAddress()
+    this.logger.log('messenger address:', messengerAddress)
+
     const pendingTransfers: string[] = await this.l2Bridge.getPendingTransfers(
       chainId
     )
+    if (!pendingTransfers.length) {
+      this.logger.log('no pending transfers to commit')
+    }
+
     this.logger.log(chainId, 'onchain pendingTransfers', pendingTransfers)
     const tree = new MerkleTree(pendingTransfers)
     const transferRootHash = tree.getHexRoot()
@@ -137,7 +144,8 @@ class CommitTransfersWatcher extends BaseWatcher {
     recipient: string,
     amount: string,
     transferNonce: string,
-    relayerFee: string,
+    bonderFee: string,
+    index: string,
     meta: any
   ) => {
     try {

@@ -1,10 +1,15 @@
 import { Contract } from 'ethers'
-import { isL1NetworkId } from 'src/utils'
 import Bridge from './Bridge'
 import queue from './queue'
+import l2UniswapWrapperArtifact from 'src/abi/L2_UniswapWrapper.json'
+import l2BridgeWrapperArtifact from 'src/abi/L2_BridgeWrapper.json'
+import L2UniswapWrapper from './L2UniswapWrapper'
+import L2BridgeWrapper from './L2BridgeWrapper'
 
 export default class L2Bridge extends Bridge {
   l2BridgeContract: Contract
+  l2UniswapWrapper: L2UniswapWrapper
+  l2BridgeWrapper: L2BridgeWrapper
   TransfersCommitted: string = 'TransfersCommitted'
   TransferSent: string = 'TransferSent'
 
@@ -12,6 +17,22 @@ export default class L2Bridge extends Bridge {
     super(l2BridgeContract)
     this.l2BridgeContract = l2BridgeContract
     this.l2StartListeners()
+
+    this.l2BridgeContract.uniswapWrapper().then((address: string) => {
+      const l2UniswapWrapperContract = new Contract(
+        address,
+        l2UniswapWrapperArtifact.abi,
+        this.l2BridgeContract.signer
+      )
+      this.l2UniswapWrapper = new L2UniswapWrapper(l2UniswapWrapperContract)
+    })
+
+    const l2BridgeWrapperContract = new Contract(
+      this.l2BridgeContract.address,
+      l2BridgeWrapperArtifact.abi,
+      this.l2BridgeContract.signer
+    )
+    this.l2BridgeWrapper = new L2BridgeWrapper(l2BridgeWrapperContract)
   }
 
   l2StartListeners () {
@@ -70,18 +91,9 @@ export default class L2Bridge extends Bridge {
     let chainId = ''
     let attemptSwap = false
     try {
-      const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
-        'swapAndSend',
-        data
-      )
-      chainId = decoded.chainId.toString()
-
-      if (!isL1NetworkId(chainId)) {
-        // L2 to L2 transfers have uniswap parameters set
-        if (Number(decoded.destinationDeadline.toString()) > 0) {
-          attemptSwap = true
-        }
-      }
+      const decoded = await this.l2UniswapWrapper.decodeSwapAndSendData(data)
+      chainId = decoded.chainId
+      attemptSwap = decoded.attemptSwap
     } catch (err) {
       const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
         'send',
@@ -150,15 +162,15 @@ export default class L2Bridge extends Bridge {
     recipient: string,
     amount: string,
     transferNonce: string,
-    relayerFee: string,
+    bonderFee: string,
     amountOutMin: string,
     deadline: string
   ) {
-    return this.l2BridgeContract.bondWithdrawalAndAttemptSwap(
+    return this.l2BridgeContract.bondWithdrawalAndDistribute(
       recipient,
       amount,
       transferNonce,
-      relayerFee,
+      bonderFee,
       amountOutMin,
       deadline,
       {

@@ -3,7 +3,7 @@ import promiseTimeout from 'src/utils/promiseTimeout'
 import { wait } from 'src/utils'
 
 const mutexes: { [key: string]: Mutex } = {}
-const MAX_RETRIES = 3
+const MAX_RETRIES = 1
 const TIMEOUT_MS = 15 * 1000
 
 export default function queue (
@@ -18,7 +18,7 @@ export default function queue (
     }
     const mutex = mutexes[this.queueGroup]
     return mutex.runExclusive(async () => {
-      return runner(originalMethod.apply(this, args))
+      return await runner(originalMethod.apply(this, args))
     })
   }
 
@@ -26,16 +26,17 @@ export default function queue (
 }
 
 async function runner (fn: any) {
-  let retries = MAX_RETRIES
+  let retries = 0
   const retry = () => promiseTimeout(fn, TIMEOUT_MS)
-  while (retries) {
+  while (true) {
     try {
       return await retry()
     } catch (err) {
-      retries--
-      if (!retries) {
+      retries++
+      if (retries >= MAX_RETRIES) {
         throw err
       }
+      console.log('error:', err.message)
       console.log(`queue function error; retrying (${retries})`)
       await wait(1 * 1000)
     }

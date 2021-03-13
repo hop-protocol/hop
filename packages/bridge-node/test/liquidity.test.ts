@@ -1,12 +1,12 @@
 require('dotenv').config()
 import { User, checkApproval } from './helpers'
 import { wait } from 'src/utils'
-import { KOVAN, ARBITRUM, XDAI } from 'src/constants'
+import { KOVAN, OPTIMISM, XDAI } from 'src/constants'
+import { privateKey } from './config'
 
-const privateKey = process.env.TEST_USER_PRIVATE_KEY
 const TOKEN = 'DAI'
-const TOKEN_0_AMOUNT = 5
-const testNetworks = [ARBITRUM, XDAI]
+const TOKEN_0_AMOUNT = 1000
+const testNetworks = [XDAI, OPTIMISM]
 
 for (let l2Network of testNetworks) {
   test(
@@ -31,6 +31,7 @@ async function addLiquidity (l2Network: string, amount: number) {
   console.log(`hop ${TOKEN} balance: ${hopBalance}`)
 
   if (hopBalance < amount) {
+    console.log('converting canonical token to hop token')
     tx = await user.canonicalTokenToHopToken(l2Network, TOKEN, amount)
     console.log('tx sendToL2:', tx?.hash)
     await tx?.wait()

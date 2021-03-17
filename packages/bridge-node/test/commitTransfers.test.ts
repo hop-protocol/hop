@@ -1,12 +1,14 @@
-import { KOVAN, OPTIMISM, DAI } from 'src/constants'
-import { privateKey, governancePrivateKey } from './config'
+import { KOVAN, XDAI, OPTIMISM, DAI } from 'src/constants'
+import { bonderPrivateKey, governancePrivateKey } from './config'
 import { User } from './helpers'
+
+console.log(OPTIMISM, XDAI)
 
 test(
   'commitTransfers',
   async () => {
-    const user = new User(privateKey)
-    const sourceChain = OPTIMISM
+    const user = new User(bonderPrivateKey)
+    const sourceChain = XDAI
     const destChain = KOVAN
     const token = DAI
     const pendingTransfers = await user.getPendingTransfers(
@@ -20,6 +22,8 @@ test(
     console.log('is bonder:', isBonder)
 
     const bridge = await user.getHopBridgeContract(sourceChain, token)
+    console.log('messenger address:', await bridge.messenger())
+    console.log('amb bridge address:', await bridge.ambBridge())
     console.log('l1 address:', await bridge.l1BridgeAddress())
 
     const tx = await user.commitTransfers(sourceChain, token, destChain)

@@ -42,8 +42,10 @@ describe('bondWithdrawal', () => {
       async () => {
         logger.log(label)
         const user = new User(privateKey)
+        logger.log('preparing account')
         await prepareAccount(user, sourceNetwork, TOKEN)
         const recipient = await user.getAddress()
+        logger.log('starting watchers')
         const { stop, watchers } = startWatchers({ networks: path })
         const sourceBalanceBefore = await user.getBalance(sourceNetwork, TOKEN)
         expect(sourceBalanceBefore).toBeGreaterThan(TRANSFER_AMOUNT)
@@ -61,14 +63,14 @@ describe('bondWithdrawal', () => {
         logger.log('got receipt')
         if (isL1(sourceNetwork)) {
           logger.log('waiting')
-          await wait(40 * 1000)
+          await wait(120 * 1000)
         } else {
           await waitForEvent(
             watchers,
             'bondWithdrawal',
             data => data.recipient === recipient
           )
-          await wait(20 * 1000)
+          await wait(120 * 1000)
         }
         const sourceBalanceAfter = await user.getBalance(sourceNetwork, TOKEN)
         const destBalanceAfter = await user.getBalance(destNetwork, TOKEN)

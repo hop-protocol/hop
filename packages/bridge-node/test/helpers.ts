@@ -9,15 +9,18 @@ import l2UniswapWrapperArtifact from 'src/abi/L2_UniswapWrapper.json'
 import uniswapRouterArtifact from 'src/abi/UniswapV2Router02.json'
 import uniswapPairArtifact from 'src/abi/UniswapV2Pair.json'
 import globalInboxArtifact from 'src/abi/GlobalInbox.json'
+import xDaiForeignOmnibridgeArtifact from 'src/abi/L1_xDaiForeignOmnibridge.json'
+import optimismTokenBridgeArtifact from 'src/abi/L1_OptimismTokenBridge.json'
 import {
   UINT256,
   ZERO_ADDRESS,
   KOVAN,
   ARBITRUM,
+  OPTIMISM,
   XDAI,
   DAI
 } from 'src/constants'
-import { getRpcUrl, networkSlugToId } from 'src/utils'
+import { wait, getRpcUrl, networkSlugToId } from 'src/utils'
 import queue from 'src/watchers/helpers/queue'
 
 export class User {
@@ -252,6 +255,8 @@ export class User {
     }
 
     const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
+    await checkApproval(this, sourceNetwork, token, wrapper.address)
+
     return wrapper.swapAndSend(
       chainId,
       recipient,
@@ -292,6 +297,7 @@ export class User {
     //const amountOut = await router.getAmountsOut(parsedAmount, path)
     //console.log('amount out 0:', formatUnits(amountOut[0], 18).toString())
     //console.log('amount out 1:', formatUnits(amountOut[1], 18).toString())
+    await checkApproval(this, sourceNetwork, token, wrapper.address)
 
     return wrapper.swapAndSend(
       chainId,
@@ -419,6 +425,18 @@ export class User {
         globalInboxArtifact.abi,
         wallet
       )
+    } else if (destNetwork === OPTIMISM) {
+      return new Contract(
+        tokens[token][destNetwork].l1CanonicalBridge,
+        optimismTokenBridgeArtifact.abi,
+        wallet
+      )
+    } else if (destNetwork === XDAI) {
+      return new Contract(
+        tokens[token][destNetwork].l1CanonicalBridge,
+        xDaiForeignOmnibridgeArtifact.abi,
+        wallet
+      )
     } else {
       throw new Error('not implemented')
     }
@@ -432,10 +450,18 @@ export class User {
   ) {
     const recipient = await this.getAddress()
     const value = parseUnits(amount.toString(), 18)
+    const tokenBridge = this.getCanonicalBridgeContract(destNetwork, token)
     if (destNetwork === ARBITRUM) {
-      const messenger = this.getCanonicalBridgeContract(destNetwork, token)
-      return messenger.depositERC20Message(
+      return tokenBridge.depositERC20Message(
         tokens[token][destNetwork].arbChain,
+        tokens[token][KOVAN].l1CanonicalToken,
+        recipient,
+        value
+      )
+    } else if (destNetwork === OPTIMISM) {
+      return tokenBridge.deposit(recipient, value)
+    } else if (destNetwork === XDAI) {
+      return tokenBridge.relayTokens(
         tokens[token][KOVAN].l1CanonicalToken,
         recipient,
         value
@@ -523,7 +549,10 @@ export class User {
       amount0Min,
       amount1Min,
       recipient,
-      deadline
+      deadline,
+      {
+        //gasLimit: 1000000
+      }
     )
   }
 
@@ -680,7 +709,7 @@ export class User {
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
     const destChainId = networkSlugToId(destNetwork)
     return bridge.commitTransfers(destChainId, {
-      //gasLimit: 1000000
+      gasLimit: 2000000
     })
   }
 
@@ -752,9 +781,21 @@ export async function prepareAccount (
 ) {
   const balance = await user.getBalance(sourceNetwork, token)
   if (balance < 10) {
-    // TODO: sent L1 token to L2 over bridge instead of mint (mint not always supported)
-    const tx = await user.mint(sourceNetwork, token, 1000)
-    await tx?.wait()
+    if (sourceNetwork === XDAI) {
+      let tx = await user.mint(KOVAN, token, 1000)
+      await tx?.wait()
+      const l1CanonicalBridge = user.getCanonicalBridgeContract(
+        sourceNetwork,
+        token
+      )
+      await checkApproval(user, KOVAN, token, l1CanonicalBridge.address)
+      tx = await user.convertToCanonicalToken(sourceNetwork, token, 1000)
+      await tx?.wait()
+      await wait(20 * 1000)
+    } else {
+      const tx = await user.mint(sourceNetwork, token, 1000)
+      await tx?.wait()
+    }
   }
   expect(balance).toBeGreaterThan(0)
   let spender: string

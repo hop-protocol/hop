@@ -10,7 +10,7 @@ const sourceNetwork = XDAI
 const destNetwork = KOVAN
 const token = 'DAI'
 const TRANSFER_AMOUNT = 1
-const NUM_USERS = 5
+const NUM_USERS = 20
 const logger = new Logger('TEST')
 
 test(

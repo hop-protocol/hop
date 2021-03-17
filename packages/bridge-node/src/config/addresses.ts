@@ -1,6 +1,6 @@
 export const rpcUrls: { [key: string]: string } = {
   kovan: 'https://kovan.rpc.hop.exchange',
-  optimism: 'https://kovan.optimism.rpc.hop.exchange',
+  optimism: 'https://kovan.optimism.io',
   arbitrum: 'https://kovan3.arbitrum.io/rpc',
   xdai: 'https://sokol.poa.network'
 }
@@ -18,7 +18,7 @@ export const tokens: {
   DAI: {
     kovan: {
       l1CanonicalToken: '0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9',
-      l1Bridge: '0xC3AfC5D83d99eac3450aC9801cd6dd839d93f962'
+      l1Bridge: '0xbFE287FD6d9a856b10281083c0B03160998F51d9'
     },
     /*
     arbitrum: {
@@ -33,26 +33,26 @@ export const tokens: {
     },
 		*/
     optimism: {
-      l1CanonicalBridge: '0xA6e9F1409fe85c84CEACD5936800A12d721009cE',
-      l2CanonicalBridge: '0x6d2f304CFF4e0B67dA4ab38C6A5C8184a2424D05',
-      l2CanonicalToken: '0x57eaeE3D9C99b93D8FD1b50EF274579bFEC8e14B',
-      l2Bridge: '0x8574f2DdE27E69032080Cc0C06Cf364d16C27F49',
-      l2HopBridgeToken: '0xABc55F70c660b3BbEeB9C0cD2ca1353115cd0D35',
-      l2UniswapWrapper: '0x2028dc304c14510a74F79d4f4FD9aFC628BFc724',
-      uniswapRouter: '0xD8581750B2a8ea41Ff19723f627f709C50C2Ba97',
-      uniswapFactory: '0x6C5bA814b2C4c279EB47d145b33AC1FdeeEe687f',
-      uniswapExchange: '0x48b973a18025200aA9B0c07788D6025FaE801760'
+      l1CanonicalBridge: '0xC76F55Dd0aeF08e46a454DCbb4fAA940d4450C72',
+      l2CanonicalBridge: '0x782e1ec5F7381269b2e5DC4eD58648C60161539b',
+      l2CanonicalToken: '0x782e1ec5F7381269b2e5DC4eD58648C60161539b',
+      l2Bridge: '0xcdEFB10800763eeC078e829aa8cC15C97E784bCD',
+      l2HopBridgeToken: '0xe0a010115Cad71C25217cDaa525ed6F7637D5c6F',
+      l2UniswapWrapper: '0x8889DBf65B2a195Ad2325403363b6028EFa2Bd65',
+      uniswapRouter: '0x4bC4168e2f6108D29D7E42D5114740161004284d',
+      uniswapFactory: '0x54F19216ab6b2D8A33a4F7dBE54873304F20dC8d',
+      uniswapExchange: '0x30EC5bA956114F8316AF690C67b939d8D547e61D'
     },
     xdai: {
       l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
       l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
       l2CanonicalToken: '0x714983a8Dc3329bf3BeB8F36b49878CF944E5A3B',
-      l2Bridge: '0xd619ad47beF3EFB4641Ec4a38806d969C8B7a6aa',
-      l2HopBridgeToken: '0x653bE9988FdF46a0843c09B2B30978c6206d6150',
-      l2UniswapWrapper: '0x4b3d9e4DCba143E781621B6FaE9eaA9d1e7274E9',
-      uniswapRouter: '0x8a7CE4E1d2F2dcEC1c2c225751E7cE8193CE7a3A',
-      uniswapFactory: '0x63d1892fC72A1F2daA744fA40BAf17E7063E1794',
-      uniswapExchange: '0xD143c76EF9b8FB05bd01C3b439e48b0B4ab0EDc8',
+      l2Bridge: '0xdF9E0A8aFF08B00cA062d44e999A9d945586aD77',
+      l2HopBridgeToken: '0x2e1EC45f7Bb01905CAE6aB7e232BA2093E276786',
+      l2UniswapWrapper: '0x0d253e4E94055D63B32A845b5CFBEEB65420bAD2',
+      uniswapRouter: '0xbFE287FD6d9a856b10281083c0B03160998F51d9',
+      uniswapFactory: '0x8f7b441aF35018E4EDA38b4C472b8eEa6BFF94EE',
+      uniswapExchange: '0x07b3f4D4BaF93Ee224aA36A12DC016966fAA312F',
       l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
       l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560'
     }

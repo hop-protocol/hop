@@ -65,10 +65,10 @@ const useNetworkSpecificContracts = (
   const l2CanonicalTokenAddress: string = tokenConfig.l2CanonicalToken
   const l2BridgeAddress: string = tokenConfig.l2Bridge
   const l2HopBridgeTokenAddress: string = tokenConfig.l2HopBridgeToken
-  const uniswapWrapperAddress: string = tokenConfig.uniswapWrapper
-  const uniswapRouterAddress: string = tokenConfig.uniswapRouter
-  const uniswapFactoryAddress: string = tokenConfig.uniswapFactory
-  const uniswapExchangeAddress: string = tokenConfig.uniswapExchange
+  const uniswapWrapperAddress: string = tokenConfig.l2UniswapWrapper
+  const uniswapRouterAddress: string = tokenConfig.l2UniswapRouter
+  const uniswapFactoryAddress: string = tokenConfig.l2UniswapFactory
+  const uniswapExchangeAddress: string = tokenConfig.l2UniswapExchange
 
   const l2Provider = useMemo(() => {
     if (connectedNetworkId === l2Network?.networkId) {

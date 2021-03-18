@@ -503,7 +503,7 @@ const Send: FC = () => {
       },
       onConfirm: async () => {
         const deadline = (Date.now() / 1000 + 300) | 0
-        const destinationDeadline = deadline
+        const destinationDeadline = '0'
         const amountOutIn = '0'
         const destinationAmountOutMin = '0'
         const bonderFee = await getBonderFee()

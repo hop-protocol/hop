@@ -4,8 +4,8 @@ import { wait } from 'src/utils'
 import { KOVAN, OPTIMISM, XDAI } from 'src/constants'
 import { bonderPrivateKey } from './config'
 
-const TOKEN = 'DAI'
-const TOKEN_0_AMOUNT = 1000
+const TOKEN = 'sBTC'
+const TOKEN_0_AMOUNT = 10000
 const testNetworks = [OPTIMISM, XDAI]
 console.log(OPTIMISM, XDAI)
 

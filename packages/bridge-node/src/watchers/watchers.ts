@@ -195,7 +195,6 @@ function startWatchers (_config: Config = {}) {
         })
       )
 
-      /*
       watchers.push(
         new CommitTransferWatcher({
           order,
@@ -210,7 +209,6 @@ function startWatchers (_config: Config = {}) {
           }
         })
       )
-      */
     }
   }
 

@@ -11,6 +11,7 @@
     "dev": "tsc --watch",
     "build": "tsc",
     "lint": "prettier-standard --format",
+    "clean": "rm -rf dist",
     "clean:arbitrum": "rm -rf l2_nodes/arbitrum/data",
     "clean:db": "rm -rf src/db/db_data"
   },
@@ -21,6 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "@authereum/utils": "^0.1.12",
+    "@eth-optimism/watcher": "0.0.1-alpha.9",
     "@ethersproject/experimental": "^5.0.9",
     "@ethersproject/hdnode": "^5.0.9",
     "@hop-exchange/contracts": "0.0.2",

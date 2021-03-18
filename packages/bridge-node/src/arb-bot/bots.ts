@@ -28,13 +28,13 @@ for (let network of networks) {
       },
       uniswap: {
         router: {
-          contract: tokenContracts.uniswapRouter
+          contract: tokenContracts.l2UniswapRouter
         },
         factory: {
-          contract: tokenContracts.uniswapFactory
+          contract: tokenContracts.l2UniswapFactory
         },
         exchange: {
-          contract: tokenContracts.uniswapExchange
+          contract: tokenContracts.l2UniswapExchange
         }
       },
       wallet: wallets[network],

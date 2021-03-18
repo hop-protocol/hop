@@ -2,14 +2,15 @@ import { KOVAN, XDAI, OPTIMISM, DAI } from 'src/constants'
 import { privateKey } from './config'
 import { User } from './helpers'
 
-console.log(KOVAN, OPTIMISM, XDAI)
+console.log(KOVAN, OPTIMISM, XDAI, DAI)
+
+const network = OPTIMISM
+const token = 'sBTC'
 
 test(
   'mint',
   async () => {
     const user = new User(privateKey)
-    const network = OPTIMISM
-    const token = DAI
     const amount = 10000
     const tokenBalanceBefore = await user.getBalance(network, token)
     const tx = await user.mint(network, token, amount)

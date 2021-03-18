@@ -278,7 +278,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             },
             onConfirm: async () => {
               const amountOutMin = '0'
-              const deadline = (Date.now() / 1000 + 300) | 0
+              const deadline = '0'
               const relayerFee = '0'
               const l1BridgeWrite = await getWriteContract(l1Bridge)
               return l1BridgeWrite?.sendToL2(
@@ -497,10 +497,10 @@ const ConvertContextProvider: FC = ({ children }) => {
                   : minBonderFeeAbsolute
                 return minBonderFee
               }
-              const deadline = '0'
+              const deadline = (Date.now() / 1000 + 300) | 0
               const amountOutMin = '0'
               let destinationAmountOutMin = '0'
-              let destinationDeadline = deadline
+              let destinationDeadline = '0'
               const bonderFee = await getBonderFee()
               const wrapperWrite = await getWriteContract(uniswapWrapper)
               const chainId = destNetwork?.networkId

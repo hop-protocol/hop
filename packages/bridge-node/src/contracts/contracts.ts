@@ -74,7 +74,7 @@ const getL2UniswapRouterContract = (
   wallet: any
 ) => {
   return new ethers.Contract(
-    tokens[token][network].uniswapRouter,
+    tokens[token][network].l2UniswapRouter,
     uniswapRouterArtifact.abi,
     wallet
   )
@@ -86,7 +86,7 @@ const getL2UniswapFactoryContract = (
   wallet: any
 ) => {
   return new ethers.Contract(
-    tokens[token][network].uniswapFactory,
+    tokens[token][network].l2UniswapFactory,
     uniswapFactoryArtifact.abi,
     wallet
   )
@@ -98,7 +98,7 @@ const getL2UniswapExchangeContract = (
   wallet: any
 ) => {
   return new ethers.Contract(
-    tokens[token][network].uniswapFactory,
+    tokens[token][network].l2UniswapFactory,
     uniswapV2PairArtifact.abi,
     wallet
   )

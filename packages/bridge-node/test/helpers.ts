@@ -1,3 +1,5 @@
+// @ts-ignore
+import { Watcher } from '@eth-optimism/watcher'
 import { ethers, Contract } from 'ethers'
 import { HDNode } from '@ethersproject/hdnode'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
@@ -76,13 +78,13 @@ export class User {
   }
 
   getUniswapRouterContract (network: string, token: string) {
-    let routerAddress = tokens[token][network].uniswapRouter
+    let routerAddress = tokens[token][network].l2UniswapRouter
     const wallet = this.getWallet(network)
     return new Contract(routerAddress, uniswapRouterArtifact.abi, wallet)
   }
 
   getUniswapPairContract (network: string, token: string) {
-    let pairAddress = tokens[token][network].uniswapExchange
+    let pairAddress = tokens[token][network].l2UniswapExchange
     const wallet = this.getWallet(network)
     return new Contract(pairAddress, uniswapPairArtifact.abi, wallet)
   }
@@ -256,7 +258,6 @@ export class User {
 
     const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
     await checkApproval(this, sourceNetwork, token, wrapper.address)
-
     return wrapper.swapAndSend(
       chainId,
       recipient,
@@ -724,6 +725,23 @@ export class User {
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
     const address = await this.getAddress()
     return bridge.getIsBonder(address)
+  }
+
+  async waitForL2Tx (l1TxHash: string) {
+    const watcher = new Watcher({
+      l1: {
+        provider: this.getProvider(KOVAN),
+        messengerAddress: '0xb89065D5eB05Cac554FDB11fC764C679b4202322'
+      },
+      l2: {
+        provider: this.getProvider(OPTIMISM),
+        messengerAddress: '0x4200000000000000000000000000000000000007'
+      }
+    })
+
+    const [messageHash] = await watcher.getMessageHashesFromL1Tx(l1TxHash)
+    const l2TxReceipt = await watcher.getL2TransactionReceipt(messageHash)
+    return l2TxReceipt
   }
 }
 

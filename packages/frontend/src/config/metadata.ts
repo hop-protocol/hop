@@ -32,6 +32,16 @@ export const metadata: Metadata = {
       symbol: 'ARB',
       name: 'ARB Token',
       decimals: 18
+    },
+    sETH: {
+      symbol: 'sETH',
+      name: 'Synth ETH',
+      decimals: 18
+    },
+    sBTC: {
+      symbol: 'sBTC',
+      name: 'Synth BTC',
+      decimals: 18
     }
   },
   networks: {

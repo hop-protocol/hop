@@ -117,7 +117,7 @@ const AmountSelectorCard: FC<Props> = props => {
             value={value}
             onChange={onChange}
             placeholder="0.0"
-            units={token?.networkSymbol(selectedNetwork)}
+            units={token?.symbol}
           />
         </Grid>
       </Grid>

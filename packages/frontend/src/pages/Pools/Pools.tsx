@@ -229,9 +229,7 @@ const Pools: FC = () => {
               color="textSecondary"
               component="div"
             >
-              {hopToken?.symbol} per{' '}
-              <small>{selectedNetwork?.slug.substr(0, 3)}</small>
-              {selectedToken?.symbol}
+              {hopToken?.symbol} per {selectedToken?.symbol}
             </Typography>
           </Box>
           <Box alignItems="center" className={styles.priceBox}>
@@ -243,7 +241,6 @@ const Pools: FC = () => {
               color="textSecondary"
               component="div"
             >
-              <small>{selectedNetwork?.slug.substr(0, 3)}</small>
               {selectedToken?.symbol} per {hopToken?.symbol}
             </Typography>
           </Box>
@@ -323,7 +320,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {selectedToken?.networkSymbol(selectedNetwork)}:
+                  {selectedToken?.symbol}:
                 </Typography>
                 <Typography
                   variant="subtitle2"

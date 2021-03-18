@@ -50,7 +50,6 @@ const Pools: FC = () => {
             <Table className={styles.table}>
               <TableHead>
                 <th>Name</th>
-                <th>Liqudity</th>
                 <th>Pooled Token 0</th>
                 <th>Pooled Token 1</th>
                 <th>Pair</th>
@@ -78,9 +77,6 @@ const Pools: FC = () => {
                               width="16"
                             />{' '}
                             {item.token0.symbol}-{item.token1.symbol}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            ${commafy(item.totalLiquidity)}
                           </TableCell>
                           <TableCell className={styles.cell}>
                             {commafy(item.reserve0)} {item.token0.symbol}

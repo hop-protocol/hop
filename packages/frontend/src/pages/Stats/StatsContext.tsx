@@ -86,7 +86,7 @@ const StatsContextProvider: FC = ({ children }) => {
       setFetching(true)
       const promises: Promise<any>[] = []
       for (let network of filteredNetworks) {
-        for (let token of tokens.slice(0, 2)) {
+        for (let token of tokens) {
           promises.push(fetchStats(network, token))
         }
       }

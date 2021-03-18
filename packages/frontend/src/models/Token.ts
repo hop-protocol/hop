@@ -33,10 +33,8 @@ class Token {
   }
 
   networkSymbol (network: Network | undefined) {
-    const prefix = network?.slug?.substr(0, 3) || ''
-
-    // don't prefix if symbol already contains a prefix
-    return (/^[A-Z]/.test(this.symbol) ? prefix : '') + this.symbol
+    const prefix = network?.slug || ''
+    return prefix + '.' + this.symbol
   }
 
   contractForNetwork (network: Network): Contract {

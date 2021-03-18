@@ -89,9 +89,11 @@ export class User {
     return new Contract(pairAddress, uniswapPairArtifact.abi, wallet)
   }
 
-  async mint (network: string, token: string, amount: string | number) {
+  async mint (network: string, token: string, amount: string | number, recipient?: string) {
     const contract = this.getTokenContract(network, token)
-    const recipient = await this.getAddress()
+		if (!recipient) {
+			recipient = await this.getAddress()
+		}
     return contract.mint(recipient, parseUnits(amount.toString(), 18))
   }
 

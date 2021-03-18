@@ -2,6 +2,7 @@ import { ethers } from 'ethers'
 import { EventEmitter } from 'events'
 import { L1_NETWORK } from 'src/constants'
 import { getRpcUrl } from 'src/utils'
+import { getBaseExplorerUrl } from 'src/utils'
 
 interface Config {
   networkName: string
@@ -93,25 +94,19 @@ class Transaction extends EventEmitter {
   }
 
   private _etherscanLink () {
-    let subdomain = ''
-
-    if (this.networkName !== 'mainnet') {
-      subdomain = `${this.networkName}.`
-    }
-
-    return `https://${subdomain}etherscan.io/tx/${this.hash}`
+    return `${getBaseExplorerUrl(this.networkName)}${this.hash}`
   }
 
   private _arbitrumLink () {
-    return `https://explorer.offchainlabs.com/#/tx/${this.hash}`
+    return `${getBaseExplorerUrl('arbitrum')}${this.hash}`
   }
 
   private _optimismLink () {
-    return `https://kovan-l2-explorer.surge.sh/tx/${this.hash}`
+    return `${getBaseExplorerUrl('arbitrum')}${this.hash}`
   }
 
   private _xdaiLink () {
-    return `https://blockscout.com/poa/sokol/tx/${this.hash}`
+    return `${getBaseExplorerUrl('arbitrum')}${this.hash}`
   }
 
   private _maticLink () {

@@ -10,9 +10,11 @@ import Onboard from 'bnc-onboard'
 import { ethers, Contract } from 'ethers'
 import Address from 'src/models/Address'
 import {
+  getNetworkSpecificMetamaskImage,
   networkSlugToId,
+  networkIdToSlug,
   getRpcUrl,
-  getNetworkSpecificMetamaskImage
+  getBaseExplorerUrl
 } from 'src/utils'
 import {
   networks,
@@ -63,6 +65,22 @@ const initialState = {
   ): Promise<Contract | undefined> => undefined
 }
 
+const networkNames: any = {
+  '1': 'Mainnet',
+  '3': 'Ropsten',
+  '4': 'Rinkeby',
+  '5': 'Goerli',
+  '42': 'Kovan',
+  '79377087078960': 'Arbitrum',
+  '10': 'Optimism',
+  '69': 'Optimism',
+  '420': 'Optimism',
+  '77': 'xDai',
+  '100': 'xDai',
+  '80001': 'Matic',
+  '137': 'Matic'
+}
+
 const Web3Context = createContext<Props>(initialState)
 
 const Web3ContextProvider: FC = ({ children }) => {
@@ -78,7 +96,7 @@ const Web3ContextProvider: FC = ({ children }) => {
   const [address, setAddress] = useState<Address | undefined>()
   const onboard = useMemo(() => {
     const cacheKey = 'selectedWallet'
-    const rpcUrl = networks[L1_NETWORK].rpcUrl
+    const rpcUrl = getRpcUrl(L1_NETWORK)
     const walletOptions = [
       { walletName: 'metamask', preferred: true },
       {
@@ -108,21 +126,6 @@ const Web3ContextProvider: FC = ({ children }) => {
     ]
 
     const networkCheck = async (state: any): Promise<any> => {
-      const networkNames: any = {
-        '1': 'Mainnet',
-        '3': 'Ropsten',
-        '4': 'Rinkeby',
-        '5': 'Goerli',
-        '42': 'Kovan',
-        '79377087078960': 'Arbitrum',
-        '10': 'Optimism',
-        '69': 'Optimism',
-        '420': 'Optimism',
-        '77': 'xDai',
-        '100': 'xDai',
-        '80001': 'Matic',
-        '137': 'Matic'
-      }
       const walletName = state.wallet.name
       const gotNetworkId = state.network.toString()
       const wantNetworkId = state.appNetworkId.toString()
@@ -306,6 +309,30 @@ const Web3ContextProvider: FC = ({ children }) => {
     if (networkId != signerNetworkId) {
       onboard.config({ networkId })
       if (onboard.getState().address) {
+        try {
+          if ((window as any).ethereum && networkId) {
+            await (window as any).ethereum.request({
+              id: 1,
+              jsonrpc: '2.0',
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId: `0x${Number(networkId).toString(16)}`,
+                  chainName: networkNames[networkId.toString()],
+                  rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
+                  blockExplorerUrls: [
+                    getBaseExplorerUrl(networkIdToSlug(networkId.toString()))
+                  ]
+                }
+              ]
+            })
+          }
+
+          return true
+        } catch (err) {
+          logger.error(err)
+        }
+
         onboard.walletCheck()
       }
       return false

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Contract, providers } from 'ethers'
-import l1BridgeArtifact from '@hop-exchange/contracts/artifacts/contracts/bridges/L1_Bridge.sol/L1_Bridge.json'
+import l1BridgeArtifact from 'src/abi/L1_Bridge.json'
 import { addresses } from 'src/config'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'

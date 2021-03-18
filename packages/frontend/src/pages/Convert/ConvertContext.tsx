@@ -283,7 +283,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             }
           })
 
-          // destination network is canonical bridge (L1 -> L2 canonical)
+          // destination network is canonical bridge (L1 canonical -> L2 canonical)
         } else if (destNetwork && !isHopBridge(destNetwork?.slug)) {
           const destSlug = destNetwork?.slug
           const destTokenContracts =
@@ -322,7 +322,7 @@ const ConvertContextProvider: FC = ({ children }) => {
                   value
                 )
               } else if (destSlug === OPTIMISM) {
-                return messengerWrite?.deposit(address, value, true)
+                return messengerWrite?.deposit(address, value)
               } else if (destSlug === XDAI) {
                 return messengerWrite?.relayTokens(tokenAddress, address, value)
               } else {

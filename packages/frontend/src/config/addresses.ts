@@ -25,8 +25,9 @@ export const addresses: HopAddresses = {
     DAI: {
       kovan: {
         l1CanonicalToken: '0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9',
-        l1Bridge: '0xe74EFb19BBC46DbE28b7BaB1F14af6eB7158B4BE'
+        l1Bridge: '0xbFE287FD6d9a856b10281083c0B03160998F51d9'
       },
+      /*
       arbitrum: {
         l1CanonicalBridge: '0xE681857DEfE8b454244e701BA63EfAa078d7eA85',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000064',
@@ -37,27 +38,33 @@ export const addresses: HopAddresses = {
         uniswapExchange: '0xD637bf04dF4FDFDf951C06e3c87f7801c85b161f',
         arbChain: '0x2e8aF9f74046D3E55202Fcfb893348316B142230'
       },
+      */
       optimism: {
-        l1CanonicalBridge: '0xA6e9F1409fe85c84CEACD5936800A12d721009cE',
-        l2CanonicalBridge: '0x61cBe9766fe7392A4DE03A54b2069c103AE674eb',
-        l2CanonicalToken: '0x57eaeE3D9C99b93D8FD1b50EF274579bFEC8e14B',
-        l2Bridge: '0x6d2f304CFF4e0B67dA4ab38C6A5C8184a2424D05',
-        uniswapRouter: '0x3C67B82D67B4f31A54C0A516dE8d3e93D010EDb3',
-        uniswapFactory: '0x3e4CFaa8730092552d9425575E49bB542e329981',
-        uniswapExchange: '0x65F72DF8a668BC6272B059BB7F53ADc91066540C'
+        l1CanonicalBridge: '0xC76F55Dd0aeF08e46a454DCbb4fAA940d4450C72',
+        l2CanonicalBridge: '0x782e1ec5F7381269b2e5DC4eD58648C60161539b',
+        l2CanonicalToken: '0x782e1ec5F7381269b2e5DC4eD58648C60161539b',
+        l2Bridge: '0xcdEFB10800763eeC078e829aa8cC15C97E784bCD',
+        l2HopBridgeToken: '0xe0a010115Cad71C25217cDaa525ed6F7637D5c6F',
+        uniswapWrapper: '0x8889DBf65B2a195Ad2325403363b6028EFa2Bd65',
+        uniswapRouter: '0x4bC4168e2f6108D29D7E42D5114740161004284d',
+        uniswapFactory: '0x54F19216ab6b2D8A33a4F7dBE54873304F20dC8d',
+        uniswapExchange: '0x30EC5bA956114F8316AF690C67b939d8D547e61D'
       },
       xdai: {
         l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
         l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
         l2CanonicalToken: '0x714983a8Dc3329bf3BeB8F36b49878CF944E5A3B',
-        l2Bridge: '0x774CAB547c3BD28eC0e688639bC74e87748C187f',
-        uniswapRouter: '0xA7f6C324c44ba178938Ce804F3E877340B48d918',
-        uniswapFactory: '0x81190779A522B1fBA5f80abd9BADA3618A66ca02',
-        uniswapExchange: '0xdB00b4f81c69D8b59B75EAF859dcAEb52bfBee05',
+        l2Bridge: '0xdF9E0A8aFF08B00cA062d44e999A9d945586aD77',
+        l2HopBridgeToken: '0x2e1EC45f7Bb01905CAE6aB7e232BA2093E276786',
+        uniswapWrapper: '0x0d253e4E94055D63B32A845b5CFBEEB65420bAD2',
+        uniswapRouter: '0xbFE287FD6d9a856b10281083c0B03160998F51d9',
+        uniswapFactory: '0x8f7b441aF35018E4EDA38b4C472b8eEa6BFF94EE',
+        uniswapExchange: '0x07b3f4D4BaF93Ee224aA36A12DC016966fAA312F',
         l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560'
       }
-    },
+    }
+    /*
     ARB: {
       kovan: {
         l1CanonicalToken: '0xE41d965f6e7541139f8D9F331176867FB6972Baf',
@@ -74,6 +81,7 @@ export const addresses: HopAddresses = {
         arbChain: '0x2e8aF9f74046D3E55202Fcfb893348316B142230'
       }
     }
+    */
   }
 }
 
@@ -87,13 +95,15 @@ export const networks: any = {
     networkId: '42',
     rpcUrl: 'https://kovan.rpc.hop.exchange'
   },
+  /*
   arbitrum: {
     networkId: '79377087078960',
     rpcUrl: 'https://kovan3.arbitrum.io/rpc'
   },
+	*/
   optimism: {
     networkId: '69',
-    rpcUrl: 'https://kovan.optimism.rpc.hop.exchange'
+    rpcUrl: 'https://kovan.optimism.io'
   },
   xdai: {
     networkId: '77',

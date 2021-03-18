@@ -9,7 +9,11 @@ import React, {
 import Onboard from 'bnc-onboard'
 import { ethers, Contract } from 'ethers'
 import Address from 'src/models/Address'
-import { getNetworkSpecificMetamaskImage } from 'src/utils'
+import {
+  networkSlugToId,
+  getRpcUrl,
+  getNetworkSpecificMetamaskImage
+} from 'src/utils'
 import {
   networks,
   infuraKey,
@@ -110,10 +114,14 @@ const Web3ContextProvider: FC = ({ children }) => {
         '4': 'Rinkeby',
         '5': 'Goerli',
         '42': 'Kovan',
-        [networks['arbitrum'].networkId]: 'Arbitrum',
-        [networks['optimism'].networkId]: 'Optimism',
-        [networks['xdai'].networkId]: 'xDai',
-        [networks['matic'].networkId]: 'Matic'
+        '79377087078960': 'Arbitrum',
+        '10': 'Optimism',
+        '69': 'Optimism',
+        '420': 'Optimism',
+        '77': 'xDai',
+        '100': 'xDai',
+        '80001': 'Matic',
+        '137': 'Matic'
       }
       const walletName = state.wallet.name
       const gotNetworkId = state.network.toString()
@@ -125,27 +133,27 @@ const Web3ContextProvider: FC = ({ children }) => {
       const gotNetworkName = networkNames[gotNetworkId] || 'local'
       const wantNetworkName = networkNames[wantNetworkId] || 'local'
       let wantRpcUrl = ''
-      if (wantNetworkId === networks['arbitrum'].networkId) {
-        wantRpcUrl = networks['arbitrum'].rpcUrl
+      if (wantNetworkId === networkSlugToId('arbitrum')) {
+        wantRpcUrl = getRpcUrl('arbitrum')
       }
-      if (wantNetworkId === networks['optimism'].networkId) {
-        wantRpcUrl = networks['optimism'].rpcUrl
+      if (wantNetworkId === networkSlugToId('optimism')) {
+        wantRpcUrl = getRpcUrl('optimism')
       }
-      if (wantNetworkId === networks['xdai'].networkId) {
-        wantRpcUrl = networks['xdai'].rpcUrl
+      if (wantNetworkId === networkSlugToId('xdai')) {
+        wantRpcUrl = getRpcUrl('xdai')
       }
-      if (wantNetworkId === networks['matic'].networkId) {
-        wantRpcUrl = networks['matic'].rpcUrl
+      if (wantNetworkId === networkSlugToId('matic')) {
+        wantRpcUrl = getRpcUrl('matic')
       }
 
       let html = ''
       if (walletName === 'MetaMask') {
         let stepImages: string[] = []
         if (
-          wantNetworkId === networks['arbitrum'].networkId ||
-          wantNetworkId === networks['optimism'].networkId ||
-          wantNetworkId === networks['xdai'].networkId ||
-          wantNetworkId === networks['matic'].networkId
+          wantNetworkId === networkSlugToId('arbitrum') ||
+          wantNetworkId === networkSlugToId('optimism') ||
+          wantNetworkId === networkSlugToId('xdai') ||
+          wantNetworkId === networkSlugToId('matic')
         ) {
           stepImages = [
             MetamaskAccountsSettingsHighlight,

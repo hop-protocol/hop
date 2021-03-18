@@ -110,7 +110,7 @@ const Send: FC = () => {
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [tx, setTx] = useState<any>(null)
-  const l1Bridge = contracts?.tokens[selectedToken.symbol][L1_NETWORK].l1Bridge
+  const l1Bridge = contracts?.tokens[selectedToken?.symbol][L1_NETWORK].l1Bridge
   const debouncer = useRef<number>(0)
 
   useEffect(() => {

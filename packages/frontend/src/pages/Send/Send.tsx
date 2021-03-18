@@ -173,10 +173,10 @@ const Send: FC = () => {
       let l2CanonicalTokenAddress =
         contracts?.tokens[selectedToken.symbol][_toNetwork.slug]
           .l2CanonicalToken?.address
-      let l2BridgeAddress =
-        contracts?.tokens[selectedToken.symbol][_toNetwork.slug].l2Bridge
-          ?.address
-      path = [l2BridgeAddress, l2CanonicalTokenAddress]
+      let l2HopBridgeTokenAddress =
+        contracts?.tokens[selectedToken.symbol][_toNetwork.slug]
+          .l2HopBridgeToken?.address
+      path = [l2HopBridgeTokenAddress, l2CanonicalTokenAddress]
       uniswapRouter =
         contracts?.tokens[selectedToken.symbol][_toNetwork.slug].uniswapRouter
     } else {
@@ -186,10 +186,10 @@ const Send: FC = () => {
       let l2CanonicalTokenAddress =
         contracts?.tokens[selectedToken.symbol][_fromNetwork.slug]
           .l2CanonicalToken?.address
-      let l2BridgeAddress =
-        contracts?.tokens[selectedToken.symbol][_fromNetwork.slug].l2Bridge
-          ?.address
-      path = [l2CanonicalTokenAddress, l2BridgeAddress]
+      let l2HopBridgeTokenAddress =
+        contracts?.tokens[selectedToken.symbol][_fromNetwork.slug]
+          .l2HopBridgeToken?.address
+      path = [l2CanonicalTokenAddress, l2HopBridgeTokenAddress]
       uniswapRouter =
         contracts?.tokens[selectedToken.symbol][_fromNetwork.slug].uniswapRouter
     }
@@ -303,6 +303,18 @@ const Send: FC = () => {
     updateAmountIn(toTokenAmount)
   }, [isFromLastChanged])
 
+  const getBonderFee = async () => {
+    const minBonderBps = await l2Bridge?.minBonderBps()
+    const minBonderFeeAbsolute = await l2Bridge?.minBonderFeeAbsolute()
+    const minBonderFeeRelative = parseUnits(fromTokenAmount, 18)
+      .mul(minBonderBps)
+      .div(10000)
+    const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
+      ? minBonderFeeRelative
+      : minBonderFeeAbsolute
+    return minBonderFee
+  }
+
   const approve = async (amount: string) => {
     const signer = user?.signer()
     if (!signer) {
@@ -349,9 +361,13 @@ const Send: FC = () => {
         }
       }
     } else {
+      const uniswapWrapper =
+        contracts?.tokens[selectedToken?.symbol][fromNetwork?.slug as string]
+          .uniswapWrapper
+
       const approved = await tokenContract.allowance(
         await signer?.getAddress(),
-        l2Bridge?.address
+        uniswapWrapper?.address
       )
       if (approved.lt(parsedAmount)) {
         tx = await txConfirm?.show({
@@ -361,7 +377,7 @@ const Send: FC = () => {
             token: selectedToken
           },
           onConfirm: async () => {
-            return tokenContract.approve(l2Bridge?.address, UINT256)
+            return tokenContract.approve(uniswapWrapper?.address, UINT256)
           }
         })
         await tx?.wait()
@@ -442,12 +458,14 @@ const Send: FC = () => {
         const deadline = (Date.now() / 1000 + 300) | 0
         const amountOutMin = '0'
         const chainId = toNetwork?.networkId
-        return l1Bridge.sendToL2AndAttemptSwap(
+        const relayerFee = '0'
+        return l1Bridge.sendToL2(
           chainId,
           await signer.getAddress(),
-          parseEther(fromTokenAmount),
+          parseUnits(fromTokenAmount, 18),
           amountOutMin,
-          deadline
+          deadline,
+          relayerFee
         )
       }
     })
@@ -485,23 +503,27 @@ const Send: FC = () => {
       },
       onConfirm: async () => {
         const deadline = (Date.now() / 1000 + 300) | 0
+        const destinationDeadline = deadline
+        const amountOutIn = '0'
+        const destinationAmountOutMin = '0'
+        const bonderFee = await getBonderFee()
         const chainId = toNetwork?.networkId
         const transferNonce = Date.now()
         const relayerFee = '0'
-        const amountOutIn = '0'
-        const destinationAmountOutMin = '0'
+        const uniswapWrapper =
+          contracts?.tokens[selectedToken?.symbol][fromNetwork?.slug as string]
+            .uniswapWrapper
 
-        const l2BridgeWrite = await getWriteContract(l2Bridge)
-        return l2BridgeWrite?.swapAndSend(
+        const wrapperWrite = await getWriteContract(uniswapWrapper)
+        return wrapperWrite?.swapAndSend(
           chainId,
           await signer?.getAddress(),
-          parseEther(fromTokenAmount),
-          transferNonce,
-          relayerFee,
+          parseUnits(fromTokenAmount, 18),
+          bonderFee,
           amountOutIn,
           deadline,
           destinationAmountOutMin,
-          deadline
+          destinationDeadline
         )
       }
     })
@@ -539,23 +561,26 @@ const Send: FC = () => {
       },
       onConfirm: async () => {
         const deadline = (Date.now() / 1000 + 300) | 0
+        const destinationDeadline = deadline
         const chainId = toNetwork?.networkId
-        const transferNonce = Date.now()
         const relayerFee = '0'
         const amountOutIn = '0'
         const destinationAmountOutMin = '0'
+        const bonderFee = await getBonderFee()
+        const uniswapWrapper =
+          contracts?.tokens[selectedToken?.symbol][fromNetwork?.slug as string]
+            .uniswapWrapper
 
-        const l2BridgeWrite = await getWriteContract(l2Bridge)
-        return l2BridgeWrite?.swapAndSend(
+        const wrapperWrite = await getWriteContract(uniswapWrapper)
+        return wrapperWrite?.swapAndSend(
           chainId,
           await signer?.getAddress(),
-          parseEther(fromTokenAmount),
-          transferNonce,
-          relayerFee,
+          parseUnits(fromTokenAmount, 18),
+          bonderFee,
           amountOutIn,
           deadline,
           destinationAmountOutMin,
-          deadline
+          destinationDeadline
         )
       }
     })

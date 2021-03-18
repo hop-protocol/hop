@@ -42,7 +42,7 @@ const useTokens = (networks: Network[]) => {
           }
           obj[networkSlug] = getErc20Contract(config.l2CanonicalToken, provider)
           obj[`${networkSlug}HopBridge`] = getErc20Contract(
-            config.l2Bridge,
+            config.l2HopBridgeToken,
             provider
           )
           return obj

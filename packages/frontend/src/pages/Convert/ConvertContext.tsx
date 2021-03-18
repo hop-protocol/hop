@@ -6,7 +6,7 @@ import React, {
   useState,
   useMemo
 } from 'react'
-import { Contract } from 'ethers'
+import { Contract, BigNumber } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
@@ -160,11 +160,11 @@ const ConvertContextProvider: FC = ({ children }) => {
       if (networkPairMap[sourceNetwork?.slug] === destNetwork?.slug) {
         let path = [
           tokenContracts?.l2CanonicalToken.address,
-          tokenContracts?.l2Bridge.address
+          tokenContracts?.l2HopBridgeToken.address
         ]
         if (destNetwork?.slug === slug) {
           path = [
-            tokenContracts?.l2Bridge.address,
+            tokenContracts?.l2HopBridgeToken.address,
             tokenContracts?.l2CanonicalToken.address
           ]
         }
@@ -241,7 +241,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
 
       const signer = provider?.getSigner()
-      const address = await signer?.getAddress()
+      const recipient = await signer?.getAddress()
       const value = parseUnits(sourceTokenAmount, 18).toString()
       let tx: any
       const sourceSlug = canonicalSlug(sourceNetwork)
@@ -278,8 +278,18 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
+              const amountOutMin = '0'
+              const deadline = (Date.now() / 1000 + 300) | 0
+              const relayerFee = '0'
               const l1BridgeWrite = await getWriteContract(l1Bridge)
-              return l1BridgeWrite?.sendToL2(chainId, address, value)
+              return l1BridgeWrite?.sendToL2(
+                chainId,
+                recipient,
+                value,
+                amountOutMin,
+                deadline,
+                relayerFee
+              )
             }
           })
 
@@ -318,13 +328,17 @@ const ConvertContextProvider: FC = ({ children }) => {
                 return messengerWrite?.depositERC20Message(
                   addresses.tokens[selectedToken.symbol][destSlug].arbChain,
                   tokenAddress,
-                  address,
+                  recipient,
                   value
                 )
               } else if (destSlug === OPTIMISM) {
-                return messengerWrite?.deposit(address, value)
+                return messengerWrite?.deposit(recipient, value)
               } else if (destSlug === XDAI) {
-                return messengerWrite?.relayTokens(tokenAddress, address, value)
+                return messengerWrite?.relayTokens(
+                  tokenAddress,
+                  recipient,
+                  value
+                )
               } else {
                 throw new Error('not implemented')
               }
@@ -338,7 +352,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         !sourceNetwork?.isLayer1 &&
         !isHopBridge(sourceNetwork?.slug)
       ) {
-        // destination network is L1 ( L2 canonical -> L1 )
+        // destination network is L1 ( L2 canonical -> L1 canonical)
         if (destNetwork?.isLayer1) {
           tx = await txConfirm?.show({
             kind: 'convert',
@@ -401,7 +415,7 @@ const ConvertContextProvider: FC = ({ children }) => {
           const amountOutMin = '0'
           const path = [
             sourceTokenContracts?.l2CanonicalToken.address,
-            sourceTokenContracts?.l2Bridge.address
+            sourceTokenContracts?.l2HopBridgeToken.address
           ]
           const deadline = (Date.now() / 1000 + 300) | 0
 
@@ -423,7 +437,7 @@ const ConvertContextProvider: FC = ({ children }) => {
                 value,
                 amountOutMin,
                 path,
-                address,
+                recipient,
                 deadline
               )
             }
@@ -434,6 +448,14 @@ const ConvertContextProvider: FC = ({ children }) => {
       } else if (isHopBridge(sourceNetwork?.slug) && destNetwork) {
         const router = sourceTokenContracts?.uniswapRouter
         const bridge = sourceTokenContracts?.l2Bridge
+        const uniswapWrapper = sourceTokenContracts?.uniswapWrapper
+
+        await approveTokens(
+          selectedToken,
+          sourceTokenAmount,
+          sourceNetwork as Network,
+          uniswapWrapper?.address as string
+        )
 
         // destination network is L1 ( L2 Hop -> L1 )
         if (destNetwork?.isLayer1) {
@@ -450,15 +472,38 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              const bridgeWrite = await getWriteContract(bridge)
-              return bridgeWrite?.send(
-                '1',
-                address,
+              const getBonderFee = async () => {
+                const minBonderBps = await bridge?.minBonderBps()
+                const minBonderFeeAbsolute = await bridge?.minBonderFeeAbsolute()
+                const minBonderFeeRelative = BigNumber.from(value)
+                  .mul(minBonderBps)
+                  .div(10000)
+                const minBonderFee = minBonderFeeRelative.gt(
+                  minBonderFeeAbsolute
+                )
+                  ? minBonderFeeRelative
+                  : minBonderFeeAbsolute
+                return minBonderFee
+              }
+              const deadline = '0'
+              const amountOutMin = '0'
+              let destinationAmountOutMin = '0'
+              let destinationDeadline = deadline
+              const bonderFee = await getBonderFee()
+              const wrapperWrite = await getWriteContract(uniswapWrapper)
+              const chainId = destNetwork?.networkId
+              return wrapperWrite?.swapAndSend(
+                chainId,
+                recipient,
                 value,
-                Date.now(),
-                '0',
-                '0',
-                '0'
+                bonderFee,
+                amountOutMin,
+                deadline,
+                destinationAmountOutMin,
+                destinationDeadline,
+                {
+                  //gasLimit: 1000000
+                }
               )
             }
           })
@@ -474,7 +519,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
           const amountOutMin = '0'
           const path = [
-            sourceTokenContracts?.l2Bridge.address,
+            sourceTokenContracts?.l2HopBridgeToken.address,
             sourceTokenContracts?.l2CanonicalToken.address
           ]
           const deadline = (Date.now() / 1000 + 300) | 0
@@ -497,7 +542,7 @@ const ConvertContextProvider: FC = ({ children }) => {
                 value,
                 amountOutMin,
                 path,
-                address,
+                recipient,
                 deadline
               )
             }

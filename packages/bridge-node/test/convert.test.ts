@@ -46,7 +46,7 @@ describe('convert to L1 token to L2 canonical token', () => {
   }
 })
 
-describe('convert L1 token to L2 Hop token', () => {
+describe.only('convert L1 token to L2 Hop token', () => {
   for (let L2_NETWORK of NETWORKS) {
     const label = `convert token to Hop bridge token on ${L2_NETWORK}`
     it(

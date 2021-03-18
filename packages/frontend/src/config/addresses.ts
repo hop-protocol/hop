@@ -93,7 +93,8 @@ export const portisDappId = 'fbde3745-1363-4ae4-a517-00d98ab2dfbc'
 export const networks: any = {
   kovan: {
     networkId: '42',
-    rpcUrl: 'https://kovan.rpc.hop.exchange',
+    //rpcUrl: 'https://kovan.rpc.hop.exchange',
+    rpcUrl: 'https://kovan.infura.io/v3/7cae17e7d92c45ef8b90dda61a056c78',
     explorerUrl: 'https://kovan.etherscan.io/tx/'
   },
   /*

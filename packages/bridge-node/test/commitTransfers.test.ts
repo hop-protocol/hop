@@ -8,7 +8,7 @@ test(
   'commitTransfers',
   async () => {
     const user = new User(bonderPrivateKey)
-    const sourceChain = XDAI
+    const sourceChain = OPTIMISM
     const destChain = KOVAN
     const token = DAI
     const pendingTransfers = await user.getPendingTransfers(
@@ -23,7 +23,6 @@ test(
 
     const bridge = await user.getHopBridgeContract(sourceChain, token)
     console.log('messenger address:', await bridge.messenger())
-    console.log('amb bridge address:', await bridge.ambBridge())
     console.log('l1 address:', await bridge.l1BridgeAddress())
 
     const tx = await user.commitTransfers(sourceChain, token, destChain)

@@ -25,7 +25,7 @@ export const addresses: HopAddresses = {
     DAI: {
       kovan: {
         l1CanonicalToken: '0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9',
-        l1Bridge: '0xbFE287FD6d9a856b10281083c0B03160998F51d9'
+        l1Bridge: '0x8C295068Cd136C348F90f9f31C85A5c61Ed490Bc'
       },
       /*
       arbitrum: {
@@ -40,26 +40,26 @@ export const addresses: HopAddresses = {
       },
       */
       optimism: {
-        l1CanonicalBridge: '0xC76F55Dd0aeF08e46a454DCbb4fAA940d4450C72',
+        l1CanonicalBridge: '0xC1e7Be0E1aDD345afB2485aA5E774cD79cBbbBf5',
         l2CanonicalBridge: '0x782e1ec5F7381269b2e5DC4eD58648C60161539b',
         l2CanonicalToken: '0x782e1ec5F7381269b2e5DC4eD58648C60161539b',
-        l2Bridge: '0xcdEFB10800763eeC078e829aa8cC15C97E784bCD',
-        l2HopBridgeToken: '0xe0a010115Cad71C25217cDaa525ed6F7637D5c6F',
-        uniswapWrapper: '0x8889DBf65B2a195Ad2325403363b6028EFa2Bd65',
-        uniswapRouter: '0x4bC4168e2f6108D29D7E42D5114740161004284d',
-        uniswapFactory: '0x54F19216ab6b2D8A33a4F7dBE54873304F20dC8d',
-        uniswapExchange: '0x30EC5bA956114F8316AF690C67b939d8D547e61D'
+        l2Bridge: '0xd6935d3FE65f804e54a8e0d0A0F8793f0aC196Ff',
+        l2HopBridgeToken: '0x761ac04A47076eadf2BfAF545e2B101C8417498e',
+        uniswapWrapper: '0x6523C434ce2a4AAf168FD59a1d6074772C9a15bE',
+        uniswapRouter: '0x8D65D4160559493b0a687ED5Ae39dcce88cB5cFc',
+        uniswapFactory: '0x6523C434ce2a4AAf168FD59a1d6074772C9a15bE',
+        uniswapExchange: '0xBEa657cb5BD947811694882A821F7EC08370c252'
       },
       xdai: {
         l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
         l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
         l2CanonicalToken: '0x714983a8Dc3329bf3BeB8F36b49878CF944E5A3B',
-        l2Bridge: '0xdF9E0A8aFF08B00cA062d44e999A9d945586aD77',
-        l2HopBridgeToken: '0x2e1EC45f7Bb01905CAE6aB7e232BA2093E276786',
-        uniswapWrapper: '0x0d253e4E94055D63B32A845b5CFBEEB65420bAD2',
-        uniswapRouter: '0xbFE287FD6d9a856b10281083c0B03160998F51d9',
-        uniswapFactory: '0x8f7b441aF35018E4EDA38b4C472b8eEa6BFF94EE',
-        uniswapExchange: '0x07b3f4D4BaF93Ee224aA36A12DC016966fAA312F',
+        l2Bridge: '0xAD5f66C982EaC97b3c4A4F4fe84bb7F10294d569',
+        l2HopBridgeToken: '0x0410eB12A8E3AA88C1048276d31Ae0F0AA83aeA7',
+        uniswapWrapper: '0x2Bc2eb99dB79DA6F2cEE57014501ea8724f841e2',
+        uniswapRouter: '0x1Df061d3D0bFeE57db7851099d72751C7C6697A9',
+        uniswapFactory: '0xc718BdbdDc3050Cf772c0Ec43f11bfAe69741e30',
+        uniswapExchange: '0xBc7ff2f9C9b1dF80E98F67F6f46e46e12A0ebBd4',
         l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560'
       }
@@ -93,8 +93,7 @@ export const portisDappId = 'fbde3745-1363-4ae4-a517-00d98ab2dfbc'
 export const networks: any = {
   kovan: {
     networkId: '42',
-    //rpcUrl: 'https://kovan.rpc.hop.exchange',
-    rpcUrl: 'https://kovan.infura.io/v3/7cae17e7d92c45ef8b90dda61a056c78',
+    rpcUrl: 'https://kovan.rpc.hop.exchange',
     explorerUrl: 'https://kovan.etherscan.io/tx/'
   },
   /*

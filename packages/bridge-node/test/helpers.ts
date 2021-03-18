@@ -459,7 +459,14 @@ export class User {
         value
       )
     } else if (destNetwork === OPTIMISM) {
-      return tokenBridge.deposit(recipient, value)
+      const l1TokenAddress = tokens[token][KOVAN].l1CanonicalToken
+      const l2TokenAddress = tokens[token][destNetwork].l2CanonicalToken
+      return tokenBridge.deposit(
+        l1TokenAddress,
+        l2TokenAddress,
+        recipient,
+        value
+      )
     } else if (destNetwork === XDAI) {
       return tokenBridge.relayTokens(
         tokens[token][KOVAN].l1CanonicalToken,
@@ -709,7 +716,7 @@ export class User {
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
     const destChainId = networkSlugToId(destNetwork)
     return bridge.commitTransfers(destChainId, {
-      gasLimit: 2000000
+      //gasLimit: 2000000
     })
   }
 

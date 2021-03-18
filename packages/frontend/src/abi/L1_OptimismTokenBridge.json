@@ -44,6 +44,16 @@
       "inputs": [
         {
           "internalType": "address",
+          "name": "_l1TokenAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_l2TokenAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
           "name": "_depositor",
           "type": "address"
         },

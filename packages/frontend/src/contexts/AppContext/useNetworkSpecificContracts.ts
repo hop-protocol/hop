@@ -4,7 +4,7 @@ import erc20Artifact from 'src/abi/ERC20.json'
 import l1BridgeArtifact from 'src/abi/L1_Bridge.json'
 import l2BridgeArtifact from 'src/abi/L2_Bridge.json'
 import l2OptimismBridgeArtifact from 'src/abi/L2_OptimismBridge.json'
-import l2OptimismTokenArtifact from 'src/abi/L2_OptimismERC20.json'
+import l2OptimismTokenBridgeArtifact from 'src/abi/L2_OptimismTokenBridge.json'
 import l2xDaiTokenArtifact from 'src/abi/L2_xDaiToken.json'
 import l1ArbitrumMessengerArtifact from 'src/abi/GlobalInbox.json'
 import l1OptimismTokenBridgeArtifact from 'src/abi/L1_OptimismTokenBridge.json'
@@ -128,6 +128,16 @@ const useNetworkSpecificContracts = (
   const l2CanonicalBridge = useMemo(() => {
     if (
       l2CanonicalBridgeAddress ===
+      addresses.tokens[token.symbol]?.optimism?.l2CanonicalBridge
+    ) {
+      return new Contract(
+        l2CanonicalBridgeAddress,
+        l2OptimismTokenBridgeArtifact.abi,
+        l2Provider
+      )
+    }
+    if (
+      l2CanonicalBridgeAddress ===
       addresses.tokens[token.symbol]?.xdai?.l2CanonicalBridge
     ) {
       return new Contract(
@@ -138,17 +148,6 @@ const useNetworkSpecificContracts = (
     }
   }, [l2Provider])
   const l2CanonicalToken = useMemo(() => {
-    if (
-      l2CanonicalTokenAddress ===
-      addresses.tokens[token.symbol]?.optimism?.l2CanonicalToken
-    ) {
-      return new Contract(
-        l2CanonicalTokenAddress,
-        l2OptimismTokenArtifact.abi,
-        l2Provider
-      )
-    }
-
     if (
       l2CanonicalTokenAddress ===
       addresses.tokens[token.symbol]?.xdai?.l2CanonicalToken

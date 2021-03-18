@@ -2,7 +2,7 @@ require('dotenv').config()
 import { User, checkApproval } from './helpers'
 import { wait } from 'src/utils'
 import { KOVAN, OPTIMISM, XDAI } from 'src/constants'
-import { privateKey } from './config'
+import { bonderPrivateKey } from './config'
 
 const TOKEN = 'DAI'
 const TOKEN_0_AMOUNT = 1000
@@ -20,7 +20,7 @@ for (let l2Network of testNetworks) {
 }
 
 async function addLiquidity (l2Network: string, amount: number) {
-  const user = new User(privateKey)
+  const user = new User(bonderPrivateKey)
   const l1Balance = await user.getBalance(KOVAN, TOKEN)
   console.log(`kovan ${TOKEN} balance: ${l1Balance}`)
 

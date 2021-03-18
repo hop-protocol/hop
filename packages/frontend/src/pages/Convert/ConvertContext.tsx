@@ -15,7 +15,6 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
 import { UINT256, L1_NETWORK, ARBITRUM, OPTIMISM, XDAI } from 'src/constants'
-import l2OptimismTokenArtifact from 'src/abi/L2_OptimismERC20.json'
 import logger from 'src/logger'
 import { networkSlugToId } from 'src/utils'
 
@@ -332,7 +331,14 @@ const ConvertContextProvider: FC = ({ children }) => {
                   value
                 )
               } else if (destSlug === OPTIMISM) {
-                return messengerWrite?.deposit(recipient, value)
+                return messengerWrite?.deposit(
+                  addresses.tokens[selectedToken.symbol][L1_NETWORK]
+                    .l1CanonicalToken,
+                  addresses.tokens[selectedToken.symbol][destSlug]
+                    .l2CanonicalToken,
+                  recipient,
+                  value
+                )
               } else if (destSlug === XDAI) {
                 return messengerWrite?.relayTokens(
                   tokenAddress,
@@ -373,10 +379,16 @@ const ConvertContextProvider: FC = ({ children }) => {
                 )
                 return contract?.withdraw(await signer?.getAddress(), value)
               } else if (sourceSlug === OPTIMISM) {
-                const l2Token = await getWriteContract(
-                  sourceTokenContracts?.l2CanonicalToken
+                const l2CanonicalBridge = await getWriteContract(
+                  sourceTokenContracts?.l2CanonicalBridge
                 )
-                return l2Token?.withdraw(value)
+                return l2CanonicalBridge?.withdraw(
+                  addresses.tokens[selectedToken.symbol][L1_NETWORK]
+                    .l1CanonicalToken,
+                  addresses.tokens[selectedToken.symbol][sourceSlug]
+                    .l2CanonicalToken,
+                  value
+                )
               } else if (sourceSlug === XDAI) {
                 const destTokenContracts =
                   contracts?.tokens[selectedToken.symbol][sourceSlug]

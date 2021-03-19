@@ -28,8 +28,8 @@ import { L1_NETWORK } from 'src/constants'
 import MetamaskAccountsSettingsHighlight from 'src/assets/onboard/metamask-accounts-settings-highlight.png'
 import MetamaskSettingsHighlight from 'src/assets/onboard/metamask-settings-highlight.png'
 import MetamaskAddNetworkHighlight from 'src/assets/onboard/metamask-add-network-highlight.png'
-import MetamaskNewArbitrumNetworkHighlight from 'src/assets/onboard/metamask-new-arbitrum-network-highlight.png'
-import MetamaskArbitrumNetworkHighlight from 'src/assets/onboard/metamask-arbitrum-network-highlight.png'
+import MetamaskNewCustomNetworkHighlight from 'src/assets/onboard/metamask-new-custom-network-highlight.png'
+import MetamaskCustomNetworkHighlight from 'src/assets/onboard/metamask-custom-network-highlight.png'
 import logger from 'src/logger'
 
 type Props = {
@@ -162,8 +162,8 @@ const Web3ContextProvider: FC = ({ children }) => {
             MetamaskAccountsSettingsHighlight,
             MetamaskSettingsHighlight,
             MetamaskAddNetworkHighlight,
-            MetamaskNewArbitrumNetworkHighlight,
-            MetamaskArbitrumNetworkHighlight
+            MetamaskNewCustomNetworkHighlight,
+            MetamaskCustomNetworkHighlight
           ]
         } else if (
           ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(

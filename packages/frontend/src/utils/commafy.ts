@@ -1,4 +1,4 @@
-import numeral from 'numeral'
+import numbro from 'numbro'
 
 const commafy = (value: string | number | undefined, decimals: number = 2) => {
   if (value === undefined) {
@@ -11,7 +11,7 @@ const commafy = (value: string | number | undefined, decimals: number = 2) => {
     decimals = 2
   }
 
-  return numeral(value).format(`0,0.[${'0'.repeat(decimals)}]`)
+  return numbro(value).format(`0,0.[${'0'.repeat(decimals)}]`)
 }
 
 export default commafy

@@ -4,6 +4,9 @@ const commafy = (value: string | number | undefined, decimals: number = 2) => {
   if (value === undefined) {
     return ''
   }
+  if (!/[0-9]/gi.test(value.toString())) {
+    return value
+  }
   if (typeof decimals === 'string') {
     decimals = Number(decimals)
   }

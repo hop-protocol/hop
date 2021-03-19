@@ -9,17 +9,15 @@ import Web3Context from './contexts/Web3Context'
 import AppContext from './contexts/AppContext'
 
 ReactDOM.render(
-  <React.StrictMode>
-    <ThemeProvider>
-      <Router>
-        <Web3Context>
-          <AppContext>
-            <App />
-          </AppContext>
-        </Web3Context>
-      </Router>
-    </ThemeProvider>
-  </React.StrictMode>,
+  <ThemeProvider>
+    <Router>
+      <Web3Context>
+        <AppContext>
+          <App />
+        </AppContext>
+      </Web3Context>
+    </Router>
+  </ThemeProvider>,
   document.getElementById('root')
 )
 

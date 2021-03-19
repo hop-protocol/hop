@@ -116,6 +116,22 @@ const Convert: FC = () => {
       <Grid className={styles.selects}>
         <div className={styles.select}>
           <RaisedSelect
+            value={selectedNetwork?.slug}
+            onChange={handleNetworkChange}
+          >
+            {l2Networks.map(network => (
+              <MenuItem value={network.slug} key={network.slug}>
+                <SelectOption
+                  value={network.slug}
+                  icon={network.imageUrl}
+                  label={network.name}
+                />
+              </MenuItem>
+            ))}
+          </RaisedSelect>
+        </div>
+        <div className={styles.select}>
+          <RaisedSelect
             value={selectedToken?.symbol}
             onChange={handleTokenChange}
           >
@@ -135,22 +151,6 @@ const Convert: FC = () => {
             {tabs.map(tab => (
               <MenuItem value={tab.value} key={tab.value}>
                 {tab.label}
-              </MenuItem>
-            ))}
-          </RaisedSelect>
-        </div>
-        <div className={styles.select}>
-          <RaisedSelect
-            value={selectedNetwork?.slug}
-            onChange={handleNetworkChange}
-          >
-            {l2Networks.map(network => (
-              <MenuItem value={network.slug} key={network.slug}>
-                <SelectOption
-                  value={network.slug}
-                  icon={network.imageUrl}
-                  label={network.name}
-                />
               </MenuItem>
             ))}
           </RaisedSelect>

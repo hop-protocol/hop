@@ -25,7 +25,6 @@ const FlatTabs = (props: Props) => {
     <Tabs
       value={value}
       indicatorColor="primary"
-      textColor="primary"
       onChange={handleChange}
       aria-label="Tabs"
       centered

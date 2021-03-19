@@ -343,11 +343,12 @@ const Send: FC = () => {
         tx = await txConfirm?.show({
           kind: 'approval',
           inputProps: {
-            amount: 'ALL',
+            amount: amount,
             token: selectedToken
           },
-          onConfirm: async () => {
-            return tokenContract.approve(l1Bridge?.address, UINT256)
+          onConfirm: async (approveAll: boolean) => {
+            const approveAmount = approveAll ? UINT256 : parsedAmount
+            return tokenContract.approve(l1Bridge?.address, approveAmount)
           }
         })
         await tx?.wait()
@@ -373,11 +374,12 @@ const Send: FC = () => {
         tx = await txConfirm?.show({
           kind: 'approval',
           inputProps: {
-            amount: 'ALL',
+            amount: amount,
             token: selectedToken
           },
-          onConfirm: async () => {
-            return tokenContract.approve(uniswapWrapper?.address, UINT256)
+          onConfirm: async (approveAll: boolean) => {
+            const approveAmount = approveAll ? UINT256 : parsedAmount
+            return tokenContract.approve(uniswapWrapper?.address, approveAmount)
           }
         })
         await tx?.wait()

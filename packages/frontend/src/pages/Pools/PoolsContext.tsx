@@ -111,7 +111,12 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [token0Balance, setToken0Balance] = useState<number>(0)
   const [token1Balance, setToken1Balance] = useState<number>(0)
   let { networks, tokens, contracts, txConfirm, txHistory } = useApp()
-  const { address, provider, getWriteContract, checkConnectedNetworkId } = useWeb3Context()
+  const {
+    address,
+    provider,
+    getWriteContract,
+    checkConnectedNetworkId
+  } = useWeb3Context()
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [error, setError] = useState<string | null | undefined>(null)
 
@@ -423,7 +428,9 @@ const PoolsContextProvider: FC = ({ children }) => {
     setSending(false)
   }
 
-  const enoughBalance = token0Balance >= Number(token0Amount) && token1Balance >= Number(token1Amount)
+  const enoughBalance =
+    token0Balance >= Number(token0Amount) &&
+    token1Balance >= Number(token1Amount)
   const validFormFields = !!(token0Amount && token1Amount && enoughBalance)
   let sendButtonText = 'Add Liquidity'
   if (!enoughBalance) {

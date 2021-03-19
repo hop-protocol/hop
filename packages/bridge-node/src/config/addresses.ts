@@ -80,7 +80,7 @@ export const tokens: {
     xdai: {
       l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
       l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
-      l2CanonicalToken: '0x714983a8Dc3329bf3BeB8F36b49878CF944E5A3B',
+      l2CanonicalToken: '0xeC3B005D2BF47f505F1A0cD68eEb7Ea439D6daF6',
       l2Bridge: '0x8C8CB448d3c683e09750AE6BdfabF18eB9F42941',
       l2HopBridgeToken: '0xbBA530F8B96C82d5DCC9d987728E12A36e3fF87D',
       l2UniswapWrapper: '0xADfC87C375a3698A89ee1d7Cf9250810b6d0CF19',

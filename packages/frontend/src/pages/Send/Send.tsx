@@ -521,8 +521,8 @@ const Send: FC = () => {
         return wrapperWrite?.swapAndSend(
           chainId,
           await signer?.getAddress(),
-          parseUnits(fromTokenAmount, 18),
-          bonderFee,
+          parseUnits(fromTokenAmount, 18).toString(),
+          bonderFee.toString(),
           amountOutIn,
           deadline,
           destinationAmountOutMin,

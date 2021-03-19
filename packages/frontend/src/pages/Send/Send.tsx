@@ -526,7 +526,10 @@ const Send: FC = () => {
           amountOutIn,
           deadline,
           destinationAmountOutMin,
-          destinationDeadline
+          destinationDeadline,
+          {
+            //gasLimit: 1000000
+          }
         )
       }
     })

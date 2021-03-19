@@ -145,3 +145,5 @@ export const networks: any = {
     explorerUrl: 'https://blockscout.com/poa/sokol/tx/'
   }
 }
+
+export const isMainnet = false

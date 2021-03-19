@@ -27,13 +27,13 @@ const L2ToL2Paths = [
   [XDAI, ARBITRUM]
 ]
 
-const TOKEN = 'DAI'
+const TOKEN = 'sETH'
 const TRANSFER_AMOUNT = 1
 const logger = new Logger('TEST')
 
 describe('bondWithdrawal', () => {
   let testPaths = [...L1ToL2Paths, ...L2ToL1Paths, ...L2ToL2Paths]
-  testPaths = [[OPTIMISM, KOVAN]]
+  testPaths = [[XDAI, KOVAN]]
   for (let path of testPaths) {
     const [sourceNetwork, destNetwork] = path
     const label = `${sourceNetwork} -> ${destNetwork}`

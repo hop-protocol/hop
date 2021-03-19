@@ -111,7 +111,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [token0Balance, setToken0Balance] = useState<number>(0)
   const [token1Balance, setToken1Balance] = useState<number>(0)
   let { networks, tokens, contracts, txConfirm, txHistory } = useApp()
-  const { address, provider, getWriteContract } = useWeb3Context()
+  const { address, provider, getWriteContract, checkConnectedNetworkId } = useWeb3Context()
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [error, setError] = useState<string | null | undefined>(null)
 
@@ -325,6 +325,10 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   const addLiquidity = async () => {
     try {
+      const networkId = Number(selectedNetwork?.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+
       if (!Number(token0Amount) || !Number(token1Amount)) {
         return
       }

@@ -4,14 +4,14 @@ import { User } from './helpers'
 
 console.log(KOVAN, OPTIMISM, XDAI, DAI)
 
-const network = OPTIMISM
+const network = KOVAN
 const token = 'sBTC'
+const amount = 10000
 
 test(
   'mint',
   async () => {
     const user = new User(privateKey)
-    const amount = 10000
     const tokenBalanceBefore = await user.getBalance(network, token)
     const tx = await user.mint(network, token, amount)
     console.log('tx hash:', tx.hash)

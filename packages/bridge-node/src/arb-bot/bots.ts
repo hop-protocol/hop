@@ -19,22 +19,22 @@ for (let network of networks) {
     const tokenContracts = contracts[token][network]
     const bot = new ArbBot({
       token0: {
-        label: `${network} hop${token}`,
+        label: `${network}.hop-${token}`,
         contract: tokenContracts.l2HopBridgeToken
       },
       token1: {
-        label: `${network} canonical${token}`,
+        label: `${network}.canonical-${token}`,
         contract: tokenContracts.l2CanonicalToken
       },
       uniswap: {
         router: {
-          contract: tokenContracts.l2UniswapRouter
+          contract: tokenContracts.uniswapRouter
         },
         factory: {
-          contract: tokenContracts.l2UniswapFactory
+          contract: tokenContracts.uniswapFactory
         },
         exchange: {
-          contract: tokenContracts.l2UniswapExchange
+          contract: tokenContracts.uniswapExchange
         }
       },
       wallet: wallets[network],

@@ -7,7 +7,7 @@ import { privateKey } from './config'
 
 const TOKEN = 'sBTC'
 const AMOUNT = 10000
-const NETWORKS = [OPTIMISM]
+const NETWORKS = [XDAI]
 const logger = new Logger('TEST')
 console.log(XDAI, OPTIMISM)
 

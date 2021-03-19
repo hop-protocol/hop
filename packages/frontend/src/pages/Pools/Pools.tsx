@@ -283,7 +283,6 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  <small>{selectedNetwork?.slug.substr(0, 3)}</small>
                   {selectedToken?.symbol}/{hopToken?.symbol}
                 </Typography>
                 <Typography

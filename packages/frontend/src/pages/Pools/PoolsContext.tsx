@@ -137,6 +137,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     return new Token({
       symbol: `h${token?.symbol}`,
       tokenName: token?.tokenName,
+      imageUrl: token?.imageUrl,
       contracts: hopBridgeContracts
     })
   }, [tokens, selectedToken, networks])

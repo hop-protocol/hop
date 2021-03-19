@@ -5,6 +5,7 @@ import { BigNumber, BigNumberish, Contract } from 'ethers'
 type TokenProps = {
   symbol: string
   tokenName: string
+  imageUrl: string
   decimals?: number
   contracts: { [key: string]: Contract | undefined }
   supportedNetworks?: string[]
@@ -14,6 +15,7 @@ class Token {
   readonly symbol: string
   readonly tokenName: string
   readonly decimals: number
+  readonly imageUrl: string
   readonly contracts: { [key: string]: Contract | undefined }
   readonly addresses: { [key: string]: Address } = {}
   readonly supportedNetworks: string[] = []
@@ -21,6 +23,7 @@ class Token {
   constructor (props: TokenProps) {
     this.symbol = props.symbol
     this.tokenName = props.tokenName
+    this.imageUrl = props.imageUrl
     this.decimals = props.decimals || 18
     this.contracts = props.contracts
     this.supportedNetworks = props.supportedNetworks || []

@@ -7,6 +7,7 @@ import MenuItem from '@material-ui/core/MenuItem'
 import Alert from 'src/components/alert/Alert'
 import AmountSelectorCard from 'src/pages/Pools/AmountSelectorCard'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
+import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
 import { commafy } from 'src/utils'
@@ -167,7 +168,11 @@ const Pools: FC = () => {
         >
           {tokens.map(token => (
             <MenuItem value={token.symbol} key={token.symbol}>
-              {token.symbol}
+              <SelectOption
+                value={token.symbol}
+                icon={token.imageUrl}
+                label={token.symbol}
+              />
             </MenuItem>
           ))}
         </RaisedSelect>
@@ -184,7 +189,11 @@ const Pools: FC = () => {
         >
           {networks.map(network => (
             <MenuItem value={network.slug} key={network.slug}>
-              {network.name}
+              <SelectOption
+                value={network.slug}
+                icon={network.imageUrl}
+                label={network.name}
+              />
             </MenuItem>
           ))}
         </RaisedSelect>

@@ -49,6 +49,7 @@ const StatsContextProvider: FC = ({ children }) => {
     const hopToken = new Token({
       symbol: `h${token?.symbol}`,
       tokenName: token?.tokenName,
+      imageUrl: token?.imageUrl,
       contracts: {
         arbitrum: token?.contracts?.arbitrumHopBridge,
         optimism: token?.contracts?.optimismHopBridge

@@ -10,11 +10,12 @@ import { useLocation } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import MenuItem from '@material-ui/core/MenuItem'
 import MuiButton from '@material-ui/core/Button'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
+import MenuItem, { MenuItemProps } from '@material-ui/core/MenuItem'
+import SelectOption from 'src/components/selects/SelectOption'
 import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
 import SendButton from 'src/pages/Send/SendButton'
 import Transaction from 'src/models/Transaction'
@@ -635,7 +636,11 @@ const Send: FC = () => {
         <RaisedSelect value={selectedToken.symbol} onChange={handleTokenSelect}>
           {tokens.map(token => (
             <MenuItem value={token.symbol} key={token.symbol}>
-              {token.symbol}
+              <SelectOption
+                value={token.symbol}
+                icon={token.imageUrl}
+                label={token.symbol}
+              />
             </MenuItem>
           ))}
         </RaisedSelect>

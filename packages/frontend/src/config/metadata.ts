@@ -3,6 +3,9 @@ import ArbitrumLogo from 'src/assets/logos/arbitrum.svg'
 import OptimismLogo from 'src/assets/logos/optimism.svg'
 import xDaiLogo from 'src/assets/logos/xdai.svg'
 import MaticLogo from 'src/assets/logos/matic.svg'
+import DaiLogo from 'src/assets/logos/dai.svg'
+import SynthEthLogo from 'src/assets/logos/seth.svg'
+import SynthBtcLogo from 'src/assets/logos/sbtc.svg'
 
 type Metadata = {
   tokens: {
@@ -10,6 +13,7 @@ type Metadata = {
       symbol: string
       name: string
       decimals: number
+      image: any
     }
   }
   networks: {
@@ -26,22 +30,26 @@ export const metadata: Metadata = {
     DAI: {
       symbol: 'DAI',
       name: 'DAI Stablecoin',
-      decimals: 18
+      decimals: 18,
+      image: DaiLogo
     },
     ARB: {
       symbol: 'ARB',
       name: 'ARB Token',
-      decimals: 18
+      decimals: 18,
+      image: ArbitrumLogo
     },
     sETH: {
       symbol: 'sETH',
       name: 'Synth ETH',
-      decimals: 18
+      decimals: 18,
+      image: SynthEthLogo
     },
     sBTC: {
       symbol: 'sBTC',
       name: 'Synth BTC',
-      decimals: 18
+      decimals: 18,
+      image: SynthBtcLogo
     }
   },
   networks: {

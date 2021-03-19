@@ -62,6 +62,7 @@ const useTokens = (networks: Network[]) => {
         tokenName: tokenMeta.name,
         decimals: tokenMeta.decimals,
         contracts: contracts[symbol],
+        imageUrl: tokenMeta.image,
         supportedNetworks
       })
     })

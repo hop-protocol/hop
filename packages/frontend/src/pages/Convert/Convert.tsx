@@ -13,6 +13,7 @@ import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import MenuItem from '@material-ui/core/MenuItem'
+import SelectOption from 'src/components/selects/SelectOption'
 import ConvertViaHopBridge from 'src/pages/Convert/ConvertViaHopBridge'
 import ConvertViaCanonicalBridge from 'src/pages/Convert/ConvertViaCanonicalBridge'
 import ConvertViaUniswap from 'src/pages/Convert/ConvertViaUniswap'
@@ -120,7 +121,11 @@ const Convert: FC = () => {
           >
             {tokens.map(token => (
               <MenuItem value={token.symbol} key={token.symbol}>
-                {token.symbol}
+                <SelectOption
+                  value={token.symbol}
+                  icon={token.imageUrl}
+                  label={token.symbol}
+                />
               </MenuItem>
             ))}
           </RaisedSelect>
@@ -141,7 +146,11 @@ const Convert: FC = () => {
           >
             {l2Networks.map(network => (
               <MenuItem value={network.slug} key={network.slug}>
-                on {network.name}
+                <SelectOption
+                  value={network.slug}
+                  icon={network.imageUrl}
+                  label={network.name}
+                />
               </MenuItem>
             ))}
           </RaisedSelect>

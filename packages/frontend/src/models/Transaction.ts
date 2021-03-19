@@ -102,11 +102,11 @@ class Transaction extends EventEmitter {
   }
 
   private _optimismLink () {
-    return `${getBaseExplorerUrl('arbitrum')}${this.hash}`
+    return getBaseExplorerUrl('optimism').replace('{{input}}', this.hash)
   }
 
   private _xdaiLink () {
-    return `${getBaseExplorerUrl('arbitrum')}${this.hash}`
+    return `${getBaseExplorerUrl('xdai')}${this.hash}`
   }
 
   private _maticLink () {

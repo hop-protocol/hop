@@ -136,7 +136,8 @@ export const networks: any = {
   optimism: {
     networkId: '69',
     rpcUrl: 'https://kovan.optimism.io',
-    explorerUrl: 'https://kovan-l2-explorer.surge.sh/tx/'
+    explorerUrl:
+      'https://expedition.dev/tx/{{input}}?rpcUrl=https%3A%2F%2Fkovan.optimism.io'
   },
   xdai: {
     networkId: '77',

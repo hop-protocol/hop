@@ -23,12 +23,7 @@ import Alert from 'src/components/alert/Alert'
 import TxStatus from 'src/components/txStatus'
 import Modal from 'src/components/modal'
 import { Contract, BigNumber } from 'ethers'
-import {
-  parseEther,
-  parseUnits,
-  formatEther,
-  formatUnits
-} from 'ethers/lib/utils'
+import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -127,7 +122,7 @@ const Send: FC = () => {
     if (!toNetwork) return 0
     if (!amount) return 0
 
-    const amountBN = parseEther(amount)
+    const amountBN = parseUnits(amount, 18)
 
     const decimals = 18
     // L1 -> L2 or L2 -> L1
@@ -305,11 +300,21 @@ const Send: FC = () => {
   }, [isFromLastChanged])
 
   const getBonderFee = async () => {
+    if (!fromNetwork) {
+      throw new Error('No from network selected')
+    }
+    if (!toNetwork) {
+      throw new Error('No to network selected')
+    }
+    const amountOut = await _calcAmount(
+      parseUnits(fromTokenAmount, 18),
+      true,
+      fromNetwork,
+      toNetwork
+    )
     const minBonderBps = await l2Bridge?.minBonderBps()
     const minBonderFeeAbsolute = await l2Bridge?.minBonderFeeAbsolute()
-    const minBonderFeeRelative = parseUnits(fromTokenAmount, 18)
-      .mul(minBonderBps)
-      .div(10000)
+    const minBonderFeeRelative = amountOut.mul(minBonderBps).div(10000)
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute
@@ -512,16 +517,20 @@ const Send: FC = () => {
         const bonderFee = await getBonderFee()
         const chainId = toNetwork?.networkId
         const transferNonce = Date.now()
-        const relayerFee = '0'
         const uniswapWrapper =
           contracts?.tokens[selectedToken?.symbol][fromNetwork?.slug as string]
             .uniswapWrapper
+
+        const parsedAmountIn = parseUnits(fromTokenAmount, 18)
+        if (bonderFee.gt(parsedAmountIn)) {
+          throw new Error('Amount must be greater than bonder fee')
+        }
 
         const wrapperWrite = await getWriteContract(uniswapWrapper)
         return wrapperWrite?.swapAndSend(
           chainId,
           await signer?.getAddress(),
-          parseUnits(fromTokenAmount, 18).toString(),
+          parsedAmountIn,
           bonderFee.toString(),
           amountOutIn,
           deadline,
@@ -569,13 +578,17 @@ const Send: FC = () => {
         const deadline = (Date.now() / 1000 + 300) | 0
         const destinationDeadline = deadline
         const chainId = toNetwork?.networkId
-        const relayerFee = '0'
         const amountOutIn = '0'
         const destinationAmountOutMin = '0'
         const bonderFee = await getBonderFee()
         const uniswapWrapper =
           contracts?.tokens[selectedToken?.symbol][fromNetwork?.slug as string]
             .uniswapWrapper
+
+        const parsedAmountIn = parseUnits(fromTokenAmount, 18)
+        if (bonderFee.gt(parsedAmountIn)) {
+          throw new Error('Amount must be greater than bonder fee')
+        }
 
         const wrapperWrite = await getWriteContract(uniswapWrapper)
         return wrapperWrite?.swapAndSend(

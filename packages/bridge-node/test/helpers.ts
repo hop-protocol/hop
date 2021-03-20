@@ -322,6 +322,74 @@ export class User {
     )
   }
 
+  async bridgeSend (
+		sourceNetwork: string,
+		destNetwork: string,
+		token: string,
+		amount: number,
+	) {
+    const recipient = await this.getAddress()
+    const deadline = (Date.now() / 1000 + 300) | 0
+    const chainId = networkSlugToId(destNetwork)
+    const bonderFee = await this.getBonderFee(
+      sourceNetwork,
+      token,
+      amount.toString()
+    )
+    const amountOutMin = '0'
+    const parsedAmount = parseUnits(amount.toString(), 18)
+    const bridge = this.getHopBridgeContract(sourceNetwork, token)
+    return bridge.send(
+      chainId,
+      recipient,
+      parsedAmount,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      {
+        //gasLimit: '1000000'
+      }
+    )
+	}
+
+  async swapAndSend(
+		sourceNetwork: string,
+		destNetwork: string,
+		token: string,
+		amount: number,
+	) {
+    const recipient = await this.getAddress()
+    const deadline = (Date.now() / 1000 + 300) | 0
+    const destinationDeadline = deadline
+		const destinationAmountOutMin = 0
+    const chainId = networkSlugToId(destNetwork)
+    const bonderFee = await this.getBonderFee(
+      sourceNetwork,
+      token,
+      amount.toString()
+    )
+    const amountOutMin = '0'
+    const parsedAmount = parseUnits(amount.toString(), 18)
+    const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
+    await checkApproval(this, sourceNetwork, token, wrapper.address)
+		console.log(bonderFee)
+
+    return wrapper.swapAndSend(
+      chainId,
+      recipient,
+      parsedAmount,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      destinationAmountOutMin,
+      destinationDeadline,
+      {
+				value: '1000000000000000',
+        gasLimit: '1000000'
+      }
+    )
+	}
+
   async sendAndWaitForReceipt (
     sourceNetwork: string,
     destNetwork: string,

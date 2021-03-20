@@ -142,7 +142,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
     return obj
   }, {} as any)
-  const calcAltTokenAmount = async (value: string) => {
+  const calcAltTokenAmount = async (value: string, check: boolean = false) => {
     if (value) {
       if (!sourceNetwork) {
         return ''
@@ -156,7 +156,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
       const tokenContracts = contracts?.tokens[selectedToken.symbol][slug]
       const router = tokenContracts?.uniswapRouter
-      if (networkPairMap[sourceNetwork?.slug] === destNetwork?.slug) {
+      if (check || networkPairMap[sourceNetwork?.slug] === destNetwork?.slug) {
         let path = [
           tokenContracts?.l2CanonicalToken.address,
           tokenContracts?.l2HopBridgeToken.address
@@ -460,13 +460,12 @@ const ConvertContextProvider: FC = ({ children }) => {
       } else if (isHopBridge(sourceNetwork?.slug) && destNetwork) {
         const router = sourceTokenContracts?.uniswapRouter
         const bridge = sourceTokenContracts?.l2Bridge
-        const uniswapWrapper = sourceTokenContracts?.uniswapWrapper
 
         await approveTokens(
           selectedToken,
           sourceTokenAmount,
           sourceNetwork as Network,
-          uniswapWrapper?.address as string
+          bridge?.address as string
         )
 
         // destination network is L1 ( L2 Hop -> L1 )
@@ -485,9 +484,19 @@ const ConvertContextProvider: FC = ({ children }) => {
             },
             onConfirm: async () => {
               const getBonderFee = async () => {
+                if (!sourceNetwork) {
+                  throw new Error('No source network selected')
+                }
+                if (!destNetwork) {
+                  throw new Error('No destination network selected')
+                }
+                const amountOut = await calcAltTokenAmount(
+                  sourceTokenAmount,
+                  true
+                )
                 const minBonderBps = await bridge?.minBonderBps()
                 const minBonderFeeAbsolute = await bridge?.minBonderFeeAbsolute()
-                const minBonderFeeRelative = BigNumber.from(value)
+                const minBonderFeeRelative = parseUnits(amountOut, 18)
                   .mul(minBonderBps)
                   .div(10000)
                 const minBonderFee = minBonderFeeRelative.gt(
@@ -499,20 +508,21 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
               const deadline = (Date.now() / 1000 + 300) | 0
               const amountOutMin = '0'
-              let destinationAmountOutMin = '0'
-              let destinationDeadline = '0'
               const bonderFee = await getBonderFee()
-              const wrapperWrite = await getWriteContract(uniswapWrapper)
+              const wrapperWrite = await getWriteContract(bridge)
               const chainId = destNetwork?.networkId
-              return wrapperWrite?.swapAndSend(
+
+              if (bonderFee.gt(value)) {
+                throw new Error('Amount must be greater than bonder fee')
+              }
+
+              return bridge?.send(
                 chainId,
                 recipient,
                 value,
                 bonderFee,
                 amountOutMin,
                 deadline,
-                destinationAmountOutMin,
-                destinationDeadline,
                 {
                   //gasLimit: 1000000
                 }

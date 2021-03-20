@@ -4,9 +4,6 @@ const commafy = (value: string | number | undefined, decimals: number = 2) => {
   if (value === undefined) {
     return ''
   }
-  if (!/[0-9]/gi.test(value.toString())) {
-    return value
-  }
   if (typeof decimals === 'string') {
     decimals = Number(decimals)
   }
@@ -14,7 +11,11 @@ const commafy = (value: string | number | undefined, decimals: number = 2) => {
     decimals = 2
   }
 
-  return numbro(value).format(`0,0.[${'0'.repeat(decimals)}]`)
+  try {
+    return numbro(value).format(`0,0.[${'0'.repeat(decimals)}]`)
+  } catch (err) {
+    return value
+  }
 }
 
 export default commafy

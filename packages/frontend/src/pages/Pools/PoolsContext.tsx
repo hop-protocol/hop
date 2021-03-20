@@ -331,11 +331,15 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   const addLiquidity = async () => {
     try {
+      setError(null)
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
 
-      if (!Number(token0Amount) || !Number(token1Amount)) {
+      if (!Number(token0Amount)) {
+        return
+      }
+      if (!Number(token1Amount)) {
         return
       }
 

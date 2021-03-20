@@ -299,6 +299,10 @@ const PoolsContextProvider: FC = ({ children }) => {
     updatePrices()
   }, 5 * 1000)
 
+  useInterval(() => {
+    updateUserPoolPositions()
+  }, 20 * 1000)
+
   const approveTokens = async (
     token: Token,
     amount: string,
@@ -423,6 +427,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         )
       }
       await tx?.wait()
+      updateUserPoolPositions()
     } catch (err) {
       if (!/cancelled/gi.test(err.message)) {
         setError(err.message)

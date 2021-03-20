@@ -142,7 +142,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
     return obj
   }, {} as any)
-  const calcAltTokenAmount = async (value: string, check: boolean = false) => {
+  const calcAltTokenAmount = async (value: string) => {
     if (value) {
       if (!sourceNetwork) {
         return ''
@@ -156,7 +156,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
       const tokenContracts = contracts?.tokens[selectedToken.symbol][slug]
       const router = tokenContracts?.uniswapRouter
-      if (check || networkPairMap[sourceNetwork?.slug] === destNetwork?.slug) {
+      if (networkPairMap[sourceNetwork?.slug] === destNetwork?.slug) {
         let path = [
           tokenContracts?.l2CanonicalToken.address,
           tokenContracts?.l2HopBridgeToken.address
@@ -490,13 +490,9 @@ const ConvertContextProvider: FC = ({ children }) => {
                 if (!destNetwork) {
                   throw new Error('No destination network selected')
                 }
-                const amountOut = await calcAltTokenAmount(
-                  sourceTokenAmount,
-                  true
-                )
                 const minBonderBps = await bridge?.minBonderBps()
                 const minBonderFeeAbsolute = await bridge?.minBonderFeeAbsolute()
-                const minBonderFeeRelative = parseUnits(amountOut, 18)
+                const minBonderFeeRelative = BigNumber.from(value)
                   .mul(minBonderBps)
                   .div(10000)
                 const minBonderFee = minBonderFeeRelative.gt(

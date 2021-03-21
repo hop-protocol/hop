@@ -31,7 +31,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { UINT256, L1_NETWORK } from 'src/constants'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import logger from 'src/logger'
-import { commafy, intersection } from 'src/utils'
+import { commafy, intersection, normalizeNumberInput } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   sendSelect: {
@@ -672,7 +672,7 @@ const Send: FC = () => {
             return
           }
 
-          const amountIn = event.target.value
+          const amountIn = normalizeNumberInput(event.target.value)
           setFromTokenAmount(amountIn)
           setIsFromLastChanged(true)
           updateAmountOut(amountIn)
@@ -713,7 +713,7 @@ const Send: FC = () => {
             return
           }
 
-          const amountOut = event.target.value
+          const amountOut = normalizeNumberInput(event.target.value)
           setToTokenAmount(amountOut)
           setIsFromLastChanged(false)
           updateAmountIn(amountOut)

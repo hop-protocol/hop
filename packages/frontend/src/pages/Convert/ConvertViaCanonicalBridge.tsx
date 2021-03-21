@@ -8,6 +8,7 @@ import SendButton from 'src/pages/Convert/SendButton'
 import AmountSelectorCard from 'src/pages/Convert/AmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
+import { normalizeNumberInput } from 'src/utils'
 
 const useStyles = makeStyles(() => ({
   title: {
@@ -72,14 +73,14 @@ const Convert: FC = () => {
   }
   const handleSourceTokenAmountChange = async (event: any) => {
     try {
-      const value = event.target.value || ''
+      const value = normalizeNumberInput(event.target.value || '')
       setSourceTokenAmount(value)
       setDestTokenAmount(await calcAltTokenAmount(value))
     } catch (err) {}
   }
   const handleDestTokenAmountChange = async (event: any) => {
     try {
-      const value = event.target.value || ''
+      const value = normalizeNumberInput(event.target.value || '')
       setDestTokenAmount(value)
       setSourceTokenAmount(await calcAltTokenAmount(value))
     } catch (err) {}

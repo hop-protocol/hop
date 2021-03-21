@@ -46,7 +46,7 @@ export type Props = ButtonProps & {
 
 function ClipboardCopyButton (props: Props) {
   const { value, label, className } = props
-  const classes = useStyles()
+  const styles = useStyles()
   const [text, setText] = useState<string>('')
 
   const handleClick = (event: SyntheticEvent) => {
@@ -63,9 +63,9 @@ function ClipboardCopyButton (props: Props) {
 
   return (
     <Tooltip title={text} open={!!text} placement="top-start">
-      <button className={clsx(classes.button, className)} onClick={handleClick}>
+      <button className={clsx(styles.button, className)} onClick={handleClick}>
         <ClipboardIcon />
-        {label ? <span className={classes.label}>{label}</span> : null}
+        {label ? <span className={styles.label}>{label}</span> : null}
       </button>
     </Tooltip>
   )

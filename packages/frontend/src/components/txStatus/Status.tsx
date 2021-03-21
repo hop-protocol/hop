@@ -80,25 +80,25 @@ const useStepIconStyles = makeStyles({
 })
 
 function StepIcon (props: StepIconProps) {
-  const classes = useStepIconStyles()
+  const styles = useStepIconStyles()
   const { active, completed, icon } = props
   const loader = active && !completed
 
   return (
     <div
-      className={clsx(classes.root, {
-        [classes.active]: active
+      className={clsx(styles.root, {
+        [styles.active]: active
       })}
     >
-      <div className={classes.bg}>
+      <div className={styles.bg}>
         {completed ? (
           <Zoom in={true} style={{ transitionDelay: '0ms' }}>
-            <Check className={classes.completed} />
+            <Check className={styles.completed} />
           </Zoom>
         ) : loader ? (
           <CircularProgress size={24} thickness={5} />
         ) : (
-          <div className={classes.circle} />
+          <div className={styles.circle} />
         )}
       </div>
     </div>

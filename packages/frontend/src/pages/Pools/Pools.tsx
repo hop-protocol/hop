@@ -10,7 +10,7 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
-import { commafy } from 'src/utils'
+import { commafy, normalizeNumberInput } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -117,7 +117,7 @@ const Pools: FC = () => {
   }
 
   const handleToken0Change = async (event: ChangeEvent<{ value: unknown }>) => {
-    const token0Value = event.target.value as string
+    const token0Value = normalizeNumberInput(event.target.value as string)
     if (!token0Value) {
       setToken0Amount('')
       setToken1Amount('')
@@ -132,7 +132,7 @@ const Pools: FC = () => {
   }
 
   const handleToken1Change = async (event: ChangeEvent<{ value: unknown }>) => {
-    const token1Value = event.target.value as string
+    const token1Value = normalizeNumberInput(event.target.value as string)
     if (!token1Value) {
       setToken0Amount('')
       setToken1Amount('')

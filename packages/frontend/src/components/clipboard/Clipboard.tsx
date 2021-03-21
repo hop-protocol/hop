@@ -11,7 +11,7 @@ export interface Props {
 
 function Clipboard (props: Props) {
   const { value } = props
-  const classes = useStyles()
+  const styles = useStyles()
 
   const handleClick = (event: SyntheticEvent) => {
     event.preventDefault()

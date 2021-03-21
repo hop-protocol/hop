@@ -49,7 +49,8 @@ export const addresses: HopAddresses = {
         l2UniswapFactory: '0xA672420F4779f26Db86dD5bB5711F86B6d6e5a1f',
         l2UniswapExchange: '0x1A48d744b738c9a045a18A129E253361775512De',
         l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
-        l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560'
+        l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
+        canonicalBridgeMaxPerTx: '10000'
       }
     },
     sETH: {
@@ -79,7 +80,8 @@ export const addresses: HopAddresses = {
         l2UniswapFactory: '0xaC9D27C4379FD9389Bc6FFd59Ca699c6Db5F9848',
         l2UniswapExchange: '0xb2bB840a83E3f3E10AD87bD8A3d571899085aF2c',
         l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
-        l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560'
+        l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
+        canonicalBridgeMaxPerTx: '10000'
       }
     },
     sBTC: {
@@ -109,7 +111,8 @@ export const addresses: HopAddresses = {
         l2UniswapFactory: '0x057d871Ec6a93A05835B4db3Fb45305Cf367e0AB',
         l2UniswapExchange: '0x2Cf09ad0bC88718cac957a4946f652fCd40AB954',
         l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
-        l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560'
+        l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
+        canonicalBridgeMaxPerTx: '10000'
       }
     }
   }

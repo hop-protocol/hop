@@ -16,7 +16,7 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
 import { UINT256, L1_NETWORK, ARBITRUM, OPTIMISM, XDAI } from 'src/constants'
 import logger from 'src/logger'
-import { networkSlugToId } from 'src/utils'
+import { commafy, networkSlugToId } from 'src/utils'
 
 type ConvertContextProps = {
   tokens: Token[]
@@ -179,6 +179,26 @@ const ConvertContextProvider: FC = ({ children }) => {
     return value
   }
 
+  const checkMaxTokensAllowed = async (
+    networkSlug: string,
+    canonicalBridge: Contract
+  ) => {
+    if (networkSlug === XDAI) {
+      const maxPerTx = await canonicalBridge?.maxPerTx(
+        contracts?.tokens[selectedToken.symbol][L1_NETWORK].l1CanonicalToken
+          .address
+      )
+      const formattedMaxPerTx = Number(
+        formatUnits(maxPerTx.toString(), selectedToken.decimals)
+      )
+      if (Number(sourceTokenAmount) > formattedMaxPerTx) {
+        throw new Error(
+          `Max allowed by xDai Bridge is ${commafy(formattedMaxPerTx)} tokens`
+        )
+      }
+    }
+  }
+
   const convertTokens = async () => {
     try {
       const networkId = Number(sourceNetwork?.networkId)
@@ -298,6 +318,10 @@ const ConvertContextProvider: FC = ({ children }) => {
           const destTokenContracts =
             contracts?.tokens[selectedToken.symbol][destSlug]
           const messenger = destTokenContracts?.l1CanonicalBridge
+          if (!messenger) {
+            throw new Error('Messenger not found')
+          }
+          await checkMaxTokensAllowed(destSlug, messenger)
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
@@ -587,12 +611,31 @@ const ConvertContextProvider: FC = ({ children }) => {
   }
 
   const enoughBalance = Number(sourceTokenBalance) >= Number(sourceTokenAmount)
+  let withinMax = true
+  let sendButtonText = 'Convert'
+  if (
+    sourceTokenAmount &&
+    selectedToken &&
+    destNetwork &&
+    destNetwork.slug === XDAI
+  ) {
+    const maxPerTx = Number(
+      addresses.tokens[selectedToken?.symbol][destNetwork.slug]
+        .canonicalBridgeMaxPerTx
+    )
+    if (maxPerTx && Number(sourceTokenAmount) > maxPerTx) {
+      withinMax = false
+      sendButtonText = `Max allowed is ${commafy(maxPerTx)} ${
+        selectedToken?.symbol
+      }`
+    }
+  }
   const validFormFields = !!(
     sourceTokenAmount &&
     destTokenAmount &&
-    enoughBalance
+    enoughBalance &&
+    withinMax
   )
-  let sendButtonText = 'Convert'
   if (sourceTokenBalance === null) {
     sendButtonText = 'Fetching balance...'
   } else if (!enoughBalance) {

@@ -866,7 +866,12 @@
     },
     {
       "constant": true,
-      "inputs": [],
+      "inputs": [
+        {
+          "name": "_token",
+          "type": "address"
+        }
+      ],
       "name": "maxPerTx",
       "outputs": [
         {

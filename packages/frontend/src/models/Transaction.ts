@@ -94,19 +94,24 @@ class Transaction extends EventEmitter {
   }
 
   private _etherscanLink () {
-    return `${getBaseExplorerUrl(this.networkName)}${this.hash}`
+    return `${getBaseExplorerUrl(this.networkName)}tx/${this.hash}`
   }
 
   private _arbitrumLink () {
-    return `${getBaseExplorerUrl('arbitrum')}${this.hash}`
+    return `${getBaseExplorerUrl('arbitrum')}tx/${this.hash}`
   }
 
   private _optimismLink () {
-    return getBaseExplorerUrl('optimism').replace('{{input}}', this.hash)
+    try {
+      const url = new URL(getBaseExplorerUrl('optimism'))
+      return `${url.origin}${url.pathname}tx/${this.hash}${url.search}`
+    } catch (err) {
+      return ''
+    }
   }
 
   private _xdaiLink () {
-    return `${getBaseExplorerUrl('xdai')}${this.hash}`
+    return `${getBaseExplorerUrl('xdai')}tx/${this.hash}`
   }
 
   private _maticLink () {

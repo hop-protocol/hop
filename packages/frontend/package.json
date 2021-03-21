@@ -23,6 +23,7 @@
     "cache-promise-result": "0.0.1",
     "classnames": "2.2.6",
     "clsx": "1.1.1",
+    "copy-to-clipboard": "^3.3.1",
     "dotenv": "8.2.0",
     "ethers": "5.0.28",
     "gridplus-sdk": "0.6.1",

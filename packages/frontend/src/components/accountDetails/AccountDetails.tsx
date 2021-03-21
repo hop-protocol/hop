@@ -10,6 +10,7 @@ import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import Modal from 'src/components/modal/Modal'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import ClipboardCopyButton from 'src/components/buttons/ClipboardCopyButton'
 
 const useStyles = makeStyles(() => ({
   header: {
@@ -57,6 +58,9 @@ const useStyles = makeStyles(() => ({
   },
   address: {
     fontSize: '2rem'
+  },
+  copyButton: {
+    marginLeft: '0.5rem'
   }
 }))
 
@@ -113,7 +117,16 @@ const ManageWallet = (props: any) => {
       <Button className={styles.disconnectButton} onClick={onDisconnect}>
         Disconnect
       </Button>
-      <div className={styles.address}>{address?.truncate()}</div>
+      <div className={styles.address}>
+        <span>{address?.truncate()}</span>
+        <div>
+          <ClipboardCopyButton
+            className={styles.copyButton}
+            value={address?.toString()}
+            label={'Copy address'}
+          />
+        </div>
+      </div>
     </div>
   )
 }

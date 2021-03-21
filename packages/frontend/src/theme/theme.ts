@@ -100,7 +100,7 @@ const typography: TypographyOptions = {
     fontWeight: 400
   },
   h4: {
-    fontSize: '2.8rem',
+    fontSize: '2.7rem',
     fontWeight: 700
   },
   h5: {

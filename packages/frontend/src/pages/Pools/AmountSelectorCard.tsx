@@ -109,10 +109,10 @@ const AmountSelectorCard: FC<Props> = props => {
         ) : null}
       </Box>
       <Grid container alignItems="center">
-        <Grid item xs={6}>
+        <Grid item xs={4}>
           {title}
         </Grid>
-        <Grid item xs={6}>
+        <Grid item xs={8}>
           <LargeTextField
             value={value}
             onChange={onChange}

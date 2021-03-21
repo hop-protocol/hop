@@ -48,7 +48,8 @@ const useInputStyles = makeStyles(theme => ({
     textAlign: centerAlign ? 'center' : 'right',
     fontSize: theme.typography.h4.fontSize,
     fontWeight: theme.typography.h4.fontWeight,
-    color: theme.palette.text.primary
+    color: theme.palette.text.primary,
+    textOverflow: 'ellipsis'
   }),
   focused: {
     borderRadius: '1.5rem',

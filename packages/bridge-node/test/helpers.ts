@@ -323,11 +323,11 @@ export class User {
   }
 
   async bridgeSend (
-		sourceNetwork: string,
-		destNetwork: string,
-		token: string,
-		amount: number,
-	) {
+    sourceNetwork: string,
+    destNetwork: string,
+    token: string,
+    amount: number
+  ) {
     const recipient = await this.getAddress()
     const deadline = (Date.now() / 1000 + 300) | 0
     const chainId = networkSlugToId(destNetwork)
@@ -350,18 +350,18 @@ export class User {
         //gasLimit: '1000000'
       }
     )
-	}
+  }
 
-  async swapAndSend(
-		sourceNetwork: string,
-		destNetwork: string,
-		token: string,
-		amount: number,
-	) {
+  async swapAndSend (
+    sourceNetwork: string,
+    destNetwork: string,
+    token: string,
+    amount: number
+  ) {
     const recipient = await this.getAddress()
     const deadline = (Date.now() / 1000 + 300) | 0
     const destinationDeadline = deadline
-		const destinationAmountOutMin = 0
+    const destinationAmountOutMin = 0
     const chainId = networkSlugToId(destNetwork)
     const bonderFee = await this.getBonderFee(
       sourceNetwork,
@@ -372,7 +372,7 @@ export class User {
     const parsedAmount = parseUnits(amount.toString(), 18)
     const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
     await checkApproval(this, sourceNetwork, token, wrapper.address)
-		console.log(bonderFee)
+    console.log(bonderFee)
 
     return wrapper.swapAndSend(
       chainId,
@@ -384,11 +384,11 @@ export class User {
       destinationAmountOutMin,
       destinationDeadline,
       {
-				value: '1000000000000000',
+        value: '1000000000000000',
         gasLimit: '1000000'
       }
     )
-	}
+  }
 
   async sendAndWaitForReceipt (
     sourceNetwork: string,

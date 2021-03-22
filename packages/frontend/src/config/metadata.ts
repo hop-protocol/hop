@@ -6,6 +6,8 @@ import MaticLogo from 'src/assets/logos/matic.svg'
 import DaiLogo from 'src/assets/logos/dai.svg'
 import SynthEthLogo from 'src/assets/logos/seth.svg'
 import SynthBtcLogo from 'src/assets/logos/sbtc.svg'
+import UsdcLogo from 'src/assets/logos/usdc.svg'
+import wBtcLogo from 'src/assets/logos/wbtc.svg'
 
 type Metadata = {
   tokens: {
@@ -50,6 +52,18 @@ export const metadata: Metadata = {
       name: 'Synth BTC',
       decimals: 18,
       image: SynthBtcLogo
+    },
+    USDC: {
+      symbol: 'USDC',
+      name: 'USDC',
+      decimals: 18,
+      image: UsdcLogo
+    },
+    WBTC: {
+      symbol: 'WBTC',
+      name: 'Wrapped BTC',
+      decimals: 18,
+      image: wBtcLogo
     }
   },
   networks: {

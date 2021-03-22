@@ -37,7 +37,7 @@ const Pools: FC = () => {
 
   const handleKethFaucetClick = (event: SyntheticEvent) => {
     event.preventDefault()
-    window.open('https://faucet.kovan.network/', '_blank')
+    window.open('https://gitter.im/kovan-testnet/faucet', '_blank')
   }
 
   const handlexDaiFaucetClick = (event: SyntheticEvent) => {

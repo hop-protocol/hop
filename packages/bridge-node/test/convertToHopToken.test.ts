@@ -5,7 +5,7 @@ import { KOVAN, OPTIMISM, XDAI } from 'src/constants'
 import Logger from 'src/logger'
 import { privateKey } from './config'
 
-const TOKEN = 'sBTC'
+const TOKEN = 'WBTC'
 const AMOUNT = 10000
 const NETWORKS = [OPTIMISM, XDAI]
 const logger = new Logger('TEST')

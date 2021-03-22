@@ -20,6 +20,9 @@ type FaucetContextProps = {
   mintToken: () => void
   mintAmount: string
   isMinting: boolean
+  selectedToken: Token | undefined
+  setSelectedToken: (token: Token) => void
+  tokens: Token[]
   error: string | null | undefined
   setError: (error: string | null | undefined) => void
 }
@@ -28,6 +31,9 @@ const FaucetContext = createContext<FaucetContextProps>({
   mintToken: () => {},
   mintAmount: '',
   isMinting: false,
+  selectedToken: undefined,
+  setSelectedToken: (token: Token) => {},
+  tokens: [],
   error: null,
   setError: (error: string | null | undefined) => {}
 })
@@ -36,28 +42,33 @@ const FaucetContextProvider: FC = ({ children }) => {
   const [mintAmount, setMintAmount] = useState<string>('10')
   const [isMinting, setMinting] = useState<boolean>(false)
   let { contracts, txHistory, networks, tokens } = useApp()
-  const token = tokens.find(token => token.symbol === 'DAI') as Token
-  const l1Dai = contracts?.tokens[token.symbol][L1_NETWORK].l1CanonicalToken
   const {
     address,
     getWriteContract,
     checkConnectedNetworkId
   } = useWeb3Context()
   const selectedNetwork = networks[0]
+  const [selectedToken, setSelectedToken] = useState<Token | undefined>(
+    tokens[0]
+  )
   const [error, setError] = useState<string | null | undefined>(null)
 
   const mintToken = async () => {
     try {
-      let l1DaiWrite
-      l1DaiWrite = await getWriteContract(l1Dai)
-      if (!l1DaiWrite) {
+      if (!selectedToken?.symbol) {
+        return
+      }
+      const contract =
+        contracts?.tokens[selectedToken.symbol][L1_NETWORK].l1CanonicalToken
+      const writeContract = await getWriteContract(contract)
+      if (!writeContract) {
         return
       }
       setMinting(true)
       const recipient = address?.toString()
       const parsedAmount = parseUnits(mintAmount, 18)
 
-      const tx = await l1DaiWrite?.mint(recipient, parsedAmount)
+      const tx = await writeContract?.mint(recipient, parsedAmount)
       logger.debug('mint:', tx?.hash)
 
       txHistory?.addTransaction(
@@ -80,6 +91,9 @@ const FaucetContextProvider: FC = ({ children }) => {
         mintToken,
         mintAmount,
         isMinting,
+        selectedToken,
+        setSelectedToken,
+        tokens,
         error,
         setError
       }}

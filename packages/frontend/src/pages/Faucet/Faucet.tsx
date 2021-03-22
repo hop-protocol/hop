@@ -1,9 +1,12 @@
 import React, { FC, ChangeEvent, SyntheticEvent } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
+import RaisedSelect from 'src/components/selects/RaisedSelect'
+import MenuItem from '@material-ui/core/MenuItem'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import Alert from 'src/components/alert/Alert'
+import Token from 'src/models/Token'
 import { useFaucet } from 'src/pages/Faucet/FaucetContext'
 import Button from 'src/components/buttons/Button'
 
@@ -29,10 +32,27 @@ const useStyles = makeStyles(theme => ({
 
 const Pools: FC = () => {
   const styles = useStyles()
-  let { mintToken, mintAmount, isMinting, error, setError } = useFaucet()
+  let {
+    mintToken,
+    mintAmount,
+    isMinting,
+    error,
+    setError,
+    tokens,
+    selectedToken,
+    setSelectedToken
+  } = useFaucet()
 
-  const handleDaiMint = () => {
+  const handleMint = () => {
     mintToken()
+  }
+
+  const handleTokenChange = (event: ChangeEvent<{ value: unknown }>) => {
+    const tokenSymbol = event.target.value as string
+    const token = tokens.find((token: Token) => token.symbol === tokenSymbol)
+    if (token) {
+      setSelectedToken(token)
+    }
   }
 
   const handleKethFaucetClick = (event: SyntheticEvent) => {
@@ -54,7 +74,17 @@ const Pools: FC = () => {
       </Box>
       <Box display="flex" alignItems="center" className={styles.box}>
         <Typography variant="body1" className={styles.text}>
-          Mint {mintAmount} Kovan DAI
+          Mint {mintAmount} Kovan
+          <RaisedSelect
+            value={selectedToken?.symbol}
+            onChange={handleTokenChange}
+          >
+            {tokens.map(token => (
+              <MenuItem value={token.symbol} key={token.symbol}>
+                {token.symbol}
+              </MenuItem>
+            ))}
+          </RaisedSelect>
         </Typography>
         <Alert
           className={styles.alert}
@@ -64,12 +94,12 @@ const Pools: FC = () => {
         />
         <Button
           className={styles.button}
-          onClick={handleDaiMint}
+          onClick={handleMint}
           large
           highlighted
           loading={isMinting}
         >
-          Mint DAI
+          Mint {selectedToken?.symbol}
         </Button>
       </Box>
       <Box display="flex" alignItems="center" className={styles.box}>

@@ -115,8 +115,8 @@ const demoTokens = {
   },
   WBTC: {
     kovan: {
-      l1CanonicalToken: '0x7a4f56B0Dd21d730604A266245a0067b97605DAE',
-      l1Bridge: '0x12084002058A998C3A7A3E306c9441bD858c8052'
+      l1CanonicalToken: '0x1E1a556D2166A006e662864D376e8DD249087150',
+      l1Bridge: '0xA93eC98Ead897Ee8EF0b5CC9E2a658875719B224'
     },
     optimism: {
       l1CanonicalBridge: '0xC1e7Be0E1aDD345afB2485aA5E774cD79cBbbBf5',

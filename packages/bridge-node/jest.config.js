@@ -6,5 +6,6 @@ module.exports = {
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/src/$1'
   },
-  setupFiles: ['dotenv/config']
+  setupFiles: ['dotenv/config'],
+  bail: 1
 }

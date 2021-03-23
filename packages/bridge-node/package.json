@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "test": "jest test --bail=1",
+    "test": "jest test",
     "example": "ts-node src/scripts/optimismToArbitrum.ts",
     "arb-bot": "npm run build && node bin/bridge-node arb-bot",
     "start": "node .",

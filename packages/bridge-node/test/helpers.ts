@@ -191,7 +191,6 @@ export class User {
     return provider.waitForTransaction(txHash)
   }
 
-  @queue
   async send (
     sourceNetwork: string,
     destNetwork: string,
@@ -233,7 +232,9 @@ export class User {
       amountOutMin,
       deadline,
       relayerFee,
-      {}
+      {
+        //gasLimit: 1000000
+      }
     )
 
     return tx
@@ -574,7 +575,10 @@ export class User {
       value,
       amountOutMin,
       deadline,
-      relayerFee
+      relayerFee,
+      {
+        //gasLimit: 1000000
+      }
     )
   }
 
@@ -596,7 +600,7 @@ export class User {
       token,
       uniswapRouterAddress
     )
-    if (allowance < 1000) {
+    if (allowance < Number(token0Amount)) {
       const tx = await this.approve(network, token, uniswapRouterAddress)
       await tx?.wait()
     }
@@ -606,7 +610,7 @@ export class User {
       hTokenContract,
       uniswapRouterAddress
     )
-    if (allowance < 1000) {
+    if (allowance < Number(token0Amount)) {
       const tx = await this.approve(
         network,
         hTokenContract,

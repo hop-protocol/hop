@@ -1,12 +1,11 @@
-import { KOVAN, XDAI, OPTIMISM, DAI } from 'src/constants'
 import { privateKey } from './config'
 import { User } from './helpers'
-
-console.log(KOVAN, OPTIMISM, XDAI, DAI)
+// @ts-ignore
+import { KOVAN, XDAI, OPTIMISM, DAI } from 'src/constants'
 
 const network = KOVAN
-const token = 'sBTC'
-const amount = 10000
+const token = 'DAI'
+const amount = 100000
 
 test(
   'mint',

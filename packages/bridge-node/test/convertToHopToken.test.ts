@@ -1,15 +1,15 @@
 require('dotenv').config()
 import { User, checkApproval } from './helpers'
 import { wait } from 'src/utils'
-import { KOVAN, OPTIMISM, XDAI } from 'src/constants'
 import Logger from 'src/logger'
 import { privateKey } from './config'
+// @ts-ignore
+import { KOVAN, OPTIMISM, XDAI } from 'src/constants'
 
 const TOKEN = 'WBTC'
 const AMOUNT = 10000
 const NETWORKS = [OPTIMISM, XDAI]
 const logger = new Logger('TEST')
-console.log(XDAI, OPTIMISM)
 
 describe('convert L1 token to L2 Hop token', () => {
   for (let L2_NETWORK of NETWORKS) {

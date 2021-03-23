@@ -1,8 +1,7 @@
-import { KOVAN, XDAI, OPTIMISM, DAI } from 'src/constants'
 import { bonderPrivateKey, governancePrivateKey } from './config'
 import { User } from './helpers'
-
-console.log(OPTIMISM, XDAI)
+// @ts-ignore
+import { KOVAN, XDAI, OPTIMISM, DAI } from 'src/constants'
 
 test(
   'commitTransfers',

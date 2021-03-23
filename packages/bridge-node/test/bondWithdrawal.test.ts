@@ -1,39 +1,40 @@
 require('dotenv').config()
 import { startWatchers } from 'src/watchers/watchers'
 import { wait, isL1 } from 'src/utils'
-import { KOVAN, ARBITRUM, OPTIMISM, XDAI } from 'src/constants'
 import { User, waitForEvent, prepareAccount } from './helpers'
 import { privateKey } from './config'
 import Logger from 'src/logger'
+// @ts-ignore
+import { KOVAN, ARBITRUM, OPTIMISM, XDAI } from 'src/constants'
 
 const L1ToL2Paths = [
-  [KOVAN, ARBITRUM],
+  //[KOVAN, ARBITRUM],
   [KOVAN, OPTIMISM],
   [KOVAN, XDAI]
 ]
 
 const L2ToL1Paths = [
-  [ARBITRUM, KOVAN],
+  //[ARBITRUM, KOVAN],
   [OPTIMISM, KOVAN],
   [XDAI, KOVAN]
 ]
 
 const L2ToL2Paths = [
-  [OPTIMISM, ARBITRUM],
+  //[OPTIMISM, ARBITRUM],
   [OPTIMISM, XDAI],
-  [ARBITRUM, OPTIMISM],
-  [ARBITRUM, XDAI],
-  [XDAI, OPTIMISM],
-  [XDAI, ARBITRUM]
+  //[ARBITRUM, OPTIMISM],
+  //[ARBITRUM, XDAI],
+  [XDAI, OPTIMISM]
+  //[XDAI, ARBITRUM]
 ]
 
-const TOKEN = 'sETH'
+const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 1
 const logger = new Logger('TEST')
 
 describe('bondWithdrawal', () => {
   let testPaths = [...L1ToL2Paths, ...L2ToL1Paths, ...L2ToL2Paths]
-  testPaths = [[XDAI, KOVAN]]
+  //testPaths = [[XDAI, KOVAN]]
   for (let path of testPaths) {
     const [sourceNetwork, destNetwork] = path
     const label = `${sourceNetwork} -> ${destNetwork}`
@@ -80,7 +81,7 @@ describe('bondWithdrawal', () => {
         expect(destBalanceAfter).toBeGreaterThan(destBalanceBefore)
         await stop()
       },
-      300 * 1000
+      900 * 1000
     )
   }
 })

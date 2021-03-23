@@ -39,7 +39,7 @@ for (let network of networks) {
       },
       wallet: wallets[network],
       minThreshold: 1.01,
-      arbitrageAmount: 10
+      maxTradeAmount: 100000000
     })
 
     bots.push(bot)

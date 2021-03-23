@@ -1,13 +1,13 @@
 require('dotenv').config()
 import { User, checkApproval } from './helpers'
 import { wait } from 'src/utils'
-import { KOVAN, OPTIMISM, XDAI } from 'src/constants'
 import { bonderPrivateKey } from './config'
+// @ts-ignore
+import { KOVAN, OPTIMISM, XDAI } from 'src/constants'
 
-const TOKEN = 'sBTC'
+const TOKEN = 'DAI'
 const TOKEN_0_AMOUNT = 10000
 const testNetworks = [OPTIMISM, XDAI]
-console.log(OPTIMISM, XDAI)
 
 for (let l2Network of testNetworks) {
   test(
@@ -33,20 +33,35 @@ async function addLiquidity (l2Network: string, amount: number) {
 
   if (l1Balance < amount) {
     console.log(`minting ${KOVAN} ${TOKEN}`)
-    let tx = await user.mint(KOVAN, TOKEN, amount)
+    let tx = await user.mint(KOVAN, TOKEN, amount * 2)
     console.log(`mint tx: ${tx.hash}`)
     await tx.wait()
   }
 
   if (hopBalance < amount) {
+    await checkApproval(user, KOVAN, TOKEN, l1Bridge.address)
     console.log('converting canonical token to hop token')
+    // TODO: take fee into account
     tx = await user.canonicalTokenToHopToken(l2Network, TOKEN, amount)
     console.log('tx sendToL2:', tx?.hash)
     await tx.wait()
-    await wait(20 * 1000)
+    await wait(200 * 1000)
     hopBalance = await user.getHopBalance(l2Network, TOKEN)
     expect(hopBalance).toBeGreaterThanOrEqual(amount)
     console.log(`hop ${TOKEN} balance: ${hopBalance}`)
+  }
+
+  const l2Balance = await user.getBalance(l2Network, TOKEN)
+  console.log(`${l2Network} ${TOKEN} balance: ${l1Balance}`)
+
+  if (l2Balance < amount) {
+    const tokenBridge = user.getCanonicalBridgeContract(l2Network, TOKEN)
+    await checkApproval(user, KOVAN, TOKEN, tokenBridge.address)
+    console.log(`converting ${KOVAN} ${TOKEN} to ${l2Network} ${TOKEN}`)
+    let tx = await user.convertToCanonicalToken(l2Network, TOKEN, amount / 2)
+    console.log(`convert to canonical token tx: ${tx.hash}`)
+    await tx.wait()
+    await wait(200 * 1000)
   }
 
   let [

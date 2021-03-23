@@ -1,16 +1,17 @@
 require('dotenv').config()
-import { KOVAN, XDAI } from 'src/constants'
 import { startWatchers } from 'src/watchers/watchers'
 import { wait } from 'src/utils'
 import { User, checkApproval, waitForEvent, generateUsers } from './helpers'
 import { faucetPrivateKey, mnemonic } from './config'
 import Logger from 'src/logger'
+// @ts-ignore
+import { OPTIMISM, KOVAN, XDAI } from 'src/constants'
 
-const sourceNetwork = XDAI
+const sourceNetwork = OPTIMISM
 const destNetwork = KOVAN
 const token = 'DAI'
 const TRANSFER_AMOUNT = 1
-const NUM_USERS = 20
+const NUM_USERS = 1000
 const logger = new Logger('TEST')
 
 test(
@@ -52,7 +53,7 @@ test(
       })
     )
 
-    await wait(60 * 1000)
+    await wait(120 * 1000)
     logger.log('reading balances')
     const [sourceBalancesAfter, destBalancesAfter] = await getBalances(users)
 

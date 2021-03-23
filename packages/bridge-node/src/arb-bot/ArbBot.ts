@@ -24,7 +24,7 @@ interface Config {
   uniswap: UniswapConfig
   wallet: any
   minThreshold: number
-  arbitrageAmount: number
+  maxTradeAmount: number
 }
 
 interface Token {
@@ -41,7 +41,7 @@ class ArbBot {
   wallet: any
   accountAddress: string
   minThreshold: number
-  arbitrageAmount: number
+  maxTradeAmount: number
   ready: boolean = false
   pollTimeSec: number = 10
   cache: any = {}
@@ -86,14 +86,14 @@ class ArbBot {
     return this.getTokenBalance(this.token1)
   }
 
-  public async getToken0AmountOut () {
+  public async getToken0AmountOut (amount: number) {
     const path = [this.token0.contract.address, this.token1.contract.address]
-    return this.getAmountOut(path)
+    return this.getAmountOut(path, amount)
   }
 
-  public async getToken1AmountOut () {
+  public async getToken1AmountOut (amount: number) {
     const path = [this.token1.contract.address, this.token0.contract.address]
-    return this.getAmountOut(path)
+    return this.getAmountOut(path, amount)
   }
 
   private async tilReady (): Promise<boolean> {
@@ -108,7 +108,7 @@ class ArbBot {
   private async init (config: Config) {
     this.wallet = config.wallet
     this.minThreshold = config.minThreshold
-    this.arbitrageAmount = config.arbitrageAmount
+    this.maxTradeAmount = config.maxTradeAmount
     this.uniswapRouter = config.uniswap.router.contract
     this.uniswapFactory = config.uniswap.factory.contract
     this.uniswapExchange = config.uniswap.exchange.contract
@@ -161,8 +161,8 @@ class ArbBot {
     }
   }
 
-  private async getAmountOut (path: string[]) {
-    const amountIn = parseUnits(this.arbitrageAmount.toString(), 18)
+  private async getAmountOut (path: string[], amount: number) {
+    const amountIn = parseUnits(amount.toString(), 18)
     const amountsOut = await this.uniswapRouter?.getAmountsOut(amountIn, path)
     const amountOut = Number(formatUnits(amountsOut[1].toString(), 18))
     return amountOut
@@ -177,57 +177,76 @@ class ArbBot {
   }
 
   private async checkArbitrage () {
-    const token0AmountOut = await this.getToken0AmountOut()
-    const token1AmountOut = await this.getToken1AmountOut()
-    const cacheKey = `${token0AmountOut},${token1AmountOut}`
-    if (this.cache[cacheKey]) {
-      return
-    }
+    const check = async (arbitrageAmount: number, execute: boolean) => {
+      const token0AmountOut = await this.getToken0AmountOut(arbitrageAmount)
+      const token1AmountOut = await this.getToken1AmountOut(arbitrageAmount)
+      const cacheKey = `${token0AmountOut},${token1AmountOut}`
+      if (this.cache[cacheKey]) {
+        return
+      }
 
-    this.cache[cacheKey] = true
+      const shouldArb = token0AmountOut > arbitrageAmount * this.minThreshold
+      if (!execute) {
+        return shouldArb
+      }
 
-    logger.log('Checking for arbitrage opportunity')
-    logger.log(
-      `${this.arbitrageAmount} ${this.token0.label} = ${token0AmountOut} ${this.token1.label}`
-    )
-    logger.log(
-      `${this.arbitrageAmount} ${this.token1.label} = ${token1AmountOut} ${this.token0.label}`
-    )
+      this.cache[cacheKey] = true
 
-    let tx: any
-    if (token0AmountOut > this.arbitrageAmount * this.minThreshold) {
-      const profit = token0AmountOut - this.arbitrageAmount
-      logger.log(
-        chalk.green(
-          `Arbitrage opportunity: ${this.token0.label} 🡒 ${this.token1.label} (+${profit} ${this.token1.label})`
+      let tx: any
+      if (shouldArb) {
+        logger.debug('Checking for arbitrage opportunity')
+        logger.debug(
+          `${arbitrageAmount} ${this.token0.label} = ${token0AmountOut} ${this.token1.label}`
         )
-      )
-
-      const pathTokens = [this.token0, this.token1]
-      tx = await this.trade(pathTokens, this.arbitrageAmount)
-      logger.log(chalk.yellow(`trade tx: ${tx?.hash}`))
-      await tx?.wait()
-    }
-
-    if (token1AmountOut > this.arbitrageAmount * this.minThreshold) {
-      const profit = token1AmountOut - this.arbitrageAmount
-      logger.log(
-        chalk.green(
-          `Arbitrage opportunity: ${this.token1.label} 🡒 ${this.token0.label} (+${profit} ${this.token0.label})`
+        logger.debug(
+          `${arbitrageAmount} ${this.token1.label} = ${token1AmountOut} ${this.token0.label}`
         )
-      )
 
-      const pathTokens = [this.token1, this.token0]
-      tx = await this.trade(pathTokens, this.arbitrageAmount)
-      logger.log(chalk.yellow(`trade tx: ${tx?.hash}`))
-      await tx?.wait()
+        const profit = token0AmountOut - arbitrageAmount
+        logger.log(
+          chalk.green(
+            `Arbitrage opportunity: ${this.token0.label} 🡒 ${this.token1.label} (+${profit} ${this.token1.label})`
+          )
+        )
+
+        const pathTokens = [this.token0, this.token1]
+        tx = await this.trade(pathTokens, arbitrageAmount)
+        logger.log(chalk.yellow(`trade tx: ${tx?.hash}`))
+        await tx?.wait()
+      }
+
+      if (token1AmountOut > arbitrageAmount * this.minThreshold) {
+        const profit = token1AmountOut - arbitrageAmount
+        logger.log(
+          chalk.green(
+            `Arbitrage opportunity: ${this.token1.label} 🡒 ${this.token0.label} (+${profit} ${this.token0.label})`
+          )
+        )
+
+        const pathTokens = [this.token1, this.token0]
+        tx = await this.trade(pathTokens, arbitrageAmount)
+        logger.log(chalk.yellow(`trade tx: ${tx?.hash}`))
+        await tx?.wait()
+      }
+
+      if (!tx) {
+        logger.debug('No abitrage opportunity')
+      }
+
+      this.cache[cacheKey] = false
     }
 
-    if (!tx) {
-      logger.log('No abitrage opportunity')
+    const steps: number[] = []
+    for (let i = 0; i < 28; i++) {
+      steps.push(10 << i)
     }
 
-    this.cache[cacheKey] = false
+    for (let amount of steps) {
+      if (amount > this.maxTradeAmount) {
+        continue
+      }
+      await check(amount, true)
+    }
   }
 
   private async trade (

@@ -116,8 +116,8 @@ const Pools: FC = () => {
     }
   }
 
-  const handleToken0Change = async (event: ChangeEvent<{ value: unknown }>) => {
-    const token0Value = normalizeNumberInput(event.target.value as string)
+  const handleToken0Change = async (value: string) => {
+    const token0Value = normalizeNumberInput(value)
     if (!token0Value) {
       setToken0Amount('')
       setToken1Amount('')
@@ -131,8 +131,8 @@ const Pools: FC = () => {
     }
   }
 
-  const handleToken1Change = async (event: ChangeEvent<{ value: unknown }>) => {
-    const token1Value = normalizeNumberInput(event.target.value as string)
+  const handleToken1Change = async (value: string) => {
+    const token1Value = normalizeNumberInput(value)
     if (!token1Value) {
       setToken0Amount('')
       setToken1Amount('')

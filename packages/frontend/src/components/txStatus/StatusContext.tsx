@@ -35,15 +35,13 @@ const StatusContextProvider: FC = ({ children }) => {
   const [activeStep, setActiveStep] = React.useState(0)
   const [fetching, setFetching] = useState<boolean>(false)
   const [tx, setTx] = useState<Transaction | null>(null)
-  const token = {
-    // TODO
-    symbol: 'DAI'
-  }
   const l1Provider = contracts?.providers[L1_NETWORK]
-  const l1Bridge = contracts?.tokens[token.symbol][L1_NETWORK].l1Bridge
 
   async function updateStatus () {
     if (!tx) return
+    if (!tx.token) return
+    const token = tx.token
+    const l1Bridge = contracts?.tokens[token?.symbol][L1_NETWORK].l1Bridge
     setActiveStep(1)
     const sourceNetwork = networks.find(
       network => network.slug === tx.networkName
@@ -60,6 +58,9 @@ const StatusContextProvider: FC = ({ children }) => {
       setSteps(['Initiated', sourceNetwork.name])
     }
     const receipt = await tx.receipt()
+    if (!receipt.status) {
+      throw new Error('Transaction failed')
+    }
     const sourceTx = await tx.getTransaction()
     setActiveStep(2)
 
@@ -71,10 +72,10 @@ const StatusContextProvider: FC = ({ children }) => {
     // L1 -> L2
     if (sourceNetwork.isLayer1) {
       const decodedSource = l1Bridge?.interface.decodeFunctionData(
-        'sendToL2AndAttemptSwap',
+        'sendToL2',
         sourceTx.data
       )
-      const networkId = decodedSource?._chainId
+      const networkId = decodedSource?.chainId
       const destSlug = networkIdToSlug(networkId)
       destNetwork = networks.find(network => network.slug === destSlug)
       setSteps(['Initiated', sourceNetwork?.name, destNetwork?.name])
@@ -98,8 +99,8 @@ const StatusContextProvider: FC = ({ children }) => {
           const decodedLog = item.decode(item.data, item.topics)
           if (sourceTx.from === decodedLog.to) {
             if (
-              decodedSource?._amount.toString() !==
-              decodedLog.amount1In.toString()
+              decodedSource?.amount.toString() !==
+              decodedLog.amount0In.toString()
             ) {
               continue
             }
@@ -132,26 +133,19 @@ const StatusContextProvider: FC = ({ children }) => {
     // L2 -> L1
     if (!sourceNetwork.isLayer1 && destNetwork?.isLayer1) {
       const sourceSlug = sourceNetwork.slug
-      const bridge = contracts?.tokens[token.symbol][sourceSlug].l2Bridge
-      const decodedSource = bridge?.interface.decodeFunctionData(
+      const wrapper =
+        contracts?.tokens[token.symbol][sourceSlug].l2UniswapWrapper
+      const decodedSource = wrapper?.interface.decodeFunctionData(
         'swapAndSend',
         sourceTx.data
       )
-      const networkId = decodedSource?._chainId
+      const networkId = destNetwork?.networkId
       let transferHash: string = ''
       for (let log of receipt.logs) {
         const transferSentTopic =
-          '0x30184d17358bc1e4120ae52a274a8279c1c0258108596a2c24c87123a347132c'
+          '0x6ea037b8ea9ecdf62eae513fc0f331de4e4a9df62927a789d840281438d14ce5'
         if (log.topics[0] === transferSentTopic) {
           transferHash = log.topics[1]
-          if (!transferHash) {
-            const decodedLog = bridge?.interface.decodeEventLog(
-              'TransferSent',
-              log.data
-            )
-            transferHash = decodedLog?.transferHash
-          }
-          break
         }
       }
       if (!transferHash) {
@@ -164,7 +158,7 @@ const StatusContextProvider: FC = ({ children }) => {
         }
         let recentLogs: any[] =
           (await l1Bridge?.queryFilter(
-            l1Bridge.filters.TransferRootBonded(),
+            l1Bridge.filters.WithdrawalBonded(),
             (blockNumber as number) - 100
           )) ?? []
         recentLogs = recentLogs.reverse()
@@ -172,9 +166,7 @@ const StatusContextProvider: FC = ({ children }) => {
           return false
         }
         for (let item of recentLogs) {
-          const decodedLog = item.decode(item.data, item.topics)
-          const transferRoot = decodedLog.root
-          if (transferRoot === transferHash) {
+          if (item.topics[1] === transferHash) {
             setActiveStep(3)
             return true
           }
@@ -190,26 +182,27 @@ const StatusContextProvider: FC = ({ children }) => {
 
     // L2 -> L2
     if (!sourceNetwork.isLayer1 && !destNetwork?.isLayer1) {
+      if (!destNetwork) {
+        return
+      }
       const sourceSlug = sourceNetwork.slug
-      const bridge = contracts?.tokens[token.symbol][sourceSlug].l2Bridge
-      const decodedSource = bridge?.interface.decodeFunctionData(
+      const destSlug = destNetwork?.slug
+      const wrapperSource =
+        contracts?.tokens[token.symbol][sourceSlug].l2UniswapWrapper
+      const wrapperDest =
+        contracts?.tokens[token.symbol][destSlug].l2UniswapWrapper
+      const exchange = contracts?.tokens[token.symbol][destSlug].uniswapExchange
+      const bridge = contracts?.tokens[token.symbol][destSlug].l2Bridge
+      const decodedSource = wrapperSource?.interface.decodeFunctionData(
         'swapAndSend',
         sourceTx.data
       )
-      const networkId = decodedSource?._chainId
       let transferHash: string = ''
       for (let log of receipt.logs) {
         const transferSentTopic =
-          '0x30184d17358bc1e4120ae52a274a8279c1c0258108596a2c24c87123a347132c'
+          '0x6ea037b8ea9ecdf62eae513fc0f331de4e4a9df62927a789d840281438d14ce5'
         if (log.topics[0] === transferSentTopic) {
           transferHash = log.topics[1]
-          if (!transferHash) {
-            const decodedLog = bridge?.interface.decodeEventLog(
-              'TransferSent',
-              log.data
-            )
-            transferHash = decodedLog?.transferHash
-          }
           break
         }
       }
@@ -217,26 +210,43 @@ const StatusContextProvider: FC = ({ children }) => {
         return false
       }
       const pollDest = async () => {
-        const blockNumber = await l1Bridge?.provider.getBlockNumber()
+        const blockNumber = await bridge?.provider.getBlockNumber()
         if (!blockNumber) {
           return false
         }
         let recentLogs: any[] =
-          (await l1Bridge?.queryFilter(
-            l1Bridge.filters.TransferRootBonded(),
+          (await exchange?.queryFilter(
+            exchange.filters.Swap(),
             (blockNumber as number) - 100
           )) ?? []
         recentLogs = recentLogs.reverse()
-        if (!recentLogs || !recentLogs.length) {
-          return false
-        }
         for (let item of recentLogs) {
           const decodedLog = item.decode(item.data, item.topics)
-          const transferRoot = decodedLog.root
-          if (transferRoot === transferHash) {
+          if (sourceTx.from === decodedLog.to) {
+            /*
+            if (
+              decodedSource?.amount.toString() !==
+              decodedLog.amount0In.toString()
+            ) {
+              continue
+            }
+             */
+            if (!sourceTimestamp) {
+              continue
+            }
+            const destTx = await item.getTransaction()
+            const destBlock = await bridge?.provider.getBlock(
+              destTx.blockNumber
+            )
+            if (!destBlock) {
+              continue
+            }
+            //if ((destBlock.timestamp - sourceTimestamp) < 500) {
             setActiveStep(3)
             return true
+            //}
           }
+          return false
         }
         return false
       }

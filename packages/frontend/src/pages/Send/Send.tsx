@@ -362,7 +362,8 @@ const Send: FC = () => {
           txHistory?.addTransaction(
             new Transaction({
               hash: tx?.hash,
-              networkName: fromNetwork?.slug
+              networkName: fromNetwork?.slug,
+              token: selectedToken
             })
           )
         }
@@ -393,7 +394,8 @@ const Send: FC = () => {
           txHistory?.addTransaction(
             new Transaction({
               hash: tx?.hash,
-              networkName: fromNetwork?.slug
+              networkName: fromNetwork?.slug,
+              token: selectedToken
             })
           )
         }
@@ -404,7 +406,8 @@ const Send: FC = () => {
       txHistory?.addTransaction(
         new Transaction({
           hash: tx?.hash,
-          networkName: fromNetwork?.slug
+          networkName: fromNetwork?.slug,
+          token: selectedToken
         })
       )
     }
@@ -483,7 +486,8 @@ const Send: FC = () => {
         new Transaction({
           hash: tx?.hash,
           networkName: fromNetwork?.slug,
-          destNetworkName: toNetwork?.slug
+          destNetworkName: toNetwork?.slug,
+          token: selectedToken
         })
       )
     }
@@ -548,7 +552,8 @@ const Send: FC = () => {
         new Transaction({
           hash: tx?.hash,
           networkName: fromNetwork?.slug,
-          destNetworkName: toNetwork?.slug
+          destNetworkName: toNetwork?.slug,
+          token: selectedToken
         })
       )
     }
@@ -609,7 +614,8 @@ const Send: FC = () => {
         new Transaction({
           hash: tx?.hash,
           networkName: fromNetwork?.slug,
-          destNetworkName: toNetwork?.slug
+          destNetworkName: toNetwork?.slug,
+          token: selectedToken
         })
       )
     }
@@ -665,14 +671,14 @@ const Send: FC = () => {
         value={fromTokenAmount}
         token={selectedToken}
         label={'From'}
-        onChange={event => {
-          if (!event.target.value) {
+        onChange={value => {
+          if (!value) {
             setFromTokenAmount('')
             setToTokenAmount('')
             return
           }
 
-          const amountIn = normalizeNumberInput(event.target.value)
+          const amountIn = normalizeNumberInput(value)
           setFromTokenAmount(amountIn)
           setIsFromLastChanged(true)
           updateAmountOut(amountIn)
@@ -706,14 +712,14 @@ const Send: FC = () => {
         value={toTokenAmount}
         token={selectedToken}
         label={'To (estimated)'}
-        onChange={event => {
-          if (!event.target.value) {
+        onChange={value => {
+          if (!value) {
             setToTokenAmount('')
             setFromTokenAmount('')
             return
           }
 
-          const amountOut = normalizeNumberInput(event.target.value)
+          const amountOut = normalizeNumberInput(value)
           setToTokenAmount(amountOut)
           setIsFromLastChanged(false)
           updateAmountIn(amountOut)
@@ -756,13 +762,11 @@ const Send: FC = () => {
       </SendButton>
       <br />
       <Alert severity="info" onClose={() => setInfo(null)} text={info} />
-      {/*
       {tx ? (
         <Modal onClose={handleTxStatusClose}>
           <TxStatus />
         </Modal>
       ) : null}
-      */}
     </Box>
   )
 }

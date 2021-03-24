@@ -48,6 +48,20 @@ const useStyles = makeStyles(theme => ({
     padding: '1.8rem',
     borderRadius: '1.8rem',
     backgroundColor: '#C4C4C4'
+  },
+  balance: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  maxButton: {
+    border: 'none',
+    background: '#f8f8f9',
+    borderRadius: '1rem',
+    padding: '0.5rem 1rem',
+    fontSize: '1.2rem',
+    marginRight: '1rem',
+    cursor: 'pointer'
   }
 }))
 
@@ -55,7 +69,7 @@ type Props = {
   value: string
   label: string
   token?: Token
-  onChange?: (event: ChangeEvent<HTMLInputElement>) => void
+  onChange?: (value: string) => void
   selectedNetwork?: Network
   networkOptions?: Network[]
   onNetworkChange?: (network?: Network) => void
@@ -128,6 +142,18 @@ const AmountSelectorCard: FC<Props> = props => {
     getBalance()
   }, 5e3)
 
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target
+    if (onChange) {
+      onChange(value)
+    }
+  }
+  const handleMaxClick = () => {
+    if (onChange) {
+      onChange(Number(balance).toFixed(2))
+    }
+  }
+
   return (
     <Card className={clsx(styles.root, className)}>
       <Box
@@ -139,16 +165,23 @@ const AmountSelectorCard: FC<Props> = props => {
         <Typography variant="subtitle2" color="textSecondary">
           {label}
         </Typography>
-        <Typography variant="subtitle2" color="textSecondary">
-          Balance:{' '}
-          {!user ? (
-            '0.00'
-          ) : balance === null ? (
-            <CircularProgress size={12} />
-          ) : (
-            commafy(balance)
-          )}
-        </Typography>
+        <div className={styles.balance}>
+          {Number(balance) > 0 ? (
+            <button className={styles.maxButton} onClick={handleMaxClick}>
+              MAX
+            </button>
+          ) : null}
+          <Typography variant="subtitle2" color="textSecondary">
+            Balance:{' '}
+            {!user ? (
+              '0.00'
+            ) : balance === null ? (
+              <CircularProgress size={12} />
+            ) : (
+              commafy(balance)
+            )}
+          </Typography>
+        </div>
       </Box>
       <Grid container alignItems="center">
         <Grid item xs={6}>
@@ -200,7 +233,7 @@ const AmountSelectorCard: FC<Props> = props => {
         <Grid item xs={6}>
           <LargeTextField
             value={value}
-            onChange={onChange}
+            onChange={handleInputChange}
             placeholder="0.0"
             units={token?.symbol}
           />

@@ -41,8 +41,8 @@ const startStakeWatchers = (
           label: `${network} ${token}`,
           bridgeContract,
           tokenContract,
-          stakeMinThreshold: 100,
-          stakeAmount: 1000
+          stakeMinThreshold: 10_000_000,
+          stakeAmount: 5_00_000_000
         })
       )
     }

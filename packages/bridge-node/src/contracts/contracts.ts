@@ -98,7 +98,7 @@ const getL2UniswapExchangeContract = (
   wallet: any
 ) => {
   return new ethers.Contract(
-    tokens[token][network].l2UniswapFactory,
+    tokens[token][network].l2UniswapExchange,
     uniswapV2PairArtifact.abi,
     wallet
   )

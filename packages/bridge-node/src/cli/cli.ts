@@ -58,14 +58,22 @@ program
 program
   .command('arb-bot')
   .description('Start the arbitrage bot')
-  .action(() => {
-    arbbots.start()
+  .option('--max-trade-amount <number>', 'Max trade amount')
+  .option('--min-threshold <number>', 'Min threshold')
+  .action(source => {
+    const maxTradeAmount = Number(source.maxTradeAmount) || 0
+    const minThreshold = Number(source.minThreshold) || 0
+
+    arbbots.start({
+      maxTradeAmount,
+      minThreshold
+    })
   })
 
 program
   .command('stake')
   .description('Start the stake watcher')
-  .action(() => {
+  .action(source => {
     startStakeWatchers()
   })
 

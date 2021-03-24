@@ -5,7 +5,7 @@ import { KOVAN, XDAI, OPTIMISM, DAI } from 'src/constants'
 
 const network = KOVAN
 const token = 'DAI'
-const amount = 100000
+const amount = 1_000_000_000
 
 test(
   'mint',

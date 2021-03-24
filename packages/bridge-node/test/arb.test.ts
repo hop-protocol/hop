@@ -15,7 +15,7 @@ const logger = new Logger('TEST')
 
 describe('arb-bot', () => {
   it(
-    'large amount',
+    `send ${TRANSFER_AMOUNT} ${TOKEN} ${sourceNetwork} -> ${KOVAN}`,
     async () => {
       const user = new User(privateKey)
       logger.log('preparing account')
@@ -23,7 +23,7 @@ describe('arb-bot', () => {
       const tx = await user.mint(sourceNetwork, TOKEN, TRANSFER_AMOUNT)
       await tx.wait()
       logger.log('starting watchers')
-      const { stop, watchers } = startWatchers({
+      const { stop } = startWatchers({
         networks: [sourceNetwork, destNetwork]
       })
       const sourceBalanceBefore = await user.getBalance(sourceNetwork, TOKEN)
@@ -41,7 +41,6 @@ describe('arb-bot', () => {
       expect(receipt.status).toBe(1)
       logger.log('got receipt')
       await wait(30 * 1000)
-      console.log(watchers)
       await stop()
     },
     900 * 1000

@@ -4,7 +4,7 @@ import { wait } from 'src/utils'
 
 const mutexes: { [key: string]: Mutex } = {}
 const MAX_RETRIES = 1
-const TIMEOUT_MS = 15 * 1000
+const TIMEOUT_MS = 60 * 1000
 
 export default function queue (
   target: Object,

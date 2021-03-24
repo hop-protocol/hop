@@ -6,9 +6,9 @@ import { privateKey } from './config'
 // @ts-ignore
 import { KOVAN, OPTIMISM, XDAI } from 'src/constants'
 
-const TOKEN = 'WBTC'
-const AMOUNT = 10000
-const NETWORKS = [OPTIMISM, XDAI]
+const TOKEN = 'DAI'
+const AMOUNT = 1_000_000_000
+const NETWORKS = [OPTIMISM]
 const logger = new Logger('TEST')
 
 describe('convert L1 token to L2 Hop token', () => {

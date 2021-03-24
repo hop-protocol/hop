@@ -4,8 +4,8 @@ import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { wait } from 'src/utils'
 import chalk from 'chalk'
 import Logger from 'src/logger'
-
-const logger = new Logger('arbBot', { color: 'green' })
+import { UINT256 } from 'src/constants'
+import queue from 'src/watchers/helpers/queue'
 
 interface TokenConfig {
   label: string
@@ -19,6 +19,7 @@ interface UniswapConfig {
 }
 
 interface Config {
+  label: string
   token0: TokenConfig
   token1: TokenConfig
   uniswap: UniswapConfig
@@ -33,6 +34,7 @@ interface Token {
 }
 
 class ArbBot {
+  logger: Logger
   uniswapRouter: Contract
   uniswapFactory: Contract
   uniswapExchange: Contract
@@ -47,34 +49,41 @@ class ArbBot {
   cache: any = {}
 
   constructor (config: Config) {
+    this.logger = new Logger({
+      tag: 'arbBot',
+      prefix: config.label,
+      color: 'green'
+    })
     this.init(config)
   }
 
   public async start () {
-    logger.log(
+    this.logger.log(
       `Starting ${this.token0.label}<->${this.token1.label} arbitrage bot`
     )
+    this.logger.log(`maxTradeAmount: ${this.maxTradeAmount}`)
+    this.logger.log(`minThreshold: ${this.minThreshold}`)
     try {
       await this.tilReady()
-      logger.log(`account address: ${this.accountAddress}`)
+      this.logger.log(`account address: ${this.accountAddress}`)
 
       await this.checkBalances()
       await this.approveTokens()
-      this.startEventWatcher().catch(logger.error)
+      this.startEventWatcher().catch(this.logger.error)
 
       while (true) {
         try {
           await this.checkArbitrage()
           await this.checkBalances()
-          logger.log(`Rechecking in ${this.pollTimeSec} seconds`)
+          this.logger.log(`Rechecking in ${this.pollTimeSec} seconds`)
           await wait(this.pollTimeSec * 1e3)
         } catch (err) {
-          logger.error('arb bot error:', err.message)
+          this.logger.error('arb bot error:', err.message)
           await wait(this.pollTimeSec * 1e3)
         }
       }
     } catch (err) {
-      logger.error('arb bot error:', err.message)
+      this.logger.error('arb bot error:', err.message)
     }
   }
 
@@ -132,8 +141,7 @@ class ArbBot {
   }
 
   private async approveToken (token: Token) {
-    const maxApproval = parseUnits('1000000', 18)
-    const approveAmount = BigNumber.from(maxApproval)
+    const approveAmount = BigNumber.from(UINT256)
     const approved = await token.contract.allowance(
       this.accountAddress,
       this.uniswapRouter.address
@@ -147,16 +155,17 @@ class ArbBot {
     }
   }
 
+  @queue
   private async approveTokens () {
     let tx = await this.approveToken(this.token0)
     if (tx) {
-      logger.log(`${this.token0.label} approve tx: ${tx?.hash}`)
+      this.logger.log(`${this.token0.label} approve tx:`, chalk.yellow(tx.hash))
       await tx?.wait()
     }
 
     tx = await this.approveToken(this.token1)
     if (tx) {
-      logger.log(`${this.token1.label} approve tx: ${tx?.hash}`)
+      this.logger.log(`${this.token1.label} approve tx:`, chalk.yellow(tx.hash))
       await tx?.wait()
     }
   }
@@ -170,85 +179,79 @@ class ArbBot {
 
   private async checkBalances () {
     const token0Balance = await this.getToken0Balance()
-    logger.log(`${this.token0.label} balance: ${token0Balance}`)
+    this.logger.log(`${this.token0.label} balance: ${token0Balance}`)
 
     const token1Balance = await this.getToken1Balance()
-    logger.log(`${this.token1.label} balance: ${token1Balance}`)
+    this.logger.log(`${this.token1.label} balance: ${token1Balance}`)
   }
 
   private async checkArbitrage () {
-    const check = async (arbitrageAmount: number, execute: boolean) => {
-      const token0AmountOut = await this.getToken0AmountOut(arbitrageAmount)
-      const token1AmountOut = await this.getToken1AmountOut(arbitrageAmount)
-      const cacheKey = `${token0AmountOut},${token1AmountOut}`
+    const check = async (pathTokens: Token[], execute: boolean = false) => {
+      this.logger.debug(
+        `Checking for arbitrage opportunity. ${pathTokens[0].label}, ${pathTokens[1].label}`
+      )
+      const reserves = await this.getReserves()
+      this.logger.log(`reserve 0: ${reserves[0]}`)
+      this.logger.log(`reserve 1: ${reserves[1]}`)
+      const [token0, token1] = pathTokens
+      const token0Balance = await this.getTokenBalance(token0)
+      const delta = Math.abs(reserves[0] - reserves[1])
+      let token0TradeAmount = Math.min(
+        Math.max(token0Balance, this.maxTradeAmount),
+        delta / 2,
+        100_000
+      )
+      if (token0TradeAmount <= 0.01) {
+        this.logger.log(`No ${token0.label} token balance. Skipping.`)
+        return
+      }
+      const token0AmountOut = await this.getAmountOut(
+        pathTokens.map(x => x.contract.address),
+        token0TradeAmount
+      )
+      const cacheKey = `${token0TradeAmount},${token0AmountOut}`
       if (this.cache[cacheKey]) {
         return
       }
 
-      const shouldArb = token0AmountOut > arbitrageAmount * this.minThreshold
+      const shouldArb = token0AmountOut > token0TradeAmount * this.minThreshold
       if (!execute) {
         return shouldArb
       }
 
+      this.logger.debug(
+        `${token0TradeAmount} ${token0.label} = ${token0AmountOut} ${token1.label}`
+      )
+
+      if (!shouldArb) {
+        this.logger.debug('No abitrage opportunity')
+        return
+      }
+
       this.cache[cacheKey] = true
-
-      let tx: any
-      if (shouldArb) {
-        logger.debug('Checking for arbitrage opportunity')
-        logger.debug(
-          `${arbitrageAmount} ${this.token0.label} = ${token0AmountOut} ${this.token1.label}`
+      const profit = token0AmountOut - token0TradeAmount
+      this.logger.log(
+        chalk.green(
+          `Arbitrage opportunity: ${token0.label} 🡒 ${token1.label} (+${profit} ${token1.label})`
         )
-        logger.debug(
-          `${arbitrageAmount} ${this.token1.label} = ${token1AmountOut} ${this.token0.label}`
-        )
+      )
 
-        const profit = token0AmountOut - arbitrageAmount
-        logger.log(
-          chalk.green(
-            `Arbitrage opportunity: ${this.token0.label} 🡒 ${this.token1.label} (+${profit} ${this.token1.label})`
-          )
-        )
-
-        const pathTokens = [this.token0, this.token1]
-        tx = await this.trade(pathTokens, arbitrageAmount)
-        logger.log(chalk.yellow(`trade tx: ${tx?.hash}`))
-        await tx?.wait()
-      }
-
-      if (token1AmountOut > arbitrageAmount * this.minThreshold) {
-        const profit = token1AmountOut - arbitrageAmount
-        logger.log(
-          chalk.green(
-            `Arbitrage opportunity: ${this.token1.label} 🡒 ${this.token0.label} (+${profit} ${this.token0.label})`
-          )
-        )
-
-        const pathTokens = [this.token1, this.token0]
-        tx = await this.trade(pathTokens, arbitrageAmount)
-        logger.log(chalk.yellow(`trade tx: ${tx?.hash}`))
-        await tx?.wait()
-      }
+      const tx = await this.trade(pathTokens, token0TradeAmount)
+      this.logger.log(chalk.yellow(`trade tx: ${tx?.hash}`))
+      await tx?.wait()
 
       if (!tx) {
-        logger.debug('No abitrage opportunity')
+        this.logger.debug('No abitrage opportunity')
       }
 
       this.cache[cacheKey] = false
     }
 
-    const steps: number[] = []
-    for (let i = 0; i < 28; i++) {
-      steps.push(10 << i)
-    }
-
-    for (let amount of steps) {
-      if (amount > this.maxTradeAmount) {
-        continue
-      }
-      await check(amount, true)
-    }
+    await check([this.token0, this.token1], true)
+    await check([this.token1, this.token0], true)
   }
 
+  @queue
   private async trade (
     pathTokens: Token[],
     amountInNum: number,
@@ -258,15 +261,15 @@ class ArbBot {
     const amountOutMin = parseUnits(amountOutMinNum.toString(), 18)
     const deadline = (Date.now() / 1000 + 300) | 0
     const path = pathTokens.map(token => token.contract.address)
-    logger.log('trade params:')
-    logger.log('amountIn:', amountInNum)
-    logger.log('amountOutMin:', amountOutMinNum)
-    logger.log(
+    this.logger.log('trade params:')
+    this.logger.log('amountIn:', amountInNum)
+    this.logger.log('amountOutMin:', amountOutMinNum)
+    this.logger.log(
       'pathTokens:',
-      pathTokens.map(token => token.label)
+      pathTokens.map(token => token.label).join(', ')
     )
-    logger.log('path:', path)
-    logger.log('deadline:', deadline)
+    this.logger.log('path:', path.join(', '))
+    this.logger.log('deadline:', deadline)
 
     const inputToken = pathTokens[0]
     const pathToken0Balance = await this.getTokenBalance(inputToken)
@@ -285,19 +288,26 @@ class ArbBot {
     )
   }
 
+  async getReserves () {
+    const reserves = await this.uniswapExchange.getReserves()
+    const reserve0 = Number(formatUnits(reserves[0], 18))
+    const reserve1 = Number(formatUnits(reserves[1], 18))
+    return [reserve0, reserve1]
+  }
+
   private async startEventWatcher () {
     const SWAP_EVENT = 'Swap'
     this.uniswapExchange
       .on(SWAP_EVENT, async event => {
-        logger.log('Detected swap event')
+        this.logger.log('Detected swap event')
         try {
           await this.checkArbitrage()
         } catch (err) {
-          logger.error('arb bot checkArbitrage error:', err.message)
+          this.logger.error('arb bot checkArbitrage error:', err.message)
         }
       })
       .on('error', err => {
-        logger.error('arb bot swap event watcher error:', err.message)
+        this.logger.error('arb bot swap event watcher error:', err.message)
       })
   }
 }

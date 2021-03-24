@@ -2,13 +2,13 @@ require('dotenv').config()
 import { User, checkApproval } from './helpers'
 import { wait } from 'src/utils'
 import Logger from 'src/logger'
-import { faucetPrivateKey as privateKey } from './config'
+import { privateKey } from './config'
 // @ts-ignore
 import { KOVAN, OPTIMISM, XDAI } from 'src/constants'
 
 const TOKEN = 'DAI'
-const AMOUNT = 10000
-const NETWORKS = [XDAI]
+const AMOUNT = 1_000_000_000
+const NETWORKS = [OPTIMISM]
 const logger = new Logger('TEST')
 
 describe('convert L1 token to L2 canonical token', () => {

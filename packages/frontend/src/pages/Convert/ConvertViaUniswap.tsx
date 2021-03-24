@@ -76,18 +76,18 @@ const Convert: FC = () => {
     sourceNetwork && setDestNetwork(sourceNetwork)
     destTokenAmount && setSourceTokenAmount(destTokenAmount)
   }
-  const handleSourceTokenAmountChange = async (event: any) => {
+  const handleSourceTokenAmountChange = async (value: string) => {
     try {
-      const value = normalizeNumberInput(event.target.value || '')
-      setSourceTokenAmount(value)
-      setDestTokenAmount(await calcAltTokenAmount(value))
+      const amount = normalizeNumberInput(value)
+      setSourceTokenAmount(amount)
+      setDestTokenAmount(await calcAltTokenAmount(amount))
     } catch (err) {}
   }
-  const handleDestTokenAmountChange = async (event: any) => {
+  const handleDestTokenAmountChange = async (value: string) => {
     try {
-      const value = normalizeNumberInput(event.target.value || '')
-      setDestTokenAmount(value)
-      setSourceTokenAmount(await calcAltTokenAmount(value))
+      const amount = normalizeNumberInput(value)
+      setDestTokenAmount(amount)
+      setSourceTokenAmount(await calcAltTokenAmount(amount))
     } catch (err) {}
   }
 

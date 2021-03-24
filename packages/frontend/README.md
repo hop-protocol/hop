@@ -20,10 +20,10 @@ Visit [https://localhost:3000/](https://localhost:3000/)
 
 ## Deployments
 
-| Branch       | Network | URL                                                    | Release |
-|--------------|---------|--------------------------------------------------------|---------|
-| `production` | mainnet | [hop.exchange](https://hop.exchange)                   | Stable  |
-| `preprod`    | mainnet | [preprod.hop.exchange](https://preprod.hop.exchange)   | Alpha   |
-| `staging`    | kovan   | [staging.hop.exchange]( https://staging.hop.exchange ) | Stable  |
-| `develop`    | kovan   | [dev.hop.exchange]( https://dev.hop.exchange )         | Alpha   |
-| `synth`      | kovan   | [synth.hop.exchange]( https://synth.hop.exchange )     | Stable  |
+| Branch       | Network | URL                                                  | Release |
+| ------------ | ------- | ---------------------------------------------------- | ------- |
+| `production` | mainnet | [hop.exchange](https://hop.exchange)                 | Stable  |
+| `preprod`    | mainnet | [preprod.hop.exchange](https://preprod.hop.exchange) | Alpha   |
+| `staging`    | kovan   | [staging.hop.exchange](https://staging.hop.exchange) | Stable  |
+| `develop`    | kovan   | [dev.hop.exchange](https://dev.hop.exchange)         | Alpha   |
+| `synth`      | kovan   | [synth.hop.exchange](https://synth.hop.exchange)     | Stable  |

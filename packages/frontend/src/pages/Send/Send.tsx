@@ -665,14 +665,14 @@ const Send: FC = () => {
         value={fromTokenAmount}
         token={selectedToken}
         label={'From'}
-        onChange={event => {
-          if (!event.target.value) {
+        onChange={value => {
+          if (!value) {
             setFromTokenAmount('')
             setToTokenAmount('')
             return
           }
 
-          const amountIn = normalizeNumberInput(event.target.value)
+          const amountIn = normalizeNumberInput(value)
           setFromTokenAmount(amountIn)
           setIsFromLastChanged(true)
           updateAmountOut(amountIn)
@@ -706,14 +706,14 @@ const Send: FC = () => {
         value={toTokenAmount}
         token={selectedToken}
         label={'To (estimated)'}
-        onChange={event => {
-          if (!event.target.value) {
+        onChange={value => {
+          if (!value) {
             setToTokenAmount('')
             setFromTokenAmount('')
             return
           }
 
-          const amountOut = normalizeNumberInput(event.target.value)
+          const amountOut = normalizeNumberInput(value)
           setToTokenAmount(amountOut)
           setIsFromLastChanged(false)
           updateAmountIn(amountOut)

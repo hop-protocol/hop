@@ -8,7 +8,7 @@ test(
   async () => {
     const user = new User(bonderPrivateKey)
     const sourceChain = OPTIMISM
-    const destChain = KOVAN
+    const destChain = XDAI
     const token = DAI
     const pendingTransfers = await user.getPendingTransfers(
       sourceChain,

@@ -34,7 +34,7 @@ const logger = new Logger('TEST')
 
 describe('bondWithdrawal', () => {
   let testPaths = [...L1ToL2Paths, ...L2ToL1Paths, ...L2ToL2Paths]
-  //testPaths = [[XDAI, KOVAN]]
+  testPaths = [[OPTIMISM, XDAI]]
   for (let path of testPaths) {
     const [sourceNetwork, destNetwork] = path
     const label = `${sourceNetwork} -> ${destNetwork}`

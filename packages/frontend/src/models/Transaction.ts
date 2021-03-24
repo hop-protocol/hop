@@ -3,6 +3,7 @@ import { EventEmitter } from 'events'
 import { L1_NETWORK } from 'src/constants'
 import { getRpcUrl } from 'src/utils'
 import { getBaseExplorerUrl } from 'src/utils'
+import Token from 'src/models/Token'
 
 interface Config {
   networkName: string
@@ -10,6 +11,7 @@ interface Config {
   hash: string
   pending?: boolean
   timestamp?: number
+  token?: Token
 }
 
 const standardNetworks = new Set([
@@ -25,6 +27,7 @@ class Transaction extends EventEmitter {
   readonly networkName: string
   readonly destNetworkName: string | null = null
   readonly provider: ethers.providers.Provider
+  token: Token | null = null
   pending: boolean
   timestamp: number
   status: null | boolean = null
@@ -34,7 +37,8 @@ class Transaction extends EventEmitter {
     networkName,
     destNetworkName,
     pending = true,
-    timestamp
+    timestamp,
+    token
   }: Config) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
@@ -57,6 +61,9 @@ class Transaction extends EventEmitter {
 
     this.provider = new ethers.providers.StaticJsonRpcProvider(rpcUrl)
     this.timestamp = timestamp || Date.now()
+    if (token) {
+      this.token = token
+    }
     this.pending = pending
     this.receipt().then((receipt: any) => {
       this.status = !!receipt.status

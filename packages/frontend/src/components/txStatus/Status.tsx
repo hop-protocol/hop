@@ -1,4 +1,4 @@
-import React, { FC } from 'react'
+import React, { FC, useEffect } from 'react'
 import clsx from 'clsx'
 import { makeStyles, withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
@@ -13,10 +13,17 @@ import Check from '@material-ui/icons/Check'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Zoom from '@material-ui/core/Zoom'
 import { StepIconProps } from '@material-ui/core/StepIcon'
+import Transaction from 'src/models/Transaction'
 import { commafy } from 'src/utils'
 import { useStatus } from './StatusContext'
 
 const useStyles = makeStyles(theme => ({
+  normal: {},
+  mini: {
+    transform: 'scale(0.6)',
+    transformOrigin: 'top left',
+    height: '55px'
+  },
   title: {
     marginBottom: '4.2rem'
   },
@@ -26,6 +33,13 @@ const useStyles = makeStyles(theme => ({
   },
   stepLabel: {
     fontSize: '2rem'
+  },
+  stepLink: {
+    color: 'inherit',
+    textDecoration: 'none',
+    '&:hover': {
+      textDecoration: 'underline'
+    }
   }
 }))
 
@@ -105,34 +119,60 @@ function StepIcon (props: StepIconProps) {
   )
 }
 
-type StatusProps = {}
+export type StatusProps = {
+  tx: Transaction
+  variant?: string
+}
 
 const Status: FC<StatusProps> = (props: StatusProps) => {
+  const { tx, variant } = props
   const styles = useStyles()
-  let { steps, activeStep, fetching } = useStatus()
+  let { steps, activeStep, fetching, setTx } = useStatus()
+
+  useEffect(() => {
+    setTx(tx)
+  }, [tx])
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
-      <Box display="flex" alignItems="center">
-        <Typography variant="h4" className={styles.title}>
-          Status
-        </Typography>
-      </Box>
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      className={variant === 'mini' ? styles.mini : styles.normal}
+    >
+      {variant !== 'mini' ? (
+        <Box display="flex" alignItems="center">
+          <Typography variant="h4" className={styles.title}>
+            Status
+          </Typography>
+        </Box>
+      ) : null}
       <Box display="flex" alignItems="center" className={styles.box}>
         <Stepper
           alternativeLabel
           activeStep={activeStep}
           connector={<CustomStepConnector />}
         >
-          {steps.map(label => (
-            <Step key={label}>
+          {steps.map(step => (
+            <Step key={step.text}>
               <StepLabel
                 classes={{
                   label: styles.stepLabel
                 }}
                 StepIconComponent={StepIcon}
               >
-                {label}
+                {step.url ? (
+                  <a
+                    className={styles.stepLink}
+                    href={step.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {step.text}
+                  </a>
+                ) : (
+                  step.text
+                )}
               </StepLabel>
             </Step>
           ))}

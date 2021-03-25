@@ -175,7 +175,8 @@ const theme = createMuiTheme({
       root: {
         '&.MuiTab-root': {
           color: palette.text.secondary,
-          minWidth: 0
+          minWidth: 0,
+          borderRadius: '3rem'
         },
         '&$selected': {
           color: palette.primary.main

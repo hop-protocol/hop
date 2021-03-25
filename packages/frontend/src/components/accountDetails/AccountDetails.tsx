@@ -1,7 +1,5 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import CircularProgress from '@material-ui/core/CircularProgress'
-import Check from '@material-ui/icons/Check'
 import Box from '@material-ui/core/Box'
 import Link from '@material-ui/core/Link'
 import Button from '@material-ui/core/Button'
@@ -9,6 +7,7 @@ import Typography from '@material-ui/core/Typography'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import Modal from 'src/components/modal/Modal'
+import TxStatus from 'src/components/txStatus'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import ClipboardCopyButton from 'src/components/buttons/ClipboardCopyButton'
 
@@ -23,6 +22,16 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     justifyContent: 'space-between',
     marginBottom: '0.5rem'
+  },
+  leftColumn: {
+    display: 'flex',
+    alignItems: 'center',
+    width: '60%'
+  },
+  rightColumn: {
+    display: 'flex',
+    alignItems: 'center',
+    width: '40%'
   },
   statusIcon: {},
   network: {
@@ -81,20 +90,18 @@ const TransactionsList = (props: any) => {
       {transactions?.map((tx: Transaction) => {
         return (
           <div key={tx.hash} className={styles.row}>
-            <Link
-              href={tx.explorerLink}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span className={styles.network}>{tx.networkName}:</span>{' '}
-              {tx.truncatedHash} ↗
-            </Link>
-            <div className={styles.statusIcon}>
-              {tx.pending ? (
-                <CircularProgress size={12} />
-              ) : (
-                <Check color="primary" />
-              )}
+            <div className={styles.leftColumn}>
+              <Link
+                href={tx.explorerLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span className={styles.network}>{tx.networkName}:</span>{' '}
+                {tx.truncatedHash} ↗
+              </Link>
+            </div>
+            <div className={styles.rightColumn}>
+              <TxStatus tx={tx} variant="mini" />
             </div>
           </div>
         )

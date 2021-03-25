@@ -105,7 +105,7 @@ const Send: FC = () => {
   const [toBalance, setToBalance] = useState<number>(0)
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
-  const [tx, setTx] = useState<any>(null)
+  const [tx, setTx] = useState<Transaction | null>(null)
   const l1Bridge = contracts?.tokens[selectedToken?.symbol][L1_NETWORK].l1Bridge
   const debouncer = useRef<number>(0)
 
@@ -426,7 +426,7 @@ const Send: FC = () => {
 
       setSending(true)
       await approve(fromTokenAmount)
-      let tx: any = null
+      let tx: Transaction | null = null
       if (fromNetwork.isLayer1) {
         tx = await sendl1ToL2()
       } else if (!fromNetwork.isLayer1 && toNetwork.isLayer1) {
@@ -481,18 +481,18 @@ const Send: FC = () => {
       }
     })
 
+    let txObj: Transaction | null = null
     if (tx?.hash && fromNetwork) {
-      txHistory?.addTransaction(
-        new Transaction({
-          hash: tx?.hash,
-          networkName: fromNetwork?.slug,
-          destNetworkName: toNetwork?.slug,
-          token: selectedToken
-        })
-      )
+      txObj = new Transaction({
+        hash: tx?.hash,
+        networkName: fromNetwork?.slug,
+        destNetworkName: toNetwork?.slug,
+        token: selectedToken
+      })
+      txHistory?.addTransaction(txObj)
     }
 
-    return tx
+    return txObj
   }
 
   const sendl2ToL1 = async () => {
@@ -547,18 +547,18 @@ const Send: FC = () => {
       }
     })
 
+    let txObj: Transaction | null = null
     if (tx?.hash && fromNetwork) {
-      txHistory?.addTransaction(
-        new Transaction({
-          hash: tx?.hash,
-          networkName: fromNetwork?.slug,
-          destNetworkName: toNetwork?.slug,
-          token: selectedToken
-        })
-      )
+      txObj = new Transaction({
+        hash: tx?.hash,
+        networkName: fromNetwork?.slug,
+        destNetworkName: toNetwork?.slug,
+        token: selectedToken
+      })
+      txHistory?.addTransaction(txObj)
     }
 
-    return tx
+    return txObj
   }
 
   const sendl2ToL2 = async () => {
@@ -609,18 +609,18 @@ const Send: FC = () => {
       }
     })
 
+    let txObj: Transaction | null = null
     if (tx?.hash && fromNetwork) {
-      txHistory?.addTransaction(
-        new Transaction({
-          hash: tx?.hash,
-          networkName: fromNetwork?.slug,
-          destNetworkName: toNetwork?.slug,
-          token: selectedToken
-        })
-      )
+      txObj = new Transaction({
+        hash: tx?.hash,
+        networkName: fromNetwork?.slug,
+        destNetworkName: toNetwork?.slug,
+        token: selectedToken
+      })
+      txHistory?.addTransaction(txObj)
     }
 
-    return tx
+    return txObj
   }
 
   const enoughBalance = fromBalance >= Number(fromTokenAmount)
@@ -764,7 +764,7 @@ const Send: FC = () => {
       <Alert severity="info" onClose={() => setInfo(null)} text={info} />
       {tx ? (
         <Modal onClose={handleTxStatusClose}>
-          <TxStatus />
+          <TxStatus tx={tx} />
         </Modal>
       ) : null}
     </Box>

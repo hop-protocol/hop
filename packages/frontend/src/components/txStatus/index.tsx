@@ -1,10 +1,10 @@
 import React from 'react'
-import Status from './Status'
+import Status, { StatusProps } from './Status'
 import StatusContext from './StatusContext'
 
-const fc = () => (
+const fc = (props: StatusProps) => (
   <StatusContext>
-    <Status />
+    <Status {...props} />
   </StatusContext>
 )
 export default fc

@@ -15,34 +15,57 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import { wait, networkIdToSlug } from 'src/utils'
+import promiseTimeout from 'src/utils/promiseTimeout'
 import { L1_NETWORK } from 'src/constants'
 
 type StatusContextProps = {
   steps: any[]
   activeStep: number
   fetching: boolean
+  setTx: (tx: Transaction) => void
 }
 
 const StatusContext = createContext<StatusContextProps>({
   steps: [],
   activeStep: 0,
-  fetching: false
+  fetching: false,
+  setTx: (tx: Transaction) => {}
 })
+
+type Step = {
+  text: string
+  url?: string
+}
 
 const StatusContextProvider: FC = ({ children }) => {
   let { networks, tokens, contracts, txHistory } = useApp()
-  const [steps, setSteps] = useState<any[]>([])
-  const [activeStep, setActiveStep] = React.useState(0)
+  let [steps, setSteps] = useState<Step[]>([])
+  let [activeStep, setActiveStep] = React.useState(0)
   const [fetching, setFetching] = useState<boolean>(false)
   const [tx, setTx] = useState<Transaction | null>(null)
   const l1Provider = contracts?.providers[L1_NETWORK]
+  const cacheKey = `txStatus:${tx?.hash}`
 
-  async function updateStatus () {
+  useEffect(() => {
+    if (!tx) {
+      return
+    }
+    try {
+      const res = { activeStep, steps }
+      localStorage.setItem(cacheKey, JSON.stringify(res))
+    } catch (err) {
+      logger.error(err)
+    }
+  }, [activeStep, steps])
+
+  async function updateStatus (activeStep: number = 0, steps: Step[] = []) {
     if (!tx) return
     if (!tx.token) return
     const token = tx.token
     const l1Bridge = contracts?.tokens[token?.symbol][L1_NETWORK].l1Bridge
-    setActiveStep(1)
+    if (activeStep < 2) {
+      setActiveStep(1)
+    }
     const sourceNetwork = networks.find(
       network => network.slug === tx.networkName
     )
@@ -52,17 +75,26 @@ const StatusContextProvider: FC = ({ children }) => {
     if (!sourceNetwork) {
       return false
     }
+    let currentSteps: Step[] = [
+      {
+        text: 'Initiated'
+      },
+      { text: sourceNetwork.name, url: tx.explorerLink }
+    ]
     if (destNetwork) {
-      setSteps(['Initiated', sourceNetwork.name, destNetwork?.name])
-    } else {
-      setSteps(['Initiated', sourceNetwork.name])
+      currentSteps.push({ text: destNetwork.name })
+    }
+    if (steps.length < 3) {
+      setSteps([...currentSteps])
     }
     const receipt = await tx.receipt()
     if (!receipt.status) {
       throw new Error('Transaction failed')
     }
     const sourceTx = await tx.getTransaction()
-    setActiveStep(2)
+    if (activeStep < 3) {
+      setActiveStep(2)
+    }
 
     const sourceBlock = await l1Bridge?.provider.getBlock(
       sourceTx.blockNumber as number
@@ -78,7 +110,10 @@ const StatusContextProvider: FC = ({ children }) => {
       const networkId = decodedSource?.chainId
       const destSlug = networkIdToSlug(networkId)
       destNetwork = networks.find(network => network.slug === destSlug)
-      setSteps(['Initiated', sourceNetwork?.name, destNetwork?.name])
+      if (currentSteps.length < 3 && steps.length < 3) {
+        currentSteps.push({ text: destNetwork?.name as string })
+        setSteps([...currentSteps])
+      }
       const bridge = contracts?.tokens[token.symbol][destSlug].l2Bridge
       const exchange = contracts?.tokens[token.symbol][destSlug].uniswapExchange
       const pollDest = async () => {
@@ -108,6 +143,14 @@ const StatusContextProvider: FC = ({ children }) => {
               continue
             }
             const destTx = await item.getTransaction()
+            const destTxObj = new Transaction({
+              hash: destTx.hash,
+              networkName: destNetwork?.slug as string
+            })
+            currentSteps[2].url = destTxObj.explorerLink
+            if (steps.length < 4) {
+              setSteps([...currentSteps])
+            }
             const destBlock = await bridge?.provider.getBlock(
               destTx.blockNumber
             )
@@ -115,7 +158,9 @@ const StatusContextProvider: FC = ({ children }) => {
               continue
             }
             if (destBlock.timestamp - sourceTimestamp < 500) {
-              setActiveStep(3)
+              if (activeStep < 4) {
+                setActiveStep(3)
+              }
               return true
             }
           }
@@ -123,10 +168,12 @@ const StatusContextProvider: FC = ({ children }) => {
         }
         return false
       }
-      let res = false
-      while (!res) {
-        res = await pollDest()
-        await wait(5e3)
+      if (activeStep !== 3) {
+        let res = false
+        while (!res) {
+          res = await pollDest()
+          await wait(5e3)
+        }
       }
     }
 
@@ -167,16 +214,29 @@ const StatusContextProvider: FC = ({ children }) => {
         }
         for (let item of recentLogs) {
           if (item.topics[1] === transferHash) {
-            setActiveStep(3)
+            const destTx = await item.getTransaction()
+            const destTxObj = new Transaction({
+              hash: destTx.hash,
+              networkName: destNetwork?.slug as string
+            })
+            currentSteps[2].url = destTxObj.explorerLink
+            if (steps.length < 4) {
+              setSteps([...currentSteps])
+            }
+            if (activeStep < 4) {
+              setActiveStep(3)
+            }
             return true
           }
         }
         return false
       }
-      let res = false
-      while (!res) {
-        res = await pollDest()
-        await wait(5e3)
+      if (activeStep !== 3) {
+        let res = false
+        while (!res) {
+          res = await pollDest()
+          await wait(5e3)
+        }
       }
     }
 
@@ -235,6 +295,14 @@ const StatusContextProvider: FC = ({ children }) => {
               continue
             }
             const destTx = await item.getTransaction()
+            const destTxObj = new Transaction({
+              hash: destTx.hash,
+              networkName: destNetwork?.slug as string
+            })
+            currentSteps[2].url = destTxObj.explorerLink
+            if (steps.length < 4) {
+              setSteps([...currentSteps])
+            }
             const destBlock = await bridge?.provider.getBlock(
               destTx.blockNumber
             )
@@ -242,7 +310,9 @@ const StatusContextProvider: FC = ({ children }) => {
               continue
             }
             //if ((destBlock.timestamp - sourceTimestamp) < 500) {
-            setActiveStep(3)
+            if (activeStep < 4) {
+              setActiveStep(3)
+            }
             return true
             //}
           }
@@ -250,31 +320,39 @@ const StatusContextProvider: FC = ({ children }) => {
         }
         return false
       }
-      let res = false
-      while (!res) {
-        res = await pollDest()
-        await wait(5e3)
+      if (activeStep !== 3) {
+        let res = false
+        while (!res) {
+          res = await pollDest()
+          await wait(5e3)
+        }
       }
     }
   }
-
-  useEffect(() => {
-    if (!txHistory?.transactions || !txHistory?.transactions.length) {
-      return
-    }
-    const recent = txHistory?.transactions[0]
-    if (recent.hash !== tx?.hash) {
-      setTx(recent)
-    }
-  }, [txHistory?.transactions])
 
   useEffect(() => {
     const update = async () => {
       if (!tx) {
         return
       }
+
+      try {
+        const cached = localStorage.getItem(cacheKey)
+        if (cached) {
+          const res = JSON.parse(cached)
+          if (res) {
+            activeStep = res.activeStep
+            steps = res.steps
+            setActiveStep(activeStep)
+            setSteps(steps)
+          }
+        }
+      } catch (err) {
+        logger.error(err)
+      }
+
       setFetching(true)
-      await updateStatus()
+      await promiseTimeout(updateStatus(activeStep, steps), 120 * 1000)
       setFetching(false)
     }
 
@@ -286,7 +364,8 @@ const StatusContextProvider: FC = ({ children }) => {
       value={{
         fetching,
         steps,
-        activeStep
+        activeStep,
+        setTx
       }}
     >
       {children}

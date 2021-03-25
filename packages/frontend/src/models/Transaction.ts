@@ -126,13 +126,34 @@ class Transaction extends EventEmitter {
   }
 
   toObject () {
-    const { hash, networkName, pending, timestamp } = this
-    return { hash, networkName, pending, timestamp }
+    const {
+      hash,
+      networkName,
+      pending,
+      timestamp,
+      token,
+      destNetworkName
+    } = this
+    return { hash, networkName, pending, timestamp, token, destNetworkName }
   }
 
   static fromObject (obj: any) {
-    const { hash, networkName, pending, timestamp } = obj
-    return new Transaction({ hash, networkName, pending, timestamp })
+    const {
+      hash,
+      networkName,
+      pending,
+      timestamp,
+      token,
+      destNetworkName
+    } = obj
+    return new Transaction({
+      hash,
+      networkName,
+      pending,
+      timestamp,
+      token,
+      destNetworkName
+    })
   }
 }
 

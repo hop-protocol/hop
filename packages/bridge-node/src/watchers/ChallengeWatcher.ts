@@ -32,7 +32,7 @@ class ChallengeWatcher extends BaseWatcher {
     this.started = true
     this.logger.log('starting L1 BondTransferRoot event watcher')
     try {
-      await this.watch()
+      await Promise.all([this.syncUp(), this.watch()])
     } catch (err) {
       this.logger.error('watcher error:', err.message)
     }
@@ -45,9 +45,33 @@ class ChallengeWatcher extends BaseWatcher {
     this.logger.setEnabled(false)
   }
 
+  async syncUp () {
+    const blockNumber = await this.l1Bridge.getBlockNumber()
+    const startBlockNumber = blockNumber - 1000
+    const transferRootBondedEvents = await this.l1Bridge.getTransferRootBondedEvents(
+      startBlockNumber,
+      blockNumber
+    )
+
+    for (let event of transferRootBondedEvents) {
+      const { root, amount } = event.args
+      await this.handleTransferRootBondedEvent(root, amount, event)
+    }
+
+    const transferRootConfirmedEvents = await this.l1Bridge.getTransferRootConfirmedEvents(
+      startBlockNumber,
+      blockNumber
+    )
+
+    for (let event of transferRootConfirmedEvents) {
+      const { root, amount } = event.args
+      await this.handleTransferRootBondedEvent(root, amount, event)
+    }
+  }
+
   async watch () {
     this.l1Bridge
-      .on(this.l1Bridge.TransferRootBonded, this.handleBondTransferEvent)
+      .on(this.l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
       .on('error', err => {
         this.logger.error('event watcher error:', err.message)
       })
@@ -112,7 +136,10 @@ class ChallengeWatcher extends BaseWatcher {
       transferRootHash,
       totalAmount
     )
-    tx?.wait().then(() => {
+    tx?.wait().then((receipt: any) => {
+      if (receipt.status !== 1) {
+        throw new Error('status=0')
+      }
       this.emit('challengeTransferRootBond', {
         destChainId,
         transferRootHash,
@@ -146,7 +173,10 @@ class ChallengeWatcher extends BaseWatcher {
       transferRootHash,
       totalAmount
     )
-    tx?.wait().then(() => {
+    tx?.wait().then((receipt: any) => {
+      if (receipt.status !== 1) {
+        throw new Error('status=0')
+      }
       this.emit('challengeResolved', {
         sourceChainId,
         destChainId,
@@ -156,7 +186,7 @@ class ChallengeWatcher extends BaseWatcher {
     })
   }
 
-  handleBondTransferEvent = async (
+  handleTransferRootBondedEvent = async (
     transferRootHash: string,
     totalAmount: BigNumber,
     meta: any

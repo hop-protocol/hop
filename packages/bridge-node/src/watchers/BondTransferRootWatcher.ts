@@ -39,7 +39,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     )
 
     try {
-      await this.watch()
+      await Promise.all([this.syncUp(), this.watch()])
     } catch (err) {
       this.logger.error(`watcher error:`, err.message)
     }
@@ -50,6 +50,25 @@ class BondTransferRootWatcher extends BaseWatcher {
     this.l2Bridge.removeAllListeners()
     this.started = false
     this.logger.setEnabled(false)
+  }
+
+  async syncUp () {
+    const blockNumber = await this.l2Bridge.getBlockNumber()
+    const startBlockNumber = blockNumber - 1000
+    const events = await this.l2Bridge.getTransfersCommitedEvents(
+      startBlockNumber,
+      blockNumber
+    )
+
+    for (let event of events) {
+      const { rootHash, totalAmount, rootCommittedAt } = event.args
+      await this.handleTransferCommittedEvent(
+        rootHash,
+        totalAmount,
+        rootCommittedAt,
+        event
+      )
+    }
   }
 
   async watch () {
@@ -67,6 +86,31 @@ class BondTransferRootWatcher extends BaseWatcher {
     totalAmount: number,
     chainId: string
   ) => {
+    const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
+      transferRootHash
+    )
+    if (dbTransferRoot?.bonded) {
+      return
+    }
+
+    const transferRootId = await this.l1Bridge.getTransferRootId(
+      transferRootHash,
+      totalAmount
+    )
+    const transferBondStruct = await this.l1Bridge.getTransferBond(
+      transferRootId
+    )
+    const createdAt = Number(transferBondStruct.createdAt.toString())
+    if (createdAt > 0) {
+      this.logger.debug(
+        `transferRootHash ${transferRootHash} already bonded. skipping.`
+      )
+      await db.transferRoots.update(transferRootHash, {
+        bonded: true
+      })
+      return
+    }
+
     const sourceChainId = await this.l2Bridge.getChainId()
     this.logger.log(
       sourceChainId,
@@ -83,7 +127,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       commited: true
     })
 
-    await this.waitTimeout(transferRootHash)
+    await this.waitTimeout(transferRootHash, totalAmount)
 
     const transferRoot: TransferRoot = await db.transferRoots.getById(
       transferRootHash
@@ -112,7 +156,11 @@ class BondTransferRootWatcher extends BaseWatcher {
       chainId,
       totalAmount
     )
-    tx?.wait().then(() => {
+    tx?.wait().then((receipt: any) => {
+      if (receipt.status !== 1) {
+        throw new Error('status=0')
+      }
+
       this.emit('bondTransferRoot', {
         transferRootHash,
         chainId,
@@ -152,7 +200,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
   }
 
-  async waitTimeout (transferRootHash: string) {
+  async waitTimeout (transferRootHash: string, totalAmount: number) {
     await wait(2 * 1000)
     if (!this.order()) {
       return
@@ -165,7 +213,11 @@ class BondTransferRootWatcher extends BaseWatcher {
       if (!this.started) {
         return
       }
-      const bond = await this.l1Bridge.getTransferBond(transferRootHash)
+      const transferRootId = await this.l1Bridge.getTransferRootId(
+        transferRootHash,
+        totalAmount
+      )
+      const bond = await this.l1Bridge.getTransferBond(transferRootId)
       if (bond.createdAt.toNumber() > 0) {
         break
       }

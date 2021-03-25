@@ -53,8 +53,38 @@ export default class L1Bridge extends Bridge {
     }
   }
 
-  async getTransferBond (transferRootHash: string) {
-    return this.l1BridgeContract.transferBonds(transferRootHash)
+  async getTransferBond (transferRootId: string) {
+    return this.l1BridgeContract.transferBonds(transferRootId)
+  }
+
+  async getTransferRootId (transferRootHash: string, totalAmount: number) {
+    const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
+    return this.l1BridgeContract.getTransferRootId(
+      transferRootHash,
+      parsedTotalAmount
+    )
+  }
+
+  async getTransferRootBondedEvents (
+    startBlockNumber: number,
+    endBlockNumber: number
+  ) {
+    return this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.TransferRootBonded(),
+      startBlockNumber,
+      endBlockNumber
+    )
+  }
+
+  async getTransferRootConfirmedEvents (
+    startBlockNumber: number,
+    endBlockNumber: number
+  ) {
+    return this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.TransferRootConfirmed(),
+      startBlockNumber,
+      endBlockNumber
+    )
   }
 
   @queue

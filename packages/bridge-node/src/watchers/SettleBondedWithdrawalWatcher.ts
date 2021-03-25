@@ -40,7 +40,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     this.started = true
     this.logger.log(`starting L1 BondTransferRoot event watcher`)
     try {
-      await this.watch()
+      await Promise.all([this.syncUp(), this.watch()])
     } catch (err) {
       this.logger.error(`watcher error:`, err.message)
     }
@@ -51,6 +51,20 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     this.l2Bridge.removeAllListeners()
     this.started = false
     this.logger.setEnabled(false)
+  }
+
+  async syncUp () {
+    const blockNumber = await this.l1Bridge.getBlockNumber()
+    const startBlockNumber = blockNumber - 1000
+    const transferRootBondedEvents = await this.l1Bridge.getTransferRootBondedEvents(
+      startBlockNumber,
+      blockNumber
+    )
+
+    for (let event of transferRootBondedEvents) {
+      const { root, amount } = event.args
+      await this.handleTransferRootBondedEvent(root, amount, event)
+    }
   }
 
   async watch () {
@@ -163,6 +177,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     _totalAmount: string,
     meta: any
   ) => {
+    const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
+      transferRootHash
+    )
+    if (dbTransferRoot?.bonded) {
+      return
+    }
+
     const { transactionHash } = meta
     const totalAmount = Number(formatUnits(_totalAmount, 18))
     this.logger.log(`received L1 BondTransferRoot event:`)

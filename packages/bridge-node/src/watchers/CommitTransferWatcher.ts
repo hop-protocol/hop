@@ -34,7 +34,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     this.started = true
     this.logger.log(`starting L2 commitTransfers scheduler`)
     try {
-      await this.watch()
+      await Promise.all([this.syncUp(), this.watch()])
     } catch (err) {
       this.logger.error('watcher error:', err)
     }
@@ -44,6 +44,35 @@ class CommitTransfersWatcher extends BaseWatcher {
     this.l2Bridge.removeAllListeners()
     this.started = false
     this.logger.setEnabled(false)
+  }
+
+  async syncUp () {
+    const blockNumber = await this.l2Bridge.getBlockNumber()
+    const startBlockNumber = blockNumber - 1000
+    const transferSentEvents = await this.l2Bridge.getTransferSentEvents(
+      startBlockNumber,
+      blockNumber
+    )
+
+    for (let event of transferSentEvents) {
+      const {
+        transferId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index
+      } = event.args
+      await this.handleTransferSentEvent(
+        transferId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index,
+        event
+      )
+    }
   }
 
   async watch () {
@@ -126,7 +155,10 @@ class CommitTransfersWatcher extends BaseWatcher {
     })
 
     const tx = await this.l2Bridge.commitTransfers(chainId)
-    tx?.wait().then(() => {
+    tx?.wait().then((receipt: any) => {
+      if (receipt.status !== 1) {
+        throw new Error('status=0')
+      }
       this.emit('commitTransfers', {
         chainId,
         transferRootHash,
@@ -149,6 +181,11 @@ class CommitTransfersWatcher extends BaseWatcher {
     meta: any
   ) => {
     try {
+      const dbTransferHash = await db.transfers.getByTransferHash(transferHash)
+      if (dbTransferHash?.sourceChainId) {
+        return
+      }
+
       this.logger.log(`received TransferSent event`)
       this.logger.log(`waiting`)
       // TODO: batch

@@ -41,8 +41,8 @@ const startStakeWatchers = (
           label: `${network} ${token}`,
           bridgeContract,
           tokenContract,
-          stakeMinThreshold: 10_000_000,
-          stakeAmount: 5_00_000_000
+          stakeMinThreshold: 1_000,
+          stakeAmount: 10_000
         })
       )
     }
@@ -214,7 +214,7 @@ function startWatchers (_config: Config = {}) {
 
   watchers.forEach(watcher => watcher.start())
   watchers.push(...startStakeWatchers(_tokens, _networks))
-  watchers.push(...startChallengeWatchers(_tokens, _networks))
+  //watchers.push(...startChallengeWatchers(_tokens, _networks))
 
   const stop = () => {
     return watchers.map(watcher => {

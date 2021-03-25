@@ -53,6 +53,14 @@ export default class Bridge extends ContractBase {
     return Number(formatUnits(debit, 18))
   }
 
+  async hasPositiveBalance () {
+    const [credit, debit] = await Promise.all([
+      this.getCredit(),
+      this.getDebit()
+    ])
+    return credit >= debit && credit > 0
+  }
+
   getAddress () {
     return this.bridgeContract.address
   }
@@ -64,6 +72,32 @@ export default class Bridge extends ContractBase {
       transferHash
     )
     return Number(formatUnits(bondedBn.toString(), 18))
+  }
+
+  isTransferHashSpent (transferHash: string) {
+    return this.bridgeContract.isTransferIdSpent(transferHash)
+  }
+
+  async getWithdrawalBondedEvents (
+    startBlockNumber: number,
+    endBlockNumber: number
+  ) {
+    return this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.WithdrawalBonded(),
+      startBlockNumber,
+      endBlockNumber
+    )
+  }
+
+  async getWithdrawalBondeSettledvents (
+    startBlockNumber: number,
+    endBlockNumber: number
+  ) {
+    return this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.WithdrawalBondSettled(),
+      startBlockNumber,
+      endBlockNumber
+    )
   }
 
   @queue

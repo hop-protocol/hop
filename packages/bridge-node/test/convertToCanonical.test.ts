@@ -1,5 +1,5 @@
 require('dotenv').config()
-import { User, checkApproval } from './helpers'
+import { User } from './helpers'
 import { wait } from 'src/utils'
 import Logger from 'src/logger'
 import { privateKey } from './config'
@@ -28,7 +28,7 @@ describe('convert L1 token to L2 canonical token', () => {
           TOKEN
         )
         logger.log(`checking ${TOKEN} approval on ${L2_NETWORK}`)
-        await checkApproval(user, KOVAN, TOKEN, l1CanonicalBridge.address)
+        await user.checkApproval(KOVAN, TOKEN, l1CanonicalBridge.address)
         const tokenBalanceBefore = await user.getBalance(L2_NETWORK, TOKEN)
         logger.log(`token ${TOKEN} balance: ${tokenBalanceBefore}`)
         logger.log(`converting ${KOVAN} ${TOKEN} to canonical token`)

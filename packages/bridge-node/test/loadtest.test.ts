@@ -1,7 +1,7 @@
 require('dotenv').config()
 import { startWatchers } from 'src/watchers/watchers'
 import { wait } from 'src/utils'
-import { User, checkApproval, waitForEvent, generateUsers } from './helpers'
+import { User, waitForEvent, generateUsers } from './helpers'
 import { faucetPrivateKey, mnemonic } from './config'
 import Logger from 'src/logger'
 // @ts-ignore
@@ -35,7 +35,7 @@ test(
         const recipient = await user.getAddress()
         const spender = user.getBridgeAddress(sourceNetwork, token)
         logger.log('checking approval')
-        await checkApproval(user, sourceNetwork, token, spender)
+        await user.checkApproval(sourceNetwork, token, spender)
         logger.log('sending tx')
         const tx = await user.send(
           sourceNetwork,

@@ -22,4 +22,17 @@ export default class ContractBase extends EventEmitter {
   get address () {
     return this.contract.address
   }
+
+  async getTransaction (txHash: string) {
+    return this.contract.provider.getTransaction(txHash)
+  }
+
+  async getBlockNumber () {
+    return this.contract.provider.getBlockNumber()
+  }
+
+  async getBlockTimestamp () {
+    const block = await this.contract.provider.getBlock('latest')
+    return block.timestamp
+  }
 }

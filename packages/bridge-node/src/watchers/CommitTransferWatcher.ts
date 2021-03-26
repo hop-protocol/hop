@@ -47,6 +47,7 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   async syncUp () {
+    this.logger.debug('syncing up events')
     const blockNumber = await this.l2Bridge.getBlockNumber()
     const startBlockNumber = blockNumber - 1000
     const transferSentEvents = await this.l2Bridge.getTransferSentEvents(

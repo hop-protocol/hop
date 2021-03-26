@@ -1,5 +1,5 @@
 require('dotenv').config()
-import { User, checkApproval } from './helpers'
+import { User } from './helpers'
 import { wait } from 'src/utils'
 import Logger from 'src/logger'
 import { privateKey } from './config'
@@ -8,7 +8,7 @@ import { KOVAN, OPTIMISM, XDAI } from 'src/constants'
 
 const TOKEN = 'DAI'
 const AMOUNT = 1_000_000_000
-const NETWORKS = [OPTIMISM]
+const NETWORKS = [XDAI]
 const logger = new Logger('TEST')
 
 describe('convert L1 token to L2 Hop token', () => {
@@ -25,7 +25,7 @@ describe('convert L1 token to L2 Hop token', () => {
         await tx.wait()
         const l1Bridge = user.getHopBridgeContract(KOVAN, TOKEN)
         logger.log(`checking ${TOKEN} approval on ${L2_NETWORK}`)
-        await checkApproval(user, KOVAN, TOKEN, l1Bridge.address)
+        await user.checkApproval(KOVAN, TOKEN, l1Bridge.address)
         logger.log(
           `getting ${TOKEN} hop token balance balance on ${L2_NETWORK}`
         )

@@ -2,13 +2,15 @@ import BaseDb from './BaseDb'
 
 export type TransferRoot = {
   transferRootHash?: string
-  totalAmount?: string
+  totalAmount?: number
   chainId?: string
   sourceChainID?: string
   commited?: boolean
+  commitedAt?: number
   bonded?: boolean
   settled?: boolean
   sentSettleTx?: boolean
+  sentBondTx?: boolean
   transferHashes?: string[]
 }
 
@@ -52,6 +54,15 @@ class TransferRootsDb extends BaseDb {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
       return !item.commited && item?.transferHashes?.length
+    })
+  }
+
+  async getUnbondedTransferRoots (): Promise<TransferRoot[]> {
+    const transfers = await this.getTransferRoots()
+    return transfers.filter(item => {
+      return (
+        !item.bonded && item.transferRootHash && item.chainId && item.commitedAt
+      )
     })
   }
 }

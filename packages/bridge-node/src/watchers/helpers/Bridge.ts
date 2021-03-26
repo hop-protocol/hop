@@ -22,14 +22,6 @@ export default class Bridge extends ContractBase {
       })
   }
 
-  getTransaction (txHash: string) {
-    return this.bridgeContract.provider.getTransaction(txHash)
-  }
-
-  getBlockNumber () {
-    return this.bridgeContract.provider.getBlockNumber()
-  }
-
   async getBonderAddress () {
     return this.bridgeContract.signer.getAddress()
   }

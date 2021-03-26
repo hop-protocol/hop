@@ -265,7 +265,7 @@ export class User {
     }
 
     const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
-    await checkApproval(this, sourceNetwork, token, wrapper.address)
+    await this.checkApproval(sourceNetwork, token, wrapper.address)
     return wrapper.swapAndSend(
       chainId,
       recipient,
@@ -306,7 +306,7 @@ export class User {
     //const amountOut = await router.getAmountsOut(parsedAmount, path)
     //console.log('amount out 0:', formatUnits(amountOut[0], 18).toString())
     //console.log('amount out 1:', formatUnits(amountOut[1], 18).toString())
-    await checkApproval(this, sourceNetwork, token, wrapper.address)
+    await this.checkApproval(sourceNetwork, token, wrapper.address)
 
     return wrapper.swapAndSend(
       chainId,
@@ -372,7 +372,7 @@ export class User {
     const amountOutMin = '0'
     const parsedAmount = parseUnits(amount.toString(), 18)
     const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
-    await checkApproval(this, sourceNetwork, token, wrapper.address)
+    await this.checkApproval(sourceNetwork, token, wrapper.address)
     console.log(bonderFee)
 
     return wrapper.swapAndSend(
@@ -418,6 +418,19 @@ export class User {
   ) {
     const tokenContract = this.getTokenContract(network, token)
     return tokenContract.transfer(recipient, parseUnits(amount.toString(), 18))
+  }
+
+  @queue
+  async checkApproval (network: string, token: string, spender: string) {
+    return checkApproval(this, network, token, spender)
+  }
+
+  @queue
+  async stake (network: string, token: string, amount: number) {
+    const parsedAmount = parseUnits(amount.toString(), 18)
+    const bonder = await this.getAddress()
+    const bridge = this.getHopBridgeContract(network, token)
+    return bridge.stake(bonder, parsedAmount)
   }
 
   async getBonderFee (network: string, token: string, amount: string) {

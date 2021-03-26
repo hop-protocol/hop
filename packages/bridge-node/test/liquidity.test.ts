@@ -1,5 +1,5 @@
 require('dotenv').config()
-import { User, checkApproval } from './helpers'
+import { User } from './helpers'
 import { wait } from 'src/utils'
 import { bonderPrivateKey } from './config'
 // @ts-ignore
@@ -26,7 +26,7 @@ async function addLiquidity (l2Network: string, amount: number) {
 
   let tx: any
   const l1Bridge = user.getHopBridgeContract(KOVAN, TOKEN)
-  await checkApproval(user, KOVAN, TOKEN, l1Bridge.address)
+  await user.checkApproval(KOVAN, TOKEN, l1Bridge.address)
 
   let hopBalance = await user.getHopBalance(l2Network, TOKEN)
   console.log(`hop ${TOKEN} balance: ${hopBalance}`)
@@ -39,7 +39,7 @@ async function addLiquidity (l2Network: string, amount: number) {
   }
 
   if (hopBalance < amount) {
-    await checkApproval(user, KOVAN, TOKEN, l1Bridge.address)
+    await user.checkApproval(KOVAN, TOKEN, l1Bridge.address)
     console.log('converting canonical token to hop token')
     // TODO: take fee into account
     tx = await user.canonicalTokenToHopToken(l2Network, TOKEN, amount)
@@ -56,7 +56,7 @@ async function addLiquidity (l2Network: string, amount: number) {
 
   if (l2Balance < amount) {
     const tokenBridge = user.getCanonicalBridgeContract(l2Network, TOKEN)
-    await checkApproval(user, KOVAN, TOKEN, tokenBridge.address)
+    await user.checkApproval(KOVAN, TOKEN, tokenBridge.address)
     console.log(`converting ${KOVAN} ${TOKEN} to ${l2Network} ${TOKEN}`)
     let tx = await user.convertToCanonicalToken(l2Network, TOKEN, amount / 2)
     console.log(`convert to canonical token tx: ${tx.hash}`)

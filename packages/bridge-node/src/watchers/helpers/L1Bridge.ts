@@ -87,6 +87,18 @@ export default class L1Bridge extends Bridge {
     )
   }
 
+  async getTransferRootCommitedAt (transferRootId: string) {
+    const commitedAt = await this.bridgeContract.transferRootCommittedAt(
+      transferRootId
+    )
+    return Number(commitedAt.toString())
+  }
+
+  async getMinTransferRootBondDelaySeconds () {
+    // MIN_TRANSFER_ROOT_BOND_DELAY
+    return 15 * 60
+  }
+
   @queue
   async bondTransferRoot (
     transferRootHash: string,
@@ -94,10 +106,15 @@ export default class L1Bridge extends Bridge {
     totalAmount: number
   ) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
-    const credit = await this.getCredit()
-    const debit = await this.getDebit()
-    if (credit < debit) {
-      throw new Error('not enough available credit to bond transfer root')
+    const [credit, debit] = await Promise.all([
+      this.getCredit(),
+      this.getDebit()
+    ])
+    if (credit - debit - totalAmount < 0) {
+      throw new Error(
+        `not enough available credit to bond transfer root. Have ${credit -
+          debit}, need ${totalAmount}`
+      )
     }
 
     return this.l1BridgeContract.bondTransferRoot(
@@ -105,7 +122,7 @@ export default class L1Bridge extends Bridge {
       chainId,
       parsedTotalAmount,
       {
-        //gasLimit: 1000000
+        // gasLimit: 1000000
       }
     )
   }

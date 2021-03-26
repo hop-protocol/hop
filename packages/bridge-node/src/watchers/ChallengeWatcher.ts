@@ -46,6 +46,7 @@ class ChallengeWatcher extends BaseWatcher {
   }
 
   async syncUp () {
+    this.logger.debug('syncing up events')
     const blockNumber = await this.l1Bridge.getBlockNumber()
     const startBlockNumber = blockNumber - 1000
     const transferRootBondedEvents = await this.l1Bridge.getTransferRootBondedEvents(

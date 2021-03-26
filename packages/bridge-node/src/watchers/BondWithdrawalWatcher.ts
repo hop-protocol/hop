@@ -56,6 +56,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async syncUp () {
+    this.logger.debug('syncing up events')
     let l1BlockNumber = await this.l1Bridge.getBlockNumber()
     let l1StartBlockNumber = l1BlockNumber - 1000
     const l1WithdrawalBondedEvents = await this.l1Bridge.getWithdrawalBondedEvents(

@@ -20,6 +20,7 @@ export interface Config {
 class BondTransferRootWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
   l2Bridge: L2Bridge
+  waitMinBondDelay: boolean = true
 
   constructor (config: Config) {
     super({
@@ -128,7 +129,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     const blockTimestamp = await this.l1Bridge.getBlockTimestamp()
     const delta = blockTimestamp - commitedAt - minDelay
     const shouldBond = delta > 0
-    if (!shouldBond) {
+    if (this.waitMinBondDelay && !shouldBond) {
       this.logger.debug(
         `transferRootHash ${transferRootHash} too early to bond. Must wait ${Math.abs(
           delta
@@ -219,8 +220,11 @@ class BondTransferRootWatcher extends BaseWatcher {
       chainId,
       totalAmount
     )
-    tx?.wait().then((receipt: any) => {
+    tx?.wait().then(async (receipt: any) => {
       if (receipt.status !== 1) {
+        await db.transferRoots.update(transferRootHash, {
+          sentBondTx: false
+        })
         throw new Error('status=0')
       }
 

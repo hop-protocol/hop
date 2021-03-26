@@ -232,7 +232,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const { chainId, attemptSwap } = await this.l2Bridge.decodeSendData(data)
 
       const destL2Bridge = new L2Bridge(this.contracts[chainId])
-      const bondedAmount = await destL2Bridge.getBondedAmount(transferHash)
+      const bondedAmount = await destL2Bridge.getBondedWithdrawalAmount(
+        transferHash
+      )
       if (bondedAmount > 0) {
         this.logger.debug(
           `transferHash ${transferHash} withdrawal already bonded withdrawal`
@@ -292,7 +294,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
           transferHash
         })
 
-        const bondedAmount = await this.getBondedAmount(transferHash, chainId)
+        const bondedAmount = await destL2Bridge.getBondedWithdrawalAmount(
+          transferHash
+        )
         this.logger.debug(
           `chain ${chainId} bondWithdrawal amount:`,
           bondedAmount
@@ -333,11 +337,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     await db.transfers.update(transferHash, {
       withdrawalBonded: true
     })
-  }
-
-  getBondedAmount = async (transferHash: string, chainId: string) => {
-    const bridge = new Bridge(this.contracts[chainId])
-    return bridge.getBondedAmount(transferHash)
   }
 
   async waitTimeout (transferHash: string, chainId: string) {

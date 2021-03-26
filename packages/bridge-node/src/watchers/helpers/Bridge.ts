@@ -57,7 +57,7 @@ export default class Bridge extends ContractBase {
     return this.bridgeContract.address
   }
 
-  async getBondedAmount (transferHash: string) {
+  async getBondedWithdrawalAmount (transferHash: string) {
     const bonder = await this.getBonderAddress()
     const bondedBn = await this.bridgeContract.getBondedWithdrawalAmount(
       bonder,
@@ -89,6 +89,22 @@ export default class Bridge extends ContractBase {
       this.bridgeContract.filters.WithdrawalBondSettled(),
       startBlockNumber,
       endBlockNumber
+    )
+  }
+
+  async getTransferRootId (transferRootHash: string, totalAmount: number) {
+    const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
+    return this.bridgeContract.getTransferRootId(
+      transferRootHash,
+      parsedTotalAmount
+    )
+  }
+
+  async getTransferRoot (transferRootHash: string, totalAmount: number) {
+    const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
+    return this.bridgeContract.getTransferRoot(
+      transferRootHash,
+      parsedTotalAmount
     )
   }
 

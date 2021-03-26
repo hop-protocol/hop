@@ -57,14 +57,6 @@ export default class L1Bridge extends Bridge {
     return this.l1BridgeContract.transferBonds(transferRootId)
   }
 
-  async getTransferRootId (transferRootHash: string, totalAmount: number) {
-    const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
-    return this.l1BridgeContract.getTransferRootId(
-      transferRootHash,
-      parsedTotalAmount
-    )
-  }
-
   async getTransferRootBondedEvents (
     startBlockNumber: number,
     endBlockNumber: number

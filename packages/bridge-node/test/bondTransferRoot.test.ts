@@ -2,9 +2,9 @@ require('dotenv').config()
 import { startWatchers } from 'src/watchers/watchers'
 import { wait } from 'src/utils'
 import { KOVAN, XDAI } from 'src/constants'
+import Logger from 'src/logger'
 import { User, waitForEvent } from './helpers'
 import { privateKey } from './config'
-import Logger from 'src/logger'
 
 const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 1

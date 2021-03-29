@@ -196,27 +196,35 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           Number(totalAmount),
           chainId
         )
-        tx?.wait().then(async (receipt: any) => {
-          if (receipt.status !== 1) {
-            await db.transferRoots.update(dbTransferRoot.transferRootHash, {
+        tx?.wait()
+          .then(async (receipt: any) => {
+            if (receipt.status !== 1) {
+              await db.transferRoots.update(dbTransferRoot.transferRootHash, {
+                sentSettleTx: false
+              })
+              throw new Error('status=0')
+            }
+            await db.transferRoots.update(transferRootHash, {
+              settled: true
+            })
+            for (let transferHash of transferHashes) {
+              this.emit('settleBondedWithdrawal', {
+                transferRootHash,
+                networkName: networkIdToSlug(chainId),
+                networkId: chainId,
+                transferHash
+              })
+
+              db.transfers.update(transferHash, { withdrawalBondSettled: true })
+            }
+          })
+          .catch(async (err: Error) => {
+            await db.transferRoots.update(transferRootHash, {
               sentSettleTx: false
             })
-            throw new Error('status=0')
-          }
-          await db.transferRoots.update(transferRootHash, {
-            settled: true
-          })
-          for (let transferHash of transferHashes) {
-            this.emit('settleBondedWithdrawal', {
-              transferRootHash,
-              networkName: networkIdToSlug(chainId),
-              networkId: chainId,
-              transferHash
-            })
 
-            db.transfers.update(transferHash, { withdrawalBondSettled: true })
-          }
-        })
+            throw err
+          })
         this.logger.log(
           `settleBondedWithdrawal on chain ${chainId} tx: ${chalk.bgYellow.black.bold(
             tx.hash

@@ -26,7 +26,7 @@ const logger = new Logger('TEST')
 
 describe('settleBondedWithdrawal', () => {
   let testPaths = [...L2ToL1Paths, ...L2ToL2Paths]
-  testPaths = [[XDAI, KOVAN]]
+  testPaths = [[XDAI, XDAI]]
   for (let path of testPaths) {
     const [sourceNetwork, destNetwork] = path
     const label = `${sourceNetwork} -> ${destNetwork}`
@@ -81,7 +81,7 @@ describe('settleBondedWithdrawal', () => {
 
         await stop()
       },
-      500 * 1000
+      900 * 1000
     )
   }
 })

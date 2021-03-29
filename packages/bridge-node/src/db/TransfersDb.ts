@@ -6,6 +6,7 @@ export type Transfer = {
   sourceChainId?: string
   withdrawalBondSettled?: boolean
   withdrawalBonded?: boolean
+  sentBondWithdrawalTx?: boolean
 }
 
 class TransfersDb extends BaseDb {

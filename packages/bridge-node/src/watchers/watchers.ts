@@ -214,7 +214,7 @@ function startWatchers (_config: Config = {}) {
 
   watchers.forEach(watcher => watcher.start())
   watchers.push(...startStakeWatchers(_tokens, _networks))
-  //watchers.push(...startChallengeWatchers(_tokens, _networks))
+  watchers.push(...startChallengeWatchers(_tokens, _networks))
 
   const stop = () => {
     return watchers.map(watcher => {

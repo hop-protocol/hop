@@ -18,14 +18,16 @@ export default class L2Bridge extends Bridge {
     this.l2BridgeContract = l2BridgeContract
     this.l2StartListeners()
 
-    this.l2BridgeContract.uniswapWrapper().then((address: string) => {
-      const l2UniswapWrapperContract = new Contract(
-        address,
-        l2UniswapWrapperArtifact.abi,
-        this.l2BridgeContract.signer
-      )
-      this.l2UniswapWrapper = new L2UniswapWrapper(l2UniswapWrapperContract)
-    })
+    if (this.l2BridgeContract.uniswapWrapper) {
+      this.l2BridgeContract.uniswapWrapper().then((address: string) => {
+        const l2UniswapWrapperContract = new Contract(
+          address,
+          l2UniswapWrapperArtifact.abi,
+          this.l2BridgeContract.signer
+        )
+        this.l2UniswapWrapper = new L2UniswapWrapper(l2UniswapWrapperContract)
+      })
+    }
 
     const l2BridgeWrapperContract = new Contract(
       this.l2BridgeContract.address,
@@ -36,17 +38,22 @@ export default class L2Bridge extends Bridge {
   }
 
   l2StartListeners () {
-    this.l2BridgeContract
-      .on(
+    if (this.l2BridgeContract.filters.TransfersCommitted) {
+      this.l2BridgeContract.on(
         this.l2BridgeContract.filters.TransfersCommitted(),
         (...args: any[]) => this.emit(this.TransfersCommitted, ...args)
       )
-      .on(this.l2BridgeContract.filters.TransferSent(), (...args: any[]) =>
-        this.emit(this.TransferSent, ...args)
+    }
+    if (this.l2BridgeContract.filters.TransferSent) {
+      this.l2BridgeContract.on(
+        this.l2BridgeContract.filters.TransferSent(),
+        (...args: any[]) => this.emit(this.TransferSent, ...args)
       )
-      .on('error', err => {
-        this.emit('error', err)
-      })
+    }
+
+    this.l2BridgeContract.on('error', err => {
+      this.emit('error', err)
+    })
   }
 
   async getTransfersCommitedEvents (
@@ -152,9 +159,12 @@ export default class L2Bridge extends Bridge {
 
   @queue
   async commitTransfers (destinationChainId: string) {
-    return this.l2BridgeContract.commitTransfers(destinationChainId, {
+    const tx = await this.l2BridgeContract.commitTransfers(destinationChainId, {
       //gasLimit: '0xf4240'
     })
+
+    await tx.wait()
+    return tx
   }
 
   @queue
@@ -166,7 +176,7 @@ export default class L2Bridge extends Bridge {
     amountOutMin: string,
     deadline: string
   ) {
-    return this.l2BridgeContract.bondWithdrawalAndDistribute(
+    const tx = await this.l2BridgeContract.bondWithdrawalAndDistribute(
       recipient,
       amount,
       transferNonce,
@@ -177,5 +187,8 @@ export default class L2Bridge extends Bridge {
         //gasLimit: 1000000
       }
     )
+
+    await tx.wait()
+    return tx
   }
 }

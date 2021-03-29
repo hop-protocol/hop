@@ -5,6 +5,7 @@ export type TransferRoot = {
   totalAmount?: number
   chainId?: string
   sourceChainID?: string
+  sentCommitTx?: boolean
   commited?: boolean
   commitedAt?: number
   bonded?: boolean

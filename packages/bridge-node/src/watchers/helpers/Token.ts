@@ -18,6 +18,7 @@ export default class Token extends ContractBase {
     return Number(formatUnits(balance, 18))
   }
 
+  // RPC error if too many requests so need to queue
   @queue
   async getAllowance (spender: string) {
     const owner = await this.tokenContract.signer.getAddress()

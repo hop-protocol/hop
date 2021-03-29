@@ -270,6 +270,22 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
       await this.waitTimeout(transferHash, chainId)
       this.logger.log('sending bondWithdrawal tx')
+
+      const dbTransfer = await db.transfers.getByTransferHash(transferHash)
+      if (dbTransfer?.sentBondWithdrawalTx || dbTransfer?.withdrawalBonded) {
+        this.logger.log(
+          'sent?:',
+          dbTransfer.sentBondWithdrawalTx,
+          'withdrawalBonded?:',
+          dbTransfer.withdrawalBonded
+        )
+        return
+      }
+
+      await db.transfers.update(transferHash, {
+        sentBondWithdrawalTx: true
+      })
+
       const tx = await this.sendBondWithdrawalTx({
         sender,
         recipient,
@@ -282,30 +298,41 @@ class BondWithdrawalWatcher extends BaseWatcher {
         deadline
       })
 
-      tx?.wait().then(async (receipt: any) => {
-        if (receipt.status !== 1) {
-          throw new Error('status=0')
-        }
+      tx?.wait()
+        .then(async (receipt: any) => {
+          if (receipt.status !== 1) {
+            await db.transfers.update(transferHash, {
+              sentBondWithdrawalTx: false
+            })
+            throw new Error('status=0')
+          }
 
-        this.emit('bondWithdrawal', {
-          recipient,
-          destNetworkName: networkIdToSlug(chainId),
-          destNetworkId: chainId,
-          transferHash
+          this.emit('bondWithdrawal', {
+            recipient,
+            destNetworkName: networkIdToSlug(chainId),
+            destNetworkId: chainId,
+            transferHash
+          })
+
+          const bondedAmount = await destL2Bridge.getBondedWithdrawalAmount(
+            transferHash
+          )
+          this.logger.debug(
+            `chain ${chainId} bondWithdrawal amount:`,
+            bondedAmount
+          )
+
+          await db.transfers.update(transferHash, {
+            withdrawalBonded: true
+          })
         })
+        .catch(async (err: Error) => {
+          await db.transfers.update(transferHash, {
+            sentBondWithdrawalTx: false
+          })
 
-        const bondedAmount = await destL2Bridge.getBondedWithdrawalAmount(
-          transferHash
-        )
-        this.logger.debug(
-          `chain ${chainId} bondWithdrawal amount:`,
-          bondedAmount
-        )
-
-        await db.transfers.update(transferHash, {
-          withdrawalBonded: true
+          throw err
         })
-      })
       this.logger.log(
         `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx:`,
         chalk.bgYellow.black.bold(tx.hash)

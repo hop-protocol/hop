@@ -112,7 +112,9 @@ export default class Bridge extends ContractBase {
   async stake (amount: string) {
     const parsedAmount = parseUnits(amount, 18)
     const bonder = await this.getBonderAddress()
-    return this.bridgeContract.stake(bonder, parsedAmount)
+    const tx = await this.bridgeContract.stake(bonder, parsedAmount)
+    await tx.wait()
+    return tx
   }
 
   @queue
@@ -122,7 +124,7 @@ export default class Bridge extends ContractBase {
     transferNonce: string,
     bonderFee: string
   ) {
-    return this.bridgeContract.bondWithdrawal(
+    const tx = await this.bridgeContract.bondWithdrawal(
       recipient,
       amount,
       transferNonce,
@@ -131,6 +133,9 @@ export default class Bridge extends ContractBase {
         //  gasLimit: 1000000
       }
     )
+
+    await tx.wait()
+    return tx
   }
 
   @queue
@@ -139,7 +144,7 @@ export default class Bridge extends ContractBase {
     transferHashes: string[],
     parsedAmount: string
   ) {
-    return this.bridgeContract.settleBondedWithdrawals(
+    const tx = await this.bridgeContract.settleBondedWithdrawals(
       bonder,
       transferHashes,
       parsedAmount,
@@ -147,5 +152,8 @@ export default class Bridge extends ContractBase {
         //gasLimit: 1000000
       }
     )
+
+    await tx.wait()
+    return tx
   }
 }

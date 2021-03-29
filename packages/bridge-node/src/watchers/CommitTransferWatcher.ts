@@ -155,17 +155,48 @@ class CommitTransfersWatcher extends BaseWatcher {
       transferHashes: pendingTransfers
     })
 
-    const tx = await this.l2Bridge.commitTransfers(chainId)
-    tx?.wait().then((receipt: any) => {
-      if (receipt.status !== 1) {
-        throw new Error('status=0')
-      }
-      this.emit('commitTransfers', {
-        chainId,
-        transferRootHash,
-        transferHashes: pendingTransfers
-      })
+    const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
+      transferRootHash
+    )
+    if (dbTransferRoot?.sentCommitTx || dbTransferRoot?.commited) {
+      this.logger.log(
+        'sent?:',
+        dbTransferRoot.sentCommitTx,
+        'commited?:',
+        dbTransferRoot.commited
+      )
+      return
+    }
+
+    await db.transferRoots.update(transferRootHash, {
+      sentCommitTx: true
     })
+
+    const tx = await this.l2Bridge.commitTransfers(chainId)
+    tx?.wait()
+      .then(async (receipt: any) => {
+        if (receipt.status !== 1) {
+          await db.transferRoots.update(transferRootHash, {
+            sentCommitTx: false
+          })
+          throw new Error('status=0')
+        }
+        this.emit('commitTransfers', {
+          chainId,
+          transferRootHash,
+          transferHashes: pendingTransfers
+        })
+        await db.transferRoots.update(transferRootHash, {
+          commited: true
+        })
+      })
+      .catch(async (err: Error) => {
+        await db.transferRoots.update(transferRootHash, {
+          sentCommitTx: false
+        })
+
+        throw err
+      })
     this.logger.log(
       `L2 commitTransfers tx:`,
       chalk.bgYellow.black.bold(tx.hash)

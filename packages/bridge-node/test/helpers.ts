@@ -690,7 +690,7 @@ export class User {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
     const bridge = this.getHopBridgeContract(KOVAN)
     return bridge.challengeTransferBond(transferRootHash, parsedTotalAmount, {
-      //gasLimit: 1000000
+      gasLimit: 1000000
     })
   }
 
@@ -741,6 +741,68 @@ export class User {
       challengePeriod,
       timeSlotSize
     )
+  }
+
+  async setChallengeResolutionPeriod (challengeResolutionPeriod: number) {
+    const bridge = this.getHopBridgeContract(KOVAN)
+    const governance = await bridge.governance()
+    if (governance !== (await this.getAddress())) {
+      throw new Error('must be governance')
+    }
+    return bridge.setChallengeResolutionPeriod(challengeResolutionPeriod)
+  }
+
+  async getChallengeAmountForTransferAmount (amount: number) {
+    const bridge = this.getHopBridgeContract(KOVAN)
+    const parsedAmount = parseUnits(amount.toString(), 18)
+    const challengeAmount = await bridge.getChallengeAmountForTransferAmount(
+      parsedAmount
+    )
+    return Number(formatUnits(challengeAmount, 18).toString())
+  }
+
+  async getCredit (network: string = KOVAN) {
+    const bonder = await this.getAddress()
+    const bridge = this.getHopBridgeContract(KOVAN)
+    const credit = (await bridge.getCredit(bonder)).toString()
+    return Number(formatUnits(credit, 18))
+  }
+
+  async getBondForTransferAmount (amount: number) {
+    const bridge = this.getHopBridgeContract(KOVAN)
+    const parsedAmount = parseUnits(amount.toString(), 18)
+    const bondAmount = (
+      await bridge.getBondForTransferAmount(parsedAmount)
+    ).toString()
+    return Number(formatUnits(bondAmount.toString(), 18))
+  }
+
+  async getTransferRootCommitedAt (transferRootId: string) {
+    const bridge = this.getHopBridgeContract(KOVAN)
+    const commitedAt = await bridge.transferRootCommittedAt(transferRootId)
+    return Number(commitedAt.toString())
+  }
+
+  async getTransferRootId (transferRootHash: string, totalAmount: number) {
+    const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
+    const bridge = this.getHopBridgeContract(KOVAN)
+    return bridge.getTransferRootId(transferRootHash, parsedTotalAmount)
+  }
+
+  async getTransferBond (transferRootId: string) {
+    const bridge = this.getHopBridgeContract(KOVAN)
+    return bridge.transferBonds(transferRootId)
+  }
+
+  async getMinTransferRootBondDelaySeconds () {
+    // MIN_TRANSFER_ROOT_BOND_DELAY
+    return 15 * 60
+  }
+
+  async getBlockTimestamp (network: string = KOVAN) {
+    const bridge = this.getHopBridgeContract(network)
+    const block = await bridge.provider.getBlock('latest')
+    return block.timestamp
   }
 
   async isChainIdPaused (chainId: string) {

@@ -1,6 +1,7 @@
 import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
-import { isL1 } from 'src/utils'
+import { isL1NetworkId } from 'src/utils'
+//import db from 'src/db'
 import BaseWatcher from './helpers/BaseWatcher'
 import L1Bridge from './helpers/L1Bridge'
 import L2Bridge from './helpers/L2Bridge'
@@ -97,7 +98,7 @@ class ChallengeWatcher extends BaseWatcher {
     this.logger.log('totalAmount:', totalAmount.toString())
     this.logger.log('destChainId:', destChainId)
 
-    if (isL1(destChainId)) {
+    if (isL1NetworkId(destChainId)) {
       // TODO
       return
     }
@@ -137,16 +138,25 @@ class ChallengeWatcher extends BaseWatcher {
       transferRootHash,
       totalAmount
     )
-    tx?.wait().then((receipt: any) => {
-      if (receipt.status !== 1) {
-        throw new Error('status=0')
-      }
-      this.emit('challengeTransferRootBond', {
-        destChainId,
-        transferRootHash,
-        totalAmount
+    tx?.wait()
+      .then((receipt: any) => {
+        if (receipt.status !== 1) {
+          throw new Error('status=0')
+        }
+        this.emit('challengeTransferRootBond', {
+          destChainId,
+          transferRootHash,
+          totalAmount
+        })
       })
-    })
+      .catch(async (err: Error) => {
+        /*
+      db.transferRoots.update(transferRootHash, {
+      })
+      */
+
+        throw err
+      })
   }
 
   async checkChallenge (

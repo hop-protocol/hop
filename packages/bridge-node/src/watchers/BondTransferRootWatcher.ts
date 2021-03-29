@@ -220,24 +220,32 @@ class BondTransferRootWatcher extends BaseWatcher {
       chainId,
       totalAmount
     )
-    tx?.wait().then(async (receipt: any) => {
-      if (receipt.status !== 1) {
-        await db.transferRoots.update(transferRootHash, {
+    tx?.wait()
+      .then(async (receipt: any) => {
+        if (receipt.status !== 1) {
+          await db.transferRoots.update(transferRootHash, {
+            sentBondTx: false
+          })
+          throw new Error('status=0')
+        }
+
+        this.emit('bondTransferRoot', {
+          transferRootHash,
+          chainId,
+          totalAmount
+        })
+
+        db.transferRoots.update(transferRootHash, {
+          bonded: true
+        })
+      })
+      .catch(async (err: Error) => {
+        db.transferRoots.update(transferRootHash, {
           sentBondTx: false
         })
-        throw new Error('status=0')
-      }
 
-      this.emit('bondTransferRoot', {
-        transferRootHash,
-        chainId,
-        totalAmount
+        throw err
       })
-
-      db.transferRoots.update(transferRootHash, {
-        bonded: true
-      })
-    })
     this.logger.log(
       'L1 bondTransferRoot tx',
       chalk.bgYellow.black.bold(tx.hash)

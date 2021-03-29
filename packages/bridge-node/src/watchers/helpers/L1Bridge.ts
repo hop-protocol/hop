@@ -109,7 +109,7 @@ export default class L1Bridge extends Bridge {
       )
     }
 
-    return this.l1BridgeContract.bondTransferRoot(
+    const tx = await this.l1BridgeContract.bondTransferRoot(
       transferRootHash,
       chainId,
       parsedTotalAmount,
@@ -117,6 +117,9 @@ export default class L1Bridge extends Bridge {
         // gasLimit: 1000000
       }
     )
+
+    await tx.wait()
+    return tx
   }
 
   @queue
@@ -124,23 +127,29 @@ export default class L1Bridge extends Bridge {
     transferRootHash: string,
     totalAmount: string
   ) {
-    return this.l1BridgeContract.challengeTransferBond(
+    const tx = await this.l1BridgeContract.challengeTransferBond(
       transferRootHash,
       totalAmount,
       {
         //gasLimit: 1000000
       }
     )
+
+    await tx.wait()
+    return tx
   }
 
   @queue
   async resolveChallenge (transferRootHash: string, totalAmount: string) {
-    return this.l1BridgeContract.resolveChallenge(
+    const tx = await this.l1BridgeContract.resolveChallenge(
       transferRootHash,
       totalAmount,
       {
         //gasLimit: 1000000
       }
     )
+
+    await tx.wait()
+    return tx
   }
 }

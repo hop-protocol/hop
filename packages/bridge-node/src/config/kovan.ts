@@ -1,8 +1,8 @@
 export const addresses = {
   DAI: {
     kovan: {
-      l1CanonicalToken: '0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9',
-      l1Bridge: '0x8C295068Cd136C348F90f9f31C85A5c61Ed490Bc'
+      l1CanonicalToken: '0x436e3FfB93A4763575E5C0F6b3c97D5489E050da',
+      l1Bridge: '0x7d3101fE93Ff6dC009c2f50b6aD59DDD7F23dC5F'
     },
     /*
     arbitrum: {

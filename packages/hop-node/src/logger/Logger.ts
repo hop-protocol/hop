@@ -6,6 +6,27 @@ export interface Options {
   color: string
 }
 
+export enum LogLevels {
+  Error,
+  Warn,
+  Info,
+  Debug
+}
+
+let logLevel = LogLevels.Debug
+export const setLogLevel = (_logLevel: LogLevels | string) => {
+  if (typeof _logLevel === 'string') {
+    const mapping: { [key: string]: number } = {
+      error: LogLevels.Error,
+      warn: LogLevels.Warn,
+      info: LogLevels.Info,
+      debug: LogLevels.Debug
+    }
+    _logLevel = mapping[_logLevel]
+  }
+  logLevel = _logLevel
+}
+
 class Logger {
   private tag: string = ''
   private prefix: string = ''
@@ -43,6 +64,9 @@ class Logger {
 
   debug = (...input: any[]) => {
     if (!this.enabled) return
+    if (logLevel !== LogLevels.Debug) {
+      return
+    }
     console.debug(this.tag, this.prefix, ...input)
   }
 
@@ -53,16 +77,34 @@ class Logger {
 
   info = (...input: any[]) => {
     if (!this.enabled) return
+    if (logLevel > LogLevels.Info) {
+      return
+    }
     console.info(this.tag, this.prefix, ...input)
   }
 
   log = (...input: any[]) => {
     if (!this.enabled) return
+    if (logLevel === LogLevels.Warn) {
+      return
+    }
+    if (logLevel === LogLevels.Error) {
+      return
+    }
+    if (logLevel > LogLevels.Debug) {
+      return
+    }
     console.log(this.tag, this.prefix, ...input)
   }
 
   warn = (...input: any[]) => {
     if (!this.enabled) return
+    if (logLevel === LogLevels.Error) {
+      return
+    }
+    if (logLevel > LogLevels.Warn) {
+      return
+    }
     console.warn(this.tag, this.prefix, ...input)
   }
 }

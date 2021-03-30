@@ -55,14 +55,22 @@ type Config = {
   order?: number
   tokens?: string[]
   networks?: string[]
+  bonder?: boolean
+  challenger?: boolean
 }
 
-function startWatchers (_config: Config = {}) {
+function startWatchers (
+  _config: Config = {
+    order: 0,
+    tokens: tokens,
+    networks: networks,
+    bonder: true,
+    challenger: false
+  }
+) {
   const orderNum = _config.order || 0
-  let _tokens = _config.tokens || tokens
-  let _networks = (_config.networks || networks).filter(x =>
-    networks.includes(x)
-  )
+  let _tokens = _config.tokens
+  let _networks = _config.networks.filter(x => networks.includes(x))
   if (!_tokens.length) {
     _tokens = tokens
   }
@@ -90,13 +98,13 @@ function startWatchers (_config: Config = {}) {
           )
         }
 
-        pubsubLogger.log(
+        pubsubLogger.info(
           `Bonder "${data.hostname}" (order ${data.order}) is online`
         )
       }
 
       if (store.bonders[data.hostname] && !store.bonders[data.hostname].up) {
-        pubsubLogger.log(
+        pubsubLogger.info(
           `Bonder "${data.hostname}" (order ${data.order}) is back online`
         )
       }
@@ -119,7 +127,7 @@ function startWatchers (_config: Config = {}) {
         const v = store.bonders[k]
         if (v.up) {
           if (Date.now() - v.timestamp > 10 * 1000) {
-            pubsubLogger.log(
+            pubsubLogger.info(
               `Bonder "${v.hostname}" (order ${v.order}) appears to be down`
             )
             v.up = false
@@ -212,9 +220,14 @@ function startWatchers (_config: Config = {}) {
     }
   }
 
-  watchers.forEach(watcher => watcher.start())
-  watchers.push(...startStakeWatchers(_tokens, _networks))
-  watchers.push(...startChallengeWatchers(_tokens, _networks))
+  if (_config?.bonder || _config?.bonder === undefined) {
+    watchers.forEach(watcher => watcher.start())
+    watchers.push(...startStakeWatchers(_tokens, _networks))
+  }
+
+  if (_config?.challenger) {
+    watchers.push(...startChallengeWatchers(_tokens, _networks))
+  }
 
   const stop = () => {
     return watchers.map(watcher => {

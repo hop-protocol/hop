@@ -38,7 +38,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
   async start () {
     this.started = true
-    this.logger.log(`starting L1 BondTransferRoot event watcher`)
+    this.logger.debug(`starting L1 BondTransferRoot event watcher`)
     try {
       await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
     } catch (err) {
@@ -114,23 +114,23 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         continue
       }
       try {
-        this.logger.log(
+        this.logger.debug(
           'transferRootHash:',
           chalk.bgMagenta.black(dbTransferRoot.transferRootHash)
         )
         if (!transferHashes.length) {
-          this.logger.log('no transfer hashes to settle')
+          this.logger.warn('no transfer hashes to settle')
           return
         }
         const tree = new MerkleTree(transferHashes)
         const transferRootHash = tree.getHexRoot()
-        this.logger.log('chainId:', chainId)
-        this.logger.log('transferHashes:', transferHashes)
-        this.logger.log('transferRootHash:', transferRootHash)
-        this.logger.log('totalAmount:', totalAmount)
+        this.logger.debug('chainId:', chainId)
+        this.logger.debug('transferHashes:', transferHashes)
+        this.logger.debug('transferRootHash:', transferRootHash)
+        this.logger.debug('totalAmount:', totalAmount)
 
         if (transferRootHash !== dbTransferRoot.transferRootHash) {
-          this.logger.log(`computed transfer root hash doesn't match`)
+          this.logger.warn(`computed transfer root hash doesn't match`)
           return
         }
 
@@ -153,7 +153,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         this.logger.debug('struct withdrawnAmount:', structAmountWithdrawn)
         this.logger.debug('struct createdAt:', createdAt)
         if (structTotalAmount <= 0) {
-          this.logger.log('transferRoot total amount is 0. Cannot settle')
+          this.logger.warn('transferRoot total amount is 0. Cannot settle')
           return
         }
 
@@ -170,7 +170,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           structAmountWithdrawn + totalBondsSettleAmount
         this.logger.debug(' newAmountWithdrawn:', newAmountWithdrawn)
         if (newAmountWithdrawn > structTotalAmount) {
-          this.logger.log('withdrawal exceeds transfer root total')
+          this.logger.warn('withdrawal exceeds transfer root total')
           return
         }
 
@@ -178,11 +178,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           transferRootHash
         )
         if (dbTransferRoot?.sentSettleTx || dbTransferRoot?.settled) {
-          this.logger.log(
+          this.logger.debug(
             'sent?:',
-            dbTransferRoot.sentSettleTx,
+            !!dbTransferRoot.sentSettleTx,
             'settled?:',
-            dbTransferRoot.settled
+            !!dbTransferRoot.settled
           )
           return
         }
@@ -190,7 +190,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         await db.transferRoots.update(transferRootHash, {
           sentSettleTx: true
         })
-        this.logger.log('sending settle tx')
+        this.logger.debug('sending settle tx')
         const tx = await this.settleBondedWithdrawal(
           transferHashes,
           Number(totalAmount),
@@ -225,7 +225,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
             throw err
           })
-        this.logger.log(
+        this.logger.info(
           `settleBondedWithdrawal on chain ${chainId} tx: ${chalk.bgYellow.black.bold(
             tx.hash
           )}`
@@ -255,10 +255,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
     const { transactionHash } = meta
     const totalAmount = Number(formatUnits(_totalAmount, 18))
-    this.logger.log(`received L1 BondTransferRoot event:`)
-    this.logger.log(`transferRootHash from event: ${transferRootHash}`)
-    this.logger.log(`bondAmount: ${totalAmount}`)
-    this.logger.log(`event transactionHash: ${transactionHash}`)
+    this.logger.debug(`received L1 BondTransferRoot event:`)
+    this.logger.debug(`transferRootHash from event: ${transferRootHash}`)
+    this.logger.debug(`bondAmount: ${totalAmount}`)
+    this.logger.debug(`event transactionHash: ${transactionHash}`)
     await db.transferRoots.update(transferRootHash, {
       committed: true,
       bonded: true

@@ -32,7 +32,7 @@ class CommitTransfersWatcher extends BaseWatcher {
 
   async start () {
     this.started = true
-    this.logger.log(`starting L2 commitTransfers scheduler`)
+    this.logger.debug(`starting L2 commitTransfers scheduler`)
     try {
       await Promise.all([this.syncUp(), this.watch()])
     } catch (err) {
@@ -121,31 +121,31 @@ class CommitTransfersWatcher extends BaseWatcher {
     const minForceCommitTime = lastCommitTime + minimumForceCommitDelay
     const isBonder = await this.l2Bridge.isBonder()
     const l2ChainId = await this.l2Bridge.getChainId()
-    this.logger.log('chainId:', l2ChainId)
-    this.logger.log('destinationChainId:', chainId)
-    this.logger.log('lastCommitTime:', lastCommitTime)
-    this.logger.log('minimumForceCommitDelay:', minimumForceCommitDelay)
-    this.logger.log('minForceCommitTime:', minForceCommitTime)
-    this.logger.log('isBonder:', isBonder)
+    this.logger.debug('chainId:', l2ChainId)
+    this.logger.debug('destinationChainId:', chainId)
+    this.logger.debug('lastCommitTime:', lastCommitTime)
+    this.logger.debug('minimumForceCommitDelay:', minimumForceCommitDelay)
+    this.logger.debug('minForceCommitTime:', minForceCommitTime)
+    this.logger.debug('isBonder:', isBonder)
 
     if (minForceCommitTime >= Date.now() && !isBonder) {
       this.logger.warn('only Bonder can commit before min delay')
     }
 
     const messengerAddress = await this.l2Bridge.l2BridgeWrapper.getMessengerAddress()
-    this.logger.log('messenger address:', messengerAddress)
+    this.logger.debug('messenger address:', messengerAddress)
 
     const pendingTransfers: string[] = await this.l2Bridge.getPendingTransfers(
       chainId
     )
     if (!pendingTransfers.length) {
-      this.logger.log('no pending transfers to commit')
+      this.logger.warn('no pending transfers to commit')
     }
 
-    this.logger.log(chainId, 'onchain pendingTransfers', pendingTransfers)
+    this.logger.debug(chainId, 'onchain pendingTransfers', pendingTransfers)
     const tree = new MerkleTree(pendingTransfers)
     const transferRootHash = tree.getHexRoot()
-    this.logger.log(
+    this.logger.debug(
       chainId,
       'calculated transferRootHash:',
       chalk.bgMagenta.black(transferRootHash)
@@ -159,11 +159,11 @@ class CommitTransfersWatcher extends BaseWatcher {
       transferRootHash
     )
     if (dbTransferRoot?.sentCommitTx || dbTransferRoot?.commited) {
-      this.logger.log(
+      this.logger.debug(
         'sent?:',
-        dbTransferRoot.sentCommitTx,
+        !!dbTransferRoot.sentCommitTx,
         'commited?:',
-        dbTransferRoot.commited
+        !!dbTransferRoot.commited
       )
       return
     }
@@ -197,7 +197,7 @@ class CommitTransfersWatcher extends BaseWatcher {
 
         throw err
       })
-    this.logger.log(
+    this.logger.info(
       `L2 commitTransfers tx:`,
       chalk.bgYellow.black.bold(tx.hash)
     )
@@ -218,8 +218,8 @@ class CommitTransfersWatcher extends BaseWatcher {
         return
       }
 
-      this.logger.log(`received TransferSent event`)
-      this.logger.log(`waiting`)
+      this.logger.debug(`received TransferSent event`)
+      this.logger.debug(`waiting`)
       // TODO: batch
       const { transactionHash } = meta
       const { data } = await this.l2Bridge.getTransaction(transactionHash)
@@ -300,7 +300,7 @@ class CommitTransfersWatcher extends BaseWatcher {
               commited: true
             })
           } else {
-            this.logger.log(
+            this.logger.warn(
               'merkle hex root does not match commited transfer root'
             )
           }

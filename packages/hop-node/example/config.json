@@ -1,0 +1,29 @@
+{
+  "networks": {
+    "kovan": {
+      "rpcUrl": "https://kovan.rpc.hop.exchange"
+    },
+    "optimism": {
+      "rpcUrl": "https://kovan.optimism.io"
+    },
+    "xdai": {
+      "rpcUrl": "https://sokol.poa.network"
+    }
+  },
+  "tokens": {
+    "DAI": true,
+    "USDC": true,
+    "WBTC": true
+  },
+  "roles": {
+    "bonder": true,
+    "challenger": true,
+    "arbBot": true
+  },
+  "db": {
+    "location": "~/.hop-node/db"
+  },
+  "logging": {
+    "level": "debug"
+  }
+}

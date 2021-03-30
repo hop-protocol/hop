@@ -1,10 +1,10 @@
 // @ts-ignore
 import level from 'level'
-import sub from 'subleveldown'
+import os from 'os'
 import path from 'path'
-
-const dbpath = path.resolve(__dirname, '../../db_data')
-export const db = level(dbpath)
+import mkdirp from 'mkdirp'
+import sub from 'subleveldown'
+import { db as dbConfig } from 'src/config'
 
 class BaseDb {
   public db: any
@@ -13,6 +13,9 @@ class BaseDb {
 
   constructor (prefix: string) {
     this.prefix = prefix
+    const pathname = path.resolve(dbConfig.path.replace('~', os.homedir()))
+    mkdirp.sync(pathname.replace(path.basename(pathname), ''))
+    const db = level(pathname)
     this.db = sub(db, prefix, { valueEncoding: 'json' })
   }
 

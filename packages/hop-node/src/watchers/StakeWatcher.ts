@@ -43,7 +43,7 @@ class StakeWatcher extends BaseWatcher {
         await wait(this.interval)
       }
     } catch (err) {
-      this.logger.log(`stake watcher error:`, err.message)
+      this.logger.error(`stake watcher error:`, err.message)
     }
   }
 
@@ -67,8 +67,8 @@ class StakeWatcher extends BaseWatcher {
         this.getTokenAllowance()
       ])
 
-      this.logger.log(`credit balance:`, credit)
-      this.logger.log(`debit balance:`, debit)
+      this.logger.debug(`credit balance:`, credit)
+      this.logger.debug(`debit balance:`, debit)
 
       if (credit < this.stakeMinThreshold) {
         if (balance < this.stakeAmount) {
@@ -78,7 +78,7 @@ class StakeWatcher extends BaseWatcher {
         }
         if (allowance < this.stakeAmount) {
           const tx = await this.approveTokens()
-          this.logger.log(`stake approve tx:`, tx?.hash)
+          this.logger.info(`stake approve tx:`, tx?.hash)
           await tx?.wait()
         }
         allowance = await this.getTokenAllowance()
@@ -87,12 +87,12 @@ class StakeWatcher extends BaseWatcher {
             `not enough hop token allowance for bridge to stake. Have ${allowance}, need ${this.stakeAmount}`
           )
         }
-        this.logger.log(`attempting to stake: ${this.stakeAmount.toString()}`)
+        this.logger.debug(`attempting to stake: ${this.stakeAmount.toString()}`)
         const tx = await this.bridge.stake(this.stakeAmount.toString())
-        this.logger.log(`stake tx:`, tx?.hash)
+        this.logger.info(`stake tx:`, tx?.hash)
       }
     } catch (err) {
-      this.logger.log(`stake tx error:`, err.message)
+      this.logger.error(`stake tx error:`, err.message)
     }
   }
 

@@ -37,7 +37,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   async start () {
     this.started = true
-    this.logger.log(
+    this.logger.debug(
       `starting L2 TransferSent event watcher for L1 bondWithdrawal tx`
     )
 
@@ -160,13 +160,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
       deadline
     } = params
 
-    this.logger.log(`amount:`, amount.toString())
-    this.logger.log(`recipient:`, recipient)
-    this.logger.log(`transferNonce:`, transferNonce)
-    this.logger.log(`bonderFee:`, bonderFee.toString())
+    this.logger.debug(`amount:`, amount.toString())
+    this.logger.debug(`recipient:`, recipient)
+    this.logger.debug(`transferNonce:`, transferNonce)
+    this.logger.debug(`bonderFee:`, bonderFee.toString())
     const formattedAmount = Number(formatUnits(amount, 18))
     if (attemptSwap) {
-      this.logger.log(`chain ${chainId} bondWithdrawalAndAttemptSwap`)
+      this.logger.debug(`chain ${chainId} bondWithdrawalAndAttemptSwap`)
       const l2Bridge = new L2Bridge(this.contracts[chainId])
       const hasPositiveBalance = await l2Bridge.hasPositiveBalance()
       if (!hasPositiveBalance) {
@@ -187,7 +187,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         deadline
       )
     } else {
-      this.logger.log(`chain ${chainId} bondWithdrawal`)
+      this.logger.debug(`chain ${chainId} bondWithdrawal`)
       const bridge = new Bridge(this.contracts[chainId])
       const hasPositiveBalance = await bridge.hasPositiveBalance()
       if (!hasPositiveBalance) {
@@ -219,9 +219,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       const { transactionHash } = meta
-      this.logger.log('transfer event amount:', amount.toString())
-      this.logger.log(`received L2 TransferSentEvent event`)
-      this.logger.log('transferHash:', chalk.bgCyan.black(transferHash))
+      this.logger.debug('transfer event amount:', amount.toString())
+      this.logger.debug(`received L2 TransferSentEvent event`)
+      this.logger.debug('transferHash:', chalk.bgCyan.black(transferHash))
 
       await wait(2 * 1000)
       const { from: sender, data } = await this.l2Bridge.getTransaction(
@@ -256,9 +256,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
         return
       }
 
-      this.logger.log('transferNonce:', transferNonce)
-      this.logger.log('chainId:', chainId)
-      this.logger.log('attemptSwap:', attemptSwap)
+      this.logger.debug('transferNonce:', transferNonce)
+      this.logger.debug('chainId:', chainId)
+      this.logger.debug('attemptSwap:', attemptSwap)
 
       const amountOutMin = '0'
       const deadline = BigNumber.from(UINT256)
@@ -269,15 +269,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
       })
 
       await this.waitTimeout(transferHash, chainId)
-      this.logger.log('sending bondWithdrawal tx')
+      this.logger.debug('sending bondWithdrawal tx')
 
       const dbTransfer = await db.transfers.getByTransferHash(transferHash)
       if (dbTransfer?.sentBondWithdrawalTx || dbTransfer?.withdrawalBonded) {
-        this.logger.log(
+        this.logger.debug(
           'sent?:',
-          dbTransfer.sentBondWithdrawalTx,
+          !!dbTransfer.sentBondWithdrawalTx,
           'withdrawalBonded?:',
-          dbTransfer.withdrawalBonded
+          !!dbTransfer.withdrawalBonded
         )
         return
       }
@@ -333,7 +333,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
           throw err
         })
-      this.logger.log(
+      this.logger.info(
         `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx:`,
         chalk.bgYellow.black.bold(tx.hash)
       )
@@ -353,13 +353,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
     index: BigNumber,
     meta: any
   ) => {
-    this.logger.log(`received WithdrawalBonded event`)
-    this.logger.log('transferHash:', transferHash)
-    this.logger.log(`recipient:`, recipient)
-    this.logger.log('amount:', amount.toString())
-    this.logger.log('transferNonce:', transferNonce)
-    this.logger.log('bonderFee:', bonderFee.toString())
-    this.logger.log('index:', index.toString())
+    this.logger.debug(`received WithdrawalBonded event`)
+    this.logger.debug('transferHash:', transferHash)
+    this.logger.debug(`recipient:`, recipient)
+    this.logger.debug('amount:', amount.toString())
+    this.logger.debug('transferNonce:', transferNonce)
+    this.logger.debug('bonderFee:', bonderFee.toString())
+    this.logger.debug('index:', index.toString())
 
     await db.transfers.update(transferHash, {
       withdrawalBonded: true

@@ -77,7 +77,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
               })
             })
             this.logger.debug('executeSignatures messageHash:', msgHash)
-            this.logger.debug(
+            this.logger.info(
               'executeSignatures tx hash:',
               chalk.bgYellow.black.bold(tx.hash)
             )

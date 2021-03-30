@@ -35,7 +35,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
   async start () {
     this.started = true
-    this.logger.log(
+    this.logger.debug(
       `starting L2 TransfersCommitted event watcher for L1 bondTransferRoot tx`
     )
 
@@ -157,16 +157,16 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
 
     const sourceChainId = await this.l2Bridge.getChainId()
-    this.logger.log(
+    this.logger.info(
       sourceChainId,
       `transferRootHash:`,
       chalk.bgMagenta.black(transferRootHash)
     )
-    this.logger.log('commitedAt:', commitedAt)
-    this.logger.log('chainId:', chainId)
-    this.logger.log('transferRootHash:', transferRootHash)
-    this.logger.log('totalAmount:', totalAmount)
-    this.logger.log('transferRootId:', transferRootId)
+    this.logger.debug('commitedAt:', commitedAt)
+    this.logger.debug('chainId:', chainId)
+    this.logger.debug('transferRootHash:', transferRootHash)
+    this.logger.debug('totalAmount:', totalAmount)
+    this.logger.debug('transferRootId:', transferRootId)
     await db.transferRoots.update(transferRootHash, {
       transferRootHash,
       totalAmount,
@@ -181,21 +181,21 @@ class BondTransferRootWatcher extends BaseWatcher {
       transferRootHash
     )
     if (!dbTransferRoot) {
-      this.logger.log('no transfer root')
+      this.logger.warn('no transfer root')
       return
     }
 
-    this.logger.log('transferRoot:', dbTransferRoot)
+    this.logger.debug('transferRoot:', dbTransferRoot)
     const pendingTransfers: string[] = Object.values(
       dbTransferRoot.transferHashes || []
     )
-    this.logger.log('transferRootHash transferHashes:', pendingTransfers)
+    this.logger.debug('transferRootHash transferHashes:', pendingTransfers)
     if (pendingTransfers.length) {
       const tree = new MerkleTree(pendingTransfers)
       const rootHash = tree.getHexRoot()
-      this.logger.log('calculated transfer root hash:', rootHash)
+      this.logger.debug('calculated transfer root hash:', rootHash)
       if (rootHash !== transferRootHash) {
-        this.logger.log('calculated transfer root hash does not match')
+        this.logger.warn('calculated transfer root hash does not match')
       }
     }
 
@@ -203,11 +203,11 @@ class BondTransferRootWatcher extends BaseWatcher {
       transferRootHash
     )
     if (dbTransferRoot?.sentBondTx || dbTransferRoot?.bonded) {
-      this.logger.log(
+      this.logger.debug(
         'sent?:',
-        dbTransferRoot.sentBondTx,
+        !!dbTransferRoot.sentBondTx,
         'bonded?:',
-        dbTransferRoot?.bonded
+        !!dbTransferRoot?.bonded
       )
       return
     }
@@ -246,7 +246,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
         throw err
       })
-    this.logger.log(
+    this.logger.info(
       'L1 bondTransferRoot tx',
       chalk.bgYellow.black.bold(tx.hash)
     )
@@ -260,8 +260,8 @@ class BondTransferRootWatcher extends BaseWatcher {
   ) => {
     try {
       const commitedAt = Number(_commitedAt.toString())
-      this.logger.log(`received L2 TransfersCommitted event`)
-      this.logger.log(`commitedAt:`, commitedAt)
+      this.logger.debug(`received L2 TransfersCommitted event`)
+      this.logger.debug(`commitedAt:`, commitedAt)
       const { transactionHash } = meta
       const { data } = await this.l2Bridge.getTransaction(transactionHash)
       const {

@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import { Contract } from 'ethers'
-import stakingRewardsFactoryArtifact from '@hop-exchange/contracts/artifacts/contracts/distribution/StakingRewardsFactory.sol/StakingRewardsFactory.json'
-import stakingRewardsArtifact from '@hop-exchange/contracts/artifacts/contracts/distribution/StakingRewardsFactory.sol/StakingRewards.json'
-import hopArtifact from '@hop-exchange/contracts/artifacts/contracts/governance/Hop.sol/Hop.json'
-import governorAlphaArtifact from '@hop-exchange/contracts/artifacts/contracts/governance/GovernorAlpha.sol/GovernorAlpha.json'
+import stakingRewardsFactoryArtifact from 'src/abi/StakingRewardsFactory.json'
+import stakingRewardsArtifact from 'src/abi/StakingRewards.json'
+import hopArtifact from 'src/abi/Hop.json'
+import governorAlphaArtifact from 'src/abi/GovernorAlpha.json'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'

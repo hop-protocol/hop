@@ -73,7 +73,7 @@ function startWatchers (_config: Config = {}) {
   try {
     const hostname = config.hostname
     const pubsub = new PubSub()
-    const topic = '/hop-exchange/bonders'
+    const topic = '/hop-protocol/bonders'
     pubsub.subscribe(topic, (data: any) => {
       if (!(data && data.hostname)) {
         return

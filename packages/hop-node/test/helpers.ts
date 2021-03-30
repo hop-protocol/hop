@@ -385,8 +385,8 @@ export class User {
       destinationAmountOutMin,
       destinationDeadline,
       {
-        value: '1000000000000000',
-        gasLimit: '1000000'
+        //value: '1000000000000000',
+        //gasLimit: '1000000'
       }
     )
   }
@@ -656,6 +656,7 @@ export class User {
     )
   }
 
+  @queue
   async bondTransferRoot (
     transferRootHash: string,
     chainId: string,
@@ -686,11 +687,12 @@ export class User {
     return this.waitForTransactionReceipt(KOVAN, tx.hash)
   }
 
+  @queue
   async challengeTransferRoot (transferRootHash: string, totalAmount: number) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
     const bridge = this.getHopBridgeContract(KOVAN)
     return bridge.challengeTransferBond(transferRootHash, parsedTotalAmount, {
-      gasLimit: 1000000
+      //gasLimit: 1000000
     })
   }
 
@@ -702,6 +704,7 @@ export class User {
     return this.waitForTransactionReceipt(KOVAN, tx.hash)
   }
 
+  @queue
   async resolveChallenge (transferRootHash: string, totalAmount: number) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
     const bridge = this.getHopBridgeContract(KOVAN)

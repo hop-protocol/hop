@@ -11,7 +11,11 @@ const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 1
 const logger = new Logger('TEST')
 
-describe.only('challenge valid transfer root', () => {
+describe('challenge valid transfer root', () => {
+  // TODO: use latest contracts and set min delay time
+})
+
+describe('challenge valid transfer root but committed too early', () => {
   const networks = [XDAI]
   const destNetwork = KOVAN
   for (let sourceNetwork of networks) {
@@ -41,15 +45,30 @@ describe.only('challenge valid transfer root', () => {
           data => data.recipient === recipient
         )
         const validTransferRoot = transferHash
-        const totalAmount = 1
+        let totalAmount = 0
         logger.log('bonding valid transfer root')
         logger.log('valid transferRootHash:', validTransferRoot)
         logger.log('waiting for transfer root to be bonded')
         await waitForEvent(watchers, 'bondTransferRoot', data => {
-          return data.transferRootHash === validTransferRoot
+          if (data.transferRootHash === validTransferRoot) {
+            totalAmount = data.totalAmount
+            return true
+          }
         })
-        await wait(120 * 1000)
+
+        //await wait(30 * 1000)
+        logger.log('checking transfer bond')
+        expect(totalAmount).toBeGreaterThan(0)
+        const transferRootId = await user.getTransferRootId(
+          validTransferRoot,
+          totalAmount
+        )
+        const transferBondStruct = await user.getTransferBond(transferRootId)
+        const bondCreatedAt = Number(transferBondStruct.createdAt.toString())
+        expect(bondCreatedAt).toBeGreaterThan(0)
+
         logger.log('challenging')
+
         let tx = await user.challengeTransferRoot(
           validTransferRoot,
           totalAmount
@@ -65,16 +84,9 @@ describe.only('challenge valid transfer root', () => {
         await wait(challengeResolutionPeriod * 1000)
 
         logger.log(`checking challenge time`)
-        const transferRootId = await user.getTransferRootId(
-          validTransferRoot,
-          totalAmount
-        )
-        const transferBondStruct = await user.getTransferBond(transferRootId)
         const challengeStartTime = Number(
           transferBondStruct.challengeStartTime.toString()
         )
-        const bondCreatedAt = Number(transferBondStruct.createdAt.toString())
-        expect(challengeStartTime).toBeGreaterThan(0)
         const blockTimestamp = await user.getBlockTimestamp(KOVAN)
         expect(blockTimestamp).toBeGreaterThan(
           challengeStartTime + challengeResolutionPeriod
@@ -82,12 +94,14 @@ describe.only('challenge valid transfer root', () => {
         expect(transferBondStruct.challengeResolved).toBe(false)
 
         logger.log(`resolving challenge`)
-        const balanceBefore = await user.getBalance(KOVAN, TOKEN)
-        const creditBefore = await bonder.getCredit(KOVAN)
+        const userBalanceBefore = await user.getBalance(KOVAN, TOKEN)
+        const bonderCreditBefore = await bonder.getCredit(KOVAN)
         tx = await user.resolveChallenge(validTransferRoot, totalAmount)
         receipt = await tx.wait()
         expect(receipt.status).toBe(1)
         logger.log(`challenge resolved`)
+        const userBalanceAfter = await user.getBalance(KOVAN, TOKEN)
+        const bonderCreditAfter = await bonder.getCredit(KOVAN)
         const minTransferRootBondDelay = await user.getMinTransferRootBondDelaySeconds()
         const challengeStakeAmount = await user.getChallengeAmountForTransferAmount(
           totalAmount
@@ -97,19 +111,22 @@ describe.only('challenge valid transfer root', () => {
         )
         const commitedAt = await user.getTransferRootCommitedAt(transferRootId)
         let challengerWin = commitedAt <= 0
+        expect(challengerWin).toBe(true)
 
         if (challengerWin) {
-          const balanceAfter = await user.getBalance(KOVAN, TOKEN)
           // TODO: fix this when using latest contracts
-          expect(balanceAfter).toBe(balanceBefore)
+          expect(userBalanceAfter).toBe(
+            userBalanceBefore + (challengeStakeAmount * 7) / 4
+          )
         } else {
-          const creditAfter = await bonder.getCredit(KOVAN)
           if (bondCreatedAt > commitedAt + minTransferRootBondDelay) {
-            expect(creditAfter).toBe(
-              creditBefore + bondForTransferAmount + challengeStakeAmount
+            expect(bonderCreditAfter).toBe(
+              bonderCreditBefore + bondForTransferAmount + challengeStakeAmount
             )
           } else {
-            expect(creditAfter).toBe(creditBefore + bondForTransferAmount)
+            expect(bonderCreditAfter).toBe(
+              bonderCreditBefore + bondForTransferAmount
+            )
           }
         }
 
@@ -120,7 +137,7 @@ describe.only('challenge valid transfer root', () => {
   }
 })
 
-describe('challenge invalid transfer root', () => {
+describe.only('challenge invalid transfer root', () => {
   const networks = [XDAI]
   const destNetwork = KOVAN
   for (let sourceNetwork of networks) {
@@ -201,6 +218,7 @@ describe('challenge invalid transfer root', () => {
         )
         const commitedAt = await user.getTransferRootCommitedAt(transferRootId)
         let challengerWin = commitedAt <= 0
+        expect(challengerWin).toBe(true)
 
         if (challengerWin) {
           const balanceAfter = await user.getBalance(KOVAN, TOKEN)

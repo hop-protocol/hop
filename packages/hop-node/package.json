@@ -1,12 +1,12 @@
 {
-  "name": "@hop-exchange/bridge-node",
+  "name": "@hop-protocol/hop-node",
   "version": "0.0.0",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
     "test": "jest test",
-    "bonder": "npm run build && node bin/bridge-node bonder",
-    "arb-bot": "npm run build && node bin/bridge-node arb-bot",
+    "bonder": "npm run build && node bin/hop-node bonder",
+    "arb-bot": "npm run build && node bin/hop-node arb-bot",
     "start": "node .",
     "dev": "tsc --watch",
     "build": "tsc",
@@ -16,7 +16,7 @@
     "clean:db": "rm -rf src/db/db_data"
   },
   "bin": {
-    "bridge-node": "bin/bridge-node"
+    "hop-node": "bin/hop-node"
   },
   "author": "",
   "license": "MIT",

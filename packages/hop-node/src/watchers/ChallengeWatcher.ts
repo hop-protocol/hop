@@ -32,7 +32,6 @@ class ChallengeWatcher extends BaseWatcher {
 
   async start () {
     this.started = true
-    this.logger.debug('starting L1 BondTransferRoot event watcher')
     try {
       await Promise.all([this.syncUp(), this.watch()])
     } catch (err) {

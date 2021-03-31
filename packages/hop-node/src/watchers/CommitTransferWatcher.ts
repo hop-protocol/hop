@@ -32,7 +32,6 @@ class CommitTransfersWatcher extends BaseWatcher {
 
   async start () {
     this.started = true
-    this.logger.debug(`starting L2 commitTransfers scheduler`)
     try {
       await Promise.all([this.syncUp(), this.watch()])
     } catch (err) {

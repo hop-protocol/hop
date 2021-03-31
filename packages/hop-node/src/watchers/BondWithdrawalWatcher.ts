@@ -37,10 +37,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   async start () {
     this.started = true
-    this.logger.debug(
-      `starting L2 TransferSent event watcher for L1 bondWithdrawal tx`
-    )
-
     try {
       await Promise.all([this.syncUp(), this.watch()])
     } catch (err) {
@@ -212,6 +208,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
     index: BigNumber,
     meta: any
   ) => {
+    const isBonder = await this.l1Bridge.isBonder()
+    if (!isBonder) {
+      return
+    }
+
     try {
       const dbTransferHash = await db.transfers.getByTransferHash(transferHash)
       if (dbTransferHash?.withdrawalBonded) {

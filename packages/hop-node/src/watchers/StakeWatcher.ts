@@ -35,6 +35,10 @@ class StakeWatcher extends BaseWatcher {
   async start () {
     this.started = true
     try {
+      const isBonder = await this.bridge.isBonder()
+      if (!isBonder) {
+        this.logger.warn('Not a bonder')
+      }
       while (true) {
         if (!this.started) {
           return
@@ -57,7 +61,7 @@ class StakeWatcher extends BaseWatcher {
     try {
       const isBonder = await this.bridge.isBonder()
       if (!isBonder) {
-        throw new Error('Not a bonder')
+        return
       }
 
       let [credit, debit, balance, allowance] = await Promise.all([
@@ -72,9 +76,10 @@ class StakeWatcher extends BaseWatcher {
 
       if (credit < this.stakeMinThreshold) {
         if (balance < this.stakeAmount) {
-          throw new Error(
+          this.logger.warn(
             `not enough hop token balance to stake. Have ${balance}, need ${this.stakeAmount}`
           )
+          return
         }
         if (allowance < this.stakeAmount) {
           const tx = await this.approveTokens()
@@ -83,9 +88,10 @@ class StakeWatcher extends BaseWatcher {
         }
         allowance = await this.getTokenAllowance()
         if (allowance < this.stakeAmount) {
-          throw new Error(
+          this.logger.warn(
             `not enough hop token allowance for bridge to stake. Have ${allowance}, need ${this.stakeAmount}`
           )
+          return
         }
         this.logger.debug(`attempting to stake: ${this.stakeAmount.toString()}`)
         const tx = await this.bridge.stake(this.stakeAmount.toString())

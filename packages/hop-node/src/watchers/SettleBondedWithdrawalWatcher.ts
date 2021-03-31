@@ -38,7 +38,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
   async start () {
     this.started = true
-    this.logger.debug(`starting L1 BondTransferRoot event watcher`)
     try {
       await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
     } catch (err) {
@@ -184,6 +183,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
             'settled?:',
             !!dbTransferRoot.settled
           )
+          return
+        }
+
+        const isBonder = await this.l1Bridge.isBonder()
+        if (!isBonder) {
+          this.logger.warn('cannot settle bonded withdrawal. Not a bonder')
           return
         }
 

@@ -35,10 +35,6 @@ class BondTransferRootWatcher extends BaseWatcher {
 
   async start () {
     this.started = true
-    this.logger.debug(
-      `starting L2 TransfersCommitted event watcher for L1 bondTransferRoot tx`
-    )
-
     try {
       await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
     } catch (err) {
@@ -125,6 +121,15 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
+    if (dbTransferRoot?.sentBondTx) {
+      return
+    }
+
+    const isBonder = await this.l1Bridge.isBonder()
+    if (!isBonder) {
+      return
+    }
+
     const minDelay = await this.l1Bridge.getMinTransferRootBondDelaySeconds()
     const blockTimestamp = await this.l1Bridge.getBlockTimestamp()
     const delta = blockTimestamp - commitedAt - minDelay
@@ -185,7 +190,13 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    this.logger.debug('transferRoot:', dbTransferRoot)
+    this.logger.debug('dbTransferRoot transferRootHash:', dbTransferRoot.transferRootHash)
+    this.logger.debug('dbTransferRoot totalAmount:', dbTransferRoot.totalAmount)
+    this.logger.debug('dbTransferRoot chainId:', dbTransferRoot.chainId)
+    this.logger.debug('dbTransferRoot sourceChainId:', dbTransferRoot.sourceChainID)
+    this.logger.debug('dbTransferRoot commitedAt:', dbTransferRoot.commitedAt)
+    this.logger.debug('dbTransferRoot commited:', dbTransferRoot.commited)
+    this.logger.debug('dbTransferRoot sentBondTx:', dbTransferRoot.sentBondTx)
     const pendingTransfers: string[] = Object.values(
       dbTransferRoot.transferHashes || []
     )
@@ -259,6 +270,11 @@ class BondTransferRootWatcher extends BaseWatcher {
     meta: any
   ) => {
     try {
+      const dbTransferRoot = await db.transferRoots.getByTransferRootHash(transferRootHash)
+      if (dbTransferRoot?.commitedAt) {
+        return
+      }
+
       const commitedAt = Number(_commitedAt.toString())
       this.logger.debug(`received L2 TransfersCommitted event`)
       this.logger.debug(`commitedAt:`, commitedAt)

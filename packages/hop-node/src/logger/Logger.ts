@@ -85,13 +85,7 @@ class Logger {
 
   log = (...input: any[]) => {
     if (!this.enabled) return
-    if (logLevel === LogLevels.Warn) {
-      return
-    }
-    if (logLevel === LogLevels.Error) {
-      return
-    }
-    if (logLevel > LogLevels.Debug) {
+    if (logLevel < LogLevels.Info) {
       return
     }
     console.log(this.tag, this.prefix, ...input)
@@ -99,10 +93,7 @@ class Logger {
 
   warn = (...input: any[]) => {
     if (!this.enabled) return
-    if (logLevel === LogLevels.Error) {
-      return
-    }
-    if (logLevel > LogLevels.Warn) {
+    if (logLevel < LogLevels.Warn) {
       return
     }
     console.warn(this.tag, this.prefix, ...input)

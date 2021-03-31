@@ -225,3 +225,7 @@ async function setupConfig (_configFile?: string) {
   }
   return config
 }
+
+process.on('SIGINT', () => {
+  process.exit(0)
+})

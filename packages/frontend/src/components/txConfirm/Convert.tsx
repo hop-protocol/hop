@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Token from 'src/models/Token'
 import Typography from '@material-ui/core/Typography'
 import logger from 'src/logger'
+import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -49,8 +50,8 @@ const Convert = (props: Props) => {
     <div className={styles.root}>
       <div className={styles.title}>
         <Typography variant="h5" color="textPrimary">
-          Convert {source.amount} {source.token.symbol} for {dest.amount}{' '}
-          {dest.token.symbol}
+          Convert {commafy(source.amount)} {source.token.symbol} for{' '}
+          {commafy(dest.amount)} {dest.token.symbol}
         </Typography>
       </div>
       <div className={styles.action}>

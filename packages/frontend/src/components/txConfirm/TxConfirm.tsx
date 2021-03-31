@@ -4,6 +4,7 @@ import Approval from 'src/components/txConfirm/Approval'
 import Send from 'src/components/txConfirm/Send'
 import Convert from 'src/components/txConfirm/Convert'
 import AddLiquidity from 'src/components/txConfirm/AddLiquidity'
+import RemoveLiquidity from 'src/components/txConfirm/RemoveLiquidity'
 import { useApp } from 'src/contexts/AppContext'
 
 const TxConfirm: FC = props => {
@@ -17,7 +18,8 @@ const TxConfirm: FC = props => {
     approval: Approval,
     send: Send,
     convert: Convert,
-    addLiquidity: AddLiquidity
+    addLiquidity: AddLiquidity,
+    removeLiquidity: RemoveLiquidity
   }
 
   const Component: FC = components[kind]

@@ -1,7 +1,8 @@
-import React, { FC, ChangeEvent } from 'react'
+import React, { FC, ChangeEvent, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Card from '@material-ui/core/Card'
+import MuiButton from '@material-ui/core/Button'
 import Box from '@material-ui/core/Box'
 import MenuItem from '@material-ui/core/MenuItem'
 import Alert from 'src/components/alert/Alert'
@@ -67,6 +68,11 @@ const useStyles = makeStyles(theme => ({
   poolPosition: {
     display: 'flex',
     justifyContent: 'space-between'
+  },
+  removeLiquidityButton: {
+    marginTop: '2rem',
+    fontSize: '1.5rem',
+    opacity: 0.5
   }
 }))
 
@@ -95,7 +101,8 @@ const Pools: FC = () => {
     setToken0Balance,
     setToken1Balance,
     error,
-    setError
+    setError,
+    removeLiquidity
   } = usePools()
 
   const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
@@ -153,6 +160,13 @@ const Pools: FC = () => {
   const handleToken1BalanceChange = (balance: number) => {
     setToken1Balance(balance)
   }
+
+  const handleRemoveLiquidityClick = (event: any) => {
+    event.preventDefault()
+    removeLiquidity()
+  }
+
+  const hasBalance = !!Number(userPoolBalance)
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -273,7 +287,7 @@ const Pools: FC = () => {
           )}
         </Card>
       </Box>
-      {userPoolBalance && (
+      {hasBalance && (
         <Box alignItems="center" className={styles.poolPositionBox}>
           <Card className={styles.poolPositionCard}>
             <Box alignItems="center" className={styles.poolPosition}>
@@ -285,7 +299,7 @@ const Pools: FC = () => {
                 Your position
               </Typography>
             </Box>
-            {userPoolBalance && (
+            {hasBalance && (
               <Box alignItems="center" className={styles.poolPosition}>
                 <Typography
                   variant="subtitle1"
@@ -362,6 +376,14 @@ const Pools: FC = () => {
       )}
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <SendButton />
+      {hasBalance && (
+        <MuiButton
+          className={styles.removeLiquidityButton}
+          onClick={handleRemoveLiquidityClick}
+        >
+          Remove Liquidity
+        </MuiButton>
+      )}
     </Box>
   )
 }

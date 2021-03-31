@@ -169,7 +169,7 @@ export const addresses: HopAddresses = {
         l2HopBridgeToken: '0x761ac04A47076eadf2BfAF545e2B101C8417498e',
         l2UniswapWrapper: '0x6523C434ce2a4AAf168FD59a1d6074772C9a15bE',
         l2UniswapRouter: '0x8D65D4160559493b0a687ED5Ae39dcce88cB5cFc',
-        l2UniswapFactory: '0x6523C434ce2a4AAf168FD59a1d6074772C9a15bE',
+        l2UniswapFactory: '0x02c7839f26e7FdcBcF3AEC67AB0456221018A248',
         l2UniswapExchange: '0xBEa657cb5BD947811694882A821F7EC08370c252'
       },
       xdai: {

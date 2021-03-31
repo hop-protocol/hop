@@ -5,6 +5,7 @@ import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import Typography from '@material-ui/core/Typography'
 import logger from 'src/logger'
+import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -32,7 +33,7 @@ interface Props {
   onConfirm: (confirmed: boolean) => void
 }
 
-const Swap = (props: Props) => {
+const AddLiquidity = (props: Props) => {
   const { token0, token1, onConfirm } = props
   const styles = useStyles()
   const [sending, setSending] = useState<boolean>(false)
@@ -54,8 +55,8 @@ const Swap = (props: Props) => {
           Add Liquidity
         </Typography>
         <Typography variant="h6" color="textPrimary">
-          {token0.amount} {token0.token.networkSymbol(token0.network)} +{' '}
-          {token1.amount} {token1.token.networkSymbol(token1.network)}
+          {commafy(token0.amount)} {token0.token.symbol} +{' '}
+          {commafy(token1.amount)} {token1.token.symbol}
         </Typography>
       </div>
       <div className={styles.action}>
@@ -73,4 +74,4 @@ const Swap = (props: Props) => {
   )
 }
 
-export default Swap
+export default AddLiquidity

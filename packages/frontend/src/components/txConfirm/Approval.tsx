@@ -6,6 +6,7 @@ import Typography from '@material-ui/core/Typography'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Checkbox from '@material-ui/core/Checkbox'
 import logger from 'src/logger'
+import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -58,7 +59,7 @@ const Approval = (props: Props) => {
     <div className={styles.root}>
       <div className={styles.title}>
         <Typography variant="h5" color="textPrimary">
-          Approve {!approveAll ? amount : ''} {token.symbol}
+          Approve {commafy(!approveAll ? amount : '')} {token.symbol}
         </Typography>
       </div>
       <div className={styles.approveAll}>

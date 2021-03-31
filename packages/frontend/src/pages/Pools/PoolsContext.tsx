@@ -41,6 +41,7 @@ type PoolsContextProps = {
   poolReserves: string[]
   token1Rate: string | undefined
   addLiquidity: () => void
+  removeLiquidity: () => void
   userPoolBalance: string | undefined
   userPoolTokenPercentage: string | undefined
   token0Deposited: string | undefined
@@ -77,6 +78,7 @@ const PoolsContext = createContext<PoolsContextProps>({
   poolReserves: [],
   token1Rate: undefined,
   addLiquidity: () => {},
+  removeLiquidity: () => {},
   userPoolBalance: undefined,
   userPoolTokenPercentage: undefined,
   token0Deposited: undefined,
@@ -438,6 +440,129 @@ const PoolsContextProvider: FC = ({ children }) => {
     setSending(false)
   }
 
+  const removeLiquidity = async () => {
+    try {
+      setError(null)
+      const networkId = Number(selectedNetwork?.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+
+      const uniswapRouterWrite = await getWriteContract(uniswapRouter)
+      if (!uniswapRouterWrite) return
+
+      const signer = provider?.getSigner()
+      const to = await signer?.getAddress()
+      const balance = await uniswapExchange?.balanceOf(to)
+      const formattedBalance = Number(formatUnits(balance.toString(), 18))
+      let liquidityTokensAmount = 0
+
+      let tx: any
+      const approved = await uniswapExchange?.allowance(
+        await signer?.getAddress(),
+        uniswapRouter?.address
+      )
+
+      if (approved.lt(balance)) {
+        tx = await txConfirm?.show({
+          kind: 'approval',
+          inputProps: {
+            amount: formattedBalance,
+            token: new Token({
+              symbol: await uniswapExchange?.symbol(),
+              tokenName: await uniswapExchange?.name(),
+              imageUrl: '',
+              contracts: {}
+            })
+          },
+          onConfirm: async (approveAll: boolean) => {
+            return uniswapExchange?.approve(
+              uniswapRouter?.address,
+              approveAll ? UINT256 : balance
+            )
+          }
+        })
+      }
+
+      if (tx?.hash) {
+        txHistory?.addTransaction(
+          new Transaction({
+            hash: tx?.hash,
+            networkName: selectedNetwork?.slug
+          })
+        )
+      }
+      setTxHash(tx?.hash)
+      await tx?.wait()
+
+      //setSending(true)
+      const token0 = selectedToken
+        ?.addressForNetwork(selectedNetwork)
+        .toString()
+      const token1 = hopToken?.addressForNetwork(selectedNetwork).toString()
+      const amount0Min = '0'
+      const amount1Min = '0'
+      const deadline = (Date.now() / 1000 + 5 * 60) | 0
+
+      let token0Amount = token0Deposited
+      let token1Amount = token1Deposited
+
+      tx = await txConfirm?.show({
+        kind: 'removeLiquidity',
+        inputProps: {
+          token0: {
+            amount: token0Amount,
+            token: selectedToken,
+            network: selectedNetwork
+          },
+          token1: {
+            amount: token1Amount,
+            token: hopToken,
+            network: selectedNetwork
+          }
+        },
+        onConfirm: async (amountPercent: number) => {
+          liquidityTokensAmount = formattedBalance * (amountPercent / 100)
+          const parsedLiquidityTokenAmount = parseUnits(
+            liquidityTokensAmount.toString(),
+            18
+          )
+
+          return uniswapRouterWrite.removeLiquidity(
+            token0,
+            token1,
+            parsedLiquidityTokenAmount,
+            amount0Min,
+            amount1Min,
+            to,
+            deadline,
+            {
+              //gasLimit: 1000000
+            }
+          )
+        }
+      })
+
+      setTxHash(tx?.hash)
+      if (tx?.hash && selectedNetwork) {
+        txHistory?.addTransaction(
+          new Transaction({
+            hash: tx?.hash,
+            networkName: selectedNetwork?.slug
+          })
+        )
+      }
+      await tx?.wait()
+      updateUserPoolPositions()
+    } catch (err) {
+      if (!/cancelled/gi.test(err.message)) {
+        setError(err.message)
+      }
+      logger.error(err)
+    }
+
+    setSending(false)
+  }
+
   const enoughBalance =
     token0Balance >= Number(token0Amount) &&
     token1Balance >= Number(token1Amount)
@@ -469,6 +594,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         poolReserves,
         token1Rate,
         addLiquidity,
+        removeLiquidity,
         userPoolBalance,
         userPoolTokenPercentage,
         token0Deposited,

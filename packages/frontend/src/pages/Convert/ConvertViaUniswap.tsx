@@ -81,14 +81,18 @@ const Convert: FC = () => {
       const amount = normalizeNumberInput(value)
       setSourceTokenAmount(amount)
       setDestTokenAmount(await calcAltTokenAmount(amount))
-    } catch (err) {}
+    } catch (err) {
+      console.error(err.message)
+    }
   }
   const handleDestTokenAmountChange = async (value: string) => {
     try {
       const amount = normalizeNumberInput(value)
       setDestTokenAmount(amount)
       setSourceTokenAmount(await calcAltTokenAmount(amount))
-    } catch (err) {}
+    } catch (err) {
+      console.error(err.message)
+    }
   }
 
   return (

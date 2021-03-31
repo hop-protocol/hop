@@ -223,3 +223,5 @@ export const networks: any = {
 }
 
 export const isMainnet = false
+
+console.log('config addresses:', addresses.tokens)

@@ -6,6 +6,8 @@ import mkdirp from 'mkdirp'
 import sub from 'subleveldown'
 import { db as dbConfig } from 'src/config'
 
+const dbMap: { [key: string]: any } = {}
+
 class BaseDb {
   public db: any
   public prefix: string
@@ -15,8 +17,15 @@ class BaseDb {
     this.prefix = prefix
     const pathname = path.resolve(dbConfig.path.replace('~', os.homedir()))
     mkdirp.sync(pathname.replace(path.basename(pathname), ''))
-    const db = level(pathname)
-    this.db = sub(db, prefix, { valueEncoding: 'json' })
+    if (!dbMap[pathname]) {
+      dbMap[pathname] = level(pathname)
+    }
+
+    let key = `${pathname}:${prefix}`
+    if (!dbMap[key]) {
+      dbMap[key] = sub(dbMap[pathname], prefix, { valueEncoding: 'json' })
+    }
+    this.db = dbMap[key]
   }
 
   handleDataEvent = async (err: Error, data: any) => {

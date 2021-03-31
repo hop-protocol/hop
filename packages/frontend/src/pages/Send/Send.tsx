@@ -133,7 +133,7 @@ const Send: FC = () => {
         fromNetwork,
         toNetwork
       )
-      return Number(formatUnits(_amount, decimals))
+      return Number(formatUnits(_amount.toString(), decimals))
     }
 
     // L2 -> L2
@@ -151,7 +151,7 @@ const Send: FC = () => {
       toNetwork
     )
 
-    return Number(formatUnits(amountOut2, decimals))
+    return Number(formatUnits(amountOut2.toString(), decimals))
   }
 
   const _calcAmount = async (

@@ -1,8 +1,8 @@
 export const addresses = {
   DAI: {
     kovan: {
-      l1CanonicalToken: '0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9',
-      l1Bridge: '0x8C295068Cd136C348F90f9f31C85A5c61Ed490Bc'
+      l1CanonicalToken: '0x436e3FfB93A4763575E5C0F6b3c97D5489E050da',
+      l1Bridge: '0x7d3101fE93Ff6dC009c2f50b6aD59DDD7F23dC5F'
     },
     /*
     arbitrum: {
@@ -19,7 +19,7 @@ export const addresses = {
     optimism: {
       l1CanonicalBridge: '0xC1e7Be0E1aDD345afB2485aA5E774cD79cBbbBf5',
       l2CanonicalBridge: '0x782e1ec5F7381269b2e5DC4eD58648C60161539b',
-      l2CanonicalToken: '0x782e1ec5F7381269b2e5DC4eD58648C60161539b',
+      l2CanonicalToken: '0x3D1d74D898e29957aDc29Fb3861489899faFAFfd',
       l2Bridge: '0xd6935d3FE65f804e54a8e0d0A0F8793f0aC196Ff',
       l2HopBridgeToken: '0x761ac04A47076eadf2BfAF545e2B101C8417498e',
       l2UniswapWrapper: '0x6523C434ce2a4AAf168FD59a1d6074772C9a15bE',
@@ -30,7 +30,7 @@ export const addresses = {
     xdai: {
       l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
       l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
-      l2CanonicalToken: '0x714983a8Dc3329bf3BeB8F36b49878CF944E5A3B',
+      l2CanonicalToken: '0x6D2d8B29d92cab87a273e872FcC4650A64116283',
       l2Bridge: '0xc638F45C59DBD449173266Cd2c47E9670630F013',
       l2HopBridgeToken: '0x66CC0844797349801984323Ed0c0Cac0d81290E9',
       l2UniswapWrapper: '0x8E692A638Ac9Ab55C8224175C60EBF9a17dba372',

@@ -50,7 +50,7 @@ const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
     provider: Provider
   ): Contract | undefined => {
     if (!provider) return
-    return new Contract(address, abi, provider)
+    return new Contract(address, abi, provider as providers.Provider)
   }
 
   const getErc20Contract = (address: string, provider: Provider): Contract => {
@@ -83,7 +83,7 @@ const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
           l1CanonicalToken: new Contract(
             tokenConfig.l1CanonicalToken,
             erc20Artifact.abi,
-            providers[network.slug]
+            providers[network.slug] as providers.Provider
           ),
           l1Bridge: useL1BridgeContract(
             providers[network.slug] as providers.Provider,

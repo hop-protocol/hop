@@ -24,7 +24,7 @@
     "clsx": "1.1.1",
     "copy-to-clipboard": "^3.3.1",
     "dotenv": "8.2.0",
-    "ethers": "5.0.28",
+    "ethers": "^5.1.0",
     "gridplus-sdk": "0.6.1",
     "luxon": "1.25.0",
     "numbro": "^2.3.2",

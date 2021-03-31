@@ -21,6 +21,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
 
   async start () {
     this.started = true
+    this.logger.debug('starting xdai-bridge watcher')
     try {
       const l1AmbAddress = config.tokens.DAI.xdai.l1Amb
       const l2AmbAddress = config.tokens.DAI.xdai.l2Amb

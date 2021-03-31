@@ -20,7 +20,11 @@ const useTokens = (networks: Network[]) => {
     address: string,
     provider: Signer | providers.Provider
   ): Contract => {
-    return new Contract(address, erc20Artifact.abi, provider as providers.Provider) as Contract
+    return new Contract(
+      address,
+      erc20Artifact.abi,
+      provider as providers.Provider
+    ) as Contract
   }
 
   const contracts = useMemo<Contracts>(() => {

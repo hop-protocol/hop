@@ -57,6 +57,14 @@ const useStyles = makeStyles(theme => ({
     [theme.breakpoints.down('xs')]: {
       width: '90%'
     }
+  },
+  txStatusInfo: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  txStatusCloseButton: {
+    marginTop: '1rem'
   }
 }))
 
@@ -418,6 +426,7 @@ const Send: FC = () => {
       if (!fromNetwork || !toNetwork) {
         throw new Error('A network is undefined')
       }
+      setError(null)
       setTx(null)
 
       const networkId = Number(fromNetwork.networkId)
@@ -765,6 +774,21 @@ const Send: FC = () => {
       {tx ? (
         <Modal onClose={handleTxStatusClose}>
           <TxStatus tx={tx} />
+          <Box
+            display="flex"
+            alignItems="center"
+            className={styles.txStatusInfo}
+          >
+            <Typography variant="body1">
+              <em>This may take a few minutes</em>
+            </Typography>
+            <MuiButton
+              className={styles.txStatusCloseButton}
+              onClick={handleTxStatusClose}
+            >
+              Close
+            </MuiButton>
+          </Box>
         </Modal>
       ) : null}
     </Box>

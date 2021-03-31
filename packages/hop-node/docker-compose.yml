@@ -52,6 +52,18 @@ services:
         awslogs-group: HopNodeKovan
         awslogs-create-group: 'true'
 
+  xdaiBridge:
+    image: hopprotocol/hop-node:latest
+    command: xdai-bridge
+    env_file:
+      - bridgenode.env
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: us-east-1
+        awslogs-group: HopNodeKovan
+        awslogs-create-group: 'true'
+
   ipfs:
     image: ipfs/go-ipfs
     ports:

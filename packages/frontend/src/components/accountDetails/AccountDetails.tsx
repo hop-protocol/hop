@@ -1,5 +1,5 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import { Theme, makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Link from '@material-ui/core/Link'
 import Button from '@material-ui/core/Button'
@@ -11,7 +11,7 @@ import TxStatus from 'src/components/txStatus'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import ClipboardCopyButton from 'src/components/buttons/ClipboardCopyButton'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme: Theme) => ({
   header: {
     fontSize: '1.8rem'
   },
@@ -21,17 +21,26 @@ const useStyles = makeStyles(() => ({
   row: {
     display: 'flex',
     justifyContent: 'space-between',
-    marginBottom: '0.5rem'
+    marginBottom: '0.5rem',
+    [theme.breakpoints.down('xs')]: {
+      flexDirection: 'column'
+    }
   },
   leftColumn: {
     display: 'flex',
     alignItems: 'center',
-    width: '60%'
+    width: '60%',
+    [theme.breakpoints.down('xs')]: {
+      width: '100%'
+    }
   },
   rightColumn: {
     display: 'flex',
     alignItems: 'center',
-    width: '40%'
+    width: '40%',
+    [theme.breakpoints.down('xs')]: {
+      width: '100%'
+    }
   },
   statusIcon: {},
   network: {

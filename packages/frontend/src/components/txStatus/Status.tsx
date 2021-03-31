@@ -22,7 +22,7 @@ const useStyles = makeStyles(theme => ({
   mini: {
     transform: 'scale(0.6)',
     transformOrigin: 'top left',
-    height: '55px'
+    height: '60px'
   },
   title: {
     marginBottom: '4.2rem'

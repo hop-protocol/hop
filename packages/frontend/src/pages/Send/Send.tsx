@@ -50,13 +50,15 @@ const useStyles = makeStyles(theme => ({
     minWidth: 0,
     margin: '1.0rem'
   },
-  detailRow: {
+  details: {
     marginTop: '4.2rem',
     marginBottom: '5.4rem',
     width: '46.0rem',
     [theme.breakpoints.down('xs')]: {
       width: '90%'
     }
+  },
+  detailRow: {
   },
   txStatusInfo: {
     flexDirection: 'column',
@@ -109,6 +111,8 @@ const Send: FC = () => {
   const [sending, setSending] = useState<boolean>(false)
   const [fetchingRate, setFetchingRate] = useState<boolean>(false)
   const [exchangeRate, setExchangeRate] = useState<number>(0)
+  const [fetchingFee, setFetchingFee] = useState<boolean>(false)
+  const [fee, setFee] = useState<number | null>(null)
   const [fromBalance, setFromBalance] = useState<number>(0)
   const [toBalance, setToBalance] = useState<number>(0)
   const [error, setError] = useState<string | null | undefined>(null)
@@ -320,6 +324,7 @@ const Send: FC = () => {
       fromNetwork,
       toNetwork
     )
+    setFetchingFee(true)
     const minBonderBps = await l2Bridge?.minBonderBps()
     const minBonderFeeAbsolute = await l2Bridge?.minBonderFeeAbsolute()
     const minBonderFeeRelative = amountOut.mul(minBonderBps).div(10000)
@@ -328,6 +333,26 @@ const Send: FC = () => {
       : minBonderFeeAbsolute
     return minBonderFee
   }
+
+  useEffect(() => {
+    const update = async () => {
+      try {
+        setFee(null)
+        if (fromNetwork?.slug === L1_NETWORK) {
+          setFee(0)
+          return
+        }
+        const bonderFee = await getBonderFee()
+        const _fee = Number(formatUnits(bonderFee, 18))
+        setFee(_fee)
+      } catch(err) {
+        // noop
+      }
+      setFetchingFee(false)
+    }
+
+    update()
+  }, [fromNetwork, toNetwork, fromTokenAmount])
 
   const approve = async (amount: string) => {
     const signer = user?.signer()
@@ -527,7 +552,6 @@ const Send: FC = () => {
         const destinationDeadline = '0'
         const amountOutIn = '0'
         const destinationAmountOutMin = '0'
-        const bonderFee = await getBonderFee()
         const chainId = toNetwork?.networkId
         const transferNonce = Date.now()
         const uniswapWrapper =
@@ -535,6 +559,7 @@ const Send: FC = () => {
             .uniswapWrapper
 
         const parsedAmountIn = parseUnits(fromTokenAmount, 18)
+        const bonderFee = await getBonderFee()
         if (bonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
         }
@@ -594,12 +619,12 @@ const Send: FC = () => {
         const chainId = toNetwork?.networkId
         const amountOutIn = '0'
         const destinationAmountOutMin = '0'
-        const bonderFee = await getBonderFee()
         const uniswapWrapper =
           contracts?.tokens[selectedToken?.symbol][fromNetwork?.slug as string]
             .uniswapWrapper
 
         const parsedAmountIn = parseUnits(fromTokenAmount, 18)
+        const bonderFee = await getBonderFee()
         if (bonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
         }
@@ -742,6 +767,7 @@ const Send: FC = () => {
           setToBalance(balance)
         }}
       />
+      <div className={styles.details}>
       <Box
         display="flex"
         alignItems="center"
@@ -765,6 +791,30 @@ const Send: FC = () => {
           )}
         </Typography>
       </Box>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        className={styles.detailRow}
+      >
+        <Typography variant="subtitle2" color="textSecondary">
+          Fee
+        </Typography>
+        <Typography
+          title={`${fee}`}
+          variant="subtitle2"
+          color="textSecondary"
+        >
+          {fetchingFee ? (
+            <CircularProgress size={12} />
+          ) : fee === null ? (
+            '-'
+          ) : (
+            commafy(fee, 5)
+          )}
+        </Typography>
+      </Box>
+      </div>
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <SendButton sending={sending} disabled={!validFormFields} onClick={send}>
         {buttonText}

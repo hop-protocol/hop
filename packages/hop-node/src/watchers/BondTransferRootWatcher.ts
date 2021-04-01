@@ -190,10 +190,16 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    this.logger.debug('dbTransferRoot transferRootHash:', dbTransferRoot.transferRootHash)
+    this.logger.debug(
+      'dbTransferRoot transferRootHash:',
+      dbTransferRoot.transferRootHash
+    )
     this.logger.debug('dbTransferRoot totalAmount:', dbTransferRoot.totalAmount)
     this.logger.debug('dbTransferRoot chainId:', dbTransferRoot.chainId)
-    this.logger.debug('dbTransferRoot sourceChainId:', dbTransferRoot.sourceChainID)
+    this.logger.debug(
+      'dbTransferRoot sourceChainId:',
+      dbTransferRoot.sourceChainID
+    )
     this.logger.debug('dbTransferRoot commitedAt:', dbTransferRoot.commitedAt)
     this.logger.debug('dbTransferRoot commited:', dbTransferRoot.commited)
     this.logger.debug('dbTransferRoot sentBondTx:', dbTransferRoot.sentBondTx)
@@ -270,7 +276,9 @@ class BondTransferRootWatcher extends BaseWatcher {
     meta: any
   ) => {
     try {
-      const dbTransferRoot = await db.transferRoots.getByTransferRootHash(transferRootHash)
+      const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
+        transferRootHash
+      )
       if (dbTransferRoot?.commitedAt) {
         return
       }

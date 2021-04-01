@@ -110,6 +110,9 @@ const Send: FC = () => {
   const [sending, setSending] = useState<boolean>(false)
   const [fetchingRate, setFetchingRate] = useState<boolean>(false)
   const [exchangeRate, setExchangeRate] = useState<number>(0)
+  const [marketRate, setMarketRate] = useState<number>(0)
+  const [slippageTolerance, setSlippageTolerance] = useState<number>(1)
+  const [priceImpact, setPriceImpact] = useState<number>(0)
   const [fetchingFee, setFetchingFee] = useState<boolean>(false)
   const [fee, setFee] = useState<number | null>(null)
   const [amountOutMin, setAmountOutMin] = useState<number>(0)
@@ -118,7 +121,6 @@ const Send: FC = () => {
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [tx, setTx] = useState<Transaction | null>(null)
-  const [slippageTolerance, setSlippageTolerance] = useState<number>(1)
   const l1Bridge = contracts?.tokens[selectedToken?.symbol][L1_NETWORK].l1Bridge
   const debouncer = useRef<number>(0)
 
@@ -356,14 +358,33 @@ const Send: FC = () => {
   }, [fromNetwork, toNetwork, fromTokenAmount])
 
   useEffect(() => {
-    setAmountOutMin(0)
-    if (fromNetwork && toNetwork && fromTokenAmount && toTokenAmount) {
-      const _amountOutMin =
-        Number(toTokenAmount) -
-        Number(toTokenAmount) * (slippageTolerance / 100)
-      setAmountOutMin(_amountOutMin)
+    const update = async () => {
+      setAmountOutMin(0)
+      if (fromNetwork && toNetwork && fromTokenAmount && toTokenAmount) {
+        const _amountOutMin =
+          Number(toTokenAmount) -
+          Number(toTokenAmount) * (slippageTolerance / 100)
+        setAmountOutMin(_amountOutMin)
+      }
     }
+
+    update()
   }, [fromNetwork, toNetwork, fromTokenAmount, toTokenAmount])
+
+  useEffect(() => {
+    const update = async () => {
+      setPriceImpact(0)
+      if (exchangeRate) {
+        const amountIn = '0.0001'
+        const amountOut = await calcAmount(amountIn, true)
+        const marketRate = amountOut / Number(amountIn)
+        const _priceImpact = ((marketRate - exchangeRate) / marketRate) * 100
+        setPriceImpact(_priceImpact)
+      }
+    }
+
+    update()
+  }, [exchangeRate])
 
   const approve = async (amount: string) => {
     const signer = user?.signer()
@@ -825,6 +846,27 @@ const Send: FC = () => {
           className={styles.detailRow}
         >
           <Typography variant="subtitle2" color="textSecondary">
+            Price Impact
+          </Typography>
+          <Typography
+            title={`${priceImpact}`}
+            variant="subtitle2"
+            color="textSecondary"
+          >
+            {priceImpact === 0
+              ? '-'
+              : priceImpact < 0.01
+              ? `<0.01%`
+              : `${commafy(priceImpact)}%`}
+          </Typography>
+        </Box>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          className={styles.detailRow}
+        >
+          <Typography variant="subtitle2" color="textSecondary">
             Minimum received
           </Typography>
           <Typography
@@ -849,13 +891,7 @@ const Send: FC = () => {
             variant="subtitle2"
             color="textSecondary"
           >
-            {fetchingFee ? (
-              <CircularProgress size={12} />
-            ) : fee === null ? (
-              '-'
-            ) : (
-              commafy(fee, 5)
-            )}
+            {fee === null ? '-' : commafy(fee, 5)}
           </Typography>
         </Box>
       </div>

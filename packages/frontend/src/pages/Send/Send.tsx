@@ -58,8 +58,7 @@ const useStyles = makeStyles(theme => ({
       width: '90%'
     }
   },
-  detailRow: {
-  },
+  detailRow: {},
   txStatusInfo: {
     flexDirection: 'column',
     justifyContent: 'center',
@@ -113,11 +112,13 @@ const Send: FC = () => {
   const [exchangeRate, setExchangeRate] = useState<number>(0)
   const [fetchingFee, setFetchingFee] = useState<boolean>(false)
   const [fee, setFee] = useState<number | null>(null)
+  const [amountOutMin, setAmountOutMin] = useState<number>(0)
   const [fromBalance, setFromBalance] = useState<number>(0)
   const [toBalance, setToBalance] = useState<number>(0)
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [tx, setTx] = useState<Transaction | null>(null)
+  const [slippageTolerance, setSlippageTolerance] = useState<number>(1)
   const l1Bridge = contracts?.tokens[selectedToken?.symbol][L1_NETWORK].l1Bridge
   const debouncer = useRef<number>(0)
 
@@ -139,7 +140,7 @@ const Send: FC = () => {
     const decimals = 18
     // L1 -> L2 or L2 -> L1
     if (fromNetwork?.isLayer1 || toNetwork?.isLayer1) {
-      const _amount = await _calcAmount(
+      const _amount = await _calcAmountOut(
         amountBN,
         isAmountIn,
         fromNetwork,
@@ -150,13 +151,13 @@ const Send: FC = () => {
 
     // L2 -> L2
     const layer1Network = networks.find(network => network.isLayer1) as Network
-    const amountOut1 = await _calcAmount(
+    const amountOut1 = await _calcAmountOut(
       amountBN,
       true,
       fromNetwork,
       layer1Network
     )
-    const amountOut2 = await _calcAmount(
+    const amountOut2 = await _calcAmountOut(
       amountOut1,
       true,
       layer1Network,
@@ -166,7 +167,7 @@ const Send: FC = () => {
     return Number(formatUnits(amountOut2.toString(), decimals))
   }
 
-  const _calcAmount = async (
+  const _calcAmountOut = async (
     amount: BigNumber,
     isAmountIn: boolean,
     _fromNetwork: Network,
@@ -318,7 +319,7 @@ const Send: FC = () => {
     if (!toNetwork) {
       throw new Error('No to network selected')
     }
-    const amountOut = await _calcAmount(
+    const amountOut = await _calcAmountOut(
       parseUnits(fromTokenAmount, 18),
       true,
       fromNetwork,
@@ -345,7 +346,7 @@ const Send: FC = () => {
         const bonderFee = await getBonderFee()
         const _fee = Number(formatUnits(bonderFee, 18))
         setFee(_fee)
-      } catch(err) {
+      } catch (err) {
         // noop
       }
       setFetchingFee(false)
@@ -353,6 +354,16 @@ const Send: FC = () => {
 
     update()
   }, [fromNetwork, toNetwork, fromTokenAmount])
+
+  useEffect(() => {
+    setAmountOutMin(0)
+    if (fromNetwork && toNetwork && fromTokenAmount && toTokenAmount) {
+      const _amountOutMin =
+        Number(toTokenAmount) -
+        Number(toTokenAmount) * (slippageTolerance / 100)
+      setAmountOutMin(_amountOutMin)
+    }
+  }, [fromNetwork, toNetwork, fromTokenAmount, toTokenAmount])
 
   const approve = async (amount: string) => {
     const signer = user?.signer()
@@ -501,14 +512,13 @@ const Send: FC = () => {
       },
       onConfirm: async () => {
         const deadline = (Date.now() / 1000 + 300) | 0
-        const amountOutMin = '0'
         const chainId = toNetwork?.networkId
         const relayerFee = '0'
         return l1Bridge.sendToL2(
           chainId,
           await signer.getAddress(),
           parseUnits(fromTokenAmount, 18),
-          amountOutMin,
+          parseUnits(amountOutMin.toString(), 18),
           deadline,
           relayerFee
         )
@@ -551,7 +561,7 @@ const Send: FC = () => {
         const deadline = (Date.now() / 1000 + 300) | 0
         const destinationDeadline = '0'
         const amountOutIn = '0'
-        const destinationAmountOutMin = '0'
+        const destinationAmountOutMin = parseUnits(amountOutMin.toString(), 18)
         const chainId = toNetwork?.networkId
         const transferNonce = Date.now()
         const uniswapWrapper =
@@ -618,7 +628,7 @@ const Send: FC = () => {
         const destinationDeadline = deadline
         const chainId = toNetwork?.networkId
         const amountOutIn = '0'
-        const destinationAmountOutMin = '0'
+        const destinationAmountOutMin = parseUnits(amountOutMin.toString(), 18)
         const uniswapWrapper =
           contracts?.tokens[selectedToken?.symbol][fromNetwork?.slug as string]
             .uniswapWrapper
@@ -768,52 +778,86 @@ const Send: FC = () => {
         }}
       />
       <div className={styles.details}>
-      <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        className={styles.detailRow}
-      >
-        <Typography variant="subtitle2" color="textSecondary">
-          Rate
-        </Typography>
-        <Typography
-          title={`${exchangeRate}`}
-          variant="subtitle2"
-          color="textSecondary"
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          className={styles.detailRow}
         >
-          {fetchingRate ? (
-            <CircularProgress size={12} />
-          ) : exchangeRate === 0 ? (
-            '-'
-          ) : (
-            commafy(exchangeRate)
-          )}
-        </Typography>
-      </Box>
-      <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        className={styles.detailRow}
-      >
-        <Typography variant="subtitle2" color="textSecondary">
-          Fee
-        </Typography>
-        <Typography
-          title={`${fee}`}
-          variant="subtitle2"
-          color="textSecondary"
+          <Typography variant="subtitle2" color="textSecondary">
+            Rate
+          </Typography>
+          <Typography
+            title={`${exchangeRate}`}
+            variant="subtitle2"
+            color="textSecondary"
+          >
+            {fetchingRate ? (
+              <CircularProgress size={12} />
+            ) : exchangeRate === 0 ? (
+              '-'
+            ) : (
+              commafy(exchangeRate)
+            )}
+          </Typography>
+        </Box>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          className={styles.detailRow}
         >
-          {fetchingFee ? (
-            <CircularProgress size={12} />
-          ) : fee === null ? (
-            '-'
-          ) : (
-            commafy(fee, 5)
-          )}
-        </Typography>
-      </Box>
+          <Typography variant="subtitle2" color="textSecondary">
+            Slippage Tolerance
+          </Typography>
+          <Typography
+            title={`${slippageTolerance}`}
+            variant="subtitle2"
+            color="textSecondary"
+          >
+            {slippageTolerance}%
+          </Typography>
+        </Box>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          className={styles.detailRow}
+        >
+          <Typography variant="subtitle2" color="textSecondary">
+            Minimum received
+          </Typography>
+          <Typography
+            title={`${amountOutMin}`}
+            variant="subtitle2"
+            color="textSecondary"
+          >
+            {amountOutMin === 0 ? '-' : commafy(amountOutMin)}
+          </Typography>
+        </Box>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          className={styles.detailRow}
+        >
+          <Typography variant="subtitle2" color="textSecondary">
+            Fee
+          </Typography>
+          <Typography
+            title={`${fee}`}
+            variant="subtitle2"
+            color="textSecondary"
+          >
+            {fetchingFee ? (
+              <CircularProgress size={12} />
+            ) : fee === null ? (
+              '-'
+            ) : (
+              commafy(fee, 5)
+            )}
+          </Typography>
+        </Box>
       </div>
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <SendButton sending={sending} disabled={!validFormFields} onClick={send}>

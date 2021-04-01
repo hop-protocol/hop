@@ -11,13 +11,15 @@ import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import MuiButton from '@material-ui/core/Button'
+import IconButton from '@material-ui/core/IconButton'
 import CircularProgress from '@material-ui/core/CircularProgress'
+import Popover from '@material-ui/core/Popover'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
-import RaisedSelect from 'src/components/selects/RaisedSelect'
 import MenuItem, { MenuItemProps } from '@material-ui/core/MenuItem'
+import SmallTextField from 'src/components/SmallTextField'
+import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
-import SendButton from 'src/pages/Send/SendButton'
 import Transaction from 'src/models/Transaction'
 import Alert from 'src/components/alert/Alert'
 import TxStatus from 'src/components/txStatus'
@@ -32,8 +34,16 @@ import { UINT256, L1_NETWORK } from 'src/constants'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import logger from 'src/logger'
 import { commafy, intersection, normalizeNumberInput } from 'src/utils'
+import SendButton from 'src/pages/Send/SendButton'
+import Settings from 'src/pages/Send/Settings'
 
 const useStyles = makeStyles(theme => ({
+  header: {
+    display: 'flex',
+    justifyContent: 'center',
+    width: '46.0rem',
+    position: 'relative'
+  },
   sendSelect: {
     marginBottom: '4.2rem'
   },
@@ -66,6 +76,15 @@ const useStyles = makeStyles(theme => ({
   },
   txStatusCloseButton: {
     marginTop: '1rem'
+  },
+  settings: {
+    position: 'absolute',
+    top: '0',
+    right: '0',
+    [theme.breakpoints.down('xs')]: {
+      position: 'relative',
+      paddingLeft: '2rem'
+    }
   }
 }))
 
@@ -111,7 +130,8 @@ const Send: FC = () => {
   const [fetchingRate, setFetchingRate] = useState<boolean>(false)
   const [exchangeRate, setExchangeRate] = useState<number>(0)
   const [marketRate, setMarketRate] = useState<number>(0)
-  const [slippageTolerance, setSlippageTolerance] = useState<number>(1)
+  const [slippageTolerance, setSlippageTolerance] = useState<number>(0.5)
+  const [deadlineMinutes, setDeadlineMinutes] = useState<number>(20)
   const [priceImpact, setPriceImpact] = useState<number>(0)
   const [fetchingFee, setFetchingFee] = useState<boolean>(false)
   const [fee, setFee] = useState<number | null>(null)
@@ -532,7 +552,7 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
-        const deadline = (Date.now() / 1000 + 300) | 0
+        const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
         const chainId = toNetwork?.networkId
         const relayerFee = '0'
         return l1Bridge.sendToL2(
@@ -579,7 +599,7 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
-        const deadline = (Date.now() / 1000 + 300) | 0
+        const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
         const destinationDeadline = '0'
         const amountOutIn = '0'
         const destinationAmountOutMin = parseUnits(amountOutMin.toString(), 18)
@@ -645,7 +665,7 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
-        const deadline = (Date.now() / 1000 + 300) | 0
+        const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
         const destinationDeadline = deadline
         const chainId = toNetwork?.networkId
         const amountOutIn = '0'
@@ -716,22 +736,33 @@ const Send: FC = () => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      <Box display="flex" alignItems="center" className={styles.sendSelect}>
-        <Typography variant="h4" className={styles.sendLabel}>
-          Send
-        </Typography>
-        <RaisedSelect value={selectedToken.symbol} onChange={handleTokenSelect}>
-          {tokens.map(token => (
-            <MenuItem value={token.symbol} key={token.symbol}>
-              <SelectOption
-                value={token.symbol}
-                icon={token.imageUrl}
-                label={token.symbol}
-              />
-            </MenuItem>
-          ))}
-        </RaisedSelect>
-      </Box>
+      <div className={styles.header}>
+        <Box display="flex" alignItems="center" className={styles.sendSelect}>
+          <Typography variant="h4" className={styles.sendLabel}>
+            Send
+          </Typography>
+          <RaisedSelect
+            value={selectedToken.symbol}
+            onChange={handleTokenSelect}
+          >
+            {tokens.map(token => (
+              <MenuItem value={token.symbol} key={token.symbol}>
+                <SelectOption
+                  value={token.symbol}
+                  icon={token.imageUrl}
+                  label={token.symbol}
+                />
+              </MenuItem>
+            ))}
+          </RaisedSelect>
+        </Box>
+        <div className={styles.settings}>
+          <Settings
+            onSlippageTolerance={setSlippageTolerance}
+            onTransactionDeadline={setDeadlineMinutes}
+          />
+        </div>
+      </div>
       <AmountSelectorCard
         value={fromTokenAmount}
         token={selectedToken}

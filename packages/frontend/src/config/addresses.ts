@@ -156,37 +156,37 @@ export const addresses: HopAddresses = {
     governorAlpha: '0xadcdb487C45bCB517D3873Bb54F2e01942e4e1d5'
   },
   tokens: {
-    // DAI: {
-    //   kovan: {
-    //     l1CanonicalToken: '0x436e3FfB93A4763575E5C0F6b3c97D5489E050da',
-    //     l1Bridge: '0x7d3101fE93Ff6dC009c2f50b6aD59DDD7F23dC5F'
-    //   },
-    //   optimism: {
-    //     l1CanonicalBridge: '0xC1e7Be0E1aDD345afB2485aA5E774cD79cBbbBf5',
-    //     l2CanonicalBridge: '0x782e1ec5F7381269b2e5DC4eD58648C60161539b',
-    //     l2CanonicalToken: '0x782e1ec5F7381269b2e5DC4eD58648C60161539b',
-    //     l2Bridge: '0xd6935d3FE65f804e54a8e0d0A0F8793f0aC196Ff',
-    //     l2HopBridgeToken: '0x761ac04A47076eadf2BfAF545e2B101C8417498e',
-    //     l2UniswapWrapper: '0x6523C434ce2a4AAf168FD59a1d6074772C9a15bE',
-    //     l2UniswapRouter: '0x8D65D4160559493b0a687ED5Ae39dcce88cB5cFc',
-    //     l2UniswapFactory: '0x6523C434ce2a4AAf168FD59a1d6074772C9a15bE',
-    //     l2UniswapExchange: '0xBEa657cb5BD947811694882A821F7EC08370c252'
-    //   },
-    //   xdai: {
-    //     l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
-    //     l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
-    //     l2CanonicalToken: '0x714983a8Dc3329bf3BeB8F36b49878CF944E5A3B',
-    //     l2Bridge: '0xc638F45C59DBD449173266Cd2c47E9670630F013',
-    //     l2HopBridgeToken: '0x66CC0844797349801984323Ed0c0Cac0d81290E9',
-    //     l2UniswapWrapper: '0x8E692A638Ac9Ab55C8224175C60EBF9a17dba372',
-    //     l2UniswapRouter: '0x85a288Dd75BE15b4C839BAEcbC6cAd2F2889aB5a',
-    //     l2UniswapFactory: '0xA672420F4779f26Db86dD5bB5711F86B6d6e5a1f',
-    //     l2UniswapExchange: '0x1A48d744b738c9a045a18A129E253361775512De',
-    //     l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
-    //     l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
-    //     canonicalBridgeMaxPerTx: '10000'
-    //   }
-    // },
+    DAI: {
+      kovan: {
+        l1CanonicalToken: '0x436e3FfB93A4763575E5C0F6b3c97D5489E050da',
+        l1Bridge: '0x7d3101fE93Ff6dC009c2f50b6aD59DDD7F23dC5F'
+      },
+      optimism: {
+        l1CanonicalBridge: '0xC1e7Be0E1aDD345afB2485aA5E774cD79cBbbBf5',
+        l2CanonicalBridge: '0x782e1ec5F7381269b2e5DC4eD58648C60161539b',
+        l2CanonicalToken: '0x782e1ec5F7381269b2e5DC4eD58648C60161539b',
+        l2Bridge: '0xd6935d3FE65f804e54a8e0d0A0F8793f0aC196Ff',
+        l2HopBridgeToken: '0x761ac04A47076eadf2BfAF545e2B101C8417498e',
+        l2UniswapWrapper: '0x6523C434ce2a4AAf168FD59a1d6074772C9a15bE',
+        l2UniswapRouter: '0x8D65D4160559493b0a687ED5Ae39dcce88cB5cFc',
+        l2UniswapFactory: '0x6523C434ce2a4AAf168FD59a1d6074772C9a15bE',
+        l2UniswapExchange: '0xBEa657cb5BD947811694882A821F7EC08370c252'
+      },
+      xdai: {
+        l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
+        l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
+        l2CanonicalToken: '0x714983a8Dc3329bf3BeB8F36b49878CF944E5A3B',
+        l2Bridge: '0xc638F45C59DBD449173266Cd2c47E9670630F013',
+        l2HopBridgeToken: '0x66CC0844797349801984323Ed0c0Cac0d81290E9',
+        l2UniswapWrapper: '0x8E692A638Ac9Ab55C8224175C60EBF9a17dba372',
+        l2UniswapRouter: '0x85a288Dd75BE15b4C839BAEcbC6cAd2F2889aB5a',
+        l2UniswapFactory: '0xA672420F4779f26Db86dD5bB5711F86B6d6e5a1f',
+        l2UniswapExchange: '0x1A48d744b738c9a045a18A129E253361775512De',
+        l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
+        l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
+        canonicalBridgeMaxPerTx: '10000'
+      }
+    },
     ...otherTokens
   }
 }

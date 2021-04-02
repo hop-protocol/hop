@@ -36,6 +36,7 @@ import logger from 'src/logger'
 import { commafy, intersection, normalizeNumberInput } from 'src/utils'
 import SendButton from 'src/pages/Send/SendButton'
 import Settings from 'src/pages/Send/Settings'
+import InfoTooltip from 'src/components/infoTooltip'
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -69,6 +70,11 @@ const useStyles = makeStyles(theme => ({
     }
   },
   detailRow: {},
+  detailLabel: {
+    display: 'flex',
+    justifyContent: 'flex-start',
+    alignItems: 'center'
+  },
   txStatusInfo: {
     flexDirection: 'column',
     justifyContent: 'center',
@@ -836,8 +842,13 @@ const Send: FC = () => {
           justifyContent="space-between"
           className={styles.detailRow}
         >
-          <Typography variant="subtitle2" color="textSecondary">
-            Rate
+          <Typography
+            variant="subtitle2"
+            color="textSecondary"
+            className={styles.detailLabel}
+          >
+            Rate{' '}
+            <InfoTooltip title="The rate for the token taking trade size into consideration." />
           </Typography>
           <Typography
             title={`${exchangeRate}`}
@@ -859,8 +870,13 @@ const Send: FC = () => {
           justifyContent="space-between"
           className={styles.detailRow}
         >
-          <Typography variant="subtitle2" color="textSecondary">
-            Slippage Tolerance
+          <Typography
+            variant="subtitle2"
+            color="textSecondary"
+            className={styles.detailLabel}
+          >
+            Slippage Tolerance{' '}
+            <InfoTooltip title="Your transaction will revert if the price changes unfavorably by more than this percentage." />
           </Typography>
           <Typography
             title={`${slippageTolerance}`}
@@ -876,8 +892,13 @@ const Send: FC = () => {
           justifyContent="space-between"
           className={styles.detailRow}
         >
-          <Typography variant="subtitle2" color="textSecondary">
-            Price Impact
+          <Typography
+            variant="subtitle2"
+            color="textSecondary"
+            className={styles.detailLabel}
+          >
+            Price Impact{' '}
+            <InfoTooltip title="The difference between the market price and estimated price due to trade size." />
           </Typography>
           <Typography
             title={`${priceImpact}`}
@@ -897,8 +918,13 @@ const Send: FC = () => {
           justifyContent="space-between"
           className={styles.detailRow}
         >
-          <Typography variant="subtitle2" color="textSecondary">
-            Minimum received
+          <Typography
+            variant="subtitle2"
+            color="textSecondary"
+            className={styles.detailLabel}
+          >
+            Minimum received{' '}
+            <InfoTooltip title="Your transaction will revert if there is a large, unfavorable price movement before it is confirmed." />
           </Typography>
           <Typography
             title={`${amountOutMin}`}
@@ -914,8 +940,13 @@ const Send: FC = () => {
           justifyContent="space-between"
           className={styles.detailRow}
         >
-          <Typography variant="subtitle2" color="textSecondary">
-            Fee
+          <Typography
+            variant="subtitle2"
+            color="textSecondary"
+            className={styles.detailLabel}
+          >
+            Fee{' '}
+            <InfoTooltip title="This fee goes towards the Bonder who bonds the transfer on the destination chain." />
           </Typography>
           <Typography
             title={`${fee}`}

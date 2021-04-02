@@ -13,6 +13,7 @@ import IconButton from '@material-ui/core/IconButton'
 import Popover from '@material-ui/core/Popover'
 import SettingsIcon from '@material-ui/icons/Settings'
 import SmallTextField from 'src/components/SmallTextField'
+import InfoTooltip from 'src/components/infoTooltip'
 import { normalizeNumberInput } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
@@ -25,7 +26,10 @@ const useStyles = makeStyles(theme => ({
   },
   label: {
     fontWeight: 'bold',
-    marginBottom: '0.5rem'
+    marginBottom: '0.5rem',
+    display: 'flex',
+    justifyContent: 'flex-start',
+    alignItems: 'center'
   },
   inlineLabel: {
     marginLeft: '0.5rem'
@@ -128,7 +132,8 @@ const Settings: FC<Props> = (props: Props) => {
           </Box>
           <Box display="flex" flexDirection="column" className={styles.box}>
             <Typography variant="body1" className={styles.label}>
-              Slippage Tolerance
+              Slippage Tolerance{' '}
+              <InfoTooltip title="Your transaction will revert if the price changes unfavorably by more than this percentage." />
             </Typography>
             <Box display="flex" alignItems="center">
               <IconButton
@@ -160,7 +165,8 @@ const Settings: FC<Props> = (props: Props) => {
           </Box>
           <Box display="flex" flexDirection="column" className={styles.box}>
             <Typography variant="body1" className={styles.label}>
-              Transaction deadline
+              Transaction deadline{' '}
+              <InfoTooltip title="Your transaction will revert if it is pending for more than this long." />
             </Typography>
             <Box display="flex" alignItems="center">
               <SmallTextField

@@ -21,17 +21,18 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
+const normalShadow = `
+  inset -3px -3px 6px rgba(255, 255, 255, 0.5),
+  inset 3px 3px 6px rgba(174, 174, 192, 0.16)
+`
+
 const useInputStyles = makeStyles(theme => ({
   root: (props: StyleProps) => ({
     padding: '0.1rem 0.4rem',
-    border: '1px solid #a8a8a8',
     borderRadius: '2rem',
-    '&:hover': {
-      border: `1px solid #706f6f`
-    },
-    '&.Mui-focused': {
-      border: `1px solid ${theme.palette.primary.main}`
-    }
+    boxShadow: normalShadow,
+    '&:hover': {},
+    '&.Mui-focused': {}
   }),
   input: ({ centerAlign }: StyleProps) => ({
     textAlign: centerAlign ? 'center' : 'right',
@@ -41,7 +42,8 @@ const useInputStyles = makeStyles(theme => ({
     textOverflow: 'ellipsis'
   }),
   focused: {
-    borderRadius: '2rem'
+    borderRadius: '2rem',
+    boxShadow: normalShadow
   }
 }))
 

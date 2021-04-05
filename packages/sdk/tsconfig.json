@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "lib": ["dom"],
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "emitDecoratorMetadata": true,
+    "declaration": true,
+    "declarationDir": ".",
+    "declarationMap": true,
+    "skipLibCheck": true,
+    "target": "es2015",
+    "noImplicitAny": false,
+    "noUnusedLocals": true,
+    "moduleResolution": "node",
+    "sourceMap": false,
+    "outDir": "dist",
+    "baseUrl": "src",
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "paths": {
+      "*": ["node_modules/*", "src/types/*"],
+      "src/*": ["*"]
+    },
+    "forceConsistentCasingInFileNames": true,
+    "typeRoots": ["node", "./node_modules/@types", "./@types"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test", "**/*.test.ts"]
+}

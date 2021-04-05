@@ -14,7 +14,6 @@
     "sourceMap": false,
     "outDir": "dist",
     "baseUrl": "src",
-    "experimentalDecorators": true,
     "paths": {
       "*": ["node_modules/*", "src/types/*"],
       "src/*": ["*"]

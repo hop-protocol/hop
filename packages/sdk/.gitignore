@@ -10,3 +10,5 @@ src/package.json
 package-lock.json
 *.map
 /*.d.ts
+.env
+*.env

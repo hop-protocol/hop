@@ -1,37 +1,36 @@
 import Hop from 'src/Hop'
 import { Wallet, providers } from 'ethers'
+import { parseUnits } from 'ethers/lib/utils'
 import { Chain, Route, Token, TokenAmount, Transfer } from 'src/models'
 import { privateKey } from './config'
 import pkg from '../package.json'
 
 describe('sdk', () => {
+	const hop = new Hop()
+	const signer = new Wallet(privateKey)
   it('version', () => {
-    const hop = new Hop()
     expect(hop.version).toBe(pkg.version)
   })
-  it.skip('send', async () => {
-    const hop = new Hop()
+  it('send - using preconfigured token', async () => {
+    const tokenAmount = parseUnits('0.1', 18)
+    const tx = await hop
+      .connect(signer)
+      .bridge(Token.USDC)
+      .send(tokenAmount, Chain.Kovan, Chain.Optimism)
 
-    const kovanProvider = new providers.StaticJsonRpcProvider(
-      'https://kovan.rcp.hop.exchange'
-    )
-    const optimismProvider = new providers.StaticJsonRpcProvider(
-      'https://kovan.optimism.io'
-    )
-    const signer = new Wallet(privateKey)
-    const sourceChain = new Chain(42, 'Kovan', kovanProvider)
-    const destChain = new Chain(69, 'Optimism Testnet', optimismProvider)
-    const token = new Token(
-      42,
-      '0x7326510Cf9Ae0397dbBaF37FABba54f0A7b8D100',
-      18,
-      'USDC',
-      'USD Coin'
-    )
-    const tokenAmount = new TokenAmount(token, '1000000')
-    const route = new Route(sourceChain, destChain)
-    const transfer = new Transfer(route, tokenAmount)
-    const tx = await hop.connect(signer).send(transfer)
+    console.log('tx hash:', tx?.hash)
+
+    expect(tx.hash).toBeTruthy()
+  })
+  it('send - using pre-onfigured token and bridge routes', async () => {
+    const tokenAmount = parseUnits('0.1', 18)
+    const tx = await hop
+      .connect(signer)
+      .bridge(Token.USDC, Chain.Kovan, Chain.Optimism)
+      .send(tokenAmount)
+
+    console.log('tx hash:', tx?.hash)
+
     expect(tx.hash).toBeTruthy()
   })
 })

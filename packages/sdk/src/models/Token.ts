@@ -1,11 +1,15 @@
-import { ethers } from 'ethers'
+import { ethers, providers } from 'ethers'
+import { addresses, chains } from 'src/config'
 
 class Token {
-  readonly chainId: number
-  readonly address: string
-  readonly decimals: number
-  readonly symbol: string
-  readonly name: string
+  public readonly chainId: number
+  public readonly address: string
+  public readonly decimals: number = 18
+  public readonly symbol: string = ''
+  public readonly name: string = ''
+
+  static USDC = 'USDC'
+  static DAI = 'DAI'
 
   constructor (
     chainId: number | string,
@@ -14,11 +18,21 @@ class Token {
     symbol: string,
     name: string
   ) {
-    this.chainId = Number(chainId)
-    this.address = ethers.utils.getAddress(address)
-    this.decimals = decimals
-    this.symbol = symbol
-    this.name = name
+    if (chainId) {
+      this.chainId = Number(chainId)
+    }
+    if (address) {
+      this.address = ethers.utils.getAddress(address)
+    }
+    if (decimals) {
+      this.decimals = decimals
+    }
+    if (symbol) {
+      this.symbol = symbol
+    }
+    if (name) {
+      this.name = name
+    }
   }
 }
 

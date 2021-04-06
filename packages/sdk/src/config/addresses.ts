@@ -175,3 +175,66 @@ export const addresses: HopAddresses = {
     ...demoTokens
   }
 }
+
+export const chains: any = {
+  kovan: {
+    name: 'Kovan',
+    chainId: '42',
+    rpcUrl: 'https://kovan.rpc.hop.exchange',
+    explorerUrl: 'https://kovan.etherscan.io/'
+  },
+  arbitrum: {
+    name: 'Arbitrum',
+    chainId: '79377087078960',
+    rpcUrl: 'https://kovan3.arbitrum.io/rpc',
+    explorerUrl: 'https://explorer.offchainlabs.com/#/'
+  },
+  optimism: {
+    name: 'Optimism',
+    chainId: '69',
+    rpcUrl: 'https://kovan.optimism.io',
+    explorerUrl:
+      'https://expedition.dev/?rpcUrl=https%3A%2F%2Fkovan.optimism.io'
+  },
+  xdai: {
+    name: 'xDai',
+    chainId: '77',
+    rpcUrl: 'https://sokol.poa.network',
+    explorerUrl: 'https://blockscout.com/poa/sokol/'
+  }
+}
+
+export const metadata: any = {
+  tokens: {
+    DAI: {
+      symbol: 'DAI',
+      name: 'DAI Stablecoin',
+      decimals: 18
+    },
+    ARB: {
+      symbol: 'ARB',
+      name: 'ARB Token',
+      decimals: 18
+    },
+    sETH: {
+      symbol: 'sETH',
+      name: 'Synth ETH',
+      decimals: 18
+    },
+    sBTC: {
+      symbol: 'sBTC',
+      name: 'Synth BTC',
+      decimals: 18
+    },
+    USDC: {
+      symbol: 'USDC',
+      name: 'USDC',
+      decimals: 18
+    },
+    WBTC: {
+      symbol: 'WBTC',
+      name: 'Wrapped BTC',
+      decimals: 18
+    }
+  }
+}

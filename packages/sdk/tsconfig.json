@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "lib": ["dom"],
+    "types": ["node", "jest"],
     "module": "commonjs",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,

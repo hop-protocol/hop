@@ -20,7 +20,8 @@
     "release": "npm run clean && npm test && npm run publish-module && npm run dist-tag:next",
     "release-dist": "npm run release && npm run dist-tag:latest",
     "bump-release": "npm run bump && npm run release",
-    "prepare": "npm run lint && npm run build"
+    "prepare": "npm run lint && npm run build",
+    "docs": "rimraf docs/ && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --out docs src/index.ts"
   },
   "directories": {},
   "author": "",
@@ -54,6 +55,8 @@
     "standard": "^12.0.1",
     "ts-jest": "^26.5.4",
     "tsify": "^4.0.1",
+    "typedoc": "^0.20.35",
+    "typedoc-plugin-markdown": "^3.6.1",
     "typescript": "^4.2.3",
     "uglify-es": "^3.3.9"
   },

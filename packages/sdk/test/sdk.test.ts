@@ -6,8 +6,8 @@ import { privateKey } from './config'
 import pkg from '../package.json'
 
 describe('sdk', () => {
-	const hop = new Hop()
-	const signer = new Wallet(privateKey)
+  const hop = new Hop()
+  const signer = new Wallet(privateKey)
   it('version', () => {
     expect(hop.version).toBe(pkg.version)
   })

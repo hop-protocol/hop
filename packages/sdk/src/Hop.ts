@@ -348,10 +348,31 @@ class HopBridge {
     return (Date.now() / 1000 + this.defaultDeadlineMinutes * 60) | 0
   }
 }
-
+/**
+ * Class reprensenting Hop
+ * @namespace Hop
+ */
 class Hop {
   public signer: Signer
-
+  /**
+   * @desc Instantiates Hop SDK.
+   * Returns a new Hop SDK instance.
+   * @param {Object} signer - Ethers `Signer` for signing transactions.
+   * @example
+   *```js
+   *import { Hop } from '@hop-protocol/sdk'
+   *
+   *const hop = new Hop(signer)
+   *```
+   * @example
+   *```js
+   *import { Hop } from '@hop-protocol/sdk'
+   *import { Wallet } from 'ethers'
+   *
+   *const signer = new Wallet(privateKey)
+   *const hop = new Hop(signer)
+   *```
+   */
   constructor (signer?: Signer) {
     if (signer) {
       this.signer = signer
@@ -359,7 +380,12 @@ class Hop {
   }
 
   bridge (tokenSymbol: string, sourceChain?: Chain, destinationChain?: Chain) {
-    return new HopBridge(this.signer, tokenSymbol, sourceChain, destinationChain)
+    return new HopBridge(
+      this.signer,
+      tokenSymbol,
+      sourceChain,
+      destinationChain
+    )
   }
 
   connect (signer: Signer) {

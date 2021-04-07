@@ -11,6 +11,7 @@
     "build:ts": "tsc",
     "build:browser": "browserify -t [ babelify --presets [ @babel/preset-env ] ] dist/index.js | uglifyjs > hop.js",
     "clean": "rimraf dist",
+    "clean:docs": "rimraf docs",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
     "lint": "prettier-standard --format",
     "publish-module": "npm publish --tag beta --access public && npm run dist-tag:next",
@@ -21,7 +22,7 @@
     "release-dist": "npm run release && npm run dist-tag:latest",
     "bump-release": "npm run bump && npm run release",
     "prepare": "npm run lint && npm run build",
-    "docs": "rimraf docs/ && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --out docs src/index.ts"
+    "docs": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md"
   },
   "directories": {},
   "author": "",
@@ -48,6 +49,7 @@
     "aliasify": "^2.1.0",
     "babelify": "^10.0.0",
     "browserify": "^16.5.0",
+    "concat-md": "^0.3.5",
     "jest": "^26.6.3",
     "lerna-sync-version": "^0.0.4",
     "prettier-standard": "^16.4.1",

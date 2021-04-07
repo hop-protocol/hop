@@ -1,5 +1,3 @@
-[@hop-protocol/sdk](../README.md) / [Exports](../modules.md) / Route
-
 # Class: Route
 
 ## Table of contents
@@ -17,31 +15,25 @@
 
 ### constructor
 
-\+ **new Route**(`source`: [_Chain_](chain.md), `destination`: [_Chain_](chain.md)): [_Route_](route.md)
+\+ **new Route**(`source`: [*Chain*](chain.md), `destination`: [*Chain*](chain.md)): [*Route*](route.md)
 
 #### Parameters:
 
-| Name          | Type                |
-| :------------ | :------------------ |
-| `source`      | [_Chain_](chain.md) |
-| `destination` | [_Chain_](chain.md) |
+Name | Type |
+:------ | :------ |
+`source` | [*Chain*](chain.md) |
+`destination` | [*Chain*](chain.md) |
 
-**Returns:** [_Route_](route.md)
-
-Defined in: [models/Route.ts:5](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Route.ts#L5)
+**Returns:** [*Route*](route.md)
 
 ## Properties
 
 ### destination
 
-• `Readonly` **destination**: [_Chain_](chain.md)
+• `Readonly` **destination**: [*Chain*](chain.md)
 
-Defined in: [models/Route.ts:5](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Route.ts#L5)
-
----
+___
 
 ### source
 
-• `Readonly` **source**: [_Chain_](chain.md)
-
-Defined in: [models/Route.ts:4](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Route.ts#L4)
+• `Readonly` **source**: [*Chain*](chain.md)

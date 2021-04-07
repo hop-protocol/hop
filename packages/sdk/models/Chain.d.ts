@@ -11,6 +11,7 @@ declare class Chain {
   static Arbitrum: Chain
   static xDai: Chain
   constructor (chainId: number | string, name: string, provider: Provider)
+  equals (otherChain: Chain): boolean
 }
 export default Chain
 //# sourceMappingURL=Chain.d.ts.map

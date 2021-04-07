@@ -1,5 +1,3 @@
-[@hop-protocol/sdk](../README.md) / [Exports](../modules.md) / Hop
-
 # Class: Hop
 
 Class reprensenting Hop
@@ -25,26 +23,25 @@ Class reprensenting Hop
 - [bridge](hop.md#bridge)
 - [connect](hop.md#connect)
 - [getSignerAddress](hop.md#getsigneraddress)
+- [watch](hop.md#watch)
 
 ## Constructors
 
 ### constructor
 
-\+ **new Hop**(`signer?`: _Signer_): [_Hop_](hop.md)
+\+ **new Hop**(`signer?`: *Signer*): [*Hop*](hop.md)
 
 **`desc`** Instantiates Hop SDK.
 Returns a new Hop SDK instance.
 
-**`example`**
-
+**`example`** 
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
 const hop = new Hop(signer)
 ```
 
-**`example`**
-
+**`example`** 
 ```js
 import { Hop } from '@hop-protocol/sdk'
 import { Wallet } from 'ethers'
@@ -55,72 +52,121 @@ const hop = new Hop(signer)
 
 #### Parameters:
 
-| Name      | Type     | Description                               |
-| :-------- | :------- | :---------------------------------------- |
-| `signer?` | _Signer_ | Ethers `Signer` for signing transactions. |
+Name | Type | Description |
+:------ | :------ | :------ |
+`signer?` | *Signer* | Ethers `Signer` for signing transactions.   |
 
-**Returns:** [_Hop_](hop.md)
-
-Defined in: [Hop.ts:356](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/Hop.ts#L356)
+**Returns:** [*Hop*](hop.md)
 
 ## Properties
 
 ### signer
 
-• **signer**: _Signer_
-
-Defined in: [Hop.ts:356](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/Hop.ts#L356)
+• **signer**: *Signer*
 
 ## Accessors
 
 ### version
 
-• get **version**(): _string_
+• get **version**(): *string*
 
-**Returns:** _string_
+**`desc`** Returns the SDK version.
 
-Defined in: [Hop.ts:395](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/Hop.ts#L395)
+**`example`** 
+```js
+import { Hop } from '@hop-protocol/sdk'
+
+const hop = new Hop()
+console.log(hop.version)
+```
+
+**Returns:** *string*
 
 ## Methods
 
 ### bridge
 
-▸ **bridge**(`tokenSymbol`: _string_, `sourceChain?`: [_Chain_](chain.md), `destinationChain?`: [_Chain_](chain.md)): _HopBridge_
+▸ **bridge**(`tokenSymbol`: *string*, `sourceChain?`: [*Chain*](chain.md), `destinationChain?`: [*Chain*](chain.md)): [*HopBridge*](hopbridge.md)
+
+**`desc`** Returns a bridge set instance.
+
+**`example`** 
+```js
+import { Hop, Token } from '@hop-protocol/sdk'
+
+const hop = new Hop()
+const bridge = hop.bridge(Token.USDC)
+```
 
 #### Parameters:
 
-| Name                | Type                |
-| :------------------ | :------------------ |
-| `tokenSymbol`       | _string_            |
-| `sourceChain?`      | [_Chain_](chain.md) |
-| `destinationChain?` | [_Chain_](chain.md) |
+Name | Type | Description |
+:------ | :------ | :------ |
+`tokenSymbol` | *string* | Token symbol of token of bridge to use.   |
+`sourceChain?` | [*Chain*](chain.md) | Source chain model.   |
+`destinationChain?` | [*Chain*](chain.md) | Destination chain model.   |
 
-**Returns:** _HopBridge_
+**Returns:** [*HopBridge*](hopbridge.md)
 
-Defined in: [Hop.ts:382](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/Hop.ts#L382)
-
----
+___
 
 ### connect
 
-▸ **connect**(`signer`: _Signer_): [_Hop_](hop.md)
+▸ **connect**(`signer`: *Signer*): [*Hop*](hop.md)
+
+**`desc`** Returns hop instance with signer connected. Used for adding or changing signer.
+
+**`example`** 
+```js
+import { Hop } from '@hop-protocol/sdk'
+import { Wallet } from 'ethers'
+
+const signer = new Wallet(privateKey)
+let hop = new Hop()
+// ...
+hop = hop.connect(signer)
+```
 
 #### Parameters:
 
-| Name     | Type     |
-| :------- | :------- |
-| `signer` | _Signer_ |
+Name | Type | Description |
+:------ | :------ | :------ |
+`signer` | *Signer* | Ethers `Signer` for signing transactions.   |
 
-**Returns:** [_Hop_](hop.md)
+**Returns:** [*Hop*](hop.md)
 
-Defined in: [Hop.ts:386](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/Hop.ts#L386)
-
----
+___
 
 ### getSignerAddress
 
-▸ **getSignerAddress**(): _Promise_<string\>
+▸ **getSignerAddress**(): *Promise*<string\>
 
-**Returns:** _Promise_<string\>
+**`desc`** Returns the connected signer address.
 
-Defined in: [Hop.ts:391](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/Hop.ts#L391)
+**`example`** 
+```js
+import { Hop } from '@hop-protocol/sdk'
+
+const hop = new Hop()
+const address = await hop.getSignerAddress()
+console.log(address)
+```
+
+**Returns:** *Promise*<string\>
+
+___
+
+### watch
+
+▸ **watch**(`txHash`: *string*, `token`: *string*, `sourceChain`: [*Chain*](chain.md), `destinationChain`: [*Chain*](chain.md)): *EventEmitter*<string \| symbol, any\>
+
+#### Parameters:
+
+Name | Type |
+:------ | :------ |
+`txHash` | *string* |
+`token` | *string* |
+`sourceChain` | [*Chain*](chain.md) |
+`destinationChain` | [*Chain*](chain.md) |
+
+**Returns:** *EventEmitter*<string \| symbol, any\>

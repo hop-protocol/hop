@@ -7,5 +7,6 @@ module.exports = {
     '^src/(.*)$': '<rootDir>/src/$1'
   },
   setupFiles: ['dotenv/config'],
-  bail: 1
+  bail: 1,
+  verbose: true
 }

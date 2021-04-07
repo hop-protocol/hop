@@ -1,359 +1,25 @@
 import './moduleAlias'
+import EventEmitter from 'eventemitter3'
 import { providers, Signer, Contract, BigNumber } from 'ethers'
 import { Chain, Token, Transfer } from 'src/models'
 import { addresses, chains, metadata } from 'src/config'
+import { wait } from 'src/utils'
 import l1BridgeArtifact from './abi/L1_Bridge.json'
 import l2BridgeArtifact from './abi/L2_Bridge.json'
 import uniswapRouterArtifact from './abi/UniswapV2Router02.json'
 import uniswapWrapperArtifact from './abi/L2_UniswapWrapper.json'
+import HopBridge from './HopBridge'
 import _version from './version'
 
 type Provider = providers.Provider
 
-type SendL1ToL2Input = {
-  destinationChainId: number | string
-  sourceChain: Chain
-  relayerFee?: number | string
-  amount: number | string
-  amountOutMin?: number | string
-}
-
-type SendL2ToL1Input = {
-  destinationChainId: number | string
-  sourceChain: Chain
-  amount: number | string
-  destinationAmountOutMin?: number | string
-  bonderFee?: number | string
-}
-
-type SendL2ToL2Input = {
-  destinationChainId: number | string
-  sourceChain: Chain
-  amount: number | string
-  destinationAmountOutMin?: number | string
-  bonderFee?: number | string
-}
-
-class HopBridge {
-  public token: Token
-  public signer: Signer
-  public sourceChain: Chain
-  public destinationChain: Chain
-  public defaultDeadlineMinutes = 30
-
-  constructor (
-    signer: Signer,
-    token: string | Token,
-    sourceChain?: Chain,
-    destinationChain?: Chain
-  ) {
-    if (!token) {
-      throw new Error('token symbol is required')
-    }
-
-    if (typeof token === 'string') {
-      const { name, symbol, decimals } = metadata.tokens[token]
-      token = new Token(0, '', decimals, name, symbol)
-    }
-
-    this.signer = signer
-    this.token = token
-    if (sourceChain) {
-      this.sourceChain = sourceChain
-    }
-    if (destinationChain) {
-      this.destinationChain = destinationChain
-    }
-  }
-
-  connect (signer: Signer) {
-    return new HopBridge(
-      signer,
-      this.token,
-      this.sourceChain,
-      this.destinationChain
-    )
-  }
-
-  async send (
-    tokenAmount: string | BigNumber,
-    sourceChain?: Chain,
-    destinationChain?: Chain
-  ) {
-    tokenAmount = tokenAmount.toString()
-    if (!sourceChain) {
-      sourceChain = this.sourceChain
-    }
-    if (!destinationChain) {
-      destinationChain = this.destinationChain
-    }
-    if (!sourceChain) {
-      throw new Error('source chain is required')
-    }
-    if (!destinationChain) {
-      throw new Error('destination chain is required')
-    }
-    // L1 -> L1 or L2
-    if (sourceChain.isL1) {
-      // L1 -> L1
-      if (destinationChain.isL1) {
-        throw new Error('not implemented')
-      }
-      // L1 -> L2
-      return this._sendL1ToL2({
-        destinationChainId: destinationChain.chainId,
-        sourceChain,
-        relayerFee: 0,
-        amount: tokenAmount,
-        amountOutMin: 0
-      })
-    }
-    // else:
-    // L2 -> L1 or L2
-
-    // L2 -> L1
-    if (destinationChain.isL1) {
-      const bonderFee = await this.getBonderFee(
-        tokenAmount,
-        sourceChain,
-        destinationChain
-      )
-      return this._sendL2ToL1({
-        destinationChainId: destinationChain.chainId,
-        sourceChain,
-        amount: tokenAmount,
-        bonderFee
-      })
-    }
-
-    // L2 -> L2
-    const bonderFee = await this.getBonderFee(
-      tokenAmount,
-      sourceChain,
-      destinationChain
-    )
-    return this._sendL2ToL2({
-      destinationChainId: destinationChain.chainId,
-      sourceChain,
-      amount: tokenAmount,
-      bonderFee
-    })
-  }
-
-  private async _sendL1ToL2 (input: SendL1ToL2Input) {
-    const {
-      destinationChainId,
-      sourceChain,
-      relayerFee,
-      amount,
-      amountOutMin
-    } = input
-    const tokenSymbol = this.token.symbol
-    const deadline = this.defaultDeadlineSeconds
-    const recipient = await this.getSignerAddress()
-    const bridgeAddress = addresses.tokens[tokenSymbol]['kovan'].l1Bridge
-    const l1Bridge = this.getL1Bridge(
-      bridgeAddress,
-      this.signer.connect(sourceChain.provider)
-    )
-    return l1Bridge.sendToL2(
-      destinationChainId,
-      recipient,
-      amount || 0,
-      amountOutMin || 0,
-      deadline,
-      relayerFee || 0
-    )
-  }
-
-  private async _sendL2ToL1 (input: SendL2ToL1Input) {
-    const {
-      destinationChainId,
-      sourceChain,
-      amount,
-      destinationAmountOutMin,
-      bonderFee
-    } = input
-    const tokenSymbol = this.token.symbol
-    const deadline = this.defaultDeadlineSeconds
-    const destinationDeadline = '0' // must be 0
-    const amountOutIn = '0' // must be 0
-    const recipient = await this.getSignerAddress()
-    const uniswapWrapperAddress =
-      addresses.tokens[tokenSymbol][sourceChain.slug].uniswapWrapper
-    const uniswapWrapper = this.getUniswapWrapper(
-      uniswapWrapperAddress,
-      this.signer.connect(sourceChain.provider)
-    )
-
-    if (BigNumber.from(bonderFee).gt(amount)) {
-      throw new Error('amount must be greater than bonder fee')
-    }
-
-    return uniswapWrapper.swapAndSend(
-      destinationChainId,
-      recipient,
-      amount,
-      bonderFee.toString(),
-      amountOutIn,
-      deadline,
-      destinationAmountOutMin || 0,
-      destinationDeadline,
-      {
-        //gasLimit: 1000000
-      }
-    )
-  }
-
-  private async _sendL2ToL2 (input: SendL2ToL2Input) {
-    const {
-      destinationChainId,
-      sourceChain,
-      amount,
-      destinationAmountOutMin,
-      bonderFee
-    } = input
-    const tokenSymbol = this.token.symbol
-    const deadline = this.defaultDeadlineSeconds
-    const destinationDeadline = deadline
-    const amountOutIn = '0'
-    const recipient = await this.getSignerAddress()
-    if (BigNumber.from(bonderFee).gt(amount)) {
-      throw new Error('Amount must be greater than bonder fee')
-    }
-
-    const uniswapWrapperAddress =
-      addresses.tokens[tokenSymbol][sourceChain.slug].uniswapWrapper
-    const uniswapWrapper = await this.getUniswapWrapper(
-      uniswapWrapperAddress,
-      this.signer.connect(sourceChain.provider)
-    )
-    return uniswapWrapper.swapAndSend(
-      destinationChainId,
-      recipient,
-      amount,
-      bonderFee,
-      amountOutIn,
-      deadline,
-      destinationAmountOutMin || 0,
-      destinationDeadline
-    )
-  }
-
-  async getBonderFee (
-    amountIn: string,
-    sourceChain: Chain,
-    destinationChain: Chain
-  ) {
-    const amountOut = await this._calcAmountOut(
-      amountIn,
-      true,
-      sourceChain,
-      destinationChain
-    )
-    const tokenSymbol = this.token.symbol
-    const bridgeAddress =
-      addresses.tokens[tokenSymbol][sourceChain.slug].l2Bridge
-    const l2Bridge = this.getL2Bridge(
-      bridgeAddress,
-      this.signer.connect(sourceChain.provider)
-    )
-    const minBonderBps = await l2Bridge?.minBonderBps()
-    const minBonderFeeAbsolute = await l2Bridge?.minBonderFeeAbsolute()
-    const minBonderFeeRelative = amountOut.mul(minBonderBps).div(10000)
-    const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
-      ? minBonderFeeRelative
-      : minBonderFeeAbsolute
-    return minBonderFee
-  }
-
-  async _calcAmountOut (
-    amount: string,
-    isAmountIn: boolean,
-    sourceChain: Chain,
-    destinationChain: Chain
-  ): Promise<BigNumber> {
-    const tokenSymbol = this.token.symbol
-    let path
-    let uniswapRouterAddress
-    let uniswapRouter
-    if (sourceChain.isL1) {
-      if (!destinationChain) {
-        return BigNumber.from('0')
-      }
-      let l2CanonicalTokenAddress =
-        addresses.tokens[tokenSymbol][destinationChain.slug].l2CanonicalToken
-      let l2HopBridgeTokenAddress =
-        addresses.tokens[tokenSymbol][destinationChain.slug].l2HopBridgeToken
-      path = [l2HopBridgeTokenAddress, l2CanonicalTokenAddress]
-      uniswapRouterAddress =
-        addresses.tokens[tokenSymbol][destinationChain.slug].uniswapRouter
-    } else {
-      if (!sourceChain) {
-        return BigNumber.from('0')
-      }
-      let l2CanonicalTokenAddress =
-        addresses.tokens[tokenSymbol][sourceChain.slug].l2CanonicalToken
-      let l2HopBridgeTokenAddress =
-        addresses.tokens[tokenSymbol][sourceChain.slug].l2HopBridgeToken
-      path = [l2CanonicalTokenAddress, l2HopBridgeTokenAddress]
-      uniswapRouterAddress =
-        addresses.tokens[tokenSymbol][sourceChain.slug].uniswapRouter
-    }
-    uniswapRouter = this.getUniswapRouter(
-      uniswapRouterAddress,
-      this.signer.connect(sourceChain.provider)
-    )
-    if (!path) {
-      return BigNumber.from('0')
-    }
-    if (isAmountIn) {
-      const amountsOut = await uniswapRouter?.getAmountsOut(amount, path)
-      return amountsOut[1]
-    } else {
-      const amountsIn = await uniswapRouter?.getAmountsIn(amount, path)
-      return amountsIn[0]
-    }
-  }
-
-  getL1Bridge (bridgeAddress: string, signer: Signer) {
-    return new Contract(bridgeAddress, l1BridgeArtifact.abi, signer)
-  }
-
-  getL2Bridge (bridgeAddress: string, signer: Signer) {
-    return new Contract(bridgeAddress, l2BridgeArtifact.abi, signer)
-  }
-
-  getUniswapRouter (uniswapRouterAddress: string, signer: Signer) {
-    return new Contract(
-      uniswapRouterAddress,
-      uniswapRouterArtifact.abi,
-      this.signer
-    )
-  }
-
-  getUniswapWrapper (uniswapWrapperAddress: string, signer: Signer) {
-    return new Contract(
-      uniswapWrapperAddress,
-      uniswapWrapperArtifact.abi,
-      signer
-    )
-  }
-
-  getSignerAddress () {
-    return this.signer?.getAddress()
-  }
-
-  get defaultDeadlineSeconds () {
-    return (Date.now() / 1000 + this.defaultDeadlineMinutes * 60) | 0
-  }
-}
 /**
  * Class reprensenting Hop
  * @namespace Hop
  */
 class Hop {
   public signer: Signer
+
   /**
    * @desc Instantiates Hop SDK.
    * Returns a new Hop SDK instance.
@@ -379,6 +45,19 @@ class Hop {
     }
   }
 
+  /**
+   * @desc Returns a bridge set instance.
+   * @param {String} tokenSymbol - Token symbol of token of bridge to use.
+   * @param {Object} sourceChain - Source chain model.
+   * @param {Object} destinationChain - Destination chain model.
+   * @example
+   *```js
+   *import { Hop, Token } from '@hop-protocol/sdk'
+   *
+   *const hop = new Hop()
+   *const bridge = hop.bridge(Token.USDC)
+   *```
+   */
   bridge (tokenSymbol: string, sourceChain?: Chain, destinationChain?: Chain) {
     return new HopBridge(
       this.signer,
@@ -388,17 +67,274 @@ class Hop {
     )
   }
 
+  /**
+   * @desc Returns hop instance with signer connected. Used for adding or changing signer.
+   * @param {Object} signer - Ethers `Signer` for signing transactions.
+   * @example
+   *```js
+   *import { Hop } from '@hop-protocol/sdk'
+   *import { Wallet } from 'ethers'
+   *
+   *const signer = new Wallet(privateKey)
+   *let hop = new Hop()
+   * // ...
+   *hop = hop.connect(signer)
+   *```
+   */
   connect (signer: Signer) {
     this.signer = signer
     return new Hop(signer)
   }
 
+  /**
+   * @desc Returns the connected signer address.
+   * @example
+   *```js
+   *import { Hop } from '@hop-protocol/sdk'
+   *
+   *const hop = new Hop()
+   *const address = await hop.getSignerAddress()
+   *console.log(address)
+   *```
+   */
   getSignerAddress () {
     return this.signer?.getAddress()
   }
 
+  /**
+   * @desc Returns the SDK version.
+   * @example
+   *```js
+   *import { Hop } from '@hop-protocol/sdk'
+   *
+   *const hop = new Hop()
+   *console.log(hop.version)
+   *```
+   */
   get version () {
     return _version
+  }
+
+  watch (
+    txHash: string,
+    token: string,
+    sourceChain: Chain,
+    destinationChain: Chain
+  ) {
+    const ee = new EventEmitter()
+
+    const update = async () => {
+      const bridge = this.bridge(token, sourceChain, destinationChain)
+      const l1Bridge = bridge.getL1Bridge()
+
+      const receipt = await sourceChain.provider.waitForTransaction(txHash)
+      ee.emit('receipt', { chain: sourceChain, receipt })
+      if (!receipt.status) {
+        return
+      }
+      const sourceTx = await sourceChain.provider.getTransaction(txHash)
+      const sourceBlock = await sourceChain.provider.getBlock(
+        sourceTx.blockNumber as number
+      )
+      const sourceTimestamp = sourceBlock?.timestamp
+
+      // L1 -> L2
+      if (sourceChain.isL1) {
+        const decodedSource = l1Bridge?.interface.decodeFunctionData(
+          'sendToL2',
+          sourceTx.data
+        )
+        const chainId = decodedSource?.chainId
+        const l2Bridge = bridge.getL2Bridge(destinationChain)
+        const exchange = bridge.getUniswapExchange(destinationChain)
+        const pollDest = async () => {
+          const blockNumber = await destinationChain.provider.getBlockNumber()
+          if (!blockNumber) {
+            return false
+          }
+          let recentLogs: any[] =
+            (await exchange?.queryFilter(
+              exchange.filters.Swap(),
+              (blockNumber as number) - 100
+            )) ?? []
+          recentLogs = recentLogs.reverse()
+          if (!recentLogs || !recentLogs.length) {
+            return false
+          }
+          for (let item of recentLogs) {
+            const decodedLog = item.decode(item.data, item.topics)
+            if (sourceTx.from === decodedLog.to) {
+              if (
+                decodedSource?.amount.toString() !==
+                decodedLog.amount0In.toString()
+              ) {
+                continue
+              }
+              if (!sourceTimestamp) {
+                continue
+              }
+              const destTx = await item.getTransaction()
+              const destBlock = await destinationChain.provider.getBlock(
+                destTx.blockNumber
+              )
+              if (!destBlock) {
+                continue
+              }
+              if (destBlock.timestamp - sourceTimestamp < 500) {
+                const destTxReceipt = await destinationChain.provider.waitForTransaction(
+                  destTx.hash
+                )
+                ee.emit('receipt', {
+                  chain: destinationChain,
+                  receipt: destTxReceipt
+                })
+                return true
+              }
+            }
+            return false
+          }
+          return false
+        }
+        let res = false
+        while (!res) {
+          res = await pollDest()
+          await wait(5e3)
+        }
+      }
+
+      // L2 -> L1
+      if (!sourceChain.isL1 && destinationChain?.isL1) {
+        const wrapper = bridge.getUniswapWrapper(sourceChain)
+        const decodedSource = wrapper?.interface.decodeFunctionData(
+          'swapAndSend',
+          sourceTx.data
+        )
+        let transferHash: string = ''
+        for (let log of receipt.logs) {
+          const transferSentTopic =
+            '0x6ea037b8ea9ecdf62eae513fc0f331de4e4a9df62927a789d840281438d14ce5'
+          if (log.topics[0] === transferSentTopic) {
+            transferHash = log.topics[1]
+          }
+        }
+        if (!transferHash) {
+          return false
+        }
+        const pollDest = async () => {
+          const blockNumber = await destinationChain.provider.getBlockNumber()
+          if (!blockNumber) {
+            return false
+          }
+          let recentLogs: any[] =
+            (await l1Bridge?.queryFilter(
+              l1Bridge.filters.WithdrawalBonded(),
+              (blockNumber as number) - 100
+            )) ?? []
+          recentLogs = recentLogs.reverse()
+          if (!recentLogs || !recentLogs.length) {
+            return false
+          }
+          for (let item of recentLogs) {
+            if (item.topics[1] === transferHash) {
+              const destTx = await item.getTransaction()
+              const destTxReceipt = await destinationChain.provider.waitForTransaction(
+                destTx.hash
+              )
+              ee.emit('receipt', {
+                chain: destinationChain,
+                receipt: destTxReceipt
+              })
+              return true
+            }
+          }
+          return false
+        }
+        let res = false
+        while (!res) {
+          res = await pollDest()
+          await wait(5e3)
+        }
+      }
+
+      // L2 -> L2
+      if (!sourceChain.isL1 && !destinationChain?.isL1) {
+        const wrapperSource = bridge.getUniswapWrapper(sourceChain)
+        const exchange = bridge.getUniswapExchange(destinationChain)
+        const destinationBridge = bridge.getL2Bridge(destinationChain)
+        const decodedSource = wrapperSource?.interface.decodeFunctionData(
+          'swapAndSend',
+          sourceTx.data
+        )
+        let transferHash: string = ''
+        for (let log of receipt.logs) {
+          const transferSentTopic =
+            '0x6ea037b8ea9ecdf62eae513fc0f331de4e4a9df62927a789d840281438d14ce5'
+          if (log.topics[0] === transferSentTopic) {
+            transferHash = log.topics[1]
+            break
+          }
+        }
+        if (!transferHash) {
+          return false
+        }
+        const pollDest = async () => {
+          const blockNumber = await destinationChain.provider.getBlockNumber()
+          if (!blockNumber) {
+            return false
+          }
+          let recentLogs: any[] =
+            (await exchange?.queryFilter(
+              exchange.filters.Swap(),
+              (blockNumber as number) - 100
+            )) ?? []
+          recentLogs = recentLogs.reverse()
+          for (let item of recentLogs) {
+            const decodedLog = item.decode(item.data, item.topics)
+            if (sourceTx.from === decodedLog.to) {
+              /*
+            if (
+              decodedSource?.amount.toString() !==
+              decodedLog.amount0In.toString()
+            ) {
+              continue
+            }
+            */
+              if (!sourceTimestamp) {
+                continue
+              }
+              const destTx = await item.getTransaction()
+              const destBlock = await destinationChain.provider.getBlock(
+                destTx.blockNumber
+              )
+              if (!destBlock) {
+                continue
+              }
+              //if ((destBlock.timestamp - sourceTimestamp) < 500) {
+              const destTxReceipt = await destinationChain.provider.waitForTransaction(
+                destTx.hash
+              )
+              ee.emit('receipt', {
+                chain: destinationChain,
+                receipt: destTxReceipt
+              })
+              return true
+              //}
+            }
+            return false
+          }
+          return false
+        }
+        let res = false
+        while (!res) {
+          res = await pollDest()
+          await wait(5e3)
+        }
+      }
+    }
+
+    update()
+
+    return ee
   }
 }
 

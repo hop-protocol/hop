@@ -29,6 +29,10 @@ class Chain {
     this.provider = provider
     this.isL1 = Object.values(EthereumChainId).includes(this.chainId)
   }
+
+  equals (otherChain: Chain) {
+    return this.slug == otherChain.slug
+  }
 }
 
 export default Chain

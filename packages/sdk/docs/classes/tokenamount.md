@@ -1,5 +1,3 @@
-[@hop-protocol/sdk](../README.md) / [Exports](../modules.md) / TokenAmount
-
 # Class: TokenAmount
 
 ## Table of contents
@@ -17,31 +15,25 @@
 
 ### constructor
 
-\+ **new TokenAmount**(`token`: [_Token_](token.md), `amount`: _string_): [_TokenAmount_](tokenamount.md)
+\+ **new TokenAmount**(`token`: [*Token*](token.md), `amount`: *string*): [*TokenAmount*](tokenamount.md)
 
 #### Parameters:
 
-| Name     | Type                |
-| :------- | :------------------ |
-| `token`  | [_Token_](token.md) |
-| `amount` | _string_            |
+Name | Type |
+:------ | :------ |
+`token` | [*Token*](token.md) |
+`amount` | *string* |
 
-**Returns:** [_TokenAmount_](tokenamount.md)
-
-Defined in: [models/TokenAmount.ts:5](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/TokenAmount.ts#L5)
+**Returns:** [*TokenAmount*](tokenamount.md)
 
 ## Properties
 
 ### amount
 
-• `Readonly` **amount**: _string_
+• `Readonly` **amount**: *string*
 
-Defined in: [models/TokenAmount.ts:5](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/TokenAmount.ts#L5)
-
----
+___
 
 ### token
 
-• `Readonly` **token**: [_Token_](token.md)
-
-Defined in: [models/TokenAmount.ts:4](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/TokenAmount.ts#L4)
+• `Readonly` **token**: [*Token*](token.md)

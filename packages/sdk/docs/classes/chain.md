@@ -1,5 +1,3 @@
-[@hop-protocol/sdk](../README.md) / [Exports](../modules.md) / Chain
-
 # Class: Chain
 
 ## Table of contents
@@ -20,92 +18,90 @@
 - [Optimism](chain.md#optimism)
 - [xDai](chain.md#xdai)
 
+### Methods
+
+- [equals](chain.md#equals)
+
 ## Constructors
 
 ### constructor
 
-\+ **new Chain**(`chainId`: _string_ \| _number_, `name`: _string_, `provider`: _Provider_): [_Chain_](chain.md)
+\+ **new Chain**(`chainId`: *string* \| *number*, `name`: *string*, `provider`: *Provider*): [*Chain*](chain.md)
 
 #### Parameters:
 
-| Name       | Type                 |
-| :--------- | :------------------- |
-| `chainId`  | _string_ \| _number_ |
-| `name`     | _string_             |
-| `provider` | _Provider_           |
+Name | Type |
+:------ | :------ |
+`chainId` | *string* \| *number* |
+`name` | *string* |
+`provider` | *Provider* |
 
-**Returns:** [_Chain_](chain.md)
-
-Defined in: [models/Chain.ts:23](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Chain.ts#L23)
+**Returns:** [*Chain*](chain.md)
 
 ## Properties
 
 ### chainId
 
-• `Readonly` **chainId**: _number_
+• `Readonly` **chainId**: *number*
 
-Defined in: [models/Chain.ts:14](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Chain.ts#L14)
-
----
+___
 
 ### isL1
 
-• `Readonly` **isL1**: _boolean_= false
+• `Readonly` **isL1**: *boolean*= false
 
-Defined in: [models/Chain.ts:18](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Chain.ts#L18)
-
----
+___
 
 ### name
 
-• `Readonly` **name**: _string_= ''
+• `Readonly` **name**: *string*= ''
 
-Defined in: [models/Chain.ts:15](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Chain.ts#L15)
-
----
+___
 
 ### provider
 
-• `Readonly` **provider**: _Provider_= null
+• `Readonly` **provider**: *Provider*= null
 
-Defined in: [models/Chain.ts:17](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Chain.ts#L17)
-
----
+___
 
 ### slug
 
-• `Readonly` **slug**: _string_= ''
+• `Readonly` **slug**: *string*= ''
 
-Defined in: [models/Chain.ts:16](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Chain.ts#L16)
-
----
+___
 
 ### Arbitrum
 
-▪ `Static` **Arbitrum**: [_Chain_](chain.md)
+▪ `Static` **Arbitrum**: [*Chain*](chain.md)
 
-Defined in: [models/Chain.ts:22](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Chain.ts#L22)
-
----
+___
 
 ### Kovan
 
-▪ `Static` **Kovan**: [_Chain_](chain.md)
+▪ `Static` **Kovan**: [*Chain*](chain.md)
 
-Defined in: [models/Chain.ts:20](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Chain.ts#L20)
-
----
+___
 
 ### Optimism
 
-▪ `Static` **Optimism**: [_Chain_](chain.md)
+▪ `Static` **Optimism**: [*Chain*](chain.md)
 
-Defined in: [models/Chain.ts:21](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Chain.ts#L21)
-
----
+___
 
 ### xDai
 
-▪ `Static` **xDai**: [_Chain_](chain.md)
+▪ `Static` **xDai**: [*Chain*](chain.md)
 
-Defined in: [models/Chain.ts:23](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Chain.ts#L23)
+## Methods
+
+### equals
+
+▸ **equals**(`otherChain`: [*Chain*](chain.md)): *boolean*
+
+#### Parameters:
+
+Name | Type |
+:------ | :------ |
+`otherChain` | [*Chain*](chain.md) |
+
+**Returns:** *boolean*

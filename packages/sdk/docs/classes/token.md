@@ -1,5 +1,3 @@
-[@hop-protocol/sdk](../README.md) / [Exports](../modules.md) / Token
-
 # Class: Token
 
 ## Table of contents
@@ -22,74 +20,58 @@
 
 ### constructor
 
-\+ **new Token**(`chainId`: _string_ \| _number_, `address`: _string_, `decimals`: _number_, `symbol`: _string_, `name`: _string_): [_Token_](token.md)
+\+ **new Token**(`chainId`: *string* \| *number*, `address`: *string*, `decimals`: *number*, `symbol`: *string*, `name`: *string*): [*Token*](token.md)
 
 #### Parameters:
 
-| Name       | Type                 |
-| :--------- | :------------------- |
-| `chainId`  | _string_ \| _number_ |
-| `address`  | _string_             |
-| `decimals` | _number_             |
-| `symbol`   | _string_             |
-| `name`     | _string_             |
+Name | Type |
+:------ | :------ |
+`chainId` | *string* \| *number* |
+`address` | *string* |
+`decimals` | *number* |
+`symbol` | *string* |
+`name` | *string* |
 
-**Returns:** [_Token_](token.md)
-
-Defined in: [models/Token.ts:12](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Token.ts#L12)
+**Returns:** [*Token*](token.md)
 
 ## Properties
 
 ### address
 
-• `Readonly` **address**: _string_
+• `Readonly` **address**: *string*
 
-Defined in: [models/Token.ts:6](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Token.ts#L6)
-
----
+___
 
 ### chainId
 
-• `Readonly` **chainId**: _number_
+• `Readonly` **chainId**: *number*
 
-Defined in: [models/Token.ts:5](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Token.ts#L5)
-
----
+___
 
 ### decimals
 
-• `Readonly` **decimals**: _number_= 18
+• `Readonly` **decimals**: *number*= 18
 
-Defined in: [models/Token.ts:7](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Token.ts#L7)
-
----
+___
 
 ### name
 
-• `Readonly` **name**: _string_= ''
+• `Readonly` **name**: *string*= ''
 
-Defined in: [models/Token.ts:9](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Token.ts#L9)
-
----
+___
 
 ### symbol
 
-• `Readonly` **symbol**: _string_= ''
+• `Readonly` **symbol**: *string*= ''
 
-Defined in: [models/Token.ts:8](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Token.ts#L8)
-
----
+___
 
 ### DAI
 
-▪ `Static` **DAI**: _string_= 'DAI'
+▪ `Static` **DAI**: *string*= 'DAI'
 
-Defined in: [models/Token.ts:12](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Token.ts#L12)
-
----
+___
 
 ### USDC
 
-▪ `Static` **USDC**: _string_= 'USDC'
-
-Defined in: [models/Token.ts:11](https://github.com/hop-exchange/hop/blob/7eb35e3/packages/sdk/src/models/Token.ts#L11)
+▪ `Static` **USDC**: *string*= 'USDC'

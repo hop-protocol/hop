@@ -1,8 +1,8 @@
-import Token from './Token'
+import Token from './Token';
 declare class TokenAmount {
-  readonly token: Token
-  readonly amount: string
-  constructor (token: Token, amount: string)
+    readonly token: Token;
+    readonly amount: string;
+    constructor(token: Token, amount: string);
 }
-export default TokenAmount
+export default TokenAmount;
 //# sourceMappingURL=TokenAmount.d.ts.map

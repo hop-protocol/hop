@@ -12,3 +12,4 @@ package-lock.json
 /*.d.ts
 .env
 *.env
+docs

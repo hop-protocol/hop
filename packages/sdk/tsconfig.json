@@ -7,7 +7,7 @@
     "allowSyntheticDefaultImports": true,
     "emitDecoratorMetadata": true,
     "declaration": true,
-    "declarationDir": ".",
+    "declarationDir": "dist",
     "declarationMap": true,
     "skipLibCheck": true,
     "target": "es2015",
@@ -16,12 +16,12 @@
     "moduleResolution": "node",
     "sourceMap": false,
     "outDir": "dist",
-    "baseUrl": "src",
+    "baseUrl": ".",
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "paths": {
       "*": ["node_modules/*", "src/types/*"],
-      "src/*": ["*"]
+      "src/*": ["src/*"]
     },
     "forceConsistentCasingInFileNames": true,
     "typeRoots": ["node", "./node_modules/@types", "./@types"]

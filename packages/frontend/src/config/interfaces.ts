@@ -16,3 +16,19 @@ export interface IProposal {
   endBlock: number
   details: IProposalDetail[]
 }
+
+export interface HopAddresses {
+  governance: {
+    l1Hop: string
+    stakingRewardsFactory: string
+    stakingRewards: string
+    governorAlpha: string
+  }
+  tokens: {
+    [key: string]: {
+      [key: string]: {
+        [key: string]: string
+      }
+    }
+  }
+}

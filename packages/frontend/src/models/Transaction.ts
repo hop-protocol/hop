@@ -4,6 +4,7 @@ import { L1_NETWORK } from 'src/constants'
 import { getRpcUrl } from 'src/utils'
 import { getBaseExplorerUrl } from 'src/utils'
 import Token from 'src/models/Token'
+import { network as defaultNetwork } from 'src/config'
 
 interface Config {
   networkName: string
@@ -42,7 +43,7 @@ class Transaction extends EventEmitter {
   }: Config) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
-    this.networkName = (networkName || 'kovan').trim().toLowerCase()
+    this.networkName = (networkName || defaultNetwork).trim().toLowerCase()
     let rpcUrl = ''
     if (networkName.startsWith('arbitrum')) {
       rpcUrl = getRpcUrl('arbitrum')

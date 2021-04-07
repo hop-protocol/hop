@@ -176,3 +176,29 @@ export const addresses: HopAddresses = {
     ...otherTokens
   }
 }
+
+export const networks: any = {
+  kovan: {
+    networkId: '42',
+    rpcUrl: 'https://kovan.rpc.hop.exchange',
+    explorerUrl: 'https://kovan.etherscan.io/'
+  },
+  /*
+  arbitrum: {
+    networkId: '79377087078960',
+    rpcUrl: 'https://kovan3.arbitrum.io/rpc',
+    explorerUrl: 'https://explorer.offchainlabs.com/#/'
+  },
+	*/
+  optimism: {
+    networkId: '69',
+    rpcUrl: 'https://kovan.optimism.io',
+    explorerUrl:
+      'https://expedition.dev/?rpcUrl=https%3A%2F%2Fkovan.optimism.io'
+  },
+  xdai: {
+    networkId: '77',
+    rpcUrl: 'https://sokol.poa.network',
+    explorerUrl: 'https://blockscout.com/poa/sokol/'
+  }
+}

@@ -2,6 +2,7 @@ import React, { FC } from 'react'
 import { Theme, makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Button from 'src/components/buttons/Button'
+import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import HeaderRoutes from 'src/components/Header/HeaderRoutes'
 import TxPill from 'src/components/Header/TxPill'
@@ -37,6 +38,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 const Header: FC = () => {
   const styles = useStyles()
   const { address, requestWallet } = useWeb3Context()
+  const { l1Network } = useApp()
 
   return (
     <Box className={styles.root} display="flex" alignItems="center">
@@ -48,7 +50,9 @@ const Header: FC = () => {
       >
         <h1 className={styles.title}>
           <img className={styles.hopLogo} src={HopLogoFullColor} alt="Hop" />
-          {!isMainnet ? <span className={styles.label}>Kovan</span> : null}
+          {!isMainnet ? (
+            <span className={styles.label}>{l1Network?.name}</span>
+          ) : null}
         </h1>
       </Box>
       <Box display="flex" flexDirection="row" flex={1} justifyContent="center">

@@ -72,6 +72,11 @@ export const metadata: Metadata = {
       isLayer1: true,
       image: MainnetLogo
     },
+    goerli: {
+      name: 'Goerli',
+      isLayer1: true,
+      image: MainnetLogo
+    },
     mainnet: {
       name: 'Mainnet',
       isLayer1: true,

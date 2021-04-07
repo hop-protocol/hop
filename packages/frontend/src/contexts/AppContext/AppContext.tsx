@@ -16,6 +16,7 @@ import logger from 'src/logger'
 type AppContextProps = {
   user: User | undefined
   networks: Network[]
+  l1Network: Network | undefined
   contracts: Contracts | undefined
   tokens: Token[]
   events: Events | undefined
@@ -27,6 +28,7 @@ type AppContextProps = {
 const AppContext = createContext<AppContextProps>({
   user: undefined,
   networks: [],
+  l1Network: undefined,
   contracts: undefined,
   tokens: [],
   events: undefined,
@@ -54,12 +56,14 @@ const AppContextProvider: FC = ({ children }) => {
   const txHistory = useTxHistory()
   const accountDetails = useAccountDetails()
   const txConfirm = useTxConfirm()
+  const l1Network = networks?.[0]
 
   return (
     <AppContext.Provider
       value={{
         user,
         networks,
+        l1Network,
         contracts,
         tokens,
         events,

@@ -40,7 +40,8 @@ const Pools: FC = () => {
     setError,
     tokens,
     selectedToken,
-    setSelectedToken
+    setSelectedToken,
+    selectedNetwork
   } = useFaucet()
 
   const handleMint = () => {
@@ -74,7 +75,7 @@ const Pools: FC = () => {
       </Box>
       <Box display="flex" alignItems="center" className={styles.box}>
         <Typography variant="body1" className={styles.text}>
-          Mint {mintAmount} Kovan
+          Mint {mintAmount} {selectedNetwork?.name}
           <RaisedSelect
             value={selectedToken?.symbol}
             onChange={handleTokenChange}
@@ -104,7 +105,7 @@ const Pools: FC = () => {
       </Box>
       <Box display="flex" alignItems="center" className={styles.box}>
         <Typography variant="body1" className={styles.text}>
-          Get Kovan ETH
+          Get {selectedNetwork?.name} ETH
         </Typography>
         <Button
           className={styles.button}
@@ -112,7 +113,7 @@ const Pools: FC = () => {
           large
           highlighted
         >
-          Get kETH ↗
+          Get {selectedNetwork?.name} ETH ↗
         </Button>
       </Box>
       <Box display="flex" alignItems="center" className={styles.box}>

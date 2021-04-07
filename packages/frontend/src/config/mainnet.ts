@@ -9,3 +9,29 @@ export const addresses: HopAddresses = {
   },
   tokens: {}
 }
+
+export const networks: any = {
+  mainnet: {
+    networkId: '1',
+    rpcUrl: 'https://mainnet.rpc.hop.exchange',
+    explorerUrl: 'https://etherscan.io/'
+  },
+  /*
+  arbitrum: {
+    networkId: '?',
+    rpcUrl: 'https://mainnet.arbitrum.io/rpc',
+    explorerUrl: 'https://explorer.offchainlabs.com/#/'
+  },
+	*/
+  optimism: {
+    networkId: '69',
+    rpcUrl: 'https://mainnet.optimism.io',
+    explorerUrl:
+      'https://expedition.dev/?rpcUrl=https%3A%2F%2Fmainnet.optimism.io'
+  },
+  xdai: {
+    networkId: '100',
+    rpcUrl: 'https://rpc.xdaichain.com',
+    explorerUrl: 'https://blockscout.com/xdai/mainnet/'
+  }
+}

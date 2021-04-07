@@ -154,11 +154,13 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [sending, setSending] = useState<boolean>(false)
   const selectedNetworkSlug = selectedNetwork?.slug
   const uniswapRouter =
-    contracts?.tokens[selectedToken.symbol][selectedNetworkSlug]?.uniswapRouter
+    contracts?.tokens[selectedToken?.symbol]?.[selectedNetworkSlug]
+      ?.uniswapRouter
   const uniswapFactory =
-    contracts?.tokens[selectedToken.symbol][selectedNetworkSlug]?.uniswapFactory
+    contracts?.tokens[selectedToken?.symbol]?.[selectedNetworkSlug]
+      ?.uniswapFactory
   const uniswapExchange =
-    contracts?.tokens[selectedToken.symbol][selectedNetworkSlug]
+    contracts?.tokens[selectedToken?.symbol]?.[selectedNetworkSlug]
       ?.uniswapExchange
 
   useEffect(() => {

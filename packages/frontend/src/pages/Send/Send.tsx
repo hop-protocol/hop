@@ -147,7 +147,8 @@ const Send: FC = () => {
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [tx, setTx] = useState<Transaction | null>(null)
-  const l1Bridge = contracts?.tokens[selectedToken?.symbol][L1_NETWORK].l1Bridge
+  const l1Bridge =
+    contracts?.tokens[selectedToken?.symbol]?.[L1_NETWORK]?.l1Bridge
   const debouncer = useRef<number>(0)
 
   useEffect(() => {
@@ -748,7 +749,7 @@ const Send: FC = () => {
             Send
           </Typography>
           <RaisedSelect
-            value={selectedToken.symbol}
+            value={selectedToken?.symbol}
             onChange={handleTokenSelect}
           >
             {tokens.map(token => (

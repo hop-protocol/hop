@@ -131,7 +131,8 @@ const ConvertContextProvider: FC = ({ children }) => {
   )
   const [destTokenBalance, setDestTokenBalance] = useState<number | null>(null)
   const [error, setError] = useState<string | null | undefined>(null)
-  const l1Bridge = contracts?.tokens[selectedToken.symbol][L1_NETWORK].l1Bridge
+  const l1Bridge =
+    contracts?.tokens[selectedToken?.symbol]?.[L1_NETWORK]?.l1Bridge
   const networkPairMap = networks.reduce((obj, network) => {
     if (network.isLayer1) {
       return obj

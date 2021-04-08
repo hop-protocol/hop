@@ -22,7 +22,8 @@
     "release-dist": "npm run release && npm run dist-tag:latest",
     "bump-release": "npm run bump && npm run release",
     "prepare": "npm run lint && npm run build",
-    "docs": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md"
+    "docs": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
+    "docs:update-gitbook": "./scripts/update_gitbook.sh"
   },
   "directories": {},
   "author": "",

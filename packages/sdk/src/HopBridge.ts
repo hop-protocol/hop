@@ -13,12 +13,19 @@ import _version from './version'
 
 type Provider = providers.Provider
 
+type SendL1ToL1Input = {
+  destinationChain: Chain
+  sourceChain: Chain
+  amount: number | string
+}
+
 type SendL1ToL2Input = {
   destinationChainId: number | string
   sourceChain: Chain
   relayerFee?: number | string
   amount: number | string
   amountOutMin?: number | string
+  approval?: boolean
 }
 
 type SendL2ToL1Input = {
@@ -27,6 +34,7 @@ type SendL2ToL1Input = {
   amount: number | string
   destinationAmountOutMin?: number | string
   bonderFee?: number | string
+  approval?: boolean
 }
 
 type SendL2ToL2Input = {
@@ -35,6 +43,7 @@ type SendL2ToL2Input = {
   amount: number | string
   destinationAmountOutMin?: number | string
   bonderFee?: number | string
+  approval?: boolean
 }
 
 /**
@@ -72,7 +81,7 @@ class HopBridge {
    *```
    * @example
    *```js
-   *import { Hop, Token, Chain } from '@hop-protocol/sdk'
+   *import { Hop, Chain, Token } from '@hop-protocol/sdk'
    *import { Wallet } from 'ethers'
    *
    *const signer = new Wallet(privateKey)
@@ -128,13 +137,138 @@ class HopBridge {
   }
 
   /**
+   * @desc Returns token allowance.
+   * @param {Object} chain - Chain model.
+   * @param {String} spender - spender address.
+   * @returns Transaction object.
+   * @example
+   *```js
+   *import { Hop, Chain, Token } from '@hop-protocol/sdk'
+   *
+   *const bridge = hop.bridge(Token.USDC).connect(signer)
+   *const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+   *const allowance = bridge.allowance(Chain.xDai, spender)
+   *```
+   */
+  async allowance (chain: Chain, spender: string) {
+    const tokenContract = this.getErc20(chain)
+    const address = await this.getSignerAddress()
+    return tokenContract.allowance(address, spender)
+  }
+
+  /**
+   * @desc Returns token balance of signer.
+   * @param {Object} chain - Chain model.
+   * @param {String} spender - spender address.
+   * @returns Transaction object.
+   * @example
+   *```js
+   *import { Hop, Chain, Token } from '@hop-protocol/sdk'
+   *
+   *const bridge = hop.bridge(Token.USDC).connect(signer)
+   *const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+   *const allowance = bridge.allowance(Chain.xDai, spender)
+   *```
+   */
+  async balanceOf (chain: Chain) {
+    const tokenContract = this.getErc20(chain)
+    const address = await this.getSignerAddress()
+    return tokenContract.balanceOf(address)
+  }
+
+  /**
+   * @desc ERC20 token transfer
+   * @param {Object} chain - Chain model.
+   * @param {String} recipient - recipient address.
+   * @param {String} amount - Token amount.
+   * @returns Transaction object.
+   * @example
+   *```js
+   *import { Hop, Chain, Token } from '@hop-protocol/sdk'
+   *
+   *const bridge = hop.bridge(Token.USDC).connect(signer)
+   *const recipient = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+   *const amount = '1000000000000000000'
+   *const allowance = bridge.erc20Transfer(Chain.Kovan, spender, amount)
+   *```
+   */
+  async erc20Transfer (
+    chain: Chain,
+    recipient: string,
+    amount: string | number | BigNumber
+  ) {
+    const tokenContract = this.getErc20(chain)
+    return tokenContract.transfer(recipient, amount)
+  }
+
+  /**
+   * @desc Approve address to spend tokens if not enough allowance .
+   * @param {Object} chain - Chain model.
+   * @param {String} spender - spender address.
+   * @param {String} amount - amount allowed to spend.
+   * @returns Transaction object.
+   * @example
+   *```js
+   *import { Hop, Chain, Token } from '@hop-protocol/sdk'
+   *
+   *const bridge = hop.bridge(Token.USDC).connect(signer)
+   *const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+   *const amount = '1000000000000000000'
+   *const allowance = bridge.approve(Chain.xDai, spender, amount)
+   *```
+   */
+  async approve (
+    chain: Chain,
+    spender: string,
+    amount: string | number | BigNumber = MaxUint256
+  ) {
+    const tokenContract = this.getErc20(chain)
+    const allowance = await this.allowance(chain, spender)
+    if (allowance.lt(BigNumber.from(amount))) {
+      return tokenContract.approve(spender, amount)
+    }
+  }
+
+  /**
+   * @desc Approve and send tokens to another chain. This will make an approval
+   * transaction if not enough allowance.
+   * @param {String} tokenAmount - Token amount to send denominated in smallest unit.
+   * @param {Object} sourceChain - Source chain model.
+   * @param {Object} destinationChain - Destination chain model.
+   * @returns Transaction object.
+   * @example
+   *```js
+   *import { Hop, Token } from '@hop-protocol/sdk'
+   *
+   *const hop = new Hop()
+   *const bridge = hop.connect(signer).bridge(Token.USDC)
+   *\// send 1 USDC token from Optimism -> xDai
+   *const tx = await bridge.send('1000000000000000000', Chain.Optimism, Chain.xDai)
+   *console.log(tx.hash)
+   *```
+   */
+  async approveAndSend (
+    tokenAmount: string | BigNumber,
+    sourceChain?: Chain,
+    destinationChain?: Chain
+  ) {
+    return this._send(
+      tokenAmount.toString(),
+      sourceChain,
+      destinationChain,
+      true
+    )
+  }
+
+  /**
    * @desc Send tokens to another chain.
    * @param {String} tokenAmount - Token amount to send denominated in smallest unit.
    * @param {Object} sourceChain - Source chain model.
    * @param {Object} destinationChain - Destination chain model.
+   * @returns Transaction object.
    * @example
    *```js
-   *import { Hop, Token } from '@hop-protocol/sdk'
+   *import { Hop, Chain, Token } from '@hop-protocol/sdk'
    *
    *const hop = new Hop()
    *const bridge = hop.connect(signer).bridge(Token.USDC)
@@ -162,11 +296,34 @@ class HopBridge {
       throw new Error('destination chain is required')
     }
 
+    return this._send(
+      tokenAmount.toString(),
+      sourceChain,
+      destinationChain,
+      false
+    )
+  }
+
+  private async _send (
+    tokenAmount: string,
+    sourceChain: Chain,
+    destinationChain: Chain,
+    approval: boolean = false
+  ) {
+    const balance = await this.balanceOf(sourceChain)
+    if (balance.lt(BigNumber.from(tokenAmount))) {
+      throw new Error('not enough token balance')
+    }
+
     // L1 -> L1 or L2
     if (sourceChain.isL1) {
       // L1 -> L1
       if (destinationChain.isL1) {
-        throw new Error('not implemented')
+        return this._sendL1ToL1({
+          sourceChain,
+          destinationChain,
+          amount: tokenAmount
+        })
       }
       // L1 -> L2
       return this._sendL1ToL2({
@@ -174,7 +331,8 @@ class HopBridge {
         sourceChain,
         relayerFee: 0,
         amount: tokenAmount,
-        amountOutMin: 0
+        amountOutMin: 0,
+        approval
       })
     }
     // else:
@@ -191,7 +349,8 @@ class HopBridge {
         destinationChainId: destinationChain.chainId,
         sourceChain,
         amount: tokenAmount,
-        bonderFee
+        bonderFee,
+        approval
       })
     }
 
@@ -205,8 +364,46 @@ class HopBridge {
       destinationChainId: destinationChain.chainId,
       sourceChain,
       amount: tokenAmount,
-      bonderFee
+      bonderFee,
+      approval
     })
+  }
+
+  /**
+   * @desc Estimate token amount out.
+   * @param {String} tokenAmountIn - Token amount input.
+   * @param {Object} sourceChain - Source chain model.
+   * @param {Object} destinationChain - Destination chain model.
+   * @returns BigNumber object.
+   * @example
+   *```js
+   *import { Hop, Chain Token } from '@hop-protocol/sdk'
+   *
+   *const hop = new Hop()
+   *const bridge = hop.connect(signer).bridge(Token.USDC)
+   *const amountOut = await bridge.getAmountOut('1000000000000000000', Chain.Optimism, Chain.xDai)
+   *console.log(amountOut)
+   *```
+   */
+  async getAmountOut (
+    tokenAmountIn: string | number | BigNumber,
+    sourceChain?: Chain,
+    destinationChain?: Chain
+  ) {
+    const amountOut = await this._calcAmountOut(
+      tokenAmountIn.toString(),
+      true,
+      sourceChain,
+      destinationChain
+    )
+
+    return amountOut
+  }
+
+  private async _sendL1ToL1 (input: SendL1ToL1Input) {
+    const { sourceChain, destinationChain, amount } = input
+    const recipient = await this.getSignerAddress()
+    return this.erc20Transfer(sourceChain, recipient, amount)
   }
 
   private async _sendL1ToL2 (input: SendL1ToL2Input) {
@@ -215,12 +412,24 @@ class HopBridge {
       sourceChain,
       relayerFee,
       amount,
-      amountOutMin
+      amountOutMin,
+      approval
     } = input
     const tokenSymbol = this.token.symbol
     const deadline = this.defaultDeadlineSeconds
     const recipient = await this.getSignerAddress()
     const l1Bridge = this.getL1Bridge(this.signer.connect(sourceChain.provider))
+
+    if (approval) {
+      const tx = await this.approve(sourceChain, l1Bridge.address, amount)
+      await tx?.wait()
+    } else {
+      const allowance = await this.allowance(sourceChain, l1Bridge.address)
+      if (allowance.lt(BigNumber.from(amount))) {
+        throw new Error('not enough allowance')
+      }
+    }
+
     return l1Bridge.sendToL2(
       destinationChainId,
       recipient,
@@ -237,7 +446,8 @@ class HopBridge {
       sourceChain,
       amount,
       destinationAmountOutMin,
-      bonderFee
+      bonderFee,
+      approval
     } = input
     const tokenSymbol = this.token.symbol
     const deadline = this.defaultDeadlineSeconds
@@ -253,9 +463,18 @@ class HopBridge {
       throw new Error('amount must be greater than bonder fee')
     }
 
-    //const tokenContract = this.getErc20(sourceChain)
-    //let tx = await tokenContract.approve(uniswapWrapper.address, MaxUint256)
-    //await tx.wait()
+    if (approval) {
+      const tx = await this.approve(sourceChain, uniswapWrapper.address, amount)
+      await tx?.wait()
+    } else {
+      const allowance = await this.allowance(
+        sourceChain,
+        uniswapWrapper.address
+      )
+      if (allowance.lt(BigNumber.from(amount))) {
+        throw new Error('not enough allowance')
+      }
+    }
 
     return uniswapWrapper.swapAndSend(
       destinationChainId,
@@ -278,7 +497,8 @@ class HopBridge {
       sourceChain,
       amount,
       destinationAmountOutMin,
-      bonderFee
+      bonderFee,
+      approval
     } = input
     const tokenSymbol = this.token.symbol
     const deadline = this.defaultDeadlineSeconds
@@ -293,6 +513,20 @@ class HopBridge {
       sourceChain,
       this.signer.connect(sourceChain.provider)
     )
+
+    if (approval) {
+      const tx = await this.approve(sourceChain, uniswapWrapper.address, amount)
+      await tx?.wait()
+    } else {
+      const allowance = await this.allowance(
+        sourceChain,
+        uniswapWrapper.address
+      )
+      if (allowance.lt(BigNumber.from(amount))) {
+        throw new Error('not enough allowance')
+      }
+    }
+
     return uniswapWrapper.swapAndSend(
       destinationChainId,
       recipient,
@@ -448,6 +682,9 @@ class HopBridge {
   }
 
   getSignerAddress () {
+    if (!this.signer) {
+      throw new Error('signer not connected')
+    }
     return this.signer?.getAddress()
   }
 

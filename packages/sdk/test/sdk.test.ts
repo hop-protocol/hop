@@ -9,7 +9,7 @@ import {
   utils
 } from 'src/index'
 import { Wallet, providers } from 'ethers'
-import { parseUnits } from 'ethers/lib/utils'
+import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { privateKey } from './config'
 import pkg from '../package.json'
 
@@ -124,11 +124,17 @@ describe('sdk', () => {
             const { receipt, chain } = data
             if (chain.equals(Chain.xDai)) {
               sourceReceipt = receipt
-              console.log('got source transaction receipt')
+              console.log(
+                'got source transaction receipt:',
+                receipt.transactionHash
+              )
             }
             if (chain.equals(Chain.Optimism)) {
               destinationReceipt = receipt
-              console.log('got destination transaction receipt')
+              console.log(
+                'got destination transaction receipt:',
+                receipt.transactionHash
+              )
             }
             if (sourceReceipt && destinationReceipt) {
               resolve(null)
@@ -177,5 +183,18 @@ describe('sdk', () => {
       expect(tx.hash).toBeTruthy()
     },
     120 * 1000
+  )
+  it(
+    'getAmountOut - L2 -> L2',
+    async () => {
+      const tokenAmount = parseUnits('1', 18)
+      const amountOut = await hop
+        .connect(signer)
+        .bridge(Token.USDC)
+        .getAmountOut(tokenAmount, Chain.xDai, Chain.Optimism)
+
+      expect(Number(formatUnits(amountOut.toString(), 18))).toBeGreaterThan(0)
+    },
+    10 * 1000
   )
 })

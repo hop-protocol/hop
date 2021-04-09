@@ -1,6 +1,6 @@
 export const addresses = {
   DAI: {
-    kovan: {
+    ethereum: {
       l1CanonicalToken: '0x436e3FfB93A4763575E5C0F6b3c97D5489E050da',
       l1Bridge: '0x7d3101fE93Ff6dC009c2f50b6aD59DDD7F23dC5F'
     },
@@ -43,7 +43,7 @@ export const addresses = {
     }
   },
   sETH: {
-    kovan: {
+    ethereum: {
       l1CanonicalToken: '0x7EE6109672c07Dcf97435C8238835EFF5D6E89FD',
       l1Bridge: '0xfB576E0f97428e938Ca27AAF9668D39a8658A479'
     },
@@ -74,7 +74,7 @@ export const addresses = {
     }
   },
   sBTC: {
-    kovan: {
+    ethereum: {
       l1CanonicalToken: '0x7a4f56B0Dd21d730604A266245a0067b97605DAE',
       l1Bridge: '0x12084002058A998C3A7A3E306c9441bD858c8052'
     },
@@ -105,7 +105,7 @@ export const addresses = {
     }
   },
   USDC: {
-    kovan: {
+    ethereum: {
       l1CanonicalToken: '0x7326510Cf9Ae0397dbBaF37FABba54f0A7b8D100',
       l1Bridge: '0xb8d5B8c70E5727b633b96E89310fa3Cf12ff2985'
     },
@@ -136,7 +136,7 @@ export const addresses = {
     }
   },
   WBTC: {
-    kovan: {
+    ethereum: {
       l1CanonicalToken: '0x1E1a556D2166A006e662864D376e8DD249087150',
       l1Bridge: '0xA93eC98Ead897Ee8EF0b5CC9E2a658875719B224'
     },
@@ -168,7 +168,7 @@ export const addresses = {
   }
   /*
   ARB: {
-    kovan: {
+    ethereum: {
       l1CanonicalToken: '0xE41d965f6e7541139f8D9F331176867FB6972Baf',
       l1Bridge: '0x0E5a812ebA2b17B2Aea3E50Ed05518668839afa9'
     },
@@ -183,4 +183,28 @@ export const addresses = {
     }
   }
 	*/
+}
+
+export const networks: any = {
+  ethereum: {
+    networkId: '42',
+    rpcUrl: 'https://kovan.rpc.hop.exchange'
+  },
+  /*
+  arbitrum: {
+    networkId: '79377087078960',
+    rpcUrl: 'https://kovan3.arbitrum.io/rpc',
+    explorerUrl: 'https://explorer.offchainlabs.com/#/'
+  },
+  */
+  /*
+  optimism: {
+    networkId: '69',
+    rpcUrl: 'https://kovan.optimism.io',
+  },
+  */
+  xdai: {
+    networkId: '77',
+    rpcUrl: 'https://sokol.poa.network'
+  }
 }

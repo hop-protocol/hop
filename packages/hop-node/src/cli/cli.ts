@@ -3,8 +3,9 @@ import os from 'os'
 import fs from 'fs'
 import path from 'path'
 import { Command } from 'commander'
-import { db as dbConfig } from 'src/config'
+import { db as dbConfig, setConfigByNetwork } from 'src/config'
 import Logger, { setLogLevel } from 'src/logger'
+import { ETHEREUM, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
 import arbbots from 'src/arb-bot/bots'
 import {
   startWatchers,
@@ -17,12 +18,35 @@ import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 const logger = new Logger('config')
 const program = new Command()
 
+type NetworksConfig = {
+  [key: string]: any
+}
+
+type TokensConfig = {
+  [key: string]: boolean
+}
+
+type RolesConfig = {
+  bonder?: boolean
+  challenger?: boolean
+  arbBot?: boolean
+}
+
+type DbConfig = {
+  location: string
+}
+
+type LoggingConfig = {
+  level: string
+}
+
 type Config = {
-  networks: any
-  tokens: any
-  roles: any
-  db: any
-  logging: any
+  network?: string
+  networks?: NetworksConfig
+  tokens?: TokensConfig
+  roles?: RolesConfig
+  db?: DbConfig
+  logging?: LoggingConfig
 }
 
 program
@@ -34,6 +58,11 @@ program
       const logLevel = config.logging.level
       logger.log(`log level: "${logLevel}"`)
       setLogLevel(logLevel)
+    }
+    if (config?.network) {
+      const network = config.network
+      logger.log(`network: "${network}"`)
+      setConfigByNetwork(network)
     }
     const tokens = Object.keys(config?.tokens || {})
     const networks = Object.keys(config?.networks || {})
@@ -66,12 +95,17 @@ program
     '-t, --tokens <symbol>',
     'List of token by symbol to bond, comma separated'
   )
+  .option('--l1-network <network>', 'L1 network')
   .option(
     '-n, --networks <network>',
     'List of networks to bond, comma separated'
   )
   .description('Start the bonder watchers')
   .action(source => {
+    if (source.l1Network) {
+      logger.log(`network: "${source.l1Network}"`)
+      setConfigByNetwork(source.l1Network)
+    }
     const order = Number(source.order) || 0
     const tokens = parseArgList(source.tokens).map((value: string) =>
       value.toUpperCase()
@@ -160,18 +194,19 @@ async function validateConfig (config: any) {
     throw new Error('config must be a JSON object')
   }
 
-  const validSectionKeys = ['networks', 'tokens', 'roles', 'db', 'logging']
+  const validSectionKeys = [
+    'network',
+    'networks',
+    'tokens',
+    'roles',
+    'db',
+    'logging'
+  ]
   const sectionKeys = Object.keys(config)
   await validateKeys(validSectionKeys, sectionKeys)
 
   if (config['networks']) {
-    const validNetworkKeys = [
-      'kovan',
-      'mainnet',
-      'optimism',
-      'arbitrum',
-      'xdai'
-    ]
+    const validNetworkKeys = [ETHEREUM, OPTIMISM, ARBITRUM, XDAI]
     const networkKeys = Object.keys(config['networks'])
     await validateKeys(validNetworkKeys, networkKeys)
   }

@@ -1,5 +1,7 @@
 import '../moduleAlias'
-import * as ethers from 'ethers'
+import { ethers } from 'ethers'
+import memoize from 'fast-memoize'
+import { ETHEREUM } from 'src/constants'
 import erc20Artifact from 'src/abi/ERC20.json'
 import l1BridgeArtifact from 'src/abi/L1_Bridge.json'
 import l2BridgeArtifact from 'src/abi/L2_Bridge.json'
@@ -8,29 +10,28 @@ import uniswapRouterArtifact from 'src/abi/UniswapV2Router02.json'
 import uniswapFactoryArtifact from 'src/abi/UniswapV2Factory.json'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 
-import { tokens } from 'src/config'
-import { wallets } from 'src/wallets'
-import l1Wallet from 'src/wallets/l1Wallet'
+import { config } from 'src/config'
+import wallets from 'src/wallets'
 
 const getL1BridgeContract = (token: string) => {
   return new ethers.Contract(
-    tokens[token].kovan.l1Bridge,
+    config.tokens[token][ETHEREUM].l1Bridge,
     l1BridgeArtifact.abi,
-    l1Wallet
+    wallets.get(ETHEREUM)
   )
 }
 
 const getL1TokenContract = (token: string) => {
   return new ethers.Contract(
-    tokens[token].kovan.l1CanonicalToken,
+    config.tokens[token][ETHEREUM].l1CanonicalToken,
     erc20Artifact.abi,
-    l1Wallet
+    wallets.get(ETHEREUM)
   )
 }
 
 const getL2TokenContract = (token: string, network: string, wallet: any) => {
   return new ethers.Contract(
-    tokens[token][network].l2CanonicalToken,
+    config.tokens[token][network].l2CanonicalToken,
     erc20Artifact.abi,
     wallet
   )
@@ -42,7 +43,7 @@ const getL2HopBridgeTokenContract = (
   wallet: any
 ) => {
   return new ethers.Contract(
-    tokens[token][network].l2HopBridgeToken,
+    config.tokens[token][network].l2HopBridgeToken,
     erc20Artifact.abi,
     wallet
   )
@@ -50,7 +51,7 @@ const getL2HopBridgeTokenContract = (
 
 const getL2BridgeContract = (token: string, network: string, wallet: any) => {
   return new ethers.Contract(
-    tokens[token][network].l2Bridge,
+    config.tokens[token][network].l2Bridge,
     l2BridgeArtifact.abi,
     wallet
   )
@@ -62,7 +63,7 @@ const getL2UniswapWrapperContract = (
   wallet: any
 ) => {
   return new ethers.Contract(
-    tokens[token][network].l2UniswapWrapper,
+    config.tokens[token][network].l2UniswapWrapper,
     l2UniswapWrapperArtifact.abi,
     wallet
   )
@@ -74,7 +75,7 @@ const getL2UniswapRouterContract = (
   wallet: any
 ) => {
   return new ethers.Contract(
-    tokens[token][network].l2UniswapRouter,
+    config.tokens[token][network].l2UniswapRouter,
     uniswapRouterArtifact.abi,
     wallet
   )
@@ -86,7 +87,7 @@ const getL2UniswapFactoryContract = (
   wallet: any
 ) => {
   return new ethers.Contract(
-    tokens[token][network].l2UniswapFactory,
+    config.tokens[token][network].l2UniswapFactory,
     uniswapFactoryArtifact.abi,
     wallet
   )
@@ -98,16 +99,22 @@ const getL2UniswapExchangeContract = (
   wallet: any
 ) => {
   return new ethers.Contract(
-    tokens[token][network].l2UniswapExchange,
+    config.tokens[token][network].l2UniswapExchange,
     uniswapV2PairArtifact.abi,
     wallet
   )
 }
 
-export const contracts = Object.keys(tokens).reduce((acc, token) => {
-  acc[token] = Object.keys(tokens[token]).reduce((obj, network) => {
-    const wallet = wallets[network]
-    if (network === 'kovan') {
+const constructContractsObject = memoize((token: string) => {
+  if (!config.tokens[token]) {
+    return null
+  }
+  return Object.keys(config.tokens?.[token]).reduce((obj, network) => {
+    const wallet = wallets.get(network)
+    if (!wallet) {
+      return obj
+    }
+    if (network === ETHEREUM) {
       obj[network] = {
         l1Bridge: getL1BridgeContract(token),
         l1CanonicalToken: getL1TokenContract(token)
@@ -125,5 +132,15 @@ export const contracts = Object.keys(tokens).reduce((acc, token) => {
     }
     return obj
   }, {} as any)
-  return acc
-}, {} as any)
+})
+
+export default {
+  has (token: string, network: string) {
+    const contracts = constructContractsObject(token)
+    return !!contracts?.[network]
+  },
+  get (token: string, network: string) {
+    const contracts = constructContractsObject(token)
+    return contracts?.[network]
+  }
+} as any

@@ -34,7 +34,7 @@ export const addresses = {
 export const networks: any = {
   ethereum: {
     networkId: '42',
-    rpcUrl: 'https://kovan.rpc.hop.exchange'
+    rpcUrl: 'https://kovan.rpc.hop.exchange',
   },
   arbitrum: {
     networkId: '79377087078960',
@@ -43,10 +43,10 @@ export const networks: any = {
   },
   optimism: {
     networkId: '69',
-    rpcUrl: 'https://kovan.optimism.io'
+    rpcUrl: 'https://kovan.optimism.io',
   },
   xdai: {
     networkId: '77',
-    rpcUrl: 'https://sokol.poa.network'
+    rpcUrl: 'https://sokol.poa.network',
   }
 }

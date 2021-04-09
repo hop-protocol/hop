@@ -8,11 +8,15 @@ export default class ContractBase extends EventEmitter {
   constructor (contract: Contract) {
     super()
     this.contract = contract
+    if (!this.contract.provider) {
+      throw new Error('no provider found for contract')
+    }
     this.contract.provider
       .getNetwork()
       .then(({ chainId }: { chainId: number }) => {
         this.providerNetworkId = chainId.toString()
       })
+      .catch(err => console.log(`getNetwork() error: ${err.message}`))
   }
 
   get queueGroup () {

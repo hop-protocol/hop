@@ -36,6 +36,8 @@
     "dotenv": "^8.2.0",
     "ethereumjs-util": "^7.0.9",
     "ethers": "^5.0.32",
+    "fast-memoize": "^2.5.2",
+    "keythereum": "^1.0.4",
     "level": "^6.0.1",
     "level-sublevel": "^6.6.5",
     "leveldown": "^5.6.0",

@@ -1,6 +1,7 @@
 {
+  "network": "kovan",
   "networks": {
-    "kovan": {
+    "ethereum": {
       "rpcUrl": "https://kovan.rpc.hop.exchange"
     },
     "optimism": {

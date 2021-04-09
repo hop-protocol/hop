@@ -3,7 +3,7 @@ import { Watcher } from '@eth-optimism/watcher'
 import { ethers, Contract } from 'ethers'
 import { HDNode } from '@ethersproject/hdnode'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
-import { tokens } from 'src/config'
+import { config } from 'src/config'
 import l1BridgeArtifact from 'src/abi/L1_Bridge.json'
 import l2BridgeArtifact from 'src/abi/L2_Bridge.json'
 import erc20Artifact from 'src/abi/ERC20.json'
@@ -69,22 +69,22 @@ export class User {
   }
 
   getTokenContract (network: string, token: string) {
-    let tokenAddress = tokens[token][network].l2CanonicalToken
+    let tokenAddress = config.tokens[token][network].l2CanonicalToken
     if (network === KOVAN) {
-      tokenAddress = tokens[token][network].l1CanonicalToken
+      tokenAddress = config.tokens[token][network].l1CanonicalToken
     }
     const wallet = this.getWallet(network)
     return new Contract(tokenAddress, erc20Artifact.abi, wallet)
   }
 
   getUniswapRouterContract (network: string, token: string) {
-    let routerAddress = tokens[token][network].l2UniswapRouter
+    let routerAddress = config.tokens[token][network].l2UniswapRouter
     const wallet = this.getWallet(network)
     return new Contract(routerAddress, uniswapRouterArtifact.abi, wallet)
   }
 
   getUniswapPairContract (network: string, token: string) {
-    let pairAddress = tokens[token][network].l2UniswapExchange
+    let pairAddress = config.tokens[token][network].l2UniswapExchange
     const wallet = this.getWallet(network)
     return new Contract(pairAddress, uniswapPairArtifact.abi, wallet)
   }
@@ -117,10 +117,10 @@ export class User {
     let bridgeAddress: string
     let artifact: any
     if (network === KOVAN) {
-      bridgeAddress = tokens[token][network].l1Bridge
+      bridgeAddress = config.tokens[token][network].l1Bridge
       artifact = l1BridgeArtifact
     } else {
-      bridgeAddress = tokens[token][network].l2Bridge
+      bridgeAddress = config.tokens[token][network].l2Bridge
       artifact = l2BridgeArtifact
     }
 
@@ -129,13 +129,13 @@ export class User {
   }
 
   getHopBridgeTokenContract (network: string, token: string) {
-    let tokenAddress = tokens[token][network].l2HopBridgeToken
+    let tokenAddress = config.tokens[token][network].l2HopBridgeToken
     const wallet = this.getWallet(network)
     return new Contract(tokenAddress, erc20Artifact.abi, wallet)
   }
 
   getUniswapWrapperContract (network: string, token: string = DAI) {
-    const wrapperAddress = tokens[token][network].l2UniswapWrapper
+    const wrapperAddress = config.tokens[token][network].l2UniswapWrapper
     const wallet = this.getWallet(network)
     return new Contract(wrapperAddress, l2UniswapWrapperArtifact.abi, wallet)
   }
@@ -447,15 +447,15 @@ export class User {
   }
 
   getBridgeAddress (network: string, token: string) {
-    let address = tokens[token][network].l2Bridge
+    let address = config.tokens[token][network].l2Bridge
     if (network === KOVAN) {
-      address = tokens[token][network].l1Bridge
+      address = config.tokens[token][network].l1Bridge
     }
     return address
   }
 
   getUniswapWrapperAddress (network: string, token: string) {
-    return tokens[token][network].l2UniswapWrapper
+    return config.tokens[token][network].l2UniswapWrapper
   }
 
   async calcToken1Rate (network: string, token: string) {
@@ -511,19 +511,19 @@ export class User {
     const wallet = this.getWallet(KOVAN)
     if (destNetwork === ARBITRUM) {
       return new Contract(
-        tokens[token][destNetwork].l1CanonicalBridge,
+        config.tokens[token][destNetwork].l1CanonicalBridge,
         globalInboxArtifact.abi,
         wallet
       )
     } else if (destNetwork === OPTIMISM) {
       return new Contract(
-        tokens[token][destNetwork].l1CanonicalBridge,
+        config.tokens[token][destNetwork].l1CanonicalBridge,
         optimismTokenBridgeArtifact.abi,
         wallet
       )
     } else if (destNetwork === XDAI) {
       return new Contract(
-        tokens[token][destNetwork].l1CanonicalBridge,
+        config.tokens[token][destNetwork].l1CanonicalBridge,
         xDaiForeignOmnibridgeArtifact.abi,
         wallet
       )
@@ -543,14 +543,14 @@ export class User {
     const tokenBridge = this.getCanonicalBridgeContract(destNetwork, token)
     if (destNetwork === ARBITRUM) {
       return tokenBridge.depositERC20Message(
-        tokens[token][destNetwork].arbChain,
-        tokens[token][KOVAN].l1CanonicalToken,
+        config.tokens[token][destNetwork].arbChain,
+        config.tokens[token][KOVAN].l1CanonicalToken,
         recipient,
         value
       )
     } else if (destNetwork === OPTIMISM) {
-      const l1TokenAddress = tokens[token][KOVAN].l1CanonicalToken
-      const l2TokenAddress = tokens[token][destNetwork].l2CanonicalToken
+      const l1TokenAddress = config.tokens[token][KOVAN].l1CanonicalToken
+      const l2TokenAddress = config.tokens[token][destNetwork].l2CanonicalToken
       return tokenBridge.deposit(
         l1TokenAddress,
         l2TokenAddress,
@@ -559,7 +559,7 @@ export class User {
       )
     } else if (destNetwork === XDAI) {
       return tokenBridge.relayTokens(
-        tokens[token][KOVAN].l1CanonicalToken,
+        config.tokens[token][KOVAN].l1CanonicalToken,
         recipient,
         value
       )

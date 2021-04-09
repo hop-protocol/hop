@@ -1,7 +1,8 @@
 import * as ethers from 'ethers'
 import debounce from 'debounce-promise'
 import pThrottle from 'p-throttle'
-import { rpcUrls, networkIds } from 'src/config'
+import { ETHEREUM } from 'src/constants'
+import { config } from 'src/config'
 
 export const getL2MessengerId = (l2Name: string): string => {
   return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(l2Name))
@@ -18,18 +19,18 @@ export const wait = async (t: number) => {
 }
 
 export const getRpcUrl = (network: string): string | undefined => {
-  return rpcUrls[network]
+  return config.networks[network]?.rpcUrl
 }
 
 export const networkSlugToId = (network: string): string | undefined => {
-  return networkIds[network]
+  return config.networks[network]?.networkId
 }
 
 export const networkIdToSlug = (
   networkId: string | number
 ): string | undefined => {
-  for (let k in networkIds) {
-    let v = networkIds[k]
+  for (let k in config.networks) {
+    let v = config.networks[k].networkId
     if (v == networkId) {
       return k
     }
@@ -37,11 +38,11 @@ export const networkIdToSlug = (
 }
 
 export const isL1 = (network: string) => {
-  return network === 'kovan'
+  return network === ETHEREUM
 }
 
 export const isL2 = (network: string) => {
-  return network !== 'kovan'
+  return network !== ETHEREUM
 }
 
 export const isL1NetworkId = (networkId: number | string) => {

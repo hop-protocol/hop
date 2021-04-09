@@ -14,6 +14,7 @@ import {
   startCommitTransferWatchers
 } from 'src/watchers/watchers'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
+import { generateKeystore, recoverKeystore } from 'src/keystore'
 
 const logger = new Logger('config')
 const program = new Command()
@@ -161,11 +162,54 @@ program
   .action(() => {
     new xDaiBridgeWatcher().start()
   })
+
 program
   .command('stake')
   .description('Start the stake watcher')
   .action(source => {
     startStakeWatchers()
+  })
+
+program
+  .command('keystore')
+  .description('Keystore')
+  .option('--pass <passphrase>', 'Keystore passphrase to encrypt with')
+  .option('-o, --output <output>', 'Output file path')
+  .action(async source => {
+    const action = source.args[0]
+    const passphrase = source.pass
+    const output = source.output
+    if (!action) {
+      console.error(`please specify subcommand`)
+      return
+    }
+    if (action === 'generate') {
+      if (!passphrase) {
+        console.error(`please specify passphrase`)
+        return
+      }
+      const keystore = await generateKeystore(null, passphrase)
+      const filepath = path.resolve(output)
+      fs.writeFileSync(filepath, JSON.stringify(keystore), 'utf8')
+      console.log(`wrote to ${filepath}`)
+    } else if (action === 'decrypt') {
+      if (!passphrase) {
+        console.error(`please specify passphrase`)
+        return
+      }
+      const filepath = source.args[1]
+      if (!filepath) {
+        console.error('please specify filepath')
+        return
+      }
+      const keystore = JSON.parse(
+        fs.readFileSync(path.resolve(filepath), 'utf8')
+      )
+      const privateKey = await recoverKeystore(keystore, passphrase)
+      console.log(privateKey)
+    } else {
+      console.log(`unsupported command: "${action}"`)
+    }
   })
 
 program.parse(process.argv)

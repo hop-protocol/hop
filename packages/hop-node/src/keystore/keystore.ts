@@ -61,10 +61,17 @@ const recoverKeystore = async (
     passphrase = ''
   }
 
-  const privateKey = await keythereum
-    .recover(passphrase, keystore)
-    .toString('hex')
-  return privateKey
+  try {
+    const privateKey = await keythereum
+      .recover(passphrase, keystore)
+      .toString('hex')
+    return privateKey
+  } catch (err) {
+    if (err.message === 'message authentication code mismatch') {
+      throw new Error('keystore passphrase is invalid')
+    }
+    throw err
+  }
 }
 
 export { generateKeystore, recoverKeystore }

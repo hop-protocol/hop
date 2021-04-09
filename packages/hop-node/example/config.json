@@ -26,5 +26,8 @@
   },
   "logging": {
     "level": "debug"
+  },
+  "keystore": {
+    "location": "~/.hop-node/keystore.json"
   }
 }

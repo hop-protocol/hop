@@ -37,7 +37,8 @@ const getConfigByNetwork = (network: string) => {
 const { tokens, networks } = getConfigByNetwork(network)
 export const config = {
   tokens,
-  networks
+  networks,
+  bonderPrivateKey: process.env.BONDER_PRIVATE_KEY
 }
 
 const setConfigByNetwork = (network: string) => {
@@ -46,4 +47,8 @@ const setConfigByNetwork = (network: string) => {
   config.networks = networks
 }
 
-export { setConfigByNetwork }
+const setBonderPrivateKey = (privateKey: string) => {
+  config.bonderPrivateKey = privateKey
+}
+
+export { setConfigByNetwork, setBonderPrivateKey }

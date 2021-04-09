@@ -1,6 +1,6 @@
 import { ethers, Wallet } from 'ethers'
 import memoize from 'fast-memoize'
-import { bonderPrivateKey } from 'src/config'
+import { config } from 'src/config'
 import { getRpcUrl } from 'src/utils'
 
 const constructWallet = memoize(
@@ -10,7 +10,10 @@ const constructWallet = memoize(
       return null
     }
     const provider = new ethers.providers.StaticJsonRpcProvider(rpcUrl)
-    return new ethers.Wallet(bonderPrivateKey, provider)
+    if (!config.bonderPrivateKey) {
+      throw new Error('BONDER_PRIVATE_KEY is required')
+    }
+    return new ethers.Wallet(config.bonderPrivateKey, provider)
   }
 )
 

@@ -1,7 +1,7 @@
 {
   "name": "@hop-protocol/sdk",
   "version": "0.0.1-beta.0",
-  "description": "Hop SDK library",
+  "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/index.js",
   "types": "types/index.d.ts",
   "scripts": {

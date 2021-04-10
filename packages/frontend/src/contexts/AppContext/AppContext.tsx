@@ -1,4 +1,5 @@
 import React, { FC, useMemo, createContext, useContext } from 'react'
+import { Hop } from '@hop-protocol/sdk'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import User from 'src/models/User'
@@ -23,6 +24,7 @@ type AppContextProps = {
   accountDetails: AccountDetails | undefined
   txHistory: TxHistory | undefined
   txConfirm: TxConfirm | undefined
+  sdk: Hop | undefined
 }
 
 const AppContext = createContext<AppContextProps>({
@@ -34,7 +36,8 @@ const AppContext = createContext<AppContextProps>({
   events: undefined,
   accountDetails: undefined,
   txHistory: undefined,
-  txConfirm: undefined
+  txConfirm: undefined,
+  sdk: undefined
 })
 
 const AppContextProvider: FC = ({ children }) => {
@@ -57,10 +60,12 @@ const AppContextProvider: FC = ({ children }) => {
   const accountDetails = useAccountDetails()
   const txConfirm = useTxConfirm()
   const l1Network = networks?.[0]
+  const sdk = useMemo(() => new Hop(), [])
 
   return (
     <AppContext.Provider
       value={{
+        sdk,
         user,
         networks,
         l1Network,

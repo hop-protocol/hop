@@ -7,7 +7,7 @@ import {
   TokenAmount,
   Transfer,
   utils
-} from 'src/index'
+} from '../src/index'
 import { Wallet, providers } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { privateKey } from './config'

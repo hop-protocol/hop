@@ -3,7 +3,7 @@
   "version": "0.0.1-beta.0",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/index.js",
-  "types": "types/index.d.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "jest test",
     "dev": "npm run version && tsc --watch",
@@ -31,8 +31,7 @@
   "dependencies": {
     "dotenv": "^8.2.0",
     "ethers": "^5.1.0",
-    "eventemitter3": "^4.0.7",
-    "module-alias": "^2.2.2"
+    "eventemitter3": "^4.0.7"
   },
   "devDependencies": {
     "@babel/cli": "^7.7.0",
@@ -68,9 +67,6 @@
     "plugins": [
       "@typescript-eslint/eslint-plugin"
     ]
-  },
-  "_moduleAliases": {
-    "src": "src"
   },
   "husky": {
     "hooks": {

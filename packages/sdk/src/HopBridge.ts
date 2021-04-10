@@ -1,8 +1,7 @@
-import './moduleAlias'
 import { providers, Signer, Contract, BigNumber } from 'ethers'
-import { Chain, Token, Transfer } from 'src/models'
-import { addresses, chains, metadata } from 'src/config'
-import { MaxUint256 } from 'src/constants'
+import { Chain, Token, Transfer } from './models'
+import { addresses, chains, metadata } from './config'
+import { MaxUint256 } from './constants'
 import erc20Artifact from './abi/ERC20.json'
 import l1BridgeArtifact from './abi/L1_Bridge.json'
 import l2BridgeArtifact from './abi/L2_Bridge.json'
@@ -615,31 +614,28 @@ class HopBridge {
   getL1Bridge (signer: Signer = this.signer) {
     const tokenSymbol = this.token.symbol
     const bridgeAddress = addresses.tokens[tokenSymbol]['kovan'].l1Bridge
-    return new Contract(
-      bridgeAddress,
-      l1BridgeArtifact.abi,
-      signer.connect(Chain.Kovan.provider)
-    )
+    const provider = signer
+      ? signer.connect(Chain.Kovan.provider)
+      : Chain.Kovan.provider
+    return new Contract(bridgeAddress, l1BridgeArtifact.abi, provider)
   }
 
   getL2Bridge (chain: Chain, signer: Signer = this.signer) {
     const tokenSymbol = this.token.symbol
     const bridgeAddress = addresses.tokens[tokenSymbol][chain.slug].l2Bridge
-    return new Contract(
-      bridgeAddress,
-      l2BridgeArtifact.abi,
-      signer.connect(chain.provider)
-    )
+    const provider = signer ? signer.connect(chain.provider) : chain.provider
+    return new Contract(bridgeAddress, l2BridgeArtifact.abi, provider)
   }
 
   getUniswapRouter (chain: Chain, signer: Signer = this.signer) {
     const tokenSymbol = this.token.symbol
     const uniswapRouterAddress =
       addresses.tokens[tokenSymbol][chain.slug].l2UniswapRouter
+    const provider = signer ? signer.connect(chain.provider) : chain.provider
     return new Contract(
       uniswapRouterAddress,
       uniswapRouterArtifact.abi,
-      signer.connect(chain.provider)
+      chain.provider
     )
   }
 
@@ -647,10 +643,11 @@ class HopBridge {
     const tokenSymbol = this.token.symbol
     const uniswapExchangeAddress =
       addresses.tokens[tokenSymbol][chain.slug].l2UniswapExchange
+    const provider = signer ? signer.connect(chain.provider) : chain.provider
     return new Contract(
       uniswapExchangeAddress,
       uniswapExchangeArtifact.abi,
-      signer.connect(chain.provider)
+      provider
     )
   }
 
@@ -658,10 +655,11 @@ class HopBridge {
     const tokenSymbol = this.token.symbol
     const uniswapWrapperAddress =
       addresses.tokens[tokenSymbol][chain.slug].l2UniswapWrapper
+    const provider = signer ? signer.connect(chain.provider) : chain.provider
     return new Contract(
       uniswapWrapperAddress,
       uniswapWrapperArtifact.abi,
-      signer.connect(chain.provider)
+      provider
     )
   }
 
@@ -674,11 +672,10 @@ class HopBridge {
       tokenAddress = addresses.tokens[tokenSymbol][chain.slug].l2CanonicalToken
     }
 
-    return new Contract(
-      tokenAddress,
-      erc20Artifact.abi,
-      this.signer.connect(chain.provider)
-    )
+    const provider = this.signer
+      ? this.signer.connect(chain.provider)
+      : chain.provider
+    return new Contract(tokenAddress, erc20Artifact.abi, provider)
   }
 
   getSignerAddress () {

@@ -1,9 +1,8 @@
-import './moduleAlias'
 import EventEmitter from 'eventemitter3'
 import { providers, Signer, Contract, BigNumber } from 'ethers'
-import { Chain, Token, Transfer } from 'src/models'
-import { addresses, chains, metadata } from 'src/config'
-import { wait } from 'src/utils'
+import { Chain, Token, Transfer } from './models'
+import { addresses, chains, metadata } from './config'
+import { wait } from './utils'
 import l1BridgeArtifact from './abi/L1_Bridge.json'
 import l2BridgeArtifact from './abi/L2_Bridge.json'
 import uniswapRouterArtifact from './abi/UniswapV2Router02.json'
@@ -13,12 +12,26 @@ import _version from './version'
 
 type Provider = providers.Provider
 
+enum Event {
+  Receipt = 'receipt',
+  SourceTxReceipt = 'sourceTxReceipt',
+  DestinationTxReceipt = 'destinationTxReceipt'
+}
+
 /**
  * Class reprensenting Hop
  * @namespace Hop
  */
 class Hop {
   public signer: Signer
+
+  static Event = Event
+  static Chain = Chain
+  static Token = Token
+
+  Event = Event
+  Chain = Chain
+  Token = Token
 
   /**
    * @desc Instantiates Hop SDK.
@@ -128,7 +141,8 @@ class Hop {
       const l1Bridge = bridge.getL1Bridge()
 
       const receipt = await sourceChain.provider.waitForTransaction(txHash)
-      ee.emit('receipt', { chain: sourceChain, receipt })
+      ee.emit(Event.Receipt, { chain: sourceChain, receipt })
+      ee.emit(Event.SourceTxReceipt, { chain: sourceChain, receipt })
       if (!receipt.status) {
         return
       }
@@ -184,7 +198,11 @@ class Hop {
                 const destTxReceipt = await destinationChain.provider.waitForTransaction(
                   destTx.hash
                 )
-                ee.emit('receipt', {
+                ee.emit(Event.Receipt, {
+                  chain: destinationChain,
+                  receipt: destTxReceipt
+                })
+                ee.emit(Event.DestinationTxReceipt, {
                   chain: destinationChain,
                   receipt: destTxReceipt
                 })

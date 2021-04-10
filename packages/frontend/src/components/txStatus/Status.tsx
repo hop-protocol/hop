@@ -13,6 +13,7 @@ import Check from '@material-ui/icons/Check'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Zoom from '@material-ui/core/Zoom'
 import { StepIconProps } from '@material-ui/core/StepIcon'
+import CloseIcon from '@material-ui/icons/Close'
 import Transaction from 'src/models/Transaction'
 import { commafy } from 'src/utils'
 import { useStatus } from './StatusContext'
@@ -90,6 +91,11 @@ const useStepIconStyles = makeStyles({
     color: '#B32EFF',
     zIndex: 1,
     fontSize: '4rem'
+  },
+  failure: {
+    color: '#ff00a7',
+    zIndex: 1,
+    fontSize: '4rem'
   }
 })
 
@@ -114,6 +120,23 @@ function StepIcon (props: StepIconProps) {
         ) : (
           <div className={styles.circle} />
         )}
+      </div>
+    </div>
+  )
+}
+
+function StepFailIcon (props: StepIconProps) {
+  const styles = useStepIconStyles()
+  return (
+    <div
+      className={clsx(styles.root, {
+        [styles.active]: true
+      })}
+    >
+      <div className={styles.bg}>
+        <Zoom in={true} style={{ transitionDelay: '0ms' }}>
+          <CloseIcon className={styles.failure} />
+        </Zoom>
       </div>
     </div>
   )
@@ -159,7 +182,7 @@ const Status: FC<StatusProps> = (props: StatusProps) => {
                 classes={{
                   label: styles.stepLabel
                 }}
-                StepIconComponent={StepIcon}
+                StepIconComponent={step.error ? StepFailIcon : StepIcon}
               >
                 {step.url ? (
                   <a

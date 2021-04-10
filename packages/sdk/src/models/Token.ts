@@ -1,5 +1,5 @@
 import { ethers, providers } from 'ethers'
-import { addresses, chains } from 'src/config'
+import { addresses, chains } from '../config'
 
 class Token {
   public readonly chainId: number

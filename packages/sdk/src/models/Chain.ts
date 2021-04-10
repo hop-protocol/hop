@@ -1,14 +1,8 @@
 import { providers } from 'ethers'
-import { EthereumChainId } from 'src/constants'
-import { addresses, chains } from 'src/config'
+import { EthereumChainId } from '../constants'
+import { addresses, chains } from '../config'
 
 type Provider = providers.Provider
-
-const newChain = (chain: string) => {
-  const { name, rpcUrl, chainId } = chains[chain]
-  const provider = new providers.StaticJsonRpcProvider(rpcUrl)
-  return new Chain(Number(chainId), name, provider)
-}
 
 class Chain {
   readonly chainId: number
@@ -22,6 +16,10 @@ class Chain {
   static Arbitrum = newChain('arbitrum')
   static xDai = newChain('xdai')
 
+  static fromSlug (slug: string) {
+    return newChain(slug)
+  }
+
   constructor (chainId: number | string, name: string, provider: Provider) {
     this.chainId = Number(chainId)
     this.name = name
@@ -33,6 +31,15 @@ class Chain {
   equals (otherChain: Chain) {
     return this.slug == otherChain.slug
   }
+}
+
+function newChain (chain: string) {
+  if (!chains[chain]) {
+    throw new Error(`unsupported chain "${chain}"`)
+  }
+  const { name, rpcUrl, chainId } = chains[chain]
+  const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+  return new Chain(Number(chainId), name, provider)
 }
 
 export default Chain

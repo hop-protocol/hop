@@ -1,4 +1,4 @@
-import Token from 'src/models/Token'
+import Token from '../../src/models/Token'
 
 test('token', () => {
   const token = new Token(

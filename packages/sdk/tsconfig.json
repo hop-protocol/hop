@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["dom"],
+    "lib": ["dom", "es2017", "esnext"],
     "types": ["node", "jest"],
     "module": "commonjs",
     "esModuleInterop": true,
@@ -16,16 +16,15 @@
     "moduleResolution": "node",
     "sourceMap": false,
     "outDir": "dist",
-    "baseUrl": ".",
+    "baseUrl": "src",
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "paths": {
-      "*": ["node_modules/*", "src/types/*"],
-      "src/*": ["src/*"]
+      "@src/*": ["*"]
     },
     "forceConsistentCasingInFileNames": true,
     "typeRoots": ["node", "./node_modules/@types", "./@types"]
   },
-  "include": ["src/**/*"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist", "test", "**/*.test.ts"]
 }

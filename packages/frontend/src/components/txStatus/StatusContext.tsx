@@ -65,8 +65,8 @@ const StatusContextProvider: FC = ({ children }) => {
     if (activeStep < 2) {
       setActiveStep(1)
     }
-    const sourceChain = sdk?.Chain.fromSlug(tx.networkName)
-    const destChain = sdk?.Chain.fromSlug(tx.destNetworkName as string)
+    const sourceChain = sdk.Chain.fromSlug(tx.networkName)
+    const destChain = sdk.Chain.fromSlug(tx.destNetworkName as string)
     if (!sourceChain) {
       return false
     }
@@ -77,7 +77,7 @@ const StatusContextProvider: FC = ({ children }) => {
       { text: sourceChain.name, url: tx.explorerLink }
     ]
     sdk
-      ?.watch(tx.hash, sdk?.Token.USDC, sdk?.Chain.Kovan, sdk?.Chain.xDai)
+      .watch(tx.hash, tx.token.symbol, sourceChain, destChain)
       .on(sdk.Event.SourceTxReceipt, data => {
         const { receipt } = data
         if (!receipt.status) {
@@ -149,6 +149,10 @@ const StatusContextProvider: FC = ({ children }) => {
     }
 
     update().catch(logger.error)
+
+    return () => {
+
+    }
   }, [tx])
 
   return (

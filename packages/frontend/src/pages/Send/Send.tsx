@@ -97,7 +97,7 @@ const useStyles = makeStyles(theme => ({
 const Send: FC = () => {
   const styles = useStyles()
   const { pathname } = useLocation()
-  let { user, tokens, networks, contracts, txConfirm, txHistory } = useApp()
+  let { user, tokens, networks, contracts, txConfirm, txHistory, sdk } = useApp()
   const {
     provider,
     walletConnected,
@@ -341,29 +341,6 @@ const Send: FC = () => {
     updateAmountIn(toTokenAmount)
   }, [isFromLastChanged])
 
-  const getBonderFee = async () => {
-    if (!fromNetwork) {
-      throw new Error('No from network selected')
-    }
-    if (!toNetwork) {
-      throw new Error('No to network selected')
-    }
-    const amountOut = await _calcAmountOut(
-      parseUnits(fromTokenAmount, 18),
-      true,
-      fromNetwork,
-      toNetwork
-    )
-    setFetchingFee(true)
-    const minBonderBps = await l2Bridge?.minBonderBps()
-    const minBonderFeeAbsolute = await l2Bridge?.minBonderFeeAbsolute()
-    const minBonderFeeRelative = amountOut.mul(minBonderBps).div(10000)
-    const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
-      ? minBonderFeeRelative
-      : minBonderFeeAbsolute
-    return minBonderFee
-  }
-
   useEffect(() => {
     const update = async () => {
       try {
@@ -372,7 +349,12 @@ const Send: FC = () => {
           setFee(0)
           return
         }
-        const bonderFee = await getBonderFee()
+
+        const parsedAmountIn = parseUnits(fromTokenAmount, 18)
+        const sourceChain = sdk.Chain.fromSlug(fromNetwork?.slug as string)
+        const destChain = sdk.Chain.fromSlug(toNetwork?.slug as string)
+        const bridge = sdk.bridge(selectedToken?.symbol)
+        const bonderFee = await bridge.getBonderFee(parsedAmountIn.toString(), sourceChain, destChain)
         const _fee = Number(formatUnits(bonderFee, 18))
         setFee(_fee)
       } catch (err) {
@@ -560,16 +542,18 @@ const Send: FC = () => {
       },
       onConfirm: async () => {
         const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
-        const chainId = toNetwork?.networkId
-        const relayerFee = '0'
-        return l1Bridge.sendToL2(
-          chainId,
-          await signer.getAddress(),
-          parseUnits(fromTokenAmount, 18),
-          parseUnits(amountOutMin.toString(), 18),
+        const parsedAmount = parseUnits(fromTokenAmount, 18).toString()
+        const recipient = await signer.getAddress()
+        const amountOutMinBn = parseUnits(amountOutMin.toString(), 18)
+        const relayerFee = 0
+        const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
+        const tx = await bridge.send(parsedAmount, sdk.Chain.Kovan, sdk.Chain.fromSlug(toNetwork?.slug as string), {
           deadline,
-          relayerFee
-        )
+          relayerFee,
+          recipient,
+          amountOutMin: amountOutMinBn.toString()
+        })
+        return tx
       }
     })
 
@@ -607,35 +591,27 @@ const Send: FC = () => {
       },
       onConfirm: async () => {
         const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
-        const destinationDeadline = '0'
-        const amountOutIn = '0'
-        const destinationAmountOutMin = parseUnits(amountOutMin.toString(), 18)
-        const chainId = toNetwork?.networkId
-        const transferNonce = Date.now()
-        const uniswapWrapper =
-          contracts?.tokens[selectedToken?.symbol][fromNetwork?.slug as string]
-            .uniswapWrapper
-
+        const destinationDeadline = 0
+        const amountOutMin = 0
+        const destinationAmountOutMin = parseUnits(amountOutMin.toString(), 18).toString()
         const parsedAmountIn = parseUnits(fromTokenAmount, 18)
-        const bonderFee = await getBonderFee()
+        const sourceChain = sdk.Chain.fromSlug(fromNetwork?.slug as string)
+        const destChain = sdk.Chain.fromSlug(toNetwork?.slug as string)
+        const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
+        const bonderFee = await bridge.getBonderFee(parsedAmountIn.toString(), sourceChain, destChain)
         if (bonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
         }
-
-        const wrapperWrite = await getWriteContract(uniswapWrapper)
-        return wrapperWrite?.swapAndSend(
-          chainId,
-          await signer?.getAddress(),
-          parsedAmountIn,
-          bonderFee.toString(),
-          amountOutIn,
+        const recipient = await signer?.getAddress()
+        const tx = await bridge.send(parsedAmountIn.toString(), sourceChain, destChain, {
+          recipient,
+          bonderFee,
+          amountOutMin,
           deadline,
           destinationAmountOutMin,
-          destinationDeadline,
-          {
-            //gasLimit: 1000000
-          }
-        )
+          destinationDeadline
+        })
+        return tx
       }
     })
 
@@ -674,30 +650,26 @@ const Send: FC = () => {
       onConfirm: async () => {
         const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
         const destinationDeadline = deadline
-        const chainId = toNetwork?.networkId
-        const amountOutIn = '0'
-        const destinationAmountOutMin = parseUnits(amountOutMin.toString(), 18)
-        const uniswapWrapper =
-          contracts?.tokens[selectedToken?.symbol][fromNetwork?.slug as string]
-            .uniswapWrapper
-
+        const amountOutMin = 0
+        const destinationAmountOutMin = parseUnits(amountOutMin.toString(), 18).toString()
         const parsedAmountIn = parseUnits(fromTokenAmount, 18)
-        const bonderFee = await getBonderFee()
+        const recipient = await signer?.getAddress()
+        const sourceChain = sdk.Chain.fromSlug(fromNetwork?.slug as string)
+        const destChain = sdk.Chain.fromSlug(toNetwork?.slug as string)
+        const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
+        const bonderFee = await bridge.getBonderFee(parsedAmountIn.toString(), sourceChain, destChain)
         if (bonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
         }
-
-        const wrapperWrite = await getWriteContract(uniswapWrapper)
-        return wrapperWrite?.swapAndSend(
-          chainId,
-          await signer?.getAddress(),
-          parseUnits(fromTokenAmount, 18),
+        const tx = await bridge.send(parsedAmountIn.toString(), sourceChain, destChain, {
+          recipient,
           bonderFee,
-          amountOutIn,
+          amountOutMin,
           deadline,
           destinationAmountOutMin,
           destinationDeadline
-        )
+        })
+        return tx
       }
     })
 

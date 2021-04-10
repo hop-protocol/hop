@@ -24,7 +24,7 @@ type AppContextProps = {
   accountDetails: AccountDetails | undefined
   txHistory: TxHistory | undefined
   txConfirm: TxConfirm | undefined
-  sdk: Hop | undefined
+  sdk: Hop
 }
 
 const AppContext = createContext<AppContextProps>({
@@ -37,7 +37,7 @@ const AppContext = createContext<AppContextProps>({
   accountDetails: undefined,
   txHistory: undefined,
   txConfirm: undefined,
-  sdk: undefined
+  sdk: new Hop()
 })
 
 const AppContextProvider: FC = ({ children }) => {

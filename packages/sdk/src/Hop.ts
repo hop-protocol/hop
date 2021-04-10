@@ -138,7 +138,7 @@ class Hop {
 
     const update = async () => {
       const bridge = this.bridge(token, sourceChain, destinationChain)
-      const l1Bridge = bridge.getL1Bridge()
+      const l1Bridge = await bridge.getL1Bridge()
 
       const receipt = await sourceChain.provider.waitForTransaction(txHash)
       ee.emit(Event.Receipt, { chain: sourceChain, receipt })
@@ -159,8 +159,8 @@ class Hop {
           sourceTx.data
         )
         const chainId = decodedSource?.chainId
-        const l2Bridge = bridge.getL2Bridge(destinationChain)
-        const exchange = bridge.getUniswapExchange(destinationChain)
+        const l2Bridge = await bridge.getL2Bridge(destinationChain)
+        const exchange = await bridge.getUniswapExchange(destinationChain)
         const pollDest = async () => {
           const blockNumber = await destinationChain.provider.getBlockNumber()
           if (!blockNumber) {
@@ -222,7 +222,7 @@ class Hop {
 
       // L2 -> L1
       if (!sourceChain.isL1 && destinationChain?.isL1) {
-        const wrapper = bridge.getUniswapWrapper(sourceChain)
+        const wrapper = await bridge.getUniswapWrapper(sourceChain)
         const decodedSource = wrapper?.interface.decodeFunctionData(
           'swapAndSend',
           sourceTx.data
@@ -258,7 +258,11 @@ class Hop {
               const destTxReceipt = await destinationChain.provider.waitForTransaction(
                 destTx.hash
               )
-              ee.emit('receipt', {
+              ee.emit(Event.Receipt, {
+                chain: destinationChain,
+                receipt: destTxReceipt
+              })
+              ee.emit(Event.DestinationTxReceipt, {
                 chain: destinationChain,
                 receipt: destTxReceipt
               })
@@ -276,9 +280,9 @@ class Hop {
 
       // L2 -> L2
       if (!sourceChain.isL1 && !destinationChain?.isL1) {
-        const wrapperSource = bridge.getUniswapWrapper(sourceChain)
-        const exchange = bridge.getUniswapExchange(destinationChain)
-        const destinationBridge = bridge.getL2Bridge(destinationChain)
+        const wrapperSource = await bridge.getUniswapWrapper(sourceChain)
+        const exchange = await bridge.getUniswapExchange(destinationChain)
+        const destinationBridge = await bridge.getL2Bridge(destinationChain)
         const decodedSource = wrapperSource?.interface.decodeFunctionData(
           'swapAndSend',
           sourceTx.data
@@ -331,7 +335,11 @@ class Hop {
               const destTxReceipt = await destinationChain.provider.waitForTransaction(
                 destTx.hash
               )
-              ee.emit('receipt', {
+              ee.emit(Event.Receipt, {
+                chain: destinationChain,
+                receipt: destTxReceipt
+              })
+              ee.emit(Event.DestinationTxReceipt, {
                 chain: destinationChain,
                 receipt: destTxReceipt
               })

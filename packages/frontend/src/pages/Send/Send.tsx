@@ -202,45 +202,10 @@ const Send: FC = () => {
     _fromNetwork: Network,
     _toNetwork: Network
   ): Promise<BigNumber> => {
-    let path
-    let uniswapRouter
-    if (_fromNetwork.isLayer1) {
-      if (!_toNetwork) {
-        return BigNumber.from('0')
-      }
-      let l2CanonicalTokenAddress =
-        contracts?.tokens[selectedToken.symbol][_toNetwork.slug]
-          .l2CanonicalToken?.address
-      let l2HopBridgeTokenAddress =
-        contracts?.tokens[selectedToken.symbol][_toNetwork.slug]
-          .l2HopBridgeToken?.address
-      path = [l2HopBridgeTokenAddress, l2CanonicalTokenAddress]
-      uniswapRouter =
-        contracts?.tokens[selectedToken.symbol][_toNetwork.slug].uniswapRouter
-    } else {
-      if (!_fromNetwork) {
-        return BigNumber.from('0')
-      }
-      let l2CanonicalTokenAddress =
-        contracts?.tokens[selectedToken.symbol][_fromNetwork.slug]
-          .l2CanonicalToken?.address
-      let l2HopBridgeTokenAddress =
-        contracts?.tokens[selectedToken.symbol][_fromNetwork.slug]
-          .l2HopBridgeToken?.address
-      path = [l2CanonicalTokenAddress, l2HopBridgeTokenAddress]
-      uniswapRouter =
-        contracts?.tokens[selectedToken.symbol][_fromNetwork.slug].uniswapRouter
-    }
-    if (!path) {
-      return BigNumber.from('0')
-    }
-    if (isAmountIn) {
-      const amountsOut = await uniswapRouter?.getAmountsOut(amount, path)
-      return amountsOut[1]
-    } else {
-      const amountsIn = await uniswapRouter?.getAmountsIn(amount, path)
-      return amountsIn[0]
-    }
+    const bridge = sdk.bridge(selectedToken?.symbol)
+    const fromChain = sdk.Chain.fromSlug(_fromNetwork.slug)
+    const toChain = sdk.Chain.fromSlug(_toNetwork.slug)
+    return bridge.getAmountOut(amount.toString(), fromChain, toChain, isAmountIn)
   }
 
   const updateAmountOut = async (amountIn: string) => {
@@ -409,15 +374,14 @@ const Send: FC = () => {
       throw new Error('No toNetwork selected')
     }
 
-    const tokenContractRead = selectedToken.contractForNetwork(fromNetwork)
-    const tokenContract = await getWriteContract(tokenContractRead)
-    if (!tokenContract) return // User needs to switch networks
     const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
     let tx: any
+    const fromChain = sdk.Chain.fromSlug(fromNetwork.slug)
+    const token = sdk.bridge(selectedToken?.symbol).connect(signer as any).token
     if (fromNetwork?.isLayer1) {
-      const approved = await tokenContract.allowance(
-        await signer?.getAddress(),
-        l1Bridge?.address
+      const approved = await token.allowance(
+        fromChain,
+        l1Bridge?.address as string
       )
       if (approved.lt(parsedAmount)) {
         tx = await txConfirm?.show({
@@ -428,7 +392,7 @@ const Send: FC = () => {
           },
           onConfirm: async (approveAll: boolean) => {
             const approveAmount = approveAll ? UINT256 : parsedAmount
-            return tokenContract.approve(l1Bridge?.address, approveAmount)
+            return token.approve(fromChain, l1Bridge?.address as string, approveAmount.toString())
           }
         })
         await tx?.wait()
@@ -447,9 +411,9 @@ const Send: FC = () => {
         contracts?.tokens[selectedToken?.symbol][fromNetwork?.slug as string]
           .uniswapWrapper
 
-      const approved = await tokenContract.allowance(
-        await signer?.getAddress(),
-        uniswapWrapper?.address
+      const approved = await token.allowance(
+        fromChain,
+        uniswapWrapper?.address as string
       )
       if (approved.lt(parsedAmount)) {
         tx = await txConfirm?.show({
@@ -460,7 +424,7 @@ const Send: FC = () => {
           },
           onConfirm: async (approveAll: boolean) => {
             const approveAmount = approveAll ? UINT256 : parsedAmount
-            return tokenContract.approve(uniswapWrapper?.address, approveAmount)
+            return token.approve(fromChain, uniswapWrapper?.address as string, approveAmount.toString())
           }
         })
         await tx?.wait()

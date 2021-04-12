@@ -8,6 +8,8 @@ import l2BridgeArtifact from './abi/L2_Bridge.json'
 import uniswapRouterArtifact from './abi/UniswapV2Router02.json'
 import uniswapWrapperArtifact from './abi/L2_UniswapWrapper.json'
 import HopBridge from './HopBridge'
+import { TChain } from './types'
+import Base from './Base'
 import _version from './version'
 
 type Provider = providers.Provider
@@ -22,7 +24,7 @@ enum Event {
  * Class reprensenting Hop
  * @namespace Hop
  */
-class Hop {
+class Hop extends Base {
   public signer: Signer
 
   static Event = Event
@@ -53,6 +55,7 @@ class Hop {
    *```
    */
   constructor (signer?: Signer) {
+    super()
     if (signer) {
       this.signer = signer
     }
@@ -71,7 +74,7 @@ class Hop {
    *const bridge = hop.bridge(Token.USDC)
    *```
    */
-  bridge (tokenSymbol: string, sourceChain?: Chain, destinationChain?: Chain) {
+  bridge (tokenSymbol: string, sourceChain?: TChain, destinationChain?: TChain) {
     return new HopBridge(
       this.signer,
       tokenSymbol,
@@ -131,9 +134,11 @@ class Hop {
   watch (
     txHash: string,
     token: string,
-    sourceChain: Chain,
-    destinationChain: Chain
+    _sourceChain: TChain,
+    _destinationChain: TChain
   ) {
+		const sourceChain = this.toChainModel(_sourceChain)
+		const destinationChain = this.toChainModel(_destinationChain)
     const ee = new EventEmitter()
 
     const update = async () => {

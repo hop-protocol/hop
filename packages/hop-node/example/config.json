@@ -29,5 +29,6 @@
   },
   "keystore": {
     "location": "~/.hop-node/keystore.json"
-  }
+  },
+  "order": 0
 }

@@ -70,5 +70,7 @@ test('recoverKeystore', async () => {
 
 test('entropyToMnemonic', async () => {
   const entropy = Buffer.alloc(32, 'a')
-  expect(entropyToMnemonic(entropy)).toEqual('gesture arch flame security bid radar machine club gesture arch flame security bid radar machine club gesture arch flame security bid radar machine cherry')
+  expect(entropyToMnemonic(entropy)).toEqual(
+    'gesture arch flame security bid radar machine club gesture arch flame security bid radar machine club gesture arch flame security bid radar machine cherry'
+  )
 })

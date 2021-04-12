@@ -98,8 +98,12 @@ program
       const networks = Object.keys(config?.networks || {})
       const bonder = config?.roles?.bonder
       const challenger = config?.roles?.challenger
+      const order = Number(config?.order || 0)
+      if (order) {
+        logger.log('order:', order)
+      }
       startWatchers({
-        order: 0,
+        order,
         tokens,
         networks,
         bonder,
@@ -140,7 +144,7 @@ program
         logger.log(`network: "${source.l1Network}"`)
         setConfigByNetwork(source.l1Network)
       }
-      const order = Number(source.order) || 0
+      const order = Number(source.order || 0)
       const tokens = parseArgList(source.tokens).map((value: string) =>
         value.toUpperCase()
       )
@@ -249,7 +253,7 @@ program
         if (!passphrase) {
           passphrase = await promptPassphrase()
         }
-        let mnemonic : string
+        let mnemonic: string
         let hdpath: string
         let privateKey: string | null = source.privateKey || null
         if (!privateKey) {
@@ -341,7 +345,8 @@ async function validateConfig (config: any) {
     'roles',
     'db',
     'logging',
-    'keystore'
+    'keystore',
+    'order'
   ]
   const sectionKeys = Object.keys(config)
   await validateKeys(validSectionKeys, sectionKeys)

@@ -231,7 +231,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
             throw err
           })
         this.logger.info(
-          `settleBondedWithdrawal on chain ${chainId} tx: ${chalk.bgYellow.black.bold(
+          `settleBondedWithdrawal on chainId:${chainId} tx: ${chalk.bgYellow.black.bold(
             tx.hash
           )}`
         )

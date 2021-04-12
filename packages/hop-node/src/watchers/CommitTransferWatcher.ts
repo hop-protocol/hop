@@ -141,11 +141,14 @@ class CommitTransfersWatcher extends BaseWatcher {
       this.logger.warn('no pending transfers to commit')
     }
 
-    this.logger.debug(chainId, 'onchain pendingTransfers', pendingTransfers)
+    this.logger.debug(
+      `chainId: ${chainId} onchain pendingTransfers`,
+      pendingTransfers
+    )
     const tree = new MerkleTree(pendingTransfers)
     const transferRootHash = tree.getHexRoot()
     this.logger.debug(
-      chainId,
+      `chainId: ${chainId}`,
       'calculated transferRootHash:',
       chalk.bgMagenta.black(transferRootHash)
     )

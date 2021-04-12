@@ -162,7 +162,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.debug(`bonderFee:`, bonderFee.toString())
     const formattedAmount = Number(formatUnits(amount, 18))
     if (attemptSwap) {
-      this.logger.debug(`chain ${chainId} bondWithdrawalAndAttemptSwap`)
+      this.logger.debug(`bondWithdrawalAndAttemptSwap chainId: ${chainId}`)
       const l2Bridge = new L2Bridge(this.contracts[chainId])
       const hasPositiveBalance = await l2Bridge.hasPositiveBalance()
       if (!hasPositiveBalance) {
@@ -183,7 +183,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         deadline
       )
     } else {
-      this.logger.debug(`chain ${chainId} bondWithdrawal`)
+      this.logger.debug(`bondWithdrawal chain: ${chainId}`)
       const bridge = new Bridge(this.contracts[chainId])
       const hasPositiveBalance = await bridge.hasPositiveBalance()
       if (!hasPositiveBalance) {
@@ -319,7 +319,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
             transferHash
           )
           this.logger.debug(
-            `chain ${chainId} bondWithdrawal amount:`,
+            `chainId: ${chainId} bondWithdrawal amount:`,
             bondedAmount
           )
 

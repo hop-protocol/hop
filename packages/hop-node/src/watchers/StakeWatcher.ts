@@ -37,7 +37,7 @@ class StakeWatcher extends BaseWatcher {
     try {
       const isBonder = await this.bridge.isBonder()
       if (!isBonder) {
-        this.logger.warn('Not a bonder')
+        this.logger.warn('not a bonder')
       }
       while (true) {
         if (!this.started) {

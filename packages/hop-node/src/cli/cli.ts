@@ -3,6 +3,8 @@ import os from 'os'
 import fs from 'fs'
 import path from 'path'
 import { Command } from 'commander'
+import { randomBytes } from 'crypto'
+import { HDNode } from '@ethersproject/hdnode'
 import prompt from 'prompt'
 import {
   db as dbConfig,
@@ -20,6 +22,7 @@ import {
 } from 'src/watchers/watchers'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
+import entropyToMnemonic from 'src/utils/entropyToMnemonic'
 
 const logger = new Logger('config')
 const program = new Command()
@@ -246,11 +249,32 @@ program
         if (!passphrase) {
           passphrase = await promptPassphrase()
         }
-        const privateKey: string | null = source.privateKey || null
+        let mnemonic : string
+        let hdpath: string
+        let privateKey: string | null = source.privateKey || null
+        if (!privateKey) {
+          const entropy = randomBytes(32)
+          mnemonic = entropyToMnemonic(entropy)
+          hdpath = `m/44'/60'/0'/0/0`
+          let hdnode = HDNode.fromMnemonic(mnemonic)
+          hdnode = hdnode.derivePath(hdpath)
+          privateKey = hdnode.privateKey
+        }
         const keystore = await generateKeystore(privateKey, passphrase)
         const filepath = path.resolve(output)
         fs.writeFileSync(filepath, JSON.stringify(keystore), 'utf8')
         console.log(`wrote to ${filepath}`)
+        if (mnemonic) {
+          console.log('mnemonic:')
+          console.log(mnemonic)
+          console.log(`private key (${hdpath}):`)
+          console.log(privateKey)
+        } else {
+          console.log('private key:')
+          console.log(privateKey)
+        }
+        console.log('public address:')
+        console.log('0x' + keystore.address)
       } else if (action === 'decrypt') {
         if (!passphrase) {
           passphrase = await promptPassphrase()
@@ -265,6 +289,17 @@ program
         )
         const privateKey = await recoverKeystore(keystore, passphrase)
         console.log(privateKey)
+      } else if (action === 'address') {
+        const filepath = source.args[1]
+        if (!filepath) {
+          console.error('please specify filepath')
+          return
+        }
+        const keystore = JSON.parse(
+          fs.readFileSync(path.resolve(filepath), 'utf8')
+        )
+        const address = keystore.address
+        console.log('0x' + address)
       } else {
         console.log(`unsupported command: "${action}"`)
       }

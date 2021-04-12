@@ -1,4 +1,5 @@
 import { generateKeystore, recoverKeystore } from 'src/keystore'
+import entropyToMnemonic from 'src/utils/entropyToMnemonic'
 
 test('generateKeystore - random', async () => {
   const keystore = await generateKeystore()
@@ -65,4 +66,9 @@ test('recoverKeystore', async () => {
   expect(privateKey).toBe(
     '4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
   )
+})
+
+test('entropyToMnemonic', async () => {
+  const entropy = Buffer.alloc(32, 'a')
+  expect(entropyToMnemonic(entropy)).toEqual('gesture arch flame security bid radar machine club gesture arch flame security bid radar machine club gesture arch flame security bid radar machine cherry')
 })

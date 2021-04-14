@@ -150,9 +150,7 @@ const StatusContextProvider: FC = ({ children }) => {
 
     update().catch(logger.error)
 
-    return () => {
-
-    }
+    return () => {}
   }, [tx])
 
   return (

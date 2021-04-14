@@ -83,7 +83,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     getWriteContract
   } = useWeb3Context()
   const app = useApp()
-  let { networks: nets, tokens, contracts, txConfirm } = app
+  let { networks: nets, tokens, contracts, txConfirm, sdk } = app
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const canonicalSlug = (network: Network) => {
     if (network?.isLayer1) {
@@ -347,33 +347,8 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              const messengerWrite = await getWriteContract(messenger)
-              if (destSlug === ARBITRUM) {
-                return messengerWrite?.depositERC20Message(
-                  addresses.tokens[selectedToken.symbol][destSlug].arbChain,
-                  tokenAddress,
-                  recipient,
-                  value
-                )
-              } else if (destSlug === OPTIMISM) {
-                return messengerWrite?.deposit(
-                  addresses.tokens[selectedToken.symbol][L1_NETWORK]
-                    .l1CanonicalToken,
-                  addresses.tokens[selectedToken.symbol][destSlug]
-                    .l2CanonicalToken,
-                  recipient,
-                  value
-                )
-              } else if (destSlug === XDAI) {
-                console.log(tokenAddress, recipient, value, messenger.address)
-                return messengerWrite?.relayTokens(
-                  tokenAddress,
-                  recipient,
-                  value
-                )
-              } else {
-                throw new Error('not implemented')
-              }
+              const bridge = sdk.canonicalBridge(selectedToken.symbol, destSlug)
+              return bridge.connect(signer as any).deposit(value)
             }
           })
         }
@@ -399,44 +374,11 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              if (sourceSlug === ARBITRUM) {
-                const contract = await getWriteContract(
-                  sourceTokenContracts?.l2CanonicalToken
-                )
-                return contract?.withdraw(await signer?.getAddress(), value)
-              } else if (sourceSlug === OPTIMISM) {
-                const l2CanonicalBridge = await getWriteContract(
-                  sourceTokenContracts?.l2CanonicalBridge
-                )
-                return l2CanonicalBridge?.withdraw(
-                  addresses.tokens[selectedToken.symbol][L1_NETWORK]
-                    .l1CanonicalToken,
-                  addresses.tokens[selectedToken.symbol][sourceSlug]
-                    .l2CanonicalToken,
-                  value
-                )
-              } else if (sourceSlug === XDAI) {
-                const destTokenContracts =
-                  contracts?.tokens[selectedToken.symbol][sourceSlug]
-                const messenger = destTokenContracts?.l2CanonicalBridge
-                await approveTokens(
-                  selectedToken,
-                  sourceTokenAmount,
-                  sourceNetwork as Network,
-                  messenger?.address as string
-                )
-                const tokenAddress =
-                  sourceTokenContracts?.l2CanonicalToken.address
-                const messengerWrite = await getWriteContract(messenger)
-                const address = sourceTokenContracts?.l2CanonicalBridge.address
-                return sourceTokenContracts?.l2CanonicalToken?.transferAndCall(
-                  address,
-                  value,
-                  '0x'
-                )
-              } else {
-                throw new Error('not implemented')
-              }
+              const bridge = sdk.canonicalBridge(
+                selectedToken.symbol,
+                sourceSlug
+              )
+              return bridge.connect(signer as any).withdraw(value)
             }
           })
 

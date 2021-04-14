@@ -24,9 +24,9 @@ type SendL1ToL1Input = {
 type SendL1ToL2Input = {
   destinationChainId: number | string
   sourceChain: Chain
-  relayerFee?: number | string | BigNumber
-  amount: number | string | BigNumber
-  amountOutMin?: number | string | BigNumber
+  relayerFee?: TAmount
+  amount: TAmount
+  amountOutMin?: TAmount
   deadline?: number
   recipient?: string
   approval?: boolean
@@ -35,12 +35,12 @@ type SendL1ToL2Input = {
 type SendL2ToL1Input = {
   destinationChainId: number | string
   sourceChain: Chain
-  amount: number | string | BigNumber
-  amountOutMin: number | string | BigNumber
-  destinationAmountOutMin?: number | string | BigNumber
+  amount: TAmount
+  amountOutMin: TAmount
+  destinationAmountOutMin?: TAmount
   deadline?: number
   destinationDeadline?: number
-  bonderFee?: number | string | BigNumber
+  bonderFee?: TAmount
   recipient?: string
   approval?: boolean
 }
@@ -49,9 +49,9 @@ type SendL2ToL2Input = {
   destinationChainId: number | string
   sourceChain: Chain
   amount: number | string
-  amountOutMin: number | string | BigNumber
-  destinationAmountOutMin?: number | string | BigNumber
-  bonderFee?: number | string | BigNumber
+  amountOutMin: TAmount
+  destinationAmountOutMin?: TAmount
+  bonderFee?: TAmount
   deadline?: number
   destinationDeadline?: number
   recipient?: string
@@ -60,11 +60,11 @@ type SendL2ToL2Input = {
 
 type SendOptions = {
   deadline: number
-  relayerFee: number | string | BigNumber
+  relayerFee: TAmount
   recipient: string
-  amountOutMin: number | string | BigNumber
-  bonderFee: number | string | BigNumber
-  destinationAmountOutMin: number | string | BigNumber
+  amountOutMin: TAmount
+  bonderFee: TAmount
+  destinationAmountOutMin: TAmount
   destinationDeadline: number
 }
 

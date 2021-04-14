@@ -10,6 +10,9 @@ class Token {
 
   static USDC = 'USDC'
   static DAI = 'DAI'
+  static WBTC = 'WBTC'
+  static sBTC = 'sBTC'
+  static sETH = 'sETH'
 
   constructor (
     chainId: number | string,

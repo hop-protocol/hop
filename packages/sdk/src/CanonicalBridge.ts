@@ -9,16 +9,16 @@ import l1ArbitrumMessengerArtifact from './abi/GlobalInbox.json'
 import l2OptimismTokenBridgeArtifact from './abi/L2_OptimismTokenBridge.json'
 import l2xDaiTokenArtifact from './abi/L2_xDaiToken.json'
 import { Chain, Token, Transfer } from './models'
-import { TChain, TToken, TAmount } from './types'
+import { TChain, TToken, TAmount, TProvider } from './types'
 import TokenClass from './Token'
 import Base from './Base'
 
 class CanonicalBridge extends Base {
-  public signer: Signer
+  public signer: TProvider
   public chain: Chain
   public token: TokenClass
 
-  constructor (signer: Signer, token: TToken, chain?: TChain) {
+  constructor (signer: TProvider, token: TToken, chain?: TChain) {
     super()
     if (!token) {
       throw new Error('token symbol is required')
@@ -42,7 +42,7 @@ class CanonicalBridge extends Base {
     )
   }
 
-  connect (signer: Signer) {
+  connect (signer: TProvider) {
     return new CanonicalBridge(signer, this.token, this.chain)
   }
 
@@ -65,12 +65,9 @@ class CanonicalBridge extends Base {
     const tokenAddress =
       addresses.tokens[tokenSymbol][Chain.Kovan.slug].l1CanonicalToken
 
-    const balance = await this.token.connect(provider).balanceOf(Chain.Kovan)
-    console.log(balance)
-    const tx = await this.token
-      .connect(provider)
-      .approve(Chain.Kovan, bridgeAddress)
-    await tx?.wait()
+    //const balance = await this.token.connect(provider).balanceOf(Chain.Kovan)
+    //const tx = await this.token.connect(provider).approve(Chain.Kovan, bridgeAddress)
+    //await tx?.wait()
 
     if ((chain as Chain).equals(Chain.xDai)) {
       const bridge = new Contract(
@@ -157,9 +154,6 @@ class CanonicalBridge extends Base {
         provider
       )
 
-      const balance = await this.token.connect(provider).balanceOf(chain)
-      console.log(balance.toString())
-
       return bridge.withdraw(l1TokenAddress, tokenAddress, tokenAmount, {
         gasLimit: 1000000,
         gasPrice: 0
@@ -173,6 +167,8 @@ class CanonicalBridge extends Base {
       throw new Error('not implemented')
     }
 
+    //const balance = await this.token.connect(provider).balanceOf(chain)
+    //console.log(balance.toString())
     //const tx = await this.token.connect(provider).approve(chain, bridgeAddress)
     //console.log('waiting', tx?.hash)
     //await tx?.wait()
@@ -201,23 +197,25 @@ class CanonicalBridge extends Base {
     }
   }
 
-  async getSignerOrProvider (chain: TChain, signer: Signer = this.signer) {
+  async getSignerOrProvider (chain: TChain, signer: TProvider = this.signer) {
     chain = this.toChainModel(chain)
     if (!signer) {
       return chain.provider
     }
-    if (!signer.provider) {
-      return signer.connect(chain.provider)
+    if (signer instanceof Signer) {
+      if (!signer.provider) {
+        return signer.connect(chain.provider)
+      }
+      const connectedChainId = await signer.getChainId()
+      if (connectedChainId !== chain.chainId) {
+        return chain.provider
+      }
     }
-    const connectedChainId = await signer.getChainId()
-    if (connectedChainId !== chain.chainId) {
-      return chain.provider
-    }
-    return this.signer
+    return signer
   }
 
   getSignerAddress () {
-    return this.signer?.getAddress()
+    return (this.signer as Signer)?.getAddress()
   }
 }
 

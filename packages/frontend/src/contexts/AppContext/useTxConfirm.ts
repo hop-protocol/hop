@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import logger from 'src/logger'
 
 type InputProps = any
 type ConfirmParams = any

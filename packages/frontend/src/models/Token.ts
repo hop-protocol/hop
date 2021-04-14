@@ -1,6 +1,6 @@
 import Network from './Network'
 import Address from './Address'
-import { BigNumber, BigNumberish, Contract } from 'ethers'
+import { BigNumber, Contract } from 'ethers'
 
 type TokenProps = {
   symbol: string

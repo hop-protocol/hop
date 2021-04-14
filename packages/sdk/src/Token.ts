@@ -1,7 +1,7 @@
 import { providers, Signer, Contract, BigNumber } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
 import { MaxUint256 } from './constants'
-import { addresses, chains, metadata } from './config'
+import { addresses } from './config'
 import erc20Artifact from './abi/ERC20.json'
 import { TChain, TAmount } from './types'
 

@@ -9,7 +9,6 @@ import React, {
 } from 'react'
 import { ethers, Contract } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Network from 'src/models/Network'
@@ -112,7 +111,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [token1Deposited, setToken1Deposited] = useState<string>('')
   const [token0Balance, setToken0Balance] = useState<number>(0)
   const [token1Balance, setToken1Balance] = useState<number>(0)
-  let { networks, tokens, contracts, txConfirm, txHistory } = useApp()
+  let { networks, tokens, contracts, txConfirm, txHistory, sdk } = useApp()
   const {
     address,
     provider,
@@ -379,10 +378,6 @@ const PoolsContextProvider: FC = ({ children }) => {
       await tx?.wait()
 
       const signer = provider?.getSigner()
-      const token0 = selectedToken
-        ?.addressForNetwork(selectedNetwork)
-        .toString()
-      const token1 = hopToken?.addressForNetwork(selectedNetwork).toString()
       const amount0Desired = parseUnits(
         token0Amount,
         selectedToken?.decimals || 18
@@ -408,16 +403,20 @@ const PoolsContextProvider: FC = ({ children }) => {
           }
         },
         onConfirm: async () => {
-          return uniswapRouterWrite.addLiquidity(
-            token0,
-            token1,
-            amount0Desired,
-            amount1Desired,
-            amount0Min,
-            amount1Min,
-            to,
-            deadline
-          )
+          const bridge = sdk.bridge(selectedToken.symbol)
+          return bridge
+            .connect(signer as any)
+            .addLiquidity(
+              amount0Desired as any,
+              amount1Desired as any,
+              selectedNetwork.slug,
+              {
+                amount0Min,
+                amount1Min,
+                to,
+                deadline
+              }
+            )
         }
       })
 
@@ -497,10 +496,6 @@ const PoolsContextProvider: FC = ({ children }) => {
       await tx?.wait()
 
       //setSending(true)
-      const token0 = selectedToken
-        ?.addressForNetwork(selectedNetwork)
-        .toString()
-      const token1 = hopToken?.addressForNetwork(selectedNetwork).toString()
       const amount0Min = '0'
       const amount1Min = '0'
       const deadline = (Date.now() / 1000 + 5 * 60) | 0
@@ -529,18 +524,19 @@ const PoolsContextProvider: FC = ({ children }) => {
             18
           )
 
-          return uniswapRouterWrite.removeLiquidity(
-            token0,
-            token1,
-            parsedLiquidityTokenAmount,
-            amount0Min,
-            amount1Min,
-            to,
-            deadline,
-            {
-              //gasLimit: 1000000
-            }
-          )
+          const bridge = sdk.bridge(selectedToken.symbol)
+          return bridge
+            .connect(signer as any)
+            .removeLiquidity(
+              parsedLiquidityTokenAmount as any,
+              selectedNetwork.slug,
+              {
+                amount0Min,
+                amount1Min,
+                to,
+                deadline
+              }
+            )
         }
       })
 

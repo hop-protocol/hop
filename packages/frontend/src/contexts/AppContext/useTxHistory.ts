@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import Transaction from 'src/models/Transaction'
-import logger from 'src/logger'
 
 export interface TxHistory {
   transactions: Transaction[]

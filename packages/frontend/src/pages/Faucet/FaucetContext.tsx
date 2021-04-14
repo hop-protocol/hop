@@ -1,14 +1,5 @@
-import React, {
-  FC,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useMemo,
-  useCallback
-} from 'react'
-import { ethers, Contract } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import React, { FC, createContext, useContext, useState } from 'react'
+import { parseUnits } from 'ethers/lib/utils'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Transaction from 'src/models/Transaction'
@@ -42,14 +33,10 @@ const FaucetContext = createContext<FaucetContextProps>({
 })
 
 const FaucetContextProvider: FC = ({ children }) => {
-  const [mintAmount, setMintAmount] = useState<string>('10')
+  const [mintAmount] = useState<string>('10')
   const [isMinting, setMinting] = useState<boolean>(false)
   let { contracts, txHistory, networks, tokens } = useApp()
-  const {
-    address,
-    getWriteContract,
-    checkConnectedNetworkId
-  } = useWeb3Context()
+  const { address, getWriteContract } = useWeb3Context()
   const selectedNetwork = networks[0]
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(
     tokens[0]

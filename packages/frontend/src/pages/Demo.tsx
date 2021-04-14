@@ -28,7 +28,6 @@ const Demo: FC<Props> = () => {
   const l1Dai =
     app?.contracts?.tokens[token.symbol][L1_NETWORK].l1CanonicalToken
   const l1Bridge = app?.contracts?.tokens[token.symbol][L1_NETWORK].l1Bridge
-  const arbitrumBridge = app?.contracts?.tokens[token.symbol].arbitrum.l2Bridge
   const arbitrumUniswapRouter =
     app?.contracts?.tokens[token.symbol].arbitrum.uniswapRouter
 

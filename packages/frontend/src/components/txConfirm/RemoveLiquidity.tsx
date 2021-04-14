@@ -1,4 +1,4 @@
-import React, { FC, ChangeEvent, useEffect, useState } from 'react'
+import React, { FC, useEffect, useState } from 'react'
 import Button from 'src/components/buttons/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import MuiSlider from '@material-ui/core/Slider'

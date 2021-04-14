@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { EventEmitter } from 'events'
-import logger from 'src/logger'
 
 export interface Events {
   keypress: EventEmitter

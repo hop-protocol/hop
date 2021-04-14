@@ -1,22 +1,11 @@
-import React, {
-  FC,
-  useState,
-  useMemo,
-  useRef,
-  useEffect,
-  ChangeEvent
-} from 'react'
+import React, { FC, useState, useRef, useEffect, ChangeEvent } from 'react'
 import { useLocation } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import MuiButton from '@material-ui/core/Button'
-import IconButton from '@material-ui/core/IconButton'
-import CircularProgress from '@material-ui/core/CircularProgress'
-import Popover from '@material-ui/core/Popover'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
-import MenuItem, { MenuItemProps } from '@material-ui/core/MenuItem'
-import SmallTextField from 'src/components/SmallTextField'
+import MenuItem from '@material-ui/core/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
@@ -31,7 +20,6 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import { UINT256, L1_NETWORK } from 'src/constants'
-import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 import logger from 'src/logger'
 import { commafy, intersection, normalizeNumberInput } from 'src/utils'
 import SendButton from 'src/pages/Send/SendButton'
@@ -109,8 +97,7 @@ const Send: FC = () => {
   const {
     provider,
     walletConnected,
-    checkConnectedNetworkId,
-    getWriteContract
+    checkConnectedNetworkId
   } = useWeb3Context()
 
   const networkSlugs = networks.map(network => network.slug)
@@ -133,7 +120,6 @@ const Send: FC = () => {
     })
   }
   const [l2Bridge, setL2Bridge] = useState<Contract | undefined>()
-  const [uniswapRouter, setUniswapRouter] = useState<Contract | undefined>()
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [fromNetwork, setFromNetwork] = useState<Network>()
   const [toNetwork, setToNetwork] = useState<Network>()
@@ -141,17 +127,13 @@ const Send: FC = () => {
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
   const [isFromLastChanged, setIsFromLastChanged] = useState<boolean>(true)
   const [sending, setSending] = useState<boolean>(false)
-  const [fetchingRate, setFetchingRate] = useState<boolean>(false)
   const [exchangeRate, setExchangeRate] = useState<number>(0)
-  const [marketRate, setMarketRate] = useState<number>(0)
   const [slippageTolerance, setSlippageTolerance] = useState<number>(0.5)
   const [deadlineMinutes, setDeadlineMinutes] = useState<number>(20)
   const [priceImpact, setPriceImpact] = useState<number>(0)
-  const [fetchingFee, setFetchingFee] = useState<boolean>(false)
   const [fee, setFee] = useState<number | null>(null)
   const [amountOutMin, setAmountOutMin] = useState<number>(0)
   const [fromBalance, setFromBalance] = useState<number>(0)
-  const [toBalance, setToBalance] = useState<number>(0)
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [tx, setTx] = useState<Transaction | null>(null)
@@ -258,19 +240,10 @@ const Send: FC = () => {
             fromNetwork?.slug as string
           ].l2Bridge
         )
-        setUniswapRouter(
-          contracts?.tokens[newSelectedToken.symbol][
-            fromNetwork?.slug as string
-          ].uniswapRouter
-        )
       } else if (toNetwork && !toNetwork?.isLayer1) {
         setL2Bridge(
           contracts?.tokens[newSelectedToken.symbol][toNetwork?.slug as string]
             .l2Bridge
-        )
-        setUniswapRouter(
-          contracts?.tokens[newSelectedToken.symbol][toNetwork?.slug as string]
-            .uniswapRouter
         )
       }
     }
@@ -287,10 +260,6 @@ const Send: FC = () => {
       setL2Bridge(
         contracts?.tokens[selectedToken.symbol][toNetwork?.slug as string]
           .l2Bridge
-      )
-      setUniswapRouter(
-        contracts?.tokens[selectedToken.symbol][toNetwork?.slug as string]
-          .uniswapRouter
       )
     }
   }
@@ -338,7 +307,6 @@ const Send: FC = () => {
       } catch (err) {
         // noop
       }
-      setFetchingFee(false)
     }
 
     update()
@@ -705,8 +673,7 @@ const Send: FC = () => {
     fromTokenAmount &&
     toTokenAmount &&
     exchangeRate &&
-    enoughBalance &&
-    !fetchingRate
+    enoughBalance
   )
 
   let buttonText = 'Send'
@@ -718,8 +685,6 @@ const Send: FC = () => {
     buttonText = 'Select to network'
   } else if (!enoughBalance) {
     buttonText = 'Insufficient funds'
-  } else if (fetchingRate) {
-    buttonText = 'Fetching rate...'
   }
 
   const handleTxStatusClose = () => {
@@ -780,10 +745,6 @@ const Send: FC = () => {
               contracts?.tokens[selectedToken.symbol][network?.slug as string]
                 .l2Bridge
             )
-            setUniswapRouter(
-              contracts?.tokens[selectedToken.symbol][network?.slug as string]
-                .uniswapRouter
-            )
           }
         }}
         onBalanceChange={balance => {
@@ -817,9 +778,6 @@ const Send: FC = () => {
         onNetworkChange={network => {
           setToNetwork(network)
         }}
-        onBalanceChange={balance => {
-          setToBalance(balance)
-        }}
       />
       <div className={styles.details}>
         <Box
@@ -841,13 +799,7 @@ const Send: FC = () => {
             variant="subtitle2"
             color="textSecondary"
           >
-            {fetchingRate ? (
-              <CircularProgress size={12} />
-            ) : exchangeRate === 0 ? (
-              '-'
-            ) : (
-              commafy(exchangeRate)
-            )}
+            {exchangeRate === 0 ? '-' : commafy(exchangeRate)}
           </Typography>
         </Box>
         <Box

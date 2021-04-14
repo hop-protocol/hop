@@ -54,7 +54,6 @@ const Earn: FC = () => {
   let {
     fetchStakingValues,
     stakingRewardAddress,
-    tokens,
     stakedAmount,
     earnedAmount,
     totalStakedAmount,

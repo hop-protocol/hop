@@ -5,18 +5,10 @@ import React, {
   useState,
   useEffect
 } from 'react'
-import { ethers, Contract } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
-import Token from 'src/models/Token'
-import Address from 'src/models/Address'
 import Transaction from 'src/models/Transaction'
-import Transfer from 'src/models/Transfer'
 import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
-import { wait, networkIdToSlug } from 'src/utils'
 import promiseTimeout from 'src/utils/promiseTimeout'
-import { L1_NETWORK } from 'src/constants'
 
 type StatusContextProps = {
   steps: any[]
@@ -39,12 +31,11 @@ type Step = {
 }
 
 const StatusContextProvider: FC = ({ children }) => {
-  let { networks, tokens, contracts, txHistory, sdk } = useApp()
+  let { sdk } = useApp()
   let [steps, setSteps] = useState<Step[]>([])
   let [activeStep, setActiveStep] = React.useState(0)
   const [fetching, setFetching] = useState<boolean>(false)
   const [tx, setTx] = useState<Transaction | null>(null)
-  const l1Provider = contracts?.providers[L1_NETWORK]
   const cacheKey = `txStatus:${tx?.hash}`
 
   useEffect(() => {

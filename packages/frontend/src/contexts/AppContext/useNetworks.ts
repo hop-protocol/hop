@@ -1,7 +1,5 @@
 import { useMemo } from 'react'
 import Network from 'src/models/Network'
-import logger from 'src/logger'
-import { L1_NETWORK } from 'src/constants'
 import { networks, metadata } from 'src/config'
 
 const useNetworks = () => {

@@ -1,8 +1,5 @@
-import React, { useState, SyntheticEvent } from 'react'
+import React, { SyntheticEvent } from 'react'
 import copy from 'copy-to-clipboard'
-import { makeStyles, Theme } from '@material-ui/core/styles'
-
-const useStyles = makeStyles((theme: Theme) => ({}))
 
 export interface Props {
   value: string | undefined
@@ -11,7 +8,6 @@ export interface Props {
 
 function Clipboard (props: Props) {
   const { value } = props
-  const styles = useStyles()
 
   const handleClick = (event: SyntheticEvent) => {
     event.preventDefault()

@@ -279,3 +279,28 @@ describe.skip('canonical bridge transfers', () => {
     120 * 1000
   )
 })
+
+describe.only('liqudity provider', () => {
+  const hop = new Hop()
+  const signer = new Wallet(privateKey)
+  it('should add liqudity on xDai', async () => {
+    const bridge = hop.bridge(Token.USDC)
+    const tokenAmount = parseUnits('0.1', 18)
+    const amount0Desired = tokenAmount
+    const amount1Desired = tokenAmount
+    const tx = await bridge
+      .connect(signer)
+      .addLiquidity(amount0Desired, amount1Desired, Chain.xDai)
+    console.log('tx:', tx.hash)
+    expect(tx.hash).toBeTruthy()
+  })
+  it.only('should remove liqudity on xDai', async () => {
+    const bridge = hop.bridge(Token.USDC)
+    const liqudityTokenAmount = parseUnits('0.1', 18)
+    const tx = await bridge
+      .connect(signer)
+      .removeLiquidity(liqudityTokenAmount, Chain.xDai)
+    console.log('tx:', tx.hash)
+    expect(tx.hash).toBeTruthy()
+  })
+})

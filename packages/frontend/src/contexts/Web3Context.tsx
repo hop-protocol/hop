@@ -1,11 +1,4 @@
-import React, {
-  FC,
-  createContext,
-  useContext,
-  useMemo,
-  useEffect,
-  useState
-} from 'react'
+import React, { FC, createContext, useContext, useMemo, useState } from 'react'
 import Onboard from 'bnc-onboard'
 import { ethers, Contract } from 'ethers'
 import Address from 'src/models/Address'
@@ -89,9 +82,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     ethers.providers.Web3Provider | undefined
   >()
   const [connectedNetworkId, setConnectedNetworkId] = useState<string>('')
-  const [validConnectedNetworkId, setValidConnectedNetworkId] = useState<
-    boolean
-  >(false)
+  const [validConnectedNetworkId] = useState<boolean>(false)
   const [walletName, setWalletName] = useState<string>('')
   const [address, setAddress] = useState<Address | undefined>()
   const onboard = useMemo(() => {

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { Contract, BigNumber } from 'ethers'
 import useCurrentBlockTimestamp from 'src/hooks/useCurrentBlockTimestamp'
 import Token from 'src/models/Token'

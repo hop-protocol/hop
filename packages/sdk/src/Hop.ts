@@ -1,19 +1,12 @@
 import EventEmitter from 'eventemitter3'
-import { providers, Signer, Contract, BigNumber } from 'ethers'
-import { Chain, Token, Transfer } from './models'
-import { addresses, chains, metadata } from './config'
+import { Signer } from 'ethers'
+import { Chain, Token } from './models'
 import { wait } from './utils'
-import l1BridgeArtifact from './abi/L1_Bridge.json'
-import l2BridgeArtifact from './abi/L2_Bridge.json'
-import uniswapRouterArtifact from './abi/UniswapV2Router02.json'
-import uniswapWrapperArtifact from './abi/L2_UniswapWrapper.json'
 import HopBridge from './HopBridge'
 import CanonicalBridge from './CanonicalBridge'
 import { TChain } from './types'
 import Base from './Base'
 import _version from './version'
-
-type Provider = providers.Provider
 
 enum Event {
   Receipt = 'receipt',
@@ -172,8 +165,8 @@ class Hop extends Base {
           'sendToL2',
           sourceTx.data
         )
-        const chainId = decodedSource?.chainId
-        const l2Bridge = await bridge.getL2Bridge(destinationChain)
+        //const chainId = decodedSource?.chainId
+        //const l2Bridge = await bridge.getL2Bridge(destinationChain)
         const exchange = await bridge.getUniswapExchange(destinationChain)
         const pollDest = async () => {
           const blockNumber = await destinationChain.provider.getBlockNumber()
@@ -237,6 +230,7 @@ class Hop extends Base {
       // L2 -> L1
       if (!sourceChain.isL1 && destinationChain?.isL1) {
         const wrapper = await bridge.getUniswapWrapper(sourceChain)
+        // @ts-ignore
         const decodedSource = wrapper?.interface.decodeFunctionData(
           'swapAndSend',
           sourceTx.data
@@ -296,7 +290,8 @@ class Hop extends Base {
       if (!sourceChain.isL1 && !destinationChain?.isL1) {
         const wrapperSource = await bridge.getUniswapWrapper(sourceChain)
         const exchange = await bridge.getUniswapExchange(destinationChain)
-        const destinationBridge = await bridge.getL2Bridge(destinationChain)
+        //const destinationBridge = await bridge.getL2Bridge(destinationChain)
+        // @ts-ignore
         const decodedSource = wrapperSource?.interface.decodeFunctionData(
           'swapAndSend',
           sourceTx.data

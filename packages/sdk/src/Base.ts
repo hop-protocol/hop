@@ -1,7 +1,7 @@
 import { Signer, providers, BigNumber } from 'ethers'
-import { Chain, Token, Transfer } from './models'
-import { TChain, TToken, TAmount } from './types'
-import { addresses, chains, metadata } from './config'
+import { Chain, Token } from './models'
+import { TChain, TToken } from './types'
+import { metadata } from './config'
 
 class Base {
   toChainModel (chain: TChain) {

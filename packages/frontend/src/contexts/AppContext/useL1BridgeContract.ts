@@ -2,9 +2,7 @@ import { useMemo } from 'react'
 import { Contract, providers } from 'ethers'
 import l1BridgeArtifact from 'src/abi/L1_Bridge.json'
 import { addresses } from 'src/config'
-import Network from 'src/models/Network'
 import Token from 'src/models/Token'
-import logger from 'src/logger'
 import { L1_NETWORK } from 'src/constants'
 
 const useL1BridgeContracts = (

@@ -1,8 +1,6 @@
-import { providers, Signer, Contract, BigNumber } from 'ethers'
-import { Chain, Token, Transfer } from './models'
-import { addresses, chains, metadata } from './config'
-import { MaxUint256 } from './constants'
-import erc20Artifact from './abi/ERC20.json'
+import { Signer, Contract, BigNumber } from 'ethers'
+import { Chain } from './models'
+import { addresses } from './config'
 import l1BridgeArtifact from './abi/L1_Bridge.json'
 import l2BridgeArtifact from './abi/L2_Bridge.json'
 import uniswapRouterArtifact from './abi/UniswapV2Router02.json'
@@ -11,9 +9,8 @@ import uniswapWrapperArtifact from './abi/L2_UniswapWrapper.json'
 import TokenClass from './Token'
 import { TChain, TToken, TAmount } from './types'
 import Base from './Base'
+import AMM from './AMM'
 import _version from './version'
-
-type Provider = providers.Provider
 
 type SendL1ToL1Input = {
   destinationChain: Chain
@@ -365,7 +362,7 @@ class HopBridge extends Base {
   }
 
   private async _sendL1ToL1 (input: SendL1ToL1Input) {
-    const { sourceChain, destinationChain, amount } = input
+    const { sourceChain, amount } = input
     const recipient = await this.getSignerAddress()
     return this.token.transfer(sourceChain, recipient, amount)
   }
@@ -422,7 +419,6 @@ class HopBridge extends Base {
       destinationDeadline,
       approval
     } = input
-    const tokenSymbol = this.token.symbol
     deadline = deadline || this.defaultDeadlineSeconds
     destinationDeadline = destinationDeadline || 0 // must be 0
     amountOutMin = amountOutMin || '0' // must be 0
@@ -483,7 +479,6 @@ class HopBridge extends Base {
       recipient,
       approval
     } = input
-    const tokenSymbol = this.token.symbol
     deadline = deadline || this.defaultDeadlineSeconds
     destinationDeadline = destinationDeadline || deadline
     amountOutMin = amountOutMin || 0
@@ -540,7 +535,6 @@ class HopBridge extends Base {
       sourceChain,
       destinationChain
     )
-    const tokenSymbol = this.token.symbol
     const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
     const minBonderBps = await l2Bridge?.minBonderBps()
     const minBonderFeeAbsolute = await l2Bridge?.minBonderFeeAbsolute()
@@ -617,7 +611,7 @@ class HopBridge extends Base {
     return new Contract(
       uniswapRouterAddress,
       uniswapRouterArtifact.abi,
-      chain.provider
+      provider
     )
   }
 
@@ -675,6 +669,46 @@ class HopBridge extends Base {
 
   get defaultDeadlineSeconds () {
     return (Date.now() / 1000 + this.defaultDeadlineMinutes * 60) | 0
+  }
+
+  async addLiquidity (
+    amount0Desired: TAmount,
+    amount1Desired: TAmount,
+    chain?: TChain,
+    opts: any = {} // TODO
+  ) {
+    if (!chain) {
+      chain = this.sourceChain
+    }
+    chain = this.toChainModel(chain)
+    const amm = new AMM(this.signer, this.token, chain)
+    return amm.addLiquidity(
+      amount0Desired,
+      amount1Desired,
+      opts.amount0Min,
+      opts.amount1Min,
+      opts.deadline,
+      opts.to
+    )
+  }
+
+  async removeLiquidity (
+    liqudityTokenAmount: TAmount,
+    chain?: TChain,
+    opts: any = {} // TODO
+  ) {
+    if (!chain) {
+      chain = this.sourceChain
+    }
+    chain = this.toChainModel(chain)
+    const amm = new AMM(this.signer, this.token, chain)
+    return amm.removeLiquidity(
+      liqudityTokenAmount,
+      opts.amount0Min,
+      opts.amount1Min,
+      opts.deadline,
+      opts.to
+    )
   }
 }
 

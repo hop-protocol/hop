@@ -5,7 +5,6 @@ import erc20Artifact from 'src/abi/ERC20.json'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { addresses, metadata } from 'src/config'
-import logger from 'src/logger'
 import { L1_NETWORK } from 'src/constants'
 
 type Contracts = {

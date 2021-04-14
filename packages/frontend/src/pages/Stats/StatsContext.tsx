@@ -5,13 +5,11 @@ import React, {
   useState,
   useEffect
 } from 'react'
-import { Contract } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import Address from 'src/models/Address'
 import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 
 type StatsContextProps = {

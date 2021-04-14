@@ -2,8 +2,6 @@ import React, { FC, useEffect } from 'react'
 import clsx from 'clsx'
 import { makeStyles, withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
-import Skeleton from '@material-ui/lab/Skeleton'
-import Link from '@material-ui/core/Link'
 import Box from '@material-ui/core/Box'
 import Stepper from '@material-ui/core/Stepper'
 import Step from '@material-ui/core/Step'
@@ -15,7 +13,6 @@ import Zoom from '@material-ui/core/Zoom'
 import { StepIconProps } from '@material-ui/core/StepIcon'
 import CloseIcon from '@material-ui/icons/Close'
 import Transaction from 'src/models/Transaction'
-import { commafy } from 'src/utils'
 import { useStatus } from './StatusContext'
 
 const useStyles = makeStyles(theme => ({
@@ -101,7 +98,7 @@ const useStepIconStyles = makeStyles({
 
 function StepIcon (props: StepIconProps) {
   const styles = useStepIconStyles()
-  const { active, completed, icon } = props
+  const { active, completed } = props
   const loader = active && !completed
 
   return (
@@ -150,7 +147,7 @@ export type StatusProps = {
 const Status: FC<StatusProps> = (props: StatusProps) => {
   const { tx, variant } = props
   const styles = useStyles()
-  let { steps, activeStep, fetching, setTx } = useStatus()
+  let { steps, activeStep, setTx } = useStatus()
 
   useEffect(() => {
     setTx(tx)

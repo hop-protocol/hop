@@ -11,10 +11,7 @@ import useGovernanceContracts, {
   GovernanceContracts
 } from 'src/contexts/AppContext/useGovernanceContracts'
 import useL1BridgeContract from 'src/contexts/AppContext/useL1BridgeContract'
-import useNetworkSpecificContracts, {
-  NetworkSpecificContracts
-} from 'src/contexts/AppContext/useNetworkSpecificContracts'
-import logger from 'src/logger'
+import useNetworkSpecificContracts from 'src/contexts/AppContext/useNetworkSpecificContracts'
 
 type ABI = any
 type Provider = providers.Provider | Signer | undefined

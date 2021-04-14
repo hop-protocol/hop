@@ -12,7 +12,7 @@
     "skipLibCheck": true,
     "target": "es2015",
     "noImplicitAny": false,
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
     "moduleResolution": "node",
     "sourceMap": false,
     "outDir": "dist",

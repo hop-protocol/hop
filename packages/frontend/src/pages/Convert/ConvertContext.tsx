@@ -1,22 +1,14 @@
-import React, {
-  FC,
-  createContext,
-  useEffect,
-  useContext,
-  useState,
-  useMemo
-} from 'react'
-import { Contract, BigNumber } from 'ethers'
+import React, { FC, createContext, useContext, useState, useMemo } from 'react'
+import { BigNumber } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { addresses } from 'src/config'
-import { UINT256, L1_NETWORK, ARBITRUM, OPTIMISM, XDAI } from 'src/constants'
+import { UINT256, L1_NETWORK } from 'src/constants'
 import logger from 'src/logger'
-import { commafy, networkSlugToId } from 'src/utils'
+import { networkSlugToId } from 'src/utils'
 
 type ConvertContextProps = {
   tokens: Token[]
@@ -180,26 +172,6 @@ const ConvertContextProvider: FC = ({ children }) => {
     return value
   }
 
-  const checkMaxTokensAllowed = async (
-    networkSlug: string,
-    canonicalBridge: Contract
-  ) => {
-    if (networkSlug === XDAI) {
-      const maxPerTx = await canonicalBridge?.maxPerTx(
-        contracts?.tokens[selectedToken.symbol][L1_NETWORK].l1CanonicalToken
-          .address
-      )
-      const formattedMaxPerTx = Number(
-        formatUnits(maxPerTx.toString(), selectedToken.decimals)
-      )
-      if (Number(sourceTokenAmount) > formattedMaxPerTx) {
-        throw new Error(
-          `Max allowed by xDai Bridge is ${commafy(formattedMaxPerTx)} tokens`
-        )
-      }
-    }
-  }
-
   const convertTokens = async () => {
     try {
       const networkId = Number(sourceNetwork?.networkId)
@@ -281,10 +253,6 @@ const ConvertContextProvider: FC = ({ children }) => {
             l1Bridge?.address as string
           )
 
-          const tokenAddress = selectedToken
-            .addressForNetwork(sourceNetwork)
-            .toString()
-
           tx = await txConfirm?.show({
             kind: 'convert',
             inputProps: {
@@ -322,17 +290,12 @@ const ConvertContextProvider: FC = ({ children }) => {
           if (!messenger) {
             throw new Error('Messenger not found')
           }
-          await checkMaxTokensAllowed(destSlug, messenger)
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
             sourceNetwork as Network,
             messenger?.address as string
           )
-
-          const tokenAddress = selectedToken
-            .addressForNetwork(sourceNetwork)
-            .toString()
 
           tx = await txConfirm?.show({
             kind: 'convert',
@@ -473,9 +436,7 @@ const ConvertContextProvider: FC = ({ children }) => {
               const deadline = (Date.now() / 1000 + 300) | 0
               const amountOutMin = '0'
               const bonderFee = await getBonderFee()
-              const wrapperWrite = await getWriteContract(bridge)
               const chainId = destNetwork?.networkId
-
               if (bonderFee.gt(value)) {
                 throw new Error('Amount must be greater than bonder fee')
               }
@@ -557,23 +518,6 @@ const ConvertContextProvider: FC = ({ children }) => {
   const enoughBalance = Number(sourceTokenBalance) >= Number(sourceTokenAmount)
   let withinMax = true
   let sendButtonText = 'Convert'
-  if (
-    sourceTokenAmount &&
-    selectedToken &&
-    destNetwork &&
-    destNetwork.slug === XDAI
-  ) {
-    const maxPerTx = Number(
-      addresses.tokens[selectedToken?.symbol][destNetwork.slug]
-        .canonicalBridgeMaxPerTx
-    )
-    if (maxPerTx && Number(sourceTokenAmount) > maxPerTx) {
-      withinMax = false
-      sendButtonText = `Max allowed is ${commafy(maxPerTx)} ${
-        selectedToken?.symbol
-      }`
-    }
-  }
   const validFormFields = !!(
     sourceTokenAmount &&
     destTokenAmount &&

@@ -40,7 +40,7 @@ type Props = {
 
 const SelectOption: FC<Props> = props => {
   const styles = useStyles()
-  const { value, label, icon } = props
+  const { label, icon } = props
 
   return (
     <div className={styles.root}>

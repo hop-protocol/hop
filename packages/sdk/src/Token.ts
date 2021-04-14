@@ -10,7 +10,7 @@ import { TChain, TAmount } from './types'
  * @namespace Token
  */
 class Token extends TokenModel {
-  public signer: Signer
+  public signer: Signer | providers.Provider
 
   constructor (
     chainId: number | string,
@@ -18,7 +18,7 @@ class Token extends TokenModel {
     decimals: number,
     symbol: string,
     name: string,
-    signer?: Signer
+    signer?: Signer | providers.Provider
   ) {
     super(chainId, address, decimals, symbol, name)
     if (signer) {
@@ -26,7 +26,7 @@ class Token extends TokenModel {
     }
   }
 
-  connect (signer: Signer) {
+  connect (signer: Signer | providers.Provider) {
     return new Token(
       this.chainId,
       this.address,
@@ -52,7 +52,7 @@ class Token extends TokenModel {
    *```
    */
   async allowance (chain: TChain, spender: string) {
-		chain = this.toChainModel(chain)
+    chain = this.toChainModel(chain)
     const tokenContract = await this.getErc20(chain)
     const address = await this.getSignerAddress()
     return tokenContract.allowance(address, spender)
@@ -73,7 +73,7 @@ class Token extends TokenModel {
    *```
    */
   async balanceOf (chain: TChain) {
-		chain = this.toChainModel(chain)
+    chain = this.toChainModel(chain)
     const tokenContract = await this.getErc20(chain)
     const address = await this.getSignerAddress()
     return tokenContract.balanceOf(address)
@@ -95,12 +95,8 @@ class Token extends TokenModel {
    *const allowance = bridge.erc20Transfer(Chain.Kovan, spender, amount)
    *```
    */
-  async transfer (
-    chain: TChain,
-    recipient: string,
-    amount: TAmount
-  ) {
-		chain = this.toChainModel(chain)
+  async transfer (chain: TChain, recipient: string, amount: TAmount) {
+    chain = this.toChainModel(chain)
     const tokenContract = await this.getErc20(chain)
     return tokenContract.transfer(recipient, amount)
   }
@@ -121,12 +117,8 @@ class Token extends TokenModel {
    *const allowance = bridge.approve(Chain.xDai, spender, amount)
    *```
    */
-  async approve (
-    chain: TChain,
-    spender: string,
-    amount: TAmount = MaxUint256
-  ) {
-		chain = this.toChainModel(chain)
+  async approve (chain: TChain, spender: string, amount: TAmount = MaxUint256) {
+    chain = this.toChainModel(chain)
     const tokenContract = await this.getErc20(chain)
     const allowance = await this.allowance(chain, spender)
     if (allowance.lt(BigNumber.from(amount))) {
@@ -135,7 +127,7 @@ class Token extends TokenModel {
   }
 
   async getErc20 (chain: TChain) {
-		chain = this.toChainModel(chain)
+    chain = this.toChainModel(chain)
     const tokenSymbol = this.symbol
     let tokenAddress: string
     if (chain.isL1) {
@@ -152,11 +144,16 @@ class Token extends TokenModel {
     if (!this.signer) {
       throw new Error('signer not connected')
     }
-    return this.signer?.getAddress()
+    if (this.signer instanceof Signer) {
+      return this.signer.getAddress()
+    }
   }
 
-  async getSignerOrProvider (chain: TChain, signer: Signer = this.signer) {
-		chain = this.toChainModel(chain)
+  async getSignerOrProvider (
+    chain: TChain,
+    signer: Signer = this.signer as Signer
+  ) {
+    chain = this.toChainModel(chain)
     if (!signer) {
       return chain.provider
     }
@@ -167,13 +164,13 @@ class Token extends TokenModel {
     return this.signer
   }
 
-	private toChainModel(chain: TChain) {
-		if (typeof chain === 'string') {
-			return Chain.fromSlug(chain)
-		}
+  private toChainModel (chain: TChain) {
+    if (typeof chain === 'string') {
+      return Chain.fromSlug(chain)
+    }
 
-		return chain
-	}
+    return chain
+  }
 }
 
 export default Token

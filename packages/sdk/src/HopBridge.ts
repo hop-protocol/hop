@@ -9,7 +9,7 @@ import uniswapRouterArtifact from './abi/UniswapV2Router02.json'
 import uniswapExchangeArtifact from './abi/UniswapV2Pair.json'
 import uniswapWrapperArtifact from './abi/L2_UniswapWrapper.json'
 import TokenClass from './Token'
-import { TChain, TAmount } from './types'
+import { TChain, TToken, TAmount } from './types'
 import Base from './Base'
 import _version from './version'
 
@@ -112,21 +112,18 @@ class HopBridge extends Base {
    */
   constructor (
     signer: Signer,
-    token: string | Token,
+    token: TToken,
     sourceChain?: TChain,
     destinationChain?: TChain
   ) {
-		super()
+    super()
     if (!token) {
       throw new Error('token symbol is required')
     }
-
-    if (typeof token === 'string') {
-      const { name, symbol, decimals } = metadata.tokens[token]
-      token = new Token(0, '', decimals, symbol, name)
+    token = this.toTokenModel(token)
+    if (signer) {
+      this.signer = signer
     }
-
-    this.signer = signer
     if (sourceChain) {
       this.sourceChain = this.toChainModel(sourceChain)
     }
@@ -253,8 +250,8 @@ class HopBridge extends Base {
     approval: boolean = false,
     options?: Partial<SendOptions>
   ) {
-		sourceChain = this.toChainModel(sourceChain)
-		destinationChain = this.toChainModel(destinationChain)
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
 
     const balance = await this.token.balanceOf(sourceChain)
     if (balance.lt(BigNumber.from(tokenAmount))) {
@@ -353,10 +350,10 @@ class HopBridge extends Base {
     tokenAmountIn: TAmount,
     sourceChain?: TChain,
     destinationChain?: TChain,
-		isAmountIn: boolean = true
+    isAmountIn: boolean = true
   ) {
-		sourceChain = this.toChainModel(sourceChain)
-		destinationChain = this.toChainModel(destinationChain)
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
     const amountOut = await this._calcAmountOut(
       tokenAmountIn.toString(),
       isAmountIn,
@@ -535,8 +532,8 @@ class HopBridge extends Base {
     sourceChain: TChain,
     destinationChain: TChain
   ) {
-		sourceChain = this.toChainModel(sourceChain)
-		destinationChain = this.toChainModel(destinationChain)
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
     const amountOut = await this._calcAmountOut(
       amountIn.toString(),
       true,
@@ -604,7 +601,7 @@ class HopBridge extends Base {
   }
 
   async getL2Bridge (chain: TChain, signer: Signer = this.signer) {
-		chain = this.toChainModel(chain)
+    chain = this.toChainModel(chain)
     const tokenSymbol = this.token.symbol
     const bridgeAddress = addresses.tokens[tokenSymbol][chain.slug].l2Bridge
     const provider = await this.getSignerOrProvider(chain, signer)
@@ -612,7 +609,7 @@ class HopBridge extends Base {
   }
 
   async getUniswapRouter (chain: TChain, signer: Signer = this.signer) {
-		chain = this.toChainModel(chain)
+    chain = this.toChainModel(chain)
     const tokenSymbol = this.token.symbol
     const uniswapRouterAddress =
       addresses.tokens[tokenSymbol][chain.slug].l2UniswapRouter
@@ -625,7 +622,7 @@ class HopBridge extends Base {
   }
 
   async getUniswapExchange (chain: TChain, signer: Signer = this.signer) {
-		chain = this.toChainModel(chain)
+    chain = this.toChainModel(chain)
     const tokenSymbol = this.token.symbol
     const uniswapExchangeAddress =
       addresses.tokens[tokenSymbol][chain.slug].l2UniswapExchange
@@ -638,7 +635,7 @@ class HopBridge extends Base {
   }
 
   async getUniswapWrapper (chain: TChain, signer: Signer = this.signer) {
-		chain = this.toChainModel(chain)
+    chain = this.toChainModel(chain)
     const tokenSymbol = this.token.symbol
     const uniswapWrapperAddress =
       addresses.tokens[tokenSymbol][chain.slug].l2UniswapWrapper
@@ -651,7 +648,7 @@ class HopBridge extends Base {
   }
 
   async getSignerOrProvider (chain: TChain, signer: Signer = this.signer) {
-		chain = this.toChainModel(chain)
+    chain = this.toChainModel(chain)
     if (!signer) {
       return chain.provider
     }

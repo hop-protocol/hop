@@ -8,6 +8,7 @@ import l2BridgeArtifact from './abi/L2_Bridge.json'
 import uniswapRouterArtifact from './abi/UniswapV2Router02.json'
 import uniswapWrapperArtifact from './abi/L2_UniswapWrapper.json'
 import HopBridge from './HopBridge'
+import CanonicalBridge from './CanonicalBridge'
 import { TChain } from './types'
 import Base from './Base'
 import _version from './version'
@@ -74,13 +75,21 @@ class Hop extends Base {
    *const bridge = hop.bridge(Token.USDC)
    *```
    */
-  bridge (tokenSymbol: string, sourceChain?: TChain, destinationChain?: TChain) {
+  bridge (
+    tokenSymbol: string,
+    sourceChain?: TChain,
+    destinationChain?: TChain
+  ) {
     return new HopBridge(
       this.signer,
       tokenSymbol,
       sourceChain,
       destinationChain
     )
+  }
+
+  canonicalBridge (tokenSymbol: string, chain?: TChain) {
+    return new CanonicalBridge(this.signer, tokenSymbol, chain)
   }
 
   /**
@@ -137,8 +146,8 @@ class Hop extends Base {
     _sourceChain: TChain,
     _destinationChain: TChain
   ) {
-		const sourceChain = this.toChainModel(_sourceChain)
-		const destinationChain = this.toChainModel(_destinationChain)
+    const sourceChain = this.toChainModel(_sourceChain)
+    const destinationChain = this.toChainModel(_destinationChain)
     const ee = new EventEmitter()
 
     const update = async () => {

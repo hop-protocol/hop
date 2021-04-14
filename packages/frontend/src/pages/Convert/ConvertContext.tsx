@@ -365,6 +365,7 @@ const ConvertContextProvider: FC = ({ children }) => {
                   value
                 )
               } else if (destSlug === XDAI) {
+                console.log(tokenAddress, recipient, value, messenger.address)
                 return messengerWrite?.relayTokens(
                   tokenAddress,
                   recipient,

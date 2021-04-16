@@ -3,11 +3,11 @@ import { User } from './helpers'
 import { wait } from 'src/utils'
 import { bonderPrivateKey } from './config'
 // @ts-ignore
-import { KOVAN, OPTIMISM, XDAI } from 'src/constants'
+import { ETHEREUM, OPTIMISM, XDAI } from 'src/constants'
 
-const TOKEN = 'DAI'
-const TOKEN_0_AMOUNT = 10000
-const testNetworks = [OPTIMISM, XDAI]
+const TOKEN = 'USDC'
+const TOKEN_0_AMOUNT = 1000
+const testNetworks = [XDAI]
 
 for (let l2Network of testNetworks) {
   test(
@@ -21,25 +21,25 @@ for (let l2Network of testNetworks) {
 
 async function addLiquidity (l2Network: string, amount: number) {
   const user = new User(bonderPrivateKey)
-  const l1Balance = await user.getBalance(KOVAN, TOKEN)
-  console.log(`kovan ${TOKEN} balance: ${l1Balance}`)
+  const l1Balance = await user.getBalance(ETHEREUM, TOKEN)
+  console.log(`L1 ${TOKEN} balance: ${l1Balance}`)
 
   let tx: any
-  const l1Bridge = user.getHopBridgeContract(KOVAN, TOKEN)
-  await user.checkApproval(KOVAN, TOKEN, l1Bridge.address)
+  const l1Bridge = user.getHopBridgeContract(ETHEREUM, TOKEN)
+  await user.checkApproval(ETHEREUM, TOKEN, l1Bridge.address)
 
   let hopBalance = await user.getHopBalance(l2Network, TOKEN)
   console.log(`hop ${TOKEN} balance: ${hopBalance}`)
 
   if (l1Balance < amount) {
-    console.log(`minting ${KOVAN} ${TOKEN}`)
-    let tx = await user.mint(KOVAN, TOKEN, amount * 2)
+    console.log(`minting ${ETHEREUM} ${TOKEN}`)
+    let tx = await user.mint(ETHEREUM, TOKEN, amount * 2)
     console.log(`mint tx: ${tx.hash}`)
     await tx.wait()
   }
 
   if (hopBalance < amount) {
-    await user.checkApproval(KOVAN, TOKEN, l1Bridge.address)
+    await user.checkApproval(ETHEREUM, TOKEN, l1Bridge.address)
     console.log('converting canonical token to hop token')
     // TODO: take fee into account
     tx = await user.canonicalTokenToHopToken(l2Network, TOKEN, amount)
@@ -56,8 +56,8 @@ async function addLiquidity (l2Network: string, amount: number) {
 
   if (l2Balance < amount) {
     const tokenBridge = user.getCanonicalBridgeContract(l2Network, TOKEN)
-    await user.checkApproval(KOVAN, TOKEN, tokenBridge.address)
-    console.log(`converting ${KOVAN} ${TOKEN} to ${l2Network} ${TOKEN}`)
+    await user.checkApproval(ETHEREUM, TOKEN, tokenBridge.address)
+    console.log(`converting ${ETHEREUM} ${TOKEN} to ${l2Network} ${TOKEN}`)
     let tx = await user.convertToCanonicalToken(l2Network, TOKEN, amount / 2)
     console.log(`convert to canonical token tx: ${tx.hash}`)
     await tx.wait()
@@ -76,6 +76,8 @@ async function addLiquidity (l2Network: string, amount: number) {
 
   console.log('adding liquidity')
   tx = await user.addLiquidity(l2Network, TOKEN, amount)
+  console.log('tx: ', tx.hash)
+  console.log('waiting for receipt')
   const receipt = await tx.wait()
   expect(receipt.status).toBe(1)
 

@@ -1,14 +1,14 @@
 require('dotenv').config()
 import { startWatchers } from 'src/watchers/watchers'
-import { KOVAN, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
+import { ETHEREUM, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
 import { User, waitForEvent } from './helpers'
 import { privateKey } from './config'
 import Logger from 'src/logger'
 
 const L2ToL1Paths = [
-  [ARBITRUM, KOVAN],
-  [OPTIMISM, KOVAN],
-  [XDAI, KOVAN]
+  [ARBITRUM, ETHEREUM],
+  [OPTIMISM, ETHEREUM],
+  [XDAI, ETHEREUM]
 ]
 
 const L2ToL2Paths = [

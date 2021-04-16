@@ -1,17 +1,17 @@
 import { Contract } from 'ethers'
 import { isL1NetworkId } from 'src/utils'
 
-export default class L2UniswapWrapper {
-  l2UniswapWrapperContract: Contract
+export default class L2AmmWrapper {
+  ammWrapperContract: Contract
 
-  constructor (l2UniswapWrapperContract: Contract) {
-    this.l2UniswapWrapperContract = l2UniswapWrapperContract
+  constructor (ammWrapperContract: Contract) {
+    this.ammWrapperContract = ammWrapperContract
   }
 
   async decodeSwapAndSendData (data: string) {
     let chainId = ''
     let attemptSwap = false
-    const decoded = await this.l2UniswapWrapperContract.interface.decodeFunctionData(
+    const decoded = await this.ammWrapperContract.interface.decodeFunctionData(
       'swapAndSend',
       data
     )

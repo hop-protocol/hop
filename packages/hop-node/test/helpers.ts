@@ -1,22 +1,26 @@
 // @ts-ignore
 import { Watcher } from '@eth-optimism/watcher'
-import { ethers, Contract } from 'ethers'
+import { ethers, providers, Contract, Wallet } from 'ethers'
 import { HDNode } from '@ethersproject/hdnode'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { config } from 'src/config'
 import l1BridgeArtifact from 'src/abi/L1_Bridge.json'
 import l2BridgeArtifact from 'src/abi/L2_Bridge.json'
 import erc20Artifact from 'src/abi/ERC20.json'
+import l2AmmWrapperArtifact from 'src/abi/L2_AmmWrapper.json'
 import l2UniswapWrapperArtifact from 'src/abi/L2_UniswapWrapper.json'
 import uniswapRouterArtifact from 'src/abi/UniswapV2Router02.json'
 import uniswapPairArtifact from 'src/abi/UniswapV2Pair.json'
+import saddleSwapArtifact from 'src/abi/SaddleSwap.json'
 import globalInboxArtifact from 'src/abi/GlobalInbox.json'
 import xDaiForeignOmnibridgeArtifact from 'src/abi/L1_xDaiForeignOmnibridge.json'
+import xdaiMessengerWrapperArtifact from 'src/abi/L1_xDaiMessengerWrapper.json'
 import optimismTokenBridgeArtifact from 'src/abi/L1_OptimismTokenBridge.json'
+import { privateKey } from './config'
 import {
   UINT256,
   ZERO_ADDRESS,
-  KOVAN,
+  ETHEREUM,
   ARBITRUM,
   OPTIMISM,
   XDAI,
@@ -38,15 +42,15 @@ export class User {
 
   getProvider (network: string) {
     const url = getRpcUrl(network)
-    return new ethers.providers.StaticJsonRpcProvider(url)
+    return new providers.StaticJsonRpcProvider(url)
   }
 
-  getWallet (network: string = KOVAN) {
+  getWallet (network: string = ETHEREUM) {
     const provider = this.getProvider(network)
-    return new ethers.Wallet(this.privateKey, provider)
+    return new Wallet(this.privateKey, provider)
   }
 
-  async getBalance (network: string = KOVAN, token: string | Contract = '') {
+  async getBalance (network: string = ETHEREUM, token: string | Contract = '') {
     const address = await this.getAddress()
     if (!token) {
       const provider = this.getProvider(network)
@@ -59,18 +63,18 @@ export class User {
     } else {
       contract = token
     }
-    const balance = await contract.balanceOf(address)
-    return Number(formatUnits(balance, 18))
+    const bal = await contract.balanceOf(address)
+    return Number(formatUnits(bal.toString(), 18))
   }
 
-  async getHopBalance (network: string = KOVAN, token: string = '') {
+  async getHopBalance (network: string = ETHEREUM, token: string = '') {
     const contract = this.getHopBridgeTokenContract(network, token)
     return this.getBalance(network, contract)
   }
 
   getTokenContract (network: string, token: string) {
     let tokenAddress = config.tokens[token][network].l2CanonicalToken
-    if (network === KOVAN) {
+    if (network === ETHEREUM) {
       tokenAddress = config.tokens[token][network].l1CanonicalToken
     }
     const wallet = this.getWallet(network)
@@ -81,6 +85,12 @@ export class User {
     let routerAddress = config.tokens[token][network].l2UniswapRouter
     const wallet = this.getWallet(network)
     return new Contract(routerAddress, uniswapRouterArtifact.abi, wallet)
+  }
+
+  getSaddleSwapContract (network: string, token: string) {
+    let saddleSwapAddress = config.tokens[token][network].l2SaddleSwap
+    const wallet = this.getWallet(network)
+    return new Contract(saddleSwapAddress, saddleSwapArtifact.abi, wallet)
   }
 
   getUniswapPairContract (network: string, token: string) {
@@ -116,7 +126,7 @@ export class User {
   getHopBridgeContract (network: string, token: string = DAI) {
     let bridgeAddress: string
     let artifact: any
-    if (network === KOVAN) {
+    if (network === ETHEREUM) {
       bridgeAddress = config.tokens[token][network].l1Bridge
       artifact = l1BridgeArtifact
     } else {
@@ -134,10 +144,27 @@ export class User {
     return new Contract(tokenAddress, erc20Artifact.abi, wallet)
   }
 
+  async getMessengerWrapperContract (network: string, token: string = DAI) {
+    const bridge = this.getHopBridgeContract(network, token)
+    const wrapperAddress = await bridge.crossDomainMessengerWrappers(77)
+    const wallet = this.getWallet(network)
+    return new Contract(
+      wrapperAddress,
+      xdaiMessengerWrapperArtifact.abi,
+      wallet
+    )
+  }
+
   getUniswapWrapperContract (network: string, token: string = DAI) {
     const wrapperAddress = config.tokens[token][network].l2UniswapWrapper
     const wallet = this.getWallet(network)
     return new Contract(wrapperAddress, l2UniswapWrapperArtifact.abi, wallet)
+  }
+
+  getAmmWrapperContract (network: string, token: string = DAI) {
+    const wrapperAddress = config.tokens[token][network].l2AmmWrapper
+    const wallet = this.getWallet(network)
+    return new Contract(wrapperAddress, l2AmmWrapperArtifact.abi, wallet)
   }
 
   @queue
@@ -197,10 +224,10 @@ export class User {
     token: string,
     amount: string | number
   ) {
-    if (sourceNetwork === KOVAN) {
+    if (sourceNetwork === ETHEREUM) {
       return this.sendL1ToL2(sourceNetwork, destNetwork, token, amount)
     }
-    if (destNetwork === KOVAN) {
+    if (destNetwork === ETHEREUM) {
       return this.sendL2ToL1(sourceNetwork, destNetwork, token, amount)
     }
 
@@ -217,6 +244,7 @@ export class User {
     const amountOutMin = '0'
     const chainId = networkSlugToId(destNetwork)
     const recipient = await this.getAddress()
+    const relayer = ethers.constants.AddressZero
     const relayerFee = '0'
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
     const ethBalance = await this.getBalance()
@@ -231,6 +259,7 @@ export class User {
       parsedAmount,
       amountOutMin,
       deadline,
+      relayer,
       relayerFee,
       {
         //gasLimit: 1000000
@@ -259,12 +288,12 @@ export class User {
     let destinationDeadline = deadline
     let parsedAmount = parseUnits(amount.toString(), 18)
 
-    if (destNetwork === KOVAN) {
+    if (destNetwork === ETHEREUM) {
       destinationAmountOutMin = '0'
       destinationDeadline = 0
     }
 
-    const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
+    const wrapper = this.getAmmWrapperContract(sourceNetwork, token)
     await this.checkApproval(sourceNetwork, token, wrapper.address)
     return wrapper.swapAndSend(
       chainId,
@@ -300,7 +329,7 @@ export class User {
 
     await this.validateChainId(sourceChainId)
     //const bridge = this.getHopBridgeContract(sourceNetwork, token)
-    const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
+    const wrapper = this.getAmmWrapperContract(sourceNetwork, token)
     //const router = this.getUniswapRouterContract(sourceNetwork, token)
     //const path = [await wrapper.hToken(), await wrapper.l2CanonicalToken()]
     //const amountOut = await router.getAmountsOut(parsedAmount, path)
@@ -373,7 +402,6 @@ export class User {
     const parsedAmount = parseUnits(amount.toString(), 18)
     const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
     await this.checkApproval(sourceNetwork, token, wrapper.address)
-    console.log(bonderFee)
 
     return wrapper.swapAndSend(
       chainId,
@@ -420,7 +448,6 @@ export class User {
     return tokenContract.transfer(recipient, parseUnits(amount.toString(), 18))
   }
 
-  @queue
   async checkApproval (network: string, token: string, spender: string) {
     return checkApproval(this, network, token, spender)
   }
@@ -448,7 +475,7 @@ export class User {
 
   getBridgeAddress (network: string, token: string) {
     let address = config.tokens[token][network].l2Bridge
-    if (network === KOVAN) {
+    if (network === ETHEREUM) {
       address = config.tokens[token][network].l1Bridge
     }
     return address
@@ -456,6 +483,10 @@ export class User {
 
   getUniswapWrapperAddress (network: string, token: string) {
     return config.tokens[token][network].l2UniswapWrapper
+  }
+
+  getAmmWrapperAddress (network: string, token: string) {
+    return config.tokens[token][network].l2AmmWrapper
   }
 
   async calcToken1Rate (network: string, token: string) {
@@ -497,7 +528,26 @@ export class User {
     return token1Rate
   }
 
+  async getLpToken (network: string, token: string) {
+    const saddleSwap = this.getSaddleSwapContract(network, token)
+    const swapStorage = await saddleSwap.swapStorage()
+    const { lpToken: lpTokenAddress } = swapStorage
+    const wallet = this.getWallet(network)
+    const lpToken = new Contract(lpTokenAddress, erc20Artifact.abi, wallet)
+    return lpToken
+  }
+
   async getPoolBalance (network: string, token: string) {
+    const lpToken = await this.getLpToken(network, token)
+    const address = await this.getAddress()
+    const [balance, decimals] = await Promise.all([
+      lpToken.balanceOf(address),
+      lpToken.decimals()
+    ])
+    return Number(formatUnits(balance.toString(), decimals))
+  }
+
+  async getUniswapPoolBalance (network: string, token: string) {
     const uniswapExchange = this.getUniswapPairContract(network, token)
     const address = await this.getAddress()
     const [balance, decimals] = await Promise.all([
@@ -508,7 +558,7 @@ export class User {
   }
 
   getCanonicalBridgeContract (destNetwork: string, token: string) {
-    const wallet = this.getWallet(KOVAN)
+    const wallet = this.getWallet(ETHEREUM)
     if (destNetwork === ARBITRUM) {
       return new Contract(
         config.tokens[token][destNetwork].l1CanonicalBridge,
@@ -544,12 +594,12 @@ export class User {
     if (destNetwork === ARBITRUM) {
       return tokenBridge.depositERC20Message(
         config.tokens[token][destNetwork].arbChain,
-        config.tokens[token][KOVAN].l1CanonicalToken,
+        config.tokens[token][ETHEREUM].l1CanonicalToken,
         recipient,
         value
       )
     } else if (destNetwork === OPTIMISM) {
-      const l1TokenAddress = config.tokens[token][KOVAN].l1CanonicalToken
+      const l1TokenAddress = config.tokens[token][ETHEREUM].l1CanonicalToken
       const l2TokenAddress = config.tokens[token][destNetwork].l2CanonicalToken
       return tokenBridge.deposit(
         l1TokenAddress,
@@ -559,7 +609,7 @@ export class User {
       )
     } else if (destNetwork === XDAI) {
       return tokenBridge.relayTokens(
-        config.tokens[token][KOVAN].l1CanonicalToken,
+        config.tokens[token][ETHEREUM].l1CanonicalToken,
         recipient,
         value
       )
@@ -574,11 +624,12 @@ export class User {
     token: string,
     amount: string | number
   ) {
-    const l1Bridge = this.getHopBridgeContract(KOVAN, token)
+    const l1Bridge = this.getHopBridgeContract(ETHEREUM, token)
     const chainId = networkSlugToId(destNetwork)
     const recipient = await this.getAddress()
     const value = parseUnits(amount.toString(), 18)
     const deadline = '0'
+    const relayer = ethers.constants.AddressZero
     const relayerFee = '0'
     const amountOutMin = '0'
 
@@ -588,6 +639,7 @@ export class User {
       value,
       amountOutMin,
       deadline,
+      relayer,
       relayerFee,
       {
         //gasLimit: 1000000
@@ -596,6 +648,41 @@ export class User {
   }
 
   async addLiquidity (
+    network: string,
+    token: string,
+    token0Amount: string | number
+  ) {
+    const token1Amount = token0Amount
+    const saddleSwap = this.getSaddleSwapContract(network, token)
+    const saddleSwapAddress = saddleSwap.address
+    const tokenContract = this.getTokenContract(network, token)
+    const hTokenContract = this.getHopBridgeTokenContract(network, token)
+    let allowance = await this.getAllowance(network, token, saddleSwapAddress)
+    if (allowance < Number(token0Amount)) {
+      const tx = await this.approve(network, token, saddleSwapAddress)
+      await tx?.wait()
+    }
+    allowance = await this.getAllowance(
+      network,
+      hTokenContract,
+      saddleSwapAddress
+    )
+    if (allowance < Number(token0Amount)) {
+      const tx = await this.approve(network, hTokenContract, saddleSwapAddress)
+      await tx?.wait()
+    }
+    const amount0Desired = parseUnits(token0Amount.toString(), 18)
+    const amount1Desired = parseUnits(token1Amount.toString(), 18)
+    const recipient = await this.getAddress()
+    const deadline = (Date.now() / 1000 + 5 * 60) | 0
+    const amounts = [amount0Desired, amount1Desired]
+    const minToMint = 0
+    return saddleSwap.addLiquidity(amounts, minToMint, deadline, {
+      //gasLimit: 1000000
+    })
+  }
+
+  async uniswapAddLiquidity (
     network: string,
     token: string,
     token0Amount: string | number
@@ -663,7 +750,7 @@ export class User {
     totalAmount: number
   ) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     return bridge.bondTransferRoot(
       transferRootHash,
       chainId,
@@ -684,13 +771,13 @@ export class User {
       chainId,
       totalAmount
     )
-    return this.waitForTransactionReceipt(KOVAN, tx.hash)
+    return this.waitForTransactionReceipt(ETHEREUM, tx.hash)
   }
 
   @queue
   async challengeTransferRoot (transferRootHash: string, totalAmount: number) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     return bridge.challengeTransferBond(transferRootHash, parsedTotalAmount, {
       //gasLimit: 1000000
     })
@@ -701,13 +788,13 @@ export class User {
     totalAmount: number
   ) {
     const tx = await this.challengeTransferRoot(transferRootHash, totalAmount)
-    return this.waitForTransactionReceipt(KOVAN, tx.hash)
+    return this.waitForTransactionReceipt(ETHEREUM, tx.hash)
   }
 
   @queue
   async resolveChallenge (transferRootHash: string, totalAmount: number) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     return bridge.resolveChallenge(transferRootHash, parsedTotalAmount, {
       //gasLimit: 1000000
     })
@@ -718,16 +805,16 @@ export class User {
     totalAmount: number
   ) {
     const tx = await this.resolveChallenge(transferRootHash, totalAmount)
-    return this.waitForTransactionReceipt(KOVAN, tx.hash)
+    return this.waitForTransactionReceipt(ETHEREUM, tx.hash)
   }
 
   async getChallengePeriod () {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     return Number((await bridge.challengePeriod()).toString())
   }
 
   async getChallengeResolutionPeriod () {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     return Number((await bridge.challengeResolutionPeriod()).toString())
   }
 
@@ -735,7 +822,7 @@ export class User {
     challengePeriod: number,
     timeSlotSize: number
   ) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     const governance = await bridge.governance()
     if (governance !== (await this.getAddress())) {
       throw new Error('must be governance')
@@ -747,7 +834,7 @@ export class User {
   }
 
   async setChallengeResolutionPeriod (challengeResolutionPeriod: number) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     const governance = await bridge.governance()
     if (governance !== (await this.getAddress())) {
       throw new Error('must be governance')
@@ -756,7 +843,7 @@ export class User {
   }
 
   async getChallengeAmountForTransferAmount (amount: number) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     const parsedAmount = parseUnits(amount.toString(), 18)
     const challengeAmount = await bridge.getChallengeAmountForTransferAmount(
       parsedAmount
@@ -764,15 +851,15 @@ export class User {
     return Number(formatUnits(challengeAmount, 18).toString())
   }
 
-  async getCredit (network: string = KOVAN) {
+  async getCredit (network: string = ETHEREUM) {
     const bonder = await this.getAddress()
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     const credit = (await bridge.getCredit(bonder)).toString()
     return Number(formatUnits(credit, 18))
   }
 
   async getBondForTransferAmount (amount: number) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     const parsedAmount = parseUnits(amount.toString(), 18)
     const bondAmount = (
       await bridge.getBondForTransferAmount(parsedAmount)
@@ -781,19 +868,19 @@ export class User {
   }
 
   async getTransferRootCommitedAt (transferRootId: string) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     const commitedAt = await bridge.transferRootCommittedAt(transferRootId)
     return Number(commitedAt.toString())
   }
 
   async getTransferRootId (transferRootHash: string, totalAmount: number) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     return bridge.getTransferRootId(transferRootHash, parsedTotalAmount)
   }
 
   async getTransferBond (transferRootId: string) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     return bridge.transferBonds(transferRootId)
   }
 
@@ -802,19 +889,19 @@ export class User {
     return 15 * 60
   }
 
-  async getBlockTimestamp (network: string = KOVAN) {
+  async getBlockTimestamp (network: string = ETHEREUM) {
     const bridge = this.getHopBridgeContract(network)
     const block = await bridge.provider.getBlock('latest')
     return block.timestamp
   }
 
   async isChainIdPaused (chainId: string) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     return bridge.isChainIdPaused(chainId)
   }
 
   async getCrossDomainMessengerWrapperAddress (chainId: string) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(ETHEREUM)
     return bridge.crossDomainMessengerWrappers(chainId)
   }
 
@@ -837,8 +924,8 @@ export class User {
     }
   }
 
-  async getMaxPendingTransfers (network: string) {
-    const bridge = this.getHopBridgeContract(network)
+  async getMaxPendingTransfers (network: string, token: string = DAI) {
+    const bridge = this.getHopBridgeContract(network, token)
     return Number((await bridge.maxPendingTransfers()).toString())
   }
 
@@ -849,7 +936,10 @@ export class User {
   ) {
     const destChainId = networkSlugToId(destNetwork)
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
-    const maxPendingTransfers = await this.getMaxPendingTransfers(sourceNetwork)
+    const maxPendingTransfers = await this.getMaxPendingTransfers(
+      sourceNetwork,
+      token
+    )
     const pendingTransfers: string[] = []
     for (let i = 0; i < maxPendingTransfers; i++) {
       try {
@@ -887,7 +977,7 @@ export class User {
   async waitForL2Tx (l1TxHash: string) {
     const watcher = new Watcher({
       l1: {
-        provider: this.getProvider(KOVAN),
+        provider: this.getProvider(ETHEREUM),
         messengerAddress: '0xb89065D5eB05Cac554FDB11fC764C679b4202322'
       },
       l2: {
@@ -911,6 +1001,7 @@ export async function checkApproval (
   let allowance = await user.getAllowance(network, token, spender)
   if (allowance < 1000) {
     const tx = await user.approve(network, token, spender)
+    console.log('approve tx:', tx?.hash)
     await tx?.wait()
     allowance = await user.getAllowance(network, token, spender)
   }
@@ -961,30 +1052,32 @@ export async function prepareAccount (
   sourceNetwork: string,
   token: string
 ) {
-  const balance = await user.getBalance(sourceNetwork, token)
+  let balance = await user.getBalance(sourceNetwork, token)
   if (balance < 10) {
     if (sourceNetwork === XDAI) {
-      let tx = await user.mint(KOVAN, token, 1000)
+      let tx = await user.mint(ETHEREUM, token, 1000)
       await tx?.wait()
       const l1CanonicalBridge = user.getCanonicalBridgeContract(
         sourceNetwork,
         token
       )
-      await checkApproval(user, KOVAN, token, l1CanonicalBridge.address)
+      await checkApproval(user, ETHEREUM, token, l1CanonicalBridge.address)
       tx = await user.convertToCanonicalToken(sourceNetwork, token, 1000)
+      console.log('tx:', tx.hash)
       await tx?.wait()
-      await wait(20 * 1000)
+      await wait(120 * 1000)
     } else {
       const tx = await user.mint(sourceNetwork, token, 1000)
       await tx?.wait()
     }
+    balance = await user.getBalance(sourceNetwork, token)
   }
   expect(balance).toBeGreaterThan(0)
   let spender: string
-  if (sourceNetwork === KOVAN) {
+  if (sourceNetwork === ETHEREUM) {
     spender = user.getBridgeAddress(sourceNetwork, token)
   } else {
-    spender = user.getUniswapWrapperAddress(sourceNetwork, token)
+    spender = user.getAmmWrapperAddress(sourceNetwork, token)
   }
   await checkApproval(user, sourceNetwork, token, spender)
   // NOTE: xDai SPOA token is required for fees.

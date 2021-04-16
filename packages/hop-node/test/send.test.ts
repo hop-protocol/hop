@@ -1,7 +1,7 @@
 import { privateKey } from './config'
 import { User } from './helpers'
 // @ts-ignore
-import { KOVAN, XDAI, OPTIMISM, DAI } from 'src/constants'
+import { ETHEREUM, XDAI, OPTIMISM, DAI } from 'src/constants'
 
 const sourceNetwork = XDAI
 const destNetwork = OPTIMISM

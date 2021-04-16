@@ -1,22 +1,23 @@
 require('dotenv').config()
+import { Contract, Wallet, providers } from 'ethers'
 import { startWatchers } from 'src/watchers/watchers'
 import { wait, isL1 } from 'src/utils'
 import { User, waitForEvent, prepareAccount } from './helpers'
 import { privateKey } from './config'
 import Logger from 'src/logger'
 // @ts-ignore
-import { KOVAN, ARBITRUM, OPTIMISM, XDAI } from 'src/constants'
+import { ETHEREUM, ARBITRUM, OPTIMISM, XDAI } from 'src/constants'
 
 const L1ToL2Paths = [
-  //[KOVAN, ARBITRUM],
-  [KOVAN, OPTIMISM],
-  [KOVAN, XDAI]
+  //[ETHEREUM, ARBITRUM],
+  [ETHEREUM, OPTIMISM],
+  [ETHEREUM, XDAI]
 ]
 
 const L2ToL1Paths = [
-  //[ARBITRUM, KOVAN],
-  [OPTIMISM, KOVAN],
-  [XDAI, KOVAN]
+  //[ARBITRUM, ETHEREUM],
+  [OPTIMISM, ETHEREUM],
+  [XDAI, ETHEREUM]
 ]
 
 const L2ToL2Paths = [
@@ -28,13 +29,14 @@ const L2ToL2Paths = [
   //[XDAI, ARBITRUM]
 ]
 
-const TOKEN = 'DAI'
+const TOKEN = 'USDC'
 const TRANSFER_AMOUNT = 1
 const logger = new Logger('TEST')
 
 describe('bondWithdrawal', () => {
   let testPaths = [...L1ToL2Paths, ...L2ToL1Paths, ...L2ToL2Paths]
-  testPaths = [[XDAI, OPTIMISM]]
+  // debug
+  testPaths = [[XDAI, ETHEREUM]]
   for (let path of testPaths) {
     const [sourceNetwork, destNetwork] = path
     const label = `${sourceNetwork} -> ${destNetwork}`

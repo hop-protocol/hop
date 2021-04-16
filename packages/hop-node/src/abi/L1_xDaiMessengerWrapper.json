@@ -26,10 +26,28 @@
           "internalType": "uint256",
           "name": "_l2ChainId",
           "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_ambBridge",
+          "type": "address"
         }
       ],
       "stateMutability": "nonpayable",
       "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "ambBridge",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
     },
     {
       "inputs": [],
@@ -111,6 +129,11 @@
     },
     {
       "inputs": [
+        {
+          "internalType": "address",
+          "name": "l1BridgeCaller",
+          "type": "address"
+        },
         {
           "internalType": "bytes",
           "name": "",

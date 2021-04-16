@@ -1,14 +1,14 @@
 import { Contract } from 'ethers'
 import Bridge from './Bridge'
 import queue from './queue'
-import l2UniswapWrapperArtifact from 'src/abi/L2_UniswapWrapper.json'
+import ammWrapperArtifact from 'src/abi/L2_AmmWrapper.json'
 import l2BridgeWrapperArtifact from 'src/abi/L2_BridgeWrapper.json'
-import L2UniswapWrapper from './L2UniswapWrapper'
+import L2AmmWrapper from './L2AmmWrapper'
 import L2BridgeWrapper from './L2BridgeWrapper'
 
 export default class L2Bridge extends Bridge {
   l2BridgeContract: Contract
-  l2UniswapWrapper: L2UniswapWrapper
+  ammWrapper: L2AmmWrapper
   l2BridgeWrapper: L2BridgeWrapper
   TransfersCommitted: string = 'TransfersCommitted'
   TransferSent: string = 'TransferSent'
@@ -18,14 +18,14 @@ export default class L2Bridge extends Bridge {
     this.l2BridgeContract = l2BridgeContract
     this.l2StartListeners()
 
-    if (this.l2BridgeContract.uniswapWrapper) {
-      this.l2BridgeContract.uniswapWrapper().then((address: string) => {
-        const l2UniswapWrapperContract = new Contract(
+    if (this.l2BridgeContract.ammWrapper) {
+      this.l2BridgeContract.ammWrapper().then((address: string) => {
+        const ammWrapperContract = new Contract(
           address,
-          l2UniswapWrapperArtifact.abi,
+          ammWrapperArtifact.abi,
           this.l2BridgeContract.signer
         )
-        this.l2UniswapWrapper = new L2UniswapWrapper(l2UniswapWrapperContract)
+        this.ammWrapper = new L2AmmWrapper(ammWrapperContract)
       })
     }
 
@@ -98,7 +98,7 @@ export default class L2Bridge extends Bridge {
     let chainId = ''
     let attemptSwap = false
     try {
-      const decoded = await this.l2UniswapWrapper.decodeSwapAndSendData(data)
+      const decoded = await this.ammWrapper.decodeSwapAndSendData(data)
       chainId = decoded.chainId
       attemptSwap = decoded.attemptSwap
     } catch (err) {

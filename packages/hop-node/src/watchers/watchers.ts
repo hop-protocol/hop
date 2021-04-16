@@ -71,7 +71,7 @@ function startWatchers (
   const orderNum = _config.order || 0
   let _tokens = _config.tokens
   let _networks = _config.networks.filter(x => networks.includes(x))
-  if (!_tokens.length) {
+  if (!_tokens || !_tokens.length) {
     _tokens = Object.keys(config.tokens)
   }
   if (!_networks.length) {

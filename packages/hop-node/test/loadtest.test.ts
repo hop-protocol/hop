@@ -5,10 +5,10 @@ import { User, waitForEvent, generateUsers } from './helpers'
 import { faucetPrivateKey, mnemonic } from './config'
 import Logger from 'src/logger'
 // @ts-ignore
-import { OPTIMISM, KOVAN, XDAI } from 'src/constants'
+import { OPTIMISM, ETHEREUM, XDAI } from 'src/constants'
 
 const sourceNetwork = OPTIMISM
-const destNetwork = KOVAN
+const destNetwork = ETHEREUM
 const token = 'DAI'
 const TRANSFER_AMOUNT = 1
 const NUM_USERS = 1000
@@ -77,7 +77,7 @@ export async function prepareAccounts (users: User[]) {
   for (let user of users) {
     logger.log('preparing account')
     const address = await user.getAddress()
-    if ([KOVAN, XDAI].includes(sourceNetwork)) {
+    if ([ETHEREUM, XDAI].includes(sourceNetwork)) {
       let ethBal = await user.getBalance(sourceNetwork)
       if (ethBal < 0.1) {
         logger.log('faucet sending eth')

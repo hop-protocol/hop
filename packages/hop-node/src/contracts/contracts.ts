@@ -5,10 +5,11 @@ import { ETHEREUM } from 'src/constants'
 import erc20Artifact from 'src/abi/ERC20.json'
 import l1BridgeArtifact from 'src/abi/L1_Bridge.json'
 import l2BridgeArtifact from 'src/abi/L2_Bridge.json'
-import l2UniswapWrapperArtifact from 'src/abi/L2_UniswapWrapper.json'
+import ammWrapperArtifact from 'src/abi/L2_AmmWrapper.json'
 import uniswapRouterArtifact from 'src/abi/UniswapV2Router02.json'
 import uniswapFactoryArtifact from 'src/abi/UniswapV2Factory.json'
 import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
+import saddleSwapArtifact from 'src/abi/SaddleSwap.json'
 
 import { config } from 'src/config'
 import wallets from 'src/wallets'
@@ -57,14 +58,14 @@ const getL2BridgeContract = (token: string, network: string, wallet: any) => {
   )
 }
 
-const getL2UniswapWrapperContract = (
+const getL2AmmWrapperContract = (
   token: string,
   network: string,
   wallet: any
 ) => {
   return new ethers.Contract(
-    config.tokens[token][network].l2UniswapWrapper,
-    l2UniswapWrapperArtifact.abi,
+    config.tokens[token][network].l2AmmWrapper,
+    ammWrapperArtifact.abi,
     wallet
   )
 }
@@ -105,6 +106,18 @@ const getL2UniswapExchangeContract = (
   )
 }
 
+const getL2SaddleSwapContract = (
+  token: string,
+  network: string,
+  wallet: any
+) => {
+  return new ethers.Contract(
+    config.tokens[token][network].l2SaddleSwap,
+    saddleSwapArtifact.abi,
+    wallet
+  )
+}
+
 const constructContractsObject = memoize((token: string) => {
   if (!config.tokens[token]) {
     return null
@@ -124,10 +137,11 @@ const constructContractsObject = memoize((token: string) => {
         l2Bridge: getL2BridgeContract(token, network, wallet),
         l2CanonicalToken: getL2TokenContract(token, network, wallet),
         l2HopBridgeToken: getL2HopBridgeTokenContract(token, network, wallet),
-        l2UniswapWrapper: getL2UniswapWrapperContract(token, network, wallet),
-        uniswapRouter: getL2UniswapRouterContract(token, network, wallet),
-        uniswapFactory: getL2UniswapFactoryContract(token, network, wallet),
-        uniswapExchange: getL2UniswapExchangeContract(token, network, wallet)
+        ammWrapper: getL2AmmWrapperContract(token, network, wallet),
+        //uniswapRouter: getL2UniswapRouterContract(token, network, wallet),
+        //uniswapFactory: getL2UniswapFactoryContract(token, network, wallet),
+        //uniswapExchange: getL2UniswapExchangeContract(token, network, wallet),
+        saddleSwap: getL2SaddleSwapContract(token, network, wallet)
       }
     }
     return obj

@@ -6,6 +6,11 @@
           "internalType": "address[]",
           "name": "bonders",
           "type": "address[]"
+        },
+        {
+          "internalType": "address",
+          "name": "_governance",
+          "type": "address"
         }
       ],
       "stateMutability": "nonpayable",
@@ -64,6 +69,12 @@
     {
       "anonymous": false,
       "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
         {
           "indexed": false,
           "internalType": "uint256",
@@ -173,6 +184,12 @@
       "inputs": [
         {
           "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": false,
           "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
@@ -216,27 +233,9 @@
           "type": "bytes32"
         },
         {
-          "indexed": true,
-          "internalType": "address",
-          "name": "recipient",
-          "type": "address"
-        },
-        {
           "indexed": false,
           "internalType": "uint256",
           "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "transferNonce",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "bonderFee",
           "type": "uint256"
         }
       ],
@@ -273,6 +272,32 @@
       ],
       "name": "Withdrew",
       "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "CHALLENGE_AMOUNT_DIVISOR",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "TIME_SLOT_SIZE",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
     },
     {
       "inputs": [
@@ -347,32 +372,6 @@
         }
       ],
       "name": "chainBalance",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "challengeAmountDivisor",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "challengeAmountMultiplier",
       "outputs": [
         {
           "internalType": "uint256",
@@ -646,7 +645,7 @@
           "type": "uint256"
         }
       ],
-      "stateMutability": "view",
+      "stateMutability": "pure",
       "type": "function"
     },
     {
@@ -815,6 +814,19 @@
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "minTransferRootBondDelay",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "address",
@@ -896,6 +908,11 @@
           "type": "uint256"
         },
         {
+          "internalType": "address",
+          "name": "relayer",
+          "type": "address"
+        },
+        {
           "internalType": "uint256",
           "name": "relayerFee",
           "type": "uint256"
@@ -928,42 +945,11 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "_challengeAmountDivisor",
-          "type": "uint256"
-        }
-      ],
-      "name": "setChallengeAmountDivisor",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_challengeAmountMultiplier",
-          "type": "uint256"
-        }
-      ],
-      "name": "setChallengeAmountMultiplier",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
           "name": "_challengePeriod",
           "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_timeSlotSize",
-          "type": "uint256"
         }
       ],
-      "name": "setChallengePeriodAndTimeSlotSize",
+      "name": "setChallengePeriod",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -1008,6 +994,19 @@
         }
       ],
       "name": "setGovernance",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_minTransferRootBondDelay",
+          "type": "uint256"
+        }
+      ],
+      "name": "setMinTransferRootBondDelay",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -1087,24 +1086,16 @@
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "timeSlotSize",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
       "inputs": [
         {
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
         }
       ],
       "name": "timeSlotToAmountBonded",

@@ -1,4 +1,5 @@
 import { Signer, Contract } from 'ethers'
+import saddleSwapArtifact from './abi/SaddleSwap.json'
 import uniswapRouterArtifact from './abi/UniswapV2Router02.json'
 import { addresses } from './config'
 import { Chain } from './models'
@@ -42,6 +43,28 @@ class AMM extends Base {
   async addLiquidity (
     amount0Desired: TAmount,
     amount1Desired: TAmount,
+    minToMint: TAmount = 0,
+    deadline: number = this.defaultDeadlineSeconds
+  ) {
+    const amounts = [amount0Desired, amount1Desired]
+    const saddleSwap = await this.getSaddleSwap(this.chain)
+    return saddleSwap.addLiquidity(amounts, minToMint, deadline)
+  }
+
+  async removeLiquidity (
+    liqudityTokenAmount: TAmount,
+    amount0Min: TAmount = 0,
+    amount1Min: TAmount = 0,
+    deadline: number = this.defaultDeadlineSeconds
+  ) {
+    const saddleSwap = await this.getSaddleSwap(this.chain)
+    const amounts = [amount0Min, amount1Min]
+    return saddleSwap.removeLiquidity(liqudityTokenAmount, amounts, deadline)
+  }
+
+  async uniswapAddLiquidity (
+    amount0Desired: TAmount,
+    amount1Desired: TAmount,
     amount0Min: TAmount = 0,
     amount1Min: TAmount = 0,
     deadline: number = this.defaultDeadlineSeconds,
@@ -65,7 +88,7 @@ class AMM extends Base {
     )
   }
 
-  async removeLiquidity (
+  async uniswapRemoveLiquidity (
     liqudityTokenAmount: TAmount,
     amount0Min: TAmount = 0,
     amount1Min: TAmount = 0,
@@ -95,6 +118,15 @@ class AMM extends Base {
 
   async getHopTokenAddress () {
     return addresses.tokens[this.token.symbol][this.chain.slug].l2HopBridgeToken
+  }
+
+  async getSaddleSwap (chain: TChain) {
+    chain = this.toChainModel(chain)
+    const tokenSymbol = this.token.symbol
+    const saddleSwapAddress =
+      addresses.tokens[tokenSymbol][chain.slug].l2SaddleSwap
+    const provider = await this.getSignerOrProvider(chain)
+    return new Contract(saddleSwapAddress, saddleSwapArtifact.abi, provider)
   }
 
   async getUniswapRouter (chain: TChain) {

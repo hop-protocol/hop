@@ -55,6 +55,9 @@ class Token extends TokenModel {
     chain = this.toChainModel(chain)
     const tokenContract = await this.getErc20(chain)
     const address = await this.getSignerAddress()
+    if (!address) {
+      throw new Error('signer required')
+    }
     return tokenContract.allowance(address, spender)
   }
 
@@ -92,7 +95,7 @@ class Token extends TokenModel {
    *const bridge = hop.bridge(Token.USDC).connect(signer)
    *const recipient = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
    *const amount = '1000000000000000000'
-   *const allowance = bridge.erc20Transfer(Chain.Kovan, spender, amount)
+   *const tx = await bridge.erc20Transfer(Chain.Ethereum, spender, amount)
    *```
    */
   async transfer (chain: TChain, recipient: string, amount: TAmount) {
@@ -114,7 +117,7 @@ class Token extends TokenModel {
    *const bridge = hop.bridge(Token.USDC).connect(signer)
    *const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
    *const amount = '1000000000000000000'
-   *const allowance = bridge.approve(Chain.xDai, spender, amount)
+   *const tx = await bridge.approve(Chain.xDai, spender, amount)
    *```
    */
   async approve (chain: TChain, spender: string, amount: TAmount = MaxUint256) {
@@ -140,13 +143,11 @@ class Token extends TokenModel {
     return new Contract(tokenAddress, erc20Artifact.abi, provider)
   }
 
-  getSignerAddress () {
+  async getSignerAddress () {
     if (!this.signer) {
       throw new Error('signer not connected')
     }
-    if (this.signer instanceof Signer) {
-      return this.signer.getAddress()
-    }
+    return (this.signer as Signer)?.getAddress()
   }
 
   async getSignerOrProvider (

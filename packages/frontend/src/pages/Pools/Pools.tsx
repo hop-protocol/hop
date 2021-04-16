@@ -313,7 +313,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {userPoolBalance}
+                  {commafy(userPoolBalance)}
                 </Typography>
               </Box>
             )}

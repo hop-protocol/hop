@@ -169,6 +169,9 @@ const useNetworkSpecificContracts = (
     return new Contract(l2HopBridgeTokenAddress, erc20Artifact.abi, l2Provider)
   }, [l2Provider])
   const uniswapWrapper = useMemo(() => {
+    if (!uniswapWrapperAddress) {
+      return
+    }
     return new Contract(
       uniswapWrapperAddress,
       uniswapWrapperArtifact.abi,
@@ -176,6 +179,9 @@ const useNetworkSpecificContracts = (
     )
   }, [l2Provider])
   const uniswapRouter = useMemo(() => {
+    if (!uniswapRouterAddress) {
+      return
+    }
     return new Contract(
       uniswapRouterAddress,
       uniswapRouterArtifact.abi,
@@ -183,6 +189,9 @@ const useNetworkSpecificContracts = (
     )
   }, [l2Provider])
   const uniswapFactory = useMemo(() => {
+    if (!uniswapFactoryAddress) {
+      return
+    }
     return new Contract(
       uniswapFactoryAddress,
       uniswapFactoryArtifact.abi,
@@ -190,6 +199,9 @@ const useNetworkSpecificContracts = (
     )
   }, [l2Provider])
   const uniswapExchange = useMemo(() => {
+    if (!uniswapExchangeAddress) {
+      return
+    }
     return new Contract(
       uniswapExchangeAddress,
       uniswapV2PairArtifact.abi,

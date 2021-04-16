@@ -1,11 +1,13 @@
-import { Signer, Contract, BigNumber } from 'ethers'
+import { ethers, Signer, Contract, BigNumber } from 'ethers'
 import { Chain } from './models'
 import { addresses } from './config'
 import l1BridgeArtifact from './abi/L1_Bridge.json'
 import l2BridgeArtifact from './abi/L2_Bridge.json'
+import saddleLpTokenArtifact from './abi/SaddleLpToken.json'
+import saddleSwapArtifact from './abi/SaddleSwap.json'
 import uniswapRouterArtifact from './abi/UniswapV2Router02.json'
 import uniswapExchangeArtifact from './abi/UniswapV2Pair.json'
-import uniswapWrapperArtifact from './abi/L2_UniswapWrapper.json'
+import ammWrapperArtifact from './abi/L2_AmmWrapper.json'
 import TokenClass from './Token'
 import { TChain, TToken, TAmount } from './types'
 import Base from './Base'
@@ -21,6 +23,7 @@ type SendL1ToL1Input = {
 type SendL1ToL2Input = {
   destinationChainId: number | string
   sourceChain: Chain
+  relayer?: string
   relayerFee?: TAmount
   amount: TAmount
   amountOutMin?: TAmount
@@ -57,6 +60,7 @@ type SendL2ToL2Input = {
 
 type SendOptions = {
   deadline: number
+  relayer: string
   relayerFee: TAmount
   recipient: string
   amountOutMin: TAmount
@@ -269,6 +273,7 @@ class HopBridge extends Base {
       return this._sendL1ToL2({
         destinationChainId: destinationChain.chainId,
         sourceChain,
+        relayer: options?.relayer ?? ethers.constants.AddressZero,
         relayerFee: options?.relayerFee ?? 0,
         amount: tokenAmount,
         amountOutMin: options?.amountOutMin ?? 0,
@@ -371,6 +376,7 @@ class HopBridge extends Base {
     let {
       destinationChainId,
       sourceChain,
+      relayer,
       relayerFee,
       amount,
       amountOutMin,
@@ -402,6 +408,7 @@ class HopBridge extends Base {
       amount || 0,
       amountOutMin || 0,
       deadline,
+      relayer,
       relayerFee || 0
     )
   }
@@ -425,10 +432,7 @@ class HopBridge extends Base {
     destinationAmountOutMin = destinationAmountOutMin || '0'
     recipient = recipient || (await this.getSignerAddress())
     this.checkConnectedChain(this.signer, sourceChain)
-    const uniswapWrapper = await this.getUniswapWrapper(
-      sourceChain,
-      this.signer
-    )
+    const ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
 
     if (BigNumber.from(bonderFee).gt(amount)) {
       throw new Error('amount must be greater than bonder fee')
@@ -437,21 +441,21 @@ class HopBridge extends Base {
     if (approval) {
       const tx = await this.token.approve(
         sourceChain,
-        uniswapWrapper.address,
+        ammWrapper.address,
         amount
       )
       await tx?.wait()
     } else {
       const allowance = await this.token.allowance(
         sourceChain,
-        uniswapWrapper.address
+        ammWrapper.address
       )
       if (allowance.lt(BigNumber.from(amount))) {
         throw new Error('not enough allowance')
       }
     }
 
-    return uniswapWrapper.swapAndSend(
+    return ammWrapper.swapAndSend(
       destinationChainId,
       recipient,
       amount,
@@ -488,29 +492,26 @@ class HopBridge extends Base {
     }
 
     this.checkConnectedChain(this.signer, sourceChain)
-    const uniswapWrapper = await this.getUniswapWrapper(
-      sourceChain,
-      this.signer
-    )
+    const ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
 
     if (approval) {
       const tx = await this.token.approve(
         sourceChain,
-        uniswapWrapper.address,
+        ammWrapper.address,
         amount
       )
       await tx?.wait()
     } else {
       const allowance = await this.token.allowance(
         sourceChain,
-        uniswapWrapper.address
+        ammWrapper.address
       )
       if (allowance.lt(BigNumber.from(amount))) {
         throw new Error('not enough allowance')
       }
     }
 
-    return uniswapWrapper.swapAndSend(
+    return ammWrapper.swapAndSend(
       destinationChainId,
       recipient,
       amount,
@@ -546,6 +547,55 @@ class HopBridge extends Base {
   }
 
   async _calcAmountOut (
+    amount: string,
+    isAmountIn: boolean,
+    sourceChain: Chain,
+    destinationChain: Chain
+  ): Promise<BigNumber> {
+    const tokenSymbol = this.token.symbol
+    let saddleSwap: Contract
+    let tokenIndexFrom: number
+    let tokenIndexTo: number
+
+    if (sourceChain.isL1) {
+      if (!destinationChain) {
+        return BigNumber.from('0')
+      }
+      let l2HopBridgeTokenAddress =
+        addresses.tokens[tokenSymbol][destinationChain.slug].l2HopBridgeToken
+      let l2CanonicalTokenAddress =
+        addresses.tokens[tokenSymbol][destinationChain.slug].l2CanonicalToken
+      saddleSwap = await this.getSaddleSwap(destinationChain, this.signer)
+      tokenIndexFrom = Number(
+        (await saddleSwap.getTokenIndex(l2HopBridgeTokenAddress)).toString()
+      )
+      tokenIndexTo = Number(
+        (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
+      )
+    } else {
+      if (!sourceChain) {
+        return BigNumber.from('0')
+      }
+      let l2CanonicalTokenAddress =
+        addresses.tokens[tokenSymbol][sourceChain.slug].l2CanonicalToken
+      let l2HopBridgeTokenAddress =
+        addresses.tokens[tokenSymbol][sourceChain.slug].l2HopBridgeToken
+      saddleSwap = await this.getSaddleSwap(sourceChain, this.signer)
+      tokenIndexFrom = Number(
+        (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
+      )
+      tokenIndexTo = Number(
+        (await saddleSwap.getTokenIndex(l2HopBridgeTokenAddress)).toString()
+      )
+    }
+    if (!saddleSwap) {
+      return BigNumber.from('0')
+    }
+
+    return saddleSwap.calculateSwap(tokenIndexFrom, tokenIndexTo, amount)
+  }
+
+  async _uniswapCalcAmountOut (
     amount: string,
     isAmountIn: boolean,
     sourceChain: Chain,
@@ -589,8 +639,8 @@ class HopBridge extends Base {
 
   async getL1Bridge (signer: Signer = this.signer) {
     const tokenSymbol = this.token.symbol
-    const bridgeAddress = addresses.tokens[tokenSymbol]['kovan'].l1Bridge
-    const provider = await this.getSignerOrProvider(Chain.Kovan, signer)
+    const bridgeAddress = addresses.tokens[tokenSymbol]['ethereum'].l1Bridge
+    const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
     return new Contract(bridgeAddress, l1BridgeArtifact.abi, provider)
   }
 
@@ -628,15 +678,41 @@ class HopBridge extends Base {
     )
   }
 
-  async getUniswapWrapper (chain: TChain, signer: Signer = this.signer) {
+  async getAmmWrapper (chain: TChain, signer: Signer = this.signer) {
     chain = this.toChainModel(chain)
     const tokenSymbol = this.token.symbol
-    const uniswapWrapperAddress =
-      addresses.tokens[tokenSymbol][chain.slug].l2UniswapWrapper
+    const ammWrapperAddress =
+      addresses.tokens[tokenSymbol][chain.slug].l2AmmWrapper
+    const provider = await this.getSignerOrProvider(chain, signer)
+    return new Contract(ammWrapperAddress, ammWrapperArtifact.abi, provider)
+  }
+
+  async getSaddleSwap (chain: TChain, signer: Signer = this.signer) {
+    chain = this.toChainModel(chain)
+    const tokenSymbol = this.token.symbol
+    const saddleSwapAddress =
+      addresses.tokens[tokenSymbol][chain.slug].l2SaddleSwap
+    const provider = await this.getSignerOrProvider(chain, signer)
+    return new Contract(saddleSwapAddress, saddleSwapArtifact.abi, provider)
+  }
+
+  async getSaddleSwapReserves (chain: TChain, signer: Signer = this.signer) {
+    const saddleSwap = await this.getSaddleSwap(chain, signer)
+    return Promise.all([
+      saddleSwap.getTokenBalance(0),
+      saddleSwap.getTokenBalance(1)
+    ])
+  }
+
+  async getSaddleLpToken (chain: TChain, signer: Signer = this.signer) {
+    chain = this.toChainModel(chain)
+    const tokenSymbol = this.token.symbol
+    const saddleLpTokenAddress =
+      addresses.tokens[tokenSymbol][chain.slug].l2SaddleLpToken
     const provider = await this.getSignerOrProvider(chain, signer)
     return new Contract(
-      uniswapWrapperAddress,
-      uniswapWrapperArtifact.abi,
+      saddleLpTokenAddress,
+      saddleLpTokenArtifact.abi,
       provider
     )
   }
@@ -685,10 +761,8 @@ class HopBridge extends Base {
     return amm.addLiquidity(
       amount0Desired,
       amount1Desired,
-      opts.amount0Min,
-      opts.amount1Min,
-      opts.deadline,
-      opts.to
+      opts.minToMint,
+      opts.deadline
     )
   }
 
@@ -706,8 +780,7 @@ class HopBridge extends Base {
       liqudityTokenAmount,
       opts.amount0Min,
       opts.amount1Min,
-      opts.deadline,
-      opts.to
+      opts.deadline
     )
   }
 }

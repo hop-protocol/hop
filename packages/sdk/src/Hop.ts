@@ -167,7 +167,7 @@ class Hop extends Base {
         )
         //const chainId = decodedSource?.chainId
         //const l2Bridge = await bridge.getL2Bridge(destinationChain)
-        const exchange = await bridge.getUniswapExchange(destinationChain)
+        const exchange = await bridge.getSaddleSwap(destinationChain)
         const pollDest = async () => {
           const blockNumber = await destinationChain.provider.getBlockNumber()
           if (!blockNumber) {
@@ -229,7 +229,7 @@ class Hop extends Base {
 
       // L2 -> L1
       if (!sourceChain.isL1 && destinationChain?.isL1) {
-        const wrapper = await bridge.getUniswapWrapper(sourceChain)
+        const wrapper = await bridge.getAmmWrapper(sourceChain)
         // @ts-ignore
         const decodedSource = wrapper?.interface.decodeFunctionData(
           'swapAndSend',
@@ -288,8 +288,8 @@ class Hop extends Base {
 
       // L2 -> L2
       if (!sourceChain.isL1 && !destinationChain?.isL1) {
-        const wrapperSource = await bridge.getUniswapWrapper(sourceChain)
-        const exchange = await bridge.getUniswapExchange(destinationChain)
+        const wrapperSource = await bridge.getAmmWrapper(sourceChain)
+        const exchange = await bridge.getSaddleSwap(destinationChain)
         //const destinationBridge = await bridge.getL2Bridge(destinationChain)
         // @ts-ignore
         const decodedSource = wrapperSource?.interface.decodeFunctionData(

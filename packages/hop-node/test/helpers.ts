@@ -675,12 +675,31 @@ export class User {
     const amount1Desired = parseUnits(token1Amount.toString(), 18)
     const recipient = await this.getAddress()
     const deadline = (Date.now() / 1000 + 5 * 60) | 0
-    const amounts = [amount0Desired, amount1Desired]
+
+		const token0Index = Number((await saddleSwap.getTokenIndex(tokenContract.address)).toString())
+		const token1Index = Number((await saddleSwap.getTokenIndex(hTokenContract.address)).toString())
+    const amounts = new Array(2).fill(0)
+		amounts[token0Index] = amount0Desired
+		amounts[token1Index] = amount1Desired
     const minToMint = 0
     return saddleSwap.addLiquidity(amounts, minToMint, deadline, {
       //gasLimit: 1000000
     })
   }
+
+  async removeLiquidity (
+    network: string,
+    token: string,
+    lpTokenAmount: string | number
+  ) {
+    const parsedLpTokenAmount = parseUnits(lpTokenAmount.toString(), 18)
+    const minAmounts = new Array(2).fill(0)
+    const deadline = (Date.now() / 1000 + 5 * 60) | 0
+    const saddleSwap = this.getSaddleSwapContract(network, token)
+    return saddleSwap.removeLiquidity(parsedLpTokenAmount, minAmounts, deadline, {
+      //gasLimit: 1000000
+    })
+	}
 
   async uniswapAddLiquidity (
     network: string,

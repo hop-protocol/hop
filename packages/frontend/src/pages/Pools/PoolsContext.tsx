@@ -111,13 +111,9 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [token1Deposited, setToken1Deposited] = useState<string>('')
   const [token0Balance, setToken0Balance] = useState<number>(0)
   const [token1Balance, setToken1Balance] = useState<number>(0)
+
   let { networks, tokens, contracts, txConfirm, txHistory, sdk } = useApp()
-  const {
-    address,
-    provider,
-    getWriteContract,
-    checkConnectedNetworkId
-  } = useWeb3Context()
+  const { address, provider, checkConnectedNetworkId } = useWeb3Context()
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [error, setError] = useState<string | null | undefined>(null)
 
@@ -151,16 +147,6 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
   const [txHash, setTxHash] = useState<string | undefined>()
   const [sending, setSending] = useState<boolean>(false)
-  const selectedNetworkSlug = selectedNetwork?.slug
-  const uniswapRouter =
-    contracts?.tokens[selectedToken?.symbol]?.[selectedNetworkSlug]
-      ?.uniswapRouter
-  const uniswapFactory =
-    contracts?.tokens[selectedToken?.symbol]?.[selectedNetworkSlug]
-      ?.uniswapFactory
-  const uniswapExchange =
-    contracts?.tokens[selectedToken?.symbol]?.[selectedNetworkSlug]
-      ?.uniswapExchange
 
   useEffect(() => {
     if (!networks.includes(selectedNetwork)) {
@@ -226,15 +212,17 @@ const PoolsContextProvider: FC = ({ children }) => {
       if (!provider) return
       const contractProvider = selectedNetwork.provider
       if (!contractProvider) return
-      if (!uniswapExchange) return
       const signer = provider?.getSigner()
-      const address = await signer.getAddress()
+      const signerAddress = await signer.getAddress()
+
+      const bridge = await sdk.bridge(selectedToken.symbol)
+      const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
 
       const [decimals, totalSupply, balance, reserves] = await Promise.all([
-        uniswapExchange.decimals(),
-        uniswapExchange.totalSupply(),
-        uniswapExchange.balanceOf(address),
-        uniswapExchange.getReserves()
+        lpToken.decimals(),
+        lpToken.totalSupply(),
+        lpToken.balanceOf(signerAddress),
+        bridge.getSaddleSwapReserves(selectedNetwork.slug)
       ])
 
       const formattedTotalSupply = formatUnits(
@@ -267,6 +255,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       setToken0Deposited(token0Deposited.toFixed(2))
       setToken1Deposited(token1Deposited.toFixed(2))
 
+      /*
       const amount0 = parseUnits('1', decimals)
       const amount1 = await uniswapRouter?.quote(
         amount0,
@@ -275,23 +264,17 @@ const PoolsContextProvider: FC = ({ children }) => {
       )
       const formattedAmountB = formatUnits(amount1, decimals)
       setToken1Rate(formattedAmountB)
+         */
+      setToken1Rate('1')
     } catch (err) {
       logger.error(err)
     }
-  }, [
-    provider,
-    uniswapRouter,
-    selectedNetwork,
-    selectedToken,
-    hopToken,
-    uniswapFactory
-  ])
+  }, [provider, selectedNetwork, selectedToken, hopToken])
 
   useEffect(() => {
     updateUserPoolPositions()
   }, [
     provider,
-    uniswapRouter,
     selectedNetwork,
     selectedToken,
     hopToken,
@@ -315,11 +298,14 @@ const PoolsContextProvider: FC = ({ children }) => {
     const tokenAddress = token.addressForNetwork(network).toString()
     const contract = contracts?.getErc20Contract(tokenAddress, signer)
 
-    const address = uniswapRouter?.address
+    const saddleSwap = await sdk
+      .bridge(selectedToken.symbol)
+      .getSaddleSwap(network.slug)
+    const spender = saddleSwap.address
     const parsedAmount = parseUnits(amount, token.decimals || 18)
     const approved = await contract?.allowance(
       await signer?.getAddress(),
-      address
+      spender
     )
 
     if (approved.lt(parsedAmount)) {
@@ -330,7 +316,7 @@ const PoolsContextProvider: FC = ({ children }) => {
           token
         },
         onConfirm: async (approveAll: boolean) => {
-          return contract?.approve(address, approveAll ? UINT256 : parsedAmount)
+          return contract?.approve(spender, approveAll ? UINT256 : parsedAmount)
         }
       })
     }
@@ -349,9 +335,6 @@ const PoolsContextProvider: FC = ({ children }) => {
       if (!Number(token1Amount)) {
         return
       }
-
-      const uniswapRouterWrite = await getWriteContract(uniswapRouter)
-      if (!uniswapRouterWrite) return
 
       setSending(true)
       let tx = await approveTokens(selectedToken, token0Amount, selectedNetwork)
@@ -383,9 +366,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         selectedToken?.decimals || 18
       )
       const amount1Desired = parseUnits(token1Amount, hopToken?.decimals || 18)
-      const amount0Min = 0
-      const amount1Min = 0
-      const to = await signer?.getAddress()
+      const minToMint = 0
       const deadline = (Date.now() / 1000 + 5 * 60) | 0
 
       tx = await txConfirm?.show({
@@ -411,9 +392,7 @@ const PoolsContextProvider: FC = ({ children }) => {
               amount1Desired as any,
               selectedNetwork.slug,
               {
-                amount0Min,
-                amount1Min,
-                to,
+                minToMint,
                 deadline
               }
             )
@@ -448,19 +427,23 @@ const PoolsContextProvider: FC = ({ children }) => {
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
 
-      const uniswapRouterWrite = await getWriteContract(uniswapRouter)
-      if (!uniswapRouterWrite) return
+      const saddleSwap = await sdk
+        .bridge(selectedToken.symbol)
+        .getSaddleSwap(selectedNetwork.slug)
+      const lpToken = await sdk
+        .bridge(selectedToken.symbol)
+        .getSaddleLpToken(selectedNetwork.slug)
 
       const signer = provider?.getSigner()
       const to = await signer?.getAddress()
-      const balance = await uniswapExchange?.balanceOf(to)
+      const balance = await lpToken?.balanceOf(to)
       const formattedBalance = Number(formatUnits(balance.toString(), 18))
       let liquidityTokensAmount = 0
 
       let tx: any
-      const approved = await uniswapExchange?.allowance(
+      const approved = await lpToken?.allowance(
         await signer?.getAddress(),
-        uniswapRouter?.address
+        saddleSwap.address
       )
 
       if (approved.lt(balance)) {
@@ -469,15 +452,15 @@ const PoolsContextProvider: FC = ({ children }) => {
           inputProps: {
             amount: formattedBalance,
             token: new Token({
-              symbol: await uniswapExchange?.symbol(),
-              tokenName: await uniswapExchange?.name(),
+              symbol: await lpToken.symbol(),
+              tokenName: await lpToken.name(),
               imageUrl: '',
               contracts: {}
             })
           },
           onConfirm: async (approveAll: boolean) => {
-            return uniswapExchange?.approve(
-              uniswapRouter?.address,
+            return lpToken.approve(
+              saddleSwap.address,
               approveAll ? UINT256 : balance
             )
           }
@@ -533,7 +516,6 @@ const PoolsContextProvider: FC = ({ children }) => {
               {
                 amount0Min,
                 amount1Min,
-                to,
                 deadline
               }
             )

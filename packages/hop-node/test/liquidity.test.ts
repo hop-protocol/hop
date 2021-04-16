@@ -17,6 +17,14 @@ for (let l2Network of testNetworks) {
     },
     300 * 1000
   )
+  test.skip(
+    `remove liquidity on ${l2Network}`,
+    async () => {
+      const lpTokens = 1
+      await removeLiquidity(l2Network, lpTokens)
+    },
+    300 * 1000
+  )
 }
 
 async function addLiquidity (l2Network: string, amount: number) {
@@ -94,4 +102,45 @@ async function addLiquidity (l2Network: string, amount: number) {
   expect(tokenBalanceAfter).toBeLessThan(tokenBalanceBefore)
   expect(hopTokenBalanceAfter).toBeLessThan(hopTokenBalanceBefore)
   expect(poolBalanceAfter).toBeGreaterThan(poolBalanceBefore)
+}
+
+async function removeLiquidity (l2Network: string, amount: number) {
+  const user = new User(bonderPrivateKey)
+
+  //const lpToken = await user.getLpToken(l2Network, TOKEN)
+  //const saddleSwap = user.getSaddleSwapContract(l2Network, TOKEN)
+  //const tx = await user.approve(l2Network, lpToken, saddleSwap.address)
+  //await tx.wait()
+
+  let tx: any
+  let [
+    tokenBalanceBefore,
+    hopTokenBalanceBefore,
+    poolBalanceBefore
+  ] = await Promise.all([
+    user.getBalance(l2Network, TOKEN),
+    user.getHopBalance(l2Network, TOKEN),
+    user.getPoolBalance(l2Network, TOKEN)
+  ])
+
+  console.log('removing liquidity')
+  tx = await user.removeLiquidity(l2Network, TOKEN, amount)
+  console.log('tx: ', tx.hash)
+  console.log('waiting for receipt')
+  const receipt = await tx.wait()
+  expect(receipt.status).toBe(1)
+
+  let [
+    tokenBalanceAfter,
+    hopTokenBalanceAfter,
+    poolBalanceAfter
+  ] = await Promise.all([
+    user.getBalance(l2Network, TOKEN),
+    user.getHopBalance(l2Network, TOKEN),
+    user.getPoolBalance(l2Network, TOKEN)
+  ])
+
+  expect(tokenBalanceAfter).toBeGreaterThan(tokenBalanceBefore)
+  expect(hopTokenBalanceAfter).toBeGreaterThan(hopTokenBalanceBefore)
+  expect(poolBalanceAfter).toBeLessThanOrEqual(poolBalanceBefore)
 }

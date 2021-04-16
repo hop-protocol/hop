@@ -60,12 +60,12 @@ class CanonicalBridge extends Base {
     const recipient = await this.getSignerAddress()
     const bridgeAddress =
       addresses.tokens[tokenSymbol][(chain as Chain).slug].l1CanonicalBridge
-    const provider = await this.getSignerOrProvider(Chain.Kovan, this.signer)
+    const provider = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
     const tokenAddress =
-      addresses.tokens[tokenSymbol][Chain.Kovan.slug].l1CanonicalToken
+      addresses.tokens[tokenSymbol][Chain.Ethereum.slug].l1CanonicalToken
 
-    //const balance = await this.token.connect(provider).balanceOf(Chain.Kovan)
-    //const tx = await this.token.connect(provider).approve(Chain.Kovan, bridgeAddress)
+    //const balance = await this.token.connect(provider).balanceOf(Chain.Ethereum)
+    //const tx = await this.token.connect(provider).approve(Chain.Ethereum, bridgeAddress)
     //await tx?.wait()
 
     if ((chain as Chain).equals(Chain.xDai)) {
@@ -144,7 +144,7 @@ class CanonicalBridge extends Base {
       const bridgeAddress =
         addresses.tokens[tokenSymbol][(chain as Chain).slug].l2CanonicalBridge
       const l1TokenAddress =
-        addresses.tokens[tokenSymbol][Chain.Kovan.slug].l1CanonicalToken
+        addresses.tokens[tokenSymbol][Chain.Ethereum.slug].l1CanonicalToken
       const tokenAddress =
         addresses.tokens[tokenSymbol][chain.slug].l2CanonicalToken
       const bridge = new Contract(
@@ -180,7 +180,8 @@ class CanonicalBridge extends Base {
   ) {
     if (chain.equals(Chain.xDai)) {
       const tokenAddress =
-        addresses.tokens[this.token.symbol][Chain.Kovan.slug].l1CanonicalToken
+        addresses.tokens[this.token.symbol][Chain.Ethereum.slug]
+          .l1CanonicalToken
       const maxPerTx = await canonicalBridge?.maxPerTx(tokenAddress)
       const formattedMaxPerTx = Number(
         formatUnits(maxPerTx.toString(), this.token.decimals)
@@ -201,15 +202,14 @@ class CanonicalBridge extends Base {
     if (!signer) {
       return chain.provider
     }
-    if (signer instanceof Signer) {
-      if (!signer.provider) {
-        return signer.connect(chain.provider)
-      }
-      const connectedChainId = await signer.getChainId()
-      if (connectedChainId !== chain.chainId) {
-        return chain.provider
-      }
+    if (!(signer as Signer)?.provider) {
+      return (signer as Signer)?.connect(chain.provider)
     }
+    const connectedChainId = await (signer as Signer)?.getChainId()
+    if (connectedChainId !== chain.chainId) {
+      return chain.provider
+    }
+
     return signer
   }
 

@@ -13,7 +13,7 @@ import Transaction from 'src/models/Transaction'
 import Alert from 'src/components/alert/Alert'
 import TxStatus from 'src/components/txStatus'
 import Modal from 'src/components/modal'
-import { Contract, BigNumber } from 'ethers'
+import { Contract, BigNumber, ethers } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
@@ -391,13 +391,13 @@ const Send: FC = () => {
         }
       }
     } else {
-      const uniswapWrapper =
-        contracts?.tokens[selectedToken?.symbol][fromNetwork?.slug as string]
-          .uniswapWrapper
-
+      const bridge = await sdk
+        .bridge(selectedToken?.symbol)
+        .connect(signer as any)
+      const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
       const approved = await token.allowance(
         fromNetwork.slug,
-        uniswapWrapper?.address as string
+        ammWrapper.address
       )
       if (approved.lt(parsedAmount)) {
         tx = await txConfirm?.show({
@@ -410,7 +410,7 @@ const Send: FC = () => {
             const approveAmount = approveAll ? UINT256 : parsedAmount
             return token.approve(
               fromNetwork.slug,
-              uniswapWrapper?.address as string,
+              ammWrapper?.address as string,
               approveAmount as any
             )
           }
@@ -497,14 +497,16 @@ const Send: FC = () => {
         const parsedAmount = parseUnits(fromTokenAmount, 18).toString()
         const recipient = await signer.getAddress()
         const parsedAmountOutMin = parseUnits(amountOutMin.toString(), 18)
+        const relayer = ethers.constants.AddressZero
         const relayerFee = 0
         const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
         const tx = await bridge.send(
           parsedAmount,
-          sdk.Chain.Kovan,
-          sdk.Chain.fromSlug(toNetwork?.slug as string),
+          sdk.Chain.Ethereum,
+          toNetwork?.slug,
           {
             deadline,
+            relayer,
             relayerFee,
             recipient,
             amountOutMin: parsedAmountOutMin as any
@@ -555,13 +557,11 @@ const Send: FC = () => {
           18
         ).toString()
         const parsedAmountIn = parseUnits(fromTokenAmount, 18)
-        const sourceChain = sdk.Chain.fromSlug(fromNetwork?.slug as string)
-        const destChain = sdk.Chain.fromSlug(toNetwork?.slug as string)
         const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
         const bonderFee = await bridge.getBonderFee(
           parsedAmountIn as any,
-          sourceChain,
-          destChain
+          fromNetwork?.slug as string,
+          toNetwork?.slug as string
         )
         if (bonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
@@ -569,8 +569,8 @@ const Send: FC = () => {
         const recipient = await signer?.getAddress()
         const tx = await bridge.send(
           parsedAmountIn as any,
-          sourceChain,
-          destChain,
+          fromNetwork?.slug as string,
+          toNetwork?.slug as string,
           {
             recipient,
             bonderFee,
@@ -626,21 +626,19 @@ const Send: FC = () => {
         ).toString()
         const parsedAmountIn = parseUnits(fromTokenAmount, 18)
         const recipient = await signer?.getAddress()
-        const sourceChain = sdk.Chain.fromSlug(fromNetwork?.slug as string)
-        const destChain = sdk.Chain.fromSlug(toNetwork?.slug as string)
         const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
         const bonderFee = await bridge.getBonderFee(
           parsedAmountIn as any,
-          sourceChain,
-          destChain
+          fromNetwork?.slug as string,
+          toNetwork?.slug as string
         )
         if (bonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
         }
         const tx = await bridge.send(
           parsedAmountIn as any,
-          sourceChain,
-          destChain,
+          fromNetwork?.slug as string,
+          toNetwork?.slug as string,
           {
             recipient,
             bonderFee,

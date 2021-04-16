@@ -10,7 +10,7 @@ type HopAddresses = {
 
 const synthDemoTokens = {
   sETH: {
-    kovan: {
+    ethereum: {
       l1CanonicalToken: '0x7EE6109672c07Dcf97435C8238835EFF5D6E89FD',
       l1Bridge: '0xfB576E0f97428e938Ca27AAF9668D39a8658A479'
     },
@@ -41,7 +41,7 @@ const synthDemoTokens = {
     }
   },
   sBTC: {
-    kovan: {
+    ethereum: {
       l1CanonicalToken: '0x7a4f56B0Dd21d730604A266245a0067b97605DAE',
       l1Bridge: '0x12084002058A998C3A7A3E306c9441bD858c8052'
     },
@@ -75,7 +75,7 @@ const synthDemoTokens = {
 
 const demoTokens = {
   USDC: {
-    kovan: {
+    ethereum: {
       l1CanonicalToken: '0x7326510Cf9Ae0397dbBaF37FABba54f0A7b8D100',
       l1Bridge: '0xb8d5B8c70E5727b633b96E89310fa3Cf12ff2985'
     },
@@ -106,7 +106,7 @@ const demoTokens = {
     }
   },
   WBTC: {
-    kovan: {
+    ethereum: {
       l1CanonicalToken: '0x1E1a556D2166A006e662864D376e8DD249087150',
       l1Bridge: '0xA93eC98Ead897Ee8EF0b5CC9E2a658875719B224'
     },
@@ -141,7 +141,7 @@ const demoTokens = {
 export const addresses: HopAddresses = {
   tokens: {
     DAI: {
-      kovan: {
+      ethereum: {
         l1CanonicalToken: '0x436e3FfB93A4763575E5C0F6b3c97D5489E050da',
         l1Bridge: '0x7d3101fE93Ff6dC009c2f50b6aD59DDD7F23dC5F'
       },
@@ -177,7 +177,7 @@ export const addresses: HopAddresses = {
 }
 
 export const chains: any = {
-  kovan: {
+  ethereum: {
     name: 'Kovan',
     chainId: '42',
     rpcUrl: 'https://kovan.rpc.hop.exchange',

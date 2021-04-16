@@ -11,7 +11,7 @@ class Chain {
   readonly provider: Provider | null = null
   readonly isL1: boolean = false
 
-  static Kovan = newChain('kovan')
+  static Ethereum = newChain('ethereum')
   static Optimism = newChain('optimism')
   static Arbitrum = newChain('arbitrum')
   static xDai = newChain('xdai')
@@ -24,6 +24,9 @@ class Chain {
     this.chainId = Number(chainId)
     this.name = name
     this.slug = (name || '').trim().toLowerCase()
+    if (this.slug === 'kovan') {
+      this.slug = 'ethereum'
+    }
     this.provider = provider
     this.isL1 = Object.values(EthereumChainId).includes(this.chainId)
   }
@@ -34,6 +37,9 @@ class Chain {
 }
 
 function newChain (chain: string) {
+  if (chain === 'kovan') {
+    chain = 'ethereum'
+  }
   if (!chains[chain]) {
     throw new Error(`unsupported chain "${chain}"`)
   }

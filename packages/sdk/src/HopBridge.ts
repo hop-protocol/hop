@@ -637,40 +637,46 @@ class HopBridge extends Base {
     }
   }
 
-	async execSaddleSwap(
-		sourceChain: TChain,
-		toHop: boolean,
-		amount: TAmount,
-		minAmountOut: TAmount,
-		deadline: number,
-	) {
+  async execSaddleSwap (
+    sourceChain: TChain,
+    toHop: boolean,
+    amount: TAmount,
+    minAmountOut: TAmount,
+    deadline: number
+  ) {
     sourceChain = this.toChainModel(sourceChain)
     const tokenSymbol = this.token.symbol
     let saddleSwap: Contract
     let tokenIndexFrom: number
     let tokenIndexTo: number
 
-		let l2CanonicalTokenAddress =
-			addresses.tokens[tokenSymbol][sourceChain.slug].l2CanonicalToken
-		let l2HopBridgeTokenAddress =
-			addresses.tokens[tokenSymbol][sourceChain.slug].l2HopBridgeToken
-		saddleSwap = await this.getSaddleSwap(sourceChain, this.signer)
-		let canonicalTokenIndex = Number(
-			(await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
-		)
-		let hopTokenIndex = Number(
-			(await saddleSwap.getTokenIndex(l2HopBridgeTokenAddress)).toString()
-		)
-		if (toHop) {
-			tokenIndexFrom = hopTokenIndex
-			tokenIndexTo = canonicalTokenIndex
+    let l2CanonicalTokenAddress =
+      addresses.tokens[tokenSymbol][sourceChain.slug].l2CanonicalToken
+    let l2HopBridgeTokenAddress =
+      addresses.tokens[tokenSymbol][sourceChain.slug].l2HopBridgeToken
+    saddleSwap = await this.getSaddleSwap(sourceChain, this.signer)
+    let canonicalTokenIndex = Number(
+      (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
+    )
+    let hopTokenIndex = Number(
+      (await saddleSwap.getTokenIndex(l2HopBridgeTokenAddress)).toString()
+    )
+    if (toHop) {
+      tokenIndexFrom = hopTokenIndex
+      tokenIndexTo = canonicalTokenIndex
     } else {
-			tokenIndexFrom = canonicalTokenIndex
-			tokenIndexTo = hopTokenIndex
-		}
+      tokenIndexFrom = canonicalTokenIndex
+      tokenIndexTo = hopTokenIndex
+    }
 
-    return saddleSwap.swap(tokenIndexFrom, tokenIndexTo, amount, minAmountOut, deadline)
-	}
+    return saddleSwap.swap(
+      tokenIndexFrom,
+      tokenIndexTo,
+      amount,
+      minAmountOut,
+      deadline
+    )
+  }
 
   async getL1Bridge (signer: Signer = this.signer) {
     const tokenSymbol = this.token.symbol

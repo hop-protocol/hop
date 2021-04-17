@@ -16,7 +16,7 @@ import MenuItem from '@material-ui/core/MenuItem'
 import SelectOption from 'src/components/selects/SelectOption'
 import ConvertViaHopBridge from 'src/pages/Convert/ConvertViaHopBridge'
 import ConvertViaCanonicalBridge from 'src/pages/Convert/ConvertViaCanonicalBridge'
-import ConvertViaUniswap from 'src/pages/Convert/ConvertViaUniswap'
+import ConvertViaAmm from 'src/pages/Convert/ConvertViaAmm'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
@@ -103,7 +103,7 @@ const Convert: FC = () => {
   const tabs = [
     { label: 'via Hop Bridge', value: '/hop' },
     { label: 'via Canonical Bridge', value: '/bridge' },
-    { label: 'via Uniswap', value: '/uniswap' }
+    { label: 'via Saddle', value: '/amm' }
   ]
 
   return (
@@ -167,9 +167,9 @@ const Convert: FC = () => {
             <ConvertViaCanonicalBridge />
           </div>
         </Route>
-        <Route path={`${path}/uniswap`}>
+        <Route path={`${path}/amm`}>
           <div className={styles.box}>
-            <ConvertViaUniswap />
+            <ConvertViaAmm />
           </div>
         </Route>
         <Redirect to={`${path}/hop`} />

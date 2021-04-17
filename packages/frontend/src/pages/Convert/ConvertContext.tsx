@@ -1,14 +1,12 @@
 import React, { FC, createContext, useContext, useState, useMemo } from 'react'
-import { BigNumber } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { UINT256, L1_NETWORK } from 'src/constants'
+import { UINT256, ZERO_ADDRESS, L1_NETWORK } from 'src/constants'
 import logger from 'src/logger'
-import { networkSlugToId } from 'src/utils'
 
 type ConvertContextProps = {
   tokens: Token[]
@@ -147,25 +145,17 @@ const ConvertContextProvider: FC = ({ children }) => {
       if (!slug) {
         return value
       }
-      const tokenContracts = contracts?.tokens[selectedToken.symbol][slug]
-      const router = tokenContracts?.uniswapRouter
       if (networkPairMap[sourceNetwork?.slug] === destNetwork?.slug) {
-        let path = [
-          tokenContracts?.l2CanonicalToken.address,
-          tokenContracts?.l2HopBridgeToken.address
-        ]
-        if (destNetwork?.slug === slug) {
-          path = [
-            tokenContracts?.l2HopBridgeToken.address,
-            tokenContracts?.l2CanonicalToken.address
-          ]
-        }
-
-        const amountsOut = await router?.getAmountsOut(
-          parseUnits(value, 18),
-          path
+        const amount = parseUnits(value, 18)
+        const bridge = sdk.bridge(selectedToken?.symbol)
+        const amountOut = await bridge.getAmountOut(
+          amount as any,
+          canonicalSlug(sourceNetwork),
+          canonicalSlug(destNetwork),
+          true
         )
-        value = Number(formatUnits(amountsOut[1].toString(), 18)).toFixed(2)
+
+        value = Number(formatUnits(amountOut.toString(), 18)).toFixed(2)
       }
     }
 
@@ -244,8 +234,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       if (sourceNetwork?.isLayer1) {
         // destination network is L2 hop bridge ( L1 -> L2 Hop )
         if (destNetwork && isHopBridge(destNetwork?.slug)) {
-          const chainId = networkSlugToId(canonicalSlug(destNetwork))
-
+          const bridge = sdk.bridge(selectedToken.symbol).connect(signer as any)
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
@@ -266,17 +255,22 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              const amountOutMin = '0'
-              const deadline = '0'
-              const relayerFee = '0'
-              const l1BridgeWrite = await getWriteContract(l1Bridge)
-              return l1BridgeWrite?.sendToL2(
-                chainId,
-                recipient,
+              const amountOutMin = 0
+              const deadline = 0
+              const relayer = ZERO_ADDRESS
+              const relayerFee = 0
+
+              return bridge.send(
                 value,
-                amountOutMin,
-                deadline,
-                relayerFee
+                sourceNetwork.slug,
+                canonicalSlug(destNetwork),
+                {
+                  recipient,
+                  amountOutMin,
+                  deadline,
+                  relayer,
+                  relayerFee
+                }
               )
             }
           })
@@ -347,19 +341,20 @@ const ConvertContextProvider: FC = ({ children }) => {
 
           // destination network is L2 hop bridge (L2 canonical -> L2 Hop)
         } else if (isHopBridge(destNetwork?.slug)) {
-          const router = sourceTokenContracts?.uniswapRouter
+          const bridge = await sdk
+            .bridge(selectedToken.symbol)
+            .connect(signer as any)
+          const saddleSwap = await bridge.getSaddleSwap(
+            canonicalSlug(sourceNetwork)
+          )
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
             sourceNetwork as Network,
-            router?.address as string
+            saddleSwap.address as string
           )
 
           const amountOutMin = '0'
-          const path = [
-            sourceTokenContracts?.l2CanonicalToken.address,
-            sourceTokenContracts?.l2HopBridgeToken.address
-          ]
           const deadline = (Date.now() / 1000 + 300) | 0
 
           tx = await txConfirm?.show({
@@ -375,12 +370,11 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              const routerWrite = await getWriteContract(router)
-              return routerWrite?.swapExactTokensForTokens(
+              return bridge.execSaddleSwap(
+                canonicalSlug(sourceNetwork),
+                false,
                 value,
                 amountOutMin,
-                path,
-                recipient,
                 deadline
               )
             }
@@ -389,14 +383,19 @@ const ConvertContextProvider: FC = ({ children }) => {
 
         // source network is L2 hop bridge ( L2 Hop -> L1 or L2 )
       } else if (isHopBridge(sourceNetwork?.slug) && destNetwork) {
-        const router = sourceTokenContracts?.uniswapRouter
-        const bridge = sourceTokenContracts?.l2Bridge
+        const bridge = await sdk
+          .bridge(selectedToken.symbol)
+          .connect(signer as any)
+        const saddleSwap = await bridge.getSaddleSwap(
+          canonicalSlug(sourceNetwork)
+        )
+        const l2Bridge = sourceTokenContracts?.l2Bridge
 
         await approveTokens(
           selectedToken,
           sourceTokenAmount,
           sourceNetwork as Network,
-          bridge?.address as string
+          l2Bridge?.address as string
         )
 
         // destination network is L1 ( L2 Hop -> L1 )
@@ -414,61 +413,42 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              const getBonderFee = async () => {
-                if (!sourceNetwork) {
-                  throw new Error('No source network selected')
-                }
-                if (!destNetwork) {
-                  throw new Error('No destination network selected')
-                }
-                const minBonderBps = await bridge?.minBonderBps()
-                const minBonderFeeAbsolute = await bridge?.minBonderFeeAbsolute()
-                const minBonderFeeRelative = BigNumber.from(value)
-                  .mul(minBonderBps)
-                  .div(10000)
-                const minBonderFee = minBonderFeeRelative.gt(
-                  minBonderFeeAbsolute
-                )
-                  ? minBonderFeeRelative
-                  : minBonderFeeAbsolute
-                return minBonderFee
-              }
               const deadline = (Date.now() / 1000 + 300) | 0
               const amountOutMin = '0'
-              const bonderFee = await getBonderFee()
-              const chainId = destNetwork?.networkId
+              const bonderFee = await bridge.getBonderFee(
+                value,
+                canonicalSlug(sourceNetwork),
+                destNetwork.slug
+              )
+
               if (bonderFee.gt(value)) {
                 throw new Error('Amount must be greater than bonder fee')
               }
 
-              return bridge?.send(
-                chainId,
-                recipient,
+              return bridge.send(
                 value,
-                bonderFee,
-                amountOutMin,
-                deadline,
+                canonicalSlug(sourceNetwork),
+                destNetwork.slug,
                 {
-                  //gasLimit: 1000000
+                  recipient,
+                  bonderFee,
+                  amountOutMin,
+                  deadline
                 }
               )
             }
           })
 
-          // destination network is L2 uniswap ( L1 -> L2 Uniswap )
+          // destination network is L2 Amm ( L1 -> L2 Amm)
         } else {
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
             sourceNetwork as Network,
-            router?.address as string
+            saddleSwap?.address as string
           )
 
           const amountOutMin = '0'
-          const path = [
-            sourceTokenContracts?.l2HopBridgeToken.address,
-            sourceTokenContracts?.l2CanonicalToken.address
-          ]
           const deadline = (Date.now() / 1000 + 300) | 0
 
           tx = await txConfirm?.show({
@@ -484,12 +464,11 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              const routerWrite = await getWriteContract(router)
-              return routerWrite?.swapExactTokensForTokens(
+              return bridge.execSaddleSwap(
+                canonicalSlug(sourceNetwork),
+                true,
                 value,
                 amountOutMin,
-                path,
-                recipient,
                 deadline
               )
             }

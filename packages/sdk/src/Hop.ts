@@ -161,6 +161,7 @@ class Hop extends Base {
 
       // L1 -> L2
       if (sourceChain.isL1) {
+        const wrapper = await bridge.getAmmWrapper(destinationChain)
         const decodedSource = l1Bridge?.interface.decodeFunctionData(
           'sendToL2',
           sourceTx.data
@@ -175,7 +176,7 @@ class Hop extends Base {
           }
           let recentLogs: any[] =
             (await exchange?.queryFilter(
-              exchange.filters.Swap(),
+              exchange.filters.TokenSwap(),
               (blockNumber as number) - 100
             )) ?? []
           recentLogs = recentLogs.reverse()
@@ -184,10 +185,10 @@ class Hop extends Base {
           }
           for (let item of recentLogs) {
             const decodedLog = item.decode(item.data, item.topics)
-            if (sourceTx.from === decodedLog.to) {
+            if (wrapper.address === decodedLog.buyer) {
               if (
                 decodedSource?.amount.toString() !==
-                decodedLog.amount0In.toString()
+                decodedLog.tokensSold.toString()
               ) {
                 continue
               }
@@ -315,13 +316,13 @@ class Hop extends Base {
           }
           let recentLogs: any[] =
             (await exchange?.queryFilter(
-              exchange.filters.Swap(),
+              exchange.filters.TokenSwap(),
               (blockNumber as number) - 100
             )) ?? []
           recentLogs = recentLogs.reverse()
           for (let item of recentLogs) {
             const decodedLog = item.decode(item.data, item.topics)
-            if (sourceTx.from === decodedLog.to) {
+            if (wrapperSource.address === decodedLog.buyer) {
               /*
             if (
               decodedSource?.amount.toString() !==

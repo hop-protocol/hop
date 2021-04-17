@@ -7,7 +7,7 @@ import { privateKey } from './config'
 import { ETHEREUM, OPTIMISM, XDAI } from 'src/constants'
 
 const TOKEN = 'USDC'
-const AMOUNT = 1_000
+const AMOUNT = 10_000
 const NETWORKS = [XDAI]
 const logger = new Logger('TEST')
 

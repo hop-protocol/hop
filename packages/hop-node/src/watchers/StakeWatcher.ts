@@ -77,7 +77,7 @@ class StakeWatcher extends BaseWatcher {
       if (credit < this.stakeMinThreshold) {
         if (balance < this.stakeAmount) {
           this.logger.warn(
-            `not enough hop token balance to stake. Have ${balance}, need ${this.stakeAmount}`
+            `not enough ${this.token.providerNetworkId === '42' ? 'canonical' : 'hop'} token balance to stake. Have ${balance}, need ${this.stakeAmount}`
           )
           return
         }
@@ -89,7 +89,7 @@ class StakeWatcher extends BaseWatcher {
         allowance = await this.getTokenAllowance()
         if (allowance < this.stakeAmount) {
           this.logger.warn(
-            `not enough hop token allowance for bridge to stake. Have ${allowance}, need ${this.stakeAmount}`
+            `not enough ${this.token.providerNetworkId === '42' ? 'canonical' : 'hop'} token allowance for bridge to stake. Have ${allowance}, need ${this.stakeAmount}`
           )
           return
         }

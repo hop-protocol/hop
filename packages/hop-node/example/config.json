@@ -12,7 +12,7 @@
     }
   },
   "tokens": {
-    "DAI": true,
+    "DAI": false,
     "USDC": true,
     "WBTC": true
   },

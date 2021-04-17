@@ -202,7 +202,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     )
     this.logger.debug('dbTransferRoot commitedAt:', dbTransferRoot.commitedAt)
     this.logger.debug('dbTransferRoot commited:', dbTransferRoot.commited)
-    this.logger.debug('dbTransferRoot sentBondTx:', dbTransferRoot.sentBondTx)
+    this.logger.debug('dbTransferRoot sentBondTx:', !!dbTransferRoot.sentBondTx)
     const pendingTransfers: string[] = Object.values(
       dbTransferRoot.transferHashes || []
     )

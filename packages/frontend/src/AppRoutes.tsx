@@ -9,7 +9,6 @@ import Faucet from 'src/pages/Faucet'
 import Earn from 'src/pages/Earn'
 import Convert from 'src/pages/Convert'
 import Stats from 'src/pages/Stats'
-import Demo from 'src/pages/Demo'
 
 import { IProposal } from 'src/config'
 
@@ -118,9 +117,6 @@ const COMPONENT_NAME: FC<Props> = () => {
         <Vote proposals={mockProposals} />
       </Route>
       <Route path="/stake">Staking coming soon</Route>
-      <Route path="/demo">
-        <Demo />
-      </Route>
 
       <Route path="/components">
         <Components />

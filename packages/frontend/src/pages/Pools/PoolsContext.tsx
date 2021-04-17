@@ -255,17 +255,8 @@ const PoolsContextProvider: FC = ({ children }) => {
       setToken0Deposited(token0Deposited.toFixed(2))
       setToken1Deposited(token1Deposited.toFixed(2))
 
-      /*
-      const amount0 = parseUnits('1', decimals)
-      const amount1 = await uniswapRouter?.quote(
-        amount0,
-        parseUnits(reserve0, decimals),
-        parseUnits(reserve1, decimals)
-      )
-      const formattedAmountB = formatUnits(amount1, decimals)
-      setToken1Rate(formattedAmountB)
-         */
-      setToken1Rate('1')
+      const amount0 = (1 * Number(reserve1)) / Number(reserve0)
+      setToken1Rate(amount0.toString())
     } catch (err) {
       logger.error(err)
     }

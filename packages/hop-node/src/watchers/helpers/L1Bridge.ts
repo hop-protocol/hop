@@ -1,7 +1,9 @@
-import { Contract } from 'ethers'
+import { Contract, ethers } from 'ethers'
+import erc20Artifact from 'src/abi/ERC20.json'
 import { parseUnits } from 'ethers/lib/utils'
 import Bridge from './Bridge'
 import queue from './queue'
+import Token from './Token'
 
 export default class L1Bridge extends Bridge {
   l1BridgeContract: Contract
@@ -91,6 +93,16 @@ export default class L1Bridge extends Bridge {
     return 15 * 60
   }
 
+  async l1CanonicalToken () {
+    const tokenAddress = await this.bridgeContract.l1CanonicalToken()
+    const tokenContract = new Contract(
+      tokenAddress,
+      erc20Artifact.abi,
+      this.bridgeContract.signer
+    )
+    return new Token(tokenContract)
+  }
+
   @queue
   async bondTransferRoot (
     transferRootHash: string,
@@ -151,5 +163,31 @@ export default class L1Bridge extends Bridge {
 
     await tx.wait()
     return tx
+  }
+
+  @queue
+  async convertCanonicalTokenToHopToken (
+    destNetworkId: string,
+    amount: string | number
+  ) {
+    const recipient = await this.getBonderAddress()
+    const value = parseUnits(amount.toString(), 18)
+    const deadline = '0'
+    const relayer = ethers.constants.AddressZero
+    const relayerFee = '0'
+    const amountOutMin = '0'
+
+    return this.l1BridgeContract.sendToL2(
+      destNetworkId,
+      recipient,
+      value,
+      amountOutMin,
+      deadline,
+      relayer,
+      relayerFee,
+      {
+        //gasLimit: 1000000
+      }
+    )
   }
 }

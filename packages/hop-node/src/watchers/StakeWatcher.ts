@@ -1,8 +1,9 @@
 import '../moduleAlias'
 import { Contract } from 'ethers'
-import { wait } from 'src/utils'
+import { wait, isL1NetworkId } from 'src/utils'
 import BaseWatcher from './helpers/BaseWatcher'
 import Bridge from './helpers/Bridge'
+import L1Bridge from './helpers/L1Bridge'
 import Token from './helpers/Token'
 
 export interface Config {
@@ -11,6 +12,7 @@ export interface Config {
   tokenContract: Contract
   stakeMinThreshold: number
   stakeAmount: number
+  contracts: { [networkId: string]: Contract }
 }
 
 class StakeWatcher extends BaseWatcher {
@@ -19,6 +21,7 @@ class StakeWatcher extends BaseWatcher {
   stakeMinThreshold: number
   stakeAmount: number
   interval: number = 60 * 1000
+  contracts: { [networkId: string]: Contract }
 
   constructor (config: Config) {
     super({
@@ -30,6 +33,7 @@ class StakeWatcher extends BaseWatcher {
     this.token = new Token(config.tokenContract)
     this.stakeMinThreshold = config.stakeMinThreshold
     this.stakeAmount = config.stakeAmount
+    this.contracts = config.contracts
   }
 
   async start () {
@@ -61,6 +65,7 @@ class StakeWatcher extends BaseWatcher {
     try {
       const isBonder = await this.bridge.isBonder()
       if (!isBonder) {
+        console.log('y')
         return
       }
 
@@ -74,10 +79,32 @@ class StakeWatcher extends BaseWatcher {
       this.logger.debug(`credit balance:`, credit)
       this.logger.debug(`debit balance:`, debit)
 
+      const isL1 = isL1NetworkId(this.token.providerNetworkId)
       if (credit < this.stakeMinThreshold) {
         if (balance < this.stakeAmount) {
+          if (!isL1) {
+            const l1Bridge = new L1Bridge(this.contracts['42'])
+            const l1Token = await l1Bridge.l1CanonicalToken()
+            const l1Balance = await l1Token.getBalance()
+            if (l1Balance > 0) {
+              const convertAmount = Math.min(l1Balance, this.stakeAmount)
+              this.logger.debug(
+                `converting to ${convertAmount} canonical token to hop token`
+              )
+              const tx = await l1Bridge.convertCanonicalTokenToHopToken(
+                this.token.providerNetworkId,
+                convertAmount
+              )
+              this.logger.debug(`convert tx: ${tx?.hash}`)
+              await tx.wait()
+              return
+            }
+          }
+
           this.logger.warn(
-            `not enough ${this.token.providerNetworkId === '42' ? 'canonical' : 'hop'} token balance to stake. Have ${balance}, need ${this.stakeAmount}`
+            `not enough ${
+              isL1 ? 'canonical' : 'hop'
+            } token balance to stake. Have ${balance}, need ${this.stakeAmount}`
           )
           return
         }
@@ -89,7 +116,11 @@ class StakeWatcher extends BaseWatcher {
         allowance = await this.getTokenAllowance()
         if (allowance < this.stakeAmount) {
           this.logger.warn(
-            `not enough ${this.token.providerNetworkId === '42' ? 'canonical' : 'hop'} token allowance for bridge to stake. Have ${allowance}, need ${this.stakeAmount}`
+            `not enough ${
+              isL1 ? 'canonical' : 'hop'
+            } token allowance for bridge to stake. Have ${allowance}, need ${
+              this.stakeAmount
+            }`
           )
           return
         }

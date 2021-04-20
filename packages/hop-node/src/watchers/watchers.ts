@@ -42,7 +42,11 @@ function startStakeWatchers (
           bridgeContract,
           tokenContract,
           stakeMinThreshold: 1_000,
-          stakeAmount: 10_000
+          stakeAmount: 10_000,
+          // TODO
+          contracts: {
+            '42': contracts.get(token, ETHEREUM)?.l1Bridge
+          }
         })
       )
     }

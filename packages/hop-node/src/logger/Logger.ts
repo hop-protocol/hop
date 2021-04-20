@@ -77,7 +77,7 @@ class Logger {
 
   info = (...input: any[]) => {
     if (!this.enabled) return
-    if (logLevel > LogLevels.Info) {
+    if (!(logLevel == LogLevels.Debug || logLevel === LogLevels.Info)) {
       return
     }
     console.info(this.tag, this.prefix, ...input)

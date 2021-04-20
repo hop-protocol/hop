@@ -1,4 +1,6 @@
 import '../moduleAlias'
+// @ts-ignore
+import clearConsole from 'console-clear'
 import os from 'os'
 import fs from 'fs'
 import path from 'path'
@@ -23,9 +25,12 @@ import {
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
 import entropyToMnemonic from 'src/utils/entropyToMnemonic'
+import { hopArt, printHopArt } from './art'
 
 const logger = new Logger('config')
 const program = new Command()
+
+prompt.colors = false
 
 type NetworksConfig = {
   [key: string]: any
@@ -69,6 +74,7 @@ program
   .option('-c, --config <filepath>', 'Config file to use')
   .action(async source => {
     try {
+      printHopArt()
       const config: any = await setupConfig(source.config)
       if (config?.logging?.level) {
         const logLevel = config.logging.level
@@ -251,34 +257,81 @@ program
       }
       if (action === 'generate') {
         if (!passphrase) {
-          passphrase = await promptPassphrase()
+          passphrase = await promptPassphrase(
+            'Enter new keystore encryption password'
+          )
+          const passphraseConfirm = await promptPassphrase('Confirm password')
+          if (passphrase !== passphraseConfirm) {
+            console.error('\nERROR: passwords did not match')
+            return
+          }
         }
         let mnemonic: string
-        let hdpath: string
+        const hdpath = `m/44'/60'/0'/0/0`
         let privateKey: string | null = source.privateKey || null
         if (!privateKey) {
           const entropy = randomBytes(32)
           mnemonic = entropyToMnemonic(entropy)
-          hdpath = `m/44'/60'/0'/0/0`
           let hdnode = HDNode.fromMnemonic(mnemonic)
           hdnode = hdnode.derivePath(hdpath)
           privateKey = hdnode.privateKey
+
+          clearConsole()
+          prompt.start()
+          prompt.message = ''
+          prompt.delimiter = ''
+          await prompt.get({
+            properties: {
+              blank: {
+                message: `
+This is your seed phrase. Write it down and store it safely.
+
+${mnemonic}
+
+Press [Enter] when you have written down your mnemonic.`
+              }
+            }
+          } as any)
         }
+
+        clearConsole()
+        let { mnemonicConfirm } = await prompt.get({
+          properties: {
+            mnemonicConfirm: {
+              message:
+                'Please type mnemonic (separated by spaces) to confirm you have written it down\n\n:'
+            }
+          }
+        } as any)
+
+        clearConsole()
+        mnemonicConfirm = (mnemonicConfirm as string).trim()
+        if (mnemonicConfirm !== mnemonic) {
+          console.error('\n\nERROR: mnemonic entered is incorrect.')
+          return
+        }
+
         const keystore = await generateKeystore(privateKey, passphrase)
         const filepath = path.resolve(output)
         fs.writeFileSync(filepath, JSON.stringify(keystore), 'utf8')
-        console.log(`wrote to ${filepath}`)
-        if (mnemonic) {
-          console.log('mnemonic:')
-          console.log(mnemonic)
-          console.log(`private key (${hdpath}):`)
-          console.log(privateKey)
-        } else {
-          console.log('private key:')
-          console.log(privateKey)
-        }
-        console.log('public address:')
-        console.log('0x' + keystore.address)
+
+        await prompt.get({
+          properties: {
+            blank: {
+              message: `
+ㅤ${hopArt}
+Creating your keys
+Creating your keystore
+Public address: 0x${keystore.address}
+Your keys can be found at: ${filepath}
+
+Keystore generation is complete.
+Press [Enter] to exit.
+`
+            }
+          }
+        } as any)
+        clearConsole()
       } else if (action === 'decrypt') {
         if (!passphrase) {
           passphrase = await promptPassphrase()
@@ -413,14 +466,14 @@ async function setupConfig (_configFile?: string) {
   return config
 }
 
-async function promptPassphrase () {
+async function promptPassphrase (message: string = 'keystore passphrase') {
   prompt.start()
   prompt.message = ''
   prompt.delimiter = ':'
   const { passphrase } = await prompt.get({
     properties: {
       passphrase: {
-        message: 'keystore passphrase',
+        message,
         hidden: true
       }
     }

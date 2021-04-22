@@ -400,7 +400,7 @@ export class User {
     )
     const amountOutMin = '0'
     const parsedAmount = parseUnits(amount.toString(), 18)
-    const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
+    const wrapper = this.getAmmWrapperContract(sourceNetwork, token)
     await this.checkApproval(sourceNetwork, token, wrapper.address)
 
     return wrapper.swapAndSend(

@@ -69,7 +69,7 @@ const Pools: FC = () => {
                       })
                   : stats?.map(item => {
                       return (
-                        <TableRow key={item.pairAddress.toString()}>
+                        <TableRow key={item.id}>
                           <TableCell className={styles.cell}>
                             <img
                               src={item.network.imageUrl}
@@ -90,7 +90,7 @@ const Pools: FC = () => {
                               rel="noopener noreferrer"
                               target="_blank"
                             >
-                              {item.pairAddress.truncate()}
+                              {item.pairAddress?.truncate()}
                             </Link>
                           </TableCell>
                         </TableRow>

@@ -12,17 +12,15 @@ interface TokenConfig {
   contract: Contract
 }
 
-interface UniswapConfig {
-  router: Partial<TokenConfig>
-  factory: Partial<TokenConfig>
-  exchange: Partial<TokenConfig>
+interface AmmConfig {
+  saddleSwap: Partial<TokenConfig>
 }
 
 interface Config {
   label: string
   token0: TokenConfig
   token1: TokenConfig
-  uniswap: UniswapConfig
+  amm: AmmConfig
   wallet: any
   minThreshold: number
   maxTradeAmount: number
@@ -35,9 +33,7 @@ interface Token {
 
 class ArbBot {
   logger: Logger
-  uniswapRouter: Contract
-  uniswapFactory: Contract
-  uniswapExchange: Contract
+  saddleSwap: Contract
   token0: Token
   token1: Token
   wallet: any
@@ -118,9 +114,7 @@ class ArbBot {
     this.wallet = config.wallet
     this.minThreshold = config.minThreshold
     this.maxTradeAmount = config.maxTradeAmount
-    this.uniswapRouter = config.uniswap.router.contract
-    this.uniswapFactory = config.uniswap.factory.contract
-    this.uniswapExchange = config.uniswap.exchange.contract
+    this.saddleSwap = config.amm.saddleSwap.contract
     this.token0 = {
       label: config.token0.label,
       contract: config.token0.contract
@@ -144,12 +138,12 @@ class ArbBot {
     const approveAmount = BigNumber.from(UINT256)
     const approved = await token.contract.allowance(
       this.accountAddress,
-      this.uniswapRouter.address
+      this.saddleSwap.address
     )
 
     if (approved.lt(approveAmount)) {
       return token.contract.approve(
-        this.uniswapRouter.address,
+        this.saddleSwap.address,
         approveAmount.toString()
       )
     }
@@ -172,9 +166,26 @@ class ArbBot {
 
   private async getAmountOut (path: string[], amount: number) {
     const amountIn = parseUnits(amount.toString(), 18)
-    const amountsOut = await this.uniswapRouter?.getAmountsOut(amountIn, path)
-    const amountOut = Number(formatUnits(amountsOut[1].toString(), 18))
+    let [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
+    const parsedAmount = parseUnits(amount.toString(), 18)
+    const amountsOut = await this.saddleSwap.calculateSwap(
+      tokenIndexFrom,
+      tokenIndexTo,
+      parsedAmount
+    )
+    const amountOut = Number(formatUnits(amountsOut.toString(), 18))
     return amountOut
+  }
+
+  private async getTokenIndexes (path: string[]) {
+    let tokenIndexFrom = Number(
+      (await this.saddleSwap.getTokenIndex(path[0])).toString()
+    )
+    let tokenIndexTo = Number(
+      (await this.saddleSwap.getTokenIndex(path[1])).toString()
+    )
+
+    return [tokenIndexFrom, tokenIndexTo]
   }
 
   private async checkBalances () {
@@ -278,26 +289,29 @@ class ArbBot {
         `Not enough ${inputToken.label} tokens. Need ${amountInNum}, have ${pathToken0Balance}`
       )
     }
-
-    return this.uniswapRouter?.swapExactTokensForTokens(
+    let [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
+    return this.saddleSwap.swap(
+      tokenIndexFrom,
+      tokenIndexTo,
       amountIn.toString(),
       amountOutMin,
-      path,
-      this.accountAddress,
       deadline
     )
   }
 
   async getReserves () {
-    const reserves = await this.uniswapExchange.getReserves()
+    const reserves = await Promise.all([
+      this.saddleSwap.getTokenBalance(0),
+      this.saddleSwap.getTokenBalance(1)
+    ])
     const reserve0 = Number(formatUnits(reserves[0], 18))
     const reserve1 = Number(formatUnits(reserves[1], 18))
     return [reserve0, reserve1]
   }
 
   private async startEventWatcher () {
-    const SWAP_EVENT = 'Swap'
-    this.uniswapExchange
+    const SWAP_EVENT = 'TokenSwap'
+    this.saddleSwap
       .on(SWAP_EVENT, async event => {
         this.logger.log('Detected swap event')
         try {

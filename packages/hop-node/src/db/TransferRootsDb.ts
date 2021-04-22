@@ -13,6 +13,7 @@ export type TransferRoot = {
   sentSettleTx?: boolean
   sentBondTx?: boolean
   transferHashes?: string[]
+  bonder?: string
 }
 
 class TransferRootsDb extends BaseDb {

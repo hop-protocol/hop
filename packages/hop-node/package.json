@@ -45,6 +45,7 @@
     "level-sublevel": "^6.6.5",
     "leveldown": "^5.6.0",
     "levelup": "^4.4.0",
+    "lodash": "^4.17.21",
     "lolcatjs": "^2.4.0",
     "merkletreejs": "^0.2.13",
     "mkdirp": "^0.5.5",

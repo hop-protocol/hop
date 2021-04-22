@@ -745,6 +745,18 @@ class HopBridge extends Base {
     ])
   }
 
+  private async getTokenIndexes (path: string[], chain: TChain) {
+    const saddleSwap = await this.getSaddleSwap(chain)
+    let tokenIndexFrom = Number(
+      (await saddleSwap.getTokenIndex(path[0])).toString()
+    )
+    let tokenIndexTo = Number(
+      (await saddleSwap.getTokenIndex(path[1])).toString()
+    )
+
+    return [tokenIndexFrom, tokenIndexTo]
+  }
+
   async getSaddleLpToken (chain: TChain, signer: Signer = this.signer) {
     chain = this.toChainModel(chain)
     const tokenSymbol = this.token.symbol

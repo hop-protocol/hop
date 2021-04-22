@@ -13,7 +13,7 @@ import Transaction from 'src/models/Transaction'
 import Alert from 'src/components/alert/Alert'
 import TxStatus from 'src/components/txStatus'
 import Modal from 'src/components/modal'
-import { Contract, BigNumber, ethers } from 'ethers'
+import { BigNumber, ethers } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
@@ -85,15 +85,7 @@ const useStyles = makeStyles(theme => ({
 const Send: FC = () => {
   const styles = useStyles()
   const { pathname } = useLocation()
-  let {
-    user,
-    tokens,
-    networks,
-    contracts,
-    txConfirm,
-    txHistory,
-    sdk
-  } = useApp()
+  let { user, tokens, networks, txConfirm, txHistory, sdk } = useApp()
   const {
     provider,
     walletConnected,
@@ -119,7 +111,6 @@ const Send: FC = () => {
       )
     })
   }
-  const [l2Bridge, setL2Bridge] = useState<Contract | undefined>()
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [fromNetwork, setFromNetwork] = useState<Network>()
   const [toNetwork, setToNetwork] = useState<Network>()
@@ -137,8 +128,6 @@ const Send: FC = () => {
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [tx, setTx] = useState<Transaction | null>(null)
-  const l1Bridge =
-    contracts?.tokens[selectedToken?.symbol]?.[L1_NETWORK]?.l1Bridge
   const debouncer = useRef<number>(0)
 
   useEffect(() => {
@@ -234,18 +223,6 @@ const Send: FC = () => {
     const newSelectedToken = tokens.find(token => token.symbol === tokenSymbol)
     if (newSelectedToken) {
       setSelectedToken(newSelectedToken)
-      if (fromNetwork && !fromNetwork?.isLayer1) {
-        setL2Bridge(
-          contracts?.tokens[newSelectedToken.symbol][
-            fromNetwork?.slug as string
-          ].l2Bridge
-        )
-      } else if (toNetwork && !toNetwork?.isLayer1) {
-        setL2Bridge(
-          contracts?.tokens[newSelectedToken.symbol][toNetwork?.slug as string]
-            .l2Bridge
-        )
-      }
     }
   }
 
@@ -255,13 +232,6 @@ const Send: FC = () => {
     setFromNetwork(toNetwork)
     setToNetwork(fromNetwork)
     setIsFromLastChanged(!isFromLastChanged)
-
-    if (toNetwork && !toNetwork?.isLayer1) {
-      setL2Bridge(
-        contracts?.tokens[selectedToken.symbol][toNetwork?.slug as string]
-          .l2Bridge
-      )
-    }
   }
 
   useEffect(() => {
@@ -357,12 +327,11 @@ const Send: FC = () => {
 
     const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
     let tx: any
-    const token = sdk.bridge(selectedToken?.symbol).connect(signer as any).token
+    const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
+    const token = bridge.token
+    const l1Bridge = await bridge.getL1Bridge()
     if (fromNetwork?.isLayer1) {
-      const approved = await token.allowance(
-        fromNetwork.slug,
-        l1Bridge?.address as string
-      )
+      const approved = await token.allowance(fromNetwork.slug, l1Bridge.address)
       if (approved.lt(parsedAmount)) {
         tx = await txConfirm?.show({
           kind: 'approval',
@@ -374,7 +343,7 @@ const Send: FC = () => {
             const approveAmount = approveAll ? UINT256 : parsedAmount
             return token.approve(
               fromNetwork.slug,
-              l1Bridge?.address as string,
+              l1Bridge.address,
               approveAmount as any
             )
           }
@@ -476,8 +445,8 @@ const Send: FC = () => {
 
   const sendl1ToL2 = async () => {
     const signer = provider?.getSigner()
-    if (!l1Bridge || !signer) {
-      throw new Error('Cannot send: l1Bridge or signer does not exist.')
+    if (!signer) {
+      throw new Error('Cannot send: signer does not exist.')
     }
 
     const tx: any = await txConfirm?.show({
@@ -532,8 +501,8 @@ const Send: FC = () => {
 
   const sendl2ToL1 = async () => {
     const signer = provider?.getSigner()
-    if (!l2Bridge || !signer) {
-      throw new Error('Cannot send: l1Bridge or signer does not exist.')
+    if (!signer) {
+      throw new Error('Cannot send: signer does not exist.')
     }
 
     const tx: any = await txConfirm?.show({
@@ -600,8 +569,8 @@ const Send: FC = () => {
 
   const sendl2ToL2 = async () => {
     const signer = provider?.getSigner()
-    if (!l2Bridge || !signer) {
-      throw new Error('Cannot send: l1Bridge or signer does not exist.')
+    if (!signer) {
+      throw new Error('Cannot send: signer does not exist.')
     }
 
     const tx: any = await txConfirm?.show({
@@ -738,12 +707,6 @@ const Send: FC = () => {
         networkOptions={networks}
         onNetworkChange={network => {
           setFromNetwork(network)
-          if (network && !network?.isLayer1) {
-            setL2Bridge(
-              contracts?.tokens[selectedToken.symbol][network?.slug as string]
-                .l2Bridge
-            )
-          }
         }}
         onBalanceChange={balance => {
           setFromBalance(balance)

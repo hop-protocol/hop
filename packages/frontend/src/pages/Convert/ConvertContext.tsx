@@ -5,7 +5,7 @@ import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { UINT256, ZERO_ADDRESS, L1_NETWORK } from 'src/constants'
+import { UINT256, ZERO_ADDRESS } from 'src/constants'
 import logger from 'src/logger'
 
 type ConvertContextProps = {
@@ -67,13 +67,9 @@ const ConvertContext = createContext<ConvertContextProps>({
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
-  const {
-    provider,
-    checkConnectedNetworkId,
-    getWriteContract
-  } = useWeb3Context()
+  const { provider, checkConnectedNetworkId } = useWeb3Context()
   const app = useApp()
-  let { networks: nets, tokens, contracts, txConfirm, sdk } = app
+  let { networks: nets, tokens, txConfirm, sdk } = app
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const canonicalSlug = (network: Network) => {
     if (network?.isLayer1) {
@@ -121,8 +117,6 @@ const ConvertContextProvider: FC = ({ children }) => {
   )
   const [destTokenBalance, setDestTokenBalance] = useState<number | null>(null)
   const [error, setError] = useState<string | null | undefined>(null)
-  const l1Bridge =
-    contracts?.tokens[selectedToken?.symbol]?.[L1_NETWORK]?.l1Bridge
   const networkPairMap = networks.reduce((obj, network) => {
     if (network.isLayer1) {
       return obj
@@ -185,13 +179,11 @@ const ConvertContextProvider: FC = ({ children }) => {
         targetAddress: string
       ): Promise<any> => {
         const signer = provider?.getSigner()
-        const tokenAddress = token.addressForNetwork(network).toString()
-        const contractRead = contracts?.getErc20Contract(tokenAddress, signer)
-        let contract = await getWriteContract(contractRead)
+        const bridge = sdk.bridge(token.symbol).connect(signer as any)
 
         const parsedAmount = parseUnits(amount, token.decimals || 18)
-        const approved = await contract?.allowance(
-          await signer?.getAddress(),
+        const approved = await bridge.token.allowance(
+          network.slug,
           targetAddress
         )
 
@@ -205,7 +197,11 @@ const ConvertContextProvider: FC = ({ children }) => {
             },
             onConfirm: async (approveAll: boolean) => {
               const approveAmount = approveAll ? UINT256 : parsedAmount
-              return contract?.approve(targetAddress, approveAmount)
+              return bridge.token.approve(
+                network.slug,
+                targetAddress,
+                approveAmount
+              )
             }
           })
         }
@@ -227,8 +223,8 @@ const ConvertContextProvider: FC = ({ children }) => {
       const value = parseUnits(sourceTokenAmount, 18).toString()
       let tx: any
       const sourceSlug = canonicalSlug(sourceNetwork)
-      const sourceTokenContracts =
-        contracts?.tokens[selectedToken.symbol][sourceSlug]
+      const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
+      const l1Bridge = await bridge.getL1Bridge()
 
       // source network is L1 ( L1 -> L2 )
       if (sourceNetwork?.isLayer1) {
@@ -239,7 +235,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             selectedToken,
             sourceTokenAmount,
             sourceNetwork as Network,
-            l1Bridge?.address as string
+            l1Bridge.address
           )
 
           tx = await txConfirm?.show({
@@ -278,17 +274,14 @@ const ConvertContextProvider: FC = ({ children }) => {
           // destination network is canonical bridge (L1 canonical -> L2 canonical)
         } else if (destNetwork && !isHopBridge(destNetwork?.slug)) {
           const destSlug = destNetwork?.slug
-          const destTokenContracts =
-            contracts?.tokens[selectedToken.symbol][destSlug]
-          const messenger = destTokenContracts?.l1CanonicalBridge
-          if (!messenger) {
-            throw new Error('Messenger not found')
-          }
+          const bridge = sdk
+            .canonicalBridge(selectedToken.symbol, destSlug)
+            .connect(signer as any)
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
             sourceNetwork as Network,
-            messenger?.address as string
+            bridge.address
           )
 
           tx = await txConfirm?.show({
@@ -304,7 +297,6 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              const bridge = sdk.canonicalBridge(selectedToken.symbol, destSlug)
               return bridge.connect(signer as any).deposit(value)
             }
           })
@@ -389,13 +381,13 @@ const ConvertContextProvider: FC = ({ children }) => {
         const saddleSwap = await bridge.getSaddleSwap(
           canonicalSlug(sourceNetwork)
         )
-        const l2Bridge = sourceTokenContracts?.l2Bridge
 
+        const l2Bridge = await bridge.getL2Bridge(sourceSlug)
         await approveTokens(
           selectedToken,
           sourceTokenAmount,
           sourceNetwork as Network,
-          l2Bridge?.address as string
+          l2Bridge.address
         )
 
         // destination network is L1 ( L2 Hop -> L1 )

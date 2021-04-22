@@ -4,16 +4,16 @@ import { User } from './helpers'
 import { ETHEREUM, XDAI, OPTIMISM, DAI } from 'src/constants'
 
 const sourceNetwork = XDAI
-const destNetwork = OPTIMISM
-const token = 'DAI'
-const amount = 1000
+const destNetwork = ETHEREUM
+const token = 'USDC'
+const amount = 1
 
-test(
+test.only(
   'send',
   async () => {
     const user = new User(privateKey)
     const tokenBalanceBefore = await user.getHopBalance(sourceNetwork, token)
-    const tx = await user.bridgeSend(sourceNetwork, destNetwork, token, amount)
+    const tx = await user.send(sourceNetwork, destNetwork, token, amount)
     console.log('tx hash:', tx.hash)
     const receipt = await tx.wait()
     expect(receipt.status).toBe(1)
@@ -23,7 +23,7 @@ test(
   60 * 1000
 )
 
-test.only(
+test(
   'swapAndSend',
   async () => {
     const user = new User(privateKey)

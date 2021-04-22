@@ -41,6 +41,19 @@ class CanonicalBridge extends Base {
     )
   }
 
+  get address () {
+    const tokenSymbol = this.token.symbol
+    if (!tokenSymbol) {
+      return null
+    }
+    if (!this.chain) {
+      return null
+    }
+    const bridgeAddress =
+      addresses.tokens[tokenSymbol][this.chain.slug].l1CanonicalBridge
+    return bridgeAddress
+  }
+
   connect (signer: TProvider) {
     return new CanonicalBridge(signer, this.token, this.chain)
   }

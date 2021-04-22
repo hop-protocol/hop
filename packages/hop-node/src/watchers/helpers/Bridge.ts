@@ -2,6 +2,8 @@ import { Contract } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
 import queue from './queue'
+import * as config from 'src/config'
+import unique from 'src/utils/unique'
 
 export default class Bridge extends ContractBase {
   WithdrawalBonded: string = 'WithdrawalBonded'
@@ -58,12 +60,33 @@ export default class Bridge extends ContractBase {
   }
 
   async getBondedWithdrawalAmount (transferHash: string) {
-    const bonder = await this.getBonderAddress()
+    const bonderAddress = await this.getBonderAddress()
+    return this.getBondedWithdrawalAmountByBonder(bonderAddress, transferHash)
+  }
+
+  async getBondedWithdrawalAmountByBonder (
+    bonder: string,
+    transferHash: string
+  ) {
     const bondedBn = await this.bridgeContract.getBondedWithdrawalAmount(
       bonder,
       transferHash
     )
     return Number(formatUnits(bondedBn.toString(), 18))
+  }
+
+  async getTotalBondedWithdrawalAmount (transferHash: string) {
+    let totalBondedAmount = 0
+    const bonderAddress = await this.getBonderAddress()
+    const bonders = unique([bonderAddress, ...config.bonders])
+    for (let bonder of bonders) {
+      const bondedAmount = await this.getBondedWithdrawalAmountByBonder(
+        bonder,
+        transferHash
+      )
+      totalBondedAmount += bondedAmount
+    }
+    return totalBondedAmount
   }
 
   isTransferHashSpent (transferHash: string) {
@@ -81,7 +104,7 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  async getWithdrawalBondeSettledvents (
+  async getWithdrawalBondeSettledEvents (
     startBlockNumber: number,
     endBlockNumber: number
   ) {
@@ -149,7 +172,7 @@ export default class Bridge extends ContractBase {
       transferHashes,
       parsedAmount,
       {
-        //gasLimit: 1000000
+        gasLimit: 1000000
       }
     )
 

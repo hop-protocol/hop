@@ -112,7 +112,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [token0Balance, setToken0Balance] = useState<number>(0)
   const [token1Balance, setToken1Balance] = useState<number>(0)
 
-  let { networks, tokens, contracts, txConfirm, txHistory, sdk } = useApp()
+  let { networks, tokens, txConfirm, txHistory, sdk } = useApp()
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [error, setError] = useState<string | null | undefined>(null)
@@ -286,18 +286,11 @@ const PoolsContextProvider: FC = ({ children }) => {
     network: Network
   ): Promise<ethers.providers.TransactionResponse | undefined> => {
     const signer = provider?.getSigner()
-    const tokenAddress = token.addressForNetwork(network).toString()
-    const contract = contracts?.getErc20Contract(tokenAddress, signer)
-
-    const saddleSwap = await sdk
-      .bridge(selectedToken.symbol)
-      .getSaddleSwap(network.slug)
+    const bridge = await sdk.bridge(selectedToken.symbol).connect(signer as any)
+    const saddleSwap = await bridge.getSaddleSwap(network.slug)
     const spender = saddleSwap.address
     const parsedAmount = parseUnits(amount, token.decimals || 18)
-    const approved = await contract?.allowance(
-      await signer?.getAddress(),
-      spender
-    )
+    const approved = await bridge.token.allowance(network.slug, spender)
 
     if (approved.lt(parsedAmount)) {
       return txConfirm?.show({
@@ -307,7 +300,11 @@ const PoolsContextProvider: FC = ({ children }) => {
           token
         },
         onConfirm: async (approveAll: boolean) => {
-          return contract?.approve(spender, approveAll ? UINT256 : parsedAmount)
+          return bridge.token.approve(
+            network.slug,
+            spender,
+            approveAll ? UINT256 : parsedAmount
+          )
         }
       })
     }

@@ -18,6 +18,8 @@ export interface Config {
   order?: () => number
 }
 
+const BONDER_ORDER_DELAY_MS = 60 * 1000
+
 class BondWithdrawalWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
   l2Bridge: L2Bridge
@@ -159,7 +161,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.debug(`amount:`, amount.toString())
     this.logger.debug(`recipient:`, recipient)
     this.logger.debug(`transferNonce:`, transferNonce)
-    this.logger.debug(`bonderFee:`, bonderFee.toString())
+    this.logger.debug(`bonderFee:`, bonderFee?.toString())
     const formattedAmount = Number(formatUnits(amount, 18))
     if (attemptSwap) {
       this.logger.debug(`bondWithdrawalAndAttemptSwap chainId: ${chainId}`)
@@ -233,7 +235,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const { chainId, attemptSwap } = await this.l2Bridge.decodeSendData(data)
 
       const destL2Bridge = new L2Bridge(this.contracts[chainId])
-      const bondedAmount = await destL2Bridge.getBondedWithdrawalAmount(
+      const bondedAmount = await destL2Bridge.getTotalBondedWithdrawalAmount(
         transferHash
       )
       if (bondedAmount > 0) {
@@ -359,8 +361,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.debug(`recipient:`, recipient)
     this.logger.debug('amount:', amount.toString())
     this.logger.debug('transferNonce:', transferNonce)
-    this.logger.debug('bonderFee:', bonderFee.toString())
-    this.logger.debug('index:', index.toString())
+    this.logger.debug('bonderFee:', bonderFee?.toString())
+    this.logger.debug('index:', index?.toString())
 
     await db.transfers.update(transferHash, {
       withdrawalBonded: true
@@ -375,14 +377,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.debug(
       `waiting for bondWithdrawal event. transferHash: ${transferHash} chainId: ${chainId}`
     )
-    const contract = this.contracts[chainId]
-    let timeout = this.order() * 15 * 1000
+    const bridge = new Bridge(this.contracts[chainId])
+    let timeout = this.order() * BONDER_ORDER_DELAY_MS
     while (timeout > 0) {
       if (!this.started) {
         return
       }
-      const bondedBn = await contract.getBondedWithdrawalAmount(transferHash)
-      const bondedAmount = Number(formatUnits(bondedBn.toString(), 18))
+      const bondedAmount = await bridge.getTotalBondedWithdrawalAmount(
+        transferHash
+      )
       if (bondedAmount !== 0) {
         break
       }

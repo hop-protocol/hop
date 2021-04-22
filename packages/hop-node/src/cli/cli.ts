@@ -146,11 +146,13 @@ program
   .description('Start the bonder watchers')
   .action(source => {
     try {
+      printHopArt()
       if (source.l1Network) {
         logger.log(`network: "${source.l1Network}"`)
         setConfigByNetwork(source.l1Network)
       }
       const order = Number(source.order || 0)
+      console.log('order:', order)
       const tokens = parseArgList(source.tokens).map((value: string) =>
         value.toUpperCase()
       )

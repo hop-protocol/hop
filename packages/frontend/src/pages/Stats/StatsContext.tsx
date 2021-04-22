@@ -8,7 +8,6 @@ import React, {
 import { formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
-import Address from 'src/models/Address'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
 
@@ -23,7 +22,7 @@ const StatsContext = createContext<StatsContextProps>({
 })
 
 const StatsContextProvider: FC = ({ children }) => {
-  let { networks, tokens, contracts } = useApp()
+  let { networks, tokens, sdk } = useApp()
   const [stats, setStats] = useState<any[]>([])
   const [fetching, setFetching] = useState<boolean>(false)
   const filteredNetworks = networks?.filter(token => !token.isLayer1)
@@ -32,13 +31,6 @@ const StatsContextProvider: FC = ({ children }) => {
     if (!selectedNetwork) {
       return
     }
-    const selectedNetworkSlug = selectedNetwork?.slug
-    if (!contracts?.tokens[selectedToken.symbol][selectedNetworkSlug]) {
-      return
-    }
-    const uniswapExchange =
-      contracts?.tokens[selectedToken.symbol][selectedNetworkSlug]
-        ?.uniswapExchange
     const token = tokens.find(token => token.symbol === selectedToken?.symbol)
     if (!token) {
       return
@@ -48,12 +40,9 @@ const StatsContextProvider: FC = ({ children }) => {
       symbol: `h${token?.symbol}`,
       tokenName: token?.tokenName,
       imageUrl: token?.imageUrl,
-      contracts: {
-        arbitrum: token?.contracts?.arbitrumHopBridge,
-        optimism: token?.contracts?.optimismHopBridge
-      }
+      contracts: {}
     })
-    const decimals = await uniswapExchange.decimals()
+    const decimals = 18
     const token0 = {
       symbol: selectedToken?.networkSymbol(selectedNetwork)
     }
@@ -61,12 +50,14 @@ const StatsContextProvider: FC = ({ children }) => {
       symbol: hopToken.networkSymbol(selectedNetwork)
     }
 
-    const reserves = await uniswapExchange.getReserves()
+    const bridge = sdk.bridge(selectedToken.symbol)
+    const reserves = await bridge.getSaddleSwapReserves(selectedNetwork.slug)
     const reserve0 = Number(formatUnits(reserves[0].toString(), decimals))
     const reserve1 = Number(formatUnits(reserves[1].toString(), decimals))
 
     return {
-      pairAddress: Address.from(uniswapExchange.address),
+      id: `${selectedNetwork.slug}-${token0.symbol}-${token1.symbol}`,
+      pairAddress: null,
       pairUrl: '#',
       totalLiquidity: reserve0 + reserve1,
       token0,

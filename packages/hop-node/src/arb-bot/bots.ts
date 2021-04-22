@@ -2,9 +2,11 @@ import '../moduleAlias'
 import ArbBot from './ArbBot'
 import wallets from 'src/wallets'
 import contracts from 'src/contracts'
+import { config } from 'src/config'
+import { ETHEREUM, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
 
-const tokenSymbols = Object.keys(contracts)
-const networks = ['arbitrum', 'optimism', 'xdai']
+const tokenSymbols = Object.keys(config.tokens)
+const networks = [ARBITRUM, OPTIMISM, XDAI]
 
 export type Config = {
   minThreshold: number
@@ -31,15 +33,9 @@ export default {
             label: `${network}.canonical-${token}`,
             contract: tokenContracts.l2CanonicalToken
           },
-          uniswap: {
-            router: {
-              contract: tokenContracts.uniswapRouter
-            },
-            factory: {
-              contract: tokenContracts.uniswapFactory
-            },
-            exchange: {
-              contract: tokenContracts.uniswapExchange
+          amm: {
+            saddleSwap: {
+              contract: tokenContracts.saddleSwap
             }
           },
           wallet: wallets.get(network),

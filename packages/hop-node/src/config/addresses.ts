@@ -2,20 +2,22 @@ import { KOVAN, GOERLI, MAINNET } from 'src/constants'
 const network = process.env.NETWORK || KOVAN
 export const isTestMode = !!process.env.TEST_MODE
 
+let bonders: string[] = []
+
 const getConfigByNetwork = (network: string) => {
   let addresses: any
   let networks: any
   if (isTestMode) {
-    ;({ addresses, networks } = require('./test'))
+    ;({ addresses, networks, bonders } = require('./test'))
   }
   if (network === KOVAN) {
-    ;({ addresses, networks } = require('./kovan_saddle'))
+    ;({ addresses, networks, bonders } = require('./kovan_saddle'))
   }
   if (network === GOERLI) {
-    ;({ addresses, networks } = require('./goerli'))
+    ;({ addresses, networks, bonders } = require('./goerli'))
   }
   if (network === MAINNET) {
-    ;({ addresses, networks } = require('./mainnet'))
+    ;({ addresses, networks, bonders } = require('./mainnet'))
   }
 
   const tokens: {
@@ -52,3 +54,4 @@ const setBonderPrivateKey = (privateKey: string) => {
 }
 
 export { setConfigByNetwork, setBonderPrivateKey }
+export { bonders }

@@ -19,6 +19,8 @@ export interface Config {
   order?: () => number
 }
 
+const BONDER_ORDER_DELAY_MS = 60 * 1000
+
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
   l2Bridge: L2Bridge
@@ -88,13 +90,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  settleBondedWithdrawal = async (
+  settleBondedWithdrawals = async (
+    bonder: string,
     transferHashes: string[],
     totalAmount: number,
     chainId: string
   ) => {
     const bridge = new Bridge(this.contracts[chainId])
-    const bonder = await this.l1Bridge.getBonderAddress()
     const parsedAmount = parseUnits(totalAmount.toString(), 18).toString()
     return bridge.settleBondedWithdrawals(bonder, transferHashes, parsedAmount)
   }
@@ -106,7 +108,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       let transferHashes = Object.values(dbTransferRoot.transferHashes || [])
       const totalAmount = dbTransferRoot.totalAmount
       const chainId = dbTransferRoot.chainId
+      const bonder = dbTransferRoot.bonder
       if (!chainId) {
+        continue
+      }
+      if (!dbTransferRoot.bonder) {
         continue
       }
       if (!dbTransferRoot.bonded) {
@@ -158,7 +164,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
         let totalBondsSettleAmount = 0
         for (let transferHash of transferHashes) {
-          const transferBondAmount = await bridge.getBondedWithdrawalAmount(
+          const transferBondAmount = await bridge.getBondedWithdrawalAmountByBonder(
+            bonder,
             transferHash
           )
           totalBondsSettleAmount += transferBondAmount
@@ -167,7 +174,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         this.logger.debug('totalBondedSettleAmount:', createdAt)
         const newAmountWithdrawn =
           structAmountWithdrawn + totalBondsSettleAmount
-        this.logger.debug(' newAmountWithdrawn:', newAmountWithdrawn)
+        this.logger.debug('newAmountWithdrawn:', newAmountWithdrawn)
         if (newAmountWithdrawn > structTotalAmount) {
           this.logger.warn('withdrawal exceeds transfer root total')
           return
@@ -186,21 +193,17 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           return
         }
 
-        const isBonder = await this.l1Bridge.isBonder()
-        if (!isBonder) {
-          this.logger.warn('cannot settle bonded withdrawal. Not a bonder')
-          return
-        }
-
         await db.transferRoots.update(transferRootHash, {
           sentSettleTx: true
         })
         this.logger.debug('sending settle tx')
-        const tx = await this.settleBondedWithdrawal(
+        const tx = await this.settleBondedWithdrawals(
+          bonder,
           transferHashes,
           Number(totalAmount),
           chainId
         )
+        this.logger.info(`settle tx:`, chalk.bgYellow.black.bold(tx.hash))
         tx?.wait()
           .then(async (receipt: any) => {
             if (receipt.status !== 1) {
@@ -257,8 +260,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     if (dbTransferRoot?.bonded) {
       return
     }
-
     const { transactionHash } = meta
+    const tx = await meta.getTransaction()
+    const { from: bonder } = tx
     const totalAmount = Number(formatUnits(_totalAmount, 18))
     this.logger.debug(`received L1 BondTransferRoot event:`)
     this.logger.debug(`transferRootHash from event: ${transferRootHash}`)
@@ -266,8 +270,38 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     this.logger.debug(`event transactionHash: ${transactionHash}`)
     await db.transferRoots.update(transferRootHash, {
       committed: true,
-      bonded: true
+      bonded: true,
+      bonder
     })
+  }
+
+  async waitTimeout (transferHash: string, chainId: string) {
+    await wait(2 * 1000)
+    if (!this.order()) {
+      return
+    }
+    this.logger.debug(
+      `waiting for settle bonded withdrawal event. transferHash: ${transferHash} chainId: ${chainId}`
+    )
+    const bridge = new Bridge(this.contracts[chainId])
+    let timeout = this.order() * BONDER_ORDER_DELAY_MS
+    while (timeout > 0) {
+      if (!this.started) {
+        return
+      }
+
+      // TODO
+      break
+
+      const delay = 2 * 1000
+      timeout -= delay
+      await wait(delay)
+    }
+    if (timeout <= 0) {
+      return
+    }
+    this.logger.debug(`transfer hash already bonded ${transferHash}`)
+    throw new Error('cancelled')
   }
 }
 

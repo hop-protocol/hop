@@ -101,7 +101,7 @@ class Token extends TokenModel {
   async transfer (chain: TChain, recipient: string, amount: TAmount) {
     chain = this.toChainModel(chain)
     const tokenContract = await this.getErc20(chain)
-    return tokenContract.transfer(recipient, amount)
+    return tokenContract.transfer(recipient, amount, this.txOverrides(chain))
   }
 
   /**
@@ -125,7 +125,8 @@ class Token extends TokenModel {
     const tokenContract = await this.getErc20(chain)
     const allowance = await this.allowance(chain, spender)
     if (allowance.lt(BigNumber.from(amount))) {
-      return tokenContract.approve(spender, amount)
+      console.log(this.txOverrides(chain))
+      return tokenContract.approve(spender, amount, this.txOverrides(chain))
     }
   }
 
@@ -171,6 +172,15 @@ class Token extends TokenModel {
     }
 
     return chain
+  }
+
+  txOverrides (chain: Chain) {
+    const txOptions: any = {}
+    if (chain.equals(Chain.Optimism)) {
+      txOptions.gasPrice = 0
+      txOptions.gasLimit = 8000000
+    }
+    return txOptions
   }
 }
 

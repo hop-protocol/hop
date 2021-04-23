@@ -290,6 +290,7 @@ class Hop extends Base {
       // L2 -> L2
       if (!sourceChain.isL1 && !destinationChain?.isL1) {
         const wrapperSource = await bridge.getAmmWrapper(sourceChain)
+        const wrapperDest = await bridge.getAmmWrapper(destinationChain)
         const exchange = await bridge.getSaddleSwap(destinationChain)
         //const destinationBridge = await bridge.getL2Bridge(destinationChain)
         // @ts-ignore
@@ -322,7 +323,7 @@ class Hop extends Base {
           recentLogs = recentLogs.reverse()
           for (let item of recentLogs) {
             const decodedLog = item.decode(item.data, item.topics)
-            if (wrapperSource.address === decodedLog.buyer) {
+            if (wrapperDest.address === decodedLog.buyer) {
               /*
             if (
               decodedSource?.amount.toString() !==

@@ -409,7 +409,8 @@ class HopBridge extends Base {
       amountOutMin || 0,
       deadline,
       relayer,
-      relayerFee || 0
+      relayerFee || 0,
+      this.txOverrides(Chain.Ethereum)
     )
   }
 
@@ -464,9 +465,7 @@ class HopBridge extends Base {
       deadline,
       destinationAmountOutMin,
       destinationDeadline,
-      {
-        //gasLimit: 1000000
-      }
+      this.txOverrides(sourceChain)
     )
   }
 
@@ -519,7 +518,8 @@ class HopBridge extends Base {
       amountOutMin,
       deadline,
       destinationAmountOutMin || 0,
-      destinationDeadline
+      destinationDeadline,
+      this.txOverrides(sourceChain)
     )
   }
 
@@ -835,6 +835,15 @@ class HopBridge extends Base {
       opts.amount1Min,
       opts.deadline
     )
+  }
+
+  txOverrides (chain: Chain) {
+    const txOptions: any = {}
+    if (chain.equals(Chain.Optimism)) {
+      txOptions.gasPrice = 0
+      txOptions.gasLimit = 8000000
+    }
+    return txOptions
   }
 }
 

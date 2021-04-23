@@ -75,6 +75,9 @@ const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
         return obj
       }
       const tokenConfig = addresses.tokens[token.symbol][network.slug]
+      if (!tokenConfig) {
+        return obj
+      }
       if (network.isLayer1) {
         networkMap[network.slug] = {
           l1CanonicalToken: new Contract(

@@ -27,6 +27,6 @@ export default class Token extends ContractBase {
   }
 
   async approve (spender: string) {
-    return this.tokenContract.approve(spender, UINT256)
+    return this.tokenContract.approve(spender, UINT256, this.txOverrides)
   }
 }

@@ -159,10 +159,10 @@ export default class L2Bridge extends Bridge {
 
   @queue
   async commitTransfers (destinationChainId: string) {
-    const tx = await this.l2BridgeContract.commitTransfers(destinationChainId, {
-      //gasLimit: '0xf4240'
-    })
-
+    const tx = await this.l2BridgeContract.commitTransfers(
+      destinationChainId,
+      this.txOverrides
+    )
     await tx.wait()
     return tx
   }
@@ -183,9 +183,7 @@ export default class L2Bridge extends Bridge {
       bonderFee,
       amountOutMin,
       deadline,
-      {
-        //gasLimit: 1000000
-      }
+      this.txOverrides
     )
 
     await tx.wait()

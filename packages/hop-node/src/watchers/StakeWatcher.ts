@@ -65,7 +65,6 @@ class StakeWatcher extends BaseWatcher {
     try {
       const isBonder = await this.bridge.isBonder()
       if (!isBonder) {
-        console.log('y')
         return
       }
 
@@ -86,12 +85,19 @@ class StakeWatcher extends BaseWatcher {
             const l1Bridge = new L1Bridge(this.contracts['42'])
             const l1Token = await l1Bridge.l1CanonicalToken()
             const l1Balance = await l1Token.getBalance()
+            this.logger.debug(`l1 token balance:`, l1Balance)
             if (l1Balance > 0) {
               const convertAmount = Math.min(l1Balance, this.stakeAmount)
               this.logger.debug(
                 `converting to ${convertAmount} canonical token to hop token`
               )
-              const tx = await l1Bridge.convertCanonicalTokenToHopToken(
+
+              let tx: any
+              const spender = l1Bridge.getAddress()
+              tx = await l1Token.approve(spender)
+              this.logger.info(`canonical token approve tx:`, tx?.hash)
+              await tx.wait()
+              tx = await l1Bridge.convertCanonicalTokenToHopToken(
                 this.token.providerNetworkId,
                 convertAmount
               )
@@ -124,6 +130,7 @@ class StakeWatcher extends BaseWatcher {
           )
           return
         }
+        console.log('bal', balance)
         this.logger.debug(`attempting to stake: ${this.stakeAmount.toString()}`)
         const tx = await this.bridge.stake(this.stakeAmount.toString())
         this.logger.info(`stake tx:`, tx?.hash)

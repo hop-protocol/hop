@@ -39,4 +39,14 @@ export default class ContractBase extends EventEmitter {
     const block = await this.contract.provider.getBlock('latest')
     return block.timestamp
   }
+
+  get txOverrides () {
+    const txOptions: any = {}
+    if (this.providerNetworkId === '69') {
+      txOptions.gasPrice = 0
+      txOptions.gasLimit = 8000000
+    }
+
+    return txOptions
+  }
 }

@@ -125,9 +125,7 @@ export default class L1Bridge extends Bridge {
       transferRootHash,
       chainId,
       parsedTotalAmount,
-      {
-        // gasLimit: 1000000
-      }
+      this.txOverrides
     )
 
     await tx.wait()
@@ -142,9 +140,7 @@ export default class L1Bridge extends Bridge {
     const tx = await this.l1BridgeContract.challengeTransferBond(
       transferRootHash,
       totalAmount,
-      {
-        //gasLimit: 1000000
-      }
+      this.txOverrides
     )
 
     await tx.wait()
@@ -156,9 +152,7 @@ export default class L1Bridge extends Bridge {
     const tx = await this.l1BridgeContract.resolveChallenge(
       transferRootHash,
       totalAmount,
-      {
-        //gasLimit: 1000000
-      }
+      this.txOverrides
     )
 
     await tx.wait()
@@ -185,9 +179,7 @@ export default class L1Bridge extends Bridge {
       deadline,
       relayer,
       relayerFee,
-      {
-        //gasLimit: 1000000
-      }
+      this.txOverrides
     )
   }
 }

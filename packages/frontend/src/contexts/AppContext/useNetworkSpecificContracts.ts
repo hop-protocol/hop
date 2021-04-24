@@ -8,11 +8,7 @@ import l2xDaiTokenArtifact from 'src/abi/L2_xDaiToken.json'
 import l1ArbitrumMessengerArtifact from 'src/abi/GlobalInbox.json'
 import l1OptimismTokenBridgeArtifact from 'src/abi/L1_OptimismTokenBridge.json'
 import l1xDaiForeignOmnibridge from 'src/abi/L1_xDaiForeignOmnibridge.json'
-import uniswapWrapperArtifact from 'src/abi/L2_UniswapWrapper.json'
-import uniswapRouterArtifact from 'src/abi/UniswapV2Router02.json'
-import uniswapFactoryArtifact from 'src/abi/UniswapV2Factory.json'
 import arbErc20Artifact from 'src/abi/ArbERC20.json'
-import uniswapV2PairArtifact from 'src/abi/UniswapV2Pair.json'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
@@ -26,10 +22,6 @@ export type NetworkSpecificContracts = {
   l2CanonicalToken: Contract | undefined
   l2Bridge: Contract | undefined
   l2HopBridgeToken: Contract | undefined
-  uniswapWrapper: Contract | undefined
-  uniswapRouter: Contract | undefined
-  uniswapFactory: Contract | undefined
-  uniswapExchange: Contract | undefined
 }
 
 const useNetworkSpecificContracts = (
@@ -48,10 +40,6 @@ const useNetworkSpecificContracts = (
       l2CanonicalToken: undefined,
       l2Bridge: undefined,
       l2HopBridgeToken: undefined,
-      uniswapWrapper: undefined,
-      uniswapRouter: undefined,
-      uniswapFactory: undefined,
-      uniswapExchange: undefined
     }
   }
 
@@ -62,10 +50,6 @@ const useNetworkSpecificContracts = (
   const l2CanonicalTokenAddress: string = tokenConfig.l2CanonicalToken
   const l2BridgeAddress: string = tokenConfig.l2Bridge
   const l2HopBridgeTokenAddress: string = tokenConfig.l2HopBridgeToken
-  const uniswapWrapperAddress: string = tokenConfig.l2UniswapWrapper
-  const uniswapRouterAddress: string = tokenConfig.l2UniswapRouter
-  const uniswapFactoryAddress: string = tokenConfig.l2UniswapFactory
-  const uniswapExchangeAddress: string = tokenConfig.l2UniswapExchange
 
   const l2Provider = useMemo(() => {
     if (connectedNetworkId === l2Network?.networkId) {
@@ -168,46 +152,6 @@ const useNetworkSpecificContracts = (
   const l2HopBridgeToken = useMemo(() => {
     return new Contract(l2HopBridgeTokenAddress, erc20Artifact.abi, l2Provider)
   }, [l2Provider])
-  const uniswapWrapper = useMemo(() => {
-    if (!uniswapWrapperAddress) {
-      return
-    }
-    return new Contract(
-      uniswapWrapperAddress,
-      uniswapWrapperArtifact.abi,
-      l2Provider
-    )
-  }, [l2Provider])
-  const uniswapRouter = useMemo(() => {
-    if (!uniswapRouterAddress) {
-      return
-    }
-    return new Contract(
-      uniswapRouterAddress,
-      uniswapRouterArtifact.abi,
-      l2Provider
-    )
-  }, [l2Provider])
-  const uniswapFactory = useMemo(() => {
-    if (!uniswapFactoryAddress) {
-      return
-    }
-    return new Contract(
-      uniswapFactoryAddress,
-      uniswapFactoryArtifact.abi,
-      l2Provider
-    )
-  }, [l2Provider])
-  const uniswapExchange = useMemo(() => {
-    if (!uniswapExchangeAddress) {
-      return
-    }
-    return new Contract(
-      uniswapExchangeAddress,
-      uniswapV2PairArtifact.abi,
-      l2Provider
-    )
-  }, [l2Provider])
 
   return {
     l1Bridge,
@@ -216,10 +160,6 @@ const useNetworkSpecificContracts = (
     l2CanonicalToken,
     l2Bridge,
     l2HopBridgeToken,
-    uniswapWrapper,
-    uniswapRouter,
-    uniswapFactory,
-    uniswapExchange
   }
 }
 

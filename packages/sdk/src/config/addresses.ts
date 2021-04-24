@@ -8,8 +8,7 @@ type HopAddresses = {
   }
 }
 
-const synthDemoTokens = {
-}
+const synthDemoTokens = {}
 
 const demoTokens = {
   USDC: {

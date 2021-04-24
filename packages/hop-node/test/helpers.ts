@@ -8,9 +8,6 @@ import l1BridgeArtifact from 'src/abi/L1_Bridge.json'
 import l2BridgeArtifact from 'src/abi/L2_Bridge.json'
 import erc20Artifact from 'src/abi/ERC20.json'
 import l2AmmWrapperArtifact from 'src/abi/L2_AmmWrapper.json'
-import l2UniswapWrapperArtifact from 'src/abi/L2_UniswapWrapper.json'
-import uniswapRouterArtifact from 'src/abi/UniswapV2Router02.json'
-import uniswapPairArtifact from 'src/abi/UniswapV2Pair.json'
 import saddleSwapArtifact from 'src/abi/SaddleSwap.json'
 import globalInboxArtifact from 'src/abi/GlobalInbox.json'
 import xDaiForeignOmnibridgeArtifact from 'src/abi/L1_xDaiForeignOmnibridge.json'
@@ -81,22 +78,10 @@ export class User {
     return new Contract(tokenAddress, erc20Artifact.abi, wallet)
   }
 
-  getUniswapRouterContract (network: string, token: string) {
-    let routerAddress = config.tokens[token][network].l2UniswapRouter
-    const wallet = this.getWallet(network)
-    return new Contract(routerAddress, uniswapRouterArtifact.abi, wallet)
-  }
-
   getSaddleSwapContract (network: string, token: string) {
     let saddleSwapAddress = config.tokens[token][network].l2SaddleSwap
     const wallet = this.getWallet(network)
     return new Contract(saddleSwapAddress, saddleSwapArtifact.abi, wallet)
-  }
-
-  getUniswapPairContract (network: string, token: string) {
-    let pairAddress = config.tokens[token][network].l2UniswapExchange
-    const wallet = this.getWallet(network)
-    return new Contract(pairAddress, uniswapPairArtifact.abi, wallet)
   }
 
   async mint (
@@ -153,12 +138,6 @@ export class User {
       xdaiMessengerWrapperArtifact.abi,
       wallet
     )
-  }
-
-  getUniswapWrapperContract (network: string, token: string = DAI) {
-    const wrapperAddress = config.tokens[token][network].l2UniswapWrapper
-    const wallet = this.getWallet(network)
-    return new Contract(wrapperAddress, l2UniswapWrapperArtifact.abi, wallet)
   }
 
   getAmmWrapperContract (network: string, token: string = DAI) {
@@ -328,13 +307,7 @@ export class User {
     const parsedAmount = parseUnits(amount.toString(), 18)
 
     await this.validateChainId(sourceChainId)
-    //const bridge = this.getHopBridgeContract(sourceNetwork, token)
     const wrapper = this.getAmmWrapperContract(sourceNetwork, token)
-    //const router = this.getUniswapRouterContract(sourceNetwork, token)
-    //const path = [await wrapper.hToken(), await wrapper.l2CanonicalToken()]
-    //const amountOut = await router.getAmountsOut(parsedAmount, path)
-    //console.log('amount out 0:', formatUnits(amountOut[0], 18).toString())
-    //console.log('amount out 1:', formatUnits(amountOut[1], 18).toString())
     await this.checkApproval(sourceNetwork, token, wrapper.address)
 
     return wrapper.swapAndSend(
@@ -481,51 +454,8 @@ export class User {
     return address
   }
 
-  getUniswapWrapperAddress (network: string, token: string) {
-    return config.tokens[token][network].l2UniswapWrapper
-  }
-
   getAmmWrapperAddress (network: string, token: string) {
     return config.tokens[token][network].l2AmmWrapper
-  }
-
-  async calcToken1Rate (network: string, token: string) {
-    //const address = await this.getAddress()
-    const uniswapRouter = this.getUniswapRouterContract(network, token)
-    const uniswapExchange = this.getUniswapPairContract(network, token)
-
-    const [decimals, reserves] = await Promise.all([
-      uniswapExchange.decimals(),
-      //uniswapExchange.totalSupply(),
-      //uniswapExchange.balanceOf(address),
-      uniswapExchange.getReserves()
-    ])
-
-    //const formattedTotalSupply = formatUnits( totalSupply.toString(), Number(decimals.toString()))
-
-    // user pool balance
-    //const formattedBalance = formatUnits(balance.toString(), decimals)
-
-    //const poolPercentage = (Number(formattedBalance) / Number(formattedTotalSupply)) * 100
-
-    // user pool token percentage
-    //const formattedPoolPercentage = poolPercentage.toFixed(2) === '0.00' ? '<0.01' : poolPercentage.toFixed(2)
-
-    const reserve0 = formatUnits(reserves[0].toString(), decimals)
-    const reserve1 = formatUnits(reserves[1].toString(), decimals)
-
-    //const token0Deposited = (Number(formattedBalance) * Number(reserve0)) / Number(formattedTotalSupply)
-    //const token1Deposited = (Number(formattedBalance) * Number(reserve1)) / Number(formattedTotalSupply)
-
-    const amount0 = parseUnits('1', decimals)
-    const amount1 = await uniswapRouter?.quote(
-      amount0,
-      parseUnits(reserve0, decimals),
-      parseUnits(reserve1, decimals)
-    )
-    const formattedAmountB = formatUnits(amount1, decimals)
-    const token1Rate = formattedAmountB
-    return token1Rate
   }
 
   async getLpToken (network: string, token: string) {
@@ -543,16 +473,6 @@ export class User {
     const [balance, decimals] = await Promise.all([
       lpToken.balanceOf(address),
       lpToken.decimals()
-    ])
-    return Number(formatUnits(balance.toString(), decimals))
-  }
-
-  async getUniswapPoolBalance (network: string, token: string) {
-    const uniswapExchange = this.getUniswapPairContract(network, token)
-    const address = await this.getAddress()
-    const [balance, decimals] = await Promise.all([
-      uniswapExchange.balanceOf(address),
-      uniswapExchange.decimals()
     ])
     return Number(formatUnits(balance.toString(), decimals))
   }
@@ -703,67 +623,6 @@ export class User {
     return saddleSwap.removeLiquidity(
       parsedLpTokenAmount,
       minAmounts,
-      deadline,
-      {
-        //gasLimit: 1000000
-      }
-    )
-  }
-
-  async uniswapAddLiquidity (
-    network: string,
-    token: string,
-    token0Amount: string | number
-  ) {
-    const token1Rate = await this.calcToken1Rate(network, token)
-    const token1Amount = Number(token0Amount) * Number(token1Rate)
-
-    const uniswapRouter = this.getUniswapRouterContract(network, token)
-    const uniswapRouterAddress = uniswapRouter.address
-    const tokenContract = this.getTokenContract(network, token)
-    const hTokenContract = this.getHopBridgeTokenContract(network, token)
-
-    let allowance = await this.getAllowance(
-      network,
-      token,
-      uniswapRouterAddress
-    )
-    if (allowance < Number(token0Amount)) {
-      const tx = await this.approve(network, token, uniswapRouterAddress)
-      await tx?.wait()
-    }
-
-    allowance = await this.getAllowance(
-      network,
-      hTokenContract,
-      uniswapRouterAddress
-    )
-    if (allowance < Number(token0Amount)) {
-      const tx = await this.approve(
-        network,
-        hTokenContract,
-        uniswapRouterAddress
-      )
-      await tx?.wait()
-    }
-
-    const token0 = tokenContract.address
-    const token1 = hTokenContract.address
-    const amount0Desired = parseUnits(token0Amount.toString(), 18)
-    const amount1Desired = parseUnits(token1Amount.toString(), 18)
-    const amount0Min = 0
-    const amount1Min = 0
-    const recipient = await this.getAddress()
-    const deadline = (Date.now() / 1000 + 5 * 60) | 0
-
-    return uniswapRouter.addLiquidity(
-      token0,
-      token1,
-      amount0Desired,
-      amount1Desired,
-      amount0Min,
-      amount1Min,
-      recipient,
       deadline,
       {
         //gasLimit: 1000000

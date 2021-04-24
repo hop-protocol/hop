@@ -18,7 +18,7 @@ export default class L2AmmWrapper {
     chainId = decoded.chainId.toString()
 
     if (!isL1NetworkId(chainId)) {
-      // L2 to L2 transfers have uniswap parameters set
+      // L2 to L2 transfers have destination swap parameters set
       if (Number(decoded.destinationDeadline.toString()) > 0) {
         attemptSwap = true
       }

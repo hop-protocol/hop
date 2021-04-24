@@ -42,11 +42,13 @@ export default class ContractBase extends EventEmitter {
 
   get txOverrides () {
     const txOptions: any = {}
+    txOptions.gasLimit = 5000000
     if (this.providerNetworkId === '69') {
       txOptions.gasPrice = 0
       txOptions.gasLimit = 8000000
+    } else if (this.providerNetworkId === '77') {
+      txOptions.gasLimit = 5000000
     }
-
     return txOptions
   }
 }

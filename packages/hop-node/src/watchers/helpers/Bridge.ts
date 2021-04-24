@@ -135,7 +135,6 @@ export default class Bridge extends ContractBase {
   async stake (amount: string) {
     const parsedAmount = parseUnits(amount, 18)
     const bonder = await this.getBonderAddress()
-    console.log(this.providerNetworkId)
     const tx = await this.bridgeContract.stake(
       bonder,
       parsedAmount,

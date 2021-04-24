@@ -11,7 +11,7 @@ const getConfigByNetwork = (network: string) => {
     ;({ addresses, networks, bonders } = require('./test'))
   }
   if (network === KOVAN) {
-    ;({ addresses, networks, bonders } = require('./kovan_saddle'))
+    ;({ addresses, networks, bonders } = require('./kovan'))
   }
   if (network === GOERLI) {
     ;({ addresses, networks, bonders } = require('./goerli'))

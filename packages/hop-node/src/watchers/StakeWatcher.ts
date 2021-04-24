@@ -115,6 +115,7 @@ class StakeWatcher extends BaseWatcher {
           return
         }
         if (allowance < this.stakeAmount) {
+          this.logger.debug('approving tokens')
           const tx = await this.approveTokens()
           this.logger.info(`stake approve tx:`, tx?.hash)
           await tx?.wait()
@@ -130,7 +131,6 @@ class StakeWatcher extends BaseWatcher {
           )
           return
         }
-        console.log('bal', balance)
         this.logger.debug(`attempting to stake: ${this.stakeAmount.toString()}`)
         const tx = await this.bridge.stake(this.stakeAmount.toString())
         this.logger.info(`stake tx:`, tx?.hash)

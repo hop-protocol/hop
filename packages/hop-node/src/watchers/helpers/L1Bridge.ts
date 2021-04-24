@@ -165,11 +165,16 @@ export default class L1Bridge extends Bridge {
     amount: string | number
   ) {
     const recipient = await this.getBonderAddress()
-    const value = parseUnits(amount.toString(), 18)
+    const value = parseUnits('10' || amount.toString(), 18)
     const deadline = '0'
     const relayer = ethers.constants.AddressZero
     const relayerFee = '0'
     const amountOutMin = '0'
+
+    const isSupportedChainId = await this.isSupportedChainId(destNetworkId)
+    if (!isSupportedChainId) {
+      throw new Error(`chain ID "${destNetworkId}" is not supported`)
+    }
 
     return this.l1BridgeContract.sendToL2(
       destNetworkId,
@@ -181,5 +186,12 @@ export default class L1Bridge extends Bridge {
       relayerFee,
       this.txOverrides
     )
+  }
+
+  async isSupportedChainId (chainId: string) {
+    const address = await this.l1BridgeContract.crossDomainMessengerWrappers(
+      chainId
+    )
+    return address !== ethers.constants.AddressZero
   }
 }

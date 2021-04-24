@@ -1,6 +1,5 @@
 import { Signer, Contract } from 'ethers'
 import saddleSwapArtifact from './abi/SaddleSwap.json'
-import uniswapRouterArtifact from './abi/UniswapV2Router02.json'
 import { addresses } from './config'
 import { Chain } from './models'
 import { TChain, TToken, TAmount, TProvider } from './types'
@@ -62,56 +61,6 @@ class AMM extends Base {
     return saddleSwap.removeLiquidity(liqudityTokenAmount, amounts, deadline)
   }
 
-  async uniswapAddLiquidity (
-    amount0Desired: TAmount,
-    amount1Desired: TAmount,
-    amount0Min: TAmount = 0,
-    amount1Min: TAmount = 0,
-    deadline: number = this.defaultDeadlineSeconds,
-    to?: string
-  ) {
-    if (!to) {
-      to = await this.getSignerAddress()
-    }
-    const token0 = this.getCanonicalTokenAddress()
-    const token1 = this.getHopTokenAddress()
-    const uniswapRouter = await this.getUniswapRouter(this.chain)
-    return uniswapRouter.addLiquidity(
-      token0,
-      token1,
-      amount0Desired,
-      amount1Desired,
-      amount0Min,
-      amount1Min,
-      to,
-      deadline
-    )
-  }
-
-  async uniswapRemoveLiquidity (
-    liqudityTokenAmount: TAmount,
-    amount0Min: TAmount = 0,
-    amount1Min: TAmount = 0,
-    deadline: number = this.defaultDeadlineSeconds,
-    to?: string
-  ) {
-    if (!to) {
-      to = await this.getSignerAddress()
-    }
-    const token0 = this.getCanonicalTokenAddress()
-    const token1 = this.getHopTokenAddress()
-    const uniswapRouter = await this.getUniswapRouter(this.chain)
-    return uniswapRouter.removeLiquidity(
-      token0,
-      token1,
-      liqudityTokenAmount,
-      amount0Min,
-      amount1Min,
-      to,
-      deadline
-    )
-  }
-
   async getCanonicalTokenAddress () {
     return addresses.tokens[this.token.symbol][this.chain.slug].l2CanonicalToken
   }
@@ -127,19 +76,6 @@ class AMM extends Base {
       addresses.tokens[tokenSymbol][chain.slug].l2SaddleSwap
     const provider = await this.getSignerOrProvider(chain)
     return new Contract(saddleSwapAddress, saddleSwapArtifact.abi, provider)
-  }
-
-  async getUniswapRouter (chain: TChain) {
-    chain = this.toChainModel(chain)
-    const tokenSymbol = this.token.symbol
-    const uniswapRouterAddress =
-      addresses.tokens[tokenSymbol][chain.slug].l2UniswapRouter
-    const provider = await this.getSignerOrProvider(chain)
-    return new Contract(
-      uniswapRouterAddress,
-      uniswapRouterArtifact.abi,
-      provider
-    )
   }
 
   async getSignerOrProvider (chain: TChain, signer: TProvider = this.signer) {

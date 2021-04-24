@@ -5,8 +5,6 @@ import l1BridgeArtifact from './abi/L1_Bridge.json'
 import l2BridgeArtifact from './abi/L2_Bridge.json'
 import saddleLpTokenArtifact from './abi/SaddleLpToken.json'
 import saddleSwapArtifact from './abi/SaddleSwap.json'
-import uniswapRouterArtifact from './abi/UniswapV2Router02.json'
-import uniswapExchangeArtifact from './abi/UniswapV2Pair.json'
 import ammWrapperArtifact from './abi/L2_AmmWrapper.json'
 import TokenClass from './Token'
 import { TChain, TToken, TAmount } from './types'
@@ -595,48 +593,6 @@ class HopBridge extends Base {
     return saddleSwap.calculateSwap(tokenIndexFrom, tokenIndexTo, amount)
   }
 
-  async _uniswapCalcAmountOut (
-    amount: string,
-    isAmountIn: boolean,
-    sourceChain: Chain,
-    destinationChain: Chain
-  ): Promise<BigNumber> {
-    const tokenSymbol = this.token.symbol
-    let path
-    let uniswapRouter
-    if (sourceChain.isL1) {
-      if (!destinationChain) {
-        return BigNumber.from('0')
-      }
-      let l2CanonicalTokenAddress =
-        addresses.tokens[tokenSymbol][destinationChain.slug].l2CanonicalToken
-      let l2HopBridgeTokenAddress =
-        addresses.tokens[tokenSymbol][destinationChain.slug].l2HopBridgeToken
-      path = [l2HopBridgeTokenAddress, l2CanonicalTokenAddress]
-      uniswapRouter = await this.getUniswapRouter(destinationChain, this.signer)
-    } else {
-      if (!sourceChain) {
-        return BigNumber.from('0')
-      }
-      let l2CanonicalTokenAddress =
-        addresses.tokens[tokenSymbol][sourceChain.slug].l2CanonicalToken
-      let l2HopBridgeTokenAddress =
-        addresses.tokens[tokenSymbol][sourceChain.slug].l2HopBridgeToken
-      path = [l2CanonicalTokenAddress, l2HopBridgeTokenAddress]
-      uniswapRouter = await this.getUniswapRouter(sourceChain, this.signer)
-    }
-    if (!path) {
-      return BigNumber.from('0')
-    }
-    if (isAmountIn) {
-      const amountsOut = await uniswapRouter?.getAmountsOut(amount, path)
-      return amountsOut[1]
-    } else {
-      const amountsIn = await uniswapRouter?.getAmountsIn(amount, path)
-      return amountsIn[0]
-    }
-  }
-
   async execSaddleSwap (
     sourceChain: TChain,
     toHop: boolean,
@@ -691,32 +647,6 @@ class HopBridge extends Base {
     const bridgeAddress = addresses.tokens[tokenSymbol][chain.slug].l2Bridge
     const provider = await this.getSignerOrProvider(chain, signer)
     return new Contract(bridgeAddress, l2BridgeArtifact.abi, provider)
-  }
-
-  async getUniswapRouter (chain: TChain, signer: Signer = this.signer) {
-    chain = this.toChainModel(chain)
-    const tokenSymbol = this.token.symbol
-    const uniswapRouterAddress =
-      addresses.tokens[tokenSymbol][chain.slug].l2UniswapRouter
-    const provider = await this.getSignerOrProvider(chain, signer)
-    return new Contract(
-      uniswapRouterAddress,
-      uniswapRouterArtifact.abi,
-      provider
-    )
-  }
-
-  async getUniswapExchange (chain: TChain, signer: Signer = this.signer) {
-    chain = this.toChainModel(chain)
-    const tokenSymbol = this.token.symbol
-    const uniswapExchangeAddress =
-      addresses.tokens[tokenSymbol][chain.slug].l2UniswapExchange
-    const provider = await this.getSignerOrProvider(chain, signer)
-    return new Contract(
-      uniswapExchangeAddress,
-      uniswapExchangeArtifact.abi,
-      provider
-    )
   }
 
   async getAmmWrapper (chain: TChain, signer: Signer = this.signer) {

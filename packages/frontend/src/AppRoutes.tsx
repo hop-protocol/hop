@@ -81,7 +81,7 @@ const mockProposals: IProposal[] = [
 const COMPONENT_NAME: FC<Props> = () => {
   return (
     <Switch>
-      <Route path="/(send|arbitrum|optimism|matic|xdai)/">
+      <Route path="/(send|arbitrum|optimism|polygon|xdai)/">
         <Send />
       </Route>
       <Route path="/convert">

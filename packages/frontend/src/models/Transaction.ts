@@ -52,7 +52,7 @@ class Transaction extends EventEmitter {
     } else if (networkName.startsWith('xdai')) {
       rpcUrl = getRpcUrl('xdai')
     } else if (networkName.startsWith('matc')) {
-      rpcUrl = getRpcUrl('matic')
+      rpcUrl = getRpcUrl('polygon')
     } else {
       rpcUrl = getRpcUrl(L1_NETWORK)
     }
@@ -82,8 +82,8 @@ class Transaction extends EventEmitter {
       return this._optimismLink()
     } else if (this.networkName.startsWith('xdai')) {
       return this._xdaiLink()
-    } else if (this.networkName.startsWith('matic')) {
-      return this._maticLink()
+    } else if (this.networkName.startsWith('polygon')) {
+      return this._polygonLink()
     } else {
       return ''
     }
@@ -122,7 +122,7 @@ class Transaction extends EventEmitter {
     return `${getBaseExplorerUrl('xdai')}tx/${this.hash}`
   }
 
-  private _maticLink () {
+  private _polygonLink () {
     return ''
   }
 

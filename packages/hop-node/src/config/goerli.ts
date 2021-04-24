@@ -4,6 +4,10 @@ export const networks: any = {
   ethereum: {
     networkId: '5',
     rpcUrl: 'https://goerli.rpc.hop.exchange'
+  },
+  polygon: {
+    networkId: '80001',
+    rpcUrl: 'https://rpc-mumbai.maticvigil.com'
   }
   /*
   arbitrum: {

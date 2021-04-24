@@ -103,6 +103,12 @@ export const chains: any = {
     chainId: '77',
     rpcUrl: 'https://sokol.poa.network',
     explorerUrl: 'https://blockscout.com/poa/sokol/'
+  },
+  polygon: {
+    name: 'Polygon',
+    chainId: '80001',
+    rpcUrl: 'https://rpc-mumbai.maticvigil.com',
+    explorerUrl: 'https://explorer-mumbai.maticvigil.com/'
   }
 }
 

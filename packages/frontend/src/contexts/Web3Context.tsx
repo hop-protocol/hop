@@ -70,8 +70,8 @@ const networkNames: any = {
   '420': 'Optimism',
   '77': 'xDai',
   '100': 'xDai',
-  '80001': 'Matic',
-  '137': 'Matic'
+  '80001': 'Polygon',
+  '137': 'Polygon'
 }
 
 const Web3Context = createContext<Props>(initialState)
@@ -136,8 +136,8 @@ const Web3ContextProvider: FC = ({ children }) => {
       if (wantNetworkId === networkSlugToId('xdai')) {
         wantRpcUrl = getRpcUrl('xdai')
       }
-      if (wantNetworkId === networkSlugToId('matic')) {
-        wantRpcUrl = getRpcUrl('matic')
+      if (wantNetworkId === networkSlugToId('polygon')) {
+        wantRpcUrl = getRpcUrl('polygon')
       }
 
       let html = ''
@@ -147,7 +147,7 @@ const Web3ContextProvider: FC = ({ children }) => {
           wantNetworkId === networkSlugToId('arbitrum') ||
           wantNetworkId === networkSlugToId('optimism') ||
           wantNetworkId === networkSlugToId('xdai') ||
-          wantNetworkId === networkSlugToId('matic')
+          wantNetworkId === networkSlugToId('polygon')
         ) {
           stepImages = [
             MetamaskAccountsSettingsHighlight,

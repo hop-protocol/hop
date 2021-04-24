@@ -2,7 +2,7 @@ import MainnetLogo from 'src/assets/logos/mainnet.svg'
 import ArbitrumLogo from 'src/assets/logos/arbitrum.svg'
 import OptimismLogo from 'src/assets/logos/optimism.svg'
 import xDaiLogo from 'src/assets/logos/xdai.svg'
-import MaticLogo from 'src/assets/logos/matic.svg'
+import PolygonLogo from 'src/assets/logos/polygon.svg'
 import DaiLogo from 'src/assets/logos/dai.svg'
 import SynthEthLogo from 'src/assets/logos/seth.svg'
 import SynthBtcLogo from 'src/assets/logos/sbtc.svg'
@@ -97,10 +97,10 @@ export const metadata: Metadata = {
       isLayer1: false,
       image: xDaiLogo
     },
-    matic: {
-      name: 'Matic',
+    polygon: {
+      name: 'Polygon',
       isLayer1: false,
-      image: MaticLogo
+      image: PolygonLogo
     }
   }
 }

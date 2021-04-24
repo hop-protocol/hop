@@ -15,6 +15,11 @@ export const networks: any = {
     networkId: '5',
     rpcUrl: 'https://goerli.rpc.hop.exchange',
     explorerUrl: 'https://goerli.etherscan.io/'
+  },
+  polygon: {
+    networkId: '80001',
+    rpcUrl: 'https://rpc-mumbai.maticvigil.com',
+    explorerUrl: 'https://explorer-mumbai.maticvigil.com/'
   }
   /*
   arbitrum: {

@@ -2,7 +2,7 @@ import { providers, Signer, Contract, BigNumber } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
 import { MaxUint256 } from './constants'
 import { addresses } from './config'
-import erc20Artifact from './abi/ERC20.json'
+import { erc20Abi } from '@hop-protocol/abi'
 import { TChain, TAmount } from './types'
 
 /**
@@ -141,7 +141,7 @@ class Token extends TokenModel {
     }
 
     const provider = await this.getSignerOrProvider(chain)
-    return new Contract(tokenAddress, erc20Artifact.abi, provider)
+    return new Contract(tokenAddress, erc20Abi, provider)
   }
 
   async getSignerAddress () {

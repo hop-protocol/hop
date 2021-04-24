@@ -1,6 +1,4 @@
-export const addresses = {
-
-}
+export const addresses = {}
 
 export const networks: any = {
   ethereum: {

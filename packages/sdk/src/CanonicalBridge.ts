@@ -1,12 +1,14 @@
 import { Signer, Contract } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { addresses } from './config'
-import arbErc20Artifact from './abi/ArbERC20.json'
-import l1xDaiForeignOmnibridge from './abi/L1_xDaiForeignOmnibridge.json'
-import l1OptimismTokenBridgeArtifact from './abi/L1_OptimismTokenBridge.json'
-import l1ArbitrumMessengerArtifact from './abi/GlobalInbox.json'
-import l2OptimismTokenBridgeArtifact from './abi/L2_OptimismTokenBridge.json'
-import l2xDaiTokenArtifact from './abi/L2_xDaiToken.json'
+import {
+  arbErc20Abi,
+  l1xDaiForeignOmniBridgeAbi,
+  l1OptimismTokenBridgeAbi,
+  arbitrumGlobalInboxAbi,
+  l2OptimismTokenBridgeAbi,
+  l2xDaiTokenAbi
+} from '@hop-protocol/abi'
 import { Chain } from './models'
 import { TChain, TToken, TAmount, TProvider } from './types'
 import TokenClass from './Token'
@@ -84,7 +86,7 @@ class CanonicalBridge extends Base {
     if ((chain as Chain).equals(Chain.xDai)) {
       const bridge = new Contract(
         bridgeAddress,
-        l1xDaiForeignOmnibridge.abi,
+        l1xDaiForeignOmniBridgeAbi,
         provider
       )
       await this.checkMaxTokensAllowed(chain, bridge, tokenAmount)
@@ -96,7 +98,7 @@ class CanonicalBridge extends Base {
         addresses.tokens[tokenSymbol][(chain as Chain).slug].l2CanonicalToken
       const bridge = new Contract(
         bridgeAddress,
-        l1OptimismTokenBridgeArtifact.abi,
+        l1OptimismTokenBridgeAbi,
         provider
       )
       await this.checkMaxTokensAllowed(chain, bridge, tokenAmount)
@@ -110,7 +112,7 @@ class CanonicalBridge extends Base {
       const arbChain = addresses.tokens[tokenSymbol][chain.slug].arbChain
       const bridge = new Contract(
         bridgeAddress,
-        l1ArbitrumMessengerArtifact.abi,
+        arbitrumGlobalInboxAbi,
         provider
       )
       await this.checkMaxTokensAllowed(chain, bridge, tokenAmount)
@@ -145,11 +147,7 @@ class CanonicalBridge extends Base {
       const tokenAddress =
         addresses.tokens[tokenSymbol][chain.slug].l2CanonicalToken
 
-      const bridge = new Contract(
-        tokenAddress,
-        l2xDaiTokenArtifact.abi,
-        provider
-      )
+      const bridge = new Contract(tokenAddress, l2xDaiTokenAbi, provider)
       return bridge.transferAndCall(bridgeAddress, tokenAmount, '0x', {
         gasLimit: 1000000
       })
@@ -162,7 +160,7 @@ class CanonicalBridge extends Base {
         addresses.tokens[tokenSymbol][chain.slug].l2CanonicalToken
       const bridge = new Contract(
         bridgeAddress,
-        l2OptimismTokenBridgeArtifact.abi,
+        l2OptimismTokenBridgeAbi,
         provider
       )
 
@@ -173,7 +171,7 @@ class CanonicalBridge extends Base {
     } else if ((chain as Chain).equals(Chain.Arbitrum)) {
       const bridgeAddress =
         addresses.tokens[tokenSymbol][(chain as Chain).slug].l2CanonicalToken
-      const bridge = new Contract(bridgeAddress, arbErc20Artifact.abi, provider)
+      const bridge = new Contract(bridgeAddress, arbErc20Abi, provider)
       return bridge.withdraw(recipient, tokenAmount)
     } else {
       throw new Error('not implemented')

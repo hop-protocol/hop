@@ -2,11 +2,13 @@ import '../moduleAlias'
 import { ethers } from 'ethers'
 import memoize from 'fast-memoize'
 import { ETHEREUM } from 'src/constants'
-import erc20Artifact from 'src/abi/ERC20.json'
-import l1BridgeArtifact from 'src/abi/L1_ERC20_Bridge.json'
-import l2BridgeArtifact from 'src/abi/L2_Bridge.json'
-import ammWrapperArtifact from 'src/abi/L2_AmmWrapper.json'
-import saddleSwapArtifact from 'src/abi/SaddleSwap.json'
+import {
+  erc20Abi,
+  l1BridgeAbi,
+  l2BridgeAbi,
+  l2AmmWrapperAbi,
+  saddleSwapAbi
+} from '@hop-protocol/abi'
 
 import { config } from 'src/config'
 import wallets from 'src/wallets'
@@ -14,7 +16,7 @@ import wallets from 'src/wallets'
 const getL1BridgeContract = (token: string) => {
   return new ethers.Contract(
     config.tokens[token][ETHEREUM].l1Bridge,
-    l1BridgeArtifact.abi,
+    l1BridgeAbi,
     wallets.get(ETHEREUM)
   )
 }
@@ -22,7 +24,7 @@ const getL1BridgeContract = (token: string) => {
 const getL1TokenContract = (token: string) => {
   return new ethers.Contract(
     config.tokens[token][ETHEREUM].l1CanonicalToken,
-    erc20Artifact.abi,
+    erc20Abi,
     wallets.get(ETHEREUM)
   )
 }
@@ -30,7 +32,7 @@ const getL1TokenContract = (token: string) => {
 const getL2TokenContract = (token: string, network: string, wallet: any) => {
   return new ethers.Contract(
     config.tokens[token][network].l2CanonicalToken,
-    erc20Artifact.abi,
+    erc20Abi,
     wallet
   )
 }
@@ -42,7 +44,7 @@ const getL2HopBridgeTokenContract = (
 ) => {
   return new ethers.Contract(
     config.tokens[token][network].l2HopBridgeToken,
-    erc20Artifact.abi,
+    erc20Abi,
     wallet
   )
 }
@@ -50,7 +52,7 @@ const getL2HopBridgeTokenContract = (
 const getL2BridgeContract = (token: string, network: string, wallet: any) => {
   return new ethers.Contract(
     config.tokens[token][network].l2Bridge,
-    l2BridgeArtifact.abi,
+    l2BridgeAbi,
     wallet
   )
 }
@@ -62,7 +64,7 @@ const getL2AmmWrapperContract = (
 ) => {
   return new ethers.Contract(
     config.tokens[token][network].l2AmmWrapper,
-    ammWrapperArtifact.abi,
+    l2AmmWrapperAbi,
     wallet
   )
 }
@@ -74,7 +76,7 @@ const getL2SaddleSwapContract = (
 ) => {
   return new ethers.Contract(
     config.tokens[token][network].l2SaddleSwap,
-    saddleSwapArtifact.abi,
+    saddleSwapAbi,
     wallet
   )
 }

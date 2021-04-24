@@ -1,8 +1,7 @@
 import { Contract } from 'ethers'
 import Bridge from './Bridge'
 import queue from './queue'
-import ammWrapperArtifact from 'src/abi/L2_AmmWrapper.json'
-import l2BridgeWrapperArtifact from 'src/abi/L2_BridgeWrapper.json'
+import { l2AmmWrapperAbi, l2BridgeWrapperAbi } from '@hop-protocol/abi'
 import L2AmmWrapper from './L2AmmWrapper'
 import L2BridgeWrapper from './L2BridgeWrapper'
 
@@ -22,7 +21,7 @@ export default class L2Bridge extends Bridge {
       this.l2BridgeContract.ammWrapper().then((address: string) => {
         const ammWrapperContract = new Contract(
           address,
-          ammWrapperArtifact.abi,
+          l2AmmWrapperAbi,
           this.l2BridgeContract.signer
         )
         this.ammWrapper = new L2AmmWrapper(ammWrapperContract)
@@ -31,7 +30,7 @@ export default class L2Bridge extends Bridge {
 
     const l2BridgeWrapperContract = new Contract(
       this.l2BridgeContract.address,
-      l2BridgeWrapperArtifact.abi,
+      l2BridgeWrapperAbi,
       this.l2BridgeContract.signer
     )
     this.l2BridgeWrapper = new L2BridgeWrapper(l2BridgeWrapperContract)

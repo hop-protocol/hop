@@ -1,5 +1,5 @@
 import { Signer, Contract } from 'ethers'
-import saddleSwapArtifact from './abi/SaddleSwap.json'
+import { saddleSwapAbi } from '@hop-protocol/abi'
 import { addresses } from './config'
 import { Chain } from './models'
 import { TChain, TToken, TAmount, TProvider } from './types'
@@ -75,7 +75,7 @@ class AMM extends Base {
     const saddleSwapAddress =
       addresses.tokens[tokenSymbol][chain.slug].l2SaddleSwap
     const provider = await this.getSignerOrProvider(chain)
-    return new Contract(saddleSwapAddress, saddleSwapArtifact.abi, provider)
+    return new Contract(saddleSwapAddress, saddleSwapAbi, provider)
   }
 
   async getSignerOrProvider (chain: TChain, signer: TProvider = this.signer) {

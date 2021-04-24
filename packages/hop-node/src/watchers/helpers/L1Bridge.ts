@@ -1,5 +1,5 @@
 import { Contract, ethers } from 'ethers'
-import erc20Artifact from 'src/abi/ERC20.json'
+import { erc20Abi } from '@hop-protocol/abi'
 import { parseUnits } from 'ethers/lib/utils'
 import Bridge from './Bridge'
 import queue from './queue'
@@ -97,7 +97,7 @@ export default class L1Bridge extends Bridge {
     const tokenAddress = await this.bridgeContract.l1CanonicalToken()
     const tokenContract = new Contract(
       tokenAddress,
-      erc20Artifact.abi,
+      erc20Abi,
       this.bridgeContract.signer
     )
     return new Token(tokenContract)

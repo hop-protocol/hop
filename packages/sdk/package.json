@@ -20,10 +20,10 @@
     "dist-tag:latest": "npm dist-tag add \"@hop-protocol/sdk@$(jq -r .version <package.json)\" latest",
     "dist-tag:beta": "npm dist-tag add \"@hop-protocol/sdk@$(jq -r .version <package.json)\" beta",
     "dist-tag:next": "npm dist-tag add \"@hop-protocol/sdk@$(jq -r .version <package.json)\" next",
-    "bump": "lerna-sync-version",
+    "sync-version": "lerna-sync-version",
     "release": "npm run clean && npm test && npm run publish-module && npm run dist-tag:next",
     "release-dist": "npm run release && npm run dist-tag:latest",
-    "bump-release": "npm run bump && npm run release",
+    "bump-release": "npm run sync-version && npm run release",
     "prepare": "npm run lint && npm run build",
     "docs": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
     "docs:update-gitbook": "./scripts/update_gitbook.sh"
@@ -32,6 +32,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@hop-protocol/abi": "0.0.1-beta.0",
     "dotenv": "^8.2.0",
     "ethers": "^5.1.0",
     "eventemitter3": "^4.0.7"

@@ -1,7 +1,6 @@
 import { ethers, Contract } from 'ethers'
 import chalk from 'chalk'
-import l2xDaiAmbAbi from 'src/abi/L2_xDaiAMB.json'
-import l1xDaiAmbAbi from 'src/abi/L1_xDaiAMB.json'
+import { l2xDaiAmbAbi, l1xDaiAmbAbi } from '@hop-protocol/abi'
 import { ETHEREUM, XDAI } from 'src/constants'
 import { config } from 'src/config'
 import wallets from 'src/wallets'
@@ -26,8 +25,8 @@ class xDaiBridgeWatcher extends BaseWatcher {
       const l2xDaiProvider = wallets.get(XDAI).provider
       const l1AmbAddress = config.tokens.DAI.xdai.l1Amb
       const l2AmbAddress = config.tokens.DAI.xdai.l2Amb
-      const l2Amb = new Contract(l2AmbAddress, l2xDaiAmbAbi.abi, l2xDaiProvider)
-      const l1Amb = new Contract(l1AmbAddress, l1xDaiAmbAbi.abi, l1Wallet)
+      const l2Amb = new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider)
+      const l1Amb = new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet)
 
       while (true) {
         if (!this.started) {

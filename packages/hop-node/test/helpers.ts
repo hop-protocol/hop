@@ -4,15 +4,17 @@ import { ethers, providers, Contract, Wallet } from 'ethers'
 import { HDNode } from '@ethersproject/hdnode'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { config } from 'src/config'
-import l1BridgeArtifact from 'src/abi/L1_Bridge.json'
-import l2BridgeArtifact from 'src/abi/L2_Bridge.json'
-import erc20Artifact from 'src/abi/ERC20.json'
-import l2AmmWrapperArtifact from 'src/abi/L2_AmmWrapper.json'
-import saddleSwapArtifact from 'src/abi/SaddleSwap.json'
-import globalInboxArtifact from 'src/abi/GlobalInbox.json'
-import xDaiForeignOmnibridgeArtifact from 'src/abi/L1_xDaiForeignOmnibridge.json'
-import xdaiMessengerWrapperArtifact from 'src/abi/L1_xDaiMessengerWrapper.json'
-import optimismTokenBridgeArtifact from 'src/abi/L1_OptimismTokenBridge.json'
+import {
+  l1BridgeAbi,
+  l2BridgeAbi,
+  erc20Abi,
+  l2AmmWrapperAbi,
+  saddleSwapAbi,
+  arbitrumGlobalInboxAbi,
+  l1xDaiForeignOmniBridgeAbi,
+  l1xDaiMessengerWrapperAbi,
+  l1OptimismTokenBridgeAbi
+} from '@hop-protocol/abi'
 import { privateKey } from './config'
 import {
   UINT256,
@@ -75,13 +77,13 @@ export class User {
       tokenAddress = config.tokens[token][network].l1CanonicalToken
     }
     const wallet = this.getWallet(network)
-    return new Contract(tokenAddress, erc20Artifact.abi, wallet)
+    return new Contract(tokenAddress, erc20Abi, wallet)
   }
 
   getSaddleSwapContract (network: string, token: string) {
     let saddleSwapAddress = config.tokens[token][network].l2SaddleSwap
     const wallet = this.getWallet(network)
-    return new Contract(saddleSwapAddress, saddleSwapArtifact.abi, wallet)
+    return new Contract(saddleSwapAddress, saddleSwapAbi, wallet)
   }
 
   async mint (
@@ -113,37 +115,33 @@ export class User {
     let artifact: any
     if (network === ETHEREUM) {
       bridgeAddress = config.tokens[token][network].l1Bridge
-      artifact = l1BridgeArtifact
+      artifact = l1BridgeAbi
     } else {
       bridgeAddress = config.tokens[token][network].l2Bridge
-      artifact = l2BridgeArtifact
+      artifact = l2BridgeAbi
     }
 
     const wallet = this.getWallet(network)
-    return new Contract(bridgeAddress, artifact.abi, wallet)
+    return new Contract(bridgeAddress, artifact, wallet)
   }
 
   getHopBridgeTokenContract (network: string, token: string) {
     let tokenAddress = config.tokens[token][network].l2HopBridgeToken
     const wallet = this.getWallet(network)
-    return new Contract(tokenAddress, erc20Artifact.abi, wallet)
+    return new Contract(tokenAddress, erc20Abi, wallet)
   }
 
   async getMessengerWrapperContract (network: string, token: string = DAI) {
     const bridge = this.getHopBridgeContract(network, token)
     const wrapperAddress = await bridge.crossDomainMessengerWrappers(77)
     const wallet = this.getWallet(network)
-    return new Contract(
-      wrapperAddress,
-      xdaiMessengerWrapperArtifact.abi,
-      wallet
-    )
+    return new Contract(wrapperAddress, l1xDaiMessengerWrapperAbi, wallet)
   }
 
   getAmmWrapperContract (network: string, token: string = DAI) {
     const wrapperAddress = config.tokens[token][network].l2AmmWrapper
     const wallet = this.getWallet(network)
-    return new Contract(wrapperAddress, l2AmmWrapperArtifact.abi, wallet)
+    return new Contract(wrapperAddress, l2AmmWrapperAbi, wallet)
   }
 
   @queue
@@ -463,7 +461,7 @@ export class User {
     const swapStorage = await saddleSwap.swapStorage()
     const { lpToken: lpTokenAddress } = swapStorage
     const wallet = this.getWallet(network)
-    const lpToken = new Contract(lpTokenAddress, erc20Artifact.abi, wallet)
+    const lpToken = new Contract(lpTokenAddress, erc20Abi, wallet)
     return lpToken
   }
 
@@ -482,19 +480,19 @@ export class User {
     if (destNetwork === ARBITRUM) {
       return new Contract(
         config.tokens[token][destNetwork].l1CanonicalBridge,
-        globalInboxArtifact.abi,
+        arbitrumGlobalInboxAbi,
         wallet
       )
     } else if (destNetwork === OPTIMISM) {
       return new Contract(
         config.tokens[token][destNetwork].l1CanonicalBridge,
-        optimismTokenBridgeArtifact.abi,
+        l1OptimismTokenBridgeAbi,
         wallet
       )
     } else if (destNetwork === XDAI) {
       return new Contract(
         config.tokens[token][destNetwork].l1CanonicalBridge,
-        xDaiForeignOmnibridgeArtifact.abi,
+        l1xDaiForeignOmniBridgeAbi,
         wallet
       )
     } else {

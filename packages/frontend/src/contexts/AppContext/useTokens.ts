@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Contract, Signer, providers } from 'ethers'
-import erc20Artifact from 'src/abi/ERC20.json'
+import { erc20Abi } from '@hop-protocol/abi'
 
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
@@ -21,7 +21,7 @@ const useTokens = (networks: Network[]) => {
   ): Contract => {
     return new Contract(
       address,
-      erc20Artifact.abi,
+      erc20Abi,
       provider as providers.Provider
     ) as Contract
   }

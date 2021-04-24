@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Contract, Signer, providers } from 'ethers'
-import erc20Artifact from 'src/abi/ERC20.json'
+import { erc20Abi } from '@hop-protocol/abi'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
@@ -51,7 +51,7 @@ const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
   }
 
   const getErc20Contract = (address: string, provider: Provider): Contract => {
-    return getContract(address, erc20Artifact.abi, provider) as Contract
+    return getContract(address, erc20Abi, provider) as Contract
   }
 
   const l1Network = useMemo(() => {
@@ -82,7 +82,7 @@ const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
         networkMap[network.slug] = {
           l1CanonicalToken: new Contract(
             tokenConfig.l1CanonicalToken,
-            erc20Artifact.abi,
+            erc20Abi,
             providers[network.slug] as providers.Provider
           ),
           l1Bridge: useL1BridgeContract(

@@ -13,7 +13,9 @@ import {
   arbitrumGlobalInboxAbi,
   l1xDaiForeignOmniBridgeAbi,
   l1xDaiMessengerWrapperAbi,
-  l1OptimismTokenBridgeAbi
+  l1OptimismTokenBridgeAbi,
+  l1PolygonPosRootChainManagerAbi,
+  l2PolygonChildErc20Abi
 } from '@hop-protocol/abi'
 import { privateKey } from './config'
 import {
@@ -534,6 +536,83 @@ export class User {
     } else {
       throw new Error('not implemented')
     }
+  }
+
+  @queue
+  async polygonCanonicalL1ToL2 (
+    amount: string | number,
+    approve: boolean = false
+  ) {
+    const parsedAmount = parseUnits(amount.toString(), 18)
+    // dummy erc20
+    const tokenAddress = '0x655F2166b0709cd575202630952D71E2bB0d61Af'
+    const bridgeAddress = '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74'
+    const url = 'https://goerli.rpc.hop.exchange'
+    const provider = new providers.StaticJsonRpcProvider(url)
+    const wallet = new Wallet(this.privateKey, provider)
+    const recipient = await wallet.getAddress()
+    if (approve) {
+      const erc20Predicate = '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
+      const token = new Contract(tokenAddress, erc20Abi, wallet)
+      let tx = await token.approve(erc20Predicate, parsedAmount)
+      await tx.wait()
+    }
+    const bridge = new Contract(
+      bridgeAddress,
+      l1PolygonPosRootChainManagerAbi,
+      wallet
+    )
+    const coder = ethers.utils.defaultAbiCoder
+    const data = coder.encode(['uint256'], [parsedAmount])
+    return bridge.depositFor(recipient, tokenAddress, data, {
+      //gasLimit: 1000000
+    })
+  }
+
+  @queue
+  async polygonCanonicalL2ToL1 (amount: string | number) {
+    const parsedAmount = parseUnits(amount.toString(), 18)
+    // dummy erc20
+    const tokenAddress = '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1'
+    const url = 'https://rpc-mumbai.maticvigil.com'
+    const provider = new providers.StaticJsonRpcProvider(url)
+    const wallet = new Wallet(this.privateKey, provider)
+    const token = new Contract(tokenAddress, l2PolygonChildErc20Abi, wallet)
+    return token.withdraw(parsedAmount, {
+      //gasLimit: 1000000
+    })
+  }
+
+  @queue
+  async polygonCanonicalL2ToL1Exit (txHash: string) {
+    const url = 'https://goerli.rpc.hop.exchange'
+    const provider = new providers.StaticJsonRpcProvider(url)
+    const l1Wallet = new Wallet(this.privateKey, provider)
+    const Web3 = require('web3')
+    const { MaticPOSClient } = require('@maticnetwork/maticjs')
+    const maticPOSClient = new MaticPOSClient({
+      network: 'testnet',
+      maticProvider: new Web3.providers.HttpProvider(
+        'https://rpc-mumbai.maticvigil.com'
+      ),
+      parentProvider: new Web3.providers.HttpProvider(
+        'https://goerli.rpc.hop.exchange'
+      ),
+      posRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
+      posERC20Predicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
+    })
+
+    const tx = await maticPOSClient.exitERC20(txHash, {
+      from: await l1Wallet.getAddress(),
+      encodeAbi: true
+    })
+
+    return l1Wallet.sendTransaction({
+      to: tx.to,
+      value: tx.value,
+      data: tx.data,
+      gasLimit: tx.gas
+    })
   }
 
   @queue

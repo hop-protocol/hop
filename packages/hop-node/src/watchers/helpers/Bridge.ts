@@ -78,7 +78,10 @@ export default class Bridge extends ContractBase {
   async getTotalBondedWithdrawalAmount (transferHash: string) {
     let totalBondedAmount = 0
     const bonderAddress = await this.getBonderAddress()
-    const bonders = unique([bonderAddress, ...config.bonders])
+    let bonders = [bonderAddress]
+    if (Array.isArray(config?.bonders)) {
+      bonders = unique([bonderAddress, ...config.bonders])
+    }
     for (let bonder of bonders) {
       const bondedAmount = await this.getBondedWithdrawalAmountByBonder(
         bonder,

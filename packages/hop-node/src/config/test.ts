@@ -19,3 +19,5 @@ export const networks: any = {
     rpcUrl: 'https://sokol.poa.network'
   }
 }
+
+export const bonders: string[] = []

@@ -45,3 +45,42 @@ describe('convert L1 token to L2 canonical token', () => {
     )
   }
 })
+
+describe.skip('polygon', () => {
+  it.skip(
+    'polygon canonical L1 -> L2',
+    async () => {
+      const user = new User(privateKey)
+      const amount = 0.5
+      const tx = await user.polygonCanonicalL1ToL2(amount, true)
+      console.log('tx hash:', tx.hash)
+      expect(tx.hash).toBeTruthy()
+      let receipt = await tx.wait()
+      expect(receipt.status).toBe(1)
+    },
+    60 * 1000
+  )
+
+  it.only(
+    'polygon canonical L2 -> L1',
+    async () => {
+      const user = new User(privateKey)
+      const amount = 0.1
+      let tx: any
+      tx = await user.polygonCanonicalL2ToL1(amount)
+      console.log('tx hash:', tx.hash)
+      expect(tx.hash).toBeTruthy()
+      let receipt = await tx.wait()
+      expect(receipt.status).toBe(1)
+      await wait(30 * 60 * 1000)
+      const txHash =
+        '0x00bbc7c27cdd5de267c785d3ae6e6e7d809ed04b3020854aa95179a3a0010ad4'
+      tx = await user.polygonCanonicalL2ToL1Exit(txHash)
+      console.log('exit tx hash:', tx.hash)
+      receipt = await tx.wait()
+      expect(receipt.status).toBe(1)
+      expect(tx.hash).toBeTruthy()
+    },
+    60 * 60 * 1000
+  )
+})

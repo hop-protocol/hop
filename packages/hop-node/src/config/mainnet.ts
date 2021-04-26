@@ -25,3 +25,5 @@ export const networks: any = {
   }
   */
 }
+
+export const bonders: string[] = []

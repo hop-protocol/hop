@@ -15,6 +15,7 @@ class Chain {
   static Optimism = newChain('optimism')
   static Arbitrum = newChain('arbitrum')
   static xDai = newChain('xdai')
+  static Polygon = newChain('polygon')
 
   static fromSlug (slug: string) {
     return newChain(slug)
@@ -34,10 +35,14 @@ class Chain {
   equals (otherChain: Chain) {
     return this.slug == otherChain.slug
   }
+
+  get rpcUrl () {
+    return (this.provider as any)?.connection?.url
+  }
 }
 
 function newChain (chain: string) {
-  if (chain === 'kovan') {
+  if (chain === 'kovan' || chain === 'goerli') {
     chain = 'ethereum'
   }
   if (!chains[chain]) {

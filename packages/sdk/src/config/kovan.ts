@@ -1,13 +1,3 @@
-type HopAddresses = {
-  tokens: {
-    [key: string]: {
-      [key: string]: {
-        [key: string]: string
-      }
-    }
-  }
-}
-
 const synthDemoTokens = {}
 
 const demoTokens = {
@@ -71,14 +61,12 @@ const demoTokens = {
   }
 }
 
-export const addresses: HopAddresses = {
-  tokens: {
-    ...synthDemoTokens,
-    ...demoTokens
-  }
+export const addresses = {
+  ...synthDemoTokens,
+  ...demoTokens
 }
 
-export const chains: any = {
+export const chains = {
   ethereum: {
     name: 'Kovan',
     chainId: '42',
@@ -103,46 +91,5 @@ export const chains: any = {
     chainId: '77',
     rpcUrl: 'https://sokol.poa.network',
     explorerUrl: 'https://blockscout.com/poa/sokol/'
-  },
-  polygon: {
-    name: 'Polygon',
-    chainId: '80001',
-    rpcUrl: 'https://rpc-mumbai.maticvigil.com',
-    explorerUrl: 'https://explorer-mumbai.maticvigil.com/'
-  }
-}
-
-export const metadata: any = {
-  tokens: {
-    DAI: {
-      symbol: 'DAI',
-      name: 'DAI Stablecoin',
-      decimals: 18
-    },
-    ARB: {
-      symbol: 'ARB',
-      name: 'ARB Token',
-      decimals: 18
-    },
-    sETH: {
-      symbol: 'sETH',
-      name: 'Synth ETH',
-      decimals: 18
-    },
-    sBTC: {
-      symbol: 'sBTC',
-      name: 'Synth BTC',
-      decimals: 18
-    },
-    USDC: {
-      symbol: 'USDC',
-      name: 'USDC',
-      decimals: 18
-    },
-    WBTC: {
-      symbol: 'WBTC',
-      name: 'Wrapped BTC',
-      decimals: 18
-    }
   }
 }

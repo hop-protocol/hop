@@ -125,7 +125,6 @@ class Token extends TokenModel {
     const tokenContract = await this.getErc20(chain)
     const allowance = await this.allowance(chain, spender)
     if (allowance.lt(BigNumber.from(amount))) {
-      console.log(this.txOverrides(chain))
       return tokenContract.approve(spender, amount, this.txOverrides(chain))
     }
   }

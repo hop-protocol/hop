@@ -62,6 +62,25 @@ class CanonicalBridge extends Base {
     return new CanonicalBridge(signer, this.token, this.chain)
   }
 
+  async approveDeposit (tokenAmount: TAmount, chain?: TChain) {
+    tokenAmount = tokenAmount.toString()
+    if (chain) {
+      chain = this.toChainModel(chain)
+    } else {
+      chain = this.chain
+    }
+    const tokenSymbol = this.token.symbol
+    const provider = await this.getSignerOrProvider(Chain.Ethereum)
+    const token = this.token.connect(provider)
+    let bridgeAddress =
+      addresses[tokenSymbol][(chain as Chain).slug].l1CanonicalBridge
+    if (chain.equals(Chain.Polygon)) {
+      bridgeAddress =
+        addresses[tokenSymbol][(chain as Chain).slug].l1PosErc20Predicate
+    }
+    return token.approve(Chain.Ethereum, bridgeAddress, tokenAmount)
+  }
+
   async deposit (tokenAmount: TAmount, chain?: TChain) {
     tokenAmount = tokenAmount.toString()
     if (chain) {
@@ -77,13 +96,9 @@ class CanonicalBridge extends Base {
     const recipient = await this.getSignerAddress()
     const bridgeAddress =
       addresses[tokenSymbol][(chain as Chain).slug].l1CanonicalBridge
-    const provider = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
+    const provider = await this.getSignerOrProvider(Chain.Ethereum)
     const tokenAddress =
       addresses[tokenSymbol][Chain.Ethereum.slug].l1CanonicalToken
-
-    //const balance = await this.token.connect(provider).balanceOf(Chain.Ethereum)
-    //const tx = await this.token.connect(provider).approve(Chain.Ethereum, bridgeAddress)
-    //await tx?.wait()
 
     if ((chain as Chain).equals(Chain.xDai)) {
       const bridge = new Contract(
@@ -141,6 +156,25 @@ class CanonicalBridge extends Base {
     }
   }
 
+  async approveWithdraw (tokenAmount: TAmount, chain?: TChain) {
+    tokenAmount = tokenAmount.toString()
+    if (chain) {
+      chain = this.toChainModel(chain)
+    } else {
+      chain = this.chain
+    }
+    // no approval needed
+    if (chain.equals(Chain.Polygon)) {
+      return
+    }
+    const tokenSymbol = this.token.symbol
+    const provider = await this.getSignerOrProvider(Chain.Ethereum)
+    const token = this.token.connect(provider)
+    const bridgeAddress =
+      addresses[tokenSymbol][(chain as Chain).slug].l2CanonicalBridge
+    return token.approve(chain, bridgeAddress, tokenAmount)
+  }
+
   async withdraw (tokenAmount: TAmount, chain?: TChain) {
     tokenAmount = tokenAmount.toString()
     if (chain) {
@@ -154,7 +188,7 @@ class CanonicalBridge extends Base {
 
     const tokenSymbol = this.token.symbol
     const recipient = await this.getSignerAddress()
-    const provider = await this.getSignerOrProvider(chain, this.signer)
+    const provider = await this.getSignerOrProvider(chain)
     if ((chain as Chain).equals(Chain.xDai)) {
       const bridgeAddress =
         addresses[tokenSymbol][(chain as Chain).slug].l2CanonicalBridge
@@ -223,7 +257,7 @@ class CanonicalBridge extends Base {
       encodeAbi: true
     })
 
-    const provider = await this.getSignerOrProvider(chain, this.signer)
+    const provider = await this.getSignerOrProvider(chain)
     return (provider as any).sendTransaction({
       to: tx.to,
       value: tx.value,

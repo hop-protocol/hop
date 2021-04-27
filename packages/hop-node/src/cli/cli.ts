@@ -28,6 +28,9 @@ import { generateKeystore, recoverKeystore } from 'src/keystore'
 import entropyToMnemonic from 'src/utils/entropyToMnemonic'
 import { hopArt, printHopArt } from './art'
 
+const defaultConfigDir = `${os.homedir()}/.hop-node`
+const defaultConfigFilePath = `${defaultConfigDir}/config.json`
+const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 const logger = new Logger('config')
 const program = new Command()
 
@@ -286,7 +289,7 @@ program
     try {
       const action = source.args[0]
       let passphrase = source.pass
-      const output = source.output || `${os.homedir()}/.hop-node/keystore.json`
+      const output = source.output || defaultKeystoreFilePath
       if (!action) {
         console.error(`please specify subcommand`)
         return
@@ -480,6 +483,8 @@ async function setupConfig (_configFile?: string) {
   let configPath = ''
   if (_configFile) {
     configPath = path.resolve(_configFile.replace('~', os.homedir()))
+  } else {
+    configPath = defaultConfigFilePath
   }
   let config: Config | null = null
   if (configPath) {

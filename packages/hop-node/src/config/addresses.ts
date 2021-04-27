@@ -53,5 +53,9 @@ const setBonderPrivateKey = (privateKey: string) => {
   config.bonderPrivateKey = privateKey
 }
 
-export { setConfigByNetwork, setBonderPrivateKey }
+const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
+  networks[network].rpcUrl = rpcUrl
+}
+
+export { setConfigByNetwork, setBonderPrivateKey, setNetworkRpcUrl }
 export { bonders }

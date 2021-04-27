@@ -27,7 +27,9 @@ class BaseWatcher extends EventEmitter {
     if (order) {
       this.order = order
     }
-    this.notifier = new Notifier(`watcher: ${tag}, label: ${prefix}, host: ${hostname}`)
+    this.notifier = new Notifier(
+      `watcher: ${tag}, label: ${prefix}, host: ${hostname}`
+    )
   }
 
   async start () {

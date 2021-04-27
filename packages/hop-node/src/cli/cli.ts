@@ -11,7 +11,8 @@ import prompt from 'prompt'
 import {
   db as dbConfig,
   setConfigByNetwork,
-  setBonderPrivateKey
+  setBonderPrivateKey,
+  setNetworkRpcUrl
 } from 'src/config'
 import Logger, { setLogLevel } from 'src/logger'
 import { ETHEREUM, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
@@ -100,8 +101,30 @@ program
         logger.log(`network: "${network}"`)
         setConfigByNetwork(network)
       }
-      const tokens = Object.keys(config?.tokens || {})
-      const networks = Object.keys(config?.networks || {})
+      const tokens = []
+      if (config?.tokens) {
+        for (let k in config.tokens) {
+          const v = config.tokens[k]
+          if (v) {
+            tokens.push(k)
+          }
+        }
+      }
+      const networks = []
+      if (config?.networks) {
+        for (let k in config.networks) {
+          networks.push(k)
+          const v = config.networks[k]
+          if (v instanceof Object) {
+            const { rpcUrl } = v
+            if (rpcUrl) {
+              setNetworkRpcUrl(k, rpcUrl)
+            }
+          }
+        }
+      }
+
+      Object.keys(config?.networks || {})
       const bonder = config?.roles?.bonder
       const challenger = config?.roles?.challenger
       const order = Number(config?.order || 0)

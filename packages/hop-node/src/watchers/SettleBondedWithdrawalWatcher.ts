@@ -44,6 +44,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
     } catch (err) {
       this.logger.error(`watcher error:`, err.message)
+      this.notifier.error(`watcher error: ${err.message}`)
     }
   }
 
@@ -85,6 +86,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         await this.checkTransferRoot()
       } catch (err) {
         this.logger.error('error checking:', err.message)
+        this.notifier.error(`error checking: ${err.message}`)
       }
       await wait(10 * 1000)
     }
@@ -238,9 +240,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
             tx.hash
           )}`
         )
+        this.notifier.info(
+          `settleBondedWithdrawal on chainId:${chainId} tx: ${tx.hash}`
+        )
       } catch (err) {
         if (err.message !== 'cancelled') {
-          this.logger.error(`settleBondedWithdrawal tx error:`, err.message)
+          this.logger.error(`settleBondedWithdrawal error:`, err.message)
+          this.notifier.error(`settleBondedWithdrawal error: ${err.message}`)
         }
         await db.transferRoots.update(dbTransferRoot.transferRootHash, {
           sentSettleTx: false

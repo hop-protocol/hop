@@ -42,7 +42,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     try {
       await Promise.all([this.syncUp(), this.watch()])
     } catch (err) {
-      this.logger.error(`BondWithdrawalWatcher error:`, err.message)
+      this.logger.error(`bondWithdrawalWatcher error:`, err.message)
+      this.notifier.error(`bondWithdrawalWatcher error: ${err.message}`)
     }
   }
 
@@ -143,6 +144,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       .on(this.l2Bridge.WithdrawalBonded, this.handleWithdrawalBondedEvent)
       .on('error', err => {
         this.logger.error('event watcher error:', err.message)
+        this.notifier.error(`event watcher error: ${err.message}`)
       })
   }
 
@@ -340,9 +342,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
         `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx:`,
         chalk.bgYellow.black.bold(tx.hash)
       )
+      this.notifier.info(
+        `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx: ${
+          tx.hash
+        }`
+      )
     } catch (err) {
       if (err.message !== 'cancelled') {
-        this.logger.error(`bondWithdrawal tx error:`, err.message)
+        this.logger.error(`bondWithdrawal error:`, err.message)
+        this.notifier.error(`bondWithdrawal error: ${err.message}`)
       }
     }
   }

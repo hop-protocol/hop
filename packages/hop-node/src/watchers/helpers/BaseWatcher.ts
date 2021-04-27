@@ -1,5 +1,7 @@
 import { EventEmitter } from 'events'
 import Logger from 'src/logger'
+import { Notifier } from 'src/notifier'
+import { hostname } from 'src/config'
 
 interface Config {
   tag: string
@@ -10,6 +12,7 @@ interface Config {
 
 class BaseWatcher extends EventEmitter {
   logger: Logger
+  notifier: Notifier
   order: () => number = () => 0
   started: boolean = false
 
@@ -24,6 +27,7 @@ class BaseWatcher extends EventEmitter {
     if (order) {
       this.order = order
     }
+    this.notifier = new Notifier(`watcher: ${tag}, label: ${prefix}, host: ${hostname}`)
   }
 
   async start () {

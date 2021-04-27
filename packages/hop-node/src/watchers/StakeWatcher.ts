@@ -47,11 +47,16 @@ class StakeWatcher extends BaseWatcher {
         if (!this.started) {
           return
         }
-        await this.checkStake()
+        try {
+          await this.checkStake()
+        } catch (err) {
+          this.notifier.error(`check state error: ${err.message}`)
+        }
         await wait(this.interval)
       }
     } catch (err) {
       this.logger.error(`stake watcher error:`, err.message)
+      this.notifier.error(`watcher error: ${err.message}`)
     }
   }
 
@@ -62,81 +67,79 @@ class StakeWatcher extends BaseWatcher {
   }
 
   async checkStake () {
-    try {
-      const isBonder = await this.bridge.isBonder()
-      if (!isBonder) {
+    const isBonder = await this.bridge.isBonder()
+    if (!isBonder) {
+      return
+    }
+
+    let [credit, debit, balance, allowance] = await Promise.all([
+      this.bridge.getCredit(),
+      this.bridge.getDebit(),
+      this.token.getBalance(),
+      this.getTokenAllowance()
+    ])
+
+    this.logger.debug(`credit balance:`, credit)
+    this.logger.debug(`debit balance:`, debit)
+
+    const isL1 = isL1NetworkId(this.token.providerNetworkId)
+    if (credit < this.stakeMinThreshold) {
+      if (balance < this.stakeAmount) {
+        if (!isL1) {
+          const l1Bridge = new L1Bridge(this.contracts['42'])
+          const l1Token = await l1Bridge.l1CanonicalToken()
+          const l1Balance = await l1Token.getBalance()
+          this.logger.debug(`l1 token balance:`, l1Balance)
+          if (l1Balance > 0) {
+            const convertAmount = Math.min(l1Balance, this.stakeAmount)
+            this.logger.debug(
+              `converting to ${convertAmount} canonical token to hop token`
+            )
+
+            let tx: any
+            const spender = l1Bridge.getAddress()
+            tx = await l1Token.approve(spender)
+            this.logger.info(`canonical token approve tx:`, tx?.hash)
+            this.notifier.info(`approve tx: ${tx?.hash}`)
+            await tx.wait()
+            tx = await l1Bridge.convertCanonicalTokenToHopToken(
+              this.token.providerNetworkId,
+              convertAmount
+            )
+            this.logger.debug(`convert tx: ${tx?.hash}`)
+            this.notifier.info(`conver tx: ${tx?.hash}`)
+            await tx.wait()
+            return
+          }
+        }
+
+        this.logger.warn(
+          `not enough ${
+            isL1 ? 'canonical' : 'hop'
+          } token balance to stake. Have ${balance}, need ${this.stakeAmount}`
+        )
         return
       }
-
-      let [credit, debit, balance, allowance] = await Promise.all([
-        this.bridge.getCredit(),
-        this.bridge.getDebit(),
-        this.token.getBalance(),
-        this.getTokenAllowance()
-      ])
-
-      this.logger.debug(`credit balance:`, credit)
-      this.logger.debug(`debit balance:`, debit)
-
-      const isL1 = isL1NetworkId(this.token.providerNetworkId)
-      if (credit < this.stakeMinThreshold) {
-        if (balance < this.stakeAmount) {
-          if (!isL1) {
-            const l1Bridge = new L1Bridge(this.contracts['42'])
-            const l1Token = await l1Bridge.l1CanonicalToken()
-            const l1Balance = await l1Token.getBalance()
-            this.logger.debug(`l1 token balance:`, l1Balance)
-            if (l1Balance > 0) {
-              const convertAmount = Math.min(l1Balance, this.stakeAmount)
-              this.logger.debug(
-                `converting to ${convertAmount} canonical token to hop token`
-              )
-
-              let tx: any
-              const spender = l1Bridge.getAddress()
-              tx = await l1Token.approve(spender)
-              this.logger.info(`canonical token approve tx:`, tx?.hash)
-              await tx.wait()
-              tx = await l1Bridge.convertCanonicalTokenToHopToken(
-                this.token.providerNetworkId,
-                convertAmount
-              )
-              this.logger.debug(`convert tx: ${tx?.hash}`)
-              await tx.wait()
-              return
-            }
-          }
-
-          this.logger.warn(
-            `not enough ${
-              isL1 ? 'canonical' : 'hop'
-            } token balance to stake. Have ${balance}, need ${this.stakeAmount}`
-          )
-          return
-        }
-        if (allowance < this.stakeAmount) {
-          this.logger.debug('approving tokens')
-          const tx = await this.approveTokens()
-          this.logger.info(`stake approve tx:`, tx?.hash)
-          await tx?.wait()
-        }
-        allowance = await this.getTokenAllowance()
-        if (allowance < this.stakeAmount) {
-          this.logger.warn(
-            `not enough ${
-              isL1 ? 'canonical' : 'hop'
-            } token allowance for bridge to stake. Have ${allowance}, need ${
-              this.stakeAmount
-            }`
-          )
-          return
-        }
-        this.logger.debug(`attempting to stake: ${this.stakeAmount.toString()}`)
-        const tx = await this.bridge.stake(this.stakeAmount.toString())
-        this.logger.info(`stake tx:`, tx?.hash)
+      if (allowance < this.stakeAmount) {
+        this.logger.debug('approving tokens')
+        const tx = await this.approveTokens()
+        this.logger.info(`stake approve tx:`, tx?.hash)
+        await tx?.wait()
       }
-    } catch (err) {
-      this.logger.error(`stake tx error:`, err.message)
+      allowance = await this.getTokenAllowance()
+      if (allowance < this.stakeAmount) {
+        this.logger.warn(
+          `not enough ${
+            isL1 ? 'canonical' : 'hop'
+          } token allowance for bridge to stake. Have ${allowance}, need ${
+            this.stakeAmount
+          }`
+        )
+        return
+      }
+      this.logger.debug(`attempting to stake: ${this.stakeAmount.toString()}`)
+      const tx = await this.bridge.stake(this.stakeAmount.toString())
+      this.logger.info(`stake tx:`, tx?.hash)
     }
   }
 

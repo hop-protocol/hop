@@ -1,4 +1,5 @@
 import { HopAddresses } from './interfaces'
+import { goerli as goerliAddresses } from '@hop-protocol/addresses'
 
 export const addresses: HopAddresses = {
   governance: {
@@ -7,7 +8,7 @@ export const addresses: HopAddresses = {
     stakingRewards: '',
     governorAlpha: ''
   },
-  tokens: {}
+  tokens: goerliAddresses
 }
 
 export const networks: any = {

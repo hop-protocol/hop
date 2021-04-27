@@ -1,4 +1,5 @@
-export const addresses = {}
+import { mainnet as addresses } from '@hop-protocol/addresses'
+export { addresses }
 
 export const networks: any = {
   ethereum: {

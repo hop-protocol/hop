@@ -1,4 +1,5 @@
-export const addresses = {}
+import { goerli as addresses } from '@hop-protocol/addresses'
+export { addresses }
 
 export const networks: any = {
   ethereum: {

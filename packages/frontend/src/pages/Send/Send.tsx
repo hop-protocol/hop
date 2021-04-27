@@ -180,7 +180,7 @@ const Send: FC = () => {
     isAmountIn: boolean,
     _fromNetwork: Network,
     _toNetwork: Network
-  ): Promise<BigNumber> => {
+  ): Promise<any> => {
     const bridge = sdk.bridge(selectedToken?.symbol)
     return bridge.getAmountOut(
       amount as any,

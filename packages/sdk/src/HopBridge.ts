@@ -77,6 +77,9 @@ class HopBridge extends Base {
   /** Token class */
   public token: TokenClass
 
+  /** Hop Token class */
+  public hopToken: TokenClass
+
   /** Ethers Signer */
   public signer: Signer
 

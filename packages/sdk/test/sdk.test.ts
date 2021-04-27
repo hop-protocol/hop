@@ -280,7 +280,7 @@ describe.skip('canonical bridge transfers', () => {
   )
 })
 
-describe.only('liqudity provider', () => {
+describe('liqudity provider', () => {
   const hop = new Hop()
   const signer = new Wallet(privateKey)
   it('should add liqudity on xDai', async () => {
@@ -294,7 +294,7 @@ describe.only('liqudity provider', () => {
     console.log('tx:', tx.hash)
     expect(tx.hash).toBeTruthy()
   })
-  it.only('should remove liqudity on xDai', async () => {
+  it('should remove liqudity on xDai', async () => {
     const bridge = hop.bridge(Token.USDC)
     const liqudityTokenAmount = parseUnits('0.1', 18)
     const tx = await bridge
@@ -304,3 +304,18 @@ describe.only('liqudity provider', () => {
     expect(tx.hash).toBeTruthy()
   })
 })
+
+/*
+describe('token balance', () => {
+  const hop = new Hop()
+  const signer = new Wallet(privateKey)
+  it('should get canonical token balance', async () => {
+    const balance = await hop.bridge(Token.DAI).token.balanceOf(Chain.xDai)
+    expect(balance).toBeGreaterThan(0)
+  })
+  it('should get ho token balance', async () => {
+    const balance = await hop.bridge(Token.DAI).hopToken.balanceOf(Chain.xDai)
+    expect(balance).toBeGreaterThan(0)
+  })
+})
+*/

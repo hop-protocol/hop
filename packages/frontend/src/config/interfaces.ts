@@ -1,3 +1,5 @@
+import { Addresses } from '@hop-protocol/addresses'
+
 export interface IProposalDetail {
   target: string
   functionSig: string
@@ -24,11 +26,5 @@ export interface HopAddresses {
     stakingRewards: string
     governorAlpha: string
   }
-  tokens: {
-    [key: string]: {
-      [key: string]: {
-        [key: string]: string
-      }
-    }
-  }
+  tokens: Addresses
 }

@@ -165,7 +165,7 @@ export default class L1Bridge extends Bridge {
     amount: string | number
   ) {
     const recipient = await this.getBonderAddress()
-    const value = parseUnits('10' || amount.toString(), 18)
+    const value = parseUnits(amount.toString(), 18)
     const deadline = '0'
     const relayer = ethers.constants.AddressZero
     const relayerFee = '0'

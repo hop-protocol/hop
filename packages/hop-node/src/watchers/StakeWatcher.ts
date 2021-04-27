@@ -79,6 +79,7 @@ class StakeWatcher extends BaseWatcher {
       this.getTokenAllowance()
     ])
 
+    this.logger.debug(`token balance:`, balance)
     this.logger.debug(`credit balance:`, credit)
     this.logger.debug(`debit balance:`, debit)
 
@@ -107,7 +108,7 @@ class StakeWatcher extends BaseWatcher {
               convertAmount
             )
             this.logger.debug(`convert tx: ${tx?.hash}`)
-            this.notifier.info(`conver tx: ${tx?.hash}`)
+            this.notifier.info(`convert tx: ${tx?.hash}`)
             await tx.wait()
             return
           }

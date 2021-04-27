@@ -73,6 +73,10 @@ type Config = {
 program
   .description('Start Hop node')
   .option('-c, --config <filepath>', 'Config file to use')
+  .option(
+    '--password-file <filepath>',
+    'File containing password to unlock keystore'
+  )
   .action(async source => {
     try {
       printHopArt()
@@ -91,7 +95,14 @@ program
         )
         let passphrase = config?.keystore.pass
         if (!passphrase) {
-          passphrase = await promptPassphrase()
+          if (source.passwordFile) {
+            passphrase = fs.readFileSync(
+              path.resolve(source.passwordFile),
+              'utf8'
+            )
+          } else {
+            passphrase = await promptPassphrase()
+          }
         }
         const privateKey = await recoverKeystore(keystore, passphrase as string)
         setBonderPrivateKey(privateKey)
@@ -275,7 +286,7 @@ program
     try {
       const action = source.args[0]
       let passphrase = source.pass
-      const output = source.output
+      const output = source.output || `${os.homedir()}/.hop-node/keystore.json`
       if (!action) {
         console.error(`please specify subcommand`)
         return

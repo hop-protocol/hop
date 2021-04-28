@@ -1,11 +1,12 @@
 import { ethers } from 'ethers'
+import { metadata } from '../config'
 
 class Token {
   public readonly chainId: number
   public readonly address: string
-  public readonly decimals: number = 18
-  public readonly symbol: string = ''
-  public readonly name: string = ''
+  public readonly decimals: number
+  public readonly symbol: string
+  public readonly name: string
 
   static USDC = 'USDC'
   static DAI = 'DAI'
@@ -17,8 +18,8 @@ class Token {
     chainId: number | string,
     address: string,
     decimals: number,
-    symbol: string,
-    name: string
+    symbol: string = '',
+    name: string = ''
   ) {
     if (chainId) {
       this.chainId = Number(chainId)
@@ -26,14 +27,14 @@ class Token {
     if (address) {
       this.address = ethers.utils.getAddress(address)
     }
-    if (decimals) {
-      this.decimals = decimals
-    }
     if (symbol) {
       this.symbol = symbol
     }
     if (name) {
       this.name = name
+    }
+    if (!decimals && symbol) {
+      this.decimals = metadata.tokens[symbol].decimals
     }
   }
 }

@@ -27,7 +27,7 @@ export const metadata = {
     USDC: {
       symbol: 'USDC',
       name: 'USDC',
-      decimals: 18
+      decimals: 6
     },
     WBTC: {
       symbol: 'WBTC',

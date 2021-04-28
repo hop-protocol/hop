@@ -294,7 +294,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       const {
         destinationChainId: chainId
       } = await this.l2Bridge.decodeCommitTransfersData(data)
-      const totalAmount = Number(formatUnits(_totalAmount.toString(), 18))
+      const decimals = await this.getBridgeTokenDecimals()
+      const totalAmount = Number(formatUnits(_totalAmount.toString(), decimals))
 
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,
@@ -314,6 +315,11 @@ class BondTransferRootWatcher extends BaseWatcher {
         this.logger.error('bondTransferRoot tx error:', err.message)
       }
     }
+  }
+
+  async getBridgeTokenDecimals () {
+    const token = await this.l1Bridge.l1CanonicalToken()
+    return token.decimals()
   }
 
   async waitTimeout (transferRootHash: string, totalAmount: number) {

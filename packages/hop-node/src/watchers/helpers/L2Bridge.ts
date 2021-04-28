@@ -1,9 +1,14 @@
 import { Contract } from 'ethers'
+import {
+  erc20Abi,
+  l2AmmWrapperAbi,
+  l2BridgeWrapperAbi
+} from '@hop-protocol/abi'
 import Bridge from './Bridge'
 import queue from './queue'
-import { l2AmmWrapperAbi, l2BridgeWrapperAbi } from '@hop-protocol/abi'
 import L2AmmWrapper from './L2AmmWrapper'
 import L2BridgeWrapper from './L2BridgeWrapper'
+import Token from './Token'
 
 export default class L2Bridge extends Bridge {
   l2BridgeContract: Contract
@@ -53,6 +58,16 @@ export default class L2Bridge extends Bridge {
     this.l2BridgeContract.on('error', err => {
       this.emit('error', err)
     })
+  }
+
+  async hToken () {
+    const tokenAddress = await this.bridgeContract.hToken()
+    const tokenContract = new Contract(
+      tokenAddress,
+      erc20Abi,
+      this.bridgeContract.signer
+    )
+    return new Token(tokenContract)
   }
 
   async getTransfersCommitedEvents (

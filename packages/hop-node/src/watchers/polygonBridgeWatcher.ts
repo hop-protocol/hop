@@ -65,7 +65,10 @@ class polygonBridgeWatcher extends BaseWatcher {
           (sender: string, to: string, data: string, meta: any) => {
             const { transactionHash } = meta
             if (to === ethers.constants.AddressZero) {
-              this.logger.debug('received transfer event. tx hash:', transactionHash)
+              this.logger.debug(
+                'received transfer event. tx hash:',
+                transactionHash
+              )
               transactionHashes[transactionHash] = meta
             }
           }

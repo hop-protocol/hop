@@ -7,10 +7,26 @@ import unique from 'src/utils/unique'
 
 export default class Bridge extends ContractBase {
   WithdrawalBonded: string = 'WithdrawalBonded'
+  tokenDecimals: number
 
   constructor (public bridgeContract: Contract) {
     super(bridgeContract)
     this.bridgeContract = bridgeContract
+    let tokenDecimals = 18
+    // TODO: better way of getting token decimals
+    for (let tkn in config.config.tokens) {
+      for (let key in config.config.tokens[tkn]) {
+        for (let net in config.config.tokens[tkn]) {
+          for (let k in config.config.tokens[tkn][net]) {
+            const val = config.config.tokens[tkn][net][k]
+            if (val === bridgeContract.address) {
+              tokenDecimals = (config.metadata.tokens as any)[tkn].decimals
+            }
+          }
+        }
+      }
+    }
+    this.tokenDecimals = tokenDecimals
     this.bridgeStartListeners()
   }
 
@@ -36,7 +52,7 @@ export default class Bridge extends ContractBase {
   async getCredit () {
     const bonder = await this.getBonderAddress()
     const credit = (await this.bridgeContract.getCredit(bonder)).toString()
-    return Number(formatUnits(credit, 18))
+    return Number(formatUnits(credit, this.tokenDecimals))
   }
 
   async getDebit () {
@@ -44,7 +60,7 @@ export default class Bridge extends ContractBase {
     const debit = (
       await this.bridgeContract.getDebitAndAdditionalDebit(bonder)
     ).toString()
-    return Number(formatUnits(debit, 18))
+    return Number(formatUnits(debit, this.tokenDecimals))
   }
 
   async hasPositiveBalance () {
@@ -72,7 +88,7 @@ export default class Bridge extends ContractBase {
       bonder,
       transferHash
     )
-    return Number(formatUnits(bondedBn.toString(), 18))
+    return Number(formatUnits(bondedBn.toString(), this.tokenDecimals))
   }
 
   async getTotalBondedWithdrawalAmount (transferHash: string) {
@@ -119,7 +135,10 @@ export default class Bridge extends ContractBase {
   }
 
   async getTransferRootId (transferRootHash: string, totalAmount: number) {
-    const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
+    const parsedTotalAmount = parseUnits(
+      totalAmount.toString(),
+      this.tokenDecimals
+    )
     return this.bridgeContract.getTransferRootId(
       transferRootHash,
       parsedTotalAmount
@@ -127,7 +146,10 @@ export default class Bridge extends ContractBase {
   }
 
   async getTransferRoot (transferRootHash: string, totalAmount: number) {
-    const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
+    const parsedTotalAmount = parseUnits(
+      totalAmount.toString(),
+      this.tokenDecimals
+    )
     return this.bridgeContract.getTransferRoot(
       transferRootHash,
       parsedTotalAmount
@@ -136,7 +158,7 @@ export default class Bridge extends ContractBase {
 
   @queue
   async stake (amount: string) {
-    const parsedAmount = parseUnits(amount, 18)
+    const parsedAmount = parseUnits(amount, this.tokenDecimals)
     const bonder = await this.getBonderAddress()
     const tx = await this.bridgeContract.stake(
       bonder,

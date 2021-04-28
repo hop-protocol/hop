@@ -1,7 +1,7 @@
 import '../moduleAlias'
 import { Contract } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
-import { wait, networkIdToSlug } from 'src/utils'
+import { wait, networkIdToSlug, isL1NetworkId } from 'src/utils'
 import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
@@ -9,6 +9,7 @@ import BaseWatcher from './helpers/BaseWatcher'
 import Bridge from './helpers/Bridge'
 import L1Bridge from './helpers/L1Bridge'
 import L2Bridge from './helpers/L2Bridge'
+import Token from './helpers/Token'
 import MerkleTree from 'src/utils/MerkleTree'
 
 export interface Config {
@@ -99,7 +100,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     chainId: string
   ) => {
     const bridge = new Bridge(this.contracts[chainId])
-    const parsedAmount = parseUnits(totalAmount.toString(), 18).toString()
+    const decimals = await this.getBridgeTokenDecimals(chainId)
+    const parsedAmount = parseUnits(totalAmount.toString(), decimals).toString()
     return bridge.settleBondedWithdrawals(bonder, transferHashes, parsedAmount)
   }
 
@@ -147,14 +149,15 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           totalAmount
         )
 
+        const decimals = await this.getBridgeTokenDecimals(chainId)
         const structTotalAmount = Number(
-          parseUnits(transferBondStruct.total.toString(), 18)
+          parseUnits(transferBondStruct.total.toString(), decimals)
         )
         const structAmountWithdrawn = Number(
-          parseUnits(transferBondStruct.amountWithdrawn.toString(), 18)
+          parseUnits(transferBondStruct.amountWithdrawn.toString(), decimals)
         )
         const createdAt = Number(
-          parseUnits(transferBondStruct.createdAt.toString(), 18)
+          parseUnits(transferBondStruct.createdAt.toString(), decimals)
         )
         this.logger.debug('struct total amount:', structTotalAmount)
         this.logger.debug('struct withdrawnAmount:', structAmountWithdrawn)
@@ -269,7 +272,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     const { transactionHash } = meta
     const tx = await meta.getTransaction()
     const { from: bonder } = tx
-    const totalAmount = Number(formatUnits(_totalAmount, 18))
+    const decimals = await this.getBridgeTokenDecimals(
+      this.l1Bridge.providerNetworkId
+    )
+    const totalAmount = Number(formatUnits(_totalAmount, decimals))
     this.logger.debug(`received L1 BondTransferRoot event:`)
     this.logger.debug(`transferRootHash from event: ${transferRootHash}`)
     this.logger.debug(`bondAmount: ${totalAmount}`)
@@ -279,6 +285,19 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       bonded: true,
       bonder
     })
+  }
+
+  async getBridgeTokenDecimals (chainId: number | string) {
+    let bridge: any
+    let token: Token
+    if (isL1NetworkId(chainId)) {
+      bridge = new L1Bridge(this.contracts[chainId])
+      token = await bridge.l1CanonicalToken()
+    } else {
+      bridge = new L1Bridge(this.contracts[chainId])
+      token = await bridge.hToken()
+    }
+    return token.decimals()
   }
 
   async waitTimeout (transferHash: string, chainId: string) {

@@ -4,11 +4,12 @@ import { formatUnits } from 'ethers/lib/utils'
 import { UINT256 } from 'src/constants'
 import db from 'src/db'
 import chalk from 'chalk'
-import { wait, networkIdToSlug } from 'src/utils'
+import { wait, networkIdToSlug, isL1NetworkId } from 'src/utils'
 import BaseWatcher from './helpers/BaseWatcher'
 import Bridge from './helpers/Bridge'
 import L1Bridge from './helpers/L1Bridge'
 import L2Bridge from './helpers/L2Bridge'
+import Token from './helpers/Token'
 
 export interface Config {
   l1BridgeContract: Contract
@@ -164,7 +165,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.debug(`recipient:`, recipient)
     this.logger.debug(`transferNonce:`, transferNonce)
     this.logger.debug(`bonderFee:`, bonderFee?.toString())
-    const formattedAmount = Number(formatUnits(amount, 18))
+    const decimals = await this.getBridgeTokenDecimals(chainId)
+    const formattedAmount = Number(formatUnits(amount, decimals))
     if (attemptSwap) {
       this.logger.debug(`bondWithdrawalAndAttemptSwap chainId: ${chainId}`)
       const l2Bridge = new L2Bridge(this.contracts[chainId])
@@ -375,6 +377,19 @@ class BondWithdrawalWatcher extends BaseWatcher {
     await db.transfers.update(transferHash, {
       withdrawalBonded: true
     })
+  }
+
+  async getBridgeTokenDecimals (chainId: number | string) {
+    let bridge: any
+    let token: Token
+    if (isL1NetworkId(chainId)) {
+      bridge = new L1Bridge(this.contracts[chainId])
+      token = await bridge.l1CanonicalToken()
+    } else {
+      bridge = new L1Bridge(this.contracts[chainId])
+      token = await bridge.hToken()
+    }
+    return token.decimals()
   }
 
   async waitTimeout (transferHash: string, chainId: string) {

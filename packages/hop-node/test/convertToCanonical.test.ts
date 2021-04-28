@@ -46,12 +46,12 @@ describe('convert L1 token to L2 canonical token', () => {
   }
 })
 
-describe.skip('polygon', () => {
-  it.skip(
+describe.only('polygon', () => {
+  it(
     'polygon canonical L1 -> L2',
     async () => {
       const user = new User(privateKey)
-      const amount = 0.5
+      const amount = 0.1
       const tx = await user.polygonCanonicalL1ToL2(amount, true)
       console.log('tx hash:', tx.hash)
       expect(tx.hash).toBeTruthy()
@@ -65,7 +65,7 @@ describe.skip('polygon', () => {
     'polygon canonical L2 -> L1',
     async () => {
       const user = new User(privateKey)
-      const amount = 0.1
+      const amount = 0.01
       let tx: any
       tx = await user.polygonCanonicalL2ToL1(amount)
       console.log('tx hash:', tx.hash)

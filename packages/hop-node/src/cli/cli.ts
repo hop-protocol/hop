@@ -24,6 +24,7 @@ import {
   startCommitTransferWatchers
 } from 'src/watchers/watchers'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
+import polygonBridgeWatcher from 'src/watchers/polygonBridgeWatcher'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
 import entropyToMnemonic from 'src/utils/entropyToMnemonic'
 import { hopArt, printHopArt } from './art'
@@ -212,6 +213,17 @@ program
   .action(() => {
     try {
       new xDaiBridgeWatcher().start()
+    } catch (err) {
+      console.error(err.message)
+    }
+  })
+
+program
+  .command('polygon-bridge')
+  .description('Start the polygon bridge watcher')
+  .action(() => {
+    try {
+      new polygonBridgeWatcher().start()
     } catch (err) {
       console.error(err.message)
     }

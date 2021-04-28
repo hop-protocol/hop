@@ -56,7 +56,7 @@ const FaucetContextProvider: FC = ({ children }) => {
       }
       setMinting(true)
       const recipient = address?.toString()
-      const parsedAmount = parseUnits(mintAmount, 18)
+      const parsedAmount = parseUnits(mintAmount, selectedToken.decimals)
 
       const tx = await writeContract?.mint(recipient, parsedAmount)
       logger.debug('mint:', tx?.hash)

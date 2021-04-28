@@ -133,8 +133,9 @@ const PoolsContextProvider: FC = ({ children }) => {
 
     return new Token({
       symbol: `h${token?.symbol}`,
-      tokenName: token?.tokenName,
       imageUrl: token?.imageUrl,
+      tokenName: token?.tokenName,
+      decimals: token?.decimals,
       contracts: hopBridgeContracts
     })
   }, [tokens, selectedToken, networks])
@@ -289,7 +290,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     const bridge = await sdk.bridge(selectedToken.symbol).connect(signer as any)
     const saddleSwap = await bridge.getSaddleSwap(network.slug)
     const spender = saddleSwap.address
-    const parsedAmount = parseUnits(amount, token.decimals || 18)
+    const parsedAmount = parseUnits(amount, token.decimals)
     const approved = await bridge.token.allowance(network.slug, spender)
 
     if (approved.lt(parsedAmount)) {
@@ -349,11 +350,8 @@ const PoolsContextProvider: FC = ({ children }) => {
       await tx?.wait()
 
       const signer = provider?.getSigner()
-      const amount0Desired = parseUnits(
-        token0Amount,
-        selectedToken?.decimals || 18
-      )
-      const amount1Desired = parseUnits(token1Amount, hopToken?.decimals || 18)
+      const amount0Desired = parseUnits(token0Amount, selectedToken?.decimals)
+      const amount1Desired = parseUnits(token1Amount, hopToken?.decimals)
       const minToMint = 0
       const deadline = (Date.now() / 1000 + 5 * 60) | 0
 
@@ -421,11 +419,14 @@ const PoolsContextProvider: FC = ({ children }) => {
       const lpToken = await sdk
         .bridge(selectedToken.symbol)
         .getSaddleLpToken(selectedNetwork.slug)
+      const lpTokenDecimals = await lpToken.decimals()
 
       const signer = provider?.getSigner()
       const to = await signer?.getAddress()
       const balance = await lpToken?.balanceOf(to)
-      const formattedBalance = Number(formatUnits(balance.toString(), 18))
+      const formattedBalance = Number(
+        formatUnits(balance.toString(), lpTokenDecimals)
+      )
       let liquidityTokensAmount = 0
 
       let tx: any
@@ -492,7 +493,7 @@ const PoolsContextProvider: FC = ({ children }) => {
           liquidityTokensAmount = formattedBalance * (amountPercent / 100)
           const parsedLiquidityTokenAmount = parseUnits(
             liquidityTokensAmount.toString(),
-            18
+            lpTokenDecimals
           )
 
           const bridge = sdk.bridge(selectedToken.symbol)

@@ -40,9 +40,10 @@ const StatsContextProvider: FC = ({ children }) => {
       symbol: `h${token?.symbol}`,
       tokenName: token?.tokenName,
       imageUrl: token?.imageUrl,
+      decimals: token?.decimals,
       contracts: {}
     })
-    const decimals = 18
+    const decimals = hopToken.decimals
     const token0 = {
       symbol: selectedToken?.networkSymbol(selectedNetwork)
     }

@@ -143,9 +143,8 @@ const Send: FC = () => {
     if (!toNetwork) return 0
     if (!amount) return 0
 
-    const amountBN = parseUnits(amount, 18)
+    const amountBN = parseUnits(amount, selectedToken.decimals)
 
-    const decimals = 18
     // L1 -> L2 or L2 -> L1
     if (fromNetwork?.isLayer1 || toNetwork?.isLayer1) {
       const _amount = await _calcAmountOut(
@@ -154,7 +153,7 @@ const Send: FC = () => {
         fromNetwork,
         toNetwork
       )
-      return Number(formatUnits(_amount.toString(), decimals))
+      return Number(formatUnits(_amount.toString(), selectedToken.decimals))
     }
 
     // L2 -> L2
@@ -172,7 +171,7 @@ const Send: FC = () => {
       toNetwork
     )
 
-    return Number(formatUnits(amountOut2.toString(), decimals))
+    return Number(formatUnits(amountOut2.toString(), selectedToken.decimals))
   }
 
   const _calcAmountOut = async (
@@ -265,14 +264,17 @@ const Send: FC = () => {
           return
         }
 
-        const parsedAmountIn = parseUnits(fromTokenAmount, 18)
+        const parsedAmountIn = parseUnits(
+          fromTokenAmount,
+          selectedToken.decimals
+        )
         const bridge = sdk.bridge(selectedToken?.symbol)
         const bonderFee = await bridge.getBonderFee(
           parsedAmountIn as any,
           fromNetwork?.slug as string,
           toNetwork?.slug as string
         )
-        const _fee = Number(formatUnits(bonderFee, 18))
+        const _fee = Number(formatUnits(bonderFee, selectedToken.decimals))
         setFee(_fee)
       } catch (err) {
         // noop
@@ -325,7 +327,7 @@ const Send: FC = () => {
       throw new Error('No toNetwork selected')
     }
 
-    const parsedAmount = parseUnits(amount, selectedToken.decimals || 18)
+    const parsedAmount = parseUnits(amount, selectedToken.decimals)
     let tx: any
     const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
     const token = bridge.token
@@ -463,9 +465,15 @@ const Send: FC = () => {
       },
       onConfirm: async () => {
         const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
-        const parsedAmount = parseUnits(fromTokenAmount, 18).toString()
+        const parsedAmount = parseUnits(
+          fromTokenAmount,
+          selectedToken.decimals
+        ).toString()
         const recipient = await signer.getAddress()
-        const parsedAmountOutMin = parseUnits(amountOutMin.toString(), 18)
+        const parsedAmountOutMin = parseUnits(
+          amountOutMin.toString(),
+          selectedToken.decimals
+        )
         const relayer = ethers.constants.AddressZero
         const relayerFee = 0
         const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
@@ -523,9 +531,12 @@ const Send: FC = () => {
         const amountOutMin = 0
         const destinationAmountOutMin = parseUnits(
           amountOutMin.toString(),
-          18
+          selectedToken.decimals
         ).toString()
-        const parsedAmountIn = parseUnits(fromTokenAmount, 18)
+        const parsedAmountIn = parseUnits(
+          fromTokenAmount,
+          selectedToken.decimals
+        )
         const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
         const bonderFee = await bridge.getBonderFee(
           parsedAmountIn as any,
@@ -591,9 +602,12 @@ const Send: FC = () => {
         const amountOutMin = 0
         const destinationAmountOutMin = parseUnits(
           amountOutMin.toString(),
-          18
+          selectedToken.decimals
         ).toString()
-        const parsedAmountIn = parseUnits(fromTokenAmount, 18)
+        const parsedAmountIn = parseUnits(
+          fromTokenAmount,
+          selectedToken.decimals
+        )
         const recipient = await signer?.getAddress()
         const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
         const bonderFee = await bridge.getBonderFee(

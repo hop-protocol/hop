@@ -109,7 +109,9 @@ const AmountSelectorCard: FC<Props> = props => {
         try {
           const _balance = await user.getBalance(token, selectedNetwork)
           if (ctx === debouncer.current) {
-            setBalance(ethersUtils.formatUnits(_balance.toString(), 18))
+            setBalance(
+              ethersUtils.formatUnits(_balance.toString(), token.decimals)
+            )
           }
         } catch (err) {
           setBalance(null)

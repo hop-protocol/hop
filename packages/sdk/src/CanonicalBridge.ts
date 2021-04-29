@@ -51,7 +51,7 @@ class CanonicalBridge extends Base {
     )
   }
 
-  get address () {
+  public get address () {
     const tokenSymbol = this.token.symbol
     if (!tokenSymbol) {
       return null
@@ -64,11 +64,11 @@ class CanonicalBridge extends Base {
     return bridgeAddress
   }
 
-  connect (signer: TProvider) {
+  public connect (signer: TProvider) {
     return new CanonicalBridge(this.network, signer, this.token, this.chain)
   }
 
-  async approveDeposit (tokenAmount: TAmount, chain?: TChain) {
+  public async approveDeposit (tokenAmount: TAmount, chain?: TChain) {
     tokenAmount = tokenAmount.toString()
     if (chain) {
       chain = this.toChainModel(chain)
@@ -89,7 +89,7 @@ class CanonicalBridge extends Base {
     return token.approve(Chain.Ethereum, bridgeAddress, tokenAmount)
   }
 
-  async deposit (tokenAmount: TAmount, chain?: TChain) {
+  public async deposit (tokenAmount: TAmount, chain?: TChain) {
     tokenAmount = tokenAmount.toString()
     if (chain) {
       chain = this.toChainModel(chain)
@@ -166,7 +166,7 @@ class CanonicalBridge extends Base {
     }
   }
 
-  async approveWithdraw (tokenAmount: TAmount, chain?: TChain) {
+  public async approveWithdraw (tokenAmount: TAmount, chain?: TChain) {
     tokenAmount = tokenAmount.toString()
     if (chain) {
       chain = this.toChainModel(chain)
@@ -186,7 +186,7 @@ class CanonicalBridge extends Base {
     return token.approve(chain, bridgeAddress, tokenAmount)
   }
 
-  async withdraw (tokenAmount: TAmount, chain?: TChain) {
+  public async withdraw (tokenAmount: TAmount, chain?: TChain) {
     tokenAmount = tokenAmount.toString()
     if (chain) {
       chain = this.toChainModel(chain)
@@ -246,16 +246,10 @@ class CanonicalBridge extends Base {
     } else {
       throw new Error('not implemented')
     }
-
-    //const balance = await this.token.connect(provider).balanceOf(chain)
-    //console.log(balance.toString())
-    //const tx = await this.token.connect(provider).approve(chain, bridgeAddress)
-    //console.log('waiting', tx?.hash)
-    //await tx?.wait()
   }
 
   // Finalize Polygon withdrawal exit from L2 to L1
-  async exit (txHash: string, chain: TChain) {
+  public async exit (txHash: string, chain: TChain) {
     chain = this.toChainModel(chain)
     const tokenSymbol = this.token.symbol
     const recipient = await this.getSignerAddress()
@@ -285,7 +279,7 @@ class CanonicalBridge extends Base {
     })
   }
 
-  async checkMaxTokensAllowed (
+  public async checkMaxTokensAllowed (
     chain: Chain,
     canonicalBridge: Contract,
     amount: TAmount
@@ -309,7 +303,10 @@ class CanonicalBridge extends Base {
     }
   }
 
-  async getSignerOrProvider (chain: TChain, signer: TProvider = this.signer) {
+  private async getSignerOrProvider (
+    chain: TChain,
+    signer: TProvider = this.signer
+  ) {
     chain = this.toChainModel(chain)
     if (!signer) {
       return chain.provider
@@ -325,7 +322,7 @@ class CanonicalBridge extends Base {
     return signer
   }
 
-  getSignerAddress () {
+  public getSignerAddress () {
     return (this.signer as Signer)?.getAddress()
   }
 }

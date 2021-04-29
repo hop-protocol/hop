@@ -4,10 +4,13 @@ import { Chain, Token } from './models'
 import { wait } from './utils'
 import HopBridge from './HopBridge'
 import CanonicalBridge from './CanonicalBridge'
-import { TChain } from './types'
+import { TChain, TToken } from './types'
 import Base from './Base'
 import _version from './version'
 
+/**
+ * @desc Event types for transaction watcher.
+ */
 enum Event {
   Receipt = 'receipt',
   SourceTxReceipt = 'sourceTxReceipt',
@@ -19,21 +22,33 @@ enum Event {
  * @namespace Hop
  */
 class Hop extends Base {
+  /** Ethers signer */
   public signer: Signer
 
+  /** Event enum */
   static Event = Event
+
+  /** Chain class */
   static Chain = Chain
+
+  /** Token class */
   static Token = Token
 
+  /** Event enum */
   Event = Event
+
+  /** Chain class */
   Chain = Chain
+
+  /** Token class */
   Token = Token
 
   /**
    * @desc Instantiates Hop SDK.
    * Returns a new Hop SDK instance.
-   * @param {Object} networkName - Network name
+   * @param {String} network - Network name
    * @param {Object} signer - Ethers `Signer` for signing transactions.
+   * @returns {Object} New Hop SDK instance.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -58,9 +73,10 @@ class Hop extends Base {
 
   /**
    * @desc Returns a bridge set instance.
-   * @param {String} tokenSymbol - Token symbol of token of bridge to use.
+   * @param {Object} token - Token model or symbol of token of bridge to use.
    * @param {Object} sourceChain - Source chain model.
    * @param {Object} destinationChain - Destination chain model.
+   * @returns {Object} A HopBridge instance.
    * @example
    *```js
    *import { Hop, Token } from '@hop-protocol/sdk'
@@ -69,27 +85,28 @@ class Hop extends Base {
    *const bridge = hop.bridge(Token.USDC)
    *```
    */
-  bridge (
-    tokenSymbol: string,
+  public bridge (
+    token: TToken,
     sourceChain?: TChain,
     destinationChain?: TChain
   ) {
     return new HopBridge(
       this.network,
       this.signer,
-      tokenSymbol,
+      token,
       sourceChain,
       destinationChain
     )
   }
 
-  canonicalBridge (tokenSymbol: string, chain?: TChain) {
+  public canonicalBridge (tokenSymbol: string, chain?: TChain) {
     return new CanonicalBridge(this.network, this.signer, tokenSymbol, chain)
   }
 
   /**
    * @desc Returns hop instance with signer connected. Used for adding or changing signer.
    * @param {Object} signer - Ethers `Signer` for signing transactions.
+   * @returns {Object} A new Hop SDK instance with connected Ethers Signer.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -108,6 +125,7 @@ class Hop extends Base {
 
   /**
    * @desc Returns the connected signer address.
+   * @returns {String} Ethers signer address.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -117,12 +135,13 @@ class Hop extends Base {
    *console.log(address)
    *```
    */
-  getSignerAddress () {
+  public getSignerAddress () {
     return this.signer?.getAddress()
   }
 
   /**
    * @desc Returns the SDK version.
+   * @returns {String} version string
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -131,16 +150,35 @@ class Hop extends Base {
    *console.log(hop.version)
    *```
    */
-  get version () {
+  public get version () {
     return _version
   }
 
-  watch (
+  /**
+   * @desc Watches for Hop transaction events.
+   * @param {String} txHash - Source transaction hash.
+   * @param {Token} token - Token name or model.
+   * @param {Object} sourceChain - Source chain name or model.
+   * @param {Object} destinationChain - Destination chain name or model.
+   * @example
+   *```js
+   *import { Hop } from '@hop-protocol/sdk'
+   *
+   *const hop = new Hop()
+   * hop
+   *   .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.xDai)
+   *   .on('receipt', ({receipt, chain}) => {
+   *     console.log(chain.Name, receipt)
+   *   })
+   *```
+   */
+  public watch (
     txHash: string,
-    token: string,
+    token: TToken,
     _sourceChain: TChain,
     _destinationChain: TChain
   ) {
+    token = this.toTokenModel(token)
     const sourceChain = this.toChainModel(_sourceChain)
     const destinationChain = this.toChainModel(_destinationChain)
     const ee = new EventEmitter()
@@ -372,7 +410,6 @@ class Hop extends Base {
     }
 
     update()
-
     return ee
   }
 }

@@ -97,9 +97,10 @@ class HopBridge extends Base {
    * @desc Instantiates Hop Bridge.
    * Returns a new Hop Bridge instance.
    * @param {Object} signer - Ethers `Signer` for signing transactions.
-   * @param {Object|String} token - Token symbol or model
+   * @param {Object} token - Token symbol or model
    * @param {Object} sourceChain - Source chain model
    * @param {Object} destinationChain - Destination chain model
+   * @returns {Object} HopBridge SDK instance.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -151,6 +152,7 @@ class HopBridge extends Base {
   /**
    * @desc Returns hop bridge instance with signer connected. Used for adding or changing signer.
    * @param {Object} signer - Ethers `Signer` for signing transactions.
+   * @returns {Object} New HopBridge SDK instance with connected signer.
    * @example
    *```js
    *import { Hop, Token } from '@hop-protocol/sdk'
@@ -162,7 +164,7 @@ class HopBridge extends Base {
    *const bridge = hop.bridge(Token.USDC).connect(signer)
    *```
    */
-  connect (signer: Signer) {
+  public connect (signer: Signer) {
     return new HopBridge(
       this.network,
       signer,
@@ -178,7 +180,7 @@ class HopBridge extends Base {
    * @param {String} tokenAmount - Token amount to send denominated in smallest unit.
    * @param {Object} sourceChain - Source chain model.
    * @param {Object} destinationChain - Destination chain model.
-   * @returns Transaction object.
+   * @returns {Object} Ethers Transaction object.
    * @example
    *```js
    *import { Hop, Token } from '@hop-protocol/sdk'
@@ -190,13 +192,13 @@ class HopBridge extends Base {
    *console.log(tx.hash)
    *```
    */
-  async approveAndSend (
+  public async approveAndSend (
     tokenAmount: TAmount,
     sourceChain?: TChain,
     destinationChain?: TChain,
     options?: Partial<SendOptions>
   ) {
-    return this._send(
+    return this.sendHandler(
       tokenAmount.toString(),
       sourceChain,
       destinationChain,
@@ -210,7 +212,7 @@ class HopBridge extends Base {
    * @param {String} tokenAmount - Token amount to send denominated in smallest unit.
    * @param {Object} sourceChain - Source chain model.
    * @param {Object} destinationChain - Destination chain model.
-   * @returns Transaction object.
+   * @returns {Object} Ethers Transaction object.
    * @example
    *```js
    *import { Hop, Chain, Token } from '@hop-protocol/sdk'
@@ -222,7 +224,7 @@ class HopBridge extends Base {
    *console.log(tx.hash)
    *```
    */
-  async send (
+  public async send (
     tokenAmount: TAmount,
     sourceChain?: TChain,
     destinationChain?: TChain,
@@ -242,7 +244,7 @@ class HopBridge extends Base {
       throw new Error('destination chain is required')
     }
 
-    return this._send(
+    return this.sendHandler(
       tokenAmount.toString(),
       sourceChain,
       destinationChain,
@@ -251,7 +253,363 @@ class HopBridge extends Base {
     )
   }
 
-  private async _send (
+  /**
+   * @desc Estimate token amount out.
+   * @param {String} tokenAmountIn - Token amount input.
+   * @param {Object} sourceChain - Source chain model.
+   * @param {Object} destinationChain - Destination chain model.
+   * @returns {Object} Amount as BigNumber.
+   * @example
+   *```js
+   *import { Hop, Chain Token } from '@hop-protocol/sdk'
+   *
+   *const hop = new Hop()
+   *const bridge = hop.connect(signer).bridge(Token.USDC)
+   *const amountOut = await bridge.getAmountOut('1000000000000000000', Chain.Optimism, Chain.xDai)
+   *console.log(amountOut)
+   *```
+   */
+  public async getAmountOut (
+    tokenAmountIn: TAmount,
+    sourceChain?: TChain,
+    destinationChain?: TChain
+  ) {
+    tokenAmountIn = BigNumber.from(tokenAmountIn.toString())
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    const hTokenAmount = await this.calcToHTokenAmount(
+      tokenAmountIn,
+      sourceChain
+    )
+    const amountOut = await this.calcFromHTokenAmount(
+      hTokenAmount,
+      destinationChain
+    )
+
+    return amountOut
+  }
+
+  /**
+   * @desc Estimate the bonder liquidity needed at the destination.
+   * @param {String} tokenAmountIn - Token amount input.
+   * @param {Object} sourceChain - Source chain model.
+   * @param {Object} destinationChain - Destination chain model.
+   * @returns {Object} Amount as BigNumber.
+   * @example
+   *```js
+   *import { Hop, Chain Token } from '@hop-protocol/sdk'
+   *
+   *const hop = new Hop()
+   *const bridge = hop.connect(signer).bridge(Token.USDC)
+   *const requiredLiquidity = await bridge.getRequiredLiquidity('1000000000000000000', Chain.Optimism, Chain.xDai)
+   *console.log(requiredLiquidity)
+   *```
+   */
+  public async getRequiredLiquidity (
+    tokenAmountIn: TAmount,
+    sourceChain?: TChain
+  ): Promise<BigNumber> {
+    tokenAmountIn = BigNumber.from(tokenAmountIn.toString())
+    sourceChain = this.toChainModel(sourceChain)
+
+    const hTokenAmount = await this.calcToHTokenAmount(
+      tokenAmountIn,
+      sourceChain
+    )
+
+    return hTokenAmount
+  }
+
+  /**
+   * @desc Returns the suggested bonder fee.
+   * @param {Object} amountIn - Token amount input.
+   * @param {Object} sourceChain - Source chain model.
+   * @param {Object} destinationChain - Destination chain model.
+   * @returns {Object} Bonder fee as BigNumber.
+   */
+  public async getBonderFee (
+    amountIn: TAmount,
+    sourceChain: TChain,
+    destinationChain: TChain
+  ) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    if (sourceChain.isL1) {
+      return BigNumber.from('0')
+    }
+
+    const hTokenAmount = await this.calcToHTokenAmount(
+      amountIn.toString(),
+      sourceChain
+    )
+    const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
+    const minBonderBps = await l2Bridge?.minBonderBps()
+    const minBonderFeeAbsolute = await l2Bridge?.minBonderFeeAbsolute()
+    const minBonderFeeRelative = hTokenAmount.mul(minBonderBps).div(10000)
+    const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
+      ? minBonderFeeRelative
+      : minBonderFeeAbsolute
+    return minBonderFee
+  }
+
+  /**
+   * @desc Returns available liquidity for Hop bridge at specified chain.
+   * @param {Object} destinationChain - Destination chain model.
+   * @returns {Object} Available liquidity as BigNumber.
+   */
+  public async getAvailableLiquidity (
+    destinationChain: TChain
+  ): Promise<BigNumber> {
+    const chain = this.toChainModel(destinationChain)
+    let bridge: ethers.Contract
+
+    if (chain.isL1) {
+      bridge = await this.getL1Bridge()
+    } else {
+      bridge = await this.getL2Bridge(chain)
+    }
+
+    // ToDo: Move bonder address to config
+    const bonder = '0xE609c515A162D54548aFe31F4Ec3D951a99cF617'
+    const credit: BigNumber = await bridge.getCredit(bonder)
+    const debit: BigNumber = await bridge.getDebitAndAdditionalDebit(bonder)
+
+    if (credit.lt(debit)) {
+      return BigNumber.from('0')
+    } else {
+      return credit.sub(debit)
+    }
+  }
+
+  /**
+   * @desc Sends transaction to execute swap on Saddle contract.
+   * @param {Object} sourceChain - Source chain model.
+   * @param {Boolean} toHop - Converts to Hop token only if set to true.
+   * @param {Object} amount - Amount of token to swap.
+   * @param {Object} minAmountOut - Minimum amount of tokens to receive in order
+   * for transaction to be successful.
+   * @param {Number} deadline - Transaction deadline in seconds.
+   * @returns {Object} Ethers transaction object.
+   */
+  public async execSaddleSwap (
+    sourceChain: TChain,
+    toHop: boolean,
+    amount: TAmount,
+    minAmountOut: TAmount,
+    deadline: number
+  ) {
+    sourceChain = this.toChainModel(sourceChain)
+    const tokenSymbol = this.token.symbol
+    let saddleSwap: Contract
+    let tokenIndexFrom: number
+    let tokenIndexTo: number
+
+    let l2CanonicalTokenAddress =
+      addresses[this.network][tokenSymbol][sourceChain.slug].l2CanonicalToken
+    let l2HopBridgeTokenAddress =
+      addresses[this.network][tokenSymbol][sourceChain.slug].l2HopBridgeToken
+    saddleSwap = await this.getSaddleSwap(sourceChain, this.signer)
+    let canonicalTokenIndex = Number(
+      (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
+    )
+    let hopTokenIndex = Number(
+      (await saddleSwap.getTokenIndex(l2HopBridgeTokenAddress)).toString()
+    )
+    if (toHop) {
+      tokenIndexFrom = hopTokenIndex
+      tokenIndexTo = canonicalTokenIndex
+    } else {
+      tokenIndexFrom = canonicalTokenIndex
+      tokenIndexTo = hopTokenIndex
+    }
+
+    return saddleSwap.swap(
+      tokenIndexFrom,
+      tokenIndexTo,
+      amount,
+      minAmountOut,
+      deadline
+    )
+  }
+
+  /**
+   * @desc Returns Hop L1 Bridge Ethers contract instance.
+   * @param {Object} signer - Ethers signer
+   * @returns {Object} Ethers contract instance.
+   */
+  public async getL1Bridge (signer: Signer = this.signer) {
+    const tokenSymbol = this.token.symbol
+    const bridgeAddress =
+      addresses[this.network][tokenSymbol]['ethereum'].l1Bridge
+    const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
+    return new Contract(bridgeAddress, l1BridgeAbi, provider)
+  }
+
+  /**
+   * @desc Returns Hop L2 Bridge Ethers contract instance.
+   * @param {Object} chain - Chain model.
+   * @param {Object} signer - Ethers signer
+   * @returns {Object} Ethers contract instance.
+   */
+  public async getL2Bridge (chain: TChain, signer: Signer = this.signer) {
+    chain = this.toChainModel(chain)
+    const tokenSymbol = this.token.symbol
+    const bridgeAddress =
+      addresses[this.network][tokenSymbol][chain.slug].l2Bridge
+    const provider = await this.getSignerOrProvider(chain, signer)
+    return new Contract(bridgeAddress, l2BridgeAbi, provider)
+  }
+
+  /**
+   * @desc Returns Hop Bridge AMM wrapper Ethers contract instance.
+   * @param {Object} chain - Chain model.
+   * @param {Object} signer - Ethers signer
+   * @returns {Object} Ethers contract instance.
+   */
+  public async getAmmWrapper (chain: TChain, signer: Signer = this.signer) {
+    chain = this.toChainModel(chain)
+    const tokenSymbol = this.token.symbol
+    const ammWrapperAddress =
+      addresses[this.network][tokenSymbol][chain.slug].l2AmmWrapper
+    const provider = await this.getSignerOrProvider(chain, signer)
+    return new Contract(ammWrapperAddress, l2AmmWrapperAbi, provider)
+  }
+
+  /**
+   * @desc Returns Hop Bridge Saddle Swap Ethers contract instance.
+   * @param {Object} chain - Chain model.
+   * @param {Object} signer - Ethers signer
+   * @returns {Object} Ethers contract instance.
+   */
+  public async getSaddleSwap (chain: TChain, signer: Signer = this.signer) {
+    chain = this.toChainModel(chain)
+    const tokenSymbol = this.token.symbol
+    const saddleSwapAddress =
+      addresses[this.network][tokenSymbol][chain.slug].l2SaddleSwap
+    const provider = await this.getSignerOrProvider(chain, signer)
+    return new Contract(saddleSwapAddress, saddleSwapAbi, provider)
+  }
+
+  /**
+   * @desc Returns Hop Bridge Saddle reserve amounts.
+   * @param {Object} chain - Chain model.
+   * @param {Object} signer - Ethers signer
+   * @returns {Array} Array containing reserve amounts for canonical token
+   * and hTokens.
+   */
+  public async getSaddleSwapReserves (
+    chain: TChain,
+    signer: Signer = this.signer
+  ) {
+    const saddleSwap = await this.getSaddleSwap(chain, signer)
+    return Promise.all([
+      saddleSwap.getTokenBalance(0),
+      saddleSwap.getTokenBalance(1)
+    ])
+  }
+
+  /**
+   * @desc Returns Hop Bridge Saddle Swap LP Token Ethers contract instance.
+   * @param {Object} chain - Chain model.
+   * @param {Object} signer - Ethers signer
+   * @returns {Object} Ethers contract instance.
+   */
+  public async getSaddleLpToken (chain: TChain, signer: Signer = this.signer) {
+    chain = this.toChainModel(chain)
+    const tokenSymbol = this.token.symbol
+    const saddleLpTokenAddress =
+      addresses[this.network][tokenSymbol][chain.slug].l2SaddleLpToken
+    const provider = await this.getSignerOrProvider(chain, signer)
+    return new Contract(saddleLpTokenAddress, saddleLpTokenAbi, provider)
+  }
+
+  /**
+   * @desc Sends transaction to add liquidity to AMM.
+   * @param {Object} amount0Desired - Amount of token #0 in smallest unit
+   * @param {Object} amount1Desired - Amount of token #1 in smallest unit
+   * @param {Object} chain - Chain model of desired chain to add liquidity to.
+   * @param {Object} options - Method options.
+   * @returns {Object} Ethers transaction object.
+   */
+  public async addLiquidity (
+    amount0Desired: TAmount,
+    amount1Desired: TAmount,
+    chain?: TChain,
+    options: any = {} // TODO
+  ) {
+    if (!chain) {
+      chain = this.sourceChain
+    }
+    chain = this.toChainModel(chain)
+    const amm = new AMM(this.network, this.token, chain, this.signer)
+    return amm.addLiquidity(
+      amount0Desired,
+      amount1Desired,
+      options.minToMint,
+      options.deadline
+    )
+  }
+
+  /**
+   * @desc Sends transaction to remove liquidity from AMM.
+   * @param {Object} liqudityTokenAmount - Amount of LP tokens to burn.
+   * @param {Object} chain - Chain model of desired chain to add liquidity to.
+   * @param {Object} options - Method options.
+   * @returns {Object} Ethers transaction object.
+   */
+  public async removeLiquidity (
+    liqudityTokenAmount: TAmount,
+    chain?: TChain,
+    options: any = {} // TODO
+  ) {
+    if (!chain) {
+      chain = this.sourceChain
+    }
+    chain = this.toChainModel(chain)
+    const amm = new AMM(this.network, this.token, chain, this.signer)
+    return amm.removeLiquidity(
+      liqudityTokenAmount,
+      options.amount0Min,
+      options.amount1Min,
+      options.deadline
+    )
+  }
+
+  /**
+   * @desc Returns the connected signer address.
+   * @returns {String} Ethers signer address
+   */
+  public getSignerAddress () {
+    if (!this.signer) {
+      throw new Error('signer not connected')
+    }
+    return this.signer?.getAddress()
+  }
+
+  /**
+   * @readonly
+   * @desc The default deadline to use in seconds.
+   * @returns {Number} Deadline in seconds
+   */
+  public get defaultDeadlineSeconds () {
+    return (Date.now() / 1000 + this.defaultDeadlineMinutes * 60) | 0
+  }
+
+  private async getTokenIndexes (path: string[], chain: TChain) {
+    const saddleSwap = await this.getSaddleSwap(chain)
+    let tokenIndexFrom = Number(
+      (await saddleSwap.getTokenIndex(path[0])).toString()
+    )
+    let tokenIndexTo = Number(
+      (await saddleSwap.getTokenIndex(path[1])).toString()
+    )
+
+    return [tokenIndexFrom, tokenIndexTo]
+  }
+
+  private async sendHandler (
     tokenAmount: string,
     sourceChain: TChain,
     destinationChain: TChain,
@@ -270,14 +628,14 @@ class HopBridge extends Base {
     if (sourceChain.isL1) {
       // L1 -> L1
       if (destinationChain.isL1) {
-        return this._sendL1ToL1({
+        return this.sendL1ToL1({
           sourceChain,
           destinationChain,
           amount: tokenAmount
         })
       }
       // L1 -> L2
-      return this._sendL1ToL2({
+      return this.sendL1ToL2({
         destinationChainId: destinationChain.chainId,
         sourceChain,
         relayer: options?.relayer ?? ethers.constants.AddressZero,
@@ -302,7 +660,7 @@ class HopBridge extends Base {
           destinationChain
         )
       }
-      return this._sendL2ToL1({
+      return this.sendL2ToL1({
         destinationChainId: destinationChain.chainId,
         sourceChain,
         amount: tokenAmount,
@@ -325,7 +683,7 @@ class HopBridge extends Base {
         destinationChain
       )
     }
-    return this._sendL2ToL2({
+    return this.sendL2ToL2({
       destinationChainId: destinationChain.chainId,
       sourceChain,
       amount: tokenAmount,
@@ -339,115 +697,13 @@ class HopBridge extends Base {
     })
   }
 
-  /**
-   * @desc Estimate token amount out.
-   * @param {String} tokenAmountIn - Token amount input.
-   * @param {Object} sourceChain - Source chain model.
-   * @param {Object} destinationChain - Destination chain model.
-   * @returns BigNumber object.
-   * @example
-   *```js
-   *import { Hop, Chain Token } from '@hop-protocol/sdk'
-   *
-   *const hop = new Hop()
-   *const bridge = hop.connect(signer).bridge(Token.USDC)
-   *const amountOut = await bridge.getAmountOut('1000000000000000000', Chain.Optimism, Chain.xDai)
-   *console.log(amountOut)
-   *```
-   */
-  async getAmountOut (
-    tokenAmountIn: TAmount,
-    sourceChain?: TChain,
-    destinationChain?: TChain
-  ) {
-    tokenAmountIn = BigNumber.from(tokenAmountIn.toString())
-    sourceChain = this.toChainModel(sourceChain)
-    destinationChain = this.toChainModel(destinationChain)
-
-    const hTokenAmount = await this._calcToHTokenAmount(
-      tokenAmountIn,
-      sourceChain
-    )
-    const amountOut = await this._calcFromHTokenAmount(
-      hTokenAmount,
-      destinationChain
-    )
-
-    return amountOut
-  }
-
-  /**
-   * @desc Estimate the bonder liquidity needed at the destination.
-   * @param {String} tokenAmountIn - Token amount input.
-   * @param {Object} sourceChain - Source chain model.
-   * @param {Object} destinationChain - Destination chain model.
-   * @returns BigNumber object.
-   * @example
-   *```js
-   *import { Hop, Chain Token } from '@hop-protocol/sdk'
-   *
-   *const hop = new Hop()
-   *const bridge = hop.connect(signer).bridge(Token.USDC)
-   *const requiredLiquidity = await bridge.getRequiredLiquidity('1000000000000000000', Chain.Optimism, Chain.xDai)
-   *console.log(requiredLiquidity)
-   *```
-   */
-  async getRequiredLiquidity (
-    tokenAmountIn: TAmount,
-    sourceChain?: TChain
-  ): Promise<BigNumber> {
-    tokenAmountIn = BigNumber.from(tokenAmountIn.toString())
-    sourceChain = this.toChainModel(sourceChain)
-
-    const hTokenAmount = await this._calcToHTokenAmount(
-      tokenAmountIn,
-      sourceChain
-    )
-
-    return hTokenAmount
-  }
-
-  private async _calcToHTokenAmount (
-    amount: TAmount,
-    chain: Chain
-  ): Promise<BigNumber> {
-    if (chain.isL1) {
-      return BigNumber.from(amount)
-    }
-
-    const saddleSwap = await this.getSaddleSwap(chain, this.signer)
-
-    return saddleSwap.calculateSwap(
-      TokenIndex.CANONICAL_TOKEN,
-      TokenIndex.HOP_BRIDGE_TOKEN,
-      amount
-    )
-  }
-
-  private async _calcFromHTokenAmount (
-    amount: TAmount,
-    chain: Chain
-  ): Promise<BigNumber> {
-    if (chain.isL1) {
-      return BigNumber.from(amount)
-    }
-
-    const saddleSwap = await this.getSaddleSwap(chain, this.signer)
-
-    return saddleSwap.calculateSwap(
-      TokenIndex.HOP_BRIDGE_TOKEN,
-      TokenIndex.CANONICAL_TOKEN,
-      amount
-    )
-  }
-
-  private async _sendL1ToL1 (input: SendL1ToL1Input) {
+  private async sendL1ToL1 (input: SendL1ToL1Input) {
     const { sourceChain, amount } = input
     const recipient = await this.getSignerAddress()
     return this.token.transfer(sourceChain, recipient, amount)
   }
 
-  private async _sendL1ToL2 (input: SendL1ToL2Input) {
+  private async sendL1ToL2 (input: SendL1ToL2Input) {
     let {
       destinationChainId,
       sourceChain,
@@ -489,7 +745,7 @@ class HopBridge extends Base {
     )
   }
 
-  private async _sendL2ToL1 (input: SendL2ToL1Input) {
+  private async sendL2ToL1 (input: SendL2ToL1Input) {
     let {
       destinationChainId,
       sourceChain,
@@ -544,7 +800,7 @@ class HopBridge extends Base {
     )
   }
 
-  private async _sendL2ToL2 (input: SendL2ToL2Input) {
+  private async sendL2ToL2 (input: SendL2ToL2Input) {
     let {
       destinationChainId,
       sourceChain,
@@ -598,160 +854,44 @@ class HopBridge extends Base {
     )
   }
 
-  async getBonderFee (
-    amountIn: TAmount,
-    sourceChain: TChain,
-    destinationChain: TChain
-  ) {
-    sourceChain = this.toChainModel(sourceChain)
-    destinationChain = this.toChainModel(destinationChain)
-
-    if (sourceChain.isL1) {
-      return BigNumber.from('0')
-    }
-
-    const hTokenAmount = await this._calcToHTokenAmount(
-      amountIn.toString(),
-      sourceChain
-    )
-    const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
-    const minBonderBps = await l2Bridge?.minBonderBps()
-    const minBonderFeeAbsolute = await l2Bridge?.minBonderFeeAbsolute()
-    const minBonderFeeRelative = hTokenAmount.mul(minBonderBps).div(10000)
-    const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
-      ? minBonderFeeRelative
-      : minBonderFeeAbsolute
-    return minBonderFee
-  }
-
-  async getAvailableLiquidity (destinationChain: TChain): Promise<BigNumber> {
-    const chain = this.toChainModel(destinationChain)
-    let bridge: ethers.Contract
-
-    if (chain.isL1) {
-      bridge = await this.getL1Bridge()
-    } else {
-      bridge = await this.getL2Bridge(chain)
-    }
-
-    // ToDo: Move bonder address to config
-    const bonder = '0xE609c515A162D54548aFe31F4Ec3D951a99cF617'
-    const credit: BigNumber = await bridge.getCredit(bonder)
-    const debit: BigNumber = await bridge.getDebitAndAdditionalDebit(bonder)
-
-    if (credit.lt(debit)) {
-      return BigNumber.from('0')
-    } else {
-      return credit.sub(debit)
-    }
-  }
-
-  async execSaddleSwap (
-    sourceChain: TChain,
-    toHop: boolean,
+  private async calcToHTokenAmount (
     amount: TAmount,
-    minAmountOut: TAmount,
-    deadline: number
-  ) {
-    sourceChain = this.toChainModel(sourceChain)
-    const tokenSymbol = this.token.symbol
-    let saddleSwap: Contract
-    let tokenIndexFrom: number
-    let tokenIndexTo: number
-
-    let l2CanonicalTokenAddress =
-      addresses[this.network][tokenSymbol][sourceChain.slug].l2CanonicalToken
-    let l2HopBridgeTokenAddress =
-      addresses[this.network][tokenSymbol][sourceChain.slug].l2HopBridgeToken
-    saddleSwap = await this.getSaddleSwap(sourceChain, this.signer)
-    let canonicalTokenIndex = Number(
-      (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
-    )
-    let hopTokenIndex = Number(
-      (await saddleSwap.getTokenIndex(l2HopBridgeTokenAddress)).toString()
-    )
-    if (toHop) {
-      tokenIndexFrom = hopTokenIndex
-      tokenIndexTo = canonicalTokenIndex
-    } else {
-      tokenIndexFrom = canonicalTokenIndex
-      tokenIndexTo = hopTokenIndex
+    chain: Chain
+  ): Promise<BigNumber> {
+    if (chain.isL1) {
+      return BigNumber.from(amount)
     }
 
-    return saddleSwap.swap(
-      tokenIndexFrom,
-      tokenIndexTo,
-      amount,
-      minAmountOut,
-      deadline
+    const saddleSwap = await this.getSaddleSwap(chain, this.signer)
+
+    return saddleSwap.calculateSwap(
+      TokenIndex.CANONICAL_TOKEN,
+      TokenIndex.HOP_BRIDGE_TOKEN,
+      amount
     )
   }
 
-  async getL1Bridge (signer: Signer = this.signer) {
-    const tokenSymbol = this.token.symbol
-    const bridgeAddress =
-      addresses[this.network][tokenSymbol]['ethereum'].l1Bridge
-    const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
-    return new Contract(bridgeAddress, l1BridgeAbi, provider)
-  }
+  private async calcFromHTokenAmount (
+    amount: TAmount,
+    chain: Chain
+  ): Promise<BigNumber> {
+    if (chain.isL1) {
+      return BigNumber.from(amount)
+    }
 
-  async getL2Bridge (chain: TChain, signer: Signer = this.signer) {
-    chain = this.toChainModel(chain)
-    const tokenSymbol = this.token.symbol
-    const bridgeAddress =
-      addresses[this.network][tokenSymbol][chain.slug].l2Bridge
-    const provider = await this.getSignerOrProvider(chain, signer)
-    return new Contract(bridgeAddress, l2BridgeAbi, provider)
-  }
+    const saddleSwap = await this.getSaddleSwap(chain, this.signer)
 
-  async getAmmWrapper (chain: TChain, signer: Signer = this.signer) {
-    chain = this.toChainModel(chain)
-    const tokenSymbol = this.token.symbol
-    const ammWrapperAddress =
-      addresses[this.network][tokenSymbol][chain.slug].l2AmmWrapper
-    const provider = await this.getSignerOrProvider(chain, signer)
-    return new Contract(ammWrapperAddress, l2AmmWrapperAbi, provider)
-  }
-
-  async getSaddleSwap (chain: TChain, signer: Signer = this.signer) {
-    chain = this.toChainModel(chain)
-    const tokenSymbol = this.token.symbol
-    const saddleSwapAddress =
-      addresses[this.network][tokenSymbol][chain.slug].l2SaddleSwap
-    const provider = await this.getSignerOrProvider(chain, signer)
-    return new Contract(saddleSwapAddress, saddleSwapAbi, provider)
-  }
-
-  async getSaddleSwapReserves (chain: TChain, signer: Signer = this.signer) {
-    const saddleSwap = await this.getSaddleSwap(chain, signer)
-    return Promise.all([
-      saddleSwap.getTokenBalance(0),
-      saddleSwap.getTokenBalance(1)
-    ])
-  }
-
-  private async getTokenIndexes (path: string[], chain: TChain) {
-    const saddleSwap = await this.getSaddleSwap(chain)
-    let tokenIndexFrom = Number(
-      (await saddleSwap.getTokenIndex(path[0])).toString()
+    return saddleSwap.calculateSwap(
+      TokenIndex.HOP_BRIDGE_TOKEN,
+      TokenIndex.CANONICAL_TOKEN,
+      amount
     )
-    let tokenIndexTo = Number(
-      (await saddleSwap.getTokenIndex(path[1])).toString()
-    )
-
-    return [tokenIndexFrom, tokenIndexTo]
   }
 
-  async getSaddleLpToken (chain: TChain, signer: Signer = this.signer) {
-    chain = this.toChainModel(chain)
-    const tokenSymbol = this.token.symbol
-    const saddleLpTokenAddress =
-      addresses[this.network][tokenSymbol][chain.slug].l2SaddleLpToken
-    const provider = await this.getSignerOrProvider(chain, signer)
-    return new Contract(saddleLpTokenAddress, saddleLpTokenAbi, provider)
-  }
-
-  async getSignerOrProvider (chain: TChain, signer: Signer = this.signer) {
+  private async getSignerOrProvider (
+    chain: TChain,
+    signer: Signer = this.signer
+  ) {
     chain = this.toChainModel(chain)
     if (!signer) {
       return chain.provider
@@ -763,62 +903,14 @@ class HopBridge extends Base {
     return this.signer
   }
 
-  async checkConnectedChain (signer: Signer, chain: Chain) {
+  private async checkConnectedChain (signer: Signer, chain: Chain) {
     const connectedChainId = await signer.getChainId()
     if (connectedChainId !== chain.chainId) {
       throw new Error('invalid connected chain id')
     }
   }
 
-  getSignerAddress () {
-    if (!this.signer) {
-      throw new Error('signer not connected')
-    }
-    return this.signer?.getAddress()
-  }
-
-  get defaultDeadlineSeconds () {
-    return (Date.now() / 1000 + this.defaultDeadlineMinutes * 60) | 0
-  }
-
-  async addLiquidity (
-    amount0Desired: TAmount,
-    amount1Desired: TAmount,
-    chain?: TChain,
-    opts: any = {} // TODO
-  ) {
-    if (!chain) {
-      chain = this.sourceChain
-    }
-    chain = this.toChainModel(chain)
-    const amm = new AMM(this.network, this.signer, this.token, chain)
-    return amm.addLiquidity(
-      amount0Desired,
-      amount1Desired,
-      opts.minToMint,
-      opts.deadline
-    )
-  }
-
-  async removeLiquidity (
-    liqudityTokenAmount: TAmount,
-    chain?: TChain,
-    opts: any = {} // TODO
-  ) {
-    if (!chain) {
-      chain = this.sourceChain
-    }
-    chain = this.toChainModel(chain)
-    const amm = new AMM(this.network, this.signer, this.token, chain)
-    return amm.removeLiquidity(
-      liqudityTokenAmount,
-      opts.amount0Min,
-      opts.amount1Min,
-      opts.deadline
-    )
-  }
-
-  txOverrides (chain: Chain) {
+  private txOverrides (chain: Chain) {
     const txOptions: any = {}
     if (chain.equals(Chain.Optimism)) {
       txOptions.gasPrice = 0

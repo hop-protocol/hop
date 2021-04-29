@@ -80,6 +80,7 @@ type Props = {
   networkOptions: Network[]
   onNetworkChange: (network?: Network) => void
   onBalanceChange?: (balance: number) => void
+  disableInput?: boolean
 }
 
 const AmountSelectorCard: FC<Props> = props => {
@@ -91,7 +92,8 @@ const AmountSelectorCard: FC<Props> = props => {
     selectedNetwork,
     networkOptions,
     onNetworkChange,
-    onBalanceChange
+    onBalanceChange,
+    disableInput = false
   } = props
   const styles = useStyles()
   const { user } = useApp()
@@ -153,7 +155,7 @@ const AmountSelectorCard: FC<Props> = props => {
         </Typography>
         {balance ? (
           <div className={styles.balance}>
-            {Number(balance) > 0 ? (
+            {Number(balance) > 0 && !disableInput ? (
               <button className={styles.maxButton} onClick={handleMaxClick}>
                 MAX
               </button>

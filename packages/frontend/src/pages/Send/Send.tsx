@@ -756,6 +756,7 @@ const Send: FC = () => {
         onNetworkChange={network => {
           setToNetwork(network)
         }}
+        disableInput
       />
       <div className={styles.details}>
         <Box

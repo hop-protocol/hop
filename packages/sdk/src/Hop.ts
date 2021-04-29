@@ -112,7 +112,7 @@ class Hop extends Base {
    *const bridge = hop.canonicalBridge(Token.USDC)
    *```
    */
-  public canonicalBridge (token: Token, chain?: TChain) {
+  public canonicalBridge (token: TToken, chain?: TChain) {
     return new CanonicalBridge(this.network, this.signer, token, chain)
   }
 

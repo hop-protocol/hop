@@ -364,6 +364,33 @@ class HopBridge extends Base {
     return amountOut
   }
 
+  /**
+   * @desc Estimate the bonder liquidity needed at the destination.
+   * @param {String} tokenAmountIn - Token amount input.
+   * @param {Object} sourceChain - Source chain model.
+   * @param {Object} destinationChain - Destination chain model.
+   * @returns BigNumber object.
+   * @example
+   *```js
+   *import { Hop, Chain Token } from '@hop-protocol/sdk'
+   *
+   *const hop = new Hop()
+   *const bridge = hop.connect(signer).bridge(Token.USDC)
+   *const requiredLiquidity = await bridge.getRequiredLiquidity('1000000000000000000', Chain.Optimism, Chain.xDai)
+   *console.log(requiredLiquidity)
+   *```
+   */
+   async getRequiredLiquidity (
+    tokenAmountIn: TAmount,
+    sourceChain?: TChain
+  ) {
+    tokenAmountIn = BigNumber.from(tokenAmountIn.toString())
+    sourceChain = this.toChainModel(sourceChain)
+
+    const hTokenAmount = await this._calcToHTokenAmount(tokenAmountIn, sourceChain)
+
+    return hTokenAmount
+  }
 
   private async _calcToHTokenAmount (
     amount: TAmount,
@@ -584,53 +611,26 @@ class HopBridge extends Base {
     return minBonderFee
   }
 
-  async _calcAmountOut (
-    amount: string,
-    isAmountIn: boolean,
-    sourceChain: Chain,
-    destinationChain: Chain
-  ): Promise<BigNumber> {
-    const tokenSymbol = this.token.symbol
-    let saddleSwap: Contract
-    let tokenIndexFrom: number
-    let tokenIndexTo: number
+  async getAvailableLiquidity (destinationChain: TChain): Promise<BigNumber> {
+    const chain = this.toChainModel(destinationChain)
+    let bridge: ethers.Contract
 
-    if (sourceChain.isL1) {
-      if (!destinationChain) {
-        return BigNumber.from('0')
-      }
-      let l2HopBridgeTokenAddress =
-        addresses.tokens[tokenSymbol][destinationChain.slug].l2HopBridgeToken
-      let l2CanonicalTokenAddress =
-        addresses.tokens[tokenSymbol][destinationChain.slug].l2CanonicalToken
-      saddleSwap = await this.getSaddleSwap(destinationChain, this.signer)
-      tokenIndexFrom = Number(
-        (await saddleSwap.getTokenIndex(l2HopBridgeTokenAddress)).toString()
-      )
-      tokenIndexTo = Number(
-        (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
-      )
+    if (chain.isL1) {
+      bridge = await this.getL1Bridge()
     } else {
-      if (!sourceChain) {
-        return BigNumber.from('0')
-      }
-      let l2CanonicalTokenAddress =
-        addresses.tokens[tokenSymbol][sourceChain.slug].l2CanonicalToken
-      let l2HopBridgeTokenAddress =
-        addresses.tokens[tokenSymbol][sourceChain.slug].l2HopBridgeToken
-      saddleSwap = await this.getSaddleSwap(sourceChain, this.signer)
-      tokenIndexFrom = Number(
-        (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
-      )
-      tokenIndexTo = Number(
-        (await saddleSwap.getTokenIndex(l2HopBridgeTokenAddress)).toString()
-      )
-    }
-    if (!saddleSwap) {
-      return BigNumber.from('0')
+      bridge = await this.getL2Bridge(chain)
     }
 
-    return saddleSwap.calculateSwap(tokenIndexFrom, tokenIndexTo, amount)
+    // ToDo: Move bonder address to config
+    const bonder = '0xE609c515A162D54548aFe31F4Ec3D951a99cF617'
+    const credit: BigNumber = await bridge.getCredit(bonder)
+    const debit: BigNumber = await bridge.getDebitAndAdditionalDebit(bonder)
+
+    if (credit.lt(debit)) {
+      return BigNumber.from('0')
+    } else {
+      return credit.sub(debit)
+    }
   }
 
   async execSaddleSwap (

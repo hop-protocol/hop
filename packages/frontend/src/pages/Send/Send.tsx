@@ -25,6 +25,7 @@ import { commafy, intersection, normalizeNumberInput } from 'src/utils'
 import SendButton from 'src/pages/Send/SendButton'
 import Settings from 'src/pages/Send/Settings'
 import InfoTooltip from 'src/components/infoTooltip'
+import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -129,6 +130,10 @@ const Send: FC = () => {
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [tx, setTx] = useState<Transaction | null>(null)
   const debouncer = useRef<number>(0)
+  const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
+
+  const bridge = sdk.bridge(selectedToken?.symbol)
+  const availableLiquidity = useAvailableLiquidity(bridge, toNetwork?.slug)
 
   useEffect(() => {
     if (!tokens.includes(selectedToken)) {
@@ -212,6 +217,40 @@ const Send: FC = () => {
     if (isFromLastChanged) return
     updateAmountIn(toTokenAmount)
   }, [isFromLastChanged])
+
+  useEffect(() => {
+    const update = async () => {
+      if (!availableLiquidity) return
+      if (!fromNetwork) return
+      if (!toNetwork) return
+      if (!fromTokenAmount) return
+      if (fromNetwork.isLayer1) return
+
+      const amountBN = parseUnits(fromTokenAmount, 18)
+
+      const bridge = sdk.bridge(selectedToken?.symbol)
+      const liquidityRequired = await bridge.getRequiredLiquidity(
+        amountBN,
+        fromNetwork.slug
+      )
+
+      const isAvailable = BigNumber.from(availableLiquidity).gte(liquidityRequired)
+
+      setIsLiquidityAvailable(isAvailable)
+
+      const formattedAmount = formatUnits(availableLiquidity,  selectedToken.decimals)
+      const errorMessage = `Insufficient liquidity. There is ${formattedAmount} ${selectedToken.symbol}`
+      if (!isAvailable) {
+        setError(errorMessage)
+      } else {
+        if (error === errorMessage) {
+          setError('')
+        }
+      }
+    }
+
+    update()
+  }, [fromNetwork, toNetwork, fromTokenAmount, availableLiquidity])
 
   useEffect(() => {
     const update = async () => {
@@ -597,7 +636,8 @@ const Send: FC = () => {
     fromTokenAmount &&
     toTokenAmount &&
     exchangeRate &&
-    enoughBalance
+    enoughBalance &&
+    isLiquidityAvailable
   )
 
   let buttonText = 'Send'

@@ -136,7 +136,7 @@ const AmountSelectorCard: FC<Props> = props => {
   }
   const handleMaxClick = () => {
     if (onChange) {
-      onChange(Number(balance).toFixed(2))
+      onChange(Number(balance).toString())
     }
   }
 

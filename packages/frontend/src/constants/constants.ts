@@ -52,11 +52,9 @@ export const REWARDS_DURATION_DAYS = 60
 export const UINT256: string =
   '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
 
-const network = process.env.REACT_APP_NETWORK || 'kovan'
-
 export const MAINNET = 'mainnet'
 export const KOVAN = 'kovan'
-export const L1_NETWORK = network
+export const L1_NETWORK = 'ethereum'
 export const ARBITRUM = 'arbitrum'
 export const OPTIMISM = 'optimism'
 export const XDAI = 'xdai'

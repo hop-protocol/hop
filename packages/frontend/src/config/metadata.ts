@@ -67,6 +67,11 @@ export const metadata: Metadata = {
     }
   },
   networks: {
+    ethereum: {
+      name: 'Ethereum',
+      isLayer1: true,
+      image: MainnetLogo
+    },
     kovan: {
       name: 'Kovan',
       isLayer1: true,

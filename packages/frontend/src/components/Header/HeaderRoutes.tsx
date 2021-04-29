@@ -5,6 +5,7 @@ import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 import Box from '@material-ui/core/Box'
 import LaunchIcon from '@material-ui/icons/Launch'
+import { isMainnet } from 'src/config'
 
 type Props = {}
 
@@ -58,7 +59,7 @@ const HeaderRoutes: FC<Props> = () => {
       {/* <Tab label="HOP" value="/earn" /> */}
       {/* <Tab label="Vote" value="/vote" /> */}
       <Tab label="Convert" value="/convert" />
-      <Tab label="Faucet" value="/faucet" />
+      {!isMainnet ? <Tab label="Faucet" value="/faucet" /> : null}
       <Box className={styles.whitepaperTabContainer}>
         <a
           className={styles.whitepaperTab}

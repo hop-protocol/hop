@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import Network from 'src/models/Network'
-import { networks, metadata } from 'src/config'
+import { network, networks, metadata } from 'src/config'
 
 const useNetworks = () => {
   //logger.debug('useNetworks render')
@@ -8,7 +8,10 @@ const useNetworks = () => {
     const nets: Network[] = []
     for (let key in networks) {
       const net = networks[key]
-      const meta = metadata.networks[key]
+      let meta = metadata.networks[key]
+      if (key === 'ethereum') {
+        meta = metadata.networks[network]
+      }
       nets.push(
         new Network({
           name: meta.name,

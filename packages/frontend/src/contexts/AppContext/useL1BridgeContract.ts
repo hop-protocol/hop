@@ -13,7 +13,7 @@ const useL1BridgeContracts = (
 
   const l1Bridge = useMemo(() => {
     return new Contract(
-      addresses.tokens[token.symbol][L1_NETWORK].l1Bridge,
+      (addresses.tokens[token.symbol][L1_NETWORK] as any).l1Bridge,
       l1BridgeAbi,
       provider
     )

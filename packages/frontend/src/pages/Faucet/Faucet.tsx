@@ -29,7 +29,7 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const Pools: FC = () => {
+const Faucet: FC = () => {
   const styles = useStyles()
   let {
     mintToken,
@@ -132,4 +132,4 @@ const Pools: FC = () => {
   )
 }
 
-export default Pools
+export default Faucet

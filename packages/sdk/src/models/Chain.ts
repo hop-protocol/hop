@@ -25,7 +25,7 @@ class Chain {
     this.chainId = Number(chainId)
     this.name = name
     this.slug = (name || '').trim().toLowerCase()
-    if (this.slug === 'kovan') {
+    if (this.slug === 'kovan' || this.slug === 'mainnet') {
       this.slug = 'ethereum'
     }
     this.provider = provider
@@ -42,11 +42,12 @@ class Chain {
 }
 
 function newChain (chain: string) {
-  if (chain === 'kovan' || chain === 'goerli') {
+  if (chain === 'kovan' || chain === 'goerli' || chain === 'mainnet') {
     chain = 'ethereum'
   }
   if (!chains[chain]) {
-    throw new Error(`unsupported chain "${chain}"`)
+    //throw new Error(`unsupported chain "${chain}"`)
+    return new Chain(-1, '', null)
   }
   const { name, rpcUrl, chainId } = chains[chain]
   const provider = new providers.StaticJsonRpcProvider(rpcUrl)

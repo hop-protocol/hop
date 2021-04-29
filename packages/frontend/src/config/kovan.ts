@@ -14,7 +14,7 @@ export const addresses: HopAddresses = {
 }
 
 export const networks: any = {
-  kovan: {
+  ethereum: {
     networkId: '42',
     rpcUrl: 'https://kovan.rpc.hop.exchange',
     explorerUrl: 'https://kovan.etherscan.io/'

@@ -1,4 +1,4 @@
-const { addresses, chains } = require('./kovan')
+const { addresses, chains } = require('./mainnet')
 
 export { addresses, chains }
 

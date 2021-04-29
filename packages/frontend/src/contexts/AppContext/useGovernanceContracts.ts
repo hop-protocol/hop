@@ -34,10 +34,16 @@ const useGovernanceContracts = (networks: Network[]): GovernanceContracts => {
   }, [networks, connectedNetworkId, provider])
 
   const l1Hop = useMemo(() => {
+    if (!addresses.governance.l1Hop) {
+      return
+    }
     return new Contract(addresses.governance.l1Hop, hopAbi, l1Provider)
   }, [l1Provider])
 
   const stakingRewardsFactory = useMemo(() => {
+    if (!addresses.governance.stakingRewardsFactory) {
+      return
+    }
     return new Contract(
       addresses.governance.stakingRewardsFactory,
       stakingRewardsFactoryAbi,
@@ -46,6 +52,9 @@ const useGovernanceContracts = (networks: Network[]): GovernanceContracts => {
   }, [l1Provider])
 
   const stakingRewards = useMemo(() => {
+    if (!addresses.governance.stakingRewards) {
+      return
+    }
     return new Contract(
       addresses.governance.stakingRewards,
       stakingRewardsAbi,
@@ -54,6 +63,9 @@ const useGovernanceContracts = (networks: Network[]): GovernanceContracts => {
   }, [l1Provider])
 
   const governorAlpha = useMemo(() => {
+    if (!addresses.governance.governorAlpha) {
+      return
+    }
     return new Contract(
       addresses.governance.governorAlpha,
       governorAlphaAbi,

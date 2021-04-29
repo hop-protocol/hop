@@ -12,7 +12,7 @@ export const addresses: HopAddresses = {
 }
 
 export const networks: any = {
-  goerli: {
+  ethereum: {
     networkId: '5',
     rpcUrl: 'https://goerli.rpc.hop.exchange',
     explorerUrl: 'https://goerli.etherscan.io/'

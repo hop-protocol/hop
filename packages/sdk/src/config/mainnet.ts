@@ -8,6 +8,15 @@ export const chains = {
     rpcUrl: 'https://mainnet.rpc.hop.exchange',
     explorerUrl: 'https://etherscan.io/'
   },
+  /*
+  // TODO: arbitrum mainnet
+  arbitrum: {
+    name: 'Optimism',
+    chainId: '1000',
+    rpcUrl: 'https://mainnet.arbitrum.io',
+    explorerUrl:
+      'https://expedition.dev/?rpcUrl=https%3A%2F%2Fmainnet.arbitrum.io'
+  },
   optimism: {
     name: 'Optimism',
     chainId: '10',
@@ -15,6 +24,7 @@ export const chains = {
     explorerUrl:
       'https://expedition.dev/?rpcUrl=https%3A%2F%2Fmainnet.optimism.io'
   },
+  */
   xdai: {
     name: 'xDai',
     chainId: '100',

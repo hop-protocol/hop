@@ -9,6 +9,7 @@ import Faucet from 'src/pages/Faucet'
 import Earn from 'src/pages/Earn'
 import Convert from 'src/pages/Convert'
 import Stats from 'src/pages/Stats'
+import { isMainnet } from 'src/config'
 
 import { IProposal } from 'src/config'
 
@@ -90,9 +91,11 @@ const COMPONENT_NAME: FC<Props> = () => {
       <Route path="/pool">
         <Pools />
       </Route>
-      <Route path="/faucet">
-        <Faucet />
-      </Route>
+      {!isMainnet ? (
+        <Route path="/faucet">
+          <Faucet />
+        </Route>
+      ) : null}
       <Route path="/earn">
         <Earn />
       </Route>

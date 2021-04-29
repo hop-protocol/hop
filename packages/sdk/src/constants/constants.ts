@@ -29,3 +29,8 @@ export enum Rounding {
 export const MaxUint256 = BigNumber.from(
   '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
 )
+
+export enum TokenIndex {
+  CANONICAL_TOKEN = 0,
+  HOP_BRIDGE_TOKEN = 1
+}

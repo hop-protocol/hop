@@ -20,7 +20,6 @@ enum Event {
  */
 class Hop extends Base {
   public signer: Signer
-  public network: string
 
   static Event = Event
   static Chain = Chain
@@ -51,8 +50,7 @@ class Hop extends Base {
    *```
    */
   constructor (network: string = 'kovan', signer?: Signer) {
-    super()
-    this.network = network
+    super(network)
     if (signer) {
       this.signer = signer
     }

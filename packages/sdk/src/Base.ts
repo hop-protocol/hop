@@ -1,14 +1,22 @@
 import { Signer, providers, BigNumber } from 'ethers'
 import { Chain, Token } from './models'
 import { TChain, TToken } from './types'
-import { metadata } from './config'
+import { chains, metadata } from './config'
 
 class Base {
+  network: string
+
+  constructor (network: string) {
+    this.network = network
+  }
+
   toChainModel (chain: TChain) {
     if (typeof chain === 'string') {
-      return Chain.fromSlug(chain)
+      chain = Chain.fromSlug(chain)
     }
 
+    chain.provider = this.getChainProvider(chain)
+    chain.chainId = this.getChainId(chain)
     return chain
   }
 
@@ -33,6 +41,16 @@ class Base {
         .toString()
     )
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
+  }
+
+  getChainId (chain: Chain) {
+    const { chainId } = chains[this.network][chain.slug]
+    return chainId
+  }
+
+  getChainProvider (chain: Chain) {
+    const { rpcUrl } = chains[this.network][chain.slug]
+    return new providers.StaticJsonRpcProvider(rpcUrl)
   }
 }
 

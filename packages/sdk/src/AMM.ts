@@ -10,7 +10,6 @@ class AMM extends Base {
   public signer: TProvider
   public chain: Chain
   public token: TokenClass
-  public network: string
 
   constructor (
     network: string,
@@ -18,8 +17,7 @@ class AMM extends Base {
     token: TToken,
     chain?: TChain
   ) {
-    super()
-    this.network = network
+    super(network)
     if (!token) {
       throw new Error('token symbol is required')
     }

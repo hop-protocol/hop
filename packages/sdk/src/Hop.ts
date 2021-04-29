@@ -20,6 +20,7 @@ enum Event {
  */
 class Hop extends Base {
   public signer: Signer
+  public network: string
 
   static Event = Event
   static Chain = Chain
@@ -32,12 +33,13 @@ class Hop extends Base {
   /**
    * @desc Instantiates Hop SDK.
    * Returns a new Hop SDK instance.
+   * @param {Object} networkName - Network name
    * @param {Object} signer - Ethers `Signer` for signing transactions.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
    *
-   *const hop = new Hop(signer)
+   *const hop = new Hop('mainnet')
    *```
    * @example
    *```js
@@ -45,11 +47,12 @@ class Hop extends Base {
    *import { Wallet } from 'ethers'
    *
    *const signer = new Wallet(privateKey)
-   *const hop = new Hop(signer)
+   *const hop = new Hop('mainnet', signer)
    *```
    */
-  constructor (signer?: Signer) {
+  constructor (network: string = 'kovan', signer?: Signer) {
     super()
+    this.network = network
     if (signer) {
       this.signer = signer
     }
@@ -74,6 +77,7 @@ class Hop extends Base {
     destinationChain?: TChain
   ) {
     return new HopBridge(
+      this.network,
       this.signer,
       tokenSymbol,
       sourceChain,
@@ -82,7 +86,7 @@ class Hop extends Base {
   }
 
   canonicalBridge (tokenSymbol: string, chain?: TChain) {
-    return new CanonicalBridge(this.signer, tokenSymbol, chain)
+    return new CanonicalBridge(this.network, this.signer, tokenSymbol, chain)
   }
 
   /**
@@ -101,7 +105,7 @@ class Hop extends Base {
    */
   connect (signer: Signer) {
     this.signer = signer
-    return new Hop(signer)
+    return new Hop(this.network, signer)
   }
 
   /**

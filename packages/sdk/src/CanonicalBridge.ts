@@ -20,9 +20,16 @@ class CanonicalBridge extends Base {
   public signer: TProvider
   public chain: Chain
   public token: TokenClass
+  public network: string
 
-  constructor (signer: TProvider, token: TToken, chain?: TChain) {
+  constructor (
+    network: string,
+    signer: TProvider,
+    token: TToken,
+    chain?: TChain
+  ) {
     super()
+    this.network = network
     if (!token) {
       throw new Error('token symbol is required')
     }
@@ -36,6 +43,7 @@ class CanonicalBridge extends Base {
     }
 
     this.token = new TokenClass(
+      this.network,
       token.chainId,
       token.address,
       token.decimals,
@@ -54,12 +62,12 @@ class CanonicalBridge extends Base {
       return null
     }
     const bridgeAddress =
-      addresses[tokenSymbol][this.chain.slug].l1CanonicalBridge
+      addresses[this.network][tokenSymbol][this.chain.slug].l1CanonicalBridge
     return bridgeAddress
   }
 
   connect (signer: TProvider) {
-    return new CanonicalBridge(signer, this.token, this.chain)
+    return new CanonicalBridge(this.network, signer, this.token, this.chain)
   }
 
   async approveDeposit (tokenAmount: TAmount, chain?: TChain) {
@@ -73,10 +81,12 @@ class CanonicalBridge extends Base {
     const provider = await this.getSignerOrProvider(Chain.Ethereum)
     const token = this.token.connect(provider)
     let bridgeAddress =
-      addresses[tokenSymbol][(chain as Chain).slug].l1CanonicalBridge
+      addresses[this.network][tokenSymbol][(chain as Chain).slug]
+        .l1CanonicalBridge
     if (chain.equals(Chain.Polygon)) {
       bridgeAddress =
-        addresses[tokenSymbol][(chain as Chain).slug].l1PosErc20Predicate
+        addresses[this.network][tokenSymbol][(chain as Chain).slug]
+          .l1PosErc20Predicate
     }
     return token.approve(Chain.Ethereum, bridgeAddress, tokenAmount)
   }
@@ -95,10 +105,11 @@ class CanonicalBridge extends Base {
     const tokenSymbol = this.token.symbol
     const recipient = await this.getSignerAddress()
     const bridgeAddress =
-      addresses[tokenSymbol][(chain as Chain).slug].l1CanonicalBridge
+      addresses[this.network][tokenSymbol][(chain as Chain).slug]
+        .l1CanonicalBridge
     const provider = await this.getSignerOrProvider(Chain.Ethereum)
     const tokenAddress =
-      addresses[tokenSymbol][Chain.Ethereum.slug].l1CanonicalToken
+      addresses[this.network][tokenSymbol][Chain.Ethereum.slug].l1CanonicalToken
 
     if ((chain as Chain).equals(Chain.xDai)) {
       const bridge = new Contract(
@@ -113,7 +124,8 @@ class CanonicalBridge extends Base {
       })
     } else if ((chain as Chain).equals(Chain.Optimism)) {
       const l2TokenAddress =
-        addresses[tokenSymbol][(chain as Chain).slug].l2CanonicalToken
+        addresses[this.network][tokenSymbol][(chain as Chain).slug]
+          .l2CanonicalToken
       const bridge = new Contract(
         bridgeAddress,
         l1OptimismTokenBridgeAbi,
@@ -127,7 +139,7 @@ class CanonicalBridge extends Base {
         tokenAmount
       )
     } else if ((chain as Chain).equals(Chain.Arbitrum)) {
-      const arbChain = addresses[tokenSymbol][chain.slug].arbChain
+      const arbChain = addresses[this.network][tokenSymbol][chain.slug].arbChain
       const bridge = new Contract(
         bridgeAddress,
         arbitrumGlobalInboxAbi,
@@ -142,7 +154,7 @@ class CanonicalBridge extends Base {
       )
     } else if ((chain as Chain).equals(Chain.Polygon)) {
       const bridgeAddress =
-        addresses[tokenSymbol][chain.slug].l1PosRootChainManager
+        addresses[this.network][tokenSymbol][chain.slug].l1PosRootChainManager
       const bridge = new Contract(
         bridgeAddress,
         l1PolygonPosRootChainManagerAbi,
@@ -171,7 +183,8 @@ class CanonicalBridge extends Base {
     const provider = await this.getSignerOrProvider(Chain.Ethereum)
     const token = this.token.connect(provider)
     const bridgeAddress =
-      addresses[tokenSymbol][(chain as Chain).slug].l2CanonicalBridge
+      addresses[this.network][tokenSymbol][(chain as Chain).slug]
+        .l2CanonicalBridge
     return token.approve(chain, bridgeAddress, tokenAmount)
   }
 
@@ -191,8 +204,10 @@ class CanonicalBridge extends Base {
     const provider = await this.getSignerOrProvider(chain)
     if ((chain as Chain).equals(Chain.xDai)) {
       const bridgeAddress =
-        addresses[tokenSymbol][(chain as Chain).slug].l2CanonicalBridge
-      const tokenAddress = addresses[tokenSymbol][chain.slug].l2CanonicalToken
+        addresses[this.network][tokenSymbol][(chain as Chain).slug]
+          .l2CanonicalBridge
+      const tokenAddress =
+        addresses[this.network][tokenSymbol][chain.slug].l2CanonicalToken
 
       const bridge = new Contract(tokenAddress, l2xDaiTokenAbi, provider)
       return bridge.transferAndCall(bridgeAddress, tokenAmount, '0x', {
@@ -201,10 +216,13 @@ class CanonicalBridge extends Base {
       })
     } else if ((chain as Chain).equals(Chain.Optimism)) {
       const bridgeAddress =
-        addresses[tokenSymbol][(chain as Chain).slug].l2CanonicalBridge
+        addresses[this.network][tokenSymbol][(chain as Chain).slug]
+          .l2CanonicalBridge
       const l1TokenAddress =
-        addresses[tokenSymbol][Chain.Ethereum.slug].l1CanonicalToken
-      const tokenAddress = addresses[tokenSymbol][chain.slug].l2CanonicalToken
+        addresses[this.network][tokenSymbol][Chain.Ethereum.slug]
+          .l1CanonicalToken
+      const tokenAddress =
+        addresses[this.network][tokenSymbol][chain.slug].l2CanonicalToken
       const bridge = new Contract(
         bridgeAddress,
         l2OptimismTokenBridgeAbi,
@@ -218,11 +236,13 @@ class CanonicalBridge extends Base {
       })
     } else if ((chain as Chain).equals(Chain.Arbitrum)) {
       const bridgeAddress =
-        addresses[tokenSymbol][(chain as Chain).slug].l2CanonicalToken
+        addresses[this.network][tokenSymbol][(chain as Chain).slug]
+          .l2CanonicalToken
       const bridge = new Contract(bridgeAddress, arbErc20Abi, provider)
       return bridge.withdraw(recipient, tokenAmount)
     } else if ((chain as Chain).equals(Chain.Polygon)) {
-      const tokenAddress = addresses[tokenSymbol][chain.slug].l2CanonicalToken
+      const tokenAddress =
+        addresses[this.network][tokenSymbol][chain.slug].l2CanonicalToken
       const token = new Contract(tokenAddress, l2PolygonChildErc20Abi, provider)
       return token.withdraw(tokenAmount)
     } else {
@@ -248,8 +268,9 @@ class CanonicalBridge extends Base {
       maticProvider: new Web3.providers.HttpProvider(Chain.Polygon.rpcUrl),
       parentProvider: new Web3.providers.HttpProvider(Chain.Ethereum.rpcUrl),
       posRootChainManager:
-        addresses[tokenSymbol][chain.slug].l1PosRootChainManager,
-      posERC20Predicate: addresses[tokenSymbol][chain.slug].l1PosErc20Predicate
+        addresses[this.network][tokenSymbol][chain.slug].l1PosRootChainManager,
+      posERC20Predicate:
+        addresses[this.network][tokenSymbol][chain.slug].l1PosErc20Predicate
     })
 
     const tx = await maticPOSClient.exitERC20(txHash, {
@@ -273,7 +294,8 @@ class CanonicalBridge extends Base {
   ) {
     if (chain.equals(Chain.xDai)) {
       const tokenAddress =
-        addresses[this.token.symbol][Chain.Ethereum.slug].l1CanonicalToken
+        addresses[this.network][this.token.symbol][Chain.Ethereum.slug]
+          .l1CanonicalToken
       const maxPerTx = await canonicalBridge?.maxPerTx(tokenAddress)
       const formattedMaxPerTx = Number(
         formatUnits(maxPerTx.toString(), this.token.decimals)

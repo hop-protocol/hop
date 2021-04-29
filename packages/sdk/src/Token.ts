@@ -11,8 +11,10 @@ import { TChain, TAmount } from './types'
  */
 class Token extends TokenModel {
   public signer: Signer | providers.Provider
+  network: string
 
   constructor (
+    network: string,
     chainId: number | string,
     address: string,
     decimals: number,
@@ -21,6 +23,7 @@ class Token extends TokenModel {
     signer?: Signer | providers.Provider
   ) {
     super(chainId, address, decimals, symbol, name)
+    this.network = network
     if (signer) {
       this.signer = signer
     }
@@ -28,6 +31,7 @@ class Token extends TokenModel {
 
   connect (signer: Signer | providers.Provider) {
     return new Token(
+      this.network,
       this.chainId,
       this.address,
       this.decimals,
@@ -134,9 +138,11 @@ class Token extends TokenModel {
     const tokenSymbol = this.symbol
     let tokenAddress: string
     if (chain.isL1) {
-      tokenAddress = addresses[tokenSymbol][chain.slug].l1CanonicalToken
+      tokenAddress =
+        addresses[this.network][tokenSymbol][chain.slug].l1CanonicalToken
     } else {
-      tokenAddress = addresses[tokenSymbol][chain.slug].l2CanonicalToken
+      tokenAddress =
+        addresses[this.network][tokenSymbol][chain.slug].l2CanonicalToken
     }
 
     const provider = await this.getSignerOrProvider(chain)

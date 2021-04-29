@@ -10,9 +10,16 @@ class AMM extends Base {
   public signer: TProvider
   public chain: Chain
   public token: TokenClass
+  public network: string
 
-  constructor (signer: TProvider, token: TToken, chain?: TChain) {
+  constructor (
+    network: string,
+    signer: TProvider,
+    token: TToken,
+    chain?: TChain
+  ) {
     super()
+    this.network = network
     if (!token) {
       throw new Error('token symbol is required')
     }
@@ -26,6 +33,7 @@ class AMM extends Base {
     }
 
     this.token = new TokenClass(
+      this.network,
       token.chainId,
       token.address,
       token.decimals,
@@ -36,7 +44,7 @@ class AMM extends Base {
   }
 
   connect (signer: TProvider) {
-    return new AMM(signer, this.token, this.chain)
+    return new AMM(this.network, signer, this.token, this.chain)
   }
 
   async addLiquidity (
@@ -62,17 +70,20 @@ class AMM extends Base {
   }
 
   async getCanonicalTokenAddress () {
-    return addresses[this.token.symbol][this.chain.slug].l2CanonicalToken
+    return addresses[this.network][this.token.symbol][this.chain.slug]
+      .l2CanonicalToken
   }
 
   async getHopTokenAddress () {
-    return addresses[this.token.symbol][this.chain.slug].l2HopBridgeToken
+    return addresses[this.network][this.token.symbol][this.chain.slug]
+      .l2HopBridgeToken
   }
 
   async getSaddleSwap (chain: TChain) {
     chain = this.toChainModel(chain)
     const tokenSymbol = this.token.symbol
-    const saddleSwapAddress = addresses[tokenSymbol][chain.slug].l2SaddleSwap
+    const saddleSwapAddress =
+      addresses[this.network][tokenSymbol][chain.slug].l2SaddleSwap
     const provider = await this.getSignerOrProvider(chain)
     return new Contract(saddleSwapAddress, saddleSwapAbi, provider)
   }

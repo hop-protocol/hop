@@ -12,6 +12,7 @@ import useContracts, { Contracts } from './useContracts'
 import useEvents, { Events } from './useEvents'
 import { useAccountDetails, AccountDetails } from './useAccountDetails'
 import { useTxConfirm, TxConfirm } from './useTxConfirm'
+import { network } from 'src/config'
 
 type AppContextProps = {
   user: User | undefined
@@ -36,7 +37,7 @@ const AppContext = createContext<AppContextProps>({
   accountDetails: undefined,
   txHistory: undefined,
   txConfirm: undefined,
-  sdk: new Hop()
+  sdk: {} as Hop
 })
 
 const AppContextProvider: FC = ({ children }) => {
@@ -59,7 +60,7 @@ const AppContextProvider: FC = ({ children }) => {
   const accountDetails = useAccountDetails()
   const txConfirm = useTxConfirm()
   const l1Network = networks?.[0]
-  const sdk = useMemo(() => new Hop(), [])
+  const sdk = useMemo(() => new Hop(network), [])
 
   return (
     <AppContext.Provider

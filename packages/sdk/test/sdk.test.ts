@@ -11,6 +11,7 @@ import {
 import { Wallet, providers } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { privateKey } from './config'
+// @ts-ignore
 import pkg from '../package.json'
 
 describe('sdk setup', () => {
@@ -31,7 +32,7 @@ describe('hop bridge token transfers', () => {
       const tx = await hop
         .connect(signer)
         .bridge(Token.USDC)
-        .send(tokenAmount, Chain.Kovan, Chain.Optimism)
+        .send(tokenAmount, Chain.Ethereum, Chain.Optimism)
 
       console.log('tx hash:', tx?.hash)
 
@@ -61,7 +62,7 @@ describe('hop bridge token transfers', () => {
       const tx = await hop
         .connect(signer)
         .bridge(Token.USDC)
-        .send(tokenAmount, Chain.xDai, Chain.Kovan)
+        .send(tokenAmount, Chain.xDai, Chain.Ethereum)
 
       console.log('tx hash:', tx?.hash)
 
@@ -81,7 +82,7 @@ describe('tx watcher', () => {
       const tx = await hop
         .connect(signer)
         .bridge(Token.USDC)
-        .send(tokenAmount, Chain.Kovan, Chain.xDai)
+        .send(tokenAmount, Chain.Ethereum, Chain.xDai)
 
       console.log('tx hash:', tx?.hash)
       console.log('waiting for receipts')
@@ -91,10 +92,10 @@ describe('tx watcher', () => {
         let destinationReceipt = null
 
         hop
-          .watch(tx.hash, Token.USDC, Chain.Kovan, Chain.xDai)
+          .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.xDai)
           .on('receipt', data => {
             const { receipt, chain } = data
-            if (chain.equals(Chain.Kovan)) {
+            if (chain.equals(Chain.Ethereum)) {
               sourceReceipt = receipt
               console.log('got source transaction receipt')
             }
@@ -163,7 +164,7 @@ describe('tx watcher', () => {
       const tx = await hop
         .connect(signer)
         .bridge(Token.USDC)
-        .send(tokenAmount, Chain.Kovan, Chain.xDai)
+        .send(tokenAmount, Chain.Ethereum, Chain.xDai)
 
       console.log('tx hash:', tx?.hash)
       console.log('waiting for receipts')
@@ -173,10 +174,10 @@ describe('tx watcher', () => {
         let destinationReceipt = null
 
         hop
-          .watch(tx.hash, Token.USDC, Chain.Kovan, Chain.xDai)
+          .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.xDai)
           .on('receipt', data => {
             const { receipt, chain } = data
-            if (chain.equals(Chain.Kovan)) {
+            if (chain.equals(Chain.Ethereum)) {
               sourceReceipt = receipt
               console.log('got source transaction receipt')
             }

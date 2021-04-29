@@ -24,7 +24,8 @@ import {
   startCommitTransferWatchers
 } from 'src/watchers/watchers'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
-import polygonBridgeWatcher from 'src/watchers/polygonBridgeWatcher'
+import PolygonBridgeWatcher from 'src/watchers/polygonBridgeWatcher'
+import LoadTest from 'src/loadTest'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
 import entropyToMnemonic from 'src/utils/entropyToMnemonic'
 import { hopArt, printHopArt } from './art'
@@ -223,7 +224,21 @@ program
   .description('Start the polygon bridge watcher')
   .action(() => {
     try {
-      new polygonBridgeWatcher().start()
+      new PolygonBridgeWatcher().start()
+    } catch (err) {
+      console.error(err.message)
+    }
+  })
+
+program
+  .command('load-test')
+  .option('--concurrent-users <number>', 'Number of concurrent users')
+  .description('Start load test')
+  .action(source => {
+    try {
+      new LoadTest({
+        concurrentUsers: Number(source.concurrentUsers || 1)
+      }).start()
     } catch (err) {
       console.error(err.message)
     }

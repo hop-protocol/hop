@@ -44,6 +44,7 @@
     "dotenv": "^8.2.0",
     "ethereumjs-util": "^7.0.9",
     "ethers": "^5.1.0",
+    "expect": "^26.6.2",
     "fast-memoize": "^2.5.2",
     "keythereum": "^1.0.4",
     "level": "^6.0.1",

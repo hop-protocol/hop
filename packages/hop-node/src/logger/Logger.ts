@@ -50,7 +50,11 @@ class Logger {
       this.prefix = `<${opts.prefix}>`
     }
     if (tag) {
-      this.tag = (chalk as any)[opts.color](`[${tag}]`)
+      if (opts.color) {
+        this.tag = (chalk as any)[opts.color](`[${tag}]`)
+      } else {
+        this.tag = `[${tag}]`
+      }
     }
     if (process.env.DISABLE_LOGGER) {
       this.enabled = false

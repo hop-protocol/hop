@@ -21,6 +21,7 @@ export default class Bridge extends ContractBase {
             const val = config.config.tokens[tkn][net][k]
             if (val === bridgeContract.address) {
               tokenDecimals = (config.metadata.tokens as any)[tkn].decimals
+              break
             }
           }
         }

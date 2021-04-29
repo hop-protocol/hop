@@ -2,11 +2,11 @@ require('dotenv').config()
 import { User } from './helpers'
 import { wait } from 'src/utils'
 import Logger from 'src/logger'
-import { privateKey } from './config'
+import { faucetPrivateKey as privateKey } from './config'
 // @ts-ignore
 import { ETHEREUM, OPTIMISM, XDAI } from 'src/constants'
 
-const TOKEN = 'USDC'
+const TOKEN = 'DAI'
 const AMOUNT = 10_000
 const NETWORKS = [XDAI]
 const logger = new Logger('TEST')
@@ -46,7 +46,7 @@ describe('convert L1 token to L2 canonical token', () => {
   }
 })
 
-describe.only('polygon', () => {
+describe.skip('polygon', () => {
   it(
     'polygon canonical L1 -> L2',
     async () => {
@@ -61,7 +61,7 @@ describe.only('polygon', () => {
     60 * 1000
   )
 
-  it.only(
+  it(
     'polygon canonical L2 -> L1',
     async () => {
       const user = new User(privateKey)

@@ -46,7 +46,7 @@ class Hop extends Base {
   /**
    * @desc Instantiates Hop SDK.
    * Returns a new Hop SDK instance.
-   * @param {String} network - Network name
+   * @param {String} network - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
    * @param {Object} signer - Ethers `Signer` for signing transactions.
    * @returns {Object} New Hop SDK instance.
    * @example
@@ -99,8 +99,21 @@ class Hop extends Base {
     )
   }
 
-  public canonicalBridge (tokenSymbol: string, chain?: TChain) {
-    return new CanonicalBridge(this.network, this.signer, tokenSymbol, chain)
+  /**
+   * @desc Returns a canonical bridge sdk instance.
+   * @param {Object} token - Token model or symbol of token of canonical bridge to use.
+   * @param {Object} chain - Chain model.
+   * @returns {Object} A CanonicalBridge instance.
+   * @example
+   *```js
+   *import { Hop, Token } from '@hop-protocol/sdk'
+   *
+   *const hop = new Hop()
+   *const bridge = hop.canonicalBridge(Token.USDC)
+   *```
+   */
+  public canonicalBridge (token: Token, chain?: TChain) {
+    return new CanonicalBridge(this.network, this.signer, token, chain)
   }
 
   /**

@@ -16,11 +16,37 @@ import { TChain, TToken, TAmount, TProvider } from './types'
 import TokenClass from './Token'
 import Base from './Base'
 
+/**
+ * Class reprensenting Canonical Token Bridge.
+ * @namespace CanonicalBridge
+ */
 class CanonicalBridge extends Base {
+  /** Ethers signer */
   public signer: TProvider
+
+  /** Chain model */
   public chain: Chain
+
+  /** Token class instance */
   public token: TokenClass
 
+  /**
+   * @desc Instantiates Canonical Token Bridge.
+   * Returns a new Canonical Token Bridge instance.
+   * @param {String} network - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param {Object} signer - Ethers `Signer` for signing transactions.
+   * @param {Object} token - Token symbol or model
+   * @param {Object} chain - Chain model
+   * @returns {Object} CanonicalBridge SDK instance.
+   * @example
+   *```js
+   *import { CanonicalHop, Chain, Token } from '@hop-protocol/sdk'
+   *import { Wallet } from 'ethers'
+   *
+   *const signer = new Wallet(privateKey)
+   *const bridge = new CanonicalBridge('kovan', signer, Token.USDC, Chain.Optimism)
+   *```
+   */
   constructor (
     network: string,
     signer: TProvider,
@@ -51,6 +77,10 @@ class CanonicalBridge extends Base {
     )
   }
 
+  /**
+   * @desc Return address of L1 canonical token bridge.
+   * @return {String} L1 canonical token bridge address
+   */
   public get address () {
     const tokenSymbol = this.token.symbol
     if (!tokenSymbol) {
@@ -64,12 +94,24 @@ class CanonicalBridge extends Base {
     return bridgeAddress
   }
 
+  /**
+   * @desc Returns canonical bridge instance with signer connected. Used for adding or changing signer.
+   * @param {Object} signer - Ethers `Signer` for signing transactions.
+   * @returns {Object} New CanonicalBridge SDK instance with connected signer.
+   */
   public connect (signer: TProvider) {
     return new CanonicalBridge(this.network, signer, this.token, this.chain)
   }
 
-  public async approveDeposit (tokenAmount: TAmount, chain?: TChain) {
-    tokenAmount = tokenAmount.toString()
+  /**
+   * @desc Sends transaction to approve tokens for canonical token bridge deposit.
+   * Will only send approval transaction if necessary.
+   * @param {Object} amount - Token amount to approve.
+   * @param {Object} chain - Chain model.
+   * @returns {Object} Ethers transaction object.
+   */
+  public async approveDeposit (amount: TAmount, chain?: TChain) {
+    amount = amount.toString()
     if (chain) {
       chain = this.toChainModel(chain)
     } else {
@@ -86,11 +128,17 @@ class CanonicalBridge extends Base {
         addresses[this.network][tokenSymbol][(chain as Chain).slug]
           .l1PosErc20Predicate
     }
-    return token.approve(Chain.Ethereum, bridgeAddress, tokenAmount)
+    return token.approve(Chain.Ethereum, bridgeAddress, amount)
   }
 
-  public async deposit (tokenAmount: TAmount, chain?: TChain) {
-    tokenAmount = tokenAmount.toString()
+  /**
+   * @desc Sends transaction to canonical token bridge to deposit tokens into L2.
+   * @param {Object} amount - Token amount to deposit.
+   * @param {Object} chain - Chain model.
+   * @returns {Object} Ethers transaction object.
+   */
+  public async deposit (amount: TAmount, chain?: TChain) {
+    amount = amount.toString()
     if (chain) {
       chain = this.toChainModel(chain)
     } else {
@@ -115,8 +163,8 @@ class CanonicalBridge extends Base {
         l1xDaiForeignOmniBridgeAbi,
         provider
       )
-      await this.checkMaxTokensAllowed(chain, bridge, tokenAmount)
-      return bridge.relayTokens(tokenAddress, recipient, tokenAmount, {
+      await this.checkMaxTokensAllowed(chain, bridge, amount)
+      return bridge.relayTokens(tokenAddress, recipient, amount, {
         // xDai requires a higher gas limit
         gasLimit: 1000000
       })
@@ -129,13 +177,8 @@ class CanonicalBridge extends Base {
         l1OptimismTokenBridgeAbi,
         provider
       )
-      await this.checkMaxTokensAllowed(chain, bridge, tokenAmount)
-      return bridge.deposit(
-        tokenAddress,
-        l2TokenAddress,
-        recipient,
-        tokenAmount
-      )
+      await this.checkMaxTokensAllowed(chain, bridge, amount)
+      return bridge.deposit(tokenAddress, l2TokenAddress, recipient, amount)
     } else if ((chain as Chain).equals(Chain.Arbitrum)) {
       const arbChain = addresses[this.network][tokenSymbol][chain.slug].arbChain
       const bridge = new Contract(
@@ -143,12 +186,12 @@ class CanonicalBridge extends Base {
         arbitrumGlobalInboxAbi,
         provider
       )
-      await this.checkMaxTokensAllowed(chain, bridge, tokenAmount)
+      await this.checkMaxTokensAllowed(chain, bridge, amount)
       return bridge.depositERC20Message(
         arbChain,
         tokenAddress,
         recipient,
-        tokenAmount
+        amount
       )
     } else if ((chain as Chain).equals(Chain.Polygon)) {
       const bridgeAddress =
@@ -159,15 +202,22 @@ class CanonicalBridge extends Base {
         provider
       )
       const coder = ethers.utils.defaultAbiCoder
-      const payload = coder.encode(['uint256'], [tokenAmount])
+      const payload = coder.encode(['uint256'], [amount])
       return bridge.depositFor(recipient, tokenAddress, payload)
     } else {
       throw new Error('not implemented')
     }
   }
 
-  public async approveWithdraw (tokenAmount: TAmount, chain?: TChain) {
-    tokenAmount = tokenAmount.toString()
+  /**
+   * @desc Sends transaction to approve tokens for canonical token bridge withdrawal.
+   * Will only send approval transaction if necessary.
+   * @param {Object} amount - Token amount to approve.
+   * @param {Object} chain - Chain model.
+   * @returns {Object} Ethers transaction object.
+   */
+  public async approveWithdraw (amount: TAmount, chain?: TChain) {
+    amount = amount.toString()
     if (chain) {
       chain = this.toChainModel(chain)
     } else {
@@ -183,11 +233,17 @@ class CanonicalBridge extends Base {
     const bridgeAddress =
       addresses[this.network][tokenSymbol][(chain as Chain).slug]
         .l2CanonicalBridge
-    return token.approve(chain, bridgeAddress, tokenAmount)
+    return token.approve(chain, bridgeAddress, amount)
   }
 
-  public async withdraw (tokenAmount: TAmount, chain?: TChain) {
-    tokenAmount = tokenAmount.toString()
+  /**
+   * @desc Sends transaction to L2 canonical token bridge to withdraw tokens into L1.
+   * @param {Object} amount - Token amount to withdraw.
+   * @param {Object} chain - Chain model.
+   * @returns {Object} Ethers transaction object.
+   */
+  public async withdraw (amount: TAmount, chain?: TChain) {
+    amount = amount.toString()
     if (chain) {
       chain = this.toChainModel(chain)
     } else {
@@ -208,7 +264,7 @@ class CanonicalBridge extends Base {
         addresses[this.network][tokenSymbol][chain.slug].l2CanonicalToken
 
       const bridge = new Contract(tokenAddress, l2xDaiTokenAbi, provider)
-      return bridge.transferAndCall(bridgeAddress, tokenAmount, '0x', {
+      return bridge.transferAndCall(bridgeAddress, amount, '0x', {
         // xDai requires a higher gas limit
         gasLimit: 1000000
       })
@@ -227,7 +283,7 @@ class CanonicalBridge extends Base {
         provider
       )
 
-      return bridge.withdraw(l1TokenAddress, tokenAddress, tokenAmount, {
+      return bridge.withdraw(l1TokenAddress, tokenAddress, amount, {
         // optimism requires a high gas limit and 0 gas price
         gasLimit: 1000000,
         gasPrice: 0
@@ -237,18 +293,25 @@ class CanonicalBridge extends Base {
         addresses[this.network][tokenSymbol][(chain as Chain).slug]
           .l2CanonicalToken
       const bridge = new Contract(bridgeAddress, arbErc20Abi, provider)
-      return bridge.withdraw(recipient, tokenAmount)
+      return bridge.withdraw(recipient, amount)
     } else if ((chain as Chain).equals(Chain.Polygon)) {
       const tokenAddress =
         addresses[this.network][tokenSymbol][chain.slug].l2CanonicalToken
       const token = new Contract(tokenAddress, l2PolygonChildErc20Abi, provider)
-      return token.withdraw(tokenAmount)
+      return token.withdraw(amount)
     } else {
       throw new Error('not implemented')
     }
   }
 
-  // Finalize Polygon withdrawal exit from L2 to L1
+  /**
+   * @desc Sends transaction to finalize withdrawal.
+   * This call is necessary on Polygon to finalize L2 withdrawal into L1 on
+   * certain chains. Will only send transaction if necessary.
+   * @param {String} txHash - Transaction hash proving token burn on L2.
+   * @param {Object} chain - Chain model.
+   * @returns {Object} Ethers transaction object.
+   */
   public async exit (txHash: string, chain: TChain) {
     chain = this.toChainModel(chain)
     const tokenSymbol = this.token.symbol
@@ -279,7 +342,22 @@ class CanonicalBridge extends Base {
     })
   }
 
-  public async checkMaxTokensAllowed (
+  /**
+   * @desc Returns the connected signer address.
+   * @returns {String} Ethers signer address
+   */
+  public getSignerAddress () {
+    return (this.signer as Signer)?.getAddress()
+  }
+
+  /**
+   * @desc Checks if the amount of tokens is allowed by the canonical token bridge,
+   * otherwise throw an error.
+   * @param {Object} chain - Chain model.
+   * @param {Object} canonicalBridge - Ethers contract object for canonical token bridge.
+   * @param {Object} amount - Token amount.
+   */
+  private async checkMaxTokensAllowed (
     chain: Chain,
     canonicalBridge: Contract,
     amount: TAmount
@@ -320,10 +398,6 @@ class CanonicalBridge extends Base {
     }
 
     return signer
-  }
-
-  public getSignerAddress () {
-    return (this.signer as Signer)?.getAddress()
   }
 }
 

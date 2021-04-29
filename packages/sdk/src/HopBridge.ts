@@ -96,6 +96,7 @@ class HopBridge extends Base {
   /**
    * @desc Instantiates Hop Bridge.
    * Returns a new Hop Bridge instance.
+   * @param {String} network - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
    * @param {Object} signer - Ethers `Signer` for signing transactions.
    * @param {Object} token - Token symbol or model
    * @param {Object} sourceChain - Source chain model
@@ -103,17 +104,11 @@ class HopBridge extends Base {
    * @returns {Object} HopBridge SDK instance.
    * @example
    *```js
-   *import { Hop } from '@hop-protocol/sdk'
-   *
-   *const hop = new Hop(signer)
-   *```
-   * @example
-   *```js
-   *import { Hop, Chain, Token } from '@hop-protocol/sdk'
+   *import { HopBridge, Chain, Token } from '@hop-protocol/sdk'
    *import { Wallet } from 'ethers'
    *
    *const signer = new Wallet(privateKey)
-   *const bridge = new HopBridge(signer, Token.USDC, Chain.Optimism, Chain.xDai)
+   *const bridge = new HopBridge('kovan', signer, Token.USDC, Chain.Optimism, Chain.xDai)
    *```
    */
   constructor (

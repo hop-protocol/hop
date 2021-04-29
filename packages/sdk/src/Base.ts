@@ -14,7 +14,7 @@ class Base {
   /**
    * @desc Instantiates Base class.
    * Returns a new Base class instance.
-   * @param {String} network - Network name
+   * @param {String} network - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
    * @returns {Object} New Base class instance.
    */
   constructor (network: string) {

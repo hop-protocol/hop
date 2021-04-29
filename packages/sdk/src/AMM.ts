@@ -23,7 +23,7 @@ class AMM extends Base {
   /**
    * @desc Instantiates AMM instance.
    * Returns a new Hop AMM SDK instance.
-   * @param {String} network - Network name
+   * @param {String} network - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
    * @param {Object} token - Token model
    * @param {Object} chain - Chain model
    * @param {Object} signer - Ethers `Signer` for signing transactions.

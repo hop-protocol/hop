@@ -135,10 +135,8 @@ const Send: FC = () => {
       setSelectedToken(tokens[0])
     }
   }, [networks])
-  const calcAmount = async (
-    amount: string,
-    isAmountIn: boolean
-  ): Promise<number> => {
+
+  const calcAmount = async (amount: string): Promise<number> => {
     if (!fromNetwork) return 0
     if (!toNetwork) return 0
     if (!amount) return 0
@@ -146,58 +144,25 @@ const Send: FC = () => {
     const amountBN = parseUnits(amount, 18)
 
     const decimals = 18
-    // L1 -> L2 or L2 -> L1
-    if (fromNetwork?.isLayer1 || toNetwork?.isLayer1) {
-      const _amount = await _calcAmountOut(
-        amountBN,
-        isAmountIn,
-        fromNetwork,
-        toNetwork
-      )
-      return Number(formatUnits(_amount.toString(), decimals))
-    }
 
-    // L2 -> L2
-    const layer1Network = networks.find(network => network.isLayer1) as Network
-    const amountOut1 = await _calcAmountOut(
-      amountBN,
-      true,
-      fromNetwork,
-      layer1Network
-    )
-    const amountOut2 = await _calcAmountOut(
-      amountOut1,
-      true,
-      layer1Network,
-      toNetwork
-    )
-
-    return Number(formatUnits(amountOut2.toString(), decimals))
-  }
-
-  const _calcAmountOut = async (
-    amount: BigNumber,
-    isAmountIn: boolean,
-    _fromNetwork: Network,
-    _toNetwork: Network
-  ): Promise<BigNumber> => {
     const bridge = sdk.bridge(selectedToken?.symbol)
-    return bridge.getAmountOut(
-      amount as any,
-      _fromNetwork.slug,
-      _toNetwork.slug,
-      isAmountIn
+    const amountOut = await bridge.getAmountOut(
+      amountBN,
+      fromNetwork.slug,
+      toNetwork.slug
     )
+
+    return Number(formatUnits(amountOut, decimals))
   }
 
   const updateAmountOut = async (amountIn: string) => {
     try {
       if (!amountIn || !toNetwork) return
       const ctx = ++debouncer.current
-      const amountOut = await calcAmount(amountIn, true)
+      const amountOut = await calcAmount(amountIn)
       const rate = amountOut / Number(amountIn)
       if (ctx !== debouncer.current) return
-      setToTokenAmount((Number(amountIn) * rate).toFixed(2))
+      setToTokenAmount(amountOut.toFixed(2))
       setExchangeRate(rate)
     } catch (err) {
       logger.error(err)
@@ -205,17 +170,9 @@ const Send: FC = () => {
   }
 
   const updateAmountIn = async (amountOut: string) => {
-    try {
-      if (!amountOut || !fromNetwork) return
-      const ctx = ++debouncer.current
-      const amountIn = await calcAmount(amountOut, false)
-      const rate = Number(amountOut) / amountIn
-      if (ctx !== debouncer.current) return
-      setFromTokenAmount((Number(amountOut) / rate).toFixed(2))
-      setExchangeRate(rate)
-    } catch (err) {
-      logger.error(err)
-    }
+    // ToDo: Remove reverse calculation
+    console.error('Reverse calculation is unimplemented')
+    return BigNumber.from('0')
   }
 
   const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
@@ -301,7 +258,7 @@ const Send: FC = () => {
       setPriceImpact(0)
       if (exchangeRate) {
         const amountIn = '0.0001'
-        const amountOut = await calcAmount(amountIn, true)
+        const amountOut = await calcAmount(amountIn)
         const marketRate = amountOut / Number(amountIn)
         const _priceImpact = ((marketRate - exchangeRate) / marketRate) * 100
         setPriceImpact(_priceImpact)

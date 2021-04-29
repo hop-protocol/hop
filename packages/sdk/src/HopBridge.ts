@@ -13,6 +13,7 @@ import { TChain, TToken, TAmount } from './types'
 import Base from './Base'
 import AMM from './AMM'
 import _version from './version'
+import { TokenIndex } from './constants'
 
 type SendL1ToL1Input = {
   destinationChain: Chain
@@ -352,18 +353,52 @@ class HopBridge extends Base {
     tokenAmountIn: TAmount,
     sourceChain?: TChain,
     destinationChain?: TChain,
-    isAmountIn: boolean = true
   ) {
+    tokenAmountIn = BigNumber.from(tokenAmountIn.toString())
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
-    const amountOut = await this._calcAmountOut(
-      tokenAmountIn.toString(),
-      isAmountIn,
-      sourceChain,
-      destinationChain
-    )
+
+    const hTokenAmount = await this._calcToHTokenAmount(tokenAmountIn, sourceChain)
+    const amountOut = await this._calcFromHTokenAmount(hTokenAmount, destinationChain)
 
     return amountOut
+  }
+
+
+  private async _calcToHTokenAmount (
+    amount: TAmount,
+    chain: Chain
+  ): Promise<BigNumber> {
+
+    if (chain.isL1) {
+      return BigNumber.from(amount)
+    }
+
+    const saddleSwap = await this.getSaddleSwap(chain, this.signer)
+
+    return saddleSwap.calculateSwap(
+      TokenIndex.CANONICAL_TOKEN,
+      TokenIndex.HOP_BRIDGE_TOKEN,
+      amount
+    )
+  }
+
+  private async _calcFromHTokenAmount (
+    amount: TAmount,
+    chain: Chain
+  ): Promise<BigNumber> {
+
+    if (chain.isL1) {
+      return BigNumber.from(amount)
+    }
+
+    const saddleSwap = await this.getSaddleSwap(chain, this.signer)
+
+    return saddleSwap.calculateSwap(
+      TokenIndex.HOP_BRIDGE_TOKEN,
+      TokenIndex.CANONICAL_TOKEN,
+      amount
+    )
   }
 
   private async _sendL1ToL1 (input: SendL1ToL1Input) {
@@ -530,16 +565,19 @@ class HopBridge extends Base {
   ) {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
-    const amountOut = await this._calcAmountOut(
+
+    if (sourceChain.isL1) {
+      return BigNumber.from('0')
+    }
+
+    const hTokenAmount = await this._calcToHTokenAmount(
       amountIn.toString(),
-      true,
-      sourceChain,
-      destinationChain
+      sourceChain
     )
     const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
     const minBonderBps = await l2Bridge?.minBonderBps()
     const minBonderFeeAbsolute = await l2Bridge?.minBonderFeeAbsolute()
-    const minBonderFeeRelative = amountOut.mul(minBonderBps).div(10000)
+    const minBonderFeeRelative = hTokenAmount.mul(minBonderBps).div(10000)
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute

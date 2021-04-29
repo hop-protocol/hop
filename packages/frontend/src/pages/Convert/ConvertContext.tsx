@@ -145,8 +145,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         const amountOut = await bridge.getAmountOut(
           amount as any,
           canonicalSlug(sourceNetwork),
-          canonicalSlug(destNetwork),
-          true
+          canonicalSlug(destNetwork)
         )
 
         value = Number(formatUnits(amountOut.toString(), 18)).toFixed(2)

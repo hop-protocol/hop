@@ -86,7 +86,9 @@ const AmountSelectorCard: FC<Props> = props => {
       if (user && token && selectedNetwork) {
         try {
           const _balance = await user.getBalance(token, selectedNetwork)
-          setBalance(ethersUtils.formatUnits(_balance.toString(), 18))
+          setBalance(
+            ethersUtils.formatUnits(_balance.toString(), token.decimals)
+          )
         } catch (err) {
           setBalance('')
           throw err

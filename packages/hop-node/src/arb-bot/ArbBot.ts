@@ -20,6 +20,7 @@ interface Config {
   label: string
   token0: TokenConfig
   token1: TokenConfig
+  tokenDecimals: number
   amm: AmmConfig
   wallet: any
   minThreshold: number
@@ -36,6 +37,7 @@ class ArbBot {
   saddleSwap: Contract
   token0: Token
   token1: Token
+  tokenDecimals: number
   wallet: any
   accountAddress: string
   minThreshold: number
@@ -123,14 +125,15 @@ class ArbBot {
       label: config.token1.label,
       contract: config.token1.contract
     }
-
+    this.tokenDecimals = config.tokenDecimals
     this.accountAddress = await this.wallet.getAddress()
     this.ready = true
   }
 
   private async getTokenBalance (token: Token) {
     const balance = await token.contract.balanceOf(this.accountAddress)
-    const formattedBalance = Number(formatUnits(balance, 18))
+    const decimals = await token.contract.decimals()
+    const formattedBalance = Number(formatUnits(balance, decimals))
     return formattedBalance
   }
 
@@ -165,15 +168,17 @@ class ArbBot {
   }
 
   private async getAmountOut (path: string[], amount: number) {
-    const amountIn = parseUnits(amount.toString(), 18)
+    const amountIn = parseUnits(amount.toString(), this.tokenDecimals)
     let [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
-    const parsedAmount = parseUnits(amount.toString(), 18)
+    const parsedAmount = parseUnits(amount.toString(), this.tokenDecimals)
     const amountsOut = await this.saddleSwap.calculateSwap(
       tokenIndexFrom,
       tokenIndexTo,
       parsedAmount
     )
-    const amountOut = Number(formatUnits(amountsOut.toString(), 18))
+    const amountOut = Number(
+      formatUnits(amountsOut.toString(), this.tokenDecimals)
+    )
     return amountOut
   }
 
@@ -268,8 +273,11 @@ class ArbBot {
     amountInNum: number,
     amountOutMinNum: number = 0
   ) {
-    const amountIn = parseUnits(amountInNum.toString(), 18)
-    const amountOutMin = parseUnits(amountOutMinNum.toString(), 18)
+    const amountIn = parseUnits(amountInNum.toString(), this.tokenDecimals)
+    const amountOutMin = parseUnits(
+      amountOutMinNum.toString(),
+      this.tokenDecimals
+    )
     const deadline = (Date.now() / 1000 + 300) | 0
     const path = pathTokens.map(token => token.contract.address)
     this.logger.log('trade params:')
@@ -304,8 +312,8 @@ class ArbBot {
       this.saddleSwap.getTokenBalance(0),
       this.saddleSwap.getTokenBalance(1)
     ])
-    const reserve0 = Number(formatUnits(reserves[0], 18))
-    const reserve1 = Number(formatUnits(reserves[1], 18))
+    const reserve0 = Number(formatUnits(reserves[0], this.tokenDecimals))
+    const reserve1 = Number(formatUnits(reserves[1], this.tokenDecimals))
     return [reserve0, reserve1]
   }
 

@@ -62,18 +62,17 @@ class AMM extends Base {
   }
 
   async getCanonicalTokenAddress () {
-    return addresses.tokens[this.token.symbol][this.chain.slug].l2CanonicalToken
+    return addresses[this.token.symbol][this.chain.slug].l2CanonicalToken
   }
 
   async getHopTokenAddress () {
-    return addresses.tokens[this.token.symbol][this.chain.slug].l2HopBridgeToken
+    return addresses[this.token.symbol][this.chain.slug].l2HopBridgeToken
   }
 
   async getSaddleSwap (chain: TChain) {
     chain = this.toChainModel(chain)
     const tokenSymbol = this.token.symbol
-    const saddleSwapAddress =
-      addresses.tokens[tokenSymbol][chain.slug].l2SaddleSwap
+    const saddleSwapAddress = addresses[tokenSymbol][chain.slug].l2SaddleSwap
     const provider = await this.getSignerOrProvider(chain)
     return new Contract(saddleSwapAddress, saddleSwapAbi, provider)
   }

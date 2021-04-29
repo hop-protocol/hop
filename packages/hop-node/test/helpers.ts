@@ -1,5 +1,6 @@
 // @ts-ignore
 import { Watcher } from '@eth-optimism/watcher'
+import expect from 'expect'
 import { ethers, providers, Contract, Wallet } from 'ethers'
 import { HDNode } from '@ethersproject/hdnode'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
@@ -24,6 +25,7 @@ import {
   ETHEREUM,
   ARBITRUM,
   OPTIMISM,
+  POLYGON,
   XDAI,
   DAI
 } from 'src/constants'
@@ -163,7 +165,7 @@ export class User {
     if (amount) {
       approveAmount = parseUnits(amount.toString(), 18).toString()
     }
-    return contract.approve(spender, approveAmount)
+    return contract.approve(spender, approveAmount, this.txOverrides(network))
   }
 
   async getAllowance (
@@ -240,9 +242,7 @@ export class User {
       deadline,
       relayer,
       relayerFee,
-      {
-        //gasLimit: 1000000
-      }
+      this.txOverrides(sourceNetwork)
     )
 
     return tx
@@ -319,9 +319,7 @@ export class User {
       deadline,
       destinationAmountOutMin,
       destinationDeadline,
-      {
-        //gasLimit: '1000000'
-      }
+      this.txOverrides(sourceNetwork)
     )
   }
 
@@ -349,9 +347,7 @@ export class User {
       bonderFee,
       amountOutMin,
       deadline,
-      {
-        //gasLimit: '1000000'
-      }
+      this.txOverrides(sourceNetwork)
     )
   }
 
@@ -385,10 +381,7 @@ export class User {
       deadline,
       destinationAmountOutMin,
       destinationDeadline,
-      {
-        //value: '1000000000000000',
-        //gasLimit: '1000000'
-      }
+      this.txOverrides(sourceNetwork)
     )
   }
 
@@ -406,6 +399,7 @@ export class User {
   async sendEth (amount: number | string, recipient: string, network?: string) {
     const wallet = this.getWallet(network)
     return wallet.sendTransaction({
+      ...this.txOverrides(network),
       to: recipient,
       value: parseUnits(amount.toString(), 18)
     })
@@ -418,7 +412,11 @@ export class User {
     recipient: string
   ) {
     const tokenContract = this.getTokenContract(network, token)
-    return tokenContract.transfer(recipient, parseUnits(amount.toString(), 18))
+    return tokenContract.transfer(
+      recipient,
+      parseUnits(amount.toString(), 18),
+      this.txOverrides(network)
+    )
   }
 
   async checkApproval (network: string, token: string, spender: string) {
@@ -430,7 +428,7 @@ export class User {
     const parsedAmount = parseUnits(amount.toString(), 18)
     const bonder = await this.getAddress()
     const bridge = this.getHopBridgeContract(network, token)
-    return bridge.stake(bonder, parsedAmount)
+    return bridge.stake(bonder, parsedAmount, this.txOverrides(network))
   }
 
   async getBonderFee (network: string, token: string, amount: string) {
@@ -516,7 +514,8 @@ export class User {
         config.tokens[token][destNetwork].arbChain,
         config.tokens[token][ETHEREUM].l1CanonicalToken,
         recipient,
-        value
+        value,
+        this.txOverrides(destNetwork)
       )
     } else if (destNetwork === OPTIMISM) {
       const l1TokenAddress = config.tokens[token][ETHEREUM].l1CanonicalToken
@@ -525,13 +524,15 @@ export class User {
         l1TokenAddress,
         l2TokenAddress,
         recipient,
-        value
+        value,
+        this.txOverrides(destNetwork)
       )
     } else if (destNetwork === XDAI) {
       return tokenBridge.relayTokens(
         config.tokens[token][ETHEREUM].l1CanonicalToken,
         recipient,
-        value
+        value,
+        this.txOverrides(destNetwork)
       )
     } else {
       throw new Error('not implemented')
@@ -564,9 +565,12 @@ export class User {
     )
     const coder = ethers.utils.defaultAbiCoder
     const data = coder.encode(['uint256'], [parsedAmount])
-    return bridge.depositFor(recipient, tokenAddress, data, {
-      //gasLimit: 1000000
-    })
+    return bridge.depositFor(
+      recipient,
+      tokenAddress,
+      data,
+      this.txOverrides(POLYGON)
+    )
   }
 
   @queue
@@ -578,9 +582,7 @@ export class User {
     const provider = new providers.StaticJsonRpcProvider(url)
     const wallet = new Wallet(this.privateKey, provider)
     const token = new Contract(tokenAddress, l2PolygonChildErc20Abi, wallet)
-    return token.withdraw(parsedAmount, {
-      //gasLimit: 1000000
-    })
+    return token.withdraw(parsedAmount, this.txOverrides(POLYGON))
   }
 
   @queue
@@ -638,9 +640,7 @@ export class User {
       deadline,
       relayer,
       relayerFee,
-      {
-        //gasLimit: 1000000
-      }
+      this.txOverrides(ETHEREUM)
     )
   }
 
@@ -683,9 +683,12 @@ export class User {
     amounts[token0Index] = amount0Desired
     amounts[token1Index] = amount1Desired
     const minToMint = 0
-    return saddleSwap.addLiquidity(amounts, minToMint, deadline, {
-      //gasLimit: 1000000
-    })
+    return saddleSwap.addLiquidity(
+      amounts,
+      minToMint,
+      deadline,
+      this.txOverrides(network)
+    )
   }
 
   async removeLiquidity (
@@ -701,9 +704,7 @@ export class User {
       parsedLpTokenAmount,
       minAmounts,
       deadline,
-      {
-        //gasLimit: 1000000
-      }
+      this.txOverrides(network)
     )
   }
 
@@ -719,9 +720,7 @@ export class User {
       transferRootHash,
       chainId,
       parsedTotalAmount,
-      {
-        //gasLimit: 1000000
-      }
+      this.txOverrides(ETHEREUM)
     )
   }
 
@@ -742,9 +741,11 @@ export class User {
   async challengeTransferRoot (transferRootHash: string, totalAmount: number) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
     const bridge = this.getHopBridgeContract(ETHEREUM)
-    return bridge.challengeTransferBond(transferRootHash, parsedTotalAmount, {
-      //gasLimit: 1000000
-    })
+    return bridge.challengeTransferBond(
+      transferRootHash,
+      parsedTotalAmount,
+      this.txOverrides(ETHEREUM)
+    )
   }
 
   async challengeTransferRootAndWaitForReceipt (
@@ -759,9 +760,11 @@ export class User {
   async resolveChallenge (transferRootHash: string, totalAmount: number) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
     const bridge = this.getHopBridgeContract(ETHEREUM)
-    return bridge.resolveChallenge(transferRootHash, parsedTotalAmount, {
-      //gasLimit: 1000000
-    })
+    return bridge.resolveChallenge(
+      transferRootHash,
+      parsedTotalAmount,
+      this.txOverrides(ETHEREUM)
+    )
   }
 
   async resolveChallengeAndWaitForReceipt (
@@ -818,9 +821,7 @@ export class User {
   @queue
   async addBonder (network: string, token: string, newBonderAddress: string) {
     const bridge = this.getHopBridgeContract(network, token)
-    return bridge.addBonder(newBonderAddress, {
-      //gasLimit: 1000000
-    })
+    return bridge.addBonder(newBonderAddress, this.txOverrides(network))
   }
 
   async getCredit (network: string = ETHEREUM) {
@@ -935,9 +936,7 @@ export class User {
   ) {
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
     const destChainId = networkSlugToId(destNetwork)
-    return bridge.commitTransfers(destChainId, {
-      //gasLimit: 2000000
-    })
+    return bridge.commitTransfers(destChainId, this.txOverrides(sourceNetwork))
   }
 
   async isBonder (sourceNetwork: string, token: string) {
@@ -961,6 +960,18 @@ export class User {
     const [messageHash] = await watcher.getMessageHashesFromL1Tx(l1TxHash)
     const l2TxReceipt = await watcher.getL2TransactionReceipt(messageHash)
     return l2TxReceipt
+  }
+
+  txOverrides (network: string) {
+    const txOptions: any = {}
+    if (network === OPTIMISM) {
+      txOptions.gasPrice = 0
+      txOptions.gasLimit = 8000000
+    } else if (network === XDAI) {
+      txOptions.gasLimit = 5000000
+    }
+    txOptions.gasLimit = 5000000
+    return txOptions
   }
 }
 
@@ -1058,4 +1069,50 @@ export async function prepareAccount (
     const ethBalance = await user.getBalance(sourceNetwork)
     expect(ethBalance).toBeGreaterThan(0)
   }
+}
+
+export async function prepareAccounts (
+  users: User[],
+  faucet: User,
+  token: string,
+  network: string
+) {
+  for (let user of users) {
+    console.log('preparing account')
+    const address = await user.getAddress()
+    if ([ETHEREUM, XDAI].includes(network)) {
+      let ethBal = await user.getBalance(network)
+      if (ethBal < 0.1) {
+        console.log('faucet sending eth')
+        const tx = await faucet.sendEth(0.1, address, network)
+        const receipt = await tx.wait()
+        expect(receipt.status).toBe(1)
+        ethBal = await user.getBalance(network)
+      }
+      expect(ethBal).toBeGreaterThanOrEqual(0.1)
+    }
+    let tokenBal = await user.getBalance(network, token)
+    if (tokenBal < 1) {
+      console.log('faucet sending tokens')
+      const tx = await faucet.sendTokens(network, token, 1000, address)
+      await tx.wait()
+      tokenBal = await user.getBalance(network, token)
+    }
+    expect(tokenBal).toBeGreaterThanOrEqual(1)
+  }
+  return users
+}
+
+export async function getBalances (
+  users: User[],
+  token: string,
+  sourceNetwork: string,
+  destNetwork: string
+): Promise<any[]> {
+  return Promise.all([
+    Promise.all(
+      users.map((user: User) => user.getBalance(sourceNetwork, token))
+    ),
+    Promise.all(users.map((user: User) => user.getBalance(destNetwork, token)))
+  ])
 }

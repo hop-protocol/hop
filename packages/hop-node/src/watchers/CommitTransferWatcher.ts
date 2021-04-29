@@ -38,6 +38,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       await Promise.all([this.syncUp(), this.watch()])
     } catch (err) {
       this.logger.error('watcher error:', err)
+      this.notifier.error(`watcher error: ${err.message}`)
     }
   }
 
@@ -99,6 +100,7 @@ class CommitTransfersWatcher extends BaseWatcher {
         }
       } catch (err) {
         this.logger.error('error checking:', err.message)
+        this.notifier.error(`error checking: ${err.message}`)
       }
       await wait(10 * 1000)
     }
@@ -209,6 +211,7 @@ class CommitTransfersWatcher extends BaseWatcher {
         `L2 commitTransfers tx:`,
         chalk.bgYellow.black.bold(tx.hash)
       )
+      this.notifier.info(`L2 commitTransfers tx: ${tx.hash}`)
     } catch (err) {
       if (err.message !== 'cancelled') {
         throw err
@@ -247,6 +250,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     } catch (err) {
       if (err.message !== 'cancelled') {
         this.logger.error('commitTransfers tx error:', err.message)
+        this.notifier.error(`commitTransfers tx error: ${err.message}`)
       }
     }
   }

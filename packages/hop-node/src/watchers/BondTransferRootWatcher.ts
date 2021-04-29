@@ -39,6 +39,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
     } catch (err) {
       this.logger.error(`watcher error:`, err.message)
+      this.notifier.error(`watcher error: '${err.message}`)
     }
   }
 
@@ -102,6 +103,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         }
       } catch (err) {
         this.logger.error('poll check error:', err.message)
+        this.notifier.error(`poll check error: '${err.message}`)
       }
       await wait(10 * 1000)
     }
@@ -267,6 +269,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       'L1 bondTransferRoot tx',
       chalk.bgYellow.black.bold(tx.hash)
     )
+    this.notifier.info(`bondTransferRoot tx: ${tx.hash}`)
   }
 
   handleTransfersCommittedEvent = async (
@@ -291,7 +294,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       const {
         destinationChainId: chainId
       } = await this.l2Bridge.decodeCommitTransfersData(data)
-      const totalAmount = Number(formatUnits(_totalAmount.toString(), 18))
+      const decimals = await this.getBridgeTokenDecimals()
+      const totalAmount = Number(formatUnits(_totalAmount.toString(), decimals))
 
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,
@@ -311,6 +315,11 @@ class BondTransferRootWatcher extends BaseWatcher {
         this.logger.error('bondTransferRoot tx error:', err.message)
       }
     }
+  }
+
+  async getBridgeTokenDecimals () {
+    const token = await this.l1Bridge.l1CanonicalToken()
+    return token.decimals()
   }
 
   async waitTimeout (transferRootHash: string, totalAmount: number) {

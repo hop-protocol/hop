@@ -11,7 +11,8 @@ import prompt from 'prompt'
 import {
   db as dbConfig,
   setConfigByNetwork,
-  setBonderPrivateKey
+  setBonderPrivateKey,
+  setNetworkRpcUrl
 } from 'src/config'
 import Logger, { setLogLevel } from 'src/logger'
 import { ETHEREUM, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
@@ -23,10 +24,15 @@ import {
   startCommitTransferWatchers
 } from 'src/watchers/watchers'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
+import PolygonBridgeWatcher from 'src/watchers/polygonBridgeWatcher'
+import LoadTest from 'src/loadTest'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
 import entropyToMnemonic from 'src/utils/entropyToMnemonic'
 import { hopArt, printHopArt } from './art'
 
+const defaultConfigDir = `${os.homedir()}/.hop-node`
+const defaultConfigFilePath = `${defaultConfigDir}/config.json`
+const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 const logger = new Logger('config')
 const program = new Command()
 
@@ -72,6 +78,10 @@ type Config = {
 program
   .description('Start Hop node')
   .option('-c, --config <filepath>', 'Config file to use')
+  .option(
+    '--password-file <filepath>',
+    'File containing password to unlock keystore'
+  )
   .action(async source => {
     try {
       printHopArt()
@@ -90,7 +100,14 @@ program
         )
         let passphrase = config?.keystore.pass
         if (!passphrase) {
-          passphrase = await promptPassphrase()
+          if (source.passwordFile) {
+            passphrase = fs.readFileSync(
+              path.resolve(source.passwordFile),
+              'utf8'
+            )
+          } else {
+            passphrase = await promptPassphrase()
+          }
         }
         const privateKey = await recoverKeystore(keystore, passphrase as string)
         setBonderPrivateKey(privateKey)
@@ -100,8 +117,30 @@ program
         logger.log(`network: "${network}"`)
         setConfigByNetwork(network)
       }
-      const tokens = Object.keys(config?.tokens || {})
-      const networks = Object.keys(config?.networks || {})
+      const tokens = []
+      if (config?.tokens) {
+        for (let k in config.tokens) {
+          const v = config.tokens[k]
+          if (v) {
+            tokens.push(k)
+          }
+        }
+      }
+      const networks = []
+      if (config?.networks) {
+        for (let k in config.networks) {
+          networks.push(k)
+          const v = config.networks[k]
+          if (v instanceof Object) {
+            const { rpcUrl } = v
+            if (rpcUrl) {
+              setNetworkRpcUrl(k, rpcUrl)
+            }
+          }
+        }
+      }
+
+      Object.keys(config?.networks || {})
       const bonder = config?.roles?.bonder
       const challenger = config?.roles?.challenger
       const order = Number(config?.order || 0)
@@ -181,6 +220,31 @@ program
   })
 
 program
+  .command('polygon-bridge')
+  .description('Start the polygon bridge watcher')
+  .action(() => {
+    try {
+      new PolygonBridgeWatcher().start()
+    } catch (err) {
+      console.error(err.message)
+    }
+  })
+
+program
+  .command('load-test')
+  .option('--concurrent-users <number>', 'Number of concurrent users')
+  .description('Start load test')
+  .action(source => {
+    try {
+      new LoadTest({
+        concurrentUsers: Number(source.concurrentUsers || 1)
+      }).start()
+    } catch (err) {
+      console.error(err.message)
+    }
+  })
+
+program
   .command('challenger')
   .description('Start the challenger watcher')
   .action(async () => {
@@ -252,7 +316,7 @@ program
     try {
       const action = source.args[0]
       let passphrase = source.pass
-      const output = source.output
+      const output = source.output || defaultKeystoreFilePath
       if (!action) {
         console.error(`please specify subcommand`)
         return
@@ -446,6 +510,8 @@ async function setupConfig (_configFile?: string) {
   let configPath = ''
   if (_configFile) {
     configPath = path.resolve(_configFile.replace('~', os.homedir()))
+  } else {
+    configPath = defaultConfigFilePath
   }
   let config: Config | null = null
   if (configPath) {

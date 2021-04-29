@@ -140,7 +140,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         return value
       }
       if (networkPairMap[sourceNetwork?.slug] === destNetwork?.slug) {
-        const amount = parseUnits(value, 18)
+        const amount = parseUnits(value, selectedToken.decimals)
         const bridge = sdk.bridge(selectedToken?.symbol)
         const amountOut = await bridge.getAmountOut(
           amount as any,
@@ -148,7 +148,9 @@ const ConvertContextProvider: FC = ({ children }) => {
           canonicalSlug(destNetwork)
         )
 
-        value = Number(formatUnits(amountOut.toString(), 18)).toFixed(2)
+        value = Number(
+          formatUnits(amountOut.toString(), selectedToken.decimals)
+        ).toFixed(2)
       }
     }
 
@@ -180,7 +182,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         const signer = provider?.getSigner()
         const bridge = sdk.bridge(token.symbol).connect(signer as any)
 
-        const parsedAmount = parseUnits(amount, token.decimals || 18)
+        const parsedAmount = parseUnits(amount, token.decimals)
         const approved = await bridge.token.allowance(
           network.slug,
           targetAddress
@@ -219,7 +221,10 @@ const ConvertContextProvider: FC = ({ children }) => {
 
       const signer = provider?.getSigner()
       const recipient = await signer?.getAddress()
-      const value = parseUnits(sourceTokenAmount, 18).toString()
+      const value = parseUnits(
+        sourceTokenAmount,
+        selectedToken.decimals
+      ).toString()
       let tx: any
       const sourceSlug = canonicalSlug(sourceNetwork)
       const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)

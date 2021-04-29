@@ -109,7 +109,10 @@ export default class L1Bridge extends Bridge {
     chainId: string,
     totalAmount: number
   ) {
-    const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
+    const parsedTotalAmount = parseUnits(
+      totalAmount.toString(),
+      this.tokenDecimals
+    )
     const [credit, debit] = await Promise.all([
       this.getCredit(),
       this.getDebit()
@@ -165,7 +168,7 @@ export default class L1Bridge extends Bridge {
     amount: string | number
   ) {
     const recipient = await this.getBonderAddress()
-    const value = parseUnits('10' || amount.toString(), 18)
+    const value = parseUnits(amount.toString(), this.tokenDecimals)
     const deadline = '0'
     const relayer = ethers.constants.AddressZero
     const relayerFee = '0'

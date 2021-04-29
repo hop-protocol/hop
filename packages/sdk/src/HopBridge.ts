@@ -78,6 +78,9 @@ class HopBridge extends Base {
   /** Token class */
   public token: TokenClass
 
+  /** Hop Token class */
+  public hopToken: TokenClass
+
   /** Ethers Signer */
   public signer: Signer
 
@@ -647,9 +650,9 @@ class HopBridge extends Base {
     let tokenIndexTo: number
 
     let l2CanonicalTokenAddress =
-      addresses.tokens[tokenSymbol][sourceChain.slug].l2CanonicalToken
+      addresses[tokenSymbol][sourceChain.slug].l2CanonicalToken
     let l2HopBridgeTokenAddress =
-      addresses.tokens[tokenSymbol][sourceChain.slug].l2HopBridgeToken
+      addresses[tokenSymbol][sourceChain.slug].l2HopBridgeToken
     saddleSwap = await this.getSaddleSwap(sourceChain, this.signer)
     let canonicalTokenIndex = Number(
       (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
@@ -676,7 +679,7 @@ class HopBridge extends Base {
 
   async getL1Bridge (signer: Signer = this.signer) {
     const tokenSymbol = this.token.symbol
-    const bridgeAddress = addresses.tokens[tokenSymbol]['ethereum'].l1Bridge
+    const bridgeAddress = addresses[tokenSymbol]['ethereum'].l1Bridge
     const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
     return new Contract(bridgeAddress, l1BridgeAbi, provider)
   }
@@ -684,7 +687,7 @@ class HopBridge extends Base {
   async getL2Bridge (chain: TChain, signer: Signer = this.signer) {
     chain = this.toChainModel(chain)
     const tokenSymbol = this.token.symbol
-    const bridgeAddress = addresses.tokens[tokenSymbol][chain.slug].l2Bridge
+    const bridgeAddress = addresses[tokenSymbol][chain.slug].l2Bridge
     const provider = await this.getSignerOrProvider(chain, signer)
     return new Contract(bridgeAddress, l2BridgeAbi, provider)
   }
@@ -692,8 +695,7 @@ class HopBridge extends Base {
   async getAmmWrapper (chain: TChain, signer: Signer = this.signer) {
     chain = this.toChainModel(chain)
     const tokenSymbol = this.token.symbol
-    const ammWrapperAddress =
-      addresses.tokens[tokenSymbol][chain.slug].l2AmmWrapper
+    const ammWrapperAddress = addresses[tokenSymbol][chain.slug].l2AmmWrapper
     const provider = await this.getSignerOrProvider(chain, signer)
     return new Contract(ammWrapperAddress, l2AmmWrapperAbi, provider)
   }
@@ -701,8 +703,7 @@ class HopBridge extends Base {
   async getSaddleSwap (chain: TChain, signer: Signer = this.signer) {
     chain = this.toChainModel(chain)
     const tokenSymbol = this.token.symbol
-    const saddleSwapAddress =
-      addresses.tokens[tokenSymbol][chain.slug].l2SaddleSwap
+    const saddleSwapAddress = addresses[tokenSymbol][chain.slug].l2SaddleSwap
     const provider = await this.getSignerOrProvider(chain, signer)
     return new Contract(saddleSwapAddress, saddleSwapAbi, provider)
   }
@@ -731,7 +732,7 @@ class HopBridge extends Base {
     chain = this.toChainModel(chain)
     const tokenSymbol = this.token.symbol
     const saddleLpTokenAddress =
-      addresses.tokens[tokenSymbol][chain.slug].l2SaddleLpToken
+      addresses[tokenSymbol][chain.slug].l2SaddleLpToken
     const provider = await this.getSignerOrProvider(chain, signer)
     return new Contract(saddleLpTokenAddress, saddleLpTokenAbi, provider)
   }

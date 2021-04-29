@@ -125,7 +125,6 @@ class Token extends TokenModel {
     const tokenContract = await this.getErc20(chain)
     const allowance = await this.allowance(chain, spender)
     if (allowance.lt(BigNumber.from(amount))) {
-      console.log(this.txOverrides(chain))
       return tokenContract.approve(spender, amount, this.txOverrides(chain))
     }
   }
@@ -135,9 +134,9 @@ class Token extends TokenModel {
     const tokenSymbol = this.symbol
     let tokenAddress: string
     if (chain.isL1) {
-      tokenAddress = addresses.tokens[tokenSymbol][chain.slug].l1CanonicalToken
+      tokenAddress = addresses[tokenSymbol][chain.slug].l1CanonicalToken
     } else {
-      tokenAddress = addresses.tokens[tokenSymbol][chain.slug].l2CanonicalToken
+      tokenAddress = addresses[tokenSymbol][chain.slug].l2CanonicalToken
     }
 
     const provider = await this.getSignerOrProvider(chain)

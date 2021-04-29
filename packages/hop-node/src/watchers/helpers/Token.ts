@@ -6,6 +6,7 @@ import queue from './queue'
 
 export default class Token extends ContractBase {
   tokenContract: Contract
+  _decimals: number
 
   constructor (tokenContract: Contract) {
     super(tokenContract)
@@ -15,7 +16,15 @@ export default class Token extends ContractBase {
   async getBalance () {
     const address = await this.tokenContract.signer.getAddress()
     const balance = await this.tokenContract.balanceOf(address)
-    return Number(formatUnits(balance, 18))
+    return Number(formatUnits(balance, await this.decimals()))
+  }
+
+  async decimals () {
+    if (!this._decimals) {
+      const _decimals = await this.tokenContract.decimals()
+      this._decimals = Number(_decimals.toString())
+    }
+    return this._decimals
   }
 
   // RPC error if too many requests so need to queue
@@ -23,7 +32,7 @@ export default class Token extends ContractBase {
   async getAllowance (spender: string) {
     const owner = await this.tokenContract.signer.getAddress()
     const allowance = await this.tokenContract.allowance(owner, spender)
-    return Number(formatUnits(allowance, 18))
+    return Number(formatUnits(allowance, await this.decimals()))
   }
 
   async approve (spender: string) {

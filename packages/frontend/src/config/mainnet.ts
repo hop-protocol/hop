@@ -1,3 +1,4 @@
+import { mainnet as mainnetAddresses } from '@hop-protocol/addresses'
 import { HopAddresses } from './interfaces'
 
 export const addresses: HopAddresses = {
@@ -7,7 +8,7 @@ export const addresses: HopAddresses = {
     stakingRewards: '',
     governorAlpha: ''
   },
-  tokens: {}
+  tokens: mainnetAddresses
 }
 
 export const networks: any = {

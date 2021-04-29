@@ -1,16 +1,6 @@
-type HopAddresses = {
-  tokens: {
-    [key: string]: {
-      [key: string]: {
-        [key: string]: string
-      }
-    }
-  }
-}
+import { Addresses } from './types'
 
-const synthDemoTokens = {}
-
-const demoTokens = {
+export const addresses: Addresses = {
   USDC: {
     ethereum: {
       l1CanonicalToken: '0x7326510Cf9Ae0397dbBaF37FABba54f0A7b8D100',
@@ -20,11 +10,11 @@ const demoTokens = {
       l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
       l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
       l2CanonicalToken: '0x452AED3fdB2E83A1352624321629180aB1489Dd0',
-      l2Bridge: '0x0116f7Cc707486def830e8B5FbEEE13A237D2A08',
-      l2HopBridgeToken: '0x1E3cC52c68a9710012a88AD985a4EE9E3f54D6D1',
-      l2AmmWrapper: '0xbD9709B155CbC948aB34347737da9f5228F0F596',
-      l2SaddleSwap: '0x60fe7297D746015B5394188Ea74dD92660E04Ef2',
-      l2SaddleLpToken: '0x6B93D24F67a15e90B5f9b28d65BD08369557b312',
+      l2Bridge: '0x58032BfFE89885Ed9b01Ce2599A83487E9635d84',
+      l2HopBridgeToken: '0x23740b61b5A94D2723584B1593088a4429Ce8ea1',
+      l2AmmWrapper: '0x32B2b588F2ee167E8C31Cb881B7Dc89ea7CF55ba',
+      l2SaddleSwap: '0xa50de4210C3aA66F1f06bF6AbC228B014f41225C',
+      l2SaddleLpToken: '0x4FEB7dcB662A2Eb8a21dC0AB32f6329ee998A60c',
       l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
       l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
       canonicalBridgeMaxPerTx: '10000'
@@ -50,7 +40,7 @@ const demoTokens = {
       l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
       l2CanonicalToken: '0x6D2d8B29d92cab87a273e872FcC4650A64116283',
       l2Bridge: '0xEEfB1dF6868cCCa9Bf035D2fc46Ae92C8e48cc5C',
-      l2HopBridgeToken: '0x3Af44C0189C2F9689695A47ab4B7eeb1A4fD6D22',
+      l2HopBridgeToken: '0xc2b847D4701dcA9c752Df54BD7eA020aAeA152eC',
       l2AmmWrapper: '0xee8400C7fb17AE9c22A829F24F1D338B69Ece313',
       l2SaddleSwap: '0x7FF1448D0DAEa1DFCb181d41DE65e302630D2576',
       l2SaddleLpToken: '0xD71e5a4c4FF43A415ECC50C223E32a838eC2AaE9',
@@ -67,82 +57,6 @@ const demoTokens = {
       l2AmmWrapper: '0xaD33e2E73Fde9D4B8dAeDB957D5e8525aF3Fa553',
       l2SaddleSwap: '0xB91E5AC68DFf69a41905c48A1BAac3ca8BE7C7a3',
       l2SaddleLpToken: '0x518C1A4A882125c8EFEeA589C60cB924b5Df561c'
-    }
-  }
-}
-
-export const addresses: HopAddresses = {
-  tokens: {
-    ...synthDemoTokens,
-    ...demoTokens
-  }
-}
-
-export const chains: any = {
-  ethereum: {
-    name: 'Kovan',
-    chainId: '42',
-    rpcUrl: 'https://kovan.rpc.hop.exchange',
-    explorerUrl: 'https://kovan.etherscan.io/'
-  },
-  arbitrum: {
-    name: 'Arbitrum',
-    chainId: '212984383488152',
-    rpcUrl: 'https://kovan4.arbitrum.io/rpc',
-    explorerUrl: 'https://explorer.offchainlabs.com/#/'
-  },
-  optimism: {
-    name: 'Optimism',
-    chainId: '69',
-    rpcUrl: 'https://kovan.optimism.io',
-    explorerUrl:
-      'https://expedition.dev/?rpcUrl=https%3A%2F%2Fkovan.optimism.io'
-  },
-  xdai: {
-    name: 'xDai',
-    chainId: '77',
-    rpcUrl: 'https://sokol.poa.network',
-    explorerUrl: 'https://blockscout.com/poa/sokol/'
-  },
-  polygon: {
-    name: 'Polygon',
-    chainId: '80001',
-    rpcUrl: 'https://rpc-mumbai.maticvigil.com',
-    explorerUrl: 'https://explorer-mumbai.maticvigil.com/'
-  }
-}
-
-export const metadata: any = {
-  tokens: {
-    DAI: {
-      symbol: 'DAI',
-      name: 'DAI Stablecoin',
-      decimals: 18
-    },
-    ARB: {
-      symbol: 'ARB',
-      name: 'ARB Token',
-      decimals: 18
-    },
-    sETH: {
-      symbol: 'sETH',
-      name: 'Synth ETH',
-      decimals: 18
-    },
-    sBTC: {
-      symbol: 'sBTC',
-      name: 'Synth BTC',
-      decimals: 18
-    },
-    USDC: {
-      symbol: 'USDC',
-      name: 'USDC',
-      decimals: 18
-    },
-    WBTC: {
-      symbol: 'WBTC',
-      name: 'Wrapped BTC',
-      decimals: 18
     }
   }
 }

@@ -4,11 +4,12 @@ import { formatUnits } from 'ethers/lib/utils'
 import { UINT256 } from 'src/constants'
 import db from 'src/db'
 import chalk from 'chalk'
-import { wait, networkIdToSlug } from 'src/utils'
+import { wait, networkIdToSlug, isL1NetworkId } from 'src/utils'
 import BaseWatcher from './helpers/BaseWatcher'
 import Bridge from './helpers/Bridge'
 import L1Bridge from './helpers/L1Bridge'
 import L2Bridge from './helpers/L2Bridge'
+import Token from './helpers/Token'
 
 export interface Config {
   l1BridgeContract: Contract
@@ -42,7 +43,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     try {
       await Promise.all([this.syncUp(), this.watch()])
     } catch (err) {
-      this.logger.error(`BondWithdrawalWatcher error:`, err.message)
+      this.logger.error(`bondWithdrawalWatcher error:`, err.message)
+      this.notifier.error(`bondWithdrawalWatcher error: ${err.message}`)
     }
   }
 
@@ -143,6 +145,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       .on(this.l2Bridge.WithdrawalBonded, this.handleWithdrawalBondedEvent)
       .on('error', err => {
         this.logger.error('event watcher error:', err.message)
+        this.notifier.error(`event watcher error: ${err.message}`)
       })
   }
 
@@ -162,7 +165,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.debug(`recipient:`, recipient)
     this.logger.debug(`transferNonce:`, transferNonce)
     this.logger.debug(`bonderFee:`, bonderFee?.toString())
-    const formattedAmount = Number(formatUnits(amount, 18))
+    const decimals = await this.getBridgeTokenDecimals(chainId)
+    const formattedAmount = Number(formatUnits(amount, decimals))
     if (attemptSwap) {
       this.logger.debug(`bondWithdrawalAndAttemptSwap chainId: ${chainId}`)
       const l2Bridge = new L2Bridge(this.contracts[chainId])
@@ -340,9 +344,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
         `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx:`,
         chalk.bgYellow.black.bold(tx.hash)
       )
+      this.notifier.info(
+        `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx: ${
+          tx.hash
+        }`
+      )
     } catch (err) {
       if (err.message !== 'cancelled') {
-        this.logger.error(`bondWithdrawal tx error:`, err.message)
+        this.logger.error(`bondWithdrawal error:`, err.message)
+        this.notifier.error(`bondWithdrawal error: ${err.message}`)
       }
     }
   }
@@ -367,6 +377,19 @@ class BondWithdrawalWatcher extends BaseWatcher {
     await db.transfers.update(transferHash, {
       withdrawalBonded: true
     })
+  }
+
+  async getBridgeTokenDecimals (chainId: number | string) {
+    let bridge: any
+    let token: Token
+    if (isL1NetworkId(chainId)) {
+      bridge = new L1Bridge(this.contracts[chainId])
+      token = await bridge.l1CanonicalToken()
+    } else {
+      bridge = new L1Bridge(this.contracts[chainId])
+      token = await bridge.hToken()
+    }
+    return token.decimals()
   }
 
   async waitTimeout (transferHash: string, chainId: string) {

@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import { ethers } from 'ethers'
+import { ethers, Contract } from 'ethers'
 import memoize from 'fast-memoize'
 import { ETHEREUM } from 'src/constants'
 import {
@@ -14,7 +14,7 @@ import { config } from 'src/config'
 import wallets from 'src/wallets'
 
 const getL1BridgeContract = (token: string) => {
-  return new ethers.Contract(
+  return new Contract(
     config.tokens[token][ETHEREUM].l1Bridge,
     l1BridgeAbi,
     wallets.get(ETHEREUM)
@@ -22,7 +22,7 @@ const getL1BridgeContract = (token: string) => {
 }
 
 const getL1TokenContract = (token: string) => {
-  return new ethers.Contract(
+  return new Contract(
     config.tokens[token][ETHEREUM].l1CanonicalToken,
     erc20Abi,
     wallets.get(ETHEREUM)
@@ -30,7 +30,7 @@ const getL1TokenContract = (token: string) => {
 }
 
 const getL2TokenContract = (token: string, network: string, wallet: any) => {
-  return new ethers.Contract(
+  return new Contract(
     config.tokens[token][network].l2CanonicalToken,
     erc20Abi,
     wallet
@@ -42,7 +42,7 @@ const getL2HopBridgeTokenContract = (
   network: string,
   wallet: any
 ) => {
-  return new ethers.Contract(
+  return new Contract(
     config.tokens[token][network].l2HopBridgeToken,
     erc20Abi,
     wallet
@@ -50,7 +50,7 @@ const getL2HopBridgeTokenContract = (
 }
 
 const getL2BridgeContract = (token: string, network: string, wallet: any) => {
-  return new ethers.Contract(
+  return new Contract(
     config.tokens[token][network].l2Bridge,
     l2BridgeAbi,
     wallet
@@ -62,7 +62,7 @@ const getL2AmmWrapperContract = (
   network: string,
   wallet: any
 ) => {
-  return new ethers.Contract(
+  return new Contract(
     config.tokens[token][network].l2AmmWrapper,
     l2AmmWrapperAbi,
     wallet
@@ -74,7 +74,7 @@ const getL2SaddleSwapContract = (
   network: string,
   wallet: any
 ) => {
-  return new ethers.Contract(
+  return new Contract(
     config.tokens[token][network].l2SaddleSwap,
     saddleSwapAbi,
     wallet

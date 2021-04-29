@@ -70,11 +70,13 @@ class LoadTest {
                   token,
                   transferAmount
                 )
-                logger.log(`user #${i} - waiting`)
-                tx?.wait()
+                logger.log(`user #${i} - tx hash: ${tx.hash}`)
+                logger.log(`user #${i} - waiting for receipt`)
+                await tx?.wait()
               })
             )
 
+            logger.log(`waiting for bonded withdrawals`)
             await wait(120 * 1000)
             logger.log('reading balances')
             const [sourceBalancesAfter, destBalancesAfter] = await getBalances(

@@ -21,7 +21,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@authereum/utils": "^0.1.12",
     "@eth-optimism/watcher": "0.0.1-alpha.9",
     "@ethersproject/experimental": "^5.0.9",
     "@ethersproject/hdnode": "^5.0.9",

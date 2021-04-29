@@ -86,7 +86,7 @@ const useStyles = makeStyles(theme => ({
 const Send: FC = () => {
   const styles = useStyles()
   const { pathname } = useLocation()
-  let { user, tokens, networks, txConfirm, txHistory, sdk } = useApp()
+  let { tokens, networks, txConfirm, txHistory, sdk } = useApp()
   const {
     provider,
     walletConnected,
@@ -316,7 +316,7 @@ const Send: FC = () => {
   }, [exchangeRate])
 
   const approve = async (amount: string) => {
-    const signer = user?.signer()
+    const signer = provider?.getSigner()
     if (!signer) {
       throw new Error('Wallet not connected')
     }

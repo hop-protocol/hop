@@ -45,7 +45,7 @@ class Base {
 
   getChainId (chain: Chain) {
     const { chainId } = chains[this.network][chain.slug]
-    return chainId
+    return Number(chainId)
   }
 
   getChainProvider (chain: Chain) {

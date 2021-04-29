@@ -1,7 +1,7 @@
 import { providers, Signer, Contract, BigNumber } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
 import { MaxUint256 } from './constants'
-import { addresses } from './config'
+import { addresses, chains } from './config'
 import { erc20Abi } from '@hop-protocol/abi'
 import { TChain, TAmount } from './types'
 
@@ -176,6 +176,8 @@ class Token extends TokenModel {
       return Chain.fromSlug(chain)
     }
 
+    chain.provider = this.getChainProvider(chain)
+    chain.chainId = this.getChainId(chain)
     return chain
   }
 
@@ -186,6 +188,16 @@ class Token extends TokenModel {
       txOptions.gasLimit = 8000000
     }
     return txOptions
+  }
+
+  getChainId (chain: Chain) {
+    const { chainId } = chains[this.network][chain.slug]
+    return Number(chainId)
+  }
+
+  getChainProvider (chain: Chain) {
+    const { rpcUrl } = chains[this.network][chain.slug]
+    return new providers.StaticJsonRpcProvider(rpcUrl)
   }
 }
 

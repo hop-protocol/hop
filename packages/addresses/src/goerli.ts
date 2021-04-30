@@ -8,6 +8,7 @@ export const addresses: Addresses = {
     },
     polygon: {
       l1CanonicalBridge: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
+      l1MessengerWrapper: '0x05E3B4A9C758b79776F98CbD15571fc7f5e8d2bD',
       l2CanonicalBridge: '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1',
       l2CanonicalToken: '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1',
       l2Bridge: '0xFf0ecd10325E9E60d941e8864f45CcF73b929e9e',

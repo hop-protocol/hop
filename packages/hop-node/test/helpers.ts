@@ -970,7 +970,7 @@ export class User {
     } else if (network === XDAI) {
       txOptions.gasLimit = 5000000
     }
-    txOptions.gasLimit = 5000000
+    txOptions.gasLimit = 1000000
     return txOptions
   }
 }

@@ -1,6 +1,6 @@
 import '../moduleAlias'
 import { config, hostname as configHostname } from 'src/config'
-import { ETHEREUM, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
+import { ETHEREUM, OPTIMISM, ARBITRUM, XDAI, POLYGON } from 'src/constants'
 import contracts from 'src/contracts'
 import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
 import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
@@ -12,7 +12,7 @@ import { store } from 'src/store'
 import PubSub from 'src/pubsub/PubSub'
 import Logger from 'src/logger'
 
-const networks = [OPTIMISM, ARBITRUM, XDAI]
+const networks = [OPTIMISM, ARBITRUM, XDAI, POLYGON]
 const pubsubLogger = new Logger('pubsub', { color: 'magenta' })
 
 function startStakeWatchers (
@@ -41,11 +41,14 @@ function startStakeWatchers (
           label: `${network} ${token}`,
           bridgeContract,
           tokenContract,
-          stakeMinThreshold: 1_000,
-          stakeAmount: 10_000,
+          // TODO
+          stakeMinThreshold: 1,
+          stakeAmount: 10,
           // TODO
           contracts: {
-            '42': contracts.get(token, ETHEREUM)?.l1Bridge
+            '1': contracts.get(token, ETHEREUM)?.l1Bridge,
+            '42': contracts.get(token, ETHEREUM)?.l1Bridge,
+            '5': contracts.get(token, ETHEREUM)?.l1Bridge
           }
         })
       )
@@ -180,10 +183,13 @@ function startWatchers (
           l2BridgeContract: contracts.get(token, network).l2Bridge,
           // TODO
           contracts: {
+            '1': contracts.get(token, ETHEREUM)?.l1Bridge,
             '42': contracts.get(token, ETHEREUM)?.l1Bridge,
+            '5': contracts.get(token, ETHEREUM)?.l1Bridge,
             '69': contracts.get(token, OPTIMISM)?.l2Bridge,
             '79377087078960': contracts.get(token, ARBITRUM)?.l2Bridge,
-            '77': contracts.get(token, XDAI)?.l2Bridge
+            '77': contracts.get(token, XDAI)?.l2Bridge,
+            '80001': contracts.get(token, POLYGON)?.l2Bridge
           }
         })
       )
@@ -196,10 +202,13 @@ function startWatchers (
           l2BridgeContract: contracts.get(token, network).l2Bridge,
           // TODO
           contracts: {
+            '1': contracts.get(token, ETHEREUM)?.l1Bridge,
             '42': contracts.get(token, ETHEREUM)?.l1Bridge,
+            '5': contracts.get(token, ETHEREUM)?.l1Bridge,
             '69': contracts.get(token, OPTIMISM)?.l2Bridge,
             '79377087078960': contracts.get(token, ARBITRUM)?.l2Bridge,
-            '77': contracts.get(token, XDAI)?.l2Bridge
+            '77': contracts.get(token, XDAI)?.l2Bridge,
+            '80001': contracts.get(token, POLYGON)?.l2Bridge
           }
         })
       )
@@ -211,10 +220,13 @@ function startWatchers (
           l2BridgeContract: contracts.get(token, network).l2Bridge,
           // TODO
           contracts: {
+            '1': contracts.get(token, ETHEREUM)?.l1Bridge,
             '42': contracts.get(token, ETHEREUM)?.l1Bridge,
+            '5': contracts.get(token, ETHEREUM)?.l1Bridge,
             '69': contracts.get(token, OPTIMISM)?.l2Bridge,
             '79377087078960': contracts.get(token, ARBITRUM)?.l2Bridge,
-            '77': contracts.get(token, XDAI)?.l2Bridge
+            '77': contracts.get(token, XDAI)?.l2Bridge,
+            '80001': contracts.get(token, POLYGON)?.l2Bridge
           }
         })
       )
@@ -259,10 +271,13 @@ function startChallengeWatchers (_tokens?: string[], _networks?: string[]) {
           l1BridgeContract: contracts.get(token, ETHEREUM).l1Bridge,
           l2BridgeContract: contracts.get(token, network).l2Bridge,
           contracts: {
+            '1': contracts.get(token, ETHEREUM)?.l1Bridge,
             '42': contracts.get(token, ETHEREUM)?.l1Bridge,
+            '5': contracts.get(token, ETHEREUM)?.l1Bridge,
             '69': contracts.get(token, OPTIMISM)?.l2Bridge,
             '79377087078960': contracts.get(token, ARBITRUM)?.l2Bridge,
-            '77': contracts.get(token, XDAI)?.l2Bridge
+            '77': contracts.get(token, XDAI)?.l2Bridge,
+            '80001': contracts.get(token, POLYGON)?.l2Bridge
           }
         })
       )
@@ -283,10 +298,13 @@ function startCommitTransferWatchers () {
           l2BridgeContract: contracts.get[token][network].l2Bridge,
           // TODO
           contracts: {
+            '1': contracts.get(token, ETHEREUM)?.l1Bridge,
             '42': contracts.get(token, ETHEREUM)?.l1Bridge,
+            '5': contracts.get(token, ETHEREUM)?.l1Bridge,
             '69': contracts.get(token, OPTIMISM)?.l2Bridge,
             '79377087078960': contracts.get(token, ARBITRUM)?.l2Bridge,
-            '77': contracts.get(token, XDAI)?.l2Bridge
+            '77': contracts.get(token, XDAI)?.l2Bridge,
+            '80001': contracts.get(token, POLYGON)?.l2Bridge
           }
         })
       )

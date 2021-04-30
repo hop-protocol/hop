@@ -1,6 +1,6 @@
 import '../moduleAlias'
 import { Contract } from 'ethers'
-import { wait, isL1NetworkId } from 'src/utils'
+import { wait, networkSlugToId, isL1NetworkId } from 'src/utils'
 import BaseWatcher from './helpers/BaseWatcher'
 import Bridge from './helpers/Bridge'
 import L1Bridge from './helpers/L1Bridge'
@@ -50,6 +50,7 @@ class StakeWatcher extends BaseWatcher {
         try {
           await this.checkStake()
         } catch (err) {
+          this.logger.error(`check state error: ${err.message}`)
           this.notifier.error(`check state error: ${err.message}`)
         }
         await wait(this.interval)
@@ -87,7 +88,9 @@ class StakeWatcher extends BaseWatcher {
     if (credit < this.stakeMinThreshold) {
       if (balance < this.stakeAmount) {
         if (!isL1) {
-          const l1Bridge = new L1Bridge(this.contracts['42'])
+          const l1Bridge = new L1Bridge(
+            this.contracts[networkSlugToId('ethereum')]
+          )
           const l1Token = await l1Bridge.l1CanonicalToken()
           const l1Balance = await l1Token.getBalance()
           this.logger.debug(`l1 token balance:`, l1Balance)
@@ -110,6 +113,8 @@ class StakeWatcher extends BaseWatcher {
             this.logger.debug(`convert tx: ${tx?.hash}`)
             this.notifier.info(`convert tx: ${tx?.hash}`)
             await tx.wait()
+            // wait enough time for canonical token transfer
+            await wait(300 * 1000)
             return
           }
         }

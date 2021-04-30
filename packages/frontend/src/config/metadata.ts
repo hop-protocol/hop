@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     USDC: {
       symbol: 'USDC',
       name: 'USDC',
-      decimals: 6,
+      decimals: 18, // TODO: change to 6 with new contracts
       image: UsdcLogo
     },
     WBTC: {

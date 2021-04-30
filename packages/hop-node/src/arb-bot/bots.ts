@@ -3,10 +3,10 @@ import ArbBot from './ArbBot'
 import wallets from 'src/wallets'
 import contracts from 'src/contracts'
 import { config, metadata } from 'src/config'
-import { ETHEREUM, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
+import { ETHEREUM, OPTIMISM, ARBITRUM, XDAI, POLYGON } from 'src/constants'
 
 const tokenSymbols = Object.keys(config.tokens)
-const networks = [ARBITRUM, OPTIMISM, XDAI]
+const networks = [ARBITRUM, OPTIMISM, XDAI, POLYGON]
 
 export type Config = {
   minThreshold: number

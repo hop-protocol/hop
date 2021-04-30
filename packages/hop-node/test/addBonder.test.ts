@@ -1,9 +1,9 @@
 import { privateKey, governancePrivateKey } from './config'
 import { User } from './helpers'
 // @ts-ignore
-import { ETHEREUM, XDAI, OPTIMISM, DAI } from 'src/constants'
+import { ETHEREUM, XDAI, OPTIMISM, DAI, POLYGON } from 'src/constants'
 
-const network = ETHEREUM
+const network = POLYGON
 const token = 'USDC'
 
 test(

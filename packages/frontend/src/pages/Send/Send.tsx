@@ -117,7 +117,6 @@ const Send: FC = () => {
   const [toNetwork, setToNetwork] = useState<Network>()
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
-  const [isFromLastChanged, setIsFromLastChanged] = useState<boolean>(true)
   const [sending, setSending] = useState<boolean>(false)
   const [exchangeRate, setExchangeRate] = useState<number>(0)
   const [slippageTolerance, setSlippageTolerance] = useState<number>(0.5)
@@ -174,12 +173,6 @@ const Send: FC = () => {
     }
   }
 
-  const updateAmountIn = async (amountOut: string) => {
-    // ToDo: Remove reverse calculation
-    console.error('Reverse calculation is unimplemented')
-    return BigNumber.from('0')
-  }
-
   const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value
     const newSelectedToken = tokens.find(token => token.symbol === tokenSymbol)
@@ -189,11 +182,10 @@ const Send: FC = () => {
   }
 
   const handleSwitchDirection = () => {
-    setToTokenAmount(fromTokenAmount)
-    setFromTokenAmount(toTokenAmount)
+    // setToTokenAmount(fromTokenAmount)
+    setToTokenAmount('')
     setFromNetwork(toNetwork)
     setToNetwork(fromNetwork)
-    setIsFromLastChanged(!isFromLastChanged)
   }
 
   useEffect(() => {
@@ -205,18 +197,6 @@ const Send: FC = () => {
       updateAmountOut(fromTokenAmount)
     }
   }, [toNetwork])
-
-  // Control toTokenAmount when fromTokenAmount was edited last
-  useEffect(() => {
-    if (!isFromLastChanged) return
-    updateAmountOut(fromTokenAmount)
-  }, [isFromLastChanged])
-
-  // Control fromTokenAmount when toTokenAmount was edited last
-  useEffect(() => {
-    if (isFromLastChanged) return
-    updateAmountIn(toTokenAmount)
-  }, [isFromLastChanged])
 
   useEffect(() => {
     const update = async () => {
@@ -717,7 +697,6 @@ const Send: FC = () => {
 
           const amountIn = normalizeNumberInput(value)
           setFromTokenAmount(amountIn)
-          setIsFromLastChanged(true)
           updateAmountOut(amountIn)
         }}
         selectedNetwork={fromNetwork}
@@ -739,18 +718,6 @@ const Send: FC = () => {
         value={toTokenAmount}
         token={selectedToken}
         label={'To (estimated)'}
-        onChange={value => {
-          if (!value) {
-            setToTokenAmount('')
-            setFromTokenAmount('')
-            return
-          }
-
-          const amountOut = normalizeNumberInput(value)
-          setToTokenAmount(amountOut)
-          setIsFromLastChanged(false)
-          updateAmountIn(amountOut)
-        }}
         selectedNetwork={toNetwork}
         networkOptions={networks}
         onNetworkChange={network => {

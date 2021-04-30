@@ -211,6 +211,22 @@ const Send: FC = () => {
     setToNetwork(fromNetwork)
   }
 
+  const handleToNetworkChange = (network: Network | undefined) => {
+    if (network === fromNetwork) {
+      handleSwitchDirection()
+    } else {
+      setToNetwork(network)
+    }
+  }
+
+  const handleFromNetworkChange = (network: Network | undefined) => {
+    if (network === toNetwork) {
+      handleSwitchDirection()
+    } else {
+      setFromNetwork(network)
+    }
+  }
+
   useEffect(() => {
     updateAmountOut(fromTokenAmount)
   }, [fromNetwork])
@@ -727,9 +743,7 @@ const Send: FC = () => {
         }}
         selectedNetwork={fromNetwork}
         networkOptions={networks}
-        onNetworkChange={network => {
-          setFromNetwork(network)
-        }}
+        onNetworkChange={handleFromNetworkChange}
         balance={fromBalance}
         loadingBalance={loadingFromBalance}
       />
@@ -745,9 +759,7 @@ const Send: FC = () => {
         label={'To (estimated)'}
         selectedNetwork={toNetwork}
         networkOptions={networks}
-        onNetworkChange={network => {
-          setToNetwork(network)
-        }}
+        onNetworkChange={handleToNetworkChange}
         balance={toBalance}
         loadingBalance={loadingToBalance}
         disableInput

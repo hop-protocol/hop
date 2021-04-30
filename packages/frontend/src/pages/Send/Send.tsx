@@ -224,7 +224,7 @@ const Send: FC = () => {
         availableLiquidity,
         selectedToken.decimals
       )
-      const errorMessage = `Insufficient liquidity. There is ${formattedAmount} ${selectedToken.symbol}`
+      const errorMessage = `Insufficient liquidity. There is ${formattedAmount} ${selectedToken.symbol} available on ${toNetwork.name}.`
       if (!isAvailable) {
         setError(errorMessage)
       } else {

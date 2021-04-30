@@ -6,14 +6,14 @@ import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import MenuItem from '@material-ui/core/MenuItem'
+import Skeleton from '@material-ui/lab/Skeleton'
 import LargeTextField from 'src/components/LargeTextField'
 import FlatSelect from 'src/components/selects/FlatSelect'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import { useApp } from 'src/contexts/AppContext'
-import useInterval from 'src/hooks/useInterval'
 import { commafy } from 'src/utils'
-import logger from 'src/logger'
+import useBalance from 'src/pages/Send/useBalance'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -98,37 +98,8 @@ const AmountSelectorCard: FC<Props> = props => {
   const styles = useStyles()
   const { user } = useApp()
 
-  const [balance, setBalance] = useState('0.00')
+  const { balance, loadingBalance } = useBalance(token, selectedNetwork)
 
-  useEffect(() => {
-    if (onBalanceChange) {
-      onBalanceChange(Number(balance))
-    }
-  }, [balance])
-
-  const getBalance = useCallback(() => {
-    const _getBalance = async () => {
-      if (user && token && selectedNetwork) {
-        try {
-          const _balance = await user.getBalance(token, selectedNetwork)
-          setBalance(formatUnits(_balance.toString(), token.decimals))
-        } catch (err) {
-          setBalance('')
-          throw err
-        }
-      }
-    }
-
-    _getBalance().catch(logger.error)
-  }, [user, token, selectedNetwork])
-
-  useEffect(() => {
-    getBalance()
-  }, [getBalance, user, token, selectedNetwork])
-
-  useInterval(() => {
-    getBalance()
-  }, 5e3)
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
@@ -153,18 +124,24 @@ const AmountSelectorCard: FC<Props> = props => {
         <Typography variant="subtitle2" color="textSecondary">
           {label}
         </Typography>
-        {balance ? (
-          <div className={styles.balance}>
-            {Number(balance) > 0 && !disableInput ? (
-              <button className={styles.maxButton} onClick={handleMaxClick}>
-                MAX
-              </button>
-            ) : null}
-            <Typography variant="subtitle2" color="textSecondary">
-              Balance: {commafy(balance)}
-            </Typography>
-          </div>
-        ) : null}
+        {
+          loadingBalance
+          ? <Skeleton variant="text" width="20.0rem"></Skeleton>
+          : balance
+          ? (
+            <div className={styles.balance}>
+              {Number(balance) > 0 && !disableInput ? (
+                <button className={styles.maxButton} onClick={handleMaxClick}>
+                  MAX
+                </button>
+              ) : null}
+              <Typography variant="subtitle2" color="textSecondary">
+                Balance: {commafy(balance)}
+              </Typography>
+            </div>
+          )
+          : null
+        }
       </Box>
       <Grid container alignItems="center">
         <Grid item xs={6}>

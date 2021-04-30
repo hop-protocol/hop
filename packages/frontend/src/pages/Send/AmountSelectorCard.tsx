@@ -126,7 +126,7 @@ const AmountSelectorCard: FC<Props> = props => {
         </Typography>
         {
           loadingBalance
-          ? <Skeleton variant="text" width="20.0rem"></Skeleton>
+          ? <Skeleton variant="text" width="15.0rem"></Skeleton>
           : balance
           ? (
             <div className={styles.balance}>

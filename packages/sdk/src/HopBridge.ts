@@ -417,11 +417,18 @@ class HopBridge extends Base {
 
     const saddleSwap = await this.getSaddleSwap(chain, this.signer)
 
-    return saddleSwap.calculateSwap(
-      TokenIndex.CANONICAL_TOKEN,
-      TokenIndex.HOP_BRIDGE_TOKEN,
-      amount
-    )
+    let amountOut = BigNumber.from('0')
+    try {
+      amountOut = await saddleSwap.calculateSwap(
+        TokenIndex.CANONICAL_TOKEN,
+        TokenIndex.HOP_BRIDGE_TOKEN,
+        amount
+      )
+    } catch (err) {
+      // noop
+    }
+
+    return amountOut
   }
 
   private async _calcFromHTokenAmount (
@@ -434,11 +441,18 @@ class HopBridge extends Base {
 
     const saddleSwap = await this.getSaddleSwap(chain, this.signer)
 
-    return saddleSwap.calculateSwap(
-      TokenIndex.HOP_BRIDGE_TOKEN,
-      TokenIndex.CANONICAL_TOKEN,
-      amount
-    )
+    let amountOut = BigNumber.from('0')
+    try {
+      amountOut = await saddleSwap.calculateSwap(
+        TokenIndex.HOP_BRIDGE_TOKEN,
+        TokenIndex.CANONICAL_TOKEN,
+        amount
+      )
+    } catch (err) {
+      // noop
+    }
+
+    return amountOut
   }
 
   private async _sendL1ToL1 (input: SendL1ToL1Input) {

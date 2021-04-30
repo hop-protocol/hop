@@ -1,4 +1,5 @@
-import React, { FC, ChangeEvent, useState, useEffect, useCallback } from 'react'
+import React, { useMemo, FC, ChangeEvent } from 'react'
+import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
@@ -11,9 +12,7 @@ import LargeTextField from 'src/components/LargeTextField'
 import FlatSelect from 'src/components/selects/FlatSelect'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
-import { useApp } from 'src/contexts/AppContext'
 import { commafy } from 'src/utils'
-import useBalance from 'src/pages/Send/useBalance'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -79,7 +78,8 @@ type Props = {
   selectedNetwork?: Network
   networkOptions: Network[]
   onNetworkChange: (network?: Network) => void
-  onBalanceChange?: (balance: number) => void
+  balance?: BigNumber,
+  loadingBalance?: boolean
   disableInput?: boolean
 }
 
@@ -92,14 +92,21 @@ const AmountSelectorCard: FC<Props> = props => {
     selectedNetwork,
     networkOptions,
     onNetworkChange,
-    onBalanceChange,
+    balance,
+    loadingBalance = false,
     disableInput = false
   } = props
   const styles = useStyles()
-  const { user } = useApp()
 
-  const { balance, loadingBalance } = useBalance(token, selectedNetwork)
-
+  const balanceLabel = useMemo(() => {
+    let label: string = ''
+    if (token && balance) {
+      label = formatUnits(balance, token?.decimals)
+      label = Number(label).toFixed(4)
+      label = commafy(label)
+    }
+    return label
+  }, [balance])
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
@@ -136,7 +143,7 @@ const AmountSelectorCard: FC<Props> = props => {
                 </button>
               ) : null}
               <Typography variant="subtitle2" color="textSecondary">
-                Balance: {commafy(balance)}
+                Balance: {balanceLabel}
               </Typography>
             </div>
           )

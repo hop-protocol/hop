@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { formatUnits } from 'ethers/lib/utils'
+import { BigNumber } from 'ethers'
 import { useApp } from 'src/contexts/AppContext'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
@@ -8,8 +8,8 @@ import useInterval from 'src/hooks/useInterval'
 
 const useBalance = (token: Token | undefined, network: Network | undefined) => {
   const { user } = useApp()
-  const [balance, setBalance] = useState('')
-  const [loadingBalance, setLoadingBalance] = useState(false)
+  const [balance, setBalance] = useState<BigNumber>()
+  const [loading, setLoading] = useState(false)
   const currentToken = useRef<Token>()
   const currentNetwork = useRef<Network>()
 
@@ -20,21 +20,21 @@ const useBalance = (token: Token | undefined, network: Network | undefined) => {
           (currentNetwork.current && !network.eq(currentNetwork.current))
           || (currentToken.current && !token.eq(currentToken.current))
         ) {
-          setLoadingBalance(true)
+          setLoading(true)
         }
 
         try {
           const _balance = await user.getBalance(token, network)
-          setBalance(formatUnits(_balance.toString(), token.decimals))
+          setBalance(_balance)
         } catch (err) {
-          setBalance('')
+          setBalance(undefined)
           throw err
         }
       } else {
-        setBalance('')
+        setBalance(undefined)
       }
 
-      setLoadingBalance(false)
+      setLoading(false)
       currentToken.current = token
       currentNetwork.current = network
     }
@@ -50,7 +50,7 @@ const useBalance = (token: Token | undefined, network: Network | undefined) => {
     getBalance()
   }, 5e3)
 
-  return { balance, loadingBalance }
+  return { balance, loading }
 }
 
 export default useBalance

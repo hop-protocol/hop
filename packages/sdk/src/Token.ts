@@ -3,18 +3,16 @@ import { Chain, Token as TokenModel } from './models'
 import { MaxUint256 } from './constants'
 import { addresses, chains } from './config'
 import { erc20Abi } from '@hop-protocol/abi'
-import { TChain, TAmount } from './types'
+import { TChain, TProvider, TAmount } from './types'
+import Base from './Base'
 
 /**
  * Class reprensenting ERC20 Token
  * @namespace Token
  */
-class Token extends TokenModel {
-  /** Ethers signer or provider */
-  public signer: Signer | providers.Provider
-
-  /** Network name */
-  network: string
+class Token extends Base {
+  /** Token model */
+  public model: TokenModel
 
   // TODO: clean up and remove unused parameters.
   /**
@@ -37,7 +35,8 @@ class Token extends TokenModel {
     name: string,
     signer?: Signer | providers.Provider
   ) {
-    super(chainId, address, decimals, symbol, name)
+    super(network, signer)
+    this.model = new TokenModel(chainId, address, decimals, symbol, name)
     this.network = network
     if (signer) {
       this.signer = signer
@@ -164,81 +163,35 @@ class Token extends TokenModel {
    */
   public async getErc20 (chain: TChain) {
     chain = this.toChainModel(chain)
-    const tokenSymbol = this.symbol
     let tokenAddress: string
     if (chain.isL1) {
-      tokenAddress =
-        addresses[this.network][tokenSymbol][chain.slug].l1CanonicalToken
+      tokenAddress = this.getL1CanonicalTokenAddress(this.symbol, chain)
     } else {
-      tokenAddress =
-        addresses[this.network][tokenSymbol][chain.slug].l2CanonicalToken
+      tokenAddress = this.getL2CanonicalTokenAddress(this.symbol, chain)
     }
 
     const provider = await this.getSignerOrProvider(chain)
     return new Contract(tokenAddress, erc20Abi, provider)
   }
 
-  /**
-   * @desc Returns the connected signer address.
-   * @returns {String} Ethers signer address.
-   * @example
-   *```js
-   *import { Hop } from '@hop-protocol/sdk'
-   *
-   *const hop = new Hop()
-   *const address = await hop.getSignerAddress()
-   *console.log(address)
-   *```
-   */
-  public async getSignerAddress () {
-    if (!this.signer) {
-      throw new Error('signer not connected')
-    }
-    return (this.signer as Signer)?.getAddress()
+  get chainId () {
+    return this.model.chainId
   }
 
-  private async getSignerOrProvider (
-    chain: TChain,
-    signer: Signer = this.signer as Signer
-  ) {
-    chain = this.toChainModel(chain)
-    if (!signer) {
-      return chain.provider
-    }
-    const connectedChainId = await signer.getChainId()
-    if (connectedChainId !== chain.chainId) {
-      return chain.provider
-    }
-    return this.signer
+  get address () {
+    return this.model.address
   }
 
-  private toChainModel (chain: TChain) {
-    if (typeof chain === 'string') {
-      return Chain.fromSlug(chain)
-    }
-
-    chain.provider = this.getChainProvider(chain)
-    chain.chainId = this.getChainId(chain)
-    return chain
+  get decimals () {
+    return this.model.decimals
   }
 
-  private getChainId (chain: Chain) {
-    const { chainId } = chains[this.network][chain.slug]
-    return Number(chainId)
+  get symbol () {
+    return this.model.symbol
   }
 
-  private getChainProvider (chain: Chain) {
-    const { rpcUrl } = chains[this.network][chain.slug]
-    return new providers.StaticJsonRpcProvider(rpcUrl)
-  }
-
-  private txOverrides (chain: Chain) {
-    const txOptions: any = {}
-    if (chain.equals(Chain.Optimism)) {
-      txOptions.gasPrice = 0
-      txOptions.gasLimit = 8000000
-    }
-    return txOptions
+  get name () {
+    return this.model.name
   }
 }
 

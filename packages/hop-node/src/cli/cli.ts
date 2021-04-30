@@ -15,7 +15,7 @@ import {
   setNetworkRpcUrl
 } from 'src/config'
 import Logger, { setLogLevel } from 'src/logger'
-import { ETHEREUM, OPTIMISM, ARBITRUM, XDAI } from 'src/constants'
+import { ETHEREUM, OPTIMISM, ARBITRUM, XDAI, POLYGON } from 'src/constants'
 import arbbots from 'src/arb-bot/bots'
 import {
   startWatchers,
@@ -471,7 +471,7 @@ async function validateConfig (config: any) {
   await validateKeys(validSectionKeys, sectionKeys)
 
   if (config['networks']) {
-    const validNetworkKeys = [ETHEREUM, OPTIMISM, ARBITRUM, XDAI]
+    const validNetworkKeys = [ETHEREUM, OPTIMISM, ARBITRUM, XDAI, POLYGON]
     const networkKeys = Object.keys(config['networks'])
     await validateKeys(validNetworkKeys, networkKeys)
   }

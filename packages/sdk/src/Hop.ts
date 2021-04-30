@@ -4,7 +4,7 @@ import { Chain, Token } from './models'
 import { wait } from './utils'
 import HopBridge from './HopBridge'
 import CanonicalBridge from './CanonicalBridge'
-import { TChain, TToken } from './types'
+import { TChain, TToken, TProvider } from './types'
 import Base from './Base'
 import _version from './version'
 
@@ -22,9 +22,6 @@ enum Event {
  * @namespace Hop
  */
 class Hop extends Base {
-  /** Ethers signer */
-  public signer: Signer
-
   /** Event enum */
   static Event = Event
 
@@ -64,11 +61,8 @@ class Hop extends Base {
    *const hop = new Hop('mainnet', signer)
    *```
    */
-  constructor (network: string = 'kovan', signer?: Signer) {
-    super(network)
-    if (signer) {
-      this.signer = signer
-    }
+  constructor (network: string = 'kovan', signer?: TProvider) {
+    super(network, signer)
   }
 
   /**
@@ -131,7 +125,7 @@ class Hop extends Base {
    *hop = hop.connect(signer)
    *```
    */
-  connect (signer: Signer) {
+  connect (signer: TProvider) {
     this.signer = signer
     return new Hop(this.network, signer)
   }
@@ -149,7 +143,7 @@ class Hop extends Base {
    *```
    */
   public getSignerAddress () {
-    return this.signer?.getAddress()
+    return (this.signer as Signer).getAddress()
   }
 
   /**

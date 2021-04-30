@@ -1,6 +1,5 @@
 import { Signer, Contract } from 'ethers'
 import { saddleSwapAbi } from '@hop-protocol/abi'
-import { addresses } from './config'
 import { Chain } from './models'
 import { TChain, TToken, TAmount, TProvider } from './types'
 import TokenClass from './Token'
@@ -11,9 +10,6 @@ import Base from './Base'
  * @namespace AMM
  */
 class AMM extends Base {
-  /** Ethers signer */
-  public signer: TProvider
-
   /** Chain model */
   public chain: Chain
 
@@ -41,15 +37,12 @@ class AMM extends Base {
     chain?: TChain,
     signer?: TProvider
   ) {
-    super(network)
+    super(network, signer)
     if (!token) {
       throw new Error('token is required')
     }
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    if (signer) {
-      this.signer = signer
-    }
     if (chain) {
       this.chain = chain
     }
@@ -147,8 +140,7 @@ class AMM extends Base {
    * @returns {String} address
    */
   public async getCanonicalTokenAddress () {
-    return addresses[this.network][this.token.symbol][this.chain.slug]
-      .l2CanonicalToken
+    return this.getL2CanonicalTokenAddress(this.token, this.chain)
   }
 
   /**
@@ -156,8 +148,7 @@ class AMM extends Base {
    * @returns {String} address
    */
   public async getHopTokenAddress () {
-    return addresses[this.network][this.token.symbol][this.chain.slug]
-      .l2HopBridgeToken
+    return this.getL2HopBridgeTokenAddress(this.token, this.chain)
   }
 
   /**
@@ -167,22 +158,9 @@ class AMM extends Base {
    */
   public async getSaddleSwap (chain: TChain) {
     chain = this.toChainModel(chain)
-    const tokenSymbol = this.token.symbol
-    const saddleSwapAddress =
-      addresses[this.network][tokenSymbol][chain.slug].l2SaddleSwap
+    const saddleSwapAddress = this.getL2SaddleSwapAddress(this.token, chain)
     const provider = await this.getSignerOrProvider(chain)
     return new Contract(saddleSwapAddress, saddleSwapAbi, provider)
-  }
-
-  /**
-   * @desc Returns the connected signer address.
-   * @returns {String} Ethers signer address
-   */
-  public getSignerAddress () {
-    if (!this.signer) {
-      throw new Error('signer not connected')
-    }
-    return (this.signer as Signer)?.getAddress()
   }
 
   /**
@@ -193,33 +171,6 @@ class AMM extends Base {
   public get defaultDeadlineSeconds () {
     const defaultDeadlineMinutes = 30
     return (Date.now() / 1000 + defaultDeadlineMinutes * 60) | 0
-  }
-
-  /**
-   * @desc Returns the connected signer if it's connected to the specified
-   * chain id, otherwise it returns a regular provider.
-   * @param {Object} chain - Chain name or model
-   * @param {Object} signer - Ethers signer or provider
-   * @returns {Object} Ethers signer or provider
-   */
-  private async getSignerOrProvider (
-    chain: TChain,
-    signer: TProvider = this.signer
-  ) {
-    chain = this.toChainModel(chain)
-    if (!signer) {
-      return chain.provider
-    }
-    if (signer instanceof Signer) {
-      if (!signer.provider) {
-        return signer.connect(chain.provider)
-      }
-      const connectedChainId = await signer.getChainId()
-      if (connectedChainId !== chain.chainId) {
-        return chain.provider
-      }
-    }
-    return signer
   }
 
   /**

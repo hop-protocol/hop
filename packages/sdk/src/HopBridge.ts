@@ -1,6 +1,5 @@
 import { ethers, Signer, Contract, BigNumber } from 'ethers'
 import { Chain } from './models'
-import { addresses } from './config'
 import {
   l1BridgeAbi,
   l2BridgeAbi,
@@ -9,7 +8,7 @@ import {
   l2AmmWrapperAbi
 } from '@hop-protocol/abi'
 import TokenClass from './Token'
-import { TChain, TToken, TAmount } from './types'
+import { TChain, TToken, TAmount, TProvider } from './types'
 import Base from './Base'
 import AMM from './AMM'
 import _version from './version'
@@ -81,9 +80,6 @@ class HopBridge extends Base {
   /** Hop Token class */
   public hopToken: TokenClass
 
-  /** Ethers Signer */
-  public signer: Signer
-
   /** Source Chain model */
   public sourceChain: Chain
 
@@ -113,12 +109,12 @@ class HopBridge extends Base {
    */
   constructor (
     network: string,
-    signer: Signer,
+    signer: TProvider,
     token: TToken,
     sourceChain?: TChain,
     destinationChain?: TChain
   ) {
-    super(network)
+    super(network, signer)
     if (!token) {
       throw new Error('token symbol is required')
     }
@@ -396,15 +392,18 @@ class HopBridge extends Base {
     deadline: number
   ) {
     sourceChain = this.toChainModel(sourceChain)
-    const tokenSymbol = this.token.symbol
     let saddleSwap: Contract
     let tokenIndexFrom: number
     let tokenIndexTo: number
 
-    let l2CanonicalTokenAddress =
-      addresses[this.network][tokenSymbol][sourceChain.slug].l2CanonicalToken
-    let l2HopBridgeTokenAddress =
-      addresses[this.network][tokenSymbol][sourceChain.slug].l2HopBridgeToken
+    let l2CanonicalTokenAddress = this.getL2CanonicalTokenAddress(
+      this.token,
+      sourceChain
+    )
+    let l2HopBridgeTokenAddress = this.getL2HopBridgeTokenAddress(
+      this.token,
+      sourceChain
+    )
     saddleSwap = await this.getSaddleSwap(sourceChain, this.signer)
     let canonicalTokenIndex = Number(
       (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
@@ -434,10 +433,8 @@ class HopBridge extends Base {
    * @param {Object} signer - Ethers signer
    * @returns {Object} Ethers contract instance.
    */
-  public async getL1Bridge (signer: Signer = this.signer) {
-    const tokenSymbol = this.token.symbol
-    const bridgeAddress =
-      addresses[this.network][tokenSymbol]['ethereum'].l1Bridge
+  public async getL1Bridge (signer: TProvider = this.signer) {
+    const bridgeAddress = this.getL1BridgeAddress(this.token, Chain.Ethereum)
     const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
     return new Contract(bridgeAddress, l1BridgeAbi, provider)
   }
@@ -448,11 +445,9 @@ class HopBridge extends Base {
    * @param {Object} signer - Ethers signer
    * @returns {Object} Ethers contract instance.
    */
-  public async getL2Bridge (chain: TChain, signer: Signer = this.signer) {
+  public async getL2Bridge (chain: TChain, signer: TProvider = this.signer) {
     chain = this.toChainModel(chain)
-    const tokenSymbol = this.token.symbol
-    const bridgeAddress =
-      addresses[this.network][tokenSymbol][chain.slug].l2Bridge
+    const bridgeAddress = this.getL2BridgeAddress(this.token, chain)
     const provider = await this.getSignerOrProvider(chain, signer)
     return new Contract(bridgeAddress, l2BridgeAbi, provider)
   }
@@ -463,11 +458,9 @@ class HopBridge extends Base {
    * @param {Object} signer - Ethers signer
    * @returns {Object} Ethers contract instance.
    */
-  public async getAmmWrapper (chain: TChain, signer: Signer = this.signer) {
+  public async getAmmWrapper (chain: TChain, signer: TProvider = this.signer) {
     chain = this.toChainModel(chain)
-    const tokenSymbol = this.token.symbol
-    const ammWrapperAddress =
-      addresses[this.network][tokenSymbol][chain.slug].l2AmmWrapper
+    const ammWrapperAddress = this.getL2AmmWrapperAddress(this.token, chain)
     const provider = await this.getSignerOrProvider(chain, signer)
     return new Contract(ammWrapperAddress, l2AmmWrapperAbi, provider)
   }
@@ -478,11 +471,9 @@ class HopBridge extends Base {
    * @param {Object} signer - Ethers signer
    * @returns {Object} Ethers contract instance.
    */
-  public async getSaddleSwap (chain: TChain, signer: Signer = this.signer) {
+  public async getSaddleSwap (chain: TChain, signer: TProvider = this.signer) {
     chain = this.toChainModel(chain)
-    const tokenSymbol = this.token.symbol
-    const saddleSwapAddress =
-      addresses[this.network][tokenSymbol][chain.slug].l2SaddleSwap
+    const saddleSwapAddress = this.getL2SaddleSwapAddress(this.token, chain)
     const provider = await this.getSignerOrProvider(chain, signer)
     return new Contract(saddleSwapAddress, saddleSwapAbi, provider)
   }
@@ -496,7 +487,7 @@ class HopBridge extends Base {
    */
   public async getSaddleSwapReserves (
     chain: TChain,
-    signer: Signer = this.signer
+    signer: TProvider = this.signer
   ) {
     const saddleSwap = await this.getSaddleSwap(chain, signer)
     return Promise.all([
@@ -511,11 +502,15 @@ class HopBridge extends Base {
    * @param {Object} signer - Ethers signer
    * @returns {Object} Ethers contract instance.
    */
-  public async getSaddleLpToken (chain: TChain, signer: Signer = this.signer) {
+  public async getSaddleLpToken (
+    chain: TChain,
+    signer: TProvider = this.signer
+  ) {
     chain = this.toChainModel(chain)
-    const tokenSymbol = this.token.symbol
-    const saddleLpTokenAddress =
-      addresses[this.network][tokenSymbol][chain.slug].l2SaddleLpToken
+    const saddleLpTokenAddress = this.getL2SaddleLpTokenAddress(
+      this.token,
+      chain
+    )
     const provider = await this.getSignerOrProvider(chain, signer)
     return new Contract(saddleLpTokenAddress, saddleLpTokenAbi, provider)
   }
@@ -580,7 +575,7 @@ class HopBridge extends Base {
     if (!this.signer) {
       throw new Error('signer not connected')
     }
-    return this.signer?.getAddress()
+    return (this.signer as Signer)?.getAddress()
   }
 
   /**
@@ -858,7 +853,6 @@ class HopBridge extends Base {
     }
 
     const saddleSwap = await this.getSaddleSwap(chain, this.signer)
-
     return saddleSwap.calculateSwap(
       TokenIndex.CANONICAL_TOKEN,
       TokenIndex.HOP_BRIDGE_TOKEN,
@@ -875,7 +869,6 @@ class HopBridge extends Base {
     }
 
     const saddleSwap = await this.getSaddleSwap(chain, this.signer)
-
     return saddleSwap.calculateSwap(
       TokenIndex.HOP_BRIDGE_TOKEN,
       TokenIndex.CANONICAL_TOKEN,
@@ -883,37 +876,11 @@ class HopBridge extends Base {
     )
   }
 
-  private async getSignerOrProvider (
-    chain: TChain,
-    signer: Signer = this.signer
-  ) {
-    chain = this.toChainModel(chain)
-    if (!signer) {
-      return chain.provider
-    }
-    const connectedChainId = await signer.getChainId()
-    if (connectedChainId !== chain.chainId) {
-      return chain.provider
-    }
-    return this.signer
-  }
-
-  private async checkConnectedChain (signer: Signer, chain: Chain) {
-    const connectedChainId = await signer.getChainId()
+  private async checkConnectedChain (signer: TProvider, chain: Chain) {
+    const connectedChainId = await (signer as Signer)?.getChainId()
     if (connectedChainId !== chain.chainId) {
       throw new Error('invalid connected chain id')
     }
-  }
-
-  private txOverrides (chain: Chain) {
-    const txOptions: any = {}
-    if (chain.equals(Chain.Optimism)) {
-      txOptions.gasPrice = 0
-      txOptions.gasLimit = 8000000
-    } else if (chain.equals(Chain.xDai)) {
-      txOptions.gasLimit = 5000000
-    }
-    return txOptions
   }
 }
 

@@ -212,6 +212,7 @@ const AmountSelectorCard: FC<Props> = props => {
             onChange={handleInputChange}
             placeholder="0.0"
             units={token?.symbol}
+            disabled={disableInput}
           />
         </Grid>
       </Grid>

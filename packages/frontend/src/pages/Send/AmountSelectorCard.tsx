@@ -116,7 +116,11 @@ const AmountSelectorCard: FC<Props> = props => {
   }
   const handleMaxClick = () => {
     if (onChange) {
-      onChange(Number(balance).toString())
+      let max = ''
+      if (balance && token) {
+        max = formatUnits(balance, token.decimals)
+      }
+      onChange(max)
     }
   }
 

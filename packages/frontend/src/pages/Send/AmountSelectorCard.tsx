@@ -78,7 +78,7 @@ type Props = {
   selectedNetwork?: Network
   networkOptions: Network[]
   onNetworkChange: (network?: Network) => void
-  balance?: BigNumber,
+  balance?: BigNumber
   loadingBalance?: boolean
   disableInput?: boolean
 }
@@ -135,24 +135,20 @@ const AmountSelectorCard: FC<Props> = props => {
         <Typography variant="subtitle2" color="textSecondary">
           {label}
         </Typography>
-        {
-          loadingBalance
-          ? <Skeleton variant="text" width="15.0rem"></Skeleton>
-          : balance
-          ? (
-            <div className={styles.balance}>
-              {Number(balance) > 0 && !disableInput ? (
-                <button className={styles.maxButton} onClick={handleMaxClick}>
-                  MAX
-                </button>
-              ) : null}
-              <Typography variant="subtitle2" color="textSecondary">
-                Balance: {balanceLabel}
-              </Typography>
-            </div>
-          )
-          : null
-        }
+        {loadingBalance ? (
+          <Skeleton variant="text" width="15.0rem"></Skeleton>
+        ) : balance ? (
+          <div className={styles.balance}>
+            {Number(balance) > 0 && !disableInput ? (
+              <button className={styles.maxButton} onClick={handleMaxClick}>
+                MAX
+              </button>
+            ) : null}
+            <Typography variant="subtitle2" color="textSecondary">
+              Balance: {balanceLabel}
+            </Typography>
+          </div>
+        ) : null}
       </Box>
       <Grid container alignItems="center">
         <Grid item xs={6}>

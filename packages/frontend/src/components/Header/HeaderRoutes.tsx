@@ -52,7 +52,7 @@ const HeaderRoutes: FC<Props> = () => {
       {/* <Tab label="Vote" value="/vote" /> */}
       <Tab label="Convert" value="/convert" />
       {!isMainnet ? <Tab label="Faucet" value="/faucet" /> : null}
-      <Tab 
+      <Tab
         label={
           <Box display="flex" flexDirection="row" alignItems="center">
             Whitepaper

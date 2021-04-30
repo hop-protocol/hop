@@ -17,8 +17,8 @@ const useBalance = (token: Token | undefined, network: Network | undefined) => {
     const _getBalance = async () => {
       if (user && token && network) {
         if (
-          (currentNetwork.current && !network.eq(currentNetwork.current))
-          || (currentToken.current && !token.eq(currentToken.current))
+          (currentNetwork.current && !network.eq(currentNetwork.current)) ||
+          (currentToken.current && !token.eq(currentToken.current))
         ) {
           setLoading(true)
         }

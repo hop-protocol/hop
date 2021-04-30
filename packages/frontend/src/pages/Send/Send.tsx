@@ -131,7 +131,7 @@ const Send: FC = () => {
     } catch (err) {
       // noop
     }
-     return val
+    return val
   }, [fromTokenAmount])
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
   const [sending, setSending] = useState<boolean>(false)
@@ -148,14 +148,14 @@ const Send: FC = () => {
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(
     true
   )
-  const {
-    balance: fromBalance,
-    loading: loadingFromBalance
-  } = useBalance(selectedToken, fromNetwork)
-  const {
-    balance: toBalance,
-    loading: loadingToBalance
-  } = useBalance(selectedToken, toNetwork)
+  const { balance: fromBalance, loading: loadingFromBalance } = useBalance(
+    selectedToken,
+    fromNetwork
+  )
+  const { balance: toBalance, loading: loadingToBalance } = useBalance(
+    selectedToken,
+    toNetwork
+  )
 
   const bridge = sdk.bridge(selectedToken?.symbol)
   const availableLiquidity = useAvailableLiquidity(bridge, toNetwork?.slug)

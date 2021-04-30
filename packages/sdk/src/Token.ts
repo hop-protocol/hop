@@ -3,16 +3,29 @@ import { Chain, Token as TokenModel } from './models'
 import { MaxUint256 } from './constants'
 import { addresses, chains } from './config'
 import { erc20Abi } from '@hop-protocol/abi'
-import { TChain, TAmount } from './types'
+import { TChain, TProvider, TAmount } from './types'
+import Base from './Base'
 
 /**
  * Class reprensenting ERC20 Token
  * @namespace Token
  */
-class Token extends TokenModel {
-  public signer: Signer | providers.Provider
-  network: string
+class Token extends Base {
+  /** Token model */
+  public model: TokenModel
 
+  // TODO: clean up and remove unused parameters.
+  /**
+   * @desc Instantiates Token class.
+   * @param {String} network - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param {Number} chainId - Chain ID.
+   * @param {String} address - Token address.
+   * @param {Number} decimals - Token decimals.
+   * @param {String} symbol - Token symbol.
+   * @param {String} name - Token name.
+   * @param {Object} signer - Ethers signer.
+   * @returns {Object} Token class instance.
+   */
   constructor (
     network: string,
     chainId: number | string,
@@ -22,14 +35,20 @@ class Token extends TokenModel {
     name: string,
     signer?: Signer | providers.Provider
   ) {
-    super(chainId, address, decimals, symbol, name)
+    super(network, signer)
+    this.model = new TokenModel(chainId, address, decimals, symbol, name)
     this.network = network
     if (signer) {
       this.signer = signer
     }
   }
 
-  connect (signer: Signer | providers.Provider) {
+  /**
+   * @desc Returns a token instance with signer connected. Used for adding or changing signer.
+   * @param {Object} signer - Ethers `Signer` for signing transactions.
+   * @returns {Object} New Token SDK instance with connected signer.
+   */
+  public connect (signer: Signer | providers.Provider) {
     return new Token(
       this.network,
       this.chainId,
@@ -45,7 +64,7 @@ class Token extends TokenModel {
    * @desc Returns token allowance.
    * @param {Object} chain - Chain model.
    * @param {String} spender - spender address.
-   * @returns Transaction object.
+   * @returns {Object} Ethers Transaction object.
    * @example
    *```js
    *import { Hop, Chain, Token } from '@hop-protocol/sdk'
@@ -55,7 +74,7 @@ class Token extends TokenModel {
    *const allowance = bridge.allowance(Chain.xDai, spender)
    *```
    */
-  async allowance (chain: TChain, spender: string) {
+  public async allowance (chain: TChain, spender: string) {
     chain = this.toChainModel(chain)
     const tokenContract = await this.getErc20(chain)
     const address = await this.getSignerAddress()
@@ -69,7 +88,7 @@ class Token extends TokenModel {
    * @desc Returns token balance of signer.
    * @param {Object} chain - Chain model.
    * @param {String} spender - spender address.
-   * @returns Transaction object.
+   * @returns {Object} Ethers Transaction object.
    * @example
    *```js
    *import { Hop, Chain, Token } from '@hop-protocol/sdk'
@@ -79,7 +98,7 @@ class Token extends TokenModel {
    *const allowance = bridge.allowance(Chain.xDai, spender)
    *```
    */
-  async balanceOf (chain: TChain) {
+  public async balanceOf (chain: TChain) {
     chain = this.toChainModel(chain)
     const tokenContract = await this.getErc20(chain)
     const address = await this.getSignerAddress()
@@ -91,7 +110,7 @@ class Token extends TokenModel {
    * @param {Object} chain - Chain model.
    * @param {String} recipient - recipient address.
    * @param {String} amount - Token amount.
-   * @returns Transaction object.
+   * @returns {Object} Ethers Transaction object.
    * @example
    *```js
    *import { Hop, Chain, Token } from '@hop-protocol/sdk'
@@ -102,7 +121,7 @@ class Token extends TokenModel {
    *const tx = await bridge.erc20Transfer(Chain.Ethereum, spender, amount)
    *```
    */
-  async transfer (chain: TChain, recipient: string, amount: TAmount) {
+  public async transfer (chain: TChain, recipient: string, amount: TAmount) {
     chain = this.toChainModel(chain)
     const tokenContract = await this.getErc20(chain)
     return tokenContract.transfer(recipient, amount, this.txOverrides(chain))
@@ -113,7 +132,7 @@ class Token extends TokenModel {
    * @param {Object} chain - Chain model.
    * @param {String} spender - spender address.
    * @param {String} amount - amount allowed to spend.
-   * @returns Transaction object.
+   * @returns {Object} Ethers Transaction object.
    * @example
    *```js
    *import { Hop, Chain, Token } from '@hop-protocol/sdk'
@@ -124,7 +143,11 @@ class Token extends TokenModel {
    *const tx = await bridge.approve(Chain.xDai, spender, amount)
    *```
    */
-  async approve (chain: TChain, spender: string, amount: TAmount = MaxUint256) {
+  public async approve (
+    chain: TChain,
+    spender: string,
+    amount: TAmount = MaxUint256
+  ) {
     chain = this.toChainModel(chain)
     const tokenContract = await this.getErc20(chain)
     const allowance = await this.allowance(chain, spender)
@@ -133,71 +156,42 @@ class Token extends TokenModel {
     }
   }
 
-  async getErc20 (chain: TChain) {
+  /**
+   * @desc Returns a token Ethers contract instance.
+   * @param {Object} chain - Chain model.
+   * @returns {Object} Ethers contract instance.
+   */
+  public async getErc20 (chain: TChain) {
     chain = this.toChainModel(chain)
-    const tokenSymbol = this.symbol
     let tokenAddress: string
     if (chain.isL1) {
-      tokenAddress =
-        addresses[this.network][tokenSymbol][chain.slug].l1CanonicalToken
+      tokenAddress = this.getL1CanonicalTokenAddress(this.symbol, chain)
     } else {
-      tokenAddress =
-        addresses[this.network][tokenSymbol][chain.slug].l2CanonicalToken
+      tokenAddress = this.getL2CanonicalTokenAddress(this.symbol, chain)
     }
 
     const provider = await this.getSignerOrProvider(chain)
     return new Contract(tokenAddress, erc20Abi, provider)
   }
 
-  async getSignerAddress () {
-    if (!this.signer) {
-      throw new Error('signer not connected')
-    }
-    return (this.signer as Signer)?.getAddress()
+  get chainId () {
+    return this.model.chainId
   }
 
-  async getSignerOrProvider (
-    chain: TChain,
-    signer: Signer = this.signer as Signer
-  ) {
-    chain = this.toChainModel(chain)
-    if (!signer) {
-      return chain.provider
-    }
-    const connectedChainId = await signer.getChainId()
-    if (connectedChainId !== chain.chainId) {
-      return chain.provider
-    }
-    return this.signer
+  get address () {
+    return this.model.address
   }
 
-  private toChainModel (chain: TChain) {
-    if (typeof chain === 'string') {
-      return Chain.fromSlug(chain)
-    }
-
-    chain.provider = this.getChainProvider(chain)
-    chain.chainId = this.getChainId(chain)
-    return chain
+  get decimals () {
+    return this.model.decimals
   }
 
-  txOverrides (chain: Chain) {
-    const txOptions: any = {}
-    if (chain.equals(Chain.Optimism)) {
-      txOptions.gasPrice = 0
-      txOptions.gasLimit = 8000000
-    }
-    return txOptions
+  get symbol () {
+    return this.model.symbol
   }
 
-  getChainId (chain: Chain) {
-    const { chainId } = chains[this.network][chain.slug]
-    return Number(chainId)
-  }
-
-  getChainProvider (chain: Chain) {
-    const { rpcUrl } = chains[this.network][chain.slug]
-    return new providers.StaticJsonRpcProvider(rpcUrl)
+  get name () {
+    return this.model.name
   }
 }
 

@@ -21,8 +21,12 @@ docker-registry-push:
 	docker push hopprotocol/hop-node:$(REV)
 	docker push hopprotocol/hop-node:$(BRANCH)
 
-# Build docker image and push to AWS registry
+# Build docker image and push to registry
 docker-build-and-push: docker-build docker-image-tag docker-registry-push
+
+# Tag docker and push to registry
+docker-tag-and-push: docker-image-tag docker-registry-push
+
 docker-start:
 	docker run --env-file .env hopprotocol/hop-node
 

@@ -33,6 +33,10 @@ class Network {
   toString () {
     return this.name
   }
+
+  eq (otherNetwork: Network) {
+    return otherNetwork.networkId === this.networkId
+  }
 }
 
 export default Network

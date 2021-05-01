@@ -1,11 +1,12 @@
 import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
-import { wait } from 'src/utils'
+import { wait, networkIdToSlug } from 'src/utils'
 import { formatUnits } from 'ethers/lib/utils'
 import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
 import MerkleTree from 'src/utils/MerkleTree'
+import { XDAI, POLYGON } from 'src/constants'
 import BaseWatcher from './helpers/BaseWatcher'
 import L1Bridge from './helpers/L1Bridge'
 import L2Bridge from './helpers/L2Bridge'
@@ -115,6 +116,11 @@ class BondTransferRootWatcher extends BaseWatcher {
     chainId: string,
     commitedAt: number
   ) => {
+    const network = networkIdToSlug(this.l2Bridge.providerNetworkId)
+    // Don't bond transfer root on chains where exit period is less than 1 day
+    if (network === XDAI || network === POLYGON) {
+      return
+    }
     let dbTransferRoot: TransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
@@ -269,7 +275,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       'L1 bondTransferRoot tx',
       chalk.bgYellow.black.bold(tx.hash)
     )
-    this.notifier.info(`bondTransferRoot tx: ${tx.hash}`)
+    this.notifier.info(`chainId: ${chainId} bondTransferRoot tx: ${tx.hash}`)
   }
 
   handleTransfersCommittedEvent = async (

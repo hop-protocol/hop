@@ -36,7 +36,7 @@ const logger = new Logger('TEST')
 describe('bondWithdrawal', () => {
   let testPaths = [...L1ToL2Paths, ...L2ToL1Paths, ...L2ToL2Paths]
   // debug
-  testPaths = [[OPTIMISM, ETHEREUM]]
+  testPaths = [[XDAI, ETHEREUM]]
   for (let path of testPaths) {
     const [sourceNetwork, destNetwork] = path
     const label = `${sourceNetwork} -> ${destNetwork}`

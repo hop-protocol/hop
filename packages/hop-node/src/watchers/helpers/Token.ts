@@ -35,7 +35,12 @@ export default class Token extends ContractBase {
     return Number(formatUnits(allowance, await this.decimals()))
   }
 
+  @queue
   async approve (spender: string) {
-    return this.tokenContract.approve(spender, UINT256, this.txOverrides)
+    return this.tokenContract.approve(
+      spender,
+      UINT256,
+      await this.txOverrides()
+    )
   }
 }

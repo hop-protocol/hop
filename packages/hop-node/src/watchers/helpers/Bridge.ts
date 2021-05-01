@@ -184,7 +184,7 @@ export default class Bridge extends ContractBase {
     const tx = await this.bridgeContract.stake(
       bonder,
       parsedAmount,
-      this.txOverrides
+      await this.txOverrides()
     )
     await tx.wait()
     return tx
@@ -202,7 +202,7 @@ export default class Bridge extends ContractBase {
       amount,
       transferNonce,
       bonderFee,
-      this.txOverrides
+      await this.txOverrides()
     )
 
     await tx.wait()
@@ -219,7 +219,7 @@ export default class Bridge extends ContractBase {
       bonder,
       transferHashes,
       parsedAmount,
-      this.txOverrides
+      await this.txOverrides()
     )
 
     await tx.wait()

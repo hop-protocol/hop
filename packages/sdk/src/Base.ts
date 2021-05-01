@@ -72,12 +72,6 @@ class Base {
    */
   protected async getBumpedGasPrice (signer: TProvider, percent: number) {
     const gasPrice = await signer.getGasPrice()
-    console.log(
-      gasPrice
-        .mul(BigNumber.from(percent * 100))
-        .div(BigNumber.from(100))
-        .toString()
-    )
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
 

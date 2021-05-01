@@ -175,7 +175,7 @@ export default class L2Bridge extends Bridge {
   async commitTransfers (destinationChainId: string) {
     const tx = await this.l2BridgeContract.commitTransfers(
       destinationChainId,
-      this.txOverrides
+      await this.txOverrides()
     )
     await tx.wait()
     return tx
@@ -197,7 +197,7 @@ export default class L2Bridge extends Bridge {
       bonderFee,
       amountOutMin,
       deadline,
-      this.txOverrides
+      await this.txOverrides()
     )
 
     await tx.wait()

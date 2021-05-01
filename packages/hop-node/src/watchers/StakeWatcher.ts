@@ -31,8 +31,8 @@ class StakeWatcher extends BaseWatcher {
     })
     this.bridge = new Bridge(config.bridgeContract)
     this.token = new Token(config.tokenContract)
-    this.stakeMinThreshold = config.stakeMinThreshold
-    this.stakeAmount = config.stakeAmount
+    this.stakeMinThreshold = config.stakeMinThreshold || 0
+    this.stakeAmount = config.stakeAmount || 0
     this.contracts = config.contracts
   }
 
@@ -43,6 +43,8 @@ class StakeWatcher extends BaseWatcher {
       if (!isBonder) {
         this.logger.warn('not a bonder')
       }
+      const bonderAddress = await this.bridge.getBonderAddress()
+      this.logger.debug(`bonder address: ${bonderAddress}`)
       while (true) {
         if (!this.started) {
           return
@@ -85,7 +87,7 @@ class StakeWatcher extends BaseWatcher {
     this.logger.debug(`debit balance:`, debit)
 
     const isL1 = isL1NetworkId(this.token.providerNetworkId)
-    if (credit < this.stakeMinThreshold) {
+    if (credit < this.stakeMinThreshold || credit - debit < this.stakeAmount) {
       if (balance < this.stakeAmount) {
         if (!isL1) {
           const l1Bridge = new L1Bridge(

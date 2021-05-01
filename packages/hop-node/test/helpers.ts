@@ -13,7 +13,14 @@ import {
   saddleSwapAbi,
   arbitrumGlobalInboxAbi,
   l1xDaiForeignOmniBridgeAbi,
+  l1xDaiMessengerAbi,
+  l1OptimismMessengerAbi,
+  l1ArbitrumMessengerAbi,
+  l1PolygonMessengerAbi,
   l1xDaiMessengerWrapperAbi,
+  l1OptimismMessengerWrapperAbi,
+  l1ArbitrumMessengerWrapperAbi,
+  l1PolygonMessengerWrapperAbi,
   l1OptimismTokenBridgeAbi,
   l1PolygonPosRootChainManagerAbi,
   l2PolygonChildErc20Abi
@@ -136,10 +143,45 @@ export class User {
   }
 
   async getMessengerWrapperContract (network: string, token: string = DAI) {
-    const bridge = this.getHopBridgeContract(network, token)
-    const wrapperAddress = await bridge.crossDomainMessengerWrappers(77)
-    const wallet = this.getWallet(network)
-    return new Contract(wrapperAddress, l1xDaiMessengerWrapperAbi, wallet)
+    const bridge = this.getHopBridgeContract(ETHEREUM, token)
+    const chainId = networkSlugToId(network)
+    const wrapperAddress = await bridge.crossDomainMessengerWrappers(chainId)
+    const wallet = this.getWallet(ETHEREUM)
+    let abi: any
+    if (network === ARBITRUM) {
+      abi = l1ArbitrumMessengerWrapperAbi
+    } else if (network === OPTIMISM) {
+      abi = l1OptimismMessengerWrapperAbi
+    } else if (network === XDAI) {
+      abi = l1xDaiMessengerWrapperAbi
+    } else if (network === POLYGON) {
+      abi = l1PolygonMessengerWrapperAbi
+    }
+    return new Contract(wrapperAddress, abi, wallet)
+  }
+
+  async getMessengerContract (network: string, token: string = DAI) {
+    if (network === ETHEREUM) {
+      throw new Error('not supporsed')
+    }
+    const wrapper = await this.getMessengerWrapperContract(network, token)
+    const wallet = this.getWallet(ETHEREUM)
+    let messengerAddress: string
+    let abi: any
+    if (network === ARBITRUM) {
+      messengerAddress = await wrapper.arbInbox()
+      abi = l1ArbitrumMessengerAbi
+    } else if (network === OPTIMISM) {
+      messengerAddress = await wrapper.l1MessengerAddress()
+      abi = l1OptimismMessengerAbi
+    } else if (network === XDAI) {
+      messengerAddress = await wrapper.l1MessengerAddress()
+      abi = l1xDaiMessengerAbi
+    } else if (network === POLYGON) {
+      messengerAddress = await wrapper.address
+      abi = l1PolygonMessengerAbi
+    }
+    return new Contract(messengerAddress, abi, wallet)
   }
 
   getAmmWrapperContract (network: string, token: string = DAI) {
@@ -820,8 +862,50 @@ export class User {
 
   @queue
   async addBonder (network: string, token: string, newBonderAddress: string) {
-    const bridge = this.getHopBridgeContract(network, token)
-    return bridge.addBonder(newBonderAddress, this.txOverrides(network))
+    const address = newBonderAddress.replace('0x', '').toLowerCase()
+    const calldata = `0x5325937f000000000000000000000000${address}`
+    if (network === ETHEREUM) {
+      const bridge = this.getHopBridgeContract(network, token)
+      return bridge.addBonder(newBonderAddress, this.txOverrides(network))
+    } else if (network === XDAI) {
+      const l2Bridge = await this.getHopBridgeContract(network, token)
+      const messenger = await this.getMessengerContract(network, token)
+      return messenger.requireToPassMessage(
+        l2Bridge.address,
+        calldata,
+        2000000,
+        this.txOverrides(network)
+      )
+    } else if (network === OPTIMISM) {
+      const l2Bridge = await this.getHopBridgeContract(network, token)
+      const messenger = await this.getMessengerContract(network, token)
+      return messenger.sendMessage(
+        l2Bridge.address,
+        calldata,
+        9000000,
+        this.txOverrides(network)
+      )
+    } else if (network === POLYGON) {
+      const messenger = await this.getMessengerWrapperContract(network, token)
+      return messenger.sendCrossDomainMessage(
+        calldata,
+        this.txOverrides(network)
+      )
+    } else if (network === ARBITRUM) {
+      const l2Bridge = await this.getHopBridgeContract(network, token)
+      const messenger = await this.getMessengerContract(network, token)
+      return messenger.createRetryableTicket(
+        l2Bridge.address,
+        0,
+        0,
+        await this.getAddress(),
+        ethers.constants.AddressZero,
+        100000000000,
+        0,
+        calldata,
+        this.txOverrides(network)
+      )
+    }
   }
 
   async getCredit (network: string = ETHEREUM) {

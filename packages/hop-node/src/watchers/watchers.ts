@@ -15,9 +15,14 @@ import Logger from 'src/logger'
 const networks = [OPTIMISM, ARBITRUM, XDAI, POLYGON]
 const pubsubLogger = new Logger('pubsub', { color: 'magenta' })
 
+interface StakeAmounts {
+  [key: string]: number
+}
+
 function startStakeWatchers (
   _tokens?: string[],
-  _networks: string[] = networks
+  _networks: string[] = networks,
+  maxStakeAmounts: StakeAmounts = {}
 ) {
   if (!_tokens) {
     _tokens = Object.keys(config.tokens)
@@ -41,9 +46,8 @@ function startStakeWatchers (
           label: `${network} ${token}`,
           bridgeContract,
           tokenContract,
-          // TODO
-          stakeMinThreshold: 1,
-          stakeAmount: 10,
+          stakeMinThreshold: 0,
+          stakeAmount: maxStakeAmounts[token],
           // TODO
           contracts: {
             '1': contracts.get(token, ETHEREUM)?.l1Bridge,
@@ -64,6 +68,7 @@ type Config = {
   networks?: string[]
   bonder?: boolean
   challenger?: boolean
+  maxStakeAmounts?: StakeAmounts
 }
 
 function startWatchers (
@@ -72,7 +77,8 @@ function startWatchers (
     tokens: Object.keys(config.tokens),
     networks: networks,
     bonder: true,
-    challenger: false
+    challenger: false,
+    maxStakeAmounts: {}
   }
 ) {
   const orderNum = _config.order || 0
@@ -235,7 +241,9 @@ function startWatchers (
 
   if (_config?.bonder || _config?.bonder === undefined) {
     watchers.forEach(watcher => watcher.start())
-    watchers.push(...startStakeWatchers(_tokens, _networks))
+    watchers.push(
+      ...startStakeWatchers(_tokens, _networks, _config.maxStakeAmounts)
+    )
   }
 
   if (_config?.challenger) {

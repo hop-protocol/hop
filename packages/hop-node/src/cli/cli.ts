@@ -147,12 +147,17 @@ program
       if (order) {
         logger.log('order:', order)
       }
+      let maxStakeAmounts: any
+      if (config?.stake) {
+        maxStakeAmounts = config.stake
+      }
       startWatchers({
         order,
         tokens,
         networks,
         bonder,
-        challenger
+        challenger,
+        maxStakeAmounts
       })
       if (config?.roles?.arbBot) {
         const maxTradeAmount = 0
@@ -461,6 +466,7 @@ async function validateConfig (config: any) {
     'network',
     'networks',
     'tokens',
+    'stake',
     'roles',
     'db',
     'logging',

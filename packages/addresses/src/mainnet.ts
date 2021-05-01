@@ -8,6 +8,7 @@ export const addresses: Addresses = {
     },
     xdai: {
       l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
+      l1MessengerWrapper: '',
       l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
       l2CanonicalToken: '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83',
       l2Bridge: '0xF7fC69223fc2D9800FF3592292234c58964c7fA6',

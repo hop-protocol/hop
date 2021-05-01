@@ -60,7 +60,7 @@ const AppContextProvider: FC = ({ children }) => {
   const accountDetails = useAccountDetails()
   const txConfirm = useTxConfirm()
   const l1Network = networks?.[0]
-  const sdk = useMemo(() => new Hop(network), [])
+  const sdk = useMemo(() => new Hop(network, provider?.getSigner()), [provider])
 
   return (
     <AppContext.Provider

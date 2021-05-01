@@ -1,4 +1,5 @@
-import React, { FC, ChangeEvent, useState, useEffect, useCallback } from 'react'
+import React, { useMemo, FC, ChangeEvent } from 'react'
+import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
@@ -6,14 +7,12 @@ import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import MenuItem from '@material-ui/core/MenuItem'
+import Skeleton from '@material-ui/lab/Skeleton'
 import LargeTextField from 'src/components/LargeTextField'
 import FlatSelect from 'src/components/selects/FlatSelect'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
-import { useApp } from 'src/contexts/AppContext'
-import useInterval from 'src/hooks/useInterval'
 import { commafy } from 'src/utils'
-import logger from 'src/logger'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -79,7 +78,9 @@ type Props = {
   selectedNetwork?: Network
   networkOptions: Network[]
   onNetworkChange: (network?: Network) => void
-  onBalanceChange?: (balance: number) => void
+  balance?: BigNumber
+  loadingBalance?: boolean
+  disableInput?: boolean
 }
 
 const AmountSelectorCard: FC<Props> = props => {
@@ -91,42 +92,21 @@ const AmountSelectorCard: FC<Props> = props => {
     selectedNetwork,
     networkOptions,
     onNetworkChange,
-    onBalanceChange
+    balance,
+    loadingBalance = false,
+    disableInput = false
   } = props
   const styles = useStyles()
-  const { user } = useApp()
 
-  const [balance, setBalance] = useState('0.00')
-
-  useEffect(() => {
-    if (onBalanceChange) {
-      onBalanceChange(Number(balance))
+  const balanceLabel = useMemo(() => {
+    let label: string = ''
+    if (token && balance) {
+      label = formatUnits(balance, token?.decimals)
+      label = Number(label).toFixed(4)
+      label = commafy(label)
     }
+    return label
   }, [balance])
-
-  const getBalance = useCallback(() => {
-    const _getBalance = async () => {
-      if (user && token && selectedNetwork) {
-        try {
-          const _balance = await user.getBalance(token, selectedNetwork)
-          setBalance(formatUnits(_balance.toString(), token.decimals))
-        } catch (err) {
-          setBalance('')
-          throw err
-        }
-      }
-    }
-
-    _getBalance().catch(logger.error)
-  }, [user, token, selectedNetwork])
-
-  useEffect(() => {
-    getBalance()
-  }, [getBalance, user, token, selectedNetwork])
-
-  useInterval(() => {
-    getBalance()
-  }, 5e3)
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
@@ -136,7 +116,11 @@ const AmountSelectorCard: FC<Props> = props => {
   }
   const handleMaxClick = () => {
     if (onChange) {
-      onChange(Number(balance).toFixed(2))
+      let max = ''
+      if (balance && token) {
+        max = formatUnits(balance, token.decimals)
+      }
+      onChange(max)
     }
   }
 
@@ -151,15 +135,17 @@ const AmountSelectorCard: FC<Props> = props => {
         <Typography variant="subtitle2" color="textSecondary">
           {label}
         </Typography>
-        {balance ? (
+        {loadingBalance ? (
+          <Skeleton variant="text" width="15.0rem"></Skeleton>
+        ) : balance ? (
           <div className={styles.balance}>
-            {Number(balance) > 0 ? (
+            {Number(balance) > 0 && !disableInput ? (
               <button className={styles.maxButton} onClick={handleMaxClick}>
                 MAX
               </button>
             ) : null}
             <Typography variant="subtitle2" color="textSecondary">
-              Balance: {commafy(balance)}
+              Balance: {balanceLabel}
             </Typography>
           </div>
         ) : null}
@@ -210,6 +196,7 @@ const AmountSelectorCard: FC<Props> = props => {
             onChange={handleInputChange}
             placeholder="0.0"
             units={token?.symbol}
+            disabled={disableInput}
           />
         </Grid>
       </Grid>

@@ -19,20 +19,8 @@ const useStyles = makeStyles((theme: Theme) => ({
     padding: '6px 12px',
     alignItems: 'center'
   },
-  whitepaperTab: {
-    color: '#46525C',
-    opacity: '0.7',
-    fontSize: '1.8rem',
-    fontWeight: 700,
-    lineHeight: '1.75',
-    whiteSpace: 'normal',
-    textTransform: 'capitalize',
-    textDecoration: 'none',
-    alignSelf: 'center'
-  },
   whitepaperExternalLink: {
-    color: '#46525C',
-    opacity: '0.7'
+    paddingLeft: '0.6rem'
   }
 }))
 
@@ -51,6 +39,10 @@ const HeaderRoutes: FC<Props> = () => {
     .slice(0, 2)
     .join('/')
 
+  const goToWhitepaper = () => {
+    window.open('/whitepaper.pdf', 'noopener', 'noreferrer')
+  }
+
   return (
     <Tabs value={value} onChange={handleChange}>
       <Tab label="Send" value="/send" />
@@ -60,17 +52,16 @@ const HeaderRoutes: FC<Props> = () => {
       {/* <Tab label="Vote" value="/vote" /> */}
       <Tab label="Convert" value="/convert" />
       {!isMainnet ? <Tab label="Faucet" value="/faucet" /> : null}
-      <Box className={styles.whitepaperTabContainer}>
-        <a
-          className={styles.whitepaperTab}
-          rel="noopener noreferrer"
-          href="/whitepaper.pdf"
-          target="_blank"
-        >
-          Whitepaper
-        </a>
-        <LaunchIcon className={styles.whitepaperExternalLink} />
-      </Box>
+      <Tab
+        label={
+          <Box display="flex" flexDirection="row" alignItems="center">
+            Whitepaper
+            <LaunchIcon className={styles.whitepaperExternalLink} />
+          </Box>
+        }
+        className={styles.whitepaperTabContainer}
+        onClick={goToWhitepaper}
+      />
     </Tabs>
   )
 }

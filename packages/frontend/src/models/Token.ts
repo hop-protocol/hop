@@ -57,6 +57,10 @@ class Token {
     // TOD: fetch rates
     return BigNumber.from('0')
   }
+
+  eq (otherToken: Token) {
+    return otherToken.symbol === this.symbol
+  }
 }
 
 export default Token

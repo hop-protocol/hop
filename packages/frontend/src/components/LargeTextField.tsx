@@ -13,6 +13,7 @@ type LargeTextFieldProps = {
 interface StyleProps {
   centerAlign: boolean
   defaultShadow: boolean
+  hideShadow: boolean
 }
 
 const normalShadow = `
@@ -35,13 +36,21 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const useInputStyles = makeStyles(theme => ({
-  root: ({ defaultShadow }: StyleProps) => ({
+  root: ({ defaultShadow, hideShadow }: StyleProps) => ({
     padding: `0.8rem 0`,
     transition: 'box-shadow 0.3s ease-in-out',
     borderRadius: '1.5rem',
     boxShadow: defaultShadow ? normalShadow : 'none',
     '&:hover': {
-      boxShadow: defaultShadow ? boldShadow : normalShadow
+      boxShadow: () => {
+        if (hideShadow) {
+          return 'none'
+        } else if (defaultShadow) {
+          return boldShadow
+        } else {
+          return normalShadow
+        }
+      }
     }
   }),
   input: ({ centerAlign }: StyleProps) => ({
@@ -65,7 +74,11 @@ const TextField: FC<LargeTextFieldProps> = props => {
     ...textFieldProps
   } = props
   const styles = useStyles()
-  const inputStyles = useInputStyles({ centerAlign, defaultShadow })
+  const inputStyles = useInputStyles({
+    centerAlign,
+    defaultShadow,
+    hideShadow: textFieldProps.disabled ?? false
+  })
 
   return (
     <MuiTextField

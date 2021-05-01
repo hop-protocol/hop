@@ -1,4 +1,11 @@
-import React, { FC, useState, useRef, useEffect, ChangeEvent } from 'react'
+import React, {
+  FC,
+  useState,
+  useRef,
+  useMemo,
+  useEffect,
+  ChangeEvent
+} from 'react'
 import { useLocation } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
@@ -26,6 +33,7 @@ import SendButton from 'src/pages/Send/SendButton'
 import Settings from 'src/pages/Send/Settings'
 import InfoTooltip from 'src/components/infoTooltip'
 import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
+import useBalance from 'src/pages/Send/useBalance'
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -116,8 +124,16 @@ const Send: FC = () => {
   const [fromNetwork, setFromNetwork] = useState<Network>()
   const [toNetwork, setToNetwork] = useState<Network>()
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
+  const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {
+    let val
+    try {
+      val = parseUnits(fromTokenAmount, selectedToken.decimals)
+    } catch (err) {
+      // noop
+    }
+    return val
+  }, [fromTokenAmount])
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
-  const [isFromLastChanged, setIsFromLastChanged] = useState<boolean>(true)
   const [sending, setSending] = useState<boolean>(false)
   const [exchangeRate, setExchangeRate] = useState<number>(0)
   const [slippageTolerance, setSlippageTolerance] = useState<number>(0.5)
@@ -125,13 +141,20 @@ const Send: FC = () => {
   const [priceImpact, setPriceImpact] = useState<number>(0)
   const [fee, setFee] = useState<number | null>(null)
   const [amountOutMin, setAmountOutMin] = useState<number>(0)
-  const [fromBalance, setFromBalance] = useState<number>(0)
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [tx, setTx] = useState<Transaction | null>(null)
   const debouncer = useRef<number>(0)
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(
     true
+  )
+  const { balance: fromBalance, loading: loadingFromBalance } = useBalance(
+    selectedToken,
+    fromNetwork
+  )
+  const { balance: toBalance, loading: loadingToBalance } = useBalance(
+    selectedToken,
+    toNetwork
   )
 
   const bridge = sdk.bridge(selectedToken?.symbol)
@@ -174,12 +197,6 @@ const Send: FC = () => {
     }
   }
 
-  const updateAmountIn = async (amountOut: string) => {
-    // ToDo: Remove reverse calculation
-    console.error('Reverse calculation is unimplemented')
-    return BigNumber.from('0')
-  }
-
   const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value
     const newSelectedToken = tokens.find(token => token.symbol === tokenSymbol)
@@ -189,11 +206,25 @@ const Send: FC = () => {
   }
 
   const handleSwitchDirection = () => {
-    setToTokenAmount(fromTokenAmount)
-    setFromTokenAmount(toTokenAmount)
+    setToTokenAmount('')
     setFromNetwork(toNetwork)
     setToNetwork(fromNetwork)
-    setIsFromLastChanged(!isFromLastChanged)
+  }
+
+  const handleToNetworkChange = (network: Network | undefined) => {
+    if (network === fromNetwork) {
+      handleSwitchDirection()
+    } else {
+      setToNetwork(network)
+    }
+  }
+
+  const handleFromNetworkChange = (network: Network | undefined) => {
+    if (network === toNetwork) {
+      handleSwitchDirection()
+    } else {
+      setFromNetwork(network)
+    }
   }
 
   useEffect(() => {
@@ -205,18 +236,6 @@ const Send: FC = () => {
       updateAmountOut(fromTokenAmount)
     }
   }, [toNetwork])
-
-  // Control toTokenAmount when fromTokenAmount was edited last
-  useEffect(() => {
-    if (!isFromLastChanged) return
-    updateAmountOut(fromTokenAmount)
-  }, [isFromLastChanged])
-
-  // Control fromTokenAmount when toTokenAmount was edited last
-  useEffect(() => {
-    if (isFromLastChanged) return
-    updateAmountIn(toTokenAmount)
-  }, [isFromLastChanged])
 
   useEffect(() => {
     const update = async () => {
@@ -244,7 +263,7 @@ const Send: FC = () => {
         availableLiquidity,
         selectedToken.decimals
       )
-      const errorMessage = `Insufficient liquidity. There is ${formattedAmount} ${selectedToken.symbol}`
+      const errorMessage = `Insufficient liquidity. There is ${formattedAmount} ${selectedToken.symbol} available on ${toNetwork.name}.`
       if (!isAvailable) {
         setError(errorMessage)
       } else {
@@ -651,7 +670,10 @@ const Send: FC = () => {
     return txObj
   }
 
-  const enoughBalance = fromBalance >= Number(fromTokenAmount)
+  let enoughBalance = true
+  if (fromBalance && fromTokenAmountBN && fromBalance.lt(fromTokenAmountBN)) {
+    enoughBalance = false
+  }
   const validFormFields = !!(
     fromTokenAmount &&
     toTokenAmount &&
@@ -717,17 +739,13 @@ const Send: FC = () => {
 
           const amountIn = normalizeNumberInput(value)
           setFromTokenAmount(amountIn)
-          setIsFromLastChanged(true)
           updateAmountOut(amountIn)
         }}
         selectedNetwork={fromNetwork}
         networkOptions={networks}
-        onNetworkChange={network => {
-          setFromNetwork(network)
-        }}
-        onBalanceChange={balance => {
-          setFromBalance(balance)
-        }}
+        onNetworkChange={handleFromNetworkChange}
+        balance={fromBalance}
+        loadingBalance={loadingFromBalance}
       />
       <MuiButton
         className={styles.switchDirectionButton}
@@ -739,23 +757,12 @@ const Send: FC = () => {
         value={toTokenAmount}
         token={selectedToken}
         label={'To (estimated)'}
-        onChange={value => {
-          if (!value) {
-            setToTokenAmount('')
-            setFromTokenAmount('')
-            return
-          }
-
-          const amountOut = normalizeNumberInput(value)
-          setToTokenAmount(amountOut)
-          setIsFromLastChanged(false)
-          updateAmountIn(amountOut)
-        }}
         selectedNetwork={toNetwork}
         networkOptions={networks}
-        onNetworkChange={network => {
-          setToNetwork(network)
-        }}
+        onNetworkChange={handleToNetworkChange}
+        balance={toBalance}
+        loadingBalance={loadingToBalance}
+        disableInput
       />
       <div className={styles.details}>
         <Box

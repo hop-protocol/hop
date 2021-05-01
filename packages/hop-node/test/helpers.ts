@@ -107,7 +107,11 @@ export class User {
     if (!recipient) {
       recipient = await this.getAddress()
     }
-    return contract.mint(recipient, parseUnits(amount.toString(), 18))
+    return contract.mint(
+      recipient,
+      parseUnits(amount.toString(), 18),
+      this.txOverrides(network)
+    )
   }
 
   @queue
@@ -118,7 +122,11 @@ export class User {
     recipient: string
   ) {
     const contract = this.getTokenContract(network, token)
-    return contract.transfer(recipient, parseUnits(amount.toString(), 18))
+    return contract.transfer(
+      recipient,
+      parseUnits(amount.toString(), 18),
+      this.txOverrides(network)
+    )
   }
 
   getHopBridgeContract (network: string, token: string = DAI) {
@@ -324,7 +332,8 @@ export class User {
       amountOutMin,
       deadline,
       destinationAmountOutMin,
-      destinationDeadline
+      destinationDeadline,
+      this.txOverrides(sourceNetwork)
     )
   }
 
@@ -848,7 +857,10 @@ export class User {
     if (governance !== (await this.getAddress())) {
       throw new Error('must be governance')
     }
-    return bridge.setChallengeResolutionPeriod(challengeResolutionPeriod)
+    return bridge.setChallengeResolutionPeriod(
+      challengeResolutionPeriod,
+      this.txOverrides(ETHEREUM)
+    )
   }
 
   async getChallengeAmountForTransferAmount (amount: number) {
@@ -964,7 +976,7 @@ export class User {
 
   async setMaxPendingTransfers (network: string, max: number) {
     const bridge = this.getHopBridgeContract(network)
-    return bridge.setMaxPendingTransfers(max)
+    return bridge.setMaxPendingTransfers(max, this.txOverrides(network))
   }
 
   async validateChainId (chainId: string) {
@@ -1048,13 +1060,13 @@ export class User {
 
   txOverrides (network: string) {
     const txOptions: any = {}
+    txOptions.gasLimit = 2_000_000
     if (network === OPTIMISM) {
       txOptions.gasPrice = 0
-      txOptions.gasLimit = 8000000
+      txOptions.gasLimit = 8_000_000
     } else if (network === XDAI) {
-      txOptions.gasLimit = 5000000
+      txOptions.gasLimit = 5_000_000
     }
-    txOptions.gasLimit = 1000000
     return txOptions
   }
 }

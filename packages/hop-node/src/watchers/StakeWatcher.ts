@@ -11,7 +11,7 @@ export interface Config {
   bridgeContract: Contract
   tokenContract: Contract
   stakeMinThreshold: number
-  stakeAmount: number
+  maxStakeAmount: number
   contracts: { [networkId: string]: Contract }
 }
 
@@ -19,7 +19,7 @@ class StakeWatcher extends BaseWatcher {
   bridge: Bridge
   token: Token
   stakeMinThreshold: number
-  stakeAmount: number
+  maxStakeAmount: number
   interval: number = 60 * 1000
   contracts: { [networkId: string]: Contract }
 
@@ -32,7 +32,7 @@ class StakeWatcher extends BaseWatcher {
     this.bridge = new Bridge(config.bridgeContract)
     this.token = new Token(config.tokenContract)
     this.stakeMinThreshold = config.stakeMinThreshold || 0
-    this.stakeAmount = config.stakeAmount || 0
+    this.maxStakeAmount = config.maxStakeAmount || 0
     this.contracts = config.contracts
   }
 
@@ -82,13 +82,24 @@ class StakeWatcher extends BaseWatcher {
       this.getTokenAllowance()
     ])
 
+    const bondedBondedWithdrawalsBalance = await this.bridge.getBonderBondedWithdrawalsBalance()
     this.logger.debug(`token balance:`, balance)
     this.logger.debug(`credit balance:`, credit)
     this.logger.debug(`debit balance:`, debit)
+    this.logger.debug(
+      `bonder bonded withdrawals balance:`,
+      bondedBondedWithdrawalsBalance
+    )
 
+    const bonderBridgeStakedAmount =
+      credit - debit + bondedBondedWithdrawalsBalance
     const isL1 = isL1NetworkId(this.token.providerNetworkId)
-    if (credit < this.stakeMinThreshold || credit - debit < this.stakeAmount) {
-      if (balance < this.stakeAmount) {
+    let amountToStake = 0
+    if (bonderBridgeStakedAmount < this.maxStakeAmount) {
+      amountToStake = this.maxStakeAmount - bonderBridgeStakedAmount
+    }
+    if (amountToStake > 0) {
+      if (balance < amountToStake) {
         if (!isL1) {
           const l1Bridge = new L1Bridge(
             this.contracts[networkSlugToId('ethereum')]
@@ -97,7 +108,7 @@ class StakeWatcher extends BaseWatcher {
           const l1Balance = await l1Token.getBalance()
           this.logger.debug(`l1 token balance:`, l1Balance)
           if (l1Balance > 0) {
-            const convertAmount = Math.min(l1Balance, this.stakeAmount)
+            const convertAmount = Math.min(l1Balance, amountToStake)
             this.logger.debug(
               `converting to ${convertAmount} canonical token to hop token`
             )
@@ -124,29 +135,27 @@ class StakeWatcher extends BaseWatcher {
         this.logger.warn(
           `not enough ${
             isL1 ? 'canonical' : 'hop'
-          } token balance to stake. Have ${balance}, need ${this.stakeAmount}`
+          } token balance to stake. Have ${balance}, need ${amountToStake}`
         )
         return
       }
-      if (allowance < this.stakeAmount) {
+      if (allowance < amountToStake) {
         this.logger.debug('approving tokens')
         const tx = await this.approveTokens()
         this.logger.info(`stake approve tx:`, tx?.hash)
         await tx?.wait()
       }
       allowance = await this.getTokenAllowance()
-      if (allowance < this.stakeAmount) {
+      if (allowance < amountToStake) {
         this.logger.warn(
           `not enough ${
             isL1 ? 'canonical' : 'hop'
-          } token allowance for bridge to stake. Have ${allowance}, need ${
-            this.stakeAmount
-          }`
+          } token allowance for bridge to stake. Have ${allowance}, need ${amountToStake}`
         )
         return
       }
-      this.logger.debug(`attempting to stake: ${this.stakeAmount.toString()}`)
-      const tx = await this.bridge.stake(this.stakeAmount.toString())
+      this.logger.debug(`attempting to stake: ${amountToStake.toString()}`)
+      const tx = await this.bridge.stake(amountToStake.toString())
       this.logger.info(`stake tx:`, tx?.hash)
     }
   }

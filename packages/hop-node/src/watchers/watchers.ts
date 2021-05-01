@@ -47,7 +47,7 @@ function startStakeWatchers (
           bridgeContract,
           tokenContract,
           stakeMinThreshold: 0,
-          stakeAmount: maxStakeAmounts[token],
+          maxStakeAmount: maxStakeAmounts[token],
           // TODO
           contracts: {
             '1': contracts.get(token, ETHEREUM)?.l1Bridge,

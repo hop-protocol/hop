@@ -109,6 +109,26 @@ export default class Bridge extends ContractBase {
     return totalBondedAmount
   }
 
+  async getBonderBondedWithdrawalsBalance () {
+    const bonderAddress = await this.getBonderAddress()
+    const blockNumber = await this.bridgeContract.provider.getBlockNumber()
+    const startBlockNumber = blockNumber - 1000
+    const withdrawalBondedEvents = await this.getWithdrawalBondedEvents(
+      startBlockNumber,
+      blockNumber
+    )
+    let total = 0
+    for (let event of withdrawalBondedEvents) {
+      const { transferId } = event.args
+      const amount = await this.getBondedWithdrawalAmountByBonder(
+        bonderAddress,
+        transferId
+      )
+      total += amount
+    }
+    return total
+  }
+
   isTransferHashSpent (transferHash: string) {
     return this.bridgeContract.isTransferIdSpent(transferHash)
   }

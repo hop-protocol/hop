@@ -123,6 +123,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         continue
       }
       try {
+        const bridge = new Bridge(this.contracts[chainId])
+        await bridge.waitSafeConfirmations()
+
         this.logger.debug(
           'transferRootHash:',
           chalk.bgMagenta.black(dbTransferRoot.transferRootHash)
@@ -143,7 +146,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           return
         }
 
-        const bridge = new Bridge(this.contracts[chainId])
         const transferBondStruct = await bridge.getTransferRoot(
           transferRootHash,
           totalAmount

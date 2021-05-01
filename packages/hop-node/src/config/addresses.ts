@@ -40,13 +40,15 @@ const { tokens, networks } = getConfigByNetwork(network)
 export const config = {
   tokens,
   networks,
-  bonderPrivateKey: process.env.BONDER_PRIVATE_KEY
+  bonderPrivateKey: process.env.BONDER_PRIVATE_KEY,
+  safeConfirmations: network === MAINNET ? 12 : 0
 }
 
 const setConfigByNetwork = (network: string) => {
   const { tokens, networks } = getConfigByNetwork(network)
   config.tokens = tokens
   config.networks = networks
+  config.safeConfirmations = network === MAINNET ? 12 : 0
 }
 
 const setBonderPrivateKey = (privateKey: string) => {

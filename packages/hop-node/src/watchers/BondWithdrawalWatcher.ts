@@ -238,6 +238,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const sourceChainId = await this.l2Bridge.getChainId()
       const { chainId, attemptSwap } = await this.l2Bridge.decodeSendData(data)
 
+      const bridge = new Bridge(this.contracts[chainId])
+      await bridge.waitSafeConfirmations()
+
       const destL2Bridge = new L2Bridge(this.contracts[chainId])
       const bondedAmount = await destL2Bridge.getTotalBondedWithdrawalAmount(
         transferHash

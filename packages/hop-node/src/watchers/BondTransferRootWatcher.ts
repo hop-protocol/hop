@@ -138,6 +138,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
+    await this.l1Bridge.waitSafeConfirmations()
     const minDelay = await this.l1Bridge.getMinTransferRootBondDelaySeconds()
     const blockTimestamp = await this.l1Bridge.getBlockTimestamp()
     const delta = blockTimestamp - commitedAt - minDelay
@@ -296,7 +297,9 @@ class BondTransferRootWatcher extends BaseWatcher {
       this.logger.debug(`received L2 TransfersCommitted event`)
       this.logger.debug(`commitedAt:`, commitedAt)
       const { transactionHash } = meta
-      const { data } = await this.l2Bridge.getTransaction(transactionHash)
+      const { data } = await this.l2Bridge.getTransaction(
+        transactionHash
+      )
       const {
         destinationChainId: chainId
       } = await this.l2Bridge.decodeCommitTransfersData(data)

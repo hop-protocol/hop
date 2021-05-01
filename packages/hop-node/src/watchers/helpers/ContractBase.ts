@@ -1,7 +1,8 @@
 import { Contract, BigNumber } from 'ethers'
 import { EventEmitter } from 'events'
-import { networkIdToSlug } from 'src/utils'
+import { wait, networkIdToSlug } from 'src/utils'
 import { OPTIMISM, XDAI } from 'src/constants'
+import { config } from 'src/config'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract
@@ -45,6 +46,15 @@ export default class ContractBase extends EventEmitter {
   protected async getBumpedGasPrice (percent: number) {
     const gasPrice = await this.contract.provider.getGasPrice()
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
+  }
+
+  async waitSafeConfirmations () {
+    let blockNumber = await this.contract.provider.getBlockNumber()
+    const targetBlockNumber = blockNumber + config.safeConfirmations
+    while (blockNumber < targetBlockNumber) {
+      blockNumber = await this.contract.provider.getBlockNumber()
+      await wait(5 * 1000)
+    }
   }
 
   async txOverrides () {

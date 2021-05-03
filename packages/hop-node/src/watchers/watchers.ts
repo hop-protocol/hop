@@ -77,6 +77,7 @@ type Config = {
   bonder?: boolean
   challenger?: boolean
   maxStakeAmounts?: StakeAmounts
+  commitTransfersMinThresholdAmount?: number
 }
 
 function startWatchers (
@@ -86,7 +87,8 @@ function startWatchers (
     networks: networks,
     bonder: true,
     challenger: false,
-    maxStakeAmounts: {}
+    maxStakeAmounts: {},
+    commitTransfersMinThresholdAmount: 0
   }
 ) {
   const orderNum = _config.order || 0
@@ -229,7 +231,8 @@ function startWatchers (
         order,
         label,
         isL1,
-        bridgeContract
+        bridgeContract,
+        minThresholdAmount: _config.commitTransfersMinThresholdAmount
       })
 
       commitTransferWatchers[token] = commitTransferWatchers[token] || {}

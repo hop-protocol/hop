@@ -11,6 +11,7 @@ import L2Bridge from './helpers/L2Bridge'
 export interface Config {
   label: string
   order?: () => number
+  minThresholdAmount?: number
 
   isL1?: boolean
   bridgeContract?: Contract
@@ -21,6 +22,7 @@ const BONDER_ORDER_DELAY_MS = 60 * 1000
 class CommitTransfersWatcher extends BaseWatcher {
   siblingWatchers: { [networkId: string]: CommitTransfersWatcher }
   minPendingTransfers: number = 10
+  minThresholdAmount: number = 0
 
   constructor (config: Config) {
     super({
@@ -31,11 +33,16 @@ class CommitTransfersWatcher extends BaseWatcher {
       isL1: config.isL1,
       bridgeContract: config.bridgeContract
     })
+
+    if (config.minThresholdAmount) {
+      this.minThresholdAmount = config.minThresholdAmount
+    }
   }
 
   async start () {
     this.started = true
     try {
+      this.logger.debug(`minThresholdAmount: ${this.minThresholdAmount}`)
       await Promise.all([this.syncUp(), this.watch()])
     } catch (err) {
       this.logger.error('watcher error:', err)
@@ -151,6 +158,16 @@ class CommitTransfersWatcher extends BaseWatcher {
       if (!pendingTransfers.length) {
         this.logger.warn('no pending transfers to commit')
       }
+
+      const totalPendingAmount = await (this
+        .bridge as L2Bridge).getPendingAmountForChainId(chainId)
+      if (totalPendingAmount < this.minThresholdAmount) {
+        this.logger.warn(
+          `total pending amount ${totalPendingAmount} does not meet min threshold of ${this.minThresholdAmount}. Cannot commit transfers yet`
+        )
+        return
+      }
+
       if (pendingTransfers.length < this.minPendingTransfers) {
         this.logger.warn(
           `must reach ${this.minPendingTransfers} pending transfers before committing. Have ${pendingTransfers.length} on chainId: ${chainId}`

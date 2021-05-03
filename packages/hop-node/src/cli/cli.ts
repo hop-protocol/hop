@@ -151,13 +151,21 @@ program
       if (config?.stake) {
         maxStakeAmounts = config.stake
       }
+      let commitTransfersMinThresholdAmount: any
+      if (config?.commitTransfers) {
+        if (config?.commitTransfers?.minThresholdAmount) {
+          commitTransfersMinThresholdAmount =
+            config?.commitTransfers?.minThresholdAmount
+        }
+      }
       startWatchers({
         order,
         tokens,
         networks,
         bonder,
         challenger,
-        maxStakeAmounts
+        maxStakeAmounts,
+        commitTransfersMinThresholdAmount
       })
       if (config?.roles?.arbBot) {
         const maxTradeAmount = 0
@@ -467,6 +475,7 @@ async function validateConfig (config: any) {
     'networks',
     'tokens',
     'stake',
+    'commitTransfers',
     'roles',
     'db',
     'logging',
@@ -509,6 +518,12 @@ async function validateConfig (config: any) {
     const validKeystoreProps = ['location', 'pass']
     const keystoreProps = Object.keys(config['keystore'])
     await validateKeys(validKeystoreProps, keystoreProps)
+  }
+
+  if (config['commitTransfers']) {
+    const validCommitTransfersKeys = ['minThresholdAmount']
+    const commitTransfersKeys = Object.keys(config['commitTransfers'])
+    await validateKeys(validCommitTransfersKeys, commitTransfersKeys)
   }
 }
 

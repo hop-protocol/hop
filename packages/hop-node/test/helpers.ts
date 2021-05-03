@@ -456,6 +456,7 @@ export class User {
     })
   }
 
+  @queue
   async sendTokens (
     network: string,
     token: string,
@@ -1172,7 +1173,8 @@ export async function prepareAccounts (
   users: User[],
   faucet: User,
   token: string,
-  network: string
+  network: string,
+	faucetTokensToSend: number = 100
 ) {
   for (let user of users) {
     console.log('preparing account')
@@ -1191,7 +1193,11 @@ export async function prepareAccounts (
     let tokenBal = await user.getBalance(network, token)
     if (tokenBal < 1) {
       console.log('faucet sending tokens')
-      const tx = await faucet.sendTokens(network, token, 1000, address)
+			const faucetBalance = await faucet.getBalance(network, token)
+			if (faucetBalance < faucetTokensToSend) {
+				throw new Error(`faucet does not have enough tokens. Have ${faucetBalance}, need ${faucetTokensToSend} ${token} on ${network}`)
+			}
+      const tx = await faucet.sendTokens(network, token, faucetTokensToSend, address)
       await tx.wait()
       tokenBal = await user.getBalance(network, token)
     }

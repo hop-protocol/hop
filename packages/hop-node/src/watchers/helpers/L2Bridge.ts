@@ -1,4 +1,5 @@
 import { Contract } from 'ethers'
+import { formatUnits } from 'ethers/lib/utils'
 import {
   erc20Abi,
   l2AmmWrapperAbi,
@@ -142,9 +143,10 @@ export default class L2Bridge extends Bridge {
   }
 
   async getPendingAmountForChainId (chainId: string) {
-    return Number(
-      (await this.l2BridgeContract.pendingAmountForChainId(chainId)).toString()
+    const pendingAmount = await this.l2BridgeContract.pendingAmountForChainId(
+      chainId
     )
+    return Number(formatUnits(pendingAmount, await this.tokenDecimals))
   }
 
   async getMaxPendingTransfers () {

@@ -144,11 +144,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     const sourceChainId = await (this.bridge as L2Bridge).getChainId()
     const network = networkIdToSlug(chainId)
     const sourceNetwork = networkIdToSlug(sourceChainId)
-
-    // Don't bond transfer root on chains where exit period is less than 1 day
-    if (network === XDAI || network === POLYGON) {
-      return
-    }
     if (sourceNetwork === XDAI || sourceNetwork === POLYGON) {
       return
     }

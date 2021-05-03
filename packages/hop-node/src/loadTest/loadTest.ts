@@ -77,7 +77,7 @@ class LoadTest {
             )
 
             logger.log(`waiting for bonded withdrawals`)
-            await wait(120 * 1000)
+            await wait(300 * 1000)
             logger.log('reading balances')
             const [sourceBalancesAfter, destBalancesAfter] = await getBalances(
               users,

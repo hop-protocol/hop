@@ -35,7 +35,10 @@ async function runner (fn: any) {
   const retry = () => promiseTimeout(fn, TIMEOUT_MS)
   while (true) {
     try {
-      return await retry()
+      let result = await retry()
+      // TODO: debounce runner function
+      await wait(2 * 1000)
+      return result
     } catch (err) {
       retries++
       if (retries >= MAX_RETRIES) {

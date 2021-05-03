@@ -11,6 +11,7 @@ import StakeWatcher from 'src/watchers/StakeWatcher'
 import { store } from 'src/store'
 import PubSub from 'src/pubsub/PubSub'
 import Logger from 'src/logger'
+import { networkSlugToId } from 'src/utils'
 
 const networks = [OPTIMISM, ARBITRUM, XDAI, POLYGON]
 const pubsubLogger = new Logger('pubsub', { color: 'magenta' })
@@ -28,9 +29,11 @@ function startStakeWatchers (
     _tokens = Object.keys(config.tokens)
   }
   _networks = (_networks || networks).filter(x => networks.includes(x))
+  let stakeWatchers: any = {}
   const watchers: any[] = []
   for (let token of _tokens) {
     for (let network of [ETHEREUM].concat(_networks)) {
+      const networkId = networkSlugToId(network)
       const tokenContracts = contracts.get(token, network)
       if (!tokenContracts) {
         continue
@@ -41,23 +44,28 @@ function startStakeWatchers (
         bridgeContract = tokenContracts.l1Bridge
         tokenContract = tokenContracts.l1CanonicalToken
       }
-      watchers.push(
-        new StakeWatcher({
-          label: `${network} ${token}`,
-          bridgeContract,
-          tokenContract,
-          stakeMinThreshold: 0,
-          maxStakeAmount: maxStakeAmounts[token],
-          // TODO
-          contracts: {
-            '1': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '42': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '5': contracts.get(token, ETHEREUM)?.l1Bridge
-          }
-        })
-      )
+
+      const stakeWatcher = new StakeWatcher({
+        isL1: network === 'ethereum',
+        label: `${network} ${token}`,
+        bridgeContract,
+        tokenContract,
+        stakeMinThreshold: 0,
+        maxStakeAmount: maxStakeAmounts[token]
+      })
+
+      stakeWatchers[token] = stakeWatchers[token] || {}
+      stakeWatchers[token][networkId] = stakeWatcher
+      watchers.push(stakeWatcher)
     }
   }
+
+  for (let token in stakeWatchers) {
+    for (let network in stakeWatchers[token]) {
+      stakeWatchers[token][network].setSiblingWatchers(stakeWatchers[token])
+    }
+  }
+
   watchers.forEach(watcher => watcher.start())
   return watchers
 }
@@ -164,77 +172,101 @@ function startWatchers (
     return Math.max(orderNum - delta, 0)
   }
 
-  for (let network of _networks) {
+  let bondWithdrawalWatchers: any = {}
+  let bondTransferRootWatchers: any = {}
+  let settleBondedWithdrawalWatchers: any = {}
+  let commitTransferWatchers: any = {}
+  for (let network of ['ethereum'].concat(_networks)) {
+    const networkId = networkSlugToId(network)
     for (let token of _tokens) {
       if (!contracts.has(token, network)) {
         continue
       }
       const label = `${network} ${token}`
-      const l1Bridge = contracts.get(token, ETHEREUM).l1Bridge
+      const isL1 = network === 'ethereum'
 
-      watchers.push(
-        new BondTransferRootWatcher({
-          order,
-          label,
-          l1BridgeContract: l1Bridge,
-          l2BridgeContract: contracts.get(token, network).l2Bridge
-        })
+      const bridgeContract = isL1
+        ? contracts.get(token, ETHEREUM).l1Bridge
+        : contracts.get(token, network).l2Bridge
+
+      const bondWithdrawalWatcher = new BondWithdrawalWatcher({
+        order,
+        label,
+        isL1,
+        bridgeContract
+      })
+
+      bondWithdrawalWatchers[token] = bondWithdrawalWatchers[token] || {}
+      bondWithdrawalWatchers[token][networkId] = bondWithdrawalWatcher
+      watchers.push(bondWithdrawalWatcher)
+
+      const bondTransferRootWatcher = new BondTransferRootWatcher({
+        order,
+        label,
+        isL1,
+        bridgeContract
+      })
+
+      bondTransferRootWatchers[token] = bondTransferRootWatchers[token] || {}
+      bondTransferRootWatchers[token][networkId] = bondTransferRootWatcher
+      watchers.push(bondTransferRootWatcher)
+
+      const settleBondedWithdrawalWatcher = new SettleBondedWithdrawalWatcher({
+        order,
+        label,
+        isL1,
+        bridgeContract
+      })
+
+      settleBondedWithdrawalWatchers[token] =
+        settleBondedWithdrawalWatchers[token] || {}
+      settleBondedWithdrawalWatchers[token][
+        networkId
+      ] = settleBondedWithdrawalWatcher
+      watchers.push(settleBondedWithdrawalWatcher)
+
+      const commitTransferWatcher = new CommitTransferWatcher({
+        order,
+        label,
+        isL1,
+        bridgeContract
+      })
+
+      commitTransferWatchers[token] = commitTransferWatchers[token] || {}
+      commitTransferWatchers[token][networkId] = commitTransferWatcher
+
+      watchers.push(commitTransferWatcher)
+    }
+  }
+
+  for (let token in bondWithdrawalWatchers) {
+    for (let network in bondWithdrawalWatchers[token]) {
+      bondWithdrawalWatchers[token][network].setSiblingWatchers(
+        bondWithdrawalWatchers[token]
       )
+    }
+  }
 
-      watchers.push(
-        new BondWithdrawalWatcher({
-          order,
-          label,
-          l1BridgeContract: l1Bridge,
-          l2BridgeContract: contracts.get(token, network).l2Bridge,
-          // TODO
-          contracts: {
-            '1': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '42': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '5': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '69': contracts.get(token, OPTIMISM)?.l2Bridge,
-            '79377087078960': contracts.get(token, ARBITRUM)?.l2Bridge,
-            '77': contracts.get(token, XDAI)?.l2Bridge,
-            '80001': contracts.get(token, POLYGON)?.l2Bridge
-          }
-        })
+  for (let token in bondTransferRootWatchers) {
+    for (let network in bondTransferRootWatchers[token]) {
+      bondTransferRootWatchers[token][network].setSiblingWatchers(
+        bondTransferRootWatchers[token]
       )
+    }
+  }
 
-      watchers.push(
-        new SettleBondedWithdrawalWatcher({
-          order,
-          label,
-          l1BridgeContract: l1Bridge,
-          l2BridgeContract: contracts.get(token, network).l2Bridge,
-          // TODO
-          contracts: {
-            '1': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '42': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '5': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '69': contracts.get(token, OPTIMISM)?.l2Bridge,
-            '79377087078960': contracts.get(token, ARBITRUM)?.l2Bridge,
-            '77': contracts.get(token, XDAI)?.l2Bridge,
-            '80001': contracts.get(token, POLYGON)?.l2Bridge
-          }
-        })
+  for (let token in settleBondedWithdrawalWatchers) {
+    for (let network in settleBondedWithdrawalWatchers[token]) {
+      settleBondedWithdrawalWatchers[token][network].setSiblingWatchers(
+        settleBondedWithdrawalWatchers[token]
       )
+    }
+  }
 
-      watchers.push(
-        new CommitTransferWatcher({
-          order,
-          label,
-          l2BridgeContract: contracts.get(token, network).l2Bridge,
-          // TODO
-          contracts: {
-            '1': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '42': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '5': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '69': contracts.get(token, OPTIMISM)?.l2Bridge,
-            '79377087078960': contracts.get(token, ARBITRUM)?.l2Bridge,
-            '77': contracts.get(token, XDAI)?.l2Bridge,
-            '80001': contracts.get(token, POLYGON)?.l2Bridge
-          }
-        })
+  for (let token in commitTransferWatchers) {
+    for (let network in commitTransferWatchers[token]) {
+      commitTransferWatchers[token][network].setSiblingWatchers(
+        commitTransferWatchers[token]
       )
     }
   }
@@ -273,6 +305,7 @@ function startChallengeWatchers (_tokens?: string[], _networks?: string[]) {
       if (!contracts.has(token, network)) {
         continue
       }
+      /*
       watchers.push(
         new ChallengeWatcher({
           label: network,
@@ -289,6 +322,7 @@ function startChallengeWatchers (_tokens?: string[], _networks?: string[]) {
           }
         })
       )
+				*/
     }
   }
   watchers.forEach(watcher => watcher.start())
@@ -300,6 +334,7 @@ function startCommitTransferWatchers () {
   const tokens = Object.keys(config.tokens)
   for (let network of networks) {
     for (let token of tokens) {
+      /*
       watchers.push(
         new CommitTransferWatcher({
           label: network,
@@ -316,6 +351,7 @@ function startCommitTransferWatchers () {
           }
         })
       )
+			*/
     }
   }
   watchers.forEach(watcher => watcher.start())

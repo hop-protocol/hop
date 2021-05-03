@@ -8,43 +8,46 @@ import Token from './helpers/Token'
 
 export interface Config {
   label: string
+  isL1: boolean
   bridgeContract: Contract
   tokenContract: Contract
   stakeMinThreshold: number
   maxStakeAmount: number
-  contracts: { [networkId: string]: Contract }
 }
 
 class StakeWatcher extends BaseWatcher {
-  bridge: Bridge
+  siblingWatchers: { [networkId: string]: StakeWatcher }
   token: Token
   stakeMinThreshold: number
   maxStakeAmount: number
   interval: number = 60 * 1000
-  contracts: { [networkId: string]: Contract }
 
   constructor (config: Config) {
     super({
       tag: 'stakeWatcher',
       prefix: config.label,
-      logColor: 'green'
+      logColor: 'green',
+      isL1: config.isL1,
+      bridgeContract: config.bridgeContract
     })
-    this.bridge = new Bridge(config.bridgeContract)
     this.token = new Token(config.tokenContract)
     this.stakeMinThreshold = config.stakeMinThreshold || 0
     this.maxStakeAmount = config.maxStakeAmount || 0
-    this.contracts = config.contracts
   }
 
   async start () {
     this.started = true
     try {
       const isBonder = await this.bridge.isBonder()
-      if (!isBonder) {
+      if (isBonder) {
+        this.logger.warn('is bonder')
+      } else {
         this.logger.warn('not a bonder')
       }
       const bonderAddress = await this.bridge.getBonderAddress()
-      this.logger.debug(`bonder address: ${bonderAddress}`)
+      if (this.isL1) {
+        this.logger.debug(`bonder address: ${bonderAddress}`)
+      }
       while (true) {
         if (!this.started) {
           return
@@ -75,14 +78,20 @@ class StakeWatcher extends BaseWatcher {
       return
     }
 
-    let [credit, debit, balance, allowance] = await Promise.all([
+    let [
+      credit,
+      debit,
+      balance,
+      allowance,
+      bondedBondedWithdrawalsBalance
+    ] = await Promise.all([
       this.bridge.getCredit(),
       this.bridge.getDebit(),
       this.token.getBalance(),
-      this.getTokenAllowance()
+      this.getTokenAllowance(),
+      this.bridge.getBonderBondedWithdrawalsBalance()
     ])
 
-    const bondedBondedWithdrawalsBalance = await this.bridge.getBonderBondedWithdrawalsBalance()
     this.logger.debug(`token balance:`, balance)
     this.logger.debug(`credit balance:`, credit)
     this.logger.debug(`debit balance:`, debit)
@@ -101,9 +110,8 @@ class StakeWatcher extends BaseWatcher {
     if (amountToStake > 0) {
       if (balance < amountToStake) {
         if (!isL1) {
-          const l1Bridge = new L1Bridge(
-            this.contracts[networkSlugToId('ethereum')]
-          )
+          const l1Bridge = this.siblingWatchers[networkSlugToId('ethereum')]
+            .bridge as L1Bridge
           const l1Token = await l1Bridge.l1CanonicalToken()
           const l1Balance = await l1Token.getBalance()
           this.logger.debug(`l1 token balance:`, l1Balance)

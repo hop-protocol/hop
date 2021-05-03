@@ -492,6 +492,7 @@ export class User {
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute
+    return parseUnits('0.5', 18)
     return minBonderFee
   }
 

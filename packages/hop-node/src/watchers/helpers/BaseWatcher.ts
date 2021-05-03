@@ -1,13 +1,19 @@
+import { Contract } from 'ethers'
 import { EventEmitter } from 'events'
 import Logger from 'src/logger'
 import { Notifier } from 'src/notifier'
 import { hostname } from 'src/config'
+import L1Bridge from './L1Bridge'
+import L2Bridge from './L2Bridge'
 
 interface Config {
   tag: string
   prefix?: string
   logColor?: string
   order?: () => number
+
+  isL1?: boolean
+  bridgeContract?: Contract
 }
 
 class BaseWatcher extends EventEmitter {
@@ -15,6 +21,10 @@ class BaseWatcher extends EventEmitter {
   notifier: Notifier
   order: () => number = () => 0
   started: boolean = false
+
+  isL1: boolean
+  bridge: L2Bridge | L1Bridge
+  siblingWatchers: { [networkId: string]: any }
 
   constructor (config: Config) {
     super()
@@ -30,6 +40,17 @@ class BaseWatcher extends EventEmitter {
     this.notifier = new Notifier(
       `watcher: ${tag}, label: ${prefix}, host: ${hostname}`
     )
+
+    if (config.isL1) {
+      this.isL1 = config.isL1
+    }
+    if (config.bridgeContract) {
+      if (this.isL1) {
+        this.bridge = new L1Bridge(config.bridgeContract)
+      } else {
+        this.bridge = new L2Bridge(config.bridgeContract)
+      }
+    }
   }
 
   async start () {
@@ -38,6 +59,10 @@ class BaseWatcher extends EventEmitter {
 
   async stop () {
     this.logger.warn('not implemented: implement in child class')
+  }
+
+  setSiblingWatchers (watchers: any) {
+    this.siblingWatchers = watchers
   }
 }
 

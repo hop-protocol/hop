@@ -14,12 +14,16 @@ export default class ContractBase extends EventEmitter {
     if (!this.contract.provider) {
       throw new Error('no provider found for contract')
     }
-    this.contract.provider
-      .getNetwork()
-      .then(({ chainId }: { chainId: number }) => {
-        this.providerNetworkId = chainId.toString()
+    this.getNetworkId()
+      .then((networkId: string) => {
+        this.providerNetworkId = networkId
       })
       .catch(err => console.log(`getNetwork() error: ${err.message}`))
+  }
+
+  async getNetworkId () {
+    const { chainId } = await this.contract.provider.getNetwork()
+    return chainId.toString()
   }
 
   get queueGroup () {

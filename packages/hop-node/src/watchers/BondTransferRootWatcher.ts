@@ -1,26 +1,25 @@
 import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
-import { wait, networkIdToSlug } from 'src/utils'
+import { wait, networkIdToSlug, networkSlugToId } from 'src/utils'
 import { formatUnits } from 'ethers/lib/utils'
 import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
 import MerkleTree from 'src/utils/MerkleTree'
-import { XDAI, POLYGON } from 'src/constants'
+import { ETHEREUM, XDAI, POLYGON } from 'src/constants'
 import BaseWatcher from './helpers/BaseWatcher'
 import L1Bridge from './helpers/L1Bridge'
 import L2Bridge from './helpers/L2Bridge'
 
 export interface Config {
-  l1BridgeContract: Contract
-  l2BridgeContract: Contract
+  isL1: boolean
+  bridgeContract: Contract
   label: string
   order?: () => number
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
-  l1Bridge: L1Bridge
-  l2Bridge: L2Bridge
+  siblingWatchers: { [networkId: string]: BondTransferRootWatcher }
   waitMinBondDelay: boolean = true
 
   constructor (config: Config) {
@@ -28,10 +27,10 @@ class BondTransferRootWatcher extends BaseWatcher {
       tag: 'bondTransferRootWatcher',
       prefix: config.label,
       logColor: 'cyan',
-      order: config.order
+      order: config.order,
+      isL1: config.isL1,
+      bridgeContract: config.bridgeContract
     })
-    this.l1Bridge = new L1Bridge(config.l1BridgeContract)
-    this.l2Bridge = new L2Bridge(config.l2BridgeContract)
   }
 
   async start () {
@@ -45,21 +44,55 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async stop () {
-    this.l1Bridge.removeAllListeners()
-    this.l2Bridge.removeAllListeners()
+    this.bridge.removeAllListeners()
     this.started = false
     this.logger.setEnabled(false)
   }
 
   async syncUp () {
+    if (this.isL1) {
+      return
+    }
     this.logger.debug('syncing up events')
-    const blockNumber = await this.l2Bridge.getBlockNumber()
+    const blockNumber = await this.bridge.getBlockNumber()
     const startBlockNumber = blockNumber - 1000
-    const events = await this.l2Bridge.getTransfersCommitedEvents(
+    const events = await (this.bridge as L2Bridge).getTransfersCommitedEvents(
       startBlockNumber,
       blockNumber
     )
 
+    await this.handleTransfersCommittedEvents(events)
+  }
+
+  async watch () {
+    if (this.isL1) {
+      return
+    }
+    this.bridge.on(
+      (this.bridge as L2Bridge).TransfersCommitted,
+      this.handleTransfersCommittedEvent
+    )
+    this.bridge.on('error', err => {
+      this.logger.error('event watcher error:', err.message)
+    })
+  }
+
+  async pollCheck () {
+    while (true) {
+      if (!this.started) {
+        return
+      }
+      try {
+        await this.checkTransfersCommittedFromDb()
+      } catch (err) {
+        this.logger.error('poll check error:', err.message)
+        this.notifier.error(`poll check error: '${err.message}`)
+      }
+      await wait(10 * 1000)
+    }
+  }
+
+  async handleTransfersCommittedEvents (events: any[]) {
     for (let event of events) {
       const { rootHash, totalAmount, rootCommittedAt } = event.args
       await this.handleTransfersCommittedEvent(
@@ -71,42 +104,21 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
   }
 
-  async watch () {
-    this.l2Bridge.on(
-      this.l2Bridge.TransfersCommitted,
-      this.handleTransfersCommittedEvent
-    )
-    this.l2Bridge.on('error', err => {
-      this.logger.error('event watcher error:', err.message)
-    })
-  }
-
-  async pollCheck () {
-    while (true) {
-      if (!this.started) {
-        return
-      }
-      try {
-        const dbTransferRoots = await db.transferRoots.getUnbondedTransferRoots()
-        for (let dbTransferRoot of dbTransferRoots) {
-          const {
-            transferRootHash,
-            totalAmount,
-            chainId,
-            commitedAt
-          } = dbTransferRoot
-          await this.checkTransfersCommited(
-            transferRootHash,
-            totalAmount,
-            chainId,
-            commitedAt
-          )
-        }
-      } catch (err) {
-        this.logger.error('poll check error:', err.message)
-        this.notifier.error(`poll check error: '${err.message}`)
-      }
-      await wait(10 * 1000)
+  async checkTransfersCommittedFromDb () {
+    const dbTransferRoots = await db.transferRoots.getUnbondedTransferRoots()
+    for (let dbTransferRoot of dbTransferRoots) {
+      const {
+        transferRootHash,
+        totalAmount,
+        chainId,
+        commitedAt
+      } = dbTransferRoot
+      await this.checkTransfersCommited(
+        transferRootHash,
+        totalAmount,
+        chainId,
+        commitedAt
+      )
     }
   }
 
@@ -116,31 +128,40 @@ class BondTransferRootWatcher extends BaseWatcher {
     chainId: string,
     commitedAt: number
   ) => {
-    const network = networkIdToSlug(this.l2Bridge.providerNetworkId)
-    // Don't bond transfer root on chains where exit period is less than 1 day
-    if (network === XDAI || network === POLYGON) {
+    if (this.isL1) {
       return
     }
     let dbTransferRoot: TransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
-
     if (dbTransferRoot?.bonded) {
       return
     }
-
     if (dbTransferRoot?.sentBondTx) {
       return
     }
 
-    const isBonder = await this.l1Bridge.isBonder()
+    const sourceChainId = await (this.bridge as L2Bridge).getChainId()
+    const network = networkIdToSlug(chainId)
+    const sourceNetwork = networkIdToSlug(sourceChainId)
+
+    // Don't bond transfer root on chains where exit period is less than 1 day
+    if (network === XDAI || network === POLYGON) {
+      return
+    }
+    if (sourceNetwork === XDAI || sourceNetwork === POLYGON) {
+      return
+    }
+
+    const isBonder = await this.siblingWatchers[chainId].bridge.isBonder()
     if (!isBonder) {
       return
     }
 
-    await this.l1Bridge.waitSafeConfirmations()
-    const minDelay = await this.l1Bridge.getMinTransferRootBondDelaySeconds()
-    const blockTimestamp = await this.l1Bridge.getBlockTimestamp()
+    await this.bridge.waitSafeConfirmations()
+    const minDelay = await (this.siblingWatchers[networkSlugToId(ETHEREUM)]
+      .bridge as L1Bridge).getMinTransferRootBondDelaySeconds()
+    const blockTimestamp = await this.bridge.getBlockTimestamp()
     const delta = blockTimestamp - commitedAt - minDelay
     const shouldBond = delta > 0
     if (this.waitMinBondDelay && !shouldBond) {
@@ -152,13 +173,13 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    const transferRootId = await this.l1Bridge.getTransferRootId(
+    const transferRootId = await this.bridge.getTransferRootId(
       transferRootHash,
       totalAmount
     )
-    const transferBondStruct = await this.l1Bridge.getTransferBond(
-      transferRootId
-    )
+    const transferBondStruct = await (this.siblingWatchers[
+      networkSlugToId(ETHEREUM)
+    ].bridge as L1Bridge).getTransferBond(transferRootId)
     const createdAt = Number(transferBondStruct.createdAt.toString())
     if (createdAt > 0) {
       this.logger.debug(
@@ -170,7 +191,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    const sourceChainId = await this.l2Bridge.getChainId()
     this.logger.info(
       sourceChainId,
       `transferRootHash:`,
@@ -190,7 +210,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     })
 
     await this.waitTimeout(transferRootHash, totalAmount)
-
     dbTransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
@@ -207,7 +226,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     this.logger.debug('dbTransferRoot chainId:', dbTransferRoot.chainId)
     this.logger.debug(
       'dbTransferRoot sourceChainId:',
-      dbTransferRoot.sourceChainID
+      dbTransferRoot.sourceChainId
     )
     this.logger.debug('dbTransferRoot commitedAt:', dbTransferRoot.commitedAt)
     this.logger.debug('dbTransferRoot commited:', dbTransferRoot.commited)
@@ -241,7 +260,8 @@ class BondTransferRootWatcher extends BaseWatcher {
     await db.transferRoots.update(transferRootHash, {
       sentBondTx: true
     })
-    const tx = await this.l1Bridge.bondTransferRoot(
+    const tx = await (this.siblingWatchers[networkSlugToId(ETHEREUM)]
+      .bridge as L1Bridge).bondTransferRoot(
       transferRootHash,
       chainId,
       totalAmount
@@ -281,8 +301,8 @@ class BondTransferRootWatcher extends BaseWatcher {
 
   handleTransfersCommittedEvent = async (
     transferRootHash: string,
-    _totalAmount: BigNumber,
-    _commitedAt: BigNumber,
+    totalAmountBn: BigNumber,
+    commitedAtBn: BigNumber,
     meta: any
   ) => {
     try {
@@ -293,18 +313,17 @@ class BondTransferRootWatcher extends BaseWatcher {
         return
       }
 
-      const commitedAt = Number(_commitedAt.toString())
+      const commitedAt = Number(commitedAtBn.toString())
       this.logger.debug(`received L2 TransfersCommitted event`)
       this.logger.debug(`commitedAt:`, commitedAt)
       const { transactionHash } = meta
-      const { data } = await this.l2Bridge.getTransaction(
-        transactionHash
-      )
-      const {
-        destinationChainId: chainId
-      } = await this.l2Bridge.decodeCommitTransfersData(data)
+      const { data } = await this.bridge.getTransaction(transactionHash)
+      const { destinationChainId: chainId } = await (this
+        .bridge as L2Bridge).decodeCommitTransfersData(data)
       const decimals = await this.getBridgeTokenDecimals()
-      const totalAmount = Number(formatUnits(_totalAmount.toString(), decimals))
+      const totalAmount = Number(
+        formatUnits(totalAmountBn.toString(), decimals)
+      )
 
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,
@@ -321,13 +340,14 @@ class BondTransferRootWatcher extends BaseWatcher {
       )
     } catch (err) {
       if (err.message !== 'cancelled') {
-        this.logger.error('bondTransferRoot tx error:', err.message)
+        this.logger.error('bondTransferRoot error:', err.message)
       }
     }
   }
 
   async getBridgeTokenDecimals () {
-    const token = await this.l1Bridge.l1CanonicalToken()
+    const token = await (this.siblingWatchers[networkSlugToId(ETHEREUM)]
+      .bridge as L1Bridge).l1CanonicalToken()
     return token.decimals()
   }
 
@@ -344,11 +364,12 @@ class BondTransferRootWatcher extends BaseWatcher {
       if (!this.started) {
         return
       }
-      const transferRootId = await this.l1Bridge.getTransferRootId(
+      const transferRootId = await this.bridge.getTransferRootId(
         transferRootHash,
         totalAmount
       )
-      const bond = await this.l1Bridge.getTransferBond(transferRootId)
+      const bond = await (this.siblingWatchers[networkSlugToId(ETHEREUM)]
+        .bridge as L1Bridge).getTransferBond(transferRootId)
       if (bond.createdAt.toNumber() > 0) {
         break
       }

@@ -13,9 +13,8 @@ import Token from './helpers/Token'
 import MerkleTree from 'src/utils/MerkleTree'
 
 export interface Config {
-  l1BridgeContract: Contract
-  l2BridgeContract: Contract
-  contracts: { [networkId: string]: Contract }
+  isL1: boolean
+  bridgeContract: Contract
   label: string
   order?: () => number
 }
@@ -23,20 +22,18 @@ export interface Config {
 const BONDER_ORDER_DELAY_MS = 60 * 1000
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
-  l1Bridge: L1Bridge
-  l2Bridge: L2Bridge
-  contracts: { [networkId: string]: Contract }
+  siblingWatchers: { [networkId: string]: SettleBondedWithdrawalWatcher }
+  minThresholdPercent: number = 0.5 // 50%
 
   constructor (config: Config) {
     super({
       tag: 'settleBondedWithdrawalWatcher',
       prefix: config.label,
       logColor: 'magenta',
-      order: config.order
+      order: config.order,
+      isL1: config.isL1,
+      bridgeContract: config.bridgeContract
     })
-    this.l1Bridge = new L1Bridge(config.l1BridgeContract)
-    this.l2Bridge = new L2Bridge(config.l2BridgeContract)
-    this.contracts = config.contracts
   }
 
   async start () {
@@ -50,16 +47,19 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async stop () {
-    this.l1Bridge.removeAllListeners()
-    this.l2Bridge.removeAllListeners()
+    this.bridge.removeAllListeners()
     this.started = false
     this.logger.setEnabled(false)
   }
 
   async syncUp () {
-    const blockNumber = await this.l1Bridge.getBlockNumber()
+    if (!this.isL1) {
+      return
+    }
+    const blockNumber = await this.bridge.getBlockNumber()
     const startBlockNumber = blockNumber - 1000
-    const transferRootBondedEvents = await this.l1Bridge.getTransferRootBondedEvents(
+    const transferRootBondedEvents = await (this
+      .bridge as L1Bridge).getTransferRootBondedEvents(
       startBlockNumber,
       blockNumber
     )
@@ -71,8 +71,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async watch () {
-    this.l1Bridge
-      .on(this.l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
+    if (!this.isL1) {
+      return
+    }
+    this.bridge
+      .on(
+        (this.bridge as L1Bridge).TransferRootBonded,
+        this.handleTransferRootBondedEvent
+      )
       .on('error', err => {
         this.logger.error(`event watcher error:`, err.message)
       })
@@ -99,7 +105,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     totalAmount: number,
     chainId: string
   ) => {
-    const bridge = new Bridge(this.contracts[chainId])
+    const bridge = this.siblingWatchers[chainId].bridge
     const decimals = await this.getBridgeTokenDecimals(chainId)
     const parsedAmount = parseUnits(totalAmount.toString(), decimals).toString()
     return bridge.settleBondedWithdrawals(bonder, transferHashes, parsedAmount)
@@ -116,6 +122,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       if (!chainId) {
         continue
       }
+      // only process transfer roots where this bridge is the destination chain
+      if (chainId.toString() !== (await this.bridge.getNetworkId())) {
+        return
+      }
       if (!dbTransferRoot.bonder) {
         continue
       }
@@ -123,8 +133,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         continue
       }
       try {
-        const bridge = new Bridge(this.contracts[chainId])
-        await bridge.waitSafeConfirmations()
+        const bridge = this.siblingWatchers[chainId].bridge
+        await this.bridge.waitSafeConfirmations()
 
         this.logger.debug(
           'transferRootHash:',
@@ -176,6 +186,27 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
             transferHash
           )
           totalBondsSettleAmount += transferBondAmount
+        }
+
+        let [credit, debit, bondedBondedWithdrawalsBalance] = await Promise.all(
+          [
+            bridge.getCredit(),
+            bridge.getDebit(),
+            bridge.getBonderBondedWithdrawalsBalance()
+          ]
+        )
+        const bonderDestBridgeStakedAmount =
+          credit - debit + bondedBondedWithdrawalsBalance
+        if (
+          totalBondsSettleAmount / bonderDestBridgeStakedAmount <
+          this.minThresholdPercent
+        ) {
+          this.logger.warn(
+            `total bonded withdrawal amount ${totalBondsSettleAmount} does not meet min threshold of ${this
+              .minThresholdPercent *
+              100}% of total staked ${bonderDestBridgeStakedAmount}. Cannot settle yet`
+          )
+          return
         }
 
         this.logger.debug('totalBondedSettleAmount:', createdAt)
@@ -275,7 +306,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     const tx = await meta.getTransaction()
     const { from: bonder } = tx
     const decimals = await this.getBridgeTokenDecimals(
-      this.l1Bridge.providerNetworkId
+      this.bridge.providerNetworkId
     )
     const totalAmount = Number(formatUnits(_totalAmount, decimals))
     this.logger.debug(`received L1 BondTransferRoot event:`)
@@ -293,10 +324,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     let bridge: any
     let token: Token
     if (isL1NetworkId(chainId)) {
-      bridge = new L1Bridge(this.contracts[chainId])
+      bridge = this.siblingWatchers[chainId].bridge as L1Bridge
       token = await bridge.l1CanonicalToken()
     } else {
-      bridge = new L1Bridge(this.contracts[chainId])
+      bridge = this.siblingWatchers[chainId].bridge as L2Bridge
       token = await bridge.hToken()
     }
     return token.decimals()
@@ -310,7 +341,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     this.logger.debug(
       `waiting for settle bonded withdrawal event. transferHash: ${transferHash} chainId: ${chainId}`
     )
-    const bridge = new Bridge(this.contracts[chainId])
+    const bridge = this.siblingWatchers[chainId].bridge
     let timeout = this.order() * BONDER_ORDER_DELAY_MS
     while (timeout > 0) {
       if (!this.started) {

@@ -859,8 +859,8 @@ class HopBridge extends Base {
     let amountOut = BigNumber.from('0')
     try {
       amountOut = await saddleSwap.calculateSwap(
-        TokenIndex.CANONICAL_TOKEN,
-        TokenIndex.HOP_BRIDGE_TOKEN,
+        TokenIndex.CanonicalToken,
+        TokenIndex.HopBridgeToken,
         amount
       )
     } catch (err) {
@@ -883,8 +883,8 @@ class HopBridge extends Base {
     let amountOut = BigNumber.from('0')
     try {
       amountOut = await saddleSwap.calculateSwap(
-        TokenIndex.HOP_BRIDGE_TOKEN,
-        TokenIndex.CANONICAL_TOKEN,
+        TokenIndex.HopBridgeToken,
+        TokenIndex.CanonicalToken,
         amount
       )
     } catch (err) {

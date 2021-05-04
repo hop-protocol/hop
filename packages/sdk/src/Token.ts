@@ -1,9 +1,7 @@
-import { providers, Signer, Contract, BigNumber } from 'ethers'
-import { Chain, Token as TokenModel } from './models'
-import { MaxUint256 } from './constants'
-import { addresses, chains } from './config'
+import { ethers, providers, Signer, Contract, BigNumber } from 'ethers'
+import { Token as TokenModel } from './models'
 import { erc20Abi } from '@hop-protocol/abi'
-import { TChain, TProvider, TAmount } from './types'
+import { TChain, TAmount } from './types'
 import Base from './Base'
 
 /**
@@ -146,7 +144,7 @@ class Token extends Base {
   public async approve (
     chain: TChain,
     spender: string,
-    amount: TAmount = MaxUint256
+    amount: TAmount = ethers.constants.MaxUint256
   ) {
     chain = this.toChainModel(chain)
     const tokenContract = await this.getErc20(chain)

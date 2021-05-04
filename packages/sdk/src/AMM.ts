@@ -1,4 +1,4 @@
-import { Signer, Contract } from 'ethers'
+import { Contract } from 'ethers'
 import { saddleSwapAbi } from '@hop-protocol/abi'
 import { Chain } from './models'
 import { TChain, TToken, TAmount, TProvider } from './types'

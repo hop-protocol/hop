@@ -1,5 +1,4 @@
 import { providers } from 'ethers'
-import { EthereumChainId } from '../constants'
 import { metadata } from '../config'
 
 type Provider = providers.Provider

@@ -88,7 +88,7 @@ class StakeWatcher extends BaseWatcher {
       bondedBondedWithdrawalsBalance
     ] = await Promise.all([
       this.bridge.getCredit(),
-      this.bridge.getDebit(),
+      this.bridge.getRawDebit(),
       this.token.getBalance(),
       this.getTokenAllowance(),
       this.bridge.getBonderBondedWithdrawalsBalance()

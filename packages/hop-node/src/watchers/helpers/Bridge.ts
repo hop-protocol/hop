@@ -64,6 +64,14 @@ export default class Bridge extends ContractBase {
     return Number(formatUnits(debit, this.tokenDecimals))
   }
 
+  async getRawDebit () {
+    const bonder = await this.getBonderAddress()
+    const debit = (
+      await this.bridgeContract.getRawDebit(bonder)
+    ).toString()
+    return Number(formatUnits(debit, this.tokenDecimals))
+  }
+
   async hasPositiveBalance () {
     const [credit, debit] = await Promise.all([
       this.getCredit(),

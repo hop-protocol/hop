@@ -1,4 +1,4 @@
-import { ethers, Signer, Contract } from 'ethers'
+import { ethers, Contract } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import {
   arbErc20Abi,

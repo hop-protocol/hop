@@ -2,7 +2,7 @@ import { Contract } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
 import queue from './queue'
-import * as config from 'src/config'
+import { config } from 'src/config'
 import unique from 'src/utils/unique'
 
 export default class Bridge extends ContractBase {
@@ -14,11 +14,11 @@ export default class Bridge extends ContractBase {
     this.bridgeContract = bridgeContract
     let tokenDecimals = 18
     // TODO: better way of getting token decimals
-    for (let tkn in config.config.tokens) {
-      for (let key in config.config.tokens[tkn]) {
-        for (let net in config.config.tokens[tkn]) {
-          for (let k in config.config.tokens[tkn][net]) {
-            const val = config.config.tokens[tkn][net][k]
+    for (let tkn in config.tokens) {
+      for (let key in config.tokens[tkn]) {
+        for (let net in config.tokens[tkn]) {
+          for (let k in config.tokens[tkn][net]) {
+            const val = config.tokens[tkn][net][k]
             if (val === bridgeContract.address) {
               tokenDecimals = (config.metadata.tokens as any)[tkn].decimals
               break

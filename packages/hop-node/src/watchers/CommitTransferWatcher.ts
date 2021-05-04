@@ -21,7 +21,7 @@ const BONDER_ORDER_DELAY_MS = 60 * 1000
 
 class CommitTransfersWatcher extends BaseWatcher {
   siblingWatchers: { [networkId: string]: CommitTransfersWatcher }
-  minPendingTransfers: number = 10
+  minPendingTransfers: number = 1
   minThresholdAmount: number = 0
 
   constructor (config: Config) {
@@ -176,15 +176,15 @@ class CommitTransfersWatcher extends BaseWatcher {
       }
 
       this.logger.debug(
-        `chainId: ${chainId} onchain pendingTransfers`,
+        `chainId: ${chainId} - onchain pendingTransfers`,
         pendingTransfers
       )
       const tree = new MerkleTree(pendingTransfers)
       const transferRootHash = tree.getHexRoot()
       this.logger.debug(
-        `chainId: ${chainId}`,
-        'calculated transferRootHash:',
-        chalk.bgMagenta.black(transferRootHash)
+        `chainId: ${chainId} - calculated transferRootHash: ${chalk.bgMagenta.black(
+          transferRootHash
+        )}`
       )
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,

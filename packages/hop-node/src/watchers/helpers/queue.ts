@@ -6,7 +6,7 @@ import Logger from 'src/logger'
 
 const mutexes: { [key: string]: Mutex } = {}
 const MAX_RETRIES = 1
-const TIMEOUT_MS = 60 * 1000
+const TIMEOUT_MS = 300 * 1000
 
 const logger = new Logger('queue')
 const notifier = new Notifier('queue')

@@ -56,7 +56,8 @@ export const metadata: Metadata = {
     USDC: {
       symbol: 'USDC',
       name: 'USDC',
-      decimals: 18, // TODO: change to 6 with new contracts
+      // TODO: change to 6 with new contracts
+      decimals: process.env.REACT_APP_NETWORK === 'mainnet' ? 6 : 18,
       image: UsdcLogo
     },
     WBTC: {

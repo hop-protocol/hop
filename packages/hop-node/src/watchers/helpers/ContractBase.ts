@@ -63,14 +63,19 @@ export default class ContractBase extends EventEmitter {
 
   async txOverrides () {
     const txOptions: any = {}
-    txOptions.gasPrice = (await this.getBumpedGasPrice(1.2)).toString()
-    txOptions.gasLimit = 5000000
-    const network = networkIdToSlug(this.providerNetworkId)
-    if (network === OPTIMISM) {
-      txOptions.gasPrice = 0
-      txOptions.gasLimit = 8000000
-    } else if (network === XDAI) {
+    // TODO: config option for gas price multiplier
+    txOptions.gasPrice = (await this.getBumpedGasPrice(1.5)).toString()
+    if (config.isMainnet) {
+      // TODO
+    } else {
       txOptions.gasLimit = 5000000
+      const network = networkIdToSlug(this.providerNetworkId)
+      if (network === OPTIMISM) {
+        txOptions.gasPrice = 0
+        txOptions.gasLimit = 8000000
+      } else if (network === XDAI) {
+        txOptions.gasLimit = 5000000
+      }
     }
     return txOptions
   }

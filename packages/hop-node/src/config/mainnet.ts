@@ -6,25 +6,25 @@ export const networks: any = {
     networkId: '1',
     rpcUrl: 'https://mainnet.rpc.hop.exchange'
   },
-  polygon: {
-    networkId: '137',
-    rpcUrl: 'https://rpc-mainnet.maticvigil.com'
-  }
   /*
+  // TODO: arbitrum mainnet
   arbitrum: {
-    networkId: '79377087078960',
-    rpcUrl: 'https://kovan3.arbitrum.io/rpc',
-    explorerUrl: 'https://explorer.offchainlabs.com/#/'
+    chainId: '1000',
+    rpcUrl: 'https://mainnet.arbitrum.io'
   },
   optimism: {
-    networkId: '69',
-    rpcUrl: 'https://kovan.optimism.io',
+    chainId: '10',
+    rpcUrl: 'https://mainnet.optimism.io'
   },
-  xdai: {
-    networkId: '77',
-    rpcUrl: 'https://sokol.poa.network',
-  }
   */
+  xdai: {
+    chainId: '100',
+    rpcUrl: 'https://rpc.xdaichain.com'
+  },
+  polygon: {
+    chainId: '137',
+    rpcUrl: 'https://rpc-mainnet.maticvigil.com'
+  }
 }
 
 export const bonders: string[] = []

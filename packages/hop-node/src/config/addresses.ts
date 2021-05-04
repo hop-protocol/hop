@@ -1,8 +1,11 @@
 import { KOVAN, GOERLI, MAINNET } from 'src/constants'
+
+const { metadata } = require('./metadata')
 const network = process.env.NETWORK || KOVAN
 export const isTestMode = !!process.env.TEST_MODE
 
 let bonders: string[] = []
+let isMainnet = network === MAINNET
 
 const getConfigByNetwork = (network: string) => {
   let addresses: any
@@ -38,17 +41,29 @@ const getConfigByNetwork = (network: string) => {
 
 const { tokens, networks } = getConfigByNetwork(network)
 export const config = {
+  isMainnet,
   tokens,
   networks,
   bonderPrivateKey: process.env.BONDER_PRIVATE_KEY,
-  safeConfirmations: network === MAINNET ? 12 : 0
+  safeConfirmations: isMainnet ? 12 : 0,
+  metadata,
+  bonders
 }
 
 const setConfigByNetwork = (network: string) => {
   const { tokens, networks } = getConfigByNetwork(network)
+  isMainnet = network === MAINNET
+  config.isMainnet = isMainnet
   config.tokens = tokens
   config.networks = networks
-  config.safeConfirmations = network === MAINNET ? 12 : 0
+  config.safeConfirmations = isMainnet ? 12 : 0
+
+  // TODO: remove when new USDC contracts are deployed on testnets
+  if (isMainnet) {
+    config.metadata.tokens.USDC.decimals = 6
+  } else {
+    config.metadata.tokens.USDC.decimals = 18
+  }
 }
 
 const setBonderPrivateKey = (privateKey: string) => {
@@ -56,8 +71,9 @@ const setBonderPrivateKey = (privateKey: string) => {
 }
 
 const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
-  networks[network].rpcUrl = rpcUrl
+  if (networks[network]) {
+    networks[network].rpcUrl = rpcUrl
+  }
 }
 
 export { setConfigByNetwork, setBonderPrivateKey, setNetworkRpcUrl }
-export { bonders }

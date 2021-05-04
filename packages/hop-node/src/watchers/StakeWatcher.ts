@@ -1,5 +1,6 @@
 import '../moduleAlias'
 import { Contract } from 'ethers'
+import chalk from 'chalk'
 import { wait, networkSlugToId, isL1NetworkId } from 'src/utils'
 import BaseWatcher from './helpers/BaseWatcher'
 import Bridge from './helpers/Bridge'
@@ -48,6 +49,7 @@ class StakeWatcher extends BaseWatcher {
       if (this.isL1) {
         this.logger.debug(`bonder address: ${bonderAddress}`)
       }
+      this.logger.debug(`maxStakeAmount:`, this.maxStakeAmount)
       while (true) {
         if (!this.started) {
           return
@@ -118,20 +120,25 @@ class StakeWatcher extends BaseWatcher {
           if (l1Balance > 0) {
             const convertAmount = Math.min(l1Balance, amountToStake)
             this.logger.debug(
-              `converting to ${convertAmount} canonical token to hop token`
+              `converting to L1 ${convertAmount} canonical token to L2 hop token`
             )
 
             let tx: any
             const spender = l1Bridge.getAddress()
             tx = await l1Token.approve(spender)
-            this.logger.info(`canonical token approve tx:`, tx?.hash)
-            this.notifier.info(`approve tx: ${tx?.hash}`)
+            this.logger.info(
+              `L1 canonical token approve tx:`,
+              chalk.bgYellow.black.bold(tx?.hash)
+            )
+            this.notifier.info(`L1 approve tx: ${tx?.hash}`)
             await tx.wait()
             tx = await l1Bridge.convertCanonicalTokenToHopToken(
               this.token.providerNetworkId,
               convertAmount
             )
-            this.logger.debug(`convert tx: ${tx?.hash}`)
+            this.logger.debug(
+              `convert tx: ${chalk.bgYellow.black.bold(tx?.hash)}`
+            )
             this.notifier.info(`convert tx: ${tx?.hash}`)
             await tx.wait()
             // wait enough time for canonical token transfer
@@ -150,7 +157,10 @@ class StakeWatcher extends BaseWatcher {
       if (allowance < amountToStake) {
         this.logger.debug('approving tokens')
         const tx = await this.approveTokens()
-        this.logger.info(`stake approve tx:`, tx?.hash)
+        this.logger.info(
+          `stake approve tx:`,
+          chalk.bgYellow.black.bold(tx?.hash)
+        )
         await tx?.wait()
       }
       allowance = await this.getTokenAllowance()
@@ -164,7 +174,10 @@ class StakeWatcher extends BaseWatcher {
       }
       this.logger.debug(`attempting to stake: ${amountToStake.toString()}`)
       const tx = await this.bridge.stake(amountToStake.toString())
-      this.logger.info(`stake tx:`, tx?.hash)
+      this.logger.info(`stake tx:`, chalk.bgYellow.black.bold(tx?.hash))
+      await tx.wait()
+      const newCredit = await this.bridge.getCredit()
+      this.logger.debug(`credit balance:`, newCredit)
     }
   }
 

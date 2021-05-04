@@ -92,13 +92,16 @@ program
         setLogLevel(logLevel)
       }
       if (config?.keystore) {
+        if (!config.keystore.location) {
+          throw new Error('keystore location is required')
+        }
         const filepath = path.resolve(
           config.keystore.location.replace('~', os.homedir())
         )
         const keystore = JSON.parse(
           fs.readFileSync(path.resolve(filepath), 'utf8')
         )
-        let passphrase = config?.keystore.pass
+        let passphrase = process.env.KEYSTORE_PASS || config?.keystore.pass
         if (!passphrase) {
           if (source.passwordFile) {
             passphrase = fs.readFileSync(
@@ -374,20 +377,22 @@ Press [Enter] when you have written down your mnemonic.`
         }
 
         clearConsole()
-        let { mnemonicConfirm } = await prompt.get({
-          properties: {
-            mnemonicConfirm: {
-              message:
-                'Please type mnemonic (separated by spaces) to confirm you have written it down\n\n:'
+        if (mnemonic) {
+          let { mnemonicConfirm } = await prompt.get({
+            properties: {
+              mnemonicConfirm: {
+                message:
+                  'Please type mnemonic (separated by spaces) to confirm you have written it down\n\n:'
+              }
             }
-          }
-        } as any)
+          } as any)
 
-        clearConsole()
-        mnemonicConfirm = (mnemonicConfirm as string).trim()
-        if (mnemonicConfirm !== mnemonic) {
-          console.error('\n\nERROR: mnemonic entered is incorrect.')
-          return
+          clearConsole()
+          mnemonicConfirm = (mnemonicConfirm as string).trim()
+          if (mnemonicConfirm !== mnemonic) {
+            console.error('\n\nERROR: mnemonic entered is incorrect.')
+            return
+          }
         }
 
         const keystore = await generateKeystore(privateKey, passphrase)

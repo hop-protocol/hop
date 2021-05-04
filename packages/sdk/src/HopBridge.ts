@@ -363,7 +363,10 @@ class HopBridge extends Base {
     }
 
     // ToDo: Move bonder address to config
-    const bonder = '0xE609c515A162D54548aFe31F4Ec3D951a99cF617'
+    let bonder = '0xE609c515A162D54548aFe31F4Ec3D951a99cF617'
+    if (this.network === 'mainnet') {
+      bonder = '0x2A6303e6b99d451Df3566068EBb110708335658f'
+    }
     const credit: BigNumber = await bridge.getCredit(bonder)
     const debit: BigNumber = await bridge.getDebitAndAdditionalDebit(bonder)
 

@@ -92,7 +92,10 @@ class polygonBridgeWatcher extends BaseWatcher {
             delete transactionHashes[transactionHash]
             this.logger.info('sending polygon canonical bridge exit tx')
             const tx = await this.sendTransaction(transactionHash, tokenSymbol)
-            this.logger.info('polygon canonical bridge exit tx:', tx.hash)
+            this.logger.info(
+              'polygon canonical bridge exit tx:',
+              chalk.bgYellow.black.bold(tx.hash)
+            )
           }
         } catch (err) {
           this.logger.error('poll error:', err.message)

@@ -252,11 +252,17 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
+    const l1Bridge = this.siblingWatchers[networkSlugToId(ETHEREUM)]
+      .bridge as L1Bridge
+    const hasPositiveBalance = await l1Bridge.hasPositiveBalance()
+    if (!hasPositiveBalance) {
+      throw new Error('bonder requires positive balance to bond transfer root')
+    }
+
     await db.transferRoots.update(transferRootHash, {
       sentBondTx: true
     })
-    const tx = await (this.siblingWatchers[networkSlugToId(ETHEREUM)]
-      .bridge as L1Bridge).bondTransferRoot(
+    const tx = await l1Bridge.bondTransferRoot(
       transferRootHash,
       chainId,
       totalAmount

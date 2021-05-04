@@ -6,6 +6,7 @@ import HopBridge from './HopBridge'
 import CanonicalBridge from './CanonicalBridge'
 import { TChain, TToken, TProvider } from './types'
 import Base from './Base'
+import { Network } from './constants'
 import _version from './version'
 
 /**
@@ -61,7 +62,7 @@ class Hop extends Base {
    *const hop = new Hop('mainnet', signer)
    *```
    */
-  constructor (network: string = 'kovan', signer?: TProvider) {
+  constructor (network: string = Network.Kovan, signer?: TProvider) {
     super(network, signer)
   }
 

@@ -1,34 +1,9 @@
+import * as hopMetadata from '@hop-protocol/metadata'
+
 export const metadata = {
   tokens: {
-    DAI: {
-      symbol: 'DAI',
-      name: 'DAI Stablecoin',
-      decimals: 18
-    },
-    ARB: {
-      symbol: 'ARB',
-      name: 'ARB Token',
-      decimals: 18
-    },
-    sETH: {
-      symbol: 'sETH',
-      name: 'Synth ETH',
-      decimals: 18
-    },
-    sBTC: {
-      symbol: 'sBTC',
-      name: 'Synth BTC',
-      decimals: 18
-    },
-    USDC: {
-      symbol: 'USDC',
-      name: 'USDC',
-      decimals: 18 // TODO: change to 6 with new contracts
-    },
-    WBTC: {
-      symbol: 'WBTC',
-      name: 'Wrapped BTC',
-      decimals: 18
-    }
+    kovan: hopMetadata.kovan.tokens,
+    goerli: hopMetadata.goerli.tokens,
+    mainnet: hopMetadata.mainnet.tokens
   }
 }

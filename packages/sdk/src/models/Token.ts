@@ -1,5 +1,6 @@
 import { ethers } from 'ethers'
 import { metadata } from '../config'
+import { Network } from '../constants'
 
 class Token {
   public readonly chainId: number
@@ -34,7 +35,7 @@ class Token {
       this.name = name
     }
     if (!decimals && symbol) {
-      this.decimals = metadata.tokens[symbol].decimals
+      this.decimals = metadata.tokens?.[Network.Mainnet]?.[symbol]?.decimals
     }
   }
 }

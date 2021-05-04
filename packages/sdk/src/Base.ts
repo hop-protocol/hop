@@ -49,11 +49,7 @@ class Base {
    */
   protected toTokenModel (token: TToken) {
     if (typeof token === 'string') {
-      let { name, symbol, decimals } = metadata.tokens[token]
-      // TODO: Remove once new USDC contracts are deploy
-      if (this.network === 'mainnet') {
-        decimals = 6
-      }
+      let { name, symbol, decimals } = metadata.tokens[this.network][token]
       return new Token(0, '', decimals, symbol, name)
     }
 

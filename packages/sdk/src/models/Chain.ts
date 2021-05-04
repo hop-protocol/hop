@@ -1,5 +1,6 @@
 import { providers } from 'ethers'
 import { metadata } from '../config'
+import { Network, Chain as ChainEnum } from '../constants'
 
 type Provider = providers.Provider
 
@@ -10,11 +11,11 @@ class Chain {
   provider: Provider | null = null
   isL1: boolean = false
 
-  static Ethereum = newChain('ethereum')
-  static Optimism = newChain('optimism')
-  static Arbitrum = newChain('arbitrum')
-  static xDai = newChain('xdai')
-  static Polygon = newChain('polygon')
+  static Ethereum = newChain(ChainEnum.Ethereum)
+  static Optimism = newChain(ChainEnum.Optimism)
+  static Arbitrum = newChain(ChainEnum.Arbitrum)
+  static xDai = newChain(ChainEnum.xDai)
+  static Polygon = newChain(ChainEnum.Polygon)
 
   static fromSlug (slug: string) {
     return newChain(slug)
@@ -24,13 +25,13 @@ class Chain {
     this.name = name
     this.slug = (name || '').trim().toLowerCase()
     if (
-      this.slug === 'kovan' ||
-      this.slug === 'goerli' ||
-      this.slug === 'mainnet' ||
-      this.slug === 'ethereum'
+      this.slug === Network.Kovan ||
+      this.slug === Network.Goerli ||
+      this.slug === Network.Mainnet ||
+      this.slug === ChainEnum.Ethereum
     ) {
       this.isL1 = true
-      this.slug = 'ethereum'
+      this.slug = ChainEnum.Ethereum
     }
     if (chainId) {
       this.chainId = Number(chainId)
@@ -50,11 +51,17 @@ class Chain {
 }
 
 function newChain (chain: string) {
-  if (chain === 'kovan' || chain === 'goerli' || chain === 'mainnet') {
-    chain = 'ethereum'
+  if (
+    chain === Network.Mainnet ||
+    chain === Network.Goerli ||
+    chain === Network.Kovan
+  ) {
+    chain = ChainEnum.Ethereum
   }
-  const meta = metadata.networks[chain]
-  return new Chain(meta.name)
+  if (!metadata.networks[chain]) {
+    throw new Error('unsupported chain')
+  }
+  return new Chain(metadata.networks[chain].name)
 }
 
 export default Chain

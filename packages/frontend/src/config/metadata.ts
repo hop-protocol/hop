@@ -1,3 +1,5 @@
+import deepmerge from 'deepmerge'
+import * as hopMetadata from '@hop-protocol/metadata'
 import MainnetLogo from 'src/assets/logos/mainnet.svg'
 import ArbitrumLogo from 'src/assets/logos/arbitrum.svg'
 import OptimismLogo from 'src/assets/logos/optimism.svg'
@@ -27,46 +29,25 @@ type Metadata = {
   }
 }
 
+const images = {
+	DAI: DaiLogo,
+	ARB: ArbitrumLogo,
+	sETH: SynthEthLogo,
+	sBTC: SynthBtcLogo,
+	USDC: UsdcLogo,
+	WBTC: wBtcLogo
+}
+
+const network = process.env.REACT_APP_NETWORK || 'kovan'
+const tokens = Object.keys(images).reduce((obj, token) => {
+	obj[token] = deepmerge(hopMetadata[network].tokens[token], {
+		image: images[token]
+	})
+	return obj
+}, {})
+
 export const metadata: Metadata = {
-  tokens: {
-    DAI: {
-      symbol: 'DAI',
-      name: 'DAI Stablecoin',
-      decimals: 18,
-      image: DaiLogo
-    },
-    ARB: {
-      symbol: 'ARB',
-      name: 'ARB Token',
-      decimals: 18,
-      image: ArbitrumLogo
-    },
-    sETH: {
-      symbol: 'sETH',
-      name: 'Synth ETH',
-      decimals: 18,
-      image: SynthEthLogo
-    },
-    sBTC: {
-      symbol: 'sBTC',
-      name: 'Synth BTC',
-      decimals: 18,
-      image: SynthBtcLogo
-    },
-    USDC: {
-      symbol: 'USDC',
-      name: 'USDC',
-      // TODO: change to 6 with new contracts
-      decimals: process.env.REACT_APP_NETWORK === 'mainnet' ? 6 : 18,
-      image: UsdcLogo
-    },
-    WBTC: {
-      symbol: 'WBTC',
-      name: 'Wrapped BTC',
-      decimals: 18,
-      image: wBtcLogo
-    }
-  },
+  tokens,
   networks: {
     ethereum: {
       name: 'Ethereum',

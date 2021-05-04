@@ -43,6 +43,7 @@ const { tokens, networks } = getConfigByNetwork(network)
 export const config = {
   isMainnet,
   tokens,
+  network,
   networks,
   bonderPrivateKey: process.env.BONDER_PRIVATE_KEY,
   safeConfirmations: isMainnet ? 12 : 0,
@@ -55,15 +56,9 @@ const setConfigByNetwork = (network: string) => {
   isMainnet = network === MAINNET
   config.isMainnet = isMainnet
   config.tokens = tokens
+  config.network = network
   config.networks = networks
   config.safeConfirmations = isMainnet ? 12 : 0
-
-  // TODO: remove when new USDC contracts are deployed on testnets
-  if (isMainnet) {
-    config.metadata.tokens.USDC.decimals = 6
-  } else {
-    config.metadata.tokens.USDC.decimals = 18
-  }
 }
 
 const setBonderPrivateKey = (privateKey: string) => {

@@ -38,7 +38,8 @@ export default {
               contract: tokenContracts.saddleSwap
             }
           },
-          tokenDecimals: (config.metadata.tokens as any)[token].decimals,
+          tokenDecimals: (config.metadata.tokens[config.network] as any)[token]
+            .decimals,
           wallet: wallets.get(network),
           minThreshold: _config.minThreshold || 1.01,
           maxTradeAmount: _config.maxTradeAmount || 100000

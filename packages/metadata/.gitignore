@@ -1,0 +1,13 @@
+.DS_Store
+node_modules
+data
+*.log
+build
+dist
+!third_party/*.tgz
+src/package.json
+package-lock.json
+*.map
+.env
+*.env
+docs

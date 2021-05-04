@@ -20,7 +20,9 @@ export default class Bridge extends ContractBase {
           for (let k in config.tokens[tkn][net]) {
             const val = config.tokens[tkn][net][k]
             if (val === bridgeContract.address) {
-              tokenDecimals = (config.metadata.tokens as any)[tkn].decimals
+              tokenDecimals = (config.metadata.tokens[config.network] as any)[
+                tkn
+              ].decimals
               break
             }
           }
@@ -66,9 +68,7 @@ export default class Bridge extends ContractBase {
 
   async getRawDebit () {
     const bonder = await this.getBonderAddress()
-    const debit = (
-      await this.bridgeContract.getRawDebit(bonder)
-    ).toString()
+    const debit = (await this.bridgeContract.getRawDebit(bonder)).toString()
     return Number(formatUnits(debit, this.tokenDecimals))
   }
 

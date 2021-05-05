@@ -1,10 +1,9 @@
 import '../moduleAlias'
-import { Contract, BigNumber } from 'ethers'
-import { parseUnits, formatUnits } from 'ethers/lib/utils'
+import { ethers, Contract, BigNumber } from 'ethers'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { wait } from 'src/utils'
 import chalk from 'chalk'
 import Logger from 'src/logger'
-import { UINT256 } from 'src/constants'
 import queue from 'src/watchers/helpers/queue'
 
 interface TokenConfig {
@@ -41,7 +40,7 @@ class ArbBot {
   wallet: any
   accountAddress: string
   minThreshold: number
-  maxTradeAmount: number
+  maxTradeAmount: BigNumber = BigNumber.from(0)
   ready: boolean = false
   pollTimeSec: number = 10
   cache: any = {}
@@ -59,7 +58,7 @@ class ArbBot {
     this.logger.log(
       `Starting ${this.token0.label}<->${this.token1.label} arbitrage bot`
     )
-    this.logger.log(`maxTradeAmount: ${this.maxTradeAmount}`)
+    this.logger.log(`maxTradeAmount: ${this.formatUnits(this.maxTradeAmount)}`)
     this.logger.log(`minThreshold: ${this.minThreshold}`)
     try {
       await this.tilReady()
@@ -93,12 +92,12 @@ class ArbBot {
     return this.getTokenBalance(this.token1)
   }
 
-  public async getToken0AmountOut (amount: number) {
+  public async getToken0AmountOut (amount: BigNumber) {
     const path = [this.token0.contract.address, this.token1.contract.address]
     return this.getAmountOut(path, amount)
   }
 
-  public async getToken1AmountOut (amount: number) {
+  public async getToken1AmountOut (amount: BigNumber) {
     const path = [this.token1.contract.address, this.token0.contract.address]
     return this.getAmountOut(path, amount)
   }
@@ -115,7 +114,6 @@ class ArbBot {
   private async init (config: Config) {
     this.wallet = config.wallet
     this.minThreshold = config.minThreshold
-    this.maxTradeAmount = config.maxTradeAmount
     this.saddleSwap = config.amm.saddleSwap.contract
     this.token0 = {
       label: config.token0.label,
@@ -126,29 +124,26 @@ class ArbBot {
       contract: config.token1.contract
     }
     this.tokenDecimals = config.tokenDecimals
+    if (config.maxTradeAmount) {
+      this.maxTradeAmount = this.parseUnits(config.maxTradeAmount.toString())
+    }
     this.accountAddress = await this.wallet.getAddress()
     this.ready = true
   }
 
   private async getTokenBalance (token: Token) {
-    const balance = await token.contract.balanceOf(this.accountAddress)
-    const decimals = await token.contract.decimals()
-    const formattedBalance = Number(formatUnits(balance, decimals))
-    return formattedBalance
+    return token.contract.balanceOf(this.accountAddress)
   }
 
   private async approveToken (token: Token) {
-    const approveAmount = BigNumber.from(UINT256)
+    const approveAmount = BigNumber.from(ethers.constants.MaxUint256)
     const approved = await token.contract.allowance(
       this.accountAddress,
       this.saddleSwap.address
     )
 
     if (approved.lt(approveAmount)) {
-      return token.contract.approve(
-        this.saddleSwap.address,
-        approveAmount.toString()
-      )
+      return token.contract.approve(this.saddleSwap.address, approveAmount)
     }
   }
 
@@ -167,19 +162,15 @@ class ArbBot {
     }
   }
 
-  private async getAmountOut (path: string[], amount: number) {
-    const amountIn = parseUnits(amount.toString(), this.tokenDecimals)
+  private async getAmountOut (path: string[], amount: BigNumber) {
+    const amountIn = this.parseUnits(amount.toString())
     let [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
-    const parsedAmount = parseUnits(amount.toString(), this.tokenDecimals)
     const amountsOut = await this.saddleSwap.calculateSwap(
       tokenIndexFrom,
       tokenIndexTo,
-      parsedAmount
+      amount
     )
-    const amountOut = Number(
-      formatUnits(amountsOut.toString(), this.tokenDecimals)
-    )
-    return amountOut
+    return amountsOut
   }
 
   private async getTokenIndexes (path: string[]) {
@@ -195,10 +186,10 @@ class ArbBot {
 
   private async checkBalances () {
     const token0Balance = await this.getToken0Balance()
-    this.logger.log(`${this.token0.label} balance: ${token0Balance}`)
+    this.logger.log(`${this.token0.label} balance: ${this.formatUnits(token0Balance)}`)
 
     const token1Balance = await this.getToken1Balance()
-    this.logger.log(`${this.token1.label} balance: ${token1Balance}`)
+    this.logger.log(`${this.token1.label} balance: ${this.formatUnits(token1Balance)}`)
   }
 
   private async checkArbitrage () {
@@ -207,17 +198,19 @@ class ArbBot {
         `Checking for arbitrage opportunity. ${pathTokens[0].label}, ${pathTokens[1].label}`
       )
       const reserves = await this.getReserves()
-      this.logger.log(`reserve 0: ${reserves[0]}`)
-      this.logger.log(`reserve 1: ${reserves[1]}`)
+      this.logger.log(`reserve 0: ${this.formatUnits(reserves[0])}`)
+      this.logger.log(`reserve 1: ${this.formatUnits(reserves[1])}`)
       const [token0, token1] = pathTokens
       const token0Balance = await this.getTokenBalance(token0)
-      const delta = Math.abs(reserves[0] - reserves[1])
-      let token0TradeAmount = Math.min(
-        Math.max(token0Balance, this.maxTradeAmount),
-        delta / 2,
-        100_000
-      )
-      if (token0TradeAmount <= 0.01) {
+      const delta = reserves[0].sub(reserves[1])
+      let token0TradeAmount = this.maxTradeAmount
+      if (token0Balance.lt(this.maxTradeAmount)) {
+        token0TradeAmount = token0Balance
+      }
+      if (delta.div(2).lt(token0TradeAmount)) {
+        token0TradeAmount = delta.div(2)
+      }
+      if (token0TradeAmount.lte(this.parseUnits('0.01'))) {
         this.logger.log(`No ${token0.label} token balance. Skipping.`)
         return
       }
@@ -230,13 +223,17 @@ class ArbBot {
         return
       }
 
-      const shouldArb = token0AmountOut > token0TradeAmount * this.minThreshold
+      const shouldArb = token0AmountOut
+        .gt(token0TradeAmount)
+        .mul(this.minThreshold)
       if (!execute) {
         return shouldArb
       }
 
       this.logger.debug(
-        `${token0TradeAmount} ${token0.label} = ${token0AmountOut} ${token1.label}`
+        `${this.formatUnits(token0TradeAmount)} ${
+          token0.label
+        } = ${this.formatUnits(token0AmountOut)} ${token1.label}`
       )
 
       if (!shouldArb) {
@@ -245,7 +242,7 @@ class ArbBot {
       }
 
       this.cache[cacheKey] = true
-      const profit = token0AmountOut - token0TradeAmount
+      const profit = token0AmountOut.sub(token0TradeAmount)
       this.logger.log(
         chalk.green(
           `Arbitrage opportunity: ${token0.label} 🡒 ${token1.label} (+${profit} ${token1.label})`
@@ -270,19 +267,14 @@ class ArbBot {
   @queue
   private async trade (
     pathTokens: Token[],
-    amountInNum: number,
-    amountOutMinNum: number = 0
+    amountIn: BigNumber,
+    amountOutMin: BigNumber = BigNumber.from(0)
   ) {
-    const amountIn = parseUnits(amountInNum.toString(), this.tokenDecimals)
-    const amountOutMin = parseUnits(
-      amountOutMinNum.toString(),
-      this.tokenDecimals
-    )
     const deadline = (Date.now() / 1000 + 300) | 0
     const path = pathTokens.map(token => token.contract.address)
     this.logger.log('trade params:')
-    this.logger.log('amountIn:', amountInNum)
-    this.logger.log('amountOutMin:', amountOutMinNum)
+    this.logger.log('amountIn:', this.formatUnits(amountIn))
+    this.logger.log('amountOutMin:', this.formatUnits(amountOutMin))
     this.logger.log(
       'pathTokens:',
       pathTokens.map(token => token.label).join(', ')
@@ -292,16 +284,16 @@ class ArbBot {
 
     const inputToken = pathTokens[0]
     const pathToken0Balance = await this.getTokenBalance(inputToken)
-    if (pathToken0Balance < amountInNum) {
+    if (pathToken0Balance.lt(amountIn)) {
       throw new Error(
-        `Not enough ${inputToken.label} tokens. Need ${amountInNum}, have ${pathToken0Balance}`
+        `Not enough ${inputToken.label} tokens. Need ${amountIn}, have ${pathToken0Balance}`
       )
     }
     let [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
     return this.saddleSwap.swap(
       tokenIndexFrom,
       tokenIndexTo,
-      amountIn.toString(),
+      amountIn,
       amountOutMin,
       deadline
     )
@@ -312,9 +304,7 @@ class ArbBot {
       this.saddleSwap.getTokenBalance(0),
       this.saddleSwap.getTokenBalance(1)
     ])
-    const reserve0 = Number(formatUnits(reserves[0], this.tokenDecimals))
-    const reserve1 = Number(formatUnits(reserves[1], this.tokenDecimals))
-    return [reserve0, reserve1]
+    return reserves
   }
 
   private async startEventWatcher () {
@@ -331,6 +321,14 @@ class ArbBot {
       .on('error', err => {
         this.logger.error('arb bot swap event watcher error:', err.message)
       })
+  }
+
+  formatUnits (value: BigNumber) {
+    return Number(formatUnits(value.toString(), this.tokenDecimals))
+  }
+
+  parseUnits (value: string | number) {
+    return parseUnits(value.toString(), this.tokenDecimals)
   }
 }
 

@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import { Contract } from 'ethers'
+import { Contract, BigNumber } from 'ethers'
 import chalk from 'chalk'
 import { wait } from 'src/utils'
 import { throttle } from 'src/utils'
@@ -20,9 +20,9 @@ export interface Config {
 const BONDER_ORDER_DELAY_MS = 60 * 1000
 
 class CommitTransfersWatcher extends BaseWatcher {
-  siblingWatchers: { [networkId: string]: CommitTransfersWatcher }
+  siblingWatchers: { [chainId: string]: CommitTransfersWatcher }
   minPendingTransfers: number = 1
-  minThresholdAmount: number = 0
+  minThresholdAmount: BigNumber = BigNumber.from(0)
 
   constructor (config: Config) {
     super({
@@ -35,14 +35,20 @@ class CommitTransfersWatcher extends BaseWatcher {
     })
 
     if (config.minThresholdAmount) {
-      this.minThresholdAmount = config.minThresholdAmount
+      this.minThresholdAmount = this.bridge.parseUnits(
+        config.minThresholdAmount
+      )
     }
   }
 
   async start () {
     this.started = true
     try {
-      this.logger.debug(`minThresholdAmount: ${this.minThresholdAmount}`)
+      this.logger.debug(
+        `minThresholdAmount: ${this.bridge.formatUnits(
+          this.minThresholdAmount
+        )}`
+      )
       await Promise.all([this.syncUp(), this.watch()])
     } catch (err) {
       this.logger.error('watcher error:', err)
@@ -100,7 +106,8 @@ class CommitTransfersWatcher extends BaseWatcher {
     while (true) {
       if (!this.started) return
       try {
-        const chainIds = ['1', '42', '5', '69', '79377087078960', '77', '80001']
+        // TODO
+        const chainIds = [1, 42, 5, 69, 79377087078960, 77, 80001]
         for (let chainId of chainIds) {
           //await this.getRecentTransferHashesForCommittedRoots()
           const pendingTransfers = await (this
@@ -117,7 +124,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     }
   }
 
-  checkTransferSent = throttle(async (chainId: string) => {
+  checkTransferSent = throttle(async (chainId: number) => {
     if (this.isL1) {
       return
     }
@@ -127,7 +134,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       }
       const pendingAmount = await (this
         .bridge as L2Bridge).getPendingAmountForChainId(chainId)
-      if (pendingAmount <= 0) {
+      if (pendingAmount.lte(0)) {
         return
       }
 
@@ -161,9 +168,13 @@ class CommitTransfersWatcher extends BaseWatcher {
 
       const totalPendingAmount = await (this
         .bridge as L2Bridge).getPendingAmountForChainId(chainId)
-      if (totalPendingAmount < this.minThresholdAmount) {
+      if (totalPendingAmount.lt(this.minThresholdAmount)) {
         this.logger.warn(
-          `total pending amount ${totalPendingAmount} does not meet min threshold of ${this.minThresholdAmount}. Cannot commit transfers yet`
+          `total pending amount ${this.bridge.formatUnits(
+            totalPendingAmount
+          )} does not meet min threshold of ${this.bridge.formatUnits(
+            this.minThresholdAmount
+          )}. Cannot commit transfers yet`
         )
         return
       }
@@ -251,9 +262,9 @@ class CommitTransfersWatcher extends BaseWatcher {
   handleTransferSentEvent = async (
     transferHash: string,
     recipient: string,
-    amount: string,
+    amount: BigNumber,
     transferNonce: string,
-    bonderFee: string,
+    bonderFee: BigNumber,
     index: string,
     meta: any
   ) => {
@@ -357,7 +368,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     }
   }
 
-  async waitTimeout (chainId: string) {
+  async waitTimeout (chainId: number) {
     await wait(2 * 1000)
     if (!this.order()) {
       return

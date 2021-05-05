@@ -1,4 +1,4 @@
-import { Contract } from 'ethers'
+import { providers, Contract, BigNumber } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
 import queue from './queue'
@@ -7,12 +7,12 @@ import unique from 'src/utils/unique'
 
 export default class Bridge extends ContractBase {
   WithdrawalBonded: string = 'WithdrawalBonded'
-  tokenDecimals: number
+  tokenDecimals: number = 18
 
   constructor (public bridgeContract: Contract) {
     super(bridgeContract)
     this.bridgeContract = bridgeContract
-    let tokenDecimals = 18
+    let tokenDecimals: number
     // TODO: better way of getting token decimals
     for (let tkn in config.tokens) {
       for (let key in config.tokens[tkn]) {
@@ -29,11 +29,13 @@ export default class Bridge extends ContractBase {
         }
       }
     }
-    this.tokenDecimals = tokenDecimals
+    if (tokenDecimals !== undefined) {
+      this.tokenDecimals = tokenDecimals
+    }
     this.bridgeStartListeners()
   }
 
-  bridgeStartListeners () {
+  bridgeStartListeners (): void {
     this.bridgeContract
       .on(this.bridgeContract.filters.WithdrawalBonded(), (...args: any[]) =>
         this.emit(this.WithdrawalBonded, ...args)
@@ -43,48 +45,46 @@ export default class Bridge extends ContractBase {
       })
   }
 
-  async getBonderAddress () {
+  async getBonderAddress (): Promise<string> {
     return this.bridgeContract.signer.getAddress()
   }
 
-  async isBonder () {
+  async isBonder (): Promise<boolean> {
     const bonder = await this.getBonderAddress()
     return this.bridgeContract.getIsBonder(bonder)
   }
 
-  async getCredit () {
+  async getCredit (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
-    const credit = (await this.bridgeContract.getCredit(bonder)).toString()
-    return Number(formatUnits(credit, this.tokenDecimals))
+    const credit = await this.bridgeContract.getCredit(bonder)
+    return credit
   }
 
-  async getDebit () {
+  async getDebit (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
-    const debit = (
-      await this.bridgeContract.getDebitAndAdditionalDebit(bonder)
-    ).toString()
-    return Number(formatUnits(debit, this.tokenDecimals))
+    const debit = await this.bridgeContract.getDebitAndAdditionalDebit(bonder)
+    return debit
   }
 
-  async getRawDebit () {
+  async getRawDebit (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
-    const debit = (await this.bridgeContract.getRawDebit(bonder)).toString()
-    return Number(formatUnits(debit, this.tokenDecimals))
+    const debit = await this.bridgeContract.getRawDebit(bonder)
+    return debit
   }
 
-  async hasPositiveBalance () {
+  async hasPositiveBalance (): Promise<boolean> {
     const [credit, debit] = await Promise.all([
       this.getCredit(),
       this.getDebit()
     ])
-    return credit >= debit && credit > 0
+    return credit.gte(debit) && credit.gt(0)
   }
 
-  getAddress () {
+  getAddress (): string {
     return this.bridgeContract.address
   }
 
-  async getBondedWithdrawalAmount (transferHash: string) {
+  async getBondedWithdrawalAmount (transferHash: string): Promise<BigNumber> {
     const bonderAddress = await this.getBonderAddress()
     return this.getBondedWithdrawalAmountByBonder(bonderAddress, transferHash)
   }
@@ -92,16 +92,18 @@ export default class Bridge extends ContractBase {
   async getBondedWithdrawalAmountByBonder (
     bonder: string,
     transferHash: string
-  ) {
+  ): Promise<BigNumber> {
     const bondedBn = await this.bridgeContract.getBondedWithdrawalAmount(
       bonder,
       transferHash
     )
-    return Number(formatUnits(bondedBn.toString(), this.tokenDecimals))
+    return bondedBn
   }
 
-  async getTotalBondedWithdrawalAmount (transferHash: string) {
-    let totalBondedAmount = 0
+  async getTotalBondedWithdrawalAmount (
+    transferHash: string
+  ): Promise<BigNumber> {
+    let totalBondedAmount = BigNumber.from(0)
     const bonderAddress = await this.getBonderAddress()
     let bonders = [bonderAddress]
     if (Array.isArray(config?.bonders)) {
@@ -112,12 +114,12 @@ export default class Bridge extends ContractBase {
         bonder,
         transferHash
       )
-      totalBondedAmount += bondedAmount
+      totalBondedAmount = totalBondedAmount.add(bondedAmount)
     }
     return totalBondedAmount
   }
 
-  async getBonderBondedWithdrawalsBalance () {
+  async getBonderBondedWithdrawalsBalance (): Promise<BigNumber> {
     const bonderAddress = await this.getBonderAddress()
     const blockNumber = await this.bridgeContract.provider.getBlockNumber()
     const startBlockNumber = blockNumber - 1000
@@ -125,26 +127,26 @@ export default class Bridge extends ContractBase {
       startBlockNumber,
       blockNumber
     )
-    let total = 0
+    let total = BigNumber.from(0)
     for (let event of withdrawalBondedEvents) {
       const { transferId } = event.args
       const amount = await this.getBondedWithdrawalAmountByBonder(
         bonderAddress,
         transferId
       )
-      total += amount
+      total = total.add(amount)
     }
     return total
   }
 
-  isTransferHashSpent (transferHash: string) {
+  isTransferHashSpent (transferHash: string): Promise<boolean> {
     return this.bridgeContract.isTransferIdSpent(transferHash)
   }
 
   async getWithdrawalBondedEvents (
     startBlockNumber: number,
     endBlockNumber: number
-  ) {
+  ): Promise<any[]> {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.WithdrawalBonded(),
       startBlockNumber,
@@ -155,7 +157,7 @@ export default class Bridge extends ContractBase {
   async getWithdrawalBondeSettledEvents (
     startBlockNumber: number,
     endBlockNumber: number
-  ) {
+  ): Promise<any[]> {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.WithdrawalBondSettled(),
       startBlockNumber,
@@ -163,35 +165,26 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  async getTransferRootId (transferRootHash: string, totalAmount: number) {
-    const parsedTotalAmount = parseUnits(
-      totalAmount.toString(),
-      this.tokenDecimals
-    )
-    return this.bridgeContract.getTransferRootId(
-      transferRootHash,
-      parsedTotalAmount
-    )
+  async getTransferRootId (
+    transferRootHash: string,
+    totalAmount: BigNumber
+  ): Promise<string> {
+    return this.bridgeContract.getTransferRootId(transferRootHash, totalAmount)
   }
 
-  async getTransferRoot (transferRootHash: string, totalAmount: number) {
-    const parsedTotalAmount = parseUnits(
-      totalAmount.toString(),
-      this.tokenDecimals
-    )
-    return this.bridgeContract.getTransferRoot(
-      transferRootHash,
-      parsedTotalAmount
-    )
+  async getTransferRoot (
+    transferRootHash: string,
+    totalAmount: BigNumber
+  ): Promise<any> {
+    return this.bridgeContract.getTransferRoot(transferRootHash, totalAmount)
   }
 
   @queue
-  async stake (amount: string) {
-    const parsedAmount = parseUnits(amount, this.tokenDecimals)
+  async stake (amount: BigNumber): Promise<providers.TransactionResponse> {
     const bonder = await this.getBonderAddress()
     const tx = await this.bridgeContract.stake(
       bonder,
-      parsedAmount,
+      amount,
       await this.txOverrides()
     )
     await tx.wait()
@@ -201,10 +194,10 @@ export default class Bridge extends ContractBase {
   @queue
   async bondWithdrawal (
     recipient: string,
-    amount: string,
+    amount: BigNumber,
     transferNonce: string,
-    bonderFee: string
-  ) {
+    bonderFee: BigNumber
+  ): Promise<providers.TransactionResponse> {
     const tx = await this.bridgeContract.bondWithdrawal(
       recipient,
       amount,
@@ -221,16 +214,24 @@ export default class Bridge extends ContractBase {
   async settleBondedWithdrawals (
     bonder: string,
     transferHashes: string[],
-    parsedAmount: string
-  ) {
+    amount: BigNumber
+  ): Promise<providers.TransactionResponse> {
     const tx = await this.bridgeContract.settleBondedWithdrawals(
       bonder,
       transferHashes,
-      parsedAmount,
+      amount,
       await this.txOverrides()
     )
 
     await tx.wait()
     return tx
+  }
+
+  formatUnits (value: BigNumber) {
+    return Number(formatUnits(value.toString(), this.tokenDecimals))
+  }
+
+  parseUnits (value: string | number) {
+    return parseUnits(value.toString(), this.tokenDecimals)
   }
 }

@@ -19,7 +19,7 @@ export interface Config {
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
-  siblingWatchers: { [networkId: string]: BondTransferRootWatcher }
+  siblingWatchers: { [chainId: string]: BondTransferRootWatcher }
   waitMinBondDelay: boolean = true
 
   constructor (config: Config) {
@@ -124,8 +124,8 @@ class BondTransferRootWatcher extends BaseWatcher {
 
   checkTransfersCommited = async (
     transferRootHash: string,
-    totalAmount: number,
-    chainId: string,
+    totalAmount: BigNumber,
+    chainId: number,
     commitedAt: number
   ) => {
     if (this.isL1) {
@@ -194,7 +194,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     this.logger.debug('commitedAt:', commitedAt)
     this.logger.debug('chainId:', chainId)
     this.logger.debug('transferRootHash:', transferRootHash)
-    this.logger.debug('totalAmount:', totalAmount)
+    this.logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     this.logger.debug('transferRootId:', transferRootId)
     await db.transferRoots.update(transferRootHash, {
       transferRootHash,
@@ -217,7 +217,10 @@ class BondTransferRootWatcher extends BaseWatcher {
       'dbTransferRoot transferRootHash:',
       dbTransferRoot.transferRootHash
     )
-    this.logger.debug('dbTransferRoot totalAmount:', dbTransferRoot.totalAmount)
+    this.logger.debug(
+      'dbTransferRoot totalAmount:',
+      this.bridge.formatUnits(dbTransferRoot.totalAmount)
+    )
     this.logger.debug('dbTransferRoot chainId:', dbTransferRoot.chainId)
     this.logger.debug(
       'dbTransferRoot sourceChainId:',
@@ -302,7 +305,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
   handleTransfersCommittedEvent = async (
     transferRootHash: string,
-    totalAmountBn: BigNumber,
+    totalAmount: BigNumber,
     commitedAtBn: BigNumber,
     meta: any
   ) => {
@@ -322,9 +325,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       const { destinationChainId: chainId } = await (this
         .bridge as L2Bridge).decodeCommitTransfersData(data)
       const decimals = await this.getBridgeTokenDecimals()
-      const totalAmount = Number(
-        formatUnits(totalAmountBn.toString(), decimals)
-      )
 
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,
@@ -352,7 +352,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     return token.decimals()
   }
 
-  async waitTimeout (transferRootHash: string, totalAmount: number) {
+  async waitTimeout (transferRootHash: string, totalAmount: BigNumber) {
     await wait(2 * 1000)
     if (!this.order()) {
       return

@@ -7,7 +7,7 @@ export default class L2BridgeWrapper {
     this.l2BridgeWrapperContract = l2BridgeWrapperContract
   }
 
-  async getMessengerAddress () {
+  async getMessengerAddress (): Promise<string> {
     return this.l2BridgeWrapperContract.messenger()
   }
 }

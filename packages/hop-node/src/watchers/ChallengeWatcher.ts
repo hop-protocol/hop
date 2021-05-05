@@ -90,12 +90,12 @@ class ChallengeWatcher extends BaseWatcher {
 
   async checkTransferRoot (
     transferRootHash: string,
-    destChainId: string,
-    totalAmount: string
+    destChainId: number,
+    totalAmount: BigNumber
   ) {
     this.logger.debug('received L1 BondTransferRoot event')
     this.logger.debug('transferRootHash:', transferRootHash)
-    this.logger.debug('totalAmount:', totalAmount.toString())
+    this.logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     this.logger.debug('destChainId:', destChainId)
 
     if (isL1NetworkId(destChainId)) {
@@ -119,7 +119,7 @@ class ChallengeWatcher extends BaseWatcher {
 
       if (
         transferRootHash === commitedTransferRootHash &&
-        totalAmount.toString() === commitedTotalAmount.toString()
+        totalAmount.eq(commitedTotalAmount)
       ) {
         found = true
         break
@@ -161,17 +161,20 @@ class ChallengeWatcher extends BaseWatcher {
   }
 
   async checkChallenge (
-    sourceChainId: string,
-    destChainId: string,
+    sourceChainId: number,
+    destChainId: number,
     transferRootHash: string,
-    totalAmount: string
+    totalAmount: BigNumber
   ) {
     this.logger.debug('sourceChainId:', sourceChainId)
     this.logger.debug('destChainId:', destChainId)
     this.logger.debug('transferRootHash:', transferRootHash)
-    this.logger.debug('totalAmount:', totalAmount)
+    this.logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     const transferBond = await this.l1Bridge.getTransferBond(transferRootHash)
-    if (Number(transferBond.challengeStartTime.toString()) === 0) {
+    const challengeStartTime = Number(
+      transferBond.challengeStartTime.toString()
+    )
+    if (challengeStartTime === 0) {
       this.logger.warn('transferRootHash is not challenged')
       return
     }
@@ -206,7 +209,7 @@ class ChallengeWatcher extends BaseWatcher {
     try {
       this.logger.debug('received TransferRootBonded event')
       this.logger.debug('transferRootHash:', transferRootHash)
-      this.logger.debug('totalAmount:', totalAmount.toString())
+      this.logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
       const { transactionHash } = meta
       const { from: sender, data } = await this.l1Bridge.getTransaction(
         transactionHash
@@ -221,7 +224,7 @@ class ChallengeWatcher extends BaseWatcher {
       await this.checkTransferRoot(
         transferRootHash,
         destinationChainId,
-        totalAmount.toString()
+        totalAmount
       )
     } catch (err) {
       this.logger.error('checkTransferRoot error:', err.message)
@@ -238,10 +241,10 @@ class ChallengeWatcher extends BaseWatcher {
     this.logger.debug('received TransferRootConfirmed event')
     try {
       await this.checkChallenge(
-        sourceChainId.toString(),
-        destChainId.toString(),
+        Number(sourceChainId.toString()),
+        Number(destChainId.toString()),
         transferRootHash,
-        totalAmount.toString()
+        totalAmount
       )
     } catch (err) {
       this.logger.error('checkChallenge error:', err.message)

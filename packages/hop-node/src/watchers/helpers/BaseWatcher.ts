@@ -24,7 +24,7 @@ class BaseWatcher extends EventEmitter {
 
   isL1: boolean
   bridge: L2Bridge | L1Bridge
-  siblingWatchers: { [networkId: string]: any }
+  siblingWatchers: { [chainId: string]: any }
 
   constructor (config: Config) {
     super()
@@ -53,15 +53,15 @@ class BaseWatcher extends EventEmitter {
     }
   }
 
-  async start () {
+  async start (): Promise<void> {
     this.logger.warn('not implemented: implement in child class')
   }
 
-  async stop () {
+  async stop (): Promise<void> {
     this.logger.warn('not implemented: implement in child class')
   }
 
-  setSiblingWatchers (watchers: any) {
+  setSiblingWatchers (watchers: any): void {
     this.siblingWatchers = watchers
   }
 }

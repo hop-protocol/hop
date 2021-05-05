@@ -2,8 +2,8 @@ import BaseDb from './BaseDb'
 
 export type Transfer = {
   transferHash?: string
-  chainId?: string
-  sourceChainId?: string
+  chainId?: number
+  sourceChainId?: number
   withdrawalBondSettled?: boolean
   withdrawalBonded?: boolean
   sentBondWithdrawalTx?: boolean

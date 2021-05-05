@@ -30,7 +30,7 @@ export default function queue (
   return descriptor
 }
 
-async function runner (fn: any) {
+async function runner (fn: any): Promise<any> {
   let retries = 0
   const retry = () => promiseTimeout(fn, TIMEOUT_MS)
   while (true) {

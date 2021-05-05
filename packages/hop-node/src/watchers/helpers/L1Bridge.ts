@@ -1,4 +1,4 @@
-import { Contract, ethers } from 'ethers'
+import { providers, Contract, ethers, BigNumber } from 'ethers'
 import { erc20Abi } from '@hop-protocol/abi'
 import { parseUnits } from 'ethers/lib/utils'
 import Bridge from './Bridge'
@@ -18,7 +18,7 @@ export default class L1Bridge extends Bridge {
     this.l1StartListeners()
   }
 
-  l1StartListeners () {
+  l1StartListeners (): void {
     this.l1BridgeContract
       .on(
         this.l1BridgeContract.filters.TransferRootBonded(),
@@ -40,7 +40,7 @@ export default class L1Bridge extends Bridge {
       })
   }
 
-  async decodeBondTransferRootData (data: string) {
+  async decodeBondTransferRootData (data: string): Promise<any> {
     const decoded = await this.l1BridgeContract.interface.decodeFunctionData(
       'bondTransferRoot',
       data
@@ -55,14 +55,14 @@ export default class L1Bridge extends Bridge {
     }
   }
 
-  async getTransferBond (transferRootId: string) {
+  async getTransferBond (transferRootId: string): Promise<any> {
     return this.l1BridgeContract.transferBonds(transferRootId)
   }
 
   async getTransferRootBondedEvents (
     startBlockNumber: number,
     endBlockNumber: number
-  ) {
+  ): Promise<any[]> {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.TransferRootBonded(),
       startBlockNumber,
@@ -73,7 +73,7 @@ export default class L1Bridge extends Bridge {
   async getTransferRootConfirmedEvents (
     startBlockNumber: number,
     endBlockNumber: number
-  ) {
+  ): Promise<any[]> {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.TransferRootConfirmed(),
       startBlockNumber,
@@ -81,19 +81,19 @@ export default class L1Bridge extends Bridge {
     )
   }
 
-  async getTransferRootCommitedAt (transferRootId: string) {
+  async getTransferRootCommitedAt (transferRootId: string): Promise<number> {
     const commitedAt = await this.bridgeContract.transferRootCommittedAt(
       transferRootId
     )
     return Number(commitedAt.toString())
   }
 
-  async getMinTransferRootBondDelaySeconds () {
+  async getMinTransferRootBondDelaySeconds (): Promise<number> {
     // MIN_TRANSFER_ROOT_BOND_DELAY
     return 15 * 60
   }
 
-  async l1CanonicalToken () {
+  async l1CanonicalToken (): Promise<Token> {
     const tokenAddress = await this.bridgeContract.l1CanonicalToken()
     const tokenContract = new Contract(
       tokenAddress,
@@ -106,28 +106,30 @@ export default class L1Bridge extends Bridge {
   @queue
   async bondTransferRoot (
     transferRootHash: string,
-    chainId: string,
-    totalAmount: number
-  ) {
-    const parsedTotalAmount = parseUnits(
-      totalAmount.toString(),
-      this.tokenDecimals
-    )
+    chainId: number,
+    totalAmount: BigNumber
+  ): Promise<providers.TransactionResponse> {
     const [credit, debit] = await Promise.all([
       this.getCredit(),
       this.getDebit()
     ])
-    if (credit - debit - totalAmount < 0) {
+    if (
+      credit
+        .sub(debit)
+        .sub(totalAmount)
+        .lt(0)
+    ) {
       throw new Error(
-        `not enough available credit to bond transfer root. Have ${credit -
-          debit}, need ${totalAmount}`
+        `not enough available credit to bond transfer root. Have ${this.formatUnits(
+          credit
+        ) - this.formatUnits(debit)}, need ${this.formatUnits(totalAmount)}`
       )
     }
 
     const tx = await this.l1BridgeContract.bondTransferRoot(
       transferRootHash,
       chainId,
-      parsedTotalAmount,
+      totalAmount,
       await this.txOverrides()
     )
 
@@ -138,8 +140,8 @@ export default class L1Bridge extends Bridge {
   @queue
   async challengeTransferRootBond (
     transferRootHash: string,
-    totalAmount: string
-  ) {
+    totalAmount: BigNumber
+  ): Promise<providers.TransactionResponse> {
     const tx = await this.l1BridgeContract.challengeTransferBond(
       transferRootHash,
       totalAmount,
@@ -151,7 +153,10 @@ export default class L1Bridge extends Bridge {
   }
 
   @queue
-  async resolveChallenge (transferRootHash: string, totalAmount: string) {
+  async resolveChallenge (
+    transferRootHash: string,
+    totalAmount: BigNumber
+  ): Promise<providers.TransactionResponse> {
     const tx = await this.l1BridgeContract.resolveChallenge(
       transferRootHash,
       totalAmount,
@@ -164,25 +169,24 @@ export default class L1Bridge extends Bridge {
 
   @queue
   async convertCanonicalTokenToHopToken (
-    destNetworkId: string,
-    amount: string | number
-  ) {
+    destChainId: number,
+    amount: BigNumber
+  ): Promise<providers.TransactionResponse> {
     const recipient = await this.getBonderAddress()
-    const value = parseUnits(amount.toString(), this.tokenDecimals)
     const deadline = '0'
     const relayer = ethers.constants.AddressZero
     const relayerFee = '0'
     const amountOutMin = '0'
 
-    const isSupportedChainId = await this.isSupportedChainId(destNetworkId)
+    const isSupportedChainId = await this.isSupportedChainId(destChainId)
     if (!isSupportedChainId) {
-      throw new Error(`chain ID "${destNetworkId}" is not supported`)
+      throw new Error(`chain ID "${destChainId}" is not supported`)
     }
 
     return this.l1BridgeContract.sendToL2(
-      destNetworkId,
+      destChainId,
       recipient,
-      value,
+      amount,
       amountOutMin,
       deadline,
       relayer,
@@ -191,7 +195,7 @@ export default class L1Bridge extends Bridge {
     )
   }
 
-  async isSupportedChainId (chainId: string) {
+  async isSupportedChainId (chainId: number): Promise<boolean> {
     const address = await this.l1BridgeContract.crossDomainMessengerWrappers(
       chainId
     )

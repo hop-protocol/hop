@@ -1,7 +1,6 @@
 import '../moduleAlias'
-import { Contract, BigNumber } from 'ethers'
+import { ethers, Contract, BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
-import { UINT256 } from 'src/constants'
 import db from 'src/db'
 import chalk from 'chalk'
 import { wait, networkIdToSlug, isL1NetworkId } from 'src/utils'
@@ -21,7 +20,7 @@ export interface Config {
 const BONDER_ORDER_DELAY_MS = 60 * 1000
 
 class BondWithdrawalWatcher extends BaseWatcher {
-  siblingWatchers: { [networkId: string]: BondWithdrawalWatcher }
+  siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
 
   constructor (config: Config) {
     super({
@@ -144,12 +143,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
       deadline
     } = params
 
-    this.logger.debug(`amount:`, amount.toString())
+    this.logger.debug(`amount:`, this.bridge.formatUnits(amount))
     this.logger.debug(`recipient:`, recipient)
     this.logger.debug(`transferNonce:`, transferNonce)
-    this.logger.debug(`bonderFee:`, bonderFee?.toString())
+    this.logger.debug(`bonderFee:`, this.bridge.formatUnits(bonderFee))
     const decimals = await this.getBridgeTokenDecimals(chainId)
-    const formattedAmount = Number(formatUnits(amount, decimals))
     if (attemptSwap) {
       this.logger.debug(`bondWithdrawalAndAttemptSwap chainId: ${chainId}`)
       const l2Bridge = this.siblingWatchers[chainId].bridge as L2Bridge
@@ -158,9 +156,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
         throw new Error('bonder requires positive balance to bond withdrawal')
       }
       const credit = await l2Bridge.getCredit()
-      if (credit < formattedAmount) {
+      if (credit.lt(amount)) {
         throw new Error(
-          `not enough credit to bond withdrawal. Have ${credit}, need ${formattedAmount}`
+          `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
+            credit
+          )}, need ${this.bridge.formatUnits(amount)}`
         )
       }
       return l2Bridge.bondWithdrawalAndAttemptSwap(
@@ -179,9 +179,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
         throw new Error('bonder requires positive balance to bond withdrawal')
       }
       const credit = await bridge.getCredit()
-      if (credit < formattedAmount) {
+      if (credit.lt(amount)) {
         throw new Error(
-          `not enough credit to bond withdrawal. Have ${credit}, need ${formattedAmount}`
+          `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
+            credit
+          )}, need ${this.bridge.formatUnits(amount)}`
         )
       }
       return bridge.bondWithdrawal(recipient, amount, transferNonce, bonderFee)
@@ -191,9 +193,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
   handleTransferSentEvent = async (
     transferHash: string,
     recipient: string,
-    amount: string,
+    amount: BigNumber,
     transferNonce: string,
-    bonderFee: string,
+    bonderFee: BigNumber,
     index: BigNumber,
     meta: any
   ) => {
@@ -207,7 +209,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       const { transactionHash } = meta
-      this.logger.debug('transfer event amount:', amount.toString())
+      this.logger.debug(
+        'transfer event amount:',
+        this.bridge.formatUnits(amount)
+      )
       this.logger.debug(`received L2 TransferSentEvent event`)
       this.logger.debug('transferHash:', chalk.bgCyan.black(transferHash))
 
@@ -230,7 +235,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const bondedAmount = await destL2Bridge.getTotalBondedWithdrawalAmount(
         transferHash
       )
-      if (bondedAmount > 0) {
+      if (bondedAmount.gt(0)) {
         this.logger.debug(
           `transferHash ${transferHash} withdrawal already bonded withdrawal`
         )
@@ -255,8 +260,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       this.logger.debug('chainId:', chainId)
       this.logger.debug('attemptSwap:', attemptSwap)
 
-      const amountOutMin = '0'
-      const deadline = BigNumber.from(UINT256)
+      const amountOutMin = BigNumber.from(0)
+      const deadline = BigNumber.from(ethers.constants.MaxUint256)
       await db.transfers.update(transferHash, {
         transferHash,
         chainId,
@@ -314,7 +319,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
           )
           this.logger.debug(
             `chainId: ${chainId} bondWithdrawal amount:`,
-            bondedAmount
+            this.bridge.formatUnits(bondedAmount)
           )
 
           await db.transfers.update(transferHash, {
@@ -357,7 +362,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.debug(`received WithdrawalBonded event`)
     this.logger.debug('transferHash:', transferHash)
     //this.logger.debug(`recipient:`, recipient)
-    this.logger.debug('amount:', amount.toString())
+    this.logger.debug('amount:', this.bridge.formatUnits(amount))
     //this.logger.debug('transferNonce:', transferNonce)
     //this.logger.debug('bonderFee:', bonderFee?.toString())
     //this.logger.debug('index:', index?.toString())
@@ -367,7 +372,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     })
   }
 
-  async getBridgeTokenDecimals (chainId: number | string) {
+  async getBridgeTokenDecimals (chainId: number) {
     let bridge: any
     let token: Token
     if (isL1NetworkId(chainId)) {
@@ -380,7 +385,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     return token.decimals()
   }
 
-  async waitTimeout (transferHash: string, chainId: string) {
+  async waitTimeout (transferHash: string, chainId: number) {
     await wait(2 * 1000)
     if (!this.order()) {
       return
@@ -397,7 +402,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const bondedAmount = await bridge.getTotalBondedWithdrawalAmount(
         transferHash
       )
-      if (bondedAmount !== 0) {
+      if (!bondedAmount.eq(0)) {
         break
       }
       const delay = 2 * 1000

@@ -5,6 +5,7 @@ import path from 'path'
 import mkdirp from 'mkdirp'
 import sub from 'subleveldown'
 import { db as dbConfig } from 'src/config'
+import Logger from 'src/logger'
 
 const dbMap: { [key: string]: any } = {}
 
@@ -12,12 +13,14 @@ class BaseDb {
   public db: any
   public prefix: string
   public IDS = 'ids'
+  logger = new Logger('config')
 
   constructor (prefix: string) {
     this.prefix = prefix
     const pathname = path.resolve(dbConfig.path.replace('~', os.homedir()))
     mkdirp.sync(pathname.replace(path.basename(pathname), ''))
     if (!dbMap[pathname]) {
+      this.logger.debug(`db path: ${pathname}`)
       dbMap[pathname] = level(pathname)
     }
 

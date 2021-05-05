@@ -1,10 +1,11 @@
+import { BigNumber } from 'ethers'
 import BaseDb from './BaseDb'
 
 export type TransferRoot = {
   transferRootHash?: string
-  totalAmount?: number
-  chainId?: string
-  sourceChainId?: string
+  totalAmount?: BigNumber
+  chainId?: number
+  sourceChainId?: number
   sentCommitTx?: boolean
   commited?: boolean
   commitedAt?: number

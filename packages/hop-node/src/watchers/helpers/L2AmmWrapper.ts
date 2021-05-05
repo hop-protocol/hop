@@ -8,14 +8,14 @@ export default class L2AmmWrapper {
     this.ammWrapperContract = ammWrapperContract
   }
 
-  async decodeSwapAndSendData (data: string) {
-    let chainId = ''
+  async decodeSwapAndSendData (data: string): Promise<any> {
+    let chainId: number
     let attemptSwap = false
     const decoded = await this.ammWrapperContract.interface.decodeFunctionData(
       'swapAndSend',
       data
     )
-    chainId = decoded.chainId.toString()
+    chainId = Number(decoded.chainId.toString())
 
     if (!isL1NetworkId(chainId)) {
       // L2 to L2 transfers have destination swap parameters set

@@ -1,6 +1,5 @@
-import { Contract } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
-import { UINT256 } from 'src/constants'
+import { ethers, providers, Contract, BigNumber } from 'ethers'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
 import queue from './queue'
 
@@ -13,10 +12,10 @@ export default class Token extends ContractBase {
     this.tokenContract = tokenContract
   }
 
-  async getBalance () {
+  async getBalance (): Promise<BigNumber> {
     const address = await this.tokenContract.signer.getAddress()
     const balance = await this.tokenContract.balanceOf(address)
-    return Number(formatUnits(balance, await this.decimals()))
+    return balance
   }
 
   async decimals () {
@@ -29,18 +28,26 @@ export default class Token extends ContractBase {
 
   // RPC error if too many requests so need to queue
   @queue
-  async getAllowance (spender: string) {
+  async getAllowance (spender: string): Promise<BigNumber> {
     const owner = await this.tokenContract.signer.getAddress()
     const allowance = await this.tokenContract.allowance(owner, spender)
-    return Number(formatUnits(allowance, await this.decimals()))
+    return allowance
   }
 
   @queue
-  async approve (spender: string) {
+  async approve (spender: string): Promise<providers.TransactionResponse> {
     return this.tokenContract.approve(
       spender,
-      UINT256,
+      ethers.constants.MaxUint256,
       await this.txOverrides()
     )
+  }
+
+  async formatUnits (value: BigNumber) {
+    return Number(formatUnits(value.toString(), await this.decimals()))
+  }
+
+  async parseUnits (value: string | number) {
+    return parseUnits(value.toString(), await this.decimals())
   }
 }

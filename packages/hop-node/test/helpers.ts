@@ -1,7 +1,7 @@
 // @ts-ignore
 import { Watcher } from '@eth-optimism/watcher'
 import expect from 'expect'
-import { ethers, providers, Contract, Wallet } from 'ethers'
+import { ethers, providers, Contract, Wallet, BigNumber } from 'ethers'
 import { HDNode } from '@ethersproject/hdnode'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { config } from 'src/config'
@@ -26,16 +26,7 @@ import {
   l2PolygonChildErc20Abi
 } from '@hop-protocol/abi'
 import { privateKey } from './config'
-import {
-  UINT256,
-  ZERO_ADDRESS,
-  ETHEREUM,
-  ARBITRUM,
-  OPTIMISM,
-  POLYGON,
-  XDAI,
-  DAI
-} from 'src/constants'
+import { ETHEREUM, ARBITRUM, OPTIMISM, POLYGON, XDAI, DAI } from 'src/constants'
 import { wait, getRpcUrl, networkSlugToId } from 'src/utils'
 import queue from 'src/watchers/helpers/queue'
 
@@ -211,7 +202,7 @@ export class User {
     } else {
       contract = token
     }
-    let approveAmount = UINT256
+    let approveAmount: BigNumber | string = ethers.constants.MaxUint256
     if (amount) {
       approveAmount = parseUnits(amount.toString(), 18).toString()
     }
@@ -990,7 +981,7 @@ export class User {
     const wrapperAddress = await this.getCrossDomainMessengerWrapperAddress(
       chainId
     )
-    if (wrapperAddress === ZERO_ADDRESS) {
+    if (wrapperAddress === ethers.constants.AddressZero) {
       throw new Error('wrapper address not set')
     }
   }

@@ -3,30 +3,13 @@ version: 2.1
 orbs:
   base: dmx-io/base@2.0.88
 
-commands:
-  notify_job_status:
-    description: Send webhook to server about job status
-    steps:
-      - run:
-          name: On success
-          when: on_success
-          command: |
-            curl "$WEBHOOK_URL_DEV" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"success","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
-            curl "$WEBHOOK_URL_PROD" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"success","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
-      - run:
-          name: On fail
-          when: on_fail
-          command: |
-            curl "$WEBHOOK_URL_DEV" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
-            curl "$WEBHOOK_URL_PROD" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
-
 jobs:
-  build_bridge_node:
+  build_hop_node:
     working_directory: /app
     docker:
       - image: docker:17.05.0-ce-git
     environment:
-      DOCKER_IMAGE=authereum/bridge-node
+      DOCKER_IMAGE=hopprotocol/hop-node
     steps:
       - checkout
       - setup_remote_docker
@@ -44,34 +27,32 @@ jobs:
       - run:
           name: Build application Docker image
           command: |
-            cd packages/bridge-node
+            cd packages/hop-node
             docker build \
               -f Dockerfile \
               --no-cache \
               -t app .
       - deploy:
-          name: Push bridge node Docker image to ECR
+          name: Push Hop Node Docker image to Docker Hub
           command: |
-            aws configure set region $AWS_REGION
-            $(aws ecr get-login)
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
             export BRANCH=$(echo $CIRCLE_BRANCH | sed 's/\//-/g')
-            docker tag app $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_IMAGE:$CIRCLE_SHA1
-            docker tag app $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_IMAGE:$BRANCH
-            docker tag app $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_IMAGE:latest
-            docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_IMAGE:$CIRCLE_SHA1
-            docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_IMAGE:$BRANCH
-            docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_IMAGE:latest
+            docker tag app $DOCKER_IMAGE:$CIRCLE_SHA1
+            docker tag app $DOCKER_IMAGE:$BRANCH
+            docker push $DOCKER_IMAGE:$CIRCLE_SHA1
+            docker push $DOCKER_IMAGE:$BRANCH
 
 workflows:
   main:
     jobs:
-      - build_bridge_node:
+      - build_hop_node:
           filters:
             branches:
               only:
-                - feature/bridge-node
                 - production
                 - staging
+                - develop
+                - mainnet
                 - ropsten
                 - rinkeby
                 - kovan

@@ -1,7 +1,7 @@
 import * as ethers from 'ethers'
 import debounce from 'debounce-promise'
 import pThrottle from 'p-throttle'
-import { ETHEREUM } from 'src/constants'
+import { Chain } from 'src/constants'
 import { config } from 'src/config'
 
 export const getL2MessengerId = (l2Name: string): string => {
@@ -38,11 +38,11 @@ export const networkIdToSlug = (
 }
 
 export const isL1 = (network: string) => {
-  return network === ETHEREUM
+  return network === Chain.Ethereum
 }
 
 export const isL2 = (network: string) => {
-  return network !== ETHEREUM
+  return network !== Chain.Ethereum
 }
 
 export const isL1NetworkId = (networkId: number | string) => {

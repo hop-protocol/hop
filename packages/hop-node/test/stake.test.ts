@@ -1,9 +1,8 @@
 import { bonderPrivateKey } from './config'
 import { User } from './helpers'
-// @ts-ignore
-import { ETHEREUM, XDAI, OPTIMISM, DAI } from 'src/constants'
+import { Chain } from 'src/constants'
 
-const network = ETHEREUM
+const network = Chain.Ethereum
 const token = 'DAI'
 const amount = 1_000
 
@@ -12,7 +11,7 @@ test(
   async () => {
     const user = new User(bonderPrivateKey)
     let tokenBalanceBefore: number
-    if (network === ETHEREUM) {
+    if (network === Chain.Ethereum) {
       tokenBalanceBefore = await user.getBalance(network, token)
     } else {
       tokenBalanceBefore = await user.getHopBalance(network, token)

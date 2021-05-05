@@ -1,9 +1,9 @@
-import { XDAI, OPTIMISM, DAI } from 'src/constants'
+import { Chain } from 'src/constants'
 import { User } from './helpers'
 import { privateKey } from './config'
 
-const networks = [XDAI, OPTIMISM]
-const token = DAI
+const networks = [Chain.xDai, Chain.Optimism]
+const token = 'DAI'
 
 describe('code', () => {
   for (let network of networks) {

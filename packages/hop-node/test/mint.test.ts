@@ -1,9 +1,8 @@
 import { privateKey } from './config'
 import { User } from './helpers'
-// @ts-ignore
-import { ETHEREUM, XDAI, OPTIMISM, DAI } from 'src/constants'
+import { Chain } from 'src/constants'
 
-const network = ETHEREUM
+const network = Chain.Ethereum
 const token = 'USDC'
 const amount = 1_000_000_000
 

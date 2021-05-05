@@ -10,11 +10,10 @@ import {
 } from './helpers'
 import { faucetPrivateKey, mnemonic } from './config'
 import Logger from 'src/logger'
-// @ts-ignore
-import { OPTIMISM, ETHEREUM, XDAI, POLYGON } from 'src/constants'
+import { Chain } from 'src/constants'
 
-const sourceNetwork = XDAI
-const destNetwork = ETHEREUM
+const sourceNetwork = Chain.xDai
+const destNetwork = Chain.Ethereum
 const token = 'USDC'
 const TRANSFER_AMOUNT = 1
 const NUM_USERS = 2

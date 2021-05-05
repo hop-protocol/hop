@@ -1,7 +1,7 @@
 import { Transaction, Contract, BigNumber } from 'ethers'
 import { EventEmitter } from 'events'
 import { wait, networkIdToSlug } from 'src/utils'
-import { OPTIMISM, XDAI } from 'src/constants'
+import { Chain } from 'src/constants'
 import { config } from 'src/config'
 
 export default class ContractBase extends EventEmitter {
@@ -70,10 +70,10 @@ export default class ContractBase extends EventEmitter {
     } else {
       txOptions.gasLimit = 5000000
       const network = networkIdToSlug(this.providerNetworkId)
-      if (network === OPTIMISM) {
+      if (network === Chain.Optimism) {
         txOptions.gasPrice = 0
         txOptions.gasLimit = 8000000
-      } else if (network === XDAI) {
+      } else if (network === Chain.xDai) {
         txOptions.gasLimit = 5000000
       }
     }

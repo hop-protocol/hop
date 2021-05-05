@@ -12,10 +12,10 @@ import {
 import { faucetPrivateKey, mnemonic } from '../../test/config'
 import Logger from 'src/logger'
 // @ts-ignore
-import { OPTIMISM, ETHEREUM, XDAI, POLYGON } from 'src/constants'
+import { Chain } from 'src/constants'
 import { Notifier } from 'src/notifier'
 
-const paths = [[XDAI, ETHEREUM]]
+const paths = [[Chain.xDai, Chain.Ethereum]]
 const tokens = ['USDC', 'DAI']
 const transferAmount = 1
 

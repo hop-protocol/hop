@@ -1,6 +1,6 @@
 import '../moduleAlias'
 import { config, hostname as configHostname } from 'src/config'
-import { ETHEREUM, OPTIMISM, ARBITRUM, XDAI, POLYGON } from 'src/constants'
+import { Chain } from 'src/constants'
 import contracts from 'src/contracts'
 import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
 import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
@@ -13,7 +13,12 @@ import PubSub from 'src/pubsub/PubSub'
 import Logger from 'src/logger'
 import { networkSlugToId } from 'src/utils'
 
-const networks = [OPTIMISM, ARBITRUM, XDAI, POLYGON]
+const networks: string[] = [
+  Chain.Optimism,
+  Chain.Arbitrum,
+  Chain.xDai,
+  Chain.Polygon
+]
 const pubsubLogger = new Logger('pubsub', { color: 'magenta' })
 
 interface StakeAmounts {
@@ -28,11 +33,13 @@ function startStakeWatchers (
   if (!_tokens) {
     _tokens = Object.keys(config.tokens)
   }
-  _networks = (_networks || networks).filter(x => networks.includes(x))
+  _networks = (_networks || networks).filter((x: string) =>
+    networks.includes(x)
+  )
   let stakeWatchers: any = {}
   const watchers: any[] = []
   for (let token of _tokens) {
-    for (let network of [ETHEREUM].concat(_networks)) {
+    for (let network of [Chain.Ethereum as string].concat(_networks)) {
       const networkId = networkSlugToId(network)
       const tokenContracts = contracts.get(token, network)
       if (!tokenContracts) {
@@ -40,7 +47,7 @@ function startStakeWatchers (
       }
       let bridgeContract = tokenContracts.l2Bridge
       let tokenContract = tokenContracts.l2HopBridgeToken
-      if (network === ETHEREUM) {
+      if (network === Chain.Ethereum) {
         bridgeContract = tokenContracts.l1Bridge
         tokenContract = tokenContracts.l1CanonicalToken
       }
@@ -188,7 +195,7 @@ function startWatchers (
       const isL1 = network === 'ethereum'
 
       const bridgeContract = isL1
-        ? contracts.get(token, ETHEREUM).l1Bridge
+        ? contracts.get(token, Chain.Ethereum).l1Bridge
         : contracts.get(token, network).l2Bridge
 
       const bondWithdrawalWatcher = new BondWithdrawalWatcher({

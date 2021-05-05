@@ -3,12 +3,11 @@ import { User } from './helpers'
 import { wait } from 'src/utils'
 import Logger from 'src/logger'
 import { faucetPrivateKey as privateKey } from './config'
-// @ts-ignore
-import { ETHEREUM, OPTIMISM, XDAI } from 'src/constants'
+import { Chain } from 'src/constants'
 
 const TOKEN = 'DAI'
 const AMOUNT = 10_000
-const NETWORKS = [XDAI]
+const NETWORKS = [Chain.xDai]
 const logger = new Logger('TEST')
 
 describe('convert L1 token to L2 canonical token', () => {
@@ -19,8 +18,8 @@ describe('convert L1 token to L2 canonical token', () => {
       async () => {
         logger.log(label)
         const user = new User(privateKey)
-        logger.log(`minting ${ETHEREUM} ${TOKEN}`)
-        let tx = await user.mint(ETHEREUM, TOKEN, AMOUNT)
+        logger.log(`minting ${Chain.Ethereum} ${TOKEN}`)
+        let tx = await user.mint(Chain.Ethereum, TOKEN, AMOUNT)
         logger.log(`mint tx: ${tx.hash}`)
         await tx.wait()
         const l1CanonicalBridge = user.getCanonicalBridgeContract(
@@ -28,10 +27,14 @@ describe('convert L1 token to L2 canonical token', () => {
           TOKEN
         )
         logger.log(`checking ${TOKEN} approval on ${L2_NETWORK}`)
-        await user.checkApproval(ETHEREUM, TOKEN, l1CanonicalBridge.address)
+        await user.checkApproval(
+          Chain.Ethereum,
+          TOKEN,
+          l1CanonicalBridge.address
+        )
         const tokenBalanceBefore = await user.getBalance(L2_NETWORK, TOKEN)
         logger.log(`token ${TOKEN} balance: ${tokenBalanceBefore}`)
-        logger.log(`converting ${ETHEREUM} ${TOKEN} to canonical token`)
+        logger.log(`converting ${Chain.Ethereum} ${TOKEN} to canonical token`)
         tx = await user.convertToCanonicalToken(L2_NETWORK, TOKEN, AMOUNT)
         logger.log('tx deposit:', tx?.hash)
         await tx?.wait()

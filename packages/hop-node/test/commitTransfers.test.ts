@@ -1,14 +1,13 @@
 import { bonderPrivateKey, governancePrivateKey } from './config'
 import { User } from './helpers'
-// @ts-ignore
-import { ETHEREUM, XDAI, OPTIMISM } from 'src/constants'
+import { Chain } from 'src/constants'
 
 test(
   'commitTransfers',
   async () => {
     const user = new User(bonderPrivateKey)
-    const sourceChain = XDAI
-    const destChain = ETHEREUM
+    const sourceChain = Chain.xDai
+    const destChain = Chain.Ethereum
     const token = 'USDC'
     const pendingTransfers = await user.getPendingTransfers(
       sourceChain,
@@ -35,11 +34,11 @@ test(
 test.skip('setMaxPendingTransfers', async () => {
   const gov = new User(governancePrivateKey)
   const max = 100
-  const tx = await gov.setMaxPendingTransfers(OPTIMISM, max)
+  const tx = await gov.setMaxPendingTransfers(Chain.Optimism, max)
   const receipt = await tx.wait()
   console.log(tx?.hash)
   expect(receipt.status).toBe(1)
 
-  const result = await gov.getMaxPendingTransfers(OPTIMISM)
+  const result = await gov.getMaxPendingTransfers(Chain.Optimism)
   expect(result).toBe(max)
 })

@@ -1,6 +1,5 @@
 import '../moduleAlias'
 import { ethers, Contract, BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
 import db from 'src/db'
 import chalk from 'chalk'
 import { wait, networkIdToSlug, isL1NetworkId } from 'src/utils'

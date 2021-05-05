@@ -5,7 +5,7 @@ import Web3 from 'web3'
 import chalk from 'chalk'
 import { erc20Abi, l1PolygonPosRootChainManagerAbi } from '@hop-protocol/abi'
 import { goerli as addresses } from '@hop-protocol/addresses'
-import { ETHEREUM, POLYGON } from 'src/constants'
+import { Chain } from 'src/constants'
 import { config } from 'src/config'
 import wallets from 'src/wallets'
 import { wait } from 'src/utils'
@@ -44,19 +44,20 @@ class polygonBridgeWatcher extends BaseWatcher {
     this.logger.log('started')
     this.started = true
     try {
-      //const l1Wallet = wallets.get(ETHEREUM)
+      //const l1Wallet = wallets.get(Chain.Ethereum)
       //const tokenAddress = addresses.DAI.polygon.l2CanonicalToken
 
       const tokenSymbol = 'USDC'
-      const l1RootChainAddress =
-        addresses[tokenSymbol][POLYGON].l1PosRootChainManager
+      //const l1RootChainAddress = addresses[tokenSymbol][Chain.Polygon].l1PosRootChainManager
       const l2TokenAddress = '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1' // dummy erc20
       const l2Token = new Contract(l2TokenAddress, erc20Abi, this.l2Wallet)
+      /*
       const l1RootChain = new Contract(
         l1RootChainAddress,
         l1PolygonPosRootChainManagerAbi,
         this.l2Wallet
       )
+      */
 
       const transactionHashes: any = {}
       l2Token
@@ -131,8 +132,9 @@ class polygonBridgeWatcher extends BaseWatcher {
         this.l1Provider.connection.url
       ),
       posRootChainManager:
-        addresses[tokenSymbol][POLYGON].l1PosRootChainManager,
-      posERC20Predicate: addresses[tokenSymbol][POLYGON].l1PosErc20Predicate
+        addresses[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
+      posERC20Predicate:
+        addresses[tokenSymbol][Chain.Polygon].l1PosErc20Predicate
     })
 
     const tx = await maticPOSClient.exitERC20(txHash, {

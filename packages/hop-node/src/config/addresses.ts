@@ -1,11 +1,11 @@
-import { KOVAN, GOERLI, MAINNET } from 'src/constants'
+import { Network } from 'src/constants'
 
 const { metadata } = require('./metadata')
-const network = process.env.NETWORK || KOVAN
+const network = process.env.NETWORK || Network.Kovan
 export const isTestMode = !!process.env.TEST_MODE
 
 let bonders: string[] = []
-let isMainnet = network === MAINNET
+let isMainnet = network === Network.Mainnet
 
 const getConfigByNetwork = (network: string) => {
   let addresses: any
@@ -13,13 +13,13 @@ const getConfigByNetwork = (network: string) => {
   if (isTestMode) {
     ;({ addresses, networks, bonders } = require('./test'))
   }
-  if (network === KOVAN) {
+  if (network === Network.Kovan) {
     ;({ addresses, networks, bonders } = require('./kovan'))
   }
-  if (network === GOERLI) {
+  if (network === Network.Goerli) {
     ;({ addresses, networks, bonders } = require('./goerli'))
   }
-  if (network === MAINNET) {
+  if (network === Network.Mainnet) {
     ;({ addresses, networks, bonders } = require('./mainnet'))
   }
 
@@ -53,7 +53,7 @@ export const config = {
 
 const setConfigByNetwork = (network: string) => {
   const { tokens, networks } = getConfigByNetwork(network)
-  isMainnet = network === MAINNET
+  isMainnet = network === Network.Mainnet
   config.isMainnet = isMainnet
   config.tokens = tokens
   config.network = network

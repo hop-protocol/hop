@@ -2,12 +2,11 @@ require('dotenv').config()
 import { User } from './helpers'
 import { wait } from 'src/utils'
 import { bonderPrivateKey } from './config'
-// @ts-ignore
-import { ETHEREUM, OPTIMISM, XDAI } from 'src/constants'
+import { Chain } from 'src/constants'
 
 const TOKEN = 'USDC'
 const TOKEN_0_AMOUNT = 1000
-const testNetworks = [XDAI]
+const testNetworks = [Chain.xDai]
 
 for (let l2Network of testNetworks) {
   test(
@@ -29,25 +28,25 @@ for (let l2Network of testNetworks) {
 
 async function addLiquidity (l2Network: string, amount: number) {
   const user = new User(bonderPrivateKey)
-  const l1Balance = await user.getBalance(ETHEREUM, TOKEN)
+  const l1Balance = await user.getBalance(Chain.Ethereum, TOKEN)
   console.log(`L1 ${TOKEN} balance: ${l1Balance}`)
 
   let tx: any
-  const l1Bridge = user.getHopBridgeContract(ETHEREUM, TOKEN)
-  await user.checkApproval(ETHEREUM, TOKEN, l1Bridge.address)
+  const l1Bridge = user.getHopBridgeContract(Chain.Ethereum, TOKEN)
+  await user.checkApproval(Chain.Ethereum, TOKEN, l1Bridge.address)
 
   let hopBalance = await user.getHopBalance(l2Network, TOKEN)
   console.log(`hop ${TOKEN} balance: ${hopBalance}`)
 
   if (l1Balance < amount) {
-    console.log(`minting ${ETHEREUM} ${TOKEN}`)
-    let tx = await user.mint(ETHEREUM, TOKEN, amount * 2)
+    console.log(`minting ${Chain.Ethereum} ${TOKEN}`)
+    let tx = await user.mint(Chain.Ethereum, TOKEN, amount * 2)
     console.log(`mint tx: ${tx.hash}`)
     await tx.wait()
   }
 
   if (hopBalance < amount) {
-    await user.checkApproval(ETHEREUM, TOKEN, l1Bridge.address)
+    await user.checkApproval(Chain.Ethereum, TOKEN, l1Bridge.address)
     console.log('converting canonical token to hop token')
     // TODO: take fee into account
     tx = await user.canonicalTokenToHopToken(l2Network, TOKEN, amount)
@@ -64,8 +63,10 @@ async function addLiquidity (l2Network: string, amount: number) {
 
   if (l2Balance < amount) {
     const tokenBridge = user.getCanonicalBridgeContract(l2Network, TOKEN)
-    await user.checkApproval(ETHEREUM, TOKEN, tokenBridge.address)
-    console.log(`converting ${ETHEREUM} ${TOKEN} to ${l2Network} ${TOKEN}`)
+    await user.checkApproval(Chain.Ethereum, TOKEN, tokenBridge.address)
+    console.log(
+      `converting ${Chain.Ethereum} ${TOKEN} to ${l2Network} ${TOKEN}`
+    )
     let tx = await user.convertToCanonicalToken(l2Network, TOKEN, amount / 2)
     console.log(`convert to canonical token tx: ${tx.hash}`)
     await tx.wait()

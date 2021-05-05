@@ -1,7 +1,7 @@
 import '../moduleAlias'
-import { ethers, Contract } from 'ethers'
+import { Contract } from 'ethers'
 import memoize from 'fast-memoize'
-import { ETHEREUM } from 'src/constants'
+import { Chain } from 'src/constants'
 import {
   erc20Abi,
   l1BridgeAbi,
@@ -15,17 +15,17 @@ import wallets from 'src/wallets'
 
 const getL1BridgeContract = (token: string) => {
   return new Contract(
-    config.tokens[token][ETHEREUM].l1Bridge,
+    config.tokens[token][Chain.Ethereum].l1Bridge,
     l1BridgeAbi,
-    wallets.get(ETHEREUM)
+    wallets.get(Chain.Ethereum)
   )
 }
 
 const getL1TokenContract = (token: string) => {
   return new Contract(
-    config.tokens[token][ETHEREUM].l1CanonicalToken,
+    config.tokens[token][Chain.Ethereum].l1CanonicalToken,
     erc20Abi,
-    wallets.get(ETHEREUM)
+    wallets.get(Chain.Ethereum)
   )
 }
 
@@ -90,7 +90,7 @@ const constructContractsObject = memoize((token: string) => {
     if (!wallet) {
       return obj
     }
-    if (network === ETHEREUM) {
+    if (network === Chain.Ethereum) {
       obj[network] = {
         l1Bridge: getL1BridgeContract(token),
         l1CanonicalToken: getL1TokenContract(token)

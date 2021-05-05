@@ -163,7 +163,6 @@ class ArbBot {
   }
 
   private async getAmountOut (path: string[], amount: BigNumber) {
-    const amountIn = this.parseUnits(amount.toString())
     let [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
     const amountsOut = await this.saddleSwap.calculateSwap(
       tokenIndexFrom,
@@ -186,10 +185,14 @@ class ArbBot {
 
   private async checkBalances () {
     const token0Balance = await this.getToken0Balance()
-    this.logger.log(`${this.token0.label} balance: ${this.formatUnits(token0Balance)}`)
+    this.logger.log(
+      `${this.token0.label} balance: ${this.formatUnits(token0Balance)}`
+    )
 
     const token1Balance = await this.getToken1Balance()
-    this.logger.log(`${this.token1.label} balance: ${this.formatUnits(token1Balance)}`)
+    this.logger.log(
+      `${this.token1.label} balance: ${this.formatUnits(token1Balance)}`
+    )
   }
 
   private async checkArbitrage () {

@@ -6,7 +6,7 @@ import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
 import MerkleTree from 'src/utils/MerkleTree'
-import { ETHEREUM, XDAI, POLYGON } from 'src/constants'
+import { Chain } from 'src/constants'
 import BaseWatcher from './helpers/BaseWatcher'
 import L1Bridge from './helpers/L1Bridge'
 import L2Bridge from './helpers/L2Bridge'
@@ -144,7 +144,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     const sourceChainId = await (this.bridge as L2Bridge).getChainId()
     const network = networkIdToSlug(chainId)
     const sourceNetwork = networkIdToSlug(sourceChainId)
-    if (sourceNetwork === XDAI || sourceNetwork === POLYGON) {
+    if (sourceNetwork === Chain.xDai || sourceNetwork === Chain.Polygon) {
       return
     }
 
@@ -154,8 +154,9 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
 
     await this.bridge.waitSafeConfirmations()
-    const minDelay = await (this.siblingWatchers[networkSlugToId(ETHEREUM)]
-      .bridge as L1Bridge).getMinTransferRootBondDelaySeconds()
+    const minDelay = await (this.siblingWatchers[
+      networkSlugToId(Chain.Ethereum)
+    ].bridge as L1Bridge).getMinTransferRootBondDelaySeconds()
     const blockTimestamp = await this.bridge.getBlockTimestamp()
     const delta = blockTimestamp - commitedAt - minDelay
     const shouldBond = delta > 0
@@ -173,7 +174,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       totalAmount
     )
     const transferBondStruct = await (this.siblingWatchers[
-      networkSlugToId(ETHEREUM)
+      networkSlugToId(Chain.Ethereum)
     ].bridge as L1Bridge).getTransferBond(transferRootId)
     const createdAt = Number(transferBondStruct.createdAt.toString())
     if (createdAt > 0) {
@@ -255,7 +256,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    const l1Bridge = this.siblingWatchers[networkSlugToId(ETHEREUM)]
+    const l1Bridge = this.siblingWatchers[networkSlugToId(Chain.Ethereum)]
       .bridge as L1Bridge
     const hasPositiveBalance = await l1Bridge.hasPositiveBalance()
     if (!hasPositiveBalance) {
@@ -347,7 +348,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async getBridgeTokenDecimals () {
-    const token = await (this.siblingWatchers[networkSlugToId(ETHEREUM)]
+    const token = await (this.siblingWatchers[networkSlugToId(Chain.Ethereum)]
       .bridge as L1Bridge).l1CanonicalToken()
     return token.decimals()
   }
@@ -369,7 +370,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         transferRootHash,
         totalAmount
       )
-      const bond = await (this.siblingWatchers[networkSlugToId(ETHEREUM)]
+      const bond = await (this.siblingWatchers[networkSlugToId(Chain.Ethereum)]
         .bridge as L1Bridge).getTransferBond(transferRootId)
       if (bond.createdAt.toNumber() > 0) {
         break

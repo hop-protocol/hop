@@ -1,7 +1,7 @@
 require('dotenv').config()
 import { startWatchers } from 'src/watchers/watchers'
 import { wait } from 'src/utils'
-import { ETHEREUM, XDAI } from 'src/constants'
+import { Chain } from 'src/constants'
 import Logger from 'src/logger'
 import { User, waitForEvent } from './helpers'
 import { privateKey } from './config'
@@ -11,7 +11,7 @@ const TRANSFER_AMOUNT = 1
 const logger = new Logger('TEST')
 
 describe('bondTransferRoot', () => {
-  const testPaths = [[XDAI, ETHEREUM]]
+  const testPaths = [[Chain.xDai, Chain.Ethereum]]
   for (let path of testPaths) {
     const [sourceNetwork, destNetwork] = path
     const label = `${sourceNetwork} -> ${destNetwork}`

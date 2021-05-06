@@ -34,6 +34,7 @@ import Settings from 'src/pages/Send/Settings'
 import InfoTooltip from 'src/components/infoTooltip'
 import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
 import useBalance from 'src/pages/Send/useBalance'
+import useSendData from 'src/pages/Send/useSendData'
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -124,23 +125,13 @@ const Send: FC = () => {
   const [fromNetwork, setFromNetwork] = useState<Network>()
   const [toNetwork, setToNetwork] = useState<Network>()
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
-  const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {
-    let val
-    try {
-      val = parseUnits(fromTokenAmount, selectedToken.decimals)
-    } catch (err) {
-      // noop
-    }
-    return val
-  }, [fromTokenAmount])
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
   const [sending, setSending] = useState<boolean>(false)
   const [exchangeRate, setExchangeRate] = useState<number>(0)
   const [slippageTolerance, setSlippageTolerance] = useState<number>(0.5)
   const [deadlineMinutes, setDeadlineMinutes] = useState<number>(20)
-  const [priceImpact, setPriceImpact] = useState<number>(0)
-  const [fee, setFee] = useState<number | null>(null)
-  const [amountOutMin, setAmountOutMin] = useState<number>(0)
+  const [fee, setFee] = useState<string>()
+  const [amountOutMin, setAmountOutMin] = useState<BigNumber>()
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [tx, setTx] = useState<Transaction | null>(null)
@@ -157,6 +148,46 @@ const Send: FC = () => {
     toNetwork
   )
 
+  const amountToBN = (amount: string): BigNumber | undefined => {
+    let val
+    try {
+      const sanitizedAmount = amount.replace(/,/g, '')
+      val = parseUnits(sanitizedAmount, selectedToken.decimals)
+    } catch (err) {
+      // noop
+    }
+    return val
+  }
+
+  const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {
+    return amountToBN(fromTokenAmount)
+  }, [fromTokenAmount])
+
+  const toTokenAmountBN = useMemo<BigNumber | undefined>(() => {
+    return amountToBN(toTokenAmount)
+  }, [toTokenAmount])
+
+  const {
+    amountOut,
+    rate,
+    priceImpact,
+    bonderFee,
+    requiredLiquidity
+  } = useSendData(
+    selectedToken,
+    fromNetwork,
+    toNetwork,
+    fromTokenAmountBN
+  )
+
+  useEffect(() => {
+    let amount
+    if (amountOut) {
+      amount = commafy(formatUnits(amountOut, selectedToken.decimals), 4)
+    }
+    setToTokenAmount(amount)
+  }, [amountOut])
+
   const bridge = sdk.bridge(selectedToken?.symbol)
   const availableLiquidity = useAvailableLiquidity(bridge, toNetwork?.slug)
 
@@ -165,37 +196,6 @@ const Send: FC = () => {
       setSelectedToken(tokens[0])
     }
   }, [networks])
-
-  const calcAmount = async (amount: string): Promise<number> => {
-    if (!fromNetwork) return 0
-    if (!toNetwork) return 0
-    if (!amount) return 0
-
-    const amountBN = parseUnits(amount, selectedToken.decimals)
-
-    const bridge = sdk.bridge(selectedToken?.symbol)
-    const amountOut = await bridge.getAmountOut(
-      amountBN,
-      fromNetwork.slug,
-      toNetwork.slug
-    )
-
-    return Number(formatUnits(amountOut.toString(), selectedToken.decimals))
-  }
-
-  const updateAmountOut = async (amountIn: string) => {
-    try {
-      if (!amountIn || !toNetwork) return
-      const ctx = ++debouncer.current
-      const amountOut = await calcAmount(amountIn)
-      const rate = amountOut / Number(amountIn)
-      if (ctx !== debouncer.current) return
-      setToTokenAmount(amountOut.toFixed(2))
-      setExchangeRate(rate)
-    } catch (err) {
-      logger.error(err)
-    }
-  }
 
   const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value
@@ -228,33 +228,13 @@ const Send: FC = () => {
   }
 
   useEffect(() => {
-    updateAmountOut(fromTokenAmount)
-  }, [fromNetwork])
-
-  useEffect(() => {
-    if (!toTokenAmount) {
-      updateAmountOut(fromTokenAmount)
-    }
-  }, [toNetwork])
-
-  useEffect(() => {
-    const update = async () => {
-      if (!availableLiquidity) return
-      if (!fromNetwork) return
+    const checkAvailableLiquidity = async () => {
       if (!toNetwork) return
-      if (!fromTokenAmount) return
-      if (fromNetwork.isLayer1) return
-
-      const amountBN = parseUnits(fromTokenAmount, 18)
-
-      const bridge = sdk.bridge(selectedToken?.symbol)
-      const liquidityRequired = await bridge.getRequiredLiquidity(
-        amountBN,
-        fromNetwork.slug
-      )
+      if (!availableLiquidity) return
+      if (!requiredLiquidity) return
 
       const isAvailable = BigNumber.from(availableLiquidity).gte(
-        liquidityRequired as BigNumber
+        requiredLiquidity
       )
 
       setIsLiquidityAvailable(isAvailable)
@@ -273,66 +253,39 @@ const Send: FC = () => {
       }
     }
 
-    update()
-  }, [fromNetwork, toNetwork, fromTokenAmount, availableLiquidity])
+    checkAvailableLiquidity()
+  }, [selectedToken, toNetwork, availableLiquidity, requiredLiquidity])
 
   useEffect(() => {
-    const update = async () => {
-      try {
-        setFee(null)
-        if (fromNetwork?.slug === L1_NETWORK) {
-          setFee(0)
-          return
-        }
-
-        const parsedAmountIn = parseUnits(
-          fromTokenAmount,
-          selectedToken.decimals
-        )
-        const bridge = sdk.bridge(selectedToken?.symbol)
-        const bonderFee = await bridge.getBonderFee(
-          parsedAmountIn as any,
-          fromNetwork?.slug as string,
-          toNetwork?.slug as string
-        )
-        const _fee = Number(formatUnits(bonderFee, selectedToken.decimals))
-        setFee(_fee)
-      } catch (err) {
-        // noop
-      }
+    if (!bonderFee) {
+      setFee(undefined)
+      return
     }
 
-    update()
-  }, [fromNetwork, toNetwork, fromTokenAmount])
+    const smallestFeeDecimals = selectedToken.decimals - 5
+    const smallestFee = BigNumber.from(10 ** smallestFeeDecimals)
+    if (bonderFee.gt('0') && bonderFee.lt(smallestFee)) {
+      setFee(`<${formatUnits(smallestFee, selectedToken.decimals)}`)
+      return
+    }
+
+    const _fee = commafy(formatUnits(bonderFee, selectedToken.decimals), 5)
+    setFee(_fee)
+  }, [bonderFee])
 
   useEffect(() => {
     const update = async () => {
-      setAmountOutMin(0)
-      if (fromNetwork && toNetwork && fromTokenAmount && toTokenAmount) {
-        const _amountOutMin =
-          Number(toTokenAmount) -
-          Number(toTokenAmount) * (slippageTolerance / 100)
+      setAmountOutMin(undefined)
+      if (fromNetwork && toNetwork && toTokenAmountBN) {
+        const minBps = Math.ceil(10000 - (slippageTolerance * 100))
+        const _amountOutMin = toTokenAmountBN.mul(minBps).div(10000)
+
         setAmountOutMin(_amountOutMin)
       }
     }
 
     update()
-  }, [fromNetwork, toNetwork, fromTokenAmount, toTokenAmount])
-
-  useEffect(() => {
-    const update = async () => {
-      setPriceImpact(0)
-      if (exchangeRate) {
-        const amountIn = '0.0001'
-        const amountOut = await calcAmount(amountIn)
-        const marketRate = amountOut / Number(amountIn)
-        const _priceImpact = ((marketRate - exchangeRate) / marketRate) * 100
-        setPriceImpact(_priceImpact)
-      }
-    }
-
-    update()
-  }, [exchangeRate])
+  }, [fromNetwork, toNetwork, toTokenAmount, slippageTolerance, selectedToken])
 
   const approve = async (amount: string) => {
     const signer = provider?.getSigner()
@@ -485,16 +438,13 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
+        if (!amountOutMin) return
         const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
         const parsedAmount = parseUnits(
           fromTokenAmount,
           selectedToken.decimals
         ).toString()
         const recipient = await signer.getAddress()
-        const parsedAmountOutMin = parseUnits(
-          amountOutMin.toString(),
-          selectedToken.decimals
-        )
         const relayer = ethers.constants.AddressZero
         const relayerFee = 0
         const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
@@ -507,7 +457,7 @@ const Send: FC = () => {
             relayer,
             relayerFee,
             recipient,
-            amountOutMin: parsedAmountOutMin as any
+            amountOutMin
           }
         )
         return tx
@@ -547,13 +497,9 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
+        if (!amountOutMin) return
         const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
         const destinationDeadline = 0
-        const amountOutMin = 0
-        const destinationAmountOutMin = parseUnits(
-          amountOutMin.toString(),
-          selectedToken.decimals
-        ).toString()
         const parsedAmountIn = parseUnits(
           fromTokenAmount,
           selectedToken.decimals
@@ -577,7 +523,7 @@ const Send: FC = () => {
             bonderFee,
             amountOutMin,
             deadline,
-            destinationAmountOutMin,
+            destinationAmountOutMin: amountOutMin,
             destinationDeadline
           }
         )
@@ -677,7 +623,7 @@ const Send: FC = () => {
   const validFormFields = !!(
     fromTokenAmount &&
     toTokenAmount &&
-    exchangeRate &&
+    rate &&
     enoughBalance &&
     isLiquidityAvailable
   )
@@ -739,7 +685,6 @@ const Send: FC = () => {
 
           const amountIn = normalizeNumberInput(value)
           setFromTokenAmount(amountIn)
-          updateAmountOut(amountIn)
         }}
         selectedNetwork={fromNetwork}
         networkOptions={networks}
@@ -780,11 +725,11 @@ const Send: FC = () => {
             <InfoTooltip title="The rate for the token taking trade size into consideration." />
           </Typography>
           <Typography
-            title={`${exchangeRate}`}
+            title={`${rate}`}
             variant="subtitle2"
             color="textSecondary"
           >
-            {exchangeRate === 0 ? '-' : commafy(exchangeRate)}
+            {rate === 0 ? '-' : commafy(rate, 4)}
           </Typography>
         </Box>
         <Box
@@ -828,7 +773,7 @@ const Send: FC = () => {
             variant="subtitle2"
             color="textSecondary"
           >
-            {priceImpact === 0
+            {!priceImpact
               ? '-'
               : priceImpact < 0.01
               ? `<0.01%`
@@ -854,7 +799,7 @@ const Send: FC = () => {
             variant="subtitle2"
             color="textSecondary"
           >
-            {amountOutMin === 0 ? '-' : commafy(amountOutMin)}
+            {amountOutMin ? commafy(formatUnits(amountOutMin, selectedToken.decimals), 4) : '-'}
           </Typography>
         </Box>
         <Box
@@ -876,7 +821,7 @@ const Send: FC = () => {
             variant="subtitle2"
             color="textSecondary"
           >
-            {fee === null ? '-' : commafy(fee, 5)}
+            { fee ?? '-' }
           </Typography>
         </Box>
       </div>

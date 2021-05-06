@@ -1,4 +1,4 @@
-import { ethers, Signer, Contract, BigNumber } from 'ethers'
+import { ethers, Signer, Contract, BigNumber, BigNumberish } from 'ethers'
 import { Chain } from './models'
 import {
   l1BridgeAbi,
@@ -12,7 +12,8 @@ import { TChain, TToken, TAmount, TProvider } from './types'
 import Base from './Base'
 import AMM from './AMM'
 import _version from './version'
-import { TokenIndex } from './constants'
+import { TokenIndex, BondTransferGasCost } from './constants'
+import CoinGecko from './CoinGecko'
 
 type SendL1ToL1Input = {
   destinationChain: Chain
@@ -244,6 +245,105 @@ class HopBridge extends Base {
     )
   }
 
+  public async getSendData (
+    amountIn: BigNumberish,
+    sourceChain?: TChain,
+    destinationChain?: TChain
+  ) {
+    amountIn = BigNumber.from(amountIn)
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    const hTokenAmount = await this.calcToHTokenAmount(amountIn, sourceChain)
+
+    const amountOutWithoutFee = await this.calcFromHTokenAmount(
+      hTokenAmount,
+      destinationChain
+    )
+
+    const amountInNoSlippage = BigNumber.from(1000)
+    const amountOutNoSlippage = await this.getAmountOut(
+      amountInNoSlippage,
+      sourceChain,
+      destinationChain
+    )
+
+    const bonderFee = await this.getBonderFee(
+      amountIn,
+      sourceChain,
+      destinationChain
+    )
+
+    let afterBonderFee
+    if (hTokenAmount.gt(bonderFee)) {
+      afterBonderFee = hTokenAmount.sub(bonderFee)
+    } else {
+      afterBonderFee = BigNumber.from(0)
+    }
+    const amountOut = await this.calcFromHTokenAmount(
+      afterBonderFee,
+      destinationChain
+    )
+
+    const oneBN = ethers.utils.parseUnits('1', this.token.decimals)
+
+    const rateBN = amountIn.eq(0)
+      ? BigNumber.from(0)
+      : amountOutWithoutFee.mul(oneBN).div(amountIn)
+
+    const rate = Number(ethers.utils.formatUnits(rateBN, this.token.decimals))
+
+    const marketRateBN = amountOutNoSlippage.mul(oneBN).div(amountInNoSlippage)
+    const marketRate = Number(
+      ethers.utils.formatUnits(marketRateBN, this.token.decimals)
+    )
+
+    const priceImpact = ((marketRate - rate) / marketRate) * 100
+
+    return {
+      amountOut,
+      rate,
+      priceImpact,
+      bonderFee,
+      requiredLiquidity: hTokenAmount
+    }
+  }
+
+  public async getBonderFee (
+    amountIn: BigNumberish,
+    sourceChain?: TChain,
+    destinationChain?: TChain
+  ) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    if (sourceChain?.isL1) {
+      return BigNumber.from(0)
+    } else if (destinationChain?.isL1) {
+      const ethPrice = await CoinGecko.getPriceByTokenSymbol('WETH')
+      const tokenPrice = await CoinGecko.getPriceByTokenSymbol(
+        this.token.symbol
+      )
+
+      const rate = ethPrice / tokenPrice
+
+      const gasPrice = await this.signer.getGasPrice()
+      const txFeeEth = gasPrice.mul(BondTransferGasCost)
+
+      const oneEth = ethers.utils.parseEther('1')
+      const rateBN = ethers.utils.parseEther(rate.toString())
+      const fee = txFeeEth.mul(rateBN).div(oneEth)
+
+      return fee
+    } else {
+      return this.getMinBonderFee(
+        amountIn.toString(),
+        sourceChain,
+        destinationChain
+      )
+    }
+  }
+
   /**
    * @desc Estimate token amount out.
    * @param {String} tokenAmountIn - Token amount input.
@@ -319,7 +419,7 @@ class HopBridge extends Base {
    * @param {Object} destinationChain - Destination chain model.
    * @returns {Object} Bonder fee as BigNumber.
    */
-  public async getBonderFee (
+  public async getMinBonderFee (
     amountIn: TAmount,
     sourceChain: TChain,
     destinationChain: TChain

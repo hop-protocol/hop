@@ -255,7 +255,7 @@ const Send: FC = () => {
     const errorMessage = `Send at least ${fee} ${selectedToken.symbol} to cover the transaction fee`
     if (amountOut?.eq(0) && fee) {
       setError(errorMessage)
-    } else if (error?.slice(0,13) === errorMessage.slice(0,13)) {
+    } else if (error?.slice(0, 13) === errorMessage.slice(0, 13)) {
       setError('')
     }
   }, [amountOut])

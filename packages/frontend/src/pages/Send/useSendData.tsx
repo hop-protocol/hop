@@ -24,7 +24,7 @@ const useSendData = (
       if (!fromNetwork) return 0
       if (!toNetwork) return 0
       if (!fromAmount) return 0
-  
+
       const ctx = ++debouncer.current
 
       const bridge = sdk.bridge(token?.symbol)
@@ -34,11 +34,7 @@ const useSendData = (
         priceImpact: _priceImpact,
         bonderFee: _bonderFee,
         requiredLiquidity: _requiredLiquidity
-      } = await bridge.getSendData(
-        fromAmount,
-        fromNetwork.slug,
-        toNetwork.slug
-      )
+      } = await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
 
       if (ctx !== debouncer.current) return
 

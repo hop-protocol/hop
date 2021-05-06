@@ -254,10 +254,7 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    const hTokenAmount = await this.calcToHTokenAmount(
-      amountIn,
-      sourceChain
-    )
+    const hTokenAmount = await this.calcToHTokenAmount(amountIn, sourceChain)
 
     const amountOutWithoutFee = await this.calcFromHTokenAmount(
       hTokenAmount,
@@ -265,9 +262,17 @@ class HopBridge extends Base {
     )
 
     const amountInNoSlippage = BigNumber.from(1000)
-    const amountOutNoSlippage = await this.getAmountOut(amountInNoSlippage, sourceChain, destinationChain);
+    const amountOutNoSlippage = await this.getAmountOut(
+      amountInNoSlippage,
+      sourceChain,
+      destinationChain
+    )
 
-    const bonderFee = await this.getBonderFee(amountIn, sourceChain, destinationChain)
+    const bonderFee = await this.getBonderFee(
+      amountIn,
+      sourceChain,
+      destinationChain
+    )
     const afterBonderFee = hTokenAmount.sub(bonderFee)
     const amountOut = await this.calcFromHTokenAmount(
       afterBonderFee,
@@ -276,12 +281,16 @@ class HopBridge extends Base {
 
     const oneBN = ethers.utils.parseUnits('1', this.token.decimals)
 
-    const rateBN = amountIn.eq(0) ? BigNumber.from(0) : amountOutWithoutFee.mul(oneBN).div(amountIn)
+    const rateBN = amountIn.eq(0)
+      ? BigNumber.from(0)
+      : amountOutWithoutFee.mul(oneBN).div(amountIn)
 
     const rate = Number(ethers.utils.formatUnits(rateBN, this.token.decimals))
 
     const marketRateBN = amountOutNoSlippage.mul(oneBN).div(amountInNoSlippage)
-    const marketRate = Number(ethers.utils.formatUnits(marketRateBN, this.token.decimals))
+    const marketRate = Number(
+      ethers.utils.formatUnits(marketRateBN, this.token.decimals)
+    )
 
     const priceImpact = ((marketRate - rate) / marketRate) * 100
 
@@ -294,7 +303,7 @@ class HopBridge extends Base {
     }
   }
 
-  public async getBonderFee(
+  public async getBonderFee (
     amountIn: BigNumberish,
     sourceChain?: TChain,
     destinationChain?: TChain
@@ -306,9 +315,11 @@ class HopBridge extends Base {
       return BigNumber.from(0)
     } else if (destinationChain?.isL1) {
       const ethPrice = await CoinGecko.getPriceByTokenSymbol('WETH')
-      const tokenPrice = await CoinGecko.getPriceByTokenSymbol(this.token.symbol)
-      
-      const rate = ethPrice/tokenPrice
+      const tokenPrice = await CoinGecko.getPriceByTokenSymbol(
+        this.token.symbol
+      )
+
+      const rate = ethPrice / tokenPrice
 
       const gasPrice = await this.signer.getGasPrice()
       const txFeeEth = gasPrice.mul(BondTransferGasCost)
@@ -319,7 +330,11 @@ class HopBridge extends Base {
 
       return fee
     } else {
-      return this.getMinBonderFee(amountIn.toString(), sourceChain, destinationChain) 
+      return this.getMinBonderFee(
+        amountIn.toString(),
+        sourceChain,
+        destinationChain
+      )
     }
   }
 

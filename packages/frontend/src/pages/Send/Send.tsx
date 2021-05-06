@@ -173,12 +173,7 @@ const Send: FC = () => {
     priceImpact,
     bonderFee,
     requiredLiquidity
-  } = useSendData(
-    selectedToken,
-    fromNetwork,
-    toNetwork,
-    fromTokenAmountBN
-  )
+  } = useSendData(selectedToken, fromNetwork, toNetwork, fromTokenAmountBN)
 
   useEffect(() => {
     let amount
@@ -277,7 +272,7 @@ const Send: FC = () => {
     const update = async () => {
       setAmountOutMin(undefined)
       if (fromNetwork && toNetwork && toTokenAmountBN) {
-        const minBps = Math.ceil(10000 - (slippageTolerance * 100))
+        const minBps = Math.ceil(10000 - slippageTolerance * 100)
         const _amountOutMin = toTokenAmountBN.mul(minBps).div(10000)
 
         setAmountOutMin(_amountOutMin)
@@ -799,7 +794,9 @@ const Send: FC = () => {
             variant="subtitle2"
             color="textSecondary"
           >
-            {amountOutMin ? commafy(formatUnits(amountOutMin, selectedToken.decimals), 4) : '-'}
+            {amountOutMin
+              ? commafy(formatUnits(amountOutMin, selectedToken.decimals), 4)
+              : '-'}
           </Typography>
         </Box>
         <Box
@@ -821,7 +818,7 @@ const Send: FC = () => {
             variant="subtitle2"
             color="textSecondary"
           >
-            { fee ?? '-' }
+            {fee ?? '-'}
           </Typography>
         </Box>
       </div>

@@ -273,7 +273,13 @@ class HopBridge extends Base {
       sourceChain,
       destinationChain
     )
-    const afterBonderFee = hTokenAmount.sub(bonderFee)
+
+    let afterBonderFee
+    if (hTokenAmount.gt(bonderFee)) {
+      afterBonderFee = hTokenAmount.sub(bonderFee)
+    } else {
+      afterBonderFee = BigNumber.from(0)
+    }
     const amountOut = await this.calcFromHTokenAmount(
       afterBonderFee,
       destinationChain

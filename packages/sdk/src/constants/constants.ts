@@ -34,3 +34,5 @@ export enum TokenIndex {
   CANONICAL_TOKEN = 0,
   HOP_BRIDGE_TOKEN = 1
 }
+
+export const BondTransferGasCost = '150000'

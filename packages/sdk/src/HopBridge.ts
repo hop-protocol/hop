@@ -12,7 +12,8 @@ import { TChain, TToken, TAmount, TProvider } from './types'
 import Base from './Base'
 import AMM from './AMM'
 import _version from './version'
-import { TokenIndex } from './constants'
+import { TokenIndex, BondTransferGasCost } from './constants'
+import CoinGecko from './CoinGecko'
 
 type SendL1ToL1Input = {
   destinationChain: Chain
@@ -266,7 +267,7 @@ class HopBridge extends Base {
     const amountInNoSlippage = BigNumber.from(1000)
     const amountOutNoSlippage = await this.getAmountOut(amountInNoSlippage, sourceChain, destinationChain);
 
-    const bonderFee = BigNumber.from('100000')
+    const bonderFee = await this.getBonderFee(amountIn, sourceChain, destinationChain)
     const afterBonderFee = hTokenAmount.sub(bonderFee)
     const amountOut = await this.calcFromHTokenAmount(
       afterBonderFee,
@@ -290,6 +291,35 @@ class HopBridge extends Base {
       priceImpact,
       bonderFee,
       requiredLiquidity: hTokenAmount
+    }
+  }
+
+  public async getBonderFee(
+    amountIn: BigNumberish,
+    sourceChain?: TChain,
+    destinationChain?: TChain
+  ) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    if (sourceChain?.isL1) {
+      return BigNumber.from(0)
+    } else if (destinationChain?.isL1) {
+      const ethPrice = await CoinGecko.getPriceByTokenSymbol('WETH')
+      const tokenPrice = await CoinGecko.getPriceByTokenSymbol(this.token.symbol)
+      
+      const rate = ethPrice/tokenPrice
+
+      const gasPrice = await this.signer.getGasPrice()
+      const txFeeEth = gasPrice.mul(BondTransferGasCost)
+
+      const oneEth = ethers.utils.parseEther('1')
+      const rateBN = ethers.utils.parseEther(rate.toString())
+      const fee = txFeeEth.mul(rateBN).div(oneEth)
+
+      return fee
+    } else {
+      return this.getMinBonderFee(amountIn.toString(), sourceChain, destinationChain) 
     }
   }
 
@@ -368,7 +398,7 @@ class HopBridge extends Base {
    * @param {Object} destinationChain - Destination chain model.
    * @returns {Object} Bonder fee as BigNumber.
    */
-  public async getBonderFee (
+  public async getMinBonderFee (
     amountIn: TAmount,
     sourceChain: TChain,
     destinationChain: TChain

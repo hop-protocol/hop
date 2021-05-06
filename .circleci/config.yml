@@ -58,7 +58,6 @@ workflows:
               only:
                 - production
                 - staging
-                - develop
                 - mainnet
                 - ropsten
                 - rinkeby

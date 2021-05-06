@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { BigNumber } from 'ethers'
 import { useApp } from 'src/contexts/AppContext'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
+import useDebounceAsync from 'src/hooks/useDebounceAsync'
 
 const useSendData = (
   token: Token,
@@ -17,36 +18,40 @@ const useSendData = (
   const [priceImpact, setPriceImpact] = useState<number | undefined>()
   const [bonderFee, setBonderFee] = useState<BigNumber>()
   const [requiredLiquidity, setRequiredLiquidity] = useState<BigNumber>()
-  const debouncer = useRef<number>(0)
 
-  useEffect(() => {
-    const update = async () => {
-      if (!fromNetwork) return 0
-      if (!toNetwork) return 0
-      if (!fromAmount) return 0
+  const updateSendData = useCallback(async (isCancelled: () => boolean) => {
+    if (!fromNetwork) return 0
+    if (!toNetwork) return 0
+    if (!fromAmount) return 0
 
-      const ctx = ++debouncer.current
+    const bridge = sdk.bridge(token?.symbol)
+    const {
+      amountOut: _amountOut,
+      rate: _rate,
+      priceImpact: _priceImpact,
+      bonderFee: _bonderFee,
+      requiredLiquidity: _requiredLiquidity
+    } = await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
 
-      const bridge = sdk.bridge(token?.symbol)
-      const {
-        amountOut: _amountOut,
-        rate: _rate,
-        priceImpact: _priceImpact,
-        bonderFee: _bonderFee,
-        requiredLiquidity: _requiredLiquidity
-      } = await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
+    if (isCancelled()) return
 
-      if (ctx !== debouncer.current) return
+    setAmountOut(_amountOut)
+    setRate(_rate)
+    setPriceImpact(_priceImpact)
+    setBonderFee(_bonderFee)
+    setRequiredLiquidity(_requiredLiquidity)
+  }, [
+    fromNetwork,
+    toNetwork,
+    fromAmount,
+    setAmountOut,
+    setRate,
+    setPriceImpact,
+    setBonderFee,
+    setRequiredLiquidity
+  ])
 
-      setAmountOut(_amountOut)
-      setRate(_rate)
-      setPriceImpact(_priceImpact)
-      setBonderFee(_bonderFee)
-      setRequiredLiquidity(_requiredLiquidity)
-    }
-
-    update()
-  }, [token, fromNetwork, toNetwork, fromAmount])
+  useDebounceAsync(updateSendData, 400, 800)
 
   return {
     amountOut,

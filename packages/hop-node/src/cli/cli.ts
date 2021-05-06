@@ -12,7 +12,10 @@ import {
   db as dbConfig,
   setConfigByNetwork,
   setBonderPrivateKey,
-  setNetworkRpcUrl
+  setNetworkRpcUrl,
+  slackAuthToken,
+  slackChannel,
+  slackUsername
 } from 'src/config'
 import Logger, { setLogLevel } from 'src/logger'
 import { Chain } from 'src/constants'
@@ -160,6 +163,10 @@ program
           commitTransfersMinThresholdAmount =
             config?.commitTransfers?.minThresholdAmount
         }
+      }
+      const slackEnabled = slackAuthToken && slackChannel && slackUsername
+      if (slackEnabled) {
+        logger.debug(`slack notifications enabled. channel #${slackChannel}`)
       }
       startWatchers({
         order,

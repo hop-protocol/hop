@@ -51,7 +51,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   async syncUp () {
     this.logger.debug('syncing up events')
     const blockNumber = await this.bridge.getBlockNumber()
-    const startBlockNumber = blockNumber - 1000
+    const startBlockNumber = blockNumber - 10000
 
     const withdrawalBondedEvents = await this.bridge.getWithdrawalBondedEvents(
       startBlockNumber,
@@ -86,27 +86,24 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const transferSentEvents = await (this
       .bridge as L2Bridge).getTransferSentEvents(startBlockNumber, blockNumber)
 
-    // TODO: check for withdrawal bonded event on L2 and mark as bonded
-    if (false) {
-      for (let event of transferSentEvents) {
-        const {
-          transferId,
-          recipient,
-          amount,
-          transferNonce,
-          bonderFee,
-          index
-        } = event.args
-        await this.handleTransferSentEvent(
-          transferId,
-          recipient,
-          amount,
-          transferNonce,
-          bonderFee,
-          index,
-          event
-        )
-      }
+    for (let event of transferSentEvents) {
+      const {
+        transferId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index
+      } = event.args
+      await this.handleTransferSentEvent(
+        transferId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index,
+        event
+      )
     }
   }
 

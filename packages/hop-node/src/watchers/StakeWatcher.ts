@@ -117,7 +117,7 @@ class StakeWatcher extends BaseWatcher {
     if (bonderBridgeStakedAmount.lt(this.maxStakeAmount)) {
       amountToStake = this.maxStakeAmount.sub(bonderBridgeStakedAmount)
     }
-    if (amountToStake.gt(0)) {
+    if (amountToStake.gt(this.bridge.parseUnits(5))) {
       if (balance.lt(amountToStake)) {
         if (!isL1) {
           const l1Bridge = this.siblingWatchers[networkSlugToId('ethereum')]

@@ -1,4 +1,4 @@
-import { ethers, Signer, Contract, BigNumber } from 'ethers'
+import { ethers, Signer, Contract, BigNumber, BigNumberish } from 'ethers'
 import { Chain } from './models'
 import {
   l1BridgeAbi,
@@ -242,6 +242,55 @@ class HopBridge extends Base {
       false,
       options
     )
+  }
+
+  public async getSendData (
+    amountIn: BigNumberish,
+    sourceChain?: TChain,
+    destinationChain?: TChain
+  ) {
+    amountIn = BigNumber.from(amountIn)
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    const hTokenAmount = await this.calcToHTokenAmount(
+      amountIn,
+      sourceChain
+    )
+
+    const amountOutWithoutFee = await this.calcFromHTokenAmount(
+      hTokenAmount,
+      destinationChain
+    )
+
+    const amountInNoSlippage = BigNumber.from(1000)
+    const amountOutNoSlippage = await this.getAmountOut(amountInNoSlippage, sourceChain, destinationChain);
+
+    const bonderFee = BigNumber.from('100000')
+    const afterBonderFee = hTokenAmount.sub(bonderFee)
+    const amountOut = await this.calcFromHTokenAmount(
+      afterBonderFee,
+      destinationChain
+    )
+
+    const oneBN = ethers.utils.parseUnits('1', this.token.decimals)
+
+    const rateBN = amountIn.eq(0) ? BigNumber.from(0) : amountOutWithoutFee.mul(oneBN).div(amountIn)
+
+    const rate = Number(ethers.utils.formatUnits(rateBN, this.token.decimals))
+
+    const marketRateBN = amountOutNoSlippage.mul(oneBN).div(amountInNoSlippage)
+    const marketRate = Number(ethers.utils.formatUnits(marketRateBN, this.token.decimals))
+
+    const priceImpact = ((marketRate - rate) / marketRate) * 100
+
+    return {
+      amountOut,
+      rate,
+      priceImpact,
+      bonderFee,
+      requiredLiquidity: hTokenAmount
+    }
   }
 
   /**

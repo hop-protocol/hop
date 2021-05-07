@@ -80,6 +80,7 @@ type Props = {
   onNetworkChange: (network?: Network) => void
   balance?: BigNumber
   loadingBalance?: boolean
+  loadingValue?: boolean
   disableInput?: boolean
 }
 
@@ -94,6 +95,7 @@ const AmountSelectorCard: FC<Props> = props => {
     onNetworkChange,
     balance,
     loadingBalance = false,
+    loadingValue = false,
     disableInput = false
   } = props
   const styles = useStyles()
@@ -197,6 +199,7 @@ const AmountSelectorCard: FC<Props> = props => {
             placeholder="0.0"
             units={token?.symbol}
             disabled={disableInput}
+            loadingValue={loadingValue}
           />
         </Grid>
       </Grid>

@@ -170,7 +170,8 @@ const Send: FC = () => {
     priceImpact,
     amountOutMin,
     bonderFee,
-    requiredLiquidity
+    requiredLiquidity,
+    loading: loadingSendData
   } = useSendData(selectedToken, slippageTolerance, fromNetwork, toNetwork, fromTokenAmountBN)
 
   useEffect(() => {
@@ -250,7 +251,7 @@ const Send: FC = () => {
   }, [selectedToken, toNetwork, availableLiquidity, requiredLiquidity])
 
   useEffect(() => {
-    const errorMessage = `Send at least ${feeDisplay} ${selectedToken.symbol} to cover the transaction fee`
+    const errorMessage = `Send at least ${feeDisplay} to cover the transaction fee`
     if (amountOut?.eq(0) && feeDisplay) {
       setError(errorMessage)
     } else if (error?.slice(0, 13) === errorMessage.slice(0, 13)) {
@@ -706,6 +707,7 @@ const Send: FC = () => {
         onNetworkChange={handleToNetworkChange}
         balance={toBalance}
         loadingBalance={loadingToBalance}
+        loadingValue={loadingSendData}
         disableInput
       />
       <div className={styles.details}>

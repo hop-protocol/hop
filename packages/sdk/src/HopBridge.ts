@@ -256,23 +256,33 @@ class HopBridge extends Base {
 
     const hTokenAmount = await this.calcToHTokenAmount(amountIn, sourceChain)
 
-    const amountOutWithoutFee = await this.calcFromHTokenAmount(
+    const amountOutWithoutFeePromise = this.calcFromHTokenAmount(
       hTokenAmount,
       destinationChain
     )
 
     const amountInNoSlippage = BigNumber.from(1000)
-    const amountOutNoSlippage = await this.getAmountOut(
+    const amountOutNoSlippagePromise = this.getAmountOut(
       amountInNoSlippage,
       sourceChain,
       destinationChain
     )
 
-    const bonderFee = await this.getBonderFee(
+    const bonderFeePromise = this.getBonderFee(
       amountIn,
       sourceChain,
       destinationChain
     )
+
+    const [
+      amountOutWithoutFee,
+      amountOutNoSlippage,
+      bonderFee
+    ] = await Promise.all([
+      amountOutWithoutFeePromise,
+      amountOutNoSlippagePromise,
+      bonderFeePromise
+    ])
 
     let afterBonderFee
     if (hTokenAmount.gt(bonderFee)) {

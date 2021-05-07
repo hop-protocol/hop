@@ -35,7 +35,7 @@ export const addresses: Addresses = {
   DAI: {
     ethereum: {
       l1CanonicalToken: '0x436e3FfB93A4763575E5C0F6b3c97D5489E050da',
-      l1Bridge: '0x0b736f4d94fc1d37CD7593B39F45AA0B0A0Cf7d2'
+      l1Bridge: '0xa79C629517C121a044A0F769e3DFa6CdAc4FEE36'
     },
     xdai: {
       l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
@@ -43,7 +43,7 @@ export const addresses: Addresses = {
       l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
       l2CanonicalToken: '0x6D2d8B29d92cab87a273e872FcC4650A64116283',
       l2Bridge: '0xEEfB1dF6868cCCa9Bf035D2fc46Ae92C8e48cc5C',
-      l2HopBridgeToken: '0xc2b847D4701dcA9c752Df54BD7eA020aAeA152eC',
+      l2HopBridgeToken: '0x3Af44C0189C2F9689695A47ab4B7eeb1A4fD6D22',
       l2AmmWrapper: '0xee8400C7fb17AE9c22A829F24F1D338B69Ece313',
       l2SaddleSwap: '0x7FF1448D0DAEa1DFCb181d41DE65e302630D2576',
       l2SaddleLpToken: '0xD71e5a4c4FF43A415ECC50C223E32a838eC2AaE9',

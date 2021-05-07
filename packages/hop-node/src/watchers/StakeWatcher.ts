@@ -134,7 +134,9 @@ class StakeWatcher extends BaseWatcher {
               convertAmount = l1Balance
             }
             this.logger.debug(
-              `converting to L1 ${convertAmount} canonical token to L2 hop token`
+              `converting to L1 ${this.bridge.formatUnits(
+                convertAmount
+              )} canonical token to L2 hop token`
             )
 
             let tx: any
@@ -188,14 +190,16 @@ class StakeWatcher extends BaseWatcher {
         )
         return
       }
-      this.logger.debug(
-        `attempting to stake: ${this.bridge.formatUnits(amountToStake)}`
-      )
-      const tx = await this.bridge.stake(amountToStake)
-      this.logger.info(`stake tx:`, chalk.bgYellow.black.bold(tx?.hash))
-      await tx.wait()
-      const newCredit = await this.bridge.getCredit()
-      this.logger.debug(`credit balance:`, this.bridge.formatUnits(newCredit))
+      if (amountToStake.gt(0)) {
+        this.logger.debug(
+          `attempting to stake: ${this.bridge.formatUnits(amountToStake)}`
+        )
+        const tx = await this.bridge.stake(amountToStake)
+        this.logger.info(`stake tx:`, chalk.bgYellow.black.bold(tx?.hash))
+        await tx.wait()
+        const newCredit = await this.bridge.getCredit()
+        this.logger.debug(`credit balance:`, this.bridge.formatUnits(newCredit))
+      }
     }
   }
 

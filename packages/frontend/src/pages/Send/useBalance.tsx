@@ -5,6 +5,7 @@ import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
 import useInterval from 'src/hooks/useInterval'
+import useDebounceAsync from 'src/hooks/useDebounceAsync'
 
 const useBalance = (token: Token | undefined, network: Network | undefined) => {
   const { user } = useApp()
@@ -49,7 +50,7 @@ const useBalance = (token: Token | undefined, network: Network | undefined) => {
 
   useInterval(() => {
     getBalance()
-  }, 5e3)
+  }, 8e3)
 
   return { balance, loading }
 }

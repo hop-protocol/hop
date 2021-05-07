@@ -200,10 +200,7 @@ program
     'List of token by symbol to bond, comma separated'
   )
   .option('--l1-network <network>', 'L1 network')
-  .option(
-    '-c, --chains <network>',
-    'List of chains to bond, comma separated'
-  )
+  .option('-c, --chains <network>', 'List of chains to bond, comma separated')
   .description('Start the bonder watchers')
   .action(source => {
     try {
@@ -331,9 +328,9 @@ program
 program
   .command('keystore')
   .description('Keystore')
-  .option('--pass <passphrase>', 'Keystore passphrase to encrypt with')
-  .option('-o, --output <output>', 'Output file path')
-  .option('--private-key <private-key>', 'Private key')
+  .option('--pass <passphrase>', 'Passphrase to encrypt keystore with')
+  .option('-o, --output <output>', 'Output file path of encrypted keystore')
+  .option('--private-key <private-key>', 'The private key to encrypt')
   .action(async source => {
     try {
       const action = source.args[0]
@@ -426,7 +423,7 @@ Press [Enter] to exit.
         if (!passphrase) {
           passphrase = await promptPassphrase()
         }
-        const filepath = source.args[1]
+        const filepath = source.args[1] || defaultKeystoreFilePath
         if (!filepath) {
           console.error('please specify filepath')
           return
@@ -437,7 +434,7 @@ Press [Enter] to exit.
         const privateKey = await recoverKeystore(keystore, passphrase)
         console.log(privateKey)
       } else if (action === 'address') {
-        const filepath = source.args[1]
+        const filepath = source.args[1] || defaultKeystoreFilePath
         if (!filepath) {
           console.error('please specify filepath')
           return

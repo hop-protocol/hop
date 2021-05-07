@@ -71,7 +71,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 type Props = {
-  value: string
+  value?: string
   label: string
   token?: Token
   onChange?: (value: string) => void
@@ -85,7 +85,7 @@ type Props = {
 
 const AmountSelectorCard: FC<Props> = props => {
   const {
-    value,
+    value = '',
     label,
     token,
     onChange,

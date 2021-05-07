@@ -30,20 +30,20 @@ type Metadata = {
 }
 
 const images = {
-	DAI: DaiLogo,
-	ARB: ArbitrumLogo,
-	sETH: SynthEthLogo,
-	sBTC: SynthBtcLogo,
-	USDC: UsdcLogo,
-	WBTC: wBtcLogo
+  DAI: DaiLogo,
+  ARB: ArbitrumLogo,
+  sETH: SynthEthLogo,
+  sBTC: SynthBtcLogo,
+  USDC: UsdcLogo,
+  WBTC: wBtcLogo
 }
 
 const network = process.env.REACT_APP_NETWORK || 'kovan'
 const tokens = Object.keys(images).reduce((obj, token) => {
-	obj[token] = deepmerge(hopMetadata[network].tokens[token], {
-		image: images[token]
-	})
-	return obj
+  obj[token] = deepmerge(hopMetadata[network].tokens[token], {
+    image: images[token]
+  })
+  return obj
 }, {})
 
 export const metadata: Metadata = {

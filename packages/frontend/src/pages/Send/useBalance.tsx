@@ -5,6 +5,7 @@ import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
 import useInterval from 'src/hooks/useInterval'
+import useDebounceAsync from 'src/hooks/useDebounceAsync'
 
 const useBalance = (token: Token | undefined, network: Network | undefined) => {
   const { user } = useApp()
@@ -12,6 +13,7 @@ const useBalance = (token: Token | undefined, network: Network | undefined) => {
   const [loading, setLoading] = useState(false)
   const currentToken = useRef<Token>()
   const currentNetwork = useRef<Network>()
+  const debouncer = useRef<number>(0)
 
   const getBalance = useCallback(() => {
     const _getBalance = async () => {
@@ -23,18 +25,18 @@ const useBalance = (token: Token | undefined, network: Network | undefined) => {
           setLoading(true)
         }
 
-        try {
-          const _balance = await user.getBalance(token, network)
+        const ctx = ++debouncer.current
+
+        const _balance = await user.getBalance(token, network)
+
+        if (ctx === debouncer.current) {
           setBalance(_balance)
-        } catch (err) {
-          setBalance(undefined)
-          throw err
+          setLoading(false)
         }
       } else {
         setBalance(undefined)
+        setLoading(false)
       }
-
-      setLoading(false)
       currentToken.current = token
       currentNetwork.current = network
     }
@@ -48,7 +50,7 @@ const useBalance = (token: Token | undefined, network: Network | undefined) => {
 
   useInterval(() => {
     getBalance()
-  }, 5e3)
+  }, 8e3)
 
   return { balance, loading }
 }

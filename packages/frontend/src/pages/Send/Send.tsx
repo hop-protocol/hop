@@ -129,7 +129,7 @@ const Send: FC = () => {
   const [sending, setSending] = useState<boolean>(false)
   const [slippageTolerance, setSlippageTolerance] = useState<number>(0.5)
   const [deadlineMinutes, setDeadlineMinutes] = useState<number>(20)
-  const [fee, setFee] = useState<string>()
+  const [feeDisplay, setFeeDisplay] = useState<string>()
   const [amountOutMin, setAmountOutMin] = useState<BigNumber>()
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
@@ -250,29 +250,30 @@ const Send: FC = () => {
   }, [selectedToken, toNetwork, availableLiquidity, requiredLiquidity])
 
   useEffect(() => {
-    const errorMessage = `Send at least ${fee} ${selectedToken.symbol} to cover the transaction fee`
-    if (amountOut?.eq(0) && fee) {
+    const errorMessage = `Send at least ${feeDisplay} ${selectedToken.symbol} to cover the transaction fee`
+    if (amountOut?.eq(0) && feeDisplay) {
       setError(errorMessage)
     } else if (error?.slice(0, 13) === errorMessage.slice(0, 13)) {
       setError('')
     }
-  }, [amountOut, selectedToken, fee])
+  }, [amountOut, selectedToken, feeDisplay])
 
   useEffect(() => {
     if (!bonderFee) {
-      setFee(undefined)
+      setFeeDisplay(undefined)
       return
     }
 
     const smallestFeeDecimals = selectedToken.decimals - 5
     const smallestFee = BigNumber.from(10 ** smallestFeeDecimals)
+    let feeAmount: string
     if (bonderFee.gt('0') && bonderFee.lt(smallestFee)) {
-      setFee(`<${formatUnits(smallestFee, selectedToken.decimals)}`)
-      return
+      feeAmount = `<${formatUnits(smallestFee, selectedToken.decimals)}`
+    } else {
+      feeAmount = commafy(formatUnits(bonderFee, selectedToken.decimals), 5)
     }
 
-    const _fee = commafy(formatUnits(bonderFee, selectedToken.decimals), 5)
-    setFee(_fee)
+    setFeeDisplay(`${feeAmount} ${selectedToken.symbol}`)
   }, [bonderFee])
 
   useEffect(() => {
@@ -821,11 +822,11 @@ const Send: FC = () => {
             <InfoTooltip title="This fee goes towards the Bonder who bonds the transfer on the destination chain." />
           </Typography>
           <Typography
-            title={`${fee}`}
+            title={`${feeDisplay}`}
             variant="subtitle2"
             color="textSecondary"
           >
-            {fee ?? '-'}
+            {feeDisplay ?? '-'}
           </Typography>
         </Box>
       </div>

@@ -1,7 +1,6 @@
 import React, {
   FC,
   useState,
-  useRef,
   useMemo,
   useEffect,
   ChangeEvent
@@ -26,7 +25,7 @@ import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
-import { UINT256, L1_NETWORK } from 'src/constants'
+import { UINT256 } from 'src/constants'
 import logger from 'src/logger'
 import { commafy, intersection, normalizeNumberInput } from 'src/utils'
 import SendButton from 'src/pages/Send/SendButton'
@@ -130,7 +129,7 @@ const Send: FC = () => {
   const [slippageTolerance, setSlippageTolerance] = useState<number>(0.5)
   const [deadlineMinutes, setDeadlineMinutes] = useState<number>(20)
   const [feeDisplay, setFeeDisplay] = useState<string>()
-  const [amountOutMin, setAmountOutMin] = useState<BigNumber>()
+  const [amountOutMinDisplay, setAmountOutMinDisplay] = useState<string>()
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [tx, setTx] = useState<Transaction | null>(null)
@@ -169,9 +168,10 @@ const Send: FC = () => {
     amountOut,
     rate,
     priceImpact,
+    amountOutMin,
     bonderFee,
     requiredLiquidity
-  } = useSendData(selectedToken, fromNetwork, toNetwork, fromTokenAmountBN)
+  } = useSendData(selectedToken, slippageTolerance, fromNetwork, toNetwork, fromTokenAmountBN)
 
   useEffect(() => {
     let amount
@@ -277,18 +277,14 @@ const Send: FC = () => {
   }, [bonderFee])
 
   useEffect(() => {
-    const update = async () => {
-      setAmountOutMin(undefined)
-      if (fromNetwork && toNetwork && toTokenAmountBN) {
-        const minBps = Math.ceil(10000 - slippageTolerance * 100)
-        const _amountOutMin = toTokenAmountBN.mul(minBps).div(10000)
-
-        setAmountOutMin(_amountOutMin)
-      }
+    if (!amountOutMin) {
+      setAmountOutMinDisplay(undefined)
+      return
     }
 
-    update()
-  }, [fromNetwork, toNetwork, toTokenAmount, slippageTolerance, selectedToken])
+    const amountOutMinFormatted = commafy(formatUnits(amountOutMin, selectedToken.decimals), 4)
+    setAmountOutMinDisplay(`${amountOutMinFormatted} ${selectedToken.symbol}`)
+  }, [amountOutMin])
 
   const approve = async (amount: string) => {
     const signer = provider?.getSigner()
@@ -802,9 +798,7 @@ const Send: FC = () => {
             variant="subtitle2"
             color="textSecondary"
           >
-            {amountOutMin
-              ? commafy(formatUnits(amountOutMin, selectedToken.decimals), 4)
-              : '-'}
+            {amountOutMinDisplay ?? '-'}
           </Typography>
         </Box>
         <Box

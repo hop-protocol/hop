@@ -7,6 +7,7 @@ import useDebounceAsync from 'src/hooks/useDebounceAsync'
 
 const useSendData = (
   token: Token,
+  slippageTolerance: number,
   fromNetwork?: Network,
   toNetwork?: Network,
   fromAmount?: BigNumber
@@ -18,6 +19,7 @@ const useSendData = (
   const [priceImpact, setPriceImpact] = useState<number | undefined>()
   const [bonderFee, setBonderFee] = useState<BigNumber>()
   const [requiredLiquidity, setRequiredLiquidity] = useState<BigNumber>()
+  const [amountOutMin, setAmountOutMin] = useState<BigNumber>()
 
   const updateSendData = useCallback(
     async (isCancelled: () => boolean) => {
@@ -56,10 +58,26 @@ const useSendData = (
 
   useDebounceAsync(updateSendData, 400, 800)
 
+  useEffect(() => {
+    const update = async () => {
+      setAmountOutMin(undefined)
+      if (fromNetwork && toNetwork && amountOut) {
+        const slippageToleranceBps = slippageTolerance * 100
+        const minBps = Math.ceil(10000 - slippageToleranceBps)
+        const _amountOutMin = amountOut.mul(minBps).div(10000)
+
+        setAmountOutMin(_amountOutMin)
+      }
+    }
+
+    update()
+  }, [fromNetwork, toNetwork, amountOut, slippageTolerance])
+
   return {
     amountOut,
     rate,
     priceImpact,
+    amountOutMin,
     bonderFee,
     requiredLiquidity
   }

@@ -1,10 +1,4 @@
-import React, {
-  FC,
-  useState,
-  useMemo,
-  useEffect,
-  ChangeEvent
-} from 'react'
+import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
 import { useLocation } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
@@ -171,7 +165,13 @@ const Send: FC = () => {
     amountOutMin,
     bonderFee,
     requiredLiquidity
-  } = useSendData(selectedToken, slippageTolerance, fromNetwork, toNetwork, fromTokenAmountBN)
+  } = useSendData(
+    selectedToken,
+    slippageTolerance,
+    fromNetwork,
+    toNetwork,
+    fromTokenAmountBN
+  )
 
   useEffect(() => {
     let amount
@@ -282,7 +282,10 @@ const Send: FC = () => {
       return
     }
 
-    const amountOutMinFormatted = commafy(formatUnits(amountOutMin, selectedToken.decimals), 4)
+    const amountOutMinFormatted = commafy(
+      formatUnits(amountOutMin, selectedToken.decimals),
+      4
+    )
     setAmountOutMinDisplay(`${amountOutMinFormatted} ${selectedToken.symbol}`)
   }, [amountOutMin])
 

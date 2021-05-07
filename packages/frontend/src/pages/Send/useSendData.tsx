@@ -38,11 +38,11 @@ const useSendData = (
 
       if (isCancelled()) return
 
-      setAmountOut(_amountOut)
+      setAmountOut(_amountOut as BigNumber)
       setRate(_rate)
       setPriceImpact(_priceImpact)
       setBonderFee(_bonderFee)
-      setRequiredLiquidity(_requiredLiquidity)
+      setRequiredLiquidity(_requiredLiquidity as BigNumber)
     },
     [
       fromNetwork,

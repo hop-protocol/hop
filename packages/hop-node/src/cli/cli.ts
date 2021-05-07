@@ -41,7 +41,7 @@ const program = new Command()
 
 prompt.colors = false
 
-type NetworksConfig = {
+type ChainsConfig = {
   [key: string]: any
 }
 
@@ -70,7 +70,7 @@ type LoggingConfig = {
 
 type Config = {
   network?: string
-  networks?: NetworksConfig
+  chains?: ChainsConfig
   tokens?: TokensConfig
   roles?: RolesConfig
   db?: DbConfig
@@ -133,10 +133,10 @@ program
         }
       }
       const networks = []
-      if (config?.networks) {
-        for (let k in config.networks) {
+      if (config?.chains) {
+        for (let k in config.chains) {
           networks.push(k)
-          const v = config.networks[k]
+          const v = config.chains[k]
           if (v instanceof Object) {
             const { rpcUrl } = v
             if (rpcUrl) {
@@ -146,7 +146,6 @@ program
         }
       }
 
-      Object.keys(config?.networks || {})
       const bonder = config?.roles?.bonder
       const challenger = config?.roles?.challenger
       const order = Number(config?.order || 0)
@@ -202,8 +201,8 @@ program
   )
   .option('--l1-network <network>', 'L1 network')
   .option(
-    '-n, --networks <network>',
-    'List of networks to bond, comma separated'
+    '-c, --chains <network>',
+    'List of chains to bond, comma separated'
   )
   .description('Start the bonder watchers')
   .action(source => {
@@ -218,7 +217,7 @@ program
       const tokens = parseArgList(source.tokens).map((value: string) =>
         value.toUpperCase()
       )
-      const networks = parseArgList(source.networks).map((value: string) =>
+      const networks = parseArgList(source.chains).map((value: string) =>
         value.toLowerCase()
       )
       startWatchers({
@@ -484,7 +483,7 @@ async function validateConfig (config: any) {
 
   const validSectionKeys = [
     'network',
-    'networks',
+    'chains',
     'tokens',
     'stake',
     'commitTransfers',
@@ -497,7 +496,7 @@ async function validateConfig (config: any) {
   const sectionKeys = Object.keys(config)
   await validateKeys(validSectionKeys, sectionKeys)
 
-  if (config['networks']) {
+  if (config['chains']) {
     const validNetworkKeys = [
       Chain.Ethereum,
       Chain.Optimism,
@@ -505,7 +504,7 @@ async function validateConfig (config: any) {
       Chain.xDai,
       Chain.Polygon
     ]
-    const networkKeys = Object.keys(config['networks'])
+    const networkKeys = Object.keys(config['chains'])
     await validateKeys(validNetworkKeys, networkKeys)
   }
 

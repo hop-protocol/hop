@@ -127,7 +127,6 @@ const Send: FC = () => {
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
   const [sending, setSending] = useState<boolean>(false)
-  const [exchangeRate, setExchangeRate] = useState<number>(0)
   const [slippageTolerance, setSlippageTolerance] = useState<number>(0.5)
   const [deadlineMinutes, setDeadlineMinutes] = useState<number>(20)
   const [fee, setFee] = useState<string>()
@@ -135,7 +134,6 @@ const Send: FC = () => {
   const [error, setError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [tx, setTx] = useState<Transaction | null>(null)
-  const debouncer = useRef<number>(0)
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(
     true
   )
@@ -258,7 +256,7 @@ const Send: FC = () => {
     } else if (error?.slice(0, 13) === errorMessage.slice(0, 13)) {
       setError('')
     }
-  }, [amountOut])
+  }, [amountOut, selectedToken, fee])
 
   useEffect(() => {
     if (!bonderFee) {

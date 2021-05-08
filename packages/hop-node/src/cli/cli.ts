@@ -165,10 +165,10 @@ program
       if (config?.stake) {
         maxStakeAmounts = config.stake
       }
-      let commitTransfersMinThresholdAmount: any
+      let commitTransfersMinThresholdAmounts: any = {}
       if (config?.commitTransfers) {
         if (config?.commitTransfers?.minThresholdAmount) {
-          commitTransfersMinThresholdAmount =
+          commitTransfersMinThresholdAmounts =
             config?.commitTransfers?.minThresholdAmount
         }
       }
@@ -192,7 +192,7 @@ program
         bonder,
         challenger,
         maxStakeAmounts,
-        commitTransfersMinThresholdAmount,
+        commitTransfersMinThresholdAmounts,
         dryMode
       })
       if (config?.roles?.arbBot) {

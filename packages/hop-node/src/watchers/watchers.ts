@@ -86,7 +86,7 @@ type Config = {
   bonder?: boolean
   challenger?: boolean
   maxStakeAmounts?: StakeAmounts
-  commitTransfersMinThresholdAmount?: number
+  commitTransfersMinThresholdAmounts?: any
   dryMode?: boolean
 }
 
@@ -98,7 +98,7 @@ function startWatchers (
     bonder: true,
     challenger: false,
     maxStakeAmounts: {},
-    commitTransfersMinThresholdAmount: 0,
+    commitTransfersMinThresholdAmounts: {},
     dryMode: false
   }
 ) {
@@ -247,7 +247,8 @@ function startWatchers (
         label,
         isL1,
         bridgeContract,
-        minThresholdAmount: _config.commitTransfersMinThresholdAmount,
+        minThresholdAmount:
+          _config.commitTransfersMinThresholdAmounts[token] || 0,
         dryMode
       })
 

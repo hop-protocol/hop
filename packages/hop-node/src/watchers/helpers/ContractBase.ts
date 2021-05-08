@@ -7,6 +7,7 @@ import { config } from 'src/config'
 export default class ContractBase extends EventEmitter {
   contract: Contract
   public providerNetworkId: number
+  public chainSlug: string
 
   constructor (contract: Contract) {
     super()
@@ -17,6 +18,7 @@ export default class ContractBase extends EventEmitter {
     this.getNetworkId()
       .then((networkId: number) => {
         this.providerNetworkId = networkId
+        this.chainSlug = networkIdToSlug(networkId)
       })
       .catch(err => console.log(`getNetwork() error: ${err.message}`))
   }
@@ -54,11 +56,15 @@ export default class ContractBase extends EventEmitter {
 
   async waitSafeConfirmations (): Promise<void> {
     let blockNumber = await this.contract.provider.getBlockNumber()
-    const targetBlockNumber = blockNumber + config.safeConfirmations
+    const targetBlockNumber = blockNumber + this.waitConfirmations
     while (blockNumber < targetBlockNumber) {
       blockNumber = await this.contract.provider.getBlockNumber()
       await wait(5 * 1000)
     }
+  }
+
+  get waitConfirmations () {
+    return config.networks[this.chainSlug].waitSafeConfirmations || 0
   }
 
   async txOverrides (): Promise<any> {
@@ -69,11 +75,10 @@ export default class ContractBase extends EventEmitter {
       // TODO
     } else {
       txOptions.gasLimit = 5000000
-      const network = networkIdToSlug(this.providerNetworkId)
-      if (network === Chain.Optimism) {
+      if (this.chainSlug === Chain.Optimism) {
         txOptions.gasPrice = 0
         txOptions.gasLimit = 8000000
-      } else if (network === Chain.xDai) {
+      } else if (this.chainSlug === Chain.xDai) {
         txOptions.gasLimit = 5000000
       }
     }

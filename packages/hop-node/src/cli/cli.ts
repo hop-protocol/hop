@@ -9,10 +9,12 @@ import { randomBytes } from 'crypto'
 import { HDNode } from '@ethersproject/hdnode'
 import prompt from 'prompt'
 import {
+  config as globalConfig,
   db as dbConfig,
   setConfigByNetwork,
   setBonderPrivateKey,
   setNetworkRpcUrl,
+  setNetworkWaitConfirmations,
   slackAuthToken,
   slackChannel,
   slackUsername
@@ -88,7 +90,7 @@ program
   .action(async source => {
     try {
       printHopArt()
-      const config: any = await setupConfig(source.config)
+      const config: any = await setupConfig(source.config || source.args[0])
       if (config?.logging?.level) {
         const logLevel = config.logging.level
         logger.log(`log level: "${logLevel}"`)
@@ -138,9 +140,12 @@ program
           networks.push(k)
           const v = config.chains[k]
           if (v instanceof Object) {
-            const { rpcUrl } = v
+            const { rpcUrl, waitConfirmations } = v
             if (rpcUrl) {
               setNetworkRpcUrl(k, rpcUrl)
+            }
+            if (typeof waitConfirmations === 'number') {
+              setNetworkWaitConfirmations(k, waitConfirmations)
             }
           }
         }
@@ -166,6 +171,11 @@ program
       const slackEnabled = slackAuthToken && slackChannel && slackUsername
       if (slackEnabled) {
         logger.debug(`slack notifications enabled. channel #${slackChannel}`)
+      }
+
+      for (let k in globalConfig.networks) {
+        const { waitConfirmations } = globalConfig.networks[k]
+        logger.log(`${k} wait confirmations: ${waitConfirmations || 0}`)
       }
       startWatchers({
         order,

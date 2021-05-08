@@ -46,7 +46,6 @@ export const config = {
   network,
   networks,
   bonderPrivateKey: process.env.BONDER_PRIVATE_KEY,
-  safeConfirmations: isMainnet ? 12 : 0,
   metadata,
   bonders
 }
@@ -58,17 +57,25 @@ const setConfigByNetwork = (network: string) => {
   config.tokens = tokens
   config.network = network
   config.networks = networks
-  config.safeConfirmations = isMainnet ? 12 : 0
 }
 
 const setBonderPrivateKey = (privateKey: string) => {
   config.bonderPrivateKey = privateKey
 }
 
-const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
+export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
   if (networks[network]) {
     networks[network].rpcUrl = rpcUrl
   }
 }
 
-export { setConfigByNetwork, setBonderPrivateKey, setNetworkRpcUrl }
+export const setNetworkWaitConfirmations = (
+  network: string,
+  waitConfirmations: number
+) => {
+  if (networks[network]) {
+    networks[network].waitConfirmations = waitConfirmations
+  }
+}
+
+export { setConfigByNetwork, setBonderPrivateKey }

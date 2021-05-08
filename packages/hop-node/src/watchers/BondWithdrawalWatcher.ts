@@ -14,6 +14,7 @@ export interface Config {
   bridgeContract: Contract
   label: string
   order?: () => number
+  dryMode?: boolean
 }
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
@@ -28,7 +29,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logColor: 'green',
       order: config.order,
       isL1: config.isL1,
-      bridgeContract: config.bridgeContract
+      bridgeContract: config.bridgeContract,
+      dryMode: config.dryMode
     })
   }
 
@@ -275,6 +277,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
           'withdrawalBonded?:',
           !!dbTransfer.withdrawalBonded
         )
+        return
+      }
+
+      if (this.dryMode) {
+        this.logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
         return
       }
 

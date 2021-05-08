@@ -16,6 +16,7 @@ export interface Config {
   bridgeContract: Contract
   label: string
   order?: () => number
+  dryMode?: boolean
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
@@ -29,7 +30,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       logColor: 'cyan',
       order: config.order,
       isL1: config.isL1,
-      bridgeContract: config.bridgeContract
+      bridgeContract: config.bridgeContract,
+      dryMode: config.dryMode
     })
   }
 
@@ -261,6 +263,11 @@ class BondTransferRootWatcher extends BaseWatcher {
     const hasPositiveBalance = await l1Bridge.hasPositiveBalance()
     if (!hasPositiveBalance) {
       throw new Error('bonder requires positive balance to bond transfer root')
+    }
+
+    if (this.dryMode) {
+      this.logger.warn('dry mode: skipping bondTransferRoot transaction')
+      return
     }
 
     await db.transferRoots.update(transferRootHash, {

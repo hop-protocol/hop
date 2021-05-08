@@ -28,7 +28,8 @@ interface StakeAmounts {
 function startStakeWatchers (
   _tokens?: string[],
   _networks: string[] = networks,
-  maxStakeAmounts: StakeAmounts = {}
+  maxStakeAmounts: StakeAmounts = {},
+  dryMode: boolean = false
 ) {
   if (!_tokens) {
     _tokens = Object.keys(config.tokens)
@@ -58,7 +59,8 @@ function startStakeWatchers (
         bridgeContract,
         tokenContract,
         stakeMinThreshold: 0,
-        maxStakeAmount: maxStakeAmounts[token]
+        maxStakeAmount: maxStakeAmounts[token],
+        dryMode
       })
 
       stakeWatchers[token] = stakeWatchers[token] || {}
@@ -85,6 +87,7 @@ type Config = {
   challenger?: boolean
   maxStakeAmounts?: StakeAmounts
   commitTransfersMinThresholdAmount?: number
+  dryMode?: boolean
 }
 
 function startWatchers (
@@ -95,7 +98,8 @@ function startWatchers (
     bonder: true,
     challenger: false,
     maxStakeAmounts: {},
-    commitTransfersMinThresholdAmount: 0
+    commitTransfersMinThresholdAmount: 0,
+    dryMode: false
   }
 ) {
   const orderNum = _config.order || 0
@@ -107,6 +111,7 @@ function startWatchers (
   if (!_networks.length) {
     _networks = networks
   }
+  const dryMode = _config.dryMode
   const watchers: any[] = []
   try {
     const hostname = configHostname
@@ -202,7 +207,8 @@ function startWatchers (
         order,
         label,
         isL1,
-        bridgeContract
+        bridgeContract,
+        dryMode
       })
 
       bondWithdrawalWatchers[token] = bondWithdrawalWatchers[token] || {}
@@ -213,7 +219,8 @@ function startWatchers (
         order,
         label,
         isL1,
-        bridgeContract
+        bridgeContract,
+        dryMode
       })
 
       bondTransferRootWatchers[token] = bondTransferRootWatchers[token] || {}
@@ -224,7 +231,8 @@ function startWatchers (
         order,
         label,
         isL1,
-        bridgeContract
+        bridgeContract,
+        dryMode
       })
 
       settleBondedWithdrawalWatchers[token] =
@@ -239,7 +247,8 @@ function startWatchers (
         label,
         isL1,
         bridgeContract,
-        minThresholdAmount: _config.commitTransfersMinThresholdAmount
+        minThresholdAmount: _config.commitTransfersMinThresholdAmount,
+        dryMode
       })
 
       commitTransferWatchers[token] = commitTransferWatchers[token] || {}
@@ -284,7 +293,12 @@ function startWatchers (
   if (_config?.bonder || _config?.bonder === undefined) {
     watchers.forEach(watcher => watcher.start())
     watchers.push(
-      ...startStakeWatchers(_tokens, _networks, _config.maxStakeAmounts)
+      ...startStakeWatchers(
+        _tokens,
+        _networks,
+        _config.maxStakeAmounts,
+        dryMode
+      )
     )
   }
 

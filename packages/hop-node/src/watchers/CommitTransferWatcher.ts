@@ -15,6 +15,7 @@ export interface Config {
 
   isL1?: boolean
   bridgeContract?: Contract
+  dryMode?: boolean
 }
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
@@ -31,7 +32,8 @@ class CommitTransfersWatcher extends BaseWatcher {
       logColor: 'yellow',
       order: config.order,
       isL1: config.isL1,
-      bridgeContract: config.bridgeContract
+      bridgeContract: config.bridgeContract,
+      dryMode: config.dryMode
     })
 
     if (config.minThresholdAmount) {
@@ -212,6 +214,11 @@ class CommitTransfersWatcher extends BaseWatcher {
           'commited?:',
           !!dbTransferRoot.commited
         )
+        return
+      }
+
+      if (this.dryMode) {
+        this.logger.warn('dry mode: skipping commitTransfers transaction')
         return
       }
 

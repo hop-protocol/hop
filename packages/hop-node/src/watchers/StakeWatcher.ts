@@ -14,6 +14,7 @@ export interface Config {
   tokenContract: Contract
   stakeMinThreshold: number
   maxStakeAmount: number
+  dryMode?: boolean
 }
 
 class StakeWatcher extends BaseWatcher {
@@ -29,7 +30,8 @@ class StakeWatcher extends BaseWatcher {
       prefix: config.label,
       logColor: 'green',
       isL1: config.isL1,
-      bridgeContract: config.bridgeContract
+      bridgeContract: config.bridgeContract,
+      dryMode: config.dryMode
     })
     this.token = new Token(config.tokenContract)
     if (config.stakeMinThreshold) {
@@ -139,6 +141,11 @@ class StakeWatcher extends BaseWatcher {
               )} canonical token to L2 hop token`
             )
 
+            if (this.dryMode) {
+              this.logger.warn('dry mode: skipping approve transaction')
+              return
+            }
+
             let tx: any
             const spender = l1Bridge.getAddress()
             tx = await l1Token.approve(spender)
@@ -173,6 +180,11 @@ class StakeWatcher extends BaseWatcher {
         return
       }
       if (allowance.lt(amountToStake)) {
+        if (this.dryMode) {
+          this.logger.warn('dry mode: skipping approve transaction')
+          return
+        }
+
         this.logger.debug('approving tokens')
         const tx = await this.approveTokens()
         this.logger.info(
@@ -191,6 +203,10 @@ class StakeWatcher extends BaseWatcher {
         return
       }
       if (amountToStake.gt(0)) {
+        if (this.dryMode) {
+          this.logger.warn('dry mode: skipping stake transaction')
+          return
+        }
         this.logger.debug(
           `attempting to stake: ${this.bridge.formatUnits(amountToStake)}`
         )

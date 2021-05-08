@@ -84,6 +84,10 @@ program
   .description('Start Hop node')
   .option('-c, --config <filepath>', 'Config file to use')
   .option(
+    '-d, --dry',
+    'Start in dry mode. If enabled, no transactions will be sent.'
+  )
+  .option(
     '--password-file <filepath>',
     'File containing password to unlock keystore'
   )
@@ -177,6 +181,10 @@ program
         const { waitConfirmations } = globalConfig.networks[k]
         logger.log(`${k} wait confirmations: ${waitConfirmations || 0}`)
       }
+      const dryMode = !!source.dry
+      if (dryMode) {
+        logger.log(`dry mode enabled`)
+      }
       startWatchers({
         order,
         tokens,
@@ -184,7 +192,8 @@ program
         bonder,
         challenger,
         maxStakeAmounts,
-        commitTransfersMinThresholdAmount
+        commitTransfersMinThresholdAmount,
+        dryMode
       })
       if (config?.roles?.arbBot) {
         const maxTradeAmount = 0

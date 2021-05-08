@@ -11,9 +11,9 @@ interface Config {
   prefix?: string
   logColor?: string
   order?: () => number
-
   isL1?: boolean
   bridgeContract?: Contract
+  dryMode?: boolean
 }
 
 class BaseWatcher extends EventEmitter {
@@ -25,6 +25,7 @@ class BaseWatcher extends EventEmitter {
   isL1: boolean
   bridge: L2Bridge | L1Bridge
   siblingWatchers: { [chainId: string]: any }
+  dryMode: boolean
 
   constructor (config: Config) {
     super()
@@ -50,6 +51,9 @@ class BaseWatcher extends EventEmitter {
       } else {
         this.bridge = new L2Bridge(config.bridgeContract)
       }
+    }
+    if (config.dryMode) {
+      this.dryMode = config.dryMode
     }
   }
 

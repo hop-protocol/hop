@@ -4,6 +4,7 @@ import clearConsole from 'console-clear'
 import os from 'os'
 import fs from 'fs'
 import path from 'path'
+import yaml from 'js-yaml'
 import { Command } from 'commander'
 import { randomBytes } from 'crypto'
 import { HDNode } from '@ethersproject/hdnode'
@@ -82,7 +83,10 @@ type Config = {
 
 program
   .description('Start Hop node')
-  .option('-c, --config <filepath>', 'Config file to use')
+  .option(
+    '-c, --config <filepath>',
+    'Config file to use. Can be in JSON or YAML format'
+  )
   .option(
     '-d, --dry',
     'Start in dry mode. If enabled, no transactions will be sent.'
@@ -94,7 +98,8 @@ program
   .action(async source => {
     try {
       printHopArt()
-      const config: any = await setupConfig(source.config || source.args[0])
+      const configFilePath = source.config || source.args[0]
+      const config: any = await setupConfig(configFilePath)
       if (config?.logging?.level) {
         const logLevel = config.logging.level
         logger.log(`log level: "${logLevel}"`)
@@ -567,12 +572,18 @@ async function setupConfig (_configFile?: string) {
   } else {
     configPath = defaultConfigFilePath
   }
+
   let config: Config | null = null
   if (configPath) {
     if (!fs.existsSync(configPath)) {
       throw new Error(`no config file found at ${configPath}`)
     }
-    config = require(configPath)
+
+    if (configPath.endsWith('.yml') || configPath.endsWith('.yaml')) {
+      config = yaml.load(fs.readFileSync(configPath, 'utf8')) as any
+    } else {
+      config = require(configPath)
+    }
   }
   if (config) {
     await validateConfig(config)

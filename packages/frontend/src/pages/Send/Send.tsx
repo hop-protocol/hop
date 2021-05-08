@@ -160,10 +160,6 @@ const Send: FC = () => {
     return amountToBN(fromTokenAmount)
   }, [fromTokenAmount])
 
-  const toTokenAmountBN = useMemo<BigNumber | undefined>(() => {
-    return amountToBN(toTokenAmount)
-  }, [toTokenAmount])
-
   const {
     amountOut,
     rate,
@@ -499,6 +495,7 @@ const Send: FC = () => {
       onConfirm: async () => {
         if (!amountOutMin) return
         const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
+        const destinationAmountOutMin = 0
         const destinationDeadline = 0
         const parsedAmountIn = parseUnits(
           fromTokenAmount,
@@ -523,7 +520,7 @@ const Send: FC = () => {
             bonderFee,
             amountOutMin,
             deadline,
-            destinationAmountOutMin: amountOutMin,
+            destinationAmountOutMin,
             destinationDeadline
           }
         )

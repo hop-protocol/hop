@@ -513,10 +513,16 @@ class HopBridge extends Base {
       this.token,
       sourceChain
     )
+    if (!l2CanonicalTokenAddress) {
+      throw new Error(`source chain "${sourceChain.slug}" is unsupported`)
+    }
     let l2HopBridgeTokenAddress = this.getL2HopBridgeTokenAddress(
       this.token,
       sourceChain
     )
+    if (!l2HopBridgeTokenAddress) {
+      throw new Error(`source chain "${sourceChain.slug}" is unsupported`)
+    }
     saddleSwap = await this.getSaddleSwap(sourceChain, this.signer)
     let canonicalTokenIndex = Number(
       (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
@@ -548,6 +554,9 @@ class HopBridge extends Base {
    */
   public async getL1Bridge (signer: TProvider = this.signer) {
     const bridgeAddress = this.getL1BridgeAddress(this.token, Chain.Ethereum)
+    if (!bridgeAddress) {
+      throw new Error(`token "${this.token.symbol}" is unsupported`)
+    }
     const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
     return new Contract(bridgeAddress, l1BridgeAbi, provider)
   }
@@ -561,6 +570,11 @@ class HopBridge extends Base {
   public async getL2Bridge (chain: TChain, signer: TProvider = this.signer) {
     chain = this.toChainModel(chain)
     const bridgeAddress = this.getL2BridgeAddress(this.token, chain)
+    if (!bridgeAddress) {
+      throw new Error(
+        `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+      )
+    }
     const provider = await this.getSignerOrProvider(chain, signer)
     return new Contract(bridgeAddress, l2BridgeAbi, provider)
   }
@@ -574,6 +588,11 @@ class HopBridge extends Base {
   public async getAmmWrapper (chain: TChain, signer: TProvider = this.signer) {
     chain = this.toChainModel(chain)
     const ammWrapperAddress = this.getL2AmmWrapperAddress(this.token, chain)
+    if (!ammWrapperAddress) {
+      throw new Error(
+        `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+      )
+    }
     const provider = await this.getSignerOrProvider(chain, signer)
     return new Contract(ammWrapperAddress, l2AmmWrapperAbi, provider)
   }
@@ -587,6 +606,11 @@ class HopBridge extends Base {
   public async getSaddleSwap (chain: TChain, signer: TProvider = this.signer) {
     chain = this.toChainModel(chain)
     const saddleSwapAddress = this.getL2SaddleSwapAddress(this.token, chain)
+    if (!saddleSwapAddress) {
+      throw new Error(
+        `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+      )
+    }
     const provider = await this.getSignerOrProvider(chain, signer)
     return new Contract(saddleSwapAddress, saddleSwapAbi, provider)
   }
@@ -624,6 +648,11 @@ class HopBridge extends Base {
       this.token,
       chain
     )
+    if (!saddleLpTokenAddress) {
+      throw new Error(
+        `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+      )
+    }
     const provider = await this.getSignerOrProvider(chain, signer)
     return new Contract(saddleLpTokenAddress, saddleLpTokenAbi, provider)
   }
@@ -961,21 +990,21 @@ class HopBridge extends Base {
     amount: TAmount,
     chain: Chain
   ): Promise<BigNumber> {
+    amount = BigNumber.from(amount.toString())
     if (chain.isL1) {
-      return BigNumber.from(amount)
+      return amount
     }
-    const saddleSwap = await this.getSaddleSwap(chain, this.signer)
 
-    let amountOut = BigNumber.from('0')
-    try {
-      amountOut = await saddleSwap.calculateSwap(
-        TokenIndex.CanonicalToken,
-        TokenIndex.HopBridgeToken,
-        amount
-      )
-    } catch (err) {
-      // noop
+    const saddleSwap = await this.getSaddleSwap(chain, this.signer)
+    if (amount.eq(0)) {
+      return BigNumber.from(0)
     }
+
+    const amountOut = await saddleSwap.calculateSwap(
+      TokenIndex.CanonicalToken,
+      TokenIndex.HopBridgeToken,
+      amount
+    )
 
     return amountOut
   }
@@ -984,22 +1013,20 @@ class HopBridge extends Base {
     amount: TAmount,
     chain: Chain
   ): Promise<BigNumber> {
+    amount = BigNumber.from(amount.toString())
     if (chain.isL1) {
       return BigNumber.from(amount)
     }
 
     const saddleSwap = await this.getSaddleSwap(chain, this.signer)
-
-    let amountOut = BigNumber.from('0')
-    try {
-      amountOut = await saddleSwap.calculateSwap(
-        TokenIndex.HopBridgeToken,
-        TokenIndex.CanonicalToken,
-        amount
-      )
-    } catch (err) {
-      // noop
+    if (amount.eq(0)) {
+      return BigNumber.from(0)
     }
+    const amountOut = await saddleSwap.calculateSwap(
+      TokenIndex.HopBridgeToken,
+      TokenIndex.CanonicalToken,
+      amount
+    )
 
     return amountOut
   }

@@ -159,6 +159,11 @@ class AMM extends Base {
   public async getSaddleSwap (chain: TChain) {
     chain = this.toChainModel(chain)
     const saddleSwapAddress = this.getL2SaddleSwapAddress(this.token, chain)
+    if (!saddleSwapAddress) {
+      throw new Error(
+        `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+      )
+    }
     const provider = await this.getSignerOrProvider(chain)
     return new Contract(saddleSwapAddress, saddleSwapAbi, provider)
   }

@@ -21,10 +21,33 @@ class Base {
    * @returns {Object} New Base class instance.
    */
   constructor (network: string, signer: TProvider) {
+    if (!this.isValidNetwork(network)) {
+      throw new Error(
+        `network is unsupported. Supported networks are: ${this.supportedNetworks.join(
+          ','
+        )}`
+      )
+    }
     this.network = network
     if (signer) {
       this.signer = signer
     }
+  }
+
+  get supportedNetworks () {
+    return Object.keys(chains)
+  }
+
+  isValidNetwork (network: string) {
+    return this.supportedNetworks.includes(network)
+  }
+
+  get supportedChains () {
+    return Object.keys(chains[this.network])
+  }
+
+  isValidChain (chain: string) {
+    return this.supportedChains.includes(chain)
   }
 
   /**
@@ -35,6 +58,15 @@ class Base {
   protected toChainModel (chain: TChain) {
     if (typeof chain === 'string') {
       chain = Chain.fromSlug(chain)
+    }
+    if (!this.isValidChain(chain.slug)) {
+      throw new Error(
+        `chain "${
+          chain.slug
+        }" is unsupported. Supported chains are: ${this.supportedChains.join(
+          ','
+        )}`
+      )
     }
 
     chain.provider = this.getChainProvider(chain)

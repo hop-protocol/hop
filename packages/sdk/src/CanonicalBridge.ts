@@ -116,6 +116,11 @@ class CanonicalBridge extends Base {
     if (chain.equals(Chain.Polygon)) {
       bridgeAddress = this.getL1PosErc20PredicateAddress(this.token, chain)
     }
+    if (!bridgeAddress) {
+      throw new Error(
+        `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+      )
+    }
     return token.approve(Chain.Ethereum, bridgeAddress, amount)
   }
 
@@ -138,11 +143,21 @@ class CanonicalBridge extends Base {
 
     const recipient = await this.getSignerAddress()
     const bridgeAddress = this.getL1CanonicalBridgeAddress(this.token, chain)
+    if (!bridgeAddress) {
+      throw new Error(
+        `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+      )
+    }
     const provider = await this.getSignerOrProvider(Chain.Ethereum)
     const tokenAddress = this.getL1CanonicalTokenAddress(
       this.token,
       Chain.Ethereum
     )
+    if (!tokenAddress) {
+      throw new Error(
+        `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+      )
+    }
 
     if ((chain as Chain).equals(Chain.xDai)) {
       const bridge = new Contract(
@@ -157,6 +172,11 @@ class CanonicalBridge extends Base {
       })
     } else if ((chain as Chain).equals(Chain.Optimism)) {
       const l2TokenAddress = this.getL2CanonicalTokenAddress(this.token, chain)
+      if (!l2TokenAddress) {
+        throw new Error(
+          `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+        )
+      }
       const bridge = new Contract(
         bridgeAddress,
         l1OptimismTokenBridgeAbi,
@@ -183,6 +203,11 @@ class CanonicalBridge extends Base {
         this.token,
         chain
       )
+      if (!bridgeAddress) {
+        throw new Error(
+          `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+        )
+      }
       const bridge = new Contract(
         bridgeAddress,
         l1PolygonPosRootChainManagerAbi,
@@ -217,6 +242,11 @@ class CanonicalBridge extends Base {
     const provider = await this.getSignerOrProvider(Chain.Ethereum)
     const token = this.token.connect(provider)
     const bridgeAddress = this.getL2CanonicalBridgeAddress(this.token, chain)
+    if (!bridgeAddress) {
+      throw new Error(
+        `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+      )
+    }
     return token.approve(chain, bridgeAddress, amount)
   }
 
@@ -241,7 +271,17 @@ class CanonicalBridge extends Base {
     const provider = await this.getSignerOrProvider(chain)
     if ((chain as Chain).equals(Chain.xDai)) {
       const bridgeAddress = this.getL2CanonicalBridgeAddress(this.token, chain)
+      if (!bridgeAddress) {
+        throw new Error(
+          `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+        )
+      }
       const tokenAddress = this.getL2CanonicalTokenAddress(this.token, chain)
+      if (!tokenAddress) {
+        throw new Error(
+          `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+        )
+      }
       const bridge = new Contract(tokenAddress, l2xDaiTokenAbi, provider)
       return bridge.transferAndCall(bridgeAddress, amount, '0x', {
         // xDai requires a higher gas limit
@@ -249,11 +289,26 @@ class CanonicalBridge extends Base {
       })
     } else if ((chain as Chain).equals(Chain.Optimism)) {
       const bridgeAddress = this.getL2CanonicalBridgeAddress(this.token, chain)
+      if (!bridgeAddress) {
+        throw new Error(
+          `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+        )
+      }
       const l1TokenAddress = this.getL1CanonicalTokenAddress(
         this.token,
         Chain.Ethereum
       )
+      if (!l1TokenAddress) {
+        throw new Error(
+          `token "${this.token.symbol}" on chain "${Chain.Ethereum.slug}" is unsupported`
+        )
+      }
       const tokenAddress = this.getL2CanonicalTokenAddress(this.token, chain)
+      if (!tokenAddress) {
+        throw new Error(
+          `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+        )
+      }
       const bridge = new Contract(
         bridgeAddress,
         l2OptimismTokenBridgeAbi,
@@ -267,10 +322,20 @@ class CanonicalBridge extends Base {
       })
     } else if ((chain as Chain).equals(Chain.Arbitrum)) {
       const bridgeAddress = this.getL2CanonicalTokenAddress(this.token, chain)
+      if (!bridgeAddress) {
+        throw new Error(
+          `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+        )
+      }
       const bridge = new Contract(bridgeAddress, arbErc20Abi, provider)
       return bridge.withdraw(recipient, amount)
     } else if ((chain as Chain).equals(Chain.Polygon)) {
       const tokenAddress = this.getL2CanonicalTokenAddress(this.token, chain)
+      if (!tokenAddress) {
+        throw new Error(
+          `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+        )
+      }
       const token = new Contract(tokenAddress, l2PolygonChildErc20Abi, provider)
       return token.withdraw(amount)
     } else {
@@ -291,15 +356,33 @@ class CanonicalBridge extends Base {
     const recipient = await this.getSignerAddress()
     const { MaticPOSClient } = require('@maticnetwork/maticjs')
     const Web3 = require('web3')
+
+    const posRootChainManagerAddress = this.getL1PosRootChainManagerAddress(
+      this.token,
+      chain
+    )
+    if (!posRootChainManagerAddress) {
+      throw new Error(
+        `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+      )
+    }
+
+    const posERC20PredicateAddress = this.getL1PosErc20PredicateAddress(
+      this.token,
+      chain
+    )
+    if (!posERC20PredicateAddress) {
+      throw new Error(
+        `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+      )
+    }
+
     const maticPOSClient = new MaticPOSClient({
       network: Chain.Ethereum.chainId === 1 ? 'mainnet' : 'testnet',
       maticProvider: new Web3.providers.HttpProvider(Chain.Polygon.rpcUrl),
       parentProvider: new Web3.providers.HttpProvider(Chain.Ethereum.rpcUrl),
-      posRootChainManager: this.getL1PosRootChainManagerAddress(
-        this.token,
-        chain
-      ),
-      posERC20Predicate: this.getL1PosErc20PredicateAddress(this.token, chain)
+      posRootChainManager: posRootChainManagerAddress,
+      posERC20Predicate: posERC20PredicateAddress
     })
 
     const tx = await maticPOSClient.exitERC20(txHash, {
@@ -333,6 +416,11 @@ class CanonicalBridge extends Base {
         this.token,
         Chain.Ethereum
       )
+      if (!tokenAddress) {
+        throw new Error(
+          `token "${this.token.symbol}" on chain "${Chain.Ethereum.slug}" is unsupported`
+        )
+      }
       const maxPerTx = await canonicalBridge?.maxPerTx(tokenAddress)
       const formattedMaxPerTx = Number(
         formatUnits(maxPerTx.toString(), this.token.decimals)

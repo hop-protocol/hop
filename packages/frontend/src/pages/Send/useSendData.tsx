@@ -56,7 +56,7 @@ const useSendData = (
     ]
   )
 
-  useDebounceAsync(updateSendData, 400, 800)
+  const loading = useDebounceAsync(updateSendData, 400, 800)
 
   useEffect(() => {
     const update = async () => {
@@ -79,7 +79,8 @@ const useSendData = (
     priceImpact,
     amountOutMin,
     bonderFee,
-    requiredLiquidity
+    requiredLiquidity,
+    loading
   }
 }
 

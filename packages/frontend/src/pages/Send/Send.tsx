@@ -28,6 +28,7 @@ import InfoTooltip from 'src/components/infoTooltip'
 import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
 import useBalance from 'src/pages/Send/useBalance'
 import useSendData from 'src/pages/Send/useSendData'
+import useNeedsTokenForFee from 'src/hooks/useNeedsTokenForFee'
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -154,24 +155,17 @@ const Send: FC = () => {
     return amountToBN(fromTokenAmount)
   }, [fromTokenAmount])
 
-  const toTokenAmountBN = useMemo<BigNumber | undefined>(() => {
-    return amountToBN(toTokenAmount)
-  }, [toTokenAmount])
-
   const {
     amountOut,
     rate,
     priceImpact,
     amountOutMin,
     bonderFee,
-    requiredLiquidity
-  } = useSendData(
-    selectedToken,
-    slippageTolerance,
-    fromNetwork,
-    toNetwork,
-    fromTokenAmountBN
-  )
+    requiredLiquidity,
+    loading: loadingSendData
+  } = useSendData(selectedToken, slippageTolerance, fromNetwork, toNetwork, fromTokenAmountBN)
+
+  const needsTokenForFee = useNeedsTokenForFee(fromNetwork)
 
   useEffect(() => {
     let amount
@@ -250,7 +244,13 @@ const Send: FC = () => {
   }, [selectedToken, toNetwork, availableLiquidity, requiredLiquidity])
 
   useEffect(() => {
-    const errorMessage = `Send at least ${feeDisplay} ${selectedToken.symbol} to cover the transaction fee`
+    if (!error && needsTokenForFee) {
+      setError('Add funds to your wallet to pay for the transaction fee.')
+    }
+  }, [error, needsTokenForFee])
+
+  useEffect(() => {
+    const errorMessage = `Send at least ${feeDisplay} to cover the transaction fee`
     if (amountOut?.eq(0) && feeDisplay) {
       setError(errorMessage)
     } else if (error?.slice(0, 13) === errorMessage.slice(0, 13)) {
@@ -501,6 +501,7 @@ const Send: FC = () => {
       onConfirm: async () => {
         if (!amountOutMin) return
         const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
+        const destinationAmountOutMin = 0
         const destinationDeadline = 0
         const parsedAmountIn = parseUnits(
           fromTokenAmount,
@@ -525,7 +526,7 @@ const Send: FC = () => {
             bonderFee,
             amountOutMin,
             deadline,
-            destinationAmountOutMin: amountOutMin,
+            destinationAmountOutMin,
             destinationDeadline
           }
         )
@@ -637,7 +638,7 @@ const Send: FC = () => {
     buttonText = 'Select from network'
   } else if (!toNetwork) {
     buttonText = 'Select to network'
-  } else if (!enoughBalance) {
+  } else if (!enoughBalance || needsTokenForFee) {
     buttonText = 'Insufficient funds'
   }
 
@@ -709,6 +710,7 @@ const Send: FC = () => {
         onNetworkChange={handleToNetworkChange}
         balance={toBalance}
         loadingBalance={loadingToBalance}
+        loadingValue={loadingSendData}
         disableInput
       />
       <div className={styles.details}>

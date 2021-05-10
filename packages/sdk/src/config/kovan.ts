@@ -1,30 +1,26 @@
 import { kovan as addresses } from '@hop-protocol/addresses'
-export { addresses }
+import { kovan as networks } from '@hop-protocol/networks'
+import { Chains } from './types'
 
-export const chains = {
+const chains: Chains = {
   ethereum: {
-    name: 'Kovan',
-    chainId: '42',
-    rpcUrl: 'https://kovan.rpc.hop.exchange',
-    explorerUrl: 'https://kovan.etherscan.io/'
+    name: 'Kovan'
   },
   arbitrum: {
-    name: 'Arbitrum',
-    chainId: '212984383488152',
-    rpcUrl: 'https://kovan4.arbitrum.io/rpc',
-    explorerUrl: 'https://explorer.offchainlabs.com/#/'
+    name: 'Arbitrum'
   },
   optimism: {
-    name: 'Optimism',
-    chainId: '69',
-    rpcUrl: 'https://kovan.optimism.io',
-    explorerUrl:
-      'https://expedition.dev/?rpcUrl=https%3A%2F%2Fkovan.optimism.io'
+    name: 'Optimism'
   },
   xdai: {
-    name: 'xDai',
-    chainId: '77',
-    rpcUrl: 'https://sokol.poa.network',
-    explorerUrl: 'https://blockscout.com/poa/sokol/'
+    name: 'xDai'
   }
 }
+
+for (let chain in chains) {
+  chains[chain].chainId = networks[chain]?.networkId
+  chains[chain].rpcUrl = networks[chain]?.rpcUrls?.[0]
+  chains[chain].explorerUrl = networks[chain]?.explorerUrls?.[0]
+}
+
+export { addresses, chains }

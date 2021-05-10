@@ -43,7 +43,7 @@ class Base {
   }
 
   get supportedChains () {
-    return Object.keys((chains as any)[this.network])
+    return Object.keys(chains[this.network])
   }
 
   isValidChain (chain: string) {
@@ -113,7 +113,7 @@ class Base {
    * @returns {Number} - Chain ID.
    */
   protected getChainId (chain: Chain) {
-    const { chainId } = (chains as any)[this.network][chain.slug]
+    const { chainId } = chains[this.network][chain.slug]
     return Number(chainId)
   }
 
@@ -123,7 +123,7 @@ class Base {
    * @returns {Object} - Ethers provider.
    */
   protected getChainProvider (chain: Chain) {
-    const { rpcUrl } = (chains as any)[this.network][chain.slug]
+    const { rpcUrl } = chains[this.network][chain.slug]
     return new providers.StaticJsonRpcProvider(rpcUrl)
   }
 
@@ -174,7 +174,7 @@ class Base {
   protected getConfigAddresses (token: TToken, chain: TChain) {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    return (addresses as any)[this.network]?.[token.symbol]?.[chain.slug]
+    return addresses[this.network]?.[token.symbol]?.[chain.slug]
   }
 
   protected getL1BridgeAddress (token: TToken, chain: TChain) {

@@ -16,7 +16,7 @@ class CoinGecko {
   private _baseUrl: string = 'https://api.coingecko.com/api/v3'
   private _maxPerPage: number = 100
   private _maxPages: number = 40
-  private _tokenSymbolAddressMap: {[key: string]: string} = {
+  private _tokenSymbolAddressMap: { [key: string]: string } = {
     ADT: '0xD0D6D6C5Fe4a677D343cC433536BB717bAe167dD',
     BAT: '0x0D8775F648430679A709E98d2b0Cb6250d2887EF',
     BLT: '0x107c4504cd79C5d2696Ea0030a8dD4e92601B82e',
@@ -56,7 +56,7 @@ class CoinGecko {
     ZRX: '0xE41d2489571d322189246DaFA5ebDe1F4699F498'
   }
 
-  private _nonEthTokens: {[key: string]: string} = {
+  private _nonEthTokens: { [key: string]: string } = {
     BNB: 'Binance Coin',
     CRO: 'Crypto.com Coin',
     BSV: 'Bitcoin SV',

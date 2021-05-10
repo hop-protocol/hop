@@ -1,17 +1,20 @@
 import { goerli as addresses } from '@hop-protocol/addresses'
-export { addresses }
+import { goerli as networks } from '@hop-protocol/networks'
+import { Chains } from './types'
 
-export const chains = {
+const chains: Chains = {
   ethereum: {
-    name: 'Goerli',
-    chainId: '5',
-    rpcUrl: 'https://goerli.rpc.hop.exchange',
-    explorerUrl: 'https://goerli.etherscan.io/'
+    name: 'Goerli'
   },
   polygon: {
-    name: 'Polygon',
-    chainId: '80001',
-    rpcUrl: 'https://rpc-mumbai.maticvigil.com',
-    explorerUrl: 'https://explorer-mumbai.maticvigil.com/'
+    name: 'Polygon'
   }
 }
+
+for (let chain in chains) {
+  chains[chain].chainId = networks[chain]?.networkId
+  chains[chain].rpcUrl = networks[chain]?.rpcUrls?.[0]
+  chains[chain].explorerUrl = networks[chain]?.explorerUrls?.[0]
+}
+
+export { addresses, chains }

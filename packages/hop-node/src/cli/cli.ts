@@ -117,11 +117,13 @@ program
         )
         let passphrase = process.env.KEYSTORE_PASS || config?.keystore.pass
         if (!passphrase) {
-          if (source.passwordFile) {
-            passphrase = fs.readFileSync(
-              path.resolve(source.passwordFile),
-              'utf8'
+          let passwordFilePath =
+            source.passwordFile || config?.keystore?.passwordFile
+          if (passwordFilePath) {
+            passwordFilePath = path.resolve(
+              passwordFilePath.replace('~', os.homedir())
             )
+            passphrase = fs.readFileSync(passwordFilePath, 'utf8').trim()
           } else {
             passphrase = await promptPassphrase()
           }
@@ -565,7 +567,7 @@ async function validateConfig (config: any) {
   }
 
   if (config['keystore']) {
-    const validKeystoreProps = ['location', 'pass']
+    const validKeystoreProps = ['location', 'pass', 'passwordFile']
     const keystoreProps = Object.keys(config['keystore'])
     await validateKeys(validKeystoreProps, keystoreProps)
   }

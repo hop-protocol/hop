@@ -34,6 +34,7 @@ import InfoTooltip from 'src/components/infoTooltip'
 import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
 import useBalance from 'src/pages/Send/useBalance'
 import useSendData from 'src/pages/Send/useSendData'
+import useNeedsTokenForFee from 'src/hooks/useNeedsTokenForFee'
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -170,6 +171,8 @@ const Send: FC = () => {
     loading: loadingSendData
   } = useSendData(selectedToken, slippageTolerance, fromNetwork, toNetwork, fromTokenAmountBN)
 
+  const needsTokenForFee = useNeedsTokenForFee(fromNetwork)
+
   useEffect(() => {
     let amount
     if (amountOut) {
@@ -245,6 +248,12 @@ const Send: FC = () => {
 
     checkAvailableLiquidity()
   }, [selectedToken, toNetwork, availableLiquidity, requiredLiquidity])
+
+  useEffect(() => {
+    if (!error && needsTokenForFee) {
+      setError('Add funds to your wallet to pay for the transaction fee.')
+    }
+  }, [error, needsTokenForFee])
 
   useEffect(() => {
     const errorMessage = `Send at least ${feeDisplay} to cover the transaction fee`
@@ -632,7 +641,7 @@ const Send: FC = () => {
     buttonText = 'Select from network'
   } else if (!toNetwork) {
     buttonText = 'Select to network'
-  } else if (!enoughBalance) {
+  } else if (!enoughBalance || needsTokenForFee) {
     buttonText = 'Insufficient funds'
   }
 

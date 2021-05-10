@@ -31,7 +31,7 @@ const useStyles = makeStyles(() => ({
 
 const Convert: FC = () => {
   const styles = useStyles()
-  let {
+  const {
     networks,
     selectedToken,
     sourceNetwork,

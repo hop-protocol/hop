@@ -52,7 +52,7 @@ const useInputStyles = makeStyles(theme => ({
     }
   },
   root: ({ defaultShadow, hideShadow }: StyleProps) => ({
-    padding: `0.8rem 0`,
+    padding: '0.8rem 0',
     transition: 'box-shadow 0.3s ease-in-out',
     borderRadius: '1.5rem',
     boxShadow: defaultShadow ? normalShadow : 'none',

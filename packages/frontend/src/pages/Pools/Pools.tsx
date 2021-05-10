@@ -78,7 +78,7 @@ const useStyles = makeStyles(theme => ({
 
 const Pools: FC = () => {
   const styles = useStyles()
-  let {
+  const {
     networks,
     tokens,
     hopToken,

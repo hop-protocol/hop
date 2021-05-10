@@ -9,7 +9,7 @@ export interface TxHistory {
 }
 
 const useTxHistory = (): TxHistory => {
-  //logger.debug('useTxHistory render')
+  // logger.debug('useTxHistory render')
 
   const sort = (list: Transaction[]) => {
     return list.sort(

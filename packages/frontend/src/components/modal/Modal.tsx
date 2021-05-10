@@ -96,26 +96,25 @@ export type ActivityDetailsProps = {
   onClose?: () => void
 } & CardProps
 
-const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(
-  (props, ref) => {
-    const { children, onClose } = props
-    const styles = useStyles()
-    const { events } = useApp()
-    const keypress = events?.keypress
-    const handleClose = useCallback(() => {
-      if (onClose) {
-        onClose()
-      }
-    }, [onClose])
+const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(function Modal (props, ref) {
+  const { children, onClose } = props
+  const styles = useStyles()
+  const { events } = useApp()
+  const keypress = events?.keypress
+  const handleClose = useCallback(() => {
+    if (onClose) {
+      onClose()
+    }
+  }, [onClose])
 
-    useEffect(() => {
-      keypress?.on('escape', handleClose)
-      return () => {
-        keypress?.off('escape', handleClose)
-      }
-    }, [keypress, handleClose])
+  useEffect(() => {
+    keypress?.on('escape', handleClose)
+    return () => {
+      keypress?.off('escape', handleClose)
+    }
+  }, [keypress, handleClose])
 
-    return (
+  return (
       <ClickAwayListener onClickAway={handleClose}>
         <Transition
           in={true}
@@ -154,8 +153,8 @@ const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(
           )}
         </Transition>
       </ClickAwayListener>
-    )
-  }
+  )
+}
 )
 
 export default Modal

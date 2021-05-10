@@ -9,9 +9,7 @@ import Faucet from 'src/pages/Faucet'
 import Earn from 'src/pages/Earn'
 import Convert from 'src/pages/Convert'
 import Stats from 'src/pages/Stats'
-import { isMainnet } from 'src/config'
-
-import { IProposal } from 'src/config'
+import { isMainnet, IProposal } from 'src/config'
 
 type Props = {}
 

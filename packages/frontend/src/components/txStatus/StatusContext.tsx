@@ -31,7 +31,7 @@ type Step = {
 }
 
 const StatusContextProvider: FC = ({ children }) => {
-  let { sdk } = useApp()
+  const { sdk } = useApp()
   let [steps, setSteps] = useState<Step[]>([])
   let [activeStep, setActiveStep] = React.useState(0)
   const [fetching, setFetching] = useState<boolean>(false)
@@ -61,7 +61,7 @@ const StatusContextProvider: FC = ({ children }) => {
     if (!sourceChain) {
       return false
     }
-    let currentSteps: Step[] = [
+    const currentSteps: Step[] = [
       {
         text: 'Initiated'
       },

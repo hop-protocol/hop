@@ -38,7 +38,7 @@ type TokenContracts = {
 }
 
 const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
-  //logger.debug('useContracts render')
+  // logger.debug('useContracts render')
   const { provider, connectedNetworkId } = useWeb3Context()
 
   const getContract = (

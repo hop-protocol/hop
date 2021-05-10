@@ -3,13 +3,13 @@ const mainnet = require('./mainnet')
 const kovan = require('./kovan')
 const goerli = require('./goerli')
 
-const addresses = {
+const addresses: {[key: string]: any}= {
   mainnet: mainnet.addresses,
   kovan: kovan.addresses,
   goerli: goerli.addresses
 }
 
-const chains = {
+const chains: {[key: string]: any} = {
   mainnet: mainnet.chains,
   kovan: kovan.chains,
   goerli: goerli.chains

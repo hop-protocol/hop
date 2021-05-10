@@ -91,7 +91,9 @@ const ConvertContextProvider: FC = ({ children }) => {
         slug: network.slug,
         imageUrl: network.imageUrl,
         rpcUrl: network.rpcUrl,
-        networkId: network.networkId
+        networkId: network.networkId,
+        nativeTokenSymbol: network.nativeTokenSymbol,
+        requiresGas: network.requiresGas
       })
     })
     const l2HopBridges = l2Networks.map((network: Network) => {
@@ -100,7 +102,9 @@ const ConvertContextProvider: FC = ({ children }) => {
         slug: `${network.slug}HopBridge`,
         imageUrl: network.imageUrl,
         rpcUrl: network.rpcUrl,
-        networkId: network.networkId
+        networkId: network.networkId,
+        nativeTokenSymbol: network.nativeTokenSymbol,
+        requiresGas: network.requiresGas
       })
     })
     return [...l1Networks, ...l2CanonicalNetworks, ...l2HopBridges]

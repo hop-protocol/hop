@@ -19,6 +19,8 @@ const useNetworks = () => {
           imageUrl: meta.image,
           rpcUrl: net.rpcUrl,
           networkId: net.networkId,
+          nativeTokenSymbol: meta.nativeTokenSymbol,
+          requiresGas: meta.requiresGas,
           isLayer1: meta.isLayer1
         })
       )

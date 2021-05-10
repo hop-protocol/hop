@@ -1,12 +1,15 @@
+import { chains } from '@hop-protocol/metadata'
 import { Networks } from './types'
 
 export const networks: Networks = {
   ethereum: {
+    name: chains.ethereum.name,
     networkId: 1,
     rpcUrls: ['https://mainnet.rpc.hop.exchange'],
     explorerUrls: ['https://etherscan.io']
   },
   arbitrum: {
+    name: chains.arbitrum.name,
     networkId: 1000,
     rpcUrls: ['https://mainnet.arbitrum.io'],
     explorerUrls: [
@@ -14,6 +17,7 @@ export const networks: Networks = {
     ]
   },
   optimism: {
+    name: chains.optimism.name,
     networkId: 10,
     rpcUrls: ['https://mainnet.optimism.io'],
     explorerUrls: [
@@ -21,6 +25,7 @@ export const networks: Networks = {
     ]
   },
   xdai: {
+    name: chains.xdai.name,
     networkId: 100,
     rpcUrls: [
       'https://rpc.xdaichain.com',
@@ -32,6 +37,7 @@ export const networks: Networks = {
     explorerUrls: ['https://blockscout.com/xdai/mainnet']
   },
   polygon: {
+    name: chains.polygon.name,
     networkId: 137,
     rpcUrls: ['https://rpc-mainnet.maticvigil.com'],
     explorerUrls: ['https://explorer-mainnet.maticvigil.com']

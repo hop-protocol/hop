@@ -7,3 +7,12 @@ export interface Token {
 export interface Tokens {
   [key: string]: Token
 }
+
+export interface Chain {
+  name: string
+  slug: string
+}
+
+export interface Chains {
+  [key: string]: Chain
+}

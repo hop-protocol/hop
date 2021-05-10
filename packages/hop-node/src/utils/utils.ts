@@ -23,15 +23,20 @@ export const getRpcUrl = (network: string): string | undefined => {
 }
 
 export const networkSlugToId = (network: string): string | undefined => {
-  return config.networks[network]?.networkId
+  return (
+    config.networks[network]?.networkId || config.networks[network]?.chainId
+  )
 }
 
 export const networkIdToSlug = (
   networkId: string | number
 ): string | undefined => {
   for (let k in config.networks) {
-    let v = config.networks[k].networkId
-    if (v == networkId) {
+    let v = config.networks[k]
+    if (
+      v?.networkId?.toString() == networkId.toString() ||
+      v?.chainId?.toString() === networkId.toString()
+    ) {
       return k
     }
   }

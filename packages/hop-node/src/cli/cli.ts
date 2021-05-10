@@ -177,6 +177,10 @@ program
             config?.commitTransfers?.minThresholdAmount
         }
       }
+      let bondWithdrawalAmounts: any = {}
+      if (config?.bondWithdrawals) {
+        bondWithdrawalAmounts = config.bondWithdrawals
+      }
       const slackEnabled = slackAuthToken && slackChannel && slackUsername
       if (slackEnabled) {
         logger.debug(`slack notifications enabled. channel #${slackChannel}`)
@@ -198,6 +202,7 @@ program
         challenger,
         maxStakeAmounts,
         commitTransfersMinThresholdAmounts,
+        bondWithdrawalAmounts,
         dryMode
       })
       if (config?.roles?.arbBot) {
@@ -508,6 +513,7 @@ async function validateConfig (config: any) {
     'tokens',
     'stake',
     'commitTransfers',
+    'bondWithdrawals',
     'roles',
     'db',
     'logging',

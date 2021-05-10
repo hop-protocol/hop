@@ -15,12 +15,16 @@ export interface Config {
   label: string
   order?: () => number
   dryMode?: boolean
+  minAmount?: number
+  maxAmount?: number
 }
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
 
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
+  minAmount: BigNumber
+  maxAmount: BigNumber
 
   constructor (config: Config) {
     super({
@@ -32,10 +36,27 @@ class BondWithdrawalWatcher extends BaseWatcher {
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
+
+    if (typeof config.minAmount === 'number') {
+      this.minAmount = this.bridge.parseUnits(config.minAmount)
+    }
+    if (typeof config.maxAmount === 'number') {
+      this.maxAmount = this.bridge.parseUnits(config.maxAmount)
+    }
   }
 
   async start () {
     this.started = true
+    this.logger.debug(
+      `min bondwithdrawal amount: ${
+        this.minAmount ? this.bridge.formatUnits(this.minAmount) : 0
+      }`
+    )
+    this.logger.debug(
+      `max bondwithdrawal amount: ${
+        this.maxAmount ? this.bridge.formatUnits(this.maxAmount) : 'all'
+      }`
+    )
     try {
       await Promise.all([this.syncUp(), this.watch()])
     } catch (err) {
@@ -265,6 +286,27 @@ class BondWithdrawalWatcher extends BaseWatcher {
         chainId,
         sourceChainId
       })
+
+      if (this.minAmount && amount.lt(this.minAmount)) {
+        this.logger.debug(
+          `transfer amount ${this.bridge.formatUnits(
+            amount
+          )} is less than configured min amount allowed ${this.bridge.formatUnits(
+            this.minAmount
+          )}. Skipping bond withdrawal.`
+        )
+        return
+      }
+      if (this.maxAmount && amount.gt(this.maxAmount)) {
+        this.logger.debug(
+          `transfer amount ${this.bridge.formatUnits(
+            amount
+          )} is greater than configured max amount allowed ${this.bridge.formatUnits(
+            this.maxAmount
+          )}. Skipping bond withdrawal.`
+        )
+        return
+      }
 
       await this.waitTimeout(transferHash, chainId)
       this.logger.debug('sending bondWithdrawal tx')

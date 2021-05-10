@@ -64,7 +64,7 @@ export default class ContractBase extends EventEmitter {
   }
 
   get waitConfirmations () {
-    return config.networks[this.chainSlug].waitSafeConfirmations || 0
+    return config.networks?.[this.chainSlug]?.waitSafeConfirmations || 0
   }
 
   async txOverrides (): Promise<any> {

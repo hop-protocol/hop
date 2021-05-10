@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useCallback
 } from 'react'
-import { ethers, Contract } from 'ethers'
+import { ethers, Contract, Signer } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -287,7 +287,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     network: Network
   ): Promise<ethers.providers.TransactionResponse | undefined> => {
     const signer = provider?.getSigner()
-    const bridge = await sdk.bridge(selectedToken.symbol).connect(signer as any)
+    const bridge = await sdk.bridge(selectedToken.symbol).connect(signer as Signer)
     const saddleSwap = await bridge.getSaddleSwap(network.slug)
     const spender = saddleSwap.address
     const parsedAmount = parseUnits(amount, selectedToken.decimals)
@@ -373,10 +373,10 @@ const PoolsContextProvider: FC = ({ children }) => {
         onConfirm: async () => {
           const bridge = sdk.bridge(selectedToken.symbol)
           return bridge
-            .connect(signer as any)
+            .connect(signer as Signer)
             .addLiquidity(
-              amount0Desired as any,
-              amount1Desired as any,
+              amount0Desired,
+              amount1Desired,
               selectedNetwork.slug,
               {
                 minToMint,
@@ -496,9 +496,9 @@ const PoolsContextProvider: FC = ({ children }) => {
 
           const bridge = sdk.bridge(selectedToken.symbol)
           return bridge
-            .connect(signer as any)
+            .connect(signer as Signer)
             .removeLiquidity(
-              parsedLiquidityTokenAmount as any,
+              parsedLiquidityTokenAmount,
               selectedNetwork.slug,
               {
                 amount0Min,

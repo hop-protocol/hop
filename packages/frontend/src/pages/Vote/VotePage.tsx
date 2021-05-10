@@ -2,7 +2,7 @@ import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { useHistory } from 'react-router-dom'
 import { ArrowLeft } from 'react-feather'
-import { DateTime } from 'luxon'
+import { DateTime, LocaleOptions } from 'luxon'
 import { BigNumber } from 'ethers'
 
 import Typography from '@material-ui/core/Typography'
@@ -207,10 +207,10 @@ const VotePageChild: FC<VotePageProps> = props => {
         <Typography variant="subtitle1" className={styles.subtitle}>
           {endDate && endDate < now
             ? 'Voting ended ' +
-              (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL))
+              (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL as LocaleOptions))
             : proposal
             ? 'Voting ends approximately ' +
-              (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL))
+              (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL as LocaleOptions))
             : ''}
         </Typography>
 

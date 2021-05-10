@@ -1,4 +1,5 @@
 import React, { FC, createContext, useContext, useState, useMemo } from 'react'
+import { Signer } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
@@ -143,7 +144,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         const amount = parseUnits(value, selectedToken.decimals)
         const bridge = sdk.bridge(selectedToken?.symbol)
         const amountOut = await bridge.getAmountOut(
-          amount as any,
+          amount,
           canonicalSlug(sourceNetwork),
           canonicalSlug(destNetwork)
         )
@@ -180,7 +181,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         targetAddress: string
       ): Promise<any> => {
         const signer = provider?.getSigner()
-        const bridge = sdk.bridge(token.symbol).connect(signer as any)
+        const bridge = sdk.bridge(token.symbol).connect(signer as Signer)
 
         const parsedAmount = parseUnits(amount, token.decimals)
         const approved = await bridge.token.allowance(
@@ -227,14 +228,16 @@ const ConvertContextProvider: FC = ({ children }) => {
       ).toString()
       let tx: any
       const sourceSlug = canonicalSlug(sourceNetwork)
-      const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
+      const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as Signer)
       const l1Bridge = await bridge.getL1Bridge()
 
       // source network is L1 ( L1 -> L2 )
       if (sourceNetwork?.isLayer1) {
         // destination network is L2 hop bridge ( L1 -> L2 Hop )
         if (destNetwork && isHopBridge(destNetwork?.slug)) {
-          const bridge = sdk.bridge(selectedToken.symbol).connect(signer as any)
+          const bridge = sdk
+            .bridge(selectedToken.symbol)
+            .connect(signer as Signer)
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
@@ -280,7 +283,7 @@ const ConvertContextProvider: FC = ({ children }) => {
           const destSlug = destNetwork?.slug
           const bridge = sdk
             .canonicalBridge(selectedToken.symbol, destSlug)
-            .connect(signer as any)
+            .connect(signer as Signer)
           await approveTokens(
             selectedToken,
             sourceTokenAmount,
@@ -301,7 +304,7 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              return bridge.connect(signer as any).deposit(value)
+              return bridge.connect(signer as Signer).deposit(value)
             }
           })
         }
@@ -331,7 +334,7 @@ const ConvertContextProvider: FC = ({ children }) => {
                 selectedToken.symbol,
                 sourceSlug
               )
-              return bridge.connect(signer as any).withdraw(value)
+              return bridge.connect(signer as Signer).withdraw(value)
             }
           })
 
@@ -339,7 +342,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         } else if (isHopBridge(destNetwork?.slug)) {
           const bridge = await sdk
             .bridge(selectedToken.symbol)
-            .connect(signer as any)
+            .connect(signer as Signer)
           const saddleSwap = await bridge.getSaddleSwap(
             canonicalSlug(sourceNetwork)
           )
@@ -381,7 +384,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       } else if (isHopBridge(sourceNetwork?.slug) && destNetwork) {
         const bridge = await sdk
           .bridge(selectedToken.symbol)
-          .connect(signer as any)
+          .connect(signer as Signer)
         const saddleSwap = await bridge.getSaddleSwap(
           canonicalSlug(sourceNetwork)
         )

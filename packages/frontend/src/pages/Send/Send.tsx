@@ -311,7 +311,7 @@ const Send: FC = () => {
 
     const parsedAmount = parseUnits(amount, selectedToken.decimals)
     let tx: any
-    const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
+    const bridge = sdk.bridge(selectedToken?.symbol).connect(signer)
     const token = bridge.token
     const l1Bridge = await bridge.getL1Bridge()
     if (fromNetwork?.isLayer1) {
@@ -328,7 +328,7 @@ const Send: FC = () => {
             return token.approve(
               fromNetwork.slug,
               l1Bridge.address,
-              approveAmount as any
+              approveAmount
             )
           }
         })
@@ -346,7 +346,7 @@ const Send: FC = () => {
     } else {
       const bridge = await sdk
         .bridge(selectedToken?.symbol)
-        .connect(signer as any)
+        .connect(signer)
       const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
       const approved = await token.allowance(
         fromNetwork.slug,
@@ -364,7 +364,7 @@ const Send: FC = () => {
             return token.approve(
               fromNetwork.slug,
               ammWrapper?.address as string,
-              approveAmount as any
+              approveAmount
             )
           }
         })
@@ -455,7 +455,7 @@ const Send: FC = () => {
         const recipient = await signer.getAddress()
         const relayer = ethers.constants.AddressZero
         const relayerFee = 0
-        const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
+        const bridge = sdk.bridge(selectedToken?.symbol).connect(signer)
         const tx = await bridge.send(
           parsedAmount,
           sdk.Chain.Ethereum,
@@ -513,9 +513,9 @@ const Send: FC = () => {
           fromTokenAmount,
           selectedToken.decimals
         )
-        const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
+        const bridge = sdk.bridge(selectedToken?.symbol).connect(signer)
         const bonderFee = await bridge.getBonderFee(
-          parsedAmountIn as any,
+          parsedAmountIn,
           fromNetwork?.slug as string,
           toNetwork?.slug as string
         )
@@ -524,7 +524,7 @@ const Send: FC = () => {
         }
         const recipient = await signer?.getAddress()
         const tx = await bridge.send(
-          parsedAmountIn as any,
+          parsedAmountIn,
           fromNetwork?.slug as string,
           toNetwork?.slug as string,
           {
@@ -585,9 +585,9 @@ const Send: FC = () => {
           selectedToken.decimals
         )
         const recipient = await signer?.getAddress()
-        const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as any)
+        const bridge = sdk.bridge(selectedToken?.symbol).connect(signer)
         const bonderFee = await bridge.getBonderFee(
-          parsedAmountIn as any,
+          parsedAmountIn,
           fromNetwork?.slug as string,
           toNetwork?.slug as string
         )
@@ -595,7 +595,7 @@ const Send: FC = () => {
           throw new Error('Amount must be greater than bonder fee')
         }
         const tx = await bridge.send(
-          parsedAmountIn as any,
+          parsedAmountIn,
           fromNetwork?.slug as string,
           toNetwork?.slug as string,
           {

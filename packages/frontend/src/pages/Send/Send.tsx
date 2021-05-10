@@ -126,6 +126,9 @@ const Send: FC = () => {
   const [feeDisplay, setFeeDisplay] = useState<string>()
   const [amountOutMinDisplay, setAmountOutMinDisplay] = useState<string>()
   const [error, setError] = useState<string | null | undefined>(null)
+  const [noLiquidityError, setNoLiquidityError] = useState<string | null | undefined>(null)
+  const [needsNativeTokenError, setNeedsNativeTokenError] = useState<string | null | undefined>(null)
+  const [minimumSendError, setMinimumSendError] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [tx, setTx] = useState<Transaction | null>(null)
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(
@@ -238,11 +241,9 @@ const Send: FC = () => {
       )
       const errorMessage = `Insufficient liquidity. There is ${formattedAmount} ${selectedToken.symbol} available on ${toNetwork.name}.`
       if (!isAvailable) {
-        setError(errorMessage)
+        setNoLiquidityError(errorMessage)
       } else {
-        if (error === errorMessage) {
-          setError('')
-        }
+        setNoLiquidityError('')
       }
     }
 
@@ -250,19 +251,29 @@ const Send: FC = () => {
   }, [selectedToken, toNetwork, availableLiquidity, requiredLiquidity])
 
   useEffect(() => {
-    if (!error && needsTokenForFee && fromNetwork) {
-      setError(`Add ${fromNetwork?.nativeTokenSymbol} to your account to pay for the transaction fee.`)
+    if (needsTokenForFee && fromNetwork) {
+      setNeedsNativeTokenError(`Add ${fromNetwork.nativeTokenSymbol} to your account on ${fromNetwork.name} for the transaction fee.`)
+    } else {
+      setNeedsNativeTokenError('')
     }
-  }, [error, needsTokenForFee])
+  }, [error, needsTokenForFee, fromNetwork])
 
   useEffect(() => {
     const errorMessage = `Send at least ${feeDisplay} to cover the transaction fee`
     if (amountOut?.eq(0) && feeDisplay) {
-      setError(errorMessage)
-    } else if (error?.slice(0, 13) === errorMessage.slice(0, 13)) {
-      setError('')
+      setMinimumSendError(errorMessage)
+    } else {
+      setMinimumSendError('')
     }
   }, [amountOut, selectedToken, feeDisplay])
+
+  useEffect(() => {
+    setError(
+      noLiquidityError ||
+      minimumSendError ||
+      needsNativeTokenError
+    )
+  }, [noLiquidityError, needsNativeTokenError, minimumSendError])
 
   useEffect(() => {
     if (!bonderFee) {

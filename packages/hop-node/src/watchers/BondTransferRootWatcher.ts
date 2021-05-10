@@ -146,7 +146,12 @@ class BondTransferRootWatcher extends BaseWatcher {
     const sourceChainId = await (this.bridge as L2Bridge).getChainId()
     const network = networkIdToSlug(chainId)
     const sourceNetwork = networkIdToSlug(sourceChainId)
-    if (sourceNetwork === Chain.xDai || sourceNetwork === Chain.Polygon) {
+
+    // bonding transfer root should only happen when exiting
+    // Optimism or Arbitrum or any chain where exit period is longer than 1 day
+    if (
+      !(sourceNetwork === Chain.Arbitrum || sourceNetwork === Chain.Arbitrum)
+    ) {
       return
     }
 

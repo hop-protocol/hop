@@ -12,6 +12,9 @@ class Token extends Base {
   /** Token model */
   public model: TokenModel
 
+  /** Token type */
+  public tokenType: string
+
   // TODO: clean up and remove unused parameters.
   /**
    * @desc Instantiates Token class.
@@ -31,13 +34,18 @@ class Token extends Base {
     decimals: number,
     symbol: string,
     name: string,
-    signer?: Signer | providers.Provider
+    signer?: Signer | providers.Provider,
+    tokenType?: string
   ) {
     super(network, signer)
     this.model = new TokenModel(chainId, address, decimals, symbol, name)
     this.network = network
     if (signer) {
       this.signer = signer
+    }
+    // TODO: polymorphism instead of this
+    if (tokenType) {
+      this.tokenType = tokenType
     }
   }
 
@@ -54,7 +62,8 @@ class Token extends Base {
       this.decimals,
       this.symbol,
       this.name,
-      signer
+      signer,
+      this.tokenType
     )
   }
 
@@ -165,7 +174,13 @@ class Token extends Base {
     if (chain.isL1) {
       tokenAddress = this.getL1CanonicalTokenAddress(this.symbol, chain)
     } else {
-      tokenAddress = this.getL2CanonicalTokenAddress(this.symbol, chain)
+      if (this.tokenType === 'hop') {
+        tokenAddress = this.getL2HopBridgeTokenAddress(this.symbol, chain)
+      } else if (this.tokenType === 'lp') {
+        tokenAddress = this.getL2SaddleLpTokenAddress(this.symbol, chain)
+      } else {
+        tokenAddress = this.getL2CanonicalTokenAddress(this.symbol, chain)
+      }
     }
 
     const provider = await this.getSignerOrProvider(chain)

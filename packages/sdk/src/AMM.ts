@@ -101,7 +101,12 @@ class AMM extends Base {
     deadline = this.normalizeDeadline(deadline)
     const amounts = [amount0Desired, amount1Desired]
     const saddleSwap = await this.getSaddleSwap(this.chain)
-    return saddleSwap.addLiquidity(amounts, minToMint, deadline)
+    return saddleSwap.addLiquidity(
+      amounts,
+      minToMint,
+      deadline,
+      this.txOverrides(this.chain)
+    )
   }
 
   /**
@@ -132,7 +137,12 @@ class AMM extends Base {
     deadline = this.normalizeDeadline(deadline)
     const saddleSwap = await this.getSaddleSwap(this.chain)
     const amounts = [amount0Min, amount1Min]
-    return saddleSwap.removeLiquidity(liqudityTokenAmount, amounts, deadline)
+    return saddleSwap.removeLiquidity(
+      liqudityTokenAmount,
+      amounts,
+      deadline,
+      this.txOverrides(this.chain)
+    )
   }
 
   /**

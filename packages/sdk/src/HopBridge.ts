@@ -81,6 +81,9 @@ class HopBridge extends Base {
   /** Hop Token class */
   public hopToken: TokenClass
 
+  /** LP Token class */
+  public lpToken: TokenClass
+
   /** Source Chain model */
   public sourceChain: Chain
 
@@ -130,6 +133,7 @@ class HopBridge extends Base {
       this.destinationChain = this.toChainModel(destinationChain)
     }
 
+    // TODO: improve this
     this.token = new TokenClass(
       this.network,
       token.chainId,
@@ -138,6 +142,28 @@ class HopBridge extends Base {
       token.symbol,
       token.name,
       signer
+    )
+
+    this.hopToken = new TokenClass(
+      this.network,
+      token.chainId,
+      token.address,
+      token.decimals,
+      token.symbol,
+      token.name,
+      signer,
+      'hop'
+    )
+
+    this.lpToken = new TokenClass(
+      this.network,
+      token.chainId,
+      token.address,
+      token.decimals,
+      token.symbol,
+      token.name,
+      signer,
+      'lp'
     )
   }
 

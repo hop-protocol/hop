@@ -282,7 +282,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   }, 20 * 1000)
 
   const approveTokens = async (
-    token: Token,
+    isHop: boolean,
     amount: string,
     network: Network
   ): Promise<ethers.providers.TransactionResponse | undefined> => {
@@ -290,18 +290,19 @@ const PoolsContextProvider: FC = ({ children }) => {
     const bridge = await sdk.bridge(selectedToken.symbol).connect(signer as any)
     const saddleSwap = await bridge.getSaddleSwap(network.slug)
     const spender = saddleSwap.address
-    const parsedAmount = parseUnits(amount, token.decimals)
-    const approved = await bridge.token.allowance(network.slug, spender)
+    const parsedAmount = parseUnits(amount, selectedToken.decimals)
+    const token = isHop ? bridge.hopToken : bridge.token
+    const approved = await token.allowance(network.slug, spender)
 
     if (approved.lt(parsedAmount)) {
       return txConfirm?.show({
         kind: 'approval',
         inputProps: {
           amount,
-          token
+          token: isHop ? hopToken : selectedToken
         },
         onConfirm: async (approveAll: boolean) => {
-          return bridge.token.approve(
+          return token.approve(
             network.slug,
             spender,
             approveAll ? UINT256 : parsedAmount
@@ -326,7 +327,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       }
 
       setSending(true)
-      let tx = await approveTokens(selectedToken, token0Amount, selectedNetwork)
+      let tx = await approveTokens(false, token0Amount, selectedNetwork)
       if (tx?.hash && selectedNetwork) {
         txHistory?.addTransaction(
           new Transaction({
@@ -337,7 +338,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       }
       await tx?.wait()
       setTxHash(tx?.hash)
-      tx = await approveTokens(hopToken as Token, token1Amount, selectedNetwork)
+      tx = await approveTokens(true, token1Amount, selectedNetwork)
       if (tx?.hash && selectedNetwork) {
         txHistory?.addTransaction(
           new Transaction({
@@ -413,25 +414,21 @@ const PoolsContextProvider: FC = ({ children }) => {
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
 
-      const saddleSwap = await sdk
-        .bridge(selectedToken.symbol)
-        .getSaddleSwap(selectedNetwork.slug)
-      const lpToken = await sdk
-        .bridge(selectedToken.symbol)
-        .getSaddleLpToken(selectedNetwork.slug)
-      const lpTokenDecimals = await lpToken.decimals()
+      const bridge = sdk.bridge(selectedToken.symbol)
+      const saddleSwap = await bridge.getSaddleSwap(selectedNetwork.slug)
+      const lpToken = await bridge.lpToken
+      const lpTokenDecimals = await lpToken.decimals
 
       const signer = provider?.getSigner()
-      const to = await signer?.getAddress()
-      const balance = await lpToken?.balanceOf(to)
+      const balance = await lpToken?.balanceOf(selectedNetwork.slug)
       const formattedBalance = Number(
         formatUnits(balance.toString(), lpTokenDecimals)
       )
       let liquidityTokensAmount = 0
 
       let tx: any
-      const approved = await lpToken?.allowance(
-        await signer?.getAddress(),
+      const approved = await lpToken.allowance(
+        selectedNetwork.slug,
         saddleSwap.address
       )
 
@@ -441,14 +438,15 @@ const PoolsContextProvider: FC = ({ children }) => {
           inputProps: {
             amount: formattedBalance,
             token: new Token({
-              symbol: await lpToken.symbol(),
-              tokenName: await lpToken.name(),
+              symbol: lpToken.symbol,
+              tokenName: lpToken.name,
               imageUrl: '',
               contracts: {}
             })
           },
           onConfirm: async (approveAll: boolean) => {
             return lpToken.approve(
+              selectedNetwork.slug,
               saddleSwap.address,
               approveAll ? UINT256 : balance
             )

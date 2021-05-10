@@ -163,7 +163,13 @@ const Send: FC = () => {
     bonderFee,
     requiredLiquidity,
     loading: loadingSendData
-  } = useSendData(selectedToken, slippageTolerance, fromNetwork, toNetwork, fromTokenAmountBN)
+  } = useSendData(
+    selectedToken,
+    slippageTolerance,
+    fromNetwork,
+    toNetwork,
+    fromTokenAmountBN
+  )
 
   const needsTokenForFee = useNeedsTokenForFee(fromNetwork)
 

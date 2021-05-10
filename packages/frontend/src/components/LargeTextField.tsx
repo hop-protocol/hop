@@ -14,7 +14,7 @@ type LargeTextFieldProps = {
 interface StyleProps {
   centerAlign: boolean
   defaultShadow: boolean
-  hideShadow: boolean,
+  hideShadow: boolean
   loadingValue: boolean
 }
 
@@ -49,7 +49,7 @@ const useInputStyles = makeStyles(theme => ({
       '100%': {
         opacity: 0.9
       }
-    },
+    }
   },
   root: ({ defaultShadow, hideShadow }: StyleProps) => ({
     padding: `0.8rem 0`,
@@ -76,7 +76,7 @@ const useInputStyles = makeStyles(theme => ({
     textOverflow: 'ellipsis',
     animation: loadingValue
       ? `loadingEffect 1200ms ${theme.transitions.easing.sharp} infinite`
-      : 'none',
+      : 'none'
   }),
   focused: {
     borderRadius: '1.5rem',

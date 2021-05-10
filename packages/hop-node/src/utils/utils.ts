@@ -18,8 +18,22 @@ export const wait = async (t: number) => {
   return new Promise(resolve => setTimeout(() => resolve(null), t))
 }
 
-export const getRpcUrl = (network: string): string | undefined => {
-  return config.networks[network]?.rpcUrl
+export const getRpcUrls = (network: string): string | undefined => {
+  return config.networks[network]?.rpcUrls
+}
+
+export const getRpcProvider = (network: string): ethers.providers.Provider => {
+  const rpcUrls = getRpcUrls(network)
+  if (!rpcUrls.length) {
+    return null
+  }
+  let providers: ethers.providers.StaticJsonRpcProvider[] = []
+  for (let rpcUrl of rpcUrls) {
+    const provider = new ethers.providers.StaticJsonRpcProvider(rpcUrl)
+    providers.push(provider)
+  }
+  const fallbackProvider = new ethers.providers.FallbackProvider(providers, 1)
+  return fallbackProvider
 }
 
 export const networkSlugToId = (network: string): string | undefined => {

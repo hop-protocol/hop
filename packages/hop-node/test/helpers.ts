@@ -26,7 +26,7 @@ import {
   l2PolygonChildErc20Abi
 } from '@hop-protocol/abi'
 import { Chain, Token } from 'src/constants'
-import { wait, getRpcUrl, networkSlugToId } from 'src/utils'
+import { wait, getRpcProvider, networkSlugToId } from 'src/utils'
 import queue from 'src/watchers/helpers/queue'
 
 export class User {
@@ -41,8 +41,7 @@ export class User {
   }
 
   getProvider (network: string) {
-    const url = getRpcUrl(network)
-    return new providers.StaticJsonRpcProvider(url)
+    return getRpcProvider(network)
   }
 
   getWallet (network: string = Chain.Ethereum) {

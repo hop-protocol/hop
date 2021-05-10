@@ -7,19 +7,19 @@ export const isTestMode = !!process.env.TEST_MODE
 let bonders: string[] = []
 let isMainnet = network === Network.Mainnet
 
-const getConfigByNetwork = (network: string) => {
+const getConfigByNetwork = (_network: string) => {
   let addresses: any
   let networks: any
   if (isTestMode) {
     ;({ addresses, networks, bonders } = require('./test'))
   }
-  if (network === Network.Kovan) {
+  if (_network === Network.Kovan) {
     ;({ addresses, networks, bonders } = require('./kovan'))
   }
-  if (network === Network.Goerli) {
+  if (_network === Network.Goerli) {
     ;({ addresses, networks, bonders } = require('./goerli'))
   }
-  if (network === Network.Mainnet) {
+  if (_network === Network.Mainnet) {
     ;({ addresses, networks, bonders } = require('./mainnet'))
   }
 
@@ -50,12 +50,12 @@ export const config = {
   bonders
 }
 
-const setConfigByNetwork = (network: string) => {
-  const { tokens, networks } = getConfigByNetwork(network)
-  isMainnet = network === Network.Mainnet
+const setConfigByNetwork = (_network: string) => {
+  const { tokens, networks } = getConfigByNetwork(_network)
+  isMainnet = _network === Network.Mainnet
   config.isMainnet = isMainnet
   config.tokens = tokens
-  config.network = network
+  config.network = _network
   config.networks = networks
 }
 
@@ -63,18 +63,18 @@ const setBonderPrivateKey = (privateKey: string) => {
   config.bonderPrivateKey = privateKey
 }
 
-export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
-  if (networks[network]) {
-    networks[network].rpcUrl = rpcUrl
+export const setNetworkRpcUrls = (_network: string, rpcUrls: string[]) => {
+  if (config.networks[_network]) {
+    config.networks[_network].rpcUrls = rpcUrls
   }
 }
 
 export const setNetworkWaitConfirmations = (
-  network: string,
+  _network: string,
   waitConfirmations: number
 ) => {
-  if (networks[network]) {
-    networks[network].waitConfirmations = waitConfirmations
+  if (config.networks[network]) {
+    config.networks[_network].waitConfirmations = waitConfirmations
   }
 }
 

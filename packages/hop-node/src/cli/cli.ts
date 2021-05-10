@@ -14,7 +14,7 @@ import {
   db as dbConfig,
   setConfigByNetwork,
   setBonderPrivateKey,
-  setNetworkRpcUrl,
+  setNetworkRpcUrls,
   setNetworkWaitConfirmations,
   slackAuthToken,
   slackChannel,
@@ -149,9 +149,15 @@ program
           networks.push(k)
           const v = config.chains[k]
           if (v instanceof Object) {
-            const { rpcUrl, waitConfirmations } = v
+            let _rpcUrls: string[] = []
+            const { rpcUrl, rpcUrls, waitConfirmations } = v
             if (rpcUrl) {
-              setNetworkRpcUrl(k, rpcUrl)
+              _rpcUrls.push(rpcUrl)
+            } else if (rpcUrls.length) {
+              _rpcUrls.push(...rpcUrls)
+            }
+            if (_rpcUrls.length) {
+              setNetworkRpcUrls(k, _rpcUrls)
             }
             if (typeof waitConfirmations === 'number') {
               setNetworkWaitConfirmations(k, waitConfirmations)
@@ -217,7 +223,7 @@ program
         new xDaiBridgeWatcher().start()
       }
     } catch (err) {
-      console.error(err.message)
+      console.error('hop-node error:', err)
     }
   })
 

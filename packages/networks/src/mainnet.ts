@@ -22,7 +22,13 @@ export const networks: Networks = {
   },
   xdai: {
     networkId: 100,
-    rpcUrls: ['https://rpc.xdaichain.com'],
+    rpcUrls: [
+      'https://rpc.xdaichain.com',
+      'https://dai.poa.network',
+      'https://xdai.poanetwork.dev',
+      'https://xdai-archive.blockscout.com',
+      'https://xdai.1hive.org'
+    ],
     explorerUrls: ['https://blockscout.com/xdai/mainnet']
   },
   polygon: {

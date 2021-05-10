@@ -20,7 +20,10 @@ export const networks: Networks = {
   },
   xdai: {
     networkId: 77,
-    rpcUrls: ['https://sokol.poa.network'],
+    rpcUrls: [
+      'https://sokol.poa.network',
+      'http://sokol-archive.blockscout.com'
+    ],
     explorerUrls: ['https://blockscout.com/poa/sokol']
   }
 }

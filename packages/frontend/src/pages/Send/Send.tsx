@@ -250,8 +250,8 @@ const Send: FC = () => {
   }, [selectedToken, toNetwork, availableLiquidity, requiredLiquidity])
 
   useEffect(() => {
-    if (!error && needsTokenForFee) {
-      setError('Add funds to your wallet to pay for the transaction fee.')
+    if (!error && needsTokenForFee && fromNetwork) {
+      setError(`Add ${fromNetwork?.nativeTokenSymbol} to your account to pay for the transaction fee.`)
     }
   }, [error, needsTokenForFee])
 

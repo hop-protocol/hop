@@ -873,7 +873,7 @@ class HopBridge extends Base {
       recipient,
       approval
     } = input
-    deadline = deadline || this.defaultDeadlineSeconds
+    deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
     recipient = recipient || (await this.getSignerAddress())
     this.checkConnectedChain(this.signer, sourceChain)
     const l1Bridge = await this.getL1Bridge(this.signer)

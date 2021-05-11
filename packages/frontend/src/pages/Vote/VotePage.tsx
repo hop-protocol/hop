@@ -136,8 +136,8 @@ const VotePageChild: FC<VotePageProps> = props => {
   )
   const endDate: DateTime | undefined = startTimestamp
     ? DateTime.fromSeconds(startTimestamp).plus({
-        seconds: PROPOSAL_LENGTH_IN_SECS
-      })
+      seconds: PROPOSAL_LENGTH_IN_SECS
+    })
     : undefined
   const now: DateTime = DateTime.local()
 

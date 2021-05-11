@@ -57,16 +57,16 @@ const Pools: FC = () => {
               <TableBody>
                 {fetching
                   ? Array(2)
-                    .fill(null)
-                    .map((x, i) => {
-                      return (
+                      .fill(null)
+                      .map((x, i) => {
+                        return (
                           <TableRow key={i}>
                             <TableCell colSpan={6}>
                               <Skeleton animation="wave" width={'100%'} />
                             </TableCell>
                           </TableRow>
-                      )
-                    })
+                        )
+                      })
                   : stats?.map(item => {
                     return (
                         <TableRow key={item.id}>

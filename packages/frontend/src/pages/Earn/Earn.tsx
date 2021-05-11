@@ -51,7 +51,7 @@ const Earn: FC = () => {
   const styles = useStyles()
   const { contracts } = useApp()
   const stakingRewards = contracts?.governance.stakingRewards
-  let {
+  const {
     fetchStakingValues,
     stakingRewardAddress,
     stakedAmount,

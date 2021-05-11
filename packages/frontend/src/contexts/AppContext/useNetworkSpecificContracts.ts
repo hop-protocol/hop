@@ -31,7 +31,7 @@ const useNetworkSpecificContracts = (
   l2Network: Network,
   token: Token
 ): NetworkSpecificContracts => {
-  //logger.debug('useNetworkSpecificContracts render')
+  // logger.debug('useNetworkSpecificContracts render')
   const { provider, connectedNetworkId } = useWeb3Context()
 
   if (!l2Network?.slug) {

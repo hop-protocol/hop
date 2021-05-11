@@ -31,7 +31,7 @@ const useStyles = makeStyles(theme => ({
 
 const Faucet: FC = () => {
   const styles = useStyles()
-  let {
+  const {
     mintToken,
     mintAmount,
     isMinting,

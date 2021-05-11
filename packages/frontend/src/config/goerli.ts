@@ -39,5 +39,5 @@ export const networks: any = {
     rpcUrl: 'https://sokol.poa.network',
     explorerUrl: 'https://blockscout.com/poa/sokol/'
   }
-	*/
+  */
 }

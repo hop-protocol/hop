@@ -70,7 +70,7 @@ const ConvertContext = createContext<ConvertContextProps>({
 const ConvertContextProvider: FC = ({ children }) => {
   const { provider, checkConnectedNetworkId } = useWeb3Context()
   const app = useApp()
-  let { networks: nets, tokens, txConfirm, sdk } = app
+  const { networks: nets, tokens, txConfirm, sdk } = app
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const canonicalSlug = (network: Network) => {
     if (network?.isLayer1) {
@@ -87,7 +87,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     const l1Networks = nets.filter((network: Network) => network.isLayer1)
     const l2CanonicalNetworks = l2Networks.map((network: Network) => {
       return new Network({
-        name: `Canonical Bridge`,
+        name: 'Canonical Bridge',
         slug: network.slug,
         imageUrl: network.imageUrl,
         rpcUrl: network.rpcUrl,
@@ -98,7 +98,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     })
     const l2HopBridges = l2Networks.map((network: Network) => {
       return new Network({
-        name: `Hop Bridge`,
+        name: 'Hop Bridge',
         slug: `${network.slug}HopBridge`,
         imageUrl: network.imageUrl,
         rpcUrl: network.rpcUrl,
@@ -498,7 +498,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   }
 
   const enoughBalance = Number(sourceTokenBalance) >= Number(sourceTokenAmount)
-  let withinMax = true
+  const withinMax = true
   let sendButtonText = 'Convert'
   const validFormFields = !!(
     sourceTokenAmount &&

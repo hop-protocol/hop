@@ -104,7 +104,7 @@ const Send: FC = () => {
       return token.supportedNetworks.includes(pathNetwork)
     })
     networks = networks.filter(network => {
-      return network.isLayer1 || network.slug == pathNetwork
+      return network.isLayer1 || network.slug === pathNetwork
     })
   } else {
     // show tokens supported by all networks
@@ -797,8 +797,8 @@ const Send: FC = () => {
             {!priceImpact
               ? '-'
               : priceImpact < 0.01
-              ? `<0.01%`
-              : `${commafy(priceImpact)}%`}
+                ? '<0.01%'
+                : `${commafy(priceImpact)}%`}
           </Typography>
         </Box>
         <Box

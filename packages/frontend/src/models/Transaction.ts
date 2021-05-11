@@ -1,8 +1,8 @@
 import { ethers } from 'ethers'
 import { EventEmitter } from 'events'
 import { L1_NETWORK } from 'src/constants'
-import { getRpcUrl } from 'src/utils'
-import { getBaseExplorerUrl } from 'src/utils'
+import { getRpcUrl, getBaseExplorerUrl } from 'src/utils'
+
 import Token from 'src/models/Token'
 import { network as defaultNetwork } from 'src/config'
 

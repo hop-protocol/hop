@@ -9,7 +9,7 @@ const useL1BridgeContracts = (
   provider: providers.Provider,
   token: Token
 ): Contract | undefined => {
-  //logger.debug('useL1BridgeContracts render')
+  // logger.debug('useL1BridgeContracts render')
 
   const l1Bridge = useMemo(() => {
     return new Contract(

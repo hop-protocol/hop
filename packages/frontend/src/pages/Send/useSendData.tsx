@@ -12,7 +12,7 @@ const useSendData = (
   toNetwork?: Network,
   fromAmount?: BigNumber
 ) => {
-  let { sdk } = useApp()
+  const { sdk } = useApp()
 
   const [amountOut, setAmountOut] = useState<BigNumber>()
   const [rate, setRate] = useState<number | undefined>()

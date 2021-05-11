@@ -147,7 +147,7 @@ export type StatusProps = {
 const Status: FC<StatusProps> = (props: StatusProps) => {
   const { tx, variant } = props
   const styles = useStyles()
-  let { steps, activeStep, setTx } = useStatus()
+  const { steps, activeStep, setTx } = useStatus()
 
   useEffect(() => {
     setTx(tx)

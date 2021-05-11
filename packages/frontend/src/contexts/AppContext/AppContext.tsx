@@ -41,7 +41,7 @@ const AppContext = createContext<AppContextProps>({
 })
 
 const AppContextProvider: FC = ({ children }) => {
-  //logger.debug('AppContextProvider render')
+  // logger.debug('AppContextProvider render')
   const { provider } = useWeb3Context()
 
   const user = useMemo(() => {

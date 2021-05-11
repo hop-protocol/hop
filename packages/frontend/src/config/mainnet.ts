@@ -34,7 +34,7 @@ export const networks: any = {
     explorerUrl:
       'https://expedition.dev/?rpcUrl=https%3A%2F%2Fmainnet.optimism.io'
   },
-	*/
+  */
   xdai: {
     networkId: '100',
     rpcUrl: 'https://rpc.xdaichain.com',

@@ -465,13 +465,13 @@ const PoolsContextProvider: FC = ({ children }) => {
       setTxHash(tx?.hash)
       await tx?.wait()
 
-      //setSending(true)
+      // setSending(true)
       const amount0Min = '0'
       const amount1Min = '0'
       const deadline = (Date.now() / 1000 + 5 * 60) | 0
 
-      let token0Amount = token0Deposited
-      let token1Amount = token1Deposited
+      const token0Amount = token0Deposited
+      const token1Amount = token1Deposited
 
       tx = await txConfirm?.show({
         kind: 'removeLiquidity',

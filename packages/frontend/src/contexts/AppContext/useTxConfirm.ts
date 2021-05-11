@@ -14,7 +14,7 @@ export interface TxConfirm {
 }
 
 export const useTxConfirm = (): TxConfirm => {
-  //logger.debug('useTxConfirm debug')
+  // logger.debug('useTxConfirm debug')
   const [txConfirmParams, setTxConfirm] = useState<ConfirmParams>(null)
 
   const show = (params: TxConfirmParams) => {

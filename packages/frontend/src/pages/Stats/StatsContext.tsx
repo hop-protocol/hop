@@ -22,7 +22,7 @@ const StatsContext = createContext<StatsContextProps>({
 })
 
 const StatsContextProvider: FC = ({ children }) => {
-  let { networks, tokens, sdk } = useApp()
+  const { networks, tokens, sdk } = useApp()
   const [stats, setStats] = useState<any[]>([])
   const [fetching, setFetching] = useState<boolean>(false)
   const filteredNetworks = networks?.filter(token => !token.isLayer1)
@@ -76,8 +76,8 @@ const StatsContextProvider: FC = ({ children }) => {
       }
       setFetching(true)
       const promises: Promise<any>[] = []
-      for (let network of filteredNetworks) {
-        for (let token of tokens) {
+      for (const network of filteredNetworks) {
+        for (const token of tokens) {
           promises.push(fetchStats(network, token))
         }
       }

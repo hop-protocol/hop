@@ -59,25 +59,25 @@ const initialState = {
 }
 
 const networkNames: any = {
-  '1': 'Mainnet',
-  '3': 'Ropsten',
-  '4': 'Rinkeby',
-  '5': 'Goerli',
-  '42': 'Kovan',
-  '79377087078960': 'Arbitrum',
-  '10': 'Optimism',
-  '69': 'Optimism',
-  '420': 'Optimism',
-  '77': 'xDai',
-  '100': 'xDai',
-  '80001': 'Polygon',
-  '137': 'Polygon'
+  1: 'Mainnet',
+  3: 'Ropsten',
+  4: 'Rinkeby',
+  5: 'Goerli',
+  42: 'Kovan',
+  79377087078960: 'Arbitrum',
+  10: 'Optimism',
+  69: 'Optimism',
+  420: 'Optimism',
+  77: 'xDai',
+  100: 'xDai',
+  80001: 'Polygon',
+  137: 'Polygon'
 }
 
 const Web3Context = createContext<Props>(initialState)
 
 const Web3ContextProvider: FC = ({ children }) => {
-  //logger.debug('Web3ContextProvider render')
+  // logger.debug('Web3ContextProvider render')
   const [provider, setProvider] = useState<
     ethers.providers.Web3Provider | undefined
   >()
@@ -215,7 +215,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         { checkName: 'derivationPath' },
         { checkName: 'accounts' },
         { checkName: 'connect' },
-        //{ checkName: 'network' },
+        // { checkName: 'network' },
         networkCheck,
         { checkName: 'balance' }
       ],
@@ -297,7 +297,7 @@ const Web3ContextProvider: FC = ({ children }) => {
   ): Promise<boolean> => {
     logger.debug('checkConnectedNetworkId')
     const signerNetworkId = (await provider?.getNetwork())?.chainId
-    if (networkId != signerNetworkId) {
+    if (networkId.toString() !== signerNetworkId?.toString()) {
       onboard.config({ networkId })
       if (onboard.getState().address) {
         try {
@@ -338,7 +338,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     if (!contract) return
     const signerNetworkId = (await provider?.getNetwork())?.chainId
     const contractNetworkId = (await contract.provider.getNetwork()).chainId
-    if (signerNetworkId != contractNetworkId) {
+    if (signerNetworkId?.toString() !== contractNetworkId.toString()) {
       onboard.config({ networkId: Number(contractNetworkId) })
       if (onboard.getState().address) {
         onboard.walletCheck()

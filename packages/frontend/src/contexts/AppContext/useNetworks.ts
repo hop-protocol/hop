@@ -3,10 +3,10 @@ import Network from 'src/models/Network'
 import { network, networks, metadata } from 'src/config'
 
 const useNetworks = () => {
-  //logger.debug('useNetworks render')
+  // logger.debug('useNetworks render')
   return useMemo<Network[]>(() => {
     const nets: Network[] = []
-    for (let key in networks) {
+    for (const key in networks) {
       const net = networks[key]
       let meta = metadata.networks[key]
       if (key === 'ethereum') {

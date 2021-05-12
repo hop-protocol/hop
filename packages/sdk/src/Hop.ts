@@ -226,63 +226,97 @@ class Hop extends Base {
           'sendToL2',
           sourceTx.data
         )
+
+        let attemptedSwap = Number(decodedSource.deadline.toString()) > 0
         //const chainId = decodedSource?.chainId
-        //const l2Bridge = await bridge.getL2Bridge(destinationChain)
+        const l2Bridge = await bridge.getL2Bridge(destinationChain)
         const exchange = await bridge.getSaddleSwap(destinationChain)
+        let destTx: any
         const pollDest = async () => {
           const blockNumber = await destinationChain.provider.getBlockNumber()
           if (!blockNumber) {
             return false
           }
-          let recentLogs: any[] =
-            (await exchange?.queryFilter(
-              exchange.filters.TokenSwap(),
-              (blockNumber as number) - 100
-            )) ?? []
-          recentLogs = recentLogs.reverse()
-          if (!recentLogs || !recentLogs.length) {
-            return false
-          }
-          for (let item of recentLogs) {
-            const decodedLog = item.decode(item.data, item.topics)
-            if (wrapper.address === decodedLog.buyer) {
-              if (
-                decodedSource?.amount.toString() !==
-                decodedLog.tokensSold.toString()
-              ) {
-                continue
-              }
-              if (!sourceTimestamp) {
-                continue
-              }
-              const destTx = await item.getTransaction()
-              if (!destTx) {
-                continue
-              }
-              const destBlock = await destinationChain.provider.getBlock(
-                destTx.blockNumber
-              )
-              if (!destBlock) {
-                continue
-              }
-              if (destBlock.timestamp - sourceTimestamp < 500) {
-                const destTxReceipt = await destinationChain.provider.waitForTransaction(
-                  destTx.hash
-                )
-                ee.emit(Event.Receipt, {
-                  chain: destinationChain,
-                  receipt: destTxReceipt
-                })
-                ee.emit(Event.DestinationTxReceipt, {
-                  chain: destinationChain,
-                  receipt: destTxReceipt
-                })
-                return true
+          let recentLogs: any[]
+          if (attemptedSwap) {
+            recentLogs =
+              (await exchange?.queryFilter(
+                exchange.filters.TokenSwap(),
+                (blockNumber as number) - 100
+              )) ?? []
+            recentLogs = recentLogs.reverse()
+            if (!recentLogs || !recentLogs.length) {
+              return false
+            }
+            for (let item of recentLogs) {
+              const decodedLog = item.decode(item.data, item.topics)
+              if (wrapper.address === decodedLog.buyer) {
+                if (
+                  decodedSource?.amount.toString() !==
+                  decodedLog.tokensSold.toString()
+                ) {
+                  continue
+                }
+                destTx = await item.getTransaction()
               }
             }
+          } else {
+            const ambBridge = await bridge.getAmbBridge(Chain.xDai)
+            recentLogs =
+              (await ambBridge?.queryFilter(
+                {
+                  address: bridge.getL2HopBridgeTokenAddress(token, Chain.xDai)
+                },
+                (blockNumber as number) - 100
+              )) ?? []
+            recentLogs = recentLogs.reverse()
+            if (!recentLogs || !recentLogs.length) {
+              return false
+            }
+
+            for (let item of recentLogs) {
+              const receipt = await item.getTransactionReceipt()
+              for (let i in receipt.logs) {
+                const transferTopic =
+                  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+                if (receipt.logs[i].topics[0] === transferTopic) {
+                  if (
+                    receipt.logs[i].topics[2].includes(
+                      sourceTx.from.toLowerCase().replace('0x', '')
+                    )
+                  ) {
+                    destTx = await item.getTransaction()
+                  }
+                }
+              }
+            }
+          }
+          if (!sourceTimestamp) {
             return false
           }
-          return false
+          if (!destTx) {
+            return false
+          }
+          const destBlock = await destinationChain.provider.getBlock(
+            destTx.blockNumber
+          )
+          if (!destBlock) {
+            return false
+          }
+          if (destBlock.timestamp - sourceTimestamp < 500) {
+            const destTxReceipt = await destinationChain.provider.waitForTransaction(
+              destTx.hash
+            )
+            ee.emit(Event.Receipt, {
+              chain: destinationChain,
+              receipt: destTxReceipt
+            })
+            ee.emit(Event.DestinationTxReceipt, {
+              chain: destinationChain,
+              receipt: destTxReceipt
+            })
+            return true
+          }
         }
         let res = false
         while (!res) {
@@ -294,11 +328,20 @@ class Hop extends Base {
       // L2 -> L1
       if (!sourceChain.isL1 && destinationChain?.isL1) {
         const wrapper = await bridge.getAmmWrapper(sourceChain)
-        // @ts-ignore
-        const decodedSource = wrapper?.interface.decodeFunctionData(
-          'swapAndSend',
-          sourceTx.data
-        )
+        let decodedSource: any
+        let attemptedSwap = false
+        try {
+          decodedSource = wrapper?.interface.decodeFunctionData(
+            'swapAndSend',
+            sourceTx.data
+          )
+          attemptedSwap = true
+        } catch (err) {
+          decodedSource = wrapper?.interface.decodeFunctionData(
+            'send',
+            sourceTx.data
+          )
+        }
         let transferHash: string = ''
         for (let log of receipt.logs) {
           const transferSentTopic =
@@ -359,8 +402,6 @@ class Hop extends Base {
           const wrapperSource = await bridge.getAmmWrapper(sourceChain)
           const wrapperDest = await bridge.getAmmWrapper(destinationChain)
           const exchange = await bridge.getSaddleSwap(destinationChain)
-          //const destinationBridge = await bridge.getL2Bridge(destinationChain)
-          // @ts-ignore
           const decodedSource = wrapperSource?.interface.decodeFunctionData(
             'swapAndSend',
             sourceTx.data

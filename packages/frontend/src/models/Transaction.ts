@@ -77,6 +77,7 @@ class Transaction extends EventEmitter {
     if (typeof isCanonicalTransfer === 'boolean') {
       this.isCanonicalTransfer = isCanonicalTransfer
     }
+    console.debug('transaction:', this.hash)
   }
 
   get explorerLink (): string {

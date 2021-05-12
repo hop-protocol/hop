@@ -367,7 +367,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             saddleSwap.address as string
           )
 
-          const amountOutMin = '0'
+          const amountOutMin = 0
           const deadline = (Date.now() / 1000 + 300) | 0
 
           tx = await txConfirm?.show({
@@ -426,8 +426,8 @@ const ConvertContextProvider: FC = ({ children }) => {
               }
             },
             onConfirm: async () => {
-              const deadline = (Date.now() / 1000 + 300) | 0
-              const amountOutMin = '0'
+              const deadline = 0
+              const amountOutMin = 0
               const bonderFee = await bridge.getBonderFee(
                 value,
                 canonicalSlug(sourceNetwork),
@@ -461,7 +461,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             saddleSwap?.address as string
           )
 
-          const amountOutMin = '0'
+          const amountOutMin = 0
           const deadline = (Date.now() / 1000 + 300) | 0
 
           tx = await txConfirm?.show({

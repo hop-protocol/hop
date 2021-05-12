@@ -5,6 +5,7 @@ import {
   l2BridgeAbi,
   saddleLpTokenAbi,
   saddleSwapAbi,
+  l1HomeAmbNativeToErc20,
   l2AmmWrapperAbi
 } from '@hop-protocol/abi'
 import TokenClass from './Token'
@@ -916,45 +917,52 @@ class HopBridge extends Base {
       destinationDeadline,
       approval
     } = input
-    deadline = deadline || this.defaultDeadlineSeconds
+    deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
     destinationDeadline = destinationDeadline || 0 // must be 0
-    amountOutMin = amountOutMin || '0' // must be 0
-    destinationAmountOutMin = destinationAmountOutMin || '0'
+    amountOutMin = amountOutMin || 0 // must be 0
+    destinationAmountOutMin = destinationAmountOutMin || 0
     recipient = recipient || (await this.getSignerAddress())
     this.checkConnectedChain(this.signer, sourceChain)
     const ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
+    const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
+    const attemptSwap = deadline || destinationDeadline
+    const spender = attemptSwap ? ammWrapper.address : l2Bridge.address
 
     if (BigNumber.from(bonderFee).gt(amount)) {
       throw new Error('amount must be greater than bonder fee')
     }
 
     if (approval) {
-      const tx = await this.token.approve(
-        sourceChain,
-        ammWrapper.address,
-        amount
-      )
+      const tx = await this.token.approve(sourceChain, spender, amount)
       await tx?.wait()
     } else {
-      const allowance = await this.token.allowance(
-        sourceChain,
-        ammWrapper.address
-      )
+      const allowance = await this.token.allowance(sourceChain, spender)
       if (allowance.lt(BigNumber.from(amount))) {
         throw new Error('not enough allowance')
       }
     }
 
-    return ammWrapper.swapAndSend(
+    if (attemptSwap) {
+      return ammWrapper.swapAndSend(
+        destinationChainId,
+        recipient,
+        amount,
+        bonderFee,
+        amountOutMin,
+        deadline,
+        destinationAmountOutMin,
+        destinationDeadline,
+        this.txOverrides(sourceChain)
+      )
+    }
+
+    return l2Bridge.send(
       destinationChainId,
       recipient,
       amount,
       bonderFee,
       amountOutMin,
-      deadline,
-      destinationAmountOutMin,
-      destinationDeadline,
-      this.txOverrides(sourceChain)
+      deadline
     )
   }
 
@@ -1062,6 +1070,19 @@ class HopBridge extends Base {
     if (connectedChainId !== chain.chainId) {
       throw new Error('invalid connected chain id')
     }
+  }
+
+  // xDai AMB bridge
+  async getAmbBridge (chain: TChain) {
+    chain = this.toChainModel(chain)
+    if (chain.equals(Chain.Ethereum)) {
+      const address = this.getL1AmbBridgeAddress(this.token, Chain.xDai)
+      const provider = await this.getSignerOrProvider(Chain.Ethereum)
+      return new Contract(address, l1HomeAmbNativeToErc20, provider)
+    }
+    const address = this.getL2AmbBridgeAddress(this.token, Chain.xDai)
+    const provider = await this.getSignerOrProvider(Chain.xDai)
+    return new Contract(address, l1HomeAmbNativeToErc20, provider)
   }
 }
 

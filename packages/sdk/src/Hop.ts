@@ -183,6 +183,18 @@ class Hop extends Base {
   public watch (
     txHash: string,
     token: TToken,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    isCanonicalTransfer: boolean = false
+  ) {
+    return isCanonicalTransfer
+      ? this.watchCanonical(txHash, token, sourceChain, destinationChain)
+      : this.watchBridge(txHash, token, sourceChain, destinationChain)
+  }
+
+  public watchBridge (
+    txHash: string,
+    token: TToken,
     _sourceChain: TChain,
     _destinationChain: TChain
   ) {
@@ -244,6 +256,9 @@ class Hop extends Base {
                 continue
               }
               const destTx = await item.getTransaction()
+              if (!destTx) {
+                continue
+              }
               const destBlock = await destinationChain.provider.getBlock(
                 destTx.blockNumber
               )
@@ -312,6 +327,9 @@ class Hop extends Base {
           for (let item of recentLogs) {
             if (item.topics[1] === transferHash) {
               const destTx = await item.getTransaction()
+              if (!destTx) {
+                continue
+              }
               const destTxReceipt = await destinationChain.provider.waitForTransaction(
                 destTx.hash
               )
@@ -337,87 +355,330 @@ class Hop extends Base {
 
       // L2 -> L2
       if (!sourceChain.isL1 && !destinationChain?.isL1) {
-        const wrapperSource = await bridge.getAmmWrapper(sourceChain)
-        const wrapperDest = await bridge.getAmmWrapper(destinationChain)
-        const exchange = await bridge.getSaddleSwap(destinationChain)
-        //const destinationBridge = await bridge.getL2Bridge(destinationChain)
-        // @ts-ignore
-        const decodedSource = wrapperSource?.interface.decodeFunctionData(
-          'swapAndSend',
-          sourceTx.data
-        )
-        let transferHash: string = ''
-        for (let log of receipt.logs) {
-          const transferSentTopic =
-            '0x6ea037b8ea9ecdf62eae513fc0f331de4e4a9df62927a789d840281438d14ce5'
-          if (log.topics[0] === transferSentTopic) {
-            transferHash = log.topics[1]
-            break
+        try {
+          const wrapperSource = await bridge.getAmmWrapper(sourceChain)
+          const wrapperDest = await bridge.getAmmWrapper(destinationChain)
+          const exchange = await bridge.getSaddleSwap(destinationChain)
+          //const destinationBridge = await bridge.getL2Bridge(destinationChain)
+          // @ts-ignore
+          const decodedSource = wrapperSource?.interface.decodeFunctionData(
+            'swapAndSend',
+            sourceTx.data
+          )
+          let transferHash: string = ''
+          for (let log of receipt.logs) {
+            const transferSentTopic =
+              '0x6ea037b8ea9ecdf62eae513fc0f331de4e4a9df62927a789d840281438d14ce5'
+            if (log.topics[0] === transferSentTopic) {
+              transferHash = log.topics[1]
+              break
+            }
           }
-        }
-        if (!transferHash) {
-          return false
-        }
-        const pollDest = async () => {
-          const blockNumber = await destinationChain.provider.getBlockNumber()
-          if (!blockNumber) {
+          if (!transferHash) {
             return false
           }
-          let recentLogs: any[] =
-            (await exchange?.queryFilter(
-              exchange.filters.TokenSwap(),
-              (blockNumber as number) - 100
-            )) ?? []
-          recentLogs = recentLogs.reverse()
-          for (let item of recentLogs) {
-            const decodedLog = item.decode(item.data, item.topics)
-            if (wrapperDest.address === decodedLog.buyer) {
-              /*
-            if (
-              decodedSource?.amount.toString() !==
-              decodedLog.amount0In.toString()
-            ) {
-              continue
+          const pollDest = async () => {
+            const blockNumber = await destinationChain.provider.getBlockNumber()
+            if (!blockNumber) {
+              return false
             }
-            */
-              if (!sourceTimestamp) {
+            let recentLogs: any[] =
+              (await exchange?.queryFilter(
+                exchange.filters.TokenSwap(),
+                (blockNumber as number) - 100
+              )) ?? []
+            recentLogs = recentLogs.reverse()
+            for (let item of recentLogs) {
+              const decodedLog = item.decode(item.data, item.topics)
+              if (wrapperDest.address === decodedLog.buyer) {
+                /*
+              if (
+                decodedSource?.amount.toString() !==
+                decodedLog.amount0In.toString()
+              ) {
                 continue
               }
-              const destTx = await item.getTransaction()
-              const destBlock = await destinationChain.provider.getBlock(
-                destTx.blockNumber
-              )
-              if (!destBlock) {
-                continue
+              */
+                if (!sourceTimestamp) {
+                  continue
+                }
+                const destTx = await item.getTransaction()
+                if (!destTx) {
+                  continue
+                }
+                const destBlock = await destinationChain.provider.getBlock(
+                  destTx.blockNumber
+                )
+                if (!destBlock) {
+                  continue
+                }
+                //if ((destBlock.timestamp - sourceTimestamp) < 500) {
+                const destTxReceipt = await destinationChain.provider.waitForTransaction(
+                  destTx.hash
+                )
+                ee.emit(Event.Receipt, {
+                  chain: destinationChain,
+                  receipt: destTxReceipt
+                })
+                ee.emit(Event.DestinationTxReceipt, {
+                  chain: destinationChain,
+                  receipt: destTxReceipt
+                })
+                return true
+                //}
               }
-              //if ((destBlock.timestamp - sourceTimestamp) < 500) {
-              const destTxReceipt = await destinationChain.provider.waitForTransaction(
-                destTx.hash
-              )
-              ee.emit(Event.Receipt, {
-                chain: destinationChain,
-                receipt: destTxReceipt
-              })
-              ee.emit(Event.DestinationTxReceipt, {
-                chain: destinationChain,
-                receipt: destTxReceipt
-              })
-              return true
-              //}
+              return false
             }
             return false
           }
-          return false
-        }
-        let res = false
-        while (!res) {
-          res = await pollDest()
-          await wait(5e3)
+          let res = false
+          while (!res) {
+            res = await pollDest()
+            await wait(5e3)
+          }
+        } catch (err) {
+          // events for token swap on L2 (ie saddle convert page on UI)
+          const exchange = await bridge.getSaddleSwap(destinationChain)
+          const pollDest = async () => {
+            const blockNumber = await destinationChain.provider.getBlockNumber()
+            if (!blockNumber) {
+              return false
+            }
+            let recentLogs: any[] =
+              (await exchange?.queryFilter(
+                exchange.filters.TokenSwap(),
+                (blockNumber as number) - 100
+              )) ?? []
+            recentLogs = recentLogs.reverse()
+            if (!recentLogs || !recentLogs.length) {
+              return false
+            }
+            for (let item of recentLogs) {
+              const decodedLog = item.decode(item.data, item.topics)
+              if (sourceTx.from === decodedLog.buyer) {
+                if (!sourceTimestamp) {
+                  continue
+                }
+                const destTx = await item.getTransaction()
+                if (!destTx) {
+                  continue
+                }
+                const destBlock = await destinationChain.provider.getBlock(
+                  destTx.blockNumber
+                )
+                if (!destBlock) {
+                  continue
+                }
+                if (destBlock.timestamp - sourceTimestamp < 500) {
+                  const destTxReceipt = await destinationChain.provider.waitForTransaction(
+                    destTx.hash
+                  )
+                  ee.emit(Event.Receipt, {
+                    chain: destinationChain,
+                    receipt: destTxReceipt
+                  })
+                  ee.emit(Event.DestinationTxReceipt, {
+                    chain: destinationChain,
+                    receipt: destTxReceipt
+                  })
+                  return true
+                }
+              }
+              return false
+            }
+            return false
+          }
+          let res = false
+          while (!res) {
+            res = await pollDest()
+            await wait(5e3)
+          }
         }
       }
     }
 
-    update()
+    update().catch((err: Error) => ee.emit('error', err))
+
+    return ee
+  }
+
+  public watchCanonical (
+    txHash: string,
+    token: TToken,
+    _sourceChain: TChain,
+    _destinationChain: TChain
+  ) {
+    token = this.toTokenModel(token)
+    const sourceChain = this.toChainModel(_sourceChain)
+    const destinationChain = this.toChainModel(_destinationChain)
+    const ee = new EventEmitter()
+
+    const update = async () => {
+      const bridge = this.bridge(token, sourceChain, destinationChain)
+      const l1Bridge = await bridge.getL1Bridge()
+
+      const receipt = await sourceChain.provider.waitForTransaction(txHash)
+      ee.emit(Event.Receipt, { chain: sourceChain, receipt })
+      ee.emit(Event.SourceTxReceipt, { chain: sourceChain, receipt })
+      if (!receipt.status) {
+        return
+      }
+      const sourceTx = await sourceChain.provider.getTransaction(txHash)
+      const sourceBlock = await sourceChain.provider.getBlock(
+        sourceTx.blockNumber as number
+      )
+      const sourceTimestamp = sourceBlock?.timestamp
+
+      // L1 -> L2
+      if (sourceChain.isL1) {
+        if (destinationChain.equals(Chain.xDai)) {
+          const pollDest = async () => {
+            const blockNumber = await destinationChain.provider.getBlockNumber()
+            if (!blockNumber) {
+              return false
+            }
+            const canonicalBridge = await this.canonicalBridge(
+              token,
+              Chain.xDai
+            )
+            const ambBridge = await canonicalBridge.getAmbBridge(Chain.xDai)
+            let recentLogs: any[] =
+              (await ambBridge?.queryFilter(
+                {
+                  address: canonicalBridge.getL2CanonicalTokenAddress(
+                    token,
+                    Chain.xDai
+                  )
+                },
+                (blockNumber as number) - 100
+              )) ?? []
+            recentLogs = recentLogs.reverse()
+            if (!recentLogs || !recentLogs.length) {
+              return false
+            }
+            for (let item of recentLogs) {
+              const receipt = await item.getTransactionReceipt()
+              for (let i in receipt.logs) {
+                const tokensBridgedTopic =
+                  '0x9afd47907e25028cdaca89d193518c302bbb128617d5a992c5abd45815526593'
+                if (receipt.logs[i].topics[0] === tokensBridgedTopic) {
+                  if (
+                    receipt.logs[i].topics[2].includes(
+                      sourceTx.from.toLowerCase().replace('0x', '')
+                    )
+                  ) {
+                    const destTx = await item.getTransaction()
+                    if (!destTx) {
+                      continue
+                    }
+                    const destTxReceipt = await destinationChain.provider.waitForTransaction(
+                      destTx.hash
+                    )
+                    ee.emit(Event.Receipt, {
+                      chain: destinationChain,
+                      receipt: destTxReceipt
+                    })
+                    ee.emit(Event.DestinationTxReceipt, {
+                      chain: destinationChain,
+                      receipt: destTxReceipt
+                    })
+                    return true
+                  }
+                }
+              }
+            }
+            return false
+          }
+
+          let res = false
+          while (!res) {
+            res = await pollDest()
+            await wait(5e3)
+          }
+        } else {
+          throw new Error('not implemented')
+        }
+      }
+
+      // L2 -> L1
+      if (!sourceChain.isL1 && destinationChain?.isL1) {
+        if (sourceChain.equals(Chain.xDai)) {
+          const pollDest = async () => {
+            const blockNumber = await destinationChain.provider.getBlockNumber()
+            if (!blockNumber) {
+              return false
+            }
+            const canonicalBridge = await this.canonicalBridge(
+              token,
+              Chain.xDai
+            )
+            const ambBridge = await canonicalBridge.getAmbBridge(Chain.Ethereum)
+            let recentLogs: any[] =
+              (await ambBridge?.queryFilter(
+                {
+                  address: canonicalBridge.getL1CanonicalTokenAddress(
+                    token,
+                    Chain.xDai
+                  )
+                },
+                (blockNumber as number) - 100
+              )) ?? []
+            recentLogs = recentLogs.reverse()
+            if (!recentLogs || !recentLogs.length) {
+              return false
+            }
+            for (let item of recentLogs) {
+              const receipt = await item.getTransactionReceipt()
+              for (let i in receipt.logs) {
+                const tokensBridgedTopic =
+                  '0x9afd47907e25028cdaca89d193518c302bbb128617d5a992c5abd45815526593'
+                if (receipt.logs[i].topics[0] === tokensBridgedTopic) {
+                  if (
+                    receipt.logs[i].topics[2].includes(
+                      sourceTx.from.toLowerCase().replace('0x', '')
+                    )
+                  ) {
+                    const destTx = await item.getTransaction()
+                    if (!destTx) {
+                      continue
+                    }
+                    const destTxReceipt = await destinationChain.provider.waitForTransaction(
+                      destTx.hash
+                    )
+                    ee.emit(Event.Receipt, {
+                      chain: destinationChain,
+                      receipt: destTxReceipt
+                    })
+                    ee.emit(Event.DestinationTxReceipt, {
+                      chain: destinationChain,
+                      receipt: destTxReceipt
+                    })
+                    return true
+                  }
+                }
+              }
+            }
+            return false
+          }
+
+          let res = false
+          while (!res) {
+            res = await pollDest()
+            await wait(5e3)
+          }
+        } else {
+          throw new Error('not implemented')
+        }
+      }
+
+      // L2 -> L2
+      if (!sourceChain.isL1 && !destinationChain?.isL1) {
+        throw new Error('not implemented')
+      }
+    }
+
+    update().catch((err: Error) => ee.emit('error', err))
+
     return ee
   }
 }

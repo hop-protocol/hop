@@ -3,6 +3,7 @@ import { formatUnits } from 'ethers/lib/utils'
 import {
   arbErc20Abi,
   l1xDaiForeignOmniBridgeAbi,
+  l1HomeAmbNativeToErc20,
   l1OptimismTokenBridgeAbi,
   arbitrumGlobalInboxAbi,
   l2OptimismTokenBridgeAbi,
@@ -165,7 +166,7 @@ class CanonicalBridge extends Base {
         l1xDaiForeignOmniBridgeAbi,
         provider
       )
-      await this.checkMaxTokensAllowed(chain, bridge, amount)
+      //await this.checkMaxTokensAllowed(chain, bridge, amount)
       return bridge.relayTokens(tokenAddress, recipient, amount, {
         // xDai requires a higher gas limit
         gasLimit: 1000000
@@ -421,7 +422,7 @@ class CanonicalBridge extends Base {
           `token "${this.token.symbol}" on chain "${Chain.Ethereum.slug}" is unsupported`
         )
       }
-      const maxPerTx = await canonicalBridge?.maxPerTx(tokenAddress)
+      const maxPerTx = await canonicalBridge?.maxPerTx()
       const formattedMaxPerTx = Number(
         formatUnits(maxPerTx.toString(), this.token.decimals)
       )
@@ -434,6 +435,19 @@ class CanonicalBridge extends Base {
         )
       }
     }
+  }
+
+  // xDai AMB bridge
+  async getAmbBridge (chain: TChain) {
+    chain = this.toChainModel(chain)
+    if (chain.equals(Chain.Ethereum)) {
+      const address = this.getL1AmbBridgeAddress(this.token, Chain.xDai)
+      const provider = await this.getSignerOrProvider(Chain.Ethereum)
+      return new Contract(address, l1HomeAmbNativeToErc20, provider)
+    }
+    const address = this.getL2AmbBridgeAddress(this.token, Chain.xDai)
+    const provider = await this.getSignerOrProvider(Chain.xDai)
+    return new Contract(address, l1HomeAmbNativeToErc20, provider)
   }
 }
 

@@ -55,7 +55,7 @@ class Base {
    * @param {Object} - Chain name or model.
    * @returns {Object} - Chain model with connected provider.
    */
-  protected toChainModel (chain: TChain) {
+  public toChainModel (chain: TChain) {
     if (typeof chain === 'string') {
       chain = Chain.fromSlug(chain)
     }
@@ -79,7 +79,7 @@ class Base {
    * @param {Object} - Token name or model.
    * @returns {Object} - Token model.
    */
-  protected toTokenModel (token: TToken) {
+  public toTokenModel (token: TToken) {
     if (typeof token === 'string') {
       let { name, symbol, decimals } = metadata.tokens[this.network][token]
       return new Token(0, '', decimals, symbol, name)
@@ -102,7 +102,7 @@ class Base {
    *console.log(bumpedGasPrice.toNumber())
    *```
    */
-  protected async getBumpedGasPrice (signer: TProvider, percent: number) {
+  public async getBumpedGasPrice (signer: TProvider, percent: number) {
     const gasPrice = await signer.getGasPrice()
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
@@ -112,7 +112,7 @@ class Base {
    * @param {Object} - Chain model.
    * @returns {Number} - Chain ID.
    */
-  protected getChainId (chain: Chain) {
+  public getChainId (chain: Chain) {
     const { chainId } = chains[this.network][chain.slug]
     return Number(chainId)
   }
@@ -122,7 +122,7 @@ class Base {
    * @param {Object} - Chain model.
    * @returns {Object} - Ethers provider.
    */
-  protected getChainProvider (chain: Chain) {
+  public getChainProvider (chain: Chain) {
     const { rpcUrl } = chains[this.network][chain.slug]
     return new providers.StaticJsonRpcProvider(rpcUrl)
   }
@@ -139,7 +139,7 @@ class Base {
    *console.log(address)
    *```
    */
-  protected async getSignerAddress () {
+  public async getSignerAddress () {
     if (!this.signer) {
       throw new Error('signer not connected')
     }
@@ -153,7 +153,7 @@ class Base {
    * @param {Object} signer - Ethers signer or provider
    * @returns {Object} Ethers signer or provider
    */
-  protected async getSignerOrProvider (
+  public async getSignerOrProvider (
     chain: TChain,
     signer: TProvider = this.signer as Signer
   ) {
@@ -171,69 +171,79 @@ class Base {
     return signer
   }
 
-  protected getConfigAddresses (token: TToken, chain: TChain) {
+  public getConfigAddresses (token: TToken, chain: TChain) {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
     return addresses[this.network]?.[token.symbol]?.[chain.slug]
   }
 
-  protected getL1BridgeAddress (token: TToken, chain: TChain) {
+  public getL1BridgeAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l1Bridge
   }
 
-  protected getL2BridgeAddress (token: TToken, chain: TChain) {
+  public getL2BridgeAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l2Bridge
   }
 
-  protected getL1CanonicalBridgeAddress (token: TToken, chain: TChain) {
+  public getL1CanonicalBridgeAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l1CanonicalBridge
   }
 
-  protected getL2CanonicalBridgeAddress (token: TToken, chain: TChain) {
+  public getL2CanonicalBridgeAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l2CanonicalBridge
   }
 
-  protected getL1CanonicalTokenAddress (token: TToken, chain: TChain) {
+  public getL1CanonicalTokenAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l1CanonicalToken
   }
 
-  protected getL2CanonicalTokenAddress (token: TToken, chain: TChain) {
+  public getL2CanonicalTokenAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l2CanonicalToken
   }
 
-  protected getL2HopBridgeTokenAddress (token: TToken, chain: TChain) {
+  public getL2HopBridgeTokenAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l2HopBridgeToken
   }
 
-  protected getL2AmmWrapperAddress (token: TToken, chain: TChain) {
+  public getL2AmmWrapperAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l2AmmWrapper
   }
 
-  protected getL2SaddleSwapAddress (token: TToken, chain: TChain) {
+  public getL2SaddleSwapAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l2SaddleSwap
   }
 
-  protected getL2SaddleLpTokenAddress (token: TToken, chain: TChain) {
+  public getL2SaddleLpTokenAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l2SaddleLpToken
   }
 
   // Arbitrum ARB Chain address
-  protected getArbChainAddress (token: TToken, chain: TChain) {
+  public getArbChainAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.arbChain
   }
 
+  // xDai L1 Home AMB bridge address
+  public getL1AmbBridgeAddress (token: TToken, chain: TChain) {
+    return this.getConfigAddresses(token, chain)?.l1Amb
+  }
+
+  // xDai L2 AMB bridge address
+  public getL2AmbBridgeAddress (token: TToken, chain: TChain) {
+    return this.getConfigAddresses(token, chain)?.l2Amb
+  }
+
   // Polygon Root Chain Manager address
-  protected getL1PosRootChainManagerAddress (token: TToken, chain: TChain) {
+  public getL1PosRootChainManagerAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l1PosRootChainManager
   }
 
   // Polygon ERC20 Predicate address
-  protected getL1PosErc20PredicateAddress (token: TToken, chain: TChain) {
+  public getL1PosErc20PredicateAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l1PosErc20Predicate
   }
 
   // Transaction overrides options
-  protected txOverrides (chain: Chain) {
+  public txOverrides (chain: Chain) {
     const txOptions: any = {}
     if (chain.equals(Chain.Optimism)) {
       txOptions.gasPrice = 0

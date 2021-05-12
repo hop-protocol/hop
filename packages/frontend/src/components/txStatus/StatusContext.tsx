@@ -68,7 +68,7 @@ const StatusContextProvider: FC = ({ children }) => {
       { text: sourceChain.name, url: tx.explorerLink }
     ]
     sdk
-      .watch(tx.hash, tx.token.symbol, sourceChain, destChain)
+      .watch(tx.hash, tx.token.symbol, sourceChain, destChain, tx.isCanonicalTransfer)
       .on(sdk.Event.SourceTxReceipt, data => {
         const { receipt } = data
         if (!receipt.status) {
@@ -103,6 +103,9 @@ const StatusContextProvider: FC = ({ children }) => {
         if (activeStep < 4) {
           setActiveStep(3)
         }
+      })
+      .on('error', err => {
+        console.error(err)
       })
 
     if (destChain) {

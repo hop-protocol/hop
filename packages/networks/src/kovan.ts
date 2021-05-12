@@ -27,7 +27,7 @@ export const networks: Networks = {
     networkId: 77,
     rpcUrls: [
       'https://sokol.poa.network',
-      'http://sokol-archive.blockscout.com'
+      'https://sokol-archive.blockscout.com'
     ],
     explorerUrls: ['https://blockscout.com/poa/sokol']
   }

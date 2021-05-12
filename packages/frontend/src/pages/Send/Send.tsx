@@ -11,8 +11,7 @@ import SelectOption from 'src/components/selects/SelectOption'
 import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
 import Transaction from 'src/models/Transaction'
 import Alert from 'src/components/alert/Alert'
-import TxStatus from 'src/components/txStatus'
-import Modal from 'src/components/modal'
+import TxStatusModal from 'src/components/txStatus/TxStatusModal'
 import { BigNumber, ethers } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Token from 'src/models/Token'
@@ -852,26 +851,9 @@ const Send: FC = () => {
       </SendButton>
       <br />
       <Alert severity="info" onClose={() => setInfo(null)} text={info} />
-      {tx ? (
-        <Modal onClose={handleTxStatusClose}>
-          <TxStatus tx={tx} />
-          <Box
-            display="flex"
-            alignItems="center"
-            className={styles.txStatusInfo}
-          >
-            <Typography variant="body1">
-              <em>This may take a few minutes</em>
-            </Typography>
-            <MuiButton
-              className={styles.txStatusCloseButton}
-              onClick={handleTxStatusClose}
-            >
-              Close
-            </MuiButton>
-          </Box>
-        </Modal>
-      ) : null}
+      <TxStatusModal
+        onClose={handleTxStatusClose}
+        tx={tx} />
     </Box>
   )
 }

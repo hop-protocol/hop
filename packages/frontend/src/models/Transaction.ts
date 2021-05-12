@@ -13,6 +13,7 @@ interface Config {
   pending?: boolean
   timestamp?: number
   token?: Token
+  isCanonicalTransfer?: boolean
 }
 
 const standardNetworks = new Set([
@@ -27,6 +28,7 @@ class Transaction extends EventEmitter {
   readonly hash: string
   readonly networkName: string
   readonly destNetworkName: string | null = null
+  readonly isCanonicalTransfer: boolean = false
   readonly provider: ethers.providers.Provider
   token: Token | null = null
   pending: boolean
@@ -39,7 +41,8 @@ class Transaction extends EventEmitter {
     destNetworkName,
     pending = true,
     timestamp,
-    token
+    token,
+    isCanonicalTransfer
   }: Config) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
@@ -71,6 +74,9 @@ class Transaction extends EventEmitter {
       this.pending = false
       this.emit('pending', false, this)
     })
+    if (typeof isCanonicalTransfer === 'boolean') {
+      this.isCanonicalTransfer = isCanonicalTransfer
+    }
   }
 
   get explorerLink (): string {
@@ -133,9 +139,10 @@ class Transaction extends EventEmitter {
       pending,
       timestamp,
       token,
-      destNetworkName
+      destNetworkName,
+      isCanonicalTransfer
     } = this
-    return { hash, networkName, pending, timestamp, token, destNetworkName }
+    return { hash, networkName, pending, timestamp, token, destNetworkName, isCanonicalTransfer }
   }
 
   static fromObject (obj: any) {
@@ -145,7 +152,8 @@ class Transaction extends EventEmitter {
       pending,
       timestamp,
       token,
-      destNetworkName
+      destNetworkName,
+      isCanonicalTransfer
     } = obj
     return new Transaction({
       hash,
@@ -153,7 +161,8 @@ class Transaction extends EventEmitter {
       pending,
       timestamp,
       token,
-      destNetworkName
+      destNetworkName,
+      isCanonicalTransfer
     })
   }
 }

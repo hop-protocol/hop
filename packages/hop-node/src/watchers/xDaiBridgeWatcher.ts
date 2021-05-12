@@ -28,6 +28,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
       const l2Amb = new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider)
       const l1Amb = new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet)
 
+      this.logger.debug('xDai bridge watcher started')
       while (true) {
         if (!this.started) {
           return
@@ -90,7 +91,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
         await wait(10 * 1000)
       }
     } catch (err) {
-      this.logger.error('watcher error:', err.message)
+      this.logger.error('watcher error:', err)
     }
   }
 

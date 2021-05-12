@@ -36,6 +36,8 @@ type ConvertContextProps = {
   setDestTokenBalance: (balance: number | null) => void
   error: string | null | undefined
   setError: (error: string | null | undefined) => void
+  tx: Transaction | undefined
+  setTx: (tx: Transaction | undefined) => void
 }
 
 const ConvertContext = createContext<ConvertContextProps>({
@@ -64,7 +66,9 @@ const ConvertContext = createContext<ConvertContextProps>({
   setSourceTokenBalance: (balance: number | null) => {},
   setDestTokenBalance: (balance: number | null) => {},
   error: null,
-  setError: (error: string | null | undefined) => {}
+  setError: (error: string | null | undefined) => {},
+  tx: undefined,
+  setTx: (tx: Transaction | undefined) => {},
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
@@ -73,9 +77,6 @@ const ConvertContextProvider: FC = ({ children }) => {
   const { networks: nets, tokens, txConfirm, sdk } = app
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const canonicalSlug = (network: Network) => {
-    if (network?.isLayer1) {
-      return ''
-    }
     return network?.slug?.replace('HopBridge', '')
   }
   const isHopBridge = (slug: string | undefined) => {
@@ -122,6 +123,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   )
   const [destTokenBalance, setDestTokenBalance] = useState<number | null>(null)
   const [error, setError] = useState<string | null | undefined>(null)
+  const [tx, setTx] = useState<Transaction | undefined>()
   const networkPairMap = networks.reduce((obj, network) => {
     if (network.isLayer1) {
       return obj
@@ -139,6 +141,9 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
       if (!destNetwork) {
         return ''
+      }
+      if (sourceNetwork.isLayer1) {
+        return value
       }
       const slug = canonicalSlug(sourceNetwork)
       if (!slug) {
@@ -164,6 +169,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   const convertTokens = async () => {
     try {
+      setTx(undefined)
       const networkId = Number(sourceNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
@@ -234,6 +240,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       const sourceSlug = canonicalSlug(sourceNetwork)
       const bridge = sdk.bridge(selectedToken?.symbol).connect(signer as Signer)
       const l1Bridge = await bridge.getL1Bridge()
+      let isCanonicalTransfer = false
 
       // source network is L1 ( L1 -> L2 )
       if (sourceNetwork?.isLayer1) {
@@ -284,6 +291,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
           // destination network is canonical bridge (L1 canonical -> L2 canonical)
         } else if (destNetwork && !isHopBridge(destNetwork?.slug)) {
+          isCanonicalTransfer = true
           const destSlug = destNetwork?.slug
           const bridge = sdk
             .canonicalBridge(selectedToken.symbol, destSlug)
@@ -319,6 +327,8 @@ const ConvertContextProvider: FC = ({ children }) => {
         !sourceNetwork?.isLayer1 &&
         !isHopBridge(sourceNetwork?.slug)
       ) {
+        isCanonicalTransfer = true
+
         // destination network is L1 ( L2 canonical -> L1 canonical)
         if (destNetwork?.isLayer1) {
           tx = await txConfirm?.show({
@@ -480,11 +490,19 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
 
       if (tx?.hash && sourceNetwork?.name) {
-        app?.txHistory?.addTransaction(
-          new Transaction({
+        const txObj = new Transaction({
             hash: tx?.hash,
-            networkName: canonicalSlug(sourceNetwork)
+            networkName: canonicalSlug(sourceNetwork),
+            destNetworkName: canonicalSlug(destNetwork as Network),
+            token: selectedToken,
+            isCanonicalTransfer
           })
+        // don't set tx status modal if it's tx to the same chain
+        if (sourceNetwork.isLayer1 !== destNetwork?.isLayer1) {
+          setTx(txObj)
+        }
+        app?.txHistory?.addTransaction(
+          txObj
         )
       }
     } catch (err) {
@@ -540,7 +558,9 @@ const ConvertContextProvider: FC = ({ children }) => {
         setSourceTokenBalance,
         setDestTokenBalance,
         error,
-        setError
+        setError,
+        tx,
+        setTx
       }}
     >
       {children}

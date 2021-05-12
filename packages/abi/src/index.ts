@@ -8,6 +8,7 @@ export { default as l1ArbitrumMessengerAbi } from './abi/L1_ArbitrumMessenger.js
 export { default as l1ArbitrumMessengerWrapperAbi } from './abi/L1_ArbitrumMessengerWrapper.json'
 export { default as l1BridgeAbi } from './abi/L1_ERC20_Bridge.json'
 export { default as l1Erc20BridgeAbi } from './abi/L1_ERC20_Bridge.json'
+export { default as l1HomeAmbNativeToErc20 } from './abi/L1_HomeAMBNativeToErc20.json'
 export { default as l1OptimismMessengerAbi } from './abi/L1_OptimismMessenger.json'
 export { default as l1OptimismMessengerWrapperAbi } from './abi/L1_OptimismMessengerWrapper.json'
 export { default as l1OptimismTokenBridgeAbi } from './abi/L1_OptimismTokenBridge.json'

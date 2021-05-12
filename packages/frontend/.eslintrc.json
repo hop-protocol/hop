@@ -19,6 +19,7 @@
   "plugins": ["react", "@typescript-eslint"],
   "ignorePatterns": [],
   "rules": {
+    "indent": 0,
     "comma-dangle": 0,
     "multiline-ternary": 0,
     "semi": 0,

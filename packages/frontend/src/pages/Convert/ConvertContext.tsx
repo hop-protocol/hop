@@ -195,7 +195,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
         const parsedAmount = parseUnits(amount, token.decimals)
         const approved = await bridge.token.allowance(
-          network.slug,
+          canonicalSlug(network),
           targetAddress
         )
 
@@ -210,7 +210,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             onConfirm: async (approveAll: boolean) => {
               const approveAmount = approveAll ? UINT256 : parsedAmount
               return bridge.token.approve(
-                network.slug,
+                canonicalSlug(network),
                 targetAddress,
                 approveAmount
               )
@@ -276,7 +276,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
               return bridge.send(
                 value,
-                sourceNetwork.slug,
+                canonicalSlug(sourceNetwork),
                 canonicalSlug(destNetwork),
                 {
                   recipient,
@@ -431,7 +431,7 @@ const ConvertContextProvider: FC = ({ children }) => {
               const bonderFee = await bridge.getBonderFee(
                 value,
                 canonicalSlug(sourceNetwork),
-                destNetwork.slug
+                canonicalSlug(destNetwork),
               )
 
               if (bonderFee.gt(value)) {
@@ -441,7 +441,7 @@ const ConvertContextProvider: FC = ({ children }) => {
               return bridge.send(
                 value,
                 canonicalSlug(sourceNetwork),
-                destNetwork.slug,
+                canonicalSlug(destNetwork),
                 {
                   recipient,
                   bonderFee,

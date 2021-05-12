@@ -7,6 +7,7 @@ import Network from 'src/models/Network'
 import SendButton from 'src/pages/Convert/SendButton'
 import AmountSelectorCard from 'src/pages/Convert/AmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
+import TxStatusModal from 'src/components/txStatus/TxStatusModal'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 import { normalizeNumberInput } from 'src/utils'
 
@@ -47,7 +48,9 @@ const Convert: FC = () => {
     setSourceTokenBalance,
     setDestTokenBalance,
     error,
-    setError
+    setError,
+    tx,
+    setTx
   } = useConvert()
 
   useEffect(() => {
@@ -85,6 +88,9 @@ const Convert: FC = () => {
       setSourceTokenAmount(await calcAltTokenAmount(amount))
     } catch (err) {}
   }
+  const handleTxStatusClose = () => {
+    setTx(undefined)
+  }
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -112,6 +118,9 @@ const Convert: FC = () => {
         onBalanceChange={setDestTokenBalance}
       />
       <Alert severity="error" onClose={() => setError(null)} text={error} />
+      <TxStatusModal
+        onClose={handleTxStatusClose}
+        tx={tx} />
       <SendButton />
     </Box>
   )

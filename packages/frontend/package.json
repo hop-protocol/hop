@@ -5,9 +5,9 @@
   "dependencies": {
     "@ethersproject/address": "5.0.8",
     "@hop-protocol/abi": "0.0.1-beta.3",
-    "@hop-protocol/addresses": "0.0.1-beta.6",
+    "@hop-protocol/addresses": "0.0.1-beta.7",
     "@hop-protocol/metadata": "0.0.1-beta.2",
-    "@hop-protocol/sdk": "0.0.1-beta.18",
+    "@hop-protocol/sdk": "0.0.1-beta.19",
     "@material-ui/core": "4.11.0",
     "@material-ui/icons": "4.9.1",
     "@material-ui/lab": "4.0.0-alpha.56",
@@ -44,6 +44,7 @@
   "scripts": {
     "start": "react-scripts start",
     "dev": "BROWSER=none npm start",
+    "clean": "rimraf build",
     "lint": "npx eslint --fix \"**/*.{ts,tsx}\"",
     "build": "INLINE_RUNTIME_CHUNK=false react-scripts --max_old_space_size=4096 build",
     "test": "react-scripts test",
@@ -85,6 +86,7 @@
     "ipfs-deploy": "8.0.1",
     "lerna-sync-version": "0.0.5",
     "prettier-standard": "^16.4.1",
+    "rimraf": "^3.0.2",
     "typescript": "^4.2.4"
   }
 }

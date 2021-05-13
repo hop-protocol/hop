@@ -22,7 +22,7 @@ describe('sdk setup', () => {
   })
 })
 
-describe('hop bridge token transfers', () => {
+describe.skip('hop bridge token transfers', () => {
   const hop = new Hop()
   const signer = new Wallet(privateKey)
   it(
@@ -72,7 +72,7 @@ describe('hop bridge token transfers', () => {
   )
 })
 
-describe('tx watcher', () => {
+describe.skip('tx watcher', () => {
   const hop = new Hop()
   const signer = new Wallet(privateKey)
   it(
@@ -88,8 +88,8 @@ describe('tx watcher', () => {
       console.log('waiting for receipts')
 
       await new Promise(resolve => {
-        let sourceReceipt = null
-        let destinationReceipt = null
+        let sourceReceipt: any = null
+        let destinationReceipt: any = null
 
         hop
           .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.xDai)
@@ -126,8 +126,8 @@ describe('tx watcher', () => {
       console.log('waiting for receipts')
 
       await new Promise(resolve => {
-        let sourceReceipt = null
-        let destinationReceipt = null
+        let sourceReceipt: any = null
+        let destinationReceipt: any = null
 
         hop
           .watch(tx.hash, Token.USDC, Chain.xDai, Chain.Optimism)
@@ -170,8 +170,8 @@ describe('tx watcher', () => {
       console.log('waiting for receipts')
 
       await new Promise(resolve => {
-        let sourceReceipt = null
-        let destinationReceipt = null
+        let sourceReceipt: any = null
+        let destinationReceipt: any = null
 
         hop
           .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.xDai)
@@ -281,7 +281,7 @@ describe.skip('canonical bridge transfers', () => {
   )
 })
 
-describe('liqudity provider', () => {
+describe.skip('liqudity provider', () => {
   const hop = new Hop()
   const signer = new Wallet(privateKey)
   it('should add liqudity on xDai', async () => {
@@ -305,18 +305,3 @@ describe('liqudity provider', () => {
     expect(tx.hash).toBeTruthy()
   })
 })
-
-/*
-describe('token balance', () => {
-  const hop = new Hop()
-  const signer = new Wallet(privateKey)
-  it('should get canonical token balance', async () => {
-    const balance = await hop.bridge(Token.DAI).token.balanceOf(Chain.xDai)
-    expect(balance).toBeGreaterThan(0)
-  })
-  it('should get ho token balance', async () => {
-    const balance = await hop.bridge(Token.DAI).hopToken.balanceOf(Chain.xDai)
-    expect(balance).toBeGreaterThan(0)
-  })
-})
-*/

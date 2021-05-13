@@ -1,4 +1,4 @@
-import { Addresses } from '@hop-protocol/addresses'
+import { Bridges } from '@hop-protocol/addresses'
 
 export interface IProposalDetail {
   target: string
@@ -26,5 +26,5 @@ export interface HopAddresses {
     stakingRewards: string
     governorAlpha: string
   }
-  tokens: Addresses
+  tokens: Bridges
 }

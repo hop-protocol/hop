@@ -1,4 +1,4 @@
-import { kovan as addresses } from '@hop-protocol/addresses'
+import { kovan as kovanAddresses } from '@hop-protocol/addresses'
 import { kovan as networks } from '@hop-protocol/networks'
 import { Chains } from './types'
 
@@ -16,4 +16,6 @@ for (let chain in chains) {
   chains[chain].explorerUrl = networks[chain]?.explorerUrls?.[0]
 }
 
-export { addresses, chains }
+const addresses = kovanAddresses.bridges
+const bonders = kovanAddresses.bonders
+export { addresses, chains, bonders }

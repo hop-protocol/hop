@@ -8,7 +8,7 @@ export const addresses: HopAddresses = {
     stakingRewards: '',
     governorAlpha: ''
   },
-  tokens: mainnetAddresses
+  tokens: mainnetAddresses.bridges
 }
 
 export const networks: any = {

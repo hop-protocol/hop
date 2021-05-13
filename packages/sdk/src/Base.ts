@@ -1,7 +1,7 @@
 import { Signer, providers, BigNumber } from 'ethers'
 import { Chain, Token } from './models'
 import { TChain, TProvider, TToken } from './types'
-import { addresses, chains, metadata } from './config'
+import { addresses, chains, metadata, bonders } from './config'
 
 /**
  * Class with base methods.
@@ -252,6 +252,10 @@ class Base {
       txOptions.gasLimit = 5000000
     }
     return txOptions
+  }
+
+  public getBonderAddress (): string {
+    return bonders?.[this.network]?.[0]
   }
 }
 

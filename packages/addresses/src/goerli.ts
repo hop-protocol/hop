@@ -19,5 +19,24 @@ export const addresses: Addresses = {
       l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
       l1PosErc20Predicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
     }
+  },
+  DAI: {
+    ethereum: {
+      l1CanonicalToken: '0xC61bA16e864eFbd06a9fe30Aab39D18B8F63710a',
+      l1Bridge: '0x0842E4448577F53848fb357D5BA6937556d4Cc68'
+    },
+    polygon: {
+      l1CanonicalBridge: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
+      l1MessengerWrapper: '0x0154b54B4CB747f8976971a1D501256d2A588817',
+      l2CanonicalBridge: '0xb224913CE3851b0a0d7C0FB461eEF40f2e31ddb8',
+      l2CanonicalToken: '0xb224913CE3851b0a0d7C0FB461eEF40f2e31ddb8',
+      l2Bridge: '0x27E5A055fcea534c46Ac01D90EEec8Df9A6cB109',
+      l2HopBridgeToken: '0x73Aac46baBE2C265868578E0292D0f778eD695E1',
+      l2AmmWrapper: '0x0596658A905AE95660d880eA7b0D60d243Bc0B17',
+      l2SaddleSwap: '0x4C7fF0e48524b6aB37603dFb800a04095893dDf5',
+      l2SaddleLpToken: '0x434e501FB37540Ff6757D15EdDD25d0Da0B97a90',
+      l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
+      l1PosErc20Predicate: '0x37c3bfC05d5ebF9EBb3FF80ce0bd0133Bf221BC8'
+    }
   }
 }

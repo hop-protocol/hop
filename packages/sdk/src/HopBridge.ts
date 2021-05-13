@@ -368,7 +368,10 @@ class HopBridge extends Base {
       const txFeeEth = gasPrice.mul(BondTransferGasCost)
 
       const oneEth = ethers.utils.parseEther('1')
-      const rateBN = ethers.utils.parseEther(rate.toString())
+      const rateBN = ethers.utils.parseUnits(
+        rate.toFixed(this.token.decimals),
+        this.token.decimals
+      )
       const fee = txFeeEth.mul(rateBN).div(oneEth)
 
       return fee

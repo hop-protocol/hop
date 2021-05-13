@@ -1,4 +1,4 @@
-export type Addresses = {
+export type Bridges = {
   [key: string]: Partial<{
     ethereum: {
       [key: string]: string
@@ -16,4 +16,11 @@ export type Addresses = {
       [key: string]: string
     }
   }>
+}
+
+export type Bonders = string[]
+
+export type Addresses = {
+  bridges: Bridges
+  bonders: Bonders
 }

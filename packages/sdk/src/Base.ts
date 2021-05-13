@@ -1,7 +1,7 @@
 import { Signer, providers, BigNumber } from 'ethers'
 import { Chain, Token } from './models'
 import { TChain, TProvider, TToken } from './types'
-import { addresses, chains, metadata } from './config'
+import { addresses, chains, metadata, bonders } from './config'
 
 /**
  * Class with base methods.
@@ -239,7 +239,7 @@ class Base {
 
   // Polygon ERC20 Predicate address
   public getL1PosErc20PredicateAddress (token: TToken, chain: TChain) {
-    return this.getConfigAddresses(token, chain)?.l1PosErc20Predicate
+    return this.getConfigAddresses(token, chain)?.l1PosPredicate
   }
 
   // Transaction overrides options
@@ -252,6 +252,10 @@ class Base {
       txOptions.gasLimit = 5000000
     }
     return txOptions
+  }
+
+  public getBonderAddress (): string {
+    return bonders?.[this.network]?.[0]
   }
 }
 

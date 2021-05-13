@@ -34,6 +34,9 @@ class Token {
     if (name) {
       this.name = name
     }
+    if (decimals) {
+      this.decimals = decimals
+    }
     if (!decimals && symbol) {
       this.decimals = metadata.tokens?.[Network.Mainnet]?.[symbol]?.decimals
     }

@@ -4,7 +4,7 @@ import { MaticPOSClient } from '@maticnetwork/maticjs'
 import Web3 from 'web3'
 import chalk from 'chalk'
 import { erc20Abi, l1PolygonPosRootChainManagerAbi } from '@hop-protocol/abi'
-import { goerli as addresses } from '@hop-protocol/addresses'
+import { addresses } from 'src/config/goerli'
 import { Chain } from 'src/constants'
 import { config } from 'src/config'
 import wallets from 'src/wallets'
@@ -138,8 +138,7 @@ class polygonBridgeWatcher extends BaseWatcher {
       ),
       posRootChainManager:
         addresses[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
-      posERC20Predicate:
-        addresses[tokenSymbol][Chain.Polygon].l1PosErc20Predicate
+      posERC20Predicate: addresses[tokenSymbol][Chain.Polygon].l1PosPredicate
     })
 
     const tx = await maticPOSClient.exitERC20(txHash, {

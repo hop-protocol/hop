@@ -15,4 +15,10 @@ const chains: { [key: string]: any } = {
   goerli: goerli.chains
 }
 
-export { addresses, chains, metadata }
+const bonders: { [key: string]: string[] } = {
+  mainnet: mainnet.bonders,
+  kovan: kovan.bonders,
+  goerli: goerli.bonders
+}
+
+export { addresses, chains, metadata, bonders }

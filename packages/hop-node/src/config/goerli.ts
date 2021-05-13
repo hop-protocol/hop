@@ -1,5 +1,6 @@
-import { goerli as addresses } from '@hop-protocol/addresses'
+import { goerli as goerliAddresses } from '@hop-protocol/addresses'
 import { goerli as networks } from '@hop-protocol/networks'
-export { addresses, networks }
 
-export const bonders: string[] = []
+const addresses = goerliAddresses.bridges
+const bonders = goerliAddresses.bonders
+export { addresses, networks, bonders }

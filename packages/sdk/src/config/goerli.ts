@@ -1,4 +1,4 @@
-import { goerli as addresses } from '@hop-protocol/addresses'
+import { goerli as goerliAddresses } from '@hop-protocol/addresses'
 import { goerli as networks } from '@hop-protocol/networks'
 import { Chains } from './types'
 
@@ -14,4 +14,6 @@ for (let chain in chains) {
   chains[chain].explorerUrl = networks[chain]?.explorerUrls?.[0]
 }
 
-export { addresses, chains }
+const addresses = goerliAddresses.bridges
+const bonders = goerliAddresses.bonders
+export { addresses, chains, bonders }

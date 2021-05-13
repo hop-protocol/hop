@@ -1,5 +1,6 @@
 import EventEmitter from 'eventemitter3'
-import { Signer } from 'ethers'
+import { Contract, Signer } from 'ethers'
+import { erc20Abi } from '@hop-protocol/abi'
 import { Chain, Token } from './models'
 import { wait } from './utils'
 import HopBridge from './HopBridge'
@@ -187,6 +188,7 @@ class Hop extends Base {
     destinationChain: TChain,
     isCanonicalTransfer: boolean = false
   ) {
+    // TODO: detect type of transfer
     return isCanonicalTransfer
       ? this.watchCanonical(txHash, token, sourceChain, destinationChain)
       : this.watchBridge(txHash, token, sourceChain, destinationChain)
@@ -198,6 +200,7 @@ class Hop extends Base {
     _sourceChain: TChain,
     _destinationChain: TChain
   ) {
+    // TODO: clean up
     token = this.toTokenModel(token)
     const sourceChain = this.toChainModel(_sourceChain)
     const destinationChain = this.toChainModel(_destinationChain)
@@ -260,7 +263,7 @@ class Hop extends Base {
                 destTx = await item.getTransaction()
               }
             }
-          } else {
+          } else if (destinationChain.equals(Chain.xDai)) {
             const ambBridge = await bridge.getAmbBridge(Chain.xDai)
             recentLogs =
               (await ambBridge?.queryFilter(
@@ -549,6 +552,7 @@ class Hop extends Base {
     _sourceChain: TChain,
     _destinationChain: TChain
   ) {
+    // TODO: clean up
     token = this.toTokenModel(token)
     const sourceChain = this.toChainModel(_sourceChain)
     const destinationChain = this.toChainModel(_destinationChain)
@@ -586,10 +590,7 @@ class Hop extends Base {
             let recentLogs: any[] =
               (await ambBridge?.queryFilter(
                 {
-                  address: canonicalBridge.getL2CanonicalTokenAddress(
-                    token,
-                    Chain.xDai
-                  )
+                  address: this.getL2CanonicalTokenAddress(token, Chain.xDai)
                 },
                 (blockNumber as number) - 100
               )) ?? []
@@ -603,6 +604,72 @@ class Hop extends Base {
                 const tokensBridgedTopic =
                   '0x9afd47907e25028cdaca89d193518c302bbb128617d5a992c5abd45815526593'
                 if (receipt.logs[i].topics[0] === tokensBridgedTopic) {
+                  if (
+                    receipt.logs[i].topics[2].includes(
+                      sourceTx.from.toLowerCase().replace('0x', '')
+                    )
+                  ) {
+                    const destTx = await item.getTransaction()
+                    if (!destTx) {
+                      continue
+                    }
+                    const destTxReceipt = await destinationChain.provider.waitForTransaction(
+                      destTx.hash
+                    )
+                    ee.emit(Event.Receipt, {
+                      chain: destinationChain,
+                      receipt: destTxReceipt
+                    })
+                    ee.emit(Event.DestinationTxReceipt, {
+                      chain: destinationChain,
+                      receipt: destTxReceipt
+                    })
+                    return true
+                  }
+                }
+              }
+            }
+            return false
+          }
+
+          let res = false
+          while (!res) {
+            res = await pollDest()
+            await wait(5e3)
+          }
+        } else if (destinationChain.equals(Chain.Polygon)) {
+          const pollDest = async () => {
+            const blockNumber = await destinationChain.provider.getBlockNumber()
+            if (!blockNumber) {
+              return false
+            }
+            const canonicalBridge = await this.canonicalBridge(
+              token,
+              Chain.Polygon
+            )
+            const tokenBridge = await canonicalBridge.getL2CanonicalBridge(
+              Chain.Polygon
+            )
+            let recentLogs: any[] =
+              (await tokenBridge?.queryFilter(
+                {
+                  address: canonicalBridge.getL2CanonicalTokenAddress(
+                    token,
+                    Chain.Polygon
+                  )
+                },
+                (blockNumber as number) - 100
+              )) ?? []
+            recentLogs = recentLogs.reverse()
+            if (!recentLogs || !recentLogs.length) {
+              return false
+            }
+            for (let item of recentLogs) {
+              const receipt = await item.getTransactionReceipt()
+              for (let i in receipt.logs) {
+                const tokenTransferTopic =
+                  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+                if (receipt.logs[i].topics[0] === tokenTransferTopic) {
                   if (
                     receipt.logs[i].topics[2].includes(
                       sourceTx.from.toLowerCase().replace('0x', '')
@@ -679,6 +746,81 @@ class Hop extends Base {
                       sourceTx.from.toLowerCase().replace('0x', '')
                     )
                   ) {
+                    const destTx = await item.getTransaction()
+                    if (!destTx) {
+                      continue
+                    }
+                    const destTxReceipt = await destinationChain.provider.waitForTransaction(
+                      destTx.hash
+                    )
+                    ee.emit(Event.Receipt, {
+                      chain: destinationChain,
+                      receipt: destTxReceipt
+                    })
+                    ee.emit(Event.DestinationTxReceipt, {
+                      chain: destinationChain,
+                      receipt: destTxReceipt
+                    })
+                    return true
+                  }
+                }
+              }
+            }
+            return false
+          }
+
+          let res = false
+          while (!res) {
+            res = await pollDest()
+            await wait(5e3)
+          }
+        } else if (sourceChain.equals(Chain.Polygon)) {
+          const pollDest = async () => {
+            const blockNumber = await destinationChain.provider.getBlockNumber()
+            if (!blockNumber) {
+              return false
+            }
+            const tokenAddress = this.getL1CanonicalTokenAddress(
+              token,
+              Chain.Ethereum
+            )
+            const contract = new Contract(
+              tokenAddress,
+              erc20Abi,
+              await this.getSignerOrProvider(Chain.Ethereum)
+            )
+            let recentLogs: any[] =
+              (await contract?.queryFilter(
+                {
+                  topics: []
+                },
+                (blockNumber as number) - 100
+              )) ?? []
+            recentLogs = recentLogs.reverse()
+            if (!recentLogs || !recentLogs.length) {
+              return false
+            }
+            for (let item of recentLogs) {
+              const receipt = await item.getTransactionReceipt()
+              for (let i in receipt.logs) {
+                const tokenTransferTopic =
+                  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+                if (receipt.logs[i].topics[0] === tokenTransferTopic) {
+                  if (
+                    receipt.logs[i].topics[2].includes(
+                      sourceTx.from.toLowerCase().replace('0x', '')
+                    )
+                  ) {
+                    if (
+                      !receipt.logs[i].topics[1].includes(
+                        this.getL1PosErc20PredicateAddress(token, Chain.Polygon)
+                          .toLowerCase()
+                          .replace('0x', '')
+                      )
+                    ) {
+                      continue
+                    }
+
                     const destTx = await item.getTransaction()
                     if (!destTx) {
                       continue

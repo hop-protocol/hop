@@ -80,6 +80,11 @@ class polygonBridgeWatcher extends BaseWatcher {
         if (!this.started) {
           return
         }
+
+        //const transactionHash= '0x3f5997c83acf26d8628c6ba5b410271834a3aa71ca7f1f60a2b2bfb83127db41'
+        //const meta = await l2Token.provider.getTransaction(transactionHash)
+        //transactionHashes[transactionHash] = meta
+
         try {
           for (let transactionHash in transactionHashes) {
             const { blockNumber: l2BlockNumber } = transactionHashes[
@@ -147,6 +152,7 @@ class polygonBridgeWatcher extends BaseWatcher {
       value: tx.value,
       data: tx.data,
       gasLimit: tx.gas
+      //gasPrice: '40000000000',
     })
   }
 }

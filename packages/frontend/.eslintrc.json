@@ -21,6 +21,7 @@
   "rules": {
     "indent": 0,
     "comma-dangle": 0,
+    "no-constant-condition": 0,
     "multiline-ternary": 0,
     "semi": 0,
     "import/no-unresolved": 0,

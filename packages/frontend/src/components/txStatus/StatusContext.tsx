@@ -67,6 +67,7 @@ const StatusContextProvider: FC = ({ children }) => {
       },
       { text: sourceChain.name, url: tx.explorerLink }
     ]
+
     sdk
       .watch(tx.hash, tx.token.symbol, sourceChain, destChain, tx.isCanonicalTransfer)
       .on(sdk.Event.SourceTxReceipt, data => {

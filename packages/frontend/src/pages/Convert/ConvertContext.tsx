@@ -300,7 +300,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             selectedToken,
             sourceTokenAmount,
             sourceNetwork as Network,
-            bridge.address
+            bridge.getDepositApprovalAddress()
           )
 
           tx = await txConfirm?.show({

@@ -19,7 +19,7 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x19365928c043172bD510FF926040ca3f397e1057',
         l2SaddleLpToken: '0xf38d8966064e0751f164e77f43B3593eb16b234A',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1PosErc20Predicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
+        l1PosPredicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
       }
     },
     DAI: {
@@ -38,7 +38,7 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x22c5AcA60C2f6D832f8C11992fd52fcA8A0F10ec',
         l2SaddleLpToken: '0x29204640A74f1E39f418865651c37ca1e3eD407C',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1PosErc20Predicate: '0x37c3bfC05d5ebF9EBb3FF80ce0bd0133Bf221BC8'
+        l1PosPredicate: '0x37c3bfC05d5ebF9EBb3FF80ce0bd0133Bf221BC8'
       }
     }
   }

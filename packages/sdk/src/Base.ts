@@ -239,7 +239,7 @@ class Base {
 
   // Polygon ERC20 Predicate address
   public getL1PosErc20PredicateAddress (token: TToken, chain: TChain) {
-    return this.getConfigAddresses(token, chain)?.l1PosErc20Predicate
+    return this.getConfigAddresses(token, chain)?.l1PosPredicate
   }
 
   // Transaction overrides options

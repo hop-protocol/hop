@@ -139,7 +139,7 @@ class polygonBridgeWatcher extends BaseWatcher {
       posRootChainManager:
         addresses[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
       posERC20Predicate:
-        addresses[tokenSymbol][Chain.Polygon].l1PosErc20Predicate
+        addresses[tokenSymbol][Chain.Polygon].l1PosPredicate
     })
 
     const tx = await maticPOSClient.exitERC20(txHash, {

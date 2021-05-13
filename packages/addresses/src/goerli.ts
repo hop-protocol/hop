@@ -17,7 +17,7 @@ export const addresses: Addresses = {
       l2SaddleSwap: '0x6C0DE4cA0901827dd5C3D56708B698B493F28004',
       l2SaddleLpToken: '0x37e9dEcb4D1Eb26915729B40F08c997d4FfE7793',
       l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-      l1PosErc20Predicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
+      l1PosPredicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
     }
   },
   DAI: {
@@ -36,7 +36,7 @@ export const addresses: Addresses = {
       l2SaddleSwap: '0x4C7fF0e48524b6aB37603dFb800a04095893dDf5',
       l2SaddleLpToken: '0x434e501FB37540Ff6757D15EdDD25d0Da0B97a90',
       l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-      l1PosErc20Predicate: '0x37c3bfC05d5ebF9EBb3FF80ce0bd0133Bf221BC8'
+      l1PosPredicate: '0x37c3bfC05d5ebF9EBb3FF80ce0bd0133Bf221BC8'
     }
   }
 }

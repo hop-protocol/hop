@@ -644,6 +644,7 @@ const Send: FC = () => {
     toTokenAmount &&
     rate &&
     enoughBalance &&
+    !needsTokenForFee &&
     isLiquidityAvailable
   )
 
@@ -654,8 +655,12 @@ const Send: FC = () => {
     buttonText = 'Select from network'
   } else if (!toNetwork) {
     buttonText = 'Select to network'
-  } else if (!enoughBalance || needsTokenForFee) {
+  } else if (!enoughBalance) {
     buttonText = 'Insufficient funds'
+  } else if (needsTokenForFee) {
+    buttonText = `Insufficient ${fromNetwork.nativeTokenSymbol}`
+  } else if (!isLiquidityAvailable) {
+    buttonText = 'Insufficient liquidity'
   }
 
   const handleTxStatusClose = () => {

@@ -6,18 +6,18 @@ export const addresses: Addresses = {
     USDC: {
       ethereum: {
         l1CanonicalToken: '0x98339D8C260052B7ad81c28c16C0b98420f2B46a',
-        l1Bridge: '0x325aD30CA387f845D5D9bb3e0a9E4c061b5ACc3A'
+        l1Bridge: '0x30bf762D61b777aaFdd664a73C3765633276a631'
       },
       polygon: {
         l1CanonicalBridge: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1MessengerWrapper: '0xbf4afb067Cdd452EC80f75862b2C6D39FeB96476',
+        l1MessengerWrapper: '0xDf5Af462E86EC41a7DE5E4CAE87CE4d516C9e24c',
         l2CanonicalBridge: '0x6D4dd09982853F08d9966aC3cA4Eb5885F16f2b2',
         l2CanonicalToken: '0x6D4dd09982853F08d9966aC3cA4Eb5885F16f2b2',
-        l2Bridge: '0x6cA4c985a0D67A37ac2F4d8370ebE74e248A53f2',
-        l2HopBridgeToken: '0xA93eC98Ead897Ee8EF0b5CC9E2a658875719B224',
-        l2AmmWrapper: '0x653354468D19e39Ae4843F91999A891fea508DF9',
-        l2SaddleSwap: '0x19365928c043172bD510FF926040ca3f397e1057',
-        l2SaddleLpToken: '0xf38d8966064e0751f164e77f43B3593eb16b234A',
+        l2Bridge: '0xBBF20c25bCF9065a6F72711F650E8F6D66C929e9',
+        l2HopBridgeToken: '0x01C445e5D8CB18988a85B02266006A9B093267ce',
+        l2AmmWrapper: '0x535E174100D0A0CD1C102D6Df4dDbA01c3677C2a',
+        l2SaddleSwap: '0x01f4b3F1D2b41122f86eb6446309dA9FB05a05d5',
+        l2SaddleLpToken: '0xe0fD731FF8DEb1B167047ccef0dE44b5C575Bdf2',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
         l1PosPredicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
       }

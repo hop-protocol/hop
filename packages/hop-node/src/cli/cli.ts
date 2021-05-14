@@ -167,7 +167,6 @@ program
           }
         }
       }
-
       const bonder = config?.roles?.bonder
       const challenger = config?.roles?.challenger
       const order = Number(config?.order || 0)
@@ -193,10 +192,10 @@ program
       if (slackEnabled) {
         logger.debug(`slack notifications enabled. channel #${slackChannel}`)
       }
-
       for (let k in globalConfig.networks) {
-        const { waitConfirmations } = globalConfig.networks[k]
+        const { waitConfirmations, rpcUrls } = globalConfig.networks[k]
         logger.log(`${k} wait confirmations: ${waitConfirmations || 0}`)
+        logger.log(`${k} rpc: ${rpcUrls?.join(',')}`)
       }
       const dryMode = !!source.dry
       if (dryMode) {

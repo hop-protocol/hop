@@ -30,6 +30,9 @@ export const getRpcProvider = (network: string): ethers.providers.Provider => {
   let providers: ethers.providers.StaticJsonRpcProvider[] = []
   for (let rpcUrl of rpcUrls) {
     const provider = new ethers.providers.StaticJsonRpcProvider(rpcUrl)
+    if (rpcUrls.length === 1) {
+      return provider
+    }
     providers.push(provider)
   }
   const fallbackProvider = new ethers.providers.FallbackProvider(providers, 1)

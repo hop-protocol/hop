@@ -73,8 +73,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   async syncUp () {
     this.logger.debug('syncing up events')
-    const blockNumber = await this.bridge.getBlockNumber()
-    const startBlockNumber = blockNumber - 10000
+    let blockNumber = await this.bridge.getBlockNumber()
+    let startBlockNumber = blockNumber - 1000
 
     const withdrawalBondedEvents = await this.bridge.getWithdrawalBondedEvents(
       startBlockNumber,
@@ -108,7 +108,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const transferSentEvents = await (this
       .bridge as L2Bridge).getTransferSentEvents(startBlockNumber, blockNumber)
-
     for (let event of transferSentEvents) {
       const {
         transferId,
@@ -245,6 +244,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         .bridge as L2Bridge).decodeSendData(data)
       const isBonder = await this.siblingWatchers[chainId].bridge.isBonder()
       if (!isBonder) {
+        this.logger.warn('not a bonder. Cannot bond withdrawal')
         return
       }
 

@@ -158,10 +158,6 @@ class CommitTransfersWatcher extends BaseWatcher {
         this.logger.warn('only Bonder can commit before min delay')
       }
 
-      const messengerAddress = await (this
-        .bridge as L2Bridge).l2BridgeWrapper.getMessengerAddress()
-      this.logger.debug('messenger address:', messengerAddress)
-
       const pendingTransfers: string[] = await (this
         .bridge as L2Bridge).getPendingTransfers(chainId)
       if (!pendingTransfers.length) {

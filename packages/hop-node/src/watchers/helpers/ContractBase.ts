@@ -72,6 +72,9 @@ export default class ContractBase extends EventEmitter {
     // TODO: config option for gas price multiplier
     txOptions.gasPrice = (await this.getBumpedGasPrice(1.5)).toString()
     if (config.isMainnet) {
+      if (this.chainSlug === Chain.Polygon) {
+        // txOptions.gasLimit = 3000000
+      }
       // TODO
     } else {
       txOptions.gasLimit = 5000000

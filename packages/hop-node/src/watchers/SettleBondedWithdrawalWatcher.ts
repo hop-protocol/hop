@@ -18,6 +18,7 @@ export interface Config {
   label: string
   order?: () => number
   dryMode?: boolean
+  minThresholdPercent: number
 }
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
@@ -36,11 +37,20 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
+    if (config.minThresholdPercent) {
+      this.minThresholdPercent = config.minThresholdPercent
+      if (this.minThresholdPercent > 1 || this.minThresholdPercent < 0) {
+        throw new Error('minThresholdAmount must be between 0 and 1')
+      }
+    }
   }
 
   async start () {
     this.started = true
     try {
+      this.logger.debug(
+        `minThresholdAmount: ${this.minThresholdPercent * 100}%`
+      )
       await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
     } catch (err) {
       this.logger.error(`watcher error:`, err.message)

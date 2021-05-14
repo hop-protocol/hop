@@ -188,6 +188,13 @@ program
       if (config?.bondWithdrawals) {
         bondWithdrawalAmounts = config.bondWithdrawals
       }
+      let settleBondedWithdrawalsThresholdPercent: any = {}
+      if (config?.settleBondedWithdrawals) {
+        if (config?.settleBondedWithdrawals?.thresholdPercent) {
+          settleBondedWithdrawalsThresholdPercent =
+            config?.settleBondedWithdrawals?.thresholdPercent
+        }
+      }
       const slackEnabled = slackAuthToken && slackChannel && slackUsername
       if (slackEnabled) {
         logger.debug(`slack notifications enabled. channel #${slackChannel}`)
@@ -210,6 +217,7 @@ program
         maxStakeAmounts,
         commitTransfersMinThresholdAmounts,
         bondWithdrawalAmounts,
+        settleBondedWithdrawalsThresholdPercent,
         dryMode
       })
       if (config?.roles?.arbBot) {
@@ -521,6 +529,7 @@ async function validateConfig (config: any) {
     'stake',
     'commitTransfers',
     'bondWithdrawals',
+    'settleBondedWithdrawals',
     'roles',
     'db',
     'logging',

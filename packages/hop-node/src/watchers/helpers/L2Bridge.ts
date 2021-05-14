@@ -194,6 +194,7 @@ export default class L2Bridge extends Bridge {
     amountOutMin: BigNumber,
     deadline: number
   ): Promise<providers.TransactionResponse> {
+    console.log(await this.txOverrides())
     const tx = await this.l2BridgeContract.bondWithdrawalAndDistribute(
       recipient,
       amount,
@@ -203,6 +204,7 @@ export default class L2Bridge extends Bridge {
       deadline,
       await this.txOverrides()
     )
+    console.log('bondWithdrawalAndAttemptSwap tx:', tx.hash)
 
     await tx.wait()
     return tx

@@ -88,6 +88,7 @@ type Config = {
   maxStakeAmounts?: StakeAmounts
   commitTransfersMinThresholdAmounts?: any
   bondWithdrawalAmounts?: any
+  settleBondedWithdrawalsThresholdPercent?: any
   dryMode?: boolean
 }
 
@@ -100,6 +101,7 @@ function startWatchers (
     challenger: false,
     maxStakeAmounts: {},
     commitTransfersMinThresholdAmounts: {},
+    settleBondedWithdrawalsThresholdPercent: {},
     bondWithdrawalAmounts: {},
     dryMode: false
   }
@@ -236,7 +238,9 @@ function startWatchers (
         label,
         isL1,
         bridgeContract,
-        dryMode
+        dryMode,
+        minThresholdPercent:
+          _config.settleBondedWithdrawalsThresholdPercent?.[token]
       })
 
       settleBondedWithdrawalWatchers[token] =
@@ -251,7 +255,7 @@ function startWatchers (
         label,
         isL1,
         bridgeContract,
-        minThresholdAmount: _config.commitTransfersMinThresholdAmounts[token],
+        minThresholdAmount: _config.commitTransfersMinThresholdAmounts?.[token],
         dryMode
       })
 

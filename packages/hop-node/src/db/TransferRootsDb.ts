@@ -25,7 +25,11 @@ class TransferRootsDb extends BaseDb {
   async getByTransferRootHash (
     transferRootHash: string
   ): Promise<TransferRoot> {
-    return this.getById(transferRootHash)
+    const item = await this.getById(transferRootHash)
+    if (item.totalAmount && item.totalAmount?.type === 'BigNumber') {
+      item.totalAmount = BigNumber.from(item.totalAmount?.hex)
+    }
+    return item
   }
 
   async getTransferRootHashes (): Promise<string[]> {

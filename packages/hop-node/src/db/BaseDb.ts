@@ -47,7 +47,7 @@ class BaseDb {
     return this.update(this.IDS, Array.from(unique), false)
   }
 
-  async update (key: string, data: any, dataCb: boolean = true) {
+  public async update (key: string, data: any, dataCb: boolean = true) {
     const entry = await this.getById(key, {})
     const value = Object.assign({}, entry, data)
     if (dataCb) {
@@ -56,7 +56,7 @@ class BaseDb {
     return this.db.put(key, value)
   }
 
-  async getById (id: string, defaultValue: any = null) {
+  protected async getById (id: string, defaultValue: any = null) {
     try {
       return await this.db.get(id)
     } catch (err) {
@@ -64,7 +64,7 @@ class BaseDb {
     }
   }
 
-  async getKeys (): Promise<string[]> {
+  protected async getKeys (): Promise<string[]> {
     return Object.values(await this.getById(this.IDS, []))
   }
 }

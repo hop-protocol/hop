@@ -21,6 +21,19 @@ export const addresses: Addresses = {
         l1Amb: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
         l2Amb: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59',
         canonicalBridgeMaxPerTx: '1000000000'
+      },
+      polygon: {
+        l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
+        l1MessengerWrapper: '0xDf5Af462E86EC41a7DE5E4CAE87CE4d516C9e24c',
+        l2CanonicalBridge: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        l2CanonicalToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        l2Bridge: '0x9563fAa48f1Dc55C69eAf91194368c70346c881c',
+        l2HopBridgeToken: '0x52f856b2F8E4673Ae06D39CC441CAf81ceA763c5',
+        l2AmmWrapper: '0xB6c7F01404851Dbc73A5586Ba73ceFE83409c678',
+        l2SaddleSwap: '0x9E20f4012cC75aC5192f4AB440e02FeA350127F2',
+        l2SaddleLpToken: '0x23678F711917382D9A10ac29a95247DD59ef09fF',
+        l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
+        l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf'
       }
     }
   }

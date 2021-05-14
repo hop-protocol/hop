@@ -104,8 +104,7 @@ const AmountSelectorCard: FC<Props> = props => {
     let label: string = ''
     if (token && balance) {
       label = formatUnits(balance, token?.decimals)
-      label = Number(label).toFixed(4)
-      label = commafy(label)
+      label = commafy(label, 4)
     }
     return label
   }, [balance])

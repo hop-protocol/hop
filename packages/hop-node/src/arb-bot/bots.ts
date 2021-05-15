@@ -24,6 +24,7 @@ export default {
 
         const tokenContracts = contracts.get(token, network)
         const bot = new ArbBot({
+          network,
           label: `${network}.${token}`,
           token0: {
             label: `${network}.hop-${token}`,

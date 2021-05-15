@@ -21,6 +21,8 @@ export interface Config {
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
 
+class BondError extends Error {}
+
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
   minAmount: BigNumber
@@ -171,11 +173,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const l2Bridge = this.siblingWatchers[chainId].bridge as L2Bridge
       const hasPositiveBalance = await l2Bridge.hasPositiveBalance()
       if (!hasPositiveBalance) {
-        throw new Error('bonder requires positive balance to bond withdrawal')
+        throw new BondError(
+          `bonder requires positive balance on chainId ${chainId} to bond withdrawal`
+        )
       }
       const credit = await l2Bridge.getCredit()
       if (credit.lt(amount)) {
-        throw new Error(
+        throw new BondError(
           `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
             credit
           )}, need ${this.bridge.formatUnits(amount)}`
@@ -194,11 +198,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const bridge = this.siblingWatchers[chainId].bridge
       const hasPositiveBalance = await bridge.hasPositiveBalance()
       if (!hasPositiveBalance) {
-        throw new Error('bonder requires positive balance to bond withdrawal')
+        throw new BondError(
+          'bonder requires positive balance to bond withdrawal'
+        )
       }
       const credit = await bridge.getCredit()
       if (credit.lt(amount)) {
-        throw new Error(
+        throw new BondError(
           `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
             credit
           )}, need ${this.bridge.formatUnits(amount)}`
@@ -244,7 +250,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
         .bridge as L2Bridge).decodeSendData(data)
       const isBonder = await this.siblingWatchers[chainId].bridge.isBonder()
       if (!isBonder) {
-        this.logger.warn('not a bonder. Cannot bond withdrawal')
+        this.logger.warn(
+          `not a bonder on chainId ${chainId}. Cannot bond withdrawal`
+        )
         return
       }
 
@@ -388,6 +396,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
         }`
       )
     } catch (err) {
+      if (err instanceof BondError) {
+        await db.transfers.update(transferHash, {
+          sentBondWithdrawalTx: false
+        })
+      }
       if (err.message !== 'cancelled') {
         this.logger.error(`bondWithdrawal error:`, err.message)
         this.notifier.error(`bondWithdrawal error: ${err.message}`)
@@ -404,6 +417,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
     //index: BigNumber,
     meta: any
   ) => {
+    const dbTransfer = await db.transfers.getByTransferHash(transferHash)
+    if (dbTransfer?.withdrawalBonder) {
+      return
+    }
+
+    const tx = await meta.getTransaction()
+    const { from: withdrawalBonder } = tx
     this.logger.debug(`received WithdrawalBonded event`)
     this.logger.debug('transferHash:', transferHash)
     //this.logger.debug(`recipient:`, recipient)
@@ -413,7 +433,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     //this.logger.debug('index:', index?.toString())
 
     await db.transfers.update(transferHash, {
-      withdrawalBonded: true
+      withdrawalBonded: true,
+      withdrawalBonder
     })
   }
 

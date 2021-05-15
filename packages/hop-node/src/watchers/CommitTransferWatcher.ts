@@ -164,13 +164,21 @@ class CommitTransfersWatcher extends BaseWatcher {
         this.logger.warn('no pending transfers to commit')
       }
 
+      this.logger.debug(
+        `total pending transfers count for chainId ${chainId}: ${pendingTransfers.length}`
+      )
       const totalPendingAmount = await (this
         .bridge as L2Bridge).getPendingAmountForChainId(chainId)
+      this.logger.debug(
+        `total pending amount for chainId ${chainId}: ${this.bridge.formatUnits(
+          totalPendingAmount
+        )}`
+      )
       if (totalPendingAmount.lt(this.minThresholdAmount)) {
         this.logger.warn(
-          `total pending amount ${this.bridge.formatUnits(
+          `total pending amount for chainId ${chainId} is ${this.bridge.formatUnits(
             totalPendingAmount
-          )} does not meet min threshold of ${this.bridge.formatUnits(
+          )} and does not meet min threshold of ${this.bridge.formatUnits(
             this.minThresholdAmount
           )}. Cannot commit transfers yet`
         )
@@ -197,7 +205,8 @@ class CommitTransfersWatcher extends BaseWatcher {
       )
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,
-        transferHashes: pendingTransfers
+        transferHashes: pendingTransfers,
+        totalAmount: totalPendingAmount
       })
 
       const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
@@ -216,6 +225,13 @@ class CommitTransfersWatcher extends BaseWatcher {
       if (this.dryMode) {
         this.logger.warn('dry mode: skipping commitTransfers transaction')
         return
+      }
+
+      for (let transferHash of pendingTransfers) {
+        await db.transfers.update(transferHash, {
+          transferHash,
+          transferRootHash
+        })
       }
 
       await db.transferRoots.update(transferRootHash, {

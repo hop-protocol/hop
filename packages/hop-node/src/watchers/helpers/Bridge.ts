@@ -7,6 +7,7 @@ import unique from 'src/utils/unique'
 
 export default class Bridge extends ContractBase {
   WithdrawalBonded: string = 'WithdrawalBonded'
+  TransferRootSet: string = 'TransferRootSet'
   tokenDecimals: number = 18
 
   constructor (public bridgeContract: Contract) {
@@ -149,6 +150,17 @@ export default class Bridge extends ContractBase {
   ): Promise<any[]> {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.WithdrawalBonded(),
+      startBlockNumber,
+      endBlockNumber
+    )
+  }
+
+  async getTransferRootSetEvents (
+    startBlockNumber: number,
+    endBlockNumber: number
+  ): Promise<any[]> {
+    return this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.TransferRootSet(),
       startBlockNumber,
       endBlockNumber
     )

@@ -4,7 +4,7 @@ import { wait } from 'src/utils'
 import { Chain } from 'src/constants'
 
 const network = Chain.Optimism
-const token = 'USDC'
+const token = 'DAI'
 
 test(
   'addBonder',
@@ -12,7 +12,6 @@ test(
     const newBonder = new User(privateKey)
     const gov = new User(governancePrivateKey)
     let isBonder = await newBonder.isBonder(network, token)
-    console.log(privateKey, isBonder)
     expect(isBonder).toBe(false)
     const tx = await gov.addBonder(network, token, await newBonder.getAddress())
     console.log('tx hash:', tx.hash)
@@ -20,7 +19,7 @@ test(
     expect(receipt.status).toBe(1)
     // wait for L2 to receive update
     // @ts-ignore
-    if (network !== ETHEREUM) {
+    if (network !== Chain.Ethereum) {
       await wait(60 * 1000)
     }
     isBonder = await newBonder.isBonder(network, token)

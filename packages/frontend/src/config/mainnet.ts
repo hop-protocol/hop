@@ -19,7 +19,7 @@ export const networks: any = {
   },
   polygon: {
     networkId: '137',
-    rpcUrl: 'https://polygon-mainnet.infura.io/v3/e94d30cdfa504a3e946d6d0e8f4c2d04',
+    rpcUrl: 'https://polygon.rpc.hop.exchange',
     explorerUrl: 'https://explorer-mainnet.maticvigil.com/'
   },
   /*

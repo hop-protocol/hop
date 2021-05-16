@@ -11,7 +11,10 @@ export const networks: Networks = {
   polygon: {
     name: chains.polygon.name,
     networkId: 80001,
-    rpcUrls: ['https://rpc-mumbai.maticvigil.com'],
+    rpcUrls: [
+      'https://mumbai.rpc.hop.exchange',
+      'https://rpc-mumbai.maticvigil.com'
+    ],
     explorerUrls: ['https://explorer-mumbai.maticvigil.com']
   }
 }

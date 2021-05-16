@@ -19,7 +19,7 @@ export const networks: any = {
   },
   polygon: {
     networkId: '80001',
-    rpcUrl: 'https://rpc-mumbai.maticvigil.com',
+    rpcUrl: 'https://mumbai.rpc.hop.exchange',
     explorerUrl: 'https://explorer-mumbai.maticvigil.com/'
   }
   /*

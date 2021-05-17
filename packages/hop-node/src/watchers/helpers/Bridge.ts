@@ -73,12 +73,17 @@ export default class Bridge extends ContractBase {
     return debit
   }
 
-  async hasPositiveBalance (): Promise<boolean> {
+  async getAvailableCredit (): Promise<BigNumber> {
     const [credit, debit] = await Promise.all([
       this.getCredit(),
       this.getDebit()
     ])
-    return credit.gte(debit) && credit.gt(0)
+    return credit.sub(debit)
+  }
+
+  async hasPositiveBalance (): Promise<boolean> {
+    const credit = await this.getAvailableCredit()
+    return credit.gt(0)
   }
 
   getAddress (): string {
@@ -248,16 +253,15 @@ export default class Bridge extends ContractBase {
   }
 
   public async eventsBatch (cb: (start: number, end: number) => void) {
-    const syncBlocks = 100_000
-    const batchBlocks = 1_000
+    const { syncBlocksTotal, syncBlocksBatch } = config
     const blockNumber = await this.getBlockNumber()
-    const minBlock = blockNumber - syncBlocks
+    const minBlock = blockNumber - syncBlocksTotal
     let end = blockNumber
-    let start = end - batchBlocks
-    while (start > blockNumber - syncBlocks) {
+    let start = end - syncBlocksBatch
+    while (start > blockNumber - syncBlocksTotal) {
       await cb(start, end)
       end = start
-      start = end - batchBlocks
+      start = end - syncBlocksBatch
     }
   }
 }

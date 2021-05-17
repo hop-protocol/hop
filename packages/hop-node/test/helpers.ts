@@ -319,6 +319,18 @@ export class User {
 
     const wrapper = this.getAmmWrapperContract(sourceNetwork, token)
     await this.checkApproval(sourceNetwork, token, wrapper.address)
+
+    console.log(`wrapper.swapAndSend(
+      ${chainId},
+      ${recipient},
+      ${parsedAmount.toString()},
+      ${bonderFee.toString()},
+      ${amountOutMin.toString()},
+      ${deadline},
+      ${destinationAmountOutMin.toString()},
+      ${destinationDeadline},
+    )`)
+
     return wrapper.swapAndSend(
       chainId,
       recipient,
@@ -488,7 +500,7 @@ export class User {
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute
-    return parseUnits('0.5', 18)
+    return parseUnits('20', 18)
     return minBonderFee
   }
 

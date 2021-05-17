@@ -182,7 +182,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
           `bonder requires positive balance on chainId ${chainId} to bond withdrawal`
         )
       }
-      const credit = await l2Bridge.getCredit()
+      const credit = await l2Bridge.getAvailableCredit()
       if (credit.lt(amount)) {
         throw new BondError(
           `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
@@ -207,7 +207,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
           'bonder requires positive balance to bond withdrawal'
         )
       }
-      const credit = await bridge.getCredit()
+      const credit = await bridge.getAvailableCredit()
       if (credit.lt(amount)) {
         throw new BondError(
           `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
@@ -363,7 +363,18 @@ class BondWithdrawalWatcher extends BaseWatcher {
         deadline
       })
 
-      tx?.wait()
+      this.logger.info(
+        `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx:`,
+        chalk.bgYellow.black.bold(tx.hash)
+      )
+      this.notifier.info(
+        `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx: ${
+          tx.hash
+        }`
+      )
+
+      await tx
+        ?.wait()
         .then(async (receipt: any) => {
           if (receipt.status !== 1) {
             await db.transfers.update(transferHash, {
@@ -398,15 +409,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
           throw err
         })
-      this.logger.info(
-        `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx:`,
-        chalk.bgYellow.black.bold(tx.hash)
-      )
-      this.notifier.info(
-        `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx: ${
-          tx.hash
-        }`
-      )
     } catch (err) {
       if (err instanceof BondError) {
         await db.transfers.update(transferHash, {

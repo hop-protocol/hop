@@ -192,7 +192,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       return
     }
     const bridgeAddress = await this.bridge.getAddress()
-    if (dbTransferRoot.destinationBridgeAddress !== bridgeAddress) {
+    if (
+      dbTransferRoot.destinationBridgeAddress &&
+      dbTransferRoot.destinationBridgeAddress !== bridgeAddress
+    ) {
       return
     }
     if (!dbTransferRoot?.transferHashes.length) {
@@ -230,6 +233,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       )
       return
     }
+    const commitedAt = dbTransferRoot.commitedAt
+    if (!commitedAt) {
+      return
+    }
     try {
       const bridge = this.siblingWatchers[chainId].bridge
       await this.bridge.waitSafeConfirmations()
@@ -244,7 +251,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
       const tree = new MerkleTree(transferHashes)
       const transferRootHash = tree.getHexRoot()
-      this.logger.debug('chainId:', chainId)
+      this.logger.debug('committedAt:', commitedAt)
+      this.logger.debug('sourceChainId:', dbTransfer.sourceChainId)
+      this.logger.debug('destinationChainId:', chainId)
       this.logger.debug('transferHashes:', transferHashes)
       this.logger.debug('transferRootHash:', transferRootHash)
       this.logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))

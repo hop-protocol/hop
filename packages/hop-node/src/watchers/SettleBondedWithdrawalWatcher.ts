@@ -66,17 +66,19 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async syncUp () {
-    const blockNumber = await this.bridge.getBlockNumber()
-    const startBlockNumber = blockNumber - 1000
-    const transferRootSetEvents = await this.bridge.getTransferRootSetEvents(
-      startBlockNumber,
-      blockNumber
-    )
+    this.logger.debug('syncing up events')
+    await this.eventsBatch(async (start: number, end: number) => {
+      const transferRootSetEvents = await this.bridge.getTransferRootSetEvents(
+        start,
+        end
+      )
 
-    for (let event of transferRootSetEvents) {
-      const { rootHash, totalAmount } = event.args
-      await this.handleTransferRootSetEvent(rootHash, totalAmount, event)
-    }
+      for (let event of transferRootSetEvents) {
+        const { rootHash, totalAmount } = event.args
+        await this.handleTransferRootSetEvent(rootHash, totalAmount, event)
+      }
+    })
+    this.logger.debug('done syncing')
   }
 
   async watch () {
@@ -270,7 +272,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       )
       this.logger.debug('struct createdAt:', createdAt)
       if (structTotalAmount.lte(0)) {
-        this.logger.warn('transferRoot total amount is 0. Cannot settle')
+        this.logger.warn(
+          'transferRoot total amount is 0. Cannot settle until transfer root is set'
+        )
         return
       }
 
@@ -390,12 +394,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           throw err
         })
       this.logger.info(
-        `settleBondedWithdrawal on chainId:${chainId} tx: ${chalk.bgYellow.black.bold(
+        `settleBondedWithdrawals on chainId:${chainId} tx: ${chalk.bgYellow.black.bold(
           tx.hash
         )}`
       )
       this.notifier.info(
-        `settleBondedWithdrawal on chainId:${chainId} tx: ${tx.hash}`
+        `settleBondedWithdrawals on chainId:${chainId} tx: ${tx.hash}`
       )
     } catch (err) {
       if (err.message !== 'cancelled') {

@@ -75,60 +75,65 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   async syncUp () {
     this.logger.debug('syncing up events')
-    let blockNumber = await this.bridge.getBlockNumber()
-    let startBlockNumber = blockNumber - 1000
 
-    const withdrawalBondedEvents = await this.bridge.getWithdrawalBondedEvents(
-      startBlockNumber,
-      blockNumber
-    )
-
-    for (let event of withdrawalBondedEvents) {
-      const {
-        transferId,
-        //recipient,
-        amount
-        //transferNonce,
-        //bonderFee,
-        //index
-      } = event.args
-
-      await this.handleWithdrawalBondedEvent(
-        transferId,
-        //recipient,
-        amount,
-        //transferNonce,
-        //bonderFee,
-        //index,
-        event
+    await this.eventsBatch(async (start: number, end: number) => {
+      const withdrawalBondedEvents = await this.bridge.getWithdrawalBondedEvents(
+        start,
+        end
       )
-    }
 
+      for (let event of withdrawalBondedEvents) {
+        const {
+          transferId,
+          //recipient,
+          amount
+          //transferNonce,
+          //bonderFee,
+          //index
+        } = event.args
+
+        await this.handleWithdrawalBondedEvent(
+          transferId,
+          //recipient,
+          amount,
+          //transferNonce,
+          //bonderFee,
+          //index,
+          event
+        )
+      }
+    })
+
+    // L1 bridge doesn't contain transfer sent events so return here.
     if (this.isL1) {
+      this.logger.debug('done syncing')
       return
     }
 
-    const transferSentEvents = await (this
-      .bridge as L2Bridge).getTransferSentEvents(startBlockNumber, blockNumber)
-    for (let event of transferSentEvents) {
-      const {
-        transferId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        index
-      } = event.args
-      await this.handleTransferSentEvent(
-        transferId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        index,
-        event
-      )
-    }
+    await this.eventsBatch(async (start: number, end: number) => {
+      const transferSentEvents = await (this
+        .bridge as L2Bridge).getTransferSentEvents(start, end)
+      for (let event of transferSentEvents) {
+        const {
+          transferId,
+          recipient,
+          amount,
+          transferNonce,
+          bonderFee,
+          index
+        } = event.args
+        await this.handleTransferSentEvent(
+          transferId,
+          recipient,
+          amount,
+          transferNonce,
+          bonderFee,
+          index,
+          event
+        )
+      }
+    })
+    this.logger.debug('done syncing')
   }
 
   async watch () {
@@ -233,6 +238,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       const { transactionHash } = meta
+      const now = (Date.now() / 1000) | 0
+      const { timestamp } = await meta.getBlock()
+      const oneDay = 60 * 60 * 24
+      const shouldBond = now - timestamp < oneDay
+      if (!shouldBond) {
+        return
+      }
       this.logger.debug(
         'transfer event amount:',
         this.bridge.formatUnits(amount)

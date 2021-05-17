@@ -52,30 +52,29 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async syncUp () {
+    this.logger.debug('syncing up events')
     if (this.isL1) {
-      const blockNumber = await this.bridge.getBlockNumber()
-      const startBlockNumber = blockNumber - 1000
-      const transferRootBondedEvents = await (this
-        .bridge as L1Bridge).getTransferRootBondedEvents(
-        startBlockNumber,
-        blockNumber
-      )
+      await this.eventsBatch(async (start: number, end: number) => {
+        const transferRootBondedEvents = await (this
+          .bridge as L1Bridge).getTransferRootBondedEvents(start, end)
 
-      for (let event of transferRootBondedEvents) {
-        const { root, amount } = event.args
-        await this.handleTransferRootBondedEvent(root, amount, event)
-      }
+        for (let event of transferRootBondedEvents) {
+          const { root, amount } = event.args
+          await this.handleTransferRootBondedEvent(root, amount, event)
+        }
+      })
+      this.logger.debug('done syncing')
       return
     }
-    this.logger.debug('syncing up events')
-    const blockNumber = await this.bridge.getBlockNumber()
-    const startBlockNumber = blockNumber - 1000
-    const events = await (this.bridge as L2Bridge).getTransfersCommitedEvents(
-      startBlockNumber,
-      blockNumber
-    )
+    await this.eventsBatch(async (start: number, end: number) => {
+      const events = await (this.bridge as L2Bridge).getTransfersCommitedEvents(
+        start,
+        end
+      )
 
-    await this.handleTransfersCommittedEvents(events)
+      await this.handleTransfersCommittedEvents(events)
+    })
+    this.logger.debug('done syncing')
   }
 
   async watch () {

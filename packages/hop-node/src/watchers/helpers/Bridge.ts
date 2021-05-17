@@ -246,4 +246,18 @@ export default class Bridge extends ContractBase {
   parseUnits (value: string | number) {
     return parseUnits(value.toString(), this.tokenDecimals)
   }
+
+  public async eventsBatch (cb: (start: number, end: number) => void) {
+    const syncBlocks = 100_000
+    const batchBlocks = 1_000
+    const blockNumber = await this.getBlockNumber()
+    const minBlock = blockNumber - syncBlocks
+    let end = blockNumber
+    let start = end - batchBlocks
+    while (start > blockNumber - syncBlocks) {
+      await cb(start, end)
+      end = start
+      start = end - batchBlocks
+    }
+  }
 }

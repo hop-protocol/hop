@@ -69,30 +69,32 @@ class CommitTransfersWatcher extends BaseWatcher {
       return
     }
     this.logger.debug('syncing up events')
-    const blockNumber = await this.bridge.getBlockNumber()
-    const startBlockNumber = blockNumber - 1000
-    const transferSentEvents = await (this
-      .bridge as L2Bridge).getTransferSentEvents(startBlockNumber, blockNumber)
 
-    for (let event of transferSentEvents) {
-      const {
-        transferId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        index
-      } = event.args
-      await this.handleTransferSentEvent(
-        transferId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        index,
-        event
-      )
-    }
+    await this.eventsBatch(async (start: number, end: number) => {
+      const transferSentEvents = await (this
+        .bridge as L2Bridge).getTransferSentEvents(start, end)
+
+      for (let event of transferSentEvents) {
+        const {
+          transferId,
+          recipient,
+          amount,
+          transferNonce,
+          bonderFee,
+          index
+        } = event.args
+        await this.handleTransferSentEvent(
+          transferId,
+          recipient,
+          amount,
+          transferNonce,
+          bonderFee,
+          index,
+          event
+        )
+      }
+    })
+    this.logger.debug('done syncing')
   }
 
   async watch () {
@@ -176,9 +178,9 @@ class CommitTransfersWatcher extends BaseWatcher {
       )
       if (totalPendingAmount.lt(this.minThresholdAmount)) {
         this.logger.warn(
-          `total pending amount for chainId ${chainId} is ${this.bridge.formatUnits(
+          `chainId ${chainId} pending amount ${this.bridge.formatUnits(
             totalPendingAmount
-          )} and does not meet min threshold of ${this.bridge.formatUnits(
+          )} does not meet min threshold of ${this.bridge.formatUnits(
             this.minThresholdAmount
           )}. Cannot commit transfers yet`
         )

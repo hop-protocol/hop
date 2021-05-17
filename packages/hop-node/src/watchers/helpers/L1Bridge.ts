@@ -109,23 +109,6 @@ export default class L1Bridge extends Bridge {
     chainId: number,
     totalAmount: BigNumber
   ): Promise<providers.TransactionResponse> {
-    const [credit, debit] = await Promise.all([
-      this.getCredit(),
-      this.getDebit()
-    ])
-    if (
-      credit
-        .sub(debit)
-        .sub(totalAmount)
-        .lt(0)
-    ) {
-      throw new Error(
-        `not enough available credit to bond transfer root. Have ${this.formatUnits(
-          credit
-        ) - this.formatUnits(debit)}, need ${this.formatUnits(totalAmount)}`
-      )
-    }
-
     const tx = await this.l1BridgeContract.bondTransferRoot(
       transferRootHash,
       chainId,

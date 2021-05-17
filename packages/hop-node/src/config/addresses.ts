@@ -47,7 +47,9 @@ export const config = {
   networks,
   bonderPrivateKey: process.env.BONDER_PRIVATE_KEY,
   metadata,
-  bonders
+  bonders,
+  syncBlocksTotal: 100_000,
+  syncBlocksBatch: 1_000
 }
 
 const setConfigByNetwork = (_network: string) => {

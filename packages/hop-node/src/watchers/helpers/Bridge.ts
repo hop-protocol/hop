@@ -7,6 +7,7 @@ import unique from 'src/utils/unique'
 
 export default class Bridge extends ContractBase {
   WithdrawalBonded: string = 'WithdrawalBonded'
+  TransferRootSet: string = 'TransferRootSet'
   tokenDecimals: number = 18
 
   constructor (public bridgeContract: Contract) {
@@ -72,12 +73,17 @@ export default class Bridge extends ContractBase {
     return debit
   }
 
-  async hasPositiveBalance (): Promise<boolean> {
+  async getAvailableCredit (): Promise<BigNumber> {
     const [credit, debit] = await Promise.all([
       this.getCredit(),
       this.getDebit()
     ])
-    return credit.gte(debit) && credit.gt(0)
+    return credit.sub(debit)
+  }
+
+  async hasPositiveBalance (): Promise<boolean> {
+    const credit = await this.getAvailableCredit()
+    return credit.gt(0)
   }
 
   getAddress (): string {
@@ -149,6 +155,17 @@ export default class Bridge extends ContractBase {
   ): Promise<any[]> {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.WithdrawalBonded(),
+      startBlockNumber,
+      endBlockNumber
+    )
+  }
+
+  async getTransferRootSetEvents (
+    startBlockNumber: number,
+    endBlockNumber: number
+  ): Promise<any[]> {
+    return this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.TransferRootSet(),
       startBlockNumber,
       endBlockNumber
     )
@@ -233,5 +250,18 @@ export default class Bridge extends ContractBase {
 
   parseUnits (value: string | number) {
     return parseUnits(value.toString(), this.tokenDecimals)
+  }
+
+  public async eventsBatch (cb: (start: number, end: number) => void) {
+    const { syncBlocksTotal, syncBlocksBatch } = config
+    const blockNumber = await this.getBlockNumber()
+    const minBlock = blockNumber - syncBlocksTotal
+    let end = blockNumber
+    let start = end - syncBlocksBatch
+    while (start > blockNumber - syncBlocksTotal) {
+      await cb(start, end)
+      end = start
+      start = end - syncBlocksBatch
+    }
   }
 }

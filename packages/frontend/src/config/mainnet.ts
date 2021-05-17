@@ -17,12 +17,12 @@ export const networks: any = {
     rpcUrl: 'https://mainnet.rpc.hop.exchange',
     explorerUrl: 'https://etherscan.io/'
   },
-  /*
   polygon: {
     networkId: '137',
-    rpcUrl: 'https://rpc-mainnet.maticvigil.com',
+    rpcUrl: 'https://polygon.rpc.hop.exchange',
     explorerUrl: 'https://explorer-mainnet.maticvigil.com/'
   },
+  /*
   arbitrum: {
     networkId: '?',
     rpcUrl: 'https://mainnet.arbitrum.io/rpc',

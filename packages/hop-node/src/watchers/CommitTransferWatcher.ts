@@ -69,30 +69,32 @@ class CommitTransfersWatcher extends BaseWatcher {
       return
     }
     this.logger.debug('syncing up events')
-    const blockNumber = await this.bridge.getBlockNumber()
-    const startBlockNumber = blockNumber - 1000
-    const transferSentEvents = await (this
-      .bridge as L2Bridge).getTransferSentEvents(startBlockNumber, blockNumber)
 
-    for (let event of transferSentEvents) {
-      const {
-        transferId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        index
-      } = event.args
-      await this.handleTransferSentEvent(
-        transferId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        index,
-        event
-      )
-    }
+    await this.eventsBatch(async (start: number, end: number) => {
+      const transferSentEvents = await (this
+        .bridge as L2Bridge).getTransferSentEvents(start, end)
+
+      for (let event of transferSentEvents) {
+        const {
+          transferId,
+          recipient,
+          amount,
+          transferNonce,
+          bonderFee,
+          index
+        } = event.args
+        await this.handleTransferSentEvent(
+          transferId,
+          recipient,
+          amount,
+          transferNonce,
+          bonderFee,
+          index,
+          event
+        )
+      }
+    })
+    this.logger.debug('done syncing')
   }
 
   async watch () {
@@ -164,11 +166,19 @@ class CommitTransfersWatcher extends BaseWatcher {
         this.logger.warn('no pending transfers to commit')
       }
 
+      this.logger.debug(
+        `total pending transfers count for chainId ${chainId}: ${pendingTransfers.length}`
+      )
       const totalPendingAmount = await (this
         .bridge as L2Bridge).getPendingAmountForChainId(chainId)
+      this.logger.debug(
+        `total pending amount for chainId ${chainId}: ${this.bridge.formatUnits(
+          totalPendingAmount
+        )}`
+      )
       if (totalPendingAmount.lt(this.minThresholdAmount)) {
         this.logger.warn(
-          `total pending amount ${this.bridge.formatUnits(
+          `chainId ${chainId} pending amount ${this.bridge.formatUnits(
             totalPendingAmount
           )} does not meet min threshold of ${this.bridge.formatUnits(
             this.minThresholdAmount
@@ -197,7 +207,8 @@ class CommitTransfersWatcher extends BaseWatcher {
       )
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,
-        transferHashes: pendingTransfers
+        transferHashes: pendingTransfers,
+        totalAmount: totalPendingAmount
       })
 
       const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
@@ -216,6 +227,13 @@ class CommitTransfersWatcher extends BaseWatcher {
       if (this.dryMode) {
         this.logger.warn('dry mode: skipping commitTransfers transaction')
         return
+      }
+
+      for (let transferHash of pendingTransfers) {
+        await db.transfers.update(transferHash, {
+          transferHash,
+          transferRootHash
+        })
       }
 
       await db.transferRoots.update(transferRootHash, {

@@ -4,6 +4,8 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { wait } from 'src/utils'
 import chalk from 'chalk'
 import Logger from 'src/logger'
+import { Chain } from 'src/constants'
+import { config } from 'src/config'
 import queue from 'src/watchers/helpers/queue'
 
 interface TokenConfig {
@@ -17,6 +19,7 @@ interface AmmConfig {
 
 interface Config {
   label: string
+  network: string
   token0: TokenConfig
   token1: TokenConfig
   tokenDecimals: number
@@ -32,6 +35,7 @@ interface Token {
 }
 
 class ArbBot {
+  network: string
   logger: Logger
   saddleSwap: Contract
   token0: Token
@@ -112,6 +116,7 @@ class ArbBot {
   }
 
   private async init (config: Config) {
+    this.network = config.network
     this.wallet = config.wallet
     this.minThreshold = config.minThreshold
     this.saddleSwap = config.amm.saddleSwap.contract
@@ -136,6 +141,7 @@ class ArbBot {
   }
 
   private async approveToken (token: Token) {
+    this.logger.debug('approving tokens')
     const approveAmount = BigNumber.from(ethers.constants.MaxUint256)
     const approved = await token.contract.allowance(
       this.accountAddress,
@@ -143,7 +149,11 @@ class ArbBot {
     )
 
     if (approved.lt(approveAmount)) {
-      return token.contract.approve(this.saddleSwap.address, approveAmount)
+      return token.contract.approve(
+        this.saddleSwap.address,
+        approveAmount,
+        await this.txOverrides()
+      )
     }
   }
 
@@ -227,8 +237,9 @@ class ArbBot {
       }
 
       const shouldArb = token0AmountOut
+        .mul(this.minThreshold * 100)
+        .div(100)
         .gt(token0TradeAmount)
-        .mul(this.minThreshold)
       if (!execute) {
         return shouldArb
       }
@@ -332,6 +343,25 @@ class ArbBot {
 
   parseUnits (value: string | number) {
     return parseUnits(value.toString(), this.tokenDecimals)
+  }
+
+  async txOverrides (): Promise<any> {
+    const txOptions: any = {}
+    if (config.isMainnet) {
+      if (this.network === Chain.Polygon) {
+        // txOptions.gasLimit = 3000000
+      }
+      // TODO
+    } else {
+      txOptions.gasLimit = 5000000
+      if (this.network === Chain.Optimism) {
+        txOptions.gasPrice = 0
+        txOptions.gasLimit = 8000000
+      } else if (this.network === Chain.xDai) {
+        txOptions.gasLimit = 5000000
+      }
+    }
+    return txOptions
   }
 }
 

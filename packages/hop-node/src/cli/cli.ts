@@ -167,7 +167,6 @@ program
           }
         }
       }
-
       const bonder = config?.roles?.bonder
       const challenger = config?.roles?.challenger
       const order = Number(config?.order || 0)
@@ -189,14 +188,21 @@ program
       if (config?.bondWithdrawals) {
         bondWithdrawalAmounts = config.bondWithdrawals
       }
+      let settleBondedWithdrawalsThresholdPercent: any = {}
+      if (config?.settleBondedWithdrawals) {
+        if (config?.settleBondedWithdrawals?.thresholdPercent) {
+          settleBondedWithdrawalsThresholdPercent =
+            config?.settleBondedWithdrawals?.thresholdPercent
+        }
+      }
       const slackEnabled = slackAuthToken && slackChannel && slackUsername
       if (slackEnabled) {
         logger.debug(`slack notifications enabled. channel #${slackChannel}`)
       }
-
       for (let k in globalConfig.networks) {
-        const { waitConfirmations } = globalConfig.networks[k]
+        const { waitConfirmations, rpcUrls } = globalConfig.networks[k]
         logger.log(`${k} wait confirmations: ${waitConfirmations || 0}`)
+        logger.log(`${k} rpc: ${rpcUrls?.join(',')}`)
       }
       const dryMode = !!source.dry
       if (dryMode) {
@@ -211,6 +217,7 @@ program
         maxStakeAmounts,
         commitTransfersMinThresholdAmounts,
         bondWithdrawalAmounts,
+        settleBondedWithdrawalsThresholdPercent,
         dryMode
       })
       if (config?.roles?.arbBot) {
@@ -522,6 +529,7 @@ async function validateConfig (config: any) {
     'stake',
     'commitTransfers',
     'bondWithdrawals',
+    'settleBondedWithdrawals',
     'roles',
     'db',
     'logging',

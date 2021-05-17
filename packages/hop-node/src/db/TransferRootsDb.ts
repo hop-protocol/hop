@@ -2,6 +2,7 @@ import { BigNumber } from 'ethers'
 import BaseDb from './BaseDb'
 
 export type TransferRoot = {
+  destinationBridgeAddress?: string
   transferRootHash?: string
   totalAmount?: BigNumber
   chainId?: number
@@ -10,8 +11,6 @@ export type TransferRoot = {
   commited?: boolean
   commitedAt?: number
   bonded?: boolean
-  settled?: boolean
-  sentSettleTx?: boolean
   sentBondTx?: boolean
   transferHashes?: string[]
   bonder?: string
@@ -22,10 +21,18 @@ class TransferRootsDb extends BaseDb {
     super(prefix)
   }
 
+  async update (transferRootHash: string, data: Partial<TransferRoot>) {
+    return super.update(transferRootHash, data)
+  }
+
   async getByTransferRootHash (
     transferRootHash: string
   ): Promise<TransferRoot> {
-    return this.getById(transferRootHash)
+    const item = await this.getById(transferRootHash)
+    if (item?.totalAmount && item?.totalAmount?.type === 'BigNumber') {
+      item.totalAmount = BigNumber.from(item.totalAmount?.hex)
+    }
+    return item
   }
 
   async getTransferRootHashes (): Promise<string[]> {
@@ -39,18 +46,6 @@ class TransferRootsDb extends BaseDb {
         return this.getByTransferRootHash(transferRootHash)
       })
     )
-  }
-
-  async getUnsettledBondedTransferRoots (): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
-      return (
-        !item.sentSettleTx &&
-        item.bonded &&
-        !item.settled &&
-        item?.transferHashes?.length
-      )
-    })
   }
 
   async getUncommittedBondedTransferRoots (): Promise<TransferRoot[]> {

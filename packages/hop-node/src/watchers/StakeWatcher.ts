@@ -91,6 +91,7 @@ class StakeWatcher extends BaseWatcher {
 
     let [
       credit,
+      rawDebit,
       debit,
       balance,
       allowance,
@@ -98,6 +99,7 @@ class StakeWatcher extends BaseWatcher {
     ] = await Promise.all([
       this.bridge.getCredit(),
       this.bridge.getRawDebit(),
+      this.bridge.getDebit(),
       this.token.getBalance(),
       this.getTokenAllowance(),
       this.bridge.getBonderBondedWithdrawalsBalance()
@@ -105,6 +107,7 @@ class StakeWatcher extends BaseWatcher {
 
     this.logger.debug(`token balance:`, this.bridge.formatUnits(balance))
     this.logger.debug(`credit balance:`, this.bridge.formatUnits(credit))
+    this.logger.debug(`raw debit balance:`, this.bridge.formatUnits(rawDebit))
     this.logger.debug(`debit balance:`, this.bridge.formatUnits(debit))
     this.logger.debug(
       `bonder bonded withdrawals balance:`,
@@ -112,7 +115,7 @@ class StakeWatcher extends BaseWatcher {
     )
 
     const bonderBridgeStakedAmount = credit
-      .sub(debit)
+      .sub(rawDebit)
       .add(bondedBondedWithdrawalsBalance)
     const isL1 = isL1NetworkId(this.token.providerNetworkId)
     let amountToStake = BigNumber.from(0)

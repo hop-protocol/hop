@@ -24,7 +24,7 @@ export const addresses: Addresses = {
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1MessengerWrapper: '0xDf5Af462E86EC41a7DE5E4CAE87CE4d516C9e24c',
+        l1MessengerWrapper: '0xcE61ee22983fD34652ee3aA05D52Ce9cfD4132d7',
         l2CanonicalBridge: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
         l2CanonicalToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
         l2Bridge: '0x9563fAa48f1Dc55C69eAf91194368c70346c881c',

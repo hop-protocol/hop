@@ -81,11 +81,11 @@ export default class L1Bridge extends Bridge {
     )
   }
 
-  async getTransferRootCommitedAt (transferRootId: string): Promise<number> {
-    const commitedAt = await this.bridgeContract.transferRootCommittedAt(
+  async getTransferRootCommittedAt (transferRootId: string): Promise<number> {
+    const committedAt = await this.bridgeContract.transferRootCommittedAt(
       transferRootId
     )
-    return Number(commitedAt.toString())
+    return Number(committedAt.toString())
   }
 
   async getMinTransferRootBondDelaySeconds (): Promise<number> {

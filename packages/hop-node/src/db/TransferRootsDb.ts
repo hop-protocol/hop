@@ -3,16 +3,17 @@ import BaseDb from './BaseDb'
 
 export type TransferRoot = {
   destinationBridgeAddress?: string
+  transferRootId?: string
   transferRootHash?: string
   totalAmount?: BigNumber
   chainId?: number
   sourceChainId?: number
   sentCommitTx?: boolean
-  commited?: boolean
-  commitedAt?: number
+  committed?: boolean
+  committedAt?: number
   bonded?: boolean
   sentBondTx?: boolean
-  transferHashes?: string[]
+  transferIds?: string[]
   bonder?: string
 }
 
@@ -35,6 +36,21 @@ class TransferRootsDb extends BaseDb {
     return item
   }
 
+  async getByTransferRootId (transferRootId: string): Promise<TransferRoot> {
+    const transferRootHashes = await this.getTransferRootHashes()
+    const filtered = (
+      await Promise.all(
+        transferRootHashes.map(async (transferRootHash: string) => {
+          const item = await this.getByTransferRootHash(transferRootHash)
+          if (item.transferRootId === transferRootId) {
+            return item
+          }
+        })
+      )
+    ).filter(x => x)
+    return filtered?.[0]
+  }
+
   async getTransferRootHashes (): Promise<string[]> {
     return this.getKeys()
   }
@@ -51,7 +67,7 @@ class TransferRootsDb extends BaseDb {
   async getUncommittedBondedTransferRoots (): Promise<TransferRoot[]> {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
-      return !item.commited && item?.transferHashes?.length
+      return !item.committed && item?.transferIds?.length
     })
   }
 
@@ -59,7 +75,10 @@ class TransferRootsDb extends BaseDb {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
       return (
-        !item.bonded && item.transferRootHash && item.chainId && item.commitedAt
+        !item.bonded &&
+        item.transferRootHash &&
+        item.chainId &&
+        item.committedAt
       )
     })
   }

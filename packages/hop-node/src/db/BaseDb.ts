@@ -20,7 +20,7 @@ class BaseDb {
     const pathname = path.resolve(dbConfig.path.replace('~', os.homedir()))
     mkdirp.sync(pathname.replace(path.basename(pathname), ''))
     if (!dbMap[pathname]) {
-      this.logger.debug(`db path: ${pathname}`)
+      this.logger.info(`db path: ${pathname}`)
       dbMap[pathname] = level(pathname)
     }
 

@@ -90,24 +90,24 @@ export default class Bridge extends ContractBase {
     return this.bridgeContract.address
   }
 
-  async getBondedWithdrawalAmount (transferHash: string): Promise<BigNumber> {
+  async getBondedWithdrawalAmount (transferId: string): Promise<BigNumber> {
     const bonderAddress = await this.getBonderAddress()
-    return this.getBondedWithdrawalAmountByBonder(bonderAddress, transferHash)
+    return this.getBondedWithdrawalAmountByBonder(bonderAddress, transferId)
   }
 
   async getBondedWithdrawalAmountByBonder (
     bonder: string,
-    transferHash: string
+    transferId: string
   ): Promise<BigNumber> {
     const bondedBn = await this.bridgeContract.getBondedWithdrawalAmount(
       bonder,
-      transferHash
+      transferId
     )
     return bondedBn
   }
 
   async getTotalBondedWithdrawalAmount (
-    transferHash: string
+    transferId: string
   ): Promise<BigNumber> {
     let totalBondedAmount = BigNumber.from(0)
     const bonderAddress = await this.getBonderAddress()
@@ -118,7 +118,7 @@ export default class Bridge extends ContractBase {
     for (let bonder of bonders) {
       const bondedAmount = await this.getBondedWithdrawalAmountByBonder(
         bonder,
-        transferHash
+        transferId
       )
       totalBondedAmount = totalBondedAmount.add(bondedAmount)
     }
@@ -145,8 +145,8 @@ export default class Bridge extends ContractBase {
     return total
   }
 
-  isTransferHashSpent (transferHash: string): Promise<boolean> {
-    return this.bridgeContract.isTransferIdSpent(transferHash)
+  isTransferIdSpent (transferId: string): Promise<boolean> {
+    return this.bridgeContract.isTransferIdSpent(transferId)
   }
 
   async getWithdrawalBondedEvents (
@@ -230,12 +230,12 @@ export default class Bridge extends ContractBase {
   @queue
   async settleBondedWithdrawals (
     bonder: string,
-    transferHashes: string[],
+    transferIds: string[],
     amount: BigNumber
   ): Promise<providers.TransactionResponse> {
     const tx = await this.bridgeContract.settleBondedWithdrawals(
       bonder,
-      transferHashes,
+      transferIds,
       amount,
       await this.txOverrides()
     )

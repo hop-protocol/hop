@@ -23,6 +23,7 @@ class StakeWatcher extends BaseWatcher {
   stakeMinThreshold: BigNumber = BigNumber.from(0)
   maxStakeAmount: BigNumber = BigNumber.from(0)
   interval: number = 60 * 1000
+  private prevCacheKey: string = ''
 
   constructor (config: Config) {
     super({
@@ -47,7 +48,7 @@ class StakeWatcher extends BaseWatcher {
     try {
       const isBonder = await this.bridge.isBonder()
       if (isBonder) {
-        this.logger.warn('is bonder')
+        this.logger.debug('is bonder')
       } else {
         this.logger.warn('not a bonder')
       }
@@ -104,6 +105,22 @@ class StakeWatcher extends BaseWatcher {
       this.getTokenAllowance(),
       this.bridge.getBonderBondedWithdrawalsBalance()
     ])
+
+    const cacheKey = [
+      this.stakeMinThreshold,
+      this.maxStakeAmount,
+      balance,
+      credit,
+      rawDebit,
+      debit
+    ]
+      .map(x => x.toString())
+      .join('')
+    // nothing has changed so return.
+    if (this.prevCacheKey === cacheKey) {
+      return
+    }
+    this.prevCacheKey = cacheKey
 
     this.logger.debug(`token balance:`, this.bridge.formatUnits(balance))
     this.logger.debug(`credit balance:`, this.bridge.formatUnits(credit))

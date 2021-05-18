@@ -76,6 +76,7 @@ class ChallengeWatcher extends BaseWatcher {
       .on(this.l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
       .on('error', err => {
         this.logger.error('event watcher error:', err.message)
+        this.quit()
       })
 
     this.l1Bridge
@@ -85,6 +86,7 @@ class ChallengeWatcher extends BaseWatcher {
       )
       .on('error', err => {
         this.logger.error('event watcher error:', err.message)
+        this.quit()
       })
   }
 
@@ -105,7 +107,7 @@ class ChallengeWatcher extends BaseWatcher {
 
     const l2Bridge = new L2Bridge(this.contracts[destChainId])
     const blockNumber = await l2Bridge.getBlockNumber()
-    const recentTransferCommitEvents = await l2Bridge.getTransfersCommitedEvents(
+    const recentTransferCommitEvents = await l2Bridge.getTransfersCommittedEvents(
       blockNumber - 1000,
       blockNumber
     )
@@ -114,12 +116,12 @@ class ChallengeWatcher extends BaseWatcher {
     let found = false
     for (let i = 0; i < recentTransferCommitEvents.length; i++) {
       const { args, topics } = recentTransferCommitEvents[i]
-      const commitedTransferRootHash = topics[1]
-      const commitedTotalAmount = args[1]
+      const committedTransferRootHash = topics[1]
+      const committedTotalAmount = args[1]
 
       if (
-        transferRootHash === commitedTransferRootHash &&
-        totalAmount.eq(commitedTotalAmount)
+        transferRootHash === committedTransferRootHash &&
+        totalAmount.eq(committedTotalAmount)
       ) {
         found = true
         break

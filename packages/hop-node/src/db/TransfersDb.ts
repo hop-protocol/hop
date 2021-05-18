@@ -1,8 +1,8 @@
 import BaseDb from './BaseDb'
 
 export type Transfer = {
-  transferRootHash?: string
-  transferHash?: string
+  transferRootId?: string
+  transferId?: string
   chainId?: number
   sourceChainId?: number
   withdrawalBondSettled?: boolean
@@ -17,23 +17,23 @@ class TransfersDb extends BaseDb {
     super(prefix)
   }
 
-  async update (transferHash: string, data: Partial<Transfer>) {
-    return super.update(transferHash, data)
+  async update (transferId: string, data: Partial<Transfer>) {
+    return super.update(transferId, data)
   }
 
-  async getByTransferHash (transferHash: string): Promise<Transfer> {
-    return this.getById(transferHash)
+  async getByTransferId (transferId: string): Promise<Transfer> {
+    return this.getById(transferId)
   }
 
-  async getTransferHashes (): Promise<string[]> {
+  async getTransferIds (): Promise<string[]> {
     return this.getKeys()
   }
 
   async getTransfers (): Promise<Transfer[]> {
-    const transferHashes = await this.getTransferHashes()
+    const transferIds = await this.getTransferIds()
     return await Promise.all(
-      transferHashes.map(transferHash => {
-        return this.getByTransferHash(transferHash)
+      transferIds.map(transferId => {
+        return this.getByTransferId(transferId)
       })
     )
   }
@@ -44,7 +44,7 @@ class TransfersDb extends BaseDb {
       return (
         item.withdrawalBonded &&
         !item.withdrawalBondSettled &&
-        item.transferRootHash
+        item.transferRootId
       )
     })
   }

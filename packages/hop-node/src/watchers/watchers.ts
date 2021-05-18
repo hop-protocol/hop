@@ -55,7 +55,7 @@ function startStakeWatchers (
 
       const stakeWatcher = new StakeWatcher({
         isL1: network === 'ethereum',
-        label: `${network} ${token}`,
+        label: `${network}.${token}`,
         bridgeContract,
         tokenContract,
         stakeMinThreshold: 0,
@@ -200,7 +200,7 @@ function startWatchers (
       if (!contracts.has(token, network)) {
         continue
       }
-      const label = `${network} ${token}`
+      const label = `${network}.${token}`
       const isL1 = network === 'ethereum'
 
       const bridgeContract = isL1

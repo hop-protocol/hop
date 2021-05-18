@@ -335,7 +335,9 @@ export class User {
       throw new Error('not enough allowance')
     }
 
-    console.log(`wrapper.swapAndSend(
+    const log = false
+    if (log) {
+      console.log(`wrapper.swapAndSend(
       ${chainId},
       ${recipient},
       ${parsedAmount.toString()},
@@ -345,6 +347,7 @@ export class User {
       ${destinationAmountOutMin.toString()},
       ${destinationDeadline},
     )`)
+    }
 
     return wrapper.swapAndSend(
       chainId,
@@ -515,7 +518,7 @@ export class User {
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute
-    return parseUnits('20', 18)
+    return parseUnits('1', 18)
     return minBonderFee
   }
 

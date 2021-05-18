@@ -102,7 +102,7 @@ program
       const config: any = await setupConfig(configFilePath)
       if (config?.logging?.level) {
         const logLevel = config.logging.level
-        logger.log(`log level: "${logLevel}"`)
+        logger.info(`log level: "${logLevel}"`)
         setLogLevel(logLevel)
       }
       if (config?.keystore) {
@@ -133,7 +133,7 @@ program
       }
       if (config?.network) {
         const network = config.network
-        logger.log(`network: "${network}"`)
+        logger.info(`network: "${network}"`)
         setConfigByNetwork(network)
       }
       const tokens = []
@@ -171,7 +171,7 @@ program
       const challenger = config?.roles?.challenger
       const order = Number(config?.order || 0)
       if (order) {
-        logger.log('order:', order)
+        logger.info('order:', order)
       }
       let maxStakeAmounts: any
       if (config?.stake) {
@@ -201,12 +201,12 @@ program
       }
       for (let k in globalConfig.networks) {
         const { waitConfirmations, rpcUrls } = globalConfig.networks[k]
-        logger.log(`${k} wait confirmations: ${waitConfirmations || 0}`)
-        logger.log(`${k} rpc: ${rpcUrls?.join(',')}`)
+        logger.info(`${k} wait confirmations: ${waitConfirmations || 0}`)
+        logger.info(`${k} rpc: ${rpcUrls?.join(',')}`)
       }
       const dryMode = !!source.dry
       if (dryMode) {
-        logger.log(`dry mode enabled`)
+        logger.warn(`dry mode enabled`)
       }
       startWatchers({
         order,
@@ -250,7 +250,7 @@ program
     try {
       printHopArt()
       if (source.l1Network) {
-        logger.log(`network: "${source.l1Network}"`)
+        logger.info(`network: "${source.l1Network}"`)
         setConfigByNetwork(source.l1Network)
       }
       const order = Number(source.order || 0)
@@ -609,7 +609,7 @@ async function setupConfig (_configFile?: string) {
   }
   if (config) {
     await validateConfig(config)
-    logger.log('config file:', configPath)
+    logger.info('config file:', configPath)
   }
 
   if (config?.db) {

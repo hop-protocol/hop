@@ -105,6 +105,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       .on((this.bridge as L2Bridge).TransferSent, this.handleTransferSentEvent)
       .on('error', err => {
         this.logger.error('event watcher error:', err.message)
+        this.quit()
       })
 
     while (true) {
@@ -113,7 +114,7 @@ class CommitTransfersWatcher extends BaseWatcher {
         // TODO
         const chainIds = [1, 42, 5, 69, 79377087078960, 77, 80001]
         for (let chainId of chainIds) {
-          //await this.getRecentTransferHashesForCommittedRoots()
+          //await this.getRecentTransferIdsForCommittedRoots()
           const pendingTransfers = await (this
             .bridge as L2Bridge).getPendingTransfers(chainId)
           if (pendingTransfers.length > 0) {
@@ -136,9 +137,9 @@ class CommitTransfersWatcher extends BaseWatcher {
       if (!chainId) {
         throw new Error('chainId is required')
       }
-      const pendingAmount = await (this
+      const totalPendingAmount = await (this
         .bridge as L2Bridge).getPendingAmountForChainId(chainId)
-      if (pendingAmount.lte(0)) {
+      if (totalPendingAmount.lte(0)) {
         return
       }
 
@@ -169,8 +170,6 @@ class CommitTransfersWatcher extends BaseWatcher {
       this.logger.debug(
         `total pending transfers count for chainId ${chainId}: ${pendingTransfers.length}`
       )
-      const totalPendingAmount = await (this
-        .bridge as L2Bridge).getPendingAmountForChainId(chainId)
       this.logger.debug(
         `total pending amount for chainId ${chainId}: ${this.bridge.formatUnits(
           totalPendingAmount
@@ -195,7 +194,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       }
 
       this.logger.debug(
-        `chainId: ${chainId} - onchain pendingTransfers`,
+        `chainId: ${chainId} - onchain pendingTransfers\n`,
         pendingTransfers
       )
       const tree = new MerkleTree(pendingTransfers)
@@ -207,19 +206,19 @@ class CommitTransfersWatcher extends BaseWatcher {
       )
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,
-        transferHashes: pendingTransfers,
+        transferIds: pendingTransfers,
         totalAmount: totalPendingAmount
       })
 
       const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
         transferRootHash
       )
-      if (dbTransferRoot?.sentCommitTx || dbTransferRoot?.commited) {
+      if (dbTransferRoot?.sentCommitTx || dbTransferRoot?.committed) {
         this.logger.debug(
           'sent?:',
           !!dbTransferRoot.sentCommitTx,
-          'commited?:',
-          !!dbTransferRoot.commited
+          'committed?:',
+          !!dbTransferRoot.committed
         )
         return
       }
@@ -229,10 +228,17 @@ class CommitTransfersWatcher extends BaseWatcher {
         return
       }
 
-      for (let transferHash of pendingTransfers) {
-        await db.transfers.update(transferHash, {
-          transferHash,
-          transferRootHash
+      let transferRootId = dbTransferRoot.transferRootId
+      if (!transferRootId) {
+        transferRootId = await this.bridge.getTransferRootId(
+          transferRootHash,
+          totalPendingAmount
+        )
+      }
+      for (let transferId of pendingTransfers) {
+        await db.transfers.update(transferId, {
+          transferId,
+          transferRootId
         })
       }
 
@@ -255,10 +261,7 @@ class CommitTransfersWatcher extends BaseWatcher {
           this.emit('commitTransfers', {
             chainId,
             transferRootHash,
-            transferHashes: pendingTransfers
-          })
-          await db.transferRoots.update(transferRootHash, {
-            commited: true
+            transferIds: pendingTransfers
           })
         })
         .catch(async (err: Error) => {
@@ -281,7 +284,7 @@ class CommitTransfersWatcher extends BaseWatcher {
   }, 15 * 1000)
 
   handleTransferSentEvent = async (
-    transferHash: string,
+    transferId: string,
     recipient: string,
     amount: BigNumber,
     transferNonce: string,
@@ -290,8 +293,8 @@ class CommitTransfersWatcher extends BaseWatcher {
     meta: any
   ) => {
     try {
-      const dbTransferHash = await db.transfers.getByTransferHash(transferHash)
-      if (dbTransferHash?.sourceChainId) {
+      const dbTransfer = await db.transfers.getByTransferId(transferId)
+      if (dbTransfer?.sourceChainId) {
         return
       }
 
@@ -303,8 +306,8 @@ class CommitTransfersWatcher extends BaseWatcher {
 
       const { chainId } = await (this.bridge as L2Bridge).decodeSendData(data)
       const sourceChainId = await (this.bridge as L2Bridge).getChainId()
-      await db.transfers.update(transferHash, {
-        transferHash,
+      await db.transfers.update(transferId, {
+        transferId,
         chainId,
         sourceChainId
       })
@@ -316,11 +319,11 @@ class CommitTransfersWatcher extends BaseWatcher {
     }
   }
 
-  async getRecentTransferHashesForCommittedRoots () {
+  async getRecentTransferIdsForCommittedRoots () {
     const blockNumber = await this.bridge.getBlockNumber()
     let start = blockNumber - 1000
     const transferCommits = await (this
-      .bridge as L2Bridge).getTransfersCommitedEvents(start, blockNumber)
+      .bridge as L2Bridge).getTransfersCommittedEvents(start, blockNumber)
     if (!transferCommits.length) {
       return
     }
@@ -343,18 +346,16 @@ class CommitTransfersWatcher extends BaseWatcher {
       }
       transferCommitsMap[chainId][transferRootHash] = {
         transferRootHash,
-        transferHashes: [],
+        transferIds: [],
         prevBlockNumber,
         blockNumber
       }
     }
     for (let destChainId in transferCommitsMap) {
       for (let transferRootHash in transferCommitsMap[destChainId]) {
-        let {
-          prevBlockNumber,
-          blockNumber,
-          transferHashes
-        } = transferCommitsMap[destChainId][transferRootHash]
+        let { prevBlockNumber, blockNumber, transferIds } = transferCommitsMap[
+          destChainId
+        ][transferRootHash]
         const recentEvents = await (this
           .bridge as L2Bridge).getTransferSentEvents(
           prevBlockNumber,
@@ -369,19 +370,18 @@ class CommitTransfersWatcher extends BaseWatcher {
             data
           )
           if (chainId === destChainId) {
-            transferHashes.push(event.topics[1])
+            transferIds.push(event.topics[1])
           }
         }
-        if (transferHashes.length) {
-          const tree = new MerkleTree(transferHashes)
+        if (transferIds.length) {
+          const tree = new MerkleTree(transferIds)
           if (tree.getHexRoot() === transferRootHash) {
             db.transferRoots.update(transferRootHash, {
-              transferHashes: transferHashes,
-              commited: true
+              transferIds: transferIds
             })
           } else {
             this.logger.warn(
-              'merkle hex root does not match commited transfer root'
+              'merkle hex root does not match committed transfer root'
             )
           }
         }

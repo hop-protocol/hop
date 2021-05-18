@@ -71,7 +71,7 @@ export default class L2Bridge extends Bridge {
     return new Token(tokenContract)
   }
 
-  async getTransfersCommitedEvents (
+  async getTransfersCommittedEvents (
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<any[]> {

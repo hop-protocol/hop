@@ -17,7 +17,7 @@ import { Notifier } from 'src/notifier'
 
 const paths = [[Chain.xDai, Chain.Ethereum]]
 const tokens = ['DAI']
-const transferAmount = 100
+const transferAmount = 10
 
 type Config = {
   concurrentUsers: number

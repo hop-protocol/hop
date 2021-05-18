@@ -72,6 +72,11 @@ class BaseWatcher extends EventEmitter {
   public async eventsBatch (cb: (start: number, end: number) => void) {
     return this.bridge.eventsBatch(cb)
   }
+
+  // force quit so docker can restart
+  public async quit () {
+    process.exit(1)
+  }
 }
 
 export default BaseWatcher

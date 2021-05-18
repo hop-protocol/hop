@@ -51,7 +51,7 @@ describe('convert L1 token to L2 canonical token', () => {
 
 describe.skip('polygon', () => {
   it(
-    'polygon canonical L1 -> L2',
+    'polygon canonical L1 → L2',
     async () => {
       const user = new User(privateKey)
       const amount = 0.1
@@ -65,7 +65,7 @@ describe.skip('polygon', () => {
   )
 
   it(
-    'polygon canonical L2 -> L1',
+    'polygon canonical L2 → L1',
     async () => {
       const user = new User(privateKey)
       const amount = 0.01

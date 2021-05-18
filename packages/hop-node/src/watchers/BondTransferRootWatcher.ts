@@ -21,8 +21,10 @@ export interface Config {
 
 class BondTransferRootWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondTransferRootWatcher }
-  waitMinBondDelay: boolean = true
-  skipChains: string[] = [Chain.xDai, Chain.Polygon]
+  //waitMinBondDelay: boolean = true
+  //skipChains: string[] = [Chain.xDai, Chain.Polygon]
+  waitMinBondDelay: boolean = false
+  skipChains: string[] = []
 
   constructor (config: Config) {
     super({

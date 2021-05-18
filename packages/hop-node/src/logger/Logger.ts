@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+import { DateTime } from 'luxon'
 
 export interface Options {
   tag?: string
@@ -7,10 +8,21 @@ export interface Options {
 }
 
 export enum LogLevels {
+  Critical,
   Error,
   Warn,
   Info,
+  Log,
   Debug
+}
+
+const logLevelColors: { [key: string]: string } = {
+  [LogLevels.Critical]: 'red',
+  [LogLevels.Error]: 'red',
+  [LogLevels.Warn]: 'yellow',
+  [LogLevels.Info]: 'blue',
+  [LogLevels.Log]: 'white',
+  [LogLevels.Debug]: 'white'
 }
 
 let logLevel = LogLevels.Debug
@@ -61,9 +73,22 @@ class Logger {
     }
   }
 
+  get timestamp (): string {
+    return DateTime.now().toISO()
+  }
+
+  headers (logLevelEnum: LogLevels): string[] {
+    const keys = Object.keys(LogLevels)
+    const logLevelName = keys[logLevelEnum + keys.length / 2].toUpperCase()
+    const coloredLogLevel = (chalk as any)[logLevelColors[logLevelEnum]](
+      logLevelName.padEnd(5, ' ')
+    )
+    return [this.timestamp, coloredLogLevel, this.tag, this.prefix]
+  }
+
   critical = (...input: any[]) => {
     if (!this.enabled) return
-    console.error(this.tag, ...input)
+    console.error(...this.headers(LogLevels.Critical), ...input)
   }
 
   debug = (...input: any[]) => {
@@ -71,12 +96,12 @@ class Logger {
     if (logLevel !== LogLevels.Debug) {
       return
     }
-    console.debug(this.tag, this.prefix, ...input)
+    console.debug(...this.headers(LogLevels.Debug), ...input)
   }
 
   error = (...input: any[]) => {
     if (!this.enabled) return
-    console.error(this.tag, this.prefix, ...input)
+    console.error(...this.headers(LogLevels.Error), ...input)
   }
 
   info = (...input: any[]) => {
@@ -84,7 +109,7 @@ class Logger {
     if (!(logLevel === LogLevels.Debug || logLevel === LogLevels.Info)) {
       return
     }
-    console.info(this.tag, this.prefix, ...input)
+    console.info(...this.headers(LogLevels.Info), ...input)
   }
 
   log = (...input: any[]) => {
@@ -92,7 +117,7 @@ class Logger {
     if (logLevel < LogLevels.Info) {
       return
     }
-    console.log(this.tag, this.prefix, ...input)
+    console.log(...this.headers(LogLevels.Log), ...input)
   }
 
   warn = (...input: any[]) => {
@@ -100,7 +125,7 @@ class Logger {
     if (logLevel < LogLevels.Warn) {
       return
     }
-    console.warn(this.tag, this.prefix, ...input)
+    console.warn(...this.headers(LogLevels.Warn), ...input)
   }
 }
 

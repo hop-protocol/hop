@@ -45,7 +45,13 @@ class LoadTest {
           try {
             const faucet = new User(faucetPrivateKey)
             const users = generateUsers(this.concurrentUsers, mnemonic)
-            await prepareAccounts(users, faucet, token, sourceNetwork)
+            await prepareAccounts(
+              users,
+              faucet,
+              token,
+              sourceNetwork,
+              transferAmount
+            )
 
             logger.log('reading balances')
             const [

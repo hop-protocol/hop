@@ -299,7 +299,7 @@ export class User {
     token: string,
     amount: string | number
   ) {
-    const deadline = (Date.now() / 1000 + 300) | 0
+    const deadline = ((Date.now() / 1000) | 0) + 300
     const chainId = networkSlugToId(destNetwork)
     const bonderFee = await this.getBonderFee(
       sourceNetwork,
@@ -308,17 +308,32 @@ export class User {
     )
     const amountOutMin = '0'
     const recipient = await this.getAddress()
-    let destinationAmountOutMin = '0'
+    let destinationAmountOutMin = 0
     let destinationDeadline = deadline
     let parsedAmount = parseUnits(amount.toString(), 18)
 
     if (destNetwork === Chain.Ethereum) {
-      destinationAmountOutMin = '0'
+      destinationAmountOutMin = 0
       destinationDeadline = 0
     }
 
     const wrapper = this.getAmmWrapperContract(sourceNetwork, token)
     await this.checkApproval(sourceNetwork, token, wrapper.address)
+
+    const balance = await this.getBalance(sourceNetwork, token)
+    console.log('token balance:', balance)
+
+    const hopBalance = await this.getHopBalance(sourceNetwork, token)
+    console.log('token hop balance:', hopBalance)
+
+    const allowance = await this.getAllowance(
+      sourceNetwork,
+      token,
+      wrapper.address
+    )
+    if (allowance < amount) {
+      throw new Error('not enough allowance')
+    }
 
     console.log(`wrapper.swapAndSend(
       ${chainId},
@@ -1141,7 +1156,7 @@ export async function prepareAccount (
   token: string
 ) {
   let balance = await user.getBalance(sourceNetwork, token)
-  if (balance < 10) {
+  if (balance < 1000) {
     if (sourceNetwork === Chain.xDai) {
       let tx = await user.mint(Chain.Ethereum, token, 1000)
       await tx?.wait()
@@ -1203,7 +1218,7 @@ export async function prepareAccounts (
       expect(ethBal).toBeGreaterThanOrEqual(0.1)
     }
     let tokenBal = await user.getBalance(network, token)
-    if (tokenBal < 1) {
+    if (tokenBal < faucetTokensToSend) {
       console.log('faucet sending tokens')
       const faucetBalance = await faucet.getBalance(network, token)
       if (faucetBalance < faucetTokensToSend) {

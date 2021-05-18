@@ -60,7 +60,7 @@ class ArbBot {
 
   public async start () {
     this.logger.log(
-      `Starting ${this.token0.label}<->${this.token1.label} arbitrage bot`
+      `Starting ${this.token0.label}↔${this.token1.label} arbitrage bot`
     )
     this.logger.log(`maxTradeAmount: ${this.formatUnits(this.maxTradeAmount)}`)
     this.logger.log(`minThreshold: ${this.minThreshold}`)

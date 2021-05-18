@@ -224,9 +224,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         transferRootId,
         transferRootHash
       })
-      this.logger.debug(
-        `updated db transfer hash ${dbTransferId} to have transfer root id ${transferRootId}`
-      )
+      if (!dbTransfer.transferRootId) {
+        this.logger.debug(
+          `updated db transfer hash ${dbTransferId} to have transfer root id ${transferRootId}`
+        )
+      }
     }
   }
 
@@ -334,13 +336,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
       const tree = new MerkleTree(transferIds)
       const transferRootHash = tree.getHexRoot()
-      this.logger.debug('committedAt:', committedAt)
-      this.logger.debug('sourceChainId:', dbTransfer.sourceChainId)
-      this.logger.debug('destinationChainId:', chainId)
-      this.logger.debug('transferIds:\n', transferIds)
-      this.logger.debug('computed transferRootHash:', transferRootHash)
-      this.logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
       if (transferRootHash !== dbTransferRoot.transferRootHash) {
+        this.logger.debug('transferIds:\n', transferIds)
         this.logger.error(
           `computed transfer root hash doesn't match. Expected ${dbTransferRoot.transferRootHash}`
         )
@@ -358,15 +355,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       const structTotalAmount = transferBondStruct.total
       const structAmountWithdrawn = transferBondStruct.amountWithdrawn
       const createdAt = Number(transferBondStruct?.createdAt.toString())
-      this.logger.debug(
-        'struct total amount:',
-        this.bridge.formatUnits(structTotalAmount)
-      )
-      this.logger.debug(
-        'struct withdrawnAmount:',
-        this.bridge.formatUnits(structAmountWithdrawn)
-      )
-      this.logger.debug('struct createdAt:', createdAt)
       if (structTotalAmount.lte(0)) {
         this.logger.warn(
           'transferRoot total amount is 0. Cannot settle until transfer root is set'
@@ -411,6 +399,21 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         return
       }
 
+      this.logger.debug('committedAt:', committedAt)
+      this.logger.debug('sourceChainId:', dbTransfer.sourceChainId)
+      this.logger.debug('destinationChainId:', chainId)
+      this.logger.debug('computed transferRootHash:', transferRootHash)
+      this.logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
+      this.logger.debug(
+        'struct total amount:',
+        this.bridge.formatUnits(structTotalAmount)
+      )
+      this.logger.debug(
+        'struct withdrawnAmount:',
+        this.bridge.formatUnits(structAmountWithdrawn)
+      )
+      this.logger.debug('struct createdAt:', createdAt)
+
       this.logger.debug('totalBondedSettleAmount:', createdAt)
       const newAmountWithdrawn = structAmountWithdrawn.add(
         totalBondsSettleAmount
@@ -439,6 +442,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           return
         }
       }
+
+      this.logger.debug('transferIds:\n', transferIds)
 
       if (this.dryMode) {
         this.logger.warn(

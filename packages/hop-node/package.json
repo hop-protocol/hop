@@ -59,7 +59,7 @@
     "lodash": "^4.17.21",
     "lolcatjs": "^2.4.0",
     "luxon": "^1.27.0",
-    "merkletreejs": "^0.2.13",
+    "merkletreejs": "^0.2.18",
     "mkdirp": "^0.5.5",
     "module-alias": "^2.2.2",
     "node-fetch": "^2.6.1",

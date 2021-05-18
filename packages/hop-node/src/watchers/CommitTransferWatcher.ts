@@ -207,7 +207,8 @@ class CommitTransfersWatcher extends BaseWatcher {
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,
         transferIds: pendingTransfers,
-        totalAmount: totalPendingAmount
+        totalAmount: totalPendingAmount,
+        sourceChainId: l2ChainId
       })
 
       const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
@@ -238,7 +239,8 @@ class CommitTransfersWatcher extends BaseWatcher {
       for (let transferId of pendingTransfers) {
         await db.transfers.update(transferId, {
           transferId,
-          transferRootId
+          transferRootId,
+          transferRootHash
         })
       }
 

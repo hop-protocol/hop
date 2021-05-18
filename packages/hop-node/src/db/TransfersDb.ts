@@ -2,6 +2,7 @@ import BaseDb from './BaseDb'
 
 export type Transfer = {
   transferRootId?: string
+  transferRootHash?: string
   transferId?: string
   chainId?: number
   sourceChainId?: number
@@ -44,7 +45,7 @@ class TransfersDb extends BaseDb {
       return (
         item.withdrawalBonded &&
         !item.withdrawalBondSettled &&
-        item.transferRootId
+        item.transferRootHash
       )
     })
   }

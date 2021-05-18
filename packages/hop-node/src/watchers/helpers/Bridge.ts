@@ -252,14 +252,19 @@ export default class Bridge extends ContractBase {
     return parseUnits(value.toString(), this.tokenDecimals)
   }
 
-  public async eventsBatch (cb: (start: number, end: number) => void) {
+  public async eventsBatch (
+    cb: (start: number, end: number) => Promise<void | boolean>
+  ) {
     const { syncBlocksTotal, syncBlocksBatch } = config
     const blockNumber = await this.getBlockNumber()
     const minBlock = blockNumber - syncBlocksTotal
     let end = blockNumber
     let start = end - syncBlocksBatch
-    while (start > blockNumber - syncBlocksTotal) {
-      await cb(start, end)
+    while (start >= blockNumber - syncBlocksTotal) {
+      const shouldContinue = await cb(start, end)
+      if (typeof shouldContinue === 'boolean' && !shouldContinue) {
+        break
+      }
       end = start
       start = end - syncBlocksBatch
     }

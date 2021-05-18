@@ -69,7 +69,9 @@ class BaseWatcher extends EventEmitter {
     this.siblingWatchers = watchers
   }
 
-  public async eventsBatch (cb: (start: number, end: number) => void) {
+  public async eventsBatch (
+    cb: (start: number, end: number) => Promise<void | boolean>
+  ) {
     return this.bridge.eventsBatch(cb)
   }
 

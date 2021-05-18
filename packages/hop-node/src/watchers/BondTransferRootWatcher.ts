@@ -10,6 +10,7 @@ import { Chain } from 'src/constants'
 import BaseWatcher from './helpers/BaseWatcher'
 import L1Bridge from './helpers/L1Bridge'
 import L2Bridge from './helpers/L2Bridge'
+import { config as globalConfig } from 'src/config'
 
 export interface Config {
   isL1: boolean
@@ -21,10 +22,10 @@ export interface Config {
 
 class BondTransferRootWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondTransferRootWatcher }
-  //waitMinBondDelay: boolean = true
-  //skipChains: string[] = [Chain.xDai, Chain.Polygon]
-  waitMinBondDelay: boolean = false
-  skipChains: string[] = []
+  waitMinBondDelay: boolean = globalConfig.isMainnet
+  skipChains: string[] = globalConfig.isMainnet
+    ? [Chain.xDai, Chain.Polygon]
+    : []
 
   constructor (config: Config) {
     super({
@@ -229,6 +230,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       )
       await db.transferRoots.update(transferRootHash, {
         transferRootId,
+        transferRootHash,
         bonded: true
       })
       return
@@ -333,6 +335,9 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
+    this.logger.debug(
+      `bonding transfer root ${transferRootHash} on chain ${chainId}`
+    )
     await db.transferRoots.update(transferRootHash, {
       sentBondTx: true
     })
@@ -384,13 +389,14 @@ class BondTransferRootWatcher extends BaseWatcher {
       const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
         transferRootHash
       )
-      if (dbTransferRoot?.committedAt) {
+      if (dbTransferRoot?.committed && dbTransferRoot?.committedAt) {
         return
       }
-
       const committedAt = Number(committedAtBn.toString())
       this.logger.debug(`received L2 TransfersCommitted event`)
       this.logger.debug(`committedAt:`, committedAt)
+      this.logger.debug(`totalAmount:`, this.bridge.formatUnits(totalAmount))
+      this.logger.debug(`transferRootHash:`, transferRootHash)
       const { transactionHash } = meta
       const { data } = await this.bridge.getTransaction(transactionHash)
       const { destinationChainId: chainId } = await (this
@@ -412,7 +418,8 @@ class BondTransferRootWatcher extends BaseWatcher {
         chainId,
         committedAt,
         destinationBridgeAddress,
-        sourceChainId
+        sourceChainId,
+        committed: true
       })
 
       await this.checkTransfersCommitted(

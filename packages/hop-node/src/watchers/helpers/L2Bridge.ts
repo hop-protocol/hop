@@ -10,6 +10,7 @@ import queue from './queue'
 import L2AmmWrapper from './L2AmmWrapper'
 import L2BridgeWrapper from './L2BridgeWrapper'
 import Token from './Token'
+import { Chain } from 'src/constants'
 
 export default class L2Bridge extends Bridge {
   l2BridgeContract: Contract
@@ -194,7 +195,11 @@ export default class L2Bridge extends Bridge {
     amountOutMin: BigNumber,
     deadline: number
   ): Promise<providers.TransactionResponse> {
-    console.log(await this.txOverrides())
+    let txOverrides = await this.txOverrides()
+    if (this.chainSlug === Chain.Polygon) {
+      txOverrides.gasLimit = 1_000_000
+    }
+
     const tx = await this.l2BridgeContract.bondWithdrawalAndDistribute(
       recipient,
       amount,
@@ -202,7 +207,7 @@ export default class L2Bridge extends Bridge {
       bonderFee,
       amountOutMin,
       deadline,
-      await this.txOverrides()
+      txOverrides
     )
     console.log('bondWithdrawalAndAttemptSwap tx:', tx.hash)
 

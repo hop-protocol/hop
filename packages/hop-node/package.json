@@ -25,7 +25,7 @@
     "@ethersproject/experimental": "^5.0.9",
     "@ethersproject/hdnode": "^5.0.9",
     "@hop-protocol/abi": "0.0.1-beta.3",
-    "@hop-protocol/addresses": "0.0.1-beta.14",
+    "@hop-protocol/addresses": "0.0.1-beta.15",
     "@hop-protocol/metadata": "0.0.1-beta.3",
     "@hop-protocol/networks": "0.0.1-beta.3",
     "@maticnetwork/maticjs": "^2.0.38",

@@ -245,7 +245,7 @@ const Pools: FC = () => {
               color="textSecondary"
               component="div"
             >
-              {commafy(token0Price)}
+              {commafy(token0Price, 5)}
             </Typography>
             <Typography
               variant="subtitle2"
@@ -257,7 +257,7 @@ const Pools: FC = () => {
           </Box>
           <Box alignItems="center" className={styles.priceBox}>
             <Typography variant="subtitle1" color="textSecondary">
-              {commafy(token1Price)}
+              {commafy(token1Price, 5)}
             </Typography>
             <Typography
               variant="subtitle2"
@@ -313,7 +313,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {commafy(userPoolBalance)}
+                  {commafy(userPoolBalance, 5)}
                 </Typography>
               </Box>
             )}
@@ -349,7 +349,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {commafy(token0Deposited)}
+                  {commafy(token0Deposited, 5)}
                 </Typography>
               </Box>
             )}
@@ -367,7 +367,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {commafy(token1Deposited)}
+                  {commafy(token1Deposited, 5)}
                 </Typography>
               </Box>
             )}

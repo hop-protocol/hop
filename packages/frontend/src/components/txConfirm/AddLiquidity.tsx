@@ -55,8 +55,8 @@ const AddLiquidity = (props: Props) => {
           Add Liquidity
         </Typography>
         <Typography variant="h6" color="textPrimary">
-          {commafy(token0.amount)} {token0.token.symbol} +{' '}
-          {commafy(token1.amount)} {token1.token.symbol}
+          {commafy(token0.amount, 5)} {token0.token.symbol} +{' '}
+          {commafy(token1.amount, 5)} {token1.token.symbol}
         </Typography>
       </div>
       <div className={styles.action}>

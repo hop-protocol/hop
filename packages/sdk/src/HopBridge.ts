@@ -71,6 +71,17 @@ type SendOptions = {
   destinationDeadline: number
 }
 
+type AddLiquidityOptions = {
+  minToMint: TAmount
+  deadline: number
+}
+
+type RemoveLiquidityOptions = {
+  amount0Min: TAmount
+  amount1Min: TAmount
+  deadline: number
+}
+
 /**
  * Class reprensenting Hop bridge.
  * @namespace HopBridge
@@ -695,7 +706,7 @@ class HopBridge extends Base {
     amount0Desired: TAmount,
     amount1Desired: TAmount,
     chain?: TChain,
-    options: any = {} // TODO: types
+    options: Partial<AddLiquidityOptions> = {}
   ) {
     if (!chain) {
       chain = this.sourceChain
@@ -720,7 +731,7 @@ class HopBridge extends Base {
   public async removeLiquidity (
     liqudityTokenAmount: TAmount,
     chain?: TChain,
-    options: any = {} // TODO: types
+    options: Partial<RemoveLiquidityOptions> = {}
   ) {
     if (!chain) {
       chain = this.sourceChain

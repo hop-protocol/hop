@@ -223,6 +223,9 @@ class Hop extends Base {
         sourceTx.blockNumber as number
       )
       const sourceTimestamp = sourceBlock?.timestamp
+      let endBlock = -1
+      let startBlock = -1
+      let pollDest: () => Promise<boolean>
 
       // L1 -> L2
       if (sourceChain.isL1) {
@@ -237,9 +240,7 @@ class Hop extends Base {
         const l2Bridge = await bridge.getL2Bridge(destinationChain)
         const exchange = await bridge.getSaddleSwap(destinationChain)
         let destTx: any
-        let endBlock = -1
-        let startBlock = -1
-        const pollDest = async () => {
+        pollDest = async () => {
           const blockNumber = await destinationChain.provider.getBlockNumber()
           if (!blockNumber) {
             return false
@@ -333,11 +334,6 @@ class Hop extends Base {
             return true
           }
         }
-        let res = false
-        while (!res) {
-          res = await pollDest()
-          await wait(pollDelayMs)
-        }
       }
 
       // L2 -> L1
@@ -369,9 +365,7 @@ class Hop extends Base {
         if (!transferHash) {
           return false
         }
-        let startBlock = -1
-        let endBlock = -1
-        const pollDest = async () => {
+        pollDest = async () => {
           const blockNumber = await destinationChain.provider.getBlockNumber()
           if (!blockNumber) {
             return false
@@ -414,11 +408,6 @@ class Hop extends Base {
           }
           return false
         }
-        let res = false
-        while (!res) {
-          res = await pollDest()
-          await wait(pollDelayMs)
-        }
       }
 
       // L2 -> L2
@@ -443,9 +432,7 @@ class Hop extends Base {
           if (!transferHash) {
             return false
           }
-          let startBlock = -1
-          let endBlock = -1
-          const pollDest = async () => {
+          pollDest = async () => {
             const blockNumber = await destinationChain.provider.getBlockNumber()
             if (!blockNumber) {
               return false
@@ -506,17 +493,10 @@ class Hop extends Base {
             }
             return false
           }
-          let res = false
-          while (!res) {
-            res = await pollDest()
-            await wait(pollDelayMs)
-          }
         } catch (err) {
-          let startBlock = -1
-          let endBlock = -1
           // events for token swap on L2 (ie saddle convert page on UI)
           const exchange = await bridge.getSaddleSwap(destinationChain)
-          const pollDest = async () => {
+          pollDest = async () => {
             const blockNumber = await destinationChain.provider.getBlockNumber()
             if (!blockNumber) {
               return false
@@ -572,12 +552,16 @@ class Hop extends Base {
             }
             return false
           }
-          let res = false
-          while (!res) {
-            res = await pollDest()
-            await wait(pollDelayMs)
-          }
         }
+      }
+
+      if (!pollDest) {
+        return
+      }
+      let res = false
+      while (!res) {
+        res = await pollDest()
+        await wait(pollDelayMs)
       }
     }
 
@@ -615,13 +599,14 @@ class Hop extends Base {
         sourceTx.blockNumber as number
       )
       const sourceTimestamp = sourceBlock?.timestamp
+      let startBlock = -1
+      let endBlock = -1
+      let pollDest: () => Promise<boolean>
 
       // L1 -> L2
       if (sourceChain.isL1) {
         if (destinationChain.equals(Chain.xDai)) {
-          let startBlock = -1
-          let endBlock = -1
-          const pollDest = async () => {
+          pollDest = async () => {
             const blockNumber = await destinationChain.provider.getBlockNumber()
             if (!blockNumber) {
               return false
@@ -682,16 +667,8 @@ class Hop extends Base {
             }
             return false
           }
-
-          let res = false
-          while (!res) {
-            res = await pollDest()
-            await wait(pollDelayMs)
-          }
         } else if (destinationChain.equals(Chain.Polygon)) {
-          let startBlock = -1
-          let endBlock = -1
-          const pollDest = async () => {
+          pollDest = async () => {
             const blockNumber = await destinationChain.provider.getBlockNumber()
             if (!blockNumber) {
               return false
@@ -757,12 +734,6 @@ class Hop extends Base {
             }
             return false
           }
-
-          let res = false
-          while (!res) {
-            res = await pollDest()
-            await wait(pollDelayMs)
-          }
         } else {
           throw new Error('not implemented')
         }
@@ -771,9 +742,7 @@ class Hop extends Base {
       // L2 -> L1
       if (!sourceChain.isL1 && destinationChain?.isL1) {
         if (sourceChain.equals(Chain.xDai)) {
-          let startBlock = -1
-          let endBlock = -1
-          const pollDest = async () => {
+          pollDest = async () => {
             const blockNumber = await destinationChain.provider.getBlockNumber()
             if (!blockNumber) {
               return false
@@ -837,16 +806,8 @@ class Hop extends Base {
             }
             return false
           }
-
-          let res = false
-          while (!res) {
-            res = await pollDest()
-            await wait(pollDelayMs)
-          }
         } else if (sourceChain.equals(Chain.Polygon)) {
-          let startBlock = -1
-          let endBlock = -1
-          const pollDest = async () => {
+          pollDest = async () => {
             const blockNumber = await destinationChain.provider.getBlockNumber()
             if (!blockNumber) {
               return false
@@ -921,12 +882,6 @@ class Hop extends Base {
             }
             return false
           }
-
-          let res = false
-          while (!res) {
-            res = await pollDest()
-            await wait(pollDelayMs)
-          }
         } else {
           throw new Error('not implemented')
         }
@@ -935,6 +890,15 @@ class Hop extends Base {
       // L2 -> L2
       if (!sourceChain.isL1 && !destinationChain?.isL1) {
         throw new Error('not implemented')
+      }
+
+      if (!pollDest) {
+        return
+      }
+      let res = false
+      while (!res) {
+        res = await pollDest()
+        await wait(pollDelayMs)
       }
     }
 

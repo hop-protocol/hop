@@ -106,11 +106,11 @@ const RemoveLiquidity = (props: Props) => {
 
   const disabled = amountPercent === 0
   const token0Amount = commafy(
-    (Number(token0.amount) * (amountPercent / 100)).toFixed(2)
-  )
+    (Number(token0.amount) * (amountPercent / 100)).toFixed(5)
+    , 5)
   const token1Amount = commafy(
-    (Number(token1.amount) * (amountPercent / 100)).toFixed(2)
-  )
+    (Number(token1.amount) * (amountPercent / 100)).toFixed(5)
+    , 5)
 
   return (
     <div className={styles.root}>

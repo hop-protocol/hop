@@ -300,6 +300,21 @@ const Web3ContextProvider: FC = ({ children }) => {
     if (networkId.toString() !== signerNetworkId?.toString()) {
       onboard.config({ networkId })
       if (onboard.getState().address) {
+        let nativeCurrency : any
+        if (networkIdToSlug(networkId) === 'xdai') {
+          nativeCurrency = {
+            name: 'xDAI',
+            symbol: 'XDAI',
+            decimals: 18
+          }
+        } else if (networkIdToSlug(networkId) === 'polygon') {
+          nativeCurrency = {
+            name: 'Matic',
+            symbol: 'MATIC',
+            decimals: 18
+          }
+        }
+
         try {
           if ((window as any).ethereum && networkId) {
             await (window as any).ethereum.request({
@@ -313,7 +328,8 @@ const Web3ContextProvider: FC = ({ children }) => {
                   rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
                   blockExplorerUrls: [
                     getBaseExplorerUrl(networkIdToSlug(networkId.toString()))
-                  ]
+                  ],
+                  nativeCurrency
                 }
               ]
             })

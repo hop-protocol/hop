@@ -323,71 +323,44 @@ const Send: FC = () => {
     let tx: any
     const bridge = sdk.bridge(selectedToken?.symbol).connect(signer)
     const token = bridge.token
-    const l1Bridge = await bridge.getL1Bridge()
-    if (fromNetwork?.isLayer1) {
-      const approved = await token.allowance(fromNetwork.slug, l1Bridge.address)
-      if (approved.lt(parsedAmount)) {
-        tx = await txConfirm?.show({
-          kind: 'approval',
-          inputProps: {
-            amount: amount,
-            token: selectedToken
-          },
-          onConfirm: async (approveAll: boolean) => {
-            const approveAmount = approveAll ? UINT256 : parsedAmount
-            return token.approve(
-              fromNetwork.slug,
-              l1Bridge.address,
-              approveAmount
-            )
-          }
-        })
-        await tx?.wait()
-        if (tx?.hash && fromNetwork) {
-          txHistory?.addTransaction(
-            new Transaction({
-              hash: tx?.hash,
-              networkName: fromNetwork?.slug,
-              token: selectedToken
-            })
-          )
-        }
-      }
+    let spender : string
+    if (fromNetwork.isLayer1) {
+      const l1Bridge = await bridge.getL1Bridge()
+      spender = l1Bridge.address
     } else {
       const bridge = await sdk
         .bridge(selectedToken?.symbol)
         .connect(signer)
       const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
-      const approved = await token.allowance(
-        fromNetwork.slug,
-        ammWrapper.address
-      )
-      if (approved.lt(parsedAmount)) {
-        tx = await txConfirm?.show({
-          kind: 'approval',
-          inputProps: {
-            amount: amount,
-            token: selectedToken
-          },
-          onConfirm: async (approveAll: boolean) => {
-            const approveAmount = approveAll ? UINT256 : parsedAmount
-            return token.approve(
-              fromNetwork.slug,
-              ammWrapper?.address as string,
-              approveAmount
-            )
-          }
-        })
-        await tx?.wait()
-        if (tx?.hash && fromNetwork) {
-          txHistory?.addTransaction(
-            new Transaction({
-              hash: tx?.hash,
-              networkName: fromNetwork?.slug,
-              token: selectedToken
-            })
+      spender = ammWrapper.address
+    }
+    const approved = await token.allowance(fromNetwork.slug, spender)
+    if (approved.lt(parsedAmount)) {
+      tx = await txConfirm?.show({
+        kind: 'approval',
+        inputProps: {
+          tagline: `Allow Hop to spend your ${token.symbol} on ${fromNetwork.name}`,
+          amount: amount,
+          token: selectedToken
+        },
+        onConfirm: async (approveAll: boolean) => {
+          const approveAmount = approveAll ? UINT256 : parsedAmount
+          return token.approve(
+            fromNetwork.slug,
+            spender,
+            approveAmount
           )
         }
+      })
+      await tx?.wait()
+      if (tx?.hash && fromNetwork) {
+        txHistory?.addTransaction(
+          new Transaction({
+            hash: tx?.hash,
+            networkName: fromNetwork?.slug,
+            token: selectedToken
+          })
+        )
       }
     }
 

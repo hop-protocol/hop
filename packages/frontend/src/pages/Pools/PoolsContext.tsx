@@ -298,6 +298,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       return txConfirm?.show({
         kind: 'approval',
         inputProps: {
+          tagline: `Allow Hop to spend your ${isHop ? 'h' : ''}${token.symbol} on ${selectedNetwork.name}`,
           amount,
           token: isHop ? hopToken : selectedToken
         },
@@ -436,6 +437,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         tx = await txConfirm?.show({
           kind: 'approval',
           inputProps: {
+            tagline: `Allow Hop to spend your LP-${lpToken.symbol} on ${selectedNetwork.name}`,
             amount: formattedBalance,
             token: new Token({
               symbol: lpToken.symbol,

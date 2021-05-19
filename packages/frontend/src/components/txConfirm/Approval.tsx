@@ -18,6 +18,9 @@ const useStyles = makeStyles(() => ({
   title: {
     marginBottom: '2rem'
   },
+  tagline: {
+    marginTop: '1rem'
+  },
   approveAll: {
     display: 'flex',
     justifyContent: 'center',
@@ -30,12 +33,13 @@ const useStyles = makeStyles(() => ({
 
 interface Props {
   amount: string
+  tagline?: string
   token: Token
   onConfirm: (confirmed: boolean, params?: any) => void
 }
 
 const Approval = (props: Props) => {
-  const { amount, token, onConfirm } = props
+  const { amount, token, onConfirm, tagline } = props
   const styles = useStyles()
   const [sending, setSending] = useState<boolean>(false)
   const [approveAll, setApproveAll] = useState<boolean>(true)
@@ -61,6 +65,10 @@ const Approval = (props: Props) => {
         <Typography variant="h5" color="textPrimary">
           Approve {commafy(!approveAll ? amount : '')} {token.symbol}
         </Typography>
+        {tagline ? <Typography variant="body1" color="textPrimary" className={styles.tagline}>
+            {tagline}
+          </Typography>
+        : null}
       </div>
       <div className={styles.approveAll}>
         <FormControlLabel

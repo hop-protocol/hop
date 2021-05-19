@@ -162,7 +162,7 @@ class HopBridge extends Base {
       token.address,
       token.decimals,
       token.symbol,
-      token.name,
+      `hop ${token.name}`,
       signer,
       'hop'
     )
@@ -173,7 +173,7 @@ class HopBridge extends Base {
       token.address,
       token.decimals,
       token.symbol,
-      token.name,
+      `LP ${token.name}`,
       signer,
       'lp'
     )

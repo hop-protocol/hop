@@ -33,6 +33,8 @@ class Token {
     }
     if (name) {
       this.name = name
+    } else if (symbol) {
+      this.name = symbol
     }
     if (decimals) {
       this.decimals = decimals

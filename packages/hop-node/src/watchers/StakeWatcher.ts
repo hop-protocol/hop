@@ -6,6 +6,7 @@ import BaseWatcher from './helpers/BaseWatcher'
 import Bridge from './helpers/Bridge'
 import L1Bridge from './helpers/L1Bridge'
 import Token from './helpers/Token'
+import { config } from 'src/config'
 
 export interface Config {
   label: string
@@ -184,8 +185,10 @@ class StakeWatcher extends BaseWatcher {
             )
             this.notifier.info(`convert tx: ${tx?.hash}`)
             await tx.wait()
+
             // wait enough time for canonical token transfer
-            await wait(300 * 1000)
+            const delayMs = config.isMainnet ? 600 * 1000 : 300 * 1000
+            await wait(delayMs)
             return
           }
         }

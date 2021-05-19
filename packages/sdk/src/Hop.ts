@@ -352,7 +352,8 @@ class Hop extends Base {
           )
           attemptedSwap = true
         } catch (err) {
-          decodedSource = wrapper?.interface.decodeFunctionData(
+          const l2Bridge = await bridge.getL2Bridge(sourceChain)
+          decodedSource = l2Bridge?.interface.decodeFunctionData(
             'send',
             sourceTx.data
           )

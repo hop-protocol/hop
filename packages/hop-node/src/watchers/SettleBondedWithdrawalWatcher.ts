@@ -77,6 +77,20 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         const { rootHash, totalAmount } = event.args
         await this.handleTransferRootSetEvent(rootHash, totalAmount, event)
       }
+
+      const withdrawalsSettledEvents = await this.bridge.getMultipleWithdrawalsSettledEvents(
+        start,
+        end
+      )
+
+      for (let event of withdrawalsSettledEvents) {
+        const { bonder, rootHash, totalBondsSettled } = event.args
+        await this.handleMultipleWithdrawalsSettled(
+          bonder,
+          rootHash,
+          totalBondsSettled
+        )
+      }
     })
     this.logger.debug('done syncing')
   }
@@ -84,6 +98,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   async watch () {
     this.bridge
       .on(this.bridge.TransferRootSet, this.handleTransferRootSetEvent)
+      .on(
+        this.bridge.MultipleWithdrawalsSettled,
+        this.handleMultipleWithdrawalsSettled
+      )
       .on('error', err => {
         this.logger.error(`event watcher error:`, err.message)
         this.quit()
@@ -229,6 +247,26 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           `updated db transfer hash ${dbTransferId} to have transfer root id ${transferRootId}`
         )
       }
+    }
+  }
+
+  handleMultipleWithdrawalsSettled = async (
+    bonder: string,
+    transferRootHash: string,
+    totalBondsSettled: BigNumber
+  ) => {
+    let dbTransferRoot = await db.transferRoots.getByTransferRootHash(
+      transferRootHash
+    )
+    if (!dbTransferRoot) {
+      return
+    }
+    let transferIds = dbTransferRoot.transferIds || []
+    for (let transferId of transferIds) {
+      await db.transfers.update(transferId, {
+        transferRootHash,
+        withdrawalBondSettled: true
+      })
     }
   }
 

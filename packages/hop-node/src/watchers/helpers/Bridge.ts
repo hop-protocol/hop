@@ -8,6 +8,7 @@ import unique from 'src/utils/unique'
 export default class Bridge extends ContractBase {
   WithdrawalBonded: string = 'WithdrawalBonded'
   TransferRootSet: string = 'TransferRootSet'
+  MultipleWithdrawalsSettled: string = 'TransferRootSet'
   tokenDecimals: number = 18
 
   constructor (public bridgeContract: Contract) {
@@ -40,6 +41,13 @@ export default class Bridge extends ContractBase {
     this.bridgeContract
       .on(this.bridgeContract.filters.WithdrawalBonded(), (...args: any[]) =>
         this.emit(this.WithdrawalBonded, ...args)
+      )
+      .on(this.bridgeContract.filters.TransferRootSet(), (...args: any[]) =>
+        this.emit(this.TransferRootSet, ...args)
+      )
+      .on(
+        this.bridgeContract.filters.MultipleWithdrawalsSettled(),
+        (...args: any[]) => this.emit(this.MultipleWithdrawalsSettled, ...args)
       )
       .on('error', err => {
         this.emit('error', err)
@@ -177,6 +185,17 @@ export default class Bridge extends ContractBase {
   ): Promise<any[]> {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.WithdrawalBondSettled(),
+      startBlockNumber,
+      endBlockNumber
+    )
+  }
+
+  async getMultipleWithdrawalsSettledEvents (
+    startBlockNumber: number,
+    endBlockNumber: number
+  ): Promise<any[]> {
+    return this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.MultipleWithdrawalsSettled(),
       startBlockNumber,
       endBlockNumber
     )

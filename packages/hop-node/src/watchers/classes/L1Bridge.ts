@@ -2,7 +2,7 @@ import { providers, Contract, ethers, BigNumber } from 'ethers'
 import { erc20Abi } from '@hop-protocol/abi'
 import { parseUnits } from 'ethers/lib/utils'
 import Bridge from './Bridge'
-import queue from './queue'
+import queue from 'src/decorators/queue'
 import Token from './Token'
 
 export default class L1Bridge extends Bridge {

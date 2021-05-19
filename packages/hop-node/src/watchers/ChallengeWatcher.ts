@@ -3,9 +3,9 @@ import { Contract, BigNumber } from 'ethers'
 import { isL1NetworkId } from 'src/utils'
 import chalk from 'chalk'
 //import db from 'src/db'
-import BaseWatcher from './helpers/BaseWatcher'
-import L1Bridge from './helpers/L1Bridge'
-import L2Bridge from './helpers/L2Bridge'
+import BaseWatcher from './classes/BaseWatcher'
+import L1Bridge from './classes/L1Bridge'
+import L2Bridge from './classes/L2Bridge'
 
 export interface Config {
   l1BridgeContract: Contract

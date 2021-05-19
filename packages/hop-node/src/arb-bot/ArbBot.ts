@@ -6,7 +6,7 @@ import chalk from 'chalk'
 import Logger from 'src/logger'
 import { Chain } from 'src/constants'
 import { config } from 'src/config'
-import queue from 'src/watchers/helpers/queue'
+import queue from 'src/decorators/queue'
 
 export enum TokenIndex {
   CanonicalToken = 0,

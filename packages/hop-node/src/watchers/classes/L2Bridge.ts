@@ -6,7 +6,7 @@ import {
   l2BridgeWrapperAbi
 } from '@hop-protocol/abi'
 import Bridge from './Bridge'
-import queue from './queue'
+import queue from 'src/decorators/queue'
 import L2AmmWrapper from './L2AmmWrapper'
 import L2BridgeWrapper from './L2BridgeWrapper'
 import Token from './Token'

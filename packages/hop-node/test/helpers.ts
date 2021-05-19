@@ -27,7 +27,7 @@ import {
 } from '@hop-protocol/abi'
 import { Chain, Token } from 'src/constants'
 import { wait, getRpcProvider, networkSlugToId } from 'src/utils'
-import queue from 'src/watchers/helpers/queue'
+import queue from 'src/decorators/queue'
 
 export class User {
   privateKey: string

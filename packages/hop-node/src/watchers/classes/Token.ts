@@ -1,7 +1,7 @@
 import { ethers, providers, Contract, BigNumber } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
-import queue from './queue'
+import queue from 'src/decorators/queue'
 
 export default class Token extends ContractBase {
   tokenContract: Contract

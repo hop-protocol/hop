@@ -1,7 +1,7 @@
 import { providers, Contract, BigNumber } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
-import queue from './queue'
+import queue from 'src/decorators/queue'
 import { config } from 'src/config'
 import unique from 'src/utils/unique'
 

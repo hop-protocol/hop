@@ -5,8 +5,8 @@ import { wait } from 'src/utils'
 import { throttle } from 'src/utils'
 import db from 'src/db'
 import MerkleTree from 'src/utils/MerkleTree'
-import BaseWatcher from './helpers/BaseWatcher'
-import L2Bridge from './helpers/L2Bridge'
+import BaseWatcher from './classes/BaseWatcher'
+import L2Bridge from './classes/L2Bridge'
 
 export interface Config {
   label: string

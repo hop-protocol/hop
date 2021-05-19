@@ -3,11 +3,11 @@ import { ethers, Contract, BigNumber } from 'ethers'
 import db from 'src/db'
 import chalk from 'chalk'
 import { wait, networkIdToSlug, isL1NetworkId } from 'src/utils'
-import BaseWatcher from './helpers/BaseWatcher'
-import Bridge from './helpers/Bridge'
-import L1Bridge from './helpers/L1Bridge'
-import L2Bridge from './helpers/L2Bridge'
-import Token from './helpers/Token'
+import BaseWatcher from './classes/BaseWatcher'
+import Bridge from './classes/Bridge'
+import L1Bridge from './classes/L1Bridge'
+import L2Bridge from './classes/L2Bridge'
+import Token from './classes/Token'
 
 export interface Config {
   isL1: boolean

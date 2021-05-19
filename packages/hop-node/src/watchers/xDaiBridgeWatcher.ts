@@ -6,7 +6,7 @@ import { config } from 'src/config'
 import wallets from 'src/wallets'
 import { signatureToVRS, packSignatures, strip0x } from 'src/utils/xdaiUtils'
 import { wait } from 'src/utils'
-import BaseWatcher from './helpers/BaseWatcher'
+import BaseWatcher from './classes/BaseWatcher'
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149

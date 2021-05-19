@@ -7,9 +7,9 @@ import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
 import MerkleTree from 'src/utils/MerkleTree'
 import { Chain } from 'src/constants'
-import BaseWatcher from './helpers/BaseWatcher'
-import L1Bridge from './helpers/L1Bridge'
-import L2Bridge from './helpers/L2Bridge'
+import BaseWatcher from './classes/BaseWatcher'
+import L1Bridge from './classes/L1Bridge'
+import L2Bridge from './classes/L2Bridge'
 import { config as globalConfig } from 'src/config'
 
 export interface Config {

@@ -695,7 +695,7 @@ class HopBridge extends Base {
     amount0Desired: TAmount,
     amount1Desired: TAmount,
     chain?: TChain,
-    options: any = {} // TODO
+    options: any = {} // TODO: types
   ) {
     if (!chain) {
       chain = this.sourceChain
@@ -720,7 +720,7 @@ class HopBridge extends Base {
   public async removeLiquidity (
     liqudityTokenAmount: TAmount,
     chain?: TChain,
-    options: any = {} // TODO
+    options: any = {} // TODO: types
   ) {
     if (!chain) {
       chain = this.sourceChain
@@ -917,8 +917,8 @@ class HopBridge extends Base {
       approval
     } = input
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
-    destinationDeadline = destinationDeadline || 0 // must be 0
-    amountOutMin = amountOutMin || 0 // must be 0
+    destinationDeadline = destinationDeadline || 0
+    amountOutMin = amountOutMin || 0
     destinationAmountOutMin = destinationAmountOutMin || 0
     recipient = recipient || (await this.getSignerAddress())
     this.checkConnectedChain(this.signer, sourceChain)

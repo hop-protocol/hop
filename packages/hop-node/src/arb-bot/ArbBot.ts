@@ -8,6 +8,11 @@ import { Chain } from 'src/constants'
 import { config } from 'src/config'
 import queue from 'src/watchers/helpers/queue'
 
+export enum TokenIndex {
+  CanonicalToken = 0,
+  HopBridgeToken = 1
+}
+
 interface TokenConfig {
   label: string
   contract: Contract
@@ -174,6 +179,9 @@ class ArbBot {
 
   private async getAmountOut (path: string[], amount: BigNumber) {
     let [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
+    if (amount.eq(0)) {
+      return BigNumber.from(0)
+    }
     const amountsOut = await this.saddleSwap.calculateSwap(
       tokenIndexFrom,
       tokenIndexTo,
@@ -263,7 +271,10 @@ class ArbBot {
         )
       )
 
-      const tx = await this.trade(pathTokens, token0TradeAmount)
+      const slippageToleranceBps = 0.5 * 100
+      const minBps = Math.ceil(10000 - slippageToleranceBps)
+      const amountOutMin = token0AmountOut.mul(minBps).div(10000)
+      const tx = await this.trade(pathTokens, token0TradeAmount, amountOutMin)
       this.logger.log(chalk.yellow(`trade tx: ${tx?.hash}`))
       await tx?.wait()
 
@@ -276,6 +287,19 @@ class ArbBot {
 
     await check([this.token0, this.token1], true)
     await check([this.token1, this.token0], true)
+  }
+
+  private async calcFromHTokenAmount (amount: BigNumber): Promise<BigNumber> {
+    amount = BigNumber.from(amount.toString())
+    if (amount.eq(0)) {
+      return BigNumber.from(0)
+    }
+    const amountOut = await this.saddleSwap.calculateSwap(
+      TokenIndex.HopBridgeToken,
+      TokenIndex.CanonicalToken,
+      amount
+    )
+    return amountOut
   }
 
   @queue

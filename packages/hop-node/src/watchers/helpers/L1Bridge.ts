@@ -156,10 +156,10 @@ export default class L1Bridge extends Bridge {
     amount: BigNumber
   ): Promise<providers.TransactionResponse> {
     const recipient = await this.getBonderAddress()
-    const deadline = '0'
     const relayer = ethers.constants.AddressZero
     const relayerFee = '0'
-    const amountOutMin = '0'
+    const deadline = '0' // must be 0
+    const amountOutMin = '0' // must be 0
 
     const isSupportedChainId = await this.isSupportedChainId(destChainId)
     if (!isSupportedChainId) {

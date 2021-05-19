@@ -304,6 +304,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       this.logger.debug('chainId:', chainId)
       this.logger.debug('attemptSwap:', attemptSwap)
 
+      // TODO: read from event
       const amountOutMin = BigNumber.from(0)
       const deadline = BigNumber.from(ethers.constants.MaxUint256)
       await db.transfers.update(transferId, {

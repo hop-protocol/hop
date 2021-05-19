@@ -37,7 +37,7 @@ describe('bondWithdrawal', () => {
   testPaths = [[Chain.Optimism, Chain.Ethereum]]
   for (let path of testPaths) {
     const [sourceNetwork, destNetwork] = path
-    const label = `${sourceNetwork} -> ${destNetwork}`
+    const label = `${sourceNetwork} → ${destNetwork}`
     it(
       label,
       async () => {

@@ -14,7 +14,7 @@ const logger = new Logger('TEST')
 
 describe('arb-bot', () => {
   it(
-    `send ${TRANSFER_AMOUNT} ${TOKEN} ${sourceNetwork} -> ${Chain.Ethereum}`,
+    `send ${TRANSFER_AMOUNT} ${TOKEN} ${sourceNetwork} → ${Chain.Ethereum}`,
     async () => {
       const user = new User(privateKey)
       logger.log('preparing account')

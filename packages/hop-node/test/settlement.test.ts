@@ -29,7 +29,7 @@ describe('settleBondedWithdrawal', () => {
   testPaths = [[Chain.xDai, Chain.xDai]]
   for (let path of testPaths) {
     const [sourceNetwork, destNetwork] = path
-    const label = `${sourceNetwork} -> ${destNetwork}`
+    const label = `${sourceNetwork} → ${destNetwork}`
     const txCount = 1
     it(
       label,

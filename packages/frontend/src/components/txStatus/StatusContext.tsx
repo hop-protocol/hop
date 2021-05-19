@@ -53,6 +53,9 @@ const StatusContextProvider: FC = ({ children }) => {
   async function updateStatus (activeStep: number = 0, steps: Step[] = []) {
     if (!tx) return
     if (!tx.token) return
+    if (activeStep >= 3) {
+      return
+    }
     if (activeStep < 2) {
       setActiveStep(1)
     }

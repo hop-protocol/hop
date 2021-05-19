@@ -200,6 +200,8 @@ class Hop extends Base {
     _sourceChain: TChain,
     _destinationChain: TChain
   ) {
+    const pollDelayMs = 10 * 1000
+
     // TODO: clean up
     token = this.toTokenModel(token)
     const sourceChain = this.toChainModel(_sourceChain)
@@ -235,17 +237,26 @@ class Hop extends Base {
         const l2Bridge = await bridge.getL2Bridge(destinationChain)
         const exchange = await bridge.getSaddleSwap(destinationChain)
         let destTx: any
+        let endBlock = -1
+        let startBlock = -1
         const pollDest = async () => {
           const blockNumber = await destinationChain.provider.getBlockNumber()
           if (!blockNumber) {
             return false
           }
+          if (startBlock === -1) {
+            startBlock = endBlock - 100
+          } else {
+            startBlock = endBlock
+          }
+          endBlock = blockNumber
           let recentLogs: any[]
           if (attemptedSwap) {
             recentLogs =
               (await exchange?.queryFilter(
                 exchange.filters.TokenSwap(),
-                (blockNumber as number) - 100
+                startBlock,
+                endBlock
               )) ?? []
             recentLogs = recentLogs.reverse()
             if (!recentLogs || !recentLogs.length) {
@@ -270,7 +281,8 @@ class Hop extends Base {
                 {
                   address: bridge.getL2HopBridgeTokenAddress(token, Chain.xDai)
                 },
-                (blockNumber as number) - 100
+                startBlock,
+                endBlock
               )) ?? []
             recentLogs = recentLogs.reverse()
             if (!recentLogs || !recentLogs.length) {
@@ -324,7 +336,7 @@ class Hop extends Base {
         let res = false
         while (!res) {
           res = await pollDest()
-          await wait(5e3)
+          await wait(pollDelayMs)
         }
       }
 
@@ -356,15 +368,24 @@ class Hop extends Base {
         if (!transferHash) {
           return false
         }
+        let startBlock = -1
+        let endBlock = -1
         const pollDest = async () => {
           const blockNumber = await destinationChain.provider.getBlockNumber()
           if (!blockNumber) {
             return false
           }
+          if (startBlock === -1) {
+            startBlock = endBlock - 100
+          } else {
+            startBlock = endBlock
+          }
+          endBlock = blockNumber
           let recentLogs: any[] =
             (await l1Bridge?.queryFilter(
               l1Bridge.filters.WithdrawalBonded(),
-              (blockNumber as number) - 100
+              startBlock,
+              endBlock
             )) ?? []
           recentLogs = recentLogs.reverse()
           if (!recentLogs || !recentLogs.length) {
@@ -395,7 +416,7 @@ class Hop extends Base {
         let res = false
         while (!res) {
           res = await pollDest()
-          await wait(5e3)
+          await wait(pollDelayMs)
         }
       }
 
@@ -421,15 +442,24 @@ class Hop extends Base {
           if (!transferHash) {
             return false
           }
+          let startBlock = -1
+          let endBlock = -1
           const pollDest = async () => {
             const blockNumber = await destinationChain.provider.getBlockNumber()
             if (!blockNumber) {
               return false
             }
+            if (startBlock === -1) {
+              startBlock = endBlock - 100
+            } else {
+              startBlock = endBlock
+            }
+            endBlock = blockNumber
             let recentLogs: any[] =
               (await exchange?.queryFilter(
                 exchange.filters.TokenSwap(),
-                (blockNumber as number) - 100
+                startBlock,
+                endBlock
               )) ?? []
             recentLogs = recentLogs.reverse()
             for (let item of recentLogs) {
@@ -478,9 +508,11 @@ class Hop extends Base {
           let res = false
           while (!res) {
             res = await pollDest()
-            await wait(5e3)
+            await wait(pollDelayMs)
           }
         } catch (err) {
+          let startBlock = -1
+          let endBlock = -1
           // events for token swap on L2 (ie saddle convert page on UI)
           const exchange = await bridge.getSaddleSwap(destinationChain)
           const pollDest = async () => {
@@ -488,10 +520,17 @@ class Hop extends Base {
             if (!blockNumber) {
               return false
             }
+            if (startBlock === -1) {
+              startBlock = endBlock - 100
+            } else {
+              startBlock = endBlock
+            }
+            endBlock = blockNumber
             let recentLogs: any[] =
               (await exchange?.queryFilter(
                 exchange.filters.TokenSwap(),
-                (blockNumber as number) - 100
+                startBlock,
+                endBlock
               )) ?? []
             recentLogs = recentLogs.reverse()
             if (!recentLogs || !recentLogs.length) {
@@ -535,7 +574,7 @@ class Hop extends Base {
           let res = false
           while (!res) {
             res = await pollDest()
-            await wait(5e3)
+            await wait(pollDelayMs)
           }
         }
       }
@@ -552,6 +591,8 @@ class Hop extends Base {
     _sourceChain: TChain,
     _destinationChain: TChain
   ) {
+    const pollDelayMs = 10 * 1000
+
     // TODO: clean up
     token = this.toTokenModel(token)
     const sourceChain = this.toChainModel(_sourceChain)
@@ -577,11 +618,19 @@ class Hop extends Base {
       // L1 -> L2
       if (sourceChain.isL1) {
         if (destinationChain.equals(Chain.xDai)) {
+          let startBlock = -1
+          let endBlock = -1
           const pollDest = async () => {
             const blockNumber = await destinationChain.provider.getBlockNumber()
             if (!blockNumber) {
               return false
             }
+            if (startBlock === -1) {
+              startBlock = endBlock - 100
+            } else {
+              startBlock = endBlock
+            }
+            endBlock = blockNumber
             const canonicalBridge = await this.canonicalBridge(
               token,
               Chain.xDai
@@ -592,7 +641,8 @@ class Hop extends Base {
                 {
                   address: this.getL2CanonicalTokenAddress(token, Chain.xDai)
                 },
-                (blockNumber as number) - 100
+                startBlock,
+                endBlock
               )) ?? []
             recentLogs = recentLogs.reverse()
             if (!recentLogs || !recentLogs.length) {
@@ -635,14 +685,22 @@ class Hop extends Base {
           let res = false
           while (!res) {
             res = await pollDest()
-            await wait(5e3)
+            await wait(pollDelayMs)
           }
         } else if (destinationChain.equals(Chain.Polygon)) {
+          let startBlock = -1
+          let endBlock = -1
           const pollDest = async () => {
             const blockNumber = await destinationChain.provider.getBlockNumber()
             if (!blockNumber) {
               return false
             }
+            if (startBlock === -1) {
+              startBlock = endBlock - 100
+            } else {
+              startBlock = endBlock
+            }
+            endBlock = blockNumber
             const canonicalBridge = await this.canonicalBridge(
               token,
               Chain.Polygon
@@ -658,7 +716,8 @@ class Hop extends Base {
                     Chain.Polygon
                   )
                 },
-                (blockNumber as number) - 100
+                startBlock,
+                endBlock
               )) ?? []
             recentLogs = recentLogs.reverse()
             if (!recentLogs || !recentLogs.length) {
@@ -701,7 +760,7 @@ class Hop extends Base {
           let res = false
           while (!res) {
             res = await pollDest()
-            await wait(5e3)
+            await wait(pollDelayMs)
           }
         } else {
           throw new Error('not implemented')
@@ -711,11 +770,19 @@ class Hop extends Base {
       // L2 -> L1
       if (!sourceChain.isL1 && destinationChain?.isL1) {
         if (sourceChain.equals(Chain.xDai)) {
+          let startBlock = -1
+          let endBlock = -1
           const pollDest = async () => {
             const blockNumber = await destinationChain.provider.getBlockNumber()
             if (!blockNumber) {
               return false
             }
+            if (startBlock === -1) {
+              startBlock = endBlock - 100
+            } else {
+              startBlock = endBlock
+            }
+            endBlock = blockNumber
             const canonicalBridge = await this.canonicalBridge(
               token,
               Chain.xDai
@@ -729,7 +796,8 @@ class Hop extends Base {
                     Chain.xDai
                   )
                 },
-                (blockNumber as number) - 100
+                startBlock,
+                endBlock
               )) ?? []
             recentLogs = recentLogs.reverse()
             if (!recentLogs || !recentLogs.length) {
@@ -772,14 +840,22 @@ class Hop extends Base {
           let res = false
           while (!res) {
             res = await pollDest()
-            await wait(5e3)
+            await wait(pollDelayMs)
           }
         } else if (sourceChain.equals(Chain.Polygon)) {
+          let startBlock = -1
+          let endBlock = -1
           const pollDest = async () => {
             const blockNumber = await destinationChain.provider.getBlockNumber()
             if (!blockNumber) {
               return false
             }
+            if (startBlock === -1) {
+              startBlock = endBlock - 100
+            } else {
+              startBlock = endBlock
+            }
+            endBlock = blockNumber
             const tokenAddress = this.getL1CanonicalTokenAddress(
               token,
               Chain.Ethereum
@@ -794,7 +870,8 @@ class Hop extends Base {
                 {
                   topics: []
                 },
-                (blockNumber as number) - 100
+                startBlock,
+                endBlock
               )) ?? []
             recentLogs = recentLogs.reverse()
             if (!recentLogs || !recentLogs.length) {
@@ -847,7 +924,7 @@ class Hop extends Base {
           let res = false
           while (!res) {
             res = await pollDest()
-            await wait(5e3)
+            await wait(pollDelayMs)
           }
         } else {
           throw new Error('not implemented')

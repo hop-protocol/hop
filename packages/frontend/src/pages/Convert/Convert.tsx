@@ -103,7 +103,7 @@ const Convert: FC = () => {
   const tabs = [
     { label: 'via Hop Bridge', value: '/hop' },
     { label: 'via Canonical Bridge', value: '/bridge' },
-    { label: 'via Saddle', value: '/amm' }
+    { label: 'via AMM', value: '/amm' }
   ]
 
   return (

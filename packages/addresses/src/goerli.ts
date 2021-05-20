@@ -6,18 +6,18 @@ export const addresses: Addresses = {
     USDC: {
       ethereum: {
         l1CanonicalToken: '0x98339D8C260052B7ad81c28c16C0b98420f2B46a',
-        l1Bridge: '0x30bf762D61b777aaFdd664a73C3765633276a631'
+        l1Bridge: '0xFf0ecd10325E9E60d941e8864f45CcF73b929e9e'
       },
       polygon: {
         l1CanonicalBridge: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1MessengerWrapper: '0xDf5Af462E86EC41a7DE5E4CAE87CE4d516C9e24c',
+        l1MessengerWrapper: '0x560d954308D6236F5d77665533c3Ea1c31daF358',
         l2CanonicalBridge: '0x6D4dd09982853F08d9966aC3cA4Eb5885F16f2b2',
         l2CanonicalToken: '0x6D4dd09982853F08d9966aC3cA4Eb5885F16f2b2',
-        l2Bridge: '0xBBF20c25bCF9065a6F72711F650E8F6D66C929e9',
-        l2HopBridgeToken: '0x01C445e5D8CB18988a85B02266006A9B093267ce',
-        l2AmmWrapper: '0x535E174100D0A0CD1C102D6Df4dDbA01c3677C2a',
-        l2SaddleSwap: '0x01f4b3F1D2b41122f86eb6446309dA9FB05a05d5',
-        l2SaddleLpToken: '0xe0fD731FF8DEb1B167047ccef0dE44b5C575Bdf2',
+        l2Bridge: '0xc28fD2baE4c87BE8727Ec20e42127F15ED0dca57',
+        l2HopBridgeToken: '0xFe94586a507866Fb6F5f69815Be140d121B993d2',
+        l2AmmWrapper: '0xAf3e7d144941ffC1214B6f16B984071A09d0ba70',
+        l2SaddleSwap: '0x4dedd0a4f06baD782A4025f97de2F419864f997A',
+        l2SaddleLpToken: '0xCEF03390D6D9516474AaD83d273dC9f4Fd1788E6',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
         l1PosPredicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
       }
@@ -25,18 +25,18 @@ export const addresses: Addresses = {
     DAI: {
       ethereum: {
         l1CanonicalToken: '0xC61bA16e864eFbd06a9fe30Aab39D18B8F63710a',
-        l1Bridge: '0xA7d1733b49cBC400dC918d0286092C543FA03863'
+        l1Bridge: '0x9f67495Bd81cF9412d3d135218baE8002d408ff1'
       },
       polygon: {
         l1CanonicalBridge: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1MessengerWrapper: '0x74d838E85EAF33Ec79D14738B08aB30229C01a70',
+        l1MessengerWrapper: '0x12fa8eE6e33857Be3B7d080B471A2D40821d4155',
         l2CanonicalBridge: '0xb224913CE3851b0a0d7C0FB461eEF40f2e31ddb8',
         l2CanonicalToken: '0xb224913CE3851b0a0d7C0FB461eEF40f2e31ddb8',
-        l2Bridge: '0xe756ec869624C2bC9fA0b49E877ad39b8e988008',
-        l2HopBridgeToken: '0xcCf4a395F47e4038C2B88C15cC725654af99329A',
-        l2AmmWrapper: '0xDA41463abD488937c770C77Adb996C20044fB1b1',
-        l2SaddleSwap: '0x22c5AcA60C2f6D832f8C11992fd52fcA8A0F10ec',
-        l2SaddleLpToken: '0x29204640A74f1E39f418865651c37ca1e3eD407C',
+        l2Bridge: '0xB00e7ae2dE3eCDc8EeA1ad34A71d374E8aB25C7E',
+        l2HopBridgeToken: '0x1C6fb8EFFF811Cf8aa28BA60bF419aeD1E321EC4',
+        l2AmmWrapper: '0x662E244BC637035578C58ee0eEDF46049ea23801',
+        l2SaddleSwap: '0x8d71Ee5587DeA8a2271013Dbc1F5e1dCBDF94E2E',
+        l2SaddleLpToken: '0xF74b37E3D1A3f3f0721E0B274f47e8eCd17B4B66',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
         l1PosPredicate: '0x37c3bfC05d5ebF9EBb3FF80ce0bd0133Bf221BC8'
       }

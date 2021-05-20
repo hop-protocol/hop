@@ -102,7 +102,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
           event
         )
       }
-    })
+    }, this.bridge.WithdrawalBonded)
 
     // L1 bridge doesn't contain transfer sent events so return here.
     if (this.isL1) {
@@ -110,9 +110,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
+    const l2Bridge = this.bridge as L2Bridge
     await this.eventsBatch(async (start: number, end: number) => {
-      const transferSentEvents = await (this
-        .bridge as L2Bridge).getTransferSentEvents(start, end)
+      const transferSentEvents = await l2Bridge.getTransferSentEvents(
+        start,
+        end
+      )
       for (let event of transferSentEvents) {
         const {
           transferId,
@@ -132,17 +135,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
           event
         )
       }
-    })
+    }, l2Bridge.TransferSent)
     this.logger.debug('done syncing')
   }
 
   async watch () {
     if (!this.isL1) {
+      const l2Bridge = this.bridge as L2Bridge
       this.bridge
-        .on(
-          (this.bridge as L2Bridge).TransferSent,
-          this.handleTransferSentEvent
-        )
+        .on(l2Bridge.TransferSent, this.handleTransferSentEvent)
         .on('error', err => {
           this.logger.error('event watcher error:', err.message)
           this.notifier.error(`event watcher error: ${err.message}`)
@@ -262,9 +263,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transactionHash
       )
 
-      const sourceChainId = await (this.bridge as L2Bridge).getChainId()
-      const { chainId, attemptSwap } = await (this
-        .bridge as L2Bridge).decodeSendData(data)
+      const l2Bridge = this.bridge as L2Bridge
+      const sourceChainId = await l2Bridge.getChainId()
+      const { chainId, attemptSwap } = await l2Bridge.decodeSendData(data)
       const isBonder = await this.siblingWatchers[chainId].bridge.isBonder()
       if (!isBonder) {
         this.logger.warn(

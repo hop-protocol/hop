@@ -4,6 +4,7 @@ import ContractBase from './ContractBase'
 import queue from 'src/decorators/queue'
 import { config } from 'src/config'
 import unique from 'src/utils/unique'
+import db from 'src/db'
 
 export default class Bridge extends ContractBase {
   WithdrawalBonded: string = 'WithdrawalBonded'
@@ -272,11 +273,24 @@ export default class Bridge extends ContractBase {
   }
 
   public async eventsBatch (
-    cb: (start: number, end: number) => Promise<void | boolean>
+    cb: (start: number, end: number) => Promise<void | boolean>,
+    key?: string
   ) {
     const { syncBlocksTotal, syncBlocksBatch } = config
     const blockNumber = await this.getBlockNumber()
-    const minBlock = blockNumber - syncBlocksTotal
+    const cacheKey = `${this.providerNetworkId}:${this.address}:${key}`
+    let lastBlockSynced = 0
+    let cached = await db.syncState.getByKey(cacheKey)
+    if (key && cached) {
+      const expiresIn = 10 * 60 * 1000
+      if (cached.timestamp > Date.now() - expiresIn) {
+        lastBlockSynced = cached.lastBlockSynced
+      }
+    }
+    const minBlock = Math.max(
+      blockNumber - syncBlocksTotal,
+      lastBlockSynced - 20
+    )
     let end = blockNumber
     let start = end - syncBlocksBatch
     while (start >= blockNumber - syncBlocksTotal) {
@@ -286,6 +300,10 @@ export default class Bridge extends ContractBase {
       }
       end = start
       start = end - syncBlocksBatch
+      await db.syncState.update(cacheKey, {
+        lastBlockSynced: end,
+        timestamp: Date.now()
+      })
     }
   }
 }

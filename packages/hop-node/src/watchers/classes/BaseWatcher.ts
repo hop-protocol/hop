@@ -26,6 +26,7 @@ class BaseWatcher extends EventEmitter {
   bridge: L2Bridge | L1Bridge
   siblingWatchers: { [chainId: string]: any }
   dryMode: boolean
+  tag: string
 
   constructor (config: Config) {
     super()
@@ -35,13 +36,15 @@ class BaseWatcher extends EventEmitter {
       prefix,
       color: logColor
     })
+    if (tag) {
+      this.tag = tag
+    }
     if (order) {
       this.order = order
     }
     this.notifier = new Notifier(
       `watcher: ${tag}, label: ${prefix}, host: ${hostname}`
     )
-
     if (config.isL1) {
       this.isL1 = config.isL1
     }
@@ -70,9 +73,10 @@ class BaseWatcher extends EventEmitter {
   }
 
   public async eventsBatch (
-    cb: (start: number, end: number) => Promise<void | boolean>
+    cb: (start: number, end: number) => Promise<void | boolean>,
+    key: string = ''
   ) {
-    return this.bridge.eventsBatch(cb)
+    return this.bridge.eventsBatch(cb, `${this.tag}:${key}`)
   }
 
   // force quit so docker can restart

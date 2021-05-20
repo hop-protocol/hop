@@ -70,10 +70,12 @@ class CommitTransfersWatcher extends BaseWatcher {
     }
     this.logger.debug('syncing up events')
 
+    const l2Bridge = this.bridge as L2Bridge
     await this.eventsBatch(async (start: number, end: number) => {
-      const transferSentEvents = await (this
-        .bridge as L2Bridge).getTransferSentEvents(start, end)
-
+      const transferSentEvents = await l2Bridge.getTransferSentEvents(
+        start,
+        end
+      )
       for (let event of transferSentEvents) {
         const {
           transferId,
@@ -93,7 +95,7 @@ class CommitTransfersWatcher extends BaseWatcher {
           event
         )
       }
-    })
+    }, l2Bridge.TransferSent)
     this.logger.debug('done syncing')
   }
 
@@ -101,8 +103,9 @@ class CommitTransfersWatcher extends BaseWatcher {
     if (this.isL1) {
       return
     }
+    const l2Bridge = this.bridge as L2Bridge
     this.bridge
-      .on((this.bridge as L2Bridge).TransferSent, this.handleTransferSentEvent)
+      .on(l2Bridge.TransferSent, this.handleTransferSentEvent)
       .on('error', err => {
         this.logger.error('event watcher error:', err.message)
         this.quit()
@@ -113,10 +116,10 @@ class CommitTransfersWatcher extends BaseWatcher {
       try {
         // TODO
         const chainIds = [1, 42, 5, 69, 79377087078960, 77, 80001]
+        const l2Bridge = this.bridge as L2Bridge
         for (let chainId of chainIds) {
           //await this.getRecentTransferIdsForCommittedRoots()
-          const pendingTransfers = await (this
-            .bridge as L2Bridge).getPendingTransfers(chainId)
+          const pendingTransfers = await l2Bridge.getPendingTransfers(chainId)
           if (pendingTransfers.length > 0) {
             await this.checkTransferSent(chainId)
           }
@@ -137,19 +140,19 @@ class CommitTransfersWatcher extends BaseWatcher {
       if (!chainId) {
         throw new Error('chainId is required')
       }
-      const totalPendingAmount = await (this
-        .bridge as L2Bridge).getPendingAmountForChainId(chainId)
+      const l2Bridge = this.bridge as L2Bridge
+      const totalPendingAmount = await l2Bridge.getPendingAmountForChainId(
+        chainId
+      )
       if (totalPendingAmount.lte(0)) {
         return
       }
 
-      const lastCommitTime = await (this
-        .bridge as L2Bridge).getLastCommitTimeForChainId(chainId)
-      const minimumForceCommitDelay = await (this
-        .bridge as L2Bridge).getMinimumForceCommitDelay()
+      const lastCommitTime = await l2Bridge.getLastCommitTimeForChainId(chainId)
+      const minimumForceCommitDelay = await l2Bridge.getMinimumForceCommitDelay()
       const minForceCommitTime = lastCommitTime + minimumForceCommitDelay
       const isBonder = await this.bridge.isBonder()
-      const l2ChainId = await (this.bridge as L2Bridge).getChainId()
+      const l2ChainId = await l2Bridge.getChainId()
       this.logger.debug('chainId:', l2ChainId)
       this.logger.debug('destinationChainId:', chainId)
       this.logger.debug('lastCommitTime:', lastCommitTime)
@@ -161,8 +164,9 @@ class CommitTransfersWatcher extends BaseWatcher {
         this.logger.warn('only Bonder can commit before min delay')
       }
 
-      const pendingTransfers: string[] = await (this
-        .bridge as L2Bridge).getPendingTransfers(chainId)
+      const pendingTransfers: string[] = await l2Bridge.getPendingTransfers(
+        chainId
+      )
       if (!pendingTransfers.length) {
         this.logger.warn('no pending transfers to commit')
       }
@@ -251,7 +255,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       await this.waitTimeout(chainId)
       this.logger.debug('sending commitTransfers tx')
 
-      const tx = await (this.bridge as L2Bridge).commitTransfers(chainId)
+      const tx = await l2Bridge.commitTransfers(chainId)
       tx?.wait()
         .then(async (receipt: any) => {
           if (receipt.status !== 1) {
@@ -306,8 +310,9 @@ class CommitTransfersWatcher extends BaseWatcher {
       const { transactionHash } = meta
       const { data } = await this.bridge.getTransaction(transactionHash)
 
-      const { chainId } = await (this.bridge as L2Bridge).decodeSendData(data)
-      const sourceChainId = await (this.bridge as L2Bridge).getChainId()
+      const l2Bridge = this.bridge as L2Bridge
+      const { chainId } = await l2Bridge.decodeSendData(data)
+      const sourceChainId = await l2Bridge.getChainId()
       await db.transfers.update(transferId, {
         transferId,
         chainId,
@@ -324,19 +329,21 @@ class CommitTransfersWatcher extends BaseWatcher {
   async getRecentTransferIdsForCommittedRoots () {
     const blockNumber = await this.bridge.getBlockNumber()
     let start = blockNumber - 1000
-    const transferCommits = await (this
-      .bridge as L2Bridge).getTransfersCommittedEvents(start, blockNumber)
+    const l2Bridge = this.bridge as L2Bridge
+    const transferCommits = await l2Bridge.getTransfersCommittedEvents(
+      start,
+      blockNumber
+    )
     if (!transferCommits.length) {
       return
     }
     const transferCommitsMap: any = {}
     for (let i = 1; i < transferCommits.length; i++) {
       let { topics, blockNumber, transactionHash } = transferCommits[i]
-      const { data } = await (this.bridge as L2Bridge).getTransaction(
-        transactionHash
-      )
-      const { destinationChainId: chainId } = await (this
-        .bridge as L2Bridge).decodeCommitTransfersData(data)
+      const { data } = await l2Bridge.getTransaction(transactionHash)
+      const {
+        destinationChainId: chainId
+      } = await l2Bridge.decodeCommitTransfersData(data)
       if (!chainId) {
         continue
       }
@@ -358,8 +365,7 @@ class CommitTransfersWatcher extends BaseWatcher {
         let { prevBlockNumber, blockNumber, transferIds } = transferCommitsMap[
           destChainId
         ][transferRootHash]
-        const recentEvents = await (this
-          .bridge as L2Bridge).getTransferSentEvents(
+        const recentEvents = await l2Bridge.getTransferSentEvents(
           prevBlockNumber,
           blockNumber
         )
@@ -368,9 +374,7 @@ class CommitTransfersWatcher extends BaseWatcher {
             event.transactionHash
           )
 
-          const { chainId } = await (this.bridge as L2Bridge).decodeSendData(
-            data
-          )
+          const { chainId } = await l2Bridge.decodeSendData(data)
           if (chainId === destChainId) {
             transferIds.push(event.topics[1])
           }
@@ -402,8 +406,10 @@ class CommitTransfersWatcher extends BaseWatcher {
       if (!this.started) {
         return
       }
-      const pendingTransfers: string[] = await (this
-        .bridge as L2Bridge).getPendingTransfers(chainId)
+      const l2Bridge = this.bridge as L2Bridge
+      const pendingTransfers: string[] = await l2Bridge.getPendingTransfers(
+        chainId
+      )
       if (!pendingTransfers.length) {
         break
       }

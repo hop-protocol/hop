@@ -58,40 +58,42 @@ class BondTransferRootWatcher extends BaseWatcher {
   async syncUp () {
     this.logger.debug('syncing up events')
     if (this.isL1) {
+      const l1Bridge = this.bridge as L1Bridge
       await this.eventsBatch(async (start: number, end: number) => {
-        const transferRootBondedEvents = await (this
-          .bridge as L1Bridge).getTransferRootBondedEvents(start, end)
+        const transferRootBondedEvents = await l1Bridge.getTransferRootBondedEvents(
+          start,
+          end
+        )
         for (let event of transferRootBondedEvents) {
           const { root, amount } = event.args
           await this.handleTransferRootBondedEvent(root, amount, event)
         }
-      })
+      }, l1Bridge.TransferRootBonded)
       this.logger.debug('done syncing')
       return
     }
+    const l2Bridge = this.bridge as L2Bridge
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await (this
-        .bridge as L2Bridge).getTransfersCommittedEvents(start, end)
+      const events = await l2Bridge.getTransfersCommittedEvents(start, end)
       await this.handleTransfersCommittedEvents(events)
-    })
+    }, l2Bridge.TransfersCommitted)
     this.logger.debug('done syncing')
   }
 
   async watch () {
     if (this.isL1) {
+      const l1Bridge = this.bridge as L1Bridge
       this.bridge
-        .on(
-          (this.bridge as L1Bridge).TransferRootBonded,
-          this.handleTransferRootBondedEvent
-        )
+        .on(l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
         .on('error', err => {
           this.logger.error(`event watcher error:`, err.message)
           this.quit()
         })
       return
     }
+    const l2Bridge = this.bridge as L2Bridge
     this.bridge.on(
-      (this.bridge as L2Bridge).TransfersCommitted,
+      l2Bridge.TransfersCommitted,
       this.handleTransfersCommittedEvent
     )
     this.bridge.on('error', err => {
@@ -164,7 +166,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    const bridgeChainId = await (this.bridge as L2Bridge).getChainId()
+    const l2Bridge = this.bridge as L2Bridge
+    const bridgeChainId = await l2Bridge.getChainId()
     const sourceChainId = dbTransferRoot.sourceChainId
     if (!sourceChainId) {
       return
@@ -399,9 +402,11 @@ class BondTransferRootWatcher extends BaseWatcher {
       this.logger.debug(`transferRootHash:`, transferRootHash)
       const { transactionHash } = meta
       const { data } = await this.bridge.getTransaction(transactionHash)
-      const { destinationChainId: chainId } = await (this
-        .bridge as L2Bridge).decodeCommitTransfersData(data)
-      const sourceChainId = await (this.bridge as L2Bridge).getChainId()
+      const l2Bridge = this.bridge as L2Bridge
+      const {
+        destinationChainId: chainId
+      } = await l2Bridge.decodeCommitTransfersData(data)
+      const sourceChainId = await l2Bridge.getChainId()
       const decimals = await this.getBridgeTokenDecimals()
       const destinationBridgeAddress = await this.siblingWatchers[
         chainId
@@ -436,8 +441,9 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async getBridgeTokenDecimals () {
-    const token = await (this.siblingWatchers[networkSlugToId(Chain.Ethereum)]
-      .bridge as L1Bridge).l1CanonicalToken()
+    const l2Bridge = this.siblingWatchers[networkSlugToId(Chain.Ethereum)]
+      .bridge as L1Bridge
+    const token = await l2Bridge.l1CanonicalToken()
     return token.decimals()
   }
 
@@ -491,8 +497,9 @@ class BondTransferRootWatcher extends BaseWatcher {
         transferRootHash,
         totalAmount
       )
-      const bond = await (this.siblingWatchers[networkSlugToId(Chain.Ethereum)]
-        .bridge as L1Bridge).getTransferBond(transferRootId)
+      const l1Bridge = this.siblingWatchers[networkSlugToId(Chain.Ethereum)]
+        .bridge as L1Bridge
+      const bond = await l1Bridge.getTransferBond(transferRootId)
       if (bond.createdAt.toNumber() > 0) {
         break
       }

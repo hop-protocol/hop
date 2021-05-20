@@ -68,7 +68,7 @@ class ChallengeWatcher extends BaseWatcher {
         const { root, amount } = event.args
         await this.handleTransferRootBondedEvent(root, amount, event)
       }
-    })
+    }, this.l1Bridge.TransferRootBonded)
   }
 
   async watch () {

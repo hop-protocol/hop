@@ -1,8 +1,11 @@
 import BaseDb from './BaseDb'
 
-export type State = {[key: string]: any}
+export type State = {
+  lastBlockSynced: number
+  timestamp: number
+}
 
-class StateDb extends BaseDb {
+class SyncStateDb extends BaseDb {
   constructor (prefix: string = 'transfers') {
     super(prefix)
   }
@@ -11,9 +14,9 @@ class StateDb extends BaseDb {
     return super.update(key, data)
   }
 
-  async getByKey(key: string): Promise<State> {
+  async getByKey (key: string): Promise<State> {
     return this.getById(key)
   }
 }
 
-export default StateDb
+export default SyncStateDb

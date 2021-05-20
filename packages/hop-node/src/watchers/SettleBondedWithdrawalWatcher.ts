@@ -91,7 +91,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           totalBondsSettled
         )
       }
-    })
+    }, this.bridge.TransferRootSet)
     this.logger.debug('done syncing')
   }
 

@@ -2,12 +2,18 @@ import '../moduleAlias'
 import { ethers, Contract, BigNumber } from 'ethers'
 import db from 'src/db'
 import chalk from 'chalk'
-import { wait, networkIdToSlug, isL1NetworkId } from 'src/utils'
+import {
+  wait,
+  networkSlugToId,
+  networkIdToSlug,
+  isL1NetworkId
+} from 'src/utils'
 import BaseWatcher from './classes/BaseWatcher'
 import Bridge from './classes/Bridge'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import Token from './classes/Token'
+import { Chain } from 'src/constants'
 
 export interface Config {
   isL1: boolean
@@ -352,6 +358,20 @@ class BondWithdrawalWatcher extends BaseWatcher {
       if (this.dryMode) {
         this.logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
         return
+      }
+
+      if (dbTransfer.transferRootId) {
+        const l1Bridge = this.siblingWatchers[networkSlugToId(Chain.Ethereum)]
+          .bridge as L1Bridge
+        const transferRootConfirmed = await l1Bridge.isTransferRootIdConfirmed(
+          dbTransfer.transferRootId
+        )
+        if (transferRootConfirmed) {
+          this.logger.warn(
+            'transfer root already confirmed. Cannot bond withdrawal'
+          )
+          return
+        }
       }
 
       await db.transfers.update(transferId, {

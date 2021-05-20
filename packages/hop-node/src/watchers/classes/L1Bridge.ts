@@ -81,6 +81,18 @@ export default class L1Bridge extends Bridge {
     )
   }
 
+  async getTransferRootIdCommitedAt (transferRootId: string): Promise<number> {
+    const commitedAt = await this.bridgeContract.transferRootCommittedAt(
+      transferRootId
+    )
+    return Number(commitedAt.toString())
+  }
+
+  async isTransferRootIdConfirmed (transferRootId: string): Promise<boolean> {
+    const committedAt = await this.getTransferRootCommittedAt(transferRootId)
+    return committedAt > 0
+  }
+
   async getTransferRootCommittedAt (transferRootId: string): Promise<number> {
     const committedAt = await this.bridgeContract.transferRootCommittedAt(
       transferRootId

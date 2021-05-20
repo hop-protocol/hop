@@ -83,7 +83,9 @@ class CommitTransfersWatcher extends BaseWatcher {
           amount,
           transferNonce,
           bonderFee,
-          index
+          index,
+          amountOutMin,
+          deadline
         } = event.args
         await this.handleTransferSentEvent(
           transferId,
@@ -92,6 +94,8 @@ class CommitTransfersWatcher extends BaseWatcher {
           transferNonce,
           bonderFee,
           index,
+          amountOutMin,
+          deadline,
           event
         )
       }
@@ -296,6 +300,8 @@ class CommitTransfersWatcher extends BaseWatcher {
     transferNonce: string,
     bonderFee: BigNumber,
     index: string,
+    amountOutMin: BigNumber,
+    deadline: BigNumber,
     meta: any
   ) => {
     try {

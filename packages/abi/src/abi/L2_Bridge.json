@@ -34,13 +34,39 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
+        "internalType": "address",
+        "name": "newBonder",
+        "type": "address"
+      }
+    ],
+    "name": "BonderAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousBonder",
+        "type": "address"
+      }
+    ],
+    "name": "BonderRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "address",
         "name": "bonder",
         "type": "address"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "bytes32",
         "name": "rootHash",
         "type": "bytes32"
@@ -59,7 +85,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "account",
         "type": "address"
@@ -78,7 +104,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "bytes32",
         "name": "rootHash",
         "type": "bytes32"
@@ -131,6 +157,18 @@
         "internalType": "uint256",
         "name": "index",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amountOutMin",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
       }
     ],
     "name": "TransferSent",
@@ -165,7 +203,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "account",
         "type": "address"
@@ -184,19 +222,19 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "bonder",
         "type": "address"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "bytes32",
         "name": "transferId",
         "type": "bytes32"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "bytes32",
         "name": "rootHash",
         "type": "bytes32"
@@ -717,7 +755,7 @@
   },
   {
     "inputs": [],
-    "name": "l1Governance",
+    "name": "l1BridgeCaller",
     "outputs": [
       {
         "internalType": "address",
@@ -730,7 +768,7 @@
   },
   {
     "inputs": [],
-    "name": "l1MessengerWrapperAddress",
+    "name": "l1Governance",
     "outputs": [
       {
         "internalType": "address",
@@ -985,11 +1023,11 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_l1Governance",
+        "name": "_l1BridgeCaller",
         "type": "address"
       }
     ],
-    "name": "setL1Governance",
+    "name": "setL1BridgeCaller",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -998,11 +1036,11 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_l1MessengerWrapperAddress",
+        "name": "_l1Governance",
         "type": "address"
       }
     ],
-    "name": "setL1MessengerWrapperAddress",
+    "name": "setL1Governance",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1092,9 +1130,19 @@
         "type": "uint256"
       },
       {
+        "internalType": "uint256",
+        "name": "tansferIdTreeIndex",
+        "type": "uint256"
+      },
+      {
         "internalType": "bytes32[]",
-        "name": "proof",
+        "name": "siblings",
         "type": "bytes32[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalLeaves",
+        "type": "uint256"
       }
     ],
     "name": "settleBondedWithdrawal",
@@ -1212,9 +1260,19 @@
         "type": "uint256"
       },
       {
+        "internalType": "uint256",
+        "name": "tansferIdTreeIndex",
+        "type": "uint256"
+      },
+      {
         "internalType": "bytes32[]",
-        "name": "proof",
+        "name": "siblings",
         "type": "bytes32[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalLeaves",
+        "type": "uint256"
       }
     ],
     "name": "withdraw",

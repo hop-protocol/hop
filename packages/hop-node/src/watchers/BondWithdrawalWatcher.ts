@@ -129,7 +129,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
           amount,
           transferNonce,
           bonderFee,
-          index
+          index,
+          amountOutMin,
+          deadline
         } = event.args
         await this.handleTransferSentEvent(
           transferId,
@@ -138,6 +140,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
           transferNonce,
           bonderFee,
           index,
+          amountOutMin,
+          deadline,
           event
         )
       }
@@ -235,6 +239,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     transferNonce: string,
     bonderFee: BigNumber,
     index: BigNumber,
+    amountOutMin: BigNumber,
+    deadlineBn: BigNumber,
     meta: any
   ) => {
     if (this.isL1) {
@@ -269,6 +275,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transactionHash
       )
 
+      const deadline = Number(deadlineBn.toString())
       const l2Bridge = this.bridge as L2Bridge
       const sourceChainId = await l2Bridge.getChainId()
       const { chainId, attemptSwap } = await l2Bridge.decodeSendData(data)
@@ -310,10 +317,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       this.logger.debug('transferNonce:', transferNonce)
       this.logger.debug('chainId:', chainId)
       this.logger.debug('attemptSwap:', attemptSwap)
+      this.logger.debug('deadline:', deadline)
 
-      // TODO: read from event
-      const amountOutMin = BigNumber.from(0)
-      const deadline = BigNumber.from(ethers.constants.MaxUint256)
       await db.transfers.update(transferId, {
         transferId,
         chainId,

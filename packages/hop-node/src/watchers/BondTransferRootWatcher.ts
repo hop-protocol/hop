@@ -310,7 +310,8 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     const hasPositiveBalance = await l1Bridge.hasPositiveBalance()
     if (!hasPositiveBalance) {
-      throw new Error('bonder requires positive balance to bond transfer root')
+      this.logger.warn('bonder requires positive balance to bond transfer root')
+      return
     }
 
     if (this.dryMode) {

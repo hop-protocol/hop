@@ -222,14 +222,21 @@ class CommitTransfersWatcher extends BaseWatcher {
       const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
         transferRootHash
       )
-      if (dbTransferRoot?.sentCommitTx || dbTransferRoot?.committed) {
-        this.logger.debug(
-          'sent?:',
-          !!dbTransferRoot.sentCommitTx,
-          'committed?:',
-          !!dbTransferRoot.committed
-        )
-        return
+      if (
+        (dbTransferRoot?.sentCommitTx || dbTransferRoot?.committed) &&
+        dbTransferRoot?.sentCommitTxAt
+      ) {
+        const tenMinutes = 60 * 10 * 1000
+        // skip if a transaction was sent in the last 10 minutes
+        if (dbTransferRoot.sentCommitTxAt + tenMinutes > Date.now()) {
+          this.logger.debug(
+            'sent?:',
+            !!dbTransferRoot.sentCommitTx,
+            'committed?:',
+            !!dbTransferRoot.committed
+          )
+          return
+        }
       }
 
       if (this.dryMode) {
@@ -253,7 +260,8 @@ class CommitTransfersWatcher extends BaseWatcher {
       }
 
       await db.transferRoots.update(transferRootHash, {
-        sentCommitTx: true
+        sentCommitTx: true,
+        sentCommitTxAt: Date.now()
       })
 
       await this.waitTimeout(chainId)
@@ -264,7 +272,8 @@ class CommitTransfersWatcher extends BaseWatcher {
         .then(async (receipt: any) => {
           if (receipt.status !== 1) {
             await db.transferRoots.update(transferRootHash, {
-              sentCommitTx: false
+              sentCommitTx: false,
+              sentCommitTxAt: 0
             })
             throw new Error('status=0')
           }
@@ -276,7 +285,8 @@ class CommitTransfersWatcher extends BaseWatcher {
         })
         .catch(async (err: Error) => {
           await db.transferRoots.update(transferRootHash, {
-            sentCommitTx: false
+            sentCommitTx: false,
+            sentCommitTxAt: 0
           })
 
           throw err

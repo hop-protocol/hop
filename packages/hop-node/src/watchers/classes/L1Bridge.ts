@@ -55,6 +55,21 @@ export default class L1Bridge extends Bridge {
     }
   }
 
+  async decodeConfirmTransferRootData (data: string): Promise<any> {
+    const decoded = await this.l1BridgeContract.interface.decodeFunctionData(
+      'confirmTransferRoot',
+      data
+    )
+
+    return {
+      originChainId: Number(decoded.originChainId.toString()),
+      rootHash: decoded.rootHash,
+      destinationChainId: Number(decoded.destinationChainId.toString()),
+      totalAmount: decoded.totalAmount,
+      rootCommittedAt: Number(decoded.rootCommittedAt.toString())
+    }
+  }
+
   async getTransferBond (transferRootId: string): Promise<any> {
     return this.l1BridgeContract.transferBonds(transferRootId)
   }

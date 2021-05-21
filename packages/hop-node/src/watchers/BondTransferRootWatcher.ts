@@ -111,7 +111,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         await this.checkTransfersCommittedFromDb()
       } catch (err) {
         this.logger.error('poll check error:', err.message)
-        this.notifier.error(`poll check error: '${err.message}`)
+        this.notifier.error(`poll check error: ${err.message}`)
       }
       await wait(10 * 1000)
     }
@@ -160,9 +160,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       transferRootHash
     )
     if (dbTransferRoot?.bonded) {
-      return
-    }
-    if (dbTransferRoot?.sentBondTx) {
       return
     }
 
@@ -298,13 +295,20 @@ class BondTransferRootWatcher extends BaseWatcher {
     dbTransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
-    if (dbTransferRoot?.sentBondTx || dbTransferRoot?.bonded) {
-      this.logger.debug(
-        'sent?:',
-        !!dbTransferRoot.sentBondTx,
-        'bonded?:',
-        !!dbTransferRoot?.bonded
-      )
+    if (
+      (dbTransferRoot?.sentBondTx || dbTransferRoot?.bonded) &&
+      dbTransferRoot.sentBondTxAt
+    ) {
+      const tenMinutes = 60 * 10 * 1000
+      // skip if a transaction was sent in the last 10 minutes
+      if (dbTransferRoot.sentBondTxAt + tenMinutes > Date.now()) {
+        this.logger.debug(
+          'sent?:',
+          !!dbTransferRoot.sentBondTx,
+          'bonded?:',
+          !!dbTransferRoot?.bonded
+        )
+      }
       return
     }
 
@@ -343,7 +347,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       `bonding transfer root ${transferRootHash} on chain ${chainId}`
     )
     await db.transferRoots.update(transferRootHash, {
-      sentBondTx: true
+      sentBondTx: true,
+      sentBondTxAt: Date.now()
     })
     const tx = await l1Bridge.bondTransferRoot(
       transferRootHash,
@@ -354,7 +359,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       .then(async (receipt: any) => {
         if (receipt.status !== 1) {
           await db.transferRoots.update(transferRootHash, {
-            sentBondTx: false
+            sentBondTx: false,
+            sentBondTxAt: 0
           })
           throw new Error('status=0')
         }
@@ -371,7 +377,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       })
       .catch(async (err: Error) => {
         db.transferRoots.update(transferRootHash, {
-          sentBondTx: false
+          sentBondTx: false,
+          sentBondTxAt: 0
         })
 
         throw err
@@ -425,7 +432,8 @@ class BondTransferRootWatcher extends BaseWatcher {
         committedAt,
         destinationBridgeAddress,
         sourceChainId,
-        committed: true
+        committed: true,
+        commitTxHash: transactionHash
       })
 
       await this.checkTransfersCommitted(
@@ -477,7 +485,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       transferRootId,
       committed: true,
       bonded: true,
-      bonder
+      bonder,
+      bondTxHash: transactionHash
     })
   }
 

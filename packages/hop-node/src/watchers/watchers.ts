@@ -8,6 +8,7 @@ import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
+import L2ExitWatcher from 'src/watchers/L2ExitWatcher'
 import { store } from 'src/store'
 import PubSub from 'src/pubsub/PubSub'
 import Logger from 'src/logger'
@@ -54,7 +55,7 @@ function startStakeWatchers (
       }
 
       const stakeWatcher = new StakeWatcher({
-        isL1: network === 'ethereum',
+        isL1: network === Chain.Ethereum,
         label: `${network}.${token}`,
         bridgeContract,
         tokenContract,
@@ -66,6 +67,17 @@ function startStakeWatchers (
       stakeWatchers[token] = stakeWatchers[token] || {}
       stakeWatchers[token][networkId] = stakeWatcher
       watchers.push(stakeWatcher)
+
+      if (network !== Chain.Ethereum) {
+        const l2ExitWatcher = new L2ExitWatcher({
+          isL1: false,
+          label: `${network}.${token}`,
+          bridgeContract,
+          l1BridgeContract: contracts.get(token, Chain.Ethereum).l1Bridge,
+          dryMode
+        })
+        watchers.push(l2ExitWatcher)
+      }
     }
   }
 
@@ -194,14 +206,14 @@ function startWatchers (
   let bondTransferRootWatchers: any = {}
   let settleBondedWithdrawalWatchers: any = {}
   let commitTransferWatchers: any = {}
-  for (let network of ['ethereum'].concat(_networks)) {
+  for (let network of [Chain.Ethereum as string].concat(_networks)) {
     const networkId = networkSlugToId(network)
     for (let token of _tokens) {
       if (!contracts.has(token, network)) {
         continue
       }
       const label = `${network}.${token}`
-      const isL1 = network === 'ethereum'
+      const isL1 = network === Chain.Ethereum
 
       const bridgeContract = isL1
         ? contracts.get(token, Chain.Ethereum).l1Bridge

@@ -174,6 +174,29 @@ export default class L2Bridge extends Bridge {
     return pendingTransfers
   }
 
+  async getTransferRootCommittedTxHash (
+    transferRootHash: string
+  ): Promise<string | undefined> {
+    let txHash: string
+    await this.eventsBatch(async (start: number, end: number) => {
+      const events = await this.l2BridgeContract.queryFilter(
+        this.l2BridgeContract.filters.TransfersCommitted(),
+        start,
+        end
+      )
+
+      for (let event of events) {
+        if (transferRootHash === event.args.rootHash) {
+          txHash = event.transactionHash
+          return false
+        }
+      }
+      return true
+    })
+
+    return txHash
+  }
+
   @queue
   async commitTransfers (
     destinationChainId: number

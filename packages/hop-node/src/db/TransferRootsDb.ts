@@ -9,10 +9,19 @@ export type TransferRoot = {
   chainId?: number
   sourceChainId?: number
   sentCommitTx?: boolean
+  sentCommitTxAt: number
   committed?: boolean
   committedAt?: number
+  commitTxHash?: string
+  confirmed?: boolean
+  confirmedAt?: number
+  confirmTxHash?: string
+  sentConfirmTx?: boolean
+  sentConfirmTxAt?: number
   bonded?: boolean
   sentBondTx?: boolean
+  sentBondTxAt?: number
+  bondTxHash?: string
   transferIds?: string[]
   bonder?: string
 }
@@ -78,6 +87,19 @@ class TransferRootsDb extends BaseDb {
         !item.bonded &&
         item.transferRootHash &&
         item.chainId &&
+        item.committedAt
+      )
+    })
+  }
+
+  async getUnconfirmedTransferRoots (): Promise<TransferRoot[]> {
+    const transfers = await this.getTransferRoots()
+    return transfers.filter(item => {
+      return (
+        !item.confirmed &&
+        item.transferRootHash &&
+        item.chainId &&
+        item.committed &&
         item.committedAt
       )
     })

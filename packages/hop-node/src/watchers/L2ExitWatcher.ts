@@ -87,6 +87,29 @@ class L2ExitWatcher extends BaseWatcher {
     }
 
     const l2Bridge = this.bridge as L2Bridge
+
+    await this.l1Bridge.eventsBatch(async (start: number, end: number) => {
+      const transferRootConfirmedEvents = await this.l1Bridge.getTransferRootConfirmedEvents(
+        start,
+        end
+      )
+
+      for (let event of transferRootConfirmedEvents) {
+        const {
+          originChainId,
+          destinationChainId,
+          rootHash,
+          totalAmount
+        } = event.args
+        await this.handleTransferRootConfirmedEvent(
+          originChainId,
+          destinationChainId,
+          rootHash,
+          totalAmount
+        )
+      }
+    }, this.l1Bridge.TransferRootConfirmed)
+
     await this.eventsBatch(async (start: number, end: number) => {
       try {
         const transferCommitEvents = await l2Bridge.getTransfersCommittedEvents(

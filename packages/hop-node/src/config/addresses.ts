@@ -48,7 +48,7 @@ export const config = {
   bonderPrivateKey: process.env.BONDER_PRIVATE_KEY,
   metadata,
   bonders,
-  syncBlocksTotal: 200_000,
+  syncBlocksTotal: 100_000,
   syncBlocksBatch: 1_000
 }
 

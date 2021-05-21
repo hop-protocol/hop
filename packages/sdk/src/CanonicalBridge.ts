@@ -175,7 +175,7 @@ class CanonicalBridge extends Base {
       //await this.checkMaxTokensAllowed(chain, bridge, amount)
       return bridge.relayTokens(tokenAddress, recipient, amount, {
         // xDai requires a higher gas limit
-        gasLimit: 1000000
+        gasLimit: 240000
       })
     } else if ((chain as Chain).equals(Chain.Optimism)) {
       const l2TokenAddress = this.getL2CanonicalTokenAddress(this.token, chain)
@@ -301,7 +301,7 @@ class CanonicalBridge extends Base {
       const bridge = new Contract(tokenAddress, l2xDaiTokenAbi, provider)
       return bridge.transferAndCall(bridgeAddress, amount, '0x', {
         // xDai requires a higher gas limit
-        gasLimit: 1000000
+        gasLimit: 400000
       })
     } else if ((chain as Chain).equals(Chain.Optimism)) {
       const bridgeAddress = this.getL2CanonicalBridgeAddress(this.token, chain)

@@ -1,4 +1,10 @@
 [[redirects]]
+  from = "/whitepaper.pdf"
+  to = "/whitepaper.pdf"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "https://kovan.hop.exchange/:splat"
   status = 301

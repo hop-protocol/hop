@@ -1,9 +1,8 @@
 [[redirects]]
-  from = "/"
-  to = "https://kovan.hop.exchange"
+  from = "/*"
+  to = "https://kovan.hop.exchange/:splat"
   status = 301
-  force = false
-  query = {path = ":path"}
+  force = true
 
 [[headers]]
   for = "/*"

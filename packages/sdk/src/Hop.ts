@@ -10,6 +10,9 @@ import Base from './Base'
 import { Network } from './constants'
 import _version from './version'
 
+const transferSentTopic =
+  '0x5a4dabefa20e4685729030de2db148bc227da9d371286964568fbfafe29ae1b2'
+
 /**
  * @desc Event types for transaction watcher.
  */
@@ -356,8 +359,6 @@ class Hop extends Base {
         }
         let transferHash: string = ''
         for (let log of receipt.logs) {
-          const transferSentTopic =
-            '0x6ea037b8ea9ecdf62eae513fc0f331de4e4a9df62927a789d840281438d14ce5'
           if (log.topics[0] === transferSentTopic) {
             transferHash = log.topics[1]
           }
@@ -422,8 +423,6 @@ class Hop extends Base {
           )
           let transferHash: string = ''
           for (let log of receipt.logs) {
-            const transferSentTopic =
-              '0x6ea037b8ea9ecdf62eae513fc0f331de4e4a9df62927a789d840281438d14ce5'
             if (log.topics[0] === transferSentTopic) {
               transferHash = log.topics[1]
               break

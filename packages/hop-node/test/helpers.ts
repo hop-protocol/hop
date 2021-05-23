@@ -5,6 +5,7 @@ import { ethers, providers, Contract, Wallet, BigNumber } from 'ethers'
 import { HDNode } from '@ethersproject/hdnode'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { config } from 'src/config'
+import * as hopMetadata from '@hop-protocol/metadata'
 import {
   l1BridgeAbi,
   l2BridgeAbi,
@@ -310,7 +311,8 @@ export class User {
     const recipient = await this.getAddress()
     let destinationAmountOutMin = 0
     let destinationDeadline = deadline
-    let parsedAmount = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    let parsedAmount = parseUnits(amount.toString(), decimals)
 
     if (destNetwork === Chain.Ethereum) {
       destinationAmountOutMin = 0
@@ -509,16 +511,17 @@ export class User {
   }
 
   async getBonderFee (network: string, token: string, amount: string) {
+    const decimals = await getTokenDecimals(token)
     const bridge = this.getHopBridgeContract(network, token)
     const minBonderBps = await bridge.minBonderBps()
     const minBonderFeeAbsolute = await bridge.minBonderFeeAbsolute()
-    const minBonderFeeRelative = parseUnits(amount, 18)
+    const minBonderFeeRelative = parseUnits(amount, decimals)
       .mul(minBonderBps)
       .div(10000)
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute
-    return parseUnits('1', 18)
+    return parseUnits('1', decimals)
     return minBonderFee
   }
 
@@ -1255,4 +1258,18 @@ export async function getBalances (
     ),
     Promise.all(users.map((user: User) => user.getBalance(destNetwork, token)))
   ])
+}
+
+async function getTokenDecimals (
+  token: string | Contract
+): Promise<number> {
+  let tokenSymbol: string
+  if (typeof token === 'string') {
+    tokenSymbol = token
+  } else {
+    tokenSymbol = await token.symbol()
+  }
+
+  // The decimals will be the same on all networks
+  return hopMetadata.mainnet.tokens[tokenSymbol].decimals
 }

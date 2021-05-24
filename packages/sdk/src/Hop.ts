@@ -226,8 +226,8 @@ class Hop extends Base {
         sourceTx.blockNumber as number
       )
       const sourceTimestamp = sourceBlock?.timestamp
-      let endBlock = -1
       let startBlock = -1
+      let endBlock = -1
       let pollDest: () => Promise<boolean>
 
       // L1 -> L2
@@ -249,7 +249,7 @@ class Hop extends Base {
             return false
           }
           if (startBlock === -1) {
-            startBlock = endBlock - 100
+            startBlock = blockNumber - 1000
           } else {
             startBlock = endBlock
           }
@@ -372,7 +372,7 @@ class Hop extends Base {
             return false
           }
           if (startBlock === -1) {
-            startBlock = endBlock - 100
+            startBlock = blockNumber - 1000
           } else {
             startBlock = endBlock
           }
@@ -431,24 +431,31 @@ class Hop extends Base {
           if (!transferHash) {
             return false
           }
+          let headBlock = await destinationChain.provider.getBlockNumber()
+          if (!headBlock) {
+            return false
+          }
+          let tailBlock = headBlock - 10000
           pollDest = async () => {
-            const blockNumber = await destinationChain.provider.getBlockNumber()
-            if (!blockNumber) {
-              return false
+            const getRecentLogs = async (head: number): Promise<any[]> => {
+              if (head < tailBlock) {
+                return []
+              }
+              const start = head - 1000
+              const end = head
+              let recentLogs: any[] =
+                (await exchange?.queryFilter(
+                  exchange.filters.TokenSwap(),
+                  start,
+                  end
+                )) ?? []
+              recentLogs = recentLogs.reverse()
+              if (recentLogs.length) {
+                return recentLogs
+              }
+              return getRecentLogs(start)
             }
-            if (startBlock === -1) {
-              startBlock = endBlock - 100
-            } else {
-              startBlock = endBlock
-            }
-            endBlock = blockNumber
-            let recentLogs: any[] =
-              (await exchange?.queryFilter(
-                exchange.filters.TokenSwap(),
-                startBlock,
-                endBlock
-              )) ?? []
-            recentLogs = recentLogs.reverse()
+            let recentLogs = await getRecentLogs(headBlock)
             for (let item of recentLogs) {
               const decodedLog = item.decode(item.data, item.topics)
               if (wrapperDest.address === decodedLog.buyer) {
@@ -493,6 +500,7 @@ class Hop extends Base {
             return false
           }
         } catch (err) {
+          console.log(err)
           // events for token swap on L2 (ie saddle convert page on UI)
           const exchange = await bridge.getSaddleSwap(destinationChain)
           pollDest = async () => {

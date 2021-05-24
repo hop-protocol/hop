@@ -82,67 +82,71 @@ class BondWithdrawalWatcher extends BaseWatcher {
   async syncUp () {
     this.logger.debug('syncing up events')
 
-    const promises:Promise<any>[] = []
-    promises.push(this.eventsBatch(async (start: number, end: number) => {
-      const withdrawalBondedEvents = await this.bridge.getWithdrawalBondedEvents(
-        start,
-        end
-      )
-
-      for (let event of withdrawalBondedEvents) {
-        const {
-          transferId,
-          //recipient,
-          amount
-          //transferNonce,
-          //bonderFee,
-          //index
-        } = event.args
-
-        await this.handleWithdrawalBondedEvent(
-          transferId,
-          //recipient,
-          amount,
-          //transferNonce,
-          //bonderFee,
-          //index,
-          event
+    const promises: Promise<any>[] = []
+    promises.push(
+      this.eventsBatch(async (start: number, end: number) => {
+        const withdrawalBondedEvents = await this.bridge.getWithdrawalBondedEvents(
+          start,
+          end
         )
-      }
-    }, this.bridge.WithdrawalBonded))
+
+        for (let event of withdrawalBondedEvents) {
+          const {
+            transferId,
+            //recipient,
+            amount
+            //transferNonce,
+            //bonderFee,
+            //index
+          } = event.args
+
+          await this.handleWithdrawalBondedEvent(
+            transferId,
+            //recipient,
+            amount,
+            //transferNonce,
+            //bonderFee,
+            //index,
+            event
+          )
+        }
+      }, this.bridge.WithdrawalBonded)
+    )
 
     // L1 bridge doesn't contain transfer sent events so return here.
     if (!this.isL1) {
       const l2Bridge = this.bridge as L2Bridge
-      promises.push(this.eventsBatch(async (start: number, end: number) => {
-        const transferSentEvents = await l2Bridge.getTransferSentEvents(
-          start,
-          end
-        )
-        for (let event of transferSentEvents) {
-          const {
-            transferId,
-            recipient,
-            amount,
-            transferNonce,
-            bonderFee,
-            index,
-            amountOutMin,
-            deadline
-          } = event.args
-          await this.handleTransferSentEvent(
-            transferId,
-            recipient,
-            amount,
-            transferNonce,
-            bonderFee,
-            index,
-            amountOutMin,
-            deadline,
-            event
+      promises.push(
+        this.eventsBatch(async (start: number, end: number) => {
+          const transferSentEvents = await l2Bridge.getTransferSentEvents(
+            start,
+            end
           )
-        }
-      }, l2Bridge.TransferSent))
+          for (let event of transferSentEvents) {
+            const {
+              transferId,
+              recipient,
+              amount,
+              transferNonce,
+              bonderFee,
+              index,
+              amountOutMin,
+              deadline
+            } = event.args
+            await this.handleTransferSentEvent(
+              transferId,
+              recipient,
+              amount,
+              transferNonce,
+              bonderFee,
+              index,
+              amountOutMin,
+              deadline,
+              event
+            )
+          }
+        }, l2Bridge.TransferSent)
+      )
     }
 
     await Promise.all(promises)

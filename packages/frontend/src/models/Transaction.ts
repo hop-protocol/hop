@@ -1,7 +1,7 @@
 import { ethers } from 'ethers'
 import { EventEmitter } from 'events'
 import { L1_NETWORK } from 'src/constants'
-import { getRpcUrl, getBaseExplorerUrl } from 'src/utils'
+import { getRpcUrl, getProvider, getBaseExplorerUrl } from 'src/utils'
 
 import Token from 'src/models/Token'
 import { network as defaultNetwork } from 'src/config'
@@ -63,7 +63,7 @@ class Transaction extends EventEmitter {
       this.destNetworkName = destNetworkName
     }
 
-    this.provider = new ethers.providers.StaticJsonRpcProvider(rpcUrl)
+    this.provider = getProvider(rpcUrl)
     this.timestamp = timestamp || Date.now()
     if (token) {
       this.token = token

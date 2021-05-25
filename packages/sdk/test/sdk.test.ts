@@ -72,8 +72,8 @@ describe.skip('hop bridge token transfers', () => {
   )
 })
 
-describe.skip('tx watcher', () => {
-  const hop = new Hop()
+describe.only('tx watcher', () => {
+  const hop = new Hop('mainnet')
   const signer = new Wallet(privateKey)
   it(
     'receive events on token transfer from L1 -> L2',
@@ -113,7 +113,7 @@ describe.skip('tx watcher', () => {
     },
     120 * 1000
   )
-  it(
+  it.skip(
     'receive events on token transfer from L2 -> L2',
     async () => {
       const tokenAmount = parseUnits('0.1', 18)
@@ -122,7 +122,8 @@ describe.skip('tx watcher', () => {
         .bridge(Token.USDC)
         .send(tokenAmount, Chain.xDai, Chain.Optimism)
 
-      console.log('tx hash:', tx?.hash)
+      const txHash = tx?.hash
+      console.log('tx hash:', txHash)
       console.log('waiting for receipts')
 
       await new Promise(resolve => {
@@ -130,7 +131,7 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(tx.hash, Token.USDC, Chain.xDai, Chain.Optimism)
+          .watch(txHash, Token.USDC, Chain.xDai, Chain.Optimism)
           .on('receipt', data => {
             const { receipt, chain } = data
             if (chain.equals(Chain.xDai)) {
@@ -153,9 +154,54 @@ describe.skip('tx watcher', () => {
           })
       })
 
-      expect(tx.hash).toBeTruthy()
+      expect(txHash).toBeTruthy()
     },
     120 * 1000
+  )
+  it.only(
+    '(mainnet) receive events on token transfer from L2 xDai -> L2 Polygon',
+    async () => {
+      const tokenAmount = parseUnits('0.1', 18)
+      const txHash =
+        '0x439ae4839621e13317933e1fa4ca9adab359074090e00e3db1105a982cf9a6ac'
+
+      await new Promise(resolve => {
+        let sourceReceipt: any = null
+        let destinationReceipt: any = null
+
+        hop
+          .watch(txHash, Token.USDC, Chain.xDai, Chain.Polygon)
+          .on('receipt', data => {
+            const { receipt, chain } = data
+            if (chain.equals(Chain.xDai)) {
+              sourceReceipt = receipt
+              console.log(
+                'got source transaction receipt:',
+                receipt.transactionHash
+              )
+            }
+            if (chain.equals(Chain.Polygon)) {
+              destinationReceipt = receipt
+              console.log(destinationReceipt.transactionHash)
+              /*
+              expect(destinationReceipt.transactionHash).toBe(
+                '0xf443914579a72f18947494965905bdb45f5fe38c3aa9702b62292b1b971a9dde'
+              )
+              */
+              console.log(
+                'got destination transaction receipt:',
+                receipt.transactionHash
+              )
+            }
+            if (sourceReceipt && destinationReceipt) {
+              resolve(null)
+            }
+          })
+      })
+
+      expect(txHash).toBeTruthy()
+    },
+    300 * 1000
   )
   it(
     'receive events on token transfer from L2 -> L1',

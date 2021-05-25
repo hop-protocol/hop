@@ -9,21 +9,21 @@ import { wait } from 'src/utils'
 import queue from 'src/decorators/queue'
 import BaseWatcher from './classes/BaseWatcher'
 
-export const getL1Amb = () => {
+export const getL1Amb = (token: string) => {
   const l1Wallet = wallets.get(Chain.Ethereum)
-  const l1AmbAddress = config.tokens.DAI.xdai.l1Amb
+  const l1AmbAddress = config.tokens[token].xdai.l1Amb
   return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet)
 }
 
-export const getL2Amb = () => {
+export const getL2Amb = (token: string) => {
   const l2xDaiProvider = wallets.get(Chain.xDai).provider
-  const l2AmbAddress = config.tokens.DAI.xdai.l2Amb
+  const l2AmbAddress = config.tokens[token].xdai.l2Amb
   return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider)
 }
 
-export const executeExitTx = async (event: any) => {
-  const l1Amb = getL1Amb()
-  const l2Amb = getL2Amb()
+export const executeExitTx = async (event: any, token: string) => {
+  const l1Amb = getL1Amb(token)
+  const l2Amb = getL2Amb(token)
 
   const message = event.args.encodedData
   const msgHash = ethers.utils.solidityKeccak256(['bytes'], [message])
@@ -77,8 +77,9 @@ class xDaiBridgeWatcher extends BaseWatcher {
   async start () {
     this.started = true
     try {
-      const l1Amb = getL1Amb()
-      const l2Amb = getL2Amb()
+      const token = 'DAI'
+      const l1Amb = getL1Amb(token)
+      const l2Amb = getL2Amb(token)
 
       this.logger.debug('xDai bridge watcher started')
       while (true) {
@@ -93,7 +94,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
 
         for (let event of events) {
           try {
-            const result = await executeExitTx(event)
+            const result = await executeExitTx(event, token)
             if (!result) {
               continue
             }

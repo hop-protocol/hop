@@ -125,11 +125,50 @@ class polygonBridgeWatcher extends BaseWatcher {
     return json.message === 'success'
   }
 
+  async getPayload (txHash: string, tokenSymbol: string) {
+    const recipient = await this.l1Wallet.getAddress()
+    const maticPOSClient = new MaticPOSClient({
+      network: this.chainId === 1 ? 'mainnet' : 'testnet',
+      version: this.chainId === 1 ? 'v1' : 'mumbai',
+      maticProvider: new Web3.providers.HttpProvider(
+        this.l2Provider.connection.url
+      ),
+      parentProvider: new Web3.providers.HttpProvider(
+        this.l1Provider.connection.url
+      ),
+      posRootChainManager:
+        addresses[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
+      posERC20Predicate: addresses[tokenSymbol][Chain.Polygon].l1PosPredicate
+    })
+
+    const sig =
+      '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
+    const rootTunnel = '0xfe5e5D361b2ad62c541bAb87C45a0B9B018389a2'
+    const tx = await (maticPOSClient as any).posRootChainManager.processReceivedMessage(
+      rootTunnel,
+      txHash,
+      {
+        from: recipient,
+        gasLimit: 200_000,
+        encodeAbi: true
+      }
+    )
+
+    return this.l1Wallet.sendTransaction({
+      to: tx.to,
+      value: tx.value,
+      data: tx.data,
+      gasLimit: tx.gas
+      //gasPrice: '40000000000',
+    })
+  }
+
   @queue
   async sendTransaction (txHash: string, tokenSymbol: string) {
     const recipient = await this.l1Wallet.getAddress()
     const maticPOSClient = new MaticPOSClient({
       network: this.chainId === 1 ? 'mainnet' : 'testnet',
+      version: this.chainId === 1 ? 'v1' : 'mumbai',
       maticProvider: new Web3.providers.HttpProvider(
         this.l2Provider.connection.url
       ),

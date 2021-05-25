@@ -153,6 +153,9 @@ export class User {
     const bridge = this.getHopBridgeContract(Chain.Ethereum, token)
     const chainId = networkSlugToId(network)
     const wrapperAddress = await bridge.crossDomainMessengerWrappers(chainId)
+    if (wrapperAddress === ethers.constants.AddressZero) {
+      throw new Error(`wrapper address is ${wrapperAddress}`)
+    }
     const wallet = this.getWallet(Chain.Ethereum)
     let abi: any
     if (network === Chain.Arbitrum) {
@@ -1082,6 +1085,18 @@ export class User {
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
     const address = await this.getAddress()
     return bridge.getIsBonder(address)
+  }
+
+  async isGovernance (sourceNetwork: string, token: string) {
+    const bridge = this.getHopBridgeContract(sourceNetwork, token)
+    const address = await this.getAddress()
+    let governance: string
+    if (sourceNetwork === Chain.Ethereum) {
+      governance = await bridge.governance()
+    } else {
+      governance = await bridge.l1Governance()
+    }
+    return governance === address
   }
 
   async waitForL2Tx (l1TxHash: string) {

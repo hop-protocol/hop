@@ -20,6 +20,7 @@ export const networks: any = {
   polygon: {
     networkId: '137',
     rpcUrl: 'https://polygon.rpc.hop.exchange',
+    // rpcUrl: 'wss://rpc-mainnet.maticvigil.com/ws',
     explorerUrl: 'https://explorer-mainnet.maticvigil.com/'
   },
   /*
@@ -38,6 +39,7 @@ export const networks: any = {
   xdai: {
     networkId: '100',
     rpcUrl: 'https://rpc.xdaichain.com',
+    // rpcUrl: 'wss://rpc.xdaichain.com/wss',
     explorerUrl: 'https://blockscout.com/xdai/mainnet/'
   }
 }

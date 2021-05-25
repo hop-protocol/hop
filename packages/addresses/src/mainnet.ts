@@ -10,7 +10,7 @@ export const addresses: Addresses = {
       },
       xdai: {
         l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
-        l1MessengerWrapper: '0xDc38c5aF436B9652225f92c370A011C673FA7Ba5',
+        l1MessengerWrapper: '0x652a38FA87f60A122AEF360eEeFcaf6258eDdF6A',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
         l2CanonicalToken: '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83',
         l2Bridge: '0xa50395bdEaca7062255109fedE012eFE63d6D402',
@@ -33,7 +33,8 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x2935173357c010F8B56c8719a44f9FbdDa90f67c',
         l2SaddleLpToken: '0x7689674c3EcEC55086b08A3cEA785de2848d8C87',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf'
+        l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
+        l1FxBaseRootTunnel: '0xfe5e5D361b2ad62c541bAb87C45a0B9B018389a2'
       }
     }
   }

@@ -48,8 +48,14 @@ export const networkSlugToId = (network: string): string | undefined => {
 export const networkIdToSlug = (
   networkId: string | number
 ): string | undefined => {
+  if (!config.networks) {
+    throw new Error('networks not found')
+  }
   for (let k in config.networks) {
     let v = config.networks[k]
+    if (!v) {
+      continue
+    }
     if (
       v?.networkId?.toString() == networkId.toString() ||
       v?.chainId?.toString() === networkId.toString()

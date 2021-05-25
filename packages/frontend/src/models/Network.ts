@@ -1,4 +1,5 @@
 import * as ethers from 'ethers'
+import { getProvider } from 'src/utils'
 
 export type Networkish = Network | string | undefined
 
@@ -29,7 +30,7 @@ class Network {
     this.slug = props.slug
     this.imageUrl = props.imageUrl
     this.rpcUrl = props.rpcUrl
-    this.provider = new ethers.providers.StaticJsonRpcProvider(props.rpcUrl)
+    this.provider = getProvider(props.rpcUrl)
     this.networkId = props.networkId
     this.nativeTokenSymbol = props.nativeTokenSymbol
     this.requiresGas = props.requiresGas

@@ -13,6 +13,7 @@ export { default as l1OptimismMessengerAbi } from './abi/L1_OptimismMessenger.js
 export { default as l1OptimismMessengerWrapperAbi } from './abi/L1_OptimismMessengerWrapper.json'
 export { default as l1OptimismTokenBridgeAbi } from './abi/L1_OptimismTokenBridge.json'
 export { default as l1PolygonDepositManagerAbi } from './abi/L1_PolygonDepositManager.json'
+export { default as l1PolygonFxBaseRootTunnelAbi } from './abi/L1_PolygonFxBaseRootTunnel.json'
 export { default as l1PolygonMessengerAbi } from './abi/L1_PolygonMessenger.json'
 export { default as l1PolygonMessengerWrapperAbi } from './abi/L1_PolygonMessengerWrapper.json'
 export { default as l1PolygonPosRootChainManagerAbi } from './abi/L1_PolygonPosRootChainManager.json'

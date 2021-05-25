@@ -1,6 +1,7 @@
 import '../moduleAlias'
+import { ethers } from 'ethers'
 import chalk from 'chalk'
-import { wait, networkIdToSlug, networkSlugToId } from 'src/utils'
+import { wait, networkIdToSlug } from 'src/utils'
 import db from 'src/db'
 import { Contract, BigNumber } from 'ethers'
 import BaseWatcher from './classes/BaseWatcher'
@@ -8,18 +9,23 @@ import { Chain } from 'src/constants'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import { getL2Amb, executeExitTx } from './xDaiBridgeWatcher'
+import PolygonBridgeWatcher from './polygonBridgeWatcher'
+import { config as gConfig } from 'src/config'
+import { l1PolygonFxBaseRootTunnelAbi } from '@hop-protocol/abi'
 
 export interface Config {
   isL1: boolean
   bridgeContract: Contract
   l1BridgeContract: Contract
   label: string
+  token: string
   order?: () => number
   dryMode?: boolean
 }
 
 class L2ExitWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
+  token: string
 
   constructor (config: Config) {
     super({
@@ -32,6 +38,7 @@ class L2ExitWatcher extends BaseWatcher {
       dryMode: config.dryMode
     })
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
+    this.token = config.token
   }
 
   async start () {
@@ -52,6 +59,7 @@ class L2ExitWatcher extends BaseWatcher {
       try {
         await this.checkTransfersCommittedFromDb()
       } catch (err) {
+        console.log(err)
         this.logger.error('poll check error:', err.message)
         this.notifier.error(`poll check error: ${err.message}`)
       }
@@ -145,10 +153,14 @@ class L2ExitWatcher extends BaseWatcher {
 
   async checkTransfersCommittedFromDb () {
     const dbTransferRoots = await db.transferRoots.getUnconfirmedTransferRoots()
+    const promises: Promise<any>[] = []
     for (let dbTransferRoot of dbTransferRoots) {
       const { transferRootHash, chainId, committedAt } = dbTransferRoot
-      await this.checkTransfersCommitted(transferRootHash, chainId, committedAt)
+      promises.push(
+        this.checkTransfersCommitted(transferRootHash, chainId, committedAt)
+      )
     }
+    await Promise.all(promises)
   }
 
   checkTransfersCommitted = async (
@@ -188,9 +200,10 @@ class L2ExitWatcher extends BaseWatcher {
     if (!commitTxHash) {
       return
     }
+
     const chainSlug = networkIdToSlug(await this.bridge.getNetworkId())
     if (chainSlug === Chain.xDai) {
-      const l2Amb = getL2Amb()
+      const l2Amb = getL2Amb(this.token)
       const tx: any = await this.bridge.getTransaction(commitTxHash)
       const sigEvents = await l2Amb?.queryFilter(
         l2Amb.filters.UserRequestForSignature(),
@@ -200,6 +213,7 @@ class L2ExitWatcher extends BaseWatcher {
 
       for (let sigEvent of sigEvents) {
         const { encodedData } = sigEvent.args
+        // TODO: better way of slicing by method id
         const data = encodedData.replace(/.*(ef6ebe5e00000.*)/, '$1')
         if (data) {
           const {
@@ -223,7 +237,7 @@ class L2ExitWatcher extends BaseWatcher {
             }
             return
           }
-          const result = await executeExitTx(sigEvent)
+          const result = await executeExitTx(sigEvent, this.token)
           if (result) {
             await db.transferRoots.update(transferRootHash, {
               sentConfirmTx: true,
@@ -269,6 +283,32 @@ class L2ExitWatcher extends BaseWatcher {
           }
         }
       }
+    } else if (chainSlug === Chain.Polygon) {
+      const poly = new PolygonBridgeWatcher()
+      poly.l1Provider = new ethers.providers.StaticJsonRpcProvider(
+        'https://mainnet.rpc.hop.exchange'
+      )
+      poly.l2Provider = new ethers.providers.StaticJsonRpcProvider(
+        'https://polygon.rpc.hop.exchange'
+      )
+      poly.l1Wallet = new ethers.Wallet(
+        gConfig.bonderPrivateKey,
+        poly.l1Provider
+      )
+      poly.l2Wallet = new ethers.Wallet(
+        gConfig.bonderPrivateKey,
+        poly.l2Provider
+      )
+      poly.chainId = 1
+      poly.apiUrl = `https://apis.matic.network/api/v1/${
+        poly.chainId === 1 ? 'matic' : 'mumbai'
+      }/block-included`
+
+      const tx = await poly.getPayload(commitTxHash, this.token)
+      this.logger.info(
+        `sent chainId ${this.bridge.providerNetworkId} confirmTransferRoot L1 exit tx`,
+        chalk.bgYellow.black.bold(tx.hash)
+      )
     } else {
       // not implemented
       return

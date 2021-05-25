@@ -1,7 +1,7 @@
 import '../moduleAlias'
 import { ethers } from 'ethers'
 import chalk from 'chalk'
-import { wait, networkIdToSlug } from 'src/utils'
+import { wait, networkIdToSlug, getRpcUrls } from 'src/utils'
 import db from 'src/db'
 import { Contract, BigNumber } from 'ethers'
 import BaseWatcher from './classes/BaseWatcher'
@@ -9,7 +9,7 @@ import { Chain } from 'src/constants'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import { getL2Amb, executeExitTx } from './xDaiBridgeWatcher'
-import PolygonBridgeWatcher from './polygonBridgeWatcher'
+import PolygonBridgeWatcher from './PolygonBridgeWatcher'
 import { config as gConfig } from 'src/config'
 import { l1PolygonFxBaseRootTunnelAbi } from '@hop-protocol/abi'
 
@@ -59,7 +59,6 @@ class L2ExitWatcher extends BaseWatcher {
       try {
         await this.checkTransfersCommittedFromDb()
       } catch (err) {
-        console.log(err)
         this.logger.error('poll check error:', err.message)
         this.notifier.error(`poll check error: ${err.message}`)
       }
@@ -96,12 +95,13 @@ class L2ExitWatcher extends BaseWatcher {
 
     const l2Bridge = this.bridge as L2Bridge
 
-    await this.l1Bridge.eventsBatch(async (start: number, end: number) => {
+    this.l1Bridge.eventsBatch(async (start: number, end: number) => {
       const transferRootConfirmedEvents = await this.l1Bridge.getTransferRootConfirmedEvents(
         start,
         end
       )
 
+      const promises: Promise<any>[] = []
       for (let event of transferRootConfirmedEvents) {
         const {
           originChainId,
@@ -109,16 +109,20 @@ class L2ExitWatcher extends BaseWatcher {
           rootHash,
           totalAmount
         } = event.args
-        await this.handleTransferRootConfirmedEvent(
-          originChainId,
-          destinationChainId,
-          rootHash,
-          totalAmount
+        promises.push(
+          this.handleTransferRootConfirmedEvent(
+            originChainId,
+            destinationChainId,
+            rootHash,
+            totalAmount
+          )
         )
       }
+
+      await Promise.all(promises)
     }, this.l1Bridge.TransferRootConfirmed)
 
-    await this.eventsBatch(async (start: number, end: number) => {
+    this.eventsBatch(async (start: number, end: number) => {
       try {
         const transferCommitEvents = await l2Bridge.getTransfersCommittedEvents(
           start,
@@ -214,13 +218,17 @@ class L2ExitWatcher extends BaseWatcher {
       for (let sigEvent of sigEvents) {
         const { encodedData } = sigEvent.args
         // TODO: better way of slicing by method id
-        const data = encodedData.replace(/.*(ef6ebe5e00000.*)/, '$1')
+        const data = /ef6ebe5e00000/.test(encodedData)
+          ? encodedData.replace(/.*(ef6ebe5e00000.*)/, '$1')
+          : ''
         if (data) {
           const {
             rootHash,
             originChainId,
             destinationChain
-          } = await this.l1Bridge.decodeConfirmTransferRootData('0x' + data)
+          } = await this.l1Bridge.decodeConfirmTransferRootData(
+            '0x' + data.replace('0x', '')
+          )
           if (
             (dbTransferRoot?.sentConfirmTx || dbTransferRoot?.confirmed) &&
             dbTransferRoot.sentConfirmTxAt
@@ -286,10 +294,10 @@ class L2ExitWatcher extends BaseWatcher {
     } else if (chainSlug === Chain.Polygon) {
       const poly = new PolygonBridgeWatcher()
       poly.l1Provider = new ethers.providers.StaticJsonRpcProvider(
-        'https://mainnet.rpc.hop.exchange'
+        getRpcUrls(Chain.Ethereum)[0]
       )
       poly.l2Provider = new ethers.providers.StaticJsonRpcProvider(
-        'https://polygon.rpc.hop.exchange'
+        getRpcUrls(Chain.Polygon)[0]
       )
       poly.l1Wallet = new ethers.Wallet(
         gConfig.bonderPrivateKey,
@@ -304,10 +312,61 @@ class L2ExitWatcher extends BaseWatcher {
         poly.chainId === 1 ? 'matic' : 'mumbai'
       }/block-included`
 
-      const tx = await poly.getPayload(commitTxHash, this.token)
+      if (
+        (dbTransferRoot?.sentConfirmTx || dbTransferRoot?.confirmed) &&
+        dbTransferRoot.sentConfirmTxAt
+      ) {
+        const tenMinutes = 60 * 10 * 1000
+        // skip if a transaction was sent in the last 10 minutes
+        if (dbTransferRoot.sentConfirmTxAt + tenMinutes > Date.now()) {
+          this.logger.debug(
+            'sent?:',
+            !!dbTransferRoot.sentConfirmTx,
+            'confirmed?:',
+            !!dbTransferRoot?.confirmed
+          )
+        }
+        return
+      }
+
+      const tx = await poly.relayMessage(commitTxHash, this.token)
+      await db.transferRoots.update(transferRootHash, {
+        sentConfirmTx: true,
+        sentConfirmTxAt: Date.now()
+      })
+      tx?.wait()
+        .then(async (receipt: any) => {
+          if (receipt.status !== 1) {
+            await db.transferRoots.update(transferRootHash, {
+              sentConfirmTx: false,
+              sentConfirmTxAt: 0
+            })
+            throw new Error('status=0')
+          }
+
+          this.emit('transferRootConfirmed', {
+            transferRootHash,
+            chainId
+          })
+
+          db.transferRoots.update(transferRootHash, {
+            confirmed: true
+          })
+        })
+        .catch(async (err: Error) => {
+          db.transferRoots.update(transferRootHash, {
+            sentConfirmTx: false,
+            sentConfirmTxAt: 0
+          })
+
+          throw err
+        })
       this.logger.info(
         `sent chainId ${this.bridge.providerNetworkId} confirmTransferRoot L1 exit tx`,
         chalk.bgYellow.black.bold(tx.hash)
+      )
+      this.notifier.info(
+        `chainId: ${this.bridge.providerNetworkId} confirmTransferRoot L1 exit tx: ${tx.hash}`
       )
     } else {
       // not implemented

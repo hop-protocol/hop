@@ -66,11 +66,13 @@ class TransferRootsDb extends BaseDb {
 
   async getTransferRoots (): Promise<TransferRoot[]> {
     const transferRootHashes = await this.getTransferRootHashes()
-    return await Promise.all(
+    const transferRoots = await Promise.all(
       transferRootHashes.map(transferRootHash => {
         return this.getByTransferRootHash(transferRootHash)
       })
     )
+
+    return transferRoots.sort((a, b) => a.committedAt - b.committedAt)
   }
 
   async getUncommittedBondedTransferRoots (): Promise<TransferRoot[]> {

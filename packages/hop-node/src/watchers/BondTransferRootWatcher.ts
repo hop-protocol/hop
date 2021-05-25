@@ -401,7 +401,11 @@ class BondTransferRootWatcher extends BaseWatcher {
       const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
         transferRootHash
       )
-      if (dbTransferRoot?.committed && dbTransferRoot?.committedAt) {
+      if (
+        dbTransferRoot?.committed &&
+        dbTransferRoot?.committedAt &&
+        dbTransferRoot?.commitTxHash
+      ) {
         return
       }
       const committedAt = Number(committedAtBn.toString())

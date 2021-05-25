@@ -32,7 +32,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@hop-protocol/abi": "0.0.1-beta.5",
+    "@hop-protocol/abi": "0.0.1-beta.6",
     "@hop-protocol/addresses": "0.0.1-beta.16",
     "@hop-protocol/networks": "0.0.1-beta.3",
     "@hop-protocol/metadata": "0.0.1-beta.3",

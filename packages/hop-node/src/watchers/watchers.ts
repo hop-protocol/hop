@@ -72,6 +72,7 @@ function startStakeWatchers (
         const l2ExitWatcher = new L2ExitWatcher({
           isL1: false,
           label: `${network}.${token}`,
+          token,
           bridgeContract,
           l1BridgeContract: contracts.get(token, Chain.Ethereum).l1Bridge,
           dryMode

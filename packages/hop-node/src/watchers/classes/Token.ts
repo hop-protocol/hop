@@ -35,12 +35,18 @@ export default class Token extends ContractBase {
   }
 
   @queue
-  async approve (spender: string): Promise<providers.TransactionResponse> {
-    return this.tokenContract.approve(
-      spender,
-      ethers.constants.MaxUint256,
-      await this.txOverrides()
-    )
+  async approve (
+    spender: string,
+    amount: BigNumber = ethers.constants.MaxUint256
+  ): Promise<providers.TransactionResponse> {
+    const allowance = await this.getAllowance(spender)
+    if (allowance.lt(amount)) {
+      return this.tokenContract.approve(
+        spender,
+        amount,
+        await this.txOverrides()
+      )
+    }
   }
 
   async formatUnits (value: BigNumber) {

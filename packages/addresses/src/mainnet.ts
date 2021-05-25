@@ -33,7 +33,8 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x2935173357c010F8B56c8719a44f9FbdDa90f67c',
         l2SaddleLpToken: '0x7689674c3EcEC55086b08A3cEA785de2848d8C87',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf'
+        l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
+        l1FxBaseRootTunnel: '0xfe5e5D361b2ad62c541bAb87C45a0B9B018389a2'
       }
     }
   }

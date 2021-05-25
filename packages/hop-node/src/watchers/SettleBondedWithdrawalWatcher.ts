@@ -91,7 +91,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           totalBondsSettled
         )
       }
-    }, this.bridge.TransferRootSet)
+      //}, this.bridge.TransferRootSet)
+    })
     this.logger.debug('done syncing')
   }
 
@@ -143,7 +144,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       transferRootHash,
       totalAmount
     )
-    this.logger.debug(`received L1 BondTransferSet event:`)
+    this.logger.debug(`received BondTransferSet event distributed from L1:`)
     this.logger.debug(`transferRootHash from event: ${transferRootHash}`)
     this.logger.debug(`transferRootId: ${transferRootId}`)
     this.logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
@@ -414,13 +415,16 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         bridge.getDebit(),
         bridge.getBonderBondedWithdrawalsBalance()
       ])
+
       const bonderDestBridgeStakedAmount = credit
         .sub(debit)
         .add(bondedBondedWithdrawalsBalance)
+
       if (totalBondsSettleAmount.eq(0)) {
         this.logger.warn('totalBondsSettleAmount is 0. Cannot settle')
         return
       }
+
       if (
         totalBondsSettleAmount
           .div(bonderDestBridgeStakedAmount)

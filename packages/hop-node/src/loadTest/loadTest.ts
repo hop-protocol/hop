@@ -15,8 +15,8 @@ import Logger from 'src/logger'
 import { Chain } from 'src/constants'
 import { Notifier } from 'src/notifier'
 
-const paths = [[Chain.xDai, Chain.Ethereum]]
-const tokens = ['DAI']
+const paths = [[Chain.Polygon, Chain.Ethereum]]
+const tokens = ['USDC']
 const transferAmount = 10
 
 type Config = {

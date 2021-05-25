@@ -1,6 +1,6 @@
 import '../moduleAlias'
 import chalk from 'chalk'
-import { wait, networkIdToSlug, networkSlugToId } from 'src/utils'
+import { wait, networkIdToSlug } from 'src/utils'
 import db from 'src/db'
 import { Contract, BigNumber } from 'ethers'
 import BaseWatcher from './classes/BaseWatcher'
@@ -52,6 +52,7 @@ class L2ExitWatcher extends BaseWatcher {
       try {
         await this.checkTransfersCommittedFromDb()
       } catch (err) {
+        console.log(err)
         this.logger.error('poll check error:', err.message)
         this.notifier.error(`poll check error: ${err.message}`)
       }
@@ -269,6 +270,8 @@ class L2ExitWatcher extends BaseWatcher {
           }
         }
       }
+    } else if (chainSlug === Chain.Polygon) {
+      console.log('here', commitTxHash)
     } else {
       // not implemented
       return

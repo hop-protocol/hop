@@ -315,13 +315,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     if (!dbTransferRoot) {
       return
     }
+    const bridgeAddress = await this.bridge.getAddress()
     const chainId = dbTransfer.chainId
     // only process transfer where this bridge is the destination chain
     const bridgeChainId = await this.bridge.getNetworkId()
     if (chainId !== bridgeChainId) {
       return
     }
-    const bridgeAddress = await this.bridge.getAddress()
     if (
       dbTransferRoot.destinationBridgeAddress &&
       dbTransferRoot.destinationBridgeAddress !== bridgeAddress

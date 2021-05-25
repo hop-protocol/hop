@@ -76,7 +76,8 @@ class BondTransferRootWatcher extends BaseWatcher {
     await this.eventsBatch(async (start: number, end: number) => {
       const events = await l2Bridge.getTransfersCommittedEvents(start, end)
       await this.handleTransfersCommittedEvents(events)
-    }, l2Bridge.TransfersCommitted)
+      //}, l2Bridge.TransfersCommitted)
+    })
     this.logger.debug('done syncing')
   }
 

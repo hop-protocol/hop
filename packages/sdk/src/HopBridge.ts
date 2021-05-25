@@ -367,7 +367,7 @@ class HopBridge extends Base {
 
     if (sourceChain?.isL1) {
       return BigNumber.from(0)
-    } else if (destinationChain?.isL1) {
+    } else if (destinationChain && destinationChain.isL1) {
       const ethPrice = await CoinGecko.getPriceByTokenSymbol('WETH')
       const tokenPrice = await CoinGecko.getPriceByTokenSymbol(
         this.token.symbol
@@ -375,7 +375,7 @@ class HopBridge extends Base {
 
       const rate = ethPrice / tokenPrice
 
-      const gasPrice = await this.signer.getGasPrice()
+      const gasPrice = await destinationChain.provider.getGasPrice()
       const txFeeEth = gasPrice.mul(BondTransferGasCost)
 
       const oneEth = ethers.utils.parseEther('1')

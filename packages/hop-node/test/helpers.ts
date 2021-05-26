@@ -5,6 +5,7 @@ import { ethers, providers, Contract, Wallet, BigNumber } from 'ethers'
 import { HDNode } from '@ethersproject/hdnode'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { config } from 'src/config'
+import * as hopMetadata from '@hop-protocol/metadata'
 import {
   l1BridgeAbi,
   l2BridgeAbi,
@@ -59,6 +60,8 @@ export class User {
       const balance = await provider.getBalance(address)
       return Number(formatUnits(balance, 18))
     }
+
+    const decimals = await getTokenDecimals(token)
     let contract: Contract
     if (typeof token === 'string') {
       contract = this.getTokenContract(network, token)
@@ -66,7 +69,7 @@ export class User {
       contract = token
     }
     const bal = await contract.balanceOf(address)
-    return Number(formatUnits(bal.toString(), 18))
+    return Number(formatUnits(bal.toString(), decimals))
   }
 
   async getHopBalance (network: string = Chain.Ethereum, token: string = '') {
@@ -96,12 +99,13 @@ export class User {
     recipient?: string
   ) {
     const contract = this.getTokenContract(network, token)
+    const decimals = await getTokenDecimals(token)
     if (!recipient) {
       recipient = await this.getAddress()
     }
     return contract.mint(
       recipient,
-      parseUnits(amount.toString(), 18),
+      parseUnits(amount.toString(), decimals),
       this.txOverrides(network)
     )
   }
@@ -114,9 +118,10 @@ export class User {
     recipient: string
   ) {
     const contract = this.getTokenContract(network, token)
+    const decimals = await getTokenDecimals(token)
     return contract.transfer(
       recipient,
-      parseUnits(amount.toString(), 18),
+      parseUnits(amount.toString(), decimals),
       this.txOverrides(network)
     )
   }
@@ -204,6 +209,7 @@ export class User {
     amount?: string | number
   ) {
     let contract: Contract
+    const decimals = await getTokenDecimals(token)
     if (typeof token === 'string') {
       contract = this.getTokenContract(network, token)
     } else {
@@ -211,7 +217,7 @@ export class User {
     }
     let approveAmount: BigNumber | string = ethers.constants.MaxUint256
     if (amount) {
-      approveAmount = parseUnits(amount.toString(), 18).toString()
+      approveAmount = parseUnits(amount.toString(), decimals).toString()
     }
     return contract.approve(spender, approveAmount, this.txOverrides(network))
   }
@@ -229,7 +235,8 @@ export class User {
       contract = token
     }
     const allowance = await contract.allowance(address, spender)
-    return Number(formatUnits(allowance, 18))
+    const decimals = await getTokenDecimals(token)
+    return Number(formatUnits(allowance, decimals))
   }
 
   async getAddress () {
@@ -281,7 +288,8 @@ export class User {
       throw new Error('Not enough ETH balance for transfer')
     }
 
-    const parsedAmount = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    const parsedAmount = parseUnits(amount.toString(), decimals)
     const tx = bridge.sendToL2(
       chainId,
       recipient,
@@ -313,7 +321,8 @@ export class User {
     const recipient = await this.getAddress()
     let destinationAmountOutMin = 0
     let destinationDeadline = deadline
-    let parsedAmount = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    let parsedAmount = parseUnits(amount.toString(), decimals)
 
     if (destNetwork === Chain.Ethereum) {
       destinationAmountOutMin = 0
@@ -383,7 +392,8 @@ export class User {
     const amountOutMin = '0'
     const destinationAmountOutMin = '0'
     const destinationDeadline = (Date.now() / 1000 + 300) | 0
-    const parsedAmount = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    const parsedAmount = parseUnits(amount.toString(), decimals)
 
     await this.validateChainId(sourceChainId)
     const wrapper = this.getAmmWrapperContract(sourceNetwork, token)
@@ -417,7 +427,8 @@ export class User {
       amount.toString()
     )
     const amountOutMin = '0'
-    const parsedAmount = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    const parsedAmount = parseUnits(amount.toString(), decimals)
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
     return bridge.send(
       chainId,
@@ -447,7 +458,8 @@ export class User {
       amount.toString()
     )
     const amountOutMin = '0'
-    const parsedAmount = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    const parsedAmount = parseUnits(amount.toString(), decimals)
     const wrapper = this.getAmmWrapperContract(sourceNetwork, token)
     await this.checkApproval(sourceNetwork, token, wrapper.address)
 
@@ -492,9 +504,10 @@ export class User {
     recipient: string
   ) {
     const tokenContract = this.getTokenContract(network, token)
+    const decimals = await getTokenDecimals(token)
     return tokenContract.transfer(
       recipient,
-      parseUnits(amount.toString(), 18),
+      parseUnits(amount.toString(), decimals),
       this.txOverrides(network)
     )
   }
@@ -505,23 +518,25 @@ export class User {
 
   @queue
   async stake (network: string, token: string, amount: number) {
-    const parsedAmount = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    const parsedAmount = parseUnits(amount.toString(), decimals)
     const bonder = await this.getAddress()
     const bridge = this.getHopBridgeContract(network, token)
     return bridge.stake(bonder, parsedAmount, this.txOverrides(network))
   }
 
   async getBonderFee (network: string, token: string, amount: string) {
+    const decimals = await getTokenDecimals(token)
     const bridge = this.getHopBridgeContract(network, token)
     const minBonderBps = await bridge.minBonderBps()
     const minBonderFeeAbsolute = await bridge.minBonderFeeAbsolute()
-    const minBonderFeeRelative = parseUnits(amount, 18)
+    const minBonderFeeRelative = parseUnits(amount, decimals)
       .mul(minBonderBps)
       .div(10000)
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute
-    return parseUnits('1', 18)
+    return parseUnits('1', decimals)
     return minBonderFee
   }
 
@@ -588,7 +603,8 @@ export class User {
     amount: string | number
   ) {
     const recipient = await this.getAddress()
-    const value = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    const value = parseUnits(amount.toString(), decimals)
     const tokenBridge = this.getCanonicalBridgeContract(destNetwork, token)
     if (destNetwork === Chain.Arbitrum) {
       return tokenBridge.depositERC20Message(
@@ -708,7 +724,8 @@ export class User {
     const l1Bridge = this.getHopBridgeContract(Chain.Ethereum, token)
     const chainId = networkSlugToId(destNetwork)
     const recipient = await this.getAddress()
-    const value = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    const value = parseUnits(amount.toString(), decimals)
     const deadline = '0'
     const relayer = ethers.constants.AddressZero
     const relayerFee = '0'
@@ -1270,4 +1287,23 @@ export async function getBalances (
     ),
     Promise.all(users.map((user: User) => user.getBalance(destNetwork, token)))
   ])
+}
+
+async function getTokenDecimals (
+  token: string | Contract
+): Promise<number> {
+  let tokenSymbol: string
+  if (typeof token === 'string') {
+    tokenSymbol = token
+  } else {
+    tokenSymbol = await token.symbol()
+  }
+
+  // If this is an hToken, strip the h
+  if (tokenSymbol[0] === 'h') {
+    tokenSymbol = tokenSymbol.substring(1)
+  }
+
+  // The decimals will be the same on all networks
+  return hopMetadata.mainnet.tokens[tokenSymbol].decimals
 }

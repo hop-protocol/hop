@@ -15,6 +15,7 @@ export type Transfer = {
   withdrawalBonded?: boolean
   withdrawalBonder?: string
   sentBondWithdrawalTx?: boolean
+  sentBondWithdrawalTxAt?: number
 
   // TODO
   recipient?: string

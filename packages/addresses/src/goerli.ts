@@ -40,7 +40,7 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0xF74b37E3D1A3f3f0721E0B274f47e8eCd17B4B66',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
         l1PosPredicate: '0x37c3bfC05d5ebF9EBb3FF80ce0bd0133Bf221BC8',
-        l1FxBaseRootTunnel: '0x3d1d3E34f7fB6D26245E6640E1c50710eFFf15bA'
+        l1FxBaseRootTunnel: '0x12fa8eE6e33857Be3B7d080B471A2D40821d4155'
       }
     }
   }

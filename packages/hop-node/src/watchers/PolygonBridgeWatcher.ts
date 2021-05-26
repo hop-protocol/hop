@@ -1,10 +1,9 @@
-import { ethers, Contract } from 'ethers'
+import { ethers, Contract, BigNumber } from 'ethers'
 import fetch from 'node-fetch'
 import { MaticPOSClient } from '@maticnetwork/maticjs'
 import Web3 from 'web3'
 import chalk from 'chalk'
 import { erc20Abi, l1PolygonPosRootChainManagerAbi } from '@hop-protocol/abi'
-import { addresses } from 'src/config/goerli'
 import { Chain } from 'src/constants'
 import { config } from 'src/config'
 import wallets from 'src/wallets'
@@ -12,7 +11,7 @@ import { wait } from 'src/utils'
 import BaseWatcher from './classes/BaseWatcher'
 import queue from 'src/decorators/queue'
 
-class polygonBridgeWatcher extends BaseWatcher {
+class PolygonBridgeWatcher extends BaseWatcher {
   l1Provider: any
   l2Provider: any
   l1Wallet: any
@@ -125,7 +124,7 @@ class polygonBridgeWatcher extends BaseWatcher {
     return json.message === 'success'
   }
 
-  async getPayload (txHash: string, tokenSymbol: string) {
+  async relayMessage (txHash: string, tokenSymbol: string) {
     const recipient = await this.l1Wallet.getAddress()
     const maticPOSClient = new MaticPOSClient({
       network: this.chainId === 1 ? 'mainnet' : 'testnet',
@@ -137,29 +136,31 @@ class polygonBridgeWatcher extends BaseWatcher {
         this.l1Provider.connection.url
       ),
       posRootChainManager:
-        addresses[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
-      posERC20Predicate: addresses[tokenSymbol][Chain.Polygon].l1PosPredicate
+        config.tokens[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
+      posERC20Predicate:
+        config.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
     })
 
     const sig =
       '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
-    const rootTunnel = '0xfe5e5D361b2ad62c541bAb87C45a0B9B018389a2'
+    const rootTunnel =
+      config.tokens[tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
     const tx = await (maticPOSClient as any).posRootChainManager.processReceivedMessage(
       rootTunnel,
       txHash,
       {
         from: recipient,
-        gasLimit: 200_000,
+        //gasLimit: 500_000,
         encodeAbi: true
       }
     )
 
     return this.l1Wallet.sendTransaction({
-      to: tx.to,
+      to: rootTunnel,
       value: tx.value,
       data: tx.data,
-      gasLimit: tx.gas
-      //gasPrice: '40000000000',
+      gasLimit: tx.gas,
+      gasPrice: this.getBumpedGasPrice(1.5, this.l1Wallet)
     })
   }
 
@@ -176,8 +177,9 @@ class polygonBridgeWatcher extends BaseWatcher {
         this.l1Provider.connection.url
       ),
       posRootChainManager:
-        addresses[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
-      posERC20Predicate: addresses[tokenSymbol][Chain.Polygon].l1PosPredicate
+        config.tokens[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
+      posERC20Predicate:
+        config.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
     })
 
     const tx = await maticPOSClient.exitERC20(txHash, {
@@ -189,9 +191,17 @@ class polygonBridgeWatcher extends BaseWatcher {
       to: tx.to,
       value: tx.value,
       data: tx.data,
-      gasLimit: tx.gas
-      //gasPrice: '40000000000',
+      gasLimit: tx.gas,
+      gasPrice: this.getBumpedGasPrice(1.5, this.l1Wallet)
     })
   }
+
+  protected async getBumpedGasPrice (
+    percent: number,
+    wallet: ethers.Wallet
+  ): Promise<BigNumber> {
+    const gasPrice = await wallet.provider.getGasPrice()
+    return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
+  }
 }
-export default polygonBridgeWatcher
+export default PolygonBridgeWatcher

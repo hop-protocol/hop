@@ -170,7 +170,9 @@ describe.only('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, Token.USDC, Chain.xDai, Chain.Polygon)
+          .watch(txHash, Token.USDC, Chain.xDai, Chain.Polygon, false, {
+            destinationHeadBlockNumber: 14779300 // estimate
+          })
           .on('receipt', data => {
             const { receipt, chain } = data
             if (chain.equals(Chain.xDai)) {
@@ -179,18 +181,18 @@ describe.only('tx watcher', () => {
                 'got source transaction receipt:',
                 receipt.transactionHash
               )
+              expect(sourceReceipt.transactionHash).toBe(
+                '0x439ae4839621e13317933e1fa4ca9adab359074090e00e3db1105a982cf9a6ac'
+              )
             }
             if (chain.equals(Chain.Polygon)) {
               destinationReceipt = receipt
-              console.log(destinationReceipt.transactionHash)
-              /*
-              expect(destinationReceipt.transactionHash).toBe(
-                '0xf443914579a72f18947494965905bdb45f5fe38c3aa9702b62292b1b971a9dde'
-              )
-              */
               console.log(
                 'got destination transaction receipt:',
                 receipt.transactionHash
+              )
+              expect(destinationReceipt.transactionHash).toBe(
+                '0xdcdf05b4171610bab3b69465062e29fab4d6ea3a70ea761336d1fa566dede4a7'
               )
             }
             if (sourceReceipt && destinationReceipt) {

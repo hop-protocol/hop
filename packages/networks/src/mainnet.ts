@@ -33,6 +33,8 @@ export const networks: Networks = {
       'https://xdai.poanetwork.dev',
       'https://xdai-archive.blockscout.com',
       'https://xdai.1hive.org'
+      // wss://rpc.xdaichain.com/wss
+      // wss://xdai.poanetwork.dev/wss
     ],
     explorerUrls: ['https://blockscout.com/xdai/mainnet']
   },

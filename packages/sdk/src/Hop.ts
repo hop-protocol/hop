@@ -441,14 +441,14 @@ class Hop extends Base {
           if (!transferHash) {
             return false
           }
-          let headBlock =
-            options?.destinationHeadBlockNumber ||
-            (await destinationChain.provider.getBlockNumber())
-          if (!headBlock) {
-            return false
-          }
-          let tailBlock = headBlock - 10000
           pollDest = async () => {
+            let headBlock =
+              options?.destinationHeadBlockNumber ||
+              (await destinationChain.provider.getBlockNumber())
+            if (!headBlock) {
+              return false
+            }
+            let tailBlock = headBlock - 10000
             const getRecentLogs = async (head: number): Promise<any[]> => {
               if (head < tailBlock) {
                 return []

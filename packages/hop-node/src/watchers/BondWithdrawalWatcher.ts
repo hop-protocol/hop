@@ -256,7 +256,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         return
       }
       if (dbTransfer?.sentBondWithdrawalTx) {
-        return
+        //return
       }
 
       const { transactionHash } = meta
@@ -353,14 +353,21 @@ class BondWithdrawalWatcher extends BaseWatcher {
       await this.waitTimeout(transferId, chainId)
 
       dbTransfer = await db.transfers.getByTransferId(transferId)
-      if (dbTransfer?.sentBondWithdrawalTx || dbTransfer?.withdrawalBonded) {
-        this.logger.debug(
-          'sent?:',
-          !!dbTransfer.sentBondWithdrawalTx,
-          'withdrawalBonded?:',
-          !!dbTransfer.withdrawalBonded
-        )
-        return
+      if (
+        (dbTransfer?.sentBondWithdrawalTx || dbTransfer?.withdrawalBonded) &&
+        dbTransfer?.sentBondWithdrawalTxAt
+      ) {
+        const tenMinutes = 60 * 10 * 1000
+        // skip if a transaction was sent in the last 10 minutes
+        if (dbTransfer.sentBondWithdrawalTxAt + tenMinutes > Date.now()) {
+          this.logger.debug(
+            'sent?:',
+            !!dbTransfer.sentBondWithdrawalTx,
+            'withdrawalBonded?:',
+            !!dbTransfer.withdrawalBonded
+          )
+          return
+        }
       }
 
       this.logger.debug('sending bondWithdrawal tx')
@@ -384,7 +391,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       await db.transfers.update(transferId, {
-        sentBondWithdrawalTx: true
+        sentBondWithdrawalTx: true,
+        sentBondWithdrawalTxAt: Date.now()
       })
 
       const tx = await this.sendBondWithdrawalTx({
@@ -414,7 +422,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
         .then(async (receipt: any) => {
           if (receipt.status !== 1) {
             await db.transfers.update(transferId, {
-              sentBondWithdrawalTx: false
+              sentBondWithdrawalTx: false,
+              sentBondWithdrawalTxAt: 0
             })
             throw new Error('status=0')
           }
@@ -440,7 +449,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
         })
         .catch(async (err: Error) => {
           await db.transfers.update(transferId, {
-            sentBondWithdrawalTx: false
+            sentBondWithdrawalTx: false,
+            sentBondWithdrawalTxAt: 0
           })
 
           throw err
@@ -448,7 +458,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } catch (err) {
       if (err instanceof BondError) {
         await db.transfers.update(transferId, {
-          sentBondWithdrawalTx: false
+          sentBondWithdrawalTx: false,
+          sentBondWithdrawalTxAt: 0
         })
       }
       if (err.message !== 'cancelled') {

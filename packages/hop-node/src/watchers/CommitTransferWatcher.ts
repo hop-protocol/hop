@@ -99,7 +99,8 @@ class CommitTransfersWatcher extends BaseWatcher {
           event
         )
       }
-    }, l2Bridge.TransferSent)
+      //}, l2Bridge.TransferSent)
+    })
     this.logger.debug('done syncing')
   }
 
@@ -119,7 +120,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       if (!this.started) return
       try {
         // TODO
-        const chainIds = [1, 42, 5, 69, 79377087078960, 77, 80001]
+        const chainIds = [1, 42, 5, 69, 79377087078960, 77, 80001, 100, 137]
         const l2Bridge = this.bridge as L2Bridge
         for (let chainId of chainIds) {
           //await this.getRecentTransferIdsForCommittedRoots()
@@ -151,7 +152,6 @@ class CommitTransfersWatcher extends BaseWatcher {
       if (totalPendingAmount.lte(0)) {
         return
       }
-
       const lastCommitTime = await l2Bridge.getLastCommitTimeForChainId(chainId)
       const minimumForceCommitDelay = await l2Bridge.getMinimumForceCommitDelay()
       const minForceCommitTime = lastCommitTime + minimumForceCommitDelay
@@ -317,13 +317,13 @@ class CommitTransfersWatcher extends BaseWatcher {
     try {
       const dbTransfer = await db.transfers.getByTransferId(transferId)
       if (dbTransfer?.sourceChainId) {
-        return
+        //return
       }
 
       this.logger.debug(`received TransferSent event`)
-      this.logger.debug(`waiting`)
       // TODO: batch
-      const { transactionHash } = meta
+      const { transactionHash, blockNumber } = meta
+      const sentTimestamp = await this.bridge.getBlockTimestamp(blockNumber)
       const { data } = await this.bridge.getTransaction(transactionHash)
 
       const l2Bridge = this.bridge as L2Bridge
@@ -332,7 +332,16 @@ class CommitTransfersWatcher extends BaseWatcher {
       await db.transfers.update(transferId, {
         transferId,
         chainId,
-        sourceChainId
+        sourceChainId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        amountOutMin,
+        deadline: Number(deadline.toString()),
+        sentTxHash: transactionHash,
+        sentBlockNumber: blockNumber,
+        sentTimestamp: sentTimestamp
       })
     } catch (err) {
       if (err.message !== 'cancelled') {

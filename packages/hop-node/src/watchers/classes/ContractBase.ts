@@ -1,4 +1,4 @@
-import { Transaction, Contract, BigNumber } from 'ethers'
+import { Transaction, providers, Contract, BigNumber } from 'ethers'
 import { EventEmitter } from 'events'
 import { wait, networkIdToSlug } from 'src/utils'
 import { Chain } from 'src/constants'
@@ -40,12 +40,18 @@ export default class ContractBase extends EventEmitter {
     return this.contract.provider.getTransaction(txHash)
   }
 
+  async getTransactionReceipt (
+    txHash: string
+  ): Promise<providers.TransactionReceipt> {
+    return this.contract.provider.getTransactionReceipt(txHash)
+  }
+
   async getBlockNumber (): Promise<number> {
     return this.contract.provider.getBlockNumber()
   }
 
-  async getBlockTimestamp (): Promise<number> {
-    const block = await this.contract.provider.getBlock('latest')
+  async getBlockTimestamp (blockNumber: string = 'latest'): Promise<number> {
+    const block = await this.contract.provider.getBlock(blockNumber)
     return block.timestamp
   }
 

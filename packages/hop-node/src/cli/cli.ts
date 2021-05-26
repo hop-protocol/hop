@@ -30,7 +30,7 @@ import {
   startCommitTransferWatchers
 } from 'src/watchers/watchers'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
-import PolygonBridgeWatcher from 'src/watchers/polygonBridgeWatcher'
+import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
 import LoadTest from 'src/loadTest'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
 import entropyToMnemonic from 'src/utils/entropyToMnemonic'

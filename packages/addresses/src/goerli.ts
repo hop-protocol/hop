@@ -19,7 +19,8 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x4dedd0a4f06baD782A4025f97de2F419864f997A',
         l2SaddleLpToken: '0xCEF03390D6D9516474AaD83d273dC9f4Fd1788E6',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1PosPredicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
+        l1PosPredicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34',
+        l1FxBaseRootTunnel: '0x3d1d3E34f7fB6D26245E6640E1c50710eFFf15bA'
       }
     },
     DAI: {
@@ -38,7 +39,8 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x8d71Ee5587DeA8a2271013Dbc1F5e1dCBDF94E2E',
         l2SaddleLpToken: '0xF74b37E3D1A3f3f0721E0B274f47e8eCd17B4B66',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1PosPredicate: '0x37c3bfC05d5ebF9EBb3FF80ce0bd0133Bf221BC8'
+        l1PosPredicate: '0x37c3bfC05d5ebF9EBb3FF80ce0bd0133Bf221BC8',
+        l1FxBaseRootTunnel: '0x12fa8eE6e33857Be3B7d080B471A2D40821d4155'
       }
     }
   }

@@ -9,8 +9,6 @@ import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
 import L2ExitWatcher from 'src/watchers/L2ExitWatcher'
-import { store } from 'src/store'
-import PubSub from 'src/pubsub/PubSub'
 import Logger from 'src/logger'
 import { networkSlugToId } from 'src/utils'
 
@@ -20,7 +18,6 @@ const networks: string[] = [
   Chain.xDai,
   Chain.Polygon
 ]
-const pubsubLogger = new Logger('pubsub', { color: 'magenta' })
 
 interface StakeAmounts {
   [key: string]: number
@@ -72,6 +69,7 @@ function startStakeWatchers (
         const l2ExitWatcher = new L2ExitWatcher({
           isL1: false,
           label: `${network}.${token}`,
+          token,
           bridgeContract,
           l1BridgeContract: contracts.get(token, Chain.Ethereum).l1Bridge,
           dryMode
@@ -129,77 +127,9 @@ function startWatchers (
   }
   const dryMode = _config.dryMode
   const watchers: any[] = []
-  try {
-    const hostname = configHostname
-    const pubsub = new PubSub()
-    const topic = '/hop-protocol/bonders'
-    pubsub.subscribe(topic, (data: any) => {
-      if (!(data && data.hostname)) {
-        return
-      }
-
-      if (data.hostname === hostname) {
-        return
-      }
-
-      if (!store.bonders[data.hostname]) {
-        if (data.order === orderNum) {
-          pubsubLogger.warn(
-            `Warning: host "${hostname}" has same order number "${data.order}"`
-          )
-        }
-
-        pubsubLogger.info(
-          `Bonder "${data.hostname}" (order ${data.order}) is online`
-        )
-      }
-
-      if (store.bonders[data.hostname] && !store.bonders[data.hostname].up) {
-        pubsubLogger.info(
-          `Bonder "${data.hostname}" (order ${data.order}) is back online`
-        )
-      }
-
-      store.bonders[data.hostname] = {
-        hostname: data.hostname,
-        order: data.order,
-        timestamp: Date.now(),
-        up: true
-      }
-    })
-
-    setInterval(() => {
-      pubsub.publish(topic, {
-        hostname,
-        order: orderNum
-      })
-
-      for (let k in store.bonders) {
-        const v = store.bonders[k]
-        if (v.up) {
-          if (Date.now() - v.timestamp > 10 * 1000) {
-            pubsubLogger.info(
-              `Bonder "${v.hostname}" (order ${v.order}) appears to be down`
-            )
-            v.up = false
-          }
-        }
-      }
-    }, 3 * 1000)
-  } catch (err) {
-    pubsubLogger.error(err)
-  }
 
   const order = () => {
-    let delta = 0
-    for (let k in store.bonders) {
-      const v = store.bonders[k]
-      if (!v.up && v.order === orderNum - 1) {
-        delta = 1
-      }
-    }
-
-    return Math.max(orderNum - delta, 0)
+    return orderNum
   }
 
   let bondWithdrawalWatchers: any = {}

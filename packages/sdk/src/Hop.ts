@@ -23,6 +23,13 @@ enum Event {
 }
 
 /**
+ * @desc Event watcher options
+ */
+type WatchOptions = {
+  destinationHeadBlockNumber?: number
+}
+
+/**
  * Class reprensenting Hop
  * @namespace Hop
  */
@@ -189,19 +196,21 @@ class Hop extends Base {
     token: TToken,
     sourceChain: TChain,
     destinationChain: TChain,
-    isCanonicalTransfer: boolean = false
+    isCanonicalTransfer: boolean = false,
+    options: WatchOptions = {}
   ) {
     // TODO: detect type of transfer
     return isCanonicalTransfer
       ? this.watchCanonical(txHash, token, sourceChain, destinationChain)
-      : this.watchBridge(txHash, token, sourceChain, destinationChain)
+      : this.watchBridge(txHash, token, sourceChain, destinationChain, options)
   }
 
   public watchBridge (
     txHash: string,
     token: TToken,
     _sourceChain: TChain,
-    _destinationChain: TChain
+    _destinationChain: TChain,
+    options: WatchOptions = {}
   ) {
     const pollDelayMs = 10 * 1000
 
@@ -416,6 +425,7 @@ class Hop extends Base {
         try {
           const wrapperSource = await bridge.getAmmWrapper(sourceChain)
           const wrapperDest = await bridge.getAmmWrapper(destinationChain)
+          const l2Dest = await bridge.getL2Bridge(destinationChain)
           const exchange = await bridge.getSaddleSwap(destinationChain)
           const decodedSource = wrapperSource?.interface.decodeFunctionData(
             'swapAndSend',
@@ -431,12 +441,14 @@ class Hop extends Base {
           if (!transferHash) {
             return false
           }
-          let headBlock = await destinationChain.provider.getBlockNumber()
-          if (!headBlock) {
-            return false
-          }
-          let tailBlock = headBlock - 10000
           pollDest = async () => {
+            let headBlock =
+              options?.destinationHeadBlockNumber ||
+              (await destinationChain.provider.getBlockNumber())
+            if (!headBlock) {
+              return false
+            }
+            let tailBlock = headBlock - 10000
             const getRecentLogs = async (head: number): Promise<any[]> => {
               if (head < tailBlock) {
                 return []
@@ -444,8 +456,8 @@ class Hop extends Base {
               const start = head - 1000
               const end = head
               let recentLogs: any[] =
-                (await exchange?.queryFilter(
-                  exchange.filters.TokenSwap(),
+                (await l2Dest?.queryFilter(
+                  l2Dest.filters.WithdrawalBonded(),
                   start,
                   end
                 )) ?? []
@@ -458,15 +470,7 @@ class Hop extends Base {
             let recentLogs = await getRecentLogs(headBlock)
             for (let item of recentLogs) {
               const decodedLog = item.decode(item.data, item.topics)
-              if (wrapperDest.address === decodedLog.buyer) {
-                /*
-              if (
-                decodedSource?.amount.toString() !==
-                decodedLog.amount0In.toString()
-              ) {
-                continue
-              }
-              */
+              if (transferHash === decodedLog.transferId) {
                 if (!sourceTimestamp) {
                   continue
                 }
@@ -480,7 +484,6 @@ class Hop extends Base {
                 if (!destBlock) {
                   continue
                 }
-                //if ((destBlock.timestamp - sourceTimestamp) < 500) {
                 const destTxReceipt = await destinationChain.provider.waitForTransaction(
                   destTx.hash
                 )
@@ -493,7 +496,6 @@ class Hop extends Base {
                   receipt: destTxReceipt
                 })
                 return true
-                //}
               }
               return false
             }

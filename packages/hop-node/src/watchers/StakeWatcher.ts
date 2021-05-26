@@ -137,7 +137,9 @@ class StakeWatcher extends BaseWatcher {
       .add(bondedBondedWithdrawalsBalance)
     const isL1 = isL1NetworkId(this.token.providerNetworkId)
     let amountToStake = BigNumber.from(0)
-    if (bonderBridgeStakedAmount.lt(this.maxStakeAmount)) {
+    // TODO: fix
+    //if (bonderBridgeStakedAmount.lt(this.maxStakeAmount)) {
+    if (credit.lt(this.maxStakeAmount)) {
       amountToStake = this.maxStakeAmount.sub(bonderBridgeStakedAmount)
     }
     if (amountToStake.gt(this.bridge.parseUnits(5))) {

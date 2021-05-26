@@ -55,12 +55,13 @@ export class User {
     token: string | Contract = ''
   ) {
     const address = await this.getAddress()
-    const decimals = await getTokenDecimals(token)
     if (!token) {
       const provider = this.getProvider(network)
       const balance = await provider.getBalance(address)
-      return Number(formatUnits(balance, decimals))
+      return Number(formatUnits(balance, 18))
     }
+
+    const decimals = await getTokenDecimals(token)
     let contract: Contract
     if (typeof token === 'string') {
       contract = this.getTokenContract(network, token)

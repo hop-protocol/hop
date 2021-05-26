@@ -225,9 +225,14 @@ const Send: FC = () => {
 
   useEffect(() => {
     const checkAvailableLiquidity = async () => {
-      if (!toNetwork) return
-      if (!availableLiquidity) return
-      if (!requiredLiquidity) return
+      if (
+        !toNetwork ||
+        !availableLiquidity ||
+        !requiredLiquidity
+      ) {
+        setNoLiquidityWarning('')
+        return
+      }
 
       const isAvailable = BigNumber.from(availableLiquidity).gte(
         requiredLiquidity

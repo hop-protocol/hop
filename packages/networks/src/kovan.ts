@@ -26,8 +26,8 @@ export const networks: Networks = {
     name: chains.xdai.name,
     networkId: 77,
     rpcUrls: [
-      'https://sokol.poa.network',
-      'https://sokol-archive.blockscout.com'
+      'https://sokol.poa.network'
+      //'https://sokol-archive.blockscout.com'
     ],
     explorerUrls: ['https://blockscout.com/poa/sokol']
   }

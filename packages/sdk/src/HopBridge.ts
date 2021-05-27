@@ -502,26 +502,67 @@ class HopBridge extends Base {
    * @returns {Object} Available liquidity as BigNumber.
    */
   public async getAvailableLiquidity (
-    destinationChain: TChain
+    destinationChain: TChain,
+    bonder: string = this.getBonderAddress()
   ): Promise<BigNumber> {
     const chain = this.toChainModel(destinationChain)
-    let bridge: ethers.Contract
-
-    if (chain.isL1) {
-      bridge = await this.getL1Bridge()
-    } else {
-      bridge = await this.getL2Bridge(chain)
-    }
-
-    let bonder = this.getBonderAddress()
-    const credit: BigNumber = await bridge.getCredit(bonder)
-    const debit: BigNumber = await bridge.getDebitAndAdditionalDebit(bonder)
+    let bridge = await this.getBridgeContract(chain)
+    const [credit, debit] = await Promise.all([
+      this.getCredit(chain, bonder),
+      this.getDebit(chain, bonder)
+    ])
 
     if (credit.lt(debit)) {
       return BigNumber.from('0')
     } else {
       return credit.sub(debit)
     }
+  }
+
+  /**
+   * @desc Returns bridge contract instance for specified chain.
+   * @param {Object} chain - chain model.
+   * @returns {Object} Ethers contract instance.
+   */
+  public async getBridgeContract (chain: TChain) {
+    chain = this.toChainModel(chain)
+    let bridge: ethers.Contract
+    if (chain.isL1) {
+      bridge = await this.getL1Bridge()
+    } else {
+      bridge = await this.getL2Bridge(chain)
+    }
+    return bridge
+  }
+
+  /**
+   * @desc Returns total credit that bonder holds on Hop bridge at specified chain.
+   * @param {Object} chain - Chain model.
+   * @returns {Object} Total credit as BigNumber.
+   */
+  public async getCredit (
+    chain: TChain,
+    bonder: string = this.getBonderAddress()
+  ): Promise<BigNumber> {
+    chain = this.toChainModel(chain)
+    const bridge = await this.getBridgeContract(chain)
+
+    return bridge.getCredit(bonder)
+  }
+
+  /**
+   * @desc Returns total debit that bonder holds on Hop bridge at specified chain.
+   * @param {Object} chain - Chain model.
+   * @returns {Object} Total debit as BigNumber.
+   */
+  public async getDebit (
+    chain: TChain,
+    bonder: string = this.getBonderAddress()
+  ): Promise<BigNumber> {
+    chain = this.toChainModel(chain)
+    const bridge = await this.getBridgeContract(chain)
+
+    return bridge.getDebitAndAdditionalDebit(bonder)
   }
 
   /**

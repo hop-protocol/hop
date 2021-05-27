@@ -824,7 +824,7 @@ const Send: FC = () => {
         >
           <Typography
             variant="subtitle2"
-            color="textSecondary"
+            color={toNetwork?.isLayer1 ? 'primary' : 'textSecondary'}
             className={styles.detailLabel}
           >
             Fee{' '}
@@ -833,7 +833,7 @@ const Send: FC = () => {
           <Typography
             title={`${feeDisplay}`}
             variant="subtitle2"
-            color="textSecondary"
+            color={toNetwork?.isLayer1 ? 'primary' : 'textSecondary'}
           >
             {feeDisplay ?? '-'}
           </Typography>

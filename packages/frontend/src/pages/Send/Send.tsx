@@ -245,7 +245,7 @@ const Send: FC = () => {
         selectedToken.decimals
       )
       const warningMessage = `Insufficient liquidity. There is ${formattedAmount} ${selectedToken.symbol} available on ${toNetwork.name}.`
-      if (!isAvailable) {
+      if (!isAvailable && !fromNetwork?.isLayer1) {
         setNoLiquidityWarning(warningMessage)
       } else {
         setNoLiquidityWarning('')
@@ -253,7 +253,14 @@ const Send: FC = () => {
     }
 
     checkAvailableLiquidity()
-  }, [selectedToken, toNetwork, availableLiquidity, requiredLiquidity])
+  }, [fromNetwork, selectedToken, toNetwork, availableLiquidity, requiredLiquidity])
+
+  const checkingLiquidity = useMemo(() => {
+    return (
+      !fromNetwork?.isLayer1 &&
+      availableLiquidity === undefined
+    )
+  }, [fromNetwork, availableLiquidity])
 
   useEffect(() => {
     if (needsTokenForFee && fromNetwork) {
@@ -625,7 +632,7 @@ const Send: FC = () => {
     enoughBalance &&
     !needsTokenForFee &&
     isLiquidityAvailable &&
-    availableLiquidity !== undefined
+    !checkingLiquidity
   )
 
   let buttonText = 'Send'
@@ -641,7 +648,7 @@ const Send: FC = () => {
     buttonText = `Insufficient ${fromNetwork.nativeTokenSymbol}`
   } else if (!isLiquidityAvailable) {
     buttonText = 'Insufficient liquidity'
-  } else if (availableLiquidity === undefined) {
+  } else if (checkingLiquidity) {
     buttonText = 'Checking liquidity'
   }
 

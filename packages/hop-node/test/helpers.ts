@@ -1289,9 +1289,7 @@ export async function getBalances (
   ])
 }
 
-async function getTokenDecimals (
-  token: string | Contract
-): Promise<number> {
+async function getTokenDecimals (token: string | Contract): Promise<number> {
   let tokenSymbol: string
   if (typeof token === 'string') {
     tokenSymbol = token

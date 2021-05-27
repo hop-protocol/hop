@@ -29,7 +29,7 @@ export default class ContractBase extends EventEmitter {
   }
 
   get queueGroup (): string {
-    return this.providerNetworkId.toString()
+    return this.providerNetworkId?.toString()
   }
 
   get address (): string {

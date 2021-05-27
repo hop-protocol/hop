@@ -211,12 +211,7 @@ class StakeWatcher extends BaseWatcher {
         }
 
         this.logger.debug('approving tokens')
-        const tx = await this.approveTokens()
-        this.logger.info(
-          `stake approve tx:`,
-          chalk.bgYellow.black.bold(tx?.hash)
-        )
-        await tx?.wait()
+        await this.approveTokens()
       }
       allowance = await this.getTokenAllowance()
       if (allowance.lt(amountToStake)) {
@@ -232,21 +227,82 @@ class StakeWatcher extends BaseWatcher {
           this.logger.warn('dry mode: skipping stake transaction')
           return
         }
-        this.logger.debug(
-          `attempting to stake: ${this.bridge.formatUnits(amountToStake)}`
-        )
-        const tx = await this.bridge.stake(amountToStake)
-        this.logger.info(`stake tx:`, chalk.bgYellow.black.bold(tx?.hash))
-        await tx.wait()
+        const tx = await this.stake(amountToStake)
         const newCredit = await this.bridge.getCredit()
         this.logger.debug(`credit balance:`, this.bridge.formatUnits(newCredit))
       }
     }
   }
 
+  async stake (amount: BigNumber) {
+    const isBonder = await this.bridge.isBonder()
+    if (!isBonder) {
+      throw new Error('not a bonder')
+    }
+    const formattedAmount = this.bridge.formatUnits(amount)
+    const balance = await this.token.getBalance()
+    if (balance.lt(amount)) {
+      throw new Error(
+        `not enough ${
+          this.isL1 ? 'canonical' : 'hop'
+        } token balance to stake. Have ${this.bridge.formatUnits(
+          balance
+        )}, need ${formattedAmount}`
+      )
+    }
+    this.logger.debug(`attempting to stake ${formattedAmount} tokens`)
+    const tx = await this.bridge.stake(amount)
+    this.logger.info(`stake tx:`, chalk.bgYellow.black.bold(tx?.hash))
+    const receipt = await tx.wait()
+    if (receipt.status) {
+      this.logger.debug(`successfully staked ${formattedAmount} tokens`)
+    } else {
+      this.logger.error(`stake unsuccessful. tx status=0`)
+    }
+    return tx
+  }
+
+  async unstake (amount: BigNumber) {
+    const isBonder = await this.bridge.isBonder()
+    if (!isBonder) {
+      throw new Error('not a bonder')
+    }
+    const parsedAmount = this.bridge.formatUnits(amount)
+    const [credit, debit] = await Promise.all([
+      this.bridge.getCredit(),
+      this.bridge.getDebit()
+    ])
+    const creditBalance = credit.sub(debit)
+    if (amount.gt(creditBalance)) {
+      throw new Error(
+        `cannot unstake more than credit balance of ${this.bridge.formatUnits(
+          creditBalance
+        )}`
+      )
+    }
+    this.logger.debug(`attempting to unstake ${parsedAmount} tokens`)
+    const tx = await this.bridge.unstake(amount)
+    this.logger.info(`unstake tx:`, chalk.bgYellow.black.bold(tx?.hash))
+    const receipt = await tx.wait()
+    if (receipt.status) {
+      this.logger.debug(`successfully unstaked ${parsedAmount} tokens`)
+    } else {
+      this.logger.error(`unstake was unsuccessful. tx status=0`)
+    }
+    return tx
+  }
+
   async approveTokens () {
     const spender = this.bridge.getAddress()
-    return this.token.approve(spender)
+    const tx = await this.token.approve(spender)
+    if (tx) {
+      this.logger.info(
+        `stake approve tokens tx:`,
+        chalk.bgYellow.black.bold(tx?.hash)
+      )
+    }
+    await tx?.wait()
+    return tx
   }
 
   async getTokenAllowance () {

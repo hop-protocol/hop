@@ -26,8 +26,6 @@ export default class Token extends ContractBase {
     return this._decimals
   }
 
-  // RPC error if too many requests so need to queue
-  @queue
   async getAllowance (spender: string): Promise<BigNumber> {
     const owner = await this.tokenContract.signer.getAddress()
     const allowance = await this.tokenContract.allowance(owner, spender)

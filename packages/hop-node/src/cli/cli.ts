@@ -31,10 +31,12 @@ import {
 } from 'src/watchers/watchers'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
+import StakeWatcher from 'src/watchers/StakeWatcher'
 import LoadTest from 'src/loadTest'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
 import entropyToMnemonic from 'src/utils/entropyToMnemonic'
 import { hopArt, printHopArt } from './art'
+import contracts from 'src/contracts'
 
 const defaultConfigDir = `${os.homedir()}/.hop-node`
 const defaultConfigFilePath = `${defaultConfigDir}/config.json`
@@ -232,7 +234,8 @@ program
         new xDaiBridgeWatcher().start()
       }
     } catch (err) {
-      console.error('hop-node error:', err)
+      logger.error(`hop-node error: ${err.message}`)
+      process.exit(1)
     }
   })
 
@@ -254,7 +257,7 @@ program
         setConfigByNetwork(source.l1Network)
       }
       const order = Number(source.order || 0)
-      console.log('order:', order)
+      logger.info('order:', order)
       const tokens = parseArgList(source.tokens).map((value: string) =>
         value.toUpperCase()
       )
@@ -267,7 +270,102 @@ program
         networks
       })
     } catch (err) {
-      console.error(err.message)
+      logger.error(err.message)
+      process.exit(1)
+    }
+  })
+
+async function staker (
+  network: string,
+  chain: string,
+  token: string,
+  amount: number,
+  unstake?: boolean
+) {
+  setConfigByNetwork(network)
+  logger.info('network:', network)
+
+  if (!network) {
+    throw new Error('network is required')
+  }
+  if (!chain) {
+    throw new Error('chain is required')
+  }
+  if (!token) {
+    throw new Error('token is required')
+  }
+  if (!amount) {
+    throw new Error('amount is required')
+  }
+
+  const tokenContracts = contracts.get(token, chain)
+  if (!tokenContracts) {
+    throw new Error('unsupported token')
+  }
+  let bridgeContract = tokenContracts.l2Bridge
+  let tokenContract = tokenContracts.l2HopBridgeToken
+  if (chain === Chain.Ethereum) {
+    bridgeContract = tokenContracts.l1Bridge
+    tokenContract = tokenContracts.l1CanonicalToken
+  }
+
+  const stakeWatcher = new StakeWatcher({
+    isL1: chain === Chain.Ethereum,
+    label: `${chain}.${token}`,
+    bridgeContract,
+    tokenContract,
+    stakeMinThreshold: 0,
+    maxStakeAmount: 0
+  })
+
+  const parsedAmount = stakeWatcher.bridge.parseUnits(amount)
+  await stakeWatcher.approveTokens()
+  if (unstake) {
+    await stakeWatcher.unstake(parsedAmount)
+  } else {
+    await stakeWatcher.stake(parsedAmount)
+  }
+}
+
+program
+  .command('stake')
+  .description('Stake amount')
+  .option('-n, --network <string>', 'Network')
+  .option('-c, --chain <string>', 'Chain')
+  .option('-t, --token <string>', 'Token')
+  .option('-a, --amount <number>', 'Amount (in human readable format)')
+  .action(async source => {
+    try {
+      const network = source.network
+      const chain = source.chain
+      const token = source.token
+      const amount = Number(source.args[0] || source.amount)
+      await staker(network, chain, token, amount)
+      process.exit(0)
+    } catch (err) {
+      logger.error(err.message)
+      process.exit(1)
+    }
+  })
+
+program
+  .command('unstake')
+  .description('Unstake amount')
+  .option('-n, --network <string>', 'Network')
+  .option('-c, --chain <string>', 'Chain')
+  .option('-t, --token <string>', 'Token')
+  .option('-a, --amount <number>', 'Amount (in human readable format)')
+  .action(async source => {
+    try {
+      const network = source.network
+      const chain = source.chain
+      const token = source.token
+      const amount = Number(source.args[0] || source.amount)
+      await staker(network, chain, token, amount, true)
+      process.exit(0)
+    } catch (err) {
+      logger.error(err.message)
+      process.exit(1)
     }
   })
 
@@ -278,7 +376,8 @@ program
     try {
       new xDaiBridgeWatcher().start()
     } catch (err) {
-      console.error(err.message)
+      logger.error(err.message)
+      process.exit(1)
     }
   })
 
@@ -289,7 +388,8 @@ program
     try {
       new PolygonBridgeWatcher().start()
     } catch (err) {
-      console.error(err.message)
+      logger.error(err.message)
+      process.exit(1)
     }
   })
 
@@ -303,7 +403,8 @@ program
         concurrentUsers: Number(source.concurrentUsers || 1)
       }).start()
     } catch (err) {
-      console.error(err.message)
+      logger.error(err.message)
+      process.exit(1)
     }
   })
 
@@ -314,7 +415,7 @@ program
     try {
       await startChallengeWatchers()
     } catch (err) {
-      console.error(err.message)
+      logger.error(err.message)
     }
   })
 
@@ -325,7 +426,8 @@ program
     try {
       await startCommitTransferWatchers()
     } catch (err) {
-      console.error(err.message)
+      logger.error(err.message)
+      process.exit(1)
     }
   })
 
@@ -343,7 +445,8 @@ program
         minThreshold
       })
     } catch (err) {
-      console.error(err.message)
+      logger.error(err.message)
+      process.exit(1)
     }
   })
 
@@ -354,7 +457,8 @@ program
     try {
       new xDaiBridgeWatcher().start()
     } catch (err) {
-      console.error(err.message)
+      logger.error(err.message)
+      process.exit(1)
     }
   })
 
@@ -365,7 +469,8 @@ program
     try {
       await startStakeWatchers()
     } catch (err) {
-      console.error(err.message)
+      logger.error(err.message)
+      process.exit(1)
     }
   })
 
@@ -381,8 +486,7 @@ program
       let passphrase = source.pass
       const output = source.output || defaultKeystoreFilePath
       if (!action) {
-        console.error(`please specify subcommand`)
-        return
+        throw new Error('please specify subcommand')
       }
       if (action === 'generate') {
         if (!passphrase) {
@@ -391,8 +495,7 @@ program
           )
           const passphraseConfirm = await promptPassphrase('Confirm password')
           if (passphrase !== passphraseConfirm) {
-            console.error('\nERROR: passwords did not match')
-            return
+            throw new Error('ERROR: passwords did not match')
           }
         }
         let mnemonic: string
@@ -437,8 +540,7 @@ Press [Enter] when you have written down your mnemonic.`
           clearConsole()
           mnemonicConfirm = (mnemonicConfirm as string).trim()
           if (mnemonicConfirm !== mnemonic) {
-            console.error('\n\nERROR: mnemonic entered is incorrect.')
-            return
+            throw new Error('ERROR: mnemonic entered is incorrect')
           }
         }
 
@@ -469,30 +571,29 @@ Press [Enter] to exit.
         }
         const filepath = source.args[1] || defaultKeystoreFilePath
         if (!filepath) {
-          console.error('please specify filepath')
-          return
+          throw new Error('please specify filepath')
         }
         const keystore = JSON.parse(
           fs.readFileSync(path.resolve(filepath), 'utf8')
         )
         const privateKey = await recoverKeystore(keystore, passphrase)
-        console.log(privateKey)
+        console.log(privateKey) // intentional log
       } else if (action === 'address') {
         const filepath = source.args[1] || defaultKeystoreFilePath
         if (!filepath) {
-          console.error('please specify filepath')
-          return
+          throw new Error('please specify filepath')
         }
         const keystore = JSON.parse(
           fs.readFileSync(path.resolve(filepath), 'utf8')
         )
         const address = keystore.address
-        console.log('0x' + address)
+        console.log('0x' + address) // intentional log
       } else {
-        console.log(`unsupported command: "${action}"`)
+        console.log(`unsupported command: "${action}"`) // intentional log
       }
     } catch (err) {
-      console.error(err.message)
+      logger.error(err.message)
+      process.exit(1)
     }
   })
 

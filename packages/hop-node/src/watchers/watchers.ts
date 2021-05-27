@@ -23,7 +23,7 @@ interface StakeAmounts {
   [key: string]: number
 }
 
-function startStakeWatchers (
+function getStakeWatchers (
   _tokens?: string[],
   _networks: string[] = networks,
   maxStakeAmounts: StakeAmounts = {},
@@ -85,6 +85,21 @@ function startStakeWatchers (
     }
   }
 
+  return watchers
+}
+
+function startStakeWatchers (
+  _tokens?: string[],
+  _networks: string[] = networks,
+  maxStakeAmounts: StakeAmounts = {},
+  dryMode: boolean = false
+) {
+  const watchers = getStakeWatchers(
+    _tokens,
+    _networks,
+    maxStakeAmounts,
+    dryMode
+  )
   watchers.forEach(watcher => watcher.start())
   return watchers
 }
@@ -334,6 +349,7 @@ function startCommitTransferWatchers () {
 
 export {
   startWatchers,
+  getStakeWatchers,
   startStakeWatchers,
   startChallengeWatchers,
   startCommitTransferWatchers

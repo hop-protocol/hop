@@ -20,7 +20,9 @@ export default class ContractBase extends EventEmitter {
         this.providerNetworkId = networkId
         this.chainSlug = networkIdToSlug(networkId)
       })
-      .catch(err => console.log(`getNetwork() error: ${err.message}`))
+      .catch(err => {
+        console.log(`ContractBase getNetwork() error: ${err.message}`)
+      })
   }
 
   async getNetworkId (): Promise<number> {

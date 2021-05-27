@@ -24,6 +24,7 @@ import Logger, { setLogLevel } from 'src/logger'
 import { Chain } from 'src/constants'
 import arbbots from 'src/arb-bot/bots'
 import {
+  getStakeWatchers,
   startWatchers,
   startStakeWatchers,
   startChallengeWatchers,
@@ -34,6 +35,7 @@ import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
 import LoadTest from 'src/loadTest'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
+import { networkSlugToId } from 'src/utils'
 import entropyToMnemonic from 'src/utils/entropyToMnemonic'
 import { hopArt, printHopArt } from './art'
 import contracts from 'src/contracts'
@@ -275,55 +277,52 @@ program
     }
   })
 
+enum StakerAction {
+  Stake,
+  Unstake,
+  Status
+}
+
 async function staker (
   network: string,
   chain: string,
   token: string,
   amount: number,
-  unstake?: boolean
+  action: StakerAction
 ) {
   setConfigByNetwork(network)
   logger.info('network:', network)
 
   if (!network) {
-    throw new Error('network is required')
+    throw new Error('network is required. Options are: kovan, goerli, mainnet')
   }
   if (!chain) {
-    throw new Error('chain is required')
+    throw new Error(
+      'chain is required. Options are: ethereum, xdai, polygon, optimism, arbitrum'
+    )
   }
   if (!token) {
-    throw new Error('token is required')
+    throw new Error('token is required: Options are: USDC, DAI, etc..')
   }
   if (!amount) {
-    throw new Error('amount is required')
+    throw new Error('amount is required. E.g. 100')
   }
 
-  const tokenContracts = contracts.get(token, chain)
-  if (!tokenContracts) {
-    throw new Error('unsupported token')
-  }
-  let bridgeContract = tokenContracts.l2Bridge
-  let tokenContract = tokenContracts.l2HopBridgeToken
-  if (chain === Chain.Ethereum) {
-    bridgeContract = tokenContracts.l1Bridge
-    tokenContract = tokenContracts.l1CanonicalToken
-  }
-
-  const stakeWatcher = new StakeWatcher({
-    isL1: chain === Chain.Ethereum,
-    label: `${chain}.${token}`,
-    bridgeContract,
-    tokenContract,
-    stakeMinThreshold: 0,
-    maxStakeAmount: 0
-  })
-
+  const watchers = getStakeWatchers(
+    [token],
+    [Chain.Optimism, Chain.Arbitrum, Chain.xDai, Chain.Polygon]
+  )
+  const stakeWatcher = watchers[0].siblingWatchers[networkSlugToId(chain)]
   const parsedAmount = stakeWatcher.bridge.parseUnits(amount)
-  await stakeWatcher.approveTokens()
-  if (unstake) {
+  if (action === StakerAction.Stake) {
+    logger.debug('action: stake')
+    await stakeWatcher.approveTokens()
+    await stakeWatcher.convertAndStake(parsedAmount)
+  } else if (action === StakerAction.Unstake) {
+    logger.debug('action: unstake')
     await stakeWatcher.unstake(parsedAmount)
   } else {
-    await stakeWatcher.stake(parsedAmount)
+    await stakeWatcher.printAmounts()
   }
 }
 
@@ -340,7 +339,7 @@ program
       const chain = source.chain
       const token = source.token
       const amount = Number(source.args[0] || source.amount)
-      await staker(network, chain, token, amount)
+      await staker(network, chain, token, amount, StakerAction.Stake)
       process.exit(0)
     } catch (err) {
       logger.error(err.message)
@@ -361,7 +360,27 @@ program
       const chain = source.chain
       const token = source.token
       const amount = Number(source.args[0] || source.amount)
-      await staker(network, chain, token, amount, true)
+      await staker(network, chain, token, amount, StakerAction.Unstake)
+      process.exit(0)
+    } catch (err) {
+      logger.error(err.message)
+      process.exit(1)
+    }
+  })
+
+program
+  .command('stake-status')
+  .description('Stake status')
+  .option('-n, --network <string>', 'Network')
+  .option('-c, --chain <string>', 'Chain')
+  .option('-t, --token <string>', 'Token')
+  .action(async source => {
+    try {
+      const network = source.network
+      const chain = source.chain
+      const token = source.token
+      const amount = Number(source.args[0] || source.amount)
+      await staker(network, chain, token, amount, StakerAction.Status)
       process.exit(0)
     } catch (err) {
       logger.error(err.message)

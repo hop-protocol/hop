@@ -294,12 +294,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   checkUnsettledTransfer = async (dbTransfer: Transfer) => {
-    //const tid = '0x1a9fc240502401cfc0ee4a29972408045e8ec2b822c274195cdca41bce40e726'
-    //console.log('foo', await db.transfers.getByTransferId(tid))
-    // 0x4e88b0f9d1110457e57e9c61f81c825576fa5045dbb04906bc8d56965a773945
-    //const tr = await db.transferRoots.getByTransferRootId('0x4e88b0f9d1110457e57e9c61f81c825576fa5045dbb04906bc8d56965a773945')
-    //const tr = await db.transferRoots.getByTransferRootHash('0x1f679dcb39307d3aa7482a809943bc65477779ca10c3d2fdf4c6d4e8e0b489cd')
-    //console.log('tr', tr)
     if (!dbTransfer) {
       this.logger.warn('db transfer item not found')
       return

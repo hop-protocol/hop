@@ -138,12 +138,12 @@ const StatsContextProvider: FC = ({ children }) => {
 
   useEffect(() => {
     const update = async () => {
-      if (!filteredNetworks) {
+      if (!networks) {
         return
       }
       setFetchingBonderStats(true)
       const promises: Promise<any>[] = []
-      for (const network of filteredNetworks) {
+      for (const network of networks) {
         for (const token of tokens) {
           for (const bonder of addresses[config.network].bonders) {
             promises.push(fetchBonderStats(network, token, bonder))

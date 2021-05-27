@@ -24,6 +24,9 @@ const useStyles = makeStyles(theme => ({
   cell: {
     fontSize: '1.4rem'
   },
+  flex: {
+    display: 'flex'
+  },
   title: {
     marginBottom: '4.2rem'
   },
@@ -72,12 +75,18 @@ const BonderStats: FC = () => {
                     return (
                         <TableRow key={item.id}>
                           <TableCell className={styles.cell}>
-                            <img
-                              src={item.network.imageUrl}
-                              alt=""
-                              width="16"
-                            />{' '}
-                            {item.network.slug}.{item.token.symbol}
+                            <div className={styles.flex}>
+                              <img
+                                style={{
+                                  display: 'inline-block',
+                                  marginRight: '0.5em'
+                                }}
+                                src={item.network.imageUrl}
+                                alt=""
+                                width="16"
+                              />
+                              <span>{item.network.slug}.{item.token.symbol}</span>
+                            </div>
                           </TableCell>
                           <TableCell className={styles.cell}>
                             {item.bonder}

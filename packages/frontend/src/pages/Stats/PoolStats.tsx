@@ -24,6 +24,9 @@ const useStyles = makeStyles(theme => ({
   cell: {
     fontSize: '1.4rem'
   },
+  flex: {
+    display: 'flex'
+  },
   title: {
     marginBottom: '4.2rem'
   },
@@ -49,7 +52,7 @@ const PoolStats: FC = () => {
           <TableContainer>
             <Table className={styles.table}>
               <TableHead>
-                <th>Pair</th>
+                <th>AMM Pair</th>
                 <th>Pooled Token 0</th>
                 <th>Pooled Token 1</th>
               </TableHead>
@@ -70,12 +73,18 @@ const PoolStats: FC = () => {
                     return (
                         <TableRow key={item.id}>
                           <TableCell className={styles.cell}>
-                            <img
-                              src={item.network.imageUrl}
-                              alt=""
-                              width="16"
-                            />{' '}
-                            {item.token0.symbol}-{item.token1.symbol}
+                            <div className={styles.flex}>
+                              <img
+                                style={{
+                                  display: 'inline-block',
+                                  marginRight: '0.5em'
+                                }}
+                                src={item.network.imageUrl}
+                                alt=""
+                                width="16"
+                              />
+                              <span>{item.token0.symbol}-{item.token1.symbol}</span>
+                            </div>
                           </TableCell>
                           <TableCell className={styles.cell}>
                             {commafy(item.reserve0)} {item.token0.symbol}

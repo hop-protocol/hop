@@ -1,10 +1,4 @@
-import {
-  default as BaseWatcher,
-  Config,
-  WatchOptions,
-  Event
-} from './BaseWatcher'
-import { TChain, TToken, TProvider } from '../types'
+import { default as BaseWatcher, Config, Event } from './BaseWatcher'
 import { Chain } from '../models'
 import CanonicalBridge from '../CanonicalBridge'
 

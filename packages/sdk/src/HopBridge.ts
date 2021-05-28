@@ -509,7 +509,6 @@ class HopBridge extends Base {
     bonder: string = this.getBonderAddress()
   ): Promise<BigNumber> {
     const chain = this.toChainModel(destinationChain)
-    let bridge = await this.getBridgeContract(chain)
     const [credit, debit] = await Promise.all([
       this.getCredit(chain, bonder),
       this.getDebit(chain, bonder)

@@ -43,15 +43,7 @@ class BaseWatcher extends Base {
 
   constructor (config: Config) {
     super(config.network, config.signer)
-    let {
-      network,
-      signer,
-      token,
-      sourceTxHash,
-      sourceChain,
-      destinationChain,
-      options
-    } = config
+    let { token, sourceTxHash, sourceChain, destinationChain, options } = config
     this.token = this.toTokenModel(token)
     this.sourceTxHash = sourceTxHash
     this.sourceChain = this.toChainModel(sourceChain)

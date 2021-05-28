@@ -1,5 +1,3 @@
-import snakeCase from 'snake-case'
-
 export interface IOptions {
   snakeCase: boolean
   omitFalsy: boolean

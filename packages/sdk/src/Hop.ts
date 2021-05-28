@@ -1,27 +1,14 @@
-import EventEmitter from 'eventemitter3'
-import { Contract, Signer } from 'ethers'
+import { Signer } from 'ethers'
 import { Chain, Token } from './models'
-import { wait } from './utils'
 import HopBridge from './HopBridge'
 import CanonicalBridge from './CanonicalBridge'
 import Watcher from './watchers/Watcher'
+import { Event } from './watchers/BaseWatcher'
 import CanonicalWatcher from './watchers/CanonicalWatcher'
 import { TChain, TToken, TProvider } from './types'
 import Base from './Base'
 import { Network } from './constants'
 import _version from './version'
-
-const transferSentTopic =
-  '0x5a4dabefa20e4685729030de2db148bc227da9d371286964568fbfafe29ae1b2'
-
-/**
- * @desc Event types for transaction watcher.
- */
-enum Event {
-  Receipt = 'receipt',
-  SourceTxReceipt = 'sourceTxReceipt',
-  DestinationTxReceipt = 'destinationTxReceipt'
-}
 
 /**
  * @desc Event watcher options

@@ -1,11 +1,4 @@
-import {
-  default as BaseWatcher,
-  Config,
-  WatchOptions,
-  Event
-} from './BaseWatcher'
-import { TChain, TToken, TProvider } from '../types'
-import { Chain } from '../models'
+import { default as BaseWatcher, Config, Event } from './BaseWatcher'
 
 const transferSentTopic =
   '0x5a4dabefa20e4685729030de2db148bc227da9d371286964568fbfafe29ae1b2'
@@ -36,14 +29,7 @@ class L2ToL2Watcher extends BaseWatcher {
   }
 
   private async wrapperWatcher () {
-    const wrapperSource = await this.bridge.getAmmWrapper(this.sourceChain)
-    const wrapperDest = await this.bridge.getAmmWrapper(this.destinationChain)
     const l2Dest = await this.bridge.getL2Bridge(this.destinationChain)
-    const exchange = await this.bridge.getSaddleSwap(this.destinationChain)
-    const decodedSource = wrapperSource?.interface.decodeFunctionData(
-      'swapAndSend',
-      this.sourceTx.data
-    )
     let transferHash: string = ''
     for (let log of this.sourceReceipt.logs) {
       if (log.topics[0] === transferSentTopic) {
@@ -54,8 +40,6 @@ class L2ToL2Watcher extends BaseWatcher {
     if (!transferHash) {
       return false
     }
-    let startBlock = -1
-    let endBlock = -1
     return async () => {
       let headBlock =
         this.options?.destinationHeadBlockNumber ||

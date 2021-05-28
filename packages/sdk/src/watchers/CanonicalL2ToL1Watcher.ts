@@ -1,12 +1,6 @@
 import { erc20Abi } from '@hop-protocol/abi'
-import { Contract, Signer } from 'ethers'
-import {
-  default as BaseWatcher,
-  Config,
-  WatchOptions,
-  Event
-} from './BaseWatcher'
-import { TChain, TToken, TProvider } from '../types'
+import { Contract } from 'ethers'
+import { default as BaseWatcher, Config, Event } from './BaseWatcher'
 import { Chain } from '../models'
 import CanonicalBridge from '../CanonicalBridge'
 

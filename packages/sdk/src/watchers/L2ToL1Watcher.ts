@@ -1,11 +1,4 @@
-import {
-  default as BaseWatcher,
-  Config,
-  WatchOptions,
-  Event
-} from './BaseWatcher'
-import { TChain, TToken, TProvider } from '../types'
-import { Chain } from '../models'
+import { default as BaseWatcher, Config, Event } from './BaseWatcher'
 
 const transferSentTopic =
   '0x5a4dabefa20e4685729030de2db148bc227da9d371286964568fbfafe29ae1b2'
@@ -26,23 +19,7 @@ class L2ToL1Watcher extends BaseWatcher {
   }
 
   public async pollFn (): Promise<any> {
-    const wrapper = await this.bridge.getAmmWrapper(this.sourceChain)
     const l1Bridge = await this.bridge.getL1Bridge()
-    let decodedSource: any
-    let attemptedSwap = false
-    try {
-      decodedSource = wrapper?.interface.decodeFunctionData(
-        'swapAndSend',
-        this.sourceTx.data
-      )
-      attemptedSwap = true
-    } catch (err) {
-      const l2Bridge = await this.bridge.getL2Bridge(this.sourceChain)
-      decodedSource = l2Bridge?.interface.decodeFunctionData(
-        'send',
-        this.sourceTx.data
-      )
-    }
     let transferHash: string = ''
     for (let log of this.sourceReceipt.logs) {
       if (log.topics[0] === transferSentTopic) {

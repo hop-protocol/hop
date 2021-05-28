@@ -1,11 +1,4 @@
-import {
-  default as BaseWatcher,
-  Config,
-  WatchOptions,
-  Event
-} from './BaseWatcher'
-import { TChain, TToken, TProvider } from '../types'
-import { Chain } from '../models'
+import { Config } from './BaseWatcher'
 import Base from '../Base'
 import CanonicalL1ToL2Watcher from './CanonicalL1ToL2Watcher'
 import CanonicalL2ToL1Watcher from './CanonicalL2ToL1Watcher'

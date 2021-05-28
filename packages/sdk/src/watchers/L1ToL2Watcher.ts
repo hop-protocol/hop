@@ -1,10 +1,4 @@
-import {
-  default as BaseWatcher,
-  Config,
-  WatchOptions,
-  Event
-} from './BaseWatcher'
-import { TChain, TToken, TProvider } from '../types'
+import { default as BaseWatcher, Config, Event } from './BaseWatcher'
 import { Chain } from '../models'
 
 class L1ToL2Watcher extends BaseWatcher {
@@ -32,8 +26,6 @@ class L1ToL2Watcher extends BaseWatcher {
     )
 
     let attemptedSwap = Number(decodedSource.deadline.toString()) > 0
-    //const chainId = decodedSource?.chainId
-    const l2Bridge = await this.bridge.getL2Bridge(this.destinationChain)
     const exchange = await this.bridge.getSaddleSwap(this.destinationChain)
     let destTx: any
     let startBlock = -1

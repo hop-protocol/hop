@@ -16,7 +16,7 @@ import { Chain } from 'src/constants'
 import { Notifier } from 'src/notifier'
 
 const paths = [[Chain.xDai, Chain.Ethereum]]
-const tokens = ['DAI']
+const tokens = ['USDC']
 const transferAmount = 10
 
 type Config = {

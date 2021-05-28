@@ -73,7 +73,7 @@ class BaseWatcher extends EventEmitter {
   }
 
   public async eventsBatch (
-    cb: (start: number, end: number) => Promise<void | boolean>,
+    cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
     key: string = ''
   ) {
     return this.bridge.eventsBatch(cb, `${this.tag}:${key}`)

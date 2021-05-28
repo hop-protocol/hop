@@ -167,25 +167,25 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         .bridge as L2Bridge
       // events are sorted from [newest...oldest]
       let allEvents: any[] = []
-      let i = 0
       let endIndex = -1
-      await sourceBridge.eventsBatch(async (start: number, end: number) => {
-        const events = await sourceBridge.getTransfersCommittedEvents(
-          start,
-          end
-        )
-        allEvents.push(...events.reverse())
-        for (let event of events) {
-          if (event.args.rootHash === transferRootHash) {
-            endIndex = i
+      await sourceBridge.eventsBatch(
+        async (start: number, end: number, i: number) => {
+          const events = await sourceBridge.getTransfersCommittedEvents(
+            start,
+            end
+          )
+          allEvents.push(...events.reverse())
+          for (let event of events) {
+            if (event.args.rootHash === transferRootHash) {
+              endIndex = i
+            }
+            if (endIndex > -1 && i > endIndex + 1) {
+              return false
+            }
+            return true
           }
-          if (endIndex > -1 && i > endIndex + 1) {
-            return false
-          }
-          i++
-          return true
         }
-      })
+      )
 
       if (endIndex > -1) {
         const event = allEvents[endIndex]

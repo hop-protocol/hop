@@ -3,7 +3,7 @@ import { User } from './helpers'
 import { Chain } from 'src/constants'
 
 const network = Chain.Ethereum
-const token = 'DAI'
+const token = 'USDC'
 const amount = 1_000_000_000
 
 test(

@@ -35,7 +35,7 @@
     "@hop-protocol/abi": "0.0.1-beta.6",
     "@hop-protocol/addresses": "0.0.1-beta.20",
     "@hop-protocol/metadata": "0.0.1-beta.5",
-    "@hop-protocol/networks": "0.0.1-beta.4",
+    "@hop-protocol/networks": "0.0.1-beta.5",
     "@maticnetwork/maticjs": "^2.0.38",
     "dotenv": "^8.2.0",
     "ethereum-checksum-address": "0.0.6",

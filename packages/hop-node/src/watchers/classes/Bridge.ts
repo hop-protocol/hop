@@ -285,7 +285,7 @@ export default class Bridge extends ContractBase {
   }
 
   public async eventsBatch (
-    cb: (start: number, end: number) => Promise<void | boolean>,
+    cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
     key?: string
   ) {
     const { syncBlocksTotal, syncBlocksBatch } = config
@@ -305,8 +305,9 @@ export default class Bridge extends ContractBase {
     )
     let end = blockNumber
     let start = end - syncBlocksBatch
+    let i = 0
     while (start >= blockNumber - syncBlocksTotal) {
-      const shouldContinue = await cb(start, end)
+      const shouldContinue = await cb(start, end, i)
       if (typeof shouldContinue === 'boolean' && !shouldContinue) {
         break
       }
@@ -316,6 +317,7 @@ export default class Bridge extends ContractBase {
         lastBlockSynced: end,
         timestamp: Date.now()
       })
+      i++
     }
   }
 }

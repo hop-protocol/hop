@@ -220,10 +220,9 @@ class Hop extends Base {
     const destinationChain = this.toChainModel(_destinationChain)
     const ee = new EventEmitter()
 
-    const update = async () => {
+    const start = async () => {
       const bridge = this.bridge(token, sourceChain, destinationChain)
       const l1Bridge = await bridge.getL1Bridge()
-
       const receipt = await sourceChain.provider.waitForTransaction(txHash)
       ee.emit(Event.Receipt, { chain: sourceChain, receipt })
       ee.emit(Event.SourceTxReceipt, { chain: sourceChain, receipt })
@@ -232,16 +231,19 @@ class Hop extends Base {
       }
       const sourceTx = await sourceChain.provider.getTransaction(txHash)
       const sourceBlock = await sourceChain.provider.getBlock(
-        sourceTx.blockNumber as number
+        sourceTx.blockNumber
       )
-      const sourceTimestamp = sourceBlock?.timestamp
+      if (!sourceBlock) {
+        return
+      }
+      const sourceTimestamp = sourceBlock.timestamp
       let startBlock = -1
       let endBlock = -1
       let pollDest: () => Promise<boolean>
 
       // L1 -> L2
       if (sourceChain.isL1) {
-        const wrapper = await bridge.getAmmWrapper(destinationChain)
+        const destWrapper = await bridge.getAmmWrapper(destinationChain)
         const decodedSource = l1Bridge?.interface.decodeFunctionData(
           'sendToL2',
           sourceTx.data
@@ -277,7 +279,7 @@ class Hop extends Base {
             }
             for (let item of recentLogs) {
               const decodedLog = item.decode(item.data, item.topics)
-              if (wrapper.address === decodedLog.buyer) {
+              if (destWrapper.address === decodedLog.buyer) {
                 if (
                   decodedSource?.amount.toString() !==
                   decodedLog.tokensSold.toString()
@@ -574,7 +576,7 @@ class Hop extends Base {
       }
     }
 
-    update().catch((err: Error) => ee.emit('error', err))
+    start().catch((err: Error) => ee.emit('error', err))
 
     return ee
   }
@@ -593,7 +595,7 @@ class Hop extends Base {
     const destinationChain = this.toChainModel(_destinationChain)
     const ee = new EventEmitter()
 
-    const update = async () => {
+    const start = async () => {
       const bridge = this.bridge(token, sourceChain, destinationChain)
       const l1Bridge = await bridge.getL1Bridge()
 
@@ -911,7 +913,7 @@ class Hop extends Base {
       }
     }
 
-    update().catch((err: Error) => ee.emit('error', err))
+    start().catch((err: Error) => ee.emit('error', err))
 
     return ee
   }

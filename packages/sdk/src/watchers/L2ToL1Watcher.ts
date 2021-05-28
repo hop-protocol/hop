@@ -15,13 +15,17 @@ class L2ToL1Watcher extends BaseWatcher {
     super(config)
   }
 
-  public async start () {
-    await this.startBase()
-    const pollFn = await this.startDestinationWatcher()
-    return this.pollDestination(pollFn)
+  public watch () {
+    this.start().catch((err: Error) => this.ee.emit('error', err))
+    return this.ee
   }
 
-  public async startDestinationWatcher (): Promise<any> {
+  public async start () {
+    await this.startBase()
+    return this.pollDestination(await this.pollFn())
+  }
+
+  public async pollFn (): Promise<any> {
     const wrapper = await this.bridge.getAmmWrapper(this.sourceChain)
     const l1Bridge = await this.bridge.getL1Bridge()
     let decodedSource: any
@@ -93,11 +97,6 @@ class L2ToL1Watcher extends BaseWatcher {
       }
       return false
     }
-  }
-
-  public watch () {
-    this.start().catch((err: Error) => this.ee.emit('error', err))
-    return this.ee
   }
 }
 

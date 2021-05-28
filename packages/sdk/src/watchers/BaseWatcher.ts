@@ -25,7 +25,7 @@ export type Config = {
   token: TToken
   sourceChain: TChain
   destinationChain: TChain
-  options: WatchOptions
+  options?: WatchOptions
 }
 
 class BaseWatcher extends Base {

@@ -7,9 +7,9 @@ import {
 import { TChain, TToken, TProvider } from '../types'
 import { Chain } from '../models'
 import Base from '../Base'
-import L1ToL2Watcher from './L1ToL2Watcher'
-import L2ToL1Watcher from './L2ToL1Watcher'
-import L2ToL2Watcher from './L2ToL2Watcher'
+import CanonicalL1ToL2Watcher from './CanonicalL1ToL2Watcher'
+import CanonicalL2ToL1Watcher from './CanonicalL2ToL1Watcher'
+import CanonicalL2ToL2Watcher from './CanonicalL2ToL2Watcher'
 
 class Watcher extends Base {
   watcher: any
@@ -22,17 +22,17 @@ class Watcher extends Base {
 
     // L1 -> L2
     if (sourceChain.isL1) {
-      this.watcher = new L1ToL2Watcher(config)
+      this.watcher = new CanonicalL1ToL2Watcher(config)
     }
 
     // L2 -> L1
     if (!sourceChain.isL1 && destinationChain?.isL1) {
-      this.watcher = new L2ToL1Watcher(config)
+      this.watcher = new CanonicalL2ToL1Watcher(config)
     }
 
     // L2 -> L2
     if (!sourceChain.isL1 && !destinationChain?.isL1) {
-      this.watcher = new L2ToL2Watcher(config)
+      this.watcher = new CanonicalL2ToL2Watcher(config)
     }
   }
 

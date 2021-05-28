@@ -12,13 +12,17 @@ class L1ToL2Watcher extends BaseWatcher {
     super(config)
   }
 
-  public async start () {
-    await this.startBase()
-    const pollFn = await this.startDestinationWatcher()
-    return this.pollDestination(pollFn)
+  public watch () {
+    this.start().catch((err: Error) => this.ee.emit('error', err))
+    return this.ee
   }
 
-  public async startDestinationWatcher (): Promise<any> {
+  public async start () {
+    await this.startBase()
+    return this.pollDestination(await this.pollFn())
+  }
+
+  public async pollFn (): Promise<any> {
     const destWrapper = await this.bridge.getAmmWrapper(this.destinationChain)
     const l1Bridge = await this.bridge.getL1Bridge()
     const sourceTimestamp = this.sourceBlock.timestamp
@@ -131,11 +135,6 @@ class L1ToL2Watcher extends BaseWatcher {
         return true
       }
     }
-  }
-
-  public watch () {
-    this.start().catch((err: Error) => this.ee.emit('error', err))
-    return this.ee
   }
 }
 

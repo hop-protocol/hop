@@ -20,9 +20,7 @@ export const networks: Networks = {
     name: chains.optimism.name,
     networkId: 10,
     rpcUrls: ['https://mainnet.optimism.io'],
-    explorerUrls: [
-      'https://expedition.dev/?rpcUrl=https%3A%2F%2Fmainnet.arbitrum.io'
-    ]
+    explorerUrls: ['https://optimistic.etherscan.io']
   },
   xdai: {
     name: chains.xdai.name,

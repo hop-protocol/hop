@@ -18,16 +18,14 @@ export const networks: Networks = {
     name: chains.optimism.name,
     networkId: 69,
     rpcUrls: ['https://kovan.optimism.io'],
-    explorerUrls: [
-      'https://expedition.dev/?rpcUrl=https%3A%2F%2Fkovan.optimism.io'
-    ]
+    explorerUrls: ['https://kovan-optimistic.etherscan.io']
   },
   xdai: {
     name: chains.xdai.name,
     networkId: 77,
     rpcUrls: [
-      'https://sokol.poa.network'
-      //'https://sokol-archive.blockscout.com'
+      'https://sokol.poa.network',
+      'https://sokol-archive.blockscout.com'
     ],
     explorerUrls: ['https://blockscout.com/poa/sokol']
   }

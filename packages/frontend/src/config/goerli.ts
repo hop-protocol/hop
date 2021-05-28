@@ -1,5 +1,6 @@
-import { HopAddresses } from './interfaces'
 import { goerli as goerliAddresses } from '@hop-protocol/addresses'
+import { goerli as goerliNetworks } from '@hop-protocol/networks'
+import { HopAddresses, Networks } from './interfaces'
 
 export const addresses: HopAddresses = {
   governance: {
@@ -11,33 +12,32 @@ export const addresses: HopAddresses = {
   tokens: goerliAddresses.bridges
 }
 
-export const networks: any = {
+export const networks: Networks = {
   ethereum: {
-    networkId: '5',
-    rpcUrl: 'https://goerli.rpc.hop.exchange',
-    explorerUrl: 'https://goerli.etherscan.io/'
+    networkId: goerliNetworks.ethereum.networkId.toString(),
+    rpcUrl: goerliNetworks.ethereum.rpcUrls[0],
+    explorerUrl: goerliNetworks.ethereum.explorerUrls[0]
   },
   polygon: {
-    networkId: '80001',
-    rpcUrl: 'https://mumbai.rpc.hop.exchange',
-    explorerUrl: 'https://explorer-mumbai.maticvigil.com/'
+    networkId: goerliNetworks.polygon.networkId.toString(),
+    rpcUrl: goerliNetworks.polygon.rpcUrls[0],
+    explorerUrl: goerliNetworks.polygon.explorerUrls[0]
   }
   /*
   arbitrum: {
-    networkId: '79377087078960',
-    rpcUrl: 'https://kovan3.arbitrum.io/rpc',
-    explorerUrl: 'https://explorer.offchainlabs.com/#/'
+    networkId: goerliNetworks.arbitrum.networkId.toString(),
+    rpcUrl: goerliNetworks.arbitrum.rpcUrls[0],
+    explorerUrl: goerliNetworks.arbitrum.explorerUrls[0]
   },
   optimism: {
-    networkId: '69',
-    rpcUrl: 'https://kovan.optimism.io',
-    explorerUrl:
-      `https://expedition.dev/?rpcUrl=https%3A%2F%2Fkovan.optimism.io`
+    networkId: goerliNetworks.optimism.networkId.toString(),
+    rpcUrl: goerliNetworks.optimism.rpcUrls[0],
+    explorerUrl: goerliNetworks.optimism.explorerUrls[0]
   },
   xdai: {
-    networkId: '77',
-    rpcUrl: 'https://sokol.poa.network',
-    explorerUrl: 'https://blockscout.com/poa/sokol/'
+    networkId: goerliNetworks.xdai.networkId.toString(),
+    rpcUrl: goerliNetworks.xdai.rpcUrls[0],
+    explorerUrl: goerliNetworks.xdai.explorerUrls[0]
   }
   */
 }

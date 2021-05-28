@@ -1,5 +1,6 @@
 import { kovan as kovanAddresses } from '@hop-protocol/addresses'
-import { HopAddresses } from './interfaces'
+import { kovan as kovanNetworks } from '@hop-protocol/networks'
+import { HopAddresses, Networks } from './interfaces'
 
 // export const isSynthDemo = !!process.env.REACT_APP_SYNTH_DEMO
 
@@ -13,28 +14,27 @@ export const addresses: HopAddresses = {
   tokens: kovanAddresses.bridges
 }
 
-export const networks: any = {
+export const networks: Networks = {
   ethereum: {
-    networkId: '42',
-    rpcUrl: 'https://kovan.rpc.hop.exchange',
-    explorerUrl: 'https://kovan.etherscan.io/'
+    networkId: kovanNetworks.ethereum.networkId.toString(),
+    rpcUrl: kovanNetworks.ethereum.rpcUrls[0],
+    explorerUrl: kovanNetworks.ethereum.explorerUrls[0]
   },
   /*
   arbitrum: {
-    networkId: '79377087078960',
-    rpcUrl: 'https://kovan3.arbitrum.io/rpc',
-    explorerUrl: 'https://explorer.offchainlabs.com/#/'
+    networkId: kovanNetworks.arbitrum.networkId.toString(),
+    rpcUrl: kovanNetworks.arbitrum.rpcUrls[0],
+    explorerUrl: kovanNetworks.arbitrum.explorerUrls[0]
   },
   */
   optimism: {
-    networkId: '69',
-    rpcUrl: 'https://kovan.optimism.io',
-    explorerUrl:
-      'https://expedition.dev/?rpcUrl=https%3A%2F%2Fkovan.optimism.io'
+    networkId: kovanNetworks.optimism.networkId.toString(),
+    rpcUrl: kovanNetworks.optimism.rpcUrls[0],
+    explorerUrl: kovanNetworks.optimism.explorerUrls[0]
   },
   xdai: {
-    networkId: '77',
-    rpcUrl: 'https://sokol.poa.network',
-    explorerUrl: 'https://blockscout.com/poa/sokol/'
+    networkId: kovanNetworks.xdai.networkId.toString(),
+    rpcUrl: kovanNetworks.xdai.rpcUrls[0],
+    explorerUrl: kovanNetworks.xdai.explorerUrls[0]
   }
 }

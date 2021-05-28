@@ -383,7 +383,10 @@ class HopBridge extends Base {
         rate.toFixed(this.token.decimals),
         this.token.decimals
       )
-      const fee = txFeeEth.mul(rateBN).div(oneEth)
+      let fee = txFeeEth.mul(rateBN).div(oneEth)
+
+      const multiplier = ethers.utils.parseEther('1.5')
+      fee = fee.mul(multiplier).div(oneEth)
 
       return fee
     } else {

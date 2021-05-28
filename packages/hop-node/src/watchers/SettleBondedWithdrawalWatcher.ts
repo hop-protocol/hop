@@ -159,66 +159,107 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         `looking for transfer ids for transferRootHash ${transferRootHash}`
       )
       const sourceChainId = dbTransferRoot.sourceChainId
+      const destinationChainId = dbTransferRoot.chainId
       if (!this.siblingWatchers[sourceChainId]) {
         this.logger.error(`no sibling watcher found for ${sourceChainId}`)
         return
       }
+      if (!this.siblingWatchers[destinationChainId]) {
+        this.logger.error(`no sibling watcher found for ${destinationChainId}`)
+        return
+      }
       const sourceBridge = this.siblingWatchers[sourceChainId]
         .bridge as L2Bridge
-      // events are sorted from [newest...oldest]
-      let allEvents: any[] = []
-      let i = 0
-      let endIndex = -1
+      const destinationBridge = this.siblingWatchers[destinationChainId]
+        .bridge as L2Bridge
+      
+      let startBlockSearch: number
+      let endBlockSearch: number
+      let startEvent: any
+      let endEvent: any
       await sourceBridge.eventsBatch(async (start: number, end: number) => {
-        const events = await sourceBridge.getTransfersCommittedEvents(
+        let events = await sourceBridge.getTransfersCommittedEvents(
           start,
           end
         )
-        allEvents.push(...events.reverse())
+
+        startBlockSearch = start
+        endBlockSearch = end
+        // events are sorted from [newest...oldest]
+        events = events.reverse()
         for (let event of events) {
+          let eventTransferRoot = await db.transferRoots.getByTransferRootHash(
+            event.args.rootHash
+          )
+
           if (event.args.rootHash === transferRootHash) {
-            endIndex = i
+            endEvent = event
+            // Return true here so the execution of this loop does not continue
+            return true
           }
-          if (endIndex > -1 && i > endIndex + 1) {
+          const isSameChainId = eventTransferRoot.chainId === destinationChainId
+          if (endEvent && isSameChainId) {
+            startEvent = event
             return false
           }
-          i++
+
           return true
         }
       })
 
-      if (endIndex > -1) {
-        const event = allEvents[endIndex]
-        const endTx = await event.getTransaction()
-        const endBlock = endTx.blockNumber
-        const prevEvent = allEvents[endIndex + 1]
-        if (prevEvent) {
-          let startTx = await prevEvent.getTransaction()
-          let startBlock = startTx.blockNumber
-          const transferEvents = await sourceBridge.getTransferSentEvents(
-            startBlock,
-            endBlock
-          )
+
+      // There will not be a startEvent if there
+      let startBlockNumber = undefined
+      if (!startEvent && endEvent) {
+
+        // Handle the case where the contract was deployed 
+        const sourceBridgeAddress = this.bridge.getAddress()
+        const codeAtAddress = await sourceBridge.getCode(
+          sourceBridgeAddress, startBlockSearch
+        )
+        const isContractDeployed = codeAtAddress !== '0x'
+        if (!isContractDeployed) {
+          startBlockNumber = startBlockSearch
+        }
+
+        // Handle the case where there were no commitTransfers between our search
+      }
+
+
+      if (startEvent && endEvent) {
+        const endTx = await endEvent.getTransaction()
+        const endBlock = endTx.blockNumber - 1
+        let startTx = await startEvent.getTransaction()
+        const transferEvents = await sourceBridge.getTransferSentEvents(
+          startBlock,
+          endBlock
+        )
+
           let transferIds: string[] = []
           for (let event of transferEvents) {
-            transferIds.push(event.args.transferId)
+          const transaction = await sourceBridge.getTransaction(event.transactionHash)
+          const { chainId } = await destinationBridge.decodeSendData(transaction.data)
+          if (chainId !== destinationChainId) {
+            continue
           }
-          this.logger.debug(
-            `found transfer ids for transfer root hash ${transferRootHash}\n`,
-            transferIds
-          )
-          const tree = new MerkleTree(transferIds)
-          const computedTransferRootHash = tree.getHexRoot()
-          if (computedTransferRootHash !== transferRootHash) {
-            this.logger.error(
-              `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}`
-            )
-            return
-          }
-          await db.transferRoots.update(transferRootHash, {
-            transferIds
-          })
+
+          transferIds.push(event.args.transferId)
         }
+        this.logger.debug(
+          `found transfer ids for transfer root hash ${transferRootHash}\n`,
+          transferIds
+        )
+        const tree = new MerkleTree(transferIds)
+        const computedTransferRootHash = tree.getHexRoot()
+        if (computedTransferRootHash !== transferRootHash) {
+          this.logger.error(
+            `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}`
+          )
+          return
+        }
+        await db.transferRoots.update(transferRootHash, {
+          transferIds
+        })
       }
     }
 
@@ -372,7 +413,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       if (transferRootHash !== dbTransferRoot.transferRootHash) {
         this.logger.debug('transferIds:\n', transferIds)
         this.logger.error(
-          `computed transfer root hash doesn't match. Expected ${dbTransferRoot.transferRootHash}`
+          `pending transfers computed transfer root hash doesn't match. Expected ${dbTransferRoot.transferRootHash}`
         )
         await db.transferRoots.update(dbTransferRoot.transferRootHash, {
           transferIds: []

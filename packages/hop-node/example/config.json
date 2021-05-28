@@ -21,6 +21,12 @@
     "challenger": true,
     "arbBot": true
   },
+  "commitTransfers": {
+    "minThresholdAmount": {
+      "DAI": 1000,
+      "USDC": 1000
+    }
+  },
   "db": {
     "location": "~/.hop-node/db"
   },

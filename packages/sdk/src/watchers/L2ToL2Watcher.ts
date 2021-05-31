@@ -15,7 +15,7 @@ class L2ToL2Watcher extends BaseWatcher {
 
   public async start () {
     await this.startBase()
-    return this.pollDestination(await this.pollFn())
+    return this.poll(await this.pollFn())
   }
 
   public async pollFn (): Promise<any> {
@@ -74,6 +74,7 @@ class L2ToL2Watcher extends BaseWatcher {
       }
       return false
     }
+    l2Dest.on(filter, handleEvent)
     return async () => {
       const headBlock =
         this.options?.destinationHeadBlockNumber ||
@@ -88,8 +89,6 @@ class L2ToL2Watcher extends BaseWatcher {
         }
         const start = head - 1000
         const end = head
-        l2Dest.off(filter, handleEvent)
-        l2Dest.on(filter, handleEvent)
         const events = (
           (await l2Dest.queryFilter(filter, start, end)) ?? []
         ).reverse()
@@ -114,10 +113,8 @@ class L2ToL2Watcher extends BaseWatcher {
     let startBlock = -1
     let endBlock = -1
     const filter = amm.filters.TokenSwap()
-
     const handleEvent = async (...args: any[]) => {
       const event = args[args.length - 1]
-      console.log('amm ev', event)
       const decodedLog = event.decode(event.data, event.topics)
       if (this.sourceTx.from === decodedLog.buyer) {
         if (!this.sourceBlock.timestamp) {
@@ -134,24 +131,15 @@ class L2ToL2Watcher extends BaseWatcher {
           return false
         }
         if (destBlock.timestamp - this.sourceBlock.timestamp < 500) {
-          const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
-            destTx.hash
-          )
-          this.ee.emit(Event.Receipt, {
-            chain: this.destinationChain,
-            receipt: destTxReceipt
-          })
-          this.ee.emit(Event.DestinationTxReceipt, {
-            chain: this.destinationChain,
-            receipt: destTxReceipt
-          })
-          amm.off(filter, handleEvent)
-          return true
+          if (await this.emitDestTxEvent(destTx)) {
+            amm.off(filter, handleEvent)
+            return true
+          }
         }
       }
       return false
     }
-
+    amm.on(filter, handleEvent)
     return async () => {
       const blockNumber = await this.destinationChain.provider.getBlockNumber()
       if (!blockNumber) {
@@ -163,8 +151,6 @@ class L2ToL2Watcher extends BaseWatcher {
         startBlock = endBlock
       }
       endBlock = blockNumber
-      amm.off(filter, handleEvent)
-      amm.on(filter, handleEvent)
       const events = (
         (await amm.queryFilter(filter, startBlock, endBlock)) ?? []
       ).reverse()

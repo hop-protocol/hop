@@ -16,7 +16,7 @@ class L1ToL2Watcher extends BaseWatcher {
 
   public async start () {
     await this.startBase()
-    return this.pollDestination(await this.pollFn())
+    return this.poll(await this.pollFn())
   }
 
   public async pollFn (): Promise<any> {
@@ -36,7 +36,6 @@ class L1ToL2Watcher extends BaseWatcher {
     }
     let startBlock = -1
     let endBlock = -1
-
     const handleDestTx = async (destTx: any) => {
       if (!sourceTimestamp) {
         return false
@@ -51,24 +50,14 @@ class L1ToL2Watcher extends BaseWatcher {
         return false
       }
       if (destBlock.timestamp - sourceTimestamp < 500) {
-        const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
-          destTx.hash
-        )
-        this.ee.emit(Event.Receipt, {
-          chain: this.destinationChain,
-          receipt: destTxReceipt
-        })
-        this.ee.emit(Event.DestinationTxReceipt, {
-          chain: this.destinationChain,
-          receipt: destTxReceipt
-        })
-        amm.off(ammFilter, handleAmmEvent)
-        ambBridge.off(ambFilter, handleAmmEvent)
-        return true
+        if (await this.emitDestTxEvent(destTx)) {
+          amm.off(ammFilter, handleAmmEvent)
+          ambBridge.off(ambFilter, handleAmmEvent)
+          return true
+        }
       }
       return false
     }
-
     const handleAmmEvent = async (...args: any[]) => {
       const event = args[args.length - 1]
       if (!event) {
@@ -92,7 +81,6 @@ class L1ToL2Watcher extends BaseWatcher {
       }
       return false
     }
-
     const handleAmbEvent = async (...args: any[]) => {
       const event = args[args.length - 1]
       if (!event) {
@@ -116,7 +104,6 @@ class L1ToL2Watcher extends BaseWatcher {
       }
       return false
     }
-
     return async () => {
       const blockNumber = await this.destinationChain.provider.getBlockNumber()
       if (!blockNumber) {

@@ -15,7 +15,7 @@ class L2ToL1Watcher extends BaseWatcher {
 
   public async start () {
     await this.startBase()
-    return this.pollDestination(await this.pollFn())
+    return this.poll(await this.pollFn())
   }
 
   public async pollFn (): Promise<any> {
@@ -33,31 +33,18 @@ class L2ToL1Watcher extends BaseWatcher {
     let startBlock = -1
     let endBlock = -1
     const filter = l1Bridge.filters.WithdrawalBonded()
-
     const handleEvent = async (...args: any[]) => {
       const event = args[args.length - 1]
       if (event.topics[1] === transferHash) {
         const destTx = await event.getTransaction()
-        if (!destTx) {
-          return false
+        if (await this.emitDestTxEvent(destTx)) {
+          l1Bridge.off(filter, handleEvent)
+          return true
         }
-        const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
-          destTx.hash
-        )
-        this.ee.emit(Event.Receipt, {
-          chain: this.destinationChain,
-          receipt: destTxReceipt
-        })
-        this.ee.emit(Event.DestinationTxReceipt, {
-          chain: this.destinationChain,
-          receipt: destTxReceipt
-        })
-        l1Bridge.off(filter, handleEvent)
-        l1Bridge.on(filter, handleEvent)
-        return true
       }
+      return false
     }
-
+    l1Bridge.on(filter, handleEvent)
     return async () => {
       const blockNumber = await this.destinationChain.provider.getBlockNumber()
       if (!blockNumber) {
@@ -69,8 +56,6 @@ class L2ToL1Watcher extends BaseWatcher {
         startBlock = endBlock
       }
       endBlock = blockNumber
-      l1Bridge.off(filter, handleEvent)
-      l1Bridge.on(filter, handleEvent)
       const events = (
         (await l1Bridge.queryFilter(filter, startBlock, endBlock)) ?? []
       ).reverse()

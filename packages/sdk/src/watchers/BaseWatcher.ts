@@ -64,8 +64,7 @@ class BaseWatcher extends Base {
     const receipt = await this.sourceChain.provider.waitForTransaction(
       this.sourceTxHash
     )
-    this.ee.emit(Event.Receipt, { chain: this.sourceChain, receipt })
-    this.ee.emit(Event.SourceTxReceipt, { chain: this.sourceChain, receipt })
+    await this.emitSourceTxEvent(receipt)
     if (!receipt.status) {
       return
     }
@@ -83,7 +82,7 @@ class BaseWatcher extends Base {
     this.sourceReceipt = receipt
   }
 
-  async pollDestination (pollFn: any) {
+  async poll (pollFn: any) {
     if (!pollFn) {
       return
     }
@@ -92,6 +91,29 @@ class BaseWatcher extends Base {
       res = await pollFn()
       await wait(this.pollDelayMs)
     }
+  }
+
+  async emitSourceTxEvent (receipt: any) {
+    this.ee.emit(Event.Receipt, { chain: this.sourceChain, receipt })
+    this.ee.emit(Event.SourceTxReceipt, { chain: this.sourceChain, receipt })
+  }
+
+  async emitDestTxEvent (destTx: any) {
+    if (!destTx) {
+      return false
+    }
+    const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
+      destTx.hash
+    )
+    this.ee.emit(Event.Receipt, {
+      chain: this.destinationChain,
+      receipt: destTxReceipt
+    })
+    this.ee.emit(Event.DestinationTxReceipt, {
+      chain: this.destinationChain,
+      receipt: destTxReceipt
+    })
+    return true
   }
 }
 

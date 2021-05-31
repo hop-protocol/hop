@@ -19,7 +19,7 @@ class L1ToL2Watcher extends BaseWatcher {
 
   public async start () {
     await this.startBase()
-    return this.pollDestination(await this.pollFn())
+    return this.poll(await this.pollFn())
   }
 
   public async pollFn (): Promise<any> {
@@ -59,27 +59,16 @@ class L1ToL2Watcher extends BaseWatcher {
             )
           ) {
             const destTx = await event.getTransaction()
-            if (!destTx) {
-              return false
+            if (await this.emitDestTxEvent(destTx)) {
+              ambBridge.off(filter, handleEvent)
+              return true
             }
-            const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
-              destTx.hash
-            )
-            this.ee.emit(Event.Receipt, {
-              chain: this.destinationChain,
-              receipt: destTxReceipt
-            })
-            this.ee.emit(Event.DestinationTxReceipt, {
-              chain: this.destinationChain,
-              receipt: destTxReceipt
-            })
-            ambBridge.off(filter, handleEvent)
-            return true
           }
         }
       }
       return false
     }
+    ambBridge.on(filter, handleEvent)
     return async () => {
       const blockNumber = await this.destinationChain.provider.getBlockNumber()
       if (!blockNumber) {
@@ -91,8 +80,6 @@ class L1ToL2Watcher extends BaseWatcher {
         startBlock = endBlock
       }
       endBlock = blockNumber
-      ambBridge.off(filter, handleEvent)
-      ambBridge.on(filter, handleEvent)
       const events = (
         (await ambBridge.queryFilter(filter, startBlock, endBlock)) ?? []
       ).reverse()
@@ -137,27 +124,17 @@ class L1ToL2Watcher extends BaseWatcher {
             )
           ) {
             const destTx = await event.getTransaction()
-            if (!destTx) {
+            if (await this.emitDestTxEvent(destTx)) {
+              tokenBridge.off(filter, handleEvent)
               continue
             }
-            const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
-              destTx.hash
-            )
-            this.ee.emit(Event.Receipt, {
-              chain: this.destinationChain,
-              receipt: destTxReceipt
-            })
-            this.ee.emit(Event.DestinationTxReceipt, {
-              chain: this.destinationChain,
-              receipt: destTxReceipt
-            })
-            tokenBridge.off(filter, handleEvent)
             return true
           }
         }
       }
       return false
     }
+    tokenBridge.on(filter, handleEvent)
     return async () => {
       const blockNumber = await this.destinationChain.provider.getBlockNumber()
       if (!blockNumber) {
@@ -169,8 +146,6 @@ class L1ToL2Watcher extends BaseWatcher {
         startBlock = endBlock
       }
       endBlock = blockNumber
-      tokenBridge.off(filter, handleEvent)
-      tokenBridge.on(filter, handleEvent)
       const events = (
         (await tokenBridge.queryFilter(filter, startBlock, endBlock)) ?? []
       ).reverse()

@@ -22,7 +22,7 @@ class L1ToL2Watcher extends BaseWatcher {
 
   public async start () {
     await this.startBase()
-    return this.pollDestination(await this.pollFn())
+    return this.poll(await this.pollFn())
   }
 
   public async pollFn (): Promise<any> {
@@ -82,6 +82,7 @@ class L1ToL2Watcher extends BaseWatcher {
         }
       }
     }
+    ambBridge.on(filter, handleEvent)
     return async () => {
       const blockNumber = await this.destinationChain.provider.getBlockNumber()
       if (!blockNumber) {
@@ -93,8 +94,6 @@ class L1ToL2Watcher extends BaseWatcher {
         startBlock = endBlock
       }
       endBlock = blockNumber
-      ambBridge.off(filter, handleEvent)
-      ambBridge.on(filter, handleEvent)
       const events = (
         (await ambBridge.queryFilter(filter, startBlock, endBlock)) ?? []
       ).reverse()
@@ -146,27 +145,16 @@ class L1ToL2Watcher extends BaseWatcher {
             }
 
             const destTx = await event.getTransaction()
-            if (!destTx) {
-              continue
+            if (await this.emitDestTxEvent(destTx)) {
+              contract.off(filter, handleEvent)
+              return true
             }
-            const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
-              destTx.hash
-            )
-            this.ee.emit(Event.Receipt, {
-              chain: this.destinationChain,
-              receipt: destTxReceipt
-            })
-            this.ee.emit(Event.DestinationTxReceipt, {
-              chain: this.destinationChain,
-              receipt: destTxReceipt
-            })
-            contract.off(filter, handleEvent)
-            return true
           }
         }
       }
       return false
     }
+    contract.on(filter, handleEvent)
     return async () => {
       const blockNumber = await this.destinationChain.provider.getBlockNumber()
       if (!blockNumber) {
@@ -178,8 +166,6 @@ class L1ToL2Watcher extends BaseWatcher {
         startBlock = endBlock
       }
       endBlock = blockNumber
-      contract.off(filter, handleEvent)
-      contract.on(filter, handleEvent)
       const events = (
         (await contract.queryFilter(filter, startBlock, endBlock)) ?? []
       ).reverse()

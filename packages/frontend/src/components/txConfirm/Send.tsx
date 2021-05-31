@@ -52,7 +52,7 @@ const Send = (props: Props) => {
     <div className={styles.root}>
       <div className={styles.title}>
         <Typography variant="h5" color="textPrimary">
-          Send {commafy(source.amount)} {source.token.symbol} from{' '}
+          Send {commafy(source.amount, 5)} {source.token.symbol} from{' '}
           {source.network.name} to {dest?.network?.name}
         </Typography>
       </div>

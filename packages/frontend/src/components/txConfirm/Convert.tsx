@@ -50,8 +50,8 @@ const Convert = (props: Props) => {
     <div className={styles.root}>
       <div className={styles.title}>
         <Typography variant="h5" color="textPrimary">
-          Convert {commafy(source.amount)} {source.token.symbol} for{' '}
-          {commafy(dest.amount)} {dest.token.symbol}
+          Convert {commafy(source.amount, 5)} {source.token.symbol} for{' '}
+          {commafy(dest.amount, 5)} {dest.token.symbol}
         </Typography>
       </div>
       <div className={styles.action}>

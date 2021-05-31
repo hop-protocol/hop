@@ -21,9 +21,10 @@ class L2ToL1Watcher extends BaseWatcher {
   public async pollFn (): Promise<any> {
     const l1Bridge = await this.bridge.getL1Bridge()
     let transferHash: string = ''
-    for (let log of this.sourceReceipt.logs) {
+    for (const log of this.sourceReceipt.logs) {
       if (log.topics[0] === transferSentTopic) {
         transferHash = log.topics[1]
+        break
       }
     }
     if (!transferHash) {
@@ -31,6 +32,32 @@ class L2ToL1Watcher extends BaseWatcher {
     }
     let startBlock = -1
     let endBlock = -1
+    const filter = l1Bridge.filters.WithdrawalBonded()
+
+    const handleEvent = async (...args: any[]) => {
+      const event = args[args.length - 1]
+      if (event.topics[1] === transferHash) {
+        const destTx = await event.getTransaction()
+        if (!destTx) {
+          return false
+        }
+        const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
+          destTx.hash
+        )
+        this.ee.emit(Event.Receipt, {
+          chain: this.destinationChain,
+          receipt: destTxReceipt
+        })
+        this.ee.emit(Event.DestinationTxReceipt, {
+          chain: this.destinationChain,
+          receipt: destTxReceipt
+        })
+        l1Bridge.off(filter, handleEvent)
+        l1Bridge.on(filter, handleEvent)
+        return true
+      }
+    }
+
     return async () => {
       const blockNumber = await this.destinationChain.provider.getBlockNumber()
       if (!blockNumber) {
@@ -42,33 +69,16 @@ class L2ToL1Watcher extends BaseWatcher {
         startBlock = endBlock
       }
       endBlock = blockNumber
-      let recentLogs: any[] =
-        (await l1Bridge?.queryFilter(
-          l1Bridge.filters.WithdrawalBonded(),
-          startBlock,
-          endBlock
-        )) ?? []
-      recentLogs = recentLogs.reverse()
-      if (!recentLogs || !recentLogs.length) {
+      l1Bridge.off(filter, handleEvent)
+      l1Bridge.on(filter, handleEvent)
+      const events = (
+        (await l1Bridge.queryFilter(filter, startBlock, endBlock)) ?? []
+      ).reverse()
+      if (!events || !events.length) {
         return false
       }
-      for (let item of recentLogs) {
-        if (item.topics[1] === transferHash) {
-          const destTx = await item.getTransaction()
-          if (!destTx) {
-            continue
-          }
-          const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
-            destTx.hash
-          )
-          this.ee.emit(Event.Receipt, {
-            chain: this.destinationChain,
-            receipt: destTxReceipt
-          })
-          this.ee.emit(Event.DestinationTxReceipt, {
-            chain: this.destinationChain,
-            receipt: destTxReceipt
-          })
+      for (const event of events) {
+        if (await handleEvent(event)) {
           return true
         }
       }

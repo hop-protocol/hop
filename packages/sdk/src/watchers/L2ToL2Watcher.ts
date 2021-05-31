@@ -31,7 +31,7 @@ class L2ToL2Watcher extends BaseWatcher {
   private async wrapperWatcher () {
     const l2Dest = await this.bridge.getL2Bridge(this.destinationChain)
     let transferHash: string = ''
-    for (let log of this.sourceReceipt.logs) {
+    for (const log of this.sourceReceipt.logs) {
       if (log.topics[0] === transferSentTopic) {
         transferHash = log.topics[1]
         break
@@ -40,49 +40,100 @@ class L2ToL2Watcher extends BaseWatcher {
     if (!transferHash) {
       return false
     }
+    const filter = l2Dest.filters.WithdrawalBonded()
+    const handleEvent = async (...args: any[]) => {
+      const event = args[args.length - 1]
+      const decodedLog = event.decode(event.data, event.topics)
+      if (transferHash === decodedLog.transferId) {
+        if (!this.sourceBlock.timestamp) {
+          return false
+        }
+        const destTx = await event.getTransaction()
+        if (!destTx) {
+          return false
+        }
+        const destBlock = await this.destinationChain.provider.getBlock(
+          destTx.blockNumber
+        )
+        if (!destBlock) {
+          return false
+        }
+        const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
+          destTx.hash
+        )
+        this.ee.emit(Event.Receipt, {
+          chain: this.destinationChain,
+          receipt: destTxReceipt
+        })
+        this.ee.emit(Event.DestinationTxReceipt, {
+          chain: this.destinationChain,
+          receipt: destTxReceipt
+        })
+        l2Dest.off(filter, handleEvent)
+        return true
+      }
+      return false
+    }
     return async () => {
-      let headBlock =
+      const headBlock =
         this.options?.destinationHeadBlockNumber ||
         (await this.destinationChain.provider.getBlockNumber())
       if (!headBlock) {
         return false
       }
-      let tailBlock = headBlock - 10000
+      const tailBlock = headBlock - 10000
       const getRecentLogs = async (head: number): Promise<any[]> => {
         if (head < tailBlock) {
           return []
         }
         const start = head - 1000
         const end = head
-        let recentLogs: any[] =
-          (await l2Dest?.queryFilter(
-            l2Dest.filters.WithdrawalBonded(),
-            start,
-            end
-          )) ?? []
-        recentLogs = recentLogs.reverse()
-        if (recentLogs.length) {
-          return recentLogs
+        l2Dest.off(filter, handleEvent)
+        l2Dest.on(filter, handleEvent)
+        const events = (
+          (await l2Dest.queryFilter(filter, start, end)) ?? []
+        ).reverse()
+        if (events.length) {
+          return events
         }
         return getRecentLogs(start)
       }
-      let recentLogs = await getRecentLogs(headBlock)
-      for (let item of recentLogs) {
-        const decodedLog = item.decode(item.data, item.topics)
-        if (transferHash === decodedLog.transferId) {
-          if (!this.sourceBlock.timestamp) {
-            continue
-          }
-          const destTx = await item.getTransaction()
-          if (!destTx) {
-            continue
-          }
-          const destBlock = await this.destinationChain.provider.getBlock(
-            destTx.blockNumber
-          )
-          if (!destBlock) {
-            continue
-          }
+      const events = await getRecentLogs(headBlock)
+      for (const event of events) {
+        if (await handleEvent(event)) {
+          return true
+        }
+      }
+      return false
+    }
+  }
+
+  private async ammWatcher () {
+    // events for token swap on L2 (ie saddle convert page on UI)
+    const amm = await this.bridge.getSaddleSwap(this.destinationChain)
+    let startBlock = -1
+    let endBlock = -1
+    const filter = amm.filters.TokenSwap()
+
+    const handleEvent = async (...args: any[]) => {
+      const event = args[args.length - 1]
+      console.log('amm ev', event)
+      const decodedLog = event.decode(event.data, event.topics)
+      if (this.sourceTx.from === decodedLog.buyer) {
+        if (!this.sourceBlock.timestamp) {
+          return false
+        }
+        const destTx = await event.getTransaction()
+        if (!destTx) {
+          return false
+        }
+        const destBlock = await this.destinationChain.provider.getBlock(
+          destTx.blockNumber
+        )
+        if (!destBlock) {
+          return false
+        }
+        if (destBlock.timestamp - this.sourceBlock.timestamp < 500) {
           const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
             destTx.hash
           )
@@ -94,19 +145,13 @@ class L2ToL2Watcher extends BaseWatcher {
             chain: this.destinationChain,
             receipt: destTxReceipt
           })
+          amm.off(filter, handleEvent)
           return true
         }
-        return false
       }
       return false
     }
-  }
 
-  private async ammWatcher () {
-    // events for token swap on L2 (ie saddle convert page on UI)
-    const amm = await this.bridge.getSaddleSwap(this.destinationChain)
-    let startBlock = -1
-    let endBlock = -1
     return async () => {
       const blockNumber = await this.destinationChain.provider.getBlockNumber()
       if (!blockNumber) {
@@ -118,48 +163,18 @@ class L2ToL2Watcher extends BaseWatcher {
         startBlock = endBlock
       }
       endBlock = blockNumber
-      let recentLogs: any[] =
-        (await amm?.queryFilter(
-          amm.filters.TokenSwap(),
-          startBlock,
-          endBlock
-        )) ?? []
-      recentLogs = recentLogs.reverse()
-      if (!recentLogs || !recentLogs.length) {
+      amm.off(filter, handleEvent)
+      amm.on(filter, handleEvent)
+      const events = (
+        (await amm.queryFilter(filter, startBlock, endBlock)) ?? []
+      ).reverse()
+      if (!events || !events.length) {
         return false
       }
-      for (let item of recentLogs) {
-        const decodedLog = item.decode(item.data, item.topics)
-        if (this.sourceTx.from === decodedLog.buyer) {
-          if (!this.sourceBlock.timestamp) {
-            continue
-          }
-          const destTx = await item.getTransaction()
-          if (!destTx) {
-            continue
-          }
-          const destBlock = await this.destinationChain.provider.getBlock(
-            destTx.blockNumber
-          )
-          if (!destBlock) {
-            continue
-          }
-          if (destBlock.timestamp - this.sourceBlock.timestamp < 500) {
-            const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
-              destTx.hash
-            )
-            this.ee.emit(Event.Receipt, {
-              chain: this.destinationChain,
-              receipt: destTxReceipt
-            })
-            this.ee.emit(Event.DestinationTxReceipt, {
-              chain: this.destinationChain,
-              receipt: destTxReceipt
-            })
-            return true
-          }
+      for (const event of events) {
+        if (await handleEvent(event)) {
+          return true
         }
-        return false
       }
       return false
     }

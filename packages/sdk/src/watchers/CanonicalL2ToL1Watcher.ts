@@ -35,9 +35,53 @@ class L1ToL2Watcher extends BaseWatcher {
     }
   }
 
-  xDaiWatcher () {
+  private async xDaiWatcher () {
     let startBlock = -1
     let endBlock = -1
+    const canonicalBridge = new CanonicalBridge(
+      this.network,
+      this.signer,
+      this.token,
+      Chain.xDai
+    )
+    const ambBridge = await canonicalBridge.getAmbBridge(Chain.Ethereum)
+    const filter = {
+      address: canonicalBridge.getL1CanonicalTokenAddress(
+        this.token,
+        Chain.xDai
+      )
+    }
+    const handleEvent = async (...args: any[]) => {
+      const event = args[args.length - 1]
+      const receipt = await event.getTransactionReceipt()
+      for (const i in receipt.logs) {
+        if (receipt.logs[i].topics[0] === tokensBridgedTopic) {
+          if (
+            receipt.logs[i].topics[2].includes(
+              this.sourceTx.from.toLowerCase().replace('0x', '')
+            )
+          ) {
+            const destTx = await event.getTransaction()
+            if (!destTx) {
+              continue
+            }
+            const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
+              destTx.hash
+            )
+            this.ee.emit(Event.Receipt, {
+              chain: this.destinationChain,
+              receipt: destTxReceipt
+            })
+            this.ee.emit(Event.DestinationTxReceipt, {
+              chain: this.destinationChain,
+              receipt: destTxReceipt
+            })
+            ambBridge.off(filter, handleEvent)
+            return true
+          }
+        }
+      }
+    }
     return async () => {
       const blockNumber = await this.destinationChain.provider.getBlockNumber()
       if (!blockNumber) {
@@ -49,55 +93,17 @@ class L1ToL2Watcher extends BaseWatcher {
         startBlock = endBlock
       }
       endBlock = blockNumber
-      const canonicalBridge = new CanonicalBridge(
-        this.network,
-        this.signer,
-        this.token,
-        Chain.xDai
-      )
-      const ambBridge = await canonicalBridge.getAmbBridge(Chain.Ethereum)
-      let recentLogs: any[] =
-        (await ambBridge?.queryFilter(
-          {
-            address: canonicalBridge.getL1CanonicalTokenAddress(
-              this.token,
-              Chain.xDai
-            )
-          },
-          startBlock,
-          endBlock
-        )) ?? []
-      recentLogs = recentLogs.reverse()
-      if (!recentLogs || !recentLogs.length) {
+      ambBridge.off(filter, handleEvent)
+      ambBridge.on(filter, handleEvent)
+      const events = (
+        (await ambBridge.queryFilter(filter, startBlock, endBlock)) ?? []
+      ).reverse()
+      if (!events || !events.length) {
         return false
       }
-      for (let item of recentLogs) {
-        const receipt = await item.getTransactionReceipt()
-        for (let i in receipt.logs) {
-          if (receipt.logs[i].topics[0] === tokensBridgedTopic) {
-            if (
-              receipt.logs[i].topics[2].includes(
-                this.sourceTx.from.toLowerCase().replace('0x', '')
-              )
-            ) {
-              const destTx = await item.getTransaction()
-              if (!destTx) {
-                continue
-              }
-              const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
-                destTx.hash
-              )
-              this.ee.emit(Event.Receipt, {
-                chain: this.destinationChain,
-                receipt: destTxReceipt
-              })
-              this.ee.emit(Event.DestinationTxReceipt, {
-                chain: this.destinationChain,
-                receipt: destTxReceipt
-              })
-              return true
-            }
-          }
+      for (const event of events) {
+        if (await handleEvent(event)) {
+          return true
         }
       }
       return false
@@ -107,6 +113,60 @@ class L1ToL2Watcher extends BaseWatcher {
   private async polygonWatcher () {
     let startBlock = -1
     let endBlock = -1
+    const tokenAddress = this.getL1CanonicalTokenAddress(
+      this.token,
+      Chain.Ethereum
+    )
+    const contract = new Contract(
+      tokenAddress,
+      erc20Abi,
+      await this.getSignerOrProvider(Chain.Ethereum)
+    )
+    const filter: any = {
+      topics: []
+    }
+    const handleEvent = async (...args: any[]) => {
+      const event = args[args.length - 1]
+      const receipt = await event.getTransactionReceipt()
+      for (const i in receipt.logs) {
+        if (receipt.logs[i].topics[0] === tokenTransferTopic) {
+          if (
+            receipt.logs[i].topics[2].includes(
+              this.sourceTx.from.toLowerCase().replace('0x', '')
+            )
+          ) {
+            if (
+              !receipt.logs[i].topics[1].includes(
+                this.getL1PosErc20PredicateAddress(this.token, Chain.Polygon)
+                  .toLowerCase()
+                  .replace('0x', '')
+              )
+            ) {
+              continue
+            }
+
+            const destTx = await event.getTransaction()
+            if (!destTx) {
+              continue
+            }
+            const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
+              destTx.hash
+            )
+            this.ee.emit(Event.Receipt, {
+              chain: this.destinationChain,
+              receipt: destTxReceipt
+            })
+            this.ee.emit(Event.DestinationTxReceipt, {
+              chain: this.destinationChain,
+              receipt: destTxReceipt
+            })
+            contract.off(filter, handleEvent)
+            return true
+          }
+        }
+      }
+      return false
+    }
     return async () => {
       const blockNumber = await this.destinationChain.provider.getBlockNumber()
       if (!blockNumber) {
@@ -118,64 +178,17 @@ class L1ToL2Watcher extends BaseWatcher {
         startBlock = endBlock
       }
       endBlock = blockNumber
-      const tokenAddress = this.getL1CanonicalTokenAddress(
-        this.token,
-        Chain.Ethereum
-      )
-      const contract = new Contract(
-        tokenAddress,
-        erc20Abi,
-        await this.getSignerOrProvider(Chain.Ethereum)
-      )
-      let recentLogs: any[] =
-        (await contract?.queryFilter(
-          {
-            topics: []
-          },
-          startBlock,
-          endBlock
-        )) ?? []
-      recentLogs = recentLogs.reverse()
-      if (!recentLogs || !recentLogs.length) {
+      contract.off(filter, handleEvent)
+      contract.on(filter, handleEvent)
+      const events = (
+        (await contract.queryFilter(filter, startBlock, endBlock)) ?? []
+      ).reverse()
+      if (!events || !events.length) {
         return false
       }
-      for (let item of recentLogs) {
-        const receipt = await item.getTransactionReceipt()
-        for (let i in receipt.logs) {
-          if (receipt.logs[i].topics[0] === tokenTransferTopic) {
-            if (
-              receipt.logs[i].topics[2].includes(
-                this.sourceTx.from.toLowerCase().replace('0x', '')
-              )
-            ) {
-              if (
-                !receipt.logs[i].topics[1].includes(
-                  this.getL1PosErc20PredicateAddress(this.token, Chain.Polygon)
-                    .toLowerCase()
-                    .replace('0x', '')
-                )
-              ) {
-                continue
-              }
-
-              const destTx = await item.getTransaction()
-              if (!destTx) {
-                continue
-              }
-              const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
-                destTx.hash
-              )
-              this.ee.emit(Event.Receipt, {
-                chain: this.destinationChain,
-                receipt: destTxReceipt
-              })
-              this.ee.emit(Event.DestinationTxReceipt, {
-                chain: this.destinationChain,
-                receipt: destTxReceipt
-              })
-              return true
-            }
-          }
+      for (const event of events) {
+        if (await handleEvent(event)) {
+          return true
         }
       }
       return false

@@ -25,6 +25,9 @@ class L1ToL2Watcher extends BaseWatcher {
   public async pollFn (): Promise<any> {
     if (this.destinationChain.equals(Chain.xDai)) {
       return this.xDaiWatcher()
+    } else if (this.destinationChain.equals(Chain.Optimism)) {
+      console.log('TODO')
+      throw new Error('not implemented')
     } else if (this.destinationChain.equals(Chain.Polygon)) {
       return this.polygonWatcher()
     } else {
@@ -32,9 +35,51 @@ class L1ToL2Watcher extends BaseWatcher {
     }
   }
 
-  private xDaiWatcher () {
+  private async xDaiWatcher () {
     let startBlock = -1
     let endBlock = -1
+    const canonicalBridge = new CanonicalBridge(
+      this.network,
+      this.signer,
+      this.token,
+      Chain.xDai
+    )
+    const ambBridge = await canonicalBridge.getAmbBridge(Chain.xDai)
+    const filter = {
+      address: this.getL2CanonicalTokenAddress(this.token, Chain.xDai)
+    }
+    const handleEvent = async (...args: any[]) => {
+      const event = args[args.length - 1]
+      const receipt = await event.getTransactionReceipt()
+      for (const i in receipt.logs) {
+        if (receipt.logs[i].topics[0] === tokensBridgedTopic) {
+          if (
+            receipt.logs[i].topics[2].includes(
+              this.sourceTx.from.toLowerCase().replace('0x', '')
+            )
+          ) {
+            const destTx = await event.getTransaction()
+            if (!destTx) {
+              return false
+            }
+            const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
+              destTx.hash
+            )
+            this.ee.emit(Event.Receipt, {
+              chain: this.destinationChain,
+              receipt: destTxReceipt
+            })
+            this.ee.emit(Event.DestinationTxReceipt, {
+              chain: this.destinationChain,
+              receipt: destTxReceipt
+            })
+            ambBridge.off(filter, handleEvent)
+            return true
+          }
+        }
+      }
+      return false
+    }
     return async () => {
       const blockNumber = await this.destinationChain.provider.getBlockNumber()
       if (!blockNumber) {
@@ -46,52 +91,17 @@ class L1ToL2Watcher extends BaseWatcher {
         startBlock = endBlock
       }
       endBlock = blockNumber
-      const canonicalBridge = new CanonicalBridge(
-        this.network,
-        this.signer,
-        this.token,
-        Chain.xDai
-      )
-      const ambBridge = await canonicalBridge.getAmbBridge(Chain.xDai)
-      let recentLogs: any[] =
-        (await ambBridge?.queryFilter(
-          {
-            address: this.getL2CanonicalTokenAddress(this.token, Chain.xDai)
-          },
-          startBlock,
-          endBlock
-        )) ?? []
-      recentLogs = recentLogs.reverse()
-      if (!recentLogs || !recentLogs.length) {
+      ambBridge.off(filter, handleEvent)
+      ambBridge.on(filter, handleEvent)
+      const events = (
+        (await ambBridge.queryFilter(filter, startBlock, endBlock)) ?? []
+      ).reverse()
+      if (!events || !events.length) {
         return false
       }
-      for (let item of recentLogs) {
-        const receipt = await item.getTransactionReceipt()
-        for (let i in receipt.logs) {
-          if (receipt.logs[i].topics[0] === tokensBridgedTopic) {
-            if (
-              receipt.logs[i].topics[2].includes(
-                this.sourceTx.from.toLowerCase().replace('0x', '')
-              )
-            ) {
-              const destTx = await item.getTransaction()
-              if (!destTx) {
-                continue
-              }
-              const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
-                destTx.hash
-              )
-              this.ee.emit(Event.Receipt, {
-                chain: this.destinationChain,
-                receipt: destTxReceipt
-              })
-              this.ee.emit(Event.DestinationTxReceipt, {
-                chain: this.destinationChain,
-                receipt: destTxReceipt
-              })
-              return true
-            }
-          }
+      for (const event of events) {
+        if (await handleEvent(event)) {
+          return true
         }
       }
       return false
@@ -101,6 +111,53 @@ class L1ToL2Watcher extends BaseWatcher {
   private async polygonWatcher () {
     let startBlock = -1
     let endBlock = -1
+    const canonicalBridge = new CanonicalBridge(
+      this.network,
+      this.signer,
+      this.token,
+      Chain.Polygon
+    )
+    const tokenBridge = await canonicalBridge.getL2CanonicalBridge(
+      Chain.Polygon
+    )
+    const filter = {
+      address: canonicalBridge.getL2CanonicalTokenAddress(
+        this.token,
+        Chain.Polygon
+      )
+    }
+    const handleEvent = async (...args: any[]) => {
+      const event = args[args.length - 1]
+      const receipt = await event.getTransactionReceipt()
+      for (const i in receipt.logs) {
+        if (receipt.logs[i].topics[0] === tokenTransferTopic) {
+          if (
+            receipt.logs[i].topics[2].includes(
+              this.sourceTx.from.toLowerCase().replace('0x', '')
+            )
+          ) {
+            const destTx = await event.getTransaction()
+            if (!destTx) {
+              continue
+            }
+            const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
+              destTx.hash
+            )
+            this.ee.emit(Event.Receipt, {
+              chain: this.destinationChain,
+              receipt: destTxReceipt
+            })
+            this.ee.emit(Event.DestinationTxReceipt, {
+              chain: this.destinationChain,
+              receipt: destTxReceipt
+            })
+            tokenBridge.off(filter, handleEvent)
+            return true
+          }
+        }
+      }
+      return false
+    }
     return async () => {
       const blockNumber = await this.destinationChain.provider.getBlockNumber()
       if (!blockNumber) {
@@ -112,57 +169,17 @@ class L1ToL2Watcher extends BaseWatcher {
         startBlock = endBlock
       }
       endBlock = blockNumber
-      const canonicalBridge = new CanonicalBridge(
-        this.network,
-        this.signer,
-        this.token,
-        Chain.Polygon
-      )
-      const tokenBridge = await canonicalBridge.getL2CanonicalBridge(
-        Chain.Polygon
-      )
-      let recentLogs: any[] =
-        (await tokenBridge?.queryFilter(
-          {
-            address: canonicalBridge.getL2CanonicalTokenAddress(
-              this.token,
-              Chain.Polygon
-            )
-          },
-          startBlock,
-          endBlock
-        )) ?? []
-      recentLogs = recentLogs.reverse()
-      if (!recentLogs || !recentLogs.length) {
+      tokenBridge.off(filter, handleEvent)
+      tokenBridge.on(filter, handleEvent)
+      const events = (
+        (await tokenBridge.queryFilter(filter, startBlock, endBlock)) ?? []
+      ).reverse()
+      if (!events || !events.length) {
         return false
       }
-      for (let item of recentLogs) {
-        const receipt = await item.getTransactionReceipt()
-        for (let i in receipt.logs) {
-          if (receipt.logs[i].topics[0] === tokenTransferTopic) {
-            if (
-              receipt.logs[i].topics[2].includes(
-                this.sourceTx.from.toLowerCase().replace('0x', '')
-              )
-            ) {
-              const destTx = await item.getTransaction()
-              if (!destTx) {
-                continue
-              }
-              const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
-                destTx.hash
-              )
-              this.ee.emit(Event.Receipt, {
-                chain: this.destinationChain,
-                receipt: destTxReceipt
-              })
-              this.ee.emit(Event.DestinationTxReceipt, {
-                chain: this.destinationChain,
-                receipt: destTxReceipt
-              })
-              return true
-            }
-          }
+      for (const event of events) {
+        if (await handleEvent(event)) {
+          return true
         }
       }
       return false

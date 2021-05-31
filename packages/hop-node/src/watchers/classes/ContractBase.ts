@@ -86,6 +86,7 @@ export default class ContractBase extends EventEmitter {
         txOptions.gasPrice = 0
         txOptions.gasLimit = 8000000
       } else if (this.chainSlug === Chain.xDai) {
+        txOptions.gasPrice = 50000000000
         txOptions.gasLimit = 5000000
       }
     }

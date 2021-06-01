@@ -32,7 +32,7 @@ export interface HopAddresses {
 export type Networks = {
   [key: string]: {
     networkId: string
-    rpcUrl: string
+    rpcUrls: string[]
     explorerUrl: string
   }
 }

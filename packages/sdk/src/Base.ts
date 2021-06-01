@@ -6,8 +6,18 @@ import { addresses, chains, metadata, bonders } from './config'
 
 // cache provider
 const getProvider = memoize((network: string, chain: Chain) => {
-  const { rpcUrl } = chains[network][chain.slug]
-  return new providers.StaticJsonRpcProvider(rpcUrl)
+  const { rpcUrls } = chains[network][chain.slug]
+  const ethersProviders: providers.Provider[] = []
+  for (let rpcUrl of rpcUrls) {
+    const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+    ethersProviders.push(provider)
+  }
+
+  if (ethersProviders.length === 1) {
+    return ethersProviders[0]
+  }
+
+  return new providers.FallbackProvider(ethersProviders, 1)
 })
 
 const getContractMemo = memoize(
@@ -34,7 +44,7 @@ const getContract = async (
 ): Promise<Contract> => {
   let p = provider as any
   const cacheKey = `${p?.getAddress ? await p?.getAddress() : ''}${p?.provider
-    ?._network?.chainId || p?.connection.url}`
+    ?._network?.chainId || p?.connection?.url}`
   return getContractMemo(address, abi, cacheKey)(provider)
 }
 

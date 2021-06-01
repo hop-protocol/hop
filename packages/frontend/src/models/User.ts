@@ -21,10 +21,15 @@ class User {
 
   async getBalance (token: Token, network: Network): Promise<ethers.BigNumber> {
     const bridge = sdk.bridge(token.symbol.replace('h', ''))
-    // TODO: better way
-    const isHop = token.symbol.startsWith('h')
+    // TODO: better way and clean up
+    const isHop = token.symbol.startsWith('h') || network?.slug?.includes('Hop')
     const _token = isHop ? bridge.hopToken : bridge.token
-    return _token.connect(this.provider?.getSigner()).balanceOf(network.slug)
+
+    // note: remove this when convert page is refactored
+    const canonicalSlug = (network: Network) => {
+      return network?.slug?.replace('HopBridge', '')
+    }
+    return _token.connect(this.provider?.getSigner()).balanceOf(canonicalSlug(network))
     // return ethers.BigNumber.from('0')
     // const tokenContract = token.contractForNetwork(network)
     // const userAddress = this.provider.getSigner().getAddress()

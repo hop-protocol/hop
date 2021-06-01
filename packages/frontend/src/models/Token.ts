@@ -7,7 +7,6 @@ type TokenProps = {
   tokenName: string
   imageUrl: string
   decimals?: number
-  contracts: { [key: string]: Contract | undefined }
   supportedNetworks?: string[]
 }
 
@@ -16,7 +15,6 @@ class Token {
   readonly tokenName: string
   readonly decimals: number
   readonly imageUrl: string
-  readonly contracts: { [key: string]: Contract | undefined }
   readonly addresses: { [key: string]: Address } = {}
   readonly supportedNetworks: string[] = []
 
@@ -25,37 +23,12 @@ class Token {
     this.tokenName = props.tokenName
     this.imageUrl = props.imageUrl
     this.decimals = props.decimals || 18
-    this.contracts = props.contracts
     this.supportedNetworks = props.supportedNetworks || []
-    Object.keys(props.contracts).forEach(key => {
-      const contract = props.contracts[key]
-      if (contract) {
-        this.addresses[key] = new Address(contract.address)
-      }
-    })
   }
 
   networkSymbol (network: Network | undefined) {
     const prefix = network?.slug || ''
     return prefix + '.' + this.symbol
-  }
-
-  contractForNetwork (network: Network): Contract {
-    const contract = this.contracts[network.slug]
-    if (!contract) {
-      throw new Error(`No token contract for Network '${network.name}'`)
-    }
-
-    return contract
-  }
-
-  addressForNetwork (network: Network): Address {
-    return new Address(this.contractForNetwork(network).address)
-  }
-
-  rateForNetwork (network: Network | undefined): BigNumber {
-    // TOD: fetch rates
-    return BigNumber.from('0')
   }
 
   eq (otherToken: Token) {

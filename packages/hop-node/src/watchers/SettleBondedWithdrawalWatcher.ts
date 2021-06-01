@@ -173,7 +173,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       const destinationBridge = this.siblingWatchers[destinationChainId]
         .bridge as L2Bridge
 
-      let startBlockSearch: number
+      let startSearchBlockNumber: number
       let startEvent: any
       let endEvent: any
       await sourceBridge.eventsBatch(async (start: number, end: number) => {
@@ -184,7 +184,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
         // events are sorted from [newest...oldest]
         events = events.reverse()
-        startBlockSearch = start
+        startSearchBlockNumber = start
         for (let event of events) {
           let eventTransferRoot = await db.transferRoots.getByTransferRootHash(
             event.args.rootHash
@@ -216,19 +216,17 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         // There will not be a startEvent if this was the first CommitTransfers event since
         // the deployment of the contract
 
-        // Handle the case where the contract was deployed 
         const sourceBridgeAddress = this.bridge.getAddress()
         const codeAtAddress = await sourceBridge.getCode(
-          sourceBridgeAddress, startBlockSearch
+          sourceBridgeAddress, startSearchBlockNumber
         )
-        const isContractDeployed = codeAtAddress !== '0x'
-        if (!isContractDeployed) {
-          startBlockNumber = startBlockSearch
+
+        if (codeAtAddress === '0x') {
+          startBlockNumber = startSearchBlockNumber
         }
 
-        // Handle the case where there were no commitTransfers between our search
+        endBlockNumber = endEvent.blockNumber - 1
       }
-
 
       if (startBlockNumber && endBlockNumber) {
         // TODO: This won't work if transferSent and transfersCommitted in same block

@@ -123,20 +123,11 @@ const PoolsContextProvider: FC = ({ children }) => {
       return
     }
     const l2Networks = networks.filter(network => !network.isLayer1)
-    const hopBridgeContracts = l2Networks.reduce((obj, network) => {
-      const contract = token?.contracts[`${network.slug}HopBridge`]
-      if (contract) {
-        obj[network.slug] = contract
-      }
-      return obj
-    }, {} as { [key: string]: Contract })
-
     return new Token({
       symbol: `h${token?.symbol}`,
       imageUrl: token?.imageUrl,
       tokenName: token?.tokenName,
       decimals: token?.decimals,
-      contracts: hopBridgeContracts
     })
   }, [tokens, selectedToken, networks])
 
@@ -443,7 +434,6 @@ const PoolsContextProvider: FC = ({ children }) => {
               symbol: lpToken.symbol,
               tokenName: lpToken.name,
               imageUrl: '',
-              contracts: {}
             })
           },
           onConfirm: async (approveAll: boolean) => {

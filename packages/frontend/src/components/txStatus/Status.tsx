@@ -29,6 +29,9 @@ const useStyles = makeStyles(theme => ({
     marginBottom: '2rem',
     flexDirection: 'column'
   },
+  stepLabelRoot: {
+    width: '9rem',
+  },
   stepLabel: {
     fontSize: '2rem'
   },
@@ -42,10 +45,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const CustomStepConnector = withStyles({
-  root: {
-    width: '100px',
-    border: '2px solid red',
-  },
+  root: {},
   alternativeLabel: {
     top: 10,
     left: 'calc(-50% + 16px)',
@@ -65,7 +65,6 @@ const CustomStepConnector = withStyles({
     borderColor: '#dbdbe8',
     borderTopWidth: 3,
     borderRadius: 1,
-    width: '10px'
   }
 })(StepConnector)
 
@@ -182,6 +181,7 @@ const Status: FC<StatusProps> = (props: StatusProps) => {
             <Step key={step.text}>
               <StepLabel
                 classes={{
+                  root: styles.stepLabelRoot,
                   label: styles.stepLabel
                 }}
                 StepIconComponent={step.error ? StepFailIcon : StepIcon}

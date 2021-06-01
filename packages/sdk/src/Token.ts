@@ -184,7 +184,7 @@ class Token extends Base {
     }
 
     const provider = await this.getSignerOrProvider(chain)
-    return new Contract(tokenAddress, erc20Abi, provider)
+    return this.getContract(tokenAddress, erc20Abi, provider)
   }
 
   get chainId () {

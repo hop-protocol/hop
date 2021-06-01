@@ -30,6 +30,7 @@
     "deepmerge": "^4.2.2",
     "dotenv": "8.2.0",
     "ethers": "^5.1.0",
+    "fast-memoize": "^2.5.2",
     "gridplus-sdk": "0.6.1",
     "luxon": "1.25.0",
     "numbro": "^2.3.2",

@@ -210,12 +210,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       let endBlockNumber
       if (startEvent && endEvent) {
         startBlockNumber = startEvent.blockNumber
-        // TODO: This won't work if transferSent and transfersCommitted in same block
-        endBlockNumber = endEvent.blockNumber - 1
+        endBlockNumber = endEvent.blockNumber
       } else if (!startEvent && endEvent) {
         // There will not be a startEvent if this was the first CommitTransfers event since
-        // the deployment of the contract
-
+        // the deployment of the bridge contract
         const sourceBridgeAddress = this.bridge.getAddress()
         const codeAtAddress = await sourceBridge.getCode(
           sourceBridgeAddress, startSearchBlockNumber
@@ -225,11 +223,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           startBlockNumber = startSearchBlockNumber
         }
 
-        endBlockNumber = endEvent.blockNumber - 1
+        endBlockNumber = endEvent.blockNumber
+        // There is an unhandled case where there are too many blocks between two
+        // TransfersCommitted events and startBlockNumber is never defined. This should
+        // never happen in production.
       }
 
       if (startBlockNumber && endBlockNumber) {
-        // TODO: This won't work if transferSent and transfersCommitted in same block
         const transferEvents = await sourceBridge.getTransferSentEvents(
           startBlockNumber,
           endBlockNumber
@@ -241,6 +241,20 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           const { chainId } = await destinationBridge.decodeSendData(transaction.data)
           if (chainId !== destinationChainId) {
             continue
+          }
+
+          // When TransferSent and TransfersCommitted events exist in the same block, they
+          // need to be scoped to the correct transferRoot
+          if (event.blockNumber === startEvent.blockNumber) {
+            if (event.transactionIndex < startEvent.transactionIndex) {
+              continue
+            }
+          }
+
+          if (event.blockNumber === endEvent.blockNumber) {
+            if (event.transactionIndex > endEvent.transactionIndex) {
+              break
+            }
           }
 
           transferIds.push(event.args.transferId)

@@ -638,7 +638,7 @@ class HopBridge extends Base {
       throw new Error(`token "${this.token.symbol}" is unsupported`)
     }
     const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
-    return new Contract(bridgeAddress, l1BridgeAbi, provider)
+    return this.getContract(bridgeAddress, l1BridgeAbi, provider)
   }
 
   /**
@@ -656,7 +656,7 @@ class HopBridge extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(chain, signer)
-    return new Contract(bridgeAddress, l2BridgeAbi, provider)
+    return this.getContract(bridgeAddress, l2BridgeAbi, provider)
   }
 
   /**
@@ -674,7 +674,7 @@ class HopBridge extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(chain, signer)
-    return new Contract(ammWrapperAddress, l2AmmWrapperAbi, provider)
+    return this.getContract(ammWrapperAddress, l2AmmWrapperAbi, provider)
   }
 
   /**
@@ -692,7 +692,7 @@ class HopBridge extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(chain, signer)
-    return new Contract(saddleSwapAddress, saddleSwapAbi, provider)
+    return this.getContract(saddleSwapAddress, saddleSwapAbi, provider)
   }
 
   /**
@@ -734,7 +734,7 @@ class HopBridge extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(chain, signer)
-    return new Contract(saddleLpTokenAddress, saddleLpTokenAbi, provider)
+    return this.getContract(saddleLpTokenAddress, saddleLpTokenAbi, provider)
   }
 
   /**
@@ -1131,11 +1131,11 @@ class HopBridge extends Base {
     if (chain.equals(Chain.Ethereum)) {
       const address = this.getL1AmbBridgeAddress(this.token, Chain.xDai)
       const provider = await this.getSignerOrProvider(Chain.Ethereum)
-      return new Contract(address, l1HomeAmbNativeToErc20, provider)
+      return this.getContract(address, l1HomeAmbNativeToErc20, provider)
     }
     const address = this.getL2AmbBridgeAddress(this.token, Chain.xDai)
     const provider = await this.getSignerOrProvider(Chain.xDai)
-    return new Contract(address, l1HomeAmbNativeToErc20, provider)
+    return this.getContract(address, l1HomeAmbNativeToErc20, provider)
   }
 }
 

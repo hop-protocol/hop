@@ -62,25 +62,14 @@ class L1ToL2Watcher extends BaseWatcher {
             )
           ) {
             const destTx = await event.getTransaction()
-            if (!destTx) {
-              continue
+            if (await this.emitDestTxEvent(destTx)) {
+              ambBridge.off(filter, handleEvent)
+              return true
             }
-            const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
-              destTx.hash
-            )
-            this.ee.emit(Event.Receipt, {
-              chain: this.destinationChain,
-              receipt: destTxReceipt
-            })
-            this.ee.emit(Event.DestinationTxReceipt, {
-              chain: this.destinationChain,
-              receipt: destTxReceipt
-            })
-            ambBridge.off(filter, handleEvent)
-            return true
           }
         }
       }
+      return false
     }
     ambBridge.on(filter, handleEvent)
     return async () => {

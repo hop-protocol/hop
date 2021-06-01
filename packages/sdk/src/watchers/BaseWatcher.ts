@@ -37,7 +37,7 @@ class BaseWatcher extends Base {
   token: Token
   sourceChain: Chain
   destinationChain: Chain
-  pollDelayMs = 10 * 1000
+  pollDelayMs = 30 * 1000
   bridge: HopBridge
   options: any = {}
 

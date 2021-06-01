@@ -174,7 +174,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         .bridge as L2Bridge
       
       let startBlockSearch: number
-      let endBlockSearch: number
       let startEvent: any
       let endEvent: any
       await sourceBridge.eventsBatch(async (start: number, end: number) => {
@@ -184,7 +183,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         )
 
         startBlockSearch = start
-        endBlockSearch = end
         // events are sorted from [newest...oldest]
         events = events.reverse()
         for (let event of events) {
@@ -197,6 +195,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
             // Return true here so the execution of this loop does not continue
             return true
           }
+
           const isSameChainId = eventTransferRoot.chainId === destinationChainId
           if (endEvent && isSameChainId) {
             startEvent = event
@@ -208,9 +207,18 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       })
 
 
-      // There will not be a startEvent if there
-      let startBlockNumber = undefined
-      if (!startEvent && endEvent) {
+      let endBlockNumber
+      let startBlockNumber
+      if (startEvent && endEvent) {
+        const startTx = await startEvent.getTransaction()
+        startBlockNumber = startTx.blockNumber
+
+        // TODO: This won't work if transferSent and transfersCommitted in same block
+        const endTx = await endEvent.getTransaction()
+        endBlockNumber = endTx.blockNumber - 1
+      } else if (!startEvent && endEvent) {
+        // There will not be a startEvent if this was the first CommitTransfers event since
+        // the deployment of the contract
 
         // Handle the case where the contract was deployed 
         const sourceBridgeAddress = this.bridge.getAddress()
@@ -226,17 +234,15 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
 
 
-      if (startEvent && endEvent) {
-        const endTx = await endEvent.getTransaction()
-        const endBlock = endTx.blockNumber - 1
-        let startTx = await startEvent.getTransaction()
+      if (startBlockNumber && endBlockNumber) {
+        // TODO: This won't work if transferSent and transfersCommitted in same block
         const transferEvents = await sourceBridge.getTransferSentEvents(
-          startBlock,
-          endBlock
+          startBlockNumber,
+          endBlockNumber
         )
 
-          let transferIds: string[] = []
-          for (let event of transferEvents) {
+        let transferIds: string[] = []
+        for (let event of transferEvents) {
           const transaction = await sourceBridge.getTransaction(event.transactionHash)
           const { chainId } = await destinationBridge.decodeSendData(transaction.data)
           if (chainId !== destinationChainId) {

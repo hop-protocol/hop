@@ -144,6 +144,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       transferRootHash,
       totalAmount
     )
+
+    // TODO: Ask Miguel what this event is...I'm not sure 
     this.logger.debug(`received BondTransferSet event distributed from L1:`)
     this.logger.debug(`transferRootHash from event: ${transferRootHash}`)
     this.logger.debug(`transferRootId: ${transferRootId}`)
@@ -206,12 +208,15 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         }
       })
 
+      if (!endEvent) {
+        return
+      }
+
       let startBlockNumber
-      let endBlockNumber
-      if (startEvent && endEvent) {
+      let endBlockNumber = endEvent.blockNumber
+      if (startEvent) {
         startBlockNumber = startEvent.blockNumber
-        endBlockNumber = endEvent.blockNumber
-      } else if (!startEvent && endEvent) {
+      } else {
         // There will not be a startEvent if this was the first CommitTransfers event since
         // the deployment of the bridge contract
         const sourceBridgeAddress = this.bridge.getAddress()
@@ -223,58 +228,55 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           startBlockNumber = startSearchBlockNumber
         }
 
-        endBlockNumber = endEvent.blockNumber
         // There is an unhandled case where there are too many blocks between two
         // TransfersCommitted events and startBlockNumber is never defined. This should
         // never happen in production.
       }
 
-      if (startBlockNumber && endBlockNumber) {
-        const transferEvents = await sourceBridge.getTransferSentEvents(
-          startBlockNumber,
-          endBlockNumber
-        )
+      const transferEvents = await sourceBridge.getTransferSentEvents(
+        startBlockNumber,
+        endBlockNumber
+      )
 
-        let transferIds: string[] = []
-        for (let event of transferEvents) {
-          const transaction = await sourceBridge.getTransaction(event.transactionHash)
-          const { chainId } = await destinationBridge.decodeSendData(transaction.data)
-          if (chainId !== destinationChainId) {
+      let transferIds: string[] = []
+      for (let event of transferEvents) {
+        const transaction = await sourceBridge.getTransaction(event.transactionHash)
+        const { chainId } = await destinationBridge.decodeSendData(transaction.data)
+        if (chainId !== destinationChainId) {
+          continue
+        }
+
+        // When TransferSent and TransfersCommitted events exist in the same block, they
+        // need to be scoped to the correct transferRoot
+        if (event.blockNumber === startEvent.blockNumber) {
+          if (event.transactionIndex < startEvent.transactionIndex) {
             continue
           }
-
-          // When TransferSent and TransfersCommitted events exist in the same block, they
-          // need to be scoped to the correct transferRoot
-          if (event.blockNumber === startEvent.blockNumber) {
-            if (event.transactionIndex < startEvent.transactionIndex) {
-              continue
-            }
-          }
-
-          if (event.blockNumber === endEvent.blockNumber) {
-            if (event.transactionIndex > endEvent.transactionIndex) {
-              break
-            }
-          }
-
-          transferIds.push(event.args.transferId)
         }
-        this.logger.debug(
-          `found transfer ids for transfer root hash ${transferRootHash}\n`,
-          transferIds
-        )
-        const tree = new MerkleTree(transferIds)
-        const computedTransferRootHash = tree.getHexRoot()
-        if (computedTransferRootHash !== transferRootHash) {
-          this.logger.error(
-            `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}`
-          )
-          return
+
+        if (event.blockNumber === endEvent.blockNumber) {
+          if (event.transactionIndex > endEvent.transactionIndex) {
+            break
+          }
         }
-        await db.transferRoots.update(transferRootHash, {
-          transferIds
-        })
+
+        transferIds.push(event.args.transferId)
       }
+      this.logger.debug(
+        `found transfer ids for transfer root hash ${transferRootHash}\n`,
+        transferIds
+      )
+      const tree = new MerkleTree(transferIds)
+      const computedTransferRootHash = tree.getHexRoot()
+      if (computedTransferRootHash !== transferRootHash) {
+        this.logger.error(
+          `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}`
+        )
+        return
+      }
+      await db.transferRoots.update(transferRootHash, {
+        transferIds
+      })
     }
 
     dbTransferRoot = await db.transferRoots.getByTransferRootHash(

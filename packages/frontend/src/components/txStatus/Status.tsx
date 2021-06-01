@@ -42,6 +42,10 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const CustomStepConnector = withStyles({
+  root: {
+    width: '100px',
+    border: '2px solid red',
+  },
   alternativeLabel: {
     top: 10,
     left: 'calc(-50% + 16px)',
@@ -60,7 +64,8 @@ const CustomStepConnector = withStyles({
   line: {
     borderColor: '#dbdbe8',
     borderTopWidth: 3,
-    borderRadius: 1
+    borderRadius: 1,
+    width: '10px'
   }
 })(StepConnector)
 

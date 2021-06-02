@@ -32,9 +32,7 @@ const useStyles = makeStyles(() => ({
 const Convert: FC = () => {
   const styles = useStyles()
   const {
-    networks,
     selectedToken,
-    selectedNetwork,
     sourceNetwork,
     destNetwork,
     sourceTokenAmount,

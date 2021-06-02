@@ -96,7 +96,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     return convertOptions.find(option =>
       pathname.includes(option.path)
     ) || convertOptions[0]
-  }, [])
+  }, [pathname])
   const l2Networks = networks.filter((network: Network) => !network.isLayer1)
   const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(
     l2Networks[0]
@@ -111,14 +111,14 @@ const ConvertContextProvider: FC = ({ children }) => {
     } else {
       return l1Network
     }
-  }, [isForwardDirection, selectedNetwork, l1Network])
+  }, [isForwardDirection, selectedNetwork, l1Network, convertOption])
   const destNetwork = useMemo<Network | undefined>(() => {
-    if (convertOption instanceof AmmConvertOption || !isForwardDirection) {
-      return l1Network
-    } else {
+    if (convertOption instanceof AmmConvertOption || isForwardDirection) {
       return selectedNetwork
+    } else {
+      return l1Network
     }
-  }, [isForwardDirection, selectedNetwork, l1Network])
+  }, [isForwardDirection, selectedNetwork, l1Network, convertOption])
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
   const [sending, setSending] = useState<boolean>(false)

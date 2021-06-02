@@ -304,22 +304,26 @@ async function staker (
   if (!token) {
     throw new Error('token is required: Options are: USDC, DAI, etc..')
   }
-  if (!amount) {
-    throw new Error('amount is required. E.g. 100')
-  }
 
   const watchers = getStakeWatchers(
     [token],
     [Chain.Optimism, Chain.Arbitrum, Chain.xDai, Chain.Polygon]
   )
   const stakeWatcher = watchers[0].siblingWatchers[networkSlugToId(chain)]
-  const parsedAmount = stakeWatcher.bridge.parseUnits(amount)
   if (action === StakerAction.Stake) {
     logger.debug('action: stake')
+    if (!amount) {
+      throw new Error('amount is required. E.g. 100')
+    }
+    const parsedAmount = stakeWatcher.bridge.parseUnits(amount)
     await stakeWatcher.approveTokens()
     await stakeWatcher.convertAndStake(parsedAmount)
   } else if (action === StakerAction.Unstake) {
     logger.debug('action: unstake')
+    if (!amount) {
+      throw new Error('amount is required. E.g. 100')
+    }
+    const parsedAmount = stakeWatcher.bridge.parseUnits(amount)
     await stakeWatcher.unstake(parsedAmount)
   } else {
     await stakeWatcher.printAmounts()

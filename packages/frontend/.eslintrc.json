@@ -27,6 +27,7 @@
     "import/no-unresolved": 0,
     "no-use-before-define": 0,
     "no-unused-vars": 0,
+    "spaced-comment": 0,
     "arrow-body-style": 0,
     "no-underscore-dangle": 0,
     "node/handle-callback-err": 0,

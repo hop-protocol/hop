@@ -10,21 +10,41 @@ import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
+import * as config from 'src/config'
+import * as addresses from '@hop-protocol/addresses'
 
 type StatsContextProps = {
   stats: any[]
-  fetching: boolean
+  fetching: boolean,
+
+  bonderStats: any[],
+  fetchingBonderStats: boolean
 }
 
 const StatsContext = createContext<StatsContextProps>({
   stats: [],
-  fetching: false
+  fetching: false,
+
+  bonderStats: [],
+  fetchingBonderStats: false
 })
+
+type BonderStats = {
+  id: string
+  bonder: string,
+  token: Token,
+  network: Network,
+  credit: number,
+  debit: number,
+  availableLiquidity: number
+}
 
 const StatsContextProvider: FC = ({ children }) => {
   const { networks, tokens, sdk } = useApp()
   const [stats, setStats] = useState<any[]>([])
   const [fetching, setFetching] = useState<boolean>(false)
+  const [bonderStats, setBonderStats] = useState<any[]>([])
+  const [fetchingBonderStats, setFetchingBonderStats] = useState<boolean>(false)
   const filteredNetworks = networks?.filter(token => !token.isLayer1)
 
   async function fetchStats (selectedNetwork: Network, selectedToken: Token) {
@@ -41,7 +61,6 @@ const StatsContextProvider: FC = ({ children }) => {
       tokenName: token?.tokenName,
       imageUrl: token?.imageUrl,
       decimals: token?.decimals,
-      contracts: {}
     })
     const decimals = hopToken.decimals
     const token0 = {
@@ -89,11 +108,63 @@ const StatsContextProvider: FC = ({ children }) => {
     update().catch(logger.error)
   }, [])
 
+  async function fetchBonderStats (selectedNetwork: Network, selectedToken: Token, bonder: string): Promise<BonderStats | undefined> {
+    if (!selectedNetwork) {
+      return
+    }
+    const token = tokens.find(token => token.symbol === selectedToken?.symbol)
+    if (!token) {
+      return
+    }
+
+    const bridge = sdk.bridge(selectedToken.symbol)
+    const [credit, debit, availableLiquidity] = await Promise.all([
+      bridge.getCredit(selectedNetwork.slug, bonder),
+      bridge.getDebit(selectedNetwork.slug, bonder),
+      bridge.getAvailableLiquidity(selectedNetwork.slug, bonder),
+    ])
+
+    return {
+      id: `${selectedNetwork.slug}-${token.symbol}-${bonder}`,
+      bonder,
+      token,
+      network: selectedNetwork,
+      credit: Number(formatUnits(credit.toString(), token.decimals)),
+      debit: Number(formatUnits(debit.toString(), token.decimals)),
+      availableLiquidity: Number(formatUnits(availableLiquidity.toString(), token.decimals))
+    }
+  }
+
+  useEffect(() => {
+    const update = async () => {
+      if (!networks) {
+        return
+      }
+      setFetchingBonderStats(true)
+      const promises: Promise<any>[] = []
+      for (const network of networks) {
+        for (const token of tokens) {
+          for (const bonder of addresses[config.network].bonders) {
+            promises.push(fetchBonderStats(network, token, bonder))
+          }
+        }
+      }
+      const results: any[] = await Promise.all(promises)
+      setFetchingBonderStats(false)
+      setBonderStats(results.filter(x => x))
+    }
+
+    update().catch(logger.error)
+  }, [])
+
   return (
     <StatsContext.Provider
       value={{
+        stats,
         fetching,
-        stats
+
+        bonderStats,
+        fetchingBonderStats,
       }}
     >
       {children}

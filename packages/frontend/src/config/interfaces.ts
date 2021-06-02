@@ -28,3 +28,11 @@ export interface HopAddresses {
   }
   tokens: Bridges
 }
+
+export type Networks = {
+  [key: string]: {
+    networkId: string
+    rpcUrls: string[]
+    explorerUrl: string
+  }
+}

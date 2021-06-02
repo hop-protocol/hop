@@ -1,7 +1,52 @@
-import { Signer, providers, BigNumber } from 'ethers'
+import memoize from 'fast-memoize'
+import { Contract, Signer, providers, BigNumber } from 'ethers'
 import { Chain, Token } from './models'
 import { TChain, TProvider, TToken } from './types'
 import { addresses, chains, metadata, bonders } from './config'
+
+// cache provider
+const getProvider = memoize((network: string, chain: Chain) => {
+  const { rpcUrls } = chains[network][chain.slug]
+  const ethersProviders: providers.Provider[] = []
+  for (let rpcUrl of rpcUrls) {
+    const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+    ethersProviders.push(provider)
+  }
+
+  if (ethersProviders.length === 1) {
+    return ethersProviders[0]
+  }
+
+  return new providers.FallbackProvider(ethersProviders, 1)
+})
+
+const getContractMemo = memoize(
+  (
+    address: string,
+    abi: any[],
+    cacheKey: string
+  ): ((provider: TProvider) => Contract) => {
+    let cached: any
+    return (provider: TProvider) => {
+      if (!cached) {
+        cached = new Contract(address, abi, provider)
+      }
+      return cached
+    }
+  }
+)
+
+// cache contract
+const getContract = async (
+  address: string,
+  abi: any[],
+  provider: TProvider
+): Promise<Contract> => {
+  let p = provider as any
+  const cacheKey = `${p?.getAddress ? await p?.getAddress() : ''}${p?.provider
+    ?._network?.chainId || p?.connection?.url}`
+  return getContractMemo(address, abi, cacheKey)(provider)
+}
 
 /**
  * Class with base methods.
@@ -122,9 +167,8 @@ class Base {
    * @param {Object} - Chain model.
    * @returns {Object} - Ethers provider.
    */
-  public getChainProvider (chain: Chain) {
-    const { rpcUrl } = chains[this.network][chain.slug]
-    return new providers.StaticJsonRpcProvider(rpcUrl)
+  public getChainProvider = (chain: Chain) => {
+    return getProvider(this.network, chain)
   }
 
   /**
@@ -148,7 +192,7 @@ class Base {
 
   /**
    * @desc Returns the connected signer if it's connected to the specified
-   * chain id, otherwise it returns a regular provider.
+   * chain id, otherwise it returns a regular provider for the specified chain.
    * @param {Object} chain - Chain name or model
    * @param {Object} signer - Ethers signer or provider
    * @returns {Object} Ethers signer or provider
@@ -257,6 +301,8 @@ class Base {
   public getBonderAddress (): string {
     return bonders?.[this.network]?.[0]
   }
+
+  public getContract = getContract
 }
 
 export default Base

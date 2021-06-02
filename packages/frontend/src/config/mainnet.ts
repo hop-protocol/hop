@@ -1,5 +1,6 @@
 import { mainnet as mainnetAddresses } from '@hop-protocol/addresses'
-import { HopAddresses } from './interfaces'
+import { mainnet as mainnetNetworks } from '@hop-protocol/networks'
+import { HopAddresses, Networks } from './interfaces'
 
 export const addresses: HopAddresses = {
   governance: {
@@ -11,35 +12,32 @@ export const addresses: HopAddresses = {
   tokens: mainnetAddresses.bridges
 }
 
-export const networks: any = {
+export const networks: Networks = {
   ethereum: {
-    networkId: '1',
-    rpcUrl: 'https://mainnet.rpc.hop.exchange',
-    explorerUrl: 'https://etherscan.io/'
+    networkId: mainnetNetworks.ethereum.networkId.toString(),
+    rpcUrls: mainnetNetworks.ethereum.rpcUrls,
+    explorerUrl: mainnetNetworks.ethereum.explorerUrls[0]
   },
   polygon: {
-    networkId: '137',
-    rpcUrl: 'https://polygon.rpc.hop.exchange',
-    // rpcUrl: 'wss://rpc-mainnet.maticvigil.com/ws',
-    explorerUrl: 'https://explorer-mainnet.maticvigil.com/'
+    networkId: mainnetNetworks.polygon.networkId.toString(),
+    rpcUrls: mainnetNetworks.polygon.rpcUrls,
+    explorerUrl: mainnetNetworks.polygon.explorerUrls[0]
   },
   /*
   arbitrum: {
-    networkId: '?',
-    rpcUrl: 'https://mainnet.arbitrum.io/rpc',
-    explorerUrl: 'https://explorer.offchainlabs.com/#/'
+    networkId: mainnetNetworks.arbitrum.networkId.toString(),
+    rpcUrls: mainnetNetworks.arbitrum.rpcUrls,
+    explorerUrl: mainnetNetworks.arbitrum.explorerUrls[0]
   },
   optimism: {
-    networkId: '69',
-    rpcUrl: 'https://mainnet.optimism.io',
-    explorerUrl:
-      'https://expedition.dev/?rpcUrl=https%3A%2F%2Fmainnet.optimism.io'
+    networkId: mainnetNetworks.optimism.networkId.toString(),
+    rpcUrls: mainnetNetworks.optimism.rpcUrls,
+    explorerUrl: mainnetNetworks.optimism.explorerUrls[0]
   },
   */
   xdai: {
-    networkId: '100',
-    rpcUrl: 'https://rpc.xdaichain.com',
-    // rpcUrl: 'wss://rpc.xdaichain.com/wss',
-    explorerUrl: 'https://blockscout.com/xdai/mainnet/'
+    networkId: mainnetNetworks.xdai.networkId.toString(),
+    rpcUrls: mainnetNetworks.xdai.rpcUrls,
+    explorerUrl: mainnetNetworks.xdai.explorerUrls[0]
   }
 }

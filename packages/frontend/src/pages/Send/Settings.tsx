@@ -7,6 +7,7 @@ import Popover from '@material-ui/core/Popover'
 import SettingsIcon from '@material-ui/icons/Settings'
 import SmallTextField from 'src/components/SmallTextField'
 import InfoTooltip from 'src/components/infoTooltip'
+import Alert from 'src/components/alert/Alert'
 import { normalizeNumberInput } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
@@ -22,16 +23,27 @@ const useStyles = makeStyles(theme => ({
     marginBottom: '0.5rem',
     display: 'flex',
     justifyContent: 'flex-start',
-    alignItems: 'center'
+    alignItems: 'left',
   },
   inlineLabel: {
     marginLeft: '0.5rem'
   },
   settingsContent: {
-    padding: '3rem'
+    padding: '3rem',
+    width: '300px',
+    textAlign: 'center',
+    [theme.breakpoints.down('xs')]: {
+      width: 'auto',
+    }
+  },
+  slippageTolerance: {
+    justifyContent: 'center'
   },
   settingsIcon: {
     fontSize: '2rem'
+  },
+  warningBox: {
+    marginTop: '1rem'
   }
 }))
 
@@ -99,6 +111,8 @@ const Settings: FC<Props> = (props: Props) => {
     localStorage.setItem('transactionDeadline', deadlineMinutes)
   }, [deadlineMinutes])
 
+  const deadlineError = Number(deadlineMinutes) < 5
+
   return (
     <div>
       <IconButton onClick={handleClick} color="secondary">
@@ -128,7 +142,7 @@ const Settings: FC<Props> = (props: Props) => {
               Slippage Tolerance{' '}
               <InfoTooltip title="Your transaction will revert if the price changes unfavorably by more than this percentage." />
             </Typography>
-            <Box display="flex" alignItems="center">
+            <Box display="flex" alignItems="center" className={styles.slippageTolerance}>
               <IconButton
                 color={slippageTolerance === '0.1' ? 'primary' : 'secondary'}
                 onClick={() => setSlippageTolerance('0.1')}
@@ -169,6 +183,10 @@ const Settings: FC<Props> = (props: Props) => {
                 placeholder={'20'}
               />{' '}
               <span className={styles.inlineLabel}>minutes</span>
+            </Box>
+            <Box display="flex" alignItems="center" className={styles.warningBox}>
+              {deadlineError
+                ? <div><Alert severity="warning" text={'Cross-chain transactions take a few minutes. The deadline you set may be too short for the cross chain message to reach its destination.'} /></div> : null}
             </Box>
           </Box>
         </div>

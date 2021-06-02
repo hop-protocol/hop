@@ -123,20 +123,11 @@ const PoolsContextProvider: FC = ({ children }) => {
       return
     }
     const l2Networks = networks.filter(network => !network.isLayer1)
-    const hopBridgeContracts = l2Networks.reduce((obj, network) => {
-      const contract = token?.contracts[`${network.slug}HopBridge`]
-      if (contract) {
-        obj[network.slug] = contract
-      }
-      return obj
-    }, {} as { [key: string]: Contract })
-
     return new Token({
       symbol: `h${token?.symbol}`,
       imageUrl: token?.imageUrl,
       tokenName: token?.tokenName,
       decimals: token?.decimals,
-      contracts: hopBridgeContracts
     })
   }, [tokens, selectedToken, networks])
 
@@ -219,20 +210,21 @@ const PoolsContextProvider: FC = ({ children }) => {
       const bridge = await sdk.bridge(selectedToken.symbol)
       const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
 
-      const [decimals, totalSupply, balance, reserves] = await Promise.all([
+      const [lpDecimalsBn, totalSupply, balance, reserves] = await Promise.all([
         lpToken.decimals(),
         lpToken.totalSupply(),
         lpToken.balanceOf(signerAddress),
         bridge.getSaddleSwapReserves(selectedNetwork.slug)
       ])
+      const lpDecimals = Number(lpDecimalsBn.toString())
 
       const formattedTotalSupply = formatUnits(
         totalSupply.toString(),
-        Number(decimals.toString())
+        lpDecimals
       )
       setTotalSupply(formattedTotalSupply)
 
-      const formattedBalance = formatUnits(balance.toString(), decimals)
+      const formattedBalance = formatUnits(balance.toString(), lpDecimals)
       setUserPoolBalance(Number(formattedBalance).toFixed(2))
 
       const poolPercentage =
@@ -243,8 +235,8 @@ const PoolsContextProvider: FC = ({ children }) => {
           : poolPercentage.toFixed(2)
       setUserPoolTokenPercentage(formattedPoolPercentage)
 
-      const reserve0 = formatUnits(reserves[0].toString(), decimals)
-      const reserve1 = formatUnits(reserves[1].toString(), decimals)
+      const reserve0 = formatUnits(reserves[0].toString(), selectedToken.decimals)
+      const reserve1 = formatUnits(reserves[1].toString(), selectedToken.decimals)
       setPoolReserves([reserve0, reserve1])
 
       const token0Deposited =
@@ -443,7 +435,6 @@ const PoolsContextProvider: FC = ({ children }) => {
               symbol: lpToken.symbol,
               tokenName: lpToken.name,
               imageUrl: '',
-              contracts: {}
             })
           },
           onConfirm: async (approveAll: boolean) => {

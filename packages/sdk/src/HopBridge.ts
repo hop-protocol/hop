@@ -383,7 +383,10 @@ class HopBridge extends Base {
         rate.toFixed(this.token.decimals),
         this.token.decimals
       )
-      const fee = txFeeEth.mul(rateBN).div(oneEth)
+      let fee = txFeeEth.mul(rateBN).div(oneEth)
+
+      const multiplier = ethers.utils.parseEther('1.5')
+      fee = fee.mul(multiplier).div(oneEth)
 
       return fee
     } else {
@@ -502,26 +505,66 @@ class HopBridge extends Base {
    * @returns {Object} Available liquidity as BigNumber.
    */
   public async getAvailableLiquidity (
-    destinationChain: TChain
+    destinationChain: TChain,
+    bonder: string = this.getBonderAddress()
   ): Promise<BigNumber> {
     const chain = this.toChainModel(destinationChain)
-    let bridge: ethers.Contract
-
-    if (chain.isL1) {
-      bridge = await this.getL1Bridge()
-    } else {
-      bridge = await this.getL2Bridge(chain)
-    }
-
-    let bonder = this.getBonderAddress()
-    const credit: BigNumber = await bridge.getCredit(bonder)
-    const debit: BigNumber = await bridge.getDebitAndAdditionalDebit(bonder)
+    const [credit, debit] = await Promise.all([
+      this.getCredit(chain, bonder),
+      this.getDebit(chain, bonder)
+    ])
 
     if (credit.lt(debit)) {
       return BigNumber.from('0')
     } else {
       return credit.sub(debit)
     }
+  }
+
+  /**
+   * @desc Returns bridge contract instance for specified chain.
+   * @param {Object} chain - chain model.
+   * @returns {Object} Ethers contract instance.
+   */
+  public async getBridgeContract (chain: TChain) {
+    chain = this.toChainModel(chain)
+    let bridge: ethers.Contract
+    if (chain.isL1) {
+      bridge = await this.getL1Bridge()
+    } else {
+      bridge = await this.getL2Bridge(chain)
+    }
+    return bridge
+  }
+
+  /**
+   * @desc Returns total credit that bonder holds on Hop bridge at specified chain.
+   * @param {Object} chain - Chain model.
+   * @returns {Object} Total credit as BigNumber.
+   */
+  public async getCredit (
+    chain: TChain,
+    bonder: string = this.getBonderAddress()
+  ): Promise<BigNumber> {
+    chain = this.toChainModel(chain)
+    const bridge = await this.getBridgeContract(chain)
+
+    return bridge.getCredit(bonder)
+  }
+
+  /**
+   * @desc Returns total debit that bonder holds on Hop bridge at specified chain.
+   * @param {Object} chain - Chain model.
+   * @returns {Object} Total debit as BigNumber.
+   */
+  public async getDebit (
+    chain: TChain,
+    bonder: string = this.getBonderAddress()
+  ): Promise<BigNumber> {
+    chain = this.toChainModel(chain)
+    const bridge = await this.getBridgeContract(chain)
+
+    return bridge.getDebitAndAdditionalDebit(bonder)
   }
 
   /**
@@ -595,7 +638,7 @@ class HopBridge extends Base {
       throw new Error(`token "${this.token.symbol}" is unsupported`)
     }
     const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
-    return new Contract(bridgeAddress, l1BridgeAbi, provider)
+    return this.getContract(bridgeAddress, l1BridgeAbi, provider)
   }
 
   /**
@@ -613,7 +656,7 @@ class HopBridge extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(chain, signer)
-    return new Contract(bridgeAddress, l2BridgeAbi, provider)
+    return this.getContract(bridgeAddress, l2BridgeAbi, provider)
   }
 
   /**
@@ -631,7 +674,7 @@ class HopBridge extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(chain, signer)
-    return new Contract(ammWrapperAddress, l2AmmWrapperAbi, provider)
+    return this.getContract(ammWrapperAddress, l2AmmWrapperAbi, provider)
   }
 
   /**
@@ -649,7 +692,7 @@ class HopBridge extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(chain, signer)
-    return new Contract(saddleSwapAddress, saddleSwapAbi, provider)
+    return this.getContract(saddleSwapAddress, saddleSwapAbi, provider)
   }
 
   /**
@@ -691,7 +734,7 @@ class HopBridge extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(chain, signer)
-    return new Contract(saddleLpTokenAddress, saddleLpTokenAbi, provider)
+    return this.getContract(saddleLpTokenAddress, saddleLpTokenAbi, provider)
   }
 
   /**
@@ -1088,11 +1131,11 @@ class HopBridge extends Base {
     if (chain.equals(Chain.Ethereum)) {
       const address = this.getL1AmbBridgeAddress(this.token, Chain.xDai)
       const provider = await this.getSignerOrProvider(Chain.Ethereum)
-      return new Contract(address, l1HomeAmbNativeToErc20, provider)
+      return this.getContract(address, l1HomeAmbNativeToErc20, provider)
     }
     const address = this.getL2AmbBridgeAddress(this.token, Chain.xDai)
     const provider = await this.getSignerOrProvider(Chain.xDai)
-    return new Contract(address, l1HomeAmbNativeToErc20, provider)
+    return this.getContract(address, l1HomeAmbNativeToErc20, provider)
   }
 }
 

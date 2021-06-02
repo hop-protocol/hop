@@ -59,7 +59,7 @@ function newChain (chain: string) {
     chain = ChainEnum.Ethereum
   }
   if (!metadata.networks[chain]) {
-    throw new Error('unsupported chain')
+    throw new Error(`unsupported chain "${chain}"`)
   }
   return new Chain(metadata.networks[chain].name)
 }

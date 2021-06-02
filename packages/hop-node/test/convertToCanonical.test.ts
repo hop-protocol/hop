@@ -5,7 +5,7 @@ import Logger from 'src/logger'
 import { faucetPrivateKey as privateKey } from './config'
 import { Chain } from 'src/constants'
 
-const TOKEN = 'DAI'
+const TOKEN = 'USDC'
 const AMOUNT = 10_000
 const NETWORKS = [Chain.xDai]
 const logger = new Logger('TEST')

@@ -505,11 +505,12 @@ export class User {
   ) {
     const tokenContract = this.getTokenContract(network, token)
     const decimals = await getTokenDecimals(token)
-    return tokenContract.transfer(
+    const tx = await tokenContract.transfer(
       recipient,
       parseUnits(amount.toString(), decimals),
       this.txOverrides(network)
     )
+    return tx
   }
 
   async checkApproval (network: string, token: string, spender: string) {
@@ -1124,7 +1125,8 @@ export class User {
       txOptions.gasPrice = 0
       txOptions.gasLimit = 8_000_000
     } else if (network === Chain.xDai) {
-      txOptions.gasLimit = 5_000_000
+      txOptions.gasPrice = 1000000000
+      txOptions.gasLimit = 4_000_000
     }
     return txOptions
   }
@@ -1267,6 +1269,7 @@ export async function prepareAccounts (
         faucetTokensToSend,
         address
       )
+      console.log('send tokens tx:', tx.hash)
       await tx.wait()
       tokenBal = await user.getBalance(network, token)
     }

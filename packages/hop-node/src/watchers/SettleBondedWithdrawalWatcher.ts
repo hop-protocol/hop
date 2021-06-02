@@ -172,8 +172,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
       const sourceBridge = this.siblingWatchers[sourceChainId]
         .bridge as L2Bridge
-      const destinationBridge = this.siblingWatchers[destinationChainId]
-        .bridge as L2Bridge
 
       let startSearchBlockNumber: number
       let startEvent: any
@@ -241,7 +239,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       let transferIds: string[] = []
       for (let event of transferEvents) {
         const transaction = await sourceBridge.getTransaction(event.transactionHash)
-        const { chainId } = await destinationBridge.decodeSendData(transaction.data)
+        const { chainId } = await sourceBridge.decodeSendData(transaction.data)
         if (chainId !== destinationChainId) {
           continue
         }

@@ -23,7 +23,7 @@ const Alert: FC<AlertProps & MuiAlertProps> = props => {
 
   return show ? (
     <MuiAlert {...props} className={clsx(styles.root, className)}>
-      {children || prettifyErrorMessage(text)}
+      {children || prettifyErrorMessage(text || '')}
     </MuiAlert>
   ) : null
 }

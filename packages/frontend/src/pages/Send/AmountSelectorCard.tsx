@@ -140,7 +140,7 @@ const AmountSelectorCard: FC<Props> = props => {
           <Skeleton variant="text" width="15.0rem"></Skeleton>
         ) : balance ? (
           <div className={styles.balance}>
-            {Number(balance) > 0 && !disableInput ? (
+            {balance.gt(0) && !disableInput ? (
               <button className={styles.maxButton} onClick={handleMaxClick}>
                 MAX
               </button>

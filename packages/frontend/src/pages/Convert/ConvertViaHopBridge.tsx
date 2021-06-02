@@ -3,7 +3,6 @@ import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import MuiButton from '@material-ui/core/Button'
-import Network from 'src/models/Network'
 import SendButton from 'src/pages/Convert/SendButton'
 import AmountSelectorCard from 'src/pages/Convert/AmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
@@ -37,16 +36,17 @@ const Convert: FC = () => {
     selectedToken,
     selectedNetwork,
     sourceNetwork,
-    setSourceNetwork,
     destNetwork,
-    setDestNetwork,
     sourceTokenAmount,
     setSourceTokenAmount,
     setDestTokenAmount,
     destTokenAmount,
     calcAltTokenAmount,
-    setSourceTokenBalance,
-    setDestTokenBalance,
+    sourceBalance,
+    loadingSourceBalance,
+    destBalance,
+    loadingDestBalance,
+    switchDirection,
     error,
     setError,
     tx,
@@ -58,22 +58,6 @@ const Convert: FC = () => {
     setDestTokenAmount('')
   }, [setSourceTokenAmount, setDestTokenAmount])
 
-  useEffect(() => {
-    setSourceNetwork(networks[0])
-    const dest = networks.filter((network: Network) => {
-      return (
-        network.slug.includes('Bridge') &&
-        network?.slug?.includes(selectedNetwork?.slug ?? '')
-      )
-    })
-    setDestNetwork(dest[0])
-  }, [networks, selectedNetwork])
-
-  const handleSwitchDirection = () => {
-    destNetwork && setSourceNetwork(destNetwork)
-    sourceNetwork && setDestNetwork(sourceNetwork)
-    destTokenAmount && setSourceTokenAmount(destTokenAmount)
-  }
   const handleSourceTokenAmountChange = async (value: string) => {
     try {
       const amount = normalizeNumberInput(value)
@@ -99,12 +83,14 @@ const Convert: FC = () => {
         token={selectedToken}
         label={'From'}
         onChange={handleSourceTokenAmountChange}
-        selectedNetwork={sourceNetwork}
-        onBalanceChange={setSourceTokenBalance}
+        title={sourceNetwork?.name}
+        titleIconUrl={sourceNetwork?.imageUrl}
+        balance={sourceBalance}
+        loadingBalance={loadingSourceBalance}
       />
       <MuiButton
         className={styles.switchDirectionButton}
-        onClick={handleSwitchDirection}
+        onClick={switchDirection}
       >
         <ArrowDownIcon color="primary" className={styles.downArrow} />
       </MuiButton>
@@ -114,10 +100,12 @@ const Convert: FC = () => {
         token={selectedToken}
         label={'To'}
         onChange={handleDestTokenAmountChange}
-        selectedNetwork={destNetwork}
-        onBalanceChange={setDestTokenBalance}
+        title={destNetwork?.name}
+        titleIconUrl={destNetwork?.imageUrl}
+        balance={destBalance}
+        loadingBalance={loadingDestBalance}
       />
-      <Alert severity="error" onClose={() => setError(null)} text={error} />
+      <Alert severity="error" onClose={() => setError(undefined)} text={error} />
       <TxStatusModal
         onClose={handleTxStatusClose}
         tx={tx} />

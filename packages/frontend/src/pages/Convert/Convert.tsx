@@ -15,8 +15,8 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import MenuItem from '@material-ui/core/MenuItem'
 import SelectOption from 'src/components/selects/SelectOption'
 import ConvertViaHopBridge from 'src/pages/Convert/ConvertViaHopBridge'
-import ConvertViaCanonicalBridge from 'src/pages/Convert/ConvertViaCanonicalBridge'
-import ConvertViaAmm from 'src/pages/Convert/ConvertViaAmm'
+// import ConvertViaCanonicalBridge from 'src/pages/Convert/ConvertViaCanonicalBridge'
+// import ConvertViaAmm from 'src/pages/Convert/ConvertViaAmm'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
@@ -52,6 +52,9 @@ const Convert: FC = () => {
     tokens,
     selectedToken,
     setSelectedToken,
+    convertOptions,
+    // convertOption,
+    // setConvertOption,
     l2Networks,
     selectedNetwork,
     setSelectedNetwork
@@ -100,11 +103,11 @@ const Convert: FC = () => {
     history.push(`${path}${value}`)
   }
 
-  const tabs = [
-    { label: 'via Hop Bridge', value: '/hop' },
-    { label: 'via Canonical Bridge', value: '/bridge' },
-    { label: 'via AMM', value: '/amm' }
-  ]
+  // const tabs = [
+  //   { label: 'via Hop Bridge', value: '/hop' },
+  //   { label: 'via Canonical Bridge', value: '/bridge' },
+  //   { label: 'via AMM', value: '/amm' }
+  // ]
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -148,9 +151,9 @@ const Convert: FC = () => {
         </div>
         <div className={styles.select}>
           <RaisedSelect value={lastPathname} onChange={handleTabChange}>
-            {tabs.map(tab => (
-              <MenuItem value={tab.value} key={tab.value}>
-                {tab.label}
+            {convertOptions.map(_convertOption => (
+              <MenuItem value={_convertOption.path} key={_convertOption.path}>
+                via {_convertOption.name}
               </MenuItem>
             ))}
           </RaisedSelect>
@@ -162,7 +165,7 @@ const Convert: FC = () => {
             <ConvertViaHopBridge />
           </div>
         </Route>
-        <Route path={`${path}/bridge`}>
+        {/* <Route path={`${path}/bridge`}>
           <div className={styles.box}>
             <ConvertViaCanonicalBridge />
           </div>
@@ -171,7 +174,7 @@ const Convert: FC = () => {
           <div className={styles.box}>
             <ConvertViaAmm />
           </div>
-        </Route>
+        </Route> */}
         <Redirect to={`${path}/hop`} />
       </Switch>
     </Box>

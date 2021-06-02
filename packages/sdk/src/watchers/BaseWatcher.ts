@@ -98,21 +98,33 @@ class BaseWatcher extends Base {
     this.ee.emit(Event.SourceTxReceipt, { chain: this.sourceChain, receipt })
   }
 
-  async emitDestTxEvent (destTx: any) {
+  async emitDestTxEvent (destTx: any, data: any = {}) {
     if (!destTx) {
       return false
     }
     const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
       destTx.hash
     )
-    this.ee.emit(Event.Receipt, {
-      chain: this.destinationChain,
-      receipt: destTxReceipt
-    })
-    this.ee.emit(Event.DestinationTxReceipt, {
-      chain: this.destinationChain,
-      receipt: destTxReceipt
-    })
+    this.ee.emit(
+      Event.Receipt,
+      Object.assign(
+        {
+          chain: this.destinationChain,
+          receipt: destTxReceipt
+        },
+        data
+      )
+    )
+    this.ee.emit(
+      Event.DestinationTxReceipt,
+      Object.assign(
+        {
+          chain: this.destinationChain,
+          receipt: destTxReceipt
+        },
+        data
+      )
+    )
     return true
   }
 }

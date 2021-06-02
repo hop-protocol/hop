@@ -15,18 +15,21 @@ type StatusContextProps = {
   activeStep: number
   fetching: boolean
   setTx: (tx: Transaction) => void
+  receivedHToken: boolean
 }
 
 const StatusContext = createContext<StatusContextProps>({
   steps: [],
   activeStep: 0,
   fetching: false,
-  setTx: (tx: Transaction) => {}
+  setTx: (tx: Transaction) => {},
+  receivedHToken: false
 })
 
 type Step = {
   text: string
   error?: boolean
+  warning?: boolean
   url?: string
 }
 
@@ -36,6 +39,7 @@ const StatusContextProvider: FC = ({ children }) => {
   let [activeStep, setActiveStep] = React.useState(0)
   const [fetching, setFetching] = useState<boolean>(false)
   const [tx, setTx] = useState<Transaction | null>(null)
+  const [receivedHToken, setReceivedHToken] = useState<boolean>(false)
   const cacheKey = `txStatus:${tx?.hash}`
 
   useEffect(() => {
@@ -84,8 +88,14 @@ const StatusContextProvider: FC = ({ children }) => {
         }
       })
       .on(sdk.Event.DestinationTxReceipt, data => {
-        const { receipt } = data
+        const { receipt, isHTokenTransfer } = data
         const error = !receipt.status
+        if (!error) {
+          if (isHTokenTransfer) {
+            setReceivedHToken(true)
+            currentSteps[2].warning = true
+          }
+        }
         if (currentSteps.length < 3 && steps.length < 3) {
           currentSteps.push({
             text: destChain?.name as string
@@ -157,7 +167,8 @@ const StatusContextProvider: FC = ({ children }) => {
         fetching,
         steps,
         activeStep,
-        setTx
+        setTx,
+        receivedHToken
       }}
     >
       {children}

@@ -61,7 +61,6 @@ const StatsContextProvider: FC = ({ children }) => {
       tokenName: token?.tokenName,
       imageUrl: token?.imageUrl,
       decimals: token?.decimals,
-      contracts: {}
     })
     const decimals = hopToken.decimals
     const token0 = {

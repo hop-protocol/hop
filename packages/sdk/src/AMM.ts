@@ -1,4 +1,3 @@
-import { Contract } from 'ethers'
 import { saddleSwapAbi } from '@hop-protocol/abi'
 import { Chain } from './models'
 import { TChain, TToken, TAmount, TProvider } from './types'
@@ -175,7 +174,7 @@ class AMM extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(chain)
-    return new Contract(saddleSwapAddress, saddleSwapAbi, provider)
+    return this.getContract(saddleSwapAddress, saddleSwapAbi, provider)
   }
 
   /**

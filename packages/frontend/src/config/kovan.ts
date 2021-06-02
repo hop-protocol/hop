@@ -17,24 +17,24 @@ export const addresses: HopAddresses = {
 export const networks: Networks = {
   ethereum: {
     networkId: kovanNetworks.ethereum.networkId.toString(),
-    rpcUrl: kovanNetworks.ethereum.rpcUrls[0],
+    rpcUrls: kovanNetworks.ethereum.rpcUrls,
     explorerUrl: kovanNetworks.ethereum.explorerUrls[0]
   },
   /*
   arbitrum: {
     networkId: kovanNetworks.arbitrum.networkId.toString(),
-    rpcUrl: kovanNetworks.arbitrum.rpcUrls[0],
+    rpcUrls: kovanNetworks.arbitrum.rpcUrls,
     explorerUrl: kovanNetworks.arbitrum.explorerUrls[0]
   },
   */
   optimism: {
     networkId: kovanNetworks.optimism.networkId.toString(),
-    rpcUrl: kovanNetworks.optimism.rpcUrls[0],
+    rpcUrls: kovanNetworks.optimism.rpcUrls,
     explorerUrl: kovanNetworks.optimism.explorerUrls[0]
   },
   xdai: {
     networkId: kovanNetworks.xdai.networkId.toString(),
-    rpcUrl: kovanNetworks.xdai.rpcUrls[0],
+    rpcUrls: kovanNetworks.xdai.rpcUrls,
     explorerUrl: kovanNetworks.xdai.explorerUrls[0]
   }
 }

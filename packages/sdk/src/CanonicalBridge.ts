@@ -1,4 +1,4 @@
-import { ethers, Contract } from 'ethers'
+import { Contract, ethers } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import {
   arbErc20Abi,
@@ -167,7 +167,7 @@ class CanonicalBridge extends Base {
     }
 
     if ((chain as Chain).equals(Chain.xDai)) {
-      const bridge = new Contract(
+      const bridge = await this.getContract(
         bridgeAddress,
         l1xDaiForeignOmniBridgeAbi,
         provider
@@ -184,7 +184,7 @@ class CanonicalBridge extends Base {
           `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
         )
       }
-      const bridge = new Contract(
+      const bridge = await this.getContract(
         bridgeAddress,
         l1OptimismTokenBridgeAbi,
         provider
@@ -193,7 +193,7 @@ class CanonicalBridge extends Base {
       return bridge.deposit(tokenAddress, l2TokenAddress, recipient, amount)
     } else if ((chain as Chain).equals(Chain.Arbitrum)) {
       const arbChain = this.getArbChainAddress(this.token, chain)
-      const bridge = new Contract(
+      const bridge = await this.getContract(
         bridgeAddress,
         arbitrumGlobalInboxAbi,
         provider
@@ -215,7 +215,7 @@ class CanonicalBridge extends Base {
           `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
         )
       }
-      const bridge = new Contract(
+      const bridge = await this.getContract(
         bridgeAddress,
         l1PolygonPosRootChainManagerAbi,
         provider
@@ -298,7 +298,11 @@ class CanonicalBridge extends Base {
           `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
         )
       }
-      const bridge = new Contract(tokenAddress, l2xDaiTokenAbi, provider)
+      const bridge = await this.getContract(
+        tokenAddress,
+        l2xDaiTokenAbi,
+        provider
+      )
       return bridge.transferAndCall(bridgeAddress, amount, '0x', {
         // xDai requires a higher gas limit
         gasLimit: 400000
@@ -325,7 +329,7 @@ class CanonicalBridge extends Base {
           `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
         )
       }
-      const bridge = new Contract(
+      const bridge = await this.getContract(
         bridgeAddress,
         l2OptimismTokenBridgeAbi,
         provider
@@ -343,7 +347,11 @@ class CanonicalBridge extends Base {
           `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
         )
       }
-      const bridge = new Contract(bridgeAddress, arbErc20Abi, provider)
+      const bridge = await this.getContract(
+        bridgeAddress,
+        arbErc20Abi,
+        provider
+      )
       return bridge.withdraw(recipient, amount)
     } else if ((chain as Chain).equals(Chain.Polygon)) {
       const tokenAddress = this.getL2CanonicalTokenAddress(this.token, chain)
@@ -352,7 +360,11 @@ class CanonicalBridge extends Base {
           `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
         )
       }
-      const token = new Contract(tokenAddress, l2PolygonChildErc20Abi, provider)
+      const token = await this.getContract(
+        tokenAddress,
+        l2PolygonChildErc20Abi,
+        provider
+      )
       return token.withdraw(amount)
     } else {
       throw new Error('not implemented')
@@ -458,11 +470,11 @@ class CanonicalBridge extends Base {
     if (chain.equals(Chain.Ethereum)) {
       const address = this.getL1AmbBridgeAddress(this.token, Chain.xDai)
       const provider = await this.getSignerOrProvider(Chain.Ethereum)
-      return new Contract(address, l1HomeAmbNativeToErc20, provider)
+      return this.getContract(address, l1HomeAmbNativeToErc20, provider)
     }
     const address = this.getL2AmbBridgeAddress(this.token, Chain.xDai)
     const provider = await this.getSignerOrProvider(Chain.xDai)
-    return new Contract(address, l1HomeAmbNativeToErc20, provider)
+    return this.getContract(address, l1HomeAmbNativeToErc20, provider)
   }
 
   async getL2CanonicalBridge (chain: TChain) {
@@ -484,7 +496,7 @@ class CanonicalBridge extends Base {
     } else if (chain.equals(Chain.Optimism)) {
       abi = l2OptimismTokenBridgeAbi
     }
-    return new Contract(address, abi, provider)
+    return this.getContract(address, abi, provider)
   }
 
   async getL1CanonicalBridge (chain: TChain) {
@@ -506,7 +518,7 @@ class CanonicalBridge extends Base {
     } else if (chain.equals(Chain.Optimism)) {
       abi = l1OptimismTokenBridgeAbi
     }
-    return new Contract(address, abi, provider)
+    return this.getContract(address, abi, provider)
   }
 }
 

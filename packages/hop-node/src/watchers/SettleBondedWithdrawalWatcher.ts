@@ -212,7 +212,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       } else {
         // There will not be a startEvent if this was the first CommitTransfers event since
         // the deployment of the bridge contract
-        const sourceBridgeAddress = this.bridge.getAddress()
+        const sourceBridgeAddress = sourceBridge.getAddress()
         const codeAtAddress = await sourceBridge.getCode(
           sourceBridgeAddress, startSearchBlockNumber
         )
@@ -241,7 +241,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
         // When TransferSent and TransfersCommitted events exist in the same block, they
         // need to be scoped to the correct transferRoot
-        if (event.blockNumber === startEvent.blockNumber) {
+        if (startEvent && (event.blockNumber === startEvent.blockNumber)) {
           if (event.transactionIndex < startEvent.transactionIndex) {
             continue
           }

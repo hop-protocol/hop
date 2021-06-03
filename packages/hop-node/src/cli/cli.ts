@@ -16,6 +16,7 @@ import {
   setBonderPrivateKey,
   setNetworkRpcUrls,
   setNetworkWaitConfirmations,
+  setSyncConfig,
   slackAuthToken,
   slackChannel,
   slackUsername
@@ -170,6 +171,9 @@ program
             }
           }
         }
+      }
+      if (config?.sync) {
+        setSyncConfig(config?.sync)
       }
       const bonder = config?.roles?.bonder
       const challenger = config?.roles?.challenger
@@ -649,6 +653,7 @@ async function validateConfig (config: any) {
   const validSectionKeys = [
     'network',
     'chains',
+    'sync',
     'tokens',
     'stake',
     'commitTransfers',

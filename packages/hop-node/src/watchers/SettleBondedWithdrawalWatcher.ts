@@ -136,17 +136,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       return
     }
     const { transactionHash } = meta
-    //const { timestamp } = await meta.getTransaction()
-    const decimals = await this.getBridgeTokenDecimals(
-      this.bridge.providerNetworkId
-    )
     const transferRootId = await this.bridge.getTransferRootId(
       transferRootHash,
       totalAmount
     )
 
-    // TODO: Ask Miguel what this event is...I'm not sure 
-    this.logger.debug(`received BondTransferSet event distributed from L1:`)
+    this.logger.debug(`received TransferRootSet event from L1:`)
     this.logger.debug(`transferRootHash from event: ${transferRootHash}`)
     this.logger.debug(`transferRootId: ${transferRootId}`)
     this.logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
@@ -166,10 +161,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         this.logger.error(`no sibling watcher found for ${sourceChainId}`)
         return
       }
-      if (!this.siblingWatchers[destinationChainId]) {
-        this.logger.error(`no sibling watcher found for ${destinationChainId}`)
-        return
-      }
       const sourceBridge = this.siblingWatchers[sourceChainId]
         .bridge as L2Bridge
 
@@ -182,8 +173,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           end
         )
 
-        // events are sorted from [newest...oldest]
-        events = events.reverse()
         startSearchBlockNumber = start
         for (let event of events) {
           let eventTransferRoot = await db.transferRoots.getByTransferRootHash(
@@ -192,8 +181,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
           if (event.args.rootHash === transferRootHash) {
             endEvent = event
-            // Return true here so the execution of this loop does not continue
-            return true
+            continue
           }
 
           const isSameChainId = eventTransferRoot.chainId === destinationChainId
@@ -201,9 +189,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
             startEvent = event
             return false
           }
-
-          return true
         }
+
+        return true
       })
 
       if (!endEvent) {

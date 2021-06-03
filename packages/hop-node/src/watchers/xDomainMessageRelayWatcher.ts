@@ -23,13 +23,13 @@ export interface Config {
   dryMode?: boolean
 }
 
-class L2ExitWatcher extends BaseWatcher {
+class xDomainMessageRelayWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
   token: string
 
   constructor (config: Config) {
     super({
-      tag: 'l2ExitWatcher',
+      tag: 'xDomainMessageRelay',
       prefix: config.label,
       logColor: 'yellow',
       order: config.order,
@@ -293,20 +293,15 @@ class L2ExitWatcher extends BaseWatcher {
       }
     } else if (chainSlug === Chain.Polygon) {
       const poly = new PolygonBridgeWatcher()
+      const privateKey = gConfig.relayerPrivateKey || gConfig.bonderPrivateKey
       poly.l1Provider = new ethers.providers.StaticJsonRpcProvider(
         getRpcUrls(Chain.Ethereum)[0]
       )
       poly.l2Provider = new ethers.providers.StaticJsonRpcProvider(
         getRpcUrls(Chain.Polygon)[0]
       )
-      poly.l1Wallet = new ethers.Wallet(
-        gConfig.bonderPrivateKey,
-        poly.l1Provider
-      )
-      poly.l2Wallet = new ethers.Wallet(
-        gConfig.bonderPrivateKey,
-        poly.l2Provider
-      )
+      poly.l1Wallet = new ethers.Wallet(privateKey, poly.l1Provider)
+      poly.l2Wallet = new ethers.Wallet(privateKey, poly.l2Provider)
       poly.chainId = 1
       poly.apiUrl = `https://apis.matic.network/api/v1/${
         poly.chainId === 1 ? 'matic' : 'mumbai'
@@ -393,4 +388,4 @@ class L2ExitWatcher extends BaseWatcher {
   }
 }
 
-export default L2ExitWatcher
+export default xDomainMessageRelayWatcher

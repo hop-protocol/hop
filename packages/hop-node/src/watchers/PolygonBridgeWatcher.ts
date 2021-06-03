@@ -31,8 +31,9 @@ class PolygonBridgeWatcher extends BaseWatcher {
     this.l2Provider = new ethers.providers.StaticJsonRpcProvider(
       'https://rpc-mumbai.maticvigil.com'
     )
-    this.l1Wallet = new ethers.Wallet(config.bonderPrivateKey, this.l1Provider)
-    this.l2Wallet = new ethers.Wallet(config.bonderPrivateKey, this.l2Provider)
+    const privateKey = config.relayerPrivateKey || config.bonderPrivateKey
+    this.l1Wallet = new ethers.Wallet(privateKey, this.l1Provider)
+    this.l2Wallet = new ethers.Wallet(privateKey, this.l2Provider)
     this.chainId = 5
     this.apiUrl = `https://apis.matic.network/api/v1/${
       this.chainId === 1 ? 'matic' : 'mumbai'

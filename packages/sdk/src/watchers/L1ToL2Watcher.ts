@@ -34,9 +34,14 @@ class L1ToL2Watcher extends BaseWatcher {
     const ambFilter = {
       address: this.bridge.getL2HopBridgeTokenAddress(this.token, Chain.xDai)
     }
+    const hToken = await this.bridge.hopToken.getErc20(this.destinationChain)
+    const token = await this.bridge.token.getErc20(this.destinationChain)
+    const hTokenFilter = hToken.filters.Transfer()
+    const tokenFilter = token.filters.Transfer()
+    const recipient = await this.getSignerAddress()
     let startBlock = -1
     let endBlock = -1
-    const handleDestTx = async (destTx: any) => {
+    const handleDestTx = async (destTx: any, data: any = {}) => {
       if (!sourceTimestamp) {
         return false
       }
@@ -50,9 +55,11 @@ class L1ToL2Watcher extends BaseWatcher {
         return false
       }
       if (destBlock.timestamp - sourceTimestamp < 500) {
-        if (await this.emitDestTxEvent(destTx)) {
+        if (await this.emitDestTxEvent(destTx, data)) {
           amm.off(ammFilter, handleAmmEvent)
           ambBridge.off(ambFilter, handleAmmEvent)
+          hToken.off(hTokenFilter, handleHTokenEvent)
+          token.off(tokenFilter, handleTokenEvent)
           return true
         }
       }
@@ -76,10 +83,44 @@ class L1ToL2Watcher extends BaseWatcher {
         ) {
           return
         }
-        const destTx = await event.getTransaction()
-        return handleDestTx(destTx)
+        //const destTx = await event.getTransaction()
+        //return handleDestTx(destTx)
       }
       return false
+    }
+    const handleTokenEvent = async (...args: any[]) => {
+      const event = args[args.length - 1]
+      if (!event) {
+        return false
+      }
+      const decodedLog = event.decode(event.data, event.topics)
+      if (decodedLog.from !== destWrapper.address) {
+        return
+      }
+      if (decodedLog.to !== recipient) {
+        return
+      }
+      console.log('token decoded log', decodedLog)
+      const destTx = await event.getTransaction()
+      return handleDestTx(destTx)
+    }
+    const handleHTokenEvent = async (...args: any[]) => {
+      const event = args[args.length - 1]
+      if (!event) {
+        return false
+      }
+      const decodedLog = event.decode(event.data, event.topics)
+      if (decodedLog.from !== destWrapper.address) {
+        return
+      }
+      if (decodedLog.to !== recipient) {
+        return
+      }
+      console.log('hToken decoded log', decodedLog)
+      const destTx = await event.getTransaction()
+      return handleDestTx(destTx, {
+        isHTokenTransfer: true
+      })
     }
     const handleAmbEvent = async (...args: any[]) => {
       const event = args[args.length - 1]
@@ -118,6 +159,14 @@ class L1ToL2Watcher extends BaseWatcher {
       if (attemptedSwap) {
         amm.off(ammFilter, handleAmmEvent)
         amm.on(ammFilter, handleAmmEvent)
+
+        hToken.off(hTokenFilter, handleHTokenEvent)
+        hToken.on(hTokenFilter, handleHTokenEvent)
+
+        token.off(tokenFilter, handleTokenEvent)
+        token.on(tokenFilter, handleTokenEvent)
+        // /\ amountOut = 0
+        // /\ hToken'.transfer(recip, amount)
         const events = (
           (await amm.queryFilter(ammFilter, startBlock, endBlock)) ?? []
         ).reverse()

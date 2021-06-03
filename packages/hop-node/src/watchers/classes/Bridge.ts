@@ -288,7 +288,8 @@ export default class Bridge extends ContractBase {
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
     key?: string
   ) {
-    const { syncBlocksTotal, syncBlocksBatch } = config
+    await this.waitTilReady()
+    const { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
     const blockNumber = await this.getBlockNumber()
     const cacheKey = `${this.providerNetworkId}:${this.address}:${key}`
     let lastBlockSynced = 0
@@ -299,20 +300,17 @@ export default class Bridge extends ContractBase {
         lastBlockSynced = cached.lastBlockSynced
       }
     }
-    const minBlock = Math.max(
-      blockNumber - syncBlocksTotal,
-      lastBlockSynced - 20
-    )
+    const minBlock = Math.max(blockNumber - totalBlocks, lastBlockSynced - 20)
     let end = blockNumber
-    let start = end - syncBlocksBatch
+    let start = end - batchBlocks
     let i = 0
-    while (start >= blockNumber - syncBlocksTotal) {
+    while (start >= blockNumber - totalBlocks) {
       const shouldContinue = await cb(start, end, i)
       if (typeof shouldContinue === 'boolean' && !shouldContinue) {
         break
       }
       end = start
-      start = end - syncBlocksBatch
+      start = end - batchBlocks
       await db.syncState.update(cacheKey, {
         lastBlockSynced: end,
         timestamp: Date.now()

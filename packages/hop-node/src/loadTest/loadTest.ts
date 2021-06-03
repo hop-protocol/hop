@@ -50,7 +50,7 @@ class LoadTest {
               faucet,
               token,
               sourceNetwork,
-              transferAmount
+              transferAmount * 100
             )
 
             logger.log('reading balances')
@@ -63,8 +63,8 @@ class LoadTest {
               logger.log(`user #${i} - checking balances`)
               expect(sourceBalanceBefore).toBeGreaterThan(0)
             }
-            await Promise.all(
-              users.map(async (user: User, i: number) => {
+            for (let i = 0; i < 100; i++) {
+                const user = users[0]
                 const recipient = await user.getAddress()
                 const spender = user.getBridgeAddress(sourceNetwork, token)
                 logger.log(`user #${i} - checking approval`)
@@ -77,10 +77,28 @@ class LoadTest {
                   transferAmount
                 )
                 logger.log(`user #${i} - tx hash: ${tx.hash}`)
-                logger.log(`user #${i} - waiting for receipt`)
-                await tx?.wait()
-              })
-            )
+                // logger.log(`user #${i} - waiting for receipt`)
+                // await tx?.wait()
+
+            }
+            // await Promise.all(
+            //   users.map(async (user: User, i: number) => {
+            //     const recipient = await user.getAddress()
+            //     const spender = user.getBridgeAddress(sourceNetwork, token)
+            //     logger.log(`user #${i} - checking approval`)
+            //     await user.checkApproval(sourceNetwork, token, spender)
+            //     logger.log(`user #${i} - sending tx`)
+            //     const tx = await user.send(
+            //       sourceNetwork,
+            //       destNetwork,
+            //       token,
+            //       transferAmount
+            //     )
+            //     logger.log(`user #${i} - tx hash: ${tx.hash}`)
+            //     logger.log(`user #${i} - waiting for receipt`)
+            //     await tx?.wait()
+            //   })
+            // )
 
             logger.log(`waiting for bonded withdrawals`)
             await wait(300 * 1000)

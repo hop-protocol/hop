@@ -57,10 +57,24 @@ type TokensConfig = {
   [key: string]: boolean
 }
 
+type SyncConfig = {
+  [key: string]: any
+}
+
 type RolesConfig = {
   bonder?: boolean
   challenger?: boolean
   arbBot?: boolean
+}
+
+type WatchersConfig = {
+  bondTransferRoot: boolean
+  bondWithdrawal: boolean
+  challenge: boolean
+  commitTransfers: boolean
+  settleBondedWithdrawals: boolean
+  stake: boolean
+  xDomainMessageRelay: boolean
 }
 
 type DbConfig = {
@@ -81,6 +95,8 @@ type Config = {
   chains?: ChainsConfig
   tokens?: TokensConfig
   roles?: RolesConfig
+  watchers?: WatchersConfig
+  sync?: SyncConfig
   db?: DbConfig
   logging?: LoggingConfig
   keystore?: KeystoreConfig
@@ -216,7 +232,24 @@ program
       if (dryMode) {
         logger.warn(`dry mode enabled`)
       }
+      let enabledWatchers = [
+        'bondTransferRoot',
+        'bondWithdrawal',
+        'challenge',
+        'commitTransfers',
+        'settleBondedWithdrawals',
+        'stake',
+        'xDomainMessageRelay'
+      ]
+      if (config?.watchers) {
+        for (let key in config?.watchers) {
+          if (!config?.watchers[key]) {
+            enabledWatchers = enabledWatchers.filter(watcher => watcher !== key)
+          }
+        }
+      }
       startWatchers({
+        enabledWatchers,
         order,
         tokens,
         networks,
@@ -660,11 +693,23 @@ async function validateConfig (config: any) {
     'bondWithdrawals',
     'settleBondedWithdrawals',
     'roles',
+    'watchers',
     'db',
     'logging',
     'keystore',
     'order'
   ]
+
+  const validWatcherKeys = [
+    'bondTransferRoot',
+    'bondWithdrawal',
+    'challenge',
+    'commitTransfers',
+    'settleBondedWithdrawals',
+    'stake',
+    'xDomainMessageRelay'
+  ]
+
   const sectionKeys = Object.keys(config)
   await validateKeys(validSectionKeys, sectionKeys)
 
@@ -684,6 +729,11 @@ async function validateConfig (config: any) {
     const validRoleKeys = ['bonder', 'challenger', 'arbBot', 'xdaiBridge']
     const roleKeys = Object.keys(config['roles'])
     await validateKeys(validRoleKeys, roleKeys)
+  }
+
+  if (config['watchers']) {
+    const watcherKeys = Object.keys(config['watchers'])
+    await validateKeys(validWatcherKeys, watcherKeys)
   }
 
   if (config['db']) {

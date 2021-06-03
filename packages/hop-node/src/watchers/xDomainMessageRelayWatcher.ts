@@ -23,13 +23,13 @@ export interface Config {
   dryMode?: boolean
 }
 
-class L2ExitWatcher extends BaseWatcher {
+class xDomainMessageRelayWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
   token: string
 
   constructor (config: Config) {
     super({
-      tag: 'l2ExitWatcher',
+      tag: 'xDomainMessageRelay',
       prefix: config.label,
       logColor: 'yellow',
       order: config.order,
@@ -388,4 +388,4 @@ class L2ExitWatcher extends BaseWatcher {
   }
 }
 
-export default L2ExitWatcher
+export default xDomainMessageRelayWatcher

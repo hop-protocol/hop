@@ -524,15 +524,21 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       for (let transferId of transferIds) {
         let dbTransfer = await db.transfers.getByTransferId(transferId)
         if (
-          dbTransfer?.withdrawalBondSettleTxSent ||
+          dbTransfer?.withdrawalBondSettleTxSentAt ||
           dbTransfer?.withdrawalBondSettled
         ) {
-          this.logger.debug(
-            'sent?:',
-            !!dbTransfer.withdrawalBondSettleTxSent,
-            'settled?:',
-            !!dbTransfer.withdrawalBondSettled
-          )
+          const tenMinutes = 60 * 10 * 1000
+          if (
+            dbTransfer.withdrawalBondSettleTxSentAt + tenMinutes >
+            Date.now()
+          ) {
+            this.logger.debug(
+              'sent?:',
+              !!dbTransfer.withdrawalBondSettleTxSentAt,
+              'settled?:',
+              !!dbTransfer.withdrawalBondSettled
+            )
+          }
           return
         }
       }
@@ -548,7 +554,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
       for (let transferId of transferIds) {
         await db.transfers.update(transferId, {
-          withdrawalBondSettleTxSent: true
+          withdrawalBondSettleTxSentAt: Date.now()
         })
       }
       this.logger.debug('sending settle tx')
@@ -563,7 +569,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           if (receipt.status !== 1) {
             for (let transferId of transferIds) {
               await db.transfers.update(transferId, {
-                withdrawalBondSettleTxSent: true
+                withdrawalBondSettleTxSentAt: Date.now()
               })
             }
             throw new Error('status=0')
@@ -585,7 +591,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         })
         .catch(async (err: Error) => {
           await db.transfers.update(dbTransfer.transferId, {
-            withdrawalBondSettleTxSent: false
+            withdrawalBondSettleTxSentAt: 0
           })
 
           throw err
@@ -604,7 +610,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         this.notifier.error(`settleBondedWithdrawal error: ${err.message}`)
       }
       await db.transfers.update(dbTransfer.transferId, {
-        withdrawalBondSettleTxSent: false
+        withdrawalBondSettleTxSentAt: 0
       })
     }
   }

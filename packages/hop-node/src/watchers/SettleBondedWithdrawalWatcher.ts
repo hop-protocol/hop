@@ -226,16 +226,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         // never happen in production.
       }
 
-      // TODO: Add eventsBatch here
-      // TODO: Figure out when/where to return true/false
-      // Question: eventsBatch() is not set up to take in arbitrary start/end blockNumbers, huh?
-      let transferEvents = await sourceBridge.getTransferSentEvents(
+      const transferEvents = await sourceBridge.getTransferSentEvents(
         startBlockNumber,
         endBlockNumber
       )
-
-      // transferEvents need to be sorted from [newest...oldest] in order to maintain the ordering
-      // transferEvents = transferEvents.reverse()
 
       let transferIds: string[] = []
       for (let event of transferEvents) {
@@ -260,9 +254,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         }
 
         transferIds.push(event.args.transferId)
-        // transferIds.unshift(event.args.transferId)
       }
-
       this.logger.debug(
         `found transfer ids for transfer root hash ${transferRootHash}\n`,
         transferIds

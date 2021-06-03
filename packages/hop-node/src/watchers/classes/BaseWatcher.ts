@@ -74,9 +74,9 @@ class BaseWatcher extends EventEmitter {
 
   public async eventsBatch (
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
-    key: string = ''
+    options: any = {}
   ) {
-    return this.bridge.eventsBatch(cb, `${this.tag}:${key}`)
+    return this.bridge.eventsBatch(cb, Object.assign(options, { key: `${this.tag}:${options.key || ''}` }))
   }
 
   // force quit so docker can restart

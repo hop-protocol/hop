@@ -110,7 +110,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
             event
           )
         }
-      }, this.bridge.WithdrawalBonded)
+      }, { key: this.bridge.WithdrawalBonded })
     )
 
     // L1 bridge doesn't contain transfer sent events so return here.
@@ -145,7 +145,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
               event
             )
           }
-        }, l2Bridge.TransferSent)
+        }, { key: l2Bridge.TransferSent })
       )
     }
 

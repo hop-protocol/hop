@@ -174,7 +174,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           end
         )
 
-        if (events.length === 0) {
+        if (!events?.length) {
           return true
         }
 
@@ -226,35 +226,41 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         // never happen in production.
       }
 
-      const transferEvents = await sourceBridge.getTransferSentEvents(
-        startBlockNumber,
-        endBlockNumber
-      )
-
       let transferIds: string[] = []
-      for (let event of transferEvents) {
-        const transaction = await sourceBridge.getTransaction(event.transactionHash)
-        const { chainId } = await sourceBridge.decodeSendData(transaction.data)
-        if (chainId !== destinationChainId) {
-          continue
-        }
+      await sourceBridge.eventsBatch(async (start: number, end: number) => {
+        let transferEvents = await sourceBridge.getTransferSentEvents(
+          start,
+          end
+        )
 
-        // When TransferSent and TransfersCommitted events exist in the same block, they
-        // need to be scoped to the correct transferRoot
-        if (startEvent && (event.blockNumber === startEvent.blockNumber)) {
-          if (event.transactionIndex < startEvent.transactionIndex) {
+        // transferEvents need to be sorted from [newest...oldest] in order to maintain the ordering
+        transferEvents = transferEvents.reverse()
+
+        for (let event of transferEvents) {
+          const transaction = await sourceBridge.getTransaction(event.transactionHash)
+          const { chainId } = await sourceBridge.decodeSendData(transaction.data)
+          if (chainId !== destinationChainId) {
             continue
           }
-        }
 
-        if (event.blockNumber === endEvent.blockNumber) {
-          if (event.transactionIndex > endEvent.transactionIndex) {
-            break
+          // When TransferSent and TransfersCommitted events exist in the same block, they
+          // need to be scoped to the correct transferRoot
+          if (startEvent && (event.blockNumber === startEvent.blockNumber)) {
+            if (event.transactionIndex < startEvent.transactionIndex) {
+              continue
+            }
           }
-        }
 
-        transferIds.push(event.args.transferId)
-      }
+          if (event.blockNumber === endEvent.blockNumber) {
+            if (event.transactionIndex > endEvent.transactionIndex) {
+              break
+            }
+          }
+
+          transferIds.unshift(event.args.transferId)
+        }
+      }, { startBlockNumber, endBlockNumber })
+
       this.logger.debug(
         `found transfer ids for transfer root hash ${transferRootHash}\n`,
         transferIds

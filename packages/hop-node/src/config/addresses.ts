@@ -53,6 +53,7 @@ export const config: any = {
   network,
   networks,
   bonderPrivateKey: process.env.BONDER_PRIVATE_KEY,
+  relayerPrivateKey: process.env.RELAYER_PRIVATE_KEY,
   metadata,
   bonders,
   sync: {
@@ -110,7 +111,6 @@ export const setNetworkWaitConfirmations = (
 const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {
   const networks = Object.keys(config.networks)
   for (let network of networks) {
-    console.log('N', network, networks)
     if (!config.sync[network]) {
       config.sync[network] = {}
     }

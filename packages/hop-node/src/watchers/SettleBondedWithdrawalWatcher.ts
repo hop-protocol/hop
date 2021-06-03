@@ -180,7 +180,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
         // events need to be sorted from [newest...oldest] in order to pick up the endEvent first
         events = events.reverse()
-
         for (let event of events) {
           let eventTransferRoot = await db.transferRoots.getByTransferRootHash(
             event.args.rootHash
@@ -210,13 +209,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       if (startEvent) {
         startBlockNumber = startEvent.blockNumber
       } else {
-        // There will not be a startEvent if this was the first CommitTransfers event since
-        // the deployment of the bridge contract
+        // There will not be a startEvent if this was the first CommitTransfers event for 
+        // this token since the deployment of the bridge contract
         const sourceBridgeAddress = sourceBridge.getAddress()
         const codeAtAddress = await sourceBridge.getCode(
           sourceBridgeAddress, startSearchBlockNumber
         )
-
         if (codeAtAddress === '0x') {
           startBlockNumber = startSearchBlockNumber
         }
@@ -235,7 +233,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
         // transferEvents need to be sorted from [newest...oldest] in order to maintain the ordering
         transferEvents = transferEvents.reverse()
-
         for (let event of transferEvents) {
           const transaction = await sourceBridge.getTransaction(event.transactionHash)
           const { chainId } = await sourceBridge.decodeSendData(transaction.data)

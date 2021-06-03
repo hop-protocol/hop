@@ -16,6 +16,12 @@ interface Config {
   dryMode?: boolean
 }
 
+interface EventsBatchOptions {
+  key?: string
+  startBlockNumber?: number
+  endBlockNumber?: number
+}
+
 class BaseWatcher extends EventEmitter {
   logger: Logger
   notifier: Notifier
@@ -74,9 +80,10 @@ class BaseWatcher extends EventEmitter {
 
   public async eventsBatch (
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
-    options: any = {}
+    options: EventsBatchOptions = {}
   ) {
-    return this.bridge.eventsBatch(cb, Object.assign(options, { key: `${this.tag}:${options.key || ''}` }))
+    const modifiedOptions = Object.assign(options, { key: `${this.tag}:${options?.key || ''}` })
+    return this.bridge.eventsBatch(cb, modifiedOptions)
   }
 
   // force quit so docker can restart

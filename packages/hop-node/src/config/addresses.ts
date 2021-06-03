@@ -73,7 +73,7 @@ export const config: any = {
       totalBlocks: 100_000,
       batchBlocks: 1_000
     },
-    [Chain.Arbitrum]: {
+    [Chain.xDai]: {
       totalBlocks: 100_000,
       batchBlocks: 1_000
     }

@@ -68,7 +68,7 @@ class BondTransferRootWatcher extends BaseWatcher {
           const { root, amount } = event.args
           await this.handleTransferRootBondedEvent(root, amount, event)
         }
-      }, l1Bridge.TransferRootBonded)
+      }, { key: l1Bridge.TransferRootBonded })
       this.logger.debug('done syncing')
       return
     }

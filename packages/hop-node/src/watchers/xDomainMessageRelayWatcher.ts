@@ -120,7 +120,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       }
 
       await Promise.all(promises)
-    }, this.l1Bridge.TransferRootConfirmed)
+    }, { key: this.l1Bridge.TransferRootConfirmed })
 
     this.eventsBatch(async (start: number, end: number) => {
       try {

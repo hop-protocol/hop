@@ -68,6 +68,10 @@ export default class ContractBase extends EventEmitter {
     return block.timestamp
   }
 
+  async getCode(address: string, blockNumber: string | number = 'latest'): Promise<string> {
+    return this.contract.provider.getCode(address, blockNumber)
+  }
+
   protected async getBumpedGasPrice (percent: number): Promise<BigNumber> {
     const gasPrice = await this.contract.provider.getGasPrice()
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))

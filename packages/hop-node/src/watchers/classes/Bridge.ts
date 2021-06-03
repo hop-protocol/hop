@@ -286,13 +286,17 @@ export default class Bridge extends ContractBase {
 
   public async eventsBatch (
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
-    options: any = { key: '', startBlockNumber: undefined, endBlockNumber: undefined }
+    options: any = {
+      key: '',
+      startBlockNumber: undefined,
+      endBlockNumber: undefined
+    }
   ) {
     const { key, startBlockNumber, endBlockNumber } = options
 
     await this.waitTilReady()
     let { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
-    const blockNumber = endBlockNumber || await this.getBlockNumber()
+    const blockNumber = endBlockNumber || (await this.getBlockNumber())
     const cacheKey = `${this.providerNetworkId}:${this.address}:${key}`
     if (startBlockNumber && endBlockNumber) {
       totalBlocks = endBlockNumber - startBlockNumber

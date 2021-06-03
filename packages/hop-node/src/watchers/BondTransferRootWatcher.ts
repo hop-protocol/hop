@@ -59,16 +59,19 @@ class BondTransferRootWatcher extends BaseWatcher {
     this.logger.debug('syncing up events')
     if (this.isL1) {
       const l1Bridge = this.bridge as L1Bridge
-      await this.eventsBatch(async (start: number, end: number) => {
-        const transferRootBondedEvents = await l1Bridge.getTransferRootBondedEvents(
-          start,
-          end
-        )
-        for (let event of transferRootBondedEvents) {
-          const { root, amount } = event.args
-          await this.handleTransferRootBondedEvent(root, amount, event)
-        }
-      }, { key: l1Bridge.TransferRootBonded })
+      await this.eventsBatch(
+        async (start: number, end: number) => {
+          const transferRootBondedEvents = await l1Bridge.getTransferRootBondedEvents(
+            start,
+            end
+          )
+          for (let event of transferRootBondedEvents) {
+            const { root, amount } = event.args
+            await this.handleTransferRootBondedEvent(root, amount, event)
+          }
+        },
+        { key: l1Bridge.TransferRootBonded }
+      )
       this.logger.debug('done syncing')
       return
     }

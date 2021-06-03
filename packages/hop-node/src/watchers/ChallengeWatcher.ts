@@ -48,27 +48,30 @@ class ChallengeWatcher extends BaseWatcher {
 
   async syncUp () {
     this.logger.debug('syncing up events')
-    await this.l1Bridge.eventsBatch(async (start: number, end: number) => {
-      const transferRootBondedEvents = await this.l1Bridge.getTransferRootBondedEvents(
-        start,
-        end
-      )
+    await this.l1Bridge.eventsBatch(
+      async (start: number, end: number) => {
+        const transferRootBondedEvents = await this.l1Bridge.getTransferRootBondedEvents(
+          start,
+          end
+        )
 
-      for (let event of transferRootBondedEvents) {
-        const { root, amount } = event.args
-        await this.handleTransferRootBondedEvent(root, amount, event)
-      }
+        for (let event of transferRootBondedEvents) {
+          const { root, amount } = event.args
+          await this.handleTransferRootBondedEvent(root, amount, event)
+        }
 
-      const transferRootConfirmedEvents = await this.l1Bridge.getTransferRootConfirmedEvents(
-        start,
-        end
-      )
+        const transferRootConfirmedEvents = await this.l1Bridge.getTransferRootConfirmedEvents(
+          start,
+          end
+        )
 
-      for (let event of transferRootConfirmedEvents) {
-        const { root, amount } = event.args
-        await this.handleTransferRootBondedEvent(root, amount, event)
-      }
-    }, { key: this.l1Bridge.TransferRootBonded })
+        for (let event of transferRootConfirmedEvents) {
+          const { root, amount } = event.args
+          await this.handleTransferRootBondedEvent(root, amount, event)
+        }
+      },
+      { key: this.l1Bridge.TransferRootBonded }
+    )
   }
 
   async watch () {

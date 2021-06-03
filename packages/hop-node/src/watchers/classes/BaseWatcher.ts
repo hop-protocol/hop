@@ -82,7 +82,9 @@ class BaseWatcher extends EventEmitter {
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
     options: EventsBatchOptions = {}
   ) {
-    const modifiedOptions = Object.assign(options, { key: `${this.tag}:${options?.key || ''}` })
+    const modifiedOptions = Object.assign(options, {
+      key: `${this.tag}:${options?.key || ''}`
+    })
     return this.bridge.eventsBatch(cb, modifiedOptions)
   }
 

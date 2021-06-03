@@ -68,7 +68,10 @@ export default class ContractBase extends EventEmitter {
     return block.timestamp
   }
 
-  async getCode(address: string, blockNumber: string | number = 'latest'): Promise<string> {
+  async getCode (
+    address: string,
+    blockNumber: string | number = 'latest'
+  ): Promise<string> {
     return this.contract.provider.getCode(address, blockNumber)
   }
 

@@ -169,10 +169,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       let endEvent: any
       await sourceBridge.eventsBatch(async (start: number, end: number) => {
         startSearchBlockNumber = start
-        let events = await sourceBridge.getTransfersCommittedEvents(
-          start,
-          end
-        )
+        let events = await sourceBridge.getTransfersCommittedEvents(start, end)
 
         if (!events?.length) {
           return true
@@ -209,11 +206,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       if (startEvent) {
         startBlockNumber = startEvent.blockNumber
       } else {
-        // There will not be a startEvent if this was the first CommitTransfers event for 
+        // There will not be a startEvent if this was the first CommitTransfers event for
         // this token since the deployment of the bridge contract
         const sourceBridgeAddress = sourceBridge.getAddress()
         const codeAtAddress = await sourceBridge.getCode(
-          sourceBridgeAddress, startSearchBlockNumber
+          sourceBridgeAddress,
+          startSearchBlockNumber
         )
         if (codeAtAddress === '0x') {
           startBlockNumber = startSearchBlockNumber
@@ -225,38 +223,45 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
 
       let transferIds: string[] = []
-      await sourceBridge.eventsBatch(async (start: number, end: number) => {
-        let transferEvents = await sourceBridge.getTransferSentEvents(
-          start,
-          end
-        )
+      await sourceBridge.eventsBatch(
+        async (start: number, end: number) => {
+          let transferEvents = await sourceBridge.getTransferSentEvents(
+            start,
+            end
+          )
 
-        // transferEvents need to be sorted from [newest...oldest] in order to maintain the ordering
-        transferEvents = transferEvents.reverse()
-        for (let event of transferEvents) {
-          const transaction = await sourceBridge.getTransaction(event.transactionHash)
-          const { chainId } = await sourceBridge.decodeSendData(transaction.data)
-          if (chainId !== destinationChainId) {
-            continue
-          }
-
-          // When TransferSent and TransfersCommitted events exist in the same block, they
-          // need to be scoped to the correct transferRoot
-          if (startEvent && (event.blockNumber === startEvent.blockNumber)) {
-            if (event.transactionIndex < startEvent.transactionIndex) {
+          // transferEvents need to be sorted from [newest...oldest] in order to maintain the ordering
+          transferEvents = transferEvents.reverse()
+          for (let event of transferEvents) {
+            const transaction = await sourceBridge.getTransaction(
+              event.transactionHash
+            )
+            const { chainId } = await sourceBridge.decodeSendData(
+              transaction.data
+            )
+            if (chainId !== destinationChainId) {
               continue
             }
-          }
 
-          if (event.blockNumber === endEvent.blockNumber) {
-            if (event.transactionIndex > endEvent.transactionIndex) {
-              break
+            // When TransferSent and TransfersCommitted events exist in the same block, they
+            // need to be scoped to the correct transferRoot
+            if (startEvent && event.blockNumber === startEvent.blockNumber) {
+              if (event.transactionIndex < startEvent.transactionIndex) {
+                continue
+              }
             }
-          }
 
-          transferIds.unshift(event.args.transferId)
-        }
-      }, { startBlockNumber, endBlockNumber })
+            if (event.blockNumber === endEvent.blockNumber) {
+              if (event.transactionIndex > endEvent.transactionIndex) {
+                break
+              }
+            }
+
+            transferIds.unshift(event.args.transferId)
+          }
+        },
+        { startBlockNumber, endBlockNumber }
+      )
 
       this.logger.debug(
         `found transfer ids for transfer root hash ${transferRootHash}\n`,

@@ -168,12 +168,19 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       let startEvent: any
       let endEvent: any
       await sourceBridge.eventsBatch(async (start: number, end: number) => {
+        startSearchBlockNumber = start
         let events = await sourceBridge.getTransfersCommittedEvents(
           start,
           end
         )
 
-        startSearchBlockNumber = start
+        if (events.length === 0) {
+          return true
+        }
+
+        // events need to be sorted from [newest...oldest] in order to pick up the endEvent first
+        events = events.reverse()
+
         for (let event of events) {
           let eventTransferRoot = await db.transferRoots.getByTransferRootHash(
             event.args.rootHash

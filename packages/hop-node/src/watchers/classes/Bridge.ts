@@ -181,7 +181,7 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  async getWithdrawalBondeSettledEvents (
+  async getWithdrawalBondSettledEvents (
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<any[]> {

@@ -102,6 +102,16 @@ type Config = {
   keystore?: KeystoreConfig
 }
 
+let enabledWatchers = [
+  'bondTransferRoot',
+  'bondWithdrawal',
+  'challenge',
+  'commitTransfers',
+  'settleBondedWithdrawals',
+  'stake',
+  'xDomainMessageRelay'
+]
+
 program
   .description('Start Hop node')
   .option(
@@ -232,15 +242,6 @@ program
       if (dryMode) {
         logger.warn(`dry mode enabled`)
       }
-      let enabledWatchers = [
-        'bondTransferRoot',
-        'bondWithdrawal',
-        'challenge',
-        'commitTransfers',
-        'settleBondedWithdrawals',
-        'stake',
-        'xDomainMessageRelay'
-      ]
       if (config?.watchers) {
         for (let key in config?.watchers) {
           if (!config?.watchers[key]) {
@@ -304,6 +305,7 @@ program
         value.toLowerCase()
       )
       startWatchers({
+        enabledWatchers,
         order,
         tokens,
         networks

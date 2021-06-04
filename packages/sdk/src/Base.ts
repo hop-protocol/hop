@@ -218,7 +218,6 @@ class Base {
   public getConfigAddresses (token: TToken, chain: TChain) {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    console.log('token: ', token)
     return addresses[this.network]?.[token.symbol]?.[chain.slug]
   }
 

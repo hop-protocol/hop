@@ -335,7 +335,7 @@ const Send: FC = () => {
     const parsedAmount = parseUnits(amount, selectedToken.decimals)
     let tx: any
     const bridge = sdk.bridge(selectedToken?.symbol).connect(signer)
-    const token = bridge.token
+    const token = bridge.getCanonicalToken(fromNetwork.slug)
     let spender : string
     if (fromNetwork.isLayer1) {
       const l1Bridge = await bridge.getL1Bridge()
@@ -347,7 +347,7 @@ const Send: FC = () => {
       const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
       spender = ammWrapper.address
     }
-    const approved = await token.allowance(fromNetwork.slug, spender)
+    const approved = await token.allowance(spender)
     if (approved.lt(parsedAmount)) {
       tx = await txConfirm?.show({
         kind: 'approval',
@@ -359,7 +359,6 @@ const Send: FC = () => {
         onConfirm: async (approveAll: boolean) => {
           const approveAmount = approveAll ? UINT256 : parsedAmount
           return token.approve(
-            fromNetwork.slug,
             spender,
             approveAmount
           )

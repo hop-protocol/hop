@@ -1,4 +1,5 @@
 import React, { FC, ChangeEvent } from 'react'
+import { BigNumber } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Card from '@material-ui/core/Card'
@@ -6,7 +7,7 @@ import MuiButton from '@material-ui/core/Button'
 import Box from '@material-ui/core/Box'
 import MenuItem from '@material-ui/core/MenuItem'
 import Alert from 'src/components/alert/Alert'
-import AmountSelectorCard from 'src/pages/Pools/AmountSelectorCard'
+import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
@@ -98,8 +99,12 @@ const Pools: FC = () => {
     userPoolTokenPercentage,
     token0Deposited,
     token1Deposited,
-    setToken0Balance,
-    setToken1Balance,
+    canonicalBalance,
+    hopBalance,
+    loadingCanonicalBalance,
+    loadingHopBalance,
+    // setToken0Balance,
+    // setToken1Balance,
     error,
     setError,
     removeLiquidity
@@ -153,13 +158,13 @@ const Pools: FC = () => {
     }
   }
 
-  const handleToken0BalanceChange = (balance: number) => {
-    setToken0Balance(balance)
-  }
+  // const handleToken0BalanceChange = (balance: number) => {
+  //   setToken0Balance(balance)
+  // }
 
-  const handleToken1BalanceChange = (balance: number) => {
-    setToken1Balance(balance)
-  }
+  // const handleToken1BalanceChange = (balance: number) => {
+  //   setToken1Balance(balance)
+  // }
 
   const handleRemoveLiquidityClick = (event: any) => {
     event.preventDefault()
@@ -214,13 +219,13 @@ const Pools: FC = () => {
       </Box>
       <Box display="flex" alignItems="center">
         <AmountSelectorCard
-          label="Input"
-          title={`${selectedNetwork?.name} ${selectedToken?.symbol}`}
-          token={selectedToken}
           value={token0Amount}
+          token={selectedToken}
+          label="Input"
           onChange={handleToken0Change}
-          selectedNetwork={selectedNetwork}
-          onBalanceChange={handleToken0BalanceChange}
+          title={`${selectedNetwork?.name} ${selectedToken?.symbol}`}
+          balance={canonicalBalance}
+          loadingBalance={loadingCanonicalBalance}
         />
       </Box>
       <Box display="flex" alignItems="center">
@@ -228,13 +233,13 @@ const Pools: FC = () => {
       </Box>
       <Box display="flex" alignItems="center">
         <AmountSelectorCard
-          label="Input"
-          title={`Hop ${selectedToken?.symbol}`}
-          token={hopToken}
           value={token1Amount}
+          token={hopToken}
+          label="Input"
           onChange={handleToken1Change}
-          selectedNetwork={selectedNetwork}
-          onBalanceChange={handleToken1BalanceChange}
+          title={`Hop ${selectedToken?.symbol}`}
+          balance={hopBalance}
+          loadingBalance={loadingHopBalance}
         />
       </Box>
       <Box alignItems="center" className={styles.pricesBox}>

@@ -7,8 +7,9 @@ import React, {
   useMemo,
   useCallback
 } from 'react'
-import { ethers, Contract, Signer } from 'ethers'
+import { ethers, Signer, BigNumber } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { HopBridge } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Network from 'src/models/Network'
@@ -18,6 +19,7 @@ import Price from 'src/models/Price'
 import { UINT256 } from 'src/constants'
 import Transaction from 'src/models/Transaction'
 import useInterval from 'src/hooks/useInterval'
+import useBalance from 'src/pages/Send/useBalance'
 import logger from 'src/logger'
 
 type PoolsContextProps = {
@@ -45,10 +47,10 @@ type PoolsContextProps = {
   userPoolTokenPercentage: string | undefined
   token0Deposited: string | undefined
   token1Deposited: string | undefined
-  token0Balance: number
-  token1Balance: number
-  setToken0Balance: (balance: number) => void
-  setToken1Balance: (balance: number) => void
+  canonicalBalance: BigNumber | undefined
+  hopBalance: BigNumber | undefined
+  loadingCanonicalBalance: boolean
+  loadingHopBalance: boolean
   txHash: string | undefined
   sending: boolean
   validFormFields: boolean
@@ -82,10 +84,10 @@ const PoolsContext = createContext<PoolsContextProps>({
   userPoolTokenPercentage: undefined,
   token0Deposited: undefined,
   token1Deposited: undefined,
-  token0Balance: 0,
-  token1Balance: 0,
-  setToken0Balance: (balance: number) => {},
-  setToken1Balance: (balance: number) => {},
+  canonicalBalance: undefined,
+  hopBalance: undefined,
+  loadingCanonicalBalance: false,
+  loadingHopBalance: false,
   txHash: undefined,
   sending: false,
   validFormFields: false,
@@ -109,8 +111,6 @@ const PoolsContextProvider: FC = ({ children }) => {
   >('')
   const [token0Deposited, setToken0Deposited] = useState<string>('')
   const [token1Deposited, setToken1Deposited] = useState<string>('')
-  const [token0Balance, setToken0Balance] = useState<number>(0)
-  const [token1Balance, setToken1Balance] = useState<number>(0)
 
   let { networks, tokens, txConfirm, txHistory, sdk } = useApp()
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
@@ -139,6 +139,16 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
   const [txHash, setTxHash] = useState<string | undefined>()
   const [sending, setSending] = useState<boolean>(false)
+
+  const { balance: canonicalBalance, loading: loadingCanonicalBalance } = useBalance(
+    selectedToken,
+    selectedNetwork
+  )
+
+  const { balance: hopBalance, loading: loadingHopBalance } = useBalance(
+    hopToken,
+    selectedNetwork
+  )
 
   useEffect(() => {
     if (!networks.includes(selectedNetwork)) {
@@ -211,9 +221,9 @@ const PoolsContextProvider: FC = ({ children }) => {
       const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
 
       const [lpDecimalsBn, totalSupply, balance, reserves] = await Promise.all([
-        lpToken.decimals(),
-        lpToken.totalSupply(),
-        lpToken.balanceOf(signerAddress),
+        lpToken.decimals,
+        (await lpToken.getErc20()).totalSupply(),
+        lpToken.balanceOf(),
         bridge.getSaddleSwapReserves(selectedNetwork.slug)
       ])
       const lpDecimals = Number(lpDecimalsBn.toString())
@@ -283,8 +293,8 @@ const PoolsContextProvider: FC = ({ children }) => {
     const saddleSwap = await bridge.getSaddleSwap(network.slug)
     const spender = saddleSwap.address
     const parsedAmount = parseUnits(amount, selectedToken.decimals)
-    const token = isHop ? bridge.hopToken : bridge.token
-    const approved = await token.allowance(network.slug, spender)
+    const token = isHop ? bridge.getL2HopToken(network.slug) : bridge.getCanonicalToken(network.slug)
+    const approved = await token.allowance(spender)
 
     if (approved.lt(parsedAmount)) {
       return txConfirm?.show({
@@ -296,7 +306,6 @@ const PoolsContextProvider: FC = ({ children }) => {
         },
         onConfirm: async (approveAll: boolean) => {
           return token.approve(
-            network.slug,
             spender,
             approveAll ? UINT256 : parsedAmount
           )
@@ -409,11 +418,11 @@ const PoolsContextProvider: FC = ({ children }) => {
 
       const bridge = sdk.bridge(selectedToken.symbol)
       const saddleSwap = await bridge.getSaddleSwap(selectedNetwork.slug)
-      const lpToken = await bridge.lpToken
+      const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
       const lpTokenDecimals = await lpToken.decimals
 
       const signer = provider?.getSigner()
-      const balance = await lpToken?.balanceOf(selectedNetwork.slug)
+      const balance = await lpToken?.balanceOf()
       const formattedBalance = Number(
         formatUnits(balance.toString(), lpTokenDecimals)
       )
@@ -421,7 +430,6 @@ const PoolsContextProvider: FC = ({ children }) => {
 
       let tx: any
       const approved = await lpToken.allowance(
-        selectedNetwork.slug,
         saddleSwap.address
       )
 
@@ -439,7 +447,6 @@ const PoolsContextProvider: FC = ({ children }) => {
           },
           onConfirm: async (approveAll: boolean) => {
             return lpToken.approve(
-              selectedNetwork.slug,
               saddleSwap.address,
               approveAll ? UINT256 : balance
             )
@@ -523,6 +530,10 @@ const PoolsContextProvider: FC = ({ children }) => {
     setSending(false)
   }
 
+  // ToDo: Use BigNumber everywhere and get rid of this conversion
+  const token0Balance = canonicalBalance ? Number(formatUnits(canonicalBalance, selectedToken.decimals)) : 0
+  const token1Balance = hopBalance ? Number(formatUnits(hopBalance, selectedToken.decimals)) : 0
+
   const enoughBalance =
     token0Balance >= Number(token0Amount) &&
     token1Balance >= Number(token1Amount)
@@ -562,10 +573,10 @@ const PoolsContextProvider: FC = ({ children }) => {
         txHash,
         sending,
         validFormFields,
-        token0Balance,
-        token1Balance,
-        setToken0Balance,
-        setToken1Balance,
+        canonicalBalance,
+        hopBalance,
+        loadingCanonicalBalance,
+        loadingHopBalance,
         sendButtonText,
         error,
         setError

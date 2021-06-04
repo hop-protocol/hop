@@ -13,7 +13,7 @@ class AMM extends Base {
   public chain: Chain
 
   /** Token class instance */
-  public token: TokenClass
+  public tokenSymbol: string
 
   /**
    * @desc Instantiates AMM instance.
@@ -32,28 +32,19 @@ class AMM extends Base {
    */
   constructor (
     network: string,
-    token: TToken,
+    tokenSymbol: string,
     chain?: TChain,
     signer?: TProvider
   ) {
     super(network, signer)
-    if (!token) {
+    if (!tokenSymbol) {
       throw new Error('token is required')
     }
-    token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
     if (chain) {
       this.chain = chain
     }
-    this.token = new TokenClass(
-      this.network,
-      chain,
-      token.address,
-      token.decimals,
-      token.symbol,
-      token.name,
-      signer
-    )
+    this.tokenSymbol = tokenSymbol
   }
 
   /**
@@ -71,7 +62,7 @@ class AMM extends Base {
    *```
    */
   public connect (signer: TProvider) {
-    return new AMM(this.network, this.token.symbol, this.chain, signer)
+    return new AMM(this.network, this.tokenSymbol, this.chain, signer)
   }
 
   /**
@@ -149,7 +140,7 @@ class AMM extends Base {
    * @returns {String} address
    */
   public async getCanonicalTokenAddress () {
-    return this.getL2CanonicalTokenAddress(this.token.symbol, this.chain)
+    return this.getL2CanonicalTokenAddress(this.tokenSymbol, this.chain)
   }
 
   /**
@@ -157,7 +148,7 @@ class AMM extends Base {
    * @returns {String} address
    */
   public async getHopTokenAddress () {
-    return this.getL2HopBridgeTokenAddress(this.token.symbol, this.chain)
+    return this.getL2HopBridgeTokenAddress(this.tokenSymbol, this.chain)
   }
 
   /**
@@ -167,10 +158,10 @@ class AMM extends Base {
    */
   public async getSaddleSwap (chain: TChain) {
     chain = this.toChainModel(chain)
-    const saddleSwapAddress = this.getL2SaddleSwapAddress(this.token.symbol, chain)
+    const saddleSwapAddress = this.getL2SaddleSwapAddress(this.tokenSymbol, chain)
     if (!saddleSwapAddress) {
       throw new Error(
-        `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+        `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
       )
     }
     const provider = await this.getSignerOrProvider(chain)

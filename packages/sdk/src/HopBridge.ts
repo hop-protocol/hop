@@ -195,9 +195,9 @@ class HopBridge extends Base {
       tokenSymbol = token.symbol
     }
     const { name, symbol, decimals } = metadata.tokens[network][tokenSymbol]
-    const { l2HopBridgeToken } = addresses.bridges[tokenSymbol][chain.slug]
+    const address = this.getL2HopBridgeTokenAddress(tokenSymbol, chain)
 
-    return new Token(network, chain, l2HopBridgeToken, decimals, symbol, name)
+    return new Token(network, chain, address, decimals, symbol, name, this.signer)
   }
 
   /**
@@ -745,7 +745,9 @@ class HopBridge extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(chain, signer)
-    return this.getContract(saddleLpTokenAddress, saddleLpTokenAbi, provider)
+
+    // ToDo: Get actual saddle LP token symbol and name
+    return new Token(this.network, chain, saddleLpTokenAddress, 18, `${this.tokenSymbol}`, `${this.tokenSymbol}_LP`, provider)
   }
 
   /**

@@ -304,18 +304,24 @@ export default class Bridge extends ContractBase {
 
     let end = blockNumber
     let start = end - batchBlocks
+    let isSingleBatch = totalBlocks <= batchBlocks
     let i = 0
-    while (start >= blockNumber - totalBlocks) {
-      const shouldContinue = await cb(start, end, i)
-      if (typeof shouldContinue === 'boolean' && !shouldContinue) {
-        break
+    while (isSingleBatch || (start >= blockNumber - totalBlocks)) {
+      if (isSingleBatch) {
+        start = end - totalBlocks
       }
-      end = start
-      start = end - batchBlocks
+
+      const shouldContinue = await cb(start, end, i)
       await db.syncState.update(cacheKey, {
-        lastBlockSynced: end,
+        latestBlockSynced: end,
         timestamp: Date.now()
       })
+      if (isSingleBatch || (typeof shouldContinue === 'boolean' && !shouldContinue)) {
+        break
+      }
+
+      end = start
+      start = end - batchBlocks
       i++
     }
   }

@@ -56,9 +56,7 @@ class BaseWatcher extends Base {
     this.bridge = new HopBridge(
       this.network,
       this.signer,
-      this.token,
-      this.sourceChain,
-      this.destinationChain
+      this.token
     )
 
     const receipt = await this.sourceChain.provider.waitForTransaction(

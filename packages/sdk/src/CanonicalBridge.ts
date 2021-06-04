@@ -13,6 +13,7 @@ import {
 } from '@hop-protocol/abi'
 import { Chain } from './models'
 import { TChain, TToken, TAmount, TProvider } from './types'
+import { addresses, metadata } from './config'
 import TokenClass from './Token'
 import Base from './Base'
 
@@ -26,6 +27,8 @@ class CanonicalBridge extends Base {
 
   /** Token class instance */
   public token: TokenClass
+
+  public tokenSymbol: string
 
   /**
    * @desc Instantiates Canonical Token Bridge.
@@ -48,7 +51,7 @@ class CanonicalBridge extends Base {
     network: string,
     signer: TProvider,
     token: TToken,
-    chain?: TChain
+    chain: TChain
   ) {
     super(network, signer)
     if (!token) {
@@ -59,13 +62,11 @@ class CanonicalBridge extends Base {
     if (signer) {
       this.signer = signer
     }
-    if (chain) {
-      this.chain = chain
-    }
+    this.chain = chain
 
     this.token = new TokenClass(
       this.network,
-      token.chainId,
+      chain,
       token.address,
       token.decimals,
       token.symbol,
@@ -121,14 +122,16 @@ class CanonicalBridge extends Base {
       chain = this.chain
     }
     const provider = await this.getSignerOrProvider(Chain.Ethereum)
-    const token = this.token.connect(provider)
+
+    const l1CanonicalToken = this.getL1Token().connect(provider)
+
     const spender = this.getDepositApprovalAddress(chain)
     if (!spender) {
       throw new Error(
         `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
       )
     }
-    return token.approve(Chain.Ethereum, spender, amount)
+    return l1CanonicalToken.approve(spender, amount)
   }
 
   /**
@@ -241,29 +244,23 @@ class CanonicalBridge extends Base {
    * @desc Sends transaction to approve tokens for canonical token bridge withdrawal.
    * Will only send approval transaction if necessary.
    * @param {Object} amount - Token amount to approve.
-   * @param {Object} chain - Chain model.
    * @returns {Object} Ethers transaction object.
    */
-  public async approveWithdraw (amount: TAmount, chain?: TChain) {
+  public async approveWithdraw (amount: TAmount) {
     amount = amount.toString()
-    if (chain) {
-      chain = this.toChainModel(chain)
-    } else {
-      chain = this.chain
-    }
     // no approval needed
-    if (chain.equals(Chain.Polygon)) {
+    if (this.chain.equals(Chain.Polygon)) {
       return
     }
     const provider = await this.getSignerOrProvider(Chain.Ethereum)
-    const token = this.token.connect(provider)
-    const spender = this.getWithdrawApprovalAddress(chain)
+    const token = this.getCanonicalToken(this.chain).connect(provider)
+    const spender = this.getWithdrawApprovalAddress(this.chain)
     if (!spender) {
       throw new Error(
-        `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`
+        `token "${this.token.symbol}" on chain "${this.chain.slug}" is unsupported`
       )
     }
-    return token.approve(chain, spender, amount)
+    return token.approve(spender, amount)
   }
 
   /**
@@ -519,6 +516,59 @@ class CanonicalBridge extends Base {
       abi = l1OptimismTokenBridgeAbi
     }
     return this.getContract(address, abi, provider)
+  }
+
+  // ToDo: Remove duplicated logic after refactoring token getters
+  public getL1Token () {
+    return this.toCanonicalToken(this.tokenSymbol, this.network, Chain.Ethereum)
+  }
+
+  public getCanonicalToken (chain: TChain) {
+    return this.toCanonicalToken(this.tokenSymbol, this.network, chain)
+  }
+
+  public getL2HopToken (chain: TChain) {
+    return this.toHopToken(this.tokenSymbol, this.network, chain)
+  }
+
+  public toCanonicalToken (token: TToken, network: string, chain: TChain) {
+    let tokenSymbol
+    if (typeof token === 'string') {
+      tokenSymbol = token
+    } else {
+      tokenSymbol = token.symbol
+    }
+
+    chain = this.toChainModel(chain)
+    const { name, symbol, decimals } = metadata.tokens[network][tokenSymbol]
+    let address
+    if (chain.isL1) {
+      const { l1CanonicalToken } = addresses.bridges[tokenSymbol][chain.slug]
+      address = l1CanonicalToken
+    } else {
+      const { l2CanonicalToken } = addresses.bridges[tokenSymbol][chain.slug]
+      address = l2CanonicalToken
+    }
+
+    return new TokenClass(network, chain, address, decimals, symbol, name)
+  }
+
+  public toHopToken (token: TToken, network: string, chain: TChain) {
+    chain = this.toChainModel(chain)
+    if (chain.isL1) {
+      throw new Error('Hop tokens do not exist on layer 1')
+    }
+
+    let tokenSymbol
+    if (typeof token === 'string') {
+      tokenSymbol = token
+    } else {
+      tokenSymbol = token.symbol
+    }
+    const { name, symbol, decimals } = metadata.tokens[network][tokenSymbol]
+    const { l2HopBridgeToken } = addresses.bridges[tokenSymbol][chain.slug]
+
+    return new TokenClass(network, chain, l2HopBridgeToken, decimals, symbol, name)
   }
 }
 

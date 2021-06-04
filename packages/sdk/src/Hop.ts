@@ -80,16 +80,12 @@ class Hop extends Base {
    *```
    */
   public bridge (
-    token: TToken,
-    sourceChain?: TChain,
-    destinationChain?: TChain
+    token: TToken
   ) {
     return new HopBridge(
       this.network,
       this.signer,
-      token,
-      sourceChain,
-      destinationChain
+      token
     )
   }
 

@@ -1,19 +1,20 @@
 import { ethers, providers, Signer, Contract, BigNumber } from 'ethers'
-import { Token as TokenModel } from './models'
 import { erc20Abi } from '@hop-protocol/abi'
-import { TChain, TAmount } from './types'
+import { TAmount, TChain } from './types'
 import Base from './Base'
+import Chain from './models/Chain'
 
 /**
  * Class reprensenting ERC20 Token
  * @namespace Token
  */
 class Token extends Base {
-  /** Token model */
-  public model: TokenModel
-
-  /** Token type */
-  public tokenType: string
+  public readonly address: string
+  public readonly decimals: number
+  public readonly symbol: string
+  public readonly name: string
+  public readonly chain: Chain
+  public readonly contract: Contract
 
   // TODO: clean up and remove unused parameters.
   /**
@@ -29,24 +30,20 @@ class Token extends Base {
    */
   constructor (
     network: string,
-    chainId: number | string,
+    chain: TChain,
     address: string,
     decimals: number,
     symbol: string,
     name: string,
-    signer?: Signer | providers.Provider,
-    tokenType?: string
+    signer?: Signer | providers.Provider
   ) {
     super(network, signer)
-    this.model = new TokenModel(chainId, address, decimals, symbol, name)
-    this.network = network
-    if (signer) {
-      this.signer = signer
-    }
-    // TODO: polymorphism instead of this
-    if (tokenType) {
-      this.tokenType = tokenType
-    }
+
+    this.address = ethers.utils.getAddress(address)
+    this.symbol = symbol
+    this.name = name
+    this.decimals = decimals
+    this.chain = this.toChainModel(chain)
   }
 
   /**
@@ -57,19 +54,17 @@ class Token extends Base {
   public connect (signer: Signer | providers.Provider) {
     return new Token(
       this.network,
-      this.chainId,
+      this.chain,
       this.address,
       this.decimals,
       this.symbol,
       this.name,
-      signer,
-      this.tokenType
+      signer
     )
   }
 
   /**
    * @desc Returns token allowance.
-   * @param {Object} chain - Chain model.
    * @param {String} spender - spender address.
    * @returns {Object} Ethers Transaction object.
    * @example
@@ -81,9 +76,8 @@ class Token extends Base {
    *const allowance = bridge.allowance(Chain.xDai, spender)
    *```
    */
-  public async allowance (chain: TChain, spender: string) {
-    chain = this.toChainModel(chain)
-    const tokenContract = await this.getErc20(chain)
+  public async allowance (spender: string) {
+    const tokenContract = await this.getErc20()
     const address = await this.getSignerAddress()
     if (!address) {
       throw new Error('signer required')
@@ -93,7 +87,6 @@ class Token extends Base {
 
   /**
    * @desc Returns token balance of signer.
-   * @param {Object} chain - Chain model.
    * @param {String} spender - spender address.
    * @returns {Object} Ethers Transaction object.
    * @example
@@ -105,33 +98,30 @@ class Token extends Base {
    *const allowance = bridge.allowance(Chain.xDai, spender)
    *```
    */
-  public async balanceOf (chain: TChain) {
-    chain = this.toChainModel(chain)
-    const tokenContract = await this.getErc20(chain)
+  public async balanceOf () {
+    const tokenContract = await this.getErc20()
     const address = await this.getSignerAddress()
     return tokenContract.balanceOf(address)
   }
 
   /**
    * @desc ERC20 token transfer
-   * @param {Object} chain - Chain model.
    * @param {String} recipient - recipient address.
    * @param {String} amount - Token amount.
    * @returns {Object} Ethers Transaction object.
    * @example
    *```js
-   *import { Hop, Chain, Token } from '@hop-protocol/sdk'
+   *import { Hop, Token } from '@hop-protocol/sdk'
    *
    *const bridge = hop.bridge(Token.USDC).connect(signer)
    *const recipient = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
    *const amount = '1000000000000000000'
-   *const tx = await bridge.erc20Transfer(Chain.Ethereum, spender, amount)
+   *const tx = await bridge.erc20Transfer(spender, amount)
    *```
    */
-  public async transfer (chain: TChain, recipient: string, amount: TAmount) {
-    chain = this.toChainModel(chain)
-    const tokenContract = await this.getErc20(chain)
-    return tokenContract.transfer(recipient, amount, this.txOverrides(chain))
+  public async transfer (recipient: string, amount: TAmount) {
+    const tokenContract = await this.getErc20()
+    return tokenContract.transfer(recipient, amount, this.overrides())
   }
 
   /**
@@ -151,15 +141,13 @@ class Token extends Base {
    *```
    */
   public async approve (
-    chain: TChain,
     spender: string,
     amount: TAmount = ethers.constants.MaxUint256
   ) {
-    chain = this.toChainModel(chain)
-    const tokenContract = await this.getErc20(chain)
-    const allowance = await this.allowance(chain, spender)
+    const tokenContract = await this.getErc20()
+    const allowance = await this.allowance(spender)
     if (allowance.lt(BigNumber.from(amount))) {
-      return tokenContract.approve(spender, amount, this.txOverrides(chain))
+      return tokenContract.approve(spender, amount, this.overrides())
     }
   }
 
@@ -168,43 +156,19 @@ class Token extends Base {
    * @param {Object} chain - Chain model.
    * @returns {Object} Ethers contract instance.
    */
-  public async getErc20 (chain: TChain) {
-    chain = this.toChainModel(chain)
-    let tokenAddress: string
-    if (chain.isL1) {
-      tokenAddress = this.getL1CanonicalTokenAddress(this.symbol, chain)
-    } else {
-      if (this.tokenType === 'hop') {
-        tokenAddress = this.getL2HopBridgeTokenAddress(this.symbol, chain)
-      } else if (this.tokenType === 'lp') {
-        tokenAddress = this.getL2SaddleLpTokenAddress(this.symbol, chain)
-      } else {
-        tokenAddress = this.getL2CanonicalTokenAddress(this.symbol, chain)
-      }
-    }
-
-    const provider = await this.getSignerOrProvider(chain)
-    return this.getContract(tokenAddress, erc20Abi, provider)
+  public async getErc20 () {
+    const provider = await this.getSignerOrProvider(this.chain)
+    return this.getContract(this.address, erc20Abi, provider)
   }
 
+  public overrides () {
+    return this.txOverrides(this.chain)
+  }
+
+  // ToDo: Remove chainId. This is added to comply with the token model type
   get chainId () {
-    return this.model.chainId
-  }
-
-  get address () {
-    return this.model.address
-  }
-
-  get decimals () {
-    return this.model.decimals
-  }
-
-  get symbol () {
-    return this.model.symbol
-  }
-
-  get name () {
-    return this.model.name
+    throw new Error('chainId should not be accessed')
+    return 0
   }
 }
 

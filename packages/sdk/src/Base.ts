@@ -1,6 +1,6 @@
 import memoize from 'fast-memoize'
 import { Contract, Signer, providers, BigNumber } from 'ethers'
-import { Chain, Token } from './models'
+import { Chain, Token as TokenModel } from './models'
 import { TChain, TProvider, TToken } from './types'
 import { addresses, chains, metadata, bonders } from './config'
 
@@ -127,7 +127,7 @@ class Base {
   public toTokenModel (token: TToken) {
     if (typeof token === 'string') {
       let { name, symbol, decimals } = metadata.tokens[this.network][token]
-      return new Token(0, '', decimals, symbol, name)
+      return new TokenModel(0, '', decimals, symbol, name)
     }
 
     return token
@@ -218,6 +218,7 @@ class Base {
   public getConfigAddresses (token: TToken, chain: TChain) {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
+    console.log('token: ', token)
     return addresses[this.network]?.[token.symbol]?.[chain.slug]
   }
 

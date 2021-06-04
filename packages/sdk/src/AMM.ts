@@ -47,7 +47,7 @@ class AMM extends Base {
     }
     this.token = new TokenClass(
       this.network,
-      token.chainId,
+      chain,
       token.address,
       token.decimals,
       token.symbol,
@@ -71,7 +71,7 @@ class AMM extends Base {
    *```
    */
   public connect (signer: TProvider) {
-    return new AMM(this.network, this.token, this.chain, signer)
+    return new AMM(this.network, this.token.symbol, this.chain, signer)
   }
 
   /**
@@ -149,7 +149,7 @@ class AMM extends Base {
    * @returns {String} address
    */
   public async getCanonicalTokenAddress () {
-    return this.getL2CanonicalTokenAddress(this.token, this.chain)
+    return this.getL2CanonicalTokenAddress(this.token.symbol, this.chain)
   }
 
   /**
@@ -157,7 +157,7 @@ class AMM extends Base {
    * @returns {String} address
    */
   public async getHopTokenAddress () {
-    return this.getL2HopBridgeTokenAddress(this.token, this.chain)
+    return this.getL2HopBridgeTokenAddress(this.token.symbol, this.chain)
   }
 
   /**
@@ -167,7 +167,7 @@ class AMM extends Base {
    */
   public async getSaddleSwap (chain: TChain) {
     chain = this.toChainModel(chain)
-    const saddleSwapAddress = this.getL2SaddleSwapAddress(this.token, chain)
+    const saddleSwapAddress = this.getL2SaddleSwapAddress(this.token.symbol, chain)
     if (!saddleSwapAddress) {
       throw new Error(
         `token "${this.token.symbol}" on chain "${chain.slug}" is unsupported`

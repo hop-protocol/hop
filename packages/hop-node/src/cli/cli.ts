@@ -666,7 +666,7 @@ function parseArgList (arg: string) {
     .filter((value: string) => value)
 }
 
-function validateKeys (validKeys: string[], keys: string[]) {
+function validateKeys (validKeys: string[] = [], keys: string[]) {
   for (let key of keys) {
     if (!validKeys.includes(key)) {
       throw new Error(`unrecognized key "${key}"`)

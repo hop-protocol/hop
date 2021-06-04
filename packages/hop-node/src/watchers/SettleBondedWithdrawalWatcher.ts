@@ -65,35 +65,46 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     this.logger.setEnabled(false)
   }
 
-  async syncUp () {
+  async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
-    await this.eventsBatch(async (start: number, end: number) => {
-      const transferRootSetEvents = await this.bridge.getTransferRootSetEvents(
-        start,
-        end
-      )
 
-      for (let event of transferRootSetEvents) {
-        const { rootHash, totalAmount } = event.args
-        await this.handleTransferRootSetEvent(rootHash, totalAmount, event)
-      }
-
-      const withdrawalsSettledEvents = await this.bridge.getMultipleWithdrawalsSettledEvents(
-        start,
-        end
-      )
-
-      for (let event of withdrawalsSettledEvents) {
-        const { bonder, rootHash, totalBondsSettled } = event.args
-        await this.handleMultipleWithdrawalsSettled(
-          bonder,
-          rootHash,
-          totalBondsSettled
+    const promises: Promise<any>[] = []
+    promises.push(
+      this.eventsBatch(async (start: number, end: number) => {
+        const transferRootSetEvents = await this.bridge.getTransferRootSetEvents(
+          start,
+          end
         )
-      }
-      //}, this.bridge.TransferRootSet)
-    })
+
+        for (let event of transferRootSetEvents) {
+          const { rootHash, totalAmount } = event.args
+          await this.handleTransferRootSetEvent(rootHash, totalAmount, event)
+        }
+
+        const withdrawalsSettledEvents = await this.bridge.getMultipleWithdrawalsSettledEvents(
+          start,
+          end
+        )
+
+        for (let event of withdrawalsSettledEvents) {
+          const { bonder, rootHash, totalBondsSettled } = event.args
+          await this.handleMultipleWithdrawalsSettled(
+            bonder,
+            rootHash,
+            totalBondsSettled
+          )
+        }
+        //}, this.bridge.TransferRootSet)
+      })
+    )
+
+    await Promise.all(promises)
     this.logger.debug('done syncing')
+
+    // re-sync every 6 hours
+    const sixHours = 6 * 60 * 60 * 1000
+    await wait(sixHours)
+    return this.syncUp()
   }
 
   async watch () {

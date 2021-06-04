@@ -1,6 +1,6 @@
 import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
-import { isL1NetworkId } from 'src/utils'
+import { wait, isL1NetworkId } from 'src/utils'
 import chalk from 'chalk'
 //import db from 'src/db'
 import BaseWatcher from './classes/BaseWatcher'
@@ -46,32 +46,43 @@ class ChallengeWatcher extends BaseWatcher {
     this.logger.setEnabled(false)
   }
 
-  async syncUp () {
+  async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
-    await this.l1Bridge.eventsBatch(
-      async (start: number, end: number) => {
-        const transferRootBondedEvents = await this.l1Bridge.getTransferRootBondedEvents(
-          start,
-          end
-        )
+    const promises: Promise<any>[] = []
+    promises.push(
+      this.l1Bridge.eventsBatch(
+        async (start: number, end: number) => {
+          const transferRootBondedEvents = await this.l1Bridge.getTransferRootBondedEvents(
+            start,
+            end
+          )
 
-        for (let event of transferRootBondedEvents) {
-          const { root, amount } = event.args
-          await this.handleTransferRootBondedEvent(root, amount, event)
-        }
+          for (let event of transferRootBondedEvents) {
+            const { root, amount } = event.args
+            await this.handleTransferRootBondedEvent(root, amount, event)
+          }
 
-        const transferRootConfirmedEvents = await this.l1Bridge.getTransferRootConfirmedEvents(
-          start,
-          end
-        )
+          const transferRootConfirmedEvents = await this.l1Bridge.getTransferRootConfirmedEvents(
+            start,
+            end
+          )
 
-        for (let event of transferRootConfirmedEvents) {
-          const { root, amount } = event.args
-          await this.handleTransferRootBondedEvent(root, amount, event)
-        }
-      },
-      { key: this.l1Bridge.TransferRootBonded }
+          for (let event of transferRootConfirmedEvents) {
+            const { root, amount } = event.args
+            await this.handleTransferRootBondedEvent(root, amount, event)
+          }
+        },
+        { key: this.l1Bridge.TransferRootBonded }
+      )
     )
+
+    await Promise.all(promises)
+    this.logger.debug('done syncing')
+
+    // re-sync every 6 hours
+    const sixHours = 6 * 60 * 60 * 1000
+    await wait(sixHours)
+    return this.syncUp()
   }
 
   async watch () {

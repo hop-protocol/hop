@@ -79,7 +79,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.setEnabled(false)
   }
 
-  async syncUp () {
+  async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
 
     const promises: Promise<any>[] = []
@@ -157,6 +157,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     await Promise.all(promises)
     this.logger.debug('done syncing')
+
+    // re-sync every 6 hours
+    const sixHours = 6 * 60 * 60 * 1000
+    await wait(sixHours)
+    return this.syncUp()
   }
 
   async watch () {

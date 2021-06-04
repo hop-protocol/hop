@@ -121,7 +121,7 @@ function startWatchers (
     dryMode: false
   }
 ) {
-  const enabledWatchers = _config.enabledWatchers
+  const enabledWatchers = _config.enabledWatchers || []
   const orderNum = _config.order || 0
   let _tokens = _config.tokens
   let _networks = _config.networks.filter(x => networks.includes(x))

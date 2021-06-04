@@ -64,44 +64,55 @@ class CommitTransfersWatcher extends BaseWatcher {
     this.logger.setEnabled(false)
   }
 
-  async syncUp () {
+  async syncUp (): Promise<any> {
     if (this.isL1) {
       return
     }
+
+    const promises: Promise<any>[] = []
     this.logger.debug('syncing up events')
 
     const l2Bridge = this.bridge as L2Bridge
-    await this.eventsBatch(async (start: number, end: number) => {
-      const transferSentEvents = await l2Bridge.getTransferSentEvents(
-        start,
-        end
-      )
-      for (let event of transferSentEvents) {
-        const {
-          transferId,
-          recipient,
-          amount,
-          transferNonce,
-          bonderFee,
-          index,
-          amountOutMin,
-          deadline
-        } = event.args
-        await this.handleTransferSentEvent(
-          transferId,
-          recipient,
-          amount,
-          transferNonce,
-          bonderFee,
-          index,
-          amountOutMin,
-          deadline,
-          event
+    promises.push(
+      this.eventsBatch(async (start: number, end: number) => {
+        const transferSentEvents = await l2Bridge.getTransferSentEvents(
+          start,
+          end
         )
-      }
-      //}, l2Bridge.TransferSent)
-    })
+        for (let event of transferSentEvents) {
+          const {
+            transferId,
+            recipient,
+            amount,
+            transferNonce,
+            bonderFee,
+            index,
+            amountOutMin,
+            deadline
+          } = event.args
+          await this.handleTransferSentEvent(
+            transferId,
+            recipient,
+            amount,
+            transferNonce,
+            bonderFee,
+            index,
+            amountOutMin,
+            deadline,
+            event
+          )
+        }
+        //}, l2Bridge.TransferSent)
+      })
+    )
+
+    await Promise.all(promises)
     this.logger.debug('done syncing')
+
+    // re-sync every 6 hours
+    const sixHours = 6 * 60 * 60 * 1000
+    await wait(sixHours)
+    return this.syncUp()
   }
 
   async watch () {

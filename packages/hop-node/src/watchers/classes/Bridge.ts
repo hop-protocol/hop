@@ -313,7 +313,7 @@ export default class Bridge extends ContractBase {
       end = start
       start = end - batchBlocks
       await db.syncState.update(cacheKey, {
-        lastBlockSynced: end,
+        latestBlockSynced: end,
         timestamp: Date.now()
       })
       i++

@@ -1,7 +1,7 @@
 import BaseDb from './BaseDb'
 
 export type State = {
-  lastBlockSynced: number
+  latestBlockSynced: number
   timestamp: number
 }
 

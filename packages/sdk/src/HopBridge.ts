@@ -161,7 +161,9 @@ class HopBridge extends Base {
     return this.toHopToken(this.tokenSymbol, this.network, chain)
   }
 
-  public toCanonicalToken (token: TToken, network: string, chain: TChain) {
+  public toCanonicalToken (token: TToken, network: string, chain: TChain): Token | undefined {
+    if (!this.signer) return
+
     let tokenSymbol
     if (typeof token === 'string') {
       tokenSymbol = token
@@ -182,7 +184,9 @@ class HopBridge extends Base {
     return new Token(network, chain, address, decimals, symbol, name, this.signer)
   }
 
-  public toHopToken (token: TToken, network: string, chain: TChain) {
+  public toHopToken (token: TToken, network: string, chain: TChain): Token | undefined {
+    if (!this.signer) return
+
     chain = this.toChainModel(chain)
     if (chain.isL1) {
       throw new Error('Hop tokens do not exist on layer 1')
@@ -281,7 +285,7 @@ class HopBridge extends Base {
 
   // ToDo: Docs
   public getTokenSymbol () {
-    return this.getL1Token().symbol
+    return this.getL1Token()?.symbol
   }
 
   // ToDo: Docs

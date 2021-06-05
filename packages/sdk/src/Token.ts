@@ -98,7 +98,7 @@ class Token extends Base {
    *const allowance = bridge.allowance(Chain.xDai, spender)
    *```
    */
-  public async balanceOf () {
+  public async balanceOf (): Promise<BigNumber> {
     const tokenContract = await this.getErc20()
     const address = await this.getSignerAddress()
     return tokenContract.balanceOf(address)
@@ -169,6 +169,10 @@ class Token extends Base {
   get chainId () {
     throw new Error('chainId should not be accessed')
     return 0
+  }
+
+  public eq (token: Token): boolean {
+    return this.address.toLowerCase() === token.address.toLowerCase()
   }
 }
 

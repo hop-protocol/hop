@@ -130,8 +130,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     while (true) {
       if (!this.started) return
       try {
-        // TODO
-        const chainIds = [1, 42, 5, 69, 79377087078960, 77, 80001, 100, 137]
+        const chainIds = await this.bridge.getChainIds()
         const l2Bridge = this.bridge as L2Bridge
         for (let chainId of chainIds) {
           //await this.getRecentTransferIdsForCommittedRoots()

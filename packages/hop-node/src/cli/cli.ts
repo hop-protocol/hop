@@ -35,6 +35,7 @@ import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
 import LoadTest from 'src/loadTest'
+import HealthCheck from 'src/health/HealthCheck'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
 import { networkSlugToId } from 'src/utils'
 import entropyToMnemonic from 'src/utils/entropyToMnemonic'
@@ -464,6 +465,18 @@ program
       new LoadTest({
         concurrentUsers: Number(source.concurrentUsers || 1)
       }).start()
+    } catch (err) {
+      logger.error(err.message)
+      process.exit(1)
+    }
+  })
+
+program
+  .command('health-check')
+  .description('Start health check')
+  .action(source => {
+    try {
+      new HealthCheck().start()
     } catch (err) {
       logger.error(err.message)
       process.exit(1)

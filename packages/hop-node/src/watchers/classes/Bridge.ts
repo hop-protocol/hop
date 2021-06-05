@@ -4,6 +4,7 @@ import ContractBase from './ContractBase'
 import queue from 'src/decorators/queue'
 import { config } from 'src/config'
 import unique from 'src/utils/unique'
+import { isL1NetworkId, networkIdToSlug } from 'src/utils'
 import db from 'src/db'
 
 export default class Bridge extends ContractBase {
@@ -11,11 +12,13 @@ export default class Bridge extends ContractBase {
   TransferRootSet: string = 'TransferRootSet'
   MultipleWithdrawalsSettled: string = 'TransferRootSet'
   tokenDecimals: number = 18
+  tokenSymbol: string = ''
 
   constructor (public bridgeContract: Contract) {
     super(bridgeContract)
     this.bridgeContract = bridgeContract
     let tokenDecimals: number
+    let tokenSymbol: string
     // TODO: better way of getting token decimals
     for (let tkn in config.tokens) {
       for (let key in config.tokens[tkn]) {
@@ -26,6 +29,8 @@ export default class Bridge extends ContractBase {
               tokenDecimals = (config.metadata.tokens[config.network] as any)[
                 tkn
               ].decimals
+              tokenSymbol = (config.metadata.tokens[config.network] as any)[tkn]
+                .symbol
               break
             }
           }
@@ -34,6 +39,9 @@ export default class Bridge extends ContractBase {
     }
     if (tokenDecimals !== undefined) {
       this.tokenDecimals = tokenDecimals
+    }
+    if (tokenSymbol) {
+      this.tokenSymbol = tokenSymbol
     }
     this.bridgeStartListeners()
   }
@@ -217,6 +225,37 @@ export default class Bridge extends ContractBase {
     return this.bridgeContract.getTransferRoot(transferRootHash, totalAmount)
   }
 
+  // get the chain ids of all bridged L2s and L1
+  async getChainIds (): Promise<number[]> {
+    let chainIds: number[] = []
+    for (let key in config.networks) {
+      const { networkId } = config.networks[key]
+      chainIds.push(networkId)
+    }
+    return chainIds
+  }
+
+  async getL1ChainId (): Promise<number> {
+    for (let key in config.networks) {
+      const { networkId } = config.networks[key]
+      if (isL1NetworkId(networkId)) {
+        return networkId
+      }
+    }
+  }
+
+  async getL2ChainIds (): Promise<number[]> {
+    let chainIds: number[] = []
+    for (let key in config.networks) {
+      const { networkId } = config.networks[key]
+      if (isL1NetworkId(networkId)) {
+        continue
+      }
+      chainIds.push(networkId)
+    }
+    return chainIds
+  }
+
   @queue
   async stake (amount: BigNumber): Promise<providers.TransactionResponse> {
     const bonder = await this.getBonderAddress()
@@ -282,6 +321,10 @@ export default class Bridge extends ContractBase {
 
   parseUnits (value: string | number) {
     return parseUnits(value.toString(), this.tokenDecimals)
+  }
+
+  chainIdToSlug (chainId: number): string {
+    return networkIdToSlug(chainId)
   }
 
   public async eventsBatch (

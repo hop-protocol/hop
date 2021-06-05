@@ -52,9 +52,12 @@ export class User {
 
   async getBalance (
     network: string = Chain.Ethereum,
-    token: string | Contract = ''
+    token: string | Contract = '',
+    address?: string
   ) {
-    const address = await this.getAddress()
+    if (!address) {
+      address = await this.getAddress()
+    }
     if (!token) {
       const provider = this.getProvider(network)
       const balance = await provider.getBalance(address)

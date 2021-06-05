@@ -23,13 +23,9 @@ class User {
     const bridge = sdk.bridge(token.symbol.replace('h', ''))
     // TODO: better way and clean up
     const isHop = token.symbol.startsWith('h') || network?.slug?.includes('Hop')
-    const _token = isHop ? bridge.hopToken : bridge.token
+    const _token = isHop ? bridge.getL2HopToken(network.slug) : bridge.getCanonicalToken(network.slug)
 
-    // note: remove this when convert page is refactored
-    const canonicalSlug = (network: Network) => {
-      return network?.slug?.replace('HopBridge', '')
-    }
-    return _token.connect(this.provider?.getSigner()).balanceOf(canonicalSlug(network))
+    return _token.connect(this.provider?.getSigner()).balanceOf()
     // return ethers.BigNumber.from('0')
     // const tokenContract = token.contractForNetwork(network)
     // const userAddress = this.provider.getSigner().getAddress()

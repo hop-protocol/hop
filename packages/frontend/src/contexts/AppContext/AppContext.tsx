@@ -1,17 +1,18 @@
 import React, { FC, useMemo, createContext, useContext } from 'react'
-import { Hop } from '@hop-protocol/sdk'
+import { Hop, HopBridge } from '@hop-protocol/sdk'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import User from 'src/models/User'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
-import useNetworks from './useNetworks'
-import useTokens from './useTokens'
-import useTxHistory, { TxHistory } from './useTxHistory'
-import useContracts, { Contracts } from './useContracts'
-import useEvents, { Events } from './useEvents'
-import { useAccountDetails, AccountDetails } from './useAccountDetails'
-import { useTxConfirm, TxConfirm } from './useTxConfirm'
+import useNetworks from 'src/contexts/AppContext/useNetworks'
+import useTokens from 'src/contexts/AppContext/useTokens'
+import useBridges from 'src/contexts/AppContext/useBridges'
+import useTxHistory, { TxHistory } from 'src/contexts/AppContext/useTxHistory'
+import useContracts, { Contracts } from 'src/contexts/AppContext/useContracts'
+import useEvents, { Events } from 'src/contexts/AppContext/useEvents'
+import { useAccountDetails, AccountDetails } from 'src/contexts/AppContext/useAccountDetails'
+import { useTxConfirm, TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
 import { network } from 'src/config'
 
 type AppContextProps = {
@@ -25,6 +26,7 @@ type AppContextProps = {
   txHistory: TxHistory | undefined
   txConfirm: TxConfirm | undefined
   sdk: Hop
+  bridges: HopBridge[]
 }
 
 const AppContext = createContext<AppContextProps>({
@@ -37,7 +39,8 @@ const AppContext = createContext<AppContextProps>({
   accountDetails: undefined,
   txHistory: undefined,
   txConfirm: undefined,
-  sdk: {} as Hop
+  sdk: {} as Hop,
+  bridges: []
 })
 
 const AppContextProvider: FC = ({ children }) => {
@@ -61,11 +64,13 @@ const AppContextProvider: FC = ({ children }) => {
   const txConfirm = useTxConfirm()
   const l1Network = networks?.[0]
   const sdk = useMemo(() => new Hop(network, provider?.getSigner()), [provider])
+  const bridges = useBridges(sdk)
 
   return (
     <AppContext.Provider
       value={{
         sdk,
+        bridges,
         user,
         networks,
         l1Network,

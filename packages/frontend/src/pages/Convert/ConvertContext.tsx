@@ -1,7 +1,8 @@
-import React, { FC, createContext, useContext, useState, useMemo } from 'react'
+import React, { FC, createContext, useContext, useState, useMemo, useEffect } from 'react'
 import { Signer, BigNumber } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { useLocation } from 'react-router-dom'
+import { HopBridge, Token as SDKToken } from '@hop-protocol/sdk'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
@@ -13,14 +14,16 @@ import ConvertOption from 'src/pages/Convert/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import NativeConvertOption from 'src/pages/Convert/ConvertOption/NativeConvertOption'
-import useBalance from 'src/pages/Send/useBalance'
+import useBalance from 'src/pages/Convert/useBalance'
 
 type ConvertContextProps = {
   tokens: Token[]
   selectedToken: Token | undefined
   setSelectedToken: (token: Token) => void
-  convertOptions: ConvertOption[],
-  convertOption: ConvertOption | undefined,
+  selectedBridge: HopBridge | undefined
+  setSelectedBridge: (bridge: HopBridge) => void
+  convertOptions: ConvertOption[]
+  convertOption: ConvertOption | undefined
   networks: Network[]
   l2Networks: Network[]
   selectedNetwork: Network | undefined
@@ -51,6 +54,8 @@ const ConvertContext = createContext<ConvertContextProps>({
   tokens: [],
   selectedToken: undefined,
   setSelectedToken: (token: Token) => {},
+  selectedBridge: undefined,
+  setSelectedBridge: (bridge: HopBridge) => {},
   convertOptions: [],
   convertOption: undefined,
   networks: [],
@@ -82,9 +87,21 @@ const ConvertContext = createContext<ConvertContextProps>({
 const ConvertContextProvider: FC = ({ children }) => {
   const { provider, checkConnectedNetworkId } = useWeb3Context()
   const app = useApp()
-  const { networks, tokens, txConfirm, sdk, l1Network } = app
+  const { user, networks, tokens, bridges, txConfirm, sdk, l1Network } = app
   const { pathname } = useLocation()
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
+  const [selectedBridge, setSelectedBridge] = useState<HopBridge>()
+
+  useEffect(() => {
+    const newSelectedBridge = bridges.find(_bridge => {
+      return _bridge.getTokenSymbol() === selectedToken.symbol
+    })
+
+    if (newSelectedBridge) {
+      setSelectedBridge(newSelectedBridge)
+    }
+  }, [bridges, selectedToken, setSelectedBridge])
+
   const convertOptions = useMemo(() => {
     return [
       new AmmConvertOption(),
@@ -122,12 +139,34 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
   const [sending, setSending] = useState<boolean>(false)
+
+  const [sourceToken, setSourceToken] = useState<SDKToken>()
+  const [destToken, setDestToken] = useState<SDKToken>()
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      const token = await convertOption.sourceToken(isForwardDirection, selectedNetwork, selectedBridge)
+      setSourceToken(token)
+    }
+
+    fetchToken()
+  }, [user, convertOption, isForwardDirection, selectedNetwork, selectedBridge])
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      const token = await convertOption.destToken(isForwardDirection, selectedNetwork, selectedBridge)
+      setDestToken(token)
+    }
+
+    fetchToken()
+  }, [user, convertOption, isForwardDirection, selectedNetwork, selectedBridge])
+
   const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(
-    selectedToken,
+    sourceToken,
     sourceNetwork
   )
   const { balance: destBalance, loading: loadingDestBalance } = useBalance(
-    selectedToken,
+    destToken,
     destNetwork
   )
   const [error, setError] = useState<string | undefined>(undefined)
@@ -173,10 +212,10 @@ const ConvertContextProvider: FC = ({ children }) => {
   ): Promise<any> => {
     const signer = provider?.getSigner()
     const bridge = sdk.bridge(token.symbol).connect(signer as Signer)
+    const canonicalToken = bridge.getCanonicalToken(network.slug)
 
     const parsedAmount = parseUnits(amount, token.decimals)
-    const approved = await bridge.token.allowance(
-      network.slug,
+    const approved = await canonicalToken.allowance(
       targetAddress
     )
 
@@ -190,8 +229,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         },
         onConfirm: async (approveAll: boolean) => {
           const approveAmount = approveAll ? UINT256 : parsedAmount
-          return bridge.token.approve(
-            network.slug,
+          return canonicalToken.approve(
             targetAddress,
             approveAmount
           )
@@ -315,6 +353,8 @@ const ConvertContextProvider: FC = ({ children }) => {
         tokens,
         selectedToken,
         setSelectedToken,
+        selectedBridge,
+        setSelectedBridge,
         convertOptions,
         convertOption,
         networks,

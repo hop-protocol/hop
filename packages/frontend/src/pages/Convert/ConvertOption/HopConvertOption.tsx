@@ -1,7 +1,7 @@
 import ConvertOption from './ConvertOption'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
-import { Hop } from '@hop-protocol/sdk'
+import { Hop, HopBridge, Token as SDKToken } from '@hop-protocol/sdk'
 import { Signer } from 'ethers'
 import { ZERO_ADDRESS } from 'src/constants'
 
@@ -48,6 +48,26 @@ class HopConvertOption extends ConvertOption {
         relayerFee
       }
     )
+  }
+
+  async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
+    if (!bridge || !network) return
+
+    if (isForwardDirection) {
+      return bridge.getL1Token()
+    } else {
+      return bridge.getL2HopToken(network.slug)
+    }
+  }
+
+  async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
+    if (!bridge || !network) return
+
+    if (isForwardDirection) {
+      return bridge.getL2HopToken(network.slug)
+    } else {
+      return bridge.getL1Token()
+    }
   }
 }
 

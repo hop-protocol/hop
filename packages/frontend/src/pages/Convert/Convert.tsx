@@ -53,8 +53,6 @@ const Convert: FC = () => {
     selectedToken,
     setSelectedToken,
     convertOptions,
-    // convertOption,
-    // setConvertOption,
     l2Networks,
     selectedNetwork,
     setSelectedNetwork

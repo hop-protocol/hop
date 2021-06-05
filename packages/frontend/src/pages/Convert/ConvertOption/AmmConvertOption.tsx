@@ -1,7 +1,7 @@
 import ConvertOption from './ConvertOption'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
-import { Hop } from '@hop-protocol/sdk'
+import { Hop, HopBridge, Token as SDKToken } from '@hop-protocol/sdk'
 import { Signer } from 'ethers'
 
 class AmmConvertOption extends ConvertOption {
@@ -39,6 +39,14 @@ class AmmConvertOption extends ConvertOption {
       amountOutMin,
       deadline
     )
+  }
+
+  async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
+    return undefined
+  }
+
+  async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
+    return undefined
   }
 }
 

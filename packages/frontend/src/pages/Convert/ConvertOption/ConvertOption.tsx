@@ -1,6 +1,6 @@
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
-import { Hop } from '@hop-protocol/sdk'
+import { Hop, HopBridge, Token as SDKToken } from '@hop-protocol/sdk'
 import { Signer } from 'ethers'
 
 abstract class ConvertOption {
@@ -16,6 +16,18 @@ abstract class ConvertOption {
     token: Token,
     value: string
   ): Promise<any>
+
+  abstract sourceToken (
+    isForwardDirection: boolean,
+    network?: Network,
+    bridge?: HopBridge
+  ): Promise<SDKToken | undefined>
+
+  abstract destToken (
+    isForwardDirection: boolean,
+    network?: Network,
+    bridge?: HopBridge
+  ): Promise<SDKToken | undefined>
 }
 
 export default ConvertOption

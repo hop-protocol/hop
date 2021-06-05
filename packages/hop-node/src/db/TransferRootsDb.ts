@@ -89,7 +89,8 @@ class TransferRootsDb extends BaseDb {
         !item.bonded &&
         item.transferRootHash &&
         item.chainId &&
-        item.committedAt
+        item.committedAt &&
+        !item.confirmed
       )
     })
   }

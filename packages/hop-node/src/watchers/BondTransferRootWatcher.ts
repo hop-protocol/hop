@@ -25,7 +25,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   waitMinBondDelay: boolean = globalConfig.isMainnet
   skipChains: string[] = globalConfig.isMainnet
     ? [Chain.xDai, Chain.Polygon]
-    : []
+    : [Chain.xDai]
 
   constructor (config: Config) {
     super({

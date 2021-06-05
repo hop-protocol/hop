@@ -152,13 +152,17 @@ const AmountSelectorCard: FC<Props> = props => {
       <Grid container alignItems="center">
         <Grid item xs={6}>
           <Box className={styles.networkSelectionBox}>
-            <Box className={styles.networkIconContainer}>
-              <img
-                src={titleIconUrl}
-                className={styles.networkIcon}
-                alt={title}
-              />
-            </Box>
+            {
+              titleIconUrl
+              ? <Box className={styles.networkIconContainer}>
+                  <img
+                    src={titleIconUrl}
+                    className={styles.networkIcon}
+                    alt={title}
+                  />
+                </Box>
+              : null
+            }
             <Typography
               variant="subtitle2"
               className={styles.networkLabel}

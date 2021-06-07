@@ -42,45 +42,47 @@ class HealthCheck {
   async checkBridge (bridge: L2Bridge) {
     const chainIds = await bridge.getChainIds()
     await Promise.all(
-      chainIds.map((destinationChainId: number) => this.checkCommiTransfers(bridge, destinationChainId))
+      chainIds.map((destinationChainId: number) =>
+        this.checkCommiTransfers(bridge, destinationChainId)
+      )
     )
   }
 
-  async checkCommiTransfers(bridge: L2Bridge, destinationChainId: number) {
-      const { providerNetworkId: chainId } = bridge
-      const pendingTransfers = await bridge.getPendingTransfers(
-        destinationChainId
+  async checkCommiTransfers (bridge: L2Bridge, destinationChainId: number) {
+    const { providerNetworkId: chainId } = bridge
+    const pendingTransfers = await bridge.getPendingTransfers(
+      destinationChainId
+    )
+    const amount = await bridge.getPendingAmountForChainId(destinationChainId)
+    const sourceChain = bridge.chainSlug
+    const destinationChain = bridge.chainIdToSlug(destinationChainId)
+    const tokenSymbol = bridge.tokenSymbol
+    const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`
+    this.logger.debug(`checking ${path}`)
+    if (pendingTransfers.length) {
+      const shouldBeCommitted = amount.gte(
+        bridge.parseUnits(this.minThresholdAmount)
       )
-      const amount = await bridge.getPendingAmountForChainId(destinationChainId)
-      const sourceChain = bridge.chainSlug
-      const destinationChain = bridge.chainIdToSlug(destinationChainId)
-      const tokenSymbol = bridge.tokenSymbol
-      const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`
-      this.logger.debug(`checking ${path}`)
-      if (pendingTransfers.length) {
-        const shouldBeCommitted = amount.gte(
-          bridge.parseUnits(this.minThresholdAmount)
+      if (shouldBeCommitted) {
+        this.logger.warn(
+          `(${path}) total ${
+            pendingTransfers.length
+          } pending transfers amount (${bridge.formatUnits(
+            amount
+          )}) met min threshold (${
+            this.minThresholdAmount
+          }) but has not committed yet.`
         )
-        if (shouldBeCommitted) {
-          this.logger.warn(
-            `(${path}) total ${
-              pendingTransfers.length
-            } pending transfers amount (${bridge.formatUnits(
-              amount
-            )}) met min threshold (${this.minThresholdAmount}) but has not committed yet.`
+      }
+      for (let transferId of pendingTransfers) {
+        const bondedAmount = await bridge.getBondedWithdrawalAmount(transferId)
+        if (bondedAmount.eq(0)) {
+          this.logger.debug(
+            `(${path}) pending transfer id (${transferId}) has not been bonded yet.`
           )
-        }
-        for (let transferId of pendingTransfers) {
-          const bondedAmount = await bridge.getBondedWithdrawalAmount(
-            transferId
-          )
-          if (bondedAmount.eq(0)) {
-            this.logger.debug(
-              `(${path}) pending transfer id (${transferId}) has not been bonded yet.`
-            )
-          }
         }
       }
+    }
   }
 }
 

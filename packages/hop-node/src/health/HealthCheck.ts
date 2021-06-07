@@ -3,6 +3,7 @@ import L2Bridge from 'src/watchers/classes/L2Bridge'
 import { config } from 'src/config'
 import { wait } from 'src/utils'
 import Logger from 'src/logger'
+import { DateTime } from 'luxon'
 
 class HealthCheck {
   logger: Logger
@@ -60,21 +61,18 @@ class HealthCheck {
     const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`
     this.logger.debug(`checking ${path}`)
     if (pendingTransfers.length) {
-      const shouldBeCommitted = amount.gte(
-        bridge.parseUnits(this.minThresholdAmount)
-      )
-      if (shouldBeCommitted) {
-        this.logger.warn(
-          `(${path}) total ${
-            pendingTransfers.length
-          } pending transfers amount (${bridge.formatUnits(
-            amount
-          )}) met min threshold (${
-            this.minThresholdAmount
-          }) but has not committed yet.`
-        )
-      }
       for (let transferId of pendingTransfers) {
+        const timestamp = await bridge.getTransferSentTimestamp(transferId)
+        if (!timestamp) {
+          continue
+        }
+        const tenMinutesAgo = DateTime.now()
+          .minus({ minutes: 10 })
+          .toSeconds()
+        // skip if transfer sent events are recent (in the last 10 minutes)
+        if (timestamp > tenMinutesAgo) {
+          continue
+        }
         const bondedAmount = await bridge.getBondedWithdrawalAmount(transferId)
         if (bondedAmount.eq(0)) {
           this.logger.debug(
@@ -83,7 +81,23 @@ class HealthCheck {
         }
       }
     }
+    const shouldBeCommitted = amount.gte(
+      bridge.parseUnits(this.minThresholdAmount)
+    )
+    if (shouldBeCommitted) {
+      this.logger.warn(
+        `(${path}) total ${
+          pendingTransfers.length
+        } pending transfers amount (${bridge.formatUnits(
+          amount
+        )}) met min threshold (${
+          this.minThresholdAmount
+        }) but has not committed yet.`
+      )
+    }
   }
+
+  async checkTransferRootBonded (bridge: L2Bridge) {}
 }
 
 export default HealthCheck

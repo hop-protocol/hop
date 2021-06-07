@@ -228,6 +228,7 @@ class HopBridge extends Base {
     destinationChain?: TChain,
     options?: Partial<SendOptions>
   ) {
+    // ToDo: Add approval
     return this.sendHandler(
       tokenAmount.toString(),
       sourceChain,
@@ -279,6 +280,29 @@ class HopBridge extends Base {
       sourceChain,
       destinationChain,
       false,
+      options
+    )
+  }
+
+  // ToDo: Docs
+  public async sendHToken (
+    tokenAmount: TAmount,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    options?: Partial<SendOptions>
+  ) {
+    tokenAmount = tokenAmount.toString()
+    if (!sourceChain) {
+      throw new Error('source chain is required')
+    }
+    if (!destinationChain) {
+      throw new Error('destination chain is required')
+    }
+
+    return this.sendHTokenHandler(
+      tokenAmount.toString(),
+      sourceChain,
+      destinationChain,
       options
     )
   }
@@ -1081,6 +1105,79 @@ class HopBridge extends Base {
       destinationDeadline,
       this.txOverrides(sourceChain)
     )
+  }
+
+  private async sendHTokenHandler (
+    tokenAmount: BigNumberish,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    options?: Partial<SendOptions>
+  ) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    if (sourceChain.isL1 && destinationChain.isL1) {
+      throw new Error('sourceChain and destinationChain cannot both be L1')
+    } else if (!sourceChain.isL1 && !destinationChain.isL1) {
+      throw new Error('Sending hToken L2 to L2 is not currently supported')
+    }
+
+    if (
+      options?.deadline ||
+      options?.amountOutMin ||
+      options?.destinationDeadline ||
+      options?.destinationAmountOutMin
+    ) {
+      throw new Error('Invalid sendHTokenHandler option')
+    }
+
+    let minBonderFee = BigNumber.from(0)
+    if (!sourceChain.isL1) {
+      minBonderFee = await this.getBonderFee(
+        tokenAmount,
+        sourceChain,
+        destinationChain
+      )
+    }
+
+    const recipient = options?.recipient ?? (await this.getSignerAddress())
+    const bonderFee = options?.bonderFee ? BigNumber.from(options?.bonderFee) : minBonderFee
+    const amountOutMin = BigNumber.from(0)
+    const deadline = BigNumber.from(0)
+    const relayer = ethers.constants.AddressZero
+
+    if (sourceChain.isL1) {
+      if (bonderFee.gt(0)) {
+        throw new Error('Bonder fee should be 0 when sending hToken to L2')
+      }
+
+      const l1Bridge = await this.getL1Bridge(this.signer)
+      return l1Bridge.sendToL2(
+        destinationChain.chainId,
+        recipient,
+        tokenAmount,
+        amountOutMin,
+        deadline,
+        relayer,
+        bonderFee,
+        this.txOverrides(Chain.Ethereum)
+      )
+
+    } else {
+      if (bonderFee.eq(0)) {
+        throw new Error('Send at least the minimum Bonder fee')
+      }
+
+      const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
+      return l2Bridge.send(
+        destinationChain.chainId,
+        recipient,
+        tokenAmount,
+        bonderFee,
+        amountOutMin,
+        deadline,
+        this.txOverrides(sourceChain)
+      )
+    }
   }
 
   private async calcToHTokenAmount (

@@ -317,6 +317,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       // skip if a transaction was sent in the last 10 minutes
       if (dbTransferRoot.sentBondTxAt + tenMinutes > Date.now()) {
         this.logger.debug(
+          transferRootHash,
           'sent?:',
           !!dbTransferRoot.sentBondTx,
           'bonded?:',

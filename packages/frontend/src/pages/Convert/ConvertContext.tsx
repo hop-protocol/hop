@@ -204,18 +204,19 @@ const ConvertContextProvider: FC = ({ children }) => {
     return value
   }
 
-  const approveTokens = async (
-    token: Token,
-    amount: string,
-    network: Network,
-    targetAddress: string
-  ): Promise<any> => {
-    const signer = provider?.getSigner()
-    const bridge = sdk.bridge(token.symbol).connect(signer as Signer)
-    const canonicalToken = bridge.getCanonicalToken(network.slug)
+  const approveTokens = async (): Promise<any> => {
+    if (!sourceToken) {
+      throw new Error('No source token selected')
+    }
 
-    const parsedAmount = parseUnits(amount, token.decimals)
-    const approved = await canonicalToken.allowance(
+    const targetAddress = await convertOption.getTargetAddress(
+      sdk,
+      sourceToken,
+      sourceNetwork
+    )
+
+    const parsedAmount = parseUnits(sourceTokenAmount, sourceToken.decimals)
+    const approved = await sourceToken.allowance(
       targetAddress
     )
 
@@ -224,12 +225,12 @@ const ConvertContextProvider: FC = ({ children }) => {
       tx = await txConfirm?.show({
         kind: 'approval',
         inputProps: {
-          amount,
-          tokenSymbol: token.symbol
+          sourceTokenAmount,
+          tokenSymbol: sourceToken.symbol
         },
         onConfirm: async (approveAll: boolean) => {
           const approveAmount = approveAll ? UINT256 : parsedAmount
-          return canonicalToken.approve(
+          return sourceToken.approve(
             targetAddress,
             approveAmount
           )
@@ -289,12 +290,8 @@ const ConvertContextProvider: FC = ({ children }) => {
           }
         },
         onConfirm: async () => {
-          await approveTokens(
-            selectedToken,
-            sourceTokenAmount,
-            sourceNetwork as Network,
-            l1Bridge.address
-          )
+          await approveTokens()
+
           convertOption.convert(
             sdk,
             signer as Signer,

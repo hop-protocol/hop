@@ -225,7 +225,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         kind: 'approval',
         inputProps: {
           amount,
-          token
+          tokenSymbol: token.symbol
         },
         onConfirm: async (approveAll: boolean) => {
           const approveAmount = approveAll ? UINT256 : parsedAmount

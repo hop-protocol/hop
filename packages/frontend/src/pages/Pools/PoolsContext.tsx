@@ -302,7 +302,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         inputProps: {
           tagline: `Allow Hop to spend your ${isHop ? 'h' : ''}${token.symbol} on ${selectedNetwork.name}`,
           amount,
-          token: isHop ? hopToken : selectedToken
+          tokenSymbol: isHop ? hopToken?.symbol : selectedToken?.symbol
         },
         onConfirm: async (approveAll: boolean) => {
           return token.approve(
@@ -439,11 +439,7 @@ const PoolsContextProvider: FC = ({ children }) => {
           inputProps: {
             tagline: `Allow Hop to spend your LP-${lpToken.symbol} on ${selectedNetwork.name}`,
             amount: formattedBalance,
-            token: new Token({
-              symbol: lpToken.symbol,
-              tokenName: lpToken.name,
-              imageUrl: '',
-            })
+            tokenSymbol: lpToken.symbol
           },
           onConfirm: async (approveAll: boolean) => {
             return lpToken.approve(

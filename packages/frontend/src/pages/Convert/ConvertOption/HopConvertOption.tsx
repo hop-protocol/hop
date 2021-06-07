@@ -50,6 +50,17 @@ class HopConvertOption extends ConvertOption {
     )
   }
 
+  async approve (
+    sdk: Hop,
+    signer: Signer,
+    sourceNetwork: Network,
+    destNetwork: Network,
+    token: Token,
+    value: string
+  ) {
+    
+  }
+
   async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
     if (!bridge || !network) return
 

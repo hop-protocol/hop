@@ -354,7 +354,7 @@ const Send: FC = () => {
         inputProps: {
           tagline: `Allow Hop to spend your ${token.symbol} on ${fromNetwork.name}`,
           amount: amount,
-          token: selectedToken
+          token: selectedToken?.symbol
         },
         onConfirm: async (approveAll: boolean) => {
           const approveAmount = approveAll ? UINT256 : parsedAmount

@@ -86,6 +86,7 @@ class TransferRootsDb extends BaseDb {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
       return (
+        !item.sentBondTx &&
         !item.bonded &&
         item.transferRootHash &&
         item.chainId &&

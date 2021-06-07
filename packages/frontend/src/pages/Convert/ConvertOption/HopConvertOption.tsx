@@ -30,35 +30,34 @@ class HopConvertOption extends ConvertOption {
       .bridge(token.symbol)
       .connect(signer as Signer)
 
-    const amountOutMin = 0
-    const deadline = 0
-    const relayer = ZERO_ADDRESS
-    const relayerFee = 0
-    const recipient = await signer?.getAddress()
-
-    return bridge.send(
+    return bridge.sendHToken(
       value,
       sourceNetwork.slug,
-      destNetwork.slug,
-      {
-        recipient,
-        amountOutMin,
-        deadline,
-        relayer,
-        relayerFee
-      }
+      destNetwork.slug
     )
   }
 
-  async approve (
+  async getTargetAddress (
     sdk: Hop,
-    signer: Signer,
-    sourceNetwork: Network,
-    destNetwork: Network,
-    token: Token,
-    value: string
-  ) {
-    
+    token: SDKToken | undefined,
+    sourceNetwork: Network | undefined
+  ): Promise<string> {
+    if (!token) {
+      throw new Error('Token is required to get target address')
+    }
+
+    if (!sourceNetwork) {
+      throw new Error('sourceNetwork is required to get target address')
+    }
+
+    const bridge = sdk.bridge(token.symbol)
+    if (sourceNetwork.isLayer1) {
+      const l1Bridge = await bridge.getL1Bridge()
+      return l1Bridge.address
+    } else {
+      const l2Bridge = await bridge.getL2Bridge(sourceNetwork.slug)
+      return l2Bridge.address
+    }
   }
 
   async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {

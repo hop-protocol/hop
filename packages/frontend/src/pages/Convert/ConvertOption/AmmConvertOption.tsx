@@ -17,6 +17,14 @@ class AmmConvertOption extends ConvertOption {
     this.path = '/amm'
   }
 
+  async getTargetAddress (
+    sdk: Hop,
+    token: SDKToken | undefined,
+    sourceNetwork: Network | undefined
+  ): Promise<string> {
+    return ''
+  }
+
   async convert (
     sdk: Hop,
     signer: Signer,

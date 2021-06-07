@@ -8,6 +8,12 @@ abstract class ConvertOption {
   abstract readonly slug: string
   abstract readonly path: string
 
+  abstract getTargetAddress (
+    sdk: Hop,
+    token: SDKToken | undefined,
+    sourceNetwork: Network | undefined
+  ): Promise<string>
+
   abstract convert(
     sdk: Hop,
     signer: Signer,

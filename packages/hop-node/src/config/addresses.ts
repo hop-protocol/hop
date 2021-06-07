@@ -1,4 +1,4 @@
-import { Network } from 'src/constants'
+import { Network, Chain } from 'src/constants'
 
 const { metadata } = require('./metadata')
 const network = process.env.NETWORK || Network.Kovan
@@ -39,17 +39,45 @@ const getConfigByNetwork = (_network: string) => {
   }
 }
 
+type SyncConfig = {
+  totalBlocks: number
+  batchBlocks: number
+}
+
+type SyncConfigs = { [key: string]: Partial<SyncConfig> }
+
 const { tokens, networks } = getConfigByNetwork(network)
-export const config = {
+export const config: any = {
   isMainnet,
   tokens,
   network,
   networks,
   bonderPrivateKey: process.env.BONDER_PRIVATE_KEY,
+  relayerPrivateKey: process.env.RELAYER_PRIVATE_KEY,
   metadata,
   bonders,
-  syncBlocksTotal: 100_000,
-  syncBlocksBatch: 1_000
+  sync: {
+    [Chain.Ethereum]: {
+      totalBlocks: 100_000,
+      batchBlocks: 1_000
+    },
+    [Chain.Arbitrum]: {
+      totalBlocks: 100_000,
+      batchBlocks: 1_000
+    },
+    [Chain.Optimism]: {
+      totalBlocks: 100_000,
+      batchBlocks: 1_000
+    },
+    [Chain.Polygon]: {
+      totalBlocks: 100_000,
+      batchBlocks: 1_000
+    },
+    [Chain.xDai]: {
+      totalBlocks: 100_000,
+      batchBlocks: 1_000
+    }
+  }
 }
 
 const setConfigByNetwork = (_network: string) => {
@@ -80,4 +108,19 @@ export const setNetworkWaitConfirmations = (
   }
 }
 
-export { setConfigByNetwork, setBonderPrivateKey }
+const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {
+  const networks = Object.keys(config.networks)
+  for (let network of networks) {
+    if (!config.sync[network]) {
+      config.sync[network] = {}
+    }
+    if (syncConfigs[network]?.totalBlocks) {
+      config.sync[network].totalBlocks = syncConfigs[network]?.totalBlocks
+    }
+    if (syncConfigs[network]?.batchBlocks) {
+      config.sync[network].batchBlocks = syncConfigs[network]?.batchBlocks
+    }
+  }
+}
+
+export { setConfigByNetwork, setBonderPrivateKey, setSyncConfig }

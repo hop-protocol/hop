@@ -4,6 +4,7 @@ import ContractBase from './ContractBase'
 import queue from 'src/decorators/queue'
 import { config } from 'src/config'
 import unique from 'src/utils/unique'
+import { isL1NetworkId, networkIdToSlug } from 'src/utils'
 import db from 'src/db'
 
 export default class Bridge extends ContractBase {
@@ -11,11 +12,13 @@ export default class Bridge extends ContractBase {
   TransferRootSet: string = 'TransferRootSet'
   MultipleWithdrawalsSettled: string = 'TransferRootSet'
   tokenDecimals: number = 18
+  tokenSymbol: string = ''
 
   constructor (public bridgeContract: Contract) {
     super(bridgeContract)
     this.bridgeContract = bridgeContract
     let tokenDecimals: number
+    let tokenSymbol: string
     // TODO: better way of getting token decimals
     for (let tkn in config.tokens) {
       for (let key in config.tokens[tkn]) {
@@ -26,6 +29,8 @@ export default class Bridge extends ContractBase {
               tokenDecimals = (config.metadata.tokens[config.network] as any)[
                 tkn
               ].decimals
+              tokenSymbol = (config.metadata.tokens[config.network] as any)[tkn]
+                .symbol
               break
             }
           }
@@ -34,6 +39,9 @@ export default class Bridge extends ContractBase {
     }
     if (tokenDecimals !== undefined) {
       this.tokenDecimals = tokenDecimals
+    }
+    if (tokenSymbol) {
+      this.tokenSymbol = tokenSymbol
     }
     this.bridgeStartListeners()
   }
@@ -181,7 +189,7 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  async getWithdrawalBondeSettledEvents (
+  async getWithdrawalBondSettledEvents (
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<any[]> {
@@ -215,6 +223,37 @@ export default class Bridge extends ContractBase {
     totalAmount: BigNumber
   ): Promise<any> {
     return this.bridgeContract.getTransferRoot(transferRootHash, totalAmount)
+  }
+
+  // get the chain ids of all bridged L2s and L1
+  async getChainIds (): Promise<number[]> {
+    let chainIds: number[] = []
+    for (let key in config.networks) {
+      const { networkId } = config.networks[key]
+      chainIds.push(networkId)
+    }
+    return chainIds
+  }
+
+  async getL1ChainId (): Promise<number> {
+    for (let key in config.networks) {
+      const { networkId } = config.networks[key]
+      if (isL1NetworkId(networkId)) {
+        return networkId
+      }
+    }
+  }
+
+  async getL2ChainIds (): Promise<number[]> {
+    let chainIds: number[] = []
+    for (let key in config.networks) {
+      const { networkId } = config.networks[key]
+      if (isL1NetworkId(networkId)) {
+        continue
+      }
+      chainIds.push(networkId)
+    }
+    return chainIds
   }
 
   @queue
@@ -284,39 +323,48 @@ export default class Bridge extends ContractBase {
     return parseUnits(value.toString(), this.tokenDecimals)
   }
 
+  chainIdToSlug (chainId: number): string {
+    return networkIdToSlug(chainId)
+  }
+
   public async eventsBatch (
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
-    key?: string
-  ) {
-    const { syncBlocksTotal, syncBlocksBatch } = config
-    const blockNumber = await this.getBlockNumber()
-    const cacheKey = `${this.providerNetworkId}:${this.address}:${key}`
-    let lastBlockSynced = 0
-    let cached = await db.syncState.getByKey(cacheKey)
-    if (key && cached) {
-      const expiresIn = 10 * 60 * 1000
-      if (cached.timestamp > Date.now() - expiresIn) {
-        lastBlockSynced = cached.lastBlockSynced
-      }
+    options: any = {
+      key: '',
+      startBlockNumber: undefined,
+      endBlockNumber: undefined
     }
-    const minBlock = Math.max(
-      blockNumber - syncBlocksTotal,
-      lastBlockSynced - 20
-    )
+  ) {
+    const { key, startBlockNumber, endBlockNumber } = options
+
+    await this.waitTilReady()
+    let { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
+    const blockNumber = endBlockNumber || (await this.getBlockNumber())
+    const cacheKey = `${this.providerNetworkId}:${this.address}:${key}`
+    if (startBlockNumber && endBlockNumber) {
+      totalBlocks = endBlockNumber - startBlockNumber
+    }
+
     let end = blockNumber
-    let start = end - syncBlocksBatch
+    let start = end - batchBlocks
+    let isSingleBatch = totalBlocks <= batchBlocks
     let i = 0
-    while (start >= blockNumber - syncBlocksTotal) {
-      const shouldContinue = await cb(start, end, i)
-      if (typeof shouldContinue === 'boolean' && !shouldContinue) {
-        break
+    while (isSingleBatch || (start >= blockNumber - totalBlocks)) {
+      if (isSingleBatch) {
+        start = end - totalBlocks
       }
-      end = start
-      start = end - syncBlocksBatch
+
+      const shouldContinue = await cb(start, end, i)
       await db.syncState.update(cacheKey, {
-        lastBlockSynced: end,
+        latestBlockSynced: end,
         timestamp: Date.now()
       })
+      if (isSingleBatch || (typeof shouldContinue === 'boolean' && !shouldContinue)) {
+        break
+      }
+
+      end = start
+      start = end - batchBlocks
       i++
     }
   }

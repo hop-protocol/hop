@@ -1,7 +1,7 @@
 require('dotenv').config()
 import expect from 'expect'
 import { startWatchers } from 'src/watchers/watchers'
-import { wait } from 'src/utils'
+import { wait, isL1NetworkId, networkSlugToId } from 'src/utils'
 import {
   User,
   waitForEvent,
@@ -15,7 +15,7 @@ import Logger from 'src/logger'
 import { Chain } from 'src/constants'
 import { Notifier } from 'src/notifier'
 
-const paths = [[Chain.xDai, Chain.Ethereum]]
+const paths = [[Chain.Optimism, Chain.xDai]]
 const tokens = ['USDC']
 const transferAmount = 10
 
@@ -83,7 +83,9 @@ class LoadTest {
             )
 
             logger.log(`waiting for bonded withdrawals`)
-            await wait(300 * 1000)
+            const isToL1 = isL1NetworkId(networkSlugToId(destNetwork))
+            const waitTimeout = isToL1 ? 300 * 1000 : 60 * 1000
+            await wait(waitTimeout)
             logger.log('reading balances')
             const [sourceBalancesAfter, destBalancesAfter] = await getBalances(
               users,

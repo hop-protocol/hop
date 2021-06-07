@@ -8,6 +8,7 @@ export default class ContractBase extends EventEmitter {
   contract: Contract
   public providerNetworkId: number
   public chainSlug: string
+  public ready: boolean = false
 
   constructor (contract: Contract) {
     super()
@@ -19,10 +20,20 @@ export default class ContractBase extends EventEmitter {
       .then((networkId: number) => {
         this.providerNetworkId = networkId
         this.chainSlug = networkIdToSlug(networkId)
+        this.ready = true
       })
       .catch(err => {
         console.log(`ContractBase getNetwork() error: ${err.message}`)
       })
+  }
+
+  async waitTilReady (): Promise<boolean> {
+    if (this.ready) {
+      return true
+    }
+
+    await wait(100)
+    return this.waitTilReady()
   }
 
   async getNetworkId (): Promise<number> {
@@ -55,6 +66,13 @@ export default class ContractBase extends EventEmitter {
   async getBlockTimestamp (blockNumber: string = 'latest'): Promise<number> {
     const block = await this.contract.provider.getBlock(blockNumber)
     return block.timestamp
+  }
+
+  async getCode (
+    address: string,
+    blockNumber: string | number = 'latest'
+  ): Promise<string> {
+    return this.contract.provider.getCode(address, blockNumber)
   }
 
   protected async getBumpedGasPrice (percent: number): Promise<BigNumber> {

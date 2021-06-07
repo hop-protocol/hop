@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { makeStyles, withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
+import Link from '@material-ui/core/Link'
 import Stepper from '@material-ui/core/Stepper'
 import Step from '@material-ui/core/Step'
 import StepLabel from '@material-ui/core/StepLabel'
@@ -12,7 +13,9 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import Zoom from '@material-ui/core/Zoom'
 import { StepIconProps } from '@material-ui/core/StepIcon'
 import CloseIcon from '@material-ui/icons/Close'
+import WarningIcon from '@material-ui/icons/Warning'
 import Transaction from 'src/models/Transaction'
+import Alert from 'src/components/alert/Alert'
 import { useStatus } from './StatusContext'
 
 const useStyles = makeStyles(theme => ({
@@ -41,6 +44,9 @@ const useStyles = makeStyles(theme => ({
     '&:hover': {
       textDecoration: 'underline'
     }
+  },
+  notice: {
+    marginBottom: '2rem'
   }
 }))
 
@@ -97,6 +103,11 @@ const useStepIconStyles = makeStyles({
     color: '#ff00a7',
     zIndex: 1,
     fontSize: '4rem'
+  },
+  warning: {
+    color: '#ffb47c',
+    zIndex: 1,
+    fontSize: '4rem'
   }
 })
 
@@ -143,6 +154,23 @@ function StepFailIcon (props: StepIconProps) {
   )
 }
 
+function StepWarningIcon (props: StepIconProps) {
+  const styles = useStepIconStyles()
+  return (
+    <div
+      className={clsx(styles.root, {
+        [styles.active]: true
+      })}
+    >
+      <div className={styles.bg}>
+        <Zoom in={true} style={{ transitionDelay: '0ms' }}>
+          <WarningIcon className={styles.warning} />
+        </Zoom>
+      </div>
+    </div>
+  )
+}
+
 export type StatusProps = {
   tx: Transaction
   variant?: string
@@ -151,7 +179,7 @@ export type StatusProps = {
 const Status: FC<StatusProps> = (props: StatusProps) => {
   const { tx, variant } = props
   const styles = useStyles()
-  const { steps, activeStep, setTx } = useStatus()
+  const { steps, activeStep, setTx, receivedHToken } = useStatus()
 
   useEffect(() => {
     setTx(tx)
@@ -177,14 +205,21 @@ const Status: FC<StatusProps> = (props: StatusProps) => {
           activeStep={activeStep}
           connector={<CustomStepConnector />}
         >
-          {steps.map(step => (
+          {steps.map(step => {
+            let icon = StepIcon
+            if (step.warning) {
+              icon = StepWarningIcon
+            } else if (step.error) {
+              icon = StepFailIcon
+            }
+            return (
             <Step key={step.text}>
               <StepLabel
                 classes={{
                   root: styles.stepLabelRoot,
                   label: styles.stepLabel
                 }}
-                StepIconComponent={step.error ? StepFailIcon : StepIcon}
+                StepIconComponent={icon}
               >
                 {step.url ? (
                   <a
@@ -200,9 +235,18 @@ const Status: FC<StatusProps> = (props: StatusProps) => {
                 )}
               </StepLabel>
             </Step>
-          ))}
+        )
+        })}
         </Stepper>
       </Box>
+      {variant !== 'mini' && tx?.token && receivedHToken ? <>
+        <Box display="flex" alignItems="center" className={styles.notice}>
+      <Alert severity="warning">
+          Destination token swap did not fully complete possibly due to short deadline. You may swap h{tx.token.symbol} for {tx.token.symbol} tokens on the <Link href="/convert/amm">Convert</Link> page.
+      </Alert>
+      </Box>
+      </>
+      : null}
     </Box>
   )
 }

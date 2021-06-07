@@ -8,7 +8,7 @@ import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
-import L2ExitWatcher from 'src/watchers/L2ExitWatcher'
+import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import Logger from 'src/logger'
 import { networkSlugToId } from 'src/utils'
 
@@ -64,18 +64,6 @@ function getStakeWatchers (
       stakeWatchers[token] = stakeWatchers[token] || {}
       stakeWatchers[token][networkId] = stakeWatcher
       watchers.push(stakeWatcher)
-
-      if (network !== Chain.Ethereum) {
-        const l2ExitWatcher = new L2ExitWatcher({
-          isL1: false,
-          label: `${network}.${token}`,
-          token,
-          bridgeContract,
-          l1BridgeContract: contracts.get(token, Chain.Ethereum).l1Bridge,
-          dryMode
-        })
-        watchers.push(l2ExitWatcher)
-      }
     }
   }
 
@@ -105,6 +93,7 @@ function startStakeWatchers (
 }
 
 type Config = {
+  enabledWatchers?: string[]
   order?: number
   tokens?: string[]
   networks?: string[]
@@ -119,6 +108,7 @@ type Config = {
 
 function startWatchers (
   _config: Config = {
+    enabledWatchers: [],
     order: 0,
     tokens: Object.keys(config.tokens),
     networks: networks,
@@ -131,6 +121,7 @@ function startWatchers (
     dryMode: false
   }
 ) {
+  const enabledWatchers = _config.enabledWatchers || []
   const orderNum = _config.order || 0
   let _tokens = _config.tokens
   let _networks = _config.networks.filter(x => networks.includes(x))
@@ -176,7 +167,9 @@ function startWatchers (
 
       bondWithdrawalWatchers[token] = bondWithdrawalWatchers[token] || {}
       bondWithdrawalWatchers[token][networkId] = bondWithdrawalWatcher
-      watchers.push(bondWithdrawalWatcher)
+      if (enabledWatchers.includes('bondWithdrawal')) {
+        watchers.push(bondWithdrawalWatcher)
+      }
 
       const bondTransferRootWatcher = new BondTransferRootWatcher({
         order,
@@ -188,7 +181,9 @@ function startWatchers (
 
       bondTransferRootWatchers[token] = bondTransferRootWatchers[token] || {}
       bondTransferRootWatchers[token][networkId] = bondTransferRootWatcher
-      watchers.push(bondTransferRootWatcher)
+      if (enabledWatchers.includes('bondTransferRoot')) {
+        watchers.push(bondTransferRootWatcher)
+      }
 
       const settleBondedWithdrawalWatcher = new SettleBondedWithdrawalWatcher({
         order,
@@ -205,7 +200,9 @@ function startWatchers (
       settleBondedWithdrawalWatchers[token][
         networkId
       ] = settleBondedWithdrawalWatcher
-      watchers.push(settleBondedWithdrawalWatcher)
+      if (enabledWatchers.includes('settleBondedWithdrawals')) {
+        watchers.push(settleBondedWithdrawalWatcher)
+      }
 
       const commitTransferWatcher = new CommitTransferWatcher({
         order,
@@ -219,7 +216,24 @@ function startWatchers (
       commitTransferWatchers[token] = commitTransferWatchers[token] || {}
       commitTransferWatchers[token][networkId] = commitTransferWatcher
 
-      watchers.push(commitTransferWatcher)
+      if (enabledWatchers.includes('commitTransfers')) {
+        watchers.push(commitTransferWatcher)
+      }
+
+      if (network !== Chain.Ethereum) {
+        const l2ExitWatcher = new xDomainMessageRelayWatcher({
+          isL1: false,
+          label: `${network}.${token}`,
+          token,
+          bridgeContract,
+          l1BridgeContract: contracts.get(token, Chain.Ethereum).l1Bridge,
+          dryMode
+        })
+
+        if (enabledWatchers.includes('xDomainMessageRelay')) {
+          watchers.push(l2ExitWatcher)
+        }
+      }
     }
   }
 
@@ -257,14 +271,16 @@ function startWatchers (
 
   if (_config?.bonder || _config?.bonder === undefined) {
     watchers.forEach(watcher => watcher.start())
-    watchers.push(
-      ...startStakeWatchers(
-        _tokens,
-        _networks,
-        _config.maxStakeAmounts,
-        dryMode
+    if (enabledWatchers.includes('stake')) {
+      watchers.push(
+        ...startStakeWatchers(
+          _tokens,
+          _networks,
+          _config.maxStakeAmounts,
+          dryMode
+        )
       )
-    )
+    }
   }
 
   if (_config?.challenger) {

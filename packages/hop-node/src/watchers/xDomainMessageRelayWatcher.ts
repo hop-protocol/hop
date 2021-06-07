@@ -23,13 +23,13 @@ export interface Config {
   dryMode?: boolean
 }
 
-class L2ExitWatcher extends BaseWatcher {
+class xDomainMessageRelayWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
   token: string
 
   constructor (config: Config) {
     super({
-      tag: 'l2ExitWatcher',
+      tag: 'xDomainMessageRelay',
       prefix: config.label,
       logColor: 'yellow',
       order: config.order,
@@ -87,7 +87,7 @@ class L2ExitWatcher extends BaseWatcher {
     this.logger.setEnabled(false)
   }
 
-  async syncUp () {
+  async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
     if (this.isL1) {
       return
@@ -95,64 +95,80 @@ class L2ExitWatcher extends BaseWatcher {
 
     const l2Bridge = this.bridge as L2Bridge
 
-    this.l1Bridge.eventsBatch(async (start: number, end: number) => {
-      const transferRootConfirmedEvents = await this.l1Bridge.getTransferRootConfirmedEvents(
-        start,
-        end
+    const promises: Promise<any>[] = []
+    promises.push(
+      this.l1Bridge.eventsBatch(
+        async (start: number, end: number) => {
+          const transferRootConfirmedEvents = await this.l1Bridge.getTransferRootConfirmedEvents(
+            start,
+            end
+          )
+
+          const promises: Promise<any>[] = []
+          for (let event of transferRootConfirmedEvents) {
+            const {
+              originChainId,
+              destinationChainId,
+              rootHash,
+              totalAmount
+            } = event.args
+            promises.push(
+              this.handleTransferRootConfirmedEvent(
+                originChainId,
+                destinationChainId,
+                rootHash,
+                totalAmount
+              )
+            )
+          }
+
+          await Promise.all(promises)
+        },
+        { key: this.l1Bridge.TransferRootConfirmed }
       )
+    )
 
-      const promises: Promise<any>[] = []
-      for (let event of transferRootConfirmedEvents) {
-        const {
-          originChainId,
-          destinationChainId,
-          rootHash,
-          totalAmount
-        } = event.args
-        promises.push(
-          this.handleTransferRootConfirmedEvent(
-            originChainId,
-            destinationChainId,
-            rootHash,
-            totalAmount
+    promises.push(
+      this.eventsBatch(async (start: number, end: number) => {
+        try {
+          const transferCommitEvents = await l2Bridge.getTransfersCommittedEvents(
+            start,
+            end
           )
-        )
-      }
-
-      await Promise.all(promises)
-    }, this.l1Bridge.TransferRootConfirmed)
-
-    this.eventsBatch(async (start: number, end: number) => {
-      try {
-        const transferCommitEvents = await l2Bridge.getTransfersCommittedEvents(
-          start,
-          end
-        )
-        for (let transferCommitEvent of transferCommitEvents) {
-          const {
-            rootHash: transferRootHash,
-            totalAmount,
-            rootCommittedAt
-          } = transferCommitEvent.args
-          const { data } = await this.bridge.getTransaction(
-            transferCommitEvent.transactionHash
-          )
-          const {
-            destinationChainId: chainId
-          } = await l2Bridge.decodeCommitTransfersData(data)
-          await db.transferRoots.update(transferRootHash, {
-            transferRootHash,
-            committed: true,
-            committedAt: Number(rootCommittedAt.toString()),
-            chainId,
-            totalAmount
-          })
+          for (let transferCommitEvent of transferCommitEvents) {
+            const {
+              rootHash: transferRootHash,
+              totalAmount,
+              rootCommittedAt
+            } = transferCommitEvent.args
+            const { data } = await this.bridge.getTransaction(
+              transferCommitEvent.transactionHash
+            )
+            const {
+              destinationChainId: chainId
+            } = await l2Bridge.decodeCommitTransfersData(data)
+            await db.transferRoots.update(transferRootHash, {
+              transferRootHash,
+              committed: true,
+              committedAt: Number(rootCommittedAt.toString()),
+              chainId,
+              totalAmount
+            })
+          }
+        } catch (err) {
+          this.logger.error(`watcher error:`, err.message)
+          this.notifier.error(`watcher error: '${err.message}`)
         }
-      } catch (err) {
-        this.logger.error(`watcher error:`, err.message)
-        this.notifier.error(`watcher error: '${err.message}`)
-      }
-    })
+      })
+    )
+
+    await Promise.all(promises)
+    this.logger.debug('done syncing')
+
+    // re-sync every 6 hours
+    const sixHours = 6 * 60 * 60 * 1000
+    await wait(sixHours)
+    return this.syncUp()
   }
 
   async checkTransfersCommittedFromDb () {
@@ -293,20 +309,15 @@ class L2ExitWatcher extends BaseWatcher {
       }
     } else if (chainSlug === Chain.Polygon) {
       const poly = new PolygonBridgeWatcher()
+      const privateKey = gConfig.relayerPrivateKey || gConfig.bonderPrivateKey
       poly.l1Provider = new ethers.providers.StaticJsonRpcProvider(
         getRpcUrls(Chain.Ethereum)[0]
       )
       poly.l2Provider = new ethers.providers.StaticJsonRpcProvider(
         getRpcUrls(Chain.Polygon)[0]
       )
-      poly.l1Wallet = new ethers.Wallet(
-        gConfig.bonderPrivateKey,
-        poly.l1Provider
-      )
-      poly.l2Wallet = new ethers.Wallet(
-        gConfig.bonderPrivateKey,
-        poly.l2Provider
-      )
+      poly.l1Wallet = new ethers.Wallet(privateKey, poly.l1Provider)
+      poly.l2Wallet = new ethers.Wallet(privateKey, poly.l2Provider)
       poly.chainId = 1
       poly.apiUrl = `https://apis.matic.network/api/v1/${
         poly.chainId === 1 ? 'matic' : 'mumbai'
@@ -393,4 +404,4 @@ class L2ExitWatcher extends BaseWatcher {
   }
 }
 
-export default L2ExitWatcher
+export default xDomainMessageRelayWatcher

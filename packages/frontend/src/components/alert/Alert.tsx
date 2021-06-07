@@ -13,16 +13,17 @@ const useStyles = makeStyles(theme => ({
 }))
 
 type AlertProps = {
-  text: string | null | undefined
+  text?: string | null | undefined
 }
 
 const Alert: FC<AlertProps & MuiAlertProps> = props => {
-  const { text, className } = props
+  const { text, className, children } = props
   const styles = useStyles()
+  const show = text || children
 
-  return text ? (
+  return show ? (
     <MuiAlert {...props} className={clsx(styles.root, className)}>
-      {prettifyErrorMessage(text)}
+      {children || prettifyErrorMessage(text || '')}
     </MuiAlert>
   ) : null
 }

@@ -43,6 +43,8 @@ const getContract = async (
   provider: TProvider
 ): Promise<Contract> => {
   let p = provider as any
+  // memoize function doesn't handle dynamic provider object well, so
+  // here we derived a cache key based on connected account address and rpc url.
   const cacheKey = `${p?.getAddress ? await p?.getAddress() : ''}${p?.provider
     ?._network?.chainId || p?.connection?.url}`
   return getContractMemo(address, abi, cacheKey)(provider)

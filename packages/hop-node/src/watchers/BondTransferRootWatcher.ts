@@ -25,7 +25,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   waitMinBondDelay: boolean = globalConfig.isMainnet
   skipChains: string[] = globalConfig.isMainnet
     ? [Chain.xDai, Chain.Polygon]
-    : []
+    : [Chain.xDai]
 
   constructor (config: Config) {
     super({
@@ -55,30 +55,43 @@ class BondTransferRootWatcher extends BaseWatcher {
     this.logger.setEnabled(false)
   }
 
-  async syncUp () {
+  async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
+    const promises: Promise<any>[] = []
     if (this.isL1) {
       const l1Bridge = this.bridge as L1Bridge
-      await this.eventsBatch(async (start: number, end: number) => {
-        const transferRootBondedEvents = await l1Bridge.getTransferRootBondedEvents(
-          start,
-          end
+      promises.push(
+        this.eventsBatch(
+          async (start: number, end: number) => {
+            const transferRootBondedEvents = await l1Bridge.getTransferRootBondedEvents(
+              start,
+              end
+            )
+            for (let event of transferRootBondedEvents) {
+              const { root, amount } = event.args
+              await this.handleTransferRootBondedEvent(root, amount, event)
+            }
+          },
+          { key: l1Bridge.TransferRootBonded }
         )
-        for (let event of transferRootBondedEvents) {
-          const { root, amount } = event.args
-          await this.handleTransferRootBondedEvent(root, amount, event)
-        }
-      }, l1Bridge.TransferRootBonded)
-      this.logger.debug('done syncing')
-      return
+      )
+    } else {
+      const l2Bridge = this.bridge as L2Bridge
+      promises.push(
+        this.eventsBatch(async (start: number, end: number) => {
+          const events = await l2Bridge.getTransfersCommittedEvents(start, end)
+          await this.handleTransfersCommittedEvents(events)
+          //}, l2Bridge.TransfersCommitted)
+        })
+      )
     }
-    const l2Bridge = this.bridge as L2Bridge
-    await this.eventsBatch(async (start: number, end: number) => {
-      const events = await l2Bridge.getTransfersCommittedEvents(start, end)
-      await this.handleTransfersCommittedEvents(events)
-      //}, l2Bridge.TransfersCommitted)
-    })
+    await Promise.all(promises)
     this.logger.debug('done syncing')
+
+    // re-sync every 6 hours
+    const sixHours = 6 * 60 * 60 * 1000
+    await wait(sixHours)
+    return this.syncUp()
   }
 
   async watch () {

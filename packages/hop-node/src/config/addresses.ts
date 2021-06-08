@@ -62,19 +62,19 @@ export const config: any = {
       batchBlocks: 1_000
     },
     [Chain.Arbitrum]: {
-      totalBlocks: 100_000,
+      totalBlocks: 1_000_000,
       batchBlocks: 1_000
     },
     [Chain.Optimism]: {
-      totalBlocks: 100_000,
+      totalBlocks: 1_000_000,
       batchBlocks: 1_000
     },
     [Chain.Polygon]: {
-      totalBlocks: 100_000,
+      totalBlocks: 1_000_000,
       batchBlocks: 1_000
     },
     [Chain.xDai]: {
-      totalBlocks: 100_000,
+      totalBlocks: 1_000_000,
       batchBlocks: 1_000
     }
   }

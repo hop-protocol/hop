@@ -7,6 +7,11 @@ export interface Options {
   color: string
 }
 
+interface AdditionalDataLabel {
+  id?: string
+  root?: string
+}
+
 export enum LogLevels {
   Critical,
   Error,
@@ -42,6 +47,7 @@ export const setLogLevel = (_logLevel: LogLevels | string) => {
 class Logger {
   private tag: string = ''
   private prefix: string = ''
+  private options: any = {}
   enabled: boolean = true
 
   setEnabled (enabled: boolean) {
@@ -71,6 +77,18 @@ class Logger {
     if (process.env.DISABLE_LOGGER) {
       this.enabled = false
     }
+    this.options = opts
+  }
+
+  create (additionalDataLabel: AdditionalDataLabel): Logger {
+    let label: string
+    if (additionalDataLabel?.id) {
+      label = `id: ${additionalDataLabel.id}`
+    } else {
+      label = `root: ${additionalDataLabel.root}`
+    }
+
+    return new Logger(this.options.tag, Object.assign({}, this.options, { prefix: `${this.options.prefix} ${label}` }))
   }
 
   get timestamp (): string {

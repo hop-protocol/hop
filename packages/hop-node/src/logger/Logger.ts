@@ -88,7 +88,12 @@ class Logger {
       label = `root: ${additionalDataLabel.root}`
     }
 
-    return new Logger(this.options.tag, Object.assign({}, this.options, { prefix: `${this.options.prefix} ${label}` }))
+    return new Logger(
+      this.options.tag,
+      Object.assign({}, this.options, {
+        prefix: `${this.options.prefix} ${label}`
+      })
+    )
   }
 
   get timestamp (): string {

@@ -1,9 +1,11 @@
 import { providers, Contract, ethers, BigNumber } from 'ethers'
-import { erc20Abi } from '@hop-protocol/abi'
+import { l1BridgeAbi, erc20Abi } from '@hop-protocol/abi'
 import { parseUnits } from 'ethers/lib/utils'
 import Bridge from './Bridge'
 import queue from 'src/decorators/queue'
 import Token from './Token'
+import { Chain } from 'src/constants'
+import wallets from 'src/wallets'
 
 export default class L1Bridge extends Bridge {
   l1BridgeContract: Contract
@@ -16,6 +18,16 @@ export default class L1Bridge extends Bridge {
     super(l1BridgeContract)
     this.l1BridgeContract = l1BridgeContract
     this.l1StartListeners()
+  }
+
+  static fromAddress (address: string): L1Bridge {
+    const contract = new Contract(
+      address,
+      l1BridgeAbi,
+      wallets.get(Chain.Ethereum)
+    )
+
+    return new L1Bridge(contract)
   }
 
   l1StartListeners (): void {
@@ -83,6 +95,39 @@ export default class L1Bridge extends Bridge {
       startBlockNumber,
       endBlockNumber
     )
+  }
+
+  async getLastTransferRootBondedEvent (): Promise<any> {
+    let match: any = null
+    await this.eventsBatch(async (start: number, end: number) => {
+      const events = await this.getTransferRootBondedEvents(start, end)
+      if (events.length) {
+        match = events[events.length - 1]
+        return false
+      }
+    })
+
+    return match
+  }
+
+  async isTransferRootHashBonded (
+    transferRootHash: string,
+    amount: BigNumber
+  ): Promise<boolean> {
+    const transferRootId = await this.getTransferRootId(
+      transferRootHash,
+      amount
+    )
+    return this.isTransferRootIdBonded(transferRootId)
+  }
+
+  async isTransferRootIdBonded (transferRootId: string): Promise<boolean> {
+    const transferBondStruct = await this.getTransferBond(transferRootId)
+    if (!transferBondStruct) {
+      throw new Error('transfer bond struct not found')
+    }
+    const createdAt = Number(transferBondStruct.createdAt?.toString())
+    return createdAt > 0
   }
 
   async getTransferRootConfirmedEvents (

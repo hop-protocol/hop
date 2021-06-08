@@ -27,7 +27,7 @@ import {
   l2PolygonChildErc20Abi
 } from '@hop-protocol/abi'
 import { Chain, Token } from 'src/constants'
-import { wait, getRpcProvider, networkSlugToId } from 'src/utils'
+import { wait, getRpcProvider, chainSlugToId } from 'src/utils'
 import queue from 'src/decorators/queue'
 
 export class User {
@@ -155,7 +155,7 @@ export class User {
     token: string = Token.DAI
   ) {
     const bridge = this.getHopBridgeContract(Chain.Ethereum, token)
-    const chainId = networkSlugToId(network)
+    const chainId = chainSlugToId(network)
     const wrapperAddress = await bridge.crossDomainMessengerWrappers(chainId)
     if (wrapperAddress === ethers.constants.AddressZero) {
       throw new Error(`wrapper address is ${wrapperAddress}`)
@@ -281,7 +281,7 @@ export class User {
   ) {
     const deadline = (Date.now() / 1000 + 300) | 0
     const amountOutMin = '0'
-    const chainId = networkSlugToId(destNetwork)
+    const chainId = chainSlugToId(destNetwork)
     const recipient = await this.getAddress()
     const relayer = ethers.constants.AddressZero
     const relayerFee = '0'
@@ -314,7 +314,7 @@ export class User {
     amount: string | number
   ) {
     const deadline = ((Date.now() / 1000) | 0) + 300
-    const chainId = networkSlugToId(destNetwork)
+    const chainId = chainSlugToId(destNetwork)
     const bonderFee = await this.getBonderFee(
       sourceNetwork,
       token,
@@ -385,8 +385,8 @@ export class User {
   ) {
     const recipient = await this.getAddress()
     const deadline = (Date.now() / 1000 + 300) | 0
-    const sourceChainId = networkSlugToId(sourceNetwork)
-    const chainId = networkSlugToId(destNetwork)
+    const sourceChainId = chainSlugToId(sourceNetwork)
+    const chainId = chainSlugToId(destNetwork)
     const bonderFee = await this.getBonderFee(
       sourceNetwork,
       token,
@@ -423,7 +423,7 @@ export class User {
   ) {
     const recipient = await this.getAddress()
     const deadline = (Date.now() / 1000 + 300) | 0
-    const chainId = networkSlugToId(destNetwork)
+    const chainId = chainSlugToId(destNetwork)
     const bonderFee = await this.getBonderFee(
       sourceNetwork,
       token,
@@ -454,7 +454,7 @@ export class User {
     const deadline = (Date.now() / 1000 + 300) | 0
     const destinationDeadline = deadline
     const destinationAmountOutMin = 0
-    const chainId = networkSlugToId(destNetwork)
+    const chainId = chainSlugToId(destNetwork)
     const bonderFee = await this.getBonderFee(
       sourceNetwork,
       token,
@@ -726,7 +726,7 @@ export class User {
     amount: string | number
   ) {
     const l1Bridge = this.getHopBridgeContract(Chain.Ethereum, token)
-    const chainId = networkSlugToId(destNetwork)
+    const chainId = chainSlugToId(destNetwork)
     const recipient = await this.getAddress()
     const decimals = await getTokenDecimals(token)
     const value = parseUnits(amount.toString(), decimals)
@@ -1054,7 +1054,7 @@ export class User {
     token: string,
     destNetwork: string
   ) {
-    const destChainId = networkSlugToId(destNetwork)
+    const destChainId = chainSlugToId(destNetwork)
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
     const maxPendingTransfers = await this.getMaxPendingTransfers(
       sourceNetwork,
@@ -1082,7 +1082,7 @@ export class User {
     destNetwork: string
   ) {
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
-    const destChainId = networkSlugToId(destNetwork)
+    const destChainId = chainSlugToId(destNetwork)
     return bridge.commitTransfers(destChainId, this.txOverrides(sourceNetwork))
   }
 

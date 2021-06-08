@@ -1,6 +1,6 @@
 import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
-import { wait, networkIdToSlug, networkSlugToId } from 'src/utils'
+import { wait } from 'src/utils'
 import { formatUnits } from 'ethers/lib/utils'
 import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
@@ -185,7 +185,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     if (!sourceChainId) {
       return
     }
-    const sourceChainSlug = networkIdToSlug(sourceChainId)
+    const sourceChainSlug = this.chainIdToSlug(sourceChainId)
     if (bridgeChainId !== sourceChainId) {
       return
     }
@@ -197,17 +197,19 @@ class BondTransferRootWatcher extends BaseWatcher {
       // logger.warn('source chain is not Arbitrum or Optimism. Skipping bondTransferRoot')
       return
     }
-    if (sourceChainId !== this.bridge.providerNetworkId) {
+    if (sourceChainId !== this.bridge.chainId) {
       return
     }
-    const bridgeAddress = await this.siblingWatchers[
+    const bridgeAddress = await this.getSiblingWatcherByChainId(
       chainId
-    ].bridge.getAddress()
+    ).bridge.getAddress()
     if (dbTransferRoot.destinationBridgeAddress !== bridgeAddress) {
       return
     }
 
-    const isBonder = await this.siblingWatchers[chainId].bridge.isBonder()
+    const isBonder = await this.getSiblingWatcherByChainId(
+      chainId
+    ).bridge.isBonder()
     if (!isBonder) {
       logger.warn(
         `not a bonder on chain ${chainId}. Cannot bond transfer root.`
@@ -215,7 +217,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    const l1Bridge = this.siblingWatchers[networkSlugToId(Chain.Ethereum)]
+    const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
       .bridge as L1Bridge
     await l1Bridge.waitSafeConfirmations()
     const minDelay = await l1Bridge.getMinTransferRootBondDelaySeconds()
@@ -235,12 +237,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       transferRootHash,
       totalAmount
     )
-    const transferBondStruct = await l1Bridge.getTransferBond(transferRootId)
-    if (!transferBondStruct) {
-      throw new Error('transfer bond struct not found')
-    }
-    const createdAt = Number(transferBondStruct.createdAt?.toString())
-    if (createdAt > 0) {
+    const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId)
+    if (isBonded) {
       logger.debug(
         `transferRootHash ${transferRootHash} already bonded. skipping.`
       )
@@ -400,10 +398,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
         throw err
       })
-    logger.info(
-      'L1 bondTransferRoot tx',
-      chalk.bgYellow.black.bold(tx.hash)
-    )
+    logger.info('L1 bondTransferRoot tx', chalk.bgYellow.black.bold(tx.hash))
     this.notifier.info(`chainId: ${chainId} bondTransferRoot tx: ${tx.hash}`)
   }
 
@@ -437,9 +432,9 @@ class BondTransferRootWatcher extends BaseWatcher {
         destinationChainId: chainId
       } = await l2Bridge.decodeCommitTransfersData(data)
       const sourceChainId = await l2Bridge.getChainId()
-      const destinationBridgeAddress = await this.siblingWatchers[
+      const destinationBridgeAddress = await this.getSiblingWatcherByChainId(
         chainId
-      ].bridge.getAddress()
+      ).bridge.getAddress()
       const transferRootId = await this.bridge.getTransferRootId(
         transferRootHash,
         totalAmount
@@ -464,7 +459,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async getBridgeTokenDecimals () {
-    const l2Bridge = this.siblingWatchers[networkSlugToId(Chain.Ethereum)]
+    const l2Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
       .bridge as L1Bridge
     const token = await l2Bridge.l1CanonicalToken()
     return token.decimals()
@@ -521,7 +516,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         transferRootHash,
         totalAmount
       )
-      const l1Bridge = this.siblingWatchers[networkSlugToId(Chain.Ethereum)]
+      const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
         .bridge as L1Bridge
       const bond = await l1Bridge.getTransferBond(transferRootId)
       if (bond.createdAt.toNumber() > 0) {

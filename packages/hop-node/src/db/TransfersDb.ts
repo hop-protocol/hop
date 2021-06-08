@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers'
 import BaseDb from './BaseDb'
-import { networkIdToSlug } from 'src/utils'
+import { chainIdToSlug } from 'src/utils'
 
 export type Transfer = {
   transferRootId?: string
@@ -50,10 +50,10 @@ class TransfersDb extends BaseDb {
       item.amountOutMin = BigNumber.from(item.amountOutMin?.hex)
     }
     if (item?.chainId) {
-      item.destinationChainSlug = networkIdToSlug(item?.chainId)
+      item.destinationChainSlug = chainIdToSlug(item?.chainId)
     }
     if (item?.sourceChainId) {
-      item.sourceChainSlug = networkIdToSlug(item?.sourceChainId)
+      item.sourceChainSlug = chainIdToSlug(item?.sourceChainId)
     }
     return item
   }

@@ -1,7 +1,7 @@
 require('dotenv').config()
 import expect from 'expect'
 import { startWatchers } from 'src/watchers/watchers'
-import { wait, isL1NetworkId, networkSlugToId } from 'src/utils'
+import { wait, isL1ChainId, chainSlugToId } from 'src/utils'
 import {
   User,
   waitForEvent,
@@ -83,7 +83,7 @@ class LoadTest {
             )
 
             logger.log(`waiting for bonded withdrawals`)
-            const isToL1 = isL1NetworkId(networkSlugToId(destNetwork))
+            const isToL1 = isL1ChainId(chainSlugToId(destNetwork))
             const waitTimeout = isToL1 ? 300 * 1000 : 60 * 1000
             await wait(waitTimeout)
             logger.log('reading balances')

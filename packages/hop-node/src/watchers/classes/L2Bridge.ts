@@ -9,6 +9,7 @@ import Bridge from './Bridge'
 import queue from 'src/decorators/queue'
 import L2AmmWrapper from './L2AmmWrapper'
 import L2BridgeWrapper from './L2BridgeWrapper'
+import L1Bridge from './L1Bridge'
 import Token from './Token'
 import { Chain } from 'src/constants'
 
@@ -62,6 +63,14 @@ export default class L2Bridge extends Bridge {
     })
   }
 
+  async getL1Bridge (): Promise<L1Bridge> {
+    const l1BridgeAddress = await this.contract.l1BridgeAddress()
+    if (!l1BridgeAddress) {
+      throw new Error('L1 bridge address not found')
+    }
+    return L1Bridge.fromAddress(l1BridgeAddress)
+  }
+
   async hToken (): Promise<Token> {
     const tokenAddress = await this.bridgeContract.hToken()
     const tokenContract = new Contract(
@@ -83,6 +92,19 @@ export default class L2Bridge extends Bridge {
     )
   }
 
+  async getLastTransfersCommittedEvent (): Promise<any> {
+    let match: any = null
+    await this.eventsBatch(async (start: number, end: number) => {
+      const events = await this.getTransfersCommittedEvents(start, end)
+      if (events.length) {
+        match = events[events.length - 1]
+        return false
+      }
+    })
+
+    return match
+  }
+
   async getTransferSentEvents (
     startBlockNumber: number,
     endBlockNumber: number
@@ -94,7 +116,7 @@ export default class L2Bridge extends Bridge {
     )
   }
 
-  async getTransferSentTimestamp (transferId: string):Promise<number> {
+  async getTransferSentTimestamp (transferId: string): Promise<number> {
     let match: any
     await this.eventsBatch(async (start: number, end: number) => {
       const events = await this.l2BridgeContract.queryFilter(
@@ -111,16 +133,23 @@ export default class L2Bridge extends Bridge {
       }
     })
 
-    if (match) {
-      const tx = await match.getBlock()
-      return Number(tx.timestamp.toString())
+    if (!match) {
+      return 0
     }
 
-    return 0
+    return this.getEventTimestamp(match)
   }
 
   async getChainId (): Promise<number> {
+    if (!this.l2BridgeContract) {
+      return super.getChainId()
+    }
     return Number((await this.l2BridgeContract.getChainId()).toString())
+  }
+
+  async getChainSlug (): Promise<string> {
+    const chainId = await this.getChainId()
+    return this.chainIdToSlug(chainId)
   }
 
   async decodeCommitTransfersData (data: string): Promise<any> {
@@ -220,6 +249,17 @@ export default class L2Bridge extends Bridge {
     })
 
     return txHash
+  }
+
+  async isTransferRootIdSet (
+    transferRootHash: string,
+    totalAmount: BigNumber
+  ): Promise<boolean> {
+    const transferRoot = await this.getTransferRoot(
+      transferRootHash,
+      totalAmount
+    )
+    return Number(transferRoot.createdAt.toString()) > 0
   }
 
   @queue

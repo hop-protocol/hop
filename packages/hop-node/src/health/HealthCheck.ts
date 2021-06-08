@@ -1,8 +1,9 @@
 import contracts from 'src/contracts'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import { config } from 'src/config'
-import { wait } from 'src/utils'
+import { wait, chainIdToSlug } from 'src/utils'
 import Logger from 'src/logger'
+import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 
 class HealthCheck {
@@ -42,15 +43,19 @@ class HealthCheck {
 
   async checkBridge (bridge: L2Bridge) {
     const chainIds = await bridge.getChainIds()
-    await Promise.all(
-      chainIds.map((destinationChainId: number) =>
-        this.checkCommiTransfers(bridge, destinationChainId)
+
+    await Promise.all([
+      this.checkTransferRootBonded(bridge),
+      Promise.all(
+        chainIds.map((destinationChainId: number) =>
+          this.checkCommiTransfers(bridge, destinationChainId)
+        )
       )
-    )
+    ])
   }
 
   async checkCommiTransfers (bridge: L2Bridge, destinationChainId: number) {
-    const { providerNetworkId: chainId } = bridge
+    const chainId = await bridge.getChainId()
     const pendingTransfers = await bridge.getPendingTransfers(
       destinationChainId
     )
@@ -97,7 +102,58 @@ class HealthCheck {
     }
   }
 
-  async checkTransferRootBonded (bridge: L2Bridge) {}
+  async checkTransferRootBonded (bridge: L2Bridge) {
+    const sourceChain = await bridge.getChainSlug()
+    const tokenSymbol = bridge.tokenSymbol
+    const path = `${sourceChain}.${tokenSymbol}`
+
+    const l1Bridge = await bridge.getL1Bridge()
+    const chainId = await bridge.getChainId()
+    const transfersCommittedEvent = await bridge.getLastTransfersCommittedEvent()
+    if (!transfersCommittedEvent) {
+      return
+    }
+
+    const rootHash = transfersCommittedEvent.args.rootHash
+    const totalAmount = transfersCommittedEvent.args.totalAmount
+    const committedTransferRootId = await l1Bridge.getTransferRootId(
+      rootHash,
+      totalAmount
+    )
+
+    const isConfirmed = await l1Bridge.isTransferRootIdConfirmed(
+      committedTransferRootId
+    )
+    if (!isConfirmed) {
+      return
+    }
+
+    const committedAt = Number(
+      transfersCommittedEvent.args.rootCommittedAt.toString()
+    )
+    const skipChains: string[] = [Chain.xDai, Chain.Polygon]
+    if (skipChains.includes(chainIdToSlug(chainId))) {
+      return
+    }
+
+    const twentyMinutesAgo = DateTime.now()
+      .minus({ minutes: 20 })
+      .toSeconds()
+    // skip if committed time was less than twenty minutes ago
+    if (committedAt > twentyMinutesAgo) {
+      return
+    }
+
+    const isBonded = await l1Bridge.isTransferRootIdBonded(
+      committedTransferRootId
+    )
+    if (!isBonded) {
+      this.logger.warn(
+        `(${path}) transferRootId (${committedTransferRootId}) has been committed but not bonded on L1`
+      )
+      return
+    }
+  }
 }
 
 export default HealthCheck

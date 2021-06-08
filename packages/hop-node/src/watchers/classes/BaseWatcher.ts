@@ -74,8 +74,28 @@ class BaseWatcher extends EventEmitter {
     this.logger.warn('not implemented: implement in child class')
   }
 
+  hasSiblingWatcher (chainId: number): boolean {
+    return !!this.siblingWatchers[chainId]
+  }
+
+  getSiblingWatcherByChainSlug (chainSlug: string): any {
+    return this.siblingWatchers[this.chainSlugToId(chainSlug)]
+  }
+
+  getSiblingWatcherByChainId (chainId: number): any {
+    return this.siblingWatchers[chainId]
+  }
+
   setSiblingWatchers (watchers: any): void {
     this.siblingWatchers = watchers
+  }
+
+  chainIdToSlug (chainId: number): string {
+    return this.bridge.chainIdToSlug(chainId)
+  }
+
+  chainSlugToId (chainSlug: string): number {
+    return this.bridge.chainSlugToId(chainSlug)
   }
 
   public async eventsBatch (

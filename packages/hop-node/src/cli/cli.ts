@@ -37,7 +37,6 @@ import StakeWatcher from 'src/watchers/StakeWatcher'
 import LoadTest from 'src/loadTest'
 import HealthCheck from 'src/health/HealthCheck'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
-import { networkSlugToId } from 'src/utils'
 import entropyToMnemonic from 'src/utils/entropyToMnemonic'
 import { hopArt, printHopArt } from './art'
 import contracts from 'src/contracts'
@@ -349,7 +348,7 @@ async function staker (
     [token],
     [Chain.Optimism, Chain.Arbitrum, Chain.xDai, Chain.Polygon]
   )
-  const stakeWatcher = watchers[0].siblingWatchers[networkSlugToId(chain)]
+  const stakeWatcher = watchers[0].getSiblingWatcherByChainSlug(chain)
   if (action === StakerAction.Stake) {
     logger.debug('action: stake')
     if (!amount) {

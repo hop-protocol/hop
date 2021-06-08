@@ -10,7 +10,7 @@ import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWa
 import StakeWatcher from 'src/watchers/StakeWatcher'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import Logger from 'src/logger'
-import { networkSlugToId } from 'src/utils'
+import { chainSlugToId } from 'src/utils'
 
 const networks: string[] = [
   Chain.Optimism,
@@ -39,7 +39,7 @@ function getStakeWatchers (
   const watchers: any[] = []
   for (let token of _tokens) {
     for (let network of [Chain.Ethereum as string].concat(_networks)) {
-      const networkId = networkSlugToId(network)
+      const chainId = chainSlugToId(network)
       const tokenContracts = contracts.get(token, network)
       if (!tokenContracts) {
         continue
@@ -62,7 +62,7 @@ function getStakeWatchers (
       })
 
       stakeWatchers[token] = stakeWatchers[token] || {}
-      stakeWatchers[token][networkId] = stakeWatcher
+      stakeWatchers[token][chainId] = stakeWatcher
       watchers.push(stakeWatcher)
     }
   }
@@ -143,7 +143,7 @@ function startWatchers (
   let settleBondedWithdrawalWatchers: any = {}
   let commitTransferWatchers: any = {}
   for (let network of [Chain.Ethereum as string].concat(_networks)) {
-    const networkId = networkSlugToId(network)
+    const chainId = chainSlugToId(network)
     for (let token of _tokens) {
       if (!contracts.has(token, network)) {
         continue
@@ -166,7 +166,7 @@ function startWatchers (
       })
 
       bondWithdrawalWatchers[token] = bondWithdrawalWatchers[token] || {}
-      bondWithdrawalWatchers[token][networkId] = bondWithdrawalWatcher
+      bondWithdrawalWatchers[token][chainId] = bondWithdrawalWatcher
       if (enabledWatchers.includes('bondWithdrawal')) {
         watchers.push(bondWithdrawalWatcher)
       }
@@ -180,7 +180,7 @@ function startWatchers (
       })
 
       bondTransferRootWatchers[token] = bondTransferRootWatchers[token] || {}
-      bondTransferRootWatchers[token][networkId] = bondTransferRootWatcher
+      bondTransferRootWatchers[token][chainId] = bondTransferRootWatcher
       if (enabledWatchers.includes('bondTransferRoot')) {
         watchers.push(bondTransferRootWatcher)
       }
@@ -198,7 +198,7 @@ function startWatchers (
       settleBondedWithdrawalWatchers[token] =
         settleBondedWithdrawalWatchers[token] || {}
       settleBondedWithdrawalWatchers[token][
-        networkId
+        chainId
       ] = settleBondedWithdrawalWatcher
       if (enabledWatchers.includes('settleBondedWithdrawals')) {
         watchers.push(settleBondedWithdrawalWatcher)
@@ -214,7 +214,7 @@ function startWatchers (
       })
 
       commitTransferWatchers[token] = commitTransferWatchers[token] || {}
-      commitTransferWatchers[token][networkId] = commitTransferWatcher
+      commitTransferWatchers[token][chainId] = commitTransferWatcher
 
       if (enabledWatchers.includes('commitTransfers')) {
         watchers.push(commitTransferWatcher)

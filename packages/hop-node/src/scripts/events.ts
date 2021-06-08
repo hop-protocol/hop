@@ -53,7 +53,7 @@ class Events {
     } else {
       bridge = bridge as L2Bridge
       await bridge.eventsBatch(async (start: number, end: number) => {
-        const sourceChain = bridge.providerNetworkId
+        const sourceChain = bridge.chainId
         const events = await bridge.getTransferSentEvents(start, end)
         for (let event of events) {
           const tx = await event.getTransaction()

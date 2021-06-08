@@ -34,8 +34,8 @@ class L1ToL2Watcher extends BaseWatcher {
     const ambFilter = {
       address: this.bridge.getL2HopBridgeTokenAddress(this.token, Chain.xDai)
     }
-    const hToken = await this.bridge.hopToken.getErc20(this.destinationChain)
-    const token = await this.bridge.token.getErc20(this.destinationChain)
+    const hToken = await this.bridge.getL2HopToken(this.destinationChain).getErc20()
+    const token = await this.bridge.getCanonicalToken(this.destinationChain).getErc20()
     const hTokenFilter = hToken.filters.Transfer()
     const tokenFilter = token.filters.Transfer()
     const recipient = await this.getSignerAddress()

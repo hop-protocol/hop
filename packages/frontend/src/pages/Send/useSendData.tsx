@@ -28,6 +28,7 @@ const useSendData = (
       if (!fromAmount) return 0
 
       const bridge = sdk.bridge(token?.symbol)
+      console.log('fromAmount: ', fromAmount.toString())
       const {
         amountOut: _amountOut,
         rate: _rate,
@@ -38,6 +39,9 @@ const useSendData = (
 
       if (isCancelled()) return
 
+      console.log('_amountOut: ', _amountOut.toString())
+      console.log('token symbol: ', token.symbol)
+
       setAmountOut(_amountOut as BigNumber)
       setRate(_rate)
       setPriceImpact(_priceImpact)
@@ -45,6 +49,7 @@ const useSendData = (
       setRequiredLiquidity(_requiredLiquidity as BigNumber)
     },
     [
+      token,
       fromNetwork,
       toNetwork,
       fromAmount,

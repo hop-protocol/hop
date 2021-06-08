@@ -156,7 +156,7 @@ const Send: FC = () => {
 
   const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {
     return amountToBN(fromTokenAmount)
-  }, [fromTokenAmount])
+  }, [selectedToken, fromTokenAmount])
 
   const {
     amountOut,

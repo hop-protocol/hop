@@ -1,8 +1,8 @@
+import { Signer, Contract } from 'ethers'
 import ConvertOption from './ConvertOption'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import { Hop, HopBridge, Token as SDKToken } from '@hop-protocol/sdk'
-import { Signer } from 'ethers'
 
 class NativeConvertOption extends ConvertOption {
   readonly name: string
@@ -20,9 +20,43 @@ class NativeConvertOption extends ConvertOption {
   async getTargetAddress (
     sdk: Hop,
     token: SDKToken | undefined,
-    sourceNetwork: Network | undefined
+    sourceNetwork: Network | undefined,
+    destNetwork: Network | undefined
   ): Promise<string> {
-    return ''
+    if (!token) {
+      throw new Error('Token is required to get target address')
+    }
+
+    if (!sourceNetwork) {
+      throw new Error('destNetwork is required to get target address')
+    }
+
+    if (!destNetwork) {
+      throw new Error('destNetwork is required to get target address')
+    }
+
+    let l2Network: Network
+    if (!sourceNetwork.isLayer1) {
+      l2Network = sourceNetwork
+    } else {
+      l2Network = destNetwork
+    }
+
+    console.log('111')
+    console.log('token.symbol: ', token.symbol)
+    console.log('l2Network.slug: ', l2Network.slug)
+    const nativeBridge = sdk
+      .canonicalBridge(token.symbol, l2Network.slug)
+
+    console.log('222')
+    let bridgeContract: Contract
+    if (sourceNetwork?.isLayer1) {
+      bridgeContract = await nativeBridge.getL1CanonicalBridge()
+    } else {
+      bridgeContract = await nativeBridge.getL2CanonicalBridge()
+    }
+    console.log('bridgeContract.address: ', bridgeContract.address)
+    return bridgeContract.address
   }
 
   async convert (
@@ -34,20 +68,44 @@ class NativeConvertOption extends ConvertOption {
     token: Token,
     value: string
   ) {
-    const destSlug = destNetwork?.slug
+    let l2Network: Network
+    if (!sourceNetwork.isLayer1) {
+      l2Network = sourceNetwork
+    } else {
+      l2Network = destNetwork
+    }
+
     const bridge = sdk
-      .canonicalBridge(token.symbol, destSlug)
+      .canonicalBridge(token.symbol, l2Network.slug)
       .connect(signer as Signer)
 
-    return bridge.connect(signer as Signer).deposit(value)
+    if (sourceNetwork.isLayer1 && isForwardDirection) {
+      return bridge.connect(signer as Signer).deposit(value)
+    } else if (destNetwork.isLayer1 && !isForwardDirection) {
+      return bridge.connect(signer as Signer).withdraw(value)
+    } else {
+      throw new Error('Invalid isForwardDirection and network configuration')
+    }
   }
 
   async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
-    return undefined
+    if (!bridge || !network) return
+
+    if (isForwardDirection) {
+      return bridge.getL1Token()
+    } else {
+      return bridge.getCanonicalToken(network.slug)
+    }
   }
 
   async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
-    return undefined
+    if (!bridge || !network) return
+
+    if (isForwardDirection) {
+      return bridge.getCanonicalToken(network.slug)
+    } else {
+      return bridge.getL1Token()
+    }
   }
 }
 

@@ -20,7 +20,8 @@ class AmmConvertOption extends ConvertOption {
   async getTargetAddress (
     sdk: Hop,
     token: SDKToken | undefined,
-    sourceNetwork: Network | undefined
+    sourceNetwork: Network | undefined,
+    destNetwork: Network | undefined
   ): Promise<string> {
     if (!token) {
       throw new Error('Token is required to get target address')

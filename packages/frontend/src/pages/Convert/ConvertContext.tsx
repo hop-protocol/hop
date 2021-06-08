@@ -212,7 +212,8 @@ const ConvertContextProvider: FC = ({ children }) => {
     const targetAddress = await convertOption.getTargetAddress(
       sdk,
       sourceToken,
-      sourceNetwork
+      sourceNetwork,
+      destNetwork
     )
 
     const parsedAmount = parseUnits(sourceTokenAmount, sourceToken.decimals)

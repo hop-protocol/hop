@@ -11,7 +11,8 @@ abstract class ConvertOption {
   abstract getTargetAddress (
     sdk: Hop,
     token: SDKToken | undefined,
-    sourceNetwork: Network | undefined
+    sourceNetwork: Network | undefined,
+    destNetwork: Network | undefined
   ): Promise<string>
 
   abstract convert(

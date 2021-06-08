@@ -2,7 +2,7 @@ import '../moduleAlias'
 import { ethers, Contract, BigNumber } from 'ethers'
 import db from 'src/db'
 import chalk from 'chalk'
-import { wait, isL1NetworkId } from 'src/utils'
+import { wait, isL1ChainId } from 'src/utils'
 import BaseWatcher from './classes/BaseWatcher'
 import Bridge from './classes/Bridge'
 import L1Bridge from './classes/L1Bridge'
@@ -507,7 +507,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   async getBridgeTokenDecimals (chainId: number) {
     let bridge: any
     let token: Token
-    if (isL1NetworkId(chainId)) {
+    if (isL1ChainId(chainId)) {
       bridge = this.getSiblingWatcherByChainId(chainId).bridge as L2Bridge
       token = await bridge.l1CanonicalToken()
     } else {

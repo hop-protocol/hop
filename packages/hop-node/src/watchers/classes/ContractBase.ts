@@ -1,6 +1,6 @@
 import { Transaction, providers, Contract, BigNumber } from 'ethers'
 import { EventEmitter } from 'events'
-import { wait, networkIdToSlug, networkSlugToId } from 'src/utils'
+import { wait, chainIdToSlug, chainSlugToId } from 'src/utils'
 import { Chain } from 'src/constants'
 import { config } from 'src/config'
 
@@ -42,11 +42,11 @@ export default class ContractBase extends EventEmitter {
   }
 
   chainIdToSlug (chainId: number): string {
-    return networkIdToSlug(chainId)
+    return chainIdToSlug(chainId)
   }
 
   chainSlugToId (chainSlug: string): number {
-    return Number(networkSlugToId(chainSlug))
+    return Number(chainSlugToId(chainSlug))
   }
 
   get queueGroup (): string {

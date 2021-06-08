@@ -1,6 +1,6 @@
 require('dotenv').config()
 import { startWatchers } from 'src/watchers/watchers'
-import { networkSlugToId, wait } from 'src/utils'
+import { chainSlugToId, wait } from 'src/utils'
 import { Chain } from 'src/constants'
 import { User, waitForEvent } from './helpers'
 import { privateKey, bonderPrivateKey, governancePrivateKey } from './config'
@@ -141,7 +141,7 @@ describe.only('challenge invalid transfer root', () => {
   const networks = [Chain.xDai]
   const destNetwork = Chain.Ethereum
   for (let sourceNetwork of networks) {
-    const chainId = networkSlugToId(sourceNetwork)
+    const chainId = chainSlugToId(sourceNetwork)
     const label = `challenge invalid transfer root on ${sourceNetwork}`
     it(
       label,

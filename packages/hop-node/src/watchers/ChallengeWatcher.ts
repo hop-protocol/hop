@@ -1,6 +1,6 @@
 import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
-import { wait, isL1NetworkId } from 'src/utils'
+import { wait, isL1ChainId } from 'src/utils'
 import chalk from 'chalk'
 //import db from 'src/db'
 import BaseWatcher from './classes/BaseWatcher'
@@ -115,7 +115,7 @@ class ChallengeWatcher extends BaseWatcher {
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     logger.debug('destChainId:', destChainId)
 
-    if (isL1NetworkId(destChainId)) {
+    if (isL1ChainId(destChainId)) {
       // TODO
       return
     }

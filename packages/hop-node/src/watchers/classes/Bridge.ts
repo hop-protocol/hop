@@ -4,7 +4,7 @@ import ContractBase from './ContractBase'
 import queue from 'src/decorators/queue'
 import { config } from 'src/config'
 import unique from 'src/utils/unique'
-import { isL1NetworkId, networkIdToSlug } from 'src/utils'
+import { isL1ChainId } from 'src/utils'
 import db from 'src/db'
 
 export default class Bridge extends ContractBase {
@@ -16,9 +16,6 @@ export default class Bridge extends ContractBase {
 
   constructor (public bridgeContract: Contract) {
     super(bridgeContract)
-    if (!bridgeContract) {
-      console.error('NONE')
-    }
     this.bridgeContract = bridgeContract
     let tokenDecimals: number
     let tokenSymbol: string
@@ -232,17 +229,17 @@ export default class Bridge extends ContractBase {
   async getChainIds (): Promise<number[]> {
     let chainIds: number[] = []
     for (let key in config.networks) {
-      const { networkId } = config.networks[key]
-      chainIds.push(networkId)
+      const { networkId: chainId } = config.networks[key]
+      chainIds.push(chainId)
     }
     return chainIds
   }
 
   async getL1ChainId (): Promise<number> {
     for (let key in config.networks) {
-      const { networkId } = config.networks[key]
-      if (isL1NetworkId(networkId)) {
-        return networkId
+      const { networkId: chainId } = config.networks[key]
+      if (isL1ChainId(chainId)) {
+        return chainId
       }
     }
   }
@@ -250,11 +247,11 @@ export default class Bridge extends ContractBase {
   async getL2ChainIds (): Promise<number[]> {
     let chainIds: number[] = []
     for (let key in config.networks) {
-      const { networkId } = config.networks[key]
-      if (isL1NetworkId(networkId)) {
+      const { networkId: chainId } = config.networks[key]
+      if (isL1ChainId(chainId)) {
         continue
       }
-      chainIds.push(networkId)
+      chainIds.push(chainId)
     }
     return chainIds
   }

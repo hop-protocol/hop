@@ -1,7 +1,7 @@
 import contracts from 'src/contracts'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import { config } from 'src/config'
-import { wait, networkIdToSlug } from 'src/utils'
+import { wait, chainIdToSlug } from 'src/utils'
 import Logger from 'src/logger'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
@@ -132,7 +132,7 @@ class HealthCheck {
       transfersCommittedEvent.args.rootCommittedAt.toString()
     )
     const skipChains: string[] = [Chain.xDai, Chain.Polygon]
-    if (skipChains.includes(networkIdToSlug(chainId))) {
+    if (skipChains.includes(chainIdToSlug(chainId))) {
       return
     }
 

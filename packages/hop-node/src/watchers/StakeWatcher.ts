@@ -1,7 +1,7 @@
 import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
 import chalk from 'chalk'
-import { wait, isL1NetworkId } from 'src/utils'
+import { wait, isL1ChainId } from 'src/utils'
 import BaseWatcher from './classes/BaseWatcher'
 import Bridge from './classes/Bridge'
 import L1Bridge from './classes/L1Bridge'
@@ -104,7 +104,7 @@ class StakeWatcher extends BaseWatcher {
 
   async convertAndStake (amount: BigNumber) {
     const balance = await this.token.getBalance()
-    const isL1 = isL1NetworkId(await this.token.getChainId())
+    const isL1 = isL1ChainId(await this.token.getChainId())
     if (balance.lt(amount)) {
       if (!isL1) {
         const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
@@ -177,7 +177,7 @@ class StakeWatcher extends BaseWatcher {
     }
     const formattedAmount = this.bridge.formatUnits(amount)
     const balance = await this.token.getBalance()
-    const isL1 = isL1NetworkId(await this.token.getChainId())
+    const isL1 = isL1ChainId(await this.token.getChainId())
     if (balance.lt(amount)) {
       throw new Error(
         `not enough ${

@@ -1,7 +1,7 @@
 import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
-import { wait, isL1NetworkId } from 'src/utils'
+import { wait, isL1ChainId } from 'src/utils'
 import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer } from 'src/db/TransfersDb'
@@ -588,7 +588,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           this.emit('settleBondedWithdrawal', {
             transferRootHash,
             networkName: this.chainIdToSlug(chainId),
-            networkId: chainId,
+            chainId,
             transferId: dbTransfer.transferId
           })
 
@@ -629,7 +629,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   async getBridgeTokenDecimals (chainId: number) {
     let bridge: any
     let token: Token
-    if (isL1NetworkId(chainId)) {
+    if (isL1ChainId(chainId)) {
       bridge = this.getSiblingWatcherByChainId(chainId).bridge as L1Bridge
       token = await bridge.l1CanonicalToken()
     } else {

@@ -1,5 +1,5 @@
 import { Contract } from 'ethers'
-import { isL1NetworkId } from 'src/utils'
+import { isL1ChainId } from 'src/utils'
 
 export default class L2AmmWrapper {
   ammWrapperContract: Contract
@@ -17,7 +17,7 @@ export default class L2AmmWrapper {
     )
     chainId = Number(decoded.chainId.toString())
 
-    if (!isL1NetworkId(chainId)) {
+    if (!isL1ChainId(chainId)) {
       // L2 to L2 transfers have destination swap parameters set
       if (Number(decoded.destinationDeadline.toString()) > 0) {
         attemptSwap = true

@@ -16,6 +16,9 @@ export default class Bridge extends ContractBase {
 
   constructor (public bridgeContract: Contract) {
     super(bridgeContract)
+    if (!bridgeContract) {
+      console.error('NONE')
+    }
     this.bridgeContract = bridgeContract
     let tokenDecimals: number
     let tokenSymbol: string
@@ -323,10 +326,6 @@ export default class Bridge extends ContractBase {
     return parseUnits(value.toString(), this.tokenDecimals)
   }
 
-  chainIdToSlug (chainId: number): string {
-    return networkIdToSlug(chainId)
-  }
-
   public async eventsBatch (
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
     options: any = {
@@ -340,7 +339,7 @@ export default class Bridge extends ContractBase {
     await this.waitTilReady()
     let { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
     const blockNumber = endBlockNumber || (await this.getBlockNumber())
-    const cacheKey = `${this.providerNetworkId}:${this.address}:${key}`
+    const cacheKey = `${this.chainId}:${this.address}:${key}`
     if (startBlockNumber && endBlockNumber) {
       totalBlocks = endBlockNumber - startBlockNumber
     }

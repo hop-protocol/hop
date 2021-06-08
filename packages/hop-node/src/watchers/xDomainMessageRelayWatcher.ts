@@ -1,7 +1,7 @@
 import '../moduleAlias'
 import { ethers } from 'ethers'
 import chalk from 'chalk'
-import { wait, networkIdToSlug, getRpcUrls } from 'src/utils'
+import { wait, getRpcUrls } from 'src/utils'
 import db from 'src/db'
 import { Contract, BigNumber } from 'ethers'
 import BaseWatcher from './classes/BaseWatcher'
@@ -201,7 +201,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     if (!sourceChainId) {
       return
     }
-    const sourceChainSlug = networkIdToSlug(sourceChainId)
+    const sourceChainSlug = this.chainIdToSlug(sourceChainId)
     if (bridgeChainId !== sourceChainId) {
       return
     }
@@ -221,7 +221,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       return
     }
 
-    const chainSlug = networkIdToSlug(await this.bridge.getNetworkId())
+    const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
     if (chainSlug === Chain.xDai) {
       const l2Amb = getL2Amb(this.token)
       const tx: any = await this.bridge.getTransaction(commitTxHash)
@@ -297,11 +297,11 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
               })
             this.logger.info(`transferRootHash:`, transferRootHash)
             this.logger.info(
-              `sent chainId ${this.bridge.providerNetworkId} confirmTransferRoot L1 exit tx`,
+              `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
               chalk.bgYellow.black.bold(tx.hash)
             )
             this.notifier.info(
-              `chainId: ${this.bridge.providerNetworkId} confirmTransferRoot L1 exit tx: ${tx.hash}`
+              `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
             )
             await tx.wait()
           }
@@ -373,11 +373,11 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
           throw err
         })
       this.logger.info(
-        `sent chainId ${this.bridge.providerNetworkId} confirmTransferRoot L1 exit tx`,
+        `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
         chalk.bgYellow.black.bold(tx.hash)
       )
       this.notifier.info(
-        `chainId: ${this.bridge.providerNetworkId} confirmTransferRoot L1 exit tx: ${tx.hash}`
+        `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
       )
     } else {
       // not implemented

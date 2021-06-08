@@ -12,7 +12,6 @@ import L2BridgeWrapper from './L2BridgeWrapper'
 import L1Bridge from './L1Bridge'
 import Token from './Token'
 import { Chain } from 'src/constants'
-import { networkIdToSlug } from 'src/utils'
 
 export default class L2Bridge extends Bridge {
   l2BridgeContract: Contract
@@ -142,12 +141,15 @@ export default class L2Bridge extends Bridge {
   }
 
   async getChainId (): Promise<number> {
+    if (!this.l2BridgeContract) {
+      return super.getChainId()
+    }
     return Number((await this.l2BridgeContract.getChainId()).toString())
   }
 
   async getChainSlug (): Promise<string> {
     const chainId = await this.getChainId()
-    return networkIdToSlug(chainId)
+    return this.chainIdToSlug(chainId)
   }
 
   async decodeCommitTransfersData (data: string): Promise<any> {

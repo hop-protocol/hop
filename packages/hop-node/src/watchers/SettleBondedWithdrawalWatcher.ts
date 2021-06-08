@@ -1,7 +1,7 @@
 import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
-import { wait, networkIdToSlug, isL1NetworkId } from 'src/utils'
+import { wait, isL1NetworkId } from 'src/utils'
 import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer } from 'src/db/TransfersDb'
@@ -153,7 +153,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       totalAmount
     )
     const sourceChainId =
-      dbTransferRoot.sourceChainId || (await this.bridge.getNetworkId())
+      dbTransferRoot.sourceChainId || (await this.bridge.getChainId())
     const destinationChainId = dbTransferRoot.chainId
 
     logger.debug(`received TransferRootSet event from L1:`)
@@ -171,11 +171,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       logger.debug(
         `looking for transfer ids for transferRootHash ${transferRootHash}`
       )
-      if (!this.siblingWatchers[sourceChainId]) {
+      if (!this.hasSiblingWatcher(sourceChainId)) {
         logger.error(`no sibling watcher found for ${sourceChainId}`)
         return
       }
-      const sourceBridge = this.siblingWatchers[sourceChainId]
+      const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId)
         .bridge as L2Bridge
 
       let startSearchBlockNumber: number
@@ -347,7 +347,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     totalAmount: BigNumber,
     chainId: number
   ) => {
-    const bridge = this.siblingWatchers[chainId].bridge
+    const bridge = this.getSiblingWatcherByChainId(chainId).bridge
     const decimals = await this.getBridgeTokenDecimals(chainId)
     return bridge.settleBondedWithdrawals(bonder, transferIds, totalAmount)
   }
@@ -383,7 +383,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     const bridgeAddress = await this.bridge.getAddress()
     const chainId = dbTransfer.chainId
     // only process transfer where this bridge is the destination chain
-    const bridgeChainId = await this.bridge.getNetworkId()
+    const bridgeChainId = await this.bridge.getChainId()
     if (chainId !== bridgeChainId) {
       return
     }
@@ -423,7 +423,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       return
     }
     try {
-      const bridge = this.siblingWatchers[chainId].bridge
+      const bridge = this.getSiblingWatcherByChainId(chainId).bridge
       await this.bridge.waitSafeConfirmations()
       const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
         dbTransfer.transferRootHash
@@ -587,7 +587,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           }
           this.emit('settleBondedWithdrawal', {
             transferRootHash,
-            networkName: networkIdToSlug(chainId),
+            networkName: this.chainIdToSlug(chainId),
             networkId: chainId,
             transferId: dbTransfer.transferId
           })
@@ -630,10 +630,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     let bridge: any
     let token: Token
     if (isL1NetworkId(chainId)) {
-      bridge = this.siblingWatchers[chainId].bridge as L1Bridge
+      bridge = this.getSiblingWatcherByChainId(chainId).bridge as L1Bridge
       token = await bridge.l1CanonicalToken()
     } else {
-      bridge = this.siblingWatchers[chainId].bridge as L2Bridge
+      bridge = this.getSiblingWatcherByChainId(chainId).bridge as L2Bridge
       token = await bridge.hToken()
     }
     return token.decimals()
@@ -647,7 +647,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     this.logger.debug(
       `waiting for settle bonded withdrawal event. transferId: ${transferId} chainId: ${chainId}`
     )
-    const bridge = this.siblingWatchers[chainId].bridge
+    const bridge = this.getSiblingWatcherByChainId(chainId).bridge
     let timeout = this.order() * BONDER_ORDER_DELAY_MS
     while (timeout > 0) {
       if (!this.started) {

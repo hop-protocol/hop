@@ -1,12 +1,12 @@
 import { Transaction, providers, Contract, BigNumber } from 'ethers'
 import { EventEmitter } from 'events'
-import { wait, networkIdToSlug } from 'src/utils'
+import { wait, networkIdToSlug, networkSlugToId } from 'src/utils'
 import { Chain } from 'src/constants'
 import { config } from 'src/config'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract
-  public providerNetworkId: number
+  public chainId: number
   public chainSlug: string
   public ready: boolean = false
 
@@ -16,10 +16,10 @@ export default class ContractBase extends EventEmitter {
     if (!this.contract.provider) {
       throw new Error('no provider found for contract')
     }
-    this.getNetworkId()
-      .then((networkId: number) => {
-        this.providerNetworkId = networkId
-        this.chainSlug = networkIdToSlug(networkId)
+    this.getChainId()
+      .then((chainId: number) => {
+        this.chainId = chainId
+        this.chainSlug = this.chainIdToSlug(chainId)
         this.ready = true
       })
       .catch(err => {
@@ -36,13 +36,21 @@ export default class ContractBase extends EventEmitter {
     return this.waitTilReady()
   }
 
-  async getNetworkId (): Promise<number> {
+  async getChainId (): Promise<number> {
     const { chainId } = await this.contract.provider.getNetwork()
     return Number(chainId.toString())
   }
 
+  chainIdToSlug (chainId: number): string {
+    return networkIdToSlug(chainId)
+  }
+
+  chainSlugToId (chainSlug: string): number {
+    return Number(networkSlugToId(chainSlug))
+  }
+
   get queueGroup (): string {
-    return this.providerNetworkId?.toString()
+    return this.chainId?.toString()
   }
 
   get address (): string {

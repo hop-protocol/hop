@@ -2,12 +2,7 @@ import '../moduleAlias'
 import { ethers, Contract, BigNumber } from 'ethers'
 import db from 'src/db'
 import chalk from 'chalk'
-import {
-  wait,
-  networkSlugToId,
-  networkIdToSlug,
-  isL1NetworkId
-} from 'src/utils'
+import { wait, isL1NetworkId } from 'src/utils'
 import BaseWatcher from './classes/BaseWatcher'
 import Bridge from './classes/Bridge'
 import L1Bridge from './classes/L1Bridge'
@@ -203,7 +198,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const decimals = await this.getBridgeTokenDecimals(chainId)
     if (attemptSwap) {
       this.logger.debug(`bondWithdrawalAndAttemptSwap chainId: ${chainId}`)
-      const l2Bridge = this.siblingWatchers[chainId].bridge as L2Bridge
+      const l2Bridge = this.getSiblingWatcherByChainId(chainId)
+        .bridge as L2Bridge
       const hasPositiveBalance = await l2Bridge.hasPositiveBalance()
       if (!hasPositiveBalance) {
         throw new BondError(
@@ -228,7 +224,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       )
     } else {
       this.logger.debug(`bondWithdrawal chain: ${chainId}`)
-      const bridge = this.siblingWatchers[chainId].bridge
+      const bridge = this.getSiblingWatcherByChainId(chainId).bridge
       const hasPositiveBalance = await bridge.hasPositiveBalance()
       if (!hasPositiveBalance) {
         throw new BondError(
@@ -292,7 +288,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const l2Bridge = this.bridge as L2Bridge
       const sourceChainId = await l2Bridge.getChainId()
       const { chainId, attemptSwap } = await l2Bridge.decodeSendData(data)
-      const isBonder = await this.siblingWatchers[chainId].bridge.isBonder()
+      const isBonder = await this.getSiblingWatcherByChainId(
+        chainId
+      ).bridge.isBonder()
       if (!isBonder) {
         logger.warn(
           `not a bonder on chainId ${chainId}. Cannot bond withdrawal`
@@ -302,7 +300,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
       await this.bridge.waitSafeConfirmations()
 
-      const destL2Bridge = this.siblingWatchers[chainId].bridge as L2Bridge
+      const destL2Bridge = this.getSiblingWatcherByChainId(chainId)
+        .bridge as L2Bridge
       const bondedAmount = await destL2Bridge.getTotalBondedWithdrawalAmount(
         transferId
       )
@@ -384,7 +383,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       if (dbTransfer.transferRootId) {
-        const l1Bridge = this.siblingWatchers[networkSlugToId(Chain.Ethereum)]
+        const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
           .bridge as L1Bridge
         const transferRootConfirmed = await l1Bridge.isTransferRootIdConfirmed(
           dbTransfer.transferRootId
@@ -435,7 +434,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
           this.emit('bondWithdrawal', {
             recipient,
-            destNetworkName: networkIdToSlug(chainId),
+            destNetworkName: this.chainIdToSlug(chainId),
             destNetworkId: chainId,
             transferId
           })
@@ -509,7 +508,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     let bridge: any
     let token: Token
     if (isL1NetworkId(chainId)) {
-      bridge = this.siblingWatchers[chainId].bridge as L2Bridge
+      bridge = this.getSiblingWatcherByChainId(chainId).bridge as L2Bridge
       token = await bridge.l1CanonicalToken()
     } else {
       bridge = this.siblingWatchers[chainId].bridge
@@ -526,7 +525,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.debug(
       `waiting for bondWithdrawal event. transferId: ${transferId} chainId: ${chainId}`
     )
-    const bridge = this.siblingWatchers[chainId].bridge
+    const bridge = this.getSiblingWatcherByChainId(chainId).bridge
     let timeout = this.order() * BONDER_ORDER_DELAY_MS
     while (timeout > 0) {
       if (!this.started) {

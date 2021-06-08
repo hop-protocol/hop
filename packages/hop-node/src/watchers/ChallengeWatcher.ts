@@ -48,17 +48,25 @@ class ChallengeWatcher extends BaseWatcher {
 
   async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
+
     const promises: Promise<any>[] = []
     promises.push(
       this.l1Bridge.eventsBatch(
         async (start: number, end: number) => {
-          let events = await this.l1Bridge.getTransferRootBondedEvents(start, end)
+          const events = await this.l1Bridge.getTransferRootBondedEvents(start, end)
           await this.handleTransferRootBondedEvents(events)
-
-          events = await this.l1Bridge.getTransferRootConfirmedEvents(start, end)
-          await this.handleTransferRootConfirmedEvents(events)
         },
         { key: this.l1Bridge.TransferRootBonded }
+      )
+    )
+
+    promises.push(
+      this.l1Bridge.eventsBatch(
+        async (start: number, end: number) => {
+          const events = await this.l1Bridge.getTransferRootConfirmedEvents(start, end)
+          await this.handleTransferRootConfirmedEvents(events)
+        },
+        { key: this.l1Bridge.TransferRootConfirmed }
       )
     )
 

@@ -69,9 +69,9 @@ class CommitTransfersWatcher extends BaseWatcher {
       return
     }
 
-    const promises: Promise<any>[] = []
     this.logger.debug('syncing up events')
 
+    const promises: Promise<any>[] = []
     const l2Bridge = this.bridge as L2Bridge
     promises.push(
       this.eventsBatch(async (start: number, end: number) => {

@@ -57,6 +57,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
   async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
+
     const promises: Promise<any>[] = []
     if (this.isL1) {
       const l1Bridge = this.bridge as L1Bridge
@@ -79,6 +80,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         })
       )
     }
+
     await Promise.all(promises)
     this.logger.debug('done syncing')
 

@@ -88,7 +88,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       )
     )
 
-    // L1 bridge doesn't contain transfer sent events so return here.
+    // L1 bridge doesn't contain transfer sent events so don't check here.
     if (!this.isL1) {
       const l2Bridge = this.bridge as L2Bridge
       promises.push(

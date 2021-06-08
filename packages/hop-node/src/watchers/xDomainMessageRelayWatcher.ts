@@ -109,16 +109,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       )
     )
 
-    promises.push(
-      this.eventsBatch(async (start: number, end: number) => {
-        try {
-        } catch (err) {
-          this.logger.error(`watcher error:`, err.message)
-          this.notifier.error(`watcher error: '${err.message}`)
-        }
-      })
-    )
-
     await Promise.all(promises)
     this.logger.debug('done syncing')
 

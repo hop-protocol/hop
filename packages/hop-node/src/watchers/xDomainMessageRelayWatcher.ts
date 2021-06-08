@@ -62,7 +62,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         this.logger.error('poll check error:', err.message)
         this.notifier.error(`poll check error: ${err.message}`)
       }
-      await wait(10 * 1000)
+      await wait(this.pollTimeSec)
     }
   }
 
@@ -93,7 +93,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       return
     }
 
-
     const promises: Promise<any>[] = []
     const l2Bridge = this.bridge as L2Bridge
     promises.push(
@@ -112,7 +111,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
           const events = await l2Bridge.getTransfersCommittedEvents(start, end)
           await this.handleTransfersCommittedEvents(events)
         },
-        { key: this.l1Bridge.TransfersCommitted}
+        // { key: this.l1Bridge.TransfersCommitted}
       )
     )
 
@@ -120,7 +119,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     this.logger.debug('done syncing')
 
     // re-sync every 6 hours
-    const sixHours = 6 * 60 * 60 * 1000
+    const sixHours = this.syncTimeSec
     await wait(sixHours)
     return this.syncUp()
   }

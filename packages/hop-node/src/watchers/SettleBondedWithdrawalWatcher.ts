@@ -89,7 +89,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     this.logger.debug('done syncing')
 
     // re-sync every 6 hours
-    const sixHours = 6 * 60 * 60 * 1000
+    const sixHours = this.syncTimeSec
     await wait(sixHours)
     return this.syncUp()
   }
@@ -118,7 +118,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         this.logger.error('error checking:', err.message)
         this.notifier.error(`error checking: ${err.message}`)
       }
-      await wait(10 * 1000)
+      await wait(this.pollTimeSec)
     }
   }
 

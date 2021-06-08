@@ -27,6 +27,8 @@ class BaseWatcher extends EventEmitter {
   notifier: Notifier
   order: () => number = () => 0
   started: boolean = false
+  pollTimeSec: number = 10 * 1000
+  syncTimeSec: number = 6 * 60 * 60 * 1000
 
   isL1: boolean
   bridge: L2Bridge | L1Bridge

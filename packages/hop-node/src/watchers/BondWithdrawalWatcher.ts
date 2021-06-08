@@ -511,7 +511,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       bridge = this.getSiblingWatcherByChainId(chainId).bridge as L2Bridge
       token = await bridge.l1CanonicalToken()
     } else {
-      bridge = this.siblingWatchers[chainId].bridge
+      bridge = this.getSiblingWatcherByChainId(chainId).bridge
       token = await bridge.hToken()
     }
     return token.decimals()

@@ -207,7 +207,9 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    const isBonder = await this.siblingWatchers[chainId].bridge.isBonder()
+    const isBonder = await this.getSiblingWatcherByChainId(
+      chainId
+    ).bridge.isBonder()
     if (!isBonder) {
       logger.warn(
         `not a bonder on chain ${chainId}. Cannot bond transfer root.`
@@ -430,9 +432,9 @@ class BondTransferRootWatcher extends BaseWatcher {
         destinationChainId: chainId
       } = await l2Bridge.decodeCommitTransfersData(data)
       const sourceChainId = await l2Bridge.getChainId()
-      const destinationBridgeAddress = await this.siblingWatchers[
+      const destinationBridgeAddress = await this.getSiblingWatcherByChainId(
         chainId
-      ].bridge.getAddress()
+      ).bridge.getAddress()
       const transferRootId = await this.bridge.getTransferRootId(
         transferRootHash,
         totalAmount

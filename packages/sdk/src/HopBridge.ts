@@ -650,11 +650,11 @@ class HopBridge extends Base {
       (await saddleSwap.getTokenIndex(l2HopBridgeTokenAddress)).toString()
     )
     if (toHop) {
-      tokenIndexFrom = hopTokenIndex
-      tokenIndexTo = canonicalTokenIndex
-    } else {
       tokenIndexFrom = canonicalTokenIndex
       tokenIndexTo = hopTokenIndex
+    } else {
+      tokenIndexFrom = hopTokenIndex
+      tokenIndexTo = canonicalTokenIndex
     }
 
     return saddleSwap.swap(

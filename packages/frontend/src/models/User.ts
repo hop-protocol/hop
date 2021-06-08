@@ -20,7 +20,7 @@ class User {
   }
 
   async getBalance (token: Token, network: Network): Promise<ethers.BigNumber> {
-    const bridge = sdk.bridge(token.symbol.replace('h', ''))
+    const bridge = sdk.connect(this.signer()).bridge(token.symbol.replace('h', ''))
     // TODO: better way and clean up
     const isHop = token.symbol.startsWith('h') || network?.slug?.includes('Hop')
     const _token = isHop ? bridge.getL2HopToken(network.slug) : bridge.getCanonicalToken(network.slug)

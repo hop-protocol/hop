@@ -68,8 +68,8 @@ class ChallengeWatcher extends BaseWatcher {
           )
 
           for (let event of transferRootConfirmedEvents) {
-            const { root, amount } = event.args
-            await this.handleTransferRootBondedEvent(root, amount, event)
+            const { sourceChainId, chainId, transferRootHash, totalAmount } = event.args
+            await this.handleTransferRootConfirmedEvent(sourceChainId, chainId, transferRootHash, totalAmount, event)
           }
         },
         { key: this.l1Bridge.TransferRootBonded }

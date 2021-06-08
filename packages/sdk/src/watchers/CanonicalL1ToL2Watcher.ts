@@ -104,9 +104,7 @@ class L1ToL2Watcher extends BaseWatcher {
       this.token,
       Chain.Polygon
     )
-    const tokenBridge = await canonicalBridge.getL2CanonicalBridge(
-      Chain.Polygon
-    )
+    const tokenBridge = await canonicalBridge.getL2CanonicalBridge()
     const filter = {
       address: canonicalBridge.getL2CanonicalTokenAddress(
         this.token,

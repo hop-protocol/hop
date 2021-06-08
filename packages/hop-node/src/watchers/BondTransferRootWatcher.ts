@@ -456,13 +456,6 @@ class BondTransferRootWatcher extends BaseWatcher {
         committed: true,
         commitTxHash: transactionHash
       })
-
-      await this.checkTransfersCommitted(
-        transferRootHash,
-        totalAmount,
-        chainId,
-        committedAt
-      )
     } catch (err) {
       if (err.message !== 'cancelled') {
         logger.error('bondTransferRoot error:', err.message)

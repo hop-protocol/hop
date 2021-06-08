@@ -19,6 +19,7 @@ abstract class ConvertOption {
     signer: Signer,
     sourceNetwork: Network,
     destNetwork: Network,
+    isForwardDirection: boolean,
     token: Token,
     value: string
   ): Promise<any>

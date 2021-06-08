@@ -297,6 +297,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             signer as Signer,
             sourceNetwork,
             destNetwork,
+            isForwardDirection,
             selectedToken,
             value
           )

@@ -140,6 +140,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     totalAmount: BigNumber,
     meta: any
   ) => {
+    const logger = this.logger.create({ root: transferRootHash })
     let dbTransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
@@ -152,24 +153,24 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       totalAmount
     )
 
-    this.logger.debug(`received TransferRootSet event from L1:`)
-    this.logger.debug(`transferRootHash from event: ${transferRootHash}`)
-    this.logger.debug(`transferRootId: ${transferRootId}`)
-    this.logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
-    this.logger.debug(`event transactionHash: ${transactionHash}`)
+    logger.debug(`received TransferRootSet event from L1:`)
+    logger.debug(`transferRootHash from event: ${transferRootHash}`)
+    logger.debug(`transferRootId: ${transferRootId}`)
+    logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
+    logger.debug(`event transactionHash: ${transactionHash}`)
     await db.transferRoots.update(transferRootHash, {
       committed: true,
       transferRootId,
       transferRootHash
     })
     if (!dbTransferRoot.transferIds?.length) {
-      this.logger.debug(
+      logger.debug(
         `looking for transfer ids for transferRootHash ${transferRootHash}`
       )
       const sourceChainId = dbTransferRoot.sourceChainId
       const destinationChainId = dbTransferRoot.chainId
       if (!this.siblingWatchers[sourceChainId]) {
-        this.logger.error(`no sibling watcher found for ${sourceChainId}`)
+        logger.error(`no sibling watcher found for ${sourceChainId}`)
         return
       }
       const sourceBridge = this.siblingWatchers[sourceChainId]
@@ -274,14 +275,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         { startBlockNumber, endBlockNumber }
       )
 
-      this.logger.debug(
+      logger.debug(
         `found transfer ids for transfer root hash ${transferRootHash}\n`,
         transferIds
       )
       const tree = new MerkleTree(transferIds)
       const computedTransferRootHash = tree.getHexRoot()
       if (computedTransferRootHash !== transferRootHash) {
-        this.logger.error(
+        logger.error(
           `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}`
         )
         return
@@ -298,7 +299,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       return
     }
     if (!dbTransferRoot.transferIds?.length) {
-      this.logger.warn(
+      logger.warn(
         `no db transfers found for transfer root ${transferRootHash}`
       )
       return
@@ -306,14 +307,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     for (let dbTransferId of dbTransferRoot.transferIds) {
       const dbTransfer = await db.transfers.getByTransferId(dbTransferId)
       if (!dbTransfer) {
-        this.logger.warn(`no db transfer found for transfer id ${dbTransferId}`)
+        logger.warn(`no db transfer found for transfer id ${dbTransferId}`)
       }
       await db.transfers.update(dbTransferId, {
         transferRootId,
         transferRootHash
       })
       if (!dbTransfer.transferRootId) {
-        this.logger.debug(
+        logger.debug(
           `updated db transfer hash ${dbTransferId} to have transfer root id ${transferRootId}`
         )
       }
@@ -427,20 +428,21 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
         dbTransfer.transferRootHash
       )
-      this.logger.debug('transferRootHash:', dbTransfer.transferRootHash)
-      this.logger.debug(
+      const logger = this.logger.create({ root: dbTransfer.transferRootHash })
+      logger.debug('transferRootHash:', dbTransfer.transferRootHash)
+      logger.debug(
         'transferRootId:',
         chalk.bgMagenta.black(dbTransfer.transferRootId)
       )
       if (!transferIds.length) {
-        this.logger.warn('no transfer ids to settle')
+        logger.warn('no transfer ids to settle')
         return
       }
       const tree = new MerkleTree(transferIds)
       const transferRootHash = tree.getHexRoot()
       if (transferRootHash !== dbTransferRoot.transferRootHash) {
-        this.logger.debug('transferIds:\n', transferIds)
-        this.logger.error(
+        logger.debug('transferIds:\n', transferIds)
+        logger.error(
           `pending transfers computed transfer root hash doesn't match. Expected ${dbTransferRoot.transferRootHash}`
         )
         await db.transferRoots.update(dbTransferRoot.transferRootHash, {
@@ -458,7 +460,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       const structAmountWithdrawn = transferBondStruct.amountWithdrawn
       const createdAt = Number(transferBondStruct?.createdAt.toString())
       if (structTotalAmount.lte(0)) {
-        this.logger.warn(
+        logger.warn(
           'transferRoot total amount is 0. Cannot settle until transfer root is set'
         )
         return
@@ -484,7 +486,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         .add(bondedBondedWithdrawalsBalance)
 
       if (totalBondsSettleAmount.eq(0)) {
-        this.logger.warn('totalBondsSettleAmount is 0. Cannot settle')
+        logger.warn('totalBondsSettleAmount is 0. Cannot settle')
         return
       }
 
@@ -493,7 +495,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           .div(bonderDestBridgeStakedAmount)
           .lt(BigNumber.from(this.minThresholdPercent * 100).div(100))
       ) {
-        this.logger.warn(
+        logger.warn(
           `total bonded withdrawal amount ${this.bridge.formatUnits(
             totalBondsSettleAmount
           )} does not meet min threshold of ${this.minThresholdPercent *
@@ -504,31 +506,31 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         return
       }
 
-      this.logger.debug('committedAt:', committedAt)
-      this.logger.debug('sourceChainId:', dbTransfer.sourceChainId)
-      this.logger.debug('destinationChainId:', chainId)
-      this.logger.debug('computed transferRootHash:', transferRootHash)
-      this.logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
-      this.logger.debug(
+      logger.debug('committedAt:', committedAt)
+      logger.debug('sourceChainId:', dbTransfer.sourceChainId)
+      logger.debug('destinationChainId:', chainId)
+      logger.debug('computed transferRootHash:', transferRootHash)
+      logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
+      logger.debug(
         'struct total amount:',
         this.bridge.formatUnits(structTotalAmount)
       )
-      this.logger.debug(
+      logger.debug(
         'struct withdrawnAmount:',
         this.bridge.formatUnits(structAmountWithdrawn)
       )
-      this.logger.debug('struct createdAt:', createdAt)
+      logger.debug('struct createdAt:', createdAt)
 
-      this.logger.debug('totalBondedSettleAmount:', createdAt)
+      logger.debug('totalBondedSettleAmount:', createdAt)
       const newAmountWithdrawn = structAmountWithdrawn.add(
         totalBondsSettleAmount
       )
-      this.logger.debug(
+      logger.debug(
         'newAmountWithdrawn:',
         this.bridge.formatUnits(newAmountWithdrawn)
       )
       if (newAmountWithdrawn.gt(structTotalAmount)) {
-        this.logger.warn('withdrawal exceeds transfer root total')
+        logger.warn('withdrawal exceeds transfer root total')
         return
       }
 
@@ -543,7 +545,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
             dbTransfer.withdrawalBondSettleTxSentAt + tenMinutes >
             Date.now()
           ) {
-            this.logger.debug(
+            logger.debug(
               'sent?:',
               !!dbTransfer.withdrawalBondSettleTxSentAt,
               'settled?:',
@@ -554,10 +556,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         }
       }
 
-      this.logger.debug('transferIds:\n', transferIds)
+      logger.debug('transferIds:\n', transferIds)
 
       if (this.dryMode) {
-        this.logger.warn(
+        logger.warn(
           'dry mode: skipping settleBondedWithdrawals transaction'
         )
         return
@@ -568,7 +570,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           withdrawalBondSettleTxSentAt: Date.now()
         })
       }
-      this.logger.debug('sending settle tx')
+      logger.debug('sending settle tx')
       const tx = await this.settleBondedWithdrawals(
         bonder,
         transferIds,
@@ -607,7 +609,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
           throw err
         })
-      this.logger.info(
+      logger.info(
         `settleBondedWithdrawals on chainId:${chainId} tx: ${chalk.bgYellow.black.bold(
           tx.hash
         )}`

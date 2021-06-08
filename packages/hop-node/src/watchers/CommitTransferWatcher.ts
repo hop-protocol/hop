@@ -324,13 +324,14 @@ class CommitTransfersWatcher extends BaseWatcher {
     deadline: BigNumber,
     meta: any
   ) => {
+    const logger = this.logger.create({ id: transferId })
     try {
       const dbTransfer = await db.transfers.getByTransferId(transferId)
       if (dbTransfer?.sourceChainId) {
         //return
       }
 
-      this.logger.debug(`received TransferSent event`)
+      logger.debug(`received TransferSent event`)
       // TODO: batch
       const { transactionHash, blockNumber } = meta
       const sentTimestamp = await this.bridge.getBlockTimestamp(blockNumber)
@@ -355,7 +356,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       })
     } catch (err) {
       if (err.message !== 'cancelled') {
-        this.logger.error('commitTransfers tx error:', err.message)
+        logger.error('commitTransfers tx error:', err.message)
         this.notifier.error(`commitTransfers tx error: ${err.message}`)
       }
     }

@@ -152,6 +152,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       transferRootHash,
       totalAmount
     )
+    const sourceChainId = dbTransferRoot.sourceChainId || await this.bridge.getNetworkId()
+    const destinationChainId = dbTransferRoot.chainId
 
     logger.debug(`received TransferRootSet event from L1:`)
     logger.debug(`transferRootHash from event: ${transferRootHash}`)
@@ -161,14 +163,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     await db.transferRoots.update(transferRootHash, {
       committed: true,
       transferRootId,
-      transferRootHash
+      transferRootHash,
+      sourceChainId
     })
     if (!dbTransferRoot.transferIds?.length) {
       logger.debug(
         `looking for transfer ids for transferRootHash ${transferRootHash}`
       )
-      const sourceChainId = dbTransferRoot.sourceChainId
-      const destinationChainId = dbTransferRoot.chainId
       if (!this.siblingWatchers[sourceChainId]) {
         logger.error(`no sibling watcher found for ${sourceChainId}`)
         return

@@ -82,7 +82,6 @@ type RemoveLiquidityOptions = {
  * @namespace HopBridge
  */
 class HopBridge extends Base {
-
   private tokenSymbol: string
 
   /** Source Chain model */
@@ -112,11 +111,7 @@ class HopBridge extends Base {
    *const bridge = new HopBridge('kovan', signer, Token.USDC, Chain.Optimism, Chain.xDai)
    *```
    */
-  constructor (
-    network: string,
-    signer: TProvider,
-    token: TToken
-  ) {
+  constructor (network: string, signer: TProvider, token: TToken) {
     super(network, signer)
 
     if (token instanceof Token || token instanceof TokenModel) {
@@ -142,11 +137,7 @@ class HopBridge extends Base {
    *```
    */
   public connect (signer: Signer) {
-    return new HopBridge(
-      this.network,
-      signer,
-      this.tokenSymbol
-    )
+    return new HopBridge(this.network, signer, this.tokenSymbol)
   }
 
   public getL1Token () {
@@ -161,7 +152,11 @@ class HopBridge extends Base {
     return this.toHopToken(this.tokenSymbol, this.network, chain)
   }
 
-  public toCanonicalToken (token: TToken, network: string, chain: TChain): Token | undefined {
+  public toCanonicalToken (
+    token: TToken,
+    network: string,
+    chain: TChain
+  ): Token | undefined {
     if (!this.signer) return
 
     let tokenSymbol
@@ -181,10 +176,22 @@ class HopBridge extends Base {
       address = this.getL2CanonicalTokenAddress(tokenSymbol, chain)
     }
 
-    return new Token(network, chain, address, decimals, symbol, name, this.signer)
+    return new Token(
+      network,
+      chain,
+      address,
+      decimals,
+      symbol,
+      name,
+      this.signer
+    )
   }
 
-  public toHopToken (token: TToken, network: string, chain: TChain): Token | undefined {
+  public toHopToken (
+    token: TToken,
+    network: string,
+    chain: TChain
+  ): Token | undefined {
     if (!this.signer) return
 
     chain = this.toChainModel(chain)
@@ -201,7 +208,15 @@ class HopBridge extends Base {
     const { name, symbol, decimals } = metadata.tokens[network][tokenSymbol]
     const address = this.getL2HopBridgeTokenAddress(tokenSymbol, chain)
 
-    return new Token(network, chain, address, decimals, symbol, name, this.signer)
+    return new Token(
+      network,
+      chain,
+      address,
+      decimals,
+      symbol,
+      name,
+      this.signer
+    )
   }
 
   /**
@@ -377,7 +392,9 @@ class HopBridge extends Base {
       ? BigNumber.from(0)
       : amountOutWithoutFee.mul(oneBN).div(amountIn)
 
-    const rate = Number(ethers.utils.formatUnits(rateBN, canonicalToken.decimals))
+    const rate = Number(
+      ethers.utils.formatUnits(rateBN, canonicalToken.decimals)
+    )
 
     const marketRateBN = amountOutNoSlippage.mul(oneBN).div(amountInNoSlippage)
     const marketRate = Number(
@@ -672,7 +689,10 @@ class HopBridge extends Base {
    * @returns {Object} Ethers contract instance.
    */
   public async getL1Bridge (signer: TProvider = this.signer) {
-    const bridgeAddress = this.getL1BridgeAddress(this.tokenSymbol, Chain.Ethereum)
+    const bridgeAddress = this.getL1BridgeAddress(
+      this.tokenSymbol,
+      Chain.Ethereum
+    )
     if (!bridgeAddress) {
       throw new Error(`token "${this.tokenSymbol}" is unsupported`)
     }
@@ -706,7 +726,10 @@ class HopBridge extends Base {
    */
   public async getAmmWrapper (chain: TChain, signer: TProvider = this.signer) {
     chain = this.toChainModel(chain)
-    const ammWrapperAddress = this.getL2AmmWrapperAddress(this.tokenSymbol, chain)
+    const ammWrapperAddress = this.getL2AmmWrapperAddress(
+      this.tokenSymbol,
+      chain
+    )
     if (!ammWrapperAddress) {
       throw new Error(
         `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
@@ -724,7 +747,10 @@ class HopBridge extends Base {
    */
   public async getSaddleSwap (chain: TChain, signer: TProvider = this.signer) {
     chain = this.toChainModel(chain)
-    const saddleSwapAddress = this.getL2SaddleSwapAddress(this.tokenSymbol, chain)
+    const saddleSwapAddress = this.getL2SaddleSwapAddress(
+      this.tokenSymbol,
+      chain
+    )
     if (!saddleSwapAddress) {
       throw new Error(
         `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
@@ -775,7 +801,15 @@ class HopBridge extends Base {
     const provider = await this.getSignerOrProvider(chain, signer)
 
     // ToDo: Get actual saddle LP token symbol and name
-    return new Token(this.network, chain, saddleLpTokenAddress, 18, `${this.tokenSymbol}`, `${this.tokenSymbol}_LP`, provider)
+    return new Token(
+      this.network,
+      chain,
+      saddleLpTokenAddress,
+      18,
+      `${this.tokenSymbol}`,
+      `${this.tokenSymbol}_LP`,
+      provider
+    )
   }
 
   /**
@@ -1080,15 +1114,10 @@ class HopBridge extends Base {
 
     const l2CanonicalToken = this.getCanonicalToken(sourceChain)
     if (approval) {
-      const tx = await l2CanonicalToken.approve(
-        ammWrapper.address,
-        amount
-      )
+      const tx = await l2CanonicalToken.approve(ammWrapper.address, amount)
       await tx?.wait()
     } else {
-      const allowance = await l2CanonicalToken.allowance(
-        ammWrapper.address
-      )
+      const allowance = await l2CanonicalToken.allowance(ammWrapper.address)
       if (allowance.lt(BigNumber.from(amount))) {
         throw new Error('not enough allowance')
       }
@@ -1140,7 +1169,9 @@ class HopBridge extends Base {
     }
 
     const recipient = options?.recipient ?? (await this.getSignerAddress())
-    const bonderFee = options?.bonderFee ? BigNumber.from(options?.bonderFee) : minBonderFee
+    const bonderFee = options?.bonderFee
+      ? BigNumber.from(options?.bonderFee)
+      : minBonderFee
     const amountOutMin = BigNumber.from(0)
     const deadline = BigNumber.from(0)
     const relayer = ethers.constants.AddressZero
@@ -1161,7 +1192,6 @@ class HopBridge extends Base {
         bonderFee,
         this.txOverrides(Chain.Ethereum)
       )
-
     } else {
       if (bonderFee.eq(0)) {
         throw new Error('Send at least the minimum Bonder fee')

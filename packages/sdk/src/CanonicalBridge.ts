@@ -95,7 +95,12 @@ class CanonicalBridge extends Base {
    * @returns {Object} New CanonicalBridge SDK instance with connected signer.
    */
   public connect (signer: TProvider) {
-    return new CanonicalBridge(this.network, signer, this.tokenSymbol, this.chain)
+    return new CanonicalBridge(
+      this.network,
+      signer,
+      this.tokenSymbol,
+      this.chain
+    )
   }
 
   public getDepositApprovalAddress (chain?: TChain): string {
@@ -152,7 +157,10 @@ class CanonicalBridge extends Base {
     }
 
     const recipient = await this.getSignerAddress()
-    const bridgeAddress = this.getL1CanonicalBridgeAddress(this.tokenSymbol, chain)
+    const bridgeAddress = this.getL1CanonicalBridgeAddress(
+      this.tokenSymbol,
+      chain
+    )
     if (!bridgeAddress) {
       throw new Error(
         `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
@@ -181,7 +189,10 @@ class CanonicalBridge extends Base {
         gasLimit: 240000
       })
     } else if ((chain as Chain).equals(Chain.Optimism)) {
-      const l2TokenAddress = this.getL2CanonicalTokenAddress(this.tokenSymbol, chain)
+      const l2TokenAddress = this.getL2CanonicalTokenAddress(
+        this.tokenSymbol,
+        chain
+      )
       if (!l2TokenAddress) {
         throw new Error(
           `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
@@ -283,13 +294,19 @@ class CanonicalBridge extends Base {
     const recipient = await this.getSignerAddress()
     const provider = await this.getSignerOrProvider(chain)
     if ((chain as Chain).equals(Chain.xDai)) {
-      const bridgeAddress = this.getL2CanonicalBridgeAddress(this.tokenSymbol, chain)
+      const bridgeAddress = this.getL2CanonicalBridgeAddress(
+        this.tokenSymbol,
+        chain
+      )
       if (!bridgeAddress) {
         throw new Error(
           `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
         )
       }
-      const tokenAddress = this.getL2CanonicalTokenAddress(this.tokenSymbol, chain)
+      const tokenAddress = this.getL2CanonicalTokenAddress(
+        this.tokenSymbol,
+        chain
+      )
       if (!tokenAddress) {
         throw new Error(
           `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
@@ -305,7 +322,10 @@ class CanonicalBridge extends Base {
         gasLimit: 400000
       })
     } else if ((chain as Chain).equals(Chain.Optimism)) {
-      const bridgeAddress = this.getL2CanonicalBridgeAddress(this.tokenSymbol, chain)
+      const bridgeAddress = this.getL2CanonicalBridgeAddress(
+        this.tokenSymbol,
+        chain
+      )
       if (!bridgeAddress) {
         throw new Error(
           `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
@@ -320,7 +340,10 @@ class CanonicalBridge extends Base {
           `token "${this.tokenSymbol}" on chain "${Chain.Ethereum.slug}" is unsupported`
         )
       }
-      const tokenAddress = this.getL2CanonicalTokenAddress(this.tokenSymbol, chain)
+      const tokenAddress = this.getL2CanonicalTokenAddress(
+        this.tokenSymbol,
+        chain
+      )
       if (!tokenAddress) {
         throw new Error(
           `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
@@ -338,7 +361,10 @@ class CanonicalBridge extends Base {
         gasPrice: 0
       })
     } else if ((chain as Chain).equals(Chain.Arbitrum)) {
-      const bridgeAddress = this.getL2CanonicalTokenAddress(this.tokenSymbol, chain)
+      const bridgeAddress = this.getL2CanonicalTokenAddress(
+        this.tokenSymbol,
+        chain
+      )
       if (!bridgeAddress) {
         throw new Error(
           `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
@@ -351,7 +377,10 @@ class CanonicalBridge extends Base {
       )
       return bridge.withdraw(recipient, amount)
     } else if ((chain as Chain).equals(Chain.Polygon)) {
-      const tokenAddress = this.getL2CanonicalTokenAddress(this.tokenSymbol, chain)
+      const tokenAddress = this.getL2CanonicalTokenAddress(
+        this.tokenSymbol,
+        chain
+      )
       if (!tokenAddress) {
         throw new Error(
           `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
@@ -468,7 +497,10 @@ class CanonicalBridge extends Base {
   }
 
   async getL2CanonicalBridge () {
-    const address = this.getL2CanonicalBridgeAddress(this.tokenSymbol, this.chain)
+    const address = this.getL2CanonicalBridgeAddress(
+      this.tokenSymbol,
+      this.chain
+    )
     if (!address) {
       throw new Error(
         `token "${this.tokenSymbol}" on chain "${this.chain.slug}" is unsupported`
@@ -489,7 +521,10 @@ class CanonicalBridge extends Base {
   }
 
   async getL1CanonicalBridge () {
-    const address = this.getL1CanonicalBridgeAddress(this.tokenSymbol, this.chain)
+    const address = this.getL1CanonicalBridgeAddress(
+      this.tokenSymbol,
+      this.chain
+    )
     if (!address) {
       throw new Error(
         `token "${this.tokenSymbol}" on chain "${this.chain.slug}" is unsupported`
@@ -559,7 +594,14 @@ class CanonicalBridge extends Base {
     const { name, symbol, decimals } = metadata.tokens[network][tokenSymbol]
     const { l2HopBridgeToken } = addresses.bridges[tokenSymbol][chain.slug]
 
-    return new TokenClass(network, chain, l2HopBridgeToken, decimals, symbol, name)
+    return new TokenClass(
+      network,
+      chain,
+      l2HopBridgeToken,
+      decimals,
+      symbol,
+      name
+    )
   }
 }
 

@@ -79,14 +79,8 @@ class Hop extends Base {
    *const bridge = hop.bridge(Token.USDC)
    *```
    */
-  public bridge (
-    token: TToken
-  ) {
-    return new HopBridge(
-      this.network,
-      this.signer,
-      token
-    )
+  public bridge (token: TToken) {
+    return new HopBridge(this.network, this.signer, token)
   }
 
   /**

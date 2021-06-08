@@ -158,7 +158,10 @@ class AMM extends Base {
    */
   public async getSaddleSwap (chain: TChain) {
     chain = this.toChainModel(chain)
-    const saddleSwapAddress = this.getL2SaddleSwapAddress(this.tokenSymbol, chain)
+    const saddleSwapAddress = this.getL2SaddleSwapAddress(
+      this.tokenSymbol,
+      chain
+    )
     if (!saddleSwapAddress) {
       throw new Error(
         `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`

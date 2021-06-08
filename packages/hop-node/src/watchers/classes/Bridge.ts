@@ -349,7 +349,7 @@ export default class Bridge extends ContractBase {
     let start = end - batchBlocks
     let isSingleBatch = totalBlocks <= batchBlocks
     let i = 0
-    while (isSingleBatch || start >= blockNumber - totalBlocks) {
+    while (isSingleBatch || start >= (blockNumber - totalBlocks)) {
       if (isSingleBatch) {
         start = end - totalBlocks
       }

@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import { Contract, BigNumber } from 'ethers'
+import { Contract, BigNumber, Event } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { wait, isL1ChainId } from 'src/utils'
 import db from 'src/db'
@@ -71,29 +71,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     const promises: Promise<any>[] = []
     promises.push(
       this.eventsBatch(async (start: number, end: number) => {
-        const transferRootSetEvents = await this.bridge.getTransferRootSetEvents(
-          start,
-          end
-        )
+        let events = await this.bridge.getTransferRootSetEvents(start, end)
+        await this.handleTransferRootSetEvents(events)
 
-        for (let event of transferRootSetEvents) {
-          const { rootHash, totalAmount } = event.args
-          await this.handleTransferRootSetEvent(rootHash, totalAmount, event)
-        }
-
-        const withdrawalsSettledEvents = await this.bridge.getMultipleWithdrawalsSettledEvents(
-          start,
-          end
-        )
-
-        for (let event of withdrawalsSettledEvents) {
-          const { bonder, rootHash, totalBondsSettled } = event.args
-          await this.handleMultipleWithdrawalsSettled(
-            bonder,
-            rootHash,
-            totalBondsSettled
-          )
-        }
+        events = await this.bridge.getMultipleWithdrawalsSettledEvents(start, end)
+        await this.handleMultipleWithdrawalsSettledEvents(events)
         //}, this.bridge.TransferRootSet)
       })
     )
@@ -112,7 +94,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       .on(this.bridge.TransferRootSet, this.handleTransferRootSetEvent)
       .on(
         this.bridge.MultipleWithdrawalsSettled,
-        this.handleMultipleWithdrawalsSettled
+        this.handleMultipleWithdrawalsSettledEvent
       )
       .on('error', err => {
         this.logger.error(`event watcher error:`, err.message)
@@ -132,6 +114,24 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         this.notifier.error(`error checking: ${err.message}`)
       }
       await wait(10 * 1000)
+    }
+  }
+
+  async handleTransferRootSetEvents (events: Event[]) {
+    for (let event of events) {
+      const { rootHash, totalAmount } = event.args
+      await this.handleTransferRootSetEvent(rootHash, totalAmount, event)
+    }
+  }
+
+  async handleMultipleWithdrawalsSettledEvents (events: Event[]) {
+    for (let event of events) {
+      const { bonder, rootHash, totalBondsSettled } = event.args
+      await this.handleMultipleWithdrawalsSettledEvent(
+        bonder,
+        rootHash,
+        totalBondsSettled
+      )
     }
   }
 
@@ -321,7 +321,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  handleMultipleWithdrawalsSettled = async (
+  handleMultipleWithdrawalsSettledEvent = async (
     bonder: string,
     transferRootHash: string,
     totalBondsSettled: BigNumber

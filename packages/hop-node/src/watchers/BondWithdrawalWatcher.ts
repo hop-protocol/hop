@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import { ethers, Contract, BigNumber } from 'ethers'
+import { ethers, Contract, BigNumber, Event } from 'ethers'
 import db from 'src/db'
 import chalk from 'chalk'
 import { wait, isL1ChainId } from 'src/utils'
@@ -81,31 +81,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     promises.push(
       this.eventsBatch(
         async (start: number, end: number) => {
-          const withdrawalBondedEvents = await this.bridge.getWithdrawalBondedEvents(
-            start,
-            end
-          )
-
-          for (let event of withdrawalBondedEvents) {
-            const {
-              transferId,
-              //recipient,
-              amount
-              //transferNonce,
-              //bonderFee,
-              //index
-            } = event.args
-
-            await this.handleWithdrawalBondedEvent(
-              transferId,
-              //recipient,
-              amount,
-              //transferNonce,
-              //bonderFee,
-              //index,
-              event
-            )
-          }
+          const events = await this.bridge.getWithdrawalBondedEvents(start, end)
+          await this.handleWithdrawalBondedEvents(events)
         },
         { key: this.bridge.WithdrawalBonded }
       )
@@ -117,33 +94,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       promises.push(
         this.eventsBatch(
           async (start: number, end: number) => {
-            const transferSentEvents = await l2Bridge.getTransferSentEvents(
-              start,
-              end
-            )
-            for (let event of transferSentEvents) {
-              const {
-                transferId,
-                recipient,
-                amount,
-                transferNonce,
-                bonderFee,
-                index,
-                amountOutMin,
-                deadline
-              } = event.args
-              await this.handleTransferSentEvent(
-                transferId,
-                recipient,
-                amount,
-                transferNonce,
-                bonderFee,
-                index,
-                amountOutMin,
-                deadline,
-                event
-              )
-            }
+            const events = await l2Bridge.getTransferSentEvents(start, end)
+            await this.handleTransferSentEvents(events)
           },
           { key: l2Bridge.TransferSent }
         )
@@ -177,6 +129,55 @@ class BondWithdrawalWatcher extends BaseWatcher {
         this.notifier.error(`event watcher error: ${err.message}`)
         this.quit()
       })
+  }
+
+  async handleWithdrawalBondedEvents (events: Event[]) {
+    for (let event of events) {
+      const {
+        transferId,
+        //recipient,
+        amount
+        //transferNonce,
+        //bonderFee,
+        //index
+      } = event.args
+
+      await this.handleWithdrawalBondedEvent(
+        transferId,
+        //recipient,
+        amount,
+        //transferNonce,
+        //bonderFee,
+        //index,
+        event
+      )
+    }
+  }
+
+  async handleTransferSentEvents (events: Event[]) {
+    for (let event of events) {
+      const {
+        transferId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index,
+        amountOutMin,
+        deadline
+      } = event.args
+      await this.handleTransferSentEvent(
+        transferId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index,
+        amountOutMin,
+        deadline,
+        event
+      )
+    }
   }
 
   sendBondWithdrawalTx = async (params: any) => {

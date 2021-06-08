@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import { Contract, BigNumber } from 'ethers'
+import { Contract, BigNumber, Event } from 'ethers'
 import { wait } from 'src/utils'
 import { formatUnits } from 'ethers/lib/utils'
 import db from 'src/db'
@@ -63,14 +63,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       promises.push(
         this.eventsBatch(
           async (start: number, end: number) => {
-            const transferRootBondedEvents = await l1Bridge.getTransferRootBondedEvents(
-              start,
-              end
-            )
-            for (let event of transferRootBondedEvents) {
-              const { root, amount } = event.args
-              await this.handleTransferRootBondedEvent(root, amount, event)
-            }
+            const events = await l1Bridge.getTransferRootBondedEvents(start, end)
+            await this.handleTransferRootBondedEvents(events)
           },
           { key: l1Bridge.TransferRootBonded }
         )
@@ -131,7 +125,18 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
   }
 
-  async handleTransfersCommittedEvents (events: any[]) {
+  async handleTransferRootBondedEvents (events: Event[]) {
+    for (let event of events) {
+      const { root, amount } = event.args
+      await this.handleTransferRootBondedEvent(
+        root,
+        amount,
+        event
+      )
+    }
+  }
+
+  async handleTransfersCommittedEvents (events: Event[]) {
     for (let event of events) {
       const { rootHash, totalAmount, rootCommittedAt } = event.args
       await this.handleTransfersCommittedEvent(

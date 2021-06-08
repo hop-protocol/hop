@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import { Contract, BigNumber } from 'ethers'
+import { Contract, BigNumber, Event } from 'ethers'
 import chalk from 'chalk'
 import { wait } from 'src/utils'
 import { throttle } from 'src/utils'
@@ -75,33 +75,8 @@ class CommitTransfersWatcher extends BaseWatcher {
     const l2Bridge = this.bridge as L2Bridge
     promises.push(
       this.eventsBatch(async (start: number, end: number) => {
-        const transferSentEvents = await l2Bridge.getTransferSentEvents(
-          start,
-          end
-        )
-        for (let event of transferSentEvents) {
-          const {
-            transferId,
-            recipient,
-            amount,
-            transferNonce,
-            bonderFee,
-            index,
-            amountOutMin,
-            deadline
-          } = event.args
-          await this.handleTransferSentEvent(
-            transferId,
-            recipient,
-            amount,
-            transferNonce,
-            bonderFee,
-            index,
-            amountOutMin,
-            deadline,
-            event
-          )
-        }
+        const events = await l2Bridge.getTransferSentEvents(start, end)
+        await this.handleTransferSentEvents(events)
         //}, l2Bridge.TransferSent)
       })
     )
@@ -144,6 +119,32 @@ class CommitTransfersWatcher extends BaseWatcher {
         this.notifier.error(`error checking: ${err.message}`)
       }
       await wait(10 * 1000)
+    }
+  }
+
+  async handleTransferSentEvents (events: Event[]) {
+    for (let event of events) {
+      const {
+        transferId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index,
+        amountOutMin,
+        deadline
+      } = event.args
+      await this.handleTransferSentEvent(
+        transferId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index,
+        amountOutMin,
+        deadline,
+        event
+      )
     }
   }
 

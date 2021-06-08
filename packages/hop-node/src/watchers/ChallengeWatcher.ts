@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import { Contract, BigNumber } from 'ethers'
+import { Contract, BigNumber, Event } from 'ethers'
 import { wait, isL1ChainId } from 'src/utils'
 import chalk from 'chalk'
 //import db from 'src/db'
@@ -52,25 +52,11 @@ class ChallengeWatcher extends BaseWatcher {
     promises.push(
       this.l1Bridge.eventsBatch(
         async (start: number, end: number) => {
-          const transferRootBondedEvents = await this.l1Bridge.getTransferRootBondedEvents(
-            start,
-            end
-          )
+          let events = await this.l1Bridge.getTransferRootBondedEvents(start, end)
+          await this.handleTransferRootBondedEvents(events)
 
-          for (let event of transferRootBondedEvents) {
-            const { root, amount } = event.args
-            await this.handleTransferRootBondedEvent(root, amount, event)
-          }
-
-          const transferRootConfirmedEvents = await this.l1Bridge.getTransferRootConfirmedEvents(
-            start,
-            end
-          )
-
-          for (let event of transferRootConfirmedEvents) {
-            const { originChainId, destinationChainId, rootHash, totalAmount } = event.args
-            await this.handleTransferRootConfirmedEvent(originChainId, destinationChainId, rootHash, totalAmount, event)
-          }
+          events = await this.l1Bridge.getTransferRootConfirmedEvents(start, end)
+          await this.handleTransferRootConfirmedEvents(events)
         },
         { key: this.l1Bridge.TransferRootBonded }
       )
@@ -102,6 +88,31 @@ class ChallengeWatcher extends BaseWatcher {
         this.logger.error('event watcher error:', err.message)
         this.quit()
       })
+  }
+
+  async handleTransferRootBondedEvents (events: Event[]) {
+    for (let event of events) {
+      const { root, amount } = event.args
+      await this.handleTransferRootBondedEvent(root, amount, event)
+    }
+  }
+
+  async handleTransferRootConfirmedEvents (events: Event[]) {
+    for (let event of events) {
+      const {
+        originChainId,
+        destinationChainId, 
+        rootHash,
+        totalAmount
+      } = event.args
+      await this.handleTransferRootConfirmedEvent(
+        originChainId,
+        destinationChainId,
+        rootHash,
+        totalAmount,
+        event
+      )
+    }
   }
 
   async checkTransferRoot (

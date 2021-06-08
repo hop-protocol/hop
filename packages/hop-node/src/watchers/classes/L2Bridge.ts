@@ -94,6 +94,31 @@ export default class L2Bridge extends Bridge {
     )
   }
 
+  async getTransferSentTimestamp (transferId: string):Promise<number> {
+    let match: any
+    await this.eventsBatch(async (start: number, end: number) => {
+      const events = await this.l2BridgeContract.queryFilter(
+        this.l2BridgeContract.filters.TransferSent(),
+        start,
+        end
+      )
+
+      for (let event of events) {
+        if (event.args.transferId === transferId) {
+          match = event
+          return false
+        }
+      }
+    })
+
+    if (match) {
+      const tx = await match.getBlock()
+      return Number(tx.timestamp.toString())
+    }
+
+    return 0
+  }
+
   async getChainId (): Promise<number> {
     return Number((await this.l2BridgeContract.getChainId()).toString())
   }

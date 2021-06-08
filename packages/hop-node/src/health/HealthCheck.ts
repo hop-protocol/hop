@@ -3,6 +3,7 @@ import L2Bridge from 'src/watchers/classes/L2Bridge'
 import { config } from 'src/config'
 import { wait } from 'src/utils'
 import Logger from 'src/logger'
+import { DateTime } from 'luxon'
 
 class HealthCheck {
   logger: Logger
@@ -42,46 +43,61 @@ class HealthCheck {
   async checkBridge (bridge: L2Bridge) {
     const chainIds = await bridge.getChainIds()
     await Promise.all(
-      chainIds.map((destinationChainId: number) => this.checkCommiTransfers(bridge, destinationChainId))
+      chainIds.map((destinationChainId: number) =>
+        this.checkCommiTransfers(bridge, destinationChainId)
+      )
     )
   }
 
-  async checkCommiTransfers(bridge: L2Bridge, destinationChainId: number) {
-      const { providerNetworkId: chainId } = bridge
-      const pendingTransfers = await bridge.getPendingTransfers(
-        destinationChainId
-      )
-      const amount = await bridge.getPendingAmountForChainId(destinationChainId)
-      const sourceChain = bridge.chainSlug
-      const destinationChain = bridge.chainIdToSlug(destinationChainId)
-      const tokenSymbol = bridge.tokenSymbol
-      const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`
-      this.logger.debug(`checking ${path}`)
-      if (pendingTransfers.length) {
-        const shouldBeCommitted = amount.gte(
-          bridge.parseUnits(this.minThresholdAmount)
-        )
-        if (shouldBeCommitted) {
-          this.logger.warn(
-            `(${path}) total ${
-              pendingTransfers.length
-            } pending transfers amount (${bridge.formatUnits(
-              amount
-            )}) met min threshold (${this.minThresholdAmount}) but has not committed yet.`
-          )
+  async checkCommiTransfers (bridge: L2Bridge, destinationChainId: number) {
+    const { providerNetworkId: chainId } = bridge
+    const pendingTransfers = await bridge.getPendingTransfers(
+      destinationChainId
+    )
+    const amount = await bridge.getPendingAmountForChainId(destinationChainId)
+    const sourceChain = bridge.chainSlug
+    const destinationChain = bridge.chainIdToSlug(destinationChainId)
+    const tokenSymbol = bridge.tokenSymbol
+    const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`
+    this.logger.debug(`checking ${path}`)
+    if (pendingTransfers.length) {
+      for (let transferId of pendingTransfers) {
+        const timestamp = await bridge.getTransferSentTimestamp(transferId)
+        if (!timestamp) {
+          continue
         }
-        for (let transferId of pendingTransfers) {
-          const bondedAmount = await bridge.getBondedWithdrawalAmount(
-            transferId
+        const tenMinutesAgo = DateTime.now()
+          .minus({ minutes: 10 })
+          .toSeconds()
+        // skip if transfer sent events are recent (in the last 10 minutes)
+        if (timestamp > tenMinutesAgo) {
+          continue
+        }
+        const bondedAmount = await bridge.getBondedWithdrawalAmount(transferId)
+        if (bondedAmount.eq(0)) {
+          this.logger.debug(
+            `(${path}) pending transfer id (${transferId}) has not been bonded yet.`
           )
-          if (bondedAmount.eq(0)) {
-            this.logger.debug(
-              `(${path}) pending transfer id (${transferId}) has not been bonded yet.`
-            )
-          }
         }
       }
+    }
+    const shouldBeCommitted = amount.gte(
+      bridge.parseUnits(this.minThresholdAmount)
+    )
+    if (shouldBeCommitted) {
+      this.logger.warn(
+        `(${path}) total ${
+          pendingTransfers.length
+        } pending transfers amount (${bridge.formatUnits(
+          amount
+        )}) met min threshold (${
+          this.minThresholdAmount
+        }) but has not committed yet.`
+      )
+    }
   }
+
+  async checkTransferRootBonded (bridge: L2Bridge) {}
 }
 
 export default HealthCheck

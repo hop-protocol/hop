@@ -68,6 +68,17 @@ export default class ContractBase extends EventEmitter {
     return block.timestamp
   }
 
+  async getEventTimestamp (event: any): Promise<number> {
+    const tx = await event?.getBlock()
+    if (!tx) {
+      return 0
+    }
+    if (!tx.timestamp) {
+      return 0
+    }
+    return Number(tx.timestamp.toString())
+  }
+
   async getCode (
     address: string,
     blockNumber: string | number = 'latest'
@@ -80,6 +91,7 @@ export default class ContractBase extends EventEmitter {
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
 
+  // wait a safe number of confirmations to avoid processing on an uncle block
   async waitSafeConfirmations (): Promise<void> {
     let blockNumber = await this.contract.provider.getBlockNumber()
     const targetBlockNumber = blockNumber + this.waitConfirmations

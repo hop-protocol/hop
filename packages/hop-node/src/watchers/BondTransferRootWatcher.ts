@@ -233,12 +233,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       transferRootHash,
       totalAmount
     )
-    const transferBondStruct = await l1Bridge.getTransferBond(transferRootId)
-    if (!transferBondStruct) {
-      throw new Error('transfer bond struct not found')
-    }
-    const createdAt = Number(transferBondStruct.createdAt?.toString())
-    if (createdAt > 0) {
+    const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId)
+    if (isBonded) {
       this.logger.debug(
         `transferRootHash ${transferRootHash} already bonded. skipping.`
       )

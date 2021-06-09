@@ -116,7 +116,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         }
         await this.checkUnsettledTransfers()
       } catch (err) {
-        this.logger.error('error checking:', err.message)
+        this.logger.error(`error checking: ${err.message}`)
         this.notifier.error(`error checking: ${err.message}`)
       }
       await wait(this.pollTimeSec)

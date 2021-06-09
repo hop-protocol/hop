@@ -112,7 +112,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       try {
         await this.checkTransferSentFromDb()
       } catch (err) {
-        this.logger.error('poll check error:', err.message)
+        this.logger.error(`poll check error: ${err.message}`)
         this.notifier.error(`poll check error: ${err.message}`)
       }
       await wait(this.pollTimeSec)

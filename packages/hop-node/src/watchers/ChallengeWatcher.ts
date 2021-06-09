@@ -102,7 +102,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
         await this.checkTransferRootFromDb()
         await this.checkChallengeFromDb()
       } catch (err) {
-        this.logger.error('poll check error:', err.message)
+        this.logger.error(`poll check error: ${err.message}`)
         this.notifier.error(`poll check error: ${err.message}`)
       }
       await wait(this.pollTimeSec)

@@ -353,7 +353,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     chainId: number
   ) => {
     const bridge = this.getSiblingWatcherByChainId(chainId).bridge
-    const decimals = await this.getBridgeTokenDecimals(chainId)
     return bridge.settleBondedWithdrawals(bonder, transferIds, totalAmount)
   }
 
@@ -629,19 +628,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         withdrawalBondSettleTxSentAt: 0
       })
     }
-  }
-
-  async getBridgeTokenDecimals (chainId: number) {
-    let bridge: any
-    let token: Token
-    if (isL1ChainId(chainId)) {
-      bridge = this.getSiblingWatcherByChainId(chainId).bridge as L1Bridge
-      token = await bridge.l1CanonicalToken()
-    } else {
-      bridge = this.getSiblingWatcherByChainId(chainId).bridge as L2Bridge
-      token = await bridge.hToken()
-    }
-    return token.decimals()
   }
 
   async waitTimeout (transferId: string, chainId: number) {

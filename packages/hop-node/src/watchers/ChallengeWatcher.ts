@@ -1,8 +1,8 @@
 import '../moduleAlias'
 import { Contract, BigNumber, Event } from 'ethers'
 import { wait, isL1ChainId } from 'src/utils'
+import db from 'src/db'
 import chalk from 'chalk'
-//import db from 'src/db'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
@@ -33,7 +33,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
   async start () {
     this.started = true
     try {
-      await Promise.all([this.syncUp(), this.watch()])
+      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
     } catch (err) {
       this.logger.error('watcher error:', err.message)
     }
@@ -98,10 +98,30 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       })
   }
 
+  async pollCheck () {
+    while (true) {
+      if (!this.started) {
+        return
+      }
+      try {
+        await this.checkTransferRootFromDb()
+        await this.checkChallengeFromDb()
+      } catch (err) {
+        this.logger.error('poll check error:', err.message)
+        this.notifier.error(`poll check error: ${err.message}`)
+      }
+      await wait(this.pollTimeSec)
+    }
+  }
+
   async handleTransferRootBondedEvents (events: Event[]) {
     for (let event of events) {
       const { root, amount } = event.args
-      await this.handleTransferRootBondedEvent(root, amount, event)
+      await this.handleTransferRootBondedEvent(
+        root,
+        amount,
+        event
+      )
     }
   }
 
@@ -119,6 +139,40 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
         rootHash,
         totalAmount,
         event
+      )
+    }
+  }
+
+  async checkTransferRootFromDb () {
+    const dbTransferRoots = await db.transferRoots.getChallengeableTransferRoots()
+    for (let dbTransferRoot of dbTransferRoots) {
+      const {
+        transferRootHash,
+        chainId,
+        totalAmount
+      } = dbTransferRoot
+      await this.checkTransferRoot(
+        transferRootHash,
+        chainId,
+        totalAmount
+      )
+    }
+  }
+
+  async checkChallengeFromDb () {
+    const dbTransferRoots = await db.transferRoots.getResolvableTransferRoots()
+    for (let dbTransferRoot of dbTransferRoots) {
+      const {
+        sourceChainId,
+        chainId,
+        transferRootHash,
+        totalAmount
+      } = dbTransferRoot
+      await this.checkChallenge(
+        sourceChainId,
+        chainId,
+        transferRootHash,
+        totalAmount
       )
     }
   }
@@ -236,58 +290,6 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
         totalAmount
       })
     })
-  }
-
-  handleTransferRootBondedEvent = async (
-    transferRootHash: string,
-    totalAmount: BigNumber,
-    meta: any
-  ) => {
-    const logger = this.logger.create({ root: transferRootHash })
-    try {
-      logger.debug('received TransferRootBonded event')
-      logger.debug('transferRootHash:', transferRootHash)
-      logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
-      const { transactionHash } = meta
-      const { from: sender, data } = await this.l1Bridge.getTransaction(
-        transactionHash
-      )
-      const address = await this.l1Bridge.getBonderAddress()
-      if (sender === address) {
-        logger.warn('transfer root bonded by self')
-      }
-      const {
-        destinationChainId
-      } = await this.l1Bridge.decodeBondTransferRootData(data)
-      await this.checkTransferRoot(
-        transferRootHash,
-        destinationChainId,
-        totalAmount
-      )
-    } catch (err) {
-      logger.error('checkTransferRoot error:', err.message)
-    }
-  }
-
-  handleTransferRootConfirmedEvent = async (
-    sourceChainId: BigNumber,
-    destChainId: BigNumber,
-    transferRootHash: string,
-    totalAmount: BigNumber,
-    meta: any
-  ) => {
-    const logger = this.logger.create({ root: transferRootHash })
-    logger.debug('received TransferRootConfirmed event')
-    try {
-      await this.checkChallenge(
-        Number(sourceChainId.toString()),
-        Number(destChainId.toString()),
-        transferRootHash,
-        totalAmount
-      )
-    } catch (err) {
-      logger.error('checkChallenge error:', err.message)
-    }
   }
 }
 

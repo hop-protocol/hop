@@ -108,6 +108,24 @@ class TransferRootsDb extends BaseDb {
       )
     })
   }
+
+  async getChallengeableTransferRoots (): Promise<TransferRoot[]> {
+    const transfers = await this.getTransferRoots()
+    return transfers.filter(item => {
+      return (
+        // TODO
+      )
+    })
+  }
+
+  async getResolvableTransferRoots (): Promise<TransferRoot[]> {
+    const transfers = await this.getTransferRoots()
+    return transfers.filter(item => {
+      return (
+        // TODO
+      )
+    })
+  }
 }
 
 export default TransferRootsDb

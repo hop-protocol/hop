@@ -371,49 +371,6 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       return
     }
   }
-
-  handleTransferRootConfirmedEvent = async (
-    sourceChainId: BigNumber,
-    destChainId: BigNumber,
-    transferRootHash: string,
-    totalAmount: BigNumber,
-    meta: any
-  ) => {
-    this.logger.debug('received TransferRootConfirmed event')
-    try {
-      const { transactionHash } = meta
-      await db.transferRoots.update(transferRootHash, {
-        confirmed: true,
-        confirmTxHash: transactionHash
-      })
-    } catch (err) {
-      this.logger.error('error:', err.message)
-    }
-  }
-
-  handleTransfersCommittedEvent = async (
-    transferRootHash: string,
-    totalAmount: BigNumber,
-    rootCommittedAt: number,
-    meta: any
-  ) => {
-    const { transactionHash } = meta
-    const l2Bridge = this.bridge as L2Bridge
-
-    const { data } = await this.bridge.getTransaction(
-      transactionHash
-    )
-    const {
-      destinationChainId: chainId
-    } = await l2Bridge.decodeCommitTransfersData(data)
-    await db.transferRoots.update(transferRootHash, {
-      transferRootHash,
-      committed: true,
-      committedAt: Number(rootCommittedAt.toString()),
-      chainId,
-      totalAmount
-    })
-  }
 }
 
 export default xDomainMessageRelayWatcher

@@ -51,12 +51,12 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   async start () {
     this.started = true
     this.logger.debug(
-      `min bondwithdrawal amount: ${
+      `min bondWithdrawal amount: ${
         this.minAmount ? this.bridge.formatUnits(this.minAmount) : 0
       }`
     )
     this.logger.debug(
-      `max bondwithdrawal amount: ${
+      `max bondWithdrawal amount: ${
         this.maxAmount ? this.bridge.formatUnits(this.maxAmount) : 'all'
       }`
     )
@@ -471,19 +471,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       withdrawalBonded: true,
       withdrawalBonder
     })
-  }
-
-  async getBridgeTokenDecimals (chainId: number) {
-    let bridge: any
-    let token: Token
-    if (isL1ChainId(chainId)) {
-      bridge = this.getSiblingWatcherByChainId(chainId).bridge as L2Bridge
-      token = await bridge.l1CanonicalToken()
-    } else {
-      bridge = this.getSiblingWatcherByChainId(chainId).bridge
-      token = await bridge.hToken()
-    }
-    return token.decimals()
   }
 
   async waitTimeout (transferId: string, chainId: number) {

@@ -4,7 +4,7 @@ import chalk from 'chalk'
 import { wait, getRpcUrls } from 'src/utils'
 import db from 'src/db'
 import { Contract, BigNumber } from 'ethers'
-import BaseWatcher from './classes/BaseWatcher'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import { Chain } from 'src/constants'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
@@ -23,7 +23,7 @@ export interface Config {
   dryMode?: boolean
 }
 
-class xDomainMessageRelayWatcher extends BaseWatcher {
+class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
   l1Bridge: L1Bridge
   token: string
 

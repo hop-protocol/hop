@@ -7,7 +7,7 @@ import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
 import MerkleTree from 'src/utils/MerkleTree'
 import { Chain } from 'src/constants'
-import BaseWatcher from './classes/BaseWatcher'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import { config as globalConfig } from 'src/config'
@@ -20,7 +20,7 @@ export interface Config {
   dryMode?: boolean
 }
 
-class BondTransferRootWatcher extends BaseWatcher {
+class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
   siblingWatchers: { [chainId: string]: BondTransferRootWatcher }
   waitMinBondDelay: boolean = globalConfig.isMainnet
   skipChains: string[] = globalConfig.isMainnet

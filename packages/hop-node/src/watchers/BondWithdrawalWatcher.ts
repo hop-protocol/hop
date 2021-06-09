@@ -3,7 +3,7 @@ import { ethers, Contract, BigNumber, Event } from 'ethers'
 import db from 'src/db'
 import chalk from 'chalk'
 import { wait, isL1ChainId } from 'src/utils'
-import BaseWatcher from './classes/BaseWatcher'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import Bridge from './classes/Bridge'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
@@ -24,7 +24,7 @@ const BONDER_ORDER_DELAY_MS = 60 * 1000
 
 class BondError extends Error {}
 
-class BondWithdrawalWatcher extends BaseWatcher {
+class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
   minAmount: BigNumber
   maxAmount: BigNumber

@@ -5,7 +5,7 @@ import { wait } from 'src/utils'
 import { throttle } from 'src/utils'
 import db from 'src/db'
 import MerkleTree from 'src/utils/MerkleTree'
-import BaseWatcher from './classes/BaseWatcher'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import L2Bridge from './classes/L2Bridge'
 
 export interface Config {
@@ -20,7 +20,7 @@ export interface Config {
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
 
-class CommitTransfersWatcher extends BaseWatcher {
+class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
   siblingWatchers: { [chainId: string]: CommitTransfersWatcher }
   minPendingTransfers: number = 1
   minThresholdAmount: BigNumber = BigNumber.from(0)
@@ -313,55 +313,6 @@ class CommitTransfersWatcher extends BaseWatcher {
       }
     }
   }, 15 * 1000)
-
-  handleTransferSentEvent = async (
-    transferId: string,
-    recipient: string,
-    amount: BigNumber,
-    transferNonce: string,
-    bonderFee: BigNumber,
-    index: string,
-    amountOutMin: BigNumber,
-    deadline: BigNumber,
-    meta: any
-  ) => {
-    const logger = this.logger.create({ id: transferId })
-    try {
-      const dbTransfer = await db.transfers.getByTransferId(transferId)
-      if (dbTransfer?.sourceChainId) {
-        //return
-      }
-
-      logger.debug(`received TransferSent event`)
-      // TODO: batch
-      const { transactionHash, blockNumber } = meta
-      const sentTimestamp = await this.bridge.getBlockTimestamp(blockNumber)
-      const { data } = await this.bridge.getTransaction(transactionHash)
-
-      const l2Bridge = this.bridge as L2Bridge
-      const { chainId } = await l2Bridge.decodeSendData(data)
-      const sourceChainId = await l2Bridge.getChainId()
-      await db.transfers.update(transferId, {
-        transferId,
-        chainId,
-        sourceChainId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        amountOutMin,
-        deadline: Number(deadline.toString()),
-        sentTxHash: transactionHash,
-        sentBlockNumber: blockNumber,
-        sentTimestamp: sentTimestamp
-      })
-    } catch (err) {
-      if (err.message !== 'cancelled') {
-        logger.error('commitTransfers tx error:', err.message)
-        this.notifier.error(`commitTransfers tx error: ${err.message}`)
-      }
-    }
-  }
 
   async getRecentTransferIdsForCommittedRoots () {
     const blockNumber = await this.bridge.getBlockNumber()

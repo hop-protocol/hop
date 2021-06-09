@@ -6,7 +6,7 @@ import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer } from 'src/db/TransfersDb'
 import chalk from 'chalk'
-import BaseWatcher from './classes/BaseWatcher'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import Bridge from './classes/Bridge'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
@@ -24,7 +24,7 @@ export interface Config {
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
 
-class SettleBondedWithdrawalWatcher extends BaseWatcher {
+class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
   minThresholdPercent: number = 0.5 // 50%
 

@@ -3,7 +3,7 @@ import { Contract, BigNumber, Event } from 'ethers'
 import { wait, isL1ChainId } from 'src/utils'
 import chalk from 'chalk'
 //import db from 'src/db'
-import BaseWatcher from './classes/BaseWatcher'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 
@@ -14,7 +14,7 @@ export interface Config {
   contracts: any
 }
 
-class ChallengeWatcher extends BaseWatcher {
+class ChallengeWatcher extends BaseWatcherWithEventHandlers {
   l1Bridge: L1Bridge
   l2Bridge: L2Bridge
   contracts: any

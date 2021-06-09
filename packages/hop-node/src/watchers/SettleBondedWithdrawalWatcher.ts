@@ -59,12 +59,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
-  async stop () {
-    this.bridge.removeAllListeners()
-    this.started = false
-    this.logger.setEnabled(false)
-  }
-
   async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
 

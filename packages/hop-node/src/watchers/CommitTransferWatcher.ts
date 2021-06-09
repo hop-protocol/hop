@@ -58,12 +58,6 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
-  async stop () {
-    this.bridge.removeAllListeners()
-    this.started = false
-    this.logger.setEnabled(false)
-  }
-
   async syncUp (): Promise<any> {
     if (this.isL1) {
       return

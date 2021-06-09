@@ -73,7 +73,9 @@ class BaseWatcher extends EventEmitter {
   }
 
   async stop (): Promise<void> {
-    this.logger.warn('not implemented: implement in child class')
+    this.bridge.removeAllListeners()
+    this.started = false
+    this.logger.setEnabled(false)
   }
 
   hasSiblingWatcher (chainId: number): boolean {

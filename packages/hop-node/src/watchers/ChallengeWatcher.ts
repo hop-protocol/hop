@@ -16,7 +16,6 @@ export interface Config {
 
 class ChallengeWatcher extends BaseWatcherWithEventHandlers {
   l1Bridge: L1Bridge
-  l2Bridge: L2Bridge
   contracts: any
 
   constructor (config: Config) {
@@ -26,7 +25,6 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       logColor: 'red'
     })
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
-    this.l2Bridge = new L2Bridge(config.l2BridgeContract)
     this.contracts = config.contracts
   }
 
@@ -37,13 +35,6 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     } catch (err) {
       this.logger.error('watcher error:', err.message)
     }
-  }
-
-  async stop () {
-    this.l1Bridge.removeAllListeners()
-    this.l2Bridge.removeAllListeners()
-    this.started = false
-    this.logger.setEnabled(false)
   }
 
   async syncUp (): Promise<any> {

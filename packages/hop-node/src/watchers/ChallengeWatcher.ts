@@ -82,18 +82,13 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
   async watch () {
     this.l1Bridge
       .on(this.l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
-      .on('error', err => {
-        this.logger.error('event watcher error:', err.message)
-        this.quit()
-      })
-
-    this.l1Bridge
       .on(
         this.l1Bridge.TransferRootConfirmed,
         this.handleTransferRootConfirmedEvent
       )
       .on('error', err => {
-        this.logger.error('event watcher error:', err.message)
+        this.logger.error(`event watcher error: ${err.message}`)
+        this.notifier.error(`event watcher error: ${err.message}`)
         this.quit()
       })
   }

@@ -102,7 +102,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         this.handleMultipleWithdrawalsSettledEvent
       )
       .on('error', err => {
-        this.logger.error(`event watcher error:`, err.message)
+        this.logger.error(`event watcher error: ${err.message}`)
+        this.notifier.error(`event watcher error: ${err.message}`)
         this.quit()
       })
   }

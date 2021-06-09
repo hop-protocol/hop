@@ -117,7 +117,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       this.bridge
         .on(l2Bridge.TransferSent, this.handleTransferSentEvent)
         .on('error', err => {
-          this.logger.error('event watcher error:', err.message)
+          this.logger.error(`event watcher error: ${err.message}`)
           this.notifier.error(`event watcher error: ${err.message}`)
           this.quit()
         })
@@ -125,7 +125,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     this.bridge
       .on(this.bridge.WithdrawalBonded, this.handleWithdrawalBondedEvent)
       .on('error', err => {
-        this.logger.error('event watcher error:', err.message)
+        this.logger.error(`event watcher error: ${err.message}`)
         this.notifier.error(`event watcher error: ${err.message}`)
         this.quit()
       })

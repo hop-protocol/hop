@@ -95,20 +95,20 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       this.bridge
         .on(l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
         .on('error', err => {
-          this.logger.error(`event watcher error:`, err.message)
+          this.logger.error(`event watcher error: ${err.message}`)
+          this.notifier.error(`event watcher error: ${err.message}`)
           this.quit()
         })
       return
     }
     const l2Bridge = this.bridge as L2Bridge
-    this.bridge.on(
-      l2Bridge.TransfersCommitted,
-      this.handleTransfersCommittedEvent
-    )
-    this.bridge.on('error', err => {
-      this.logger.error('event watcher error:', err.message)
-      this.quit()
-    })
+    this.bridge
+      .on(l2Bridge.TransfersCommitted,this.handleTransfersCommittedEvent)
+      .on('error', err => {
+        this.logger.error(`event watcher error: ${err.message}`)
+        this.notifier.error(`event watcher error: ${err.message}`)
+        this.quit()
+      })
   }
 
   async pollCheck () {
@@ -407,7 +407,6 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     logger.info('L1 bondTransferRoot tx', chalk.bgYellow.black.bold(tx.hash))
     this.notifier.info(`chainId: ${chainId} bondTransferRoot tx: ${tx.hash}`)
   }
-
 
   async waitTimeout (transferRootHash: string, totalAmount: BigNumber) {
     await wait(2 * 1000)

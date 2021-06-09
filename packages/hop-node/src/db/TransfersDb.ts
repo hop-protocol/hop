@@ -83,6 +83,19 @@ class TransfersDb extends BaseDb {
     })
   }
 
+  async getUncommittedSentTransfers (): Promise<Transfer[]> {
+    const transfers = await this.getTransfers()
+    return transfers.filter(item => {
+      return (
+        item.transferId &&
+        !item.withdrawalBonded &&
+        !item.sentBondWithdrawalTx &&
+        !item.transferRootId &&
+        item.sentTxHash
+      )
+    })
+  }
+
   async getUnbondedSentTransfers (): Promise<Transfer[]> {
     const transfers = await this.getTransfers()
     return transfers.filter(item => {

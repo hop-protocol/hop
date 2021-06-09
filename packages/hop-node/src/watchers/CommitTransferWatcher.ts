@@ -51,7 +51,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
           this.minThresholdAmount
         )}`
       )
-      await Promise.all([this.syncUp(), this.watch()])
+      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
     } catch (err) {
       this.logger.error('watcher error:', err)
       this.notifier.error(`watcher error: ${err.message}`)
@@ -101,24 +101,20 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         this.logger.error('event watcher error:', err.message)
         this.quit()
       })
+  }
 
+  async pollCheck () {
     while (true) {
-      if (!this.started) return
-      try {
-        const chainIds = await this.bridge.getChainIds()
-        const l2Bridge = this.bridge as L2Bridge
-        for (let chainId of chainIds) {
-          //await this.getRecentTransferIdsForCommittedRoots()
-          const pendingTransfers = await l2Bridge.getPendingTransfers(chainId)
-          if (pendingTransfers.length > 0) {
-            await this.checkTransferSent(chainId)
-          }
-        }
-      } catch (err) {
-        this.logger.error('error checking:', err.message)
-        this.notifier.error(`error checking: ${err.message}`)
+      if (!this.started) {
+        return
       }
-      await wait(10 * 1000)
+      try {
+        await this.checkTransferSentFromDb()
+      } catch (err) {
+        this.logger.error('poll check error:', err.message)
+        this.notifier.error(`poll check error: ${err.message}`)
+      }
+      await wait(this.pollTimeSec)
     }
   }
 
@@ -145,6 +141,14 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         deadline,
         event
       )
+    }
+  }
+
+  async checkTransferSentFromDb () {
+    const dbTransfers = await db.transfers.getUncommittedSentTransfers()
+    for (let dbTransfer of dbTransfers) {
+      const { transferId } = dbTransfer
+      await this.checkTransferSent(transferId)
     }
   }
 

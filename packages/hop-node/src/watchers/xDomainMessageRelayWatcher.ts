@@ -51,6 +51,27 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
+  async watch () {
+    if (this.isL1) {
+      const l2Bridge = this.bridge as L2Bridge
+      this.bridge
+        .on(
+          this.l1Bridge.TransferRootConfirmed,
+          this.handleTransferRootConfirmedEvent
+        )
+        .on(
+          l2Bridge.TransfersCommitted,
+          this.handleTransfersCommittedEvents
+        )
+        .on('error', err => {
+          this.logger.error(`event watcher error: ${err.message}`)
+          this.notifier.error(`event watcher error: ${err.message}`)
+          this.quit()
+        })
+      return
+    }
+  }
+
   async pollCheck () {
     while (true) {
       if (!this.started) {
@@ -63,21 +84,6 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
         this.notifier.error(`poll check error: ${err.message}`)
       }
       await wait(this.pollTimeSec)
-    }
-  }
-
-  async watch () {
-    if (this.isL1) {
-      this.bridge
-        .on(
-          this.l1Bridge.TransferRootConfirmed,
-          this.handleTransferRootConfirmedEvent
-        )
-        .on('error', err => {
-          this.logger.error(`event watcher error:`, err.message)
-          this.quit()
-        })
-      return
     }
   }
 

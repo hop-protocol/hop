@@ -6,6 +6,7 @@ import Typography from '@material-ui/core/Typography'
 import MuiButton from '@material-ui/core/Button'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import MenuItem from '@material-ui/core/MenuItem'
+import { Token } from '@hop-protocol/sdk'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
@@ -14,7 +15,6 @@ import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/txStatus/TxStatusModal'
 import { BigNumber, ethers } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
-import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
@@ -25,7 +25,7 @@ import SendButton from 'src/pages/Send/SendButton'
 import Settings from 'src/pages/Send/Settings'
 import InfoTooltip from 'src/components/infoTooltip'
 import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
-import useBalance from 'src/pages/Send/useBalance'
+import useBalance from 'src/hooks/useBalance'
 import useSendData from 'src/pages/Send/useSendData'
 import useNeedsTokenForFee from 'src/hooks/useNeedsTokenForFee'
 
@@ -87,34 +87,21 @@ const useStyles = makeStyles(theme => ({
 
 const Send: FC = () => {
   const styles = useStyles()
-  const { pathname } = useLocation()
-  let { tokens, networks, txConfirm, txHistory, sdk } = useApp()
+  const {
+    networks,
+    txConfirm,
+    txHistory,
+    sdk,
+    bridges,
+    selectedBridge,
+    setSelectedBridge
+  } = useApp()
   const {
     provider,
     walletConnected,
     checkConnectedNetworkId
   } = useWeb3Context()
 
-  const networkSlugs = networks.map(network => network.slug)
-  const pathNetwork = pathname.replace(/^\//, '')
-  if (networkSlugs.includes(pathNetwork)) {
-    // show only tokens supported by network
-    tokens = tokens.filter(token => {
-      return token.supportedNetworks.includes(pathNetwork)
-    })
-    networks = networks.filter(network => {
-      return network.isLayer1 || network.slug === pathNetwork
-    })
-  } else {
-    // show tokens supported by all networks
-    tokens = tokens.filter(token => {
-      return (
-        intersection([networkSlugs, token.supportedNetworks]).length ===
-        networkSlugs.length
-      )
-    })
-  }
-  const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [fromNetwork, setFromNetwork] = useState<Network>()
   const [toNetwork, setToNetwork] = useState<Network>()
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
@@ -134,20 +121,31 @@ const Send: FC = () => {
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(
     true
   )
+
+  const sourceToken = useMemo(() => {
+    if (!fromNetwork || !selectedBridge) return
+    return selectedBridge.getCanonicalToken(fromNetwork?.slug)
+  }, [selectedBridge, fromNetwork])
+  const destToken = useMemo(() => {
+    if (!toNetwork || !selectedBridge) return
+    return selectedBridge.getCanonicalToken(toNetwork?.slug)
+  }, [selectedBridge, toNetwork])
+
   const { balance: fromBalance, loading: loadingFromBalance } = useBalance(
-    selectedToken,
+    sourceToken,
     fromNetwork
   )
   const { balance: toBalance, loading: loadingToBalance } = useBalance(
-    selectedToken,
+    destToken,
     toNetwork
   )
 
-  const amountToBN = (amount: string): BigNumber | undefined => {
+  const amountToBN = (token: Token | undefined, amount: string): BigNumber | undefined => {
+    if (!token) return
     let val
     try {
       const sanitizedAmount = amount.replace(/,/g, '')
-      val = parseUnits(sanitizedAmount, selectedToken.decimals)
+      val = parseUnits(sanitizedAmount, token.decimals)
     } catch (err) {
       // noop
     }
@@ -155,8 +153,8 @@ const Send: FC = () => {
   }
 
   const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {
-    return amountToBN(fromTokenAmount)
-  }, [selectedToken, fromTokenAmount])
+    return amountToBN(sourceToken, fromTokenAmount)
+  }, [sourceToken, fromTokenAmount])
 
   const {
     amountOut,
@@ -167,7 +165,7 @@ const Send: FC = () => {
     requiredLiquidity,
     loading: loadingSendData
   } = useSendData(
-    selectedToken,
+    sourceToken,
     slippageTolerance,
     fromNetwork,
     toNetwork,
@@ -177,27 +175,25 @@ const Send: FC = () => {
   const needsTokenForFee = useNeedsTokenForFee(fromNetwork)
 
   useEffect(() => {
+    if (!destToken) {
+      setToTokenAmount('')
+      return
+    }
+
     let amount
     if (amountOut) {
-      amount = commafy(formatUnits(amountOut, selectedToken.decimals), 4)
+      amount = commafy(formatUnits(amountOut, destToken.decimals), 4)
     }
     setToTokenAmount(amount)
-  }, [amountOut])
+  }, [destToken, amountOut])
 
-  const bridge = sdk.bridge(selectedToken?.symbol)
-  const availableLiquidity = useAvailableLiquidity(bridge, toNetwork?.slug)
+  const availableLiquidity = useAvailableLiquidity(selectedBridge, toNetwork?.slug)
 
-  useEffect(() => {
-    if (!tokens.includes(selectedToken)) {
-      setSelectedToken(tokens[0])
-    }
-  }, [networks])
-
-  const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
-    const tokenSymbol = event.target.value
-    const newSelectedToken = tokens.find(token => token.symbol === tokenSymbol)
-    if (newSelectedToken) {
-      setSelectedToken(newSelectedToken)
+  const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
+    const tokenSymbol = event.target.value as string
+    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
+    if (bridge) {
+      setSelectedBridge(bridge)
     }
   }
 
@@ -228,7 +224,8 @@ const Send: FC = () => {
       if (
         !toNetwork ||
         !availableLiquidity ||
-        !requiredLiquidity
+        !requiredLiquidity ||
+        !sourceToken
       ) {
         setNoLiquidityWarning('')
         return
@@ -242,9 +239,9 @@ const Send: FC = () => {
 
       const formattedAmount = formatUnits(
         availableLiquidity,
-        selectedToken.decimals
+        sourceToken.decimals
       )
-      const warningMessage = `Insufficient liquidity. There is ${formattedAmount} ${selectedToken.symbol} available on ${toNetwork.name}.`
+      const warningMessage = `Insufficient liquidity. There is ${formattedAmount} ${sourceToken.symbol} available on ${toNetwork.name}.`
       if (!isAvailable && !fromNetwork?.isLayer1) {
         setNoLiquidityWarning(warningMessage)
       } else {
@@ -253,7 +250,7 @@ const Send: FC = () => {
     }
 
     checkAvailableLiquidity()
-  }, [fromNetwork, selectedToken, toNetwork, availableLiquidity, requiredLiquidity])
+  }, [fromNetwork, sourceToken, toNetwork, availableLiquidity, requiredLiquidity])
 
   const checkingLiquidity = useMemo(() => {
     return (
@@ -277,7 +274,7 @@ const Send: FC = () => {
     } else {
       setMinimumSendWarning('')
     }
-  }, [amountOut, selectedToken, feeDisplay])
+  }, [amountOut, sourceToken, feeDisplay])
 
   useEffect(() => {
     setWarning(
@@ -288,34 +285,34 @@ const Send: FC = () => {
   }, [noLiquidityWarning, needsNativeTokenWarning, minimumSendWarning])
 
   useEffect(() => {
-    if (!bonderFee) {
+    if (!bonderFee || !sourceToken) {
       setFeeDisplay(undefined)
       return
     }
 
-    const smallestFeeDecimals = selectedToken.decimals - 5
+    const smallestFeeDecimals = sourceToken.decimals - 5
     const smallestFee = BigNumber.from(10 ** smallestFeeDecimals)
     let feeAmount: string
     if (bonderFee.gt('0') && bonderFee.lt(smallestFee)) {
-      feeAmount = `<${formatUnits(smallestFee, selectedToken.decimals)}`
+      feeAmount = `<${formatUnits(smallestFee, sourceToken.decimals)}`
     } else {
-      feeAmount = commafy(formatUnits(bonderFee, selectedToken.decimals), 5)
+      feeAmount = commafy(formatUnits(bonderFee, sourceToken.decimals), 5)
     }
 
-    setFeeDisplay(`${feeAmount} ${selectedToken.symbol}`)
+    setFeeDisplay(`${feeAmount} ${sourceToken.symbol}`)
   }, [bonderFee])
 
   useEffect(() => {
-    if (!amountOutMin) {
+    if (!amountOutMin || !sourceToken) {
       setAmountOutMinDisplay(undefined)
       return
     }
 
     const amountOutMinFormatted = commafy(
-      formatUnits(amountOutMin, selectedToken.decimals),
+      formatUnits(amountOutMin, sourceToken.decimals),
       4
     )
-    setAmountOutMinDisplay(`${amountOutMinFormatted} ${selectedToken.symbol}`)
+    setAmountOutMinDisplay(`${amountOutMinFormatted} ${sourceToken.symbol}`)
   }, [amountOutMin])
 
   const approve = async (amount: string) => {
@@ -332,9 +329,13 @@ const Send: FC = () => {
       throw new Error('No toNetwork selected')
     }
 
-    const parsedAmount = parseUnits(amount, selectedToken.decimals)
+    if (!sourceToken) {
+      throw new Error('No from token selected')
+    }
+
+    const parsedAmount = parseUnits(amount, sourceToken.decimals)
     let tx: any
-    const bridge = sdk.bridge(selectedToken?.symbol).connect(signer)
+    const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
     const token = bridge.getCanonicalToken(fromNetwork.slug)
     let spender : string
     if (fromNetwork.isLayer1) {
@@ -342,7 +343,7 @@ const Send: FC = () => {
       spender = l1Bridge.address
     } else {
       const bridge = await sdk
-        .bridge(selectedToken?.symbol)
+        .bridge(sourceToken.symbol)
         .connect(signer)
       const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
       spender = ammWrapper.address
@@ -354,7 +355,7 @@ const Send: FC = () => {
         inputProps: {
           tagline: `Allow Hop to spend your ${token.symbol} on ${fromNetwork.name}`,
           amount: amount,
-          token: selectedToken?.symbol
+          token: sourceToken.symbol
         },
         onConfirm: async (approveAll: boolean) => {
           const approveAmount = approveAll ? UINT256 : parsedAmount
@@ -370,7 +371,7 @@ const Send: FC = () => {
           new Transaction({
             hash: tx?.hash,
             networkName: fromNetwork?.slug,
-            token: selectedToken
+            token: sourceToken
           })
         )
       }
@@ -381,7 +382,7 @@ const Send: FC = () => {
         new Transaction({
           hash: tx?.hash,
           networkName: fromNetwork?.slug,
-          token: selectedToken
+          token: sourceToken
         })
       )
     }
@@ -427,13 +428,16 @@ const Send: FC = () => {
     if (!signer) {
       throw new Error('Cannot send: signer does not exist.')
     }
+    if (!sourceToken) {
+      throw new Error('No from token selected')
+    }
 
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
         source: {
           amount: fromTokenAmount,
-          token: selectedToken,
+          token: sourceToken,
           network: fromNetwork
         },
         dest: {
@@ -445,12 +449,12 @@ const Send: FC = () => {
         const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
         const parsedAmount = parseUnits(
           fromTokenAmount,
-          selectedToken.decimals
+          sourceToken.decimals
         ).toString()
         const recipient = await signer.getAddress()
         const relayer = ethers.constants.AddressZero
         const relayerFee = 0
-        const bridge = sdk.bridge(selectedToken?.symbol).connect(signer)
+        const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
         const tx = await bridge.send(
           parsedAmount,
           sdk.Chain.Ethereum,
@@ -473,7 +477,7 @@ const Send: FC = () => {
         hash: tx?.hash,
         networkName: fromNetwork?.slug,
         destNetworkName: toNetwork?.slug,
-        token: selectedToken
+        token: sourceToken
       })
       txHistory?.addTransaction(txObj)
     }
@@ -486,13 +490,16 @@ const Send: FC = () => {
     if (!signer) {
       throw new Error('Cannot send: signer does not exist.')
     }
+    if (!sourceToken) {
+      throw new Error('No from token selected')
+    }
 
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
         source: {
           amount: fromTokenAmount,
-          token: selectedToken,
+          token: sourceToken,
           network: fromNetwork
         },
         dest: {
@@ -506,9 +513,9 @@ const Send: FC = () => {
         const destinationDeadline = 0
         const parsedAmountIn = parseUnits(
           fromTokenAmount,
-          selectedToken.decimals
+          sourceToken.decimals
         )
-        const bridge = sdk.bridge(selectedToken?.symbol).connect(signer)
+        const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
         const bonderFee = await bridge.getBonderFee(
           parsedAmountIn,
           fromNetwork?.slug as string,
@@ -541,7 +548,7 @@ const Send: FC = () => {
         hash: tx?.hash,
         networkName: fromNetwork?.slug,
         destNetworkName: toNetwork?.slug,
-        token: selectedToken
+        token: sourceToken
       })
       txHistory?.addTransaction(txObj)
     }
@@ -554,13 +561,16 @@ const Send: FC = () => {
     if (!signer) {
       throw new Error('Cannot send: signer does not exist.')
     }
+    if (!sourceToken) {
+      throw new Error('No from token selected')
+    }
 
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
         source: {
           amount: fromTokenAmount,
-          token: selectedToken,
+          token: sourceToken,
           network: fromNetwork
         },
         dest: {
@@ -573,14 +583,14 @@ const Send: FC = () => {
         const amountOutMin = 0
         const destinationAmountOutMin = parseUnits(
           amountOutMin.toString(),
-          selectedToken.decimals
+          sourceToken.decimals
         ).toString()
         const parsedAmountIn = parseUnits(
           fromTokenAmount,
-          selectedToken.decimals
+          sourceToken.decimals
         )
         const recipient = await signer?.getAddress()
-        const bridge = sdk.bridge(selectedToken?.symbol).connect(signer)
+        const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
         const bonderFee = await bridge.getBonderFee(
           parsedAmountIn,
           fromNetwork?.slug as string,
@@ -612,7 +622,7 @@ const Send: FC = () => {
         hash: tx?.hash,
         networkName: fromNetwork?.slug,
         destNetworkName: toNetwork?.slug,
-        token: selectedToken
+        token: sourceToken
       })
       txHistory?.addTransaction(txObj)
     }
@@ -663,15 +673,15 @@ const Send: FC = () => {
             Send
           </Typography>
           <RaisedSelect
-            value={selectedToken?.symbol}
-            onChange={handleTokenSelect}
+            value={selectedBridge?.getTokenSymbol()}
+            onChange={handleBridgeChange}
           >
-            {tokens.map(token => (
-              <MenuItem value={token.symbol} key={token.symbol}>
+            {bridges.map(bridge => (
+              <MenuItem value={bridge.getTokenSymbol()} key={bridge.getTokenSymbol()}>
                 <SelectOption
-                  value={token.symbol}
-                  icon={token.imageUrl}
-                  label={token.symbol}
+                  value={bridge.getTokenSymbol()}
+                  icon={bridge.getTokenImageUrl()}
+                  label={bridge.getTokenSymbol()}
                 />
               </MenuItem>
             ))}
@@ -686,7 +696,7 @@ const Send: FC = () => {
       </div>
       <AmountSelectorCard
         value={fromTokenAmount}
-        token={selectedToken}
+        token={sourceToken}
         label={'From'}
         onChange={value => {
           if (!value) {
@@ -712,7 +722,7 @@ const Send: FC = () => {
       </MuiButton>
       <AmountSelectorCard
         value={toTokenAmount}
-        token={selectedToken}
+        token={destToken}
         label={'To (estimated)'}
         selectedNetwork={toNetwork}
         networkOptions={networks}

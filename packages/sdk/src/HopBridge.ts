@@ -324,7 +324,7 @@ class HopBridge extends Base {
 
   // ToDo: Docs
   public getTokenSymbol () {
-    return this.getL1Token()?.symbol
+    return this.tokenSymbol
   }
 
   // ToDo: Docs
@@ -798,7 +798,6 @@ class HopBridge extends Base {
         `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
       )
     }
-    const provider = await this.getSignerOrProvider(chain, signer)
 
     // ToDo: Get actual saddle LP token symbol and name
     return new Token(
@@ -808,7 +807,7 @@ class HopBridge extends Base {
       18,
       `${this.tokenSymbol}`,
       `${this.tokenSymbol}_LP`,
-      provider
+      signer
     )
   }
 

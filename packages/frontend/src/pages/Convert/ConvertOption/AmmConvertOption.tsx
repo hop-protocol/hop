@@ -1,8 +1,7 @@
 import ConvertOption from './ConvertOption'
 import Network from 'src/models/Network'
-import Token from 'src/models/Token'
-import { Hop, HopBridge, Token as SDKToken } from '@hop-protocol/sdk'
-import { Signer } from 'ethers'
+import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
+import { Signer, BigNumber } from 'ethers'
 
 class AmmConvertOption extends ConvertOption {
   readonly name: string
@@ -19,7 +18,7 @@ class AmmConvertOption extends ConvertOption {
 
   async getTargetAddress (
     sdk: Hop,
-    token: SDKToken | undefined,
+    token: Token | undefined,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined
   ): Promise<string> {
@@ -34,6 +33,17 @@ class AmmConvertOption extends ConvertOption {
     const bridge = sdk.bridge(token.symbol)
     const amm = await bridge.getSaddleSwap(sourceNetwork.slug)
     return amm.address
+  }
+
+  async calcAmountOut (
+    sdk: Hop,
+    sourceNetwork: Network,
+    destNetwork: Network,
+    isForwardDirection: boolean,
+    token: Token,
+    value: string
+  ) {
+    return BigNumber.from(value)
   }
 
   async convert (
@@ -61,7 +71,7 @@ class AmmConvertOption extends ConvertOption {
     )
   }
 
-  async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
+  async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {
@@ -71,7 +81,7 @@ class AmmConvertOption extends ConvertOption {
     }
   }
 
-  async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
+  async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {

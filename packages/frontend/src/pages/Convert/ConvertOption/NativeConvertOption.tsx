@@ -1,8 +1,7 @@
-import { Signer, Contract } from 'ethers'
+import { Signer, Contract, BigNumber } from 'ethers'
 import ConvertOption from './ConvertOption'
 import Network from 'src/models/Network'
-import Token from 'src/models/Token'
-import { Hop, HopBridge, Token as SDKToken } from '@hop-protocol/sdk'
+import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 
 class NativeConvertOption extends ConvertOption {
   readonly name: string
@@ -19,7 +18,7 @@ class NativeConvertOption extends ConvertOption {
 
   async getTargetAddress (
     sdk: Hop,
-    token: SDKToken | undefined,
+    token: Token | undefined,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined
   ): Promise<string> {
@@ -42,21 +41,28 @@ class NativeConvertOption extends ConvertOption {
       l2Network = destNetwork
     }
 
-    console.log('111')
-    console.log('token.symbol: ', token.symbol)
-    console.log('l2Network.slug: ', l2Network.slug)
     const nativeBridge = sdk
       .canonicalBridge(token.symbol, l2Network.slug)
 
-    console.log('222')
     let bridgeContract: Contract
     if (sourceNetwork?.isLayer1) {
       bridgeContract = await nativeBridge.getL1CanonicalBridge()
     } else {
       bridgeContract = await nativeBridge.getL2CanonicalBridge()
     }
-    console.log('bridgeContract.address: ', bridgeContract.address)
+
     return bridgeContract.address
+  }
+
+  async calcAmountOut (
+    sdk: Hop,
+    sourceNetwork: Network,
+    destNetwork: Network,
+    isForwardDirection: boolean,
+    token: Token,
+    value: string
+  ) {
+    return BigNumber.from(value)
   }
 
   async convert (
@@ -88,7 +94,7 @@ class NativeConvertOption extends ConvertOption {
     }
   }
 
-  async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
+  async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {
@@ -98,7 +104,7 @@ class NativeConvertOption extends ConvertOption {
     }
   }
 
-  async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
+  async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {

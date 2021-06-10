@@ -3,7 +3,7 @@ import { EventEmitter } from 'events'
 import { L1_NETWORK } from 'src/constants'
 import { getRpcUrl, getProvider, getBaseExplorerUrl } from 'src/utils'
 
-import Token from 'src/models/Token'
+import { Token } from '@hop-protocol/sdk'
 import { network as defaultNetwork } from 'src/config'
 
 interface Config {

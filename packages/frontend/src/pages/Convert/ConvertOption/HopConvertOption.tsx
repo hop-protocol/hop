@@ -1,8 +1,7 @@
 import ConvertOption from './ConvertOption'
 import Network from 'src/models/Network'
-import Token from 'src/models/Token'
-import { Hop, HopBridge, Token as SDKToken } from '@hop-protocol/sdk'
-import { Signer } from 'ethers'
+import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
+import { Signer, BigNumber } from 'ethers'
 import { ZERO_ADDRESS } from 'src/constants'
 
 class HopConvertOption extends ConvertOption {
@@ -38,9 +37,20 @@ class HopConvertOption extends ConvertOption {
     )
   }
 
+  async calcAmountOut (
+    sdk: Hop,
+    sourceNetwork: Network,
+    destNetwork: Network,
+    isForwardDirection: boolean,
+    token: Token,
+    value: string
+  ) {
+    return BigNumber.from(value)
+  }
+
   async getTargetAddress (
     sdk: Hop,
-    token: SDKToken | undefined,
+    token: Token | undefined,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined
   ): Promise<string> {
@@ -62,7 +72,7 @@ class HopConvertOption extends ConvertOption {
     }
   }
 
-  async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
+  async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {
@@ -72,7 +82,7 @@ class HopConvertOption extends ConvertOption {
     }
   }
 
-  async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
+  async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {

@@ -32,14 +32,14 @@ const useStyles = makeStyles(() => ({
 const Convert: FC = () => {
   const styles = useStyles()
   const {
-    selectedToken,
     sourceNetwork,
     destNetwork,
+    sourceToken,
+    destToken,
     sourceTokenAmount,
     setSourceTokenAmount,
     setDestTokenAmount,
     destTokenAmount,
-    calcAltTokenAmount,
     sourceBalance,
     loadingSourceBalance,
     destBalance,
@@ -60,14 +60,14 @@ const Convert: FC = () => {
     try {
       const amount = normalizeNumberInput(value)
       setSourceTokenAmount(amount)
-      setDestTokenAmount(await calcAltTokenAmount(amount))
+      setDestTokenAmount(amount)
     } catch (err) {}
   }
   const handleDestTokenAmountChange = async (value: string) => {
     try {
       const amount = normalizeNumberInput(value)
       setDestTokenAmount(amount)
-      setSourceTokenAmount(await calcAltTokenAmount(amount))
+      setSourceTokenAmount(amount)
     } catch (err) {}
   }
   const handleTxStatusClose = () => {
@@ -78,7 +78,7 @@ const Convert: FC = () => {
     <Box display="flex" flexDirection="column" alignItems="center">
       <AmountSelectorCard
         value={sourceTokenAmount as string}
-        token={selectedToken}
+        token={sourceToken}
         label={'From'}
         onChange={handleSourceTokenAmountChange}
         title={sourceNetwork?.name}
@@ -95,7 +95,7 @@ const Convert: FC = () => {
       <AmountSelectorCard
         className={styles.lastSelector}
         value={destTokenAmount as string}
-        token={selectedToken}
+        token={destToken}
         label={'To'}
         onChange={handleDestTokenAmountChange}
         title={destNetwork?.name}

@@ -9,27 +9,24 @@ import React, {
 } from 'react'
 import { ethers, Signer, BigNumber } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { HopBridge } from '@hop-protocol/sdk'
+import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Network from 'src/models/Network'
-import Token from 'src/models/Token'
 import Address from 'src/models/Address'
 import Price from 'src/models/Price'
 import { UINT256 } from 'src/constants'
 import Transaction from 'src/models/Transaction'
 import useInterval from 'src/hooks/useInterval'
-import useBalance from 'src/pages/Send/useBalance'
+import useBalance from 'src/hooks/useBalance'
 import logger from 'src/logger'
 
 type PoolsContextProps = {
   networks: Network[]
-  tokens: Token[]
+  canonicalToken: Token | undefined
   hopToken: Token | undefined
   address: Address | undefined
   totalSupply: string | undefined
-  selectedToken: Token | undefined
-  setSelectedToken: (token: Token) => void
   selectedNetwork: Network | undefined
   setSelectedNetwork: (network: Network) => void
   token0Amount: string
@@ -61,12 +58,10 @@ type PoolsContextProps = {
 
 const PoolsContext = createContext<PoolsContextProps>({
   networks: [],
-  tokens: [],
+  canonicalToken: undefined,
   hopToken: undefined,
   address: undefined,
   totalSupply: undefined,
-  selectedToken: undefined,
-  setSelectedToken: (token: Token) => {},
   selectedNetwork: undefined,
   setSelectedNetwork: (network: Network) => {},
   token0Amount: '',
@@ -112,36 +107,34 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [token0Deposited, setToken0Deposited] = useState<string>('')
   const [token1Deposited, setToken1Deposited] = useState<string>('')
 
-  let { networks, tokens, txConfirm, txHistory, sdk } = useApp()
+  const {
+    networks,
+    tokens,
+    txConfirm,
+    txHistory,
+    sdk,
+    selectedBridge
+  } = useApp()
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
-  const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
   const [error, setError] = useState<string | null | undefined>(null)
+  const l2Networks = useMemo(() => {
+    return networks.filter(network => !network.isLayer1)
+  }, [networks])
+  const [selectedNetwork, setSelectedNetwork] = useState<Network>(l2Networks[0])
+
+  const canonicalToken = useMemo(() => {
+    return selectedBridge?.getCanonicalToken(selectedNetwork.slug)
+  }, [selectedBridge, selectedNetwork])
 
   const hopToken = useMemo(() => {
-    const token = tokens.find(token => token.symbol === selectedToken?.symbol)
-    if (!token) {
-      return
-    }
-    const l2Networks = networks.filter(network => !network.isLayer1)
-    return new Token({
-      symbol: `h${token?.symbol}`,
-      imageUrl: token?.imageUrl,
-      tokenName: token?.tokenName,
-      decimals: token?.decimals,
-    })
-  }, [tokens, selectedToken, networks])
+    return selectedBridge?.getL2HopToken(selectedNetwork.slug)
+  }, [selectedBridge, selectedNetwork])
 
-  networks = networks.filter(
-    (network: Network) =>
-      !network.isLayer1 &&
-      selectedToken.supportedNetworks.includes(network.slug)
-  )
-  const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
   const [txHash, setTxHash] = useState<string | undefined>()
   const [sending, setSending] = useState<boolean>(false)
 
   const { balance: canonicalBalance, loading: loadingCanonicalBalance } = useBalance(
-    selectedToken,
+    canonicalToken,
     selectedNetwork
   )
 
@@ -151,10 +144,10 @@ const PoolsContextProvider: FC = ({ children }) => {
   )
 
   useEffect(() => {
-    if (!networks.includes(selectedNetwork)) {
-      setSelectedNetwork(networks[0])
+    if (!l2Networks.includes(selectedNetwork)) {
+      setSelectedNetwork(l2Networks[0])
     }
-  }, [networks])
+  }, [l2Networks])
   useEffect(() => {
     if (Number(token0Price) && Number(token0Amount) && !Number(token1Amount)) {
       const token1Value = Number(token0Amount) * Number(token1Rate)
@@ -211,13 +204,11 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   const updateUserPoolPositions = useCallback(async () => {
     try {
+      if (!canonicalToken) return
       if (!provider) return
       const contractProvider = selectedNetwork.provider
       if (!contractProvider) return
-      const signer = provider?.getSigner()
-      const signerAddress = await signer.getAddress()
-
-      const bridge = await sdk.bridge(selectedToken.symbol)
+      const bridge = await sdk.bridge(canonicalToken.symbol)
       const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
 
       const [lpDecimalsBn, totalSupply, balance, reserves] = await Promise.all([
@@ -245,8 +236,8 @@ const PoolsContextProvider: FC = ({ children }) => {
           : poolPercentage.toFixed(2)
       setUserPoolTokenPercentage(formattedPoolPercentage)
 
-      const reserve0 = formatUnits(reserves[0].toString(), selectedToken.decimals)
-      const reserve1 = formatUnits(reserves[1].toString(), selectedToken.decimals)
+      const reserve0 = formatUnits(reserves[0].toString(), canonicalToken.decimals)
+      const reserve1 = formatUnits(reserves[1].toString(), canonicalToken.decimals)
       setPoolReserves([reserve0, reserve1])
 
       const token0Deposited =
@@ -263,14 +254,14 @@ const PoolsContextProvider: FC = ({ children }) => {
     } catch (err) {
       logger.error(err)
     }
-  }, [provider, selectedNetwork, selectedToken, hopToken])
+  }, [provider, selectedNetwork, canonicalToken, hopToken])
 
   useEffect(() => {
     updateUserPoolPositions()
   }, [
     provider,
     selectedNetwork,
-    selectedToken,
+    canonicalToken,
     hopToken,
     updateUserPoolPositions
   ])
@@ -288,11 +279,19 @@ const PoolsContextProvider: FC = ({ children }) => {
     amount: string,
     network: Network
   ): Promise<ethers.providers.TransactionResponse | undefined> => {
+    if (!canonicalToken) {
+      throw new Error('Canonical token is required')
+    }
+
+    if (!hopToken) {
+      throw new Error('Hop token is required')
+    }
+
     const signer = provider?.getSigner()
-    const bridge = await sdk.bridge(selectedToken.symbol).connect(signer as Signer)
+    const bridge = await sdk.bridge(canonicalToken.symbol).connect(signer as Signer)
     const saddleSwap = await bridge.getSaddleSwap(network.slug)
     const spender = saddleSwap.address
-    const parsedAmount = parseUnits(amount, selectedToken.decimals)
+    const parsedAmount = parseUnits(amount, canonicalToken.decimals)
     const token = isHop ? bridge.getL2HopToken(network.slug) : bridge.getCanonicalToken(network.slug)
     const approved = await token.allowance(spender)
 
@@ -302,7 +301,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         inputProps: {
           tagline: `Allow Hop to spend your ${isHop ? 'h' : ''}${token.symbol} on ${selectedNetwork.name}`,
           amount,
-          tokenSymbol: isHop ? hopToken?.symbol : selectedToken?.symbol
+          tokenSymbol: isHop ? hopToken.symbol : canonicalToken.symbol
         },
         onConfirm: async (approveAll: boolean) => {
           return token.approve(
@@ -315,6 +314,14 @@ const PoolsContextProvider: FC = ({ children }) => {
   }
 
   const addLiquidity = async () => {
+    if (!canonicalToken) {
+      throw new Error('Canonical token is required')
+    }
+
+    if (!hopToken) {
+      throw new Error('Hop token is required')
+    }
+
     try {
       setError(null)
       const networkId = Number(selectedNetwork?.networkId)
@@ -353,7 +360,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       await tx?.wait()
 
       const signer = provider?.getSigner()
-      const amount0Desired = parseUnits(token0Amount, selectedToken?.decimals)
+      const amount0Desired = parseUnits(token0Amount, canonicalToken?.decimals)
       const amount1Desired = parseUnits(token1Amount, hopToken?.decimals)
       const minToMint = 0
       const deadline = (Date.now() / 1000 + 5 * 60) | 0
@@ -363,7 +370,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         inputProps: {
           token0: {
             amount: token0Amount,
-            token: selectedToken,
+            token: canonicalToken,
             network: selectedNetwork
           },
           token1: {
@@ -373,7 +380,7 @@ const PoolsContextProvider: FC = ({ children }) => {
           }
         },
         onConfirm: async () => {
-          const bridge = sdk.bridge(selectedToken.symbol)
+          const bridge = sdk.bridge(canonicalToken.symbol)
           return bridge
             .connect(signer as Signer)
             .addLiquidity(
@@ -410,13 +417,21 @@ const PoolsContextProvider: FC = ({ children }) => {
   }
 
   const removeLiquidity = async () => {
+    if (!canonicalToken) {
+      throw new Error('Canonical token is required')
+    }
+
+    if (!hopToken) {
+      throw new Error('Hop token is required')
+    }
+
     try {
       setError(null)
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
 
-      const bridge = sdk.bridge(selectedToken.symbol)
+      const bridge = sdk.bridge(canonicalToken.symbol)
       const saddleSwap = await bridge.getSaddleSwap(selectedNetwork.slug)
       const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
       const lpTokenDecimals = await lpToken.decimals
@@ -474,7 +489,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         inputProps: {
           token0: {
             amount: token0Amount,
-            token: selectedToken,
+            token: canonicalToken,
             network: selectedNetwork
           },
           token1: {
@@ -490,7 +505,7 @@ const PoolsContextProvider: FC = ({ children }) => {
             lpTokenDecimals
           )
 
-          const bridge = sdk.bridge(selectedToken.symbol)
+          const bridge = sdk.bridge(canonicalToken.symbol)
           return bridge
             .connect(signer as Signer)
             .removeLiquidity(
@@ -527,8 +542,8 @@ const PoolsContextProvider: FC = ({ children }) => {
   }
 
   // ToDo: Use BigNumber everywhere and get rid of this conversion
-  const token0Balance = canonicalBalance ? Number(formatUnits(canonicalBalance, selectedToken.decimals)) : 0
-  const token1Balance = hopBalance ? Number(formatUnits(hopBalance, selectedToken.decimals)) : 0
+  const token0Balance = canonicalToken && canonicalBalance ? Number(formatUnits(canonicalBalance, canonicalToken.decimals)) : 0
+  const token1Balance = hopToken && hopBalance ? Number(formatUnits(hopBalance, hopToken.decimals)) : 0
 
   const enoughBalance =
     token0Balance >= Number(token0Amount) &&
@@ -542,13 +557,11 @@ const PoolsContextProvider: FC = ({ children }) => {
   return (
     <PoolsContext.Provider
       value={{
-        networks,
-        tokens,
+        networks: l2Networks,
+        canonicalToken,
         hopToken,
         address,
         totalSupply,
-        selectedToken,
-        setSelectedToken,
         selectedNetwork,
         setSelectedNetwork,
         token0Amount,

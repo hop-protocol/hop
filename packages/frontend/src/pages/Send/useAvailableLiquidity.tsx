@@ -4,7 +4,7 @@ import { BigNumber } from 'ethers'
 import useInterval from 'src/hooks/useInterval'
 
 const useAvailableLiquidity = (
-  bridge: HopBridge,
+  bridge: HopBridge | undefined,
   destinationChain: string | undefined
 ): BigNumber | undefined => {
   const [availableLiquidity, setAvailableLiquidity] = useState<BigNumber>()
@@ -15,6 +15,11 @@ const useAvailableLiquidity = (
   }, [destinationChain])
 
   const updateAvailableLiquidity = async () => {
+    if (!bridge) {
+      setAvailableLiquidity(undefined)
+      return
+    }
+
     let liquidity
     if (destinationChain) {
       liquidity = await bridge.getAvailableLiquidity(destinationChain)

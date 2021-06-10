@@ -86,26 +86,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
             end
           )
 
-          for (let event of withdrawalBondedEvents) {
-            const {
-              transferId,
-              //recipient,
-              amount
-              //transferNonce,
-              //bonderFee,
-              //index
-            } = event.args
-
-            await this.handleWithdrawalBondedEvent(
-              transferId,
-              //recipient,
-              amount,
-              //transferNonce,
-              //bonderFee,
-              //index,
-              event
-            )
-          }
+          await Promise.all(
+            withdrawalBondedEvents.map(async event => {
+              const { transferId, amount } = event.args
+              return this.handleWithdrawalBondedEvent(transferId, amount, event)
+            })
+          )
         },
         { key: this.bridge.WithdrawalBonded }
       )

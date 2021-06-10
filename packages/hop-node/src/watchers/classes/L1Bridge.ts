@@ -53,6 +53,9 @@ export default class L1Bridge extends Bridge {
   }
 
   async decodeBondTransferRootData (data: string): Promise<any> {
+    if (!data) {
+      throw new Error('data to decode is required')
+    }
     const decoded = await this.l1BridgeContract.interface.decodeFunctionData(
       'bondTransferRoot',
       data
@@ -68,6 +71,9 @@ export default class L1Bridge extends Bridge {
   }
 
   async decodeConfirmTransferRootData (data: string): Promise<any> {
+    if (!data) {
+      throw new Error('data to decode is required')
+    }
     const decoded = await this.l1BridgeContract.interface.decodeFunctionData(
       'confirmTransferRoot',
       data

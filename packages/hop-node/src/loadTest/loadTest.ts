@@ -84,7 +84,7 @@ class LoadTest {
 
             logger.log(`waiting for bonded withdrawals`)
             const isToL1 = isL1ChainId(chainSlugToId(destNetwork))
-            const waitTimeout = isToL1 ? 300 * 1000 : 60 * 1000
+            const waitTimeout = isToL1 ? 300 * 1000 : 120 * 1000
             await wait(waitTimeout)
             logger.log('reading balances')
             const [sourceBalancesAfter, destBalancesAfter] = await getBalances(

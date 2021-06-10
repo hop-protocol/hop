@@ -163,6 +163,36 @@ export default class Bridge extends ContractBase {
     return total
   }
 
+  async getBondedWithdrawalTimestamp (
+    transferId: string,
+    startBlockNumber?: number,
+    endBlockNumber?: number
+  ): Promise<number> {
+    let match: any
+    await this.eventsBatch(
+      async (start: number, end: number) => {
+        const events = await this.getWithdrawalBondedEvents(start, end)
+
+        for (let event of events) {
+          if (event.args.transferId === transferId) {
+            match = event
+            return false
+          }
+        }
+      },
+      {
+        startBlockNumber,
+        endBlockNumber
+      }
+    )
+
+    if (!match) {
+      return 0
+    }
+
+    return this.getEventTimestamp(match)
+  }
+
   isTransferIdSpent (transferId: string): Promise<boolean> {
     return this.bridgeContract.isTransferIdSpent(transferId)
   }
@@ -200,6 +230,34 @@ export default class Bridge extends ContractBase {
     )
   }
 
+  async decodeSettleBondedWithdrawalData (data: string): Promise<any> {
+    if (!data) {
+      throw new Error('data to decode is required')
+    }
+    const decoded = await this.bridgeContract.interface.decodeFunctionData(
+      'settleBondedWithdrawal',
+      data
+    )
+
+    const bonder = decoded.bonder
+    const transferId = decoded.transferId.toString()
+    const rootHash = decoded.rootHash.toString()
+    const transferRootTotalAmount = decoded.transferRootTotalAmount
+    const transferIdTreeIndex = Number(decoded.transferIdTreeIndex.toString())
+    const siblings = decoded.siblings.map((sibling: any) => sibling.toString())
+    const totalLeaves = Number(decoded.totalLeaves.toString())
+
+    return {
+      bonder,
+      transferId,
+      rootHash,
+      transferRootTotalAmount,
+      transferIdTreeIndex,
+      siblings,
+      totalLeaves
+    }
+  }
+
   async getMultipleWithdrawalsSettledEvents (
     startBlockNumber: number,
     endBlockNumber: number
@@ -209,6 +267,27 @@ export default class Bridge extends ContractBase {
       startBlockNumber,
       endBlockNumber
     )
+  }
+
+  async decodeSettleBondedWithdrawalsData (data: string): Promise<any> {
+    if (!data) {
+      throw new Error('data to decode is required')
+    }
+    const decoded = await this.bridgeContract.interface.decodeFunctionData(
+      'settleBondedWithdrawals',
+      data
+    )
+    const bonder = decoded.bonder
+    const transferIds = decoded.transferIds.map((transferId: any) =>
+      transferId.toString()
+    )
+    const totalAmount = decoded.totalAmount
+
+    return {
+      bonder,
+      transferIds,
+      totalAmount
+    }
   }
 
   async getTransferRootId (
@@ -294,7 +373,7 @@ export default class Bridge extends ContractBase {
       await this.txOverrides()
     )
 
-    await tx.wait()
+    //await tx.wait()
     return tx
   }
 

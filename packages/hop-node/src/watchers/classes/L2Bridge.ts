@@ -153,6 +153,9 @@ export default class L2Bridge extends Bridge {
   }
 
   async decodeCommitTransfersData (data: string): Promise<any> {
+    if (!data) {
+      throw new Error('data to decode is required')
+    }
     const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
       'commitTransfers',
       data
@@ -165,6 +168,9 @@ export default class L2Bridge extends Bridge {
   }
 
   async decodeSendData (data: string): Promise<any> {
+    if (!data) {
+      throw new Error('data to decode is required')
+    }
     let chainId: number
     let attemptSwap = false
     try {

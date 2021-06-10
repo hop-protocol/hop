@@ -191,10 +191,13 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
   async checkTransferSentFromDb () {
     const dbTransfers = await db.transfers.getUnbondedSentTransfers()
+    const promises: Promise<any>[] = []
     for (let dbTransfer of dbTransfers) {
       const { transferId } = dbTransfer
-      await this.checkTransferSent(transferId)
+      promises.push(this.checkTransferSent(transferId))
     }
+    
+    await Promise.all(promises)
   }
 
   checkTransferSent = async (

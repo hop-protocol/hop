@@ -3,11 +3,12 @@ import {
   HopBridge,
   Chain,
   Route,
-  Token,
+  // Token,
   TokenAmount,
   Transfer,
   utils
 } from '../src/index'
+import Token from '../src/models/Token'
 import { Wallet, providers } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { privateKey } from './config'
@@ -93,7 +94,7 @@ describe.only('tx watcher', () => {
 
         hop
           .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.xDai)
-          .on('receipt', data => {
+          .on('receipt', (data: any) => {
             const { receipt, chain } = data
             if (chain.equals(Chain.Ethereum)) {
               sourceReceipt = receipt
@@ -132,7 +133,7 @@ describe.only('tx watcher', () => {
 
         hop
           .watch(txHash, Token.USDC, Chain.xDai, Chain.Optimism)
-          .on('receipt', data => {
+          .on('receipt', (data: any) => {
             const { receipt, chain } = data
             if (chain.equals(Chain.xDai)) {
               sourceReceipt = receipt
@@ -173,7 +174,7 @@ describe.only('tx watcher', () => {
           .watch(txHash, Token.USDC, Chain.xDai, Chain.Polygon, false, {
             destinationHeadBlockNumber: 14779300 // estimate
           })
-          .on('receipt', data => {
+          .on('receipt', (data: any) => {
             const { receipt, chain } = data
             if (chain.equals(Chain.xDai)) {
               sourceReceipt = receipt
@@ -223,7 +224,7 @@ describe.only('tx watcher', () => {
 
         hop
           .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.xDai)
-          .on('receipt', data => {
+          .on('receipt', (data: any) => {
             const { receipt, chain } = data
             if (chain.equals(Chain.Ethereum)) {
               sourceReceipt = receipt

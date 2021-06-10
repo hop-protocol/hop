@@ -35,7 +35,8 @@ const getConfigByNetwork = (_network: string) => {
 
   return {
     tokens,
-    networks
+    networks,
+    bonders
   }
 }
 
@@ -81,12 +82,13 @@ export const config: any = {
 }
 
 const setConfigByNetwork = (_network: string) => {
-  const { tokens, networks } = getConfigByNetwork(_network)
+  const { tokens, networks, bonders } = getConfigByNetwork(_network)
   isMainnet = _network === Network.Mainnet
   config.isMainnet = isMainnet
   config.tokens = tokens
   config.network = _network
   config.networks = networks
+  config.bonder = bonders
 }
 
 const setBonderPrivateKey = (privateKey: string) => {

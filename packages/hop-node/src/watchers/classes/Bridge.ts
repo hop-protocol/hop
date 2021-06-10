@@ -331,40 +331,82 @@ export default class Bridge extends ContractBase {
       endBlockNumber: undefined
     }
   ) {
-    const { key, startBlockNumber, endBlockNumber } = options
+    await this.waitTilReady()
+    this.validateEventsBatchInput(options)
 
     await this.waitTilReady()
+    const { key, startBlockNumber, endBlockNumber } = options
     let { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
-    const blockNumber = endBlockNumber || (await this.getBlockNumber())
-    const cacheKey = `${this.chainId}:${this.address}:${key}`
+    const currentBlockNumber = await this.getBlockNumber()
+    let end = currentBlockNumber
+    let start = end - batchBlocks
+
     if (startBlockNumber && endBlockNumber) {
-      totalBlocks = endBlockNumber - startBlockNumber
+      end = endBlockNumber
+      start = startBlockNumber
+      totalBlocks = end - start
     }
 
-    let end = blockNumber
-    let start = end - batchBlocks
-    let isSingleBatch = totalBlocks <= batchBlocks
-    let i = 0
-    while (isSingleBatch || start >= blockNumber - totalBlocks) {
-      if (isSingleBatch) {
-        start = end - totalBlocks
-      }
+    let cacheKey = ''
+    if (key) {
+      cacheKey = this.getCacheKeyFromKey(key)
+      const state = await db.syncState.getByKey(cacheKey)
 
-      const shouldContinue = await cb(start, end, i)
+      if (state?.latestBlockSynced) {
+        start = state.latestBlockSynced
+        totalBlocks = currentBlockNumber - start
+      }
+    }
+
+    let i = 0
+    let latestBlockSynced = end
+    if (totalBlocks <= batchBlocks) {
+      await cb(start, end, i)
+    } else {
+      while (start >= currentBlockNumber - totalBlocks) {
+        const shouldContinue = await cb(start, end, i)
+        if (typeof shouldContinue === 'boolean' && !shouldContinue) {
+          break
+        }
+
+        latestBlockSynced = end
+        end = start
+        start = end - batchBlocks
+        i++
+      }
+    }
+
+    if (cacheKey) {
       await db.syncState.update(cacheKey, {
-        latestBlockSynced: end,
+        latestBlockSynced,
         timestamp: Date.now()
       })
-      if (
-        isSingleBatch ||
-        (typeof shouldContinue === 'boolean' && !shouldContinue)
-      ) {
-        break
-      }
-
-      end = start
-      start = end - batchBlocks
-      i++
     }
+  }
+
+  public getCacheKeyFromKey = (key: string) => {
+    return `${this.chainId}:${this.address}:${key}`
+  }
+
+  private validateEventsBatchInput = (options: any) => {
+    const { key, startBlockNumber, endBlockNumber } = options
+
+    const isStartAndEndBlock = startBlockNumber && endBlockNumber
+    if (isStartAndEndBlock && startBlockNumber >= endBlockNumber) {
+      throw new Error('Cannot pass in a start block that is after an end block')
+    }
+
+    if (isStartAndEndBlock && key) {
+      throw new Error('A key cannot exist when a start and end block are explicitly defined')
+    }
+
+    const doesOnlyStartOrEndExist = this.xor(startBlockNumber, endBlockNumber)
+    if (doesOnlyStartOrEndExist) {
+      throw new Error('If either a start or end block number exist, both must exist')
+    }
+  }
+
+  private xor = (a: number, b: number) => {
+   return ( a || b ) && !( a && b )
   }
 }

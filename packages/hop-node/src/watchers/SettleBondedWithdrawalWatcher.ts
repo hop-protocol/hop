@@ -64,19 +64,23 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
     const promises: Promise<any>[] = []
     promises.push(
-      this.eventsBatch(async (start: number, end: number) => {
-        const events = await this.bridge.getTransferRootSetEvents(start, end)
-        await this.handleTransferRootSetEvents(events)
-        //}, this.bridge.TransferRootSet)
-      })
+      this.eventsBatch(
+        async (start: number, end: number) => {
+          const events = await this.bridge.getTransferRootSetEvents(start, end)
+          await this.handleTransferRootSetEvents(events)
+        },
+        { key: this.bridge.TransferRootSet }
+      )
     )
 
     promises.push(
-      this.eventsBatch(async (start: number, end: number) => {
-        const events = await this.bridge.getMultipleWithdrawalsSettledEvents(start, end)
-        await this.handleMultipleWithdrawalsSettledEvents(events)
-        //}, this.bridge.TransferRootSet)
-      })
+      this.eventsBatch(
+        async (start: number, end: number) => {
+          const events = await this.bridge.getMultipleWithdrawalsSettledEvents(start, end)
+          await this.handleMultipleWithdrawalsSettledEvents(events)
+        },
+        { key: this.bridge.TransferRootSet }
+      )
     )
 
     await Promise.all(promises)

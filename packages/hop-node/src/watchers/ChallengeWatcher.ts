@@ -9,7 +9,6 @@ import L2Bridge from './classes/L2Bridge'
 
 export interface Config {
   l1BridgeContract: Contract
-  l2BridgeContract: Contract
   label: string
   contracts: any
 }

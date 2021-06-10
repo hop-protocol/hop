@@ -74,3 +74,7 @@ export const isL2 = (network: string) => {
 export const isL1ChainId = (chainId: number | string) => {
   return ['1', '5', '42'].includes(chainId.toString())
 }
+
+export const xor = (a: number, b: number) => {
+  return ( a || b ) && !( a && b )
+}

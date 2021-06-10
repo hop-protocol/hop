@@ -62,9 +62,9 @@ describe('Happy Path', () => {
 
   test('Use a used key', async () => {
     const key: string = 'testKey'
-    // TODO: Figure out how to pass in chainId
-    // const cacheKey = bridge.getCacheKeyFromKey(key)
-    const cacheKey = `42:0x7b067CE7D77a0468159D5C73A3109eE8fEFcBE6d:${key}`
+    const chainId = await bridge.getChainId()
+    const address = bridge.getAddress()
+    const cacheKey = bridge.getCacheKeyFromKey(chainId, address, key)
     let state = await db.syncState.getByKey(cacheKey)
 
     // Create entry for key if it does not exist
@@ -128,13 +128,11 @@ describe('Happy Path', () => {
 
         count++
         if (index === expectedCount) {
-          console.log
           return true
         }
       }
     )
 
-    console.log(count)
     const totalCount = totalBlocks / batchBlocks
     expect(count).toBe(totalCount)
   })

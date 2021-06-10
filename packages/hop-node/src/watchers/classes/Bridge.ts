@@ -4,7 +4,7 @@ import ContractBase from './ContractBase'
 import queue from 'src/decorators/queue'
 import { config } from 'src/config'
 import unique from 'src/utils/unique'
-import { isL1ChainId } from 'src/utils'
+import { isL1ChainId, xor } from 'src/utils'
 import db from 'src/db'
 
 export default class Bridge extends ContractBase {
@@ -334,7 +334,6 @@ export default class Bridge extends ContractBase {
     await this.waitTilReady()
     this.validateEventsBatchInput(options)
 
-    await this.waitTilReady()
     const { key, startBlockNumber, endBlockNumber } = options
     let { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
     const currentBlockNumber = await this.getBlockNumber()
@@ -349,7 +348,7 @@ export default class Bridge extends ContractBase {
 
     let cacheKey = ''
     if (key) {
-      cacheKey = this.getCacheKeyFromKey(key)
+      cacheKey = this.getCacheKeyFromKey(this.chainId, this.address, key)
       const state = await db.syncState.getByKey(cacheKey)
 
       if (state?.latestBlockSynced) {
@@ -384,8 +383,8 @@ export default class Bridge extends ContractBase {
     }
   }
 
-  public getCacheKeyFromKey = (key: string) => {
-    return `${this.chainId}:${this.address}:${key}`
+  public getCacheKeyFromKey = (chainId: number, address: string, key: string) => {
+    return `${chainId}:${address}:${key}`
   }
 
   private validateEventsBatchInput = (options: any) => {
@@ -400,13 +399,9 @@ export default class Bridge extends ContractBase {
       throw new Error('A key cannot exist when a start and end block are explicitly defined')
     }
 
-    const doesOnlyStartOrEndExist = this.xor(startBlockNumber, endBlockNumber)
+    const doesOnlyStartOrEndExist = xor(startBlockNumber, endBlockNumber)
     if (doesOnlyStartOrEndExist) {
       throw new Error('If either a start or end block number exist, both must exist')
     }
-  }
-
-  private xor = (a: number, b: number) => {
-   return ( a || b ) && !( a && b )
   }
 }

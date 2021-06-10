@@ -68,11 +68,13 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     const promises: Promise<any>[] = []
     const l2Bridge = this.bridge as L2Bridge
     promises.push(
-      this.eventsBatch(async (start: number, end: number) => {
-        const events = await l2Bridge.getTransferSentEvents(start, end)
-        await this.handleTransferSentEvents(events)
-        //}, l2Bridge.TransferSent)
-      })
+      this.eventsBatch(
+        async (start: number, end: number) => {
+          const events = await l2Bridge.getTransferSentEvents(start, end)
+          await this.handleTransferSentEvents(events)
+        },
+        { key: l2Bridge.TransferSent }
+      )
     )
 
     await Promise.all(promises)

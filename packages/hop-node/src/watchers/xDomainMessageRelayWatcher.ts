@@ -106,12 +106,12 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     )
 
     promises.push(
-      this.l1Bridge.eventsBatch(
+      l2Bridge.eventsBatch(
         async (start: number, end: number) => {
           const events = await l2Bridge.getTransfersCommittedEvents(start, end)
           await this.handleTransfersCommittedEvents(events)
         },
-        // { key: this.l1Bridge.TransfersCommitted}
+        { key: l2Bridge.TransfersCommitted }
       )
     )
 

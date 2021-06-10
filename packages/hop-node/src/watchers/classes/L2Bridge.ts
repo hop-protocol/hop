@@ -303,9 +303,9 @@ export default class L2Bridge extends Bridge {
       deadline,
       txOverrides
     )
-    console.log('bondWithdrawalAndAttemptSwap tx:', tx.hash)
 
-    await tx.wait()
+    //console.log('bondWithdrawalAndAttemptSwap tx:', tx.hash)
+    //await tx.wait()
     return tx
   }
 }

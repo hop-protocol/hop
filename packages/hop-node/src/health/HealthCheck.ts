@@ -14,7 +14,7 @@ class HealthCheck {
 
   constructor () {
     this.logger = new Logger('HealthCheck')
-    const tokens: string[] = ['DAI', 'USDC']
+    const tokens: string[] = ['USDC', 'DAI']
     const networks: string[] = ['optimism', 'xdai']
     for (let token of tokens) {
       for (let network of networks) {
@@ -95,7 +95,12 @@ class HealthCheck {
           if (!destBridge) {
             continue
           }
-          const bondedAmount = await destBridge.getBondedWithdrawalAmount(
+          if (!config?.bonders?.length) {
+            throw new Error('bonders array is empty')
+          }
+          const bonder = config.bonders[0]
+          const bondedAmount = await destBridge.getBondedWithdrawalAmountByBonder(
+            bonder,
             transferId
           )
 
@@ -167,7 +172,7 @@ class HealthCheck {
     const destinationChain = bridge.chainIdToSlug(destinationChainId)
     const tokenSymbol = bridge.tokenSymbol
     const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`
-    this.logger.debug(`checking commit transfers ${path}`)
+    //this.logger.debug(`checking commit transfers ${path}`)
     const shouldBeCommitted = amount.gte(
       bridge.parseUnits(this.minThresholdAmount)
     )
@@ -182,14 +187,14 @@ class HealthCheck {
         }) but has not committed yet.`
       )
     }
-    this.logger.debug(`done checking commit transfers ${path}`)
+    //this.logger.debug(`done checking commit transfers ${path}`)
   }
 
   async checkTransferRootBonded (bridge: L2Bridge) {
     const sourceChain = await bridge.getChainSlug()
     const tokenSymbol = bridge.tokenSymbol
     const path = `${sourceChain}.${tokenSymbol}`
-    this.logger.debug(`check transfer root bonded ${path}`)
+    //this.logger.debug(`check transfer root bonded ${path}`)
 
     const l1Bridge = await bridge.getL1Bridge()
     const chainId = await bridge.getChainId()
@@ -208,7 +213,7 @@ class HealthCheck {
     const isConfirmed = await l1Bridge.isTransferRootIdConfirmed(
       committedTransferRootId
     )
-    if (!isConfirmed) {
+    if (isConfirmed) {
       return
     }
 
@@ -220,11 +225,12 @@ class HealthCheck {
       return
     }
 
-    const twentyMinutesAgo = DateTime.now()
-      .minus({ minutes: 20 })
+    const waitMinutes = 1
+    const timeAgo = DateTime.now()
+      .minus({ minutes: waitMinutes })
       .toSeconds()
-    // skip if committed time was less than twenty minutes ago
-    if (committedAt > twentyMinutesAgo) {
+    // skip if committed time was less than a few minutes ago
+    if (committedAt > timeAgo) {
       return
     }
 
@@ -232,20 +238,21 @@ class HealthCheck {
       committedTransferRootId
     )
     if (!isBonded) {
+      const relativeTime = DateTime.fromSeconds(committedAt).toRelative()
       this.logger.warn(
-        `(${path}) transferRootId (${committedTransferRootId}) has been committed but not bonded on L1`
+        `(${path}) transferRootId (${committedTransferRootId}) has been committed (${relativeTime}) but not bonded on L1`
       )
       return
     }
 
-    this.logger.debug(`done checking transfer bonded ${path}`)
+    //this.logger.debug(`done checking transfer bonded ${path}`)
   }
 
   async checkBondedWithdrawalSettlements (bridge: L2Bridge) {
     const sourceChain = await bridge.getChainSlug()
     const tokenSymbol = bridge.tokenSymbol
     const path = `${sourceChain}.${tokenSymbol}`
-    this.logger.debug(`checking bonded withdrawal settlements ${path}`)
+    //this.logger.debug(`checking bonded withdrawal settlements ${path}`)
 
     const endBlockNumber = await bridge.getBlockNumber()
     const startBlockNumber = endBlockNumber - 10_000
@@ -268,24 +275,43 @@ class HealthCheck {
             continue
           }
           const destinationChain = destBridge.chainIdToSlug(destinationChainId)
-          const bondedAmount = await destBridge.getBondedWithdrawalAmount(
-            transferId
-          )
-          if (bondedAmount.eq(0)) {
-            continue
-          }
           if (!config?.bonders?.length) {
             throw new Error('bonders array is empty')
           }
-          const timestamp = await destBridge.getBondedWithdrawalTimestamp(
+          const bonder = config.bonders[0]
+          /*
+          const bondedAmount = await destBridge.getBondedWithdrawalAmountByBonder(
+						bonder,
             transferId
           )
-          const bonder = config.bonders[0]
+					*/
+          /*
+					// if it's zero, then it doesn't exist or it's already been settled
+          if (bondedAmount.eq(0)) {
+            continue
+          }
+					*/
+          if (!config?.bonders?.length) {
+            throw new Error('bonders array is empty')
+          }
+          const destEndBlockNumber = await destBridge.getBlockNumber()
+          const destStartBlockNumber = destEndBlockNumber - 1_000
+          const bondEvent = await destBridge.getBondedWithdrawalEvent(
+            transferId,
+            destStartBlockNumber,
+            destEndBlockNumber
+          )
+          const timestamp = await destBridge.getEventTimestamp(bondEvent)
+          if (!timestamp) {
+            continue
+          }
+          const bondTx = await bondEvent?.getTransaction()
           bondedTransferIds.push({
             transferId,
             destinationChainId,
             bonder,
-            timestamp
+            timestamp,
+            txHash: bondTx?.hash
           })
         }
       },
@@ -342,17 +368,18 @@ class HealthCheck {
     for (let {
       transferId,
       destinationChainId,
-      timestamp
+      timestamp,
+      txHash
     } of unsettledTransferIds) {
       const bondedAt = DateTime.fromSeconds(timestamp).toRelative()
       const destinationChain = bridge.chainIdToSlug(destinationChainId)
       const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`
       this.logger.warn(
-        `(${path}) bonded transfer id (${transferId}) (bonded ${bondedAt}) has not been settled yet.`
+        `(${path}) bonded transfer id (${transferId}) (bonded ${bondedAt} ${txHash}) has not been settled yet.`
       )
     }
 
-    this.logger.debug(`checking bonded withdrawal settlements ${path}`)
+    //this.logger.debug(`done checking bonded withdrawal settlements ${path}`)
   }
 }
 

@@ -168,11 +168,26 @@ export default class Bridge extends ContractBase {
     startBlockNumber?: number,
     endBlockNumber?: number
   ): Promise<number> {
-    let match: any
+    const event = await this.getBondedWithdrawalEvent(
+      transferId,
+      startBlockNumber,
+      endBlockNumber
+    )
+    if (!event) {
+      return 0
+    }
+    return this.getEventTimestamp(event)
+  }
+
+  async getBondedWithdrawalEvent (
+    transferId: string,
+    startBlockNumber?: number,
+    endBlockNumber?: number
+  ): Promise<any> {
+    let match: any = null
     await this.eventsBatch(
       async (start: number, end: number) => {
         const events = await this.getWithdrawalBondedEvents(start, end)
-
         for (let event of events) {
           if (event.args.transferId === transferId) {
             match = event
@@ -186,11 +201,7 @@ export default class Bridge extends ContractBase {
       }
     )
 
-    if (!match) {
-      return 0
-    }
-
-    return this.getEventTimestamp(match)
+    return match
   }
 
   isTransferIdSpent (transferId: string): Promise<boolean> {

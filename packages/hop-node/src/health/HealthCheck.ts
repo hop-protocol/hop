@@ -24,31 +24,36 @@ class HealthCheck {
   commitTransfersMinThresholdAmount: number = 100
   pollIntervalSeconds: number = 20
 
-  constructor (config: Partial<Config> = {}) {
+  constructor (_config: Partial<Config> = {}) {
     this.logger = new Logger('HealthCheck')
     this.notifier = new Notifier(`watcher: HealthCheck, host: ${hostname}`)
 
-    if (config.bondWithdrawalTimeLimitMinutes) {
+    if (_config.bondWithdrawalTimeLimitMinutes) {
       this.bondWithdrawalTimeLimitMinutes =
-        config.bondWithdrawalTimeLimitMinutes
+        _config.bondWithdrawalTimeLimitMinutes
     }
-    if (config.bondTransferRootTimeLimitMinutes) {
+    if (_config.bondTransferRootTimeLimitMinutes) {
       this.bondTransferRootTimeLimitMinutes =
-        config.bondTransferRootTimeLimitMinutes
+        _config.bondTransferRootTimeLimitMinutes
     }
-    if (config.commitTransfersMinThresholdAmount) {
+    if (_config.commitTransfersMinThresholdAmount) {
       this.commitTransfersMinThresholdAmount =
-        config.commitTransfersMinThresholdAmount
+        _config.commitTransfersMinThresholdAmount
     }
-    if (config.pollIntervalSeconds) {
-      this.pollIntervalSeconds = config.pollIntervalSeconds
+    if (_config.pollIntervalSeconds) {
+      this.pollIntervalSeconds = _config.pollIntervalSeconds
     }
 
-    const tokens: string[] = ['USDC', 'DAI']
-    const networks: string[] = ['optimism', 'xdai']
+    const tokens: string[] = Object.keys(config.tokens)
+    const networks: string[] = Object.keys(config.networks).filter(
+      network => network !== Chain.Ethereum
+    )
     for (let token of tokens) {
       for (let network of networks) {
         const tokenContracts = contracts.get(token, network)
+        if (!tokenContracts) {
+          continue
+        }
         const bridgeContract = tokenContracts.l2Bridge
         const bridge = new L2Bridge(bridgeContract)
         this.bridges.push(bridge)

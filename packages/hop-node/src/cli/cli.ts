@@ -481,7 +481,7 @@ program
     'Number of minutes a transfer root should be bonded before alerting'
   )
   .option(
-    '--commit-transfers-mint-threshold-amount <number>',
+    '--commit-transfers-min-threshold-amount <number>',
     'Minimum threshold amount that triggers alert if commit transfers has not occurred'
   )
   .option(

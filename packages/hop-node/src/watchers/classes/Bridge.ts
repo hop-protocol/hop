@@ -424,41 +424,31 @@ export default class Bridge extends ContractBase {
     await this.waitTilReady()
     this.validateEventsBatchInput(options)
 
-    const { key, startBlockNumber, endBlockNumber } = options
-    let { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
-    const currentBlockNumber = await this.getBlockNumber()
-    let end = currentBlockNumber
-    let start = end - batchBlocks
-
-    if (startBlockNumber && endBlockNumber) {
-      end = endBlockNumber
-      start = startBlockNumber
-      totalBlocks = end - start
-    }
-
     let cacheKey = ''
-    if (key) {
-      cacheKey = this.getCacheKeyFromKey(this.chainId, this.address, key)
-      const state = await db.syncState.getByKey(cacheKey)
-
-      if (state?.latestBlockSynced) {
-        start = state.latestBlockSynced
-        totalBlocks = currentBlockNumber - start
-      }
+    let state
+    if (options?.key) {
+      cacheKey = this.getCacheKeyFromKey(this.chainId, this.address, options.key)
+      state = await db.syncState.getByKey(cacheKey)
     }
+
+    let {
+      start,
+      end,
+      totalBlocksInBatch,
+      batchBlocks,
+      latestBlockInBatch
+    } = await this.getBlockValues(options, state)
 
     let i = 0
-    let latestBlockSynced = end
-    if (totalBlocks <= batchBlocks) {
+    if (totalBlocksInBatch <= batchBlocks) {
       await cb(start, end, i)
     } else {
-      while (start >= currentBlockNumber - totalBlocks) {
+      while (start >= latestBlockInBatch - totalBlocksInBatch) {
         const shouldContinue = await cb(start, end, i)
         if (typeof shouldContinue === 'boolean' && !shouldContinue) {
           break
         }
 
-        latestBlockSynced = end
         end = start
         start = end - batchBlocks
         i++
@@ -467,9 +457,49 @@ export default class Bridge extends ContractBase {
 
     if (cacheKey) {
       await db.syncState.update(cacheKey, {
-        latestBlockSynced,
+        latestBlockSynced: latestBlockInBatch,
         timestamp: Date.now()
       })
+    }
+  }
+
+  private getBlockValues = async (options: any, state: any) => {
+    const { startBlockNumber, endBlockNumber } = options
+
+    let end
+    let start
+    let totalBlocksInBatch
+    let { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
+    const currentBlockNumber = await this.getBlockNumber()
+
+    if (startBlockNumber && endBlockNumber) {
+      end = endBlockNumber
+      totalBlocksInBatch = end - startBlockNumber
+      // Handle the case where the chain has less blocks than the new difference
+      start = end - Math.min(totalBlocksInBatch, batchBlocks)
+    } else if (state?.latestBlockSynced) {
+      end = currentBlockNumber
+      start = state.latestBlockSynced
+      totalBlocksInBatch = end - start
+    } else {
+      end = currentBlockNumber
+      start = end - batchBlocks
+      totalBlocksInBatch = totalBlocks
+      // Handle the case where the chain has less blocks than the total block config
+      if (end - totalBlocksInBatch < 0) {
+        totalBlocksInBatch = end
+      }
+    }
+
+    // NOTE: We do not handle the case where end minus batchBlocks is
+    // a negative, which should never happen
+
+    return {
+      start,
+      end,
+      totalBlocksInBatch,
+      batchBlocks,
+      latestBlockInBatch: end
     }
   }
 
@@ -480,18 +510,24 @@ export default class Bridge extends ContractBase {
   private validateEventsBatchInput = (options: any) => {
     const { key, startBlockNumber, endBlockNumber } = options
 
-    const isStartAndEndBlock = startBlockNumber && endBlockNumber
-    if (isStartAndEndBlock && startBlockNumber >= endBlockNumber) {
-      throw new Error('Cannot pass in a start block that is after an end block')
-    }
-
-    if (isStartAndEndBlock && key) {
-      throw new Error('A key cannot exist when a start and end block are explicitly defined')
-    }
-
     const doesOnlyStartOrEndExist = xor(startBlockNumber, endBlockNumber)
     if (doesOnlyStartOrEndExist) {
       throw new Error('If either a start or end block number exist, both must exist')
+    }
+
+    const isStartAndEndBlock = startBlockNumber && endBlockNumber
+    if (isStartAndEndBlock) {
+      if (startBlockNumber >= endBlockNumber) {
+        throw new Error('Cannot pass in an end block that is before a start block')
+      }
+
+      if (startBlockNumber < 0 || endBlockNumber < 0) {
+        throw new Error('Cannot pass in a start or end block that is less than 0')
+      }
+
+      if (key) {
+        throw new Error('A key cannot exist when a start and end block are explicitly defined')
+      }
     }
   }
 }

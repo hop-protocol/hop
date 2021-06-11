@@ -5,11 +5,4 @@ import sbtcIcon from './sbtc.svg'
 import usdcIcon from './usdc.svg'
 import wbtcIcon from './wbtc.svg'
 
-export {
-  daiIcon,
-  arbIcon,
-  sethIcon,
-  sbtcIcon,
-  usdcIcon,
-  wbtcIcon
-}
+export { daiIcon, arbIcon, sethIcon, sbtcIcon, usdcIcon, wbtcIcon }

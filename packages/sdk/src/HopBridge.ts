@@ -211,9 +211,12 @@ class HopBridge extends Base {
     } else {
       tokenSymbol = token.symbol
     }
-    const { name, symbol, decimals, image } = metadata.tokens[network][
-      tokenSymbol
-    ]
+    const {
+      name,
+      symbol,
+      decimals,
+      image
+    } = metadata.tokens[network][tokenSymbol]
     const address = this.getL2HopBridgeTokenAddress(tokenSymbol, chain)
 
     return new Token(
@@ -221,8 +224,8 @@ class HopBridge extends Base {
       chain,
       address,
       decimals,
-      symbol,
-      name,
+      `h${symbol}`,
+      `Hop ${name}`,
       image,
       this.signer
     )

@@ -231,7 +231,7 @@ const Pools: FC = () => {
           token={hopToken}
           label="Input"
           onChange={handleToken1Change}
-          title={`Hop ${hopToken?.symbol}`}
+          title={hopToken?.name}
           balance={hopBalance}
           loadingBalance={loadingHopBalance}
         />

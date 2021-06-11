@@ -118,7 +118,7 @@ const Convert: FC = () => {
               <MenuItem value={bridge.getTokenSymbol()} key={bridge.getTokenSymbol()}>
                 <SelectOption
                   value={bridge.getTokenSymbol()}
-                  icon={bridge.getTokenImageUrl()}
+                  icon={bridge.getTokenImage()}
                   label={bridge.getTokenSymbol()}
                 />
               </MenuItem>

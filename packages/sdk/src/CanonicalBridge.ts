@@ -566,7 +566,7 @@ class CanonicalBridge extends Base {
     }
 
     chain = this.toChainModel(chain)
-    const { name, symbol, decimals } = metadata.tokens[network][tokenSymbol]
+    const { name, symbol, decimals, image } = metadata.tokens[network][tokenSymbol]
     let address
     if (chain.isL1) {
       const { l1CanonicalToken } = addresses.bridges[tokenSymbol][chain.slug]
@@ -576,7 +576,7 @@ class CanonicalBridge extends Base {
       address = l2CanonicalToken
     }
 
-    return new TokenClass(network, chain, address, decimals, symbol, name)
+    return new TokenClass(network, chain, address, decimals, symbol, name, image)
   }
 
   public toHopToken (token: TToken, network: string, chain: TChain) {
@@ -591,7 +591,7 @@ class CanonicalBridge extends Base {
     } else {
       tokenSymbol = token.symbol
     }
-    const { name, symbol, decimals } = metadata.tokens[network][tokenSymbol]
+    const { name, symbol, decimals, image } = metadata.tokens[network][tokenSymbol]
     const { l2HopBridgeToken } = addresses.bridges[tokenSymbol][chain.slug]
 
     return new TokenClass(
@@ -600,7 +600,8 @@ class CanonicalBridge extends Base {
       l2HopBridgeToken,
       decimals,
       symbol,
-      name
+      name,
+      image
     )
   }
 }

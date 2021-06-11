@@ -167,7 +167,7 @@ class HopBridge extends Base {
     }
 
     chain = this.toChainModel(chain)
-    const { name, symbol, decimals } = metadata.tokens[network][tokenSymbol]
+    const { name, symbol, decimals, image } = metadata.tokens[network][tokenSymbol]
 
     let address
     if (chain.isL1) {
@@ -183,6 +183,7 @@ class HopBridge extends Base {
       decimals,
       symbol,
       name,
+      image,
       this.signer
     )
   }
@@ -205,7 +206,7 @@ class HopBridge extends Base {
     } else {
       tokenSymbol = token.symbol
     }
-    const { name, symbol, decimals } = metadata.tokens[network][tokenSymbol]
+    const { name, symbol, decimals, image } = metadata.tokens[network][tokenSymbol]
     const address = this.getL2HopBridgeTokenAddress(tokenSymbol, chain)
 
     return new Token(
@@ -215,6 +216,7 @@ class HopBridge extends Base {
       decimals,
       symbol,
       name,
+      image,
       this.signer
     )
   }
@@ -328,9 +330,8 @@ class HopBridge extends Base {
   }
 
   // ToDo: Docs
-  public getTokenImageUrl () {
-    // ToDo: Return image url
-    return ''
+  public getTokenImage () {
+    return this.getL1Token()?.image
   }
 
   // ToDo: Docs
@@ -807,6 +808,7 @@ class HopBridge extends Base {
       18,
       `${this.tokenSymbol}`,
       `${this.tokenSymbol}_LP`,
+      '',
       signer
     )
   }

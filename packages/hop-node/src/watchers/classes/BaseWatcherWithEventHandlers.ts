@@ -31,15 +31,11 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     meta: any
   ) => {
     const logger = this.logger.create({ id: transferId })
-    logger.debug('received TransferSent event')
 
     try {
       const dbTransfer = await db.transfers.getByTransferId(transferId)
       if (dbTransfer?.withdrawalBonded) {
         return
-      }
-      if (dbTransfer?.sourceChainId) {
-        //return
       }
 
       const { transactionHash, blockNumber } = meta

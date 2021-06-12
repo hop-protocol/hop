@@ -42,10 +42,6 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         //return
       }
 
-      logger.debug(`received TransferSent event`)
-      logger.debug('transfer event amount:', this.bridge.formatUnits(amount))
-      logger.debug('transferId:', chalk.bgCyan.black(transferId))
-
       const { transactionHash, blockNumber } = meta
       await this.bridge.waitSafeConfirmations()
       const sentTimestamp = await this.bridge.getBlockTimestamp(blockNumber)
@@ -54,6 +50,11 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       const l2Bridge = this.bridge as L2Bridge
       const { chainId } = await l2Bridge.decodeSendData(data)
       const sourceChainId = await l2Bridge.getChainId()
+
+      logger.debug(`received TransferSent event`)
+      logger.debug('transfer event amount:', this.bridge.formatUnits(amount))
+      logger.debug('transferId:', chalk.bgCyan.black(transferId))
+
       await db.transfers.update(transferId, {
         transferId,
         chainId,

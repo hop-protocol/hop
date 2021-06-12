@@ -204,13 +204,11 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     transferId: string
   ) => {
     const logger = this.logger.create({ id: transferId })
-    if (this.isL1) {
-      return
-    }
 
     let dbTransfer = await db.transfers.getByTransferId(transferId)
     const {
       chainId,
+      sourceChainId,
       recipient,
       amount,
       amountOutMin,
@@ -221,6 +219,10 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     } = dbTransfer
     const destL2Bridge = this.getSiblingWatcherByChainId(chainId)
       .bridge as L2Bridge
+
+    if (this.isL1 || this.bridge.chainId !== sourceChainId) {
+      return
+    }
 
     const isBonder = await destL2Bridge.isBonder()
     if (!isBonder) {

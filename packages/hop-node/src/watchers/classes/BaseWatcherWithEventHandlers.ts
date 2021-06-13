@@ -31,15 +31,11 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     meta: any
   ) => {
     const logger = this.logger.create({ id: transferId })
-    logger.debug('received TransferSent event')
 
     try {
       const dbTransfer = await db.transfers.getByTransferId(transferId)
       if (dbTransfer?.withdrawalBonded) {
         return
-      }
-      if (dbTransfer?.sourceChainId) {
-        //return
       }
 
       const { transactionHash, blockNumber } = meta
@@ -166,9 +162,16 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       const { transactionHash } = meta
       const { data } = await this.bridge.getTransaction(transactionHash)
       const l2Bridge = this.bridge as L2Bridge
-      const {
-        destinationChainId: chainId
-      } = await l2Bridge.decodeCommitTransfersData(data)
+
+      let chainId
+      const commitTransfersFunctionSig = '0x32b949a2'
+      if (data.substr(0, 10) === commitTransfersFunctionSig) {
+        const { destinationChainId } = await l2Bridge.decodeCommitTransfersData(data)
+        chainId = destinationChainId
+      } else {
+        const { chainId: destinationChainId } = await l2Bridge.decodeSendData(data)
+        chainId = destinationChainId
+      }
       const sourceChainId = await l2Bridge.getChainId()
       const destinationBridgeAddress = await this.getSiblingWatcherByChainId(
         chainId

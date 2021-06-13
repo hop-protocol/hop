@@ -99,7 +99,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     }
     const l2Bridge = this.bridge as L2Bridge
     this.bridge
-      .on(l2Bridge.TransfersCommitted,this.handleTransfersCommittedEvent)
+      .on(l2Bridge.TransfersCommitted, this.handleTransfersCommittedEvent)
       .on('error', err => {
         this.logger.error(`event watcher error: ${err.message}`)
         this.notifier.error(`event watcher error: ${err.message}`)

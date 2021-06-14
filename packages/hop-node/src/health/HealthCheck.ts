@@ -1,24 +1,59 @@
 import { BigNumber } from 'ethers'
 import contracts from 'src/contracts'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
-import { config } from 'src/config'
+import { config, hostname } from 'src/config'
 import { wait, chainIdToSlug } from 'src/utils'
+import { Notifier } from 'src/notifier'
 import Logger from 'src/logger'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 
+type Config = {
+  bondWithdrawalTimeLimitMinutes: number
+  bondTransferRootTimeLimitMinutes: number
+  commitTransfersMinThresholdAmount: number
+  pollIntervalSeconds: number
+}
+
 class HealthCheck {
   logger: Logger
+  notifier: Notifier
   bridges: L2Bridge[] = []
-  minThresholdAmount: number = 100
+  bondWithdrawalTimeLimitMinutes: number = 5
+  bondTransferRootTimeLimitMinutes: number = 5
+  commitTransfersMinThresholdAmount: number = 100
+  pollIntervalSeconds: number = 20
 
-  constructor () {
+  constructor (_config: Partial<Config> = {}) {
     this.logger = new Logger('HealthCheck')
-    const tokens: string[] = ['USDC', 'DAI']
-    const networks: string[] = ['optimism', 'xdai']
+    this.notifier = new Notifier(`watcher: HealthCheck, host: ${hostname}`)
+
+    if (_config.bondWithdrawalTimeLimitMinutes) {
+      this.bondWithdrawalTimeLimitMinutes =
+        _config.bondWithdrawalTimeLimitMinutes
+    }
+    if (_config.bondTransferRootTimeLimitMinutes) {
+      this.bondTransferRootTimeLimitMinutes =
+        _config.bondTransferRootTimeLimitMinutes
+    }
+    if (_config.commitTransfersMinThresholdAmount) {
+      this.commitTransfersMinThresholdAmount =
+        _config.commitTransfersMinThresholdAmount
+    }
+    if (_config.pollIntervalSeconds) {
+      this.pollIntervalSeconds = _config.pollIntervalSeconds
+    }
+
+    const tokens: string[] = Object.keys(config.tokens)
+    const networks: string[] = Object.keys(config.networks).filter(
+      network => network !== Chain.Ethereum
+    )
     for (let token of tokens) {
       for (let network of networks) {
         const tokenContracts = contracts.get(token, network)
+        if (!tokenContracts) {
+          continue
+        }
         const bridgeContract = tokenContracts.l2Bridge
         const bridge = new L2Bridge(bridgeContract)
         this.bridges.push(bridge)
@@ -27,12 +62,24 @@ class HealthCheck {
   }
 
   async start () {
+    this.logger.debug(
+      `config: bondWithdrawalTimeLimitMinutes: ${this.bondWithdrawalTimeLimitMinutes}`
+    )
+    this.logger.debug(
+      `config: bondTransferRootTimeLimitMinutes: ${this.bondTransferRootTimeLimitMinutes}`
+    )
+    this.logger.debug(
+      `config: commitTransfersMinThresholdAmount: ${this.commitTransfersMinThresholdAmount}`
+    )
+    this.logger.debug(
+      `config: pollIntervalSeconds: ${this.pollIntervalSeconds}`
+    )
     this.logger.debug('starting health check watcher')
     while (true) {
       try {
         await this.check()
-        this.logger.debug('waiting 20s for next poll')
-        await wait(20 * 1000)
+        this.logger.debug(`waiting ${this.pollIntervalSeconds}s for next poll`)
+        await wait(this.pollIntervalSeconds * 1000)
       } catch (err) {
         this.logger.error(`check error: ${err.message}`)
       }
@@ -76,14 +123,13 @@ class HealthCheck {
           const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`
 
           //this.logger.debug(`checking bonded withdrawals ${path}`)
-          const waitMinutes = 1
           const timestamp = await bridge.getTransferSentTimestamp(transferId)
           if (!timestamp) {
             this.logger.error('no timestamp found')
             continue
           }
           const timeAgo = DateTime.now()
-            .minus({ minutes: waitMinutes })
+            .minus({ minutes: config.bondWithdrawalTimeLimitMinutes })
             .toSeconds()
           // skip if transfer sent events are recent (in the last few minutes)
           if (timestamp > timeAgo) {
@@ -112,9 +158,9 @@ class HealthCheck {
               return
             }
             const sentAt = DateTime.fromSeconds(timestamp).toRelative()
-            this.logger.warn(
-              `(${path}) transfer id (${transferId}) (sent ${sentAt} ${tx.hash}) has not been bonded yet.`
-            )
+            const log = `(${path}) transfer id (${transferId}) (sent ${sentAt} ${tx.hash}) has not been bonded yet.`
+            this.logger.warn(log)
+            this.notifier.warn(log)
           }
 
           if (bondedAmount.eq(0)) {
@@ -174,18 +220,18 @@ class HealthCheck {
     const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`
     //this.logger.debug(`checking commit transfers ${path}`)
     const shouldBeCommitted = amount.gte(
-      bridge.parseUnits(this.minThresholdAmount)
+      bridge.parseUnits(this.commitTransfersMinThresholdAmount)
     )
     if (shouldBeCommitted) {
-      this.logger.warn(
-        `(${path}) total ${
-          pendingTransfers.length
-        } pending transfers amount (${bridge.formatUnits(
-          amount
-        )}) met min threshold (${
-          this.minThresholdAmount
-        }) but has not committed yet.`
-      )
+      const log = `(${path}) total ${
+        pendingTransfers.length
+      } pending transfers amount (${bridge.formatUnits(
+        amount
+      )}) met min threshold (${
+        this.commitTransfersMinThresholdAmount
+      }) but has not committed yet.`
+      this.logger.warn(log)
+      this.notifier.warn(log)
     }
     //this.logger.debug(`done checking commit transfers ${path}`)
   }
@@ -225,9 +271,8 @@ class HealthCheck {
       return
     }
 
-    const waitMinutes = 1
     const timeAgo = DateTime.now()
-      .minus({ minutes: waitMinutes })
+      .minus({ minutes: config.bondTransferRootTimeLimitMinutes })
       .toSeconds()
     // skip if committed time was less than a few minutes ago
     if (committedAt > timeAgo) {
@@ -374,9 +419,9 @@ class HealthCheck {
       const bondedAt = DateTime.fromSeconds(timestamp).toRelative()
       const destinationChain = bridge.chainIdToSlug(destinationChainId)
       const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`
-      this.logger.warn(
-        `(${path}) bonded transfer id (${transferId}) (bonded ${bondedAt} ${txHash}) has not been settled yet.`
-      )
+      const log = `(${path}) bonded transfer id (${transferId}) (bonded ${bondedAt} ${txHash}) has not been settled yet.`
+      this.logger.warn(log)
+      this.notifier.warn(log)
     }
 
     //this.logger.debug(`done checking bonded withdrawal settlements ${path}`)

@@ -1,11 +1,11 @@
 import '../moduleAlias'
-import { Contract, BigNumber } from 'ethers'
+import { Contract, BigNumber, Event } from 'ethers'
 import chalk from 'chalk'
 import { wait } from 'src/utils'
 import { throttle } from 'src/utils'
 import db from 'src/db'
 import MerkleTree from 'src/utils/MerkleTree'
-import BaseWatcher from './classes/BaseWatcher'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import L2Bridge from './classes/L2Bridge'
 
 export interface Config {
@@ -20,7 +20,7 @@ export interface Config {
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
 
-class CommitTransfersWatcher extends BaseWatcher {
+class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
   siblingWatchers: { [chainId: string]: CommitTransfersWatcher }
   minPendingTransfers: number = 1
   minThresholdAmount: BigNumber = BigNumber.from(0)
@@ -51,17 +51,11 @@ class CommitTransfersWatcher extends BaseWatcher {
           this.minThresholdAmount
         )}`
       )
-      await Promise.all([this.syncUp(), this.watch()])
+      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
     } catch (err) {
       this.logger.error('watcher error:', err)
       this.notifier.error(`watcher error: ${err.message}`)
     }
-  }
-
-  async stop () {
-    this.bridge.removeAllListeners()
-    this.started = false
-    this.logger.setEnabled(false)
   }
 
   async syncUp (): Promise<any> {
@@ -69,48 +63,25 @@ class CommitTransfersWatcher extends BaseWatcher {
       return
     }
 
-    const promises: Promise<any>[] = []
     this.logger.debug('syncing up events')
 
+    const promises: Promise<any>[] = []
     const l2Bridge = this.bridge as L2Bridge
     promises.push(
-      this.eventsBatch(async (start: number, end: number) => {
-        const transferSentEvents = await l2Bridge.getTransferSentEvents(
-          start,
-          end
-        )
-        for (let event of transferSentEvents) {
-          const {
-            transferId,
-            recipient,
-            amount,
-            transferNonce,
-            bonderFee,
-            index,
-            amountOutMin,
-            deadline
-          } = event.args
-          await this.handleTransferSentEvent(
-            transferId,
-            recipient,
-            amount,
-            transferNonce,
-            bonderFee,
-            index,
-            amountOutMin,
-            deadline,
-            event
-          )
-        }
-        //}, l2Bridge.TransferSent)
-      })
+      this.eventsBatch(
+        async (start: number, end: number) => {
+          const events = await l2Bridge.getTransferSentEvents(start, end)
+          await this.handleTransferSentEvents(events)
+        },
+        { key: l2Bridge.TransferSent }
+      )
     )
 
     await Promise.all(promises)
     this.logger.debug('done syncing')
 
     // re-sync every 6 hours
-    const sixHours = 6 * 60 * 60 * 1000
+    const sixHours = this.syncTimeSec
     await wait(sixHours)
     return this.syncUp()
   }
@@ -123,27 +94,58 @@ class CommitTransfersWatcher extends BaseWatcher {
     this.bridge
       .on(l2Bridge.TransferSent, this.handleTransferSentEvent)
       .on('error', err => {
-        this.logger.error('event watcher error:', err.message)
+        this.logger.error(`event watcher error: ${err.message}`)
+        this.notifier.error(`event watcher error: ${err.message}`)
         this.quit()
       })
+  }
 
+  async pollCheck () {
     while (true) {
-      if (!this.started) return
-      try {
-        const chainIds = await this.bridge.getChainIds()
-        const l2Bridge = this.bridge as L2Bridge
-        for (let chainId of chainIds) {
-          //await this.getRecentTransferIdsForCommittedRoots()
-          const pendingTransfers = await l2Bridge.getPendingTransfers(chainId)
-          if (pendingTransfers.length > 0) {
-            await this.checkTransferSent(chainId)
-          }
-        }
-      } catch (err) {
-        this.logger.error('error checking:', err.message)
-        this.notifier.error(`error checking: ${err.message}`)
+      if (!this.started) {
+        return
       }
-      await wait(10 * 1000)
+      try {
+        await this.checkTransferSentFromDb()
+      } catch (err) {
+        this.logger.error(`poll check error: ${err.message}`)
+        this.notifier.error(`poll check error: ${err.message}`)
+      }
+      await wait(this.pollTimeSec)
+    }
+  }
+
+  async handleTransferSentEvents (events: Event[]) {
+    for (let event of events) {
+      const {
+        transferId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index,
+        amountOutMin,
+        deadline
+      } = event.args
+      await this.handleTransferSentEvent(
+        transferId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index,
+        amountOutMin,
+        deadline,
+        event
+      )
+    }
+  }
+
+  async checkTransferSentFromDb () {
+    const dbTransfers = await db.transfers.getUncommittedSentTransfers()
+    for (let dbTransfer of dbTransfers) {
+      const { transferId } = dbTransfer
+      await this.checkTransferSent(transferId)
     }
   }
 
@@ -312,55 +314,6 @@ class CommitTransfersWatcher extends BaseWatcher {
       }
     }
   }, 15 * 1000)
-
-  handleTransferSentEvent = async (
-    transferId: string,
-    recipient: string,
-    amount: BigNumber,
-    transferNonce: string,
-    bonderFee: BigNumber,
-    index: string,
-    amountOutMin: BigNumber,
-    deadline: BigNumber,
-    meta: any
-  ) => {
-    const logger = this.logger.create({ id: transferId })
-    try {
-      const dbTransfer = await db.transfers.getByTransferId(transferId)
-      if (dbTransfer?.sourceChainId) {
-        //return
-      }
-
-      logger.debug(`received TransferSent event`)
-      // TODO: batch
-      const { transactionHash, blockNumber } = meta
-      const sentTimestamp = await this.bridge.getBlockTimestamp(blockNumber)
-      const { data } = await this.bridge.getTransaction(transactionHash)
-
-      const l2Bridge = this.bridge as L2Bridge
-      const { chainId } = await l2Bridge.decodeSendData(data)
-      const sourceChainId = await l2Bridge.getChainId()
-      await db.transfers.update(transferId, {
-        transferId,
-        chainId,
-        sourceChainId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        amountOutMin,
-        deadline: Number(deadline.toString()),
-        sentTxHash: transactionHash,
-        sentBlockNumber: blockNumber,
-        sentTimestamp: sentTimestamp
-      })
-    } catch (err) {
-      if (err.message !== 'cancelled') {
-        logger.error('commitTransfers tx error:', err.message)
-        this.notifier.error(`commitTransfers tx error: ${err.message}`)
-      }
-    }
-  }
 
   async getRecentTransferIdsForCommittedRoots () {
     const blockNumber = await this.bridge.getBlockNumber()

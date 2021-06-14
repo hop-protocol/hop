@@ -2,7 +2,7 @@ import '../moduleAlias'
 import { Contract, BigNumber } from 'ethers'
 import chalk from 'chalk'
 import { wait, isL1ChainId } from 'src/utils'
-import BaseWatcher from './classes/BaseWatcher'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import Bridge from './classes/Bridge'
 import L1Bridge from './classes/L1Bridge'
 import Token from './classes/Token'
@@ -19,7 +19,7 @@ export interface Config {
   dryMode?: boolean
 }
 
-class StakeWatcher extends BaseWatcher {
+class StakeWatcher extends BaseWatcherWithEventHandlers {
   siblingWatchers: { [chainId: string]: StakeWatcher }
   token: Token
   stakeMinThreshold: BigNumber = BigNumber.from(0)

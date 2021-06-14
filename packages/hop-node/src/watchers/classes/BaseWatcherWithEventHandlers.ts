@@ -173,9 +173,12 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         chainId = destinationChainId
       }
       const sourceChainId = await l2Bridge.getChainId()
-      const destinationBridgeAddress = await this.getSiblingWatcherByChainId(
-        chainId
-      ).bridge.getAddress()
+      let destinationBridgeAddress = undefined
+      if(this.hasSiblingWatcher(chainId)) {
+        destinationBridgeAddress = await this.getSiblingWatcherByChainId(
+          chainId
+        ).bridge.getAddress()
+      }
       const transferRootId = await this.bridge.getTransferRootId(
         transferRootHash,
         totalAmount

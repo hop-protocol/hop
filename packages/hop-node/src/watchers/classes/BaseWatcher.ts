@@ -79,7 +79,7 @@ class BaseWatcher extends EventEmitter {
   }
 
   hasSiblingWatcher (chainId: number): boolean {
-    return !!this.siblingWatchers[chainId]
+    return this.siblingWatchers && !!this.siblingWatchers[chainId]
   }
 
   getSiblingWatcherByChainSlug (chainSlug: string): any {

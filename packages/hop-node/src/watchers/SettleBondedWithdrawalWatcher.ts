@@ -62,28 +62,42 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
 
-    const promises: Promise<any>[] = []
-    promises.push(
-      this.eventsBatch(
+    if (!this.isL1) {
+      const l2Bridge = this.bridge as L2Bridge
+      await this.eventsBatch(
         async (start: number, end: number) => {
-          const events = await this.bridge.getTransferRootSetEvents(start, end)
-          await this.handleTransferRootSetEvents(events)
+          const events = await l2Bridge.getTransferSentEvents(start, end)
+          await this.handleTransferSentEvents(events)
         },
-        { key: this.bridge.TransferRootSet }
+        { key: l2Bridge.TransferSent }
       )
+
+      await this.eventsBatch(
+        async (start: number, end: number) => {
+          const events = await l2Bridge.getTransfersCommittedEvents(start, end)
+          await this.handleTransfersCommittedEvents(events)
+        },
+        { key: l2Bridge.TransfersCommitted }
+      )
+    }
+
+    await this.eventsBatch(
+      async (start: number, end: number) => {
+        const events = await this.bridge.getMultipleWithdrawalsSettledEvents(start, end)
+        await this.handleMultipleWithdrawalsSettledEvents(events)
+      },
+      { key: this.bridge.TransferRootSet }
     )
 
-    promises.push(
-      this.eventsBatch(
-        async (start: number, end: number) => {
-          const events = await this.bridge.getMultipleWithdrawalsSettledEvents(start, end)
-          await this.handleMultipleWithdrawalsSettledEvents(events)
-        },
-        { key: this.bridge.TransferRootSet }
-      )
+    // TODO: This should not write tx, only to DB
+    await this.eventsBatch(
+      async (start: number, end: number) => {
+        const events = await this.bridge.getTransferRootSetEvents(start, end)
+        await this.handleTransferRootSetEvents(events)
+      },
+      { key: this.bridge.TransferRootSet }
     )
 
-    await Promise.all(promises)
     this.logger.debug('done syncing')
 
     // re-sync every 6 hours
@@ -118,6 +132,44 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         this.notifier.error(`error checking: ${err.message}`)
       }
       await wait(this.pollTimeSec)
+    }
+  }
+
+  async handleTransfersCommittedEvents (events: Event[]) {
+    for (let event of events) {
+      const { rootHash, totalAmount, rootCommittedAt } = event.args
+      await this.handleTransfersCommittedEvent(
+        rootHash,
+        totalAmount,
+        rootCommittedAt,
+        event
+      )
+    }
+  }
+
+  async handleTransferSentEvents (events: Event[]) {
+    for (let event of events) {
+      const {
+        transferId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index,
+        amountOutMin,
+        deadline
+      } = event.args
+      await this.handleTransferSentEvent(
+        transferId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index,
+        amountOutMin,
+        deadline,
+        event
+      )
     }
   }
 

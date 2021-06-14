@@ -317,7 +317,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         transferRootId,
         transferRootHash
       })
-      if (!dbTransfer.transferRootId) {
+      if (!dbTransfer?.transferRootId) {
         logger.debug(
           `updated db transfer hash ${dbTransferId} to have transfer root id ${transferRootId}`
         )

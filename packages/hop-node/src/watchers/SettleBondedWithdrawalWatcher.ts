@@ -238,6 +238,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         // There is an unhandled case where there are too many blocks between two
         // TransfersCommitted events and startBlockNumber is never defined. This should
         // never happen in production.
+        if (!startBlockNumber) {
+          logger.error('Too many blocks between two TransfersCommitted events')
+          return
+        }
       }
 
       let transferIds: string[] = []

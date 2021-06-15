@@ -142,10 +142,10 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransferSentFromDb () {
-    const dbTransfers = await db.transfers.getUncommittedSentTransfers()
+    const dbTransfers = await db.transfers.getUncommittedBondedTransfers()
     for (let dbTransfer of dbTransfers) {
-      const { transferId } = dbTransfer
-      await this.checkTransferSent(transferId)
+      const { chainId } = dbTransfer
+      await this.checkTransferSent(chainId)
     }
   }
 

@@ -319,6 +319,7 @@ class HealthCheck {
           if (!destBridge) {
             continue
           }
+
           const destinationChain = destBridge.chainIdToSlug(destinationChainId)
           if (!config?.bonders?.length) {
             throw new Error('bonders array is empty')
@@ -405,6 +406,59 @@ class HealthCheck {
       })
     )
 
+    const minThresholdPercent: number = 0.5 // 50%
+    let totalBondsSettleAmounts: any = {}
+    let totals: any = {}
+    for (let { transferId, destinationChainId } of bondedTransferIds) {
+      const bonder = config.bonders[0]
+      const destBridge = this.bridges.find((bridge: L2Bridge) => {
+        return bridge.chainId === destinationChainId
+      })
+      if (!destBridge) {
+        continue
+      }
+
+      const transferBondAmount = await destBridge.getBondedWithdrawalAmountByBonder(
+        bonder,
+        transferId
+      )
+      if (!totalBondsSettleAmounts[destinationChainId]) {
+        totalBondsSettleAmounts[destinationChainId] = BigNumber.from(0)
+      }
+      totalBondsSettleAmounts[destinationChainId] = totalBondsSettleAmounts[
+        destinationChainId
+      ].add(transferBondAmount)
+    }
+
+    const needsSettlement: any = {}
+    const chainIds = await bridge.getChainIds()
+    for (let destinationChainId of chainIds) {
+      const destBridge = this.bridges.find((bridge: L2Bridge) => {
+        return bridge.chainId === destinationChainId
+      })
+      if (!destBridge) {
+        continue
+      }
+      let [credit, debit] = await Promise.all([
+        destBridge.getCredit(),
+        destBridge.getDebit()
+      ])
+
+      const totalBondsSettleAmount = totalBondsSettleAmounts[destinationChainId]
+      if (!totalBondsSettleAmount) {
+        continue
+      }
+
+      const bonderDestBridgeStakedAmount = credit.sub(debit)
+      if (
+        totalBondsSettleAmount
+          .div(bonderDestBridgeStakedAmount)
+          .gte(BigNumber.from(minThresholdPercent * 100).div(100))
+      ) {
+        needsSettlement[destinationChainId] = true
+      }
+    }
+
     const unsettledTransferIds: any[] = bondedTransferIds.filter(
       ({ transferId }) => {
         return !settledTransferIds.includes(transferId)
@@ -416,6 +470,9 @@ class HealthCheck {
       timestamp,
       txHash
     } of unsettledTransferIds) {
+      if (!needsSettlement[destinationChainId]) {
+        continue
+      }
       const bondedAt = DateTime.fromSeconds(timestamp).toRelative()
       const destinationChain = bridge.chainIdToSlug(destinationChainId)
       const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`

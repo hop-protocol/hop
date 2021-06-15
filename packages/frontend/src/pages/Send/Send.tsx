@@ -130,6 +130,10 @@ const Send: FC = () => {
     if (!toNetwork || !selectedBridge) return
     return selectedBridge.getCanonicalToken(toNetwork?.slug)
   }, [selectedBridge, toNetwork])
+  const placeholderToken = useMemo(() => {
+    if (!selectedBridge) return
+    return selectedBridge.getL1Token()
+  }, [selectedBridge])
 
   const { balance: fromBalance, loading: loadingFromBalance } = useBalance(
     sourceToken,
@@ -696,7 +700,7 @@ const Send: FC = () => {
       </div>
       <AmountSelectorCard
         value={fromTokenAmount}
-        token={sourceToken}
+        token={sourceToken ?? placeholderToken}
         label={'From'}
         onChange={value => {
           if (!value) {
@@ -722,7 +726,7 @@ const Send: FC = () => {
       </MuiButton>
       <AmountSelectorCard
         value={toTokenAmount}
-        token={destToken}
+        token={destToken ?? placeholderToken}
         label={'To (estimated)'}
         selectedNetwork={toNetwork}
         networkOptions={networks}

@@ -7,7 +7,7 @@ import wallets from 'src/wallets'
 import { signatureToVRS, packSignatures, strip0x } from 'src/utils/xdaiUtils'
 import { wait } from 'src/utils'
 import queue from 'src/decorators/queue'
-import BaseWatcher from './classes/BaseWatcher'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 
 export const getL1Amb = (token: string) => {
   const l1Wallet = wallets.getRelayer(Chain.Ethereum)
@@ -66,7 +66,7 @@ export const executeExitTx = async (event: any, token: string) => {
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
-class xDaiBridgeWatcher extends BaseWatcher {
+class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
   constructor () {
     super({
       tag: 'xDaiBridgeWatcher',

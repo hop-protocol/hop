@@ -78,9 +78,8 @@ const ConvertContext = createContext<ConvertContextProps>({
 const ConvertContextProvider: FC = ({ children }) => {
   const { provider, checkConnectedNetworkId } = useWeb3Context()
   const app = useApp()
-  const { user, networks, bridges, txConfirm, sdk, l1Network } = app
+  const { networks, selectedBridge, txConfirm, sdk, l1Network } = app
   const { pathname } = useLocation()
-  const [selectedBridge, setSelectedBridge] = useState<HopBridge>(bridges[0])
 
   const convertOptions = useMemo(() => {
     return [
@@ -130,7 +129,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
 
     fetchToken()
-  }, [user, convertOption, isForwardDirection, selectedNetwork, selectedBridge])
+  }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -139,7 +138,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
 
     fetchToken()
-  }, [user, convertOption, isForwardDirection, selectedNetwork, selectedBridge])
+  }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
 
   const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(
     sourceToken,
@@ -211,7 +210,8 @@ const ConvertContextProvider: FC = ({ children }) => {
         !Number(sourceTokenAmount) ||
         !sourceNetwork ||
         !destNetwork ||
-        !sourceToken
+        !sourceToken ||
+        !selectedBridge
       ) {
         return
       }

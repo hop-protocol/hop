@@ -289,7 +289,8 @@ const PoolsContextProvider: FC = ({ children }) => {
 
     const signer = provider?.getSigner()
     const bridge = await sdk.bridge(canonicalToken.symbol).connect(signer as Signer)
-    const saddleSwap = await bridge.getSaddleSwap(network.slug)
+    const amm = bridge.getAmm(network.slug)
+    const saddleSwap = await amm.getSaddleSwap()
     const spender = saddleSwap.address
     const parsedAmount = parseUnits(amount, canonicalToken.decimals)
     const token = isHop ? bridge.getL2HopToken(network.slug) : bridge.getCanonicalToken(network.slug)
@@ -432,7 +433,8 @@ const PoolsContextProvider: FC = ({ children }) => {
       if (!isNetworkConnected) return
 
       const bridge = sdk.bridge(canonicalToken.symbol)
-      const saddleSwap = await bridge.getSaddleSwap(selectedNetwork.slug)
+      const amm = bridge.getAmm(selectedNetwork.slug)
+      const saddleSwap = await amm.getSaddleSwap()
       const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
       const lpTokenDecimals = await lpToken.decimals
 

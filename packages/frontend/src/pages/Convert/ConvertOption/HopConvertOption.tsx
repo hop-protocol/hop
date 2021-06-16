@@ -23,11 +23,11 @@ class HopConvertOption extends ConvertOption {
     sourceNetwork: Network,
     destNetwork: Network,
     isForwardDirection: boolean,
-    token: Token,
+    l1TokenSymbol: string,
     value: string
   ) {
     const bridge = sdk
-      .bridge(token.symbol)
+      .bridge(l1TokenSymbol)
       .connect(signer as Signer)
 
     return bridge.sendHToken(
@@ -42,7 +42,7 @@ class HopConvertOption extends ConvertOption {
     sourceNetwork: Network,
     destNetwork: Network,
     isForwardDirection: boolean,
-    token: Token,
+    l1TokenSymbol: string,
     value: string
   ) {
     return BigNumber.from(value)
@@ -50,19 +50,19 @@ class HopConvertOption extends ConvertOption {
 
   async getTargetAddress (
     sdk: Hop,
-    token: Token | undefined,
+    l1TokenSymbol: string | undefined,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined
   ): Promise<string> {
-    if (!token) {
-      throw new Error('Token is required to get target address')
+    if (!l1TokenSymbol) {
+      throw new Error('Token symbol is required to get target address')
     }
 
     if (!sourceNetwork) {
       throw new Error('sourceNetwork is required to get target address')
     }
 
-    const bridge = sdk.bridge(token.symbol)
+    const bridge = sdk.bridge(l1TokenSymbol)
     if (sourceNetwork.isLayer1) {
       const l1Bridge = await bridge.getL1Bridge()
       return l1Bridge.address

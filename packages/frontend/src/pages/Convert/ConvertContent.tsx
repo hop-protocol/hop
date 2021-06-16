@@ -1,13 +1,14 @@
 import React, { FC, useEffect } from 'react'
+import { parseUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
-import MuiButton from '@material-ui/core/Button'
 import Box from '@material-ui/core/Box'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
-import Network from 'src/models/Network'
-import AmountSelectorCard from 'src/components/AmountSelectorCard'
-import { useConvert } from 'src/pages/Convert/ConvertContext'
+import MuiButton from '@material-ui/core/Button'
 import SendButton from 'src/pages/Convert/SendButton'
+import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
+import TxStatusModal from 'src/components/txStatus/TxStatusModal'
+import { useConvert } from 'src/pages/Convert/ConvertContext'
 import { normalizeNumberInput } from 'src/utils'
 
 const useStyles = makeStyles(() => ({
@@ -38,29 +39,33 @@ const Convert: FC = () => {
     destToken,
     sourceTokenAmount,
     setSourceTokenAmount,
-    setDestTokenAmount,
     destTokenAmount,
+    setDestTokenAmount,
     sourceBalance,
     loadingSourceBalance,
     destBalance,
     loadingDestBalance,
     switchDirection,
     error,
-    setError
+    setError,
+    tx,
+    setTx
   } = useConvert()
+
   useEffect(() => {
     setSourceTokenAmount('')
     setDestTokenAmount('')
   }, [setSourceTokenAmount, setDestTokenAmount])
 
-  const handleSourceTokenAmountChange = async (value: string) => {
+  const handleSourceTokenAmountChange = async (amount: string) => {
     try {
-      const amount = normalizeNumberInput(value)
-      setSourceTokenAmount(amount)
-      // ToDo: Handle set destination amount
-    } catch (err) {
-      console.error(err.message)
-    }
+      const normalizedAmount = normalizeNumberInput(amount)
+      setSourceTokenAmount(normalizedAmount)
+    } catch (err) {}
+  }
+
+  const handleTxStatusClose = () => {
+    setTx(undefined)
   }
 
   return (
@@ -93,6 +98,9 @@ const Convert: FC = () => {
         disableInput
       />
       <Alert severity="error" onClose={() => setError(undefined)} text={error} />
+      <TxStatusModal
+        onClose={handleTxStatusClose}
+        tx={tx} />
       <SendButton />
     </Box>
   )

@@ -1,7 +1,7 @@
 import ConvertOption from './ConvertOption'
 import Network from 'src/models/Network'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
-import { Signer, BigNumber } from 'ethers'
+import { Signer, BigNumber, BigNumberish } from 'ethers'
 
 class AmmConvertOption extends ConvertOption {
   readonly name: string
@@ -18,11 +18,11 @@ class AmmConvertOption extends ConvertOption {
 
   async getTargetAddress (
     sdk: Hop,
-    token: Token | undefined,
+    l1TokenSymbol: string | undefined,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined
   ): Promise<string> {
-    if (!token) {
+    if (!l1TokenSymbol) {
       throw new Error('Token is required to get target address')
     }
 
@@ -30,9 +30,10 @@ class AmmConvertOption extends ConvertOption {
       throw new Error('sourceNetwork is required to get target address')
     }
 
-    const bridge = sdk.bridge(token.symbol)
-    const amm = await bridge.getSaddleSwap(sourceNetwork.slug)
-    return amm.address
+    const bridge = sdk.bridge(l1TokenSymbol)
+    const amm = bridge.getAmm(sourceNetwork.slug)
+    const swap = await amm.getSaddleSwap()
+    return swap.address
   }
 
   async calcAmountOut (
@@ -40,10 +41,21 @@ class AmmConvertOption extends ConvertOption {
     sourceNetwork: Network,
     destNetwork: Network,
     isForwardDirection: boolean,
-    token: Token,
-    value: string
+    l1TokenSymbol: string,
+    value: BigNumberish
   ) {
-    return BigNumber.from(value)
+    const bridge = await sdk
+      .bridge(l1TokenSymbol)
+
+    const amm = bridge.getAmm(sourceNetwork.slug)
+    let amountOut
+    if (isForwardDirection) {
+      amountOut = await amm.calculateToHToken(value)
+    } else {
+      amountOut = await amm.calculateFromHToken(value)
+    }
+
+    return amountOut
   }
 
   async convert (
@@ -52,11 +64,11 @@ class AmmConvertOption extends ConvertOption {
     sourceNetwork: Network,
     destNetwork: Network,
     isForwardDirection: boolean,
-    token: Token,
+    l1TokenSymbol: string,
     value: string
   ) {
     const bridge = await sdk
-      .bridge(token.symbol)
+      .bridge(l1TokenSymbol)
       .connect(signer as Signer)
 
     const amountOutMin = 0

@@ -9,7 +9,7 @@ abstract class ConvertOption {
 
   abstract getTargetAddress (
     sdk: Hop,
-    token: Token | undefined,
+    l1TokenSymbol: string | undefined,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined
   ): Promise<string>
@@ -19,7 +19,7 @@ abstract class ConvertOption {
     sourceNetwork: Network,
     destNetwork: Network,
     isForwardDirection: boolean,
-    token: Token,
+    l1TokenSymbol: string,
     value: string
   ): Promise<any>
 
@@ -29,7 +29,7 @@ abstract class ConvertOption {
     sourceNetwork: Network,
     destNetwork: Network,
     isForwardDirection: boolean,
-    token: Token,
+    l1TokenSymbol: string,
     value: string
   ): Promise<any>
 

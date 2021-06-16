@@ -15,9 +15,7 @@ import MenuItem from '@material-ui/core/MenuItem'
 import { useApp } from 'src/contexts/AppContext'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
-import ConvertViaHopBridge from 'src/pages/Convert/ConvertViaHopBridge'
-import ConvertViaCanonicalBridge from 'src/pages/Convert/ConvertViaCanonicalBridge'
-import ConvertViaAmm from 'src/pages/Convert/ConvertViaAmm'
+import ConvertContent from 'src/pages/Convert/ConvertContent'
 import Network from 'src/models/Network'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 
@@ -135,24 +133,9 @@ const Convert: FC = () => {
           </RaisedSelect>
         </div>
       </Grid>
-      <Switch>
-        <Route path={`${path}/hop`}>
-          <div className={styles.box}>
-            <ConvertViaHopBridge />
-          </div>
-        </Route>
-        <Route path={`${path}/bridge`}>
-          <div className={styles.box}>
-            <ConvertViaCanonicalBridge />
-          </div>
-        </Route>
-        <Route path={`${path}/amm`}>
-          <div className={styles.box}>
-            <ConvertViaAmm />
-          </div>
-        </Route>
-        <Redirect to={`${path}/hop`} />
-      </Switch>
+      <div className={styles.box}>
+        <ConvertContent />
+      </div>
     </Box>
   )
 }

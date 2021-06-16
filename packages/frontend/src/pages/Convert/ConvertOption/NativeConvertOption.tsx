@@ -18,12 +18,12 @@ class NativeConvertOption extends ConvertOption {
 
   async getTargetAddress (
     sdk: Hop,
-    token: Token | undefined,
+    l1TokenSymbol: string | undefined,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined
   ): Promise<string> {
-    if (!token) {
-      throw new Error('Token is required to get target address')
+    if (!l1TokenSymbol) {
+      throw new Error('Token symbol is required to get target address')
     }
 
     if (!sourceNetwork) {
@@ -42,7 +42,7 @@ class NativeConvertOption extends ConvertOption {
     }
 
     const nativeBridge = sdk
-      .canonicalBridge(token.symbol, l2Network.slug)
+      .canonicalBridge(l1TokenSymbol, l2Network.slug)
 
     let bridgeContract: Contract
     if (sourceNetwork?.isLayer1) {
@@ -59,7 +59,7 @@ class NativeConvertOption extends ConvertOption {
     sourceNetwork: Network,
     destNetwork: Network,
     isForwardDirection: boolean,
-    token: Token,
+    l1TokenSymbol: string,
     value: string
   ) {
     return BigNumber.from(value)
@@ -71,7 +71,7 @@ class NativeConvertOption extends ConvertOption {
     sourceNetwork: Network,
     destNetwork: Network,
     isForwardDirection: boolean,
-    token: Token,
+    l1TokenSymbol: string,
     value: string
   ) {
     let l2Network: Network
@@ -82,7 +82,7 @@ class NativeConvertOption extends ConvertOption {
     }
 
     const bridge = sdk
-      .canonicalBridge(token.symbol, l2Network.slug)
+      .canonicalBridge(l1TokenSymbol, l2Network.slug)
       .connect(signer as Signer)
 
     if (sourceNetwork.isLayer1 && isForwardDirection) {

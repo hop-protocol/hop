@@ -1,6 +1,6 @@
 import React, { FC, createContext, useContext, useState, useMemo, useEffect } from 'react'
 import { BigNumber } from 'ethers'
-import { parseUnits } from 'ethers/lib/utils'
+import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { useLocation } from 'react-router-dom'
 import { HopBridge, Token } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
@@ -14,6 +14,7 @@ import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import NativeConvertOption from 'src/pages/Convert/ConvertOption/NativeConvertOption'
 import useBalance from 'src/hooks/useBalance'
+import { commafy } from 'src/utils'
 
 type ConvertContextProps = {
   convertOptions: ConvertOption[]
@@ -151,6 +152,43 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
 
+  useEffect(() => {
+    const calcAmountOut = async () => {
+      setError(undefined)
+      if (
+        !selectedBridge ||
+        !Number(sourceTokenAmount) ||
+        !sourceNetwork ||
+        !destNetwork ||
+        !sourceToken
+      ) {
+        setDestTokenAmount('')
+        return
+      }
+
+      const value = parseUnits(
+        sourceTokenAmount,
+        sourceToken.decimals
+      ).toString()
+
+      const amountOut = await convertOption.calcAmountOut(
+        sdk,
+        sourceNetwork,
+        destNetwork,
+        isForwardDirection,
+        selectedBridge.getTokenSymbol(),
+        value
+      )
+
+      let formattedAmount = formatUnits(amountOut, sourceToken.decimals)
+      formattedAmount = commafy(formattedAmount, 5)
+
+      setDestTokenAmount(formattedAmount)
+    }
+
+    calcAmountOut()
+  }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
+
   const approveTokens = async (): Promise<any> => {
     if (!sourceToken) {
       throw new Error('No source token selected')
@@ -158,7 +196,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
     const targetAddress = await convertOption.getTargetAddress(
       sdk,
-      sourceToken,
+      selectedBridge?.getTokenSymbol(),
       sourceNetwork,
       destNetwork
     )
@@ -241,6 +279,10 @@ const ConvertContextProvider: FC = ({ children }) => {
         onConfirm: async () => {
           await approveTokens()
 
+          if (!selectedBridge) {
+            throw new Error('Bridge is required to convert')
+          }
+
           if (!signer) {
             throw new Error('Signer is required to convert')
           }
@@ -255,7 +297,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             sourceNetwork,
             destNetwork,
             isForwardDirection,
-            sourceToken,
+            selectedBridge.getTokenSymbol(),
             value
           )
         }

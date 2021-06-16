@@ -1,7 +1,8 @@
 import { saddleSwapAbi } from '@hop-protocol/abi'
+import { BigNumberish } from 'ethers'
 import { Chain } from './models'
-import { TChain, TToken, TAmount, TProvider } from './types'
-import TokenClass from './Token'
+import { TokenIndex } from './constants'
+import { TChain, TAmount, TProvider } from './types'
 import Base from './Base'
 
 /**
@@ -90,7 +91,7 @@ class AMM extends Base {
   ) {
     deadline = this.normalizeDeadline(deadline)
     const amounts = [amount0Desired, amount1Desired]
-    const saddleSwap = await this.getSaddleSwap(this.chain)
+    const saddleSwap = await this.getSaddleSwap()
     return saddleSwap.addLiquidity(
       amounts,
       minToMint,
@@ -125,7 +126,7 @@ class AMM extends Base {
     deadline: number = this.defaultDeadlineSeconds
   ) {
     deadline = this.normalizeDeadline(deadline)
-    const saddleSwap = await this.getSaddleSwap(this.chain)
+    const saddleSwap = await this.getSaddleSwap()
     const amounts = [amount0Min, amount1Min]
     return saddleSwap.removeLiquidity(
       liqudityTokenAmount,
@@ -133,6 +134,16 @@ class AMM extends Base {
       deadline,
       this.txOverrides(this.chain)
     )
+  }
+
+  // ToDo: Docs
+  public async calculateToHToken (amount: BigNumberish) {
+    return this.calculateSwap(TokenIndex.CanonicalToken, TokenIndex.HopBridgeToken, amount)
+  }
+
+  // ToDo: Docs
+  public async calculateFromHToken (amount: BigNumberish) {
+    return this.calculateSwap(TokenIndex.HopBridgeToken, TokenIndex.CanonicalToken, amount)
   }
 
   /**
@@ -156,19 +167,27 @@ class AMM extends Base {
    * @param {Object} chain - Chain name or model
    * @returns {Object} Ethers contract instance.
    */
-  public async getSaddleSwap (chain: TChain) {
-    chain = this.toChainModel(chain)
+  public async getSaddleSwap () {
     const saddleSwapAddress = this.getL2SaddleSwapAddress(
       this.tokenSymbol,
-      chain
+      this.chain
     )
     if (!saddleSwapAddress) {
       throw new Error(
-        `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
+        `token "${this.tokenSymbol}" on chain "${this.chain.slug}" is unsupported`
       )
     }
-    const provider = await this.getSignerOrProvider(chain)
+    const provider = await this.getSignerOrProvider(this.chain)
     return this.getContract(saddleSwapAddress, saddleSwapAbi, provider)
+  }
+
+  private async calculateSwap (fromIndex: TokenIndex, toIndex: TokenIndex, amount: BigNumberish) {
+    const saddleSwap = await this.getSaddleSwap()
+    return saddleSwap.calculateSwap(
+      fromIndex,
+      toIndex,
+      amount
+    )
   }
 
   /**

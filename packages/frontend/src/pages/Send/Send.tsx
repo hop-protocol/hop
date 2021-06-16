@@ -13,6 +13,7 @@ import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
 import Transaction from 'src/models/Transaction'
 import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/txStatus/TxStatusModal'
+import DetailRow from 'src/components/DetailRow'
 import { BigNumber, ethers } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
@@ -737,120 +738,37 @@ const Send: FC = () => {
         disableInput
       />
       <div className={styles.details}>
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          className={styles.detailRow}
-        >
-          <Typography
-            variant="subtitle2"
-            color="textSecondary"
-            className={styles.detailLabel}
-          >
-            Rate{' '}
-            <InfoTooltip title="The rate for the token taking trade size into consideration." />
-          </Typography>
-          <Typography
-            title={`${rate}`}
-            variant="subtitle2"
-            color="textSecondary"
-          >
-            {rate === 0 ? '-' : commafy(rate, 4)}
-          </Typography>
-        </Box>
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          className={styles.detailRow}
-        >
-          <Typography
-            variant="subtitle2"
-            color="textSecondary"
-            className={styles.detailLabel}
-          >
-            Slippage Tolerance{' '}
-            <InfoTooltip title="Your transaction will revert if the price changes unfavorably by more than this percentage." />
-          </Typography>
-          <Typography
-            title={`${slippageTolerance}`}
-            variant="subtitle2"
-            color="textSecondary"
-          >
-            {slippageTolerance}%
-          </Typography>
-        </Box>
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          className={styles.detailRow}
-        >
-          <Typography
-            variant="subtitle2"
-            color="textSecondary"
-            className={styles.detailLabel}
-          >
-            Price Impact{' '}
-            <InfoTooltip title="The difference between the market price and estimated price due to trade size." />
-          </Typography>
-          <Typography
-            title={`${priceImpact}`}
-            variant="subtitle2"
-            color="textSecondary"
-          >
-            {!priceImpact
-              ? '-'
+        <DetailRow
+          title="Rate"
+          tooltip="The rate for the token taking trade size into consideration."
+          value={rate === 0 ? '-' : commafy(rate, 4)}
+        />
+        <DetailRow
+          title="Slippage Tolerance"
+          tooltip="Your transaction will revert if the price changes unfavorably by more than this percentage."
+          value={slippageTolerance ? `${slippageTolerance}%` : undefined}
+        />
+        <DetailRow
+          title="Price Impact"
+          tooltip="The difference between the market price and estimated price due to trade size."
+          value={
+            !priceImpact
+              ? undefined
               : priceImpact < 0.01
                 ? '<0.01%'
-                : `${commafy(priceImpact)}%`}
-          </Typography>
-        </Box>
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          className={styles.detailRow}
-        >
-          <Typography
-            variant="subtitle2"
-            color="textSecondary"
-            className={styles.detailLabel}
-          >
-            Minimum received{' '}
-            <InfoTooltip title="Your transaction will revert if there is a large, unfavorable price movement before it is confirmed." />
-          </Typography>
-          <Typography
-            title={`${amountOutMin}`}
-            variant="subtitle2"
-            color="textSecondary"
-          >
-            {amountOutMinDisplay ?? '-'}
-          </Typography>
-        </Box>
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          className={styles.detailRow}
-        >
-          <Typography
-            variant="subtitle2"
-            color={toNetwork?.isLayer1 ? 'primary' : 'textSecondary'}
-            className={styles.detailLabel}
-          >
-            Fee{' '}
-            <InfoTooltip title="This fee goes towards the Bonder who bonds the transfer on the destination chain." />
-          </Typography>
-          <Typography
-            title={`${feeDisplay}`}
-            variant="subtitle2"
-            color={toNetwork?.isLayer1 ? 'primary' : 'textSecondary'}
-          >
-            {feeDisplay ?? '-'}
-          </Typography>
-        </Box>
+                : `${commafy(priceImpact)}%`
+          }
+        />
+        <DetailRow
+          title="Minimum received"
+          tooltip="Your transaction will revert if there is a large, unfavorable price movement before it is confirmed."
+          value={amountOutMinDisplay}
+        />
+        <DetailRow
+          title="Fee"
+          tooltip="This fee goes towards the Bonder who bonds the transfer on the destination chain."
+          value={feeDisplay}
+        />
       </div>
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <Alert severity="warning" text={warning} />

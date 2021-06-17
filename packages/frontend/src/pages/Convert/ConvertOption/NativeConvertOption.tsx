@@ -1,5 +1,5 @@
-import { Signer, Contract, BigNumber } from 'ethers'
-import ConvertOption from './ConvertOption'
+import { Signer, Contract, BigNumber, BigNumberish } from 'ethers'
+import ConvertOption, { DetailRow } from './ConvertOption'
 import Network from 'src/models/Network'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 
@@ -112,6 +112,17 @@ class NativeConvertOption extends ConvertOption {
     } else {
       return bridge.getL1Token()
     }
+  }
+
+  async getDetails (
+    sdk: Hop,
+    amountIn: BigNumberish | undefined,
+    sourceNetwork: Network | undefined,
+    destNetwork: Network | undefined,
+    isForwardDirection: boolean,
+    l1TokenSymbol: string
+  ): Promise<DetailRow[]> {
+    return []
   }
 }
 

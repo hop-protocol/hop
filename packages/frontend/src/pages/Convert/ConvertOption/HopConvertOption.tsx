@@ -1,8 +1,7 @@
-import ConvertOption from './ConvertOption'
-import Network from 'src/models/Network'
+import { Signer, BigNumber, BigNumberish } from 'ethers'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
-import { Signer, BigNumber } from 'ethers'
-import { ZERO_ADDRESS } from 'src/constants'
+import Network from 'src/models/Network'
+import ConvertOption, { DetailRow } from './ConvertOption'
 
 class HopConvertOption extends ConvertOption {
   readonly name: string
@@ -90,6 +89,17 @@ class HopConvertOption extends ConvertOption {
     } else {
       return bridge.getL1Token()
     }
+  }
+
+  async getDetails (
+    sdk: Hop,
+    amountIn: BigNumberish | undefined,
+    sourceNetwork: Network | undefined,
+    destNetwork: Network | undefined,
+    isForwardDirection: boolean,
+    l1TokenSymbol: string
+  ): Promise<DetailRow[]> {
+    return []
   }
 }
 

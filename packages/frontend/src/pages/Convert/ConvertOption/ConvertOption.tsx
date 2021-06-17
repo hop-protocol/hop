@@ -1,6 +1,12 @@
+import { Signer, BigNumberish } from 'ethers'
 import Network from 'src/models/Network'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
-import { Signer } from 'ethers'
+
+export type DetailRow = {
+  title: string,
+  tooltip: string | undefined
+  value: string | undefined
+}
 
 abstract class ConvertOption {
   abstract readonly name: string
@@ -44,6 +50,15 @@ abstract class ConvertOption {
     network?: Network,
     bridge?: HopBridge
   ): Promise<Token | undefined>
+
+  abstract getDetails (
+    sdk: Hop,
+    amountIn: BigNumberish | undefined,
+    sourceNetwork: Network | undefined,
+    destNetwork: Network | undefined,
+    isForwardDirection: boolean,
+    l1TokenSymbol: string
+  ): Promise<DetailRow[]>
 }
 
 export default ConvertOption

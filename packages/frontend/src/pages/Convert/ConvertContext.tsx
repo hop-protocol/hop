@@ -9,7 +9,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { UINT256 } from 'src/constants'
 import logger from 'src/logger'
-import ConvertOption from 'src/pages/Convert/ConvertOption'
+import ConvertOption, { DetailRow } from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import NativeConvertOption from 'src/pages/Convert/ConvertOption/NativeConvertOption'
@@ -40,6 +40,7 @@ type ConvertContextProps = {
   destBalance: BigNumber | undefined
   loadingDestBalance: boolean
   switchDirection: () => void
+  details: DetailRow[]
   error: string | undefined
   setError: (error: string | undefined) => void
   tx: Transaction | undefined
@@ -70,6 +71,7 @@ const ConvertContext = createContext<ConvertContextProps>({
   destBalance: undefined,
   loadingDestBalance: false,
   switchDirection: () => {},
+  details: [],
   error: undefined,
   setError: (error: string | undefined) => {},
   tx: undefined,
@@ -188,6 +190,29 @@ const ConvertContextProvider: FC = ({ children }) => {
 
     calcAmountOut()
   }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
+
+  const [details, setDetails] = useState<DetailRow[]>([])
+  useEffect(() => {
+    const fetchDetails = async () => {
+      if (!selectedBridge) return []
+
+      const parsedAmount = sourceTokenAmount && sourceToken
+        ? parseUnits(sourceTokenAmount, sourceToken.decimals)
+        : undefined
+      const details = await convertOption.getDetails(
+        sdk,
+        parsedAmount,
+        sourceNetwork,
+        destNetwork,
+        isForwardDirection,
+        selectedBridge.getTokenSymbol()
+      )
+
+      setDetails(details)
+    }
+
+    fetchDetails()
+  }, [selectedBridge, sourceNetwork, sourceToken, destNetwork, sourceTokenAmount])
 
   const approveTokens = async (): Promise<any> => {
     if (!sourceToken) {
@@ -370,6 +395,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         destBalance,
         loadingDestBalance,
         switchDirection,
+        details,
         error,
         setError,
         tx,

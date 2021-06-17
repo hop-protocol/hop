@@ -1,5 +1,9 @@
 import React, { FC, useEffect } from 'react'
-import { parseUnits } from 'ethers/lib/utils'
+import {
+  Switch,
+  Route,
+  useRouteMatch
+} from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
@@ -8,10 +12,11 @@ import SendButton from 'src/pages/Convert/SendButton'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/txStatus/TxStatusModal'
+import DetailRow from 'src/components/DetailRow'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
-import { normalizeNumberInput } from 'src/utils'
+import { commafy, normalizeNumberInput } from 'src/utils'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   title: {
     marginBottom: '4.2rem'
   },
@@ -27,7 +32,14 @@ const useStyles = makeStyles(() => ({
   },
   lastSelector: {
     marginBottom: '5.4rem'
-  }
+  },
+  details: {
+    marginBottom: theme.padding.thick,
+    width: '46.0rem',
+    [theme.breakpoints.down('xs')]: {
+      width: '90%'
+    }
+  },
 }))
 
 const Convert: FC = () => {
@@ -46,11 +58,13 @@ const Convert: FC = () => {
     destBalance,
     loadingDestBalance,
     switchDirection,
+    details,
     error,
     setError,
     tx,
     setTx
   } = useConvert()
+  const { path } = useRouteMatch()
 
   useEffect(() => {
     setSourceTokenAmount('')
@@ -97,6 +111,22 @@ const Convert: FC = () => {
         loadingBalance={loadingDestBalance}
         disableInput
       />
+      <Switch>
+        <Route path={`${path}/amm`}>
+          {details.length !== 0 &&
+            <div className={styles.details}>
+              {details.map(row =>
+                <DetailRow
+                  title={row.title}
+                  tooltip={row.tooltip}
+                  value={row.value}
+                  key={row.title}
+                />
+              )}
+            </div>
+          }
+        </Route>
+      </Switch>
       <Alert severity="error" onClose={() => setError(undefined)} text={error} />
       <TxStatusModal
         onClose={handleTxStatusClose}

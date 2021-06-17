@@ -59,6 +59,7 @@ const Convert: FC = () => {
     loadingDestBalance,
     switchDirection,
     details,
+    warning,
     error,
     setError,
     tx,
@@ -111,22 +112,19 @@ const Convert: FC = () => {
         loadingBalance={loadingDestBalance}
         disableInput
       />
-      <Switch>
-        <Route path={`${path}/amm`}>
-          {details.length !== 0 &&
-            <div className={styles.details}>
-              {details.map(row =>
-                <DetailRow
-                  title={row.title}
-                  tooltip={row.tooltip}
-                  value={row.value}
-                  key={row.title}
-                />
-              )}
-            </div>
-          }
-        </Route>
-      </Switch>
+      {details.length !== 0 &&
+        <div className={styles.details}>
+          {details.map(row =>
+            <DetailRow
+              title={row.title}
+              tooltip={row.tooltip}
+              value={row.value}
+              key={row.title}
+            />
+          )}
+        </div>
+      }
+      <Alert severity="warning" text={warning} />
       <Alert severity="error" onClose={() => setError(undefined)} text={error} />
       <TxStatusModal
         onClose={handleTxStatusClose}

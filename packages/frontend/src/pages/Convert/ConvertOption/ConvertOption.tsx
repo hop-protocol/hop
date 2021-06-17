@@ -10,7 +10,8 @@ export type DetailRow = {
 
 export type SendData = {
   amountOut: BigNumber | undefined,
-  details: DetailRow[]
+  details: DetailRow[],
+  warning?: string
 }
 
 abstract class ConvertOption {

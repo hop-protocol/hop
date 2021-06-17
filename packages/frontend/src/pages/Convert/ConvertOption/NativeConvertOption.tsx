@@ -1,5 +1,5 @@
 import { Signer, Contract, BigNumber, BigNumberish } from 'ethers'
-import ConvertOption, { DetailRow } from './ConvertOption'
+import ConvertOption, { DetailRow, SendData } from './ConvertOption'
 import Network from 'src/models/Network'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 
@@ -61,7 +61,7 @@ class NativeConvertOption extends ConvertOption {
     isForwardDirection: boolean,
     l1TokenSymbol: string | undefined,
     amountIn: BigNumberish | undefined
-  ) {
+  ): Promise<SendData> {
     return {
       amountOut: BigNumber.from(amountIn),
       details: []

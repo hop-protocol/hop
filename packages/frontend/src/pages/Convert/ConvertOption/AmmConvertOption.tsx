@@ -1,9 +1,9 @@
-import ConvertOption, { DetailRow } from './ConvertOption'
 import { formatUnits } from 'ethers/lib/utils'
-import Network from 'src/models/Network'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
-import { commafy } from 'src/utils'
+import Network from 'src/models/Network'
+import { commafy, toTokenDisplay } from 'src/utils'
+import ConvertOption, { DetailRow, SendData } from './ConvertOption'
 
 class AmmConvertOption extends ConvertOption {
   readonly name: string
@@ -45,7 +45,7 @@ class AmmConvertOption extends ConvertOption {
     isForwardDirection: boolean,
     l1TokenSymbol: string | undefined,
     amountIn: BigNumberish | undefined
-  ) {
+  ): Promise<SendData> {
     if (
       !l1TokenSymbol ||
       !sourceNetwork
@@ -212,15 +212,6 @@ class AmmConvertOption extends ConvertOption {
       }
     ]
   }
-}
-
-const toTokenDisplay = (num: BigNumber, token: Token) => {
-  const formatted = commafy(
-    formatUnits(num, token.decimals),
-    4
-  )
-
-  return `${formatted} ${token.symbol}`
 }
 
 export default AmmConvertOption

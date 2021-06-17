@@ -487,7 +487,7 @@ class HopBridge extends Base {
     amountIn: BigNumberish,
     sourceChain?: TChain,
     destinationChain?: TChain
-  ) {
+  ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 

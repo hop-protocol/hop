@@ -1,7 +1,9 @@
 import { Signer, BigNumber, BigNumberish } from 'ethers'
+import { formatUnits } from 'ethers/lib/utils'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
-import ConvertOption, { DetailRow } from './ConvertOption'
+import ConvertOption, { DetailRow, SendData } from './ConvertOption'
+import { toTokenDisplay } from 'src/utils'
 
 class HopConvertOption extends ConvertOption {
   readonly name: string
@@ -43,11 +45,12 @@ class HopConvertOption extends ConvertOption {
     isForwardDirection: boolean,
     l1TokenSymbol: string | undefined,
     amountIn: BigNumberish | undefined
-  ) {
+  ): Promise<SendData> {
     if (
       !l1TokenSymbol ||
       !sourceNetwork ||
-      !destNetwork
+      !destNetwork ||
+      !amountIn
     ) {
       return {
         amountOut: undefined,
@@ -55,16 +58,39 @@ class HopConvertOption extends ConvertOption {
       }
     }
 
+    amountIn = BigNumber.from(amountIn)
     const bridge = sdk
       .bridge(l1TokenSymbol)
 
-    // const bonderFee = bridge.getBonderFee(
-    // )
-    const details: DetailRow[] = []
+    const bonderFee = await bridge.getBonderFee(
+      amountIn,
+      sourceNetwork.slug,
+      destNetwork.slug
+    )
+    let amountOut
+    let warning
+    if (amountIn.gte(bonderFee)) {
+      amountOut = amountIn.sub(bonderFee)
+    } else {
+      warning = 'Amount must be greater than the fee'
+    }
+
+    const l1Token = bridge.getL1Token()
+    let details: DetailRow[] = []
+    if (bonderFee.gt(0)) {
+      details = [
+        {
+          title: 'Fee',
+          tooltip: 'This fee covers the L1 transaction fee paid by the Bonder',
+          value: toTokenDisplay(bonderFee, l1Token)
+        }
+      ]
+    }
 
     return {
-      amountOut: BigNumber.from(amountIn),
-      details
+      amountOut,
+      details,
+      warning
     }
   }
 

@@ -41,6 +41,7 @@ type ConvertContextProps = {
   loadingDestBalance: boolean
   switchDirection: () => void
   details: DetailRow[]
+  warning: string | undefined
   error: string | undefined
   setError: (error: string | undefined) => void
   tx: Transaction | undefined
@@ -72,6 +73,7 @@ const ConvertContext = createContext<ConvertContextProps>({
   loadingDestBalance: false,
   switchDirection: () => {},
   details: [],
+  warning: undefined,
   error: undefined,
   setError: (error: string | undefined) => {},
   tx: undefined,
@@ -152,6 +154,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     destNetwork
   )
   const [details, setDetails] = useState<DetailRow[]>([])
+  const [warning, setWarning] = useState<string>()
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
 
@@ -160,7 +163,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       setError(undefined)
       if (
         !selectedBridge ||
-        !Number(sourceTokenAmount) ||
+        !sourceTokenAmount ||
         !sourceNetwork ||
         !destNetwork ||
         !sourceToken
@@ -174,7 +177,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         sourceToken.decimals
       ).toString()
 
-      const { amountOut, details } = await convertOption.getSendData(
+      const { amountOut, details, warning } = await convertOption.getSendData(
         sdk,
         sourceNetwork,
         destNetwork,
@@ -183,11 +186,15 @@ const ConvertContextProvider: FC = ({ children }) => {
         value
       )
 
-      let formattedAmount = formatUnits(amountOut, sourceToken.decimals)
-      formattedAmount = commafy(formattedAmount, 5)
+      let formattedAmount = ''
+      if (amountOut) {
+        formattedAmount = formatUnits(amountOut, sourceToken.decimals)
+        formattedAmount = commafy(formattedAmount, 5)
+      }
       setDestTokenAmount(formattedAmount)
 
       setDetails(details)
+      setWarning(warning)
     }
 
     getSendData()
@@ -375,6 +382,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         loadingDestBalance,
         switchDirection,
         details,
+        warning,
         error,
         setError,
         tx,

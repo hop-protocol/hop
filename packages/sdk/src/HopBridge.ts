@@ -1,4 +1,5 @@
 import { ethers, Signer, Contract, BigNumber, BigNumberish } from 'ethers'
+import { parseUnits } from 'ethers/lib/utils'
 import { Chain, Token as TokenModel } from './models'
 import {
   l1BridgeAbi,
@@ -12,7 +13,7 @@ import { TChain, TToken, TAmount, TProvider } from './types'
 import Base from './Base'
 import AMM from './AMM'
 import _version from './version'
-import { TokenIndex, BondTransferGasCost } from './constants'
+import { TokenIndex, BondTransferGasCost, LpFee} from './constants'
 import { addresses, metadata } from './config'
 import CoinGecko from './CoinGecko'
 import Token from './Token'
@@ -395,24 +396,24 @@ class HopBridge extends Base {
       destinationChain
     )
 
-    const canonicalToken = this.getCanonicalToken(sourceChain)
+    const sourceToken = this.getCanonicalToken(sourceChain)
+    const destToken = this.getCanonicalToken(destinationChain)
 
-    const oneBN = ethers.utils.parseUnits('1', canonicalToken.decimals)
-
-    const rateBN = amountIn.eq(0)
-      ? BigNumber.from(0)
-      : amountOutWithoutFee.mul(oneBN).div(amountIn)
-
-    const rate = Number(
-      ethers.utils.formatUnits(rateBN, canonicalToken.decimals)
+    const rate = this.getRate(
+      amountIn,
+      amountOutWithoutFee,
+      sourceToken,
+      destToken
     )
 
-    const marketRateBN = amountOutNoSlippage.mul(oneBN).div(amountInNoSlippage)
-    const marketRate = Number(
-      ethers.utils.formatUnits(marketRateBN, canonicalToken.decimals)
+    const marketRate = this.getRate(
+      amountInNoSlippage,
+      amountOutNoSlippage,
+      sourceToken,
+      destToken
     )
 
-    const priceImpact = ((marketRate - rate) / marketRate) * 100
+    const priceImpact = this.getPriceImpact(rate, marketRate)
 
     return {
       amountOut,
@@ -420,6 +421,65 @@ class HopBridge extends Base {
       priceImpact,
       bonderFee,
       requiredLiquidity: hTokenAmount
+    }
+  }
+
+  // ToDo: Docs
+  public async getAmmData (
+    chain: TChain,
+    amountIn: BigNumberish,
+    isToHToken: boolean,
+    slippageTolerance: number
+  ) {
+    chain = this.toChainModel(chain)
+    amountIn = BigNumber.from(amountIn)
+    const canonicalToken = this.getCanonicalToken(chain)
+    const hToken = this.getL2HopToken(chain)
+
+    const sourceToken = isToHToken ? canonicalToken : hToken
+    const destToken = isToHToken ? hToken : canonicalToken
+
+    const amountInNoSlippage = BigNumber.from(1000)
+    let amountOut
+    let amountOutNoSlippage
+    if (isToHToken) {
+      amountOut = await this.calcToHTokenAmount(amountIn, chain)
+      amountOutNoSlippage = await this.calcToHTokenAmount(amountInNoSlippage, chain)
+    } else {
+      amountOut = await this.calcFromHTokenAmount(amountIn, chain)
+      amountOutNoSlippage = await this.calcFromHTokenAmount(amountInNoSlippage, chain)
+    }
+
+    const rate = this.getRate(
+      amountIn,
+      amountOut,
+      sourceToken,
+      destToken
+    )
+
+    const marketRate = this.getRate(
+      amountInNoSlippage,
+      amountOutNoSlippage,
+      sourceToken,
+      destToken
+    )
+
+    const priceImpact = this.getPriceImpact(rate, marketRate)
+
+    const oneDestBN = ethers.utils.parseUnits('1', sourceToken.decimals)
+
+    const slippageToleranceBps = slippageTolerance * 100
+    const minBps = Math.ceil(10000 - slippageToleranceBps)
+    const amountOutMin = amountOut.mul(minBps).div(10000)
+
+    const lpFeeBN = parseUnits(LpFee, destToken.decimals)
+    const lpFeeAmount = amountIn.mul(lpFeeBN).div(oneDestBN)
+
+    return {
+      rate,
+      priceImpact,
+      amountOutMin,
+      lpFeeAmount
     }
   }
 
@@ -1254,6 +1314,37 @@ class HopBridge extends Base {
     )
 
     return amountOut
+  }
+
+  private getRate (
+    amountIn: BigNumber,
+    amountOut: BigNumber,
+    sourceToken: Token,
+    destToken: Token
+  ) {
+    let rateBN
+    if(amountIn.eq(0)) {
+      rateBN = BigNumber.from(0)
+    } else {
+      const oneSourceBN = ethers.utils.parseUnits('1', sourceToken.decimals)
+
+      rateBN = amountOut
+        .mul(oneSourceBN)
+        .div(amountIn)
+    }
+
+    const rate = Number(
+      ethers.utils.formatUnits(rateBN, destToken.decimals)
+    )
+
+    return rate
+  }
+
+  private getPriceImpact (
+    rate: number,
+    marketRate: number
+  ) {
+    return ((marketRate - rate) / marketRate) * 100
   }
 
   private async checkConnectedChain (signer: TProvider, chain: Chain) {

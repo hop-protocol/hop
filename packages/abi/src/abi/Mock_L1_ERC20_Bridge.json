@@ -2,8 +2,13 @@
   {
     "inputs": [
       {
+        "internalType": "contract IERC20",
+        "name": "_canonicalToken",
+        "type": "address"
+      },
+      {
         "internalType": "address[]",
-        "name": "bonders",
+        "name": "_bonders",
         "type": "address[]"
       },
       {
@@ -601,7 +606,7 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "chainId",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -882,6 +887,19 @@
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "l1CanonicalToken",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",

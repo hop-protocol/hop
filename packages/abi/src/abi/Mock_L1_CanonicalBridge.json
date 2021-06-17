@@ -5,6 +5,11 @@
         "internalType": "contract IERC20",
         "name": "_canonicalToken",
         "type": "address"
+      },
+      {
+        "internalType": "contract Mock_L1_Messenger",
+        "name": "_messenger",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -25,47 +30,11 @@
   },
   {
     "inputs": [],
-    "name": "messageSender",
+    "name": "messenger",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "contract Mock_L1_Messenger",
         "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "messageSourceChainId",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "nextMessage",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "target",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes",
-        "name": "message",
-        "type": "bytes"
-      },
-      {
-        "internalType": "address",
-        "name": "sender",
         "type": "address"
       }
     ],
@@ -83,36 +52,39 @@
         "internalType": "bytes",
         "name": "_message",
         "type": "bytes"
+      }
+    ],
+    "name": "sendMessage",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_target",
+        "type": "address"
       },
       {
         "internalType": "address",
-        "name": "_sender",
+        "name": "_recipient",
         "type": "address"
-      }
-    ],
-    "name": "receiveMessage",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "relayNextMessage",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "xDomainMessageSender",
-    "outputs": [
+      },
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isPolygon",
+        "type": "bool"
       }
     ],
-    "stateMutability": "view",
+    "name": "sendTokens",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ]

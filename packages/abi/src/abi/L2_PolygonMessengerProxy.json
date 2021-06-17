@@ -2,8 +2,8 @@
   {
     "inputs": [
       {
-        "internalType": "contract IERC20",
-        "name": "_canonicalToken",
+        "internalType": "address",
+        "name": "_fxChild",
         "type": "address"
       }
     ],
@@ -11,61 +11,64 @@
     "type": "constructor"
   },
   {
-    "inputs": [],
-    "name": "canonicalToken",
-    "outputs": [
+    "anonymous": false,
+    "inputs": [
       {
-        "internalType": "contract IERC20",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "messageSender",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "messageSourceChainId",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "nextMessage",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "target",
-        "type": "address"
-      },
-      {
+        "indexed": false,
         "internalType": "bytes",
         "name": "message",
         "type": "bytes"
-      },
+      }
+    ],
+    "name": "MessageSent",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "DEAD_ADDRESS",
+    "outputs": [
       {
         "internalType": "address",
-        "name": "sender",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "fxChild",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "fxRootTunnel",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "l2Bridge",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
         "type": "address"
       }
     ],
@@ -75,29 +78,61 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "stateId",
+        "type": "uint256"
+      },
+      {
         "internalType": "address",
-        "name": "_target",
+        "name": "rootMessageSender",
         "type": "address"
       },
       {
         "internalType": "bytes",
-        "name": "_message",
+        "name": "data",
         "type": "bytes"
-      },
-      {
-        "internalType": "address",
-        "name": "_sender",
-        "type": "address"
       }
     ],
-    "name": "receiveMessage",
+    "name": "processMessageFromRoot",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "relayNextMessage",
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "message",
+        "type": "bytes"
+      }
+    ],
+    "name": "sendCrossDomainMessage",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_fxRootTunnel",
+        "type": "address"
+      }
+    ],
+    "name": "setFxRootTunnel",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_l2Bridge",
+        "type": "address"
+      }
+    ],
+    "name": "setL2Bridge",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

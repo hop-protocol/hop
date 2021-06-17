@@ -3,7 +3,7 @@
     "inputs": [
       {
         "internalType": "address[]",
-        "name": "bonders",
+        "name": "_bonders",
         "type": "address[]"
       },
       {
@@ -601,7 +601,7 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "chainId",
+        "name": "",
         "type": "uint256"
       }
     ],

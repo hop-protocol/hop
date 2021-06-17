@@ -38,26 +38,50 @@ class AmmConvertOption extends ConvertOption {
     return swap.address
   }
 
-  async calcAmountOut (
+  async getSendData (
     sdk: Hop,
-    sourceNetwork: Network,
-    destNetwork: Network,
+    sourceNetwork: Network | undefined,
+    destNetwork: Network | undefined,
     isForwardDirection: boolean,
-    l1TokenSymbol: string,
-    value: BigNumberish
+    l1TokenSymbol: string | undefined,
+    amountIn: BigNumberish | undefined
   ) {
+    if (
+      !l1TokenSymbol ||
+      !sourceNetwork
+    ) {
+      return {
+        amountOut: undefined,
+        details: []
+      }
+    }
+
     const bridge = await sdk
       .bridge(l1TokenSymbol)
 
     const amm = bridge.getAmm(sourceNetwork.slug)
     let amountOut
-    if (isForwardDirection) {
-      amountOut = await amm.calculateToHToken(value)
-    } else {
-      amountOut = await amm.calculateFromHToken(value)
+    if (amountIn) {
+      if (isForwardDirection) {
+        amountOut = await amm.calculateToHToken(amountIn)
+      } else {
+        amountOut = await amm.calculateFromHToken(amountIn)
+      }
     }
 
-    return amountOut
+    const details = await this.getDetails(
+      sdk,
+      amountIn,
+      sourceNetwork,
+      destNetwork,
+      isForwardDirection,
+      bridge.getTokenSymbol()
+    )
+
+    return {
+      amountOut,
+      details
+    }
   }
 
   async convert (
@@ -105,7 +129,7 @@ class AmmConvertOption extends ConvertOption {
     }
   }
 
-  async getDetails (
+  private async getDetails (
     sdk: Hop,
     amountIn: BigNumberish | undefined,
     sourceNetwork: Network | undefined,

@@ -1,4 +1,4 @@
-import { Signer, BigNumberish } from 'ethers'
+import { Signer, BigNumber, BigNumberish } from 'ethers'
 import Network from 'src/models/Network'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 
@@ -6,6 +6,11 @@ export type DetailRow = {
   title: string,
   tooltip: string | undefined
   value: string | undefined
+}
+
+export type SendData = {
+  amountOut: BigNumber | undefined,
+  details: DetailRow[]
 }
 
 abstract class ConvertOption {
@@ -20,14 +25,14 @@ abstract class ConvertOption {
     destNetwork: Network | undefined
   ): Promise<string>
 
-  abstract calcAmountOut (
+  abstract getSendData (
     sdk: Hop,
-    sourceNetwork: Network,
-    destNetwork: Network,
+    sourceNetwork: Network | undefined,
+    destNetwork: Network | undefined,
     isForwardDirection: boolean,
-    l1TokenSymbol: string,
-    value: string
-  ): Promise<any>
+    l1TokenSymbol: string | undefined,
+    amountIn: BigNumberish | undefined
+  ): Promise<SendData>
 
   abstract convert(
     sdk: Hop,
@@ -36,29 +41,20 @@ abstract class ConvertOption {
     destNetwork: Network,
     isForwardDirection: boolean,
     l1TokenSymbol: string,
-    value: string
+    amountIn: BigNumberish
   ): Promise<any>
 
   abstract sourceToken (
     isForwardDirection: boolean,
-    network?: Network,
-    bridge?: HopBridge
+    network: Network | undefined,
+    bridge: HopBridge | undefined
   ): Promise<Token | undefined>
 
   abstract destToken (
     isForwardDirection: boolean,
-    network?: Network,
-    bridge?: HopBridge
+    network: Network | undefined,
+    bridge: HopBridge | undefined
   ): Promise<Token | undefined>
-
-  abstract getDetails (
-    sdk: Hop,
-    amountIn: BigNumberish | undefined,
-    sourceNetwork: Network | undefined,
-    destNetwork: Network | undefined,
-    isForwardDirection: boolean,
-    l1TokenSymbol: string
-  ): Promise<DetailRow[]>
 }
 
 export default ConvertOption

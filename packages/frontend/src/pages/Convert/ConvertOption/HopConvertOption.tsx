@@ -23,7 +23,7 @@ class HopConvertOption extends ConvertOption {
     destNetwork: Network,
     isForwardDirection: boolean,
     l1TokenSymbol: string,
-    value: string
+    value: BigNumberish
   ) {
     const bridge = sdk
       .bridge(l1TokenSymbol)
@@ -36,15 +36,36 @@ class HopConvertOption extends ConvertOption {
     )
   }
 
-  async calcAmountOut (
+  async getSendData (
     sdk: Hop,
-    sourceNetwork: Network,
-    destNetwork: Network,
+    sourceNetwork: Network | undefined,
+    destNetwork: Network | undefined,
     isForwardDirection: boolean,
-    l1TokenSymbol: string,
-    value: string
+    l1TokenSymbol: string | undefined,
+    amountIn: BigNumberish | undefined
   ) {
-    return BigNumber.from(value)
+    if (
+      !l1TokenSymbol ||
+      !sourceNetwork ||
+      !destNetwork
+    ) {
+      return {
+        amountOut: undefined,
+        details: []
+      }
+    }
+
+    const bridge = sdk
+      .bridge(l1TokenSymbol)
+
+    // const bonderFee = bridge.getBonderFee(
+    // )
+    const details: DetailRow[] = []
+
+    return {
+      amountOut: BigNumber.from(amountIn),
+      details
+    }
   }
 
   async getTargetAddress (
@@ -89,17 +110,6 @@ class HopConvertOption extends ConvertOption {
     } else {
       return bridge.getL1Token()
     }
-  }
-
-  async getDetails (
-    sdk: Hop,
-    amountIn: BigNumberish | undefined,
-    sourceNetwork: Network | undefined,
-    destNetwork: Network | undefined,
-    isForwardDirection: boolean,
-    l1TokenSymbol: string
-  ): Promise<DetailRow[]> {
-    return []
   }
 }
 

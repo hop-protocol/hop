@@ -151,11 +151,12 @@ const ConvertContextProvider: FC = ({ children }) => {
     destToken,
     destNetwork
   )
+  const [details, setDetails] = useState<DetailRow[]>([])
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
 
   useEffect(() => {
-    const calcAmountOut = async () => {
+    const getSendData = async () => {
       setError(undefined)
       if (
         !selectedBridge ||
@@ -173,7 +174,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         sourceToken.decimals
       ).toString()
 
-      const amountOut = await convertOption.calcAmountOut(
+      const { amountOut, details } = await convertOption.getSendData(
         sdk,
         sourceNetwork,
         destNetwork,
@@ -184,35 +185,13 @@ const ConvertContextProvider: FC = ({ children }) => {
 
       let formattedAmount = formatUnits(amountOut, sourceToken.decimals)
       formattedAmount = commafy(formattedAmount, 5)
-
       setDestTokenAmount(formattedAmount)
-    }
-
-    calcAmountOut()
-  }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
-
-  const [details, setDetails] = useState<DetailRow[]>([])
-  useEffect(() => {
-    const fetchDetails = async () => {
-      if (!selectedBridge) return []
-
-      const parsedAmount = sourceTokenAmount && sourceToken
-        ? parseUnits(sourceTokenAmount, sourceToken.decimals)
-        : undefined
-      const details = await convertOption.getDetails(
-        sdk,
-        parsedAmount,
-        sourceNetwork,
-        destNetwork,
-        isForwardDirection,
-        selectedBridge.getTokenSymbol()
-      )
 
       setDetails(details)
     }
 
-    fetchDetails()
-  }, [selectedBridge, sourceNetwork, sourceToken, destNetwork, sourceTokenAmount])
+    getSendData()
+  }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
 
   const approveTokens = async (): Promise<any> => {
     if (!sourceToken) {

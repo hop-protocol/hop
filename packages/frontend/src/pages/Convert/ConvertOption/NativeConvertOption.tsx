@@ -54,15 +54,18 @@ class NativeConvertOption extends ConvertOption {
     return bridgeContract.address
   }
 
-  async calcAmountOut (
+  async getSendData (
     sdk: Hop,
-    sourceNetwork: Network,
-    destNetwork: Network,
+    sourceNetwork: Network | undefined,
+    destNetwork: Network | undefined,
     isForwardDirection: boolean,
-    l1TokenSymbol: string,
-    value: string
+    l1TokenSymbol: string | undefined,
+    amountIn: BigNumberish | undefined
   ) {
-    return BigNumber.from(value)
+    return {
+      amountOut: BigNumber.from(amountIn),
+      details: []
+    }
   }
 
   async convert (
@@ -72,7 +75,7 @@ class NativeConvertOption extends ConvertOption {
     destNetwork: Network,
     isForwardDirection: boolean,
     l1TokenSymbol: string,
-    value: string
+    value: BigNumberish
   ) {
     let l2Network: Network
     if (!sourceNetwork.isLayer1) {
@@ -94,7 +97,11 @@ class NativeConvertOption extends ConvertOption {
     }
   }
 
-  async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<Token | undefined> {
+  async sourceToken (
+    isForwardDirection: boolean,
+    network: Network | undefined,
+    bridge: HopBridge | undefined
+  ): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {
@@ -104,7 +111,11 @@ class NativeConvertOption extends ConvertOption {
     }
   }
 
-  async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<Token | undefined> {
+  async destToken (
+    isForwardDirection: boolean,
+    network: Network | undefined,
+    bridge: HopBridge | undefined
+  ): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {

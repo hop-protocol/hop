@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@ethersproject/address": "5.0.8",
-    "@hop-protocol/abi": "0.0.1-beta.6",
+    "@hop-protocol/abi": "0.0.1-beta.7",
     "@hop-protocol/addresses": "0.0.1-beta.22",
     "@hop-protocol/metadata": "0.0.1-beta.5",
     "@hop-protocol/networks": "0.0.1-beta.5",

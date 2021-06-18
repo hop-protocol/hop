@@ -24,7 +24,7 @@
     "@eth-optimism/watcher": "0.0.1-alpha.9",
     "@ethersproject/experimental": "^5.0.9",
     "@ethersproject/hdnode": "^5.0.9",
-    "@hop-protocol/abi": "0.0.1-beta.6",
+    "@hop-protocol/abi": "0.0.1-beta.7",
     "@hop-protocol/addresses": "0.0.1-beta.22",
     "@hop-protocol/metadata": "0.0.1-beta.5",
     "@hop-protocol/networks": "0.0.1-beta.5",

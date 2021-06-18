@@ -18,3 +18,5 @@ export enum TokenIndex {
 }
 
 export const BondTransferGasCost = '150000'
+
+export const LpFee = '0.0004'

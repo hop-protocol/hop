@@ -18,23 +18,27 @@ export const networks: Networks = {
   ethereum: {
     networkId: kovanNetworks.ethereum.networkId.toString(),
     rpcUrls: kovanNetworks.ethereum.rpcUrls,
-    explorerUrl: kovanNetworks.ethereum.explorerUrls[0]
+    explorerUrl: kovanNetworks.ethereum.explorerUrls[0],
+    nativeBridgeUrl: kovanNetworks.ethereum.nativeBridgeUrl
   },
   /*
   arbitrum: {
     networkId: kovanNetworks.arbitrum.networkId.toString(),
     rpcUrls: kovanNetworks.arbitrum.rpcUrls,
-    explorerUrl: kovanNetworks.arbitrum.explorerUrls[0]
+    explorerUrl: kovanNetworks.arbitrum.explorerUrls[0],
+    nativeBridgeUrl: kovanNetworks.arbitrum.nativeBridgeUrl
   },
   */
   optimism: {
     networkId: kovanNetworks.optimism.networkId.toString(),
     rpcUrls: kovanNetworks.optimism.rpcUrls,
-    explorerUrl: kovanNetworks.optimism.explorerUrls[0]
+    explorerUrl: kovanNetworks.optimism.explorerUrls[0],
+    nativeBridgeUrl: kovanNetworks.optimism.nativeBridgeUrl
   },
   xdai: {
     networkId: kovanNetworks.xdai.networkId.toString(),
     rpcUrls: kovanNetworks.xdai.rpcUrls,
-    explorerUrl: kovanNetworks.xdai.explorerUrls[0]
+    explorerUrl: kovanNetworks.xdai.explorerUrls[0],
+    nativeBridgeUrl: kovanNetworks.xdai.nativeBridgeUrl
   }
 }

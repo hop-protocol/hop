@@ -6,6 +6,7 @@ import Card from '@material-ui/core/Card'
 import MuiButton from '@material-ui/core/Button'
 import Box from '@material-ui/core/Box'
 import MenuItem from '@material-ui/core/MenuItem'
+import { useApp } from 'src/contexts/AppContext'
 import Alert from 'src/components/alert/Alert'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
@@ -80,11 +81,14 @@ const useStyles = makeStyles(theme => ({
 const Pools: FC = () => {
   const styles = useStyles()
   const {
+    bridges,
+    selectedBridge,
+    setSelectedBridge
+  } = useApp()
+  const {
     networks,
-    tokens,
+    canonicalToken,
     hopToken,
-    selectedToken,
-    setSelectedToken,
     selectedNetwork,
     setSelectedNetwork,
     token0Amount,
@@ -103,18 +107,16 @@ const Pools: FC = () => {
     hopBalance,
     loadingCanonicalBalance,
     loadingHopBalance,
-    // setToken0Balance,
-    // setToken1Balance,
     error,
     setError,
     removeLiquidity
   } = usePools()
 
-  const handleTokenSelect = (event: ChangeEvent<{ value: unknown }>) => {
+  const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
-    const newSelectedToken = tokens.find(token => token.symbol === tokenSymbol)
-    if (newSelectedToken) {
-      setSelectedToken(newSelectedToken)
+    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
+    if (bridge) {
+      setSelectedBridge(bridge)
     }
   }
 
@@ -158,14 +160,6 @@ const Pools: FC = () => {
     }
   }
 
-  // const handleToken0BalanceChange = (balance: number) => {
-  //   setToken0Balance(balance)
-  // }
-
-  // const handleToken1BalanceChange = (balance: number) => {
-  //   setToken1Balance(balance)
-  // }
-
   const handleRemoveLiquidityClick = (event: any) => {
     event.preventDefault()
     removeLiquidity()
@@ -182,15 +176,15 @@ const Pools: FC = () => {
       </Box>
       <Box display="flex" alignItems="center" className={styles.tokenSelector}>
         <RaisedSelect
-          value={selectedToken?.symbol}
-          onChange={handleTokenSelect}
+          value={selectedBridge?.getTokenSymbol()}
+          onChange={handleBridgeChange}
         >
-          {tokens.map(token => (
-            <MenuItem value={token.symbol} key={token.symbol}>
+          {bridges.map(bridge => (
+            <MenuItem value={bridge.getTokenSymbol()} key={bridge.getTokenSymbol()}>
               <SelectOption
-                value={token.symbol}
-                icon={token.imageUrl}
-                label={token.symbol}
+                value={bridge.getTokenSymbol()}
+                icon={bridge.getTokenImage()}
+                label={bridge.getTokenSymbol()}
               />
             </MenuItem>
           ))}
@@ -220,10 +214,10 @@ const Pools: FC = () => {
       <Box display="flex" alignItems="center">
         <AmountSelectorCard
           value={token0Amount}
-          token={selectedToken}
+          token={canonicalToken}
           label="Input"
           onChange={handleToken0Change}
-          title={`${selectedNetwork?.name} ${selectedToken?.symbol}`}
+          title={`${selectedNetwork?.name} ${canonicalToken?.symbol}`}
           balance={canonicalBalance}
           loadingBalance={loadingCanonicalBalance}
         />
@@ -237,7 +231,7 @@ const Pools: FC = () => {
           token={hopToken}
           label="Input"
           onChange={handleToken1Change}
-          title={`Hop ${selectedToken?.symbol}`}
+          title={hopToken?.name}
           balance={hopBalance}
           loadingBalance={loadingHopBalance}
         />
@@ -257,7 +251,7 @@ const Pools: FC = () => {
               color="textSecondary"
               component="div"
             >
-              {hopToken?.symbol} per {selectedToken?.symbol}
+              {hopToken?.symbol} per {canonicalToken?.symbol}
             </Typography>
           </Box>
           <Box alignItems="center" className={styles.priceBox}>
@@ -269,7 +263,7 @@ const Pools: FC = () => {
               color="textSecondary"
               component="div"
             >
-              {selectedToken?.symbol} per {hopToken?.symbol}
+              {canonicalToken?.symbol} per {hopToken?.symbol}
             </Typography>
           </Box>
           {poolSharePercentage && (
@@ -311,7 +305,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {selectedToken?.symbol}/{hopToken?.symbol}
+                  {canonicalToken?.symbol}/{hopToken?.symbol}
                 </Typography>
                 <Typography
                   variant="subtitle1"
@@ -347,7 +341,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {selectedToken?.symbol}:
+                  {canonicalToken?.symbol}:
                 </Typography>
                 <Typography
                   variant="subtitle2"

@@ -1,11 +1,11 @@
 import React, { FC, ChangeEvent, SyntheticEvent } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
-import RaisedSelect from 'src/components/selects/RaisedSelect'
 import MenuItem from '@material-ui/core/MenuItem'
 import Box from '@material-ui/core/Box'
+import { useApp } from 'src/contexts/AppContext'
+import RaisedSelect from 'src/components/selects/RaisedSelect'
 import Alert from 'src/components/alert/Alert'
-import Token from 'src/models/Token'
 import { useFaucet } from 'src/pages/Faucet/FaucetContext'
 import Button from 'src/components/buttons/Button'
 
@@ -18,9 +18,11 @@ const useStyles = makeStyles(theme => ({
     flexDirection: 'column'
   },
   text: {
-    display: 'block',
-    marginBottom: '1rem',
-    fontSize: '2rem'
+    fontSize: '2rem',
+    marginRight: '1rem'
+  },
+  selectBox: {
+    marginBottom: '2rem',
   },
   button: {},
   alert: {
@@ -31,6 +33,7 @@ const useStyles = makeStyles(theme => ({
 
 const Faucet: FC = () => {
   const styles = useStyles()
+  const { bridges, selectedBridge, setSelectedBridge } = useApp()
   const {
     mintToken,
     mintAmount,
@@ -38,8 +41,6 @@ const Faucet: FC = () => {
     error,
     setError,
     tokens,
-    selectedToken,
-    setSelectedToken,
     selectedNetwork
   } = useFaucet()
 
@@ -49,9 +50,9 @@ const Faucet: FC = () => {
 
   const handleTokenChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
-    const token = tokens.find((token: Token) => token.symbol === tokenSymbol)
-    if (token) {
-      setSelectedToken(token)
+    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
+    if (bridge) {
+      setSelectedBridge(bridge)
     }
   }
 
@@ -73,10 +74,12 @@ const Faucet: FC = () => {
         </Typography>
       </Box>
       <Box display="flex" alignItems="center" className={styles.box}>
-        <Typography variant="body1" className={styles.text}>
-          Mint {mintAmount} {selectedNetwork?.name}
+        <Box display="flex" alignItems="center" flexDirection="row" className={styles.selectBox}>
+          <Typography variant="body1" className={styles.text}>
+            Mint {mintAmount} {selectedNetwork?.name}
+          </Typography>
           <RaisedSelect
-            value={selectedToken?.symbol}
+            value={selectedBridge?.getTokenSymbol()}
             onChange={handleTokenChange}
           >
             {tokens.map(token => (
@@ -85,7 +88,7 @@ const Faucet: FC = () => {
               </MenuItem>
             ))}
           </RaisedSelect>
-        </Typography>
+        </Box>
         <Alert
           className={styles.alert}
           severity="error"
@@ -99,7 +102,7 @@ const Faucet: FC = () => {
           highlighted
           loading={isMinting}
         >
-          Mint {selectedToken?.symbol}
+          Mint {selectedBridge?.getTokenSymbol()}
         </Button>
       </Box>
       <Box display="flex" alignItems="center" className={styles.box}>

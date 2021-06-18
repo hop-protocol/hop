@@ -1,4 +1,9 @@
 import React, { FC, useEffect } from 'react'
+import {
+  Switch,
+  Route,
+  useRouteMatch
+} from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
@@ -7,10 +12,11 @@ import SendButton from 'src/pages/Convert/SendButton'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/txStatus/TxStatusModal'
+import DetailRow from 'src/components/DetailRow'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
-import { normalizeNumberInput } from 'src/utils'
+import { commafy, normalizeNumberInput } from 'src/utils'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   title: {
     marginBottom: '4.2rem'
   },
@@ -26,50 +32,53 @@ const useStyles = makeStyles(() => ({
   },
   lastSelector: {
     marginBottom: '5.4rem'
-  }
+  },
+  details: {
+    marginBottom: theme.padding.thick,
+    width: '46.0rem',
+    [theme.breakpoints.down('xs')]: {
+      width: '90%'
+    }
+  },
 }))
 
 const Convert: FC = () => {
   const styles = useStyles()
   const {
-    selectedToken,
     sourceNetwork,
     destNetwork,
+    sourceToken,
+    destToken,
     sourceTokenAmount,
     setSourceTokenAmount,
-    setDestTokenAmount,
     destTokenAmount,
-    calcAltTokenAmount,
+    setDestTokenAmount,
     sourceBalance,
     loadingSourceBalance,
     destBalance,
     loadingDestBalance,
     switchDirection,
+    details,
+    warning,
     error,
     setError,
     tx,
     setTx
   } = useConvert()
+  const { path } = useRouteMatch()
 
   useEffect(() => {
     setSourceTokenAmount('')
     setDestTokenAmount('')
   }, [setSourceTokenAmount, setDestTokenAmount])
 
-  const handleSourceTokenAmountChange = async (value: string) => {
+  const handleSourceTokenAmountChange = async (amount: string) => {
     try {
-      const amount = normalizeNumberInput(value)
-      setSourceTokenAmount(amount)
-      setDestTokenAmount(await calcAltTokenAmount(amount))
+      const normalizedAmount = normalizeNumberInput(amount)
+      setSourceTokenAmount(normalizedAmount)
     } catch (err) {}
   }
-  const handleDestTokenAmountChange = async (value: string) => {
-    try {
-      const amount = normalizeNumberInput(value)
-      setDestTokenAmount(amount)
-      setSourceTokenAmount(await calcAltTokenAmount(amount))
-    } catch (err) {}
-  }
+
   const handleTxStatusClose = () => {
     setTx(undefined)
   }
@@ -78,7 +87,7 @@ const Convert: FC = () => {
     <Box display="flex" flexDirection="column" alignItems="center">
       <AmountSelectorCard
         value={sourceTokenAmount as string}
-        token={selectedToken}
+        token={sourceToken}
         label={'From'}
         onChange={handleSourceTokenAmountChange}
         title={sourceNetwork?.name}
@@ -95,14 +104,24 @@ const Convert: FC = () => {
       <AmountSelectorCard
         className={styles.lastSelector}
         value={destTokenAmount as string}
-        token={selectedToken}
+        token={destToken}
         label={'To'}
-        onChange={handleDestTokenAmountChange}
         title={destNetwork?.name}
         titleIconUrl={destNetwork?.imageUrl}
         balance={destBalance}
         loadingBalance={loadingDestBalance}
+        disableInput
       />
+      {details.length !== 0 &&
+        <div className={styles.details}>
+          {details.map(row =>
+            <DetailRow {...row} key={row.title} />
+          )}
+        </div>
+      }
+      <Alert severity="warning">
+        {warning}
+      </Alert>
       <Alert severity="error" onClose={() => setError(undefined)} text={error} />
       <TxStatusModal
         onClose={handleTxStatusClose}

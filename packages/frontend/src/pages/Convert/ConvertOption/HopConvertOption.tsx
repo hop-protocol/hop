@@ -1,9 +1,10 @@
-import ConvertOption from './ConvertOption'
+import { Signer, BigNumber, BigNumberish } from 'ethers'
+import { formatUnits } from 'ethers/lib/utils'
+import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
-import Token from 'src/models/Token'
-import { Hop, HopBridge, Token as SDKToken } from '@hop-protocol/sdk'
-import { Signer } from 'ethers'
-import { ZERO_ADDRESS } from 'src/constants'
+import ConvertOption, { SendData } from './ConvertOption'
+import { DetailRow } from 'src/types'
+import { toTokenDisplay } from 'src/utils'
 
 class HopConvertOption extends ConvertOption {
   readonly name: string
@@ -24,11 +25,11 @@ class HopConvertOption extends ConvertOption {
     sourceNetwork: Network,
     destNetwork: Network,
     isForwardDirection: boolean,
-    token: Token,
-    value: string
+    l1TokenSymbol: string,
+    value: BigNumberish
   ) {
     const bridge = sdk
-      .bridge(token.symbol)
+      .bridge(l1TokenSymbol)
       .connect(signer as Signer)
 
     return bridge.sendHToken(
@@ -38,21 +39,78 @@ class HopConvertOption extends ConvertOption {
     )
   }
 
+  async getSendData (
+    sdk: Hop,
+    sourceNetwork: Network | undefined,
+    destNetwork: Network | undefined,
+    isForwardDirection: boolean,
+    l1TokenSymbol: string | undefined,
+    amountIn: BigNumberish | undefined
+  ): Promise<SendData> {
+    if (
+      !l1TokenSymbol ||
+      !sourceNetwork ||
+      !destNetwork ||
+      !amountIn
+    ) {
+      return {
+        amountOut: undefined,
+        details: []
+      }
+    }
+
+    amountIn = BigNumber.from(amountIn)
+    const bridge = sdk
+      .bridge(l1TokenSymbol)
+
+    const bonderFee = await bridge.getBonderFee(
+      amountIn,
+      sourceNetwork.slug,
+      destNetwork.slug
+    )
+    let amountOut
+    let warning
+    if (amountIn.gte(bonderFee)) {
+      amountOut = amountIn.sub(bonderFee)
+    } else {
+      warning = 'Amount must be greater than the fee'
+    }
+
+    const l1Token = bridge.getL1Token()
+    let details: DetailRow[] = []
+    if (bonderFee.gt(0)) {
+      details = [
+        {
+          title: 'Fee',
+          tooltip: 'This fee covers the L1 transaction fee paid by the Bonder',
+          value: toTokenDisplay(bonderFee, l1Token),
+          highlighted: true
+        }
+      ]
+    }
+
+    return {
+      amountOut,
+      details,
+      warning
+    }
+  }
+
   async getTargetAddress (
     sdk: Hop,
-    token: SDKToken | undefined,
+    l1TokenSymbol: string | undefined,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined
   ): Promise<string> {
-    if (!token) {
-      throw new Error('Token is required to get target address')
+    if (!l1TokenSymbol) {
+      throw new Error('Token symbol is required to get target address')
     }
 
     if (!sourceNetwork) {
       throw new Error('sourceNetwork is required to get target address')
     }
 
-    const bridge = sdk.bridge(token.symbol)
+    const bridge = sdk.bridge(l1TokenSymbol)
     if (sourceNetwork.isLayer1) {
       const l1Bridge = await bridge.getL1Bridge()
       return l1Bridge.address
@@ -62,7 +120,7 @@ class HopConvertOption extends ConvertOption {
     }
   }
 
-  async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
+  async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {
@@ -72,7 +130,7 @@ class HopConvertOption extends ConvertOption {
     }
   }
 
-  async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
+  async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {

@@ -8,10 +8,10 @@ import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import MenuItem from '@material-ui/core/MenuItem'
 import Skeleton from '@material-ui/lab/Skeleton'
+import { Token } from '@hop-protocol/sdk'
 import LargeTextField from 'src/components/LargeTextField'
 import FlatSelect from 'src/components/selects/FlatSelect'
 import Network from 'src/models/Network'
-import Token from 'src/models/Token'
 import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({

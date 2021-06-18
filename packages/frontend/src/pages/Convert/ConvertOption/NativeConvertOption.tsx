@@ -1,8 +1,9 @@
-import { Signer, Contract } from 'ethers'
-import ConvertOption from './ConvertOption'
+import React from 'react'
+import { Signer, Contract, BigNumber, BigNumberish } from 'ethers'
+import ConvertOption, { SendData } from './ConvertOption'
+import { DetailRow } from 'src/types'
 import Network from 'src/models/Network'
-import Token from 'src/models/Token'
-import { Hop, HopBridge, Token as SDKToken } from '@hop-protocol/sdk'
+import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 
 class NativeConvertOption extends ConvertOption {
   readonly name: string
@@ -19,12 +20,12 @@ class NativeConvertOption extends ConvertOption {
 
   async getTargetAddress (
     sdk: Hop,
-    token: SDKToken | undefined,
+    l1TokenSymbol: string | undefined,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined
   ): Promise<string> {
-    if (!token) {
-      throw new Error('Token is required to get target address')
+    if (!l1TokenSymbol) {
+      throw new Error('Token symbol is required to get target address')
     }
 
     if (!sourceNetwork) {
@@ -42,21 +43,49 @@ class NativeConvertOption extends ConvertOption {
       l2Network = destNetwork
     }
 
-    console.log('111')
-    console.log('token.symbol: ', token.symbol)
-    console.log('l2Network.slug: ', l2Network.slug)
     const nativeBridge = sdk
-      .canonicalBridge(token.symbol, l2Network.slug)
+      .canonicalBridge(l1TokenSymbol, l2Network.slug)
 
-    console.log('222')
     let bridgeContract: Contract
     if (sourceNetwork?.isLayer1) {
       bridgeContract = await nativeBridge.getL1CanonicalBridge()
     } else {
       bridgeContract = await nativeBridge.getL2CanonicalBridge()
     }
-    console.log('bridgeContract.address: ', bridgeContract.address)
+
     return bridgeContract.address
+  }
+
+  async getSendData (
+    sdk: Hop,
+    sourceNetwork: Network | undefined,
+    destNetwork: Network | undefined,
+    isForwardDirection: boolean,
+    l1TokenSymbol: string | undefined,
+    amountIn: BigNumberish | undefined
+  ): Promise<SendData> {
+    if (destNetwork && destNetwork.isLayer1) {
+      return {
+        amountOut: undefined,
+        details: [],
+        warning: (
+          <>
+            Use the
+            {' '}
+            <a href={sourceNetwork?.nativeBridgeUrl} rel="noopener noreferrer" target="_blank">
+              native bridge UI
+            </a>
+            {' '}
+            to send to L1.
+          </>
+        )
+      }
+    }
+
+    return {
+      amountOut: BigNumber.from(amountIn),
+      details: []
+    }
   }
 
   async convert (
@@ -65,8 +94,8 @@ class NativeConvertOption extends ConvertOption {
     sourceNetwork: Network,
     destNetwork: Network,
     isForwardDirection: boolean,
-    token: Token,
-    value: string
+    l1TokenSymbol: string,
+    value: BigNumberish
   ) {
     let l2Network: Network
     if (!sourceNetwork.isLayer1) {
@@ -76,7 +105,7 @@ class NativeConvertOption extends ConvertOption {
     }
 
     const bridge = sdk
-      .canonicalBridge(token.symbol, l2Network.slug)
+      .canonicalBridge(l1TokenSymbol, l2Network.slug)
       .connect(signer as Signer)
 
     if (sourceNetwork.isLayer1 && isForwardDirection) {
@@ -88,7 +117,11 @@ class NativeConvertOption extends ConvertOption {
     }
   }
 
-  async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
+  async sourceToken (
+    isForwardDirection: boolean,
+    network: Network | undefined,
+    bridge: HopBridge | undefined
+  ): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {
@@ -98,7 +131,11 @@ class NativeConvertOption extends ConvertOption {
     }
   }
 
-  async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<SDKToken | undefined> {
+  async destToken (
+    isForwardDirection: boolean,
+    network: Network | undefined,
+    bridge: HopBridge | undefined
+  ): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {
@@ -106,6 +143,17 @@ class NativeConvertOption extends ConvertOption {
     } else {
       return bridge.getL1Token()
     }
+  }
+
+  async getDetails (
+    sdk: Hop,
+    amountIn: BigNumberish | undefined,
+    sourceNetwork: Network | undefined,
+    destNetwork: Network | undefined,
+    isForwardDirection: boolean,
+    l1TokenSymbol: string
+  ): Promise<DetailRow[]> {
+    return []
   }
 }
 

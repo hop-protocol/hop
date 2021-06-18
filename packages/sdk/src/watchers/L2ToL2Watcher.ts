@@ -109,10 +109,11 @@ class L2ToL2Watcher extends BaseWatcher {
 
   private async ammWatcher () {
     // events for token swap on L2 (ie saddle convert page on UI)
-    const amm = await this.bridge.getSaddleSwap(this.destinationChain)
+    const amm = this.bridge.getAmm(this.destinationChain)
+    const swap = await amm.getSaddleSwap()
     let startBlock = -1
     let endBlock = -1
-    const filter = amm.filters.TokenSwap()
+    const filter = swap.filters.TokenSwap()
     const handleEvent = async (...args: any[]) => {
       const event = args[args.length - 1]
       const decodedLog = event.decode(event.data, event.topics)
@@ -132,14 +133,14 @@ class L2ToL2Watcher extends BaseWatcher {
         }
         if (destBlock.timestamp - this.sourceBlock.timestamp < 500) {
           if (await this.emitDestTxEvent(destTx)) {
-            amm.off(filter, handleEvent)
+            swap.off(filter, handleEvent)
             return true
           }
         }
       }
       return false
     }
-    amm.on(filter, handleEvent)
+    swap.on(filter, handleEvent)
     return async () => {
       const blockNumber = await this.destinationChain.provider.getBlockNumber()
       if (!blockNumber) {
@@ -152,7 +153,7 @@ class L2ToL2Watcher extends BaseWatcher {
       }
       endBlock = blockNumber
       const events = (
-        (await amm.queryFilter(filter, startBlock, endBlock)) ?? []
+        (await swap.queryFilter(filter, startBlock, endBlock)) ?? []
       ).reverse()
       if (!events || !events.length) {
         return false

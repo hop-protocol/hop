@@ -26,7 +26,9 @@ type AppContextProps = {
   txHistory: TxHistory | undefined
   txConfirm: TxConfirm | undefined
   sdk: Hop
-  bridges: HopBridge[]
+  bridges: HopBridge[],
+  selectedBridge: HopBridge | undefined
+  setSelectedBridge: (bridge: HopBridge) => void
 }
 
 const AppContext = createContext<AppContextProps>({
@@ -40,7 +42,9 @@ const AppContext = createContext<AppContextProps>({
   txHistory: undefined,
   txConfirm: undefined,
   sdk: {} as Hop,
-  bridges: []
+  bridges: [],
+  selectedBridge: undefined,
+  setSelectedBridge: (bridge: HopBridge) => {}
 })
 
 const AppContextProvider: FC = ({ children }) => {
@@ -55,6 +59,7 @@ const AppContextProvider: FC = ({ children }) => {
     return new User(provider)
   }, [provider])
 
+  const sdk = useMemo(() => new Hop(network, provider?.getSigner()), [provider])
   const networks = useNetworks()
   const tokens = useTokens(networks)
   const contracts = useContracts(networks, tokens)
@@ -63,14 +68,15 @@ const AppContextProvider: FC = ({ children }) => {
   const accountDetails = useAccountDetails()
   const txConfirm = useTxConfirm()
   const l1Network = networks?.[0]
-  const sdk = useMemo(() => new Hop(network, provider?.getSigner()), [provider])
-  const bridges = useBridges(sdk)
+  const { bridges, selectedBridge, setSelectedBridge } = useBridges(sdk)
 
   return (
     <AppContext.Provider
       value={{
         sdk,
         bridges,
+        selectedBridge,
+        setSelectedBridge,
         user,
         networks,
         l1Network,

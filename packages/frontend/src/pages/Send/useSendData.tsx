@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { BigNumber } from 'ethers'
+import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
-import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import useDebounceAsync from 'src/hooks/useDebounceAsync'
 
 const useSendData = (
-  token: Token,
+  token: Token | undefined,
   slippageTolerance: number,
-  fromNetwork?: Network,
-  toNetwork?: Network,
-  fromAmount?: BigNumber
+  fromNetwork: Network | undefined,
+  toNetwork: Network | undefined,
+  fromAmount: BigNumber | undefined
 ) => {
   const { sdk } = useApp()
 
@@ -23,6 +23,7 @@ const useSendData = (
 
   const updateSendData = useCallback(
     async (isCancelled: () => boolean) => {
+      if (!token) return 0
       if (!fromNetwork) return 0
       if (!toNetwork) return 0
       if (!fromAmount) return 0
@@ -45,6 +46,7 @@ const useSendData = (
       setRequiredLiquidity(_requiredLiquidity as BigNumber)
     },
     [
+      token,
       fromNetwork,
       toNetwork,
       fromAmount,

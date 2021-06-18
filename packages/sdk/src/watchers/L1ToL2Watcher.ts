@@ -28,9 +28,10 @@ class L1ToL2Watcher extends BaseWatcher {
       this.sourceTx.data
     )
     const attemptedSwap = Number(decodedSource.deadline.toString()) > 0
-    const amm = await this.bridge.getSaddleSwap(this.destinationChain)
+    const amm = this.bridge.getAmm(this.destinationChain)
+    const swap = await amm.getSaddleSwap()
     const ambBridge = await this.bridge.getAmbBridge(Chain.xDai)
-    const ammFilter = amm.filters.TokenSwap()
+    const ammFilter = swap.filters.TokenSwap()
     const ambFilter = {
       address: this.bridge.getL2HopBridgeTokenAddress(this.token, Chain.xDai)
     }
@@ -60,7 +61,7 @@ class L1ToL2Watcher extends BaseWatcher {
       }
       if (destBlock.timestamp - sourceTimestamp < 500) {
         if (await this.emitDestTxEvent(destTx, data)) {
-          amm.off(ammFilter, handleAmmEvent)
+          swap.off(ammFilter, handleAmmEvent)
           ambBridge.off(ambFilter, handleAmmEvent)
           hToken.off(hTokenFilter, handleHTokenEvent)
           token.off(tokenFilter, handleTokenEvent)
@@ -161,8 +162,8 @@ class L1ToL2Watcher extends BaseWatcher {
       }
       endBlock = blockNumber
       if (attemptedSwap) {
-        amm.off(ammFilter, handleAmmEvent)
-        amm.on(ammFilter, handleAmmEvent)
+        swap.off(ammFilter, handleAmmEvent)
+        swap.on(ammFilter, handleAmmEvent)
 
         hToken.off(hTokenFilter, handleHTokenEvent)
         hToken.on(hTokenFilter, handleHTokenEvent)
@@ -172,7 +173,7 @@ class L1ToL2Watcher extends BaseWatcher {
         // /\ amountOut = 0
         // /\ hToken'.transfer(recip, amount)
         const events = (
-          (await amm.queryFilter(ammFilter, startBlock, endBlock)) ?? []
+          (await swap.queryFilter(ammFilter, startBlock, endBlock)) ?? []
         ).reverse()
         if (!events || !events.length) {
           return false

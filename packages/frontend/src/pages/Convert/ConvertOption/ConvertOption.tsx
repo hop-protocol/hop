@@ -1,7 +1,14 @@
+import React, { ReactNode } from 'react'
+import { Signer, BigNumber, BigNumberish } from 'ethers'
 import Network from 'src/models/Network'
-import Token from 'src/models/Token'
-import { Hop, HopBridge, Token as SDKToken } from '@hop-protocol/sdk'
-import { Signer } from 'ethers'
+import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
+import { DetailRow } from 'src/types'
+
+export type SendData = {
+  amountOut: BigNumber | undefined,
+  details: DetailRow[],
+  warning?: ReactNode
+}
 
 abstract class ConvertOption {
   abstract readonly name: string
@@ -10,10 +17,19 @@ abstract class ConvertOption {
 
   abstract getTargetAddress (
     sdk: Hop,
-    token: SDKToken | undefined,
+    l1TokenSymbol: string | undefined,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined
   ): Promise<string>
+
+  abstract getSendData (
+    sdk: Hop,
+    sourceNetwork: Network | undefined,
+    destNetwork: Network | undefined,
+    isForwardDirection: boolean,
+    l1TokenSymbol: string | undefined,
+    amountIn: BigNumberish | undefined
+  ): Promise<SendData>
 
   abstract convert(
     sdk: Hop,
@@ -21,21 +37,21 @@ abstract class ConvertOption {
     sourceNetwork: Network,
     destNetwork: Network,
     isForwardDirection: boolean,
-    token: Token,
-    value: string
+    l1TokenSymbol: string,
+    amountIn: BigNumberish
   ): Promise<any>
 
   abstract sourceToken (
     isForwardDirection: boolean,
-    network?: Network,
-    bridge?: HopBridge
-  ): Promise<SDKToken | undefined>
+    network: Network | undefined,
+    bridge: HopBridge | undefined
+  ): Promise<Token | undefined>
 
   abstract destToken (
     isForwardDirection: boolean,
-    network?: Network,
-    bridge?: HopBridge
-  ): Promise<SDKToken | undefined>
+    network: Network | undefined,
+    bridge: HopBridge | undefined
+  ): Promise<Token | undefined>
 }
 
 export default ConvertOption

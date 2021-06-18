@@ -4,7 +4,7 @@ import {
   l1BridgeAbi,
   l2BridgeAbi,
   saddleLpTokenAbi,
-  saddleSwapAbi,
+  swapAbi as saddleSwapAbi,
   l1HomeAmbNativeToErc20,
   l2AmmWrapperAbi
 } from '@hop-protocol/abi'

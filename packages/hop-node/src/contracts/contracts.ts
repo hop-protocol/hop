@@ -7,7 +7,7 @@ import {
   l1BridgeAbi,
   l2BridgeAbi,
   l2AmmWrapperAbi,
-  saddleSwapAbi
+  swapAbi as saddleSwapAbi
 } from '@hop-protocol/abi'
 
 import { config } from 'src/config'

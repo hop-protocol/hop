@@ -1,4 +1,4 @@
-import { saddleSwapAbi } from '@hop-protocol/abi'
+import { swapAbi as saddleSwapAbi } from '@hop-protocol/abi'
 import { Chain } from './models'
 import { TChain, TToken, TAmount, TProvider } from './types'
 import TokenClass from './Token'

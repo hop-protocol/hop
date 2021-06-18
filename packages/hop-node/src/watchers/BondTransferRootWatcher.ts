@@ -135,8 +135,14 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
 
   async handleTransfersCommittedEvents (events: Event[]) {
     for (let event of events) {
-      const { rootHash, totalAmount, rootCommittedAt } = event.args
+      const {
+        destinationChainId: chainId,
+        rootHash,
+        totalAmount,
+        rootCommittedAt
+      } = event.args
       await this.handleTransfersCommittedEvent(
+        chainId,
         rootHash,
         totalAmount,
         rootCommittedAt,

@@ -145,11 +145,13 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
   async handleTransfersCommittedEvents (events: Event[]) {
     for (let event of events) {
       const {
+        destinationChainId: chainId,
         rootHash: transferRootHash,
         totalAmount,
         rootCommittedAt
       } = event.args
       await this.handleTransfersCommittedEvent(
+        chainId,
         transferRootHash,
         totalAmount,
         rootCommittedAt,

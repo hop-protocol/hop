@@ -167,6 +167,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     for (let event of events) {
       const {
         transferId,
+        chainId,
         recipient,
         amount,
         transferNonce,
@@ -177,6 +178,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       } = event.args
       await this.handleTransferSentEvent(
         transferId,
+        chainId,
         recipient,
         amount,
         transferNonce,

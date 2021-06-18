@@ -119,6 +119,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     for (let event of events) {
       const {
         transferId,
+        chainId,
         recipient,
         amount,
         transferNonce,
@@ -129,6 +130,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       } = event.args
       await this.handleTransferSentEvent(
         transferId,
+        chainId,
         recipient,
         amount,
         transferNonce,

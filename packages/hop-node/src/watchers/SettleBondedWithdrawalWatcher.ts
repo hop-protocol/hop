@@ -137,8 +137,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
   async handleTransfersCommittedEvents (events: Event[]) {
     for (let event of events) {
-      const { rootHash, totalAmount, rootCommittedAt } = event.args
+      const {
+        destinationChainId: chainId,
+        rootHash,
+        totalAmount,
+        rootCommittedAt
+      } = event.args
       await this.handleTransfersCommittedEvent(
+        chainId,
         rootHash,
         totalAmount,
         rootCommittedAt,
@@ -151,6 +157,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     for (let event of events) {
       const {
         transferId,
+        chainId,
         recipient,
         amount,
         transferNonce,
@@ -161,6 +168,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       } = event.args
       await this.handleTransferSentEvent(
         transferId,
+        chainId,
         recipient,
         amount,
         transferNonce,

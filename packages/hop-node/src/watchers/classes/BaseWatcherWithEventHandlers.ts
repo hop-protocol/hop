@@ -21,6 +21,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
   public handleTransferSentEvent = async (
     transferId: string,
+    chainId: number,
     recipient: string,
     amount: BigNumber,
     transferNonce: string,
@@ -41,14 +42,13 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       const { transactionHash, blockNumber } = meta
       await this.bridge.waitSafeConfirmations()
       const sentTimestamp = await this.bridge.getBlockTimestamp(blockNumber)
-      const { data } = await this.bridge.getTransaction(transactionHash)
 
       const l2Bridge = this.bridge as L2Bridge
-      const { chainId } = await l2Bridge.decodeSendData(data)
       const sourceChainId = await l2Bridge.getChainId()
 
       logger.debug(`received TransferSent event`)
       logger.debug('transfer event amount:', this.bridge.formatUnits(amount))
+      logger.debug('chainId:', chainId)
       logger.debug('transferId:', chalk.bgCyan.black(transferId))
 
       await db.transfers.update(transferId, {
@@ -135,6 +135,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
   }
 
   handleTransfersCommittedEvent = async (
+    chainId: number,
     transferRootHash: string,
     totalAmount: BigNumber,
     committedAtBn: BigNumber,
@@ -159,19 +160,10 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       logger.debug(`committedAt:`, committedAt)
       logger.debug(`totalAmount:`, this.bridge.formatUnits(totalAmount))
       logger.debug(`transferRootHash:`, transferRootHash)
+      logger.debug(`chainId:`, chainId)
       const { transactionHash } = meta
-      const { data } = await this.bridge.getTransaction(transactionHash)
       const l2Bridge = this.bridge as L2Bridge
 
-      let chainId
-      const commitTransfersFunctionSig = '0x32b949a2'
-      if (data.substr(0, 10) === commitTransfersFunctionSig) {
-        const { destinationChainId } = await l2Bridge.decodeCommitTransfersData(data)
-        chainId = destinationChainId
-      } else {
-        const { chainId: destinationChainId } = await l2Bridge.decodeSendData(data)
-        chainId = destinationChainId
-      }
       const sourceChainId = await l2Bridge.getChainId()
       let destinationBridgeAddress = undefined
       const isExitWatcher = !this.hasSiblingWatcher(chainId)

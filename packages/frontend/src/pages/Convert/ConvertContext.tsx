@@ -9,11 +9,12 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { UINT256 } from 'src/constants'
 import logger from 'src/logger'
-import ConvertOption, { DetailRow } from 'src/pages/Convert/ConvertOption/ConvertOption'
+import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import NativeConvertOption from 'src/pages/Convert/ConvertOption/NativeConvertOption'
 import useBalance from 'src/hooks/useBalance'
+import { DetailRow } from 'src/types'
 import { commafy } from 'src/utils'
 
 type ConvertContextProps = {

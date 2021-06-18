@@ -1,5 +1,6 @@
 import { Signer, Contract, BigNumber, BigNumberish } from 'ethers'
-import ConvertOption, { DetailRow, SendData } from './ConvertOption'
+import ConvertOption, { SendData } from './ConvertOption'
+import { DetailRow } from 'src/types'
 import Network from 'src/models/Network'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 

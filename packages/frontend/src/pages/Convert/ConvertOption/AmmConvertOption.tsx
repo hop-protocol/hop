@@ -3,7 +3,8 @@ import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
 import Network from 'src/models/Network'
 import { commafy, toTokenDisplay } from 'src/utils'
-import ConvertOption, { DetailRow, SendData } from './ConvertOption'
+import ConvertOption, { SendData } from './ConvertOption'
+import { DetailRow } from 'src/types'
 
 class AmmConvertOption extends ConvertOption {
   readonly name: string

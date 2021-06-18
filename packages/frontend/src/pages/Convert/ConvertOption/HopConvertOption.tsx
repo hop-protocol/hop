@@ -2,7 +2,8 @@ import { Signer, BigNumber, BigNumberish } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
-import ConvertOption, { DetailRow, SendData } from './ConvertOption'
+import ConvertOption, { SendData } from './ConvertOption'
+import { DetailRow } from 'src/types'
 import { toTokenDisplay } from 'src/utils'
 
 class HopConvertOption extends ConvertOption {
@@ -82,7 +83,8 @@ class HopConvertOption extends ConvertOption {
         {
           title: 'Fee',
           tooltip: 'This fee covers the L1 transaction fee paid by the Bonder',
-          value: toTokenDisplay(bonderFee, l1Token)
+          value: toTokenDisplay(bonderFee, l1Token),
+          highlighted: true
         }
       ]
     }

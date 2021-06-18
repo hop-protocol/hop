@@ -1,12 +1,7 @@
 import { Signer, BigNumber, BigNumberish } from 'ethers'
 import Network from 'src/models/Network'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
-
-export type DetailRow = {
-  title: string,
-  tooltip: string | undefined
-  value: string | undefined
-}
+import { DetailRow } from 'src/types'
 
 export type SendData = {
   amountOut: BigNumber | undefined,

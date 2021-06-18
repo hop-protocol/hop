@@ -768,6 +768,7 @@ const Send: FC = () => {
           title="Fee"
           tooltip="This fee goes towards the Bonder who bonds the transfer on the destination chain."
           value={feeDisplay}
+          highlighted={toNetwork?.isLayer1}
         />
       </div>
       <Alert severity="error" onClose={() => setError(null)} text={error} />

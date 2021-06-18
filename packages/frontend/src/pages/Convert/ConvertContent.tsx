@@ -115,12 +115,7 @@ const Convert: FC = () => {
       {details.length !== 0 &&
         <div className={styles.details}>
           {details.map(row =>
-            <DetailRow
-              title={row.title}
-              tooltip={row.tooltip}
-              value={row.value}
-              key={row.title}
-            />
+            <DetailRow {...row} key={row.title} />
           )}
         </div>
       }

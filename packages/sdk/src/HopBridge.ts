@@ -13,7 +13,7 @@ import { TChain, TToken, TAmount, TProvider } from './types'
 import Base from './Base'
 import AMM from './AMM'
 import _version from './version'
-import { TokenIndex, BondTransferGasCost, LpFee} from './constants'
+import { TokenIndex, BondTransferGasCost, LpFee } from './constants'
 import { addresses, metadata } from './config'
 import CoinGecko from './CoinGecko'
 import Token from './Token'
@@ -168,12 +168,9 @@ class HopBridge extends Base {
     }
 
     chain = this.toChainModel(chain)
-    const {
-      name,
-      symbol,
-      decimals,
-      image
-    } = metadata.tokens[network][tokenSymbol]
+    const { name, symbol, decimals, image } = metadata.tokens[network][
+      tokenSymbol
+    ]
 
     let address
     if (chain.isL1) {
@@ -212,12 +209,9 @@ class HopBridge extends Base {
     } else {
       tokenSymbol = token.symbol
     }
-    const {
-      name,
-      symbol,
-      decimals,
-      image
-    } = metadata.tokens[network][tokenSymbol]
+    const { name, symbol, decimals, image } = metadata.tokens[network][
+      tokenSymbol
+    ]
     const address = this.getL2HopBridgeTokenAddress(tokenSymbol, chain)
 
     return new Token(
@@ -444,18 +438,19 @@ class HopBridge extends Base {
     let amountOutNoSlippage
     if (isToHToken) {
       amountOut = await this.calcToHTokenAmount(amountIn, chain)
-      amountOutNoSlippage = await this.calcToHTokenAmount(amountInNoSlippage, chain)
+      amountOutNoSlippage = await this.calcToHTokenAmount(
+        amountInNoSlippage,
+        chain
+      )
     } else {
       amountOut = await this.calcFromHTokenAmount(amountIn, chain)
-      amountOutNoSlippage = await this.calcFromHTokenAmount(amountInNoSlippage, chain)
+      amountOutNoSlippage = await this.calcFromHTokenAmount(
+        amountInNoSlippage,
+        chain
+      )
     }
 
-    const rate = this.getRate(
-      amountIn,
-      amountOut,
-      sourceToken,
-      destToken
-    )
+    const rate = this.getRate(amountIn, amountOut, sourceToken, destToken)
 
     const marketRate = this.getRate(
       amountInNoSlippage,
@@ -793,7 +788,7 @@ class HopBridge extends Base {
   // ToDo: Docs
   public getAmm (chain: TChain) {
     chain = this.toChainModel(chain)
-    if (chain.isL1){
+    if (chain.isL1) {
       throw new Error('No AMM exists on L1')
     }
 
@@ -1323,27 +1318,20 @@ class HopBridge extends Base {
     destToken: Token
   ) {
     let rateBN
-    if(amountIn.eq(0)) {
+    if (amountIn.eq(0)) {
       rateBN = BigNumber.from(0)
     } else {
       const oneSourceBN = ethers.utils.parseUnits('1', sourceToken.decimals)
 
-      rateBN = amountOut
-        .mul(oneSourceBN)
-        .div(amountIn)
+      rateBN = amountOut.mul(oneSourceBN).div(amountIn)
     }
 
-    const rate = Number(
-      ethers.utils.formatUnits(rateBN, destToken.decimals)
-    )
+    const rate = Number(ethers.utils.formatUnits(rateBN, destToken.decimals))
 
     return rate
   }
 
-  private getPriceImpact (
-    rate: number,
-    marketRate: number
-  ) {
+  private getPriceImpact (rate: number, marketRate: number) {
     return ((marketRate - rate) / marketRate) * 100
   }
 

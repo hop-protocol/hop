@@ -138,12 +138,20 @@ class AMM extends Base {
 
   // ToDo: Docs
   public async calculateToHToken (amount: BigNumberish) {
-    return this.calculateSwap(TokenIndex.CanonicalToken, TokenIndex.HopBridgeToken, amount)
+    return this.calculateSwap(
+      TokenIndex.CanonicalToken,
+      TokenIndex.HopBridgeToken,
+      amount
+    )
   }
 
   // ToDo: Docs
   public async calculateFromHToken (amount: BigNumberish) {
-    return this.calculateSwap(TokenIndex.HopBridgeToken, TokenIndex.CanonicalToken, amount)
+    return this.calculateSwap(
+      TokenIndex.HopBridgeToken,
+      TokenIndex.CanonicalToken,
+      amount
+    )
   }
 
   /**
@@ -181,13 +189,13 @@ class AMM extends Base {
     return this.getContract(saddleSwapAddress, saddleSwapAbi, provider)
   }
 
-  private async calculateSwap (fromIndex: TokenIndex, toIndex: TokenIndex, amount: BigNumberish) {
+  private async calculateSwap (
+    fromIndex: TokenIndex,
+    toIndex: TokenIndex,
+    amount: BigNumberish
+  ) {
     const saddleSwap = await this.getSaddleSwap()
-    return saddleSwap.calculateSwap(
-      fromIndex,
-      toIndex,
-      amount
-    )
+    return saddleSwap.calculateSwap(fromIndex, toIndex, amount)
   }
 
   /**

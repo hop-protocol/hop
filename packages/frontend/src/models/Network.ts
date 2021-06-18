@@ -12,6 +12,7 @@ export type NetworkProps = {
   nativeTokenSymbol: string
   requiresGas: boolean
   isLayer1?: boolean
+  nativeBridgeUrl?: string
 }
 
 class Network {
@@ -24,6 +25,7 @@ class Network {
   readonly nativeTokenSymbol: string
   readonly requiresGas: boolean
   readonly isLayer1: boolean
+  readonly nativeBridgeUrl: string | undefined
 
   constructor (props: NetworkProps) {
     this.name = props.name
@@ -35,6 +37,7 @@ class Network {
     this.nativeTokenSymbol = props.nativeTokenSymbol
     this.requiresGas = props.requiresGas
     this.isLayer1 = props.isLayer1 ? props.isLayer1 : false
+    this.nativeBridgeUrl = props.nativeBridgeUrl
   }
 
   toString () {

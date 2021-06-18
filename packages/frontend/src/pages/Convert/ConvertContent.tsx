@@ -119,7 +119,9 @@ const Convert: FC = () => {
           )}
         </div>
       }
-      <Alert severity="warning" text={warning} />
+      <Alert severity="warning">
+        {warning}
+      </Alert>
       <Alert severity="error" onClose={() => setError(undefined)} text={error} />
       <TxStatusModal
         onClose={handleTxStatusClose}

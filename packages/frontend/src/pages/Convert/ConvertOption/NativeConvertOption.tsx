@@ -1,3 +1,4 @@
+import React from 'react'
 import { Signer, Contract, BigNumber, BigNumberish } from 'ethers'
 import ConvertOption, { SendData } from './ConvertOption'
 import { DetailRow } from 'src/types'
@@ -63,6 +64,24 @@ class NativeConvertOption extends ConvertOption {
     l1TokenSymbol: string | undefined,
     amountIn: BigNumberish | undefined
   ): Promise<SendData> {
+    if (destNetwork && destNetwork.isLayer1) {
+      return {
+        amountOut: undefined,
+        details: [],
+        warning: (
+          <>
+            Use the
+            {' '}
+            <a href={sourceNetwork?.nativeBridgeUrl} rel="noopener noreferrer" target="_blank">
+              native bridge UI
+            </a>
+            {' '}
+            to send to L1.
+          </>
+        )
+      }
+    }
+
     return {
       amountOut: BigNumber.from(amountIn),
       details: []

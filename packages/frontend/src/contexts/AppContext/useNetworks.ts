@@ -21,7 +21,8 @@ const useNetworks = () => {
           networkId: net.networkId,
           nativeTokenSymbol: meta.nativeTokenSymbol,
           requiresGas: meta.requiresGas,
-          isLayer1: meta.isLayer1
+          isLayer1: meta.isLayer1,
+          nativeBridgeUrl: net.nativeBridgeUrl
         })
       )
     }

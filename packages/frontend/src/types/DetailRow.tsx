@@ -1,4 +1,4 @@
-export type DetailRow = {
+type DetailRow = {
   title: string,
   tooltip: string | undefined
   value: string | undefined

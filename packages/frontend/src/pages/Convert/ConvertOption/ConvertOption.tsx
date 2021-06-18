@@ -1,3 +1,4 @@
+import React, { ReactNode } from 'react'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
 import Network from 'src/models/Network'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
@@ -6,7 +7,7 @@ import { DetailRow } from 'src/types'
 export type SendData = {
   amountOut: BigNumber | undefined,
   details: DetailRow[],
-  warning?: string
+  warning?: ReactNode
 }
 
 abstract class ConvertOption {

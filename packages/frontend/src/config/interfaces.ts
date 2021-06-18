@@ -33,6 +33,7 @@ export type Networks = {
   [key: string]: {
     networkId: string
     rpcUrls: string[]
-    explorerUrl: string
+    explorerUrl: string,
+    nativeBridgeUrl?: string
   }
 }

@@ -1,4 +1,12 @@
-import React, { FC, createContext, useContext, useState, useMemo, useEffect } from 'react'
+import React, {
+  FC,
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useEffect,
+  ReactNode
+} from 'react'
 import { BigNumber } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { useLocation } from 'react-router-dom'
@@ -42,7 +50,7 @@ type ConvertContextProps = {
   loadingDestBalance: boolean
   switchDirection: () => void
   details: DetailRow[]
-  warning: string | undefined
+  warning: ReactNode | undefined
   error: string | undefined
   setError: (error: string | undefined) => void
   tx: Transaction | undefined
@@ -155,7 +163,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     destNetwork
   )
   const [details, setDetails] = useState<DetailRow[]>([])
-  const [warning, setWarning] = useState<string>()
+  const [warning, setWarning] = useState<ReactNode>()
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
 

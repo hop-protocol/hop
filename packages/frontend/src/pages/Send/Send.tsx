@@ -108,6 +108,7 @@ const Send: FC = () => {
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
   const [sending, setSending] = useState<boolean>(false)
+  // ToDo: Remove these
   const [slippageTolerance, setSlippageTolerance] = useState<number>(0.5)
   const [deadlineMinutes, setDeadlineMinutes] = useState<number>(20)
   const [feeDisplay, setFeeDisplay] = useState<string>()

@@ -27,6 +27,8 @@ class BaseWatcher extends EventEmitter {
   notifier: Notifier
   order: () => number = () => 0
   started: boolean = false
+  pollTimeSec: number = 10 * 1000
+  syncTimeSec: number = 6 * 60 * 60 * 1000
 
   isL1: boolean
   bridge: L2Bridge | L1Bridge
@@ -71,11 +73,13 @@ class BaseWatcher extends EventEmitter {
   }
 
   async stop (): Promise<void> {
-    this.logger.warn('not implemented: implement in child class')
+    this.bridge.removeAllListeners()
+    this.started = false
+    this.logger.setEnabled(false)
   }
 
   hasSiblingWatcher (chainId: number): boolean {
-    return !!this.siblingWatchers[chainId]
+    return this.siblingWatchers && !!this.siblingWatchers[chainId]
   }
 
   getSiblingWatcherByChainSlug (chainSlug: string): any {
@@ -102,9 +106,11 @@ class BaseWatcher extends EventEmitter {
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
     options: EventsBatchOptions = {}
   ) {
-    const modifiedOptions = Object.assign(options, {
-      key: `${this.tag}:${options?.key || ''}`
-    })
+    let key = ''
+    if (options?.key) {
+      key = `${this.tag}:${options?.key || ''}`
+    }
+    const modifiedOptions = Object.assign(options, { key })
     return this.bridge.eventsBatch(cb, modifiedOptions)
   }
 

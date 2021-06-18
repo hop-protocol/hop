@@ -8,10 +8,10 @@ import { Chain } from 'src/constants'
 import { config } from 'src/config'
 import wallets from 'src/wallets'
 import { wait } from 'src/utils'
-import BaseWatcher from './classes/BaseWatcher'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import queue from 'src/decorators/queue'
 
-class PolygonBridgeWatcher extends BaseWatcher {
+class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
   l1Provider: any
   l2Provider: any
   l1Wallet: any

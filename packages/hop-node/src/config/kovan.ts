@@ -4,4 +4,4 @@ import { Networks } from './types'
 
 const addresses = kovanAddresses.bridges
 const bonders = kovanAddresses.bonders
-export { addresses, networks }
+export { addresses, networks, bonders }

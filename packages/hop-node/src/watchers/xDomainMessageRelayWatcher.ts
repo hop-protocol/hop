@@ -1,10 +1,10 @@
 import '../moduleAlias'
-import { ethers } from 'ethers'
+import { ethers, Event } from 'ethers'
 import chalk from 'chalk'
 import { wait, getRpcUrls } from 'src/utils'
 import db from 'src/db'
 import { Contract, BigNumber } from 'ethers'
-import BaseWatcher from './classes/BaseWatcher'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import { Chain } from 'src/constants'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
@@ -23,7 +23,7 @@ export interface Config {
   dryMode?: boolean
 }
 
-class xDomainMessageRelayWatcher extends BaseWatcher {
+class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
   l1Bridge: L1Bridge
   token: string
 
@@ -51,6 +51,27 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }
   }
 
+  async watch () {
+    if (this.isL1) {
+      const l2Bridge = this.bridge as L2Bridge
+      this.bridge
+        .on(
+          this.l1Bridge.TransferRootConfirmed,
+          this.handleTransferRootConfirmedEvent
+        )
+        .on(
+          l2Bridge.TransfersCommitted,
+          this.handleTransfersCommittedEvents
+        )
+        .on('error', err => {
+          this.logger.error(`event watcher error: ${err.message}`)
+          this.notifier.error(`event watcher error: ${err.message}`)
+          this.quit()
+        })
+      return
+    }
+  }
+
   async pollCheck () {
     while (true) {
       if (!this.started) {
@@ -59,32 +80,11 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       try {
         await this.checkTransfersCommittedFromDb()
       } catch (err) {
-        this.logger.error('poll check error:', err.message)
+        this.logger.error(`poll check error: ${err.message}`)
         this.notifier.error(`poll check error: ${err.message}`)
       }
-      await wait(10 * 1000)
+      await wait(this.pollTimeSec)
     }
-  }
-
-  async watch () {
-    if (this.isL1) {
-      this.bridge
-        .on(
-          this.l1Bridge.TransferRootConfirmed,
-          this.handleTransferRootConfirmedEvent
-        )
-        .on('error', err => {
-          this.logger.error(`event watcher error:`, err.message)
-          this.quit()
-        })
-      return
-    }
-  }
-
-  async stop () {
-    this.bridge.removeAllListeners()
-    this.started = false
-    this.logger.setEnabled(false)
   }
 
   async syncUp (): Promise<any> {
@@ -93,94 +93,78 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       return
     }
 
-    const l2Bridge = this.bridge as L2Bridge
-
     const promises: Promise<any>[] = []
+    const l2Bridge = this.bridge as L2Bridge
     promises.push(
       this.l1Bridge.eventsBatch(
         async (start: number, end: number) => {
-          const transferRootConfirmedEvents = await this.l1Bridge.getTransferRootConfirmedEvents(
-            start,
-            end
-          )
-
-          const promises: Promise<any>[] = []
-          for (let event of transferRootConfirmedEvents) {
-            const {
-              originChainId,
-              destinationChainId,
-              rootHash,
-              totalAmount
-            } = event.args
-            promises.push(
-              this.handleTransferRootConfirmedEvent(
-                originChainId,
-                destinationChainId,
-                rootHash,
-                totalAmount
-              )
-            )
-          }
-
-          await Promise.all(promises)
+          const events = await this.l1Bridge.getTransferRootConfirmedEvents(start, end)
+          await this.handleTransferRootConfirmedEvents(events)
         },
         { key: this.l1Bridge.TransferRootConfirmed }
       )
     )
 
     promises.push(
-      this.eventsBatch(async (start: number, end: number) => {
-        try {
-          const transferCommitEvents = await l2Bridge.getTransfersCommittedEvents(
-            start,
-            end
-          )
-          for (let transferCommitEvent of transferCommitEvents) {
-            const {
-              rootHash: transferRootHash,
-              totalAmount,
-              rootCommittedAt
-            } = transferCommitEvent.args
-            const { data } = await this.bridge.getTransaction(
-              transferCommitEvent.transactionHash
-            )
-            const {
-              destinationChainId: chainId
-            } = await l2Bridge.decodeCommitTransfersData(data)
-            await db.transferRoots.update(transferRootHash, {
-              transferRootHash,
-              committed: true,
-              committedAt: Number(rootCommittedAt.toString()),
-              chainId,
-              totalAmount
-            })
-          }
-        } catch (err) {
-          this.logger.error(`watcher error:`, err.message)
-          this.notifier.error(`watcher error: '${err.message}`)
-        }
-      })
+      l2Bridge.eventsBatch(
+        async (start: number, end: number) => {
+          const events = await l2Bridge.getTransfersCommittedEvents(start, end)
+          await this.handleTransfersCommittedEvents(events)
+        },
+        { key: l2Bridge.TransfersCommitted }
+      )
     )
 
     await Promise.all(promises)
     this.logger.debug('done syncing')
 
     // re-sync every 6 hours
-    const sixHours = 6 * 60 * 60 * 1000
+    const sixHours = this.syncTimeSec
     await wait(sixHours)
     return this.syncUp()
   }
 
-  async checkTransfersCommittedFromDb () {
-    const dbTransferRoots = await db.transferRoots.getUnconfirmedTransferRoots()
-    const promises: Promise<any>[] = []
-    for (let dbTransferRoot of dbTransferRoots) {
-      const { transferRootHash, chainId, committedAt } = dbTransferRoot
-      promises.push(
-        this.checkTransfersCommitted(transferRootHash, chainId, committedAt)
+  async handleTransferRootConfirmedEvents (events: Event[]) {
+    for (let event of events) {
+      const {
+        originChainId,
+        destinationChainId,
+        rootHash,
+        totalAmount
+      } = event.args
+      await this.handleTransferRootConfirmedEvent(
+        originChainId,
+        destinationChainId,
+        rootHash,
+        totalAmount,
+        event
       )
     }
-    await Promise.all(promises)
+  }
+
+  async handleTransfersCommittedEvents (events: Event[]) {
+    for (let event of events) {
+      const {
+        rootHash: transferRootHash,
+        totalAmount,
+        rootCommittedAt
+      } = event.args
+      await this.handleTransfersCommittedEvent(
+        transferRootHash,
+        totalAmount,
+        rootCommittedAt,
+        event
+      )
+    }
+  }
+
+  async checkTransfersCommittedFromDb () {
+    const dbTransferRoots = await db.transferRoots.getUnconfirmedTransferRoots()
+    for (let dbTransferRoot of dbTransferRoots) {
+      const { transferRootHash, chainId, committedAt } = dbTransferRoot
+      // Parallelizing these calls produces RPC errors on Optimism
+      await this.checkTransfersCommitted(transferRootHash, chainId, committedAt)
+    }
   }
 
   checkTransfersCommitted = async (
@@ -382,24 +366,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     } else {
       // not implemented
       return
-    }
-  }
-
-  handleTransferRootConfirmedEvent = async (
-    sourceChainId: BigNumber,
-    destChainId: BigNumber,
-    transferRootHash: string,
-    meta: any
-  ) => {
-    this.logger.debug('received TransferRootConfirmed event')
-    try {
-      const { transactionHash } = meta
-      await db.transferRoots.update(transferRootHash, {
-        confirmed: true,
-        confirmTxHash: transactionHash
-      })
-    } catch (err) {
-      this.logger.error('error:', err.message)
     }
   }
 }

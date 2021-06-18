@@ -1,22 +1,20 @@
 import '../moduleAlias'
-import { Contract, BigNumber } from 'ethers'
+import { Contract, BigNumber, Event } from 'ethers'
 import { wait, isL1ChainId } from 'src/utils'
+import db from 'src/db'
 import chalk from 'chalk'
-//import db from 'src/db'
-import BaseWatcher from './classes/BaseWatcher'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 
 export interface Config {
   l1BridgeContract: Contract
-  l2BridgeContract: Contract
   label: string
   contracts: any
 }
 
-class ChallengeWatcher extends BaseWatcher {
+class ChallengeWatcher extends BaseWatcherWithEventHandlers {
   l1Bridge: L1Bridge
-  l2Bridge: L2Bridge
   contracts: any
 
   constructor (config: Config) {
@@ -26,53 +24,39 @@ class ChallengeWatcher extends BaseWatcher {
       logColor: 'red'
     })
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
-    this.l2Bridge = new L2Bridge(config.l2BridgeContract)
     this.contracts = config.contracts
   }
 
   async start () {
     this.started = true
     try {
-      await Promise.all([this.syncUp(), this.watch()])
+      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
     } catch (err) {
       this.logger.error('watcher error:', err.message)
     }
   }
 
-  async stop () {
-    this.l1Bridge.removeAllListeners()
-    this.l2Bridge.removeAllListeners()
-    this.started = false
-    this.logger.setEnabled(false)
-  }
-
   async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
+
     const promises: Promise<any>[] = []
     promises.push(
       this.l1Bridge.eventsBatch(
         async (start: number, end: number) => {
-          const transferRootBondedEvents = await this.l1Bridge.getTransferRootBondedEvents(
-            start,
-            end
-          )
-
-          for (let event of transferRootBondedEvents) {
-            const { root, amount } = event.args
-            await this.handleTransferRootBondedEvent(root, amount, event)
-          }
-
-          const transferRootConfirmedEvents = await this.l1Bridge.getTransferRootConfirmedEvents(
-            start,
-            end
-          )
-
-          for (let event of transferRootConfirmedEvents) {
-            const { originChainId, destinationChainId, rootHash, totalAmount } = event.args
-            await this.handleTransferRootConfirmedEvent(originChainId, destinationChainId, rootHash, totalAmount, event)
-          }
+          const events = await this.l1Bridge.getTransferRootBondedEvents(start, end)
+          await this.handleTransferRootBondedEvents(events)
         },
         { key: this.l1Bridge.TransferRootBonded }
+      )
+    )
+
+    promises.push(
+      this.l1Bridge.eventsBatch(
+        async (start: number, end: number) => {
+          const events = await this.l1Bridge.getTransferRootConfirmedEvents(start, end)
+          await this.handleTransferRootConfirmedEvents(events)
+        },
+        { key: this.l1Bridge.TransferRootConfirmed }
       )
     )
 
@@ -80,7 +64,7 @@ class ChallengeWatcher extends BaseWatcher {
     this.logger.debug('done syncing')
 
     // re-sync every 6 hours
-    const sixHours = 6 * 60 * 60 * 1000
+    const sixHours = this.syncTimeSec
     await wait(sixHours)
     return this.syncUp()
   }
@@ -88,20 +72,94 @@ class ChallengeWatcher extends BaseWatcher {
   async watch () {
     this.l1Bridge
       .on(this.l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
-      .on('error', err => {
-        this.logger.error('event watcher error:', err.message)
-        this.quit()
-      })
-
-    this.l1Bridge
       .on(
         this.l1Bridge.TransferRootConfirmed,
         this.handleTransferRootConfirmedEvent
       )
       .on('error', err => {
-        this.logger.error('event watcher error:', err.message)
+        this.logger.error(`event watcher error: ${err.message}`)
+        this.notifier.error(`event watcher error: ${err.message}`)
         this.quit()
       })
+  }
+
+  async pollCheck () {
+    while (true) {
+      if (!this.started) {
+        return
+      }
+      try {
+        await this.checkTransferRootFromDb()
+        await this.checkChallengeFromDb()
+      } catch (err) {
+        this.logger.error(`poll check error: ${err.message}`)
+        this.notifier.error(`poll check error: ${err.message}`)
+      }
+      await wait(this.pollTimeSec)
+    }
+  }
+
+  async handleTransferRootBondedEvents (events: Event[]) {
+    for (let event of events) {
+      const { root, amount } = event.args
+      await this.handleTransferRootBondedEvent(
+        root,
+        amount,
+        event
+      )
+    }
+  }
+
+  async handleTransferRootConfirmedEvents (events: Event[]) {
+    for (let event of events) {
+      const {
+        originChainId,
+        destinationChainId, 
+        rootHash,
+        totalAmount
+      } = event.args
+      await this.handleTransferRootConfirmedEvent(
+        originChainId,
+        destinationChainId,
+        rootHash,
+        totalAmount,
+        event
+      )
+    }
+  }
+
+  async checkTransferRootFromDb () {
+    const dbTransferRoots = await db.transferRoots.getChallengeableTransferRoots()
+    for (let dbTransferRoot of dbTransferRoots) {
+      const {
+        transferRootHash,
+        chainId,
+        totalAmount
+      } = dbTransferRoot
+      await this.checkTransferRoot(
+        transferRootHash,
+        chainId,
+        totalAmount
+      )
+    }
+  }
+
+  async checkChallengeFromDb () {
+    const dbTransferRoots = await db.transferRoots.getResolvableTransferRoots()
+    for (let dbTransferRoot of dbTransferRoots) {
+      const {
+        sourceChainId,
+        chainId,
+        transferRootHash,
+        totalAmount
+      } = dbTransferRoot
+      await this.checkChallenge(
+        sourceChainId,
+        chainId,
+        transferRootHash,
+        totalAmount
+      )
+    }
   }
 
   async checkTransferRoot (
@@ -217,58 +275,6 @@ class ChallengeWatcher extends BaseWatcher {
         totalAmount
       })
     })
-  }
-
-  handleTransferRootBondedEvent = async (
-    transferRootHash: string,
-    totalAmount: BigNumber,
-    meta: any
-  ) => {
-    const logger = this.logger.create({ root: transferRootHash })
-    try {
-      logger.debug('received TransferRootBonded event')
-      logger.debug('transferRootHash:', transferRootHash)
-      logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
-      const { transactionHash } = meta
-      const { from: sender, data } = await this.l1Bridge.getTransaction(
-        transactionHash
-      )
-      const address = await this.l1Bridge.getBonderAddress()
-      if (sender === address) {
-        logger.warn('transfer root bonded by self')
-      }
-      const {
-        destinationChainId
-      } = await this.l1Bridge.decodeBondTransferRootData(data)
-      await this.checkTransferRoot(
-        transferRootHash,
-        destinationChainId,
-        totalAmount
-      )
-    } catch (err) {
-      logger.error('checkTransferRoot error:', err.message)
-    }
-  }
-
-  handleTransferRootConfirmedEvent = async (
-    sourceChainId: BigNumber,
-    destChainId: BigNumber,
-    transferRootHash: string,
-    totalAmount: BigNumber,
-    meta: any
-  ) => {
-    const logger = this.logger.create({ root: transferRootHash })
-    logger.debug('received TransferRootConfirmed event')
-    try {
-      await this.checkChallenge(
-        Number(sourceChainId.toString()),
-        Number(destChainId.toString()),
-        transferRootHash,
-        totalAmount
-      )
-    } catch (err) {
-      logger.error('checkChallenge error:', err.message)
-    }
   }
 }
 

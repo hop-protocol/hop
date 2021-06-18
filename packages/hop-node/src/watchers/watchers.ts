@@ -315,7 +315,6 @@ function startChallengeWatchers (_tokens?: string[], _networks?: string[]) {
         new ChallengeWatcher({
           label: network,
           l1BridgeContract: contracts.get(token, ETHEREUM).l1Bridge,
-          l2BridgeContract: contracts.get(token, network).l2Bridge,
           contracts: {
             '1': contracts.get(token, ETHEREUM)?.l1Bridge,
             '42': contracts.get(token, ETHEREUM)?.l1Bridge,

@@ -21,7 +21,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
   public handleTransferSentEvent = async (
     transferId: string,
-    chainId: number,
+    chainId: BigNumber,
     recipient: string,
     amount: BigNumber,
     transferNonce: string,
@@ -48,12 +48,12 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
       logger.debug(`received TransferSent event`)
       logger.debug('transfer event amount:', this.bridge.formatUnits(amount))
-      logger.debug('chainId:', chainId)
+      logger.debug('chainId:', Number(chainId))
       logger.debug('transferId:', chalk.bgCyan.black(transferId))
 
       await db.transfers.update(transferId, {
         transferId,
-        chainId,
+        chainId: Number(chainId),
         sourceChainId,
         recipient,
         amount,
@@ -135,7 +135,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
   }
 
   handleTransfersCommittedEvent = async (
-    chainId: number,
+    chainId: BigNumber,
     transferRootHash: string,
     totalAmount: BigNumber,
     committedAtBn: BigNumber,
@@ -160,16 +160,16 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       logger.debug(`committedAt:`, committedAt)
       logger.debug(`totalAmount:`, this.bridge.formatUnits(totalAmount))
       logger.debug(`transferRootHash:`, transferRootHash)
-      logger.debug(`chainId:`, chainId)
+      logger.debug(`chainId:`, Number(chainId))
       const { transactionHash } = meta
       const l2Bridge = this.bridge as L2Bridge
 
       const sourceChainId = await l2Bridge.getChainId()
       let destinationBridgeAddress = undefined
-      const isExitWatcher = !this.hasSiblingWatcher(chainId)
+      const isExitWatcher = !this.hasSiblingWatcher(Number(chainId))
       if(!isExitWatcher) {
         destinationBridgeAddress = await this.getSiblingWatcherByChainId(
-          chainId
+          Number(chainId)
         ).bridge.getAddress()
       }
       const transferRootId = await this.bridge.getTransferRootId(
@@ -181,7 +181,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         transferRootHash,
         transferRootId,
         totalAmount,
-        chainId,
+        chainId: Number(chainId),
         committedAt,
         destinationBridgeAddress,
         sourceChainId,

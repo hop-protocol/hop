@@ -101,11 +101,11 @@ class TransferRootsDb extends BaseDb {
     return transfers.filter(item => {
       return (
         !item.confirmed &&
+        !item.sentConfirmTx &&
         item.transferRootHash &&
         item.chainId &&
         item.committed &&
-        item.committedAt &&
-        item.sentConfirmTx
+        item.committedAt
       )
     })
   }

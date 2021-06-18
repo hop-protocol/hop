@@ -28,7 +28,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@hop-protocol/metadata": "0.0.1-beta.5",
+    "@hop-protocol/metadata": "0.0.1-beta.7",
     "deepmerge": "^4.2.2"
   },
   "devDependencies": {

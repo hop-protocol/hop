@@ -1,12 +1,12 @@
 import '../moduleAlias'
-import { Contract, BigNumber } from 'ethers'
+import { Contract, BigNumber, Event } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { wait, isL1ChainId } from 'src/utils'
 import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer } from 'src/db/TransfersDb'
 import chalk from 'chalk'
-import BaseWatcher from './classes/BaseWatcher'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import Bridge from './classes/Bridge'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
@@ -24,7 +24,7 @@ export interface Config {
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
 
-class SettleBondedWithdrawalWatcher extends BaseWatcher {
+class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
   minThresholdPercent: number = 0.5 // 50%
 
@@ -59,50 +59,49 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  async stop () {
-    this.bridge.removeAllListeners()
-    this.started = false
-    this.logger.setEnabled(false)
-  }
-
   async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
 
-    const promises: Promise<any>[] = []
-    promises.push(
-      this.eventsBatch(async (start: number, end: number) => {
-        const transferRootSetEvents = await this.bridge.getTransferRootSetEvents(
-          start,
-          end
-        )
+    if (!this.isL1) {
+      const l2Bridge = this.bridge as L2Bridge
+      await this.eventsBatch(
+        async (start: number, end: number) => {
+          const events = await l2Bridge.getTransferSentEvents(start, end)
+          await this.handleTransferSentEvents(events)
+        },
+        { key: l2Bridge.TransferSent }
+      )
 
-        for (let event of transferRootSetEvents) {
-          const { rootHash, totalAmount } = event.args
-          await this.handleTransferRootSetEvent(rootHash, totalAmount, event)
-        }
+      await this.eventsBatch(
+        async (start: number, end: number) => {
+          const events = await l2Bridge.getTransfersCommittedEvents(start, end)
+          await this.handleTransfersCommittedEvents(events)
+        },
+        { key: l2Bridge.TransfersCommitted }
+      )
+    }
 
-        const withdrawalsSettledEvents = await this.bridge.getMultipleWithdrawalsSettledEvents(
-          start,
-          end
-        )
-
-        for (let event of withdrawalsSettledEvents) {
-          const { bonder, rootHash, totalBondsSettled } = event.args
-          await this.handleMultipleWithdrawalsSettled(
-            bonder,
-            rootHash,
-            totalBondsSettled
-          )
-        }
-        //}, this.bridge.TransferRootSet)
-      })
+    await this.eventsBatch(
+      async (start: number, end: number) => {
+        const events = await this.bridge.getMultipleWithdrawalsSettledEvents(start, end)
+        await this.handleMultipleWithdrawalsSettledEvents(events)
+      },
+      { key: this.bridge.TransferRootSet }
     )
 
-    await Promise.all(promises)
+    // TODO: This should not write tx, only to DB
+    await this.eventsBatch(
+      async (start: number, end: number) => {
+        const events = await this.bridge.getTransferRootSetEvents(start, end)
+        await this.handleTransferRootSetEvents(events)
+      },
+      { key: this.bridge.TransferRootSet }
+    )
+
     this.logger.debug('done syncing')
 
     // re-sync every 6 hours
-    const sixHours = 6 * 60 * 60 * 1000
+    const sixHours = this.syncTimeSec
     await wait(sixHours)
     return this.syncUp()
   }
@@ -112,10 +111,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       .on(this.bridge.TransferRootSet, this.handleTransferRootSetEvent)
       .on(
         this.bridge.MultipleWithdrawalsSettled,
-        this.handleMultipleWithdrawalsSettled
+        this.handleMultipleWithdrawalsSettledEvent
       )
       .on('error', err => {
-        this.logger.error(`event watcher error:`, err.message)
+        this.logger.error(`event watcher error: ${err.message}`)
+        this.notifier.error(`event watcher error: ${err.message}`)
         this.quit()
       })
   }
@@ -128,10 +128,66 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         }
         await this.checkUnsettledTransfers()
       } catch (err) {
-        this.logger.error('error checking:', err.message)
+        this.logger.error(`error checking: ${err.message}`)
         this.notifier.error(`error checking: ${err.message}`)
       }
-      await wait(10 * 1000)
+      await wait(this.pollTimeSec)
+    }
+  }
+
+  async handleTransfersCommittedEvents (events: Event[]) {
+    for (let event of events) {
+      const { rootHash, totalAmount, rootCommittedAt } = event.args
+      await this.handleTransfersCommittedEvent(
+        rootHash,
+        totalAmount,
+        rootCommittedAt,
+        event
+      )
+    }
+  }
+
+  async handleTransferSentEvents (events: Event[]) {
+    for (let event of events) {
+      const {
+        transferId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index,
+        amountOutMin,
+        deadline
+      } = event.args
+      await this.handleTransferSentEvent(
+        transferId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index,
+        amountOutMin,
+        deadline,
+        event
+      )
+    }
+  }
+
+  async handleTransferRootSetEvents (events: Event[]) {
+    for (let event of events) {
+      const { rootHash, totalAmount } = event.args
+      await this.handleTransferRootSetEvent(rootHash, totalAmount, event)
+    }
+  }
+
+  async handleMultipleWithdrawalsSettledEvents (events: Event[]) {
+    for (let event of events) {
+      const { bonder, rootHash, totalBondsSettled } = event.args
+      await this.handleMultipleWithdrawalsSettledEvent(
+        bonder,
+        rootHash,
+        totalBondsSettled
+      )
     }
   }
 
@@ -234,6 +290,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         // There is an unhandled case where there are too many blocks between two
         // TransfersCommitted events and startBlockNumber is never defined. This should
         // never happen in production.
+        if (!startBlockNumber) {
+          logger.error('Too many blocks between two TransfersCommitted events')
+          return
+        }
       }
 
       let transferIds: string[] = []
@@ -313,15 +373,15 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         transferRootId,
         transferRootHash
       })
-      if (!dbTransfer.transferRootId) {
+     if (!dbTransfer?.transferRootId) {
         logger.debug(
-          `updated db transfer hash ${dbTransferId} to have transfer root id ${transferRootId}`
+          `updated db transfer id hash ${dbTransferId} to have transfer root id ${transferRootId}`
         )
       }
     }
   }
 
-  handleMultipleWithdrawalsSettled = async (
+  handleMultipleWithdrawalsSettledEvent = async (
     bonder: string,
     transferRootHash: string,
     totalBondsSettled: BigNumber
@@ -348,7 +408,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     chainId: number
   ) => {
     const bridge = this.getSiblingWatcherByChainId(chainId).bridge
-    const decimals = await this.getBridgeTokenDecimals(chainId)
     return bridge.settleBondedWithdrawals(bonder, transferIds, totalAmount)
   }
 
@@ -624,19 +683,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         withdrawalBondSettleTxSentAt: 0
       })
     }
-  }
-
-  async getBridgeTokenDecimals (chainId: number) {
-    let bridge: any
-    let token: Token
-    if (isL1ChainId(chainId)) {
-      bridge = this.getSiblingWatcherByChainId(chainId).bridge as L1Bridge
-      token = await bridge.l1CanonicalToken()
-    } else {
-      bridge = this.getSiblingWatcherByChainId(chainId).bridge as L2Bridge
-      token = await bridge.hToken()
-    }
-    return token.decimals()
   }
 
   async waitTimeout (transferId: string, chainId: number) {

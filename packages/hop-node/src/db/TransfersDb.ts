@@ -17,7 +17,6 @@ export type Transfer = {
   sentBondWithdrawalTx?: boolean
   sentBondWithdrawalTxAt?: number
 
-  // TODO
   recipient?: string
   amount?: BigNumber
   amountOutMin?: BigNumber
@@ -80,6 +79,32 @@ class TransfersDb extends BaseDb {
         item.withdrawalBonded &&
         !item.withdrawalBondSettled &&
         item.transferRootHash
+      )
+    })
+  }
+
+  async getUncommittedBondedTransfers (): Promise<Transfer[]> {
+    const transfers = await this.getTransfers()
+    return transfers.filter(item => {
+      return (
+        item.transferId &&
+        item.withdrawalBonded &&
+        item.sentBondWithdrawalTx &&
+        !item.transferRootId &&
+        item.sentTxHash
+      )
+    })
+  }
+
+  async getUnbondedSentTransfers (): Promise<Transfer[]> {
+    const transfers = await this.getTransfers()
+    return transfers.filter(item => {
+      return (
+        item.transferId &&
+        !item.withdrawalBonded &&
+        !item.sentBondWithdrawalTx &&
+        !item.transferRootId &&
+        item.sentTxHash
       )
     })
   }

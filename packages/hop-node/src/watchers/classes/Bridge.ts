@@ -4,7 +4,7 @@ import ContractBase from './ContractBase'
 import queue from 'src/decorators/queue'
 import { config } from 'src/config'
 import unique from 'src/utils/unique'
-import { isL1ChainId } from 'src/utils'
+import { isL1ChainId, xor } from 'src/utils'
 import db from 'src/db'
 
 export default class Bridge extends ContractBase {
@@ -163,6 +163,47 @@ export default class Bridge extends ContractBase {
     return total
   }
 
+  async getBondedWithdrawalTimestamp (
+    transferId: string,
+    startBlockNumber?: number,
+    endBlockNumber?: number
+  ): Promise<number> {
+    const event = await this.getBondedWithdrawalEvent(
+      transferId,
+      startBlockNumber,
+      endBlockNumber
+    )
+    if (!event) {
+      return 0
+    }
+    return this.getEventTimestamp(event)
+  }
+
+  async getBondedWithdrawalEvent (
+    transferId: string,
+    startBlockNumber?: number,
+    endBlockNumber?: number
+  ): Promise<any> {
+    let match: any = null
+    await this.eventsBatch(
+      async (start: number, end: number) => {
+        const events = await this.getWithdrawalBondedEvents(start, end)
+        for (let event of events) {
+          if (event.args.transferId === transferId) {
+            match = event
+            return false
+          }
+        }
+      },
+      {
+        startBlockNumber,
+        endBlockNumber
+      }
+    )
+
+    return match
+  }
+
   isTransferIdSpent (transferId: string): Promise<boolean> {
     return this.bridgeContract.isTransferIdSpent(transferId)
   }
@@ -200,6 +241,34 @@ export default class Bridge extends ContractBase {
     )
   }
 
+  async decodeSettleBondedWithdrawalData (data: string): Promise<any> {
+    if (!data) {
+      throw new Error('data to decode is required')
+    }
+    const decoded = await this.bridgeContract.interface.decodeFunctionData(
+      'settleBondedWithdrawal',
+      data
+    )
+
+    const bonder = decoded.bonder
+    const transferId = decoded.transferId.toString()
+    const rootHash = decoded.rootHash.toString()
+    const transferRootTotalAmount = decoded.transferRootTotalAmount
+    const transferIdTreeIndex = Number(decoded.transferIdTreeIndex.toString())
+    const siblings = decoded.siblings.map((sibling: any) => sibling.toString())
+    const totalLeaves = Number(decoded.totalLeaves.toString())
+
+    return {
+      bonder,
+      transferId,
+      rootHash,
+      transferRootTotalAmount,
+      transferIdTreeIndex,
+      siblings,
+      totalLeaves
+    }
+  }
+
   async getMultipleWithdrawalsSettledEvents (
     startBlockNumber: number,
     endBlockNumber: number
@@ -209,6 +278,27 @@ export default class Bridge extends ContractBase {
       startBlockNumber,
       endBlockNumber
     )
+  }
+
+  async decodeSettleBondedWithdrawalsData (data: string): Promise<any> {
+    if (!data) {
+      throw new Error('data to decode is required')
+    }
+    const decoded = await this.bridgeContract.interface.decodeFunctionData(
+      'settleBondedWithdrawals',
+      data
+    )
+    const bonder = decoded.bonder
+    const transferIds = decoded.transferIds.map((transferId: any) =>
+      transferId.toString()
+    )
+    const totalAmount = decoded.totalAmount
+
+    return {
+      bonder,
+      transferIds,
+      totalAmount
+    }
   }
 
   async getTransferRootId (
@@ -294,7 +384,7 @@ export default class Bridge extends ContractBase {
       await this.txOverrides()
     )
 
-    await tx.wait()
+    //await tx.wait()
     return tx
   }
 
@@ -331,40 +421,113 @@ export default class Bridge extends ContractBase {
       endBlockNumber: undefined
     }
   ) {
-    const { key, startBlockNumber, endBlockNumber } = options
-
     await this.waitTilReady()
-    let { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
-    const blockNumber = endBlockNumber || (await this.getBlockNumber())
-    const cacheKey = `${this.chainId}:${this.address}:${key}`
-    if (startBlockNumber && endBlockNumber) {
-      totalBlocks = endBlockNumber - startBlockNumber
+    this.validateEventsBatchInput(options)
+
+    let cacheKey = ''
+    let state
+    if (options?.key) {
+      cacheKey = this.getCacheKeyFromKey(this.chainId, this.address, options.key)
+      state = await db.syncState.getByKey(cacheKey)
     }
 
-    let end = blockNumber
-    let start = end - batchBlocks
-    let isSingleBatch = totalBlocks <= batchBlocks
-    let i = 0
-    while (isSingleBatch || start >= blockNumber - totalBlocks) {
-      if (isSingleBatch) {
-        start = end - totalBlocks
-      }
+    let {
+      start,
+      end,
+      totalBlocksInBatch,
+      batchBlocks,
+      latestBlockInBatch
+    } = await this.getBlockValues(options, state)
 
-      const shouldContinue = await cb(start, end, i)
+    let i = 0
+    if (totalBlocksInBatch <= batchBlocks) {
+      await cb(start, end, i)
+    } else {
+      while (start >= latestBlockInBatch - totalBlocksInBatch) {
+        const shouldContinue = await cb(start, end, i)
+        if (typeof shouldContinue === 'boolean' && !shouldContinue) {
+          break
+        }
+
+        end = start
+        start = end - batchBlocks
+        i++
+      }
+    }
+
+    if (cacheKey) {
       await db.syncState.update(cacheKey, {
-        latestBlockSynced: end,
+        latestBlockSynced: latestBlockInBatch,
         timestamp: Date.now()
       })
-      if (
-        isSingleBatch ||
-        (typeof shouldContinue === 'boolean' && !shouldContinue)
-      ) {
-        break
+    }
+  }
+
+  private getBlockValues = async (options: any, state: any) => {
+    const { startBlockNumber, endBlockNumber } = options
+
+    let end
+    let start
+    let totalBlocksInBatch
+    let { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
+    const currentBlockNumber = await this.getBlockNumber()
+
+    if (startBlockNumber && endBlockNumber) {
+      end = endBlockNumber
+      totalBlocksInBatch = end - startBlockNumber
+      // Handle the case where the chain has less blocks than the new difference
+      start = end - Math.min(totalBlocksInBatch, batchBlocks)
+    } else if (state?.latestBlockSynced) {
+      end = currentBlockNumber
+      start = state.latestBlockSynced
+      totalBlocksInBatch = end - start
+    } else {
+      end = currentBlockNumber
+      start = end - batchBlocks
+      totalBlocksInBatch = totalBlocks
+      // Handle the case where the chain has less blocks than the total block config
+      if (end - totalBlocksInBatch < 0) {
+        totalBlocksInBatch = end
+      }
+    }
+
+    // NOTE: We do not handle the case where end minus batchBlocks is
+    // a negative, which should never happen
+
+    return {
+      start,
+      end,
+      totalBlocksInBatch,
+      batchBlocks,
+      latestBlockInBatch: end
+    }
+  }
+
+  public getCacheKeyFromKey = (chainId: number, address: string, key: string) => {
+    return `${chainId}:${address}:${key}`
+  }
+
+  private validateEventsBatchInput = (options: any) => {
+    const { key, startBlockNumber, endBlockNumber } = options
+
+    const doesOnlyStartOrEndExist = xor(startBlockNumber, endBlockNumber)
+    if (doesOnlyStartOrEndExist) {
+      throw new Error('If either a start or end block number exist, both must exist')
+    }
+
+    const isStartAndEndBlock = startBlockNumber && endBlockNumber
+    if (isStartAndEndBlock) {
+      if (startBlockNumber >= endBlockNumber) {
+        throw new Error('Cannot pass in an end block that is before a start block')
       }
 
-      end = start
-      start = end - batchBlocks
-      i++
+      if (startBlockNumber < 0 || endBlockNumber < 0) {
+        throw new Error('Cannot pass in a start or end block that is less than 0')
+      }
+
+      if (key) {
+        throw new Error('A key cannot exist when a start and end block are explicitly defined')
+      }
     }
   }
 }

@@ -472,10 +472,42 @@ program
 
 program
   .command('health-check')
+  .option(
+    '--bond-withdrawal-time-limit <number>',
+    'Number of minutes a transfer should be bonded before alerting'
+  )
+  .option(
+    '--bond-transfer-root-time-limit <number>',
+    'Number of minutes a transfer root should be bonded before alerting'
+  )
+  .option(
+    '--commit-transfers-min-threshold-amount <number>',
+    'Minimum threshold amount that triggers alert if commit transfers has not occurred'
+  )
+  .option(
+    '--poll-interval-seconds <number>',
+    'Number of seconds to wait between each poll'
+  )
   .description('Start health check')
   .action(source => {
+    const bondWithdrawalTimeLimitMinutes = Number(
+      source.bondWithdrawalTimeLimit
+    )
+    const bondTransferRootTimeLimitMinutes = Number(
+      source.bondTransferRootTimeLimitMinutes
+    )
+    const commitTransfersMinThresholdAmount = Number(
+      source.commitTransfersMinThresholdAmount
+    )
+    const pollIntervalSeconds = Number(source.pollIntervalSeconds)
+
     try {
-      new HealthCheck().start()
+      new HealthCheck({
+        bondWithdrawalTimeLimitMinutes,
+        bondTransferRootTimeLimitMinutes,
+        commitTransfersMinThresholdAmount,
+        pollIntervalSeconds
+      }).start()
     } catch (err) {
       logger.error(err.message)
       process.exit(1)

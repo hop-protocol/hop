@@ -1,4 +1,4 @@
-import { Network, Chain } from 'src/constants'
+import { Network, Chain, Total_Blocks } from 'src/constants'
 
 const { metadata } = require('./metadata')
 const network = process.env.NETWORK || Network.Kovan
@@ -35,7 +35,8 @@ const getConfigByNetwork = (_network: string) => {
 
   return {
     tokens,
-    networks
+    networks,
+    bonders
   }
 }
 
@@ -58,35 +59,36 @@ export const config: any = {
   bonders,
   sync: {
     [Chain.Ethereum]: {
-      totalBlocks: 100_000,
+      totalBlocks: Total_Blocks.Ethereum,
       batchBlocks: 1_000
     },
     [Chain.Arbitrum]: {
-      totalBlocks: 1_000_000,
+      totalBlocks: 100_000,
       batchBlocks: 1_000
     },
     [Chain.Optimism]: {
-      totalBlocks: 1_000_000,
+      totalBlocks: 100_000,
       batchBlocks: 1_000
     },
     [Chain.Polygon]: {
-      totalBlocks: 1_000_000,
+      totalBlocks: Total_Blocks.Polygon,
       batchBlocks: 1_000
     },
     [Chain.xDai]: {
-      totalBlocks: 1_000_000,
+      totalBlocks: Total_Blocks.xDai,
       batchBlocks: 1_000
     }
   }
 }
 
 const setConfigByNetwork = (_network: string) => {
-  const { tokens, networks } = getConfigByNetwork(_network)
+  const { tokens, networks, bonders } = getConfigByNetwork(_network)
   isMainnet = _network === Network.Mainnet
   config.isMainnet = isMainnet
   config.tokens = tokens
   config.network = _network
   config.networks = networks
+  config.bonder = bonders
 }
 
 const setBonderPrivateKey = (privateKey: string) => {

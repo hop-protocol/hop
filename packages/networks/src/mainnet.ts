@@ -14,13 +14,15 @@ export const networks: Networks = {
     rpcUrls: ['https://mainnet.arbitrum.io'],
     explorerUrls: [
       'https://expedition.dev/?rpcUrl=https%3A%2F%2Fmainnet.arbitrum.io'
-    ]
+    ],
+    nativeBridgeUrl: 'https://bridge.arbitrum.io/'
   },
   optimism: {
     name: chains.optimism.name,
     networkId: 10,
     rpcUrls: ['https://mainnet.optimism.io'],
-    explorerUrls: ['https://optimistic.etherscan.io']
+    explorerUrls: ['https://optimistic.etherscan.io'],
+    nativeBridgeUrl: 'https://gateway.optimism.io/welcome'
   },
   xdai: {
     name: chains.xdai.name,
@@ -34,7 +36,8 @@ export const networks: Networks = {
       // wss://rpc.xdaichain.com/wss
       // wss://xdai.poanetwork.dev/wss
     ],
-    explorerUrls: ['https://blockscout.com/xdai/mainnet']
+    explorerUrls: ['https://blockscout.com/xdai/mainnet'],
+    nativeBridgeUrl: 'https://omni.xdaichain.com/'
   },
   polygon: {
     name: chains.polygon.name,
@@ -43,6 +46,7 @@ export const networks: Networks = {
       'https://polygon.rpc.hop.exchange',
       'https://rpc-mainnet.maticvigil.com'
     ],
-    explorerUrls: ['https://explorer-mainnet.maticvigil.com']
+    explorerUrls: ['https://explorer-mainnet.maticvigil.com'],
+    nativeBridgeUrl: 'https://wallet.matic.network/bridge/'
   }
 }

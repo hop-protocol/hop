@@ -48,7 +48,7 @@
     "debounce-promise": "3.1.2",
     "dotenv": "^8.2.0",
     "ethereumjs-util": "^7.0.9",
-    "ethers": "^5.1.0",
+    "ethers": "5.3.1",
     "expect": "^26.6.2",
     "fast-memoize": "^2.5.2",
     "js-yaml": "^4.1.0",

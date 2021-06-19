@@ -453,20 +453,13 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     meta: any
   ) => {
     const logger = this.logger.create({ id: transferId })
-    const dbTransfer = await db.transfers.getByTransferId(transferId)
-    if (dbTransfer?.withdrawalBonder) {
-      return
-    }
 
     const tx = await meta.getTransaction()
     const { from: withdrawalBonder } = tx
+
     logger.debug(`received WithdrawalBonded event`)
     logger.debug('transferId:', transferId)
-    // logger.debug(`recipient:`, recipient)
     logger.debug('amount:', this.bridge.formatUnits(amount))
-    // logger.debug('transferNonce:', transferNonce)
-    // logger.debug('bonderFee:', bonderFee?.toString())
-    // logger.debug('index:', index?.toString())
 
     await db.transfers.update(transferId, {
       withdrawalBonded: true,

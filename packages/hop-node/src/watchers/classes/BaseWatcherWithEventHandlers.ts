@@ -32,21 +32,15 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     meta: any
   ) => {
     const logger = this.logger.create({ id: transferId })
+    logger.debug(`received TransferSent event`)
 
     try {
-      const dbTransfer = await db.transfers.getByTransferId(transferId)
-      if (dbTransfer?.withdrawalBonded) {
-        return
-      }
-
       const { transactionHash, blockNumber } = meta
       await this.bridge.waitSafeConfirmations()
       const sentTimestamp = await this.bridge.getBlockTimestamp(blockNumber)
-
       const l2Bridge = this.bridge as L2Bridge
       const sourceChainId = await l2Bridge.getChainId()
 
-      logger.debug(`received TransferSent event`)
       logger.debug('transfer event amount:', this.bridge.formatUnits(amount))
       logger.debug('chainId:', Number(chainId))
       logger.debug('transferId:', chalk.bgCyan.black(transferId))
@@ -102,12 +96,6 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     logger.debug('received TransferRootBonded event')
 
     try {
-      const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
-        transferRootHash
-      )
-      if (dbTransferRoot?.bonded) {
-        return
-      }
       const { transactionHash } = meta
       const tx = await meta.getTransaction()
       const { from: bonder } = tx
@@ -115,11 +103,12 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         transferRootHash,
         totalAmount
       )
-      logger.debug(`received L1 BondTransferRoot event:`)
+
       logger.debug(`transferRootHash from event: ${transferRootHash}`)
       logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
       logger.debug(`transferRootId: ${transferRootId}`)
       logger.debug(`event transactionHash: ${transactionHash}`)
+
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,
         transferRootId,
@@ -145,22 +134,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     logger.debug('received TransfersCommitted event')
 
     try {
-      const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
-        transferRootHash
-      )
-      if (
-        dbTransferRoot?.committed &&
-        dbTransferRoot?.committedAt &&
-        dbTransferRoot?.commitTxHash
-      ) {
-        return
-      }
       const committedAt = Number(committedAtBn.toString())
-      logger.debug(`received L2 TransfersCommitted event`)
-      logger.debug(`committedAt:`, committedAt)
-      logger.debug(`totalAmount:`, this.bridge.formatUnits(totalAmount))
-      logger.debug(`transferRootHash:`, transferRootHash)
-      logger.debug(`chainId:`, Number(chainId))
       const { transactionHash } = meta
       const l2Bridge = this.bridge as L2Bridge
 
@@ -176,6 +150,11 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         transferRootHash,
         totalAmount
       )
+
+      logger.debug(`committedAt:`, committedAt)
+      logger.debug(`totalAmount:`, this.bridge.formatUnits(totalAmount))
+      logger.debug(`transferRootHash:`, transferRootHash)
+      logger.debug(`chainId:`, Number(chainId))
 
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,

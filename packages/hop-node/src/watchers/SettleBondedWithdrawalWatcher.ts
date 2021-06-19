@@ -397,10 +397,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     let dbTransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
-    if (!dbTransferRoot) {
-      return
-    }
-    let transferIds = dbTransferRoot.transferIds || []
+    let transferIds = dbTransferRoot?.transferIds || []
     for (let transferId of transferIds) {
       await db.transfers.update(transferId, {
         transferRootHash,

@@ -518,14 +518,20 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         return
       }
 
-      const transferBondStruct = await bridge.getTransferRoot(
+      const transferRootStruct = await bridge.getTransferRoot(
         transferRootHash,
         totalAmount
       )
 
-      const structTotalAmount = transferBondStruct.total
-      const structAmountWithdrawn = transferBondStruct.amountWithdrawn
-      const createdAt = Number(transferBondStruct?.createdAt.toString())
+      const structTotalAmount = transferRootStruct.total
+      const structAmountWithdrawn = transferRootStruct.amountWithdrawn
+      const createdAt = Number(transferRootStruct?.createdAt.toString())
+      if (createdAt === 0) {
+        logger.warn(
+          'transferRoot was never created'
+        )
+        return
+      }
       if (structTotalAmount.lte(0)) {
         logger.warn(
           'transferRoot total amount is 0. Cannot settle until transfer root is set'

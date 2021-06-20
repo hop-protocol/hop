@@ -89,7 +89,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       { key: this.bridge.TransferRootSet }
     )
 
-    // TODO: This should not write tx, only to DB
     await this.eventsBatch(
       async (start: number, end: number) => {
         const events = await this.bridge.getTransferRootSetEvents(start, end)

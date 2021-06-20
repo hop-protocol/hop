@@ -438,7 +438,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const {
       transferRootHash: dbTransferRootHash,
       chainId,
-      bonder,
       totalAmount,
       committed,
       committedAt,
@@ -449,7 +448,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
     if (
       !chainId ||
-      !bonder ||
       !totalAmount ||
       !committed ||
       !committedAt ||
@@ -515,8 +513,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
       let totalBondsSettleAmount = BigNumber.from(0)
       for (let transferId of transferIds) {
+        const { withdrawalBonder } = await db.transfers.getByTransferId(transferId)
         const transferBondAmount = await bridge.getBondedWithdrawalAmountByBonder(
-          bonder,
+          withdrawalBonder,
           transferId
         )
         totalBondsSettleAmount = totalBondsSettleAmount.add(transferBondAmount)
@@ -616,6 +615,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         })
       }
       logger.debug('sending settle tx')
+      const bonder = dbTransfer.withdrawalBonder
       const tx = await bridge.settleBondedWithdrawals(bonder, transferIds, totalAmount)
       tx?.wait()
         .then(async (receipt: any) => {

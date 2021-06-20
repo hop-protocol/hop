@@ -108,6 +108,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
       logger.debug(`transferRootId: ${transferRootId}`)
       logger.debug(`event transactionHash: ${transactionHash}`)
+      logger.debug(`bonder: ${bonder}`)
 
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,

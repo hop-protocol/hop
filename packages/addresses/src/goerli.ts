@@ -18,9 +18,9 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0xa228A81FA5d3525b7637ADF66FA35794451bBa7c',
         l2SaddleSwap: '0xdbD110bD0a3a7Aa1a910F28e0e7Fe98047716C5D',
         l2SaddleLpToken: '0xF78b961f6D1a7702C3204FD5a6BC8cC8ECf18741',
+        l1FxBaseRootTunnel: '0x7a4f56B0Dd21d730604A266245a0067b97605DAE',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1PosPredicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34',
-        l1FxBaseRootTunnel: '0x3d1d3E34f7fB6D26245E6640E1c50710eFFf15bA'
+        l1PosPredicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
       }
     },
     DAI: {
@@ -38,9 +38,9 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x6329d42Cc5517ba1d913303E019a556d84B5a05d',
         l2SaddleSwap: '0x9CDE8C9CDe29C80f374Fd43891F118aEA55eC359',
         l2SaddleLpToken: '0x6229fD561E7F49Ec84adc08F74A04D66F95AbfF7',
+        l1FxBaseRootTunnel: '0x210942Df6AfE6Cc1d3909B0faa3B3f2D20017F0D',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1PosPredicate: '0x37c3bfC05d5ebF9EBb3FF80ce0bd0133Bf221BC8',
-        l1FxBaseRootTunnel: '0x12fa8eE6e33857Be3B7d080B471A2D40821d4155'
+        l1PosPredicate: '0x37c3bfC05d5ebF9EBb3FF80ce0bd0133Bf221BC8'
       }
     }
   }

@@ -8,27 +8,17 @@
       },
       {
         "internalType": "address",
-        "name": "_l2BridgeAddress",
+        "name": "_checkpointManager",
         "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_defaultGasLimit",
-        "type": "uint256"
-      },
-      {
-        "internalType": "contract iArbitraryMessageBridge",
-        "name": "_l1MessengerAddress",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_l2ChainId",
-        "type": "uint256"
       },
       {
         "internalType": "address",
-        "name": "_ambBridge",
+        "name": "_fxRoot",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_fxChildTunnel",
         "type": "address"
       }
     ],
@@ -37,7 +27,33 @@
   },
   {
     "inputs": [],
-    "name": "ambBridge",
+    "name": "SEND_MESSAGE_EVENT_SIG",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "checkpointManager",
+    "outputs": [
+      {
+        "internalType": "contract ICheckpointManager",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "fxChildTunnel",
     "outputs": [
       {
         "internalType": "address",
@@ -50,12 +66,12 @@
   },
   {
     "inputs": [],
-    "name": "defaultGasLimit",
+    "name": "fxRoot",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "contract IFxStateSender",
         "name": "",
-        "type": "uint256"
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -75,42 +91,48 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "l1MessengerAddress",
-    "outputs": [
+    "inputs": [
       {
-        "internalType": "contract iArbitraryMessageBridge",
-        "name": "",
-        "type": "address"
+        "internalType": "bytes",
+        "name": "message",
+        "type": "bytes"
       }
     ],
-    "stateMutability": "view",
+    "name": "processMessageFromChild",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "l2BridgeAddress",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "l2ChainId",
-    "outputs": [
+    "inputs": [
       {
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
       }
     ],
+    "name": "processedExits",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "inputData",
+        "type": "bytes"
+      }
+    ],
+    "name": "receiveMessage",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -130,6 +152,19 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "_fxChildTunnel",
+        "type": "address"
+      }
+    ],
+    "name": "setFxChildTunnel",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "l1BridgeCaller",
         "type": "address"
       },
@@ -141,7 +176,7 @@
     ],
     "name": "verifySender",
     "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   }
 ]

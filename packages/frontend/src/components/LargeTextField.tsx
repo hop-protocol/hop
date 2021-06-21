@@ -33,7 +33,8 @@ const useStyles = makeStyles(theme => ({
     margin: `-0.8rem -${theme.padding.extraLight}`
   },
   adornment: {
-    marginRight: theme.padding.extraLight
+    marginRight: theme.padding.extraLight,
+    width: '9.0rem'
   }
 }))
 

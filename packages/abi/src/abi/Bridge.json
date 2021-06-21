@@ -540,7 +540,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "tansferIdTreeIndex",
+        "name": "transferIdTreeIndex",
         "type": "uint256"
       },
       {
@@ -657,7 +657,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "tansferIdTreeIndex",
+        "name": "transferIdTreeIndex",
         "type": "uint256"
       },
       {

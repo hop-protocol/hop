@@ -189,7 +189,11 @@ class Base {
     if (!this.signer) {
       throw new Error('signer not connected')
     }
-    return (this.signer as Signer)?.getAddress()
+    if (Signer.isSigner(this.signer)) {
+      return (this.signer as Signer)?.getAddress()
+    } else {
+      throw new Error('signer is a provider and has no address')
+    }
   }
 
   /**
@@ -207,14 +211,22 @@ class Base {
     if (!signer) {
       return chain.provider
     }
-    if (!(signer as Signer)?.provider) {
-      return (signer as Signer)?.connect(chain.provider)
+    if (Signer.isSigner(signer)) {
+      const connectedChainId = await signer.getChainId()
+      if (connectedChainId !== chain.chainId) {
+        if (!signer.provider) {
+          return (signer as Signer).connect(chain.provider)
+        }
+        return chain.provider
+      }
+      return signer
+    } else {
+      const { chainId } = await signer.getNetwork()
+      if (chainId !== chain.chainId) {
+        return chain.provider
+      }
+      return signer
     }
-    const connectedChainId = await (signer as Signer)?.getChainId()
-    if (connectedChainId !== chain.chainId) {
-      return chain.provider
-    }
-    return signer
   }
 
   public getConfigAddresses (token: TToken, chain: TChain) {

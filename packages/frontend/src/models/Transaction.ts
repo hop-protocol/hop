@@ -3,7 +3,7 @@ import { EventEmitter } from 'events'
 import { L1_NETWORK } from 'src/constants'
 import { getRpcUrl, getProvider, getBaseExplorerUrl } from 'src/utils'
 
-import Token from 'src/models/Token'
+import { Token } from '@hop-protocol/sdk'
 import { network as defaultNetwork } from 'src/config'
 
 interface Config {
@@ -130,7 +130,7 @@ class Transaction extends EventEmitter {
   }
 
   private _polygonLink () {
-    return ''
+    return `${getBaseExplorerUrl('polygon')}tx/${this.hash}`
   }
 
   toObject () {

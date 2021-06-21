@@ -6,18 +6,18 @@ export const addresses: Addresses = {
     USDC: {
       ethereum: {
         l1CanonicalToken: '0xA46d09fd4B7961aE16D33122660f43726cB1Ff36',
-        l1Bridge: '0x7b067CE7D77a0468159D5C73A3109eE8fEFcBE6d'
+        l1Bridge: '0xf89E134Ce2e83B535D3Cfa63a902375f993Fc0D2'
       },
       xdai: {
         l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
-        l1MessengerWrapper: '0xA41933De69EFF73D0A92E8179D7D520f2016C8F8',
+        l1MessengerWrapper: '0x03a7fa6c6603A7079c269dAFe601C1106fD328A8',
         l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
         l2CanonicalToken: '0x3b0977b9e563F63F219019616BBD12cB1cdFF527',
-        l2Bridge: '0x95ee0aE78FceF0b20d07718281A93876353E1C77',
-        l2HopBridgeToken: '0x2441244C710c9482099ddfd779D9b2725D5a4D1d',
-        l2AmmWrapper: '0xCbB818feAE344d5B82beD516b68B00A06208BD0A',
-        l2SaddleSwap: '0x7C82b921EF93C1A9aa186B31E2c5f7A57c1BFBf5',
-        l2SaddleLpToken: '0xd6fa75f9639F8f85867345319C34Cf5a8dd79A66',
+        l2Bridge: '0xbe5DC176D31f0838Fe4A2f81f0DDb7ce22A8DdAb',
+        l2HopBridgeToken: '0x5420cbF7B2Ca1CDC23C25459AD5A1e54dDe7d776',
+        l2AmmWrapper: '0xEe028139BD4C11C1FDdAfB69D24114624E0aAdab',
+        l2SaddleSwap: '0x6fEd6dF9707d16d1186e333dDed95ee5DaCa6E1E',
+        l2SaddleLpToken: '0xC888C7071F8B9d2c3b8034F1Da7cBd35595191BD',
         l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         canonicalBridgeMaxPerTx: '10000'
@@ -37,18 +37,18 @@ export const addresses: Addresses = {
     DAI: {
       ethereum: {
         l1CanonicalToken: '0x436e3FfB93A4763575E5C0F6b3c97D5489E050da',
-        l1Bridge: '0x2bd2fD36565f606F137a26522D62A24e3eB1a3fC'
+        l1Bridge: '0x8a1cb9552977D3d5b88385D529e698C7dbBf97e4'
       },
       xdai: {
         l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
-        l1MessengerWrapper: '0xCEC73Cc094E2b6AE8f7275e1e4F6A383BDa28b24',
+        l1MessengerWrapper: '0x51c8644700323CF1a3181B706adD269d8A53C4BA',
         l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',
         l2CanonicalToken: '0x6D2d8B29d92cab87a273e872FcC4650A64116283',
-        l2Bridge: '0x2289f8dBb6B87854C24b6f2CdB38274db3067DB6',
-        l2HopBridgeToken: '0x36378Bd11C261708A12453271582A719152566e3',
-        l2AmmWrapper: '0x510a2e11a7c025f3323B08a9056198c19Eb52F68',
-        l2SaddleSwap: '0x4816544201cFBcc44877eF4b3A32532d8f2083cB',
-        l2SaddleLpToken: '0xaD347F3CCbe870cE5502E03dbc24169F9E557524',
+        l2Bridge: '0x97fE281d134420aafFa4babFb88eC7038F585413',
+        l2HopBridgeToken: '0xD0e7825E67D66f3531EB0AC7664347c0D63e01d5',
+        l2AmmWrapper: '0x958fE734fDDA9fce03FfbE94a616D4a2A643ced8',
+        l2SaddleSwap: '0x885D10A9baF9714f3441C34d940B9f12409C0012',
+        l2SaddleLpToken: '0x75f83659E3419cF17D4b8A55A3f43BD124eF29E2',
         l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         canonicalBridgeMaxPerTx: '10000'

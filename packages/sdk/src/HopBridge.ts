@@ -1,10 +1,11 @@
 import { ethers, Signer, Contract, BigNumber, BigNumberish } from 'ethers'
+import { parseUnits } from 'ethers/lib/utils'
 import { Chain, Token as TokenModel } from './models'
 import {
   l1BridgeAbi,
   l2BridgeAbi,
   saddleLpTokenAbi,
-  saddleSwapAbi,
+  swapAbi as saddleSwapAbi,
   l1HomeAmbNativeToErc20,
   l2AmmWrapperAbi
 } from '@hop-protocol/abi'
@@ -12,7 +13,7 @@ import { TChain, TToken, TAmount, TProvider } from './types'
 import Base from './Base'
 import AMM from './AMM'
 import _version from './version'
-import { TokenIndex, BondTransferGasCost } from './constants'
+import { TokenIndex, BondTransferGasCost, LpFee } from './constants'
 import { addresses, metadata } from './config'
 import CoinGecko from './CoinGecko'
 import Token from './Token'
@@ -167,7 +168,9 @@ class HopBridge extends Base {
     }
 
     chain = this.toChainModel(chain)
-    const { name, symbol, decimals } = metadata.tokens[network][tokenSymbol]
+    const { name, symbol, decimals, image } = metadata.tokens[network][
+      tokenSymbol
+    ]
 
     let address
     if (chain.isL1) {
@@ -183,6 +186,7 @@ class HopBridge extends Base {
       decimals,
       symbol,
       name,
+      image,
       this.signer
     )
   }
@@ -205,7 +209,9 @@ class HopBridge extends Base {
     } else {
       tokenSymbol = token.symbol
     }
-    const { name, symbol, decimals } = metadata.tokens[network][tokenSymbol]
+    const { name, symbol, decimals, image } = metadata.tokens[network][
+      tokenSymbol
+    ]
     const address = this.getL2HopBridgeTokenAddress(tokenSymbol, chain)
 
     return new Token(
@@ -213,8 +219,9 @@ class HopBridge extends Base {
       chain,
       address,
       decimals,
-      symbol,
-      name,
+      `h${symbol}`,
+      `Hop ${name}`,
+      image,
       this.signer
     )
   }
@@ -324,13 +331,12 @@ class HopBridge extends Base {
 
   // ToDo: Docs
   public getTokenSymbol () {
-    return this.getL1Token()?.symbol
+    return this.tokenSymbol
   }
 
   // ToDo: Docs
-  public getTokenImageUrl () {
-    // ToDo: Return image url
-    return ''
+  public getTokenImage () {
+    return this.getL1Token()?.image
   }
 
   // ToDo: Docs
@@ -384,24 +390,24 @@ class HopBridge extends Base {
       destinationChain
     )
 
-    const canonicalToken = this.getCanonicalToken(sourceChain)
+    const sourceToken = this.getCanonicalToken(sourceChain)
+    const destToken = this.getCanonicalToken(destinationChain)
 
-    const oneBN = ethers.utils.parseUnits('1', canonicalToken.decimals)
-
-    const rateBN = amountIn.eq(0)
-      ? BigNumber.from(0)
-      : amountOutWithoutFee.mul(oneBN).div(amountIn)
-
-    const rate = Number(
-      ethers.utils.formatUnits(rateBN, canonicalToken.decimals)
+    const rate = this.getRate(
+      amountIn,
+      amountOutWithoutFee,
+      sourceToken,
+      destToken
     )
 
-    const marketRateBN = amountOutNoSlippage.mul(oneBN).div(amountInNoSlippage)
-    const marketRate = Number(
-      ethers.utils.formatUnits(marketRateBN, canonicalToken.decimals)
+    const marketRate = this.getRate(
+      amountInNoSlippage,
+      amountOutNoSlippage,
+      sourceToken,
+      destToken
     )
 
-    const priceImpact = ((marketRate - rate) / marketRate) * 100
+    const priceImpact = this.getPriceImpact(rate, marketRate)
 
     return {
       amountOut,
@@ -412,11 +418,71 @@ class HopBridge extends Base {
     }
   }
 
+  // ToDo: Docs
+  public async getAmmData (
+    chain: TChain,
+    amountIn: BigNumberish,
+    isToHToken: boolean,
+    slippageTolerance: number
+  ) {
+    chain = this.toChainModel(chain)
+    amountIn = BigNumber.from(amountIn)
+    const canonicalToken = this.getCanonicalToken(chain)
+    const hToken = this.getL2HopToken(chain)
+
+    const sourceToken = isToHToken ? canonicalToken : hToken
+    const destToken = isToHToken ? hToken : canonicalToken
+
+    const amountInNoSlippage = BigNumber.from(1000)
+    let amountOut
+    let amountOutNoSlippage
+    if (isToHToken) {
+      amountOut = await this.calcToHTokenAmount(amountIn, chain)
+      amountOutNoSlippage = await this.calcToHTokenAmount(
+        amountInNoSlippage,
+        chain
+      )
+    } else {
+      amountOut = await this.calcFromHTokenAmount(amountIn, chain)
+      amountOutNoSlippage = await this.calcFromHTokenAmount(
+        amountInNoSlippage,
+        chain
+      )
+    }
+
+    const rate = this.getRate(amountIn, amountOut, sourceToken, destToken)
+
+    const marketRate = this.getRate(
+      amountInNoSlippage,
+      amountOutNoSlippage,
+      sourceToken,
+      destToken
+    )
+
+    const priceImpact = this.getPriceImpact(rate, marketRate)
+
+    const oneDestBN = ethers.utils.parseUnits('1', sourceToken.decimals)
+
+    const slippageToleranceBps = slippageTolerance * 100
+    const minBps = Math.ceil(10000 - slippageToleranceBps)
+    const amountOutMin = amountOut.mul(minBps).div(10000)
+
+    const lpFeeBN = parseUnits(LpFee, destToken.decimals)
+    const lpFeeAmount = amountIn.mul(lpFeeBN).div(oneDestBN)
+
+    return {
+      rate,
+      priceImpact,
+      amountOutMin,
+      lpFeeAmount
+    }
+  }
+
   public async getBonderFee (
     amountIn: BigNumberish,
     sourceChain?: TChain,
     destinationChain?: TChain
-  ) {
+  ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
@@ -641,7 +707,6 @@ class HopBridge extends Base {
     deadline: number
   ) {
     sourceChain = this.toChainModel(sourceChain)
-    let saddleSwap: Contract
     let tokenIndexFrom: number
     let tokenIndexTo: number
 
@@ -659,7 +724,9 @@ class HopBridge extends Base {
     if (!l2HopBridgeTokenAddress) {
       throw new Error(`source chain "${sourceChain.slug}" is unsupported`)
     }
-    saddleSwap = await this.getSaddleSwap(sourceChain, this.signer)
+
+    const amm = await this.getAmm(sourceChain)
+    const saddleSwap = await amm.getSaddleSwap()
     let canonicalTokenIndex = Number(
       (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
     )
@@ -718,6 +785,16 @@ class HopBridge extends Base {
     return this.getContract(bridgeAddress, l2BridgeAbi, provider)
   }
 
+  // ToDo: Docs
+  public getAmm (chain: TChain) {
+    chain = this.toChainModel(chain)
+    if (chain.isL1) {
+      throw new Error('No AMM exists on L1')
+    }
+
+    return new AMM(this.network, this.tokenSymbol, chain, this.signer)
+  }
+
   /**
    * @desc Returns Hop Bridge AMM wrapper Ethers contract instance.
    * @param {Object} chain - Chain model.
@@ -740,38 +817,14 @@ class HopBridge extends Base {
   }
 
   /**
-   * @desc Returns Hop Bridge Saddle Swap Ethers contract instance.
-   * @param {Object} chain - Chain model.
-   * @param {Object} signer - Ethers signer
-   * @returns {Object} Ethers contract instance.
-   */
-  public async getSaddleSwap (chain: TChain, signer: TProvider = this.signer) {
-    chain = this.toChainModel(chain)
-    const saddleSwapAddress = this.getL2SaddleSwapAddress(
-      this.tokenSymbol,
-      chain
-    )
-    if (!saddleSwapAddress) {
-      throw new Error(
-        `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
-      )
-    }
-    const provider = await this.getSignerOrProvider(chain, signer)
-    return this.getContract(saddleSwapAddress, saddleSwapAbi, provider)
-  }
-
-  /**
    * @desc Returns Hop Bridge Saddle reserve amounts.
    * @param {Object} chain - Chain model.
-   * @param {Object} signer - Ethers signer
    * @returns {Array} Array containing reserve amounts for canonical token
    * and hTokens.
    */
-  public async getSaddleSwapReserves (
-    chain: TChain,
-    signer: TProvider = this.signer
-  ) {
-    const saddleSwap = await this.getSaddleSwap(chain, signer)
+  public async getSaddleSwapReserves (chain: TChain) {
+    const amm = this.getAmm(chain)
+    const saddleSwap = await amm.getSaddleSwap()
     return Promise.all([
       saddleSwap.getTokenBalance(0),
       saddleSwap.getTokenBalance(1)
@@ -798,7 +851,6 @@ class HopBridge extends Base {
         `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
       )
     }
-    const provider = await this.getSignerOrProvider(chain, signer)
 
     // ToDo: Get actual saddle LP token symbol and name
     return new Token(
@@ -808,7 +860,8 @@ class HopBridge extends Base {
       18,
       `${this.tokenSymbol}`,
       `${this.tokenSymbol}_LP`,
-      provider
+      '',
+      signer
     )
   }
 
@@ -885,7 +938,8 @@ class HopBridge extends Base {
   }
 
   private async getTokenIndexes (path: string[], chain: TChain) {
-    const saddleSwap = await this.getSaddleSwap(chain)
+    const amm = this.getAmm(chain)
+    const saddleSwap = await amm.getSaddleSwap()
     let tokenIndexFrom = Number(
       (await saddleSwap.getTokenIndex(path[0])).toString()
     )
@@ -1219,7 +1273,8 @@ class HopBridge extends Base {
       return amount
     }
 
-    const saddleSwap = await this.getSaddleSwap(chain, this.signer)
+    const amm = this.getAmm(chain)
+    const saddleSwap = await amm.getSaddleSwap()
     if (amount.eq(0)) {
       return BigNumber.from(0)
     }
@@ -1242,7 +1297,8 @@ class HopBridge extends Base {
       return BigNumber.from(amount)
     }
 
-    const saddleSwap = await this.getSaddleSwap(chain, this.signer)
+    const amm = this.getAmm(chain)
+    const saddleSwap = await amm.getSaddleSwap()
     if (amount.eq(0)) {
       return BigNumber.from(0)
     }
@@ -1253,6 +1309,30 @@ class HopBridge extends Base {
     )
 
     return amountOut
+  }
+
+  private getRate (
+    amountIn: BigNumber,
+    amountOut: BigNumber,
+    sourceToken: Token,
+    destToken: Token
+  ) {
+    let rateBN
+    if (amountIn.eq(0)) {
+      rateBN = BigNumber.from(0)
+    } else {
+      const oneSourceBN = ethers.utils.parseUnits('1', sourceToken.decimals)
+
+      rateBN = amountOut.mul(oneSourceBN).div(amountIn)
+    }
+
+    const rate = Number(ethers.utils.formatUnits(rateBN, destToken.decimals))
+
+    return rate
+  }
+
+  private getPriceImpact (rate: number, marketRate: number) {
+    return ((marketRate - rate) / marketRate) * 100
   }
 
   private async checkConnectedChain (signer: TProvider, chain: Chain) {

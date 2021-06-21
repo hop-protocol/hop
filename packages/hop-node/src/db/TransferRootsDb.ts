@@ -24,6 +24,7 @@ export type TransferRoot = {
   bondTxHash?: string
   transferIds?: string[]
   bonder?: string
+  checkpointAttemptedAt?: number
 }
 
 class TransferRootsDb extends BaseDb {
@@ -101,11 +102,11 @@ class TransferRootsDb extends BaseDb {
     return transfers.filter(item => {
       return (
         !item.confirmed &&
+        !item.sentConfirmTx &&
         item.transferRootHash &&
         item.chainId &&
         item.committed &&
-        item.committedAt &&
-        item.sentConfirmTx
+        item.committedAt
       )
     })
   }

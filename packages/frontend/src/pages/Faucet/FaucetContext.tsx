@@ -12,8 +12,6 @@ type FaucetContextProps = {
   mintToken: () => void
   mintAmount: string
   isMinting: boolean
-  selectedToken: Token | undefined
-  setSelectedToken: (token: Token) => void
   tokens: Token[]
   error: string | null | undefined
   setError: (error: string | null | undefined) => void
@@ -24,8 +22,6 @@ const FaucetContext = createContext<FaucetContextProps>({
   mintToken: () => {},
   mintAmount: '',
   isMinting: false,
-  selectedToken: undefined,
-  setSelectedToken: (token: Token) => {},
   tokens: [],
   error: null,
   setError: (error: string | null | undefined) => {},
@@ -35,7 +31,12 @@ const FaucetContext = createContext<FaucetContextProps>({
 const FaucetContextProvider: FC = ({ children }) => {
   const [mintAmount] = useState<string>('10')
   const [isMinting, setMinting] = useState<boolean>(false)
-  const { contracts, txHistory, networks, tokens } = useApp()
+  const {
+    contracts,
+    txHistory,
+    networks,
+    tokens
+  } = useApp()
   const { address, getWriteContract } = useWeb3Context()
   const selectedNetwork = networks[0]
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(
@@ -81,8 +82,6 @@ const FaucetContextProvider: FC = ({ children }) => {
         mintToken,
         mintAmount,
         isMinting,
-        selectedToken,
-        setSelectedToken,
         selectedNetwork,
         tokens,
         error,

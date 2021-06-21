@@ -13,6 +13,7 @@ class Token extends Base {
   public readonly decimals: number
   public readonly symbol: string
   public readonly name: string
+  public readonly image: string
   public readonly chain: Chain
   public readonly contract: Contract
 
@@ -35,14 +36,16 @@ class Token extends Base {
     decimals: number,
     symbol: string,
     name: string,
+    image: string,
     signer?: Signer | providers.Provider
   ) {
     super(network, signer)
 
     this.address = ethers.utils.getAddress(address)
+    this.decimals = decimals
     this.symbol = symbol
     this.name = name
-    this.decimals = decimals
+    this.image = image
     this.chain = this.toChainModel(chain)
   }
 
@@ -59,6 +62,7 @@ class Token extends Base {
       this.decimals,
       this.symbol,
       this.name,
+      this.image,
       signer
     )
   }

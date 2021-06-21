@@ -3,6 +3,8 @@ export interface Network {
   networkId: number
   rpcUrls: string[]
   explorerUrls: string[]
+  nativeBridgeUrl?: string
+  waitConfirmations: number
 }
 
 export interface Networks {

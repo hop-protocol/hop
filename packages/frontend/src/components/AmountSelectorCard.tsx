@@ -7,9 +7,9 @@ import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Skeleton from '@material-ui/lab/Skeleton'
+import { Token } from '@hop-protocol/sdk'
 import clsx from 'clsx'
 import LargeTextField from 'src/components/LargeTextField'
-import Token from 'src/models/Token'
 import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({

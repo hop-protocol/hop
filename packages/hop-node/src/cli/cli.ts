@@ -271,7 +271,11 @@ program
         })
       }
       if (config?.roles?.xdaiBridge) {
-        new xDaiBridgeWatcher().start()
+        for (let token of tokens) {
+          new xDaiBridgeWatcher({
+            token
+          }).start()
+        }
       }
     } catch (err) {
       logger.error(`hop-node error: ${err.message}`)
@@ -438,7 +442,12 @@ program
   .description('Start the xDai bridge watcher')
   .action(() => {
     try {
-      new xDaiBridgeWatcher().start()
+      const tokens = Object.keys(globalConfig.tokens)
+      for (let token of tokens) {
+        new xDaiBridgeWatcher({
+          token
+        }).start()
+      }
     } catch (err) {
       logger.error(err.message)
       process.exit(1)
@@ -450,7 +459,12 @@ program
   .description('Start the polygon bridge watcher')
   .action(() => {
     try {
-      new PolygonBridgeWatcher().start()
+      const tokens = Object.keys(globalConfig.tokens)
+      for (let token of tokens) {
+        new PolygonBridgeWatcher({
+          token
+        }).start()
+      }
     } catch (err) {
       logger.error(err.message)
       process.exit(1)
@@ -552,30 +566,6 @@ program
         maxTradeAmount,
         minThreshold
       })
-    } catch (err) {
-      logger.error(err.message)
-      process.exit(1)
-    }
-  })
-
-program
-  .command('xdai-bridge')
-  .description('Start the xDai bridge watcher')
-  .action(() => {
-    try {
-      new xDaiBridgeWatcher().start()
-    } catch (err) {
-      logger.error(err.message)
-      process.exit(1)
-    }
-  })
-
-program
-  .command('stake')
-  .description('Start the stake watcher')
-  .action(async source => {
-    try {
-      await startStakeWatchers()
     } catch (err) {
       logger.error(err.message)
       process.exit(1)

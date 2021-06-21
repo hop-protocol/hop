@@ -363,7 +363,9 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
   getPolyInstance () {
     // TODO: These params should be passed into constructor and this should not be a standalone
     // function
-    const poly = new PolygonBridgeWatcher()
+    const poly = new PolygonBridgeWatcher({
+      token: this.token
+    })
     const privateKey = gConfig.relayerPrivateKey || gConfig.bonderPrivateKey
     poly.l1Provider = new ethers.providers.StaticJsonRpcProvider(
       getRpcUrls(Chain.Ethereum)[0]

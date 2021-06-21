@@ -1,8 +1,6 @@
 import { default as BaseWatcher, Config, Event } from './BaseWatcher'
 import { Chain } from '../models'
-
-const transferTopic =
-  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+import { tokenTransferTopic } from './eventTopics'
 
 class L1ToL2Watcher extends BaseWatcher {
   constructor (config: Config) {
@@ -137,7 +135,7 @@ class L1ToL2Watcher extends BaseWatcher {
       }
       const receipt = await event.getTransactionReceipt()
       for (const i in receipt.logs) {
-        if (receipt.logs[i].topics[0] === transferTopic) {
+        if (receipt.logs[i].topics[0] === tokenTransferTopic) {
           if (
             receipt.logs[i].topics[2].includes(
               this.sourceTx.from.toLowerCase().replace('0x', '')

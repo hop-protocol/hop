@@ -7,7 +7,7 @@ import { Chain } from 'src/constants'
 
 const TOKEN = 'USDC'
 const AMOUNT = 10_000
-const NETWORKS = [Chain.xDai]
+const NETWORKS = [Chain.Polygon]
 const logger = new Logger('TEST')
 
 describe('convert L1 token to L2 canonical token', () => {

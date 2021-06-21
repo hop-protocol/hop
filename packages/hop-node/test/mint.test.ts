@@ -2,7 +2,7 @@ import { privateKey } from './config'
 import { User } from './helpers'
 import { Chain } from 'src/constants'
 
-const network = Chain.Optimism
+const network = Chain.Ethereum
 const token = 'USDC'
 const amount = 1_000_000_000
 
@@ -10,6 +10,7 @@ test(
   'mint',
   async () => {
     const user = new User(privateKey)
+    console.log(await user.getAddress())
     const recipient = await user.getAddress()
     const tokenBalanceBefore = await user.getBalance(network, token, recipient)
     const tx = await user.mint(network, token, amount, recipient)

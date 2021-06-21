@@ -1,8 +1,7 @@
 module.exports = {
   roots: ['test'],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
-    '^.+\\.svg$': '<rootDir>/svgTransform.js'
+    '^.+\\.tsx?$': 'ts-jest'
   },
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/src/$1'

@@ -46,7 +46,7 @@ export const networks: Networks = {
       'https://polygon.rpc.hop.exchange',
       'https://rpc-mainnet.maticvigil.com'
     ],
-    explorerUrls: ['https://explorer-mainnet.maticvigil.com'],
+    explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/'
   }
 }

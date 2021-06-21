@@ -130,7 +130,7 @@ class Transaction extends EventEmitter {
   }
 
   private _polygonLink () {
-    return ''
+    return `${getBaseExplorerUrl('polygon')}tx/${this.hash}`
   }
 
   toObject () {

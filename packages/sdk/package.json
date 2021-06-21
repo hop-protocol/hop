@@ -34,7 +34,7 @@
   "dependencies": {
     "@hop-protocol/abi": "0.0.1-beta.10",
     "@hop-protocol/addresses": "0.0.1-beta.23",
-    "@hop-protocol/metadata": "0.0.1-beta.8",
+    "@hop-protocol/metadata": "0.0.1-beta.10",
     "@hop-protocol/networks": "0.0.1-beta.8",
     "@maticnetwork/maticjs": "^2.0.38",
     "dotenv": "^8.2.0",

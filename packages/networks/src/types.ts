@@ -4,6 +4,7 @@ export interface Network {
   rpcUrls: string[]
   explorerUrls: string[]
   nativeBridgeUrl?: string
+  waitConfirmations: number
 }
 
 export interface Networks {

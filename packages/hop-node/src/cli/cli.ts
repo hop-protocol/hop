@@ -341,7 +341,9 @@ async function staker (
     )
   }
   if (!token) {
-    throw new Error('token is required: Options are: USDC, DAI, etc... Use correct capitalization.')
+    throw new Error(
+      'token is required: Options are: USDC, DAI, etc... Use correct capitalization.'
+    )
   }
 
   const watchers = getStakeWatchers(

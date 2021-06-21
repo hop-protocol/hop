@@ -59,10 +59,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
           this.l1Bridge.TransferRootConfirmed,
           this.handleTransferRootConfirmedEvent
         )
-        .on(
-          l2Bridge.TransfersCommitted,
-          this.handleTransfersCommittedEvents
-        )
+        .on(l2Bridge.TransfersCommitted, this.handleTransfersCommittedEvents)
         .on('error', err => {
           this.logger.error(`event watcher error: ${err.message}`)
           this.notifier.error(`event watcher error: ${err.message}`)
@@ -98,7 +95,10 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     promises.push(
       this.l1Bridge.eventsBatch(
         async (start: number, end: number) => {
-          const events = await this.l1Bridge.getTransferRootConfirmedEvents(start, end)
+          const events = await this.l1Bridge.getTransferRootConfirmedEvents(
+            start,
+            end
+          )
           await this.handleTransferRootConfirmedEvents(events)
         },
         { key: this.l1Bridge.TransferRootConfirmed }
@@ -226,7 +226,10 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       return
     }
 
-    const shouldAttempt = this.shouldAttemptCheckpoint(dbTransferRoot, chainSlug)
+    const shouldAttempt = this.shouldAttemptCheckpoint(
+      dbTransferRoot,
+      chainSlug
+    )
     if (!shouldAttempt) {
       return
     }
@@ -380,10 +383,9 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
 
   shouldAttemptCheckpoint (dbTransferRoot: any, chainSlug: string) {
     // TODO: Move this const to chain-specific location
-    const checkpointIntervals: {[key: string]: number } = {
-      'polygon': 10 * 10 * 1000,
-      'xdai': 1 * 10 * 1000
-
+    const checkpointIntervals: { [key: string]: number } = {
+      polygon: 10 * 10 * 1000,
+      xdai: 1 * 10 * 1000
     }
 
     if (!chainSlug || !dbTransferRoot?.checkpointAttemptedAt) {

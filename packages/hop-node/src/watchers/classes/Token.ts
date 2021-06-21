@@ -2,6 +2,7 @@ import { ethers, providers, Contract, BigNumber } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
 import queue from 'src/decorators/queue'
+import rateLimitRetry from 'src/decorators/rateLimitRetry'
 
 export default class Token extends ContractBase {
   tokenContract: Contract
@@ -12,12 +13,14 @@ export default class Token extends ContractBase {
     this.tokenContract = tokenContract
   }
 
+  @rateLimitRetry
   async getBalance (): Promise<BigNumber> {
     const address = await this.tokenContract.signer.getAddress()
     const balance = await this.tokenContract.balanceOf(address)
     return balance
   }
 
+  @rateLimitRetry
   async decimals () {
     if (!this._decimals) {
       const _decimals = await this.tokenContract.decimals()
@@ -26,12 +29,14 @@ export default class Token extends ContractBase {
     return this._decimals
   }
 
+  @rateLimitRetry
   async getAllowance (spender: string): Promise<BigNumber> {
     const owner = await this.tokenContract.signer.getAddress()
     const allowance = await this.tokenContract.allowance(owner, spender)
     return allowance
   }
 
+  @rateLimitRetry
   @queue
   async approve (
     spender: string,

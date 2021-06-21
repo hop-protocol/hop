@@ -76,5 +76,5 @@ export const isL1ChainId = (chainId: number | string) => {
 }
 
 export const xor = (a: number, b: number) => {
-  return ( a || b ) && !( a && b )
+  return (a || b) && !(a && b)
 }

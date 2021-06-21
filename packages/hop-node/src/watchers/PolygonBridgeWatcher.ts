@@ -5,11 +5,15 @@ import Web3 from 'web3'
 import chalk from 'chalk'
 import { erc20Abi, l1PolygonPosRootChainManagerAbi } from '@hop-protocol/abi'
 import { Chain } from 'src/constants'
-import { config } from 'src/config'
+import { config as globalConfig } from 'src/config'
 import wallets from 'src/wallets'
 import { wait } from 'src/utils'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import queue from 'src/decorators/queue'
+
+type Config = {
+  token: string
+}
 
 class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
   l1Provider: any
@@ -18,8 +22,9 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
   l2Wallet: any
   chainId: number
   apiUrl: string
+  token: string
 
-  constructor () {
+  constructor (config: Config) {
     super({
       tag: 'polygonBridgeWatcher',
       logColor: 'yellow'
@@ -31,25 +36,33 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
     this.l2Provider = new ethers.providers.StaticJsonRpcProvider(
       'https://rpc-mumbai.maticvigil.com'
     )
-    const privateKey = config.relayerPrivateKey || config.bonderPrivateKey
+    const privateKey =
+      globalConfig.relayerPrivateKey || globalConfig.bonderPrivateKey
     this.l1Wallet = new ethers.Wallet(privateKey, this.l1Provider)
     this.l2Wallet = new ethers.Wallet(privateKey, this.l2Provider)
     this.chainId = 5
     this.apiUrl = `https://apis.matic.network/api/v1/${
       this.chainId === 1 ? 'matic' : 'mumbai'
     }/block-included`
+    this.token = config.token
   }
 
   async start () {
-    this.logger.log('started')
+    this.logger.debug(`polygon ${this.token} bridge watcher started`)
     this.started = true
     try {
       //const l1Wallet = wallets.get(Chain.Ethereum)
       //const tokenAddress = addresses.DAI.polygon.l2CanonicalToken
 
-      const tokenSymbol = 'USDC'
-      //const l1RootChainAddress = addresses[tokenSymbol][Chain.Polygon].l1PosRootChainManager
-      const l2TokenAddress = '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1' // dummy erc20
+      //const l1RootChainAddress = addresses[token][Chain.Polygon].l1PosRootChainManager
+      // const l2TokenAddress = '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1' // dummy erc20
+      const l2TokenAddress =
+        globalConfig.tokens[this.token][Chain.Polygon]?.l2CanonicalToken
+      if (!l2TokenAddress) {
+        throw new Error(
+          `no token address found for ${this.token} on ${Chain.Polygon}`
+        )
+      }
       const l2Token = new Contract(l2TokenAddress, erc20Abi, this.l2Wallet)
       /*
       const l1RootChain = new Contract(
@@ -97,7 +110,7 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
 
             delete transactionHashes[transactionHash]
             this.logger.info('sending polygon canonical bridge exit tx')
-            const tx = await this.sendTransaction(transactionHash, tokenSymbol)
+            const tx = await this.sendTransaction(transactionHash, this.token)
             this.logger.info(
               'polygon canonical bridge exit tx:',
               chalk.bgYellow.black.bold(tx.hash)
@@ -137,15 +150,16 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
         this.l1Provider.connection.url
       ),
       posRootChainManager:
-        config.tokens[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
+        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
       posERC20Predicate:
-        config.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
+        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
     })
 
+    // signature source: https://github.com/maticnetwork/pos-portal/blob/d06271188412a91ab9e4bdea4bbbfeb6cb9d7669/contracts/tunnel/BaseRootTunnel.sol#L21
     const sig =
       '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
     const rootTunnel =
-      config.tokens[tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
+      globalConfig.tokens[tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
     const tx = await (maticPOSClient as any).posRootChainManager.processReceivedMessage(
       rootTunnel,
       txHash,
@@ -178,9 +192,9 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
         this.l1Provider.connection.url
       ),
       posRootChainManager:
-        config.tokens[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
+        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
       posERC20Predicate:
-        config.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
+        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
     })
 
     const tx = await maticPOSClient.exitERC20(txHash, {

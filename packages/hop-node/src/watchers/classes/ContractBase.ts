@@ -3,6 +3,7 @@ import { EventEmitter } from 'events'
 import { wait, chainIdToSlug, chainSlugToId } from 'src/utils'
 import { Chain } from 'src/constants'
 import { config } from 'src/config'
+import rateLimitRetry from 'src/decorators/rateLimitRetry'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract
@@ -36,6 +37,7 @@ export default class ContractBase extends EventEmitter {
     return this.waitTilReady()
   }
 
+  @rateLimitRetry
   async getChainId (): Promise<number> {
     const { chainId } = await this.contract.provider.getNetwork()
     return Number(chainId.toString())
@@ -57,20 +59,24 @@ export default class ContractBase extends EventEmitter {
     return this.contract.address
   }
 
+  @rateLimitRetry
   async getTransaction (txHash: string): Promise<Transaction> {
     return this.contract.provider.getTransaction(txHash)
   }
 
+  @rateLimitRetry
   async getTransactionReceipt (
     txHash: string
   ): Promise<providers.TransactionReceipt> {
     return this.contract.provider.getTransactionReceipt(txHash)
   }
 
+  @rateLimitRetry
   async getBlockNumber (): Promise<number> {
     return this.contract.provider.getBlockNumber()
   }
 
+  @rateLimitRetry
   async getBlockTimestamp (blockNumber: string = 'latest'): Promise<number> {
     const block = await this.contract.provider.getBlock(blockNumber)
     return block.timestamp
@@ -87,6 +93,7 @@ export default class ContractBase extends EventEmitter {
     return Number(tx.timestamp.toString())
   }
 
+  @rateLimitRetry
   async getCode (
     address: string,
     blockNumber: string | number = 'latest'
@@ -94,11 +101,13 @@ export default class ContractBase extends EventEmitter {
     return this.contract.provider.getCode(address, blockNumber)
   }
 
+  @rateLimitRetry
   protected async getBumpedGasPrice (percent: number): Promise<BigNumber> {
     const gasPrice = await this.contract.provider.getGasPrice()
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
 
+  @rateLimitRetry
   // wait a safe number of confirmations to avoid processing on an uncle block
   async waitSafeConfirmations (): Promise<void> {
     let blockNumber = await this.contract.provider.getBlockNumber()

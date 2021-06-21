@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.55",
+  "version": "0.0.1-beta.58",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,14 +32,13 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@hop-protocol/abi": "0.0.1-beta.8",
-    "@hop-protocol/addresses": "0.0.1-beta.22",
-    "@hop-protocol/metadata": "0.0.1-beta.8",
-    "@hop-protocol/networks": "0.0.1-beta.7",
+    "@hop-protocol/abi": "0.0.1-beta.10",
+    "@hop-protocol/addresses": "0.0.1-beta.24",
+    "@hop-protocol/metadata": "0.0.1-beta.11",
+    "@hop-protocol/networks": "0.0.1-beta.11",
     "@maticnetwork/maticjs": "^2.0.38",
     "dotenv": "^8.2.0",
     "ethereum-checksum-address": "0.0.6",
-    "ethers": "^5.1.0",
     "eventemitter3": "^4.0.7",
     "fast-memoize": "^2.5.2",
     "node-fetch": "2.6.1",
@@ -64,6 +63,7 @@
     "babelify": "^10.0.0",
     "browserify": "^16.5.0",
     "concat-md": "^0.3.5",
+    "ethers": "^5.3.1",
     "jest": "^26.6.3",
     "lerna-sync-version": "0.0.6",
     "prettier-standard": "^16.4.1",
@@ -73,7 +73,7 @@
     "tsify": "^4.0.1",
     "typedoc": "^0.20.35",
     "typedoc-plugin-markdown": "^3.6.1",
-    "typescript": "^4.2.4",
+    "typescript": "^4.3.4",
     "uglify-es": "^3.3.9"
   },
   "standard": {

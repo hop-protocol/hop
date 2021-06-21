@@ -15,7 +15,7 @@ import { privateKey } from './config'
 // @ts-ignore
 import pkg from '../package.json'
 
-describe('sdk setup', () => {
+describe.skip('sdk setup', () => {
   const hop = new Hop()
   const signer = new Wallet(privateKey)
   it('should return version', () => {
@@ -73,7 +73,7 @@ describe.skip('hop bridge token transfers', () => {
   )
 })
 
-describe.only('tx watcher', () => {
+describe.skip('tx watcher', () => {
   const hop = new Hop('mainnet')
   const signer = new Wallet(privateKey)
   it(
@@ -159,7 +159,7 @@ describe.only('tx watcher', () => {
     },
     120 * 1000
   )
-  it.only(
+  it.skip(
     '(mainnet) receive events on token transfer from L2 xDai -> L2 Polygon',
     async () => {
       const tokenAmount = parseUnits('0.1', 18)

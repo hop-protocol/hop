@@ -37,7 +37,8 @@ describe('Happy Path', () => {
         expect(index).toBe(count)
         expect(end).toBe(start + totalBlocks)
         count++
-      }, { startBlockNumber, endBlockNumber }
+      },
+      { startBlockNumber, endBlockNumber }
     )
 
     // const totalCount = 1
@@ -53,7 +54,8 @@ describe('Happy Path', () => {
         expect(index).toBe(count)
         expect(end).toBe(start + batchBlocks)
         count++
-      }, { key }
+      },
+      { key }
     )
 
     const totalCount = totalBlocks / batchBlocks
@@ -75,7 +77,8 @@ describe('Happy Path', () => {
           expect(index).toBe(count)
           expect(end).toBe(start + batchBlocks)
           count++
-        }, { key }
+        },
+        { key }
       )
     }
 
@@ -91,7 +94,8 @@ describe('Happy Path', () => {
       async (start: number, end: number, index: number) => {
         expect(index).toBe(count)
         count++
-      }, { key }
+      },
+      { key }
     )
 
     state = await db.syncState.getByKey(cacheKey)
@@ -149,20 +153,24 @@ describe('Non-Happy Path', () => {
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
-        }, { startBlockNumber }
+        async (start: number, end: number, index: number) => {},
+        { startBlockNumber }
       )
     } catch (err) {
-      expect(err.message).toBe('If either a start or end block number exist, both must exist')
+      expect(err.message).toBe(
+        'If either a start or end block number exist, both must exist'
+      )
     }
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
-        }, { endBlockNumber }
+        async (start: number, end: number, index: number) => {},
+        { endBlockNumber }
       )
     } catch (err) {
-      expect(err.message).toBe('If either a start or end block number exist, both must exist')
+      expect(err.message).toBe(
+        'If either a start or end block number exist, both must exist'
+      )
     }
   })
 
@@ -172,20 +180,24 @@ describe('Non-Happy Path', () => {
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
-        }, { startBlockNumber, endBlockNumber }
+        async (start: number, end: number, index: number) => {},
+        { startBlockNumber, endBlockNumber }
       )
     } catch (err) {
-      expect(err.message).toBe('Cannot pass in a start or end block that is less than 0')
+      expect(err.message).toBe(
+        'Cannot pass in a start or end block that is less than 0'
+      )
     }
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
-        }, { startBlockNumber, endBlockNumber }
+        async (start: number, end: number, index: number) => {},
+        { startBlockNumber, endBlockNumber }
       )
     } catch (err) {
-      expect(err.message).toBe('Cannot pass in a start or end block that is less than 0')
+      expect(err.message).toBe(
+        'Cannot pass in a start or end block that is less than 0'
+      )
     }
   })
 
@@ -196,11 +208,13 @@ describe('Non-Happy Path', () => {
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
-        }, { startBlockNumber, endBlockNumber, key }
+        async (start: number, end: number, index: number) => {},
+        { startBlockNumber, endBlockNumber, key }
       )
     } catch (err) {
-      expect(err.message).toBe('A key cannot exist when a start and end block are explicitly defined')
+      expect(err.message).toBe(
+        'A key cannot exist when a start and end block are explicitly defined'
+      )
     }
   })
 
@@ -210,21 +224,25 @@ describe('Non-Happy Path', () => {
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
-        }, { startBlockNumber, endBlockNumber }
+        async (start: number, end: number, index: number) => {},
+        { startBlockNumber, endBlockNumber }
       )
     } catch (err) {
-      expect(err.message).toBe('Cannot pass in an end block that is before a start block')
+      expect(err.message).toBe(
+        'Cannot pass in an end block that is before a start block'
+      )
     }
 
     endBlockNumber = 100
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
-        }, { startBlockNumber, endBlockNumber }
+        async (start: number, end: number, index: number) => {},
+        { startBlockNumber, endBlockNumber }
       )
     } catch (err) {
-      expect(err.message).toBe('Cannot pass in an end block that is before a start block')
+      expect(err.message).toBe(
+        'Cannot pass in an end block that is before a start block'
+      )
     }
   })
 })

@@ -6,7 +6,8 @@ export const networks: Networks = {
     name: chains.ethereum.name,
     networkId: 1,
     rpcUrls: ['https://mainnet.rpc.hop.exchange'],
-    explorerUrls: ['https://etherscan.io']
+    explorerUrls: ['https://etherscan.io'],
+    waitConfirmations: 12
   },
   arbitrum: {
     name: chains.arbitrum.name,
@@ -15,14 +16,16 @@ export const networks: Networks = {
     explorerUrls: [
       'https://expedition.dev/?rpcUrl=https%3A%2F%2Fmainnet.arbitrum.io'
     ],
-    nativeBridgeUrl: 'https://bridge.arbitrum.io/'
+    nativeBridgeUrl: 'https://bridge.arbitrum.io/',
+    waitConfirmations: 20 // TODO: ask for recommended wait confirmations
   },
   optimism: {
     name: chains.optimism.name,
     networkId: 10,
     rpcUrls: ['https://mainnet.optimism.io'],
     explorerUrls: ['https://optimistic.etherscan.io'],
-    nativeBridgeUrl: 'https://gateway.optimism.io/welcome'
+    nativeBridgeUrl: 'https://gateway.optimism.io/welcome',
+    waitConfirmations: 20 // TODO: ask for recommended wait confirmations
   },
   xdai: {
     name: chains.xdai.name,
@@ -34,10 +37,11 @@ export const networks: Networks = {
       'https://xdai-archive.blockscout.com',
       'https://xdai.1hive.org'
       // wss://rpc.xdaichain.com/wss
-      // wss://xdai.poanetwork.dev/wss
+      // wss://xdai.poanetwork.dev/wss,
     ],
     explorerUrls: ['https://blockscout.com/xdai/mainnet'],
-    nativeBridgeUrl: 'https://omni.xdaichain.com/'
+    nativeBridgeUrl: 'https://omni.xdaichain.com/',
+    waitConfirmations: 60 // TODO: ask for recommended wait confirmations
   },
   polygon: {
     name: chains.polygon.name,
@@ -46,7 +50,8 @@ export const networks: Networks = {
       'https://polygon.rpc.hop.exchange',
       'https://rpc-mainnet.maticvigil.com'
     ],
-    explorerUrls: ['https://explorer-mainnet.maticvigil.com'],
-    nativeBridgeUrl: 'https://wallet.matic.network/bridge/'
+    explorerUrls: ['https://polygonscan.com'],
+    nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
+    waitConfirmations: 124
   }
 }

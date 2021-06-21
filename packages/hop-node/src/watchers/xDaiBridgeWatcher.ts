@@ -9,6 +9,10 @@ import { wait } from 'src/utils'
 import queue from 'src/decorators/queue'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 
+type Config = {
+  token: string
+}
+
 export const getL1Amb = (token: string) => {
   const l1Wallet = wallets.getRelayer(Chain.Ethereum)
   const l1AmbAddress = config.tokens[token].xdai.l1Amb
@@ -67,21 +71,23 @@ export const executeExitTx = async (event: any, token: string) => {
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
 class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
-  constructor () {
+  token: string
+
+  constructor (config: Config) {
     super({
       tag: 'xDaiBridgeWatcher',
       logColor: 'yellow'
     })
+    this.token = config.token
   }
 
   async start () {
     this.started = true
     try {
-      const token = 'DAI'
-      const l1Amb = getL1Amb(token)
-      const l2Amb = getL2Amb(token)
+      const l1Amb = getL1Amb(this.token)
+      const l2Amb = getL2Amb(this.token)
 
-      this.logger.debug('xDai bridge watcher started')
+      this.logger.debug(`xDai ${this.token} bridge watcher started`)
       while (true) {
         if (!this.started) {
           return
@@ -94,7 +100,7 @@ class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
 
         for (let event of events) {
           try {
-            const result = await executeExitTx(event, token)
+            const result = await executeExitTx(event, this.token)
             if (!result) {
               continue
             }

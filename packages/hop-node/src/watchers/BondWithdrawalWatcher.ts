@@ -167,6 +167,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     for (let event of events) {
       const {
         transferId,
+        chainId,
         recipient,
         amount,
         transferNonce,
@@ -177,6 +178,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       } = event.args
       await this.handleTransferSentEvent(
         transferId,
+        chainId,
         recipient,
         amount,
         transferNonce,
@@ -196,13 +198,11 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       const { transferId } = dbTransfer
       promises.push(this.checkTransferSent(transferId))
     }
-    
+
     await Promise.all(promises)
   }
 
-  checkTransferSent = async (
-    transferId: string
-  ) => {
+  checkTransferSent = async (transferId: string) => {
     const logger = this.logger.create({ id: transferId })
 
     let dbTransfer = await db.transfers.getByTransferId(transferId)
@@ -226,9 +226,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
     const isBonder = await destL2Bridge.isBonder()
     if (!isBonder) {
-      logger.warn(
-        `not a bonder on chainId ${chainId}. Cannot bond withdrawal`
-      )
+      logger.warn(`not a bonder on chainId ${chainId}. Cannot bond withdrawal`)
       return
     }
 
@@ -255,7 +253,9 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     }
 
     // TODO: Handle this in DB getter
-    const bondedAmount = await destL2Bridge.getBondedWithdrawalAmount(transferId)
+    const bondedAmount = await destL2Bridge.getBondedWithdrawalAmount(
+      transferId
+    )
     const isTransferIdSpent = await destL2Bridge.isTransferIdSpent(transferId)
     const isWithdrawalBonded = bondedAmount.gt(0) || isTransferIdSpent
     if (isWithdrawalBonded) {
@@ -451,20 +451,13 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     meta: any
   ) => {
     const logger = this.logger.create({ id: transferId })
-    const dbTransfer = await db.transfers.getByTransferId(transferId)
-    if (dbTransfer?.withdrawalBonder) {
-      return
-    }
 
     const tx = await meta.getTransaction()
     const { from: withdrawalBonder } = tx
+
     logger.debug(`received WithdrawalBonded event`)
     logger.debug('transferId:', transferId)
-    // logger.debug(`recipient:`, recipient)
     logger.debug('amount:', this.bridge.formatUnits(amount))
-    // logger.debug('transferNonce:', transferNonce)
-    // logger.debug('bonderFee:', bonderFee?.toString())
-    // logger.debug('index:', index?.toString())
 
     await db.transfers.update(transferId, {
       withdrawalBonded: true,

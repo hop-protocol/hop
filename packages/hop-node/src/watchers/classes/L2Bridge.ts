@@ -6,6 +6,7 @@ import {
   l2BridgeWrapperAbi
 } from '@hop-protocol/abi'
 import Bridge from './Bridge'
+import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import queue from 'src/decorators/queue'
 import L2AmmWrapper from './L2AmmWrapper'
 import L2BridgeWrapper from './L2BridgeWrapper'
@@ -71,6 +72,7 @@ export default class L2Bridge extends Bridge {
     return L1Bridge.fromAddress(l1BridgeAddress)
   }
 
+  @rateLimitRetry
   async hToken (): Promise<Token> {
     const tokenAddress = await this.bridgeContract.hToken()
     const tokenContract = new Contract(
@@ -81,6 +83,7 @@ export default class L2Bridge extends Bridge {
     return new Token(tokenContract)
   }
 
+  @rateLimitRetry
   async getTransfersCommittedEvents (
     startBlockNumber: number,
     endBlockNumber: number
@@ -105,6 +108,7 @@ export default class L2Bridge extends Bridge {
     return match
   }
 
+  @rateLimitRetry
   async getTransferSentEvents (
     startBlockNumber: number,
     endBlockNumber: number
@@ -116,6 +120,7 @@ export default class L2Bridge extends Bridge {
     )
   }
 
+  @rateLimitRetry
   async getTransferSentTimestamp (transferId: string): Promise<number> {
     let match: any
     await this.eventsBatch(async (start: number, end: number) => {
@@ -140,6 +145,7 @@ export default class L2Bridge extends Bridge {
     return this.getEventTimestamp(match)
   }
 
+  @rateLimitRetry
   async getChainId (): Promise<number> {
     if (!this.l2BridgeContract) {
       return super.getChainId()
@@ -152,6 +158,7 @@ export default class L2Bridge extends Bridge {
     return this.chainIdToSlug(chainId)
   }
 
+  @rateLimitRetry
   async decodeCommitTransfersData (data: string): Promise<any> {
     if (!data) {
       throw new Error('data to decode is required')
@@ -167,6 +174,7 @@ export default class L2Bridge extends Bridge {
     }
   }
 
+  @rateLimitRetry
   async decodeSendData (data: string): Promise<any> {
     if (!data) {
       throw new Error('data to decode is required')
@@ -191,18 +199,21 @@ export default class L2Bridge extends Bridge {
     }
   }
 
+  @rateLimitRetry
   async getLastCommitTimeForChainId (chainId: number): Promise<number> {
     return Number(
       (await this.l2BridgeContract.lastCommitTimeForChainId(chainId)).toString()
     )
   }
 
+  @rateLimitRetry
   async getMinimumForceCommitDelay (): Promise<number> {
     return Number(
       (await this.l2BridgeContract.minimumForceCommitDelay()).toString()
     )
   }
 
+  @rateLimitRetry
   async getPendingAmountForChainId (chainId: number): Promise<BigNumber> {
     const pendingAmount = await this.l2BridgeContract.pendingAmountForChainId(
       chainId
@@ -210,12 +221,14 @@ export default class L2Bridge extends Bridge {
     return pendingAmount
   }
 
+  @rateLimitRetry
   async getMaxPendingTransfers (): Promise<number> {
     return Number(
       (await this.l2BridgeContract.maxPendingTransfers()).toString()
     )
   }
 
+  @rateLimitRetry
   async getPendingTransfers (chainId: number): Promise<any[]> {
     const pendingTransfers: string[] = []
     const max = await this.getMaxPendingTransfers()
@@ -234,6 +247,7 @@ export default class L2Bridge extends Bridge {
     return pendingTransfers
   }
 
+  @rateLimitRetry
   async getTransferRootCommittedTxHash (
     transferRootHash: string
   ): Promise<string | undefined> {
@@ -268,6 +282,7 @@ export default class L2Bridge extends Bridge {
     return Number(transferRoot.createdAt.toString()) > 0
   }
 
+  @rateLimitRetry
   @queue
   async commitTransfers (
     destinationChainId: number
@@ -280,6 +295,7 @@ export default class L2Bridge extends Bridge {
     return tx
   }
 
+  @rateLimitRetry
   @queue
   async bondWithdrawalAndAttemptSwap (
     recipient: string,

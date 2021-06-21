@@ -32,9 +32,9 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x76b22b8C1079A44F1211D867D68b1eda76a635A7',
         l2SaddleSwap: '0x5C32143C8B198F392d01f8446b754c181224ac26',
         l2SaddleLpToken: '0x9D373d22FD091d7f9A6649EB067557cc12Fb1A0A',
+        l1FxBaseRootTunnel: '0x10541b07d8Ad2647Dc6cD67abd4c03575dade261',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
-        l1FxBaseRootTunnel: '0xCbb852A6274e03fA00fb4895dE0463f66dF27a11'
+        l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf'
       }
     }
   }

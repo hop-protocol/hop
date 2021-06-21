@@ -29,7 +29,7 @@ const useBalance = (token: Token | undefined, network: Network | undefined) => {
         const _balance = await token.balanceOf()
 
         if (ctx === debouncer.current) {
-          setBalance(_balance)
+          setBalance(_balance as BigNumber)
           setLoading(false)
         }
       } else {

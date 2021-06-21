@@ -57,7 +57,10 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       promises.push(
         this.eventsBatch(
           async (start: number, end: number) => {
-            const events = await l1Bridge.getTransferRootBondedEvents(start, end)
+            const events = await l1Bridge.getTransferRootBondedEvents(
+              start,
+              end
+            )
             await this.handleTransferRootBondedEvents(events)
           },
           { key: l1Bridge.TransferRootBonded }
@@ -68,7 +71,10 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       promises.push(
         this.eventsBatch(
           async (start: number, end: number) => {
-            const events = await l2Bridge.getTransfersCommittedEvents(start, end)
+            const events = await l2Bridge.getTransfersCommittedEvents(
+              start,
+              end
+            )
             await this.handleTransfersCommittedEvents(events)
           },
           { key: l2Bridge.TransfersCommitted }
@@ -125,18 +131,20 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
   async handleTransferRootBondedEvents (events: Event[]) {
     for (let event of events) {
       const { root, amount } = event.args
-      await this.handleTransferRootBondedEvent(
-        root,
-        amount,
-        event
-      )
+      await this.handleTransferRootBondedEvent(root, amount, event)
     }
   }
 
   async handleTransfersCommittedEvents (events: Event[]) {
     for (let event of events) {
-      const { rootHash, totalAmount, rootCommittedAt } = event.args
+      const {
+        destinationChainId: chainId,
+        rootHash,
+        totalAmount,
+        rootCommittedAt
+      } = event.args
       await this.handleTransfersCommittedEvent(
+        chainId,
         rootHash,
         totalAmount,
         rootCommittedAt,

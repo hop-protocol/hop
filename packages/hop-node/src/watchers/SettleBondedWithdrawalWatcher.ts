@@ -503,8 +503,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       const structAmountWithdrawn = transferRootStruct.amountWithdrawn
       const createdAt = Number(transferRootStruct?.createdAt.toString())
       if (createdAt === 0 || transferRootStruct.total.lte(0)) {
+        // TODO: Figure out the best way to separate a transferRoot that was not set correctly and
+        // one that has simply not yet been set
         logger.warn(
-          `transferRoot was not set correctly`,
+          `transferRoot has not yet been propagated after exit tx or was not set correctly`,
           `Total Amount: ${structTotalAmount.toString()}`, 
           `Created At: ${createdAt}`, 
         )

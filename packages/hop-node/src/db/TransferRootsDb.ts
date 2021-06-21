@@ -24,6 +24,7 @@ export type TransferRoot = {
   bondTxHash?: string
   transferIds?: string[]
   bonder?: string
+  checkpointAttemptedAt?: number
 }
 
 class TransferRootsDb extends BaseDb {

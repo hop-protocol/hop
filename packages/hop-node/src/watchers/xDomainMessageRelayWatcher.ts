@@ -174,6 +174,8 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     chainId: number,
     committedAt: number
   ) => {
+    const logger = this.logger.create({ root: transferRootHash })
+
     const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
@@ -181,13 +183,13 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       return
     }
 
+    const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
     const l2Bridge = this.bridge as L2Bridge
     const bridgeChainId = await l2Bridge.getChainId()
     const sourceChainId = dbTransferRoot.sourceChainId
     if (!sourceChainId) {
       return
     }
-    const sourceChainSlug = this.chainIdToSlug(sourceChainId)
     if (bridgeChainId !== sourceChainId) {
       return
     }
@@ -207,7 +209,32 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       return
     }
 
-    const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
+    if (
+      (dbTransferRoot?.sentConfirmTx || dbTransferRoot?.confirmed) &&
+      dbTransferRoot.sentConfirmTxAt
+    ) {
+      const tenMinutes = 60 * 10 * 1000
+      // skip if a transaction was sent in the last 10 minutes
+      if (dbTransferRoot.sentConfirmTxAt + tenMinutes > Date.now()) {
+        logger.debug(
+          'sent?:',
+          !!dbTransferRoot.sentConfirmTx,
+          'confirmed?:',
+          !!dbTransferRoot?.confirmed
+        )
+      }
+      return
+    }
+
+    const shouldAttempt = this.shouldAttemptCheckpoint(dbTransferRoot, chainSlug)
+    if (!shouldAttempt) {
+      return
+    }
+
+    await db.transferRoots.update(transferRootHash, {
+      checkpointAttemptedAt: Date.now()
+    })
+
     if (chainSlug === Chain.xDai) {
       const l2Amb = getL2Amb(this.token)
       const tx: any = await this.bridge.getTransaction(commitTxHash)
@@ -231,22 +258,6 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
           } = await this.l1Bridge.decodeConfirmTransferRootData(
             '0x' + data.replace('0x', '')
           )
-          if (
-            (dbTransferRoot?.sentConfirmTx || dbTransferRoot?.confirmed) &&
-            dbTransferRoot.sentConfirmTxAt
-          ) {
-            const tenMinutes = 60 * 10 * 1000
-            // skip if a transaction was sent in the last 10 minutes
-            if (dbTransferRoot.sentConfirmTxAt + tenMinutes > Date.now()) {
-              this.logger.debug(
-                'sent?:',
-                !!dbTransferRoot.sentConfirmTx,
-                'confirmed?:',
-                !!dbTransferRoot?.confirmed
-              )
-            }
-            return
-          }
           const result = await executeExitTx(sigEvent, this.token)
           if (result) {
             await db.transferRoots.update(transferRootHash, {
@@ -281,8 +292,8 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
 
                 throw err
               })
-            this.logger.info(`transferRootHash:`, transferRootHash)
-            this.logger.info(
+            logger.info(`transferRootHash:`, transferRootHash)
+            logger.info(
               `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
               chalk.bgYellow.black.bold(tx.hash)
             )
@@ -294,36 +305,11 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
         }
       }
     } else if (chainSlug === Chain.Polygon) {
-      const poly = new PolygonBridgeWatcher()
-      const privateKey = gConfig.relayerPrivateKey || gConfig.bonderPrivateKey
-      poly.l1Provider = new ethers.providers.StaticJsonRpcProvider(
-        getRpcUrls(Chain.Ethereum)[0]
-      )
-      poly.l2Provider = new ethers.providers.StaticJsonRpcProvider(
-        getRpcUrls(Chain.Polygon)[0]
-      )
-      poly.l1Wallet = new ethers.Wallet(privateKey, poly.l1Provider)
-      poly.l2Wallet = new ethers.Wallet(privateKey, poly.l2Provider)
-      poly.chainId = 1
-      poly.apiUrl = `https://apis.matic.network/api/v1/${
-        poly.chainId === 1 ? 'matic' : 'mumbai'
-      }/block-included`
-
-      if (
-        (dbTransferRoot?.sentConfirmTx || dbTransferRoot?.confirmed) &&
-        dbTransferRoot.sentConfirmTxAt
-      ) {
-        const tenMinutes = 60 * 10 * 1000
-        // skip if a transaction was sent in the last 10 minutes
-        if (dbTransferRoot.sentConfirmTxAt + tenMinutes > Date.now()) {
-          this.logger.debug(
-            'sent?:',
-            !!dbTransferRoot.sentConfirmTx,
-            'confirmed?:',
-            !!dbTransferRoot?.confirmed
-          )
-        }
-        return
+      const poly = this.getPolyInstance()
+      const commitTx: any = await this.bridge.getTransaction(commitTxHash)
+      const isCheckpointed = await poly.isCheckpointed(commitTx.blockNumber)
+      if (!isCheckpointed) {
+        false
       }
 
       const tx = await poly.relayMessage(commitTxHash, this.token)
@@ -358,7 +344,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
 
           throw err
         })
-      this.logger.info(
+      logger.info(
         `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
         chalk.bgYellow.black.bold(tx.hash)
       )
@@ -369,6 +355,47 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       // not implemented
       return
     }
+  }
+
+  getPolyInstance () {
+    // TODO: These params should be passed into constructor and this should not be a standalone
+    // function
+    const poly = new PolygonBridgeWatcher()
+    const privateKey = gConfig.relayerPrivateKey || gConfig.bonderPrivateKey
+    poly.l1Provider = new ethers.providers.StaticJsonRpcProvider(
+      getRpcUrls(Chain.Ethereum)[0]
+    )
+    poly.l2Provider = new ethers.providers.StaticJsonRpcProvider(
+      getRpcUrls(Chain.Polygon)[0]
+    )
+    poly.l1Wallet = new ethers.Wallet(privateKey, poly.l1Provider)
+    poly.l2Wallet = new ethers.Wallet(privateKey, poly.l2Provider)
+    poly.chainId = 1
+    poly.apiUrl = `https://apis.matic.network/api/v1/${
+      poly.chainId === 1 ? 'matic' : 'mumbai'
+    }/block-included`
+
+    return poly
+  }
+
+  shouldAttemptCheckpoint (dbTransferRoot: any, chainSlug: string) {
+    // TODO: Move this const to chain-specific location
+    const checkpointIntervals: {[key: string]: number } = {
+      'polygon': 10 * 10 * 1000,
+      'xdai': 1 * 10 * 1000
+
+    }
+
+    if (!chainSlug || !dbTransferRoot?.checkpointAttemptedAt) {
+      return false
+    }
+
+    const interval = checkpointIntervals[chainSlug]
+    if (dbTransferRoot.checkpointAttemptedAt + interval < Date.now()) {
+      return true
+    }
+
+    return false
   }
 }
 

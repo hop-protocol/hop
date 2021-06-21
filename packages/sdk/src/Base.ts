@@ -45,8 +45,12 @@ const getContract = async (
   let p = provider as any
   // memoize function doesn't handle dynamic provider object well, so
   // here we derived a cache key based on connected account address and rpc url.
-  const cacheKey = `${p?.getAddress ? await p?.getAddress() : ''}${p?.provider
-    ?._network?.chainId || p?.connection?.url}`
+  const signerAddress = p?.getAddress ? await p?.getAddress() : undefined
+  const chainId = p?.provider?._network?.chainId
+  await p?._networkPromise
+  const fallbackProviderChainId = p?._network?.chainId
+  const rpcUrl = p?.connection?.url
+  const cacheKey = `${signerAddress}${chainId}${fallbackProviderChainId}${rpcUrl}`
   return getContractMemo(address, abi, cacheKey)(provider)
 }
 
@@ -208,25 +212,33 @@ class Base {
     signer: TProvider = this.signer as Signer
   ) {
     chain = this.toChainModel(chain)
-    if (!signer) {
-      return chain.provider
-    }
-    if (Signer.isSigner(signer)) {
-      const connectedChainId = await signer.getChainId()
-      if (connectedChainId !== chain.chainId) {
-        if (!signer.provider) {
-          return (signer as Signer).connect(chain.provider)
-        }
-        return chain.provider
-      }
-      return signer
-    } else {
-      const { chainId } = await signer.getNetwork()
-      if (chainId !== chain.chainId) {
-        return chain.provider
-      }
-      return signer
-    }
+    return chain.provider
+    // console.log('getSignerOrProvider')
+    // chain = this.toChainModel(chain)
+    // if (!signer) {
+    //   return chain.provider
+    // }
+    // if (Signer.isSigner(signer)) {
+    //   const connectedChainId = await signer.getChainId()
+    //   console.log('connectedChainId: ', connectedChainId)
+    //   console.log('chain.chainId: ', chain.chainId)
+    //   if (connectedChainId !== chain.chainId) {
+    //     if (!signer.provider) {
+    //       console.log('connect provider')
+    //       return (signer as Signer).connect(chain.provider)
+    //     }
+    //     console.log('return chain.provider')
+    //     return chain.provider
+    //   }
+    //   return signer
+    // } else {
+    //   console.log('isSigner')
+    //   const { chainId } = await signer.getNetwork()
+    //   if (chainId !== chain.chainId) {
+    //     return chain.provider
+    //   }
+    //   return signer
+    // }
   }
 
   public getConfigAddresses (token: TToken, chain: TChain) {

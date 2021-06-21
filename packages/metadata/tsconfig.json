@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "lib": ["dom", "es2017", "esnext"],
+    "types": ["node", "jest"],
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "emitDecoratorMetadata": true,
+    "declaration": true,
+    "declarationDir": "dist",
+    "declarationMap": true,
+    "skipLibCheck": true,
+    "target": "es2015",
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "moduleResolution": "node",
+    "sourceMap": false,
+    "outDir": "dist",
+    "baseUrl": "src",
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "paths": {
+      "@src/*": ["*"]
+    },
+    "forceConsistentCasingInFileNames": true,
+    "typeRoots": ["node", "./node_modules/@types", "./@types"]
+  },
+  "include": ["src/**/*", "custom.d.ts"],
+  "exclude": ["node_modules", "dist", "test", "**/*.test.ts"]
+}

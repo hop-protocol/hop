@@ -1,9 +1,11 @@
 import { useMemo } from 'react'
 import { Contract } from 'ethers'
-import stakingRewardsFactoryArtifact from 'src/abi/StakingRewardsFactory.json'
-import stakingRewardsArtifact from 'src/abi/StakingRewards.json'
-import hopArtifact from 'src/abi/Hop.json'
-import governorAlphaArtifact from 'src/abi/GovernorAlpha.json'
+import {
+  governorAlphaAbi,
+  stakingRewardsFactoryAbi,
+  stakingRewardsAbi,
+  hopAbi
+} from '@hop-protocol/abi'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
@@ -32,29 +34,41 @@ const useGovernanceContracts = (networks: Network[]): GovernanceContracts => {
   }, [networks, connectedNetworkId, provider])
 
   const l1Hop = useMemo(() => {
-    return new Contract(addresses.governance.l1Hop, hopArtifact.abi, l1Provider)
+    if (!addresses.governance.l1Hop) {
+      return
+    }
+    return new Contract(addresses.governance.l1Hop, hopAbi, l1Provider)
   }, [l1Provider])
 
   const stakingRewardsFactory = useMemo(() => {
+    if (!addresses.governance.stakingRewardsFactory) {
+      return
+    }
     return new Contract(
       addresses.governance.stakingRewardsFactory,
-      stakingRewardsFactoryArtifact.abi,
+      stakingRewardsFactoryAbi,
       l1Provider
     )
   }, [l1Provider])
 
   const stakingRewards = useMemo(() => {
+    if (!addresses.governance.stakingRewards) {
+      return
+    }
     return new Contract(
       addresses.governance.stakingRewards,
-      stakingRewardsArtifact.abi,
+      stakingRewardsAbi,
       l1Provider
     )
   }, [l1Provider])
 
   const governorAlpha = useMemo(() => {
+    if (!addresses.governance.governorAlpha) {
+      return
+    }
     return new Contract(
       addresses.governance.governorAlpha,
-      governorAlphaArtifact.abi,
+      governorAlphaAbi,
       l1Provider
     )
   }, [l1Provider])

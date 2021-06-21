@@ -1,18 +1,30 @@
+import { BigNumber } from 'ethers'
 import BaseDb from './BaseDb'
 
 export type TransferRoot = {
+  destinationBridgeAddress?: string
+  transferRootId?: string
   transferRootHash?: string
-  totalAmount?: number
-  chainId?: string
-  sourceChainID?: string
+  totalAmount?: BigNumber
+  chainId?: number
+  sourceChainId?: number
   sentCommitTx?: boolean
-  commited?: boolean
-  commitedAt?: number
+  sentCommitTxAt: number
+  committed?: boolean
+  committedAt?: number
+  commitTxHash?: string
+  confirmed?: boolean
+  confirmedAt?: number
+  confirmTxHash?: string
+  sentConfirmTx?: boolean
+  sentConfirmTxAt?: number
   bonded?: boolean
-  settled?: boolean
-  sentSettleTx?: boolean
   sentBondTx?: boolean
-  transferHashes?: string[]
+  sentBondTxAt?: number
+  bondTxHash?: string
+  transferIds?: string[]
+  bonder?: string
+  checkpointAttemptedAt?: number
 }
 
 class TransferRootsDb extends BaseDb {
@@ -20,10 +32,33 @@ class TransferRootsDb extends BaseDb {
     super(prefix)
   }
 
+  async update (transferRootHash: string, data: Partial<TransferRoot>) {
+    return super.update(transferRootHash, data)
+  }
+
   async getByTransferRootHash (
     transferRootHash: string
   ): Promise<TransferRoot> {
-    return this.getById(transferRootHash)
+    const item = await this.getById(transferRootHash)
+    if (item?.totalAmount && item?.totalAmount?.type === 'BigNumber') {
+      item.totalAmount = BigNumber.from(item.totalAmount?.hex)
+    }
+    return item
+  }
+
+  async getByTransferRootId (transferRootId: string): Promise<TransferRoot> {
+    const transferRootHashes = await this.getTransferRootHashes()
+    const filtered = (
+      await Promise.all(
+        transferRootHashes.map(async (transferRootHash: string) => {
+          const item = await this.getByTransferRootHash(transferRootHash)
+          if (item.transferRootId === transferRootId) {
+            return item
+          }
+        })
+      )
+    ).filter(x => x)
+    return filtered?.[0]
   }
 
   async getTransferRootHashes (): Promise<string[]> {
@@ -32,29 +67,19 @@ class TransferRootsDb extends BaseDb {
 
   async getTransferRoots (): Promise<TransferRoot[]> {
     const transferRootHashes = await this.getTransferRootHashes()
-    return await Promise.all(
+    const transferRoots = await Promise.all(
       transferRootHashes.map(transferRootHash => {
         return this.getByTransferRootHash(transferRootHash)
       })
     )
-  }
 
-  async getUnsettledBondedTransferRoots (): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
-      return (
-        !item.sentSettleTx &&
-        item.bonded &&
-        !item.settled &&
-        item?.transferHashes?.length
-      )
-    })
+    return transferRoots.sort((a, b) => a.committedAt - b.committedAt)
   }
 
   async getUncommittedBondedTransferRoots (): Promise<TransferRoot[]> {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
-      return !item.commited && item?.transferHashes?.length
+      return !item.committed && item?.transferIds?.length
     })
   }
 
@@ -62,7 +87,56 @@ class TransferRootsDb extends BaseDb {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
       return (
-        !item.bonded && item.transferRootHash && item.chainId && item.commitedAt
+        !item.sentBondTx &&
+        !item.bonded &&
+        item.transferRootHash &&
+        item.chainId &&
+        item.committedAt &&
+        !item.confirmed
+      )
+    })
+  }
+
+  async getUnconfirmedTransferRoots (): Promise<TransferRoot[]> {
+    const transfers = await this.getTransferRoots()
+    return transfers.filter(item => {
+      return (
+        !item.confirmed &&
+        !item.sentConfirmTx &&
+        item.transferRootHash &&
+        item.chainId &&
+        item.committed &&
+        item.committedAt
+      )
+    })
+  }
+
+  // TODO: This should be a new DB for a TransferBond, not a TransferRoot
+  // This will add new requirements to this return statement
+  async getChallengeableTransferRoots (): Promise<TransferRoot[]> {
+    const transfers = await this.getTransferRoots()
+    return transfers.filter(item => {
+      return (
+        !item.confirmed &&
+        !item.confirmedAt &&
+        item.bonded &&
+        !item.sentConfirmTx &&
+        !item.sentConfirmTxAt
+      )
+    })
+  }
+
+  // TODO: This should be a new DB for a TransferBond, not a TransferRoot
+  // This will add new requirements to this return statement
+  async getResolvableTransferRoots (): Promise<TransferRoot[]> {
+    const transfers = await this.getTransferRoots()
+    return transfers.filter(item => {
+      return (
+        !item.confirmed &&
+        !item.confirmedAt &&
+        item.bonded &&
+        !item.sentConfirmTx &&
+        !item.sentConfirmTxAt
       )
     })
   }

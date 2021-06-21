@@ -5,7 +5,7 @@
   },
   "extends": [
     "plugin:react/recommended",
-    "airbnb",
+    "standard",
     "plugin:react-hooks/recommended"
   ],
   "parser": "@typescript-eslint/parser",
@@ -17,14 +17,24 @@
     "sourceType": "module"
   },
   "plugins": ["react", "@typescript-eslint"],
-  "ignorePatterns": ["src/*"],
+  "ignorePatterns": [],
   "rules": {
+    "indent": 0,
     "comma-dangle": 0,
+    "no-constant-condition": 0,
+    "multiline-ternary": 0,
     "semi": 0,
     "import/no-unresolved": 0,
-    "no-use-before-define": 1,
+    "no-use-before-define": 0,
+    "no-unused-vars": 0,
+    "spaced-comment": 0,
     "arrow-body-style": 0,
     "no-underscore-dangle": 0,
+    "node/handle-callback-err": 0,
+    "react/prop-types": 0,
+    "react-hooks/exhaustive-deps": 0,
+    "react-hooks/rules-of-hooks": 0,
+    "react/no-unescaped-entities": 0,
     "react/jsx-one-expression-per-line": 0,
     "react/jsx-filename-extension": [
       2,
@@ -32,5 +42,10 @@
         "extensions": [".js", ".jsx", ".ts", ".tsx"]
       }
     ]
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
   }
 }

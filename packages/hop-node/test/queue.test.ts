@@ -1,5 +1,5 @@
 import { wait } from 'src/utils'
-import queue from 'src/watchers/helpers/queue'
+import queue from 'src/decorators/queue'
 
 const DELAY_SECONDS = 1
 const ITERATIONS = 5

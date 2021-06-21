@@ -1,18 +1,10 @@
-import React, {
-  FC,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useMemo,
-  useCallback
-} from 'react'
-import { ethers, Contract } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import React, { FC, createContext, useContext, useState } from 'react'
+import { parseUnits } from 'ethers/lib/utils'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Transaction from 'src/models/Transaction'
 import Token from 'src/models/Token'
+import Network from 'src/models/Network'
 import logger from 'src/logger'
 import { L1_NETWORK } from 'src/constants'
 
@@ -20,33 +12,32 @@ type FaucetContextProps = {
   mintToken: () => void
   mintAmount: string
   isMinting: boolean
-  selectedToken: Token | undefined
-  setSelectedToken: (token: Token) => void
   tokens: Token[]
   error: string | null | undefined
   setError: (error: string | null | undefined) => void
+  selectedNetwork: Network | undefined
 }
 
 const FaucetContext = createContext<FaucetContextProps>({
   mintToken: () => {},
   mintAmount: '',
   isMinting: false,
-  selectedToken: undefined,
-  setSelectedToken: (token: Token) => {},
   tokens: [],
   error: null,
-  setError: (error: string | null | undefined) => {}
+  setError: (error: string | null | undefined) => {},
+  selectedNetwork: undefined
 })
 
 const FaucetContextProvider: FC = ({ children }) => {
-  const [mintAmount, setMintAmount] = useState<string>('10')
+  const [mintAmount] = useState<string>('10')
   const [isMinting, setMinting] = useState<boolean>(false)
-  let { contracts, txHistory, networks, tokens } = useApp()
   const {
-    address,
-    getWriteContract,
-    checkConnectedNetworkId
-  } = useWeb3Context()
+    contracts,
+    txHistory,
+    networks,
+    tokens
+  } = useApp()
+  const { address, getWriteContract } = useWeb3Context()
   const selectedNetwork = networks[0]
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(
     tokens[0]
@@ -66,7 +57,7 @@ const FaucetContextProvider: FC = ({ children }) => {
       }
       setMinting(true)
       const recipient = address?.toString()
-      const parsedAmount = parseUnits(mintAmount, 18)
+      const parsedAmount = parseUnits(mintAmount, selectedToken.decimals)
 
       const tx = await writeContract?.mint(recipient, parsedAmount)
       logger.debug('mint:', tx?.hash)
@@ -91,8 +82,7 @@ const FaucetContextProvider: FC = ({ children }) => {
         mintToken,
         mintAmount,
         isMinting,
-        selectedToken,
-        setSelectedToken,
+        selectedNetwork,
         tokens,
         error,
         setError

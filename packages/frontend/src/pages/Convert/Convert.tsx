@@ -11,13 +11,11 @@ import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
-import RaisedSelect from 'src/components/selects/RaisedSelect'
 import MenuItem from '@material-ui/core/MenuItem'
+import { useApp } from 'src/contexts/AppContext'
+import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
-import ConvertViaHopBridge from 'src/pages/Convert/ConvertViaHopBridge'
-import ConvertViaCanonicalBridge from 'src/pages/Convert/ConvertViaCanonicalBridge'
-import ConvertViaUniswap from 'src/pages/Convert/ConvertViaUniswap'
-import Token from 'src/models/Token'
+import ConvertContent from 'src/pages/Convert/ConvertContent'
 import Network from 'src/models/Network'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 
@@ -49,9 +47,12 @@ const useStyles = makeStyles(theme => ({
 const Convert: FC = () => {
   const styles = useStyles()
   const {
-    tokens,
-    selectedToken,
-    setSelectedToken,
+    bridges,
+    selectedBridge,
+    setSelectedBridge
+  } = useApp()
+  const {
+    convertOptions,
     l2Networks,
     selectedNetwork,
     setSelectedNetwork
@@ -60,20 +61,11 @@ const Convert: FC = () => {
   const { path } = useRouteMatch()
   const history = useHistory()
 
-  const handleTokenChange = (event: ChangeEvent<{ value: unknown }>) => {
+  const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
-    const token = tokens.find((token: Token) => token.symbol === tokenSymbol)
-    if (token) {
-      setSelectedToken(token)
-
-      if (!token?.supportedNetworks?.includes(selectedNetwork?.slug || '')) {
-        const network = l2Networks.find((network: Network) =>
-          token.supportedNetworks.includes(network.slug)
-        )
-        if (network) {
-          setSelectedNetwork(network)
-        }
-      }
+    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
+    if (bridge) {
+      setSelectedBridge(bridge)
     }
   }
 
@@ -82,15 +74,6 @@ const Convert: FC = () => {
     const network = l2Networks.find((network: Network) => network.slug === slug)
     if (network) {
       setSelectedNetwork(network)
-
-      if (!selectedToken?.supportedNetworks?.includes(network?.slug || '')) {
-        const token = tokens.find((token: Token) =>
-          token.supportedNetworks.includes(network.slug)
-        )
-        if (token) {
-          setSelectedToken(token)
-        }
-      }
     }
   }
 
@@ -99,12 +82,6 @@ const Convert: FC = () => {
     const value = event.target.value as string
     history.push(`${path}${value}`)
   }
-
-  const tabs = [
-    { label: 'via Hop Bridge', value: '/hop' },
-    { label: 'via Canonical Bridge', value: '/bridge' },
-    { label: 'via Uniswap', value: '/uniswap' }
-  ]
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -132,15 +109,15 @@ const Convert: FC = () => {
         </div>
         <div className={styles.select}>
           <RaisedSelect
-            value={selectedToken?.symbol}
-            onChange={handleTokenChange}
+            value={selectedBridge?.getTokenSymbol()}
+            onChange={handleBridgeChange}
           >
-            {tokens.map(token => (
-              <MenuItem value={token.symbol} key={token.symbol}>
+            {bridges.map(bridge => (
+              <MenuItem value={bridge.getTokenSymbol()} key={bridge.getTokenSymbol()}>
                 <SelectOption
-                  value={token.symbol}
-                  icon={token.imageUrl}
-                  label={token.symbol}
+                  value={bridge.getTokenSymbol()}
+                  icon={bridge.getTokenImage()}
+                  label={bridge.getTokenSymbol()}
                 />
               </MenuItem>
             ))}
@@ -148,32 +125,17 @@ const Convert: FC = () => {
         </div>
         <div className={styles.select}>
           <RaisedSelect value={lastPathname} onChange={handleTabChange}>
-            {tabs.map(tab => (
-              <MenuItem value={tab.value} key={tab.value}>
-                {tab.label}
+            {convertOptions.map(_convertOption => (
+              <MenuItem value={_convertOption.path} key={_convertOption.path}>
+                via {_convertOption.name}
               </MenuItem>
             ))}
           </RaisedSelect>
         </div>
       </Grid>
-      <Switch>
-        <Route path={`${path}/hop`}>
-          <div className={styles.box}>
-            <ConvertViaHopBridge />
-          </div>
-        </Route>
-        <Route path={`${path}/bridge`}>
-          <div className={styles.box}>
-            <ConvertViaCanonicalBridge />
-          </div>
-        </Route>
-        <Route path={`${path}/uniswap`}>
-          <div className={styles.box}>
-            <ConvertViaUniswap />
-          </div>
-        </Route>
-        <Redirect to={`${path}/hop`} />
-      </Switch>
+      <div className={styles.box}>
+        <ConvertContent />
+      </div>
     </Box>
   )
 }

@@ -8,11 +8,14 @@ type LargeTextFieldProps = {
   units?: string | ReactNode
   centerAlign?: boolean | undefined
   defaultShadow?: boolean | undefined
+  loadingValue?: boolean | undefined
 } & TextFieldProps
 
 interface StyleProps {
   centerAlign: boolean
   defaultShadow: boolean
+  hideShadow: boolean
+  loadingValue: boolean
 }
 
 const normalShadow = `
@@ -30,26 +33,51 @@ const useStyles = makeStyles(theme => ({
     margin: `-0.8rem -${theme.padding.extraLight}`
   },
   adornment: {
-    marginRight: theme.padding.extraLight
+    marginRight: theme.padding.extraLight,
+    width: '9.0rem'
   }
 }))
 
 const useInputStyles = makeStyles(theme => ({
-  root: ({ defaultShadow }: StyleProps) => ({
-    padding: `0.8rem 0`,
+  '@global': {
+    '@keyframes loadingEffect': {
+      '0%': {
+        opacity: 0.9
+      },
+      '50%': {
+        opacity: 0.3
+      },
+      '100%': {
+        opacity: 0.9
+      }
+    }
+  },
+  root: ({ defaultShadow, hideShadow }: StyleProps) => ({
+    padding: '0.8rem 0',
     transition: 'box-shadow 0.3s ease-in-out',
     borderRadius: '1.5rem',
     boxShadow: defaultShadow ? normalShadow : 'none',
     '&:hover': {
-      boxShadow: defaultShadow ? boldShadow : normalShadow
+      boxShadow: () => {
+        if (hideShadow) {
+          return 'none'
+        } else if (defaultShadow) {
+          return boldShadow
+        } else {
+          return normalShadow
+        }
+      }
     }
   }),
-  input: ({ centerAlign }: StyleProps) => ({
+  input: ({ centerAlign, loadingValue }: StyleProps) => ({
     textAlign: centerAlign ? 'center' : 'right',
     fontSize: theme.typography.h4.fontSize,
     fontWeight: theme.typography.h4.fontWeight,
     color: theme.palette.text.primary,
-    textOverflow: 'ellipsis'
+    textOverflow: 'ellipsis',
+    animation: loadingValue
+      ? `loadingEffect 1200ms ${theme.transitions.easing.sharp} infinite`
+      : 'none'
   }),
   focused: {
     borderRadius: '1.5rem',
@@ -62,10 +90,16 @@ const TextField: FC<LargeTextFieldProps> = props => {
     units,
     centerAlign = false,
     defaultShadow = false,
+    loadingValue = false,
     ...textFieldProps
   } = props
   const styles = useStyles()
-  const inputStyles = useInputStyles({ centerAlign, defaultShadow })
+  const inputStyles = useInputStyles({
+    centerAlign,
+    defaultShadow,
+    hideShadow: textFieldProps.disabled ?? false,
+    loadingValue
+  })
 
   return (
     <MuiTextField

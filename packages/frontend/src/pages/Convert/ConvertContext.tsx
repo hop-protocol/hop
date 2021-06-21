@@ -1,603 +1,342 @@
 import React, {
   FC,
   createContext,
-  useEffect,
   useContext,
   useState,
-  useMemo
+  useMemo,
+  useEffect,
+  ReactNode
 } from 'react'
-import { Contract, BigNumber } from 'ethers'
+import { BigNumber } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
-import Token from 'src/models/Token'
+import { useLocation } from 'react-router-dom'
+import { HopBridge, Token } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { addresses } from 'src/config'
-import { UINT256, L1_NETWORK, ARBITRUM, OPTIMISM, XDAI } from 'src/constants'
+import { UINT256 } from 'src/constants'
 import logger from 'src/logger'
-import { commafy, networkSlugToId } from 'src/utils'
+import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
+import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
+import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
+import NativeConvertOption from 'src/pages/Convert/ConvertOption/NativeConvertOption'
+import useBalance from 'src/hooks/useBalance'
+import { DetailRow } from 'src/types'
+import { commafy } from 'src/utils'
 
 type ConvertContextProps = {
-  tokens: Token[]
-  selectedToken: Token | undefined
-  setSelectedToken: (token: Token) => void
+  convertOptions: ConvertOption[]
+  convertOption: ConvertOption | undefined
   networks: Network[]
   l2Networks: Network[]
   selectedNetwork: Network | undefined
   setSelectedNetwork: (network: Network | undefined) => void
   sourceNetwork: Network | undefined
-  setSourceNetwork: (network: Network) => void
   destNetwork: Network | undefined
-  setDestNetwork: (network: Network) => void
+  sourceToken: Token | undefined
+  destToken: Token | undefined
   sourceTokenAmount: string | undefined
   setSourceTokenAmount: (value: string) => void
   destTokenAmount: string | undefined
   setDestTokenAmount: (value: string) => void
   convertTokens: () => void
   validFormFields: boolean
-  calcAltTokenAmount: (value: string) => Promise<string>
   sending: boolean
   sendButtonText: string
-  sourceTokenBalance: number | null
-  destTokenBalance: number | null
-  setSourceTokenBalance: (balance: number | null) => void
-  setDestTokenBalance: (balance: number | null) => void
-  error: string | null | undefined
-  setError: (error: string | null | undefined) => void
+  sourceBalance: BigNumber | undefined
+  loadingSourceBalance: boolean
+  destBalance: BigNumber | undefined
+  loadingDestBalance: boolean
+  switchDirection: () => void
+  details: DetailRow[]
+  warning: ReactNode | undefined
+  error: string | undefined
+  setError: (error: string | undefined) => void
+  tx: Transaction | undefined
+  setTx: (tx: Transaction | undefined) => void
 }
 
 const ConvertContext = createContext<ConvertContextProps>({
-  tokens: [],
-  selectedToken: undefined,
-  setSelectedToken: (token: Token) => {},
+  convertOptions: [],
+  convertOption: undefined,
   networks: [],
   l2Networks: [],
   selectedNetwork: undefined,
   setSelectedNetwork: (network: Network | undefined) => {},
   sourceNetwork: undefined,
-  setSourceNetwork: (network: Network) => {},
   destNetwork: undefined,
-  setDestNetwork: (network: Network) => {},
+  sourceToken: undefined,
+  destToken: undefined,
   sourceTokenAmount: undefined,
   setSourceTokenAmount: (value: string) => {},
   destTokenAmount: undefined,
   setDestTokenAmount: (value: string) => {},
   convertTokens: () => {},
   validFormFields: false,
-  calcAltTokenAmount: async (value: string): Promise<string> => '',
   sending: false,
   sendButtonText: '',
-  sourceTokenBalance: null,
-  destTokenBalance: null,
-  setSourceTokenBalance: (balance: number | null) => {},
-  setDestTokenBalance: (balance: number | null) => {},
-  error: null,
-  setError: (error: string | null | undefined) => {}
+  sourceBalance: undefined,
+  loadingSourceBalance: false,
+  destBalance: undefined,
+  loadingDestBalance: false,
+  switchDirection: () => {},
+  details: [],
+  warning: undefined,
+  error: undefined,
+  setError: (error: string | undefined) => {},
+  tx: undefined,
+  setTx: (tx: Transaction | undefined) => {},
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
-  const {
-    provider,
-    checkConnectedNetworkId,
-    getWriteContract
-  } = useWeb3Context()
+  const { provider, checkConnectedNetworkId } = useWeb3Context()
   const app = useApp()
-  let { networks: nets, tokens, contracts, txConfirm } = app
-  const [selectedToken, setSelectedToken] = useState<Token>(tokens[0])
-  const canonicalSlug = (network: Network) => {
-    if (network?.isLayer1) {
-      return ''
-    }
-    return network?.slug?.replace('HopBridge', '')
-  }
-  const isHopBridge = (slug: string | undefined) => {
-    if (!slug) return false
-    return slug.includes('Bridge')
-  }
-  const l2Networks = nets.filter((network: Network) => !network.isLayer1)
-  const networks: Network[] = useMemo(() => {
-    const l1Networks = nets.filter((network: Network) => network.isLayer1)
-    const l2CanonicalNetworks = l2Networks.map((network: Network) => {
-      return new Network({
-        name: `Canonical Bridge`,
-        slug: network.slug,
-        imageUrl: network.imageUrl,
-        rpcUrl: network.rpcUrl,
-        networkId: network.networkId
-      })
-    })
-    const l2HopBridges = l2Networks.map((network: Network) => {
-      return new Network({
-        name: `Hop Bridge`,
-        slug: `${network.slug}HopBridge`,
-        imageUrl: network.imageUrl,
-        rpcUrl: network.rpcUrl,
-        networkId: network.networkId
-      })
-    })
-    return [...l1Networks, ...l2CanonicalNetworks, ...l2HopBridges]
-  }, [nets])
+  const { networks, selectedBridge, txConfirm, sdk, l1Network } = app
+  const { pathname } = useLocation()
+
+  const convertOptions = useMemo(() => {
+    return [
+      new AmmConvertOption(),
+      new HopConvertOption(),
+      new NativeConvertOption()
+    ]
+  }, [])
+  const convertOption = useMemo(() => {
+    return convertOptions.find(option =>
+      pathname.includes(option.path)
+    ) || convertOptions[0]
+  }, [pathname])
+  const l2Networks = networks.filter((network: Network) => !network.isLayer1)
   const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(
     l2Networks[0]
   )
-  const [sourceNetwork, setSourceNetwork] = useState<Network | undefined>()
-  const [destNetwork, setDestNetwork] = useState<Network | undefined>()
+  const [isForwardDirection, setIsForwardDirection] = useState(true)
+  const switchDirection = () => {
+    setIsForwardDirection(!isForwardDirection)
+  }
+  const sourceNetwork = useMemo<Network | undefined>(() => {
+    if (convertOption instanceof AmmConvertOption || !isForwardDirection) {
+      return selectedNetwork
+    } else {
+      return l1Network
+    }
+  }, [isForwardDirection, selectedNetwork, l1Network, convertOption])
+  const destNetwork = useMemo<Network | undefined>(() => {
+    if (convertOption instanceof AmmConvertOption || isForwardDirection) {
+      return selectedNetwork
+    } else {
+      return l1Network
+    }
+  }, [isForwardDirection, selectedNetwork, l1Network, convertOption])
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
   const [sending, setSending] = useState<boolean>(false)
-  const [sourceTokenBalance, setSourceTokenBalance] = useState<number | null>(
-    null
+
+  const [sourceToken, setSourceToken] = useState<Token>()
+  const [destToken, setDestToken] = useState<Token>()
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      const token = await convertOption.sourceToken(isForwardDirection, selectedNetwork, selectedBridge)
+      setSourceToken(token)
+    }
+
+    fetchToken()
+  }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      const token = await convertOption.destToken(isForwardDirection, selectedNetwork, selectedBridge)
+      setDestToken(token)
+    }
+
+    fetchToken()
+  }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
+
+  const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(
+    sourceToken,
+    sourceNetwork
   )
-  const [destTokenBalance, setDestTokenBalance] = useState<number | null>(null)
-  const [error, setError] = useState<string | null | undefined>(null)
-  const l1Bridge = contracts?.tokens[selectedToken.symbol][L1_NETWORK].l1Bridge
-  const networkPairMap = networks.reduce((obj, network) => {
-    if (network.isLayer1) {
-      return obj
+  const { balance: destBalance, loading: loadingDestBalance } = useBalance(
+    destToken,
+    destNetwork
+  )
+  const [details, setDetails] = useState<DetailRow[]>([])
+  const [warning, setWarning] = useState<ReactNode>()
+  const [error, setError] = useState<string | undefined>(undefined)
+  const [tx, setTx] = useState<Transaction | undefined>()
+
+  useEffect(() => {
+    const getSendData = async () => {
+      setError(undefined)
+      if (
+        !selectedBridge ||
+        !sourceTokenAmount ||
+        !sourceNetwork ||
+        !destNetwork ||
+        !sourceToken
+      ) {
+        setDestTokenAmount('')
+        return
+      }
+
+      const value = parseUnits(
+        sourceTokenAmount,
+        sourceToken.decimals
+      ).toString()
+
+      const { amountOut, details, warning } = await convertOption.getSendData(
+        sdk,
+        sourceNetwork,
+        destNetwork,
+        isForwardDirection,
+        selectedBridge.getTokenSymbol(),
+        value
+      )
+
+      let formattedAmount = ''
+      if (amountOut) {
+        formattedAmount = formatUnits(amountOut, sourceToken.decimals)
+        formattedAmount = commafy(formattedAmount, 5)
+      }
+      setDestTokenAmount(formattedAmount)
+
+      setDetails(details)
+      setWarning(warning)
     }
-    if (isHopBridge(network?.slug)) {
-      obj[canonicalSlug(network)] = network?.slug
-      obj[network?.slug] = canonicalSlug(network)
+
+    getSendData()
+  }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
+
+  const approveTokens = async (): Promise<any> => {
+    if (!sourceToken) {
+      throw new Error('No source token selected')
     }
-    return obj
-  }, {} as any)
-  const calcAltTokenAmount = async (value: string) => {
-    if (value) {
-      if (!sourceNetwork) {
-        return ''
-      }
-      if (!destNetwork) {
-        return ''
-      }
-      const slug = canonicalSlug(sourceNetwork)
-      if (!slug) {
-        return value
-      }
-      const tokenContracts = contracts?.tokens[selectedToken.symbol][slug]
-      const router = tokenContracts?.uniswapRouter
-      if (networkPairMap[sourceNetwork?.slug] === destNetwork?.slug) {
-        let path = [
-          tokenContracts?.l2CanonicalToken.address,
-          tokenContracts?.l2HopBridgeToken.address
-        ]
-        if (destNetwork?.slug === slug) {
-          path = [
-            tokenContracts?.l2HopBridgeToken.address,
-            tokenContracts?.l2CanonicalToken.address
-          ]
+
+    const targetAddress = await convertOption.getTargetAddress(
+      sdk,
+      selectedBridge?.getTokenSymbol(),
+      sourceNetwork,
+      destNetwork
+    )
+
+    const parsedAmount = parseUnits(sourceTokenAmount, sourceToken.decimals)
+    const approved = await sourceToken.allowance(
+      targetAddress
+    )
+
+    let tx: any
+    if (approved.lt(parsedAmount)) {
+      tx = await txConfirm?.show({
+        kind: 'approval',
+        inputProps: {
+          sourceTokenAmount,
+          tokenSymbol: sourceToken.symbol
+        },
+        onConfirm: async (approveAll: boolean) => {
+          const approveAmount = approveAll ? UINT256 : parsedAmount
+          return sourceToken.approve(
+            targetAddress,
+            approveAmount
+          )
         }
-
-        const amountsOut = await router?.getAmountsOut(
-          parseUnits(value, 18),
-          path
-        )
-        value = Number(formatUnits(amountsOut[1].toString(), 18)).toFixed(2)
-      }
+      })
     }
 
-    return value
-  }
-
-  const checkMaxTokensAllowed = async (
-    networkSlug: string,
-    canonicalBridge: Contract
-  ) => {
-    if (networkSlug === XDAI) {
-      const maxPerTx = await canonicalBridge?.maxPerTx(
-        contracts?.tokens[selectedToken.symbol][L1_NETWORK].l1CanonicalToken
-          .address
+    if (tx?.hash && sourceNetwork) {
+      app?.txHistory?.addTransaction(
+        new Transaction({
+          hash: tx?.hash,
+          networkName: sourceNetwork.slug
+        })
       )
-      const formattedMaxPerTx = Number(
-        formatUnits(maxPerTx.toString(), selectedToken.decimals)
-      )
-      if (Number(sourceTokenAmount) > formattedMaxPerTx) {
-        throw new Error(
-          `Max allowed by xDai Bridge is ${commafy(formattedMaxPerTx)} tokens`
-        )
-      }
     }
+    await tx?.wait()
+    return tx
   }
 
   const convertTokens = async () => {
     try {
+      setTx(undefined)
       const networkId = Number(sourceNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
 
-      setError(null)
-      if (!Number(sourceTokenAmount)) {
-        return
-      }
-
-      if (!sourceNetwork) {
+      setError(undefined)
+      if (
+        !Number(sourceTokenAmount) ||
+        !sourceNetwork ||
+        !destNetwork ||
+        !sourceToken ||
+        !selectedBridge
+      ) {
         return
       }
 
       setSending(true)
-      const approveTokens = async (
-        token: Token,
-        amount: string,
-        network: Network,
-        targetAddress: string
-      ): Promise<any> => {
-        const signer = provider?.getSigner()
-        const tokenAddress = token.addressForNetwork(network).toString()
-        const contractRead = contracts?.getErc20Contract(tokenAddress, signer)
-        let contract = await getWriteContract(contractRead)
-
-        const parsedAmount = parseUnits(amount, token.decimals || 18)
-        const approved = await contract?.allowance(
-          await signer?.getAddress(),
-          targetAddress
-        )
-
-        let tx: any
-        if (approved.lt(parsedAmount)) {
-          tx = await txConfirm?.show({
-            kind: 'approval',
-            inputProps: {
-              amount,
-              token
-            },
-            onConfirm: async (approveAll: boolean) => {
-              const approveAmount = approveAll ? UINT256 : parsedAmount
-              return contract?.approve(targetAddress, approveAmount)
-            }
-          })
-        }
-
-        if (tx?.hash && sourceNetwork) {
-          app?.txHistory?.addTransaction(
-            new Transaction({
-              hash: tx?.hash,
-              networkName: canonicalSlug(sourceNetwork)
-            })
-          )
-        }
-        await tx?.wait()
-        return tx
-      }
 
       const signer = provider?.getSigner()
-      const recipient = await signer?.getAddress()
-      const value = parseUnits(sourceTokenAmount, 18).toString()
-      let tx: any
-      const sourceSlug = canonicalSlug(sourceNetwork)
-      const sourceTokenContracts =
-        contracts?.tokens[selectedToken.symbol][sourceSlug]
+      const value = parseUnits(
+        sourceTokenAmount,
+        sourceToken.decimals
+      ).toString()
+      const l1Bridge = await selectedBridge.getL1Bridge()
+      const isCanonicalTransfer = false
 
-      // source network is L1 ( L1 -> L2 )
-      if (sourceNetwork?.isLayer1) {
-        // destination network is L2 hop bridge ( L1 -> L2 Hop )
-        if (destNetwork && isHopBridge(destNetwork?.slug)) {
-          const chainId = networkSlugToId(canonicalSlug(destNetwork))
-
-          await approveTokens(
-            selectedToken,
-            sourceTokenAmount,
-            sourceNetwork as Network,
-            l1Bridge?.address as string
-          )
-
-          const tokenAddress = selectedToken
-            .addressForNetwork(sourceNetwork)
-            .toString()
-
-          tx = await txConfirm?.show({
-            kind: 'convert',
-            inputProps: {
-              source: {
-                amount: sourceTokenAmount,
-                token: selectedToken
-              },
-              dest: {
-                amount: destTokenAmount,
-                token: selectedToken
-              }
-            },
-            onConfirm: async () => {
-              const amountOutMin = '0'
-              const deadline = '0'
-              const relayerFee = '0'
-              const l1BridgeWrite = await getWriteContract(l1Bridge)
-              return l1BridgeWrite?.sendToL2(
-                chainId,
-                recipient,
-                value,
-                amountOutMin,
-                deadline,
-                relayerFee
-              )
-            }
-          })
-
-          // destination network is canonical bridge (L1 canonical -> L2 canonical)
-        } else if (destNetwork && !isHopBridge(destNetwork?.slug)) {
-          const destSlug = destNetwork?.slug
-          const destTokenContracts =
-            contracts?.tokens[selectedToken.symbol][destSlug]
-          const messenger = destTokenContracts?.l1CanonicalBridge
-          if (!messenger) {
-            throw new Error('Messenger not found')
+      const tx = await txConfirm?.show({
+        kind: 'convert',
+        inputProps: {
+          source: {
+            amount: sourceTokenAmount,
+            token: sourceToken
+          },
+          dest: {
+            amount: destTokenAmount,
+            token: sourceToken
           }
-          await checkMaxTokensAllowed(destSlug, messenger)
-          await approveTokens(
-            selectedToken,
-            sourceTokenAmount,
-            sourceNetwork as Network,
-            messenger?.address as string
+        },
+        onConfirm: async () => {
+          await approveTokens()
+
+          if (!selectedBridge) {
+            throw new Error('Bridge is required to convert')
+          }
+
+          if (!signer) {
+            throw new Error('Signer is required to convert')
+          }
+
+          if (!sourceToken) {
+            throw new Error('Token is required to convert')
+          }
+
+          convertOption.convert(
+            sdk,
+            signer,
+            sourceNetwork,
+            destNetwork,
+            isForwardDirection,
+            selectedBridge.getTokenSymbol(),
+            value
           )
-
-          const tokenAddress = selectedToken
-            .addressForNetwork(sourceNetwork)
-            .toString()
-
-          tx = await txConfirm?.show({
-            kind: 'convert',
-            inputProps: {
-              source: {
-                amount: sourceTokenAmount,
-                token: selectedToken
-              },
-              dest: {
-                amount: destTokenAmount,
-                token: selectedToken
-              }
-            },
-            onConfirm: async () => {
-              const messengerWrite = await getWriteContract(messenger)
-              if (destSlug === ARBITRUM) {
-                return messengerWrite?.depositERC20Message(
-                  addresses.tokens[selectedToken.symbol][destSlug].arbChain,
-                  tokenAddress,
-                  recipient,
-                  value
-                )
-              } else if (destSlug === OPTIMISM) {
-                return messengerWrite?.deposit(
-                  addresses.tokens[selectedToken.symbol][L1_NETWORK]
-                    .l1CanonicalToken,
-                  addresses.tokens[selectedToken.symbol][destSlug]
-                    .l2CanonicalToken,
-                  recipient,
-                  value
-                )
-              } else if (destSlug === XDAI) {
-                return messengerWrite?.relayTokens(
-                  tokenAddress,
-                  recipient,
-                  value
-                )
-              } else {
-                throw new Error('not implemented')
-              }
-            }
-          })
         }
-
-        // source network is L2 canonical bridge ( L2 canonical -> L1 or L2 )
-      } else if (
-        sourceNetwork &&
-        !sourceNetwork?.isLayer1 &&
-        !isHopBridge(sourceNetwork?.slug)
-      ) {
-        // destination network is L1 ( L2 canonical -> L1 canonical)
-        if (destNetwork?.isLayer1) {
-          tx = await txConfirm?.show({
-            kind: 'convert',
-            inputProps: {
-              source: {
-                amount: sourceTokenAmount,
-                token: selectedToken
-              },
-              dest: {
-                amount: destTokenAmount,
-                token: selectedToken
-              }
-            },
-            onConfirm: async () => {
-              if (sourceSlug === ARBITRUM) {
-                const contract = await getWriteContract(
-                  sourceTokenContracts?.l2CanonicalToken
-                )
-                return contract?.withdraw(await signer?.getAddress(), value)
-              } else if (sourceSlug === OPTIMISM) {
-                const l2CanonicalBridge = await getWriteContract(
-                  sourceTokenContracts?.l2CanonicalBridge
-                )
-                return l2CanonicalBridge?.withdraw(
-                  addresses.tokens[selectedToken.symbol][L1_NETWORK]
-                    .l1CanonicalToken,
-                  addresses.tokens[selectedToken.symbol][sourceSlug]
-                    .l2CanonicalToken,
-                  value
-                )
-              } else if (sourceSlug === XDAI) {
-                const destTokenContracts =
-                  contracts?.tokens[selectedToken.symbol][sourceSlug]
-                const messenger = destTokenContracts?.l2CanonicalBridge
-                await approveTokens(
-                  selectedToken,
-                  sourceTokenAmount,
-                  sourceNetwork as Network,
-                  messenger?.address as string
-                )
-                const tokenAddress =
-                  sourceTokenContracts?.l2CanonicalToken.address
-                const messengerWrite = await getWriteContract(messenger)
-                const address = sourceTokenContracts?.l2CanonicalBridge.address
-                return sourceTokenContracts?.l2CanonicalToken?.transferAndCall(
-                  address,
-                  value,
-                  '0x'
-                )
-              } else {
-                throw new Error('not implemented')
-              }
-            }
-          })
-
-          // destination network is L2 hop bridge (L2 canonical -> L2 Hop)
-        } else if (isHopBridge(destNetwork?.slug)) {
-          const router = sourceTokenContracts?.uniswapRouter
-          await approveTokens(
-            selectedToken,
-            sourceTokenAmount,
-            sourceNetwork as Network,
-            router?.address as string
-          )
-
-          const amountOutMin = '0'
-          const path = [
-            sourceTokenContracts?.l2CanonicalToken.address,
-            sourceTokenContracts?.l2HopBridgeToken.address
-          ]
-          const deadline = (Date.now() / 1000 + 300) | 0
-
-          tx = await txConfirm?.show({
-            kind: 'convert',
-            inputProps: {
-              source: {
-                amount: sourceTokenAmount,
-                token: selectedToken
-              },
-              dest: {
-                amount: destTokenAmount,
-                token: selectedToken
-              }
-            },
-            onConfirm: async () => {
-              const routerWrite = await getWriteContract(router)
-              return routerWrite?.swapExactTokensForTokens(
-                value,
-                amountOutMin,
-                path,
-                recipient,
-                deadline
-              )
-            }
-          })
-        }
-
-        // source network is L2 hop bridge ( L2 Hop -> L1 or L2 )
-      } else if (isHopBridge(sourceNetwork?.slug) && destNetwork) {
-        const router = sourceTokenContracts?.uniswapRouter
-        const bridge = sourceTokenContracts?.l2Bridge
-
-        await approveTokens(
-          selectedToken,
-          sourceTokenAmount,
-          sourceNetwork as Network,
-          bridge?.address as string
-        )
-
-        // destination network is L1 ( L2 Hop -> L1 )
-        if (destNetwork?.isLayer1) {
-          tx = await txConfirm?.show({
-            kind: 'convert',
-            inputProps: {
-              source: {
-                amount: sourceTokenAmount,
-                token: selectedToken
-              },
-              dest: {
-                amount: destTokenAmount,
-                token: selectedToken
-              }
-            },
-            onConfirm: async () => {
-              const getBonderFee = async () => {
-                if (!sourceNetwork) {
-                  throw new Error('No source network selected')
-                }
-                if (!destNetwork) {
-                  throw new Error('No destination network selected')
-                }
-                const minBonderBps = await bridge?.minBonderBps()
-                const minBonderFeeAbsolute = await bridge?.minBonderFeeAbsolute()
-                const minBonderFeeRelative = BigNumber.from(value)
-                  .mul(minBonderBps)
-                  .div(10000)
-                const minBonderFee = minBonderFeeRelative.gt(
-                  minBonderFeeAbsolute
-                )
-                  ? minBonderFeeRelative
-                  : minBonderFeeAbsolute
-                return minBonderFee
-              }
-              const deadline = (Date.now() / 1000 + 300) | 0
-              const amountOutMin = '0'
-              const bonderFee = await getBonderFee()
-              const wrapperWrite = await getWriteContract(bridge)
-              const chainId = destNetwork?.networkId
-
-              if (bonderFee.gt(value)) {
-                throw new Error('Amount must be greater than bonder fee')
-              }
-
-              return bridge?.send(
-                chainId,
-                recipient,
-                value,
-                bonderFee,
-                amountOutMin,
-                deadline,
-                {
-                  //gasLimit: 1000000
-                }
-              )
-            }
-          })
-
-          // destination network is L2 uniswap ( L1 -> L2 Uniswap )
-        } else {
-          await approveTokens(
-            selectedToken,
-            sourceTokenAmount,
-            sourceNetwork as Network,
-            router?.address as string
-          )
-
-          const amountOutMin = '0'
-          const path = [
-            sourceTokenContracts?.l2HopBridgeToken.address,
-            sourceTokenContracts?.l2CanonicalToken.address
-          ]
-          const deadline = (Date.now() / 1000 + 300) | 0
-
-          tx = await txConfirm?.show({
-            kind: 'convert',
-            inputProps: {
-              source: {
-                amount: sourceTokenAmount,
-                token: selectedToken
-              },
-              dest: {
-                amount: destTokenAmount,
-                token: selectedToken
-              }
-            },
-            onConfirm: async () => {
-              const routerWrite = await getWriteContract(router)
-              return routerWrite?.swapExactTokensForTokens(
-                value,
-                amountOutMin,
-                path,
-                recipient,
-                deadline
-              )
-            }
-          })
-        }
-      }
+      })
 
       if (tx?.hash && sourceNetwork?.name) {
-        app?.txHistory?.addTransaction(
-          new Transaction({
+        const txObj = new Transaction({
             hash: tx?.hash,
-            networkName: canonicalSlug(sourceNetwork)
+            networkName: sourceNetwork.slug,
+            destNetworkName: destNetwork.slug,
+            token: sourceToken,
+            isCanonicalTransfer
           })
+        // don't set tx status modal if it's tx to the same chain
+        if (sourceNetwork.isLayer1 !== destNetwork?.isLayer1) {
+          setTx(txObj)
+        }
+        app?.txHistory?.addTransaction(
+          txObj
         )
       }
     } catch (err) {
@@ -610,33 +349,16 @@ const ConvertContextProvider: FC = ({ children }) => {
     setSending(false)
   }
 
-  const enoughBalance = Number(sourceTokenBalance) >= Number(sourceTokenAmount)
-  let withinMax = true
+  const enoughBalance = Number(sourceBalance) >= Number(sourceTokenAmount)
+  const withinMax = true
   let sendButtonText = 'Convert'
-  if (
-    sourceTokenAmount &&
-    selectedToken &&
-    destNetwork &&
-    destNetwork.slug === XDAI
-  ) {
-    const maxPerTx = Number(
-      addresses.tokens[selectedToken?.symbol][destNetwork.slug]
-        .canonicalBridgeMaxPerTx
-    )
-    if (maxPerTx && Number(sourceTokenAmount) > maxPerTx) {
-      withinMax = false
-      sendButtonText = `Max allowed is ${commafy(maxPerTx)} ${
-        selectedToken?.symbol
-      }`
-    }
-  }
   const validFormFields = !!(
     sourceTokenAmount &&
     destTokenAmount &&
     enoughBalance &&
     withinMax
   )
-  if (sourceTokenBalance === null) {
+  if (sourceBalance === undefined) {
     sendButtonText = 'Fetching balance...'
   } else if (!enoughBalance) {
     sendButtonText = 'Insufficient funds'
@@ -645,32 +367,35 @@ const ConvertContextProvider: FC = ({ children }) => {
   return (
     <ConvertContext.Provider
       value={{
-        tokens,
-        selectedToken,
-        setSelectedToken,
+        convertOptions,
+        convertOption,
         networks,
         l2Networks,
         selectedNetwork,
         setSelectedNetwork,
         sourceNetwork,
-        setSourceNetwork,
         destNetwork,
-        setDestNetwork,
+        sourceToken,
+        destToken,
         sourceTokenAmount,
         setSourceTokenAmount,
         destTokenAmount,
         setDestTokenAmount,
         convertTokens,
         validFormFields,
-        calcAltTokenAmount,
         sending,
         sendButtonText,
-        sourceTokenBalance,
-        destTokenBalance,
-        setSourceTokenBalance,
-        setDestTokenBalance,
+        sourceBalance,
+        loadingSourceBalance,
+        destBalance,
+        loadingDestBalance,
+        switchDirection,
+        details,
+        warning,
         error,
-        setError
+        setError,
+        tx,
+        setTx
       }}
     >
       {children}

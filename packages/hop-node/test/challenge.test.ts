@@ -1,7 +1,7 @@
 require('dotenv').config()
 import { startWatchers } from 'src/watchers/watchers'
-import { networkSlugToId, wait } from 'src/utils'
-import { KOVAN, XDAI } from 'src/constants'
+import { chainSlugToId, wait } from 'src/utils'
+import { Chain } from 'src/constants'
 import { User, waitForEvent } from './helpers'
 import { privateKey, bonderPrivateKey, governancePrivateKey } from './config'
 import { keccak256 } from 'ethereumjs-util'
@@ -16,8 +16,8 @@ describe('challenge valid transfer root', () => {
 })
 
 describe('challenge valid transfer root but committed too early', () => {
-  const networks = [XDAI]
-  const destNetwork = KOVAN
+  const networks = [Chain.xDai]
+  const destNetwork = Chain.Ethereum
   for (let sourceNetwork of networks) {
     const label = `challenge valid transfer root on ${sourceNetwork}`
     it(
@@ -87,21 +87,21 @@ describe('challenge valid transfer root but committed too early', () => {
         const challengeStartTime = Number(
           transferBondStruct.challengeStartTime.toString()
         )
-        const blockTimestamp = await user.getBlockTimestamp(KOVAN)
+        const blockTimestamp = await user.getBlockTimestamp(Chain.Ethereum)
         expect(blockTimestamp).toBeGreaterThan(
           challengeStartTime + challengeResolutionPeriod
         )
         expect(transferBondStruct.challengeResolved).toBe(false)
 
         logger.log(`resolving challenge`)
-        const userBalanceBefore = await user.getBalance(KOVAN, TOKEN)
-        const bonderCreditBefore = await bonder.getCredit(KOVAN)
+        const userBalanceBefore = await user.getBalance(Chain.Ethereum, TOKEN)
+        const bonderCreditBefore = await bonder.getCredit(Chain.Ethereum)
         tx = await user.resolveChallenge(validTransferRoot, totalAmount)
         receipt = await tx.wait()
         expect(receipt.status).toBe(1)
         logger.log(`challenge resolved`)
-        const userBalanceAfter = await user.getBalance(KOVAN, TOKEN)
-        const bonderCreditAfter = await bonder.getCredit(KOVAN)
+        const userBalanceAfter = await user.getBalance(Chain.Ethereum, TOKEN)
+        const bonderCreditAfter = await bonder.getCredit(Chain.Ethereum)
         const minTransferRootBondDelay = await user.getMinTransferRootBondDelaySeconds()
         const challengeStakeAmount = await user.getChallengeAmountForTransferAmount(
           totalAmount
@@ -138,10 +138,10 @@ describe('challenge valid transfer root but committed too early', () => {
 })
 
 describe.only('challenge invalid transfer root', () => {
-  const networks = [XDAI]
-  const destNetwork = KOVAN
+  const networks = [Chain.xDai]
+  const destNetwork = Chain.Ethereum
   for (let sourceNetwork of networks) {
-    const chainId = networkSlugToId(sourceNetwork)
+    const chainId = chainSlugToId(sourceNetwork)
     const label = `challenge invalid transfer root on ${sourceNetwork}`
     it(
       label,
@@ -196,15 +196,15 @@ describe.only('challenge invalid transfer root', () => {
         )
         const bondCreatedAt = Number(transferBondStruct.createdAt.toString())
         expect(challengeStartTime).toBeGreaterThan(0)
-        const blockTimestamp = await user.getBlockTimestamp(KOVAN)
+        const blockTimestamp = await user.getBlockTimestamp(Chain.Ethereum)
         expect(blockTimestamp).toBeGreaterThan(
           challengeStartTime + challengeResolutionPeriod
         )
         expect(transferBondStruct.challengeResolved).toBe(false)
 
         logger.log(`resolving challenge`)
-        const balanceBefore = await user.getBalance(KOVAN, TOKEN)
-        const creditBefore = await bonder.getCredit(KOVAN)
+        const balanceBefore = await user.getBalance(Chain.Ethereum, TOKEN)
+        const creditBefore = await bonder.getCredit(Chain.Ethereum)
         let tx = await user.resolveChallenge(invalidTransferRoot, totalAmount)
         receipt = await tx.wait()
         expect(receipt.status).toBe(1)
@@ -221,11 +221,11 @@ describe.only('challenge invalid transfer root', () => {
         expect(challengerWin).toBe(true)
 
         if (challengerWin) {
-          const balanceAfter = await user.getBalance(KOVAN, TOKEN)
+          const balanceAfter = await user.getBalance(Chain.Ethereum, TOKEN)
           // TODO: fix this when using latest contracts
           expect(balanceAfter).toBe(balanceBefore)
         } else {
-          const creditAfter = await bonder.getCredit(KOVAN)
+          const creditAfter = await bonder.getCredit(Chain.Ethereum)
           if (bondCreatedAt > commitedAt + minTransferRootBondDelay) {
             expect(creditAfter).toBe(
               creditBefore + bondForTransferAmount + challengeStakeAmount

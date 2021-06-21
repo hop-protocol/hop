@@ -2,7 +2,7 @@ import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { useHistory } from 'react-router-dom'
 import { ArrowLeft } from 'react-feather'
-import { DateTime } from 'luxon'
+import { DateTime, LocaleOptions } from 'luxon'
 import { BigNumber } from 'ethers'
 
 import Typography from '@material-ui/core/Typography'
@@ -117,7 +117,7 @@ const VotePageChild: FC<VotePageProps> = props => {
   const governorAlpha = contracts?.governance.governorAlpha
 
   const handleArrowClick = () => {
-    history.push(`/vote`)
+    history.push('/vote')
   }
 
   const handleVoteForClick = () => {
@@ -136,8 +136,8 @@ const VotePageChild: FC<VotePageProps> = props => {
   )
   const endDate: DateTime | undefined = startTimestamp
     ? DateTime.fromSeconds(startTimestamp).plus({
-        seconds: PROPOSAL_LENGTH_IN_SECS
-      })
+      seconds: PROPOSAL_LENGTH_IN_SECS
+    })
     : undefined
   const now: DateTime = DateTime.local()
 
@@ -207,11 +207,11 @@ const VotePageChild: FC<VotePageProps> = props => {
         <Typography variant="subtitle1" className={styles.subtitle}>
           {endDate && endDate < now
             ? 'Voting ended ' +
-              (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL))
+              (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL as LocaleOptions))
             : proposal
-            ? 'Voting ends approximately ' +
-              (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL))
-            : ''}
+              ? 'Voting ends approximately ' +
+              (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL as LocaleOptions))
+              : ''}
         </Typography>
 
         <Box className={styles.statusAndVoteCardsContainer}>
@@ -253,7 +253,7 @@ const VotePageChild: FC<VotePageProps> = props => {
                 voting.{' '}
               </Typography>
             </Box>
-          )}
+        )}
 
         <Typography variant="h6" className={styles.contentHeader}>
           Details

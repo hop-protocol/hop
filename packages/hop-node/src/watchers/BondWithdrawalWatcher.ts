@@ -1,150 +1,382 @@
 import '../moduleAlias'
-import { Contract, BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
-import { UINT256 } from 'src/constants'
+import { ethers, Contract, BigNumber, Event } from 'ethers'
 import db from 'src/db'
 import chalk from 'chalk'
-import { wait, networkIdToSlug } from 'src/utils'
-import BaseWatcher from './helpers/BaseWatcher'
-import Bridge from './helpers/Bridge'
-import L1Bridge from './helpers/L1Bridge'
-import L2Bridge from './helpers/L2Bridge'
+import { wait, isL1ChainId } from 'src/utils'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
+import Bridge from './classes/Bridge'
+import L1Bridge from './classes/L1Bridge'
+import L2Bridge from './classes/L2Bridge'
+import Token from './classes/Token'
+import { Chain } from 'src/constants'
 
 export interface Config {
-  l1BridgeContract: Contract
-  l2BridgeContract: Contract
-  contracts: { [networkId: string]: Contract }
+  isL1: boolean
+  bridgeContract: Contract
   label: string
   order?: () => number
+  dryMode?: boolean
+  minAmount?: number
+  maxAmount?: number
 }
 
-class BondWithdrawalWatcher extends BaseWatcher {
-  l1Bridge: L1Bridge
-  l2Bridge: L2Bridge
-  contracts: { [networkId: string]: Contract }
+const BONDER_ORDER_DELAY_MS = 60 * 1000
+
+class BondError extends Error {}
+
+class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
+  siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
+  minAmount: BigNumber
+  maxAmount: BigNumber
 
   constructor (config: Config) {
     super({
       tag: 'bondWithdrawalWatcher',
       prefix: config.label,
       logColor: 'green',
-      order: config.order
+      order: config.order,
+      isL1: config.isL1,
+      bridgeContract: config.bridgeContract,
+      dryMode: config.dryMode
     })
-    this.l1Bridge = new L1Bridge(config.l1BridgeContract)
-    this.l2Bridge = new L2Bridge(config.l2BridgeContract)
-    this.contracts = config.contracts
+
+    if (typeof config.minAmount === 'number') {
+      this.minAmount = this.bridge.parseUnits(config.minAmount)
+    }
+    if (typeof config.maxAmount === 'number') {
+      this.maxAmount = this.bridge.parseUnits(config.maxAmount)
+    }
   }
 
   async start () {
     this.started = true
     this.logger.debug(
-      `starting L2 TransferSent event watcher for L1 bondWithdrawal tx`
+      `min bondWithdrawal amount: ${
+        this.minAmount ? this.bridge.formatUnits(this.minAmount) : 0
+      }`
     )
-
+    this.logger.debug(
+      `max bondWithdrawal amount: ${
+        this.maxAmount ? this.bridge.formatUnits(this.maxAmount) : 'all'
+      }`
+    )
     try {
-      await Promise.all([this.syncUp(), this.watch()])
+      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
     } catch (err) {
-      this.logger.error(`BondWithdrawalWatcher error:`, err.message)
+      this.logger.error(`bondWithdrawalWatcher error:`, err.message)
+      this.notifier.error(`bondWithdrawalWatcher error: ${err.message}`)
     }
   }
 
-  async stop () {
-    this.l1Bridge.removeAllListeners()
-    this.l2Bridge.removeAllListeners()
-    this.started = false
-    this.logger.setEnabled(false)
-  }
-
-  async syncUp () {
+  async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
-    let l1BlockNumber = await this.l1Bridge.getBlockNumber()
-    let l1StartBlockNumber = l1BlockNumber - 1000
-    const l1WithdrawalBondedEvents = await this.l1Bridge.getWithdrawalBondedEvents(
-      l1StartBlockNumber,
-      l1BlockNumber
-    )
 
-    for (let event of l1WithdrawalBondedEvents) {
-      const {
-        transferId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee
-      } = event.args
-      await this.handleWithdrawalBondedEvent(
-        transferId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        BigNumber.from(0),
-        event
+    const promises: Promise<any>[] = []
+    promises.push(
+      this.eventsBatch(
+        async (start: number, end: number) => {
+          const events = await this.bridge.getWithdrawalBondedEvents(start, end)
+          await this.handleWithdrawalBondedEvents(events)
+        },
+        { key: this.bridge.WithdrawalBonded }
       )
-    }
-
-    const l2BlockNumber = await this.l2Bridge.getBlockNumber()
-    const l2StartBlockNumber = l2BlockNumber - 1000
-
-    const l2WithdrawalBondedEvents = await this.l2Bridge.getWithdrawalBondedEvents(
-      l2StartBlockNumber,
-      l2BlockNumber
     )
 
-    for (let event of l2WithdrawalBondedEvents) {
-      const {
-        transferId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee
-      } = event.args
-      await this.handleWithdrawalBondedEvent(
-        transferId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        BigNumber.from(0),
-        event
-      )
-    }
-
-    const transferSentEvents = await this.l2Bridge.getTransferSentEvents(
-      l2StartBlockNumber,
-      l2BlockNumber
-    )
-
-    // TODO: check for withdrawal bonded event on L2 and mark as bonded
-    if (false) {
-      for (let event of transferSentEvents) {
-        const {
-          transferId,
-          recipient,
-          amount,
-          transferNonce,
-          bonderFee,
-          index
-        } = event.args
-        await this.handleTransferSentEvent(
-          transferId,
-          recipient,
-          amount,
-          transferNonce,
-          bonderFee,
-          index,
-          event
+    // L1 bridge doesn't contain transfer sent events so don't check here.
+    if (!this.isL1) {
+      const l2Bridge = this.bridge as L2Bridge
+      promises.push(
+        this.eventsBatch(
+          async (start: number, end: number) => {
+            const events = await l2Bridge.getTransferSentEvents(start, end)
+            await this.handleTransferSentEvents(events)
+          },
+          { key: l2Bridge.TransferSent }
         )
-      }
+      )
     }
+
+    await Promise.all(promises)
+    this.logger.debug('done syncing')
+
+    // re-sync every 6 hours
+    const sixHours = this.syncTimeSec
+    await wait(sixHours)
+    return this.syncUp()
   }
 
   async watch () {
-    this.l2Bridge
-      .on(this.l2Bridge.TransferSent, this.handleTransferSentEvent)
-      .on(this.l2Bridge.WithdrawalBonded, this.handleWithdrawalBondedEvent)
+    if (!this.isL1) {
+      const l2Bridge = this.bridge as L2Bridge
+      this.bridge
+        .on(l2Bridge.TransferSent, this.handleTransferSentEvent)
+        .on('error', err => {
+          this.logger.error(`event watcher error: ${err.message}`)
+          this.notifier.error(`event watcher error: ${err.message}`)
+          this.quit()
+        })
+    }
+    this.bridge
+      .on(this.bridge.WithdrawalBonded, this.handleWithdrawalBondedEvent)
       .on('error', err => {
-        this.logger.error('event watcher error:', err.message)
+        this.logger.error(`event watcher error: ${err.message}`)
+        this.notifier.error(`event watcher error: ${err.message}`)
+        this.quit()
+      })
+  }
+
+  async pollCheck () {
+    while (true) {
+      if (!this.started) {
+        return
+      }
+      try {
+        await this.checkTransferSentFromDb()
+      } catch (err) {
+        this.logger.error(`poll check error: ${err.message}`)
+        this.notifier.error(`poll check error: ${err.message}`)
+      }
+      await wait(this.pollTimeSec)
+    }
+  }
+
+  async handleWithdrawalBondedEvents (events: Event[]) {
+    for (let event of events) {
+      const {
+        transferId,
+        //recipient,
+        amount
+        //transferNonce,
+        //bonderFee,
+        //index
+      } = event.args
+
+      await this.handleWithdrawalBondedEvent(
+        transferId,
+        //recipient,
+        amount,
+        //transferNonce,
+        //bonderFee,
+        //index,
+        event
+      )
+    }
+  }
+
+  async handleTransferSentEvents (events: Event[]) {
+    for (let event of events) {
+      const {
+        transferId,
+        chainId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index,
+        amountOutMin,
+        deadline
+      } = event.args
+      await this.handleTransferSentEvent(
+        transferId,
+        chainId,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        index,
+        amountOutMin,
+        deadline,
+        event
+      )
+    }
+  }
+
+  async checkTransferSentFromDb () {
+    const dbTransfers = await db.transfers.getUnbondedSentTransfers()
+    const promises: Promise<any>[] = []
+    for (let dbTransfer of dbTransfers) {
+      const { transferId } = dbTransfer
+      promises.push(this.checkTransferSent(transferId))
+    }
+    
+    await Promise.all(promises)
+  }
+
+  checkTransferSent = async (
+    transferId: string
+  ) => {
+    const logger = this.logger.create({ id: transferId })
+
+    let dbTransfer = await db.transfers.getByTransferId(transferId)
+    const {
+      chainId,
+      sourceChainId,
+      recipient,
+      amount,
+      amountOutMin,
+      bonderFee,
+      transferNonce,
+      deadline,
+      sentTxHash: transactionHash
+    } = dbTransfer
+    const destL2Bridge = this.getSiblingWatcherByChainId(chainId)
+      .bridge as L2Bridge
+
+    if (this.isL1 || this.bridge.chainId !== sourceChainId) {
+      return
+    }
+
+    const isBonder = await destL2Bridge.isBonder()
+    if (!isBonder) {
+      logger.warn(
+        `not a bonder on chainId ${chainId}. Cannot bond withdrawal`
+      )
+      return
+    }
+
+    // TODO: Handle this in DB getter
+    if (this.minAmount && amount.lt(this.minAmount)) {
+      logger.debug(
+        `transfer amount ${this.bridge.formatUnits(
+          amount
+        )} is less than configured min amount allowed ${this.bridge.formatUnits(
+          this.minAmount
+        )}. Skipping bond withdrawal.`
+      )
+      return
+    }
+    if (this.maxAmount && amount.gt(this.maxAmount)) {
+      logger.debug(
+        `transfer amount ${this.bridge.formatUnits(
+          amount
+        )} is greater than configured max amount allowed ${this.bridge.formatUnits(
+          this.maxAmount
+        )}. Skipping bond withdrawal.`
+      )
+      return
+    }
+
+    // TODO: Handle this in DB getter
+    const bondedAmount = await destL2Bridge.getBondedWithdrawalAmount(transferId)
+    const isTransferIdSpent = await destL2Bridge.isTransferIdSpent(transferId)
+    const isWithdrawalBonded = bondedAmount.gt(0) || isTransferIdSpent
+    if (isWithdrawalBonded) {
+      logger.debug(
+        `transferId ${transferId} already bonded. spent = ${isTransferIdSpent}`
+      )
+      await db.transfers.update(transferId, {
+        withdrawalBonded: true
+      })
+      return
+    }
+
+    if (
+      (dbTransfer?.sentBondWithdrawalTx || dbTransfer?.withdrawalBonded) &&
+      dbTransfer?.sentBondWithdrawalTxAt
+    ) {
+      const tenMinutes = 60 * 10 * 1000
+      // skip if a transaction was sent in the last 10 minutes
+      if (dbTransfer.sentBondWithdrawalTxAt + tenMinutes > Date.now()) {
+        logger.debug(
+          'sent?:',
+          !!dbTransfer.sentBondWithdrawalTx,
+          'withdrawalBonded?:',
+          !!dbTransfer.withdrawalBonded
+        )
+        return
+      }
+    }
+
+    logger.debug('sending bondWithdrawal tx')
+    if (this.dryMode) {
+      logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
+      return
+    }
+
+    if (dbTransfer.transferRootId) {
+      const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
+        .bridge as L1Bridge
+      const transferRootConfirmed = await l1Bridge.isTransferRootIdConfirmed(
+        dbTransfer.transferRootId
+      )
+      if (transferRootConfirmed) {
+        logger.warn('transfer root already confirmed. Cannot bond withdrawal')
+        return
+      }
+    }
+
+    await this.waitTimeout(transferId, chainId)
+
+    const { from: sender, data } = await this.bridge.getTransaction(
+      transactionHash
+    )
+    const l2Bridge = this.bridge as L2Bridge
+    const { attemptSwap } = await l2Bridge.decodeSendData(data)
+
+    await db.transfers.update(transferId, {
+      sentBondWithdrawalTx: true,
+      sentBondWithdrawalTxAt: Date.now()
+    })
+
+    const tx = await this.sendBondWithdrawalTx({
+      sender,
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      attemptSwap,
+      chainId,
+      amountOutMin,
+      deadline
+    })
+
+    logger.info(
+      `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx:`,
+      chalk.bgYellow.black.bold(tx.hash)
+    )
+    this.notifier.info(
+      `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx: ${
+        tx.hash
+      }`
+    )
+
+    await tx
+      ?.wait()
+      .then(async (receipt: any) => {
+        if (receipt.status !== 1) {
+          await db.transfers.update(transferId, {
+            sentBondWithdrawalTx: false,
+            sentBondWithdrawalTxAt: 0
+          })
+          throw new Error('status=0')
+        }
+
+        this.emit('bondWithdrawal', {
+          recipient,
+          destNetworkName: this.chainIdToSlug(chainId),
+          destNetworkId: chainId,
+          transferId
+        })
+
+        const bondedAmount = await destL2Bridge.getBondedWithdrawalAmount(
+          transferId
+        )
+        logger.debug(
+          `chainId: ${chainId} bondWithdrawal amount:`,
+          this.bridge.formatUnits(bondedAmount)
+        )
+
+        await db.transfers.update(transferId, {
+          withdrawalBonded: true
+        })
+      })
+      .catch(async (err: Error) => {
+        await db.transfers.update(transferId, {
+          sentBondWithdrawalTx: false,
+          sentBondWithdrawalTxAt: 0
+        })
+
+        throw err
       })
   }
 
@@ -160,22 +392,26 @@ class BondWithdrawalWatcher extends BaseWatcher {
       deadline
     } = params
 
-    this.logger.debug(`amount:`, amount.toString())
+    this.logger.debug(`amount:`, this.bridge.formatUnits(amount))
     this.logger.debug(`recipient:`, recipient)
     this.logger.debug(`transferNonce:`, transferNonce)
-    this.logger.debug(`bonderFee:`, bonderFee.toString())
-    const formattedAmount = Number(formatUnits(amount, 18))
+    this.logger.debug(`bonderFee:`, this.bridge.formatUnits(bonderFee))
     if (attemptSwap) {
-      this.logger.debug(`chain ${chainId} bondWithdrawalAndAttemptSwap`)
-      const l2Bridge = new L2Bridge(this.contracts[chainId])
+      this.logger.debug(`bondWithdrawalAndAttemptSwap chainId: ${chainId}`)
+      const l2Bridge = this.getSiblingWatcherByChainId(chainId)
+        .bridge as L2Bridge
       const hasPositiveBalance = await l2Bridge.hasPositiveBalance()
       if (!hasPositiveBalance) {
-        throw new Error('bonder requires positive balance to bond withdrawal')
+        throw new BondError(
+          `bonder requires positive balance on chainId ${chainId} to bond withdrawal`
+        )
       }
-      const credit = await l2Bridge.getCredit()
-      if (credit < formattedAmount) {
-        throw new Error(
-          `not enough credit to bond withdrawal. Have ${credit}, need ${formattedAmount}`
+      const credit = await l2Bridge.getAvailableCredit()
+      if (credit.lt(amount)) {
+        throw new BondError(
+          `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
+            credit
+          )}, need ${this.bridge.formatUnits(amount)}`
         )
       }
       return l2Bridge.bondWithdrawalAndAttemptSwap(
@@ -187,202 +423,68 @@ class BondWithdrawalWatcher extends BaseWatcher {
         deadline
       )
     } else {
-      this.logger.debug(`chain ${chainId} bondWithdrawal`)
-      const bridge = new Bridge(this.contracts[chainId])
+      this.logger.debug(`bondWithdrawal chain: ${chainId}`)
+      const bridge = this.getSiblingWatcherByChainId(chainId).bridge
       const hasPositiveBalance = await bridge.hasPositiveBalance()
       if (!hasPositiveBalance) {
-        throw new Error('bonder requires positive balance to bond withdrawal')
+        throw new BondError(
+          'bonder requires positive balance to bond withdrawal'
+        )
       }
-      const credit = await bridge.getCredit()
-      if (credit < formattedAmount) {
-        throw new Error(
-          `not enough credit to bond withdrawal. Have ${credit}, need ${formattedAmount}`
+      const credit = await bridge.getAvailableCredit()
+      if (credit.lt(amount)) {
+        throw new BondError(
+          `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
+            credit
+          )}, need ${this.bridge.formatUnits(amount)}`
         )
       }
       return bridge.bondWithdrawal(recipient, amount, transferNonce, bonderFee)
     }
   }
 
-  handleTransferSentEvent = async (
-    transferHash: string,
-    recipient: string,
-    amount: string,
-    transferNonce: string,
-    bonderFee: string,
-    index: BigNumber,
-    meta: any
-  ) => {
-    try {
-      const dbTransferHash = await db.transfers.getByTransferHash(transferHash)
-      if (dbTransferHash?.withdrawalBonded) {
-        return
-      }
-
-      const { transactionHash } = meta
-      this.logger.debug('transfer event amount:', amount.toString())
-      this.logger.debug(`received L2 TransferSentEvent event`)
-      this.logger.debug('transferHash:', chalk.bgCyan.black(transferHash))
-
-      await wait(2 * 1000)
-      const { from: sender, data } = await this.l2Bridge.getTransaction(
-        transactionHash
-      )
-
-      const sourceChainId = await this.l2Bridge.getChainId()
-      const { chainId, attemptSwap } = await this.l2Bridge.decodeSendData(data)
-
-      const destL2Bridge = new L2Bridge(this.contracts[chainId])
-      const bondedAmount = await destL2Bridge.getBondedWithdrawalAmount(
-        transferHash
-      )
-      if (bondedAmount > 0) {
-        this.logger.debug(
-          `transferHash ${transferHash} withdrawal already bonded withdrawal`
-        )
-        await db.transfers.update(transferHash, {
-          withdrawalBonded: true
-        })
-        return
-      }
-
-      const isSpent = await destL2Bridge.isTransferHashSpent(transferHash)
-      if (isSpent) {
-        this.logger.debug(
-          `transferHash ${transferHash} bonded withdrawal already spent`
-        )
-        await db.transfers.update(transferHash, {
-          withdrawalBonded: true
-        })
-        return
-      }
-
-      this.logger.debug('transferNonce:', transferNonce)
-      this.logger.debug('chainId:', chainId)
-      this.logger.debug('attemptSwap:', attemptSwap)
-
-      const amountOutMin = '0'
-      const deadline = BigNumber.from(UINT256)
-      await db.transfers.update(transferHash, {
-        transferHash,
-        chainId,
-        sourceChainId
-      })
-
-      await this.waitTimeout(transferHash, chainId)
-      this.logger.debug('sending bondWithdrawal tx')
-
-      const dbTransfer = await db.transfers.getByTransferHash(transferHash)
-      if (dbTransfer?.sentBondWithdrawalTx || dbTransfer?.withdrawalBonded) {
-        this.logger.debug(
-          'sent?:',
-          !!dbTransfer.sentBondWithdrawalTx,
-          'withdrawalBonded?:',
-          !!dbTransfer.withdrawalBonded
-        )
-        return
-      }
-
-      await db.transfers.update(transferHash, {
-        sentBondWithdrawalTx: true
-      })
-
-      const tx = await this.sendBondWithdrawalTx({
-        sender,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        attemptSwap,
-        chainId,
-        amountOutMin,
-        deadline
-      })
-
-      tx?.wait()
-        .then(async (receipt: any) => {
-          if (receipt.status !== 1) {
-            await db.transfers.update(transferHash, {
-              sentBondWithdrawalTx: false
-            })
-            throw new Error('status=0')
-          }
-
-          this.emit('bondWithdrawal', {
-            recipient,
-            destNetworkName: networkIdToSlug(chainId),
-            destNetworkId: chainId,
-            transferHash
-          })
-
-          const bondedAmount = await destL2Bridge.getBondedWithdrawalAmount(
-            transferHash
-          )
-          this.logger.debug(
-            `chain ${chainId} bondWithdrawal amount:`,
-            bondedAmount
-          )
-
-          await db.transfers.update(transferHash, {
-            withdrawalBonded: true
-          })
-        })
-        .catch(async (err: Error) => {
-          await db.transfers.update(transferHash, {
-            sentBondWithdrawalTx: false
-          })
-
-          throw err
-        })
-      this.logger.info(
-        `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx:`,
-        chalk.bgYellow.black.bold(tx.hash)
-      )
-    } catch (err) {
-      if (err.message !== 'cancelled') {
-        this.logger.error(`bondWithdrawal tx error:`, err.message)
-      }
-    }
-  }
-
   handleWithdrawalBondedEvent = async (
-    transferHash: string,
-    recipient: string,
+    transferId: string,
+    //recipient: string,
     amount: BigNumber,
-    transferNonce: string,
-    bonderFee: BigNumber,
-    index: BigNumber,
+    //transferNonce: string,
+    //bonderFee: BigNumber,
+    //index: BigNumber,
     meta: any
   ) => {
-    this.logger.debug(`received WithdrawalBonded event`)
-    this.logger.debug('transferHash:', transferHash)
-    this.logger.debug(`recipient:`, recipient)
-    this.logger.debug('amount:', amount.toString())
-    this.logger.debug('transferNonce:', transferNonce)
-    this.logger.debug('bonderFee:', bonderFee.toString())
-    this.logger.debug('index:', index.toString())
+    const logger = this.logger.create({ id: transferId })
 
-    await db.transfers.update(transferHash, {
-      withdrawalBonded: true
+    const tx = await meta.getTransaction()
+    const { from: withdrawalBonder } = tx
+
+    logger.debug(`received WithdrawalBonded event`)
+    logger.debug('transferId:', transferId)
+    logger.debug('amount:', this.bridge.formatUnits(amount))
+
+    await db.transfers.update(transferId, {
+      withdrawalBonded: true,
+      withdrawalBonder
     })
   }
 
-  async waitTimeout (transferHash: string, chainId: string) {
+  async waitTimeout (transferId: string, chainId: number) {
     await wait(2 * 1000)
     if (!this.order()) {
       return
     }
     this.logger.debug(
-      `waiting for bondWithdrawal event. transferHash: ${transferHash} chainId: ${chainId}`
+      `waiting for bondWithdrawal event. transferId: ${transferId} chainId: ${chainId}`
     )
-    const contract = this.contracts[chainId]
-    let timeout = this.order() * 15 * 1000
+    const bridge = this.getSiblingWatcherByChainId(chainId).bridge
+    let timeout = this.order() * BONDER_ORDER_DELAY_MS
     while (timeout > 0) {
       if (!this.started) {
         return
       }
-      const bondedBn = await contract.getBondedWithdrawalAmount(transferHash)
-      const bondedAmount = Number(formatUnits(bondedBn.toString(), 18))
-      if (bondedAmount !== 0) {
+      const bondedAmount = await bridge.getTotalBondedWithdrawalAmount(
+        transferId
+      )
+      if (!bondedAmount.eq(0)) {
         break
       }
       const delay = 2 * 1000
@@ -392,7 +494,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     if (timeout <= 0) {
       return
     }
-    this.logger.debug(`transfer hash already bonded ${transferHash}`)
+    this.logger.debug(`transfer id already bonded ${transferId}`)
     throw new Error('cancelled')
   }
 }

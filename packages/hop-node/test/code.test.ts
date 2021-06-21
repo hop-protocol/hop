@@ -1,16 +1,16 @@
-import { XDAI, OPTIMISM, DAI } from 'src/constants'
+import { Chain } from 'src/constants'
 import { User } from './helpers'
 import { privateKey } from './config'
 
-const networks = [XDAI, OPTIMISM]
-const token = DAI
+const networks = [Chain.xDai, Chain.Optimism]
+const token = 'DAI'
 
 describe('code', () => {
   for (let network of networks) {
     it(network, async () => {
       const user = new User(privateKey)
       const bridge = await user.getHopBridgeContract(network, token)
-      const wrapperAddress = await bridge.uniswapWrapper()
+      const wrapperAddress = await bridge.ammWrapper()
       const provider = bridge.provider
       const { chainId } = await provider.getNetwork()
       let code = await provider.getCode(bridge.address)

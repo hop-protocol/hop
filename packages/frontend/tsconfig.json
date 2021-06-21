@@ -13,6 +13,8 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
     "noEmit": true,
     "jsx": "react",
     "baseUrl": "."

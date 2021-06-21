@@ -8,10 +8,8 @@ export const db = {
   path: defaultDbPath
 }
 
-export const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
-if (!bonderPrivateKey) {
-  throw new Error('BONDER_PRIVATE_KEY is required')
-}
-
 export const ipfsHost = process.env.IPFS_HOST || 'http://127.0.0.1:5001'
 export const hostname = process.env.HOSTNAME || os.hostname()
+export const slackChannel = process.env.SLACK_CHANNEL
+export const slackAuthToken = process.env.SLACK_AUTH_TOKEN
+export const slackUsername = process.env.SLACK_USERNAME || 'Hop Node'

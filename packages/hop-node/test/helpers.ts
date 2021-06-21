@@ -1,29 +1,34 @@
 // @ts-ignore
 import { Watcher } from '@eth-optimism/watcher'
-import { ethers, Contract } from 'ethers'
+import expect from 'expect'
+import { ethers, providers, Contract, Wallet, BigNumber } from 'ethers'
 import { HDNode } from '@ethersproject/hdnode'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
-import { tokens } from 'src/config'
-import l1BridgeArtifact from 'src/abi/L1_Bridge.json'
-import l2BridgeArtifact from 'src/abi/L2_Bridge.json'
-import erc20Artifact from 'src/abi/ERC20.json'
-import l2UniswapWrapperArtifact from 'src/abi/L2_UniswapWrapper.json'
-import uniswapRouterArtifact from 'src/abi/UniswapV2Router02.json'
-import uniswapPairArtifact from 'src/abi/UniswapV2Pair.json'
-import globalInboxArtifact from 'src/abi/GlobalInbox.json'
-import xDaiForeignOmnibridgeArtifact from 'src/abi/L1_xDaiForeignOmnibridge.json'
-import optimismTokenBridgeArtifact from 'src/abi/L1_OptimismTokenBridge.json'
+import { config } from 'src/config'
+import * as hopMetadata from '@hop-protocol/metadata'
 import {
-  UINT256,
-  ZERO_ADDRESS,
-  KOVAN,
-  ARBITRUM,
-  OPTIMISM,
-  XDAI,
-  DAI
-} from 'src/constants'
-import { wait, getRpcUrl, networkSlugToId } from 'src/utils'
-import queue from 'src/watchers/helpers/queue'
+  l1BridgeAbi,
+  l2BridgeAbi,
+  erc20Abi,
+  l2AmmWrapperAbi,
+  swapAbi as saddleSwapAbi,
+  arbitrumGlobalInboxAbi,
+  l1xDaiForeignOmniBridgeAbi,
+  l1xDaiMessengerAbi,
+  l1OptimismMessengerAbi,
+  l1ArbitrumMessengerAbi,
+  l1PolygonMessengerAbi,
+  xDaiMessengerWrapperAbi as l1xDaiMessengerWrapperAbi,
+  optimismMessengerWrapperAbi as l1OptimismMessengerWrapperAbi,
+  arbitrumMessengerWrapperAbi as l1ArbitrumMessengerWrapperAbi,
+  polygonMessengerWrapperAbi as l1PolygonMessengerWrapperAbi,
+  l1OptimismTokenBridgeAbi,
+  l1PolygonPosRootChainManagerAbi,
+  l2PolygonChildErc20Abi
+} from '@hop-protocol/abi'
+import { Chain, Token } from 'src/constants'
+import { wait, getRpcProvider, chainSlugToId } from 'src/utils'
+import queue from 'src/decorators/queue'
 
 export class User {
   privateKey: string
@@ -37,56 +42,57 @@ export class User {
   }
 
   getProvider (network: string) {
-    const url = getRpcUrl(network)
-    return new ethers.providers.StaticJsonRpcProvider(url)
+    return getRpcProvider(network)
   }
 
-  getWallet (network: string = KOVAN) {
+  getWallet (network: string = Chain.Ethereum) {
     const provider = this.getProvider(network)
-    return new ethers.Wallet(this.privateKey, provider)
+    return new Wallet(this.privateKey, provider)
   }
 
-  async getBalance (network: string = KOVAN, token: string | Contract = '') {
-    const address = await this.getAddress()
+  async getBalance (
+    network: string = Chain.Ethereum,
+    token: string | Contract = '',
+    address?: string
+  ) {
+    if (!address) {
+      address = await this.getAddress()
+    }
     if (!token) {
       const provider = this.getProvider(network)
       const balance = await provider.getBalance(address)
       return Number(formatUnits(balance, 18))
     }
+
+    const decimals = await getTokenDecimals(token)
     let contract: Contract
     if (typeof token === 'string') {
       contract = this.getTokenContract(network, token)
     } else {
       contract = token
     }
-    const balance = await contract.balanceOf(address)
-    return Number(formatUnits(balance, 18))
+    const bal = await contract.balanceOf(address)
+    return Number(formatUnits(bal.toString(), decimals))
   }
 
-  async getHopBalance (network: string = KOVAN, token: string = '') {
+  async getHopBalance (network: string = Chain.Ethereum, token: string = '') {
     const contract = this.getHopBridgeTokenContract(network, token)
     return this.getBalance(network, contract)
   }
 
   getTokenContract (network: string, token: string) {
-    let tokenAddress = tokens[token][network].l2CanonicalToken
-    if (network === KOVAN) {
-      tokenAddress = tokens[token][network].l1CanonicalToken
+    let tokenAddress = config.tokens[token][network].l2CanonicalToken
+    if (network === Chain.Ethereum) {
+      tokenAddress = config.tokens[token][network].l1CanonicalToken
     }
     const wallet = this.getWallet(network)
-    return new Contract(tokenAddress, erc20Artifact.abi, wallet)
+    return new Contract(tokenAddress, erc20Abi, wallet)
   }
 
-  getUniswapRouterContract (network: string, token: string) {
-    let routerAddress = tokens[token][network].l2UniswapRouter
+  getSaddleSwapContract (network: string, token: string) {
+    let saddleSwapAddress = config.tokens[token][network].l2SaddleSwap
     const wallet = this.getWallet(network)
-    return new Contract(routerAddress, uniswapRouterArtifact.abi, wallet)
-  }
-
-  getUniswapPairContract (network: string, token: string) {
-    let pairAddress = tokens[token][network].l2UniswapExchange
-    const wallet = this.getWallet(network)
-    return new Contract(pairAddress, uniswapPairArtifact.abi, wallet)
+    return new Contract(saddleSwapAddress, saddleSwapAbi, wallet)
   }
 
   async mint (
@@ -96,10 +102,15 @@ export class User {
     recipient?: string
   ) {
     const contract = this.getTokenContract(network, token)
+    const decimals = await getTokenDecimals(token)
     if (!recipient) {
       recipient = await this.getAddress()
     }
-    return contract.mint(recipient, parseUnits(amount.toString(), 18))
+    return contract.mint(
+      recipient,
+      parseUnits(amount.toString(), decimals),
+      this.txOverrides(network)
+    )
   }
 
   @queue
@@ -110,34 +121,87 @@ export class User {
     recipient: string
   ) {
     const contract = this.getTokenContract(network, token)
-    return contract.transfer(recipient, parseUnits(amount.toString(), 18))
+    const decimals = await getTokenDecimals(token)
+    return contract.transfer(
+      recipient,
+      parseUnits(amount.toString(), decimals),
+      this.txOverrides(network)
+    )
   }
 
-  getHopBridgeContract (network: string, token: string = DAI) {
+  getHopBridgeContract (network: string, token: string = Token.DAI) {
     let bridgeAddress: string
     let artifact: any
-    if (network === KOVAN) {
-      bridgeAddress = tokens[token][network].l1Bridge
-      artifact = l1BridgeArtifact
+    if (network === Chain.Ethereum) {
+      bridgeAddress = config.tokens[token][network].l1Bridge
+      artifact = l1BridgeAbi
     } else {
-      bridgeAddress = tokens[token][network].l2Bridge
-      artifact = l2BridgeArtifact
+      bridgeAddress = config.tokens[token][network].l2Bridge
+      artifact = l2BridgeAbi
     }
 
     const wallet = this.getWallet(network)
-    return new Contract(bridgeAddress, artifact.abi, wallet)
+    return new Contract(bridgeAddress, artifact, wallet)
   }
 
   getHopBridgeTokenContract (network: string, token: string) {
-    let tokenAddress = tokens[token][network].l2HopBridgeToken
+    let tokenAddress = config.tokens[token][network].l2HopBridgeToken
     const wallet = this.getWallet(network)
-    return new Contract(tokenAddress, erc20Artifact.abi, wallet)
+    return new Contract(tokenAddress, erc20Abi, wallet)
   }
 
-  getUniswapWrapperContract (network: string, token: string = DAI) {
-    const wrapperAddress = tokens[token][network].l2UniswapWrapper
+  async getMessengerWrapperContract (
+    network: string,
+    token: string = Token.DAI
+  ) {
+    const bridge = this.getHopBridgeContract(Chain.Ethereum, token)
+    const chainId = chainSlugToId(network)
+    const wrapperAddress = await bridge.crossDomainMessengerWrappers(chainId)
+    if (wrapperAddress === ethers.constants.AddressZero) {
+      throw new Error(`wrapper address is ${wrapperAddress}`)
+    }
+    const wallet = this.getWallet(Chain.Ethereum)
+    let abi: any
+    if (network === Chain.Arbitrum) {
+      abi = l1ArbitrumMessengerWrapperAbi
+    } else if (network === Chain.Optimism) {
+      abi = l1OptimismMessengerWrapperAbi
+    } else if (network === Chain.xDai) {
+      abi = l1xDaiMessengerWrapperAbi
+    } else if (network === Chain.Polygon) {
+      abi = l1PolygonMessengerWrapperAbi
+    }
+    return new Contract(wrapperAddress, abi, wallet)
+  }
+
+  async getMessengerContract (network: string, token: string = Token.DAI) {
+    if (network === Chain.Ethereum) {
+      throw new Error('not supporsed')
+    }
+    const wrapper = await this.getMessengerWrapperContract(network, token)
+    const wallet = this.getWallet(Chain.Ethereum)
+    let messengerAddress: string
+    let abi: any
+    if (network === Chain.Arbitrum) {
+      messengerAddress = await wrapper.arbInbox()
+      abi = l1ArbitrumMessengerAbi
+    } else if (network === Chain.Optimism) {
+      messengerAddress = await wrapper.l1MessengerAddress()
+      abi = l1OptimismMessengerAbi
+    } else if (network === Chain.xDai) {
+      messengerAddress = await wrapper.l1MessengerAddress()
+      abi = l1xDaiMessengerAbi
+    } else if (network === Chain.Polygon) {
+      messengerAddress = await wrapper.address
+      abi = l1PolygonMessengerAbi
+    }
+    return new Contract(messengerAddress, abi, wallet)
+  }
+
+  getAmmWrapperContract (network: string, token: string = Token.DAI) {
+    const wrapperAddress = config.tokens[token][network].l2AmmWrapper
     const wallet = this.getWallet(network)
-    return new Contract(wrapperAddress, l2UniswapWrapperArtifact.abi, wallet)
+    return new Contract(wrapperAddress, l2AmmWrapperAbi, wallet)
   }
 
   @queue
@@ -148,16 +212,17 @@ export class User {
     amount?: string | number
   ) {
     let contract: Contract
+    const decimals = await getTokenDecimals(token)
     if (typeof token === 'string') {
       contract = this.getTokenContract(network, token)
     } else {
       contract = token
     }
-    let approveAmount = UINT256
+    let approveAmount: BigNumber | string = ethers.constants.MaxUint256
     if (amount) {
-      approveAmount = parseUnits(amount.toString(), 18).toString()
+      approveAmount = parseUnits(amount.toString(), decimals).toString()
     }
-    return contract.approve(spender, approveAmount)
+    return contract.approve(spender, approveAmount, this.txOverrides(network))
   }
 
   async getAllowance (
@@ -173,7 +238,8 @@ export class User {
       contract = token
     }
     const allowance = await contract.allowance(address, spender)
-    return Number(formatUnits(allowance, 18))
+    const decimals = await getTokenDecimals(token)
+    return Number(formatUnits(allowance, decimals))
   }
 
   async getAddress () {
@@ -197,10 +263,10 @@ export class User {
     token: string,
     amount: string | number
   ) {
-    if (sourceNetwork === KOVAN) {
+    if (sourceNetwork === Chain.Ethereum) {
       return this.sendL1ToL2(sourceNetwork, destNetwork, token, amount)
     }
-    if (destNetwork === KOVAN) {
+    if (destNetwork === Chain.Ethereum) {
       return this.sendL2ToL1(sourceNetwork, destNetwork, token, amount)
     }
 
@@ -215,8 +281,9 @@ export class User {
   ) {
     const deadline = (Date.now() / 1000 + 300) | 0
     const amountOutMin = '0'
-    const chainId = networkSlugToId(destNetwork)
+    const chainId = chainSlugToId(destNetwork)
     const recipient = await this.getAddress()
+    const relayer = ethers.constants.AddressZero
     const relayerFee = '0'
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
     const ethBalance = await this.getBalance()
@@ -224,17 +291,17 @@ export class User {
       throw new Error('Not enough ETH balance for transfer')
     }
 
-    const parsedAmount = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    const parsedAmount = parseUnits(amount.toString(), decimals)
     const tx = bridge.sendToL2(
       chainId,
       recipient,
       parsedAmount,
       amountOutMin,
       deadline,
+      relayer,
       relayerFee,
-      {
-        //gasLimit: 1000000
-      }
+      this.txOverrides(sourceNetwork)
     )
 
     return tx
@@ -246,8 +313,8 @@ export class User {
     token: string,
     amount: string | number
   ) {
-    const deadline = (Date.now() / 1000 + 300) | 0
-    const chainId = networkSlugToId(destNetwork)
+    const deadline = ((Date.now() / 1000) | 0) + 300
+    const chainId = chainSlugToId(destNetwork)
     const bonderFee = await this.getBonderFee(
       sourceNetwork,
       token,
@@ -255,17 +322,48 @@ export class User {
     )
     const amountOutMin = '0'
     const recipient = await this.getAddress()
-    let destinationAmountOutMin = '0'
+    let destinationAmountOutMin = 0
     let destinationDeadline = deadline
-    let parsedAmount = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    let parsedAmount = parseUnits(amount.toString(), decimals)
 
-    if (destNetwork === KOVAN) {
-      destinationAmountOutMin = '0'
+    if (destNetwork === Chain.Ethereum) {
+      destinationAmountOutMin = 0
       destinationDeadline = 0
     }
 
-    const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
+    const wrapper = this.getAmmWrapperContract(sourceNetwork, token)
     await this.checkApproval(sourceNetwork, token, wrapper.address)
+
+    const balance = await this.getBalance(sourceNetwork, token)
+    console.log('token balance:', balance)
+
+    const hopBalance = await this.getHopBalance(sourceNetwork, token)
+    console.log('token hop balance:', hopBalance)
+
+    const allowance = await this.getAllowance(
+      sourceNetwork,
+      token,
+      wrapper.address
+    )
+    if (allowance < amount) {
+      throw new Error('not enough allowance')
+    }
+
+    const log = false
+    if (log) {
+      console.log(`wrapper.swapAndSend(
+      ${chainId},
+      ${recipient},
+      ${parsedAmount.toString()},
+      ${bonderFee.toString()},
+      ${amountOutMin.toString()},
+      ${deadline},
+      ${destinationAmountOutMin.toString()},
+      ${destinationDeadline},
+    )`)
+    }
+
     return wrapper.swapAndSend(
       chainId,
       recipient,
@@ -274,7 +372,8 @@ export class User {
       amountOutMin,
       deadline,
       destinationAmountOutMin,
-      destinationDeadline
+      destinationDeadline,
+      this.txOverrides(sourceNetwork)
     )
   }
 
@@ -286,8 +385,8 @@ export class User {
   ) {
     const recipient = await this.getAddress()
     const deadline = (Date.now() / 1000 + 300) | 0
-    const sourceChainId = networkSlugToId(sourceNetwork)
-    const chainId = networkSlugToId(destNetwork)
+    const sourceChainId = chainSlugToId(sourceNetwork)
+    const chainId = chainSlugToId(destNetwork)
     const bonderFee = await this.getBonderFee(
       sourceNetwork,
       token,
@@ -296,16 +395,11 @@ export class User {
     const amountOutMin = '0'
     const destinationAmountOutMin = '0'
     const destinationDeadline = (Date.now() / 1000 + 300) | 0
-    const parsedAmount = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    const parsedAmount = parseUnits(amount.toString(), decimals)
 
     await this.validateChainId(sourceChainId)
-    //const bridge = this.getHopBridgeContract(sourceNetwork, token)
-    const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
-    //const router = this.getUniswapRouterContract(sourceNetwork, token)
-    //const path = [await wrapper.hToken(), await wrapper.l2CanonicalToken()]
-    //const amountOut = await router.getAmountsOut(parsedAmount, path)
-    //console.log('amount out 0:', formatUnits(amountOut[0], 18).toString())
-    //console.log('amount out 1:', formatUnits(amountOut[1], 18).toString())
+    const wrapper = this.getAmmWrapperContract(sourceNetwork, token)
     await this.checkApproval(sourceNetwork, token, wrapper.address)
 
     return wrapper.swapAndSend(
@@ -317,9 +411,7 @@ export class User {
       deadline,
       destinationAmountOutMin,
       destinationDeadline,
-      {
-        //gasLimit: '1000000'
-      }
+      this.txOverrides(sourceNetwork)
     )
   }
 
@@ -331,14 +423,15 @@ export class User {
   ) {
     const recipient = await this.getAddress()
     const deadline = (Date.now() / 1000 + 300) | 0
-    const chainId = networkSlugToId(destNetwork)
+    const chainId = chainSlugToId(destNetwork)
     const bonderFee = await this.getBonderFee(
       sourceNetwork,
       token,
       amount.toString()
     )
     const amountOutMin = '0'
-    const parsedAmount = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    const parsedAmount = parseUnits(amount.toString(), decimals)
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
     return bridge.send(
       chainId,
@@ -347,9 +440,7 @@ export class User {
       bonderFee,
       amountOutMin,
       deadline,
-      {
-        //gasLimit: '1000000'
-      }
+      this.txOverrides(sourceNetwork)
     )
   }
 
@@ -363,17 +454,17 @@ export class User {
     const deadline = (Date.now() / 1000 + 300) | 0
     const destinationDeadline = deadline
     const destinationAmountOutMin = 0
-    const chainId = networkSlugToId(destNetwork)
+    const chainId = chainSlugToId(destNetwork)
     const bonderFee = await this.getBonderFee(
       sourceNetwork,
       token,
       amount.toString()
     )
     const amountOutMin = '0'
-    const parsedAmount = parseUnits(amount.toString(), 18)
-    const wrapper = this.getUniswapWrapperContract(sourceNetwork, token)
+    const decimals = await getTokenDecimals(token)
+    const parsedAmount = parseUnits(amount.toString(), decimals)
+    const wrapper = this.getAmmWrapperContract(sourceNetwork, token)
     await this.checkApproval(sourceNetwork, token, wrapper.address)
-    console.log(bonderFee)
 
     return wrapper.swapAndSend(
       chainId,
@@ -384,10 +475,7 @@ export class User {
       deadline,
       destinationAmountOutMin,
       destinationDeadline,
-      {
-        //value: '1000000000000000',
-        //gasLimit: '1000000'
-      }
+      this.txOverrides(sourceNetwork)
     )
   }
 
@@ -405,11 +493,13 @@ export class User {
   async sendEth (amount: number | string, recipient: string, network?: string) {
     const wallet = this.getWallet(network)
     return wallet.sendTransaction({
+      ...this.txOverrides(network),
       to: recipient,
       value: parseUnits(amount.toString(), 18)
     })
   }
 
+  @queue
   async sendTokens (
     network: string,
     token: string,
@@ -417,114 +507,92 @@ export class User {
     recipient: string
   ) {
     const tokenContract = this.getTokenContract(network, token)
-    return tokenContract.transfer(recipient, parseUnits(amount.toString(), 18))
+    const decimals = await getTokenDecimals(token)
+    const tx = await tokenContract.transfer(
+      recipient,
+      parseUnits(amount.toString(), decimals),
+      this.txOverrides(network)
+    )
+    return tx
   }
 
-  @queue
   async checkApproval (network: string, token: string, spender: string) {
     return checkApproval(this, network, token, spender)
   }
 
   @queue
   async stake (network: string, token: string, amount: number) {
-    const parsedAmount = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    const parsedAmount = parseUnits(amount.toString(), decimals)
     const bonder = await this.getAddress()
     const bridge = this.getHopBridgeContract(network, token)
-    return bridge.stake(bonder, parsedAmount)
+    return bridge.stake(bonder, parsedAmount, this.txOverrides(network))
   }
 
   async getBonderFee (network: string, token: string, amount: string) {
+    const decimals = await getTokenDecimals(token)
     const bridge = this.getHopBridgeContract(network, token)
     const minBonderBps = await bridge.minBonderBps()
     const minBonderFeeAbsolute = await bridge.minBonderFeeAbsolute()
-    const minBonderFeeRelative = parseUnits(amount, 18)
+    const minBonderFeeRelative = parseUnits(amount, decimals)
       .mul(minBonderBps)
       .div(10000)
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute
+    return parseUnits('1', decimals)
     return minBonderFee
   }
 
   getBridgeAddress (network: string, token: string) {
-    let address = tokens[token][network].l2Bridge
-    if (network === KOVAN) {
-      address = tokens[token][network].l1Bridge
+    let address = config.tokens[token][network].l2Bridge
+    if (network === Chain.Ethereum) {
+      address = config.tokens[token][network].l1Bridge
     }
     return address
   }
 
-  getUniswapWrapperAddress (network: string, token: string) {
-    return tokens[token][network].l2UniswapWrapper
+  getAmmWrapperAddress (network: string, token: string) {
+    return config.tokens[token][network].l2AmmWrapper
   }
 
-  async calcToken1Rate (network: string, token: string) {
-    //const address = await this.getAddress()
-    const uniswapRouter = this.getUniswapRouterContract(network, token)
-    const uniswapExchange = this.getUniswapPairContract(network, token)
-
-    const [decimals, reserves] = await Promise.all([
-      uniswapExchange.decimals(),
-      //uniswapExchange.totalSupply(),
-      //uniswapExchange.balanceOf(address),
-      uniswapExchange.getReserves()
-    ])
-
-    //const formattedTotalSupply = formatUnits( totalSupply.toString(), Number(decimals.toString()))
-
-    // user pool balance
-    //const formattedBalance = formatUnits(balance.toString(), decimals)
-
-    //const poolPercentage = (Number(formattedBalance) / Number(formattedTotalSupply)) * 100
-
-    // user pool token percentage
-    //const formattedPoolPercentage = poolPercentage.toFixed(2) === '0.00' ? '<0.01' : poolPercentage.toFixed(2)
-
-    const reserve0 = formatUnits(reserves[0].toString(), decimals)
-    const reserve1 = formatUnits(reserves[1].toString(), decimals)
-
-    //const token0Deposited = (Number(formattedBalance) * Number(reserve0)) / Number(formattedTotalSupply)
-    //const token1Deposited = (Number(formattedBalance) * Number(reserve1)) / Number(formattedTotalSupply)
-
-    const amount0 = parseUnits('1', decimals)
-    const amount1 = await uniswapRouter?.quote(
-      amount0,
-      parseUnits(reserve0, decimals),
-      parseUnits(reserve1, decimals)
-    )
-    const formattedAmountB = formatUnits(amount1, decimals)
-    const token1Rate = formattedAmountB
-    return token1Rate
+  async getLpToken (network: string, token: string) {
+    const saddleSwap = this.getSaddleSwapContract(network, token)
+    const swapStorage = await saddleSwap.swapStorage()
+    const { lpToken: lpTokenAddress } = swapStorage
+    const wallet = this.getWallet(network)
+    const lpToken = new Contract(lpTokenAddress, erc20Abi, wallet)
+    return lpToken
   }
 
   async getPoolBalance (network: string, token: string) {
-    const uniswapExchange = this.getUniswapPairContract(network, token)
+    const lpToken = await this.getLpToken(network, token)
     const address = await this.getAddress()
     const [balance, decimals] = await Promise.all([
-      uniswapExchange.balanceOf(address),
-      uniswapExchange.decimals()
+      lpToken.balanceOf(address),
+      lpToken.decimals()
     ])
     return Number(formatUnits(balance.toString(), decimals))
   }
 
   getCanonicalBridgeContract (destNetwork: string, token: string) {
-    const wallet = this.getWallet(KOVAN)
-    if (destNetwork === ARBITRUM) {
+    const wallet = this.getWallet(Chain.Ethereum)
+    if (destNetwork === Chain.Arbitrum) {
       return new Contract(
-        tokens[token][destNetwork].l1CanonicalBridge,
-        globalInboxArtifact.abi,
+        config.tokens[token][destNetwork].l1CanonicalBridge,
+        arbitrumGlobalInboxAbi,
         wallet
       )
-    } else if (destNetwork === OPTIMISM) {
+    } else if (destNetwork === Chain.Optimism) {
       return new Contract(
-        tokens[token][destNetwork].l1CanonicalBridge,
-        optimismTokenBridgeArtifact.abi,
+        config.tokens[token][destNetwork].l1CanonicalBridge,
+        l1OptimismTokenBridgeAbi,
         wallet
       )
-    } else if (destNetwork === XDAI) {
+    } else if (destNetwork === Chain.xDai) {
       return new Contract(
-        tokens[token][destNetwork].l1CanonicalBridge,
-        xDaiForeignOmnibridgeArtifact.abi,
+        config.tokens[token][destNetwork].l1CanonicalBridge,
+        l1xDaiForeignOmniBridgeAbi,
         wallet
       )
     } else {
@@ -539,33 +607,116 @@ export class User {
     amount: string | number
   ) {
     const recipient = await this.getAddress()
-    const value = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    const value = parseUnits(amount.toString(), decimals)
     const tokenBridge = this.getCanonicalBridgeContract(destNetwork, token)
-    if (destNetwork === ARBITRUM) {
+    if (destNetwork === Chain.Arbitrum) {
       return tokenBridge.depositERC20Message(
-        tokens[token][destNetwork].arbChain,
-        tokens[token][KOVAN].l1CanonicalToken,
+        config.tokens[token][destNetwork].arbChain,
+        config.tokens[token][Chain.Ethereum].l1CanonicalToken,
         recipient,
-        value
+        value,
+        this.txOverrides(destNetwork)
       )
-    } else if (destNetwork === OPTIMISM) {
-      const l1TokenAddress = tokens[token][KOVAN].l1CanonicalToken
-      const l2TokenAddress = tokens[token][destNetwork].l2CanonicalToken
+    } else if (destNetwork === Chain.Optimism) {
+      const l1TokenAddress =
+        config.tokens[token][Chain.Ethereum].l1CanonicalToken
+      const l2TokenAddress = config.tokens[token][destNetwork].l2CanonicalToken
       return tokenBridge.deposit(
         l1TokenAddress,
         l2TokenAddress,
         recipient,
-        value
+        value,
+        this.txOverrides(destNetwork)
       )
-    } else if (destNetwork === XDAI) {
+    } else if (destNetwork === Chain.xDai) {
       return tokenBridge.relayTokens(
-        tokens[token][KOVAN].l1CanonicalToken,
+        config.tokens[token][Chain.Ethereum].l1CanonicalToken,
         recipient,
-        value
+        value,
+        this.txOverrides(destNetwork)
       )
     } else {
       throw new Error('not implemented')
     }
+  }
+
+  @queue
+  async polygonCanonicalL1ToL2 (
+    amount: string | number,
+    approve: boolean = false
+  ) {
+    const parsedAmount = parseUnits(amount.toString(), 18)
+    // dummy erc20
+    const tokenAddress = '0x655F2166b0709cd575202630952D71E2bB0d61Af'
+    const bridgeAddress = '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74'
+    const url = 'https://goerli.rpc.hop.exchange'
+    const provider = new providers.StaticJsonRpcProvider(url)
+    const wallet = new Wallet(this.privateKey, provider)
+    const recipient = await wallet.getAddress()
+    if (approve) {
+      const erc20Predicate = '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
+      const token = new Contract(tokenAddress, erc20Abi, wallet)
+      let tx = await token.approve(erc20Predicate, parsedAmount)
+      await tx.wait()
+    }
+    const bridge = new Contract(
+      bridgeAddress,
+      l1PolygonPosRootChainManagerAbi,
+      wallet
+    )
+    const coder = ethers.utils.defaultAbiCoder
+    const data = coder.encode(['uint256'], [parsedAmount])
+    return bridge.depositFor(
+      recipient,
+      tokenAddress,
+      data,
+      this.txOverrides(Chain.Polygon)
+    )
+  }
+
+  @queue
+  async polygonCanonicalL2ToL1 (amount: string | number) {
+    const parsedAmount = parseUnits(amount.toString(), 18)
+    // dummy erc20
+    const tokenAddress = '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1'
+    const url = 'https://rpc-mumbai.maticvigil.com'
+    const provider = new providers.StaticJsonRpcProvider(url)
+    const wallet = new Wallet(this.privateKey, provider)
+    const token = new Contract(tokenAddress, l2PolygonChildErc20Abi, wallet)
+    return token.withdraw(parsedAmount, this.txOverrides(Chain.Polygon))
+  }
+
+  @queue
+  async polygonCanonicalL2ToL1Exit (txHash: string) {
+    const url = 'https://goerli.rpc.hop.exchange'
+    const provider = new providers.StaticJsonRpcProvider(url)
+    const l1Wallet = new Wallet(this.privateKey, provider)
+    const Web3 = require('web3')
+    const { MaticPOSClient } = require('@maticnetwork/maticjs')
+    const maticPOSClient = new MaticPOSClient({
+      network: 'testnet',
+      maticProvider: new Web3.providers.HttpProvider(
+        'https://rpc-mumbai.maticvigil.com'
+      ),
+      parentProvider: new Web3.providers.HttpProvider(
+        'https://goerli.rpc.hop.exchange'
+      ),
+      posRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
+      posERC20Predicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
+    })
+
+    const tx = await maticPOSClient.exitERC20(txHash, {
+      from: await l1Wallet.getAddress(),
+      encodeAbi: true
+    })
+
+    return l1Wallet.sendTransaction({
+      to: tx.to,
+      value: tx.value,
+      data: tx.data,
+      gasLimit: tx.gas
+    })
   }
 
   @queue
@@ -574,11 +725,13 @@ export class User {
     token: string,
     amount: string | number
   ) {
-    const l1Bridge = this.getHopBridgeContract(KOVAN, token)
-    const chainId = networkSlugToId(destNetwork)
+    const l1Bridge = this.getHopBridgeContract(Chain.Ethereum, token)
+    const chainId = chainSlugToId(destNetwork)
     const recipient = await this.getAddress()
-    const value = parseUnits(amount.toString(), 18)
+    const decimals = await getTokenDecimals(token)
+    const value = parseUnits(amount.toString(), decimals)
     const deadline = '0'
+    const relayer = ethers.constants.AddressZero
     const relayerFee = '0'
     const amountOutMin = '0'
 
@@ -588,10 +741,9 @@ export class User {
       value,
       amountOutMin,
       deadline,
+      relayer,
       relayerFee,
-      {
-        //gasLimit: 1000000
-      }
+      this.txOverrides(Chain.Ethereum)
     )
   }
 
@@ -600,59 +752,61 @@ export class User {
     token: string,
     token0Amount: string | number
   ) {
-    const token1Rate = await this.calcToken1Rate(network, token)
-    const token1Amount = Number(token0Amount) * Number(token1Rate)
-
-    const uniswapRouter = this.getUniswapRouterContract(network, token)
-    const uniswapRouterAddress = uniswapRouter.address
+    const token1Amount = token0Amount
+    const saddleSwap = this.getSaddleSwapContract(network, token)
+    const saddleSwapAddress = saddleSwap.address
     const tokenContract = this.getTokenContract(network, token)
     const hTokenContract = this.getHopBridgeTokenContract(network, token)
-
-    let allowance = await this.getAllowance(
-      network,
-      token,
-      uniswapRouterAddress
-    )
+    let allowance = await this.getAllowance(network, token, saddleSwapAddress)
     if (allowance < Number(token0Amount)) {
-      const tx = await this.approve(network, token, uniswapRouterAddress)
+      const tx = await this.approve(network, token, saddleSwapAddress)
       await tx?.wait()
     }
-
     allowance = await this.getAllowance(
       network,
       hTokenContract,
-      uniswapRouterAddress
+      saddleSwapAddress
     )
     if (allowance < Number(token0Amount)) {
-      const tx = await this.approve(
-        network,
-        hTokenContract,
-        uniswapRouterAddress
-      )
+      const tx = await this.approve(network, hTokenContract, saddleSwapAddress)
       await tx?.wait()
     }
-
-    const token0 = tokenContract.address
-    const token1 = hTokenContract.address
     const amount0Desired = parseUnits(token0Amount.toString(), 18)
     const amount1Desired = parseUnits(token1Amount.toString(), 18)
-    const amount0Min = 0
-    const amount1Min = 0
-    const recipient = await this.getAddress()
     const deadline = (Date.now() / 1000 + 5 * 60) | 0
 
-    return uniswapRouter.addLiquidity(
-      token0,
-      token1,
-      amount0Desired,
-      amount1Desired,
-      amount0Min,
-      amount1Min,
-      recipient,
+    const token0Index = Number(
+      (await saddleSwap.getTokenIndex(tokenContract.address)).toString()
+    )
+    const token1Index = Number(
+      (await saddleSwap.getTokenIndex(hTokenContract.address)).toString()
+    )
+    const amounts = new Array(2).fill(0)
+    amounts[token0Index] = amount0Desired
+    amounts[token1Index] = amount1Desired
+    const minToMint = 0
+    return saddleSwap.addLiquidity(
+      amounts,
+      minToMint,
       deadline,
-      {
-        //gasLimit: 1000000
-      }
+      this.txOverrides(network)
+    )
+  }
+
+  async removeLiquidity (
+    network: string,
+    token: string,
+    lpTokenAmount: string | number
+  ) {
+    const parsedLpTokenAmount = parseUnits(lpTokenAmount.toString(), 18)
+    const minAmounts = new Array(2).fill(0)
+    const deadline = (Date.now() / 1000 + 5 * 60) | 0
+    const saddleSwap = this.getSaddleSwapContract(network, token)
+    return saddleSwap.removeLiquidity(
+      parsedLpTokenAmount,
+      minAmounts,
+      deadline,
+      this.txOverrides(network)
     )
   }
 
@@ -663,14 +817,12 @@ export class User {
     totalAmount: number
   ) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
     return bridge.bondTransferRoot(
       transferRootHash,
       chainId,
       parsedTotalAmount,
-      {
-        //gasLimit: 1000000
-      }
+      this.txOverrides(Chain.Ethereum)
     )
   }
 
@@ -684,16 +836,18 @@ export class User {
       chainId,
       totalAmount
     )
-    return this.waitForTransactionReceipt(KOVAN, tx.hash)
+    return this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
   }
 
   @queue
   async challengeTransferRoot (transferRootHash: string, totalAmount: number) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
-    const bridge = this.getHopBridgeContract(KOVAN)
-    return bridge.challengeTransferBond(transferRootHash, parsedTotalAmount, {
-      //gasLimit: 1000000
-    })
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
+    return bridge.challengeTransferBond(
+      transferRootHash,
+      parsedTotalAmount,
+      this.txOverrides(Chain.Ethereum)
+    )
   }
 
   async challengeTransferRootAndWaitForReceipt (
@@ -701,16 +855,18 @@ export class User {
     totalAmount: number
   ) {
     const tx = await this.challengeTransferRoot(transferRootHash, totalAmount)
-    return this.waitForTransactionReceipt(KOVAN, tx.hash)
+    return this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
   }
 
   @queue
   async resolveChallenge (transferRootHash: string, totalAmount: number) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
-    const bridge = this.getHopBridgeContract(KOVAN)
-    return bridge.resolveChallenge(transferRootHash, parsedTotalAmount, {
-      //gasLimit: 1000000
-    })
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
+    return bridge.resolveChallenge(
+      transferRootHash,
+      parsedTotalAmount,
+      this.txOverrides(Chain.Ethereum)
+    )
   }
 
   async resolveChallengeAndWaitForReceipt (
@@ -718,16 +874,16 @@ export class User {
     totalAmount: number
   ) {
     const tx = await this.resolveChallenge(transferRootHash, totalAmount)
-    return this.waitForTransactionReceipt(KOVAN, tx.hash)
+    return this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
   }
 
   async getChallengePeriod () {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
     return Number((await bridge.challengePeriod()).toString())
   }
 
   async getChallengeResolutionPeriod () {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
     return Number((await bridge.challengeResolutionPeriod()).toString())
   }
 
@@ -735,7 +891,7 @@ export class User {
     challengePeriod: number,
     timeSlotSize: number
   ) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
     const governance = await bridge.governance()
     if (governance !== (await this.getAddress())) {
       throw new Error('must be governance')
@@ -747,16 +903,19 @@ export class User {
   }
 
   async setChallengeResolutionPeriod (challengeResolutionPeriod: number) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
     const governance = await bridge.governance()
     if (governance !== (await this.getAddress())) {
       throw new Error('must be governance')
     }
-    return bridge.setChallengeResolutionPeriod(challengeResolutionPeriod)
+    return bridge.setChallengeResolutionPeriod(
+      challengeResolutionPeriod,
+      this.txOverrides(Chain.Ethereum)
+    )
   }
 
   async getChallengeAmountForTransferAmount (amount: number) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
     const parsedAmount = parseUnits(amount.toString(), 18)
     const challengeAmount = await bridge.getChallengeAmountForTransferAmount(
       parsedAmount
@@ -764,15 +923,63 @@ export class User {
     return Number(formatUnits(challengeAmount, 18).toString())
   }
 
-  async getCredit (network: string = KOVAN) {
+  @queue
+  async addBonder (network: string, token: string, newBonderAddress: string) {
+    const address = newBonderAddress.replace('0x', '').toLowerCase()
+    const calldata = `0x5325937f000000000000000000000000${address}`
+    if (network === Chain.Ethereum) {
+      const bridge = this.getHopBridgeContract(network, token)
+      return bridge.addBonder(newBonderAddress, this.txOverrides(network))
+    } else if (network === Chain.xDai) {
+      const l2Bridge = await this.getHopBridgeContract(network, token)
+      const messenger = await this.getMessengerContract(network, token)
+      return messenger.requireToPassMessage(
+        l2Bridge.address,
+        calldata,
+        2000000,
+        this.txOverrides(network)
+      )
+    } else if (network === Chain.Optimism) {
+      const l2Bridge = await this.getHopBridgeContract(network, token)
+      const messenger = await this.getMessengerContract(network, token)
+      return messenger.sendMessage(
+        l2Bridge.address,
+        calldata,
+        9000000,
+        this.txOverrides(network)
+      )
+    } else if (network === Chain.Polygon) {
+      const messenger = await this.getMessengerWrapperContract(network, token)
+      return messenger.sendCrossDomainMessage(
+        calldata,
+        this.txOverrides(network)
+      )
+    } else if (network === Chain.Arbitrum) {
+      const l2Bridge = await this.getHopBridgeContract(network, token)
+      const messenger = await this.getMessengerContract(network, token)
+      return messenger.createRetryableTicket(
+        l2Bridge.address,
+        0,
+        0,
+        await this.getAddress(),
+        ethers.constants.AddressZero,
+        100000000000,
+        0,
+        calldata,
+        this.txOverrides(network)
+      )
+    }
+  }
+
+  async getCredit (network: string = Chain.Ethereum) {
     const bonder = await this.getAddress()
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
     const credit = (await bridge.getCredit(bonder)).toString()
     return Number(formatUnits(credit, 18))
   }
 
   async getBondForTransferAmount (amount: number) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
     const parsedAmount = parseUnits(amount.toString(), 18)
     const bondAmount = (
       await bridge.getBondForTransferAmount(parsedAmount)
@@ -781,19 +988,19 @@ export class User {
   }
 
   async getTransferRootCommitedAt (transferRootId: string) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
     const commitedAt = await bridge.transferRootCommittedAt(transferRootId)
     return Number(commitedAt.toString())
   }
 
   async getTransferRootId (transferRootHash: string, totalAmount: number) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
     return bridge.getTransferRootId(transferRootHash, parsedTotalAmount)
   }
 
   async getTransferBond (transferRootId: string) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
     return bridge.transferBonds(transferRootId)
   }
 
@@ -802,25 +1009,25 @@ export class User {
     return 15 * 60
   }
 
-  async getBlockTimestamp (network: string = KOVAN) {
+  async getBlockTimestamp (network: string = Chain.Ethereum) {
     const bridge = this.getHopBridgeContract(network)
     const block = await bridge.provider.getBlock('latest')
     return block.timestamp
   }
 
   async isChainIdPaused (chainId: string) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
     return bridge.isChainIdPaused(chainId)
   }
 
   async getCrossDomainMessengerWrapperAddress (chainId: string) {
-    const bridge = this.getHopBridgeContract(KOVAN)
+    const bridge = this.getHopBridgeContract(Chain.Ethereum)
     return bridge.crossDomainMessengerWrappers(chainId)
   }
 
   async setMaxPendingTransfers (network: string, max: number) {
     const bridge = this.getHopBridgeContract(network)
-    return bridge.setMaxPendingTransfers(max)
+    return bridge.setMaxPendingTransfers(max, this.txOverrides(network))
   }
 
   async validateChainId (chainId: string) {
@@ -832,13 +1039,13 @@ export class User {
     const wrapperAddress = await this.getCrossDomainMessengerWrapperAddress(
       chainId
     )
-    if (wrapperAddress === ZERO_ADDRESS) {
+    if (wrapperAddress === ethers.constants.AddressZero) {
       throw new Error('wrapper address not set')
     }
   }
 
-  async getMaxPendingTransfers (network: string) {
-    const bridge = this.getHopBridgeContract(network)
+  async getMaxPendingTransfers (network: string, token: string = Token.DAI) {
+    const bridge = this.getHopBridgeContract(network, token)
     return Number((await bridge.maxPendingTransfers()).toString())
   }
 
@@ -847,9 +1054,12 @@ export class User {
     token: string,
     destNetwork: string
   ) {
-    const destChainId = networkSlugToId(destNetwork)
+    const destChainId = chainSlugToId(destNetwork)
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
-    const maxPendingTransfers = await this.getMaxPendingTransfers(sourceNetwork)
+    const maxPendingTransfers = await this.getMaxPendingTransfers(
+      sourceNetwork,
+      token
+    )
     const pendingTransfers: string[] = []
     for (let i = 0; i < maxPendingTransfers; i++) {
       try {
@@ -872,10 +1082,8 @@ export class User {
     destNetwork: string
   ) {
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
-    const destChainId = networkSlugToId(destNetwork)
-    return bridge.commitTransfers(destChainId, {
-      //gasLimit: 2000000
-    })
+    const destChainId = chainSlugToId(destNetwork)
+    return bridge.commitTransfers(destChainId, this.txOverrides(sourceNetwork))
   }
 
   async isBonder (sourceNetwork: string, token: string) {
@@ -884,14 +1092,26 @@ export class User {
     return bridge.getIsBonder(address)
   }
 
+  async isGovernance (sourceNetwork: string, token: string) {
+    const bridge = this.getHopBridgeContract(sourceNetwork, token)
+    const address = await this.getAddress()
+    let governance: string
+    if (sourceNetwork === Chain.Ethereum) {
+      governance = await bridge.governance()
+    } else {
+      governance = await bridge.l1Governance()
+    }
+    return governance === address
+  }
+
   async waitForL2Tx (l1TxHash: string) {
     const watcher = new Watcher({
       l1: {
-        provider: this.getProvider(KOVAN),
+        provider: this.getProvider(Chain.Ethereum),
         messengerAddress: '0xb89065D5eB05Cac554FDB11fC764C679b4202322'
       },
       l2: {
-        provider: this.getProvider(OPTIMISM),
+        provider: this.getProvider(Chain.Optimism),
         messengerAddress: '0x4200000000000000000000000000000000000007'
       }
     })
@@ -899,6 +1119,19 @@ export class User {
     const [messageHash] = await watcher.getMessageHashesFromL1Tx(l1TxHash)
     const l2TxReceipt = await watcher.getL2TransactionReceipt(messageHash)
     return l2TxReceipt
+  }
+
+  txOverrides (network: string) {
+    const txOptions: any = {}
+    txOptions.gasLimit = 2_000_000
+    if (network === Chain.Optimism) {
+      txOptions.gasPrice = 0
+      txOptions.gasLimit = 8_000_000
+    } else if (network === Chain.xDai) {
+      txOptions.gasPrice = 1000000000
+      txOptions.gasLimit = 4_000_000
+    }
+    return txOptions
   }
 }
 
@@ -911,6 +1144,7 @@ export async function checkApproval (
   let allowance = await user.getAllowance(network, token, spender)
   if (allowance < 1000) {
     const tx = await user.approve(network, token, spender)
+    console.log('approve tx:', tx?.hash)
     await tx?.wait()
     allowance = await user.getAllowance(network, token, spender)
   }
@@ -961,36 +1195,119 @@ export async function prepareAccount (
   sourceNetwork: string,
   token: string
 ) {
-  const balance = await user.getBalance(sourceNetwork, token)
-  if (balance < 10) {
-    if (sourceNetwork === XDAI) {
-      let tx = await user.mint(KOVAN, token, 1000)
+  let balance = await user.getBalance(sourceNetwork, token)
+  if (balance < 1000) {
+    if (sourceNetwork === Chain.xDai) {
+      let tx = await user.mint(Chain.Ethereum, token, 1000)
       await tx?.wait()
       const l1CanonicalBridge = user.getCanonicalBridgeContract(
         sourceNetwork,
         token
       )
-      await checkApproval(user, KOVAN, token, l1CanonicalBridge.address)
+      await checkApproval(
+        user,
+        Chain.Ethereum,
+        token,
+        l1CanonicalBridge.address
+      )
       tx = await user.convertToCanonicalToken(sourceNetwork, token, 1000)
+      console.log('tx:', tx.hash)
       await tx?.wait()
-      await wait(20 * 1000)
+      await wait(120 * 1000)
     } else {
       const tx = await user.mint(sourceNetwork, token, 1000)
       await tx?.wait()
     }
+    balance = await user.getBalance(sourceNetwork, token)
   }
   expect(balance).toBeGreaterThan(0)
   let spender: string
-  if (sourceNetwork === KOVAN) {
+  if (sourceNetwork === Chain.Ethereum) {
     spender = user.getBridgeAddress(sourceNetwork, token)
   } else {
-    spender = user.getUniswapWrapperAddress(sourceNetwork, token)
+    spender = user.getAmmWrapperAddress(sourceNetwork, token)
   }
   await checkApproval(user, sourceNetwork, token, spender)
   // NOTE: xDai SPOA token is required for fees.
   // faucet: https://blockscout.com/poa/sokol/faucet
-  if (sourceNetwork === XDAI) {
+  if (sourceNetwork === Chain.xDai) {
     const ethBalance = await user.getBalance(sourceNetwork)
     expect(ethBalance).toBeGreaterThan(0)
   }
+}
+
+export async function prepareAccounts (
+  users: User[],
+  faucet: User,
+  token: string,
+  network: string,
+  faucetTokensToSend: number = 100
+) {
+  for (let user of users) {
+    console.log('preparing account')
+    const address = await user.getAddress()
+    if ([Chain.Ethereum as string, Chain.xDai].includes(network)) {
+      let ethBal = await user.getBalance(network)
+      if (ethBal < 0.1) {
+        console.log('faucet sending eth')
+        const tx = await faucet.sendEth(0.1, address, network)
+        const receipt = await tx.wait()
+        expect(receipt.status).toBe(1)
+        ethBal = await user.getBalance(network)
+      }
+      expect(ethBal).toBeGreaterThanOrEqual(0.1)
+    }
+    let tokenBal = await user.getBalance(network, token)
+    if (tokenBal < faucetTokensToSend) {
+      console.log('faucet sending tokens')
+      const faucetBalance = await faucet.getBalance(network, token)
+      if (faucetBalance < faucetTokensToSend) {
+        throw new Error(
+          `faucet does not have enough tokens. Have ${faucetBalance}, need ${faucetTokensToSend} ${token} on ${network}`
+        )
+      }
+      const tx = await faucet.sendTokens(
+        network,
+        token,
+        faucetTokensToSend,
+        address
+      )
+      console.log('send tokens tx:', tx.hash)
+      await tx.wait()
+      tokenBal = await user.getBalance(network, token)
+    }
+    expect(tokenBal).toBeGreaterThanOrEqual(1)
+  }
+  return users
+}
+
+export async function getBalances (
+  users: User[],
+  token: string,
+  sourceNetwork: string,
+  destNetwork: string
+): Promise<any[]> {
+  return Promise.all([
+    Promise.all(
+      users.map((user: User) => user.getBalance(sourceNetwork, token))
+    ),
+    Promise.all(users.map((user: User) => user.getBalance(destNetwork, token)))
+  ])
+}
+
+async function getTokenDecimals (token: string | Contract): Promise<number> {
+  let tokenSymbol: string
+  if (typeof token === 'string') {
+    tokenSymbol = token
+  } else {
+    tokenSymbol = await token.symbol()
+  }
+
+  // If this is an hToken, strip the h
+  if (tokenSymbol[0] === 'h') {
+    tokenSymbol = tokenSymbol.substring(1)
+  }
+
+  // The decimals will be the same on all networks
+  return hopMetadata.mainnet.tokens[tokenSymbol].decimals
 }

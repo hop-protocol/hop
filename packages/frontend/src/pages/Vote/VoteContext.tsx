@@ -42,7 +42,11 @@ export const VoteContextProvider: FC<{}> = ({ children }) => {
     const _getBalance = async () => {
       if (user && l1HopToken) {
         const _balance = await user.getBalance(l1HopToken, networks[0])
-        setBalance(Number(formatUnits(_balance.toString(), 18)).toFixed(2))
+        setBalance(
+          Number(formatUnits(_balance.toString(), l1HopToken.decimals)).toFixed(
+            2
+          )
+        )
       }
     }
 

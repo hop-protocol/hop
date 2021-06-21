@@ -1,42 +1,54 @@
 import React, { FC, useMemo, createContext, useContext } from 'react'
+import { Hop, HopBridge } from '@hop-protocol/sdk'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import User from 'src/models/User'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
-import useNetworks from './useNetworks'
-import useTokens from './useTokens'
-import useTxHistory, { TxHistory } from './useTxHistory'
-import useContracts, { Contracts } from './useContracts'
-import useEvents, { Events } from './useEvents'
-import { useAccountDetails, AccountDetails } from './useAccountDetails'
-import { useTxConfirm, TxConfirm } from './useTxConfirm'
-import logger from 'src/logger'
+import useNetworks from 'src/contexts/AppContext/useNetworks'
+import useTokens from 'src/contexts/AppContext/useTokens'
+import useBridges from 'src/contexts/AppContext/useBridges'
+import useTxHistory, { TxHistory } from 'src/contexts/AppContext/useTxHistory'
+import useContracts, { Contracts } from 'src/contexts/AppContext/useContracts'
+import useEvents, { Events } from 'src/contexts/AppContext/useEvents'
+import { useAccountDetails, AccountDetails } from 'src/contexts/AppContext/useAccountDetails'
+import { useTxConfirm, TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
+import { network } from 'src/config'
 
 type AppContextProps = {
   user: User | undefined
   networks: Network[]
+  l1Network: Network | undefined
   contracts: Contracts | undefined
   tokens: Token[]
   events: Events | undefined
   accountDetails: AccountDetails | undefined
   txHistory: TxHistory | undefined
   txConfirm: TxConfirm | undefined
+  sdk: Hop
+  bridges: HopBridge[],
+  selectedBridge: HopBridge | undefined
+  setSelectedBridge: (bridge: HopBridge) => void
 }
 
 const AppContext = createContext<AppContextProps>({
   user: undefined,
   networks: [],
+  l1Network: undefined,
   contracts: undefined,
   tokens: [],
   events: undefined,
   accountDetails: undefined,
   txHistory: undefined,
-  txConfirm: undefined
+  txConfirm: undefined,
+  sdk: {} as Hop,
+  bridges: [],
+  selectedBridge: undefined,
+  setSelectedBridge: (bridge: HopBridge) => {}
 })
 
 const AppContextProvider: FC = ({ children }) => {
-  //logger.debug('AppContextProvider render')
+  // logger.debug('AppContextProvider render')
   const { provider } = useWeb3Context()
 
   const user = useMemo(() => {
@@ -47,6 +59,7 @@ const AppContextProvider: FC = ({ children }) => {
     return new User(provider)
   }, [provider])
 
+  const sdk = useMemo(() => new Hop(network, provider?.getSigner()), [provider])
   const networks = useNetworks()
   const tokens = useTokens(networks)
   const contracts = useContracts(networks, tokens)
@@ -54,12 +67,19 @@ const AppContextProvider: FC = ({ children }) => {
   const txHistory = useTxHistory()
   const accountDetails = useAccountDetails()
   const txConfirm = useTxConfirm()
+  const l1Network = networks?.[0]
+  const { bridges, selectedBridge, setSelectedBridge } = useBridges(sdk)
 
   return (
     <AppContext.Provider
       value={{
+        sdk,
+        bridges,
+        selectedBridge,
+        setSelectedBridge,
         user,
         networks,
+        l1Network,
         contracts,
         tokens,
         events,

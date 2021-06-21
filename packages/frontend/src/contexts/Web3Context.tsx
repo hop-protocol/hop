@@ -1,11 +1,4 @@
-import React, {
-  FC,
-  createContext,
-  useContext,
-  useMemo,
-  useEffect,
-  useState
-} from 'react'
+import React, { FC, createContext, useContext, useMemo, useState } from 'react'
 import Onboard from 'bnc-onboard'
 import { ethers, Contract } from 'ethers'
 import Address from 'src/models/Address'
@@ -66,32 +59,30 @@ const initialState = {
 }
 
 const networkNames: any = {
-  '1': 'Mainnet',
-  '3': 'Ropsten',
-  '4': 'Rinkeby',
-  '5': 'Goerli',
-  '42': 'Kovan',
-  '79377087078960': 'Arbitrum',
-  '10': 'Optimism',
-  '69': 'Optimism',
-  '420': 'Optimism',
-  '77': 'xDai',
-  '100': 'xDai',
-  '80001': 'Matic',
-  '137': 'Matic'
+  1: 'Mainnet',
+  3: 'Ropsten',
+  4: 'Rinkeby',
+  5: 'Goerli',
+  42: 'Kovan',
+  79377087078960: 'Arbitrum',
+  10: 'Optimism',
+  69: 'Optimism',
+  420: 'Optimism',
+  77: 'xDai',
+  100: 'xDai',
+  80001: 'Polygon',
+  137: 'Polygon'
 }
 
 const Web3Context = createContext<Props>(initialState)
 
 const Web3ContextProvider: FC = ({ children }) => {
-  //logger.debug('Web3ContextProvider render')
+  // logger.debug('Web3ContextProvider render')
   const [provider, setProvider] = useState<
     ethers.providers.Web3Provider | undefined
   >()
   const [connectedNetworkId, setConnectedNetworkId] = useState<string>('')
-  const [validConnectedNetworkId, setValidConnectedNetworkId] = useState<
-    boolean
-  >(false)
+  const [validConnectedNetworkId] = useState<boolean>(false)
   const [walletName, setWalletName] = useState<string>('')
   const [address, setAddress] = useState<Address | undefined>()
   const onboard = useMemo(() => {
@@ -145,8 +136,8 @@ const Web3ContextProvider: FC = ({ children }) => {
       if (wantNetworkId === networkSlugToId('xdai')) {
         wantRpcUrl = getRpcUrl('xdai')
       }
-      if (wantNetworkId === networkSlugToId('matic')) {
-        wantRpcUrl = getRpcUrl('matic')
+      if (wantNetworkId === networkSlugToId('polygon')) {
+        wantRpcUrl = getRpcUrl('polygon')
       }
 
       let html = ''
@@ -156,7 +147,7 @@ const Web3ContextProvider: FC = ({ children }) => {
           wantNetworkId === networkSlugToId('arbitrum') ||
           wantNetworkId === networkSlugToId('optimism') ||
           wantNetworkId === networkSlugToId('xdai') ||
-          wantNetworkId === networkSlugToId('matic')
+          wantNetworkId === networkSlugToId('polygon')
         ) {
           stepImages = [
             MetamaskAccountsSettingsHighlight,
@@ -224,7 +215,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         { checkName: 'derivationPath' },
         { checkName: 'accounts' },
         { checkName: 'connect' },
-        //{ checkName: 'network' },
+        // { checkName: 'network' },
         networkCheck,
         { checkName: 'balance' }
       ],
@@ -306,9 +297,24 @@ const Web3ContextProvider: FC = ({ children }) => {
   ): Promise<boolean> => {
     logger.debug('checkConnectedNetworkId')
     const signerNetworkId = (await provider?.getNetwork())?.chainId
-    if (networkId != signerNetworkId) {
+    if (networkId.toString() !== signerNetworkId?.toString()) {
       onboard.config({ networkId })
       if (onboard.getState().address) {
+        let nativeCurrency : any
+        if (networkIdToSlug(networkId) === 'xdai') {
+          nativeCurrency = {
+            name: 'xDAI',
+            symbol: 'XDAI',
+            decimals: 18
+          }
+        } else if (networkIdToSlug(networkId) === 'polygon') {
+          nativeCurrency = {
+            name: 'Matic',
+            symbol: 'MATIC',
+            decimals: 18
+          }
+        }
+
         try {
           if ((window as any).ethereum && networkId) {
             await (window as any).ethereum.request({
@@ -322,7 +328,8 @@ const Web3ContextProvider: FC = ({ children }) => {
                   rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
                   blockExplorerUrls: [
                     getBaseExplorerUrl(networkIdToSlug(networkId.toString()))
-                  ]
+                  ],
+                  nativeCurrency
                 }
               ]
             })
@@ -347,7 +354,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     if (!contract) return
     const signerNetworkId = (await provider?.getNetwork())?.chainId
     const contractNetworkId = (await contract.provider.getNetwork()).chainId
-    if (signerNetworkId != contractNetworkId) {
+    if (signerNetworkId?.toString() !== contractNetworkId.toString()) {
       onboard.config({ networkId: Number(contractNetworkId) })
       if (onboard.getState().address) {
         onboard.walletCheck()

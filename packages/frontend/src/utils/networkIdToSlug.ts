@@ -1,9 +1,9 @@
 import { networks } from 'src/config'
 
 export const networkIdToSlug = (networkId: string | number) => {
-  for (let key in networks) {
+  for (const key in networks) {
     const v = networks[key]
-    if (v.networkId == networkId.toString()) {
+    if (v.networkId.toString() === networkId.toString()) {
       return key
     }
   }

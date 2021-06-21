@@ -2,7 +2,7 @@ import React from 'react'
 
 interface Props {}
 
-export default function (props: Props) {
+export default function ClipboardIcon (props: Props) {
   return (
     <svg
       width="14"

@@ -210,6 +210,34 @@ const theme = createMuiTheme({
         boxShadow:
           '0px 5px 15px -3px rgba(0,0,0,0.1), 0px 8px 20px 1px rgba(0,0,0,0.07), 0px 3px 24px 2px rgba(0,0,0,0.06);'
       }
+    },
+    MuiTooltip: {
+      tooltip: {
+        fontSize: '1.6rem'
+      }
+    },
+    MuiSlider: {
+      root: {
+        height: 3
+      },
+      thumb: {
+        height: 14,
+        width: 14
+      },
+      track: {
+        height: 3,
+        borderRadius: 8
+      },
+      rail: {
+        height: 3,
+        borderRadius: 8
+      },
+      mark: {
+        height: 3
+      },
+      valueLabel: {
+        fontSize: '1.4rem'
+      }
     }
   }
 })

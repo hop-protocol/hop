@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import Transaction from 'src/models/Transaction'
-import logger from 'src/logger'
 
 export interface TxHistory {
   transactions: Transaction[]
@@ -10,7 +9,7 @@ export interface TxHistory {
 }
 
 const useTxHistory = (): TxHistory => {
-  //logger.debug('useTxHistory render')
+  // logger.debug('useTxHistory render')
 
   const sort = (list: Transaction[]) => {
     return list.sort(
@@ -20,7 +19,7 @@ const useTxHistory = (): TxHistory => {
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
-      const cached = sessionStorage.getItem('recentTransactions')
+      const cached = localStorage.getItem('recentTransactions')
       if (!cached) return []
       const txs = JSON.parse(cached)
       return txs.map((obj: Transaction) => Transaction.fromObject(obj))
@@ -44,7 +43,7 @@ const useTxHistory = (): TxHistory => {
       const recents = transactions.map((tx: Transaction) => {
         return tx.toObject()
       })
-      sessionStorage.setItem('recentTransactions', JSON.stringify(recents))
+      localStorage.setItem('recentTransactions', JSON.stringify(recents))
     } catch (err) {
       // noop
     }
@@ -60,7 +59,7 @@ const useTxHistory = (): TxHistory => {
   }
 
   const clear = () => {
-    sessionStorage.setItem('recentTransactions', JSON.stringify([]))
+    localStorage.setItem('recentTransactions', JSON.stringify([]))
     setTransactions([])
   }
 

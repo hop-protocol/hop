@@ -4,18 +4,17 @@ import { wait } from 'src/utils'
 import { User, prepareAccount } from './helpers'
 import { privateKey } from './config'
 import Logger from 'src/logger'
-// @ts-ignore
-import { KOVAN, ARBITRUM, OPTIMISM, XDAI } from 'src/constants'
+import { Chain } from 'src/constants'
 
-const sourceNetwork = OPTIMISM
-const destNetwork = KOVAN
+const sourceNetwork = Chain.Optimism
+const destNetwork = Chain.Ethereum
 const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 100000
 const logger = new Logger('TEST')
 
 describe('arb-bot', () => {
   it(
-    `send ${TRANSFER_AMOUNT} ${TOKEN} ${sourceNetwork} -> ${KOVAN}`,
+    `send ${TRANSFER_AMOUNT} ${TOKEN} ${sourceNetwork} → ${Chain.Ethereum}`,
     async () => {
       const user = new User(privateKey)
       logger.log('preparing account')

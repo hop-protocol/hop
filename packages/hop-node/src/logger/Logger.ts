@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+import { DateTime } from 'luxon'
 
 export interface Options {
   tag?: string
@@ -6,11 +7,27 @@ export interface Options {
   color: string
 }
 
+interface AdditionalDataLabel {
+  id?: string
+  root?: string
+}
+
 export enum LogLevels {
+  Critical,
   Error,
   Warn,
   Info,
+  Log,
   Debug
+}
+
+const logLevelColors: { [key: string]: string } = {
+  [LogLevels.Critical]: 'red',
+  [LogLevels.Error]: 'red',
+  [LogLevels.Warn]: 'yellow',
+  [LogLevels.Info]: 'blue',
+  [LogLevels.Log]: 'white',
+  [LogLevels.Debug]: 'white'
 }
 
 let logLevel = LogLevels.Debug
@@ -30,6 +47,7 @@ export const setLogLevel = (_logLevel: LogLevels | string) => {
 class Logger {
   private tag: string = ''
   private prefix: string = ''
+  private options: any = {}
   enabled: boolean = true
 
   setEnabled (enabled: boolean) {
@@ -50,16 +68,50 @@ class Logger {
       this.prefix = `<${opts.prefix}>`
     }
     if (tag) {
-      this.tag = (chalk as any)[opts.color](`[${tag}]`)
+      if (opts.color) {
+        this.tag = (chalk as any)[opts.color](`[${tag}]`)
+      } else {
+        this.tag = `[${tag}]`
+      }
     }
     if (process.env.DISABLE_LOGGER) {
       this.enabled = false
     }
+    this.options = opts
+  }
+
+  create (additionalDataLabel: AdditionalDataLabel): Logger {
+    let label: string
+    if (additionalDataLabel?.id) {
+      label = `id: ${additionalDataLabel.id}`
+    } else {
+      label = `root: ${additionalDataLabel.root}`
+    }
+
+    return new Logger(
+      this.options.tag,
+      Object.assign({}, this.options, {
+        prefix: `${this.options.prefix} ${label}`
+      })
+    )
+  }
+
+  get timestamp (): string {
+    return DateTime.now().toISO()
+  }
+
+  headers (logLevelEnum: LogLevels): string[] {
+    const keys = Object.keys(LogLevels)
+    const logLevelName = keys[logLevelEnum + keys.length / 2].toUpperCase()
+    const coloredLogLevel = (chalk as any)[logLevelColors[logLevelEnum]](
+      logLevelName.padEnd(5, ' ')
+    )
+    return [this.timestamp, coloredLogLevel, this.tag, this.prefix]
   }
 
   critical = (...input: any[]) => {
     if (!this.enabled) return
-    console.error(this.tag, ...input)
+    console.error(...this.headers(LogLevels.Critical), ...input)
   }
 
   debug = (...input: any[]) => {
@@ -67,45 +119,36 @@ class Logger {
     if (logLevel !== LogLevels.Debug) {
       return
     }
-    console.debug(this.tag, this.prefix, ...input)
+    console.debug(...this.headers(LogLevels.Debug), ...input)
   }
 
   error = (...input: any[]) => {
     if (!this.enabled) return
-    console.error(this.tag, this.prefix, ...input)
+    console.error(...this.headers(LogLevels.Error), ...input)
   }
 
   info = (...input: any[]) => {
     if (!this.enabled) return
-    if (logLevel > LogLevels.Info) {
+    if (!(logLevel === LogLevels.Debug || logLevel === LogLevels.Info)) {
       return
     }
-    console.info(this.tag, this.prefix, ...input)
+    console.info(...this.headers(LogLevels.Info), ...input)
   }
 
   log = (...input: any[]) => {
     if (!this.enabled) return
-    if (logLevel === LogLevels.Warn) {
+    if (logLevel < LogLevels.Info) {
       return
     }
-    if (logLevel === LogLevels.Error) {
-      return
-    }
-    if (logLevel > LogLevels.Debug) {
-      return
-    }
-    console.log(this.tag, this.prefix, ...input)
+    console.log(...this.headers(LogLevels.Log), ...input)
   }
 
   warn = (...input: any[]) => {
     if (!this.enabled) return
-    if (logLevel === LogLevels.Error) {
+    if (logLevel < LogLevels.Warn) {
       return
     }
-    if (logLevel > LogLevels.Warn) {
-      return
-    }
-    console.warn(this.tag, this.prefix, ...input)
+    console.warn(...this.headers(LogLevels.Warn), ...input)
   }
 }
 

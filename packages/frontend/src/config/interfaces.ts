@@ -1,3 +1,5 @@
+import { Bridges } from '@hop-protocol/addresses'
+
 export interface IProposalDetail {
   target: string
   functionSig: string
@@ -15,4 +17,23 @@ export interface IProposal {
   startBlock: number
   endBlock: number
   details: IProposalDetail[]
+}
+
+export interface HopAddresses {
+  governance: {
+    l1Hop: string
+    stakingRewardsFactory: string
+    stakingRewards: string
+    governorAlpha: string
+  }
+  tokens: Bridges
+}
+
+export type Networks = {
+  [key: string]: {
+    networkId: string
+    rpcUrls: string[]
+    explorerUrl: string,
+    nativeBridgeUrl?: string
+  }
 }

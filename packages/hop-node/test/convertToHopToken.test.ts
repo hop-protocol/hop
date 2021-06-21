@@ -3,12 +3,11 @@ import { User } from './helpers'
 import { wait } from 'src/utils'
 import Logger from 'src/logger'
 import { privateKey } from './config'
-// @ts-ignore
-import { KOVAN, OPTIMISM, XDAI } from 'src/constants'
+import { Chain } from 'src/constants'
 
-const TOKEN = 'DAI'
-const AMOUNT = 1_000_000_000
-const NETWORKS = [XDAI]
+const TOKEN = 'USDC'
+const AMOUNT = 10_000
+const NETWORKS = [Chain.xDai]
 const logger = new Logger('TEST')
 
 describe('convert L1 token to L2 Hop token', () => {
@@ -19,19 +18,19 @@ describe('convert L1 token to L2 Hop token', () => {
       async () => {
         logger.log(label)
         const user = new User(privateKey)
-        logger.log(`minting ${KOVAN} ${TOKEN}`)
-        let tx = await user.mint(KOVAN, TOKEN, AMOUNT)
+        logger.log(`minting ${Chain.Ethereum} ${TOKEN}`)
+        let tx = await user.mint(Chain.Ethereum, TOKEN, AMOUNT)
         logger.log(`mint tx: ${tx.hash}`)
         await tx.wait()
-        const l1Bridge = user.getHopBridgeContract(KOVAN, TOKEN)
+        const l1Bridge = user.getHopBridgeContract(Chain.Ethereum, TOKEN)
         logger.log(`checking ${TOKEN} approval on ${L2_NETWORK}`)
-        await user.checkApproval(KOVAN, TOKEN, l1Bridge.address)
+        await user.checkApproval(Chain.Ethereum, TOKEN, l1Bridge.address)
         logger.log(
           `getting ${TOKEN} hop token balance balance on ${L2_NETWORK}`
         )
         const hopBalanceBefore = await user.getHopBalance(L2_NETWORK, TOKEN)
         logger.log(`hop ${TOKEN} balance: ${hopBalanceBefore}`)
-        logger.log(`converting ${KOVAN} ${TOKEN} for hop`)
+        logger.log(`converting ${Chain.Ethereum} ${TOKEN} for hop`)
         tx = await user.canonicalTokenToHopToken(L2_NETWORK, TOKEN, AMOUNT)
         logger.log('tx sendToL2:', tx?.hash)
         await tx?.wait()

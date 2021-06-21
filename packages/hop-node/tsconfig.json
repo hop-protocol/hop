@@ -8,13 +8,12 @@
     "experimentalDecorators": true,
     "target": "ES2017",
     "noImplicitAny": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "moduleResolution": "node",
     "skipLibCheck": true,
     "sourceMap": false,
     "outDir": "dist",
     "baseUrl": "src",
-    "experimentalDecorators": true,
     "paths": {
       "*": ["node_modules/*", "src/types/*"],
       "src/*": ["*"]

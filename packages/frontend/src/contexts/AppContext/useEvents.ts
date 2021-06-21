@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
 import { EventEmitter } from 'events'
-import logger from 'src/logger'
 
 export interface Events {
   keypress: EventEmitter
 }
 
 const useEvents = (): Events => {
-  //logger.debug('useEvents render')
+  // logger.debug('useEvents render')
   const [keypress] = useState<EventEmitter>(() => {
     return new EventEmitter()
   })

@@ -1,5 +1,8 @@
 const prettifyErrorMessage = (str: string = '') => {
-  return str.replace(/.*\[ethjs-query\].*"message":"(.*)\"\}.*/, '$1')
+  if (!str) {
+    return ''
+  }
+  return str.replace(/.*\[ethjs-query\].*"message":"(.*)"\}.*/, '$1')
 }
 
 export default prettifyErrorMessage

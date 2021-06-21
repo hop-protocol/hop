@@ -1,6 +1,7 @@
 {
-  "networks": {
-    "kovan": {
+  "network": "kovan",
+  "chains": {
+    "ethereum": {
       "rpcUrl": "https://kovan.rpc.hop.exchange"
     },
     "optimism": {
@@ -11,7 +12,7 @@
     }
   },
   "tokens": {
-    "DAI": true,
+    "DAI": false,
     "USDC": true,
     "WBTC": true
   },
@@ -20,10 +21,20 @@
     "challenger": true,
     "arbBot": true
   },
+  "commitTransfers": {
+    "minThresholdAmount": {
+      "DAI": 1000,
+      "USDC": 1000
+    }
+  },
   "db": {
     "location": "~/.hop-node/db"
   },
   "logging": {
     "level": "debug"
-  }
+  },
+  "keystore": {
+    "location": "~/.hop-node/keystore.json"
+  },
+  "order": 0
 }

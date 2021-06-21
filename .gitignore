@@ -4,3 +4,5 @@ node_modules
 
 # Local Netlify folder
 .netlify
+
+packages/db_data

@@ -83,6 +83,9 @@ const COMPONENT_NAME: FC<Props> = () => {
       <Route path="/(send|arbitrum|optimism|polygon|xdai)/">
         <Send />
       </Route>
+      <Route path="/convert" exact >
+        <Redirect to="/convert/amm" />
+      </Route>
       <Route path="/convert">
         <Convert />
       </Route>

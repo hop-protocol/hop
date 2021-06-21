@@ -89,7 +89,9 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       })
     } catch (err) {
       logger.error(`handleTransferRootConfirmedEvent error: ${err.message}`)
-      this.notifier.error(`handleTransferRootConfirmedEvent error: ${err.message}`)
+      this.notifier.error(
+        `handleTransferRootConfirmedEvent error: ${err.message}`
+      )
     }
   }
 
@@ -166,16 +168,20 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       let chainId
       const commitTransfersFunctionSig = '0x32b949a2'
       if (data.substr(0, 10) === commitTransfersFunctionSig) {
-        const { destinationChainId } = await l2Bridge.decodeCommitTransfersData(data)
+        const { destinationChainId } = await l2Bridge.decodeCommitTransfersData(
+          data
+        )
         chainId = destinationChainId
       } else {
-        const { chainId: destinationChainId } = await l2Bridge.decodeSendData(data)
+        const { chainId: destinationChainId } = await l2Bridge.decodeSendData(
+          data
+        )
         chainId = destinationChainId
       }
       const sourceChainId = await l2Bridge.getChainId()
       let destinationBridgeAddress = undefined
       const isExitWatcher = !this.hasSiblingWatcher(chainId)
-      if(!isExitWatcher) {
+      if (!isExitWatcher) {
         destinationBridgeAddress = await this.getSiblingWatcherByChainId(
           chainId
         ).bridge.getAddress()

@@ -43,7 +43,10 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     promises.push(
       this.l1Bridge.eventsBatch(
         async (start: number, end: number) => {
-          const events = await this.l1Bridge.getTransferRootBondedEvents(start, end)
+          const events = await this.l1Bridge.getTransferRootBondedEvents(
+            start,
+            end
+          )
           await this.handleTransferRootBondedEvents(events)
         },
         { key: this.l1Bridge.TransferRootBonded }
@@ -53,7 +56,10 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     promises.push(
       this.l1Bridge.eventsBatch(
         async (start: number, end: number) => {
-          const events = await this.l1Bridge.getTransferRootConfirmedEvents(start, end)
+          const events = await this.l1Bridge.getTransferRootConfirmedEvents(
+            start,
+            end
+          )
           await this.handleTransferRootConfirmedEvents(events)
         },
         { key: this.l1Bridge.TransferRootConfirmed }
@@ -102,11 +108,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
   async handleTransferRootBondedEvents (events: Event[]) {
     for (let event of events) {
       const { root, amount } = event.args
-      await this.handleTransferRootBondedEvent(
-        root,
-        amount,
-        event
-      )
+      await this.handleTransferRootBondedEvent(root, amount, event)
     }
   }
 
@@ -114,7 +116,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     for (let event of events) {
       const {
         originChainId,
-        destinationChainId, 
+        destinationChainId,
         rootHash,
         totalAmount
       } = event.args
@@ -131,16 +133,8 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
   async checkTransferRootFromDb () {
     const dbTransferRoots = await db.transferRoots.getChallengeableTransferRoots()
     for (let dbTransferRoot of dbTransferRoots) {
-      const {
-        transferRootHash,
-        chainId,
-        totalAmount
-      } = dbTransferRoot
-      await this.checkTransferRoot(
-        transferRootHash,
-        chainId,
-        totalAmount
-      )
+      const { transferRootHash, chainId, totalAmount } = dbTransferRoot
+      await this.checkTransferRoot(transferRootHash, chainId, totalAmount)
     }
   }
 

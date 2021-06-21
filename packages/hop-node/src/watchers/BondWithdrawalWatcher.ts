@@ -196,13 +196,11 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       const { transferId } = dbTransfer
       promises.push(this.checkTransferSent(transferId))
     }
-    
+
     await Promise.all(promises)
   }
 
-  checkTransferSent = async (
-    transferId: string
-  ) => {
+  checkTransferSent = async (transferId: string) => {
     const logger = this.logger.create({ id: transferId })
 
     let dbTransfer = await db.transfers.getByTransferId(transferId)
@@ -226,9 +224,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
     const isBonder = await destL2Bridge.isBonder()
     if (!isBonder) {
-      logger.warn(
-        `not a bonder on chainId ${chainId}. Cannot bond withdrawal`
-      )
+      logger.warn(`not a bonder on chainId ${chainId}. Cannot bond withdrawal`)
       return
     }
 
@@ -255,7 +251,9 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     }
 
     // TODO: Handle this in DB getter
-    const bondedAmount = await destL2Bridge.getBondedWithdrawalAmount(transferId)
+    const bondedAmount = await destL2Bridge.getBondedWithdrawalAmount(
+      transferId
+    )
     const isTransferIdSpent = await destL2Bridge.isTransferIdSpent(transferId)
     const isWithdrawalBonded = bondedAmount.gt(0) || isTransferIdSpent
     if (isWithdrawalBonded) {

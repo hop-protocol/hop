@@ -2,6 +2,7 @@ import { providers, Contract, BigNumber } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
 import queue from 'src/decorators/queue'
+import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { config } from 'src/config'
 import unique from 'src/utils/unique'
 import { isL1ChainId, xor } from 'src/utils'
@@ -67,29 +68,34 @@ export default class Bridge extends ContractBase {
     return this.bridgeContract.signer.getAddress()
   }
 
+  @rateLimitRetry
   async isBonder (): Promise<boolean> {
     const bonder = await this.getBonderAddress()
     return this.bridgeContract.getIsBonder(bonder)
   }
 
+  @rateLimitRetry
   async getCredit (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
     const credit = await this.bridgeContract.getCredit(bonder)
     return credit
   }
 
+  @rateLimitRetry
   async getDebit (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
     const debit = await this.bridgeContract.getDebitAndAdditionalDebit(bonder)
     return debit
   }
 
+  @rateLimitRetry
   async getRawDebit (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
     const debit = await this.bridgeContract.getRawDebit(bonder)
     return debit
   }
 
+  @rateLimitRetry
   async getAvailableCredit (): Promise<BigNumber> {
     const [credit, debit] = await Promise.all([
       this.getCredit(),
@@ -98,6 +104,7 @@ export default class Bridge extends ContractBase {
     return credit.sub(debit)
   }
 
+  @rateLimitRetry
   async hasPositiveBalance (): Promise<boolean> {
     const credit = await this.getAvailableCredit()
     return credit.gt(0)
@@ -112,6 +119,7 @@ export default class Bridge extends ContractBase {
     return this.getBondedWithdrawalAmountByBonder(bonderAddress, transferId)
   }
 
+  @rateLimitRetry
   async getBondedWithdrawalAmountByBonder (
     bonder: string,
     transferId: string
@@ -142,6 +150,7 @@ export default class Bridge extends ContractBase {
     return totalBondedAmount
   }
 
+  @rateLimitRetry
   async getBonderBondedWithdrawalsBalance (): Promise<BigNumber> {
     const bonderAddress = await this.getBonderAddress()
     const blockNumber = await this.bridgeContract.provider.getBlockNumber()
@@ -204,10 +213,12 @@ export default class Bridge extends ContractBase {
     return match
   }
 
+  @rateLimitRetry
   isTransferIdSpent (transferId: string): Promise<boolean> {
     return this.bridgeContract.isTransferIdSpent(transferId)
   }
 
+  @rateLimitRetry
   async getWithdrawalBondedEvents (
     startBlockNumber: number,
     endBlockNumber: number
@@ -219,6 +230,7 @@ export default class Bridge extends ContractBase {
     )
   }
 
+  @rateLimitRetry
   async getTransferRootSetEvents (
     startBlockNumber: number,
     endBlockNumber: number
@@ -230,6 +242,7 @@ export default class Bridge extends ContractBase {
     )
   }
 
+  @rateLimitRetry
   async getWithdrawalBondSettledEvents (
     startBlockNumber: number,
     endBlockNumber: number
@@ -269,6 +282,7 @@ export default class Bridge extends ContractBase {
     }
   }
 
+  @rateLimitRetry
   async getMultipleWithdrawalsSettledEvents (
     startBlockNumber: number,
     endBlockNumber: number
@@ -280,6 +294,7 @@ export default class Bridge extends ContractBase {
     )
   }
 
+  @rateLimitRetry
   async decodeSettleBondedWithdrawalsData (data: string): Promise<any> {
     if (!data) {
       throw new Error('data to decode is required')
@@ -301,6 +316,7 @@ export default class Bridge extends ContractBase {
     }
   }
 
+  @rateLimitRetry
   async getTransferRootId (
     transferRootHash: string,
     totalAmount: BigNumber
@@ -308,6 +324,7 @@ export default class Bridge extends ContractBase {
     return this.bridgeContract.getTransferRootId(transferRootHash, totalAmount)
   }
 
+  @rateLimitRetry
   async getTransferRoot (
     transferRootHash: string,
     totalAmount: BigNumber
@@ -346,6 +363,7 @@ export default class Bridge extends ContractBase {
     return chainIds
   }
 
+  @rateLimitRetry
   @queue
   async stake (amount: BigNumber): Promise<providers.TransactionResponse> {
     const bonder = await this.getBonderAddress()
@@ -358,6 +376,7 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
+  @rateLimitRetry
   @queue
   async unstake (amount: BigNumber): Promise<providers.TransactionResponse> {
     const bonder = await this.getBonderAddress()
@@ -369,6 +388,7 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
+  @rateLimitRetry
   @queue
   async bondWithdrawal (
     recipient: string,
@@ -388,6 +408,7 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
+  @rateLimitRetry
   @queue
   async settleBondedWithdrawals (
     bonder: string,
@@ -413,6 +434,7 @@ export default class Bridge extends ContractBase {
     return parseUnits(value.toString(), this.tokenDecimals)
   }
 
+  @rateLimitRetry
   public async eventsBatch (
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
     options: any = {
@@ -427,7 +449,11 @@ export default class Bridge extends ContractBase {
     let cacheKey = ''
     let state
     if (options?.key) {
-      cacheKey = this.getCacheKeyFromKey(this.chainId, this.address, options.key)
+      cacheKey = this.getCacheKeyFromKey(
+        this.chainId,
+        this.address,
+        options.key
+      )
       state = await db.syncState.getByKey(cacheKey)
     }
 
@@ -503,7 +529,11 @@ export default class Bridge extends ContractBase {
     }
   }
 
-  public getCacheKeyFromKey = (chainId: number, address: string, key: string) => {
+  public getCacheKeyFromKey = (
+    chainId: number,
+    address: string,
+    key: string
+  ) => {
     return `${chainId}:${address}:${key}`
   }
 
@@ -512,21 +542,29 @@ export default class Bridge extends ContractBase {
 
     const doesOnlyStartOrEndExist = xor(startBlockNumber, endBlockNumber)
     if (doesOnlyStartOrEndExist) {
-      throw new Error('If either a start or end block number exist, both must exist')
+      throw new Error(
+        'If either a start or end block number exist, both must exist'
+      )
     }
 
     const isStartAndEndBlock = startBlockNumber && endBlockNumber
     if (isStartAndEndBlock) {
       if (startBlockNumber >= endBlockNumber) {
-        throw new Error('Cannot pass in an end block that is before a start block')
+        throw new Error(
+          'Cannot pass in an end block that is before a start block'
+        )
       }
 
       if (startBlockNumber < 0 || endBlockNumber < 0) {
-        throw new Error('Cannot pass in a start or end block that is less than 0')
+        throw new Error(
+          'Cannot pass in a start or end block that is less than 0'
+        )
       }
 
       if (key) {
-        throw new Error('A key cannot exist when a start and end block are explicitly defined')
+        throw new Error(
+          'A key cannot exist when a start and end block are explicitly defined'
+        )
       }
     }
   }

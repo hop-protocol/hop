@@ -59,10 +59,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
           this.l1Bridge.TransferRootConfirmed,
           this.handleTransferRootConfirmedEvent
         )
-        .on(
-          l2Bridge.TransfersCommitted,
-          this.handleTransfersCommittedEvents
-        )
+        .on(l2Bridge.TransfersCommitted, this.handleTransfersCommittedEvents)
         .on('error', err => {
           this.logger.error(`event watcher error: ${err.message}`)
           this.notifier.error(`event watcher error: ${err.message}`)
@@ -98,7 +95,10 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     promises.push(
       this.l1Bridge.eventsBatch(
         async (start: number, end: number) => {
-          const events = await this.l1Bridge.getTransferRootConfirmedEvents(start, end)
+          const events = await this.l1Bridge.getTransferRootConfirmedEvents(
+            start,
+            end
+          )
           await this.handleTransferRootConfirmedEvents(events)
         },
         { key: this.l1Bridge.TransferRootConfirmed }

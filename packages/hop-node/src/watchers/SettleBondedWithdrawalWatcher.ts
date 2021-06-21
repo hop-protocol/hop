@@ -83,7 +83,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
     await this.eventsBatch(
       async (start: number, end: number) => {
-        const events = await this.bridge.getMultipleWithdrawalsSettledEvents(start, end)
+        const events = await this.bridge.getMultipleWithdrawalsSettledEvents(
+          start,
+          end
+        )
         await this.handleMultipleWithdrawalsSettledEvents(events)
       },
       { key: this.bridge.TransferRootSet }
@@ -373,7 +376,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         transferRootId,
         transferRootHash
       })
-     if (!dbTransfer?.transferRootId) {
+      if (!dbTransfer?.transferRootId) {
         logger.debug(
           `updated db transfer id hash ${dbTransferId} to have transfer root id ${transferRootId}`
         )

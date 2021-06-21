@@ -55,7 +55,14 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
       //const tokenAddress = addresses.DAI.polygon.l2CanonicalToken
 
       //const l1RootChainAddress = addresses[token][Chain.Polygon].l1PosRootChainManager
-      const l2TokenAddress = '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1' // dummy erc20
+      // const l2TokenAddress = '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1' // dummy erc20
+      const l2TokenAddress =
+        globalConfig.tokens[this.token][Chain.Polygon]?.l2CanonicalToken
+      if (!l2TokenAddress) {
+        throw new Error(
+          `no token address found for ${this.token} on ${Chain.Polygon}`
+        )
+      }
       const l2Token = new Contract(l2TokenAddress, erc20Abi, this.l2Wallet)
       /*
       const l1RootChain = new Contract(
@@ -148,6 +155,7 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
         globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
     })
 
+    // signature source: https://github.com/maticnetwork/pos-portal/blob/d06271188412a91ab9e4bdea4bbbfeb6cb9d7669/contracts/tunnel/BaseRootTunnel.sol#L21
     const sig =
       '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
     const rootTunnel =

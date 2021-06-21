@@ -1,6 +1,6 @@
 import Token from '../../src/models/Token'
 
-test('token', () => {
+test.skip('token', () => {
   const token = new Token(
     42,
     '0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9',

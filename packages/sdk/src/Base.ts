@@ -6,7 +6,7 @@ import { addresses, chains, metadata, bonders } from './config'
 
 // cache provider
 const getProvider = memoize((network: string, chain: Chain) => {
-  const { rpcUrls } = chains[network][chain.slug]
+  const rpcUrls = chains[network][chain.slug].rpcUrls.slice(0, 3) // max of 3 endpoints
   const ethersProviders: providers.Provider[] = []
   for (let rpcUrl of rpcUrls) {
     const provider = new providers.StaticJsonRpcProvider(rpcUrl)

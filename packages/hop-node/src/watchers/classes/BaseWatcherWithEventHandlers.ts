@@ -36,6 +36,13 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
     try {
       const { transactionHash, blockNumber } = meta
+      if (!transactionHash) {
+        throw new Error('event transaction hash not found')
+      }
+      if (!blockNumber) {
+        throw new Error('event block number not found')
+      }
+      // TODO: re-check transfer id exists on-chain after waiting confirmations
       await this.bridge.waitSafeConfirmations()
       const sentTimestamp = await this.bridge.getBlockTimestamp(blockNumber)
       const l2Bridge = this.bridge as L2Bridge
@@ -55,9 +62,9 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         bonderFee,
         amountOutMin,
         deadline: Number(deadline.toString()),
-        sentTxHash: transactionHash,
-        sentBlockNumber: blockNumber,
-        sentTimestamp: sentTimestamp
+        transferSentTxHash: transactionHash,
+        transferSentBlockNumber: blockNumber,
+        transferSentTimestamp: sentTimestamp
       })
     } catch (err) {
       logger.error(`handleTransferSentEvent error: ${err.message}`)

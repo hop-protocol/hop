@@ -23,9 +23,9 @@ export type Transfer = {
   bonderFee?: BigNumber
   transferNonce?: string
   deadline?: number
-  sentTxHash?: string
-  sentBlockNumber?: number
-  sentTimestamp?: number
+  transferSentTxHash?: string
+  transferSentBlockNumber?: number
+  transferSentTimestamp?: number
 }
 
 class TransfersDb extends BaseDb {
@@ -69,7 +69,7 @@ class TransfersDb extends BaseDb {
       })
     )
 
-    return transfers.sort((a, b) => a?.sentTimestamp - b?.sentTimestamp)
+    return transfers.sort((a, b) => a?.transferSentTimestamp - b?.transferSentTimestamp)
   }
 
   async getUnsettledBondedWithdrawalTransfers (): Promise<Transfer[]> {
@@ -89,9 +89,8 @@ class TransfersDb extends BaseDb {
       return (
         item.transferId &&
         item.withdrawalBonded &&
-        item.sentBondWithdrawalTx &&
         !item.transferRootId &&
-        item.sentTxHash
+        item.transferSentTxHash
       )
     })
   }
@@ -102,9 +101,8 @@ class TransfersDb extends BaseDb {
       return (
         item.transferId &&
         !item.withdrawalBonded &&
-        !item.sentBondWithdrawalTx &&
         !item.transferRootId &&
-        item.sentTxHash
+        item.transferSentTxHash
       )
     })
   }

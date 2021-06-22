@@ -215,7 +215,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       bonderFee,
       transferNonce,
       deadline,
-      sentTxHash: transactionHash
+      transferSentTxHash: transactionHash
     } = dbTransfer
     const destL2Bridge = this.getSiblingWatcherByChainId(chainId)
       .bridge as L2Bridge
@@ -317,6 +317,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     })
 
     const tx = await this.sendBondWithdrawalTx({
+      transferId,
       sender,
       recipient,
       amount,
@@ -380,6 +381,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
   sendBondWithdrawalTx = async (params: any) => {
     const {
+      transferId,
       chainId,
       recipient,
       amount,
@@ -389,13 +391,14 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       amountOutMin,
       deadline
     } = params
+    const logger = this.logger.create({ id: transferId })
 
-    this.logger.debug(`amount:`, this.bridge.formatUnits(amount))
-    this.logger.debug(`recipient:`, recipient)
-    this.logger.debug(`transferNonce:`, transferNonce)
-    this.logger.debug(`bonderFee:`, this.bridge.formatUnits(bonderFee))
+    logger.debug(`amount:`, this.bridge.formatUnits(amount))
+    logger.debug(`recipient:`, recipient)
+    logger.debug(`transferNonce:`, transferNonce)
+    logger.debug(`bonderFee:`, this.bridge.formatUnits(bonderFee))
     if (attemptSwap) {
-      this.logger.debug(`bondWithdrawalAndAttemptSwap chainId: ${chainId}`)
+      logger.debug(`bondWithdrawalAndAttemptSwap chainId: ${chainId}`)
       const l2Bridge = this.getSiblingWatcherByChainId(chainId)
         .bridge as L2Bridge
       const hasPositiveBalance = await l2Bridge.hasPositiveBalance()
@@ -421,7 +424,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         deadline
       )
     } else {
-      this.logger.debug(`bondWithdrawal chain: ${chainId}`)
+      logger.debug(`bondWithdrawal chain: ${chainId}`)
       const bridge = this.getSiblingWatcherByChainId(chainId).bridge
       const hasPositiveBalance = await bridge.hasPositiveBalance()
       if (!hasPositiveBalance) {

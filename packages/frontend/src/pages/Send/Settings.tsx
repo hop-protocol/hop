@@ -5,12 +5,16 @@ import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
 import Popover from '@material-ui/core/Popover'
 import SettingsIcon from '@material-ui/icons/Settings'
+import { useApp } from 'src/contexts/AppContext'
 import SmallTextField from 'src/components/SmallTextField'
 import InfoTooltip from 'src/components/infoTooltip'
 import Alert from 'src/components/alert/Alert'
 import { normalizeNumberInput } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
+  root: {
+    padding: `0 ${theme.padding.extraLight}`
+  },
   header: {
     fontSize: '1.7rem',
     fontWeight: 'bold'
@@ -47,21 +51,16 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-type Props = {
-  onSlippageTolerance: (slippageTolerance: number) => void
-  onTransactionDeadline: (deadline: number) => void
-}
-
-const Settings: FC<Props> = (props: Props) => {
-  const { onSlippageTolerance, onTransactionDeadline } = props
+const Settings: FC = () => {
   const styles = useStyles()
   const [open, setOpen] = useState<boolean>(false)
-  const [slippageTolerance, setSlippageTolerance] = useState<string>(() => {
-    return localStorage.getItem('slippageTolerance') || '0.5'
-  })
-  const [deadlineMinutes, setDeadlineMinutes] = useState<string>(() => {
-    return localStorage.getItem('transactionDeadline') || '20'
-  })
+  const { settings } = useApp()
+  const {
+    slippageTolerance,
+    setSlippageTolerance,
+    deadlineMinutes,
+    setDeadlineMinutes
+  } = settings
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
   const handleClick = (event: any) => {
     setOpen(true)
@@ -101,20 +100,10 @@ const Settings: FC<Props> = (props: Props) => {
     setSlippageTolerance(value)
   }
 
-  useEffect(() => {
-    onSlippageTolerance(Number(slippageTolerance))
-    localStorage.setItem('slippageTolerance', slippageTolerance)
-  }, [slippageTolerance])
-
-  useEffect(() => {
-    onTransactionDeadline(Number(deadlineMinutes))
-    localStorage.setItem('transactionDeadline', deadlineMinutes)
-  }, [deadlineMinutes])
-
   const deadlineError = Number(deadlineMinutes) < 5
 
   return (
-    <div>
+    <div className={styles.root}>
       <IconButton onClick={handleClick} color="secondary">
         <SettingsIcon className={styles.settingsIcon} />
       </IconButton>
@@ -144,20 +133,20 @@ const Settings: FC<Props> = (props: Props) => {
             </Typography>
             <Box display="flex" alignItems="center" className={styles.slippageTolerance}>
               <IconButton
-                color={slippageTolerance === '0.1' ? 'primary' : 'secondary'}
-                onClick={() => setSlippageTolerance('0.1')}
+                color={slippageTolerance === 0.1 ? 'primary' : 'secondary'}
+                onClick={() => setSlippageTolerance(0.1)}
               >
                 0.1%
               </IconButton>
               <IconButton
-                color={slippageTolerance === '0.5' ? 'primary' : 'secondary'}
-                onClick={() => setSlippageTolerance('0.5')}
+                color={slippageTolerance === 0.5 ? 'primary' : 'secondary'}
+                onClick={() => setSlippageTolerance(0.5)}
               >
                 0.5%
               </IconButton>
               <IconButton
-                color={slippageTolerance === '1' ? 'primary' : 'secondary'}
-                onClick={() => setSlippageTolerance('1')}
+                color={slippageTolerance === 1 ? 'primary' : 'secondary'}
+                onClick={() => setSlippageTolerance(1)}
               >
                 1%
               </IconButton>
@@ -166,7 +155,7 @@ const Settings: FC<Props> = (props: Props) => {
                 value={slippageTolerance}
                 units="%"
                 onChange={handleSlippageToleranceChange}
-                placeholder={slippageTolerance || '1.00'}
+                placeholder={slippageTolerance?.toString() || '1.00'}
               />
             </Box>
           </Box>

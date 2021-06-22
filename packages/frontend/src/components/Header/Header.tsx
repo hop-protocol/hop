@@ -8,6 +8,7 @@ import HeaderRoutes from 'src/components/Header/HeaderRoutes'
 import TxPill from 'src/components/Header/TxPill'
 import HopLogoFullColor from 'src/assets/logos/hop-logo-full-color.svg'
 import { isMainnet } from 'src/config'
+import Settings from 'src/pages/Send/Settings'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -64,6 +65,7 @@ const Header: FC = () => {
         flex={1}
         justifyContent="flex-end"
       >
+        <Settings />
         {address ? (
           <TxPill />
         ) : (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 export type Settings = {
   slippageTolerance: number,
@@ -8,8 +8,23 @@ export type Settings = {
 }
 
 const useSettings = () => {
-  const [slippageTolerance, setSlippageTolerance] = useState<number>(0.5)
-  const [deadlineMinutes, setDeadlineMinutes] = useState<number>(20)
+  const storedSlippageTolerance = localStorage.getItem('slippageTolerance')
+  const storedDeadlineMinutes = localStorage.getItem('transactionDeadline')
+
+  const [slippageTolerance, setSlippageTolerance] = useState<number>(
+    storedSlippageTolerance ? Number(storedSlippageTolerance) : 0.5
+  )
+  const [deadlineMinutes, setDeadlineMinutes] = useState<number>(
+    storedDeadlineMinutes ? Number(storedDeadlineMinutes) : 20
+  )
+
+  useEffect(() => {
+    localStorage.setItem('slippageTolerance', slippageTolerance.toString())
+  }, [slippageTolerance])
+
+  useEffect(() => {
+    localStorage.setItem('transactionDeadline', deadlineMinutes.toString())
+  }, [deadlineMinutes])
 
   return {
     slippageTolerance,

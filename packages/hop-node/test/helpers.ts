@@ -9,7 +9,7 @@ import * as hopMetadata from '@hop-protocol/metadata'
 import {
   l1BridgeAbi,
   l2BridgeAbi,
-  erc20Abi,
+  erc20MintableAbi as erc20Abi,
   l2AmmWrapperAbi,
   swapAbi as saddleSwapAbi,
   arbitrumGlobalInboxAbi,
@@ -595,6 +595,12 @@ export class User {
         l1xDaiForeignOmniBridgeAbi,
         wallet
       )
+    } else if (destNetwork === Chain.Polygon) {
+      return new Contract(
+        config.tokens[token][destNetwork].l1PosRootChainManager,
+        l1PolygonPosRootChainManagerAbi,
+        wallet
+      )
     } else {
       throw new Error('not implemented')
     }
@@ -634,6 +640,18 @@ export class User {
         config.tokens[token][Chain.Ethereum].l1CanonicalToken,
         recipient,
         value,
+        this.txOverrides(destNetwork)
+      )
+    } else if (destNetwork === Chain.Polygon) {
+      const approveAddress = config.tokens[token][destNetwork].l1PosRootChainManager
+      const tx = await this.approve(destNetwork, token, approveAddress)
+      await tx?.wait()
+      const coder = ethers.utils.defaultAbiCoder
+      const payload = coder.encode(['uint256'], [value])
+      return tokenBridge.depositFor(
+        recipient,
+        config.tokens[token][Chain.Ethereum].l1CanonicalToken,
+        payload,
         this.txOverrides(destNetwork)
       )
     } else {

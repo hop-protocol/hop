@@ -10,10 +10,16 @@ Install dependencies:
 npm install
 ```
 
-Start app:
+Start app (uses `kovan` network by default):
 
 ```bash
 npm run dev
+```
+
+Start app using a different network (e.g. `mainnet`, `goerli`, `kovan`)
+
+```bash
+REACT_APP_NETWORK=mainnet npm run dev
 ```
 
 Visit [https://localhost:3000/](https://localhost:3000/)

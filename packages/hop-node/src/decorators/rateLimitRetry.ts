@@ -46,7 +46,7 @@ async function runner (fn: any): Promise<any> {
       }
 
       // exponential backoff wait
-      await wait((1 >> retries) * 1000)
+      await wait((1 << retries) * 1000)
     }
   }
 }

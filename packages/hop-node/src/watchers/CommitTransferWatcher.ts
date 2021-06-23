@@ -55,6 +55,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     } catch (err) {
       this.logger.error('watcher error:', err)
       this.notifier.error(`watcher error: ${err.message}`)
+      this.quit()
     }
   }
 

@@ -59,6 +59,7 @@ export const executeExitTx = async (event: any, token: string) => {
     sigs.push(vrs)
   }
   const packedSigs = packSignatures(sigs)
+  // TODO: check if enough funds for gas
   const tx = await l1Amb.executeSignatures(message, packedSigs)
   return {
     tx,
@@ -125,6 +126,7 @@ class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
       }
     } catch (err) {
       this.logger.error('watcher error:', err)
+      this.quit()
     }
   }
 

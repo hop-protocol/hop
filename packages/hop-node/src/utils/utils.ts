@@ -19,7 +19,7 @@ export const wait = async (t: number) => {
 }
 
 export const getRpcUrls = (network: string): string | undefined => {
-  return config.networks[network]?.rpcUrls
+  return config.networks[network]?.rpcUrls.slice(0, 3) // max of 3 endpoints
 }
 
 export const getRpcProvider = (network: string): ethers.providers.Provider => {

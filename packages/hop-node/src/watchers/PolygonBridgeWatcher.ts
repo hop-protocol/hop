@@ -124,6 +124,7 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
       }
     } catch (err) {
       this.logger.error('watcher error:', err.message)
+      this.quit()
     }
   }
 

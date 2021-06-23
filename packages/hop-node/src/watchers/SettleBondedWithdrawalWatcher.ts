@@ -56,6 +56,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     } catch (err) {
       this.logger.error(`watcher error:`, err.message)
       this.notifier.error(`watcher error: ${err.message}`)
+      this.quit()
     }
   }
 
@@ -474,8 +475,15 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         return
       }
 
-      if (!dbTransferRoot?.transferIds.length) {
-        //logger.warn(`db transfer root hash ${dbTransferRoot.transferRootHash} doesn't contain any transfer ids`)
+      if (!dbTransferRoot?.transferIds) {
+        this.logger.error(`dbTransferRoot.transferIds must be a list`)
+        return
+      }
+
+      if (!dbTransferRoot?.transferIds?.length) {
+        logger.warn(
+          `db transfer root hash ${dbTransferRoot.transferRootHash} doesn't contain any transfer ids`
+        )
         return
       }
 
@@ -491,7 +499,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       if (transferRootHash !== dbTransferRoot.transferRootHash) {
         logger.debug('transferIds:\n', transferIds)
         logger.error(
-          `pending transfers computed transfer root hash doesn't match. Expected ${dbTransferRoot.transferRootHash}`
+          `transfers computed transfer root hash doesn't match. Expected ${dbTransferRoot.transferRootHash}`
         )
         await db.transferRoots.update(dbTransferRoot.transferRootHash, {
           transferIds: []

@@ -45,6 +45,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     } catch (err) {
       this.logger.error(`watcher error:`, err.message)
       this.notifier.error(`watcher error: '${err.message}`)
+      this.quit()
     }
   }
 

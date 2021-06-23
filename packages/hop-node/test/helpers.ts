@@ -643,7 +643,8 @@ export class User {
         this.txOverrides(destNetwork)
       )
     } else if (destNetwork === Chain.Polygon) {
-      const approveAddress = config.tokens[token][destNetwork].l1PosRootChainManager
+      const approveAddress =
+        config.tokens[token][destNetwork].l1PosRootChainManager
       const tx = await this.approve(destNetwork, token, approveAddress)
       await tx?.wait()
       const coder = ethers.utils.defaultAbiCoder

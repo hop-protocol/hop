@@ -63,6 +63,7 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
     } catch (err) {
       this.logger.error(`stake watcher error:`, err.message)
       this.notifier.error(`watcher error: ${err.message}`)
+      this.quit()
     }
   }
 

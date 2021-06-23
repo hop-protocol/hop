@@ -103,8 +103,9 @@ class HealthCheck {
   }
 
   async checkBondedWithdrawals (bridge: L2Bridge) {
+    const TOTAL_BLOCKS = 100_000
     const endBlockNumber = await bridge.getBlockNumber()
-    const startBlockNumber = endBlockNumber - 10_000
+    const startBlockNumber = endBlockNumber - TOTAL_BLOCKS
 
     const destBridgeEvents: any = {}
 
@@ -166,8 +167,9 @@ class HealthCheck {
           if (bondedAmount.eq(0)) {
             const cachedEvents = destBridgeEvents[destinationChainId]
             if (!cachedEvents) {
+              const TOTAL_BLOCKS = 100_000
               const destEndBlockNumber = await destBridge.getBlockNumber()
-              const destStartBlockNumber = destEndBlockNumber - 100_000
+              const destStartBlockNumber = destEndBlockNumber - TOTAL_BLOCKS
               destBridgeEvents[destinationChainId] = []
               await bridge.eventsBatch(
                 async (_start: number, _end: number) => {
@@ -294,13 +296,14 @@ class HealthCheck {
   }
 
   async checkBondedWithdrawalSettlements (bridge: L2Bridge) {
+    const TOTAL_BLOCKS = 100_000
     const sourceChain = await bridge.getChainSlug()
     const tokenSymbol = bridge.tokenSymbol
     const path = `${sourceChain}.${tokenSymbol}`
     //this.logger.debug(`checking bonded withdrawal settlements ${path}`)
 
     const endBlockNumber = await bridge.getBlockNumber()
-    const startBlockNumber = endBlockNumber - 10_000
+    const startBlockNumber = endBlockNumber - TOTAL_BLOCKS
 
     const bondedTransferIds: any[] = []
 
@@ -451,6 +454,7 @@ class HealthCheck {
 
       const bonderDestBridgeStakedAmount = credit.sub(debit)
       if (
+        bonderDestBridgeStakedAmount.gt(0) &&
         totalBondsSettleAmount
           .div(bonderDestBridgeStakedAmount)
           .gte(BigNumber.from(minThresholdPercent * 100).div(100))
@@ -458,6 +462,8 @@ class HealthCheck {
         needsSettlement[destinationChainId] = true
       }
     }
+
+    console.log(bondedTransferIds)
 
     const unsettledTransferIds: any[] = bondedTransferIds.filter(
       ({ transferId }) => {

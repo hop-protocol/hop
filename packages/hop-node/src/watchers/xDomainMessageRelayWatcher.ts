@@ -48,6 +48,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     } catch (err) {
       this.logger.error(`watcher error:`, err.message)
       this.notifier.error(`watcher error: ${err.message}`)
+      this.quit()
     }
   }
 
@@ -390,7 +391,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       xdai: 1 * 10 * 1000
     }
 
-    if (!chainSlug || !dbTransferRoot?.checkpointAttemptedAt) {
+    if (!chainSlug || dbTransferRoot?.checkpointAttemptedAt) {
       return false
     }
 

@@ -69,7 +69,9 @@ class TransfersDb extends BaseDb {
       })
     )
 
-    return transfers.sort((a, b) => a?.transferSentTimestamp - b?.transferSentTimestamp)
+    return transfers.sort(
+      (a, b) => a?.transferSentTimestamp - b?.transferSentTimestamp
+    )
   }
 
   async getUnsettledBondedWithdrawalTransfers (): Promise<Transfer[]> {

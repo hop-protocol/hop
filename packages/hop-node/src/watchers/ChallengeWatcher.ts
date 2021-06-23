@@ -33,6 +33,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
     } catch (err) {
       this.logger.error('watcher error:', err.message)
+      this.quit()
     }
   }
 

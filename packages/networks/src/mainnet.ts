@@ -32,8 +32,8 @@ export const networks: Networks = {
     networkId: 100,
     rpcUrls: [
       'https://rpc.xdaichain.com',
-      'https://dai.poa.network',
-      'https://xdai.poanetwork.dev',
+      // 'https://dai.poa.network',
+      // 'https://xdai.poanetwork.dev',
       'https://xdai-archive.blockscout.com',
       'https://xdai.1hive.org'
       // wss://rpc.xdaichain.com/wss

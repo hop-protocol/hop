@@ -108,6 +108,13 @@ class TransfersDb extends BaseDb {
       )
     })
   }
+
+  async getBondedTransfersWithoutRoots (): Promise<Transfer[]> {
+    const transfers = await this.getTransfers()
+    return transfers.filter(item => {
+      return item.withdrawalBonded && !item.transferRootHash
+    })
+  }
 }
 
 export default TransfersDb

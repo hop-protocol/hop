@@ -63,50 +63,72 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
 
+    const promises: Promise<any>[] = []
+
     if (!this.isL1) {
       const l2Bridge = this.bridge as L2Bridge
-      await this.eventsBatch(
-        async (start: number, end: number) => {
-          const events = await l2Bridge.getTransferSentEvents(start, end)
-          await this.handleTransferSentEvents(events)
-        },
-        { key: l2Bridge.TransferSent }
+      promises.push(
+        this.eventsBatch(
+          async (start: number, end: number) => {
+            const events = await l2Bridge.getTransferSentEvents(start, end)
+            await this.handleTransferSentEvents(events)
+          },
+          { key: l2Bridge.TransferSent }
+        )
       )
 
-      await this.eventsBatch(
-        async (start: number, end: number) => {
-          const events = await l2Bridge.getTransfersCommittedEvents(start, end)
-          await this.handleTransfersCommittedEvents(events)
-        },
-        { key: l2Bridge.TransfersCommitted }
+      promises.push(
+        this.eventsBatch(
+          async (start: number, end: number) => {
+            const events = await l2Bridge.getTransfersCommittedEvents(
+              start,
+              end
+            )
+            await this.handleTransfersCommittedEvents(events)
+          },
+          { key: l2Bridge.TransfersCommitted }
+        )
       )
     }
 
-    await this.eventsBatch(
-      async (start: number, end: number) => {
-        const events = await this.bridge.getMultipleWithdrawalsSettledEvents(
-          start,
-          end
-        )
-        await this.handleMultipleWithdrawalsSettledEvents(events)
-      },
-      { key: this.bridge.TransferRootSet }
+    promises.push(
+      this.eventsBatch(
+        async (start: number, end: number) => {
+          const events = await this.bridge.getMultipleWithdrawalsSettledEvents(
+            start,
+            end
+          )
+          await this.handleMultipleWithdrawalsSettledEvents(events)
+        },
+        { key: this.bridge.MultipleWithdrawalsSettled }
+      )
     )
 
-    await this.eventsBatch(
-      async (start: number, end: number) => {
-        const events = await this.bridge.getTransferRootSetEvents(start, end)
-        await this.handleTransferRootSetEvents(events)
-      },
-      { key: this.bridge.TransferRootSet }
+    promises.push(
+      this.eventsBatch(
+        async (start: number, end: number) => {
+          const events = await this.bridge.getTransferRootSetEvents(start, end)
+          await this.handleTransferRootSetEvents(events)
+        },
+        { key: this.bridge.TransferRootSet }
+      )
     )
 
+    await Promise.all(promises)
     this.logger.debug('done syncing')
 
     // re-sync every 6 hours
     const sixHours = this.syncTimeSec
     await wait(sixHours)
     return this.syncUp()
+  }
+
+  async syncTransferRootHashForTransferIds () {
+    const dbTransfers = await db.transfers.getBondedTransfersWithoutRoots()
+    for (let dbTransfer of dbTransfers) {
+      const { transferId } = dbTransfer
+      // TODO: fetch transfer root hash for transfer id
+    }
   }
 
   async watch () {
@@ -125,14 +147,22 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
   async pollCheck () {
     while (true) {
+      if (!this.started) {
+        return
+      }
       try {
-        if (!this.started) {
-          return
-        }
         await this.checkUnsettledTransfers()
       } catch (err) {
-        this.logger.error(`error checking: ${err.message}`)
-        this.notifier.error(`error checking: ${err.message}`)
+        this.logger.error(`poll error checkUnsettledTransfers: ${err.message}`)
+        this.notifier.error(
+          `poll error checkUnsettledTransfers: ${err.message}`
+        )
+      }
+      try {
+        await this.syncTransferRootHashForTransferIds()
+      } catch (err) {
+        this.logger.error(`poll error: ${err.message}`)
+        this.notifier.error(`poll error: ${err.message}`)
       }
       await wait(this.pollTimeSec)
     }
@@ -223,7 +253,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       dbTransferRoot.sourceChainId || (await this.bridge.getChainId())
     const destinationChainId = dbTransferRoot.chainId
 
-    logger.debug(`received TransferRootSet event from L1:`)
+    logger.debug(`handling TransferRootSet event from L1:`)
     logger.debug(`transferRootHash from event: ${transferRootHash}`)
     logger.debug(`transferRootId: ${transferRootId}`)
     logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
@@ -234,147 +264,31 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       transferRootHash,
       sourceChainId
     })
+
     if (!dbTransferRoot.transferIds?.length) {
-      logger.debug(
-        `looking for transfer ids for transferRootHash ${transferRootHash}`
-      )
-      if (!this.hasSiblingWatcher(sourceChainId)) {
-        logger.error(`no sibling watcher found for ${sourceChainId}`)
-        return
-      }
-      const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId)
-        .bridge as L2Bridge
-
-      let startSearchBlockNumber: number
-      let startEvent: any
-      let endEvent: any
-      await sourceBridge.eventsBatch(async (start: number, end: number) => {
-        startSearchBlockNumber = start
-        let events = await sourceBridge.getTransfersCommittedEvents(start, end)
-
-        if (!events?.length) {
-          return true
-        }
-
-        // events need to be sorted from [newest...oldest] in order to pick up the endEvent first
-        events = events.reverse()
-        for (let event of events) {
-          let eventTransferRoot = await db.transferRoots.getByTransferRootHash(
-            event.args.rootHash
-          )
-
-          if (event.args.rootHash === transferRootHash) {
-            endEvent = event
-            continue
-          }
-
-          const isSameChainId = eventTransferRoot.chainId === destinationChainId
-          if (endEvent && isSameChainId) {
-            startEvent = event
-            return false
-          }
-        }
-
-        return true
-      })
-
-      if (!endEvent) {
-        return
-      }
-
-      let startBlockNumber
-      let endBlockNumber = endEvent.blockNumber
-      if (startEvent) {
-        startBlockNumber = startEvent.blockNumber
-      } else {
-        // There will not be a startEvent if this was the first CommitTransfers event for
-        // this token since the deployment of the bridge contract
-        const sourceBridgeAddress = sourceBridge.getAddress()
-        const codeAtAddress = await sourceBridge.getCode(
-          sourceBridgeAddress,
-          startSearchBlockNumber
-        )
-        if (codeAtAddress === '0x') {
-          startBlockNumber = startSearchBlockNumber
-        }
-
-        // There is an unhandled case where there are too many blocks between two
-        // TransfersCommitted events and startBlockNumber is never defined. This should
-        // never happen in production.
-        if (!startBlockNumber) {
-          logger.error('Too many blocks between two TransfersCommitted events')
-          return
-        }
-      }
-
-      let transferIds: string[] = []
-      await sourceBridge.eventsBatch(
-        async (start: number, end: number) => {
-          let transferEvents = await sourceBridge.getTransferSentEvents(
-            start,
-            end
-          )
-
-          // transferEvents need to be sorted from [newest...oldest] in order to maintain the ordering
-          transferEvents = transferEvents.reverse()
-          for (let event of transferEvents) {
-            const transaction = await sourceBridge.getTransaction(
-              event.transactionHash
-            )
-            const { chainId } = await sourceBridge.decodeSendData(
-              transaction.data
-            )
-            if (chainId !== destinationChainId) {
-              continue
-            }
-
-            // When TransferSent and TransfersCommitted events exist in the same block, they
-            // need to be scoped to the correct transferRoot
-            if (startEvent && event.blockNumber === startEvent.blockNumber) {
-              if (event.transactionIndex < startEvent.transactionIndex) {
-                continue
-              }
-            }
-
-            if (event.blockNumber === endEvent.blockNumber) {
-              if (event.transactionIndex > endEvent.transactionIndex) {
-                break
-              }
-            }
-
-            transferIds.unshift(event.args.transferId)
-          }
-        },
-        { startBlockNumber, endBlockNumber }
-      )
-
-      logger.debug(
-        `found transfer ids for transfer root hash ${transferRootHash}\n`,
-        transferIds
-      )
-      const tree = new MerkleTree(transferIds)
-      const computedTransferRootHash = tree.getHexRoot()
-      if (computedTransferRootHash !== transferRootHash) {
-        logger.error(
-          `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}`
-        )
-        return
-      }
-      await db.transferRoots.update(transferRootHash, {
-        transferIds
-      })
+      await this.findTransferIdsForTransferRootHash(transferRootHash)
     }
 
     dbTransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
     if (!dbTransferRoot) {
+      logger.warn(
+        `db transfer root not found for root hash ${transferRootHash}`
+      )
       return
     }
     if (!dbTransferRoot.transferIds?.length) {
       logger.warn(`no db transfers found for transfer root ${transferRootHash}`)
       return
     }
+
+    await this.updateTransferRootHashForTransferIds(dbTransferRoot)
+  }
+
+  async updateTransferRootHashForTransferIds (dbTransferRoot: TransferRoot) {
+    const { transferRootHash, transferRootId } = dbTransferRoot
+    const logger = this.logger.create({ root: transferRootHash })
     for (let dbTransferId of dbTransferRoot.transferIds) {
       const dbTransfer = await db.transfers.getByTransferId(dbTransferId)
       if (!dbTransfer) {
@@ -390,6 +304,145 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         )
       }
     }
+  }
+
+  async findTransferIdsForTransferRootHash (transferRootHash: string) {
+    const logger = this.logger.create({ root: transferRootHash })
+    const {
+      sourceChainId,
+      chainId: destinationChainId
+    } = await db.transferRoots.getByTransferRootHash(transferRootHash)
+    logger.debug(
+      `looking for transfer ids for transferRootHash ${transferRootHash}`
+    )
+    if (!this.hasSiblingWatcher(sourceChainId)) {
+      logger.error(`no sibling watcher found for ${sourceChainId}`)
+      return
+    }
+    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId)
+      .bridge as L2Bridge
+
+    let startSearchBlockNumber: number
+    let startEvent: any
+    let endEvent: any
+    await sourceBridge.eventsBatch(async (start: number, end: number) => {
+      startSearchBlockNumber = start
+      let events = await sourceBridge.getTransfersCommittedEvents(start, end)
+
+      if (!events?.length) {
+        return true
+      }
+
+      // events need to be sorted from [newest...oldest] in order to pick up the endEvent first
+      events = events.reverse()
+      for (let event of events) {
+        let eventTransferRoot = await db.transferRoots.getByTransferRootHash(
+          event.args.rootHash
+        )
+
+        if (event.args.rootHash === transferRootHash) {
+          endEvent = event
+          continue
+        }
+
+        const isSameChainId = eventTransferRoot.chainId === destinationChainId
+        if (endEvent && isSameChainId) {
+          startEvent = event
+          return false
+        }
+      }
+
+      return true
+    })
+
+    if (!endEvent) {
+      return
+    }
+
+    let startBlockNumber
+    let endBlockNumber = endEvent.blockNumber
+    if (startEvent) {
+      startBlockNumber = startEvent.blockNumber
+    } else {
+      // There will not be a startEvent if this was the first CommitTransfers event for
+      // this token since the deployment of the bridge contract
+      const sourceBridgeAddress = sourceBridge.getAddress()
+      const codeAtAddress = await sourceBridge.getCode(
+        sourceBridgeAddress,
+        startSearchBlockNumber
+      )
+      if (codeAtAddress === '0x') {
+        startBlockNumber = startSearchBlockNumber
+      }
+
+      // There is an unhandled case where there are too many blocks between two
+      // TransfersCommitted events and startBlockNumber is never defined. This should
+      // never happen in production.
+      if (!startBlockNumber) {
+        logger.error('Too many blocks between two TransfersCommitted events')
+        return
+      }
+    }
+
+    let transferIds: string[] = []
+    await sourceBridge.eventsBatch(
+      async (start: number, end: number) => {
+        let transferEvents = await sourceBridge.getTransferSentEvents(
+          start,
+          end
+        )
+
+        // transferEvents need to be sorted from [newest...oldest] in order to maintain the ordering
+        transferEvents = transferEvents.reverse()
+        for (let event of transferEvents) {
+          const transaction = await sourceBridge.getTransaction(
+            event.transactionHash
+          )
+          const { chainId } = await sourceBridge.decodeSendData(
+            transaction.data
+          )
+          if (chainId !== destinationChainId) {
+            continue
+          }
+
+          // When TransferSent and TransfersCommitted events exist in the same block, they
+          // need to be scoped to the correct transferRoot
+          if (startEvent && event.blockNumber === startEvent.blockNumber) {
+            if (event.transactionIndex < startEvent.transactionIndex) {
+              continue
+            }
+          }
+
+          if (event.blockNumber === endEvent.blockNumber) {
+            if (event.transactionIndex > endEvent.transactionIndex) {
+              break
+            }
+          }
+
+          transferIds.unshift(event.args.transferId)
+        }
+      },
+      { startBlockNumber, endBlockNumber }
+    )
+
+    logger.debug(
+      `found transfer ids for transfer root hash ${transferRootHash}\n`,
+      transferIds
+    )
+    const tree = new MerkleTree(transferIds)
+    const computedTransferRootHash = tree.getHexRoot()
+    if (computedTransferRootHash !== transferRootHash) {
+      logger.error(
+        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}`
+      )
+      return
+    }
+
+    await db.transferRoots.update(transferRootHash, {
+      transferIds
+    })
+
+    return transferIds
   }
 
   handleMultipleWithdrawalsSettledEvent = async (

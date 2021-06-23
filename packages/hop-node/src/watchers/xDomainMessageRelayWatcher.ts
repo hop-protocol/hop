@@ -195,6 +195,18 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       return
     }
 
+    const { transferRootId } = dbTransferRoot
+    const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
+      transferRootId
+    )
+    // TODO: run poller only after event syncing has finished
+    if (isTransferRootIdConfirmed) {
+      await db.transferRoots.update(transferRootHash, {
+        confirmed: true
+      })
+      return
+    }
+
     let { commitTxHash } = dbTransferRoot
     if (!commitTxHash || commitTxHash) {
       commitTxHash = await l2Bridge.getTransferRootCommittedTxHash(

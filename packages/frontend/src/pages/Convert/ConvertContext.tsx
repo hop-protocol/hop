@@ -92,7 +92,8 @@ const ConvertContext = createContext<ConvertContextProps>({
 const ConvertContextProvider: FC = ({ children }) => {
   const { provider, checkConnectedNetworkId } = useWeb3Context()
   const app = useApp()
-  const { networks, selectedBridge, txConfirm, sdk, l1Network } = app
+  const { networks, selectedBridge, txConfirm, sdk, l1Network, settings } = app
+  const { slippageTolerance, deadline } = settings
   const { pathname } = useLocation()
 
   const convertOptions = useMemo(() => {
@@ -131,6 +132,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   }, [isForwardDirection, selectedNetwork, l1Network, convertOption])
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
+  const [amountOutMin, setAmountOutMin] = useState<BigNumber>()
   const [sending, setSending] = useState<boolean>(false)
 
   const [sourceToken, setSourceToken] = useState<Token>()
@@ -201,6 +203,16 @@ const ConvertContextProvider: FC = ({ children }) => {
         formattedAmount = commafy(formattedAmount, 5)
       }
       setDestTokenAmount(formattedAmount)
+
+      if (amountOut) {
+        // amountOutMin only used for AMM option
+        const slippageToleranceBps = slippageTolerance * 100
+        const minBps = Math.ceil(10000 - slippageToleranceBps)
+        const amountOutMin = amountOut.mul(minBps).div(10000)
+        setAmountOutMin(amountOutMin)
+      } else {
+        setAmountOutMin(undefined)
+      }
 
       setDetails(details)
       setWarning(warning)
@@ -299,16 +311,13 @@ const ConvertContextProvider: FC = ({ children }) => {
         onConfirm: async () => {
           await approveTokens()
 
-          if (!selectedBridge) {
-            throw new Error('Bridge is required to convert')
-          }
-
-          if (!signer) {
-            throw new Error('Signer is required to convert')
-          }
-
-          if (!sourceToken) {
-            throw new Error('Token is required to convert')
+          if (
+            !selectedBridge ||
+            !signer ||
+            !sourceToken ||
+            !amountOutMin
+          ) {
+            throw new Error('Missing convert param')
           }
 
           convertOption.convert(
@@ -318,7 +327,9 @@ const ConvertContextProvider: FC = ({ children }) => {
             destNetwork,
             isForwardDirection,
             selectedBridge.getTokenSymbol(),
-            value
+            value,
+            amountOutMin,
+            deadline
           )
         }
       })

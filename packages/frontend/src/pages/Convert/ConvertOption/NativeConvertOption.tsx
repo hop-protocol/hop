@@ -95,7 +95,9 @@ class NativeConvertOption extends ConvertOption {
     destNetwork: Network,
     isForwardDirection: boolean,
     l1TokenSymbol: string,
-    value: BigNumberish
+    amountIn: BigNumberish,
+    amountOutMin: BigNumberish,
+    deadline: number
   ) {
     let l2Network: Network
     if (!sourceNetwork.isLayer1) {
@@ -109,9 +111,9 @@ class NativeConvertOption extends ConvertOption {
       .connect(signer as Signer)
 
     if (sourceNetwork.isLayer1 && isForwardDirection) {
-      return bridge.connect(signer as Signer).deposit(value)
+      return bridge.connect(signer as Signer).deposit(amountIn)
     } else if (destNetwork.isLayer1 && !isForwardDirection) {
-      return bridge.connect(signer as Signer).withdraw(value)
+      return bridge.connect(signer as Signer).withdraw(amountIn)
     } else {
       throw new Error('Invalid isForwardDirection and network configuration')
     }

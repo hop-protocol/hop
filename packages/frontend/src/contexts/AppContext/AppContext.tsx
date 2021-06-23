@@ -11,11 +11,16 @@ import useBridges from 'src/contexts/AppContext/useBridges'
 import useTxHistory, { TxHistory } from 'src/contexts/AppContext/useTxHistory'
 import useContracts, { Contracts } from 'src/contexts/AppContext/useContracts'
 import useEvents, { Events } from 'src/contexts/AppContext/useEvents'
+import useSettings, { Settings } from 'src/contexts/AppContext/useSettings'
 import { useAccountDetails, AccountDetails } from 'src/contexts/AppContext/useAccountDetails'
 import { useTxConfirm, TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
 import { network } from 'src/config'
 
 type AppContextProps = {
+  sdk: Hop
+  bridges: HopBridge[],
+  selectedBridge: HopBridge | undefined
+  setSelectedBridge: (bridge: HopBridge) => void
   user: User | undefined
   networks: Network[]
   l1Network: Network | undefined
@@ -25,10 +30,7 @@ type AppContextProps = {
   accountDetails: AccountDetails | undefined
   txHistory: TxHistory | undefined
   txConfirm: TxConfirm | undefined
-  sdk: Hop
-  bridges: HopBridge[],
-  selectedBridge: HopBridge | undefined
-  setSelectedBridge: (bridge: HopBridge) => void
+  settings: Settings
 }
 
 const AppContext = createContext<AppContextProps>({
@@ -44,7 +46,8 @@ const AppContext = createContext<AppContextProps>({
   sdk: {} as Hop,
   bridges: [],
   selectedBridge: undefined,
-  setSelectedBridge: (bridge: HopBridge) => {}
+  setSelectedBridge: (bridge: HopBridge) => {},
+  settings: {} as Settings
 })
 
 const AppContextProvider: FC = ({ children }) => {
@@ -69,6 +72,7 @@ const AppContextProvider: FC = ({ children }) => {
   const txConfirm = useTxConfirm()
   const l1Network = networks?.[0]
   const { bridges, selectedBridge, setSelectedBridge } = useBridges(sdk)
+  const settings = useSettings()
 
   return (
     <AppContext.Provider
@@ -85,7 +89,8 @@ const AppContextProvider: FC = ({ children }) => {
         events,
         txHistory,
         accountDetails,
-        txConfirm
+        txConfirm,
+        settings
       }}
     >
       {children}

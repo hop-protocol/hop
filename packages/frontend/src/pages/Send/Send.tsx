@@ -1,5 +1,4 @@
 import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
-import { useLocation } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -21,10 +20,8 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import { UINT256 } from 'src/constants'
 import logger from 'src/logger'
-import { commafy, intersection, normalizeNumberInput } from 'src/utils'
+import { commafy, normalizeNumberInput } from 'src/utils'
 import SendButton from 'src/pages/Send/SendButton'
-import Settings from 'src/pages/Send/Settings'
-import InfoTooltip from 'src/components/infoTooltip'
 import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
 import useBalance from 'src/hooks/useBalance'
 import useSendData from 'src/pages/Send/useSendData'
@@ -74,15 +71,6 @@ const useStyles = makeStyles(theme => ({
   },
   txStatusCloseButton: {
     marginTop: '1rem'
-  },
-  settings: {
-    position: 'absolute',
-    top: '0',
-    right: '0',
-    [theme.breakpoints.down('xs')]: {
-      position: 'relative',
-      paddingLeft: '2rem'
-    }
   }
 }))
 
@@ -95,8 +83,13 @@ const Send: FC = () => {
     sdk,
     bridges,
     selectedBridge,
-    setSelectedBridge
+    setSelectedBridge,
+    settings
   } = useApp()
+  const {
+    slippageTolerance,
+    deadline
+  } = settings
   const {
     provider,
     walletConnected,
@@ -108,8 +101,6 @@ const Send: FC = () => {
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
   const [sending, setSending] = useState<boolean>(false)
-  const [slippageTolerance, setSlippageTolerance] = useState<number>(0.5)
-  const [deadlineMinutes, setDeadlineMinutes] = useState<number>(20)
   const [feeDisplay, setFeeDisplay] = useState<string>()
   const [amountOutMinDisplay, setAmountOutMinDisplay] = useState<string>()
   const [warning, setWarning] = useState<string | null | undefined>(null)
@@ -240,16 +231,16 @@ const Send: FC = () => {
         requiredLiquidity
       )
 
-      setIsLiquidityAvailable(isAvailable)
-
       const formattedAmount = formatUnits(
         availableLiquidity,
         sourceToken.decimals
       )
       const warningMessage = `Insufficient liquidity. There is ${formattedAmount} ${sourceToken.symbol} available on ${toNetwork.name}.`
       if (!isAvailable && !fromNetwork?.isLayer1) {
+        setIsLiquidityAvailable(false)
         setNoLiquidityWarning(warningMessage)
       } else {
+        setIsLiquidityAvailable(true)
         setNoLiquidityWarning('')
       }
     }
@@ -451,7 +442,6 @@ const Send: FC = () => {
       },
       onConfirm: async () => {
         if (!amountOutMin) return
-        const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
         const parsedAmount = parseUnits(
           fromTokenAmount,
           sourceToken.decimals
@@ -513,7 +503,6 @@ const Send: FC = () => {
       },
       onConfirm: async () => {
         if (!amountOutMin) return
-        const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
         const destinationAmountOutMin = 0
         const destinationDeadline = 0
         const parsedAmountIn = parseUnits(
@@ -583,13 +572,6 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
-        const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
-        const destinationDeadline = deadline
-        const amountOutMin = 0
-        const destinationAmountOutMin = parseUnits(
-          amountOutMin.toString(),
-          sourceToken.decimals
-        ).toString()
         const parsedAmountIn = parseUnits(
           fromTokenAmount,
           sourceToken.decimals
@@ -613,8 +595,8 @@ const Send: FC = () => {
             bonderFee,
             amountOutMin,
             deadline,
-            destinationAmountOutMin,
-            destinationDeadline
+            destinationAmountOutMin: amountOutMin,
+            destinationDeadline: deadline
           }
         )
         return tx
@@ -692,12 +674,6 @@ const Send: FC = () => {
             ))}
           </RaisedSelect>
         </Box>
-        <div className={styles.settings}>
-          <Settings
-            onSlippageTolerance={setSlippageTolerance}
-            onTransactionDeadline={setDeadlineMinutes}
-          />
-        </div>
       </div>
       <AmountSelectorCard
         value={fromTokenAmount}

@@ -92,19 +92,18 @@ class AmmConvertOption extends ConvertOption {
     destNetwork: Network,
     isForwardDirection: boolean,
     l1TokenSymbol: string,
-    value: string
+    amountIn: BigNumberish,
+    amountOutMin: BigNumberish,
+    deadline: number
   ) {
     const bridge = await sdk
       .bridge(l1TokenSymbol)
       .connect(signer as Signer)
 
-    const amountOutMin = 0
-    const deadline = (Date.now() / 1000 + 300) | 0
-
     return bridge.execSaddleSwap(
       sourceNetwork.slug,
       isForwardDirection,
-      value,
+      amountIn,
       amountOutMin,
       deadline
     )

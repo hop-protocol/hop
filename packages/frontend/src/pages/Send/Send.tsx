@@ -231,16 +231,16 @@ const Send: FC = () => {
         requiredLiquidity
       )
 
-      setIsLiquidityAvailable(isAvailable)
-
       const formattedAmount = formatUnits(
         availableLiquidity,
         sourceToken.decimals
       )
       const warningMessage = `Insufficient liquidity. There is ${formattedAmount} ${sourceToken.symbol} available on ${toNetwork.name}.`
       if (!isAvailable && !fromNetwork?.isLayer1) {
+        setIsLiquidityAvailable(false)
         setNoLiquidityWarning(warningMessage)
       } else {
+        setIsLiquidityAvailable(true)
         setNoLiquidityWarning('')
       }
     }
@@ -575,12 +575,6 @@ const Send: FC = () => {
       },
       onConfirm: async () => {
         const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
-        const destinationDeadline = deadline
-        const amountOutMin = 0
-        const destinationAmountOutMin = parseUnits(
-          amountOutMin.toString(),
-          sourceToken.decimals
-        ).toString()
         const parsedAmountIn = parseUnits(
           fromTokenAmount,
           sourceToken.decimals
@@ -604,8 +598,8 @@ const Send: FC = () => {
             bonderFee,
             amountOutMin,
             deadline,
-            destinationAmountOutMin,
-            destinationDeadline
+            destinationAmountOutMin: amountOutMin,
+            destinationDeadline: deadline
           }
         )
         return tx

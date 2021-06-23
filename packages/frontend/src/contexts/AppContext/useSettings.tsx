@@ -7,7 +7,7 @@ export type Settings = {
   setDeadlineMinutes: (number) => void
 }
 
-const useSettings = () => {
+const useSettings = (): Settings => {
   const storedSlippageTolerance = localStorage.getItem('slippageTolerance')
   const storedDeadlineMinutes = localStorage.getItem('transactionDeadline')
 

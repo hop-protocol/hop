@@ -163,7 +163,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     totalAmount: BigNumber
   ) {
     const logger = this.logger.create({ root: transferRootHash })
-    logger.debug('received L1 BondTransferRoot event')
+    logger.debug('handling L1 BondTransferRoot event')
     logger.debug('transferRootHash:', transferRootHash)
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     logger.debug('destChainId:', destChainId)

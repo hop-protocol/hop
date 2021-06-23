@@ -197,7 +197,6 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
       posERC20Predicate:
         globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
     })
-
     const tx = await maticPOSClient.exitERC20(txHash, {
       from: recipient,
       encodeAbi: true

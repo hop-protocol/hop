@@ -458,7 +458,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const tx = await meta.getTransaction()
     const { from: withdrawalBonder } = tx
 
-    logger.debug(`received WithdrawalBonded event`)
+    logger.debug(`handling WithdrawalBonded event`)
     logger.debug('transferId:', transferId)
     logger.debug('amount:', this.bridge.formatUnits(amount))
 

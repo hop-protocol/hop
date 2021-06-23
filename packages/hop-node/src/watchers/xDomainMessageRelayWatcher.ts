@@ -262,6 +262,9 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
           } = await this.l1Bridge.decodeConfirmTransferRootData(
             '0x' + data.replace('0x', '')
           )
+          this.logger.debug(
+            `attempting to send relay message on xdai for commit tx hash ${commitTxHash}`
+          )
           const result = await executeExitTx(sigEvent, this.token)
           if (result) {
             await db.transferRoots.update(transferRootHash, {
@@ -313,9 +316,15 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       const commitTx: any = await this.bridge.getTransaction(commitTxHash)
       const isCheckpointed = await poly.isCheckpointed(commitTx.blockNumber)
       if (!isCheckpointed) {
-        false
+        this.logger.debug(
+          `commit tx hash ${commitTxHash} block number ${commitTx.blockNumber} on polygon not yet checkpointed on L1. Cannot relay message yet.`
+        )
+        return false
       }
 
+      this.logger.debug(
+        `attempting to send relay message on polygon for commit tx hash ${commitTxHash}`
+      )
       const tx = await poly.relayMessage(commitTxHash, this.token)
       await db.transferRoots.update(transferRootHash, {
         sentConfirmTx: true,

@@ -32,7 +32,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     meta: any
   ) => {
     const logger = this.logger.create({ id: transferId })
-    logger.debug(`received TransferSent event`)
+    logger.debug(`handling TransferSent event`)
 
     try {
       const { transactionHash, blockNumber } = meta
@@ -80,7 +80,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     meta: any
   ) => {
     const logger = this.logger.create({ root: transferRootHash })
-    logger.debug('received TransferRootConfirmed event')
+    logger.debug('handling TransferRootConfirmed event')
 
     try {
       const { transactionHash } = meta
@@ -102,7 +102,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     meta: any
   ) => {
     const logger = this.logger.create({ root: transferRootHash })
-    logger.debug('received TransferRootBonded event')
+    logger.debug('handling TransferRootBonded event')
 
     try {
       const { transactionHash } = meta
@@ -141,7 +141,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     meta: any
   ) => {
     const logger = this.logger.create({ root: transferRootHash })
-    logger.debug('received TransfersCommitted event')
+    logger.debug('handling TransfersCommitted event')
 
     try {
       const committedAt = Number(committedAtBn.toString())

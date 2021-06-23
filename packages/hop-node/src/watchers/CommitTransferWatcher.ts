@@ -280,7 +280,9 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       })
 
       await this.waitTimeout(chainId)
-      this.logger.debug('sending commitTransfers tx')
+      this.logger.debug(
+        `sending commitTransfers (destination chain ${chainId}) tx`
+      )
 
       const tx = await l2Bridge.commitTransfers(chainId)
       tx?.wait()
@@ -306,8 +308,9 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
 
           throw err
         })
+      const sourceChainId = await l2Bridge.getChainId()
       this.logger.info(
-        `L2 commitTransfers tx:`,
+        `L2 (${sourceChainId}) commitTransfers (destination chain ${chainId}) tx:`,
         chalk.bgYellow.black.bold(tx.hash)
       )
       this.notifier.info(`L2 commitTransfers tx: ${tx.hash}`)

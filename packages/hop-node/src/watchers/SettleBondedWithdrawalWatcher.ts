@@ -464,13 +464,20 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
   checkUnsettledTransfers = async () => {
     const dbTransfers: Transfer[] = await db.transfers.getUnsettledBondedWithdrawalTransfers()
+    const promises: Promise<any>[] = []
     for (let dbTransfer of dbTransfers) {
-      try {
-        await this.checkUnsettledTransfer(dbTransfer)
-      } catch (err) {
-        this.logger.error(`checkUnsettledTransfer error:`, err.message)
-      }
+      promises.push(
+        new Promise(async resolve => {
+          try {
+            await this.checkUnsettledTransfer(dbTransfer)
+          } catch (err) {
+            this.logger.error(`checkUnsettledTransfer error:`, err.message)
+          }
+        })
+      )
     }
+
+    await Promise.all(promises)
   }
 
   checkUnsettledTransfer = async (dbTransfer: Transfer) => {

@@ -35,6 +35,7 @@ class BaseWatcher extends EventEmitter {
   siblingWatchers: { [chainId: string]: any }
   dryMode: boolean
   tag: string
+  prefix: string
 
   constructor (config: Config) {
     super()
@@ -46,6 +47,9 @@ class BaseWatcher extends EventEmitter {
     })
     if (tag) {
       this.tag = tag
+    }
+    if (prefix) {
+      this.prefix = prefix
     }
     if (order) {
       this.order = order

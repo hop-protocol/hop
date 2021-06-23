@@ -385,14 +385,18 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
   }
 
   shouldAttemptCheckpoint (dbTransferRoot: any, chainSlug: string) {
+    if (!chainSlug) {
+      return false
+    }
+
+    if (!dbTransferRoot?.checkpointAttemptedAt) {
+      return true
+    }
+
     // TODO: Move this const to chain-specific location
     const checkpointIntervals: { [key: string]: number } = {
       polygon: 10 * 10 * 1000,
       xdai: 1 * 10 * 1000
-    }
-
-    if (!chainSlug || dbTransferRoot?.checkpointAttemptedAt) {
-      return false
     }
 
     const interval = checkpointIntervals[chainSlug]

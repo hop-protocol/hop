@@ -15,7 +15,7 @@ import Logger from 'src/logger'
 import { Chain } from 'src/constants'
 import { Notifier } from 'src/notifier'
 
-const paths = [[Chain.Polygon, Chain.xDai]]
+const paths = [[Chain.Optimism, Chain.xDai]]
 const tokens = ['USDC']
 const transferAmount = 10
 

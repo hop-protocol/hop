@@ -99,9 +99,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     await Promise.all(promises)
     this.logger.debug('done syncing')
 
-    // re-sync every 6 hours
-    const sixHours = this.syncTimeSec
-    await wait(sixHours)
+    await wait(this.resyncIntervalSec)
     return this.syncUp()
   }
 
@@ -136,7 +134,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         this.logger.error(`poll check error: ${err.message}`)
         this.notifier.error(`poll check error: ${err.message}`)
       }
-      await wait(this.pollTimeSec)
+      await wait(this.pollIntervalSec)
     }
   }
 
@@ -330,11 +328,13 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     })
 
     logger.info(
-      `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx:`,
+      `sent bondWithdrawal on ${
+        attemptSwap ? `destination chain ${chainId}` : 'L1'
+      } (source chain ${sourceChainId}) tx:`,
       chalk.bgYellow.black.bold(tx.hash)
     )
     this.notifier.info(
-      `${attemptSwap ? `chainId ${chainId}` : 'L1'} bondWithdrawal tx: ${
+      `sent ${attemptSwap ? `chain ${chainId}` : 'L1'} bondWithdrawal tx: ${
         tx.hash
       }`
     )

@@ -81,9 +81,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     await Promise.all(promises)
     this.logger.debug('done syncing')
 
-    // re-sync every 6 hours
-    const sixHours = this.syncTimeSec
-    await wait(sixHours)
+    await wait(this.resyncIntervalSec)
     return this.syncUp()
   }
 
@@ -112,7 +110,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         this.logger.error(`poll check error: ${err.message}`)
         this.notifier.error(`poll check error: ${err.message}`)
       }
-      await wait(this.pollTimeSec)
+      await wait(this.pollIntervalSec)
     }
   }
 

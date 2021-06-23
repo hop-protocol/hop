@@ -51,7 +51,7 @@ class ArbBot {
   minThreshold: number
   maxTradeAmount: BigNumber = BigNumber.from(0)
   ready: boolean = false
-  pollTimeSec: number = 10
+  pollIntervalSec: number = 10
   cache: any = {}
 
   constructor (config: Config) {
@@ -81,11 +81,11 @@ class ArbBot {
         try {
           await this.checkArbitrage()
           await this.checkBalances()
-          this.logger.log(`Rechecking in ${this.pollTimeSec} seconds`)
-          await wait(this.pollTimeSec * 1e3)
+          this.logger.log(`Rechecking in ${this.pollIntervalSec} seconds`)
+          await wait(this.pollIntervalSec * 1e3)
         } catch (err) {
           this.logger.error('arb bot error:', err.message)
-          await wait(this.pollTimeSec * 1e3)
+          await wait(this.pollIntervalSec * 1e3)
         }
       }
     } catch (err) {

@@ -482,7 +482,7 @@ class HealthCheck {
       const bondedAt = DateTime.fromSeconds(timestamp).toRelative()
       const destinationChain = bridge.chainIdToSlug(destinationChainId)
       const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`
-      const log = `(${path}) bonded transfer id (${transferId}) (bonded ${bondedAt} ${txHash}) has not been settled yet.`
+      const log = `(${path}) bonded transfer id (${transferId}) (bonded ${bondedAt} ${txHash}) has not been settled yet (maybe transfer root has not been confirmed?).`
       this.logger.warn(log)
       this.notifier.warn(log)
     }

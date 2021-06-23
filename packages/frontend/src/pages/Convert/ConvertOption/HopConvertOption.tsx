@@ -26,14 +26,16 @@ class HopConvertOption extends ConvertOption {
     destNetwork: Network,
     isForwardDirection: boolean,
     l1TokenSymbol: string,
-    value: BigNumberish
+    amountIn: BigNumberish,
+    amountOutMin: BigNumberish,
+    deadline: number
   ) {
     const bridge = sdk
       .bridge(l1TokenSymbol)
       .connect(signer as Signer)
 
     return bridge.sendHToken(
-      value,
+      amountIn,
       sourceNetwork.slug,
       destNetwork.slug
     )

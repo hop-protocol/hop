@@ -88,7 +88,7 @@ const Send: FC = () => {
   } = useApp()
   const {
     slippageTolerance,
-    deadlineMinutes
+    deadline
   } = settings
   const {
     provider,
@@ -442,7 +442,6 @@ const Send: FC = () => {
       },
       onConfirm: async () => {
         if (!amountOutMin) return
-        const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
         const parsedAmount = parseUnits(
           fromTokenAmount,
           sourceToken.decimals
@@ -504,7 +503,6 @@ const Send: FC = () => {
       },
       onConfirm: async () => {
         if (!amountOutMin) return
-        const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
         const destinationAmountOutMin = 0
         const destinationDeadline = 0
         const parsedAmountIn = parseUnits(
@@ -574,7 +572,6 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
-        const deadline = (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0
         const parsedAmountIn = parseUnits(
           fromTokenAmount,
           sourceToken.decimals

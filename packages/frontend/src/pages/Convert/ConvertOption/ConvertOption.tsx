@@ -38,7 +38,9 @@ abstract class ConvertOption {
     destNetwork: Network,
     isForwardDirection: boolean,
     l1TokenSymbol: string,
-    amountIn: BigNumberish
+    amountIn: BigNumberish,
+    amountOutMin: BigNumberish,
+    deadline: number
   ): Promise<any>
 
   abstract sourceToken (

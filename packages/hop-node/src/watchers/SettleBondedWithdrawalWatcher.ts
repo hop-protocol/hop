@@ -68,49 +68,39 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     if (!this.isL1) {
       const l2Bridge = this.bridge as L2Bridge
       promises.push(
-        l2Bridge.eventsBatch(
-          async (start: number, end: number) => {
-            const events = await l2Bridge.getTransferSentEvents(start, end)
-            await this.handleTransferSentEvents(events)
+        l2Bridge.mapTransferSentEvents(
+          async (event: Event) => {
+            return this.handleRawTransferSentEvent(event)
           },
-          { key: l2Bridge.TransferSent }
+          { cacheKey: this.cacheKey(l2Bridge.TransferSent) }
         )
       )
 
       promises.push(
-        l2Bridge.eventsBatch(
-          async (start: number, end: number) => {
-            const events = await l2Bridge.getTransfersCommittedEvents(
-              start,
-              end
-            )
-            await this.handleTransfersCommittedEvents(events)
+        l2Bridge.mapTransfersCommittedEvents(
+          async (event: Event) => {
+            return this.handleRawTransfersCommittedEvent(event)
           },
-          { key: l2Bridge.TransfersCommitted }
+          { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
         )
       )
     }
 
     promises.push(
-      this.bridge.eventsBatch(
-        async (start: number, end: number) => {
-          const events = await this.bridge.getMultipleWithdrawalsSettledEvents(
-            start,
-            end
-          )
-          await this.handleMultipleWithdrawalsSettledEvents(events)
+      this.bridge.mapMultipleWithdrawalsSettledEvents(
+        async (event: Event) => {
+          return this.handleRawMultipleWithdrawalsSettledEvent(event)
         },
-        { key: this.bridge.MultipleWithdrawalsSettled }
+        { cacheKey: this.cacheKey(this.bridge.MultipleWithdrawalsSettled) }
       )
     )
 
     promises.push(
-      this.bridge.eventsBatch(
-        async (start: number, end: number) => {
-          const events = await this.bridge.getTransferRootSetEvents(start, end)
-          await this.handleTransferRootSetEvents(events)
+      this.bridge.mapTransferRootSetEvents(
+        async (event: Event) => {
+          return this.handleRawTransferRootSetEvent(event)
         },
-        { key: this.bridge.TransferRootSet }
+        { cacheKey: this.cacheKey(this.bridge.TransferRootSet) }
       )
     )
 
@@ -126,9 +116,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     for (let dbTransfer of dbTransfers) {
       const { transferId } = dbTransfer
       // TODO: fetch transfer root hash for transfer id more efficiently
-      this.bridge.eventsBatch(async (start: number, end: number) => {
-        const events = await this.bridge.getTransferRootSetEvents(start, end)
-        await this.handleTransferRootSetEvents(events)
+      this.bridge.forEachTransferRootSetEvents(async (event: any) => {
+        await this.handleRawTransferRootSetEvent(event)
       })
     }
   }
@@ -184,72 +173,60 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
-  async handleTransfersCommittedEvents (events: Event[]) {
-    for (let event of events) {
-      const {
-        destinationChainId: chainId,
-        rootHash,
-        totalAmount,
-        rootCommittedAt
-      } = event.args
-      await this.handleTransfersCommittedEvent(
-        chainId,
-        rootHash,
-        totalAmount,
-        rootCommittedAt,
-        event
-      )
-    }
+  async handleRawTransfersCommittedEvent (event: Event) {
+    const {
+      destinationChainId: chainId,
+      rootHash,
+      totalAmount,
+      rootCommittedAt
+    } = event.args
+    await this.handleTransfersCommittedEvent(
+      chainId,
+      rootHash,
+      totalAmount,
+      rootCommittedAt,
+      event
+    )
   }
 
-  async handleTransferSentEvents (events: Event[]) {
-    for (let event of events) {
-      const {
-        transferId,
-        chainId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        index,
-        amountOutMin,
-        deadline
-      } = event.args
-      await this.handleTransferSentEvent(
-        transferId,
-        chainId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        index,
-        amountOutMin,
-        deadline,
-        event
-      )
-    }
+  async handleRawTransferSentEvent (event: Event) {
+    const {
+      transferId,
+      chainId,
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      index,
+      amountOutMin,
+      deadline
+    } = event.args
+    await this.handleTransferSentEvent(
+      transferId,
+      chainId,
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      index,
+      amountOutMin,
+      deadline,
+      event
+    )
   }
 
-  async handleTransferRootSetEvents (events: Event[]) {
-    const promises: Promise<any>[] = []
-    for (let event of events) {
-      const { rootHash, totalAmount } = event.args
-      promises.push(
-        this.handleTransferRootSetEvent(rootHash, totalAmount, event)
-      )
-    }
-    await Promise.all(promises)
+  async handleRawTransferRootSetEvent (event: Event) {
+    const { rootHash, totalAmount } = event.args
+    await this.handleTransferRootSetEvent(rootHash, totalAmount, event)
   }
 
-  async handleMultipleWithdrawalsSettledEvents (events: Event[]) {
-    for (let event of events) {
-      const { bonder, rootHash, totalBondsSettled } = event.args
-      await this.handleMultipleWithdrawalsSettledEvent(
-        bonder,
-        rootHash,
-        totalBondsSettled
-      )
-    }
+  async handleRawMultipleWithdrawalsSettledEvent (event: Event) {
+    const { bonder, rootHash, totalBondsSettled } = event.args
+    await this.handleMultipleWithdrawalsSettledEvent(
+      bonder,
+      rootHash,
+      totalBondsSettled
+    )
   }
 
   handleTransferRootSetEvent = async (
@@ -347,6 +324,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     let endEvent: any
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
       startSearchBlockNumber = start
+      // TODO: debug why sometimes this is undefined
+      if (!sourceBridge.getTransfersCommittedEvents) {
+        return
+      }
       let events = await sourceBridge.getTransfersCommittedEvents(start, end)
 
       if (!events?.length) {

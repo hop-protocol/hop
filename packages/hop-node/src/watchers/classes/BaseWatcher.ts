@@ -106,6 +106,10 @@ class BaseWatcher extends EventEmitter {
     return this.bridge.chainSlugToId(chainSlug)
   }
 
+  cacheKey (key: string) {
+    return `${this.tag}:${key}`
+  }
+
   // force quit so docker can restart
   public async quit () {
     process.exit(1)

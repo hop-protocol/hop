@@ -1,4 +1,4 @@
-import { providers, Contract, BigNumber } from 'ethers'
+import { providers, Contract, BigNumber, Event } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import {
   erc20Abi,
@@ -87,7 +87,7 @@ export default class L2Bridge extends Bridge {
   async getTransfersCommittedEvents (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<any[]> {
+  ): Promise<Event[]> {
     return this.l2BridgeContract.queryFilter(
       this.l2BridgeContract.filters.TransfersCommitted(),
       startBlockNumber,
@@ -95,8 +95,24 @@ export default class L2Bridge extends Bridge {
     )
   }
 
+  async forEachTransfersCommittedEvents (cb: any, options?: any) {
+    return this.forEachEventsBatch(
+      this.getTransfersCommittedEvents.bind(this),
+      cb,
+      options
+    )
+  }
+
+  async mapTransfersCommittedEvents (cb: any, options?: any) {
+    return this.mapEventsBatch(
+      this.getTransfersCommittedEvents.bind(this),
+      cb,
+      options
+    )
+  }
+
   async getLastTransfersCommittedEvent (): Promise<any> {
-    let match: any = null
+    let match: Event = null
     await this.eventsBatch(async (start: number, end: number) => {
       const events = await this.getTransfersCommittedEvents(start, end)
       if (events.length) {
@@ -112,7 +128,7 @@ export default class L2Bridge extends Bridge {
   async getTransferSentEvents (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<any[]> {
+  ): Promise<Event[]> {
     return this.l2BridgeContract.queryFilter(
       this.l2BridgeContract.filters.TransferSent(),
       startBlockNumber,
@@ -120,9 +136,25 @@ export default class L2Bridge extends Bridge {
     )
   }
 
+  async forEachTransferSentEvents (cb: any, options?: any) {
+    return this.forEachEventsBatch(
+      this.getTransferSentEvents.bind(this),
+      cb,
+      options
+    )
+  }
+
+  async mapTransferSentEvents (cb: any, options?: any) {
+    return this.mapEventsBatch(
+      this.getTransferSentEvents.bind(this),
+      cb,
+      options
+    )
+  }
+
   @rateLimitRetry
   async getTransferSentTimestamp (transferId: string): Promise<number> {
-    let match: any
+    let match: Event
     await this.eventsBatch(async (start: number, end: number) => {
       const events = await this.l2BridgeContract.queryFilter(
         this.l2BridgeContract.filters.TransferSent(),
@@ -229,7 +261,7 @@ export default class L2Bridge extends Bridge {
   }
 
   @rateLimitRetry
-  async getPendingTransfers (chainId: number): Promise<any[]> {
+  async getPendingTransfers (chainId: number): Promise<string[]> {
     const pendingTransfers: string[] = []
     const max = await this.getMaxPendingTransfers()
     for (let i = 0; i < max; i++) {

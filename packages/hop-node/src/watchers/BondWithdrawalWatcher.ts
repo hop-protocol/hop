@@ -73,12 +73,11 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
     const promises: Promise<any>[] = []
     promises.push(
-      this.bridge.eventsBatch(
-        async (start: number, end: number) => {
-          const events = await this.bridge.getWithdrawalBondedEvents(start, end)
-          await this.handleWithdrawalBondedEvents(events)
+      this.bridge.mapWithdrawalBondedEvents(
+        async (event: Event) => {
+          return this.handleRawWithdrawalBondedEvent(event)
         },
-        { key: this.bridge.WithdrawalBonded }
+        { cacheKey: this.cacheKey(this.bridge.WithdrawalBonded) }
       )
     )
 
@@ -86,12 +85,11 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     if (!this.isL1) {
       const l2Bridge = this.bridge as L2Bridge
       promises.push(
-        l2Bridge.eventsBatch(
-          async (start: number, end: number) => {
-            const events = await l2Bridge.getTransferSentEvents(start, end)
-            await this.handleTransferSentEvents(events)
+        l2Bridge.mapTransferSentEvents(
+          async (event: Event) => {
+            return this.handleRawTransferSentEvent(event)
           },
-          { key: l2Bridge.TransferSent }
+          { cacheKey: this.cacheKey(l2Bridge.TransferSent) }
         )
       )
     }
@@ -138,55 +136,51 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
-  async handleWithdrawalBondedEvents (events: Event[]) {
-    for (let event of events) {
-      const {
-        transferId,
-        //recipient,
-        amount
-        //transferNonce,
-        //bonderFee,
-        //index
-      } = event.args
+  async handleRawWithdrawalBondedEvent (event: Event) {
+    const {
+      transferId,
+      //recipient,
+      amount
+      //transferNonce,
+      //bonderFee,
+      //index
+    } = event.args
 
-      await this.handleWithdrawalBondedEvent(
-        transferId,
-        //recipient,
-        amount,
-        //transferNonce,
-        //bonderFee,
-        //index,
-        event
-      )
-    }
+    await this.handleWithdrawalBondedEvent(
+      transferId,
+      //recipient,
+      amount,
+      //transferNonce,
+      //bonderFee,
+      //index,
+      event
+    )
   }
 
-  async handleTransferSentEvents (events: Event[]) {
-    for (let event of events) {
-      const {
-        transferId,
-        chainId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        index,
-        amountOutMin,
-        deadline
-      } = event.args
-      await this.handleTransferSentEvent(
-        transferId,
-        chainId,
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee,
-        index,
-        amountOutMin,
-        deadline,
-        event
-      )
-    }
+  async handleRawTransferSentEvent (event: Event) {
+    const {
+      transferId,
+      chainId,
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      index,
+      amountOutMin,
+      deadline
+    } = event.args
+    await this.handleTransferSentEvent(
+      transferId,
+      chainId,
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      index,
+      amountOutMin,
+      deadline,
+      event
+    )
   }
 
   async checkTransferSentFromDb () {

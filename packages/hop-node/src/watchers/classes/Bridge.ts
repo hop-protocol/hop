@@ -1,12 +1,20 @@
-import { providers, Contract, BigNumber } from 'ethers'
+import { providers, Contract, BigNumber, Event } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
 import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { config } from 'src/config'
 import unique from 'src/utils/unique'
-import { isL1ChainId, xor } from 'src/utils'
+import { isL1ChainId, xor, wait } from 'src/utils'
 import db from 'src/db'
+
+type EventsBatchOptions = {
+  cacheKey: string
+  startBlockNumber: number
+  endBlockNumber: number
+}
+
+type EventCb = (event: Event, i?: number) => any
 
 export default class Bridge extends ContractBase {
   WithdrawalBonded: string = 'WithdrawalBonded'
@@ -193,7 +201,7 @@ export default class Bridge extends ContractBase {
     startBlockNumber?: number,
     endBlockNumber?: number
   ): Promise<any> {
-    let match: any = null
+    let match: Event = null
     await this.eventsBatch(
       async (start: number, end: number) => {
         const events = await this.getWithdrawalBondedEvents(start, end)
@@ -222,7 +230,7 @@ export default class Bridge extends ContractBase {
   async getWithdrawalBondedEvents (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<any[]> {
+  ): Promise<Event[]> {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.WithdrawalBonded(),
       startBlockNumber,
@@ -230,11 +238,27 @@ export default class Bridge extends ContractBase {
     )
   }
 
+  async forEachWithdrawalBondedEvents (cb: any, options?: any) {
+    return this.forEachEventsBatch(
+      this.getWithdrawalBondedEvents.bind(this),
+      cb,
+      options
+    )
+  }
+
+  async mapWithdrawalBondedEvents (cb: any, options?: any) {
+    return this.mapEventsBatch(
+      this.getWithdrawalBondedEvents.bind(this),
+      cb,
+      options
+    )
+  }
+
   @rateLimitRetry
   async getTransferRootSetEvents (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<any[]> {
+  ): Promise<Event[]> {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.TransferRootSet(),
       startBlockNumber,
@@ -242,11 +266,27 @@ export default class Bridge extends ContractBase {
     )
   }
 
+  async forEachTransferRootSetEvents (cb: any, options?: any) {
+    return this.forEachEventsBatch(
+      this.getTransferRootSetEvents.bind(this),
+      cb,
+      options
+    )
+  }
+
+  async mapTransferRootSetEvents (cb: any, options?: any) {
+    return this.mapEventsBatch(
+      this.getTransferRootSetEvents.bind(this),
+      cb,
+      options
+    )
+  }
+
   @rateLimitRetry
   async getWithdrawalBondSettledEvents (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<any[]> {
+  ): Promise<Event[]> {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.WithdrawalBondSettled(),
       startBlockNumber,
@@ -286,11 +326,27 @@ export default class Bridge extends ContractBase {
   async getMultipleWithdrawalsSettledEvents (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<any[]> {
+  ): Promise<Event[]> {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.MultipleWithdrawalsSettled(),
       startBlockNumber,
       endBlockNumber
+    )
+  }
+
+  async forEachMultipleWithdrawalsSettledEvents (cb: any, options?: any) {
+    return this.forEachEventsBatch(
+      this.getMultipleWithdrawalsSettledEvents.bind(this),
+      cb,
+      options
+    )
+  }
+
+  async mapMultipleWithdrawalsSettledEvents (cb: any, options?: any) {
+    return this.mapEventsBatch(
+      this.getMultipleWithdrawalsSettledEvents.bind(this),
+      cb,
+      options
     )
   }
 
@@ -434,25 +490,52 @@ export default class Bridge extends ContractBase {
     return parseUnits(value.toString(), this.tokenDecimals)
   }
 
+  protected async forEachEventsBatch (
+    getEventsMethod: (start: number, end: number) => Promise<Event[]>,
+    cb: EventCb,
+    options?: Partial<EventsBatchOptions>
+  ) {
+    let i = 0
+    return this.eventsBatch(async (start: number, end: number) => {
+      const events = await getEventsMethod(start, end)
+      for (let event of events) {
+        await cb(event, i)
+        i++
+      }
+    }, options)
+  }
+
+  protected async mapEventsBatch (
+    getEventsMethod: (start: number, end: number) => Promise<Event[]>,
+    cb: EventCb,
+    options?: Partial<EventsBatchOptions>
+  ) {
+    let i = 0
+    const promises: Promise<any>[] = []
+    await this.eventsBatch(async (start: number, end: number) => {
+      const events = await getEventsMethod(start, end)
+      for (let event of events) {
+        promises.push(cb(event, i++))
+      }
+    }, options)
+    return Promise.all(promises)
+  }
+
   @rateLimitRetry
   public async eventsBatch (
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
-    options: any = {
-      key: '',
-      startBlockNumber: undefined,
-      endBlockNumber: undefined
-    }
+    options: Partial<EventsBatchOptions> = {}
   ) {
     await this.waitTilReady()
     this.validateEventsBatchInput(options)
 
     let cacheKey = ''
     let state
-    if (options?.key) {
+    if (options?.cacheKey) {
       cacheKey = this.getCacheKeyFromKey(
         this.chainId,
         this.address,
-        options.key
+        options.cacheKey
       )
       state = await db.syncState.getByKey(cacheKey)
     }
@@ -468,6 +551,7 @@ export default class Bridge extends ContractBase {
     let i = 0
     if (totalBlocksInBatch <= batchBlocks) {
       await cb(start, end, i)
+      await wait(50)
     } else {
       while (start >= latestBlockInBatch - totalBlocksInBatch) {
         const shouldContinue = await cb(start, end, i)
@@ -537,8 +621,10 @@ export default class Bridge extends ContractBase {
     return `${chainId}:${address}:${key}`
   }
 
-  private validateEventsBatchInput = (options: any) => {
-    const { key, startBlockNumber, endBlockNumber } = options
+  private validateEventsBatchInput = (
+    options: Partial<EventsBatchOptions> = {}
+  ) => {
+    const { cacheKey, startBlockNumber, endBlockNumber } = options
 
     const doesOnlyStartOrEndExist = xor(startBlockNumber, endBlockNumber)
     if (doesOnlyStartOrEndExist) {
@@ -561,7 +647,7 @@ export default class Bridge extends ContractBase {
         )
       }
 
-      if (key) {
+      if (cacheKey) {
         throw new Error(
           'A key cannot exist when a start and end block are explicitly defined'
         )

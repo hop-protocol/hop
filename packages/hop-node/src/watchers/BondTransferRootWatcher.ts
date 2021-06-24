@@ -56,29 +56,21 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     if (this.isL1) {
       const l1Bridge = this.bridge as L1Bridge
       promises.push(
-        l1Bridge.eventsBatch(
-          async (start: number, end: number) => {
-            const events = await l1Bridge.getTransferRootBondedEvents(
-              start,
-              end
-            )
-            await this.handleTransferRootBondedEvents(events)
+        l1Bridge.mapTransferRootBondedEvents(
+          async (event: Event) => {
+            return this.handleRawTransferRootBondedEvent(event)
           },
-          { key: l1Bridge.TransferRootBonded }
+          { cacheKey: this.cacheKey(l1Bridge.TransferRootBonded) }
         )
       )
     } else {
       const l2Bridge = this.bridge as L2Bridge
       promises.push(
-        l2Bridge.eventsBatch(
-          async (start: number, end: number) => {
-            const events = await l2Bridge.getTransfersCommittedEvents(
-              start,
-              end
-            )
-            await this.handleTransfersCommittedEvents(events)
+        l2Bridge.mapTransfersCommittedEvents(
+          async (event: Event) => {
+            return this.handleRawTransfersCommittedEvent(event)
           },
-          { key: l2Bridge.TransfersCommitted }
+          { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
         )
       )
     }
@@ -127,29 +119,25 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
-  async handleTransferRootBondedEvents (events: Event[]) {
-    for (let event of events) {
-      const { root, amount } = event.args
-      await this.handleTransferRootBondedEvent(root, amount, event)
-    }
+  async handleRawTransferRootBondedEvent (event: Event) {
+    const { root, amount } = event.args
+    await this.handleTransferRootBondedEvent(root, amount, event)
   }
 
-  async handleTransfersCommittedEvents (events: Event[]) {
-    for (let event of events) {
-      const {
-        destinationChainId: chainId,
-        rootHash,
-        totalAmount,
-        rootCommittedAt
-      } = event.args
-      await this.handleTransfersCommittedEvent(
-        chainId,
-        rootHash,
-        totalAmount,
-        rootCommittedAt,
-        event
-      )
-    }
+  async handleRawTransfersCommittedEvent (event: Event) {
+    const {
+      destinationChainId: chainId,
+      rootHash,
+      totalAmount,
+      rootCommittedAt
+    } = event.args
+    await this.handleTransfersCommittedEvent(
+      chainId,
+      rootHash,
+      totalAmount,
+      rootCommittedAt,
+      event
+    )
   }
 
   async checkTransfersCommittedFromDb () {

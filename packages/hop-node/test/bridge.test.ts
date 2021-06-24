@@ -22,7 +22,7 @@ describe('Happy Path', () => {
       }
     )
 
-    const totalCount = totalBlocks / batchBlocks
+    const totalCount = Math.floor(totalBlocks / batchBlocks)
     expect(count).toBe(totalCount)
   })
 
@@ -55,10 +55,10 @@ describe('Happy Path', () => {
         expect(end).toBe(start + batchBlocks)
         count++
       },
-      { key }
+      { cacheKey: key }
     )
 
-    const totalCount = totalBlocks / batchBlocks
+    const totalCount = Math.floor(totalBlocks / batchBlocks)
     expect(count).toBe(totalCount)
   })
 
@@ -78,7 +78,7 @@ describe('Happy Path', () => {
           expect(end).toBe(start + batchBlocks)
           count++
         },
-        { key }
+        { cacheKey: key }
       )
     }
 
@@ -95,7 +95,7 @@ describe('Happy Path', () => {
         expect(index).toBe(count)
         count++
       },
-      { key }
+      { cacheKey: key }
     )
 
     state = await db.syncState.getByKey(cacheKey)
@@ -137,7 +137,7 @@ describe('Happy Path', () => {
       }
     )
 
-    const totalCount = totalBlocks / batchBlocks
+    const totalCount = Math.floor(totalBlocks / batchBlocks)
     expect(count).toBe(totalCount)
   })
 
@@ -209,7 +209,7 @@ describe('Non-Happy Path', () => {
     try {
       await bridge.eventsBatch(
         async (start: number, end: number, index: number) => {},
-        { startBlockNumber, endBlockNumber, key }
+        { startBlockNumber, endBlockNumber, cacheKey: key }
       )
     } catch (err) {
       expect(err.message).toBe(

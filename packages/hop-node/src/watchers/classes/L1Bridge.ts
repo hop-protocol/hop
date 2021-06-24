@@ -1,4 +1,4 @@
-import { providers, Contract, ethers, BigNumber } from 'ethers'
+import { providers, Contract, ethers, BigNumber, Event } from 'ethers'
 import { l1BridgeAbi, erc20Abi } from '@hop-protocol/abi'
 import { parseUnits } from 'ethers/lib/utils'
 import Bridge from './Bridge'
@@ -100,7 +100,7 @@ export default class L1Bridge extends Bridge {
   async getTransferRootBondedEvents (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<any[]> {
+  ): Promise<Event[]> {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.TransferRootBonded(),
       startBlockNumber,
@@ -108,8 +108,24 @@ export default class L1Bridge extends Bridge {
     )
   }
 
+  async forEachTransferRootBondedEvents (cb: any, options?: any) {
+    return this.forEachEventsBatch(
+      this.getTransferRootBondedEvents.bind(this),
+      cb,
+      options
+    )
+  }
+
+  async mapTransferRootBondedEvents (cb: any, options?: any) {
+    return this.mapEventsBatch(
+      this.getTransferRootBondedEvents.bind(this),
+      cb,
+      options
+    )
+  }
+
   async getLastTransferRootBondedEvent (): Promise<any> {
-    let match: any = null
+    let match: Event = null
     await this.eventsBatch(async (start: number, end: number) => {
       const events = await this.getTransferRootBondedEvents(start, end)
       if (events.length) {
@@ -145,11 +161,27 @@ export default class L1Bridge extends Bridge {
   async getTransferRootConfirmedEvents (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<any[]> {
+  ): Promise<Event[]> {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.TransferRootConfirmed(),
       startBlockNumber,
       endBlockNumber
+    )
+  }
+
+  async forEachTransferRootConfirmedEvents (cb: any, options?: any) {
+    return this.forEachEventsBatch(
+      this.getTransferRootConfirmedEvents.bind(this),
+      cb,
+      options
+    )
+  }
+
+  async mapTransferRootConfirmedEvents (cb: any, options?: any) {
+    return this.mapEventsBatch(
+      this.getTransferRootConfirmedEvents.bind(this),
+      cb,
+      options
     )
   }
 

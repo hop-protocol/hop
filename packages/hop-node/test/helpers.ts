@@ -109,7 +109,7 @@ export class User {
     return contract.mint(
       recipient,
       parseUnits(amount.toString(), decimals),
-      this.txOverrides(network)
+      await this.txOverrides(network)
     )
   }
 
@@ -125,11 +125,11 @@ export class User {
     return contract.transfer(
       recipient,
       parseUnits(amount.toString(), decimals),
-      this.txOverrides(network)
+      await this.txOverrides(network)
     )
   }
 
-  getHopBridgeContract (network: string, token: string = Token.DAI) {
+  getHopBridgeContract (network: string, token: string = Token.USDC) {
     let bridgeAddress: string
     let artifact: any
     if (network === Chain.Ethereum) {
@@ -152,7 +152,7 @@ export class User {
 
   async getMessengerWrapperContract (
     network: string,
-    token: string = Token.DAI
+    token: string = Token.USDC
   ) {
     const bridge = this.getHopBridgeContract(Chain.Ethereum, token)
     const chainId = chainSlugToId(network)
@@ -174,7 +174,7 @@ export class User {
     return new Contract(wrapperAddress, abi, wallet)
   }
 
-  async getMessengerContract (network: string, token: string = Token.DAI) {
+  async getMessengerContract (network: string, token: string = Token.USDC) {
     if (network === Chain.Ethereum) {
       throw new Error('not supporsed')
     }
@@ -198,7 +198,7 @@ export class User {
     return new Contract(messengerAddress, abi, wallet)
   }
 
-  getAmmWrapperContract (network: string, token: string = Token.DAI) {
+  getAmmWrapperContract (network: string, token: string = Token.USDC) {
     const wrapperAddress = config.tokens[token][network].l2AmmWrapper
     const wallet = this.getWallet(network)
     return new Contract(wrapperAddress, l2AmmWrapperAbi, wallet)
@@ -222,7 +222,11 @@ export class User {
     if (amount) {
       approveAmount = parseUnits(amount.toString(), decimals).toString()
     }
-    return contract.approve(spender, approveAmount, this.txOverrides(network))
+    return contract.approve(
+      spender,
+      approveAmount,
+      await this.txOverrides(network)
+    )
   }
 
   async getAllowance (
@@ -257,6 +261,7 @@ export class User {
     return provider.waitForTransaction(txHash)
   }
 
+  @queue
   async send (
     sourceNetwork: string,
     destNetwork: string,
@@ -301,7 +306,7 @@ export class User {
       deadline,
       relayer,
       relayerFee,
-      this.txOverrides(sourceNetwork)
+      await this.txOverrides(sourceNetwork)
     )
 
     return tx
@@ -373,7 +378,7 @@ export class User {
       deadline,
       destinationAmountOutMin,
       destinationDeadline,
-      this.txOverrides(sourceNetwork)
+      await this.txOverrides(sourceNetwork)
     )
   }
 
@@ -411,7 +416,7 @@ export class User {
       deadline,
       destinationAmountOutMin,
       destinationDeadline,
-      this.txOverrides(sourceNetwork)
+      await this.txOverrides(sourceNetwork)
     )
   }
 
@@ -440,7 +445,7 @@ export class User {
       bonderFee,
       amountOutMin,
       deadline,
-      this.txOverrides(sourceNetwork)
+      await this.txOverrides(sourceNetwork)
     )
   }
 
@@ -475,7 +480,7 @@ export class User {
       deadline,
       destinationAmountOutMin,
       destinationDeadline,
-      this.txOverrides(sourceNetwork)
+      await this.txOverrides(sourceNetwork)
     )
   }
 
@@ -493,7 +498,7 @@ export class User {
   async sendEth (amount: number | string, recipient: string, network?: string) {
     const wallet = this.getWallet(network)
     return wallet.sendTransaction({
-      ...this.txOverrides(network),
+      ...(await this.txOverrides(network)),
       to: recipient,
       value: parseUnits(amount.toString(), 18)
     })
@@ -511,7 +516,7 @@ export class User {
     const tx = await tokenContract.transfer(
       recipient,
       parseUnits(amount.toString(), decimals),
-      this.txOverrides(network)
+      await this.txOverrides(network)
     )
     return tx
   }
@@ -526,7 +531,7 @@ export class User {
     const parsedAmount = parseUnits(amount.toString(), decimals)
     const bonder = await this.getAddress()
     const bridge = this.getHopBridgeContract(network, token)
-    return bridge.stake(bonder, parsedAmount, this.txOverrides(network))
+    return bridge.stake(bonder, parsedAmount, await this.txOverrides(network))
   }
 
   async getBonderFee (network: string, token: string, amount: string) {
@@ -540,6 +545,7 @@ export class User {
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute
+    // TODO: fix bonder fee
     return parseUnits('1', decimals)
     return minBonderFee
   }
@@ -622,7 +628,7 @@ export class User {
         config.tokens[token][Chain.Ethereum].l1CanonicalToken,
         recipient,
         value,
-        this.txOverrides(destNetwork)
+        await this.txOverrides(destNetwork)
       )
     } else if (destNetwork === Chain.Optimism) {
       const l1TokenAddress =
@@ -633,14 +639,14 @@ export class User {
         l2TokenAddress,
         recipient,
         value,
-        this.txOverrides(destNetwork)
+        await this.txOverrides(destNetwork)
       )
     } else if (destNetwork === Chain.xDai) {
       return tokenBridge.relayTokens(
         config.tokens[token][Chain.Ethereum].l1CanonicalToken,
         recipient,
         value,
-        this.txOverrides(destNetwork)
+        await this.txOverrides(destNetwork)
       )
     } else if (destNetwork === Chain.Polygon) {
       const approveAddress =
@@ -653,7 +659,7 @@ export class User {
         recipient,
         config.tokens[token][Chain.Ethereum].l1CanonicalToken,
         payload,
-        this.txOverrides(destNetwork)
+        await this.txOverrides(destNetwork)
       )
     } else {
       throw new Error('not implemented')
@@ -690,7 +696,7 @@ export class User {
       recipient,
       tokenAddress,
       data,
-      this.txOverrides(Chain.Polygon)
+      await this.txOverrides(Chain.Polygon)
     )
   }
 
@@ -703,7 +709,7 @@ export class User {
     const provider = new providers.StaticJsonRpcProvider(url)
     const wallet = new Wallet(this.privateKey, provider)
     const token = new Contract(tokenAddress, l2PolygonChildErc20Abi, wallet)
-    return token.withdraw(parsedAmount, this.txOverrides(Chain.Polygon))
+    return token.withdraw(parsedAmount, await this.txOverrides(Chain.Polygon))
   }
 
   @queue
@@ -762,7 +768,7 @@ export class User {
       deadline,
       relayer,
       relayerFee,
-      this.txOverrides(Chain.Ethereum)
+      await this.txOverrides(Chain.Ethereum)
     )
   }
 
@@ -808,7 +814,7 @@ export class User {
       amounts,
       minToMint,
       deadline,
-      this.txOverrides(network)
+      await this.txOverrides(network)
     )
   }
 
@@ -825,7 +831,7 @@ export class User {
       parsedLpTokenAmount,
       minAmounts,
       deadline,
-      this.txOverrides(network)
+      await this.txOverrides(network)
     )
   }
 
@@ -841,7 +847,7 @@ export class User {
       transferRootHash,
       chainId,
       parsedTotalAmount,
-      this.txOverrides(Chain.Ethereum)
+      await this.txOverrides(Chain.Ethereum)
     )
   }
 
@@ -865,7 +871,7 @@ export class User {
     return bridge.challengeTransferBond(
       transferRootHash,
       parsedTotalAmount,
-      this.txOverrides(Chain.Ethereum)
+      await this.txOverrides(Chain.Ethereum)
     )
   }
 
@@ -884,7 +890,7 @@ export class User {
     return bridge.resolveChallenge(
       transferRootHash,
       parsedTotalAmount,
-      this.txOverrides(Chain.Ethereum)
+      await this.txOverrides(Chain.Ethereum)
     )
   }
 
@@ -929,7 +935,7 @@ export class User {
     }
     return bridge.setChallengeResolutionPeriod(
       challengeResolutionPeriod,
-      this.txOverrides(Chain.Ethereum)
+      await this.txOverrides(Chain.Ethereum)
     )
   }
 
@@ -948,7 +954,7 @@ export class User {
     const calldata = `0x5325937f000000000000000000000000${address}`
     if (network === Chain.Ethereum) {
       const bridge = this.getHopBridgeContract(network, token)
-      return bridge.addBonder(newBonderAddress, this.txOverrides(network))
+      return bridge.addBonder(newBonderAddress, await this.txOverrides(network))
     } else if (network === Chain.xDai) {
       const l2Bridge = await this.getHopBridgeContract(network, token)
       const messenger = await this.getMessengerContract(network, token)
@@ -956,7 +962,7 @@ export class User {
         l2Bridge.address,
         calldata,
         2000000,
-        this.txOverrides(network)
+        await this.txOverrides(network)
       )
     } else if (network === Chain.Optimism) {
       const l2Bridge = await this.getHopBridgeContract(network, token)
@@ -965,13 +971,13 @@ export class User {
         l2Bridge.address,
         calldata,
         9000000,
-        this.txOverrides(network)
+        await this.txOverrides(network)
       )
     } else if (network === Chain.Polygon) {
       const messenger = await this.getMessengerWrapperContract(network, token)
       return messenger.sendCrossDomainMessage(
         calldata,
-        this.txOverrides(network)
+        await this.txOverrides(network)
       )
     } else if (network === Chain.Arbitrum) {
       const l2Bridge = await this.getHopBridgeContract(network, token)
@@ -985,7 +991,7 @@ export class User {
         100000000000,
         0,
         calldata,
-        this.txOverrides(network)
+        await this.txOverrides(network)
       )
     }
   }
@@ -1046,7 +1052,7 @@ export class User {
 
   async setMaxPendingTransfers (network: string, max: number) {
     const bridge = this.getHopBridgeContract(network)
-    return bridge.setMaxPendingTransfers(max, this.txOverrides(network))
+    return bridge.setMaxPendingTransfers(max, await this.txOverrides(network))
   }
 
   async validateChainId (chainId: string) {
@@ -1063,7 +1069,7 @@ export class User {
     }
   }
 
-  async getMaxPendingTransfers (network: string, token: string = Token.DAI) {
+  async getMaxPendingTransfers (network: string, token: string = Token.USDC) {
     const bridge = this.getHopBridgeContract(network, token)
     return Number((await bridge.maxPendingTransfers()).toString())
   }
@@ -1102,7 +1108,10 @@ export class User {
   ) {
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
     const destChainId = chainSlugToId(destNetwork)
-    return bridge.commitTransfers(destChainId, this.txOverrides(sourceNetwork))
+    return bridge.commitTransfers(
+      destChainId,
+      await this.txOverrides(sourceNetwork)
+    )
   }
 
   async isBonder (sourceNetwork: string, token: string) {
@@ -1140,15 +1149,31 @@ export class User {
     return l2TxReceipt
   }
 
-  txOverrides (network: string) {
+  protected async getBumpedGasPrice (
+    network: string,
+    percent: number
+  ): Promise<BigNumber> {
+    const provider = this.getProvider(network)
+    const gasPrice = await provider.getGasPrice()
+    return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
+  }
+
+  async txOverrides (network: string) {
     const txOptions: any = {}
-    txOptions.gasLimit = 2_000_000
-    if (network === Chain.Optimism) {
-      txOptions.gasPrice = 0
-      txOptions.gasLimit = 8_000_000
-    } else if (network === Chain.xDai) {
-      txOptions.gasPrice = 1000000000
-      txOptions.gasLimit = 4_000_000
+    if (config.isMainnet) {
+      //txOptions.gasLimit = 1_000_000
+      txOptions.gasPrice = (
+        await this.getBumpedGasPrice(network, 1.5)
+      ).toString()
+    } else {
+      txOptions.gasLimit = 2_000_000
+      if (network === Chain.Optimism) {
+        txOptions.gasPrice = 0
+        txOptions.gasLimit = 8_000_000
+      } else if (network === Chain.xDai) {
+        txOptions.gasPrice = 1000000000
+        txOptions.gasLimit = 4_000_000
+      }
     }
     return txOptions
   }
@@ -1193,6 +1218,10 @@ export async function waitForEvent (
         })
     })
   })
+}
+
+export function generateUser (privateKey: string) {
+  return new User(privateKey)
 }
 
 export function generateUsers (count: number = 1, mnemonic: string) {

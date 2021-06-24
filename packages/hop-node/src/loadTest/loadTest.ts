@@ -5,29 +5,38 @@ import { wait, isL1ChainId, chainSlugToId } from 'src/utils'
 import {
   User,
   waitForEvent,
+  generateUser,
   generateUsers,
   prepareAccounts,
   getBalances
 } from '../../test/helpers'
-import { faucetPrivateKey, mnemonic } from '../../test/config'
+import {
+  faucetPrivateKey,
+  mnemonic,
+  privateKey as testUserPrivateKey
+} from '../../test/config'
+import { config } from 'src/config'
 import Logger from 'src/logger'
 // @ts-ignore
 import { Chain } from 'src/constants'
 import { Notifier } from 'src/notifier'
 
-const paths = [[Chain.Optimism, Chain.xDai]]
+//const paths = [[Chain.Polygon, Chain.xDai]]
+const paths = [[Chain.xDai, Chain.Polygon]]
 const tokens = ['USDC']
-const transferAmount = 10
+const transferAmount = 2
 
 type Config = {
   concurrentUsers: number
 }
 
 class LoadTest {
-  concurrentUsers: number
+  concurrentUsers: number = 1
 
   constructor (config: Config) {
-    this.concurrentUsers = config.concurrentUsers
+    if (config.concurrentUsers) {
+      this.concurrentUsers = config.concurrentUsers
+    }
   }
 
   async start () {
@@ -41,10 +50,20 @@ class LoadTest {
             tag: 'LoadTest',
             prefix: label
           })
+          logger.debug('concurrent users:', this.concurrentUsers)
           const notifier = new Notifier('LoadTest')
           try {
             const faucet = new User(faucetPrivateKey)
-            const users = generateUsers(this.concurrentUsers, mnemonic)
+            const users = []
+            if (config.isMainnet) {
+              const user = generateUser(testUserPrivateKey)
+              for (let i = 0; i < this.concurrentUsers; i++) {
+                // simulate users using same signer
+                users.push(user)
+              }
+            } else {
+              users.push(...generateUsers(this.concurrentUsers, mnemonic))
+            }
             await prepareAccounts(
               users,
               faucet,

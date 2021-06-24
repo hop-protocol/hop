@@ -66,6 +66,7 @@ type RolesConfig = {
   bonder?: boolean
   challenger?: boolean
   arbBot?: boolean
+  xdaiBridge?: boolean
 }
 
 type WatchersConfig = {
@@ -85,6 +86,7 @@ type DbConfig = {
 type KeystoreConfig = {
   location: string
   pass?: string
+  passwordFile?: string
 }
 
 type LoggingConfig = {
@@ -96,11 +98,16 @@ type Config = {
   chains?: ChainsConfig
   tokens?: TokensConfig
   roles?: RolesConfig
-  watchers?: WatchersConfig
+  watchers?: Partial<WatchersConfig>
   sync?: SyncConfig
   db?: DbConfig
   logging?: LoggingConfig
   keystore?: KeystoreConfig
+  stake?: any
+  settleBondedWithdrawals?: any
+  commitTransfers?: any
+  bondWithdrawals?: any
+  order?: number
 }
 
 let enabledWatchers = [
@@ -116,7 +123,7 @@ let enabledWatchers = [
 program
   .description('Start Hop node')
   .option(
-    '-c, --config <filepath>',
+    '-c, --config <string>',
     'Config file to use. Can be in JSON or YAML format'
   )
   .option(
@@ -124,50 +131,17 @@ program
     'Start in dry mode. If enabled, no transactions will be sent.'
   )
   .option(
-    '--password-file <filepath>',
+    '--password-file <string>',
     'File containing password to unlock keystore'
   )
-  .action(async source => {
+  .action(async (source: any) => {
     try {
       printHopArt()
+
       const configFilePath = source.config || source.args[0]
-      const config: any = await setupConfig(configFilePath)
-      if (config?.logging?.level) {
-        const logLevel = config.logging.level
-        logger.info(`log level: "${logLevel}"`)
-        setLogLevel(logLevel)
-      }
-      if (config?.keystore) {
-        if (!config.keystore.location) {
-          throw new Error('keystore location is required')
-        }
-        const filepath = path.resolve(
-          config.keystore.location.replace('~', os.homedir())
-        )
-        const keystore = JSON.parse(
-          fs.readFileSync(path.resolve(filepath), 'utf8')
-        )
-        let passphrase = process.env.KEYSTORE_PASS || config?.keystore.pass
-        if (!passphrase) {
-          let passwordFilePath =
-            source.passwordFile || config?.keystore?.passwordFile
-          if (passwordFilePath) {
-            passwordFilePath = path.resolve(
-              passwordFilePath.replace('~', os.homedir())
-            )
-            passphrase = fs.readFileSync(passwordFilePath, 'utf8').trim()
-          } else {
-            passphrase = await promptPassphrase()
-          }
-        }
-        const privateKey = await recoverKeystore(keystore, passphrase as string)
-        setBonderPrivateKey(privateKey)
-      }
-      if (config?.network) {
-        const network = config.network
-        logger.info(`network: "${network}"`)
-        setConfigByNetwork(network)
-      }
+      const config: Config = await parseConfigFile(configFilePath)
+      await setGlobalConfigFromConfigFile(config, source.passwordFile)
+
       const tokens = []
       if (config?.tokens) {
         for (let k in config.tokens) {
@@ -177,6 +151,7 @@ program
           }
         }
       }
+
       const networks = []
       if (config?.chains) {
         for (let k in config.chains) {
@@ -199,9 +174,7 @@ program
           }
         }
       }
-      if (config?.sync) {
-        setSyncConfig(config?.sync)
-      }
+
       const bonder = config?.roles?.bonder
       const challenger = config?.roles?.challenger
       const order = Number(config?.order || 0)
@@ -244,8 +217,8 @@ program
         logger.warn(`dry mode enabled`)
       }
       if (config?.watchers) {
-        for (let key in config?.watchers) {
-          if (!config?.watchers[key]) {
+        for (let key in config.watchers) {
+          if (!(config.watchers as any)[key]) {
             enabledWatchers = enabledWatchers.filter(watcher => watcher !== key)
           }
         }
@@ -286,17 +259,23 @@ program
 
 program
   .command('bonder')
-  .option('-o, --order <order>', 'Bonder order')
+  .option('--config <string>', 'Config file to use.')
+  .option('-o, --order <number>', 'Bonder order')
   .option(
-    '-t, --tokens <symbol>',
+    '-t, --tokens <string>',
     'List of token by symbol to bond, comma separated'
   )
   .option('--l1-network <network>', 'L1 network')
   .option('-c, --chains <network>', 'List of chains to bond, comma separated')
   .description('Start the bonder watchers')
-  .action(source => {
+  .action(async source => {
     try {
       printHopArt()
+      const configPath = source?.config || source?.parent?.config
+      if (configPath) {
+        const config: Config = await parseConfigFile(configPath)
+        await setGlobalConfigFromConfigFile(config)
+      }
       if (source.l1Network) {
         logger.info(`network: "${source.l1Network}"`)
         setConfigByNetwork(source.l1Network)
@@ -379,12 +358,18 @@ async function staker (
 program
   .command('stake')
   .description('Stake amount')
+  .option('--config <string>', 'Config file to use.')
   .option('-n, --network <string>', 'Network')
   .option('-c, --chain <string>', 'Chain')
   .option('-t, --token <string>', 'Token')
   .option('-a, --amount <number>', 'Amount (in human readable format)')
   .action(async source => {
     try {
+      const configPath = source?.config || source?.parent?.config
+      if (configPath) {
+        const config: Config = await parseConfigFile(configPath)
+        await setGlobalConfigFromConfigFile(config)
+      }
       const network = source.network
       const chain = source.chain
       const token = source.token
@@ -406,6 +391,11 @@ program
   .option('-a, --amount <number>', 'Amount (in human readable format)')
   .action(async source => {
     try {
+      const configPath = source?.config || source?.parent?.config
+      if (configPath) {
+        const config: Config = await parseConfigFile(configPath)
+        await setGlobalConfigFromConfigFile(config)
+      }
       const network = source.network
       const chain = source.chain
       const token = source.token
@@ -421,11 +411,17 @@ program
 program
   .command('stake-status')
   .description('Stake status')
+  .option('--config <string>', 'Config file to use.')
   .option('-n, --network <string>', 'Network')
   .option('-c, --chain <string>', 'Chain')
   .option('-t, --token <string>', 'Token')
   .action(async source => {
     try {
+      const configPath = source?.config || source?.parent?.config
+      if (configPath) {
+        const config: Config = await parseConfigFile(configPath)
+        await setGlobalConfigFromConfigFile(config)
+      }
       const network = source.network
       const chain = source.chain
       const token = source.token
@@ -441,13 +437,19 @@ program
 program
   .command('settle')
   .description('Settle bonded withdrawals')
+  .option('--config <string>', 'Config file to use.')
   .option('-n, --network <string>', 'Network')
   .option('-c, --chain <string>', 'Chain')
   .option('-t, --token <string>', 'Token')
   .option('--transfer-id <string>', 'Transfer ID')
   .action(async source => {
     try {
-      dbConfig.path = '/home/mota/.hop-node/db.mainnet'
+      const configPath = source?.config || source?.parent?.config
+      if (configPath) {
+        const config: Config = await parseConfigFile(configPath)
+        await setGlobalConfigFromConfigFile(config)
+      }
+      //dbConfig.path = '/home/mota/.hop-node/db.mainnet'
       const network = source.network
       const chain = source.chain
       const token = source.token
@@ -511,8 +513,14 @@ program
 program
   .command('xdai-bridge')
   .description('Start the xDai bridge watcher')
-  .action(() => {
+  .option('--config <string>', 'Config file to use.')
+  .action(async (source: any) => {
     try {
+      const configPath = source?.config || source?.parent?.config
+      if (configPath) {
+        const config: Config = await parseConfigFile(configPath)
+        await setGlobalConfigFromConfigFile(config)
+      }
       const tokens = Object.keys(globalConfig.tokens)
       for (let token of tokens) {
         new xDaiBridgeWatcher({
@@ -528,8 +536,14 @@ program
 program
   .command('polygon-bridge')
   .description('Start the polygon bridge watcher')
-  .action(() => {
+  .option('--config <string>', 'Config file to use.')
+  .action(async (source: any) => {
     try {
+      const configPath = source?.config || source?.parent?.config
+      if (configPath) {
+        const config: Config = await parseConfigFile(configPath)
+        await setGlobalConfigFromConfigFile(config)
+      }
       const tokens = Object.keys(globalConfig.tokens)
       for (let token of tokens) {
         new PolygonBridgeWatcher({
@@ -546,8 +560,14 @@ program
   .command('load-test')
   .option('--concurrent-users <number>', 'Number of concurrent users')
   .description('Start load test')
-  .action(source => {
+  .option('--config <string>', 'Config file to use.')
+  .action(async (source: any) => {
     try {
+      const configPath = source?.config || source?.parent?.config
+      if (configPath) {
+        const config: Config = await parseConfigFile(configPath)
+        await setGlobalConfigFromConfigFile(config)
+      }
       new LoadTest({
         concurrentUsers: Number(source.concurrentUsers || 1)
       }).start()
@@ -559,6 +579,7 @@ program
 
 program
   .command('health-check')
+  .option('--config <string>', 'Config file to use.')
   .option(
     '--bond-withdrawal-time-limit <number>',
     'Number of minutes a transfer should be bonded before alerting'
@@ -576,7 +597,12 @@ program
     'Number of seconds to wait between each poll'
   )
   .description('Start health check')
-  .action(source => {
+  .action(async (source: any) => {
+    const configPath = source?.config || source?.parent?.config
+    if (configPath) {
+      const config: Config = await parseConfigFile(configPath)
+      await setGlobalConfigFromConfigFile(config)
+    }
     const bondWithdrawalTimeLimitMinutes = Number(
       source.bondWithdrawalTimeLimit
     )
@@ -604,8 +630,14 @@ program
 program
   .command('challenger')
   .description('Start the challenger watcher')
-  .action(async () => {
+  .option('--config <string>', 'Config file to use.')
+  .action(async (source: any) => {
     try {
+      const configPath = source?.config || source?.parent?.config
+      if (configPath) {
+        const config: Config = await parseConfigFile(configPath)
+        await setGlobalConfigFromConfigFile(config)
+      }
       await startChallengeWatchers()
     } catch (err) {
       logger.error(err.message)
@@ -615,8 +647,14 @@ program
 program
   .command('relayer')
   .description('Start the relayer watcher')
-  .action(async () => {
+  .option('--config <string>', 'Config file to use.')
+  .action(async (source: any) => {
     try {
+      const configPath = source?.config || source?.parent?.config
+      if (configPath) {
+        const config: Config = await parseConfigFile(configPath)
+        await setGlobalConfigFromConfigFile(config)
+      }
       await startCommitTransferWatchers()
     } catch (err) {
       logger.error(err.message)
@@ -627,10 +665,16 @@ program
 program
   .command('arb-bot')
   .description('Start the arbitrage bot')
+  .option('--config <string>', 'Config file to use.')
   .option('--max-trade-amount <number>', 'Max trade amount')
   .option('--min-threshold <number>', 'Min threshold')
-  .action(source => {
+  .action(async (source: any) => {
     try {
+      const configPath = source?.config || source?.parent?.config
+      if (configPath) {
+        const config: Config = await parseConfigFile(configPath)
+        await setGlobalConfigFromConfigFile(config)
+      }
       const maxTradeAmount = Number(source.maxTradeAmount) || 0
       const minThreshold = Number(source.minThreshold) || 0
       arbbots.start({
@@ -646,11 +690,17 @@ program
 program
   .command('keystore')
   .description('Keystore')
-  .option('--pass <passphrase>', 'Passphrase to encrypt keystore with')
-  .option('-o, --output <output>', 'Output file path of encrypted keystore')
-  .option('--private-key <private-key>', 'The private key to encrypt')
-  .action(async source => {
+  .option('--config <string>', 'Config file to use.')
+  .option('--pass <string>', 'Passphrase to encrypt keystore with')
+  .option('-o, --output <string>', 'Output file path of encrypted keystore')
+  .option('--private-key <string>', 'The private key to encrypt')
+  .action(async (source: any) => {
     try {
+      const configPath = source?.config || source?.parent?.config
+      if (configPath) {
+        const config: Config = await parseConfigFile(configPath)
+        await setGlobalConfigFromConfigFile(config)
+      }
       const action = source.args[0]
       let passphrase = source.pass
       const output = source.output || defaultKeystoreFilePath
@@ -875,14 +925,8 @@ async function validateConfig (config: any) {
   }
 }
 
-async function setupConfig (_configFile?: string) {
-  let configPath = ''
-  if (_configFile) {
-    configPath = path.resolve(_configFile.replace('~', os.homedir()))
-  } else {
-    configPath = defaultConfigFilePath
-  }
-
+async function parseConfigFile (_configFile: string = defaultConfigFilePath) {
+  let configPath = path.resolve(_configFile.replace('~', os.homedir()))
   let config: Config | null = null
   if (configPath) {
     if (!fs.existsSync(configPath)) {
@@ -900,12 +944,6 @@ async function setupConfig (_configFile?: string) {
     logger.info('config file:', configPath)
   }
 
-  if (config?.db) {
-    const dbPath = config?.db?.location
-    if (dbPath) {
-      dbConfig.path = dbPath
-    }
-  }
   return config
 }
 
@@ -922,6 +960,54 @@ async function promptPassphrase (message: string = 'keystore passphrase') {
     }
   } as any)
   return passphrase
+}
+
+async function setGlobalConfigFromConfigFile (
+  config: Config = {},
+  passwordFile: string = ''
+) {
+  if (config?.db) {
+    const dbPath = config?.db?.location
+    if (dbPath) {
+      dbConfig.path = dbPath
+    }
+  }
+  if (config?.logging?.level) {
+    const logLevel = config.logging.level
+    logger.info(`log level: "${logLevel}"`)
+    setLogLevel(logLevel)
+  }
+  if (config?.keystore) {
+    if (!config.keystore.location) {
+      throw new Error('keystore location is required')
+    }
+    const filepath = path.resolve(
+      config.keystore.location.replace('~', os.homedir())
+    )
+    const keystore = JSON.parse(fs.readFileSync(path.resolve(filepath), 'utf8'))
+    let passphrase: string = process.env.KEYSTORE_PASS || config?.keystore.pass
+    if (!passphrase) {
+      let passwordFilePath = passwordFile || config?.keystore?.passwordFile
+      if (passwordFilePath) {
+        passwordFilePath = path.resolve(
+          passwordFilePath.replace('~', os.homedir())
+        )
+        passphrase = fs.readFileSync(passwordFilePath, 'utf8').trim()
+      } else {
+        passphrase = (await promptPassphrase()) as string
+      }
+    }
+    const privateKey = await recoverKeystore(keystore, passphrase as string)
+    setBonderPrivateKey(privateKey)
+  }
+  if (config?.network) {
+    const network = config.network
+    logger.info(`network: "${network}"`)
+    setConfigByNetwork(network)
+  }
+  if (config?.sync) {
+    setSyncConfig(config?.sync)
+  }
 }
 
 process.on('SIGINT', () => {

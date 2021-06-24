@@ -553,7 +553,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
 
       const bridge = this.getSiblingWatcherByChainId(chainId).bridge
-      await this.bridge.waitSafeConfirmations()
+      const txBlockNumber = await this.bridge.getTransactionBlockNumber(
+        dbTransfer.withdrawalBondedTxHash
+      )
+      await this.bridge.waitSafeConfirmations(txBlockNumber)
       logger.debug(
         'transferRootId:',
         chalk.bgMagenta.black(dbTransfer.transferRootId)
@@ -724,7 +727,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
             await db.transfers.update(transferId, {
               transferRootHash,
               withdrawalBonded: true,
-              withdrawalBondSettled: true
+              withdrawalBondSettled: true,
+              withdrawalBondedTxHash: receipt.transactionHash
             })
           }
         })

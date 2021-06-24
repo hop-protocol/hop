@@ -14,6 +14,7 @@ export type Transfer = {
   withdrawalBondSettleTxSentAt?: number
   withdrawalBonded?: boolean
   withdrawalBonder?: string
+  withdrawalBondedTxHash?: string
   sentBondWithdrawalTx?: boolean
   sentBondWithdrawalTxAt?: number
 
@@ -80,7 +81,8 @@ class TransfersDb extends BaseDb {
       return (
         item.withdrawalBonded &&
         !item.withdrawalBondSettled &&
-        item.transferRootHash
+        item.transferRootHash &&
+        item.withdrawalBondedTxHash
       )
     })
   }

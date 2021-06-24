@@ -255,11 +255,17 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const isWithdrawalBonded = bondedAmount.gt(0) || isTransferIdSpent
     if (isWithdrawalBonded) {
       logger.debug(
-        `transferId ${transferId} already bonded. spent = ${isTransferIdSpent}`
+        `transferId ${transferId} already bonded. isSpent: ${isTransferIdSpent}`
       )
       await db.transfers.update(transferId, {
         withdrawalBonded: true
       })
+      const event = await destL2Bridge.getBondedWithdrawalEvent(transferId)
+      if (event?.transactionHash) {
+        await db.transfers.update(transferId, {
+          withdrawalBondedTxHash: event?.transactionHash
+        })
+      }
       return
     }
 
@@ -363,7 +369,8 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         )
 
         await db.transfers.update(transferId, {
-          withdrawalBonded: true
+          withdrawalBonded: true,
+          withdrawalBondedTxHash: receipt.transactionHash
         })
       })
       .catch(async (err: Error) => {
@@ -453,7 +460,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const logger = this.logger.create({ id: transferId })
 
     const tx = await meta.getTransaction()
-    const { from: withdrawalBonder } = tx
+    const { from: withdrawalBonder, hash } = tx
 
     logger.debug(`handling WithdrawalBonded event`)
     logger.debug('transferId:', transferId)
@@ -461,7 +468,8 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
     await db.transfers.update(transferId, {
       withdrawalBonded: true,
-      withdrawalBonder
+      withdrawalBonder,
+      withdrawalBondedTxHash: hash
     })
   }
 

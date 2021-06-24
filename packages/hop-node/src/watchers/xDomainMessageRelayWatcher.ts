@@ -161,6 +161,9 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
 
   async checkTransfersCommittedFromDb () {
     const dbTransferRoots = await db.transferRoots.getUnconfirmedTransferRoots()
+    this.logger.debug(
+      `checking ${dbTransferRoots.length} unconfirmed transfer roots db items`
+    )
     for (let dbTransferRoot of dbTransferRoots) {
       const { transferRootHash, chainId, committedAt } = dbTransferRoot
       // Parallelizing these calls produces RPC errors on Optimism

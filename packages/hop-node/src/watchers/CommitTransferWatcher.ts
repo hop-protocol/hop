@@ -69,7 +69,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     const promises: Promise<any>[] = []
     const l2Bridge = this.bridge as L2Bridge
     promises.push(
-      this.eventsBatch(
+      l2Bridge.eventsBatch(
         async (start: number, end: number) => {
           const events = await l2Bridge.getTransferSentEvents(start, end)
           await this.handleTransferSentEvents(events)
@@ -144,6 +144,9 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
 
   async checkTransferSentFromDb () {
     const dbTransfers = await db.transfers.getUncommittedBondedTransfers()
+    this.logger.debug(
+      `checking ${dbTransfers.length} uncommitted bonded transfers db items`
+    )
     for (let dbTransfer of dbTransfers) {
       const { chainId } = dbTransfer
       await this.checkTransferSent(chainId)

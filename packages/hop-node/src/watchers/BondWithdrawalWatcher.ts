@@ -73,7 +73,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
     const promises: Promise<any>[] = []
     promises.push(
-      this.eventsBatch(
+      this.bridge.eventsBatch(
         async (start: number, end: number) => {
           const events = await this.bridge.getWithdrawalBondedEvents(start, end)
           await this.handleWithdrawalBondedEvents(events)
@@ -86,7 +86,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     if (!this.isL1) {
       const l2Bridge = this.bridge as L2Bridge
       promises.push(
-        this.eventsBatch(
+        l2Bridge.eventsBatch(
           async (start: number, end: number) => {
             const events = await l2Bridge.getTransferSentEvents(start, end)
             await this.handleTransferSentEvents(events)
@@ -191,6 +191,9 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
   async checkTransferSentFromDb () {
     const dbTransfers = await db.transfers.getUnbondedSentTransfers()
+    this.logger.debug(
+      `checking ${dbTransfers.length} unbonded transfers db items`
+    )
     const promises: Promise<any>[] = []
     for (let dbTransfer of dbTransfers) {
       const { transferId } = dbTransfer

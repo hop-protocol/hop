@@ -56,7 +56,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     if (this.isL1) {
       const l1Bridge = this.bridge as L1Bridge
       promises.push(
-        this.eventsBatch(
+        l1Bridge.eventsBatch(
           async (start: number, end: number) => {
             const events = await l1Bridge.getTransferRootBondedEvents(
               start,
@@ -70,7 +70,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     } else {
       const l2Bridge = this.bridge as L2Bridge
       promises.push(
-        this.eventsBatch(
+        l2Bridge.eventsBatch(
           async (start: number, end: number) => {
             const events = await l2Bridge.getTransfersCommittedEvents(
               start,
@@ -154,6 +154,9 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
 
   async checkTransfersCommittedFromDb () {
     const dbTransferRoots = await db.transferRoots.getUnbondedTransferRoots()
+    this.logger.debug(
+      `checking ${dbTransferRoots.length} unbonded transfer roots db items`
+    )
     for (let dbTransferRoot of dbTransferRoots) {
       const {
         transferRootHash,

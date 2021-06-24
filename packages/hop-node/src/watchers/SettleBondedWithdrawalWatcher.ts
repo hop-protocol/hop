@@ -68,7 +68,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     if (!this.isL1) {
       const l2Bridge = this.bridge as L2Bridge
       promises.push(
-        this.eventsBatch(
+        l2Bridge.eventsBatch(
           async (start: number, end: number) => {
             const events = await l2Bridge.getTransferSentEvents(start, end)
             await this.handleTransferSentEvents(events)
@@ -78,7 +78,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       )
 
       promises.push(
-        this.eventsBatch(
+        l2Bridge.eventsBatch(
           async (start: number, end: number) => {
             const events = await l2Bridge.getTransfersCommittedEvents(
               start,
@@ -92,7 +92,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     }
 
     promises.push(
-      this.eventsBatch(
+      this.bridge.eventsBatch(
         async (start: number, end: number) => {
           const events = await this.bridge.getMultipleWithdrawalsSettledEvents(
             start,
@@ -105,7 +105,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     )
 
     promises.push(
-      this.eventsBatch(
+      this.bridge.eventsBatch(
         async (start: number, end: number) => {
           const events = await this.bridge.getTransferRootSetEvents(start, end)
           await this.handleTransferRootSetEvents(events)
@@ -125,7 +125,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const dbTransfers = await db.transfers.getBondedTransfersWithoutRoots()
     for (let dbTransfer of dbTransfers) {
       const { transferId } = dbTransfer
-      // TODO: fetch transfer root hash for transfer id
+      // TODO: fetch transfer root hash for transfer id more efficiently
+      this.bridge.eventsBatch(async (start: number, end: number) => {
+        const events = await this.bridge.getTransferRootSetEvents(start, end)
+        await this.handleTransferRootSetEvents(events)
+      })
     }
   }
 
@@ -148,20 +152,34 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       if (!this.started) {
         return
       }
-      try {
-        await this.checkUnsettledTransfers()
-      } catch (err) {
-        this.logger.error(`poll error checkUnsettledTransfers: ${err.message}`)
-        this.notifier.error(
-          `poll error checkUnsettledTransfers: ${err.message}`
-        )
-      }
-      try {
-        await this.syncTransferRootHashForTransferIds()
-      } catch (err) {
-        this.logger.error(`poll error: ${err.message}`)
-        this.notifier.error(`poll error: ${err.message}`)
-      }
+      const promises: Promise<any>[] = []
+      promises.push(
+        new Promise(async resolve => {
+          try {
+            await this.checkUnsettledTransfersFromDb()
+          } catch (err) {
+            this.logger.error(
+              `poll error checkUnsettledTransfers: ${err.message}`
+            )
+            this.notifier.error(
+              `poll error checkUnsettledTransfers: ${err.message}`
+            )
+          }
+          resolve(null)
+        })
+      )
+      /*
+			promises.push(new Promise(async (resolve) => {
+				try {
+					await this.syncTransferRootHashForTransferIds()
+				} catch (err) {
+					this.logger.error(`poll error: ${err.message}`)
+					this.notifier.error(`poll error: ${err.message}`)
+				}
+				resolve(null)
+			}))
+			*/
+      await Promise.all(promises)
       await wait(this.pollIntervalSec)
     }
   }
@@ -213,10 +231,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async handleTransferRootSetEvents (events: Event[]) {
+    const promises: Promise<any>[] = []
     for (let event of events) {
       const { rootHash, totalAmount } = event.args
-      await this.handleTransferRootSetEvent(rootHash, totalAmount, event)
+      promises.push(
+        this.handleTransferRootSetEvent(rootHash, totalAmount, event)
+      )
     }
+    await Promise.all(promises)
   }
 
   async handleMultipleWithdrawalsSettledEvents (events: Event[]) {
@@ -460,8 +482,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
-  checkUnsettledTransfers = async () => {
+  checkUnsettledTransfersFromDb = async () => {
     const dbTransfers: Transfer[] = await db.transfers.getUnsettledBondedWithdrawalTransfers()
+    this.logger.debug(
+      `checking ${dbTransfers.length} unsettled bonded withdrawal transfers db items`
+    )
     const promises: Promise<any>[] = []
     for (let dbTransfer of dbTransfers) {
       promises.push(
@@ -471,6 +496,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           } catch (err) {
             this.logger.error(`checkUnsettledTransfer error:`, err.message)
           }
+          resolve(null)
         })
       )
     }

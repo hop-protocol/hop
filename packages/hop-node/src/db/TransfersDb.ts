@@ -101,10 +101,7 @@ class TransfersDb extends BaseDb {
     const transfers = await this.getTransfers()
     return transfers.filter(item => {
       return (
-        item.transferId &&
-        !item.withdrawalBonded &&
-        !item.transferRootId &&
-        item.transferSentTxHash
+        item.transferId && !item.withdrawalBonded && item.transferSentTxHash
       )
     })
   }

@@ -27,6 +27,7 @@ const BONDER_ORDER_DELAY_MS = 60 * 1000
 class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
   minThresholdPercent: number = 0.5 // 50%
+  shouldWaitMinThreshold: boolean = false
 
   constructor (config: Config) {
     super({
@@ -112,7 +113,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async syncTransferRootHashForTransferIds () {
-    const dbTransfers = await db.transfers.getBondedTransfersWithoutRoots()
+    const dbTransfers = await db.transfers.getBondedTransfersWithoutRoots({
+      sourceChainId: await this.bridge.getChainId()
+    })
     for (let dbTransfer of dbTransfers) {
       const { transferId } = dbTransfer
       // TODO: fetch transfer root hash for transfer id more efficiently
@@ -464,7 +467,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   checkUnsettledTransfersFromDb = async () => {
-    const dbTransfers: Transfer[] = await db.transfers.getUnsettledBondedWithdrawalTransfers()
+    // only process transfer where this bridge is the destination chain
+    const dbTransfers: Transfer[] = await db.transfers.getUnsettledBondedWithdrawalTransfers(
+      {
+        chainId: await this.bridge.getChainId()
+      }
+    )
     this.logger.debug(
       `checking ${dbTransfers.length} unsettled bonded withdrawal transfers db items`
     )
@@ -496,10 +504,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       )
       return
     }
+    // TODO: move this check to db getter
     const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
       dbTransfer.transferRootHash
     )
     if (!dbTransferRoot) {
+      this.logger.warn(
+        `no db transfer root transfer id ${dbTransfer.transferId}`
+      )
       return
     }
 
@@ -508,10 +520,17 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       transferRootHash: dbTransferRootHash,
       chainId,
       totalAmount,
+      confirmed,
       committed,
       committedAt,
       destinationBridgeAddress
     } = dbTransferRoot
+    if (!confirmed) {
+      this.logger.warn(
+        `db transfer root not confirmed for transfer id ${dbTransfer.transferId}`
+      )
+      return
+    }
 
     const logger = this.logger.create({ root: dbTransferRootHash })
 
@@ -529,12 +548,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     }
 
     try {
-      // only process transfer where this bridge is the destination chain
-      const bridgeChainId = await this.bridge.getChainId()
-      if (chainId !== bridgeChainId) {
-        return
-      }
-
       const bridgeAddress = await this.bridge.getAddress()
       if (destinationBridgeAddress !== bridgeAddress) {
         return
@@ -606,35 +619,39 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         totalBondsSettleAmount = totalBondsSettleAmount.add(transferBondAmount)
       }
 
-      let [credit, debit, bondedBondedWithdrawalsBalance] = await Promise.all([
-        bridge.getCredit(),
-        bridge.getDebit(),
-        bridge.getBonderBondedWithdrawalsBalance()
-      ])
-
-      const bonderDestBridgeStakedAmount = credit
-        .sub(debit)
-        .add(bondedBondedWithdrawalsBalance)
-
       if (totalBondsSettleAmount.eq(0)) {
         logger.warn('totalBondsSettleAmount is 0. Cannot settle')
         return
       }
 
-      if (
-        totalBondsSettleAmount
-          .div(bonderDestBridgeStakedAmount)
-          .lt(BigNumber.from(this.minThresholdPercent * 100).div(100))
-      ) {
-        logger.warn(
-          `total bonded withdrawal amount ${this.bridge.formatUnits(
-            totalBondsSettleAmount
-          )} does not meet min threshold of ${this.minThresholdPercent *
-            100}% of total staked ${this.bridge.formatUnits(
-            bonderDestBridgeStakedAmount
-          )}. Cannot settle yet`
+      if (this.shouldWaitMinThreshold) {
+        let [credit, debit, bondedBondedWithdrawalsBalance] = await Promise.all(
+          [
+            bridge.getCredit(),
+            bridge.getDebit(),
+            bridge.getBonderBondedWithdrawalsBalance()
+          ]
         )
-        return
+
+        const bonderDestBridgeStakedAmount = credit
+          .sub(debit)
+          .add(bondedBondedWithdrawalsBalance)
+
+        if (
+          totalBondsSettleAmount
+            .div(bonderDestBridgeStakedAmount)
+            .lt(BigNumber.from(this.minThresholdPercent * 100).div(100))
+        ) {
+          logger.warn(
+            `total bonded withdrawal amount ${this.bridge.formatUnits(
+              totalBondsSettleAmount
+            )} does not meet min threshold of ${this.minThresholdPercent *
+              100}% of total staked ${this.bridge.formatUnits(
+              bonderDestBridgeStakedAmount
+            )}. Cannot settle yet`
+          )
+          return
+        }
       }
 
       logger.debug('committedAt:', committedAt)

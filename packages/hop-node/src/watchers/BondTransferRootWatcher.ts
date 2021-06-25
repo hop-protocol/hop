@@ -141,7 +141,9 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransfersCommittedFromDb () {
-    const dbTransferRoots = await db.transferRoots.getUnbondedTransferRoots()
+    const dbTransferRoots = await db.transferRoots.getUnbondedTransferRoots({
+      sourceChainId: await this.bridge.getChainId()
+    })
     this.logger.debug(
       `checking ${dbTransferRoots.length} unbonded transfer roots db items`
     )
@@ -195,9 +197,6 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     if (this.skipChains.includes(sourceChainSlug)) {
       // TODO: mark as skipped
       // logger.warn('source chain is not Arbitrum or Optimism. Skipping bondTransferRoot')
-      return
-    }
-    if (sourceChainId !== this.bridge.chainId) {
       return
     }
     const bridgeAddress = await this.getSiblingWatcherByChainId(

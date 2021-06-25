@@ -204,7 +204,7 @@ export class User {
     return new Contract(wrapperAddress, l2AmmWrapperAbi, wallet)
   }
 
-  @queue
+  //@queue
   async approve (
     network: string,
     token: string | Contract,
@@ -649,10 +649,11 @@ export class User {
         await this.txOverrides(destNetwork)
       )
     } else if (destNetwork === Chain.Polygon) {
-      const approveAddress =
-        config.tokens[token][destNetwork].l1PosRootChainManager
-      const tx = await this.approve(destNetwork, token, approveAddress)
+      const approveAddress = config.tokens[token][destNetwork].l1PosPredicate
+      console.log('approving')
+      const tx = await this.approve(Chain.Ethereum, token, approveAddress)
       await tx?.wait()
+      console.log('waiting')
       const coder = ethers.utils.defaultAbiCoder
       const payload = coder.encode(['uint256'], [value])
       return tokenBridge.depositFor(

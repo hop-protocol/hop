@@ -53,7 +53,7 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
       if (isBonder) {
         this.logger.debug('is bonder')
       } else {
-        this.logger.warn('not a bonder')
+        this.logger.warn('not an allowed bonder on chain')
       }
       const bonderAddress = await this.bridge.getBonderAddress()
       if (this.isL1) {
@@ -174,7 +174,7 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
   async stake (amount: BigNumber) {
     const isBonder = await this.bridge.isBonder()
     if (!isBonder) {
-      throw new Error('not a bonder')
+      throw new Error('not an allowed bonder on chain')
     }
     const formattedAmount = this.bridge.formatUnits(amount)
     const balance = await this.token.getBalance()
@@ -205,7 +205,7 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
   async unstake (amount: BigNumber) {
     const isBonder = await this.bridge.isBonder()
     if (!isBonder) {
-      throw new Error('not a bonder')
+      throw new Error('not an allowed bonder on chain')
     }
     const parsedAmount = this.bridge.formatUnits(amount)
     const [credit, debit] = await Promise.all([

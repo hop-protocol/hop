@@ -99,6 +99,9 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async pollCheck () {
+    if (this.isL1) {
+      return
+    }
     while (true) {
       if (!this.started) {
         return
@@ -140,7 +143,9 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransferSentFromDb () {
-    const dbTransfers = await db.transfers.getUncommittedBondedTransfers()
+    const dbTransfers = await db.transfers.getUncommittedBondedTransfers({
+      sourceChainId: await this.bridge.getChainId()
+    })
     this.logger.debug(
       `checking ${dbTransfers.length} uncommitted bonded transfers db items`
     )
@@ -150,28 +155,27 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
-  checkTransferSent = throttle(async (chainId: number) => {
-    if (this.isL1) {
-      return
-    }
+  async checkTransferSent (destinationChainId: number) {
     try {
-      if (!chainId) {
+      if (!destinationChainId) {
         throw new Error('chainId is required')
       }
       const l2Bridge = this.bridge as L2Bridge
       const totalPendingAmount = await l2Bridge.getPendingAmountForChainId(
-        chainId
+        destinationChainId
       )
       if (totalPendingAmount.lte(0)) {
         return
       }
-      const lastCommitTime = await l2Bridge.getLastCommitTimeForChainId(chainId)
+      const lastCommitTime = await l2Bridge.getLastCommitTimeForChainId(
+        destinationChainId
+      )
       const minimumForceCommitDelay = await l2Bridge.getMinimumForceCommitDelay()
       const minForceCommitTime = lastCommitTime + minimumForceCommitDelay
       const isBonder = await this.bridge.isBonder()
       const l2ChainId = await l2Bridge.getChainId()
       this.logger.debug('chainId:', l2ChainId)
-      this.logger.debug('destinationChainId:', chainId)
+      this.logger.debug('destinationChainId:', destinationChainId)
       this.logger.debug('lastCommitTime:', lastCommitTime)
       this.logger.debug('minimumForceCommitDelay:', minimumForceCommitDelay)
       this.logger.debug('minForceCommitTime:', minForceCommitTime)
@@ -182,23 +186,23 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       }
 
       const pendingTransfers: string[] = await l2Bridge.getPendingTransfers(
-        chainId
+        destinationChainId
       )
       if (!pendingTransfers.length) {
         this.logger.warn('no pending transfers to commit')
       }
 
       this.logger.debug(
-        `total pending transfers count for chainId ${chainId}: ${pendingTransfers.length}`
+        `total pending transfers count for chainId ${destinationChainId}: ${pendingTransfers.length}`
       )
       this.logger.debug(
-        `total pending amount for chainId ${chainId}: ${this.bridge.formatUnits(
+        `total pending amount for chainId ${destinationChainId}: ${this.bridge.formatUnits(
           totalPendingAmount
         )}`
       )
       if (totalPendingAmount.lt(this.minThresholdAmount)) {
         this.logger.warn(
-          `chainId ${chainId} pending amount ${this.bridge.formatUnits(
+          `chainId ${destinationChainId} pending amount ${this.bridge.formatUnits(
             totalPendingAmount
           )} does not meet min threshold of ${this.bridge.formatUnits(
             this.minThresholdAmount
@@ -209,19 +213,19 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
 
       if (pendingTransfers.length < this.minPendingTransfers) {
         this.logger.warn(
-          `must reach ${this.minPendingTransfers} pending transfers before committing. Have ${pendingTransfers.length} on chainId: ${chainId}`
+          `must reach ${this.minPendingTransfers} pending transfers before committing. Have ${pendingTransfers.length} on chainId: ${destinationChainId}`
         )
         return
       }
 
       this.logger.debug(
-        `chainId: ${chainId} - onchain pendingTransfers\n`,
+        `chainId: ${destinationChainId} - onchain pendingTransfers\n`,
         pendingTransfers
       )
       const tree = new MerkleTree(pendingTransfers)
       const transferRootHash = tree.getHexRoot()
       this.logger.debug(
-        `chainId: ${chainId} - calculated transferRootHash: ${chalk.bgMagenta.black(
+        `chainId: ${destinationChainId} - calculated transferRootHash: ${chalk.bgMagenta.black(
           transferRootHash
         )}`
       )
@@ -277,12 +281,12 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         sentCommitTxAt: Date.now()
       })
 
-      await this.waitTimeout(chainId)
+      await this.waitTimeout(destinationChainId)
       this.logger.debug(
-        `sending commitTransfers (destination chain ${chainId}) tx`
+        `sending commitTransfers (destination chain ${destinationChainId}) tx`
       )
 
-      const tx = await l2Bridge.commitTransfers(chainId)
+      const tx = await l2Bridge.commitTransfers(destinationChainId)
       tx?.wait()
         .then(async (receipt: any) => {
           if (receipt.status !== 1) {
@@ -293,7 +297,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
             throw new Error('status=0')
           }
           this.emit('commitTransfers', {
-            chainId,
+            chainId: destinationChainId,
             transferRootHash,
             transferIds: pendingTransfers
           })
@@ -308,7 +312,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         })
       const sourceChainId = await l2Bridge.getChainId()
       this.logger.info(
-        `L2 (${sourceChainId}) commitTransfers (destination chain ${chainId}) tx:`,
+        `L2 (${sourceChainId}) commitTransfers (destination chain ${destinationChainId}) tx:`,
         chalk.bgYellow.black.bold(tx.hash)
       )
       this.notifier.info(`L2 commitTransfers tx: ${tx.hash}`)
@@ -317,7 +321,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         throw err
       }
     }
-  }, 15 * 1000)
+  }
 
   async getRecentTransferIdsForCommittedRoots () {
     const blockNumber = await this.bridge.getBlockNumber()

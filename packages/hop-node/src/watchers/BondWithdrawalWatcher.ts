@@ -122,6 +122,9 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async pollCheck () {
+    if (this.isL1) {
+      return
+    }
     while (true) {
       if (!this.started) {
         return
@@ -184,7 +187,9 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransferSentFromDb () {
-    const dbTransfers = await db.transfers.getUnbondedSentTransfers()
+    const dbTransfers = await db.transfers.getUnbondedSentTransfers({
+      sourceChainId: await this.bridge.getChainId()
+    })
     this.logger.debug(
       `checking ${dbTransfers.length} unbonded transfers db items`
     )
@@ -214,10 +219,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     } = dbTransfer
     const destL2Bridge = this.getSiblingWatcherByChainId(chainId)
       .bridge as L2Bridge
-
-    if (this.isL1 || this.bridge.chainId !== sourceChainId) {
-      return
-    }
 
     const isBonder = await destL2Bridge.isBonder()
     if (!isBonder) {

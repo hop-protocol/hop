@@ -151,7 +151,9 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransfersCommittedFromDb () {
-    const dbTransferRoots = await db.transferRoots.getUnconfirmedTransferRoots()
+    const dbTransferRoots = await db.transferRoots.getUnconfirmedTransferRoots({
+      sourceChainId: await this.bridge.getChainId()
+    })
     this.logger.debug(
       `checking ${dbTransferRoots.length} unconfirmed transfer roots db items`
     )
@@ -172,21 +174,9 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
-    if (dbTransferRoot.confirmed) {
-      return
-    }
 
     const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
     const l2Bridge = this.bridge as L2Bridge
-    const bridgeChainId = await l2Bridge.getChainId()
-    const sourceChainId = dbTransferRoot.sourceChainId
-    if (!sourceChainId) {
-      return
-    }
-    if (bridgeChainId !== sourceChainId) {
-      return
-    }
-
     const { transferRootId } = dbTransferRoot
     const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
       transferRootId

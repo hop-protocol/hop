@@ -6,7 +6,7 @@ export type Transfer = {
   transferRootId?: string
   transferRootHash?: string
   transferId?: string
-  chainId?: number
+  chainId?: number // TODO: rename to destinationChainId throughout
   destinationChainSlug?: string
   sourceChainId?: number
   sourceChainSlug?: string
@@ -75,9 +75,17 @@ class TransfersDb extends BaseDb {
     )
   }
 
-  async getUnsettledBondedWithdrawalTransfers (): Promise<Transfer[]> {
+  async getUnsettledBondedWithdrawalTransfers (
+    filter: Partial<Transfer> = {}
+  ): Promise<Transfer[]> {
     const transfers = await this.getTransfers()
     return transfers.filter(item => {
+      if (filter?.chainId) {
+        if (filter.chainId !== item.chainId) {
+          return false
+        }
+      }
+
       return (
         item.withdrawalBonded &&
         !item.withdrawalBondSettled &&
@@ -87,9 +95,17 @@ class TransfersDb extends BaseDb {
     })
   }
 
-  async getUncommittedBondedTransfers (): Promise<Transfer[]> {
+  async getUncommittedBondedTransfers (
+    filter: Partial<Transfer> = {}
+  ): Promise<Transfer[]> {
     const transfers = await this.getTransfers()
     return transfers.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
       return (
         item.transferId &&
         item.withdrawalBonded &&
@@ -99,18 +115,34 @@ class TransfersDb extends BaseDb {
     })
   }
 
-  async getUnbondedSentTransfers (): Promise<Transfer[]> {
+  async getUnbondedSentTransfers (
+    filter: Partial<Transfer> = {}
+  ): Promise<Transfer[]> {
     const transfers = await this.getTransfers()
     return transfers.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
       return (
         item.transferId && !item.withdrawalBonded && item.transferSentTxHash
       )
     })
   }
 
-  async getBondedTransfersWithoutRoots (): Promise<Transfer[]> {
+  async getBondedTransfersWithoutRoots (
+    filter: Partial<Transfer> = {}
+  ): Promise<Transfer[]> {
     const transfers = await this.getTransfers()
     return transfers.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
       return item.withdrawalBonded && !item.transferRootHash
     })
   }

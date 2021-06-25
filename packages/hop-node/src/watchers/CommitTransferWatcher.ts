@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import { wait } from 'src/utils'
 import { throttle } from 'src/utils'
 import db from 'src/db'
+import { Transfer } from 'src/db/TransfersDb'
 import MerkleTree from 'src/utils/MerkleTree'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import L2Bridge from './classes/L2Bridge'
@@ -143,28 +144,47 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransferSentFromDb () {
-    const dbTransfers = await db.transfers.getUncommittedBondedTransfers({
+    const dbTransfers = await db.transfers.getUncommittedTransfers({
       sourceChainId: await this.bridge.getChainId()
     })
-    this.logger.debug(
-      `checking ${dbTransfers.length} uncommitted bonded transfers db items`
-    )
+    if (dbTransfers.length) {
+      this.logger.debug(
+        `checking ${dbTransfers.length} uncommitted transfers db items`
+      )
+    }
+    let chainIds: number[] = []
     for (let dbTransfer of dbTransfers) {
       const { chainId } = dbTransfer
-      await this.checkTransferSent(chainId)
+      if (!chainIds.includes(chainId)) {
+        chainIds.push(chainId)
+      }
+    }
+    for (let destinationChainId of chainIds) {
+      const filtered = dbTransfers.filter(transfer => {
+        return transfer.chainId === destinationChainId
+      })
+      await this.checkIfShouldCommit(destinationChainId, filtered)
     }
   }
 
-  async checkTransferSent (destinationChainId: number) {
+  async checkIfShouldCommit (
+    destinationChainId: number,
+    dbTransfers: Transfer[]
+  ) {
     try {
       if (!destinationChainId) {
-        throw new Error('chainId is required')
+        throw new Error('destination chain id is required')
       }
       const l2Bridge = this.bridge as L2Bridge
       const totalPendingAmount = await l2Bridge.getPendingAmountForChainId(
         destinationChainId
       )
       if (totalPendingAmount.lte(0)) {
+        for (let { transferId } of dbTransfers) {
+          await db.transfers.update(transferId, {
+            commited: true
+          })
+        }
         return
       }
       const lastCommitTime = await l2Bridge.getLastCommitTimeForChainId(
@@ -183,6 +203,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
 
       if (minForceCommitTime >= Date.now() && !isBonder) {
         this.logger.warn('only Bonder can commit before min delay')
+        return
       }
 
       const pendingTransfers: string[] = await l2Bridge.getPendingTransfers(
@@ -190,6 +211,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       )
       if (!pendingTransfers.length) {
         this.logger.warn('no pending transfers to commit')
+        return
       }
 
       this.logger.debug(

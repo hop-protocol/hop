@@ -6,7 +6,7 @@ export type TransferRoot = {
   transferRootId?: string
   transferRootHash?: string
   totalAmount?: BigNumber
-  chainId?: number
+  chainId?: number // TODO: rename to destinationChainId throughout
   sourceChainId?: number
   sentCommitTx?: boolean
   sentCommitTxAt: number

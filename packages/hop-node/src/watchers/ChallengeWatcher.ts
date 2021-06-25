@@ -119,9 +119,11 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
 
   async checkTransferRootFromDb () {
     const dbTransferRoots = await db.transferRoots.getChallengeableTransferRoots()
-    this.logger.debug(
-      `checking ${dbTransferRoots.length} challengeable transfer roots db items`
-    )
+    if (dbTransferRoots.length) {
+      this.logger.debug(
+        `checking ${dbTransferRoots.length} challengeable transfer roots db items`
+      )
+    }
     for (let dbTransferRoot of dbTransferRoots) {
       const { transferRootHash, chainId, totalAmount } = dbTransferRoot
       await this.checkTransferRoot(transferRootHash, chainId, totalAmount)

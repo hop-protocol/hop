@@ -144,9 +144,11 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     const dbTransferRoots = await db.transferRoots.getUnbondedTransferRoots({
       sourceChainId: await this.bridge.getChainId()
     })
-    this.logger.debug(
-      `checking ${dbTransferRoots.length} unbonded transfer roots db items`
-    )
+    if (dbTransferRoots.length) {
+      this.logger.debug(
+        `checking ${dbTransferRoots.length} unbonded transfer roots db items`
+      )
+    }
     for (let dbTransferRoot of dbTransferRoots) {
       const {
         transferRootHash,

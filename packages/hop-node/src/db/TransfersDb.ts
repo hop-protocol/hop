@@ -27,6 +27,8 @@ export type Transfer = {
   transferSentTxHash?: string
   transferSentBlockNumber?: number
   transferSentTimestamp?: number
+
+  commited: boolean
 }
 
 class TransfersDb extends BaseDb {
@@ -90,12 +92,13 @@ class TransfersDb extends BaseDb {
         item.withdrawalBonded &&
         !item.withdrawalBondSettled &&
         item.transferRootHash &&
-        item.withdrawalBondedTxHash
+        item.withdrawalBondedTxHash &&
+        item.transferRootHash
       )
     })
   }
 
-  async getUncommittedBondedTransfers (
+  async getUncommittedTransfers (
     filter: Partial<Transfer> = {}
   ): Promise<Transfer[]> {
     const transfers = await this.getTransfers()
@@ -108,9 +111,9 @@ class TransfersDb extends BaseDb {
 
       return (
         item.transferId &&
-        item.withdrawalBonded &&
         !item.transferRootId &&
-        item.transferSentTxHash
+        item.transferSentTxHash &&
+        !item.commited
       )
     })
   }

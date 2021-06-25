@@ -521,7 +521,8 @@ export default class Bridge extends ContractBase {
   ) {
     let i = 0
     return this.eventsBatch(async (start: number, end: number) => {
-      const events = await getEventsMethod(start, end)
+      let events = await getEventsMethod(start, end)
+      events = events.reverse()
       for (let event of events) {
         await cb(event, i)
         i++
@@ -537,7 +538,8 @@ export default class Bridge extends ContractBase {
     let i = 0
     const promises: Promise<any>[] = []
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await getEventsMethod(start, end)
+      let events = await getEventsMethod(start, end)
+      events = events.reverse()
       for (let event of events) {
         promises.push(cb(event, i++))
       }

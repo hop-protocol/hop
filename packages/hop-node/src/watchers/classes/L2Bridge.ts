@@ -310,7 +310,7 @@ export default class L2Bridge extends Bridge {
     let txHash: string
     await this.eventsBatch(async (start: number, end: number) => {
       const events = await this.l2BridgeContract.queryFilter(
-        this.l2BridgeContract.filters.TransferSentS(),
+        this.l2BridgeContract.filters.TransferSent(),
         start,
         end
       )

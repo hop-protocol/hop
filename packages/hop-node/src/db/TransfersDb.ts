@@ -89,11 +89,10 @@ class TransfersDb extends BaseDb {
       }
 
       return (
+        item.transferRootHash &&
         item.withdrawalBonded &&
         !item.withdrawalBondSettled &&
-        item.transferRootHash &&
-        item.withdrawalBondedTxHash &&
-        item.transferRootHash
+        item.withdrawalBondedTxHash
       )
     })
   }

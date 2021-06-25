@@ -68,7 +68,10 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
 
   async watch () {
     this.l1Bridge
-      .on(this.l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
+      .on(
+        this.l1Bridge.TransferRootBonded,
+        this.handleTransferRootBondedEvent
+      )
       .on(
         this.l1Bridge.TransferRootConfirmed,
         this.handleTransferRootConfirmedEvent

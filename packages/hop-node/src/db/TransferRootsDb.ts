@@ -16,6 +16,7 @@ export type TransferRoot = {
   confirmed?: boolean
   confirmedAt?: number
   confirmTxHash?: string
+  rootSetTxHashes?: { [key: number]: string }
   sentConfirmTx?: boolean
   sentConfirmTxAt?: number
   bonded?: boolean

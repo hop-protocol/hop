@@ -53,21 +53,26 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async watch () {
-    if (this.isL1) {
-      const l2Bridge = this.bridge as L2Bridge
-      this.bridge
-        .on(
-          this.l1Bridge.TransferRootConfirmed,
-          this.handleTransferRootConfirmedEvent
-        )
-        .on(l2Bridge.TransfersCommitted, this.handleTransfersCommittedEvent)
-        .on('error', err => {
-          this.logger.error(`event watcher error: ${err.message}`)
-          this.notifier.error(`event watcher error: ${err.message}`)
-          this.quit()
-        })
-      return
+    const handleError = (err: Error) => {
+      this.logger.error(`event watcher error: ${err.message}`)
+      this.notifier.error(`event watcher error: ${err.message}`)
+      this.quit()
     }
+
+    if (!this.isL1) {
+      const l2Bridge = this.bridge as L2Bridge
+      l2Bridge
+        .on(l2Bridge.TransfersCommitted, this.handleTransfersCommittedEvent)
+        .on('error', handleError)
+    }
+
+    this.bridge
+      .on(
+        this.l1Bridge.TransferRootConfirmed,
+        this.handleTransferRootConfirmedEvent
+      )
+      .on('error', handleError)
+    return
   }
 
   async pollCheck () {

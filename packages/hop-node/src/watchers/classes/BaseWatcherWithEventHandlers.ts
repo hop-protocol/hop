@@ -82,6 +82,9 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
     try {
       const { transactionHash } = meta
+      const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
+        transferRootHash
+      )
       await db.transferRoots.update(transferRootHash, {
         confirmed: true,
         confirmTxHash: transactionHash

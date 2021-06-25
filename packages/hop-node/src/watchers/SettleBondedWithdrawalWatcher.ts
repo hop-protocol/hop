@@ -186,19 +186,20 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           resolve(null)
         })
       )
-      /*
-      promises.push(
-        new Promise(async resolve => {
-          try {
-            await this.syncTransferRootHashForTransferIds()
-          } catch (err) {
-            this.logger.error(`poll error: ${err.message}`)
-            this.notifier.error(`poll error: ${err.message}`)
-          }
-          resolve(null)
-        })
-      )
-			*/
+      const lookupmMissingTransferRootHashes = false
+      if (lookupmMissingTransferRootHashes) {
+        promises.push(
+          new Promise(async resolve => {
+            try {
+              await this.syncTransferRootHashForTransferIds()
+            } catch (err) {
+              this.logger.error(`poll error: ${err.message}`)
+              this.notifier.error(`poll error: ${err.message}`)
+            }
+            resolve(null)
+          })
+        )
+      }
       await Promise.all(promises)
       await wait(this.pollIntervalSec)
     }
@@ -206,13 +207,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
   async handleRawTransfersCommittedEvent (event: Event) {
     const {
-      destinationChainId: chainId,
+      destinationChainId,
       rootHash,
       totalAmount,
       rootCommittedAt
     } = event.args
     await this.handleTransfersCommittedEvent(
-      chainId,
+      destinationChainId,
       rootHash,
       totalAmount,
       rootCommittedAt,
@@ -253,10 +254,17 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
   async handleRawMultipleWithdrawalsSettledEvent (event: Event) {
     const { bonder, rootHash, totalBondsSettled } = event.args
+    const { transactionHash } = event
+    const { data } = await this.bridge.getTransaction(transactionHash)
+
+    const { transferIds } = await this.bridge.decodeSettleBondedWithdrawalsData(
+      data
+    )
     await this.handleMultipleWithdrawalsSettledEvent(
       bonder,
       rootHash,
-      totalBondsSettled
+      totalBondsSettled,
+      transferIds
     )
   }
 
@@ -280,7 +288,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const sourceChainId =
       dbTransferRoot.sourceChainId || (await this.bridge.getChainId())
     const destinationChainId = dbTransferRoot.chainId
-    logger.debug(`handling TransferRootSet event from L1`)
+    logger.debug(`handling TransferRootSet event`)
     // logger.debug(`transferRootHash from event: ${transferRootHash}`)
     // logger.debug(`transferRootId: ${transferRootId}`)
     // logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
@@ -289,7 +297,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       committed: true,
       transferRootId,
       transferRootHash,
-      sourceChainId
+      sourceChainId,
+      rootSetTxHashes: Object.assign({}, dbTransferRoot.rootSetTxHashes || {}, {
+        [destinationChainId]: transactionHash
+      })
     })
 
     if (!dbTransferRoot.transferIds?.length) {
@@ -354,12 +365,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     let endEvent: any
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
       startSearchBlockNumber = start
-      // TODO: debug why sometimes this is undefined
-      if (!sourceBridge.getTransfersCommittedEvents) {
-        return
-      }
       let events = await sourceBridge.getTransfersCommittedEvents(start, end)
-
       if (!events?.length) {
         return true
       }
@@ -479,12 +485,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   handleMultipleWithdrawalsSettledEvent = async (
     bonder: string,
     transferRootHash: string,
-    totalBondsSettled: BigNumber
+    totalBondsSettled: BigNumber,
+    transferIds: string[]
   ) => {
     let dbTransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
-    const transferIds = dbTransferRoot?.transferIds || []
     for (let transferId of transferIds) {
       await db.transfers.update(transferId, {
         transferRootHash,
@@ -512,12 +518,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         continue
       }
       const ok =
-        dbTransferRoot.chainId &&
-        dbTransferRoot.totalAmount &&
-        dbTransferRoot.confirmed &&
-        dbTransferRoot.confirmTxHash &&
-        dbTransferRoot.committed &&
-        dbTransferRoot.committedAt
+        !!dbTransferRoot.chainId &&
+        !!dbTransferRoot.totalAmount &&
+        !!dbTransferRoot.confirmed &&
+        !!dbTransferRoot.confirmTxHash &&
+        !!dbTransferRoot.committed &&
+        !!dbTransferRoot.committedAt
       if (!ok) {
         continue
       }
@@ -527,6 +533,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         )
         continue
       }
+      filtered.push(dbTransfer)
     }
     if (filtered.length) {
       this.logger.debug(
@@ -558,10 +565,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       )
       const {
         transferRootHash: dbTransferRootHash,
-        chainId,
+        chainId: destinationChainId,
         totalAmount,
         confirmed,
-        confirmTxHash,
         committed,
         committedAt,
         destinationBridgeAddress
@@ -572,24 +578,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
       const logger = this.logger.create({ root: dbTransferRootHash })
       const sourceBridge = this.bridge as L2Bridge
-      const destBridge = this.getSiblingWatcherByChainId(chainId).bridge
-      const txBlockNumber = await destBridge.getTransactionBlockNumber(
-        confirmTxHash
-      )
-      await destBridge.waitSafeConfirmations(txBlockNumber)
-      const latestConfirmTxHash = await destBridge.getTransferRootSetTxHash(
-        dbTransferRootHash
-      )
-      if (!latestConfirmTxHash) {
-        throw new Error(
-          `could not find block for transfer root set event (transfer root hash: ${dbTransferRootHash})`
-        )
-      }
-      if (confirmTxHash !== latestConfirmTxHash) {
-        throw new Error(
-          `transfer root confirm event (transfer root hash: ${dbTransferRootHash}) changed block (expected tx hash: ${confirmTxHash}, got tx hash $(${latestConfirmTxHash}))`
-        )
-      }
+      const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
+        .bridge
 
       logger.debug(
         'transferRootId:',
@@ -677,7 +667,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
       logger.debug('committedAt:', committedAt)
       logger.debug('sourceChainId:', dbTransfer.sourceChainId)
-      logger.debug('destinationChainId:', chainId)
+      logger.debug('destinationChainId:', destinationChainId)
       logger.debug('computed transferRootHash:', transferRootHash)
       logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
       logger.debug(
@@ -756,8 +746,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           }
           this.emit('settleBondedWithdrawal', {
             transferRootHash,
-            networkName: this.chainIdToSlug(chainId),
-            chainId,
+            networkName: this.chainIdToSlug(destinationChainId),
+            chainId: destinationChainId,
             transferId: dbTransfer.transferId
           })
 
@@ -778,12 +768,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           throw err
         })
       logger.info(
-        `settleBondedWithdrawals on chainId:${chainId} tx: ${chalk.bgYellow.black.bold(
+        `settleBondedWithdrawals on chainId:${destinationChainId} tx: ${chalk.bgYellow.black.bold(
           tx.hash
         )}`
       )
       this.notifier.info(
-        `settleBondedWithdrawals on chainId:${chainId} tx: ${tx.hash}`
+        `settleBondedWithdrawals on chainId:${destinationChainId} tx: ${tx.hash}`
       )
     } catch (err) {
       if (err.message !== 'cancelled') {

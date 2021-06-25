@@ -1,8 +1,9 @@
 import '../moduleAlias'
-import { ethers, Event } from 'ethers'
+import { ethers, Event, providers } from 'ethers'
 import chalk from 'chalk'
 import { wait, getRpcUrls } from 'src/utils'
 import db from 'src/db'
+import { TransferRoot } from 'src/db/TransferRootsDb'
 import { Contract, BigNumber } from 'ethers'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import { Chain } from 'src/constants'
@@ -332,7 +333,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
         sentConfirmTxAt: Date.now()
       })
       tx?.wait()
-        .then(async (receipt: any) => {
+        .then(async (receipt: providers.TransactionReceipt) => {
           if (receipt.status !== 1) {
             await db.transferRoots.update(transferRootHash, {
               sentConfirmTx: false,
@@ -394,7 +395,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     return poly
   }
 
-  shouldAttemptCheckpoint (dbTransferRoot: any, chainSlug: string) {
+  shouldAttemptCheckpoint (dbTransferRoot: TransferRoot, chainSlug: string) {
     if (!chainSlug) {
       return false
     }

@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import { Contract, BigNumber, Event } from 'ethers'
+import { Contract, BigNumber, Event, providers } from 'ethers'
 import { wait } from 'src/utils'
 import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
@@ -374,7 +374,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       totalAmount
     )
     tx?.wait()
-      .then(async (receipt: any) => {
+      .then(async (receipt: providers.TransactionReceipt) => {
         if (receipt.status !== 1) {
           await db.transferRoots.update(transferRootHash, {
             sentBondTx: false,

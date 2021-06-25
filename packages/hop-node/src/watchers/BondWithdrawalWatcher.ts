@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import { ethers, Contract, BigNumber, Event } from 'ethers'
+import { ethers, Contract, BigNumber, Event, providers } from 'ethers'
 import db from 'src/db'
 import chalk from 'chalk'
 import { wait, isL1ChainId } from 'src/utils'
@@ -140,24 +140,8 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async handleRawWithdrawalBondedEvent (event: Event) {
-    const {
-      transferId,
-      //recipient,
-      amount
-      //transferNonce,
-      //bonderFee,
-      //index
-    } = event.args
-
-    await this.handleWithdrawalBondedEvent(
-      transferId,
-      //recipient,
-      amount,
-      //transferNonce,
-      //bonderFee,
-      //index,
-      event
-    )
+    const { transferId, amount } = event.args
+    await this.handleWithdrawalBondedEvent(transferId, amount, event)
   }
 
   async handleRawTransferSentEvent (event: Event) {
@@ -365,7 +349,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
     await tx
       ?.wait()
-      .then(async (receipt: any) => {
+      .then(async (receipt: providers.TransactionReceipt) => {
         if (receipt.status !== 1) {
           await db.transfers.update(transferId, {
             sentBondWithdrawalTx: false,
@@ -471,16 +455,12 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
   handleWithdrawalBondedEvent = async (
     transferId: string,
-    //recipient: string,
     amount: BigNumber,
-    //transferNonce: string,
-    //bonderFee: BigNumber,
-    //index: BigNumber,
-    meta: any
+    event: Event
   ) => {
     const logger = this.logger.create({ id: transferId })
 
-    const tx = await meta.getTransaction()
+    const tx = await event.getTransaction()
     const { from: withdrawalBonder, hash } = tx
 
     logger.debug(`handling WithdrawalBonded event`)

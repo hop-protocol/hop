@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import { Contract, BigNumber, Event } from 'ethers'
+import { Contract, BigNumber, Event, providers } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { wait, isL1ChainId } from 'src/utils'
 import db from 'src/db'
@@ -140,7 +140,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
     }
     // TODO: fetch transfer root hash for transfer id more efficiently
-    await this.bridge.mapTransferRootSetEvents(async (event: any) => {
+    await this.bridge.mapTransferRootSetEvents(async (event: Event) => {
       const { rootHash: transferRootHash } = event.args
       const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
         transferRootHash
@@ -254,24 +254,18 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
   async handleRawMultipleWithdrawalsSettledEvent (event: Event) {
     const { bonder, rootHash, totalBondsSettled } = event.args
-    const { transactionHash } = event
-    const { data } = await this.bridge.getTransaction(transactionHash)
-
-    const { transferIds } = await this.bridge.decodeSettleBondedWithdrawalsData(
-      data
-    )
     await this.handleMultipleWithdrawalsSettledEvent(
       bonder,
       rootHash,
       totalBondsSettled,
-      transferIds
+      event
     )
   }
 
   handleTransferRootSetEvent = async (
     transferRootHash: string,
     totalAmount: BigNumber,
-    meta: any
+    event: Event
   ) => {
     const logger = this.logger.create({ root: transferRootHash })
     let dbTransferRoot = await db.transferRoots.getByTransferRootHash(
@@ -280,7 +274,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     if (!dbTransferRoot) {
       return
     }
-    const { transactionHash } = meta
+    const { transactionHash } = event
     const transferRootId = await this.bridge.getTransferRootId(
       transferRootHash,
       totalAmount
@@ -361,8 +355,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       .bridge as L2Bridge
 
     let startSearchBlockNumber: number
-    let startEvent: any
-    let endEvent: any
+    let startEvent: Event
+    let endEvent: Event
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
       startSearchBlockNumber = start
       let events = await sourceBridge.getTransfersCommittedEvents(start, end)
@@ -486,8 +480,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     bonder: string,
     transferRootHash: string,
     totalBondsSettled: BigNumber,
-    transferIds: string[]
+    event: Event
   ) => {
+    const { transactionHash } = event
+    const { data } = await this.bridge.getTransaction(transactionHash)
+    const { transferIds } = await this.bridge.decodeSettleBondedWithdrawalsData(
+      data
+    )
     let dbTransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
@@ -735,7 +734,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         totalAmount
       )
       tx?.wait()
-        .then(async (receipt: any) => {
+        .then(async (receipt: providers.TransactionReceipt) => {
           if (receipt.status !== 1) {
             for (let transferId of transferIds) {
               await db.transfers.update(transferId, {

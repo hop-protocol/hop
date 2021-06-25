@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import { Contract, BigNumber, Event } from 'ethers'
+import { Contract, BigNumber, Event, providers } from 'ethers'
 import chalk from 'chalk'
 import { wait } from 'src/utils'
 import { throttle } from 'src/utils'
@@ -310,7 +310,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
 
       const tx = await l2Bridge.commitTransfers(destinationChainId)
       tx?.wait()
-        .then(async (receipt: any) => {
+        .then(async (receipt: providers.TransactionReceipt) => {
           if (receipt.status !== 1) {
             await db.transferRoots.update(transferRootHash, {
               sentCommitTx: false,

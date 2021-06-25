@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import { Contract, BigNumber, Event } from 'ethers'
+import { Contract, BigNumber, Event, providers } from 'ethers'
 import { wait, isL1ChainId } from 'src/utils'
 import db from 'src/db'
 import chalk from 'chalk'
@@ -68,10 +68,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
 
   async watch () {
     this.l1Bridge
-      .on(
-        this.l1Bridge.TransferRootBonded,
-        this.handleTransferRootBondedEvent
-      )
+      .on(this.l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
       .on(
         this.l1Bridge.TransferRootConfirmed,
         this.handleTransferRootConfirmedEvent
@@ -203,7 +200,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       totalAmount
     )
     tx?.wait()
-      .then((receipt: any) => {
+      .then((receipt: providers.TransactionReceipt) => {
         if (receipt.status !== 1) {
           throw new Error('status=0')
         }
@@ -253,7 +250,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       transferRootHash,
       totalAmount
     )
-    tx?.wait().then((receipt: any) => {
+    tx?.wait().then((receipt: providers.TransactionReceipt) => {
       if (receipt.status !== 1) {
         throw new Error('status=0')
       }

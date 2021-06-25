@@ -86,7 +86,9 @@ export default class ContractBase extends EventEmitter {
   }
 
   @rateLimitRetry
-  async getBlockTimestamp (blockNumber: string = 'latest'): Promise<number> {
+  async getBlockTimestamp (
+    blockNumber: number | string = 'latest'
+  ): Promise<number> {
     const block = await this.contract.provider.getBlock(blockNumber)
     return block.timestamp
   }

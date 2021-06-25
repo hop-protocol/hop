@@ -484,7 +484,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     let dbTransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
-    let transferIds = dbTransferRoot?.transferIds || []
+    const transferIds = dbTransferRoot?.transferIds || []
     for (let transferId of transferIds) {
       await db.transfers.update(transferId, {
         transferRootHash,
@@ -515,6 +515,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         dbTransferRoot.chainId &&
         dbTransferRoot.totalAmount &&
         dbTransferRoot.confirmed &&
+        dbTransferRoot.confirmTxHash &&
         dbTransferRoot.committed &&
         dbTransferRoot.committedAt
       if (!ok) {
@@ -550,29 +551,46 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   checkUnsettledTransfer = async (dbTransfer: Transfer) => {
-    // TODO: move this check to db getter
-    const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
-      dbTransfer.transferRootHash
-    )
-    let transferIds: string[] = Object.values(dbTransferRoot.transferIds || [])
-    const {
-      transferRootHash: dbTransferRootHash,
-      chainId,
-      totalAmount,
-      confirmed,
-      committed,
-      committedAt,
-      destinationBridgeAddress
-    } = dbTransferRoot
-
-    const logger = this.logger.create({ root: dbTransferRootHash })
-
     try {
-      const bridge = this.getSiblingWatcherByChainId(chainId).bridge
-      const txBlockNumber = await this.bridge.getTransactionBlockNumber(
-        dbTransfer.withdrawalBondedTxHash
+      // TODO: move this check to db getter
+      const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
+        dbTransfer.transferRootHash
       )
-      await this.bridge.waitSafeConfirmations(txBlockNumber)
+      const {
+        transferRootHash: dbTransferRootHash,
+        chainId,
+        totalAmount,
+        confirmed,
+        confirmTxHash,
+        committed,
+        committedAt,
+        destinationBridgeAddress
+      } = dbTransferRoot
+      const transferIds: string[] = Object.values(
+        dbTransferRoot.transferIds || []
+      )
+
+      const logger = this.logger.create({ root: dbTransferRootHash })
+      const sourceBridge = this.bridge as L2Bridge
+      const destBridge = this.getSiblingWatcherByChainId(chainId).bridge
+      const txBlockNumber = await destBridge.getTransactionBlockNumber(
+        confirmTxHash
+      )
+      await destBridge.waitSafeConfirmations(txBlockNumber)
+      const latestConfirmTxHash = await destBridge.getTransferRootSetTxHash(
+        dbTransferRootHash
+      )
+      if (!latestConfirmTxHash) {
+        throw new Error(
+          `could not find block for transfer root set event (transfer root hash: ${dbTransferRootHash})`
+        )
+      }
+      if (confirmTxHash !== latestConfirmTxHash) {
+        throw new Error(
+          `transfer root confirm event (transfer root hash: ${dbTransferRootHash}) changed block (expected tx hash: ${confirmTxHash}, got tx hash $(${latestConfirmTxHash}))`
+        )
+      }
+
       logger.debug(
         'transferRootId:',
         chalk.bgMagenta.black(dbTransfer.transferRootId)
@@ -580,18 +598,18 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
       const tree = new MerkleTree(transferIds)
       const transferRootHash = tree.getHexRoot()
-      if (transferRootHash !== dbTransferRoot.transferRootHash) {
+      if (transferRootHash !== dbTransferRootHash) {
         logger.debug('transferIds:\n', transferIds)
         logger.error(
-          `transfers computed transfer root hash doesn't match. Expected ${dbTransferRoot.transferRootHash}`
+          `transfers computed transfer root hash doesn't match. Expected ${dbTransferRootHash}`
         )
-        await db.transferRoots.update(dbTransferRoot.transferRootHash, {
+        await db.transferRoots.update(dbTransferRootHash, {
           transferIds: []
         })
         return
       }
 
-      const transferRootStruct = await bridge.getTransferRoot(
+      const transferRootStruct = await destBridge.getTransferRoot(
         transferRootHash,
         totalAmount
       )
@@ -615,7 +633,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         const { withdrawalBonder } = await db.transfers.getByTransferId(
           transferId
         )
-        const transferBondAmount = await bridge.getBondedWithdrawalAmountByBonder(
+        const transferBondAmount = await destBridge.getBondedWithdrawalAmountByBonder(
           withdrawalBonder,
           transferId
         )
@@ -630,9 +648,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       if (this.shouldWaitMinThreshold) {
         let [credit, debit, bondedBondedWithdrawalsBalance] = await Promise.all(
           [
-            bridge.getCredit(),
-            bridge.getDebit(),
-            bridge.getBonderBondedWithdrawalsBalance()
+            destBridge.getCredit(),
+            destBridge.getDebit(),
+            destBridge.getBonderBondedWithdrawalsBalance()
           ]
         )
 
@@ -721,7 +739,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
       logger.debug('sending settle tx')
       const bonder = dbTransfer.withdrawalBonder
-      const tx = await bridge.settleBondedWithdrawals(
+      const tx = await destBridge.settleBondedWithdrawals(
         bonder,
         transferIds,
         totalAmount

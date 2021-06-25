@@ -179,32 +179,16 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     let dbTransferRoot: TransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
-    if (dbTransferRoot?.bonded) {
-      return
-    }
-
     const l2Bridge = this.bridge as L2Bridge
     const bridgeChainId = await l2Bridge.getChainId()
-    const sourceChainId = dbTransferRoot.sourceChainId
-    if (!sourceChainId) {
-      return
-    }
+    const { sourceChainId, commitTxHash } = dbTransferRoot
     const sourceChainSlug = this.chainIdToSlug(sourceChainId)
-    if (bridgeChainId !== sourceChainId) {
-      return
-    }
 
     // bonding transfer root should only happen when exiting
     // Optimism or Arbitrum or any chain where exit period is longer than 1 day
     if (this.skipChains.includes(sourceChainSlug)) {
       // TODO: mark as skipped
       // logger.warn('source chain is not Arbitrum or Optimism. Skipping bondTransferRoot')
-      return
-    }
-    const bridgeAddress = await this.getSiblingWatcherByChainId(
-      chainId
-    ).bridge.getAddress()
-    if (dbTransferRoot.destinationBridgeAddress !== bridgeAddress) {
       return
     }
 
@@ -222,9 +206,23 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       .bridge as L1Bridge
 
     const txBlockNumber = await this.bridge.getTransactionBlockNumber(
-      dbTransferRoot.commitTxHash
+      commitTxHash
     )
-    await l1Bridge.waitSafeConfirmations(txBlockNumber)
+    await l2Bridge.waitSafeConfirmations(txBlockNumber)
+    const latestCommitTxHash = await l2Bridge.getTransferRootCommittedTxHash(
+      transferRootHash
+    )
+    if (!latestCommitTxHash) {
+      throw new Error(
+        `could not find block for transfers committed event (transfer root hash: ${transferRootHash})`
+      )
+    }
+    if (commitTxHash !== latestCommitTxHash) {
+      throw new Error(
+        `transfers committed event (transfer root hash: ${transferRootHash}) changed block (expected tx hash: ${commitTxHash}, got tx hash $(${latestCommitTxHash}))`
+      )
+    }
+
     const minDelay = await l1Bridge.getMinTransferRootBondDelaySeconds()
     const blockTimestamp = await l1Bridge.getBlockTimestamp()
     const delta = blockTimestamp - committedAt - minDelay

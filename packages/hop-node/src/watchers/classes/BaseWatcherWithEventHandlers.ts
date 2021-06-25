@@ -42,8 +42,6 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       if (!blockNumber) {
         throw new Error('event block number not found')
       }
-      // TODO: re-check transfer id exists on-chain after waiting confirmations
-      await this.bridge.waitSafeConfirmations(blockNumber)
       const sentTimestamp = await this.bridge.getBlockTimestamp(blockNumber)
       const l2Bridge = this.bridge as L2Bridge
       const sourceChainId = await l2Bridge.getChainId()

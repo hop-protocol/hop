@@ -217,10 +217,29 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       bonderFee,
       transferNonce,
       deadline,
-      transferSentTxHash: transactionHash
+      transferSentTxHash
     } = dbTransfer
+    const sourceL2Bridge = this.bridge as L2Bridge
     const destL2Bridge = this.getSiblingWatcherByChainId(chainId)
       .bridge as L2Bridge
+
+    const txBlockNumber = await sourceL2Bridge.getTransactionBlockNumber(
+      transferSentTxHash
+    )
+    await sourceL2Bridge.waitSafeConfirmations(txBlockNumber)
+    const latestTransferSentTxHash = await sourceL2Bridge.getTransferSentTxHash(
+      transferId
+    )
+    if (!latestTransferSentTxHash) {
+      throw new Error(
+        `could not find block for transfer sent event (transfer id: ${transferId})`
+      )
+    }
+    if (transferSentTxHash !== latestTransferSentTxHash) {
+      throw new Error(
+        `transfer sent event (transfer id: ${transferId}) changed block (expected tx hash: ${transferSentTxHash}, got tx hash $(${latestTransferSentTxHash}))`
+      )
+    }
 
     const isBonder = await destL2Bridge.isBonder()
     if (!isBonder) {
@@ -309,11 +328,10 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
     await this.waitTimeout(transferId, chainId)
 
-    const { from: sender, data } = await this.bridge.getTransaction(
-      transactionHash
+    const { from: sender, data } = await sourceL2Bridge.getTransaction(
+      transferSentTxHash
     )
-    const l2Bridge = this.bridge as L2Bridge
-    const { attemptSwap } = await l2Bridge.decodeSendData(data)
+    const { attemptSwap } = await sourceL2Bridge.decodeSendData(data)
 
     await db.transfers.update(transferId, {
       sentBondWithdrawalTx: true,

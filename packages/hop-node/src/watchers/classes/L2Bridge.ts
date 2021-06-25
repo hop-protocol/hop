@@ -303,6 +303,30 @@ export default class L2Bridge extends Bridge {
     return txHash
   }
 
+  @rateLimitRetry
+  async getTransferSentTxHash (
+    transferId: string
+  ): Promise<string | undefined> {
+    let txHash: string
+    await this.eventsBatch(async (start: number, end: number) => {
+      const events = await this.l2BridgeContract.queryFilter(
+        this.l2BridgeContract.filters.TransferSentS(),
+        start,
+        end
+      )
+
+      for (let event of events) {
+        if (transferId === event.args.transferId) {
+          txHash = event.transactionHash
+          return false
+        }
+      }
+      return true
+    })
+
+    return txHash
+  }
+
   async isTransferRootIdSet (
     transferRootHash: string,
     totalAmount: BigNumber

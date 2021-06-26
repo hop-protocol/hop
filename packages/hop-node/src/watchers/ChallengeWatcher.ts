@@ -27,16 +27,6 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     this.contracts = config.contracts
   }
 
-  async start () {
-    this.started = true
-    try {
-      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
-    } catch (err) {
-      this.logger.error('watcher error:', err.message)
-      this.quit()
-    }
-  }
-
   async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
 

@@ -49,7 +49,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async start () {
-    this.started = true
     this.logger.debug(
       `min bondWithdrawal amount: ${
         this.minAmount ? this.bridge.formatUnits(this.minAmount) : 0
@@ -60,12 +59,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         this.maxAmount ? this.bridge.formatUnits(this.maxAmount) : 'all'
       }`
     )
-    try {
-      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
-    } catch (err) {
-      this.logger.error(`bondWithdrawalWatcher error:`, err.message)
-      this.notifier.error(`bondWithdrawalWatcher error: ${err.message}`)
-    }
+    await super.start()
   }
 
   async syncUp (): Promise<any> {

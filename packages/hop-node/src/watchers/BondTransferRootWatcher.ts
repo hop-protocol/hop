@@ -38,17 +38,6 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     })
   }
 
-  async start () {
-    this.started = true
-    try {
-      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
-    } catch (err) {
-      this.logger.error(`watcher error:`, err.message)
-      this.notifier.error(`watcher error: '${err.message}`)
-      this.quit()
-    }
-  }
-
   async syncUp (): Promise<any> {
     this.logger.debug('syncing up events')
 

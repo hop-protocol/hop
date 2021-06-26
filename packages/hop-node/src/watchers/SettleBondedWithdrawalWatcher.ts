@@ -48,17 +48,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async start () {
-    this.started = true
-    try {
-      this.logger.debug(
-        `minThresholdAmount: ${this.minThresholdPercent * 100}%`
-      )
-      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
-    } catch (err) {
-      this.logger.error(`watcher error:`, err.message)
-      this.notifier.error(`watcher error: ${err.message}`)
-      this.quit()
-    }
+    this.logger.debug(`minThresholdAmount: ${this.minThresholdPercent * 100}%`)
+    await super.start()
   }
 
   async syncUp (): Promise<any> {

@@ -5,6 +5,7 @@ import { Notifier } from 'src/notifier'
 import { hostname } from 'src/config'
 import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
+import { IBaseWatcher } from './IBaseWatcher'
 
 interface Config {
   tag: string
@@ -22,7 +23,7 @@ interface EventsBatchOptions {
   endBlockNumber?: number
 }
 
-class BaseWatcher extends EventEmitter {
+class BaseWatcher extends EventEmitter implements IBaseWatcher {
   logger: Logger
   notifier: Notifier
   order: () => number = () => 0
@@ -72,8 +73,27 @@ class BaseWatcher extends EventEmitter {
     }
   }
 
-  async start (): Promise<void> {
-    this.logger.warn('not implemented: implement in child class')
+  async syncUp () {
+    // virtual method
+  }
+
+  async watch () {
+    // virtual method
+  }
+
+  async pollCheck () {
+    // virtual method
+  }
+
+  async start () {
+    this.started = true
+    try {
+      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
+    } catch (err) {
+      this.logger.error(`watcher error:`, err.message)
+      this.notifier.error(`watcher error: '${err.message}`)
+      this.quit()
+    }
   }
 
   async stop (): Promise<void> {

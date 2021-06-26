@@ -128,10 +128,6 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
-  async stop () {
-    this.started = false
-  }
-
   async isCheckpointed (l2BlockNumber: number) {
     const url = `${this.apiUrl}/${l2BlockNumber}`
     const res = await fetch(url)

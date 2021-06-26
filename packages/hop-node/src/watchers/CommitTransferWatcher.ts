@@ -45,19 +45,10 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async start () {
-    this.started = true
-    try {
-      this.logger.debug(
-        `minThresholdAmount: ${this.bridge.formatUnits(
-          this.minThresholdAmount
-        )}`
-      )
-      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
-    } catch (err) {
-      this.logger.error('watcher error:', err)
-      this.notifier.error(`watcher error: ${err.message}`)
-      this.quit()
-    }
+    this.logger.debug(
+      `minThresholdAmount: ${this.bridge.formatUnits(this.minThresholdAmount)}`
+    )
+    await super.start()
   }
 
   async syncUp (): Promise<any> {

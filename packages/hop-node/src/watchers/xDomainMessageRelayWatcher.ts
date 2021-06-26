@@ -42,17 +42,6 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     this.token = config.token
   }
 
-  async start () {
-    this.started = true
-    try {
-      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
-    } catch (err) {
-      this.logger.error(`watcher error:`, err.message)
-      this.notifier.error(`watcher error: ${err.message}`)
-      this.quit()
-    }
-  }
-
   async watch () {
     const handleError = (err: Error) => {
       this.logger.error(`event watcher error: ${err.message}`)

@@ -6,7 +6,7 @@ export type Transfer = {
   transferRootId?: string
   transferRootHash?: string
   transferId?: string
-  chainId?: number // TODO: rename to destinationChainId throughout
+  destinationChainId?: number
   destinationChainSlug?: string
   sourceChainId?: number
   sourceChainSlug?: string
@@ -51,8 +51,8 @@ class TransfersDb extends BaseDb {
     if (item?.amountOutMin && item?.amountOutMin?.type === 'BigNumber') {
       item.amountOutMin = BigNumber.from(item.amountOutMin?.hex)
     }
-    if (item?.chainId) {
-      item.destinationChainSlug = chainIdToSlug(item?.chainId)
+    if (item?.destinationChainId) {
+      item.destinationChainSlug = chainIdToSlug(item?.destionationChainId)
     }
     if (item?.sourceChainId) {
       item.sourceChainSlug = chainIdToSlug(item?.sourceChainId)
@@ -82,8 +82,8 @@ class TransfersDb extends BaseDb {
   ): Promise<Transfer[]> {
     const transfers = await this.getTransfers()
     return transfers.filter(item => {
-      if (filter?.chainId) {
-        if (filter.chainId !== item.chainId) {
+      if (filter?.destinationChainId) {
+        if (filter.destinationChainId !== item.destinationChainId) {
           return false
         }
       }

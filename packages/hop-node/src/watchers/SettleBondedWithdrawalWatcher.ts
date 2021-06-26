@@ -215,7 +215,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   async handleRawTransferSentEvent (event: Event) {
     const {
       transferId,
-      chainId,
+      chainId: destinationChainId,
       recipient,
       amount,
       transferNonce,
@@ -226,7 +226,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     } = event.args
     await this.handleTransferSentEvent(
       transferId,
-      chainId,
+      destinationChainId,
       recipient,
       amount,
       transferNonce,
@@ -272,7 +272,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     )
     const sourceChainId =
       dbTransferRoot.sourceChainId || (await this.bridge.getChainId())
-    const destinationChainId = dbTransferRoot.chainId
+    const { destinationChainId } = dbTransferRoot
     logger.debug(`handling TransferRootSet event`)
     // logger.debug(`transferRootHash from event: ${transferRootHash}`)
     // logger.debug(`transferRootId: ${transferRootId}`)
@@ -333,7 +333,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const logger = this.logger.create({ root: transferRootHash })
     const {
       sourceChainId,
-      chainId: destinationChainId
+      destinationChainId
     } = await db.transferRoots.getByTransferRootHash(transferRootHash)
     logger.debug(
       `looking for transfer ids for transferRootHash ${transferRootHash}`
@@ -358,7 +358,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       // events need to be sorted from [newest...oldest] in order to pick up the endEvent first
       events = events.reverse()
       for (let event of events) {
-        let eventTransferRoot = await db.transferRoots.getByTransferRootHash(
+        let eventDbTransferRoot = await db.transferRoots.getByTransferRootHash(
           event.args.rootHash
         )
 
@@ -367,7 +367,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           continue
         }
 
-        const isSameChainId = eventTransferRoot.chainId === destinationChainId
+        const isSameChainId =
+          eventDbTransferRoot.destinationChainId === destinationChainId
         if (endEvent && isSameChainId) {
           startEvent = event
           return false
@@ -420,10 +421,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           const transaction = await sourceBridge.getTransaction(
             event.transactionHash
           )
-          const { chainId } = await sourceBridge.decodeSendData(
-            transaction.data
-          )
-          if (chainId !== destinationChainId) {
+          const {
+            destinationChainId: decodedDestinationChainId
+          } = await sourceBridge.decodeSendData(transaction.data)
+          if (decodedDestinationChainId !== destinationChainId) {
             continue
           }
 
@@ -493,7 +494,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     // only process transfer where this bridge is the destination chain
     const dbTransfers: Transfer[] = await db.transfers.getUnsettledBondedWithdrawalTransfers(
       {
-        chainId: await this.bridge.getChainId()
+        destinationChainId: await this.bridge.getChainId()
       }
     )
     const filtered: Transfer[] = []
@@ -508,7 +509,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         continue
       }
       const ok =
-        !!dbTransferRoot.chainId &&
+        !!dbTransferRoot.destinationChainId &&
         !!dbTransferRoot.totalAmount &&
         !!dbTransferRoot.confirmed &&
         !!dbTransferRoot.confirmTxHash &&
@@ -555,7 +556,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       )
       const {
         transferRootHash: dbTransferRootHash,
-        chainId: destinationChainId,
+        destinationChainId,
         totalAmount,
         confirmed,
         committed,
@@ -758,12 +759,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           throw err
         })
       logger.info(
-        `settleBondedWithdrawals on chainId:${destinationChainId} tx: ${chalk.bgYellow.black.bold(
+        `settleBondedWithdrawals on destinationChainId:${destinationChainId} tx: ${chalk.bgYellow.black.bold(
           tx.hash
         )}`
       )
       this.notifier.info(
-        `settleBondedWithdrawals on chainId:${destinationChainId} tx: ${tx.hash}`
+        `settleBondedWithdrawals on destinationChainId:${destinationChainId} tx: ${tx.hash}`
       )
     } catch (err) {
       if (err.message !== 'cancelled') {
@@ -776,15 +777,15 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
-  async waitTimeout (transferId: string, chainId: number) {
+  async waitTimeout (transferId: string, destinationChainId: number) {
     await wait(2 * 1000)
     if (!this.order()) {
       return
     }
     this.logger.debug(
-      `waiting for settle bonded withdrawal event. transferId: ${transferId} chainId: ${chainId}`
+      `waiting for settle bonded withdrawal event. transferId: ${transferId} destinationChainId: ${destinationChainId}`
     )
-    const bridge = this.getSiblingWatcherByChainId(chainId).bridge
+    const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
     let timeout = this.order() * BONDER_ORDER_DELAY_MS
     while (timeout > 0) {
       if (!this.started) {

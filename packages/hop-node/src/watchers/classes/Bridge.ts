@@ -8,13 +8,13 @@ import unique from 'src/utils/unique'
 import { isL1ChainId, xor, wait } from 'src/utils'
 import db from 'src/db'
 
-type EventsBatchOptions = {
+export type EventsBatchOptions = {
   cacheKey: string
   startBlockNumber: number
   endBlockNumber: number
 }
 
-type EventCb = (event: Event, i?: number) => any
+export type EventCb = (event: Event, i?: number) => any
 
 export default class Bridge extends ContractBase {
   WithdrawalBonded: string = 'WithdrawalBonded'
@@ -238,15 +238,10 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  async forEachWithdrawalBondedEvents (cb: any, options?: any) {
-    return this.forEachEventsBatch(
-      this.getWithdrawalBondedEvents.bind(this),
-      cb,
-      options
-    )
-  }
-
-  async mapWithdrawalBondedEvents (cb: any, options?: any) {
+  async mapWithdrawalBondedEvents (
+    cb: EventCb,
+    options?: Partial<EventsBatchOptions>
+  ) {
     return this.mapEventsBatch(
       this.getWithdrawalBondedEvents.bind(this),
       cb,
@@ -290,15 +285,10 @@ export default class Bridge extends ContractBase {
     return txHash
   }
 
-  async forEachTransferRootSetEvents (cb: any, options?: any) {
-    return this.forEachEventsBatch(
-      this.getTransferRootSetEvents.bind(this),
-      cb,
-      options
-    )
-  }
-
-  async mapTransferRootSetEvents (cb: any, options?: any) {
+  async mapTransferRootSetEvents (
+    cb: EventCb,
+    options?: Partial<EventsBatchOptions>
+  ) {
     return this.mapEventsBatch(
       this.getTransferRootSetEvents.bind(this),
       cb,
@@ -358,15 +348,10 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  async forEachMultipleWithdrawalsSettledEvents (cb: any, options?: any) {
-    return this.forEachEventsBatch(
-      this.getMultipleWithdrawalsSettledEvents.bind(this),
-      cb,
-      options
-    )
-  }
-
-  async mapMultipleWithdrawalsSettledEvents (cb: any, options?: any) {
+  async mapMultipleWithdrawalsSettledEvents (
+    cb: EventCb,
+    options?: Partial<EventsBatchOptions>
+  ) {
     return this.mapEventsBatch(
       this.getMultipleWithdrawalsSettledEvents.bind(this),
       cb,
@@ -512,22 +497,6 @@ export default class Bridge extends ContractBase {
 
   parseUnits (value: string | number) {
     return parseUnits(value.toString(), this.tokenDecimals)
-  }
-
-  protected async forEachEventsBatch (
-    getEventsMethod: (start: number, end: number) => Promise<Event[]>,
-    cb: EventCb,
-    options?: Partial<EventsBatchOptions>
-  ) {
-    let i = 0
-    return this.eventsBatch(async (start: number, end: number) => {
-      let events = await getEventsMethod(start, end)
-      events = events.reverse()
-      for (let event of events) {
-        await cb(event, i)
-        i++
-      }
-    }, options)
   }
 
   protected async mapEventsBatch (

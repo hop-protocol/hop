@@ -111,7 +111,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
   async handleRawTransferSentEvent (event: Event) {
     const {
       transferId,
-      chainId,
+      chainId: destinationChainId,
       recipient,
       amount,
       transferNonce,
@@ -122,7 +122,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     } = event.args
     await this.handleTransferSentEvent(
       transferId,
-      chainId,
+      destinationChainId,
       recipient,
       amount,
       transferNonce,
@@ -143,16 +143,16 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         `checking ${dbTransfers.length} uncommitted transfers db items`
       )
     }
-    let chainIds: number[] = []
+    let destinationChainIds: number[] = []
     for (let dbTransfer of dbTransfers) {
-      const { chainId } = dbTransfer
-      if (!chainIds.includes(chainId)) {
-        chainIds.push(chainId)
+      const { destinationChainId } = dbTransfer
+      if (!destinationChainIds.includes(destinationChainId)) {
+        destinationChainIds.push(destinationChainId)
       }
     }
-    for (let destinationChainId of chainIds) {
+    for (let destinationChainId of destinationChainIds) {
       const filtered = dbTransfers.filter(transfer => {
-        return transfer.chainId === destinationChainId
+        return transfer.destinationChainId === destinationChainId
       })
       await this.checkIfShouldCommit(destinationChainId, filtered)
     }
@@ -185,7 +185,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       const minForceCommitTime = lastCommitTime + minimumForceCommitDelay
       const isBonder = await this.bridge.isBonder()
       const l2ChainId = await l2Bridge.getChainId()
-      this.logger.debug('chainId:', l2ChainId)
+      this.logger.debug('sourceChainId:', l2ChainId)
       this.logger.debug('destinationChainId:', destinationChainId)
       this.logger.debug('lastCommitTime:', lastCommitTime)
       this.logger.debug('minimumForceCommitDelay:', minimumForceCommitDelay)
@@ -215,7 +215,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       )
       if (totalPendingAmount.lt(this.minThresholdAmount)) {
         this.logger.warn(
-          `chainId ${destinationChainId} pending amount ${this.bridge.formatUnits(
+          `destinationChainId ${destinationChainId} pending amount ${this.bridge.formatUnits(
             totalPendingAmount
           )} does not meet min threshold of ${this.bridge.formatUnits(
             this.minThresholdAmount
@@ -226,19 +226,19 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
 
       if (pendingTransfers.length < this.minPendingTransfers) {
         this.logger.warn(
-          `must reach ${this.minPendingTransfers} pending transfers before committing. Have ${pendingTransfers.length} on chainId: ${destinationChainId}`
+          `must reach ${this.minPendingTransfers} pending transfers before committing. Have ${pendingTransfers.length} on destinationChainId: ${destinationChainId}`
         )
         return
       }
 
       this.logger.debug(
-        `chainId: ${destinationChainId} - onchain pendingTransfers\n`,
+        `destinationChainId: ${destinationChainId} - onchain pendingTransfers\n`,
         pendingTransfers
       )
       const tree = new MerkleTree(pendingTransfers)
       const transferRootHash = tree.getHexRoot()
       this.logger.debug(
-        `chainId: ${destinationChainId} - calculated transferRootHash: ${chalk.bgMagenta.black(
+        `destinationChainId: ${destinationChainId} - calculated transferRootHash: ${chalk.bgMagenta.black(
           transferRootHash
         )}`
       )
@@ -310,7 +310,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
             throw new Error('status=0')
           }
           this.emit('commitTransfers', {
-            chainId: destinationChainId,
+            destinationChainId,
             transferRootHash,
             transferIds: pendingTransfers
           })
@@ -351,29 +351,29 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     for (let i = 1; i < transferCommits.length; i++) {
       let { topics, blockNumber, transactionHash } = transferCommits[i]
       const { data } = await l2Bridge.getTransaction(transactionHash)
-      const {
-        destinationChainId: chainId
-      } = await l2Bridge.decodeCommitTransfersData(data)
-      if (!chainId) {
+      const { destinationChainId } = await l2Bridge.decodeCommitTransfersData(
+        data
+      )
+      if (!destinationChainId) {
         continue
       }
       const transferRootHash = topics[1]
       const prevBlockNumber =
         i === 0 ? start : transferCommits[i - 1].blockNumber
-      if (!transferCommitsMap[chainId]) {
-        transferCommitsMap[chainId] = {}
+      if (!transferCommitsMap[destinationChainId]) {
+        transferCommitsMap[destinationChainId] = {}
       }
-      transferCommitsMap[chainId][transferRootHash] = {
+      transferCommitsMap[destinationChainId][transferRootHash] = {
         transferRootHash,
         transferIds: [],
         prevBlockNumber,
         blockNumber
       }
     }
-    for (let destChainId in transferCommitsMap) {
-      for (let transferRootHash in transferCommitsMap[destChainId]) {
+    for (let destinationChainId in transferCommitsMap) {
+      for (let transferRootHash in transferCommitsMap[destinationChainId]) {
         let { prevBlockNumber, blockNumber, transferIds } = transferCommitsMap[
-          destChainId
+          destinationChainId
         ][transferRootHash]
         const recentEvents = await l2Bridge.getTransferSentEvents(
           prevBlockNumber,
@@ -384,8 +384,10 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
             event.transactionHash
           )
 
-          const { chainId } = await l2Bridge.decodeSendData(data)
-          if (chainId === destChainId) {
+          const {
+            destinationChainId: decodedDestinationChainId
+          } = await l2Bridge.decodeSendData(data)
+          if (decodedDestinationChainId === destinationChainId) {
             transferIds.push(event.topics[1])
           }
         }
@@ -405,12 +407,14 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
-  async waitTimeout (chainId: number) {
+  async waitTimeout (destinationChainId: number) {
     await wait(2 * 1000)
     if (!this.order()) {
       return
     }
-    this.logger.debug(`waiting for commitTransfers event. chainId: ${chainId}`)
+    this.logger.debug(
+      `waiting for commitTransfers event. destinationChainId: ${destinationChainId}`
+    )
     let timeout = this.order() * BONDER_ORDER_DELAY_MS
     while (timeout > 0) {
       if (!this.started) {
@@ -418,7 +422,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       }
       const l2Bridge = this.bridge as L2Bridge
       const pendingTransfers: string[] = await l2Bridge.getPendingTransfers(
-        chainId
+        destinationChainId
       )
       if (!pendingTransfers.length) {
         break

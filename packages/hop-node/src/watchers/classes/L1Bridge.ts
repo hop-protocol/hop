@@ -1,7 +1,7 @@
 import { providers, Contract, ethers, BigNumber, Event } from 'ethers'
 import { l1BridgeAbi, erc20Abi } from '@hop-protocol/abi'
 import { parseUnits } from 'ethers/lib/utils'
-import Bridge from './Bridge'
+import Bridge, { EventsBatchOptions, EventCb } from './Bridge'
 import queue from 'src/decorators/queue'
 import Token from './Token'
 import { Chain } from 'src/constants'
@@ -108,15 +108,10 @@ export default class L1Bridge extends Bridge {
     )
   }
 
-  async forEachTransferRootBondedEvents (cb: any, options?: any) {
-    return this.forEachEventsBatch(
-      this.getTransferRootBondedEvents.bind(this),
-      cb,
-      options
-    )
-  }
-
-  async mapTransferRootBondedEvents (cb: any, options?: any) {
+  async mapTransferRootBondedEvents (
+    cb: EventCb,
+    options?: Partial<EventsBatchOptions>
+  ) {
     return this.mapEventsBatch(
       this.getTransferRootBondedEvents.bind(this),
       cb,
@@ -169,15 +164,10 @@ export default class L1Bridge extends Bridge {
     )
   }
 
-  async forEachTransferRootConfirmedEvents (cb: any, options?: any) {
-    return this.forEachEventsBatch(
-      this.getTransferRootConfirmedEvents.bind(this),
-      cb,
-      options
-    )
-  }
-
-  async mapTransferRootConfirmedEvents (cb: any, options?: any) {
+  async mapTransferRootConfirmedEvents (
+    cb: EventCb,
+    options?: Partial<EventsBatchOptions>
+  ) {
     return this.mapEventsBatch(
       this.getTransferRootConfirmedEvents.bind(this),
       cb,

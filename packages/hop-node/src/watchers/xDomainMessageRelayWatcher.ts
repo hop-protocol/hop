@@ -131,13 +131,13 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
 
   async handleRawTransfersCommittedEvent (event: Event) {
     const {
-      destinationChainId: chainId,
+      destinationChainId,
       rootHash: transferRootHash,
       totalAmount,
       rootCommittedAt
     } = event.args
     await this.handleTransfersCommittedEvent(
-      chainId,
+      destinationChainId,
       transferRootHash,
       totalAmount,
       rootCommittedAt,
@@ -155,15 +155,23 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       )
     }
     for (let dbTransferRoot of dbTransferRoots) {
-      const { transferRootHash, chainId, committedAt } = dbTransferRoot
+      const {
+        transferRootHash,
+        destinationChainId,
+        committedAt
+      } = dbTransferRoot
       // Parallelizing these calls produces RPC errors on Optimism
-      await this.checkTransfersCommitted(transferRootHash, chainId, committedAt)
+      await this.checkTransfersCommitted(
+        transferRootHash,
+        destinationChainId,
+        committedAt
+      )
     }
   }
 
   checkTransfersCommitted = async (
     transferRootHash: string,
-    chainId: number,
+    destinationChainId: number,
     committedAt: number
   ) => {
     const logger = this.logger.create({ root: transferRootHash })
@@ -275,7 +283,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
 
                 this.emit('transferRootConfirmed', {
                   transferRootHash,
-                  chainId
+                  destinationChainId
                 })
 
                 db.transferRoots.update(transferRootHash, {
@@ -333,7 +341,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
 
           this.emit('transferRootConfirmed', {
             transferRootHash,
-            chainId
+            destinationChainId
           })
 
           db.transferRoots.update(transferRootHash, {

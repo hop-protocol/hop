@@ -6,7 +6,7 @@ export type TransferRoot = {
   transferRootId?: string
   transferRootHash?: string
   totalAmount?: BigNumber
-  chainId?: number // TODO: rename to destinationChainId throughout
+  destinationChainId?: number
   sourceChainId?: number
   sentCommitTx?: boolean
   sentCommitTxAt: number
@@ -101,7 +101,7 @@ class TransferRootsDb extends BaseDb {
         !item.sentBondTx &&
         !item.bonded &&
         item.transferRootHash &&
-        item.chainId &&
+        item.destinationChainId &&
         item.committedAt &&
         !item.confirmed &&
         item.commitTxHash &&
@@ -125,7 +125,7 @@ class TransferRootsDb extends BaseDb {
         !item.confirmed &&
         !item.sentConfirmTx &&
         item.transferRootHash &&
-        item.chainId &&
+        item.destinationChainId &&
         item.committed &&
         item.committedAt
       )

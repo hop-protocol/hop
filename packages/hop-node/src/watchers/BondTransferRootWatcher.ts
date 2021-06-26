@@ -115,13 +115,13 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
 
   async handleRawTransfersCommittedEvent (event: Event) {
     const {
-      destinationChainId: chainId,
+      destinationChainId,
       rootHash,
       totalAmount,
       rootCommittedAt
     } = event.args
     await this.handleTransfersCommittedEvent(
-      chainId,
+      destinationChainId,
       rootHash,
       totalAmount,
       rootCommittedAt,
@@ -142,13 +142,13 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       const {
         transferRootHash,
         totalAmount,
-        chainId,
+        destinationChainId,
         committedAt
       } = dbTransferRoot
       await this.checkTransfersCommitted(
         transferRootHash,
         totalAmount,
-        chainId,
+        destinationChainId,
         committedAt
       )
     }
@@ -157,7 +157,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
   checkTransfersCommitted = async (
     transferRootHash: string,
     totalAmount: BigNumber,
-    chainId: number,
+    destinationChainId: number,
     committedAt: number
   ) => {
     const logger = this.logger.create({ root: transferRootHash })
@@ -182,11 +182,11 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     }
 
     const isBonder = await this.getSiblingWatcherByChainId(
-      chainId
+      destinationChainId
     ).bridge.isBonder()
     if (!isBonder) {
       logger.warn(
-        `not a bonder on chain ${chainId}. Cannot bond transfer root.`
+        `not a bonder on chain ${destinationChainId}. Cannot bond transfer root.`
       )
       return
     }
@@ -248,7 +248,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       chalk.bgMagenta.black(transferRootHash)
     )
     logger.debug('committedAt:', committedAt)
-    logger.debug('chainId:', chainId)
+    logger.debug('destinationChainId:', destinationChainId)
     logger.debug('transferRootHash:', transferRootHash)
     logger.debug('transferRootId:', transferRootId)
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
@@ -257,7 +257,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       transferRootHash,
       transferRootId,
       totalAmount,
-      chainId,
+      destinationChainId,
       sourceChainId,
       committed: true,
       committedAt
@@ -280,7 +280,10 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       'dbTransferRoot totalAmount:',
       this.bridge.formatUnits(dbTransferRoot.totalAmount)
     )
-    logger.debug('dbTransferRoot chainId:', dbTransferRoot.chainId)
+    logger.debug(
+      'dbTransferRoot destinationChainId:',
+      dbTransferRoot.destinationChainId
+    )
     logger.debug('dbTransferRoot sourceChainId:', sourceChainId)
     logger.debug('dbTransferRoot committedAt:', dbTransferRoot.committedAt)
     logger.debug('dbTransferRoot committed:', dbTransferRoot.committed)
@@ -351,7 +354,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     }
 
     logger.debug(
-      `bonding transfer root ${transferRootHash} on chain ${chainId}`
+      `bonding transfer root ${transferRootHash} on chain ${destinationChainId}`
     )
     await db.transferRoots.update(transferRootHash, {
       sentBondTx: true,
@@ -359,7 +362,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     })
     const tx = await l1Bridge.bondTransferRoot(
       transferRootHash,
-      chainId,
+      destinationChainId,
       totalAmount
     )
     tx?.wait()
@@ -374,7 +377,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
 
         this.emit('bondTransferRoot', {
           transferRootHash,
-          chainId,
+          destinationChainId,
           totalAmount
         })
 
@@ -391,7 +394,9 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
         throw err
       })
     logger.info('L1 bondTransferRoot tx', chalk.bgYellow.black.bold(tx.hash))
-    this.notifier.info(`chainId: ${chainId} bondTransferRoot tx: ${tx.hash}`)
+    this.notifier.info(
+      `destinationChainId: ${destinationChainId} bondTransferRoot tx: ${tx.hash}`
+    )
   }
 
   async waitTimeout (transferRootHash: string, totalAmount: BigNumber) {

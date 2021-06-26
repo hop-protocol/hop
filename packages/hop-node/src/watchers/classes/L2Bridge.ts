@@ -5,7 +5,7 @@ import {
   l2AmmWrapperAbi,
   l2BridgeWrapperAbi
 } from '@hop-protocol/abi'
-import Bridge from './Bridge'
+import Bridge, { EventsBatchOptions, EventCb } from './Bridge'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import queue from 'src/decorators/queue'
 import L2AmmWrapper from './L2AmmWrapper'
@@ -95,15 +95,10 @@ export default class L2Bridge extends Bridge {
     )
   }
 
-  async forEachTransfersCommittedEvents (cb: any, options?: any) {
-    return this.forEachEventsBatch(
-      this.getTransfersCommittedEvents.bind(this),
-      cb,
-      options
-    )
-  }
-
-  async mapTransfersCommittedEvents (cb: any, options?: any) {
+  async mapTransfersCommittedEvents (
+    cb: EventCb,
+    options?: Partial<EventsBatchOptions>
+  ) {
     return this.mapEventsBatch(
       this.getTransfersCommittedEvents.bind(this),
       cb,
@@ -136,15 +131,10 @@ export default class L2Bridge extends Bridge {
     )
   }
 
-  async forEachTransferSentEvents (cb: any, options?: any) {
-    return this.forEachEventsBatch(
-      this.getTransferSentEvents.bind(this),
-      cb,
-      options
-    )
-  }
-
-  async mapTransferSentEvents (cb: any, options?: any) {
+  async mapTransferSentEvents (
+    cb: EventCb,
+    options?: Partial<EventsBatchOptions>
+  ) {
     return this.mapEventsBatch(
       this.getTransferSentEvents.bind(this),
       cb,
@@ -211,22 +201,22 @@ export default class L2Bridge extends Bridge {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    let chainId: number
+    let destinationChainId: number
     let attemptSwap = false
     try {
       const decoded = await this.ammWrapper.decodeSwapAndSendData(data)
-      chainId = Number(decoded.chainId.toString())
+      destinationChainId = Number(decoded.chainId.toString())
       attemptSwap = decoded.attemptSwap
     } catch (err) {
       const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
         'send',
         data
       )
-      chainId = Number(decoded.chainId.toString())
+      destinationChainId = Number(decoded.chainId.toString())
     }
 
     return {
-      chainId,
+      destinationChainId,
       attemptSwap
     }
   }

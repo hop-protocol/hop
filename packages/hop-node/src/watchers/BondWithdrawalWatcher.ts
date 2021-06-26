@@ -201,23 +201,12 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
-    const txBlockNumber = await sourceL2Bridge.getTransactionBlockNumber(
-      transferSentTxHash
+    await sourceL2Bridge.waitSafeConfirmationsAndCheckBlockNumber(
+      transferSentTxHash,
+      async () => {
+        return sourceL2Bridge.getTransferSentTxHash(transferId)
+      }
     )
-    await sourceL2Bridge.waitSafeConfirmations(txBlockNumber)
-    const latestTransferSentTxHash = await sourceL2Bridge.getTransferSentTxHash(
-      transferId
-    )
-    if (!latestTransferSentTxHash) {
-      throw new Error(
-        `could not find block for transfer sent event (transfer id: ${transferId})`
-      )
-    }
-    if (transferSentTxHash !== latestTransferSentTxHash) {
-      throw new Error(
-        `transfer sent event (transfer id: ${transferId}) changed block (expected tx hash: ${transferSentTxHash}, got tx hash $(${latestTransferSentTxHash}))`
-      )
-    }
 
     const isBonder = await destBridge.isBonder()
     if (!isBonder) {

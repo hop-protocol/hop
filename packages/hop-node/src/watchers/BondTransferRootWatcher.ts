@@ -194,23 +194,12 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
       .bridge as L1Bridge
 
-    const txBlockNumber = await this.bridge.getTransactionBlockNumber(
-      commitTxHash
+    await l2Bridge.waitSafeConfirmationsAndCheckBlockNumber(
+      commitTxHash,
+      async () => {
+        return l2Bridge.getTransferRootCommittedTxHash(transferRootHash)
+      }
     )
-    await l2Bridge.waitSafeConfirmations(txBlockNumber)
-    const latestCommitTxHash = await l2Bridge.getTransferRootCommittedTxHash(
-      transferRootHash
-    )
-    if (!latestCommitTxHash) {
-      throw new Error(
-        `could not find block for transfers committed event (transfer root hash: ${transferRootHash})`
-      )
-    }
-    if (commitTxHash !== latestCommitTxHash) {
-      throw new Error(
-        `transfers committed event (transfer root hash: ${transferRootHash}) changed block (expected tx hash: ${commitTxHash}, got tx hash $(${latestCommitTxHash}))`
-      )
-    }
 
     const minDelay = await l1Bridge.getMinTransferRootBondDelaySeconds()
     const blockTimestamp = await l1Bridge.getBlockTimestamp()

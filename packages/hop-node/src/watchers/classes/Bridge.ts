@@ -491,6 +491,26 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
+  async waitSafeConfirmationsAndCheckBlockNumber (
+    originalTxHash: string,
+    txHashGetter: () => Promise<string>
+  ) {
+    const originalBlockNumber = await this.getTransactionBlockNumber(
+      originalTxHash
+    )
+    await this.waitSafeConfirmations(originalBlockNumber)
+    const latestTxHash = await txHashGetter()
+    if (!latestTxHash) {
+      throw new Error(`could not find tx hash event`)
+    }
+    const latestBlockNumber = await this.getTransactionBlockNumber(latestTxHash)
+    if (originalBlockNumber !== latestBlockNumber) {
+      throw new Error(
+        `tx hash (${originalTxHash}) block number hash changed. expected ${originalBlockNumber}, got ${latestBlockNumber}`
+      )
+    }
+  }
+
   formatUnits (value: BigNumber) {
     return Number(formatUnits(value.toString(), this.tokenDecimals))
   }

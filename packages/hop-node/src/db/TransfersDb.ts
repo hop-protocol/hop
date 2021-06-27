@@ -43,6 +43,9 @@ class TransfersDb extends BaseDb {
 
   async getByTransferId (transferId: string): Promise<Transfer> {
     let item = (await this.getById(transferId)) as Transfer
+    if (!item) {
+      return item
+    }
     item = normalizeBigNumber(item, 'amount')
     item = normalizeBigNumber(item, 'bonderFee')
     item = normalizeBigNumber(item, 'amountOutMin')
@@ -50,7 +53,7 @@ class TransfersDb extends BaseDb {
       item.destinationChainSlug = chainIdToSlug(item?.destinationChainId)
     }
     if (item?.sourceChainId) {
-      item.sourceChainSlug = chainIdToSlug(item?.sourceChainId)
+      item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
     }
     return item
   }

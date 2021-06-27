@@ -335,6 +335,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       sourceChainId,
       destinationChainId
     } = await db.transferRoots.getByTransferRootHash(transferRootHash)
+    if (isL1ChainId(sourceChainId)) {
+      return
+    }
     logger.debug(
       `looking for transfer ids for transferRootHash ${transferRootHash}`
     )

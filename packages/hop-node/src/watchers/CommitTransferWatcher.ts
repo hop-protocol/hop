@@ -173,7 +173,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       if (totalPendingAmount.lte(0)) {
         for (let { transferId } of dbTransfers) {
           await db.transfers.update(transferId, {
-            commited: true
+            committed: true
           })
         }
         return

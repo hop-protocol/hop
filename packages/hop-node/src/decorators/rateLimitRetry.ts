@@ -34,7 +34,7 @@ async function runner (fn: any): Promise<any> {
       const isRateLimitError = /(bad response|response error|rate limit|too many concurrent requests)/gi.test(
         err.message
       )
-      // throw error as unsual if it's not a rate limit error
+      // throw error as usual if it's not a rate limit error
       if (!isRateLimitError) {
         throw err
       }

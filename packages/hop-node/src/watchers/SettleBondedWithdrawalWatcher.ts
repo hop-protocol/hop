@@ -177,8 +177,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           resolve(null)
         })
       )
-      const lookupmMissingTransferRootHashes = false
-      if (lookupmMissingTransferRootHashes) {
+      const lookupMissingTransferRootHashes = false
+      if (lookupMissingTransferRootHashes) {
         promises.push(
           new Promise(async resolve => {
             try {

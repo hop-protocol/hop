@@ -29,7 +29,7 @@ export type Transfer = {
   transferSentBlockNumber?: number
   transferSentTimestamp?: number
 
-  commited: boolean
+  committed: boolean
 }
 
 class TransfersDb extends BaseDb {
@@ -110,7 +110,7 @@ class TransfersDb extends BaseDb {
         item.transferId &&
         !item.transferRootId &&
         item.transferSentTxHash &&
-        !item.commited
+        !item.committed
       )
     })
   }

@@ -176,11 +176,11 @@ export default class L1Bridge extends Bridge {
   }
 
   @rateLimitRetry
-  async getTransferRootIdCommitedAt (transferRootId: string): Promise<number> {
-    const commitedAt = await this.bridgeContract.transferRootCommittedAt(
+  async getTransferRootIdCommittedAt (transferRootId: string): Promise<number> {
+    const committedAt = await this.bridgeContract.transferRootCommittedAt(
       transferRootId
     )
-    return Number(commitedAt.toString())
+    return Number(committedAt.toString())
   }
 
   async isTransferRootIdConfirmed (transferRootId: string): Promise<boolean> {

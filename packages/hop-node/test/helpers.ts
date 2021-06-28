@@ -176,7 +176,7 @@ export class User {
 
   async getMessengerContract (network: string, token: string = Token.USDC) {
     if (network === Chain.Ethereum) {
-      throw new Error('not supporsed')
+      throw new Error('not supported')
     }
     const wrapper = await this.getMessengerWrapperContract(network, token)
     const wallet = this.getWallet(Chain.Ethereum)
@@ -1013,10 +1013,10 @@ export class User {
     return Number(formatUnits(bondAmount.toString(), 18))
   }
 
-  async getTransferRootCommitedAt (transferRootId: string) {
+  async getTransferRootCommittedAt (transferRootId: string) {
     const bridge = this.getHopBridgeContract(Chain.Ethereum)
-    const commitedAt = await bridge.transferRootCommittedAt(transferRootId)
-    return Number(commitedAt.toString())
+    const committedAt = await bridge.transferRootCommittedAt(transferRootId)
+    return Number(committedAt.toString())
   }
 
   async getTransferRootId (transferRootHash: string, totalAmount: number) {

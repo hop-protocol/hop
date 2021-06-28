@@ -81,7 +81,7 @@ class Transaction extends EventEmitter {
   }
 
   get explorerLink (): string {
-    if (standardNetworks.has(this.networkName)) {
+    if (this.networkName.startsWith('ethereum')) {
       return this._etherscanLink()
     } else if (this.networkName.startsWith('arbitrum')) {
       return this._arbitrumLink()
@@ -109,17 +109,17 @@ class Transaction extends EventEmitter {
   }
 
   private _etherscanLink () {
-    return `${getBaseExplorerUrl(this.networkName)}tx/${this.hash}`
+    return `${getBaseExplorerUrl(this.networkName)}/tx/${this.hash}`
   }
 
   private _arbitrumLink () {
-    return `${getBaseExplorerUrl('arbitrum')}tx/${this.hash}`
+    return `${getBaseExplorerUrl('arbitrum')}/tx/${this.hash}`
   }
 
   private _optimismLink () {
     try {
       const url = new URL(getBaseExplorerUrl('optimism'))
-      return `${url.origin}${url.pathname}tx/${this.hash}${url.search}`
+      return `${url.origin}${url.pathname}/tx/${this.hash}${url.search}`
     } catch (err) {
       return ''
     }

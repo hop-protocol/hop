@@ -126,11 +126,11 @@ class Transaction extends EventEmitter {
   }
 
   private _xdaiLink () {
-    return `${getBaseExplorerUrl('xdai')}tx/${this.hash}`
+    return `${getBaseExplorerUrl('xdai')}/tx/${this.hash}`
   }
 
   private _polygonLink () {
-    return `${getBaseExplorerUrl('polygon')}tx/${this.hash}`
+    return `${getBaseExplorerUrl('polygon')}/tx/${this.hash}`
   }
 
   toObject () {

@@ -83,6 +83,7 @@ const StatusContextProvider: FC = ({ children }) => {
           currentSteps[1].text = 'Unsuccessful'
           currentSteps[1].error = true
         }
+        setSteps([...currentSteps])
         if (!currentSteps[1].error) {
           if (activeStep < 3) {
             setActiveStep(2)

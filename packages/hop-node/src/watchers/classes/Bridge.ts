@@ -2,7 +2,7 @@ import { providers, Contract, BigNumber, Event } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
 import queue from 'src/decorators/queue'
-import rateLimitRetry from 'src/decorators/rateLimitRetry'
+import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import { config } from 'src/config'
 import unique from 'src/utils/unique'
 import { isL1ChainId, xor, wait } from 'src/utils'
@@ -536,7 +536,6 @@ export default class Bridge extends ContractBase {
     return Promise.all(promises)
   }
 
-  @rateLimitRetry
   public async eventsBatch (
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
     options: Partial<EventsBatchOptions> = {}
@@ -565,11 +564,11 @@ export default class Bridge extends ContractBase {
 
     let i = 0
     if (totalBlocksInBatch <= batchBlocks) {
-      await cb(start, end, i)
+      await rateLimitRetryFn(cb(start, end, i))
       await wait(50)
     } else {
       while (start >= latestBlockInBatch - totalBlocksInBatch) {
-        const shouldContinue = await cb(start, end, i)
+        const shouldContinue = await rateLimitRetryFn(cb(start, end, i))
         if (typeof shouldContinue === 'boolean' && !shouldContinue) {
           break
         }

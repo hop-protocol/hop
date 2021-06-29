@@ -111,6 +111,9 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   getSiblingWatcherByChainId (chainId: number): any {
+    if (!this.hasSiblingWatcher(chainId)) {
+      throw new Error(`sibling watcher for chain id ${chainId} not found. Check configuration`)
+    }
     return this.siblingWatchers[chainId]
   }
 

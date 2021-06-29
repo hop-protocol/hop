@@ -5,7 +5,7 @@ import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { config } from 'src/config'
 import unique from 'src/utils/unique'
-import { isL1ChainId, xor, wait } from 'src/utils'
+import { isL1ChainId, xor } from 'src/utils'
 import db from 'src/db'
 
 export type EventsBatchOptions = {
@@ -566,7 +566,6 @@ export default class Bridge extends ContractBase {
     let i = 0
     if (totalBlocksInBatch <= batchBlocks) {
       await cb(start, end, i)
-      await wait(50)
     } else {
       while (start >= latestBlockInBatch - totalBlocksInBatch) {
         const shouldContinue = await cb(start, end, i)

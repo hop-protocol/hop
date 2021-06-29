@@ -110,7 +110,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     this.logger.debug(
       `checking ${dbTransfers.length} bonded transfers without roots db items`
     )
-    const promises: Promise<any>[] = []
     for (let dbTransfer of dbTransfers) {
       const { transferId, transferSentTxHash } = dbTransfer
       const transferRoots = await db.transferRoots.getTransferRoots()
@@ -481,9 +480,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const { data } = await this.bridge.getTransaction(transactionHash)
     const { transferIds } = await this.bridge.decodeSettleBondedWithdrawalsData(
       data
-    )
-    let dbTransferRoot = await db.transferRoots.getByTransferRootHash(
-      transferRootHash
     )
     for (let transferId of transferIds) {
       await db.transfers.update(transferId, {

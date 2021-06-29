@@ -22,6 +22,7 @@ import {
   slackUsername
 } from 'src/config'
 import db from 'src/db'
+import clearDb from 'src/db/clearDb'
 import Logger, { setLogLevel } from 'src/logger'
 import { Chain } from 'src/constants'
 import arbbots from 'src/arb-bot/bots'
@@ -134,6 +135,7 @@ program
     '--password-file <string>',
     'File containing password to unlock keystore'
   )
+  .option('--clear-db', 'Clear cache database on start')
   .action(async (source: any) => {
     try {
       printHopArt()
@@ -141,6 +143,10 @@ program
       const configFilePath = source.config || source.args[0]
       const config: Config = await parseConfigFile(configFilePath)
       await setGlobalConfigFromConfigFile(config, source.passwordFile)
+      if (source.clearDb) {
+        await clearDb()
+        logger.debug(`cleared db at: ${dbConfig.path}`)
+      }
 
       const tokens = []
       if (config?.tokens) {

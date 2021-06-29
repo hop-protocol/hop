@@ -73,7 +73,9 @@ class TransferRootsDb extends BaseDb {
       })
     )
 
-    return transferRoots.sort((a, b) => a.committedAt - b.committedAt)
+    return transferRoots
+      .sort((a, b) => a?.committedAt - b?.committedAt)
+      .filter(x => x)
   }
 
   async getUncommittedBondedTransferRoots (

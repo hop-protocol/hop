@@ -127,7 +127,10 @@ class TransfersDb extends BaseDb {
       }
 
       return (
-        item.transferId && !item.withdrawalBonded && item.transferSentTxHash
+        item.transferId &&
+        !item.withdrawalBonded &&
+        item.transferSentTxHash &&
+        !item.sentBondWithdrawalTx
       )
     })
   }

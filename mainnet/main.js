@@ -80,7 +80,7 @@ async function updateData () {
     })
   }
 
-  data.filter(x => x.destinationChain && x.transferId)
+  data = data.filter(x => x.destinationChain && x.transferId)
   load()
 
   setTimeout(() => {
@@ -151,6 +151,7 @@ async function load () {
     return `${x.sourceChain}→${x.destinationChain} transferId:${x.transferId}`
   })
   const ul = d3.select('#transfers')
+    .html('')
     .append('ul')
 
   ul
@@ -162,7 +163,6 @@ async function load () {
 
   function render () {
     d3.select('#chart svg').remove()
-    // d3.json("//cdn.rawgit.com/q-m/d3.chart.sankey/master/example/data/product.json", function(error, json) {
     const chart = d3.select('#chart').append('svg').chart('Sankey.Path')
     chart
       .name(label)

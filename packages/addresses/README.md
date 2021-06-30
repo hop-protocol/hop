@@ -7,5 +7,11 @@
 ```js
 import * as addresses from '@hop-protocol/addresses'
 
-console.log(addresses.kovan.USDC.ethereum.l1Bridge)) // 0xe31a40e28888BbFF75a7f433f25863F9893a7cd4
+console.log(addresses.kovan.USDC.ethereum.l1Bridge)) // 0x123...
 ```
+
+See the following files for list of available addresses
+
+- [./src/mainnet.ts](./src/mainnet.ts)
+- [./src/goerli.ts](./src/goerli.ts)
+- [./src/kovan.ts](./src/kovan.ts)

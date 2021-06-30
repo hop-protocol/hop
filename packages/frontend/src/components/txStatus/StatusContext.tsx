@@ -59,12 +59,22 @@ const StatusContextProvider: FC = ({ children }) => {
 
     // is regular transaction
     if (!tx.token) {
-      setSteps([
-        {
-          text: 'Pending',
-          url: tx.explorerLink
-        },
-      ])
+      if (tx.pending) {
+        setSteps([
+          {
+            text: 'Pending',
+            url: tx.explorerLink
+          },
+        ])
+      } else {
+        setSteps([
+          {
+            text: 'Complete',
+            url: tx.explorerLink
+          },
+        ])
+        setActiveStep(2)
+      }
       return
     }
     if (activeStep >= 3) {

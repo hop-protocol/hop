@@ -20,12 +20,22 @@ See [docs.hop.protocol/js-sdk](https://docs.hop.exchange/js-sdk)
 
 ## Development
 
+Install dependencies
+
 ```bash
 npm install
 ```
 
+Run watcher
+
 ```bash
 npm run dev
+```
+
+Generate documentation
+
+```bash
+npm run docs
 ```
 
 ## Test

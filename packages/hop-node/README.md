@@ -2,19 +2,11 @@
 
 > Hop node for bonding transfers
 
-## Getting started
+⚠️ Hop node is in beta. Use at your own risk.
 
-Run bridge node watcher:
+## Documentationo
 
-```bash
-docker run --env-file .env hopprotocol/hop-node:latest
-```
-
-Bridge node config:
-
-```bash
-BONDER_PRIVATE_KEY=0x111...
-```
+See [docs.hop.exchange/hop-node](https://docs.hop.exchange/hop-node)
 
 ## Development
 

@@ -400,11 +400,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         startBlockNumber = startSearchBlockNumber
       }
 
-      // There is an unhandled case where there are too many blocks between two
-      // TransfersCommitted events and startBlockNumber is never defined. This should
-      // never happen in production.
+      // There is an error if there is no startBlockNumber at this point unless this is the first sync and the first
+      // root hash cannot be reconstructed because we do not go back far enough to find the next TransfersCommitted
+      // event. In this case, use this error log as an informative warning rather than an error.
       if (!startBlockNumber) {
-        logger.error('Too many blocks between two TransfersCommitted events')
+        logger.error(
+          `Too many blocks between two TransfersCommitted events. Search Start: ${startSearchBlockNumber}. End Event: ${endEvent.blockNumber}`
+        )
         return
       }
     }

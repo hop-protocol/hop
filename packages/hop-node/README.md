@@ -10,13 +10,13 @@ See [docs.hop.exchange/hop-node](https://docs.hop.exchange/hop-node)
 
 ## Development
 
-Install dependencies:
+Install dependencies
 
 ```bash
 npm install
 ```
 
-Run node:
+Run node
 
 ```bash
 npm start

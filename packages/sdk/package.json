@@ -33,7 +33,7 @@
   "license": "MIT",
   "dependencies": {
     "@hop-protocol/abi": "0.0.1-beta.11",
-    "@hop-protocol/addresses": "0.0.1-beta.24",
+    "@hop-protocol/addresses": "0.0.1-beta.26",
     "@hop-protocol/metadata": "0.0.1-beta.12",
     "@hop-protocol/networks": "0.0.1-beta.13",
     "@maticnetwork/maticjs": "^2.0.38",

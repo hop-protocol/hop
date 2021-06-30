@@ -841,6 +841,8 @@ class HopBridge extends Base {
     chain: TChain,
     signer: TProvider = this.signer
   ) {
+    // ToDo: Remove ability to pass in signer like other token getters
+    if (!signer) return
     chain = this.toChainModel(chain)
     const saddleLpTokenAddress = this.getL2SaddleLpTokenAddress(
       this.tokenSymbol,

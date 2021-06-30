@@ -41,14 +41,15 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://blockscout.com/xdai/mainnet'],
     nativeBridgeUrl: 'https://omni.xdaichain.com/',
-    waitConfirmations: 60 // TODO: ask for recommended wait confirmations
+    waitConfirmations: 42
   },
   polygon: {
     name: chains.polygon.name,
     networkId: 137,
     rpcUrls: [
       'https://polygon.rpc.hop.exchange',
-      'https://rpc-mainnet.maticvigil.com'
+      'https://rpc-mainnet.maticvigil.com',
+      // 'https://matic-mainnet-archive-rpc.bwarelabs.com'
     ],
     explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',

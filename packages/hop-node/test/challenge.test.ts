@@ -109,8 +109,10 @@ describe('challenge valid transfer root but committed too early', () => {
         const bondForTransferAmount = await user.getBondForTransferAmount(
           totalAmount
         )
-        const commitedAt = await user.getTransferRootCommitedAt(transferRootId)
-        let challengerWin = commitedAt <= 0
+        const committedAt = await user.getTransferRootCommittedAt(
+          transferRootId
+        )
+        let challengerWin = committedAt <= 0
         expect(challengerWin).toBe(true)
 
         if (challengerWin) {
@@ -119,7 +121,7 @@ describe('challenge valid transfer root but committed too early', () => {
             userBalanceBefore + (challengeStakeAmount * 7) / 4
           )
         } else {
-          if (bondCreatedAt > commitedAt + minTransferRootBondDelay) {
+          if (bondCreatedAt > committedAt + minTransferRootBondDelay) {
             expect(bonderCreditAfter).toBe(
               bonderCreditBefore + bondForTransferAmount + challengeStakeAmount
             )
@@ -216,8 +218,10 @@ describe.only('challenge invalid transfer root', () => {
         const bondForTransferAmount = await user.getBondForTransferAmount(
           totalAmount
         )
-        const commitedAt = await user.getTransferRootCommitedAt(transferRootId)
-        let challengerWin = commitedAt <= 0
+        const committedAt = await user.getTransferRootCommittedAt(
+          transferRootId
+        )
+        let challengerWin = committedAt <= 0
         expect(challengerWin).toBe(true)
 
         if (challengerWin) {
@@ -226,7 +230,7 @@ describe.only('challenge invalid transfer root', () => {
           expect(balanceAfter).toBe(balanceBefore)
         } else {
           const creditAfter = await bonder.getCredit(Chain.Ethereum)
-          if (bondCreatedAt > commitedAt + minTransferRootBondDelay) {
+          if (bondCreatedAt > committedAt + minTransferRootBondDelay) {
             expect(creditAfter).toBe(
               creditBefore + bondForTransferAmount + challengeStakeAmount
             )

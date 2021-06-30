@@ -83,11 +83,18 @@ const StatusContextProvider: FC = ({ children }) => {
           currentSteps[1].text = 'Unsuccessful'
           currentSteps[1].error = true
         }
-        if (activeStep < 3) {
-          setActiveStep(2)
+        setSteps([...currentSteps])
+        if (!currentSteps[1].error) {
+          if (activeStep < 3) {
+            setActiveStep(2)
+          }
         }
       })
       .on(sdk.Event.DestinationTxReceipt, data => {
+        const prevStepFailed = currentSteps[1].error
+        if (!prevStepFailed) {
+          return
+        }
         const { receipt, isHTokenTransfer } = data
         const error = !receipt.status
         if (!error) {

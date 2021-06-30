@@ -2,19 +2,19 @@ import { providers, Contract, BigNumber, Event } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
 import queue from 'src/decorators/queue'
-import rateLimitRetry from 'src/decorators/rateLimitRetry'
+import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import { config } from 'src/config'
 import unique from 'src/utils/unique'
-import { isL1ChainId, xor, wait } from 'src/utils'
+import { isL1ChainId, xor } from 'src/utils'
 import db from 'src/db'
 
-type EventsBatchOptions = {
+export type EventsBatchOptions = {
   cacheKey: string
   startBlockNumber: number
   endBlockNumber: number
 }
 
-type EventCb = (event: Event, i?: number) => any
+export type EventCb = (event: Event, i?: number) => any
 
 export default class Bridge extends ContractBase {
   WithdrawalBonded: string = 'WithdrawalBonded'
@@ -238,15 +238,10 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  async forEachWithdrawalBondedEvents (cb: any, options?: any) {
-    return this.forEachEventsBatch(
-      this.getWithdrawalBondedEvents.bind(this),
-      cb,
-      options
-    )
-  }
-
-  async mapWithdrawalBondedEvents (cb: any, options?: any) {
+  async mapWithdrawalBondedEvents (
+    cb: EventCb,
+    options?: Partial<EventsBatchOptions>
+  ) {
     return this.mapEventsBatch(
       this.getWithdrawalBondedEvents.bind(this),
       cb,
@@ -266,15 +261,34 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  async forEachTransferRootSetEvents (cb: any, options?: any) {
-    return this.forEachEventsBatch(
-      this.getTransferRootSetEvents.bind(this),
-      cb,
-      options
-    )
+  @rateLimitRetry
+  async getTransferRootSetTxHash (
+    transferRootHash: string
+  ): Promise<string | undefined> {
+    let txHash: string
+    await this.eventsBatch(async (start: number, end: number) => {
+      const events = await this.bridgeContract.queryFilter(
+        this.bridgeContract.filters.TransferRootSet(),
+        start,
+        end
+      )
+
+      for (let event of events) {
+        if (transferRootHash === event.args.rootHash) {
+          txHash = event.transactionHash
+          return false
+        }
+      }
+      return true
+    })
+
+    return txHash
   }
 
-  async mapTransferRootSetEvents (cb: any, options?: any) {
+  async mapTransferRootSetEvents (
+    cb: EventCb,
+    options?: Partial<EventsBatchOptions>
+  ) {
     return this.mapEventsBatch(
       this.getTransferRootSetEvents.bind(this),
       cb,
@@ -334,15 +348,10 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  async forEachMultipleWithdrawalsSettledEvents (cb: any, options?: any) {
-    return this.forEachEventsBatch(
-      this.getMultipleWithdrawalsSettledEvents.bind(this),
-      cb,
-      options
-    )
-  }
-
-  async mapMultipleWithdrawalsSettledEvents (cb: any, options?: any) {
+  async mapMultipleWithdrawalsSettledEvents (
+    cb: EventCb,
+    options?: Partial<EventsBatchOptions>
+  ) {
     return this.mapEventsBatch(
       this.getMultipleWithdrawalsSettledEvents.bind(this),
       cb,
@@ -482,27 +491,32 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
+  async waitSafeConfirmationsAndCheckBlockNumber (
+    originalTxHash: string,
+    txHashGetter: () => Promise<string>
+  ) {
+    const originalBlockNumber = await this.getTransactionBlockNumber(
+      originalTxHash
+    )
+    await this.waitSafeConfirmations(originalBlockNumber)
+    const latestTxHash = await txHashGetter()
+    if (!latestTxHash) {
+      throw new Error(`could not find tx hash event`)
+    }
+    const latestBlockNumber = await this.getTransactionBlockNumber(latestTxHash)
+    if (originalBlockNumber !== latestBlockNumber) {
+      throw new Error(
+        `tx hash (${originalTxHash}) block number hash changed. expected ${originalBlockNumber}, got ${latestBlockNumber}`
+      )
+    }
+  }
+
   formatUnits (value: BigNumber) {
     return Number(formatUnits(value.toString(), this.tokenDecimals))
   }
 
   parseUnits (value: string | number) {
     return parseUnits(value.toString(), this.tokenDecimals)
-  }
-
-  protected async forEachEventsBatch (
-    getEventsMethod: (start: number, end: number) => Promise<Event[]>,
-    cb: EventCb,
-    options?: Partial<EventsBatchOptions>
-  ) {
-    let i = 0
-    return this.eventsBatch(async (start: number, end: number) => {
-      const events = await getEventsMethod(start, end)
-      for (let event of events) {
-        await cb(event, i)
-        i++
-      }
-    }, options)
   }
 
   protected async mapEventsBatch (
@@ -513,7 +527,8 @@ export default class Bridge extends ContractBase {
     let i = 0
     const promises: Promise<any>[] = []
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await getEventsMethod(start, end)
+      let events = await getEventsMethod(start, end)
+      events = events.reverse()
       for (let event of events) {
         promises.push(cb(event, i++))
       }
@@ -521,7 +536,6 @@ export default class Bridge extends ContractBase {
     return Promise.all(promises)
   }
 
-  @rateLimitRetry
   public async eventsBatch (
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
     options: Partial<EventsBatchOptions> = {}
@@ -550,11 +564,10 @@ export default class Bridge extends ContractBase {
 
     let i = 0
     if (totalBlocksInBatch <= batchBlocks) {
-      await cb(start, end, i)
-      await wait(50)
+      await rateLimitRetryFn(cb(start, end, i))
     } else {
       while (start >= latestBlockInBatch - totalBlocksInBatch) {
-        const shouldContinue = await cb(start, end, i)
+        const shouldContinue = await rateLimitRetryFn(cb(start, end, i))
         if (typeof shouldContinue === 'boolean' && !shouldContinue) {
           break
         }

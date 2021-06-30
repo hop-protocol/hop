@@ -77,7 +77,18 @@ export default class ContractBase extends EventEmitter {
   }
 
   @rateLimitRetry
-  async getBlockTimestamp (blockNumber: string = 'latest'): Promise<number> {
+  async getTransactionBlockNumber (txHash: string): Promise<number> {
+    const tx = await this.contract.provider.getTransaction(txHash)
+    if (!tx) {
+      throw new Error('transaction not found')
+    }
+    return tx.blockNumber
+  }
+
+  @rateLimitRetry
+  async getBlockTimestamp (
+    blockNumber: number | string = 'latest'
+  ): Promise<number> {
     const block = await this.contract.provider.getBlock(blockNumber)
     return block.timestamp
   }
@@ -108,13 +119,30 @@ export default class ContractBase extends EventEmitter {
   }
 
   @rateLimitRetry
-  // wait a safe number of confirmations to avoid processing on an uncle block
-  async waitSafeConfirmations (): Promise<void> {
-    let blockNumber = await this.contract.provider.getBlockNumber()
+  // wait a safe number of confirmations to avoid processing on a reorg
+  async waitSafeConfirmations (blockNumber?: number): Promise<void> {
+    const headBlockNumber = await this.contract.provider.getBlockNumber()
+
+    // use latest block number if one is not specified
+    if (!blockNumber) {
+      blockNumber = headBlockNumber
+    }
+
+    // the target block number is the specified block number plus the number
+    // of confirmations to wait
     const targetBlockNumber = blockNumber + this.waitConfirmations
+
+    // if latest block number is larger than target block number than there is
+    // no need to wait and can return immediately
+    if (headBlockNumber > targetBlockNumber) {
+      return
+    }
+
+    // keep waiting until latest block number is equal to or larger than
+    // target block number
     while (blockNumber < targetBlockNumber) {
       blockNumber = await this.contract.provider.getBlockNumber()
-      await wait(5 * 1000)
+      await wait(2 * 1000)
     }
   }
 

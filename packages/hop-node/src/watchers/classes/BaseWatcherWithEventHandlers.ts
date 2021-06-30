@@ -1,4 +1,4 @@
-import { Contract, BigNumber } from 'ethers'
+import { Contract, BigNumber, Event } from 'ethers'
 import BaseWatcher from './BaseWatcher'
 import db from 'src/db'
 import L2Bridge from './L2Bridge'
@@ -21,7 +21,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
   public handleTransferSentEvent = async (
     transferId: string,
-    chainId: BigNumber,
+    destinationChainIdBn: BigNumber,
     recipient: string,
     amount: BigNumber,
     transferNonce: string,
@@ -29,32 +29,32 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     index: string,
     amountOutMin: BigNumber,
     deadline: BigNumber,
-    meta: any
+    event: Event
   ) => {
     const logger = this.logger.create({ id: transferId })
     logger.debug(`handling TransferSent event`)
 
     try {
-      const { transactionHash, blockNumber } = meta
+      const { transactionHash } = event
+      const blockNumber: number = (event as any).blockNumber
       if (!transactionHash) {
         throw new Error('event transaction hash not found')
       }
       if (!blockNumber) {
         throw new Error('event block number not found')
       }
-      // TODO: re-check transfer id exists on-chain after waiting confirmations
-      await this.bridge.waitSafeConfirmations()
       const sentTimestamp = await this.bridge.getBlockTimestamp(blockNumber)
       const l2Bridge = this.bridge as L2Bridge
+      const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
 
       logger.debug('transfer event amount:', this.bridge.formatUnits(amount))
-      logger.debug('chainId:', Number(chainId))
+      logger.debug('destinationChainId:', destinationChainId)
       logger.debug('transferId:', chalk.bgCyan.black(transferId))
 
       await db.transfers.update(transferId, {
         transferId,
-        chainId: Number(chainId),
+        destinationChainId,
         sourceChainId,
         recipient,
         amount,
@@ -77,13 +77,16 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     destChainId: BigNumber,
     transferRootHash: string,
     totalAmount: BigNumber,
-    meta: any
+    event: Event
   ) => {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('handling TransferRootConfirmed event')
 
     try {
-      const { transactionHash } = meta
+      const { transactionHash } = event
+      const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
+        transferRootHash
+      )
       await db.transferRoots.update(transferRootHash, {
         confirmed: true,
         confirmTxHash: transactionHash
@@ -99,14 +102,14 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
   handleTransferRootBondedEvent = async (
     transferRootHash: string,
     totalAmount: BigNumber,
-    meta: any
+    event: Event
   ) => {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('handling TransferRootBonded event')
 
     try {
-      const { transactionHash } = meta
-      const tx = await meta.getTransaction()
+      const { transactionHash } = event
+      const tx = await event.getTransaction()
       const { from: bonder } = tx
       const transferRootId = await this.bridge.getTransferRootId(
         transferRootHash,
@@ -134,26 +137,27 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
   }
 
   handleTransfersCommittedEvent = async (
-    chainId: BigNumber,
+    destinationChainIdBn: BigNumber,
     transferRootHash: string,
     totalAmount: BigNumber,
     committedAtBn: BigNumber,
-    meta: any
+    event: Event
   ) => {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('handling TransfersCommitted event')
 
     try {
       const committedAt = Number(committedAtBn.toString())
-      const { transactionHash } = meta
+      const { transactionHash } = event
       const l2Bridge = this.bridge as L2Bridge
 
       const sourceChainId = await l2Bridge.getChainId()
-      let destinationBridgeAddress = undefined
-      const isExitWatcher = !this.hasSiblingWatcher(Number(chainId))
+      const destinationChainId = Number(destinationChainIdBn.toString())
+      let destinationBridgeAddress: string
+      const isExitWatcher = !this.hasSiblingWatcher(destinationChainId)
       if (!isExitWatcher) {
         destinationBridgeAddress = await this.getSiblingWatcherByChainId(
-          Number(chainId)
+          destinationChainId
         ).bridge.getAddress()
       }
       const transferRootId = await this.bridge.getTransferRootId(
@@ -164,14 +168,14 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       logger.debug(`committedAt:`, committedAt)
       logger.debug(`totalAmount:`, this.bridge.formatUnits(totalAmount))
       logger.debug(`transferRootHash:`, transferRootHash)
-      logger.debug(`chainId:`, Number(chainId))
+      logger.debug(`destinationChainId:`, destinationChainId)
 
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,
         transferRootId,
         totalAmount,
-        chainId: Number(chainId),
         committedAt,
+        destinationChainId,
         destinationBridgeAddress,
         sourceChainId,
         committed: true,

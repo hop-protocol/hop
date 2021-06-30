@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import { Contract, BigNumber, Event } from 'ethers'
+import { Contract, BigNumber, Event, providers } from 'ethers'
 import { wait, isL1ChainId } from 'src/utils'
 import db from 'src/db'
 import chalk from 'chalk'
@@ -25,16 +25,6 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     })
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
     this.contracts = config.contracts
-  }
-
-  async start () {
-    this.started = true
-    try {
-      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
-    } catch (err) {
-      this.logger.error('watcher error:', err.message)
-      this.quit()
-    }
   }
 
   async syncUp (): Promise<any> {
@@ -103,13 +93,13 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
 
   async handleRawTransferRootConfirmedEvent (event: Event) {
     const {
-      originChainId,
+      originChainId: sourceChainId,
       destinationChainId,
       rootHash,
       totalAmount
     } = event.args
     await this.handleTransferRootConfirmedEvent(
-      originChainId,
+      sourceChainId,
       destinationChainId,
       rootHash,
       totalAmount,
@@ -119,12 +109,22 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
 
   async checkTransferRootFromDb () {
     const dbTransferRoots = await db.transferRoots.getChallengeableTransferRoots()
-    this.logger.debug(
-      `checking ${dbTransferRoots.length} challengeable transfer roots db items`
-    )
+    if (dbTransferRoots.length) {
+      this.logger.debug(
+        `checking ${dbTransferRoots.length} challengeable transfer roots db items`
+      )
+    }
     for (let dbTransferRoot of dbTransferRoots) {
-      const { transferRootHash, chainId, totalAmount } = dbTransferRoot
-      await this.checkTransferRoot(transferRootHash, chainId, totalAmount)
+      const {
+        transferRootHash,
+        destinationChainId,
+        totalAmount
+      } = dbTransferRoot
+      await this.checkTransferRoot(
+        transferRootHash,
+        destinationChainId,
+        totalAmount
+      )
     }
   }
 
@@ -133,13 +133,13 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     for (let dbTransferRoot of dbTransferRoots) {
       const {
         sourceChainId,
-        chainId,
+        destinationChainId,
         transferRootHash,
         totalAmount
       } = dbTransferRoot
       await this.checkChallenge(
         sourceChainId,
-        chainId,
+        destinationChainId,
         transferRootHash,
         totalAmount
       )
@@ -148,21 +148,21 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
 
   async checkTransferRoot (
     transferRootHash: string,
-    destChainId: number,
+    destinationChainId: number,
     totalAmount: BigNumber
   ) {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('handling L1 BondTransferRoot event')
     logger.debug('transferRootHash:', transferRootHash)
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
-    logger.debug('destChainId:', destChainId)
+    logger.debug('destinationChainId:', destinationChainId)
 
-    if (isL1ChainId(destChainId)) {
+    if (isL1ChainId(destinationChainId)) {
       // TODO
       return
     }
 
-    const l2Bridge = new L2Bridge(this.contracts[destChainId])
+    const l2Bridge = new L2Bridge(this.contracts[destinationChainId])
     const blockNumber = await l2Bridge.getBlockNumber()
     const recentTransferCommitEvents = await l2Bridge.getTransfersCommittedEvents(
       blockNumber - 1000,
@@ -198,12 +198,12 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       totalAmount
     )
     tx?.wait()
-      .then((receipt: any) => {
+      .then((receipt: providers.TransactionReceipt) => {
         if (receipt.status !== 1) {
           throw new Error('status=0')
         }
         this.emit('challengeTransferRootBond', {
-          destChainId,
+          destinationChainId,
           transferRootHash,
           totalAmount
         })
@@ -221,13 +221,13 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
 
   async checkChallenge (
     sourceChainId: number,
-    destChainId: number,
+    destinationChainId: number,
     transferRootHash: string,
     totalAmount: BigNumber
   ) {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('sourceChainId:', sourceChainId)
-    logger.debug('destChainId:', destChainId)
+    logger.debug('destinationChainId:', destinationChainId)
     logger.debug('transferRootHash:', transferRootHash)
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     const transferBond = await this.l1Bridge.getTransferBond(transferRootHash)
@@ -248,13 +248,13 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       transferRootHash,
       totalAmount
     )
-    tx?.wait().then((receipt: any) => {
+    tx?.wait().then((receipt: providers.TransactionReceipt) => {
       if (receipt.status !== 1) {
         throw new Error('status=0')
       }
       this.emit('challengeResolved', {
         sourceChainId,
-        destChainId,
+        destinationChainId,
         transferRootHash,
         totalAmount
       })

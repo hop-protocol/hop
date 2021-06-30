@@ -176,7 +176,7 @@ export class User {
 
   async getMessengerContract (network: string, token: string = Token.USDC) {
     if (network === Chain.Ethereum) {
-      throw new Error('not supporsed')
+      throw new Error('not supported')
     }
     const wrapper = await this.getMessengerWrapperContract(network, token)
     const wallet = this.getWallet(Chain.Ethereum)
@@ -204,7 +204,7 @@ export class User {
     return new Contract(wrapperAddress, l2AmmWrapperAbi, wallet)
   }
 
-  @queue
+  //@queue
   async approve (
     network: string,
     token: string | Contract,
@@ -649,10 +649,11 @@ export class User {
         await this.txOverrides(destNetwork)
       )
     } else if (destNetwork === Chain.Polygon) {
-      const approveAddress =
-        config.tokens[token][destNetwork].l1PosRootChainManager
-      const tx = await this.approve(destNetwork, token, approveAddress)
+      const approveAddress = config.tokens[token][destNetwork].l1PosPredicate
+      console.log('approving')
+      const tx = await this.approve(Chain.Ethereum, token, approveAddress)
       await tx?.wait()
+      console.log('waiting')
       const coder = ethers.utils.defaultAbiCoder
       const payload = coder.encode(['uint256'], [value])
       return tokenBridge.depositFor(
@@ -1012,10 +1013,10 @@ export class User {
     return Number(formatUnits(bondAmount.toString(), 18))
   }
 
-  async getTransferRootCommitedAt (transferRootId: string) {
+  async getTransferRootCommittedAt (transferRootId: string) {
     const bridge = this.getHopBridgeContract(Chain.Ethereum)
-    const commitedAt = await bridge.transferRootCommittedAt(transferRootId)
-    return Number(commitedAt.toString())
+    const committedAt = await bridge.transferRootCommittedAt(transferRootId)
+    return Number(committedAt.toString())
   }
 
   async getTransferRootId (transferRootHash: string, totalAmount: number) {

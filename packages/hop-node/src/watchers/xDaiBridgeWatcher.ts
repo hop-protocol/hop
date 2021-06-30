@@ -129,9 +129,5 @@ class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
       this.quit()
     }
   }
-
-  async stop () {
-    this.started = false
-  }
 }
 export default xDaiBridgeWatcher

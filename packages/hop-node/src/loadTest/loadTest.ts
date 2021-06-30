@@ -21,8 +21,8 @@ import Logger from 'src/logger'
 import { Chain } from 'src/constants'
 import { Notifier } from 'src/notifier'
 
-//const paths = [[Chain.Polygon, Chain.xDai]]
-const paths = [[Chain.xDai, Chain.Polygon]]
+const paths = [[Chain.Polygon, Chain.xDai]]
+//const paths = [[Chain.xDai, Chain.Polygon]]
 const tokens = ['USDC']
 const transferAmount = 2
 

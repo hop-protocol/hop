@@ -1,8 +1,9 @@
 import '../moduleAlias'
-import { ethers, Event } from 'ethers'
+import { ethers, Event, providers } from 'ethers'
 import chalk from 'chalk'
 import { wait, getRpcUrls } from 'src/utils'
 import db from 'src/db'
+import { TransferRoot } from 'src/db/TransferRootsDb'
 import { Contract, BigNumber } from 'ethers'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import { Chain } from 'src/constants'
@@ -41,33 +42,27 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     this.token = config.token
   }
 
-  async start () {
-    this.started = true
-    try {
-      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
-    } catch (err) {
-      this.logger.error(`watcher error:`, err.message)
-      this.notifier.error(`watcher error: ${err.message}`)
+  async watch () {
+    const handleError = (err: Error) => {
+      this.logger.error(`event watcher error: ${err.message}`)
+      this.notifier.error(`event watcher error: ${err.message}`)
       this.quit()
     }
-  }
 
-  async watch () {
-    if (this.isL1) {
+    if (!this.isL1) {
       const l2Bridge = this.bridge as L2Bridge
-      this.bridge
-        .on(
-          this.l1Bridge.TransferRootConfirmed,
-          this.handleTransferRootConfirmedEvent
-        )
+      l2Bridge
         .on(l2Bridge.TransfersCommitted, this.handleTransfersCommittedEvent)
-        .on('error', err => {
-          this.logger.error(`event watcher error: ${err.message}`)
-          this.notifier.error(`event watcher error: ${err.message}`)
-          this.quit()
-        })
-      return
+        .on('error', handleError)
     }
+
+    this.bridge
+      .on(
+        this.l1Bridge.TransferRootConfirmed,
+        this.handleTransferRootConfirmedEvent
+      )
+      .on('error', handleError)
+    return
   }
 
   async pollCheck () {
@@ -136,13 +131,13 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
 
   async handleRawTransfersCommittedEvent (event: Event) {
     const {
-      destinationChainId: chainId,
+      destinationChainId,
       rootHash: transferRootHash,
       totalAmount,
       rootCommittedAt
     } = event.args
     await this.handleTransfersCommittedEvent(
-      chainId,
+      destinationChainId,
       transferRootHash,
       totalAmount,
       rootCommittedAt,
@@ -151,20 +146,32 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransfersCommittedFromDb () {
-    const dbTransferRoots = await db.transferRoots.getUnconfirmedTransferRoots()
-    this.logger.debug(
-      `checking ${dbTransferRoots.length} unconfirmed transfer roots db items`
-    )
+    const dbTransferRoots = await db.transferRoots.getUnconfirmedTransferRoots({
+      sourceChainId: await this.bridge.getChainId()
+    })
+    if (dbTransferRoots.length) {
+      this.logger.debug(
+        `checking ${dbTransferRoots.length} unconfirmed transfer roots db items`
+      )
+    }
     for (let dbTransferRoot of dbTransferRoots) {
-      const { transferRootHash, chainId, committedAt } = dbTransferRoot
+      const {
+        transferRootHash,
+        destinationChainId,
+        committedAt
+      } = dbTransferRoot
       // Parallelizing these calls produces RPC errors on Optimism
-      await this.checkTransfersCommitted(transferRootHash, chainId, committedAt)
+      await this.checkTransfersCommitted(
+        transferRootHash,
+        destinationChainId,
+        committedAt
+      )
     }
   }
 
   checkTransfersCommitted = async (
     transferRootHash: string,
-    chainId: number,
+    destinationChainId: number,
     committedAt: number
   ) => {
     const logger = this.logger.create({ root: transferRootHash })
@@ -172,21 +179,9 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
-    if (dbTransferRoot.confirmed) {
-      return
-    }
 
     const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
     const l2Bridge = this.bridge as L2Bridge
-    const bridgeChainId = await l2Bridge.getChainId()
-    const sourceChainId = dbTransferRoot.sourceChainId
-    if (!sourceChainId) {
-      return
-    }
-    if (bridgeChainId !== sourceChainId) {
-      return
-    }
-
     const { transferRootId } = dbTransferRoot
     const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
       transferRootId
@@ -288,7 +283,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
 
                 this.emit('transferRootConfirmed', {
                   transferRootHash,
-                  chainId
+                  destinationChainId
                 })
 
                 db.transferRoots.update(transferRootHash, {
@@ -335,7 +330,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
         sentConfirmTxAt: Date.now()
       })
       tx?.wait()
-        .then(async (receipt: any) => {
+        .then(async (receipt: providers.TransactionReceipt) => {
           if (receipt.status !== 1) {
             await db.transferRoots.update(transferRootHash, {
               sentConfirmTx: false,
@@ -346,7 +341,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
 
           this.emit('transferRootConfirmed', {
             transferRootHash,
-            chainId
+            destinationChainId
           })
 
           db.transferRoots.update(transferRootHash, {
@@ -397,7 +392,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     return poly
   }
 
-  shouldAttemptCheckpoint (dbTransferRoot: any, chainSlug: string) {
+  shouldAttemptCheckpoint (dbTransferRoot: TransferRoot, chainSlug: string) {
     if (!chainSlug) {
       return false
     }

@@ -6,7 +6,7 @@ import { faucetPrivateKey as privateKey } from './config'
 import { Chain } from 'src/constants'
 
 const TOKEN = 'USDC'
-const AMOUNT = 10_000
+const AMOUNT = 100_000
 const NETWORKS = [Chain.Polygon]
 const logger = new Logger('TEST')
 

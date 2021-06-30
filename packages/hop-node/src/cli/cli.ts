@@ -22,6 +22,7 @@ import {
   slackUsername
 } from 'src/config'
 import db from 'src/db'
+import clearDb from 'src/db/clearDb'
 import Logger, { setLogLevel } from 'src/logger'
 import { Chain } from 'src/constants'
 import arbbots from 'src/arb-bot/bots'
@@ -134,6 +135,7 @@ program
     '--password-file <string>',
     'File containing password to unlock keystore'
   )
+  .option('--clear-db', 'Clear cache database on start')
   .action(async (source: any) => {
     try {
       printHopArt()
@@ -141,6 +143,10 @@ program
       const configFilePath = source.config || source.args[0]
       const config: Config = await parseConfigFile(configFilePath)
       await setGlobalConfigFromConfigFile(config, source.passwordFile)
+      if (source.clearDb) {
+        await clearDb()
+        logger.debug(`cleared db at: ${dbConfig.path}`)
+      }
 
       const tokens = []
       if (config?.tokens) {
@@ -691,9 +697,10 @@ program
   .command('keystore')
   .description('Keystore')
   .option('--config <string>', 'Config file to use.')
-  .option('--pass <string>', 'Passphrase to encrypt keystore with')
-  .option('-o, --output <string>', 'Output file path of encrypted keystore')
-  .option('--private-key <string>', 'The private key to encrypt')
+  .option('--pass <string>', 'Passphrase to encrypt keystore with.')
+  .option('-o, --output <string>', 'Output file path of encrypted keystore.')
+  .option('--override', 'Override existing keystore if it exists.')
+  .option('--private-key <string>', 'The private key to encrypt.')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -765,6 +772,15 @@ Press [Enter] when you have written down your mnemonic.`
 
         const keystore = await generateKeystore(privateKey, passphrase)
         const filepath = path.resolve(output)
+        const exists = fs.existsSync(filepath)
+        if (exists) {
+          const override = !!source.override
+          if (!override) {
+            throw new Error(
+              'ERROR: file exists. Did not override. Use --override flag to override.'
+            )
+          }
+        }
         fs.writeFileSync(filepath, JSON.stringify(keystore), 'utf8')
 
         await prompt.get({

@@ -1,4 +1,4 @@
-import { ethers, Contract, BigNumber } from 'ethers'
+import { ethers, Contract, BigNumber, Event, providers } from 'ethers'
 import fetch from 'node-fetch'
 import { MaticPOSClient } from '@maticnetwork/maticjs'
 import Web3 from 'web3'
@@ -76,14 +76,14 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
       l2Token
         .on(
           'Transfer',
-          (sender: string, to: string, data: string, meta: any) => {
-            const { transactionHash } = meta
+          (sender: string, to: string, data: string, event: Event) => {
+            const { transactionHash } = event
             if (to === ethers.constants.AddressZero) {
               this.logger.debug(
                 'received transfer event. tx hash:',
                 transactionHash
               )
-              transactionHashes[transactionHash] = meta
+              transactionHashes[transactionHash] = event
             }
           }
         )
@@ -95,8 +95,8 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
         }
 
         //const transactionHash= '0x3f5997c83acf26d8628c6ba5b410271834a3aa71ca7f1f60a2b2bfb83127db41'
-        //const meta = await l2Token.provider.getTransaction(transactionHash)
-        //transactionHashes[transactionHash] = meta
+        //const event = await l2Token.provider.getTransaction(transactionHash)
+        //transactionHashes[transactionHash] = event
 
         try {
           for (let transactionHash in transactionHashes) {
@@ -126,10 +126,6 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
       this.logger.error('watcher error:', err.message)
       this.quit()
     }
-  }
-
-  async stop () {
-    this.started = false
   }
 
   async isCheckpointed (l2BlockNumber: number) {

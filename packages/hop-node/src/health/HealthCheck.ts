@@ -115,9 +115,7 @@ class HealthCheck {
         for (let event of events) {
           const tx = await event.getTransaction()
           const { transferId } = event.args
-          const { chainId: destinationChainId } = await bridge.decodeSendData(
-            tx.data
-          )
+          const { destinationChainId } = await bridge.decodeSendData(tx.data)
           const sourceChain = await bridge.getChainSlug()
           const destinationChain = bridge.chainIdToSlug(destinationChainId)
           const tokenSymbol = bridge.tokenSymbol
@@ -313,9 +311,7 @@ class HealthCheck {
         for (let event of events) {
           const tx = await event.getTransaction()
           const { transferId, amount, index } = event.args
-          const { chainId: destinationChainId } = await bridge.decodeSendData(
-            tx.data
-          )
+          const { destinationChainId } = await bridge.decodeSendData(tx.data)
           const destBridge = this.bridges.find((bridge: L2Bridge) => {
             return bridge.chainId === destinationChainId
           })

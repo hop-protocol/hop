@@ -1,12 +1,13 @@
 import { BigNumber } from 'ethers'
 import BaseDb from './BaseDb'
+import { normalizeBigNumber } from './utils'
 
 export type TransferRoot = {
   destinationBridgeAddress?: string
   transferRootId?: string
   transferRootHash?: string
   totalAmount?: BigNumber
-  chainId?: number
+  destinationChainId?: number
   sourceChainId?: number
   sentCommitTx?: boolean
   sentCommitTxAt: number
@@ -16,6 +17,7 @@ export type TransferRoot = {
   confirmed?: boolean
   confirmedAt?: number
   confirmTxHash?: string
+  rootSetTxHashes?: { [key: number]: string }
   sentConfirmTx?: boolean
   sentConfirmTxAt?: number
   bonded?: boolean
@@ -39,10 +41,8 @@ class TransferRootsDb extends BaseDb {
   async getByTransferRootHash (
     transferRootHash: string
   ): Promise<TransferRoot> {
-    const item = await this.getById(transferRootHash)
-    if (item?.totalAmount && item?.totalAmount?.type === 'BigNumber') {
-      item.totalAmount = BigNumber.from(item.totalAmount?.hex)
-    }
+    let item = (await this.getById(transferRootHash)) as TransferRoot
+    item = normalizeBigNumber(item, 'totalAmount')
     return item
   }
 
@@ -73,38 +73,60 @@ class TransferRootsDb extends BaseDb {
       })
     )
 
-    return transferRoots.sort((a, b) => a.committedAt - b.committedAt)
+    return transferRoots
+      .sort((a, b) => a?.committedAt - b?.committedAt)
+      .filter(x => x)
   }
 
-  async getUncommittedBondedTransferRoots (): Promise<TransferRoot[]> {
+  async getUncommittedBondedTransferRoots (
+    filter: Partial<TransferRoot> = {}
+  ): Promise<TransferRoot[]> {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
       return !item.committed && item?.transferIds?.length
     })
   }
 
-  async getUnbondedTransferRoots (): Promise<TransferRoot[]> {
+  async getUnbondedTransferRoots (
+    filter: Partial<TransferRoot> = {}
+  ): Promise<TransferRoot[]> {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
       return (
         !item.sentBondTx &&
         !item.bonded &&
         item.transferRootHash &&
-        item.chainId &&
+        item.destinationChainId &&
         item.committedAt &&
-        !item.confirmed
+        !item.confirmed &&
+        item.commitTxHash &&
+        item.sourceChainId
       )
     })
   }
 
-  async getUnconfirmedTransferRoots (): Promise<TransferRoot[]> {
+  async getUnconfirmedTransferRoots (
+    filter: Partial<TransferRoot> = {}
+  ): Promise<TransferRoot[]> {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
       return (
         !item.confirmed &&
         !item.sentConfirmTx &&
         item.transferRootHash &&
-        item.chainId &&
+        item.destinationChainId &&
         item.committed &&
         item.committedAt
       )
@@ -113,7 +135,9 @@ class TransferRootsDb extends BaseDb {
 
   // TODO: This should be a new DB for a TransferBond, not a TransferRoot
   // This will add new requirements to this return statement
-  async getChallengeableTransferRoots (): Promise<TransferRoot[]> {
+  async getChallengeableTransferRoots (
+    filter: Partial<TransferRoot> = {}
+  ): Promise<TransferRoot[]> {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
       return (

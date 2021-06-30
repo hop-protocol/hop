@@ -1,3 +1,5 @@
+let data = []
+
 const fetchData = async (network) => {
   const queryL2 = `
     query TransferSents {
@@ -41,7 +43,8 @@ const fetchData = async (network) => {
   })
 }
 
-async function load () {
+async function updateData () {
+  data = []
   const [
     xdaiTransfers,
     polygonTransfers,
@@ -51,9 +54,7 @@ async function load () {
     fetchData('polygon'),
     fetchData('mainnet')
   ])
-  console.log('done')
 
-  const data = []
   for (const t of xdaiTransfers) {
     data.push({
       sourceChain: 100,
@@ -79,8 +80,15 @@ async function load () {
     })
   }
 
-  window.data = data
+  data.filter(x => x.destinationChain && x.transferId)
+  load()
 
+  setTimeout(() => {
+    updateData()
+  }, 10 * 1000)
+}
+
+async function load () {
   const indexMap = {
     77: 1,
     100: 1,
@@ -170,7 +178,6 @@ async function load () {
       .iterations(0)
       .draw(json)
 
-    console.log(chart)
     function label (node) {
       return node.name.replace(/\s*\(.*?\)$/, '')
     }
@@ -178,7 +185,7 @@ async function load () {
       const id = node.id.replace(/(_score)?(_\d+)?$/, '')
       if (colors[id]) {
         return colors[id]
-      } else if (depth > 0 && node.targetLinks && node.targetLinks.length == 1) {
+      } else if (depth > 0 && node.targetLinks && node.targetLinks.length === 1) {
         return color(node.targetLinks[0].source, depth - 1)
       } else {
         return null
@@ -193,4 +200,5 @@ async function load () {
   })
 }
 
+updateData()
 load()

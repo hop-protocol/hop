@@ -53,7 +53,7 @@ async function load () {
   ])
   console.log('done')
 
-  window.data = []
+  const data = []
   for (const t of xdaiTransfers) {
     data.push({
       sourceChain: 100,
@@ -71,32 +71,37 @@ async function load () {
     })
   }
   for (const t of mainnetTransfers) {
-    /*
     data.push({
-        "sourceChain": 1,
-        "destinationChain": t.destinationChainId,
-        "amount": t.amount,
-        "transferId": t.id
+      sourceChain: 1,
+      destinationChain: t.destinationChainId,
+      amount: t.amount,
+      transferId: t.id
     })
-*/
   }
 
+  window.data = data
+
   const indexMap = {
-    77: 0,
-    100: 0,
-    69: 1,
-    137: 1,
-    42: 2,
-    1: 2
+    77: 1,
+    100: 1,
+
+    137: 2,
+    69: 2,
+
+    42: 0,
+    1: 0
   }
 
   const indexMapDest = {
-    77: 2,
-    100: 2,
-    69: 3,
-    137: 3,
-    42: 4,
-    1: 4
+    42: 3,
+    1: 3,
+
+    77: 4,
+    100: 4,
+
+    69: 5,
+    137: 5
+
   }
 
   const links = data.map(x => {
@@ -109,14 +114,15 @@ async function load () {
 
   const graph = {
     nodes: [
-      { node: 0, name: 'xDai', id: 'xdai' },
+      { node: 0, name: 'Ethereum', id: 'ethereum' },
+      { node: 1, name: 'xDai', id: 'xdai' },
       // {"node":1,"name":"Optimism", "id": "optimism"},
-      { node: 1, name: 'Polygon', id: 'polygon' },
+      { node: 2, name: 'Polygon', id: 'polygon' },
 
-      { node: 3, name: 'xDai', id: 'xdai' },
+      { node: 3, name: 'Ethereum', id: 'ethereum' },
+      { node: 4, name: 'xDai', id: 'xdai' },
       // {"node":4,"name":"Optimism", "id": "optimism"},
-      { node: 4, name: 'Polygon', id: 'polygon' },
-      { node: 5, name: 'Ethereum', id: 'ethereum' }
+      { node: 5, name: 'Polygon', id: 'polygon' }
     ],
     links: links
   }
@@ -126,8 +132,8 @@ async function load () {
     xdai: '#edbd00',
     ethereum: '#367d85',
     optimism: '#97ba4c',
-    // 'polygon': '#8d4cba',
-    polygon: '#97ba4c',
+    polygon: '#8d4cba',
+    // polygon: '#97ba4c',
     foo: '#f5662b',
     bar: '#3f3e47',
     fallback: '#9f9fa3'

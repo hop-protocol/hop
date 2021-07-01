@@ -264,6 +264,10 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
           this.logger.debug(
             `attempting to send relay message on xdai for commit tx hash ${commitTxHash}`
           )
+          if (this.dryMode) {
+            this.logger.warn('dry mode: skipping executeExitTx transaction')
+            return
+          }
           const result = await executeExitTx(sigEvent, this.token)
           if (result) {
             await db.transferRoots.update(transferRootHash, {
@@ -324,6 +328,10 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       this.logger.debug(
         `attempting to send relay message on polygon for commit tx hash ${commitTxHash}`
       )
+      if (this.dryMode) {
+        this.logger.warn('dry mode: skipping relayMessage transaction')
+        return
+      }
       const tx = await poly.relayMessage(commitTxHash, this.token)
       await db.transferRoots.update(transferRootHash, {
         sentConfirmTx: true,

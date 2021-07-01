@@ -127,6 +127,11 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
             )} canonical token to L2 hop token`
           )
 
+          if (this.dryMode) {
+            this.logger.warn('dry mode: skipping approve transaction')
+            return
+          }
+
           let tx: any
           const spender = l1Bridge.getAddress()
           tx = await l1Token.approve(spender)
@@ -192,6 +197,10 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
       )
     }
     this.logger.debug(`attempting to stake ${formattedAmount} tokens`)
+    if (this.dryMode) {
+      this.logger.warn('dry mode: skipping stake transaction')
+      return
+    }
     const tx = await this.bridge.stake(amount)
     this.logger.info(`stake tx:`, chalk.bgYellow.black.bold(tx?.hash))
     const receipt = await tx.wait()
@@ -224,6 +233,10 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
       )
     }
     this.logger.debug(`attempting to unstake ${parsedAmount} tokens`)
+    if (this.dryMode) {
+      this.logger.warn('dry mode: skipping unstake transaction')
+      return
+    }
     const tx = await this.bridge.unstake(amount)
     this.logger.info(`unstake tx:`, chalk.bgYellow.black.bold(tx?.hash))
     const receipt = await tx.wait()

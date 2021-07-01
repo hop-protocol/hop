@@ -1,7 +1,7 @@
 import '../moduleAlias'
 import { Contract, BigNumber, Event, providers } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
-import { wait, isL1ChainId } from 'src/utils'
+import { wait } from 'src/utils'
 import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer } from 'src/db/TransfersDb'
@@ -95,44 +95,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     return this.syncUp()
   }
 
-  async syncTransferRootHashForTransferIds () {
-    const dbTransfers = await db.transfers.getBondedTransfersWithoutRoots({
-      sourceChainId: await this.bridge.getChainId()
-    })
-    this.logger.debug(
-      `checking ${dbTransfers.length} bonded transfers without roots db items`
-    )
-    for (let dbTransfer of dbTransfers) {
-      const { transferId, transferSentTxHash } = dbTransfer
-      const transferRoots = await db.transferRoots.getTransferRoots()
-
-      // check if any transfer roots already contain the transfer id in it's list
-      for (let root of transferRoots) {
-        if (root.transferIds) {
-          for (let tId of root.transferIds) {
-            if (tId === transferId) {
-              await db.transfers.update(transferId, {
-                transferRootId: root.transferRootId,
-                transferRootHash: root.transferRootHash
-              })
-              break
-            }
-          }
-        }
-      }
-    }
-    // TODO: fetch transfer root hash for transfer id more efficiently
-    await this.bridge.mapTransferRootSetEvents(async (event: Event) => {
-      const { rootHash: transferRootHash } = event.args
-      const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
-        transferRootHash
-      )
-      if (!dbTransferRoot.transferIds?.length) {
-        await this.findTransferIdsForTransferRootHash(transferRootHash)
-      }
-    })
-  }
-
   async watch () {
     this.bridge
       .on(this.bridge.TransferRootSet, this.handleTransferRootSetEvent)
@@ -168,20 +130,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           resolve(null)
         })
       )
-      const lookupMissingTransferRootHashes = false
-      if (lookupMissingTransferRootHashes) {
-        promises.push(
-          new Promise(async resolve => {
-            try {
-              await this.syncTransferRootHashForTransferIds()
-            } catch (err) {
-              this.logger.error(`poll error: ${err.message}`)
-              this.notifier.error(`poll error: ${err.message}`)
-            }
-            resolve(null)
-          })
-        )
-      }
       await Promise.all(promises)
       await wait(this.pollIntervalSec)
     }
@@ -257,6 +205,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       return
     }
     const { transactionHash } = event
+    const timestamp = await this.bridge.getEventTimestamp(event)
     const transferRootId = await this.bridge.getTransferRootId(
       transferRootHash,
       totalAmount
@@ -275,13 +224,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       transferRootHash,
       sourceChainId,
       rootSetTxHashes: Object.assign({}, dbTransferRoot.rootSetTxHashes || {}, {
-        [destinationChainId]: transactionHash
+        [destinationChainId]: {
+          transactionHash,
+          timestamp
+        }
       })
     })
-
-    if (!dbTransferRoot.transferIds?.length) {
-      await this.findTransferIdsForTransferRootHash(transferRootHash)
-    }
 
     dbTransferRoot = await db.transferRoots.getByTransferRootHash(
       transferRootHash
@@ -320,150 +268,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
-  async findTransferIdsForTransferRootHash (transferRootHash: string) {
-    const logger = this.logger.create({ root: transferRootHash })
-    const {
-      sourceChainId,
-      destinationChainId
-    } = await db.transferRoots.getByTransferRootHash(transferRootHash)
-    if (isL1ChainId(sourceChainId)) {
-      return
-    }
-    logger.debug(
-      `looking for transfer ids for transferRootHash ${transferRootHash}`
-    )
-    if (!this.hasSiblingWatcher(sourceChainId)) {
-      logger.error(`no sibling watcher found for ${sourceChainId}`)
-      return
-    }
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId)
-      .bridge as L2Bridge
-
-    let startSearchBlockNumber: number
-    let startEvent: Event
-    let endEvent: Event
-    await sourceBridge.eventsBatch(async (start: number, end: number) => {
-      startSearchBlockNumber = start
-      let events = await sourceBridge.getTransfersCommittedEvents(start, end)
-      if (!events?.length) {
-        return true
-      }
-
-      // events need to be sorted from [newest...oldest] in order to pick up the endEvent first
-      events = events.reverse()
-      for (let event of events) {
-        let eventDbTransferRoot = await db.transferRoots.getByTransferRootHash(
-          event.args.rootHash
-        )
-
-        if (event.args.rootHash === transferRootHash) {
-          endEvent = event
-          continue
-        }
-
-        const isSameChainId =
-          eventDbTransferRoot.destinationChainId === destinationChainId
-        if (endEvent && isSameChainId) {
-          startEvent = event
-          return false
-        }
-      }
-
-      return true
-    })
-
-    if (!endEvent) {
-      return
-    }
-
-    let startBlockNumber
-    let endBlockNumber = endEvent.blockNumber
-    if (startEvent) {
-      startBlockNumber = startEvent.blockNumber
-    } else {
-      // There will not be a startEvent if this was the first CommitTransfers event for
-      // this token since the deployment of the bridge contract
-      const sourceBridgeAddress = sourceBridge.getAddress()
-      const codeAtAddress = await sourceBridge.getCode(
-        sourceBridgeAddress,
-        startSearchBlockNumber
-      )
-      if (codeAtAddress === '0x') {
-        startBlockNumber = startSearchBlockNumber
-      }
-
-      // There is an error if there is no startBlockNumber at this point unless this is the first sync and the first
-      // root hash cannot be reconstructed because we do not go back far enough to find the next TransfersCommitted
-      // event. In this case, use this error log as an informative warning rather than an error.
-      if (!startBlockNumber) {
-        logger.error(
-          `Too many blocks between two TransfersCommitted events. Search Start: ${startSearchBlockNumber}. End Event: ${endEvent.blockNumber}`
-        )
-        return
-      }
-    }
-
-    let transferIds: string[] = []
-    await sourceBridge.eventsBatch(
-      async (start: number, end: number) => {
-        let transferEvents = await sourceBridge.getTransferSentEvents(
-          start,
-          end
-        )
-
-        // transferEvents need to be sorted from [newest...oldest] in order to maintain the ordering
-        transferEvents = transferEvents.reverse()
-        for (let event of transferEvents) {
-          const transaction = await sourceBridge.getTransaction(
-            event.transactionHash
-          )
-          const {
-            destinationChainId: decodedDestinationChainId
-          } = await sourceBridge.decodeSendData(transaction.data)
-          if (decodedDestinationChainId !== destinationChainId) {
-            continue
-          }
-
-          // When TransferSent and TransfersCommitted events exist in the same block, they
-          // need to be scoped to the correct transferRoot
-          if (startEvent && event.blockNumber === startEvent.blockNumber) {
-            if (event.transactionIndex < startEvent.transactionIndex) {
-              continue
-            }
-          }
-
-          if (event.blockNumber === endEvent.blockNumber) {
-            if (event.transactionIndex > endEvent.transactionIndex) {
-              break
-            }
-          }
-
-          transferIds.unshift(event.args.transferId)
-        }
-      },
-      { startBlockNumber, endBlockNumber }
-    )
-
-    logger.debug(
-      `found transfer ids for transfer root hash ${transferRootHash}\n`,
-      transferIds
-    )
-    const tree = new MerkleTree(transferIds)
-    const computedTransferRootHash = tree.getHexRoot()
-    if (computedTransferRootHash !== transferRootHash) {
-      logger.error(
-        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}`
-      )
-      return
-    }
-
-    await db.transferRoots.update(transferRootHash, {
-      transferIds
-    })
-
-    return transferIds
-  }
-
   handleMultipleWithdrawalsSettledEvent = async (
     bonder: string,
     transferRootHash: string,
@@ -476,9 +280,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       data
     )
     for (let transferId of transferIds) {
+      const dbTransfer = await db.transfers.getByTransferId(
+        transferId
+      )
       await db.transfers.update(transferId, {
         transferRootHash,
-        withdrawalBondSettled: true
+        withdrawalBondSettled: dbTransfer?.withdrawalBonded ?? false
       })
     }
   }
@@ -501,13 +308,18 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         )
         continue
       }
+
+      const tenMinutes = 60 * 10 * 1000
+      const txTimestamp = dbTransferRoot.rootSetTxHashes?.[dbTransferRoot.destinationChainId]?.timestamp
+      const timestampOk = txTimestamp + tenMinutes > Date.now()
       const ok =
         !!dbTransferRoot.destinationChainId &&
         !!dbTransferRoot.totalAmount &&
         !!dbTransferRoot.confirmed &&
         !!dbTransferRoot.confirmTxHash &&
         !!dbTransferRoot.committed &&
-        !!dbTransferRoot.committedAt
+        !!dbTransferRoot.committedAt &&
+        timestampOk
       if (!ok) {
         continue
       }
@@ -551,17 +363,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         transferRootHash: dbTransferRootHash,
         destinationChainId,
         totalAmount,
-        confirmed,
-        committed,
-        committedAt,
-        destinationBridgeAddress
       } = dbTransferRoot
       const transferIds: string[] = Object.values(
         dbTransferRoot.transferIds || []
       )
 
       const logger = this.logger.create({ root: dbTransferRootHash })
-      const sourceBridge = this.bridge as L2Bridge
       const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
         .bridge
 
@@ -582,70 +389,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         })
         return
       }
-
-      const transferRootStruct = await destBridge.getTransferRoot(
-        transferRootHash,
-        totalAmount
-      )
-
-      const structTotalAmount = transferRootStruct.total
-      const structAmountWithdrawn = transferRootStruct.amountWithdrawn
-      const createdAt = Number(transferRootStruct?.createdAt.toString())
-      if (createdAt === 0 || transferRootStruct.total.lte(0)) {
-        // TODO: Figure out the best way to separate a transferRoot that was not set correctly and
-        // one that has simply not yet been set
-        logger.warn(
-          `transferRoot has not yet been propagated after exit tx or was not set correctly`,
-          `Total Amount: ${structTotalAmount.toString()}`,
-          `Created At: ${createdAt}`
-        )
-        return
-      }
-
-      let totalBondsSettleAmount = BigNumber.from(0)
-      for (let transferId of transferIds) {
-        const { withdrawalBonder } = await db.transfers.getByTransferId(
-          transferId
-        )
-        const transferBondAmount = await destBridge.getBondedWithdrawalAmountByBonder(
-          withdrawalBonder,
-          transferId
-        )
-        totalBondsSettleAmount = totalBondsSettleAmount.add(transferBondAmount)
-      }
-
-      if (totalBondsSettleAmount.eq(0)) {
-        // logger.warn('totalBondsSettleAmount is 0. Cannot settle')
-        return
-      }
-
-      logger.debug('committedAt:', committedAt)
       logger.debug('sourceChainId:', dbTransfer.sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)
       logger.debug('computed transferRootHash:', transferRootHash)
       logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
-      logger.debug(
-        'struct total amount:',
-        this.bridge.formatUnits(structTotalAmount)
-      )
-      logger.debug(
-        'struct withdrawnAmount:',
-        this.bridge.formatUnits(structAmountWithdrawn)
-      )
-      logger.debug('struct createdAt:', createdAt)
-
-      logger.debug('totalBondedSettleAmount:', createdAt)
-      const newAmountWithdrawn = structAmountWithdrawn.add(
-        totalBondsSettleAmount
-      )
-      logger.debug(
-        'newAmountWithdrawn:',
-        this.bridge.formatUnits(newAmountWithdrawn)
-      )
-      if (newAmountWithdrawn.gt(structTotalAmount)) {
-        logger.warn('withdrawal exceeds transfer root total')
-        return
-      }
 
       for (let transferId of transferIds) {
         let dbTransfer = await db.transfers.getByTransferId(transferId)

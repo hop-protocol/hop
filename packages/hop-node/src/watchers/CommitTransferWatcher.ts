@@ -2,7 +2,6 @@ import '../moduleAlias'
 import { Contract, BigNumber, Event, providers } from 'ethers'
 import chalk from 'chalk'
 import { wait } from 'src/utils'
-import { throttle } from 'src/utils'
 import db from 'src/db'
 import { Transfer } from 'src/db/TransfersDb'
 import MerkleTree from 'src/utils/MerkleTree'
@@ -69,6 +68,15 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       )
     )
 
+    promises.push(
+      l2Bridge.mapTransfersCommittedEvents(
+        async (event: Event) => {
+          return this.handleRawTransfersCommittedEventForTransferIds(event)
+        },
+        { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
+      )
+    )
+
     await Promise.all(promises)
     this.logger.debug('done syncing')
 
@@ -83,6 +91,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     const l2Bridge = this.bridge as L2Bridge
     this.bridge
       .on(l2Bridge.TransferSent, this.handleTransferSentEvent)
+      .on(l2Bridge.TransfersCommitted, this.handleTransfersCommittedEventForTransferIds)
       .on('error', err => {
         this.logger.error(`event watcher error: ${err.message}`)
         this.notifier.error(`event watcher error: ${err.message}`)
@@ -106,6 +115,22 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       }
       await wait(this.pollIntervalSec)
     }
+  }
+
+  async handleRawTransfersCommittedEventForTransferIds (event: Event) {
+    const {
+      destinationChainId,
+      rootHash,
+      totalAmount,
+      rootCommittedAt
+    } = event.args
+    await this.handleTransfersCommittedEventForTransferIds(
+      destinationChainId,
+      rootHash,
+      totalAmount,
+      rootCommittedAt,
+      event
+    )
   }
 
   async handleRawTransferSentEvent (event: Event) {

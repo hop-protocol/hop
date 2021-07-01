@@ -1,6 +1,11 @@
-import { BigNumber } from 'ethers'
+import { BigNumber, Transaction } from 'ethers'
 import BaseDb from './BaseDb'
 import { normalizeBigNumber } from './utils'
+
+type TxInfo = {
+  transactionHash?: string
+  timestamp?: number 
+}
 
 export type TransferRoot = {
   destinationBridgeAddress?: string
@@ -17,7 +22,7 @@ export type TransferRoot = {
   confirmed?: boolean
   confirmedAt?: number
   confirmTxHash?: string
-  rootSetTxHashes?: { [key: number]: string }
+  rootSetTxHashes?: { [key: number]: TxInfo }
   sentConfirmTx?: boolean
   sentConfirmTxAt?: number
   bonded?: boolean

@@ -123,7 +123,7 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
         await wait(10 * 1000)
       }
     } catch (err) {
-      this.logger.error('watcher error:', err.message)
+      this.logger.error('polygon bridge watcher error:', err.message)
       this.quit()
     }
   }

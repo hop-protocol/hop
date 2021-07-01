@@ -90,8 +90,9 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     try {
       await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
     } catch (err) {
-      this.logger.error(`watcher error:`, err.message)
-      this.notifier.error(`watcher error: '${err.message}`)
+      this.logger.error(`base watcher error:`, err.message)
+      this.notifier.error(`base watcher error: '${err.message}`)
+      console.error(err)
       this.quit()
     }
   }
@@ -137,6 +138,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   // force quit so docker can restart
   public async quit () {
+    console.trace()
+    this.logger.info(`exiting`)
     process.exit(1)
   }
 }

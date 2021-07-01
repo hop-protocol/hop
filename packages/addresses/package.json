@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/addresses",
-  "version": "0.0.1-beta.26",
+  "version": "0.0.1-beta.27",
   "description": "The Hop Protocol Smart Contract addresses",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

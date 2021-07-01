@@ -328,8 +328,8 @@ export default class L2Bridge extends Bridge {
     return Number(transferRoot.createdAt.toString()) > 0
   }
 
-  @rateLimitRetry
   @queue
+  @rateLimitRetry
   async commitTransfers (
     destinationChainId: number
   ): Promise<providers.TransactionResponse> {
@@ -341,8 +341,8 @@ export default class L2Bridge extends Bridge {
     return tx
   }
 
-  @rateLimitRetry
   @queue
+  @rateLimitRetry
   async bondWithdrawalAndAttemptSwap (
     recipient: string,
     amount: BigNumber,

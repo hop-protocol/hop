@@ -36,8 +36,8 @@ export default class Token extends ContractBase {
     return allowance
   }
 
-  @rateLimitRetry
   @queue
+  @rateLimitRetry
   async approve (
     spender: string,
     amount: BigNumber = ethers.constants.MaxUint256
@@ -52,8 +52,8 @@ export default class Token extends ContractBase {
     }
   }
 
-  @rateLimitRetry
   @queue
+  @rateLimitRetry
   async transfer (
     recipient: string,
     amount: BigNumber

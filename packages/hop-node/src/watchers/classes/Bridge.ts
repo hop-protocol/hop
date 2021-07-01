@@ -428,8 +428,8 @@ export default class Bridge extends ContractBase {
     return chainIds
   }
 
-  @rateLimitRetry
   @queue
+  @rateLimitRetry
   async stake (amount: BigNumber): Promise<providers.TransactionResponse> {
     const bonder = await this.getBonderAddress()
     const tx = await this.bridgeContract.stake(
@@ -441,8 +441,8 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
-  @rateLimitRetry
   @queue
+  @rateLimitRetry
   async unstake (amount: BigNumber): Promise<providers.TransactionResponse> {
     const bonder = await this.getBonderAddress()
     const tx = await this.bridgeContract.unstake(
@@ -453,8 +453,8 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
-  @rateLimitRetry
   @queue
+  @rateLimitRetry
   async bondWithdrawal (
     recipient: string,
     amount: BigNumber,
@@ -473,8 +473,8 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
-  @rateLimitRetry
   @queue
+  @rateLimitRetry
   async settleBondedWithdrawals (
     bonder: string,
     transferIds: string[],

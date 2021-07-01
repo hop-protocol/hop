@@ -4,7 +4,7 @@ import memoize from 'fast-memoize'
 import { Chain } from 'src/constants'
 import {
   erc20Abi,
-  l1BridgeAbi,
+  l1Erc20BridgeAbi,
   l2BridgeAbi,
   l2AmmWrapperAbi,
   swapAbi as saddleSwapAbi
@@ -16,7 +16,7 @@ import wallets from 'src/wallets'
 const getL1BridgeContract = (token: string) => {
   return new Contract(
     config.tokens[token][Chain.Ethereum].l1Bridge,
-    l1BridgeAbi,
+    l1Erc20BridgeAbi,
     wallets.get(Chain.Ethereum)
   )
 }

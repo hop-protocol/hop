@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/metadata",
-  "version": "0.0.1-beta.12",
+  "version": "0.0.1-beta.14",
   "description": "Hop Protocol metadata",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

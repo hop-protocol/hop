@@ -9,3 +9,5 @@ import { L1BridgeAbi } from '@hop-protocol/abi'
 
 console.log(L1BridgeAbi)) // [...]
 ```
+
+See [src/index.ts](./src/index.ts) for list of available ABIs

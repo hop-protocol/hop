@@ -2,7 +2,7 @@ import { ethers, Signer, Contract, BigNumber, BigNumberish } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
 import { Chain, Token as TokenModel } from './models'
 import {
-  l1BridgeAbi,
+  l1Erc20BridgeAbi,
   l2BridgeAbi,
   saddleLpTokenAbi,
   swapAbi as saddleSwapAbi,
@@ -764,7 +764,7 @@ class HopBridge extends Base {
       throw new Error(`token "${this.tokenSymbol}" is unsupported`)
     }
     const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
-    return this.getContract(bridgeAddress, l1BridgeAbi, provider)
+    return this.getContract(bridgeAddress, l1Erc20BridgeAbi, provider)
   }
 
   /**
@@ -841,6 +841,8 @@ class HopBridge extends Base {
     chain: TChain,
     signer: TProvider = this.signer
   ) {
+    // ToDo: Remove ability to pass in signer like other token getters
+    if (!signer) return
     chain = this.toChainModel(chain)
     const saddleLpTokenAddress = this.getL2SaddleLpTokenAddress(
       this.tokenSymbol,

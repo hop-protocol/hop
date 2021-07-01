@@ -1,6 +1,6 @@
 # Hop UI
 
-> The UI for Hop Exchange
+> The UI for [Hop Protocol](https://hop.exchange/)
 
 ## Getting started
 

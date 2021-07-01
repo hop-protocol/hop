@@ -56,7 +56,27 @@ const StatusContextProvider: FC = ({ children }) => {
 
   async function updateStatus (activeStep: number = 0, steps: Step[] = []) {
     if (!tx) return
-    if (!tx.token) return
+
+    // is regular transaction
+    if (!tx.token) {
+      if (tx.pending) {
+        setSteps([
+          {
+            text: 'Pending',
+            url: tx.explorerLink
+          },
+        ])
+      } else {
+        setSteps([
+          {
+            text: 'Complete',
+            url: tx.explorerLink
+          },
+        ])
+        setActiveStep(2)
+      }
+      return
+    }
     if (activeStep >= 3) {
       return
     }

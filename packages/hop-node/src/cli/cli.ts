@@ -22,6 +22,7 @@ import {
   slackUsername
 } from 'src/config'
 import db from 'src/db'
+import { getParameter } from 'src/aws/parameterStore'
 import clearDb from 'src/db/clearDb'
 import Logger, { setLogLevel } from 'src/logger'
 import { Chain } from 'src/constants'
@@ -88,6 +89,7 @@ type KeystoreConfig = {
   location: string
   pass?: string
   passwordFile?: string
+  parameterStore?: string
 }
 
 type LoggingConfig = {
@@ -320,8 +322,6 @@ async function staker (
   action: StakerAction
 ) {
   setConfigByNetwork(network)
-  logger.info('network:', network)
-
   if (!network) {
     throw new Error('network is required. Options are: kovan, goerli, mainnet')
   }
@@ -376,7 +376,7 @@ program
         const config: Config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      const network = source.network
+      const network = source.network || globalConfig.network
       const chain = source.chain
       const token = source.token
       const amount = Number(source.args[0] || source.amount)
@@ -402,7 +402,7 @@ program
         const config: Config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      const network = source.network
+      const network = source.network || globalConfig.network
       const chain = source.chain
       const token = source.token
       const amount = Number(source.args[0] || source.amount)
@@ -428,7 +428,7 @@ program
         const config: Config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      const network = source.network
+      const network = source.network || globalConfig.network
       const chain = source.chain
       const token = source.token
       const amount = Number(source.args[0] || source.amount)
@@ -929,7 +929,12 @@ async function validateConfig (config: any) {
   }
 
   if (config['keystore']) {
-    const validKeystoreProps = ['location', 'pass', 'passwordFile']
+    const validKeystoreProps = [
+      'location',
+      'pass',
+      'passwordFile',
+      'parameterStore'
+    ]
     const keystoreProps = Object.keys(config['keystore'])
     await validateKeys(validKeystoreProps, keystoreProps)
   }
@@ -1004,11 +1009,14 @@ async function setGlobalConfigFromConfigFile (
     let passphrase: string = process.env.KEYSTORE_PASS || config?.keystore.pass
     if (!passphrase) {
       let passwordFilePath = passwordFile || config?.keystore?.passwordFile
+      let parameterStoreName = config?.keystore?.parameterStore
       if (passwordFilePath) {
         passwordFilePath = path.resolve(
           passwordFilePath.replace('~', os.homedir())
         )
         passphrase = fs.readFileSync(passwordFilePath, 'utf8').trim()
+      } else if (parameterStoreName) {
+        passphrase = await getParameter(parameterStoreName)
       } else {
         passphrase = (await promptPassphrase()) as string
       }

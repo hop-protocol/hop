@@ -85,7 +85,7 @@ class HopConvertOption extends ConvertOption {
         {
           title: 'Fee',
           tooltip: 'This fee covers the L1 transaction fee paid by the Bonder',
-          value: toTokenDisplay(bonderFee, l1Token),
+          value: toTokenDisplay(bonderFee, l1Token.decimals, l1Token.symbol),
           highlighted: true
         }
       ]

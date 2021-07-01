@@ -52,6 +52,19 @@ export default class Token extends ContractBase {
     }
   }
 
+  @rateLimitRetry
+  @queue
+  async transfer (
+    recipient: string,
+    amount: BigNumber
+  ): Promise<providers.TransactionResponse> {
+    return this.tokenContract.transfer(
+      recipient,
+      amount,
+      await this.txOverrides()
+    )
+  }
+
   async formatUnits (value: BigNumber) {
     return Number(formatUnits(value.toString(), await this.decimals()))
   }

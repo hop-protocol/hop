@@ -7,6 +7,7 @@ import VotePage from './pages/Vote/VotePage'
 import Pools from 'src/pages/Pools'
 import Faucet from 'src/pages/Faucet'
 import Earn from 'src/pages/Earn'
+import Stake from 'src/pages/Stake'
 import Convert from 'src/pages/Convert'
 import Stats from 'src/pages/Stats'
 import { isMainnet, IProposal } from 'src/config'
@@ -99,6 +100,9 @@ const COMPONENT_NAME: FC<Props> = () => {
       ) : null}
       <Route path="/earn">
         <Earn />
+      </Route>
+      <Route path="/stake">
+        <Stake />
       </Route>
       <Route path="/stats">
         <Stats />

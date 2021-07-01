@@ -180,8 +180,8 @@ class AmmConvertOption extends ConvertOption {
       const destToken = isForwardDirection
         ? bridge.getL2HopToken(destNetwork.slug)
         : bridge.getCanonicalToken(destNetwork.slug)
-      amountOutMinDisplay = toTokenDisplay(amountOutMin, destToken)
-      feeDisplay = toTokenDisplay(lpFeeAmount, sourceToken)
+      amountOutMinDisplay = toTokenDisplay(amountOutMin, destToken.decimals, destToken.symbol)
+      feeDisplay = toTokenDisplay(lpFeeAmount, sourceToken.decimals, sourceToken.symbol)
     }
 
     return [

@@ -3,20 +3,24 @@ import { formatUnits } from 'ethers/lib/utils'
 import { Token } from '@hop-protocol/sdk'
 import { commafy } from 'src/utils'
 
-const toTokenDisplay = (num: BigNumber | undefined, token: Token | undefined) => {
+const toTokenDisplay = (num: BigNumber | undefined, decimals: number | undefined, symbol?: string) => {
   if (
     !num ||
-    !token
+    !decimals
   ) {
     return '-'
   }
 
-  const formatted = commafy(
-    formatUnits(num, token.decimals),
+  let formatted = commafy(
+    formatUnits(num, decimals),
     4
   )
 
-  return `${formatted} ${token.symbol}`
+  if (symbol) {
+    formatted += ` ${symbol}`
+  }
+
+  return formatted
 }
 
 export default toTokenDisplay

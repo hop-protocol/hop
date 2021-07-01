@@ -1,5 +1,5 @@
 import { providers, Contract, ethers, BigNumber, Event } from 'ethers'
-import { l1BridgeAbi, erc20Abi } from '@hop-protocol/abi'
+import { l1Erc20BridgeAbi, erc20Abi } from '@hop-protocol/abi'
 import { parseUnits } from 'ethers/lib/utils'
 import Bridge, { EventsBatchOptions, EventCb } from './Bridge'
 import queue from 'src/decorators/queue'
@@ -24,7 +24,7 @@ export default class L1Bridge extends Bridge {
   static fromAddress (address: string): L1Bridge {
     const contract = new Contract(
       address,
-      l1BridgeAbi,
+      l1Erc20BridgeAbi,
       wallets.get(Chain.Ethereum)
     )
 

@@ -26,7 +26,6 @@ const BONDER_ORDER_DELAY_MS = 60 * 1000
 
 class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
-  minThresholdPercent: number = 0.5 // 50%
   shouldWaitMinThreshold: boolean = false
 
   constructor (config: Config) {
@@ -39,16 +38,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
-    if (config.minThresholdPercent) {
-      this.minThresholdPercent = config.minThresholdPercent
-      if (this.minThresholdPercent > 1 || this.minThresholdPercent < 0) {
-        throw new Error('minThresholdAmount must be between 0 and 1')
-      }
-    }
   }
 
   async start () {
-    this.logger.debug(`minThresholdAmount: ${this.minThresholdPercent * 100}%`)
     await super.start()
   }
 
@@ -625,36 +617,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       if (totalBondsSettleAmount.eq(0)) {
         // logger.warn('totalBondsSettleAmount is 0. Cannot settle')
         return
-      }
-
-      if (this.shouldWaitMinThreshold) {
-        let [credit, debit, bondedBondedWithdrawalsBalance] = await Promise.all(
-          [
-            destBridge.getCredit(),
-            destBridge.getDebit(),
-            destBridge.getBonderBondedWithdrawalsBalance()
-          ]
-        )
-
-        const bonderDestBridgeStakedAmount = credit
-          .sub(debit)
-          .add(bondedBondedWithdrawalsBalance)
-
-        if (
-          totalBondsSettleAmount
-            .div(bonderDestBridgeStakedAmount)
-            .lt(BigNumber.from(this.minThresholdPercent * 100).div(100))
-        ) {
-          logger.warn(
-            `total bonded withdrawal amount ${this.bridge.formatUnits(
-              totalBondsSettleAmount
-            )} does not meet min threshold of ${this.minThresholdPercent *
-              100}% of total staked ${this.bridge.formatUnits(
-              bonderDestBridgeStakedAmount
-            )}. Cannot settle yet`
-          )
-          return
-        }
       }
 
       logger.debug('committedAt:', committedAt)

@@ -11,6 +11,7 @@ export interface Config {
   l1BridgeContract: Contract
   label: string
   contracts: any
+  dryMode?: boolean
 }
 
 class ChallengeWatcher extends BaseWatcherWithEventHandlers {
@@ -21,7 +22,8 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     super({
       tag: 'challengeWatcher',
       prefix: config.label,
-      logColor: 'red'
+      logColor: 'red',
+      dryMode: config.dryMode
     })
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
     this.contracts = config.contracts
@@ -193,6 +195,12 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     logger.debug('transfer root not committed!')
     logger.debug('challenging transfer root')
     logger.debug('transferRootHash', transferRootHash)
+    if (this.dryMode) {
+      this.logger.warn(
+        'dry mode: skipping challengeTransferRootBond transaction'
+      )
+      return
+    }
     const tx = await this.l1Bridge.challengeTransferRootBond(
       transferRootHash,
       totalAmount

@@ -311,6 +311,7 @@ function startChallengeWatchers (_tokens?: string[], _networks?: string[]) {
         continue
       }
       /*
+      // TODO
       watchers.push(
         new ChallengeWatcher({
           label: network,
@@ -323,7 +324,8 @@ function startChallengeWatchers (_tokens?: string[], _networks?: string[]) {
             '79377087078960': contracts.get(token, ARBITRUM)?.l2Bridge,
             '77': contracts.get(token, XDAI)?.l2Bridge,
             '80001': contracts.get(token, POLYGON)?.l2Bridge
-          }
+          },
+          dryMode
         })
       )
 				*/

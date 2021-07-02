@@ -102,10 +102,10 @@ class Token extends Base {
    *const allowance = bridge.allowance(Chain.xDai, spender)
    *```
    */
-  public async balanceOf (): Promise<BigNumber> {
+  public async balanceOf (address?: string): Promise<BigNumber> {
     const tokenContract = await this.getErc20()
-    const address = await this.getSignerAddress()
-    return tokenContract.balanceOf(address)
+    const _address = address ?? await this.getSignerAddress()
+    return tokenContract.balanceOf(_address)
   }
 
   /**

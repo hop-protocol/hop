@@ -11,6 +11,7 @@ const fetchData = async (network) => {
         destinationChainId
         amount
         transactionHash
+        timestamp
       }
     }
   `
@@ -24,6 +25,7 @@ const fetchData = async (network) => {
         destinationChainId
         amount
         transactionHash
+        timestamp
       }
     }
   `
@@ -69,7 +71,8 @@ async function updateData () {
       destinationChain: t.destinationChainId,
       amount: t.amount,
       transferId: t.transferId,
-      transactionHash: t.transactionHash
+      transactionHash: t.transactionHash,
+      timestamp: Number(t.timestamp)
     })
   }
   for (const t of polygonTransfers) {
@@ -78,7 +81,8 @@ async function updateData () {
       destinationChain: t.destinationChainId,
       amount: t.amount,
       transferId: t.transferId,
-      transactionHash: t.transactionHash
+      transactionHash: t.transactionHash,
+      timestamp: Number(t.timestamp)
     })
   }
   for (const t of mainnetTransfers) {
@@ -87,7 +91,8 @@ async function updateData () {
       destinationChain: t.destinationChainId,
       amount: t.amount,
       transferId: t.id,
-      transactionHash: t.transactionHash
+      transactionHash: t.transactionHash,
+      timestamp: Number(t.timestamp)
     })
   }
 
@@ -185,7 +190,8 @@ async function load () {
   }
 
   const transfers = data.map(x => {
-    return `<td class="${className(x.sourceChain)}">${classes[x.sourceChain]}</td><td class="${className(x.destinationChain)}">${classes[x.destinationChain]}</td><td><a class="${className(x.sourceChain)}" href="${explorerLink(x.sourceChain, x.transactionHash)}" target="_blank">${x.transferId}</a></td>`
+    const t = luxon.DateTime.fromSeconds(x.timestamp)
+    return `<td class="timestamp" title="${t.toISO()}">${t.toRelative()}</td><td class="${className(x.sourceChain)}">${classes[x.sourceChain]}</td><td class="${className(x.destinationChain)}">${classes[x.destinationChain]}</td><td><a class="${className(x.sourceChain)}" href="${explorerLink(x.sourceChain, x.transactionHash)}" target="_blank">${x.transferId}</a></td>`
   })
   const table = d3.select('#transfers')
     .html('')
@@ -193,7 +199,7 @@ async function load () {
 
   table
     .selectAll('thead')
-    .data(['<th>Source</th><th>Destination</th><th>Transfer ID</th>'])
+    .data(['<th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th>'])
     .enter()
     .append('thead')
     .html(String)

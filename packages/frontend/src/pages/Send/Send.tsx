@@ -93,7 +93,8 @@ const Send: FC = () => {
   const {
     provider,
     walletConnected,
-    checkConnectedNetworkId
+    checkConnectedNetworkId,
+    address
   } = useWeb3Context()
 
   const [fromNetwork, setFromNetwork] = useState<Network>()
@@ -129,11 +130,13 @@ const Send: FC = () => {
 
   const { balance: fromBalance, loading: loadingFromBalance } = useBalance(
     sourceToken,
-    fromNetwork
+    fromNetwork,
+    address
   )
   const { balance: toBalance, loading: loadingToBalance } = useBalance(
     destToken,
-    toNetwork
+    toNetwork,
+    address
   )
 
   const amountToBN = (token: Token | undefined, amount: string): BigNumber | undefined => {

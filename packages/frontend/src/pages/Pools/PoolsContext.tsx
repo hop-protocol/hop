@@ -109,7 +109,6 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   const {
     networks,
-    tokens,
     txConfirm,
     txHistory,
     sdk,
@@ -135,12 +134,14 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   const { balance: canonicalBalance, loading: loadingCanonicalBalance } = useBalance(
     canonicalToken,
-    selectedNetwork
+    selectedNetwork,
+    address
   )
 
   const { balance: hopBalance, loading: loadingHopBalance } = useBalance(
     hopToken,
-    selectedNetwork
+    selectedNetwork,
+    address
   )
 
   useEffect(() => {

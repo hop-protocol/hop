@@ -9,6 +9,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import StakeWidget from 'src/pages/Stake/StakeWidget'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
+import { isMainnet } from 'src/config'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -44,7 +45,7 @@ const Stake: FC = () => {
   const stakingRewards = useAsyncMemo(async () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
     const _provider = provider?.network.name === 'polygon' ? provider : polygonProvider
-    return new Contract('0x20E145F873EaaAe46f69C98B7cE1f4BB8cC9644B', stakingRewardsAbi, _provider)
+    return new Contract('0x5D13179c5fa40b87D53Ff67ca26245D3D5B2F872', stakingRewardsAbi, _provider)
   }, [sdk, provider])
 
   const rewardsToken = useAsyncMemo(async () => {
@@ -52,12 +53,12 @@ const Stake: FC = () => {
     const _provider = provider?.network.name === 'polygon' ? provider : polygonProvider
 
     const token = new Token(
-      'goerli',
+      'mainnet',
       'polygon',
-      '0x101E9d2E3975d29DA9191F5933490a55916135a4',
-      6,
-      'hUSDC',
-      'Hop USDC',
+      '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
+      18,
+      'WMATIC',
+      'Wrapped Matic',
       '',
       _provider
     )
@@ -70,6 +71,16 @@ const Stake: FC = () => {
       return network.slug === 'polygon'
     })
   }, [networks])
+
+  if (!isMainnet) {
+    return (
+      <Box display="flex" flexDirection="column" alignItems="center">
+        <Typography variant="h4">
+          Coming soon
+        </Typography>
+      </Box>
+    )
+  }
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">

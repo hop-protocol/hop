@@ -79,6 +79,7 @@ type Props = {
   loadingBalance?: boolean
   loadingValue?: boolean
   disableInput?: boolean
+  hideSymbol?: boolean
   className?: string
 }
 
@@ -94,6 +95,7 @@ const AmountSelectorCard: FC<Props> = props => {
     loadingBalance = false,
     loadingValue = false,
     disableInput = false,
+    hideSymbol = false,
     className
   } = props
   const styles = useStyles()
@@ -177,7 +179,7 @@ const AmountSelectorCard: FC<Props> = props => {
             value={value}
             onChange={handleInputChange}
             placeholder="0.0"
-            units={token?.symbol}
+            units={hideSymbol ? '' : token?.symbol}
             disabled={disableInput}
             loadingValue={loadingValue}
           />

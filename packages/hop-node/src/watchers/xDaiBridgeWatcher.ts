@@ -125,7 +125,7 @@ class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
         await wait(10 * 1000)
       }
     } catch (err) {
-      this.logger.error('watcher error:', err)
+      this.logger.error('xDai bridge watcher error:', err)
       this.quit()
     }
   }

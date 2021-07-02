@@ -290,6 +290,7 @@ const StakeWidget: FC<Props> = props => {
         title="USDC-hUSDC LP"
         balance={lpBalance}
         loadingBalance={loadingLpBalance}
+        hideSymbol
       />
       <div className={styles.details}>
         <DetailRow

@@ -3,19 +3,27 @@ let data = []
 const fetchData = async (network) => {
   const queryL2 = `
     query TransferSents {
-      transferSents {
+      transferSents(
+        orderBy: timestamp,
+        orderDirection: desc
+      ) {
         transferId
         destinationChainId
         amount
+        transactionHash
       }
     }
   `
   const queryL1 = `
     query TransferSentToL2 {
-      transferSents: transferSentToL2S {
+      transferSents: transferSentToL2S(
+        orderBy: timestamp,
+        orderDirection: desc
+      ) {
         id
         destinationChainId
         amount
+        transactionHash
       }
     }
   `
@@ -60,7 +68,8 @@ async function updateData () {
       sourceChain: 100,
       destinationChain: t.destinationChainId,
       amount: t.amount,
-      transferId: t.transferId
+      transferId: t.transferId,
+      transactionHash: t.transactionHash
     })
   }
   for (const t of polygonTransfers) {
@@ -68,7 +77,8 @@ async function updateData () {
       sourceChain: 137,
       destinationChain: t.destinationChainId,
       amount: t.amount,
-      transferId: t.transferId
+      transferId: t.transferId,
+      transactionHash: t.transactionHash
     })
   }
   for (const t of mainnetTransfers) {
@@ -76,7 +86,8 @@ async function updateData () {
       sourceChain: 1,
       destinationChain: t.destinationChainId,
       amount: t.amount,
-      transferId: t.id
+      transferId: t.id,
+      transactionHash: t.transactionHash
     })
   }
 
@@ -86,6 +97,19 @@ async function updateData () {
   setTimeout(() => {
     updateData()
   }, 10 * 1000)
+}
+
+function explorerLink (chain, transactionHash) {
+  let base = ''
+  if (chain === 100) {
+    base = 'https://blockscout.com/xdai/mainnet'
+  } else if (chain === 137) {
+    base = 'https://polygonscan.com'
+  } else {
+    base = 'https://etherscan.io'
+  }
+
+  return `${base}/tx/${transactionHash}`
 }
 
 async function load () {
@@ -137,28 +161,48 @@ async function load () {
 
   const json = graph
   const colors = {
-    xdai: '#edbd00',
-    ethereum: '#367d85',
+    // xdai: '#edbd00',
+    xdai: '#46a4a1',
+    // ethereum: '#367d85',
+    ethereum: '#868dac',
     optimism: '#97ba4c',
-    polygon: '#8d4cba',
+    // polygon: '#8d4cba',
+    polygon: '#8b57e1',
     // polygon: '#97ba4c',
     foo: '#f5662b',
     bar: '#3f3e47',
     fallback: '#9f9fa3'
   }
 
-  const transfers = data.map(x => {
-    return `${x.sourceChain}→${x.destinationChain} transferId:${x.transferId}`
-  })
-  const ul = d3.select('#transfers')
-    .html('')
-    .append('ul')
+  const classes = {
+    100: 'xdai',
+    137: 'polygon',
+    1: 'ethereum'
+  }
 
-  ul
-    .selectAll('li')
+  function className (chain) {
+    return classes[chain]
+  }
+
+  const transfers = data.map(x => {
+    return `<td class="${className(x.sourceChain)}">${classes[x.sourceChain]}</td><td class="${className(x.destinationChain)}">${classes[x.destinationChain]}</td><td><a class="${className(x.sourceChain)}" href="${explorerLink(x.sourceChain, x.transactionHash)}" target="_blank">${x.transferId}</a></td>`
+  })
+  const table = d3.select('#transfers')
+    .html('')
+    .append('table')
+
+  table
+    .selectAll('thead')
+    .data(['<th>Source</th><th>Destination</th><th>Transfer ID</th>'])
+    .enter()
+    .append('thead')
+    .html(String)
+
+  table
+    .selectAll('tr')
     .data(transfers)
     .enter()
-    .append('li')
+    .append('tr')
     .html(String)
 
   function render () {

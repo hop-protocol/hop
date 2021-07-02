@@ -68,6 +68,17 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
         )
       )
+    } else if (this.isL1) {
+      const l1Bridge = this.bridge as L1Bridge
+      promises.push(
+        l1Bridge.mapTransferRootConfirmedEvents(
+          async (event: Event) => {
+            return this.handleRawTransferRootConfirmedEvent(event)
+          },
+          { cacheKey: this.cacheKey(l1Bridge.TransferRootConfirmed) }
+        )
+      )
+
     }
 
     promises.push(
@@ -96,6 +107,20 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async watch () {
+    if (this.isL1) {
+      const l1Bridge = this.bridge as L1Bridge
+      this.bridge
+        .on(
+          l1Bridge.TransferRootConfirmed,
+          this.handleTransferRootConfirmedEvent
+        )
+        .on('error', err => {
+          this.logger.error(`event watcher error: ${err.message}`)
+          this.notifier.error(`event watcher error: ${err.message}`)
+          this.quit()
+        })
+      return
+    }
     this.bridge
       .on(this.bridge.TransferRootSet, this.handleTransferRootSetEvent)
       .on(
@@ -147,6 +172,22 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       rootHash,
       totalAmount,
       rootCommittedAt,
+      event
+    )
+  }
+
+  async handleRawTransferRootConfirmedEvent (event: Event) {
+    const {
+      originChainId: sourceChainId,
+      destinationChainId,
+      rootHash,
+      totalAmount
+    } = event.args
+    await this.handleTransferRootConfirmedEvent(
+      sourceChainId,
+      destinationChainId,
+      rootHash,
+      totalAmount,
       event
     )
   }
@@ -212,23 +253,18 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     )
     const sourceChainId =
       dbTransferRoot.sourceChainId || (await this.bridge.getChainId())
-    const { destinationChainId } = dbTransferRoot
     logger.debug(`handling TransferRootSet event`)
-    // logger.debug(`transferRootHash from event: ${transferRootHash}`)
-    // logger.debug(`transferRootId: ${transferRootId}`)
-    // logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
-    // logger.debug(`event transactionHash: ${transactionHash}`)
+    logger.debug(`transferRootHash from event: ${transferRootHash}`)
+    logger.debug(`transferRootId: ${transferRootId}`)
+    logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
+    logger.debug(`event transactionHash: ${transactionHash}`)
     await db.transferRoots.update(transferRootHash, {
       committed: true,
       transferRootId,
       transferRootHash,
       sourceChainId,
-      rootSetTxHashes: Object.assign({}, dbTransferRoot.rootSetTxHashes || {}, {
-        [destinationChainId]: {
-          transactionHash,
-          timestamp
-        }
-      })
+      rootSetTxHash: transactionHash,
+      rootSetTimestamp: timestamp
     })
 
     dbTransferRoot = await db.transferRoots.getByTransferRootHash(
@@ -243,28 +279,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     if (!dbTransferRoot.transferIds?.length) {
       logger.warn(`no db transfers found for transfer root ${transferRootHash}`)
       return
-    }
-
-    await this.updateTransferRootHashForTransferIds(dbTransferRoot)
-  }
-
-  async updateTransferRootHashForTransferIds (dbTransferRoot: TransferRoot) {
-    const { transferRootHash, transferRootId } = dbTransferRoot
-    const logger = this.logger.create({ root: transferRootHash })
-    for (let dbTransferId of dbTransferRoot.transferIds) {
-      const dbTransfer = await db.transfers.getByTransferId(dbTransferId)
-      if (!dbTransfer) {
-        logger.warn(`no db transfer found for transfer id ${dbTransferId}`)
-      }
-      await db.transfers.update(dbTransferId, {
-        transferRootId,
-        transferRootHash
-      })
-      if (!dbTransfer?.transferRootId) {
-        logger.debug(
-          `updated db transfer id hash ${dbTransferId} to have transfer root id ${transferRootId}`
-        )
-      }
     }
   }
 
@@ -284,7 +298,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         transferId
       )
       await db.transfers.update(transferId, {
-        transferRootHash,
         withdrawalBondSettled: dbTransfer?.withdrawalBonded ?? false
       })
     }
@@ -310,8 +323,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
 
       const tenMinutes = 60 * 10 * 1000
-      const txTimestamp = dbTransferRoot.rootSetTxHashes?.[dbTransferRoot.destinationChainId]?.timestamp
-      const timestampOk = txTimestamp + tenMinutes > Date.now()
+      const timestampOk = dbTransferRoot?.rootSetTimestamp * 1000 + tenMinutes < Date.now()
       const ok =
         !!dbTransferRoot.destinationChainId &&
         !!dbTransferRoot.totalAmount &&
@@ -454,7 +466,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
           for (let transferId of transferIds) {
             await db.transfers.update(transferId, {
-              transferRootHash,
               withdrawalBonded: true,
               withdrawalBondSettled: true,
               withdrawalBondedTxHash: receipt.transactionHash

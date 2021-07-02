@@ -287,7 +287,8 @@ const StakeWidget: FC<Props> = props => {
         value={amount}
         token={stakingToken}
         onChange={setAmount}
-        title="USDC-hUSDC LP"
+        titleIconUrl={network?.imageUrl}
+        title={`${network?.name} ${stakingToken?.name}`}
         balance={lpBalance}
         loadingBalance={loadingLpBalance}
         hideSymbol

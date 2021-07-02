@@ -104,7 +104,7 @@ class Token extends Base {
    */
   public async balanceOf (address?: string): Promise<BigNumber> {
     const tokenContract = await this.getErc20()
-    const _address = address ?? await this.getSignerAddress()
+    const _address = address ?? (await this.getSignerAddress())
     return tokenContract.balanceOf(_address)
   }
 

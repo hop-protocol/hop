@@ -120,8 +120,7 @@ let enabledWatchers = [
   'challenge',
   'commitTransfers',
   'settleBondedWithdrawals',
-  'stake',
-  'xDomainMessageRelay'
+  'stake'
 ]
 
 program

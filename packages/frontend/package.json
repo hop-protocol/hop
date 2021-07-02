@@ -84,7 +84,7 @@
     "eslint-plugin-promise": "^5.1.0",
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-react-hooks": "^4.2.0",
-    "ethers": "=5.3.1",
+    "ethers": "=5.4.0",
     "ipfs-deploy": "8.0.1",
     "lerna-sync-version": "0.0.5",
     "prettier-standard": "^16.4.1",

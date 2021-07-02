@@ -189,9 +189,34 @@ async function load () {
     return classes[chain]
   }
 
+  const chainLogos = {
+    1: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/ethereum.svg',
+    100: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/xdai.svg',
+    137: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/polygon.svg'
+  }
+
+  function chainImage (chain) {
+    const url = chainLogos[chain]
+    return `<img src="${url}" />`
+  }
+
+  const tokenLogos = {
+    USDC: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/usdc.svg'
+  }
+
+  function tokenImage (token) {
+    const url = tokenLogos[token]
+    return `<img src="${url}" />`
+  }
+
   const transfers = data.map(x => {
     const t = luxon.DateTime.fromSeconds(x.timestamp)
-    return `<td class="timestamp" title="${t.toISO()}">${t.toRelative()}</td><td class="${className(x.sourceChain)}">${classes[x.sourceChain]}</td><td class="${className(x.destinationChain)}">${classes[x.destinationChain]}</td><td><a class="${className(x.sourceChain)}" href="${explorerLink(x.sourceChain, x.transactionHash)}" target="_blank">${x.transferId}</a></td>`
+    return `<td class="timestamp" title="${t.toISO()}">${t.toRelative()}</td>
+<td class="${className(x.sourceChain)}">${chainImage(x.sourceChain)}${classes[x.sourceChain]} <span style="background: linear-gradient(to right, ${colors[classes[x.sourceChain]]}, ${colors[classes[x.destinationChain]]}); -webkit-background-clip: text; color: transparent;">⟶</span></td>
+	<td class="${className(x.destinationChain)}">${chainImage(x.destinationChain)}${classes[x.destinationChain]}</td>
+	<td class="transferId"><a class="${className(x.sourceChain)}" href="${explorerLink(x.sourceChain, x.transactionHash)}" target="_blank">${x.transferId}</a></td>
+<td class="amount">${ethers.utils.formatUnits(x.amount, 6)}</td>
+<td class="token">${tokenImage('USDC')}USDC</td>`
   })
   const table = d3.select('#transfers')
     .html('')
@@ -199,7 +224,7 @@ async function load () {
 
   table
     .selectAll('thead')
-    .data(['<th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th>'])
+    .data(['<th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Amount</th><th>Token</th>'])
     .enter()
     .append('thead')
     .html(String)

@@ -90,7 +90,7 @@ const ConvertContext = createContext<ConvertContextProps>({
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
-  const { provider, checkConnectedNetworkId } = useWeb3Context()
+  const { provider, checkConnectedNetworkId, address } = useWeb3Context()
   const app = useApp()
   const { networks, selectedBridge, txConfirm, sdk, l1Network, settings } = app
   const { slippageTolerance, deadline } = settings
@@ -158,11 +158,13 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(
     sourceToken,
-    sourceNetwork
+    sourceNetwork,
+    address
   )
   const { balance: destBalance, loading: loadingDestBalance } = useBalance(
     destToken,
-    destNetwork
+    destNetwork,
+    address
   )
   const [details, setDetails] = useState<DetailRow[]>([])
   const [warning, setWarning] = useState<ReactNode>()

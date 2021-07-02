@@ -97,6 +97,7 @@ async function updateData () {
   }
 
   data = data.filter(x => x.destinationChain && x.transferId)
+    .sort((a, b) => a.timestamp < b.timestamp)
   load()
 
   setTimeout(() => {
@@ -213,8 +214,8 @@ async function load () {
     const t = luxon.DateTime.fromSeconds(x.timestamp)
     return `<td class="timestamp" title="${t.toISO()}">${t.toRelative()}</td>
 <td class="${className(x.sourceChain)}">${chainImage(x.sourceChain)}${classes[x.sourceChain]} <span style="background: linear-gradient(to right, ${colors[classes[x.sourceChain]]}, ${colors[classes[x.destinationChain]]}); -webkit-background-clip: text; color: transparent;">⟶</span></td>
-	<td class="${className(x.destinationChain)}">${chainImage(x.destinationChain)}${classes[x.destinationChain]}</td>
-	<td class="transferId"><a class="${className(x.sourceChain)}" href="${explorerLink(x.sourceChain, x.transactionHash)}" target="_blank">${x.transferId}</a></td>
+  <td class="${className(x.destinationChain)}">${chainImage(x.destinationChain)}${classes[x.destinationChain]}</td>
+  <td class="transferId"><a class="${className(x.sourceChain)}" href="${explorerLink(x.sourceChain, x.transactionHash)}" target="_blank">${x.transferId}</a></td>
 <td class="amount">${ethers.utils.formatUnits(x.amount, 6)}</td>
 <td class="token">${tokenImage('USDC')}USDC</td>`
   })

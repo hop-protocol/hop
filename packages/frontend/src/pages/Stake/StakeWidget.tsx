@@ -3,6 +3,7 @@ import { BigNumber, Contract } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
+import MuiButton from '@material-ui/core/Button'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -17,7 +18,7 @@ import useStakeBalance from 'src/pages/Stake/useStakeBalance'
 import { toTokenDisplay } from 'src/utils'
 import Alert from 'src/components/alert/Alert'
 import usePollValue from 'src/hooks/usePollValue'
-import MuiButton from '@material-ui/core/Button'
+import DetailRow from 'src/components/DetailRow'
 
 const useStyles = makeStyles(theme => ({
   buttons: {
@@ -36,6 +37,16 @@ const useStyles = makeStyles(theme => ({
   withdrawButton: {
     marginTop: theme.padding.light,
     opacity: 0.5
+  },
+  rewardsDetails: {
+    width: '30.0rem'
+  },
+  details: {
+    marginTop: '4.2rem',
+    width: '46.0rem',
+    [theme.breakpoints.down('xs')]: {
+      width: '90%'
+    }
   }
 }))
 
@@ -71,7 +82,7 @@ const StakeWidget: FC<Props> = props => {
     network.slug === 'polygon'
   )
 
-  const { balance: lpBalance, loading: loadingLpBalance } = useBalance(stakingToken, polygon)
+  const { balance: lpBalance, loading: loadingLpBalance } = useBalance(stakingToken, polygon, address)
   const [amount, setAmount] = useState('')
   const parsedAmount = (amount && stakingToken)
     ? parseUnits(amount, stakingToken.decimals)
@@ -102,6 +113,38 @@ const StakeWidget: FC<Props> = props => {
       return 'Insufficient balance'
     }
   }, [parsedAmount, lpBalance])
+
+  const { balance: totalStaked } = useBalance(stakingToken, polygon, stakingRewards?.address)
+  const totalStakedFormatted = toTokenDisplay(
+    totalStaked,
+    stakingToken?.decimals,
+    stakingToken?.symbol
+  )
+
+  const totalRewardsPerDay = useAsyncMemo(async () => {
+    if (!stakingRewards) return undefined
+    const rewardRate = await stakingRewards?.rewardRate()
+    return rewardRate.mul(86400) // multiply by 1 day
+  }, [stakingRewards])
+
+  const totalRewardsPerDayFormatted = toTokenDisplay(
+    totalRewardsPerDay,
+    rewardsToken?.decimals,
+    rewardsToken?.symbol
+  )
+
+  const userRewardsPerDay = useAsyncMemo(async () => {
+    console.log('stakeBalance: ', stakeBalance)
+    if (!stakingRewards || !stakeBalance || stakeBalance.eq(0)) return undefined
+    const rewardRate = await stakingRewards?.rewardRate()
+    return rewardRate.mul(86400) // multiply by 1 day
+  }, [stakingRewards, stakeBalance])
+
+  const userRewardsPerDayFormatted = toTokenDisplay(
+    userRewardsPerDay,
+    rewardsToken?.decimals,
+    rewardsToken?.symbol
+  )
 
   const approve = async () => {
     if (
@@ -249,16 +292,34 @@ const StakeWidget: FC<Props> = props => {
         balance={lpBalance}
         loadingBalance={loadingLpBalance}
       />
+      <div className={styles.details}>
+        <DetailRow
+          title="Total Staked"
+          tooltip="The total amount of LP tokens staked for rewards"
+          value={totalStakedFormatted}
+        />
+        <DetailRow
+          title={userRewardsPerDay ? 'Your Rewards' : 'Total Rewards'}
+          tooltip={
+            userRewardsPerDay
+              ? 'The rewards you\'re earning per day'
+              : 'The total rewards being distributed per day'
+          }
+          value={`${userRewardsPerDay ? userRewardsPerDayFormatted : totalRewardsPerDayFormatted} / day`}
+        />
+      </div>
       <Alert severity="warning" text={warning} className={styles.alert}/>
       <Box display="flex" flexDirection="column" alignItems="center">
-        <Button
-          className={styles.claimButton}
-          large
-          highlighted
-          onClick={claim}
-        >
-          Claim {formattedEarned}
-        </Button>
+        {earned?.gt(0) &&
+          <Button
+            className={styles.claimButton}
+            large
+            highlighted
+            onClick={claim}
+          >
+            Claim {formattedEarned}
+          </Button>
+        }
         <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
           <Button
             className={styles.button}

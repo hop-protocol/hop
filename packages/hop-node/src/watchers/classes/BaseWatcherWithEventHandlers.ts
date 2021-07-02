@@ -197,10 +197,14 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     event: Event
   ) {
     const logger = this.logger.create({ root: transferRootHash })
-    const {
+
+    const sourceChainId =  await this.bridge.getChainId()
+    const destinationChainId = Number(destinationChainIdBn.toString())
+    await db.transferRoots.update(transferRootHash, {
       sourceChainId,
       destinationChainId
-    } = await db.transferRoots.getByTransferRootHash(transferRootHash)
+    })
+
     if (isL1ChainId(sourceChainId)) {
       return
     }

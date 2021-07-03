@@ -65,7 +65,8 @@ const StakeWidget: FC<Props> = props => {
     rewardsToken,
     stakingRewards
   } = props
-  const { networks, txConfirm, txHistory } = useApp()
+
+  const { networks, txConfirm, txHistory, sdk } = useApp()
   const { checkConnectedNetworkId, address } = useWeb3Context()
   const { stakeBalance } = useStakeBalance(stakingRewards, address)
 
@@ -166,8 +167,9 @@ const StakeWidget: FC<Props> = props => {
         token: stakingToken.symbol
       },
       onConfirm: async (approveAll: boolean) => {
+        const signer = await sdk.getSignerOrProvider(network.slug)
         const approveAmount = approveAll ? UINT256 : parsedAmount
-        return stakingToken.approve(
+        return stakingToken.connect(signer).approve(
           stakingRewards?.address,
           approveAmount
         )
@@ -206,7 +208,8 @@ const StakeWidget: FC<Props> = props => {
         token: stakingToken
       },
       onConfirm: async () => {
-        return stakingRewards.stake(parsedAmount)
+        const signer = await sdk.getSignerOrProvider(network.slug)
+        return stakingRewards.connect(signer).stake(parsedAmount)
       }
     })
 
@@ -234,7 +237,8 @@ const StakeWidget: FC<Props> = props => {
     const isNetworkConnected = await checkConnectedNetworkId(networkId)
     if (!isNetworkConnected) return
 
-    await stakingRewards.getReward()
+    const signer = await sdk.getSignerOrProvider(network.slug)
+    await stakingRewards.connect(signer).getReward()
   }
 
   const withdraw = async () => {
@@ -250,6 +254,9 @@ const StakeWidget: FC<Props> = props => {
     const isNetworkConnected = await checkConnectedNetworkId(networkId)
     if (!isNetworkConnected) return
 
+    const signer = await sdk.getSignerOrProvider(network.slug)
+    const _stakingRewards = stakingRewards.connect(signer)
+
     const tx = await txConfirm?.show({
       kind: 'withdrawStake',
       inputProps: {
@@ -260,12 +267,12 @@ const StakeWidget: FC<Props> = props => {
         if (!amountPercent) return
 
         if (amountPercent === 100) {
-          return stakingRewards.exit()
+          return _stakingRewards.exit()
         }
 
         const withdrawAmount = stakeBalance.mul(amountPercent).div(100)
 
-        return stakingRewards.withdraw(withdrawAmount)
+        return _stakingRewards.withdraw(withdrawAmount)
       }
     })
 

@@ -72,10 +72,15 @@ const StakeWidget: FC<Props> = props => {
 
   const formattedStakeBalance = toTokenDisplay(stakeBalance, stakingToken?.decimals)
 
-  const earned = usePollValue<BigNumber>(async () => {
-    if (!address) return undefined
-    return stakingRewards?.earned(address.toString())
-  }, 5e3)
+  const earned = usePollValue<BigNumber>(
+    async () => {
+      if (!address) return undefined
+      const _ern = await stakingRewards?.earned(address.toString())
+      return _ern
+    },
+    5e3,
+    [stakingRewards, address]
+  )
 
   const formattedEarned = toTokenDisplay(earned, rewardsToken?.decimals, rewardsToken?.symbol)
 

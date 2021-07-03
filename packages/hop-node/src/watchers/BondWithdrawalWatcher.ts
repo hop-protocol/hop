@@ -259,23 +259,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       return
     }
 
-    if (
-      (dbTransfer?.sentBondWithdrawalTx || dbTransfer?.withdrawalBonded) &&
-      dbTransfer?.sentBondWithdrawalTxAt
-    ) {
-      const tenMinutes = 60 * 10 * 1000
-      // skip if a transaction was sent in the last 10 minutes
-      if (dbTransfer.sentBondWithdrawalTxAt + tenMinutes > Date.now()) {
-        logger.debug(
-          'sent?:',
-          !!dbTransfer.sentBondWithdrawalTx,
-          'withdrawalBonded?:',
-          !!dbTransfer.withdrawalBonded
-        )
-        return
-      }
-    }
-
     logger.debug('sending bondWithdrawal tx')
     if (this.dryMode) {
       logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
@@ -302,7 +285,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const { attemptSwap } = await sourceL2Bridge.decodeSendData(data)
 
     await db.transfers.update(transferId, {
-      sentBondWithdrawalTx: true,
       sentBondWithdrawalTxAt: Date.now()
     })
 
@@ -336,7 +318,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       .then(async (receipt: providers.TransactionReceipt) => {
         if (receipt.status !== 1) {
           await db.transfers.update(transferId, {
-            sentBondWithdrawalTx: false,
             sentBondWithdrawalTxAt: 0
           })
           throw new Error('status=0')
@@ -364,7 +345,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       })
       .catch(async (err: Error) => {
         await db.transfers.update(transferId, {
-          sentBondWithdrawalTx: false,
           sentBondWithdrawalTxAt: 0
         })
 

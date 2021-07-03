@@ -12,6 +12,7 @@ import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import Token from './classes/Token'
 import MerkleTree from 'src/utils/MerkleTree'
+import { TX_RETRY_DELAY_MS } from 'src/constants'
 
 export interface Config {
   isL1: boolean
@@ -299,12 +300,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         continue
       }
 
-      const tenMinutes = 60 * 10 * 1000
-      const rootSetTimestampOk = dbTransferRoot?.rootSetTimestamp * 1000 + tenMinutes < Date.now()
+      const rootSetTimestampOk = dbTransferRoot?.rootSetTimestamp * 1000 + TX_RETRY_DELAY_MS < Date.now()
 
       let bondSettleTimestampOk = true
       if (dbTransferRoot?.withdrawalBondSettleTxSentAt) {
-        bondSettleTimestampOk = dbTransferRoot?.withdrawalBondSettleTxSentAt + tenMinutes < Date.now()
+        bondSettleTimestampOk = dbTransferRoot?.withdrawalBondSettleTxSentAt + TX_RETRY_DELAY_MS < Date.now()
       }
 
       const ok =

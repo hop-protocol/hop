@@ -28,3 +28,6 @@ export const Total_Blocks = {
   Polygon: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.Polygon),
   xDai: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.xDai)
 }
+
+const TEN_MINUTES = 10 * 60 * 1000
+export const TX_RETRY_DELAY_MS = TEN_MINUTES

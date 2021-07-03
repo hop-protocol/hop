@@ -13,6 +13,7 @@ import { getL2Amb, executeExitTx } from './xDaiBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
 import { config as gConfig } from 'src/config'
 import { l1PolygonFxBaseRootTunnelAbi } from '@hop-protocol/abi'
+import { TX_RETRY_DELAY_MS } from 'src/constants'
 
 export interface Config {
   isL1: boolean
@@ -213,9 +214,8 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       (dbTransferRoot?.sentConfirmTx || dbTransferRoot?.confirmed) &&
       dbTransferRoot.sentConfirmTxAt
     ) {
-      const tenMinutes = 60 * 10 * 1000
       // skip if a transaction was sent in the last 10 minutes
-      if (dbTransferRoot.sentConfirmTxAt + tenMinutes > Date.now()) {
+      if (dbTransferRoot.sentConfirmTxAt + TX_RETRY_DELAY_MS > Date.now()) {
         logger.debug(
           'sent?:',
           !!dbTransferRoot.sentConfirmTx,

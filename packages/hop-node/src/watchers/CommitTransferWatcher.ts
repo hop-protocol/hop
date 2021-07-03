@@ -7,6 +7,7 @@ import { Transfer } from 'src/db/TransfersDb'
 import MerkleTree from 'src/utils/MerkleTree'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import L2Bridge from './classes/L2Bridge'
+import { TX_RETRY_DELAY_MS } from 'src/constants'
 
 export interface Config {
   label: string
@@ -284,9 +285,8 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         (dbTransferRoot?.sentCommitTx || dbTransferRoot?.committed) &&
         dbTransferRoot?.sentCommitTxAt
       ) {
-        const tenMinutes = 60 * 10 * 1000
         // skip if a transaction was sent in the last 10 minutes
-        if (dbTransferRoot.sentCommitTxAt + tenMinutes > Date.now()) {
+        if (dbTransferRoot.sentCommitTxAt + TX_RETRY_DELAY_MS > Date.now()) {
           this.logger.debug(
             'sent?:',
             !!dbTransferRoot.sentCommitTx,

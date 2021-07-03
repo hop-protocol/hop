@@ -2,6 +2,7 @@ import { BigNumber } from 'ethers'
 import BaseDb from './BaseDb'
 import { chainIdToSlug } from 'src/utils'
 import { normalizeBigNumber } from './utils'
+import { TX_RETRY_DELAY_MS } from 'src/constants'
 
 export type Transfer = {
   transferRootId?: string
@@ -16,7 +17,6 @@ export type Transfer = {
   withdrawalBonded?: boolean
   withdrawalBonder?: string
   withdrawalBondedTxHash?: string
-  sentBondWithdrawalTx?: boolean
   sentBondWithdrawalTxAt?: number
 
   recipient?: string
@@ -126,11 +126,16 @@ class TransfersDb extends BaseDb {
         }
       }
 
+      let timestampOk = true
+      if (item?.sentBondWithdrawalTxAt) {
+        timestampOk = item?.sentBondWithdrawalTxAt + TX_RETRY_DELAY_MS < Date.now()
+      }
+
       return (
         item.transferId &&
         !item.withdrawalBonded &&
         item.transferSentTxHash &&
-        !item.sentBondWithdrawalTx
+        timestampOk
       )
     })
   }

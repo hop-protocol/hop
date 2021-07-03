@@ -5,7 +5,7 @@ import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
 import MerkleTree from 'src/utils/MerkleTree'
-import { Chain } from 'src/constants'
+import { Chain, TX_RETRY_DELAY_MS } from 'src/constants'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
@@ -297,9 +297,8 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       (dbTransferRoot?.sentBondTx || dbTransferRoot?.bonded) &&
       dbTransferRoot.sentBondTxAt
     ) {
-      const tenMinutes = 60 * 10 * 1000
       // skip if a transaction was sent in the last 10 minutes
-      if (dbTransferRoot.sentBondTxAt + tenMinutes > Date.now()) {
+      if (dbTransferRoot.sentBondTxAt + TX_RETRY_DELAY_MS > Date.now()) {
         logger.debug(
           transferRootHash,
           'sent?:',

@@ -239,47 +239,22 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     event: Event
   ) => {
     const logger = this.logger.create({ root: transferRootHash })
-    let dbTransferRoot = await db.transferRoots.getByTransferRootHash(
-      transferRootHash
-    )
-    if (!dbTransferRoot) {
-      return
-    }
     const { transactionHash } = event
     const timestamp = await this.bridge.getEventTimestamp(event)
     const transferRootId = await this.bridge.getTransferRootId(
       transferRootHash,
       totalAmount
     )
-    const sourceChainId =
-      dbTransferRoot.sourceChainId || (await this.bridge.getChainId())
     logger.debug(`handling TransferRootSet event`)
     logger.debug(`transferRootHash from event: ${transferRootHash}`)
     logger.debug(`transferRootId: ${transferRootId}`)
     logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
     logger.debug(`event transactionHash: ${transactionHash}`)
+    logger.debug(`rootSetTimestamp: ${timestamp}`)
     await db.transferRoots.update(transferRootHash, {
-      committed: true,
-      transferRootId,
-      transferRootHash,
-      sourceChainId,
       rootSetTxHash: transactionHash,
       rootSetTimestamp: timestamp
     })
-
-    dbTransferRoot = await db.transferRoots.getByTransferRootHash(
-      transferRootHash
-    )
-    if (!dbTransferRoot) {
-      logger.warn(
-        `db transfer root not found for root hash ${transferRootHash}`
-      )
-      return
-    }
-    if (!dbTransferRoot.transferIds?.length) {
-      logger.warn(`no db transfers found for transfer root ${transferRootHash}`)
-      return
-    }
   }
 
   handleMultipleWithdrawalsSettledEvent = async (
@@ -311,7 +286,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
     )
     const filtered: Transfer[] = []
+    const filteredRootHashes: string[] = []
     for (let dbTransfer of dbTransfers) {
+      if (filteredRootHashes.includes(dbTransfer.transferRootHash)) {
+        continue
+      }
       const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
         dbTransfer.transferRootHash
       )
@@ -323,7 +302,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
 
       const tenMinutes = 60 * 10 * 1000
-      const timestampOk = dbTransferRoot?.rootSetTimestamp * 1000 + tenMinutes < Date.now()
+      const rootSetTimestampOk = dbTransferRoot?.rootSetTimestamp * 1000 + tenMinutes < Date.now()
+      console.log(dbTransferRoot?.rootSetTimestamp)
+
+      let bondSettleTimestampOk = true
+      if (dbTransferRoot?.withdrawalBondSettleTxSentAt) {
+        bondSettleTimestampOk = dbTransferRoot?.withdrawalBondSettleTxSentAt + tenMinutes < Date.now()
+      }
+
       const ok =
         !!dbTransferRoot.destinationChainId &&
         !!dbTransferRoot.totalAmount &&
@@ -331,7 +317,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         !!dbTransferRoot.confirmTxHash &&
         !!dbTransferRoot.committed &&
         !!dbTransferRoot.committedAt &&
-        timestampOk
+        !!dbTransferRoot.rootSetTxHash &&
+        rootSetTimestampOk &&
+        bondSettleTimestampOk
+
       if (!ok) {
         continue
       }
@@ -342,6 +331,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         continue
       }
       filtered.push(dbTransfer)
+      filteredRootHashes.push(dbTransfer.transferRootHash)
     }
     if (filtered.length) {
       this.logger.debug(
@@ -405,29 +395,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       logger.debug('destinationChainId:', destinationChainId)
       logger.debug('computed transferRootHash:', transferRootHash)
       logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
-
-      for (let transferId of transferIds) {
-        let dbTransfer = await db.transfers.getByTransferId(transferId)
-        if (
-          dbTransfer?.withdrawalBondSettleTxSentAt ||
-          dbTransfer?.withdrawalBondSettled
-        ) {
-          const tenMinutes = 60 * 10 * 1000
-          if (
-            dbTransfer.withdrawalBondSettleTxSentAt + tenMinutes >
-            Date.now()
-          ) {
-            logger.debug(
-              'sent?:',
-              !!dbTransfer.withdrawalBondSettleTxSentAt,
-              'settled?:',
-              !!dbTransfer.withdrawalBondSettled
-            )
-          }
-          return
-        }
-      }
-
       logger.debug('transferIds:\n', transferIds)
 
       if (this.dryMode) {
@@ -435,11 +402,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         return
       }
 
-      for (let transferId of transferIds) {
-        await db.transfers.update(transferId, {
-          withdrawalBondSettleTxSentAt: Date.now()
-        })
-      }
+      await db.transferRoots.update(transferRootHash, {
+        withdrawalBondSettleTxSentAt: Date.now()
+      })
       logger.debug('sending settle tx')
       const bonder = dbTransfer.withdrawalBonder
       const tx = await destBridge.settleBondedWithdrawals(
@@ -450,11 +415,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       tx?.wait()
         .then(async (receipt: providers.TransactionReceipt) => {
           if (receipt.status !== 1) {
-            for (let transferId of transferIds) {
-              await db.transfers.update(transferId, {
-                withdrawalBondSettleTxSentAt: Date.now()
-              })
-            }
+            await db.transferRoots.update(transferRootHash, {
+              withdrawalBondSettleTxSentAt: 0
+            })
             throw new Error('status=0')
           }
           this.emit('settleBondedWithdrawal', {
@@ -465,15 +428,16 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           })
 
           for (let transferId of transferIds) {
+            const dbTransfer = await db.transfers.getByTransferId(
+              transferId
+            )
             await db.transfers.update(transferId, {
-              withdrawalBonded: true,
-              withdrawalBondSettled: true,
-              withdrawalBondedTxHash: receipt.transactionHash
+              withdrawalBondSettled: dbTransfer?.withdrawalBonded ?? false
             })
           }
         })
         .catch(async (err: Error) => {
-          await db.transfers.update(dbTransfer.transferId, {
+          await db.transferRoots.update(transferRootHash, {
             withdrawalBondSettleTxSentAt: 0
           })
 

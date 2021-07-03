@@ -28,6 +28,7 @@ export type TransferRoot = {
   transferIds?: string[]
   bonder?: string
   checkpointAttemptedAt?: number
+  withdrawalBondSettleTxSentAt?: number
 }
 
 class TransferRootsDb extends BaseDb {

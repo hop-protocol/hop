@@ -1,6 +1,7 @@
+const poll = false
 let data = []
 
-const fetchData = async (network) => {
+const fetchTransfers = async (network) => {
   const queryL2 = `
     query TransferSents {
       transferSents(
@@ -53,6 +54,38 @@ const fetchData = async (network) => {
   })
 }
 
+const fetchBonds = async (chain) => {
+  const query = `
+    query WithdrawalBondeds {
+      withdrawalBondeds(
+        orderBy: timestamp,
+        orderDirection: desc
+      ) {
+        id
+        transferId
+        transactionHash
+      }
+    }
+  `
+  let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
+  if (chain !== 'mainnet') {
+    url = `${url}-${chain}`
+  }
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    },
+    body: JSON.stringify({
+      query,
+      variables: {}
+    })
+  })
+  const jsonRes = await res.json()
+  return jsonRes.data.withdrawalBondeds
+}
+
 async function updateData () {
   data = []
   const [
@@ -60,9 +93,19 @@ async function updateData () {
     polygonTransfers,
     mainnetTransfers
   ] = await Promise.all([
-    fetchData('xdai'),
-    fetchData('polygon'),
-    fetchData('mainnet')
+    fetchTransfers('xdai'),
+    fetchTransfers('polygon'),
+    fetchTransfers('mainnet')
+  ])
+
+  const [
+    xdaiBonds,
+    polygonBonds,
+    mainnetBonds
+  ] = await Promise.all([
+    fetchBonds('xdai'),
+    fetchBonds('polygon'),
+    fetchBonds('mainnet')
   ])
 
   for (const t of xdaiTransfers) {
@@ -98,11 +141,35 @@ async function updateData () {
 
   data = data.filter(x => x.destinationChain && x.transferId)
     .sort((a, b) => a.timestamp < b.timestamp)
+
+  const mapping = {
+    100: xdaiBonds,
+    137: polygonBonds,
+    1: mainnetBonds
+  }
+
+  for (const item of data) {
+    item.bonded = false
+  }
+
+  for (const item of data) {
+    const bonds = mapping[item.destinationChain]
+    for (const bond of bonds) {
+      if (bond.transferId === item.transferId) {
+        item.bonded = true
+        item.bondTransactionHash = bond.transactionHash
+        continue
+      }
+    }
+  }
+
   load()
 
-  setTimeout(() => {
-    updateData()
-  }, 10 * 1000)
+  if (poll) {
+    setTimeout(() => {
+      updateData()
+    }, 10 * 1000)
+  }
 }
 
 function explorerLink (chain, transactionHash) {
@@ -217,7 +284,13 @@ async function load () {
   <td class="${className(x.destinationChain)}">${chainImage(x.destinationChain)}${classes[x.destinationChain]}</td>
   <td class="transferId"><a class="${className(x.sourceChain)}" href="${explorerLink(x.sourceChain, x.transactionHash)}" target="_blank">${x.transferId}</a></td>
 <td class="amount">${ethers.utils.formatUnits(x.amount, 6)}</td>
-<td class="token">${tokenImage('USDC')}USDC</td>`
+<td class="token">${tokenImage('USDC')}USDC</td>
+<td class="bonded">
+  <a class="${x.bonded ? 'yes' : 'no'}" href="${explorerLink(x.destinationChain, x.bondTransactionHash)}" target="_blank">
+${chainImage(x.destinationChain)}
+  ${x.bonded ? 'bonded' : 'unbonded'}
+  </a>
+</td>`
   })
   const table = d3.select('#transfers')
     .html('')
@@ -225,14 +298,14 @@ async function load () {
 
   table
     .selectAll('thead')
-    .data(['<th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Amount</th><th>Token</th>'])
+    .data(['<th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Amount</th><th>Token</th><th>Bonded</th>'])
     .enter()
     .append('thead')
     .html(String)
 
   table
     .selectAll('tr')
-    .data(transfers)
+    .data([null].concat(...transfers))
     .enter()
     .append('tr')
     .html(String)

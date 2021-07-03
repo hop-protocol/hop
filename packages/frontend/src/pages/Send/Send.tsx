@@ -1,4 +1,6 @@
 import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
+import { useHistory, useLocation } from 'react-router-dom'
+import qs from 'qs'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -96,9 +98,49 @@ const Send: FC = () => {
     checkConnectedNetworkId,
     address
   } = useWeb3Context()
+  const history = useHistory()
+  const location = useLocation()
+  const queryParams = useMemo(() => {
+    return qs.parse(location.search, { ignoreQueryPrefix: true })
+  }, [location])
 
-  const [fromNetwork, setFromNetwork] = useState<Network>()
-  const [toNetwork, setToNetwork] = useState<Network>()
+  const [fromNetwork, _setFromNetwork] = useState<Network>()
+  const [toNetwork, _setToNetwork] = useState<Network>()
+
+  useEffect(() => {
+    const _fromNetwork = networks.find(network =>
+      network.slug === queryParams.sourceNetwork
+    )
+    _setFromNetwork(_fromNetwork)
+
+    const _toNetwork = networks.find(network =>
+      network.slug === queryParams.destNetwork
+    )
+    _setToNetwork(_toNetwork)
+  }, [queryParams, networks])
+
+  const setFromNetwork = (network: Network | undefined) => {
+    queryParams.sourceNetwork = network?.slug ?? ''
+
+    history.push({
+      pathname: location.pathname,
+      search: qs.stringify(queryParams)
+    })
+
+    _setFromNetwork(network)
+  }
+
+  const setToNetwork = (network: Network | undefined) => {
+    queryParams.destNetwork = network?.slug ?? ''
+
+    history.push({
+      pathname: location.pathname,
+      search: qs.stringify(queryParams)
+    })
+
+    _setToNetwork(network)
+  }
+
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
   const [sending, setSending] = useState<boolean>(false)

@@ -303,7 +303,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
       const tenMinutes = 60 * 10 * 1000
       const rootSetTimestampOk = dbTransferRoot?.rootSetTimestamp * 1000 + tenMinutes < Date.now()
-      console.log(dbTransferRoot?.rootSetTimestamp)
 
       let bondSettleTimestampOk = true
       if (dbTransferRoot?.withdrawalBondSettleTxSentAt) {

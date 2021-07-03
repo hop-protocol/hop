@@ -128,7 +128,8 @@ class TransfersDb extends BaseDb {
 
       let timestampOk = true
       if (item?.sentBondWithdrawalTxAt) {
-        timestampOk = item?.sentBondWithdrawalTxAt + TX_RETRY_DELAY_MS < Date.now()
+        timestampOk =
+          item?.sentBondWithdrawalTxAt + TX_RETRY_DELAY_MS < Date.now()
       }
 
       return (

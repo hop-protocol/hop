@@ -271,6 +271,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     )
     for (let transferId of transferIds) {
       const dbTransfer = await db.transfers.getByTransferId(transferId)
+      // There is a case on initial sync where the bond withdrawal handler has
+      // not yet run when this is reached. This case is handled by updating
+      // this db sate the settle tx processor
       await db.transfers.update(transferId, {
         withdrawalBondSettled: dbTransfer?.withdrawalBonded ?? false
       })
@@ -321,12 +324,27 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       if (!ok) {
         continue
       }
+
       if (!dbTransferRoot?.transferIds?.length) {
         this.logger.warn(
           `db transfer root hash ${dbTransferRoot.transferRootHash} doesn't contain any transfer ids`
         )
         continue
       }
+
+      const isTransferWithdrawalBonded = dbTransfer?.withdrawalBonded
+      await db.transfers.update(dbTransfer.transferId, {
+        withdrawalBondSettled: isTransferWithdrawalBonded ?? false
+      })
+
+      if (isTransferWithdrawalBonded) {
+        // this may happen if SettleBondedWithdrawals event handler happens on sync before withdrawal bonded
+        this.logger.info(
+          `db transfer ${dbTransfer.transferId} withdrawal bonded state updated`
+        )
+        continue
+      }
+
       filtered.push(dbTransfer)
       filteredRootHashes.push(dbTransfer.transferRootHash)
     }
@@ -387,9 +405,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         })
         return
       }
+
+      const bonder = dbTransfer.withdrawalBonder
       logger.debug('sourceChainId:', dbTransfer.sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)
       logger.debug('computed transferRootHash:', transferRootHash)
+      logger.debug('bonder:', bonder)
       logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
       logger.debug('transferIds:\n', transferIds)
 
@@ -402,7 +423,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         withdrawalBondSettleTxSentAt: Date.now()
       })
       logger.debug('sending settle tx')
-      const bonder = dbTransfer.withdrawalBonder
       const tx = await destBridge.settleBondedWithdrawals(
         bonder,
         transferIds,
@@ -422,15 +442,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
             chainId: destinationChainId,
             transferId: dbTransfer.transferId
           })
-
-          for (let transferId of transferIds) {
-            const dbTransfer = await db.transfers.getByTransferId(
-              transferId
-            )
-            await db.transfers.update(transferId, {
-              withdrawalBondSettled: dbTransfer?.withdrawalBonded ?? false
-            })
-          }
         })
         .catch(async (err: Error) => {
           await db.transferRoots.update(transferRootHash, {

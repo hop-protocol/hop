@@ -4,7 +4,7 @@ import { normalizeBigNumber } from './utils'
 
 type TxInfo = {
   transactionHash?: string
-  timestamp?: number 
+  timestamp?: number
 }
 
 export type TransferRoot = {

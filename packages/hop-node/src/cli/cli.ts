@@ -642,6 +642,7 @@ program
 program
   .command('load-test')
   .option('--concurrent-users <number>', 'Number of concurrent users')
+  .option('--iterations <number>', 'Number of iterations')
   .description('Start load test')
   .option('--config <string>', 'Config file to use.')
   .action(async (source: any) => {
@@ -652,7 +653,8 @@ program
         await setGlobalConfigFromConfigFile(config)
       }
       new LoadTest({
-        concurrentUsers: Number(source.concurrentUsers || 1)
+        concurrentUsers: Number(source.concurrentUsers || 1),
+        iterations: Number(source.iterations || 1)
       }).start()
     } catch (err) {
       logger.error(err.message)

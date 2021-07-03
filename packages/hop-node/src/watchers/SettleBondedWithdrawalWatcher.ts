@@ -280,9 +280,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       data
     )
     for (let transferId of transferIds) {
-      const dbTransfer = await db.transfers.getByTransferId(
-        transferId
-      )
+      const dbTransfer = await db.transfers.getByTransferId(transferId)
       await db.transfers.update(transferId, {
         transferRootHash,
         withdrawalBondSettled: dbTransfer?.withdrawalBonded ?? false
@@ -310,7 +308,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
 
       const tenMinutes = 60 * 10 * 1000
-      const txTimestamp = dbTransferRoot.rootSetTxHashes?.[dbTransferRoot.destinationChainId]?.timestamp
+      const txTimestamp =
+        dbTransferRoot.rootSetTxHashes?.[dbTransferRoot.destinationChainId]
+          ?.timestamp
       const timestampOk = txTimestamp + tenMinutes > Date.now()
       const ok =
         !!dbTransferRoot.destinationChainId &&
@@ -362,7 +362,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       const {
         transferRootHash: dbTransferRootHash,
         destinationChainId,
-        totalAmount,
+        totalAmount
       } = dbTransferRoot
       const transferIds: string[] = Object.values(
         dbTransferRoot.transferIds || []

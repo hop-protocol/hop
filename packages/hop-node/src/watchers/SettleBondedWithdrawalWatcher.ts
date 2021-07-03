@@ -79,7 +79,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           { cacheKey: this.cacheKey(l1Bridge.TransferRootConfirmed) }
         )
       )
-
     }
 
     promises.push(
@@ -303,11 +302,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         continue
       }
 
-      const rootSetTimestampOk = dbTransferRoot?.rootSetTimestamp * 1000 + TX_RETRY_DELAY_MS < Date.now()
+      const rootSetTimestampOk =
+        dbTransferRoot?.rootSetTimestamp * 1000 + TX_RETRY_DELAY_MS < Date.now()
 
       let bondSettleTimestampOk = true
       if (dbTransferRoot?.withdrawalBondSettleTxSentAt) {
-        bondSettleTimestampOk = dbTransferRoot?.withdrawalBondSettleTxSentAt + TX_RETRY_DELAY_MS < Date.now()
+        bondSettleTimestampOk =
+          dbTransferRoot?.withdrawalBondSettleTxSentAt + TX_RETRY_DELAY_MS <
+          Date.now()
       }
 
       const ok =

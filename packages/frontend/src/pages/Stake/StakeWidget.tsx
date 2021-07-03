@@ -65,16 +65,22 @@ const StakeWidget: FC<Props> = props => {
     rewardsToken,
     stakingRewards
   } = props
-  const { networks, txConfirm, txHistory } = useApp()
+
+  const { networks, txConfirm, txHistory, sdk } = useApp()
   const { checkConnectedNetworkId, address } = useWeb3Context()
   const { stakeBalance } = useStakeBalance(stakingRewards, address)
 
   const formattedStakeBalance = toTokenDisplay(stakeBalance, stakingToken?.decimals)
 
-  const earned = usePollValue<BigNumber>(async () => {
-    if (!address) return undefined
-    return stakingRewards?.earned(address.toString())
-  }, 5e3)
+  const earned = usePollValue<BigNumber>(
+    async () => {
+      if (!address) return undefined
+      const _ern = await stakingRewards?.earned(address.toString())
+      return _ern
+    },
+    5e3,
+    [stakingRewards, address]
+  )
 
   const formattedEarned = toTokenDisplay(earned, rewardsToken?.decimals, rewardsToken?.symbol)
 
@@ -166,8 +172,9 @@ const StakeWidget: FC<Props> = props => {
         token: stakingToken.symbol
       },
       onConfirm: async (approveAll: boolean) => {
+        const signer = await sdk.getSignerOrProvider(network.slug)
         const approveAmount = approveAll ? UINT256 : parsedAmount
-        return stakingToken.approve(
+        return stakingToken.connect(signer).approve(
           stakingRewards?.address,
           approveAmount
         )
@@ -206,7 +213,8 @@ const StakeWidget: FC<Props> = props => {
         token: stakingToken
       },
       onConfirm: async () => {
-        return stakingRewards.stake(parsedAmount)
+        const signer = await sdk.getSignerOrProvider(network.slug)
+        return stakingRewards.connect(signer).stake(parsedAmount)
       }
     })
 
@@ -234,7 +242,8 @@ const StakeWidget: FC<Props> = props => {
     const isNetworkConnected = await checkConnectedNetworkId(networkId)
     if (!isNetworkConnected) return
 
-    await stakingRewards.getReward()
+    const signer = await sdk.getSignerOrProvider(network.slug)
+    await stakingRewards.connect(signer).getReward()
   }
 
   const withdraw = async () => {
@@ -250,6 +259,9 @@ const StakeWidget: FC<Props> = props => {
     const isNetworkConnected = await checkConnectedNetworkId(networkId)
     if (!isNetworkConnected) return
 
+    const signer = await sdk.getSignerOrProvider(network.slug)
+    const _stakingRewards = stakingRewards.connect(signer)
+
     const tx = await txConfirm?.show({
       kind: 'withdrawStake',
       inputProps: {
@@ -260,12 +272,12 @@ const StakeWidget: FC<Props> = props => {
         if (!amountPercent) return
 
         if (amountPercent === 100) {
-          return stakingRewards.exit()
+          return _stakingRewards.exit()
         }
 
         const withdrawAmount = stakeBalance.mul(amountPercent).div(100)
 
-        return stakingRewards.withdraw(withdrawAmount)
+        return _stakingRewards.withdraw(withdrawAmount)
       }
     })
 
@@ -287,7 +299,8 @@ const StakeWidget: FC<Props> = props => {
         value={amount}
         token={stakingToken}
         onChange={setAmount}
-        title="USDC-hUSDC LP"
+        titleIconUrl={network?.imageUrl}
+        title={`${network?.name} ${stakingToken?.name}`}
         balance={lpBalance}
         loadingBalance={loadingLpBalance}
         hideSymbol

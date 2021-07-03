@@ -33,6 +33,7 @@ const useStyles = makeStyles(theme => ({
     margin: `-0.8rem -${theme.padding.extraLight}`
   },
   adornment: {
+    marginLeft: '-0.8rem',
     marginRight: theme.padding.extraLight,
     width: '9.0rem'
   }
@@ -75,6 +76,7 @@ const useInputStyles = makeStyles(theme => ({
     fontWeight: theme.typography.h4.fontWeight,
     color: theme.palette.text.primary,
     textOverflow: 'ellipsis',
+    padding: `6px ${theme.padding.extraLight} 7px ${theme.padding.extraLight}`,
     animation: loadingValue
       ? `loadingEffect 1200ms ${theme.transitions.easing.sharp} infinite`
       : 'none'
@@ -120,7 +122,7 @@ const TextField: FC<LargeTextFieldProps> = props => {
         ) : null
       }}
       {...textFieldProps}
-    ></MuiTextField>
+    />
   )
 }
 

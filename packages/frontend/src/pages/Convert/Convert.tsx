@@ -57,7 +57,7 @@ const Convert: FC = () => {
     selectedNetwork,
     setSelectedNetwork
   } = useConvert()
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const { path } = useRouteMatch()
   const history = useHistory()
 
@@ -80,7 +80,10 @@ const Convert: FC = () => {
   const lastPathname = pathname.replace(path, '') || '/bridge'
   const handleTabChange = (event: ChangeEvent<{ value: unknown }>) => {
     const value = event.target.value as string
-    history.push(`${path}${value}`)
+    history.push({
+      pathname: `${path}${value}`,
+      search
+    })
   }
 
   return (

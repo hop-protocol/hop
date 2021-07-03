@@ -33,6 +33,7 @@
     "gridplus-sdk": "0.6.1",
     "luxon": "1.25.0",
     "numbro": "^2.3.2",
+    "qs": "^6.10.1",
     "react": "16.10.2",
     "react-dom": "16.8.0",
     "react-feather": "2.0.9",

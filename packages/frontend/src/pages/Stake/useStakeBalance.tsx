@@ -39,7 +39,7 @@ const useStakeBalance = (stakingRewards: Contract | undefined, address: Address 
 
   useEffect(() => {
     getBalance()
-  }, [stakingRewards])
+  }, [stakingRewards, address])
 
   useInterval(() => {
     getBalance()

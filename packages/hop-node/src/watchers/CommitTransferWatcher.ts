@@ -91,7 +91,10 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     const l2Bridge = this.bridge as L2Bridge
     this.bridge
       .on(l2Bridge.TransferSent, this.handleTransferSentEvent)
-      .on(l2Bridge.TransfersCommitted, this.handleTransfersCommittedEventForTransferIds)
+      .on(
+        l2Bridge.TransfersCommitted,
+        this.handleTransfersCommittedEventForTransferIds
+      )
       .on('error', err => {
         this.logger.error(`event watcher error: ${err.message}`)
         this.notifier.error(`event watcher error: ${err.message}`)

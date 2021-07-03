@@ -546,7 +546,7 @@ export class User {
       ? minBonderFeeRelative
       : minBonderFeeAbsolute
     // TODO: fix bonder fee
-    return parseUnits('1', decimals)
+    return parseUnits('0.20', decimals)
     return minBonderFee
   }
 

@@ -302,21 +302,6 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         return
       }
 
-      let transferRootId = dbTransferRoot.transferRootId
-      if (!transferRootId) {
-        transferRootId = await this.bridge.getTransferRootId(
-          transferRootHash,
-          totalPendingAmount
-        )
-      }
-      for (let transferId of pendingTransfers) {
-        await db.transfers.update(transferId, {
-          transferId,
-          transferRootId,
-          transferRootHash
-        })
-      }
-
       await db.transferRoots.update(transferRootHash, {
         sentCommitTx: true,
         sentCommitTxAt: Date.now()

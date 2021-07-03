@@ -94,6 +94,7 @@ export default class ContractBase extends EventEmitter {
   }
 
   async getEventTimestamp (event: any): Promise<number> {
+    console.log(event)
     const tx = await event?.getBlock()
     if (!tx) {
       return 0

@@ -86,9 +86,6 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
     try {
       const { transactionHash } = event
-      const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
-        transferRootHash
-      )
       await db.transferRoots.update(transferRootHash, {
         confirmed: true,
         confirmTxHash: transactionHash
@@ -336,9 +333,21 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       return
     }
 
+    const transferRootId = await this.bridge.getTransferRootId(
+      transferRootHash,
+      totalAmount
+    )
+
     await db.transferRoots.update(transferRootHash, {
       transferIds
     })
+
+    for (let transferId of transferIds) {
+      await db.transfers.update(transferId, {
+        transferRootHash,
+        transferRootId
+      })
+    }
   }
 }
 

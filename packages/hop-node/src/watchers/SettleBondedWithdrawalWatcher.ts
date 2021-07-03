@@ -220,7 +220,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
   async handleRawTransferRootSetEvent (event: Event) {
     const { rootHash, totalAmount } = event.args
-    console.log(rootHash)
     await this.handleTransferRootSetEvent(rootHash, totalAmount, event)
   }
 
@@ -240,15 +239,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     event: Event
   ) => {
     const logger = this.logger.create({ root: transferRootHash })
-    logger.log(
-      transferRootHash,
-      totalAmount,
-      event
-    )
     const { transactionHash } = event
-    logger.log(
-      transferRootHash
-    )
     const timestamp = await this.bridge.getEventTimestamp(event)
     const transferRootId = await this.bridge.getTransferRootId(
       transferRootHash,

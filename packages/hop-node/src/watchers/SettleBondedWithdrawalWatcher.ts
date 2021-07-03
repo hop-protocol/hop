@@ -356,7 +356,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
   checkUnsettledTransfer = async (dbTransfer: Transfer) => {
     try {
-      // TODO: move this check to db getter
       const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
         dbTransfer.transferRootHash
       )

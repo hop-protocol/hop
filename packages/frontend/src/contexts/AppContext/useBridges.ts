@@ -40,6 +40,18 @@ const useBridges = (sdk: Hop) => {
     _setSelectedBridge(bridge)
   }
 
+  useEffect(() => {
+    const updatedBridge = bridges.find(bridge => {
+      return bridge.getTokenSymbol() === selectedBridge.getTokenSymbol()
+    })
+
+    if (updatedBridge) {
+      setSelectedBridge(updatedBridge)
+    } else {
+      setSelectedBridge(bridges[0])
+    }
+  }, [selectedBridge, bridges])
+
   return { bridges, selectedBridge, setSelectedBridge }
 }
 

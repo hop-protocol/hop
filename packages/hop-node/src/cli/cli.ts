@@ -778,6 +778,7 @@ program
     '--db <string>',
     'Name of db. Options are "transfers", "transfer-roots"'
   )
+  .option('--db-path <string>', 'Path to leveldb.')
   .option('--config <string>', 'Config file to use.')
   .description('Dump leveldb database')
   .action(async (source: any) => {
@@ -787,8 +788,13 @@ program
         const config: Config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
+      if (source.dbPath) {
+        dbConfig.path = source.dbPath
+      }
+      let dbName = source.db || 'transfers'
+      logger.debug(`dumping ${dbName} db located at ${dbConfig.path}`)
 
-      if (source.db === 'transfer-roots') {
+      if (dbName === 'transfer-roots') {
         const transferRoots = await db.transferRoots.getTransferRoots()
         console.log(JSON.stringify(transferRoots, null, 2))
       } else {

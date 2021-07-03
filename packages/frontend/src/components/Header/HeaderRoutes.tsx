@@ -25,13 +25,16 @@ const useStyles = makeStyles((theme: Theme) => ({
 }))
 
 const HeaderRoutes: FC<Props> = () => {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const history = useHistory()
   const styles = useStyles()
 
   const handleChange = (event: ChangeEvent<{}>, value: string) => {
     event.preventDefault()
-    history.push(value)
+    history.push({
+      pathname: value,
+      search
+    })
   }
 
   const value = pathname

@@ -50,7 +50,7 @@ const useBalance = (
 
   useEffect(() => {
     getBalance()
-  }, [user, token, network])
+  }, [user, token, network, address])
 
   useInterval(() => {
     getBalance()

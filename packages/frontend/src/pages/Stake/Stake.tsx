@@ -20,7 +20,7 @@ const useStyles = makeStyles(theme => ({
 const Stake: FC = () => {
   const styles = useStyles()
 
-  const { bridges, sdk, networks } = useApp()
+  const { bridges, sdk, networks, user } = useApp()
   const { provider } = useWeb3Context()
   const [stakingTokens, setStakingTokens] = useState<Token[]>()
 
@@ -44,9 +44,9 @@ const Stake: FC = () => {
 
   const stakingRewards = useAsyncMemo(async () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
-    const _provider = provider?.network.name === 'polygon' ? provider : polygonProvider
+    const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
     return new Contract('0x5D13179c5fa40b87D53Ff67ca26245D3D5B2F872', stakingRewardsAbi, _provider)
-  }, [sdk, provider])
+  }, [sdk, provider, user])
 
   const rewardsToken = useAsyncMemo(async () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')

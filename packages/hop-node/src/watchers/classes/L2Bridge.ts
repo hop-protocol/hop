@@ -169,10 +169,17 @@ export default class L2Bridge extends Bridge {
 
   @rateLimitRetry
   async getChainId (): Promise<number> {
+    if (this.chainId) {
+      return this.chainId
+    }
     if (!this.l2BridgeContract) {
       return super.getChainId()
     }
-    return Number((await this.l2BridgeContract.getChainId()).toString())
+    const chainId = Number(
+      (await this.l2BridgeContract.getChainId()).toString()
+    )
+    this.chainId = chainId
+    return chainId
   }
 
   async getChainSlug (): Promise<string> {

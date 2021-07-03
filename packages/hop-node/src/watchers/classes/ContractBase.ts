@@ -39,8 +39,13 @@ export default class ContractBase extends EventEmitter {
 
   @rateLimitRetry
   async getChainId (): Promise<number> {
+    if (this.chainId) {
+      return this.chainId
+    }
     const { chainId } = await this.contract.provider.getNetwork()
-    return Number(chainId.toString())
+    const _chainId = Number(chainId.toString())
+    this.chainId = _chainId
+    return _chainId
   }
 
   chainIdToSlug (chainId: number): string {

@@ -19,7 +19,7 @@ export type EventCb = (event: Event, i?: number) => any
 export default class Bridge extends ContractBase {
   WithdrawalBonded: string = 'WithdrawalBonded'
   TransferRootSet: string = 'TransferRootSet'
-  MultipleWithdrawalsSettled: string = 'TransferRootSet'
+  MultipleWithdrawalsSettled: string = 'MultipleWithdrawalsSettled'
   tokenDecimals: number = 18
   tokenSymbol: string = ''
 

@@ -85,6 +85,13 @@ class TransfersDb extends BaseDb {
         }
       }
 
+      // An item must be explicitly marked settled or unsettled
+      // An undefined WithdrawalBondSettled means that the workers
+      // are still syncing
+      if (item.withdrawalBondSettled === undefined) {
+        return false
+      }
+
       return (
         item.transferRootHash &&
         item.withdrawalBonded &&

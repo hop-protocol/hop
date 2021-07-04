@@ -419,27 +419,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
-  handleWithdrawalBondedEvent = async (
-    transferId: string,
-    amount: BigNumber,
-    event: Event
-  ) => {
-    const logger = this.logger.create({ id: transferId })
-
-    const tx = await event.getTransaction()
-    const { from: withdrawalBonder, hash } = tx
-
-    logger.debug(`handling WithdrawalBonded event`)
-    logger.debug('transferId:', transferId)
-    logger.debug('amount:', this.bridge.formatUnits(amount))
-
-    await db.transfers.update(transferId, {
-      withdrawalBonded: true,
-      withdrawalBonder,
-      withdrawalBondedTxHash: hash
-    })
-  }
-
   async waitTimeout (transferId: string, destinationChainId: number) {
     await wait(2 * 1000)
     if (!this.order()) {

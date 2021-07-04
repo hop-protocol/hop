@@ -229,6 +229,38 @@ export default class L2Bridge extends Bridge {
   }
 
   @rateLimitRetry
+  async getPendingTransferByIndex (chainId: number, index: number) {
+    return this.l2BridgeContract.pendingTransferIdsForChainId(
+      chainId,
+      index
+    )
+  }
+
+  @rateLimitRetry
+  async doPendingTransfersExist (chainId: number): Promise<boolean> {
+    try {
+      await this.getPendingTransferByIndex(chainId, 0)
+      return true
+    } catch (err) {
+      return false
+    }
+  }
+
+  @rateLimitRetry
+  async isLastPendingTransfer (chainId: number, index: number): Promise<boolean> {
+    try {
+      await this.getPendingTransferByIndex(chainId, index)
+      try {
+        await this.getPendingTransferByIndex(chainId, index + 1)
+      } catch (err) {
+        return true
+      } 
+    } catch (err) {}
+
+    return false
+  }
+
+  @rateLimitRetry
   async getLastCommitTimeForChainId (chainId: number): Promise<number> {
     return Number(
       (await this.l2BridgeContract.lastCommitTimeForChainId(chainId)).toString()
@@ -263,10 +295,7 @@ export default class L2Bridge extends Bridge {
     const max = await this.getMaxPendingTransfers()
     for (let i = 0; i < max; i++) {
       try {
-        const pendingTransfer = await this.l2BridgeContract.pendingTransferIdsForChainId(
-          chainId,
-          i
-        )
+        const pendingTransfer = await this.getPendingTransferByIndex(chainId, i)
         pendingTransfers.push(pendingTransfer)
       } catch (err) {
         break

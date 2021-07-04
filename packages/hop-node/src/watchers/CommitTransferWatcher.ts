@@ -195,6 +195,34 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       if (!destinationChainId) {
         throw new Error('destination chain id is required')
       }
+
+      const pendingTransfers: string[] = []
+      for (let { transferId } of dbTransfers) {
+        pendingTransfers.push(transferId)
+      }
+
+      const numPendingTransfers = pendingTransfers.length
+      if (!numPendingTransfers) {
+        this.logger.error('no pending transfers transfers exist')
+        return
+      }
+
+      if (numPendingTransfers < this.minPendingTransfers) {
+        this.logger.warn(
+          `must reach ${this.minPendingTransfers} pending transfers before committing. Have ${pendingTransfers.length} on destinationChainId: ${destinationChainId}`
+        )
+        return
+      }
+
+      this.logger.debug(
+        `destinationChainId: ${destinationChainId} - pendingTransfers\n`,
+        pendingTransfers
+      )
+
+      this.logger.debug(
+        `total pending transfers count for chainId ${destinationChainId}: ${numPendingTransfers}`
+      )
+
       const l2Bridge = this.bridge as L2Bridge
       const totalPendingAmount = await l2Bridge.getPendingAmountForChainId(
         destinationChainId
@@ -207,6 +235,14 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         }
         return
       }
+
+      this.logger.debug(
+        `total pending amount for chainId ${destinationChainId}: ${this.bridge.formatUnits(
+          totalPendingAmount
+        )}`
+      )
+
+      // TODO: Potentially get this from DB
       const lastCommitTime = await l2Bridge.getLastCommitTimeForChainId(
         destinationChainId
       )
@@ -226,22 +262,15 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         return
       }
 
-      const pendingTransfers: string[] = await l2Bridge.getPendingTransfers(
-        destinationChainId
+      const dbAndChainPendingTransfersLengthMatch: boolean = await l2Bridge.isLastPendingTransfer(
+        destinationChainId,
+        numPendingTransfers
       )
-      if (!pendingTransfers.length) {
-        this.logger.warn('no pending transfers to commit')
+      if (!dbAndChainPendingTransfersLengthMatch) {
+        this.logger.error(`pending transfers length on chain do not match db. chain: ${destinationChainId}. db num: ${numPendingTransfers}`)
         return
       }
 
-      this.logger.debug(
-        `total pending transfers count for chainId ${destinationChainId}: ${pendingTransfers.length}`
-      )
-      this.logger.debug(
-        `total pending amount for chainId ${destinationChainId}: ${this.bridge.formatUnits(
-          totalPendingAmount
-        )}`
-      )
       if (totalPendingAmount.lt(this.minThresholdAmount)) {
         this.logger.warn(
           `destinationChainId ${destinationChainId} pending amount ${this.bridge.formatUnits(
@@ -253,17 +282,6 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         return
       }
 
-      if (pendingTransfers.length < this.minPendingTransfers) {
-        this.logger.warn(
-          `must reach ${this.minPendingTransfers} pending transfers before committing. Have ${pendingTransfers.length} on destinationChainId: ${destinationChainId}`
-        )
-        return
-      }
-
-      this.logger.debug(
-        `destinationChainId: ${destinationChainId} - onchain pendingTransfers\n`,
-        pendingTransfers
-      )
       const tree = new MerkleTree(pendingTransfers)
       const transferRootHash = tree.getHexRoot()
       this.logger.debug(
@@ -434,10 +452,10 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         return
       }
       const l2Bridge = this.bridge as L2Bridge
-      const pendingTransfers: string[] = await l2Bridge.getPendingTransfers(
+      const doesPendingTransferExist: boolean = await l2Bridge.doPendingTransfersExist(
         destinationChainId
       )
-      if (!pendingTransfers.length) {
+      if (!doesPendingTransferExist) {
         break
       }
       const delay = 2 * 1000

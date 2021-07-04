@@ -270,9 +270,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     )
     for (let transferId of transferIds) {
       const dbTransfer = await db.transfers.getByTransferId(transferId)
-      // There is a case on initial sync where the bond withdrawal handler has
-      // not yet run when this is reached. This case is handled by updating
-      // this db sate the settle tx processor
       await db.transfers.update(transferId, {
         withdrawalBondSettled: dbTransfer?.withdrawalBonded ?? false
       })
@@ -330,19 +327,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       if (!dbTransferRoot?.transferIds?.length) {
         this.logger.warn(
           `db transfer root hash ${dbTransferRoot.transferRootHash} doesn't contain any transfer ids`
-        )
-        continue
-      }
-
-      const isTransferWithdrawalBonded = dbTransfer?.withdrawalBonded
-      await db.transfers.update(dbTransfer.transferId, {
-        withdrawalBondSettled: isTransferWithdrawalBonded ?? false
-      })
-
-      if (isTransferWithdrawalBonded) {
-        // this may happen if SettleBondedWithdrawals event handler happens on sync before withdrawal bonded
-        this.logger.info(
-          `db transfer ${dbTransfer.transferId} withdrawal bonded state updated`
         )
         continue
       }
@@ -444,6 +428,15 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
             chainId: destinationChainId,
             transferId: dbTransfer.transferId
           })
+
+          for (let transferId of transferIds) {
+            const dbTransfer = await db.transfers.getByTransferId(
+              transferId
+            )
+            await db.transfers.update(transferId, {
+              withdrawalBondSettled: dbTransfer?.withdrawalBonded ?? false
+            })
+          }
         })
         .catch(async (err: Error) => {
           await db.transferRoots.update(transferRootHash, {

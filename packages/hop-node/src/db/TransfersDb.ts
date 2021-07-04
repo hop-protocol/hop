@@ -27,7 +27,6 @@ export type Transfer = {
   deadline?: number
   transferSentTxHash?: string
   transferSentBlockNumber?: number
-  transferSentTimestamp?: number
 
   committed: boolean
 }
@@ -71,7 +70,7 @@ class TransfersDb extends BaseDb {
     )
 
     return transfers
-      .sort((a, b) => a?.transferSentTimestamp - b?.transferSentTimestamp)
+      .sort((a, b) => a?.transferSentBlockNumber - b?.transferSentBlockNumber)
       .filter(x => x)
   }
 

@@ -45,7 +45,6 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       if (!blockNumber) {
         throw new Error('event block number not found')
       }
-      const sentTimestamp = await this.bridge.getBlockTimestamp(blockNumber)
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
@@ -66,7 +65,6 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         deadline: Number(deadline.toString()),
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,
-        transferSentTimestamp: sentTimestamp
       })
     } catch (err) {
       logger.error(`handleTransferSentEvent error: ${err.message}`)

@@ -1,4 +1,4 @@
-require('dotenv').config()
+require('./loadEnvFile')
 import os from 'os'
 import path from 'path'
 export * from './addresses'

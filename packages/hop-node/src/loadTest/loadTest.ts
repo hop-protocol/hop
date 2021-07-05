@@ -1,4 +1,3 @@
-require('dotenv').config()
 import fetch from 'node-fetch'
 import expect from 'expect'
 import { startWatchers } from 'src/watchers/watchers'
@@ -27,7 +26,7 @@ const paths = [
   [Chain.Polygon, Chain.xDai]
 ]
 const tokens = ['USDC']
-const transferAmount = 0.5
+const transferAmount = 0.3
 const useTestUserPrivateKey = false
 
 type Config = {
@@ -59,6 +58,8 @@ class LoadTest {
     const bonded: any = {}
 
     let count = 0
+    let failedIndex = -1
+    let failedTxHash = ''
     while (count < this.iterations) {
       const promises: Promise<any>[] = []
       for (let path of paths) {
@@ -104,29 +105,41 @@ class LoadTest {
 
                 await Promise.all(
                   users.map(async (user: User, i: number) => {
-                    const recipient = await user.getAddress()
-                    const spender = user.getBridgeAddress(sourceNetwork, token)
-                    logger.log(`user #${i} - checking approval`)
-                    await user.checkApproval(sourceNetwork, token, spender)
-                    logger.log(`user #${i} - sending tx`)
-                    const tx = await user.send(
-                      sourceNetwork,
-                      destNetwork,
-                      token,
-                      transferAmount
-                    )
-                    logger.log(`user #${i} - tx hash: ${tx.hash}`)
-                    logger.log(`user #${i} - waiting for receipt`)
-                    transactions[sourceNetwork].push(tx.hash)
-                    amounts[sourceNetwork] += transferAmount
-                    await tx?.wait()
+                    let tx: any
+                    try {
+                      const recipient = await user.getAddress()
+                      const spender = user.getBridgeAddress(
+                        sourceNetwork,
+                        token
+                      )
+                      logger.log(`user #${i} - checking approval`)
+                      await user.checkApproval(sourceNetwork, token, spender)
+                      logger.log(`user #${i} - sending tx`)
+                      tx = await user.send(
+                        sourceNetwork,
+                        destNetwork,
+                        token,
+                        transferAmount
+                      )
+                      logger.log(`user #${i} - tx hash: ${tx.hash}`)
+                      logger.log(`user #${i} - waiting for receipt`)
+                      transactions[sourceNetwork].push(tx.hash)
+                      amounts[sourceNetwork] += transferAmount
+                      await tx?.wait()
+                    } catch (err) {
+                      failedIndex = i
+                      failedTxHash = tx?.hash
+                      throw err
+                    }
                   })
                 )
 
                 logger.log(`cohort sent`)
               } catch (err) {
                 console.error(err)
-                logger.error('load test error:', err.message)
+                logger.error(
+                  `#${failedIndex} (tx ${failedTxHash}) load test error: ${err.message}`
+                )
                 notifier.error(`${label}\n${err.message}`)
                 logger.log('waiting 15 seconds before trying again')
                 await wait(15 * 1000)

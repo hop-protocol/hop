@@ -1162,7 +1162,7 @@ export class User {
   async txOverrides (network: string) {
     const txOptions: any = {}
     if (config.isMainnet) {
-      //txOptions.gasLimit = 1_000_000
+      // txOptions.gasLimit = 1_000_000
       txOptions.gasPrice = (
         await this.getBumpedGasPrice(network, 1.5)
       ).toString()
@@ -1292,21 +1292,30 @@ export async function prepareAccounts (
   network: string,
   faucetTokensToSend: number = 100
 ) {
+  let faucetSendEth = false
+  let i = 0
   for (let user of users) {
     console.log('preparing account')
     const address = await user.getAddress()
-    if ([Chain.Ethereum as string, Chain.xDai].includes(network)) {
+    const yes = [Chain.Ethereum as string, Chain.xDai].includes(network)
+    let checkEth = true
+    if (!config.isMainnet) {
+      checkEth = [Chain.Ethereum as string, Chain.xDai].includes(network)
+    }
+    if (checkEth) {
       let ethBal = await user.getBalance(network)
-      if (ethBal < 0.1) {
+      console.log(`#${i} eth:`, ethBal)
+      if (faucetSendEth && ethBal < 0.1) {
         console.log('faucet sending eth')
         const tx = await faucet.sendEth(0.1, address, network)
         const receipt = await tx.wait()
         expect(receipt.status).toBe(1)
         ethBal = await user.getBalance(network)
+        expect(ethBal).toBeGreaterThanOrEqual(0.1)
       }
-      expect(ethBal).toBeGreaterThanOrEqual(0.1)
     }
     let tokenBal = await user.getBalance(network, token)
+    console.log(`#${i} token balance: ${tokenBal}`)
     if (tokenBal < faucetTokensToSend) {
       console.log('faucet sending tokens')
       const faucetBalance = await faucet.getBalance(network, token)
@@ -1326,6 +1335,7 @@ export async function prepareAccounts (
       tokenBal = await user.getBalance(network, token)
     }
     expect(tokenBal).toBeGreaterThanOrEqual(1)
+    i++
   }
   return users
 }

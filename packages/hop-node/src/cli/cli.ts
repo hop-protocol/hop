@@ -129,6 +129,7 @@ program
     '-c, --config <string>',
     'Config file to use. Can be in JSON or YAML format'
   )
+  .option('--env <string>', 'Environment variables file')
   .option(
     '-d, --dry',
     'Start in dry mode. If enabled, no transactions will be sent.'
@@ -268,6 +269,7 @@ program
 program
   .command('bonder')
   .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
   .option('-o, --order <number>', 'Bonder order')
   .option(
     '-t, --tokens <string>',
@@ -412,6 +414,7 @@ program
   .command('stake')
   .description('Stake amount')
   .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
   .option('-n, --network <string>', 'Network')
   .option('-c, --chain <string>', 'Chain')
   .option('-t, --token <string>', 'Token')
@@ -438,6 +441,8 @@ program
 program
   .command('unstake')
   .description('Unstake amount')
+  .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
   .option('-n, --network <string>', 'Network')
   .option('-c, --chain <string>', 'Chain')
   .option('-t, --token <string>', 'Token')
@@ -465,6 +470,7 @@ program
   .command('stake-status')
   .description('Stake status')
   .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
   .option('-n, --network <string>', 'Network')
   .option('-c, --chain <string>', 'Chain')
   .option('-t, --token <string>', 'Token')
@@ -490,6 +496,7 @@ program
   .command('withdraw')
   .description('Withdraw tokens from wallet')
   .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
   .option('-n, --network <string>', 'Network')
   .option('-c, --chain <string>', 'Chain')
   .option('-t, --token <string>', 'Token')
@@ -521,6 +528,7 @@ program
   .command('settle')
   .description('Settle bonded withdrawals')
   .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
   .option('-n, --network <string>', 'Network')
   .option('-c, --chain <string>', 'Chain')
   .option('-t, --token <string>', 'Token')
@@ -597,6 +605,7 @@ program
   .command('xdai-bridge')
   .description('Start the xDai bridge watcher')
   .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -620,6 +629,7 @@ program
   .command('polygon-bridge')
   .description('Start the polygon bridge watcher')
   .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -645,6 +655,8 @@ program
   .option('--iterations <number>', 'Number of iterations')
   .description('Start load test')
   .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
+  .option('--env <string>', 'Environment variables file')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -665,6 +677,7 @@ program
 program
   .command('health-check')
   .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
   .option(
     '--bond-withdrawal-time-limit <number>',
     'Number of minutes a transfer should be bonded before alerting'
@@ -716,6 +729,7 @@ program
   .command('challenger')
   .description('Start the challenger watcher')
   .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -733,6 +747,7 @@ program
   .command('relayer')
   .description('Start the relayer watcher')
   .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -751,6 +766,7 @@ program
   .command('arb-bot')
   .description('Start the arbitrage bot')
   .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
   .option('--max-trade-amount <number>', 'Max trade amount')
   .option('--min-threshold <number>', 'Min threshold')
   .action(async (source: any) => {
@@ -811,6 +827,7 @@ program
   .command('keystore')
   .description('Keystore')
   .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
   .option('--pass <string>', 'Passphrase to encrypt keystore with.')
   .option('-o, --output <string>', 'Output file path of encrypted keystore.')
   .option('--override', 'Override existing keystore if it exists.')

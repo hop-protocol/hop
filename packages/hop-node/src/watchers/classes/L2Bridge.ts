@@ -236,7 +236,6 @@ export default class L2Bridge extends Bridge {
     )
   }
 
-  @rateLimitRetry
   async doPendingTransfersExist (chainId: number): Promise<boolean> {
     try {
       await this.getPendingTransferByIndex(chainId, 0)
@@ -244,20 +243,6 @@ export default class L2Bridge extends Bridge {
     } catch (err) {
       return false
     }
-  }
-
-  @rateLimitRetry
-  async isLastPendingTransfer (chainId: number, index: number): Promise<boolean> {
-    try {
-      await this.getPendingTransferByIndex(chainId, index)
-      try {
-        await this.getPendingTransferByIndex(chainId, index + 1)
-      } catch (err) {
-        return true
-      } 
-    } catch (err) {}
-
-    return false
   }
 
   @rateLimitRetry

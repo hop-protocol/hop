@@ -27,6 +27,7 @@ export type Transfer = {
   deadline?: number
   transferSentTxHash?: string
   transferSentBlockNumber?: number
+  transferSentIndex?: number
 
   committed: boolean
 }
@@ -69,8 +70,14 @@ class TransfersDb extends BaseDb {
       })
     )
 
+    // https://stackoverflow.com/a/9175783/1439168
     return transfers
-      .sort((a, b) => a?.transferSentBlockNumber - b?.transferSentBlockNumber)
+      .sort((a, b) =>
+        Number(
+          a?.transferSentBlockNumber > b?.transferSentBlockNumber ||
+            a?.transferSentIndex > b?.transferSentIndex
+        )
+      )
       .filter(x => x)
   }
 

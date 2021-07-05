@@ -13,6 +13,7 @@ class BaseDb {
   public db: any
   public prefix: string
   public IDS = 'ids'
+  public idMap: { [key: string]: boolean }
   logger = new Logger('config')
 
   constructor (prefix: string) {
@@ -42,9 +43,17 @@ class BaseDb {
     if (key === this.IDS) {
       return
     }
-    const list = await this.getKeys()
-    const unique = new Set(list.concat(key))
-    return this.update(this.IDS, Array.from(unique), false)
+
+    // lazy load id map
+    if (!this.idMap) {
+      this.idMap = await this.getIdMap()
+    }
+
+    // track unique keys
+    this.idMap[key] = true
+
+    // store id map
+    return this.update(this.IDS, this.idMap, false)
   }
 
   public async update (key: string, data: any, dataCb: boolean = true) {
@@ -64,8 +73,13 @@ class BaseDb {
     }
   }
 
+  protected async getIdMap (): Promise<{ [key: string]: boolean }> {
+    return this.getById(this.IDS, {})
+  }
+
   protected async getKeys (): Promise<string[]> {
-    return Object.values(await this.getById(this.IDS, []))
+    const obj = await this.getIdMap()
+    return Object.keys(obj)
   }
 }
 

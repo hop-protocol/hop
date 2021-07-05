@@ -37,7 +37,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     logger.debug(`handling TransferSent event`)
 
     try {
-      const { transactionHash } = event
+      const { transactionHash, transactionIndex } = event
       const blockNumber: number = (event as any).blockNumber
       if (!transactionHash) {
         throw new Error('event transaction hash not found')
@@ -65,6 +65,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         deadline: Number(deadline.toString()),
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,
+        transferSentIndex: transactionIndex
       })
     } catch (err) {
       logger.error(`handleTransferSentEvent error: ${err.message}`)

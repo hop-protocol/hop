@@ -242,25 +242,13 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         )}`
       )
 
-      // TODO: Potentially get this from DB
-      const lastCommitTime = await l2Bridge.getLastCommitTimeForChainId(
-        destinationChainId
-      )
       const minimumForceCommitDelay = await l2Bridge.getMinimumForceCommitDelay()
-      const minForceCommitTime = lastCommitTime + minimumForceCommitDelay
       const isBonder = await this.bridge.isBonder()
       const l2ChainId = await l2Bridge.getChainId()
       this.logger.debug('sourceChainId:', l2ChainId)
       this.logger.debug('destinationChainId:', destinationChainId)
-      this.logger.debug('lastCommitTime:', lastCommitTime)
       this.logger.debug('minimumForceCommitDelay:', minimumForceCommitDelay)
-      this.logger.debug('minForceCommitTime:', minForceCommitTime)
       this.logger.debug('isBonder:', isBonder)
-
-      if (minForceCommitTime >= Date.now() && !isBonder) {
-        this.logger.warn('only Bonder can commit before min delay')
-        return
-      }
 
       const dbAndChainPendingTransfersLengthMatch: boolean = await l2Bridge.isLastPendingTransfer(
         destinationChainId,

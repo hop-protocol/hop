@@ -21,10 +21,16 @@ import Logger from 'src/logger'
 import { Chain } from 'src/constants'
 import { Notifier } from 'src/notifier'
 
-const paths = [
-  [Chain.xDai, Chain.Polygon],
-  [Chain.Polygon, Chain.xDai]
-]
+let paths: any[]
+
+if (config.isMainnet) {
+  paths = [
+    [Chain.xDai, Chain.Polygon],
+    [Chain.Polygon, Chain.xDai]
+  ]
+} else {
+  paths = [[Chain.xDai, Chain.Ethereum]]
+}
 const tokens = ['USDC']
 const transferAmount = 0.3
 const useTestUserPrivateKey = false
@@ -155,6 +161,9 @@ class LoadTest {
 
     logger.info('transactions:', transactions)
     logger.debug('waiting for bonded withdrawal events')
+    if (!config.isMainnet) {
+      return
+    }
     const transferIds: any = {}
     const poll = async (): Promise<any> => {
       let cache: any = {}

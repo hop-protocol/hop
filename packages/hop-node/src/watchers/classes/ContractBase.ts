@@ -56,8 +56,9 @@ export default class ContractBase extends EventEmitter {
     return Number(chainSlugToId(chainSlug))
   }
 
-  get queueGroup (): string {
-    return this.chainId?.toString()
+  async getQueueGroup (): Promise<string> {
+    const chainId = await this.getChainId()
+    return `${chainId}`
   }
 
   get address (): string {

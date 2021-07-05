@@ -16,7 +16,10 @@ export const networks: Networks = {
       'https://mumbai.rpc.hop.exchange',
       'https://rpc-mumbai.maticvigil.com'
     ],
-    explorerUrls: ['https://explorer-mumbai.maticvigil.com'],
+    explorerUrls: [
+      'https://mumbai.polygonscan.com',
+      'https://explorer-mumbai.maticvigil.com'
+    ],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
     waitConfirmations: 1
   }

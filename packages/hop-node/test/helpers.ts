@@ -37,7 +37,7 @@ export class User {
     this.privateKey = privateKey
   }
 
-  get queueGroup () {
+  async getQueueGroup () {
     return this.privateKey
   }
 
@@ -1232,6 +1232,7 @@ export function generateUsers (count: number = 1, mnemonic: string) {
     let hdnode = HDNode.fromMnemonic(mnemonic)
     hdnode = hdnode.derivePath(path)
     const privateKey = hdnode.privateKey
+    console.log(i, privateKey)
     const user = new User(privateKey)
     users.push(user)
   }

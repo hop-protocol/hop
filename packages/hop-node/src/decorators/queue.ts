@@ -18,10 +18,17 @@ export default function queue (
 ): any {
   const originalMethod = descriptor.value
   descriptor.value = async function (...args: any[]) {
-    if (!mutexes[this.queueGroup]) {
-      mutexes[this.queueGroup] = new Mutex()
+    let queueGroup = ''
+    if (typeof this.getQueueGroup === 'function') {
+      queueGroup = await this.getQueueGroup()
     }
-    const mutex = mutexes[this.queueGroup]
+    if (!queueGroup) {
+      logger.warn('queue group not set')
+    }
+    if (!mutexes[queueGroup]) {
+      mutexes[queueGroup] = new Mutex()
+    }
+    const mutex = mutexes[queueGroup]
     return mutex.runExclusive(async () => {
       return await runner(originalMethod.apply(this, args))
     })

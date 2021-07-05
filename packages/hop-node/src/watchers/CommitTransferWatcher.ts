@@ -196,31 +196,31 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         throw new Error('destination chain id is required')
       }
 
-      const pendingTransfers: string[] = []
+      const pendingTransferIds: string[] = []
       for (let { transferId } of dbTransfers) {
-        pendingTransfers.push(transferId)
+        pendingTransferIds.push(transferId)
       }
 
-      const numPendingTransfers = pendingTransfers.length
-      if (!numPendingTransfers) {
+      const numPendingTransferIds = pendingTransferIds.length
+      if (!numPendingTransferIds) {
         this.logger.error('no pending transfers transfers exist')
         return
       }
 
-      if (numPendingTransfers < this.minPendingTransfers) {
+      if (numPendingTransferIds < this.minPendingTransfers) {
         this.logger.warn(
-          `must reach ${this.minPendingTransfers} pending transfers before committing. Have ${pendingTransfers.length} on destinationChainId: ${destinationChainId}`
+          `must reach ${this.minPendingTransfers} pending transfers before committing. Have ${pendingTransferIds.length} on destinationChainId: ${destinationChainId}`
         )
         return
       }
 
       this.logger.debug(
         `destinationChainId: ${destinationChainId} - pendingTransfers\n`,
-        pendingTransfers
+        pendingTransferIds
       )
 
       this.logger.debug(
-        `total pending transfers count for chainId ${destinationChainId}: ${numPendingTransfers}`
+        `total pending transfers count for chainId ${destinationChainId}: ${numPendingTransferIds}`
       )
 
       const l2Bridge = this.bridge as L2Bridge
@@ -252,10 +252,10 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
 
       const dbAndChainPendingTransfersLengthMatch: boolean = await l2Bridge.isLastPendingTransfer(
         destinationChainId,
-        numPendingTransfers
+        numPendingTransferIds
       )
       if (!dbAndChainPendingTransfersLengthMatch) {
-        this.logger.error(`pending transfers length on chain do not match db. chain: ${destinationChainId}. db num: ${numPendingTransfers}`)
+        this.logger.error(`pending transfers length on chain do not match db. chain: ${destinationChainId}. db num: ${numPendingTransferIds}`)
         return
       }
 
@@ -270,7 +270,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         return
       }
 
-      const tree = new MerkleTree(pendingTransfers)
+      const tree = new MerkleTree(pendingTransferIds)
       const transferRootHash = tree.getHexRoot()
       this.logger.debug(
         `destinationChainId: ${destinationChainId} - calculated transferRootHash: ${chalk.bgMagenta.black(
@@ -279,7 +279,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       )
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,
-        transferIds: pendingTransfers,
+        transferIds: pendingTransferIds,
         totalAmount: totalPendingAmount,
         sourceChainId: l2ChainId
       })
@@ -331,7 +331,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
           this.emit('commitTransfers', {
             destinationChainId,
             transferRootHash,
-            transferIds: pendingTransfers
+            transferIds: pendingTransferIds
           })
         })
         .catch(async (err: Error) => {

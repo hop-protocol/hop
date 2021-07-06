@@ -1,5 +1,6 @@
 import { Contract } from 'ethers'
 import { EventEmitter } from 'events'
+import { wait } from 'src/utils'
 import Logger from 'src/logger'
 import { Notifier } from 'src/notifier'
 import { hostname } from 'src/config'
@@ -32,6 +33,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   pollIntervalSec: number = 10 * 1000
   resyncIntervalSec: number = 10 * 60 * 1000
   chainSlug: string
+  initialSyncCompleted: boolean = false
 
   isL1: boolean
   bridge: L2Bridge | L1Bridge
@@ -76,8 +78,25 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
   }
 
-  async syncUp () {
+  async pollSync () {
+    await this.preSyncHandler()
+    await this.syncHandler()
+    await this.postSyncHandler()
+  }
+
+  async preSyncHandler () {
+    this.logger.debug('syncing up events')
+  }
+
+  async syncHandler () {
     // virtual method
+  }
+
+  async postSyncHandler () {
+    this.logger.debug('done syncing')
+    this.initialSyncCompleted = true
+    await wait(this.resyncIntervalSec)
+    await this.pollSync()
   }
 
   async watch () {
@@ -85,13 +104,36 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async pollCheck () {
+    if (!this.started) {
+      return
+    }
+    try {
+      await this.prePollHandler()
+      await this.pollHandler()
+    } catch (err) {
+      this.logger.error(`poll check error: ${err.message}`)
+      this.notifier.error(`poll check error: ${err.message}`)
+    }
+    await this.postPollHandler()
+  }
+
+  async prePollHandler () {
+    // empty by default
+  }
+
+  async pollHandler () {
     // virtual method
+  }
+
+  async postPollHandler () {
+    await wait(this.pollIntervalSec)
+    await this.pollCheck()
   }
 
   async start () {
     this.started = true
     try {
-      await Promise.all([this.syncUp(), this.watch(), this.pollCheck()])
+      await Promise.all([this.pollSync(), this.pollCheck(), this.watch()])
     } catch (err) {
       this.logger.error(`base watcher error:`, err.message)
       this.notifier.error(`base watcher error: '${err.message}`)
@@ -104,6 +146,18 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     this.bridge.removeAllListeners()
     this.started = false
     this.logger.setEnabled(false)
+  }
+
+  isInitialSyncCompleted (): boolean {
+    return this.initialSyncCompleted
+  }
+
+  isAllSiblingWatchersInitialSyncCompleted (): boolean {
+    return Object.values(this.siblingWatchers).every(
+      (siblingWatcher: BaseWatcher) => {
+        return siblingWatcher.isInitialSyncCompleted()
+      }
+    )
   }
 
   hasSiblingWatcher (chainId: number): boolean {

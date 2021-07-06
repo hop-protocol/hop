@@ -69,12 +69,6 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
-  async stop () {
-    this.bridge.removeAllListeners()
-    this.started = false
-    this.logger.setEnabled(false)
-  }
-
   async printAmounts () {
     let [credit, rawDebit, debit, balance, allowance] = await Promise.all([
       this.bridge.getCredit(),

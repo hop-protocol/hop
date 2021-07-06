@@ -64,9 +64,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     await super.start()
   }
 
-  async syncUp (): Promise<any> {
-    this.logger.debug('syncing up events')
-
+  async syncHandler (): Promise<any> {
     const promises: Promise<any>[] = []
     promises.push(
       this.bridge.mapWithdrawalBondedEvents(
@@ -91,10 +89,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     }
 
     await Promise.all(promises)
-    this.logger.debug('done syncing')
-
-    await wait(this.resyncIntervalSec)
-    return this.syncUp()
   }
 
   async watch () {
@@ -117,23 +111,11 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       })
   }
 
-  async pollCheck () {
+  async pollHandler () {
     if (this.isL1) {
       return
     }
-    while (true) {
-      if (!this.started) {
-        return
-      }
-      try {
-        await this.checkTransferSentFromDb()
-      } catch (err) {
-        console.error(err)
-        this.logger.error(`poll check error: ${err.message}`)
-        this.notifier.error(`poll check error: ${err.message}`)
-      }
-      await wait(this.pollIntervalSec)
-    }
+    await this.checkTransferSentFromDb()
   }
 
   async handleRawWithdrawalBondedEvent (event: Event) {

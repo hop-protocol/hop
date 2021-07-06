@@ -40,9 +40,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     })
   }
 
-  async syncUp (): Promise<any> {
-    this.logger.debug('syncing up events')
-
+  async syncHandler (): Promise<any> {
     const promises: Promise<any>[] = []
     if (this.isL1) {
       const l1Bridge = this.bridge as L1Bridge
@@ -67,10 +65,6 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     }
 
     await Promise.all(promises)
-    this.logger.debug('done syncing')
-
-    await wait(this.resyncIntervalSec)
-    return this.syncUp()
   }
 
   async watch () {
@@ -95,19 +89,8 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       })
   }
 
-  async pollCheck () {
-    while (true) {
-      if (!this.started) {
-        return
-      }
-      try {
-        await this.checkTransfersCommittedFromDb()
-      } catch (err) {
-        this.logger.error(`poll check error: ${err.message}`)
-        this.notifier.error(`poll check error: ${err.message}`)
-      }
-      await wait(this.pollIntervalSec)
-    }
+  async pollHandler () {
+    await this.checkTransfersCommittedFromDb()
   }
 
   async handleRawTransferRootBondedEvent (event: Event) {

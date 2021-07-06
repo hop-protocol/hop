@@ -43,15 +43,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     })
   }
 
-  async start () {
-    await super.start()
-  }
-
-  async syncUp (): Promise<any> {
-    this.logger.debug('syncing up events')
-
+  async syncHandler (): Promise<any> {
     const promises: Promise<any>[] = []
-
     if (!this.isL1) {
       const l2Bridge = this.bridge as L2Bridge
       promises.push(
@@ -101,8 +94,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       )
     )
 
-    await Promise.all(promises)
-
     // This must be executed after the WithdrawalBonded event handler on initial sync
     // since it relies on data from that handler.
     promises.push(
@@ -115,10 +106,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     )
 
     await Promise.all(promises)
-    this.logger.debug('done syncing')
-
-    await wait(this.resyncIntervalSec)
-    return this.syncUp()
   }
 
   async watch () {
@@ -150,30 +137,24 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       })
   }
 
-  async pollCheck () {
-    while (true) {
-      if (!this.started) {
-        return
-      }
-      const promises: Promise<any>[] = []
-      promises.push(
-        new Promise(async resolve => {
-          try {
-            await this.checkUnsettledTransfersFromDb()
-          } catch (err) {
-            this.logger.error(
-              `poll error checkUnsettledTransfers: ${err.message}`
-            )
-            this.notifier.error(
-              `poll error checkUnsettledTransfers: ${err.message}`
-            )
-          }
-          resolve(null)
-        })
-      )
-      await Promise.all(promises)
-      await wait(this.pollIntervalSec)
-    }
+  async pollHandler () {
+    const promises: Promise<any>[] = []
+    promises.push(
+      new Promise(async resolve => {
+        try {
+          await this.checkUnsettledTransfersFromDb()
+        } catch (err) {
+          this.logger.error(
+            `poll error checkUnsettledTransfers: ${err.message}`
+          )
+          this.notifier.error(
+            `poll error checkUnsettledTransfers: ${err.message}`
+          )
+        }
+        resolve(null)
+      })
+    )
+    await Promise.all(promises)
   }
 
   async handleRawTransfersCommittedEvent (event: Event) {
@@ -298,6 +279,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   checkUnsettledTransfersFromDb = async () => {
+    const initialSyncCompleted = await this.isAllSiblingWatchersInitialSyncCompleted()
+    if (!initialSyncCompleted) {
+      return false
+    }
+
     // only process transfer where this bridge is the destination chain
     const dbTransfers: Transfer[] = await db.transfers.getUnsettledBondedWithdrawalTransfers(
       {

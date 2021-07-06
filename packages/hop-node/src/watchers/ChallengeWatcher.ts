@@ -31,9 +31,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     this.contracts = config.contracts
   }
 
-  async syncUp (): Promise<any> {
-    this.logger.debug('syncing up events')
-
+  async syncHandler (): Promise<any> {
     const promises: Promise<any>[] = []
     promises.push(
       this.l1Bridge.mapTransferRootBondedEvents(
@@ -54,10 +52,6 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     )
 
     await Promise.all(promises)
-    this.logger.debug('done syncing')
-
-    await wait(this.resyncIntervalSec)
-    return this.syncUp()
   }
 
   async watch () {
@@ -74,20 +68,9 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       })
   }
 
-  async pollCheck () {
-    while (true) {
-      if (!this.started) {
-        return
-      }
-      try {
-        await this.checkTransferRootFromDb()
-        await this.checkChallengeFromDb()
-      } catch (err) {
-        this.logger.error(`poll check error: ${err.message}`)
-        this.notifier.error(`poll check error: ${err.message}`)
-      }
-      await wait(this.pollIntervalSec)
-    }
+  async pollHandler () {
+    await this.checkTransferRootFromDb()
+    await this.checkChallengeFromDb()
   }
 
   async handleRawTransferRootBondedEvent (event: Event) {

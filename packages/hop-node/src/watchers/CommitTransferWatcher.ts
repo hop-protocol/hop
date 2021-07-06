@@ -56,12 +56,10 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     await super.start()
   }
 
-  async syncUp (): Promise<any> {
+  async syncHandler (): Promise<any> {
     if (this.isL1) {
       return
     }
-
-    this.logger.debug('syncing up events')
 
     const promises: Promise<any>[] = []
     const l2Bridge = this.bridge as L2Bridge
@@ -84,10 +82,6 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     )
 
     await Promise.all(promises)
-    this.logger.debug('done syncing')
-
-    await wait(this.resyncIntervalSec)
-    return this.syncUp()
   }
 
   async watch () {
@@ -108,23 +102,12 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       })
   }
 
-  async pollCheck () {
+  async pollHandler () {
     if (this.isL1) {
       return
     }
 
-    while (true) {
-      if (!this.started) {
-        return
-      }
-      try {
-        await this.checkTransferSentFromDb()
-      } catch (err) {
-        this.logger.error(`poll check error: ${err.message}`)
-        this.notifier.error(`poll check error: ${err.message}`)
-      }
-      await wait(this.pollIntervalSec)
-    }
+    await this.checkTransferSentFromDb()
   }
 
   async handleRawTransfersCommittedEventForTransferIds (event: Event) {

@@ -169,8 +169,13 @@ export default class ContractBase extends EventEmitter {
   async txOverrides (): Promise<any> {
     const txOptions: any = {}
     // TODO: config option for gas price multiplier
-    txOptions.gasPrice = (await this.getBumpedGasPrice(1.5)).toString()
+    let multiplier = 1.5
     if (config.isMainnet) {
+      // increasing more gas multiplier for xdai
+      // to avoid the error "code:-32010, message: FeeTooLowToCompete"
+      if (this.chainSlug === Chain.xDai) {
+        multiplier = 1.75
+      }
     } else {
       txOptions.gasLimit = 5000000
       if (this.chainSlug === Chain.Optimism) {
@@ -181,6 +186,7 @@ export default class ContractBase extends EventEmitter {
         txOptions.gasLimit = 5000000
       }
     }
+    txOptions.gasPrice = (await this.getBumpedGasPrice(multiplier)).toString()
     return txOptions
   }
 }

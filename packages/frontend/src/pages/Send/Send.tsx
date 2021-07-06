@@ -1,6 +1,4 @@
 import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
-import { useHistory, useLocation } from 'react-router-dom'
-import qs from 'qs'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -28,6 +26,7 @@ import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
 import useBalance from 'src/hooks/useBalance'
 import useSendData from 'src/pages/Send/useSendData'
 import useNeedsTokenForFee from 'src/hooks/useNeedsTokenForFee'
+import useQueryParams from 'src/hooks/useQueryParams'
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -98,11 +97,7 @@ const Send: FC = () => {
     checkConnectedNetworkId,
     address
   } = useWeb3Context()
-  const history = useHistory()
-  const location = useLocation()
-  const queryParams = useMemo(() => {
-    return qs.parse(location.search, { ignoreQueryPrefix: true })
-  }, [location])
+  const { queryParams, updateQueryParams } = useQueryParams()
 
   const [fromNetwork, _setFromNetwork] = useState<Network>()
   const [toNetwork, _setToNetwork] = useState<Network>()
@@ -120,22 +115,16 @@ const Send: FC = () => {
   }, [queryParams, networks])
 
   const setFromNetwork = (network: Network | undefined) => {
-    queryParams.sourceNetwork = network?.slug ?? ''
-
-    history.push({
-      pathname: location.pathname,
-      search: qs.stringify(queryParams)
+    updateQueryParams({
+      sourceNetwork: network?.slug ?? ''
     })
 
     _setFromNetwork(network)
   }
 
   const setToNetwork = (network: Network | undefined) => {
-    queryParams.destNetwork = network?.slug ?? ''
-
-    history.push({
-      pathname: location.pathname,
-      search: qs.stringify(queryParams)
+    updateQueryParams({
+      destNetwork: network?.slug ?? ''
     })
 
     _setToNetwork(network)

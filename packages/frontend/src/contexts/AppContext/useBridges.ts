@@ -1,15 +1,10 @@
 import { useMemo, useState, useEffect } from 'react'
-import { useHistory, useLocation } from 'react-router-dom'
-import qs from 'qs'
 import { Hop, HopBridge } from '@hop-protocol/sdk'
 import { addresses } from 'src/config'
+import useQueryParams from 'src/hooks/useQueryParams'
 
 const useBridges = (sdk: Hop) => {
-  const history = useHistory()
-  const location = useLocation()
-  const queryParams = useMemo(() => {
-    return qs.parse(location.search, { ignoreQueryPrefix: true })
-  }, [location])
+  const { queryParams, updateQueryParams } = useQueryParams()
 
   const bridges = useMemo(() => {
     return Object.keys(addresses.tokens).map(symbol => {
@@ -30,11 +25,8 @@ const useBridges = (sdk: Hop) => {
   }, [queryParams, bridges])
 
   const setSelectedBridge = (bridge: HopBridge) => {
-    queryParams.token = bridge.getTokenSymbol()
-
-    history.push({
-      pathname: location.pathname,
-      search: qs.stringify(queryParams)
+    updateQueryParams({
+      token: bridge.getTokenSymbol()
     })
 
     _setSelectedBridge(bridge)

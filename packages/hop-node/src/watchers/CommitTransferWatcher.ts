@@ -19,16 +19,12 @@ export interface Config {
   dryMode?: boolean
 }
 
-interface LastCommitForChainId {
-  sentCommitTx: boolean
-}
-
 const BONDER_ORDER_DELAY_MS = 60 * 1000
 
 class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
   siblingWatchers: { [chainId: string]: CommitTransfersWatcher }
   minThresholdAmount: BigNumber = BigNumber.from(0)
-  lastCommitForChainId: { [chainId: number]: LastCommitForChainId } = {}
+  isCommitTxSent: { [chainId: number]: boolean } = {}
 
   constructor (config: Config) {
     super({
@@ -199,14 +195,11 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       }
 
       // Define new object on first run after server restart
-      if (!this.lastCommitForChainId[destinationChainId]) {
-        this.lastCommitForChainId[destinationChainId] = {
-          sentCommitTx: false
-        }
+      if (!this.isCommitTxSent[destinationChainId]) {
+        this.isCommitTxSent[destinationChainId] = false
       }
 
-      const lastCommit = this.lastCommitForChainId[destinationChainId]
-      if (lastCommit.sentCommitTx) {
+      if (this.isCommitTxSent[destinationChainId]) {
         this.logger.info(`commit tx for chainId ${destinationChainId} is in mempool`)
         return
       }
@@ -241,29 +234,21 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         `sending commitTransfers (destination chain ${destinationChainId}) tx`
       )
 
-      this.lastCommitForChainId[destinationChainId] = {
-        sentCommitTx: true
-      }
+      this.isCommitTxSent[destinationChainId] = true
       const tx = await l2Bridge.commitTransfers(destinationChainId)
       tx?.wait()
         .then(async (receipt: providers.TransactionReceipt) => {
           if (receipt.status !== 1) {
-            this.lastCommitForChainId[destinationChainId] = {
-              sentCommitTx: false
-            }
+            this.isCommitTxSent[destinationChainId] = false
             throw new Error('status=0')
           }
           this.emit('commitTransfers', {
             destinationChainId
           })
-          this.lastCommitForChainId[destinationChainId] = {
-            sentCommitTx: false
-          }
+          this.isCommitTxSent[destinationChainId] = false
         })
         .catch(async (err: Error) => {
-          this.lastCommitForChainId[destinationChainId] = {
-            sentCommitTx: false
-          }
+          this.isCommitTxSent[destinationChainId] = false
 
           throw err
         })

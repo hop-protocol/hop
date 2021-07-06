@@ -31,3 +31,6 @@ export const Total_Blocks = {
 
 const TEN_MINUTES = 10 * 60 * 1000
 export const TX_RETRY_DELAY_MS = TEN_MINUTES
+export const ETHEREUM_TX_MAX_DELAY_MS = 1 * 1000
+export const XDAI_TX_MAX_DELAY_MS = 15 * 1000
+export const POLYGON_TX_MAX_DELAY_MS = 15 * 1000

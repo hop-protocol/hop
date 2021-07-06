@@ -48,6 +48,17 @@ export default class ContractBase extends EventEmitter {
     return _chainId
   }
 
+  async getChainSlug () {
+    if (this.chainSlug) {
+      return this.chainSlug
+    }
+
+    const chainId = await this.getChainId()
+    const chainSlug = chainIdToSlug(chainId)
+    this.chainSlug = chainSlug
+    return chainSlug
+  }
+
   chainIdToSlug (chainId: number): string {
     return chainIdToSlug(chainId)
   }
@@ -57,8 +68,7 @@ export default class ContractBase extends EventEmitter {
   }
 
   async getQueueGroup (): Promise<string> {
-    const chainId = await this.getChainId()
-    return `${chainId}`
+    return this.getChainSlug()
   }
 
   get address (): string {

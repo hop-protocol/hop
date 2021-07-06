@@ -30,14 +30,14 @@ export default function queue (
     }
     const mutex = mutexes[queueGroup]
     return mutex.runExclusive(async () => {
-      return await runner(originalMethod.apply(this, args))
+      return await retrier(originalMethod.apply(this, args))
     })
   }
 
   return descriptor
 }
 
-async function runner (fn: any): Promise<any> {
+async function retrier (fn: any): Promise<any> {
   let retries = 0
   const retry = () => promiseTimeout(fn, TIMEOUT_MS)
   while (true) {

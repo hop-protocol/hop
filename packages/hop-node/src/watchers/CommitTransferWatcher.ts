@@ -200,7 +200,9 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       }
 
       if (this.isCommitTxSent[destinationChainId]) {
-        this.logger.info(`commit tx for chainId ${destinationChainId} is in mempool`)
+        this.logger.info(
+          `commit tx for chainId ${destinationChainId} is in mempool`
+        )
         return
       }
 
@@ -212,7 +214,9 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       const formattedPendingAmount = this.bridge.formatUnits(totalPendingAmount)
 
       if (totalPendingAmount.lt(this.minThresholdAmount)) {
-        const formattedThreshold = this.bridge.formatUnits(this.minThresholdAmount)
+        const formattedThreshold = this.bridge.formatUnits(
+          this.minThresholdAmount
+        )
         this.logger.warn(
           `dest ${destinationChainId}: pending amt ${formattedPendingAmount} less than min of ${formattedThreshold}.`
         )
@@ -222,7 +226,6 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       this.logger.debug(
         `total pending amount for chainId ${destinationChainId}: ${formattedPendingAmount}`
       )
-
 
       if (this.dryMode) {
         this.logger.warn('dry mode: skipping commitTransfers transaction')

@@ -8,6 +8,7 @@ import {
 import Bridge, { EventsBatchOptions, EventCb } from './Bridge'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import queue from 'src/decorators/queue'
+import delay from 'src/decorators/delay'
 import L2AmmWrapper from './L2AmmWrapper'
 import L2BridgeWrapper from './L2BridgeWrapper'
 import L1Bridge from './L1Bridge'
@@ -230,10 +231,7 @@ export default class L2Bridge extends Bridge {
 
   @rateLimitRetry
   async getPendingTransferByIndex (chainId: number, index: number) {
-    return this.l2BridgeContract.pendingTransferIdsForChainId(
-      chainId,
-      index
-    )
+    return this.l2BridgeContract.pendingTransferIdsForChainId(chainId, index)
   }
 
   async doPendingTransfersExist (chainId: number): Promise<boolean> {
@@ -350,6 +348,7 @@ export default class L2Bridge extends Bridge {
   }
 
   @queue
+  @delay
   @rateLimitRetry
   async commitTransfers (
     destinationChainId: number
@@ -358,11 +357,12 @@ export default class L2Bridge extends Bridge {
       destinationChainId,
       await this.txOverrides()
     )
-    await tx.wait()
+
     return tx
   }
 
   @queue
+  @delay
   @rateLimitRetry
   async bondWithdrawalAndAttemptSwap (
     recipient: string,
@@ -387,8 +387,6 @@ export default class L2Bridge extends Bridge {
       txOverrides
     )
 
-    //console.log('bondWithdrawalAndAttemptSwap tx:', tx.hash)
-    //await tx.wait()
     return tx
   }
 }

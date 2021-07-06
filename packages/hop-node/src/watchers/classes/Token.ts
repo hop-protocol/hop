@@ -2,6 +2,7 @@ import { ethers, providers, Contract, BigNumber } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
 import queue from 'src/decorators/queue'
+import delay from 'src/decorators/delay'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 
 export default class Token extends ContractBase {
@@ -37,6 +38,7 @@ export default class Token extends ContractBase {
   }
 
   @queue
+  @delay
   @rateLimitRetry
   async approve (
     spender: string,
@@ -53,6 +55,7 @@ export default class Token extends ContractBase {
   }
 
   @queue
+  @delay
   @rateLimitRetry
   async transfer (
     recipient: string,

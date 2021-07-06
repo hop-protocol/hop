@@ -3,6 +3,7 @@ import { l1Erc20BridgeAbi, erc20Abi } from '@hop-protocol/abi'
 import { parseUnits } from 'ethers/lib/utils'
 import Bridge, { EventsBatchOptions, EventCb } from './Bridge'
 import queue from 'src/decorators/queue'
+import delay from 'src/decorators/delay'
 import Token from './Token'
 import { Chain } from 'src/constants'
 import wallets from 'src/wallets'
@@ -212,6 +213,7 @@ export default class L1Bridge extends Bridge {
   }
 
   @queue
+  @delay
   @rateLimitRetry
   async bondTransferRoot (
     transferRootHash: string,
@@ -225,11 +227,11 @@ export default class L1Bridge extends Bridge {
       await this.txOverrides()
     )
 
-    await tx.wait()
     return tx
   }
 
   @queue
+  @delay
   @rateLimitRetry
   async challengeTransferRootBond (
     transferRootHash: string,
@@ -241,11 +243,11 @@ export default class L1Bridge extends Bridge {
       await this.txOverrides()
     )
 
-    await tx.wait()
     return tx
   }
 
   @queue
+  @delay
   @rateLimitRetry
   async resolveChallenge (
     transferRootHash: string,
@@ -257,11 +259,11 @@ export default class L1Bridge extends Bridge {
       await this.txOverrides()
     )
 
-    await tx.wait()
     return tx
   }
 
   @queue
+  @delay
   @rateLimitRetry
   async convertCanonicalTokenToHopToken (
     destChainId: number,

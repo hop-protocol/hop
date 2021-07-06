@@ -2,6 +2,7 @@ import { providers, Contract, BigNumber, Event } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
 import queue from 'src/decorators/queue'
+import delay from 'src/decorators/delay'
 import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import { config } from 'src/config'
 import unique from 'src/utils/unique'
@@ -428,6 +429,7 @@ export default class Bridge extends ContractBase {
   }
 
   @queue
+  @delay
   @rateLimitRetry
   async stake (amount: BigNumber): Promise<providers.TransactionResponse> {
     const bonder = await this.getBonderAddress()
@@ -436,11 +438,12 @@ export default class Bridge extends ContractBase {
       amount,
       await this.txOverrides()
     )
-    await tx.wait()
+
     return tx
   }
 
   @queue
+  @delay
   @rateLimitRetry
   async unstake (amount: BigNumber): Promise<providers.TransactionResponse> {
     const bonder = await this.getBonderAddress()
@@ -448,11 +451,11 @@ export default class Bridge extends ContractBase {
       amount,
       await this.txOverrides()
     )
-    await tx.wait()
     return tx
   }
 
   @queue
+  @delay
   @rateLimitRetry
   async bondWithdrawal (
     recipient: string,
@@ -468,11 +471,11 @@ export default class Bridge extends ContractBase {
       await this.txOverrides()
     )
 
-    //await tx.wait()
     return tx
   }
 
   @queue
+  @delay
   @rateLimitRetry
   async settleBondedWithdrawals (
     bonder: string,
@@ -486,7 +489,6 @@ export default class Bridge extends ContractBase {
       await this.txOverrides()
     )
 
-    await tx.wait()
     return tx
   }
 

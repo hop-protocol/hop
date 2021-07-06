@@ -114,14 +114,15 @@ type Config = {
   order?: number
 }
 
-let enabledWatchers = [
-  'bondTransferRoot',
-  'bondWithdrawal',
-  'challenge',
-  'commitTransfers',
-  'settleBondedWithdrawals',
-  'stake'
-]
+const defaultEnabledWatchers: { [key: string]: boolean } = {
+  bondTransferRoot: true,
+  bondWithdrawal: true,
+  challenge: true, // only active if role.challenger is also true
+  commitTransfers: true,
+  settleBondedWithdrawals: true,
+  stake: true,
+  xDomainMessageRelay: false
+}
 
 program
   .description('Start Hop node')
@@ -225,15 +226,19 @@ program
       if (dryMode) {
         logger.warn(`dry mode enabled`)
       }
+      const enabledWatchers: { [key: string]: boolean } = Object.assign(
+        {},
+        defaultEnabledWatchers
+      )
       if (config?.watchers) {
         for (let key in config.watchers) {
-          if (!(config.watchers as any)[key]) {
-            enabledWatchers = enabledWatchers.filter(watcher => watcher !== key)
-          }
+          enabledWatchers[key] = (config.watchers as any)[key]
         }
       }
       startWatchers({
-        enabledWatchers,
+        enabledWatchers: Object.keys(enabledWatchers).filter(
+          key => enabledWatchers[key]
+        ),
         order,
         tokens,
         networks,
@@ -299,8 +304,14 @@ program
       const networks = parseArgList(source.chains).map((value: string) =>
         value.toLowerCase()
       )
+      const enabledWatchers: { [key: string]: boolean } = Object.assign(
+        {},
+        defaultEnabledWatchers
+      )
       startWatchers({
-        enabledWatchers,
+        enabledWatchers: Object.keys(enabledWatchers).filter(
+          key => enabledWatchers[key]
+        ),
         order,
         tokens,
         networks

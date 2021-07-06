@@ -46,6 +46,9 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         config.minThresholdAmount
       )
     }
+
+    // Commit watcher is less time sensitive than others
+    this.pollIntervalSec = 6 * 10 * 1000
   }
 
   async start () {
@@ -112,7 +115,6 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       return
     }
 
-    const commitTransferWatcherPollInterval = 6 * 10 * 1000
     while (true) {
       if (!this.started) {
         return
@@ -123,7 +125,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         this.logger.error(`poll check error: ${err.message}`)
         this.notifier.error(`poll check error: ${err.message}`)
       }
-      await wait(commitTransferWatcherPollInterval)
+      await wait(this.pollIntervalSec)
     }
   }
 

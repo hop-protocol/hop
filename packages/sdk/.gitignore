@@ -10,4 +10,5 @@ package-lock.json
 *.map
 .env
 *.env
-docs
+docs/*
+!docs/README.md

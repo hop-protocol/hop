@@ -161,7 +161,6 @@ export default class Bridge extends ContractBase {
   @rateLimitRetry
   async getBonderBondedWithdrawalsBalance (): Promise<BigNumber> {
     const bonderAddress = await this.getBonderAddress()
-    const blockNumber = await this.bridgeContract.provider.getBlockNumber()
     let total = BigNumber.from(0)
     await this.eventsBatch(async (start: number, end: number) => {
       const withdrawalBondedEvents = await this.getWithdrawalBondedEvents(

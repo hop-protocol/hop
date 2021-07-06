@@ -359,7 +359,9 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     )
 
     await db.transferRoots.update(transferRootHash, {
-      transferIds
+      transferIds,
+      totalAmount,
+      sourceChainId
     })
 
     for (let transferId of transferIds) {

@@ -16,6 +16,7 @@ import { l1PolygonFxBaseRootTunnelAbi } from '@hop-protocol/abi'
 import { TX_RETRY_DELAY_MS } from 'src/constants'
 
 export interface Config {
+  chainSlug: string
   isL1: boolean
   bridgeContract: Contract
   l1BridgeContract: Contract
@@ -31,6 +32,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
 
   constructor (config: Config) {
     super({
+      chainSlug: config.chainSlug,
       tag: 'xDomainMessageRelay',
       prefix: config.label,
       logColor: 'yellow',
@@ -381,6 +383,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     // TODO: These params should be passed into constructor and this should not be a standalone
     // function
     const poly = new PolygonBridgeWatcher({
+      chainSlug: Chain.Polygon,
       token: this.token
     })
     const privateKey = gConfig.relayerPrivateKey || gConfig.bonderPrivateKey

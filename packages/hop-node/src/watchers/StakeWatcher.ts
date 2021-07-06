@@ -10,6 +10,7 @@ import { config } from 'src/config'
 import { Chain } from 'src/constants'
 
 export interface Config {
+  chainSlug: string
   label: string
   isL1: boolean
   bridgeContract: Contract
@@ -29,6 +30,7 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
 
   constructor (config: Config) {
     super({
+      chainSlug: config.chainSlug,
       tag: 'stakeWatcher',
       prefix: config.label,
       logColor: 'green',

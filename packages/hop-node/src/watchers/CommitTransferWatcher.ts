@@ -10,6 +10,7 @@ import L2Bridge from './classes/L2Bridge'
 import { TX_RETRY_DELAY_MS } from 'src/constants'
 
 export interface Config {
+  chainSlug: string
   label: string
   order?: () => number
   minThresholdAmount?: number
@@ -28,6 +29,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
 
   constructor (config: Config) {
     super({
+      chainSlug: config.chainSlug,
       tag: 'commitTransferWatcher',
       prefix: config.label,
       logColor: 'yellow',

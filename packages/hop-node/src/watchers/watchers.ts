@@ -1,5 +1,6 @@
 import '../moduleAlias'
 import { config, hostname as configHostname } from 'src/config'
+import { getRpcProviderFromUrl } from 'src/utils'
 import { Chain } from 'src/constants'
 import contracts from 'src/contracts'
 import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
@@ -53,6 +54,7 @@ function getStakeWatchers (
 
       const stakeWatcher = new StakeWatcher({
         isL1: network === Chain.Ethereum,
+        chainSlug: network,
         label: `${network}.${token}`,
         bridgeContract,
         tokenContract,
@@ -156,6 +158,7 @@ function startWatchers (
         : contracts.get(token, network).l2Bridge
 
       const bondWithdrawalWatcher = new BondWithdrawalWatcher({
+        chainSlug: network,
         order,
         label,
         isL1,
@@ -172,6 +175,7 @@ function startWatchers (
       }
 
       const bondTransferRootWatcher = new BondTransferRootWatcher({
+        chainSlug: network,
         order,
         label,
         isL1,
@@ -186,6 +190,7 @@ function startWatchers (
       }
 
       const settleBondedWithdrawalWatcher = new SettleBondedWithdrawalWatcher({
+        chainSlug: network,
         order,
         label,
         isL1,
@@ -205,6 +210,7 @@ function startWatchers (
       }
 
       const commitTransferWatcher = new CommitTransferWatcher({
+        chainSlug: network,
         order,
         label,
         isL1,
@@ -222,6 +228,7 @@ function startWatchers (
 
       if (network !== Chain.Ethereum) {
         const l2ExitWatcher = new xDomainMessageRelayWatcher({
+          chainSlug: network,
           isL1: false,
           label: `${network}.${token}`,
           token,
@@ -270,7 +277,15 @@ function startWatchers (
   }
 
   if (_config?.bonder || _config?.bonder === undefined) {
-    watchers.forEach(watcher => watcher.start())
+    watchers.forEach(watcher => {
+      if (config.networks[watcher.chainSlug].readRpcUrl) {
+        const provider = getRpcProviderFromUrl(
+          config.networks[watcher.chainSlug].readRpcUrl
+        )
+        watcher.bridge.setReadProvider(provider)
+      }
+      watcher.start()
+    })
     if (enabledWatchers.includes('stake')) {
       watchers.push(
         ...startStakeWatchers(
@@ -314,6 +329,7 @@ function startChallengeWatchers (_tokens?: string[], _networks?: string[]) {
       // TODO
       watchers.push(
         new ChallengeWatcher({
+          chainSlug: network,
           label: network,
           l1BridgeContract: contracts.get(token, ETHEREUM).l1Bridge,
           contracts: {
@@ -343,6 +359,7 @@ function startCommitTransferWatchers () {
       /*
       watchers.push(
         new CommitTransferWatcher({
+          chainSlug: network,
           label: network,
           l2BridgeContract: contracts.get[token][network].l2Bridge,
           // TODO

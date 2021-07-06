@@ -12,6 +12,7 @@ import L2Bridge from './classes/L2Bridge'
 import { config as globalConfig } from 'src/config'
 
 export interface Config {
+  chainSlug: string
   isL1: boolean
   bridgeContract: Contract
   label: string
@@ -28,6 +29,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
 
   constructor (config: Config) {
     super({
+      chainSlug: config.chainSlug,
       tag: 'bondTransferRootWatcher',
       prefix: config.label,
       logColor: 'cyan',

@@ -15,6 +15,7 @@ import MerkleTree from 'src/utils/MerkleTree'
 import { TX_RETRY_DELAY_MS } from 'src/constants'
 
 export interface Config {
+  chainSlug: string
   isL1: boolean
   bridgeContract: Contract
   label: string
@@ -31,6 +32,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
   constructor (config: Config) {
     super({
+      chainSlug: config.chainSlug,
       tag: 'settleBondedWithdrawalWatcher',
       prefix: config.label,
       logColor: 'magenta',

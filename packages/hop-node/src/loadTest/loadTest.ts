@@ -195,9 +195,8 @@ class LoadTest {
       const items = Object.values(bonded)
       const allBonded =
         items.length &&
-        items.length === transferIds.length &&
+        items.length === Object.keys(transferIds).length &&
         items.every(x => x)
-      logger.debug('bonded:', bonded)
       if (allBonded) {
         logger.debug('success')
         return

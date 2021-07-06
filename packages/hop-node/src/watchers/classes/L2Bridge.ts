@@ -16,7 +16,6 @@ import Token from './Token'
 import { Chain } from 'src/constants'
 
 export default class L2Bridge extends Bridge {
-  l2BridgeContract: Contract
   ammWrapper: L2AmmWrapper
   l2BridgeWrapper: L2BridgeWrapper
   TransfersCommitted: string = 'TransfersCommitted'
@@ -24,49 +23,50 @@ export default class L2Bridge extends Bridge {
 
   constructor (l2BridgeContract: Contract) {
     super(l2BridgeContract)
-    this.l2BridgeContract = l2BridgeContract
     this.l2StartListeners()
 
-    if (this.l2BridgeContract.ammWrapper) {
-      this.l2BridgeContract.ammWrapper().then((address: string) => {
-        const ammWrapperContract = new Contract(
-          address,
-          l2AmmWrapperAbi,
-          this.l2BridgeContract.signer
-        )
-        this.ammWrapper = new L2AmmWrapper(ammWrapperContract)
-      })
+    if (this.getReadBridgeContract().ammWrapper) {
+      this.getReadBridgeContract()
+        .ammWrapper()
+        .then((address: string) => {
+          const ammWrapperContract = new Contract(
+            address,
+            l2AmmWrapperAbi,
+            this.getWriteBridgeContract().signer
+          )
+          this.ammWrapper = new L2AmmWrapper(ammWrapperContract)
+        })
     }
 
     const l2BridgeWrapperContract = new Contract(
-      this.l2BridgeContract.address,
+      this.getWriteBridgeContract().address,
       l2BridgeWrapperAbi,
-      this.l2BridgeContract.signer
+      this.getWriteBridgeContract().signer
     )
     this.l2BridgeWrapper = new L2BridgeWrapper(l2BridgeWrapperContract)
   }
 
   l2StartListeners (): void {
-    if (this.l2BridgeContract.filters.TransfersCommitted) {
-      this.l2BridgeContract.on(
-        this.l2BridgeContract.filters.TransfersCommitted(),
+    if (this.getReadBridgeContract().filters.TransfersCommitted) {
+      this.getReadBridgeContract().on(
+        this.getReadBridgeContract().filters.TransfersCommitted(),
         (...args: any[]) => this.emit(this.TransfersCommitted, ...args)
       )
     }
-    if (this.l2BridgeContract.filters.TransferSent) {
-      this.l2BridgeContract.on(
-        this.l2BridgeContract.filters.TransferSent(),
+    if (this.getReadBridgeContract().filters.TransferSent) {
+      this.getReadBridgeContract().on(
+        this.getReadBridgeContract().filters.TransferSent(),
         (...args: any[]) => this.emit(this.TransferSent, ...args)
       )
     }
 
-    this.l2BridgeContract.on('error', err => {
+    this.getReadBridgeContract().on('error', err => {
       this.emit('error', err)
     })
   }
 
   async getL1Bridge (): Promise<L1Bridge> {
-    const l1BridgeAddress = await this.contract.l1BridgeAddress()
+    const l1BridgeAddress = await this.getReadBridgeContract().l1BridgeAddress()
     if (!l1BridgeAddress) {
       throw new Error('L1 bridge address not found')
     }
@@ -75,11 +75,11 @@ export default class L2Bridge extends Bridge {
 
   @rateLimitRetry
   async hToken (): Promise<Token> {
-    const tokenAddress = await this.bridgeContract.hToken()
+    const tokenAddress = await this.getReadBridgeContract().hToken()
     const tokenContract = new Contract(
       tokenAddress,
       erc20Abi,
-      this.bridgeContract.signer
+      this.getWriteBridgeContract().signer
     )
     return new Token(tokenContract)
   }
@@ -89,8 +89,8 @@ export default class L2Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<Event[]> {
-    return this.l2BridgeContract.queryFilter(
-      this.l2BridgeContract.filters.TransfersCommitted(),
+    return this.getReadBridgeContract().queryFilter(
+      this.getReadBridgeContract().filters.TransfersCommitted(),
       startBlockNumber,
       endBlockNumber
     )
@@ -125,8 +125,8 @@ export default class L2Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<Event[]> {
-    return this.l2BridgeContract.queryFilter(
-      this.l2BridgeContract.filters.TransferSent(),
+    return this.getReadBridgeContract().queryFilter(
+      this.getReadBridgeContract().filters.TransferSent(),
       startBlockNumber,
       endBlockNumber
     )
@@ -147,8 +147,8 @@ export default class L2Bridge extends Bridge {
   async getTransferSentTimestamp (transferId: string): Promise<number> {
     let match: Event
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.l2BridgeContract.queryFilter(
-        this.l2BridgeContract.filters.TransferSent(),
+      const events = await this.getReadBridgeContract().queryFilter(
+        this.getReadBridgeContract().filters.TransferSent(),
         start,
         end
       )
@@ -173,11 +173,11 @@ export default class L2Bridge extends Bridge {
     if (this.chainId) {
       return this.chainId
     }
-    if (!this.l2BridgeContract) {
+    if (!this.getReadBridgeContract()) {
       return super.getChainId()
     }
     const chainId = Number(
-      (await this.l2BridgeContract.getChainId()).toString()
+      (await this.getReadBridgeContract().getChainId()).toString()
     )
     this.chainId = chainId
     return chainId
@@ -193,7 +193,7 @@ export default class L2Bridge extends Bridge {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
+    const decoded = await this.getReadBridgeContract().interface.decodeFunctionData(
       'commitTransfers',
       data
     )
@@ -216,7 +216,7 @@ export default class L2Bridge extends Bridge {
       destinationChainId = Number(decoded.chainId.toString())
       attemptSwap = decoded.attemptSwap
     } catch (err) {
-      const decoded = await this.l2BridgeContract.interface.decodeFunctionData(
+      const decoded = await this.getReadBridgeContract().interface.decodeFunctionData(
         'send',
         data
       )
@@ -231,7 +231,10 @@ export default class L2Bridge extends Bridge {
 
   @rateLimitRetry
   async getPendingTransferByIndex (chainId: number, index: number) {
-    return this.l2BridgeContract.pendingTransferIdsForChainId(chainId, index)
+    return this.getReadBridgeContract().pendingTransferIdsForChainId(
+      chainId,
+      index
+    )
   }
 
   async doPendingTransfersExist (chainId: number): Promise<boolean> {
@@ -246,20 +249,22 @@ export default class L2Bridge extends Bridge {
   @rateLimitRetry
   async getLastCommitTimeForChainId (chainId: number): Promise<number> {
     return Number(
-      (await this.l2BridgeContract.lastCommitTimeForChainId(chainId)).toString()
+      (
+        await this.getReadBridgeContract().lastCommitTimeForChainId(chainId)
+      ).toString()
     )
   }
 
   @rateLimitRetry
   async getMinimumForceCommitDelay (): Promise<number> {
     return Number(
-      (await this.l2BridgeContract.minimumForceCommitDelay()).toString()
+      (await this.getReadBridgeContract().minimumForceCommitDelay()).toString()
     )
   }
 
   @rateLimitRetry
   async getPendingAmountForChainId (chainId: number): Promise<BigNumber> {
-    const pendingAmount = await this.l2BridgeContract.pendingAmountForChainId(
+    const pendingAmount = await this.getReadBridgeContract().pendingAmountForChainId(
       chainId
     )
     return pendingAmount
@@ -268,7 +273,7 @@ export default class L2Bridge extends Bridge {
   @rateLimitRetry
   async getMaxPendingTransfers (): Promise<number> {
     return Number(
-      (await this.l2BridgeContract.maxPendingTransfers()).toString()
+      (await this.getReadBridgeContract().maxPendingTransfers()).toString()
     )
   }
 
@@ -294,8 +299,8 @@ export default class L2Bridge extends Bridge {
   ): Promise<string | undefined> {
     let txHash: string
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.l2BridgeContract.queryFilter(
-        this.l2BridgeContract.filters.TransfersCommitted(),
+      const events = await this.getReadBridgeContract().queryFilter(
+        this.getReadBridgeContract().filters.TransfersCommitted(),
         start,
         end
       )
@@ -318,8 +323,8 @@ export default class L2Bridge extends Bridge {
   ): Promise<string | undefined> {
     let txHash: string
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.l2BridgeContract.queryFilter(
-        this.l2BridgeContract.filters.TransferSent(),
+      const events = await this.getReadBridgeContract().queryFilter(
+        this.getReadBridgeContract().filters.TransferSent(),
         start,
         end
       )
@@ -353,7 +358,7 @@ export default class L2Bridge extends Bridge {
   async commitTransfers (
     destinationChainId: number
   ): Promise<providers.TransactionResponse> {
-    const tx = await this.l2BridgeContract.commitTransfers(
+    const tx = await this.getWriteBridgeContract().commitTransfers(
       destinationChainId,
       await this.txOverrides()
     )
@@ -377,7 +382,7 @@ export default class L2Bridge extends Bridge {
       txOverrides.gasLimit = 1_000_000
     }
 
-    const tx = await this.l2BridgeContract.bondWithdrawalAndDistribute(
+    const tx = await this.getWriteBridgeContract().bondWithdrawalAndDistribute(
       recipient,
       amount,
       transferNonce,

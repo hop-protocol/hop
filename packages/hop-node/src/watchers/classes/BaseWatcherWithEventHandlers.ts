@@ -7,6 +7,7 @@ import { isL1ChainId } from 'src/utils'
 import MerkleTree from 'src/utils/MerkleTree'
 
 interface Config {
+  chainSlug: string
   tag: string
   prefix?: string
   logColor?: string

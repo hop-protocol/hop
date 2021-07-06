@@ -10,6 +10,7 @@ import queue from 'src/decorators/queue'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 
 type Config = {
+  chainSlug: string
   token: string
 }
 
@@ -76,6 +77,7 @@ class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
 
   constructor (config: Config) {
     super({
+      chainSlug: config.chainSlug,
       tag: 'xDaiBridgeWatcher',
       logColor: 'yellow'
     })

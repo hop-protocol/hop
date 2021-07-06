@@ -8,6 +8,7 @@ import L2Bridge from './L2Bridge'
 import { IBaseWatcher } from './IBaseWatcher'
 
 interface Config {
+  chainSlug: string
   tag: string
   prefix?: string
   logColor?: string
@@ -30,6 +31,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   started: boolean = false
   pollIntervalSec: number = 10 * 1000
   resyncIntervalSec: number = 10 * 60 * 1000
+  chainSlug: string
 
   isL1: boolean
   bridge: L2Bridge | L1Bridge
@@ -40,12 +42,13 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   constructor (config: Config) {
     super()
-    const { tag, prefix, order, logColor } = config
+    const { chainSlug, tag, prefix, order, logColor } = config
     this.logger = new Logger({
       tag,
       prefix,
       color: logColor
     })
+    this.chainSlug = chainSlug
     if (tag) {
       this.tag = tag
     }

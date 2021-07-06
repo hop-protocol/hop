@@ -12,6 +12,7 @@ import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers
 import queue from 'src/decorators/queue'
 
 type Config = {
+  chainSlug: string
   token: string
 }
 
@@ -26,6 +27,7 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
 
   constructor (config: Config) {
     super({
+      chainSlug: config.chainSlug,
       tag: 'polygonBridgeWatcher',
       logColor: 'yellow'
     })

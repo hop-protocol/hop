@@ -256,6 +256,7 @@ program
       if (config?.roles?.xdaiBridge) {
         for (let token of tokens) {
           new xDaiBridgeWatcher({
+            chainSlug: Chain.xDai,
             token
           }).start()
         }
@@ -616,6 +617,7 @@ program
       const tokens = Object.keys(globalConfig.tokens)
       for (let token of tokens) {
         new xDaiBridgeWatcher({
+          chainSlug: Chain.xDai,
           token
         }).start()
       }
@@ -640,6 +642,7 @@ program
       const tokens = Object.keys(globalConfig.tokens)
       for (let token of tokens) {
         new PolygonBridgeWatcher({
+          chainSlug: Chain.Polygon,
           token
         }).start()
       }

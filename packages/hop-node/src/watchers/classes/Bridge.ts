@@ -23,8 +23,10 @@ export default class Bridge extends ContractBase {
   MultipleWithdrawalsSettled: string = 'MultipleWithdrawalsSettled'
   tokenDecimals: number = 18
   tokenSymbol: string = ''
+  bridgeContract: Contract
+  readProvider?: providers.Provider
 
-  constructor (public bridgeContract: Contract) {
+  constructor (bridgeContract: Contract) {
     super(bridgeContract)
     this.bridgeContract = bridgeContract
     let tokenDecimals: number
@@ -56,8 +58,28 @@ export default class Bridge extends ContractBase {
     this.bridgeStartListeners()
   }
 
+  // a read provider is alternative provider that can be used only for
+  // contract read operations.
+  // a read provider is optional.
+  setReadProvider (provider: providers.Provider): void {
+    this.readProvider = provider
+  }
+
+  // if there is no alternative read provider, then use the default provider.
+  getReadBridgeContract (): Contract {
+    return this.readProvider
+      ? this.bridgeContract?.connect(this.readProvider)
+      : this.bridgeContract
+  }
+
+  // the write provider is the default provider used, so there's
+  // no need to connect another provider here.
+  getWriteBridgeContract (): Contract {
+    return this.bridgeContract
+  }
+
   bridgeStartListeners (): void {
-    this.bridgeContract
+    this.getReadBridgeContract()
       .on(this.bridgeContract.filters.WithdrawalBonded(), (...args: any[]) =>
         this.emit(this.WithdrawalBonded, ...args)
       )
@@ -74,33 +96,35 @@ export default class Bridge extends ContractBase {
   }
 
   async getBonderAddress (): Promise<string> {
-    return this.bridgeContract.signer.getAddress()
+    return this.getWriteBridgeContract().signer.getAddress()
   }
 
   @rateLimitRetry
   async isBonder (): Promise<boolean> {
     const bonder = await this.getBonderAddress()
-    return this.bridgeContract.getIsBonder(bonder)
+    return this.getReadBridgeContract().getIsBonder(bonder)
   }
 
   @rateLimitRetry
   async getCredit (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
-    const credit = await this.bridgeContract.getCredit(bonder)
+    const credit = await this.getReadBridgeContract().getCredit(bonder)
     return credit
   }
 
   @rateLimitRetry
   async getDebit (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
-    const debit = await this.bridgeContract.getDebitAndAdditionalDebit(bonder)
+    const debit = await this.getReadBridgeContract().getDebitAndAdditionalDebit(
+      bonder
+    )
     return debit
   }
 
   @rateLimitRetry
   async getRawDebit (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
-    const debit = await this.bridgeContract.getRawDebit(bonder)
+    const debit = await this.getReadBridgeContract().getRawDebit(bonder)
     return debit
   }
 
@@ -120,7 +144,7 @@ export default class Bridge extends ContractBase {
   }
 
   getAddress (): string {
-    return this.bridgeContract.address
+    return this.getReadBridgeContract().address
   }
 
   async getBondedWithdrawalAmount (transferId: string): Promise<BigNumber> {
@@ -133,7 +157,7 @@ export default class Bridge extends ContractBase {
     bonder: string,
     transferId: string
   ): Promise<BigNumber> {
-    const bondedBn = await this.bridgeContract.getBondedWithdrawalAmount(
+    const bondedBn = await this.getReadBridgeContract().getBondedWithdrawalAmount(
       bonder,
       transferId
     )
@@ -223,7 +247,7 @@ export default class Bridge extends ContractBase {
 
   @rateLimitRetry
   isTransferIdSpent (transferId: string): Promise<boolean> {
-    return this.bridgeContract.isTransferIdSpent(transferId)
+    return this.getReadBridgeContract().isTransferIdSpent(transferId)
   }
 
   @rateLimitRetry
@@ -231,8 +255,8 @@ export default class Bridge extends ContractBase {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<Event[]> {
-    return this.bridgeContract.queryFilter(
-      this.bridgeContract.filters.WithdrawalBonded(),
+    return this.getReadBridgeContract().queryFilter(
+      this.getReadBridgeContract().filters.WithdrawalBonded(),
       startBlockNumber,
       endBlockNumber
     )
@@ -254,8 +278,8 @@ export default class Bridge extends ContractBase {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<Event[]> {
-    return this.bridgeContract.queryFilter(
-      this.bridgeContract.filters.TransferRootSet(),
+    return this.getReadBridgeContract().queryFilter(
+      this.getReadBridgeContract().filters.TransferRootSet(),
       startBlockNumber,
       endBlockNumber
     )
@@ -267,8 +291,8 @@ export default class Bridge extends ContractBase {
   ): Promise<string | undefined> {
     let txHash: string
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.bridgeContract.queryFilter(
-        this.bridgeContract.filters.TransferRootSet(),
+      const events = await this.getReadBridgeContract().queryFilter(
+        this.getReadBridgeContract().filters.TransferRootSet(),
         start,
         end
       )
@@ -301,8 +325,8 @@ export default class Bridge extends ContractBase {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<Event[]> {
-    return this.bridgeContract.queryFilter(
-      this.bridgeContract.filters.WithdrawalBondSettled(),
+    return this.getReadBridgeContract().queryFilter(
+      this.getReadBridgeContract().filters.WithdrawalBondSettled(),
       startBlockNumber,
       endBlockNumber
     )
@@ -312,7 +336,7 @@ export default class Bridge extends ContractBase {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = await this.bridgeContract.interface.decodeFunctionData(
+    const decoded = await this.getReadBridgeContract().interface.decodeFunctionData(
       'settleBondedWithdrawal',
       data
     )
@@ -341,8 +365,8 @@ export default class Bridge extends ContractBase {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<Event[]> {
-    return this.bridgeContract.queryFilter(
-      this.bridgeContract.filters.MultipleWithdrawalsSettled(),
+    return this.getReadBridgeContract().queryFilter(
+      this.getReadBridgeContract().filters.MultipleWithdrawalsSettled(),
       startBlockNumber,
       endBlockNumber
     )
@@ -364,7 +388,7 @@ export default class Bridge extends ContractBase {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = await this.bridgeContract.interface.decodeFunctionData(
+    const decoded = await this.getReadBridgeContract().interface.decodeFunctionData(
       'settleBondedWithdrawals',
       data
     )
@@ -386,7 +410,10 @@ export default class Bridge extends ContractBase {
     transferRootHash: string,
     totalAmount: BigNumber
   ): Promise<string> {
-    return this.bridgeContract.getTransferRootId(transferRootHash, totalAmount)
+    return this.getReadBridgeContract().getTransferRootId(
+      transferRootHash,
+      totalAmount
+    )
   }
 
   @rateLimitRetry
@@ -394,7 +421,10 @@ export default class Bridge extends ContractBase {
     transferRootHash: string,
     totalAmount: BigNumber
   ): Promise<any> {
-    return this.bridgeContract.getTransferRoot(transferRootHash, totalAmount)
+    return this.getReadBridgeContract().getTransferRoot(
+      transferRootHash,
+      totalAmount
+    )
   }
 
   // get the chain ids of all bridged L2s and L1
@@ -433,7 +463,7 @@ export default class Bridge extends ContractBase {
   @rateLimitRetry
   async stake (amount: BigNumber): Promise<providers.TransactionResponse> {
     const bonder = await this.getBonderAddress()
-    const tx = await this.bridgeContract.stake(
+    const tx = await this.getWriteBridgeContract().stake(
       bonder,
       amount,
       await this.txOverrides()
@@ -447,7 +477,7 @@ export default class Bridge extends ContractBase {
   @rateLimitRetry
   async unstake (amount: BigNumber): Promise<providers.TransactionResponse> {
     const bonder = await this.getBonderAddress()
-    const tx = await this.bridgeContract.unstake(
+    const tx = await this.getWriteBridgeContract().unstake(
       amount,
       await this.txOverrides()
     )
@@ -463,7 +493,7 @@ export default class Bridge extends ContractBase {
     transferNonce: string,
     bonderFee: BigNumber
   ): Promise<providers.TransactionResponse> {
-    const tx = await this.bridgeContract.bondWithdrawal(
+    const tx = await this.getWriteBridgeContract().bondWithdrawal(
       recipient,
       amount,
       transferNonce,
@@ -482,7 +512,7 @@ export default class Bridge extends ContractBase {
     transferIds: string[],
     amount: BigNumber
   ): Promise<providers.TransactionResponse> {
-    const tx = await this.bridgeContract.settleBondedWithdrawals(
+    const tx = await this.getWriteBridgeContract().settleBondedWithdrawals(
       bonder,
       transferIds,
       amount,

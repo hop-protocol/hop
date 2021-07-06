@@ -8,6 +8,7 @@ import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 
 export interface Config {
+  chainSlug: string
   l1BridgeContract: Contract
   label: string
   contracts: any
@@ -20,6 +21,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
 
   constructor (config: Config) {
     super({
+      chainSlug: config.chainSlug,
       tag: 'challengeWatcher',
       prefix: config.label,
       logColor: 'red',

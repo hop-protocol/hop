@@ -1,6 +1,7 @@
 export interface Network {
   networkId: number
   rpcUrls: string[]
+  readRpcUrl?: string
   explorerUrls: string[]
   waitConfirmations?: number
 }

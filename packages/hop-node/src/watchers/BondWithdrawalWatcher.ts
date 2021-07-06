@@ -11,6 +11,7 @@ import Token from './classes/Token'
 import { Chain } from 'src/constants'
 
 export interface Config {
+  chainSlug: string
   isL1: boolean
   bridgeContract: Contract
   label: string
@@ -32,6 +33,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   constructor (config: Config) {
     super({
       tag: 'bondWithdrawalWatcher',
+      chainSlug: config.chainSlug,
       prefix: config.label,
       logColor: 'green',
       order: config.order,

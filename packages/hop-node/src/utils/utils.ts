@@ -27,7 +27,16 @@ export const getRpcProvider = (network: string): ethers.providers.Provider => {
   if (!rpcUrls.length) {
     return null
   }
+  return getRpcProviderFromUrl(rpcUrls)
+}
+
+export const getRpcProviderFromUrl = (
+  rpcUrls: string | string[]
+): ethers.providers.Provider => {
   let providers: ethers.providers.StaticJsonRpcProvider[] = []
+  if (!Array.isArray(rpcUrls)) {
+    rpcUrls = [rpcUrls]
+  }
   for (let rpcUrl of rpcUrls) {
     const provider = new ethers.providers.StaticJsonRpcProvider(rpcUrl)
     if (rpcUrls.length === 1) {

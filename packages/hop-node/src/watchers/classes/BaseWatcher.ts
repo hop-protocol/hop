@@ -79,9 +79,11 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async pollSync () {
-    await this.preSyncHandler()
-    await this.syncHandler()
-    await this.postSyncHandler()
+    while (true) {
+      await this.preSyncHandler()
+      await this.syncHandler()
+      await this.postSyncHandler()
+    }
   }
 
   async preSyncHandler () {
@@ -96,7 +98,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     this.logger.debug('done syncing')
     this.initialSyncCompleted = true
     await wait(this.resyncIntervalSec)
-    await this.pollSync()
   }
 
   async watch () {
@@ -104,17 +105,19 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async pollCheck () {
-    if (!this.started) {
-      return
+    while (true) {
+      if (!this.started) {
+        return
+      }
+      try {
+        await this.prePollHandler()
+        await this.pollHandler()
+      } catch (err) {
+        this.logger.error(`poll check error: ${err.message}`)
+        this.notifier.error(`poll check error: ${err.message}`)
+      }
+      await this.postPollHandler()
     }
-    try {
-      await this.prePollHandler()
-      await this.pollHandler()
-    } catch (err) {
-      this.logger.error(`poll check error: ${err.message}`)
-      this.notifier.error(`poll check error: ${err.message}`)
-    }
-    await this.postPollHandler()
   }
 
   async prePollHandler () {
@@ -127,7 +130,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   async postPollHandler () {
     await wait(this.pollIntervalSec)
-    await this.pollCheck()
   }
 
   async start () {

@@ -77,12 +77,23 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     }
 
     promises.push(
-      this.bridge.mapWithdrawalBondedEvents(
-        async (event: Event) => {
-          return this.handleRawWithdrawalBondedEvent(event)
-        },
-        { cacheKey: this.cacheKey(this.bridge.WithdrawalBonded) }
-      )
+      this.bridge
+        .mapWithdrawalBondedEvents(
+          async (event: Event) => {
+            return this.handleRawWithdrawalBondedEvent(event)
+          },
+          { cacheKey: this.cacheKey(this.bridge.WithdrawalBonded) }
+        )
+        .then(() => {
+          // This must be executed after the WithdrawalBonded event handler on initial sync
+          // since it relies on data from that handler.
+          return this.bridge.mapMultipleWithdrawalsSettledEvents(
+            async (event: Event) => {
+              return this.handleRawMultipleWithdrawalsSettledEvent(event)
+            },
+            { cacheKey: this.cacheKey(this.bridge.MultipleWithdrawalsSettled) }
+          )
+        })
     )
 
     promises.push(
@@ -91,17 +102,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           return this.handleRawTransferRootSetEvent(event)
         },
         { cacheKey: this.cacheKey(this.bridge.TransferRootSet) }
-      )
-    )
-
-    // This must be executed after the WithdrawalBonded event handler on initial sync
-    // since it relies on data from that handler.
-    promises.push(
-      this.bridge.mapMultipleWithdrawalsSettledEvents(
-        async (event: Event) => {
-          return this.handleRawMultipleWithdrawalsSettledEvent(event)
-        },
-        { cacheKey: this.cacheKey(this.bridge.MultipleWithdrawalsSettled) }
       )
     )
 

@@ -124,6 +124,13 @@ const defaultEnabledWatchers: { [key: string]: boolean } = {
   xDomainMessageRelay: false
 }
 
+const defaultEnabledNetworks: { [key: string]: boolean } = {
+  [Chain.Optimism]: true,
+  [Chain.Arbitrum]: true,
+  [Chain.xDai]: true,
+  [Chain.Polygon]: true
+}
+
 program
   .description('Start Hop node')
   .option(
@@ -162,10 +169,13 @@ program
         }
       }
 
-      const networks = []
+      const enabledNetworks: { [key: string]: boolean } = Object.assign(
+        {},
+        defaultEnabledNetworks
+      )
       if (config?.chains) {
         for (let k in config.chains) {
-          networks.push(k)
+          enabledNetworks[k] = !!config.chains[k]
           const v = config.chains[k]
           if (v instanceof Object) {
             let _rpcUrls: string[] = []
@@ -241,7 +251,9 @@ program
         ),
         order,
         tokens,
-        networks,
+        networks: Object.keys(enabledNetworks).filter(
+          key => enabledNetworks[key]
+        ),
         bonder,
         challenger,
         maxStakeAmounts,

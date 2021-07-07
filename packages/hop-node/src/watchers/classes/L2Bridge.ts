@@ -203,18 +203,20 @@ export default class L2Bridge extends Bridge {
     if (!data) {
       throw new Error('data to decode is required')
     }
+    const methodSig = data.slice(0, 10)
+    const sendMethodSig = '0xa6bd1b33'
     let destinationChainId: number
     let attemptSwap = false
-    try {
-      const decoded = await this.ammWrapper.decodeSwapAndSendData(data)
-      destinationChainId = Number(decoded.chainId.toString())
-      attemptSwap = decoded.attemptSwap
-    } catch (err) {
+    if (methodSig === sendMethodSig) {
       const decoded = await this.getReadBridgeContract().interface.decodeFunctionData(
         'send',
         data
       )
       destinationChainId = Number(decoded.chainId.toString())
+    } else {
+      const decoded = await this.ammWrapper.decodeSwapAndSendData(data)
+      destinationChainId = Number(decoded.chainId.toString())
+      attemptSwap = decoded.attemptSwap
     }
 
     return {

@@ -607,7 +607,7 @@ export default class Bridge extends ContractBase {
       i++
     }
 
-    if (cacheKey) {
+    if (cacheKey && start === latestBlockInBatch) {
       await db.syncState.update(cacheKey, {
         latestBlockSynced: latestBlockInBatch,
         timestamp: Date.now()

@@ -3,7 +3,14 @@ body {
   background: #151417;
   color: #fff;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+#app {
   padding: 2rem 2rem 5rem 2rem;
+}
+@media (max-width: 600px) {
+  #app {
+    padding: 1rem 1rem 5rem 1rem;
+  }
 }
 [v-cloak] {
   display: none;
@@ -48,6 +55,9 @@ details > summary {
 }
 details > summary::marker {
   display: none;
+}
+#transfers {
+  overflow: auto;
 }
 table {
   border-collapse: separate;

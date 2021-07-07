@@ -583,28 +583,31 @@ export default class Bridge extends ContractBase {
     let {
       start,
       end,
-      totalBlocksInBatch,
       batchBlocks,
+      earliestBlockInBatch,
       latestBlockInBatch
     } = await this.getBlockValues(options, state)
 
     let i = 0
-    if (totalBlocksInBatch <= batchBlocks) {
-      await rateLimitRetryFn(cb)(start, end, i)
-    } else {
-      while (start >= latestBlockInBatch - totalBlocksInBatch) {
-        const shouldContinue = await rateLimitRetryFn(cb)(start, end, i)
-        if (typeof shouldContinue === 'boolean' && !shouldContinue) {
-          break
-        }
-
-        end = start
-        start = end - batchBlocks
-        i++
+    while (start >= earliestBlockInBatch) {
+      const shouldContinue = await rateLimitRetryFn(cb)(start, end, i)
+      if (
+        (typeof shouldContinue === 'boolean' && !shouldContinue) ||
+        start === earliestBlockInBatch
+      ) {
+        break
       }
+
+      end = start
+      start = end - batchBlocks
+
+      if (start < earliestBlockInBatch) {
+        start = earliestBlockInBatch
+      }
+      i++
     }
 
-    if (cacheKey) {
+    if (cacheKey && start === latestBlockInBatch) {
       await db.syncState.update(cacheKey, {
         latestBlockSynced: latestBlockInBatch,
         timestamp: Date.now()
@@ -623,21 +626,28 @@ export default class Bridge extends ContractBase {
 
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
-      start = startBlockNumber
-      totalBlocksInBatch = end - start
+      totalBlocksInBatch = end - startBlockNumber
     } else if (state?.latestBlockSynced) {
       end = currentBlockNumber
-      start = state.latestBlockSynced
-      totalBlocksInBatch = end - start
+      totalBlocksInBatch = end - state.latestBlockSynced
     } else {
       end = currentBlockNumber
-      start = end - batchBlocks
       totalBlocksInBatch = totalBlocks
       // Handle the case where the chain has less blocks than the total block config
+      // This may happen during an Optimism regensis, for example
       if (end - totalBlocksInBatch < 0) {
         totalBlocksInBatch = end
       }
     }
+
+    if (totalBlocksInBatch <= batchBlocks) {
+      start = end - totalBlocksInBatch
+    } else {
+      start = end - batchBlocks
+    }
+
+    const earliestBlockInBatch = end - totalBlocksInBatch
+    const latestBlockInBatch = end
 
     // NOTE: We do not handle the case where end minus batchBlocks is
     // a negative, which should never happen
@@ -645,9 +655,9 @@ export default class Bridge extends ContractBase {
     return {
       start,
       end,
-      totalBlocksInBatch,
       batchBlocks,
-      latestBlockInBatch: end
+      earliestBlockInBatch,
+      latestBlockInBatch
     }
   }
 

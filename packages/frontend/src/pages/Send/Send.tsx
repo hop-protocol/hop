@@ -20,7 +20,7 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import { UINT256 } from 'src/constants'
 import logger from 'src/logger'
-import { commafy, normalizeNumberInput } from 'src/utils'
+import { commafy, normalizeNumberInput, toTokenDisplay } from 'src/utils'
 import SendButton from 'src/pages/Send/SendButton'
 import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
 import useBalance from 'src/hooks/useBalance'
@@ -72,6 +72,15 @@ const useStyles = makeStyles(theme => ({
   },
   txStatusCloseButton: {
     marginTop: '1rem'
+  },
+  semiBold: {
+    fontWeight: 600
+  },
+  extraBold: {
+    fontWeight: 800
+  },
+  l1FeeAndAmount: {
+    marginTop: '2.4rem'
   }
 }))
 
@@ -191,15 +200,29 @@ const Send: FC = () => {
     rate,
     priceImpact,
     amountOutMin,
-    bonderFee,
+    lpFees,
     requiredLiquidity,
-    loading: loadingSendData
+    loading: loadingSendData,
+    l1Fee,
+    estimatedReceived
   } = useSendData(
     sourceToken,
     slippageTolerance,
     fromNetwork,
     toNetwork,
     fromTokenAmountBN
+  )
+
+  const l1FeeDisplay = toTokenDisplay(
+    l1Fee,
+    destToken?.decimals,
+    destToken?.symbol
+  )
+
+  const estimatedReceivedDisplay = toTokenDisplay(
+    estimatedReceived,
+    destToken?.decimals,
+    destToken?.symbol
   )
 
   const needsTokenForFee = useNeedsTokenForFee(fromNetwork)
@@ -315,7 +338,7 @@ const Send: FC = () => {
   }, [noLiquidityWarning, needsNativeTokenWarning, minimumSendWarning])
 
   useEffect(() => {
-    if (!bonderFee || !sourceToken) {
+    if (!lpFees || !sourceToken) {
       setFeeDisplay(undefined)
       return
     }
@@ -323,14 +346,14 @@ const Send: FC = () => {
     const smallestFeeDecimals = sourceToken.decimals - 5
     const smallestFee = BigNumber.from(10 ** smallestFeeDecimals)
     let feeAmount: string
-    if (bonderFee.gt('0') && bonderFee.lt(smallestFee)) {
+    if (lpFees.gt('0') && lpFees.lt(smallestFee)) {
       feeAmount = `<${formatUnits(smallestFee, sourceToken.decimals)}`
     } else {
-      feeAmount = commafy(formatUnits(bonderFee, sourceToken.decimals), 5)
+      feeAmount = commafy(formatUnits(lpFees, sourceToken.decimals), 5)
     }
 
     setFeeDisplay(`${feeAmount} ${sourceToken.symbol}`)
-  }, [bonderFee])
+  }, [lpFees])
 
   useEffect(() => {
     if (!amountOutMin || !sourceToken) {
@@ -775,11 +798,55 @@ const Send: FC = () => {
           value={amountOutMinDisplay}
         />
         <DetailRow
-          title="Fee"
+          title="LP Fees"
           tooltip="This fee goes towards the Bonder who bonds the transfer on the destination chain."
           value={feeDisplay}
-          highlighted={toNetwork?.isLayer1}
         />
+        <div className={styles.l1FeeAndAmount}>
+          {
+            l1Fee &&
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Typography
+                  variant="h6"
+                  color="textSecondary"
+                  className={styles.semiBold}
+                >
+                  L1 Transaction Fee
+                </Typography>
+                <Typography
+                  variant="h6"
+                  color="textSecondary"
+                  className={styles.semiBold}
+                >
+                  {l1FeeDisplay}
+                </Typography>
+              </Box>
+          }
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Typography
+              variant="h6"
+              color="textSecondary"
+              className={styles.extraBold}
+            >
+              Estimated Received
+            </Typography>
+            <Typography
+              variant="h6"
+              color="textSecondary"
+              className={styles.extraBold}
+            >
+              {estimatedReceivedDisplay}
+            </Typography>
+          </Box>
+        </div>
       </div>
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <Alert severity="warning" text={warning} />

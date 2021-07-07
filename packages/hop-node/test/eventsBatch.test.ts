@@ -25,7 +25,7 @@ describe('eventsBatch', () => {
           if (iterations < maxIterations) {
             expect(end - start).toBe(batchBlocks)
           } else {
-            expect(end - start).toBe(remainder)
+            expect(end - start).toBe(remainder - i)
           }
         }
       )
@@ -59,7 +59,7 @@ describe('eventsBatch', () => {
           if (iterations < maxIterations) {
             expect(end - start).toBe(batchBlocks)
           } else {
-            expect(end - start).toBe(remainder)
+            expect(end - start).toBe(remainder - i)
             expect(start).toBe(startBlockNumber)
           }
         },

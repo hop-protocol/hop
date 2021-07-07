@@ -71,7 +71,7 @@ describe('eventsBatch', () => {
     60 * 1000
   )
 
-  it.skip(
+  it(
     'eventsBatch with cacheKey',
     async () => {
       const { l2Bridge } = contracts.get(Token.USDC, Chain.xDai)
@@ -85,12 +85,19 @@ describe('eventsBatch', () => {
 
       expect(batchBlocks).toBe(1000)
 
+      let firstStart = 0
+      let firstEnd = 0
+
       let lastStart = 0
       let lastEnd = 0
 
       await bridge.eventsBatch(
         async (start: number, end: number, i: number) => {
           iterations++
+          if (iterations === 1) {
+            firstStart = start
+            firstEnd = end
+          }
           // exit halfway through
           if (iterations === halfway) {
             lastStart = start
@@ -106,15 +113,18 @@ describe('eventsBatch', () => {
 
       await bridge.eventsBatch(
         async (start: number, end: number, i: number) => {
+          // eventsBatch resets when it enounters an error in process
           if (iterations === halfway) {
-            expect(start).toBe(lastStart)
+            expect(start).toBeGreaterThanOrEqual(firstStart)
+            expect(end).toBeGreaterThanOrEqual(firstEnd)
           }
           iterations++
         },
         { cacheKey }
       )
 
-      expect(iterations).toBe(maxIterations)
+      expect(iterations).toBeGreaterThanOrEqual(halfway + maxIterations)
+      expect(iterations).toBeLessThanOrEqual(halfway + maxIterations + 1)
     },
     60 * 1000
   )

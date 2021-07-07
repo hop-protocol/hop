@@ -30,7 +30,7 @@ export function rateLimitRetryFn (fn: any): any {
         const result = await retry()
         return result
       } catch (err) {
-        const errorRegex = /(timeout|bad response|response error|rate limit|too many concurrent requests)/gi
+        const errorRegex = /(timeout|timedout|bad response|response error|rate limit|too many concurrent requests)/gi
         const isRateLimitError = errorRegex.test(err.message)
         // throw error as usual if it's not a rate limit error
         if (!isRateLimitError) {

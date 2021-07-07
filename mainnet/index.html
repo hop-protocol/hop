@@ -11,7 +11,7 @@
     <meta name="application-name" content="Hop">
     <title>Hop Explorer</title>
     <link rel="canonical" href="https://explorer.hop.exchange">
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
     <div id="app" v-cloak>
@@ -40,13 +40,13 @@
               <td class="index">{{ index }}</td>
               <td class="timestamp" :title="x.isoTimestamp">{{ x.relativeTimestamp }}</td>
               <td :class="x.sourceChainSlug">
-                <img :src="x.sourceChainImageUrl">
-                {{ x.sourceChainSlug }}
+                <img :src="x.sourceChainImageUrl" :alt="x.sourceChainName">
+                {{ x.sourceChainName }}
                 <span :style="x.gradient">⟶</span>
               </td>
               <td :class="x.destinationChainSlug">
-                <img :src="x.destinationChainImageUrl">
-                {{ x.destinationChainSlug }}
+                <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
+                {{ x.destinationChainName }}
               </td>
               <td class="transferId">
                 <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank">
@@ -55,17 +55,20 @@
               </td>
               <td class="amount">{{ x.formattedAmount }}</td>
               <td class="token">
-                <img :src="x.tokenImageUrl" />
+                <img :src="x.tokenImageUrl" :alt="x.token">
                 {{ x.token }}
               </td>
               <td class="bonded">
                 <a v-if="x.bondTxExplorerUrl" :class="`${x.bonded ? 'yes' : 'no'}`" :href="x.bondTxExplorerUrl" target="_blank">
-                  <img :src="x.destinationChainImageUrl">
+                  <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
                   Bonded
                 </a>
                 <span v-if="!x.bondTxExplorerUrl && x.sourceChain !== 1" :class="`${x.bonded ? 'yes' : 'no'}`">
-                  <img :src="x.destinationChainImageUrl">
+                  <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
                   Unbonded
+                </span>
+                <span v-if="x.sourceChain === 1">
+                  N/A
                 </span>
               </td>
             </tr>

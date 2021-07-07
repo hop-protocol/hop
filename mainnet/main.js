@@ -36,7 +36,15 @@ const chainIdToSlugMap = {
   137: 'polygon'
 }
 
-const colors = {
+const chainSlugToNameMap = {
+  ethereum: 'Ethereum',
+  xdai: 'xDai',
+  polygon: 'Polygon',
+  arbitrum: 'Arbitrum',
+  optimism: 'Optimism'
+}
+
+const colorsMap = {
   ethereum: '#868dac',
   arbitrum: '#97ba4c',
   optimism: '#97ba4c',
@@ -45,13 +53,13 @@ const colors = {
   fallback: '#9f9fa3'
 }
 
-const chainLogos = {
+const chainLogosMap = {
   ethereum: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/ethereum.svg',
   xdai: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/xdai.svg',
   polygon: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/polygon.svg'
 }
 
-const tokenLogos = {
+const tokenLogosMap = {
   USDC: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/usdc.svg'
 }
 
@@ -244,8 +252,11 @@ function populateTransfer (x) {
   x.sourceChainSlug = chainIdToSlugMap[x.sourceChain]
   x.destinationChainSlug = chainIdToSlugMap[x.destinationChain]
 
-  x.sourceChainImageUrl = chainLogos[x.sourceChainSlug]
-  x.destinationChainImageUrl = chainLogos[x.sourceChainSlug]
+  x.sourceChainName = chainSlugToNameMap[x.sourceChainSlug]
+  x.destinationChainName = chainSlugToNameMap[x.destinationChainSlug]
+
+  x.sourceChainImageUrl = chainLogosMap[x.sourceChainSlug]
+  x.destinationChainImageUrl = chainLogosMap[x.sourceChainSlug]
 
   x.sourceTxExplorerUrl = explorerLink(x.sourceChainSlug, x.transactionHash)
   x.bondTxExplorerUrl = x.bondTransactionHash ? explorerLink(x.destinationChainSlug, x.bondTransactionHash) : ''
@@ -253,9 +264,9 @@ function populateTransfer (x) {
   const tokenDecimals = 6
   x.formattedAmount = ethers.utils.formatUnits(x.amount, tokenDecimals)
   x.token = 'USDC'
-  x.tokenImageUrl = tokenLogos[x.token]
+  x.tokenImageUrl = tokenLogosMap[x.token]
 
-  x.gradient = `background: linear-gradient(to right, ${colors[x.sourceChainSlug]}, ${colors[x.destinationChainSlug]}); -webkit-background-clip: text; color: transparent;`
+  x.gradient = `background: linear-gradient(to right, ${colorsMap[x.sourceChainSlug]}, ${colorsMap[x.destinationChainSlug]}); -webkit-background-clip: text; color: transparent;`
 
   return x
 }
@@ -290,10 +301,10 @@ async function updateChart (data) {
     chart
       .name(label)
       .colorNodes(function (name, node) {
-        return color(node, 1) || colors.fallback
+        return color(node, 1) || colorsMap.fallback
       })
       .colorLinks(function (link) {
-        return color(link.source, 4) || color(link.target, 1) || colors.fallback
+        return color(link.source, 4) || color(link.target, 1) || colorsMap.fallback
       })
       .nodeWidth(15)
       .nodePadding(10)
@@ -307,8 +318,8 @@ async function updateChart (data) {
 
     function color (node, depth) {
       const id = node.id.replace(/(_score)?(_\d+)?$/, '')
-      if (colors[id]) {
-        return colors[id]
+      if (colorsMap[id]) {
+        return colorsMap[id]
       } else if (depth > 0 && node.targetLinks && node.targetLinks.length === 1) {
         return color(node.targetLinks[0].source, depth - 1)
       } else {

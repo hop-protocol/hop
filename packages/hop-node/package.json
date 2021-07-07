@@ -41,6 +41,7 @@
     "@types/subleveldown": "^4.1.0",
     "@types/yargs": "^15.0.10",
     "async-mutex": "^0.3.1",
+    "autobind-decorator": "^2.4.0",
     "aws-sdk": "^2.937.0",
     "bip39": "^3.0.3",
     "chalk": "4.1.0",

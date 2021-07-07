@@ -1,3 +1,4 @@
+import { boundClass } from 'autobind-decorator'
 import { providers, Contract, BigNumber, Event } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
@@ -17,6 +18,7 @@ export type EventsBatchOptions = {
 
 export type EventCb = (event: Event, i?: number) => any
 
+@boundClass
 export default class Bridge extends ContractBase {
   WithdrawalBonded: string = 'WithdrawalBonded'
   TransferRootSet: string = 'TransferRootSet'
@@ -266,11 +268,7 @@ export default class Bridge extends ContractBase {
     cb: EventCb,
     options?: Partial<EventsBatchOptions>
   ) {
-    return this.mapEventsBatch(
-      this.getWithdrawalBondedEvents.bind(this),
-      cb,
-      options
-    )
+    return this.mapEventsBatch(this.getWithdrawalBondedEvents, cb, options)
   }
 
   @rateLimitRetry
@@ -313,11 +311,7 @@ export default class Bridge extends ContractBase {
     cb: EventCb,
     options?: Partial<EventsBatchOptions>
   ) {
-    return this.mapEventsBatch(
-      this.getTransferRootSetEvents.bind(this),
-      cb,
-      options
-    )
+    return this.mapEventsBatch(this.getTransferRootSetEvents, cb, options)
   }
 
   @rateLimitRetry
@@ -377,7 +371,7 @@ export default class Bridge extends ContractBase {
     options?: Partial<EventsBatchOptions>
   ) {
     return this.mapEventsBatch(
-      this.getMultipleWithdrawalsSettledEvents.bind(this),
+      this.getMultipleWithdrawalsSettledEvents,
       cb,
       options
     )
@@ -522,6 +516,7 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
+  @rateLimitRetry
   async waitSafeConfirmationsAndCheckBlockNumber (
     originalTxHash: string,
     txHashGetter: () => Promise<string>
@@ -558,7 +553,7 @@ export default class Bridge extends ContractBase {
     let i = 0
     const promises: Promise<any>[] = []
     await this.eventsBatch(async (start: number, end: number) => {
-      let events = await getEventsMethod(start, end)
+      let events = await rateLimitRetryFn(getEventsMethod)(start, end, i)
       events = events.reverse()
       for (let event of events) {
         promises.push(cb(event, i++))
@@ -572,7 +567,7 @@ export default class Bridge extends ContractBase {
     options: Partial<EventsBatchOptions> = {}
   ) {
     await this.waitTilReady()
-    this.validateEventsBatchInput(options)
+    await this.validateEventsBatchInput(options)
 
     let cacheKey = ''
     let state
@@ -595,10 +590,10 @@ export default class Bridge extends ContractBase {
 
     let i = 0
     if (totalBlocksInBatch <= batchBlocks) {
-      await rateLimitRetryFn(cb(start, end, i))
+      await rateLimitRetryFn(cb)(start, end, i)
     } else {
       while (start >= latestBlockInBatch - totalBlocksInBatch) {
-        const shouldContinue = await rateLimitRetryFn(cb(start, end, i))
+        const shouldContinue = await rateLimitRetryFn(cb)(start, end, i)
         if (typeof shouldContinue === 'boolean' && !shouldContinue) {
           break
         }

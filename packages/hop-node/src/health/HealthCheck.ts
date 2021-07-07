@@ -113,7 +113,8 @@ class HealthCheck {
       async (start: number, end: number) => {
         const events = await bridge.getTransferSentEvents(start, end)
         for (let event of events) {
-          const tx = await event.getTransaction()
+          const { transactionHash } = event
+          const tx = await bridge.getTransaction(transactionHash)
           const { transferId } = event.args
           const { destinationChainId } = await bridge.decodeSendData(tx.data)
           const sourceChain = await bridge.getChainSlug()
@@ -309,7 +310,8 @@ class HealthCheck {
       async (start: number, end: number) => {
         const events = await bridge.getTransferSentEvents(start, end)
         for (let event of events) {
-          const tx = await event.getTransaction()
+          const { transactionHash } = event
+          const tx = await bridge.getTransaction(transactionHash)
           const { transferId, amount, index } = event.args
           const { destinationChainId } = await bridge.decodeSendData(tx.data)
           const destBridge = this.bridges.find((bridge: L2Bridge) => {
@@ -350,7 +352,9 @@ class HealthCheck {
           if (!timestamp) {
             continue
           }
-          const bondTx = await bondEvent?.getTransaction()
+          const bondTx = await destBridge.getTransaction(
+            bondEvent.transactionHash
+          )
           bondedTransferIds.push({
             transferId,
             destinationChainId,
@@ -384,8 +388,9 @@ class HealthCheck {
               end
             )
             for (let event of events) {
+              const { transactionHash } = event
               const { bonder, rootHash, totalBondsSettled } = event.args
-              const tx = await event.getTransaction()
+              const tx = await destBridge.getTransaction(transactionHash)
               const {
                 transferIds,
                 totalAmount

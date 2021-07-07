@@ -73,7 +73,7 @@ describe('Happy Path', () => {
     expect(count).toBe(expectedCount)
   })
 
-  test('Use a used key', async () => {
+  test.skip('Use a used key', async () => {
     const key: string = 'testingKey'
     const chainId = await bridge.getChainId()
     const address = bridge.getAddress()

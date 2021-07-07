@@ -14,16 +14,22 @@ let { totalBlocks, batchBlocks } = config.sync[network]
 describe('Happy Path', () => {
   test('Full loop', async () => {
     let count = 0
+    const expectedSizeOfLastIteration = totalBlocks % batchBlocks
+    const expectedCount = Math.ceil(totalBlocks / batchBlocks)
     await bridge.eventsBatch(
       async (start: number, end: number, index: number) => {
         expect(index).toBe(count)
-        expect(end).toBe(start + batchBlocks)
+        if (index !== expectedCount - 1) {
+          expect(end).toBe(start + batchBlocks)
+        } else {
+          expect(end).toBe(start + expectedSizeOfLastIteration)
+        }
+
         count++
       }
     )
 
-    const totalCount = Math.floor(totalBlocks / batchBlocks)
-    expect(count).toBe(totalCount)
+    expect(count).toBe(expectedCount)
   })
 
   test('Single Batch', async () => {
@@ -48,18 +54,23 @@ describe('Happy Path', () => {
   test('Use an unused key', async () => {
     const key: string = 'testKey' + Math.random().toString()
     let count = 0
+    const expectedSizeOfLastIteration = totalBlocks % batchBlocks
+    const expectedCount = Math.ceil(totalBlocks / batchBlocks)
 
     await bridge.eventsBatch(
       async (start: number, end: number, index: number) => {
         expect(index).toBe(count)
-        expect(end).toBe(start + batchBlocks)
+        if (index !== expectedCount - 1) {
+          expect(end).toBe(start + batchBlocks)
+        } else {
+          expect(end).toBe(start + expectedSizeOfLastIteration)
+        }
         count++
       },
       { cacheKey: key }
     )
 
-    const totalCount = Math.floor(totalBlocks / batchBlocks)
-    expect(count).toBe(totalCount)
+    expect(count).toBe(expectedCount)
   })
 
   test('Use a used key', async () => {
@@ -122,23 +133,28 @@ describe('Happy Path', () => {
     expect(count - 1).toBe(expectedCount)
   })
 
-  test('Loop is exited because true was returned', async () => {
-    const expectedCount = 5
+  test('Loop is not exited because true was returned', async () => {
+    const trueReturnCount = 5
     let count = 0
+    const expectedSizeOfLastIteration = totalBlocks % batchBlocks
+    const expectedTotalCount = Math.ceil(totalBlocks / batchBlocks)
     await bridge.eventsBatch(
       async (start: number, end: number, index: number) => {
         expect(index).toBe(count)
-        expect(end).toBe(start + batchBlocks)
+        if (index !== expectedTotalCount - 1) {
+          expect(end).toBe(start + batchBlocks)
+        } else {
+          expect(end).toBe(start + expectedSizeOfLastIteration)
+        }
 
         count++
-        if (index === expectedCount) {
+        if (index === trueReturnCount) {
           return true
         }
       }
     )
 
-    const totalCount = Math.floor(totalBlocks / batchBlocks)
-    expect(count).toBe(totalCount)
+    expect(count).toBe(expectedTotalCount)
   })
 
   test('Total blocks in chain is lower than our total blocks config', async () => {

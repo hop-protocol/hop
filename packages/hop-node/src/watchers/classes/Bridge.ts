@@ -583,21 +583,27 @@ export default class Bridge extends ContractBase {
     let {
       start,
       end,
-      totalBlocksInBatch,
       batchBlocks,
+      earliestBlockInBatch,
       latestBlockInBatch
     } = await this.getBlockValues(options, state)
 
-    const isSingleIteration = start === end - totalBlocksInBatch
     let i = 0
-    while (start >= latestBlockInBatch - totalBlocksInBatch) {
+    while (start >= earliestBlockInBatch) {
       const shouldContinue = await rateLimitRetryFn(cb)(start, end, i)
-      if ((typeof shouldContinue === 'boolean' && !shouldContinue) || isSingleIteration) {
+      if (
+        (typeof shouldContinue === 'boolean' && !shouldContinue) ||
+        start === earliestBlockInBatch
+      ) {
         break
       }
 
       end = start
       start = end - batchBlocks
+
+      if (start < earliestBlockInBatch) {
+        start = earliestBlockInBatch
+      }
       i++
     }
 
@@ -628,6 +634,7 @@ export default class Bridge extends ContractBase {
       end = currentBlockNumber
       totalBlocksInBatch = totalBlocks
       // Handle the case where the chain has less blocks than the total block config
+      // This may happen during an Optimism regensis, for example
       if (end - totalBlocksInBatch < 0) {
         totalBlocksInBatch = end
       }
@@ -639,15 +646,18 @@ export default class Bridge extends ContractBase {
       start = end - batchBlocks
     }
 
+    const earliestBlockInBatch = end - totalBlocksInBatch
+    const latestBlockInBatch = end
+
     // NOTE: We do not handle the case where end minus batchBlocks is
     // a negative, which should never happen
 
     return {
       start,
       end,
-      totalBlocksInBatch,
       batchBlocks,
-      latestBlockInBatch: end
+      earliestBlockInBatch,
+      latestBlockInBatch
     }
   }
 

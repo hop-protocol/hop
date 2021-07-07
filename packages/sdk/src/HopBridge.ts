@@ -409,12 +409,22 @@ class HopBridge extends Base {
 
     const priceImpact = this.getPriceImpact(rate, marketRate)
 
+    const lpFees = await this.getLpFees(amountIn, sourceChain, destinationChain)
+    const l1Fee = await this.getL1TransactionFee(sourceChain, destinationChain)
+    let estimatedReceived = amountOut
+    if (l1Fee) {
+      estimatedReceived = estimatedReceived.sub(l1Fee)
+    }
+
     return {
       amountOut,
       rate,
       priceImpact,
+      requiredLiquidity: hTokenAmount,
       bonderFee,
-      requiredLiquidity: hTokenAmount
+      lpFees,
+      l1Fee,
+      estimatedReceived
     }
   }
 
@@ -480,15 +490,56 @@ class HopBridge extends Base {
 
   public async getBonderFee (
     amountIn: BigNumberish,
-    sourceChain?: TChain,
-    destinationChain?: TChain
+    sourceChain: TChain,
+    destinationChain: TChain
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    if (sourceChain?.isL1) {
+    if (!destinationChain.isL1) {
+      return this.getMinBonderFee(
+        amountIn.toString(),
+        sourceChain,
+        destinationChain
+      )
+    } else {
       return BigNumber.from(0)
-    } else if (destinationChain && destinationChain.isL1) {
+    }
+  }
+
+  public async getLpFees (
+    amountIn: BigNumberish,
+    sourceChain: TChain,
+    destinationChain: TChain
+  ): Promise<BigNumber> {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    const bonderFee = await this.getBonderFee(amountIn, sourceChain, destinationChain)
+
+    let lpFeeBps = 0
+    if (!sourceChain.isL1) {
+      lpFeeBps += 4
+    }
+    if (!destinationChain.isL1) {
+      lpFeeBps += 4
+    }
+
+    amountIn = BigNumber.from(amountIn)
+    let lpFees = amountIn.mul(lpFeeBps).div(10000)
+    lpFees.add(bonderFee)
+
+    return lpFees
+  }
+
+  public async getL1TransactionFee (
+    sourceChain: TChain,
+    destinationChain: TChain
+  ): Promise<BigNumber | undefined> {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    if (destinationChain && destinationChain.isL1) {
       const canonicalToken = this.getCanonicalToken(sourceChain)
       const ethPrice = await CoinGecko.getPriceByTokenSymbol('WETH')
       const tokenPrice = await CoinGecko.getPriceByTokenSymbol(
@@ -511,12 +562,6 @@ class HopBridge extends Base {
       fee = fee.mul(multiplier).div(oneEth)
 
       return fee
-    } else {
-      return this.getMinBonderFee(
-        amountIn.toString(),
-        sourceChain,
-        destinationChain
-      )
     }
   }
 

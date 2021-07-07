@@ -1,0 +1,134 @@
+body {
+  margin: auto;
+  background: #151417;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  padding: 2rem 2rem 5rem 2rem;
+}
+[v-cloak] {
+  display: none;
+}
+#chart {
+  height: 500px;
+  font: 13px sans-serif;
+}
+.node rect {
+  fill-opacity: .8;
+  shape-rendering: crispEdges;
+  stroke-width: 0;
+}
+.node text {
+  fill: #fff !important;
+}
+.link {
+  fill: none;
+  stroke: #000;
+  stroke-opacity: .5;
+}
+.link:hover {
+  stroke-opacity: 1;
+}
+.header {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.header h1 {
+  font-size: 2rem;
+}
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+}
+.arrow {
+  font-size: 1.6rem;
+}
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details > summary::marker {
+  display: none;
+}
+table {
+  border-collapse: separate;
+  width: 100%;
+  background: #161a1ca8;
+  padding: 2rem;
+  border-radius: 10px;
+  min-width: 1000px;
+}
+thead {
+  text-align: left;
+}
+table a {
+  text-decoration: none;
+}
+table a:hover {
+  font-weight: bold;
+}
+table td {
+  padding-bottom: 0.2rem;
+}
+table img {
+  display: inline-block;
+  width: 16px;
+  margin-right: 0.5rem;
+}
+.index {
+  font-weight: normal;
+  color: #ffffff33;
+}
+.timestamp {
+  font-weight: normal;
+  color: #ffffff8a;
+}
+.token,
+.amount {
+  font-weight: normal;
+  color: #ffffffcc;
+}
+.bonded {
+}
+.bonded .yes {
+  color: #81ff81;
+}
+.bonded .no {
+  color: #ffc55a;
+}
+.transferId {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+.polygon {
+  color: #8b57e1;
+}
+.xdai {
+  color: #46a4a1;
+}
+.ethereum {
+  color: #868dac;
+}
+.rainbow {
+  font-weight: bold;
+  font-style: italic;
+}
+.rainbow-animated {
+  background: linear-gradient(to right, #ff3399, #6666ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rainbowAnimation 6s ease-in-out infinite;
+  background-size: 400% 100%;
+}
+.animation-delay {
+  animation-delay: 1.5s;
+}
+@keyframes rainbowAnimation {
+  0%,100% {
+      background-position: 0 0;
+  }
+  50% {
+      background-position: 100% 0;
+  }
+}

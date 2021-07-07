@@ -1,21 +1,90 @@
-const poll = false
-let data = []
+const poll = true
+const fetchInterval = 10 * 1000
 
-const fetchTransfers = async (network) => {
-  const queryL2 = `
-    query TransferSents {
-      transferSents(
-        orderBy: timestamp,
-        orderDirection: desc
-      ) {
-        transferId
-        destinationChainId
-        amount
-        transactionHash
-        timestamp
-      }
+const app = new Vue({
+  el: '#app',
+  data: {
+    transfers: []
+  },
+  methods: {
+    updateTransfers: (transfers) => {
+      Vue.set(app, 'transfers', transfers)
     }
-  `
+  }
+})
+
+const chainToIndexMapSource = {
+  xdai: 1,
+  polygon: 2,
+  optimism: 2,
+  ethereum: 0
+}
+
+const chainToIndexMapDestination = {
+  ethereum: 3,
+  xdai: 4,
+  optimism: 5,
+  polygon: 5
+}
+
+const chainIdToSlugMap = {
+  1: 'ethereum',
+  42: 'ethereum',
+  69: 'optimism',
+  77: 'xdai',
+  100: 'xdai',
+  137: 'polygon'
+}
+
+const colors = {
+  ethereum: '#868dac',
+  arbitrum: '#97ba4c',
+  optimism: '#97ba4c',
+  xdai: '#46a4a1',
+  polygon: '#8b57e1',
+  fallback: '#9f9fa3'
+}
+
+const chainLogos = {
+  ethereum: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/ethereum.svg',
+  xdai: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/xdai.svg',
+  polygon: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/polygon.svg'
+}
+
+const tokenLogos = {
+  USDC: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/usdc.svg'
+}
+
+function explorerLink (chain, transactionHash) {
+  let base = ''
+  if (chain === 'xdai') {
+    base = 'https://blockscout.com/xdai/mainnet'
+  } else if (chain === 'polygon') {
+    base = 'https://polygonscan.com'
+  } else {
+    base = 'https://etherscan.io'
+  }
+
+  return `${base}/tx/${transactionHash}`
+}
+
+async function queryFetch (url, query, variables) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    },
+    body: JSON.stringify({
+      query,
+      variables: variables || {}
+    })
+  })
+  const jsonRes = await res.json()
+  return jsonRes.data
+}
+
+async function fetchTransfers (chain) {
   const queryL1 = `
     query TransferSentToL2 {
       transferSents: transferSentToL2S(
@@ -30,31 +99,34 @@ const fetchTransfers = async (network) => {
       }
     }
   `
+  const queryL2 = `
+    query TransferSents {
+      transferSents(
+        orderBy: timestamp,
+        orderDirection: desc
+      ) {
+        transferId
+        destinationChainId
+        amount
+        transactionHash
+        timestamp
+      }
+    }
+  `
   let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
   let query = queryL1
-  if (network !== 'mainnet') {
-    url = `${url}-${network}`
+  if (chain !== 'mainnet') {
+    url = `${url}-${chain}`
     query = queryL2
   }
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json'
-    },
-    body: JSON.stringify({
-      query,
-      variables: {}
-    })
-  })
-  const jsonRes = await res.json()
-  return jsonRes.data.transferSents.map(x => {
+  const data = await queryFetch(url, query)
+  return data.transferSents.map(x => {
     x.destinationChainId = Number(x.destinationChainId)
     return x
   })
 }
 
-const fetchBonds = async (chain) => {
+async function fetchBonds (chain) {
   const query = `
     query WithdrawalBondeds {
       withdrawalBondeds(
@@ -71,23 +143,12 @@ const fetchBonds = async (chain) => {
   if (chain !== 'mainnet') {
     url = `${url}-${chain}`
   }
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json'
-    },
-    body: JSON.stringify({
-      query,
-      variables: {}
-    })
-  })
-  const jsonRes = await res.json()
-  return jsonRes.data.withdrawalBondeds
+  const data = await queryFetch(url, query)
+  return data.withdrawalBondeds
 }
 
 async function updateData () {
-  data = []
+  const data = []
   const [
     xdaiTransfers,
     polygonTransfers,
@@ -108,111 +169,95 @@ async function updateData () {
     fetchBonds('mainnet')
   ])
 
-  for (const t of xdaiTransfers) {
+  for (const x of xdaiTransfers) {
     data.push({
       sourceChain: 100,
-      destinationChain: t.destinationChainId,
-      amount: t.amount,
-      transferId: t.transferId,
-      transactionHash: t.transactionHash,
-      timestamp: Number(t.timestamp)
+      destinationChain: x.destinationChainId,
+      amount: x.amount,
+      transferId: x.transferId,
+      transactionHash: x.transactionHash,
+      timestamp: Number(x.timestamp)
     })
   }
-  for (const t of polygonTransfers) {
+  for (const x of polygonTransfers) {
     data.push({
       sourceChain: 137,
-      destinationChain: t.destinationChainId,
-      amount: t.amount,
-      transferId: t.transferId,
-      transactionHash: t.transactionHash,
-      timestamp: Number(t.timestamp)
+      destinationChain: x.destinationChainId,
+      amount: x.amount,
+      transferId: x.transferId,
+      transactionHash: x.transactionHash,
+      timestamp: Number(x.timestamp)
     })
   }
-  for (const t of mainnetTransfers) {
+  for (const x of mainnetTransfers) {
     data.push({
       sourceChain: 1,
-      destinationChain: t.destinationChainId,
-      amount: t.amount,
-      transferId: t.id,
-      transactionHash: t.transactionHash,
-      timestamp: Number(t.timestamp)
+      destinationChain: x.destinationChainId,
+      amount: x.amount,
+      transferId: x.id,
+      transactionHash: x.transactionHash,
+      timestamp: Number(x.timestamp)
     })
   }
 
-  data = data.filter(x => x.destinationChain && x.transferId)
-    .sort((a, b) => a.timestamp < b.timestamp)
-
-  const mapping = {
-    100: xdaiBonds,
-    137: polygonBonds,
-    1: mainnetBonds
+  for (const x of data) {
+    x.bonded = false
   }
 
-  for (const item of data) {
-    item.bonded = false
+  const bondsMap = {
+    xdai: xdaiBonds,
+    polygon: polygonBonds,
+    ethereum: mainnetBonds
   }
 
-  for (const item of data) {
-    const bonds = mapping[item.destinationChain]
+  for (const x of data) {
+    const bonds = bondsMap[chainIdToSlugMap[x.destinationChain]]
     for (const bond of bonds) {
-      if (bond.transferId === item.transferId) {
-        item.bonded = true
-        item.bondTransactionHash = bond.transactionHash
+      if (bond.transferId === x.transferId) {
+        x.bonded = true
+        x.bondTransactionHash = bond.transactionHash
         continue
       }
     }
   }
 
-  load()
+  const populatedData = data.filter(x => x.destinationChain && x.transferId)
+    .sort((a, b) => a.timestamp < b.timestamp)
+    .map(populateTransfer)
 
-  if (poll) {
-    setTimeout(() => {
-      updateData()
-    }, 10 * 1000)
-  }
+  app.updateTransfers(populatedData)
+  return populatedData
 }
 
-function explorerLink (chain, transactionHash) {
-  let base = ''
-  if (chain === 100) {
-    base = 'https://blockscout.com/xdai/mainnet'
-  } else if (chain === 137) {
-    base = 'https://polygonscan.com'
-  } else {
-    base = 'https://etherscan.io'
-  }
+function populateTransfer (x) {
+  const t = luxon.DateTime.fromSeconds(x.timestamp)
+  x.isoTimestamp = t.toISO()
+  x.relativeTimestamp = t.toRelative()
 
-  return `${base}/tx/${transactionHash}`
+  x.sourceChainSlug = chainIdToSlugMap[x.sourceChain]
+  x.destinationChainSlug = chainIdToSlugMap[x.destinationChain]
+
+  x.sourceChainImageUrl = chainLogos[x.sourceChainSlug]
+  x.destinationChainImageUrl = chainLogos[x.sourceChainSlug]
+
+  x.sourceTxExplorerUrl = explorerLink(x.sourceChainSlug, x.transactionHash)
+  x.bondTxExplorerUrl = x.bondTransactionHash ? explorerLink(x.destinationChainSlug, x.bondTransactionHash) : ''
+
+  const tokenDecimals = 6
+  x.formattedAmount = ethers.utils.formatUnits(x.amount, tokenDecimals)
+  x.token = 'USDC'
+  x.tokenImageUrl = tokenLogos[x.token]
+
+  x.gradient = `background: linear-gradient(to right, ${colors[x.sourceChainSlug]}, ${colors[x.destinationChainSlug]}); -webkit-background-clip: text; color: transparent;`
+
+  return x
 }
 
-async function load () {
-  const indexMap = {
-    77: 1,
-    100: 1,
-
-    137: 2,
-    69: 2,
-
-    42: 0,
-    1: 0
-  }
-
-  const indexMapDest = {
-    42: 3,
-    1: 3,
-
-    77: 4,
-    100: 4,
-
-    69: 5,
-    137: 5
-
-  }
-
+async function updateChart (data) {
   const links = data.map(x => {
     return {
-      source: indexMap[x.sourceChain],
-      target: indexMapDest[x.destinationChain],
+      source: chainToIndexMapSource[x.sourceChainSlug],
+      target: chainToIndexMapDestination[x.destinationChainSlug],
       value: 1
     }
   })
@@ -232,85 +277,7 @@ async function load () {
     links: links
   }
 
-  const json = graph
-  const colors = {
-    // xdai: '#edbd00',
-    xdai: '#46a4a1',
-    // ethereum: '#367d85',
-    ethereum: '#868dac',
-    optimism: '#97ba4c',
-    // polygon: '#8d4cba',
-    polygon: '#8b57e1',
-    // polygon: '#97ba4c',
-    foo: '#f5662b',
-    bar: '#3f3e47',
-    fallback: '#9f9fa3'
-  }
-
-  const classes = {
-    100: 'xdai',
-    137: 'polygon',
-    1: 'ethereum'
-  }
-
-  function className (chain) {
-    return classes[chain]
-  }
-
-  const chainLogos = {
-    1: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/ethereum.svg',
-    100: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/xdai.svg',
-    137: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/polygon.svg'
-  }
-
-  function chainImage (chain) {
-    const url = chainLogos[chain]
-    return `<img src="${url}" />`
-  }
-
-  const tokenLogos = {
-    USDC: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/usdc.svg'
-  }
-
-  function tokenImage (token) {
-    const url = tokenLogos[token]
-    return `<img src="${url}" />`
-  }
-
-  const transfers = data.map(x => {
-    const t = luxon.DateTime.fromSeconds(x.timestamp)
-    return `<td class="timestamp" title="${t.toISO()}">${t.toRelative()}</td>
-<td class="${className(x.sourceChain)}">${chainImage(x.sourceChain)}${classes[x.sourceChain]} <span style="background: linear-gradient(to right, ${colors[classes[x.sourceChain]]}, ${colors[classes[x.destinationChain]]}); -webkit-background-clip: text; color: transparent;">⟶</span></td>
-  <td class="${className(x.destinationChain)}">${chainImage(x.destinationChain)}${classes[x.destinationChain]}</td>
-  <td class="transferId"><a class="${className(x.sourceChain)}" href="${explorerLink(x.sourceChain, x.transactionHash)}" target="_blank">${x.transferId}</a></td>
-<td class="amount">${ethers.utils.formatUnits(x.amount, 6)}</td>
-<td class="token">${tokenImage('USDC')}USDC</td>
-<td class="bonded">
-  <a class="${x.bonded ? 'yes' : 'no'}" href="${explorerLink(x.destinationChain, x.bondTransactionHash)}" target="_blank">
-${chainImage(x.destinationChain)}
-  ${x.bonded ? 'bonded' : 'unbonded'}
-  </a>
-</td>`
-  })
-  const table = d3.select('#transfers')
-    .html('')
-    .append('table')
-
-  table
-    .selectAll('thead')
-    .data(['<th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Amount</th><th>Token</th><th>Bonded</th>'])
-    .enter()
-    .append('thead')
-    .html(String)
-
-  table
-    .selectAll('tr')
-    .data([null].concat(...transfers))
-    .enter()
-    .append('tr')
-    .html(String)
-
-  function render () {
+  const render = () => {
     d3.select('#chart svg').remove()
     const chart = d3.select('#chart').append('svg').chart('Sankey.Path')
     chart
@@ -325,11 +292,12 @@ ${chainImage(x.destinationChain)}
       .nodePadding(10)
       .spread(true)
       .iterations(0)
-      .draw(json)
+      .draw(graph)
 
     function label (node) {
       return node.name.replace(/\s*\(.*?\)$/, '')
     }
+
     function color (node, depth) {
       const id = node.id.replace(/(_score)?(_\d+)?$/, '')
       if (colors[id]) {
@@ -340,14 +308,23 @@ ${chainImage(x.destinationChain)}
         return null
       }
     }
-    // });
   }
 
   render()
-  window.addEventListener('resize', event => {
-    render()
-  })
+
+  window.removeEventListener('resize', render)
+  window.addEventListener('resize', render)
 }
 
-updateData()
-load()
+async function main () {
+  updateData()
+  if (poll) {
+    while (true) {
+      const data = await updateData()
+      updateChart(data)
+      await new Promise((resolve) => setTimeout(() => resolve(null), fetchInterval))
+    }
+  }
+}
+
+main()

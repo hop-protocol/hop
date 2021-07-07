@@ -1,163 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
   <head>
-    <meta charset="utf-8">
-    <title>Hop Dataviz</title>
-    <script src="//d3js.org/d3.v3.min.js"></script>
-    <!-- <script src="//cdn.rawgit.com/newrelic-forks/d3-plugins-sankey/master/sankey.js"></script> -->
-    <script src="//cdn.rawgit.com/misoproject/d3.chart/master/d3.chart.min.js"></script>
-    <!-- <script src="//cdn.rawgit.com/q-m/d3.chart.sankey/master/d3.chart.sankey.min.js"></script> -->
-    <script src="../lib//sankey2.js"></script>
-    <style>
-      body {
-        margin: auto;
-        background: #151417;
-        color: #fff;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-        padding: 2rem 2rem 5rem 2rem;
-      }
-      #chart {
-        height: 500px;
-        font: 13px sans-serif;
-      }
-      .node rect {
-        fill-opacity: .8;
-        shape-rendering: crispEdges;
-        stroke-width: 0;
-      }
-      .node text {
-        fill: #fff !important;
-      }
-      .link {
-        fill: none;
-        stroke: #000;
-        stroke-opacity: .5;
-      }
-      .link:hover {
-        stroke-opacity: 1;
-      }
-      .header {
-        margin-bottom: 1rem;
-        text-align: center;
-      }
-      .header h1 {
-        font-size: 2rem;
-      }
-      .chartHeader {
-        display: flex;
-        justify-content: space-between;
-      }
-      .arrow {
-        font-size: 1.6rem;
-      }
-      details > summary {
-        list-style: none;
-        cursor: pointer;
-      }
-      details > summary::marker {
-        display: none;
-      }
-      table {
-        border-collapse: separate;
-        width: 100%;
-        background: #161a1ca8;
-        padding: 2rem;
-        border-radius: 10px;
-        min-width: 1000px;
-      }
-      thead {
-        text-align: left;
-      }
-      table a {
-        text-decoration: none;
-      }
-      table a:hover {
-        font-weight: bold;
-      }
-      table td {
-        padding-bottom: 0.2rem;
-      }
-      table img {
-        display: inline-block;
-        width: 16px;
-        margin-right: 0.5rem;
-      }
-      .timestamp {
-        font-weight: normal;
-        color: #ffffff8a;
-      }
-      .token,
-      .amount {
-        font-weight: normal;
-        color: #ffffffcc;
-      }
-      .bonded {
-      }
-      .bonded .yes {
-        color: #81ff81;
-      }
-      .bonded .no {
-        color: #ffc55a;
-      }
-      .transferId {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        word-break: break-word;
-      }
-      .polygon {
-        color: #8b57e1;
-      }
-      .xdai {
-        color: #46a4a1;
-      }
-      .ethereum {
-        color: #868dac;
-      }
-      .rainbow {
-        font-weight: bold;
-        font-style: italic;
-      }
-      .rainbow-animated {
-        background: linear-gradient(to right, #ff3399, #6666ff);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        animation: rainbowAnimation 6s ease-in-out infinite;
-        background-size: 400% 100%;
-      }
-      .animation-delay {
-        animation-delay: 1.5s;
-      }
-      @keyframes rainbowAnimation {
-        0%,100% {
-            background-position: 0 0;
-        }
-        50% {
-            background-position: 100% 0;
-        }
-      }
-    </style>
+    <meta charset="UTF-8">
+    <meta http-equiv="content-language" content="en-us">
+    <meta name="description" content="Hop Explorer">
+    <meta name="keywords" content="hop, hop exchange, hop explorer, hop transfers, hop visualizations">
+    <meta name="robots" content="index,follow">
+    <meta name="googlebot" content="index,follow">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="application-name" content="Hop">
+    <title>Hop Explorer</title>
+    <link rel="canonical" href="https://explorer.hop.exchange">
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <header class="header">
-      <h1 class="rainbow rainbow-animated">Hop transfers</h1>
-    </header>
-    <div class="chartHeader">
-      <label>Source</label>
-      <label class="arrow rainbow rainbow-animated animation-delay">⟶</label>
-      <label>Destination</label>
-    </div>
-    <div class="chartContainer">
-      <div id="chart"></div>
-    </div>
-    <details open>
-      <summary>Hide/Show Transfers</summary>
-      <div id="transfers">
+    <div id="app" v-cloak>
+      <header class="header">
+        <h1 class="rainbow rainbow-animated">Hop transfers</h1>
+      </header>
+      <div class="chartHeader">
+        <label>Source</label>
+        <label class="arrow rainbow rainbow-animated animation-delay">⟶</label>
+        <label>Destination</label>
       </div>
-    </details>
+      <div class="chartContainer">
+        <div id="chart"></div>
+      </div>
+      <details open>
+        <summary>Hide/Show Transfers</summary>
+        <div id="transfers">
+          <table>
+          <thead>
+            <tr>
+              <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Amount</th><th>Token</th><th>Bonded</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(x, index) in transfers">
+              <td class="index">{{ index }}</td>
+              <td class="timestamp" :title="x.isoTimestamp">{{ x.relativeTimestamp }}</td>
+              <td :class="x.sourceChainSlug">
+                <img :src="x.sourceChainImageUrl">
+                {{ x.sourceChainSlug }}
+                <span :style="x.gradient">⟶</span>
+              </td>
+              <td :class="x.destinationChainSlug">
+                <img :src="x.destinationChainImageUrl">
+                {{ x.destinationChainSlug }}
+              </td>
+              <td class="transferId">
+                <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank">
+                  {{ x.transferId }}
+                </a>
+              </td>
+              <td class="amount">{{ x.formattedAmount }}</td>
+              <td class="token">
+                <img :src="x.tokenImageUrl" />
+                {{ x.token }}
+              </td>
+              <td class="bonded">
+                <a v-if="x.bondTxExplorerUrl" :class="`${x.bonded ? 'yes' : 'no'}`" :href="x.bondTxExplorerUrl" target="_blank">
+                  <img :src="x.destinationChainImageUrl">
+                  Bonded
+                </a>
+                <span v-if="!x.bondTxExplorerUrl && x.sourceChain !== 1" :class="`${x.bonded ? 'yes' : 'no'}`">
+                  <img :src="x.destinationChainImageUrl">
+                  Unbonded
+                </span>
+              </td>
+            </tr>
+          </tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="https://cdn.rawgit.com/misoproject/d3.chart/master/d3.chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/1.27.0/luxon.min.js"></script>
-    <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js" type="text/javascript">
-</script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
+    <script src="../lib/sankey.patched.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

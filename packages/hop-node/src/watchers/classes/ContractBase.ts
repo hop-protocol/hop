@@ -154,11 +154,14 @@ export default class ContractBase extends EventEmitter {
       return
     }
 
+    // This number is granular enough to hardly notice a difference when using Hop
+    // TODO: wait the min time per chain and then try every 5s (124 * 4 for polygon, for example)
+    const waitConfirmationSec = 20
     // keep waiting until latest block number is equal to or larger than
     // target block number
     while (blockNumber < targetBlockNumber) {
       blockNumber = await this.contract.provider.getBlockNumber()
-      await wait(2 * 1000)
+      await wait(waitConfirmationSec * 1000)
     }
   }
 

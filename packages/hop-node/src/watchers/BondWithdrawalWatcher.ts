@@ -153,7 +153,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const initialSyncCompleted = await this.isAllSiblingWatchersInitialSyncCompleted()
     if (!initialSyncCompleted) {
       return false
-    } 
+    }
 
     const dbTransfers = await db.transfers.getUnbondedSentTransfers({
       sourceChainId: await this.bridge.getChainId()

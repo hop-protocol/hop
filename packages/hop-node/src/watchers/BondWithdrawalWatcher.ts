@@ -225,6 +225,18 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       return
     }
 
+    if (dbTransfer.transferRootId) {
+      const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
+        .bridge as L1Bridge
+      const transferRootConfirmed = await l1Bridge.isTransferRootIdConfirmed(
+        dbTransfer.transferRootId
+      )
+      if (transferRootConfirmed) {
+        logger.warn('transfer root already confirmed. Cannot bond withdrawal')
+        return
+      }
+    }
+
     await this.waitTimeout(transferId, destinationChainId)
 
     const { from: sender, data } = await sourceL2Bridge.getTransaction(

@@ -226,6 +226,13 @@ async function updateData () {
     .map(populateTransfer)
 
   app.updateTransfers(populatedData)
+
+  try {
+    localStorage.setItem('data', JSON.stringify(populatedData))
+  } catch (err) {
+    console.error(err)
+  }
+
   return populatedData
 }
 
@@ -317,6 +324,16 @@ async function updateChart (data) {
 }
 
 async function main () {
+  try {
+    const data = JSON.parse(localStorage.getItem('data'))
+    if (data) {
+      app.updateTransfers(data)
+      updateChart(data)
+    }
+  } catch (err) {
+    console.error(err)
+  }
+
   updateData()
   if (poll) {
     while (true) {

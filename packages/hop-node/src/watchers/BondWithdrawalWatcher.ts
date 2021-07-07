@@ -150,6 +150,11 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransferSentFromDb () {
+    const initialSyncCompleted = await this.isAllSiblingWatchersInitialSyncCompleted()
+    if (!initialSyncCompleted) {
+      return false
+    } 
+
     const dbTransfers = await db.transfers.getUnbondedSentTransfers({
       sourceChainId: await this.bridge.getChainId()
     })
@@ -193,15 +198,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
     )
 
-    const isBonder = await destBridge.isBonder()
-    if (!isBonder) {
-      logger.warn(
-        `not a bonder on destination chain id ${destinationChainId}. Cannot bond withdrawal`
-      )
-      return
-    }
-
-    // TODO: Handle this in DB getter
     if (this.minAmount && amount.lt(this.minAmount)) {
       logger.debug(
         `transfer amount ${this.bridge.formatUnits(
@@ -223,42 +219,10 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       return
     }
 
-    // TODO: Handle this in DB getter?
-    const bondedAmount = await destBridge.getBondedWithdrawalAmount(transferId)
-    const isTransferIdSpent = await destBridge.isTransferIdSpent(transferId)
-    const isWithdrawalBonded = bondedAmount.gt(0) || isTransferIdSpent
-    if (isWithdrawalBonded) {
-      logger.debug(
-        `transferId ${transferId} already bonded. isSpent: ${isTransferIdSpent}`
-      )
-      await db.transfers.update(transferId, {
-        withdrawalBonded: true
-      })
-      const event = await destBridge.getBondedWithdrawalEvent(transferId)
-      if (event?.transactionHash) {
-        await db.transfers.update(transferId, {
-          withdrawalBondedTxHash: event?.transactionHash
-        })
-      }
-      return
-    }
-
     logger.debug('sending bondWithdrawal tx')
     if (this.dryMode) {
       logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
       return
-    }
-
-    if (dbTransfer.transferRootId) {
-      const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
-        .bridge as L1Bridge
-      const transferRootConfirmed = await l1Bridge.isTransferRootIdConfirmed(
-        dbTransfer.transferRootId
-      )
-      if (transferRootConfirmed) {
-        logger.warn('transfer root already confirmed. Cannot bond withdrawal')
-        return
-      }
     }
 
     await this.waitTimeout(transferId, destinationChainId)
@@ -360,12 +324,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       )
       const l2Bridge = this.getSiblingWatcherByChainId(destinationChainId)
         .bridge as L2Bridge
-      const hasPositiveBalance = await l2Bridge.hasPositiveBalance()
-      if (!hasPositiveBalance) {
-        throw new BondError(
-          `bonder requires positive balance on destinationChainId ${destinationChainId} to bond withdrawal`
-        )
-      }
       const credit = await l2Bridge.getAvailableCredit()
       if (credit.lt(amount)) {
         throw new BondError(
@@ -385,12 +343,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     } else {
       logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
       const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-      const hasPositiveBalance = await bridge.hasPositiveBalance()
-      if (!hasPositiveBalance) {
-        throw new BondError(
-          'bonder requires positive balance to bond withdrawal'
-        )
-      }
       const credit = await bridge.getAvailableCredit()
       if (credit.lt(amount)) {
         throw new BondError(

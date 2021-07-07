@@ -588,20 +588,17 @@ export default class Bridge extends ContractBase {
       latestBlockInBatch
     } = await this.getBlockValues(options, state)
 
+    const isSingleIteration = start === end - totalBlocksInBatch
     let i = 0
-    if (totalBlocksInBatch <= batchBlocks) {
-      await rateLimitRetryFn(cb)(start, end, i)
-    } else {
-      while (start >= latestBlockInBatch - totalBlocksInBatch) {
-        const shouldContinue = await rateLimitRetryFn(cb)(start, end, i)
-        if (typeof shouldContinue === 'boolean' && !shouldContinue) {
-          break
-        }
-
-        end = start
-        start = end - batchBlocks
-        i++
+    while (start >= latestBlockInBatch - totalBlocksInBatch) {
+      const shouldContinue = await rateLimitRetryFn(cb)(start, end, i)
+      if ((typeof shouldContinue === 'boolean' && !shouldContinue) || isSingleIteration) {
+        break
       }
+
+      end = start
+      start = end - batchBlocks
+      i++
     }
 
     if (cacheKey) {
@@ -636,7 +633,11 @@ export default class Bridge extends ContractBase {
       }
     }
 
-    start = end - batchBlocks
+    if (totalBlocksInBatch <= batchBlocks) {
+      start = end - totalBlocksInBatch
+    } else {
+      start = end - batchBlocks
+    }
 
     // NOTE: We do not handle the case where end minus batchBlocks is
     // a negative, which should never happen

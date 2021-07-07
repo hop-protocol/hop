@@ -1,3 +1,4 @@
+import { boundClass } from 'autobind-decorator'
 import { providers, Contract, ethers, BigNumber, Event } from 'ethers'
 import { l1Erc20BridgeAbi, erc20Abi } from '@hop-protocol/abi'
 import { parseUnits } from 'ethers/lib/utils'
@@ -9,6 +10,7 @@ import { Chain } from 'src/constants'
 import wallets from 'src/wallets'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 
+@boundClass
 export default class L1Bridge extends Bridge {
   TransferRootBonded: string = 'TransferRootBonded'
   TransferRootConfirmed: string = 'TransferRootConfirmed'
@@ -112,11 +114,7 @@ export default class L1Bridge extends Bridge {
     cb: EventCb,
     options?: Partial<EventsBatchOptions>
   ) {
-    return this.mapEventsBatch(
-      this.getTransferRootBondedEvents.bind(this),
-      cb,
-      options
-    )
+    return this.mapEventsBatch(this.getTransferRootBondedEvents, cb, options)
   }
 
   async getLastTransferRootBondedEvent (): Promise<any> {
@@ -168,11 +166,7 @@ export default class L1Bridge extends Bridge {
     cb: EventCb,
     options?: Partial<EventsBatchOptions>
   ) {
-    return this.mapEventsBatch(
-      this.getTransferRootConfirmedEvents.bind(this),
-      cb,
-      options
-    )
+    return this.mapEventsBatch(this.getTransferRootConfirmedEvents, cb, options)
   }
 
   @rateLimitRetry

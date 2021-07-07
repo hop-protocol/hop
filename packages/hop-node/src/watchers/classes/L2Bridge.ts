@@ -1,3 +1,4 @@
+import { boundClass } from 'autobind-decorator'
 import { providers, Contract, BigNumber, Event } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import {
@@ -15,6 +16,7 @@ import L1Bridge from './L1Bridge'
 import Token from './Token'
 import { Chain } from 'src/constants'
 
+@boundClass
 export default class L2Bridge extends Bridge {
   ammWrapper: L2AmmWrapper
   l2BridgeWrapper: L2BridgeWrapper
@@ -100,11 +102,7 @@ export default class L2Bridge extends Bridge {
     cb: EventCb,
     options?: Partial<EventsBatchOptions>
   ) {
-    return this.mapEventsBatch(
-      this.getTransfersCommittedEvents.bind(this),
-      cb,
-      options
-    )
+    return this.mapEventsBatch(this.getTransfersCommittedEvents, cb, options)
   }
 
   async getLastTransfersCommittedEvent (): Promise<any> {
@@ -136,11 +134,7 @@ export default class L2Bridge extends Bridge {
     cb: EventCb,
     options?: Partial<EventsBatchOptions>
   ) {
-    return this.mapEventsBatch(
-      this.getTransferSentEvents.bind(this),
-      cb,
-      options
-    )
+    return this.mapEventsBatch(this.getTransferSentEvents, cb, options)
   }
 
   @rateLimitRetry
@@ -237,6 +231,7 @@ export default class L2Bridge extends Bridge {
     )
   }
 
+  @rateLimitRetry
   async doPendingTransfersExist (chainId: number): Promise<boolean> {
     try {
       await this.getPendingTransferByIndex(chainId, 0)

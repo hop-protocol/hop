@@ -81,8 +81,9 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
   ) => {
     const logger = this.logger.create({ id: transferId })
 
-    const tx = await event.getTransaction()
-    const { from: withdrawalBonder, hash } = tx
+    const { transactionHash } = event
+    const tx = await this.bridge.getTransaction(transactionHash)
+    const { from: withdrawalBonder } = tx
 
     logger.debug(`handling WithdrawalBonded event`)
     logger.debug('transferId:', transferId)
@@ -91,7 +92,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     await db.transfers.update(transferId, {
       withdrawalBonded: true,
       withdrawalBonder,
-      withdrawalBondedTxHash: hash
+      withdrawalBondedTxHash: transactionHash
     })
   }
 
@@ -129,7 +130,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
     try {
       const { transactionHash } = event
-      const tx = await event.getTransaction()
+      const tx = await this.bridge.getTransaction(transactionHash)
       const { from: bonder } = tx
       const transferRootId = await this.bridge.getTransferRootId(
         transferRootHash,
@@ -259,7 +260,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         }
 
         const isSameChainId =
-          eventDbTransferRoot.destinationChainId === destinationChainId
+          eventDbTransferRoot?.destinationChainId === destinationChainId
         if (endEvent && isSameChainId) {
           startEvent = event
           return false

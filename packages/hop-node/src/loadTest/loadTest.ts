@@ -59,17 +59,18 @@ class LoadTest {
     const logger = new Logger({
       tag: 'LoadTest'
     })
-    logger.debug('concurrent users:', this.concurrentUsers)
-    logger.debug('iterations:', this.iterations)
-    logger.debug('transfer amount:', this.amount)
-    logger.debug('token:', this.token)
     const transactions: any = {}
     const amounts: any = {}
     const bonded: any = {}
     const transferAmount = this.amount
     const paths = this.paths
     const tokens = [this.token]
-    console.log(paths)
+
+    logger.debug('concurrent users:', this.concurrentUsers)
+    logger.debug('iterations:', this.iterations)
+    logger.debug('transfer amount:', transferAmount)
+    logger.debug('tokens:', tokens)
+    logger.debug('paths', paths)
 
     if (!paths.length) {
       throw new Error('paths is required')
@@ -186,7 +187,9 @@ class LoadTest {
     const transferIds: any = {}
     const poll = async (): Promise<any> => {
       let cache: any = {}
-      const chains = paths[0]
+      const chains = Array.from(
+        new Set((paths as any).flat()).values()
+      ) as string[]
       for (let chain of chains) {
         if (!cache[chain]) {
           cache[chain] = {}

@@ -2,7 +2,7 @@ import '../moduleAlias'
 import { ethers, Contract, BigNumber, Event, providers } from 'ethers'
 import db from 'src/db'
 import chalk from 'chalk'
-import { wait, isL1ChainId } from 'src/utils'
+import { wait, getSafeWaitConfirmations } from 'src/utils'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import Bridge from './classes/Bridge'
 import L1Bridge from './classes/L1Bridge'
@@ -163,9 +163,16 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         `checking ${dbTransfers.length} unbonded transfers db items`
       )
     }
+
+    const headBlockNumber = await this.bridge.getBlockNumber()
     const promises: Promise<any>[] = []
     for (let dbTransfer of dbTransfers) {
-      const { transferId } = dbTransfer
+      const { transferId, transferSentBlockNumber } = dbTransfer
+      const targetBlockNumber = transferSentBlockNumber + getSafeWaitConfirmations(this.chainSlug)
+      if (headBlockNumber > targetBlockNumber) {
+        continue
+      }
+
       promises.push(this.checkTransferSent(transferId))
     }
 

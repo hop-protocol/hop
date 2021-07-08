@@ -325,7 +325,7 @@ const Send: FC = () => {
   }, [needsTokenForFee, fromNetwork])
 
   useEffect(() => {
-    const warningMessage = `Send at least ${feeDisplay} to cover the transaction fee`
+    const warningMessage = `Send at least ${l1FeeDisplay} to cover the transaction fee`
     if (estimatedReceived?.lte(0) && l1Fee) {
       setMinimumSendWarning(warningMessage)
     } else {
@@ -689,7 +689,8 @@ const Send: FC = () => {
     enoughBalance &&
     !needsTokenForFee &&
     isLiquidityAvailable &&
-    !checkingLiquidity
+    !checkingLiquidity &&
+    estimatedReceived?.gt(0)
   )
 
   let buttonText = 'Send'
@@ -707,6 +708,8 @@ const Send: FC = () => {
     buttonText = 'Insufficient liquidity'
   } else if (checkingLiquidity) {
     buttonText = 'Checking liquidity'
+  } else if (estimatedReceived?.lte(0)) {
+    buttonText = 'Insufficient amount'
   }
 
   const handleTxStatusClose = () => {

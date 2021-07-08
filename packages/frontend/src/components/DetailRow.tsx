@@ -1,22 +1,43 @@
-import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import React, { FC, ReactFragment } from 'react'
+import { makeStyles, Theme } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import InfoTooltip from 'src/components/infoTooltip'
-import { DetailRow as DetailRowProps } from 'src/types'
 import classnames from 'classnames'
 
-const useStyles = makeStyles((theme) => ({
+export type DetailRowProps = {
+  title: string,
+  value: string | undefined
+  tooltip?: ReactFragment
+  highlighted?: boolean
+  large?: boolean
+  bold?: boolean
+  contrastText?: boolean
+}
+
+type StyleProps = {
+  highlighted: boolean
+  bold: boolean
+  contrastText: boolean
+}
+
+const useStyles = makeStyles<Theme, StyleProps>(theme => ({
   detailLabel: {
     display: 'flex',
     justifyContent: 'flex-start',
     alignItems: 'center'
   },
-  highlight: {
-    color: highlighted =>
-      highlighted
-        ? theme.palette.primary.main
-        : theme.palette.text.primary
+  label: {
+    color: ({ highlighted, contrastText }) => {
+      if (highlighted) {
+        return theme.palette.primary.main
+      } else if (contrastText) {
+        return 'white'
+      } else {
+        return theme.palette.text.secondary
+      }
+    },
+    fontWeight: ({ bold }) => bold ? 800 : 700
   }
 }))
 
@@ -25,9 +46,12 @@ const DetailRow: FC<DetailRowProps> = props => {
     title,
     tooltip,
     value,
-    highlighted = false
+    highlighted = false,
+    large = false,
+    bold = false,
+    contrastText = false
   } = props
-  const styles = useStyles(highlighted)
+  const styles = useStyles({ highlighted, bold, contrastText })
 
   return (
     <Box
@@ -36,9 +60,9 @@ const DetailRow: FC<DetailRowProps> = props => {
       justifyContent="space-between"
     >
       <Typography
-        variant="subtitle2"
+        variant={large ? 'h6' : 'subtitle2'}
         color="textSecondary"
-        className={classnames(styles.detailLabel, styles.highlight)}
+        className={classnames(styles.detailLabel, styles.label)}
       >
         {title + ' '}
         {
@@ -48,9 +72,9 @@ const DetailRow: FC<DetailRowProps> = props => {
         }
       </Typography>
       <Typography
-        variant="subtitle2"
+        variant={large ? 'h6' : 'subtitle2'}
         color="textSecondary"
-        className={styles.highlight}
+        className={styles.label}
       >
         {value || '-'}
       </Typography>

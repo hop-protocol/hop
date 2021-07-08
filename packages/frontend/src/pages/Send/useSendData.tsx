@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { BigNumber } from 'ethers'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
@@ -18,8 +18,10 @@ const useSendData = (
   const [rate, setRate] = useState<number | undefined>()
   const [priceImpact, setPriceImpact] = useState<number | undefined>()
   const [bonderFee, setBonderFee] = useState<BigNumber>()
+  const [lpFees, setLpFees] = useState<BigNumber>()
   const [requiredLiquidity, setRequiredLiquidity] = useState<BigNumber>()
-  const [amountOutMin, setAmountOutMin] = useState<BigNumber>()
+  const [l1Fee, setL1Fee] = useState<BigNumber>()
+  const [estimatedReceived, setEstimatedReceived] = useState<BigNumber>()
 
   const updateSendData = useCallback(
     async (isCancelled: () => boolean) => {
@@ -29,21 +31,18 @@ const useSendData = (
       if (!fromAmount) return 0
 
       const bridge = sdk.bridge(token?.symbol)
-      const {
-        amountOut: _amountOut,
-        rate: _rate,
-        priceImpact: _priceImpact,
-        bonderFee: _bonderFee,
-        requiredLiquidity: _requiredLiquidity
-      } = await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
+      const sendData = await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
 
       if (isCancelled()) return
 
-      setAmountOut(_amountOut as BigNumber)
-      setRate(_rate)
-      setPriceImpact(_priceImpact)
-      setBonderFee(_bonderFee)
-      setRequiredLiquidity(_requiredLiquidity as BigNumber)
+      setAmountOut(sendData.amountOut as BigNumber)
+      setRate(sendData.rate)
+      setPriceImpact(sendData.priceImpact)
+      setBonderFee(sendData.bonderFee)
+      setLpFees(sendData.lpFees)
+      setRequiredLiquidity(sendData.requiredLiquidity as BigNumber)
+      setL1Fee(sendData.l1Fee)
+      setEstimatedReceived(sendData.estimatedReceived)
     },
     [
       token,
@@ -54,26 +53,26 @@ const useSendData = (
       setRate,
       setPriceImpact,
       setBonderFee,
+      setLpFees,
       setRequiredLiquidity
     ]
   )
 
   const loading = useDebounceAsync(updateSendData, 400, 800)
 
-  useEffect(() => {
-    const update = async () => {
-      setAmountOutMin(undefined)
-      if (fromNetwork && toNetwork && amountOut) {
-        const slippageToleranceBps = slippageTolerance * 100
-        const minBps = Math.ceil(10000 - slippageToleranceBps)
-        const _amountOutMin = amountOut.mul(minBps).div(10000)
-
-        setAmountOutMin(_amountOutMin)
+  const amountOutMin = useMemo(() => {
+    let _amountOutMin
+    if (fromNetwork && toNetwork && amountOut) {
+      const slippageToleranceBps = slippageTolerance * 100
+      const minBps = Math.ceil(10000 - slippageToleranceBps)
+      _amountOutMin = amountOut.mul(minBps).div(10000)
+      if (l1Fee) {
+        _amountOutMin = _amountOutMin.sub(l1Fee)
       }
     }
 
-    update()
-  }, [fromNetwork, toNetwork, amountOut, slippageTolerance])
+    return _amountOutMin
+  }, [fromNetwork, toNetwork, amountOut, slippageTolerance, l1Fee])
 
   return {
     amountOut,
@@ -81,8 +80,11 @@ const useSendData = (
     priceImpact,
     amountOutMin,
     bonderFee,
+    lpFees,
     requiredLiquidity,
-    loading
+    loading,
+    l1Fee,
+    estimatedReceived
   }
 }
 

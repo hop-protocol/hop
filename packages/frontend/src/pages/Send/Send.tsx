@@ -20,7 +20,7 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import { UINT256 } from 'src/constants'
 import logger from 'src/logger'
-import { commafy, normalizeNumberInput } from 'src/utils'
+import { commafy, normalizeNumberInput, toTokenDisplay } from 'src/utils'
 import SendButton from 'src/pages/Send/SendButton'
 import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
 import useBalance from 'src/hooks/useBalance'
@@ -72,6 +72,19 @@ const useStyles = makeStyles(theme => ({
   },
   txStatusCloseButton: {
     marginTop: '1rem'
+  },
+  semiBold: {
+    fontWeight: 600
+  },
+  extraBold: {
+    fontWeight: 800
+  },
+  l1FeeAndAmount: {
+    marginTop: '2.4rem'
+  },
+  ammDetails: {
+    padding: theme.padding.extraLight,
+    width: '32.0rem'
   }
 }))
 
@@ -191,15 +204,29 @@ const Send: FC = () => {
     rate,
     priceImpact,
     amountOutMin,
-    bonderFee,
+    lpFees,
     requiredLiquidity,
-    loading: loadingSendData
+    loading: loadingSendData,
+    l1Fee,
+    estimatedReceived
   } = useSendData(
     sourceToken,
     slippageTolerance,
     fromNetwork,
     toNetwork,
     fromTokenAmountBN
+  )
+
+  const l1FeeDisplay = toTokenDisplay(
+    l1Fee,
+    destToken?.decimals,
+    destToken?.symbol
+  )
+
+  const estimatedReceivedDisplay = toTokenDisplay(
+    estimatedReceived,
+    destToken?.decimals,
+    destToken?.symbol
   )
 
   const needsTokenForFee = useNeedsTokenForFee(fromNetwork)
@@ -299,12 +326,12 @@ const Send: FC = () => {
 
   useEffect(() => {
     const warningMessage = `Send at least ${feeDisplay} to cover the transaction fee`
-    if (amountOut?.eq(0) && feeDisplay) {
+    if (estimatedReceived?.lte(0) && l1Fee) {
       setMinimumSendWarning(warningMessage)
     } else {
       setMinimumSendWarning('')
     }
-  }, [amountOut, sourceToken, feeDisplay])
+  }, [estimatedReceived, l1Fee])
 
   useEffect(() => {
     setWarning(
@@ -315,7 +342,7 @@ const Send: FC = () => {
   }, [noLiquidityWarning, needsNativeTokenWarning, minimumSendWarning])
 
   useEffect(() => {
-    if (!bonderFee || !sourceToken) {
+    if (!lpFees || !sourceToken) {
       setFeeDisplay(undefined)
       return
     }
@@ -323,14 +350,14 @@ const Send: FC = () => {
     const smallestFeeDecimals = sourceToken.decimals - 5
     const smallestFee = BigNumber.from(10 ** smallestFeeDecimals)
     let feeAmount: string
-    if (bonderFee.gt('0') && bonderFee.lt(smallestFee)) {
+    if (lpFees.gt('0') && lpFees.lt(smallestFee)) {
       feeAmount = `<${formatUnits(smallestFee, sourceToken.decimals)}`
     } else {
-      feeAmount = commafy(formatUnits(bonderFee, sourceToken.decimals), 5)
+      feeAmount = commafy(formatUnits(lpFees, sourceToken.decimals), 5)
     }
 
     setFeeDisplay(`${feeAmount} ${sourceToken.symbol}`)
-  }, [bonderFee])
+  }, [lpFees])
 
   useEffect(() => {
     if (!amountOutMin || !sourceToken) {
@@ -748,38 +775,53 @@ const Send: FC = () => {
         disableInput
       />
       <div className={styles.details}>
-        <DetailRow
-          title="Rate"
-          tooltip="The rate for the token taking trade size into consideration."
-          value={rate === 0 ? '-' : commafy(rate, 4)}
-        />
-        <DetailRow
-          title="Slippage Tolerance"
-          tooltip="Your transaction will revert if the price changes unfavorably by more than this percentage."
-          value={slippageTolerance ? `${slippageTolerance}%` : undefined}
-        />
-        <DetailRow
-          title="Price Impact"
-          tooltip="The difference between the market price and estimated price due to trade size."
-          value={
-            !priceImpact
-              ? undefined
-              : priceImpact < 0.01
-                ? '<0.01%'
-                : `${commafy(priceImpact)}%`
+        <div className={styles.l1FeeAndAmount}>
+          {
+            l1Fee &&
+            <DetailRow
+              title="L1 Transaction Fee"
+              tooltip="This fee covers the L1 transaction fee paid by the Bonder."
+              value={l1FeeDisplay}
+              large
+            />
           }
-        />
-        <DetailRow
-          title="Minimum received"
-          tooltip="Your transaction will revert if there is a large, unfavorable price movement before it is confirmed."
-          value={amountOutMinDisplay}
-        />
-        <DetailRow
-          title="Fee"
-          tooltip="This fee goes towards the Bonder who bonds the transfer on the destination chain."
-          value={feeDisplay}
-          highlighted={toNetwork?.isLayer1}
-        />
+          <DetailRow
+            title="Estimated Received"
+            tooltip={
+              <div className={styles.ammDetails}>
+                <DetailRow
+                  title="Rate"
+                  value={rate === 0 ? '-' : commafy(rate, 4)}
+                  contrastText
+                />
+                <DetailRow
+                  title="Slippage Tolerance"
+                  value={slippageTolerance ? `${slippageTolerance}%` : undefined}
+                  contrastText
+                />
+                <DetailRow
+                  title="Price Impact"
+                  value={
+                    !priceImpact
+                      ? undefined
+                      : priceImpact < 0.01
+                        ? '<0.01%'
+                        : `${commafy(priceImpact)}%`
+                  }
+                  contrastText
+                />
+                <DetailRow
+                  title="Minimum received"
+                  value={amountOutMinDisplay}
+                  contrastText
+                />
+              </div>
+            }
+            value={estimatedReceivedDisplay}
+            large
+            bold
+          />
+        </div>
       </div>
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <Alert severity="warning" text={warning} />

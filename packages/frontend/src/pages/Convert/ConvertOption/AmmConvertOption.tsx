@@ -4,7 +4,7 @@ import { Signer, BigNumber, BigNumberish } from 'ethers'
 import Network from 'src/models/Network'
 import { commafy, toTokenDisplay } from 'src/utils'
 import ConvertOption, { SendData } from './ConvertOption'
-import { DetailRow } from 'src/types'
+import { DetailRowProps as DetailRow } from 'src/components/DetailRow'
 
 class AmmConvertOption extends ConvertOption {
   readonly name: string

@@ -389,7 +389,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       const tree = new MerkleTree(transferIds)
       const transferRootHash = tree.getHexRoot()
       if (transferRootHash !== dbTransferRootHash) {
-        logger.debug('transferIds:\n', transferIds)
+        logger.debug('transferIds:\n', JSON.stringify(transferIds))
         logger.error(
           `transfers computed transfer root hash doesn't match. Expected ${dbTransferRootHash}`
         )
@@ -405,7 +405,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       logger.debug('computed transferRootHash:', transferRootHash)
       logger.debug('bonder:', bonder)
       logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
-      logger.debug('transferIds:\n', transferIds)
+      logger.debug('transferIds:\n', JSON.stringify(transferIds))
 
       if (this.dryMode) {
         logger.warn('dry mode: skipping settleBondedWithdrawals transaction')

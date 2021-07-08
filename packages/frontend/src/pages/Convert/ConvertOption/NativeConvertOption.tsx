@@ -1,7 +1,7 @@
 import React from 'react'
 import { Signer, Contract, BigNumber, BigNumberish } from 'ethers'
 import ConvertOption, { SendData } from './ConvertOption'
-import { DetailRow } from 'src/types'
+import { DetailRowProps as DetailRow } from 'src/components/DetailRow'
 import Network from 'src/models/Network'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 

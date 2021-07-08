@@ -3,7 +3,7 @@ import { formatUnits } from 'ethers/lib/utils'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
-import { DetailRow } from 'src/types'
+import { DetailRowProps as DetailRow } from 'src/components/DetailRow'
 import { toTokenDisplay } from 'src/utils'
 
 class HopConvertOption extends ConvertOption {

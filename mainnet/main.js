@@ -1,10 +1,20 @@
 const poll = true
 const fetchInterval = 10 * 1000
 
+let perPage = 100
+try {
+  const cached = Number(localStorage.getItem('perPage'))
+  if (cached) {
+    perPage = cached
+  }
+} catch (err) {
+  console.error(err)
+}
+
 const app = new Vue({
   el: '#app',
   data: {
-    perPage: 100,
+    perPage,
     page: 0,
     allTransfers: [],
     transfers: []
@@ -35,6 +45,17 @@ const app = new Vue({
     },
     nextPage () {
       Vue.set(app, 'page', Math.min(this.page + 1, Math.floor(this.allTransfers.length / this.perPage)))
+      this.refreshTransfers()
+    },
+    setPerPage (event) {
+      const value = event.target.value
+      const perPage = Number(value)
+      Vue.set(app, 'perPage', perPage)
+      try {
+        localStorage.setItem('perPage', perPage)
+      } catch (err) {
+        console.error(err)
+      }
       this.refreshTransfers()
     }
   }
@@ -297,8 +318,6 @@ function populateTransfer (x, i) {
   x.formattedAmount = ethers.utils.formatUnits(x.amount, tokenDecimals)
   x.token = 'USDC'
   x.tokenImageUrl = tokenLogosMap[x.token]
-
-  x.gradient = `background: linear-gradient(to right, ${colorsMap[x.sourceChainSlug]}, ${colorsMap[x.destinationChainSlug]}); -webkit-background-clip: text; color: transparent;`
 
   return x
 }

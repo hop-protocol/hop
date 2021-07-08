@@ -128,6 +128,13 @@ table img {
   color: #ff00ef;
   cursor: pointer;
 }
+.tableFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.perPageSelection {
+}
 .pagination {
   display: flex;
   justify-content: flex-end;

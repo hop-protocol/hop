@@ -17,9 +17,9 @@ class DbLogger {
   async poll () {
     while (true) {
       const transfers = await db.transfers.getTransfers()
-      this.logger.debug('transfers dump:', transfers)
+      this.logger.debug('transfers dump:', JSON.stringify(transfers))
       const transferRoots = await db.transferRoots.getTransferRoots()
-      this.logger.debug('transferRoots dump:', transferRoots)
+      this.logger.debug('transferRoots dump:', JSON.stringify(transferRoots))
       await wait(this.pollIntervalSec)
     }
   }

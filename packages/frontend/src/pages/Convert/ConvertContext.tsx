@@ -331,7 +331,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             selectedBridge.getTokenSymbol(),
             value,
             amountOutMin,
-            deadline
+            deadline()
           )
         }
       })

@@ -516,7 +516,7 @@ const Send: FC = () => {
           sdk.Chain.Ethereum,
           toNetwork?.slug,
           {
-            deadline,
+            deadline: deadline(),
             relayer,
             relayerFee,
             recipient,
@@ -588,7 +588,7 @@ const Send: FC = () => {
             recipient,
             bonderFee,
             amountOutMin,
-            deadline,
+            deadline: deadline(),
             destinationAmountOutMin,
             destinationDeadline
           }
@@ -655,9 +655,9 @@ const Send: FC = () => {
             recipient,
             bonderFee,
             amountOutMin,
-            deadline,
+            deadline: deadline(),
             destinationAmountOutMin: amountOutMin,
-            destinationDeadline: deadline
+            destinationDeadline: deadline()
           }
         )
         return tx

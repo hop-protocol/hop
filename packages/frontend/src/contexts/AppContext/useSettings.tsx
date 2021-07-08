@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 export type Settings = {
   slippageTolerance: number,
   setSlippageTolerance: (number) => void,
   deadlineMinutes: number,
-  setDeadlineMinutes: (number) => void,
-  deadline: number
+  setDeadlineMinutes: (number) => void
+  deadline: () => number
 }
 
 const useSettings = (): Settings => {
@@ -19,7 +19,7 @@ const useSettings = (): Settings => {
     storedDeadlineMinutes ? Number(storedDeadlineMinutes) : 20
   )
 
-  const deadline = useMemo(() =>
+  const deadline = useCallback(() =>
     (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0,
     [deadlineMinutes]
   )

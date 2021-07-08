@@ -17,32 +17,25 @@ import {
 } from '../../test/config'
 import { config } from 'src/config'
 import Logger from 'src/logger'
-// @ts-ignore
 import { Chain } from 'src/constants'
 import { Notifier } from 'src/notifier'
 
-let paths: any[]
-
-if (config.isMainnet) {
-  paths = [
-    [Chain.xDai, Chain.Polygon],
-    [Chain.Polygon, Chain.xDai]
-  ]
-} else {
-  paths = [[Chain.xDai, Chain.Ethereum]]
-}
-const tokens = ['USDC']
-const transferAmount = 0.3
 const useTestUserPrivateKey = false
 
 type Config = {
   concurrentUsers: number
   iterations: number
+  amount: number
+  paths: string[][]
+  token: string
 }
 
 class LoadTest {
   concurrentUsers: number = 1
   iterations: number = 1
+  amount: number = 0.1
+  token: string = 'USDC'
+  paths: string[][] = []
 
   constructor (config: Config) {
     if (config.concurrentUsers) {
@@ -50,6 +43,15 @@ class LoadTest {
     }
     if (config.iterations) {
       this.iterations = config.iterations
+    }
+    if (config.amount) {
+      this.amount = config.amount
+    }
+    if (config.token) {
+      this.token = config.token
+    }
+    if (config.paths) {
+      this.paths = config.paths
     }
   }
 
@@ -59,9 +61,19 @@ class LoadTest {
     })
     logger.debug('concurrent users:', this.concurrentUsers)
     logger.debug('iterations:', this.iterations)
+    logger.debug('transfer amount:', this.amount)
+    logger.debug('token:', this.token)
     const transactions: any = {}
     const amounts: any = {}
     const bonded: any = {}
+    const transferAmount = this.amount
+    const paths = this.paths
+    const tokens = [this.token]
+    console.log(paths)
+
+    if (!paths.length) {
+      throw new Error('paths is required')
+    }
 
     let count = 0
     let failedIndex = -1
@@ -71,6 +83,13 @@ class LoadTest {
       for (let path of paths) {
         const sourceNetwork = path[0]
         const destNetwork = path[1]
+        const validChains = Object.values(Chain) as string[]
+        if (!validChains.includes(sourceNetwork)) {
+          throw new Error(`the chain "${sourceNetwork}" is not supported`)
+        }
+        if (!validChains.includes(destNetwork)) {
+          throw new Error(`the chain "${sourceNetwork}" is not supported`)
+        }
         if (!transactions[sourceNetwork]) {
           transactions[sourceNetwork] = []
         }
@@ -239,7 +258,7 @@ class LoadTest {
     `
     let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
     let query = queryL1
-    if (chain !== 'mainnet') {
+    if (chain !== Chain.Ethereum) {
       url = `${url}-${chain}`
       query = queryL2
     }
@@ -275,7 +294,7 @@ class LoadTest {
       }
     `
     let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
-    if (chain !== 'mainnet') {
+    if (chain !== Chain.Ethereum) {
       url = `${url}-${chain}`
     }
     const res = await fetch(url, {

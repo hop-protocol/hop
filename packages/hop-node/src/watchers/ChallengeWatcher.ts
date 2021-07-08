@@ -11,13 +11,11 @@ export interface Config {
   chainSlug: string
   l1BridgeContract: Contract
   label: string
-  contracts: any
   dryMode?: boolean
 }
 
 class ChallengeWatcher extends BaseWatcherWithEventHandlers {
   l1Bridge: L1Bridge
-  contracts: any
 
   constructor (config: Config) {
     super({
@@ -28,7 +26,6 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       dryMode: config.dryMode
     })
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
-    this.contracts = config.contracts
   }
 
   async syncHandler (): Promise<any> {
@@ -149,7 +146,8 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       return
     }
 
-    const l2Bridge = new L2Bridge(this.contracts[destinationChainId])
+    const l2Bridge = this.getSiblingWatcherByChainId(destinationChainId)
+      .bridge as L2Bridge
     const blockNumber = await l2Bridge.getBlockNumber()
     const recentTransferCommitEvents = await l2Bridge.getTransfersCommittedEvents(
       blockNumber - 1000,
@@ -202,11 +200,6 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
         })
       })
       .catch(async (err: Error) => {
-        /*
-      db.transferRoots.update(transferRootHash, {
-      })
-      */
-
         throw err
       })
     logger.debug('challenge tx:', chalk.bgYellow.black.bold(tx.hash))

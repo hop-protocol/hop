@@ -299,7 +299,7 @@ function startWatchers (
   }
 
   if (_config?.challenger) {
-    watchers.push(...startChallengeWatchers(_tokens, _networks))
+    watchers.push(...startChallengeWatchers(_tokens, _networks, dryMode))
   }
 
   const stop = () => {
@@ -311,7 +311,11 @@ function startWatchers (
   return { stop, watchers }
 }
 
-function startChallengeWatchers (_tokens?: string[], _networks?: string[]) {
+function startChallengeWatchers (
+  _tokens?: string[],
+  _networks?: string[],
+  dryMode?: boolean
+) {
   if (!_tokens) {
     _tokens = Object.keys(config.tokens)
   }
@@ -320,33 +324,32 @@ function startChallengeWatchers (_tokens?: string[], _networks?: string[]) {
   }
 
   const watchers: any[] = []
-  for (let network of _networks) {
-    for (let token of _tokens) {
+  const challengeWatchers: any = {}
+  for (let token of _tokens) {
+    for (let network of _networks) {
       if (!contracts.has(token, network)) {
         continue
       }
-      /*
-      // TODO
-      watchers.push(
-        new ChallengeWatcher({
-          chainSlug: network,
-          label: network,
-          l1BridgeContract: contracts.get(token, ETHEREUM).l1Bridge,
-          contracts: {
-            '1': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '42': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '5': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '69': contracts.get(token, OPTIMISM)?.l2Bridge,
-            '79377087078960': contracts.get(token, ARBITRUM)?.l2Bridge,
-            '77': contracts.get(token, XDAI)?.l2Bridge,
-            '80001': contracts.get(token, POLYGON)?.l2Bridge
-          },
-          dryMode
-        })
-      )
-				*/
+      const chainId = chainSlugToId(network)
+      const challengeWatcher = new ChallengeWatcher({
+        chainSlug: network,
+        label: network,
+        l1BridgeContract: contracts.get(token, Chain.Ethereum).l1Bridge,
+        dryMode: true // force dry mode until further tested
+      })
+      challengeWatchers[token] = challengeWatchers[token] || {}
+      challengeWatchers[token][chainId] = challengeWatcher
+      watchers.push(challengeWatcher)
+    }
+    for (let watcher in challengeWatchers) {
+      for (let network in challengeWatchers[token]) {
+        challengeWatchers[token][network].setSiblingWatchers(
+          challengeWatchers[token]
+        )
+      }
     }
   }
+
   watchers.forEach(watcher => watcher.start())
   return watchers
 }

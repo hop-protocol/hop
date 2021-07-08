@@ -1,6 +1,6 @@
 import '../moduleAlias'
 import { Contract, BigNumber, Event, providers } from 'ethers'
-import { wait } from 'src/utils'
+import { wait, getSafeWaitConfirmations } from 'src/utils'
 import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
@@ -115,6 +115,11 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransfersCommittedFromDb () {
+    const initialSyncCompleted = await this.isAllSiblingWatchersInitialSyncCompleted()
+    if (!initialSyncCompleted) {
+      return false
+    }
+
     const dbTransferRoots = await db.transferRoots.getUnbondedTransferRoots({
       sourceChainId: await this.bridge.getChainId()
     })
@@ -123,6 +128,8 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
         `checking ${dbTransferRoots.length} unbonded transfer roots db items`
       )
     }
+
+    const headBlockNumber = await this.bridge.getBlockNumber()
     for (let dbTransferRoot of dbTransferRoots) {
       const {
         transferRootHash,
@@ -130,6 +137,13 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
         destinationChainId,
         committedAt
       } = dbTransferRoot
+
+      const { commitTxBlockNumber } = dbTransferRoot
+      const targetBlockNumber = commitTxBlockNumber + getSafeWaitConfirmations(this.chainSlug)
+      if (headBlockNumber > targetBlockNumber) {
+        continue
+      }
+
       await this.checkTransfersCommitted(
         transferRootHash,
         totalAmount,

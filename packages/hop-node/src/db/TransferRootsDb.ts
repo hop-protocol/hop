@@ -14,6 +14,7 @@ export type TransferRoot = {
   committed?: boolean
   committedAt?: number
   commitTxHash?: string
+  commitTxBlockNumber?: number
   confirmed?: boolean
   confirmedAt?: number
   confirmTxHash?: string
@@ -108,6 +109,7 @@ class TransferRootsDb extends BaseDb {
         item.committedAt &&
         !item.confirmed &&
         item.commitTxHash &&
+        item.commitTxBlockNumber &&
         item.sourceChainId
       )
     })

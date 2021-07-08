@@ -185,6 +185,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         transferRootHash,
         totalAmount
       )
+      const blockNumber: number = (event as any).blockNumber
 
       logger.debug(`committedAt:`, committedAt)
       logger.debug(`totalAmount:`, this.bridge.formatUnits(totalAmount))
@@ -200,7 +201,8 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         destinationBridgeAddress,
         sourceChainId,
         committed: true,
-        commitTxHash: transactionHash
+        commitTxHash: transactionHash,
+        commitTxBlockNumber: blockNumber
       })
     } catch (err) {
       logger.error(`handleTransfersCommittedEvent error: ${err.message}`)

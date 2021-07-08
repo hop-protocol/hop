@@ -84,6 +84,10 @@ export const isL1ChainId = (chainId: number | string) => {
   return ['1', '5', '42'].includes(chainId.toString())
 }
 
+export const getSafeWaitConfirmations = (chainSlug: string) => {
+  return config.networks?.[chainSlug]?.waitConfirmations || 0
+}
+
 export const xor = (a: number, b: number) => {
   return (a || b) && !(a && b)
 }

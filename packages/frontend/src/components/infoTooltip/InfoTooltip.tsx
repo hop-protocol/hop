@@ -1,36 +1,35 @@
-import React from 'react'
-import Tooltip from '@material-ui/core/Tooltip'
+import React, { FC, ReactFragment } from 'react'
+import { makeStyles } from '@material-ui/core/styles'
+import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip'
 import HelpIcon from '@material-ui/icons/Help'
 
 type Props = {
-  title: string
-  placement?:
-    | 'bottom'
-    | 'top'
-    | 'bottom-end'
-    | 'bottom-start'
-    | 'left-end'
-    | 'left-start'
-    | 'left'
-    | 'right-end'
-    | 'right-start'
-    | 'right'
-    | 'top-end'
-    | 'top-start'
-    | undefined
-}
+  title: ReactFragment
+} & Partial<TooltipProps>
 
-export default function HelpTooltip (props: Props) {
+const useStyles = makeStyles(theme => ({
+  tooltip: {
+    maxWidth: '100.0rem'
+  }
+}))
+
+const HelpTooltip: FC<Props> = props => {
+  const styles = useStyles()
+
   return (
     <Tooltip
+      {...props}
       style={{
         opacity: 0.5,
         verticalAlign: 'middle',
         cursor: 'help',
         fontSize: '1.4rem',
-        marginLeft: '0.2rem'
+        marginLeft: '0.2rem',
+        maxWidth: '100.0rem'
       }}
-      title={props.title}
+      classes={{
+        tooltip: styles.tooltip
+      }}
       placement={props.placement || 'top'}
       arrow={true}
     >
@@ -38,3 +37,5 @@ export default function HelpTooltip (props: Props) {
     </Tooltip>
   )
 }
+
+export default HelpTooltip

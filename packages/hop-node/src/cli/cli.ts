@@ -44,6 +44,7 @@ import entropyToMnemonic from 'src/utils/entropyToMnemonic'
 import { hopArt, printHopArt } from './art'
 import contracts from 'src/contracts'
 import Token from 'src/watchers/classes/Token'
+import DbLogger from 'src/watchers/DbLogger'
 
 const defaultConfigDir = `${os.homedir()}/.hop-node`
 const defaultConfigFilePath = `${defaultConfigDir}/config.json`
@@ -147,6 +148,7 @@ program
     'File containing password to unlock keystore'
   )
   .option('--clear-db', 'Clear cache database on start')
+  .option('--log-db-state', 'Log db state periodically')
   .action(async (source: any) => {
     try {
       printHopArt()
@@ -277,6 +279,9 @@ program
             token
           }).start()
         }
+      }
+      if (source.logDbState) {
+        new DbLogger().start()
       }
     } catch (err) {
       logger.error(`hop-node error: ${err.message}`)

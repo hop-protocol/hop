@@ -76,6 +76,10 @@ class LoadTest {
       throw new Error('paths is required')
     }
 
+    if (!mnemonic) {
+      throw new Error('mnemonic is required')
+    }
+
     let count = 0
     let failedIndex = -1
     let failedTxHash = ''

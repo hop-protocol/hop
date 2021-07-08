@@ -1,6 +1,6 @@
 import '../moduleAlias'
 import { Contract, BigNumber, Event, providers } from 'ethers'
-import { wait, getSafeWaitConfirmations } from 'src/utils'
+import { wait } from 'src/utils'
 import db from 'src/db'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import chalk from 'chalk'
@@ -139,7 +139,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       } = dbTransferRoot
 
       const { commitTxBlockNumber } = dbTransferRoot
-      const targetBlockNumber = commitTxBlockNumber + getSafeWaitConfirmations(this.chainSlug)
+      const targetBlockNumber = commitTxBlockNumber + this.bridge.waitConfirmations
       if (headBlockNumber > targetBlockNumber) {
         continue
       }

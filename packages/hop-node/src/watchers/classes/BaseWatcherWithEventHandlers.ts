@@ -346,7 +346,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
     logger.debug(
       `found transfer ids for transfer root hash ${transferRootHash}\n`,
-      transferIds
+      JSON.stringify(transferIds)
     )
     const tree = new MerkleTree(transferIds)
     const computedTransferRootHash = tree.getHexRoot()

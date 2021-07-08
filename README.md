@@ -1,8 +1,8 @@
-# hop-dataviz
+# explorer
 
-> Hop data visualizations
+> A simple explorer for Hop transfers
 
-[https://hop-dataviz.netlify.app/](https://hop-dataviz.netlify.app/)
+[https://explorer.hop.exchange/](https://explorer.hop.exchange/)
 
 ## License
 

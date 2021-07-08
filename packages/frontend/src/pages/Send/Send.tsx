@@ -81,6 +81,10 @@ const useStyles = makeStyles(theme => ({
   },
   l1FeeAndAmount: {
     marginTop: '2.4rem'
+  },
+  ammDetails: {
+    padding: theme.padding.extraLight,
+    width: '32.0rem'
   }
 }))
 
@@ -322,12 +326,12 @@ const Send: FC = () => {
 
   useEffect(() => {
     const warningMessage = `Send at least ${feeDisplay} to cover the transaction fee`
-    if (amountOut?.eq(0) && feeDisplay) {
+    if (estimatedReceived?.lte(0) && l1Fee) {
       setMinimumSendWarning(warningMessage)
     } else {
       setMinimumSendWarning('')
     }
-  }, [amountOut, sourceToken, feeDisplay])
+  }, [estimatedReceived, l1Fee])
 
   useEffect(() => {
     setWarning(
@@ -771,81 +775,52 @@ const Send: FC = () => {
         disableInput
       />
       <div className={styles.details}>
-        <DetailRow
-          title="Rate"
-          tooltip="The rate for the token taking trade size into consideration."
-          value={rate === 0 ? '-' : commafy(rate, 4)}
-        />
-        <DetailRow
-          title="Slippage Tolerance"
-          tooltip="Your transaction will revert if the price changes unfavorably by more than this percentage."
-          value={slippageTolerance ? `${slippageTolerance}%` : undefined}
-        />
-        <DetailRow
-          title="Price Impact"
-          tooltip="The difference between the market price and estimated price due to trade size."
-          value={
-            !priceImpact
-              ? undefined
-              : priceImpact < 0.01
-                ? '<0.01%'
-                : `${commafy(priceImpact)}%`
-          }
-        />
-        <DetailRow
-          title="Minimum received"
-          tooltip="Your transaction will revert if there is a large, unfavorable price movement before it is confirmed."
-          value={amountOutMinDisplay}
-        />
-        <DetailRow
-          title="LP Fees"
-          tooltip="This fee goes towards the Bonder who bonds the transfer on the destination chain."
-          value={feeDisplay}
-        />
         <div className={styles.l1FeeAndAmount}>
           {
             l1Fee &&
-              <Box
-                display="flex"
-                alignItems="center"
-                justifyContent="space-between"
-              >
-                <Typography
-                  variant="h6"
-                  color="textSecondary"
-                  className={styles.semiBold}
-                >
-                  L1 Transaction Fee
-                </Typography>
-                <Typography
-                  variant="h6"
-                  color="textSecondary"
-                  className={styles.semiBold}
-                >
-                  {l1FeeDisplay}
-                </Typography>
-              </Box>
+            <DetailRow
+              title="L1 Transaction Fee"
+              tooltip="This fee covers the L1 transaction fee paid by the Bonder."
+              value={l1FeeDisplay}
+              large
+            />
           }
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Typography
-              variant="h6"
-              color="textSecondary"
-              className={styles.extraBold}
-            >
-              Estimated Received
-            </Typography>
-            <Typography
-              variant="h6"
-              color="textSecondary"
-              className={styles.extraBold}
-            >
-              {estimatedReceivedDisplay}
-            </Typography>
-          </Box>
+          <DetailRow
+            title="Estimated Received"
+            tooltip={
+              <div className={styles.ammDetails}>
+                <DetailRow
+                  title="Rate"
+                  value={rate === 0 ? '-' : commafy(rate, 4)}
+                  contrastText
+                />
+                <DetailRow
+                  title="Slippage Tolerance"
+                  value={slippageTolerance ? `${slippageTolerance}%` : undefined}
+                  contrastText
+                />
+                <DetailRow
+                  title="Price Impact"
+                  value={
+                    !priceImpact
+                      ? undefined
+                      : priceImpact < 0.01
+                        ? '<0.01%'
+                        : `${commafy(priceImpact)}%`
+                  }
+                  contrastText
+                />
+                <DetailRow
+                  title="Minimum received"
+                  value={amountOutMinDisplay}
+                  contrastText
+                />
+              </div>
+            }
+            value={estimatedReceivedDisplay}
+            large
+            bold
+          />
         </div>
       </div>
       <Alert severity="error" onClose={() => setError(null)} text={error} />

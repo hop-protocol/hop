@@ -567,7 +567,7 @@ export default class Bridge extends ContractBase {
     options: Partial<EventsBatchOptions> = {}
   ) {
     await this.waitTilReady()
-    await this.validateEventsBatchInput(options)
+    this.validateEventsBatchInput(options)
 
     let cacheKey = ''
     let state
@@ -598,7 +598,8 @@ export default class Bridge extends ContractBase {
         break
       }
 
-      end = start
+      // Subtract 1 so that the boundary blocks are not double counted
+      end = start - 1
       start = end - batchBlocks
 
       if (start < earliestBlockInBatch) {
@@ -607,6 +608,7 @@ export default class Bridge extends ContractBase {
       i++
     }
 
+    // Only store latest block if a full sync is successful
     if (cacheKey && start === latestBlockInBatch) {
       await db.syncState.update(cacheKey, {
         latestBlockSynced: latestBlockInBatch,

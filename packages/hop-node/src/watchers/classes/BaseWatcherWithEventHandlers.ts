@@ -322,8 +322,8 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
             continue
           }
 
-          // When TransferSent and TransfersCommitted events exist in the same block, they
-          // need to be scoped to the correct transferRoot
+          // TransferSent events must be handled differently when they exist in the
+          // same block or same transaction as a TransfersCommitted event
           if (startEvent && event.blockNumber === startEvent.blockNumber) {
             if (event.transactionIndex < startEvent.transactionIndex) {
               continue
@@ -331,8 +331,10 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
           }
 
           if (event.blockNumber === endEvent.blockNumber) {
-            if (event.transactionIndex > endEvent.transactionIndex) {
-              break
+            // If TransferSent is in the same tx as TransfersCommitted or later,
+            // the transferId should be included in the next transferRoot
+            if (event.transactionIndex >= endEvent.transactionIndex) {
+              continue
             }
           }
 

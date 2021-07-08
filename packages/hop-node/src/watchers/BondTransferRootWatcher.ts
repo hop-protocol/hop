@@ -140,7 +140,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
 
       const { commitTxBlockNumber } = dbTransferRoot
       const targetBlockNumber = commitTxBlockNumber + this.bridge.waitConfirmations
-      if (headBlockNumber > targetBlockNumber) {
+      if (headBlockNumber < targetBlockNumber) {
         continue
       }
 

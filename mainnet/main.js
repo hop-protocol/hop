@@ -4,11 +4,38 @@ const fetchInterval = 10 * 1000
 const app = new Vue({
   el: '#app',
   data: {
+    perPage: 100,
+    page: 0,
+    allTransfers: [],
     transfers: []
   },
+  computed: {
+    hasPreviousPage () {
+      return this.page > 0
+    },
+    hasNextPage () {
+      return this.page < (this.allTransfers.length / this.perPage) - 1
+    }
+  },
   methods: {
-    updateTransfers: (transfers) => {
-      Vue.set(app, 'transfers', transfers)
+    refreshTransfers () {
+      const start = this.page * this.perPage
+      const end = start + this.perPage
+      Vue.set(app, 'transfers', this.allTransfers.slice(start, end))
+
+      updateChart(app.transfers)
+    },
+    updateTransfers (transfers) {
+      Vue.set(app, 'allTransfers', transfers)
+      this.refreshTransfers()
+    },
+    previousPage () {
+      Vue.set(app, 'page', Math.max(this.page - 1, 0))
+      this.refreshTransfers()
+    },
+    nextPage () {
+      Vue.set(app, 'page', Math.min(this.page + 1, Math.floor(this.allTransfers.length / this.perPage)))
+      this.refreshTransfers()
     }
   }
 })
@@ -96,6 +123,7 @@ async function fetchTransfers (chain) {
   const queryL1 = `
     query TransferSentToL2 {
       transferSents: transferSentToL2S(
+        first: 1000,
         orderBy: timestamp,
         orderDirection: desc
       ) {
@@ -110,6 +138,7 @@ async function fetchTransfers (chain) {
   const queryL2 = `
     query TransferSents {
       transferSents(
+        first: 1000,
         orderBy: timestamp,
         orderDirection: desc
       ) {
@@ -138,6 +167,7 @@ async function fetchBonds (chain) {
   const query = `
     query WithdrawalBondeds {
       withdrawalBondeds(
+        first: 1000,
         orderBy: timestamp,
         orderDirection: desc
       ) {
@@ -244,7 +274,9 @@ async function updateData () {
   return populatedData
 }
 
-function populateTransfer (x) {
+function populateTransfer (x, i) {
+  x.index = i
+
   const t = luxon.DateTime.fromSeconds(x.timestamp)
   x.isoTimestamp = t.toISO()
   x.relativeTimestamp = t.toRelative()
@@ -256,7 +288,7 @@ function populateTransfer (x) {
   x.destinationChainName = chainSlugToNameMap[x.destinationChainSlug]
 
   x.sourceChainImageUrl = chainLogosMap[x.sourceChainSlug]
-  x.destinationChainImageUrl = chainLogosMap[x.sourceChainSlug]
+  x.destinationChainImageUrl = chainLogosMap[x.destinationChainSlug]
 
   x.sourceTxExplorerUrl = explorerLink(x.sourceChainSlug, x.transactionHash)
   x.bondTxExplorerUrl = x.bondTransactionHash ? explorerLink(x.destinationChainSlug, x.bondTransactionHash) : ''
@@ -339,7 +371,7 @@ async function main () {
     const data = JSON.parse(localStorage.getItem('data'))
     if (data) {
       app.updateTransfers(data)
-      updateChart(data)
+      await updateChart(app.transfers)
     }
   } catch (err) {
     console.error(err)
@@ -348,9 +380,9 @@ async function main () {
   updateData()
   if (poll) {
     while (true) {
-      const data = await updateData()
-      updateChart(data)
       await new Promise((resolve) => setTimeout(() => resolve(null), fetchInterval))
+      await updateData()
+      await updateChart(app.transfers)
     }
   }
 }

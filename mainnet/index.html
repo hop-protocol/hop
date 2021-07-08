@@ -28,52 +28,60 @@
       </div>
       <details open>
         <summary>Hide/Show Transfers</summary>
+        <div class="pagination">
+          <button v-if="hasPreviousPage" @click="previousPage()" class="paginationButton">previous page</button>
+          <button v-if="hasNextPage" @click="nextPage()" class="paginationButton">next page</button>
+        </div>
         <div id="transfers">
           <table>
-          <thead>
-            <tr>
-              <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Amount</th><th>Token</th><th>Bonded</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(x, index) in transfers">
-              <td class="index">{{ index }}</td>
-              <td class="timestamp" :title="x.isoTimestamp">{{ x.relativeTimestamp }}</td>
-              <td :class="x.sourceChainSlug">
-                <img :src="x.sourceChainImageUrl" :alt="x.sourceChainName">
-                {{ x.sourceChainName }}
-                <span :style="x.gradient">⟶</span>
-              </td>
-              <td :class="x.destinationChainSlug">
-                <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
-                {{ x.destinationChainName }}
-              </td>
-              <td class="transferId">
-                <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank">
-                  {{ x.transferId }}
-                </a>
-              </td>
-              <td class="amount">{{ x.formattedAmount }}</td>
-              <td class="token">
-                <img :src="x.tokenImageUrl" :alt="x.token">
-                {{ x.token }}
-              </td>
-              <td class="bonded">
-                <a v-if="x.bondTxExplorerUrl" :class="`${x.bonded ? 'yes' : 'no'}`" :href="x.bondTxExplorerUrl" target="_blank">
+            <thead>
+              <tr>
+                <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Amount</th><th>Token</th><th>Bonded</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(x, index) in transfers">
+                <td class="index">{{ x.index + 1 }}</td>
+                <td class="timestamp" :title="x.isoTimestamp">{{ x.relativeTimestamp }}</td>
+                <td :class="x.sourceChainSlug">
+                  <img :src="x.sourceChainImageUrl" :alt="x.sourceChainName">
+                  {{ x.sourceChainName }}
+                  <span :style="x.gradient">⟶</span>
+                </td>
+                <td :class="x.destinationChainSlug">
                   <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
-                  Bonded
-                </a>
-                <span v-if="!x.bondTxExplorerUrl && x.sourceChain !== 1" :class="`${x.bonded ? 'yes' : 'no'}`">
-                  <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
-                  Unbonded
-                </span>
-                <span v-if="x.sourceChain === 1">
-                  N/A
-                </span>
-              </td>
-            </tr>
-          </tbody>
+                  {{ x.destinationChainName }}
+                </td>
+                <td class="transferId">
+                  <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank">
+                    {{ x.transferId }}
+                  </a>
+                </td>
+                <td class="amount">{{ x.formattedAmount }}</td>
+                <td class="token">
+                  <img :src="x.tokenImageUrl" :alt="x.token">
+                  {{ x.token }}
+                </td>
+                <td class="bonded">
+                  <a v-if="x.bondTxExplorerUrl" :class="`${x.bonded ? 'yes' : 'no'}`" :href="x.bondTxExplorerUrl" target="_blank">
+                    <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
+                    Bonded
+                  </a>
+                  <span v-if="!x.bondTxExplorerUrl && x.sourceChain !== 1" :class="`${x.bonded ? 'yes' : 'no'}`">
+                    <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
+                    Unbonded
+                  </span>
+                  <span v-if="x.sourceChain === 1">
+                    N/A
+                  </span>
+                </td>
+              </tr>
+            </tbody>
           </table>
+        </div>
+        <div class="pagination">
+          <button v-if="hasPreviousPage" @click="previousPage()" class="paginationButton">previous page</button>
+          <button v-if="hasNextPage" @click="nextPage()" class="paginationButton">next page</button>
         </div>
       </details>
     </div>

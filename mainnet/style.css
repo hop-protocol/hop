@@ -119,6 +119,23 @@ table img {
 .ethereum {
   color: #868dac;
 }
+.paginationButton {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 1rem;
+  font-size: 1rem;
+  color: #ff00ef;
+  cursor: pointer;
+}
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+}
+.paginationButton.disabled {
+  opacity: 0.5;
+  cursor: default;
+}
 .rainbow {
   font-weight: bold;
   font-style: italic;

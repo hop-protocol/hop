@@ -45,6 +45,7 @@ import { hopArt, printHopArt } from './art'
 import contracts from 'src/contracts'
 import Token from 'src/watchers/classes/Token'
 import DbLogger from 'src/watchers/DbLogger'
+import { getTransferIdsForTransferRoot } from 'src/theGraph'
 
 const defaultConfigDir = `${os.homedir()}/.hop-node`
 const defaultConfigFilePath = `${defaultConfigDir}/config.json`
@@ -1010,6 +1011,38 @@ Press [Enter] to exit.
       } else {
         console.log(`unsupported command: "${action}"`) // intentional log
       }
+    } catch (err) {
+      logger.error(err.message)
+      process.exit(1)
+    }
+  })
+
+program
+  .command('transfer-ids')
+  .description('Get transfer IDs for transfer root  hash')
+  .option('--config <string>', 'Config file to use.')
+  .option('--env <string>', 'Environment variables file')
+  .option('--chain <string>', 'Chain')
+  .action(async (source: any) => {
+    try {
+      const configPath = source?.config || source?.parent?.config
+      if (configPath) {
+        const config: Config = await parseConfigFile(configPath)
+        await setGlobalConfigFromConfigFile(config)
+      }
+      const transferRootHash = source.args[0]
+      const chain = source.chain
+      if (!transferRootHash) {
+        throw new Error('transfer root hash is required')
+      }
+      if (!chain) {
+        throw new Error('chain is required')
+      }
+      const transferIds = await getTransferIdsForTransferRoot(
+        chain,
+        transferRootHash
+      )
+      console.log(JSON.stringify(transferIds, null, 2))
     } catch (err) {
       logger.error(err.message)
       process.exit(1)

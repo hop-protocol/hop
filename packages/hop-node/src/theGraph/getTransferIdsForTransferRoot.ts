@@ -28,7 +28,7 @@ export default async function getTransferIdsForTransferRoot (
   })
   const transferCommitted = jsonRes.transfersCommitteds?.[0]
   if (!transferCommitted) {
-    return []
+    throw new Error('transfer committed event not found for root hash')
   }
 
   // get the previous commit transfer event
@@ -55,7 +55,7 @@ export default async function getTransferIdsForTransferRoot (
   })
   const previousTransferCommitted = jsonRes.transfersCommitteds?.[0]
   if (!previousTransferCommitted) {
-    return []
+    throw new Error('previous transfer committed event not found')
   }
 
   // get the transfer sent events between the two commit transfer events
@@ -93,17 +93,24 @@ export default async function getTransferIdsForTransferRoot (
     return x
   })
 
-  // sort by transfer id index
+  // sort by transfer id block number and index
   transferIds.sort((a: any, b: any) => {
-    return a.index - b.index
+    if (a.blockNumber > b.blockNumber) return 1
+    if (a.blockNumber < b.blockNumber) return -1
+
+    if (a.index > b.index) return 1
+    if (a.index < b.index) return -1
   })
 
-  // remove any second transfer id with index 0,
-  // which occurs if commit transfers is triggerd on a transfer sent
+  const seen: { [key: string]: boolean } = {}
+
+  // remove any transfer id after a second index of 0,
+  // which occurs if commit transfers is triggered on a transfer sent
   transferIds = transferIds.filter((x: any, i: number) => {
-    if (x.index === 0 && transferIds.length > 1 && i > 0) {
+    if (seen[x.index]) {
       return false
     }
+    seen[x.index] = true
     return true
   })
 
@@ -115,7 +122,7 @@ export default async function getTransferIdsForTransferRoot (
   // verify that the computed root matches the original root hash
   const tree = new MerkleTree(transferIds)
   if (tree.getHexRoot() !== rootHash) {
-    return []
+    throw new Error('computed transfer root hash does not match')
   }
 
   return transferIds

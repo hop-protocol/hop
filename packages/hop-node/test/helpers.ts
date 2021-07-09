@@ -1,5 +1,6 @@
 // @ts-ignore
 import expect from 'expect'
+// @ts-ignore
 import queue from 'src/decorators/queue'
 import { BigNumber, Contract, Wallet, ethers, providers } from 'ethers'
 import { Chain, Token } from 'src/constants'

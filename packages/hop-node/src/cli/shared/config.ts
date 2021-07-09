@@ -79,6 +79,15 @@ type LoggingConfig = {
   level: string
 }
 
+export type BondWithdrawals = {
+  [chain: string]: {
+    [token: string]: {
+      min?: number
+      max?: number
+    }
+  }
+}
+
 export type Config = {
   network?: string
   chains?: ChainsConfig
@@ -92,7 +101,7 @@ export type Config = {
   stake?: any
   settleBondedWithdrawals?: any
   commitTransfers?: any
-  bondWithdrawals?: any
+  bondWithdrawals?: BondWithdrawals
   order?: number
 }
 

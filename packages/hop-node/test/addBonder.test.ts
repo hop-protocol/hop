@@ -23,10 +23,7 @@ test(
     const receipt = await tx.wait()
     expect(receipt.status).toBe(1)
     // wait for L2 to receive update
-    // @ts-ignore
-    if (network !== Chain.Ethereum) {
-      await wait(60 * 1000)
-    }
+    await wait(60 * 1000)
     isBonder = await newBonder.isBonder(network, token)
     expect(isBonder).toBe(true)
   },

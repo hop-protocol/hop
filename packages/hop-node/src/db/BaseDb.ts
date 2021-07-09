@@ -1,4 +1,3 @@
-// @ts-ignore
 import Logger from 'src/logger'
 import level from 'level'
 import mkdirp from 'mkdirp'

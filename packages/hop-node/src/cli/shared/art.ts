@@ -1,4 +1,3 @@
-// @ts-ignore
 import lolcatjs from 'lolcatjs'
 
 export const hopArt = `

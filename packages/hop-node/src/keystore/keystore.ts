@@ -1,4 +1,3 @@
-// @ts-ignore
 import keythereum from 'keythereum'
 import { randomBytes } from 'crypto'
 

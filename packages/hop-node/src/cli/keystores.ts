@@ -1,4 +1,3 @@
-// @ts-ignore
 import clearConsole from 'console-clear'
 import entropyToMnemonic from 'src/utils/entropyToMnemonic'
 import fs from 'fs'

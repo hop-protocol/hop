@@ -1,5 +1,3 @@
-import fetch from 'node-fetch'
-import expect from 'expect'
 import { startWatchers } from 'src/watchers/watchers'
 import { wait, isL1ChainId, chainSlugToId, chainIdToSlug } from 'src/utils'
 import {
@@ -19,6 +17,7 @@ import { config } from 'src/config'
 import Logger from 'src/logger'
 import { Chain } from 'src/constants'
 import { Notifier } from 'src/notifier'
+import { getBondedWithdrawals, getTransferSents } from 'src/theGraph'
 
 const useTestUserPrivateKey = false
 
@@ -186,6 +185,9 @@ class LoadTest {
     logger.info('transactions:', transactions)
     logger.debug('waiting for bonded withdrawal events')
     if (!config.isMainnet) {
+      logger.warn(
+        'skipping check due to the hop subgraph currently only supporting mainnet network'
+      )
       return
     }
     const transferIds: any = {}
@@ -198,10 +200,8 @@ class LoadTest {
         if (!cache[chain]) {
           cache[chain] = {}
         }
-        cache[chain].transferSents = await this.fetchTransferSents(chain)
-        cache[chain].withdrawalBondeds = await this.fetchBondedWithdrawals(
-          chain
-        )
+        cache[chain].transferSents = await getTransferSents(chain)
+        cache[chain].withdrawalBondeds = await getBondedWithdrawals(chain)
       }
       for (let chain in transactions) {
         for (let txHash of transactions[chain]) {
@@ -232,91 +232,6 @@ class LoadTest {
     }
 
     await poll()
-  }
-
-  async fetchTransferSents (chain: string) {
-    const queryL2 = `
-      query TransferSents {
-        transferSents(
-          orderBy: timestamp,
-          orderDirection: desc
-        ) {
-          transferId
-          destinationChainId
-          amount
-          transactionHash
-          timestamp
-        }
-      }
-    `
-    const queryL1 = `
-      query TransferSentToL2 {
-        transferSents: transferSentToL2S(
-          orderBy: timestamp,
-          orderDirection: desc
-        ) {
-          id
-          destinationChainId
-          amount
-          transactionHash
-          timestamp
-        }
-      }
-    `
-    let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
-    let query = queryL1
-    if (chain !== Chain.Ethereum) {
-      url = `${url}-${chain}`
-      query = queryL2
-    }
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      },
-      body: JSON.stringify({
-        query,
-        variables: {}
-      })
-    })
-    const jsonRes = await res.json()
-    return jsonRes.data.transferSents.map((x: any) => {
-      x.destinationChainId = Number(x.destinationChainId)
-      return x
-    })
-  }
-
-  async fetchBondedWithdrawals (chain: string) {
-    const query = `
-      query WithdrawalBondeds {
-        withdrawalBondeds(
-          orderBy: timestamp,
-          orderDirection: desc
-        ) {
-          id
-          transferId
-          transactionHash
-        }
-      }
-    `
-    let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
-    if (chain !== Chain.Ethereum) {
-      url = `${url}-${chain}`
-    }
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      },
-      body: JSON.stringify({
-        query,
-        variables: {}
-      })
-    })
-    const jsonRes = await res.json()
-    return jsonRes.data.withdrawalBondeds
   }
 }
 

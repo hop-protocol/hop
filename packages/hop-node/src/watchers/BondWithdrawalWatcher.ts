@@ -168,7 +168,8 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const promises: Promise<any>[] = []
     for (let dbTransfer of dbTransfers) {
       const { transferId, transferSentBlockNumber } = dbTransfer
-      const targetBlockNumber = transferSentBlockNumber + this.bridge.waitConfirmations
+      const targetBlockNumber =
+        transferSentBlockNumber + this.bridge.waitConfirmations
       if (headBlockNumber < targetBlockNumber) {
         continue
       }

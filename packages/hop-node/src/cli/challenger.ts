@@ -1,18 +1,11 @@
-import { hopArt, printHopArt } from './shared/art'
-import { logger, program, parseArgList } from './shared'
 import {
-  setGlobalConfigFromConfigFile,
-  parseConfigFile,
   Config,
-  defaultEnabledWatchers
+  parseConfigFile,
+  setGlobalConfigFromConfigFile
 } from './shared/config'
-import { setConfigByNetwork } from 'src/config'
+import { logger, program } from './shared'
 import {
-  getStakeWatchers,
-  startWatchers,
-  startStakeWatchers,
-  startChallengeWatchers,
-  startCommitTransferWatchers
+  startChallengeWatchers
 } from 'src/watchers/watchers'
 
 program

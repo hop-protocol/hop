@@ -1,14 +1,13 @@
-import { boundClass } from 'autobind-decorator'
-import { providers, Contract, ethers, BigNumber, Event } from 'ethers'
-import { l1Erc20BridgeAbi, erc20Abi } from '@hop-protocol/abi'
-import { parseUnits } from 'ethers/lib/utils'
-import Bridge, { EventsBatchOptions, EventCb } from './Bridge'
-import queue from 'src/decorators/queue'
-import delay from 'src/decorators/delay'
+import Bridge, { EventCb, EventsBatchOptions } from './Bridge'
 import Token from './Token'
-import { Chain } from 'src/constants'
-import wallets from 'src/wallets'
+import delay from 'src/decorators/delay'
+import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
+import wallets from 'src/wallets'
+import { BigNumber, Contract, Event, ethers, providers } from 'ethers'
+import { Chain } from 'src/constants'
+import { boundClass } from 'autobind-decorator'
+import { erc20Abi, l1Erc20BridgeAbi } from '@hop-protocol/abi'
 
 @boundClass
 export default class L1Bridge extends Bridge {

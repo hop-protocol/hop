@@ -1,17 +1,17 @@
 import '../moduleAlias'
-import { Contract } from 'ethers'
 import memoize from 'fast-memoize'
 import { Chain } from 'src/constants'
+import { Contract } from 'ethers'
 import {
   erc20Abi,
   l1Erc20BridgeAbi,
-  l2BridgeAbi,
   l2AmmWrapperAbi,
+  l2BridgeAbi,
   swapAbi as saddleSwapAbi
 } from '@hop-protocol/abi'
 
-import { config } from 'src/config'
 import wallets from 'src/wallets'
+import { config } from 'src/config'
 
 const getL1BridgeContract = (token: string) => {
   return new Contract(

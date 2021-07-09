@@ -6,7 +6,7 @@ const networks = [Chain.xDai, Chain.Optimism]
 const token = 'DAI'
 
 describe('code', () => {
-  for (let network of networks) {
+  for (const network of networks) {
     it(network, async () => {
       const user = new User(privateKey)
       const bridge = await user.getHopBridgeContract(network, token)

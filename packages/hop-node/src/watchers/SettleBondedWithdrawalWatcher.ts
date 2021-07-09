@@ -1,18 +1,14 @@
 import '../moduleAlias'
-import { Contract, BigNumber, Event, providers } from 'ethers'
-import { parseUnits, formatUnits } from 'ethers/lib/utils'
-import { wait } from 'src/utils'
-import db from 'src/db'
-import { TransferRoot } from 'src/db/TransferRootsDb'
-import { Transfer } from 'src/db/TransfersDb'
-import chalk from 'chalk'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
-import Bridge from './classes/Bridge'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
-import Token from './classes/Token'
 import MerkleTree from 'src/utils/MerkleTree'
+import chalk from 'chalk'
+import db from 'src/db'
+import { BigNumber, Contract, Event, providers } from 'ethers'
 import { TX_RETRY_DELAY_MS } from 'src/constants'
+import { Transfer } from 'src/db/TransfersDb'
+import { wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
@@ -247,7 +243,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       transferRootHash,
       totalAmount
     )
-    logger.debug(`handling TransferRootSet event`)
+    logger.debug('handling TransferRootSet event')
     logger.debug(`transferRootHash from event: ${transferRootHash}`)
     logger.debug(`transferRootId: ${transferRootId}`)
     logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
@@ -270,7 +266,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const { transferIds } = await this.bridge.decodeSettleBondedWithdrawalsData(
       data
     )
-    for (let transferId of transferIds) {
+    for (const transferId of transferIds) {
       const dbTransfer = await db.transfers.getByTransferId(transferId)
       await db.transfers.update(transferId, {
         withdrawalBondSettled: dbTransfer?.withdrawalBonded ?? false
@@ -292,7 +288,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     )
     const filtered: Transfer[] = []
     const filteredRootHashes: string[] = []
-    for (let dbTransfer of dbTransfers) {
+    for (const dbTransfer of dbTransfers) {
       if (filteredRootHashes.includes(dbTransfer.transferRootHash)) {
         continue
       }
@@ -347,13 +343,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       )
     }
     const promises: Promise<any>[] = []
-    for (let dbTransfer of filtered) {
+    for (const dbTransfer of filtered) {
       promises.push(
         new Promise(async resolve => {
           try {
             await this.checkUnsettledTransfer(dbTransfer)
           } catch (err) {
-            this.logger.error(`checkUnsettledTransfer error:`, err.message)
+            this.logger.error('checkUnsettledTransfer error:', err.message)
           }
           resolve(null)
         })
@@ -436,7 +432,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
             transferId: dbTransfer.transferId
           })
 
-          for (let transferId of transferIds) {
+          for (const transferId of transferIds) {
             const dbTransfer = await db.transfers.getByTransferId(transferId)
             await db.transfers.update(transferId, {
               withdrawalBondSettled: dbTransfer?.withdrawalBonded ?? false
@@ -460,7 +456,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       )
     } catch (err) {
       if (err.message !== 'cancelled') {
-        this.logger.error(`settleBondedWithdrawal error:`, err.message)
+        this.logger.error('settleBondedWithdrawal error:', err.message)
         this.notifier.error(`settleBondedWithdrawal error: ${err.message}`)
       }
       await db.transfers.update(dbTransfer.transferId, {
@@ -485,7 +481,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
 
       // TODO
-      break
+      // break
 
       const delay = 2 * 1000
       timeout -= delay

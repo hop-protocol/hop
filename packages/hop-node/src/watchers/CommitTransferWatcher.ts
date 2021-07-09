@@ -1,13 +1,10 @@
 import '../moduleAlias'
-import { Contract, BigNumber, Event, providers } from 'ethers'
-import chalk from 'chalk'
-import { wait } from 'src/utils'
-import db from 'src/db'
-import { Transfer } from 'src/db/TransfersDb'
-import MerkleTree from 'src/utils/MerkleTree'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import L2Bridge from './classes/L2Bridge'
-import { TX_RETRY_DELAY_MS } from 'src/constants'
+import chalk from 'chalk'
+import db from 'src/db'
+import { BigNumber, Contract, Event, providers } from 'ethers'
+import { wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
@@ -161,14 +158,14 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         `checking ${dbTransfers.length} uncommitted transfers db items`
       )
     }
-    let destinationChainIds: number[] = []
-    for (let dbTransfer of dbTransfers) {
+    const destinationChainIds: number[] = []
+    for (const dbTransfer of dbTransfers) {
       const { destinationChainId } = dbTransfer
       if (!destinationChainIds.includes(destinationChainId)) {
         destinationChainIds.push(destinationChainId)
       }
     }
-    for (let destinationChainId of destinationChainIds) {
+    for (const destinationChainId of destinationChainIds) {
       await this.checkIfShouldCommit(destinationChainId)
     }
   }
@@ -280,7 +277,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     if (timeout <= 0) {
       return
     }
-    this.logger.debug(`transfers already committed`)
+    this.logger.debug('transfers already committed')
     throw new Error('cancelled')
   }
 }

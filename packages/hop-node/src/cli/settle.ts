@@ -1,19 +1,12 @@
+import {
+  Config,
+  parseConfigFile,
+  setGlobalConfigFromConfigFile
+} from './shared/config'
 import { logger, program } from './shared'
 import {
-  setGlobalConfigFromConfigFile,
-  Config,
-  parseConfigFile
-} from './shared/config'
-import db from 'src/db'
-import { startCommitTransferWatchers } from 'src/watchers/watchers'
-import LoadTest from 'src/loadTest'
-import {
-  db as dbConfig,
-  config as globalConfig,
   setConfigByNetwork
 } from 'src/config'
-import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
-import { Chain } from 'src/constants'
 
 program
   .command('settle')
@@ -31,7 +24,7 @@ program
         const config: Config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      //dbConfig.path = '/home/mota/.hop-node/db.mainnet'
+      // dbConfig.path = '/home/mota/.hop-node/db.mainnet'
       const network = source.network
       const chain = source.chain
       const token = source.token

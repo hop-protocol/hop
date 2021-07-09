@@ -1,13 +1,12 @@
 import '../moduleAlias'
-import { Contract, BigNumber } from 'ethers'
-import chalk from 'chalk'
-import { wait, isL1ChainId } from 'src/utils'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
-import Bridge from './classes/Bridge'
 import L1Bridge from './classes/L1Bridge'
 import Token from './classes/Token'
-import { config } from 'src/config'
+import chalk from 'chalk'
+import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
+import { config } from 'src/config'
+import { isL1ChainId, wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
@@ -63,14 +62,14 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
       }
       this.printAmounts()
     } catch (err) {
-      this.logger.error(`stake watcher error:`, err.message)
+      this.logger.error('stake watcher error:', err.message)
       this.notifier.error(`stake watcher error: ${err.message}`)
       this.quit()
     }
   }
 
   async printAmounts () {
-    let [credit, rawDebit, debit, balance, allowance] = await Promise.all([
+    const [credit, rawDebit, debit, balance, allowance] = await Promise.all([
       this.bridge.getCredit(),
       this.bridge.getRawDebit(),
       this.bridge.getDebit(),
@@ -78,10 +77,10 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
       this.getTokenAllowance()
     ])
 
-    this.logger.debug(`token balance:`, this.bridge.formatUnits(balance))
-    this.logger.debug(`credit balance:`, this.bridge.formatUnits(credit))
-    this.logger.debug(`raw debit balance:`, this.bridge.formatUnits(rawDebit))
-    this.logger.debug(`debit balance:`, this.bridge.formatUnits(debit))
+    this.logger.debug('token balance:', this.bridge.formatUnits(balance))
+    this.logger.debug('credit balance:', this.bridge.formatUnits(credit))
+    this.logger.debug('raw debit balance:', this.bridge.formatUnits(rawDebit))
+    this.logger.debug('debit balance:', this.bridge.formatUnits(debit))
 
     const bondedBondedWithdrawalsBalance = await this.bridge.getBonderBondedWithdrawalsBalance()
 
@@ -90,11 +89,11 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
       .add(bondedBondedWithdrawalsBalance)
 
     this.logger.debug(
-      `bonder bonded withdrawals balance:`,
+      'bonder bonded withdrawals balance:',
       this.bridge.formatUnits(bondedBondedWithdrawalsBalance)
     )
     this.logger.debug(
-      `bonder bridge calculated actual staked amount:`,
+      'bonder bridge calculated actual staked amount:',
       this.bridge.formatUnits(bonderBridgeStakedAmount)
     )
   }
@@ -109,7 +108,7 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
         const l1Token = await l1Bridge.l1CanonicalToken()
         const l1Balance = await l1Token.getBalance()
         this.logger.debug(
-          `l1 token balance:`,
+          'l1 token balance:',
           this.bridge.formatUnits(l1Balance)
         )
         if (l1Balance.gt(0)) {
@@ -132,7 +131,7 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
           const spender = l1Bridge.getAddress()
           tx = await l1Token.approve(spender)
           this.logger.info(
-            `L1 canonical token approve tx:`,
+            'L1 canonical token approve tx:',
             chalk.bgYellow.black.bold(tx?.hash)
           )
           if (tx) {
@@ -198,15 +197,15 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
       return
     }
     const tx = await this.bridge.stake(amount)
-    this.logger.info(`stake tx:`, chalk.bgYellow.black.bold(tx?.hash))
+    this.logger.info('stake tx:', chalk.bgYellow.black.bold(tx?.hash))
     const receipt = await tx.wait()
     if (receipt.status) {
       this.logger.debug(`successfully staked ${formattedAmount} tokens`)
     } else {
-      this.logger.error(`stake unsuccessful. tx status=0`)
+      this.logger.error('stake unsuccessful. tx status=0')
     }
     const newCredit = await this.bridge.getCredit()
-    this.logger.debug(`credit balance:`, this.bridge.formatUnits(newCredit))
+    this.logger.debug('credit balance:', this.bridge.formatUnits(newCredit))
     return tx
   }
 
@@ -234,12 +233,12 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
       return
     }
     const tx = await this.bridge.unstake(amount)
-    this.logger.info(`unstake tx:`, chalk.bgYellow.black.bold(tx?.hash))
+    this.logger.info('unstake tx:', chalk.bgYellow.black.bold(tx?.hash))
     const receipt = await tx.wait()
     if (receipt.status) {
       this.logger.debug(`successfully unstaked ${parsedAmount} tokens`)
     } else {
-      this.logger.error(`unstake was unsuccessful. tx status=0`)
+      this.logger.error('unstake was unsuccessful. tx status=0')
     }
     return tx
   }
@@ -249,7 +248,7 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
     const tx = await this.token.approve(spender)
     if (tx) {
       this.logger.info(
-        `stake approve tokens tx:`,
+        'stake approve tokens tx:',
         chalk.bgYellow.black.bold(tx?.hash)
       )
     }

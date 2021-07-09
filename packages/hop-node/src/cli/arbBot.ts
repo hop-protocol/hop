@@ -1,10 +1,10 @@
 import arbbots from 'src/arb-bot/bots'
-import { logger, program } from './shared'
 import {
-  setGlobalConfigFromConfigFile,
+  Config,
   parseConfigFile,
-  Config
+  setGlobalConfigFromConfigFile
 } from './shared/config'
+import { logger, program } from './shared'
 
 program
   .command('arb-bot')

@@ -1,11 +1,10 @@
 import '../moduleAlias'
-import fs from 'fs'
-import contracts from 'src/contracts'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
-import { config } from 'src/config'
-import { wait } from 'src/utils'
 import Logger from 'src/logger'
+import contracts from 'src/contracts'
+import fs from 'fs'
+import { config } from 'src/config'
 
 class Events {
   logger: Logger
@@ -17,10 +16,10 @@ class Events {
     const networks: string[] = config.isMainnet
       ? ['ethereum', 'xdai', 'polygon']
       : ['ethereum', 'optimism', 'xdai']
-    for (let token of tokens) {
-      for (let network of networks) {
+    for (const token of tokens) {
+      for (const network of networks) {
         const tokenContracts = contracts.get(token, network)
-        let isL1 = network === 'ethereum'
+        const isL1 = network === 'ethereum'
         let bridge: any
         if (isL1) {
           const bridgeContract = tokenContracts.l1Bridge
@@ -55,7 +54,7 @@ class Events {
       await bridge.eventsBatch(async (start: number, end: number) => {
         const sourceChainId = bridge.chainId
         const events = await bridge.getTransferSentEvents(start, end)
-        for (let event of events) {
+        for (const event of events) {
           const tx = await event.getTransaction()
           const { destinationChainId } = await bridge.decodeSendData(tx.data)
           const amount = event.args.amount.toString()

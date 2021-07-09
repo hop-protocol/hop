@@ -1,9 +1,9 @@
 import '../moduleAlias'
 import ArbBot from './ArbBot'
-import wallets from 'src/wallets'
 import contracts from 'src/contracts'
-import { config } from 'src/config'
+import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
+import { config } from 'src/config'
 
 const tokenSymbols = Object.keys(config.tokens)
 const networks = [Chain.Arbitrum, Chain.Optimism, Chain.xDai, Chain.Polygon]
@@ -16,8 +16,8 @@ export type Config = {
 export default {
   start: (_config: Config) => {
     const bots: ArbBot[] = []
-    for (let network of networks) {
-      for (let token of tokenSymbols) {
+    for (const network of networks) {
+      for (const token of tokenSymbols) {
         if (!contracts.has(token, network)) {
           continue
         }

@@ -23,7 +23,7 @@ const AVG_BLOCK_TIME_SEC = {
   xDai: 5
 }
 const SEC_IN_WEEK = 604800
-export const Total_Blocks = {
+export const TotalBlocks = {
   Ethereum: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.Ethereum),
   Polygon: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.Polygon),
   xDai: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.xDai)

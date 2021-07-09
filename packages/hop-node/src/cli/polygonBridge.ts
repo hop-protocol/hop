@@ -1,15 +1,12 @@
-import { logger, program } from './shared'
-import {
-  setGlobalConfigFromConfigFile,
-  Config,
-  parseConfigFile
-} from './shared/config'
-import db from 'src/db'
-import { startCommitTransferWatchers } from 'src/watchers/watchers'
-import LoadTest from 'src/loadTest'
-import { db as dbConfig, config as globalConfig } from 'src/config'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
 import { Chain } from 'src/constants'
+import {
+  Config,
+  parseConfigFile,
+  setGlobalConfigFromConfigFile
+} from './shared/config'
+import { config as globalConfig } from 'src/config'
+import { logger, program } from './shared'
 
 program
   .command('polygon-bridge')
@@ -24,7 +21,7 @@ program
         await setGlobalConfigFromConfigFile(config)
       }
       const tokens = Object.keys(globalConfig.tokens)
-      for (let token of tokens) {
+      for (const token of tokens) {
         new PolygonBridgeWatcher({
           chainSlug: Chain.Polygon,
           token

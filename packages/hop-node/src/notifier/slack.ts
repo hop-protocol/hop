@@ -1,6 +1,6 @@
+import { Notifier } from './interfaces'
 import { WebClient } from '@slack/web-api'
 import { slackAuthToken, slackChannel, slackUsername } from 'src/config'
-import { Notifier } from './interfaces'
 
 class SlackClient implements Notifier {
   private static instance: SlackClient

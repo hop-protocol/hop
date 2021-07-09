@@ -1,11 +1,11 @@
-require('dotenv').config()
-import { startWatchers } from 'src/watchers/watchers'
-import { chainSlugToId, wait } from 'src/utils'
+import Logger from 'src/logger'
 import { Chain } from 'src/constants'
 import { User, waitForEvent } from './helpers'
-import { privateKey, bonderPrivateKey, governancePrivateKey } from './config'
+import { bonderPrivateKey, governancePrivateKey, privateKey } from './config'
+import { chainSlugToId, wait } from 'src/utils'
 import { keccak256 } from 'ethereumjs-util'
-import Logger from 'src/logger'
+import { startWatchers } from 'src/watchers/watchers'
+require('dotenv').config()
 
 const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 1
@@ -18,7 +18,7 @@ describe('challenge valid transfer root', () => {
 describe('challenge valid transfer root but committed too early', () => {
   const networks = [Chain.xDai]
   const destNetwork = Chain.Ethereum
-  for (let sourceNetwork of networks) {
+  for (const sourceNetwork of networks) {
     const label = `challenge valid transfer root on ${sourceNetwork}`
     it(
       label,
@@ -56,7 +56,7 @@ describe('challenge valid transfer root but committed too early', () => {
           }
         })
 
-        //await wait(30 * 1000)
+        // await wait(30 * 1000)
         logger.log('checking transfer bond')
         expect(totalAmount).toBeGreaterThan(0)
         const transferRootId = await user.getTransferRootId(
@@ -83,7 +83,7 @@ describe('challenge valid transfer root but committed too early', () => {
         )
         await wait(challengeResolutionPeriod * 1000)
 
-        logger.log(`checking challenge time`)
+        logger.log('checking challenge time')
         const challengeStartTime = Number(
           transferBondStruct.challengeStartTime.toString()
         )
@@ -93,13 +93,13 @@ describe('challenge valid transfer root but committed too early', () => {
         )
         expect(transferBondStruct.challengeResolved).toBe(false)
 
-        logger.log(`resolving challenge`)
+        logger.log('resolving challenge')
         const userBalanceBefore = await user.getBalance(Chain.Ethereum, TOKEN)
         const bonderCreditBefore = await bonder.getCredit(Chain.Ethereum)
         tx = await user.resolveChallenge(validTransferRoot, totalAmount)
         receipt = await tx.wait()
         expect(receipt.status).toBe(1)
-        logger.log(`challenge resolved`)
+        logger.log('challenge resolved')
         const userBalanceAfter = await user.getBalance(Chain.Ethereum, TOKEN)
         const bonderCreditAfter = await bonder.getCredit(Chain.Ethereum)
         const minTransferRootBondDelay = await user.getMinTransferRootBondDelaySeconds()
@@ -112,7 +112,7 @@ describe('challenge valid transfer root but committed too early', () => {
         const committedAt = await user.getTransferRootCommittedAt(
           transferRootId
         )
-        let challengerWin = committedAt <= 0
+        const challengerWin = committedAt <= 0
         expect(challengerWin).toBe(true)
 
         if (challengerWin) {
@@ -142,7 +142,7 @@ describe('challenge valid transfer root but committed too early', () => {
 describe.only('challenge invalid transfer root', () => {
   const networks = [Chain.xDai]
   const destNetwork = Chain.Ethereum
-  for (let sourceNetwork of networks) {
+  for (const sourceNetwork of networks) {
     const chainId = chainSlugToId(sourceNetwork)
     const label = `challenge invalid transfer root on ${sourceNetwork}`
     it(
@@ -187,7 +187,7 @@ describe.only('challenge invalid transfer root', () => {
         )
         await wait(challengeResolutionPeriod * 1000)
 
-        logger.log(`checking challenge time`)
+        logger.log('checking challenge time')
         const transferRootId = await user.getTransferRootId(
           invalidTransferRoot,
           totalAmount
@@ -204,13 +204,13 @@ describe.only('challenge invalid transfer root', () => {
         )
         expect(transferBondStruct.challengeResolved).toBe(false)
 
-        logger.log(`resolving challenge`)
+        logger.log('resolving challenge')
         const balanceBefore = await user.getBalance(Chain.Ethereum, TOKEN)
         const creditBefore = await bonder.getCredit(Chain.Ethereum)
-        let tx = await user.resolveChallenge(invalidTransferRoot, totalAmount)
+        const tx = await user.resolveChallenge(invalidTransferRoot, totalAmount)
         receipt = await tx.wait()
         expect(receipt.status).toBe(1)
-        logger.log(`challenge resolved`)
+        logger.log('challenge resolved')
         const minTransferRootBondDelay = await user.getMinTransferRootBondDelaySeconds()
         const challengeStakeAmount = await user.getChallengeAmountForTransferAmount(
           totalAmount
@@ -221,7 +221,7 @@ describe.only('challenge invalid transfer root', () => {
         const committedAt = await user.getTransferRootCommittedAt(
           transferRootId
         )
-        let challengerWin = committedAt <= 0
+        const challengerWin = committedAt <= 0
         expect(challengerWin).toBe(true)
 
         if (challengerWin) {

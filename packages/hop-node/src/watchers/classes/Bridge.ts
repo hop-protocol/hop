@@ -1,14 +1,14 @@
-import { boundClass } from 'autobind-decorator'
-import { providers, Contract, BigNumber, Event } from 'ethers'
-import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
-import queue from 'src/decorators/queue'
-import delay from 'src/decorators/delay'
-import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
-import { config } from 'src/config'
-import unique from 'src/utils/unique'
-import { isL1ChainId, xor } from 'src/utils'
 import db from 'src/db'
+import delay from 'src/decorators/delay'
+import queue from 'src/decorators/queue'
+import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
+import unique from 'src/utils/unique'
+import { BigNumber, Contract, Event, providers } from 'ethers'
+import { boundClass } from 'autobind-decorator'
+import { config } from 'src/config'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { isL1ChainId, xor } from 'src/utils'
 
 export type EventsBatchOptions = {
   cacheKey: string
@@ -34,10 +34,10 @@ export default class Bridge extends ContractBase {
     let tokenDecimals: number
     let tokenSymbol: string
     // TODO: better way of getting token decimals
-    for (let tkn in config.tokens) {
-      for (let key in config.tokens[tkn]) {
-        for (let net in config.tokens[tkn]) {
-          for (let k in config.tokens[tkn][net]) {
+    for (const tkn in config.tokens) {
+      for (const key in config.tokens[tkn]) {
+        for (const net in config.tokens[tkn]) {
+          for (const k in config.tokens[tkn][net]) {
             const val = config.tokens[tkn][net][k]
             if (val === bridgeContract.address) {
               tokenDecimals = (config.metadata.tokens[config.network] as any)[
@@ -175,7 +175,7 @@ export default class Bridge extends ContractBase {
     if (Array.isArray(config?.bonders)) {
       bonders = unique([bonderAddress, ...config.bonders])
     }
-    for (let bonder of bonders) {
+    for (const bonder of bonders) {
       const bondedAmount = await this.getBondedWithdrawalAmountByBonder(
         bonder,
         transferId
@@ -194,7 +194,7 @@ export default class Bridge extends ContractBase {
         start,
         end
       )
-      for (let event of withdrawalBondedEvents) {
+      for (const event of withdrawalBondedEvents) {
         const { transferId } = event.args
         const amount = await this.getBondedWithdrawalAmountByBonder(
           bonderAddress,
@@ -231,7 +231,7 @@ export default class Bridge extends ContractBase {
     await this.eventsBatch(
       async (start: number, end: number) => {
         const events = await this.getWithdrawalBondedEvents(start, end)
-        for (let event of events) {
+        for (const event of events) {
           if (event.args.transferId === transferId) {
             match = event
             return false
@@ -295,7 +295,7 @@ export default class Bridge extends ContractBase {
         end
       )
 
-      for (let event of events) {
+      for (const event of events) {
         if (transferRootHash === event.args.rootHash) {
           txHash = event.transactionHash
           return false
@@ -423,8 +423,8 @@ export default class Bridge extends ContractBase {
 
   // get the chain ids of all bridged L2s and L1
   async getChainIds (): Promise<number[]> {
-    let chainIds: number[] = []
-    for (let key in config.networks) {
+    const chainIds: number[] = []
+    for (const key in config.networks) {
       const { networkId: chainId } = config.networks[key]
       chainIds.push(chainId)
     }
@@ -432,7 +432,7 @@ export default class Bridge extends ContractBase {
   }
 
   async getL1ChainId (): Promise<number> {
-    for (let key in config.networks) {
+    for (const key in config.networks) {
       const { networkId: chainId } = config.networks[key]
       if (isL1ChainId(chainId)) {
         return chainId
@@ -441,8 +441,8 @@ export default class Bridge extends ContractBase {
   }
 
   async getL2ChainIds (): Promise<number[]> {
-    let chainIds: number[] = []
-    for (let key in config.networks) {
+    const chainIds: number[] = []
+    for (const key in config.networks) {
       const { networkId: chainId } = config.networks[key]
       if (isL1ChainId(chainId)) {
         continue
@@ -527,7 +527,7 @@ export default class Bridge extends ContractBase {
     await this.waitSafeConfirmations(originalBlockNumber)
     const latestTxHash = await txHashGetter()
     if (!latestTxHash) {
-      throw new Error(`could not find tx hash event`)
+      throw new Error('could not find tx hash event')
     }
     const latestBlockNumber = await this.getTransactionBlockNumber(latestTxHash)
     if (originalBlockNumber !== latestBlockNumber) {
@@ -555,7 +555,7 @@ export default class Bridge extends ContractBase {
     await this.eventsBatch(async (start: number, end: number) => {
       let events = await rateLimitRetryFn(getEventsMethod)(start, end, i)
       events = events.reverse()
-      for (let event of events) {
+      for (const event of events) {
         promises.push(cb(event, i++))
       }
     }, options)
@@ -623,7 +623,7 @@ export default class Bridge extends ContractBase {
     let end
     let start
     let totalBlocksInBatch
-    let { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
+    const { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
     const currentBlockNumber = await this.getBlockNumber()
 
     if (startBlockNumber && endBlockNumber) {

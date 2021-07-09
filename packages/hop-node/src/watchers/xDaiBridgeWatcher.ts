@@ -1,13 +1,12 @@
-import { ethers, Contract } from 'ethers'
-import chalk from 'chalk'
-import { l2xDaiAmbAbi, l1xDaiAmbAbi } from '@hop-protocol/abi'
-import { Chain } from 'src/constants'
-import { config } from 'src/config'
-import wallets from 'src/wallets'
-import { signatureToVRS, packSignatures, strip0x } from 'src/utils/xdaiUtils'
-import { wait } from 'src/utils'
-import queue from 'src/decorators/queue'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
+import chalk from 'chalk'
+import wallets from 'src/wallets'
+import { Chain } from 'src/constants'
+import { Contract, ethers } from 'ethers'
+import { config } from 'src/config'
+import { l1xDaiAmbAbi, l2xDaiAmbAbi } from '@hop-protocol/abi'
+import { packSignatures, signatureToVRS, strip0x } from 'src/utils/xdaiUtils'
+import { wait } from 'src/utils'
 
 type Config = {
   chainSlug: string
@@ -101,7 +100,7 @@ class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
           (blockNumber as number) - 100
         )
 
-        for (let event of events) {
+        for (const event of events) {
           try {
             const result = await executeExitTx(event, this.token)
             if (!result) {

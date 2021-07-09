@@ -1,12 +1,11 @@
-import { logger, program } from './shared'
-import {
-  setGlobalConfigFromConfigFile,
-  Config,
-  parseConfigFile
-} from './shared/config'
 import db from 'src/db'
-import { startCommitTransferWatchers } from 'src/watchers/watchers'
+import {
+  Config,
+  parseConfigFile,
+  setGlobalConfigFromConfigFile
+} from './shared/config'
 import { db as dbConfig } from 'src/config'
+import { logger, program } from './shared'
 
 program
   .command('db-dump')
@@ -27,7 +26,7 @@ program
       if (source.dbPath) {
         dbConfig.path = source.dbPath
       }
-      let dbName = source.db || 'transfers'
+      const dbName = source.db || 'transfers'
       logger.debug(`dumping ${dbName} db located at ${dbConfig.path}`)
 
       if (dbName === 'transfer-roots') {

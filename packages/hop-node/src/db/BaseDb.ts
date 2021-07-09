@@ -1,11 +1,11 @@
 // @ts-ignore
+import Logger from 'src/logger'
 import level from 'level'
+import mkdirp from 'mkdirp'
 import os from 'os'
 import path from 'path'
-import mkdirp from 'mkdirp'
 import sub from 'subleveldown'
 import { db as dbConfig } from 'src/config'
-import Logger from 'src/logger'
 
 const dbMap: { [key: string]: any } = {}
 
@@ -25,7 +25,7 @@ class BaseDb {
       dbMap[pathname] = level(pathname)
     }
 
-    let key = `${pathname}:${prefix}`
+    const key = `${pathname}:${prefix}`
     if (!dbMap[key]) {
       dbMap[key] = sub(dbMap[pathname], prefix, { valueEncoding: 'json' })
     }

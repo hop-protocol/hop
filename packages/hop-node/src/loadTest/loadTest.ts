@@ -1,22 +1,19 @@
-import { startWatchers } from 'src/watchers/watchers'
-import { wait, isL1ChainId, chainSlugToId, chainIdToSlug } from 'src/utils'
+import Logger from 'src/logger'
+import { Chain } from 'src/constants'
+import { Notifier } from 'src/notifier'
 import {
   User,
-  waitForEvent,
   generateUser,
   generateUsers,
-  prepareAccounts,
-  getBalances
+  prepareAccounts
 } from '../../test/helpers'
+import { chainIdToSlug, wait } from 'src/utils'
+import { config } from 'src/config'
 import {
   faucetPrivateKey,
   mnemonic,
   privateKey as testUserPrivateKey
 } from '../../test/config'
-import { config } from 'src/config'
-import Logger from 'src/logger'
-import { Chain } from 'src/constants'
-import { Notifier } from 'src/notifier'
 import { getBondedWithdrawals, getTransferSents } from 'src/theGraph'
 
 const useTestUserPrivateKey = false
@@ -84,7 +81,7 @@ class LoadTest {
     let failedTxHash = ''
     while (count < this.iterations) {
       const promises: Promise<any>[] = []
-      for (let path of paths) {
+      for (const path of paths) {
         const sourceNetwork = path[0]
         const destNetwork = path[1]
         const validChains = Object.values(Chain) as string[]
@@ -102,7 +99,7 @@ class LoadTest {
         }
         promises.push(
           new Promise(async (resolve, reject) => {
-            for (let token of tokens) {
+            for (const token of tokens) {
               const label = `${token} ${sourceNetwork} → ${destNetwork}`
               const logger = new Logger({
                 tag: 'LoadTest',
@@ -121,7 +118,7 @@ class LoadTest {
                 } else {
                   users.push(...generateUsers(this.concurrentUsers, mnemonic))
                 }
-                for (let i in users) {
+                for (const i in users) {
                   logger.debug(`#${i} account: ${await users[i].getAddress()}`)
                 }
                 await prepareAccounts(
@@ -163,7 +160,7 @@ class LoadTest {
                   })
                 )
 
-                logger.log(`cohort sent`)
+                logger.log('cohort sent')
               } catch (err) {
                 console.error(err)
                 logger.error(
@@ -192,19 +189,19 @@ class LoadTest {
     }
     const transferIds: any = {}
     const poll = async (): Promise<any> => {
-      let cache: any = {}
+      const cache: any = {}
       const chains = Array.from(
         new Set((paths as any).flat()).values()
       ) as string[]
-      for (let chain of chains) {
+      for (const chain of chains) {
         if (!cache[chain]) {
           cache[chain] = {}
         }
         cache[chain].transferSents = await getTransferSents(chain)
         cache[chain].withdrawalBondeds = await getBondedWithdrawals(chain)
       }
-      for (let chain in transactions) {
-        for (let txHash of transactions[chain]) {
+      for (const chain in transactions) {
+        for (const txHash of transactions[chain]) {
           const match = cache[chain].transferSents.find(
             (x: any) => x.transactionHash === txHash
           )

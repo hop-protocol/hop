@@ -25,8 +25,8 @@ const eventPoller = async (
   ;(async () => {
     while (true) {
       const events = await poll()
-      //console.log('events count:', events.length)
-      for (let event of events) {
+      // console.log('events count:', events.length)
+      for (const event of events) {
         console.log(event)
         if (event.args) {
           if (!cache[event.transactionHash]) {

@@ -1,6 +1,6 @@
 import SyncStateDb from './SyncStateDb'
-import TransfersDb from './TransfersDb'
 import TransferRootsDb from './TransferRootsDb'
+import TransfersDb from './TransfersDb'
 
 let syncStateDb: SyncStateDb | null = null
 let transfersDb: TransfersDb | null = null

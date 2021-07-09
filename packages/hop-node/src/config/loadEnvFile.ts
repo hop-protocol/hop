@@ -2,7 +2,7 @@ const path = require('path')
 const fs = require('fs')
 const argv = require('minimist')(process.argv.slice(2))
 
-let opts: any = {}
+const opts: any = {}
 if (typeof argv.env === 'string') {
   const envFile = path.resolve(argv.env)
   if (!fs.existsSync(envFile)) {

@@ -1,42 +1,29 @@
-import { hopArt, printHopArt } from './shared/art'
-import { logger, program } from './shared'
-import {
-  setGlobalConfigFromConfigFile,
-  Config,
-  parseConfigFile,
-  defaultEnabledWatchers,
-  defaultEnabledNetworks
-} from './shared/config'
-import clearDb from 'src/db/clearDb'
-import db from 'src/db'
-import {
-  getStakeWatchers,
-  startWatchers,
-  startStakeWatchers,
-  startChallengeWatchers,
-  startCommitTransferWatchers
-} from 'src/watchers/watchers'
-import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
-import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
-import StakeWatcher from 'src/watchers/StakeWatcher'
-import LoadTest from 'src/loadTest'
-import HealthCheck from 'src/health/HealthCheck'
-import Token from 'src/watchers/classes/Token'
 import DbLogger from 'src/watchers/DbLogger'
-import { Chain } from 'src/constants'
 import arbbots from 'src/arb-bot/bots'
+import clearDb from 'src/db/clearDb'
+import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
+import { Chain } from 'src/constants'
 import {
-  config as globalConfig,
+  Config,
+  defaultEnabledNetworks,
+  defaultEnabledWatchers,
+  parseConfigFile,
+  setGlobalConfigFromConfigFile
+} from './shared/config'
+import {
   db as dbConfig,
-  setConfigByNetwork,
-  setBonderPrivateKey,
+  config as globalConfig,
   setNetworkRpcUrls,
   setNetworkWaitConfirmations,
-  setSyncConfig,
   slackAuthToken,
   slackChannel,
   slackUsername
 } from 'src/config'
+import { logger, program } from './shared'
+import { printHopArt } from './shared/art'
+import {
+  startWatchers
+} from 'src/watchers/watchers'
 
 program
   .description('Start Hop node')
@@ -69,7 +56,7 @@ program
 
       const tokens = []
       if (config?.tokens) {
-        for (let k in config.tokens) {
+        for (const k in config.tokens) {
           const v = config.tokens[k]
           if (v) {
             tokens.push(k)
@@ -82,11 +69,11 @@ program
         defaultEnabledNetworks
       )
       if (config?.chains) {
-        for (let k in config.chains) {
+        for (const k in config.chains) {
           enabledNetworks[k] = !!config.chains[k]
           const v = config.chains[k]
           if (v instanceof Object) {
-            let _rpcUrls: string[] = []
+            const _rpcUrls: string[] = []
             const { rpcUrl, rpcUrls, waitConfirmations } = v
             if (rpcUrl) {
               _rpcUrls.push(rpcUrl)
@@ -135,21 +122,21 @@ program
       if (slackEnabled) {
         logger.debug(`slack notifications enabled. channel #${slackChannel}`)
       }
-      for (let k in globalConfig.networks) {
+      for (const k in globalConfig.networks) {
         const { waitConfirmations, rpcUrls } = globalConfig.networks[k]
         logger.info(`${k} wait confirmations: ${waitConfirmations || 0}`)
         logger.info(`${k} rpc: ${rpcUrls?.join(',')}`)
       }
       const dryMode = !!source.dry
       if (dryMode) {
-        logger.warn(`dry mode enabled`)
+        logger.warn('dry mode enabled')
       }
       const enabledWatchers: { [key: string]: boolean } = Object.assign(
         {},
         defaultEnabledWatchers
       )
       if (config?.watchers) {
-        for (let key in config.watchers) {
+        for (const key in config.watchers) {
           enabledWatchers[key] = (config.watchers as any)[key]
         }
       }
@@ -179,7 +166,7 @@ program
         })
       }
       if (config?.roles?.xdaiBridge) {
-        for (let token of tokens) {
+        for (const token of tokens) {
           new xDaiBridgeWatcher({
             chainSlug: Chain.xDai,
             token

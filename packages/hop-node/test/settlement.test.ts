@@ -1,9 +1,9 @@
-require('dotenv').config()
-import { startWatchers } from 'src/watchers/watchers'
+import Logger from 'src/logger'
 import { Chain } from 'src/constants'
 import { User, waitForEvent } from './helpers'
 import { privateKey } from './config'
-import Logger from 'src/logger'
+import { startWatchers } from 'src/watchers/watchers'
+require('dotenv').config()
 
 const L2ToL1Paths = [
   [Chain.Arbitrum, Chain.Ethereum],
@@ -27,7 +27,7 @@ const logger = new Logger('TEST')
 describe('settleBondedWithdrawal', () => {
   let testPaths = [...L2ToL1Paths, ...L2ToL2Paths]
   testPaths = [[Chain.xDai, Chain.xDai]]
-  for (let path of testPaths) {
+  for (const path of testPaths) {
     const [sourceNetwork, destNetwork] = path
     const label = `${sourceNetwork} → ${destNetwork}`
     const txCount = 1

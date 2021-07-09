@@ -1,12 +1,10 @@
-import { logger, program } from './shared'
-import {
-  setGlobalConfigFromConfigFile,
-  Config,
-  parseConfigFile
-} from './shared/config'
-import db from 'src/db'
 import HealthCheck from 'src/health/HealthCheck'
-import { db as dbConfig } from 'src/config'
+import {
+  Config,
+  parseConfigFile,
+  setGlobalConfigFromConfigFile
+} from './shared/config'
+import { logger, program } from './shared'
 
 program
   .command('health-check')

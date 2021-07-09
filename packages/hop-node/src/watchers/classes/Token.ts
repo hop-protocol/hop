@@ -1,9 +1,9 @@
-import { ethers, providers, Contract, BigNumber } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import ContractBase from './ContractBase'
-import queue from 'src/decorators/queue'
 import delay from 'src/decorators/delay'
+import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
+import { BigNumber, Contract, ethers, providers } from 'ethers'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 export default class Token extends ContractBase {
   tokenContract: Contract

@@ -1,17 +1,15 @@
 import '../moduleAlias'
-import { config, hostname as configHostname } from 'src/config'
-import { getRpcProviderFromUrl } from 'src/utils'
-import { Chain } from 'src/constants'
-import contracts from 'src/contracts'
-import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
 import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
+import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
+import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
-import Logger from 'src/logger'
-import { chainSlugToId } from 'src/utils'
+import { Chain } from 'src/constants'
+import { chainSlugToId, getRpcProviderFromUrl } from 'src/utils'
+import { config } from 'src/config'
 
 const networks: string[] = [
   Chain.Optimism,
@@ -36,10 +34,10 @@ function getStakeWatchers (
   _networks = (_networks || networks).filter((x: string) =>
     networks.includes(x)
   )
-  let stakeWatchers: any = {}
+  const stakeWatchers: any = {}
   const watchers: any[] = []
-  for (let token of _tokens) {
-    for (let network of [Chain.Ethereum as string].concat(_networks)) {
+  for (const token of _tokens) {
+    for (const network of [Chain.Ethereum as string].concat(_networks)) {
       const chainId = chainSlugToId(network)
       const tokenContracts = contracts.get(token, network)
       if (!tokenContracts) {
@@ -69,8 +67,8 @@ function getStakeWatchers (
     }
   }
 
-  for (let token in stakeWatchers) {
-    for (let network in stakeWatchers[token]) {
+  for (const token in stakeWatchers) {
+    for (const network in stakeWatchers[token]) {
       stakeWatchers[token][network].setSiblingWatchers(stakeWatchers[token])
     }
   }
@@ -140,13 +138,13 @@ function startWatchers (
     return orderNum
   }
 
-  let bondWithdrawalWatchers: any = {}
-  let bondTransferRootWatchers: any = {}
-  let settleBondedWithdrawalWatchers: any = {}
-  let commitTransferWatchers: any = {}
-  for (let network of [Chain.Ethereum as string].concat(_networks)) {
+  const bondWithdrawalWatchers: any = {}
+  const bondTransferRootWatchers: any = {}
+  const settleBondedWithdrawalWatchers: any = {}
+  const commitTransferWatchers: any = {}
+  for (const network of [Chain.Ethereum as string].concat(_networks)) {
     const chainId = chainSlugToId(network)
-    for (let token of _tokens) {
+    for (const token of _tokens) {
       if (!contracts.has(token, network)) {
         continue
       }
@@ -244,32 +242,32 @@ function startWatchers (
     }
   }
 
-  for (let token in bondWithdrawalWatchers) {
-    for (let network in bondWithdrawalWatchers[token]) {
+  for (const token in bondWithdrawalWatchers) {
+    for (const network in bondWithdrawalWatchers[token]) {
       bondWithdrawalWatchers[token][network].setSiblingWatchers(
         bondWithdrawalWatchers[token]
       )
     }
   }
 
-  for (let token in bondTransferRootWatchers) {
-    for (let network in bondTransferRootWatchers[token]) {
+  for (const token in bondTransferRootWatchers) {
+    for (const network in bondTransferRootWatchers[token]) {
       bondTransferRootWatchers[token][network].setSiblingWatchers(
         bondTransferRootWatchers[token]
       )
     }
   }
 
-  for (let token in settleBondedWithdrawalWatchers) {
-    for (let network in settleBondedWithdrawalWatchers[token]) {
+  for (const token in settleBondedWithdrawalWatchers) {
+    for (const network in settleBondedWithdrawalWatchers[token]) {
       settleBondedWithdrawalWatchers[token][network].setSiblingWatchers(
         settleBondedWithdrawalWatchers[token]
       )
     }
   }
 
-  for (let token in commitTransferWatchers) {
-    for (let network in commitTransferWatchers[token]) {
+  for (const token in commitTransferWatchers) {
+    for (const network in commitTransferWatchers[token]) {
       commitTransferWatchers[token][network].setSiblingWatchers(
         commitTransferWatchers[token]
       )
@@ -325,8 +323,8 @@ function startChallengeWatchers (
 
   const watchers: any[] = []
   const challengeWatchers: any = {}
-  for (let token of _tokens) {
-    for (let network of _networks) {
+  for (const token of _tokens) {
+    for (const network of _networks) {
       if (!contracts.has(token, network)) {
         continue
       }
@@ -341,8 +339,8 @@ function startChallengeWatchers (
       challengeWatchers[token][chainId] = challengeWatcher
       watchers.push(challengeWatcher)
     }
-    for (let watcher in challengeWatchers) {
-      for (let network in challengeWatchers[token]) {
+    for (const watcher in challengeWatchers) {
+      for (const network in challengeWatchers[token]) {
         challengeWatchers[token][network].setSiblingWatchers(
           challengeWatchers[token]
         )
@@ -357,8 +355,8 @@ function startChallengeWatchers (
 function startCommitTransferWatchers () {
   const watchers: any[] = []
   const tokens = Object.keys(config.tokens)
-  for (let network of networks) {
-    for (let token of tokens) {
+  for (const network of networks) {
+    for (const token of tokens) {
       /*
       watchers.push(
         new CommitTransferWatcher({
@@ -377,7 +375,7 @@ function startCommitTransferWatchers () {
           }
         })
       )
-			*/
+      */
     }
   }
   watchers.forEach(watcher => watcher.start())

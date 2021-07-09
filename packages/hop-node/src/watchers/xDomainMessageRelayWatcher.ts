@@ -1,19 +1,17 @@
 import '../moduleAlias'
-import { ethers, Event, providers } from 'ethers'
 import chalk from 'chalk'
-import { wait, getRpcUrls } from 'src/utils'
 import db from 'src/db'
+import { Contract, Event, ethers, providers } from 'ethers'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { Contract, BigNumber } from 'ethers'
+import { getRpcUrls } from 'src/utils'
+
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
-import { Chain } from 'src/constants'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
-import { getL2Amb, executeExitTx } from './xDaiBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
+import { Chain, TX_RETRY_DELAY_MS } from 'src/constants'
+import { executeExitTx, getL2Amb } from './xDaiBridgeWatcher'
 import { config as gConfig } from 'src/config'
-import { l1PolygonFxBaseRootTunnelAbi } from '@hop-protocol/abi'
-import { TX_RETRY_DELAY_MS } from 'src/constants'
 
 export interface Config {
   chainSlug: string
@@ -65,7 +63,6 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
         this.handleTransferRootConfirmedEvent
       )
       .on('error', handleError)
-    return
   }
 
   async pollHandler () {
@@ -141,7 +138,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
         `checking ${dbTransferRoots.length} unconfirmed transfer roots db items`
       )
     }
-    for (let dbTransferRoot of dbTransferRoots) {
+    for (const dbTransferRoot of dbTransferRoots) {
       const {
         transferRootHash,
         destinationChainId,
@@ -233,7 +230,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
         tx.blockNumber + 1
       )
 
-      for (let sigEvent of sigEvents) {
+      for (const sigEvent of sigEvents) {
         const { encodedData } = sigEvent.args
         // TODO: better way of slicing by method id
         const data = /ef6ebe5e00000/.test(encodedData)
@@ -288,7 +285,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
 
                 throw err
               })
-            logger.info(`transferRootHash:`, transferRootHash)
+            logger.info('transferRootHash:', transferRootHash)
             logger.info(
               `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
               chalk.bgYellow.black.bold(tx.hash)
@@ -359,7 +356,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       )
     } else {
       // not implemented
-      return
+
     }
   }
 

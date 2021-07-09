@@ -1,5 +1,5 @@
-import { ethers, Wallet } from 'ethers'
 import memoize from 'fast-memoize'
+import { Wallet, ethers } from 'ethers'
 import { config } from 'src/config'
 import { getRpcProvider } from 'src/utils'
 

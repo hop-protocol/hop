@@ -1,5 +1,5 @@
-import { Chain } from 'src/constants'
 import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
+import { Chain } from 'src/constants'
 
 describe('getTransferIdsForTransferRoot', () => {
   it('xdai', async () => {

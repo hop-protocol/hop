@@ -1,5 +1,5 @@
-import { Contract } from 'ethers'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
+import { Contract } from 'ethers'
 
 export default class L2BridgeWrapper {
   l2BridgeWrapperContract: Contract

@@ -1,8 +1,8 @@
-import { Mutex } from 'async-mutex'
-import promiseTimeout from 'src/utils/promiseTimeout'
-import { wait } from 'src/utils'
-import { Notifier } from 'src/notifier'
 import Logger from 'src/logger'
+import promiseTimeout from 'src/utils/promiseTimeout'
+import { Mutex } from 'async-mutex'
+import { Notifier } from 'src/notifier'
+import { wait } from 'src/utils'
 
 const mutexes: { [key: string]: Mutex } = {}
 const MAX_RETRIES = 1
@@ -42,7 +42,7 @@ async function retrier (fn: any): Promise<any> {
   const retry = () => promiseTimeout(fn, TIMEOUT_MS)
   while (true) {
     try {
-      let result = await retry()
+      const result = await retry()
       // TODO: debounce runner function
       await wait(2 * 1000)
       return result

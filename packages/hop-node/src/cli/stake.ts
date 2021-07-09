@@ -1,22 +1,17 @@
-import { logger, program } from './shared'
+import { Chain } from 'src/constants'
 import {
-  setGlobalConfigFromConfigFile,
   Config,
-  parseConfigFile
+  parseConfigFile,
+  setGlobalConfigFromConfigFile
 } from './shared/config'
-import db from 'src/db'
 import {
-  getStakeWatchers,
-  startCommitTransferWatchers
+  getStakeWatchers
 } from 'src/watchers/watchers'
-import LoadTest from 'src/loadTest'
 import {
-  db as dbConfig,
   config as globalConfig,
   setConfigByNetwork
 } from 'src/config'
-import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
-import { Chain } from 'src/constants'
+import { logger, program } from './shared'
 
 export enum StakerAction {
   Stake,

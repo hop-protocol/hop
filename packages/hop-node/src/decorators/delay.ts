@@ -1,12 +1,12 @@
-import { Mutex } from 'async-mutex'
-import { wait } from 'src/utils'
 import Logger from 'src/logger'
 import {
   Chain,
   ETHEREUM_TX_MAX_DELAY_MS,
-  XDAI_TX_MAX_DELAY_MS,
-  POLYGON_TX_MAX_DELAY_MS
+  POLYGON_TX_MAX_DELAY_MS,
+  XDAI_TX_MAX_DELAY_MS
 } from 'src/constants'
+import { Mutex } from 'async-mutex'
+import { wait } from 'src/utils'
 
 const mutexes: { [key: string]: Mutex } = {}
 const logger = new Logger('delayDecorator')

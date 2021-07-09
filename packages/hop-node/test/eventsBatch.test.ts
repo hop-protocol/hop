@@ -1,8 +1,7 @@
-import { config } from 'src/config'
-import { wait } from 'src/utils'
 import Bridge from 'src/watchers/classes/Bridge'
-import { Chain, Token } from 'src/constants'
 import contracts from 'src/contracts'
+import { Chain, Token } from 'src/constants'
+import { config } from 'src/config'
 
 describe('eventsBatch', () => {
   it(

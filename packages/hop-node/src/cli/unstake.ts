@@ -1,23 +1,14 @@
-import { logger, program } from './shared'
 import {
-  setGlobalConfigFromConfigFile,
   Config,
-  parseConfigFile
+  parseConfigFile,
+  setGlobalConfigFromConfigFile
 } from './shared/config'
-import db from 'src/db'
-import {
-  getStakeWatchers,
-  startCommitTransferWatchers
-} from 'src/watchers/watchers'
-import LoadTest from 'src/loadTest'
-import {
-  db as dbConfig,
-  config as globalConfig,
-  setConfigByNetwork
-} from 'src/config'
-import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
-import { Chain } from 'src/constants'
+import { logger, program } from './shared'
+
 import { StakerAction, staker } from './stake'
+import {
+  config as globalConfig
+} from 'src/config'
 
 program
   .command('unstake')

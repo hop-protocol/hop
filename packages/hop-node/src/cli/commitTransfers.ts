@@ -1,9 +1,9 @@
-import { logger, program } from './shared'
 import {
-  setGlobalConfigFromConfigFile,
   Config,
-  parseConfigFile
+  parseConfigFile,
+  setGlobalConfigFromConfigFile
 } from './shared/config'
+import { logger, program } from './shared'
 import { startCommitTransferWatchers } from 'src/watchers/watchers'
 
 program

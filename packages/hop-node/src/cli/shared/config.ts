@@ -1,25 +1,18 @@
 import fs from 'fs'
-import path from 'path'
 import os from 'os'
+import path from 'path'
 import yaml from 'js-yaml'
-import { Command } from 'commander'
 import { Chain } from 'src/constants'
-import Logger, { setLogLevel } from 'src/logger'
-import { generateKeystore, recoverKeystore } from 'src/keystore'
-import { getParameter } from 'src/aws/parameterStore'
 import {
-  config as globalConfig,
   db as dbConfig,
-  setConfigByNetwork,
   setBonderPrivateKey,
-  setNetworkRpcUrls,
-  setNetworkWaitConfirmations,
-  setSyncConfig,
-  slackAuthToken,
-  slackChannel,
-  slackUsername
+  setConfigByNetwork,
+  setSyncConfig
 } from 'src/config'
+import { getParameter } from 'src/aws/parameterStore'
 import { logger, prompt } from './shared'
+import { recoverKeystore } from 'src/keystore'
+import { setLogLevel } from 'src/logger'
 
 export const defaultConfigDir = `${os.homedir()}/.hop-node`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
@@ -106,7 +99,7 @@ export type Config = {
 export async function parseConfigFile (
   _configFile: string = defaultConfigFilePath
 ) {
-  let configPath = path.resolve(_configFile.replace('~', os.homedir()))
+  const configPath = path.resolve(_configFile.replace('~', os.homedir()))
   let config: Config | null = null
   if (configPath) {
     if (!fs.existsSync(configPath)) {
@@ -153,7 +146,7 @@ export async function setGlobalConfigFromConfigFile (
     let passphrase: string = process.env.KEYSTORE_PASS || config?.keystore.pass
     if (!passphrase) {
       let passwordFilePath = passwordFile || config?.keystore?.passwordFile
-      let parameterStoreName = config?.keystore?.parameterStore
+      const parameterStoreName = config?.keystore?.parameterStore
       if (passwordFilePath) {
         passwordFilePath = path.resolve(
           passwordFilePath.replace('~', os.homedir())
@@ -179,7 +172,7 @@ export async function setGlobalConfigFromConfigFile (
 }
 
 export function validateKeys (validKeys: string[] = [], keys: string[]) {
-  for (let key of keys) {
+  for (const key of keys) {
     if (!validKeys.includes(key)) {
       throw new Error(`unrecognized key "${key}"`)
     }
@@ -225,7 +218,7 @@ export async function validateConfig (config: any) {
   const sectionKeys = Object.keys(config)
   await validateKeys(validSectionKeys, sectionKeys)
 
-  if (config['chains']) {
+  if (config.chains) {
     const validNetworkKeys = [
       Chain.Ethereum,
       Chain.Optimism,
@@ -233,30 +226,30 @@ export async function validateConfig (config: any) {
       Chain.xDai,
       Chain.Polygon
     ]
-    const networkKeys = Object.keys(config['chains'])
+    const networkKeys = Object.keys(config.chains)
     await validateKeys(validNetworkKeys, networkKeys)
   }
 
-  if (config['roles']) {
+  if (config.roles) {
     const validRoleKeys = ['bonder', 'challenger', 'arbBot', 'xdaiBridge']
-    const roleKeys = Object.keys(config['roles'])
+    const roleKeys = Object.keys(config.roles)
     await validateKeys(validRoleKeys, roleKeys)
   }
 
-  if (config['watchers']) {
-    const watcherKeys = Object.keys(config['watchers'])
+  if (config.watchers) {
+    const watcherKeys = Object.keys(config.watchers)
     await validateKeys(validWatcherKeys, watcherKeys)
   }
 
-  if (config['db']) {
+  if (config.db) {
     const validDbKeys = ['location']
-    const dbKeys = Object.keys(config['db'])
+    const dbKeys = Object.keys(config.db)
     await validateKeys(validDbKeys, dbKeys)
   }
 
-  if (config['logging']) {
+  if (config.logging) {
     const validLoggingKeys = ['level']
-    const loggingKeys = Object.keys(config['logging'])
+    const loggingKeys = Object.keys(config.logging)
     await validateKeys(validLoggingKeys, loggingKeys)
 
     if (config?.logging?.level) {
@@ -265,20 +258,20 @@ export async function validateConfig (config: any) {
     }
   }
 
-  if (config['keystore']) {
+  if (config.keystore) {
     const validKeystoreProps = [
       'location',
       'pass',
       'passwordFile',
       'parameterStore'
     ]
-    const keystoreProps = Object.keys(config['keystore'])
+    const keystoreProps = Object.keys(config.keystore)
     await validateKeys(validKeystoreProps, keystoreProps)
   }
 
-  if (config['commitTransfers']) {
+  if (config.commitTransfers) {
     const validCommitTransfersKeys = ['minThresholdAmount']
-    const commitTransfersKeys = Object.keys(config['commitTransfers'])
+    const commitTransfersKeys = Object.keys(config.commitTransfers)
     await validateKeys(validCommitTransfersKeys, commitTransfersKeys)
   }
 }

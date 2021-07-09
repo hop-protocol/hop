@@ -1,34 +1,34 @@
 // @ts-ignore
-import { Watcher } from '@eth-optimism/watcher'
 import expect from 'expect'
-import { ethers, providers, Contract, Wallet, BigNumber } from 'ethers'
+import queue from 'src/decorators/queue'
+import { BigNumber, Contract, Wallet, ethers, providers } from 'ethers'
+import { Chain, Token } from 'src/constants'
 import { HDNode } from '@ethersproject/hdnode'
-import { parseUnits, formatUnits } from 'ethers/lib/utils'
-import { config } from 'src/config'
-import * as hopMetadata from '@hop-protocol/metadata'
+import { Watcher } from '@eth-optimism/watcher'
 import {
-  l1BridgeAbi,
-  l2BridgeAbi,
-  erc20MintableAbi as erc20Abi,
-  l2AmmWrapperAbi,
-  swapAbi as saddleSwapAbi,
   arbitrumGlobalInboxAbi,
+  erc20MintableAbi as erc20Abi,
+  l1ArbitrumMessengerAbi,
+  arbitrumMessengerWrapperAbi as l1ArbitrumMessengerWrapperAbi,
+  l1BridgeAbi,
+  l1OptimismMessengerAbi,
+  optimismMessengerWrapperAbi as l1OptimismMessengerWrapperAbi,
+  l1OptimismTokenBridgeAbi,
+  l1PolygonMessengerAbi,
+  polygonMessengerWrapperAbi as l1PolygonMessengerWrapperAbi,
+  l1PolygonPosRootChainManagerAbi,
   l1xDaiForeignOmniBridgeAbi,
   l1xDaiMessengerAbi,
-  l1OptimismMessengerAbi,
-  l1ArbitrumMessengerAbi,
-  l1PolygonMessengerAbi,
   xDaiMessengerWrapperAbi as l1xDaiMessengerWrapperAbi,
-  optimismMessengerWrapperAbi as l1OptimismMessengerWrapperAbi,
-  arbitrumMessengerWrapperAbi as l1ArbitrumMessengerWrapperAbi,
-  polygonMessengerWrapperAbi as l1PolygonMessengerWrapperAbi,
-  l1OptimismTokenBridgeAbi,
-  l1PolygonPosRootChainManagerAbi,
-  l2PolygonChildErc20Abi
+  l2AmmWrapperAbi,
+  l2BridgeAbi,
+  l2PolygonChildErc20Abi,
+  swapAbi as saddleSwapAbi
 } from '@hop-protocol/abi'
-import { Chain, Token } from 'src/constants'
-import { wait, getRpcProvider, chainSlugToId } from 'src/utils'
-import queue from 'src/decorators/queue'
+import { chainSlugToId, getRpcProvider, wait } from 'src/utils'
+import { config } from 'src/config'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import * as hopMetadata from '@hop-protocol/metadata'
 
 export class User {
   privateKey: string
@@ -90,7 +90,7 @@ export class User {
   }
 
   getSaddleSwapContract (network: string, token: string) {
-    let saddleSwapAddress = config.tokens[token][network].l2SaddleSwap
+    const saddleSwapAddress = config.tokens[token][network].l2SaddleSwap
     const wallet = this.getWallet(network)
     return new Contract(saddleSwapAddress, saddleSwapAbi, wallet)
   }
@@ -145,7 +145,7 @@ export class User {
   }
 
   getHopBridgeTokenContract (network: string, token: string) {
-    let tokenAddress = config.tokens[token][network].l2HopBridgeToken
+    const tokenAddress = config.tokens[token][network].l2HopBridgeToken
     const wallet = this.getWallet(network)
     return new Contract(tokenAddress, erc20Abi, wallet)
   }
@@ -204,7 +204,7 @@ export class User {
     return new Contract(wrapperAddress, l2AmmWrapperAbi, wallet)
   }
 
-  //@queue
+  // @queue
   async approve (
     network: string,
     token: string | Contract,
@@ -330,7 +330,7 @@ export class User {
     let destinationAmountOutMin = 0
     let destinationDeadline = deadline
     const decimals = await getTokenDecimals(token)
-    let parsedAmount = parseUnits(amount.toString(), decimals)
+    const parsedAmount = parseUnits(amount.toString(), decimals)
 
     if (destNetwork === Chain.Ethereum) {
       destinationAmountOutMin = 0
@@ -536,6 +536,9 @@ export class User {
 
   async getBonderFee (network: string, token: string, amount: string) {
     const decimals = await getTokenDecimals(token)
+    // TODO: fix bonder fee
+    return parseUnits('0.20', decimals)
+    /*
     const bridge = this.getHopBridgeContract(network, token)
     const minBonderBps = await bridge.minBonderBps()
     const minBonderFeeAbsolute = await bridge.minBonderFeeAbsolute()
@@ -545,9 +548,8 @@ export class User {
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute
-    // TODO: fix bonder fee
-    return parseUnits('0.20', decimals)
     return minBonderFee
+    */
   }
 
   getBridgeAddress (network: string, token: string) {
@@ -683,7 +685,7 @@ export class User {
     if (approve) {
       const erc20Predicate = '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
       const token = new Contract(tokenAddress, erc20Abi, wallet)
-      let tx = await token.approve(erc20Predicate, parsedAmount)
+      const tx = await token.approve(erc20Predicate, parsedAmount)
       await tx.wait()
     }
     const bridge = new Contract(
@@ -1292,9 +1294,9 @@ export async function prepareAccounts (
   network: string,
   faucetTokensToSend: number = 100
 ) {
-  let faucetSendEth = false
+  const faucetSendEth = false
   let i = 0
-  for (let user of users) {
+  for (const user of users) {
     console.log('preparing account')
     const address = await user.getAddress()
     const yes = [Chain.Ethereum as string, Chain.xDai].includes(network)

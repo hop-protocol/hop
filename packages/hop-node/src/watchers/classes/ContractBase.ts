@@ -1,9 +1,9 @@
-import { Transaction, providers, Contract, BigNumber } from 'ethers'
-import { EventEmitter } from 'events'
-import { wait, chainIdToSlug, chainSlugToId } from 'src/utils'
-import { Chain } from 'src/constants'
-import { config } from 'src/config'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
+import { BigNumber, Contract, Transaction, providers } from 'ethers'
+import { Chain } from 'src/constants'
+import { EventEmitter } from 'events'
+import { chainIdToSlug, chainSlugToId, wait } from 'src/utils'
+import { config } from 'src/config'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract

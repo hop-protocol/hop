@@ -1,20 +1,19 @@
+import Bridge, { EventCb, EventsBatchOptions } from './Bridge'
+import L1Bridge from './L1Bridge'
+import L2AmmWrapper from './L2AmmWrapper'
+import L2BridgeWrapper from './L2BridgeWrapper'
+import Token from './Token'
+import delay from 'src/decorators/delay'
+import queue from 'src/decorators/queue'
+import rateLimitRetry from 'src/decorators/rateLimitRetry'
+import { BigNumber, Contract, Event, providers } from 'ethers'
+import { Chain } from 'src/constants'
 import { boundClass } from 'autobind-decorator'
-import { providers, Contract, BigNumber, Event } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
 import {
   erc20Abi,
   l2AmmWrapperAbi,
   l2BridgeWrapperAbi
 } from '@hop-protocol/abi'
-import Bridge, { EventsBatchOptions, EventCb } from './Bridge'
-import rateLimitRetry from 'src/decorators/rateLimitRetry'
-import queue from 'src/decorators/queue'
-import delay from 'src/decorators/delay'
-import L2AmmWrapper from './L2AmmWrapper'
-import L2BridgeWrapper from './L2BridgeWrapper'
-import L1Bridge from './L1Bridge'
-import Token from './Token'
-import { Chain } from 'src/constants'
 
 @boundClass
 export default class L2Bridge extends Bridge {
@@ -147,7 +146,7 @@ export default class L2Bridge extends Bridge {
         end
       )
 
-      for (let event of events) {
+      for (const event of events) {
         if (event.args.transferId === transferId) {
           match = event
           return false
@@ -302,7 +301,7 @@ export default class L2Bridge extends Bridge {
         end
       )
 
-      for (let event of events) {
+      for (const event of events) {
         if (transferRootHash === event.args.rootHash) {
           txHash = event.transactionHash
           return false
@@ -326,7 +325,7 @@ export default class L2Bridge extends Bridge {
         end
       )
 
-      for (let event of events) {
+      for (const event of events) {
         if (transferId === event.args.transferId) {
           txHash = event.transactionHash
           return false
@@ -374,7 +373,7 @@ export default class L2Bridge extends Bridge {
     amountOutMin: BigNumber,
     deadline: number
   ): Promise<providers.TransactionResponse> {
-    let txOverrides = await this.txOverrides()
+    const txOverrides = await this.txOverrides()
     if (this.chainSlug === Chain.Polygon) {
       txOverrides.gasLimit = 1_000_000
     }

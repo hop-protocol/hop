@@ -1,25 +1,15 @@
-import { logger, program } from './shared'
 import {
-  setGlobalConfigFromConfigFile,
   Config,
-  parseConfigFile
+  parseConfigFile,
+  setGlobalConfigFromConfigFile
 } from './shared/config'
-import db from 'src/db'
-import {
-  getStakeWatchers,
-  startCommitTransferWatchers
-} from 'src/watchers/watchers'
-import LoadTest from 'src/loadTest'
-import {
-  db as dbConfig,
-  config as globalConfig,
-  setConfigByNetwork
-} from 'src/config'
-import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
-import { Chain } from 'src/constants'
-import Token from 'src/watchers/classes/Token'
-import contracts from 'src/contracts'
+import { logger, program } from './shared'
+
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
+import { Chain } from 'src/constants'
+import {
+  config as globalConfig
+} from 'src/config'
 
 program
   .command('xdai-bridge')
@@ -34,7 +24,7 @@ program
         await setGlobalConfigFromConfigFile(config)
       }
       const tokens = Object.keys(globalConfig.tokens)
-      for (let token of tokens) {
+      for (const token of tokens) {
         new xDaiBridgeWatcher({
           chainSlug: Chain.xDai,
           token

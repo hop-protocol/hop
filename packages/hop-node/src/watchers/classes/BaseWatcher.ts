@@ -1,12 +1,12 @@
-import { Contract } from 'ethers'
-import { EventEmitter } from 'events'
-import { wait } from 'src/utils'
-import Logger from 'src/logger'
-import { Notifier } from 'src/notifier'
-import { hostname } from 'src/config'
 import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
+import Logger from 'src/logger'
+import { Contract } from 'ethers'
+import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
+import { Notifier } from 'src/notifier'
+import { hostname } from 'src/config'
+import { wait } from 'src/utils'
 
 interface Config {
   chainSlug: string
@@ -137,7 +137,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     try {
       await Promise.all([this.pollSync(), this.pollCheck(), this.watch()])
     } catch (err) {
-      this.logger.error(`base watcher error:`, err.message)
+      this.logger.error('base watcher error:', err.message)
       this.notifier.error(`base watcher error: '${err.message}`)
       console.error(err)
       this.quit()
@@ -198,7 +198,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   // force quit so docker can restart
   public async quit () {
     console.trace()
-    this.logger.info(`exiting`)
+    this.logger.info('exiting')
     process.exit(1)
   }
 }

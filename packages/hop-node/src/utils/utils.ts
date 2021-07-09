@@ -1,8 +1,8 @@
-import * as ethers from 'ethers'
 import debounce from 'debounce-promise'
 import pThrottle from 'p-throttle'
 import { Chain } from 'src/constants'
 import { config } from 'src/config'
+import * as ethers from 'ethers'
 
 export const getL2MessengerId = (l2Name: string): string => {
   return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(l2Name))
@@ -33,11 +33,11 @@ export const getRpcProvider = (network: string): ethers.providers.Provider => {
 export const getRpcProviderFromUrl = (
   rpcUrls: string | string[]
 ): ethers.providers.Provider => {
-  let providers: ethers.providers.StaticJsonRpcProvider[] = []
+  const providers: ethers.providers.StaticJsonRpcProvider[] = []
   if (!Array.isArray(rpcUrls)) {
     rpcUrls = [rpcUrls]
   }
-  for (let rpcUrl of rpcUrls) {
+  for (const rpcUrl of rpcUrls) {
     const provider = new ethers.providers.StaticJsonRpcProvider(rpcUrl)
     if (rpcUrls.length === 1) {
       return provider
@@ -58,13 +58,13 @@ export const chainIdToSlug = (chainId: string | number): string | undefined => {
   if (!config.networks) {
     throw new Error('networks not found')
   }
-  for (let k in config.networks) {
-    let v = config.networks[k]
+  for (const k in config.networks) {
+    const v = config.networks[k]
     if (!v) {
       continue
     }
     if (
-      v?.networkId?.toString() == chainId.toString() ||
+      v?.networkId?.toString() === chainId.toString() ||
       v?.chainId?.toString() === chainId.toString()
     ) {
       return k

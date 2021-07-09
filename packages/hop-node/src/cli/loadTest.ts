@@ -1,13 +1,10 @@
-import { logger, program } from './shared'
-import {
-  setGlobalConfigFromConfigFile,
-  Config,
-  parseConfigFile
-} from './shared/config'
-import db from 'src/db'
-import { startCommitTransferWatchers } from 'src/watchers/watchers'
 import LoadTest from 'src/loadTest'
-import { db as dbConfig } from 'src/config'
+import {
+  Config,
+  parseConfigFile,
+  setGlobalConfigFromConfigFile
+} from './shared/config'
+import { logger, program } from './shared'
 
 program
   .command('load-test')

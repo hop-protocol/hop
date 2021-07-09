@@ -1,12 +1,12 @@
 import '../moduleAlias'
-import { ethers, Contract, BigNumber } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { wait } from 'src/utils'
-import chalk from 'chalk'
 import Logger from 'src/logger'
+import chalk from 'chalk'
+import queue from 'src/decorators/queue'
+import { BigNumber, Contract, ethers } from 'ethers'
 import { Chain } from 'src/constants'
 import { config } from 'src/config'
-import queue from 'src/decorators/queue'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { wait } from 'src/utils'
 
 export enum TokenIndex {
   CanonicalToken = 0,
@@ -178,7 +178,7 @@ class ArbBot {
   }
 
   private async getAmountOut (path: string[], amount: BigNumber) {
-    let [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
+    const [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
     if (amount.eq(0)) {
       return BigNumber.from(0)
     }
@@ -191,10 +191,10 @@ class ArbBot {
   }
 
   private async getTokenIndexes (path: string[]) {
-    let tokenIndexFrom = Number(
+    const tokenIndexFrom = Number(
       (await this.saddleSwap.getTokenIndex(path[0])).toString()
     )
-    let tokenIndexTo = Number(
+    const tokenIndexTo = Number(
       (await this.saddleSwap.getTokenIndex(path[1])).toString()
     )
 
@@ -327,7 +327,7 @@ class ArbBot {
         `Not enough ${inputToken.label} tokens. Need ${amountIn}, have ${pathToken0Balance}`
       )
     }
-    let [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
+    const [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
     return this.saddleSwap.swap(
       tokenIndexFrom,
       tokenIndexTo,

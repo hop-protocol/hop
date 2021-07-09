@@ -1,8 +1,8 @@
-import { BigNumber } from 'ethers'
 import BaseDb from './BaseDb'
+import { BigNumber } from 'ethers'
+import { TX_RETRY_DELAY_MS } from 'src/constants'
 import { chainIdToSlug } from 'src/utils'
 import { normalizeBigNumber } from './utils'
-import { TX_RETRY_DELAY_MS } from 'src/constants'
 
 export type Transfer = {
   transferRootId?: string

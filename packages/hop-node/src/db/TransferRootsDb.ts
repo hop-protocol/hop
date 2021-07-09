@@ -1,5 +1,5 @@
-import { BigNumber, Transaction } from 'ethers'
 import BaseDb from './BaseDb'
+import { BigNumber } from 'ethers'
 import { normalizeBigNumber } from './utils'
 
 export type TransferRoot = {

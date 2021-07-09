@@ -1,14 +1,14 @@
-require('dotenv').config()
-import { User } from './helpers'
-import { wait } from 'src/utils'
-import { bonderPrivateKey } from './config'
 import { Chain } from 'src/constants'
+import { User } from './helpers'
+import { bonderPrivateKey } from './config'
+import { wait } from 'src/utils'
+require('dotenv').config()
 
 const TOKEN = 'USDC'
 const TOKEN_0_AMOUNT = 1000
 const testNetworks = [Chain.xDai]
 
-for (let l2Network of testNetworks) {
+for (const l2Network of testNetworks) {
   test(
     `add liquidity on ${l2Network}`,
     async () => {
@@ -40,7 +40,7 @@ async function addLiquidity (l2Network: string, amount: number) {
 
   if (l1Balance < amount) {
     console.log(`minting ${Chain.Ethereum} ${TOKEN}`)
-    let tx = await user.mint(Chain.Ethereum, TOKEN, amount * 2)
+    const tx = await user.mint(Chain.Ethereum, TOKEN, amount * 2)
     console.log(`mint tx: ${tx.hash}`)
     await tx.wait()
   }
@@ -67,13 +67,13 @@ async function addLiquidity (l2Network: string, amount: number) {
     console.log(
       `converting ${Chain.Ethereum} ${TOKEN} to ${l2Network} ${TOKEN}`
     )
-    let tx = await user.convertToCanonicalToken(l2Network, TOKEN, amount / 2)
+    const tx = await user.convertToCanonicalToken(l2Network, TOKEN, amount / 2)
     console.log(`convert to canonical token tx: ${tx.hash}`)
     await tx.wait()
     await wait(200 * 1000)
   }
 
-  let [
+  const [
     tokenBalanceBefore,
     hopTokenBalanceBefore,
     poolBalanceBefore
@@ -90,7 +90,7 @@ async function addLiquidity (l2Network: string, amount: number) {
   const receipt = await tx.wait()
   expect(receipt.status).toBe(1)
 
-  let [
+  const [
     tokenBalanceAfter,
     hopTokenBalanceAfter,
     poolBalanceAfter
@@ -108,13 +108,12 @@ async function addLiquidity (l2Network: string, amount: number) {
 async function removeLiquidity (l2Network: string, amount: number) {
   const user = new User(bonderPrivateKey)
 
-  //const lpToken = await user.getLpToken(l2Network, TOKEN)
-  //const saddleSwap = user.getSaddleSwapContract(l2Network, TOKEN)
-  //const tx = await user.approve(l2Network, lpToken, saddleSwap.address)
-  //await tx.wait()
+  // const lpToken = await user.getLpToken(l2Network, TOKEN)
+  // const saddleSwap = user.getSaddleSwapContract(l2Network, TOKEN)
+  // const tx = await user.approve(l2Network, lpToken, saddleSwap.address)
+  // await tx.wait()
 
-  let tx: any
-  let [
+  const [
     tokenBalanceBefore,
     hopTokenBalanceBefore,
     poolBalanceBefore
@@ -125,13 +124,13 @@ async function removeLiquidity (l2Network: string, amount: number) {
   ])
 
   console.log('removing liquidity')
-  tx = await user.removeLiquidity(l2Network, TOKEN, amount)
+  const tx = await user.removeLiquidity(l2Network, TOKEN, amount)
   console.log('tx: ', tx.hash)
   console.log('waiting for receipt')
   const receipt = await tx.wait()
   expect(receipt.status).toBe(1)
 
-  let [
+  const [
     tokenBalanceAfter,
     hopTokenBalanceAfter,
     poolBalanceAfter

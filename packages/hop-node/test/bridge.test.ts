@@ -1,15 +1,15 @@
-require('dotenv').config()
-import contracts from 'src/contracts'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
-import { config } from 'src/config'
+import contracts from 'src/contracts'
 import db from 'src/db'
+import { config } from 'src/config'
+require('dotenv').config()
 
 const token = 'USDC'
 const network = 'ethereum'
 const tokenContracts = contracts.get(token, network)
 const bridgeContract = tokenContracts.l1Bridge
 const bridge = new L1Bridge(bridgeContract)
-let { totalBlocks, batchBlocks } = config.sync[network]
+const { totalBlocks, batchBlocks } = config.sync[network]
 
 describe('Happy Path', () => {
   test('Full loop', async () => {
@@ -235,7 +235,7 @@ describe('Non-Happy Path', () => {
   })
 
   test('startBlockNumber is greater than endBlockNumber', async () => {
-    let startBlockNumber = 100
+    const startBlockNumber = 100
     let endBlockNumber = 150
 
     try {

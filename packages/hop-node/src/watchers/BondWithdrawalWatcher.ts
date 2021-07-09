@@ -1,14 +1,12 @@
 import '../moduleAlias'
-import { ethers, Contract, BigNumber, Event, providers } from 'ethers'
-import db from 'src/db'
-import chalk from 'chalk'
-import { wait } from 'src/utils'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
-import Bridge from './classes/Bridge'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
-import Token from './classes/Token'
+import chalk from 'chalk'
+import db from 'src/db'
+import { BigNumber, Contract, Event, providers } from 'ethers'
 import { Chain } from 'src/constants'
+import { wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
@@ -166,7 +164,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
     const headBlockNumber = await this.bridge.getBlockNumber()
     const promises: Promise<any>[] = []
-    for (let dbTransfer of dbTransfers) {
+    for (const dbTransfer of dbTransfers) {
       const { transferId, transferSentBlockNumber } = dbTransfer
       const targetBlockNumber =
         transferSentBlockNumber + this.bridge.waitConfirmations
@@ -183,7 +181,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   checkTransferSent = async (transferId: string) => {
     const logger = this.logger.create({ id: transferId })
 
-    let dbTransfer = await db.transfers.getByTransferId(transferId)
+    const dbTransfer = await db.transfers.getByTransferId(transferId)
     const {
       destinationChainId,
       sourceChainId,
@@ -334,10 +332,10 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     } = params
     const logger = this.logger.create({ id: transferId })
 
-    logger.debug(`amount:`, this.bridge.formatUnits(amount))
-    logger.debug(`recipient:`, recipient)
-    logger.debug(`transferNonce:`, transferNonce)
-    logger.debug(`bonderFee:`, this.bridge.formatUnits(bonderFee))
+    logger.debug('amount:', this.bridge.formatUnits(amount))
+    logger.debug('recipient:', recipient)
+    logger.debug('transferNonce:', transferNonce)
+    logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
     if (attemptSwap) {
       logger.debug(
         `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`

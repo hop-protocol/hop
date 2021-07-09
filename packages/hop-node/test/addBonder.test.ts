@@ -1,7 +1,7 @@
-import { privateKey, governancePrivateKey } from './config'
-import { User } from './helpers'
-import { wait } from 'src/utils'
 import { Chain } from 'src/constants'
+import { User } from './helpers'
+import { governancePrivateKey, privateKey } from './config'
+import { wait } from 'src/utils'
 
 const network = Chain.Optimism
 const token = 'DAI'
@@ -13,11 +13,11 @@ test(
     const gov = new User(governancePrivateKey)
     console.log('gov address:', await gov.getAddress())
     console.log('new bonder address:', await newBonder.getAddress())
-    //let isGovernance = await gov.isGovernance(Chain.Ethereum, token)
-    //expect(isGovernance).toBe(true)
+    // let isGovernance = await gov.isGovernance(Chain.Ethereum, token)
+    // expect(isGovernance).toBe(true)
     let isBonder = await newBonder.isBonder(network, token)
-    //expect(isBonder).toBe(false)
-    //const tx = await gov.addBonder(Chain.Ethereum, token, await newBonder.getAddress())
+    // expect(isBonder).toBe(false)
+    // const tx = await gov.addBonder(Chain.Ethereum, token, await newBonder.getAddress())
     const tx = await gov.addBonder(network, token, await newBonder.getAddress())
     console.log('tx hash:', tx.hash)
     const receipt = await tx.wait()

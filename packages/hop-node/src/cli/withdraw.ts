@@ -1,24 +1,16 @@
-import { logger, program } from './shared'
 import {
-  setGlobalConfigFromConfigFile,
   Config,
-  parseConfigFile
+  parseConfigFile,
+  setGlobalConfigFromConfigFile
 } from './shared/config'
-import db from 'src/db'
-import {
-  getStakeWatchers,
-  startCommitTransferWatchers
-} from 'src/watchers/watchers'
-import LoadTest from 'src/loadTest'
-import {
-  db as dbConfig,
-  config as globalConfig,
-  setConfigByNetwork
-} from 'src/config'
-import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
-import { Chain } from 'src/constants'
+import { logger, program } from './shared'
+
 import Token from 'src/watchers/classes/Token'
 import contracts from 'src/contracts'
+import { Chain } from 'src/constants'
+import {
+  config as globalConfig
+} from 'src/config'
 
 async function withdrawTokens (
   network: string,

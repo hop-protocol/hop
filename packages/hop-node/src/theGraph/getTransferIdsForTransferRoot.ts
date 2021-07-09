@@ -1,5 +1,5 @@
-import makeRequest from './makeRequest'
 import MerkleTree from 'src/utils/MerkleTree'
+import makeRequest from './makeRequest'
 
 export default async function getTransferIdsForTransferRoot (
   chain: string,
@@ -94,12 +94,12 @@ export default async function getTransferIdsForTransferRoot (
   })
 
   // sort by transfer id block number and index
-  transferIds.sort((a: any, b: any) => {
+  transferIds = transferIds.sort((a: any, b: any) => {
     if (a.blockNumber > b.blockNumber) return 1
     if (a.blockNumber < b.blockNumber) return -1
-
     if (a.index > b.index) return 1
     if (a.index < b.index) return -1
+    return 0
   })
 
   const seen: { [key: string]: boolean } = {}

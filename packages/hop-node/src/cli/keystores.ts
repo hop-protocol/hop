@@ -1,27 +1,20 @@
 // @ts-ignore
 import clearConsole from 'console-clear'
-import { hopArt, printHopArt } from './shared/art'
-import { prompt, logger, program, parseArgList } from './shared'
+import entropyToMnemonic from 'src/utils/entropyToMnemonic'
+import fs from 'fs'
+import path from 'path'
 import {
-  setGlobalConfigFromConfigFile,
-  parseConfigFile,
   Config,
-  defaultEnabledWatchers,
+  defaultKeystoreFilePath,
+  parseConfigFile,
   promptPassphrase,
-  defaultKeystoreFilePath
+  setGlobalConfigFromConfigFile
 } from './shared/config'
-import { randomBytes } from 'crypto'
 import { HDNode } from '@ethersproject/hdnode'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
-import entropyToMnemonic from 'src/utils/entropyToMnemonic'
-import { setConfigByNetwork } from 'src/config'
-import {
-  getStakeWatchers,
-  startWatchers,
-  startStakeWatchers,
-  startChallengeWatchers,
-  startCommitTransferWatchers
-} from 'src/watchers/watchers'
+import { hopArt } from './shared/art'
+import { logger, program, prompt } from './shared'
+import { randomBytes } from 'crypto'
 
 program
   .command('keystore')
@@ -56,7 +49,7 @@ program
           }
         }
         let mnemonic: string
-        const hdpath = `m/44'/60'/0'/0/0`
+        const hdpath = 'm/44\'/60\'/0\'/0/0'
         let privateKey: string | null = source.privateKey || null
         if (!privateKey) {
           const entropy = randomBytes(32)

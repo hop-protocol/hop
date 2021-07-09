@@ -1,10 +1,10 @@
-import { Contract, BigNumber, Event } from 'ethers'
 import BaseWatcher from './BaseWatcher'
-import db from 'src/db'
 import L2Bridge from './L2Bridge'
-import chalk from 'chalk'
-import { isL1ChainId } from 'src/utils'
 import MerkleTree from 'src/utils/MerkleTree'
+import chalk from 'chalk'
+import db from 'src/db'
+import { BigNumber, Contract, Event } from 'ethers'
+import { isL1ChainId } from 'src/utils'
 
 interface Config {
   chainSlug: string
@@ -18,10 +18,6 @@ interface Config {
 }
 
 class BaseWatcherWithEventHandlers extends BaseWatcher {
-  constructor (config: Config) {
-    super(config)
-  }
-
   public handleTransferSentEvent = async (
     transferId: string,
     destinationChainIdBn: BigNumber,
@@ -35,7 +31,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     event: Event
   ) => {
     const logger = this.logger.create({ id: transferId })
-    logger.debug(`handling TransferSent event`)
+    logger.debug('handling TransferSent event')
 
     try {
       const { transactionHash, transactionIndex } = event
@@ -85,7 +81,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     const tx = await this.bridge.getTransaction(transactionHash)
     const { from: withdrawalBonder } = tx
 
-    logger.debug(`handling WithdrawalBonded event`)
+    logger.debug('handling WithdrawalBonded event')
     logger.debug('transferId:', transferId)
     logger.debug('amount:', this.bridge.formatUnits(amount))
 
@@ -187,10 +183,10 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       )
       const blockNumber: number = (event as any).blockNumber
 
-      logger.debug(`committedAt:`, committedAt)
-      logger.debug(`totalAmount:`, this.bridge.formatUnits(totalAmount))
-      logger.debug(`transferRootHash:`, transferRootHash)
-      logger.debug(`destinationChainId:`, destinationChainId)
+      logger.debug('committedAt:', committedAt)
+      logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
+      logger.debug('transferRootHash:', transferRootHash)
+      logger.debug('destinationChainId:', destinationChainId)
 
       await db.transferRoots.update(transferRootHash, {
         transferRootHash,
@@ -251,8 +247,8 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
       // events need to be sorted from [newest...oldest] in order to pick up the endEvent first
       events = events.reverse()
-      for (let event of events) {
-        let eventDbTransferRoot = await db.transferRoots.getByTransferRootHash(
+      for (const event of events) {
+        const eventDbTransferRoot = await db.transferRoots.getByTransferRootHash(
           event.args.rootHash
         )
 
@@ -277,7 +273,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     }
 
     let startBlockNumber
-    let endBlockNumber = endEvent.blockNumber
+    const endBlockNumber = endEvent.blockNumber
     if (startEvent) {
       startBlockNumber = startEvent.blockNumber
     } else {
@@ -303,7 +299,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       }
     }
 
-    let transferIds: string[] = []
+    const transferIds: string[] = []
     await sourceBridge.eventsBatch(
       async (start: number, end: number) => {
         let transferEvents = await sourceBridge.getTransferSentEvents(
@@ -313,7 +309,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
         // transferEvents need to be sorted from [newest...oldest] in order to maintain the ordering
         transferEvents = transferEvents.reverse()
-        for (let event of transferEvents) {
+        for (const event of transferEvents) {
           const transaction = await sourceBridge.getTransaction(
             event.transactionHash
           )
@@ -370,7 +366,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       sourceChainId
     })
 
-    for (let transferId of transferIds) {
+    for (const transferId of transferIds) {
       await db.transfers.update(transferId, {
         transferRootHash,
         transferRootId

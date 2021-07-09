@@ -1,15 +1,14 @@
-import { ethers, Contract, BigNumber, Event, providers } from 'ethers'
-import fetch from 'node-fetch'
-import { MaticPOSClient } from '@maticnetwork/maticjs'
+import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import Web3 from 'web3'
 import chalk from 'chalk'
-import { erc20Abi, l1PolygonPosRootChainManagerAbi } from '@hop-protocol/abi'
-import { Chain } from 'src/constants'
-import { config as globalConfig } from 'src/config'
-import wallets from 'src/wallets'
-import { wait } from 'src/utils'
-import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
+import fetch from 'node-fetch'
 import queue from 'src/decorators/queue'
+import { BigNumber, Contract, Event, ethers } from 'ethers'
+import { Chain } from 'src/constants'
+import { MaticPOSClient } from '@maticnetwork/maticjs'
+import { erc20Abi } from '@hop-protocol/abi'
+import { config as globalConfig } from 'src/config'
+import { wait } from 'src/utils'
 
 type Config = {
   chainSlug: string
@@ -53,10 +52,10 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
     this.logger.debug(`polygon ${this.token} bridge watcher started`)
     this.started = true
     try {
-      //const l1Wallet = wallets.get(Chain.Ethereum)
-      //const tokenAddress = addresses.DAI.polygon.l2CanonicalToken
+      // const l1Wallet = wallets.get(Chain.Ethereum)
+      // const tokenAddress = addresses.DAI.polygon.l2CanonicalToken
 
-      //const l1RootChainAddress = addresses[token][Chain.Polygon].l1PosRootChainManager
+      // const l1RootChainAddress = addresses[token][Chain.Polygon].l1PosRootChainManager
       // const l2TokenAddress = '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1' // dummy erc20
       const l2TokenAddress =
         globalConfig.tokens[this.token][Chain.Polygon]?.l2CanonicalToken
@@ -96,12 +95,12 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
           return
         }
 
-        //const transactionHash= '0x3f5997c83acf26d8628c6ba5b410271834a3aa71ca7f1f60a2b2bfb83127db41'
-        //const event = await l2Token.provider.getTransaction(transactionHash)
-        //transactionHashes[transactionHash] = event
+        // const transactionHash= '0x3f5997c83acf26d8628c6ba5b410271834a3aa71ca7f1f60a2b2bfb83127db41'
+        // const event = await l2Token.provider.getTransaction(transactionHash)
+        // transactionHashes[transactionHash] = event
 
         try {
-          for (let transactionHash in transactionHashes) {
+          for (const transactionHash in transactionHashes) {
             const { blockNumber: l2BlockNumber } = transactionHashes[
               transactionHash
             ]
@@ -164,7 +163,7 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
       txHash,
       {
         from: recipient,
-        //gasLimit: 500_000,
+        // gasLimit: 500_000,
         encodeAbi: true
       }
     )

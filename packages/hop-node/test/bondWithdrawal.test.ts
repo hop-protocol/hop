@@ -1,30 +1,30 @@
-require('dotenv').config()
-import { startWatchers } from 'src/watchers/watchers'
-import { wait, isL1 } from 'src/utils'
-import { User, waitForEvent, prepareAccount } from './helpers'
-import { privateKey } from './config'
 import Logger from 'src/logger'
 import { Chain } from 'src/constants'
+import { User, prepareAccount, waitForEvent } from './helpers'
+import { isL1, wait } from 'src/utils'
+import { privateKey } from './config'
+import { startWatchers } from 'src/watchers/watchers'
+require('dotenv').config()
 
 const L1ToL2Paths = [
-  //[Chain.Ethereum, Chain.Arbitrum],
+  // [Chain.Ethereum, Chain.Arbitrum],
   [Chain.Ethereum, Chain.Optimism],
   [Chain.Ethereum, Chain.xDai]
 ]
 
 const L2ToL1Paths = [
-  //[Chain.Arbitrum, Chain.Ethereum],
+  // [Chain.Arbitrum, Chain.Ethereum],
   [Chain.Optimism, Chain.Ethereum],
   [Chain.xDai, Chain.Ethereum]
 ]
 
 const L2ToL2Paths = [
-  //[Chain.Optimism, Chain.Arbitrum],
+  // [Chain.Optimism, Chain.Arbitrum],
   [Chain.Optimism, Chain.xDai],
-  //[Chain.Arbitrum, Chain.Optimism],
-  //[Chain.Arbitrum, Chain.xDai],
+  // [Chain.Arbitrum, Chain.Optimism],
+  // [Chain.Arbitrum, Chain.xDai],
   [Chain.xDai, Chain.Optimism]
-  //[Chain.xDai, Chain.Arbitrum]
+  // [Chain.xDai, Chain.Arbitrum]
 ]
 
 const TOKEN = 'USDC'
@@ -35,7 +35,7 @@ describe('bondWithdrawal', () => {
   let testPaths = [...L1ToL2Paths, ...L2ToL1Paths, ...L2ToL2Paths]
   // debug
   testPaths = [[Chain.Optimism, Chain.Ethereum]]
-  for (let path of testPaths) {
+  for (const path of testPaths) {
     const [sourceNetwork, destNetwork] = path
     const label = `${sourceNetwork} → ${destNetwork}`
     it(

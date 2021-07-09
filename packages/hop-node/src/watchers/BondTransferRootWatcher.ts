@@ -1,15 +1,15 @@
 import '../moduleAlias'
-import { Contract, BigNumber, Event, providers } from 'ethers'
-import { wait } from 'src/utils'
-import db from 'src/db'
-import { TransferRoot } from 'src/db/TransferRootsDb'
-import chalk from 'chalk'
-import MerkleTree from 'src/utils/MerkleTree'
-import { Chain, TX_RETRY_DELAY_MS } from 'src/constants'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
+import MerkleTree from 'src/utils/MerkleTree'
+import chalk from 'chalk'
+import db from 'src/db'
+import { BigNumber, Contract, Event, providers } from 'ethers'
+import { Chain, TX_RETRY_DELAY_MS } from 'src/constants'
+import { TransferRoot } from 'src/db/TransferRootsDb'
 import { config as globalConfig } from 'src/config'
+import { wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
@@ -130,7 +130,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     }
 
     const headBlockNumber = await this.bridge.getBlockNumber()
-    for (let dbTransferRoot of dbTransferRoots) {
+    for (const dbTransferRoot of dbTransferRoots) {
       const {
         transferRootHash,
         totalAmount,
@@ -233,7 +233,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
 
     logger.info(
       sourceChainId,
-      `transferRootHash:`,
+      'transferRootHash:',
       chalk.bgMagenta.black(transferRootHash)
     )
     logger.debug('committedAt:', committedAt)

@@ -1,9 +1,9 @@
-require('dotenv').config()
-import { User } from './helpers'
-import { wait } from 'src/utils'
 import Logger from 'src/logger'
-import { faucetPrivateKey as privateKey } from './config'
 import { Chain } from 'src/constants'
+import { User } from './helpers'
+import { faucetPrivateKey as privateKey } from './config'
+import { wait } from 'src/utils'
+require('dotenv').config()
 
 const TOKEN = 'USDC'
 const AMOUNT = 100_000
@@ -11,7 +11,7 @@ const NETWORKS = [Chain.Polygon]
 const logger = new Logger('TEST')
 
 describe('convert L1 token to L2 canonical token', () => {
-  for (let L2_NETWORK of NETWORKS) {
+  for (const L2_NETWORK of NETWORKS) {
     const label = `convert token to canonical token on ${L2_NETWORK}`
     it(
       label,
@@ -58,7 +58,7 @@ describe.skip('polygon', () => {
       const tx = await user.polygonCanonicalL1ToL2(amount, true)
       console.log('tx hash:', tx.hash)
       expect(tx.hash).toBeTruthy()
-      let receipt = await tx.wait()
+      const receipt = await tx.wait()
       expect(receipt.status).toBe(1)
     },
     60 * 1000

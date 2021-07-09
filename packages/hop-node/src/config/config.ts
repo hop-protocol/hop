@@ -1,6 +1,6 @@
-require('./loadEnvFile')
 import os from 'os'
 import path from 'path'
+require('./loadEnvFile')
 export * from './addresses'
 
 const defaultDbPath = path.resolve(__dirname, '../../../db_data')

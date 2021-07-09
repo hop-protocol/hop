@@ -19,7 +19,7 @@ async function main () {
   console.log(transferRoot)
 
   const dbTransfers = await db.transfers.getUnsettledBondedWithdrawalTransfers()
-  //console.log(dbTransfers)
+  // console.log(dbTransfers)
 }
 
 main()

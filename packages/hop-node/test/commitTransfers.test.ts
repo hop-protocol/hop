@@ -1,6 +1,6 @@
-import { bonderPrivateKey, governancePrivateKey } from './config'
-import { User } from './helpers'
 import { Chain } from 'src/constants'
+import { User } from './helpers'
+import { bonderPrivateKey, governancePrivateKey } from './config'
 
 test(
   'commitTransfers',
@@ -20,7 +20,7 @@ test(
     console.log('is bonder:', isBonder)
 
     const bridge = await user.getHopBridgeContract(sourceChain, token)
-    //console.log('messenger address:', await bridge.messenger())
+    // console.log('messenger address:', await bridge.messenger())
     console.log('l1 address:', await bridge.l1BridgeAddress())
 
     const tx = await user.commitTransfers(sourceChain, token, destChain)

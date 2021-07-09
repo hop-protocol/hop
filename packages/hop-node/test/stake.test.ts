@@ -1,6 +1,6 @@
-import { bonderPrivateKey } from './config'
-import { User } from './helpers'
 import { Chain } from 'src/constants'
+import { User } from './helpers'
+import { bonderPrivateKey } from './config'
 
 const network = Chain.Ethereum
 const token = 'DAI'

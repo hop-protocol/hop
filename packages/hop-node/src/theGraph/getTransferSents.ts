@@ -1,5 +1,5 @@
-import { Chain } from 'src/constants'
 import makeRequest from './makeRequest'
+import { Chain } from 'src/constants'
 
 export default async function getTransferSents (chain: string) {
   const queryL1 = `

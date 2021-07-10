@@ -377,23 +377,40 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
         .bridge
 
-      logger.debug(
-        'transferRootId:',
-        chalk.bgMagenta.black(dbTransfer.transferRootId)
-      )
-
       const tree = new MerkleTree(transferIds)
       const transferRootHash = tree.getHexRoot()
       if (transferRootHash !== dbTransferRootHash) {
         logger.debug('transferIds:\n', JSON.stringify(transferIds))
         logger.error(
-          `transfers computed transfer root hash doesn't match. Expected ${dbTransferRootHash}`
+          `transfers computed transfer root hash doesn't match. Expected ${dbTransferRootHash}. ${dbTransfer.transferRootId}`
         )
         await db.transferRoots.update(dbTransferRootHash, {
           transferIds: []
         })
         return
       }
+
+      // do not settle a transferRoot if not all transfers are accounted for
+      for (const transferId of transferIds) {
+        const dbTransfer = await db.transfers.getByTransferId(transferId)
+        let shouldReturn = false
+        if (dbTransfer.isBondable && !dbTransfer.withdrawalBonded) {
+          // Do not return immediately so that all relevant transferIds are logged
+          logger.error(
+            `settlement of root ${dbTransferRootHash} attempted before bond withdrawal of ${dbTransfer.transferRootId}`
+          )
+          shouldReturn = true
+        }
+
+        if (shouldReturn) {
+          return
+        }
+      }
+
+      logger.debug(
+        'transferRootId:',
+        chalk.bgMagenta.black(dbTransfer.transferRootId)
+      )
 
       const bonder = dbTransfer.withdrawalBonder
       logger.debug('sourceChainId:', dbTransfer.sourceChainId)

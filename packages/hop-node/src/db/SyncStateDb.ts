@@ -6,7 +6,7 @@ export type State = {
 }
 
 class SyncStateDb extends BaseDb {
-  constructor (prefix: string = 'transfers') {
+  constructor (prefix: string = 'state') {
     super(prefix)
   }
 
@@ -16,6 +16,15 @@ class SyncStateDb extends BaseDb {
 
   async getByKey (key: string): Promise<State> {
     return this.getById(key)
+  }
+
+  async getItems (): Promise<State[]> {
+    const keys = await this.getKeys()
+    return Promise.all(
+      keys.map((key: string) => {
+        return this.getById(key)
+      })
+    )
   }
 }
 

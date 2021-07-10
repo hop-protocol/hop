@@ -229,6 +229,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         logger.warn('transfer root already confirmed. Cannot bond withdrawal')
         return
       }
+    }
 
     logger.debug('sending bondWithdrawal tx')
     if (this.dryMode) {

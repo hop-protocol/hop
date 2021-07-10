@@ -29,6 +29,7 @@ export type TransferRoot = {
   transferIds?: string[]
   bonder?: string
   checkpointAttemptedAt?: number
+  withdrawalBondSettled?: boolean
   withdrawalBondSettleTxSentAt?: number
 }
 

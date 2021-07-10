@@ -266,6 +266,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const { transferIds } = await this.bridge.decodeSettleBondedWithdrawalsData(
       data
     )
+
+    await db.transferRoots.update(transferRootHash, {
+      withdrawalBondSettled: true
+    })
+
     for (const transferId of transferIds) {
       const dbTransfer = await db.transfers.getByTransferId(transferId)
       await db.transfers.update(transferId, {
@@ -426,7 +431,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
 
       await db.transferRoots.update(transferRootHash, {
-        withdrawalBondSettleTxSentAt: Date.now()
+        withdrawalBondSettleTxSentAt: Date.now(),
+        withdrawalBondSettled: true
       })
       logger.debug('sending settle tx')
       const tx = await destBridge.settleBondedWithdrawals(
@@ -438,7 +444,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         .then(async (receipt: providers.TransactionReceipt) => {
           if (receipt.status !== 1) {
             await db.transferRoots.update(transferRootHash, {
-              withdrawalBondSettleTxSentAt: 0
+              withdrawalBondSettleTxSentAt: 0,
+              withdrawalBondSettled: false
             })
             throw new Error('status=0')
           }
@@ -458,7 +465,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         })
         .catch(async (err: Error) => {
           await db.transferRoots.update(transferRootHash, {
-            withdrawalBondSettleTxSentAt: 0
+            withdrawalBondSettleTxSentAt: 0,
+            withdrawalBondSettled: false
           })
 
           throw err

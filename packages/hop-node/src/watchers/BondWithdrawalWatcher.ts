@@ -224,10 +224,10 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         dbTransfer.transferRootId
       )
 
-      if (dbTransferRoot?.withdrawalBondSettleTxSentAt) {
+      if (dbTransferRoot?.withdrawalBondSettled) {
         logger.error(`transfer root ${dbTransferRoot.transferRootHash} already settled. Will not bond withdrawal.`)
+        return
       }
-      return
     }
 
     logger.debug('sending bondWithdrawal tx')

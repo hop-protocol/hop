@@ -219,12 +219,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
     )
 
-    logger.debug('sending bondWithdrawal tx')
-    if (this.dryMode) {
-      logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
-      return
-    }
-
     if (dbTransfer.transferRootId) {
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
         .bridge as L1Bridge
@@ -235,6 +229,11 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         logger.warn('transfer root already confirmed. Cannot bond withdrawal')
         return
       }
+
+    logger.debug('sending bondWithdrawal tx')
+    if (this.dryMode) {
+      logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
+      return
     }
 
     await this.waitTimeout(transferId, destinationChainId)

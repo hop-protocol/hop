@@ -463,7 +463,6 @@ export default class Bridge extends ContractBase {
   }
 
   @queue
-  @delay
   @rateLimitRetry
   async stake (amount: BigNumber): Promise<providers.TransactionResponse> {
     const bonder = await this.getBonderAddress()
@@ -477,7 +476,6 @@ export default class Bridge extends ContractBase {
   }
 
   @queue
-  @delay
   @rateLimitRetry
   async unstake (amount: BigNumber): Promise<providers.TransactionResponse> {
     const bonder = await this.getBonderAddress()

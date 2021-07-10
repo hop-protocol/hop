@@ -150,11 +150,11 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
             await tx.wait()
           }
 
-          this.logger.debug(
-            'waiting for canonical bridge transfer (this make take a few minutes)'
-          )
           // wait enough time for canonical token transfer
           const delayMs = config.isMainnet ? 600 * 1000 : 300 * 1000
+          this.logger.debug(
+            `waiting for ${this.chainSlug} canonical bridge transfer (this will take at least ${delayMs / 1000 / 60} minutes)`
+          )
           await wait(delayMs)
         }
 

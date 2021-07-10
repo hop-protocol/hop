@@ -177,6 +177,8 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         await db.transfers.update(transferId, {
           isBondable: false
         })
+
+        continue
       }
 
       const targetBlockNumber =

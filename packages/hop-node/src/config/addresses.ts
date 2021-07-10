@@ -78,6 +78,28 @@ export const config: any = {
       totalBlocks: TotalBlocks.xDai,
       batchBlocks: 1_000
     }
+  },
+  bondWithdrawals: {
+    [Chain.Ethereum]: {
+      min: 0,
+      max: 0
+    },
+    [Chain.Arbitrum]: {
+      min: 0,
+      max: 0
+    },
+    [Chain.Optimism]: {
+      min: 0,
+      max: 0
+    },
+    [Chain.Polygon]: {
+      min: 0,
+      max: 0
+    },
+    [Chain.xDai]: {
+      min: 0,
+      max: 0
+    }
   }
 }
 

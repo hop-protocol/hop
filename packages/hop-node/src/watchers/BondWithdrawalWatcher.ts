@@ -4,7 +4,7 @@ import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
 import db from 'src/db'
-import { BigNumber, Contract, Event, providers } from 'ethers'
+import { BigNumber, Contract, Event, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { wait } from 'src/utils'
 
@@ -25,8 +25,8 @@ class BondError extends Error {}
 
 class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
-  minAmount: BigNumber
-  maxAmount: BigNumber
+  minAmount: BigNumber = BigNumber.from(0)
+  maxAmount: BigNumber = constants.MaxUint256
 
   constructor (config: Config) {
     super({

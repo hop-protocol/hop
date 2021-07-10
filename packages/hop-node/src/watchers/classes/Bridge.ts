@@ -4,7 +4,7 @@ import delay from 'src/decorators/delay'
 import queue from 'src/decorators/queue'
 import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import unique from 'src/utils/unique'
-import { BigNumber, Contract, Event, providers } from 'ethers'
+import { BigNumber, Contract, Event, constants, providers } from 'ethers'
 import { boundClass } from 'autobind-decorator'
 import { config } from 'src/config'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -450,6 +450,16 @@ export default class Bridge extends ContractBase {
       chainIds.push(chainId)
     }
     return chainIds
+  }
+
+  getMinBondWithdrawalAmount (): BigNumber {
+    const amount = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.min ?? 0
+    return this.parseUnits(amount)
+  }
+
+  getMaxBondWithdrawalAmount (): BigNumber {
+    const amount = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.max ?? 0
+    return amount ? this.parseUnits(amount) : constants.MaxUint256
   }
 
   @queue

@@ -110,6 +110,7 @@ program
       let bondWithdrawalAmounts: any = {}
       if (config?.bondWithdrawals) {
         bondWithdrawalAmounts = config.bondWithdrawals
+        globalConfig.bondWithdrawals = config.bondWithdrawals
       }
       let settleBondedWithdrawalsThresholdPercent: any = {}
       if (config?.settleBondedWithdrawals) {

@@ -315,6 +315,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         bondSettleTimestampOk =
           dbTransferRoot?.withdrawalBondSettleTxSentAt + TX_RETRY_DELAY_MS <
           Date.now()
+
+        // If the settlement transaction failed, unset the withdrawalBondSettled flag
+        if (bondSettleTimestampOk) {
+          await db.transferRoots.update(dbTransferRoot.transferRootHash, {
+            withdrawalBondSettled: false
+          })
+        }
       }
 
       const ok =

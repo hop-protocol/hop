@@ -45,6 +45,8 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
+      const existingTransfer = await db.transfers.getByTransferId(transferId)
+      const isBondable = existingTransfer?.isBondable ?? true
 
       logger.debug('transfer event amount:', this.bridge.formatUnits(amount))
       logger.debug('destinationChainId:', destinationChainId)
@@ -59,7 +61,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         transferNonce,
         bonderFee,
         amountOutMin,
-        isBondable: true,
+        isBondable,
         deadline: Number(deadline.toString()),
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,

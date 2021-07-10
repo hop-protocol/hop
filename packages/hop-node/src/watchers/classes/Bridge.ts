@@ -618,8 +618,10 @@ export default class Bridge extends ContractBase {
       i++
     }
 
-    // Only store latest block if a full sync is successful
-    if (cacheKey && start === latestBlockInBatch) {
+    // Only store latest block if a full sync is successful.
+    // Sync is complete when the start block is reached since
+    // it traverses backwards from head.
+    if (cacheKey && start === earliestBlockInBatch) {
       await db.syncState.update(cacheKey, {
         latestBlockSynced: latestBlockInBatch,
         timestamp: Date.now()

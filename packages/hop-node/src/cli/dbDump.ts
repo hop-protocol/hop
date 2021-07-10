@@ -32,9 +32,14 @@ program
       if (dbName === 'transfer-roots') {
         const transferRoots = await db.transferRoots.getTransferRoots()
         console.log(JSON.stringify(transferRoots, null, 2))
-      } else {
+      } else if (dbName === 'transfers') {
         const transfers = await db.transfers.getTransfers()
         console.log(JSON.stringify(transfers, null, 2))
+      } else if (dbName === 'sync-state') {
+        const syncState = await db.syncState.getItems()
+        console.log(JSON.stringify(syncState, null, 2))
+      } else {
+        throw new Error(`the db "${db}" does not exist`)
       }
     } catch (err) {
       logger.error(err.message)

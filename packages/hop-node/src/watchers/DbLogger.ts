@@ -20,6 +20,8 @@ class DbLogger {
       this.logger.debug('transfers dump:', JSON.stringify(transfers))
       const transferRoots = await db.transferRoots.getTransferRoots()
       this.logger.debug('transferRoots dump:', JSON.stringify(transferRoots))
+      const syncState = await db.syncState.getItems()
+      this.logger.debug('syncState dump:', JSON.stringify(syncState))
       await wait(this.pollIntervalSec)
     }
   }

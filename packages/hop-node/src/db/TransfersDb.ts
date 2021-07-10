@@ -29,6 +29,7 @@ export type Transfer = {
   transferSentBlockNumber?: number
   transferSentIndex?: number
 
+  isBondable?: boolean
   committed: boolean
 }
 
@@ -142,6 +143,7 @@ class TransfersDb extends BaseDb {
         item.transferId &&
         !item.withdrawalBonded &&
         item.transferSentTxHash &&
+        item.isBondable &&
         timestampOk
       )
     })

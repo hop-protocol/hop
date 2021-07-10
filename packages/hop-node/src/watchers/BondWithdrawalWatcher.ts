@@ -166,6 +166,19 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const promises: Promise<any>[] = []
     for (const dbTransfer of dbTransfers) {
       const { transferId, transferSentBlockNumber } = dbTransfer
+      if (
+        (this.minAmount && dbTransfer.amount.lt(this.minAmount)) ||
+        (this.maxAmount && dbTransfer.amount.gt(this.maxAmount))
+      ) {
+        this.logger.debug(
+          `marking ${dbTransfer.transferId} as unbondable. amount: ${dbTransfer.amount}.`
+        )
+
+        await db.transfers.update(transferId, {
+          isBondable: false
+        })
+      }
+
       const targetBlockNumber =
         transferSentBlockNumber + this.bridge.waitConfirmations
       if (headBlockNumber < targetBlockNumber) {
@@ -203,27 +216,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         return sourceL2Bridge.getTransferSentTxHash(transferId)
       }
     )
-
-    if (this.minAmount && amount.lt(this.minAmount)) {
-      logger.debug(
-        `transfer amount ${this.bridge.formatUnits(
-          amount
-        )} is less than configured min amount allowed ${this.bridge.formatUnits(
-          this.minAmount
-        )}. Skipping bond withdrawal.`
-      )
-      return
-    }
-    if (this.maxAmount && amount.gt(this.maxAmount)) {
-      logger.debug(
-        `transfer amount ${this.bridge.formatUnits(
-          amount
-        )} is greater than configured max amount allowed ${this.bridge.formatUnits(
-          this.maxAmount
-        )}. Skipping bond withdrawal.`
-      )
-      return
-    }
 
     logger.debug('sending bondWithdrawal tx')
     if (this.dryMode) {

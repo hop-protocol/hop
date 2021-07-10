@@ -59,6 +59,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         transferNonce,
         bonderFee,
         amountOutMin,
+        isBondable: true,
         deadline: Number(deadline.toString()),
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,

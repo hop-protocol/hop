@@ -527,25 +527,25 @@ export default class Bridge extends ContractBase {
   @rateLimitRetry
   async checkReorg (
     originalBlockNumber: number,
-    originalTxHash: string
+    txHash: string
   ) {
     const currentBlockNumber = await this.getTransactionBlockNumber(
-      originalTxHash
+      txHash
     )
     if (originalBlockNumber !== currentBlockNumber) {
       throw new Error(
-        `tx hash (${originalTxHash}) block number hash changed. expected ${originalBlockNumber}, got ${currentBlockNumber}`
+        `tx hash (${txHash}) block number hash changed. expected ${originalBlockNumber}, got ${currentBlockNumber}`
       )
     }
   }
 
   isTransferStale (
-    targetBlockNumber: number,
+    transferSentBlockNumber: number,
     headBlockNumber: number,
     chainSlug: any
   ) {
     const { totalBlocks } = config.sync[chainSlug]
-    if (targetBlockNumber < headBlockNumber - totalBlocks) {
+    if (transferSentBlockNumber < headBlockNumber - totalBlocks) {
       return true
     }
     return false

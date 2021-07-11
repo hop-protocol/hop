@@ -541,12 +541,11 @@ export default class Bridge extends ContractBase {
 
   isTransferStale (
     targetBlockNumber: number,
-    headBlockNumber: number
+    headBlockNumber: number,
+    chainSlug: any
   ) {
-    const daysTilStale = SEC_IN_DAY * 6
-    // TODO: Use slug
-    const blocksTilStale = Math.floor(daysTilStale / AVG_BLOCK_TIME_SEC.Polygon)
-    if (targetBlockNumber < headBlockNumber - blocksTilStale) {
+    const { totalBlocks } = config.sync[chainSlug]
+    if (targetBlockNumber < headBlockNumber - totalBlocks) {
       return true
     }
     return false

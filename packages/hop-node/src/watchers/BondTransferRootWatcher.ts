@@ -194,6 +194,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
       .bridge as L1Bridge
 
+    // TODO: Reintroduce reorg checker
     // await l2Bridge.waitSafeConfirmationsAndCheckBlockNumber(
     //   commitTxHash,
     //   async () => {

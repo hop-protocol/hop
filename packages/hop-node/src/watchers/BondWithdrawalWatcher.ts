@@ -187,7 +187,9 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         continue
       }
 
-      const isStaleData = this.bridge.isTransferStale(targetBlockNumber, headBlockNumber)
+      const isStaleData = this.bridge.isTransferStale(
+        targetBlockNumber, headBlockNumber, this.chainSlug
+      )
       if (isStaleData) {
         continue
       }

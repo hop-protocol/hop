@@ -89,31 +89,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     const cacheKey = 'selectedWallet'
     const rpcUrl = getRpcUrl(L1_NETWORK)
     const walletOptions = [
-      { walletName: 'metamask', preferred: true },
-      {
-        walletName: 'walletConnect',
-        infuraKey,
-        preferred: true
-      },
-      { walletName: 'ledger', rpcUrl, preferred: true },
-      {
-        walletName: 'trezor',
-        appUrl: 'hop.exchange',
-        email: 'contact@hop.exchange',
-        rpcUrl,
-        preferred: true
-      },
-      { walletName: 'dapper' },
-      { walletName: 'fortmatic', apiKey: fortmaticApiKey },
-      { walletName: 'portis', apiKey: portisDappId, label: 'Portis' },
-      { walletName: 'torus' },
-      { walletName: 'coinbase' },
-      { walletName: 'trust', rpcUrl },
-      { walletName: 'authereum' },
-      { walletName: 'opera' },
-      { walletName: 'operaTouch' },
-      { walletName: 'status' },
-      { walletName: 'imToken', rpcUrl }
+      { walletName: 'metamask', preferred: true }
     ]
 
     const networkCheck = async (state: any): Promise<any> => {

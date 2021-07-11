@@ -4,6 +4,7 @@ import React, {
   useContext,
   useState,
   useMemo,
+  useRef,
   useEffect,
   ReactNode
 } from 'react'
@@ -170,6 +171,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [warning, setWarning] = useState<ReactNode>()
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
+  const debouncer = useRef(0)
 
   useEffect(() => {
     const getSendData = async () => {
@@ -184,6 +186,8 @@ const ConvertContextProvider: FC = ({ children }) => {
         setDestTokenAmount('')
         return
       }
+
+      const ctx = ++debouncer.current
 
       const value = parseUnits(
         sourceTokenAmount,
@@ -204,18 +208,19 @@ const ConvertContextProvider: FC = ({ children }) => {
         formattedAmount = formatUnits(amountOut, sourceToken.decimals)
         formattedAmount = commafy(formattedAmount, 5)
       }
-      setDestTokenAmount(formattedAmount)
 
+      let _amountOutMin
       if (amountOut) {
         // amountOutMin only used for AMM option
         const slippageToleranceBps = slippageTolerance * 100
         const minBps = Math.ceil(10000 - slippageToleranceBps)
-        const amountOutMin = amountOut.mul(minBps).div(10000)
-        setAmountOutMin(amountOutMin)
-      } else {
-        setAmountOutMin(undefined)
+        _amountOutMin = amountOut.mul(minBps).div(10000)
       }
 
+      if (ctx !== debouncer.current) return
+
+      setDestTokenAmount(formattedAmount)
+      setAmountOutMin(_amountOutMin)
       setDetails(details)
       setWarning(warning)
     }

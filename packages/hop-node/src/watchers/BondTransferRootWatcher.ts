@@ -194,12 +194,12 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
       .bridge as L1Bridge
 
-    await l2Bridge.waitSafeConfirmationsAndCheckBlockNumber(
-      commitTxHash,
-      async () => {
-        return l2Bridge.getTransferRootCommittedTxHash(transferRootHash)
-      }
-    )
+    // await l2Bridge.waitSafeConfirmationsAndCheckBlockNumber(
+    //   commitTxHash,
+    //   async () => {
+    //     return l2Bridge.getTransferRootCommittedTxHash(transferRootHash)
+    //   }
+    // )
 
     const minDelay = await l1Bridge.getMinTransferRootBondDelaySeconds()
     const blockTimestamp = await l1Bridge.getBlockTimestamp()

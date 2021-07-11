@@ -187,6 +187,11 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         continue
       }
 
+      const isStaleData = this.bridge.isTransferStale(targetBlockNumber, headBlockNumber)
+      if (isStaleData) {
+        continue
+      }
+
       promises.push(this.checkTransferSent(transferId))
     }
 
@@ -212,12 +217,8 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
-    await sourceL2Bridge.waitSafeConfirmationsAndCheckBlockNumber(
-      transferSentTxHash,
-      async () => {
-        return sourceL2Bridge.getTransferSentTxHash(transferId)
-      }
-    )
+    const originalBlockNumber = dbTransfer.transferSentBlockNumber
+    await sourceL2Bridge.checkReorg(originalBlockNumber, transferSentTxHash)
 
     if (dbTransfer.transferRootId) {
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)

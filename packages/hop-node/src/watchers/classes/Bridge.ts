@@ -525,6 +525,34 @@ export default class Bridge extends ContractBase {
   }
 
   @rateLimitRetry
+  async checkReorg (
+    originalBlockNumber: number,
+    originalTxHash: string
+  ) {
+    const currentBlockNumber = await this.getTransactionBlockNumber(
+      originalTxHash
+    )
+    if (originalBlockNumber !== currentBlockNumber) {
+      throw new Error(
+        `tx hash (${originalTxHash}) block number hash changed. expected ${originalBlockNumber}, got ${currentBlockNumber}`
+      )
+    }
+  }
+
+  isTransferStale (
+    targetBlockNumber: number,
+    headBlockNumber: number
+  ) {
+    const daysTilStale = SEC_IN_DAY * 6
+    // TODO: Use slug
+    const blocksTilStale = Math.floor(daysTilStale / AVG_BLOCK_TIME_SEC.Polygon)
+    if (targetBlockNumber < headBlockNumber - blocksTilStale) {
+      return true
+    }
+    return false
+  }
+
+  @rateLimitRetry
   async waitSafeConfirmationsAndCheckBlockNumber (
     originalTxHash: string,
     txHashGetter: () => Promise<string>

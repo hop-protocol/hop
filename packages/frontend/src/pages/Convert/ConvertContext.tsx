@@ -307,7 +307,7 @@ const ConvertContextProvider: FC = ({ children }) => {
           },
           dest: {
             amount: destTokenAmount,
-            token: sourceToken
+            token: destToken
           }
         },
         onConfirm: async () => {

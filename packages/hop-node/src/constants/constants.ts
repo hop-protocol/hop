@@ -17,13 +17,14 @@ export enum Token {
   DAI = 'DAI'
 }
 
-const AVG_BLOCK_TIME_SEC = {
+export const AVG_BLOCK_TIME_SEC = {
   Ethereum: 13,
   Polygon: 2,
   xDai: 5
 }
 
-const SEC_IN_WEEK = 604800
+export const SEC_IN_DAY = 86400
+export const SEC_IN_WEEK = SEC_IN_DAY * 7
 export const TotalBlocks = {
   Ethereum: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.Ethereum),
   Polygon: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.Polygon),

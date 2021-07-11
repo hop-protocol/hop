@@ -1,4 +1,5 @@
 import '../moduleAlias'
+import Logger from 'src/logger'
 import { program } from './shared'
 
 import './arbBot'
@@ -21,10 +22,12 @@ import './xdaiBridge'
 
 program.parse(process.argv)
 
+const logger = new Logger('process')
 process.on('SIGINT', () => {
+  logger.debug('received SIGINT signal. exiting.')
   process.exit(0)
 })
 
 process.on('unhandledRejection', (reason: Error, p: Promise<any>) => {
-  console.log('unhandled rejection at: promise:', p, 'reason:', reason)
+  logger.error('unhandled rejection: promise:', p, 'reason:', reason)
 })

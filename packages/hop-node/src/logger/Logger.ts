@@ -91,7 +91,7 @@ class Logger {
     return new Logger(
       this.options.tag,
       Object.assign({}, this.options, {
-        prefix: `${this.options.prefix} ${label}`
+        prefix: `${this.options.prefix ? `${this.options.prefix} ` : ''}${label}`
       })
     )
   }

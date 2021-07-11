@@ -21,6 +21,8 @@ export default function rateLimitRetry (
 }
 
 export function rateLimitRetryFn (fn: any): any {
+  const id = `${process.hrtime()[1]}`
+  const log = logger.create({ id })
   return async (...args: any[]) => {
     let retries = 0
     const retry = () => promiseTimeout(fn(...args), rpcTimeoutSeconds * 1000)
@@ -28,13 +30,16 @@ export function rateLimitRetryFn (fn: any): any {
       try {
         // the await here is intentional so it's caught in the try/catch below.
         const result = await retry()
+        if (retries > 0) {
+          logger.debug(`rateLimitRetry attempt #${retries} successful`)
+        }
         return result
       } catch (err) {
         const errorRegex = /(timeout|timedout|bad response|response error|rate limit|too many concurrent requests)/gi
         const isRateLimitError = errorRegex.test(err.message)
         // throw error as usual if it's not a rate limit error
         if (!isRateLimitError) {
-          logger.error(err.message)
+          log.error(err.message)
           throw err
         }
         retries++
@@ -45,11 +50,13 @@ export function rateLimitRetryFn (fn: any): any {
         }
 
         const delayMs = (1 << retries) * 1000
-        logger.warn(
+        log.warn(
           `retry attempt #${retries} failed with error "${
             err.message
-          }". retrying again in ${delayMs / 1000} seconds`
+          }". retrying again in ${delayMs / 1000} seconds.`
         )
+        // this must be a regular console log to print original function name
+        console.log(fn, id)
         // exponential backoff wait
         await wait(delayMs)
       }

@@ -8,6 +8,7 @@ export { Chain } from './models'
 export { Route } from './models'
 export { TokenAmount } from './models'
 export { Transfer } from './models'
+export * from './types'
 
 import * as utils from './utils'
 export { utils }

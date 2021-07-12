@@ -204,6 +204,8 @@ const Send: FC = () => {
     rate,
     priceImpact,
     amountOutMin,
+    intermediaryAmountOutMin,
+    bonderFee,
     lpFees,
     requiredLiquidity,
     loading: loadingSendData,
@@ -325,7 +327,7 @@ const Send: FC = () => {
   }, [needsTokenForFee, fromNetwork])
 
   useEffect(() => {
-    const warningMessage = `Send at least ${feeDisplay} to cover the transaction fee`
+    const warningMessage = `Send at least ${l1FeeDisplay} to cover the transaction fee`
     if (estimatedReceived?.lte(0) && l1Fee) {
       setMinimumSendWarning(warningMessage)
     } else {
@@ -364,9 +366,13 @@ const Send: FC = () => {
       setAmountOutMinDisplay(undefined)
       return
     }
+    let _amountOutMin = amountOutMin
+    if (l1Fee) {
+      _amountOutMin = _amountOutMin.sub(l1Fee)
+    }
 
     const amountOutMinFormatted = commafy(
-      formatUnits(amountOutMin, sourceToken.decimals),
+      formatUnits(_amountOutMin, sourceToken.decimals),
       4
     )
     setAmountOutMinDisplay(`${amountOutMinFormatted} ${sourceToken.symbol}`)
@@ -516,7 +522,7 @@ const Send: FC = () => {
           sdk.Chain.Ethereum,
           toNetwork?.slug,
           {
-            deadline,
+            deadline: deadline(),
             relayer,
             relayerFee,
             recipient,
@@ -563,7 +569,8 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
-        if (!amountOutMin) return
+        if (!amountOutMin || !bonderFee) return
+        console.log('amountOutMin: ', amountOutMin.toString())
         const destinationAmountOutMin = 0
         const destinationDeadline = 0
         const parsedAmountIn = parseUnits(
@@ -571,12 +578,12 @@ const Send: FC = () => {
           sourceToken.decimals
         )
         const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
-        const bonderFee = await bridge.getBonderFee(
-          parsedAmountIn,
-          fromNetwork?.slug as string,
-          toNetwork?.slug as string
-        )
-        if (bonderFee.gt(parsedAmountIn)) {
+        let totalBonderFee = bonderFee
+        if (l1Fee) {
+          totalBonderFee = totalBonderFee.add(l1Fee)
+        }
+
+        if (totalBonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
         }
         const recipient = await signer?.getAddress()
@@ -586,9 +593,9 @@ const Send: FC = () => {
           toNetwork?.slug as string,
           {
             recipient,
-            bonderFee,
+            bonderFee: totalBonderFee,
             amountOutMin,
-            deadline,
+            deadline: deadline(),
             destinationAmountOutMin,
             destinationDeadline
           }
@@ -633,17 +640,13 @@ const Send: FC = () => {
         }
       },
       onConfirm: async () => {
+        if (!bonderFee) return
         const parsedAmountIn = parseUnits(
           fromTokenAmount,
           sourceToken.decimals
         )
         const recipient = await signer?.getAddress()
         const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
-        const bonderFee = await bridge.getBonderFee(
-          parsedAmountIn,
-          fromNetwork?.slug as string,
-          toNetwork?.slug as string
-        )
         if (bonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
         }
@@ -654,10 +657,10 @@ const Send: FC = () => {
           {
             recipient,
             bonderFee,
-            amountOutMin,
-            deadline,
+            amountOutMin: intermediaryAmountOutMin,
+            deadline: deadline(),
             destinationAmountOutMin: amountOutMin,
-            destinationDeadline: deadline
+            destinationDeadline: deadline()
           }
         )
         return tx
@@ -689,7 +692,8 @@ const Send: FC = () => {
     enoughBalance &&
     !needsTokenForFee &&
     isLiquidityAvailable &&
-    !checkingLiquidity
+    !checkingLiquidity &&
+    estimatedReceived?.gt(0)
   )
 
   let buttonText = 'Send'
@@ -707,6 +711,8 @@ const Send: FC = () => {
     buttonText = 'Insufficient liquidity'
   } else if (checkingLiquidity) {
     buttonText = 'Checking liquidity'
+  } else if (estimatedReceived?.lte(0)) {
+    buttonText = 'Insufficient amount'
   }
 
   const handleTxStatusClose = () => {

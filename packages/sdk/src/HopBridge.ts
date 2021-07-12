@@ -531,7 +531,6 @@ class HopBridge extends Base {
 
     amountIn = BigNumber.from(amountIn)
     let lpFees = amountIn.mul(lpFeeBps).div(10000)
-    lpFees.add(bonderFee)
 
     return lpFees
   }
@@ -909,7 +908,7 @@ class HopBridge extends Base {
       chain,
       saddleLpTokenAddress,
       18,
-      `${this.tokenSymbol}`,
+      `${this.tokenSymbol} LP`,
       `${this.tokenSymbol} LP`,
       '',
       signer

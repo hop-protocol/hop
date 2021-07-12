@@ -66,19 +66,28 @@ const useSendData = (
       const slippageToleranceBps = slippageTolerance * 100
       const minBps = Math.ceil(10000 - slippageToleranceBps)
       _amountOutMin = amountOut.mul(minBps).div(10000)
-      if (l1Fee) {
-        _amountOutMin = _amountOutMin.sub(l1Fee)
-      }
     }
 
     return _amountOutMin
   }, [fromNetwork, toNetwork, amountOut, slippageTolerance, l1Fee])
+
+  const intermediaryAmountOutMin = useMemo(() => {
+    let _intermediaryAmountOutMin
+    if (fromNetwork && toNetwork && requiredLiquidity) {
+      const slippageToleranceBps = slippageTolerance * 100
+      const minBps = Math.ceil(10000 - slippageToleranceBps)
+      _intermediaryAmountOutMin = requiredLiquidity.mul(minBps).div(10000)
+    }
+
+    return _intermediaryAmountOutMin
+  }, [fromNetwork, toNetwork, requiredLiquidity, slippageTolerance, l1Fee])
 
   return {
     amountOut,
     rate,
     priceImpact,
     amountOutMin,
+    intermediaryAmountOutMin,
     bonderFee,
     lpFees,
     requiredLiquidity,

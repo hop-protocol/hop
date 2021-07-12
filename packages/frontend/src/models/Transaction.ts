@@ -54,7 +54,7 @@ class Transaction extends EventEmitter {
       rpcUrl = getRpcUrl('optimism')
     } else if (networkName.startsWith('xdai')) {
       rpcUrl = getRpcUrl('xdai')
-    } else if (networkName.startsWith('matc')) {
+    } else if (networkName.startsWith('matic') || networkName.startsWith('polygon')) {
       rpcUrl = getRpcUrl('polygon')
     } else {
       rpcUrl = getRpcUrl(L1_NETWORK)

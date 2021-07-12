@@ -904,7 +904,7 @@ class HopBridge extends Base {
       chain,
       saddleLpTokenAddress,
       18,
-      `${this.tokenSymbol}`,
+      `${this.tokenSymbol} LP`,
       `${this.tokenSymbol} LP`,
       '',
       signer

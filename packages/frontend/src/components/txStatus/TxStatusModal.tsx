@@ -42,7 +42,11 @@ function TxStatusModal (props: Props) {
           className={styles.txStatusInfo}
         >
           <Typography variant="body1">
-            <em>This may take a few minutes</em>
+            {
+              (tx && tx.token)
+              ? <em>Your transfer will arrive at the destination around <strong>5 minutes</strong> after your transaction is confirmed.</em>
+              : <em>This may take a few minutes</em>
+            }
           </Typography>
           <MuiButton
             className={styles.txStatusCloseButton}

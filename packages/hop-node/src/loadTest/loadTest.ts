@@ -121,12 +121,13 @@ class LoadTest {
                 for (const i in users) {
                   logger.debug(`#${i} account: ${await users[i].getAddress()}`)
                 }
+                const faucetTokensToSend = transferAmount
                 await prepareAccounts(
                   users,
                   faucet,
                   token,
                   sourceNetwork,
-                  transferAmount
+                  faucetTokensToSend
                 )
 
                 await Promise.all(

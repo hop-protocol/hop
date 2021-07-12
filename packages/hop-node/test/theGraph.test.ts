@@ -11,7 +11,7 @@ describe('getTransferIdsForTransferRoot', () => {
     )
     expect(transferIds.length).toBe(128)
   })
-  it('polygon', async () => {
+  it('polygon - 1', async () => {
     const rootHash =
       '0x6d6753b28bb59df66525728642c1fbbed6878068620975b51a5fdbc905e3c789'
     const transferIds = await getTransferIdsForTransferRoot(
@@ -19,5 +19,14 @@ describe('getTransferIdsForTransferRoot', () => {
       rootHash
     )
     expect(transferIds.length).toBe(3)
+  })
+  it('polygon - 2', async () => {
+    const rootHash =
+      '0x1670c930b8e54815714219269f434bccb019e66846a4f0a2763e5afde7841bac'
+    const transferIds = await getTransferIdsForTransferRoot(
+      Chain.Polygon,
+      rootHash
+    )
+    expect(transferIds.length).toBe(17)
   })
 })

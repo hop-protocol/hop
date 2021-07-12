@@ -13,10 +13,12 @@ export default async function getTransferIdsForTransferRoot (
           rootHash: $rootHash
         },
         orderBy: timestamp,
-        orderDirection: asc
+        orderDirection: asc,
+        first: 1
       ) {
         id
         rootHash
+        destinationChainId
         transactionHash
         timestamp
         blockNumber
@@ -31,12 +33,15 @@ export default async function getTransferIdsForTransferRoot (
     throw new Error('transfer committed event not found for root hash')
   }
 
+  const destinationChainId = transferCommitted.destinationChainId
+
   // get the previous commit transfer event
   query = `
-    query TransferCommitteds($blockNumber: String) {
+    query TransferCommitteds($blockNumber: String, $destinationChainId: String) {
       transfersCommitteds(
         where: {
-          blockNumber_lt: $blockNumber
+          blockNumber_lt: $blockNumber,
+          destinationChainId: $destinationChainId,
         },
         orderBy: blockNumber,
         orderDirection: desc,
@@ -51,7 +56,8 @@ export default async function getTransferIdsForTransferRoot (
     }
   `
   jsonRes = await makeRequest(chain, query, {
-    blockNumber: transferCommitted.blockNumber
+    blockNumber: transferCommitted.blockNumber,
+    destinationChainId
   })
   const previousTransferCommitted = jsonRes.transfersCommitteds?.[0]
   if (!previousTransferCommitted) {
@@ -62,11 +68,12 @@ export default async function getTransferIdsForTransferRoot (
   const startBlockNumber = previousTransferCommitted.blockNumber
   const endBlockNumber = transferCommitted.blockNumber
   query = `
-    query TransfersSent($startBlockNumber: String, $endBlockNumber: String) {
+    query TransfersSent($startBlockNumber: String, $endBlockNumber: String, $destinationChainId: String) {
       transferSents(
         where: {
           blockNumber_gte: $startBlockNumber,
-          blockNumber_lte: $endBlockNumber
+          blockNumber_lte: $endBlockNumber,
+          destinationChainId: $destinationChainId
         },
         orderBy: blockNumber,
         orderDirection: asc,
@@ -83,7 +90,8 @@ export default async function getTransferIdsForTransferRoot (
   `
   jsonRes = await makeRequest(chain, query, {
     startBlockNumber,
-    endBlockNumber
+    endBlockNumber,
+    destinationChainId
   })
 
   // normalize fields

@@ -140,10 +140,17 @@ const StakeWidget: FC<Props> = props => {
   )
 
   const userRewardsPerDay = useAsyncMemo(async () => {
-    if (!stakingRewards || !stakeBalance || stakeBalance.eq(0)) return undefined
-    const rewardRate = await stakingRewards?.rewardRate()
-    return rewardRate.mul(86400) // multiply by 1 day
-  }, [stakingRewards, stakeBalance])
+    if (
+      !stakingRewards ||
+      !stakeBalance ||
+      !totalStaked ||
+      stakeBalance.eq(0)
+    ) return undefined
+    let rewardRate = await stakingRewards?.rewardRate()
+    rewardRate = rewardRate.mul(86400) // multiply by 1 day
+    rewardRate = rewardRate.mul(stakeBalance).div(totalStaked)
+    return rewardRate
+  }, [stakingRewards, stakeBalance, totalStaked])
 
   const userRewardsPerDayFormatted = toTokenDisplay(
     userRewardsPerDay,

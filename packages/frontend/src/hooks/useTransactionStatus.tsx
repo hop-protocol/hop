@@ -15,9 +15,7 @@ const useTransactionStatus = (txHash?: string, chain?: TChain) => {
     return _chain.provider
   }, [chain])
 
-  useInterval(async () => {
-    // Read from cache
-
+  const updateTxStatus = async () => {
     if (!provider || !txHash) {
       setCompleted(undefined)
       return
@@ -37,8 +35,13 @@ const useTransactionStatus = (txHash?: string, chain?: TChain) => {
     }
 
     setCompleted(!!tx)
-    console.log('tx: ', tx)
-  }, 5e3)
+  }
+
+  useEffect(() => {
+    updateTxStatus()
+  }, [txHash, chain])
+
+  useInterval(updateTxStatus, 15e3)
 
   return {
     completed

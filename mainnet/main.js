@@ -281,8 +281,12 @@ async function updateData () {
   }
 
   const populatedData = data.filter(x => x.destinationChain && x.transferId)
-    .sort((a, b) => a.timestamp < b.timestamp)
     .map(populateTransfer)
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .map((x, i) => {
+      x.index = i
+      return x
+    })
 
   app.updateTransfers(populatedData)
 
@@ -296,8 +300,6 @@ async function updateData () {
 }
 
 function populateTransfer (x, i) {
-  x.index = i
-
   const t = luxon.DateTime.fromSeconds(x.timestamp)
   x.isoTimestamp = t.toISO()
   x.relativeTimestamp = t.toRelative()

@@ -33,7 +33,7 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0xd75005fBB30973c302Ef68C0c90F732713420EA0',
         l2SaddleLpToken: '0xcBB29B17F7e2321aBB0926fF2887D6E2d8CBBa42'
       }
-    },
+    }
     // DAI: {
     //   ethereum: {
     //     l1CanonicalToken: '0x436e3FfB93A4763575E5C0F6b3c97D5489E050da',

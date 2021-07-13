@@ -31,7 +31,7 @@ export const addresses: Addresses = {
         l2HopBridgeToken: '0x0CB64eA2890bcC00F4619C0E6C8823b09240369C',
         l2AmmWrapper: '0x6ad8573880560CF3E88B9d943927136F376559af',
         l2SaddleSwap: '0xd75005fBB30973c302Ef68C0c90F732713420EA0',
-        l2SaddleLpToken: '0xcBB29B17F7e2321aBB0926fF2887D6E2d8CBBa42',
+        l2SaddleLpToken: '0xcBB29B17F7e2321aBB0926fF2887D6E2d8CBBa42'
       }
     },
     DAI: {

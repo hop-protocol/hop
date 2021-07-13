@@ -103,10 +103,10 @@ export default async function getTransferIdsForTransferRoot (
 
   // sort by transfer id block number and index
   transferIds = transferIds.sort((a: any, b: any) => {
-    if (a.blockNumber > b.blockNumber) return 1
-    if (a.blockNumber < b.blockNumber) return -1
     if (a.index > b.index) return 1
     if (a.index < b.index) return -1
+    if (a.blockNumber > b.blockNumber) return 1
+    if (a.blockNumber < b.blockNumber) return -1
     return 0
   })
 
@@ -121,6 +121,10 @@ export default async function getTransferIdsForTransferRoot (
     seen[x.index] = true
     return true
   })
+    .filter((x: any, i: number) => {
+    // filter out any transfers ids after sequence breaks
+      return x.index === i
+    })
 
   // return only transfer ids
   transferIds = transferIds.map((x: any) => {

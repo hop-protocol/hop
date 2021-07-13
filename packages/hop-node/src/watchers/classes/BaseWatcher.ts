@@ -5,6 +5,7 @@ import { Contract } from 'ethers'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
 import { Notifier } from 'src/notifier'
+import { boundClass } from 'autobind-decorator'
 import { hostname } from 'src/config'
 import { wait } from 'src/utils'
 
@@ -25,6 +26,7 @@ interface EventsBatchOptions {
   endBlockNumber?: number
 }
 
+@boundClass
 class BaseWatcher extends EventEmitter implements IBaseWatcher {
   logger: Logger
   notifier: Notifier

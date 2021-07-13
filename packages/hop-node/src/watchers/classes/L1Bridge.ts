@@ -14,6 +14,7 @@ export default class L1Bridge extends Bridge {
   TransferRootBonded: string = 'TransferRootBonded'
   TransferRootConfirmed: string = 'TransferRootConfirmed'
   TransferBondChallenged: string = 'TransferBondChallenged'
+  TransferSentToL2: string = 'TransferSentToL2'
   ChallengeResolved: string = 'ChallengeResolved'
 
   constructor (l1BridgeContract: Contract) {
@@ -48,6 +49,10 @@ export default class L1Bridge extends Bridge {
       .on(
         this.getReadBridgeContract().filters.ChallengeResolved(),
         (...args: any[]) => this.emit(this.ChallengeResolved, ...args)
+      )
+      .on(
+        this.getReadBridgeContract().filters.TransferSentToL2(),
+        (...args: any[]) => this.emit(this.TransferSentToL2, ...args)
       )
       .on('error', err => {
         this.emit('error', err)

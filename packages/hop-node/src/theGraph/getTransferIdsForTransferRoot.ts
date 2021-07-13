@@ -13,10 +13,12 @@ export default async function getTransferIdsForTransferRoot (
           rootHash: $rootHash
         },
         orderBy: timestamp,
-        orderDirection: asc
+        orderDirection: asc,
+        first: 1
       ) {
         id
         rootHash
+        destinationChainId
         transactionHash
         timestamp
         blockNumber
@@ -31,12 +33,15 @@ export default async function getTransferIdsForTransferRoot (
     throw new Error('transfer committed event not found for root hash')
   }
 
+  const destinationChainId = transferCommitted.destinationChainId
+
   // get the previous commit transfer event
   query = `
-    query TransferCommitteds($blockNumber: String) {
+    query TransferCommitteds($blockNumber: String, $destinationChainId: String) {
       transfersCommitteds(
         where: {
-          blockNumber_lt: $blockNumber
+          blockNumber_lt: $blockNumber,
+          destinationChainId: $destinationChainId,
         },
         orderBy: blockNumber,
         orderDirection: desc,
@@ -51,7 +56,8 @@ export default async function getTransferIdsForTransferRoot (
     }
   `
   jsonRes = await makeRequest(chain, query, {
-    blockNumber: transferCommitted.blockNumber
+    blockNumber: transferCommitted.blockNumber,
+    destinationChainId
   })
   const previousTransferCommitted = jsonRes.transfersCommitteds?.[0]
   if (!previousTransferCommitted) {
@@ -62,11 +68,12 @@ export default async function getTransferIdsForTransferRoot (
   const startBlockNumber = previousTransferCommitted.blockNumber
   const endBlockNumber = transferCommitted.blockNumber
   query = `
-    query TransfersSent($startBlockNumber: String, $endBlockNumber: String) {
+    query TransfersSent($startBlockNumber: String, $endBlockNumber: String, $destinationChainId: String) {
       transferSents(
         where: {
           blockNumber_gte: $startBlockNumber,
-          blockNumber_lte: $endBlockNumber
+          blockNumber_lte: $endBlockNumber,
+          destinationChainId: $destinationChainId
         },
         orderBy: blockNumber,
         orderDirection: asc,
@@ -74,6 +81,7 @@ export default async function getTransferIdsForTransferRoot (
       ) {
         id
         transferId
+        destinationChainId
         transactionHash
         index
         timestamp
@@ -83,22 +91,25 @@ export default async function getTransferIdsForTransferRoot (
   `
   jsonRes = await makeRequest(chain, query, {
     startBlockNumber,
-    endBlockNumber
+    endBlockNumber,
+    destinationChainId
   })
 
   // normalize fields
   let transferIds = jsonRes.transferSents.map((x: any) => {
-    x.blockNumber = Number(x.blockNumber)
+    x.destinationChainId = Number(x.destinationChainId)
     x.index = Number(x.index)
+    x.blockNumber = Number(x.blockNumber)
+    x.timestamp = Number(x.timestamp)
     return x
   })
 
   // sort by transfer id block number and index
   transferIds = transferIds.sort((a: any, b: any) => {
-    if (a.blockNumber > b.blockNumber) return 1
-    if (a.blockNumber < b.blockNumber) return -1
     if (a.index > b.index) return 1
     if (a.index < b.index) return -1
+    if (a.blockNumber > b.blockNumber) return 1
+    if (a.blockNumber < b.blockNumber) return -1
     return 0
   })
 
@@ -113,14 +124,18 @@ export default async function getTransferIdsForTransferRoot (
     seen[x.index] = true
     return true
   })
+    .filter((x: any, i: number) => {
+    // filter out any transfers ids after sequence breaks
+      return x.index === i
+    })
 
-  // return only transfer ids
-  transferIds = transferIds.map((x: any) => {
+  // filter only transfer ids for leaves
+  const leaves = transferIds.map((x: any) => {
     return x.transferId
   })
 
   // verify that the computed root matches the original root hash
-  const tree = new MerkleTree(transferIds)
+  const tree = new MerkleTree(leaves)
   if (tree.getHexRoot() !== rootHash) {
     throw new Error('computed transfer root hash does not match')
   }

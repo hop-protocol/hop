@@ -1,11 +1,12 @@
 import '../moduleAlias'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import L1Bridge from './classes/L1Bridge'
+import L2Bridge from './classes/L2Bridge'
 import Token from './classes/Token'
 import chalk from 'chalk'
+import promiseTimeout from 'src/utils/promiseTimeout'
 import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
-import { config } from 'src/config'
 import { isL1ChainId, wait } from 'src/utils'
 
 export interface Config {
@@ -129,33 +130,33 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
 
           let tx: any
           const spender = l1Bridge.getAddress()
-          tx = await l1Token.approve(spender)
-          this.logger.info(
-            'L1 canonical token approve tx:',
-            chalk.bgYellow.black.bold(tx?.hash)
-          )
+          tx = await l1Token.approve(spender, convertAmount)
           if (tx) {
-            this.notifier.info(`L1 approve tx: ${tx?.hash}`)
+            this.logger.info(
+              'L1 canonical token approve tx:',
+              chalk.bgYellow.black.bold(tx?.hash)
+            )
             await tx.wait()
           }
           tx = await l1Bridge.convertCanonicalTokenToHopToken(
             this.token.chainId,
             convertAmount
           )
+          let txTimestamp : number = 0
           if (tx) {
             this.logger.debug(
               `convert tx: ${chalk.bgYellow.black.bold(tx?.hash)}`
             )
-            this.notifier.info(`convert tx: ${tx?.hash}`)
+            this.notifier.info(`convert tx: ${tx.hash}`)
             await tx.wait()
+            txTimestamp = await l1Bridge.getTransactionTimestamp(tx.hash)
           }
 
-          // wait enough time for canonical token transfer
-          const delayMs = config.isMainnet ? 600 * 1000 : 300 * 1000
           this.logger.debug(
-            `waiting for ${this.chainSlug} canonical bridge transfer (this will take at least ${delayMs / 1000 / 60} minutes)`
+            `waiting for ${this.chainSlug} canonical bridge transfer (this will take 1-15 minutes)`
           )
-          await wait(delayMs)
+          await promiseTimeout(this.pollConvertTxReceive(convertAmount, txTimestamp), 60 * 60 * 1000)
+          this.logger.debug('received tokens at destination')
         }
 
         const balance = await this.token.getBalance()
@@ -259,6 +260,40 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
   async getTokenAllowance () {
     const spender = this.bridge.getAddress()
     return this.token.getAllowance(spender)
+  }
+
+  async pollConvertTxReceive (convertAmount: BigNumber, timestamp: number) {
+    if (this.isL1) {
+      return
+    }
+    if (!timestamp) {
+      throw new Error('invalid timestamp')
+    }
+    const l2Bridge = this.bridge as L2Bridge
+    const blockNumber = await l2Bridge.getBlockNumber()
+    const start = blockNumber - 100
+    const end = blockNumber
+    const events = await l2Bridge.getTransferFromL1CompletedEvents(
+      start,
+      end
+    )
+    const bonderAddress = await this.bridge.getBonderAddress()
+    for (const event of events) {
+      const { amount, recipient } = event.args
+      if (recipient !== bonderAddress) {
+        continue
+      }
+      if (!amount.eq(convertAmount)) {
+        continue
+      }
+      const eventTimestamp = await l2Bridge.getBlockTimestamp(event.blockNumber)
+      if (eventTimestamp < timestamp) {
+        continue
+      }
+      return true
+    }
+    await wait(10 * 1000)
+    await this.pollConvertTxReceive(convertAmount, timestamp)
   }
 }
 

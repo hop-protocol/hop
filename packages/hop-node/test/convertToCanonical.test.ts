@@ -3,11 +3,10 @@ import { Chain } from 'src/constants'
 import { User } from './helpers'
 import { faucetPrivateKey as privateKey } from './config'
 import { wait } from 'src/utils'
-require('dotenv').config()
 
 const TOKEN = 'USDC'
-const AMOUNT = 100_000
-const NETWORKS = [Chain.Polygon]
+const AMOUNT = 10_000
+const NETWORKS = [Chain.Optimism]
 const logger = new Logger('TEST')
 
 describe('convert L1 token to L2 canonical token', () => {

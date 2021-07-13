@@ -1,3 +1,4 @@
+import Logger from 'src/logger'
 import expect from 'expect'
 import queue from 'src/decorators/queue'
 import { BigNumber, Contract, Wallet, ethers, providers } from 'ethers'
@@ -28,6 +29,8 @@ import { chainSlugToId, getRpcProvider, wait } from 'src/utils'
 import { config } from 'src/config'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import * as hopMetadata from '@hop-protocol/metadata'
+
+const logger = new Logger('test')
 
 export class User {
   privateKey: string
@@ -340,10 +343,10 @@ export class User {
     await this.checkApproval(sourceNetwork, token, wrapper.address)
 
     const balance = await this.getBalance(sourceNetwork, token)
-    console.log('token balance:', balance)
+    logger.debug('token balance:', balance)
 
     const hopBalance = await this.getHopBalance(sourceNetwork, token)
-    console.log('token hop balance:', hopBalance)
+    logger.debug('token hop balance:', hopBalance)
 
     const allowance = await this.getAllowance(
       sourceNetwork,
@@ -354,9 +357,9 @@ export class User {
       throw new Error('not enough allowance')
     }
 
-    const log = false
-    if (log) {
-      console.log(`wrapper.swapAndSend(
+    const debug = false
+    if (debug) {
+      logger.debug(`wrapper.swapAndSend(
       ${chainId},
       ${recipient},
       ${parsedAmount.toString()},
@@ -651,10 +654,10 @@ export class User {
       )
     } else if (destNetwork === Chain.Polygon) {
       const approveAddress = config.tokens[token][destNetwork].l1PosPredicate
-      console.log('approving')
+      logger.debug('approving')
       const tx = await this.approve(Chain.Ethereum, token, approveAddress)
       await tx?.wait()
-      console.log('waiting')
+      logger.debug('waiting')
       const coder = ethers.utils.defaultAbiCoder
       const payload = coder.encode(['uint256'], [value])
       return tokenBridge.depositFor(
@@ -1190,7 +1193,7 @@ export async function checkApproval (
   let allowance = await user.getAllowance(network, token, spender)
   if (allowance < 1000) {
     const tx = await user.approve(network, token, spender)
-    console.log('approve tx:', tx?.hash)
+    logger.debug('approve tx:', tx?.hash)
     await tx?.wait()
     allowance = await user.getAllowance(network, token, spender)
   }
@@ -1206,7 +1209,7 @@ export async function waitForEvent (
     watchers.forEach(watcher => {
       watcher
         .on(eventName, (data: any) => {
-          console.log('received event:', eventName, data)
+          logger.debug('received event:', eventName, data)
           if (typeof predicate === 'function') {
             if (predicate(data)) {
               resolve(null)
@@ -1261,7 +1264,7 @@ export async function prepareAccount (
         l1CanonicalBridge.address
       )
       tx = await user.convertToCanonicalToken(sourceNetwork, token, 1000)
-      console.log('tx:', tx.hash)
+      logger.info('tx:', tx.hash)
       await tx?.wait()
       await wait(120 * 1000)
     } else {
@@ -1293,10 +1296,10 @@ export async function prepareAccounts (
   network: string,
   faucetTokensToSend: number = 100
 ) {
-  const faucetSendEth = false
+  const faucetSendEth = !config.isMainnet
   let i = 0
   for (const user of users) {
-    console.log('preparing account')
+    logger.debug('preparing account')
     const address = await user.getAddress()
     const yes = [Chain.Ethereum as string, Chain.xDai].includes(network)
     let checkEth = true
@@ -1305,9 +1308,9 @@ export async function prepareAccounts (
     }
     if (checkEth) {
       let ethBal = await user.getBalance(network)
-      console.log(`#${i} eth:`, ethBal)
-      if (faucetSendEth && ethBal < 0.1) {
-        console.log('faucet sending eth')
+      logger.debug(`#${i} eth:`, ethBal)
+      if (faucetSendEth && ethBal < 0.01) {
+        logger.debug('faucet sending eth')
         const tx = await faucet.sendEth(0.1, address, network)
         const receipt = await tx.wait()
         expect(receipt.status).toBe(1)
@@ -1316,9 +1319,9 @@ export async function prepareAccounts (
       }
     }
     let tokenBal = await user.getBalance(network, token)
-    console.log(`#${i} token balance: ${tokenBal}`)
+    logger.debug(`#${i} token balance: ${tokenBal}`)
     if (tokenBal < faucetTokensToSend) {
-      console.log('faucet sending tokens')
+      logger.debug('faucet sending tokens')
       const faucetBalance = await faucet.getBalance(network, token)
       if (faucetBalance < faucetTokensToSend) {
         throw new Error(
@@ -1331,7 +1334,7 @@ export async function prepareAccounts (
         faucetTokensToSend,
         address
       )
-      console.log('send tokens tx:', tx.hash)
+      logger.debug('send tokens tx:', tx.hash)
       await tx.wait()
       tokenBal = await user.getBalance(network, token)
     }

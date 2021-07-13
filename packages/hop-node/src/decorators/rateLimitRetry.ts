@@ -45,7 +45,10 @@ export function rateLimitRetryFn (fn: any): any {
         retries++
         // if it's a rate limit error, then throw error after max retries attempted.
         if (retries >= rateLimitMaxRetries) {
-          notifier.error(`rateLimitRetry function error: ${err.message}`)
+          logger.error(`max retries (${rateLimitMaxRetries}) reached. Error: ${err.message}`)
+          // this must be a regular console log to print original function name
+          console.log(fn, id)
+          notifier.error(`max retries (${rateLimitMaxRetries}) reached. Error: ${err.message}`)
           throw err
         }
 

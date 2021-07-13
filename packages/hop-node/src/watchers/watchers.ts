@@ -73,6 +73,15 @@ function getStakeWatchers (
     }
   }
 
+  watchers.forEach(watcher => {
+    if (config.networks[watcher.chainSlug].readRpcUrl) {
+      const provider = getRpcProviderFromUrl(
+        config.networks[watcher.chainSlug].readRpcUrl
+      )
+      watcher.bridge.setReadProvider(provider)
+    }
+  })
+
   return watchers
 }
 

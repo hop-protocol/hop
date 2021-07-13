@@ -81,6 +81,7 @@ export default async function getTransferIdsForTransferRoot (
       ) {
         id
         transferId
+        destinationChainId
         transactionHash
         index
         timestamp
@@ -96,17 +97,19 @@ export default async function getTransferIdsForTransferRoot (
 
   // normalize fields
   let transferIds = jsonRes.transferSents.map((x: any) => {
-    x.blockNumber = Number(x.blockNumber)
+    x.destinationChainId = Number(x.destinationChainId)
     x.index = Number(x.index)
+    x.blockNumber = Number(x.blockNumber)
+    x.timestamp = Number(x.timestamp)
     return x
   })
 
   // sort by transfer id block number and index
   transferIds = transferIds.sort((a: any, b: any) => {
-    if (a.blockNumber > b.blockNumber) return 1
-    if (a.blockNumber < b.blockNumber) return -1
     if (a.index > b.index) return 1
     if (a.index < b.index) return -1
+    if (a.blockNumber > b.blockNumber) return 1
+    if (a.blockNumber < b.blockNumber) return -1
     return 0
   })
 
@@ -121,14 +124,18 @@ export default async function getTransferIdsForTransferRoot (
     seen[x.index] = true
     return true
   })
+    .filter((x: any, i: number) => {
+    // filter out any transfers ids after sequence breaks
+      return x.index === i
+    })
 
-  // return only transfer ids
-  transferIds = transferIds.map((x: any) => {
+  // filter only transfer ids for leaves
+  const leaves = transferIds.map((x: any) => {
     return x.transferId
   })
 
   // verify that the computed root matches the original root hash
-  const tree = new MerkleTree(transferIds)
+  const tree = new MerkleTree(leaves)
   if (tree.getHexRoot() !== rootHash) {
     throw new Error('computed transfer root hash does not match')
   }

@@ -22,5 +22,8 @@ export default async function makeRequest (
     })
   })
   const jsonRes = await res.json()
+  if (Array.isArray(jsonRes.errors) && jsonRes.errors.length) {
+    throw new Error(jsonRes.errors[0].message)
+  }
   return jsonRes.data
 }

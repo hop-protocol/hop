@@ -207,7 +207,7 @@ class AmmConvertOption extends ConvertOption {
       },
       {
         title: 'Fee',
-        tooltip: 'This fee goes towards the Bonder who bonds the transfer on the destination chain.',
+        tooltip: 'This fee goes towards the liquidity providers for the AMM.',
         value: feeDisplay
       }
     ]

@@ -21,6 +21,7 @@ export default class L2Bridge extends Bridge {
   l2BridgeWrapper: L2BridgeWrapper
   TransfersCommitted: string = 'TransfersCommitted'
   TransferSent: string = 'TransferSent'
+  TransferFromL1Completed: string = 'TransferFromL1Completed'
 
   constructor (l2BridgeContract: Contract) {
     super(l2BridgeContract)
@@ -48,22 +49,21 @@ export default class L2Bridge extends Bridge {
   }
 
   l2StartListeners (): void {
-    if (this.getReadBridgeContract().filters.TransfersCommitted) {
-      this.getReadBridgeContract().on(
-        this.getReadBridgeContract().filters.TransfersCommitted(),
-        (...args: any[]) => this.emit(this.TransfersCommitted, ...args)
-      )
-    }
-    if (this.getReadBridgeContract().filters.TransferSent) {
-      this.getReadBridgeContract().on(
+    this.getReadBridgeContract().on(
+      this.getReadBridgeContract().filters.TransfersCommitted(),
+      (...args: any[]) => this.emit(this.TransfersCommitted, ...args)
+    )
+      .on(
         this.getReadBridgeContract().filters.TransferSent(),
         (...args: any[]) => this.emit(this.TransferSent, ...args)
       )
-    }
-
-    this.getReadBridgeContract().on('error', err => {
-      this.emit('error', err)
-    })
+      .on(
+        this.getReadBridgeContract().filters.TransferFromL1Completed(),
+        (...args: any[]) => this.emit(this.TransferFromL1Completed, ...args)
+      )
+      .on('error', err => {
+        this.emit('error', err)
+      })
   }
 
   async getL1Bridge (): Promise<L1Bridge> {
@@ -83,6 +83,18 @@ export default class L2Bridge extends Bridge {
       this.getWriteBridgeContract().signer
     )
     return new Token(tokenContract)
+  }
+
+  @rateLimitRetry
+  async getTransferFromL1CompletedEvents (
+    startBlockNumber: number,
+    endBlockNumber: number
+  ): Promise<Event[]> {
+    return this.getReadBridgeContract().queryFilter(
+      this.getReadBridgeContract().filters.TransferFromL1Completed(),
+      startBlockNumber,
+      endBlockNumber
+    )
   }
 
   @rateLimitRetry

@@ -4,6 +4,7 @@ import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
 import db from 'src/db'
 import { BigNumber, Contract, Event } from 'ethers'
+import { boundClass } from 'autobind-decorator'
 import { isL1ChainId } from 'src/utils'
 
 interface Config {
@@ -17,8 +18,9 @@ interface Config {
   dryMode?: boolean
 }
 
+@boundClass
 class BaseWatcherWithEventHandlers extends BaseWatcher {
-  public handleTransferSentEvent = async (
+  async handleTransferSentEvent (
     transferId: string,
     destinationChainIdBn: BigNumber,
     recipient: string,
@@ -29,7 +31,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     amountOutMin: BigNumber,
     deadline: BigNumber,
     event: Event
-  ) => {
+  ) {
     const logger = this.logger.create({ id: transferId })
     logger.debug('handling TransferSent event')
 
@@ -73,11 +75,11 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     }
   }
 
-  handleWithdrawalBondedEvent = async (
+  async handleWithdrawalBondedEvent (
     transferId: string,
     amount: BigNumber,
     event: Event
-  ) => {
+  ) {
     const logger = this.logger.create({ id: transferId })
 
     const { transactionHash } = event
@@ -95,13 +97,13 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     })
   }
 
-  handleTransferRootConfirmedEvent = async (
+  async handleTransferRootConfirmedEvent (
     sourceChainId: BigNumber,
     destChainId: BigNumber,
     transferRootHash: string,
     totalAmount: BigNumber,
     event: Event
-  ) => {
+  ) {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('handling TransferRootConfirmed event')
 
@@ -119,11 +121,11 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     }
   }
 
-  handleTransferRootBondedEvent = async (
+  async handleTransferRootBondedEvent (
     transferRootHash: string,
     totalAmount: BigNumber,
     event: Event
-  ) => {
+  ) {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('handling TransferRootBonded event')
 
@@ -156,13 +158,13 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     }
   }
 
-  handleTransfersCommittedEvent = async (
+  async handleTransfersCommittedEvent (
     destinationChainIdBn: BigNumber,
     transferRootHash: string,
     totalAmount: BigNumber,
     committedAtBn: BigNumber,
     event: Event
-  ) => {
+  ) {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('handling TransfersCommitted event')
 

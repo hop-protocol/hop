@@ -21,6 +21,7 @@ export default class L2Bridge extends Bridge {
   l2BridgeWrapper: L2BridgeWrapper
   TransfersCommitted: string = 'TransfersCommitted'
   TransferSent: string = 'TransferSent'
+  TransferFromL1Completed: string = 'TransferFromL1Completed'
 
   constructor (l2BridgeContract: Contract) {
     super(l2BridgeContract)
@@ -60,6 +61,12 @@ export default class L2Bridge extends Bridge {
         (...args: any[]) => this.emit(this.TransferSent, ...args)
       )
     }
+    if (this.getReadBridgeContract().filters.TransferFromL1Completed) {
+      this.getReadBridgeContract().on(
+        this.getReadBridgeContract().filters.TransferFromL1Completed(),
+        (...args: any[]) => this.emit(this.TransferFromL1Completed, ...args)
+      )
+    }
 
     this.getReadBridgeContract().on('error', err => {
       this.emit('error', err)
@@ -83,6 +90,18 @@ export default class L2Bridge extends Bridge {
       this.getWriteBridgeContract().signer
     )
     return new Token(tokenContract)
+  }
+
+  @rateLimitRetry
+  async getTransferFromL1CompletedEvents (
+    startBlockNumber: number,
+    endBlockNumber: number
+  ): Promise<Event[]> {
+    return this.getReadBridgeContract().queryFilter(
+      this.getReadBridgeContract().filters.TransferFromL1Completed(),
+      startBlockNumber,
+      endBlockNumber
+    )
   }
 
   @rateLimitRetry

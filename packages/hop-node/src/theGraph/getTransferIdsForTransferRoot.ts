@@ -81,6 +81,7 @@ export default async function getTransferIdsForTransferRoot (
       ) {
         id
         transferId
+        destinationChainId
         transactionHash
         index
         timestamp
@@ -96,8 +97,10 @@ export default async function getTransferIdsForTransferRoot (
 
   // normalize fields
   let transferIds = jsonRes.transferSents.map((x: any) => {
-    x.blockNumber = Number(x.blockNumber)
+    x.destinationChainId = Number(x.destinationChainId)
     x.index = Number(x.index)
+    x.blockNumber = Number(x.blockNumber)
+    x.timestamp = Number(x.timestamp)
     return x
   })
 
@@ -126,13 +129,13 @@ export default async function getTransferIdsForTransferRoot (
       return x.index === i
     })
 
-  // return only transfer ids
-  transferIds = transferIds.map((x: any) => {
+  // filter only transfer ids for leaves
+  const leaves = transferIds.map((x: any) => {
     return x.transferId
   })
 
   // verify that the computed root matches the original root hash
-  const tree = new MerkleTree(transferIds)
+  const tree = new MerkleTree(leaves)
   if (tree.getHexRoot() !== rootHash) {
     throw new Error('computed transfer root hash does not match')
   }

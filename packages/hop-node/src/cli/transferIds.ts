@@ -13,6 +13,7 @@ program
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
   .option('--chain <string>', 'Chain')
+  .option('--info', 'Show transfer ID info')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -32,7 +33,13 @@ program
         chain,
         transferRootHash
       )
-      console.log(JSON.stringify(transferIds, null, 2))
+      const showInfo = source.info
+      console.log(JSON.stringify(transferIds.map((x: any) => {
+        if (showInfo) {
+          return x
+        }
+        return x.transferId
+      }), null, 2))
     } catch (err) {
       logger.error(err.message)
       process.exit(1)

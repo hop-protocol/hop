@@ -1,4 +1,5 @@
 import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
+import getTransferRoots from 'src/theGraph/getTransferRoots'
 import { Chain } from 'src/constants'
 
 describe('getTransferIdsForTransferRoot', () => {
@@ -37,5 +38,12 @@ describe('getTransferIdsForTransferRoot', () => {
       rootHash
     )
     expect(transferIds.length).toBe(17)
+  })
+})
+
+describe('getTransferRoots', () => {
+  it('xdai', async () => {
+    const transferRoots = await getTransferRoots('xdai')
+    expect(transferRoots.length).toBeGreaterThan(0)
   })
 })

@@ -5,14 +5,15 @@ import {
 } from './shared/config'
 import { logger, program } from './shared'
 
-import { getTransferIdsForTransferRoot } from 'src/theGraph'
+import { getTransferRoots } from 'src/theGraph'
 
 program
-  .command('transfer-ids')
-  .description('Get transfer IDs for transfer root hash')
+  .command('transfer-roots')
+  .description('Get transfer roots')
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
   .option('--chain <string>', 'Chain')
+  .option('--info', 'Show transfer root info')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -20,19 +21,20 @@ program
         const config: Config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      const transferRootHash = source.args[0]
       const chain = source.chain
-      if (!transferRootHash) {
-        throw new Error('transfer root hash is required')
-      }
+      const showInfo = source.info
       if (!chain) {
         throw new Error('chain is required')
       }
-      const transferIds = await getTransferIdsForTransferRoot(
-        chain,
-        transferRootHash
+      const transferRoots = await getTransferRoots(
+        chain
       )
-      console.log(JSON.stringify(transferIds, null, 2))
+      console.log(JSON.stringify(transferRoots.map((x: any) => {
+        if (showInfo) {
+          return x
+        }
+        return x.rootHash
+      }), null, 2))
     } catch (err) {
       logger.error(err.message)
       process.exit(1)

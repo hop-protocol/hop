@@ -115,6 +115,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       } catch (err) {
         this.logger.error(`poll check error: ${err.message}`)
         this.notifier.error(`poll check error: ${err.message}`)
+        console.trace()
       }
       await this.postPollHandler()
     }
@@ -139,7 +140,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     } catch (err) {
       this.logger.error('base watcher error:', err.message)
       this.notifier.error(`base watcher error: '${err.message}`)
-      console.error(err)
+      console.trace()
       this.quit()
     }
   }

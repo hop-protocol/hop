@@ -23,15 +23,15 @@ export const addresses: Addresses = {
         canonicalBridgeMaxPerTx: '10000'
       },
       optimism: {
-        l1CanonicalBridge: '0xC48528a44f2D961D179D69434645E54ac85732a1',
-        l1MessengerWrapper: '0x959c21F8490092EbD32E52713C10f8cAfcf17477',
-        l2CanonicalBridge: '0x7B2ab06D22Cd230102215532928f60770376a2B3',
+        l1CanonicalBridge: '0x531984eEccac4c5e6ABb5439c02d5861110bdA43',
+        l1MessengerWrapper: '0x21BB6b9B1e96441f166bfA03EB288F25A47CCc39',
+        l2CanonicalBridge: '0x3B88CAb5A989C8AF0931ed171dbF7427BEb2df9A',
         l2CanonicalToken: '0x3b8e53B3aB8E01Fb57D0c9E893bC4d655AA67d84',
-        l2Bridge: '0x0E72827bE46c9F2eA3ce5Dc8c667E9790a2C20cA',
-        l2HopBridgeToken: '0xa36E84bC6d3fc021b5AFD9cc5d22315a31fD8c4A',
-        l2AmmWrapper: '0xb3395d2311c875ce2ec8a4d34c8D5C15012748cB',
-        l2SaddleSwap: '0xeED1e285306EEF0D8BAd52c160C6A042420b2045',
-        l2SaddleLpToken: '0xE41C81F02840704234e0266B42A0F786Ad8474e9'
+        l2Bridge: '0x3444A15413923b6DB5Fd5AcCBa5731e21aeCAf10',
+        l2HopBridgeToken: '0x0CB64eA2890bcC00F4619C0E6C8823b09240369C',
+        l2AmmWrapper: '0x6ad8573880560CF3E88B9d943927136F376559af',
+        l2SaddleSwap: '0xd75005fBB30973c302Ef68C0c90F732713420EA0',
+        l2SaddleLpToken: '0xcBB29B17F7e2321aBB0926fF2887D6E2d8CBBa42',
       }
     },
     DAI: {

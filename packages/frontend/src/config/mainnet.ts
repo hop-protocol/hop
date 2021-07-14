@@ -1,6 +1,9 @@
-import { mainnet as mainnetAddresses } from '@hop-protocol/addresses'
+//import { mainnet as mainnetAddresses } from '@hop-protocol/addresses'
 import { mainnet as mainnetNetworks } from '@hop-protocol/networks'
 import { HopAddresses, Networks } from './interfaces'
+
+// override for staging environment
+const mainnetAddresses = require('./staging.json')
 
 export const addresses: HopAddresses = {
   governance: {

@@ -301,7 +301,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       return txConfirm?.show({
         kind: 'approval',
         inputProps: {
-          tagline: `Allow Hop to spend your ${isHop ? 'h' : ''}${token.symbol} on ${selectedNetwork.name}`,
+          tagline: `Allow Hop to spend your ${token.symbol} on ${selectedNetwork.name}`,
           amount,
           tokenSymbol: isHop ? hopToken.symbol : canonicalToken.symbol
         },

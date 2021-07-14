@@ -241,7 +241,7 @@ const Send: FC = () => {
 
     let amount
     if (amountOut) {
-      amount = commafy(formatUnits(amountOut, destToken.decimals), 4)
+      amount = toTokenDisplay(amountOut, destToken.decimals)
     }
     setToTokenAmount(amount)
   }, [destToken, amountOut])

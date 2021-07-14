@@ -24,7 +24,7 @@ import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import NativeConvertOption from 'src/pages/Convert/ConvertOption/NativeConvertOption'
 import useBalance from 'src/hooks/useBalance'
 import { DetailRowProps as DetailRow } from 'src/components/DetailRow'
-import { commafy } from 'src/utils'
+import { toTokenDisplay } from 'src/utils'
 
 type ConvertContextProps = {
   convertOptions: ConvertOption[]
@@ -205,8 +205,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
       let formattedAmount = ''
       if (amountOut) {
-        formattedAmount = formatUnits(amountOut, sourceToken.decimals)
-        formattedAmount = commafy(formattedAmount, 5)
+        formattedAmount = toTokenDisplay(amountOut, sourceToken.decimals)
       }
 
       let _amountOutMin

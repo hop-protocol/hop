@@ -4,6 +4,7 @@ import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
 import PoolStats from './PoolStats'
 import BonderStats from './BonderStats'
+import PendingAmountStats from './PendingAmountStats'
 
 const useStyles = makeStyles(theme => ({
   stats: {
@@ -18,6 +19,9 @@ const Stats: FC = () => {
     <Box display="flex" flexDirection="column" alignItems="center">
       <div className={styles.stats}>
         <PoolStats />
+      </div>
+      <div className={styles.stats}>
+        <PendingAmountStats />
       </div>
       <div className={styles.stats}>
         <BonderStats />

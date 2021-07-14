@@ -43,14 +43,8 @@ const useStyles = makeStyles(theme => ({
   },
   networkIcon: {
     display: 'flex',
-    height: '2.6rem',
-    margin: '0.5rem'
-  },
-  greyCircle: {
-    margin: '0.5rem',
-    padding: '1.3rem',
-    borderRadius: '1.8rem',
-    backgroundColor: '#C4C4C4'
+    height: '2.2rem',
+    margin: '0.7rem'
   },
   balance: {
     display: 'flex',
@@ -153,7 +147,7 @@ const AmountSelectorCard: FC<Props> = props => {
         ) : null}
       </Box>
       <Grid container alignItems="center">
-        <Grid item xs={6}>
+        <Grid item xs={5}>
           <Box className={styles.networkSelectionBox}>
             {
               titleIconUrl
@@ -174,7 +168,7 @@ const AmountSelectorCard: FC<Props> = props => {
             </Typography>
           </Box>
         </Grid>
-        <Grid item xs={6}>
+        <Grid item xs={7}>
           <LargeTextField
             value={value}
             onChange={handleInputChange}

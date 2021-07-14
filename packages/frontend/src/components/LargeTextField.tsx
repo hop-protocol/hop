@@ -30,7 +30,7 @@ const boldShadow = `
 
 const useStyles = makeStyles(theme => ({
   root: {
-    margin: `-0.8rem -${theme.padding.extraLight}`
+    margin: `-0.8rem -${theme.padding.extraLight} -0.8rem 0`
   },
   adornment: {
     marginLeft: '-0.8rem',

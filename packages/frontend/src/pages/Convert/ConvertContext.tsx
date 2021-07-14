@@ -21,7 +21,6 @@ import logger from 'src/logger'
 import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
-import NativeConvertOption from 'src/pages/Convert/ConvertOption/NativeConvertOption'
 import useBalance from 'src/hooks/useBalance'
 import { DetailRowProps as DetailRow } from 'src/components/DetailRow'
 import { toTokenDisplay } from 'src/utils'
@@ -100,8 +99,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const convertOptions = useMemo(() => {
     return [
       new AmmConvertOption(),
-      new HopConvertOption(),
-      new NativeConvertOption()
+      new HopConvertOption()
     ]
   }, [])
   const convertOption = useMemo(() => {

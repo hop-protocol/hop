@@ -11,9 +11,16 @@ const toTokenDisplay = (num: BigNumber | undefined, decimals: number | undefined
     return '-'
   }
 
+  const formattedNum = formatUnits(num, decimals)
+  const nonDecimalNum = formattedNum.split('.')[0]
+  let significantDecimals = 0
+  if (nonDecimalNum.length < 8) {
+    significantDecimals = 8 - nonDecimalNum.length
+  }
+
   let formatted = commafy(
     formatUnits(num, decimals),
-    4
+    significantDecimals
   )
 
   if (symbol) {

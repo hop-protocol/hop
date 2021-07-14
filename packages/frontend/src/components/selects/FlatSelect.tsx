@@ -7,7 +7,7 @@ const useStyles = makeStyles(theme => ({
   root: {
     color: theme.palette.text.secondary,
     backgroundColor: 'rgba(255, 255, 255, 0.55)',
-    width: '17.6rem',
+    width: '13.5rem',
     borderRadius: '2.3rem',
     padding: '0 2.8rem 0 0',
     '&.MuiSelect-select': {

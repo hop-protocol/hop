@@ -6,6 +6,7 @@ import { Chain } from 'src/constants'
 import {
   db as dbConfig,
   setBonderPrivateKey,
+  setConfigAddresses,
   setConfigByNetwork,
   setSyncConfig
 } from 'src/config'
@@ -88,6 +89,10 @@ export type BondWithdrawals = {
   }
 }
 
+export type Addresses = {
+  location: string
+}
+
 export type Config = {
   network?: string
   chains?: ChainsConfig
@@ -103,6 +108,7 @@ export type Config = {
   commitTransfers?: any
   bondWithdrawals?: BondWithdrawals
   order?: number
+  addresses?: Addresses
 }
 
 export async function parseConfigFile (
@@ -178,6 +184,14 @@ export async function setGlobalConfigFromConfigFile (
   if (config?.sync) {
     setSyncConfig(config?.sync)
   }
+  if (config?.addresses && config?.addresses.location) {
+    const location = path.resolve(config?.addresses.location.replace('~', os.homedir()))
+    if (!fs.existsSync(location)) {
+      throw new Error(`no config file found at ${location}`)
+    }
+    const addresses = require(location)
+    setConfigAddresses(addresses)
+  }
 }
 
 export function validateKeys (validKeys: string[] = [], keys: string[]) {
@@ -211,6 +225,7 @@ export async function validateConfig (config: any) {
     'db',
     'logging',
     'keystore',
+    'addresses',
     'order'
   ]
 
@@ -282,6 +297,14 @@ export async function validateConfig (config: any) {
     const validCommitTransfersKeys = ['minThresholdAmount']
     const commitTransfersKeys = Object.keys(config.commitTransfers)
     await validateKeys(validCommitTransfersKeys, commitTransfersKeys)
+  }
+
+  if (config.addresses) {
+    const validAddressesProps = [
+      'location'
+    ]
+    const addressesProps = Object.keys(config.addresses)
+    await validateKeys(validAddressesProps, addressesProps)
   }
 }
 

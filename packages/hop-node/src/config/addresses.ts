@@ -1,3 +1,4 @@
+import { Addresses } from '@hop-protocol/addresses'
 import { Chain, Network, TotalBlocks } from 'src/constants'
 
 const { metadata } = require('./metadata')
@@ -111,6 +112,12 @@ const setConfigByNetwork = (_network: string) => {
   config.network = _network
   config.networks = networks
   config.bonder = bonders
+}
+
+export const setConfigAddresses = (addresses: Addresses) => {
+  const { bridges, bonders } = addresses
+  config.tokens = bridges
+  config.bonders = bonders
 }
 
 const setBonderPrivateKey = (privateKey: string) => {

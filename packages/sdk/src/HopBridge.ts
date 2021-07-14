@@ -14,7 +14,7 @@ import Base from './Base'
 import AMM from './AMM'
 import _version from './version'
 import { TokenIndex, BondTransferGasCost, LpFee } from './constants'
-import { addresses, metadata } from './config'
+import { metadata } from './config'
 import CoinGecko from './CoinGecko'
 import Token from './Token'
 

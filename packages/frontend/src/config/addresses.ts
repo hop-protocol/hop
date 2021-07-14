@@ -11,10 +11,9 @@ import {
 const network = process.env.REACT_APP_NETWORK || 'kovan'
 let addresses = kovanAddresses
 let networks = kovanNetworks
-let isMainnet = false
+const isMainnet = network === 'mainnet'
 
-if (network === 'mainnet') {
-  isMainnet = true
+if (isMainnet) {
   addresses = mainnetAddresses
   networks = mainnetNetworks
 } else if (network === 'goerli') {

@@ -9,6 +9,7 @@ import {
   utils
 } from '../src/index'
 import Token from '../src/models/Token'
+import * as addresses from '@hop-protocol/addresses'
 import { Wallet, providers } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { privateKey } from './config'
@@ -352,5 +353,20 @@ describe.skip('liqudity provider', () => {
       .removeLiquidity(liqudityTokenAmount, Chain.xDai)
     console.log('tx:', tx.hash)
     expect(tx.hash).toBeTruthy()
+  })
+})
+
+describe('custom addresses', () => {
+  it('should set custom addresses', () => {
+    const address = '0x1111111111111111111111111111111111111111'
+    const newAddresses = Object.assign({}, addresses)
+    newAddresses.mainnet.bridges.USDC.xdai.l2CanonicalToken = address
+
+    const sdk = new Hop('mainnet')
+    sdk.setConfigAddresses(newAddresses.mainnet)
+    expect(sdk.getL2CanonicalTokenAddress('USDC', 'xdai')).toBe(address)
+
+    const bridge = sdk.bridge('USDC')
+    expect(bridge.getL2CanonicalTokenAddress('USDC', 'xdai')).toBe(address)
   })
 })

@@ -13,7 +13,7 @@ import {
 } from '@hop-protocol/abi'
 import { Chain } from './models'
 import { TChain, TToken, TAmount, TProvider } from './types'
-import { addresses, metadata } from './config'
+import { metadata } from './config'
 import Token from './models/Token'
 import TokenClass from './Token'
 import Base from './Base'
@@ -571,10 +571,16 @@ class CanonicalBridge extends Base {
     ]
     let address
     if (chain.isL1) {
-      const { l1CanonicalToken } = addresses.bridges[tokenSymbol][chain.slug]
+      const { l1CanonicalToken } = this.getL1CanonicalBridgeAddress(
+        tokenSymbol,
+        chain.slug
+      )
       address = l1CanonicalToken
     } else {
-      const { l2CanonicalToken } = addresses.bridges[tokenSymbol][chain.slug]
+      const { l2CanonicalToken } = this.getL2CanonicalTokenAddress(
+        tokenSymbol,
+        chain.slug
+      )
       address = l2CanonicalToken
     }
 
@@ -604,7 +610,10 @@ class CanonicalBridge extends Base {
     const { name, symbol, decimals, image } = metadata.tokens[network][
       tokenSymbol
     ]
-    const { l2HopBridgeToken } = addresses.bridges[tokenSymbol][chain.slug]
+    const { l2HopBridgeToken } = this.getL2HopBridgeTokenAddress(
+      tokenSymbol,
+      chain.slug
+    )
 
     return new TokenClass(
       network,

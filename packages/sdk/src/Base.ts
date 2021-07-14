@@ -1,12 +1,13 @@
 import memoize from 'fast-memoize'
+import { Addresses } from '@hop-protocol/addresses'
 import { Contract, Signer, providers, BigNumber } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
 import { TChain, TProvider, TToken } from './types'
-import { addresses, chains, metadata, bonders } from './config'
+import { metadata, config } from './config'
 
 // cache provider
 const getProvider = memoize((network: string, chain: Chain) => {
-  const rpcUrls = chains[network][chain.slug].rpcUrls.slice(0, 3) // max of 3 endpoints
+  const rpcUrls = config.chains[network][chain.slug].rpcUrls.slice(0, 3) // max of 3 endpoints
   const ethersProviders: providers.Provider[] = []
   for (let rpcUrl of rpcUrls) {
     const provider = new providers.StaticJsonRpcProvider(rpcUrl)
@@ -65,6 +66,10 @@ class Base {
   /** Ethers signer or provider */
   public signer: TProvider
 
+  private addresses = config.addresses
+  private chains = config.chains
+  private bonders = config.bonders
+
   /**
    * @desc Instantiates Base class.
    * Returns a new Base class instance.
@@ -85,8 +90,17 @@ class Base {
     }
   }
 
+  setConfigAddresses (addresses: Addresses) {
+    if (addresses.bridges) {
+      this.addresses[this.network] = addresses.bridges
+    }
+    if (addresses.bonders) {
+      this.bonders[this.network] = addresses.bonders
+    }
+  }
+
   get supportedNetworks () {
-    return Object.keys(chains)
+    return Object.keys(this.chains)
   }
 
   isValidNetwork (network: string) {
@@ -94,7 +108,7 @@ class Base {
   }
 
   get supportedChains () {
-    return Object.keys(chains[this.network])
+    return Object.keys(this.chains[this.network])
   }
 
   isValidChain (chain: string) {
@@ -164,7 +178,7 @@ class Base {
    * @returns {Number} - Chain ID.
    */
   public getChainId (chain: Chain) {
-    const { chainId } = chains[this.network][chain.slug]
+    const { chainId } = this.chains[this.network][chain.slug]
     return Number(chainId)
   }
 
@@ -242,7 +256,7 @@ class Base {
   public getConfigAddresses (token: TToken, chain: TChain) {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    return addresses[this.network]?.[token.symbol]?.[chain.slug]
+    return this.addresses[this.network]?.[token.symbol]?.[chain.slug]
   }
 
   public getL1BridgeAddress (token: TToken, chain: TChain) {
@@ -323,7 +337,11 @@ class Base {
   }
 
   public getBonderAddress (): string {
-    return bonders?.[this.network]?.[0]
+    return this.bonders?.[this.network]?.[0]
+  }
+
+  public getBonderAddresses (): string[] {
+    return this.bonders?.[this.network]
   }
 
   public getContract = getContract

@@ -1005,7 +1005,7 @@ class HopBridge extends Base {
     sourceChain: TChain,
     destinationChain: TChain,
     approval: boolean = false,
-    options?: Partial<SendOptions>
+    options: Partial<SendOptions> = {}
   ) {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
@@ -1040,7 +1040,7 @@ class HopBridge extends Base {
 
     // L2 -> L1
     if (destinationChain.isL1) {
-      let bonderFee = options.bonderFee
+      let bonderFee = options?.bonderFee
       if (!bonderFee) {
         bonderFee = await this.getBonderFee(
           tokenAmount,
@@ -1053,17 +1053,17 @@ class HopBridge extends Base {
         sourceChain,
         amount: tokenAmount,
         bonderFee,
-        recipient: options.recipient,
-        amountOutMin: options.amountOutMin,
-        deadline: options.deadline,
-        destinationAmountOutMin: options.destinationAmountOutMin,
-        destinationDeadline: options.destinationDeadline,
+        recipient: options?.recipient,
+        amountOutMin: options?.amountOutMin,
+        deadline: options?.deadline,
+        destinationAmountOutMin: options?.destinationAmountOutMin,
+        destinationDeadline: options?.destinationDeadline,
         approval
       })
     }
 
     // L2 -> L2
-    let bonderFee = options.bonderFee
+    let bonderFee = options?.bonderFee
     if (!bonderFee) {
       bonderFee = await this.getBonderFee(
         tokenAmount,
@@ -1076,11 +1076,11 @@ class HopBridge extends Base {
       sourceChain,
       amount: tokenAmount,
       bonderFee,
-      recipient: options.recipient,
-      amountOutMin: options.amountOutMin,
-      deadline: options.deadline,
-      destinationAmountOutMin: options.destinationAmountOutMin,
-      destinationDeadline: options.destinationDeadline,
+      recipient: options?.recipient,
+      amountOutMin: options?.amountOutMin,
+      deadline: options?.deadline,
+      destinationAmountOutMin: options?.destinationAmountOutMin,
+      destinationDeadline: options?.destinationDeadline,
       approval
     })
   }

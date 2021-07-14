@@ -4,6 +4,7 @@ import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
 import db from 'src/db'
 import { BigNumber, Contract, Event, providers } from 'ethers'
+import { TX_RETRY_DELAY_MS } from 'src/constants'
 import { wait } from 'src/utils'
 
 export interface Config {
@@ -22,7 +23,7 @@ const BONDER_ORDER_DELAY_MS = 60 * 1000
 class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
   siblingWatchers: { [chainId: string]: CommitTransfersWatcher }
   minThresholdAmount: BigNumber = BigNumber.from(0)
-  isCommitTxSent: { [chainId: number]: boolean } = {}
+  commitTxSentAt: { [chainId: number]: number } = {}
 
   constructor (config: Config) {
     super({
@@ -177,11 +178,12 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       }
 
       // Define new object on first run after server restart
-      if (!this.isCommitTxSent[destinationChainId]) {
-        this.isCommitTxSent[destinationChainId] = false
-      }
-
-      if (this.isCommitTxSent[destinationChainId]) {
+      const timestampOk = this.commitTxSentAt[destinationChainId] + TX_RETRY_DELAY_MS < Date.now()
+      if (timestampOk) {
+        // This may happen either in the happy path case or if the transaction
+        // has been in the mempool for too long and we want to retry
+        this.commitTxSentAt[destinationChainId] = 0
+      } else {
         this.logger.info(
           `commit tx for chainId ${destinationChainId} is in mempool`
         )
@@ -219,21 +221,21 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         `sending commitTransfers (destination chain ${destinationChainId}) tx`
       )
 
-      this.isCommitTxSent[destinationChainId] = true
+      this.commitTxSentAt[destinationChainId] = Date.now()
       const tx = await l2Bridge.commitTransfers(destinationChainId)
       tx?.wait()
         .then(async (receipt: providers.TransactionReceipt) => {
           if (receipt.status !== 1) {
-            this.isCommitTxSent[destinationChainId] = false
+            this.commitTxSentAt[destinationChainId] = 0
             throw new Error('status=0')
           }
           this.emit('commitTransfers', {
             destinationChainId
           })
-          this.isCommitTxSent[destinationChainId] = false
+          this.commitTxSentAt[destinationChainId] = 0
         })
         .catch(async (err: Error) => {
-          this.isCommitTxSent[destinationChainId] = false
+          this.commitTxSentAt[destinationChainId] = 0
 
           throw err
         })

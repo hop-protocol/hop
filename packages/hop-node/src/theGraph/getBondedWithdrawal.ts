@@ -1,13 +1,5 @@
 import makeRequest from './makeRequest'
-
-function normalizeEntity (x: any) {
-  if (!x) {
-    return x
-  }
-  x.timestamp = Number(x.timestamp)
-  x.blockNumber = Number(x.blockNumber)
-  return x
-}
+import { normalizeEntity } from './shared'
 
 export default async function getBondedWithdrawal (chain: string, transferId: string) {
   const query = `

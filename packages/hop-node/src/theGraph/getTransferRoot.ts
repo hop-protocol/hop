@@ -1,24 +1,10 @@
 import getTransferIdsForTransferRoot from './getTransferIdsForTransferRoot'
 import makeRequest from './makeRequest'
+import { Chain } from 'src/constants'
+import { chainIdToSlug, normalizeEntity } from './shared'
 
-const chainsToSlug: any = {
-  1: 'ethereum',
-  100: 'xdai',
-  137: 'polygon'
-}
-
-function normalizeTransferRoot (x: any) {
-  if (!x) {
-    return x
-  }
-  x.destinationChainId = Number(x.destinationChainId)
-  x.timestamp = Number(x.timestamp)
-  x.blockNumber = Number(x.blockNumber)
-  return x
-}
-
-export default async function getTransferRoot (chain: string, transferRootHash: string): Promise<any> {
-  let query = `
+async function queryTransferRoot (chain: string, transferRootHash: string) {
+  const query = `
     query TransferRoot($transferRootHash: String) {
       transfersCommitteds(
         where: {
@@ -37,15 +23,14 @@ export default async function getTransferRoot (chain: string, transferRootHash: 
       }
     }
   `
-  let jsonRes = await makeRequest(chain, query, {
+  const jsonRes = await makeRequest(chain, query, {
     transferRootHash
   })
-  let transferRoot = jsonRes.transfersCommitteds?.[0]
-  if (!transferRoot) {
-    return transferRoot
-  }
-  transferRoot = normalizeTransferRoot(transferRoot)
-  query = `
+  return normalizeEntity(jsonRes.transfersCommitteds?.[0])
+}
+
+async function queryRootSet (chain: string, transferRootHash: string) {
+  const query = `
     query TransferRootSet($transferRootHash: String) {
       transferRootSets(
         where: {
@@ -64,14 +49,14 @@ export default async function getTransferRoot (chain: string, transferRootHash: 
       }
     }
   `
-  const destinationChain = chainsToSlug[transferRoot.destinationChainId]
-  jsonRes = await makeRequest(destinationChain, query, {
+  const jsonRes = await makeRequest(chain, query, {
     transferRootHash
   })
-  const rootSet = jsonRes.transferRootSets?.[0]
-  transferRoot.rootSet = rootSet
+  const rootSet = normalizeEntity(jsonRes.transferRootSets?.[0])
+}
 
-  query = `
+async function queryRootConfirmed (chain: string, transferRootHash: string) {
+  const query = `
     query TransferRootConfirmed($transferRootHash: String) {
       transferRootConfirmeds(
         where: {
@@ -92,15 +77,29 @@ export default async function getTransferRoot (chain: string, transferRootHash: 
       }
     }
   `
-  jsonRes = await makeRequest('ethereum', query, {
+  const jsonRes = await makeRequest(chain, query, {
     transferRootHash
   })
-  const rootConfirmed = jsonRes.transferRootConfirmeds?.[0]
-  transferRoot.rootConfirmed = rootConfirmed
+  return normalizeEntity(jsonRes.transferRootConfirmeds?.[0])
+}
 
-  const transferIds = await getTransferIdsForTransferRoot(chain, transferRootHash)
-  transferRoot.transferIds = transferIds
+export default async function getTransferRoot (chain: string, transferRootHash: string): Promise<any> {
+  const transferRoot = await queryTransferRoot(chain, transferRootHash)
+  if (!transferRoot) {
+    return transferRoot
+  }
+  const destinationChain = chainIdToSlug[transferRoot.destinationChainId]
+
+  const [rootSet, rootConfirmed, transferIds] = await Promise.all([
+    queryRootSet(destinationChain, transferRootHash),
+    queryRootConfirmed(Chain.Ethereum, transferRootHash),
+    getTransferIdsForTransferRoot(chain, transferRootHash)
+  ])
+
   transferRoot.committed = true
+  transferRoot.rootSet = rootSet
+  transferRoot.rootConfirmed = rootConfirmed
+  transferRoot.transferIds = transferIds
 
   return transferRoot
 }

@@ -1,22 +1,7 @@
 import getBondedWithdrawal from './getBondedWithdrawal'
 import getTransferRootForTransferId from './getTransferRootForTransferId'
 import makeRequest from './makeRequest'
-
-const chainsToSlug: any = {
-  1: 'ethereum',
-  100: 'xdai',
-  137: 'polygon'
-}
-
-function normalizeTransfer (x: any) {
-  if (!x) {
-    return x
-  }
-  x.destinationChainId = Number(x.destinationChainId)
-  x.timestamp = Number(x.timestamp)
-  x.blockNumber = Number(x.blockNumber)
-  return x
-}
+import { chainIdToSlug, normalizeEntity } from './shared'
 
 export default async function getTransfer (chain: string, transferId: string): Promise<any> {
   let query = `
@@ -46,9 +31,9 @@ export default async function getTransfer (chain: string, transferId: string): P
   if (!transfer) {
     return
   }
-  transfer = normalizeTransfer(transfer)
+  transfer = normalizeEntity(transfer)
 
-  const destinationChain = chainsToSlug[transfer.destinationChainId]
+  const destinationChain = chainIdToSlug[transfer.destinationChainId]
   const bondedWithdrawal = await getBondedWithdrawal(destinationChain, transferId)
   transfer.bondedWithdrawal = bondedWithdrawal
   transfer.bonded = !!bondedWithdrawal
@@ -83,7 +68,7 @@ export default async function getTransfer (chain: string, transferId: string): P
       timestamp: bondedWithdrawal.timestamp.toString(),
       transferRootHash: transferRoot.rootHash
     })
-    const bondedWithdrawalSettled = jsonRes.multipleWithdrawalsSettleds?.[0]
+    const bondedWithdrawalSettled = normalizeEntity(jsonRes.multipleWithdrawalsSettleds?.[0])
     transfer.settled = !!bondedWithdrawalSettled
     transfer.bondedWithdrawalSettled = bondedWithdrawalSettled
   }

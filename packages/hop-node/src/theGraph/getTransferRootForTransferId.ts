@@ -2,22 +2,6 @@ import getTransferIdsForTransferRoot from './getTransferIdsForTransferRoot'
 import getTransferRoot from './getTransferRoot'
 import makeRequest from './makeRequest'
 
-const chainsToSlug: any = {
-  1: 'ethereum',
-  100: 'xdai',
-  137: 'polygon'
-}
-
-function normalizeTransfer (x: any) {
-  if (!x) {
-    return x
-  }
-  x.destinationChainId = Number(x.destinationChainId)
-  x.timestamp = Number(x.timestamp)
-  x.blockNumber = Number(x.blockNumber)
-  return x
-}
-
 export default async function getTransferRootForTransferId (chain: string, transferId: string): Promise<any> {
   let query = `
     query TransferId($transferId: String) {

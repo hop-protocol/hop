@@ -1,4 +1,5 @@
 import makeRequest from './makeRequest'
+import { normalizeEntity } from './shared'
 
 export default async function getTransferRoots (chain: string): Promise<any[]> {
   const query = `
@@ -18,10 +19,5 @@ export default async function getTransferRoots (chain: string): Promise<any[]> {
     }
   `
   const jsonRes = await makeRequest(chain, query)
-  return jsonRes.transfersCommitteds.map((x: any) => {
-    x.destinationChainId = Number(x.destinationChainId)
-    x.timestamp = Number(x.timestamp)
-    x.blockNumber = Number(x.blockNumber)
-    return x
-  })
+  return jsonRes.transfersCommitteds.map((x: any) => normalizeEntity(x))
 }

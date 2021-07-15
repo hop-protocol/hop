@@ -1,5 +1,6 @@
 import MerkleTree from 'src/utils/MerkleTree'
 import makeRequest from './makeRequest'
+import { normalizeEntity } from './shared'
 
 export default async function getTransferIdsForTransferRoot (
   chain: string,
@@ -96,13 +97,7 @@ export default async function getTransferIdsForTransferRoot (
   })
 
   // normalize fields
-  let transferIds = jsonRes.transferSents.map((x: any) => {
-    x.destinationChainId = Number(x.destinationChainId)
-    x.index = Number(x.index)
-    x.blockNumber = Number(x.blockNumber)
-    x.timestamp = Number(x.timestamp)
-    return x
-  })
+  let transferIds = jsonRes.transferSents.map((x: any) => normalizeEntity(x))
 
   // sort by transfer id block number and index
   transferIds = transferIds.sort((a: any, b: any) => {

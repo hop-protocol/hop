@@ -178,6 +178,9 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       }
 
       // Define new object on first run after server restart
+      if (!this.commitTxSentAt[destinationChainId]) {
+        this.commitTxSentAt[destinationChainId] = 0
+      }
       const timestampOk = this.commitTxSentAt[destinationChainId] + TX_RETRY_DELAY_MS < Date.now()
       if (timestampOk) {
         // This may happen either in the happy path case or if the transaction

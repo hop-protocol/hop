@@ -4,7 +4,7 @@ import queue from 'src/decorators/queue'
 import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import unique from 'src/utils/unique'
 import { BigNumber, Contract, Event, constants, providers } from 'ethers'
-import { default as ContractBase, NotFoundError } from './ContractBase'
+import { default as ContractBase } from './ContractBase'
 import { boundClass } from 'autobind-decorator'
 import { config } from 'src/config'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -529,28 +529,20 @@ export default class Bridge extends ContractBase {
     originalBlockNumber: number,
     txHash: string
   ): Promise<{isReorged: boolean, newBlockNumber?: number, newTransactionIndex?: number}> {
-    try {
-      const tx = await this.getTransaction(
-        txHash
-      )
-      if (!tx) {
-        throw new NotFoundError('transaction not found')
-      }
-      const currentBlockNumber = tx.blockNumber
-      const transactionIndex = tx.transactionIndex
-      const isReorged = originalBlockNumber !== currentBlockNumber
+    const tx = await this.getTransaction(
+      txHash
+    )
+    if (!tx) {
       return {
-        isReorged,
-        newBlockNumber: currentBlockNumber,
-        newTransactionIndex: transactionIndex
+        isReorged: true
       }
-    } catch (err) {
-      if (err instanceof NotFoundError) {
-        return {
-          isReorged: true
-        }
-      }
-      throw err
+    }
+    const { blockNumber, transactionIndex } = tx
+    const isReorged = originalBlockNumber !== blockNumber
+    return {
+      isReorged,
+      newBlockNumber: blockNumber,
+      newTransactionIndex: transactionIndex
     }
   }
 

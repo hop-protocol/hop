@@ -5,8 +5,6 @@ import { EventEmitter } from 'events'
 import { chainIdToSlug, chainSlugToId, wait } from 'src/utils'
 import { config } from 'src/config'
 
-export class NotFoundError extends Error {}
-
 type Transaction = EthersTransaction & {
   blockNumber?: number
   transactionIndex?: number
@@ -103,7 +101,7 @@ export default class ContractBase extends EventEmitter {
   async getTransactionBlockNumber (txHash: string): Promise<number> {
     const tx = await this.contract.provider.getTransaction(txHash)
     if (!tx) {
-      throw new NotFoundError('transaction not found')
+      throw new Error('transaction not found')
     }
     return tx.blockNumber
   }

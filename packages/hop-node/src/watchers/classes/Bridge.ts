@@ -726,13 +726,6 @@ export default class Bridge extends ContractBase {
   ) => {
     const { cacheKey, startBlockNumber, endBlockNumber } = options
 
-    const doesOnlyStartOrEndExist = xor(startBlockNumber, endBlockNumber)
-    if (doesOnlyStartOrEndExist) {
-      throw new Error(
-        'If either a start or end block number exist, both must exist'
-      )
-    }
-
     const isStartAndEndBlock = startBlockNumber && endBlockNumber
     if (isStartAndEndBlock) {
       if (startBlockNumber >= endBlockNumber) {

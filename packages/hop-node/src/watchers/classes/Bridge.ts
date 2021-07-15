@@ -7,6 +7,7 @@ import { BigNumber, Contract, Event, constants, providers } from 'ethers'
 import ContractBase from './ContractBase'
 import { boundClass } from 'autobind-decorator'
 import { config } from 'src/config'
+import { State } from 'src/db/SyncStateDb'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { isL1ChainId, xor } from 'src/utils'
 
@@ -612,7 +613,7 @@ export default class Bridge extends ContractBase {
     this.validateEventsBatchInput(options)
 
     let cacheKey = ''
-    let state
+    let state: State
     if (options?.cacheKey) {
       cacheKey = this.getCacheKeyFromKey(
         this.chainId,
@@ -661,7 +662,7 @@ export default class Bridge extends ContractBase {
     }
   }
 
-  private getBlockValues = async (options: any, state: any) => {
+  private getBlockValues = async (options: any, state: State) => {
     const { startBlockNumber, endBlockNumber } = options
 
     let end
@@ -669,15 +670,16 @@ export default class Bridge extends ContractBase {
     let totalBlocksInBatch
     const { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
     const currentBlockNumber = await this.getBlockNumber()
+    const currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
 
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
       totalBlocksInBatch = end - startBlockNumber
     } else if (state?.latestBlockSynced) {
-      end = currentBlockNumber
+      end = Math.max(currentBlockNumberWithFinality, state.latestBlockSynced)
       totalBlocksInBatch = end - state.latestBlockSynced
     } else {
-      end = currentBlockNumber
+      end = currentBlockNumberWithFinality
       totalBlocksInBatch = totalBlocks
       // Handle the case where the chain has less blocks than the total block config
       // This may happen during an Optimism regensis, for example

@@ -6,11 +6,11 @@ import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import unique from 'src/utils/unique'
 import { BigNumber, Contract, constants, providers } from 'ethers'
 import { Event } from 'src/types'
+import { State } from 'src/db/SyncStateDb'
 import { boundClass } from 'autobind-decorator'
 import { config } from 'src/config'
-import { State } from 'src/db/SyncStateDb'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { isL1ChainId, xor } from 'src/utils'
+import { isL1ChainId } from 'src/utils'
 
 export type EventsBatchOptions = {
   cacheKey: string
@@ -42,10 +42,10 @@ export default class Bridge extends ContractBase {
           for (const k in config.tokens[tkn][net]) {
             const val = config.tokens[tkn][net][k]
             if (val === bridgeContract.address) {
-              tokenDecimals = (config.metadata.tokens[config.network] as any)[
+              tokenDecimals = config.metadata.tokens[config.network][
                 tkn
               ].decimals
-              tokenSymbol = (config.metadata.tokens[config.network] as any)[tkn]
+              tokenSymbol = config.metadata.tokens[config.network][tkn]
                 .symbol
               break
             }

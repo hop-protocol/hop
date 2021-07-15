@@ -117,4 +117,4 @@ export default {
     const contracts = constructContractsObject(token)
     return contracts?.[network]
   }
-} as any
+}

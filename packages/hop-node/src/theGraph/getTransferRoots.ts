@@ -1,6 +1,6 @@
 import makeRequest from './makeRequest'
 
-export default async function getTransferRoots (chain: string): Promise<string[]> {
+export default async function getTransferRoots (chain: string): Promise<any[]> {
   const query = `
     query TransferRoots {
       transfersCommitteds(

@@ -669,15 +669,16 @@ export default class Bridge extends ContractBase {
     let totalBlocksInBatch
     const { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
     const currentBlockNumber = await this.getBlockNumber()
+    const currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
 
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
       totalBlocksInBatch = end - startBlockNumber
     } else if (state?.latestBlockSynced) {
-      end = currentBlockNumber
+      end = Math.max(currentBlockNumberWithFinality, state.lastBlockSynced)
       totalBlocksInBatch = end - state.latestBlockSynced
     } else {
-      end = currentBlockNumber
+      end = currentBlockNumberWithFinality
       totalBlocksInBatch = totalBlocks
       // Handle the case where the chain has less blocks than the total block config
       // This may happen during an Optimism regensis, for example

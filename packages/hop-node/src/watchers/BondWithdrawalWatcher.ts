@@ -220,7 +220,21 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       .bridge
 
     const originalBlockNumber = dbTransfer.transferSentBlockNumber
-    await sourceL2Bridge.checkReorg(originalBlockNumber, transferSentTxHash)
+    const { isReorged, newBlockNumber, newTransactionIndex } = await sourceL2Bridge.checkReorg(originalBlockNumber, transferSentTxHash)
+    if (isReorged) {
+      if (newBlockNumber) {
+        await db.transfers.update(dbTransfer.transferId, {
+          transferSentBlockNumber: newBlockNumber,
+          transferSentIndex: newTransactionIndex
+        })
+        return
+      } else {
+        await db.transfers.update(dbTransfer.transferId, {
+          isBondable: false
+        })
+        return
+      }
+    }
 
     if (dbTransfer.transferRootId) {
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)

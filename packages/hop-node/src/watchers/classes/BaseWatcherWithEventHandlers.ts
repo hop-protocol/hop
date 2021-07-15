@@ -240,6 +240,8 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId)
       .bridge as L2Bridge
 
+    const eventBlockNumber: number = (event as any).blockNumber
+
     let startSearchBlockNumber: number
     let startEvent: Event
     let endEvent: Event
@@ -271,7 +273,9 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       }
 
       return true
-    })
+    },
+    { endBlockNumber: eventBlockNumber }
+    )
 
     if (!endEvent) {
       return

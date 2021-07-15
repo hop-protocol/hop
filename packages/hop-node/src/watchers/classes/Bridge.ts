@@ -675,17 +675,21 @@ export default class Bridge extends ContractBase {
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
       totalBlocksInBatch = end - startBlockNumber
+    } else if (endBlockNumber) {
+      end = endBlockNumber
+      totalBlocksInBatch = totalBlocks
     } else if (state?.latestBlockSynced) {
       end = Math.max(currentBlockNumberWithFinality, state.latestBlockSynced)
       totalBlocksInBatch = end - state.latestBlockSynced
     } else {
       end = currentBlockNumberWithFinality
       totalBlocksInBatch = totalBlocks
-      // Handle the case where the chain has less blocks than the total block config
-      // This may happen during an Optimism regensis, for example
-      if (end - totalBlocksInBatch < 0) {
-        totalBlocksInBatch = end
-      }
+    }
+
+    // Handle the case where the chain has less blocks than the total block config
+    // This may happen during an Optimism regensis, for example
+    if (end - totalBlocksInBatch < 0) {
+      totalBlocksInBatch = end
     }
 
     if (totalBlocksInBatch <= batchBlocks) {

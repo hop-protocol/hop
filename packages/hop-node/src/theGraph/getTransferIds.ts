@@ -2,7 +2,7 @@ import makeRequest from './makeRequest'
 
 export default async function getTransferIds (
   chain: string
-): Promise<string[]> {
+): Promise<any[]> {
   const query = `
     query TransfersSent {
       transferSents(

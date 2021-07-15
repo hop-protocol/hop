@@ -5,6 +5,7 @@ import {
 } from './shared/config'
 import { logger, program } from './shared'
 
+import getTransfer from 'src/theGraph/getTransfer'
 import getTransferIds from 'src/theGraph/getTransferIds'
 import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
 
@@ -23,28 +24,37 @@ program
         await setGlobalConfigFromConfigFile(config)
       }
       const transferRootHash = source.args[0]
+      const showInfo = source.info
       const chain = source.chain
       if (!chain) {
         throw new Error('chain is required')
       }
-      let transferIds : any[] = []
       if (transferRootHash) {
-        transferIds = await getTransferIdsForTransferRoot(
+        const transferIds = await getTransferIdsForTransferRoot(
           chain,
           transferRootHash
         )
+        console.log(JSON.stringify(transferIds.map((x: any) => {
+          if (showInfo) {
+            return x
+          }
+          return x.transferId
+        }), null, 2))
       } else {
-        transferIds = await getTransferIds(
+        const transferIds = await getTransferIds(
           chain
         )
-      }
-      const showInfo = source.info
-      console.log(JSON.stringify(transferIds.map((x: any) => {
         if (showInfo) {
-          return x
+          for (const { transferId } of transferIds) {
+            const transfer = await getTransfer(chain, transferId)
+            console.log(JSON.stringify(transfer, null, 2))
+          }
+        } else {
+          console.log(JSON.stringify(transferIds.map((x: any) => {
+            return x.transferId
+          }), null, 2))
         }
-        return x.transferId
-      }), null, 2))
+      }
     } catch (err) {
       logger.error(err.message)
       process.exit(1)

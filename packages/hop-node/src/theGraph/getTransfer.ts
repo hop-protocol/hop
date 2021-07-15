@@ -85,7 +85,6 @@ export default async function getTransfer (chain: string, transferId: string): P
     })
     const bondedWithdrawalSettled = jsonRes.multipleWithdrawalsSettleds?.[0]
     transfer.settled = !!bondedWithdrawalSettled
-    transfer.bondedWithdrawalSettled
     transfer.bondedWithdrawalSettled = bondedWithdrawalSettled
   }
 

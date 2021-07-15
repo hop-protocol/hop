@@ -1,14 +1,10 @@
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
-import { BigNumber, Contract, Transaction as EthersTransaction, providers } from 'ethers'
+import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { EventEmitter } from 'events'
+import { Transaction } from 'src/types'
 import { chainIdToSlug, chainSlugToId, wait } from 'src/utils'
 import { config } from 'src/config'
-
-type Transaction = EthersTransaction & {
-  blockNumber?: number
-  transactionIndex?: number
-}
 
 export default class ContractBase extends EventEmitter {
   contract: Contract

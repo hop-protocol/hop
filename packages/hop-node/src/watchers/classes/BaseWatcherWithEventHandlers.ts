@@ -3,7 +3,8 @@ import L2Bridge from './L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
 import db from 'src/db'
-import { BigNumber, Contract, Event } from 'ethers'
+import { BigNumber, Contract } from 'ethers'
+import { Event } from 'src/types'
 import { boundClass } from 'autobind-decorator'
 import { isL1ChainId } from 'src/utils'
 
@@ -37,7 +38,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
     try {
       const { transactionHash, transactionIndex } = event
-      const blockNumber: number = (event as any).blockNumber
+      const blockNumber: number = event.blockNumber
       if (!transactionHash) {
         throw new Error('event transaction hash not found')
       }
@@ -186,7 +187,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         transferRootHash,
         totalAmount
       )
-      const blockNumber: number = (event as any).blockNumber
+      const blockNumber: number = event.blockNumber
 
       logger.debug('committedAt:', committedAt)
       logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))

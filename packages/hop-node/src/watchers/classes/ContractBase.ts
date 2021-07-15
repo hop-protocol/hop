@@ -8,8 +8,8 @@ import { config } from 'src/config'
 export class NotFoundError extends Error {}
 
 type Transaction = EthersTransaction & {
-	blockNumber?: number
-	transactionIndex?: number
+  blockNumber?: number
+  transactionIndex?: number
 }
 
 export default class ContractBase extends EventEmitter {

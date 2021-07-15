@@ -1,5 +1,6 @@
 import makeRequest from './makeRequest'
 import { Chain } from 'src/constants'
+import { normalizeEntity } from './shared'
 
 export default async function getTransferSents (chain: string) {
   const queryL1 = `
@@ -35,8 +36,5 @@ export default async function getTransferSents (chain: string) {
     query = queryL2
   }
   const jsonRes = await makeRequest(chain, query)
-  return jsonRes.transferSents.map((x: any) => {
-    x.destinationChainId = Number(x.destinationChainId)
-    return x
-  })
+  return jsonRes.transferSents.map((x: any) => normalizeEntity(x))
 }

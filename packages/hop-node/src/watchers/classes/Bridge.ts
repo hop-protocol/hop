@@ -1,10 +1,10 @@
-import ContractBase from './ContractBase'
 import db from 'src/db'
 import delay from 'src/decorators/delay'
 import queue from 'src/decorators/queue'
 import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import unique from 'src/utils/unique'
 import { BigNumber, Contract, Event, constants, providers } from 'ethers'
+import ContractBase from './ContractBase'
 import { boundClass } from 'autobind-decorator'
 import { config } from 'src/config'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -528,14 +528,21 @@ export default class Bridge extends ContractBase {
   async checkReorg (
     originalBlockNumber: number,
     txHash: string
-  ) {
-    const currentBlockNumber = await this.getTransactionBlockNumber(
+  ): Promise<{isReorged: boolean, newBlockNumber?: number, newTransactionIndex?: number}> {
+    const tx = await this.getTransaction(
       txHash
     )
-    if (originalBlockNumber !== currentBlockNumber) {
-      throw new Error(
-        `tx hash (${txHash}) block number hash changed. expected ${originalBlockNumber}, got ${currentBlockNumber}`
-      )
+    if (!tx) {
+      return {
+        isReorged: true
+      }
+    }
+    const { blockNumber, transactionIndex } = tx
+    const isReorged = originalBlockNumber !== blockNumber
+    return {
+      isReorged,
+      newBlockNumber: blockNumber,
+      newTransactionIndex: transactionIndex
     }
   }
 

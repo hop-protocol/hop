@@ -33,7 +33,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   order: () => number = () => 0
   started: boolean = false
   pollIntervalSec: number = 10 * 1000
-  resyncIntervalSec: number = 10 * 60 * 1000
+  resyncIntervalSec: number = 60 * 60 * 1000
   chainSlug: string
   initialSyncCompleted: boolean = false
 

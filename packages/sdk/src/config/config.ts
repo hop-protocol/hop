@@ -21,4 +21,10 @@ const bonders: { [key: string]: string[] } = {
   goerli: goerli.bonders
 }
 
-export { addresses, chains, metadata, bonders }
+const config = {
+  addresses,
+  chains,
+  bonders
+}
+
+export { metadata, config }

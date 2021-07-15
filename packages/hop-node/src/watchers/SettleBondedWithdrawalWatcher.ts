@@ -302,8 +302,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
         continue
       }
 
-      const rootSetTimestampOk =
-        dbTransferRoot?.rootSetTimestamp * 1000 + TX_RETRY_DELAY_MS < Date.now()
+      let rootSetTimestampOk = true
+      if (dbTransferRoot?.rootSetTimestamp) {
+        rootSetTimestampOk = dbTransferRoot.rootSetTimestamp * 1000 + TX_RETRY_DELAY_MS < Date.now()
+      }
 
       let bondSettleTimestampOk = true
       if (dbTransferRoot?.withdrawalBondSettleTxSentAt) {

@@ -137,26 +137,9 @@ class TransferRootsDb extends BaseDb {
     })
   }
 
-  // TODO: This should be a new DB for a TransferBond, not a TransferRoot
-  // This will add new requirements to this return statement
   async getChallengeableTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
-      return (
-        !item.confirmed &&
-        !item.confirmedAt &&
-        item.bonded &&
-        !item.sentConfirmTx &&
-        !item.sentConfirmTxAt
-      )
-    })
-  }
-
-  // TODO: This should be a new DB for a TransferBond, not a TransferRoot
-  // This will add new requirements to this return statement
-  async getResolvableTransferRoots (): Promise<TransferRoot[]> {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
       return (

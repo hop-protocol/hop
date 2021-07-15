@@ -173,14 +173,6 @@ export default class L1Bridge extends Bridge {
     return this.mapEventsBatch(this.getTransferRootConfirmedEvents, cb, options)
   }
 
-  @rateLimitRetry
-  async getTransferRootIdCommittedAt (transferRootId: string): Promise<number> {
-    const committedAt = await this.getReadBridgeContract().transferRootCommittedAt(
-      transferRootId
-    )
-    return Number(committedAt.toString())
-  }
-
   async isTransferRootIdConfirmed (transferRootId: string): Promise<boolean> {
     const committedAt = await this.getTransferRootCommittedAt(transferRootId)
     return committedAt > 0

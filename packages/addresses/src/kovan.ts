@@ -53,7 +53,7 @@ export const addresses: Addresses = {
         l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         canonicalBridgeMaxPerTx: '10000'
       },
-      optimism: {
+      // optimism: {
         // l1CanonicalBridge: '0xC48528a44f2D961D179D69434645E54ac85732a1',
         // l1MessengerWrapper: '0x2cb57494fB3890C754CED2296071F228CAEee35d',
         // l2CanonicalBridge: '0x7B2ab06D22Cd230102215532928f60770376a2B3',
@@ -63,7 +63,7 @@ export const addresses: Addresses = {
         // l2AmmWrapper: '0x34A5BE7add88633D56b4F002C6f9D8abD1703654',
         // l2SaddleSwap: '0x742DDbF5f4C9F70bDB85d980282cfDF09387697B',
         // l2SaddleLpToken: '0x7076AC95eBb2514A2b17aC761BF7bcB404B23829'
-      }
+      // }
     }
   }
 }

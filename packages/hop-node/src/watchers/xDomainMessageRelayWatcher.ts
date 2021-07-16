@@ -1,7 +1,8 @@
 import '../moduleAlias'
 import chalk from 'chalk'
 import db from 'src/db'
-import { Contract, Event, ethers, providers } from 'ethers'
+import { Contract, ethers, providers } from 'ethers'
+import { Event } from 'src/types'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getRpcUrls } from 'src/utils'
 

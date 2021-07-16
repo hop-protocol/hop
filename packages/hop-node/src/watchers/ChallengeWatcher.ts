@@ -4,7 +4,8 @@ import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
 import db from 'src/db'
-import { BigNumber, Contract, Event, providers } from 'ethers'
+import { BigNumber, Contract, providers } from 'ethers'
+import { Event } from 'src/types'
 import { isL1ChainId } from 'src/utils'
 
 export interface Config {

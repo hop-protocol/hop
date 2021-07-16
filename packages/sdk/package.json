@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.75",
+  "version": "0.0.1-beta.77",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -33,7 +33,7 @@
   "license": "MIT",
   "dependencies": {
     "@hop-protocol/abi": "0.0.1-beta.12",
-    "@hop-protocol/addresses": "0.0.1-beta.31",
+    "@hop-protocol/addresses": "0.0.1-beta.33",
     "@hop-protocol/metadata": "0.0.1-beta.14",
     "@hop-protocol/networks": "0.0.1-beta.16",
     "@maticnetwork/maticjs": "^2.0.38",

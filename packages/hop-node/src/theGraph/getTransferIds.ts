@@ -13,6 +13,7 @@ export default async function getTransferIds (
       ) {
         id
         transferId
+        amount
         destinationChainId
         transactionHash
         index

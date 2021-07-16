@@ -16,6 +16,8 @@ export default async function getTransfer (chain: string, transferId: string): P
       ) {
         id
         transferId
+        amount
+        index
         destinationChainId
         timestamp
         transactionHash

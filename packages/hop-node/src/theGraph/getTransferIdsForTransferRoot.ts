@@ -2,6 +2,12 @@ import MerkleTree from 'src/utils/MerkleTree'
 import makeRequest from './makeRequest'
 import { normalizeEntity } from './shared'
 
+const startBlocks: any = {
+  mainnet: 12650032,
+  xdai: 16617211,
+  polygon: 15810014
+}
+
 export default async function getTransferIdsForTransferRoot (
   chain: string,
   rootHash: string
@@ -61,12 +67,15 @@ export default async function getTransferIdsForTransferRoot (
     destinationChainId
   })
   const previousTransferCommitted = jsonRes.transfersCommitteds?.[0]
-  if (!previousTransferCommitted) {
-    throw new Error('previous transfer committed event not found')
+  let startBlockNumber: number
+  if (previousTransferCommitted) {
+    // get the transfer sent events between the two commit transfer events
+    startBlockNumber = previousTransferCommitted.blockNumber
+  } else {
+    startBlockNumber = startBlocks[chain]
+    // throw new Error('previous transfer committed event not found')
   }
 
-  // get the transfer sent events between the two commit transfer events
-  const startBlockNumber = previousTransferCommitted.blockNumber
   const endBlockNumber = transferCommitted.blockNumber
   query = `
     query TransfersSent($startBlockNumber: String, $endBlockNumber: String, $destinationChainId: String) {
@@ -82,6 +91,7 @@ export default async function getTransferIdsForTransferRoot (
       ) {
         id
         transferId
+        amount
         destinationChainId
         transactionHash
         index
@@ -91,7 +101,7 @@ export default async function getTransferIdsForTransferRoot (
     }
   `
   jsonRes = await makeRequest(chain, query, {
-    startBlockNumber,
+    startBlockNumber: startBlockNumber.toString(),
     endBlockNumber,
     destinationChainId
   })

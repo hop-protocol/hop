@@ -35,7 +35,7 @@ export default async function getTransferRootForTransferId (chain: string, trans
           destinationChainId: $destinationChainId
         },
         orderBy: timestamp,
-        orderDirection: desc,
+        orderDirection: asc,
         first: 10
       ) {
         id

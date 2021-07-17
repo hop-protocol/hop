@@ -534,12 +534,6 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    const bonderFee = await this.getBonderFee(
-      amountIn,
-      sourceChain,
-      destinationChain
-    )
-
     let lpFeeBps = 0
     if (!sourceChain.isL1) {
       lpFeeBps += 4

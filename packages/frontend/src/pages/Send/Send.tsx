@@ -27,6 +27,7 @@ import useBalance from 'src/hooks/useBalance'
 import useSendData from 'src/pages/Send/useSendData'
 import useNeedsTokenForFee from 'src/hooks/useNeedsTokenForFee'
 import useQueryParams from 'src/hooks/useQueryParams'
+import AmmDetails from 'src/components/AmmDetails'
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -794,34 +795,12 @@ const Send: FC = () => {
           <DetailRow
             title="Estimated Received"
             tooltip={
-              <div className={styles.ammDetails}>
-                <DetailRow
-                  title="Rate"
-                  value={rate === 0 ? '-' : commafy(rate, 4)}
-                  contrastText
-                />
-                <DetailRow
-                  title="Slippage Tolerance"
-                  value={slippageTolerance ? `${slippageTolerance}%` : undefined}
-                  contrastText
-                />
-                <DetailRow
-                  title="Price Impact"
-                  value={
-                    !priceImpact
-                      ? undefined
-                      : priceImpact < 0.01
-                        ? '<0.01%'
-                        : `${commafy(priceImpact)}%`
-                  }
-                  contrastText
-                />
-                <DetailRow
-                  title="Minimum received"
-                  value={amountOutMinDisplay}
-                  contrastText
-                />
-              </div>
+              <AmmDetails
+                rate={rate}
+                slippageTolerance={slippageTolerance}
+                priceImpact={priceImpact}
+                amountOutMinDisplay={amountOutMinDisplay}
+              />
             }
             value={estimatedReceivedDisplay}
             large

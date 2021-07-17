@@ -171,6 +171,17 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [tx, setTx] = useState<Transaction | undefined>()
   const debouncer = useRef(0)
 
+  const parsedSourceTokenAmount = useMemo(() => {
+    if (!sourceTokenAmount || !sourceToken) {
+      return BigNumber.from(0)
+    }
+
+    return parseUnits(
+      sourceTokenAmount,
+      sourceToken.decimals
+    )
+  }, [sourceTokenAmount, sourceToken])
+
   useEffect(() => {
     const getSendData = async () => {
       setError(undefined)
@@ -187,18 +198,13 @@ const ConvertContextProvider: FC = ({ children }) => {
 
       const ctx = ++debouncer.current
 
-      const value = parseUnits(
-        sourceTokenAmount,
-        sourceToken.decimals
-      ).toString()
-
       const { amountOut, details, warning } = await convertOption.getSendData(
         sdk,
         sourceNetwork,
         destNetwork,
         isForwardDirection,
         selectedBridge.getTokenSymbol(),
-        value
+        parsedSourceTokenAmount
       )
 
       let formattedAmount = ''
@@ -237,13 +243,12 @@ const ConvertContextProvider: FC = ({ children }) => {
       destNetwork
     )
 
-    const parsedAmount = parseUnits(sourceTokenAmount, sourceToken.decimals)
     const approved = await sourceToken.allowance(
       targetAddress
     )
 
     let tx: any
-    if (approved.lt(parsedAmount)) {
+    if (approved.lt(parsedSourceTokenAmount)) {
       tx = await txConfirm?.show({
         kind: 'approval',
         inputProps: {
@@ -251,7 +256,7 @@ const ConvertContextProvider: FC = ({ children }) => {
           tokenSymbol: sourceToken.symbol
         },
         onConfirm: async (approveAll: boolean) => {
-          const approveAmount = approveAll ? UINT256 : parsedAmount
+          const approveAmount = approveAll ? UINT256 : parsedSourceTokenAmount
           return sourceToken.approve(
             targetAddress,
             approveAmount
@@ -364,7 +369,10 @@ const ConvertContextProvider: FC = ({ children }) => {
     setSending(false)
   }
 
-  const enoughBalance = Number(sourceBalance) >= Number(sourceTokenAmount)
+  const enoughBalance = sourceBalance?.gte(parsedSourceTokenAmount)//Number(sourceBalance) >= Number(sourceTokenAmount)
+  console.log('enoughBalance: ', enoughBalance)
+  console.log('sourceBalance: ', sourceBalance)
+  console.log('sourceTokenAmount: ', sourceTokenAmount)
   const withinMax = true
   let sendButtonText = 'Convert'
   const validFormFields = !!(

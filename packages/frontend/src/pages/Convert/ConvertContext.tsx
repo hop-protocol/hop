@@ -369,10 +369,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     setSending(false)
   }
 
-  const enoughBalance = sourceBalance?.gte(parsedSourceTokenAmount)//Number(sourceBalance) >= Number(sourceTokenAmount)
-  console.log('enoughBalance: ', enoughBalance)
-  console.log('sourceBalance: ', sourceBalance)
-  console.log('sourceTokenAmount: ', sourceTokenAmount)
+  const enoughBalance = sourceBalance?.gte(parsedSourceTokenAmount)
   const withinMax = true
   let sendButtonText = 'Convert'
   const validFormFields = !!(

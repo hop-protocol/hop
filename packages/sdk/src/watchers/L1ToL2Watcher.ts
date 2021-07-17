@@ -2,6 +2,7 @@ import { providers } from 'ethers'
 import BlockDater from 'ethereum-block-by-date'
 import { default as BaseWatcher, Config, Event } from './BaseWatcher'
 import { Chain } from '../models'
+import { Network } from '../constants'
 import { tokenTransferTopic, transferFromL1CompletedTopic } from './eventTopics'
 import { DateTime } from 'luxon'
 
@@ -204,17 +205,26 @@ class L1ToL2Watcher extends BaseWatcher {
               event.args.amount.toString() === decodedSource.amount.toString()
             ) {
               const destTx = await event.getTransaction()
-              console.log('D', destTx)
               return handleDestTx(destTx)
             }
           }
           return false
         }
 
-        const url = 'https://matic-mainnet-archive-rpc.bwarelabs.com'
-        const provider = new providers.StaticJsonRpcProvider(url)
-        const l2Bridge = await this.bridge.getL2Bridge(Chain.Polygon, provider)
+        let provider = this.destinationChain.provider
+        let url: string
+        // archive node provider is needed to read bridge events triggered
+        // by matic validators.
+        if (this.network === Network.Mainnet) {
+          url = 'https://matic-mainnet-archive-rpc.bwarelabs.com'
+        } else if (this.network === Network.Goerli) {
+          url = 'https://matic-testnet-archive-rpc.bwarelabs.com'
+        }
+        if (url) {
+          provider = new providers.StaticJsonRpcProvider(url)
+        }
 
+        const l2Bridge = await this.bridge.getL2Bridge(Chain.Polygon, provider)
         l2Bridge.off(l2BridgeReceiveFilter, handleL2BridgeReceiveEvent)
         l2Bridge.on(l2BridgeReceiveFilter, handleL2BridgeReceiveEvent)
         const events = (
@@ -233,9 +243,9 @@ class L1ToL2Watcher extends BaseWatcher {
           }
         }
       } else if (this.destinationChain.equals(Chain.Optimism)) {
-        console.log('TODO')
+        throw new Error('not implemented')
       } else if (this.destinationChain.equals(Chain.Arbitrum)) {
-        console.log('TODO')
+        throw new Error('not implemented')
       } else if (this.destinationChain.equals(Chain.xDai)) {
         ambBridge.off(ambFilter, handleAmbEvent)
         ambBridge.on(ambFilter, handleAmbEvent)

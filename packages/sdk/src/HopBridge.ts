@@ -303,6 +303,29 @@ class HopBridge extends Base {
   }
 
   // ToDo: Docs
+  public getSendApprovalAddress (
+    sourceChain: TChain,
+    destinationChain: TChain,
+    isHTokenTransfer: boolean = false
+  ) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    if (sourceChain.equals(Chain.Ethereum)) {
+      return this.getL1BridgeAddress(this.tokenSymbol, sourceChain)
+    }
+
+    const ammWrapperAddress = this.getL2AmmWrapperAddress(
+      this.tokenSymbol,
+      sourceChain
+    )
+    const l2BridgeAddress = this.getL2BridgeAddress(
+      this.tokenSymbol,
+      sourceChain
+    )
+    return isHTokenTransfer ? l2BridgeAddress : ammWrapperAddress
+  }
+
+  // ToDo: Docs
   public async sendHToken (
     tokenAmount: TAmount,
     sourceChain: TChain,

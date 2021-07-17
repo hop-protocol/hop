@@ -405,3 +405,24 @@ describe('custom addresses', () => {
     expect(bridge.getL2CanonicalTokenAddress('USDC', 'xdai')).toBe(address)
   })
 })
+
+describe('approve addresses', () => {
+  const sdk = new Hop('mainnet')
+  const bridge = sdk.bridge('USDC')
+  it('get send approval address (L1 -> L2)', () => {
+    const approvalAddress = bridge.getSendApprovalAddress(
+      Chain.Ethereum,
+      Chain.xDai
+    )
+    const expectedAddress = addresses.mainnet.bridges.USDC.ethereum.l1Bridge
+    expect(approvalAddress).toBe(expectedAddress)
+  })
+  it('get send approval address (L2 -> L2)', () => {
+    const approvalAddress = bridge.getSendApprovalAddress(
+      Chain.Polygon,
+      Chain.xDai
+    )
+    const expectedAddress = addresses.mainnet.bridges.USDC.polygon.l2AmmWrapper
+    expect(approvalAddress).toBe(expectedAddress)
+  })
+})

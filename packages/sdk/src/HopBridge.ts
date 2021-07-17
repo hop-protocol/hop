@@ -158,8 +158,6 @@ class HopBridge extends Base {
     network: string,
     chain: TChain
   ): Token | undefined {
-    if (!this.signer) return
-
     let tokenSymbol
     if (typeof token === 'string') {
       tokenSymbol = token
@@ -196,8 +194,6 @@ class HopBridge extends Base {
     network: string,
     chain: TChain
   ): Token | undefined {
-    if (!this.signer) return
-
     chain = this.toChainModel(chain)
     if (chain.isL1) {
       throw new Error('Hop tokens do not exist on layer 1')

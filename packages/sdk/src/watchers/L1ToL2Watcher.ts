@@ -1,6 +1,9 @@
+import { providers } from 'ethers'
+import BlockDater from 'ethereum-block-by-date'
 import { default as BaseWatcher, Config, Event } from './BaseWatcher'
 import { Chain } from '../models'
-import { tokenTransferTopic } from './eventTopics'
+import { tokenTransferTopic, transferFromL1CompletedTopic } from './eventTopics'
+import { DateTime } from 'luxon'
 
 class L1ToL2Watcher extends BaseWatcher {
   constructor (config: Config) {
@@ -33,6 +36,9 @@ class L1ToL2Watcher extends BaseWatcher {
     const ambFilter = {
       address: this.bridge.getL2HopBridgeTokenAddress(this.token, Chain.xDai)
     }
+    const l2BridgeReceiveFilter = {
+      topics: [transferFromL1CompletedTopic]
+    }
     const hToken = await this.bridge
       .getL2HopToken(this.destinationChain)
       .getErc20()
@@ -41,7 +47,8 @@ class L1ToL2Watcher extends BaseWatcher {
       .getErc20()
     const hTokenFilter = hToken.filters.Transfer()
     const tokenFilter = token.filters.Transfer()
-    const recipient = await this.getSignerAddress()
+    const recipient = this.sourceTx.from
+    const batchBlocks = 1000
     let startBlock = -1
     let endBlock = -1
     const handleDestTx = async (destTx: any, data: any = {}) => {
@@ -57,7 +64,8 @@ class L1ToL2Watcher extends BaseWatcher {
       if (!destBlock) {
         return false
       }
-      if (destBlock.timestamp - sourceTimestamp < 500) {
+      const withinAnHour = 60 * 60
+      if (destBlock.timestamp - sourceTimestamp < withinAnHour) {
         if (await this.emitDestTxEvent(destTx, data)) {
           swap.off(ammFilter, handleAmmEvent)
           ambBridge.off(ambFilter, handleAmmEvent)
@@ -80,7 +88,9 @@ class L1ToL2Watcher extends BaseWatcher {
       if (!decodedSource) {
         return false
       }
-      if (destWrapper.address === decodedLog.buyer) {
+      if (
+        destWrapper.address.toLowerCase() === decodedLog.buyer.toLowerCase()
+      ) {
         if (
           decodedSource.amount.toString() !== decodedLog.tokensSold.toString()
         ) {
@@ -148,17 +158,24 @@ class L1ToL2Watcher extends BaseWatcher {
       }
       return false
     }
+    let startBlockNumber: number = -1
     return async () => {
-      const blockNumber = await this.destinationChain.provider.getBlockNumber()
-      if (!blockNumber) {
-        return false
+      if (startBlockNumber === -1) {
+        const blockDater = new BlockDater(this.destinationChain.provider)
+        const date = DateTime.fromSeconds(this.sourceBlock.timestamp).toJSDate()
+        const info = await blockDater.getDate(date)
+        if (!info) {
+          return false
+        }
+        startBlockNumber = info.block
       }
       if (startBlock === -1) {
-        startBlock = blockNumber - 1000
+        startBlock = startBlockNumber
+        endBlock = startBlock + batchBlocks
       } else {
-        startBlock = endBlock
+        startBlock = startBlock + batchBlocks
+        endBlock = startBlock + batchBlocks
       }
-      endBlock = blockNumber
       if (attemptedSwap) {
         swap.off(ammFilter, handleAmmEvent)
         swap.on(ammFilter, handleAmmEvent)
@@ -168,8 +185,6 @@ class L1ToL2Watcher extends BaseWatcher {
 
         token.off(tokenFilter, handleTokenEvent)
         token.on(tokenFilter, handleTokenEvent)
-        // /\ amountOut = 0
-        // /\ hToken'.transfer(recip, amount)
         const events = (
           (await swap.queryFilter(ammFilter, startBlock, endBlock)) ?? []
         ).reverse()
@@ -182,7 +197,41 @@ class L1ToL2Watcher extends BaseWatcher {
           }
         }
       } else if (this.destinationChain.equals(Chain.Polygon)) {
-        console.log('TODO')
+        const handleL2BridgeReceiveEvent = async (...args: any[]) => {
+          const event = args[args.length - 1]
+          if (event.args.recipient.toLowerCase() === recipient.toLowerCase()) {
+            if (
+              event.args.amount.toString() === decodedSource.amount.toString()
+            ) {
+              const destTx = await event.getTransaction()
+              console.log('D', destTx)
+              return handleDestTx(destTx)
+            }
+          }
+          return false
+        }
+
+        const url = 'https://matic-mainnet-archive-rpc.bwarelabs.com'
+        const provider = new providers.StaticJsonRpcProvider(url)
+        const l2Bridge = await this.bridge.getL2Bridge(Chain.Polygon, provider)
+
+        l2Bridge.off(l2BridgeReceiveFilter, handleL2BridgeReceiveEvent)
+        l2Bridge.on(l2BridgeReceiveFilter, handleL2BridgeReceiveEvent)
+        const events = (
+          (await l2Bridge.queryFilter(
+            l2BridgeReceiveFilter,
+            startBlock,
+            endBlock
+          )) ?? []
+        ).reverse()
+        if (!events || !events.length) {
+          return false
+        }
+        for (const event of events) {
+          if (await handleL2BridgeReceiveEvent(event)) {
+            return true
+          }
+        }
       } else if (this.destinationChain.equals(Chain.Optimism)) {
         console.log('TODO')
       } else if (this.destinationChain.equals(Chain.Arbitrum)) {

@@ -22,7 +22,6 @@ import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import useBalance from 'src/hooks/useBalance'
-import { DetailRowProps as DetailRow } from 'src/components/DetailRow'
 import { toTokenDisplay } from 'src/utils'
 
 type ConvertContextProps = {
@@ -49,7 +48,7 @@ type ConvertContextProps = {
   destBalance: BigNumber | undefined
   loadingDestBalance: boolean
   switchDirection: () => void
-  details: DetailRow[]
+  details: ReactNode | undefined
   warning: ReactNode | undefined
   error: string | undefined
   setError: (error: string | undefined) => void
@@ -165,8 +164,9 @@ const ConvertContextProvider: FC = ({ children }) => {
     destNetwork,
     address
   )
-  const [details, setDetails] = useState<DetailRow[]>([])
+  const [details, setDetails] = useState<ReactNode>()
   const [warning, setWarning] = useState<ReactNode>()
+  const [bonderFee, setBonderFee] = useState<BigNumber>()
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
   const debouncer = useRef(0)
@@ -198,7 +198,12 @@ const ConvertContextProvider: FC = ({ children }) => {
 
       const ctx = ++debouncer.current
 
-      const { amountOut, details, warning } = await convertOption.getSendData(
+      const {
+        amountOut,
+        details,
+        warning,
+        bonderFee
+      } = await convertOption.getSendData(
         sdk,
         sourceNetwork,
         destNetwork,
@@ -226,6 +231,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       setAmountOutMin(_amountOutMin)
       setDetails(details)
       setWarning(warning)
+      setBonderFee(bonderFee)
     }
 
     getSendData()
@@ -338,7 +344,8 @@ const ConvertContextProvider: FC = ({ children }) => {
             selectedBridge.getTokenSymbol(),
             value,
             amountOutMin,
-            deadline()
+            deadline(),
+            bonderFee
           )
         }
       })

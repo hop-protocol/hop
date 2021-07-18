@@ -105,6 +105,9 @@ table img {
 .bonded .no {
   color: #ffc55a;
 }
+.bonded .na {
+  color: #ffffff33;
+}
 .transferId {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -128,6 +131,7 @@ table img {
   color: #ff00ef;
   cursor: pointer;
 }
+.tableHeader,
 .tableFooter {
   display: flex;
   justify-content: space-between;

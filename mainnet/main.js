@@ -317,7 +317,7 @@ function populateTransfer (x, i) {
   x.bondTxExplorerUrl = x.bondTransactionHash ? explorerLink(x.destinationChainSlug, x.bondTransactionHash) : ''
 
   const tokenDecimals = 6
-  x.formattedAmount = ethers.utils.formatUnits(x.amount, tokenDecimals)
+  x.formattedAmount = formatCurrency(ethers.utils.formatUnits(x.amount, tokenDecimals))
   x.token = 'USDC'
   x.tokenImageUrl = tokenLogosMap[x.token]
 
@@ -385,6 +385,15 @@ async function updateChart (data) {
 
   window.removeEventListener('resize', render)
   window.addEventListener('resize', render)
+}
+
+function formatCurrency (value) {
+  const currencyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  })
+
+  return currencyFormatter.format(value)
 }
 
 async function main () {

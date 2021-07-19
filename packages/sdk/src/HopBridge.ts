@@ -158,8 +158,6 @@ class HopBridge extends Base {
     network: string,
     chain: TChain
   ): Token | undefined {
-    if (!this.signer) return
-
     let tokenSymbol
     if (typeof token === 'string') {
       tokenSymbol = token
@@ -196,8 +194,6 @@ class HopBridge extends Base {
     network: string,
     chain: TChain
   ): Token | undefined {
-    if (!this.signer) return
-
     chain = this.toChainModel(chain)
     if (chain.isL1) {
       throw new Error('Hop tokens do not exist on layer 1')
@@ -304,6 +300,29 @@ class HopBridge extends Base {
       false,
       options
     )
+  }
+
+  // ToDo: Docs
+  public getSendApprovalAddress (
+    sourceChain: TChain,
+    destinationChain: TChain,
+    isHTokenTransfer: boolean = false
+  ) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    if (sourceChain.equals(Chain.Ethereum)) {
+      return this.getL1BridgeAddress(this.tokenSymbol, sourceChain)
+    }
+
+    const ammWrapperAddress = this.getL2AmmWrapperAddress(
+      this.tokenSymbol,
+      sourceChain
+    )
+    const l2BridgeAddress = this.getL2BridgeAddress(
+      this.tokenSymbol,
+      sourceChain
+    )
+    return isHTokenTransfer ? l2BridgeAddress : ammWrapperAddress
   }
 
   // ToDo: Docs
@@ -514,12 +533,6 @@ class HopBridge extends Base {
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
-
-    const bonderFee = await this.getBonderFee(
-      amountIn,
-      sourceChain,
-      destinationChain
-    )
 
     let lpFeeBps = 0
     if (!sourceChain.isL1) {

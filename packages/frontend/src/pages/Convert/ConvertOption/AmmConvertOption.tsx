@@ -1,10 +1,12 @@
+import React, { ReactNode } from 'react'
 import { formatUnits } from 'ethers/lib/utils'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
 import Network from 'src/models/Network'
 import { commafy, toTokenDisplay } from 'src/utils'
 import ConvertOption, { SendData } from './ConvertOption'
-import { DetailRowProps as DetailRow } from 'src/components/DetailRow'
+import DetailRow from 'src/components/DetailRow'
+import AmmDetails from 'src/components/AmmDetails'
 
 class AmmConvertOption extends ConvertOption {
   readonly name: string
@@ -61,7 +63,7 @@ class AmmConvertOption extends ConvertOption {
       .bridge(l1TokenSymbol)
 
     const amm = bridge.getAmm(sourceNetwork.slug)
-    let amountOut
+    let amountOut: BigNumber | undefined
     if (amountIn) {
       if (isForwardDirection) {
         amountOut = await amm.calculateToHToken(amountIn)
@@ -73,6 +75,7 @@ class AmmConvertOption extends ConvertOption {
     const details = await this.getDetails(
       sdk,
       amountIn,
+      amountOut,
       sourceNetwork,
       destNetwork,
       isForwardDirection,
@@ -94,7 +97,8 @@ class AmmConvertOption extends ConvertOption {
     l1TokenSymbol: string,
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
-    deadline: number
+    deadline: number,
+    bonderFee?: BigNumberish
   ) {
     const bridge = await sdk
       .bridge(l1TokenSymbol)
@@ -132,11 +136,12 @@ class AmmConvertOption extends ConvertOption {
   private async getDetails (
     sdk: Hop,
     amountIn: BigNumberish | undefined,
+    amountOut: BigNumber | undefined,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined,
     isForwardDirection: boolean,
     l1TokenSymbol: string
-  ): Promise<DetailRow[]> {
+  ): Promise<ReactNode> {
     let rateDisplay = '-'
     let slippageToleranceDisplay = '-'
     let priceImpactDisplay = '-'
@@ -147,70 +152,69 @@ class AmmConvertOption extends ConvertOption {
     const slippageTolerance = 1
 
     if (
-      amountIn &&
-      sourceNetwork &&
-      destNetwork &&
-      slippageTolerance
+      !amountIn ||
+      !sourceNetwork ||
+      !destNetwork ||
+      !slippageTolerance
     ) {
-      amountIn = BigNumber.from(amountIn)
-      const bridge = await sdk
-        .bridge(l1TokenSymbol)
-
-      const {
-        rate,
-        priceImpact,
-        amountOutMin,
-        lpFeeAmount
-      } = await bridge.getAmmData(
-        sourceNetwork.slug,
-        amountIn,
-        isForwardDirection,
-        slippageTolerance
-      )
-
-      rateDisplay = rate === 0 ? '-' : commafy(rate, 4)
-      slippageToleranceDisplay = `${slippageTolerance}%`
-      priceImpactDisplay = priceImpact < 0.01
-        ? '<0.01%'
-        : `${commafy(priceImpact)}%`
-
-      const sourceToken = isForwardDirection
-        ? bridge.getCanonicalToken(destNetwork.slug)
-        : bridge.getL2HopToken(destNetwork.slug)
-      const destToken = isForwardDirection
-        ? bridge.getL2HopToken(destNetwork.slug)
-        : bridge.getCanonicalToken(destNetwork.slug)
-      amountOutMinDisplay = toTokenDisplay(amountOutMin, destToken.decimals, destToken.symbol)
-      feeDisplay = toTokenDisplay(lpFeeAmount, sourceToken.decimals, sourceToken.symbol)
+      return []
     }
 
-    return [
-      {
-        title: 'Rate',
-        tooltip: 'The rate for the token taking trade size into consideration.',
-        value: rateDisplay
-      },
-      {
-        title: 'Slippage Tolerance',
-        tooltip: 'Your transaction will revert if the price changes unfavorably by more than this percentage.',
-        value: slippageToleranceDisplay
-      },
-      {
-        title: 'Price Impact',
-        tooltip: 'The difference between the market price and estimated price due to trade size.',
-        value: priceImpactDisplay
-      },
-      {
-        title: 'Minimum received',
-        tooltip: 'Your transaction will revert if there is a large, unfavorable price movement before it is confirmed.',
-        value: amountOutMinDisplay
-      },
-      {
-        title: 'Fee',
-        tooltip: 'This fee goes towards the liquidity providers for the AMM.',
-        value: feeDisplay
-      }
-    ]
+    amountIn = BigNumber.from(amountIn)
+    const bridge = await sdk
+      .bridge(l1TokenSymbol)
+
+    const {
+      rate,
+      priceImpact,
+      amountOutMin,
+      lpFeeAmount
+    } = await bridge.getAmmData(
+      sourceNetwork.slug,
+      amountIn,
+      isForwardDirection,
+      slippageTolerance
+    )
+
+    rateDisplay = rate === 0 ? '-' : commafy(rate, 4)
+    slippageToleranceDisplay = `${slippageTolerance}%`
+    priceImpactDisplay = priceImpact < 0.01
+      ? '<0.01%'
+      : `${commafy(priceImpact)}%`
+
+    const sourceToken = isForwardDirection
+      ? bridge.getCanonicalToken(destNetwork.slug)
+      : bridge.getL2HopToken(destNetwork.slug)
+    const destToken = isForwardDirection
+      ? bridge.getL2HopToken(destNetwork.slug)
+      : bridge.getCanonicalToken(destNetwork.slug)
+    amountOutMinDisplay = toTokenDisplay(amountOutMin, destToken.decimals, destToken.symbol)
+    feeDisplay = toTokenDisplay(lpFeeAmount, sourceToken.decimals, sourceToken.symbol)
+
+    const estimatedReceivedDisplay = toTokenDisplay(
+      amountOut,
+      destToken?.decimals,
+      destToken?.symbol
+    )
+
+    return (
+      <>
+        <DetailRow
+          title="Estimated Received"
+          tooltip={
+            <AmmDetails
+              rate={rate}
+              slippageTolerance={slippageTolerance}
+              priceImpact={priceImpact}
+              amountOutMinDisplay={amountOutMinDisplay}
+            />
+          }
+          value={estimatedReceivedDisplay}
+          large
+          bold
+        />
+      </>
+    )
   }
 }
 

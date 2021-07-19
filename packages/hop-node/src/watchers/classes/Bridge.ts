@@ -1,15 +1,16 @@
+import ContractBase from './ContractBase'
 import db from 'src/db'
 import delay from 'src/decorators/delay'
 import queue from 'src/decorators/queue'
 import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import unique from 'src/utils/unique'
-import { BigNumber, Contract, Event, constants, providers } from 'ethers'
-import ContractBase from './ContractBase'
+import { BigNumber, Contract, constants, providers } from 'ethers'
+import { Event } from 'src/types'
+import { State } from 'src/db/SyncStateDb'
 import { boundClass } from 'autobind-decorator'
 import { config } from 'src/config'
-import { State } from 'src/db/SyncStateDb'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { isL1ChainId, xor } from 'src/utils'
+import { isL1ChainId } from 'src/utils'
 
 export type EventsBatchOptions = {
   cacheKey: string
@@ -41,10 +42,10 @@ export default class Bridge extends ContractBase {
           for (const k in config.tokens[tkn][net]) {
             const val = config.tokens[tkn][net][k]
             if (val === bridgeContract.address) {
-              tokenDecimals = (config.metadata.tokens[config.network] as any)[
+              tokenDecimals = config.metadata.tokens[config.network][
                 tkn
               ].decimals
-              tokenSymbol = (config.metadata.tokens[config.network] as any)[tkn]
+              tokenSymbol = config.metadata.tokens[config.network][tkn]
                 .symbol
               break
             }
@@ -675,17 +676,21 @@ export default class Bridge extends ContractBase {
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
       totalBlocksInBatch = end - startBlockNumber
+    } else if (endBlockNumber) {
+      end = endBlockNumber
+      totalBlocksInBatch = totalBlocks
     } else if (state?.latestBlockSynced) {
       end = Math.max(currentBlockNumberWithFinality, state.latestBlockSynced)
       totalBlocksInBatch = end - state.latestBlockSynced
     } else {
       end = currentBlockNumberWithFinality
       totalBlocksInBatch = totalBlocks
-      // Handle the case where the chain has less blocks than the total block config
-      // This may happen during an Optimism regensis, for example
-      if (end - totalBlocksInBatch < 0) {
-        totalBlocksInBatch = end
-      }
+    }
+
+    // Handle the case where the chain has less blocks than the total block config
+    // This may happen during an Optimism regensis, for example
+    if (end - totalBlocksInBatch < 0) {
+      totalBlocksInBatch = end
     }
 
     if (totalBlocksInBatch <= batchBlocks) {
@@ -721,13 +726,6 @@ export default class Bridge extends ContractBase {
     options: Partial<EventsBatchOptions> = {}
   ) => {
     const { cacheKey, startBlockNumber, endBlockNumber } = options
-
-    const doesOnlyStartOrEndExist = xor(startBlockNumber, endBlockNumber)
-    if (doesOnlyStartOrEndExist) {
-      throw new Error(
-        'If either a start or end block number exist, both must exist'
-      )
-    }
 
     const isStartAndEndBlock = startBlockNumber && endBlockNumber
     if (isStartAndEndBlock) {

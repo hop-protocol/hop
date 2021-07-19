@@ -22,7 +22,6 @@ import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import useBalance from 'src/hooks/useBalance'
-import { DetailRowProps as DetailRow } from 'src/components/DetailRow'
 import { toTokenDisplay } from 'src/utils'
 
 type ConvertContextProps = {
@@ -49,7 +48,7 @@ type ConvertContextProps = {
   destBalance: BigNumber | undefined
   loadingDestBalance: boolean
   switchDirection: () => void
-  details: DetailRow[]
+  details: ReactNode | undefined
   warning: ReactNode | undefined
   error: string | undefined
   setError: (error: string | undefined) => void
@@ -165,11 +164,23 @@ const ConvertContextProvider: FC = ({ children }) => {
     destNetwork,
     address
   )
-  const [details, setDetails] = useState<DetailRow[]>([])
+  const [details, setDetails] = useState<ReactNode>()
   const [warning, setWarning] = useState<ReactNode>()
+  const [bonderFee, setBonderFee] = useState<BigNumber>()
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
   const debouncer = useRef(0)
+
+  const parsedSourceTokenAmount = useMemo(() => {
+    if (!sourceTokenAmount || !sourceToken) {
+      return BigNumber.from(0)
+    }
+
+    return parseUnits(
+      sourceTokenAmount,
+      sourceToken.decimals
+    )
+  }, [sourceTokenAmount, sourceToken])
 
   useEffect(() => {
     const getSendData = async () => {
@@ -187,18 +198,18 @@ const ConvertContextProvider: FC = ({ children }) => {
 
       const ctx = ++debouncer.current
 
-      const value = parseUnits(
-        sourceTokenAmount,
-        sourceToken.decimals
-      ).toString()
-
-      const { amountOut, details, warning } = await convertOption.getSendData(
+      const {
+        amountOut,
+        details,
+        warning,
+        bonderFee
+      } = await convertOption.getSendData(
         sdk,
         sourceNetwork,
         destNetwork,
         isForwardDirection,
         selectedBridge.getTokenSymbol(),
-        value
+        parsedSourceTokenAmount
       )
 
       let formattedAmount = ''
@@ -220,6 +231,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       setAmountOutMin(_amountOutMin)
       setDetails(details)
       setWarning(warning)
+      setBonderFee(bonderFee)
     }
 
     getSendData()
@@ -237,13 +249,12 @@ const ConvertContextProvider: FC = ({ children }) => {
       destNetwork
     )
 
-    const parsedAmount = parseUnits(sourceTokenAmount, sourceToken.decimals)
     const approved = await sourceToken.allowance(
       targetAddress
     )
 
     let tx: any
-    if (approved.lt(parsedAmount)) {
+    if (approved.lt(parsedSourceTokenAmount)) {
       tx = await txConfirm?.show({
         kind: 'approval',
         inputProps: {
@@ -251,7 +262,7 @@ const ConvertContextProvider: FC = ({ children }) => {
           tokenSymbol: sourceToken.symbol
         },
         onConfirm: async (approveAll: boolean) => {
-          const approveAmount = approveAll ? UINT256 : parsedAmount
+          const approveAmount = approveAll ? UINT256 : parsedSourceTokenAmount
           return sourceToken.approve(
             targetAddress,
             approveAmount
@@ -333,7 +344,8 @@ const ConvertContextProvider: FC = ({ children }) => {
             selectedBridge.getTokenSymbol(),
             value,
             amountOutMin,
-            deadline()
+            deadline(),
+            bonderFee
           )
         }
       })
@@ -364,7 +376,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     setSending(false)
   }
 
-  const enoughBalance = Number(sourceBalance) >= Number(sourceTokenAmount)
+  const enoughBalance = sourceBalance?.gte(parsedSourceTokenAmount)
   const withinMax = true
   let sendButtonText = 'Convert'
   const validFormFields = !!(

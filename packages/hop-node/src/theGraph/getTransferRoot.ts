@@ -52,7 +52,7 @@ async function queryRootSet (chain: string, transferRootHash: string) {
   const jsonRes = await makeRequest(chain, query, {
     transferRootHash
   })
-  const rootSet = normalizeEntity(jsonRes.transferRootSets?.[0])
+  return normalizeEntity(jsonRes.transferRootSets?.[0])
 }
 
 async function queryRootConfirmed (chain: string, transferRootHash: string) {
@@ -97,8 +97,9 @@ export default async function getTransferRoot (chain: string, transferRootHash: 
   ])
 
   transferRoot.committed = true
-  transferRoot.rootSet = rootSet
-  transferRoot.rootConfirmed = rootConfirmed
+  transferRoot.rootSet = !!rootSet
+  transferRoot.rootSetEvent = rootSet
+  transferRoot.rootConfirmedEvent = rootConfirmed
   transferRoot.transferIds = transferIds
 
   return transferRoot

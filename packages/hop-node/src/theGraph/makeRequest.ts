@@ -1,7 +1,16 @@
 import fetch from 'node-fetch'
 import { Chain } from 'src/constants'
+import { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 
 export default async function makeRequest (
+  chain: string,
+  query: string,
+  params: any = {}
+) {
+  return rateLimitRetryFn(_makeRequest)(chain, query, params)
+}
+
+export async function _makeRequest (
   chain: string,
   query: string,
   params: any = {}

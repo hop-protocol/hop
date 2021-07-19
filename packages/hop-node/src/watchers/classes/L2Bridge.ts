@@ -6,8 +6,9 @@ import Token from './Token'
 import delay from 'src/decorators/delay'
 import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
-import { BigNumber, Contract, Event, providers } from 'ethers'
+import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
+import { Event } from 'src/types'
 import { boundClass } from 'autobind-decorator'
 import {
   erc20Abi,

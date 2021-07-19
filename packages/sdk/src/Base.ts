@@ -231,6 +231,9 @@ class Base {
       return chain.provider
     }
     if (Signer.isSigner(signer)) {
+      if (!signer.provider) {
+        throw new Error('connect a provider to signer')
+      }
       const connectedChainId = await signer.getChainId()
       //console.log('connectedChainId: ', connectedChainId)
       //console.log('chain.chainId: ', chain.chainId)

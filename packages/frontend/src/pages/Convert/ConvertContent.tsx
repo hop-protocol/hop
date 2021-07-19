@@ -112,13 +112,9 @@ const Convert: FC = () => {
         loadingBalance={loadingDestBalance}
         disableInput
       />
-      {details.length !== 0 &&
-        <div className={styles.details}>
-          {details.map(row =>
-            <DetailRow {...row} key={row.title} />
-          )}
-        </div>
-      }
+      <div className={styles.details}>
+        {details}
+      </div>
       <Alert severity="warning">
         {warning}
       </Alert>

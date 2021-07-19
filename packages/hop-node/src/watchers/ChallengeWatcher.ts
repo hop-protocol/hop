@@ -11,7 +11,8 @@ import { hostname } from 'src/config'
 
 export interface Config {
   chainSlug: string
-  l1BridgeContract: Contract
+  isL1: boolean
+  bridgeContract: Contract
   label: string
   dryMode?: boolean
 }
@@ -23,6 +24,8 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       tag: 'challengeWatcher',
       prefix: config.label,
       logColor: 'red',
+      isL1: config.isL1,
+      bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
     this.notifier = new Notifier(`watcher: ChallengeWatcher, host: ${hostname}`)
@@ -30,7 +33,17 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
 
   async syncHandler (): Promise<any> {
     const promises: Promise<any>[] = []
-    console.log(this.bridge)
+    if (this.isL1) {
+      const l1Bridge = this.bridge as L1Bridge
+      promises.push(
+        l1Bridge.mapTransferRootBondedEvents(
+          async (event: Event) => {
+            return this.handleRawTransferRootBondedEvent(event)
+          },
+          { cacheKey: this.cacheKey(l1Bridge.TransferRootBonded) }
+        )
+      )
+    }
     if (!this.isL1) {
       const l2Bridge = this.bridge as L2Bridge
       promises.push(
@@ -61,7 +74,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
         })
     } else {
       const l2Bridge = this.bridge as L2Bridge
-      this.bridge
+      l2Bridge
         .on(
           l2Bridge.TransfersCommitted,
           this.handleTransfersCommittedEvent
@@ -79,6 +92,18 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       return
     }
     await this.checkChallengeableTransferRootFromDb()
+  }
+
+  async handleRawTransferRootBondedEvent (event: Event) {
+    const {
+      transferRootHash,
+      totalAmount
+    } = event.args
+    await this.handleTransferRootBondedEvent(
+      transferRootHash,
+      totalAmount,
+      event
+    )
   }
 
   async handleRawTransfersCommittedEvent (event: Event) {

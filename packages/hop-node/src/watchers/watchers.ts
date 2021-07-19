@@ -337,11 +337,18 @@ function startChallengeWatchers (
       if (!contracts.has(token, network)) {
         continue
       }
+      const isL1 = network === Chain.Ethereum
+
+      const bridgeContract = isL1
+        ? contracts.get(token, Chain.Ethereum).l1Bridge
+        : contracts.get(token, network).l2Bridge
+
       const chainId = chainSlugToId(network)
       const challengeWatcher = new ChallengeWatcher({
         chainSlug: network,
+        isL1,
+        bridgeContract,
         label: network,
-        l1BridgeContract: contracts.get(token, Chain.Ethereum).l1Bridge,
         dryMode: true // force dry mode until further tested
       })
       challengeWatchers[token] = challengeWatchers[token] || {}

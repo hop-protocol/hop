@@ -33,11 +33,12 @@ export default async function getTransfer (chain: string, transferId: string): P
   if (!transfer) {
     return
   }
+  transfer.sourceChain = chain
   transfer = normalizeEntity(transfer)
 
   const destinationChain = chainIdToSlug[transfer.destinationChainId]
   const bondedWithdrawal = await getBondedWithdrawal(destinationChain, transferId)
-  transfer.bondedWithdrawal = bondedWithdrawal
+  transfer.bondedWithdrawalEvent = bondedWithdrawal
   transfer.bonded = !!bondedWithdrawal
 
   const transferRoot = await getTransferRootForTransferId(chain, transferId)
@@ -72,7 +73,7 @@ export default async function getTransfer (chain: string, transferId: string): P
     })
     const bondedWithdrawalSettled = normalizeEntity(jsonRes.multipleWithdrawalsSettleds?.[0])
     transfer.settled = !!bondedWithdrawalSettled
-    transfer.bondedWithdrawalSettled = bondedWithdrawalSettled
+    transfer.bondedWithdrawalSettledEvent = bondedWithdrawalSettled
   }
 
   return transfer

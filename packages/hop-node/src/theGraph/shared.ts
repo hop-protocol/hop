@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon'
+import { ethers } from 'ethers'
 
 export const chainIdToSlug: any = {
   1: 'ethereum',
@@ -17,8 +18,16 @@ export function normalizeEntity (x: any) {
   if (x.originChainId) {
     x.originChainId = Number(x.originChainId)
   }
+  if (x.sourceChainId) {
+    x.sourceChainId = Number(x.sourceChainId)
+    x.sourceChain = chainIdToSlug[x.sourceChainId]
+  }
   if (x.destinationChainId) {
     x.destinationChainId = Number(x.destinationChainId)
+    x.destinationChain = chainIdToSlug[x.destinationChainId]
+  }
+  if (x.amount) {
+    x.formattedAmount = ethers.utils.formatUnits(x.amount, 6)
   }
 
   x.blockNumber = Number(x.blockNumber)

@@ -24,16 +24,41 @@ program
       if (!chain) {
         throw new Error('chain is required')
       }
-      console.log('transfer ID\t\t\t\t\t\t\t\tbonded\t\tcomitted\tconfirmed\tsettled\t\ttimestamp')
+      const headers = [
+        'transfer ID'.padEnd(68, ' '),
+        'bonded'.padEnd(10, ' '),
+        'committed'.padEnd(10, ' '),
+        'confirmed'.padEnd(10, ' '),
+        'rootSet'.padEnd(10, ' '),
+        'settled'.padEnd(10, ' '),
+        'amount'.padEnd(14, ' '),
+        'source'.padEnd(10, ' '),
+        'destination'.padEnd(12, ' '),
+        'timestamp'.padEnd(10, ' ')
+      ]
+      console.log(headers.join(' '))
       await getTransfers(chain, (transfer: any) => {
-        const { transferId, bonded, committed, settled, transferRoot, timestampRelative } = transfer
+        const { transferId, formattedAmount, sourceChain, destinationChain, bonded, committed, settled, transferRoot, timestampRelative } = transfer
         if (settled) {
           return
         }
         const confirmed = !!transferRoot?.rootConfirmed
+        const rootSet = !!transferRoot?.rootSet
         const needsSettlement = !!(bonded && confirmed && !settled)
         const completed = !!(bonded && confirmed && settled)
-        const str = `${transferId}\t${bonded}\t\t${committed}\t\t${confirmed}\t\t${settled}\t\t${timestampRelative}`
+        const fields = [
+          `${transferId}`.padEnd(68, ' '),
+          `${bonded}`.padEnd(10, ' '),
+          `${committed}`.padEnd(10, ' '),
+          `${confirmed}`.padEnd(10, ' '),
+          `${rootSet}`.padEnd(10, ' '),
+          `${settled}`.padEnd(10, ' '),
+          `${formattedAmount}`.padEnd(14, ' '),
+          `${sourceChain}`.padEnd(10, ' '),
+          `${destinationChain}`.padEnd(12, ' '),
+          `${timestampRelative}`.padEnd(10, ' ')
+        ]
+        const str = fields.join(' ')
         let color : string
         if (needsSettlement) {
           color = 'magenta'

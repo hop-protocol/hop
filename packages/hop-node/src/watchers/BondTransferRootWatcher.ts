@@ -116,7 +116,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransfersCommittedFromDb () {
-    const initialSyncCompleted = await this.isAllSiblingWatchersInitialSyncCompleted()
+    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
     if (!initialSyncCompleted) {
       return false
     }

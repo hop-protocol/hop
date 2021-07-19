@@ -150,6 +150,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         transferRootId,
         committed: true,
         bonded: true,
+        totalAmount,
         bonder,
         bondTxHash: transactionHash
       })
@@ -220,6 +221,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     event: Event
   ) {
     const logger = this.logger.create({ root: transferRootHash })
+    logger.debug('handling TransfersCommitted event for transfer IDs')
 
     const sourceChainId = await this.bridge.getChainId()
     const destinationChainId = Number(destinationChainIdBn.toString())

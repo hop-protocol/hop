@@ -52,7 +52,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       l1Bridge
         .on(
           l1Bridge.TransferRootBonded,
-          this.handleTransferRootBondedEventForChallenges
+          this.handleTransferRootBondedEvent
         )
         .on('error', err => {
           this.logger.error(`event watcher error: ${err.message}`)
@@ -74,6 +74,13 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     }
   }
 
+  async pollHandler () {
+    if (!this.isL1) {
+      return
+    }
+    await this.checkChallengeableTransferRootFromDb()
+  }
+
   async handleRawTransfersCommittedEvent (event: Event) {
     const {
       destinationChainId,
@@ -90,26 +97,31 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     )
   }
 
-  async handleTransferRootBondedEventForChallenges (
-    transferRootHash: string,
-    totalAmount: BigNumber,
-    event: Event
-  ) {
-    await this.checkTransferRoot(
-      transferRootHash,
-      totalAmount
-    )
-  }
-
-  async checkTransferRoot (
-    transferRootHash: string,
-    totalAmount: BigNumber
-  ) {
-    const initialSyncCompleted = await this.isAllSiblingWatchersInitialSyncCompleted()
+  async checkChallengeableTransferRootFromDb () {
+    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
     if (!initialSyncCompleted) {
       return false
     }
 
+    const dbTransferRoots = await db.transferRoots.getChallengeableTransferRoots()
+    if (dbTransferRoots.length) {
+      this.logger.debug(
+        `checking ${dbTransferRoots.length} challengeable root db items`
+      )
+    }
+
+    for (const dbTransferRoot of dbTransferRoots) {
+      await this.checkChallengeableTransferRoot(
+        dbTransferRoot.transferRootHash,
+        dbTransferRoot.totalAmount
+      )
+    }
+  }
+
+  async checkChallengeableTransferRoot (
+    transferRootHash: string,
+    totalAmount: BigNumber
+  ) {
     const logger = this.logger.create({ root: transferRootHash })
     const transferRootId = getTransferRootId(transferRootHash, totalAmount)
 

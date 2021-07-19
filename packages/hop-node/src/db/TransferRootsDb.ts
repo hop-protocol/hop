@@ -147,7 +147,9 @@ class TransferRootsDb extends BaseDb {
         !item.confirmedAt &&
         item.bonded &&
         !item.sentConfirmTx &&
-        !item.sentConfirmTxAt
+        !item.sentConfirmTxAt &&
+        item.transferRootHash,
+        item.totalAmount
       )
     })
   }

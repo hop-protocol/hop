@@ -31,8 +31,8 @@ export const TotalBlocks = {
   xDai: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.xDai)
 }
 
-const TEN_MINUTES = 10 * 60 * 1000
-export const TX_RETRY_DELAY_MS = TEN_MINUTES
+export const TEN_MINUTES_MS = 10 * 60 * 1000
+export const TX_RETRY_DELAY_MS = TEN_MINUTES_MS
 export const ETHEREUM_TX_MAX_DELAY_MS = 1 * 1000
 export const XDAI_TX_MAX_DELAY_MS = 20 * 1000
 export const POLYGON_TX_MAX_DELAY_MS = 10 * 1000

@@ -41,7 +41,7 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://blockscout.com/xdai/mainnet'],
     nativeBridgeUrl: 'https://omni.xdaichain.com/',
-    waitConfirmations: 42
+    waitConfirmations: 12
   },
   polygon: {
     name: chains.polygon.name,

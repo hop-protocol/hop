@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+import getTransfer from 'src/theGraph/getTransfer'
 import getTransfers from 'src/theGraph/getTransfers'
 import {
   Config,
@@ -13,6 +14,7 @@ program
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
   .option('--chain <string>', 'Chain')
+  .option('--transfer-id <string>', 'Transfer ID')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -21,6 +23,7 @@ program
         await setGlobalConfigFromConfigFile(config)
       }
       const chain = source.chain
+      const transferId = source.transferId
       if (!chain) {
         throw new Error('chain is required')
       }
@@ -37,7 +40,7 @@ program
         'timestamp'.padEnd(10, ' ')
       ]
       console.log(headers.join(' '))
-      await getTransfers(chain, (transfer: any) => {
+      const printTransfer = (transfer: any) => {
         const { transferId, formattedAmount, sourceChain, destinationChain, bonded, committed, settled, transferRoot, timestampRelative } = transfer
         if (settled) {
           return
@@ -70,8 +73,16 @@ program
           color = 'green'
         }
         console.log(color ? chalk[color](str) : str)
-      })
-      console.log('done')
+      }
+      if (transferId) {
+        const transfer = await getTransfer(chain, transferId)
+        printTransfer(transfer)
+      } else {
+        await getTransfers(chain, (transfer: any) => {
+          printTransfer(transfer)
+        })
+        console.log('done')
+      }
     } catch (err) {
       logger.error(err.message)
       process.exit(1)

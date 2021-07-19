@@ -10,7 +10,7 @@ import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
-import { Chain, TX_RETRY_DELAY_MS } from 'src/constants'
+import { Chain, TEN_MINUTES_MS, TX_RETRY_DELAY_MS } from 'src/constants'
 import { executeExitTx, getL2Amb } from './xDaiBridgeWatcher'
 import { config as gConfig } from 'src/config'
 
@@ -28,6 +28,7 @@ export interface Config {
 class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
   l1Bridge: L1Bridge
   token: string
+  lastSeen: {[key: string]: number} = {}
 
   constructor (config: Config) {
     super({
@@ -145,6 +146,17 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
         destinationChainId,
         committedAt
       } = dbTransferRoot
+
+      if (!this.lastSeen[transferRootHash]) {
+        this.lastSeen[transferRootHash] = Date.now()
+      }
+
+      // only process message after waiting 10 minutes
+      const timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
+      if (!timestampOk) {
+        return
+      }
+
       // Parallelizing these calls produces RPC errors on Optimism
       await this.checkTransfersCommitted(
         transferRootHash,

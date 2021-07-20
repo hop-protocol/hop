@@ -9,6 +9,7 @@ import DaiLogo from 'src/assets/logos/dai.svg'
 import SynthEthLogo from 'src/assets/logos/seth.svg'
 import SynthBtcLogo from 'src/assets/logos/sbtc.svg'
 import UsdcLogo from 'src/assets/logos/usdc.svg'
+import usdtLogo from 'src/assets/logos/usdt.svg'
 import wBtcLogo from 'src/assets/logos/wbtc.svg'
 
 type Metadata = {
@@ -39,7 +40,8 @@ const images = {
   sETH: SynthEthLogo,
   sBTC: SynthBtcLogo,
   USDC: UsdcLogo,
-  WBTC: wBtcLogo
+  USDT: usdtLogo,
+  WBTC: wBtcLogo,
 }
 
 const network = process.env.REACT_APP_NETWORK || 'kovan'

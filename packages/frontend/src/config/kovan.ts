@@ -11,7 +11,8 @@ export const addresses: HopAddresses = {
     stakingRewards: '0xdB33bf4a7b76b459407Fc5849c33AE9763D66895',
     governorAlpha: '0xadcdb487C45bCB517D3873Bb54F2e01942e4e1d5'
   },
-  tokens: kovanAddresses.bridges
+  tokens: kovanAddresses.bridges,
+  bonders: kovanAddresses.bonders,
 }
 
 export const networks: Networks = {

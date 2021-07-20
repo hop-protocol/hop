@@ -11,7 +11,6 @@ import Token from 'src/models/Token'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
 import * as config from 'src/config'
-import * as addresses from '@hop-protocol/addresses'
 
 type StatsContextProps = {
   stats: any[]
@@ -152,7 +151,7 @@ const StatsContextProvider: FC = ({ children }) => {
       const promises: Promise<any>[] = []
       for (const network of networks) {
         for (const token of tokens) {
-          for (const bonder of addresses[config.network].bonders) {
+          for (const bonder of config.addresses.bonders) {
             promises.push(fetchBonderStats(network, token, bonder))
           }
         }

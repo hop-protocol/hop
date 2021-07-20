@@ -6,8 +6,9 @@ import { DetailRowProps as DetailRow } from 'src/components/DetailRow'
 
 export type SendData = {
   amountOut: BigNumber | undefined,
-  details: DetailRow[],
-  warning?: ReactNode
+  details?: ReactNode,
+  warning?: ReactNode,
+  bonderFee?: BigNumber
 }
 
 abstract class ConvertOption {
@@ -40,7 +41,8 @@ abstract class ConvertOption {
     l1TokenSymbol: string,
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
-    deadline: number
+    deadline: number,
+    bonderFee?: BigNumberish
   ): Promise<any>
 
   abstract sourceToken (

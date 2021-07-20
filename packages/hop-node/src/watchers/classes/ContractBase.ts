@@ -1,7 +1,8 @@
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
-import { BigNumber, Contract, Transaction, providers } from 'ethers'
+import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { EventEmitter } from 'events'
+import { Transaction } from 'src/types'
 import { chainIdToSlug, chainSlugToId, wait } from 'src/utils'
 import { config } from 'src/config'
 

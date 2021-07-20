@@ -1,4 +1,6 @@
 import Logger from 'src/logger'
+import getBondedWithdrawals from 'src/theGraph/getBondedWithdrawals'
+import getTransferSents from 'src/theGraph/getTransferSents'
 import { Chain } from 'src/constants'
 import { Notifier } from 'src/notifier'
 import {
@@ -14,7 +16,6 @@ import {
   mnemonic,
   privateKey as testUserPrivateKey
 } from '../../test/config'
-import { getBondedWithdrawals, getTransferSents } from 'src/theGraph'
 
 const useTestUserPrivateKey = false
 

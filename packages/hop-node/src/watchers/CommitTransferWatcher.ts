@@ -3,7 +3,8 @@ import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
 import db from 'src/db'
-import { BigNumber, Contract, Event, providers } from 'ethers'
+import { BigNumber, Contract, providers } from 'ethers'
+import { Event } from 'src/types'
 import { TX_RETRY_DELAY_MS } from 'src/constants'
 import { wait } from 'src/utils'
 
@@ -178,6 +179,9 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       }
 
       // Define new object on first run after server restart
+      if (!this.commitTxSentAt[destinationChainId]) {
+        this.commitTxSentAt[destinationChainId] = 0
+      }
       const timestampOk = this.commitTxSentAt[destinationChainId] + TX_RETRY_DELAY_MS < Date.now()
       if (timestampOk) {
         // This may happen either in the happy path case or if the transaction

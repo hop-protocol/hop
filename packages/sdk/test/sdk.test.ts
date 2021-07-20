@@ -78,7 +78,42 @@ describe.skip('tx watcher', () => {
   const hop = new Hop('mainnet')
   const signer = new Wallet(privateKey)
   it(
-    'receive events on token transfer from L1 -> L2',
+    'receive events on token transfer from L1 -> L2 Polygon (no swap)',
+    async () => {
+      const txHash =
+        '0xb92c61e0a1e674eb4c9a52cc692c92709c8a4e4cb66fb22eb7cd9a958cf33a70'
+      console.log('tx hash:', txHash)
+
+      await new Promise(resolve => {
+        let sourceReceipt: any = null
+        let destinationReceipt: any = null
+
+        hop
+          .watch(txHash, Token.USDC, Chain.Ethereum, Chain.Polygon)
+          .on('receipt', (data: any) => {
+            const { receipt, chain } = data
+            if (chain.equals(Chain.Ethereum)) {
+              sourceReceipt = receipt
+              console.log('got source transaction receipt')
+            }
+            if (chain.equals(Chain.Polygon)) {
+              destinationReceipt = receipt
+              console.log('got destination transaction receipt')
+            }
+            if (sourceReceipt && destinationReceipt) {
+              resolve(null)
+            }
+          })
+          .on('error', (err: Error) => {
+            console.error(err)
+            //expect(err).toBeFalsy()
+          })
+      })
+    },
+    120 * 1000
+  )
+  it(
+    'receive events on token transfer from L1 -> L2 xDai',
     async () => {
       const tokenAmount = parseUnits('0.1', 18)
       const tx = await hop
@@ -368,5 +403,26 @@ describe('custom addresses', () => {
 
     const bridge = sdk.bridge('USDC')
     expect(bridge.getL2CanonicalTokenAddress('USDC', 'xdai')).toBe(address)
+  })
+})
+
+describe('approve addresses', () => {
+  const sdk = new Hop('mainnet')
+  const bridge = sdk.bridge('USDC')
+  it('get send approval address (L1 -> L2)', () => {
+    const approvalAddress = bridge.getSendApprovalAddress(
+      Chain.Ethereum,
+      Chain.xDai
+    )
+    const expectedAddress = addresses.mainnet.bridges.USDC.ethereum.l1Bridge
+    expect(approvalAddress).toBe(expectedAddress)
+  })
+  it('get send approval address (L2 -> L2)', () => {
+    const approvalAddress = bridge.getSendApprovalAddress(
+      Chain.Polygon,
+      Chain.xDai
+    )
+    const expectedAddress = addresses.mainnet.bridges.USDC.polygon.l2AmmWrapper
+    expect(approvalAddress).toBe(expectedAddress)
   })
 })

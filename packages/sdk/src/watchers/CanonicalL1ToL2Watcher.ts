@@ -22,7 +22,6 @@ class L1ToL2Watcher extends BaseWatcher {
     if (this.destinationChain.equals(Chain.xDai)) {
       return this.xDaiWatcher()
     } else if (this.destinationChain.equals(Chain.Optimism)) {
-      console.log('TODO')
       throw new Error('not implemented')
     } else if (this.destinationChain.equals(Chain.Polygon)) {
       return this.polygonWatcher()

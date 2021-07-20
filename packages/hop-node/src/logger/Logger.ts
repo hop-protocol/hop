@@ -69,7 +69,7 @@ class Logger {
     }
     if (tag) {
       if (opts.color) {
-        this.tag = (chalk as any)[opts.color](`[${tag}]`)
+        this.tag = chalk[opts.color](`[${tag}]`)
       } else {
         this.tag = `[${tag}]`
       }
@@ -103,7 +103,7 @@ class Logger {
   headers (logLevelEnum: LogLevels): string[] {
     const keys = Object.keys(LogLevels)
     const logLevelName = keys[logLevelEnum + keys.length / 2].toUpperCase()
-    const coloredLogLevel = (chalk as any)[logLevelColors[logLevelEnum]](
+    const coloredLogLevel = chalk[logLevelColors[logLevelEnum]](
       logLevelName.padEnd(5, ' ')
     )
     return [this.timestamp, coloredLogLevel, this.tag, this.prefix]

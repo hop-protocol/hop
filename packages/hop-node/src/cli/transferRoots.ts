@@ -1,11 +1,10 @@
+import getTransferRoots from 'src/theGraph/getTransferRoots'
 import {
   Config,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from './shared/config'
 import { logger, program } from './shared'
-
-import { getTransferRoots } from 'src/theGraph'
 
 program
   .command('transfer-roots')

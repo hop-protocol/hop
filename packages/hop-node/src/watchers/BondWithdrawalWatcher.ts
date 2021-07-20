@@ -4,8 +4,9 @@ import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
 import db from 'src/db'
-import { BigNumber, Contract, Event, constants, providers } from 'ethers'
+import { BigNumber, Contract, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
+import { Event } from 'src/types'
 import { wait } from 'src/utils'
 
 export interface Config {
@@ -220,7 +221,21 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       .bridge
 
     const originalBlockNumber = dbTransfer.transferSentBlockNumber
-    await sourceL2Bridge.checkReorg(originalBlockNumber, transferSentTxHash)
+    const { isReorged, newBlockNumber, newTransactionIndex } = await sourceL2Bridge.checkReorg(originalBlockNumber, transferSentTxHash)
+    if (isReorged) {
+      if (newBlockNumber) {
+        await db.transfers.update(dbTransfer.transferId, {
+          transferSentBlockNumber: newBlockNumber,
+          transferSentIndex: newTransactionIndex
+        })
+        return
+      } else {
+        await db.transfers.update(dbTransfer.transferId, {
+          isBondable: false
+        })
+        return
+      }
+    }
 
     if (dbTransfer.transferRootId) {
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)

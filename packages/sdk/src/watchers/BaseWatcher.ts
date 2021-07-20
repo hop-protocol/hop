@@ -37,7 +37,7 @@ class BaseWatcher extends Base {
   token: Token
   sourceChain: Chain
   destinationChain: Chain
-  pollDelayMs = 30 * 1000
+  pollDelayMs = 10 * 1000
   bridge: HopBridge
   options: any = {}
 
@@ -77,13 +77,17 @@ class BaseWatcher extends Base {
   }
 
   async poll (pollFn: any) {
-    if (!pollFn) {
-      return
-    }
-    let res = false
-    while (!res) {
-      res = await pollFn()
-      await wait(this.pollDelayMs)
+    try {
+      if (!pollFn) {
+        return
+      }
+      let res = false
+      while (!res) {
+        res = await pollFn()
+        await wait(this.pollDelayMs)
+      }
+    } catch (err) {
+      this.ee.emit('error', err)
     }
   }
 

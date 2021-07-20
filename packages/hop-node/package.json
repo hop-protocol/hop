@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/hop-node",
-  "version": "0.0.1-beta.0",
+  "version": "0.0.1-beta.1",
   "description": "The Hop Node for Hop Protocol",
   "main": "dist/index.js",
   "scripts": {
@@ -13,7 +13,18 @@
     "lint": "eslint --fix \"src/**/*\" \"test/**/*\"",
     "clean": "rm -rf dist",
     "clean:arbitrum": "rm -rf l2_nodes/arbitrum/data",
-    "clean:db": "rm -rf db_data"
+    "clean:db": "rm -rf db_data",
+    "lerna:sync": "lerna-sync-version",
+    "version:bump": "npm version prerelease --preid=beta",
+    "publish:latest": "npm publish --tag latest --access public",
+    "publish:beta": "npm publish --tag beta --access public",
+    "publish:next": "npm publish --tag next --access public",
+    "dist-tag:latest": "npm dist-tag add \"@hop-protocol/hop-node@$(jq -r .version <package.json)\" latest",
+    "dist-tag:beta": "npm dist-tag add \"@hop-protocol/hop-node@$(jq -r .version <package.json)\" beta",
+    "dist-tag:next": "npm dist-tag add \"@hop-protocol/hop-node@$(jq -r .version <package.json)\" next",
+    "release": "npm run clean && npm run publish:latest",
+    "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
+    "prepare": "npm run lint && npm run build"
   },
   "bin": {
     "hop-node": "bin/hop-node"
@@ -25,9 +36,9 @@
     "@ethersproject/experimental": "^5.0.9",
     "@ethersproject/hdnode": "^5.0.9",
     "@hop-protocol/abi": "0.0.1-beta.12",
-    "@hop-protocol/addresses": "0.0.1-beta.31",
+    "@hop-protocol/addresses": "0.0.1-beta.33",
     "@hop-protocol/metadata": "0.0.1-beta.14",
-    "@hop-protocol/networks": "0.0.1-beta.16",
+    "@hop-protocol/networks": "0.0.1-beta.17",
     "@maticnetwork/maticjs": "git+https://github.com/miguelmota/matic.js.git#patch-2",
     "@slack/web-api": "^6.1.0",
     "@types/debounce-promise": "^3.1.3",
@@ -43,7 +54,7 @@
     "async-mutex": "^0.3.1",
     "autobind-decorator": "^2.4.0",
     "aws-sdk": "^2.937.0",
-    "bip39": "^3.0.3",
+    "bip39": "3.0.4",
     "chalk": "4.1.0",
     "commander": "6.2.0",
     "console-clear": "^1.1.1",

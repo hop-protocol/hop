@@ -1,0 +1,1 @@
+./bin/hop-node transfer-roots --chain xdai | jq 'to_entries[] | .value ' | xargs -I {} ./bin/hop-node transfer-ids --chain xdai {} | jq 'to_entries[] .value' | xargs -I {} ./bin/hop-node transfer-id --chain xdai {} | jq '.bonded'

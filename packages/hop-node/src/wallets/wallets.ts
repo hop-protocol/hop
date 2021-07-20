@@ -27,4 +27,4 @@ export default {
       config.relayerPrivateKey || config.bonderPrivateKey
     )
   }
-} as any
+}

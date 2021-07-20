@@ -3,13 +3,13 @@ import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
-import db from 'src/db'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Event } from 'src/types'
 import { isL1ChainId } from 'src/utils'
 
 export interface Config {
   chainSlug: string
+  tokenSymbol: string
   l1BridgeContract: Contract
   label: string
   dryMode?: boolean
@@ -21,6 +21,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
+      tokenSymbol: config.tokenSymbol,
       tag: 'challengeWatcher',
       prefix: config.label,
       logColor: 'red',
@@ -93,7 +94,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransferRootFromDb () {
-    const dbTransferRoots = await db.transferRoots.getChallengeableTransferRoots()
+    const dbTransferRoots = await this.db.transferRoots.getChallengeableTransferRoots()
     if (dbTransferRoots.length) {
       this.logger.debug(
         `checking ${dbTransferRoots.length} challengeable transfer roots db items`
@@ -114,7 +115,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkChallengeFromDb () {
-    const dbTransferRoots = await db.transferRoots.getResolvableTransferRoots()
+    const dbTransferRoots = await this.db.transferRoots.getResolvableTransferRoots()
     for (const dbTransferRoot of dbTransferRoots) {
       const {
         sourceChainId,

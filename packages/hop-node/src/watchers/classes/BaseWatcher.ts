@@ -1,6 +1,7 @@
 import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
+import db from 'src/db'
 import { Contract } from 'ethers'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
@@ -11,6 +12,7 @@ import { wait } from 'src/utils'
 
 interface Config {
   chainSlug: string
+  tokenSymbol: string
   tag: string
   prefix?: string
   logColor?: string
@@ -28,6 +30,7 @@ interface EventsBatchOptions {
 
 @boundClass
 class BaseWatcher extends EventEmitter implements IBaseWatcher {
+  db: any
   logger: Logger
   notifier: Notifier
   order: () => number = () => 0
@@ -35,6 +38,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   pollIntervalSec: number = 10 * 1000
   resyncIntervalSec: number = 10 * 60 * 1000
   chainSlug: string
+  tokenSymbol: string
   initialSyncCompleted: boolean = false
 
   isL1: boolean
@@ -46,13 +50,15 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   constructor (config: Config) {
     super()
-    const { chainSlug, tag, prefix, order, logColor } = config
+    const { chainSlug, tokenSymbol, tag, prefix, order, logColor } = config
     this.logger = new Logger({
       tag,
       prefix,
       color: logColor
     })
     this.chainSlug = chainSlug
+    this.tokenSymbol = tokenSymbol
+    this.db = db.getDbSet(tokenSymbol)
     if (tag) {
       this.tag = tag
     }

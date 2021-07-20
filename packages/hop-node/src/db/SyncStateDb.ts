@@ -7,10 +7,6 @@ export type State = {
 }
 
 class SyncStateDb extends BaseDb {
-  constructor (prefix: string = 'state') {
-    super(prefix)
-  }
-
   async update (key: string, data: Partial<State>) {
     return super.update(key, data)
   }

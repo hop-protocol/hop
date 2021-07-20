@@ -13,7 +13,7 @@ import { wait } from 'src/utils'
 
 type Config = {
   chainSlug: string
-  token: string
+  tokenSymbol: string
 }
 
 class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
@@ -23,11 +23,11 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
   l2Wallet: any
   chainId: number
   apiUrl: string
-  token: string
 
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
+      tokenSymbol: config.tokenSymbol,
       tag: 'polygonBridgeWatcher',
       logColor: 'yellow'
     })
@@ -46,11 +46,10 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
     this.apiUrl = `https://apis.matic.network/api/v1/${
       this.chainId === 1 ? 'matic' : 'mumbai'
     }/block-included`
-    this.token = config.token
   }
 
   async start () {
-    this.logger.debug(`polygon ${this.token} bridge watcher started`)
+    this.logger.debug(`polygon ${this.tokenSymbol} bridge watcher started`)
     this.started = true
     try {
       // const l1Wallet = wallets.get(Chain.Ethereum)
@@ -59,10 +58,10 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
       // const l1RootChainAddress = addresses[token][Chain.Polygon].l1PosRootChainManager
       // const l2TokenAddress = '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1' // dummy erc20
       const l2TokenAddress =
-        globalConfig.tokens[this.token][Chain.Polygon]?.l2CanonicalToken
+        globalConfig.tokens[this.tokenSymbol][Chain.Polygon]?.l2CanonicalToken
       if (!l2TokenAddress) {
         throw new Error(
-          `no token address found for ${this.token} on ${Chain.Polygon}`
+          `no token address found for ${this.tokenSymbol} on ${Chain.Polygon}`
         )
       }
       const l2Token = new Contract(l2TokenAddress, erc20Abi, this.l2Wallet)
@@ -112,7 +111,7 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
 
             delete transactionHashes[transactionHash]
             this.logger.info('sending polygon canonical bridge exit tx')
-            const tx = await this.sendTransaction(transactionHash, this.token)
+            const tx = await this.sendTransaction(transactionHash, this.tokenSymbol)
             this.logger.info(
               'polygon canonical bridge exit tx:',
               chalk.bgYellow.black.bold(tx.hash)

@@ -1,6 +1,5 @@
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import contracts from 'src/contracts'
-import db from 'src/db'
 import { config } from 'src/config'
 require('dotenv').config()
 
@@ -78,7 +77,7 @@ describe('Happy Path', () => {
     const chainId = await bridge.getChainId()
     const address = bridge.getAddress()
     const cacheKey = bridge.getCacheKeyFromKey(chainId, address, key)
-    let state = await db.syncState.getByKey(cacheKey)
+    let state = await bridge.db.syncState.getByKey(cacheKey)
 
     // Create entry for key if it does not exist
     if (!state) {
@@ -93,7 +92,7 @@ describe('Happy Path', () => {
       )
     }
 
-    state = await db.syncState.getByKey(cacheKey)
+    state = await bridge.db.syncState.getByKey(cacheKey)
     expect(state.latestBlockSynced).toBeDefined()
     expect(state.timestamp).toBeDefined()
 
@@ -109,7 +108,7 @@ describe('Happy Path', () => {
       { cacheKey: key }
     )
 
-    state = await db.syncState.getByKey(cacheKey)
+    state = await bridge.db.syncState.getByKey(cacheKey)
     expect(state.latestBlockSynced).toBeGreaterThan(latestBlockSynced)
     expect(state.timestamp).toBeGreaterThan(timestamp)
     expect(count).toBe(1)

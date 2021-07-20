@@ -4,7 +4,6 @@ import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
-import db from 'src/db'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain, TX_RETRY_DELAY_MS } from 'src/constants'
 import { Event } from 'src/types'
@@ -14,6 +13,7 @@ import { wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
+  tokenSymbol: string
   isL1: boolean
   bridgeContract: Contract
   label: string
@@ -31,6 +31,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
+      tokenSymbol: config.tokenSymbol,
       tag: 'bondTransferRootWatcher',
       prefix: config.label,
       logColor: 'cyan',
@@ -121,7 +122,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       return false
     }
 
-    const dbTransferRoots = await db.transferRoots.getUnbondedTransferRoots({
+    const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots({
       sourceChainId: await this.bridge.getChainId()
     })
     if (dbTransferRoots.length) {
@@ -166,7 +167,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     if (this.isL1) {
       return
     }
-    let dbTransferRoot: TransferRoot = await db.transferRoots.getByTransferRootHash(
+    let dbTransferRoot: TransferRoot = await this.db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
     const l2Bridge = this.bridge as L2Bridge
@@ -225,7 +226,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       logger.debug(
         `transferRootHash ${transferRootHash} already bonded. skipping.`
       )
-      await db.transferRoots.update(transferRootHash, {
+      await this.db.transferRoots.update(transferRootHash, {
         transferRootId,
         transferRootHash,
         bonded: true
@@ -244,7 +245,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     logger.debug('transferRootId:', transferRootId)
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     logger.debug('transferRootId:', transferRootId)
-    await db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootHash, {
       transferRootHash,
       transferRootId,
       totalAmount,
@@ -255,7 +256,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     })
 
     await this.waitTimeout(transferRootHash, totalAmount)
-    dbTransferRoot = await db.transferRoots.getByTransferRootHash(
+    dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
     if (!dbTransferRoot) {
@@ -292,7 +293,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       }
     }
 
-    dbTransferRoot = await db.transferRoots.getByTransferRootHash(
+    dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
     if (
@@ -346,7 +347,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     logger.debug(
       `bonding transfer root ${transferRootHash} on chain ${destinationChainId}`
     )
-    await db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootHash, {
       sentBondTx: true,
       sentBondTxAt: Date.now()
     })
@@ -358,7 +359,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     tx?.wait()
       .then(async (receipt: providers.TransactionReceipt) => {
         if (receipt.status !== 1) {
-          await db.transferRoots.update(transferRootHash, {
+          await this.db.transferRoots.update(transferRootHash, {
             sentBondTx: false,
             sentBondTxAt: 0
           })
@@ -371,12 +372,12 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
           totalAmount
         })
 
-        db.transferRoots.update(transferRootHash, {
+        this.db.transferRoots.update(transferRootHash, {
           bonded: true
         })
       })
       .catch(async (err: Error) => {
-        db.transferRoots.update(transferRootHash, {
+        this.db.transferRoots.update(transferRootHash, {
           sentBondTx: false,
           sentBondTxAt: 0
         })

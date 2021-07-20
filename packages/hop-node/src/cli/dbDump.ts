@@ -1,10 +1,10 @@
-import db from 'src/db'
 import {
   Config,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from './shared/config'
 import { db as dbConfig } from 'src/config'
+import { getDbSet } from 'src/db'
 import { logger, program } from './shared'
 
 program
@@ -14,6 +14,7 @@ program
     'Name of db. Options are "transfers", "transfer-roots"'
   )
   .option('--db-path <string>', 'Path to leveldb.')
+  .option('--token <string>', 'Token symbol')
   .option('--config <string>', 'Config file to use.')
   .description('Dump leveldb database')
   .action(async (source: any) => {
@@ -26,9 +27,14 @@ program
       if (source.dbPath) {
         dbConfig.path = source.dbPath
       }
+      const tokenSymbol = source.token
+      if (!tokenSymbol) {
+        throw new Error('token is required')
+      }
       const dbName = source.db || 'transfers'
       logger.debug(`dumping ${dbName} db located at ${dbConfig.path}`)
 
+      const db = getDbSet(tokenSymbol)
       if (dbName === 'transfer-roots') {
         const transferRoots = await db.transferRoots.getTransferRoots()
         console.log(JSON.stringify(transferRoots, null, 2))

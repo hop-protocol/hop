@@ -1,12 +1,19 @@
 import makeRequest from './makeRequest'
-import { normalizeEntity } from './shared'
+import { DateTime } from 'luxon'
+import { Filters, normalizeEntity } from './shared'
+import { MAX_INT_32 } from 'src/constants'
 
 export default async function getTransferIds (
-  chain: string
+  chain: string,
+  filters: Partial<Filters> = {}
 ): Promise<any[]> {
   const query = `
-    query TransfersSent {
+    query TransfersSent($startDate: Int, $endDate: Int) {
       transferSents(
+        where: {
+          timestamp_gte: $startDate,
+          timestamp_lte: $endDate
+        },
         orderBy: blockNumber,
         orderDirection: desc,
         first: 1000,
@@ -22,6 +29,16 @@ export default async function getTransferIds (
       }
     }
   `
-  const jsonRes = await makeRequest(chain, query)
+  const variables = {
+    startDate: 0,
+    endDate: MAX_INT_32
+  }
+  if (filters?.startDate) {
+    variables.startDate = DateTime.fromISO(filters.startDate).toSeconds() >>> 0
+  }
+  if (filters?.endDate) {
+    variables.endDate = DateTime.fromISO(filters.endDate).toSeconds() >>> 0
+  }
+  const jsonRes = await makeRequest(chain, query, variables)
   return jsonRes.transferSents.map((x: any) => normalizeEntity(x))
 }

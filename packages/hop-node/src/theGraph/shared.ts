@@ -1,6 +1,11 @@
 import { DateTime } from 'luxon'
 import { ethers } from 'ethers'
 
+export type Filters = {
+  startDate: string
+  endDate: string
+}
+
 export const chainIdToSlug: any = {
   1: 'ethereum',
   100: 'xdai',

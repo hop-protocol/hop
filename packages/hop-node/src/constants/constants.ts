@@ -36,3 +36,5 @@ export const TX_RETRY_DELAY_MS = TEN_MINUTES_MS
 export const ETHEREUM_TX_MAX_DELAY_MS = 1 * 1000
 export const XDAI_TX_MAX_DELAY_MS = 20 * 1000
 export const POLYGON_TX_MAX_DELAY_MS = 10 * 1000
+
+export const MAX_INT_32 = 2147483647

@@ -19,6 +19,8 @@ program
   .option('--unconfirmed', 'Return only unconfirmed transfers')
   .option('--unsettled', 'Return only unsettled transfers')
   .option('--transfer-id <string>', 'Transfer ID')
+  .option('--from-date <string>', 'Start date in ISO format')
+  .option('--to-date <string>', 'End date in ISO format')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -28,6 +30,8 @@ program
       }
       const chain = source.chain
       const transferId = source.transferId
+      const startDate = source.fromDate
+      const endDate = source.toDate
       const filters = {
         unbonded: !!source.unbonded,
         uncommitted: !!source.uncommitted,
@@ -107,6 +111,9 @@ program
         printHeaders()
         await getTransfers(chain, (transfer: any) => {
           printTransfer(transfer)
+        }, {
+          startDate,
+          endDate
         })
         console.log('done')
       }

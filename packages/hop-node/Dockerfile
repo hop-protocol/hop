@@ -8,11 +8,9 @@ WORKDIR /usr/src/app
 USER node
 
 COPY --chown=node:node package*.json ./
-
-RUN npm install
-
 COPY --chown=node:node . .
 
+RUN npm install
 RUN npm run build
 
 ENTRYPOINT [ "./bin/hop-node" ]

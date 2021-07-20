@@ -48,12 +48,14 @@ program
           'amount'.padEnd(14, ' '),
           'source'.padEnd(10, ' '),
           'destination'.padEnd(12, ' '),
-          'timestamp'.padEnd(10, ' ')
+          'timestamp'.padEnd(18, ' '),
+          'root'.padEnd(68, ' ')
         ]
         console.log(headers.join(' '))
       }
       const printTransfer = (transfer: any) => {
         const { transferId, formattedAmount, sourceChain, destinationChain, bonded, committed, settled, transferRoot, timestampRelative } = transfer
+        const root = transferRoot?.rootHash
         const confirmed = !!transferRoot?.rootConfirmed
         const rootSet = !!transferRoot?.rootSet
         const needsSettlement = !!(bonded && confirmed && !settled)
@@ -68,7 +70,8 @@ program
           `${formattedAmount}`.padEnd(14, ' '),
           `${sourceChain}`.padEnd(10, ' '),
           `${destinationChain}`.padEnd(12, ' '),
-          `${timestampRelative}`.padEnd(10, ' ')
+          `${timestampRelative}`.padEnd(18, ' '),
+          `${root || ''}`.padEnd(68, ' ')
         ]
         const str = fields.join(' ')
         let color : string

@@ -99,6 +99,7 @@ export default async function getTransferRoot (chain: string, transferRootHash: 
   transferRoot.committed = true
   transferRoot.rootSet = !!rootSet
   transferRoot.rootSetEvent = rootSet
+  transferRoot.rootConfirmed = !!rootConfirmed
   transferRoot.rootConfirmedEvent = rootConfirmed
   transferRoot.transferIds = transferIds
 

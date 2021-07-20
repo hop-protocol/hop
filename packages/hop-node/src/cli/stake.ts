@@ -7,10 +7,7 @@ import {
 import {
   getStakeWatchers
 } from 'src/watchers/watchers'
-import {
-  config as globalConfig,
-  setConfigByNetwork
-} from 'src/config'
+
 import { logger, program } from './shared'
 
 export enum StakerAction {
@@ -20,16 +17,11 @@ export enum StakerAction {
 }
 
 export async function staker (
-  network: string,
   chain: string,
   token: string,
   amount: number,
   action: StakerAction
 ) {
-  setConfigByNetwork(network)
-  if (!network) {
-    throw new Error('network is required. Options are: kovan, goerli, mainnet')
-  }
   if (!chain) {
     throw new Error(
       'chain is required. Options are: ethereum, xdai, polygon, optimism, arbitrum'
@@ -71,7 +63,6 @@ program
   .description('Stake amount')
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
-  .option('-n, --network <string>', 'Network')
   .option('-c, --chain <string>', 'Chain')
   .option('-t, --token <string>', 'Token')
   .option('-a, --amount <number>', 'Amount (in human readable format)')
@@ -82,11 +73,10 @@ program
         const config: Config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      const network = source.network || globalConfig.network
       const chain = source.chain
       const token = source.token
       const amount = Number(source.args[0] || source.amount)
-      await staker(network, chain, token, amount, StakerAction.Stake)
+      await staker(chain, token, amount, StakerAction.Stake)
       process.exit(0)
     } catch (err) {
       logger.error(err.message)

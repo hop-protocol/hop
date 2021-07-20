@@ -21,6 +21,7 @@ program
   .option('--transfer-id <string>', 'Transfer ID')
   .option('--from-date <string>', 'Start date in ISO format')
   .option('--to-date <string>', 'End date in ISO format')
+  .option('--order <string>', 'Order direction. Options are "desc", "asc"')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -30,6 +31,7 @@ program
       }
       const chain = source.chain
       const transferId = source.transferId
+      const orderDirection = source.order
       const startDate = source.fromDate
       const endDate = source.toDate
       const filters = {
@@ -113,7 +115,8 @@ program
           printTransfer(transfer)
         }, {
           startDate,
-          endDate
+          endDate,
+          orderDesc: orderDirection !== 'asc'
         })
         console.log('done')
       }

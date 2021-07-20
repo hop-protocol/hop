@@ -4,6 +4,7 @@ import { ethers } from 'ethers'
 export type Filters = {
   startDate: string
   endDate: string
+  orderDesc: boolean
 }
 
 export const chainIdToSlug: any = {

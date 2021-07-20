@@ -2,7 +2,6 @@ import '../moduleAlias'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
-import db from 'src/db'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Event } from 'src/types'
 import { TX_RETRY_DELAY_MS } from 'src/constants'
@@ -10,6 +9,7 @@ import { wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
+  tokenSymbol: string
   label: string
   order?: () => number
   minThresholdAmount?: number
@@ -29,6 +29,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
+      tokenSymbol: config.tokenSymbol,
       tag: 'commitTransferWatcher',
       prefix: config.label,
       logColor: 'yellow',
@@ -152,7 +153,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransferSentFromDb () {
-    const dbTransfers = await db.transfers.getUncommittedTransfers({
+    const dbTransfers = await this.db.transfers.getUncommittedTransfers({
       sourceChainId: await this.bridge.getChainId()
     })
     if (dbTransfers.length) {

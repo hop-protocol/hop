@@ -22,6 +22,7 @@ export type EventCb = (event: Event, i?: number) => any
 
 @boundClass
 export default class Bridge extends ContractBase {
+  db: any
   WithdrawalBonded: string = 'WithdrawalBonded'
   TransferRootSet: string = 'TransferRootSet'
   MultipleWithdrawalsSettled: string = 'MultipleWithdrawalsSettled'
@@ -60,6 +61,7 @@ export default class Bridge extends ContractBase {
       this.tokenSymbol = tokenSymbol
     }
     this.bridgeStartListeners()
+    this.db = db.getDbSet(this.tokenSymbol)
   }
 
   // a read provider is alternative provider that can be used only for
@@ -621,7 +623,7 @@ export default class Bridge extends ContractBase {
         this.address,
         options.cacheKey
       )
-      state = await db.syncState.getByKey(cacheKey)
+      state = await this.db.syncState.getByKey(cacheKey)
     }
 
     let {
@@ -656,7 +658,7 @@ export default class Bridge extends ContractBase {
     // Sync is complete when the start block is reached since
     // it traverses backwards from head.
     if (cacheKey && start === earliestBlockInBatch) {
-      await db.syncState.update(cacheKey, {
+      await this.db.syncState.update(cacheKey, {
         latestBlockSynced: latestBlockInBatch,
         timestamp: Date.now()
       })

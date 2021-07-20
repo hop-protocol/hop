@@ -10,7 +10,7 @@ import { wait } from 'src/utils'
 
 type Config = {
   chainSlug: string
-  token: string
+  tokenSymbol: string
 }
 
 export const getL1Amb = (token: string) => {
@@ -72,24 +72,22 @@ export const executeExitTx = async (event: any, token: string) => {
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
 class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
-  token: string
-
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
+      tokenSymbol: config.tokenSymbol,
       tag: 'xDaiBridgeWatcher',
       logColor: 'yellow'
     })
-    this.token = config.token
   }
 
   async start () {
     this.started = true
     try {
-      const l1Amb = getL1Amb(this.token)
-      const l2Amb = getL2Amb(this.token)
+      const l1Amb = getL1Amb(this.tokenSymbol)
+      const l2Amb = getL2Amb(this.tokenSymbol)
 
-      this.logger.debug(`xDai ${this.token} bridge watcher started`)
+      this.logger.debug(`xDai ${this.tokenSymbol} bridge watcher started`)
       while (true) {
         if (!this.started) {
           return
@@ -102,7 +100,7 @@ class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
 
         for (const event of events) {
           try {
-            const result = await executeExitTx(event, this.token)
+            const result = await executeExitTx(event, this.tokenSymbol)
             if (!result) {
               continue
             }

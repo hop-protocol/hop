@@ -1,13 +1,20 @@
 import Logger from 'src/logger'
-import db from 'src/db'
+import { getDbSet } from 'src/db'
 import { wait } from 'src/utils'
 
 class DbLogger {
+  db: any
   logger: Logger
+  token: string
   pollIntervalSec: number = 60 * 60 * 1000
 
-  constructor () {
-    this.logger = new Logger('DbLogger')
+  constructor (token: string) {
+    this.logger = new Logger({
+      tag: 'DbLogger',
+      prefix: token
+    })
+    this.token = token
+    this.db = getDbSet(token)
   }
 
   start () {
@@ -16,11 +23,11 @@ class DbLogger {
 
   async poll () {
     while (true) {
-      const transfers = await db.transfers.getTransfers()
+      const transfers = await this.db.transfers.getTransfers()
       this.logger.debug('transfers dump:', JSON.stringify(transfers))
-      const transferRoots = await db.transferRoots.getTransferRoots()
+      const transferRoots = await this.db.transferRoots.getTransferRoots()
       this.logger.debug('transferRoots dump:', JSON.stringify(transferRoots))
-      const syncState = await db.syncState.getItems()
+      const syncState = await this.db.syncState.getItems()
       this.logger.debug('syncState dump:', JSON.stringify(syncState))
       await wait(this.pollIntervalSec)
     }

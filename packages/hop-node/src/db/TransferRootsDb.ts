@@ -33,10 +33,6 @@ export type TransferRoot = {
 }
 
 class TransferRootsDb extends BaseDb {
-  constructor (prefix: string = 'transferRoots') {
-    super(prefix)
-  }
-
   async update (transferRootHash: string, data: Partial<TransferRoot>) {
     return super.update(transferRootHash, data)
   }

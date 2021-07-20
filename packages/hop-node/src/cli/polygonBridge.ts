@@ -24,7 +24,7 @@ program
       for (const token of tokens) {
         new PolygonBridgeWatcher({
           chainSlug: Chain.Polygon,
-          token
+          tokenSymbol: token
         }).start()
       }
     } catch (err) {

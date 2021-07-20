@@ -1,6 +1,5 @@
 import '../moduleAlias'
 import chalk from 'chalk'
-import db from 'src/db'
 import { Contract, ethers, providers } from 'ethers'
 import { Event } from 'src/types'
 import { TransferRoot } from 'src/db/TransferRootsDb'
@@ -16,6 +15,7 @@ import { config as gConfig } from 'src/config'
 
 export interface Config {
   chainSlug: string
+  tokenSymbol: string
   isL1: boolean
   bridgeContract: Contract
   l1BridgeContract: Contract
@@ -27,12 +27,12 @@ export interface Config {
 
 class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
   l1Bridge: L1Bridge
-  token: string
   lastSeen: {[key: string]: number} = {}
 
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
+      tokenSymbol: config.tokenSymbol,
       tag: 'xDomainMessageRelay',
       prefix: config.label,
       logColor: 'yellow',
@@ -42,7 +42,6 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       dryMode: config.dryMode
     })
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
-    this.token = config.token
   }
 
   async watch () {
@@ -132,7 +131,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransfersCommittedFromDb () {
-    const dbTransferRoots = await db.transferRoots.getUnconfirmedTransferRoots({
+    const dbTransferRoots = await this.db.transferRoots.getUnconfirmedTransferRoots({
       sourceChainId: await this.bridge.getChainId()
     })
     if (dbTransferRoots.length) {
@@ -173,7 +172,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
   ) => {
     const logger = this.logger.create({ root: transferRootHash })
 
-    const dbTransferRoot = await db.transferRoots.getByTransferRootHash(
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
       transferRootHash
     )
 
@@ -185,7 +184,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     )
     // TODO: run poller only after event syncing has finished
     if (isTransferRootIdConfirmed) {
-      await db.transferRoots.update(transferRootHash, {
+      await this.db.transferRoots.update(transferRootHash, {
         confirmed: true
       })
       return
@@ -197,7 +196,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
         transferRootHash
       )
       if (commitTxHash) {
-        db.transferRoots.update(transferRootHash, {
+        this.db.transferRoots.update(transferRootHash, {
           commitTxHash
         })
       }
@@ -230,12 +229,12 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       return
     }
 
-    await db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootHash, {
       checkpointAttemptedAt: Date.now()
     })
 
     if (chainSlug === Chain.xDai) {
-      const l2Amb = getL2Amb(this.token)
+      const l2Amb = getL2Amb(this.tokenSymbol)
       const tx: any = await this.bridge.getTransaction(commitTxHash)
       const sigEvents = await l2Amb?.queryFilter(
         l2Amb.filters.UserRequestForSignature(),
@@ -264,9 +263,9 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
             this.logger.warn('dry mode: skipping executeExitTx transaction')
             return
           }
-          const result = await executeExitTx(sigEvent, this.token)
+          const result = await executeExitTx(sigEvent, this.tokenSymbol)
           if (result) {
-            await db.transferRoots.update(transferRootHash, {
+            await this.db.transferRoots.update(transferRootHash, {
               sentConfirmTx: true,
               sentConfirmTxAt: Date.now()
             })
@@ -274,7 +273,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
             tx?.wait()
               .then(async (receipt: any) => {
                 if (receipt.status !== 1) {
-                  await db.transferRoots.update(transferRootHash, {
+                  await this.db.transferRoots.update(transferRootHash, {
                     sentConfirmTx: false,
                     sentConfirmTxAt: 0
                   })
@@ -286,12 +285,12 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
                   destinationChainId
                 })
 
-                db.transferRoots.update(transferRootHash, {
+                this.db.transferRoots.update(transferRootHash, {
                   confirmed: true
                 })
               })
               .catch(async (err: Error) => {
-                db.transferRoots.update(transferRootHash, {
+                this.db.transferRoots.update(transferRootHash, {
                   sentConfirmTx: false,
                   sentConfirmTxAt: 0
                 })
@@ -328,15 +327,15 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
         this.logger.warn('dry mode: skipping relayMessage transaction')
         return
       }
-      const tx = await poly.relayMessage(commitTxHash, this.token)
-      await db.transferRoots.update(transferRootHash, {
+      const tx = await poly.relayMessage(commitTxHash, this.tokenSymbol)
+      await this.db.transferRoots.update(transferRootHash, {
         sentConfirmTx: true,
         sentConfirmTxAt: Date.now()
       })
       tx?.wait()
         .then(async (receipt: providers.TransactionReceipt) => {
           if (receipt.status !== 1) {
-            await db.transferRoots.update(transferRootHash, {
+            await this.db.transferRoots.update(transferRootHash, {
               sentConfirmTx: false,
               sentConfirmTxAt: 0
             })
@@ -348,12 +347,12 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
             destinationChainId
           })
 
-          db.transferRoots.update(transferRootHash, {
+          this.db.transferRoots.update(transferRootHash, {
             confirmed: true
           })
         })
         .catch(async (err: Error) => {
-          db.transferRoots.update(transferRootHash, {
+          this.db.transferRoots.update(transferRootHash, {
             sentConfirmTx: false,
             sentConfirmTxAt: 0
           })
@@ -378,7 +377,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     // function
     const poly = new PolygonBridgeWatcher({
       chainSlug: Chain.Polygon,
-      token: this.token
+      tokenSymbol: this.tokenSymbol
     })
     const privateKey = gConfig.relayerPrivateKey || gConfig.bonderPrivateKey
     poly.l1Provider = new ethers.providers.StaticJsonRpcProvider(

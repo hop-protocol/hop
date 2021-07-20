@@ -34,10 +34,6 @@ export type Transfer = {
 }
 
 class TransfersDb extends BaseDb {
-  constructor (prefix: string = 'transfers') {
-    super(prefix)
-  }
-
   async update (transferId: string, data: Partial<Transfer>) {
     return super.update(transferId, data)
   }

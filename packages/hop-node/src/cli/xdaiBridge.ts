@@ -27,7 +27,7 @@ program
       for (const token of tokens) {
         new xDaiBridgeWatcher({
           chainSlug: Chain.xDai,
-          token
+          tokenSymbol: token
         }).start()
       }
     } catch (err) {

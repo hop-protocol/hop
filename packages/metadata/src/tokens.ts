@@ -5,6 +5,7 @@ import {
   sBTCImage,
   sETHImage,
   USDCImage,
+  USDTImage,
   WBTCImage
 } from './assets'
 
@@ -35,9 +36,15 @@ export const tokens: Tokens = {
   },
   USDC: {
     symbol: 'USDC',
-    name: 'USDC',
+    name: 'USD Coin',
     decimals: 6,
     image: USDCImage
+  },
+  USDT: {
+    symbol: 'USDT',
+    name: 'Tether USD',
+    decimals: 6,
+    image: USDTImage
   },
   WBTC: {
     symbol: 'WBTC',

@@ -63,7 +63,7 @@ async function queryRootSet (chain: string, token: string, transferRootHash: str
 
 async function queryRootConfirmed (chain: string, token: string, transferRootHash: string) {
   const query = `
-    query TransferRootConfirmed($transferRootHash: String) {
+    query TransferRootConfirmed($token: String, $transferRootHash: String) {
       transferRootConfirmeds(
         where: {
           token: $token,

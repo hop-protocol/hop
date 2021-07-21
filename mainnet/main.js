@@ -108,7 +108,10 @@ const chainLogosMap = {
 }
 
 const tokenLogosMap = {
-  USDC: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/usdc.svg'
+  USDC: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/usdc.svg',
+  USDT: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/usdt.svg',
+  DAI: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/dai.svg',
+  ETH: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/ethereum.svg',
 }
 
 function explorerLink (chain, transactionHash) {
@@ -144,9 +147,6 @@ async function fetchTransfers (chain) {
   const queryL1 = `
     query TransferSentToL2 {
       transferSents: transferSentToL2S(
-        where: {
-          token: "USDC"
-        },
         first: 1000,
         orderBy: timestamp,
         orderDirection: desc
@@ -163,9 +163,6 @@ async function fetchTransfers (chain) {
   const queryL2 = `
     query TransferSents {
       transferSents(
-        where: {
-          token: "USDC"
-        },
         first: 1000,
         orderBy: timestamp,
         orderDirection: desc
@@ -196,9 +193,6 @@ async function fetchBonds (chain) {
   const query = `
     query WithdrawalBondeds {
       withdrawalBondeds(
-        where: {
-          token: "USDC"
-        },
         first: 1000,
         orderBy: timestamp,
         orderDirection: desc
@@ -206,6 +200,7 @@ async function fetchBonds (chain) {
         id
         transferId
         transactionHash
+        token
       }
     }
   `
@@ -246,7 +241,8 @@ async function updateData () {
       amount: x.amount,
       transferId: x.transferId,
       transactionHash: x.transactionHash,
-      timestamp: Number(x.timestamp)
+      timestamp: Number(x.timestamp),
+      token: x.token
     })
   }
   for (const x of polygonTransfers) {
@@ -256,7 +252,8 @@ async function updateData () {
       amount: x.amount,
       transferId: x.transferId,
       transactionHash: x.transactionHash,
-      timestamp: Number(x.timestamp)
+      timestamp: Number(x.timestamp),
+      token: x.token
     })
   }
   for (const x of mainnetTransfers) {
@@ -266,7 +263,8 @@ async function updateData () {
       amount: x.amount,
       transferId: x.id,
       transactionHash: x.transactionHash,
-      timestamp: Number(x.timestamp)
+      timestamp: Number(x.timestamp),
+      token: x.token
     })
   }
 
@@ -329,7 +327,6 @@ function populateTransfer (x, i) {
 
   const tokenDecimals = 6
   x.formattedAmount = formatCurrency(ethers.utils.formatUnits(x.amount, tokenDecimals))
-  x.token = 'USDC'
   x.tokenImageUrl = tokenLogosMap[x.token]
 
   return x

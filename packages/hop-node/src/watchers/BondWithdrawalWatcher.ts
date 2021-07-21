@@ -242,6 +242,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
         .bridge as L1Bridge
       const transferRootConfirmed = await l1Bridge.isTransferRootIdConfirmed(
+        destinationChainId,
         dbTransfer.transferRootId
       )
       if (transferRootConfirmed) {
@@ -250,11 +251,11 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
     }
 
-    logger.debug('sending bondWithdrawal tx')
     if (this.dryMode) {
       logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
       return
     }
+    logger.debug('sending bondWithdrawal tx')
 
     await this.waitTimeout(transferId, destinationChainId)
 

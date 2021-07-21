@@ -1017,9 +1017,16 @@ export class User {
     return Number(formatUnits(bondAmount.toString(), 18))
   }
 
-  async getTransferRootCommittedAt (transferRootId: string) {
+  async getTransferRootCommittedAt (destChainId: string, transferRootId: string, tokenSymbol: string) {
+    let params: any[] = []
+    if (tokenSymbol === 'USDC') {
+      params = [transferRootId]
+    } else {
+      params = [destChainId, transferRootId]
+    }
+
     const bridge = this.getHopBridgeContract(Chain.Ethereum)
-    const committedAt = await bridge.transferRootCommittedAt(transferRootId)
+    const committedAt = await bridge.transferRootCommittedAt(...params)
     return Number(committedAt.toString())
   }
 

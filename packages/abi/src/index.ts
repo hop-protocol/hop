@@ -89,6 +89,7 @@ export { default as timelockAbi } from './generated/Timelock.json'
 export { default as xDaiMessengerWrapperAbi } from './generated/xDaiMessengerWrapper.json'
 
 // Custom ABIs
+export { default as l1Erc20BridgeLegacyAbi } from './static/L1_ERC20_Bridge_Legacy.json'
 export { default as erc20MintableAbi } from './static/ERC20Mintable.json'
 export { default as arbErc20Abi } from './static/ArbERC20.json'
 export { default as l2xDaiTokenAbi } from './static/L2_xDaiToken.json'

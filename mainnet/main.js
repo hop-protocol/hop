@@ -111,7 +111,7 @@ const tokenLogosMap = {
   USDC: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/usdc.svg',
   USDT: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/usdt.svg',
   DAI: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/dai.svg',
-  ETH: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/ethereum.svg',
+  ETH: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/ethereum.svg'
 }
 
 function explorerLink (chain, transactionHash) {
@@ -397,11 +397,11 @@ async function updateChart (data) {
 
 function formatCurrency (value) {
   const currencyFormatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
+    // style: 'currency',
+    // currency: 'USD'
   })
 
-  return currencyFormatter.format(value)
+  return `$${currencyFormatter.format(value)}`
 }
 
 async function main () {

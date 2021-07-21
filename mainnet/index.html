@@ -71,17 +71,17 @@
                   {{ x.destinationChainName }}
                 </td>
                 <td class="transferId">
-                  <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank">
+                  <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank" title="View on block explorer">
                     {{ x.transferId }}
                   </a>
                 </td>
-                <td class="amount">{{ x.formattedAmount }}</td>
+                <td class="amount" :title="x.amount">{{ x.formattedAmount }}</td>
                 <td class="token">
                   <img :src="x.tokenImageUrl" :alt="x.token">
                   {{ x.token }}
                 </td>
                 <td class="bonded">
-                  <a v-if="x.bondTxExplorerUrl" :class="`${x.bonded ? 'yes' : 'no'}`" :href="x.bondTxExplorerUrl" target="_blank">
+                  <a v-if="x.bondTxExplorerUrl" :class="`${x.bonded ? 'yes' : 'no'}`" :href="x.bondTxExplorerUrl" target="_blank" title="View on block explorer">
                     <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
                     Bonded
                   </a>

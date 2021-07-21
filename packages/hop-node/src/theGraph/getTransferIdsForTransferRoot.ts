@@ -10,13 +10,15 @@ const startBlocks: any = {
 
 export default async function getTransferIdsForTransferRoot (
   chain: string,
+  token: string,
   rootHash: string
 ): Promise<string[]> {
   // get commit transfer event of root hash
   let query = `
-    query TransferCommitteds($rootHash: String) {
+    query TransferCommitteds($token: String, $rootHash: String) {
       transfersCommitteds(
         where: {
+          token: $token,
           rootHash: $rootHash
         },
         orderBy: timestamp,
@@ -29,10 +31,12 @@ export default async function getTransferIdsForTransferRoot (
         transactionHash
         timestamp
         blockNumber
+        token
       }
     }
   `
   let jsonRes = await makeRequest(chain, query, {
+    token,
     rootHash
   })
   const transferCommitted = jsonRes.transfersCommitteds?.[0]
@@ -44,9 +48,10 @@ export default async function getTransferIdsForTransferRoot (
 
   // get the previous commit transfer event
   query = `
-    query TransferCommitteds($blockNumber: String, $destinationChainId: String) {
+    query TransferCommitteds($token: String, $blockNumber: String, $destinationChainId: String) {
       transfersCommitteds(
         where: {
+          token: $token,
           blockNumber_lt: $blockNumber,
           destinationChainId: $destinationChainId,
         },
@@ -59,10 +64,12 @@ export default async function getTransferIdsForTransferRoot (
         transactionHash
         timestamp
         blockNumber
+        token
       }
     }
   `
   jsonRes = await makeRequest(chain, query, {
+    token,
     blockNumber: transferCommitted.blockNumber,
     destinationChainId
   })
@@ -78,9 +85,10 @@ export default async function getTransferIdsForTransferRoot (
 
   const endBlockNumber = transferCommitted.blockNumber
   query = `
-    query TransfersSent($startBlockNumber: String, $endBlockNumber: String, $destinationChainId: String) {
+    query TransfersSent($token: String, $startBlockNumber: String, $endBlockNumber: String, $destinationChainId: String) {
       transferSents(
         where: {
+          token: $token,
           blockNumber_gte: $startBlockNumber,
           blockNumber_lte: $endBlockNumber,
           destinationChainId: $destinationChainId
@@ -97,10 +105,12 @@ export default async function getTransferIdsForTransferRoot (
         index
         timestamp
         blockNumber
+        token
       }
     }
   `
   jsonRes = await makeRequest(chain, query, {
+    token,
     startBlockNumber: startBlockNumber.toString(),
     endBlockNumber,
     destinationChainId

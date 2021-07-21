@@ -3,11 +3,12 @@ import makeRequest from './makeRequest'
 import { Chain } from 'src/constants'
 import { chainIdToSlug, normalizeEntity } from './shared'
 
-async function queryTransferRoot (chain: string, transferRootHash: string) {
+async function queryTransferRoot (chain: string, token: string, transferRootHash: string) {
   const query = `
-    query TransferRoot($transferRootHash: String) {
+    query TransferRoot($token: String, $transferRootHash: String) {
       transfersCommitteds(
         where: {
+          token: $token,
           rootHash: $transferRootHash
         }
         orderBy: timestamp,
@@ -20,20 +21,23 @@ async function queryTransferRoot (chain: string, transferRootHash: string) {
         timestamp
         transactionHash
         blockNumber
+        token
       }
     }
   `
   const jsonRes = await makeRequest(chain, query, {
+    token,
     transferRootHash
   })
   return normalizeEntity(jsonRes.transfersCommitteds?.[0])
 }
 
-async function queryRootSet (chain: string, transferRootHash: string) {
+async function queryRootSet (chain: string, token: string, transferRootHash: string) {
   const query = `
-    query TransferRootSet($transferRootHash: String) {
+    query TransferRootSet($token: String, $transferRootHash: String) {
       transferRootSets(
         where: {
+          token: $token,
           rootHash: $transferRootHash
         }
         orderBy: timestamp,
@@ -46,20 +50,23 @@ async function queryRootSet (chain: string, transferRootHash: string) {
         timestamp
         transactionHash
         blockNumber
+        token
       }
     }
   `
   const jsonRes = await makeRequest(chain, query, {
+    token,
     transferRootHash
   })
   return normalizeEntity(jsonRes.transferRootSets?.[0])
 }
 
-async function queryRootConfirmed (chain: string, transferRootHash: string) {
+async function queryRootConfirmed (chain: string, token: string, transferRootHash: string) {
   const query = `
     query TransferRootConfirmed($transferRootHash: String) {
       transferRootConfirmeds(
         where: {
+          token: $token,
           rootHash: $transferRootHash
         }
         orderBy: timestamp,
@@ -74,26 +81,28 @@ async function queryRootConfirmed (chain: string, transferRootHash: string) {
         timestamp
         transactionHash
         blockNumber
+        token
       }
     }
   `
   const jsonRes = await makeRequest(chain, query, {
+    token,
     transferRootHash
   })
   return normalizeEntity(jsonRes.transferRootConfirmeds?.[0])
 }
 
-export default async function getTransferRoot (chain: string, transferRootHash: string): Promise<any> {
-  const transferRoot = await queryTransferRoot(chain, transferRootHash)
+export default async function getTransferRoot (chain: string, token: string, transferRootHash: string): Promise<any> {
+  const transferRoot = await queryTransferRoot(chain, token, transferRootHash)
   if (!transferRoot) {
     return transferRoot
   }
   const destinationChain = chainIdToSlug[transferRoot.destinationChainId]
 
   const [rootSet, rootConfirmed, transferIds] = await Promise.all([
-    queryRootSet(destinationChain, transferRootHash),
-    queryRootConfirmed(Chain.Ethereum, transferRootHash),
-    getTransferIdsForTransferRoot(chain, transferRootHash)
+    queryRootSet(destinationChain, token, transferRootHash),
+    queryRootConfirmed(Chain.Ethereum, token, transferRootHash),
+    getTransferIdsForTransferRoot(chain, token, transferRootHash)
   ])
 
   transferRoot.committed = true

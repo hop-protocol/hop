@@ -12,6 +12,7 @@ program
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
   .option('--chain <string>', 'Chain')
+  .option('--token <string>', 'Token')
   .option('--info', 'Show transfer root info')
   .action(async (source: any) => {
     try {
@@ -21,12 +22,17 @@ program
         await setGlobalConfigFromConfigFile(config)
       }
       const chain = source.chain
+      const token = source.token
       const showInfo = source.info
       if (!chain) {
         throw new Error('chain is required')
       }
+      if (!token) {
+        throw new Error('token is required')
+      }
       const transferRoots = await getTransferRoots(
-        chain
+        chain,
+        token
       )
       console.log(JSON.stringify(transferRoots.map((x: any) => {
         if (showInfo) {

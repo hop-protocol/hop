@@ -2,10 +2,13 @@ import makeRequest from './makeRequest'
 import { Chain } from 'src/constants'
 import { normalizeEntity } from './shared'
 
-export default async function getTransferSents (chain: string) {
+export default async function getTransferSents (chain: string, token: string) {
   const queryL1 = `
-    query TransferSentToL2 {
+    query TransferSentToL2($token: String) {
       transferSents: transferSentToL2S(
+        where: {
+          token: $token
+        },
         orderBy: timestamp,
         orderDirection: desc
       ) {
@@ -14,12 +17,16 @@ export default async function getTransferSents (chain: string) {
         amount
         transactionHash
         timestamp
+        token
       }
     }
   `
   const queryL2 = `
-    query TransferSents {
+    query TransferSents($token: String) {
       transferSents(
+        where: {
+          token: $token
+        },
         orderBy: timestamp,
         orderDirection: desc
       ) {
@@ -28,6 +35,7 @@ export default async function getTransferSents (chain: string) {
         amount
         transactionHash
         timestamp
+        token
       }
     }
   `
@@ -35,6 +43,8 @@ export default async function getTransferSents (chain: string) {
   if (chain !== Chain.Ethereum) {
     query = queryL2
   }
-  const jsonRes = await makeRequest(chain, query)
+  const jsonRes = await makeRequest(chain, query, {
+    token
+  })
   return jsonRes.transferSents.map((x: any) => normalizeEntity(x))
 }

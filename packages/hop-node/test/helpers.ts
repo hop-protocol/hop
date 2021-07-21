@@ -538,9 +538,6 @@ export class User {
 
   async getBonderFee (network: string, token: string, amount: string) {
     const decimals = await getTokenDecimals(token)
-    // TODO: fix bonder fee
-    return parseUnits('0.20', decimals)
-    /*
     const bridge = this.getHopBridgeContract(network, token)
     const minBonderBps = await bridge.minBonderBps()
     const minBonderFeeAbsolute = await bridge.minBonderFeeAbsolute()
@@ -551,7 +548,6 @@ export class User {
       ? minBonderFeeRelative
       : minBonderFeeAbsolute
     return minBonderFee
-    */
   }
 
   getBridgeAddress (network: string, token: string) {
@@ -1345,7 +1341,7 @@ export async function prepareAccounts (
       await tx.wait()
       tokenBal = await user.getBalance(network, token)
     }
-    expect(tokenBal).toBeGreaterThanOrEqual(1)
+    expect(tokenBal).toBeGreaterThanOrEqual(faucetTokensToSend)
     i++
   }
   return users

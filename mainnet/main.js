@@ -144,6 +144,9 @@ async function fetchTransfers (chain) {
   const queryL1 = `
     query TransferSentToL2 {
       transferSents: transferSentToL2S(
+        where: {
+          token: USDC
+        },
         first: 1000,
         orderBy: timestamp,
         orderDirection: desc
@@ -153,12 +156,16 @@ async function fetchTransfers (chain) {
         amount
         transactionHash
         timestamp
+        token
       }
     }
   `
   const queryL2 = `
     query TransferSents {
       transferSents(
+        where: {
+          token: USDC
+        },
         first: 1000,
         orderBy: timestamp,
         orderDirection: desc
@@ -168,6 +175,7 @@ async function fetchTransfers (chain) {
         amount
         transactionHash
         timestamp
+        token
       }
     }
   `
@@ -188,6 +196,9 @@ async function fetchBonds (chain) {
   const query = `
     query WithdrawalBondeds {
       withdrawalBondeds(
+        where: {
+          token: USDC
+        },
         first: 1000,
         orderBy: timestamp,
         orderDirection: desc

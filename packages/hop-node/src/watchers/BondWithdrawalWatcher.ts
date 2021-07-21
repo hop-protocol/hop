@@ -250,11 +250,11 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
     }
 
-    logger.debug('sending bondWithdrawal tx')
     if (this.dryMode) {
       logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
       return
     }
+    logger.debug('sending bondWithdrawal tx')
 
     await this.waitTimeout(transferId, destinationChainId)
 

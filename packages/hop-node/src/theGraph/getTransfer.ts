@@ -3,11 +3,12 @@ import getTransferRootForTransferId from './getTransferRootForTransferId'
 import makeRequest from './makeRequest'
 import { chainIdToSlug, normalizeEntity } from './shared'
 
-export default async function getTransfer (chain: string, transferId: string): Promise<any> {
+export default async function getTransfer (chain: string, token: string, transferId: string): Promise<any> {
   let query = `
-    query TransferId($transferId: String) {
+    query TransferId($token: String, $transferId: String) {
       transferSents(
         where: {
+          token: $token,
           transferId: $transferId
         },
         orderBy: timestamp,
@@ -22,10 +23,12 @@ export default async function getTransfer (chain: string, transferId: string): P
         timestamp
         transactionHash
         blockNumber
+        token
       }
     }
   `
   let jsonRes = await makeRequest(chain, query, {
+    token,
     transferId
   })
 
@@ -37,11 +40,11 @@ export default async function getTransfer (chain: string, transferId: string): P
   transfer = normalizeEntity(transfer)
 
   const destinationChain = chainIdToSlug[transfer.destinationChainId]
-  const bondedWithdrawal = await getBondedWithdrawal(destinationChain, transferId)
+  const bondedWithdrawal = await getBondedWithdrawal(destinationChain, token, transferId)
   transfer.bondedWithdrawalEvent = bondedWithdrawal
   transfer.bonded = !!bondedWithdrawal
 
-  const transferRoot = await getTransferRootForTransferId(chain, transferId)
+  const transferRoot = await getTransferRootForTransferId(chain, token, transferId)
   transfer.committed = !!transferRoot
   transfer.transferRoot = transferRoot
   transfer.transferRootHash = transferRoot?.rootHash
@@ -49,9 +52,10 @@ export default async function getTransfer (chain: string, transferId: string): P
   transfer.settled = false
   if (bondedWithdrawal && transferRoot) {
     query = `
-      query Settled($timestamp: String, $transferRootHash: String) {
+      query Settled($token: String, $timestamp: String, $transferRootHash: String) {
         multipleWithdrawalsSettleds(
           where: {
+            token: $token,
             timestamp_gte: $timestamp,
             rootHash: $transferRootHash
           },
@@ -64,10 +68,12 @@ export default async function getTransfer (chain: string, transferId: string): P
           timestamp
           transactionHash
           blockNumber
+          token
         }
       }
     `
     jsonRes = await makeRequest(destinationChain, query, {
+      token,
       timestamp: bondedWithdrawal.timestamp.toString(),
       transferRootHash: transferRoot.rootHash
     })

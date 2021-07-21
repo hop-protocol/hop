@@ -5,12 +5,14 @@ import { MAX_INT_32 } from 'src/constants'
 
 export default async function getTransferIds (
   chain: string,
+  token: string,
   filters: Partial<Filters> = {}
 ): Promise<any[]> {
   const query = `
-    query TransfersSent($orderDirection: String, $startDate: Int, $endDate: Int) {
+    query TransfersSent($token: String, $orderDirection: String, $startDate: Int, $endDate: Int) {
       transferSents(
         where: {
+          token: $token,
           timestamp_gte: $startDate,
           timestamp_lte: $endDate
         },
@@ -26,10 +28,12 @@ export default async function getTransferIds (
         index
         timestamp
         blockNumber
+        token
       }
     }
   `
   const variables = {
+    token,
     startDate: 0,
     endDate: MAX_INT_32,
     orderDirection: 'desc'

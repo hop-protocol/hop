@@ -15,6 +15,7 @@ program
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
   .option('--chain <string>', 'Chain')
+  .option('--token <string>', 'Token')
   .option('--info', 'Show transfer ID info')
   .action(async (source: any) => {
     try {
@@ -26,12 +27,17 @@ program
       const transferRootHash = source.args[0]
       const showInfo = source.info
       const chain = source.chain
+      const token = source.token
       if (!chain) {
         throw new Error('chain is required')
+      }
+      if (!token) {
+        throw new Error('token is required')
       }
       if (transferRootHash) {
         const transferIds = await getTransferIdsForTransferRoot(
           chain,
+          token,
           transferRootHash
         )
         console.log(JSON.stringify(transferIds.map((x: any) => {
@@ -42,11 +48,12 @@ program
         }), null, 2))
       } else {
         const transferIds = await getTransferIds(
-          chain
+          chain,
+          token
         )
         if (showInfo) {
           for (const { transferId } of transferIds) {
-            const transfer = await getTransfer(chain, transferId)
+            const transfer = await getTransfer(chain, token, transferId)
             console.log(JSON.stringify(transfer, null, 2))
           }
         } else {

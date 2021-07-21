@@ -14,6 +14,7 @@ program
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
   .option('--chain <string>', 'Chain')
+  .option('--token <string>', 'Token')
   .option('--unbonded', 'Return only unbonded transfers')
   .option('--uncommitted', 'Return only uncommitted transfers')
   .option('--unconfirmed', 'Return only unconfirmed transfers')
@@ -30,6 +31,7 @@ program
         await setGlobalConfigFromConfigFile(config)
       }
       const chain = source.chain
+      const token = source.token
       const transferId = source.transferId
       const orderDirection = source.order
       const startDate = source.fromDate
@@ -43,6 +45,9 @@ program
       if (!chain) {
         throw new Error('chain is required')
       }
+      if (!token) {
+        throw new Error('token is required')
+      }
       const printHeaders = () => {
         const headers = [
           'transfer ID'.padEnd(68, ' '),
@@ -52,6 +57,7 @@ program
           'rootSet'.padEnd(10, ' '),
           'settled'.padEnd(10, ' '),
           'amount'.padEnd(14, ' '),
+          'token'.padEnd(6, ' '),
           'source'.padEnd(10, ' '),
           'destination'.padEnd(12, ' '),
           'timestamp'.padEnd(18, ' '),
@@ -74,6 +80,7 @@ program
           `${rootSet}`.padEnd(10, ' '),
           `${settled}`.padEnd(10, ' '),
           `${formattedAmount}`.padEnd(14, ' '),
+          `${token}`.padEnd(6, ' '),
           `${sourceChain}`.padEnd(10, ' '),
           `${destinationChain}`.padEnd(12, ' '),
           `${timestampRelative}`.padEnd(18, ' '),
@@ -105,13 +112,13 @@ program
         console.log(color ? chalk[color](str) : str)
       }
       if (transferId) {
-        const transfer = await getTransfer(chain, transferId)
+        const transfer = await getTransfer(chain, token, transferId)
         printHeaders()
         printTransfer(transfer)
       } else {
         console.log('searching all transfers. This will take a few minutes to complete.')
         printHeaders()
-        await getTransfers(chain, (transfer: any) => {
+        await getTransfers(chain, token, (transfer: any) => {
           printTransfer(transfer)
         }, {
           startDate,

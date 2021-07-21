@@ -199,8 +199,8 @@ class LoadTest {
         if (!cache[chain]) {
           cache[chain] = {}
         }
-        cache[chain].transferSents = await getTransferSents(chain)
-        cache[chain].withdrawalBondeds = await getBondedWithdrawals(chain)
+        cache[chain].transferSents = await getTransferSents(chain, this.token)
+        cache[chain].withdrawalBondeds = await getBondedWithdrawals(chain, this.token)
       }
       for (const chain in transactions) {
         for (const txHash of transactions[chain]) {

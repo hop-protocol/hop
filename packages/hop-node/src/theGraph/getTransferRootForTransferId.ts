@@ -2,11 +2,12 @@ import getTransferIdsForTransferRoot from './getTransferIdsForTransferRoot'
 import getTransferRoot from './getTransferRoot'
 import makeRequest from './makeRequest'
 
-export default async function getTransferRootForTransferId (chain: string, transferId: string): Promise<any> {
+export default async function getTransferRootForTransferId (chain: string, token: string, transferId: string): Promise<any> {
   let query = `
-    query TransferId($transferId: String) {
+    query TransferId($token: String, $transferId: String) {
       transferSents(
         where: {
+          token: $token,
           transferId: $transferId
         },
         orderBy: timestamp,
@@ -19,18 +20,21 @@ export default async function getTransferRootForTransferId (chain: string, trans
         timestamp
         transactionHash
         blockNumber
+        token
       }
     }
   `
   let jsonRes = await makeRequest(chain, query, {
+    token,
     transferId
   })
   const transfer = jsonRes.transferSents?.[0]
   const { timestamp, destinationChainId } = transfer
   query = `
-    query TransferCommitted($timestamp: String, $destinationChainId: String) {
+    query TransferCommitted($token: String, $timestamp: String, $destinationChainId: String) {
       transfersCommitteds(
         where: {
+          token: $token,
           timestamp_gte: $timestamp,
           destinationChainId: $destinationChainId
         },
@@ -44,10 +48,12 @@ export default async function getTransferRootForTransferId (chain: string, trans
         timestamp
         transactionHash
         blockNumber
+        token
       }
     }
   `
   jsonRes = await makeRequest(chain, query, {
+    token,
     timestamp,
     destinationChainId
   })
@@ -56,11 +62,11 @@ export default async function getTransferRootForTransferId (chain: string, trans
   transfer.transferRootHash = undefined
   transfer.transferRoot = undefined
   for (const transferRoot of transferRoots) {
-    const transferIds = await getTransferIdsForTransferRoot(chain, transferRoot.rootHash)
+    const transferIds = await getTransferIdsForTransferRoot(chain, token, transferRoot.rootHash)
     const exists = transferIds.find((x: any) => x.transferId === transferId)
     if (exists) {
       // get complete object
-      return getTransferRoot(chain, transferRoot.rootHash)
+      return getTransferRoot(chain, token, transferRoot.rootHash)
     }
   }
 }

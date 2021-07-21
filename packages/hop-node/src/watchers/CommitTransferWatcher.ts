@@ -202,7 +202,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
       )
       const formattedPendingAmount = this.bridge.formatUnits(totalPendingAmount)
 
-      if (totalPendingAmount.lt(this.minThresholdAmount)) {
+      if (totalPendingAmount.lte(this.minThresholdAmount)) {
         const formattedThreshold = this.bridge.formatUnits(
           this.minThresholdAmount
         )

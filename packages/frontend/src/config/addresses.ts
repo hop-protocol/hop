@@ -24,6 +24,16 @@ if (isMainnet) {
 console.log('config network:', network)
 console.log('config addresses:', addresses.tokens)
 
+let enabledTokens : string | string[] | undefined = process.env.REACT_APP_ENABLED_TOKENS
+if (enabledTokens) {
+  enabledTokens = enabledTokens.split(',').map(x => x.trim())
+  const filteredAddresses : {[key: string]: any} = {}
+  for (const enabledToken of enabledTokens) {
+    filteredAddresses[enabledToken] = addresses.tokens[enabledToken]
+  }
+  addresses.tokens = filteredAddresses
+}
+
 export { addresses, network, networks, isMainnet }
 export const blocknativeDappid = '328621b8-952f-4a86-bd39-724ba822d416'
 export const infuraKey = '8e4fe7af961f48a1958584ec36742b44'

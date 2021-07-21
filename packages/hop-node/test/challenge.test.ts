@@ -109,8 +109,11 @@ describe('challenge valid transfer root but committed too early', () => {
         const bondForTransferAmount = await user.getBondForTransferAmount(
           totalAmount
         )
+        const destChainId = chainSlugToId(destNetwork)
         const committedAt = await user.getTransferRootCommittedAt(
-          transferRootId
+          destChainId,
+          transferRootId,
+          TOKEN
         )
         const challengerWin = committedAt <= 0
         expect(challengerWin).toBe(true)
@@ -218,8 +221,11 @@ describe.only('challenge invalid transfer root', () => {
         const bondForTransferAmount = await user.getBondForTransferAmount(
           totalAmount
         )
+        const destChainId = chainSlugToId(destNetwork)
         const committedAt = await user.getTransferRootCommittedAt(
-          transferRootId
+          destChainId,
+          transferRootId,
+          TOKEN
         )
         const challengerWin = committedAt <= 0
         expect(challengerWin).toBe(true)

@@ -5,6 +5,7 @@ import { Contract } from 'ethers'
 import {
   erc20Abi,
   l1Erc20BridgeAbi,
+  l1Erc20BridgeLegacyAbi,
   l2AmmWrapperAbi,
   l2BridgeAbi,
   swapAbi as saddleSwapAbi
@@ -14,9 +15,15 @@ import wallets from 'src/wallets'
 import { config } from 'src/config'
 
 const getL1BridgeContract = (token: string) => {
+  let abi: any
+  if (token === 'USDC') {
+    abi = l1Erc20BridgeLegacyAbi
+  } else {
+    abi = l1Erc20BridgeAbi
+  }
   return new Contract(
     config.tokens[token][Chain.Ethereum].l1Bridge,
-    l1Erc20BridgeAbi,
+    abi,
     wallets.get(Chain.Ethereum)
   )
 }

@@ -242,6 +242,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
         .bridge as L1Bridge
       const transferRootConfirmed = await l1Bridge.isTransferRootIdConfirmed(
+        destinationChainId,
         dbTransfer.transferRootId
       )
       if (transferRootConfirmed) {

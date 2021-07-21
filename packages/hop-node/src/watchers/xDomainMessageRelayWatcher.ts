@@ -180,6 +180,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     const l2Bridge = this.bridge as L2Bridge
     const { transferRootId } = dbTransferRoot
     const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
+      destinationChainId,
       transferRootId
     )
     // TODO: run poller only after event syncing has finished

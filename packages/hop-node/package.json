@@ -36,7 +36,7 @@
     "@ethersproject/experimental": "^5.0.9",
     "@ethersproject/hdnode": "^5.0.9",
     "@hop-protocol/abi": "0.0.1-beta.13",
-    "@hop-protocol/addresses": "0.0.1-beta.33",
+    "@hop-protocol/addresses": "0.0.1-beta.34",
     "@hop-protocol/metadata": "0.0.1-beta.15",
     "@hop-protocol/networks": "0.0.1-beta.17",
     "@maticnetwork/maticjs": "git+https://github.com/miguelmota/matic.js.git#patch-2",

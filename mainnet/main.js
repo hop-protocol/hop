@@ -145,7 +145,7 @@ async function fetchTransfers (chain) {
     query TransferSentToL2 {
       transferSents: transferSentToL2S(
         where: {
-          token: USDC
+          token: "USDC"
         },
         first: 1000,
         orderBy: timestamp,
@@ -164,7 +164,7 @@ async function fetchTransfers (chain) {
     query TransferSents {
       transferSents(
         where: {
-          token: USDC
+          token: "USDC"
         },
         first: 1000,
         orderBy: timestamp,
@@ -197,7 +197,7 @@ async function fetchBonds (chain) {
     query WithdrawalBondeds {
       withdrawalBondeds(
         where: {
-          token: USDC
+          token: "USDC"
         },
         first: 1000,
         orderBy: timestamp,

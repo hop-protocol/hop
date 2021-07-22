@@ -3,7 +3,6 @@ import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
-import db from 'src/db'
 import { BigNumber, Contract, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Event } from 'src/types'
@@ -11,6 +10,7 @@ import { wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
+  tokenSymbol: string
   isL1: boolean
   bridgeContract: Contract
   label: string
@@ -33,6 +33,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     super({
       tag: 'bondWithdrawalWatcher',
       chainSlug: config.chainSlug,
+      tokenSymbol: config.tokenSymbol,
       prefix: config.label,
       logColor: 'green',
       order: config.order,
@@ -154,7 +155,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       return false
     }
 
-    const dbTransfers = await db.transfers.getUnbondedSentTransfers({
+    const dbTransfers = await this.db.transfers.getUnbondedSentTransfers({
       sourceChainId: await this.bridge.getChainId()
     })
     if (dbTransfers.length) {
@@ -175,7 +176,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           `marking ${dbTransfer.transferId} as unbondable. amount: ${dbTransfer.amount}.`
         )
 
-        await db.transfers.update(transferId, {
+        await this.db.transfers.update(transferId, {
           isBondable: false
         })
 
@@ -204,7 +205,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   checkTransferSent = async (transferId: string) => {
     const logger = this.logger.create({ id: transferId })
 
-    const dbTransfer = await db.transfers.getByTransferId(transferId)
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     const {
       destinationChainId,
       sourceChainId,
@@ -224,13 +225,13 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const { isReorged, newBlockNumber, newTransactionIndex } = await sourceL2Bridge.checkReorg(originalBlockNumber, transferSentTxHash)
     if (isReorged) {
       if (newBlockNumber) {
-        await db.transfers.update(dbTransfer.transferId, {
+        await this.db.transfers.update(dbTransfer.transferId, {
           transferSentBlockNumber: newBlockNumber,
           transferSentIndex: newTransactionIndex
         })
         return
       } else {
-        await db.transfers.update(dbTransfer.transferId, {
+        await this.db.transfers.update(dbTransfer.transferId, {
           isBondable: false
         })
         return
@@ -241,6 +242,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
         .bridge as L1Bridge
       const transferRootConfirmed = await l1Bridge.isTransferRootIdConfirmed(
+        destinationChainId,
         dbTransfer.transferRootId
       )
       if (transferRootConfirmed) {
@@ -249,11 +251,11 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
     }
 
-    logger.debug('sending bondWithdrawal tx')
     if (this.dryMode) {
       logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
       return
     }
+    logger.debug('sending bondWithdrawal tx')
 
     await this.waitTimeout(transferId, destinationChainId)
 
@@ -262,7 +264,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     )
     const { attemptSwap } = await sourceL2Bridge.decodeSendData(data)
 
-    await db.transfers.update(transferId, {
+    await this.db.transfers.update(transferId, {
       sentBondWithdrawalTxAt: Date.now()
     })
 
@@ -295,7 +297,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       ?.wait()
       .then(async (receipt: providers.TransactionReceipt) => {
         if (receipt.status !== 1) {
-          await db.transfers.update(transferId, {
+          await this.db.transfers.update(transferId, {
             sentBondWithdrawalTxAt: 0
           })
           throw new Error('status=0')
@@ -316,13 +318,13 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           this.bridge.formatUnits(bondedAmount)
         )
 
-        await db.transfers.update(transferId, {
+        await this.db.transfers.update(transferId, {
           withdrawalBonded: true,
           withdrawalBondedTxHash: receipt.transactionHash
         })
       })
       .catch(async (err: Error) => {
-        await db.transfers.update(transferId, {
+        await this.db.transfers.update(transferId, {
           sentBondWithdrawalTxAt: 0
         })
 

@@ -1,6 +1,12 @@
 import { DateTime } from 'luxon'
 import { ethers } from 'ethers'
 
+export type Filters = {
+  startDate: string
+  endDate: string
+  orderDesc: boolean
+}
+
 export const chainIdToSlug: any = {
   1: 'ethereum',
   100: 'xdai',
@@ -26,8 +32,13 @@ export function normalizeEntity (x: any) {
     x.destinationChainId = Number(x.destinationChainId)
     x.destinationChain = chainIdToSlug[x.destinationChainId]
   }
+
+  // TODO: use correct decimal places for future assets
   if (x.amount) {
     x.formattedAmount = ethers.utils.formatUnits(x.amount, 6)
+  }
+  if (x.bonderFee) {
+    x.formattedBonderFee = ethers.utils.formatUnits(x.bonderFee, 6)
   }
 
   x.blockNumber = Number(x.blockNumber)

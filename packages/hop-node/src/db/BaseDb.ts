@@ -15,7 +15,13 @@ class BaseDb {
   public idMap: { [key: string]: boolean }
   logger = new Logger('config')
 
-  constructor (prefix: string) {
+  constructor (prefix: string, _namespace?: string) {
+    if (!prefix) {
+      throw new Error('db prefix is required')
+    }
+    if (_namespace) {
+      prefix = `${_namespace}:${prefix}`
+    }
     this.prefix = prefix
     const pathname = path.resolve(dbConfig.path.replace('~', os.homedir()))
     mkdirp.sync(pathname.replace(path.basename(pathname), ''))

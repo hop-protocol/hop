@@ -257,7 +257,9 @@ class HealthCheck {
       totalAmount
     )
 
+    // TODO: Use dest chainId
     const isConfirmed = await l1Bridge.isTransferRootIdConfirmed(
+      chainId,
       committedTransferRootId
     )
     if (isConfirmed) {

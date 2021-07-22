@@ -2,7 +2,6 @@ import BaseWatcher from './BaseWatcher'
 import L2Bridge from './L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
-import db from 'src/db'
 import { BigNumber, Contract } from 'ethers'
 import { Event } from 'src/types'
 import { boundClass } from 'autobind-decorator'
@@ -48,14 +47,14 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
-      const existingTransfer = await db.transfers.getByTransferId(transferId)
+      const existingTransfer = await this.db.transfers.getByTransferId(transferId)
       const isBondable = existingTransfer?.isBondable ?? true
 
       logger.debug('transfer event amount:', this.bridge.formatUnits(amount))
       logger.debug('destinationChainId:', destinationChainId)
       logger.debug('transferId:', chalk.bgCyan.black(transferId))
 
-      await db.transfers.update(transferId, {
+      await this.db.transfers.update(transferId, {
         transferId,
         destinationChainId,
         sourceChainId,
@@ -91,7 +90,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     logger.debug('transferId:', transferId)
     logger.debug('amount:', this.bridge.formatUnits(amount))
 
-    await db.transfers.update(transferId, {
+    await this.db.transfers.update(transferId, {
       withdrawalBonded: true,
       withdrawalBonder,
       withdrawalBondedTxHash: transactionHash
@@ -110,7 +109,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
     try {
       const { transactionHash } = event
-      await db.transferRoots.update(transferRootHash, {
+      await this.db.transferRoots.update(transferRootHash, {
         confirmed: true,
         confirmTxHash: transactionHash
       })
@@ -145,7 +144,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       logger.debug(`event transactionHash: ${transactionHash}`)
       logger.debug(`bonder: ${bonder}`)
 
-      await db.transferRoots.update(transferRootHash, {
+      await this.db.transferRoots.update(transferRootHash, {
         transferRootHash,
         transferRootId,
         committed: true,
@@ -195,7 +194,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       logger.debug('transferRootHash:', transferRootHash)
       logger.debug('destinationChainId:', destinationChainId)
 
-      await db.transferRoots.update(transferRootHash, {
+      await this.db.transferRoots.update(transferRootHash, {
         transferRootHash,
         transferRootId,
         totalAmount,
@@ -225,7 +224,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
     const sourceChainId = await this.bridge.getChainId()
     const destinationChainId = Number(destinationChainIdBn.toString())
-    await db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootHash, {
       sourceChainId,
       destinationChainId
     })
@@ -258,7 +257,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       // events need to be sorted from [newest...oldest] in order to pick up the endEvent first
       events = events.reverse()
       for (const event of events) {
-        const eventDbTransferRoot = await db.transferRoots.getByTransferRootHash(
+        const eventDbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
           event.args.rootHash
         )
 
@@ -354,32 +353,34 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       { startBlockNumber, endBlockNumber }
     )
 
-    logger.debug(
-      `found transfer ids for transfer root hash ${transferRootHash}\n`,
-      JSON.stringify(transferIds)
-    )
     const tree = new MerkleTree(transferIds)
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
       logger.error(
-        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}`
+        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}`,
+        JSON.stringify(transferIds)
       )
       return
     }
+
+    logger.debug(
+      `found transfer ids for transfer root hash ${transferRootHash}\n`,
+      JSON.stringify(transferIds)
+    )
 
     const transferRootId = await this.bridge.getTransferRootId(
       transferRootHash,
       totalAmount
     )
 
-    await db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootHash, {
       transferIds,
       totalAmount,
       sourceChainId
     })
 
     for (const transferId of transferIds) {
-      await db.transfers.update(transferId, {
+      await this.db.transfers.update(transferId, {
         transferRootHash,
         transferRootId
       })

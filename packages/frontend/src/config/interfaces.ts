@@ -27,6 +27,7 @@ export interface HopAddresses {
     governorAlpha: string
   }
   tokens: Bridges
+  bonders: string[]
 }
 
 export type Networks = {

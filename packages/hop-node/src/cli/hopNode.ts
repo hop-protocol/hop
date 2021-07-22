@@ -170,12 +170,12 @@ program
         for (const token of tokens) {
           new xDaiBridgeWatcher({
             chainSlug: Chain.xDai,
-            token
+            tokenSymbol: token
           }).start()
+          if (source.logDbState) {
+            new DbLogger(token).start()
+          }
         }
-      }
-      if (source.logDbState) {
-        new DbLogger().start()
       }
     } catch (err) {
       logger.error(`hop-node error: ${err.message}`)

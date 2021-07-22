@@ -1,6 +1,6 @@
 import React, { FC, useState, useMemo } from 'react'
 import { BigNumber, Contract } from 'ethers'
-import { parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import MuiButton from '@material-ui/core/Button'
@@ -273,7 +273,7 @@ const StakeWidget: FC<Props> = props => {
       kind: 'withdrawStake',
       inputProps: {
         token: stakingToken,
-        amount: formattedStakeBalance
+        amount: Number(formatUnits(stakeBalance, stakingToken?.decimals))
       },
       onConfirm: async (amountPercent: number) => {
         if (!amountPercent) return

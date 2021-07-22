@@ -498,11 +498,6 @@
         "internalType": "uint256",
         "name": "originalAmount",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "destinationChainId",
-        "type": "uint256"
       }
     ],
     "name": "challengeTransferBond",
@@ -970,11 +965,6 @@
         "internalType": "uint256",
         "name": "originalAmount",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "destinationChainId",
-        "type": "uint256"
       }
     ],
     "name": "resolveChallenge",
@@ -1267,11 +1257,6 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
       {
         "internalType": "bytes32",
         "name": "",

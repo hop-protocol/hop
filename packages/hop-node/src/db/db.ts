@@ -2,28 +2,36 @@ import SyncStateDb from './SyncStateDb'
 import TransferRootsDb from './TransferRootsDb'
 import TransfersDb from './TransfersDb'
 
-let syncStateDb: SyncStateDb | null = null
-let transfersDb: TransfersDb | null = null
-let transferRootsDb: TransferRootsDb | null = null
+export function getDbSet (tokenSymbol: string) {
+  if (!tokenSymbol) {
+    throw new Error('token symbol is required to namespace leveldbs')
+  }
 
-// lazy instantiate
-export default {
-  get transfers () {
-    if (!transfersDb) {
-      transfersDb = new TransfersDb('transfers')
+  let syncStateDb: SyncStateDb | null = null
+  let transfersDb: TransfersDb | null = null
+  let transferRootsDb: TransferRootsDb | null = null
+
+  // lazy instantiate with getters
+  return {
+    get transfers () {
+      if (!transfersDb) {
+        transfersDb = new TransfersDb('transfers', tokenSymbol)
+      }
+      return transfersDb
+    },
+    get transferRoots () {
+      if (!transferRootsDb) {
+        transferRootsDb = new TransferRootsDb('transferRoots', tokenSymbol)
+      }
+      return transferRootsDb
+    },
+    get syncState () {
+      if (!syncStateDb) {
+        syncStateDb = new SyncStateDb('state', tokenSymbol)
+      }
+      return syncStateDb
     }
-    return transfersDb
-  },
-  get transferRoots () {
-    if (!transferRootsDb) {
-      transferRootsDb = new TransferRootsDb('transferRoots')
-    }
-    return transferRootsDb
-  },
-  get syncState () {
-    if (!syncStateDb) {
-      syncStateDb = new SyncStateDb('state')
-    }
-    return syncStateDb
   }
 }
+
+export default { getDbSet }

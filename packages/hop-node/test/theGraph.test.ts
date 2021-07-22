@@ -11,6 +11,7 @@ describe('getTransferIdsForTransferRoot', () => {
       '0x332a76463a0aa69332780dc03c4c8123c965667f2ea5bc24a5b515abbe14916d'
     const transferIds = await getTransferIdsForTransferRoot(
       Chain.xDai,
+      'USDC',
       rootHash
     )
     expect(transferIds.length).toBe(128)
@@ -20,6 +21,7 @@ describe('getTransferIdsForTransferRoot', () => {
       '0x8d4379105927cf5bc4d1aa5006b38ac4637e369f4462a650fc87cc80e91f7e79'
     const transferIds = await getTransferIdsForTransferRoot(
       Chain.xDai,
+      'USDC',
       rootHash
     )
     expect(transferIds.length).toBe(77)
@@ -29,6 +31,7 @@ describe('getTransferIdsForTransferRoot', () => {
       '0x6d6753b28bb59df66525728642c1fbbed6878068620975b51a5fdbc905e3c789'
     const transferIds = await getTransferIdsForTransferRoot(
       Chain.Polygon,
+      'USDC',
       rootHash
     )
     expect(transferIds.length).toBe(3)
@@ -38,6 +41,7 @@ describe('getTransferIdsForTransferRoot', () => {
       '0x1670c930b8e54815714219269f434bccb019e66846a4f0a2763e5afde7841bac'
     const transferIds = await getTransferIdsForTransferRoot(
       Chain.Polygon,
+      'USDC',
       rootHash
     )
     expect(transferIds.length).toBe(17)
@@ -46,7 +50,7 @@ describe('getTransferIdsForTransferRoot', () => {
 
 describe('getTransferRoots', () => {
   it('xdai', async () => {
-    const transferRoots = await getTransferRoots(Chain.xDai)
+    const transferRoots = await getTransferRoots(Chain.xDai, 'USDC')
     expect(transferRoots.length).toBeGreaterThan(0)
   })
 })
@@ -54,7 +58,7 @@ describe('getTransferRoots', () => {
 describe('getTransferRoot', () => {
   it('xdai', async () => {
     const transferRootHash = '0x332a76463a0aa69332780dc03c4c8123c965667f2ea5bc24a5b515abbe14916d'
-    const transferRoot = await getTransferRoot(Chain.xDai, transferRootHash)
+    const transferRoot = await getTransferRoot(Chain.xDai, 'USDC', transferRootHash)
     expect(transferRoot.rootSet).toBeTruthy()
     expect(transferRoot.rootConfirmed).toBeTruthy()
     expect(transferRoot.transferIds.length).toBeGreaterThan(0)
@@ -64,14 +68,14 @@ describe('getTransferRoot', () => {
 describe('getTransfer', () => {
   it('xdai - 1', async () => {
     const transferId = '0xb7329b58f3ab879e40df7d2fabf21e591a35adb42803cc4b676fa726a6252ab7'
-    const transfer = await getTransfer(Chain.xDai, transferId)
+    const transfer = await getTransfer(Chain.xDai, 'USDC', transferId)
     expect(transfer.transferId).toBe(transferId)
     expect(transfer.transactionHash).toBe('0xf65c586478e6b3d96379fc5b98f246a5f31e39f84e9bd479e6281601dd79fcbd')
     expect(transfer.bondedWithdrawal.transactionHash).toBe('0x94e7fed9b1a18c2824f49c7dddacccbd487116c3b05db32ccd438b26ad171cf3')
   }, 10 * 1000)
   it('xdai - 2', async () => {
     const transferId = '0xd363e79ac21502354ac30403c6984592dd4718cec2f1896526493d8d1779dd33'
-    const transfer = await getTransfer(Chain.xDai, transferId)
+    const transfer = await getTransfer(Chain.xDai, 'USDC', transferId)
     expect(transfer.transferId).toBe(transferId)
     expect(transfer.transferRootHash).toBe('0x94a8cb4f0261c26937703bf4598b93ac815fd39efcecadf092e7657cbe51a0fe')
   }, 10 * 1000)
@@ -80,7 +84,7 @@ describe('getTransfer', () => {
 describe('getBondedWithdrawal', () => {
   it('polygon', async () => {
     const transferId = '0xb7329b58f3ab879e40df7d2fabf21e591a35adb42803cc4b676fa726a6252ab7'
-    const item = await getBondedWithdrawal(Chain.Polygon, transferId)
+    const item = await getBondedWithdrawal(Chain.Polygon, 'USDC', transferId)
     expect(item.transferId).toBe(transferId)
   })
 })

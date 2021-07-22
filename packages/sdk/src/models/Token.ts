@@ -10,6 +10,7 @@ class Token {
   public readonly name: string
 
   static USDC = 'USDC'
+  static USDT = 'USDT'
   static DAI = 'DAI'
   static WBTC = 'WBTC'
   static sBTC = 'sBTC'

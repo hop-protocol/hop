@@ -11,6 +11,7 @@ import { isL1ChainId, wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
+  tokenSymbol: string
   label: string
   isL1: boolean
   bridgeContract: Contract
@@ -31,6 +32,7 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
+      tokenSymbol: config.tokenSymbol,
       tag: 'stakeWatcher',
       prefix: config.label,
       logColor: 'green',

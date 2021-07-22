@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/networks",
-  "version": "0.0.1-beta.16",
+  "version": "0.0.1-beta.17",
   "description": "Hop Protocol networks config",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,7 +28,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@hop-protocol/metadata": "0.0.1-beta.14",
+    "@hop-protocol/metadata": "0.0.1-beta.15",
     "deepmerge": "^4.2.2"
   },
   "devDependencies": {

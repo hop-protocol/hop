@@ -53,6 +53,7 @@ function getStakeWatchers (
       const stakeWatcher = new StakeWatcher({
         isL1: network === Chain.Ethereum,
         chainSlug: network,
+        tokenSymbol: token,
         label: `${network}.${token}`,
         bridgeContract,
         tokenContract,
@@ -166,6 +167,7 @@ function startWatchers (
 
       const bondWithdrawalWatcher = new BondWithdrawalWatcher({
         chainSlug: network,
+        tokenSymbol: token,
         order,
         label,
         isL1,
@@ -183,6 +185,7 @@ function startWatchers (
 
       const bondTransferRootWatcher = new BondTransferRootWatcher({
         chainSlug: network,
+        tokenSymbol: token,
         order,
         label,
         isL1,
@@ -198,6 +201,7 @@ function startWatchers (
 
       const settleBondedWithdrawalWatcher = new SettleBondedWithdrawalWatcher({
         chainSlug: network,
+        tokenSymbol: token,
         order,
         label,
         isL1,
@@ -218,6 +222,7 @@ function startWatchers (
 
       const commitTransferWatcher = new CommitTransferWatcher({
         chainSlug: network,
+        tokenSymbol: token,
         order,
         label,
         isL1,
@@ -236,6 +241,7 @@ function startWatchers (
       if (network !== Chain.Ethereum) {
         const l2ExitWatcher = new xDomainMessageRelayWatcher({
           chainSlug: network,
+          tokenSymbol: token,
           isL1: false,
           label: `${network}.${token}`,
           token,
@@ -348,6 +354,7 @@ function startChallengeWatchers (
         chainSlug: network,
         isL1,
         bridgeContract,
+        tokenSymbol: token,
         label: network,
         dryMode: true // force dry mode until further tested
       })

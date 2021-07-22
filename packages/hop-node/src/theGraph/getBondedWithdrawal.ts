@@ -1,12 +1,13 @@
 import makeRequest from './makeRequest'
 import { normalizeEntity } from './shared'
 
-export default async function getBondedWithdrawal (chain: string, transferId: string) {
+export default async function getBondedWithdrawal (chain: string, token: string, transferId: string) {
   const query = `
-    query WithdrawalBonded($transferId: String) {
+    query WithdrawalBonded($token: String, $transferId: String) {
       withdrawalBondeds(
         where: {
-          transferId: $transferId
+          transferId: $transferId,
+          token: $token
         },
         orderBy: timestamp,
         orderDirection: desc,
@@ -14,13 +15,19 @@ export default async function getBondedWithdrawal (chain: string, transferId: st
       ) {
         id
         transferId
+        amount
+
+        transactionHash
+        transactionIndex
         timestamp
         blockNumber
-        transactionHash
+        contractAddress
+        token
       }
     }
   `
   const jsonRes = await makeRequest(chain, query, {
+    token,
     transferId
   })
 

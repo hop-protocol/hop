@@ -20,7 +20,8 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0x9D373d22FD091d7f9A6649EB067557cc12Fb1A0A',
         l1Amb: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
         l2Amb: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59',
-        canonicalBridgeMaxPerTx: '1000000000'
+        canonicalBridgeMaxPerTx: 1000000000,
+        l2BridgeDeployedBlockNumber: 16617211
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
@@ -34,7 +35,8 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0x9D373d22FD091d7f9A6649EB067557cc12Fb1A0A',
         l1FxBaseRootTunnel: '0x10541b07d8Ad2647Dc6cD67abd4c03575dade261',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf'
+        l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
+        l2BridgeDeployedBlockNumber: 15810014
       }
     },
     USDT: {
@@ -54,7 +56,8 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0x5b10222f2Ada260AAf6C6fC274bd5810AF9d33c0',
         l1Amb: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
         l2Amb: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59',
-        canonicalBridgeMaxPerTx: '1000000000'
+        canonicalBridgeMaxPerTx: 1000000000,
+        l2BridgeDeployedBlockNumber: 17155195
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
@@ -68,7 +71,8 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0x3cA3218D6c52B640B0857cc19b69Aa9427BC842C',
         l1FxBaseRootTunnel: '0xe7C1D08aC706444F356af2D37541d8d57e8C57B6',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf'
+        l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
+        l2BridgeDeployedBlockNumber: 17058878
       }
     }
   }

@@ -69,13 +69,14 @@ class TransfersDb extends BaseDb {
 
     // https://stackoverflow.com/a/9175783/1439168
     return transfers
-      .sort((a, b) =>
-        Number(
-          a?.transferSentBlockNumber > b?.transferSentBlockNumber ||
-            a?.transferSentIndex > b?.transferSentIndex
-        )
-      )
       .filter(x => x)
+      .sort((a, b) => {
+        if (a.transferSentIndex > b.transferSentIndex) return 1
+        if (a.transferSentIndex < b.transferSentIndex) return -1
+        if (a.transferSentBlockNumber > b.transferSentBlockNumber) return 1
+        if (a.transferSentBlockNumber < b.transferSentBlockNumber) return -1
+        return 0
+      })
   }
 
   async getUnsettledBondedWithdrawalTransfers (

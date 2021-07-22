@@ -241,10 +241,11 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       .bridge as L2Bridge
 
     const eventBlockNumber: number = event.blockNumber
-
     let startSearchBlockNumber: number
     let startEvent: Event
     let endEvent: Event
+
+    let startBlockNumber = sourceBridge.getDeployedBlockNumber()
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
       startSearchBlockNumber = start
       let events = await sourceBridge.getTransfersCommittedEvents(start, end)
@@ -274,38 +275,23 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
 
       return true
     },
-    { endBlockNumber: eventBlockNumber }
+    { endBlockNumber: eventBlockNumber, startBlockNumber }
     )
 
     if (!endEvent) {
       return
     }
 
-    let startBlockNumber
     const endBlockNumber = endEvent.blockNumber
     if (startEvent) {
       startBlockNumber = startEvent.blockNumber
-    } else {
-      // There will not be a startEvent if this was the first CommitTransfers event for
-      // this token since the deployment of the bridge contract
-      const sourceBridgeAddress = sourceBridge.getAddress()
-      const codeAtAddress = await sourceBridge.getCode(
-        sourceBridgeAddress,
-        startSearchBlockNumber
-      )
-      if (codeAtAddress === '0x') {
-        startBlockNumber = startSearchBlockNumber
-      }
+    }
 
-      // There is an error if there is no startBlockNumber at this point unless this is the first sync and the first
-      // root hash cannot be reconstructed because we do not go back far enough to find the next TransfersCommitted
-      // event. In this case, use this error log as an informative warning rather than an error.
-      if (!startBlockNumber) {
-        logger.error(
-          `Too many blocks between two TransfersCommitted events. Search Start: ${startSearchBlockNumber}. End Event: ${endEvent.blockNumber}`
-        )
-        return
-      }
+    if (!startBlockNumber) {
+      logger.error(
+        `Too many blocks between two TransfersCommitted events. Search Start: ${startSearchBlockNumber}. End Event: ${endEvent.blockNumber}`
+      )
+      return
     }
 
     const transferIds: string[] = []

@@ -18,9 +18,14 @@ async function queryTransferRoot (chain: string, token: string, transferRootHash
         id
         rootHash
         destinationChainId
-        timestamp
+        totalAmount
+        rootCommittedAt
+
         transactionHash
+        transactionIndex
+        timestamp
         blockNumber
+        contractAddress
         token
       }
     }
@@ -47,9 +52,12 @@ async function queryRootSet (chain: string, token: string, transferRootHash: str
         id
         rootHash
         totalAmount
-        timestamp
+
         transactionHash
+        transactionIndex
+        timestamp
         blockNumber
+        contractAddress
         token
       }
     }
@@ -78,9 +86,12 @@ async function queryRootConfirmed (chain: string, token: string, transferRootHas
         totalAmount
         originChainId
         destinationChainId
-        timestamp
+
         transactionHash
+        transactionIndex
+        timestamp
         blockNumber
+        contractAddress
         token
       }
     }

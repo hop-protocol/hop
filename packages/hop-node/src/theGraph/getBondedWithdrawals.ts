@@ -13,9 +13,13 @@ export default async function getBondedWithdrawals (chain: string, token: string
       ) {
         id
         transferId
+        amount
+
+        transactionHash
+        transactionIndex
         timestamp
         blockNumber
-        transactionHash
+        contractAddress
         token
       }
     }

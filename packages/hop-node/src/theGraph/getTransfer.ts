@@ -17,12 +17,20 @@ export default async function getTransfer (chain: string, token: string, transfe
       ) {
         id
         transferId
-        amount
-        index
         destinationChainId
-        timestamp
+        recipient
+        amount
+        transferNonce
+        bonderFee
+        index
+        amountOutMin
+        deadline
+
         transactionHash
+        transactionIndex
+        timestamp
         blockNumber
+        contractAddress
         token
       }
     }
@@ -64,6 +72,8 @@ export default async function getTransfer (chain: string, token: string, transfe
           first: 1
         ) {
           id
+          bonder
+          totalBondsSettled
           rootHash
           timestamp
           transactionHash

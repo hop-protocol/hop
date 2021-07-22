@@ -13,10 +13,21 @@ export default async function getTransferSents (chain: string, token: string) {
         orderDirection: desc
       ) {
         id
+        transferId
         destinationChainId
+        recipient
         amount
+        transferNonce
+        bonderFee
+        index
+        amountOutMin
+        deadline
+
         transactionHash
+        transactionIndex
         timestamp
+        blockNumber
+        contractAddress
         token
       }
     }
@@ -30,11 +41,22 @@ export default async function getTransferSents (chain: string, token: string) {
         orderBy: timestamp,
         orderDirection: desc
       ) {
+        id
         transferId
         destinationChainId
+        recipient
         amount
+        transferNonce
+        bonderFee
+        index
+        amountOutMin
+        deadline
+
         transactionHash
+        transactionIndex
         timestamp
+        blockNumber
+        contractAddress
         token
       }
     }

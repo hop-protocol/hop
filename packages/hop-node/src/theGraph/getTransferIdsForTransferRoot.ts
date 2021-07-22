@@ -28,9 +28,14 @@ export default async function getTransferIdsForTransferRoot (
         id
         rootHash
         destinationChainId
+        totalAmount
+        rootCommittedAt
+
         transactionHash
+        transactionIndex
         timestamp
         blockNumber
+        contractAddress
         token
       }
     }
@@ -61,6 +66,9 @@ export default async function getTransferIdsForTransferRoot (
       ) {
         id
         rootHash
+        destinationChainId
+        totalAmount
+        rootCommittedAt
         transactionHash
         timestamp
         blockNumber
@@ -99,8 +107,14 @@ export default async function getTransferIdsForTransferRoot (
       ) {
         id
         transferId
-        amount
         destinationChainId
+        recipient
+        amount
+        transferNonce
+        bonderFee
+        index
+        amountOutMin
+        deadline
         transactionHash
         index
         timestamp

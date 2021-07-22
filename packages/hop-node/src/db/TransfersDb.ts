@@ -71,10 +71,10 @@ class TransfersDb extends BaseDb {
     return transfers
       .filter(x => x)
       .sort((a, b) => {
-        if (a.transferSentIndex > b.transferSentIndex) return 1
-        if (a.transferSentIndex < b.transferSentIndex) return -1
         if (a.transferSentBlockNumber > b.transferSentBlockNumber) return 1
         if (a.transferSentBlockNumber < b.transferSentBlockNumber) return -1
+        if (a.transferSentIndex > b.transferSentIndex) return 1
+        if (a.transferSentIndex < b.transferSentIndex) return -1
         return 0
       })
   }

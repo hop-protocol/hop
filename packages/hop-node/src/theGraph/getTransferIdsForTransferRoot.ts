@@ -69,9 +69,12 @@ export default async function getTransferIdsForTransferRoot (
         destinationChainId
         totalAmount
         rootCommittedAt
+
         transactionHash
+        transactionIndex
         timestamp
         blockNumber
+        contractAddress
         token
       }
     }
@@ -115,10 +118,12 @@ export default async function getTransferIdsForTransferRoot (
         index
         amountOutMin
         deadline
+
         transactionHash
-        index
+        transactionIndex
         timestamp
         blockNumber
+        contractAddress
         token
       }
     }

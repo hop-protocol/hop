@@ -351,18 +351,20 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       { startBlockNumber, endBlockNumber }
     )
 
-    logger.debug(
-      `found transfer ids for transfer root hash ${transferRootHash}\n`,
-      JSON.stringify(transferIds)
-    )
     const tree = new MerkleTree(transferIds)
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
       logger.error(
-        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}`
+        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}`,
+        JSON.stringify(transferIds)
       )
       return
     }
+
+    logger.debug(
+      `found transfer ids for transfer root hash ${transferRootHash}\n`,
+      JSON.stringify(transferIds)
+    )
 
     const transferRootId = await this.bridge.getTransferRootId(
       transferRootHash,

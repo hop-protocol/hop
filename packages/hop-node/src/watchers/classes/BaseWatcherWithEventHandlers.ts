@@ -294,7 +294,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       return
     }
 
-    const transferIds: string[] = []
+    const transfers: any[] = []
     await sourceBridge.eventsBatch(
       async (start: number, end: number) => {
         let transferEvents = await sourceBridge.getTransferSentEvents(
@@ -331,24 +331,35 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
             }
           }
 
-          transferIds.unshift(event.args.transferId)
+          transfers.unshift({
+            transferId: event.args.transferId,
+            index: Number(event.args.index.toString())
+          })
         }
       },
       { startBlockNumber, endBlockNumber }
     )
 
-    logger.debug(
-      `found transfer ids for transfer root hash ${transferRootHash}\n`,
-      JSON.stringify(transferIds)
-    )
+    // this gets only the last set of sequence of transfers {0, 1,.., n}
+    // where n is the transfer id index.
+    // example: {0, 0, 1, 2, 3, 4, 5, 6, 7, 0, 0, 1, 2, 3} ⟶  {0, 1, 2, 3}
+    const lastIndexZero = transfers.map((x: any) => x.index).lastIndexOf(0)
+    const filtered = transfers.slice(lastIndexZero)
+    const transferIds = filtered.map((x: any) => x.transferId)
+
     const tree = new MerkleTree(transferIds)
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
       logger.error(
-        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}`
+        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. List: ${JSON.stringify(transfers)}`
       )
       return
     }
+
+    logger.debug(
+      `found transfer ids for transfer root hash ${transferRootHash}\n`,
+      JSON.stringify(transferIds)
+    )
 
     const transferRootId = await this.bridge.getTransferRootId(
       transferRootHash,

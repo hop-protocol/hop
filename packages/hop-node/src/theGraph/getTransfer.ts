@@ -75,9 +75,12 @@ export default async function getTransfer (chain: string, token: string, transfe
           bonder
           totalBondsSettled
           rootHash
-          timestamp
+
           transactionHash
+          transactionIndex
+          timestamp
           blockNumber
+          contractAddress
           token
         }
       }

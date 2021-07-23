@@ -149,6 +149,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
         transferRootHash: root,
         bonded: true,
         bonder,
+        bondTotalAmount: amount,
         bondTxHash: transactionHash,
         bondedAt: timestamp,
         bondTransferRootId: transferRootId

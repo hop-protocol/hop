@@ -191,7 +191,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
 
       await this.checkChallengeableTransferRoot(
         rootHash,
-        dbTransferRoot.totalAmount
+        dbTransferRoot.bondTotalAmount
       )
     }
   }

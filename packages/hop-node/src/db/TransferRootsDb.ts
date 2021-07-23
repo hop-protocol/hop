@@ -26,12 +26,14 @@ export type TransferRoot = {
   sentBondTx?: boolean
   sentBondTxAt?: number
   bondTxHash?: string
+  bondedAt?: number
   transferIds?: string[]
   bonder?: string
   checkpointAttemptedAt?: number
   withdrawalBondSettleTxSentAt?: number
   bondTransferRootId?: string
   challenged?: boolean
+  challengeTimeExpired?: boolean
 }
 
 class TransferRootsDb extends BaseDb {
@@ -148,7 +150,8 @@ class TransferRootsDb extends BaseDb {
         item.transferRootHash &&
         item.bonded &&
         !isTransferRootIdValid &&
-        !item.challenged
+        !item.challenged &&
+        !item.challengeTimeExpired
       )
     })
   }

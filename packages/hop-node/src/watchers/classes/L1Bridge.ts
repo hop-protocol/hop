@@ -314,4 +314,10 @@ export default class L1Bridge extends Bridge {
     )
     return address !== ethers.constants.AddressZero
   }
+
+  @rateLimitRetry
+  async getChallengePeriod (): Promise<number> {
+    const challengePeriod = await this.getReadBridgeContract().challengePeriod()
+    return challengePeriod
+  }
 }

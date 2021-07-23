@@ -163,15 +163,19 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
   ) => {
     const logger = this.logger.create({ root: rootHash })
     const { transactionHash } = event
+    const l1Bridge = this.bridge as L1Bridge
+    const timestamp = await l1Bridge.getEventTimestamp(event)
 
     logger.debug('handling TransferBondChallenged event')
     logger.debug(`transferRootId: ${transferRootId}`)
     logger.debug(`rootHash: ${rootHash}`)
     logger.debug(`originalAmount: ${this.bridge.formatUnits(originalAmount)}`)
     logger.debug(`event transactionHash: ${transactionHash}`)
+    logger.debug(`event timestamp: ${timestamp}`)
 
     await this.db.transferRoots.update(rootHash, {
       challenged: true,
+      bondedAt: timestamp,
       bondTransferRootId: transferRootId
     })
   }
@@ -227,6 +231,15 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     const bond = await l1Bridge.getTransferBond(transferRootId)
     if (bond.challengeStartTime.toNumber() > 0) {
       this.shouldSkipChallenge[transferRootHash] = true
+      return
+    }
+
+    const challengePeriod = await l1Bridge.getChallengePeriod()
+    if (dbTransferRoot.bondedAt + challengePeriod < Date.now) {
+      await this.db.transferRoots.update(transferRootHash, {
+        challengeTimeExpired: true
+      })
+
       return
     }
 

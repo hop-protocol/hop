@@ -39,7 +39,7 @@
     "@hop-protocol/addresses": "0.0.1-beta.34",
     "@hop-protocol/metadata": "0.0.1-beta.15",
     "@hop-protocol/networks": "0.0.1-beta.17",
-    "@maticnetwork/maticjs": "git+https://github.com/miguelmota/matic.js.git#patch-2",
+    "@maticnetwork/maticjs": "2.0.45",
     "@slack/web-api": "^6.1.0",
     "@types/debounce-promise": "^3.1.3",
     "@types/js-yaml": "^4.0.1",

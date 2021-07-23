@@ -243,6 +243,13 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       return
     }
 
+    if (this.dryMode) {
+      this.logger.warn(
+        'dry mode: skipping challengeTransferRootBond notification'
+      )
+      return
+    }
+
     const challengeMsg = `TransferRoot should be challenged! Root hash: ${transferRootHash}. Total amt: ${totalAmount}.`
     logger.debug(challengeMsg)
     await this.notifier.warn(challengeMsg)

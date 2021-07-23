@@ -355,7 +355,7 @@ function startChallengeWatchers (
         tokenSymbol: token,
         isL1,
         label: `${network}.${token}`,
-        dryMode: true // force dry mode until further tested
+        dryMode: dryMode
       })
       challengeWatchers[token] = challengeWatchers[token] || {}
       challengeWatchers[token][chainId] = challengeWatcher

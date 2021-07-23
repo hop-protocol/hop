@@ -115,11 +115,30 @@ export default class L1Bridge extends Bridge {
     )
   }
 
+  @rateLimitRetry
+  async getTransferBondChallengedEvents (
+    startBlockNumber: number,
+    endBlockNumber: number
+  ): Promise<Event[]> {
+    return this.getReadBridgeContract().queryFilter(
+      this.getReadBridgeContract().filters.TransferBondChallenged(),
+      startBlockNumber,
+      endBlockNumber
+    )
+  }
+
   async mapTransferRootBondedEvents (
     cb: EventCb,
     options?: Partial<EventsBatchOptions>
   ) {
     return this.mapEventsBatch(this.getTransferRootBondedEvents, cb, options)
+  }
+
+  async mapTransferBondChallengedEvents (
+    cb: EventCb,
+    options?: Partial<EventsBatchOptions>
+  ) {
+    return this.mapEventsBatch(this.getTransferBondChallengedEvents, cb, options)
   }
 
   async getLastTransferRootBondedEvent (): Promise<any> {

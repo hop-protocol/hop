@@ -122,34 +122,36 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
   }
 
   async handleTransferRootBondedEvent (
-    transferRootHash: string,
-    totalAmount: BigNumber,
+    root: string,
+    amount: BigNumber,
     event: Event
   ) {
-    const logger = this.logger.create({ root: transferRootHash })
+    const logger = this.logger.create({ root: root })
     logger.debug('handling TransferRootBonded event')
 
     try {
       const { transactionHash } = event
       const tx = await this.bridge.getTransaction(transactionHash)
       const { from: bonder } = tx
+      const eventTimestamp = await this.bridge.getEventTimestamp(event)
       const transferRootId = await this.bridge.getTransferRootId(
-        transferRootHash,
-        totalAmount
+        root,
+        amount
       )
 
-      logger.debug(`transferRootHash from event: ${transferRootHash}`)
-      logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
+      logger.debug(`transferRootHash from event: ${root}`)
+      logger.debug(`bondAmount: ${this.bridge.formatUnits(amount)}`)
       logger.debug(`transferRootId: ${transferRootId}`)
       logger.debug(`event transactionHash: ${transactionHash}`)
       logger.debug(`bonder: ${bonder}`)
 
-      await this.db.transferRoots.update(transferRootHash, {
-        transferRootHash,
+      await this.db.transferRoots.update(root, {
+        transferRootHash: root,
         transferRootId,
-        committed: true,
+        confirmed: true,
+        confirmedAt: eventTimestamp,
         bonded: true,
-        totalAmount,
+        totalAmount: amount,
         bonder,
         bondTxHash: transactionHash
       })

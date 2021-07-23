@@ -30,6 +30,7 @@ export type TransferRoot = {
   bonder?: string
   checkpointAttemptedAt?: number
   withdrawalBondSettleTxSentAt?: number
+  challenged?: boolean
 }
 
 class TransferRootsDb extends BaseDb {
@@ -139,13 +140,11 @@ class TransferRootsDb extends BaseDb {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
       return (
-        !item.confirmed &&
-        !item.confirmedAt &&
-        item.bonded &&
-        !item.sentConfirmTx &&
-        !item.sentConfirmTxAt &&
-        item.transferRootHash,
-        item.totalAmount
+        item.transferRootHash &&
+        item.confirmed &&
+        item.confirmedAt &&
+        !item.committed &&
+        !item.challenged
       )
     })
   }

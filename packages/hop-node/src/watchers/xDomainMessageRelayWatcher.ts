@@ -153,7 +153,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       // only process message after waiting 10 minutes
       const timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
       if (!timestampOk) {
-        return
+        continue
       }
 
       // Retry a tx if it is in the mempool for too long
@@ -161,7 +161,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
         const xDomainMessageSentTimestampOk = dbTransferRoot?.checkpointAttemptedAt + TX_RETRY_DELAY_MS <
             Date.now()
         if (!xDomainMessageSentTimestampOk) {
-          return
+          continue
         }
       }
 

@@ -141,8 +141,7 @@ class TransferRootsDb extends BaseDb {
     return transfers.filter(item => {
       return (
         item.transferRootHash &&
-        item.confirmed &&
-        item.confirmedAt &&
+        item.bonded &&
         !item.committed &&
         !item.challenged
       )

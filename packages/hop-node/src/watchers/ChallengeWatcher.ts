@@ -212,27 +212,6 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       transferRootHash
     )
 
-    const currentChainId: number = await this.bridge.getChainId()
-    const activeChainIds: number[] = await this.bridge.getChainIds()
-    let isRootHashCommitted: boolean
-    let sourceChainId: number
-    for (const chainId of activeChainIds) {
-      if (currentChainId === chainId) {
-        continue
-      }
-
-      const isRootHashCommitted = dbTransferRoot?.committed
-      if (isRootHashCommitted) {
-        sourceChainId = chainId
-      }
-    }
-
-    if (isRootHashCommitted) {
-      logger.info(`rootHash has a valid commit on the source chainId ${sourceChainId}`)
-      this.shouldSkipChallenge[transferRootHash] = true
-      return
-    }
-
     const l1Bridge = this.bridge as L1Bridge
     const transferRootCommittedAt = await l1Bridge.getTransferRootCommittedAt(
       dbTransferRoot.destinationChainId, transferRootId

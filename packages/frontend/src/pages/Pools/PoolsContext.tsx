@@ -444,7 +444,6 @@ const PoolsContextProvider: FC = ({ children }) => {
       const formattedBalance = Number(
         formatUnits(balance.toString(), lpTokenDecimals)
       )
-      let liquidityTokensAmount = 0
 
       let tx: any
       const approved = await lpToken.allowance(
@@ -502,17 +501,12 @@ const PoolsContextProvider: FC = ({ children }) => {
           }
         },
         onConfirm: async (amountPercent: number) => {
-          liquidityTokensAmount = formattedBalance * (amountPercent / 100)
-          const parsedLiquidityTokenAmount = parseUnits(
-            liquidityTokensAmount.toString(),
-            lpTokenDecimals
-          )
-
+          const liquidityTokenAmount = balance.mul(amountPercent).div(100)
           const bridge = sdk.bridge(canonicalToken.symbol)
           return bridge
             .connect(signer as Signer)
             .removeLiquidity(
-              parsedLiquidityTokenAmount,
+              liquidityTokenAmount,
               selectedNetwork.slug,
               {
                 amount0Min,

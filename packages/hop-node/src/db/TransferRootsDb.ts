@@ -30,6 +30,7 @@ export type TransferRoot = {
   bonder?: string
   checkpointAttemptedAt?: number
   withdrawalBondSettleTxSentAt?: number
+  bondTransferRootId?: string
   challenged?: boolean
 }
 
@@ -139,10 +140,14 @@ class TransferRootsDb extends BaseDb {
   ): Promise<TransferRoot[]> {
     const transfers = await this.getTransferRoots()
     return transfers.filter(item => {
+      // Do not check if a rootHash has been committed. A rootHash can be committed and bonded,
+      // but if the bond uses a different totalAmount then it is fraudulent. Instead, use the
+      // transferRootId. If transferRootIds do not match then we know the bond is fraudulent.
+      const isTransferRootIdValid = item.bondTransferRootId === item.transferRootId
       return (
         item.transferRootHash &&
         item.bonded &&
-        !item.committed &&
+        !isTransferRootIdValid &&
         !item.challenged
       )
     })

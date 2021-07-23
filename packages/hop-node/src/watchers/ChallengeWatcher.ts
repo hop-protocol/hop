@@ -171,7 +171,8 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     logger.debug(`event transactionHash: ${transactionHash}`)
 
     await this.db.transferRoots.update(rootHash, {
-      challenged: true
+      challenged: true,
+      bondTransferRootId: transferRootId
     })
   }
 

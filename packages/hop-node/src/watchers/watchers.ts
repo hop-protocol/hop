@@ -340,27 +340,31 @@ function startChallengeWatchers (
   const watchers: any[] = []
   const challengeWatchers: any = {}
   for (const token of _tokens) {
-    const network = Chain.Ethereum
-    if (!contracts.has(token, network)) {
-      continue
-    }
-    const chainId = chainSlugToId(network)
-    const challengeWatcher = new ChallengeWatcher({
-      chainSlug: network,
-      l1BridgeContract: contracts.get(token, Chain.Ethereum).l1Bridge,
-      tokenSymbol: token,
-      label: network,
-      dryMode: true // force dry mode until further tested
-    })
-    challengeWatchers[token] = challengeWatchers[token] || {}
-    challengeWatchers[token][chainId] = challengeWatcher
-    watchers.push(challengeWatcher)
-    for (const watcher in challengeWatchers) {
-      for (const network in challengeWatchers[token]) {
-        challengeWatchers[token][network].setSiblingWatchers(
-          challengeWatchers[token]
-        )
+    for (const network of _networks) {
+      if (!contracts.has(token, network)) {
+        continue
       }
+      const isL1 = network === Chain.Ethereum
+      const bridgeContract = isL1
+        ? contracts.get(token, Chain.Ethereum).l1Bridge
+        : contracts.get(token, network).l2Bridge
+      const chainId = chainSlugToId(network)
+      const challengeWatcher = new ChallengeWatcher({
+        chainSlug: network,
+        bridgeContract,
+        tokenSymbol: token,
+        isL1,
+        label: network,
+        dryMode: true // force dry mode until further tested
+      })
+      challengeWatchers[token] = challengeWatchers[token] || {}
+      challengeWatchers[token][chainId] = challengeWatcher
+      watchers.push(challengeWatcher)
+    }
+    for (const network in challengeWatchers[token]) {
+      challengeWatchers[token][network].setSiblingWatchers(
+        challengeWatchers[token]
+      )
     }
   }
 

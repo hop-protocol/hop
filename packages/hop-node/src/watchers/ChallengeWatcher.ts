@@ -1,6 +1,7 @@
 import '../moduleAlias'
 import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
 import L1Bridge from './classes/L1Bridge'
+import L2Bridge from './classes/L2Bridge'
 import { BigNumber, Contract } from 'ethers'
 import { Event } from 'src/types'
 import { Notifier } from 'src/notifier'
@@ -9,14 +10,15 @@ import { hostname } from 'src/config'
 
 export interface Config {
   chainSlug: string
-  l1BridgeContract: Contract
+  bridgeContract: Contract
   tokenSymbol: string
   label: string
+  isL1: boolean
   dryMode?: boolean
 }
 
 class ChallengeWatcher extends BaseWatcherWithEventHandlers {
-  l1Bridge: L1Bridge
+  siblingWatchers: { [chainId: string]: ChallengeWatcher }
   shouldSkipChallenge: { [key: string]: boolean } = {}
 
   constructor (config: Config) {
@@ -25,60 +27,89 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       tokenSymbol: config.tokenSymbol,
       tag: 'challengeWatcher',
       prefix: config.label,
-      bridgeContract: config.l1BridgeContract,
-      isL1: true,
+      bridgeContract: config.bridgeContract,
+      isL1: config.isL1,
       logColor: 'red',
       dryMode: config.dryMode
     })
 
-    this.l1Bridge = this.bridge as L1Bridge
     this.notifier = new Notifier(`watcher: ChallengeWatcher, host: ${hostname}`)
   }
 
   async syncHandler (): Promise<any> {
     const promises: Promise<any>[] = []
-    promises.push(
-      this.l1Bridge.mapTransferRootBondedEvents(
-        async (event: Event) => {
-          return this.handleRawTransferRootBondedEvent(event)
-        },
-        { cacheKey: this.cacheKey(this.l1Bridge.TransferRootBonded) }
-      )
-    )
 
-    promises.push(
-      this.l1Bridge.mapTransferBondChallengedEvents(
-        async (event: Event) => {
-          return this.handleRawTransferBondChallengedEvent(event)
-        },
-        { cacheKey: this.cacheKey(this.l1Bridge.TransferBondChallenged) }
+    if (this.isL1) {
+      const l1Bridge = this.bridge as L1Bridge
+      promises.push(
+        l1Bridge.mapTransferRootBondedEvents(
+          async (event: Event) => {
+            return this.handleRawTransferRootBondedEvent(event)
+          },
+          { cacheKey: this.cacheKey(l1Bridge.TransferRootBonded) }
+        )
       )
-    )
+
+      promises.push(
+        l1Bridge.mapTransferBondChallengedEvents(
+          async (event: Event) => {
+            return this.handleRawTransferBondChallengedEvent(event)
+          },
+          { cacheKey: this.cacheKey(l1Bridge.TransferBondChallenged) }
+        )
+      )
+    } else {
+      const l2Bridge = this.bridge as L2Bridge
+      promises.push(
+        l2Bridge.mapTransfersCommittedEvents(
+          async (event: Event) => {
+            return this.handleRawTransfersCommittedEvent(event)
+          },
+          { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
+        )
+      )
+    }
 
     await Promise.all(promises)
   }
 
   async watch () {
-    this.l1Bridge
-      .on(
-        this.l1Bridge.TransferRootBonded,
-        this.handleTransferRootBondedEvent
-      )
-      .on(
-        this.l1Bridge.TransferBondChallenged,
-        this.handleTransferBondChallengedEvent
-      )
-      .on('error', err => {
-        this.logger.error(`event watcher error: ${err.message}`)
-        this.notifier.error(`event watcher error: ${err.message}`)
-        this.quit()
-      })
+    if (this.isL1) {
+      const l1Bridge = this.bridge as L1Bridge
+      l1Bridge
+        .on(
+          l1Bridge.TransferRootBonded,
+          this.handleTransferRootBondedEvent
+        )
+        .on(
+          l1Bridge.TransferBondChallenged,
+          this.handleTransferBondChallengedEvent
+        )
+        .on('error', err => {
+          this.logger.error(`event watcher error: ${err.message}`)
+          this.notifier.error(`event watcher error: ${err.message}`)
+          this.quit()
+        })
+    } else {
+      const l2Bridge = this.bridge as L2Bridge
+      l2Bridge
+        .on(l2Bridge.TransfersCommitted, this.handleTransfersCommittedEvent)
+        .on('error', err => {
+          this.logger.error(`event watcher error: ${err.message}`)
+          this.notifier.error(`event watcher error: ${err.message}`)
+          this.quit()
+        })
+    }
   }
 
   async pollHandler () {
-    if (!this.isInitialSyncCompleted()) {
+    if (!this.isL1) {
       return
     }
+    if (!this.isAllSiblingWatchersInitialSyncCompleted()) {
+      return
+    }
+
     await this.checkChallengeableTransferRootFromDb()
   }
 
@@ -104,6 +135,22 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       transferRootId,
       rootHash,
       originalAmount,
+      event
+    )
+  }
+
+  async handleRawTransfersCommittedEvent (event: Event) {
+    const {
+      destinationChainId,
+      rootHash,
+      totalAmount,
+      rootCommittedAt
+    } = event.args
+    await this.handleTransfersCommittedEvent(
+      destinationChainId,
+      rootHash,
+      totalAmount,
+      rootCommittedAt,
       event
     )
   }
@@ -186,7 +233,8 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       return
     }
 
-    const transferRootCommittedAt = await this.l1Bridge.getTransferRootCommittedAt(
+    const l1Bridge = this.bridge as L1Bridge
+    const transferRootCommittedAt = await l1Bridge.getTransferRootCommittedAt(
       dbTransferRoot.destinationChainId, transferRootId
     )
     const isRootHashConfirmed = !!transferRootCommittedAt
@@ -196,7 +244,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       return
     }
 
-    const bond = await this.l1Bridge.getTransferBond(transferRootId)
+    const bond = await l1Bridge.getTransferBond(transferRootId)
     if (bond.challengeStartTime.toNumber() > 0) {
       this.shouldSkipChallenge[transferRootHash] = true
       return

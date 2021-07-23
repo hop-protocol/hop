@@ -20,7 +20,8 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0xC888C7071F8B9d2c3b8034F1Da7cBd35595191BD',
         l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
-        canonicalBridgeMaxPerTx: '10000'
+        canonicalBridgeMaxPerTx: 10000,
+        l2BridgeDeployedBlockNumber: 21377885
       },
       optimism: {
         l1CanonicalBridge: '0x531984eEccac4c5e6ABb5439c02d5861110bdA43',
@@ -31,7 +32,8 @@ export const addresses: Addresses = {
         l2HopBridgeToken: '0x0CB64eA2890bcC00F4619C0E6C8823b09240369C',
         l2AmmWrapper: '0x6ad8573880560CF3E88B9d943927136F376559af',
         l2SaddleSwap: '0xd75005fBB30973c302Ef68C0c90F732713420EA0',
-        l2SaddleLpToken: '0xcBB29B17F7e2321aBB0926fF2887D6E2d8CBBa42'
+        l2SaddleLpToken: '0xcBB29B17F7e2321aBB0926fF2887D6E2d8CBBa42',
+        l2BridgeDeployedBlockNumber: 888437
       }
     },
     DAI: {
@@ -51,7 +53,8 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0x093025677156bE80c7aFd6542107bFc7edF4b809',
         l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
-        canonicalBridgeMaxPerTx: '10000'
+        canonicalBridgeMaxPerTx: 10000,
+        l2BridgeDeployedBlockNumber: 21799634
       }
       // optimism: {
       // l1CanonicalBridge: '0xC48528a44f2D961D179D69434645E54ac85732a1',

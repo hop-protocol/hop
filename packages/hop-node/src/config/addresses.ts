@@ -27,7 +27,7 @@ const getConfigByNetwork = (_network: string) => {
   const tokens: {
     [key: string]: {
       [key: string]: {
-        [key: string]: string
+        [key: string]: string | number
       }
     }
   } = {

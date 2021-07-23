@@ -354,7 +354,7 @@ function startChallengeWatchers (
         bridgeContract,
         tokenSymbol: token,
         isL1,
-        label: network,
+        label: `${network}.${token}`,
         dryMode: true // force dry mode until further tested
       })
       challengeWatchers[token] = challengeWatchers[token] || {}

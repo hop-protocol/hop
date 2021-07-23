@@ -157,10 +157,12 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       }
 
       // Retry a tx if it is in the mempool for too long
-      const xDomainMessageSentTimestampOk = dbTransferRoot?.checkpointAttemptedAt + TX_RETRY_DELAY_MS <
-          Date.now()
-      if (!xDomainMessageSentTimestampOk) {
-        return
+      if (dbTransferRoot?.checkpointAttemptedAt) {
+        const xDomainMessageSentTimestampOk = dbTransferRoot?.checkpointAttemptedAt + TX_RETRY_DELAY_MS <
+            Date.now()
+        if (!xDomainMessageSentTimestampOk) {
+          return
+        }
       }
 
       // Parallelizing these calls produces RPC errors on Optimism

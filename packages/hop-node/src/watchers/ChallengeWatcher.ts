@@ -19,7 +19,6 @@ export interface Config {
 
 class ChallengeWatcher extends BaseWatcherWithEventHandlers {
   siblingWatchers: { [chainId: string]: ChallengeWatcher }
-  shouldSkipChallenge: { [key: string]: boolean } = {}
 
   constructor (config: Config) {
     super({
@@ -188,10 +187,6 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
 
     for (const dbTransferRoot of dbTransferRoots) {
       const rootHash = dbTransferRoot.transferRootHash
-      if (this.shouldSkipChallenge[rootHash]) {
-        continue
-      }
-
       await this.checkChallengeableTransferRoot(
         rootHash,
         dbTransferRoot.bondTotalAmount
@@ -221,15 +216,19 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     )
     const isRootHashConfirmed = !!transferRootCommittedAt
     if (isRootHashConfirmed) {
-      this.shouldSkipChallenge[transferRootHash] = true
       logger.info('rootHash is already confirmed on L1')
+      await this.db.transferRoots.update(transferRootHash, {
+        challengeExpired: true
+      })
       return
     }
 
     const bond = await l1Bridge.getTransferBond(transferRootId)
     if (bond.challengeStartTime.toNumber() > 0) {
       logger.info('challenge already started')
-      this.shouldSkipChallenge[transferRootHash] = true
+      await this.db.transferRoots.update(transferRootHash, {
+        challenged: true
+      })
       return
     }
 
@@ -239,7 +238,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     if (bondedAtMs + challengePeriodMs < Date.now()) {
       logger.info('challenge period over')
       await this.db.transferRoots.update(transferRootHash, {
-        challengeTimeExpired: true
+        challengeExpired: true
       })
 
       return

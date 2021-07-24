@@ -34,7 +34,7 @@ export type TransferRoot = {
   bondTotalAmount?: BigNumber
   bondTransferRootId?: string
   challenged?: boolean
-  challengeTimeExpired?: boolean
+  challengeExpired?: boolean
 }
 
 class TransferRootsDb extends BaseDb {
@@ -151,7 +151,7 @@ class TransferRootsDb extends BaseDb {
         item.bonded &&
         !isTransferRootIdValid &&
         !item.challenged &&
-        !item.challengeTimeExpired
+        !item.challengeExpired
       )
     })
   }

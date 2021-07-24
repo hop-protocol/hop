@@ -2,7 +2,7 @@ import BaseDb from './BaseDb'
 import { BigNumber } from 'ethers'
 import { TX_RETRY_DELAY_MS } from 'src/constants'
 import { chainIdToSlug } from 'src/utils'
-import { normalizeBigNumber } from './utils'
+import { normalizeDbItem } from './utils'
 
 export type Transfer = {
   transferRootId?: string
@@ -39,20 +39,17 @@ class TransfersDb extends BaseDb {
   }
 
   async getByTransferId (transferId: string): Promise<Transfer> {
-    let item = (await this.getById(transferId)) as Transfer
+    const item = (await this.getById(transferId)) as Transfer
     if (!item) {
       return item
     }
-    item = normalizeBigNumber(item, 'amount')
-    item = normalizeBigNumber(item, 'bonderFee')
-    item = normalizeBigNumber(item, 'amountOutMin')
     if (item?.destinationChainId) {
       item.destinationChainSlug = chainIdToSlug(item?.destinationChainId)
     }
     if (item?.sourceChainId) {
       item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
     }
-    return item
+    return normalizeDbItem(item)
   }
 
   async getTransferIds (): Promise<string[]> {

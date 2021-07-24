@@ -1,6 +1,6 @@
 import BaseDb from './BaseDb'
 import { BigNumber } from 'ethers'
-import { normalizeBigNumber } from './utils'
+import { normalizeDbItem } from './utils'
 
 export type TransferRoot = {
   destinationBridgeAddress?: string
@@ -45,10 +45,8 @@ class TransferRootsDb extends BaseDb {
   async getByTransferRootHash (
     transferRootHash: string
   ): Promise<TransferRoot> {
-    let item = (await this.getById(transferRootHash)) as TransferRoot
-    item = normalizeBigNumber(item, 'totalAmount')
-    item = normalizeBigNumber(item, 'bondTotalAmount')
-    return item
+    const item = (await this.getById(transferRootHash)) as TransferRoot
+    return normalizeDbItem(item)
   }
 
   async getByTransferRootId (transferRootId: string): Promise<TransferRoot> {

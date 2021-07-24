@@ -93,7 +93,10 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     } else {
       const l2Bridge = this.bridge as L2Bridge
       l2Bridge
-        .on(l2Bridge.TransfersCommitted, this.handleTransfersCommittedEvent)
+        .on(
+          l2Bridge.TransfersCommitted,
+          this.handleTransfersCommittedEvent
+        )
         .on('error', err => {
           this.logger.error(`event watcher error: ${err.message}`)
           this.notifier.error(`event watcher error: ${err.message}`)
@@ -225,6 +228,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
 
     const bond = await l1Bridge.getTransferBond(transferRootId)
     if (bond.challengeStartTime.toNumber() > 0) {
+      logger.info('challenge already started')
       this.shouldSkipChallenge[transferRootHash] = true
       return
     }
@@ -233,6 +237,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     const bondedAtMs = dbTransferRoot.bondedAt * 1000
     const challengePeriodMs = Number(challengePeriod) * 1000
     if (bondedAtMs + challengePeriodMs < Date.now()) {
+      logger.info('challenge period over')
       await this.db.transferRoots.update(transferRootHash, {
         challengeTimeExpired: true
       })

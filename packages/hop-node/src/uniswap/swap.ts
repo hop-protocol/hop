@@ -57,8 +57,28 @@ async function getPoolState (poolContract: Contract) {
 async function getPool (poolContract: Contract) {
   const immutables = await getPoolImmutables(poolContract)
   const state = await getPoolState(poolContract)
-  const TokenA = new Token(1, immutables.token0, 6, 'USDC', 'USD Coin')
-  const TokenB = new Token(1, immutables.token1, 18, 'WETH', 'Wrapped Ether')
+
+  const token0 = getToken(
+    immutables.token0,
+    poolContract.provider
+  )
+
+  const token1 = getToken(
+    immutables.token1,
+    poolContract.provider
+  )
+
+  const token0Decimals = Number((await token0.decimals()).toString())
+  const token1Decimals = Number((await token1.decimals()).toString())
+
+  const token0Symbol = await token0.symbol()
+  const token1Symbol = await token1.symbol()
+
+  const token0Name = await token0.name()
+  const token1Name = await token1.name()
+
+  const TokenA = new Token(1, immutables.token0, token0Decimals, token0Symbol, token0Name)
+  const TokenB = new Token(1, immutables.token1, token1Decimals, token1Symbol, token1Name)
   const liquidity = state.liquidity.toString()
   const feeAmount = immutables.fee
   const pool = new Pool(
@@ -85,12 +105,40 @@ async function getPool (poolContract: Contract) {
   return pool
 }
 
-export async function swap (amount: number) {
-  console.log(`attempting to swap ${amount} USDC for ETH`)
-  const parsedAmount = parseUnits(amount.toString(), 6)
+function getToken (address: string, provider: any) {
+  return new Contract(
+    address,
+    erc20Abi,
+    provider
+  )
+}
+
+export type Config = {
+  fromToken: string
+  toToken: string
+  amount: number
+  recipient?: string
+  slippage?: number
+  deadline?: number
+}
+
+const swapRouter = '0xE592427A0AEce92De3Edee1F18E0157C05861564'
+const ethPools: {[key: string]: string} = {
+  USDC: '0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8',
+  USDT: '0x4e68ccd3e89f51c3074ca5072bbac773960dfa36',
+  DAI: '0x60594a405d53811d3bc4766596efd80fd545a270'
+}
+
+export async function swap (config: Config) {
+  let { fromToken, toToken, amount, slippage, recipient, deadline } = config
+  if (toToken !== 'ETH') {
+    throw new Error('only ETH as the "to" token is not supported at this time')
+  }
   const wallet = wallets.get(Chain.Ethereum)
-  const swapRouter = '0xE592427A0AEce92De3Edee1F18E0157C05861564'
-  const poolAddress = '0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8'
+  const poolAddress = ethPools[fromToken]
+  if (!poolAddress) {
+    throw new Error(`"from" token "${fromToken}" is not supported at this time. Supported options are ${Object.keys(ethPools).join(',')}`)
+  }
   const poolContract = new Contract(
     poolAddress,
     IUniswapV3PoolABI,
@@ -98,15 +146,22 @@ export async function swap (amount: number) {
   )
 
   const pool = await getPool(poolContract)
+  const token0 = getToken(
+    pool.token0.address,
+    wallet
+  )
+
+  const decimals = Number((await token0.decimals()).toString())
+  const parsedAmount = parseUnits(amount.toString(), decimals)
   const trade = await Trade.fromRoute(
     new Route([pool], pool.token0, pool.token1),
     CurrencyAmount.fromRawAmount(pool.token0, parsedAmount.toString()),
     TradeType.EXACT_INPUT
   )
 
-  const slippageTolerance = new Percent(1, 100)
-  const recipient = await wallet.getAddress()
-  const deadline = (Date.now() / 1000 + 300) | 0
+  const slippageTolerance = new Percent((slippage || 1) * 100, 10000)
+  recipient = recipient || await wallet.getAddress()
+  deadline = (Date.now() / 1000 + (deadline || 300)) | 0
 
   const { calldata, value } = SwapRouter.swapCallParameters(trade, {
     slippageTolerance,
@@ -114,15 +169,11 @@ export async function swap (amount: number) {
     deadline
   })
 
-  const erc20 = new Contract(
-    pool.token0.address,
-    erc20Abi,
-    wallet
-  )
+  console.log(`attempting to swap ${amount} ${fromToken} for ${toToken}`)
 
-  const allowance = await erc20.allowance(recipient, swapRouter)
+  const allowance = await token0.allowance(recipient, swapRouter)
   if (allowance.lt(parsedAmount)) {
-    const tx = await erc20.approve(swapRouter, parsedAmount)
+    const tx = await token0.approve(swapRouter, parsedAmount)
     console.log(`approval tx: ${tx.hash}`)
     console.log('waiting for receipt')
     await tx.wait()

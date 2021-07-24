@@ -357,7 +357,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     }
 
     logger.debug(
-      `found transfer ids for transfer root hash ${transferRootHash}\n`,
+      `found transfer ids for transfer root hash ${transferRootHash}`,
       JSON.stringify(transferIds)
     )
 

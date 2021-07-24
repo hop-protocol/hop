@@ -186,7 +186,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     for (const dbTransferRoot of dbTransferRoots) {
       const rootHash = dbTransferRoot.transferRootHash
       if (this.shouldSkipChallenge[rootHash]) {
-        return
+        continue
       }
 
       await this.checkChallengeableTransferRoot(

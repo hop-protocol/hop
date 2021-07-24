@@ -47,6 +47,7 @@ program
           throw new Error('token is required')
         }
         newConfig.commitTransfers.minThresholdAmount[token] = commitTransfersMinThresholdAmount
+        logger.debug(`updating commitTransfers.minThresholdAmount to ${commitTransfersMinThresholdAmount} for ${token}`)
       } else if (
         source.bondWithdrawalsMin !== undefined ||
         source.bondWithdrawalsMax !== undefined
@@ -68,9 +69,11 @@ program
         }
         if (source.bondWithdrawalsMin !== undefined) {
           newConfig.bondWithdrawals[chain][token].min = bondWithdrawalsMin
+          logger.debug(`updating bondWithdrawals min to ${bondWithdrawalsMin} for ${chain}.${token}`)
         }
         if (source.bondWithdrawalsMax !== undefined) {
           newConfig.bondWithdrawals[chain][token].max = bondWithdrawalsMax
+          logger.debug(`updating bondWithdrawals max to ${bondWithdrawalsMin} for ${chain}.${token}`)
         }
       } else if (source.setEnabled) {
         let setEnabled = !!source.setEnabled
@@ -84,6 +87,7 @@ program
           newConfig.tokens = {}
         }
         newConfig.tokens[token] = setEnabled
+        logger.debug(`updating ${token} as ${setEnabled ? 'enabled' : 'disabled'}`)
       } else {
         throw new Error('action is required')
       }

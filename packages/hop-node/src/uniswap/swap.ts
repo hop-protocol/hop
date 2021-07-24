@@ -1,7 +1,7 @@
 import wallets from 'src/wallets'
 import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
-import { CurrencyAmount, Percent, Token, TradeType } from '@uniswap/sdk-core'
+import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-core'
 import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
 import { erc20Abi } from '@hop-protocol/abi'
@@ -154,13 +154,14 @@ export async function swap (config: Config) {
   const decimals = Number((await token0.decimals()).toString())
   const parsedAmount = parseUnits(amount.toString(), decimals)
   const trade = await Trade.fromRoute(
-    new Route([pool], pool.token0, pool.token1),
+    new Route([pool], pool.token0, toToken === 'ETH' ? Ether.onChain(1) : pool.token1),
     CurrencyAmount.fromRawAmount(pool.token0, parsedAmount.toString()),
     TradeType.EXACT_INPUT
   )
 
+  const sender = await wallet.getAddress()
   const slippageTolerance = new Percent((slippage || 1) * 100, 10000)
-  recipient = recipient || await wallet.getAddress()
+  recipient = recipient || sender
   deadline = (Date.now() / 1000 + (deadline || 300)) | 0
 
   const { calldata, value } = SwapRouter.swapCallParameters(trade, {
@@ -169,9 +170,14 @@ export async function swap (config: Config) {
     deadline
   })
 
+  const balance = await token0.balanceOf(sender)
+  if (balance.lt(parsedAmount)) {
+    throw new Error(`not enough ${fromToken} balance`)
+  }
+
   console.log(`attempting to swap ${amount} ${fromToken} for ${toToken}`)
 
-  const allowance = await token0.allowance(recipient, swapRouter)
+  const allowance = await token0.allowance(sender, swapRouter)
   if (allowance.lt(parsedAmount)) {
     const tx = await token0.approve(swapRouter, parsedAmount)
     console.log(`approval tx: ${tx.hash}`)

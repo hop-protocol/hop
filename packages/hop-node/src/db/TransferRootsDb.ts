@@ -47,6 +47,7 @@ class TransferRootsDb extends BaseDb {
   ): Promise<TransferRoot> {
     let item = (await this.getById(transferRootHash)) as TransferRoot
     item = normalizeBigNumber(item, 'totalAmount')
+    item = normalizeBigNumber(item, 'bondTotalAmount')
     return item
   }
 

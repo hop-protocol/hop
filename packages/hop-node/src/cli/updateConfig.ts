@@ -26,7 +26,7 @@ program
       }
       const chain = source.chain
       const token = source.token
-      const commitTransfersMinThresholdAmount = Number(source.commitTransfersMinThreshold || 0)
+      const commitTransfersMinThresholdAmount = Number(source.commitTransfersMinThresholdAmount || 0)
       const bondWithdrawalsMin = Number(source.bondWithdrawalsMin || 0)
       const bondWithdrawalsMax = Number(source.bondWithdrawalsMax || 0)
 

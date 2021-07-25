@@ -1,6 +1,6 @@
 import BaseDb from './BaseDb'
 import { BigNumber } from 'ethers'
-import { normalizeBigNumber } from './utils'
+import { normalizeDbItem } from './utils'
 
 export type TransferRoot = {
   destinationBridgeAddress?: string
@@ -40,9 +40,8 @@ class TransferRootsDb extends BaseDb {
   async getByTransferRootHash (
     transferRootHash: string
   ): Promise<TransferRoot> {
-    let item = (await this.getById(transferRootHash)) as TransferRoot
-    item = normalizeBigNumber(item, 'totalAmount')
-    return item
+    const item = (await this.getById(transferRootHash)) as TransferRoot
+    return normalizeDbItem(item)
   }
 
   async getByTransferRootId (transferRootId: string): Promise<TransferRoot> {
@@ -80,8 +79,8 @@ class TransferRootsDb extends BaseDb {
   async getUncommittedBondedTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
       return !item.committed && item?.transferIds?.length
     })
   }
@@ -89,8 +88,8 @@ class TransferRootsDb extends BaseDb {
   async getUnbondedTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
@@ -114,8 +113,8 @@ class TransferRootsDb extends BaseDb {
   async getUnconfirmedTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
@@ -138,8 +137,8 @@ class TransferRootsDb extends BaseDb {
   async getChallengeableTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
       return (
         !item.confirmed &&
         !item.confirmedAt &&
@@ -153,8 +152,8 @@ class TransferRootsDb extends BaseDb {
   // TODO: This should be a new DB for a TransferBond, not a TransferRoot
   // This will add new requirements to this return statement
   async getResolvableTransferRoots (): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
       return (
         !item.confirmed &&
         !item.confirmedAt &&

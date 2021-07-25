@@ -111,6 +111,25 @@ export type Config = {
   addresses?: Addresses
 }
 
+export async function writeConfigFile (
+  config: Config,
+  configPath: string = defaultConfigFilePath
+) {
+  if (!configPath) {
+    throw new Error('config filepath is required')
+  }
+
+  if (fs.existsSync(configPath)) {
+    const backupFilepath = `/tmp/config.${Date.now()}.json`
+    const currentConfig = await parseConfigFile(configPath)
+    fs.writeFileSync(backupFilepath, JSON.stringify(currentConfig, null, 2))
+    logger.debug(`backed up current config file to ${backupFilepath}`)
+  }
+
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
+  logger.debug(`wrote config file to ${configPath}`)
+}
+
 export async function parseConfigFile (
   _configFile: string = defaultConfigFilePath
 ) {

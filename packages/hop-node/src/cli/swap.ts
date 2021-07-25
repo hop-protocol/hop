@@ -13,10 +13,13 @@ program
   .description('Swap tokens on uniswap')
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
-  .option('-c, --chain <string>', 'Chain')
-  .option('-i, --from <string>', 'From token')
-  .option('-o, --to <string>', 'To token')
-  .option('-a, --amount <string>', 'From token amount')
+  .option('--chain <string>', 'Chain')
+  .option('--from <string>', 'From token')
+  .option('--to <string>', 'To token')
+  .option('--amount <string>', 'From token amount')
+  .option('--deadline <string>', 'Deadline in seconds')
+  .option('--slippage <string>', 'Slippage tolerance. E.g. 0.5')
+  .option('--recipient <string>', 'Recipient')
   .action(async source => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -28,6 +31,9 @@ program
       const fromToken = source.from
       const toToken = source.to
       const amount = Number(source.args[0] || source.amount)
+      const deadline = Number(source.deadline)
+      const slippage = Number(source.slippage)
+      const recipient = source.recipient
       if (!chain) {
         throw new Error('chain is required')
       }
@@ -37,20 +43,21 @@ program
       if (!fromToken) {
         throw new Error('"from" token is required')
       }
-      if (fromToken !== 'USDC') {
-        throw new Error('currently only USDC as "from" token is supported for swapping')
-      }
       if (!toToken) {
         throw new Error('"to" token is required')
-      }
-      if (toToken !== 'ETH') {
-        throw new Error('currently only ETH as "to" token is supported for swapping')
       }
       if (!amount) {
         throw new Error('"from" token amount is required')
       }
 
-      const tx = await swap(amount)
+      const tx = await swap({
+        fromToken,
+        toToken,
+        amount,
+        deadline,
+        slippage,
+        recipient
+      })
       logger.info(`swap tx: ${tx.hash}`)
       logger.log('waiting for receipt')
       const receipt = await tx.wait()

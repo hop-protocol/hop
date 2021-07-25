@@ -77,7 +77,7 @@ export const config: any = {
     [Chain.Polygon]: {
       totalBlocks: TotalBlocks.Polygon,
       batchBlocks: 1_000,
-      blocksTilStale: BlocksTilStale.Ethereum
+      blocksTilStale: BlocksTilStale.Polygon
     },
     [Chain.xDai]: {
       totalBlocks: TotalBlocks.xDai,

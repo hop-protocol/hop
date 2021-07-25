@@ -260,6 +260,10 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
           event.args.rootHash
         )
 
+        if (!eventDbTransferRoot) {
+          logger.error('No DB event found for root hash')
+        }
+
         if (event.args.rootHash === transferRootHash) {
           endEvent = event
           continue
@@ -293,6 +297,8 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       )
       return
     }
+
+    logger.debug(`Searching for transfers between ${startBlockNumber} and ${endBlockNumber}`)
 
     const transfers: any[] = []
     await sourceBridge.eventsBatch(
@@ -340,6 +346,8 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       { startBlockNumber, endBlockNumber }
     )
 
+    logger.debug(`Original transfer ids: ${JSON.stringify(transfers)}}`)
+
     // this gets only the last set of sequence of transfers {0, 1,.., n}
     // where n is the transfer id index.
     // example: {0, 0, 1, 2, 3, 4, 5, 6, 7, 0, 0, 1, 2, 3} ⟶  {0, 1, 2, 3}
@@ -351,7 +359,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
       logger.error(
-        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. List: ${JSON.stringify(transfers)}`
+        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. List: ${JSON.stringify(transferIds)}`
       )
       return
     }

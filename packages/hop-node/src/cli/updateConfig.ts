@@ -73,7 +73,7 @@ program
         }
         if (source.bondWithdrawalsMax !== undefined) {
           newConfig.bondWithdrawals[chain][token].max = bondWithdrawalsMax
-          logger.debug(`updating bondWithdrawals max to ${bondWithdrawalsMin} for ${chain}.${token}`)
+          logger.debug(`updating bondWithdrawals max to ${bondWithdrawalsMax} for ${chain}.${token}`)
         }
       } else if (source.setEnabled) {
         let setEnabled = !!source.setEnabled

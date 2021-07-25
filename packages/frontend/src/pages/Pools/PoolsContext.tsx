@@ -296,14 +296,15 @@ const PoolsContextProvider: FC = ({ children }) => {
     const parsedAmount = parseUnits(amount, canonicalToken.decimals)
     const token = isHop ? bridge.getL2HopToken(network.slug) : bridge.getCanonicalToken(network.slug)
     const approved = await token.allowance(spender)
+    const tokenSymbol = isHop ? hopToken.symbol : canonicalToken.symbol
 
     if (approved.lt(parsedAmount)) {
       return txConfirm?.show({
         kind: 'approval',
         inputProps: {
           tagline: `Allow Hop to spend your ${token.symbol} on ${selectedNetwork.name}`,
-          amount,
-          tokenSymbol: isHop ? hopToken.symbol : canonicalToken.symbol
+          amount: canonicalToken.symbol === 'USDT' ? undefined : amount,
+          tokenSymbol
         },
         onConfirm: async (approveAll: boolean) => {
           return token.approve(

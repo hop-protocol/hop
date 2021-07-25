@@ -260,10 +260,6 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
           event.args.rootHash
         )
 
-        if (!eventDbTransferRoot) {
-          logger.error('No DB event found for root hash')
-        }
-
         if (event.args.rootHash === transferRootHash) {
           endEvent = event
           continue

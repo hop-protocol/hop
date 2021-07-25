@@ -42,6 +42,7 @@ const Approval = (props: Props) => {
   const styles = useStyles()
   const [sending, setSending] = useState<boolean>(false)
   const [approveAll, setApproveAll] = useState<boolean>(true)
+  const showApproveAll = !!amount
 
   const handleSubmit = async () => {
     try {
@@ -69,19 +70,21 @@ const Approval = (props: Props) => {
           </Typography>
         : null}
       </div>
-      <div className={styles.approveAll}>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={approveAll}
-              onChange={handleApproveAll}
-              disabled={amount === 'ALL'}
-              color="primary"
-            />
-          }
-          label="Approve all"
-        />
-      </div>
+      {showApproveAll
+        ? <div className={styles.approveAll}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={approveAll}
+                onChange={handleApproveAll}
+                disabled={amount === 'ALL'}
+                color="primary"
+              />
+            }
+            label="Approve all"
+          />
+        </div>
+      : null }
       <div className={styles.action}>
         <Button
           className={styles.sendButton}

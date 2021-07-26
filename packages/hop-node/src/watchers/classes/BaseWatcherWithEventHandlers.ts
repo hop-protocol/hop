@@ -256,17 +256,18 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       // events need to be sorted from [newest...oldest] in order to pick up the endEvent first
       events = events.reverse()
       for (const event of events) {
-        const eventDbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
-          event.args.rootHash
-        )
-
         if (event.args.rootHash === transferRootHash) {
           endEvent = event
           continue
         }
 
-        const isSameChainId =
-          eventDbTransferRoot?.destinationChainId === destinationChainId
+        const eventRootHash = event.args.rootHash
+        const eventDestinationChainId = Number(event.args.destinationChainId.toString())
+        const eventDbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
+          eventRootHash
+        )
+
+        const isSameChainId = eventDestinationChainId === destinationChainId
         if (endEvent && isSameChainId) {
           startEvent = event
           return false

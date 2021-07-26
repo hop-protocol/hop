@@ -45,3 +45,7 @@ export const XDAI_TX_MAX_DELAY_MS = 20 * 1000
 export const POLYGON_TX_MAX_DELAY_MS = 10 * 1000
 
 export const MAX_INT_32 = 2147483647
+
+export enum TxError {
+  CallException = 'CALL_EXCEPTION'
+}

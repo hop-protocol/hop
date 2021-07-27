@@ -232,9 +232,9 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
       return
     }
 
-    const challengePeriod = await l1Bridge.getChallengePeriod()
-    const bondedAtMs = dbTransferRoot.bondedAt * 1000
-    const challengePeriodMs = Number(challengePeriod) * 1000
+    const challengePeriod: number = await l1Bridge.getChallengePeriod()
+    const bondedAtMs: number = dbTransferRoot.bondedAt * 1000
+    const challengePeriodMs: number = challengePeriod * 1000
     if (bondedAtMs + challengePeriodMs < Date.now()) {
       logger.info('challenge period over')
       await this.db.transferRoots.update(transferRootHash, {

@@ -318,6 +318,6 @@ export default class L1Bridge extends Bridge {
   @rateLimitRetry
   async getChallengePeriod (): Promise<number> {
     const challengePeriod = await this.getReadBridgeContract().challengePeriod()
-    return challengePeriod
+    return Number(challengePeriod.toString())
   }
 }

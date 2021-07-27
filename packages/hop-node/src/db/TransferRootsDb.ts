@@ -84,8 +84,8 @@ class TransferRootsDb extends BaseDb {
   async getUncommittedBondedTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
       return !item.committed && item?.transferIds?.length
     })
   }
@@ -93,8 +93,8 @@ class TransferRootsDb extends BaseDb {
   async getUnbondedTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
@@ -118,8 +118,8 @@ class TransferRootsDb extends BaseDb {
   async getUnconfirmedTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
@@ -140,8 +140,8 @@ class TransferRootsDb extends BaseDb {
   async getChallengeableTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
       // Do not check if a rootHash has been committed. A rootHash can be committed and bonded,
       // but if the bond uses a different totalAmount then it is fraudulent. Instead, use the
       // transferRootId. If transferRootIds do not match then we know the bond is fraudulent.

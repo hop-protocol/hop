@@ -1,5 +1,5 @@
 import { Addresses } from '@hop-protocol/addresses'
-import { Chain, Network, TotalBlocks } from 'src/constants'
+import { BlocksTilStale, Chain, Network, TotalBlocks } from 'src/constants'
 
 const { metadata } = require('./metadata')
 const network = process.env.NETWORK || Network.Kovan
@@ -61,23 +61,28 @@ export const config: any = {
   sync: {
     [Chain.Ethereum]: {
       totalBlocks: TotalBlocks.Ethereum,
-      batchBlocks: 1_000
+      batchBlocks: 1_000,
+      blocksTilStale: BlocksTilStale.Ethereum
     },
     [Chain.Arbitrum]: {
       totalBlocks: 100_000,
-      batchBlocks: 1_000
+      batchBlocks: 1_000,
+      blocksTilStale: 75_000
     },
     [Chain.Optimism]: {
       totalBlocks: 100_000,
-      batchBlocks: 1_000
+      batchBlocks: 1_000,
+      blocksTilStale: 75_000
     },
     [Chain.Polygon]: {
       totalBlocks: TotalBlocks.Polygon,
-      batchBlocks: 1_000
+      batchBlocks: 1_000,
+      blocksTilStale: BlocksTilStale.Polygon
     },
     [Chain.xDai]: {
       totalBlocks: TotalBlocks.xDai,
-      batchBlocks: 1_000
+      batchBlocks: 1_000,
+      blocksTilStale: BlocksTilStale.xDai
     }
   },
   bondWithdrawals: {

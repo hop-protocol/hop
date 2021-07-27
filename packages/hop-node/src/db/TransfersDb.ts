@@ -17,6 +17,7 @@ export type Transfer = {
   withdrawalBonded?: boolean
   withdrawalBonder?: string
   withdrawalBondedTxHash?: string
+  withdrawalBondTxError?: string
   sentBondWithdrawalTxAt?: number
 
   recipient?: string
@@ -79,7 +80,7 @@ class TransfersDb extends BaseDb {
   async getUnsettledBondedWithdrawalTransfers (
     filter: Partial<Transfer> = {}
   ): Promise<Transfer[]> {
-    const transfers = await this.getTransfers()
+    const transfers: Transfer[] = await this.getTransfers()
     return transfers.filter(item => {
       if (filter?.destinationChainId) {
         if (filter.destinationChainId !== item.destinationChainId) {
@@ -99,7 +100,7 @@ class TransfersDb extends BaseDb {
   async getUncommittedTransfers (
     filter: Partial<Transfer> = {}
   ): Promise<Transfer[]> {
-    const transfers = await this.getTransfers()
+    const transfers: Transfer[] = await this.getTransfers()
     return transfers.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
@@ -119,7 +120,7 @@ class TransfersDb extends BaseDb {
   async getUnbondedSentTransfers (
     filter: Partial<Transfer> = {}
   ): Promise<Transfer[]> {
-    const transfers = await this.getTransfers()
+    const transfers: Transfer[] = await this.getTransfers()
     return transfers.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
@@ -146,7 +147,7 @@ class TransfersDb extends BaseDb {
   async getBondedTransfersWithoutRoots (
     filter: Partial<Transfer> = {}
   ): Promise<Transfer[]> {
-    const transfers = await this.getTransfers()
+    const transfers: Transfer[] = await this.getTransfers()
     return transfers.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {

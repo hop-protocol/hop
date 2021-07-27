@@ -555,8 +555,8 @@ export default class Bridge extends ContractBase {
     headBlockNumber: number,
     chainSlug: any
   ) {
-    const { totalBlocks } = config.sync[chainSlug]
-    if (transferSentBlockNumber < headBlockNumber - totalBlocks) {
+    const { blocksTilStale } = config.sync[chainSlug]
+    if (transferSentBlockNumber < headBlockNumber - blocksTilStale) {
       return true
     }
     return false

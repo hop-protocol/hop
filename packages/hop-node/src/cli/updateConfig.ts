@@ -32,7 +32,7 @@ program
 
       const newConfig = JSON.parse(JSON.stringify(config)) // deep clone
 
-      if (source.commitTransfersMinThresholdAmount !== undefined) {
+      if (source.commitTransfersMinThreshold !== undefined) {
         if (!(newConfig.commitTransfers instanceof Object)) {
           newConfig.commitTransfers = {
             minThresholdAmount: {}
@@ -73,7 +73,7 @@ program
         }
         if (source.bondWithdrawalsMax !== undefined) {
           newConfig.bondWithdrawals[chain][token].max = bondWithdrawalsMax
-          logger.debug(`updating bondWithdrawals max to ${bondWithdrawalsMin} for ${chain}.${token}`)
+          logger.debug(`updating bondWithdrawals max to ${bondWithdrawalsMax} for ${chain}.${token}`)
         }
       } else if (source.setEnabled) {
         let setEnabled = !!source.setEnabled

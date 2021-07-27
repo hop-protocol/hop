@@ -259,17 +259,18 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       // events need to be sorted from [newest...oldest] in order to pick up the endEvent first
       events = events.reverse()
       for (const event of events) {
-        const eventDbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
-          event.args.rootHash
-        )
-
         if (event.args.rootHash === transferRootHash) {
           endEvent = event
           continue
         }
 
-        const isSameChainId =
-          eventDbTransferRoot?.destinationChainId === destinationChainId
+        const eventRootHash = event.args.rootHash
+        const eventDestinationChainId = Number(event.args.destinationChainId.toString())
+        const eventDbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
+          eventRootHash
+        )
+
+        const isSameChainId = eventDestinationChainId === destinationChainId
         if (endEvent && isSameChainId) {
           startEvent = event
           return false
@@ -296,6 +297,8 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       )
       return
     }
+
+    logger.debug(`Searching for transfers between ${startBlockNumber} and ${endBlockNumber}`)
 
     const transfers: any[] = []
     await sourceBridge.eventsBatch(
@@ -343,6 +346,8 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       { startBlockNumber, endBlockNumber }
     )
 
+    logger.debug(`Original transfer ids: ${JSON.stringify(transfers)}}`)
+
     // this gets only the last set of sequence of transfers {0, 1,.., n}
     // where n is the transfer id index.
     // example: {0, 0, 1, 2, 3, 4, 5, 6, 7, 0, 0, 1, 2, 3} ⟶  {0, 1, 2, 3}
@@ -354,13 +359,13 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
       logger.error(
-        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. List: ${JSON.stringify(transfers)}`
+        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. List: ${JSON.stringify(transferIds)}`
       )
       return
     }
 
     logger.debug(
-      `found transfer ids for transfer root hash ${transferRootHash}\n`,
+      `found transfer ids for transfer root hash ${transferRootHash}`,
       JSON.stringify(transferIds)
     )
 

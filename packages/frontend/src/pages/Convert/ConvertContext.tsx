@@ -259,6 +259,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         kind: 'approval',
         inputProps: {
           sourceTokenAmount,
+          amount: sourceToken.symbol === 'USDT' ? undefined : parsedSourceTokenAmount,
           tokenSymbol: sourceToken.symbol
         },
         onConfirm: async (approveAll: boolean) => {

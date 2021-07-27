@@ -4,7 +4,7 @@ import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
 import { BigNumber, Contract, constants, providers } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, TxError } from 'src/constants'
 import { Event } from 'src/types'
 import { wait } from 'src/utils'
 
@@ -150,7 +150,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransferSentFromDb () {
-    const initialSyncCompleted = await this.isAllSiblingWatchersInitialSyncCompleted()
+    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
     if (!initialSyncCompleted) {
       return false
     }
@@ -252,13 +252,30 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       }
     }
 
+    await this.waitTimeout(transferId, destinationChainId)
+
+    const bondedAmount = await destBridge.getBondedWithdrawalAmount(transferId)
+    if (bondedAmount.gt(0)) {
+      logger.warn('transfer already bonded. Adding to db and skipping')
+      const event = await destBridge.getBondedWithdrawalEvent(transferId)
+      const { transactionHash } = event
+      const { from: sender } = await destBridge.getTransaction(
+        event.transactionHash
+      )
+      await this.db.transfers.update(transferId, {
+        withdrawalBonded: true,
+        withdrawalBonder: sender,
+        withdrawalBondedTxHash: transactionHash
+      })
+      return
+    }
+
     if (this.dryMode) {
       logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
       return
     }
-    logger.debug('sending bondWithdrawal tx')
 
-    await this.waitTimeout(transferId, destinationChainId)
+    logger.debug('sending bondWithdrawal tx')
 
     const { from: sender, data } = await sourceL2Bridge.getTransaction(
       transferSentTxHash
@@ -269,68 +286,79 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       sentBondWithdrawalTxAt: Date.now()
     })
 
-    const tx = await this.sendBondWithdrawalTx({
-      transferId,
-      sender,
-      recipient,
-      amount,
-      transferNonce,
-      bonderFee,
-      attemptSwap,
-      destinationChainId,
-      amountOutMin,
-      deadline
-    })
+    try {
+      const tx = await this.sendBondWithdrawalTx({
+        transferId,
+        sender,
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        attemptSwap,
+        destinationChainId,
+        amountOutMin,
+        deadline
+      })
 
-    logger.info(
-      `sent bondWithdrawal on ${
-        attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
-      } (source chain ${sourceChainId}) tx:`,
-      chalk.bgYellow.black.bold(tx.hash)
-    )
-    this.notifier.info(
-      `sent ${
-        attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
-      } bondWithdrawal tx: ${tx.hash}`
-    )
+      logger.info(
+        `sent bondWithdrawal on ${
+          attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
+        } (source chain ${sourceChainId}) tx:`,
+        chalk.bgYellow.black.bold(tx.hash)
+      )
+      this.notifier.info(
+        `sent ${
+          attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
+        } bondWithdrawal tx: ${tx.hash}`
+      )
 
-    await tx
-      ?.wait()
-      .then(async (receipt: providers.TransactionReceipt) => {
-        if (receipt.status !== 1) {
+      await tx
+        ?.wait()
+        .then(async (receipt: providers.TransactionReceipt) => {
+          if (receipt.status !== 1) {
+            await this.db.transfers.update(transferId, {
+              sentBondWithdrawalTxAt: 0
+            })
+            throw new Error('status=0')
+          }
+
+          this.emit('bondWithdrawal', {
+            recipient,
+            destNetworkName: this.chainIdToSlug(destinationChainId),
+            destNetworkId: destinationChainId,
+            transferId
+          })
+
+          const bondedAmount = await destBridge.getBondedWithdrawalAmount(
+            transferId
+          )
+          logger.debug(
+            `destination chain id: ${destinationChainId} bondWithdrawal amount:`,
+            this.bridge.formatUnits(bondedAmount)
+          )
+
+          await this.db.transfers.update(transferId, {
+            withdrawalBonded: true,
+            withdrawalBondedTxHash: receipt.transactionHash
+          })
+        })
+        .catch(async (err: Error) => {
           await this.db.transfers.update(transferId, {
             sentBondWithdrawalTxAt: 0
           })
-          throw new Error('status=0')
-        }
 
-        this.emit('bondWithdrawal', {
-          recipient,
-          destNetworkName: this.chainIdToSlug(destinationChainId),
-          destNetworkId: destinationChainId,
-          transferId
+          throw err
         })
-
-        const bondedAmount = await destBridge.getBondedWithdrawalAmount(
-          transferId
-        )
-        logger.debug(
-          `destination chain id: ${destinationChainId} bondWithdrawal amount:`,
-          this.bridge.formatUnits(bondedAmount)
-        )
-
+    } catch (err) {
+      const isCallExceptionError = /The execution failed due to an exception/gi.test(err.message)
+      if (isCallExceptionError) {
         await this.db.transfers.update(transferId, {
-          withdrawalBonded: true,
-          withdrawalBondedTxHash: receipt.transactionHash
+          withdrawalBondTxError: TxError.CallException
         })
-      })
-      .catch(async (err: Error) => {
-        await this.db.transfers.update(transferId, {
-          sentBondWithdrawalTxAt: 0
-        })
+      }
 
-        throw err
-      })
+      throw err
+    }
   }
 
   sendBondWithdrawalTx = async (params: any) => {

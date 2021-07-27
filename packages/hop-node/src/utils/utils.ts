@@ -87,3 +87,10 @@ export const isL1ChainId = (chainId: number | string) => {
 export const xor = (a: number, b: number) => {
   return (a || b) && !(a && b)
 }
+
+export const getTransferRootId = (rootHash: string, totalAmount: ethers.BigNumber) => {
+  return ethers.utils.solidityKeccak256(
+    ['bytes32', 'uint256'],
+    [rootHash, totalAmount]
+  )
+}

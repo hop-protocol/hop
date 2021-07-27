@@ -15,7 +15,8 @@ const networks: string[] = [
   Chain.Optimism,
   Chain.Arbitrum,
   Chain.xDai,
-  Chain.Polygon
+  Chain.Polygon,
+  Chain.Ethereum
 ]
 
 interface StakeAmounts {
@@ -37,7 +38,7 @@ function getStakeWatchers (
   const stakeWatchers: any = {}
   const watchers: any[] = []
   for (const token of _tokens) {
-    for (const network of [Chain.Ethereum as string].concat(_networks)) {
+    for (const network of _networks) {
       const chainId = chainSlugToId(network)
       const tokenContracts = contracts.get(token, network)
       if (!tokenContracts) {
@@ -152,7 +153,7 @@ function startWatchers (
   const bondTransferRootWatchers: any = {}
   const settleBondedWithdrawalWatchers: any = {}
   const commitTransferWatchers: any = {}
-  for (const network of [Chain.Ethereum as string].concat(_networks)) {
+  for (const network of _networks) {
     const chainId = chainSlugToId(network)
     for (const token of _tokens) {
       if (!contracts.has(token, network)) {
@@ -343,24 +344,27 @@ function startChallengeWatchers (
       if (!contracts.has(token, network)) {
         continue
       }
+      const isL1 = network === Chain.Ethereum
+      const bridgeContract = isL1
+        ? contracts.get(token, Chain.Ethereum).l1Bridge
+        : contracts.get(token, network).l2Bridge
       const chainId = chainSlugToId(network)
       const challengeWatcher = new ChallengeWatcher({
         chainSlug: network,
+        bridgeContract,
         tokenSymbol: token,
-        label: network,
-        l1BridgeContract: contracts.get(token, Chain.Ethereum).l1Bridge,
-        dryMode: true // force dry mode until further tested
+        isL1,
+        label: `${network}.${token}`,
+        dryMode: dryMode
       })
       challengeWatchers[token] = challengeWatchers[token] || {}
       challengeWatchers[token][chainId] = challengeWatcher
       watchers.push(challengeWatcher)
     }
-    for (const watcher in challengeWatchers) {
-      for (const network in challengeWatchers[token]) {
-        challengeWatchers[token][network].setSiblingWatchers(
-          challengeWatchers[token]
-        )
-      }
+    for (const network in challengeWatchers[token]) {
+      challengeWatchers[token][network].setSiblingWatchers(
+        challengeWatchers[token]
+      )
     }
   }
 

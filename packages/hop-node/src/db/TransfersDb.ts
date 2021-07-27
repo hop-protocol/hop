@@ -17,6 +17,7 @@ export type Transfer = {
   withdrawalBonded?: boolean
   withdrawalBonder?: string
   withdrawalBondedTxHash?: string
+  withdrawalBondTxError?: string
   sentBondWithdrawalTxAt?: number
 
   recipient?: string

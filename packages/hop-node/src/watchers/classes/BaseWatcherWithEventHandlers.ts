@@ -122,11 +122,11 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
   }
 
   async handleTransferRootBondedEvent (
-    transferRootHash: string,
-    totalAmount: BigNumber,
+    root: string,
+    amount: BigNumber,
     event: Event
   ) {
-    const logger = this.logger.create({ root: transferRootHash })
+    const logger = this.logger.create({ root: root })
     logger.debug('handling TransferRootBonded event')
 
     try {
@@ -134,23 +134,25 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
       const tx = await this.bridge.getTransaction(transactionHash)
       const { from: bonder } = tx
       const transferRootId = await this.bridge.getTransferRootId(
-        transferRootHash,
-        totalAmount
+        root,
+        amount
       )
+      const timestamp = await this.bridge.getEventTimestamp(event)
 
-      logger.debug(`transferRootHash from event: ${transferRootHash}`)
-      logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
+      logger.debug(`transferRootHash from event: ${root}`)
+      logger.debug(`bondAmount: ${this.bridge.formatUnits(amount)}`)
       logger.debug(`transferRootId: ${transferRootId}`)
       logger.debug(`event transactionHash: ${transactionHash}`)
       logger.debug(`bonder: ${bonder}`)
 
-      await this.db.transferRoots.update(transferRootHash, {
-        transferRootHash,
-        transferRootId,
-        committed: true,
+      await this.db.transferRoots.update(root, {
+        transferRootHash: root,
         bonded: true,
         bonder,
-        bondTxHash: transactionHash
+        bondTotalAmount: amount,
+        bondTxHash: transactionHash,
+        bondedAt: timestamp,
+        bondTransferRootId: transferRootId
       })
     } catch (err) {
       logger.error(`handleTransferRootBondedEvent error: ${err.message}`)
@@ -219,6 +221,7 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     event: Event
   ) {
     const logger = this.logger.create({ root: transferRootHash })
+    logger.debug('handling TransfersCommitted event for transfer IDs')
 
     const sourceChainId = await this.bridge.getChainId()
     const destinationChainId = Number(destinationChainIdBn.toString())

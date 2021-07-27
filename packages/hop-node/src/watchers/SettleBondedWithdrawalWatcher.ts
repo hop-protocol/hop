@@ -277,7 +277,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   checkUnsettledTransfersFromDb = async () => {
-    const initialSyncCompleted = await this.isAllSiblingWatchersInitialSyncCompleted()
+    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
     if (!initialSyncCompleted) {
       return false
     }

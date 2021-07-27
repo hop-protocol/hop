@@ -33,7 +33,8 @@ export const defaultEnabledNetworks: { [key: string]: boolean } = {
   [Chain.Optimism]: true,
   [Chain.Arbitrum]: true,
   [Chain.xDai]: true,
-  [Chain.Polygon]: true
+  [Chain.Polygon]: true,
+  [Chain.Ethereum]: true
 }
 
 type ChainsConfig = {

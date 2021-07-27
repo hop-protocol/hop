@@ -117,7 +117,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransfersCommittedFromDb () {
-    const initialSyncCompleted = await this.isAllSiblingWatchersInitialSyncCompleted()
+    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
     if (!initialSyncCompleted) {
       return false
     }
@@ -245,15 +245,6 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     logger.debug('transferRootId:', transferRootId)
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     logger.debug('transferRootId:', transferRootId)
-    await this.db.transferRoots.update(transferRootHash, {
-      transferRootHash,
-      transferRootId,
-      totalAmount,
-      destinationChainId,
-      sourceChainId,
-      committed: true,
-      committedAt
-    })
 
     await this.waitTimeout(transferRootHash, totalAmount)
     dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(

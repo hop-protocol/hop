@@ -150,7 +150,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
   }
 
   async checkTransferSentFromDb () {
-    const initialSyncCompleted = await this.isAllSiblingWatchersInitialSyncCompleted()
+    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
     if (!initialSyncCompleted) {
       return false
     }

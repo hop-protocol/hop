@@ -143,37 +143,6 @@ export default class ContractBase extends EventEmitter {
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
 
-  @rateLimitRetry
-  // wait a safe number of confirmations to avoid processing on a reorg
-  async waitSafeConfirmations (blockNumber?: number): Promise<void> {
-    const headBlockNumber = await this.contract.provider.getBlockNumber()
-
-    // use latest block number if one is not specified
-    if (!blockNumber) {
-      blockNumber = headBlockNumber
-    }
-
-    // the target block number is the specified block number plus the number
-    // of confirmations to wait
-    const targetBlockNumber = blockNumber + this.waitConfirmations
-
-    // if latest block number is larger than target block number than there is
-    // no need to wait and can return immediately
-    if (headBlockNumber > targetBlockNumber) {
-      return
-    }
-
-    // This number is granular enough to hardly notice a difference when using Hop
-    // TODO: wait the min time per chain and then try every 5s (124 * 4 for polygon, for example)
-    const waitConfirmationSec = 20
-    // keep waiting until latest block number is equal to or larger than
-    // target block number
-    while (blockNumber < targetBlockNumber) {
-      blockNumber = await this.contract.provider.getBlockNumber()
-      await wait(waitConfirmationSec * 1000)
-    }
-  }
-
   get waitConfirmations () {
     return config.networks?.[this.chainSlug]?.waitConfirmations || 0
   }

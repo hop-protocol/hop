@@ -48,7 +48,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       promises.push(
         l2Bridge.mapTransferSentEvents(
           async (event: Event) => {
-            return this.handleRawTransferSentEvent(event)
+            return this.handleTransferSentEvent(event)
           },
           { cacheKey: this.cacheKey(l2Bridge.TransferSent) }
         )
@@ -57,7 +57,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       promises.push(
         l2Bridge.mapTransfersCommittedEvents(
           async (event: Event) => {
-            return this.handleRawTransfersCommittedEvent(event)
+            return this.handleTransfersCommittedEvent(event)
           },
           { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
         )
@@ -67,7 +67,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       promises.push(
         l1Bridge.mapTransferRootConfirmedEvents(
           async (event: Event) => {
-            return this.handleRawTransferRootConfirmedEvent(event)
+            return this.handleTransferRootConfirmedEvent(event)
           },
           { cacheKey: this.cacheKey(l1Bridge.TransferRootConfirmed) }
         )
@@ -78,7 +78,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       this.bridge
         .mapWithdrawalBondedEvents(
           async (event: Event) => {
-            return this.handleRawWithdrawalBondedEvent(event)
+            return this.handleWithdrawalBondedEvent(event)
           },
           { cacheKey: this.cacheKey(this.bridge.WithdrawalBonded) }
         )
@@ -87,7 +87,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           // since it relies on data from that handler.
           return this.bridge.mapMultipleWithdrawalsSettledEvents(
             async (event: Event) => {
-              return this.handleRawMultipleWithdrawalsSettledEvent(event)
+              return this.handleMultipleWithdrawalsSettledEvent(event)
             },
             { cacheKey: this.cacheKey(this.bridge.MultipleWithdrawalsSettled) }
           )
@@ -97,7 +97,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     promises.push(
       this.bridge.mapTransferRootSetEvents(
         async (event: Event) => {
-          return this.handleRawTransferRootSetEvent(event)
+          return this.handleTransferRootSetEvent(event)
         },
         { cacheKey: this.cacheKey(this.bridge.TransferRootSet) }
       )
@@ -126,89 +126,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     await Promise.all(promises)
   }
 
-  async handleRawTransfersCommittedEvent (event: Event) {
+  handleTransferRootSetEvent = async (event: Event) => {
     const {
-      destinationChainId,
-      rootHash,
-      totalAmount,
-      rootCommittedAt
-    } = event.args
-    await this.handleTransfersCommittedEvent(
-      destinationChainId,
-      rootHash,
-      totalAmount,
-      rootCommittedAt,
-      event
-    )
-  }
-
-  async handleRawTransferRootConfirmedEvent (event: Event) {
-    const {
-      originChainId: sourceChainId,
-      destinationChainId,
-      rootHash,
+      rootHash: transferRootHash,
       totalAmount
     } = event.args
-    await this.handleTransferRootConfirmedEvent(
-      sourceChainId,
-      destinationChainId,
-      rootHash,
-      totalAmount,
-      event
-    )
-  }
-
-  async handleRawTransferSentEvent (event: Event) {
-    const {
-      transferId,
-      chainId: destinationChainId,
-      recipient,
-      amount,
-      transferNonce,
-      bonderFee,
-      index,
-      amountOutMin,
-      deadline
-    } = event.args
-    await this.handleTransferSentEvent(
-      transferId,
-      destinationChainId,
-      recipient,
-      amount,
-      transferNonce,
-      bonderFee,
-      index,
-      amountOutMin,
-      deadline,
-      event
-    )
-  }
-
-  async handleRawWithdrawalBondedEvent (event: Event) {
-    const { transferId, amount } = event.args
-    await this.handleWithdrawalBondedEvent(transferId, amount, event)
-  }
-
-  async handleRawTransferRootSetEvent (event: Event) {
-    const { rootHash, totalAmount } = event.args
-    await this.handleTransferRootSetEvent(rootHash, totalAmount, event)
-  }
-
-  async handleRawMultipleWithdrawalsSettledEvent (event: Event) {
-    const { bonder, rootHash, totalBondsSettled } = event.args
-    await this.handleMultipleWithdrawalsSettledEvent(
-      bonder,
-      rootHash,
-      totalBondsSettled,
-      event
-    )
-  }
-
-  handleTransferRootSetEvent = async (
-    transferRootHash: string,
-    totalAmount: BigNumber,
-    event: Event
-  ) => {
     const logger = this.logger.create({ root: transferRootHash })
     const { transactionHash } = event
     const timestamp = await this.bridge.getEventTimestamp(event)
@@ -228,12 +150,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     })
   }
 
-  handleMultipleWithdrawalsSettledEvent = async (
-    bonder: string,
-    transferRootHash: string,
-    totalBondsSettled: BigNumber,
-    event: Event
-  ) => {
+  handleMultipleWithdrawalsSettledEvent = async (event: Event) => {
+    const {
+      bonder,
+      rootHash: transferRootHash,
+      totalBondsSettled
+    } = event.args
     const { transactionHash } = event
     const { data } = await this.bridge.getTransaction(transactionHash)
     const { transferIds } = await this.bridge.decodeSettleBondedWithdrawalsData(

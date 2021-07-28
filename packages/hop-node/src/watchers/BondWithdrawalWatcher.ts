@@ -69,7 +69,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     promises.push(
       this.bridge.mapWithdrawalBondedEvents(
         async (event: Event) => {
-          return this.handleRawWithdrawalBondedEvent(event)
+          return this.handleWithdrawalBondedEvent(event)
         },
         { cacheKey: this.cacheKey(this.bridge.WithdrawalBonded) }
       )
@@ -81,7 +81,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       promises.push(
         l2Bridge.mapTransferSentEvents(
           async (event: Event) => {
-            return this.handleRawTransferSentEvent(event)
+            return this.handleTransferSentEvent(event)
           },
           { cacheKey: this.cacheKey(l2Bridge.TransferSent) }
         )
@@ -96,37 +96,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       return
     }
     await this.checkTransferSentFromDb()
-  }
-
-  async handleRawWithdrawalBondedEvent (event: Event) {
-    const { transferId, amount } = event.args
-    await this.handleWithdrawalBondedEvent(transferId, amount, event)
-  }
-
-  async handleRawTransferSentEvent (event: Event) {
-    const {
-      transferId,
-      chainId: destinationChainId,
-      recipient,
-      amount,
-      transferNonce,
-      bonderFee,
-      index,
-      amountOutMin,
-      deadline
-    } = event.args
-    await this.handleTransferSentEvent(
-      transferId,
-      destinationChainId,
-      recipient,
-      amount,
-      transferNonce,
-      bonderFee,
-      index,
-      amountOutMin,
-      deadline,
-      event
-    )
   }
 
   async checkTransferSentFromDb () {

@@ -49,7 +49,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       promises.push(
         l1Bridge.mapTransferRootBondedEvents(
           async (event: Event) => {
-            return this.handleRawTransferRootBondedEvent(event)
+            return this.handleTransferRootBondedEvent(event)
           },
           { cacheKey: this.cacheKey(l1Bridge.TransferRootBonded) }
         )
@@ -59,7 +59,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       promises.push(
         l2Bridge.mapTransfersCommittedEvents(
           async (event: Event) => {
-            return this.handleRawTransfersCommittedEvent(event)
+            return this.handleTransfersCommittedEvent(event)
           },
           { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
         )
@@ -71,27 +71,6 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
 
   async pollHandler () {
     await this.checkTransfersCommittedFromDb()
-  }
-
-  async handleRawTransferRootBondedEvent (event: Event) {
-    const { root, amount } = event.args
-    await this.handleTransferRootBondedEvent(root, amount, event)
-  }
-
-  async handleRawTransfersCommittedEvent (event: Event) {
-    const {
-      destinationChainId,
-      rootHash,
-      totalAmount,
-      rootCommittedAt
-    } = event.args
-    await this.handleTransfersCommittedEvent(
-      destinationChainId,
-      rootHash,
-      totalAmount,
-      rootCommittedAt,
-      event
-    )
   }
 
   async checkTransfersCommittedFromDb () {

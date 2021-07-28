@@ -66,7 +66,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     promises.push(
       l2Bridge.mapTransferSentEvents(
         async (event: Event) => {
-          return this.handleRawTransferSentEvent(event)
+          return this.handleTransferSentEvent(event)
         },
         { cacheKey: this.cacheKey(l2Bridge.TransferSent) }
       )
@@ -75,7 +75,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     promises.push(
       l2Bridge.mapTransfersCommittedEvents(
         async (event: Event) => {
-          return this.handleRawTransfersCommittedEventForTransferIds(event)
+          return this.handleTransfersCommittedEventForTransferIds(event)
         },
         { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
       )
@@ -90,48 +90,6 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     }
 
     await this.checkTransferSentFromDb()
-  }
-
-  async handleRawTransfersCommittedEventForTransferIds (event: Event) {
-    const {
-      destinationChainId,
-      rootHash,
-      totalAmount,
-      rootCommittedAt
-    } = event.args
-    await this.handleTransfersCommittedEventForTransferIds(
-      destinationChainId,
-      rootHash,
-      totalAmount,
-      rootCommittedAt,
-      event
-    )
-  }
-
-  async handleRawTransferSentEvent (event: Event) {
-    const {
-      transferId,
-      chainId: destinationChainId,
-      recipient,
-      amount,
-      transferNonce,
-      bonderFee,
-      index,
-      amountOutMin,
-      deadline
-    } = event.args
-    await this.handleTransferSentEvent(
-      transferId,
-      destinationChainId,
-      recipient,
-      amount,
-      transferNonce,
-      bonderFee,
-      index,
-      amountOutMin,
-      deadline,
-      event
-    )
   }
 
   async checkTransferSentFromDb () {

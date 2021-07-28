@@ -20,18 +20,18 @@ interface Config {
 
 @boundClass
 class BaseWatcherWithEventHandlers extends BaseWatcher {
-  async handleTransferSentEvent (
-    transferId: string,
-    destinationChainIdBn: BigNumber,
-    recipient: string,
-    amount: BigNumber,
-    transferNonce: string,
-    bonderFee: BigNumber,
-    index: string,
-    amountOutMin: BigNumber,
-    deadline: BigNumber,
-    event: Event
-  ) {
+  async handleTransferSentEvent (event: Event) {
+    const {
+      transferId,
+      chainId: destinationChainIdBn,
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      index,
+      amountOutMin,
+      deadline
+    } = event.args
     const logger = this.logger.create({ id: transferId })
     logger.debug('handling TransferSent event')
 
@@ -75,11 +75,8 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     }
   }
 
-  async handleWithdrawalBondedEvent (
-    transferId: string,
-    amount: BigNumber,
-    event: Event
-  ) {
+  async handleWithdrawalBondedEvent (event: Event) {
+    const { transferId, amount } = event.args
     const logger = this.logger.create({ id: transferId })
 
     const { transactionHash } = event
@@ -97,13 +94,13 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     })
   }
 
-  async handleTransferRootConfirmedEvent (
-    sourceChainId: BigNumber,
-    destChainId: BigNumber,
-    transferRootHash: string,
-    totalAmount: BigNumber,
-    event: Event
-  ) {
+  async handleTransferRootConfirmedEvent (event: Event) {
+    const {
+      originChainId: sourceChainId,
+      destinationChainId: destChainId,
+      rootHash: transferRootHash,
+      totalAmount
+    } = event.args
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('handling TransferRootConfirmed event')
 
@@ -121,11 +118,8 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     }
   }
 
-  async handleTransferRootBondedEvent (
-    root: string,
-    amount: BigNumber,
-    event: Event
-  ) {
+  async handleTransferRootBondedEvent (event: Event) {
+    const { root, amount } = event.args
     const logger = this.logger.create({ root: root })
     logger.debug('handling TransferRootBonded event')
 
@@ -160,13 +154,13 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     }
   }
 
-  async handleTransfersCommittedEvent (
-    destinationChainIdBn: BigNumber,
-    transferRootHash: string,
-    totalAmount: BigNumber,
-    committedAtBn: BigNumber,
-    event: Event
-  ) {
+  async handleTransfersCommittedEvent (event: Event) {
+    const {
+      destinationChainId: destinationChainIdBn,
+      rootHash: transferRootHash,
+      totalAmount,
+      rootCommittedAt: committedAtBn
+    } = event.args
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('handling TransfersCommitted event')
 
@@ -213,13 +207,13 @@ class BaseWatcherWithEventHandlers extends BaseWatcher {
     }
   }
 
-  async handleTransfersCommittedEventForTransferIds (
-    destinationChainIdBn: BigNumber,
-    transferRootHash: string,
-    totalAmount: BigNumber,
-    committedAtBn: BigNumber,
-    event: Event
-  ) {
+  async handleTransfersCommittedEventForTransferIds (event: Event) {
+    const {
+      destinationChainId: destinationChainIdBn,
+      rootHash: transferRootHash,
+      totalAmount,
+      rootCommittedAt: committedAtBn
+    } = event.args
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('handling TransfersCommitted event for transfer IDs')
 

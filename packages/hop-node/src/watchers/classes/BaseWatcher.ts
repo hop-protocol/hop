@@ -47,6 +47,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   dryMode: boolean
   tag: string
   prefix: string
+  syncIndex: number
 
   constructor (config: Config) {
     super()
@@ -84,6 +85,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (config.dryMode) {
       this.dryMode = config.dryMode
     }
+    this.syncIndex = 0
   }
 
   async pollSync () {
@@ -95,7 +97,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async preSyncHandler () {
-    this.logger.debug('syncing up events')
+    this.syncIndex++
+    this.logger.debug('syncing up events. index:', this.syncIndex)
   }
 
   async syncHandler () {
@@ -103,7 +106,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async postSyncHandler () {
-    this.logger.debug('done syncing')
+    this.logger.debug('done syncing. index:', this.syncIndex)
     this.initialSyncCompleted = true
     await wait(this.resyncIntervalSec)
   }

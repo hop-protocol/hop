@@ -301,8 +301,8 @@ const Send: FC = () => {
       )
       const warningMessage = `Insufficient liquidity. There is ${formattedAmount} ${sourceToken.symbol} available on ${toNetwork.name}.`
       if (!isAvailable && !fromNetwork?.isLayer1) {
-        setIsLiquidityAvailable(false)
-        setNoLiquidityWarning(warningMessage)
+        // setIsLiquidityAvailable(false)
+        // setNoLiquidityWarning(warningMessage)
       } else {
         setIsLiquidityAvailable(true)
         setNoLiquidityWarning('')

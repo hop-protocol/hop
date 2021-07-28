@@ -91,26 +91,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     await Promise.all(promises)
   }
 
-  async watch () {
-    if (!this.isL1) {
-      const l2Bridge = this.bridge as L2Bridge
-      this.bridge
-        .on(l2Bridge.TransferSent, this.handleTransferSentEvent)
-        .on('error', err => {
-          this.logger.error(`event watcher error: ${err.message}`)
-          this.notifier.error(`event watcher error: ${err.message}`)
-          this.quit()
-        })
-    }
-    this.bridge
-      .on(this.bridge.WithdrawalBonded, this.handleWithdrawalBondedEvent)
-      .on('error', err => {
-        this.logger.error(`event watcher error: ${err.message}`)
-        this.notifier.error(`event watcher error: ${err.message}`)
-        this.quit()
-      })
-  }
-
   async pollHandler () {
     if (this.isL1) {
       return

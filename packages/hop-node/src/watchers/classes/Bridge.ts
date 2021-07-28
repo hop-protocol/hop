@@ -60,7 +60,6 @@ export default class Bridge extends ContractBase {
     if (tokenSymbol) {
       this.tokenSymbol = tokenSymbol
     }
-    this.bridgeStartListeners()
     this.db = db.getDbSet(this.tokenSymbol)
   }
 
@@ -82,23 +81,6 @@ export default class Bridge extends ContractBase {
   // no need to connect another provider here.
   getWriteBridgeContract (): Contract {
     return this.bridgeContract
-  }
-
-  bridgeStartListeners (): void {
-    this.getReadBridgeContract()
-      .on(this.bridgeContract.filters.WithdrawalBonded(), (...args: any[]) =>
-        this.emit(this.WithdrawalBonded, ...args)
-      )
-      .on(this.bridgeContract.filters.TransferRootSet(), (...args: any[]) =>
-        this.emit(this.TransferRootSet, ...args)
-      )
-      .on(
-        this.bridgeContract.filters.MultipleWithdrawalsSettled(),
-        (...args: any[]) => this.emit(this.MultipleWithdrawalsSettled, ...args)
-      )
-      .on('error', err => {
-        this.emit('error', err)
-      })
   }
 
   async getBonderAddress (): Promise<string> {

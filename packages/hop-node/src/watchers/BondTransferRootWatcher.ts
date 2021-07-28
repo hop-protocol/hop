@@ -69,28 +69,6 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     await Promise.all(promises)
   }
 
-  async watch () {
-    if (this.isL1) {
-      const l1Bridge = this.bridge as L1Bridge
-      this.bridge
-        .on(l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
-        .on('error', err => {
-          this.logger.error(`event watcher error: ${err.message}`)
-          this.notifier.error(`event watcher error: ${err.message}`)
-          this.quit()
-        })
-      return
-    }
-    const l2Bridge = this.bridge as L2Bridge
-    this.bridge
-      .on(l2Bridge.TransfersCommitted, this.handleTransfersCommittedEvent)
-      .on('error', err => {
-        this.logger.error(`event watcher error: ${err.message}`)
-        this.notifier.error(`event watcher error: ${err.message}`)
-        this.quit()
-      })
-  }
-
   async pollHandler () {
     await this.checkTransfersCommittedFromDb()
   }

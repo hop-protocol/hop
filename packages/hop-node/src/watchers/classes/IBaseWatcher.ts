@@ -9,7 +9,6 @@ export interface IBaseWatcher {
   pollHandler(): Promise<void>
   postPollHandler(): Promise<void>
 
-  watch(): Promise<void>
   start(): Promise<void>
   stop(): Promise<void>
 }

@@ -84,24 +84,6 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     await Promise.all(promises)
   }
 
-  async watch () {
-    if (this.isL1) {
-      return
-    }
-    const l2Bridge = this.bridge as L2Bridge
-    this.bridge
-      .on(l2Bridge.TransferSent, this.handleTransferSentEvent)
-      .on(
-        l2Bridge.TransfersCommitted,
-        this.handleTransfersCommittedEventForTransferIds
-      )
-      .on('error', err => {
-        this.logger.error(`event watcher error: ${err.message}`)
-        this.notifier.error(`event watcher error: ${err.message}`)
-        this.quit()
-      })
-  }
-
   async pollHandler () {
     if (this.isL1) {
       return

@@ -108,10 +108,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     await wait(this.resyncIntervalSec)
   }
 
-  async watch () {
-    // virtual method
-  }
-
   async pollCheck () {
     while (true) {
       if (!this.started) {
@@ -144,7 +140,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   async start () {
     this.started = true
     try {
-      await Promise.all([this.pollSync(), this.pollCheck(), this.watch()])
+      await Promise.all([this.pollSync(), this.pollCheck()])
     } catch (err) {
       this.logger.error('base watcher error:', err.message)
       this.notifier.error(`base watcher error: '${err.message}`)

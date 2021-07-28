@@ -106,35 +106,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     await Promise.all(promises)
   }
 
-  async watch () {
-    if (this.isL1) {
-      const l1Bridge = this.bridge as L1Bridge
-      this.bridge
-        .on(
-          l1Bridge.TransferRootConfirmed,
-          this.handleTransferRootConfirmedEvent
-        )
-        .on('error', err => {
-          this.logger.error(`event watcher error: ${err.message}`)
-          this.notifier.error(`event watcher error: ${err.message}`)
-          this.quit()
-        })
-      return
-    }
-    this.bridge
-      .on(this.bridge.TransferRootSet, this.handleTransferRootSetEvent)
-      .on(this.bridge.WithdrawalBonded, this.handleWithdrawalBondedEvent)
-      .on(
-        this.bridge.MultipleWithdrawalsSettled,
-        this.handleMultipleWithdrawalsSettledEvent
-      )
-      .on('error', err => {
-        this.logger.error(`event watcher error: ${err.message}`)
-        this.notifier.error(`event watcher error: ${err.message}`)
-        this.quit()
-      })
-  }
-
   async pollHandler () {
     const promises: Promise<any>[] = []
     promises.push(

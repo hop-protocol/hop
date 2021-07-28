@@ -72,38 +72,6 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     await Promise.all(promises)
   }
 
-  async watch () {
-    if (this.isL1) {
-      const l1Bridge = this.bridge as L1Bridge
-      l1Bridge
-        .on(
-          l1Bridge.TransferRootBonded,
-          this.handleTransferRootBondedEvent
-        )
-        .on(
-          l1Bridge.TransferBondChallenged,
-          this.handleTransferBondChallengedEvent
-        )
-        .on('error', err => {
-          this.logger.error(`event watcher error: ${err.message}`)
-          this.notifier.error(`event watcher error: ${err.message}`)
-          this.quit()
-        })
-    } else {
-      const l2Bridge = this.bridge as L2Bridge
-      l2Bridge
-        .on(
-          l2Bridge.TransfersCommitted,
-          this.handleTransfersCommittedEvent
-        )
-        .on('error', err => {
-          this.logger.error(`event watcher error: ${err.message}`)
-          this.notifier.error(`event watcher error: ${err.message}`)
-          this.quit()
-        })
-    }
-  }
-
   async pollHandler () {
     if (!this.isL1) {
       return

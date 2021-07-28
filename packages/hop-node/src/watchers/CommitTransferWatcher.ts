@@ -46,7 +46,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     }
 
     // Commit watcher is less time sensitive than others
-    this.pollIntervalSec = 6 * 10 * 1000
+    this.pollIntervalMs = 6 * 10 * 1000
   }
 
   async start () {

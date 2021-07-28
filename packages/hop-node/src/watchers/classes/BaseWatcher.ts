@@ -35,8 +35,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   notifier: Notifier
   order: () => number = () => 0
   started: boolean = false
-  pollIntervalSec: number = 10 * 1000
-  resyncIntervalSec: number = 60 * 1000
+  pollIntervalMs: number = 10 * 1000
+  resyncIntervalMs: number = 60 * 1000
   chainSlug: string
   tokenSymbol: string
   initialSyncCompleted: boolean = false
@@ -47,7 +47,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   dryMode: boolean
   tag: string
   prefix: string
-  syncIndex: number
+  syncIndex: number = 0
 
   constructor (config: Config) {
     super()
@@ -85,7 +85,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (config.dryMode) {
       this.dryMode = config.dryMode
     }
-    this.syncIndex = 0
   }
 
   async pollSync () {
@@ -97,7 +96,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async preSyncHandler () {
-    this.syncIndex++
     this.logger.debug('syncing up events. index:', this.syncIndex)
   }
 
@@ -108,7 +106,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   async postSyncHandler () {
     this.logger.debug('done syncing. index:', this.syncIndex)
     this.initialSyncCompleted = true
-    await wait(this.resyncIntervalSec)
+    this.syncIndex++
+    await wait(this.resyncIntervalMs)
   }
 
   async pollCheck () {
@@ -137,7 +136,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async postPollHandler () {
-    await wait(this.pollIntervalSec)
+    await wait(this.pollIntervalMs)
   }
 
   async start () {

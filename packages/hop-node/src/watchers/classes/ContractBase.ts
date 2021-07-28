@@ -185,8 +185,11 @@ export default class ContractBase extends EventEmitter {
     if (config.isMainnet) {
       // increasing more gas multiplier for xdai
       // to avoid the error "code:-32010, message: FeeTooLowToCompete"
-      if (this.chainSlug === Chain.xDai) {
-        multiplier = 1.75
+      if (
+        this.chainSlug === Chain.xDai ||
+        this.chainSlug === Chain.Polygon
+      ) {
+        multiplier = 3
       }
     } else {
       txOptions.gasLimit = 5000000

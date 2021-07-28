@@ -49,7 +49,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       promises.push(
         l1Bridge.mapTransferRootBondedEvents(
           async (event: Event) => {
-            return this.handleRawTransferRootBondedEvent(event)
+            return this.handleTransferRootBondedEvent(event)
           },
           { cacheKey: this.cacheKey(l1Bridge.TransferRootBonded) }
         )
@@ -59,7 +59,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       promises.push(
         l2Bridge.mapTransfersCommittedEvents(
           async (event: Event) => {
-            return this.handleRawTransfersCommittedEvent(event)
+            return this.handleTransfersCommittedEvent(event)
           },
           { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
         )
@@ -69,51 +69,8 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     await Promise.all(promises)
   }
 
-  async watch () {
-    if (this.isL1) {
-      const l1Bridge = this.bridge as L1Bridge
-      this.bridge
-        .on(l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
-        .on('error', err => {
-          this.logger.error(`event watcher error: ${err.message}`)
-          this.notifier.error(`event watcher error: ${err.message}`)
-          this.quit()
-        })
-      return
-    }
-    const l2Bridge = this.bridge as L2Bridge
-    this.bridge
-      .on(l2Bridge.TransfersCommitted, this.handleTransfersCommittedEvent)
-      .on('error', err => {
-        this.logger.error(`event watcher error: ${err.message}`)
-        this.notifier.error(`event watcher error: ${err.message}`)
-        this.quit()
-      })
-  }
-
   async pollHandler () {
     await this.checkTransfersCommittedFromDb()
-  }
-
-  async handleRawTransferRootBondedEvent (event: Event) {
-    const { root, amount } = event.args
-    await this.handleTransferRootBondedEvent(root, amount, event)
-  }
-
-  async handleRawTransfersCommittedEvent (event: Event) {
-    const {
-      destinationChainId,
-      rootHash,
-      totalAmount,
-      rootCommittedAt
-    } = event.args
-    await this.handleTransfersCommittedEvent(
-      destinationChainId,
-      rootHash,
-      totalAmount,
-      rootCommittedAt,
-      event
-    )
   }
 
   async checkTransfersCommittedFromDb () {
@@ -195,14 +152,6 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
 
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
       .bridge as L1Bridge
-
-    // TODO: Reintroduce reorg checker
-    // await l2Bridge.waitSafeConfirmationsAndCheckBlockNumber(
-    //   commitTxHash,
-    //   async () => {
-    //     return l2Bridge.getTransferRootCommittedTxHash(transferRootHash)
-    //   }
-    // )
 
     const minDelay = await l1Bridge.getMinTransferRootBondDelaySeconds()
     const blockTimestamp = await l1Bridge.getBlockTimestamp()

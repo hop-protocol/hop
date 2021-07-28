@@ -18,11 +18,6 @@ export default class L1Bridge extends Bridge {
   TransferSentToL2: string = 'TransferSentToL2'
   ChallengeResolved: string = 'ChallengeResolved'
 
-  constructor (l1BridgeContract: Contract) {
-    super(l1BridgeContract)
-    this.l1StartListeners()
-  }
-
   static fromAddress (address: string): L1Bridge {
     const contract = new Contract(
       address,
@@ -31,33 +26,6 @@ export default class L1Bridge extends Bridge {
     )
 
     return new L1Bridge(contract)
-  }
-
-  l1StartListeners (): void {
-    this.getReadBridgeContract()
-      .on(
-        this.getReadBridgeContract().filters.TransferRootBonded(),
-        (...args: any[]) => this.emit(this.TransferRootBonded, ...args)
-      )
-      .on(
-        this.getReadBridgeContract().filters.TransferRootConfirmed(),
-        (...args: any[]) => this.emit(this.TransferRootConfirmed, ...args)
-      )
-      .on(
-        this.getReadBridgeContract().filters.TransferBondChallenged(),
-        (...args: any[]) => this.emit(this.TransferBondChallenged, ...args)
-      )
-      .on(
-        this.getReadBridgeContract().filters.ChallengeResolved(),
-        (...args: any[]) => this.emit(this.ChallengeResolved, ...args)
-      )
-      .on(
-        this.getReadBridgeContract().filters.TransferSentToL2(),
-        (...args: any[]) => this.emit(this.TransferSentToL2, ...args)
-      )
-      .on('error', err => {
-        this.emit('error', err)
-      })
   }
 
   @rateLimitRetry

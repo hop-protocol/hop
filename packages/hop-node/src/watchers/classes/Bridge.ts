@@ -60,7 +60,6 @@ export default class Bridge extends ContractBase {
     if (tokenSymbol) {
       this.tokenSymbol = tokenSymbol
     }
-    this.bridgeStartListeners()
     this.db = db.getDbSet(this.tokenSymbol)
   }
 
@@ -82,23 +81,6 @@ export default class Bridge extends ContractBase {
   // no need to connect another provider here.
   getWriteBridgeContract (): Contract {
     return this.bridgeContract
-  }
-
-  bridgeStartListeners (): void {
-    this.getReadBridgeContract()
-      .on(this.bridgeContract.filters.WithdrawalBonded(), (...args: any[]) =>
-        this.emit(this.WithdrawalBonded, ...args)
-      )
-      .on(this.bridgeContract.filters.TransferRootSet(), (...args: any[]) =>
-        this.emit(this.TransferRootSet, ...args)
-      )
-      .on(
-        this.bridgeContract.filters.MultipleWithdrawalsSettled(),
-        (...args: any[]) => this.emit(this.MultipleWithdrawalsSettled, ...args)
-      )
-      .on('error', err => {
-        this.emit('error', err)
-      })
   }
 
   async getBonderAddress (): Promise<string> {
@@ -528,28 +510,6 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
-  @rateLimitRetry
-  async checkReorg (
-    originalBlockNumber: number,
-    txHash: string
-  ): Promise<{isReorged: boolean, newBlockNumber?: number, newTransactionIndex?: number}> {
-    const tx = await this.getTransaction(
-      txHash
-    )
-    if (!tx) {
-      return {
-        isReorged: true
-      }
-    }
-    const { blockNumber, transactionIndex } = tx
-    const isReorged = originalBlockNumber !== blockNumber
-    return {
-      isReorged,
-      newBlockNumber: blockNumber,
-      newTransactionIndex: transactionIndex
-    }
-  }
-
   isTransferStale (
     transferSentBlockNumber: number,
     headBlockNumber: number,
@@ -560,27 +520,6 @@ export default class Bridge extends ContractBase {
       return true
     }
     return false
-  }
-
-  @rateLimitRetry
-  async waitSafeConfirmationsAndCheckBlockNumber (
-    originalTxHash: string,
-    txHashGetter: () => Promise<string>
-  ) {
-    const originalBlockNumber = await this.getTransactionBlockNumber(
-      originalTxHash
-    )
-    await this.waitSafeConfirmations(originalBlockNumber)
-    const latestTxHash = await txHashGetter()
-    if (!latestTxHash) {
-      throw new Error('could not find tx hash event')
-    }
-    const latestBlockNumber = await this.getTransactionBlockNumber(latestTxHash)
-    if (originalBlockNumber !== latestBlockNumber) {
-      throw new Error(
-        `tx hash (${originalTxHash}) block number hash changed. expected ${originalBlockNumber}, got ${latestBlockNumber}`
-      )
-    }
   }
 
   formatUnits (value: BigNumber) {

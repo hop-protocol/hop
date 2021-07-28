@@ -27,7 +27,6 @@ export default class L2Bridge extends Bridge {
 
   constructor (l2BridgeContract: Contract) {
     super(l2BridgeContract)
-    this.l2StartListeners()
 
     if (this.getReadBridgeContract().ammWrapper) {
       this.getReadBridgeContract()
@@ -48,24 +47,6 @@ export default class L2Bridge extends Bridge {
       this.getWriteBridgeContract().signer
     )
     this.l2BridgeWrapper = new L2BridgeWrapper(l2BridgeWrapperContract)
-  }
-
-  l2StartListeners (): void {
-    this.getReadBridgeContract().on(
-      this.getReadBridgeContract().filters.TransfersCommitted(),
-      (...args: any[]) => this.emit(this.TransfersCommitted, ...args)
-    )
-      .on(
-        this.getReadBridgeContract().filters.TransferSent(),
-        (...args: any[]) => this.emit(this.TransferSent, ...args)
-      )
-      .on(
-        this.getReadBridgeContract().filters.TransferFromL1Completed(),
-        (...args: any[]) => this.emit(this.TransferFromL1Completed, ...args)
-      )
-      .on('error', err => {
-        this.emit('error', err)
-      })
   }
 
   async getL1Bridge (): Promise<L1Bridge> {

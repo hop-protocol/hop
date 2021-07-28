@@ -6,7 +6,7 @@ class DbLogger {
   db: any
   logger: Logger
   token: string
-  pollIntervalSec: number = 60 * 60 * 1000
+  pollIntervalMs: number = 60 * 60 * 1000
 
   constructor (token: string) {
     this.logger = new Logger({
@@ -29,7 +29,7 @@ class DbLogger {
       this.logger.debug('transferRoots dump:', JSON.stringify(transferRoots))
       const syncState = await this.db.syncState.getItems()
       this.logger.debug('syncState dump:', JSON.stringify(syncState))
-      await wait(this.pollIntervalSec)
+      await wait(this.pollIntervalMs)
     }
   }
 }

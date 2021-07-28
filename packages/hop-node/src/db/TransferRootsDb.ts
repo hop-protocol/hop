@@ -1,6 +1,6 @@
 import BaseDb from './BaseDb'
 import { BigNumber } from 'ethers'
-import { normalizeBigNumber } from './utils'
+import { normalizeDbItem } from './utils'
 
 export type TransferRoot = {
   destinationBridgeAddress?: string
@@ -26,10 +26,15 @@ export type TransferRoot = {
   sentBondTx?: boolean
   sentBondTxAt?: number
   bondTxHash?: string
+  bondedAt?: number
   transferIds?: string[]
   bonder?: string
   checkpointAttemptedAt?: number
   withdrawalBondSettleTxSentAt?: number
+  bondTotalAmount?: BigNumber
+  bondTransferRootId?: string
+  challenged?: boolean
+  challengeExpired?: boolean
 }
 
 class TransferRootsDb extends BaseDb {
@@ -40,9 +45,8 @@ class TransferRootsDb extends BaseDb {
   async getByTransferRootHash (
     transferRootHash: string
   ): Promise<TransferRoot> {
-    let item = (await this.getById(transferRootHash)) as TransferRoot
-    item = normalizeBigNumber(item, 'totalAmount')
-    return item
+    const item = (await this.getById(transferRootHash)) as TransferRoot
+    return normalizeDbItem(item)
   }
 
   async getByTransferRootId (transferRootId: string): Promise<TransferRoot> {
@@ -80,8 +84,8 @@ class TransferRootsDb extends BaseDb {
   async getUncommittedBondedTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
       return !item.committed && item?.transferIds?.length
     })
   }
@@ -89,8 +93,8 @@ class TransferRootsDb extends BaseDb {
   async getUnbondedTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
@@ -114,8 +118,8 @@ class TransferRootsDb extends BaseDb {
   async getUnconfirmedTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
@@ -133,34 +137,21 @@ class TransferRootsDb extends BaseDb {
     })
   }
 
-  // TODO: This should be a new DB for a TransferBond, not a TransferRoot
-  // This will add new requirements to this return statement
   async getChallengeableTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
+      // Do not check if a rootHash has been committed. A rootHash can be committed and bonded,
+      // but if the bond uses a different totalAmount then it is fraudulent. Instead, use the
+      // transferRootId. If transferRootIds do not match then we know the bond is fraudulent.
+      const isTransferRootIdValid = item.bondTransferRootId === item.transferRootId
       return (
-        !item.confirmed &&
-        !item.confirmedAt &&
+        item.transferRootHash &&
         item.bonded &&
-        !item.sentConfirmTx &&
-        !item.sentConfirmTxAt
-      )
-    })
-  }
-
-  // TODO: This should be a new DB for a TransferBond, not a TransferRoot
-  // This will add new requirements to this return statement
-  async getResolvableTransferRoots (): Promise<TransferRoot[]> {
-    const transfers = await this.getTransferRoots()
-    return transfers.filter(item => {
-      return (
-        !item.confirmed &&
-        !item.confirmedAt &&
-        item.bonded &&
-        !item.sentConfirmTx &&
-        !item.sentConfirmTxAt
+        !isTransferRootIdValid &&
+        !item.challenged &&
+        !item.challengeExpired
       )
     })
   }

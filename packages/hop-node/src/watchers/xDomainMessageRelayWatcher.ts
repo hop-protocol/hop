@@ -153,7 +153,16 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       // only process message after waiting 10 minutes
       const timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
       if (!timestampOk) {
-        return
+        continue
+      }
+
+      // Retry a tx if it is in the mempool for too long
+      if (dbTransferRoot?.checkpointAttemptedAt) {
+        const xDomainMessageSentTimestampOk = dbTransferRoot?.checkpointAttemptedAt + TX_RETRY_DELAY_MS <
+            Date.now()
+        if (!xDomainMessageSentTimestampOk) {
+          continue
+        }
       }
 
       // Parallelizing these calls produces RPC errors on Optimism
@@ -203,22 +212,6 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
       }
     }
     if (!commitTxHash) {
-      return
-    }
-
-    if (
-      (dbTransferRoot?.sentConfirmTx || dbTransferRoot?.confirmed) &&
-      dbTransferRoot.sentConfirmTxAt
-    ) {
-      // skip if a transaction was sent in the last 10 minutes
-      if (dbTransferRoot.sentConfirmTxAt + TX_RETRY_DELAY_MS > Date.now()) {
-        logger.debug(
-          'sent?:',
-          !!dbTransferRoot.sentConfirmTx,
-          'confirmed?:',
-          !!dbTransferRoot?.confirmed
-        )
-      }
       return
     }
 

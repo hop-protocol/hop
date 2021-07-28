@@ -15,9 +15,14 @@ export default async function getTransferRoots (chain: string, token: string): P
         id
         rootHash
         destinationChainId
-        timestamp
+        totalAmount
+        rootCommittedAt
+
         transactionHash
+        transactionIndex
+        timestamp
         blockNumber
+        contractAddress
         token
       }
     }

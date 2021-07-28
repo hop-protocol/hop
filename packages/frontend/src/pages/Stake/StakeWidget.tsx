@@ -175,7 +175,7 @@ const StakeWidget: FC<Props> = props => {
       kind: 'approval',
       inputProps: {
         tagline: `Allow Hop to spend your ${stakingToken.symbol} on ${network?.slug}`,
-        amount: amount,
+        amount: /USDT/.test(stakingToken.symbol) ? undefined : amount,
         token: stakingToken.symbol
       },
       onConfirm: async (approveAll: boolean) => {

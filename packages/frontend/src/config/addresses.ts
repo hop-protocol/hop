@@ -21,18 +21,29 @@ if (isMainnet) {
   networks = goerliNetworks
 }
 
-console.log('config network:', network)
-console.log('config addresses:', addresses.tokens)
-
 let enabledTokens : string | string[] | undefined = process.env.REACT_APP_ENABLED_TOKENS
 if (enabledTokens) {
   enabledTokens = enabledTokens.split(',').map(x => x.trim())
   const filteredAddresses : {[key: string]: any} = {}
   for (const enabledToken of enabledTokens) {
-    filteredAddresses[enabledToken] = addresses.tokens[enabledToken]
+    if (addresses.tokens[enabledToken]) {
+      filteredAddresses[enabledToken] = addresses.tokens[enabledToken]
+    }
   }
   addresses.tokens = filteredAddresses
 }
+
+console.log(`
+    __  __
+   / / / /___  ____
+  / /_/ / __ \\/ __ \\
+ / __  / /_/ / /_/ /
+/_/ /_/\\____/ .___/
+           /_/
+`)
+console.log('Welcome 🐰')
+console.debug('config network:', network)
+console.debug('config addresses:', addresses.tokens)
 
 export { addresses, network, networks, isMainnet }
 export const blocknativeDappid = '328621b8-952f-4a86-bd39-724ba822d416'

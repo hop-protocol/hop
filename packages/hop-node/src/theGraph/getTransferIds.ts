@@ -22,12 +22,20 @@ export default async function getTransferIds (
       ) {
         id
         transferId
-        amount
         destinationChainId
-        transactionHash
+        recipient
+        amount
+        transferNonce
+        bonderFee
         index
+        amountOutMin
+        deadline
+
+        transactionHash
+        transactionIndex
         timestamp
         blockNumber
+        contractAddress
         token
       }
     }

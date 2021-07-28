@@ -296,14 +296,15 @@ const PoolsContextProvider: FC = ({ children }) => {
     const parsedAmount = parseUnits(amount, canonicalToken.decimals)
     const token = isHop ? bridge.getL2HopToken(network.slug) : bridge.getCanonicalToken(network.slug)
     const approved = await token.allowance(spender)
+    const tokenSymbol = isHop ? hopToken.symbol : canonicalToken.symbol
 
     if (approved.lt(parsedAmount)) {
       return txConfirm?.show({
         kind: 'approval',
         inputProps: {
           tagline: `Allow Hop to spend your ${token.symbol} on ${selectedNetwork.name}`,
-          amount,
-          tokenSymbol: isHop ? hopToken.symbol : canonicalToken.symbol
+          amount: canonicalToken.symbol === 'USDT' ? undefined : amount,
+          tokenSymbol
         },
         onConfirm: async (approveAll: boolean) => {
           return token.approve(
@@ -444,7 +445,6 @@ const PoolsContextProvider: FC = ({ children }) => {
       const formattedBalance = Number(
         formatUnits(balance.toString(), lpTokenDecimals)
       )
-      let liquidityTokensAmount = 0
 
       let tx: any
       const approved = await lpToken.allowance(
@@ -502,17 +502,12 @@ const PoolsContextProvider: FC = ({ children }) => {
           }
         },
         onConfirm: async (amountPercent: number) => {
-          liquidityTokensAmount = formattedBalance * (amountPercent / 100)
-          const parsedLiquidityTokenAmount = parseUnits(
-            liquidityTokensAmount.toString(),
-            lpTokenDecimals
-          )
-
+          const liquidityTokenAmount = balance.mul(amountPercent).div(100)
           const bridge = sdk.bridge(canonicalToken.symbol)
           return bridge
             .connect(signer as Signer)
             .removeLiquidity(
-              parsedLiquidityTokenAmount,
+              liquidityTokenAmount,
               selectedNetwork.slug,
               {
                 amount0Min,

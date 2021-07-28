@@ -31,6 +31,13 @@ export const TotalBlocks = {
   xDai: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.xDai)
 }
 
+const staleBlockMultiplier = 0.75
+export const BlocksTilStale = {
+  Ethereum: Math.floor(TotalBlocks.Ethereum * staleBlockMultiplier),
+  Polygon: Math.floor(TotalBlocks.Polygon * staleBlockMultiplier),
+  xDai: Math.floor(TotalBlocks.xDai * staleBlockMultiplier)
+}
+
 export const TEN_MINUTES_MS = 10 * 60 * 1000
 export const TX_RETRY_DELAY_MS = TEN_MINUTES_MS
 export const ETHEREUM_TX_MAX_DELAY_MS = 1 * 1000
@@ -38,3 +45,7 @@ export const XDAI_TX_MAX_DELAY_MS = 20 * 1000
 export const POLYGON_TX_MAX_DELAY_MS = 10 * 1000
 
 export const MAX_INT_32 = 2147483647
+
+export enum TxError {
+  CallException = 'CALL_EXCEPTION'
+}

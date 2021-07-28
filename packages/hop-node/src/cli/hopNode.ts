@@ -172,9 +172,11 @@ program
             chainSlug: Chain.xDai,
             tokenSymbol: token
           }).start()
-          if (source.logDbState) {
-            new DbLogger(token).start()
-          }
+        }
+      }
+      for (const token of tokens) {
+        if (source.logDbState) {
+          new DbLogger(token).start()
         }
       }
     } catch (err) {

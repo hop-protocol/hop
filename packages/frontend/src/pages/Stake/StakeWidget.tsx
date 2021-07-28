@@ -11,7 +11,6 @@ import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import Button from 'src/components/buttons/Button'
 import useBalance from 'src/hooks/useBalance'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
-import { UINT256 } from 'src/constants'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import useStakeBalance from 'src/pages/Stake/useStakeBalance'
@@ -19,6 +18,7 @@ import { toTokenDisplay } from 'src/utils'
 import Alert from 'src/components/alert/Alert'
 import usePollValue from 'src/hooks/usePollValue'
 import DetailRow from 'src/components/DetailRow'
+import useApprove from 'src/hooks/useApprove'
 
 const useStyles = makeStyles(theme => ({
   buttons: {
@@ -158,7 +158,8 @@ const StakeWidget: FC<Props> = props => {
     rewardsToken?.symbol
   )
 
-  const approve = async () => {
+  const approve = useApprove()
+  const approveToken = async () => {
     if (
       !stakingRewards ||
       !network ||
@@ -169,35 +170,11 @@ const StakeWidget: FC<Props> = props => {
 
     const networkId = Number(network.networkId)
     const isNetworkConnected = await checkConnectedNetworkId(networkId)
-    if (!isNetworkConnected) return
+    if (!isNetworkConnected || !parsedAmount) return
 
-    const tx = await txConfirm?.show({
-      kind: 'approval',
-      inputProps: {
-        tagline: `Allow Hop to spend your ${stakingToken.symbol} on ${network?.slug}`,
-        amount: /USDT/.test(stakingToken.symbol) ? undefined : amount,
-        token: stakingToken.symbol
-      },
-      onConfirm: async (approveAll: boolean) => {
-        const signer = await sdk.getSignerOrProvider(network.slug)
-        const approveAmount = approveAll ? UINT256 : parsedAmount
-        return stakingToken.connect(signer).approve(
-          stakingRewards?.address,
-          approveAmount
-        )
-      }
-    })
+    const tx = await approve(parsedAmount, stakingToken, stakingRewards?.address)
 
     await tx?.wait()
-    if (tx?.hash && network) {
-      txHistory?.addTransaction(
-        new Transaction({
-          hash: tx.hash,
-          networkName: network.slug,
-          token: stakingToken
-        })
-      )
-    }
   }
 
   const stake = async () => {
@@ -346,7 +323,7 @@ const StakeWidget: FC<Props> = props => {
             large
             highlighted={!!needsApproval}
             disabled={!needsApproval}
-            onClick={approve}
+            onClick={approveToken}
           >
             Approve
           </Button>

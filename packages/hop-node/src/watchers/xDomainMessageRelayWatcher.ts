@@ -54,13 +54,14 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
     }
 
     const promises: Promise<any>[] = []
+    const startBlockNumber = this.bridge.bridgeDeployedBlockNumber
     const l2Bridge = this.bridge as L2Bridge
     promises.push(
       this.l1Bridge.mapTransferRootConfirmedEvents(
         async (event: Event) => {
           return this.handleTransferRootConfirmedEvent(event)
         },
-        { cacheKey: this.cacheKey(this.l1Bridge.TransferRootConfirmed) }
+        { cacheKey: this.cacheKey(this.l1Bridge.TransferRootConfirmed), startBlockNumber }
       )
     )
 
@@ -69,7 +70,7 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
         async (event: Event) => {
           return this.handleTransfersCommittedEvent(event)
         },
-        { cacheKey: l2Bridge.TransfersCommitted }
+        { cacheKey: l2Bridge.TransfersCommitted, startBlockNumber }
       )
     )
 

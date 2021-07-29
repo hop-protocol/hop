@@ -140,6 +140,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async start () {
+    await this.bridge.waitTilReady()
     this.started = true
     try {
       await Promise.all([this.pollSync(), this.pollCheck()])

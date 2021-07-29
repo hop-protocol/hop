@@ -66,12 +66,13 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
   async syncHandler (): Promise<any> {
     const promises: Promise<any>[] = []
+    const startBlockNumber = this.bridge.bridgeDeployedBlockNumber
     promises.push(
       this.bridge.mapWithdrawalBondedEvents(
         async (event: Event) => {
           return this.handleWithdrawalBondedEvent(event)
         },
-        { cacheKey: this.cacheKey(this.bridge.WithdrawalBonded) }
+        { cacheKey: this.cacheKey(this.bridge.WithdrawalBonded), startBlockNumber }
       )
     )
 
@@ -83,7 +84,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
           async (event: Event) => {
             return this.handleTransferSentEvent(event)
           },
-          { cacheKey: this.cacheKey(l2Bridge.TransferSent) }
+          { cacheKey: this.cacheKey(l2Bridge.TransferSent), startBlockNumber }
         )
       )
     }

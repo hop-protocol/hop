@@ -3,14 +3,14 @@ import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { EventEmitter } from 'events'
 import { Transaction } from 'src/types'
-import { chainIdToSlug, chainSlugToId, wait } from 'src/utils'
+import { chainIdToSlug, chainSlugToId, getProviderChainSlug, wait } from 'src/utils'
 import { config } from 'src/config'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract
   public chainId: number
   public chainSlug: string
-  public ready: boolean = false
+  public ready: boolean = true
 
   constructor (contract: Contract) {
     super()
@@ -18,15 +18,11 @@ export default class ContractBase extends EventEmitter {
     if (!this.contract.provider) {
       throw new Error('no provider found for contract')
     }
-    this.getChainId()
-      .then((chainId: number) => {
-        this.chainId = chainId
-        this.chainSlug = this.chainIdToSlug(chainId)
-        this.ready = true
-      })
-      .catch(err => {
-        console.log(`ContractBase getNetwork() error: ${err.message}`)
-      })
+    const chainSlug = getProviderChainSlug(contract.provider)
+    this.chainSlug = chainSlug
+    this.chainId = chainSlugToId(chainSlug)
+    this.ready = true
+    this.emit('ready', {})
   }
 
   async waitTilReady (): Promise<boolean> {

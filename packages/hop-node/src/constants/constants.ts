@@ -30,6 +30,7 @@ export const TotalBlocks = {
   Polygon: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.Polygon),
   xDai: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.xDai)
 }
+export const DEFAULT_BATCH_BLOCKS = 10000
 
 const staleBlockMultiplier = 0.75
 export const BlocksTilStale = {

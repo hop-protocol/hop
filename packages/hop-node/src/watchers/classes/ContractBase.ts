@@ -19,10 +19,11 @@ export default class ContractBase extends EventEmitter {
       throw new Error('no provider found for contract')
     }
     const chainSlug = getProviderChainSlug(contract.provider)
+    if (!chainSlug) {
+      throw new Error('chain slug not found for contract provider')
+    }
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
-    this.ready = true
-    this.emit('ready', {})
   }
 
   async waitTilReady (): Promise<boolean> {

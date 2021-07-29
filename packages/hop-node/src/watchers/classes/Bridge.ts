@@ -62,6 +62,7 @@ export default class Bridge extends ContractBase {
       this.tokenSymbol = tokenSymbol
     }
     this.db = db.getDbSet(this.tokenSymbol)
+    this.bridgeDeployedBlockNumber = this.getDeployedBlockNumber()
   }
 
   // a read provider is alternative provider that can be used only for

@@ -141,8 +141,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   async start () {
     await this.bridge.waitTilReady()
-    // TODO: Instantiate this in Bridge.ts
-    this.bridge.bridgeDeployedBlockNumber = this.bridge.getDeployedBlockNumber()
     this.started = true
     try {
       await Promise.all([this.pollSync(), this.pollCheck()])

@@ -34,13 +34,12 @@ class ChallengeWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
-    if (!this.isL1) {
-      return
-    }
     if (!this.isAllSiblingWatchersInitialSyncCompleted()) {
       return
     }
-
+    if (!this.isL1) {
+      return
+    }
     await this.checkChallengeableTransferRootFromDb()
   }
 

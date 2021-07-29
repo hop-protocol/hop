@@ -64,6 +64,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
+    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
+    if (!initialSyncCompleted) {
+      return
+    }
     if (this.isL1) {
       return
     }
@@ -71,11 +75,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async checkTransferSentFromDb () {
-    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
-    if (!initialSyncCompleted) {
-      return false
-    }
-
     const dbTransfers = await this.db.transfers.getUnbondedSentTransfers({
       sourceChainId: await this.bridge.getChainId()
     })

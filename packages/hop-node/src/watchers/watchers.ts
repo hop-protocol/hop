@@ -272,10 +272,10 @@ function startWatchers (
     }
   }
 
-  for (const token in bondWithdrawalWatchers) {
-    for (const network in bondWithdrawalWatchers[token]) {
-      bondWithdrawalWatchers[token][network].setSiblingWatchers(
-        bondWithdrawalWatchers[token]
+  for (const token in syncWatchers) {
+    for (const network in syncWatchers[token]) {
+      syncWatchers[token][network].setSiblingWatchers(
+        syncWatchers[token]
       )
     }
   }
@@ -288,10 +288,10 @@ function startWatchers (
     }
   }
 
-  for (const token in settleBondedWithdrawalWatchers) {
-    for (const network in settleBondedWithdrawalWatchers[token]) {
-      settleBondedWithdrawalWatchers[token][network].setSiblingWatchers(
-        settleBondedWithdrawalWatchers[token]
+  for (const token in bondWithdrawalWatchers) {
+    for (const network in bondWithdrawalWatchers[token]) {
+      bondWithdrawalWatchers[token][network].setSiblingWatchers(
+        bondWithdrawalWatchers[token]
       )
     }
   }
@@ -304,10 +304,10 @@ function startWatchers (
     }
   }
 
-  for (const token in syncWatchers) {
-    for (const network in syncWatchers[token]) {
-      syncWatchers[token][network].setSiblingWatchers(
-        syncWatchers[token]
+  for (const token in settleBondedWithdrawalWatchers) {
+    for (const network in settleBondedWithdrawalWatchers[token]) {
+      settleBondedWithdrawalWatchers[token][network].setSiblingWatchers(
+        settleBondedWithdrawalWatchers[token]
       )
     }
   }
@@ -336,6 +336,12 @@ function startWatchers (
 
   if (_config?.challenger) {
     watchers.push(...startChallengeWatchers(_tokens, _networks, dryMode))
+  }
+
+  for (const watcher of watchers) {
+    watcher.setSyncWatcher(
+      syncWatchers[watcher.bridge.tokenSymbol][watcher.bridge.chainId]
+    )
   }
 
   const stop = () => {

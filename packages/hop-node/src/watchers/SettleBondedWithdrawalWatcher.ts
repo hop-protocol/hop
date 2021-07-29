@@ -39,6 +39,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
+    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
+    if (!initialSyncCompleted) {
+      return
+    }
     const promises: Promise<any>[] = []
     promises.push(
       new Promise(async resolve => {
@@ -59,11 +63,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   checkUnsettledTransfersFromDb = async () => {
-    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
-    if (!initialSyncCompleted) {
-      return false
-    }
-
     // only process transfer where this bridge is the destination chain
     const dbTransfers: Transfer[] = await this.db.transfers.getUnsettledBondedWithdrawalTransfers(
       {

@@ -42,15 +42,14 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
+    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
+    if (!initialSyncCompleted) {
+      return
+    }
     await this.checkTransfersCommittedFromDb()
   }
 
   async checkTransfersCommittedFromDb () {
-    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
-    if (!initialSyncCompleted) {
-      return false
-    }
-
     const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots({
       sourceChainId: await this.bridge.getChainId()
     })

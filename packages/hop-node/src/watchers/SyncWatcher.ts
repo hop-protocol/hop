@@ -6,7 +6,7 @@ import chalk from 'chalk'
 import { Contract } from 'ethers'
 import { Event } from 'src/types'
 import { boundClass } from 'autobind-decorator'
-import { isL1ChainId } from 'src/utils'
+import { isL1ChainId, wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
@@ -18,6 +18,10 @@ export interface Config {
 
 @boundClass
 class SyncWatcher extends BaseWatcher {
+  initialSyncCompleted: boolean = false
+  resyncIntervalMs: number = 60 * 1000
+  syncIndex: number = 0
+
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
@@ -28,6 +32,49 @@ class SyncWatcher extends BaseWatcher {
       isL1: config.isL1,
       bridgeContract: config.bridgeContract
     })
+  }
+
+  async start () {
+    this.started = true
+    try {
+      await this.pollSync()
+    } catch (err) {
+      this.logger.error('sync watcher error:', err.message)
+      this.notifier.error(`sync watcher error: '${err.message}`)
+      console.trace()
+      this.quit()
+    }
+  }
+
+  async pollSync () {
+    while (true) {
+      await this.preSyncHandler()
+      await this.syncHandler()
+      await this.postSyncHandler()
+    }
+  }
+
+  async preSyncHandler () {
+    this.logger.debug('syncing up events. index:', this.syncIndex)
+  }
+
+  async postSyncHandler () {
+    this.logger.debug('done syncing. index:', this.syncIndex)
+    this.initialSyncCompleted = true
+    this.syncIndex++
+    await wait(this.resyncIntervalMs)
+  }
+
+  isInitialSyncCompleted (): boolean {
+    return this.initialSyncCompleted
+  }
+
+  isAllSiblingWatchersInitialSyncCompleted (): boolean {
+    return Object.values(this.siblingWatchers).every(
+      (siblingWatcher: SyncWatcher) => {
+        return siblingWatcher.isInitialSyncCompleted()
+      }
+    )
   }
 
   async syncHandler (): Promise<any> {

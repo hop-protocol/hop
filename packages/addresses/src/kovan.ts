@@ -6,7 +6,8 @@ export const addresses: Addresses = {
     USDC: {
       ethereum: {
         l1CanonicalToken: '0xA46d09fd4B7961aE16D33122660f43726cB1Ff36',
-        l1Bridge: '0xf89E134Ce2e83B535D3Cfa63a902375f993Fc0D2'
+        l1Bridge: '0xf89E134Ce2e83B535D3Cfa63a902375f993Fc0D2',
+        bridgeDeployedBlockNumber: 25529054
       },
       xdai: {
         l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
@@ -21,7 +22,7 @@ export const addresses: Addresses = {
         l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         canonicalBridgeMaxPerTx: 10000,
-        l2BridgeDeployedBlockNumber: 21377885
+        bridgeDeployedBlockNumber: 21377885
       },
       optimism: {
         l1CanonicalBridge: '0x531984eEccac4c5e6ABb5439c02d5861110bdA43',
@@ -33,13 +34,14 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x6ad8573880560CF3E88B9d943927136F376559af',
         l2SaddleSwap: '0xd75005fBB30973c302Ef68C0c90F732713420EA0',
         l2SaddleLpToken: '0xcBB29B17F7e2321aBB0926fF2887D6E2d8CBBa42',
-        l2BridgeDeployedBlockNumber: 888437
+        bridgeDeployedBlockNumber: 888437
       }
     },
     DAI: {
       ethereum: {
         l1CanonicalToken: '0x436e3FfB93A4763575E5C0F6b3c97D5489E050da',
-        l1Bridge: '0x99468fB816C81632614eb6edD3a445963dfDF7c9'
+        l1Bridge: '0x99468fB816C81632614eb6edD3a445963dfDF7c9',
+        bridgeDeployedBlockNumber: 26152536
       },
       xdai: {
         l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
@@ -54,7 +56,7 @@ export const addresses: Addresses = {
         l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         canonicalBridgeMaxPerTx: 10000,
-        l2BridgeDeployedBlockNumber: 21799634
+        bridgeDeployedBlockNumber: 21799634
       }
       // optimism: {
       // l1CanonicalBridge: '0xC48528a44f2D961D179D69434645E54ac85732a1',

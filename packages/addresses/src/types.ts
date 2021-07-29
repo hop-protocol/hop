@@ -3,6 +3,7 @@ export type Bridges = {
     ethereum: {
       l1CanonicalToken: string
       l1Bridge: string
+      bridgeDeployedBlockNumber: number
     }
     arbitrum: {
       l1CanonicalBridge: string,
@@ -14,7 +15,7 @@ export type Bridges = {
       l2AmmWrapper: string,
       l2SaddleSwap: string,
       l2SaddleLpToken: string
-      l2BridgeDeployedBlockNumber: number
+      bridgeDeployedBlockNumber: number
     }
     optimism: {
       l1CanonicalBridge: string,
@@ -26,7 +27,7 @@ export type Bridges = {
       l2AmmWrapper: string,
       l2SaddleSwap: string,
       l2SaddleLpToken: string
-      l2BridgeDeployedBlockNumber: number
+      bridgeDeployedBlockNumber: number
     }
     polygon: {
       l1CanonicalBridge: string,
@@ -41,7 +42,7 @@ export type Bridges = {
       l1FxBaseRootTunnel: string,
       l1PosRootChainManager: string,
       l1PosPredicate: string
-      l2BridgeDeployedBlockNumber: number
+      bridgeDeployedBlockNumber: number
     }
     xdai: {
       l1CanonicalBridge: string
@@ -56,7 +57,7 @@ export type Bridges = {
       l1Amb: string
       l2Amb: string
       canonicalBridgeMaxPerTx: number
-      l2BridgeDeployedBlockNumber: number
+      bridgeDeployedBlockNumber: number
     }
   }>
 }

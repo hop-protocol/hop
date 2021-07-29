@@ -60,15 +60,15 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     if (this.isL1) {
       return
     }
-
     const promises: Promise<any>[] = []
+    const startBlockNumber = this.bridge.bridgeDeployedBlockNumber
     const l2Bridge = this.bridge as L2Bridge
     promises.push(
       l2Bridge.mapTransferSentEvents(
         async (event: Event) => {
           return this.handleTransferSentEvent(event)
         },
-        { cacheKey: this.cacheKey(l2Bridge.TransferSent) }
+        { cacheKey: this.cacheKey(l2Bridge.TransferSent), startBlockNumber }
       )
     )
 
@@ -77,7 +77,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
         async (event: Event) => {
           return this.handleTransfersCommittedEventForTransferIds(event)
         },
-        { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
+        { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted), startBlockNumber }
       )
     )
 

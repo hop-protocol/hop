@@ -30,6 +30,7 @@ export default class Bridge extends ContractBase {
   tokenSymbol: string = ''
   bridgeContract: Contract
   readProvider?: providers.Provider
+  bridgeDeployedBlockNumber: number
 
   constructor (bridgeContract: Contract) {
     super(bridgeContract)
@@ -448,6 +449,10 @@ export default class Bridge extends ContractBase {
     return amount ? this.parseUnits(amount) : constants.MaxUint256
   }
 
+  getDeployedBlockNumber () {
+    return config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
+  }
+
   @queue
   @rateLimitRetry
   async stake (amount: BigNumber): Promise<providers.TransactionResponse> {
@@ -613,6 +618,8 @@ export default class Bridge extends ContractBase {
     const { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
     const currentBlockNumber = await this.getBlockNumber()
     const currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
+    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
+    const isSync = state?.latestBlockSynced && startBlockNumber
 
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
@@ -620,9 +627,12 @@ export default class Bridge extends ContractBase {
     } else if (endBlockNumber) {
       end = endBlockNumber
       totalBlocksInBatch = totalBlocks
-    } else if (state?.latestBlockSynced) {
+    } else if (isSync) {
       end = Math.max(currentBlockNumberWithFinality, state.latestBlockSynced)
       totalBlocksInBatch = end - state.latestBlockSynced
+    } else if (isInitialSync) {
+      end = currentBlockNumberWithFinality
+      totalBlocksInBatch = end - startBlockNumber
     } else {
       end = currentBlockNumberWithFinality
       totalBlocksInBatch = totalBlocks

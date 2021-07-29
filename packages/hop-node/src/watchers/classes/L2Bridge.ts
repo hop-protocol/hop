@@ -10,7 +10,6 @@ import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Event } from 'src/types'
 import { boundClass } from 'autobind-decorator'
-import { config } from 'src/config'
 import {
   erc20Abi,
   l2AmmWrapperAbi,
@@ -66,10 +65,6 @@ export default class L2Bridge extends Bridge {
       this.getWriteBridgeContract().signer
     )
     return new Token(tokenContract)
-  }
-
-  getDeployedBlockNumber () {
-    return config.tokens[this.tokenSymbol]?.[this.chainSlug]?.l2BridgeDeployedBlockNumber
   }
 
   @rateLimitRetry

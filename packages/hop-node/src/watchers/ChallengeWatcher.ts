@@ -37,7 +37,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
 
   async syncHandler (): Promise<any> {
     const promises: Promise<any>[] = []
-
+    const startBlockNumber = this.bridge.bridgeDeployedBlockNumber
     if (this.isL1) {
       const l1Bridge = this.bridge as L1Bridge
       promises.push(
@@ -45,7 +45,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
           async (event: Event) => {
             return this.handleTransferRootBondedEvent(event)
           },
-          { cacheKey: this.cacheKey(l1Bridge.TransferRootBonded) }
+          { cacheKey: this.cacheKey(l1Bridge.TransferRootBonded), startBlockNumber }
         )
       )
 
@@ -54,7 +54,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
           async (event: Event) => {
             return this.handleTransferBondChallengedEvent(event)
           },
-          { cacheKey: this.cacheKey(l1Bridge.TransferBondChallenged) }
+          { cacheKey: this.cacheKey(l1Bridge.TransferBondChallenged), startBlockNumber }
         )
       )
     } else {
@@ -64,7 +64,7 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
           async (event: Event) => {
             return this.handleTransfersCommittedEvent(event)
           },
-          { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
+          { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted), startBlockNumber }
         )
       )
     }

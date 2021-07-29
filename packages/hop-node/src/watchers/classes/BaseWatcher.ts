@@ -35,8 +35,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   notifier: Notifier
   order: () => number = () => 0
   started: boolean = false
-  pollIntervalSec: number = 10 * 1000
-  resyncIntervalSec: number = 10 * 60 * 1000
+  pollIntervalMs: number = 10 * 1000
+  resyncIntervalMs: number = 60 * 1000
   chainSlug: string
   tokenSymbol: string
   initialSyncCompleted: boolean = false
@@ -47,6 +47,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   dryMode: boolean
   tag: string
   prefix: string
+  syncIndex: number = 0
 
   constructor (config: Config) {
     super()
@@ -95,7 +96,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async preSyncHandler () {
-    this.logger.debug('syncing up events')
+    this.logger.debug('syncing up events. index:', this.syncIndex)
   }
 
   async syncHandler () {
@@ -103,13 +104,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async postSyncHandler () {
-    this.logger.debug('done syncing')
+    this.logger.debug('done syncing. index:', this.syncIndex)
     this.initialSyncCompleted = true
-    await wait(this.resyncIntervalSec)
-  }
-
-  async watch () {
-    // virtual method
+    this.syncIndex++
+    await wait(this.resyncIntervalMs)
   }
 
   async pollCheck () {
@@ -138,13 +136,14 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async postPollHandler () {
-    await wait(this.pollIntervalSec)
+    await wait(this.pollIntervalMs)
   }
 
   async start () {
+    await this.bridge.waitTilReady()
     this.started = true
     try {
-      await Promise.all([this.pollSync(), this.pollCheck(), this.watch()])
+      await Promise.all([this.pollSync(), this.pollCheck()])
     } catch (err) {
       this.logger.error('base watcher error:', err.message)
       this.notifier.error(`base watcher error: '${err.message}`)

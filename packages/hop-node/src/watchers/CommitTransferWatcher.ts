@@ -46,7 +46,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     }
 
     // Commit watcher is less time sensitive than others
-    this.pollIntervalSec = 6 * 10 * 1000
+    this.pollIntervalMs = 6 * 10 * 1000
   }
 
   async start () {
@@ -60,46 +60,28 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     if (this.isL1) {
       return
     }
-
     const promises: Promise<any>[] = []
+    const startBlockNumber = this.bridge.bridgeDeployedBlockNumber
     const l2Bridge = this.bridge as L2Bridge
     promises.push(
       l2Bridge.mapTransferSentEvents(
         async (event: Event) => {
-          return this.handleRawTransferSentEvent(event)
+          return this.handleTransferSentEvent(event)
         },
-        { cacheKey: this.cacheKey(l2Bridge.TransferSent) }
+        { cacheKey: this.cacheKey(l2Bridge.TransferSent), startBlockNumber }
       )
     )
 
     promises.push(
       l2Bridge.mapTransfersCommittedEvents(
         async (event: Event) => {
-          return this.handleRawTransfersCommittedEventForTransferIds(event)
+          return this.handleTransfersCommittedEventForTransferIds(event)
         },
-        { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
+        { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted), startBlockNumber }
       )
     )
 
     await Promise.all(promises)
-  }
-
-  async watch () {
-    if (this.isL1) {
-      return
-    }
-    const l2Bridge = this.bridge as L2Bridge
-    this.bridge
-      .on(l2Bridge.TransferSent, this.handleTransferSentEvent)
-      .on(
-        l2Bridge.TransfersCommitted,
-        this.handleTransfersCommittedEventForTransferIds
-      )
-      .on('error', err => {
-        this.logger.error(`event watcher error: ${err.message}`)
-        this.notifier.error(`event watcher error: ${err.message}`)
-        this.quit()
-      })
   }
 
   async pollHandler () {
@@ -108,48 +90,6 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     }
 
     await this.checkTransferSentFromDb()
-  }
-
-  async handleRawTransfersCommittedEventForTransferIds (event: Event) {
-    const {
-      destinationChainId,
-      rootHash,
-      totalAmount,
-      rootCommittedAt
-    } = event.args
-    await this.handleTransfersCommittedEventForTransferIds(
-      destinationChainId,
-      rootHash,
-      totalAmount,
-      rootCommittedAt,
-      event
-    )
-  }
-
-  async handleRawTransferSentEvent (event: Event) {
-    const {
-      transferId,
-      chainId: destinationChainId,
-      recipient,
-      amount,
-      transferNonce,
-      bonderFee,
-      index,
-      amountOutMin,
-      deadline
-    } = event.args
-    await this.handleTransferSentEvent(
-      transferId,
-      destinationChainId,
-      recipient,
-      amount,
-      transferNonce,
-      bonderFee,
-      index,
-      amountOutMin,
-      deadline,
-      event
-    )
   }
 
   async checkTransferSentFromDb () {

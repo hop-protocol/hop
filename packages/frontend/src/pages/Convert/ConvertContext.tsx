@@ -23,6 +23,7 @@ import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import useBalance from 'src/hooks/useBalance'
 import { toTokenDisplay } from 'src/utils'
+import useApprove from 'src/hooks/useApprove'
 
 type ConvertContextProps = {
   convertOptions: ConvertOption[]
@@ -237,6 +238,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     getSendData()
   }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
 
+  const approve = useApprove()
   const approveTokens = async (): Promise<any> => {
     if (!sourceToken) {
       throw new Error('No source token selected')
@@ -249,37 +251,8 @@ const ConvertContextProvider: FC = ({ children }) => {
       destNetwork
     )
 
-    const approved = await sourceToken.allowance(
-      targetAddress
-    )
+    const tx = await approve(parsedSourceTokenAmount, sourceToken, targetAddress)
 
-    let tx: any
-    if (approved.lt(parsedSourceTokenAmount)) {
-      tx = await txConfirm?.show({
-        kind: 'approval',
-        inputProps: {
-          sourceTokenAmount,
-          amount: sourceToken.symbol === 'USDT' ? undefined : parsedSourceTokenAmount,
-          tokenSymbol: sourceToken.symbol
-        },
-        onConfirm: async (approveAll: boolean) => {
-          const approveAmount = approveAll ? UINT256 : parsedSourceTokenAmount
-          return sourceToken.approve(
-            targetAddress,
-            approveAmount
-          )
-        }
-      })
-    }
-
-    if (tx?.hash && sourceNetwork) {
-      app?.txHistory?.addTransaction(
-        new Transaction({
-          hash: tx?.hash,
-          networkName: sourceNetwork.slug
-        })
-      )
-    }
     await tx?.wait()
     return tx
   }
@@ -336,7 +309,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             throw new Error('Missing convert param')
           }
 
-          convertOption.convert(
+          return convertOption.convert(
             sdk,
             signer,
             sourceNetwork,

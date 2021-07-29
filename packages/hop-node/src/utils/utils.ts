@@ -30,6 +30,20 @@ export const getRpcProvider = (network: string): ethers.providers.Provider => {
   return getRpcProviderFromUrl(rpcUrls)
 }
 
+export const getProviderChainSlug = (provider: any): string | undefined => {
+  const providerUrl = provider?.connection?.url || provider?.providerConfigs?.[0]?.provider?.connection?.url
+  if (!providerUrl) {
+    return
+  }
+  for (const chain in config.networks) {
+    for (const url of config.networks[chain].rpcUrls) {
+      if (new URL(providerUrl).host === new URL(url).host) {
+        return chain
+      }
+    }
+  }
+}
+
 export const getRpcProviderFromUrl = (
   rpcUrls: string | string[]
 ): ethers.providers.Provider => {
@@ -48,7 +62,7 @@ export const getRpcProviderFromUrl = (
   return fallbackProvider
 }
 
-export const chainSlugToId = (network: string): string | undefined => {
+export const chainSlugToId = (network: string): number | undefined => {
   return (
     config.networks[network]?.networkId || config.networks[network]?.chainId
   )

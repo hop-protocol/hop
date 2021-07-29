@@ -3,14 +3,14 @@ import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { EventEmitter } from 'events'
 import { Transaction } from 'src/types'
-import { chainIdToSlug, chainSlugToId, wait } from 'src/utils'
+import { chainIdToSlug, chainSlugToId, getProviderChainSlug, wait } from 'src/utils'
 import { config } from 'src/config'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract
   public chainId: number
   public chainSlug: string
-  public ready: boolean = false
+  public ready: boolean = true
 
   constructor (contract: Contract) {
     super()
@@ -18,15 +18,12 @@ export default class ContractBase extends EventEmitter {
     if (!this.contract.provider) {
       throw new Error('no provider found for contract')
     }
-    this.getChainId()
-      .then((chainId: number) => {
-        this.chainId = chainId
-        this.chainSlug = this.chainIdToSlug(chainId)
-        this.ready = true
-      })
-      .catch(err => {
-        console.log(`ContractBase getNetwork() error: ${err.message}`)
-      })
+    const chainSlug = getProviderChainSlug(contract.provider)
+    if (!chainSlug) {
+      throw new Error('chain slug not found for contract provider')
+    }
+    this.chainSlug = chainSlug
+    this.chainId = chainSlugToId(chainSlug)
   }
 
   async waitTilReady (): Promise<boolean> {
@@ -143,37 +140,6 @@ export default class ContractBase extends EventEmitter {
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
 
-  @rateLimitRetry
-  // wait a safe number of confirmations to avoid processing on a reorg
-  async waitSafeConfirmations (blockNumber?: number): Promise<void> {
-    const headBlockNumber = await this.contract.provider.getBlockNumber()
-
-    // use latest block number if one is not specified
-    if (!blockNumber) {
-      blockNumber = headBlockNumber
-    }
-
-    // the target block number is the specified block number plus the number
-    // of confirmations to wait
-    const targetBlockNumber = blockNumber + this.waitConfirmations
-
-    // if latest block number is larger than target block number than there is
-    // no need to wait and can return immediately
-    if (headBlockNumber > targetBlockNumber) {
-      return
-    }
-
-    // This number is granular enough to hardly notice a difference when using Hop
-    // TODO: wait the min time per chain and then try every 5s (124 * 4 for polygon, for example)
-    const waitConfirmationSec = 20
-    // keep waiting until latest block number is equal to or larger than
-    // target block number
-    while (blockNumber < targetBlockNumber) {
-      blockNumber = await this.contract.provider.getBlockNumber()
-      await wait(waitConfirmationSec * 1000)
-    }
-  }
-
   get waitConfirmations () {
     return config.networks?.[this.chainSlug]?.waitConfirmations || 0
   }
@@ -185,8 +151,11 @@ export default class ContractBase extends EventEmitter {
     if (config.isMainnet) {
       // increasing more gas multiplier for xdai
       // to avoid the error "code:-32010, message: FeeTooLowToCompete"
-      if (this.chainSlug === Chain.xDai) {
-        multiplier = 1.75
+      if (
+        this.chainSlug === Chain.xDai ||
+        this.chainSlug === Chain.Polygon
+      ) {
+        multiplier = 3
       }
     } else {
       txOptions.gasLimit = 5000000

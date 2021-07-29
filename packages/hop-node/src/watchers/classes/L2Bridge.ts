@@ -10,7 +10,6 @@ import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Event } from 'src/types'
 import { boundClass } from 'autobind-decorator'
-import { config } from 'src/config'
 import {
   erc20Abi,
   l2AmmWrapperAbi,
@@ -27,7 +26,6 @@ export default class L2Bridge extends Bridge {
 
   constructor (l2BridgeContract: Contract) {
     super(l2BridgeContract)
-    this.l2StartListeners()
 
     if (this.getReadBridgeContract().ammWrapper) {
       this.getReadBridgeContract()
@@ -50,24 +48,6 @@ export default class L2Bridge extends Bridge {
     this.l2BridgeWrapper = new L2BridgeWrapper(l2BridgeWrapperContract)
   }
 
-  l2StartListeners (): void {
-    this.getReadBridgeContract().on(
-      this.getReadBridgeContract().filters.TransfersCommitted(),
-      (...args: any[]) => this.emit(this.TransfersCommitted, ...args)
-    )
-      .on(
-        this.getReadBridgeContract().filters.TransferSent(),
-        (...args: any[]) => this.emit(this.TransferSent, ...args)
-      )
-      .on(
-        this.getReadBridgeContract().filters.TransferFromL1Completed(),
-        (...args: any[]) => this.emit(this.TransferFromL1Completed, ...args)
-      )
-      .on('error', err => {
-        this.emit('error', err)
-      })
-  }
-
   async getL1Bridge (): Promise<L1Bridge> {
     const l1BridgeAddress = await this.getReadBridgeContract().l1BridgeAddress()
     if (!l1BridgeAddress) {
@@ -85,10 +65,6 @@ export default class L2Bridge extends Bridge {
       this.getWriteBridgeContract().signer
     )
     return new Token(tokenContract)
-  }
-
-  getDeployedBlockNumber () {
-    return config.tokens[this.tokenSymbol]?.[this.chainSlug]?.l2BridgeDeployedBlockNumber
   }
 
   @rateLimitRetry

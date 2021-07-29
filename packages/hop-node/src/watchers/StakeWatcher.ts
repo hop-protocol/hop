@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
+import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import Token from './classes/Token'
@@ -21,7 +21,7 @@ export interface Config {
   dryMode?: boolean
 }
 
-class StakeWatcher extends BaseWatcherWithEventHandlers {
+class StakeWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: StakeWatcher }
   token: Token
   stakeMinThreshold: BigNumber = BigNumber.from(0)
@@ -33,7 +33,7 @@ class StakeWatcher extends BaseWatcherWithEventHandlers {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'stakeWatcher',
+      tag: 'StakeWatcher',
       prefix: config.label,
       logColor: 'green',
       isL1: config.isL1,

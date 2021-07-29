@@ -1,17 +1,15 @@
 import '../moduleAlias'
-import chalk from 'chalk'
-import { Contract, ethers, providers } from 'ethers'
-import { Event } from 'src/types'
-import { TransferRoot } from 'src/db/TransferRootsDb'
-import { getRpcUrls } from 'src/utils'
-
-import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
+import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
+import chalk from 'chalk'
 import { Chain, TEN_MINUTES_MS, TX_RETRY_DELAY_MS } from 'src/constants'
+import { Contract, ethers, providers } from 'ethers'
+import { TransferRoot } from 'src/db/TransferRootsDb'
 import { executeExitTx, getL2Amb } from './xDaiBridgeWatcher'
 import { config as gConfig } from 'src/config'
+import { getRpcUrls } from 'src/utils'
 
 export interface Config {
   chainSlug: string
@@ -25,7 +23,7 @@ export interface Config {
   dryMode?: boolean
 }
 
-class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
+class xDomainMessageRelayWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
   lastSeen: {[key: string]: number} = {}
 
@@ -46,34 +44,6 @@ class xDomainMessageRelayWatcher extends BaseWatcherWithEventHandlers {
 
   async pollHandler () {
     await this.checkTransfersCommittedFromDb()
-  }
-
-  async syncHandler (): Promise<any> {
-    if (this.isL1) {
-      return
-    }
-
-    const promises: Promise<any>[] = []
-    const l2Bridge = this.bridge as L2Bridge
-    promises.push(
-      this.l1Bridge.mapTransferRootConfirmedEvents(
-        async (event: Event) => {
-          return this.handleTransferRootConfirmedEvent(event)
-        },
-        { cacheKey: this.cacheKey(this.l1Bridge.TransferRootConfirmed) }
-      )
-    )
-
-    promises.push(
-      l2Bridge.mapTransfersCommittedEvents(
-        async (event: Event) => {
-          return this.handleTransfersCommittedEvent(event)
-        },
-        { cacheKey: l2Bridge.TransfersCommitted }
-      )
-    )
-
-    await Promise.all(promises)
   }
 
   async checkTransfersCommittedFromDb () {

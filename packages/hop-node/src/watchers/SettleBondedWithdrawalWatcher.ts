@@ -1,11 +1,8 @@
 import '../moduleAlias'
-import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
-import L1Bridge from './classes/L1Bridge'
-import L2Bridge from './classes/L2Bridge'
+import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
 import { Contract, providers } from 'ethers'
-import { Event } from 'src/types'
 import { TX_RETRY_DELAY_MS } from 'src/constants'
 import { Transfer } from 'src/db/TransfersDb'
 import { wait } from 'src/utils'
@@ -23,7 +20,7 @@ export interface Config {
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
 
-class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
+class SettleBondedWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
   shouldWaitMinThreshold: boolean = false
 
@@ -31,7 +28,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'settleBondedWithdrawalWatcher',
+      tag: 'SettleBondedWithdrawalWatcher',
       prefix: config.label,
       logColor: 'magenta',
       order: config.order,
@@ -39,71 +36,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
-  }
-
-  async syncHandler (): Promise<any> {
-    const promises: Promise<any>[] = []
-    if (!this.isL1) {
-      const l2Bridge = this.bridge as L2Bridge
-      promises.push(
-        l2Bridge.mapTransferSentEvents(
-          async (event: Event) => {
-            return this.handleTransferSentEvent(event)
-          },
-          { cacheKey: this.cacheKey(l2Bridge.TransferSent) }
-        )
-      )
-
-      promises.push(
-        l2Bridge.mapTransfersCommittedEvents(
-          async (event: Event) => {
-            return this.handleTransfersCommittedEvent(event)
-          },
-          { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
-        )
-      )
-    } else if (this.isL1) {
-      const l1Bridge = this.bridge as L1Bridge
-      promises.push(
-        l1Bridge.mapTransferRootConfirmedEvents(
-          async (event: Event) => {
-            return this.handleTransferRootConfirmedEvent(event)
-          },
-          { cacheKey: this.cacheKey(l1Bridge.TransferRootConfirmed) }
-        )
-      )
-    }
-
-    promises.push(
-      this.bridge
-        .mapWithdrawalBondedEvents(
-          async (event: Event) => {
-            return this.handleWithdrawalBondedEvent(event)
-          },
-          { cacheKey: this.cacheKey(this.bridge.WithdrawalBonded) }
-        )
-        .then(() => {
-          // This must be executed after the WithdrawalBonded event handler on initial sync
-          // since it relies on data from that handler.
-          return this.bridge.mapMultipleWithdrawalsSettledEvents(
-            async (event: Event) => {
-              return this.handleMultipleWithdrawalsSettledEvent(event)
-            },
-            { cacheKey: this.cacheKey(this.bridge.MultipleWithdrawalsSettled) }
-          )
-        })
-    )
-
-    promises.push(
-      this.bridge.mapTransferRootSetEvents(
-        async (event: Event) => {
-          return this.handleTransferRootSetEvent(event)
-        },
-        { cacheKey: this.cacheKey(this.bridge.TransferRootSet) }
-      )
-    )
-
-    await Promise.all(promises)
   }
 
   async pollHandler () {
@@ -124,49 +56,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcherWithEventHandlers {
       })
     )
     await Promise.all(promises)
-  }
-
-  handleTransferRootSetEvent = async (event: Event) => {
-    const {
-      rootHash: transferRootHash,
-      totalAmount
-    } = event.args
-    const logger = this.logger.create({ root: transferRootHash })
-    const { transactionHash } = event
-    const timestamp = await this.bridge.getEventTimestamp(event)
-    const transferRootId = await this.bridge.getTransferRootId(
-      transferRootHash,
-      totalAmount
-    )
-    logger.debug('handling TransferRootSet event')
-    logger.debug(`transferRootHash from event: ${transferRootHash}`)
-    logger.debug(`transferRootId: ${transferRootId}`)
-    logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
-    logger.debug(`event transactionHash: ${transactionHash}`)
-    logger.debug(`rootSetTimestamp: ${timestamp}`)
-    await this.db.transferRoots.update(transferRootHash, {
-      rootSetTxHash: transactionHash,
-      rootSetTimestamp: timestamp
-    })
-  }
-
-  handleMultipleWithdrawalsSettledEvent = async (event: Event) => {
-    const {
-      bonder,
-      rootHash: transferRootHash,
-      totalBondsSettled
-    } = event.args
-    const { transactionHash } = event
-    const { data } = await this.bridge.getTransaction(transactionHash)
-    const { transferIds } = await this.bridge.decodeSettleBondedWithdrawalsData(
-      data
-    )
-    for (const transferId of transferIds) {
-      const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-      await this.db.transfers.update(transferId, {
-        withdrawalBondSettled: dbTransfer?.withdrawalBonded ?? false
-      })
-    }
   }
 
   checkUnsettledTransfersFromDb = async () => {

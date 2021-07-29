@@ -1,4 +1,4 @@
-import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
+import BaseWatcher from './classes/BaseWatcher'
 import chalk from 'chalk'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
@@ -71,7 +71,7 @@ export const executeExitTx = async (event: any, token: string) => {
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
-class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
+class xDaiBridgeWatcher extends BaseWatcher {
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,

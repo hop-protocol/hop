@@ -553,7 +553,6 @@ export default class Bridge extends ContractBase {
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
     options: Partial<EventsBatchOptions> = {}
   ) {
-    await this.waitTilReady()
     this.validateEventsBatchInput(options)
 
     let cacheKey = ''

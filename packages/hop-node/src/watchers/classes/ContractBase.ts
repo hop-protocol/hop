@@ -10,7 +10,6 @@ export default class ContractBase extends EventEmitter {
   contract: Contract
   public chainId: number
   public chainSlug: string
-  public ready: boolean = true
 
   constructor (contract: Contract) {
     super()
@@ -24,15 +23,6 @@ export default class ContractBase extends EventEmitter {
     }
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
-  }
-
-  async waitTilReady (): Promise<boolean> {
-    if (this.ready) {
-      return true
-    }
-
-    await wait(100)
-    return this.waitTilReady()
   }
 
   @rateLimitRetry

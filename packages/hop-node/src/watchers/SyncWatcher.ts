@@ -403,12 +403,7 @@ class SyncWatcher extends BaseWatcher {
           continue
         }
 
-        const eventRootHash = event.args.rootHash
         const eventDestinationChainId = Number(event.args.destinationChainId.toString())
-        const eventDbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
-          eventRootHash
-        )
-
         const isSameChainId = eventDestinationChainId === destinationChainId
         if (endEvent && isSameChainId) {
           startEvent = event
@@ -428,13 +423,6 @@ class SyncWatcher extends BaseWatcher {
     const endBlockNumber = endEvent.blockNumber
     if (startEvent) {
       startBlockNumber = startEvent.blockNumber
-    }
-
-    if (!startBlockNumber) {
-      logger.error(
-        `Too many blocks between two TransfersCommitted events. Search Start: ${startSearchBlockNumber}. End Event: ${endEvent.blockNumber}`
-      )
-      return
     }
 
     logger.debug(`Searching for transfers between ${startBlockNumber} and ${endBlockNumber}`)

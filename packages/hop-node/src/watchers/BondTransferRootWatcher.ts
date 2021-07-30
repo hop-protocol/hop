@@ -59,7 +59,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       )
     }
 
-    const headBlockNumber = await this.bridge.getBlockNumber()
     for (const dbTransferRoot of dbTransferRoots) {
       const {
         transferRootHash,
@@ -67,13 +66,6 @@ class BondTransferRootWatcher extends BaseWatcher {
         destinationChainId,
         committedAt
       } = dbTransferRoot
-
-      const { commitTxBlockNumber } = dbTransferRoot
-      const targetBlockNumber =
-        commitTxBlockNumber + this.bridge.waitConfirmations
-      if (headBlockNumber < targetBlockNumber) {
-        continue
-      }
 
       await this.checkTransfersCommitted(
         transferRootHash,

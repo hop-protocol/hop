@@ -30,6 +30,7 @@ export default class Bridge extends ContractBase {
   tokenSymbol: string = ''
   bridgeContract: Contract
   readProvider?: providers.Provider
+  bridgeDeployedBlockNumber: number
 
   constructor (bridgeContract: Contract) {
     super(bridgeContract)
@@ -61,6 +62,7 @@ export default class Bridge extends ContractBase {
       this.tokenSymbol = tokenSymbol
     }
     this.db = db.getDbSet(this.tokenSymbol)
+    this.bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
   }
 
   // a read provider is alternative provider that can be used only for
@@ -613,6 +615,8 @@ export default class Bridge extends ContractBase {
     const { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
     const currentBlockNumber = await this.getBlockNumber()
     const currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
+    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
+    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber
 
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
@@ -620,7 +624,10 @@ export default class Bridge extends ContractBase {
     } else if (endBlockNumber) {
       end = endBlockNumber
       totalBlocksInBatch = totalBlocks
-    } else if (state?.latestBlockSynced) {
+    } else if (isInitialSync) {
+      end = currentBlockNumberWithFinality
+      totalBlocksInBatch = end - startBlockNumber
+    } else if (isSync) {
       end = Math.max(currentBlockNumberWithFinality, state.latestBlockSynced)
       totalBlocksInBatch = end - state.latestBlockSynced
     } else {

@@ -6,7 +6,8 @@ export const addresses: Addresses = {
     USDC: {
       ethereum: {
         l1CanonicalToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        l1Bridge: '0x3666f603Cc164936C1b87e207F36BEBa4AC5f18a'
+        l1Bridge: '0x3666f603Cc164936C1b87e207F36BEBa4AC5f18a',
+        bridgeDeployedBlockNumber: 12650032
       },
       xdai: {
         l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
@@ -21,7 +22,7 @@ export const addresses: Addresses = {
         l1Amb: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
         l2Amb: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59',
         canonicalBridgeMaxPerTx: 1000000000,
-        l2BridgeDeployedBlockNumber: 16617211
+        bridgeDeployedBlockNumber: 16617211
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
@@ -36,13 +37,14 @@ export const addresses: Addresses = {
         l1FxBaseRootTunnel: '0x10541b07d8Ad2647Dc6cD67abd4c03575dade261',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
-        l2BridgeDeployedBlockNumber: 15810014
+        bridgeDeployedBlockNumber: 15810014
       }
     },
     USDT: {
       ethereum: {
         l1CanonicalToken: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-        l1Bridge: '0x3E4a3a4796d16c0Cd582C382691998f7c06420B6'
+        l1Bridge: '0x3E4a3a4796d16c0Cd582C382691998f7c06420B6',
+        bridgeDeployedBlockNumber: 12860139
       },
       xdai: {
         l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
@@ -57,7 +59,7 @@ export const addresses: Addresses = {
         l1Amb: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
         l2Amb: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59',
         canonicalBridgeMaxPerTx: 1000000000,
-        l2BridgeDeployedBlockNumber: 17155195
+        bridgeDeployedBlockNumber: 17155195
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
@@ -72,7 +74,7 @@ export const addresses: Addresses = {
         l1FxBaseRootTunnel: '0xe7C1D08aC706444F356af2D37541d8d57e8C57B6',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
-        l2BridgeDeployedBlockNumber: 17058878
+        bridgeDeployedBlockNumber: 17058878
       }
     }
   }

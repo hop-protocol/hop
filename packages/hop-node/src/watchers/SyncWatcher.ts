@@ -79,6 +79,7 @@ class SyncWatcher extends BaseWatcher {
 
   async syncHandler (): Promise<any> {
     const promises: Promise<any>[] = []
+    const startBlockNumber = this.bridge.bridgeDeployedBlockNumber
     if (this.isL1) {
       const l1Bridge = this.bridge as L1Bridge
       promises.push(
@@ -86,7 +87,7 @@ class SyncWatcher extends BaseWatcher {
           async (event: Event) => {
             return this.handleTransferRootBondedEvent(event)
           },
-          { cacheKey: this.cacheKey(l1Bridge.TransferRootBonded) }
+          { cacheKey: this.cacheKey(l1Bridge.TransferRootBonded), startBlockNumber }
         )
       )
 
@@ -95,7 +96,7 @@ class SyncWatcher extends BaseWatcher {
           async (event: Event) => {
             return this.handleTransferRootConfirmedEvent(event)
           },
-          { cacheKey: this.cacheKey(l1Bridge.TransferRootConfirmed) }
+          { cacheKey: this.cacheKey(l1Bridge.TransferRootConfirmed), startBlockNumber }
         )
       )
 
@@ -104,7 +105,7 @@ class SyncWatcher extends BaseWatcher {
           async (event: Event) => {
             return this.handleTransferBondChallengedEvent(event)
           },
-          { cacheKey: this.cacheKey(l1Bridge.TransferBondChallenged) }
+          { cacheKey: this.cacheKey(l1Bridge.TransferBondChallenged), startBlockNumber }
         )
       )
     }
@@ -116,7 +117,7 @@ class SyncWatcher extends BaseWatcher {
           async (event: Event) => {
             return this.handleTransferSentEvent(event)
           },
-          { cacheKey: this.cacheKey(l2Bridge.TransferSent) }
+          { cacheKey: this.cacheKey(l2Bridge.TransferSent), startBlockNumber }
         )
       )
 
@@ -128,7 +129,7 @@ class SyncWatcher extends BaseWatcher {
               this.handleTransfersCommittedEventForTransferIds(event)
             ])
           },
-          { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
+          { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted), startBlockNumber }
         )
       )
     }
@@ -138,7 +139,7 @@ class SyncWatcher extends BaseWatcher {
         async (event: Event) => {
           return this.handleWithdrawalBondedEvent(event)
         },
-        { cacheKey: this.cacheKey(this.bridge.WithdrawalBonded) }
+        { cacheKey: this.cacheKey(this.bridge.WithdrawalBonded), startBlockNumber }
       )
         .then(() => {
         // This must be executed after the WithdrawalBonded event handler on initial sync
@@ -147,7 +148,7 @@ class SyncWatcher extends BaseWatcher {
             async (event: Event) => {
               return this.handleMultipleWithdrawalsSettledEvent(event)
             },
-            { cacheKey: this.cacheKey(this.bridge.MultipleWithdrawalsSettled) }
+            { cacheKey: this.cacheKey(this.bridge.MultipleWithdrawalsSettled), startBlockNumber }
           )
         })
     )
@@ -157,7 +158,7 @@ class SyncWatcher extends BaseWatcher {
         async (event: Event) => {
           return this.handleTransferRootSetEvent(event)
         },
-        { cacheKey: this.cacheKey(this.bridge.TransferRootSet) }
+        { cacheKey: this.cacheKey(this.bridge.TransferRootSet), startBlockNumber }
       )
     )
 
@@ -386,7 +387,7 @@ class SyncWatcher extends BaseWatcher {
     let startEvent: Event
     let endEvent: Event
 
-    let startBlockNumber = sourceBridge.getDeployedBlockNumber()
+    let startBlockNumber = sourceBridge.bridgeDeployedBlockNumber
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
       startSearchBlockNumber = start
       let events = await sourceBridge.getTransfersCommittedEvents(start, end)

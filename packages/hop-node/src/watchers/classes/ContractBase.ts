@@ -3,14 +3,13 @@ import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { EventEmitter } from 'events'
 import { Transaction } from 'src/types'
-import { chainIdToSlug, chainSlugToId, getProviderChainSlug, wait } from 'src/utils'
+import { chainIdToSlug, chainSlugToId, getProviderChainSlug } from 'src/utils'
 import { config } from 'src/config'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract
   public chainId: number
   public chainSlug: string
-  public ready: boolean = true
 
   constructor (contract: Contract) {
     super()
@@ -24,15 +23,6 @@ export default class ContractBase extends EventEmitter {
     }
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
-  }
-
-  async waitTilReady (): Promise<boolean> {
-    if (this.ready) {
-      return true
-    }
-
-    await wait(100)
-    return this.waitTilReady()
   }
 
   @rateLimitRetry

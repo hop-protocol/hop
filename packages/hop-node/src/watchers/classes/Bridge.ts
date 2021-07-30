@@ -64,6 +64,10 @@ export default class Bridge extends ContractBase {
       this.tokenSymbol = tokenSymbol
     }
     this.db = db.getDbSet(this.tokenSymbol)
+    const bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
+    if (!bridgeDeployedBlockNumber) {
+      throw new Error('bridge deployed block number is required')
+    }
     this.bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
     this.minAmount = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.min ?? 0
     this.maxAmount = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.max ?? constants.MaxUint256
@@ -535,7 +539,6 @@ export default class Bridge extends ContractBase {
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
     options: Partial<EventsBatchOptions> = {}
   ) {
-    await this.waitTilReady()
     this.validateEventsBatchInput(options)
 
     let cacheKey = ''

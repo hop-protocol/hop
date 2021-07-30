@@ -17,7 +17,21 @@ const app = new Vue({
     perPage,
     page: 0,
     allTransfers: [],
-    transfers: []
+    transfers: [],
+    tvl: {
+      xdai: {
+        formattedAmount: '-'
+      },
+      polygon: {
+        formattedAmount: '-'
+      },
+      ethereum: {
+        formattedAmount: '-'
+      },
+      total: {
+        formattedAmount: '-'
+      }
+    }
   },
   computed: {
     hasPreviousPage () {
@@ -57,6 +71,9 @@ const app = new Vue({
         console.error(err)
       }
       this.refreshTransfers()
+    },
+    setTvl (tvl) {
+      Vue.set(app, 'tvl', tvl)
     }
   }
 })
@@ -127,6 +144,14 @@ function explorerLink (chain, transactionHash) {
   return `${base}/tx/${transactionHash}`
 }
 
+function getUrl (chain) {
+  const url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
+  if (chain !== 'mainnet') {
+    return `${url}-${chain}`
+  }
+  return url
+}
+
 async function queryFetch (url, query, variables) {
   const res = await fetch(url, {
     method: 'POST',
@@ -176,10 +201,9 @@ async function fetchTransfers (chain) {
       }
     }
   `
-  let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
+  const url = getUrl(chain)
   let query = queryL1
   if (chain !== 'mainnet') {
-    url = `${url}-${chain}`
     query = queryL2
   }
   const data = await queryFetch(url, query)
@@ -204,15 +228,87 @@ async function fetchBonds (chain) {
       }
     }
   `
-  let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
-  if (chain !== 'mainnet') {
-    url = `${url}-${chain}`
-  }
+  const url = getUrl(chain)
   const data = await queryFetch(url, query)
   return data.withdrawalBondeds
 }
 
+async function fetchTvl (chain) {
+  const query = `
+    query Tvl {
+      tvls(
+        first: 1,
+        orderDirection: desc
+      ) {
+        id
+        amount
+        token
+      }
+    }
+  `
+  const url = getUrl(chain)
+  const data = await queryFetch(url, query)
+  return data.tvls[0]
+}
+
 async function updateData () {
+  await Promise.all([
+    updateTvl().catch(err => console.error(err)),
+    updateTransfers().catch(err => console.error(err))
+  ])
+}
+
+function formatTvl (tvl) {
+  const tokenDecimals = 6
+  const rawAmount = tvl.amount
+  const amount = Number(ethers.utils.formatUnits(rawAmount, tokenDecimals))
+  const formattedAmount = formatCurrency(amount)
+  return {
+    rawAmount,
+    amount,
+    formattedAmount
+  }
+}
+
+async function updateTvl () {
+  const [
+    xdaiTvl,
+    //polygonTvl,
+    mainnetTvl
+  ] = await Promise.all([
+    fetchTvl('xdai'),
+    //fetchTvl('polygon'),
+    fetchTvl('mainnet')
+  ])
+
+  const xdai = formatTvl(xdaiTvl)
+  //const polygon = formatTvl(polygonTvl)
+  const polygon = {formattedAmount: '-'}
+  const ethereum = formatTvl(mainnetTvl)
+  //const totalAmount = xdai.amount + polygon.amount + ethereum.amount
+  const totalAmount = xdai.amount + ethereum.amount
+  const total = {
+    amount: totalAmount,
+    formattedAmount: formatCurrency(totalAmount)
+  }
+
+  const tvl = {
+    xdai,
+    polygon,
+    ethereum,
+    total
+  }
+
+  app.setTvl(tvl)
+
+  try {
+    localStorage.setItem('tvl', JSON.stringify(tvl))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+async function updateTransfers () {
   const data = []
   const [
     xdaiTransfers,
@@ -410,6 +506,15 @@ async function main () {
     if (data) {
       app.updateTransfers(data)
       await updateChart(app.transfers)
+    }
+  } catch (err) {
+    console.error(err)
+  }
+
+  try {
+    const tvl = JSON.parse(localStorage.getItem('tvl'))
+    if (tvl) {
+      app.setTvl(tvl)
     }
   } catch (err) {
     console.error(err)

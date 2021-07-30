@@ -56,6 +56,12 @@ details > summary {
 details > summary::marker {
   display: none;
 }
+#chartView {
+  margin-bottom: 2rem;
+}
+#tvl {
+  margin-bottom: 2rem;
+}
 #transfers {
   overflow: auto;
 }

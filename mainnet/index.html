@@ -15,19 +15,34 @@
   </head>
   <body>
     <div id="app" v-cloak>
-      <header class="header">
-        <h1 class="rainbow rainbow-animated">Hop transfers</h1>
-      </header>
-      <div class="chartHeader">
-        <label>Source</label>
-        <label class="arrow rainbow rainbow-animated animation-delay">⟶</label>
-        <label>Destination</label>
+      <div class="chartView">
+        <details open>
+          <summary>Chart ▾</summary>
+          <header class="header">
+            <h1 class="rainbow rainbow-animated">Hop transfers</h1>
+          </header>
+          <div class="chartHeader">
+            <label>Source</label>
+            <label class="arrow rainbow rainbow-animated animation-delay">⟶</label>
+            <label>Destination</label>
+          </div>
+          <div class="chartContainer">
+            <div id="chart"></div>
+          </div>
+        </details>
       </div>
-      <div class="chartContainer">
-        <div id="chart"></div>
+      <div id="tvl">
+        <details open>
+          <summary>Total Value Locked (USD) ▾</summary>
+          <div>
+            <div>Total: {{tvl.total.formattedAmount}}</div>
+            <div class="ethereum">Ethereum: {{tvl.ethereum.formattedAmount}}</div>
+            <div class="polygon">Polygon: {{tvl.polygon.formattedAmount}}</div>
+            <div class="xdai">xDai: {{tvl.xdai.formattedAmount}}</div>
+          </div>
       </div>
       <details open>
-        <summary>Hide/Show Transfers</summary>
+        <summary>Transfers ▾</summary>
         <div>
           <div class="tableHeader">
             <div>

@@ -5,6 +5,7 @@ import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
 import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
+import SyncWatcher from 'src/watchers/SyncWatcher'
 import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
@@ -153,6 +154,7 @@ function startWatchers (
   const bondTransferRootWatchers: any = {}
   const settleBondedWithdrawalWatchers: any = {}
   const commitTransferWatchers: any = {}
+  const syncWatchers: any = {}
   for (const network of _networks) {
     const chainId = chainSlugToId(network)
     for (const token of _tokens) {
@@ -243,7 +245,7 @@ function startWatchers (
         const l2ExitWatcher = new xDomainMessageRelayWatcher({
           chainSlug: network,
           tokenSymbol: token,
-          isL1: false,
+          isL1,
           label: `${network}.${token}`,
           token,
           bridgeContract,
@@ -255,13 +257,25 @@ function startWatchers (
           watchers.push(l2ExitWatcher)
         }
       }
+
+      const syncWatcher = new SyncWatcher({
+        chainSlug: network,
+        tokenSymbol: token,
+        isL1,
+        label: `${network}.${token}`,
+        bridgeContract
+      })
+
+      syncWatchers[token] = syncWatchers[token] || {}
+      syncWatchers[token][chainId] = syncWatcher
+      watchers.push(syncWatcher)
     }
   }
 
-  for (const token in bondWithdrawalWatchers) {
-    for (const network in bondWithdrawalWatchers[token]) {
-      bondWithdrawalWatchers[token][network].setSiblingWatchers(
-        bondWithdrawalWatchers[token]
+  for (const token in syncWatchers) {
+    for (const network in syncWatchers[token]) {
+      syncWatchers[token][network].setSiblingWatchers(
+        syncWatchers[token]
       )
     }
   }
@@ -274,10 +288,10 @@ function startWatchers (
     }
   }
 
-  for (const token in settleBondedWithdrawalWatchers) {
-    for (const network in settleBondedWithdrawalWatchers[token]) {
-      settleBondedWithdrawalWatchers[token][network].setSiblingWatchers(
-        settleBondedWithdrawalWatchers[token]
+  for (const token in bondWithdrawalWatchers) {
+    for (const network in bondWithdrawalWatchers[token]) {
+      bondWithdrawalWatchers[token][network].setSiblingWatchers(
+        bondWithdrawalWatchers[token]
       )
     }
   }
@@ -286,6 +300,14 @@ function startWatchers (
     for (const network in commitTransferWatchers[token]) {
       commitTransferWatchers[token][network].setSiblingWatchers(
         commitTransferWatchers[token]
+      )
+    }
+  }
+
+  for (const token in settleBondedWithdrawalWatchers) {
+    for (const network in settleBondedWithdrawalWatchers[token]) {
+      settleBondedWithdrawalWatchers[token][network].setSiblingWatchers(
+        settleBondedWithdrawalWatchers[token]
       )
     }
   }
@@ -314,6 +336,12 @@ function startWatchers (
 
   if (_config?.challenger) {
     watchers.push(...startChallengeWatchers(_tokens, _networks, dryMode))
+  }
+
+  for (const watcher of watchers) {
+    watcher.setSyncWatcher(
+      syncWatchers[watcher.bridge.tokenSymbol][watcher.bridge.chainId]
+    )
   }
 
   const stop = () => {

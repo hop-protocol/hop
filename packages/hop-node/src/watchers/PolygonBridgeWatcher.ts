@@ -1,4 +1,4 @@
-import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
+import BaseWatcher from './classes/BaseWatcher'
 import Web3 from 'web3'
 import chalk from 'chalk'
 import fetch from 'node-fetch'
@@ -16,7 +16,7 @@ type Config = {
   tokenSymbol: string
 }
 
-class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
+class PolygonBridgeWatcher extends BaseWatcher {
   l1Provider: any
   l2Provider: any
   l1Wallet: any
@@ -28,7 +28,7 @@ class PolygonBridgeWatcher extends BaseWatcherWithEventHandlers {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'polygonBridgeWatcher',
+      tag: 'PolygonBridgeWatcher',
       logColor: 'yellow'
     })
 

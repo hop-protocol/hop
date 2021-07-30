@@ -71,17 +71,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
       )
     }
 
-    const headBlockNumber = await this.bridge.getBlockNumber()
     const promises: Promise<any>[] = []
     for (const dbTransfer of dbTransfers) {
-      const { transferId, transferSentBlockNumber } = dbTransfer
-      const isStaleData = this.bridge.isTransferStale(
-        transferSentBlockNumber, headBlockNumber, this.chainSlug
-      )
-      if (isStaleData) {
-        continue
-      }
-
+      const { transferId } = dbTransfer
       promises.push(this.checkTransferSent(transferId))
     }
 

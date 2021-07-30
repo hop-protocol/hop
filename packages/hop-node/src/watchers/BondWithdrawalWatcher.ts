@@ -1,11 +1,10 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
-import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
-import { Chain, TxError } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
+import { TxError } from 'src/constants'
 import { wait } from 'src/utils'
 
 export interface Config {
@@ -98,19 +97,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
-    if (dbTransfer.transferRootId) {
-      const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
-        .bridge as L1Bridge
-      const transferRootConfirmed = await l1Bridge.isTransferRootIdConfirmed(
-        destinationChainId,
-        dbTransfer.transferRootId
-      )
-      if (transferRootConfirmed) {
-        logger.warn('transfer root already confirmed. Cannot bond withdrawal')
-        return
-      }
-    }
-
     await this.waitTimeout(transferId, destinationChainId)
 
     const bondedAmount = await destBridge.getBondedWithdrawalAmount(transferId)
@@ -126,6 +112,16 @@ class BondWithdrawalWatcher extends BaseWatcher {
         withdrawalBonder: sender,
         withdrawalBondedTxHash: transactionHash
       })
+      return
+    }
+
+    const availableCredit = await destBridge.getAvailableCredit()
+    if (availableCredit.lt(amount)) {
+      logger.warn(
+        `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
+          availableCredit
+        )}, need ${this.bridge.formatUnits(amount)}`
+      )
       return
     }
 
@@ -244,14 +240,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       )
       const l2Bridge = this.getSiblingWatcherByChainId(destinationChainId)
         .bridge as L2Bridge
-      const credit = await l2Bridge.getAvailableCredit()
-      if (credit.lt(amount)) {
-        throw new BondError(
-          `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
-            credit
-          )}, need ${this.bridge.formatUnits(amount)}`
-        )
-      }
       return l2Bridge.bondWithdrawalAndAttemptSwap(
         recipient,
         amount,
@@ -263,14 +251,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } else {
       logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
       const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-      const credit = await bridge.getAvailableCredit()
-      if (credit.lt(amount)) {
-        throw new BondError(
-          `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
-            credit
-          )}, need ${this.bridge.formatUnits(amount)}`
-        )
-      }
       return bridge.bondWithdrawal(recipient, amount, transferNonce, bonderFee)
     }
   }

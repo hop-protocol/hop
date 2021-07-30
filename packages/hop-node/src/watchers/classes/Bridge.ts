@@ -62,6 +62,10 @@ export default class Bridge extends ContractBase {
       this.tokenSymbol = tokenSymbol
     }
     this.db = db.getDbSet(this.tokenSymbol)
+    const bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
+    if (!bridgeDeployedBlockNumber) {
+      throw new Error('bridge deployed block number is required')
+    }
     this.bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
   }
 

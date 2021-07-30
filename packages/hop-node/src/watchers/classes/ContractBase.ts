@@ -3,7 +3,7 @@ import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { EventEmitter } from 'events'
 import { Transaction } from 'src/types'
-import { chainIdToSlug, chainSlugToId, getProviderChainSlug, wait } from 'src/utils'
+import { chainIdToSlug, chainSlugToId, getProviderChainSlug } from 'src/utils'
 import { config } from 'src/config'
 
 export default class ContractBase extends EventEmitter {

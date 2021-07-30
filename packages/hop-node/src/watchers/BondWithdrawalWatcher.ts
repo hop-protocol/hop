@@ -91,12 +91,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
         continue
       }
 
-      const targetBlockNumber =
-        transferSentBlockNumber + this.bridge.waitConfirmations
-      if (headBlockNumber < targetBlockNumber) {
-        continue
-      }
-
       const isStaleData = this.bridge.isTransferStale(
         transferSentBlockNumber, headBlockNumber, this.chainSlug
       )

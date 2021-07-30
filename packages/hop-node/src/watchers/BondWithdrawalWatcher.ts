@@ -3,8 +3,8 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
-import { BigNumber, Contract, constants, providers } from 'ethers'
 import { Chain, TxError } from 'src/constants'
+import { Contract, providers } from 'ethers'
 import { wait } from 'src/utils'
 
 export interface Config {
@@ -25,8 +25,6 @@ class BondError extends Error {}
 
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
-  minAmount: BigNumber = BigNumber.from(0)
-  maxAmount: BigNumber = constants.MaxUint256
 
   constructor (config: Config) {
     super({
@@ -40,25 +38,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
-
-    if (typeof config.minAmount === 'number') {
-      this.minAmount = this.bridge.parseUnits(config.minAmount)
-    }
-    if (typeof config.maxAmount === 'number') {
-      this.maxAmount = this.bridge.parseUnits(config.maxAmount)
-    }
   }
 
   async start () {
     this.logger.debug(
-      `min bondWithdrawal amount: ${
-        this.minAmount ? this.bridge.formatUnits(this.minAmount) : 0
-      }`
+      `min bondWithdrawal amount: ${this.bridge.minAmount}`
     )
     this.logger.debug(
-      `max bondWithdrawal amount: ${
-        this.maxAmount ? this.bridge.formatUnits(this.maxAmount) : 'all'
-      }`
+      `max bondWithdrawal amount: ${this.bridge.maxAmount}`
     )
     await super.start()
   }

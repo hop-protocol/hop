@@ -87,7 +87,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const headBlockNumber = await this.bridge.getBlockNumber()
     const promises: Promise<any>[] = []
     for (const dbTransfer of dbTransfers) {
-      const { transferId, transferSentBlockNumber } = dbTransfer
+      const { transferId } = dbTransfer
       if (
         (this.minAmount && dbTransfer.amount.lt(this.minAmount)) ||
         (this.maxAmount && dbTransfer.amount.gt(this.maxAmount)) ||
@@ -103,20 +103,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
         continue
       }
-
-      const targetBlockNumber =
-        transferSentBlockNumber + this.bridge.waitConfirmations
-      if (headBlockNumber < targetBlockNumber) {
-        continue
-      }
-
-      const isStaleData = this.bridge.isTransferStale(
-        transferSentBlockNumber, headBlockNumber, this.chainSlug
-      )
-      if (isStaleData) {
-        continue
-      }
-
       promises.push(this.checkTransferSent(transferId))
     }
 

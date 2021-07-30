@@ -516,18 +516,6 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
-  isTransferStale (
-    transferSentBlockNumber: number,
-    headBlockNumber: number,
-    chainSlug: any
-  ) {
-    const { blocksTilStale } = config.sync[chainSlug]
-    if (transferSentBlockNumber < headBlockNumber - blocksTilStale) {
-      return true
-    }
-    return false
-  }
-
   formatUnits (value: BigNumber) {
     return Number(formatUnits(value.toString(), this.tokenDecimals))
   }

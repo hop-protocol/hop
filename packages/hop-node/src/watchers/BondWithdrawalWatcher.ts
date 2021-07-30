@@ -5,6 +5,7 @@ import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
 import { Chain, TxError } from 'src/constants'
 import { Contract, providers } from 'ethers'
+import { Transfer } from 'src/db/TransfersDb'
 import { wait } from 'src/utils'
 
 export interface Config {
@@ -73,18 +74,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const promises: Promise<any>[] = []
     for (const dbTransfer of dbTransfers) {
-      const { transferId } = dbTransfer
-      promises.push(this.checkTransferSent(transferId))
+      promises.push(this.checkTransferSent(dbTransfer))
     }
 
     await Promise.all(promises)
   }
 
-  checkTransferSent = async (transferId: string) => {
-    const logger = this.logger.create({ id: transferId })
-
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+  checkTransferSent = async (dbTransfer: Transfer) => {
     const {
+      transferId,
       destinationChainId,
       sourceChainId,
       recipient,
@@ -95,6 +93,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       deadline,
       transferSentTxHash
     } = dbTransfer
+    const logger = this.logger.create({ id: transferId })
     const sourceL2Bridge = this.bridge as L2Bridge
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge

@@ -75,22 +75,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const promises: Promise<any>[] = []
     for (const dbTransfer of dbTransfers) {
       const { transferId, transferSentBlockNumber } = dbTransfer
-      if (
-        (this.minAmount && dbTransfer.amount.lt(this.minAmount)) ||
-        (this.maxAmount && dbTransfer.amount.gt(this.maxAmount)) ||
-        (!this.shouldBond(transferId))
-      ) {
-        this.logger.debug(
-          `marking ${dbTransfer.transferId} as unbondable. amount: ${dbTransfer.amount}.`
-        )
-
-        await this.db.transfers.update(transferId, {
-          isBondable: false
-        })
-
-        continue
-      }
-
       const isStaleData = this.bridge.isTransferStale(
         transferSentBlockNumber, headBlockNumber, this.chainSlug
       )
@@ -329,15 +313,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
     this.logger.debug(`transfer id already bonded ${transferId}`)
     throw new Error('cancelled')
-  }
-
-  shouldBond (transferId: string): boolean {
-    const invalidTransferIds: string[] = [
-      '0x99b304c55afc0b56456dc4999913bafff224080b8a3bbe0e5a04aaf1eedf76b6'
-    ]
-
-    const shouldBond = !invalidTransferIds.includes(transferId)
-    return shouldBond
   }
 }
 

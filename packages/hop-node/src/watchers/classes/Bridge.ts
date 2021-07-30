@@ -65,7 +65,6 @@ export default class Bridge extends ContractBase {
     }
     this.db = db.getDbSet(this.tokenSymbol)
     this.bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
-
     this.minAmount = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.min ?? 0
     this.maxAmount = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.max ?? constants.MaxUint256
   }

@@ -32,13 +32,6 @@ export const TotalBlocks = {
 }
 export const DEFAULT_BATCH_BLOCKS = 10000
 
-const staleBlockMultiplier = 0.75
-export const BlocksTilStale = {
-  Ethereum: Math.floor(TotalBlocks.Ethereum * staleBlockMultiplier),
-  Polygon: Math.floor(TotalBlocks.Polygon * staleBlockMultiplier),
-  xDai: Math.floor(TotalBlocks.xDai * staleBlockMultiplier)
-}
-
 export const TEN_MINUTES_MS = 10 * 60 * 1000
 export const TX_RETRY_DELAY_MS = TEN_MINUTES_MS
 export const ETHEREUM_TX_MAX_DELAY_MS = 1 * 1000

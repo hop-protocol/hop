@@ -15,8 +15,6 @@ export interface Config {
   label: string
   order?: () => number
   dryMode?: boolean
-  minAmount?: number
-  maxAmount?: number
 }
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000

@@ -20,7 +20,7 @@ const useStyles = makeStyles(theme => ({
 const Stake: FC = () => {
   const styles = useStyles()
 
-  const { bridges, sdk, networks, user } = useApp()
+  const { bridges, sdk, networks, user, tokens } = useApp()
   const { provider } = useWeb3Context()
 
   const usdcStakingToken = useAsyncMemo(async () => {
@@ -86,12 +86,15 @@ const Stake: FC = () => {
     )
   }
 
+  const enabledTokens = tokens.map(token => token.symbol)
+
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <Typography variant="h4">
         Stake
       </Typography>
       <div className={styles.container}>
+      {enabledTokens.includes('USDC') &&
         <StakeWidget
           network={polygonNetwork}
           stakingToken={usdcStakingToken}
@@ -99,6 +102,8 @@ const Stake: FC = () => {
           stakingRewards={usdcStakingRewards}
           key={usdcStakingToken?.symbol}
         />
+      }
+      {enabledTokens.includes('USDT') &&
         <StakeWidget
           network={polygonNetwork}
           stakingToken={usdtStakingToken}
@@ -106,6 +111,7 @@ const Stake: FC = () => {
           stakingRewards={usdtStakingRewards}
           key={usdtStakingToken?.symbol}
         />
+      }
       </div>
     </Box>
   )

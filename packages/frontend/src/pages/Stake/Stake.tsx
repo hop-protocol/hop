@@ -49,7 +49,7 @@ const Stake: FC = () => {
   const usdtStakingRewards = useAsyncMemo(async () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
     const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
-    return new Contract('0xCB784a097f33231f2D3a1E22B236a9D2c878555d', stakingRewardsAbi, _provider)
+    return new Contract('0x07932e9A5AB8800922B2688FB1FA0DAAd8341772', stakingRewardsAbi, _provider)
   }, [sdk, provider, user])
 
   const rewardsToken = useAsyncMemo(async () => {

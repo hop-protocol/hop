@@ -30,13 +30,7 @@ export const TotalBlocks = {
   Polygon: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.Polygon),
   xDai: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.xDai)
 }
-
-const staleBlockMultiplier = 0.75
-export const BlocksTilStale = {
-  Ethereum: Math.floor(TotalBlocks.Ethereum * staleBlockMultiplier),
-  Polygon: Math.floor(TotalBlocks.Polygon * staleBlockMultiplier),
-  xDai: Math.floor(TotalBlocks.xDai * staleBlockMultiplier)
-}
+export const DEFAULT_BATCH_BLOCKS = 10000
 
 export const TEN_MINUTES_MS = 10 * 60 * 1000
 export const TX_RETRY_DELAY_MS = TEN_MINUTES_MS

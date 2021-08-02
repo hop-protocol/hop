@@ -6,7 +6,8 @@ export const addresses: Addresses = {
     USDC: {
       ethereum: {
         l1CanonicalToken: '0x98339D8C260052B7ad81c28c16C0b98420f2B46a',
-        l1Bridge: '0x39B052820F808534d5eD7C2b26f070169Fa6A686'
+        l1Bridge: '0x39B052820F808534d5eD7C2b26f070169Fa6A686',
+        bridgeDeployedBlockNumber: 4982681
       },
       polygon: {
         l1CanonicalBridge: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
@@ -21,13 +22,14 @@ export const addresses: Addresses = {
         l1FxBaseRootTunnel: '0x7a4f56B0Dd21d730604A266245a0067b97605DAE',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
         l1PosPredicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34',
-        l2BridgeDeployedBlockNumber: 15200513
+        bridgeDeployedBlockNumber: 15200513
       }
     },
     DAI: {
       ethereum: {
         l1CanonicalToken: '0xC61bA16e864eFbd06a9fe30Aab39D18B8F63710a',
-        l1Bridge: '0x9CD998D84CE695646c3C874e8793eF4A80C2cAB8'
+        l1Bridge: '0x9CD998D84CE695646c3C874e8793eF4A80C2cAB8',
+        bridgeDeployedBlockNumber: 4982739
       },
       polygon: {
         l1CanonicalBridge: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
@@ -42,7 +44,7 @@ export const addresses: Addresses = {
         l1FxBaseRootTunnel: '0x210942Df6AfE6Cc1d3909B0faa3B3f2D20017F0D',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
         l1PosPredicate: '0x37c3bfC05d5ebF9EBb3FF80ce0bd0133Bf221BC8',
-        l2BridgeDeployedBlockNumber: 15200943
+        bridgeDeployedBlockNumber: 15200943
       }
     }
   }

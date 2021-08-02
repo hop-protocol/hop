@@ -1,11 +1,10 @@
 import '../moduleAlias'
-import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
+import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
 import { BigNumber, Contract, constants, providers } from 'ethers'
 import { Chain, TxError } from 'src/constants'
-import { Event } from 'src/types'
 import { wait } from 'src/utils'
 
 export interface Config {
@@ -24,14 +23,14 @@ const BONDER_ORDER_DELAY_MS = 60 * 1000
 
 class BondError extends Error {}
 
-class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
+class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
   minAmount: BigNumber = BigNumber.from(0)
   maxAmount: BigNumber = constants.MaxUint256
 
   constructor (config: Config) {
     super({
-      tag: 'bondWithdrawalWatcher',
+      tag: 'BondWithdrawalWatcher',
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
       prefix: config.label,
@@ -64,97 +63,18 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     await super.start()
   }
 
-  async syncHandler (): Promise<any> {
-    const promises: Promise<any>[] = []
-    promises.push(
-      this.bridge.mapWithdrawalBondedEvents(
-        async (event: Event) => {
-          return this.handleRawWithdrawalBondedEvent(event)
-        },
-        { cacheKey: this.cacheKey(this.bridge.WithdrawalBonded) }
-      )
-    )
-
-    // L1 bridge doesn't contain transfer sent events so don't check here.
-    if (!this.isL1) {
-      const l2Bridge = this.bridge as L2Bridge
-      promises.push(
-        l2Bridge.mapTransferSentEvents(
-          async (event: Event) => {
-            return this.handleRawTransferSentEvent(event)
-          },
-          { cacheKey: this.cacheKey(l2Bridge.TransferSent) }
-        )
-      )
-    }
-
-    await Promise.all(promises)
-  }
-
-  async watch () {
-    if (!this.isL1) {
-      const l2Bridge = this.bridge as L2Bridge
-      this.bridge
-        .on(l2Bridge.TransferSent, this.handleTransferSentEvent)
-        .on('error', err => {
-          this.logger.error(`event watcher error: ${err.message}`)
-          this.notifier.error(`event watcher error: ${err.message}`)
-          this.quit()
-        })
-    }
-    this.bridge
-      .on(this.bridge.WithdrawalBonded, this.handleWithdrawalBondedEvent)
-      .on('error', err => {
-        this.logger.error(`event watcher error: ${err.message}`)
-        this.notifier.error(`event watcher error: ${err.message}`)
-        this.quit()
-      })
-  }
-
   async pollHandler () {
+    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
+    if (!initialSyncCompleted) {
+      return
+    }
     if (this.isL1) {
       return
     }
     await this.checkTransferSentFromDb()
   }
 
-  async handleRawWithdrawalBondedEvent (event: Event) {
-    const { transferId, amount } = event.args
-    await this.handleWithdrawalBondedEvent(transferId, amount, event)
-  }
-
-  async handleRawTransferSentEvent (event: Event) {
-    const {
-      transferId,
-      chainId: destinationChainId,
-      recipient,
-      amount,
-      transferNonce,
-      bonderFee,
-      index,
-      amountOutMin,
-      deadline
-    } = event.args
-    await this.handleTransferSentEvent(
-      transferId,
-      destinationChainId,
-      recipient,
-      amount,
-      transferNonce,
-      bonderFee,
-      index,
-      amountOutMin,
-      deadline,
-      event
-    )
-  }
-
   async checkTransferSentFromDb () {
-    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
-    if (!initialSyncCompleted) {
-      return false
-    }
-
     const dbTransfers = await this.db.transfers.getUnbondedSentTransfers({
       sourceChainId: await this.bridge.getChainId()
     })
@@ -167,7 +87,7 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const headBlockNumber = await this.bridge.getBlockNumber()
     const promises: Promise<any>[] = []
     for (const dbTransfer of dbTransfers) {
-      const { transferId, transferSentBlockNumber } = dbTransfer
+      const { transferId } = dbTransfer
       if (
         (this.minAmount && dbTransfer.amount.lt(this.minAmount)) ||
         (this.maxAmount && dbTransfer.amount.gt(this.maxAmount)) ||
@@ -183,20 +103,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
 
         continue
       }
-
-      const targetBlockNumber =
-        transferSentBlockNumber + this.bridge.waitConfirmations
-      if (headBlockNumber < targetBlockNumber) {
-        continue
-      }
-
-      const isStaleData = this.bridge.isTransferStale(
-        transferSentBlockNumber, headBlockNumber, this.chainSlug
-      )
-      if (isStaleData) {
-        continue
-      }
-
       promises.push(this.checkTransferSent(transferId))
     }
 
@@ -221,23 +127,6 @@ class BondWithdrawalWatcher extends BaseWatcherWithEventHandlers {
     const sourceL2Bridge = this.bridge as L2Bridge
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
-
-    const originalBlockNumber = dbTransfer.transferSentBlockNumber
-    const { isReorged, newBlockNumber, newTransactionIndex } = await sourceL2Bridge.checkReorg(originalBlockNumber, transferSentTxHash)
-    if (isReorged) {
-      if (newBlockNumber) {
-        await this.db.transfers.update(dbTransfer.transferId, {
-          transferSentBlockNumber: newBlockNumber,
-          transferSentIndex: newTransactionIndex
-        })
-        return
-      } else {
-        await this.db.transfers.update(dbTransfer.transferId, {
-          isBondable: false
-        })
-        return
-      }
-    }
 
     if (dbTransfer.transferRootId) {
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)

@@ -20,6 +20,7 @@ import Transaction from 'src/models/Transaction'
 import useInterval from 'src/hooks/useInterval'
 import useBalance from 'src/hooks/useBalance'
 import logger from 'src/logger'
+import useApprove from 'src/hooks/useApprove'
 
 type PoolsContextProps = {
   networks: Network[]
@@ -275,11 +276,12 @@ const PoolsContextProvider: FC = ({ children }) => {
     updateUserPoolPositions()
   }, 20 * 1000)
 
+  const approve = useApprove()
   const approveTokens = async (
     isHop: boolean,
     amount: string,
     network: Network
-  ): Promise<ethers.providers.TransactionResponse | undefined> => {
+  ) => {
     if (!canonicalToken) {
       throw new Error('Canonical token is required')
     }
@@ -295,25 +297,8 @@ const PoolsContextProvider: FC = ({ children }) => {
     const spender = saddleSwap.address
     const parsedAmount = parseUnits(amount, canonicalToken.decimals)
     const token = isHop ? bridge.getL2HopToken(network.slug) : bridge.getCanonicalToken(network.slug)
-    const approved = await token.allowance(spender)
-    const tokenSymbol = isHop ? hopToken.symbol : canonicalToken.symbol
 
-    if (approved.lt(parsedAmount)) {
-      return txConfirm?.show({
-        kind: 'approval',
-        inputProps: {
-          tagline: `Allow Hop to spend your ${token.symbol} on ${selectedNetwork.name}`,
-          amount: canonicalToken.symbol === 'USDT' ? undefined : amount,
-          tokenSymbol
-        },
-        onConfirm: async (approveAll: boolean) => {
-          return token.approve(
-            spender,
-            approveAll ? UINT256 : parsedAmount
-          )
-        }
-      })
-    }
+    return approve(parsedAmount, token, spender)
   }
 
   const addLiquidity = async () => {
@@ -339,28 +324,10 @@ const PoolsContextProvider: FC = ({ children }) => {
       }
 
       setSending(true)
-      let tx = await approveTokens(false, token0Amount, selectedNetwork)
-      if (tx?.hash && selectedNetwork) {
-        txHistory?.addTransaction(
-          new Transaction({
-            hash: tx?.hash,
-            networkName: selectedNetwork?.slug
-          })
-        )
-      }
-      await tx?.wait()
-      setTxHash(tx?.hash)
-      tx = await approveTokens(true, token1Amount, selectedNetwork)
-      if (tx?.hash && selectedNetwork) {
-        txHistory?.addTransaction(
-          new Transaction({
-            hash: tx?.hash,
-            networkName: selectedNetwork?.slug
-          })
-        )
-      }
-      setTxHash(tx?.hash)
-      await tx?.wait()
+      const approval0Tx = await approveTokens(false, token0Amount, selectedNetwork)
+      await approval0Tx?.wait()
+      const approval1Tx = await approveTokens(true, token1Amount, selectedNetwork)
+      await approval1Tx?.wait()
 
       const signer = provider?.getSigner()
       const amount0Desired = parseUnits(token0Amount, canonicalToken?.decimals)
@@ -368,7 +335,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       const minToMint = 0
       const deadline = (Date.now() / 1000 + 5 * 60) | 0
 
-      tx = await txConfirm?.show({
+      const addLiquidityTx = await txConfirm?.show({
         kind: 'addLiquidity',
         inputProps: {
           token0: {
@@ -398,16 +365,16 @@ const PoolsContextProvider: FC = ({ children }) => {
         }
       })
 
-      setTxHash(tx?.hash)
-      if (tx?.hash && selectedNetwork) {
+      setTxHash(addLiquidityTx?.hash)
+      if (addLiquidityTx?.hash && selectedNetwork) {
         txHistory?.addTransaction(
           new Transaction({
-            hash: tx?.hash,
+            hash: addLiquidityTx?.hash,
             networkName: selectedNetwork?.slug
           })
         )
       }
-      await tx?.wait()
+      await addLiquidityTx?.wait()
       updateUserPoolPositions()
     } catch (err) {
       if (!/cancelled/gi.test(err.message)) {
@@ -446,40 +413,9 @@ const PoolsContextProvider: FC = ({ children }) => {
         formatUnits(balance.toString(), lpTokenDecimals)
       )
 
-      let tx: any
-      const approved = await lpToken.allowance(
-        saddleSwap.address
-      )
+      const approvalTx = await approve(balance, lpToken, saddleSwap.address)
+      await approvalTx?.wait()
 
-      if (approved.lt(balance)) {
-        tx = await txConfirm?.show({
-          kind: 'approval',
-          inputProps: {
-            tagline: `Allow Hop to spend your LP-${lpToken.symbol} on ${selectedNetwork.name}`,
-            amount: formattedBalance,
-            tokenSymbol: lpToken.symbol
-          },
-          onConfirm: async (approveAll: boolean) => {
-            return lpToken.approve(
-              saddleSwap.address,
-              approveAll ? UINT256 : balance
-            )
-          }
-        })
-      }
-
-      if (tx?.hash) {
-        txHistory?.addTransaction(
-          new Transaction({
-            hash: tx?.hash,
-            networkName: selectedNetwork?.slug
-          })
-        )
-      }
-      setTxHash(tx?.hash)
-      await tx?.wait()
-
-      // setSending(true)
       const amount0Min = '0'
       const amount1Min = '0'
       const deadline = (Date.now() / 1000 + 5 * 60) | 0
@@ -487,7 +423,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       const token0Amount = token0Deposited
       const token1Amount = token1Deposited
 
-      tx = await txConfirm?.show({
+      const removeLiquidityTx = await txConfirm?.show({
         kind: 'removeLiquidity',
         inputProps: {
           token0: {
@@ -518,16 +454,16 @@ const PoolsContextProvider: FC = ({ children }) => {
         }
       })
 
-      setTxHash(tx?.hash)
-      if (tx?.hash && selectedNetwork) {
+      setTxHash(removeLiquidityTx?.hash)
+      if (removeLiquidityTx?.hash && selectedNetwork) {
         txHistory?.addTransaction(
           new Transaction({
-            hash: tx?.hash,
+            hash: removeLiquidityTx?.hash,
             networkName: selectedNetwork?.slug
           })
         )
       }
-      await tx?.wait()
+      await removeLiquidityTx?.wait()
       updateUserPoolPositions()
     } catch (err) {
       if (!/cancelled/gi.test(err.message)) {

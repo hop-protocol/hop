@@ -2,7 +2,6 @@
 node_modules
 data
 *.log
-build
 dist
 !third_party/*.tgz
 src/package.json

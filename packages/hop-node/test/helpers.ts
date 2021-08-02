@@ -839,7 +839,7 @@ export class User {
   @queue
   async bondTransferRoot (
     transferRootHash: string,
-    chainId: string,
+    chainId: number,
     totalAmount: number
   ) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
@@ -854,7 +854,7 @@ export class User {
 
   async bondTransferRootAndWaitForReceipt (
     transferRootHash: string,
-    chainId: string,
+    chainId: number,
     totalAmount: number
   ) {
     const tx = await this.bondTransferRoot(
@@ -1013,7 +1013,7 @@ export class User {
     return Number(formatUnits(bondAmount.toString(), 18))
   }
 
-  async getTransferRootCommittedAt (destChainId: string, transferRootId: string, tokenSymbol: string) {
+  async getTransferRootCommittedAt (destChainId: number, transferRootId: string, tokenSymbol: string) {
     let params: any[] = []
     if (tokenSymbol === 'USDC') {
       params = [transferRootId]
@@ -1048,12 +1048,12 @@ export class User {
     return block.timestamp
   }
 
-  async isChainIdPaused (chainId: string) {
+  async isChainIdPaused (chainId: number) {
     const bridge = this.getHopBridgeContract(Chain.Ethereum)
     return bridge.isChainIdPaused(chainId)
   }
 
-  async getCrossDomainMessengerWrapperAddress (chainId: string) {
+  async getCrossDomainMessengerWrapperAddress (chainId: number) {
     const bridge = this.getHopBridgeContract(Chain.Ethereum)
     return bridge.crossDomainMessengerWrappers(chainId)
   }
@@ -1063,7 +1063,7 @@ export class User {
     return bridge.setMaxPendingTransfers(max, await this.txOverrides(network))
   }
 
-  async validateChainId (chainId: string) {
+  async validateChainId (chainId: number) {
     const isPaused = await this.isChainIdPaused(chainId)
     if (isPaused) {
       throw new Error('chain id is paused')

@@ -30,6 +30,7 @@ export default class Bridge extends ContractBase {
   tokenSymbol: string = ''
   bridgeContract: Contract
   readProvider?: providers.Provider
+  bridgeDeployedBlockNumber: number
 
   constructor (bridgeContract: Contract) {
     super(bridgeContract)
@@ -60,8 +61,12 @@ export default class Bridge extends ContractBase {
     if (tokenSymbol) {
       this.tokenSymbol = tokenSymbol
     }
-    this.bridgeStartListeners()
     this.db = db.getDbSet(this.tokenSymbol)
+    const bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
+    if (!bridgeDeployedBlockNumber) {
+      throw new Error('bridge deployed block number is required')
+    }
+    this.bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
   }
 
   // a read provider is alternative provider that can be used only for
@@ -82,23 +87,6 @@ export default class Bridge extends ContractBase {
   // no need to connect another provider here.
   getWriteBridgeContract (): Contract {
     return this.bridgeContract
-  }
-
-  bridgeStartListeners (): void {
-    this.getReadBridgeContract()
-      .on(this.bridgeContract.filters.WithdrawalBonded(), (...args: any[]) =>
-        this.emit(this.WithdrawalBonded, ...args)
-      )
-      .on(this.bridgeContract.filters.TransferRootSet(), (...args: any[]) =>
-        this.emit(this.TransferRootSet, ...args)
-      )
-      .on(
-        this.bridgeContract.filters.MultipleWithdrawalsSettled(),
-        (...args: any[]) => this.emit(this.MultipleWithdrawalsSettled, ...args)
-      )
-      .on('error', err => {
-        this.emit('error', err)
-      })
   }
 
   async getBonderAddress (): Promise<string> {
@@ -528,61 +516,6 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
-  @rateLimitRetry
-  async checkReorg (
-    originalBlockNumber: number,
-    txHash: string
-  ): Promise<{isReorged: boolean, newBlockNumber?: number, newTransactionIndex?: number}> {
-    const tx = await this.getTransaction(
-      txHash
-    )
-    if (!tx) {
-      return {
-        isReorged: true
-      }
-    }
-    const { blockNumber, transactionIndex } = tx
-    const isReorged = originalBlockNumber !== blockNumber
-    return {
-      isReorged,
-      newBlockNumber: blockNumber,
-      newTransactionIndex: transactionIndex
-    }
-  }
-
-  isTransferStale (
-    transferSentBlockNumber: number,
-    headBlockNumber: number,
-    chainSlug: any
-  ) {
-    const { blocksTilStale } = config.sync[chainSlug]
-    if (transferSentBlockNumber < headBlockNumber - blocksTilStale) {
-      return true
-    }
-    return false
-  }
-
-  @rateLimitRetry
-  async waitSafeConfirmationsAndCheckBlockNumber (
-    originalTxHash: string,
-    txHashGetter: () => Promise<string>
-  ) {
-    const originalBlockNumber = await this.getTransactionBlockNumber(
-      originalTxHash
-    )
-    await this.waitSafeConfirmations(originalBlockNumber)
-    const latestTxHash = await txHashGetter()
-    if (!latestTxHash) {
-      throw new Error('could not find tx hash event')
-    }
-    const latestBlockNumber = await this.getTransactionBlockNumber(latestTxHash)
-    if (originalBlockNumber !== latestBlockNumber) {
-      throw new Error(
-        `tx hash (${originalTxHash}) block number hash changed. expected ${originalBlockNumber}, got ${latestBlockNumber}`
-      )
-    }
-  }
-
   formatUnits (value: BigNumber) {
     return Number(formatUnits(value.toString(), this.tokenDecimals))
   }
@@ -612,7 +545,6 @@ export default class Bridge extends ContractBase {
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
     options: Partial<EventsBatchOptions> = {}
   ) {
-    await this.waitTilReady()
     this.validateEventsBatchInput(options)
 
     let cacheKey = ''
@@ -674,6 +606,8 @@ export default class Bridge extends ContractBase {
     const { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
     const currentBlockNumber = await this.getBlockNumber()
     const currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
+    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
+    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber
 
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
@@ -681,7 +615,10 @@ export default class Bridge extends ContractBase {
     } else if (endBlockNumber) {
       end = endBlockNumber
       totalBlocksInBatch = totalBlocks
-    } else if (state?.latestBlockSynced) {
+    } else if (isInitialSync) {
+      end = currentBlockNumberWithFinality
+      totalBlocksInBatch = end - startBlockNumber
+    } else if (isSync) {
       end = Math.max(currentBlockNumberWithFinality, state.latestBlockSynced)
       totalBlocksInBatch = end - state.latestBlockSynced
     } else {

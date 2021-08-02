@@ -34,8 +34,8 @@ export const networks: Networks = {
       'https://rpc.xdaichain.com',
       // 'https://dai.poa.network',
       // 'https://xdai.poanetwork.dev',
-      'https://xdai-archive.blockscout.com',
-      'https://xdai.1hive.org'
+      'https://xdai-archive.blockscout.com'
+      // 'https://xdai.1hive.org'
       // wss://rpc.xdaichain.com/wss
       // wss://xdai.poanetwork.dev/wss,
     ],
@@ -46,11 +46,7 @@ export const networks: Networks = {
   polygon: {
     name: chains.polygon.name,
     networkId: 137,
-    rpcUrls: [
-      'https://polygon.rpc.hop.exchange',
-      'https://rpc-mainnet.maticvigil.com'
-      // 'https://matic-mainnet-archive-rpc.bwarelabs.com'
-    ],
+    rpcUrls: ['https://polygon.rpc.hop.exchange'],
     explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
     waitConfirmations: 124

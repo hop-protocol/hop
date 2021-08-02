@@ -18,7 +18,6 @@ import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
-import { UINT256 } from 'src/constants'
 import logger from 'src/logger'
 import { commafy, normalizeNumberInput, toTokenDisplay } from 'src/utils'
 import SendButton from 'src/pages/Send/SendButton'
@@ -28,6 +27,7 @@ import useSendData from 'src/pages/Send/useSendData'
 import useNeedsTokenForFee from 'src/hooks/useNeedsTokenForFee'
 import useQueryParams from 'src/hooks/useQueryParams'
 import AmmDetails from 'src/components/AmmDetails'
+import useApprove from 'src/hooks/useApprove'
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -379,77 +379,38 @@ const Send: FC = () => {
     setAmountOutMinDisplay(`${amountOutMinFormatted} ${sourceToken.symbol}`)
   }, [amountOutMin])
 
-  const approve = async (amount: string) => {
-    const signer = provider?.getSigner()
-    if (!signer) {
-      throw new Error('Wallet not connected')
-    }
-
+  const approve = useApprove()
+  const approveFromToken = async () => {
     if (!fromNetwork) {
       throw new Error('No fromNetwork selected')
-    }
-
-    if (!toNetwork) {
-      throw new Error('No toNetwork selected')
     }
 
     if (!sourceToken) {
       throw new Error('No from token selected')
     }
 
-    const parsedAmount = parseUnits(amount, sourceToken.decimals)
-    let tx: any
-    const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
-    const token = bridge.getCanonicalToken(fromNetwork.slug)
+    if (!fromTokenAmount) {
+      throw new Error('No amount to approve')
+    }
+    const parsedAmount = parseUnits(fromTokenAmount, sourceToken.decimals)
+    const bridge = sdk.bridge(sourceToken.symbol)
+
     let spender : string
     if (fromNetwork.isLayer1) {
       const l1Bridge = await bridge.getL1Bridge()
       spender = l1Bridge.address
     } else {
-      const bridge = await sdk
-        .bridge(sourceToken.symbol)
-        .connect(signer)
       const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
       spender = ammWrapper.address
     }
-    const approved = await token.allowance(spender)
-    if (approved.lt(parsedAmount)) {
-      tx = await txConfirm?.show({
-        kind: 'approval',
-        inputProps: {
-          tagline: `Allow Hop to spend your ${token.symbol} on ${fromNetwork.name}`,
-          amount: sourceToken.symbol === 'USDT' ? undefined : amount,
-          token: sourceToken.symbol
-        },
-        onConfirm: async (approveAll: boolean) => {
-          const approveAmount = approveAll ? UINT256 : parsedAmount
-          return token.approve(
-            spender,
-            approveAmount
-          )
-        }
-      })
-      await tx?.wait()
-      if (tx?.hash && fromNetwork) {
-        txHistory?.addTransaction(
-          new Transaction({
-            hash: tx?.hash,
-            networkName: fromNetwork?.slug,
-            token: sourceToken
-          })
-        )
-      }
-    }
 
-    if (tx?.hash && fromNetwork) {
-      txHistory?.addTransaction(
-        new Transaction({
-          hash: tx?.hash,
-          networkName: fromNetwork?.slug,
-          token: sourceToken
-        })
-      )
-    }
+    const tx = await approve(
+      parsedAmount,
+      sourceToken,
+      spender
+    )
+
+    await tx?.wait()
   }
 
   const send = async () => {
@@ -465,7 +426,7 @@ const Send: FC = () => {
       if (!isNetworkConnected) return
 
       setSending(true)
-      await approve(fromTokenAmount)
+      await approveFromToken()
       let tx: Transaction | null = null
       if (fromNetwork.isLayer1) {
         tx = await sendl1ToL2()

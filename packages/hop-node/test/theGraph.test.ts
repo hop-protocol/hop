@@ -1,4 +1,5 @@
 import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
+import getBondedWithdrawals from 'src/theGraph/getBondedWithdrawals'
 import getTransfer from 'src/theGraph/getTransfer'
 import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
 import getTransferRoot from 'src/theGraph/getTransferRoot'
@@ -87,4 +88,34 @@ describe('getBondedWithdrawal', () => {
     const item = await getBondedWithdrawal(Chain.Polygon, 'USDC', transferId)
     expect(item.transferId).toBe(transferId)
   })
+})
+
+describe('getBondedWithdrawals', () => {
+  it('polygon', async () => {
+    const items = await getBondedWithdrawals(Chain.Ethereum, 'USDC')
+    expect(items.length).toBeGreaterThan(0)
+  }, 60 * 1000)
+})
+
+describe('check bonded withdrawals without a transfer', () => {
+  it('polygon', async () => {
+    const items = await getBondedWithdrawals(Chain.Ethereum, 'USDC')
+    let i = 0
+    for (const item of items.slice(i)) {
+      try {
+        let transfer = await getTransfer(Chain.xDai, 'USDC', item.transferId)
+        if (!transfer) {
+          transfer = await getTransfer(Chain.Polygon, 'USDC', item.transferId)
+        }
+        if (!transfer) {
+          throw new Error('no transfer' + item.transferId)
+        }
+        console.log(i)
+        i++
+      } catch (err) {
+        console.log(err.message)
+        break
+      }
+    }
+  }, 60 * 60 * 1000)
 })

@@ -1,12 +1,11 @@
 import '../moduleAlias'
-import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
+import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain, TX_RETRY_DELAY_MS } from 'src/constants'
-import { Event } from 'src/types'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { config as globalConfig } from 'src/config'
 import { wait } from 'src/utils'
@@ -21,7 +20,7 @@ export interface Config {
   dryMode?: boolean
 }
 
-class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
+class BondTransferRootWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondTransferRootWatcher }
   waitMinBondDelay: boolean = globalConfig.isMainnet
   skipChains: string[] = globalConfig.isMainnet
@@ -32,7 +31,7 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'bondTransferRootWatcher',
+      tag: 'BondTransferRootWatcher',
       prefix: config.label,
       logColor: 'cyan',
       order: config.order,
@@ -42,86 +41,15 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
     })
   }
 
-  async syncHandler (): Promise<any> {
-    const promises: Promise<any>[] = []
-    if (this.isL1) {
-      const l1Bridge = this.bridge as L1Bridge
-      promises.push(
-        l1Bridge.mapTransferRootBondedEvents(
-          async (event: Event) => {
-            return this.handleRawTransferRootBondedEvent(event)
-          },
-          { cacheKey: this.cacheKey(l1Bridge.TransferRootBonded) }
-        )
-      )
-    } else {
-      const l2Bridge = this.bridge as L2Bridge
-      promises.push(
-        l2Bridge.mapTransfersCommittedEvents(
-          async (event: Event) => {
-            return this.handleRawTransfersCommittedEvent(event)
-          },
-          { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted) }
-        )
-      )
-    }
-
-    await Promise.all(promises)
-  }
-
-  async watch () {
-    if (this.isL1) {
-      const l1Bridge = this.bridge as L1Bridge
-      this.bridge
-        .on(l1Bridge.TransferRootBonded, this.handleTransferRootBondedEvent)
-        .on('error', err => {
-          this.logger.error(`event watcher error: ${err.message}`)
-          this.notifier.error(`event watcher error: ${err.message}`)
-          this.quit()
-        })
+  async pollHandler () {
+    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
+    if (!initialSyncCompleted) {
       return
     }
-    const l2Bridge = this.bridge as L2Bridge
-    this.bridge
-      .on(l2Bridge.TransfersCommitted, this.handleTransfersCommittedEvent)
-      .on('error', err => {
-        this.logger.error(`event watcher error: ${err.message}`)
-        this.notifier.error(`event watcher error: ${err.message}`)
-        this.quit()
-      })
-  }
-
-  async pollHandler () {
     await this.checkTransfersCommittedFromDb()
   }
 
-  async handleRawTransferRootBondedEvent (event: Event) {
-    const { root, amount } = event.args
-    await this.handleTransferRootBondedEvent(root, amount, event)
-  }
-
-  async handleRawTransfersCommittedEvent (event: Event) {
-    const {
-      destinationChainId,
-      rootHash,
-      totalAmount,
-      rootCommittedAt
-    } = event.args
-    await this.handleTransfersCommittedEvent(
-      destinationChainId,
-      rootHash,
-      totalAmount,
-      rootCommittedAt,
-      event
-    )
-  }
-
   async checkTransfersCommittedFromDb () {
-    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
-    if (!initialSyncCompleted) {
-      return false
-    }
-
     const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots({
       sourceChainId: await this.bridge.getChainId()
     })
@@ -131,7 +59,6 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
       )
     }
 
-    const headBlockNumber = await this.bridge.getBlockNumber()
     for (const dbTransferRoot of dbTransferRoots) {
       const {
         transferRootHash,
@@ -139,13 +66,6 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
         destinationChainId,
         committedAt
       } = dbTransferRoot
-
-      const { commitTxBlockNumber } = dbTransferRoot
-      const targetBlockNumber =
-        commitTxBlockNumber + this.bridge.waitConfirmations
-      if (headBlockNumber < targetBlockNumber) {
-        continue
-      }
 
       await this.checkTransfersCommitted(
         transferRootHash,
@@ -195,14 +115,6 @@ class BondTransferRootWatcher extends BaseWatcherWithEventHandlers {
 
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
       .bridge as L1Bridge
-
-    // TODO: Reintroduce reorg checker
-    // await l2Bridge.waitSafeConfirmationsAndCheckBlockNumber(
-    //   commitTxHash,
-    //   async () => {
-    //     return l2Bridge.getTransferRootCommittedTxHash(transferRootHash)
-    //   }
-    // )
 
     const minDelay = await l1Bridge.getMinTransferRootBondDelaySeconds()
     const blockTimestamp = await l1Bridge.getBlockTimestamp()

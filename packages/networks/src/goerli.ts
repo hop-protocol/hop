@@ -18,8 +18,7 @@ export const networks: Networks = {
       'https://rpc-mumbai.maticvigil.com'
     ],
     archiveRpcUrls: [
-      'https://mumbai.rpc.hop.exchange',
-      'https://matic-testnet-archive-rpc.bwarelabs.com'
+      'https://mumbai.rpc.hop.exchange'
     ],
     explorerUrls: [
       'https://mumbai.polygonscan.com',

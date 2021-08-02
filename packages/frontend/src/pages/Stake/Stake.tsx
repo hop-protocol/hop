@@ -22,30 +22,34 @@ const Stake: FC = () => {
 
   const { bridges, sdk, networks, user } = useApp()
   const { provider } = useWeb3Context()
-  const [stakingTokens, setStakingTokens] = useState<Token[]>()
 
-  useEffect(() => {
-    const fetchRewardsTokens = async () => {
-      const bridge = bridges.find(bridge =>
-        bridge.getTokenSymbol() === 'USDC'
-      )
+  const usdcStakingToken = useAsyncMemo(async () => {
+    const bridge = bridges.find(bridge =>
+      bridge.getTokenSymbol() === 'USDC'
+    )
 
-      const tokens: Token[] = []
-      const lpToken = await bridge?.getSaddleLpToken('polygon')
-      if (lpToken) {
-        tokens.push(lpToken)
-      }
-
-      setStakingTokens(tokens)
-    }
-
-    fetchRewardsTokens()
+    return bridge?.getSaddleLpToken('polygon')
   }, [bridges])
 
-  const stakingRewards = useAsyncMemo(async () => {
+  const usdcStakingRewards = useAsyncMemo(async () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
     const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
     return new Contract('0x2C2Ab81Cf235e86374468b387e241DF22459A265', stakingRewardsAbi, _provider)
+  }, [sdk, provider, user])
+
+  const usdtStakingToken = useAsyncMemo(async () => {
+    const bridge = bridges.find(bridge =>
+      bridge.getTokenSymbol() === 'USDT'
+    )
+
+    const LP = await bridge?.getSaddleLpToken('polygon')
+    return LP
+  }, [bridges])
+
+  const usdtStakingRewards = useAsyncMemo(async () => {
+    const polygonProvider = await sdk.getSignerOrProvider('polygon')
+    const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
+    return new Contract('0xCB784a097f33231f2D3a1E22B236a9D2c878555d', stakingRewardsAbi, _provider)
   }, [sdk, provider, user])
 
   const rewardsToken = useAsyncMemo(async () => {
@@ -88,15 +92,20 @@ const Stake: FC = () => {
         Stake
       </Typography>
       <div className={styles.container}>
-        {stakingTokens?.map(token => (
-          <StakeWidget
-            network={polygonNetwork}
-            stakingToken={token}
-            rewardsToken={rewardsToken}
-            stakingRewards={stakingRewards}
-            key={token.symbol}
-          />
-        ))}
+        <StakeWidget
+          network={polygonNetwork}
+          stakingToken={usdcStakingToken}
+          rewardsToken={rewardsToken}
+          stakingRewards={usdcStakingRewards}
+          key={usdcStakingToken?.symbol}
+        />
+        <StakeWidget
+          network={polygonNetwork}
+          stakingToken={usdtStakingToken}
+          rewardsToken={rewardsToken}
+          stakingRewards={usdtStakingRewards}
+          key={usdtStakingToken?.symbol}
+        />
       </div>
     </Box>
   )

@@ -41,7 +41,7 @@ export const networks: Networks = {
   */
   xdai: {
     networkId: mainnetNetworks.xdai.networkId.toString(),
-    rpcUrls: ['https://dark-solitary-dawn.xdai.quiknode.pro/0d72762fc2a22e8c90437a0279b00e7fc11a7e3b/'],
+    rpcUrls: mainnetNetworks.xdai.rpcUrls,
     explorerUrl: mainnetNetworks.xdai.explorerUrls[0],
     nativeBridgeUrl: mainnetNetworks.xdai.nativeBridgeUrl
   }

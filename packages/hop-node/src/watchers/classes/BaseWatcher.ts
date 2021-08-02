@@ -1,6 +1,7 @@
 import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
+import SyncWatcher from '../SyncWatcher'
 import db from 'src/db'
 import { Contract } from 'ethers'
 import { EventEmitter } from 'events'
@@ -36,18 +37,16 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   order: () => number = () => 0
   started: boolean = false
   pollIntervalMs: number = 10 * 1000
-  resyncIntervalMs: number = 60 * 1000
   chainSlug: string
   tokenSymbol: string
-  initialSyncCompleted: boolean = false
 
   isL1: boolean
   bridge: L2Bridge | L1Bridge
   siblingWatchers: { [chainId: string]: any }
+  syncWatcher: SyncWatcher
   dryMode: boolean
   tag: string
   prefix: string
-  syncIndex: number = 0
 
   constructor (config: Config) {
     super()
@@ -87,27 +86,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
   }
 
-  async pollSync () {
-    while (true) {
-      await this.preSyncHandler()
-      await this.syncHandler()
-      await this.postSyncHandler()
-    }
-  }
-
-  async preSyncHandler () {
-    this.logger.debug('syncing up events. index:', this.syncIndex)
-  }
-
-  async syncHandler () {
-    // virtual method
-  }
-
-  async postSyncHandler () {
-    this.logger.debug('done syncing. index:', this.syncIndex)
-    this.initialSyncCompleted = true
-    this.syncIndex++
-    await wait(this.resyncIntervalMs)
+  isAllSiblingWatchersInitialSyncCompleted (): boolean {
+    return this.syncWatcher?.isAllSiblingWatchersInitialSyncCompleted()
   }
 
   async pollCheck () {
@@ -140,10 +120,9 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async start () {
-    await this.bridge.waitTilReady()
     this.started = true
     try {
-      await Promise.all([this.pollSync(), this.pollCheck()])
+      await this.pollCheck()
     } catch (err) {
       this.logger.error('base watcher error:', err.message)
       this.notifier.error(`base watcher error: '${err.message}`)
@@ -156,18 +135,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     this.bridge.removeAllListeners()
     this.started = false
     this.logger.setEnabled(false)
-  }
-
-  isInitialSyncCompleted (): boolean {
-    return this.initialSyncCompleted
-  }
-
-  isAllSiblingWatchersInitialSyncCompleted (): boolean {
-    return Object.values(this.siblingWatchers).every(
-      (siblingWatcher: BaseWatcher) => {
-        return siblingWatcher.isInitialSyncCompleted()
-      }
-    )
   }
 
   hasSiblingWatcher (chainId: number): boolean {
@@ -189,6 +156,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   setSiblingWatchers (watchers: any): void {
     this.siblingWatchers = watchers
+  }
+
+  setSyncWatcher (syncWatcher: SyncWatcher): void {
+    this.syncWatcher = syncWatcher
   }
 
   chainIdToSlug (chainId: number): string {

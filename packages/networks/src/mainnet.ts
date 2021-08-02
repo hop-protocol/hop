@@ -46,11 +46,7 @@ export const networks: Networks = {
   polygon: {
     name: chains.polygon.name,
     networkId: 137,
-    rpcUrls: [
-      'https://polygon.rpc.hop.exchange',
-      'https://rpc-mainnet.maticvigil.com'
-      // 'https://matic-mainnet-archive-rpc.bwarelabs.com'
-    ],
+    rpcUrls: ['https://polygon.rpc.hop.exchange'],
     explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
     waitConfirmations: 124

@@ -1,9 +1,7 @@
 import '../moduleAlias'
-import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
+import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
-import L2Bridge from './classes/L2Bridge'
 import { BigNumber, Contract } from 'ethers'
-import { Event } from 'src/types'
 import { Notifier } from 'src/notifier'
 import { getTransferRootId } from 'src/utils'
 import { hostname } from 'src/config'
@@ -17,14 +15,14 @@ export interface Config {
   dryMode?: boolean
 }
 
-class ChallengeWatcher extends BaseWatcherWithEventHandlers {
+class ChallengeWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: ChallengeWatcher }
 
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'challengeWatcher',
+      tag: 'ChallengeWatcher',
       prefix: config.label,
       bridgeContract: config.bridgeContract,
       isL1: config.isL1,
@@ -35,72 +33,14 @@ class ChallengeWatcher extends BaseWatcherWithEventHandlers {
     this.notifier = new Notifier(`watcher: ChallengeWatcher, host: ${hostname}`)
   }
 
-  async syncHandler (): Promise<any> {
-    const promises: Promise<any>[] = []
-    const startBlockNumber = this.bridge.bridgeDeployedBlockNumber
-    if (this.isL1) {
-      const l1Bridge = this.bridge as L1Bridge
-      promises.push(
-        l1Bridge.mapTransferRootBondedEvents(
-          async (event: Event) => {
-            return this.handleTransferRootBondedEvent(event)
-          },
-          { cacheKey: this.cacheKey(l1Bridge.TransferRootBonded), startBlockNumber }
-        )
-      )
-
-      promises.push(
-        l1Bridge.mapTransferBondChallengedEvents(
-          async (event: Event) => {
-            return this.handleTransferBondChallengedEvent(event)
-          },
-          { cacheKey: this.cacheKey(l1Bridge.TransferBondChallenged), startBlockNumber }
-        )
-      )
-    } else {
-      const l2Bridge = this.bridge as L2Bridge
-      promises.push(
-        l2Bridge.mapTransfersCommittedEvents(
-          async (event: Event) => {
-            return this.handleTransfersCommittedEvent(event)
-          },
-          { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted), startBlockNumber }
-        )
-      )
-    }
-
-    await Promise.all(promises)
-  }
-
   async pollHandler () {
-    if (!this.isL1) {
-      return
-    }
     if (!this.isAllSiblingWatchersInitialSyncCompleted()) {
       return
     }
-
+    if (!this.isL1) {
+      return
+    }
     await this.checkChallengeableTransferRootFromDb()
-  }
-
-  handleTransferBondChallengedEvent = async (event: Event) => {
-    const {
-      transferRootId,
-      rootHash,
-      originalAmount
-    } = event.args
-    const logger = this.logger.create({ root: rootHash })
-    const { transactionHash } = event
-
-    logger.debug('handling TransferBondChallenged event')
-    logger.debug(`transferRootId: ${transferRootId}`)
-    logger.debug(`rootHash: ${rootHash}`)
-    logger.debug(`originalAmount: ${this.bridge.formatUnits(originalAmount)}`)
-    logger.debug(`event transactionHash: ${transactionHash}`)
-
-    await this.db.transferRoots.update(rootHash, {
-      challenged: true
-    })
   }
 
   async checkChallengeableTransferRootFromDb () {

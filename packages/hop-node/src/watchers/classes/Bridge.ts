@@ -62,7 +62,11 @@ export default class Bridge extends ContractBase {
       this.tokenSymbol = tokenSymbol
     }
     this.db = db.getDbSet(this.tokenSymbol)
-    this.bridgeDeployedBlockNumber = this.getDeployedBlockNumber()
+    const bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
+    if (!bridgeDeployedBlockNumber) {
+      throw new Error('bridge deployed block number is required')
+    }
+    this.bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
   }
 
   // a read provider is alternative provider that can be used only for
@@ -450,10 +454,6 @@ export default class Bridge extends ContractBase {
     return amount ? this.parseUnits(amount) : constants.MaxUint256
   }
 
-  getDeployedBlockNumber () {
-    return config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
-  }
-
   @queue
   @rateLimitRetry
   async stake (amount: BigNumber): Promise<providers.TransactionResponse> {
@@ -516,18 +516,6 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
-  isTransferStale (
-    transferSentBlockNumber: number,
-    headBlockNumber: number,
-    chainSlug: any
-  ) {
-    const { blocksTilStale } = config.sync[chainSlug]
-    if (transferSentBlockNumber < headBlockNumber - blocksTilStale) {
-      return true
-    }
-    return false
-  }
-
   formatUnits (value: BigNumber) {
     return Number(formatUnits(value.toString(), this.tokenDecimals))
   }
@@ -557,7 +545,6 @@ export default class Bridge extends ContractBase {
     cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
     options: Partial<EventsBatchOptions> = {}
   ) {
-    await this.waitTilReady()
     this.validateEventsBatchInput(options)
 
     let cacheKey = ''

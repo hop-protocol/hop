@@ -1,9 +1,8 @@
 import '../moduleAlias'
-import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
+import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Event } from 'src/types'
 import { TX_RETRY_DELAY_MS } from 'src/constants'
 import { wait } from 'src/utils'
 
@@ -21,7 +20,7 @@ export interface Config {
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
 
-class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
+class CommitTransfersWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: CommitTransfersWatcher }
   minThresholdAmount: BigNumber = BigNumber.from(0)
   commitTxSentAt: { [chainId: number]: number } = {}
@@ -30,7 +29,7 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'commitTransferWatcher',
+      tag: 'CommitTransferWatcher',
       prefix: config.label,
       logColor: 'yellow',
       order: config.order,
@@ -56,35 +55,11 @@ class CommitTransfersWatcher extends BaseWatcherWithEventHandlers {
     await super.start()
   }
 
-  async syncHandler (): Promise<any> {
-    if (this.isL1) {
+  async pollHandler () {
+    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
+    if (!initialSyncCompleted) {
       return
     }
-    const promises: Promise<any>[] = []
-    const startBlockNumber = this.bridge.bridgeDeployedBlockNumber
-    const l2Bridge = this.bridge as L2Bridge
-    promises.push(
-      l2Bridge.mapTransferSentEvents(
-        async (event: Event) => {
-          return this.handleTransferSentEvent(event)
-        },
-        { cacheKey: this.cacheKey(l2Bridge.TransferSent), startBlockNumber }
-      )
-    )
-
-    promises.push(
-      l2Bridge.mapTransfersCommittedEvents(
-        async (event: Event) => {
-          return this.handleTransfersCommittedEventForTransferIds(event)
-        },
-        { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted), startBlockNumber }
-      )
-    )
-
-    await Promise.all(promises)
-  }
-
-  async pollHandler () {
     if (this.isL1) {
       return
     }

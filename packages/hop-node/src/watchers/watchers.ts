@@ -77,10 +77,12 @@ function getStakeWatchers (
   }
 
   watchers.forEach(watcher => {
-    if (config.networks[watcher.chainSlug].readRpcUrl) {
+    const readRpcUrl = config.networks[watcher.chainSlug].readRpcUrl
+    if (readRpcUrl) {
       const provider = getRpcProviderFromUrl(
-        config.networks[watcher.chainSlug].readRpcUrl
+        readRpcUrl
       )
+      watcher.logger.debug(`read rpc url: ${readRpcUrl}`)
       watcher.bridge.setReadProvider(provider)
     }
   })
@@ -175,9 +177,7 @@ function startWatchers (
         label,
         isL1,
         bridgeContract,
-        dryMode,
-        minAmount: _config?.bondWithdrawalAmounts?.[network]?.[token]?.min,
-        maxAmount: _config?.bondWithdrawalAmounts?.[network]?.[token]?.max
+        dryMode
       })
 
       bondWithdrawalWatchers[token] = bondWithdrawalWatchers[token] || {}

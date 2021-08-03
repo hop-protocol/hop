@@ -6,6 +6,7 @@ export const networks: Networks = {
     name: chains.ethereum.name,
     networkId: 5,
     rpcUrls: ['https://goerli.rpc.hop.exchange'],
+    archiveRpcUrls: ['https://goerli.rpc.hop.exchange'],
     explorerUrls: ['https://goerli.etherscan.io'],
     waitConfirmations: 1
   },
@@ -15,6 +16,9 @@ export const networks: Networks = {
     rpcUrls: [
       'https://mumbai.rpc.hop.exchange',
       'https://rpc-mumbai.maticvigil.com'
+    ],
+    archiveRpcUrls: [
+      'https://mumbai.rpc.hop.exchange'
     ],
     explorerUrls: [
       'https://mumbai.polygonscan.com',

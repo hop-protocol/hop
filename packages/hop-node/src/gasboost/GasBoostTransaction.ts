@@ -1,3 +1,4 @@
+import MemoryStore from './MemoryStore'
 import Store from './Store'
 import wait from 'wait'
 import { BigNumber, Signer, providers } from 'ethers'
@@ -6,10 +7,11 @@ import { getBumpedGasPrice } from 'src/utils'
 import { v4 as uuidv4 } from 'uuid'
 
 export enum State {
-  Confirmed = 'confirmed'
+  Confirmed = 'confirmed',
+  Boosted = 'boosted'
 }
 
-type InFlightItem = {
+type InflightItem = {
   hash?: string
   sentAt: number
   confirmed: boolean
@@ -35,8 +37,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   gasPriceMultiplier: number = 1.5
   maxGasPriceGwei: BigNumber = BigNumber.from(500)
   boostIndex: number = 0
-  inFlightItems: InFlightItem[] = []
-  store: Store
+  inflightItems: InflightItem[] = []
+  store: Store = new MemoryStore()
   id: string
   createdAt: number
   txHash: string
@@ -51,10 +53,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   chainId: number
   confirmations: number
 
-  constructor (tx: providers.TransactionRequest, signer: Signer, store: Store) {
+  constructor (tx: providers.TransactionRequest, signer: Signer, store?: Store) {
     super()
     this.signer = signer
-    this.store = store
+    if (store) {
+      this.store = store
+    }
     this.id = uuidv4()
     this.createdAt = Date.now()
     this.from = tx.from
@@ -81,6 +85,22 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       return this.txHash
     }
     throw new Error('transaction hash not available yet')
+  }
+
+  setPollMs (pollMs: number) {
+    this.pollMs = pollMs
+  }
+
+  setTimeTilBoostMs (timeTilBoostMs: number) {
+    this.timeTilBoostMs = timeTilBoostMs
+  }
+
+  setGasPriceMutliplier (multiplier: number) {
+    this.gasPriceMultiplier = multiplier
+  }
+
+  setMaxGasPriceGwei (maxGasPriceGwei: number) {
+    this.maxGasPriceGwei = BigNumber.from(maxGasPriceGwei)
   }
 
   start () {
@@ -161,7 +181,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   private handleConfirmation (txHash: string) {
     this.txHash = txHash
-    this.clearInFlightTxs()
+    this.clearInflightTxs()
     const receipt = this.getReceipt(txHash)
     this.emit(State.Confirmed, receipt)
   }
@@ -174,7 +194,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (this.txHash) {
       return this.getReceipt(this.txHash)
     }
-    for (const { hash } of this.inFlightItems) {
+    for (const { hash } of this.inflightItems) {
       this.getReceipt(hash)
         .then(() => this.handleConfirmation(hash))
     }
@@ -183,6 +203,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         resolve(tx)
       })
     })
+  }
+
+  getInflightItems (): InflightItem[] {
+    return this.inflightItems
   }
 
   private async startPoller () {
@@ -197,12 +221,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private async poll () {
-    for (const item of this.inFlightItems) {
-      await this.handleInFlightTx(item)
+    for (const item of this.inflightItems) {
+      await this.handleInflightTx(item)
     }
   }
 
-  private async handleInFlightTx (item: InFlightItem) {
+  private async handleInflightTx (item: InflightItem) {
     if (item.confirmed) {
       this.handleConfirmation(item.hash)
       return
@@ -213,11 +237,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     await this.boost(item)
   }
 
-  private shouldBoost (item: InFlightItem) {
+  private shouldBoost (item: InflightItem) {
     return item.sentAt < (Date.now() - this.timeTilBoostMs)
   }
 
-  private async boost (item: InFlightItem) {
+  private async boost (item: InflightItem) {
     const gasPrice = await this.getBumpedGasPrice()
     if (gasPrice.gt(this.maxGasPriceGwei)) {
       return
@@ -233,10 +257,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     })
     this.gasPrice = tx.gasPrice
     this.boostIndex++
+    this.emit(State.Boosted, tx)
   }
 
   private track (tx: providers.TransactionResponse) {
-    this.inFlightItems.push({
+    this.inflightItems.push({
       hash: tx.hash,
       sentAt: Date.now(),
       confirmed: false
@@ -247,8 +272,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.startPoller()
   }
 
-  private clearInFlightTxs () {
-    this.inFlightItems = []
+  private clearInflightTxs () {
+    this.inflightItems = []
   }
 }
 

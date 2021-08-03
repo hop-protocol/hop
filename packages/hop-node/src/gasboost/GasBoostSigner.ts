@@ -1,13 +1,17 @@
 import GasBoostTransaction from './GasBoostTransaction'
+import MemoryStore from './MemoryStore'
 import Store from './Store'
 import { Wallet, providers } from 'ethers'
 
 class GasBoostSigner extends Wallet {
-  store: Store
+  store: Store = new MemoryStore()
   items: string[] = []
 
-  constructor (privateKey: string, provider?: providers.Provider) {
+  constructor (privateKey: string, provider?: providers.Provider, store?: Store) {
     super(privateKey, provider)
+    if (store) {
+      this.store = store
+    }
     this.restore()
   }
 

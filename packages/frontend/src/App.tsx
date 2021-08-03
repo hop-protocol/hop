@@ -2,7 +2,7 @@ import React from 'react'
 import 'src/App.css'
 import { makeStyles } from '@material-ui/core/styles'
 import AppRoutes from 'src/AppRoutes'
-import Header from 'src/components/Header'
+import Header from 'src/components/header'
 import AccountDetails from 'src/components/accountDetails'
 import TxConfirm from 'src/components/txConfirm/TxConfirm'
 

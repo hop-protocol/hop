@@ -177,9 +177,7 @@ function startWatchers (
         label,
         isL1,
         bridgeContract,
-        dryMode,
-        minAmount: _config?.bondWithdrawalAmounts?.[network]?.[token]?.min,
-        maxAmount: _config?.bondWithdrawalAmounts?.[network]?.[token]?.max
+        dryMode
       })
 
       bondWithdrawalWatchers[token] = bondWithdrawalWatchers[token] || {}

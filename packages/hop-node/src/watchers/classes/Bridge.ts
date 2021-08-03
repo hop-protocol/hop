@@ -31,6 +31,8 @@ export default class Bridge extends ContractBase {
   bridgeContract: Contract
   readProvider?: providers.Provider
   bridgeDeployedBlockNumber: number
+  minBondWithdrawalAmount: BigNumber
+  maxBondWithdrawalAmount: BigNumber
 
   constructor (bridgeContract: Contract) {
     super(bridgeContract)
@@ -67,6 +69,11 @@ export default class Bridge extends ContractBase {
       throw new Error('bridge deployed block number is required')
     }
     this.bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
+
+    const minBondWithdrawalAmount: number = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.min ?? 0
+    const maxBondWithdrawalAmount: number = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.max ?? constants.MaxUint256
+    this.minBondWithdrawalAmount = BigNumber.from(minBondWithdrawalAmount)
+    this.maxBondWithdrawalAmount = BigNumber.from(maxBondWithdrawalAmount)
   }
 
   // a read provider is alternative provider that can be used only for
@@ -442,16 +449,6 @@ export default class Bridge extends ContractBase {
       chainIds.push(chainId)
     }
     return chainIds
-  }
-
-  getMinBondWithdrawalAmount (): BigNumber {
-    const amount = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.min ?? 0
-    return this.parseUnits(amount)
-  }
-
-  getMaxBondWithdrawalAmount (): BigNumber {
-    const amount = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.max ?? 0
-    return amount ? this.parseUnits(amount) : constants.MaxUint256
   }
 
   @queue

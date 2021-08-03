@@ -1,10 +1,10 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
-import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
-import { BigNumber, Contract, constants, providers } from 'ethers'
-import { Chain, TxError } from 'src/constants'
+import { Contract, providers } from 'ethers'
+import { Transfer } from 'src/db/TransfersDb'
+import { TxError } from 'src/constants'
 import { wait } from 'src/utils'
 
 export interface Config {
@@ -15,8 +15,6 @@ export interface Config {
   label: string
   order?: () => number
   dryMode?: boolean
-  minAmount?: number
-  maxAmount?: number
 }
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
@@ -25,8 +23,6 @@ class BondError extends Error {}
 
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
-  minAmount: BigNumber = BigNumber.from(0)
-  maxAmount: BigNumber = constants.MaxUint256
 
   constructor (config: Config) {
     super({
@@ -40,25 +36,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
-
-    if (typeof config.minAmount === 'number') {
-      this.minAmount = this.bridge.parseUnits(config.minAmount)
-    }
-    if (typeof config.maxAmount === 'number') {
-      this.maxAmount = this.bridge.parseUnits(config.maxAmount)
-    }
   }
 
   async start () {
     this.logger.debug(
-      `min bondWithdrawal amount: ${
-        this.minAmount ? this.bridge.formatUnits(this.minAmount) : 0
-      }`
+      `min bondWithdrawal amount: ${this.bridge.minBondWithdrawalAmount}`
     )
     this.logger.debug(
-      `max bondWithdrawal amount: ${
-        this.maxAmount ? this.bridge.formatUnits(this.maxAmount) : 'all'
-      }`
+      `max bondWithdrawal amount: ${this.bridge.maxBondWithdrawalAmount}`
     )
     await super.start()
   }
@@ -84,36 +69,17 @@ class BondWithdrawalWatcher extends BaseWatcher {
       )
     }
 
-    const headBlockNumber = await this.bridge.getBlockNumber()
     const promises: Promise<any>[] = []
     for (const dbTransfer of dbTransfers) {
-      const { transferId } = dbTransfer
-      if (
-        (this.minAmount && dbTransfer.amount.lt(this.minAmount)) ||
-        (this.maxAmount && dbTransfer.amount.gt(this.maxAmount)) ||
-        (!this.shouldBond(transferId))
-      ) {
-        this.logger.debug(
-          `marking ${dbTransfer.transferId} as unbondable. amount: ${dbTransfer.amount}.`
-        )
-
-        await this.db.transfers.update(transferId, {
-          isBondable: false
-        })
-
-        continue
-      }
-      promises.push(this.checkTransferSent(transferId))
+      promises.push(this.checkTransferSent(dbTransfer))
     }
 
     await Promise.all(promises)
   }
 
-  checkTransferSent = async (transferId: string) => {
-    const logger = this.logger.create({ id: transferId })
-
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+  checkTransferSent = async (dbTransfer: Transfer) => {
     const {
+      transferId,
       destinationChainId,
       sourceChainId,
       recipient,
@@ -124,22 +90,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
       deadline,
       transferSentTxHash
     } = dbTransfer
+    const logger = this.logger.create({ id: transferId })
     const sourceL2Bridge = this.bridge as L2Bridge
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
-
-    if (dbTransfer.transferRootId) {
-      const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
-        .bridge as L1Bridge
-      const transferRootConfirmed = await l1Bridge.isTransferRootIdConfirmed(
-        destinationChainId,
-        dbTransfer.transferRootId
-      )
-      if (transferRootConfirmed) {
-        logger.warn('transfer root already confirmed. Cannot bond withdrawal')
-        return
-      }
-    }
 
     await this.waitTimeout(transferId, destinationChainId)
 
@@ -156,6 +110,16 @@ class BondWithdrawalWatcher extends BaseWatcher {
         withdrawalBonder: sender,
         withdrawalBondedTxHash: transactionHash
       })
+      return
+    }
+
+    const availableCredit = await destBridge.getAvailableCredit()
+    if (availableCredit.lt(amount)) {
+      logger.warn(
+        `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
+          availableCredit
+        )}, need ${this.bridge.formatUnits(amount)}`
+      )
       return
     }
 
@@ -274,14 +238,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       )
       const l2Bridge = this.getSiblingWatcherByChainId(destinationChainId)
         .bridge as L2Bridge
-      const credit = await l2Bridge.getAvailableCredit()
-      if (credit.lt(amount)) {
-        throw new BondError(
-          `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
-            credit
-          )}, need ${this.bridge.formatUnits(amount)}`
-        )
-      }
       return l2Bridge.bondWithdrawalAndAttemptSwap(
         recipient,
         amount,
@@ -293,14 +249,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } else {
       logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
       const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-      const credit = await bridge.getAvailableCredit()
-      if (credit.lt(amount)) {
-        throw new BondError(
-          `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
-            credit
-          )}, need ${this.bridge.formatUnits(amount)}`
-        )
-      }
       return bridge.bondWithdrawal(recipient, amount, transferNonce, bonderFee)
     }
   }
@@ -334,15 +282,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
     this.logger.debug(`transfer id already bonded ${transferId}`)
     throw new Error('cancelled')
-  }
-
-  shouldBond (transferId: string): boolean {
-    const invalidTransferIds: string[] = [
-      '0x99b304c55afc0b56456dc4999913bafff224080b8a3bbe0e5a04aaf1eedf76b6'
-    ]
-
-    const shouldBond = !invalidTransferIds.includes(transferId)
-    return shouldBond
   }
 }
 

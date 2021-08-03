@@ -1,9 +1,11 @@
 import MemoryStore from './MemoryStore'
 import Store from './Store'
+import queue from 'src/decorators/queue'
+import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import wait from 'wait'
 import { BigNumber, Signer, providers } from 'ethers'
 import { EventEmitter } from 'events'
-import { getBumpedGasPrice } from 'src/utils'
+import { getBumpedGasPrice, getProviderChainSlug } from 'src/utils'
 import { v4 as uuidv4 } from 'uuid'
 
 export enum State {
@@ -40,6 +42,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   inflightItems: InflightItem[] = []
   signer: Signer
   store: Store = new MemoryStore()
+  chainSlug: string
   id: string
   createdAt: number
   txHash: string
@@ -148,6 +151,20 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return gTx
   }
 
+  getQueueGroup (): string {
+    if (this.chainSlug) {
+      return this.chainSlug
+    }
+    const chainSlug = getProviderChainSlug(this.signer.provider)
+    if (!chainSlug) {
+      throw new Error('chain slug not found for contract provider')
+    }
+    this.chainSlug = chainSlug
+    return this.chainSlug
+  }
+
+  @queue
+  @rateLimitRetry
   async send () {
     const nonce = await this.signer.getTransactionCount('pending')
     this.nonce = nonce

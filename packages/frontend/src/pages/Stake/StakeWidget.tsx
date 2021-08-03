@@ -21,6 +21,9 @@ import DetailRow from 'src/components/DetailRow'
 import useApprove from 'src/hooks/useApprove'
 
 const useStyles = makeStyles(theme => ({
+  root: {
+    marginBottom: theme.padding.thick
+  },
   buttons: {
     marginTop: theme.padding.default
   },
@@ -277,7 +280,12 @@ const StakeWidget: FC<Props> = props => {
   }
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      className={styles.root}
+    >
       <AmountSelectorCard
         label={`Staked: ${formattedStakeBalance}`}
         value={amount}

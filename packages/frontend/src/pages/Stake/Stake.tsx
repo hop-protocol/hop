@@ -20,32 +20,36 @@ const useStyles = makeStyles(theme => ({
 const Stake: FC = () => {
   const styles = useStyles()
 
-  const { bridges, sdk, networks, user } = useApp()
+  const { bridges, sdk, networks, user, tokens } = useApp()
   const { provider } = useWeb3Context()
-  const [stakingTokens, setStakingTokens] = useState<Token[]>()
 
-  useEffect(() => {
-    const fetchRewardsTokens = async () => {
-      const bridge = bridges.find(bridge =>
-        bridge.getTokenSymbol() === 'USDC'
-      )
+  const usdcStakingToken = useAsyncMemo(async () => {
+    const bridge = bridges.find(bridge =>
+      bridge.getTokenSymbol() === 'USDC'
+    )
 
-      const tokens: Token[] = []
-      const lpToken = await bridge?.getSaddleLpToken('polygon')
-      if (lpToken) {
-        tokens.push(lpToken)
-      }
-
-      setStakingTokens(tokens)
-    }
-
-    fetchRewardsTokens()
+    return bridge?.getSaddleLpToken('polygon')
   }, [bridges])
 
-  const stakingRewards = useAsyncMemo(async () => {
+  const usdcStakingRewards = useAsyncMemo(async () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
     const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
     return new Contract('0x2C2Ab81Cf235e86374468b387e241DF22459A265', stakingRewardsAbi, _provider)
+  }, [sdk, provider, user])
+
+  const usdtStakingToken = useAsyncMemo(async () => {
+    const bridge = bridges.find(bridge =>
+      bridge.getTokenSymbol() === 'USDT'
+    )
+
+    const LP = await bridge?.getSaddleLpToken('polygon')
+    return LP
+  }, [bridges])
+
+  const usdtStakingRewards = useAsyncMemo(async () => {
+    const polygonProvider = await sdk.getSignerOrProvider('polygon')
+    const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
+    return new Contract('0x07932e9A5AB8800922B2688FB1FA0DAAd8341772', stakingRewardsAbi, _provider)
   }, [sdk, provider, user])
 
   const rewardsToken = useAsyncMemo(async () => {
@@ -82,21 +86,32 @@ const Stake: FC = () => {
     )
   }
 
+  const enabledTokens = tokens.map(token => token.symbol)
+
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <Typography variant="h4">
         Stake
       </Typography>
       <div className={styles.container}>
-        {stakingTokens?.map(token => (
-          <StakeWidget
-            network={polygonNetwork}
-            stakingToken={token}
-            rewardsToken={rewardsToken}
-            stakingRewards={stakingRewards}
-            key={token.symbol}
-          />
-        ))}
+      {enabledTokens.includes('USDC') &&
+        <StakeWidget
+          network={polygonNetwork}
+          stakingToken={usdcStakingToken}
+          rewardsToken={rewardsToken}
+          stakingRewards={usdcStakingRewards}
+          key={usdcStakingToken?.symbol}
+        />
+      }
+      {enabledTokens.includes('USDT') &&
+        <StakeWidget
+          network={polygonNetwork}
+          stakingToken={usdtStakingToken}
+          rewardsToken={rewardsToken}
+          stakingRewards={usdtStakingRewards}
+          key={usdtStakingToken?.symbol}
+        />
+      }
       </div>
     </Box>
   )

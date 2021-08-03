@@ -10,7 +10,8 @@ export default async function getTransferSents (chain: string, token: string) {
           token: $token
         },
         orderBy: timestamp,
-        orderDirection: desc
+        orderDirection: desc,
+        first: 1000
       ) {
         id
         transferId

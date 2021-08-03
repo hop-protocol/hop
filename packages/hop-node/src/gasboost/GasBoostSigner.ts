@@ -1,4 +1,5 @@
 import GasBoostTransaction from './GasBoostTransaction'
+import GasBoostTransactionFactory from './GasBoostTransactionFactory'
 import MemoryStore from './MemoryStore'
 import Store from './Store'
 import { Wallet, providers } from 'ethers'
@@ -6,12 +7,14 @@ import { Wallet, providers } from 'ethers'
 class GasBoostSigner extends Wallet {
   store: Store = new MemoryStore()
   items: string[] = []
+  gTxFactory: GasBoostTransactionFactory
 
   constructor (privateKey: string, provider?: providers.Provider, store?: Store) {
     super(privateKey, provider)
     if (store) {
       this.store = store
     }
+    this.gTxFactory = new GasBoostTransactionFactory(this, this.store)
     this.restore()
   }
 
@@ -20,7 +23,7 @@ class GasBoostSigner extends Wallet {
   }
 
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
-    const gTx = new GasBoostTransaction(tx, this, this.store)
+    const gTx = this.gTxFactory.createTransaction(tx)
     await this.track(gTx)
     await gTx.save()
     await gTx.send()
@@ -31,7 +34,7 @@ class GasBoostSigner extends Wallet {
     const items = await this.store.getItems()
     if (items) {
       for (const item of items) {
-        const gTx = await GasBoostTransaction.fromId(item.id, this, this.store)
+        const gTx = await this.gTxFactory.getTransactionFromId(item.id)
         this.items.push(gTx.id)
       }
     }

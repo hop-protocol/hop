@@ -38,6 +38,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   maxGasPriceGwei: BigNumber = BigNumber.from(500)
   boostIndex: number = 0
   inflightItems: InflightItem[] = []
+  signer: Signer
   store: Store = new MemoryStore()
   id: string
   createdAt: number
@@ -49,7 +50,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   nonce: number
   gasLimit: BigNumber
   gasPrice: BigNumber
-  signer: Signer
   chainId: number
   confirmations: number
 

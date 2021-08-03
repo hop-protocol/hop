@@ -36,40 +36,6 @@
         "l1PosRootChainManager": "0xA0c68C638235ee32657e8f720a23ceC1bFc77C77",
         "l1PosPredicate": "0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf"
       }
-    },
-    "USDT": {
-      "ethereum": {
-        "l1CanonicalToken": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-        "l1Bridge": "0x3E4a3a4796d16c0Cd582C382691998f7c06420B6"
-      },
-      "xdai": {
-        "l1CanonicalBridge": "0x88ad09518695c6c3712AC10a214bE5109a655671",
-        "l1MessengerWrapper": "0xC08055b634D43F2176d721E26A3428D3b7E7DdB5",
-        "l2CanonicalBridge": "0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d",
-        "l2CanonicalToken": "0x4ECaBa5870353805a9F068101A40E0f32ed605C6",
-        "l2Bridge": "0xFD5a186A7e8453Eb867A360526c5d987A00ACaC2",
-        "l2HopBridgeToken": "0x91f8490eC27cbB1b2FaEdd29c2eC23011d7355FB",
-        "l2AmmWrapper": "0x49094a1B3463c4e2E82ca41b8e6A023bdd6E222f",
-        "l2SaddleSwap": "0x3Aa637D6853f1d9A9354FE4301Ab852A88b237e7",
-        "l2SaddleLpToken": "0x5b10222f2Ada260AAf6C6fC274bd5810AF9d33c0",
-        "l1Amb": "0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e",
-        "l2Amb": "0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59",
-        "canonicalBridgeMaxPerTx": "1000000000"
-      },
-      "polygon": {
-        "l1CanonicalBridge": "0xA0c68C638235ee32657e8f720a23ceC1bFc77C77",
-        "l1MessengerWrapper": "0xe7C1D08aC706444F356af2D37541d8d57e8C57B6",
-        "l2CanonicalBridge": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-        "l2CanonicalToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-        "l2Bridge": "0x6c9a1ACF73bd85463A46B0AFc076FBdf602b690B",
-        "l2HopBridgeToken": "0x9F93ACA246F457916E49Ec923B8ed099e313f763",
-        "l2AmmWrapper": "0x8741Ba6225A6BF91f9D73531A98A89807857a2B3",
-        "l2SaddleSwap": "0xB2f7d27B21a69a033f85C42d5EB079043BAadC81",
-        "l2SaddleLpToken": "0x3cA3218D6c52B640B0857cc19b69Aa9427BC842C",
-        "l1FxBaseRootTunnel": "0xe7C1D08aC706444F356af2D37541d8d57e8C57B6",
-        "l1PosRootChainManager": "0xA0c68C638235ee32657e8f720a23ceC1bFc77C77",
-        "l1PosPredicate": "0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf"
-      }
     }
   }
 }

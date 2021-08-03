@@ -31,8 +31,8 @@ export default class Bridge extends ContractBase {
   bridgeContract: Contract
   readProvider?: providers.Provider
   bridgeDeployedBlockNumber: number
-  minAmount: BigNumber
-  maxAmount: BigNumber
+  minBondWithdrawalAmount: BigNumber
+  maxBondWithdrawalAmount: BigNumber
 
   constructor (bridgeContract: Contract) {
     super(bridgeContract)
@@ -69,8 +69,11 @@ export default class Bridge extends ContractBase {
       throw new Error('bridge deployed block number is required')
     }
     this.bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
-    this.minAmount = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.min ?? 0
-    this.maxAmount = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.max ?? constants.MaxUint256
+
+    const minBondWithdrawalAmount: number = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.min ?? 0
+    const maxBondWithdrawalAmount: number = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.max ?? constants.MaxUint256
+    this.minBondWithdrawalAmount = BigNumber.from(minBondWithdrawalAmount)
+    this.maxBondWithdrawalAmount = BigNumber.from(maxBondWithdrawalAmount)
   }
 
   // a read provider is alternative provider that can be used only for

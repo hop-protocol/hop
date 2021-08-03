@@ -580,8 +580,8 @@ class SyncWatcher extends BaseWatcher {
 
   getIsBondable = (amount: BigNumber, transferId: string): boolean => {
     if (
-      (this.bridge.minAmount && amount.lt(this.bridge.minAmount)) ||
-      (this.bridge.maxAmount && amount.gt(this.bridge.maxAmount))
+      (this.bridge.minBondWithdrawalAmount && amount.lt(this.bridge.minBondWithdrawalAmount)) ||
+      (this.bridge.maxBondWithdrawalAmount && amount.gt(this.bridge.maxBondWithdrawalAmount))
     ) {
       return false
     }

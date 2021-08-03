@@ -6,6 +6,7 @@ export const networks: Networks = {
     name: chains.ethereum.name,
     networkId: 42,
     rpcUrls: ['https://kovan.rpc.hop.exchange'],
+    archiveRpcUrls: ['https://kovan.rpc.hop.exchange'],
     explorerUrls: ['https://kovan.etherscan.io'],
     waitConfirmations: 1
   },
@@ -13,6 +14,7 @@ export const networks: Networks = {
     name: chains.arbitrum.name,
     networkId: 212984383488152,
     rpcUrls: ['https://kovan4.arbitrum.io/rpc'],
+    archiveRpcUrls: [],
     explorerUrls: ['https://explorer.offchainlabs.com/#/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
     waitConfirmations: 1
@@ -21,6 +23,7 @@ export const networks: Networks = {
     name: chains.optimism.name,
     networkId: 69,
     rpcUrls: ['https://kovan.optimism.io'],
+    archiveRpcUrls: [],
     explorerUrls: ['https://kovan-optimistic.etherscan.io'],
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',
     waitConfirmations: 1
@@ -29,6 +32,10 @@ export const networks: Networks = {
     name: chains.xdai.name,
     networkId: 77,
     rpcUrls: [
+      'https://sokol.poa.network',
+      'https://sokol-archive.blockscout.com'
+    ],
+    archiveRpcUrls: [
       'https://sokol.poa.network',
       'https://sokol-archive.blockscout.com'
     ],

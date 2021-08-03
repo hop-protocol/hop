@@ -20,7 +20,7 @@ const useStyles = makeStyles(theme => ({
 const Stake: FC = () => {
   const styles = useStyles()
 
-  const { bridges, sdk, networks, user } = useApp()
+  const { bridges, sdk, networks, user, tokens } = useApp()
   const { provider } = useWeb3Context()
 
   const usdcStakingToken = useAsyncMemo(async () => {
@@ -49,7 +49,7 @@ const Stake: FC = () => {
   const usdtStakingRewards = useAsyncMemo(async () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
     const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
-    return new Contract('0xCB784a097f33231f2D3a1E22B236a9D2c878555d', stakingRewardsAbi, _provider)
+    return new Contract('0x07932e9A5AB8800922B2688FB1FA0DAAd8341772', stakingRewardsAbi, _provider)
   }, [sdk, provider, user])
 
   const rewardsToken = useAsyncMemo(async () => {
@@ -86,12 +86,15 @@ const Stake: FC = () => {
     )
   }
 
+  const enabledTokens = tokens.map(token => token.symbol)
+
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <Typography variant="h4">
         Stake
       </Typography>
       <div className={styles.container}>
+      {enabledTokens.includes('USDC') &&
         <StakeWidget
           network={polygonNetwork}
           stakingToken={usdcStakingToken}
@@ -99,6 +102,8 @@ const Stake: FC = () => {
           stakingRewards={usdcStakingRewards}
           key={usdcStakingToken?.symbol}
         />
+      }
+      {enabledTokens.includes('USDT') &&
         <StakeWidget
           network={polygonNetwork}
           stakingToken={usdtStakingToken}
@@ -106,6 +111,7 @@ const Stake: FC = () => {
           stakingRewards={usdtStakingRewards}
           key={usdtStakingToken?.symbol}
         />
+      }
       </div>
     </Box>
   )

@@ -1,9 +1,9 @@
 import Logger from 'src/logger'
-import { getDbSet } from 'src/db'
+import { Db, getDbSet } from 'src/db'
 import { wait } from 'src/utils'
 
 class DbLogger {
-  db: any
+  db: Db
   logger: Logger
   token: string
   pollIntervalMs: number = 60 * 60 * 1000

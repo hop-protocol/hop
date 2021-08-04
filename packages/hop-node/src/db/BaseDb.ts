@@ -78,6 +78,10 @@ class BaseDb {
     }
   }
 
+  protected async deleteById (id: string) {
+    return this.db.delete(id)
+  }
+
   protected async getIdMap (): Promise<{ [key: string]: boolean }> {
     return this.getById(this.IDS, {})
   }

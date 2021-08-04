@@ -1,11 +1,12 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
+import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
 import chalk from 'chalk'
 import { Chain, TEN_MINUTES_MS, TX_RETRY_DELAY_MS } from 'src/constants'
-import { Contract, ethers, providers } from 'ethers'
+import { Contract, providers } from 'ethers'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { executeExitTx, getL2Amb } from './xDaiBridgeWatcher'
 import { config as gConfig } from 'src/config'
@@ -294,14 +295,14 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       tokenSymbol: this.tokenSymbol
     })
     const privateKey = gConfig.relayerPrivateKey || gConfig.bonderPrivateKey
-    poly.l1Provider = new ethers.providers.StaticJsonRpcProvider(
+    poly.l1Provider = new providers.StaticJsonRpcProvider(
       getRpcUrls(Chain.Ethereum)[0]
     )
-    poly.l2Provider = new ethers.providers.StaticJsonRpcProvider(
+    poly.l2Provider = new providers.StaticJsonRpcProvider(
       getRpcUrls(Chain.Polygon)[0]
     )
-    poly.l1Wallet = new ethers.Wallet(privateKey, poly.l1Provider)
-    poly.l2Wallet = new ethers.Wallet(privateKey, poly.l2Provider)
+    poly.l1Wallet = new GasBoostSigner(privateKey, poly.l1Provider)
+    poly.l2Wallet = new GasBoostSigner(privateKey, poly.l2Provider)
     poly.chainId = 1
     poly.apiUrl = `https://apis.matic.network/api/v1/${
       poly.chainId === 1 ? 'matic' : 'mumbai'

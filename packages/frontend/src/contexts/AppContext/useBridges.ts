@@ -12,17 +12,13 @@ const useBridges = (sdk: Hop) => {
     })
   }, [sdk])
 
-  const [selectedBridge, _setSelectedBridge] = useState<HopBridge>(bridges[0])
-
-  useEffect(() => {
-    const _selectedBridge = bridges.find(bridge =>
+  const queryParamBridge = useMemo(() => {
+    return bridges.find(bridge =>
       bridge.getTokenSymbol() === queryParams.token
     )
+  }, [bridges, queryParams])
 
-    if (_selectedBridge) {
-      _setSelectedBridge(_selectedBridge)
-    }
-  }, [queryParams, bridges])
+  const [selectedBridge, _setSelectedBridge] = useState<HopBridge>(queryParamBridge ?? bridges[0])
 
   const setSelectedBridge = (bridge: HopBridge) => {
     updateQueryParams({

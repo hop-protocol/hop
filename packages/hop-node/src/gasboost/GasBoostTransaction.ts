@@ -68,7 +68,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   gasLimit: BigNumber
   gasPrice: BigNumber
   chainId: number
-  confirmations: number
+  confirmations: number = 0
 
   constructor (tx: providers.TransactionRequest, signer: Signer, store?: Store, options: Partial<Options> = {}) {
     super()

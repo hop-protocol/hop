@@ -336,17 +336,37 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private async _sendTransaction (gasPrice: BigNumber):Promise<providers.TransactionResponse> {
-    return this.signer.sendTransaction({
-      to: this.to,
-      data: this.data,
-      value: this.value,
-      nonce: this.nonce,
-      gasPrice,
-      gasLimit: this.gasLimit
-    })
+    const maxRetries = 10
+    let i = 0
+    while (true) {
+      i++
+      try {
+        if (i > 1) {
+          gasPrice = await this.getBumpedGasPrice(this.gasPriceMultiplier * i)
+        }
+
+        // await here is intential to catch error below
+        return await this.signer.sendTransaction({
+          to: this.to,
+          data: this.data,
+          value: this.value,
+          nonce: this.nonce,
+          gasPrice,
+          gasLimit: this.gasLimit
+        })
+      } catch (err) {
+        const isAlreadyKnown = /AlreadyKnown/gi.test(err.message)
+        const isFeeTooLow = /FeeTooLowToCompete/gi.test(err.message)
+        const shouldRetry = (isAlreadyKnown || isFeeTooLow) && i < maxRetries
+        if (shouldRetry) {
+          continue
+        }
+        throw err
+      }
+    }
   }
 
-  private async track (tx: providers.TransactionResponse) {
+  private track (tx: providers.TransactionResponse) {
     const prevItem = this.getLatestInflightItem()
     if (prevItem) {
       prevItem.boosted = true

@@ -18,6 +18,7 @@ describe.only('GasBoostSigner', () => {
     const store = new MemoryStore()
     const signer = new GasBoostSigner(privateKey, provider, store, {
       timeTilBoostMs: 10 * 1000
+      // compareMarketGasPrice: false
     })
     const recipient = await signer.getAddress()
     console.log('recipient:', recipient)
@@ -26,6 +27,7 @@ describe.only('GasBoostSigner', () => {
       value: '0',
       gasPrice: '1'
     })
+    expect(tx.hash).toBeTruthy()
     let confirmed = false
     ;(tx as GasBoostTransaction).on('confirmed', (tx: any) => {
       confirmed = true

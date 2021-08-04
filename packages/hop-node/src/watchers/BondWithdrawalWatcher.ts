@@ -40,10 +40,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   async start () {
     this.logger.debug(
-      `min bondWithdrawal amount: ${this.bridge.minBondWithdrawalAmount}`
+      `min bondWithdrawal amount: ${this.bridge.formatUnits(this.bridge.minBondWithdrawalAmount)}`
     )
     this.logger.debug(
-      `max bondWithdrawal amount: ${this.bridge.maxBondWithdrawalAmount}`
+      `max bondWithdrawal amount: ${this.bridge.formatUnits(this.bridge.maxBondWithdrawalAmount)}`
     )
     await super.start()
   }

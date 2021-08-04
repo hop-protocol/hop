@@ -46,6 +46,9 @@ class TransferRootsDb extends BaseDb {
     transferRootHash: string
   ): Promise<TransferRoot> {
     const item = (await this.getById(transferRootHash)) as TransferRoot
+    if (!item?.transferRootHash ) {
+      item.transferRootHash = transferRootHash
+    }
     return normalizeDbItem(item)
   }
 

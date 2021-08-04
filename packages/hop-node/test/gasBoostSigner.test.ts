@@ -2,10 +2,10 @@ import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import GasBoostTransaction from 'src/gasboost/GasBoostTransaction'
 import MemoryStore from 'src/gasboost/MemoryStore'
 import { Wallet } from 'ethers'
-import { getRpcProvider } from 'src/utils'
+import { getRpcProvider, wait } from 'src/utils'
 import { privateKey } from './config'
 
-describe('GasBoostSigner', () => {
+describe.only('GasBoostSigner', () => {
   it('initialize', async () => {
     const provider = getRpcProvider('xdai')
     const store = new MemoryStore()
@@ -13,6 +13,33 @@ describe('GasBoostSigner', () => {
     signer.setStore(store)
     expect(await signer.getAddress()).toBeTruthy()
   })
+  it.only('sendTransaction', async () => {
+    const provider = getRpcProvider('xdai')
+    const store = new MemoryStore()
+    const signer = new GasBoostSigner(privateKey, provider, store, {
+      timeTilBoostMs: 10 * 1000
+    })
+    const recipient = await signer.getAddress()
+    console.log('recipient:', recipient)
+    const tx = await signer.sendTransaction({
+      to: recipient,
+      value: '0',
+      gasPrice: '1'
+    })
+    let confirmed = false
+    ;(tx as GasBoostTransaction).on('confirmed', (tx: any) => {
+      confirmed = true
+    })
+    let boosted = false
+    ;(tx as GasBoostTransaction).on('boosted', (boostedTx: any, boostIndex: number) => {
+      boosted = true
+      expect(boostedTx).toBeTruthy()
+    })
+    await tx.wait()
+    await wait(1 * 1000)
+    expect(confirmed).toBeTruthy()
+    expect(boosted).toBeTruthy()
+  }, 10 * 60 * 1000)
 })
 
 describe('GasBoostTransaction', () => {

@@ -3,18 +3,20 @@ import Store from './Store'
 import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import wait from 'wait'
-import { BigNumber, Signer, providers } from 'ethers'
+import { BigNumber, Signer, providers, utils } from 'ethers'
 import { EventEmitter } from 'events'
-import { getBumpedGasPrice, getProviderChainSlug } from 'src/utils'
+import { chainSlugToId, getBumpedGasPrice, getProviderChainSlug } from 'src/utils'
 import { v4 as uuidv4 } from 'uuid'
 
 export enum State {
   Confirmed = 'confirmed',
-  Boosted = 'boosted'
+  Boosted = 'boosted',
+  Error = 'error'
 }
 
 type InflightItem = {
   hash?: string
+  boosted: boolean
   sentAt: number
   confirmed: boolean
 }
@@ -32,12 +34,19 @@ type MarshalledItem = {
   gasLimit: string
 }
 
+export type Options = {
+  pollMs: number
+  timeTilBoostMs: number
+  gasPriceMultiplier: number
+  maxGasPriceGwei: number
+}
+
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
   pollMs: number = 10 * 1000
   timeTilBoostMs: number = 1 * 60 * 1000
   gasPriceMultiplier: number = 1.5
-  maxGasPriceGwei: BigNumber = BigNumber.from(500)
+  maxGasPriceGwei: number = 500
   boostIndex: number = 0
   inflightItems: InflightItem[] = []
   signer: Signer
@@ -56,7 +65,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   chainId: number
   confirmations: number
 
-  constructor (tx: providers.TransactionRequest, signer: Signer, store?: Store) {
+  constructor (tx: providers.TransactionRequest, signer: Signer, store?: Store, options: Partial<Options> = {}) {
     super()
     this.signer = signer
     if (store) {
@@ -81,10 +90,19 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (tx.gasLimit) {
       this.gasLimit = BigNumber.from(tx.gasLimit.toString())
     }
+
+    this.setOptions(options)
+
+    const chainSlug = getProviderChainSlug(this.signer.provider)
+    if (!chainSlug) {
+      throw new Error('chain slug not found for contract provider')
+    }
+    this.chainSlug = chainSlug
+    this.chainId = chainSlugToId(chainSlug)
   }
 
   get hash ():string {
-    if (!this.txHash) {
+    if (this.txHash) {
       return this.txHash
     }
     throw new Error('transaction hash not available yet')
@@ -98,12 +116,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.timeTilBoostMs = timeTilBoostMs
   }
 
-  setGasPriceMutliplier (multiplier: number) {
-    this.gasPriceMultiplier = multiplier
+  setGasPriceMutliplier (gasPriceMultiplier: number) {
+    this.gasPriceMultiplier = gasPriceMultiplier
   }
 
   setMaxGasPriceGwei (maxGasPriceGwei: number) {
-    this.maxGasPriceGwei = BigNumber.from(maxGasPriceGwei)
+    this.maxGasPriceGwei = maxGasPriceGwei
   }
 
   start () {
@@ -129,12 +147,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
-  static async fromId (id: string, signer: Signer, store: Store) {
+  static async fromId (id: string, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const item = await store.getItem(id)
-    return GasBoostTransaction.unmarshal(item, signer, store)
+    return GasBoostTransaction.unmarshal(item, signer, store, options)
   }
 
-  static async unmarshal (item: MarshalledItem, signer: Signer, store: Store) {
+  static async unmarshal (item: MarshalledItem, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const tx = {
       from: item.from,
       to: item.to,
@@ -148,18 +166,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     gTx.id = item.id
     gTx.createdAt = item.createdAt
     gTx.txHash = item.txHash
+    gTx.setOptions(options)
     return gTx
   }
 
   getQueueGroup (): string {
-    if (this.chainSlug) {
-      return this.chainSlug
-    }
-    const chainSlug = getProviderChainSlug(this.signer.provider)
-    if (!chainSlug) {
-      throw new Error('chain slug not found for contract provider')
-    }
-    this.chainSlug = chainSlug
     return this.chainSlug
   }
 
@@ -167,23 +178,24 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   @rateLimitRetry
   async send () {
     const nonce = await this.signer.getTransactionCount('pending')
-    this.nonce = nonce
+    const gasPrice = this.gasPrice || await this.getBumpedGasPrice()
     const tx = await this.signer.sendTransaction({
-      from: this.from,
       to: this.to,
       data: this.data,
       value: this.value,
       nonce: this.nonce,
-      gasPrice: this.gasPrice,
+      gasPrice,
       gasLimit: this.gasLimit
     })
 
+    // store populated and normalized values
     this.from = tx.from
     this.to = tx.to
     this.data = tx.data
     this.value = tx.value
     this.gasLimit = tx.gasLimit
     this.gasPrice = tx.gasPrice
+    this.nonce = tx.nonce
 
     this.track(tx)
     return this
@@ -192,19 +204,31 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   async getBumpedGasPrice (): Promise<BigNumber> {
     const marketGasPrice = await this.signer.getGasPrice()
     const multiplier = this.gasPriceMultiplier
-    const bumpedGasPrice = getBumpedGasPrice(this.gasPrice, multiplier)
-    return marketGasPrice.lt(bumpedGasPrice) ? bumpedGasPrice : marketGasPrice
+    const prevGasPrice = this.gasPrice || marketGasPrice
+    let bumpedGasPrice = getBumpedGasPrice(prevGasPrice, multiplier)
+    if (prevGasPrice.eq(bumpedGasPrice)) {
+      bumpedGasPrice = bumpedGasPrice.add(1)
+    }
+    return marketGasPrice.gt(bumpedGasPrice) ? marketGasPrice : bumpedGasPrice
   }
 
-  private handleConfirmation (txHash: string) {
-    this.txHash = txHash
-    this.clearInflightTxs()
-    const receipt = this.getReceipt(txHash)
-    this.emit(State.Confirmed, receipt)
+  getBoostCount (): number {
+    return this.boostIndex
   }
 
-  private async getReceipt (txHash: string) {
-    return this.signer.provider.waitForTransaction(txHash)
+  setOptions (options: Partial<Options> = {}): void {
+    if (options.pollMs) {
+      this.pollMs = options.pollMs
+    }
+    if (options.timeTilBoostMs) {
+      this.timeTilBoostMs = options.timeTilBoostMs
+    }
+    if (options.gasPriceMultiplier) {
+      this.gasPriceMultiplier = options.gasPriceMultiplier
+    }
+    if (options.maxGasPriceGwei) {
+      this.maxGasPriceGwei = options.gasPriceMultiplier
+    }
   }
 
   async wait (): Promise<providers.TransactionReceipt> {
@@ -226,8 +250,21 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return this.inflightItems
   }
 
+  private async handleConfirmation (txHash: string) {
+    this.txHash = txHash
+    this.clearInflightTxs()
+    const tx = await this.signer.provider.getTransaction(txHash)
+    this.gasPrice = tx.gasPrice
+    const receipt = await this.getReceipt(txHash)
+    this.emit(State.Confirmed, receipt)
+  }
+
+  private async getReceipt (txHash: string) {
+    return this.signer.provider.waitForTransaction(txHash)
+  }
+
   private async startPoller () {
-    if (!this.started) {
+    if (this.started) {
       return
     }
     this.started = true
@@ -248,6 +285,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.handleConfirmation(item.hash)
       return
     }
+    if (item.boosted) {
+      return
+    }
     if (!this.shouldBoost(item)) {
       return
     }
@@ -260,11 +300,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   private async boost (item: InflightItem) {
     const gasPrice = await this.getBumpedGasPrice()
-    if (gasPrice.gt(this.maxGasPriceGwei)) {
+    const maxGasPrice = utils.parseUnits(this.maxGasPriceGwei.toString(), 18)
+    if (gasPrice.gt(maxGasPrice)) {
       return
     }
     const tx = await this.signer.sendTransaction({
-      from: this.from,
       to: this.to,
       data: this.data,
       value: this.value,
@@ -274,11 +314,17 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     })
     this.gasPrice = tx.gasPrice
     this.boostIndex++
-    this.emit(State.Boosted, tx)
+    this.track(tx)
+    this.emit(State.Boosted, tx, this.boostIndex)
   }
 
-  private track (tx: providers.TransactionResponse) {
+  private async track (tx: providers.TransactionResponse) {
+    if (this.inflightItems.length) {
+      const prevItem = this.inflightItems[this.inflightItems.length - 1]
+      prevItem.boosted = true
+    }
     this.inflightItems.push({
+      boosted: false,
       hash: tx.hash,
       sentAt: Date.now(),
       confirmed: false
@@ -286,6 +332,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     tx.wait().then(() => {
       this.handleConfirmation(tx.hash)
     })
+      .catch((err: Error) => {
+        const isReplacedError = /TRANSACTION_REPLACED/gi.test(err.message)
+        if (!isReplacedError) {
+          this.emit(State.Error, err)
+        }
+      })
     this.startPoller()
   }
 

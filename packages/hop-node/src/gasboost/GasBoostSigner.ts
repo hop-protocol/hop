@@ -1,20 +1,24 @@
 import GasBoostTransaction from './GasBoostTransaction'
-import GasBoostTransactionFactory from './GasBoostTransactionFactory'
+import GasBoostTransactionFactory, { Options } from './GasBoostTransactionFactory'
 import MemoryStore from './MemoryStore'
 import Store from './Store'
-import { Wallet, providers } from 'ethers'
+import { Signer, Wallet, providers } from 'ethers'
 
 class GasBoostSigner extends Wallet {
   store: Store = new MemoryStore()
   items: string[] = []
   gTxFactory: GasBoostTransactionFactory
+  signer: Signer
+  pollMs: number
 
-  constructor (privateKey: string, provider?: providers.Provider, store?: Store) {
+  constructor (privateKey: string, provider?: providers.Provider, store?: Store, options: Partial<Options> = {}) {
     super(privateKey, provider)
+    this.signer = new Wallet(privateKey, provider)
     if (store) {
       this.store = store
     }
-    this.gTxFactory = new GasBoostTransactionFactory(this, this.store)
+    this.gTxFactory = new GasBoostTransactionFactory(this.signer, this.store)
+    this.setOptions(options)
     this.restore()
   }
 
@@ -43,6 +47,34 @@ class GasBoostSigner extends Wallet {
   private track (gTx: GasBoostTransaction) {
     this.items.push(gTx.id)
     this.store.updateItem(gTx.id, gTx.marshal())
+  }
+
+  setPollMs (pollMs: number) {
+    this.setOptions({
+      pollMs
+    })
+  }
+
+  setTimeTilBoostMs (timeTilBoostMs: number) {
+    this.setOptions({
+      timeTilBoostMs
+    })
+  }
+
+  setGasPriceMutliplier (gasPriceMultiplier: number) {
+    this.setOptions({
+      gasPriceMultiplier
+    })
+  }
+
+  setMaxGasPriceGwei (maxGasPriceGwei: number) {
+    this.setOptions({
+      maxGasPriceGwei
+    })
+  }
+
+  setOptions (options: Partial<Options> = {}): void {
+    this.gTxFactory.setOptions(options)
   }
 }
 

@@ -1,25 +1,35 @@
-import GasBoostTransaction from './GasBoostTransaction'
+import GasBoostTransaction, { Options } from './GasBoostTransaction'
 import MemoryStore from './MemoryStore'
 import Store from './Store'
 import { Signer, providers } from 'ethers'
 
+export { Options }
+
 class GasBoostTransactionFactory {
   signer: Signer
   store: Store = new MemoryStore()
+  options: Partial<Options> = {}
 
-  constructor (signer: Signer, store?: Store) {
+  constructor (signer: Signer, store?: Store, options: Partial<Options> = {}) {
     this.signer = signer
     if (store) {
       this.store = store
     }
+
+    this.setOptions(options)
   }
 
   createTransaction (tx: providers.TransactionRequest) {
-    return new GasBoostTransaction(tx, this.signer, this.store)
+    const gTx = new GasBoostTransaction(tx, this.signer, this.store, this.options)
+    return gTx
   }
 
   async getTransactionFromId (id: string) {
-    return GasBoostTransaction.fromId(id, this.signer, this.store)
+    return GasBoostTransaction.fromId(id, this.signer, this.store, this.options)
+  }
+
+  setOptions (options: Partial<Options>): void {
+    this.options = options
   }
 }
 

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Contract, Signer, providers } from 'ethers'
-import { erc20Abi } from '@hop-protocol/abi'
+import { erc20Abi } from '@hop-protocol/core/abi'
 
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'

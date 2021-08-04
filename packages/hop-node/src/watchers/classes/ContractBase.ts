@@ -3,7 +3,7 @@ import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { EventEmitter } from 'events'
 import { Transaction } from 'src/types'
-import { chainIdToSlug, chainSlugToId, getProviderChainSlug } from 'src/utils'
+import { chainIdToSlug, chainSlugToId, getBumpedGasPrice, getProviderChainSlug } from 'src/utils'
 import { config } from 'src/config'
 
 export default class ContractBase extends EventEmitter {
@@ -125,9 +125,9 @@ export default class ContractBase extends EventEmitter {
   }
 
   @rateLimitRetry
-  protected async getBumpedGasPrice (percent: number): Promise<BigNumber> {
+  protected async getBumpedGasPrice (multiplier: number): Promise<BigNumber> {
     const gasPrice = await this.contract.provider.getGasPrice()
-    return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
+    return getBumpedGasPrice(gasPrice, multiplier)
   }
 
   get waitConfirmations () {

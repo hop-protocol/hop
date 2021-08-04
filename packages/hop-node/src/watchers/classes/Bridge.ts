@@ -1,10 +1,10 @@
 import ContractBase from './ContractBase'
-import db from 'src/db'
 import delay from 'src/decorators/delay'
 import queue from 'src/decorators/queue'
 import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import unique from 'src/utils/unique'
 import { BigNumber, Contract, constants, providers } from 'ethers'
+import { Db, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { State } from 'src/db/SyncStateDb'
 import { boundClass } from 'autobind-decorator'
@@ -22,7 +22,7 @@ export type EventCb = (event: Event, i?: number) => any
 
 @boundClass
 export default class Bridge extends ContractBase {
-  db: any
+  db: Db
   WithdrawalBonded: string = 'WithdrawalBonded'
   TransferRootSet: string = 'TransferRootSet'
   MultipleWithdrawalsSettled: string = 'MultipleWithdrawalsSettled'
@@ -63,7 +63,7 @@ export default class Bridge extends ContractBase {
     if (tokenSymbol) {
       this.tokenSymbol = tokenSymbol
     }
-    this.db = db.getDbSet(this.tokenSymbol)
+    this.db = getDbSet(this.tokenSymbol)
     const bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
     if (!bridgeDeployedBlockNumber) {
       throw new Error('bridge deployed block number is required')

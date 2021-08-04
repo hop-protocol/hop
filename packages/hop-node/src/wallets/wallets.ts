@@ -1,5 +1,6 @@
+import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import memoize from 'fast-memoize'
-import { Wallet, ethers } from 'ethers'
+import { Wallet } from 'ethers'
 import { config } from 'src/config'
 import { getRpcProvider } from 'src/utils'
 
@@ -9,7 +10,7 @@ const constructWallet = memoize(
       throw new Error('private key is required to instantiate wallet')
     }
     const provider = getRpcProvider(network)
-    return new ethers.Wallet(privateKey, provider)
+    return new GasBoostSigner(privateKey, provider)
   }
 )
 

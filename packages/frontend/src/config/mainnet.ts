@@ -1,4 +1,4 @@
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+// import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
 import { HopAddresses, Networks } from './interfaces'
 

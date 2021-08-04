@@ -24,11 +24,11 @@ import {
   l2BridgeAbi,
   l2PolygonChildErc20Abi,
   swapAbi as saddleSwapAbi
-} from '@hop-protocol/abi'
+} from '@hop-protocol/core/abi'
 import { chainSlugToId, getRpcProvider, wait } from 'src/utils'
 import { config } from 'src/config'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import * as hopMetadata from '@hop-protocol/metadata'
+import * as hopMetadata from '@hop-protocol/core/metadata'
 
 const logger = new Logger('test')
 

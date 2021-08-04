@@ -1,5 +1,5 @@
-import { mainnet as mainnetAddresses } from '@hop-protocol/addresses'
-import { mainnet as mainnetNetworks } from '@hop-protocol/networks'
+import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
 import { HopAddresses, Networks } from './interfaces'
 
 export const addresses: HopAddresses = {

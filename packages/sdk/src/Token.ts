@@ -1,5 +1,5 @@
 import { ethers, providers, Signer, Contract, BigNumber } from 'ethers'
-import { erc20Abi } from '@hop-protocol/abi'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { TAmount, TChain } from './types'
 import Base from './Base'
 import Chain from './models/Chain'

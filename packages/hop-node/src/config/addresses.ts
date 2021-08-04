@@ -1,4 +1,4 @@
-import { Addresses } from '@hop-protocol/addresses'
+import { Addresses } from '@hop-protocol/core/addresses'
 import { Chain, DEFAULT_BATCH_BLOCKS, Network, TotalBlocks } from 'src/constants'
 
 const { metadata } = require('./metadata')

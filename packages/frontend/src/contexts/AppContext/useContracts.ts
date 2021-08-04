@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Contract, Signer, providers } from 'ethers'
-import { erc20Abi, erc20MintableAbi } from '@hop-protocol/abi'
+import { erc20Abi, erc20MintableAbi } from '@hop-protocol/core/abi'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'

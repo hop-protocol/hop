@@ -8,7 +8,7 @@ import { BigNumber, Contract, ethers, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Event } from 'src/types'
 import { boundClass } from 'autobind-decorator'
-import { erc20Abi, l1Erc20BridgeAbi } from '@hop-protocol/abi'
+import { erc20Abi, l1Erc20BridgeAbi } from '@hop-protocol/core/abi'
 
 @boundClass
 export default class L1Bridge extends Bridge {

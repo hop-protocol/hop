@@ -1,4 +1,4 @@
-import { swapAbi as saddleSwapAbi } from '@hop-protocol/abi'
+import { swapAbi as saddleSwapAbi } from '@hop-protocol/core/abi'
 import { BigNumberish } from 'ethers'
 import { Chain } from './models'
 import { TokenIndex } from './constants'

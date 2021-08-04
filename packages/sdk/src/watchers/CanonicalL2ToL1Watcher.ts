@@ -1,4 +1,4 @@
-import { erc20Abi } from '@hop-protocol/abi'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { Contract } from 'ethers'
 import { default as BaseWatcher, Config, Event } from './BaseWatcher'
 import { Chain } from '../models'

@@ -4,7 +4,7 @@ import { Chain } from 'src/constants'
 import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-core'
 import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
-import { erc20Abi } from '@hop-protocol/abi'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { parseUnits } from 'ethers/lib/utils'
 
 interface Immutables {

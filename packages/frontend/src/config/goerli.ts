@@ -1,5 +1,5 @@
-import { goerli as goerliAddresses } from '@hop-protocol/addresses'
-import { goerli as goerliNetworks } from '@hop-protocol/networks'
+import { goerli as goerliAddresses } from '@hop-protocol/core/addresses'
+import { goerli as goerliNetworks } from '@hop-protocol/core/networks'
 import { HopAddresses, Networks } from './interfaces'
 
 export const addresses: HopAddresses = {

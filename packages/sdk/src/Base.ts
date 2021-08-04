@@ -1,5 +1,5 @@
 import memoize from 'fast-memoize'
-import { Addresses } from '@hop-protocol/addresses'
+import { Addresses } from '@hop-protocol/core/addresses'
 import { Contract, Signer, providers, BigNumber } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
 import { TChain, TProvider, TToken } from './types'

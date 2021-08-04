@@ -8,7 +8,7 @@ import {
   swapAbi as saddleSwapAbi,
   l1HomeAmbNativeToErc20,
   l2AmmWrapperAbi
-} from '@hop-protocol/abi'
+} from '@hop-protocol/core/abi'
 import { TChain, TToken, TAmount, TProvider } from './types'
 import Base from './Base'
 import AMM from './AMM'

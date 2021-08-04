@@ -1,5 +1,5 @@
-import { goerli as goerliAddresses } from '@hop-protocol/addresses'
-import { goerli as networks } from '@hop-protocol/networks'
+import { goerli as goerliAddresses } from '@hop-protocol/core/addresses'
+import { goerli as networks } from '@hop-protocol/core/networks'
 import { Chains } from './types'
 
 const chains: Chains = {

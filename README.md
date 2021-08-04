@@ -8,10 +8,7 @@
 
 | Library                                                       | Current Version                                                                                                                                   | Description                                 |
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| [@hop-protocol/abi](packages/abi)                             | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fabi.svg)](https://badge.fury.io/js/)                                                   | Smart contract ABIs                         |
-| [@hop-protocol/addresses](packages/addresses)                 | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Faddresses.svg)](https://badge.fury.io/js/)                                             | Smart contract addresses                    |
-| [@hop-protocol/metadata](packages/metadata)                   | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fmetadata.svg)](https://badge.fury.io/js/)                                              | Token and chain metadata                    |
-| [@hop-protocol/networks](packages/networks)                   | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fnetworks.svg)](https://badge.fury.io/js/)                                              | Networks config                             |
+| [@hop-protocol/core](packages/core)                             | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fcore.svg)](https://badge.fury.io/js/)                                                   | Metadata and config                         |
 | [@hop-protocol/sdk](packages/sdk)                             | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fsdk.svg)](https://badge.fury.io/js/)                                                   | TypeScript Hop SDK                          |
 
 

@@ -1,5 +1,5 @@
-import { kovan as kovanAddresses } from '@hop-protocol/addresses'
-import { kovan as kovanNetworks } from '@hop-protocol/networks'
+import { kovan as kovanAddresses } from '@hop-protocol/core/addresses'
+import { kovan as kovanNetworks } from '@hop-protocol/core/networks'
 import { HopAddresses, Networks } from './interfaces'
 
 // export const isSynthDemo = !!process.env.REACT_APP_SYNTH_DEMO

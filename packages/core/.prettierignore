@@ -1,0 +1,11 @@
+build
+dist
+/version.*
+/index.*
+/abi
+/addresses
+/metadata
+/networks
+/index.js
+/version.js
+/src/index.ts

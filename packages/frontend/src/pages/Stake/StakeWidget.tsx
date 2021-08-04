@@ -97,12 +97,16 @@ const StakeWidget: FC<Props> = props => {
     ? parseUnits(amount, stakingToken.decimals)
     : undefined
 
-  const allowance = useAsyncMemo(async () => {
-    if (!stakingRewards) {
-      return undefined
-    }
-    return stakingToken?.allowance(stakingRewards.address)
-  }, [stakingToken, stakingRewards])
+  const allowance = usePollValue(
+    async () => {
+      if (!stakingRewards) {
+        return undefined
+      }
+      return stakingToken?.allowance(stakingRewards.address)
+    },
+    5e3,
+    [stakingToken, stakingRewards]
+  )
 
   const needsApproval = useMemo(() => {
     if (!allowance || !parsedAmount) return undefined

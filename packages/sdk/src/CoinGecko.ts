@@ -1,4 +1,3 @@
-// @ts-ignore
 import toChecksumAddress from 'ethereum-checksum-address'
 import fetch from 'node-fetch'
 import serializeQueryParams from './utils/serializeQueryParams'
@@ -125,7 +124,7 @@ class CoinGecko {
       })
 
       const url = `${this._baseUrl}/simple/token_price/ethereum?${params}`
-      const res = await window.fetch(url)
+      const res = await fetch(url)
       const json = await res.json()
       const prices: number[] = []
 

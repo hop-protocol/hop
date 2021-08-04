@@ -15,6 +15,7 @@ class Token {
   static WBTC = 'WBTC'
   static sBTC = 'sBTC'
   static sETH = 'sETH'
+  static MATIC = 'MATIC'
 
   constructor (
     chainId: number | string,

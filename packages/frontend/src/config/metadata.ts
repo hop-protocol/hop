@@ -11,6 +11,7 @@ import SynthBtcLogo from 'src/assets/logos/sbtc.svg'
 import UsdcLogo from 'src/assets/logos/usdc.svg'
 import usdtLogo from 'src/assets/logos/usdt.svg'
 import wBtcLogo from 'src/assets/logos/wbtc.svg'
+import maticLogo from 'src/assets/logos/matic.svg'
 
 type Metadata = {
   tokens: {
@@ -42,6 +43,7 @@ const images = {
   USDC: UsdcLogo,
   USDT: usdtLogo,
   WBTC: wBtcLogo,
+  MATIC: maticLogo,
 }
 
 const network = process.env.REACT_APP_NETWORK || 'kovan'

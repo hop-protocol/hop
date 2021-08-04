@@ -6,7 +6,8 @@ import {
   sETHImage,
   USDCImage,
   USDTImage,
-  WBTCImage
+  WBTCImage,
+  MATICImage
 } from './assets'
 
 export const tokens: Tokens = {
@@ -51,5 +52,11 @@ export const tokens: Tokens = {
     name: 'Wrapped BTC',
     decimals: 18,
     image: WBTCImage
+  },
+  MATIC: {
+    symbol: 'MATIC',
+    name: 'Matic',
+    decimals: 18,
+    image: MATICImage
   }
 }

@@ -1,5 +1,5 @@
 import toChecksumAddress from 'ethereum-checksum-address'
-import fetch from 'node-fetch'
+import fetch from 'isomorphic-fetch'
 import serializeQueryParams from './utils/serializeQueryParams'
 import wait from './utils/wait'
 

@@ -1,6 +1,6 @@
-# @hop-protocol/networks
+# @hop-protocol/core
 
-> Hop Protocol networks config
+> Hop Protocol config and metadata
 
 ## Addresses
 

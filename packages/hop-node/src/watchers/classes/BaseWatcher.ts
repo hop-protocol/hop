@@ -2,8 +2,8 @@ import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import SyncWatcher from '../SyncWatcher'
-import db from 'src/db'
 import { Contract } from 'ethers'
+import { Db, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
 import { Notifier } from 'src/notifier'
@@ -31,7 +31,7 @@ interface EventsBatchOptions {
 
 @boundClass
 class BaseWatcher extends EventEmitter implements IBaseWatcher {
-  db: any
+  db: Db
   logger: Logger
   notifier: Notifier
   order: () => number = () => 0
@@ -58,7 +58,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     })
     this.chainSlug = chainSlug
     this.tokenSymbol = tokenSymbol
-    this.db = db.getDbSet(tokenSymbol)
+    this.db = getDbSet(tokenSymbol)
     if (tag) {
       this.tag = tag
     }

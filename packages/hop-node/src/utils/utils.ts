@@ -1,11 +1,11 @@
 import debounce from 'debounce-promise'
 import pThrottle from 'p-throttle'
+import { BigNumber, providers, utils } from 'ethers'
 import { Chain } from 'src/constants'
 import { config } from 'src/config'
-import * as ethers from 'ethers'
 
 export const getL2MessengerId = (l2Name: string): string => {
-  return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(l2Name))
+  return utils.keccak256(utils.toUtf8Bytes(l2Name))
 }
 
 export { debounce }
@@ -22,7 +22,7 @@ export const getRpcUrls = (network: string): string | undefined => {
   return config.networks[network]?.rpcUrls.slice(0, 3) // max of 3 endpoints
 }
 
-export const getRpcProvider = (network: string): ethers.providers.Provider => {
+export const getRpcProvider = (network: string): providers.Provider => {
   const rpcUrls = getRpcUrls(network)
   if (!rpcUrls.length) {
     return null
@@ -46,19 +46,19 @@ export const getProviderChainSlug = (provider: any): string | undefined => {
 
 export const getRpcProviderFromUrl = (
   rpcUrls: string | string[]
-): ethers.providers.Provider => {
-  const providers: ethers.providers.StaticJsonRpcProvider[] = []
+): providers.Provider => {
+  const _providers: providers.StaticJsonRpcProvider[] = []
   if (!Array.isArray(rpcUrls)) {
     rpcUrls = [rpcUrls]
   }
   for (const rpcUrl of rpcUrls) {
-    const provider = new ethers.providers.StaticJsonRpcProvider(rpcUrl)
+    const provider = new providers.StaticJsonRpcProvider(rpcUrl)
     if (rpcUrls.length === 1) {
       return provider
     }
-    providers.push(provider)
+    _providers.push(provider)
   }
-  const fallbackProvider = new ethers.providers.FallbackProvider(providers, 1)
+  const fallbackProvider = new providers.FallbackProvider(_providers, 1)
   return fallbackProvider
 }
 
@@ -102,9 +102,13 @@ export const xor = (a: number, b: number) => {
   return (a || b) && !(a && b)
 }
 
-export const getTransferRootId = (rootHash: string, totalAmount: ethers.BigNumber) => {
-  return ethers.utils.solidityKeccak256(
+export const getTransferRootId = (rootHash: string, totalAmount: BigNumber) => {
+  return utils.solidityKeccak256(
     ['bytes32', 'uint256'],
     [rootHash, totalAmount]
   )
+}
+
+export const getBumpedGasPrice = (gasPrice: BigNumber, multiplier: number) => {
+  return gasPrice.mul(BigNumber.from(multiplier * 100)).div(BigNumber.from(100))
 }

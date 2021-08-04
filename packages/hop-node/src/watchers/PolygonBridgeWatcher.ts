@@ -1,9 +1,10 @@
 import BaseWatcher from './classes/BaseWatcher'
+import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import Web3 from 'web3'
 import chalk from 'chalk'
 import fetch from 'node-fetch'
 import queue from 'src/decorators/queue'
-import { BigNumber, Contract, ethers } from 'ethers'
+import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Event } from 'src/types'
 import { MaticPOSClient } from '@maticnetwork/maticjs'
@@ -19,8 +20,8 @@ type Config = {
 class PolygonBridgeWatcher extends BaseWatcher {
   l1Provider: any
   l2Provider: any
-  l1Wallet: any
-  l2Wallet: any
+  l1Wallet: Wallet
+  l2Wallet: Wallet
   chainId: number
   apiUrl: string
 
@@ -32,16 +33,16 @@ class PolygonBridgeWatcher extends BaseWatcher {
       logColor: 'yellow'
     })
 
-    this.l1Provider = new ethers.providers.StaticJsonRpcProvider(
+    this.l1Provider = new providers.StaticJsonRpcProvider(
       'https://goerli.rpc.hop.exchange'
     )
-    this.l2Provider = new ethers.providers.StaticJsonRpcProvider(
+    this.l2Provider = new providers.StaticJsonRpcProvider(
       'https://rpc-mumbai.maticvigil.com'
     )
     const privateKey =
       globalConfig.relayerPrivateKey || globalConfig.bonderPrivateKey
-    this.l1Wallet = new ethers.Wallet(privateKey, this.l1Provider)
-    this.l2Wallet = new ethers.Wallet(privateKey, this.l2Provider)
+    this.l1Wallet = new GasBoostSigner(privateKey, this.l1Provider)
+    this.l2Wallet = new GasBoostSigner(privateKey, this.l2Provider)
     this.chainId = 5
     this.apiUrl = `https://apis.matic.network/api/v1/${
       this.chainId === 1 ? 'matic' : 'mumbai'
@@ -79,7 +80,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
           'Transfer',
           (sender: string, to: string, data: string, event: Event) => {
             const { transactionHash } = event
-            if (to === ethers.constants.AddressZero) {
+            if (to === constants.AddressZero) {
               this.logger.debug(
                 'received transfer event. tx hash:',
                 transactionHash
@@ -210,7 +211,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
 
   protected async getBumpedGasPrice (
     percent: number,
-    wallet: ethers.Wallet
+    wallet: Wallet
   ): Promise<BigNumber> {
     const gasPrice = await wallet.provider.getGasPrice()
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))

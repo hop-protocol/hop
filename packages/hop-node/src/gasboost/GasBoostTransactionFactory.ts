@@ -2,9 +2,11 @@ import GasBoostTransaction, { Options } from './GasBoostTransaction'
 import MemoryStore from './MemoryStore'
 import Store from './Store'
 import { Signer, providers } from 'ethers'
+import { boundClass } from 'autobind-decorator'
 
 export { Options }
 
+@boundClass
 class GasBoostTransactionFactory {
   signer: Signer
   store: Store = new MemoryStore()

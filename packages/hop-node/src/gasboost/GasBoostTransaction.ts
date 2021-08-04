@@ -1,9 +1,8 @@
 import MemoryStore from './MemoryStore'
 import Store from './Store'
-import queue from 'src/decorators/queue'
-import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { BigNumber, Signer, providers, utils } from 'ethers'
 import { EventEmitter } from 'events'
+import { boundClass } from 'autobind-decorator'
 import { chainSlugToId, getBumpedGasPrice, getProviderChainSlug, wait } from 'src/utils'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -41,6 +40,7 @@ export type Options = {
   compareMarketGasPrice: boolean
 }
 
+@boundClass
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
   pollMs: number = 10 * 1000
@@ -179,12 +179,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return gTx
   }
 
-  getQueueGroup (): string {
-    return this.chainSlug
-  }
-
-  @queue
-  @rateLimitRetry
   async send () {
     const nonce = await this.getLatestNonce()
     const gasPrice = this.gasPrice || await this.getBumpedGasPrice()
@@ -200,8 +194,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.nonce = tx.nonce
 
     this.track(tx)
-
-    return this
   }
 
   async getLatestNonce ():Promise<number> {

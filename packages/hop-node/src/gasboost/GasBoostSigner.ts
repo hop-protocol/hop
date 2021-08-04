@@ -2,11 +2,17 @@ import GasBoostTransaction from './GasBoostTransaction'
 import GasBoostTransactionFactory, { Options } from './GasBoostTransactionFactory'
 import MemoryStore from './MemoryStore'
 import Store from './Store'
+import queue from 'src/decorators/queue'
+import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { Signer, Wallet, providers } from 'ethers'
+import { boundClass } from 'autobind-decorator'
+import { getProviderChainSlug } from 'src/utils'
 
+@boundClass
 class GasBoostSigner extends Wallet {
   store: Store = new MemoryStore()
   items: string[] = []
+  chainSlug: string
   gTxFactory: GasBoostTransactionFactory
   signer: Signer
   pollMs: number
@@ -17,6 +23,11 @@ class GasBoostSigner extends Wallet {
     if (store) {
       this.store = store
     }
+    const chainSlug = getProviderChainSlug(this.signer.provider)
+    if (!chainSlug) {
+      throw new Error('chain slug not found for contract provider')
+    }
+    this.chainSlug = chainSlug
     this.gTxFactory = new GasBoostTransactionFactory(this.signer, this.store)
     this.setOptions(options)
     this.restore()
@@ -26,6 +37,12 @@ class GasBoostSigner extends Wallet {
     this.store = store
   }
 
+  getQueueGroup (): string {
+    return `gasBoost:${this.chainSlug}`
+  }
+
+  @queue
+  @rateLimitRetry
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
     const gTx = this.gTxFactory.createTransaction(tx)
     await this.track(gTx)

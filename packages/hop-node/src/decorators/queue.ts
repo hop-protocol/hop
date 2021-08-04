@@ -30,31 +30,33 @@ export default function queue (
     }
     const mutex = mutexes[queueGroup]
     return mutex.runExclusive(async () => {
-      return await retrier(originalMethod.apply(this, args))
+      return await queueFn(originalMethod.bind(this))(...args)
     })
   }
 
   return descriptor
 }
 
-async function retrier (fn: any): Promise<any> {
-  let retries = 0
-  const retry = () => promiseTimeout(fn, TIMEOUT_MS)
-  while (true) {
-    try {
-      const result = await retry()
-      // TODO: debounce runner function
-      await wait(2 * 1000)
-      return result
-    } catch (err) {
-      retries++
-      if (retries >= MAX_RETRIES) {
-        notifier.error(`queue function error: ${err.message}`)
-        throw err
+export function queueFn (fn: any): any {
+  return async (...args: any[]) => {
+    let retries = 0
+    const retry = () => promiseTimeout(fn(...args), TIMEOUT_MS)
+    while (true) {
+      try {
+        const result = await retry()
+        // TODO: debounce runner function
+        await wait(2 * 1000)
+        return result
+      } catch (err) {
+        retries++
+        if (retries >= MAX_RETRIES) {
+          notifier.error(`queue function error: ${err.message}`)
+          throw err
+        }
+        logger.error('error:', err.message)
+        logger.error(`queue function error; retrying (${retries})`)
+        await wait(1 * 1000)
       }
-      logger.error('error:', err.message)
-      logger.error(`queue function error; retrying (${retries})`)
-      await wait(1 * 1000)
     }
   }
 }

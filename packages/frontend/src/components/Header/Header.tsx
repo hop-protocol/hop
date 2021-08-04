@@ -1,11 +1,12 @@
 import React, { FC } from 'react'
+import { Link } from 'react-router-dom'
 import { Theme, makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Button from 'src/components/buttons/Button'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import HeaderRoutes from 'src/components/Header/HeaderRoutes'
-import TxPill from 'src/components/Header/TxPill'
+import HeaderRoutes from 'src/components/header/HeaderRoutes'
+import TxPill from 'src/components/header/TxPill'
 import HopLogoFullColor from 'src/assets/logos/hop-logo-full-color.svg'
 import { isMainnet } from 'src/config'
 import Settings from 'src/pages/Send/Settings'
@@ -49,12 +50,14 @@ const Header: FC = () => {
         flex={1}
         justifyContent="flex-start"
       >
-        <h1 className={styles.title}>
-          <img className={styles.hopLogo} src={HopLogoFullColor} alt="Hop" />
-          {!isMainnet ? (
-            <span className={styles.label}>{l1Network?.name}</span>
-          ) : null}
-        </h1>
+        <Link to="/">
+          <h1 className={styles.title}>
+            <img className={styles.hopLogo} src={HopLogoFullColor} alt="Hop" />
+            {!isMainnet ? (
+              <span className={styles.label}>{l1Network?.name}</span>
+            ) : null}
+          </h1>
+        </Link>
       </Box>
       <Box display="flex" flexDirection="row" flex={1} justifyContent="center">
         <HeaderRoutes />

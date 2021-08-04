@@ -1,6 +1,6 @@
 import { Network } from './types'
-import { kovan as kovanAddresses } from '@hop-protocol/addresses'
-import { kovan as networks } from '@hop-protocol/networks'
+import { kovan as kovanAddresses } from '@hop-protocol/core/addresses'
+import { kovan as networks } from '@hop-protocol/core/networks'
 
 const addresses = kovanAddresses.bridges
 const bonders = kovanAddresses.bonders

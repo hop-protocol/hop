@@ -10,7 +10,7 @@ import {
   l1OptimismTokenBridgeAbi,
   l1xDaiForeignOmniBridgeAbi,
   arbErc20Abi
-} from '@hop-protocol/abi'
+} from '@hop-protocol/core/abi'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'

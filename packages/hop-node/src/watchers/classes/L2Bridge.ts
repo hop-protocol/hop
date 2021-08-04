@@ -14,7 +14,7 @@ import {
   erc20Abi,
   l2AmmWrapperAbi,
   l2BridgeWrapperAbi
-} from '@hop-protocol/abi'
+} from '@hop-protocol/core/abi'
 
 @boundClass
 export default class L2Bridge extends Bridge {

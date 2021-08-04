@@ -8,7 +8,7 @@ import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Event } from 'src/types'
 import { MaticPOSClient } from '@maticnetwork/maticjs'
-import { erc20Abi } from '@hop-protocol/abi'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
 import { wait } from 'src/utils'
 

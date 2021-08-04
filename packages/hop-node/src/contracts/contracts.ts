@@ -9,7 +9,7 @@ import {
   l2AmmWrapperAbi,
   l2BridgeAbi,
   swapAbi as saddleSwapAbi
-} from '@hop-protocol/abi'
+} from '@hop-protocol/core/abi'
 
 import wallets from 'src/wallets'
 import { config } from 'src/config'

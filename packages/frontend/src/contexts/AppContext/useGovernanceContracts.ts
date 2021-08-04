@@ -5,7 +5,7 @@ import {
   stakingRewardsFactoryAbi,
   stakingRewardsAbi,
   hopAbi
-} from '@hop-protocol/abi'
+} from '@hop-protocol/core/abi'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'

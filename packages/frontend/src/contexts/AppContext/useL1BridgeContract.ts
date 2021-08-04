@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Contract, providers } from 'ethers'
-import { l1BridgeAbi } from '@hop-protocol/abi'
+import { l1BridgeAbi } from '@hop-protocol/core/abi'
 import { addresses } from 'src/config'
 import Token from 'src/models/Token'
 import { L1_NETWORK } from 'src/constants'

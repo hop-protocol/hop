@@ -1,5 +1,5 @@
 import deepmerge from 'deepmerge'
-import * as hopMetadata from '@hop-protocol/metadata'
+import * as hopMetadata from '@hop-protocol/core/metadata'
 import MainnetLogo from 'src/assets/logos/mainnet.svg'
 import ArbitrumLogo from 'src/assets/logos/arbitrum.svg'
 import OptimismLogo from 'src/assets/logos/optimism.svg'

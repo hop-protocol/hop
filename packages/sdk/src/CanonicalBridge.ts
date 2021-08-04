@@ -10,7 +10,7 @@ import {
   l2xDaiTokenAbi,
   l1PolygonPosRootChainManagerAbi,
   l2PolygonChildErc20Abi
-} from '@hop-protocol/abi'
+} from '@hop-protocol/core/abi'
 import { Chain } from './models'
 import { TChain, TToken, TAmount, TProvider } from './types'
 import { metadata } from './config'

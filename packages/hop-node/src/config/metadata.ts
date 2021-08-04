@@ -1,4 +1,4 @@
-import * as hopMetadata from '@hop-protocol/metadata'
+import * as hopMetadata from '@hop-protocol/core/metadata'
 
 export const metadata = {
   tokens: {

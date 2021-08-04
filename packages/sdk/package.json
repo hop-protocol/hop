@@ -32,10 +32,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@hop-protocol/abi": "0.0.1-beta.13",
-    "@hop-protocol/addresses": "0.0.1-beta.35",
-    "@hop-protocol/metadata": "0.0.1-beta.15",
-    "@hop-protocol/networks": "0.0.1-beta.20",
+    "@hop-protocol/core": "0.0.1-beta.2",
     "@maticnetwork/maticjs": "^2.0.38",
     "@types/luxon": "^1.27.1",
     "dotenv": "^8.2.0",

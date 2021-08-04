@@ -4,7 +4,7 @@ import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract, ethers } from 'ethers'
 import { config } from 'src/config'
-import { l1xDaiAmbAbi, l2xDaiAmbAbi } from '@hop-protocol/abi'
+import { l1xDaiAmbAbi, l2xDaiAmbAbi } from '@hop-protocol/core/abi'
 import { packSignatures, signatureToVRS, strip0x } from 'src/utils/xdaiUtils'
 import { wait } from 'src/utils'
 

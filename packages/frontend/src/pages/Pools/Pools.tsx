@@ -134,30 +134,20 @@ const Pools: FC = () => {
     const token0Value = normalizeNumberInput(value)
     if (!token0Value) {
       setToken0Amount('')
-      setToken1Amount('')
       return
     }
 
     setToken0Amount(token0Value)
-    if (token1Rate) {
-      const token1Value = Number(token0Value) * Number(token1Rate)
-      setToken1Amount(token1Value.toFixed(2))
-    }
   }
 
   const handleToken1Change = async (value: string) => {
     const token1Value = normalizeNumberInput(value)
     if (!token1Value) {
-      setToken0Amount('')
       setToken1Amount('')
       return
     }
 
     setToken1Amount(token1Value)
-    if (token1Rate) {
-      const token0Value = Number(token1Value) / Number(token1Rate)
-      setToken0Amount(token0Value.toFixed(2))
-    }
   }
 
   const handleRemoveLiquidityClick = (event: any) => {

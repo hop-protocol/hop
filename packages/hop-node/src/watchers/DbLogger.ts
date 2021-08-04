@@ -1,5 +1,8 @@
 import Logger from 'src/logger'
 import { Db, getDbSet } from 'src/db'
+import { State } from 'src/db/SyncStateDb'
+import { Transfer } from 'src/db/TransfersDb'
+import { TransferRoot } from 'src/db/TransferRootsDb'
 import { wait } from 'src/utils'
 
 class DbLogger {
@@ -24,11 +27,23 @@ class DbLogger {
   async poll () {
     while (true) {
       const transfers = await this.db.transfers.getTransfers()
-      this.logger.debug('transfers dump:', JSON.stringify(transfers))
+      transfers.forEach((transfer: Transfer) => {
+        const logger = this.logger.create({ id: transfer.transferId })
+        logger.debug(JSON.stringify(transfer))
+      })
+
       const transferRoots = await this.db.transferRoots.getTransferRoots()
-      this.logger.debug('transferRoots dump:', JSON.stringify(transferRoots))
+      transferRoots.forEach((transferRoot: TransferRoot) => {
+        const logger = this.logger.create({ root: transferRoot.transferRootHash })
+        logger.debug(JSON.stringify(transferRoot))
+      })
+
       const syncState = await this.db.syncState.getItems()
-      this.logger.debug('syncState dump:', JSON.stringify(syncState))
+      syncState.forEach((item: State) => {
+        const logger = this.logger.create({ id: 'syncState' })
+        logger.debug(JSON.stringify(item))
+      })
+
       await wait(this.pollIntervalMs)
     }
   }

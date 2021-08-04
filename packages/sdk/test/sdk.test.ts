@@ -9,7 +9,7 @@ import {
   utils
 } from '../src/index'
 import Token from '../src/models/Token'
-import * as addresses from '@hop-protocol/addresses'
+import * as addresses from '@hop-protocol/core/addresses'
 import { Wallet, providers } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { privateKey } from './config'

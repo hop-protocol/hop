@@ -2,10 +2,9 @@ import MemoryStore from './MemoryStore'
 import Store from './Store'
 import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
-import wait from 'wait'
 import { BigNumber, Signer, providers, utils } from 'ethers'
 import { EventEmitter } from 'events'
-import { chainSlugToId, getBumpedGasPrice, getProviderChainSlug } from 'src/utils'
+import { chainSlugToId, getBumpedGasPrice, getProviderChainSlug, wait } from 'src/utils'
 import { v4 as uuidv4 } from 'uuid'
 
 export enum State {
@@ -39,6 +38,7 @@ export type Options = {
   timeTilBoostMs: number
   gasPriceMultiplier: number
   maxGasPriceGwei: number
+  compareMarketGasPrice: boolean
 }
 
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
@@ -47,6 +47,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   timeTilBoostMs: number = 1 * 60 * 1000
   gasPriceMultiplier: number = 1.5
   maxGasPriceGwei: number = 500
+  compareMarketGasPrice: boolean = true
   boostIndex: number = 0
   inflightItems: InflightItem[] = []
   signer: Signer
@@ -105,6 +106,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (this.txHash) {
       return this.txHash
     }
+    const prevItem = this.getLatestInflightItem()
+    if (prevItem) {
+      return prevItem.hash
+    }
     throw new Error('transaction hash not available yet')
   }
 
@@ -122,6 +127,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   setMaxGasPriceGwei (maxGasPriceGwei: number) {
     this.maxGasPriceGwei = maxGasPriceGwei
+  }
+
+  setCompareMarketGasPrice (compareMarketGasPrice: boolean) {
+    this.compareMarketGasPrice = compareMarketGasPrice
   }
 
   start () {
@@ -177,16 +186,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   @queue
   @rateLimitRetry
   async send () {
-    const nonce = await this.signer.getTransactionCount('pending')
+    const nonce = await this.getLatestNonce()
     const gasPrice = this.gasPrice || await this.getBumpedGasPrice()
-    const tx = await this.signer.sendTransaction({
-      to: this.to,
-      data: this.data,
-      value: this.value,
-      nonce: this.nonce,
-      gasPrice,
-      gasLimit: this.gasLimit
-    })
+    const tx = await this._sendTransaction(gasPrice)
 
     // store populated and normalized values
     this.from = tx.from
@@ -198,16 +200,24 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.nonce = tx.nonce
 
     this.track(tx)
+
     return this
   }
 
-  async getBumpedGasPrice (): Promise<BigNumber> {
-    const marketGasPrice = await this.signer.getGasPrice()
-    const multiplier = this.gasPriceMultiplier
+  async getLatestNonce ():Promise<number> {
+    return await this.signer.getTransactionCount('pending')
+  }
+
+  async getMarketGasPrice (): Promise<BigNumber> {
+    return this.signer.getGasPrice()
+  }
+
+  async getBumpedGasPrice (multiplier : number = this.gasPriceMultiplier): Promise<BigNumber> {
+    const marketGasPrice = await this.getMarketGasPrice()
     const prevGasPrice = this.gasPrice || marketGasPrice
-    let bumpedGasPrice = getBumpedGasPrice(prevGasPrice, multiplier)
-    if (prevGasPrice.eq(bumpedGasPrice)) {
-      bumpedGasPrice = bumpedGasPrice.add(1)
+    const bumpedGasPrice = getBumpedGasPrice(prevGasPrice, multiplier)
+    if (!this.compareMarketGasPrice) {
+      return bumpedGasPrice
     }
     return marketGasPrice.gt(bumpedGasPrice) ? marketGasPrice : bumpedGasPrice
   }
@@ -229,6 +239,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (options.maxGasPriceGwei) {
       this.maxGasPriceGwei = options.gasPriceMultiplier
     }
+    if (typeof options.compareMarketGasPrice === 'boolean') {
+      this.compareMarketGasPrice = options.compareMarketGasPrice
+    }
   }
 
   async wait (): Promise<providers.TransactionReceipt> {
@@ -246,8 +259,18 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     })
   }
 
+  hasInflightItems (): boolean {
+    return this.inflightItems.length > 0
+  }
+
   getInflightItems (): InflightItem[] {
     return this.inflightItems
+  }
+
+  getLatestInflightItem (): InflightItem {
+    if (this.hasInflightItems()) {
+      return this.inflightItems[this.inflightItems.length - 1]
+    }
   }
 
   private async handleConfirmation (txHash: string) {
@@ -304,7 +327,16 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (gasPrice.gt(maxGasPrice)) {
       return
     }
-    const tx = await this.signer.sendTransaction({
+    const tx = await this._sendTransaction(gasPrice)
+
+    this.gasPrice = tx.gasPrice
+    this.boostIndex++
+    this.track(tx)
+    this.emit(State.Boosted, tx, this.boostIndex)
+  }
+
+  private async _sendTransaction (gasPrice: BigNumber):Promise<providers.TransactionResponse> {
+    return this.signer.sendTransaction({
       to: this.to,
       data: this.data,
       value: this.value,
@@ -312,15 +344,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       gasPrice,
       gasLimit: this.gasLimit
     })
-    this.gasPrice = tx.gasPrice
-    this.boostIndex++
-    this.track(tx)
-    this.emit(State.Boosted, tx, this.boostIndex)
   }
 
   private async track (tx: providers.TransactionResponse) {
-    if (this.inflightItems.length) {
-      const prevItem = this.inflightItems[this.inflightItems.length - 1]
+    const prevItem = this.getLatestInflightItem()
+    if (prevItem) {
       prevItem.boosted = true
     }
     this.inflightItems.push({

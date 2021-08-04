@@ -32,6 +32,11 @@ describe.only('GasBoostSigner', () => {
     })
     let boosted = false
     ;(tx as GasBoostTransaction).on('boosted', (boostedTx: any, boostIndex: number) => {
+      console.log('boosted', {
+        hash: boostedTx.hash,
+        gasPrice: tx.gasPrice.toString(),
+        boostIndex
+      })
       boosted = true
       expect(boostedTx).toBeTruthy()
     })

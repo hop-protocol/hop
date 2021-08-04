@@ -150,18 +150,6 @@ const PoolsContextProvider: FC = ({ children }) => {
       setSelectedNetwork(l2Networks[0])
     }
   }, [l2Networks])
-  useEffect(() => {
-    if (Number(token0Price) && Number(token0Amount) && !Number(token1Amount)) {
-      const token1Value = Number(token0Amount) * Number(token1Rate)
-      setToken1Amount(token1Value.toFixed(2))
-    }
-  }, [token0Price, token0Amount, token1Amount])
-  useEffect(() => {
-    if (Number(token1Price) && Number(token1Amount) && !Number(token0Amount)) {
-      const token0Value = Number(token1Amount) / Number(token1Rate)
-      setToken0Amount(token0Value.toFixed(2))
-    }
-  }, [token1Price, token0Amount, token1Amount])
 
   const updatePrices = useCallback(async () => {
     if (!totalSupply) return
@@ -316,22 +304,24 @@ const PoolsContextProvider: FC = ({ children }) => {
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
 
-      if (!Number(token0Amount)) {
-        return
-      }
-      if (!Number(token1Amount)) {
+      if (!(Number(token0Amount) || Number(token1Amount))) {
         return
       }
 
       setSending(true)
-      const approval0Tx = await approveTokens(false, token0Amount, selectedNetwork)
-      await approval0Tx?.wait()
-      const approval1Tx = await approveTokens(true, token1Amount, selectedNetwork)
-      await approval1Tx?.wait()
+      if (Number(token0Amount)) {
+        const approval0Tx = await approveTokens(false, token0Amount, selectedNetwork)
+        await approval0Tx?.wait()
+      }
+
+      if (Number(token1Amount)) {
+        const approval1Tx = await approveTokens(true, token1Amount, selectedNetwork)
+        await approval1Tx?.wait()
+      }
 
       const signer = provider?.getSigner()
-      const amount0Desired = parseUnits(token0Amount, canonicalToken?.decimals)
-      const amount1Desired = parseUnits(token1Amount, hopToken?.decimals)
+      const amount0Desired = parseUnits(token0Amount || '0', canonicalToken?.decimals)
+      const amount1Desired = parseUnits(token1Amount || '0', hopToken?.decimals)
       const minToMint = 0
       const deadline = (Date.now() / 1000 + 5 * 60) | 0
 
@@ -339,12 +329,12 @@ const PoolsContextProvider: FC = ({ children }) => {
         kind: 'addLiquidity',
         inputProps: {
           token0: {
-            amount: token0Amount,
+            amount: token0Amount || '0',
             token: canonicalToken,
             network: selectedNetwork
           },
           token1: {
-            amount: token1Amount,
+            amount: token1Amount || '0',
             token: hopToken,
             network: selectedNetwork
           }
@@ -479,10 +469,8 @@ const PoolsContextProvider: FC = ({ children }) => {
   const token0Balance = canonicalToken && canonicalBalance ? Number(formatUnits(canonicalBalance, canonicalToken.decimals)) : 0
   const token1Balance = hopToken && hopBalance ? Number(formatUnits(hopBalance, hopToken.decimals)) : 0
 
-  const enoughBalance =
-    token0Balance >= Number(token0Amount) &&
-    token1Balance >= Number(token1Amount)
-  const validFormFields = !!(token0Amount && token1Amount && enoughBalance)
+  const enoughBalance = (Number(token0Amount) ? token0Balance >= Number(token0Amount) : true) && (Number(token1Amount) ? token1Balance >= Number(token1Amount) : true)
+  const validFormFields = !!((token0Amount || token1Amount) && enoughBalance)
   let sendButtonText = 'Add Liquidity'
   if (!enoughBalance) {
     sendButtonText = 'Insufficient funds'

@@ -24,6 +24,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
   l2Wallet: Wallet
   chainId: number
   apiUrl: string
+  polygonMainnetChainId: number = 137
 
   constructor (config: Config) {
     super({
@@ -44,7 +45,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
     this.l2Wallet = new GasBoostSigner(privateKey, this.l2Provider)
     this.chainId = chainSlugToId(config.chainSlug)
     this.apiUrl = `https://apis.matic.network/api/v1/${
-      this.chainId === 1 ? 'matic' : 'mumbai'
+      this.chainId === this.polygonMainnetChainId ? 'matic' : 'mumbai'
     }/block-included`
   }
 
@@ -139,8 +140,8 @@ class PolygonBridgeWatcher extends BaseWatcher {
   async relayMessage (txHash: string, tokenSymbol: string) {
     const recipient = await this.l1Wallet.getAddress()
     const maticPOSClient = new MaticPOSClient({
-      network: this.chainId === 1 ? 'mainnet' : 'testnet',
-      version: this.chainId === 1 ? 'v1' : 'mumbai',
+      network: this.chainId === this.polygonMainnetChainId ? 'mainnet' : 'testnet',
+      version: this.chainId === this.polygonMainnetChainId ? 'v1' : 'mumbai',
       maticProvider: new Web3.providers.HttpProvider(
         this.l2Provider.connection.url
       ),

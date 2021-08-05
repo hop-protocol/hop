@@ -216,13 +216,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
             chainId: destinationChainId,
             transferId: dbTransfer.transferId
           })
-
-          for (const transferId of transferIds) {
-            const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-            await this.db.transfers.update(transferId, {
-              withdrawalBondSettled: dbTransfer?.withdrawalBonded ?? false
-            })
-          }
         })
         .catch(async (err: Error) => {
           await this.db.transferRoots.update(transferRootHash, {

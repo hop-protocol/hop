@@ -565,6 +565,13 @@ class SyncWatcher extends BaseWatcher {
       rootHash: transferRootHash,
       totalBondsSettled
     } = event.args
+    const logger = this.logger.create({ root: transferRootHash })
+
+    logger.debug('handling MultipleWithdrawalsSettled event')
+    logger.debug(`transferRootHash from event: ${transferRootHash}`)
+    logger.debug(`bonder : ${bonder}`)
+    logger.debug(`totalBondSettled: ${this.bridge.formatUnits(totalBondsSettled)}`)
+
     const { transactionHash } = event
     const { data } = await this.bridge.getTransaction(transactionHash)
     const { transferIds } = await this.bridge.decodeSettleBondedWithdrawalsData(

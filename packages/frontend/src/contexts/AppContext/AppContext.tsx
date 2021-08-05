@@ -62,8 +62,7 @@ const AppContextProvider: FC = ({ children }) => {
   }, [provider])
 
   const sdk = useMemo(() => {
-    const _sdk = new Hop(reactAppNetwork, provider?.getSigner())
-    return _sdk
+    return new Hop(reactAppNetwork, provider?.getSigner())
   }, [provider])
   const networks = useNetworks()
   const tokens = useTokens(networks)

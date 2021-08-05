@@ -28,6 +28,7 @@ import useNeedsTokenForFee from 'src/hooks/useNeedsTokenForFee'
 import useQueryParams from 'src/hooks/useQueryParams'
 import AmmDetails from 'src/components/AmmDetails'
 import useApprove from 'src/hooks/useApprove'
+import { reactAppNetwork } from 'src/config'
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -301,8 +302,10 @@ const Send: FC = () => {
       )
       const warningMessage = `Insufficient liquidity. There is ${formattedAmount} ${sourceToken.symbol} available on ${toNetwork.name}.`
       if (!isAvailable && !fromNetwork?.isLayer1) {
-        // setIsLiquidityAvailable(false)
-        // setNoLiquidityWarning(warningMessage)
+        if (reactAppNetwork !== 'staging') {
+          setIsLiquidityAvailable(false)
+          setNoLiquidityWarning(warningMessage)
+        }
       } else {
         setIsLiquidityAvailable(true)
         setNoLiquidityWarning('')

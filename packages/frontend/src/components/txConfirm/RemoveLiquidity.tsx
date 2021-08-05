@@ -76,15 +76,15 @@ const Slider: FC<SliderProps> = (props: SliderProps) => {
   )
 }
 
-interface Party {
+interface TokenEntity {
   network: Network
   token: Token
   amount: string
 }
 
 interface Props {
-  token0: Party
-  token1: Party
+  token0: TokenEntity
+  token1: TokenEntity
   onConfirm: (confirmed: boolean, amountPercent?: number) => void
 }
 

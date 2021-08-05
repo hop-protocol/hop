@@ -31,7 +31,12 @@ const useBalance = (
 
         const ctx = ++debouncer.current
 
-        const _balance = await token.balanceOf(address.toString())
+        let _balance : BigNumber
+        if (token.isNativeToken) {
+          _balance = await token.getNativeTokenBalance(address.toString())
+        } else {
+          _balance = await token.balanceOf(address.toString())
+        }
 
         if (ctx === debouncer.current) {
           setBalance(_balance as BigNumber)

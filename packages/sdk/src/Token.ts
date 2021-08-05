@@ -1,6 +1,7 @@
 import { ethers, providers, Signer, Contract, BigNumber } from 'ethers'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { TAmount, TChain } from './types'
+import TokenModel from './models/Token'
 import Base from './Base'
 import Chain from './models/Chain'
 
@@ -103,8 +104,8 @@ class Token extends Base {
    *```
    */
   public async balanceOf (address?: string): Promise<BigNumber> {
-    const tokenContract = await this.getErc20()
     const _address = address ?? (await this.getSignerAddress())
+    const tokenContract = await this.getErc20()
     return tokenContract.balanceOf(_address)
   }
 
@@ -177,6 +178,21 @@ class Token extends Base {
 
   public eq (token: Token): boolean {
     return this.address.toLowerCase() === token.address.toLowerCase()
+  }
+
+  get isNativeToken () {
+    const isEth =
+      this.symbol === TokenModel.ETH && this.chain.equals(Chain.Ethereum)
+    const isMatic =
+      this.symbol === TokenModel.MATIC && this.chain.equals(Chain.Polygon)
+    const isxDai =
+      this.symbol === TokenModel.XDAI && this.chain.equals(Chain.xDai)
+    return isEth || isMatic || isxDai
+  }
+
+  public async getNativeTokenBalance (address?: string): Promise<BigNumber> {
+    const _address = address ?? (await this.getSignerAddress())
+    return this.chain.provider.getBalance(_address)
   }
 }
 

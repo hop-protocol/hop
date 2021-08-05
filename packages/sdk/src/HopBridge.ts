@@ -1,13 +1,15 @@
 import { ethers, Signer, Contract, BigNumber, BigNumberish } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
-import { Chain, Token as TokenModel } from './models'
+import Chain from './models/Chain'
+import TokenModel from './models/Token'
 import {
   l1Erc20BridgeAbi,
   l2BridgeAbi,
   saddleLpTokenAbi,
   swapAbi as saddleSwapAbi,
   l1HomeAmbNativeToErc20,
-  l2AmmWrapperAbi
+  l2AmmWrapperAbi,
+  wethAbi
 } from '@hop-protocol/core/abi'
 import { TChain, TToken, TAmount, TProvider } from './types'
 import Base from './Base'
@@ -945,7 +947,9 @@ class HopBridge extends Base {
     if (!chain) {
       chain = this.sourceChain
     }
+    amount0Desired = BigNumber.from(amount0Desired.toString())
     chain = this.toChainModel(chain)
+
     const amm = new AMM(this.network, this.tokenSymbol, chain, this.signer)
     return amm.addLiquidity(
       amount0Desired,
@@ -1130,6 +1134,8 @@ class HopBridge extends Base {
       }
     }
 
+    const value = this.isNativeToken(sourceChain) ? amount : undefined
+
     return l1Bridge.sendToL2(
       destinationChainId,
       recipient,
@@ -1138,7 +1144,10 @@ class HopBridge extends Base {
       deadline,
       relayer,
       relayerFee || 0,
-      this.txOverrides(Chain.Ethereum)
+      {
+        ...this.txOverrides(Chain.Ethereum),
+        value
+      }
     )
   }
 
@@ -1182,6 +1191,8 @@ class HopBridge extends Base {
     }
 
     if (attemptSwap) {
+      const value = this.isNativeToken(sourceChain) ? amount : undefined
+
       return ammWrapper.swapAndSend(
         destinationChainId,
         recipient,
@@ -1191,7 +1202,10 @@ class HopBridge extends Base {
         deadline,
         destinationAmountOutMin,
         destinationDeadline,
-        this.txOverrides(sourceChain)
+        {
+          ...this.txOverrides(sourceChain),
+          value
+        }
       )
     }
 
@@ -1240,6 +1254,8 @@ class HopBridge extends Base {
       }
     }
 
+    const value = this.isNativeToken(sourceChain) ? amount : undefined
+
     return ammWrapper.swapAndSend(
       destinationChainId,
       recipient,
@@ -1249,7 +1265,10 @@ class HopBridge extends Base {
       deadline,
       destinationAmountOutMin || 0,
       destinationDeadline,
-      this.txOverrides(sourceChain)
+      {
+        ...this.txOverrides(sourceChain),
+        value
+      }
     )
   }
 
@@ -1416,6 +1435,42 @@ class HopBridge extends Base {
     const address = this.getL2AmbBridgeAddress(this.tokenSymbol, Chain.xDai)
     const provider = await this.getSignerOrProvider(Chain.xDai)
     return this.getContract(address, l1HomeAmbNativeToErc20, provider)
+  }
+
+  isNativeToken (chain: TChain) {
+    chain = this.toChainModel(chain)
+    const isEth =
+      this.tokenSymbol === TokenModel.ETH && chain.equals(Chain.Ethereum)
+    const isMatic =
+      this.tokenSymbol === TokenModel.MATIC && chain.equals(Chain.Polygon)
+    const isxDai =
+      this.tokenSymbol === TokenModel.XDAI && chain.equals(Chain.xDai)
+    return isEth || isMatic || isxDai
+  }
+
+  async getWethContract (chain: TChain): Promise<Contract> {
+    const address = this.getCanonicalToken(chain).address
+    return this.getContract(address, wethAbi, this.signer)
+  }
+
+  async wrapToken (amount: TAmount, chain: TChain) {
+    const contract = await this.getWethContract(chain)
+    return contract.deposit({
+      value: amount
+    })
+  }
+
+  async isTokenWrapNeeded (chain: TChain, amount: TAmount) {
+    chain = this.toChainModel(chain)
+    amount = BigNumber.from(amount.toString())
+    if (this.isNativeToken(chain)) {
+      const canonicalToken = this.getCanonicalToken(chain)
+      const balance = await canonicalToken.balanceOf()
+      if (balance.lt(amount)) {
+        return true
+      }
+    }
+    return false
   }
 }
 

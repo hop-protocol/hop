@@ -9,13 +9,15 @@ class Token {
   public readonly symbol: string
   public readonly name: string
 
+  static ETH = 'ETH'
+  static MATIC = 'MATIC'
+  static XDAI = 'XDAI'
   static USDC = 'USDC'
   static USDT = 'USDT'
   static DAI = 'DAI'
   static WBTC = 'WBTC'
   static sBTC = 'sBTC'
   static sETH = 'sETH'
-  static MATIC = 'MATIC'
 
   constructor (
     chainId: number | string,

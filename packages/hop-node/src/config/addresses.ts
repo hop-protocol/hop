@@ -23,6 +23,9 @@ const getConfigByNetwork = (_network: string) => {
   if (_network === Network.Mainnet) {
     ;({ addresses, networks, bonders } = require('./mainnet'))
   }
+  if (_network === Network.Staging) {
+    ;({ addresses, networks, bonders } = require('./staging'))
+  }
 
   const tokens: {
     [key: string]: {
@@ -106,6 +109,9 @@ export const config: any = {
 
 const setConfigByNetwork = (_network: string) => {
   const { tokens, networks, bonders } = getConfigByNetwork(_network)
+  if (_network === Network.Staging) {
+    _network = Network.Mainnet
+  }
   isMainnet = _network === Network.Mainnet
   config.isMainnet = isMainnet
   config.tokens = tokens
@@ -125,6 +131,9 @@ const setBonderPrivateKey = (privateKey: string) => {
 }
 
 export const setNetworkRpcUrls = (_network: string, rpcUrls: string[]) => {
+  if (_network === Network.Staging) {
+    _network = Network.Mainnet
+  }
   if (config.networks[_network]) {
     config.networks[_network].rpcUrls = rpcUrls
   }

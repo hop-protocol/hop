@@ -101,15 +101,17 @@ class BondWithdrawalWatcher extends BaseWatcher {
     if (bondedAmount.gt(0)) {
       logger.warn('transfer already bonded. Adding to db and skipping')
       const event = await destBridge.getBondedWithdrawalEvent(transferId)
-      const { transactionHash } = event
-      const { from: sender } = await destBridge.getTransaction(
-        event.transactionHash
-      )
-      await this.db.transfers.update(transferId, {
-        withdrawalBonded: true,
-        withdrawalBonder: sender,
-        withdrawalBondedTxHash: transactionHash
-      })
+      if (event) {
+        const { transactionHash } = event
+        const { from: sender } = await destBridge.getTransaction(
+          event.transactionHash
+        )
+        await this.db.transfers.update(transferId, {
+          withdrawalBonded: true,
+          withdrawalBonder: sender,
+          withdrawalBondedTxHash: transactionHash
+        })
+      }
       return
     }
 

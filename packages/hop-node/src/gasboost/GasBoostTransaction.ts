@@ -1,9 +1,9 @@
+import Logger from 'src/logger'
 import MemoryStore from './MemoryStore'
 import Store from './Store'
-import queue from 'src/decorators/queue'
-import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { BigNumber, Signer, providers, utils } from 'ethers'
 import { EventEmitter } from 'events'
+import { boundClass } from 'autobind-decorator'
 import { chainSlugToId, getBumpedGasPrice, getProviderChainSlug, wait } from 'src/utils'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -41,6 +41,7 @@ export type Options = {
   compareMarketGasPrice: boolean
 }
 
+@boundClass
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
   pollMs: number = 10 * 1000
@@ -52,10 +53,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   inflightItems: InflightItem[] = []
   signer: Signer
   store: Store = new MemoryStore()
+  logger: Logger
   chainSlug: string
   id: string
   createdAt: number
   txHash: string
+
+  // these properties are required by ethers TransactionResponse interface
   from: string
   to: string
   data: string
@@ -64,7 +68,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   gasLimit: BigNumber
   gasPrice: BigNumber
   chainId: number
-  confirmations: number
+  confirmations: number = 0
 
   constructor (tx: providers.TransactionRequest, signer: Signer, store?: Store, options: Partial<Options> = {}) {
     super()
@@ -100,6 +104,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
+    this.logger = new Logger({
+      tag: 'GasBoost',
+      prefix: `${this.chainSlug} id: ${this.id}`
+    })
   }
 
   get hash ():string {
@@ -179,12 +187,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return gTx
   }
 
-  getQueueGroup (): string {
-    return this.chainSlug
-  }
-
-  @queue
-  @rateLimitRetry
   async send () {
     const nonce = await this.getLatestNonce()
     const gasPrice = this.gasPrice || await this.getBumpedGasPrice()
@@ -200,8 +202,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.nonce = tx.nonce
 
     this.track(tx)
-
-    return this
   }
 
   async getLatestNonce ():Promise<number> {
@@ -274,12 +274,17 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private async handleConfirmation (txHash: string) {
+    if (this.confirmations) {
+      return
+    }
+    this.confirmations = 1
     this.txHash = txHash
     this.clearInflightTxs()
     const tx = await this.signer.provider.getTransaction(txHash)
     this.gasPrice = tx.gasPrice
     const receipt = await this.getReceipt(txHash)
     this.emit(State.Confirmed, receipt)
+    this.logger.debug(`confirmed tx: ${tx.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}`)
   }
 
   private async getReceipt (txHash: string) {
@@ -370,6 +375,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const prevItem = this.getLatestInflightItem()
     if (prevItem) {
       prevItem.boosted = true
+      this.logger.debug(`tracking boosted tx: ${tx.hash}, previous tx: ${prevItem.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}`)
+    } else {
+      this.logger.debug(`tracking new tx: ${tx.hash}, nonce: ${this.nonce.toString()}`)
     }
     this.inflightItems.push({
       boosted: false,

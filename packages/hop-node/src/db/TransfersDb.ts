@@ -41,11 +41,11 @@ class TransfersDb extends BaseDb {
 
   async getByTransferId (transferId: string): Promise<Transfer> {
     const item = (await this.getById(transferId)) as Transfer
-    if (!item.transferId) {
-      item.transferId = transferId
-    }
     if (!item) {
       return item
+    }
+    if (!item.transferId) {
+      item.transferId = transferId
     }
     if (item?.destinationChainId) {
       item.destinationChainSlug = chainIdToSlug(item?.destinationChainId)

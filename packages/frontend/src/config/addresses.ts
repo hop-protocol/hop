@@ -8,7 +8,11 @@ import {
   networks as goerliNetworks
 } from './goerli'
 
-const network = process.env.REACT_APP_NETWORK || 'kovan'
+const reactAppNetwork = process.env.REACT_APP_NETWORK || 'kovan'
+let network = reactAppNetwork
+if (reactAppNetwork === 'staging') {
+  network = 'mainnet'
+}
 let addresses = kovanAddresses
 let networks = kovanNetworks
 const isMainnet = network === 'mainnet'
@@ -45,7 +49,7 @@ console.log('Welcome 🐰')
 console.debug('config network:', network)
 console.debug('config addresses:', addresses.tokens)
 
-export { addresses, network, networks, isMainnet }
+export { addresses, reactAppNetwork, network, networks, isMainnet }
 export const blocknativeDappid = '328621b8-952f-4a86-bd39-724ba822d416'
 export const infuraKey = '8e4fe7af961f48a1958584ec36742b44'
 export const fortmaticApiKey = 'pk_live_AB6F615F133473CA'

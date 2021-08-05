@@ -1,6 +1,5 @@
 import React, { FC, useMemo, createContext, useContext } from 'react'
 import { Hop, HopBridge } from '@hop-protocol/sdk'
-
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import User from 'src/models/User'
 import Token from 'src/models/Token'
@@ -14,7 +13,7 @@ import useEvents, { Events } from 'src/contexts/AppContext/useEvents'
 import useSettings, { Settings } from 'src/contexts/AppContext/useSettings'
 import { useAccountDetails, AccountDetails } from 'src/contexts/AppContext/useAccountDetails'
 import { useTxConfirm, TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
-import { network } from 'src/config'
+import { reactAppNetwork } from 'src/config'
 
 type AppContextProps = {
   sdk: Hop
@@ -62,7 +61,10 @@ const AppContextProvider: FC = ({ children }) => {
     return new User(provider)
   }, [provider])
 
-  const sdk = useMemo(() => new Hop(network, provider?.getSigner()), [provider])
+  const sdk = useMemo(() => {
+    const _sdk = new Hop(reactAppNetwork, provider?.getSigner())
+    return _sdk
+  }, [provider])
   const networks = useNetworks()
   const tokens = useTokens(networks)
   const contracts = useContracts(networks, tokens)

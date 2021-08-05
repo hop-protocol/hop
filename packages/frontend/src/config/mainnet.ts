@@ -1,6 +1,10 @@
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { mainnet as mainnetAddresses, staging as stagingAddresses } from '@hop-protocol/core/addresses'
 import { mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
+
 import { HopAddresses, Networks } from './interfaces'
+
+const isStaging = process.env.REACT_APP_NETWORK === 'staging'
+const _addresses = isStaging ? stagingAddresses : mainnetAddresses
 
 export const addresses: HopAddresses = {
   governance: {
@@ -9,8 +13,8 @@ export const addresses: HopAddresses = {
     stakingRewards: '',
     governorAlpha: ''
   },
-  tokens: mainnetAddresses.bridges,
-  bonders: mainnetAddresses.bonders,
+  tokens: _addresses.bridges,
+  bonders: _addresses.bonders,
 }
 
 export const networks: Networks = {

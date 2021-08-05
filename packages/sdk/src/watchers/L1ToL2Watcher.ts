@@ -215,7 +215,10 @@ class L1ToL2Watcher extends BaseWatcher {
         let url: string
         // archive node provider is needed to read bridge events triggered
         // by matic validators.
-        if (this.network === Network.Mainnet) {
+        if (
+          this.network === Network.Mainnet ||
+          this.network === Network.Staging
+        ) {
           url = 'https://matic-mainnet-archive-rpc.bwarelabs.com'
         } else if (this.network === Network.Goerli) {
           url = 'https://matic-testnet-archive-rpc.bwarelabs.com'

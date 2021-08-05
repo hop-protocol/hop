@@ -20,11 +20,6 @@ const useStyles = makeStyles(() => ({
   sendButton: {}
 }))
 
-interface Party {
-  token: Token
-  amount: string
-}
-
 interface Props {
   amount: string,
   token: Token,

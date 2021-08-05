@@ -8,7 +8,7 @@ import React, {
   useEffect,
   ReactNode
 } from 'react'
-import { BigNumber } from 'ethers'
+import { BigNumber, Signer } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { useLocation } from 'react-router-dom'
 import { HopBridge, Token } from '@hop-protocol/sdk'
@@ -284,6 +284,41 @@ const ConvertContextProvider: FC = ({ children }) => {
       ).toString()
       const l1Bridge = await selectedBridge.getL1Bridge()
       const isCanonicalTransfer = false
+
+      const isTokenWrapNeeded = await sdk.bridge(sourceToken.symbol).isTokenWrapNeeded(sourceNetwork.slug, value)
+      if (isTokenWrapNeeded) {
+        const tokenWrapTx = await txConfirm?.show({
+          kind: 'wrapToken',
+          inputProps: {
+            token: {
+              amount: sourceTokenAmount,
+              token: sourceToken,
+              network: selectedNetwork
+            }
+          },
+          onConfirm: async () => {
+            const bridge = sdk.bridge(sourceToken.symbol)
+            return bridge
+              .connect(signer as Signer)
+              .wrapToken(
+                value,
+                sourceNetwork.slug
+              )
+          }
+        })
+
+        if (tokenWrapTx) {
+          if (tokenWrapTx.hash && selectedNetwork) {
+            app?.txHistory?.addTransaction(
+              new Transaction({
+                hash: tokenWrapTx.hash,
+                networkName: selectedNetwork?.slug
+              })
+            )
+          }
+          await tokenWrapTx.wait()
+        }
+      }
 
       const tx = await txConfirm?.show({
         kind: 'convert',

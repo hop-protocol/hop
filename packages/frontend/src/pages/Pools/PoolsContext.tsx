@@ -153,7 +153,7 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   const updatePrices = useCallback(async () => {
     if (!totalSupply) return
-    if (token1Rate) {
+    if (Number(token1Rate)) {
       const price = new Price(token1Rate, '1')
       setToken0Price(price.toFixed(2))
       setToken1Price(price.inverted().toFixed(2))
@@ -239,8 +239,12 @@ const PoolsContextProvider: FC = ({ children }) => {
       setToken0Deposited(token0Deposited.toFixed(2))
       setToken1Deposited(token1Deposited.toFixed(2))
 
-      const amount0 = (1 * Number(reserve1)) / Number(reserve0)
-      setToken1Rate(amount0.toString())
+      if (!Number(reserve0) && !Number(reserve1)) {
+        setToken1Rate('0')
+      } else {
+        const amount0 = (1 * Number(reserve1)) / Number(reserve0)
+        setToken1Rate(amount0.toString())
+      }
     } catch (err) {
       logger.error(err)
     }
@@ -324,6 +328,42 @@ const PoolsContextProvider: FC = ({ children }) => {
       const amount1Desired = parseUnits(token1Amount || '0', hopToken?.decimals)
       const minToMint = 0
       const deadline = (Date.now() / 1000 + 5 * 60) | 0
+
+      const isTokenWrapNeeded = await sdk.bridge(canonicalToken.symbol).isTokenWrapNeeded(selectedNetwork.slug, amount0Desired)
+      if (isTokenWrapNeeded) {
+        const tokenWrapTx = await txConfirm?.show({
+          kind: 'wrapToken',
+          inputProps: {
+            token: {
+              amount: token0Amount,
+              token: canonicalToken,
+              network: selectedNetwork
+            }
+          },
+          onConfirm: async () => {
+            const bridge = sdk.bridge(canonicalToken.symbol)
+            return bridge
+              .connect(signer as Signer)
+              .wrapToken(
+                amount0Desired,
+                selectedNetwork.slug
+              )
+          }
+        })
+
+        if (tokenWrapTx) {
+          setTxHash(tokenWrapTx.hash)
+          if (tokenWrapTx.hash && selectedNetwork) {
+            txHistory?.addTransaction(
+              new Transaction({
+                hash: tokenWrapTx.hash,
+                networkName: selectedNetwork?.slug
+              })
+            )
+          }
+          await tokenWrapTx.wait()
+        }
+      }
 
       const addLiquidityTx = await txConfirm?.show({
         kind: 'addLiquidity',

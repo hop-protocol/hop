@@ -17,7 +17,6 @@ const commafy = (value: string | number | undefined, decimals: number = 2) => {
       mantissa: decimals
     })
   } catch (err) {
-    console.log('err', err)
     return value.toString()
   }
 }

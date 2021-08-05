@@ -35,7 +35,7 @@ export async function staker (
 
   const watchers = getStakeWatchers(
     [token],
-    [Chain.Optimism, Chain.Arbitrum, Chain.xDai, Chain.Polygon]
+    [Chain.Optimism, Chain.Arbitrum, Chain.xDai, Chain.Polygon, Chain.Ethereum]
   )
   const stakeWatcher = watchers[0].getSiblingWatcherByChainSlug(chain)
   if (action === StakerAction.Stake) {
@@ -79,7 +79,7 @@ program
       await staker(chain, token, amount, StakerAction.Stake)
       process.exit(0)
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

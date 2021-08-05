@@ -1,16 +1,36 @@
 import { Tokens } from './types'
 import {
+  ETHImage,
+  XDAIImage,
+  MATICImage,
   ARBImage,
   DAIImage,
   sBTCImage,
   sETHImage,
   USDCImage,
   USDTImage,
-  WBTCImage,
-  MATICImage
+  WBTCImage
 } from './assets'
 
 export const tokens: Tokens = {
+  ETH: {
+    symbol: 'ETH',
+    name: 'ETH',
+    decimals: 18,
+    image: ETHImage
+  },
+  XDAI: {
+    symbol: 'XDAI',
+    name: 'XDAI',
+    decimals: 18,
+    image: XDAIImage
+  },
+  MATIC: {
+    symbol: 'MATIC',
+    name: 'Matic',
+    decimals: 18,
+    image: MATICImage
+  },
   DAI: {
     symbol: 'DAI',
     name: 'DAI Stablecoin',
@@ -52,11 +72,5 @@ export const tokens: Tokens = {
     name: 'Wrapped BTC',
     decimals: 18,
     image: WBTCImage
-  },
-  MATIC: {
-    symbol: 'MATIC',
-    name: 'Matic',
-    decimals: 18,
-    image: MATICImage
   }
 }

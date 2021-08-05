@@ -13,6 +13,7 @@ import usdtLogo from 'src/assets/logos/usdt.svg'
 import wBtcLogo from 'src/assets/logos/wbtc.svg'
 import ethLogo from 'src/assets/logos/eth.svg'
 import maticLogo from 'src/assets/logos/matic.svg'
+import { network } from 'src/config'
 
 type Metadata = {
   tokens: {
@@ -48,7 +49,6 @@ const images = {
   MATIC: maticLogo,
 }
 
-const network = process.env.REACT_APP_NETWORK || 'kovan'
 const tokens = Object.keys(images).reduce((obj, token) => {
   obj[token] = deepmerge(hopMetadata[network].tokens[token], {
     image: images[token]

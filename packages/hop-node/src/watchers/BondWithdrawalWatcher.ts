@@ -191,11 +191,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
             `destination chain id: ${destinationChainId} bondWithdrawal amount:`,
             this.bridge.formatUnits(bondedAmount)
           )
-
-          await this.db.transfers.update(transferId, {
-            withdrawalBonded: true,
-            withdrawalBondedTxHash: receipt.transactionHash
-          })
         })
         .catch(async (err: Error) => {
           await this.db.transfers.update(transferId, {

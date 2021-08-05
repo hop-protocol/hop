@@ -274,10 +274,6 @@ class BondTransferRootWatcher extends BaseWatcher {
           destinationChainId,
           totalAmount
         })
-
-        this.db.transferRoots.update(transferRootHash, {
-          bonded: true
-        })
       })
       .catch(async (err: Error) => {
         this.db.transferRoots.update(transferRootHash, {

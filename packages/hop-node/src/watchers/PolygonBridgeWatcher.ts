@@ -8,9 +8,9 @@ import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Event } from 'src/types'
 import { MaticPOSClient } from '@maticnetwork/maticjs'
+import { chainSlugToId, getRpcUrls, wait } from 'src/utils'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
-import { wait } from 'src/utils'
 
 type Config = {
   chainSlug: string
@@ -33,17 +33,16 @@ class PolygonBridgeWatcher extends BaseWatcher {
       logColor: 'yellow'
     })
 
+    const privateKey = globalConfig.relayerPrivateKey || globalConfig.bonderPrivateKey
     this.l1Provider = new providers.StaticJsonRpcProvider(
-      'https://goerli.rpc.hop.exchange'
+      getRpcUrls(Chain.Ethereum)[0]
     )
     this.l2Provider = new providers.StaticJsonRpcProvider(
-      'https://rpc-mumbai.maticvigil.com'
+      getRpcUrls(Chain.Polygon)[0]
     )
-    const privateKey =
-      globalConfig.relayerPrivateKey || globalConfig.bonderPrivateKey
     this.l1Wallet = new GasBoostSigner(privateKey, this.l1Provider)
     this.l2Wallet = new GasBoostSigner(privateKey, this.l2Provider)
-    this.chainId = 5
+    this.chainId = chainSlugToId(config.chainSlug)
     this.apiUrl = `https://apis.matic.network/api/v1/${
       this.chainId === 1 ? 'matic' : 'mumbai'
     }/block-included`

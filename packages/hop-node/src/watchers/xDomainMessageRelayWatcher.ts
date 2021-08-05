@@ -1,6 +1,5 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
-import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
@@ -9,8 +8,6 @@ import { Chain, TEN_MINUTES_MS, TX_RETRY_DELAY_MS } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { executeExitTx, getL2Amb } from './xDaiBridgeWatcher'
-import { config as gConfig } from 'src/config'
-import { getRpcUrls } from 'src/utils'
 
 export interface Config {
   chainSlug: string
@@ -225,7 +222,10 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         }
       }
     } else if (chainSlug === Chain.Polygon) {
-      const poly = this.getPolyInstance()
+      const poly = new PolygonBridgeWatcher({
+        chainSlug: Chain.Polygon,
+        tokenSymbol: this.tokenSymbol
+      })
       const commitTx: any = await this.bridge.getTransaction(commitTxHash)
       const isCheckpointed = await poly.isCheckpointed(commitTx.blockNumber)
       if (!isCheckpointed) {
@@ -285,30 +285,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       // not implemented
 
     }
-  }
-
-  getPolyInstance () {
-    // TODO: These params should be passed into constructor and this should not be a standalone
-    // function
-    const poly = new PolygonBridgeWatcher({
-      chainSlug: Chain.Polygon,
-      tokenSymbol: this.tokenSymbol
-    })
-    const privateKey = gConfig.relayerPrivateKey || gConfig.bonderPrivateKey
-    poly.l1Provider = new providers.StaticJsonRpcProvider(
-      getRpcUrls(Chain.Ethereum)[0]
-    )
-    poly.l2Provider = new providers.StaticJsonRpcProvider(
-      getRpcUrls(Chain.Polygon)[0]
-    )
-    poly.l1Wallet = new GasBoostSigner(privateKey, poly.l1Provider)
-    poly.l2Wallet = new GasBoostSigner(privateKey, poly.l2Provider)
-    poly.chainId = 1
-    poly.apiUrl = `https://apis.matic.network/api/v1/${
-      poly.chainId === 1 ? 'matic' : 'mumbai'
-    }/block-included`
-
-    return poly
   }
 
   shouldAttemptCheckpoint (dbTransferRoot: TransferRoot, chainSlug: string) {

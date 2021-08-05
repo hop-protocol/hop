@@ -13,7 +13,7 @@ import useEvents, { Events } from 'src/contexts/AppContext/useEvents'
 import useSettings, { Settings } from 'src/contexts/AppContext/useSettings'
 import { useAccountDetails, AccountDetails } from 'src/contexts/AppContext/useAccountDetails'
 import { useTxConfirm, TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
-import { network } from 'src/config'
+import { reactAppNetwork } from 'src/config'
 
 type AppContextProps = {
   sdk: Hop
@@ -62,9 +62,7 @@ const AppContextProvider: FC = ({ children }) => {
   }, [provider])
 
   const sdk = useMemo(() => {
-    // override for staging environment
-    const _sdk = new Hop(network, provider?.getSigner())
-    _sdk.setConfigAddresses(require('../../config/staging.json'))
+    const _sdk = new Hop(reactAppNetwork, provider?.getSigner())
     return _sdk
   }, [provider])
   const networks = useNetworks()

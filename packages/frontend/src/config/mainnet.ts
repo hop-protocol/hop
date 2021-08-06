@@ -17,36 +17,38 @@ export const addresses: HopAddresses = {
   bonders: _addresses.bonders,
 }
 
+const _networks = mainnetNetworks as any
+
 export const networks: Networks = {
   ethereum: {
-    networkId: mainnetNetworks.ethereum.networkId.toString(),
-    rpcUrls: mainnetNetworks.ethereum.rpcUrls,
-    explorerUrl: mainnetNetworks.ethereum.explorerUrls[0],
+    networkId: _networks.ethereum.networkId.toString(),
+    rpcUrls: _networks.ethereum.rpcUrls,
+    explorerUrl: _networks.ethereum.explorerUrls[0],
   },
   polygon: {
-    networkId: mainnetNetworks.polygon.networkId.toString(),
-    rpcUrls: mainnetNetworks.polygon.rpcUrls,
-    explorerUrl: mainnetNetworks.polygon.explorerUrls[0],
-    nativeBridgeUrl: mainnetNetworks.polygon.nativeBridgeUrl
+    networkId: _networks.polygon.networkId.toString(),
+    rpcUrls: _networks.polygon.rpcUrls,
+    explorerUrl: _networks.polygon.explorerUrls[0],
+    nativeBridgeUrl: _networks.polygon.nativeBridgeUrl
   },
   /*
   arbitrum: {
-    networkId: mainnetNetworks.arbitrum.networkId.toString(),
-    rpcUrls: mainnetNetworks.arbitrum.rpcUrls,
-    explorerUrl: mainnetNetworks.arbitrum.explorerUrls[0],
-    nativeBridgeUrl: mainnetNetworks.arbitrum.nativeBridgeUrl
+    networkId: _networks.arbitrum.networkId.toString(),
+    rpcUrls: _networks.arbitrum.rpcUrls,
+    explorerUrl: _networks.arbitrum.explorerUrls[0],
+    nativeBridgeUrl: _networks.arbitrum.nativeBridgeUrl
   },
   optimism: {
-    networkId: mainnetNetworks.optimism.networkId.toString(),
-    rpcUrls: mainnetNetworks.optimism.rpcUrls,
-    explorerUrl: mainnetNetworks.optimism.explorerUrls[0],
-    nativeBridgeUrl: mainnetNetworks.optimism.nativeBridgeUrl
+    networkId: _networks.optimism.networkId.toString(),
+    rpcUrls: _networks.optimism.rpcUrls,
+    explorerUrl: _networks.optimism.explorerUrls[0],
+    nativeBridgeUrl: _networks.optimism.nativeBridgeUrl
   },
   */
   xdai: {
-    networkId: mainnetNetworks.xdai.networkId.toString(),
-    rpcUrls: mainnetNetworks.xdai.rpcUrls,
-    explorerUrl: mainnetNetworks.xdai.explorerUrls[0],
-    nativeBridgeUrl: mainnetNetworks.xdai.nativeBridgeUrl
+    networkId: _networks.xdai.networkId.toString(),
+    rpcUrls: _networks.xdai.rpcUrls,
+    explorerUrl: _networks.xdai.explorerUrls[0],
+    nativeBridgeUrl: _networks.xdai.nativeBridgeUrl
   }
 }

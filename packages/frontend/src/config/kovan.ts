@@ -15,31 +15,33 @@ export const addresses: HopAddresses = {
   bonders: kovanAddresses.bonders,
 }
 
+const _networks = kovanNetworks as any
+
 export const networks: Networks = {
   ethereum: {
-    networkId: kovanNetworks.ethereum.networkId.toString(),
-    rpcUrls: kovanNetworks.ethereum.rpcUrls,
-    explorerUrl: kovanNetworks.ethereum.explorerUrls[0],
-    nativeBridgeUrl: kovanNetworks.ethereum.nativeBridgeUrl
+    networkId: _networks.ethereum.networkId.toString(),
+    rpcUrls: _networks.ethereum.rpcUrls,
+    explorerUrl: _networks.ethereum.explorerUrls[0],
+    nativeBridgeUrl: _networks.ethereum.nativeBridgeUrl
   },
   /*
   arbitrum: {
-    networkId: kovanNetworks.arbitrum.networkId.toString(),
-    rpcUrls: kovanNetworks.arbitrum.rpcUrls,
-    explorerUrl: kovanNetworks.arbitrum.explorerUrls[0],
-    nativeBridgeUrl: kovanNetworks.arbitrum.nativeBridgeUrl
+    networkId: _networks.arbitrum.networkId.toString(),
+    rpcUrls: _networks.arbitrum.rpcUrls,
+    explorerUrl: _networks.arbitrum.explorerUrls[0],
+    nativeBridgeUrl: _networks.arbitrum.nativeBridgeUrl
   },
   */
   optimism: {
-    networkId: kovanNetworks.optimism.networkId.toString(),
-    rpcUrls: kovanNetworks.optimism.rpcUrls,
-    explorerUrl: kovanNetworks.optimism.explorerUrls[0],
-    nativeBridgeUrl: kovanNetworks.optimism.nativeBridgeUrl
+    networkId: _networks.optimism.networkId.toString(),
+    rpcUrls: _networks.optimism.rpcUrls,
+    explorerUrl: _networks.optimism.explorerUrls[0],
+    nativeBridgeUrl: _networks.optimism.nativeBridgeUrl
   },
   xdai: {
-    networkId: kovanNetworks.xdai.networkId.toString(),
-    rpcUrls: kovanNetworks.xdai.rpcUrls,
-    explorerUrl: kovanNetworks.xdai.explorerUrls[0],
-    nativeBridgeUrl: kovanNetworks.xdai.nativeBridgeUrl
+    networkId: _networks.xdai.networkId.toString(),
+    rpcUrls: _networks.xdai.rpcUrls,
+    explorerUrl: _networks.xdai.explorerUrls[0],
+    nativeBridgeUrl: _networks.xdai.nativeBridgeUrl
   }
 }

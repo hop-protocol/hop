@@ -13,32 +13,34 @@ export const addresses: HopAddresses = {
   bonders: goerliAddresses.bonders,
 }
 
+const _networks = goerliNetworks as any
+
 export const networks: Networks = {
   ethereum: {
-    networkId: goerliNetworks.ethereum.networkId.toString(),
-    rpcUrls: goerliNetworks.ethereum.rpcUrls,
-    explorerUrl: goerliNetworks.ethereum.explorerUrls[0]
+    networkId: _networks.ethereum.networkId.toString(),
+    rpcUrls: _networks.ethereum.rpcUrls,
+    explorerUrl: _networks.ethereum.explorerUrls[0]
   },
   polygon: {
-    networkId: goerliNetworks.polygon.networkId.toString(),
-    rpcUrls: goerliNetworks.polygon.rpcUrls,
-    explorerUrl: goerliNetworks.polygon.explorerUrls[0]
+    networkId: _networks.polygon.networkId.toString(),
+    rpcUrls: _networks.polygon.rpcUrls,
+    explorerUrl: _networks.polygon.explorerUrls[0]
   }
   /*
   arbitrum: {
-    networkId: goerliNetworks.arbitrum.networkId.toString(),
-    rpcUrls: goerliNetworks.arbitrum.rpcUrls,
-    explorerUrl: goerliNetworks.arbitrum.explorerUrls[0]
+    networkId: _networks.arbitrum.networkId.toString(),
+    rpcUrls: _networks.arbitrum.rpcUrls,
+    explorerUrl: _networks.arbitrum.explorerUrls[0]
   },
   optimism: {
-    networkId: goerliNetworks.optimism.networkId.toString(),
-    rpcUrls: goerliNetworks.optimism.rpcUrls,
-    explorerUrl: goerliNetworks.optimism.explorerUrls[0]
+    networkId: _networks.optimism.networkId.toString(),
+    rpcUrls: _networks.optimism.rpcUrls,
+    explorerUrl: _networks.optimism.explorerUrls[0]
   },
   xdai: {
-    networkId: goerliNetworks.xdai.networkId.toString(),
-    rpcUrls: goerliNetworks.xdai.rpcUrls,
-    explorerUrl: goerliNetworks.xdai.explorerUrls[0]
+    networkId: _networks.xdai.networkId.toString(),
+    rpcUrls: _networks.xdai.rpcUrls,
+    explorerUrl: _networks.xdai.explorerUrls[0]
   }
   */
 }

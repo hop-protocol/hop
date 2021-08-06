@@ -330,10 +330,7 @@ class Base {
   // Transaction overrides options
   public txOverrides (chain: Chain) {
     const txOptions: any = {}
-    if (chain.equals(Chain.Optimism)) {
-      txOptions.gasPrice = 0
-      txOptions.gasLimit = 8000000
-    } else if (chain.equals(Chain.xDai)) {
+    if (chain.equals(Chain.xDai)) {
       txOptions.gasLimit = 5000000
     }
     return txOptions

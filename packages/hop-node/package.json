@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/hop-node",
-  "version": "0.0.1-beta.1",
+  "version": "0.0.1-beta.2",
   "description": "The Hop Node for Hop Protocol",
   "main": "dist/index.js",
   "scripts": {
@@ -35,7 +35,7 @@
     "@eth-optimism/watcher": "0.0.1-alpha.9",
     "@ethersproject/experimental": "^5.0.9",
     "@ethersproject/hdnode": "^5.0.9",
-    "@hop-protocol/core": "0.0.1-beta.6",
+    "@hop-protocol/core": "0.0.1-beta.7",
     "@maticnetwork/maticjs": "2.0.45",
     "@slack/web-api": "^6.1.0",
     "@types/debounce-promise": "^3.1.3",

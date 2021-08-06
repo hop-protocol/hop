@@ -30,6 +30,7 @@ export default class Bridge extends ContractBase {
   tokenSymbol: string = ''
   bridgeContract: Contract
   readProvider?: providers.Provider
+  specialReadProvider?: providers.Provider
   bridgeDeployedBlockNumber: number
   minBondWithdrawalAmount: BigNumber
   maxBondWithdrawalAmount: BigNumber
@@ -83,11 +84,24 @@ export default class Bridge extends ContractBase {
     this.readProvider = provider
   }
 
+  // the special read provider is a read provider that's meant to be used
+  // for very specific events that the regular read provider doesn't provide.
+  // This is specific to polygon only.
+  setSpecialReadProvider (provider: providers.Provider): void {
+    this.specialReadProvider = provider
+  }
+
   // if there is no alternative read provider, then use the default provider.
   getReadBridgeContract (): Contract {
     return this.readProvider
       ? this.bridgeContract?.connect(this.readProvider)
       : this.bridgeContract
+  }
+
+  getSpecialReadBridgeContract (): Contract {
+    return this.specialReadProvider
+      ? this.bridgeContract?.connect(this.specialReadProvider)
+      : this.getReadBridgeContract()
   }
 
   // the write provider is the default provider used, so there's
@@ -275,7 +289,7 @@ export default class Bridge extends ContractBase {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<Event[]> {
-    return this.getReadBridgeContract().queryFilter(
+    return this.getSpecialReadBridgeContract().queryFilter(
       this.getReadBridgeContract().filters.TransferRootSet(),
       startBlockNumber,
       endBlockNumber

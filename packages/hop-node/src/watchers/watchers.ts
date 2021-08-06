@@ -85,6 +85,15 @@ function getStakeWatchers (
       watcher.logger.debug(`read rpc url: ${readRpcUrl}`)
       watcher.bridge.setReadProvider(provider)
     }
+
+    const specialReadRpcUrl = config.networks[watcher.chainSlug].specialReadRpcUrl
+    if (specialReadRpcUrl) {
+      const provider = getRpcProviderFromUrl(
+        specialReadRpcUrl
+      )
+      watcher.logger.debug(`special read rpc url: ${specialReadRpcUrl}`)
+      watcher.bridge.setSpecialReadProvider(provider)
+    }
   })
 
   return watchers

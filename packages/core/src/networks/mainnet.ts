@@ -47,6 +47,7 @@ export const networks: Networks = {
     networkId: 137,
     rpcUrls: ['https://polygon.rpc.hop.exchange'],
     archiveRpcUrls: ['https://polygon.rpc.hop.exchange'],
+    specialArchiveRpcUrl: 'https://matic-mainnet-archive-rpc.bwarelabs.com',
     explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
     waitConfirmations: 124

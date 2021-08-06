@@ -27,6 +27,16 @@ const getConfigByNetwork = (_network: string) => {
     ;({ addresses, networks, bonders } = require('./staging'))
   }
 
+  for (const key in networks) {
+    const item = (networks as any)[key] as any
+    if (item?.archiveRpcUrls.length) {
+      item.readRpcUrl = item.archiveRpcUrls[0]
+    }
+    if (item?.specialArchiveRpcUrl) {
+      item.specialReadRpcUrl = item.specialArchiveRpcUrl
+    }
+  }
+
   const tokens: {
     [key: string]: {
       [key: string]: {

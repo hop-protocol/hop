@@ -72,7 +72,7 @@ export default class L2Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<Event[]> {
-    return this.getReadBridgeContract().queryFilter(
+    return this.getSpecialReadBridgeContract().queryFilter(
       this.getReadBridgeContract().filters.TransferFromL1Completed(),
       startBlockNumber,
       endBlockNumber

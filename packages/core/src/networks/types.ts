@@ -1,4 +1,8 @@
-export interface Network {
+export type PolygonExtras = {
+  specialArchiveRpcUrl: string
+}
+
+export type Network = {
   name: string
   networkId: number
   rpcUrls: string[]
@@ -8,6 +12,10 @@ export interface Network {
   waitConfirmations: number
 }
 
-export interface Networks {
-  [key: string]: Network
+export type Networks = {
+  ethereum: Network
+  arbitrum?: Network
+  optimism?: Network
+  xdai?: Network
+  polygon?: Network & PolygonExtras
 }

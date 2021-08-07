@@ -127,13 +127,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
+    await this.handleStateSwitch(sourceChainId)
+
     if (this.dryMode) {
       logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
-      return
-    }
-
-    const didStateSwitch = await this.handleStateSwitch(sourceChainId)
-    if (didStateSwitch) {
       return
     }
 
@@ -288,7 +285,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     throw new Error('cancelled')
   }
 
-  handleStateSwitch = async (chainId: number): Promise<boolean> => {
+  handleStateSwitch = async (chainId: number) => {
     if (!this.stateUpdateAddress) {
       return
     }

@@ -82,7 +82,6 @@ const TokenWrapper: FC = () => {
         balanceLabel={'WMATIC:'}
         loadingBalance={loadingBalance}
         hideSymbol
-        hideMaxButton
       />
       <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
         <Button

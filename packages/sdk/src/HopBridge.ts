@@ -1027,8 +1027,13 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
+    let balance: BigNumber
     const canonicalToken = this.getCanonicalToken(sourceChain)
-    const balance = await canonicalToken.balanceOf()
+    if (this.isNativeToken(sourceChain)) {
+      balance = await canonicalToken.getNativeTokenBalance()
+    } else {
+      balance = await canonicalToken.balanceOf()
+    }
     if (balance.lt(BigNumber.from(tokenAmount))) {
       throw new Error('not enough token balance')
     }

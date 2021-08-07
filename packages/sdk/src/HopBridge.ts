@@ -691,7 +691,7 @@ class HopBridge extends Base {
    */
   public async getAvailableLiquidity (
     destinationChain: TChain,
-    bonder: string = this.getBonderAddress()
+    bonder: string = this.getBonderAddress(this.tokenSymbol)
   ): Promise<BigNumber> {
     const chain = this.toChainModel(destinationChain)
     const [credit, debit] = await Promise.all([
@@ -729,7 +729,7 @@ class HopBridge extends Base {
    */
   public async getCredit (
     chain: TChain,
-    bonder: string = this.getBonderAddress()
+    bonder: string = this.getBonderAddress(this.tokenSymbol)
   ): Promise<BigNumber> {
     chain = this.toChainModel(chain)
     const bridge = await this.getBridgeContract(chain)
@@ -744,7 +744,7 @@ class HopBridge extends Base {
    */
   public async getDebit (
     chain: TChain,
-    bonder: string = this.getBonderAddress()
+    bonder: string = this.getBonderAddress(this.tokenSymbol)
   ): Promise<BigNumber> {
     chain = this.toChainModel(chain)
     const bridge = await this.getBridgeContract(chain)
@@ -1027,8 +1027,13 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
+    let balance: BigNumber
     const canonicalToken = this.getCanonicalToken(sourceChain)
-    const balance = await canonicalToken.balanceOf()
+    if (this.isNativeToken(sourceChain)) {
+      balance = await canonicalToken.getNativeTokenBalance()
+    } else {
+      balance = await canonicalToken.balanceOf()
+    }
     if (balance.lt(BigNumber.from(tokenAmount))) {
       throw new Error('not enough token balance')
     }
@@ -1437,8 +1442,8 @@ class HopBridge extends Base {
     return this.getContract(address, l1HomeAmbNativeToErc20, provider)
   }
 
-  isNativeToken (chain: TChain) {
-    chain = this.toChainModel(chain)
+  isNativeToken (chain?: TChain) {
+    chain = chain ? this.toChainModel(chain) : this.sourceChain
     const isEth =
       this.tokenSymbol === TokenModel.ETH && chain.equals(Chain.Ethereum)
     const isMatic =
@@ -1453,15 +1458,22 @@ class HopBridge extends Base {
     return this.getContract(address, wethAbi, this.signer)
   }
 
-  async wrapToken (amount: TAmount, chain: TChain) {
+  async wrapToken (amount: TAmount, chain?: TChain) {
+    chain = chain ? this.toChainModel(chain) : this.sourceChain
     const contract = await this.getWethContract(chain)
     return contract.deposit({
       value: amount
     })
   }
 
-  async isTokenWrapNeeded (chain: TChain, amount: TAmount) {
-    chain = this.toChainModel(chain)
+  async unwrapToken (amount: TAmount, chain?: TChain) {
+    chain = chain ? this.toChainModel(chain) : this.sourceChain
+    const contract = await this.getWethContract(chain)
+    return contract.withdraw(amount)
+  }
+
+  async isTokenWrapNeeded (amount: TAmount, chain?: TChain) {
+    chain = chain ? this.toChainModel(chain) : this.sourceChain
     amount = BigNumber.from(amount.toString())
     if (this.isNativeToken(chain)) {
       const canonicalToken = this.getCanonicalToken(chain)

@@ -8,6 +8,7 @@ import RemoveLiquidity from 'src/components/txConfirm/RemoveLiquidity'
 import Stake from 'src/components/txConfirm/Stake'
 import WithdrawStake from 'src/components/txConfirm/WithdrawStake'
 import WrapToken from 'src/components/txConfirm/WrapToken'
+import UnwrapToken from 'src/components/txConfirm/UnwrapToken'
 import { useApp } from 'src/contexts/AppContext'
 
 const TxConfirm: FC = props => {
@@ -26,6 +27,7 @@ const TxConfirm: FC = props => {
     stake: Stake,
     withdrawStake: WithdrawStake,
     wrapToken: WrapToken,
+    unwrapToken: UnwrapToken,
   }
 
   const Component: FC = components[kind]

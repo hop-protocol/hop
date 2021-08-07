@@ -151,7 +151,7 @@ const StatsContextProvider: FC = ({ children }) => {
       const promises: Promise<any>[] = []
       for (const network of networks) {
         for (const token of tokens) {
-          for (const bonder of config.addresses.bonders) {
+          for (const bonder of config.addresses.bonders?.[token.symbol]) {
             promises.push(fetchBonderStats(network, token, bonder))
           }
         }

@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.97",
+  "version": "0.0.1-beta.100",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -32,7 +32,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@hop-protocol/core": "0.0.1-beta.8",
+    "@hop-protocol/core": "0.0.1-beta.9",
     "@maticnetwork/maticjs": "^2.0.38",
     "@types/isomorphic-fetch": "0.0.35",
     "@types/luxon": "^1.27.1",

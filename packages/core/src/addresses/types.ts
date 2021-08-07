@@ -62,7 +62,9 @@ export type Bridges = {
   }>
 }
 
-export type Bonders = string[]
+export type Bonders = {
+  [token: string]: string[]
+}
 
 export type Addresses = {
   bridges: Bridges

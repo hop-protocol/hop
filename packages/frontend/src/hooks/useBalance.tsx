@@ -10,7 +10,8 @@ import { Addressish } from 'src/models/Address'
 const useBalance = (
   token: Token | undefined,
   network: Network | undefined,
-  address: Addressish
+  address: Addressish,
+  isNativeToken: boolean = false
 ) => {
   const { user } = useApp()
   const [balance, setBalance] = useState<BigNumber>()
@@ -32,7 +33,7 @@ const useBalance = (
         const ctx = ++debouncer.current
 
         let _balance : BigNumber
-        if (token.isNativeToken) {
+        if (isNativeToken) {
           _balance = await token.getNativeTokenBalance(address.toString())
         } else {
           _balance = await token.balanceOf(address.toString())

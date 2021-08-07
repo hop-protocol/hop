@@ -1,7 +1,10 @@
 import { Addresses } from './types'
 
 export const addresses: Addresses = {
-  bonders: ['0x81682250D4566B2986A2B33e23e7c52D401B7aB7'],
+  bonders: {
+    USDC: ['0x81682250D4566B2986A2B33e23e7c52D401B7aB7'],
+    DAI: ['0x81682250D4566B2986A2B33e23e7c52D401B7aB7']
+  },
   bridges: {
     USDC: {
       ethereum: {

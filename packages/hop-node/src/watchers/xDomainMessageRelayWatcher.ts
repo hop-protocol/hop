@@ -171,8 +171,9 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
           this.logger.debug(
             `attempting to send relay message on xdai for commit tx hash ${commitTxHash}`
           )
-          if (this.dryMode) {
-            this.logger.warn('dry mode: skipping executeExitTx transaction')
+          await this.handleStateSwitch()
+          if (this.isDryOrPauseMode) {
+            logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
             return
           }
           const result = await executeExitTx(sigEvent, this.tokenSymbol)
@@ -238,8 +239,9 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.logger.debug(
         `attempting to send relay message on polygon for commit tx hash ${commitTxHash}`
       )
-      if (this.dryMode) {
-        this.logger.warn('dry mode: skipping relayMessage transaction')
+      await this.handleStateSwitch()
+      if (this.isDryOrPauseMode) {
+        logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayMessage`)
         return
       }
       const tx = await poly.relayMessage(commitTxHash, this.tokenSymbol)

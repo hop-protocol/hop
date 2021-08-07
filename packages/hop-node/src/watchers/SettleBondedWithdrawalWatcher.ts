@@ -188,8 +188,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
       logger.debug('transferIds', JSON.stringify(transferIds))
 
-      if (this.dryMode) {
-        logger.warn('dry mode: skipping settleBondedWithdrawals transaction')
+      await this.handleStateSwitch()
+      if (this.isDryOrPauseMode) {
+        logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping settleBondedWithdrawals`)
         return
       }
 

@@ -131,8 +131,9 @@ class CommitTransfersWatcher extends BaseWatcher {
         `total pending amount for chainId ${destinationChainId}: ${formattedPendingAmount}`
       )
 
-      if (this.dryMode) {
-        this.logger.warn('dry mode: skipping commitTransfers transaction')
+      await this.handleStateSwitch()
+      if (this.isDryOrPauseMode) {
+        this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping commitTransfers`)
         return
       }
 

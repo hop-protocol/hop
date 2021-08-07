@@ -2,9 +2,9 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
-import { Chain, TxError } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
+import { TxError } from 'src/constants'
 import { wait } from 'src/utils'
 
 export interface Config {
@@ -127,10 +127,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    await this.handleStateSwitch(sourceChainId)
-
-    if (this.dryMode) {
-      logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
+    await this.handleStateSwitch()
+    if (this.isDryOrPauseMode) {
+      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping bondWithdrawalWatcher`)
       return
     }
 
@@ -283,43 +282,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
     this.logger.debug(`transfer id already bonded ${transferId}`)
     throw new Error('cancelled')
-  }
-
-  handleStateSwitch = async (chainId: number) => {
-    if (!this.stateUpdateAddress) {
-      return
-    }
-
-    let state: number
-    try {
-      const l1ChainId = this.chainSlugToId(Chain.Ethereum)
-      const l1Bridge = this.getSiblingWatcherByChainId(l1ChainId).bridge
-      state = await l1Bridge.getStateUpdateStatus(this.stateUpdateAddress, chainId)
-    } catch (err) {
-      console.log(`getStateUpdateStatus failed with ${err}`)
-      return
-    }
-
-    switch (state) {
-      case 0: {
-        this.setDryMode(false)
-        this.setPauseMode(false)
-        break
-      }
-      case 1: {
-        this.setDryMode(true)
-        this.setPauseMode(false)
-        break
-      }
-      case 2: {
-        this.setDryMode(false)
-        this.setPauseMode(true)
-        break
-      }
-      case 4: {
-        process.exit(1)
-      }
-    }
   }
 }
 

@@ -2,6 +2,7 @@ import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import SyncWatcher from '../SyncWatcher'
+import { Chain } from 'src/constants'
 import { Contract } from 'ethers'
 import { Db, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
@@ -174,6 +175,47 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   cacheKey (key: string) {
     return `${this.tag}:${key}`
+  }
+
+  handleStateSwitch = async () => {
+    if (!this.stateUpdateAddress) {
+      return
+    }
+
+    let state: number
+    try {
+      const l1ChainId = this.chainSlugToId(Chain.Ethereum)
+      const l1Bridge = this.getSiblingWatcherByChainId(l1ChainId).bridge
+      state = await l1Bridge.getStateUpdateStatus(this.stateUpdateAddress, this.bridge.chainId)
+    } catch (err) {
+      this.logger.log(`getStateUpdateStatus failed with ${err}`)
+      return
+    }
+
+    switch (state) {
+      case 0: {
+        this.setDryMode(false)
+        this.setPauseMode(false)
+        break
+      }
+      case 1: {
+        this.setDryMode(true)
+        this.setPauseMode(false)
+        break
+      }
+      case 2: {
+        this.setDryMode(false)
+        this.setPauseMode(true)
+        break
+      }
+      case 4: {
+        this.quit()
+      }
+    }
+  }
+
+  get isDryOrPauseMode () {
+    return this.dryMode || this.pauseMode
   }
 
   setDryMode (enabled: boolean) {

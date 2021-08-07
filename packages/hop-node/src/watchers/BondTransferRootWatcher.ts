@@ -222,8 +222,9 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode) {
-      logger.warn('dry mode: skipping bondTransferRoot transaction')
+    await this.handleStateSwitch()
+    if (this.isDryOrPauseMode) {
+      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping bondTransferRoot`)
       return
     }
 

@@ -691,7 +691,7 @@ class HopBridge extends Base {
    */
   public async getAvailableLiquidity (
     destinationChain: TChain,
-    bonder: string = this.getBonderAddress()
+    bonder: string = this.getBonderAddress(this.tokenSymbol)
   ): Promise<BigNumber> {
     const chain = this.toChainModel(destinationChain)
     const [credit, debit] = await Promise.all([
@@ -729,7 +729,7 @@ class HopBridge extends Base {
    */
   public async getCredit (
     chain: TChain,
-    bonder: string = this.getBonderAddress()
+    bonder: string = this.getBonderAddress(this.tokenSymbol)
   ): Promise<BigNumber> {
     chain = this.toChainModel(chain)
     const bridge = await this.getBridgeContract(chain)
@@ -744,7 +744,7 @@ class HopBridge extends Base {
    */
   public async getDebit (
     chain: TChain,
-    bonder: string = this.getBonderAddress()
+    bonder: string = this.getBonderAddress(this.tokenSymbol)
   ): Promise<BigNumber> {
     chain = this.toChainModel(chain)
     const bridge = await this.getBridgeContract(chain)

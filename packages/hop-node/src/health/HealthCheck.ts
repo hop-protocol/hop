@@ -141,10 +141,10 @@ class HealthCheck {
           if (!destBridge) {
             continue
           }
-          if (!config?.bonders?.length) {
-            throw new Error('bonders array is empty')
+          if (!config?.bonders) {
+            throw new Error('bonders object is empty')
           }
-          const bonder = config.bonders[0]
+          const bonder = config?.bonders?.[tokenSymbol]?.[0]
           const bondedAmount = await destBridge.getBondedWithdrawalAmountByBonder(
             bonder,
             transferId
@@ -323,10 +323,10 @@ class HealthCheck {
           }
 
           const destinationChain = destBridge.chainIdToSlug(destinationChainId)
-          if (!config?.bonders?.length) {
-            throw new Error('bonders array is empty')
+          if (!config?.bonders) {
+            throw new Error('bonders object is empty')
           }
-          const bonder = config.bonders[0]
+          const bonder = config?.bonders?.[tokenSymbol]?.[0]
           /*
           const bondedAmount = await destBridge.getBondedWithdrawalAmountByBonder(
             bonder,
@@ -339,8 +339,8 @@ class HealthCheck {
             continue
           }
           */
-          if (!config?.bonders?.length) {
-            throw new Error('bonders array is empty')
+          if (!config?.bonders) {
+            throw new Error('bonders object is empty')
           }
           const destEndBlockNumber = await destBridge.getBlockNumber()
           const destStartBlockNumber = destEndBlockNumber - 1_000
@@ -415,7 +415,7 @@ class HealthCheck {
     const totalBondsSettleAmounts: any = {}
     const totals: any = {}
     for (const { transferId, destinationChainId } of bondedTransferIds) {
-      const bonder = config.bonders[0]
+      const bonder = config.bonders?.[tokenSymbol]?.[0]
       const destBridge = this.bridges.find((bridge: L2Bridge) => {
         return bridge.chainId === destinationChainId
       })

@@ -185,8 +185,8 @@ export default class Bridge extends ContractBase {
     let totalBondedAmount = BigNumber.from(0)
     const bonderAddress = await this.getBonderAddress()
     let bonders = [bonderAddress]
-    if (Array.isArray(config?.bonders)) {
-      bonders = unique([bonderAddress, ...config.bonders])
+    if (config?.bonders?.[this.tokenSymbol]) {
+      bonders = unique([bonderAddress, ...config.bonders[this.tokenSymbol]])
     }
     for (const bonder of bonders) {
       const bondedAmount = await this.getBondedWithdrawalAmountByBonder(

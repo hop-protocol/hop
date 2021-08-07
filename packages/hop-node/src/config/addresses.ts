@@ -5,7 +5,7 @@ const { metadata } = require('./metadata')
 const network = process.env.NETWORK || Network.Kovan
 export const isTestMode = !!process.env.TEST_MODE
 
-let bonders: string[] = []
+let bonders: {[token: string]: string[]} = {}
 let isMainnet = network === Network.Mainnet
 
 const getConfigByNetwork = (_network: string) => {

@@ -336,12 +336,14 @@ class Base {
     return txOptions
   }
 
-  public getBonderAddress (): string {
-    return this.bonders?.[this.network]?.[0]
+  public getBonderAddress (token: TToken): string {
+    token = this.toTokenModel(token)
+    return this.bonders?.[this.network]?.[token.symbol]?.[0]
   }
 
-  public getBonderAddresses (): string[] {
-    return this.bonders?.[this.network]
+  public getBonderAddresses (token: TToken): string[] {
+    token = this.toTokenModel(token)
+    return this.bonders?.[this.network]?.[token.symbol]
   }
 
   public getContract = getContract

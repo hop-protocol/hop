@@ -2,9 +2,9 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
+import { Chain, TxError } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
-import { TxError } from 'src/constants'
 import { wait } from 'src/utils'
 
 export interface Config {
@@ -15,6 +15,7 @@ export interface Config {
   label: string
   order?: () => number
   dryMode?: boolean
+  stateUpdateAddress?: string
 }
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
@@ -34,7 +35,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
+      dryMode: config.dryMode,
+      stateUpdateAddress: config.stateUpdateAddress
     })
   }
 
@@ -127,6 +129,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     if (this.dryMode) {
       logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
+      return
+    }
+
+    const didStateSwitch = await this.handleStateSwitch(sourceChainId)
+    if (didStateSwitch) {
       return
     }
 
@@ -279,6 +286,43 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
     this.logger.debug(`transfer id already bonded ${transferId}`)
     throw new Error('cancelled')
+  }
+
+  handleStateSwitch = async (chainId: number): Promise<boolean> => {
+    if (!this.stateUpdateAddress) {
+      return
+    }
+
+    let state: number
+    try {
+      const l1ChainId = this.chainSlugToId(Chain.Ethereum)
+      const l1Bridge = this.getSiblingWatcherByChainId(l1ChainId).bridge
+      state = await l1Bridge.getStateUpdateStatus(this.stateUpdateAddress, chainId)
+    } catch (err) {
+      console.log(`getStateUpdateStatus failed with ${err}`)
+      return
+    }
+
+    switch (state) {
+      case 0: {
+        this.setDryMode(false)
+        this.setPauseMode(false)
+        break
+      }
+      case 1: {
+        this.setDryMode(true)
+        this.setPauseMode(false)
+        break
+      }
+      case 2: {
+        this.setDryMode(false)
+        this.setPauseMode(true)
+        break
+      }
+      case 4: {
+        process.exit(1)
+      }
+    }
   }
 }
 

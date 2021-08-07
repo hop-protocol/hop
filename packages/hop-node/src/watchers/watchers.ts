@@ -127,6 +127,7 @@ type Config = {
   bondWithdrawalAmounts?: any
   settleBondedWithdrawalsThresholdPercent?: any
   dryMode?: boolean
+  stateUpdateAddress?: string
 }
 
 function startWatchers (
@@ -141,7 +142,8 @@ function startWatchers (
     commitTransfersMinThresholdAmounts: {},
     settleBondedWithdrawalsThresholdPercent: {},
     bondWithdrawalAmounts: {},
-    dryMode: false
+    dryMode: false,
+    stateUpdateAddress: ''
   }
 ) {
   const enabledWatchers = _config.enabledWatchers || []
@@ -155,6 +157,7 @@ function startWatchers (
     _networks = networks
   }
   const dryMode = _config.dryMode
+  const stateUpdateAddress = _config.stateUpdateAddress
   const watchers: any[] = []
 
   const order = () => {
@@ -186,7 +189,8 @@ function startWatchers (
         label,
         isL1,
         bridgeContract,
-        dryMode
+        dryMode,
+        stateUpdateAddress
       })
 
       bondWithdrawalWatchers[token] = bondWithdrawalWatchers[token] || {}

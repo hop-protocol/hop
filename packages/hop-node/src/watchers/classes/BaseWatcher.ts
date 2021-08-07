@@ -21,12 +21,7 @@ interface Config {
   isL1?: boolean
   bridgeContract?: Contract
   dryMode?: boolean
-}
-
-interface EventsBatchOptions {
-  key?: string
-  startBlockNumber?: number
-  endBlockNumber?: number
+  stateUpdateAddress?: string
 }
 
 @boundClass
@@ -47,6 +42,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   dryMode: boolean
   tag: string
   prefix: string
+  pauseMode: boolean = false
+  stateUpdateAddress: string
 
   constructor (config: Config) {
     super()
@@ -84,6 +81,9 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (config.dryMode) {
       this.dryMode = config.dryMode
     }
+    if (config.stateUpdateAddress) {
+      this.stateUpdateAddress = config.stateUpdateAddress
+    }
   }
 
   isAllSiblingWatchersInitialSyncCompleted (): boolean {
@@ -95,13 +95,15 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       if (!this.started) {
         return
       }
-      try {
-        await this.prePollHandler()
-        await this.pollHandler()
-      } catch (err) {
-        this.logger.error(`poll check error: ${err.message}`)
-        this.notifier.error(`poll check error: ${err.message}`)
-        console.trace()
+      if (!this.pauseMode) {
+        try {
+          await this.prePollHandler()
+          await this.pollHandler()
+        } catch (err) {
+          this.logger.error(`poll check error: ${err.message}`)
+          this.notifier.error(`poll check error: ${err.message}`)
+          console.trace()
+        }
       }
       await this.postPollHandler()
     }
@@ -172,6 +174,20 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   cacheKey (key: string) {
     return `${this.tag}:${key}`
+  }
+
+  setDryMode (enabled: boolean) {
+    if (this.dryMode !== enabled) {
+      this.logger.warn(`Dry mode updated: ${enabled}`)
+      this.dryMode = enabled
+    }
+  }
+
+  setPauseMode (enabled: boolean) {
+    if (this.pauseMode !== enabled) {
+      this.logger.warn(`Pause mode updated: ${enabled}`)
+      this.pauseMode = enabled
+    }
   }
 
   // force quit so docker can restart

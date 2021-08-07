@@ -110,6 +110,7 @@ export type Config = {
   bondWithdrawals?: BondWithdrawals
   order?: number
   addresses?: Addresses
+  stateUpdateAddress?: string
 }
 
 export async function writeConfigFile (
@@ -246,7 +247,8 @@ export async function validateConfig (config: any) {
     'logging',
     'keystore',
     'addresses',
-    'order'
+    'order',
+    'stateUpdateAddress'
   ]
 
   const validWatcherKeys = [

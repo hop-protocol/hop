@@ -3,7 +3,8 @@ import delay from 'src/decorators/delay'
 import queue from 'src/decorators/queue'
 import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import unique from 'src/utils/unique'
-import { BigNumber, Contract, constants, providers } from 'ethers'
+import { BigNumber, Contract, constants, utils as ethersUtils, providers } from 'ethers'
+import { Chain } from 'src/constants'
 import { Db, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { State } from 'src/db/SyncStateDb'
@@ -32,6 +33,7 @@ export default class Bridge extends ContractBase {
   readProvider?: providers.Provider
   specialReadProvider?: providers.Provider
   bridgeDeployedBlockNumber: number
+  l1CanonicalTokenAddress: string
   minBondWithdrawalAmount: BigNumber
   maxBondWithdrawalAmount: BigNumber
 
@@ -66,10 +68,15 @@ export default class Bridge extends ContractBase {
     }
     this.db = getDbSet(this.tokenSymbol)
     const bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
+    const l1CanonicalTokenAddress = config.tokens[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken
     if (!bridgeDeployedBlockNumber) {
       throw new Error('bridge deployed block number is required')
     }
-    this.bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
+    if (!l1CanonicalTokenAddress) {
+      throw new Error('l1 token address is required')
+    }
+    this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
+    this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
 
     const minBondWithdrawalAmount: number = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.min ?? 0
     const maxBondWithdrawalAmount: number = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.max ?? constants.MaxUint256
@@ -525,6 +532,21 @@ export default class Bridge extends ContractBase {
     )
 
     return tx
+  }
+
+  @rateLimitRetry
+  async getStateUpdateStatus (stateUpdateAddress: string, chainId: number): Promise<number> {
+    const abi = ['function currentState(address,uint256)']
+    const ethersInterface = new ethersUtils.Interface(abi)
+    const data = ethersInterface.encodeFunctionData(
+      'currentState', [this.l1CanonicalTokenAddress, chainId]
+    )
+    const tx = {
+      to: stateUpdateAddress,
+      data
+    }
+    const res: string = await this.contract.provider.call(tx)
+    return Number(res)
   }
 
   formatUnits (value: BigNumber) {

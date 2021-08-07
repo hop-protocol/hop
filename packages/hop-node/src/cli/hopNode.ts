@@ -132,6 +132,7 @@ program
       if (dryMode) {
         logger.warn('dry mode enabled')
       }
+      const stateUpdateAddress = config.stateUpdateAddress
       const enabledWatchers: { [key: string]: boolean } = Object.assign(
         {},
         defaultEnabledWatchers
@@ -156,7 +157,8 @@ program
         commitTransfersMinThresholdAmounts,
         bondWithdrawalAmounts,
         settleBondedWithdrawalsThresholdPercent,
-        dryMode
+        dryMode,
+        stateUpdateAddress
       })
       if (config?.roles?.arbBot) {
         const maxTradeAmount = 0

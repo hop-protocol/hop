@@ -32,7 +32,7 @@ interface Props {
   onConfirm: (confirmed: boolean) => void
 }
 
-const WrapToken = (props: Props) => {
+const UnwrapToken = (props: Props) => {
   const { token, onConfirm } = props
   const styles = useStyles()
   const [sending, setSending] = useState<boolean>(false)
@@ -51,7 +51,7 @@ const WrapToken = (props: Props) => {
     <div className={styles.root}>
       <div className={styles.title}>
         <Typography variant="h5" color="textPrimary">
-          Wrap Token
+          Unwrap Token
         </Typography>
         <Typography variant="h6" color="textPrimary">
           {commafy(token.amount, 5)} {token.token.symbol}
@@ -65,11 +65,11 @@ const WrapToken = (props: Props) => {
           large
           highlighted
         >
-          Wrap
+          Unwrap
         </Button>
       </div>
     </div>
   )
 }
 
-export default WrapToken
+export default UnwrapToken

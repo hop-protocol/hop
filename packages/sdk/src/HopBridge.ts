@@ -1437,8 +1437,8 @@ class HopBridge extends Base {
     return this.getContract(address, l1HomeAmbNativeToErc20, provider)
   }
 
-  isNativeToken (chain: TChain) {
-    chain = this.toChainModel(chain)
+  isNativeToken (chain?: TChain) {
+    chain = chain ? this.toChainModel(chain) : this.sourceChain
     const isEth =
       this.tokenSymbol === TokenModel.ETH && chain.equals(Chain.Ethereum)
     const isMatic =
@@ -1453,15 +1453,22 @@ class HopBridge extends Base {
     return this.getContract(address, wethAbi, this.signer)
   }
 
-  async wrapToken (amount: TAmount, chain: TChain) {
+  async wrapToken (amount: TAmount, chain?: TChain) {
+    chain = chain ? this.toChainModel(chain) : this.sourceChain
     const contract = await this.getWethContract(chain)
     return contract.deposit({
       value: amount
     })
   }
 
-  async isTokenWrapNeeded (chain: TChain, amount: TAmount) {
-    chain = this.toChainModel(chain)
+  async unwrapToken (amount: TAmount, chain?: TChain) {
+    chain = chain ? this.toChainModel(chain) : this.sourceChain
+    const contract = await this.getWethContract(chain)
+    return contract.withdraw(amount)
+  }
+
+  async isTokenWrapNeeded (amount: TAmount, chain?: TChain) {
+    chain = chain ? this.toChainModel(chain) : this.sourceChain
     amount = BigNumber.from(amount.toString())
     if (this.isNativeToken(chain)) {
       const canonicalToken = this.getCanonicalToken(chain)

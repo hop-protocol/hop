@@ -65,15 +65,18 @@ const useStyles = makeStyles(theme => ({
 type Props = {
   value?: string
   label: string
+  loadingLabel?: boolean
   token?: Token
   onChange?: (value: string) => void
   title?: string
   titleIconUrl?: string
   balance?: BigNumber
+  balanceLabel?: string
   loadingBalance?: boolean
   loadingValue?: boolean
   disableInput?: boolean
   hideSymbol?: boolean
+  hideMaxButton?: boolean
   className?: string
 }
 
@@ -81,20 +84,23 @@ const AmountSelectorCard: FC<Props> = props => {
   const {
     value = '',
     label,
+    loadingLabel = false,
     token,
     onChange,
     title,
     titleIconUrl,
     balance,
+    balanceLabel,
     loadingBalance = false,
     loadingValue = false,
     disableInput = false,
     hideSymbol = false,
+    hideMaxButton = false,
     className
   } = props
   const styles = useStyles()
 
-  const balanceLabel = useMemo(() => {
+  const balanceDisplay = useMemo(() => {
     let label: string = ''
     if (token && balance) {
       label = formatUnits(balance, token?.decimals)
@@ -129,19 +135,20 @@ const AmountSelectorCard: FC<Props> = props => {
         className={styles.topRow}
       >
         <Typography variant="subtitle2" color="textSecondary">
-          {label}
+          {loadingBalance ? <Skeleton variant="text" width="15.0rem"></Skeleton>
+          : label }
         </Typography>
         {loadingBalance ? (
           <Skeleton variant="text" width="15.0rem"></Skeleton>
         ) : balance ? (
           <div className={styles.balance}>
-            {balance.gt(0) && !disableInput ? (
+            {!hideMaxButton && (balance.gt(0) && !disableInput) ? (
               <button className={styles.maxButton} onClick={handleMaxClick}>
                 MAX
               </button>
             ) : null}
             <Typography variant="subtitle2" color="textSecondary">
-              Balance: {balanceLabel}
+              {balanceLabel || 'Balance:'} {balanceDisplay}
             </Typography>
           </div>
         ) : null}

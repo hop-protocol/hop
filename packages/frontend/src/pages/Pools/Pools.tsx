@@ -14,6 +14,7 @@ import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
 import { commafy, normalizeNumberInput } from 'src/utils'
+import TokenWrapper from './TokenWrapper'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -75,6 +76,9 @@ const useStyles = makeStyles(theme => ({
     marginTop: '2rem',
     fontSize: '1.5rem',
     opacity: 0.5
+  },
+  tokenWrapper: {
+    marginBottom: '2rem'
   }
 }))
 
@@ -156,6 +160,7 @@ const Pools: FC = () => {
   }
 
   const hasBalance = !!Number(userPoolBalance)
+  const showTokenWrapper = selectedNetwork?.slug === 'polygon' && canonicalToken?.symbol === 'MATIC'
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -201,6 +206,11 @@ const Pools: FC = () => {
           ))}
         </RaisedSelect>
       </Box>
+      {showTokenWrapper &&
+        <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
+          <TokenWrapper />
+        </Box>
+      }
       <Box display="flex" alignItems="center">
         <AmountSelectorCard
           value={token0Amount}

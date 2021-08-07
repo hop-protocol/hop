@@ -301,8 +301,8 @@ const ConvertContextProvider: FC = ({ children }) => {
             return bridge
               .connect(signer as Signer)
               .wrapToken(
-                value,
-                sourceNetwork.slug
+                sourceNetwork.slug,
+                value
               )
           }
         })

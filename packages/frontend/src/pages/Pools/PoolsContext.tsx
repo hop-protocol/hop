@@ -329,7 +329,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       const minToMint = 0
       const deadline = (Date.now() / 1000 + 5 * 60) | 0
 
-      const isTokenWrapNeeded = await sdk.bridge(canonicalToken.symbol).isTokenWrapNeeded(selectedNetwork.slug, amount0Desired)
+      const isTokenWrapNeeded = await sdk.bridge(canonicalToken.symbol).isTokenWrapNeeded(amount0Desired, selectedNetwork.slug)
       if (isTokenWrapNeeded) {
         const tokenWrapTx = await txConfirm?.show({
           kind: 'wrapToken',

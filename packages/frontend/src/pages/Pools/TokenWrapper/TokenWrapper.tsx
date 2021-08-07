@@ -71,7 +71,7 @@ const TokenWrapper: FC = () => {
       className={styles.root}
     >
       <AmountSelectorCard
-        label={`MATIC: ${formattedNativeTokenBalance}`}
+        label={`${canonicalToken?.symbol}: ${formattedNativeTokenBalance}`}
         loadingLabel={loadingBalance}
         value={amount}
         token={canonicalToken}
@@ -79,7 +79,7 @@ const TokenWrapper: FC = () => {
         titleIconUrl={canonicalToken?.image}
         title={'Amount'}
         balance={canonicalTokenBalance}
-        balanceLabel={'WMATIC:'}
+        balanceLabel={`W${canonicalToken?.symbol}:`}
         loadingBalance={loadingBalance}
         hideSymbol
       />

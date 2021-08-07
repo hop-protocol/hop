@@ -84,7 +84,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       setCanonicalTokenBalance(balance)
     })
     .catch(err => {
-      logger.error(err)
+      // logger.error(err)
     })
     canonicalToken
     ?.getNativeTokenBalance()
@@ -92,7 +92,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       setNativeTokenBalance(balance)
     })
     .catch(err => {
-      logger.error(err)
+      // logger.error(err)
     })
   }
 

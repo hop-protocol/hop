@@ -160,7 +160,9 @@ const Pools: FC = () => {
   }
 
   const hasBalance = !!Number(userPoolBalance)
-  const showTokenWrapper = selectedNetwork?.slug === 'polygon' && canonicalToken?.symbol === 'MATIC'
+  const isNativeToken = canonicalToken?.isNativeToken
+  const canonicalTokenSymbol = `${isNativeToken ? 'W' : ''}${canonicalToken?.symbol}`
+  const hopTokenSymbol = hopToken?.symbol
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -206,7 +208,7 @@ const Pools: FC = () => {
           ))}
         </RaisedSelect>
       </Box>
-      {showTokenWrapper &&
+      {isNativeToken &&
         <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
           <TokenWrapper />
         </Box>
@@ -217,7 +219,7 @@ const Pools: FC = () => {
           token={canonicalToken}
           label="Input"
           onChange={handleToken0Change}
-          title={`${selectedNetwork?.name} ${canonicalToken?.symbol}`}
+          title={`${selectedNetwork?.name} ${canonicalTokenSymbol}`}
           balance={canonicalBalance}
           loadingBalance={loadingCanonicalBalance}
         />
@@ -251,7 +253,7 @@ const Pools: FC = () => {
               color="textSecondary"
               component="div"
             >
-              {hopToken?.symbol} per {canonicalToken?.symbol}
+              {hopTokenSymbol} per {canonicalTokenSymbol}
             </Typography>
           </Box>
           <Box alignItems="center" className={styles.priceBox}>
@@ -263,7 +265,7 @@ const Pools: FC = () => {
               color="textSecondary"
               component="div"
             >
-              {canonicalToken?.symbol} per {hopToken?.symbol}
+              {canonicalTokenSymbol} per {hopTokenSymbol}
             </Typography>
           </Box>
           {poolSharePercentage && (
@@ -305,7 +307,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {canonicalToken?.symbol}/{hopToken?.symbol}
+                  {canonicalTokenSymbol}/{hopTokenSymbol}
                 </Typography>
                 <Typography
                   variant="subtitle1"
@@ -341,7 +343,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {canonicalToken?.symbol}:
+                  {canonicalTokenSymbol}:
                 </Typography>
                 <Typography
                   variant="subtitle2"
@@ -359,7 +361,7 @@ const Pools: FC = () => {
                   color="textSecondary"
                   component="div"
                 >
-                  {hopToken?.symbol}:
+                  {hopTokenSymbol}:
                 </Typography>
                 <Typography
                   variant="subtitle2"

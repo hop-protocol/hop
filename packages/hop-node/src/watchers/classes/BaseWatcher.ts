@@ -105,6 +105,9 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
           this.notifier.error(`poll check error: ${err.message}`)
           console.trace()
         }
+      } else {
+        // Allow a paused bonder to go into dry mode or exit
+        await this.handleStateSwitch()
       }
       await this.postPollHandler()
     }
@@ -209,6 +212,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
         break
       }
       case 3: {
+        this.logger.error('exit mode enabled')
         this.quit()
       }
     }

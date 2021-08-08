@@ -208,7 +208,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
         this.setPauseMode(true)
         break
       }
-      case 4: {
+      case 3: {
         this.quit()
       }
     }

@@ -108,6 +108,10 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
 
   const wrap = async () => {
     try {
+      const networkId = Number(selectedNetwork.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+
       setError(null)
       setWrapping(true)
       if (!canonicalToken) {
@@ -115,6 +119,9 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       }
       if (!nativeTokenBalance) {
         throw new Error('token is required')
+      }
+      if (!Number(amount)) {
+        throw new Error('amount is required')
       }
       const parsedAmount = parseUnits(amount, canonicalToken.decimals)
       if (parsedAmount.gt(nativeTokenBalance)) {
@@ -141,6 +148,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       })
 
       if (tokenWrapTx) {
+        setAmount('')
         if (tokenWrapTx.hash && selectedNetwork) {
           txHistory?.addTransaction(
             new Transaction({
@@ -152,13 +160,19 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
         await tokenWrapTx.wait()
       }
     } catch (err) {
-      setError(err.message)
+      if (!/cancelled/gi.test(err.message)) {
+        setError(err.message)
+      }
     }
     setWrapping(false)
   }
 
   const unwrap = async () => {
     try {
+      const networkId = Number(selectedNetwork.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+
       setError(null)
       setUnwrapping(true)
       if (!canonicalToken) {
@@ -166,6 +180,9 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       }
       if (!canonicalTokenBalance) {
         throw new Error('token is required')
+      }
+      if (!Number(amount)) {
+        throw new Error('amount is required')
       }
       const parsedAmount = parseUnits(amount, canonicalToken.decimals)
       if (parsedAmount.gt(canonicalTokenBalance)) {
@@ -191,6 +208,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
         }
       })
       if (tokenUnwrapTx) {
+        setAmount('')
         if (tokenUnwrapTx.hash && selectedNetwork) {
           txHistory?.addTransaction(
             new Transaction({
@@ -202,7 +220,9 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
         await tokenUnwrapTx.wait()
       }
     } catch (err) {
-      setError(err.message)
+      if (!/cancelled/gi.test(err.message)) {
+        setError(err.message)
+      }
     }
     setUnwrapping(false)
   }

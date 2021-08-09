@@ -148,6 +148,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       })
 
       if (tokenWrapTx) {
+        setAmount('')
         if (tokenWrapTx.hash && selectedNetwork) {
           txHistory?.addTransaction(
             new Transaction({
@@ -207,6 +208,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
         }
       })
       if (tokenUnwrapTx) {
+        setAmount('')
         if (tokenUnwrapTx.hash && selectedNetwork) {
           txHistory?.addTransaction(
             new Transaction({

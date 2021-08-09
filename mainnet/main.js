@@ -1,5 +1,6 @@
 const poll = true
 const fetchInterval = 10 * 1000
+const enabledTokens = ['USDC', 'USDT']
 
 let perPage = 100
 try {
@@ -145,11 +146,7 @@ function explorerLink (chain, transactionHash) {
 }
 
 function getUrl (chain) {
-  const url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
-  if (chain !== 'mainnet') {
-    return `${url}-${chain}`
-  }
-  return url
+  return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
 }
 
 async function queryFetch (url, query, variables) {
@@ -273,19 +270,19 @@ function formatTvl (tvl) {
 async function updateTvl () {
   const [
     xdaiTvl,
-    //polygonTvl,
+    // polygonTvl,
     mainnetTvl
   ] = await Promise.all([
     fetchTvl('xdai'),
-    //fetchTvl('polygon'),
+    // fetchTvl('polygon'),
     fetchTvl('mainnet')
   ])
 
   const xdai = formatTvl(xdaiTvl)
-  //const polygon = formatTvl(polygonTvl)
-  const polygon = {formattedAmount: '-'}
+  // const polygon = formatTvl(polygonTvl)
+  const polygon = { formattedAmount: '-' }
   const ethereum = formatTvl(mainnetTvl)
-  //const totalAmount = xdai.amount + polygon.amount + ethereum.amount
+  // const totalAmount = xdai.amount + polygon.amount + ethereum.amount
   const totalAmount = xdai.amount + ethereum.amount
   const total = {
     amount: totalAmount,
@@ -385,7 +382,9 @@ async function updateTransfers () {
     }
   }
 
-  const populatedData = data.filter(x => x.destinationChain && x.transferId)
+  const populatedData = data
+    .filter(x => enabledTokens.includes(x.token))
+    .filter(x => x.destinationChain && x.transferId)
     .map(populateTransfer)
     .sort((a, b) => b.timestamp - a.timestamp)
     .map((x, i) => {

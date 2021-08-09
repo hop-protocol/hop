@@ -42,10 +42,6 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
-    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
-    if (!initialSyncCompleted) {
-      return
-    }
     await this.checkTransfersCommittedFromDb()
   }
 

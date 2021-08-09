@@ -1,6 +1,6 @@
 export interface IBaseWatcher {
   pollCheck(): Promise<void>
-  prePollHandler(): Promise<void>
+  prePollHandler(): boolean
   pollHandler(): Promise<void>
   postPollHandler(): Promise<void>
 

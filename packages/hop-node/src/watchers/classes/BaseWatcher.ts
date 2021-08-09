@@ -98,8 +98,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       }
       if (!this.pauseMode) {
         try {
-          await this.prePollHandler()
-          await this.pollHandler()
+          const shouldPoll = this.prePollHandler()
+          if (shouldPoll) {
+            await this.pollHandler()
+          }
         } catch (err) {
           this.logger.error(`poll check error: ${err.message}`)
           this.notifier.error(`poll check error: ${err.message}`)
@@ -113,8 +115,13 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
   }
 
-  async prePollHandler () {
-    // empty by default
+  prePollHandler (): boolean {
+    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
+    if (!initialSyncCompleted) {
+      return false
+    }
+
+    return true
   }
 
   async pollHandler () {

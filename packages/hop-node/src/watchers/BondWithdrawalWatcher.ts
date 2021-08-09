@@ -51,10 +51,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
-    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
-    if (!initialSyncCompleted) {
-      return
-    }
     if (this.isL1) {
       return
     }

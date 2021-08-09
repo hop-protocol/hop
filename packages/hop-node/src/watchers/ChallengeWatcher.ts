@@ -34,9 +34,6 @@ class ChallengeWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
-    if (!this.isAllSiblingWatchersInitialSyncCompleted()) {
-      return
-    }
     if (!this.isL1) {
       return
     }

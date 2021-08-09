@@ -39,10 +39,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
-    const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
-    if (!initialSyncCompleted) {
-      return
-    }
     const promises: Promise<any>[] = []
     promises.push(
       new Promise(async resolve => {

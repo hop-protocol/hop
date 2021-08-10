@@ -150,9 +150,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         destinationChainId,
         totalAmount
       } = dbTransferRoot
-      const transferIds: string[] = Object.values(
-        dbTransferRoot.transferIds || []
-      )
+      const transferIds: string[] = dbTransferRoot?.transferIds || []
 
       const logger = this.logger.create({ root: dbTransferRootHash })
       const destBridge = this.getSiblingWatcherByChainId(destinationChainId)

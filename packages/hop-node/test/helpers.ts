@@ -280,6 +280,13 @@ export class User {
     return this.sendL2ToL2(sourceNetwork, destNetwork, token, amount)
   }
 
+  isNativeToken (network: string, token: string) {
+    const isEth = token === 'ETH' && network === Chain.Ethereum
+    const isMatic = token === 'MATIC' && network === Chain.Polygon
+    const isxDai = token === 'XDAI' && network === Chain.xDai
+    return isEth || isMatic || isxDai
+  }
+
   async sendL1ToL2 (
     sourceNetwork: string,
     destNetwork: string,
@@ -308,7 +315,10 @@ export class User {
       deadline,
       relayer,
       relayerFee,
-      await this.txOverrides(sourceNetwork)
+      {
+        ...(await this.txOverrides(sourceNetwork)),
+        value: this.isNativeToken(sourceNetwork, token) ? parsedAmount : undefined
+      }
     )
 
     return tx
@@ -380,7 +390,10 @@ export class User {
       deadline,
       destinationAmountOutMin,
       destinationDeadline,
-      await this.txOverrides(sourceNetwork)
+      {
+        ...(await this.txOverrides(sourceNetwork)),
+        value: this.isNativeToken(sourceNetwork, token) ? parsedAmount : undefined
+      }
     )
   }
 
@@ -418,7 +431,10 @@ export class User {
       deadline,
       destinationAmountOutMin,
       destinationDeadline,
-      await this.txOverrides(sourceNetwork)
+      {
+        ...(await this.txOverrides(sourceNetwork)),
+        value: this.isNativeToken(sourceNetwork, token) ? parsedAmount : undefined
+      }
     )
   }
 
@@ -1321,25 +1337,46 @@ export async function prepareAccounts (
         expect(ethBal).toBeGreaterThanOrEqual(0.1)
       }
     }
-    let tokenBal = await user.getBalance(network, token)
+    const isNativeToken = user.isNativeToken(network, token)
+    let tokenBal : number
+    if (isNativeToken) {
+      tokenBal = await user.getBalance(network)
+    } else {
+      tokenBal = await user.getBalance(network, token)
+    }
     logger.debug(`#${i} token balance: ${tokenBal}`)
     if (tokenBal < faucetTokensToSend) {
       logger.debug('faucet sending tokens')
-      const faucetBalance = await faucet.getBalance(network, token)
+      let faucetBalance: number
+      if (isNativeToken) {
+        faucetBalance = await faucet.getBalance(network)
+      } else {
+        faucetBalance = await faucet.getBalance(network, token)
+      }
       if (faucetBalance < faucetTokensToSend) {
         throw new Error(
           `faucet does not have enough tokens. Have ${faucetBalance}, need ${faucetTokensToSend} ${token} on ${network}`
         )
       }
-      const tx = await faucet.sendTokens(
-        network,
-        token,
-        faucetTokensToSend,
-        address
-      )
+
+      let tx: any
+      if (isNativeToken) {
+        tx = await faucet.sendEth(faucetTokensToSend, address, network)
+      } else {
+        tx = await faucet.sendTokens(
+          network,
+          token,
+          faucetTokensToSend,
+          address
+        )
+      }
       logger.debug('send tokens tx:', tx.hash)
       await tx.wait()
-      tokenBal = await user.getBalance(network, token)
+      if (isNativeToken) {
+        tokenBal = await user.getBalance(network)
+      } else {
+        tokenBal = await user.getBalance(network, token)
+      }
     }
     expect(tokenBal).toBeGreaterThanOrEqual(faucetTokensToSend)
     i++

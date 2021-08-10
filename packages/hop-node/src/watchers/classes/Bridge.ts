@@ -73,7 +73,7 @@ export default class Bridge extends ContractBase {
       throw new Error('bridge deployed block number is required')
     }
     if (!l1CanonicalTokenAddress) {
-      throw new Error('l1 token address is required')
+      throw new Error('L1 token address is required')
     }
     this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress

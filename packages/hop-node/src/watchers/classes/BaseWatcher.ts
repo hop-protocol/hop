@@ -25,6 +25,13 @@ interface Config {
   stateUpdateAddress?: string
 }
 
+enum State {
+  Normal = 0,
+  DryMode = 1,
+  PauseMode = 2,
+  Exit = 3
+}
+
 @boundClass
 class BaseWatcher extends EventEmitter implements IBaseWatcher {
   db: Db
@@ -202,26 +209,12 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       return
     }
 
-    switch (state) {
-      case 0: {
-        this.setDryMode(false)
-        this.setPauseMode(false)
-        break
-      }
-      case 1: {
-        this.setDryMode(true)
-        this.setPauseMode(false)
-        break
-      }
-      case 2: {
-        this.setDryMode(false)
-        this.setPauseMode(true)
-        break
-      }
-      case 3: {
-        this.logger.error('exit mode enabled')
-        this.quit()
-      }
+    this.setDryMode(state === State.DryMode)
+    this.setPauseMode(state === State.PauseMode)
+
+    if (state === State.Exit) {
+      this.logger.error('exit mode enabled')
+      this.quit()
     }
   }
 

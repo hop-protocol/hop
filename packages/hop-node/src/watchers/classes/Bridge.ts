@@ -36,6 +36,7 @@ export default class Bridge extends ContractBase {
   l1CanonicalTokenAddress: string
   minBondWithdrawalAmount: BigNumber
   maxBondWithdrawalAmount: BigNumber
+  stateUpdateAddress: string
 
   constructor (bridgeContract: Contract) {
     super(bridgeContract)
@@ -82,6 +83,7 @@ export default class Bridge extends ContractBase {
     const maxBondWithdrawalAmount: number = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.max ?? constants.MaxUint256
     this.minBondWithdrawalAmount = this.parseUnits(minBondWithdrawalAmount)
     this.maxBondWithdrawalAmount = this.parseUnits(maxBondWithdrawalAmount)
+    this.stateUpdateAddress = config?.stateUpdateAddress
   }
 
   // a read provider is alternative provider that can be used only for

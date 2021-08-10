@@ -8,6 +8,7 @@ import {
   setBonderPrivateKey,
   setConfigAddresses,
   setConfigByNetwork,
+  setStateUpdateAddress,
   setSyncConfig
 } from 'src/config'
 import { getParameter } from 'src/aws/parameterStore'
@@ -212,6 +213,9 @@ export async function setGlobalConfigFromConfigFile (
     }
     const addresses = require(location)
     setConfigAddresses(addresses)
+  }
+  if (config?.stateUpdateAddress) {
+    setStateUpdateAddress(config.stateUpdateAddress)
   }
 }
 

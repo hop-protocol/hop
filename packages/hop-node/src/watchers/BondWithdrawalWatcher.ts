@@ -15,7 +15,6 @@ export interface Config {
   label: string
   order?: () => number
   dryMode?: boolean
-  stateUpdateAddress?: string
 }
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
@@ -35,8 +34,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode,
-      stateUpdateAddress: config.stateUpdateAddress
+      dryMode: config.dryMode
     })
   }
 
@@ -51,6 +49,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
+    console.log('this', this.stateUpdateAddress)
     if (this.isL1) {
       return
     }

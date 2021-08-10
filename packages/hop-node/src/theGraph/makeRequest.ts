@@ -15,7 +15,7 @@ export async function _makeRequest (
   query: string,
   params: any = {}
 ) {
-  let url = `https://api.thegraph.com/subgraphs/name/hop-protocol/hop`
+  let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
   if (chain === Chain.Ethereum) {
     url = `${url}-mainnet`
   } else {

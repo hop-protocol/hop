@@ -25,13 +25,17 @@ const useApprove = () => {
       throw new Error('Wallet not connected')
     }
 
+    if (token.isNativeToken) {
+      return
+    }
+
     const approved = await token.allowance(spender)
     if (approved.gte(amount)) {
       return
     }
 
     const formattedAmount = toTokenDisplay(amount, token.decimals)
-    const chain = Chain.fromSlug(token.network)
+    const chain = Chain.fromSlug(token.chain.slug)
     const tx = await txConfirm?.show({
       kind: 'approval',
       inputProps: {

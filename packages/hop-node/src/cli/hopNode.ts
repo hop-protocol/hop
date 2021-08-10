@@ -141,6 +141,7 @@ program
           enabledWatchers[key] = (config.watchers as any)[key]
         }
       }
+      const stateUpdateAddress = config?.stateUpdateAddress
       startWatchers({
         enabledWatchers: Object.keys(enabledWatchers).filter(
           key => enabledWatchers[key]
@@ -156,7 +157,8 @@ program
         commitTransfersMinThresholdAmounts,
         bondWithdrawalAmounts,
         settleBondedWithdrawalsThresholdPercent,
-        dryMode
+        dryMode,
+        stateUpdateAddress
       })
       if (config?.roles?.arbBot) {
         const maxTradeAmount = 0

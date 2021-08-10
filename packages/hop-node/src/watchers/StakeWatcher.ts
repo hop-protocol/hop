@@ -19,6 +19,7 @@ export interface Config {
   stakeMinThreshold: number
   maxStakeAmount: number
   dryMode?: boolean
+  stateUpdateAddress?: string
 }
 
 class StakeWatcher extends BaseWatcher {
@@ -38,7 +39,8 @@ class StakeWatcher extends BaseWatcher {
       logColor: 'green',
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
+      dryMode: config.dryMode,
+      stateUpdateAddress: config.stateUpdateAddress
     })
     this.token = new Token(config.tokenContract)
     if (config.stakeMinThreshold) {

@@ -18,6 +18,7 @@ export interface Config {
   label: string
   order?: () => number
   dryMode?: boolean
+  stateUpdateAddress: string
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
@@ -37,7 +38,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
+      dryMode: config.dryMode,
+      stateUpdateAddress: config.stateUpdateAddress
     })
   }
 

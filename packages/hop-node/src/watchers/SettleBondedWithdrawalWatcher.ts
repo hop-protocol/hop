@@ -16,6 +16,7 @@ export interface Config {
   order?: () => number
   dryMode?: boolean
   minThresholdPercent: number
+  stateUpdateAddress?: string
 }
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
@@ -34,7 +35,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
+      dryMode: config.dryMode,
+      stateUpdateAddress: config.stateUpdateAddress
     })
   }
 

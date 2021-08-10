@@ -147,16 +147,20 @@ const StakeWidget: FC<Props> = props => {
   )
 
   const userRewardsPerDay = useAsyncMemo(async () => {
-    if (
-      !stakingRewards ||
-      !stakeBalance ||
-      !totalStaked ||
-      stakeBalance.eq(0)
-    ) return undefined
-    let rewardRate = await stakingRewards?.rewardRate()
-    rewardRate = rewardRate.mul(86400) // multiply by 1 day
-    rewardRate = rewardRate.mul(stakeBalance).div(totalStaked)
-    return rewardRate
+    try {
+      if (
+        !stakingRewards ||
+        !stakeBalance ||
+        !totalStaked ||
+        stakeBalance.eq(0)
+      ) return undefined
+      let rewardRate = await stakingRewards?.rewardRate()
+      rewardRate = rewardRate.mul(86400) // multiply by 1 day
+      rewardRate = rewardRate.mul(stakeBalance).div(totalStaked)
+      return rewardRate
+    } catch (err) {
+      return ''
+    }
   }, [stakingRewards, stakeBalance, totalStaked])
 
   const userRewardsPerDayFormatted = toTokenDisplay(
@@ -210,6 +214,7 @@ const StakeWidget: FC<Props> = props => {
     })
 
     if (tx?.hash && network) {
+      setAmount('')
       txHistory?.addTransaction(
         new Transaction({
           hash: tx.hash,

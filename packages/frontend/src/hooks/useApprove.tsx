@@ -7,7 +7,7 @@ import Transaction from 'src/models/Transaction'
 import { toTokenDisplay } from 'src/utils'
 import { UINT256 } from 'src/constants'
 
-const useApprove = () => {
+const useApprove = (isNativeToken?: boolean) => {
   const { provider } = useWeb3Context()
   const {
     txConfirm,
@@ -25,7 +25,7 @@ const useApprove = () => {
       throw new Error('Wallet not connected')
     }
 
-    if (token.isNativeToken) {
+    if (isNativeToken) {
       return
     }
 
@@ -53,7 +53,6 @@ const useApprove = () => {
     })
 
     if (tx?.hash) {
-      console.log('token.network: ', token.network)
       txHistory?.addTransaction(
         new Transaction({
           hash: tx?.hash,

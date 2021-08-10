@@ -1,5 +1,6 @@
 import BaseDb from './BaseDb'
 import { BigNumber } from 'ethers'
+import { TX_RETRY_DELAY_MS } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
 export type TransferRoot = {
@@ -22,8 +23,8 @@ export type TransferRoot = {
   rootSetTimestamp?: number
   sentConfirmTx?: boolean
   sentConfirmTxAt?: number
+  shouldBondTransferRoot?: boolean
   bonded?: boolean
-  sentBondTx?: boolean
   sentBondTxAt?: number
   bondTxHash?: string
   bondedAt?: number
@@ -107,16 +108,23 @@ class TransferRootsDb extends BaseDb {
         }
       }
 
+      let timestampOk = true
+      if (item?.sentBondTxAt) {
+        timestampOk =
+          item?.sentBondTxAt + TX_RETRY_DELAY_MS < Date.now()
+      }
+
       return (
-        !item.sentBondTx &&
         !item.bonded &&
-        item.transferRootHash &&
-        item.destinationChainId &&
-        item.committedAt &&
         !item.confirmed &&
+        item.transferRootHash &&
+        item.committedAt &&
         item.commitTxHash &&
         item.commitTxBlockNumber &&
-        item.sourceChainId
+        item.destinationChainId &&
+        item.sourceChainId &&
+        item.shouldBondTransferRoot &&
+        timestampOk
       )
     })
   }

@@ -122,6 +122,24 @@ export default class L1Bridge extends Bridge {
     return match
   }
 
+  async getTransferRootBondedEvent (
+    transferRootHash: string
+  ): Promise<Event> {
+    let match: Event = null
+    await this.eventsBatch(async (start: number, end: number) => {
+      const events = await this.getTransferRootBondedEvents(start, end)
+      for (const event of events) {
+        if (transferRootHash === event.args.rootHash) {
+          match = event
+          return false
+        }
+      }
+      return true
+    })
+
+    return match
+  }
+
   async isTransferRootHashBonded (
     transferRootHash: string,
     amount: BigNumber
@@ -287,5 +305,10 @@ export default class L1Bridge extends Bridge {
   async getChallengePeriod (): Promise<number> {
     const challengePeriod = await this.getReadBridgeContract().challengePeriod()
     return Number(challengePeriod.toString())
+  }
+
+  @rateLimitRetry
+  async getBondForTransferAmount (amount: BigNumber): Promise<BigNumber> {
+    return this.getReadBridgeContract().getBondForTransferAmount(amount)
   }
 }

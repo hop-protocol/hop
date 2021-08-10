@@ -23,6 +23,8 @@ const Stake: FC = () => {
   const { bridges, sdk, networks, user, tokens } = useApp()
   const { provider } = useWeb3Context()
 
+  // USDC
+
   const usdcStakingToken = useAsyncMemo(async () => {
     const bridge = bridges.find(bridge =>
       bridge.getTokenSymbol() === 'USDC'
@@ -37,6 +39,8 @@ const Stake: FC = () => {
     return new Contract('0x2C2Ab81Cf235e86374468b387e241DF22459A265', stakingRewardsAbi, _provider)
   }, [sdk, provider, user])
 
+  // USDT
+
   const usdtStakingToken = useAsyncMemo(async () => {
     const bridge = bridges.find(bridge =>
       bridge.getTokenSymbol() === 'USDT'
@@ -50,6 +54,23 @@ const Stake: FC = () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
     const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
     return new Contract('0x07932e9A5AB8800922B2688FB1FA0DAAd8341772', stakingRewardsAbi, _provider)
+  }, [sdk, provider, user])
+
+  // MATIC
+
+  const maticStakingToken = useAsyncMemo(async () => {
+    const bridge = bridges.find(bridge =>
+      bridge.getTokenSymbol() === 'MATIC'
+    )
+
+    const LP = await bridge?.getSaddleLpToken('polygon')
+    return LP
+  }, [bridges])
+
+  const maticStakingRewards = useAsyncMemo(async () => {
+    const polygonProvider = await sdk.getSignerOrProvider('polygon')
+    const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
+    return new Contract('0x7dEEbCaD1416110022F444B03aEb1D20eB4Ea53f', stakingRewardsAbi, _provider)
   }, [sdk, provider, user])
 
   const rewardsToken = useAsyncMemo(async () => {
@@ -110,6 +131,15 @@ const Stake: FC = () => {
           rewardsToken={rewardsToken}
           stakingRewards={usdtStakingRewards}
           key={usdtStakingToken?.symbol}
+        />
+      }
+      {enabledTokens.includes('MATIC') &&
+        <StakeWidget
+          network={polygonNetwork}
+          stakingToken={maticStakingToken}
+          rewardsToken={rewardsToken}
+          stakingRewards={maticStakingRewards}
+          key={maticStakingToken?.symbol}
         />
       }
       </div>

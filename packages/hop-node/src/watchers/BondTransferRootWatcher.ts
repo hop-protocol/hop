@@ -88,10 +88,10 @@ class BondTransferRootWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootHash })
 
     const l1Bridge = this.bridge as L1Bridge
-    const minDelay = await l1Bridge.getMinTransferRootBondDelaySeconds()
-    // Optimization: get rid of this check and use the system time in order to reduce an on-chain call
-    const blockTimestamp = await l1Bridge.getBlockTimestamp()
-    const delta = blockTimestamp - committedAt - minDelay
+    const minDelaySec = await l1Bridge.getMinTransferRootBondDelaySeconds()
+    const minDelayMs = minDelaySec * 1000
+    const committedAtMs = committedAt * 1000
+    const delta = Date.now() - committedAtMs - minDelayMs
     const shouldBond = delta > 0
     if (!shouldBond) {
       logger.debug(

@@ -69,6 +69,7 @@ class Base {
   private addresses = config.addresses
   private chains = config.chains
   private bonders = config.bonders
+  gasPriceMultiplier: number = 0
 
   /**
    * @desc Instantiates Base class.
@@ -328,10 +329,16 @@ class Base {
   }
 
   // Transaction overrides options
-  public txOverrides (chain: Chain) {
+  public async txOverrides (chain: Chain) {
     const txOptions: any = {}
     if (chain.equals(Chain.xDai)) {
       txOptions.gasLimit = 5000000
+    }
+    if (this.gasPriceMultiplier) {
+      txOptions.gasPrice = await this.getBumpedGasPrice(
+        this.signer,
+        this.gasPriceMultiplier
+      )
     }
     return txOptions
   }
@@ -344,6 +351,10 @@ class Base {
   public getBonderAddresses (token: TToken): string[] {
     token = this.toTokenModel(token)
     return this.bonders?.[this.network]?.[token.symbol]
+  }
+
+  setGasPriceMultiplier (gasPriceMultiplier: number) {
+    return (this.gasPriceMultiplier = gasPriceMultiplier)
   }
 
   public getContract = getContract

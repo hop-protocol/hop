@@ -96,7 +96,7 @@ class AMM extends Base {
       amounts,
       minToMint,
       deadline,
-      this.txOverrides(this.chain)
+      await this.txOverrides(this.chain)
     )
   }
 
@@ -132,7 +132,7 @@ class AMM extends Base {
       liqudityTokenAmount,
       amounts,
       deadline,
-      this.txOverrides(this.chain)
+      await this.txOverrides(this.chain)
     )
   }
 
@@ -166,7 +166,7 @@ class AMM extends Base {
       recipient,
       amounts,
       isDeposit,
-      this.txOverrides(this.chain)
+      await this.txOverrides(this.chain)
     )
   }
 
@@ -176,7 +176,7 @@ class AMM extends Base {
     return saddleSwap.calculateRemoveLiquidity(
       recipient,
       lpTokenAmount,
-      this.txOverrides(this.chain)
+      await this.txOverrides(this.chain)
     )
   }
 

@@ -1152,7 +1152,7 @@ class HopBridge extends Base {
       relayer,
       relayerFee || 0,
       {
-        ...this.txOverrides(Chain.Ethereum),
+        ...(await this.txOverrides(Chain.Ethereum)),
         value: isNativeToken ? amount : undefined
       }
     )
@@ -1212,7 +1212,7 @@ class HopBridge extends Base {
         destinationAmountOutMin,
         destinationDeadline,
         {
-          ...this.txOverrides(sourceChain),
+          ...(await this.txOverrides(sourceChain)),
           value: isNativeToken ? amount : undefined
         }
       )
@@ -1277,7 +1277,7 @@ class HopBridge extends Base {
       destinationAmountOutMin || 0,
       destinationDeadline,
       {
-        ...this.txOverrides(sourceChain),
+        ...(await this.txOverrides(sourceChain)),
         value: isNativeToken ? amount : undefined
       }
     )
@@ -1337,7 +1337,7 @@ class HopBridge extends Base {
         deadline,
         relayer,
         bonderFee,
-        this.txOverrides(Chain.Ethereum)
+        await this.txOverrides(Chain.Ethereum)
       )
     } else {
       if (bonderFee.eq(0)) {
@@ -1352,7 +1352,7 @@ class HopBridge extends Base {
         bonderFee,
         amountOutMin,
         deadline,
-        this.txOverrides(sourceChain)
+        await this.txOverrides(sourceChain)
       )
     }
   }

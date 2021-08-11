@@ -23,7 +23,7 @@
     "release": "npm run clean && npm test && npm run publish:latest",
     "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
     "prepare": "npm run lint && npm run build",
-    "json:mainnet": "node -e \"console.log(JSON.stringify(require('.').mainnet, null, 2))\" -> build/mainnet.json"
+    "json:mainnet": "node -e \"console.log(JSON.stringify(require('./addresses').mainnet, null, 2))\" > build/addresses/mainnet.json"
   },
   "directories": {},
   "author": "",

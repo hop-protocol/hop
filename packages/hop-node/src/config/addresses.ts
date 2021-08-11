@@ -136,6 +136,10 @@ export const setConfigAddresses = (addresses: Addresses) => {
   config.bonders = bonders
 }
 
+export const setStateUpdateAddress = (address: string) => {
+  config.stateUpdateAddress = address
+}
+
 const setBonderPrivateKey = (privateKey: string) => {
   config.bonderPrivateKey = privateKey
 }

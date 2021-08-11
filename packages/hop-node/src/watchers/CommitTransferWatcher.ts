@@ -16,6 +16,7 @@ export interface Config {
   isL1?: boolean
   bridgeContract?: Contract
   dryMode?: boolean
+  stateUpdateAddress?: string
 }
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
@@ -35,7 +36,8 @@ class CommitTransfersWatcher extends BaseWatcher {
       order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
+      dryMode: config.dryMode,
+      stateUpdateAddress: config.stateUpdateAddress
     })
 
     if (config.minThresholdAmount) {
@@ -127,8 +129,9 @@ class CommitTransfersWatcher extends BaseWatcher {
         `total pending amount for chainId ${destinationChainId}: ${formattedPendingAmount}`
       )
 
-      if (this.dryMode) {
-        this.logger.warn('dry mode: skipping commitTransfers transaction')
+      await this.handleStateSwitch()
+      if (this.isDryOrPauseMode) {
+        this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping commitTransfers`)
         return
       }
 

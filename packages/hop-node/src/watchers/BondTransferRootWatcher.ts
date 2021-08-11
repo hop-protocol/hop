@@ -18,6 +18,7 @@ export interface Config {
   label: string
   order?: () => number
   dryMode?: boolean
+  stateUpdateAddress: string
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
@@ -37,7 +38,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
+      dryMode: config.dryMode,
+      stateUpdateAddress: config.stateUpdateAddress
     })
   }
 
@@ -218,8 +220,9 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode) {
-      logger.warn('dry mode: skipping bondTransferRoot transaction')
+    await this.handleStateSwitch()
+    if (this.isDryOrPauseMode) {
+      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping bondTransferRoot`)
       return
     }
 

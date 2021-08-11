@@ -19,6 +19,7 @@ export interface Config {
   stakeMinThreshold: number
   maxStakeAmount: number
   dryMode?: boolean
+  stateUpdateAddress?: string
 }
 
 class StakeWatcher extends BaseWatcher {
@@ -38,7 +39,8 @@ class StakeWatcher extends BaseWatcher {
       logColor: 'green',
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
+      dryMode: config.dryMode,
+      stateUpdateAddress: config.stateUpdateAddress
     })
     this.token = new Token(config.tokenContract)
     if (config.stakeMinThreshold) {
@@ -125,8 +127,9 @@ class StakeWatcher extends BaseWatcher {
             )} canonical token to L2 hop token`
           )
 
-          if (this.dryMode) {
-            this.logger.warn('dry mode: skipping approve transaction')
+          await this.handleStateSwitch()
+          if (this.isDryOrPauseMode) {
+            this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping approve`)
             return
           }
 
@@ -195,8 +198,9 @@ class StakeWatcher extends BaseWatcher {
       )
     }
     this.logger.debug(`attempting to stake ${formattedAmount} tokens`)
-    if (this.dryMode) {
-      this.logger.warn('dry mode: skipping stake transaction')
+    await this.handleStateSwitch()
+    if (this.isDryOrPauseMode) {
+      this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping stake`)
       return
     }
     const tx = await this.bridge.stake(amount)
@@ -231,8 +235,9 @@ class StakeWatcher extends BaseWatcher {
       )
     }
     this.logger.debug(`attempting to unstake ${parsedAmount} tokens`)
-    if (this.dryMode) {
-      this.logger.warn('dry mode: skipping unstake transaction')
+    await this.handleStateSwitch()
+    if (this.isDryOrPauseMode) {
+      this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping unstake`)
       return
     }
     const tx = await this.bridge.unstake(amount)

@@ -293,22 +293,40 @@ const Web3ContextProvider: FC = ({ children }) => {
 
         try {
           if ((window as any).ethereum && networkId) {
-            await (window as any).ethereum.request({
-              id: 1,
-              jsonrpc: '2.0',
-              method: 'wallet_addEthereumChain',
-              params: [
-                {
-                  chainId: `0x${Number(networkId).toString(16)}`,
-                  chainName: networkNames[networkId.toString()],
-                  rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
-                  blockExplorerUrls: [
-                    getBaseExplorerUrl(networkIdToSlug(networkId.toString()))
-                  ],
-                  nativeCurrency
-                }
-              ]
-            })
+            const wantNetworkName = networkNames[networkId] || 'local'
+            const isL1 = ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
+              wantNetworkName
+            )
+            const rpcObj = {
+              chainId: `0x${Number(networkId).toString(16)}`,
+              chainName: networkNames[networkId.toString()],
+              rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
+              blockExplorerUrls: [
+                getBaseExplorerUrl(networkIdToSlug(networkId.toString()))
+              ],
+              nativeCurrency
+            }
+            if (isL1) {
+              await (window as any).ethereum.request({
+                id: 1,
+                jsonrpc: '2.0',
+                method: 'wallet_switchEthereumChain',
+                params: [
+                  {
+                    chainId: `0x${Number(networkId).toString(16)}`
+                  }
+                ]
+              })
+            } else {
+              await (window as any).ethereum.request({
+                id: 1,
+                jsonrpc: '2.0',
+                method: 'wallet_addEthereumChain',
+                params: [
+                  rpcObj
+                ]
+              })
+            }
           }
 
           return true

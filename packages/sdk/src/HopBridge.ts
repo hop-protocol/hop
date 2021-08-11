@@ -1128,18 +1128,20 @@ class HopBridge extends Base {
     this.checkConnectedChain(this.signer, sourceChain)
     const l1Bridge = await this.getL1Bridge(this.signer)
 
-    const l1Token = this.getL1Token()
-    if (approval) {
-      const tx = await l1Token.approve(l1Bridge.address, amount)
-      await tx?.wait()
-    } else {
-      const allowance = await l1Token.allowance(l1Bridge.address)
-      if (allowance.lt(BigNumber.from(amount))) {
-        throw new Error('not enough allowance')
+    const isNativeToken = this.isNativeToken(sourceChain)
+
+    if (!isNativeToken) {
+      const l1Token = this.getL1Token()
+      if (approval) {
+        const tx = await l1Token.approve(l1Bridge.address, amount)
+        await tx?.wait()
+      } else {
+        const allowance = await l1Token.allowance(l1Bridge.address)
+        if (allowance.lt(BigNumber.from(amount))) {
+          throw new Error('not enough allowance')
+        }
       }
     }
-
-    const value = this.isNativeToken(sourceChain) ? amount : undefined
 
     return l1Bridge.sendToL2(
       destinationChainId,
@@ -1151,7 +1153,7 @@ class HopBridge extends Base {
       relayerFee || 0,
       {
         ...this.txOverrides(Chain.Ethereum),
-        value
+        value: isNativeToken ? amount : undefined
       }
     )
   }
@@ -1184,20 +1186,22 @@ class HopBridge extends Base {
       throw new Error('amount must be greater than bonder fee')
     }
 
-    const l2CanonicalToken = this.getCanonicalToken(sourceChain)
-    if (approval) {
-      const tx = await l2CanonicalToken.approve(spender, amount)
-      await tx?.wait()
-    } else {
-      const allowance = await l2CanonicalToken.allowance(spender)
-      if (allowance.lt(BigNumber.from(amount))) {
-        throw new Error('not enough allowance')
+    const isNativeToken = this.isNativeToken(sourceChain)
+
+    if (!isNativeToken) {
+      const l2CanonicalToken = this.getCanonicalToken(sourceChain)
+      if (approval) {
+        const tx = await l2CanonicalToken.approve(spender, amount)
+        await tx?.wait()
+      } else {
+        const allowance = await l2CanonicalToken.allowance(spender)
+        if (allowance.lt(BigNumber.from(amount))) {
+          throw new Error('not enough allowance')
+        }
       }
     }
 
     if (attemptSwap) {
-      const value = this.isNativeToken(sourceChain) ? amount : undefined
-
       return ammWrapper.swapAndSend(
         destinationChainId,
         recipient,
@@ -1209,7 +1213,7 @@ class HopBridge extends Base {
         destinationDeadline,
         {
           ...this.txOverrides(sourceChain),
-          value
+          value: isNativeToken ? amount : undefined
         }
       )
     }
@@ -1248,18 +1252,20 @@ class HopBridge extends Base {
     this.checkConnectedChain(this.signer, sourceChain)
     const ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
 
-    const l2CanonicalToken = this.getCanonicalToken(sourceChain)
-    if (approval) {
-      const tx = await l2CanonicalToken.approve(ammWrapper.address, amount)
-      await tx?.wait()
-    } else {
-      const allowance = await l2CanonicalToken.allowance(ammWrapper.address)
-      if (allowance.lt(BigNumber.from(amount))) {
-        throw new Error('not enough allowance')
+    const isNativeToken = this.isNativeToken(sourceChain)
+
+    if (!isNativeToken) {
+      const l2CanonicalToken = this.getCanonicalToken(sourceChain)
+      if (approval) {
+        const tx = await l2CanonicalToken.approve(ammWrapper.address, amount)
+        await tx?.wait()
+      } else {
+        const allowance = await l2CanonicalToken.allowance(ammWrapper.address)
+        if (allowance.lt(BigNumber.from(amount))) {
+          throw new Error('not enough allowance')
+        }
       }
     }
-
-    const value = this.isNativeToken(sourceChain) ? amount : undefined
 
     return ammWrapper.swapAndSend(
       destinationChainId,
@@ -1272,7 +1278,7 @@ class HopBridge extends Base {
       destinationDeadline,
       {
         ...this.txOverrides(sourceChain),
-        value
+        value: isNativeToken ? amount : undefined
       }
     )
   }

@@ -32,7 +32,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@hop-protocol/core": "0.0.1-beta.11",
+    "@hop-protocol/core": "0.0.1-beta.12",
     "@maticnetwork/maticjs": "^2.0.38",
     "@types/isomorphic-fetch": "0.0.35",
     "@types/luxon": "^1.27.1",

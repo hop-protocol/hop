@@ -126,7 +126,7 @@ class Token extends Base {
    */
   public async transfer (recipient: string, amount: TAmount) {
     const tokenContract = await this.getErc20()
-    return tokenContract.transfer(recipient, amount, this.overrides())
+    return tokenContract.transfer(recipient, amount, await this.overrides())
   }
 
   /**
@@ -152,7 +152,7 @@ class Token extends Base {
     const tokenContract = await this.getErc20()
     const allowance = await this.allowance(spender)
     if (allowance.lt(BigNumber.from(amount))) {
-      return tokenContract.approve(spender, amount, this.overrides())
+      return tokenContract.approve(spender, amount, await this.overrides())
     }
   }
 
@@ -166,7 +166,7 @@ class Token extends Base {
     return this.getContract(this.address, erc20Abi, provider)
   }
 
-  public overrides () {
+  public async overrides () {
     return this.txOverrides(this.chain)
   }
 

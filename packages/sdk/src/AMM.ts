@@ -96,7 +96,7 @@ class AMM extends Base {
       amounts,
       minToMint,
       deadline,
-      this.txOverrides(this.chain)
+      await this.txOverrides(this.chain)
     )
   }
 
@@ -132,7 +132,7 @@ class AMM extends Base {
       liqudityTokenAmount,
       amounts,
       deadline,
-      this.txOverrides(this.chain)
+      await this.txOverrides(this.chain)
     )
   }
 
@@ -151,6 +151,32 @@ class AMM extends Base {
       TokenIndex.HopBridgeToken,
       TokenIndex.CanonicalToken,
       amount
+    )
+  }
+
+  public async calculateAddLiquidityMinimum (
+    amount0: TAmount,
+    amount1: TAmount
+  ) {
+    const amounts = [amount0, amount1]
+    const saddleSwap = await this.getSaddleSwap()
+    const recipient = await this.getSignerAddress()
+    const isDeposit = true
+    return saddleSwap.calculateTokenAmount(
+      recipient,
+      amounts,
+      isDeposit,
+      await this.txOverrides(this.chain)
+    )
+  }
+
+  public async calculateRemoveLiquidityMinimum (lpTokenAmount: TAmount) {
+    const saddleSwap = await this.getSaddleSwap()
+    const recipient = await this.getSignerAddress()
+    return saddleSwap.calculateRemoveLiquidity(
+      recipient,
+      lpTokenAmount,
+      await this.txOverrides(this.chain)
     )
   }
 

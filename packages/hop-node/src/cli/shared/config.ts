@@ -8,6 +8,7 @@ import {
   setBonderPrivateKey,
   setConfigAddresses,
   setConfigByNetwork,
+  setStateUpdateAddress,
   setSyncConfig
 } from 'src/config'
 import { getParameter } from 'src/aws/parameterStore'
@@ -110,6 +111,7 @@ export type Config = {
   bondWithdrawals?: BondWithdrawals
   order?: number
   addresses?: Addresses
+  stateUpdateAddress?: string
 }
 
 export async function writeConfigFile (
@@ -212,6 +214,9 @@ export async function setGlobalConfigFromConfigFile (
     const addresses = require(location)
     setConfigAddresses(addresses)
   }
+  if (config?.stateUpdateAddress) {
+    setStateUpdateAddress(config.stateUpdateAddress)
+  }
 }
 
 export function validateKeys (validKeys: string[] = [], keys: string[]) {
@@ -246,7 +251,8 @@ export async function validateConfig (config: any) {
     'logging',
     'keystore',
     'addresses',
-    'order'
+    'order',
+    'stateUpdateAddress'
   ]
 
   const validWatcherKeys = [

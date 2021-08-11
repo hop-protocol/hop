@@ -113,8 +113,14 @@ const PoolsContextProvider: FC = ({ children }) => {
     txConfirm,
     txHistory,
     sdk,
-    selectedBridge
+    selectedBridge,
+    settings
   } = useApp()
+  const {
+    slippageTolerance
+  } = settings
+  const slippageToleranceBps = slippageTolerance * 100
+  const minBps = Math.ceil(10000 - slippageToleranceBps)
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
   const [error, setError] = useState<string | null | undefined>(null)
   const l2Networks = useMemo(() => {
@@ -326,44 +332,13 @@ const PoolsContextProvider: FC = ({ children }) => {
       const signer = provider?.getSigner()
       const amount0Desired = parseUnits(token0Amount || '0', canonicalToken?.decimals)
       const amount1Desired = parseUnits(token1Amount || '0', hopToken?.decimals)
-      const minToMint = 0
+
+      const bridge = sdk.bridge(canonicalToken.symbol)
+      const amm = bridge.getAmm(selectedNetwork.slug)
+      const minAmount0 = amount0Desired.mul(minBps).div(10000)
+      const minAmount1 = amount1Desired.mul(minBps).div(10000)
+      const minToMint = await amm.calculateAddLiquidityMinimum(minAmount0, minAmount1)
       const deadline = (Date.now() / 1000 + 5 * 60) | 0
-
-      const isTokenWrapNeeded = await sdk.bridge(canonicalToken.symbol).isTokenWrapNeeded(amount0Desired, selectedNetwork.slug)
-      if (isTokenWrapNeeded) {
-        const tokenWrapTx = await txConfirm?.show({
-          kind: 'wrapToken',
-          inputProps: {
-            token: {
-              amount: token0Amount,
-              token: canonicalToken,
-              network: selectedNetwork
-            }
-          },
-          onConfirm: async () => {
-            const bridge = sdk.bridge(canonicalToken.symbol)
-            return bridge
-              .connect(signer as Signer)
-              .wrapToken(
-                amount0Desired,
-                selectedNetwork.slug
-              )
-          }
-        })
-
-        if (tokenWrapTx) {
-          setTxHash(tokenWrapTx.hash)
-          if (tokenWrapTx.hash && selectedNetwork) {
-            txHistory?.addTransaction(
-              new Transaction({
-                hash: tokenWrapTx.hash,
-                networkName: selectedNetwork?.slug
-              })
-            )
-          }
-          await tokenWrapTx.wait()
-        }
-      }
 
       const addLiquidityTx = await txConfirm?.show({
         kind: 'addLiquidity',
@@ -380,7 +355,6 @@ const PoolsContextProvider: FC = ({ children }) => {
           }
         },
         onConfirm: async () => {
-          const bridge = sdk.bridge(canonicalToken.symbol)
           return bridge
             .connect(signer as Signer)
             .addLiquidity(
@@ -446,10 +420,6 @@ const PoolsContextProvider: FC = ({ children }) => {
       const approvalTx = await approve(balance, lpToken, saddleSwap.address)
       await approvalTx?.wait()
 
-      const amount0Min = '0'
-      const amount1Min = '0'
-      const deadline = (Date.now() / 1000 + 5 * 60) | 0
-
       const token0Amount = token0Deposited
       const token1Amount = token1Deposited
 
@@ -469,7 +439,12 @@ const PoolsContextProvider: FC = ({ children }) => {
         },
         onConfirm: async (amountPercent: number) => {
           const liquidityTokenAmount = balance.mul(amountPercent).div(100)
-          const bridge = sdk.bridge(canonicalToken.symbol)
+          const liquidityTokenAmountWithSlippage = liquidityTokenAmount.mul(minBps).div(10000)
+          const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(liquidityTokenAmountWithSlippage)
+          const amount0Min = minimumAmounts[0]
+          const amount1Min = minimumAmounts[1]
+          const deadline = (Date.now() / 1000 + 5 * 60) | 0
+
           return bridge
             .connect(signer as Signer)
             .removeLiquidity(

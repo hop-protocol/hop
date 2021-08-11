@@ -15,6 +15,7 @@ export interface Config {
   label: string
   order?: () => number
   dryMode?: boolean
+  stateUpdateAddress?: string
 }
 
 const BONDER_ORDER_DELAY_MS = 60 * 1000
@@ -34,7 +35,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
+      dryMode: config.dryMode,
+      stateUpdateAddress: config.stateUpdateAddress
     })
   }
 
@@ -121,8 +123,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode) {
-      logger.warn('dry mode: skipping bondWithdrawalWatcher transaction')
+    await this.handleStateSwitch()
+    if (this.isDryOrPauseMode) {
+      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping bondWithdrawalWatcher`)
       return
     }
 

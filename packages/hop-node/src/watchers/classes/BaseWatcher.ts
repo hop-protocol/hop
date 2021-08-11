@@ -2,6 +2,7 @@ import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import SyncWatcher from '../SyncWatcher'
+import { Chain } from 'src/constants'
 import { Contract } from 'ethers'
 import { Db, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
@@ -21,12 +22,14 @@ interface Config {
   isL1?: boolean
   bridgeContract?: Contract
   dryMode?: boolean
+  stateUpdateAddress?: string
 }
 
-interface EventsBatchOptions {
-  key?: string
-  startBlockNumber?: number
-  endBlockNumber?: number
+enum State {
+  Normal = 0,
+  DryMode = 1,
+  PauseMode = 2,
+  Exit = 3
 }
 
 @boundClass
@@ -47,6 +50,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   dryMode: boolean
   tag: string
   prefix: string
+  pauseMode: boolean = false
+  stateUpdateAddress: string
 
   constructor (config: Config) {
     super()
@@ -84,6 +89,9 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (config.dryMode) {
       this.dryMode = config.dryMode
     }
+    if (config.stateUpdateAddress) {
+      this.stateUpdateAddress = config.stateUpdateAddress
+    }
   }
 
   isAllSiblingWatchersInitialSyncCompleted (): boolean {
@@ -95,15 +103,20 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       if (!this.started) {
         return
       }
-      try {
-        const shouldPoll = this.prePollHandler()
-        if (shouldPoll) {
-          await this.pollHandler()
+      if (!this.pauseMode) {
+        try {
+          const shouldPoll = this.prePollHandler()
+          if (shouldPoll) {
+            await this.pollHandler()
+          }
+        } catch (err) {
+          this.logger.error(`poll check error: ${err.message}`)
+          this.notifier.error(`poll check error: ${err.message}`)
+          console.trace()
         }
-      } catch (err) {
-        this.logger.error(`poll check error: ${err.message}`)
-        this.notifier.error(`poll check error: ${err.message}`)
-        console.trace()
+      } else {
+        // Allow a paused bonder to go into dry mode or exit
+        await this.handleStateSwitch()
       }
       await this.postPollHandler()
     }
@@ -179,6 +192,48 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   cacheKey (key: string) {
     return `${this.tag}:${key}`
+  }
+
+  handleStateSwitch = async () => {
+    if (!this.stateUpdateAddress) {
+      return
+    }
+
+    let state: number
+    try {
+      const l1ChainId = this.chainSlugToId(Chain.Ethereum)
+      const l1Bridge = this.getSiblingWatcherByChainId(l1ChainId).bridge
+      state = await l1Bridge.getStateUpdateStatus(this.stateUpdateAddress, this.bridge.chainId)
+    } catch (err) {
+      this.logger.log(`getStateUpdateStatus failed with ${err}`)
+      return
+    }
+
+    this.setDryMode(state === State.DryMode)
+    this.setPauseMode(state === State.PauseMode)
+
+    if (state === State.Exit) {
+      this.logger.error('exit mode enabled')
+      this.quit()
+    }
+  }
+
+  get isDryOrPauseMode () {
+    return this.dryMode || this.pauseMode
+  }
+
+  setDryMode (enabled: boolean) {
+    if (this.dryMode !== enabled) {
+      this.logger.warn(`Dry mode updated: ${enabled}`)
+      this.dryMode = enabled
+    }
+  }
+
+  setPauseMode (enabled: boolean) {
+    if (this.pauseMode !== enabled) {
+      this.logger.warn(`Pause mode updated: ${enabled}`)
+      this.pauseMode = enabled
+    }
   }
 
   // force quit so docker can restart

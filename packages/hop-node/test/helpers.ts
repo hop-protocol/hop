@@ -26,8 +26,8 @@ import {
   swapAbi as saddleSwapAbi
 } from '@hop-protocol/core/abi'
 import { chainSlugToId, getRpcProvider, wait } from 'src/utils'
-import { config } from 'src/config'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { config as globalConfig } from 'src/config'
 import * as hopMetadata from '@hop-protocol/core/metadata'
 
 const logger = new Logger('test')
@@ -83,16 +83,16 @@ export class User {
   }
 
   getTokenContract (network: string, token: string) {
-    let tokenAddress = config.tokens[token][network].l2CanonicalToken
+    let tokenAddress = globalConfig.tokens[token][network].l2CanonicalToken
     if (network === Chain.Ethereum) {
-      tokenAddress = config.tokens[token][network].l1CanonicalToken
+      tokenAddress = globalConfig.tokens[token][network].l1CanonicalToken
     }
     const wallet = this.getWallet(network)
     return new Contract(tokenAddress, erc20Abi, wallet)
   }
 
   getSaddleSwapContract (network: string, token: string) {
-    const saddleSwapAddress = config.tokens[token][network].l2SaddleSwap
+    const saddleSwapAddress = globalConfig.tokens[token][network].l2SaddleSwap
     const wallet = this.getWallet(network)
     return new Contract(saddleSwapAddress, saddleSwapAbi, wallet)
   }
@@ -135,10 +135,10 @@ export class User {
     let bridgeAddress: string
     let artifact: any
     if (network === Chain.Ethereum) {
-      bridgeAddress = config.tokens[token][network].l1Bridge
+      bridgeAddress = globalConfig.tokens[token][network].l1Bridge
       artifact = l1BridgeAbi
     } else {
-      bridgeAddress = config.tokens[token][network].l2Bridge
+      bridgeAddress = globalConfig.tokens[token][network].l2Bridge
       artifact = l2BridgeAbi
     }
 
@@ -147,7 +147,7 @@ export class User {
   }
 
   getHopBridgeTokenContract (network: string, token: string) {
-    const tokenAddress = config.tokens[token][network].l2HopBridgeToken
+    const tokenAddress = globalConfig.tokens[token][network].l2HopBridgeToken
     const wallet = this.getWallet(network)
     return new Contract(tokenAddress, erc20Abi, wallet)
   }
@@ -201,7 +201,7 @@ export class User {
   }
 
   getAmmWrapperContract (network: string, token: string = Token.USDC) {
-    const wrapperAddress = config.tokens[token][network].l2AmmWrapper
+    const wrapperAddress = globalConfig.tokens[token][network].l2AmmWrapper
     const wallet = this.getWallet(network)
     return new Contract(wrapperAddress, l2AmmWrapperAbi, wallet)
   }
@@ -567,15 +567,15 @@ export class User {
   }
 
   getBridgeAddress (network: string, token: string) {
-    let address = config.tokens[token][network].l2Bridge
+    let address = globalConfig.tokens[token][network].l2Bridge
     if (network === Chain.Ethereum) {
-      address = config.tokens[token][network].l1Bridge
+      address = globalConfig.tokens[token][network].l1Bridge
     }
     return address
   }
 
   getAmmWrapperAddress (network: string, token: string) {
-    return config.tokens[token][network].l2AmmWrapper
+    return globalConfig.tokens[token][network].l2AmmWrapper
   }
 
   async getLpToken (network: string, token: string) {
@@ -601,25 +601,25 @@ export class User {
     const wallet = this.getWallet(Chain.Ethereum)
     if (destNetwork === Chain.Arbitrum) {
       return new Contract(
-        config.tokens[token][destNetwork].l1CanonicalBridge,
+        globalConfig.tokens[token][destNetwork].l1CanonicalBridge,
         arbitrumGlobalInboxAbi,
         wallet
       )
     } else if (destNetwork === Chain.Optimism) {
       return new Contract(
-        config.tokens[token][destNetwork].l1CanonicalBridge,
+        globalConfig.tokens[token][destNetwork].l1CanonicalBridge,
         l1OptimismTokenBridgeAbi,
         wallet
       )
     } else if (destNetwork === Chain.xDai) {
       return new Contract(
-        config.tokens[token][destNetwork].l1CanonicalBridge,
+        globalConfig.tokens[token][destNetwork].l1CanonicalBridge,
         l1xDaiForeignOmniBridgeAbi,
         wallet
       )
     } else if (destNetwork === Chain.Polygon) {
       return new Contract(
-        config.tokens[token][destNetwork].l1PosRootChainManager,
+        globalConfig.tokens[token][destNetwork].l1PosRootChainManager,
         l1PolygonPosRootChainManagerAbi,
         wallet
       )
@@ -640,16 +640,16 @@ export class User {
     const tokenBridge = this.getCanonicalBridgeContract(destNetwork, token)
     if (destNetwork === Chain.Arbitrum) {
       return tokenBridge.depositERC20Message(
-        config.tokens[token][destNetwork].arbChain,
-        config.tokens[token][Chain.Ethereum].l1CanonicalToken,
+        globalConfig.tokens[token][destNetwork].arbChain,
+        globalConfig.tokens[token][Chain.Ethereum].l1CanonicalToken,
         recipient,
         value,
         await this.txOverrides(destNetwork)
       )
     } else if (destNetwork === Chain.Optimism) {
       const l1TokenAddress =
-        config.tokens[token][Chain.Ethereum].l1CanonicalToken
-      const l2TokenAddress = config.tokens[token][destNetwork].l2CanonicalToken
+        globalConfig.tokens[token][Chain.Ethereum].l1CanonicalToken
+      const l2TokenAddress = globalConfig.tokens[token][destNetwork].l2CanonicalToken
       return tokenBridge.deposit(
         l1TokenAddress,
         l2TokenAddress,
@@ -659,13 +659,13 @@ export class User {
       )
     } else if (destNetwork === Chain.xDai) {
       return tokenBridge.relayTokens(
-        config.tokens[token][Chain.Ethereum].l1CanonicalToken,
+        globalConfig.tokens[token][Chain.Ethereum].l1CanonicalToken,
         recipient,
         value,
         await this.txOverrides(destNetwork)
       )
     } else if (destNetwork === Chain.Polygon) {
-      const approveAddress = config.tokens[token][destNetwork].l1PosPredicate
+      const approveAddress = globalConfig.tokens[token][destNetwork].l1PosPredicate
       logger.debug('approving')
       const tx = await this.approve(Chain.Ethereum, token, approveAddress)
       await tx?.wait()
@@ -674,7 +674,7 @@ export class User {
       const payload = coder.encode(['uint256'], [value])
       return tokenBridge.depositFor(
         recipient,
-        config.tokens[token][Chain.Ethereum].l1CanonicalToken,
+        globalConfig.tokens[token][Chain.Ethereum].l1CanonicalToken,
         payload,
         await this.txOverrides(destNetwork)
       )
@@ -1184,7 +1184,7 @@ export class User {
 
   async txOverrides (network: string) {
     const txOptions: any = {}
-    if (config.isMainnet) {
+    if (globalConfig.isMainnet) {
       // txOptions.gasLimit = 1_000_000
       txOptions.gasPrice = (
         await this.getBumpedGasPrice(network, 1.5)
@@ -1315,14 +1315,14 @@ export async function prepareAccounts (
   network: string,
   faucetTokensToSend: number = 100
 ) {
-  const faucetSendEth = !config.isMainnet
+  const faucetSendEth = !globalConfig.isMainnet
   let i = 0
   for (const user of users) {
     logger.debug('preparing account')
     const address = await user.getAddress()
     const yes = [Chain.Ethereum as string, Chain.xDai].includes(network)
     let checkEth = true
-    if (!config.isMainnet) {
+    if (!globalConfig.isMainnet) {
       checkEth = [Chain.Ethereum as string, Chain.xDai].includes(network)
     }
     if (checkEth) {

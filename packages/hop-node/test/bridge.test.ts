@@ -1,6 +1,6 @@
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import contracts from 'src/contracts'
-import { config } from 'src/config'
+import { config as globalConfig } from 'src/config'
 require('dotenv').config()
 
 const token = 'USDC'
@@ -8,7 +8,7 @@ const network = 'ethereum'
 const tokenContracts = contracts.get(token, network)
 const bridgeContract = tokenContracts.l1Bridge
 const bridge = new L1Bridge(bridgeContract)
-const { totalBlocks, batchBlocks } = config.sync[network]
+const { totalBlocks, batchBlocks } = globalConfig.sync[network]
 
 describe('Happy Path', () => {
   test('Full loop', async () => {

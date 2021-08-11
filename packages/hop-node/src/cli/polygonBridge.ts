@@ -1,11 +1,12 @@
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
 import { Chain } from 'src/constants'
 import {
-  Config,
-  parseConfigFile,
-  setGlobalConfigFromConfigFile
-} from './shared/config'
-import { config as globalConfig } from 'src/config'
+  FileConfig,
+  config as globalConfig,
+  parseConfigFile
+  , setGlobalConfigFromConfigFile
+} from 'src/config'
+
 import { logger, program } from './shared'
 
 program
@@ -17,7 +18,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: Config = await parseConfigFile(configPath)
+        const config: FileConfig = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const tokens = Object.keys(globalConfig.tokens)

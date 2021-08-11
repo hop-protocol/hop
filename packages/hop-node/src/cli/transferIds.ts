@@ -1,8 +1,8 @@
 import {
-  Config,
+  FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
-} from './shared/config'
+} from 'src/config'
 import { logger, program } from './shared'
 
 import getTransfer from 'src/theGraph/getTransfer'
@@ -21,7 +21,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: Config = await parseConfigFile(configPath)
+        const config: FileConfig = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const transferRootHash = source.args[0]

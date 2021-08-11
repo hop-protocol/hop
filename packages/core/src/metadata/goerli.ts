@@ -1,5 +1,6 @@
 import { tokens } from './tokens'
+import {Metadata } from './types'
 
-export const metadata = {
+export const metadata: Metadata = {
   tokens
 }

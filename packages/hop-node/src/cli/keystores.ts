@@ -3,16 +3,16 @@ import entropyToMnemonic from 'src/utils/entropyToMnemonic'
 import fs from 'fs'
 import path from 'path'
 import {
-  Config,
+  FileConfig,
   defaultKeystoreFilePath,
   parseConfigFile,
-  promptPassphrase,
   setGlobalConfigFromConfigFile
-} from './shared/config'
+} from 'src/config'
+import { prompt, promptPassphrase } from 'src/prompt'
 import { HDNode } from '@ethersproject/hdnode'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
 import { hopArt } from './shared/art'
-import { logger, program, prompt } from './shared'
+import { logger, program } from './shared'
 import { randomBytes } from 'crypto'
 
 program
@@ -28,7 +28,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: Config = await parseConfigFile(configPath)
+        const config: FileConfig = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const action = source.args[0]

@@ -1,9 +1,5 @@
 import Logger from 'src/logger'
-import prompt from 'prompt'
 import { Command } from 'commander'
-
-prompt.colors = false
-export { prompt }
 
 export const logger = new Logger('config')
 export const program = new Command()

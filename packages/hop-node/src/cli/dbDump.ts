@@ -1,10 +1,11 @@
 import {
-  Config,
-  parseConfigFile,
-  setGlobalConfigFromConfigFile
-} from './shared/config'
-import { db as dbConfig } from 'src/config'
+  FileConfig,
+  config as globalConfig,
+  parseConfigFile
+  , setGlobalConfigFromConfigFile
+} from 'src/config'
 import { getDbSet } from 'src/db'
+
 import { logger, program } from './shared'
 
 program
@@ -21,18 +22,18 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: Config = await parseConfigFile(configPath)
+        const config: FileConfig = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       if (source.dbPath) {
-        dbConfig.path = source.dbPath
+        globalConfig.db.path = source.dbPath
       }
       const tokenSymbol = source.token
       if (!tokenSymbol) {
         throw new Error('token is required')
       }
       const dbName = source.db || 'transfers'
-      logger.debug(`dumping ${dbName} db located at ${dbConfig.path}`)
+      logger.debug(`dumping ${dbName} db located at ${globalConfig.db.path}`)
 
       const db = getDbSet(tokenSymbol)
       if (dbName === 'transfer-roots') {

@@ -4,7 +4,7 @@ import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Logger from 'src/logger'
 import contracts from 'src/contracts'
 import fs from 'fs'
-import { config } from 'src/config'
+import { config as globalConfig } from 'src/config'
 
 class Events {
   logger: Logger
@@ -12,8 +12,8 @@ class Events {
 
   constructor () {
     this.logger = new Logger('Events')
-    const tokens: string[] = config.isMainnet ? ['USDC'] : ['DAI', 'USDC']
-    const networks: string[] = config.isMainnet
+    const tokens: string[] = globalConfig.isMainnet ? ['USDC'] : ['DAI', 'USDC']
+    const networks: string[] = globalConfig.isMainnet
       ? ['ethereum', 'xdai', 'polygon']
       : ['ethereum', 'optimism', 'xdai']
     for (const token of tokens) {

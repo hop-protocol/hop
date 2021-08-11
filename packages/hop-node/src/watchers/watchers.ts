@@ -10,7 +10,9 @@ import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
 import { chainSlugToId, getRpcProviderFromUrl } from 'src/utils'
-import { config } from 'src/config'
+import { config as globalConfig } from 'src/config'
+
+// TODO: refactor this file
 
 const networks: string[] = [
   Chain.Optimism,
@@ -32,7 +34,7 @@ function getStakeWatchers (
   stateUpdateAddress: string = ''
 ) {
   if (!_tokens) {
-    _tokens = Object.keys(config.tokens)
+    _tokens = Object.keys(globalConfig.tokens)
   }
   _networks = (_networks || networks).filter((x: string) =>
     networks.includes(x)
@@ -79,7 +81,7 @@ function getStakeWatchers (
   }
 
   watchers.forEach(watcher => {
-    const readRpcUrl = config.networks[watcher.chainSlug].readRpcUrl
+    const readRpcUrl = globalConfig.networks[watcher.chainSlug].readRpcUrl
     if (readRpcUrl) {
       const provider = getRpcProviderFromUrl(
         readRpcUrl
@@ -88,7 +90,7 @@ function getStakeWatchers (
       watcher.bridge.setReadProvider(provider)
     }
 
-    const specialReadRpcUrl = config.networks[watcher.chainSlug].specialReadRpcUrl
+    const specialReadRpcUrl = globalConfig.networks[watcher.chainSlug].specialReadRpcUrl
     if (specialReadRpcUrl) {
       const provider = getRpcProviderFromUrl(
         specialReadRpcUrl
@@ -138,7 +140,7 @@ function startWatchers (
   _config: Config = {
     enabledWatchers: [],
     order: 0,
-    tokens: Object.keys(config.tokens),
+    tokens: Object.keys(globalConfig.tokens),
     networks: networks,
     bonder: true,
     challenger: false,
@@ -155,7 +157,7 @@ function startWatchers (
   let _tokens = _config.tokens
   let _networks = _config.networks.filter(x => networks.includes(x))
   if (!_tokens || !_tokens.length) {
-    _tokens = Object.keys(config.tokens)
+    _tokens = Object.keys(globalConfig.tokens)
   }
   if (!_networks.length) {
     _networks = networks
@@ -334,9 +336,9 @@ function startWatchers (
 
   if (_config?.bonder || _config?.bonder === undefined) {
     watchers.forEach(watcher => {
-      if (config.networks[watcher.chainSlug].readRpcUrl) {
+      if (globalConfig.networks[watcher.chainSlug].readRpcUrl) {
         const provider = getRpcProviderFromUrl(
-          config.networks[watcher.chainSlug].readRpcUrl
+          globalConfig.networks[watcher.chainSlug].readRpcUrl
         )
         watcher.bridge.setReadProvider(provider)
       }
@@ -380,10 +382,10 @@ function startChallengeWatchers (
   dryMode?: boolean
 ) {
   if (!_tokens) {
-    _tokens = Object.keys(config.tokens)
+    _tokens = Object.keys(globalConfig.tokens)
   }
   if (!_networks) {
-    _tokens = Object.keys(config.networks)
+    _tokens = Object.keys(globalConfig.networks)
   }
 
   const watchers: any[] = []
@@ -423,7 +425,7 @@ function startChallengeWatchers (
 
 function startCommitTransferWatchers () {
   const watchers: any[] = []
-  const tokens = Object.keys(config.tokens)
+  const tokens = Object.keys(globalConfig.tokens)
   for (const network of networks) {
     for (const token of tokens) {
       /*

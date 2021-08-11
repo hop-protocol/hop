@@ -10,12 +10,12 @@ import {
   prepareAccounts
 } from '../../test/helpers'
 import { chainIdToSlug, wait } from 'src/utils'
-import { config } from 'src/config'
 import {
   faucetPrivateKey,
   mnemonic,
   privateKey as testUserPrivateKey
 } from '../../test/config'
+import { config as globalConfig } from 'src/config'
 
 const useTestUserPrivateKey = false
 
@@ -183,7 +183,7 @@ class LoadTest {
 
     logger.info('transactions:', transactions)
     logger.debug('waiting for bonded withdrawal events')
-    if (!config.isMainnet) {
+    if (!globalConfig.isMainnet) {
       logger.warn(
         'skipping check due to the hop subgraph currently only supporting mainnet network'
       )

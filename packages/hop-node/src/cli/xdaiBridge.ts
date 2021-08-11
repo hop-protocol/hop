@@ -1,15 +1,14 @@
 import {
-  Config,
-  parseConfigFile,
+  FileConfig,
+  config as globalConfig,
+  parseConfigFile
+  ,
   setGlobalConfigFromConfigFile
-} from './shared/config'
+} from 'src/config'
 import { logger, program } from './shared'
 
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 import { Chain } from 'src/constants'
-import {
-  config as globalConfig
-} from 'src/config'
 
 program
   .command('xdai-bridge')
@@ -20,7 +19,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: Config = await parseConfigFile(configPath)
+        const config: FileConfig = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const tokens = Object.keys(globalConfig.tokens)

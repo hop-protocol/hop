@@ -1,7 +1,7 @@
 import Bridge from 'src/watchers/classes/Bridge'
 import contracts from 'src/contracts'
 import { Chain, Token } from 'src/constants'
-import { config } from 'src/config'
+import { config as globalConfig } from 'src/config'
 
 describe('eventsBatch', () => {
   it(
@@ -9,7 +9,7 @@ describe('eventsBatch', () => {
     async () => {
       const { l2Bridge } = contracts.get(Token.USDC, Chain.xDai)
       const bridge = new Bridge(l2Bridge)
-      const { totalBlocks, batchBlocks } = config.sync[Chain.xDai]
+      const { totalBlocks, batchBlocks } = globalConfig.sync[Chain.xDai]
       const maxIterations = Math.ceil(totalBlocks / batchBlocks)
       const remainder = totalBlocks % batchBlocks
       let iterations = 0
@@ -39,7 +39,7 @@ describe('eventsBatch', () => {
     async () => {
       const { l2Bridge } = contracts.get(Token.USDC, Chain.xDai)
       const bridge = new Bridge(l2Bridge)
-      const { batchBlocks } = config.sync[Chain.xDai]
+      const { batchBlocks } = globalConfig.sync[Chain.xDai]
       const endBlockNumber = 21519734
       const startBlockNumber = endBlockNumber - 123456
       const totalBlocks = endBlockNumber - startBlockNumber
@@ -75,7 +75,7 @@ describe('eventsBatch', () => {
     async () => {
       const { l2Bridge } = contracts.get(Token.USDC, Chain.xDai)
       const bridge = new Bridge(l2Bridge)
-      const { totalBlocks, batchBlocks } = config.sync[Chain.xDai]
+      const { totalBlocks, batchBlocks } = globalConfig.sync[Chain.xDai]
       const maxIterations = Math.floor(totalBlocks / batchBlocks)
       const remainder = totalBlocks % batchBlocks
       const halfway = Math.floor(maxIterations / 2)

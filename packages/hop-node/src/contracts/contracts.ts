@@ -12,7 +12,7 @@ import {
 } from '@hop-protocol/core/abi'
 
 import wallets from 'src/wallets'
-import { config } from 'src/config'
+import { config as globalConfig } from 'src/config'
 
 const getL1BridgeContract = (token: string) => {
   let abi: any
@@ -22,7 +22,7 @@ const getL1BridgeContract = (token: string) => {
     abi = l1Erc20BridgeAbi
   }
   return new Contract(
-    config.tokens[token][Chain.Ethereum].l1Bridge,
+    globalConfig.tokens[token][Chain.Ethereum].l1Bridge,
     abi,
     wallets.get(Chain.Ethereum)
   )
@@ -30,7 +30,7 @@ const getL1BridgeContract = (token: string) => {
 
 const getL1TokenContract = (token: string) => {
   return new Contract(
-    config.tokens[token][Chain.Ethereum].l1CanonicalToken,
+    globalConfig.tokens[token][Chain.Ethereum].l1CanonicalToken,
     erc20Abi,
     wallets.get(Chain.Ethereum)
   )
@@ -38,7 +38,7 @@ const getL1TokenContract = (token: string) => {
 
 const getL2TokenContract = (token: string, network: string, wallet: any) => {
   return new Contract(
-    config.tokens[token][network].l2CanonicalToken,
+    globalConfig.tokens[token][network].l2CanonicalToken,
     erc20Abi,
     wallet
   )
@@ -50,7 +50,7 @@ const getL2HopBridgeTokenContract = (
   wallet: any
 ) => {
   return new Contract(
-    config.tokens[token][network].l2HopBridgeToken,
+    globalConfig.tokens[token][network].l2HopBridgeToken,
     erc20Abi,
     wallet
   )
@@ -58,7 +58,7 @@ const getL2HopBridgeTokenContract = (
 
 const getL2BridgeContract = (token: string, network: string, wallet: any) => {
   return new Contract(
-    config.tokens[token][network].l2Bridge,
+    globalConfig.tokens[token][network].l2Bridge,
     l2BridgeAbi,
     wallet
   )
@@ -70,7 +70,7 @@ const getL2AmmWrapperContract = (
   wallet: any
 ) => {
   return new Contract(
-    config.tokens[token][network].l2AmmWrapper,
+    globalConfig.tokens[token][network].l2AmmWrapper,
     l2AmmWrapperAbi,
     wallet
   )
@@ -82,17 +82,17 @@ const getL2SaddleSwapContract = (
   wallet: any
 ) => {
   return new Contract(
-    config.tokens[token][network].l2SaddleSwap,
+    globalConfig.tokens[token][network].l2SaddleSwap,
     saddleSwapAbi,
     wallet
   )
 }
 
 const constructContractsObject = memoize((token: string) => {
-  if (!config.tokens[token]) {
+  if (!globalConfig.tokens[token]) {
     return null
   }
-  return Object.keys(config.tokens?.[token]).reduce((obj, network) => {
+  return Object.keys(globalConfig.tokens?.[token]).reduce((obj, network) => {
     const wallet = wallets.get(network)
     if (!wallet) {
       return obj

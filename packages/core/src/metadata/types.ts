@@ -17,3 +17,7 @@ export interface Chain {
 export interface Chains {
   [key: string]: Chain
 }
+
+export interface Metadata {
+  tokens: Partial<Tokens>
+}

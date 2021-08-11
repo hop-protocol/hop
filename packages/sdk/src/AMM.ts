@@ -154,7 +154,10 @@ class AMM extends Base {
     )
   }
 
-  public async calculateMinToMint (amount0: TAmount, amount1: TAmount) {
+  public async calculateAddLiquidityMinimum (
+    amount0: TAmount,
+    amount1: TAmount
+  ) {
     const amounts = [amount0, amount1]
     const saddleSwap = await this.getSaddleSwap()
     const recipient = await this.getSignerAddress()
@@ -163,6 +166,16 @@ class AMM extends Base {
       recipient,
       amounts,
       isDeposit,
+      this.txOverrides(this.chain)
+    )
+  }
+
+  public async calculateRemoveLiquidityMinimum (lpTokenAmount: TAmount) {
+    const saddleSwap = await this.getSaddleSwap()
+    const recipient = await this.getSignerAddress()
+    return saddleSwap.calculateRemoveLiquidity(
+      recipient,
+      lpTokenAmount,
       this.txOverrides(this.chain)
     )
   }

@@ -337,7 +337,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       const minBps = Math.ceil(10000 - slippageToleranceBps)
       const minAmount0 = amount0Desired.mul(minBps).div(10000)
       const minAmount1 = amount1Desired.mul(minBps).div(10000)
-      const minToMint = await amm.calculateMinToMint(minAmount0, minAmount1)
+      const minToMint = await amm.calculateAddLiquidityMinimum(minAmount0, minAmount1)
       const deadline = (Date.now() / 1000 + 5 * 60) | 0
 
       const addLiquidityTx = await txConfirm?.show({
@@ -420,10 +420,6 @@ const PoolsContextProvider: FC = ({ children }) => {
       const approvalTx = await approve(balance, lpToken, saddleSwap.address)
       await approvalTx?.wait()
 
-      const amount0Min = '0'
-      const amount1Min = '0'
-      const deadline = (Date.now() / 1000 + 5 * 60) | 0
-
       const token0Amount = token0Deposited
       const token1Amount = token1Deposited
 
@@ -443,7 +439,11 @@ const PoolsContextProvider: FC = ({ children }) => {
         },
         onConfirm: async (amountPercent: number) => {
           const liquidityTokenAmount = balance.mul(amountPercent).div(100)
-          const bridge = sdk.bridge(canonicalToken.symbol)
+          const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(liquidityTokenAmount)
+          const amount0Min = minimumAmounts[0]
+          const amount1Min = minimumAmounts[1]
+          const deadline = (Date.now() / 1000 + 5 * 60) | 0
+
           return bridge
             .connect(signer as Signer)
             .removeLiquidity(

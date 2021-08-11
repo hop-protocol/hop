@@ -400,7 +400,7 @@ const Send: FC = () => {
     setAmountOutMinDisplay(`${amountOutMinFormatted} ${sourceToken.symbol}`)
   }, [amountOutMin])
 
-  const approve = useApprove()
+  const approve = useApprove(isFromTokenNative)
   const approveFromToken = async () => {
     if (!fromNetwork) {
       throw new Error('No fromNetwork selected')

@@ -113,8 +113,12 @@ const PoolsContextProvider: FC = ({ children }) => {
     txConfirm,
     txHistory,
     sdk,
-    selectedBridge
+    selectedBridge,
+    settings
   } = useApp()
+  const {
+    slippageTolerance
+  } = settings
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
   const [error, setError] = useState<string | null | undefined>(null)
   const l2Networks = useMemo(() => {
@@ -326,44 +330,15 @@ const PoolsContextProvider: FC = ({ children }) => {
       const signer = provider?.getSigner()
       const amount0Desired = parseUnits(token0Amount || '0', canonicalToken?.decimals)
       const amount1Desired = parseUnits(token1Amount || '0', hopToken?.decimals)
-      const minToMint = 0
+
+      const bridge = sdk.bridge(canonicalToken.symbol)
+      const amm = bridge.getAmm(selectedNetwork.slug)
+      const slippageToleranceBps = slippageTolerance * 100
+      const minBps = Math.ceil(10000 - slippageToleranceBps)
+      const minAmount0 = amount0Desired.mul(minBps).div(10000)
+      const minAmount1 = amount1Desired.mul(minBps).div(10000)
+      const minToMint = await amm.calculateMinToMint(minAmount0, minAmount1)
       const deadline = (Date.now() / 1000 + 5 * 60) | 0
-
-      const isTokenWrapNeeded = await sdk.bridge(canonicalToken.symbol).isTokenWrapNeeded(amount0Desired, selectedNetwork.slug)
-      if (isTokenWrapNeeded) {
-        const tokenWrapTx = await txConfirm?.show({
-          kind: 'wrapToken',
-          inputProps: {
-            token: {
-              amount: token0Amount,
-              token: canonicalToken,
-              network: selectedNetwork
-            }
-          },
-          onConfirm: async () => {
-            const bridge = sdk.bridge(canonicalToken.symbol)
-            return bridge
-              .connect(signer as Signer)
-              .wrapToken(
-                amount0Desired,
-                selectedNetwork.slug
-              )
-          }
-        })
-
-        if (tokenWrapTx) {
-          setTxHash(tokenWrapTx.hash)
-          if (tokenWrapTx.hash && selectedNetwork) {
-            txHistory?.addTransaction(
-              new Transaction({
-                hash: tokenWrapTx.hash,
-                networkName: selectedNetwork?.slug
-              })
-            )
-          }
-          await tokenWrapTx.wait()
-        }
-      }
 
       const addLiquidityTx = await txConfirm?.show({
         kind: 'addLiquidity',
@@ -380,7 +355,6 @@ const PoolsContextProvider: FC = ({ children }) => {
           }
         },
         onConfirm: async () => {
-          const bridge = sdk.bridge(canonicalToken.symbol)
           return bridge
             .connect(signer as Signer)
             .addLiquidity(

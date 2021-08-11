@@ -154,6 +154,19 @@ class AMM extends Base {
     )
   }
 
+  public async calculateMinToMint (amount0: TAmount, amount1: TAmount) {
+    const amounts = [amount0, amount1]
+    const saddleSwap = await this.getSaddleSwap()
+    const recipient = await this.getSignerAddress()
+    const isDeposit = true
+    return saddleSwap.calculateTokenAmount(
+      recipient,
+      amounts,
+      isDeposit,
+      this.txOverrides(this.chain)
+    )
+  }
+
   /**
    * @desc Returns the address of the L2 canonical token.
    * @returns {String} address

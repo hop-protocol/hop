@@ -119,6 +119,8 @@ const PoolsContextProvider: FC = ({ children }) => {
   const {
     slippageTolerance
   } = settings
+  const slippageToleranceBps = slippageTolerance * 100
+  const minBps = Math.ceil(10000 - slippageToleranceBps)
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
   const [error, setError] = useState<string | null | undefined>(null)
   const l2Networks = useMemo(() => {
@@ -333,8 +335,6 @@ const PoolsContextProvider: FC = ({ children }) => {
 
       const bridge = sdk.bridge(canonicalToken.symbol)
       const amm = bridge.getAmm(selectedNetwork.slug)
-      const slippageToleranceBps = slippageTolerance * 100
-      const minBps = Math.ceil(10000 - slippageToleranceBps)
       const minAmount0 = amount0Desired.mul(minBps).div(10000)
       const minAmount1 = amount1Desired.mul(minBps).div(10000)
       const minToMint = await amm.calculateAddLiquidityMinimum(minAmount0, minAmount1)
@@ -439,7 +439,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         },
         onConfirm: async (amountPercent: number) => {
           const liquidityTokenAmount = balance.mul(amountPercent).div(100)
-          const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(liquidityTokenAmount)
+          const liquidityTokenAmountWithSlippage = liquidityTokenAmount.mul(minBps).div(10000)
+          const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(liquidityTokenAmountWithSlippage)
           const amount0Min = minimumAmounts[0]
           const amount1Min = minimumAmounts[1]
           const deadline = (Date.now() / 1000 + 5 * 60) | 0

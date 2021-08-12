@@ -1,9 +1,9 @@
 import { Chain } from 'src/constants'
 import {
-  Config,
+  FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
-} from './shared/config'
+} from 'src/config'
 import { swap } from 'src/uniswap'
 
 import { logger, program } from './shared'
@@ -24,7 +24,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: Config = await parseConfigFile(configPath)
+        const config: FileConfig = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const chain = source.chain

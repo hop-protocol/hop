@@ -4,21 +4,21 @@ import clearDb from 'src/db/clearDb'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 import { Chain } from 'src/constants'
 import {
-  Config,
+  FileConfig,
   defaultEnabledNetworks,
   defaultEnabledWatchers,
-  parseConfigFile,
-  setGlobalConfigFromConfigFile
-} from './shared/config'
-import {
-  db as dbConfig,
   config as globalConfig,
+  parseConfigFile
+  ,
+  setBondWithdrawalsConfig,
+  setGlobalConfigFromConfigFile,
   setNetworkRpcUrls,
   setNetworkWaitConfirmations,
   slackAuthToken,
   slackChannel,
   slackUsername
 } from 'src/config'
+
 import { logger, program } from './shared'
 import { printHopArt } from './shared/art'
 import {
@@ -47,11 +47,11 @@ program
       printHopArt()
 
       const configFilePath = source.config || source.args[0]
-      const config: Config = await parseConfigFile(configFilePath)
+      const config: FileConfig = await parseConfigFile(configFilePath)
       await setGlobalConfigFromConfigFile(config, source.passwordFile)
       if (source.clearDb) {
         await clearDb()
-        logger.debug(`cleared db at: ${dbConfig.path}`)
+        logger.debug(`cleared db at: ${globalConfig.db.path}`)
       }
 
       const tokens = []
@@ -110,7 +110,7 @@ program
       let bondWithdrawalAmounts: any = {}
       if (config?.bondWithdrawals) {
         bondWithdrawalAmounts = config.bondWithdrawals
-        globalConfig.bondWithdrawals = config.bondWithdrawals
+        setBondWithdrawalsConfig(bondWithdrawalAmounts)
       }
       let settleBondedWithdrawalsThresholdPercent: any = {}
       if (config?.settleBondedWithdrawals) {

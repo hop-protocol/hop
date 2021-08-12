@@ -9,8 +9,8 @@ import { Db, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { State } from 'src/db/SyncStateDb'
 import { boundClass } from 'autobind-decorator'
-import { config } from 'src/config'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { config as globalConfig } from 'src/config'
 import { isL1ChainId } from 'src/utils'
 
 export type EventsBatchOptions = {
@@ -44,16 +44,16 @@ export default class Bridge extends ContractBase {
     let tokenDecimals: number
     let tokenSymbol: string
     // TODO: better way of getting token decimals
-    for (const tkn in config.tokens) {
-      for (const key in config.tokens[tkn]) {
-        for (const net in config.tokens[tkn]) {
-          for (const k in config.tokens[tkn][net]) {
-            const val = config.tokens[tkn][net][k]
+    for (const tkn in globalConfig.tokens) {
+      for (const key in globalConfig.tokens[tkn]) {
+        for (const net in globalConfig.tokens[tkn]) {
+          for (const k in globalConfig.tokens[tkn][net]) {
+            const val = globalConfig.tokens[tkn][net][k]
             if (val === bridgeContract.address) {
-              tokenDecimals = config.metadata.tokens[config.network][
+              tokenDecimals = globalConfig.metadata.tokens[
                 tkn
               ].decimals
-              tokenSymbol = config.metadata.tokens[config.network][tkn]
+              tokenSymbol = globalConfig.metadata.tokens[tkn]
                 .symbol
               break
             }
@@ -68,8 +68,8 @@ export default class Bridge extends ContractBase {
       this.tokenSymbol = tokenSymbol
     }
     this.db = getDbSet(this.tokenSymbol)
-    const bridgeDeployedBlockNumber = config.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
-    const l1CanonicalTokenAddress = config.tokens[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken
+    const bridgeDeployedBlockNumber = globalConfig.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
+    const l1CanonicalTokenAddress = globalConfig.tokens[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken
     if (!bridgeDeployedBlockNumber) {
       throw new Error('bridge deployed block number is required')
     }
@@ -79,11 +79,11 @@ export default class Bridge extends ContractBase {
     this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
 
-    const minBondWithdrawalAmount: number = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.min ?? 0
-    const maxBondWithdrawalAmount: number = config?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.max ?? constants.MaxUint256
+    const minBondWithdrawalAmount: number = globalConfig?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.min ?? 0
+    const maxBondWithdrawalAmount: number = globalConfig?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.max
     this.minBondWithdrawalAmount = this.parseUnits(minBondWithdrawalAmount)
-    this.maxBondWithdrawalAmount = this.parseUnits(maxBondWithdrawalAmount)
-    this.stateUpdateAddress = config?.stateUpdateAddress
+    this.maxBondWithdrawalAmount = maxBondWithdrawalAmount ? this.parseUnits(maxBondWithdrawalAmount) : constants.MaxUint256
+    this.stateUpdateAddress = globalConfig?.stateUpdateAddress
   }
 
   // a read provider is alternative provider that can be used only for
@@ -194,8 +194,8 @@ export default class Bridge extends ContractBase {
     let totalBondedAmount = BigNumber.from(0)
     const bonderAddress = await this.getBonderAddress()
     let bonders = [bonderAddress]
-    if (config?.bonders?.[this.tokenSymbol]) {
-      bonders = unique([bonderAddress, ...config.bonders[this.tokenSymbol]])
+    if (globalConfig?.bonders?.[this.tokenSymbol]) {
+      bonders = unique([bonderAddress, ...globalConfig.bonders[this.tokenSymbol]])
     }
     for (const bonder of bonders) {
       const bondedAmount = await this.getBondedWithdrawalAmountByBonder(
@@ -446,16 +446,16 @@ export default class Bridge extends ContractBase {
   // get the chain ids of all bridged L2s and L1
   async getChainIds (): Promise<number[]> {
     const chainIds: number[] = []
-    for (const key in config.networks) {
-      const { networkId: chainId } = config.networks[key]
+    for (const key in globalConfig.networks) {
+      const { networkId: chainId } = globalConfig.networks[key]
       chainIds.push(chainId)
     }
     return chainIds
   }
 
   async getL1ChainId (): Promise<number> {
-    for (const key in config.networks) {
-      const { networkId: chainId } = config.networks[key]
+    for (const key in globalConfig.networks) {
+      const { networkId: chainId } = globalConfig.networks[key]
       if (isL1ChainId(chainId)) {
         return chainId
       }
@@ -464,8 +464,8 @@ export default class Bridge extends ContractBase {
 
   async getL2ChainIds (): Promise<number[]> {
     const chainIds: number[] = []
-    for (const key in config.networks) {
-      const { networkId: chainId } = config.networks[key]
+    for (const key in globalConfig.networks) {
+      const { networkId: chainId } = globalConfig.networks[key]
       if (isL1ChainId(chainId)) {
         continue
       }
@@ -638,7 +638,7 @@ export default class Bridge extends ContractBase {
     let end
     let start
     let totalBlocksInBatch
-    const { totalBlocks, batchBlocks } = config.sync[this.chainSlug]
+    const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
     const currentBlockNumber = await this.getBlockNumber()
     const currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
     const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber

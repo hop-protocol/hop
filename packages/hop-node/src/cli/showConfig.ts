@@ -1,8 +1,8 @@
 import {
-  Config,
+  FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
-} from './shared/config'
+} from 'src/config'
 import { logger, program } from './shared'
 
 program
@@ -13,7 +13,7 @@ program
   .action(async source => {
     try {
       const configPath = source?.config || source?.parent?.config
-      const config: Config = await parseConfigFile(configPath)
+      const config: FileConfig = await parseConfigFile(configPath)
       if (configPath) {
         await setGlobalConfigFromConfigFile(config)
       }

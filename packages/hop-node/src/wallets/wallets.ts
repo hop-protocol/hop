@@ -1,8 +1,8 @@
 import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import memoize from 'fast-memoize'
 import { Wallet } from 'ethers'
-import { config } from 'src/config'
 import { getRpcProvider } from 'src/utils'
+import { config as globalConfig } from 'src/config'
 
 const constructWallet = memoize(
   (network: string, privateKey: string): Wallet => {
@@ -17,15 +17,15 @@ const constructWallet = memoize(
 // lazy instantiate
 export default {
   has (network: string) {
-    return !!constructWallet(network, config.bonderPrivateKey)
+    return !!constructWallet(network, globalConfig.bonderPrivateKey)
   },
   get (network: string) {
-    return constructWallet(network, config.bonderPrivateKey)
+    return constructWallet(network, globalConfig.bonderPrivateKey)
   },
   getRelayer (network: string) {
     return constructWallet(
       network,
-      config.relayerPrivateKey || config.bonderPrivateKey
+      globalConfig.relayerPrivateKey || globalConfig.bonderPrivateKey
     )
   }
 }

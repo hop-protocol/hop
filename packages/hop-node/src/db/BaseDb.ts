@@ -4,7 +4,7 @@ import mkdirp from 'mkdirp'
 import os from 'os'
 import path from 'path'
 import sub from 'subleveldown'
-import { db as dbConfig } from 'src/config'
+import { config as globalConfig } from 'src/config'
 
 const dbMap: { [key: string]: any } = {}
 
@@ -23,7 +23,7 @@ class BaseDb {
       prefix = `${_namespace}:${prefix}`
     }
     this.prefix = prefix
-    const pathname = path.resolve(dbConfig.path.replace('~', os.homedir()))
+    const pathname = path.resolve(globalConfig.db.path.replace('~', os.homedir()))
     mkdirp.sync(pathname.replace(path.basename(pathname), ''))
     if (!dbMap[pathname]) {
       this.logger.info(`db path: ${pathname}`)

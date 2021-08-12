@@ -4,8 +4,8 @@ import chalk from 'chalk'
 import queue from 'src/decorators/queue'
 import { BigNumber, Contract, ethers } from 'ethers'
 import { Chain } from 'src/constants'
-import { config } from 'src/config'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { config as globalConfig } from 'src/config'
 import { wait } from 'src/utils'
 
 export enum TokenIndex {
@@ -371,7 +371,7 @@ class ArbBot {
 
   async txOverrides (): Promise<any> {
     const txOptions: any = {}
-    if (config.isMainnet) {
+    if (globalConfig.isMainnet) {
       if (this.network === Chain.Polygon) {
         // txOptions.gasLimit = 3000000
       }

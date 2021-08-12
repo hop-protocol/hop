@@ -3,7 +3,7 @@ import chalk from 'chalk'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract, ethers } from 'ethers'
-import { config } from 'src/config'
+import { config as globalConfig } from 'src/config'
 import { l1xDaiAmbAbi, l2xDaiAmbAbi } from '@hop-protocol/core/abi'
 import { packSignatures, signatureToVRS, strip0x } from 'src/utils/xdaiUtils'
 import { wait } from 'src/utils'
@@ -15,13 +15,13 @@ type Config = {
 
 export const getL1Amb = (token: string) => {
   const l1Wallet = wallets.getRelayer(Chain.Ethereum)
-  const l1AmbAddress = config.tokens[token].xdai.l1Amb
+  const l1AmbAddress = globalConfig.tokens[token].xdai.l1Amb
   return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet)
 }
 
 export const getL2Amb = (token: string) => {
   const l2xDaiProvider = wallets.getRelayer(Chain.xDai).provider
-  const l2AmbAddress = config.tokens[token].xdai.l2Amb
+  const l2AmbAddress = globalConfig.tokens[token].xdai.l2Amb
   return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider)
 }
 

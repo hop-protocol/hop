@@ -2,7 +2,7 @@ import debounce from 'debounce-promise'
 import pThrottle from 'p-throttle'
 import { BigNumber, providers, utils } from 'ethers'
 import { Chain } from 'src/constants'
-import { config } from 'src/config'
+import { config as globalConfig } from 'src/config'
 
 export const getL2MessengerId = (l2Name: string): string => {
   return utils.keccak256(utils.toUtf8Bytes(l2Name))
@@ -19,7 +19,7 @@ export const wait = async (t: number) => {
 }
 
 export const getRpcUrls = (network: string): string | undefined => {
-  return config.networks[network]?.rpcUrls.slice(0, 3) // max of 3 endpoints
+  return globalConfig.networks[network]?.rpcUrls.slice(0, 3) // max of 3 endpoints
 }
 
 export const getRpcProvider = (network: string): providers.Provider => {
@@ -35,8 +35,8 @@ export const getProviderChainSlug = (provider: any): string | undefined => {
   if (!providerUrl) {
     return
   }
-  for (const chain in config.networks) {
-    for (const url of config.networks[chain].rpcUrls) {
+  for (const chain in globalConfig.networks) {
+    for (const url of globalConfig.networks[chain].rpcUrls) {
       if (new URL(providerUrl).host === new URL(url).host) {
         return chain
       }
@@ -64,16 +64,16 @@ export const getRpcProviderFromUrl = (
 
 export const chainSlugToId = (network: string): number | undefined => {
   return (
-    config.networks[network]?.networkId || config.networks[network]?.chainId
+    globalConfig.networks[network]?.networkId || globalConfig.networks[network]?.chainId
   )
 }
 
 export const chainIdToSlug = (chainId: string | number): string | undefined => {
-  if (!config.networks) {
+  if (!globalConfig.networks) {
     throw new Error('networks not found')
   }
-  for (const k in config.networks) {
-    const v = config.networks[k]
+  for (const k in globalConfig.networks) {
+    const v = globalConfig.networks[k]
     if (!v) {
       continue
     }

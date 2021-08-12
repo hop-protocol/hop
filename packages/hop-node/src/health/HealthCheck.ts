@@ -6,7 +6,7 @@ import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { chainIdToSlug, wait } from 'src/utils'
-import { config, hostname } from 'src/config'
+import { config as globalConfig, hostname } from 'src/config'
 
 type Config = {
   bondWithdrawalTimeLimitMinutes: number
@@ -24,28 +24,28 @@ class HealthCheck {
   commitTransfersMinThresholdAmount: number = 100
   pollIntervalSeconds: number = 20
 
-  constructor (_config: Partial<Config> = {}) {
+  constructor (config: Partial<Config> = {}) {
     this.logger = new Logger('HealthCheck')
     this.notifier = new Notifier(`watcher: HealthCheck, host: ${hostname}`)
 
-    if (_config.bondWithdrawalTimeLimitMinutes) {
+    if (config.bondWithdrawalTimeLimitMinutes) {
       this.bondWithdrawalTimeLimitMinutes =
-        _config.bondWithdrawalTimeLimitMinutes
+        config.bondWithdrawalTimeLimitMinutes
     }
-    if (_config.bondTransferRootTimeLimitMinutes) {
+    if (config.bondTransferRootTimeLimitMinutes) {
       this.bondTransferRootTimeLimitMinutes =
-        _config.bondTransferRootTimeLimitMinutes
+        config.bondTransferRootTimeLimitMinutes
     }
-    if (_config.commitTransfersMinThresholdAmount) {
+    if (config.commitTransfersMinThresholdAmount) {
       this.commitTransfersMinThresholdAmount =
-        _config.commitTransfersMinThresholdAmount
+        config.commitTransfersMinThresholdAmount
     }
-    if (_config.pollIntervalSeconds) {
-      this.pollIntervalSeconds = _config.pollIntervalSeconds
+    if (config.pollIntervalSeconds) {
+      this.pollIntervalSeconds = config.pollIntervalSeconds
     }
 
-    const tokens: string[] = Object.keys(config.tokens)
-    const networks: string[] = Object.keys(config.networks).filter(
+    const tokens: string[] = Object.keys(globalConfig.tokens)
+    const networks: string[] = Object.keys(globalConfig.networks).filter(
       network => network !== Chain.Ethereum
     )
     for (const token of tokens) {
@@ -129,7 +129,7 @@ class HealthCheck {
             continue
           }
           const timeAgo = DateTime.now()
-            .minus({ minutes: config.bondWithdrawalTimeLimitMinutes })
+            .minus({ minutes: this.bondWithdrawalTimeLimitMinutes })
             .toSeconds()
           // skip if transfer sent events are recent (in the last few minutes)
           if (timestamp > timeAgo) {
@@ -141,10 +141,10 @@ class HealthCheck {
           if (!destBridge) {
             continue
           }
-          if (!config?.bonders) {
+          if (!globalConfig?.bonders) {
             throw new Error('bonders object is empty')
           }
-          const bonder = config?.bonders?.[tokenSymbol]?.[0]
+          const bonder = globalConfig?.bonders?.[tokenSymbol]?.[0]
           const bondedAmount = await destBridge.getBondedWithdrawalAmountByBonder(
             bonder,
             transferId
@@ -275,7 +275,7 @@ class HealthCheck {
     }
 
     const timeAgo = DateTime.now()
-      .minus({ minutes: config.bondTransferRootTimeLimitMinutes })
+      .minus({ minutes: this.bondTransferRootTimeLimitMinutes })
       .toSeconds()
     // skip if committed time was less than a few minutes ago
     if (committedAt > timeAgo) {
@@ -323,10 +323,10 @@ class HealthCheck {
           }
 
           const destinationChain = destBridge.chainIdToSlug(destinationChainId)
-          if (!config?.bonders) {
+          if (!globalConfig?.bonders) {
             throw new Error('bonders object is empty')
           }
-          const bonder = config?.bonders?.[tokenSymbol]?.[0]
+          const bonder = globalConfig?.bonders?.[tokenSymbol]?.[0]
           /*
           const bondedAmount = await destBridge.getBondedWithdrawalAmountByBonder(
             bonder,
@@ -339,7 +339,7 @@ class HealthCheck {
             continue
           }
           */
-          if (!config?.bonders) {
+          if (!globalConfig?.bonders) {
             throw new Error('bonders object is empty')
           }
           const destEndBlockNumber = await destBridge.getBlockNumber()
@@ -415,7 +415,7 @@ class HealthCheck {
     const totalBondsSettleAmounts: any = {}
     const totals: any = {}
     for (const { transferId, destinationChainId } of bondedTransferIds) {
-      const bonder = config.bonders?.[tokenSymbol]?.[0]
+      const bonder = globalConfig.bonders?.[tokenSymbol]?.[0]
       const destBridge = this.bridges.find((bridge: L2Bridge) => {
         return bridge.chainId === destinationChainId
       })

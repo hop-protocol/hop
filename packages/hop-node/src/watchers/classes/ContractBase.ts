@@ -4,7 +4,7 @@ import { Chain } from 'src/constants'
 import { EventEmitter } from 'events'
 import { Transaction } from 'src/types'
 import { chainIdToSlug, chainSlugToId, getBumpedGasPrice, getProviderChainSlug } from 'src/utils'
-import { config } from 'src/config'
+import { config as globalConfig } from 'src/config'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract
@@ -131,14 +131,14 @@ export default class ContractBase extends EventEmitter {
   }
 
   get waitConfirmations () {
-    return config.networks?.[this.chainSlug]?.waitConfirmations || 0
+    return globalConfig.networks?.[this.chainSlug]?.waitConfirmations || 0
   }
 
   async txOverrides (): Promise<any> {
     const txOptions: any = {}
     // TODO: config option for gas price multiplier
     let multiplier = 1.5
-    if (config.isMainnet) {
+    if (globalConfig.isMainnet) {
       // increasing more gas multiplier for xdai
       // to avoid the error "code:-32010, message: FeeTooLowToCompete"
       if (

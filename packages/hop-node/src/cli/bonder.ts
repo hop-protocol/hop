@@ -1,12 +1,13 @@
 import {
-  Config,
+  FileConfig,
   defaultEnabledWatchers,
   parseConfigFile,
-  setGlobalConfigFromConfigFile
-} from './shared/config'
+  setConfigByNetwork
+  , setGlobalConfigFromConfigFile
+} from 'src/config'
 import { logger, parseArgList, program } from './shared'
 import { printHopArt } from './shared/art'
-import { setConfigByNetwork } from 'src/config'
+
 import { startWatchers } from 'src/watchers/watchers'
 
 program
@@ -26,7 +27,7 @@ program
       printHopArt()
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: Config = await parseConfigFile(configPath)
+        const config: FileConfig = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       if (source.l1Network) {

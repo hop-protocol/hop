@@ -2,10 +2,10 @@ import chalk from 'chalk'
 import getTransfer from 'src/theGraph/getTransfer'
 import getTransfers from 'src/theGraph/getTransfers'
 import {
-  Config,
+  FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
-} from './shared/config'
+} from 'src/config'
 import { logger, program } from './shared'
 
 program
@@ -27,7 +27,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: Config = await parseConfigFile(configPath)
+        const config: FileConfig = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const chain = source.chain

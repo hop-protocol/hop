@@ -244,6 +244,10 @@ function startWatchers (
         watchers.push(settleBondedWithdrawalWatcher)
       }
 
+      // note: the second option is for backward compatibility.
+      // remove it once all bonders have updated to use chain specific config.
+      const minThresholdAmount = _config.commitTransfersMinThresholdAmounts?.[network]?.[token] || _config.commitTransfersMinThresholdAmounts?.[token]
+
       const commitTransferWatcher = new CommitTransferWatcher({
         chainSlug: network,
         tokenSymbol: token,
@@ -251,7 +255,7 @@ function startWatchers (
         label,
         isL1,
         bridgeContract,
-        minThresholdAmount: _config.commitTransfersMinThresholdAmounts?.[token],
+        minThresholdAmount,
         dryMode,
         stateUpdateAddress
       })

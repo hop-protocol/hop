@@ -33,6 +33,12 @@ program
       const newConfig = JSON.parse(JSON.stringify(config)) // deep clone
 
       if (source.commitTransfersMinThreshold !== undefined) {
+        if (!chain) {
+          throw new Error('chain is required')
+        }
+        if (!token) {
+          throw new Error('token is required')
+        }
         if (!(newConfig.commitTransfers instanceof Object)) {
           newConfig.commitTransfers = {
             minThresholdAmount: {}
@@ -46,8 +52,11 @@ program
         if (!token) {
           throw new Error('token is required')
         }
-        newConfig.commitTransfers.minThresholdAmount[token] = commitTransfersMinThresholdAmount
-        logger.debug(`updating commitTransfers.minThresholdAmount to ${commitTransfersMinThresholdAmount} for ${token}`)
+        if (!(newConfig.commitTransfers.minThresholdAmount[chain] instanceof Object)) {
+          newConfig.commitTransfers.minThresholdAmount[chain] = {}
+        }
+        newConfig.commitTransfers.minThresholdAmount[chain][token] = commitTransfersMinThresholdAmount
+        logger.debug(`updating commitTransfers.minThresholdAmount to ${commitTransfersMinThresholdAmount} for ${chain}.${token}`)
       } else if (
         source.bondWithdrawalsMin !== undefined ||
         source.bondWithdrawalsMax !== undefined

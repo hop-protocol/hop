@@ -8,11 +8,11 @@ import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { prompt, promptPassphrase } from 'src/prompt'
 import { HDNode } from '@ethersproject/hdnode'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
 import { hopArt } from './shared/art'
 import { logger, program } from './shared'
+import { prompt, promptPassphrase } from 'src/prompt'
 import { randomBytes } from 'crypto'
 
 program

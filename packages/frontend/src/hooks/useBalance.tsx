@@ -12,7 +12,6 @@ const useBalance = (
   network: Network | undefined,
   address: Addressish,
 ) => {
-  const { user } = useApp()
   const [balance, setBalance] = useState<BigNumber>()
   const [loading, setLoading] = useState(false)
   const currentToken = useRef<Token>()
@@ -21,7 +20,7 @@ const useBalance = (
 
   const getBalance = useCallback(() => {
     const _getBalance = async () => {
-      if (user && token && network && address) {
+      if (token && network && address) {
         if (
           (currentNetwork.current && !network.eq(currentNetwork.current)) ||
           (currentToken.current && !token.eq(currentToken.current))
@@ -45,11 +44,11 @@ const useBalance = (
     }
 
     _getBalance().catch(logger.error)
-  }, [user, token, network, address])
+  }, [token, network, address])
 
   useEffect(() => {
     getBalance()
-  }, [user, token, network, address])
+  }, [token, network, address])
 
   useInterval(() => {
     getBalance()

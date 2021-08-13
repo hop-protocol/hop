@@ -10,8 +10,11 @@ class Token {
   public readonly name: string
 
   static ETH = 'ETH'
+  static WETH = 'WETH'
   static MATIC = 'MATIC'
+  static WMATIC = 'WMATIC'
   static XDAI = 'XDAI'
+  static WXDAI = 'WXDAI'
   static USDC = 'USDC'
   static USDT = 'USDT'
   static DAI = 'DAI'
@@ -46,6 +49,20 @@ class Token {
     if (!decimals && symbol) {
       this.decimals = metadata.tokens?.[Network.Mainnet]?.[symbol]?.decimals
     }
+  }
+
+  get canonicalSymbol () {
+    return Token.getCanonicalSymbol(this.symbol)
+  }
+
+  static getCanonicalSymbol (tokenSymbol: string) {
+    const isWrappedToken = [Token.WETH, Token.WMATIC, Token.XDAI].includes(
+      tokenSymbol
+    )
+    if (isWrappedToken) {
+      return tokenSymbol.replace(/^W/, '')
+    }
+    return tokenSymbol
   }
 }
 

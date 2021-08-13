@@ -160,23 +160,17 @@ class HopBridge extends Base {
     network: string,
     chain: TChain
   ): Token | undefined {
-    let tokenSymbol
-    if (typeof token === 'string') {
-      tokenSymbol = token
-    } else {
-      tokenSymbol = token.symbol
-    }
-
+    token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
     const { name, symbol, decimals, image } = metadata.tokens[network][
-      tokenSymbol
+      token.canonicalSymbol
     ]
 
     let address
     if (chain.isL1) {
-      address = this.getL1CanonicalTokenAddress(tokenSymbol, chain)
+      address = this.getL1CanonicalTokenAddress(token.symbol, chain)
     } else {
-      address = this.getL2CanonicalTokenAddress(tokenSymbol, chain)
+      address = this.getL2CanonicalTokenAddress(token.symbol, chain)
     }
 
     return new Token(
@@ -1449,46 +1443,8 @@ class HopBridge extends Base {
   }
 
   isNativeToken (chain?: TChain) {
-    chain = chain ? this.toChainModel(chain) : this.sourceChain
-    const isEth =
-      this.tokenSymbol === TokenModel.ETH && chain.equals(Chain.Ethereum)
-    const isMatic =
-      this.tokenSymbol === TokenModel.MATIC && chain.equals(Chain.Polygon)
-    const isxDai =
-      this.tokenSymbol === TokenModel.XDAI && chain.equals(Chain.xDai)
-    return isEth || isMatic || isxDai
-  }
-
-  async getWethContract (chain: TChain): Promise<Contract> {
-    const address = this.getCanonicalToken(chain).address
-    return this.getContract(address, wethAbi, this.signer)
-  }
-
-  async wrapToken (amount: TAmount, chain?: TChain) {
-    chain = chain ? this.toChainModel(chain) : this.sourceChain
-    const contract = await this.getWethContract(chain)
-    return contract.deposit({
-      value: amount
-    })
-  }
-
-  async unwrapToken (amount: TAmount, chain?: TChain) {
-    chain = chain ? this.toChainModel(chain) : this.sourceChain
-    const contract = await this.getWethContract(chain)
-    return contract.withdraw(amount)
-  }
-
-  async isTokenWrapNeeded (amount: TAmount, chain?: TChain) {
-    chain = chain ? this.toChainModel(chain) : this.sourceChain
-    amount = BigNumber.from(amount.toString())
-    if (this.isNativeToken(chain)) {
-      const canonicalToken = this.getCanonicalToken(chain)
-      const balance = await canonicalToken.balanceOf()
-      if (balance.lt(amount)) {
-        return true
-      }
-    }
-    return false
+    const token = this.getCanonicalToken(chain || this.sourceChain)
+    return token.isNativeToken
   }
 }
 

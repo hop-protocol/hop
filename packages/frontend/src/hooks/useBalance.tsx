@@ -11,7 +11,6 @@ const useBalance = (
   token: Token | undefined,
   network: Network | undefined,
   address: Addressish,
-  isNativeToken: boolean = false
 ) => {
   const { user } = useApp()
   const [balance, setBalance] = useState<BigNumber>()
@@ -31,13 +30,7 @@ const useBalance = (
         }
 
         const ctx = ++debouncer.current
-
-        let _balance : BigNumber
-        if (isNativeToken) {
-          _balance = await token.getNativeTokenBalance(address.toString())
-        } else {
-          _balance = await token.balanceOf(address.toString())
-        }
+        const _balance = await token.balanceOf(address.toString())
 
         if (ctx === debouncer.current) {
           setBalance(_balance as BigNumber)

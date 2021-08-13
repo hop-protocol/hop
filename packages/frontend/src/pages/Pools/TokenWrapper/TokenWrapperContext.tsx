@@ -33,7 +33,8 @@ type TokenWrapperContextProps = {
   selectedNetwork: Network | undefined,
   canonicalToken: Token | undefined
   canonicalTokenBalance: BigNumber | undefined,
-  nativeTokenBalance: BigNumber | undefined,
+  wrappedToken: Token | undefined
+  wrappedTokenBalance: BigNumber | undefined,
   error: string | null | undefined,
   setError: (error: string | null | undefined) => void
 }
@@ -48,7 +49,8 @@ const TokenWrapperContext = createContext<TokenWrapperContextProps>({
   selectedNetwork: undefined,
   canonicalToken: undefined,
   canonicalTokenBalance: undefined,
-  nativeTokenBalance: undefined,
+  wrappedToken: undefined,
+  wrappedTokenBalance: undefined,
   error: undefined,
   setError: (error: string | null | undefined) => {}
 })
@@ -70,38 +72,34 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
   const canonicalToken = useMemo(() => {
     return selectedBridge?.getCanonicalToken(selectedNetwork.slug)
   }, [selectedBridge, selectedNetwork])
+  const wrappedToken = useMemo(() => {
+    return canonicalToken?.getWrappedToken()
+  }, [canonicalToken])
   const signer = provider?.getSigner()
   const [canonicalTokenBalance, setCanonicalTokenBalance] = useState<BigNumber | undefined>()
-  const [nativeTokenBalance, setNativeTokenBalance] = useState<BigNumber | undefined>()
+  const [wrappedTokenBalance, setWrappedTokenBalance] = useState<BigNumber | undefined>()
   const [isWrapping, setWrapping] = useState<boolean>(false)
   const [isUnwrapping, setUnwrapping] = useState<boolean>(false)
   const [error, setError] = useState<string | null | undefined>(null)
 
-  const updateBalances = () => {
-    canonicalToken
-    ?.balanceOf()
-    .then((balance) => {
-      setCanonicalTokenBalance(balance)
-    })
-    .catch(err => {
-      // logger.error(err)
-    })
-    canonicalToken
-    ?.getNativeTokenBalance()
-    .then((balance) => {
-      setNativeTokenBalance(balance)
-    })
-    .catch(err => {
-      // logger.error(err)
-    })
+  const updateBalances = async () => {
+    if (!canonicalToken) return
+    if (!wrappedToken) return
+    try {
+      const [canonicalBalance, wrappedBalance] = await Promise.all([
+        canonicalToken.balanceOf(),
+        wrappedToken.balanceOf(),
+      ])
+      setCanonicalTokenBalance(canonicalBalance)
+      setWrappedTokenBalance(wrappedBalance)
+    } catch (err) {
+      // noop
+    }
   }
 
   useEffect(() => {
     updateBalances()
   }, [canonicalToken])
-  useInterval(() => {
-    updateBalances()
-  }, 5 * 1000)
   useInterval(() => {
     updateBalances()
   }, 5 * 1000)
@@ -114,17 +112,20 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
 
       setError(null)
       setWrapping(true)
+      if (!wrappedToken) {
+        throw new Error('token is required')
+      }
       if (!canonicalToken) {
         throw new Error('token is required')
       }
-      if (!nativeTokenBalance) {
+      if (!canonicalTokenBalance) {
         throw new Error('token is required')
       }
       if (!Number(amount)) {
         throw new Error('amount is required')
       }
       const parsedAmount = parseUnits(amount, canonicalToken.decimals)
-      if (parsedAmount.gt(nativeTokenBalance)) {
+      if (parsedAmount.gt(canonicalTokenBalance)) {
         throw new Error('not enough balance')
       }
       const tokenWrapTx = await txConfirm?.show({
@@ -137,12 +138,10 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
           }
         },
         onConfirm: async () => {
-          const bridge = sdk.bridge(canonicalToken.symbol)
-          return bridge
+          return wrappedToken
             .connect(signer as Signer)
             .wrapToken(
               parsedAmount,
-              selectedNetwork.slug
             )
         }
       })
@@ -175,17 +174,17 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
 
       setError(null)
       setUnwrapping(true)
-      if (!canonicalToken) {
+      if (!wrappedToken) {
         throw new Error('token is required')
       }
-      if (!canonicalTokenBalance) {
+      if (!wrappedTokenBalance) {
         throw new Error('token is required')
       }
       if (!Number(amount)) {
         throw new Error('amount is required')
       }
-      const parsedAmount = parseUnits(amount, canonicalToken.decimals)
-      if (parsedAmount.gt(canonicalTokenBalance)) {
+      const parsedAmount = parseUnits(amount, wrappedToken.decimals)
+      if (parsedAmount.gt(wrappedTokenBalance)) {
         throw new Error('not enough balance')
       }
       const tokenUnwrapTx = await txConfirm?.show({
@@ -193,17 +192,15 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
         inputProps: {
           token: {
             amount: amount,
-            token: canonicalToken,
+            token: wrappedToken,
             network: selectedNetwork
           }
         },
         onConfirm: async () => {
-          const bridge = sdk.bridge(canonicalToken.symbol)
-          return bridge
+          return wrappedToken
             .connect(signer as Signer)
             .unwrapToken(
               parsedAmount,
-              selectedNetwork.slug
             )
         }
       })
@@ -239,7 +236,8 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
         selectedNetwork,
         canonicalToken,
         canonicalTokenBalance,
-        nativeTokenBalance,
+        wrappedToken,
+        wrappedTokenBalance,
         error,
         setError
       }}

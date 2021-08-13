@@ -1,5 +1,5 @@
 import { ethers, providers, Signer, Contract, BigNumber } from 'ethers'
-import { erc20Abi } from '@hop-protocol/core/abi'
+import { erc20Abi, wethAbi } from '@hop-protocol/core/abi'
 import { TAmount, TChain } from './types'
 import TokenModel from './models/Token'
 import Base from './Base'
@@ -104,6 +104,9 @@ class Token extends Base {
    *```
    */
   public async balanceOf (address?: string): Promise<BigNumber> {
+    if (this.isNativeToken) {
+      return this.getNativeTokenBalance(address)
+    }
     const _address = address ?? (await this.getSignerAddress())
     const tokenContract = await this.getErc20()
     return tokenContract.balanceOf(_address)
@@ -125,6 +128,12 @@ class Token extends Base {
    *```
    */
   public async transfer (recipient: string, amount: TAmount) {
+    if (this.isNativeToken) {
+      return (this.signer as Signer).sendTransaction({
+        to: recipient,
+        value: amount
+      })
+    }
     const tokenContract = await this.getErc20()
     return tokenContract.transfer(recipient, amount, await this.overrides())
   }
@@ -149,6 +158,9 @@ class Token extends Base {
     spender: string,
     amount: TAmount = ethers.constants.MaxUint256
   ) {
+    if (this.isNativeToken) {
+      return
+    }
     const tokenContract = await this.getErc20()
     const allowance = await this.allowance(spender)
     if (allowance.lt(BigNumber.from(amount))) {
@@ -162,6 +174,9 @@ class Token extends Base {
    * @returns {Object} Ethers contract instance.
    */
   public async getErc20 () {
+    if (this.isNativeToken) {
+      return this.getWethContract(this.chain)
+    }
     const provider = await this.getSignerOrProvider(this.chain)
     return this.getContract(this.address, erc20Abi, provider)
   }
@@ -177,7 +192,11 @@ class Token extends Base {
   }
 
   public eq (token: Token): boolean {
-    return this.address.toLowerCase() === token.address.toLowerCase()
+    return (
+      this.symbol.toLowerCase() === token.symbol.toLowerCase() &&
+      this.address.toLowerCase() === token.address.toLowerCase() &&
+      this.chain.equals(token.chain)
+    )
   }
 
   get isNativeToken () {
@@ -193,6 +212,39 @@ class Token extends Base {
   public async getNativeTokenBalance (address?: string): Promise<BigNumber> {
     const _address = address ?? (await this.getSignerAddress())
     return this.chain.provider.getBalance(_address)
+  }
+
+  async getWethContract (chain: TChain): Promise<Contract> {
+    return this.getContract(this.address, wethAbi, this.signer)
+  }
+
+  getWrappedToken () {
+    if (!this.isNativeToken) {
+      return this
+    }
+
+    return new Token(
+      this.network,
+      this.chain,
+      this.address,
+      this.decimals,
+      `W${this.symbol}`,
+      this.name,
+      this.image,
+      this.signer
+    )
+  }
+
+  async wrapToken (amount: TAmount) {
+    const contract = await this.getWethContract(this.chain)
+    return contract.deposit({
+      value: amount
+    })
+  }
+
+  async unwrapToken (amount: TAmount) {
+    const contract = await this.getWethContract(this.chain)
+    return contract.withdraw(amount)
   }
 }
 

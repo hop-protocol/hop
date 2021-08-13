@@ -36,12 +36,13 @@ const TokenWrapper: FC = () => {
   const {
     selectedNetwork,
     canonicalToken,
+    wrappedToken,
     amount,
     setAmount,
     wrap,
     unwrap,
     canonicalTokenBalance,
-    nativeTokenBalance,
+    wrappedTokenBalance,
     isWrapping,
     isUnwrapping,
     error,
@@ -58,10 +59,10 @@ const TokenWrapper: FC = () => {
     unwrap()
   }
 
-  const hasWrappedToken = canonicalTokenBalance?.gt(0)
-  const hasNativeToken = nativeTokenBalance?.gt(0)
-  const loadingBalance = !(canonicalTokenBalance && nativeTokenBalance)
-  const formattedNativeTokenBalance = toTokenDisplay(nativeTokenBalance, canonicalToken?.decimals)
+  const hasWrappedToken = wrappedTokenBalance?.gt(0)
+  const hasNativeToken = canonicalTokenBalance?.gt(0)
+  const loadingBalance = !(canonicalTokenBalance && wrappedTokenBalance)
+  const formattedNativeTokenBalance = toTokenDisplay(canonicalTokenBalance, canonicalToken?.decimals)
 
   return (
     <Box
@@ -74,12 +75,12 @@ const TokenWrapper: FC = () => {
         label={`${canonicalToken?.symbol}: ${formattedNativeTokenBalance}`}
         loadingLabel={loadingBalance}
         value={amount}
-        token={canonicalToken}
+        token={wrappedToken}
         onChange={setAmount}
         titleIconUrl={canonicalToken?.image}
         title={'Amount'}
-        balance={canonicalTokenBalance}
-        balanceLabel={`W${canonicalToken?.symbol}:`}
+        balance={wrappedTokenBalance}
+        balanceLabel={`W${wrappedToken?.symbol}:`}
         loadingBalance={loadingBalance}
         hideSymbol
       />

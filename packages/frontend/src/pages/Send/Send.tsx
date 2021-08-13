@@ -174,33 +174,15 @@ const Send: FC = () => {
     return selectedBridge.getL1Token()
   }, [selectedBridge])
 
-  const isFromTokenNative = useMemo(() => {
-    if (!(sourceToken && fromNetwork)) {
-      return false
-    }
-    const bridge = sdk.bridge(sourceToken.symbol)
-    return bridge.isNativeToken(fromNetwork.slug)
-  }, [sourceToken, fromNetwork])
-
-  const isToTokenNative = useMemo(() => {
-    if (!(sourceToken && toNetwork)) {
-      return false
-    }
-    const bridge = sdk.bridge(sourceToken.symbol)
-    return bridge.isNativeToken(toNetwork.slug)
-  }, [sourceToken, toNetwork])
-
   const { balance: fromBalance, loading: loadingFromBalance } = useBalance(
     sourceToken,
     fromNetwork,
     address,
-    isFromTokenNative
   )
   const { balance: toBalance, loading: loadingToBalance } = useBalance(
     destToken,
     toNetwork,
     address,
-    isToTokenNative
   )
 
   const amountToBN = (token: Token | undefined, amount: string): BigNumber | undefined => {
@@ -400,7 +382,7 @@ const Send: FC = () => {
     setAmountOutMinDisplay(`${amountOutMinFormatted} ${sourceToken.symbol}`)
   }, [amountOutMin])
 
-  const approve = useApprove(isFromTokenNative)
+  const approve = useApprove()
   const approveFromToken = async () => {
     if (!fromNetwork) {
       throw new Error('No fromNetwork selected')

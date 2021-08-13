@@ -113,7 +113,8 @@ const Pools: FC = () => {
     loadingHopBalance,
     error,
     setError,
-    removeLiquidity
+    removeLiquidity,
+    isNativeToken
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -160,8 +161,7 @@ const Pools: FC = () => {
   }
 
   const hasBalance = !!Number(userPoolBalance)
-  const isNativeToken = canonicalToken?.isNativeToken
-  const canonicalTokenSymbol = `${isNativeToken ? 'W' : ''}${canonicalToken?.symbol}`
+  const canonicalTokenSymbol = canonicalToken?.symbol
   const hopTokenSymbol = hopToken?.symbol
 
   return (

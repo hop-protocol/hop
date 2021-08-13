@@ -188,7 +188,7 @@ const AmountSelectorCard: FC<Props> = props => {
             value={value}
             onChange={handleInputChange}
             placeholder="0.0"
-            units={hideSymbol ? '' : `${token?.isNativeToken ? 'W' : ''}${token?.symbol}`}
+            units={hideSymbol ? '' : token?.symbol}
             disabled={disableInput}
             loadingValue={loadingValue}
           />

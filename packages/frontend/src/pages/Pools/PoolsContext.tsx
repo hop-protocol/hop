@@ -55,6 +55,7 @@ type PoolsContextProps = {
   sendButtonText: string
   error: string | null | undefined
   setError: (error: string | null | undefined) => void
+  isNativeToken: boolean
 }
 
 const PoolsContext = createContext<PoolsContextProps>({
@@ -89,7 +90,8 @@ const PoolsContext = createContext<PoolsContextProps>({
   validFormFields: false,
   sendButtonText: '',
   error: null,
-  setError: (error: string | null | undefined) => {}
+  setError: (error: string | null | undefined) => {},
+  isNativeToken: false
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -127,9 +129,17 @@ const PoolsContextProvider: FC = ({ children }) => {
     return networks.filter(network => !network.isLayer1)
   }, [networks])
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(l2Networks[0])
+  const isNativeToken = useMemo(() => {
+    const token = selectedBridge?.getCanonicalToken(selectedNetwork.slug)
+    return token?.isNativeToken
+  }, [selectedBridge, selectedNetwork]) ?? false
 
   const canonicalToken = useMemo(() => {
-    return selectedBridge?.getCanonicalToken(selectedNetwork.slug)
+    const token = selectedBridge?.getCanonicalToken(selectedNetwork.slug)
+    if (token?.isNativeToken) {
+      return token?.getWrappedToken()
+    }
+    return token
   }, [selectedBridge, selectedNetwork])
 
   const hopToken = useMemo(() => {
@@ -294,7 +304,10 @@ const PoolsContextProvider: FC = ({ children }) => {
     const saddleSwap = await amm.getSaddleSwap()
     const spender = saddleSwap.address
     const parsedAmount = parseUnits(amount, canonicalToken.decimals)
-    const token = isHop ? bridge.getL2HopToken(network.slug) : bridge.getCanonicalToken(network.slug)
+    let token = isHop ? bridge.getL2HopToken(network.slug) : bridge.getCanonicalToken(network.slug)
+    if (token.isNativeToken) {
+      token = token.getWrappedToken()
+    }
 
     return approve(parsedAmount, token, spender)
   }
@@ -525,7 +538,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         loadingHopBalance,
         sendButtonText,
         error,
-        setError
+        setError,
+        isNativeToken
       }}
     >
       {children}

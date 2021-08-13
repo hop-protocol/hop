@@ -208,20 +208,40 @@ const PoolsContextProvider: FC = ({ children }) => {
     updatePrices
   ])
 
+  useEffect(() => {
+    const update = async () => {
+      if (!(canonicalToken && hopToken)) {
+        return
+      }
+      const bridge = await sdk.bridge(canonicalToken.symbol)
+      const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
+      const [lpDecimalsBn, reserves] = await Promise.all([
+        lpToken.decimals,
+        bridge.getSaddleSwapReserves(selectedNetwork.slug)
+      ])
+
+      const lpDecimals = Number(lpDecimalsBn.toString())
+      const reserve0 = formatUnits(reserves[0].toString(), canonicalToken.decimals)
+      const reserve1 = formatUnits(reserves[1].toString(), hopToken.decimals)
+      setPoolReserves([reserve0, reserve1])
+    }
+
+    update()
+  }, [canonicalToken, hopToken])
+
   const updateUserPoolPositions = useCallback(async () => {
     try {
-      if (!canonicalToken) return
-      if (!provider) return
-      const contractProvider = selectedNetwork.provider
-      if (!contractProvider) return
+      if (!(canonicalToken && provider && selectedNetwork.provider && poolReserves)) {
+        return
+      }
+      const [reserve0, reserve1] = poolReserves
       const bridge = await sdk.bridge(canonicalToken.symbol)
       const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
 
-      const [lpDecimalsBn, totalSupply, balance, reserves] = await Promise.all([
+      const [lpDecimalsBn, totalSupply, balance] = await Promise.all([
         lpToken.decimals,
         (await lpToken.getErc20()).totalSupply(),
         lpToken.balanceOf(),
-        bridge.getSaddleSwapReserves(selectedNetwork.slug)
       ])
       const lpDecimals = Number(lpDecimalsBn.toString())
 
@@ -242,10 +262,6 @@ const PoolsContextProvider: FC = ({ children }) => {
           : poolPercentage.toFixed(2)
       setUserPoolTokenPercentage(formattedPoolPercentage)
 
-      const reserve0 = formatUnits(reserves[0].toString(), canonicalToken.decimals)
-      const reserve1 = formatUnits(reserves[1].toString(), canonicalToken.decimals)
-      setPoolReserves([reserve0, reserve1])
-
       const token0Deposited =
         (Number(formattedBalance) * Number(reserve0)) /
         Number(formattedTotalSupply)
@@ -264,7 +280,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     } catch (err) {
       logger.error(err)
     }
-  }, [provider, selectedNetwork, canonicalToken, hopToken])
+  }, [provider, selectedNetwork, canonicalToken, hopToken, poolReserves])
 
   useEffect(() => {
     updateUserPoolPositions()

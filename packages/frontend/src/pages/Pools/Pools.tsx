@@ -13,8 +13,9 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
-import { commafy, normalizeNumberInput } from 'src/utils'
+import { commafy, normalizeNumberInput, toTokenDisplay } from 'src/utils'
 import TokenWrapper from './TokenWrapper'
+import DetailRow from 'src/components/DetailRow'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -79,6 +80,13 @@ const useStyles = makeStyles(theme => ({
   },
   tokenWrapper: {
     marginBottom: '2rem'
+  },
+  details: {
+    marginBottom: theme.padding.thick,
+    width: '46.0rem',
+    [theme.breakpoints.down('xs')]: {
+      width: '90%'
+    }
   }
 }))
 
@@ -114,7 +122,8 @@ const Pools: FC = () => {
     error,
     setError,
     removeLiquidity,
-    isNativeToken
+    isNativeToken,
+    poolReserves
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -161,8 +170,11 @@ const Pools: FC = () => {
   }
 
   const hasBalance = !!Number(userPoolBalance)
-  const canonicalTokenSymbol = canonicalToken?.symbol
-  const hopTokenSymbol = hopToken?.symbol
+  const canonicalTokenSymbol = canonicalToken?.symbol || ''
+  const hopTokenSymbol = hopToken?.symbol || ''
+
+  const reserve0Formatted = `${commafy(poolReserves?.[0], 0) || '-'} ${canonicalTokenSymbol}`
+  const reserve1Formatted = `${commafy(poolReserves?.[1], 0) || '-'} ${hopTokenSymbol}`
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -287,6 +299,13 @@ const Pools: FC = () => {
             </Box>
           )}
         </Card>
+      </Box>
+      <Box className={styles.details}>
+        <DetailRow
+          title="Pool Totals"
+          tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
+          value={`${reserve0Formatted} / ${reserve1Formatted}`}
+        />
       </Box>
       {hasBalance && (
         <Box alignItems="center" className={styles.poolPositionBox}>

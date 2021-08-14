@@ -16,7 +16,7 @@ const useSettings = (): Settings => {
     storedSlippageTolerance ? Number(storedSlippageTolerance) : 0.5
   )
   const [deadlineMinutes, setDeadlineMinutes] = useState<number>(
-    storedDeadlineMinutes ? Number(storedDeadlineMinutes) : 20
+    storedDeadlineMinutes ? Number(storedDeadlineMinutes) : 30
   )
 
   const deadline = useCallback(() =>

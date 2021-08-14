@@ -122,6 +122,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     settings
   } = useApp()
   const {
+    deadline,
     slippageTolerance
   } = settings
   const slippageToleranceBps = slippageTolerance * 100
@@ -383,7 +384,6 @@ const PoolsContextProvider: FC = ({ children }) => {
       const minAmount0 = amount0Desired.mul(minBps).div(10000)
       const minAmount1 = amount1Desired.mul(minBps).div(10000)
       const minToMint = await amm.calculateAddLiquidityMinimum(minAmount0, minAmount1)
-      const deadline = (Date.now() / 1000 + 5 * 60) | 0
 
       const addLiquidityTx = await txConfirm?.show({
         kind: 'addLiquidity',
@@ -408,7 +408,7 @@ const PoolsContextProvider: FC = ({ children }) => {
               selectedNetwork.slug,
               {
                 minToMint,
-                deadline
+                deadline: deadline()
               }
             )
         }
@@ -488,7 +488,6 @@ const PoolsContextProvider: FC = ({ children }) => {
           const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(liquidityTokenAmountWithSlippage)
           const amount0Min = minimumAmounts[0]
           const amount1Min = minimumAmounts[1]
-          const deadline = (Date.now() / 1000 + 5 * 60) | 0
 
           return bridge
             .connect(signer as Signer)
@@ -498,7 +497,7 @@ const PoolsContextProvider: FC = ({ children }) => {
               {
                 amount0Min,
                 amount1Min,
-                deadline
+                deadline: deadline()
               }
             )
         }

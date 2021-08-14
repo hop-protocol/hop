@@ -12,6 +12,7 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import Network from 'src/models/Network'
 import Address from 'src/models/Address'
 import Price from 'src/models/Price'
@@ -56,6 +57,7 @@ type PoolsContextProps = {
   error: string | null | undefined
   setError: (error: string | null | undefined) => void
   isNativeToken: boolean
+  fee: number | undefined
 }
 
 const PoolsContext = createContext<PoolsContextProps>({
@@ -91,7 +93,8 @@ const PoolsContext = createContext<PoolsContextProps>({
   sendButtonText: '',
   error: null,
   setError: (error: string | null | undefined) => {},
-  isNativeToken: false
+  isNativeToken: false,
+  fee: undefined
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -166,6 +169,19 @@ const PoolsContextProvider: FC = ({ children }) => {
       setSelectedNetwork(l2Networks[0])
     }
   }, [l2Networks])
+
+  const fee = useAsyncMemo(async () => {
+    if (!canonicalToken) {
+      return
+    }
+    const poolFeePrecision = 10
+    const bridge = await sdk.bridge(canonicalToken.symbol)
+    const amm = bridge.getAmm(selectedNetwork.slug)
+    const saddleSwap = await amm.getSaddleSwap()
+    const data = await saddleSwap.swapStorage()
+    const swapFee = data.swapFee
+    return Number(formatUnits(swapFee.toString(), poolFeePrecision))
+  }, [sdk, canonicalToken, selectedNetwork])
 
   const updatePrices = useCallback(async () => {
     if (!totalSupply) return
@@ -555,7 +571,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         sendButtonText,
         error,
         setError,
-        isNativeToken
+        isNativeToken,
+        fee
       }}
     >
       {children}

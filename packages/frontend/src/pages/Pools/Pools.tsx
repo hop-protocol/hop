@@ -123,7 +123,8 @@ const Pools: FC = () => {
     setError,
     removeLiquidity,
     isNativeToken,
-    poolReserves
+    poolReserves,
+    fee
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -175,6 +176,7 @@ const Pools: FC = () => {
 
   const reserve0Formatted = `${commafy(poolReserves?.[0], 0) || '-'} ${canonicalTokenSymbol}`
   const reserve1Formatted = `${commafy(poolReserves?.[1], 0) || '-'} ${hopTokenSymbol}`
+  const feeFormatted = `${fee ? (fee * 100) : '-'}%`
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -305,6 +307,11 @@ const Pools: FC = () => {
           title="Pool Totals"
           tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
           value={`${reserve0Formatted} / ${reserve1Formatted}`}
+        />
+        <DetailRow
+          title="Fee"
+          tooltip={`Each trade has a ${feeFormatted} fee that goes to liquidity providers`}
+          value={`${feeFormatted}`}
         />
       </Box>
       {hasBalance && (

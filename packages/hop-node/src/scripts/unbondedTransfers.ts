@@ -1,5 +1,6 @@
 import '../moduleAlias'
 import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
+import { DateTime } from 'luxon'
 import {
   FileConfig,
   parseConfigFile,
@@ -18,13 +19,17 @@ async function main () {
   const db = getDbSet(token)
   const dbTransfers = await db.transfers.getTransfers()
   for (const dbTransfer of dbTransfers) {
-    const { transferId, withdrawalBonded, sourceChainSlug, destinationChainSlug, amount, transferSentTxHash } = dbTransfer
+    const { transferId, withdrawalBonded, sourceChainSlug, destinationChainSlug, amount, transferSentTxHash, deadline } = dbTransfer
     if (withdrawalBonded) {
       continue
     }
     const bondedWithdrawal = await getBondedWithdrawal(destinationChainSlug, token, transferId)
-    console.log(transferId, sourceChainSlug, destinationChainSlug, amount.toString(), transferSentTxHash, bondedWithdrawal)
+    if (!bondedWithdrawal) {
+      const ts = DateTime.fromSeconds(deadline).toRelative()
+      console.log(transferId, sourceChainSlug, destinationChainSlug, amount.toString(), transferSentTxHash, ts)
+    }
   }
+  console.log('done')
 }
 
 main()

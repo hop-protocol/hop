@@ -8,8 +8,7 @@ import {
   defaultEnabledNetworks,
   defaultEnabledWatchers,
   config as globalConfig,
-  parseConfigFile
-  ,
+  parseConfigFile,
   setBondWithdrawalsConfig,
   setGlobalConfigFromConfigFile,
   setNetworkRpcUrls,

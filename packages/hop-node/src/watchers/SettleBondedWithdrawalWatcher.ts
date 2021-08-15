@@ -126,13 +126,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       )
     }
     const promises: Promise<any>[] = []
-    for (const dbTransfer of filtered) {
+    for (const { transferId } of filtered) {
       promises.push(
         new Promise(async resolve => {
           try {
-            await this.checkUnsettledTransfer(dbTransfer)
+            await this.checkUnsettledTransferId(transferId)
           } catch (err) {
-            this.logger.error('checkUnsettledTransfer error:', err.message)
+            this.logger.error('checkUnsettledTransferId error:', err.message)
           }
           resolve(null)
         })
@@ -142,7 +142,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     await Promise.all(promises)
   }
 
-  checkUnsettledTransfer = async (dbTransfer: Transfer) => {
+  checkUnsettledTransferId = async (transferId: string) => {
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    if (!dbTransfer) {
+      this.logger.warn(`transfer id "${transferId}" not found in db`)
+      return
+    }
     try {
       const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
         dbTransfer.transferRootHash

@@ -65,6 +65,9 @@ export default class ContractBase extends EventEmitter {
 
   @rateLimitRetry
   async getTransaction (txHash: string): Promise<Transaction> {
+    if (!txHash) {
+      throw new Error('tx hash is required')
+    }
     return this.contract.provider.getTransaction(txHash)
   }
 

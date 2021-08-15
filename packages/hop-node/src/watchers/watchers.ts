@@ -108,7 +108,8 @@ function startStakeWatchers (
   _networks: string[] = networks,
   maxStakeAmounts: StakeAmounts = {},
   dryMode: boolean = false,
-  stateUpdateAddress: string = ''
+  stateUpdateAddress: string = '',
+  start: boolean = true
 ) {
   const watchers = getStakeWatchers(
     _tokens,
@@ -117,7 +118,9 @@ function startStakeWatchers (
     dryMode,
     stateUpdateAddress
   )
-  watchers.forEach(watcher => watcher.start())
+  if (start || start === undefined) {
+    watchers.forEach(watcher => watcher.start())
+  }
   return watchers
 }
 
@@ -134,6 +137,7 @@ type Config = {
   settleBondedWithdrawalsThresholdPercent?: any
   dryMode?: boolean
   stateUpdateAddress?: string
+  start?: boolean
 }
 
 function startWatchers (
@@ -149,13 +153,14 @@ function startWatchers (
     settleBondedWithdrawalsThresholdPercent: {},
     bondWithdrawalAmounts: {},
     dryMode: false,
-    stateUpdateAddress: ''
+    stateUpdateAddress: '',
+    start: true
   }
 ) {
   const enabledWatchers = _config.enabledWatchers || []
   const orderNum = _config.order || 0
   let _tokens = _config.tokens
-  let _networks = _config.networks.filter(x => networks.includes(x))
+  let _networks = (_config.networks || []).filter(x => networks.includes(x))
   if (!_tokens || !_tokens.length) {
     _tokens = Object.keys(globalConfig.tokens)
   }
@@ -346,7 +351,9 @@ function startWatchers (
         )
         watcher.bridge.setReadProvider(provider)
       }
-      watcher.start()
+      if (_config.start || _config.start === undefined) {
+        watcher.start()
+      }
     })
     if (enabledWatchers.includes('stake')) {
       watchers.push(
@@ -355,7 +362,8 @@ function startWatchers (
           _networks,
           _config.maxStakeAmounts,
           dryMode,
-          stateUpdateAddress
+          stateUpdateAddress,
+          _config.start
         )
       )
     }

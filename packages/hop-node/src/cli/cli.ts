@@ -3,6 +3,7 @@ import Logger from 'src/logger'
 import { program } from './shared'
 
 import './arbBot'
+import './bondWithdrawal'
 import './bonder'
 import './challenger'
 import './commitTransfers'

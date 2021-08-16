@@ -1445,6 +1445,12 @@ class HopBridge extends Base {
     const token = this.getCanonicalToken(chain || this.sourceChain)
     return token.isNativeToken
   }
+
+  async getEthBalance (chain: TChain = this.sourceChain, address?: string) {
+    chain = this.toChainModel(chain)
+    const _address = address ?? (await this.getSignerAddress())
+    return chain.provider.getBalance(_address)
+  }
 }
 
 export default HopBridge

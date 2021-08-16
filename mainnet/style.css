@@ -76,6 +76,9 @@ table {
 thead {
   text-align: left;
 }
+table tbody tr:hover {
+  background: #1f2528;
+}
 table a {
   text-decoration: none;
 }

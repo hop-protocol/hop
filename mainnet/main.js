@@ -16,6 +16,7 @@ const app = new Vue({
   el: '#app',
   data: {
     perPage,
+    filterBonded: 'all',
     page: 0,
     allTransfers: [],
     transfers: [],
@@ -46,7 +47,17 @@ const app = new Vue({
     refreshTransfers () {
       const start = this.page * this.perPage
       const end = start + this.perPage
-      Vue.set(app, 'transfers', this.allTransfers.slice(start, end))
+      const paginated = this.allTransfers
+        .filter(x => {
+          if (this.filterBonded === 'pending') {
+            return !x.bonded
+          } else if (this.filterBonded === 'bonded') {
+            return x.bonded
+          }
+          return x
+        })
+        .slice(start, end)
+      Vue.set(app, 'transfers', paginated)
 
       updateChart(app.transfers)
     },
@@ -71,6 +82,11 @@ const app = new Vue({
       } catch (err) {
         console.error(err)
       }
+      this.refreshTransfers()
+    },
+    setFilterBonded (event) {
+      const value = event.target.value
+      Vue.set(app, 'filterBonded', value)
       this.refreshTransfers()
     },
     setTvl (tvl) {
@@ -362,7 +378,7 @@ async function updateTransfers () {
   }
 
   for (const x of data) {
-    x.bonded = false
+    x.bonded = x.sourceChain === 1
   }
 
   const bondsMap = {

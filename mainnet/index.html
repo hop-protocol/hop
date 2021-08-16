@@ -42,9 +42,10 @@
       </div>
       <details open>
         <summary>Transfers ▾</summary>
-        <div>
-          <div class="tableHeader">
+        <div class="tableHeader">
+          <div class="filters">
             <div>
+              <label>Per page:</label>
               <select class="perPageSelection" v-model="perPage" @change="setPerPage">
                 <option value="5">5</option>
                 <option value="10">10</option>
@@ -58,16 +59,41 @@
                 <option value="5000">5000</option>
                 <option value="10000">10,000</option>
               </select>
-              <select v-model="filterBonded" @change="setFilterBonded">
+            </div>
+            <div>
+              <label>Source:</label>
+              <select v-model="filterSource" @change="setFilterSource">
                 <option value="">All</option>
-                <option value="pending">Pending</option>
-                <option value="bonded">Bonded</option>
+                <option value="ethereum">Ethereum</option>
+                <option value="polygon">Polygon</option>
+                <option value="xdai">xDai</option>
               </select>
+            </div>
+            <div>
+              <label>Destination:</label>
+              <select v-model="filterDestination" @change="setFilterDestination">
+                <option value="">All</option>
+                <option value="ethereum">Ethereum</option>
+                <option value="polygon">Polygon</option>
+                <option value="xdai">xDai</option>
+              </select>
+            </div>
+            <div>
+              <label>Token:</label>
               <select v-model="filterToken" @change="setFilterToken">
                 <option value="">All</option>
                 <option value="USDC">USDC</option>
                 <option value="USDT">USDT</option>
               </select>
+            </div>
+            <div>
+              <label>Bonded:</label>
+              <select v-model="filterBonded" @change="setFilterBonded">
+                <option value="">All</option>
+                <option value="pending">Pending</option>
+                <option value="bonded">Bonded</option>
+              </select>
+            </div>
           </div>
           <div class="pagination">
             <button v-if="hasPreviousPage" @click="previousPage()" class="paginationButton">previous page</button>

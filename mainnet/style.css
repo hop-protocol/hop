@@ -143,6 +143,28 @@ table img {
   justify-content: space-between;
   align-items: center;
 }
+.tableHeader {
+  margin-top: 1rem;
+}
+.filters {
+}
+.filters div {
+  display: inline-block;
+  margin-right: 1rem;
+}
+.filters label {
+  display: inline-block;
+  margin-right: 0.2rem;
+}
+
+@media (max-width: 1000px) {
+  .filters div {
+    display: block;
+  }
+  .filters label {
+    width: 100px;
+  }
+}
 .perPageSelection {
 }
 .pagination {

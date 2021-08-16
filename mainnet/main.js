@@ -18,6 +18,8 @@ const app = new Vue({
     perPage,
     filterBonded: '',
     filterToken: '',
+    filterSource: '',
+    filterDestination: '',
     page: 0,
     allTransfers: [],
     transfers: [],
@@ -51,17 +53,36 @@ const app = new Vue({
       const paginated = this.allTransfers
         .filter(x => {
           if (this.filterToken) {
-            return x.token === this.filterToken
+            if (x.token !== this.filterToken) {
+              return false
+            }
           }
-          return x
-        })
-        .filter(x => {
-          if (this.filterBonded === 'pending') {
-            return !x.bonded
-          } else if (this.filterBonded === 'bonded') {
-            return x.bonded
+
+          if (this.filterSource) {
+            if (x.sourceChainSlug !== this.filterSource) {
+              return false
+            }
           }
-          return x
+
+          if (this.filterDestination) {
+            if (x.destinationChainSlug !== this.filterDestination) {
+              return false
+            }
+          }
+
+          if (this.setFilterBonded) {
+            if (this.filterBonded === 'pending') {
+              if (x.bonded) {
+                return false
+              }
+            } else if (this.filterBonded === 'bonded') {
+              if (!x.bonded) {
+                return false
+              }
+            }
+          }
+
+          return true
         })
         .slice(start, end)
       Vue.set(app, 'transfers', paginated)
@@ -94,6 +115,16 @@ const app = new Vue({
     setFilterBonded (event) {
       const value = event.target.value
       Vue.set(app, 'filterBonded', value)
+      this.refreshTransfers()
+    },
+    setFilterSource (event) {
+      const value = event.target.value
+      Vue.set(app, 'filterSource', value)
+      this.refreshTransfers()
+    },
+    setFilterDestination (event) {
+      const value = event.target.value
+      Vue.set(app, 'filterDestination', value)
       this.refreshTransfers()
     },
     setFilterToken (event) {

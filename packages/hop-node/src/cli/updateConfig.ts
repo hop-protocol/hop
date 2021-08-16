@@ -5,6 +5,7 @@ import {
   writeConfigFile
 } from 'src/config'
 import { logger, program } from './shared'
+import { utils } from 'ethers'
 
 program
   .command('update-config')
@@ -17,6 +18,7 @@ program
   .option('--commit-transfers-min-threshold <string>', 'Min threshold amount for committing transfers')
   .option('--bond-withdrawals-min <string>', 'Min amount for bonding withdrawals')
   .option('--bond-withdrawals-max <string>', 'Max amount for bonding withdrawals')
+  .option('--state-update-address <string>', 'Address of StateUpdater contract')
   .action(async source => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -97,6 +99,10 @@ program
         }
         newConfig.tokens[token] = setEnabled
         logger.debug(`updating ${token} as ${setEnabled ? 'enabled' : 'disabled'}`)
+      } else if (source.stateUpdateAddress) {
+        const stateUpdateAddress = utils.getAddress(source.stateUpdateAddress)
+        newConfig.stateUpdateAddress = stateUpdateAddress
+        logger.debug(`updating StateUpdate address to ${stateUpdateAddress}`)
       } else {
         throw new Error('action is required')
       }

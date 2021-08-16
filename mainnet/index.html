@@ -139,8 +139,8 @@
                     <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
                     Pending
                   </span>
-                  <span class="na" v-if="x.sourceChain === 1" title="Not Applicable">
-                    N/A
+                  <span class="na" v-if="x.sourceChain === 1">
+                    <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
                   </span>
                 </td>
               </tr>

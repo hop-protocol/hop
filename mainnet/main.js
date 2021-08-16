@@ -16,7 +16,8 @@ const app = new Vue({
   el: '#app',
   data: {
     perPage,
-    filterBonded: 'all',
+    filterBonded: '',
+    filterToken: '',
     page: 0,
     allTransfers: [],
     transfers: [],
@@ -48,6 +49,12 @@ const app = new Vue({
       const start = this.page * this.perPage
       const end = start + this.perPage
       const paginated = this.allTransfers
+        .filter(x => {
+          if (this.filterToken) {
+            return x.token === this.filterToken
+          }
+          return x
+        })
         .filter(x => {
           if (this.filterBonded === 'pending') {
             return !x.bonded
@@ -87,6 +94,11 @@ const app = new Vue({
     setFilterBonded (event) {
       const value = event.target.value
       Vue.set(app, 'filterBonded', value)
+      this.refreshTransfers()
+    },
+    setFilterToken (event) {
+      const value = event.target.value
+      Vue.set(app, 'filterToken', value)
       this.refreshTransfers()
     },
     setTvl (tvl) {

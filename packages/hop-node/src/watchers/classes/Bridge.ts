@@ -551,12 +551,26 @@ export default class Bridge extends ContractBase {
     return Number(res)
   }
 
+  @rateLimitRetry
+  async getEthBalance (): Promise<BigNumber> {
+    const bonder = await this.getBonderAddress()
+    return this.getBalance(bonder)
+  }
+
   formatUnits (value: BigNumber) {
     return Number(formatUnits(value.toString(), this.tokenDecimals))
   }
 
   parseUnits (value: string | number) {
     return parseUnits(value.toString(), this.tokenDecimals)
+  }
+
+  formatEth (value: BigNumber) {
+    return Number(formatUnits(value.toString(), 18))
+  }
+
+  parseEth (value: string | number) {
+    return parseUnits(value.toString(), 18)
   }
 
   protected async mapEventsBatch (

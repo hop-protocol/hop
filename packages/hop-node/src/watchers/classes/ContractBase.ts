@@ -128,6 +128,13 @@ export default class ContractBase extends EventEmitter {
   }
 
   @rateLimitRetry
+  async getBalance (
+    address: string
+  ): Promise<BigNumber> {
+    return this.contract.provider.getBalance(address)
+  }
+
+  @rateLimitRetry
   protected async getBumpedGasPrice (multiplier: number): Promise<BigNumber> {
     const gasPrice = await this.contract.provider.getGasPrice()
     return getBumpedGasPrice(gasPrice, multiplier)

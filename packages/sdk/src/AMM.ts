@@ -1,5 +1,8 @@
+import BlockDater from 'ethereum-block-by-date'
+import { DateTime } from 'luxon'
 import { swapAbi as saddleSwapAbi } from '@hop-protocol/core/abi'
-import { BigNumberish } from 'ethers'
+import { BigNumber, BigNumberish } from 'ethers'
+import { formatUnits } from 'ethers/lib/utils'
 import { Chain } from './models'
 import { TokenIndex } from './constants'
 import { TChain, TAmount, TProvider } from './types'
@@ -213,6 +216,66 @@ class AMM extends Base {
     }
     const provider = await this.getSignerOrProvider(this.chain)
     return this.getContract(saddleSwapAddress, saddleSwapAbi, provider)
+  }
+
+  public async getSwapFee () {
+    const saddleSwap = await this.getSaddleSwap()
+    const data = await saddleSwap.swapStorage()
+    const poolFeePrecision = 10
+    const swapFee = data.swapFee
+    return Number(formatUnits(swapFee.toString(), poolFeePrecision))
+  }
+
+  public async getApr () {
+    const token = this.toTokenModel(this.tokenSymbol)
+    const provider = this.chain.provider
+    const saddleSwap = await this.getSaddleSwap()
+    const [reserve0, reserve1, data, block] = await Promise.all([
+      saddleSwap.getTokenBalance(0),
+      saddleSwap.getTokenBalance(1),
+      saddleSwap.swapStorage(),
+      provider.getBlock('latest')
+    ])
+
+    const endBlockNumber = block.number
+    let startBlockNumber: number
+
+    const blockDater = new BlockDater(provider)
+    const date = DateTime.fromSeconds(block.timestamp)
+      .minus({ days: 1 })
+      .toJSDate()
+    const info = await blockDater.getDate(date)
+    if (!info) {
+      throw new Error('could not retrieve block number from 24 hours ago')
+    }
+    startBlockNumber = info.block
+
+    const tokenSwapEvents = await saddleSwap.queryFilter(
+      saddleSwap.filters.TokenSwap(),
+      startBlockNumber,
+      endBlockNumber
+    )
+
+    const basisPoints = data.swapFee
+    const FEE_DENOMINATOR = '10000000000' // 10**10
+    const decimals = token.decimals
+
+    let totalFees = BigNumber.from(0)
+    for (let event of tokenSwapEvents) {
+      const tokensSold = event.args.tokensSold
+      totalFees = totalFees.add(
+        tokensSold
+          .mul(BigNumber.from(basisPoints))
+          .div(BigNumber.from(FEE_DENOMINATOR))
+      )
+    }
+
+    const totalLiquidity = reserve0.add(reserve1)
+    const totalLiquidityFormatted = Number(
+      formatUnits(totalLiquidity, decimals)
+    )
+    const totalFeesFormatted = Number(formatUnits(totalFees, decimals))
+    return (totalFeesFormatted * 365) / totalLiquidityFormatted
   }
 
   private async calculateSwap (

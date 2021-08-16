@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
   useMemo,
+  useRef,
   useCallback
 } from 'react'
 import { ethers, Signer, BigNumber } from 'ethers'
@@ -58,6 +59,7 @@ type PoolsContextProps = {
   setError: (error: string | null | undefined) => void
   isNativeToken: boolean
   fee: number | undefined
+  apr: number | undefined
 }
 
 const PoolsContext = createContext<PoolsContextProps>({
@@ -94,7 +96,8 @@ const PoolsContext = createContext<PoolsContextProps>({
   error: null,
   setError: (error: string | null | undefined) => {},
   isNativeToken: false,
-  fee: undefined
+  fee: undefined,
+  apr: undefined
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -112,6 +115,8 @@ const PoolsContextProvider: FC = ({ children }) => {
   >('')
   const [token0Deposited, setToken0Deposited] = useState<string>('')
   const [token1Deposited, setToken1Deposited] = useState<string>('')
+  const [apr, setApr] = useState<number|undefined>()
+  const aprRef = useRef<string>('');
 
   const {
     networks,
@@ -171,6 +176,53 @@ const PoolsContextProvider: FC = ({ children }) => {
     }
   }, [l2Networks])
 
+  useEffect(() => {
+    const update = async () => {
+      try {
+        if (!canonicalToken) {
+          return
+        }
+        if (!selectedNetwork) {
+          return
+        }
+        const cacheKey = `apr:${selectedNetwork.slug}:${canonicalToken.symbol}`
+        try {
+          const cached = JSON.parse(localStorage.getItem(cacheKey) || '')
+          const tenMinutes = 10 * 60 * 1000
+          const isRecent = cached.timestamp > Date.now() - tenMinutes
+          if (cached && isRecent && cached.apr) {
+            setApr(cached.apr)
+            return
+          }
+        } catch (err) {
+          // noop
+        }
+        if (aprRef.current === cacheKey) {
+          return
+        }
+        setApr(undefined)
+        aprRef.current = cacheKey
+        const bridge = await sdk.bridge(canonicalToken.symbol)
+        const amm = bridge.getAmm(selectedNetwork.slug)
+        const apr = await amm.getApr()
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify({
+            timestamp: Date.now(),
+            apr
+          }))
+        } catch (err) {
+          // noop
+        }
+        setApr(apr)
+      } catch (err) {
+        setApr(undefined)
+        logger.error(err)
+      }
+    }
+
+    update()
+  }, [sdk, canonicalToken, selectedNetwork])
+
   const fee = useAsyncMemo(async () => {
     if (!canonicalToken) {
       return
@@ -178,10 +230,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     const poolFeePrecision = 10
     const bridge = await sdk.bridge(canonicalToken.symbol)
     const amm = bridge.getAmm(selectedNetwork.slug)
-    const saddleSwap = await amm.getSaddleSwap()
-    const data = await saddleSwap.swapStorage()
-    const swapFee = data.swapFee
-    return Number(formatUnits(swapFee.toString(), poolFeePrecision))
+    return amm.getSwapFee()
   }, [sdk, canonicalToken, selectedNetwork])
 
   const updatePrices = useCallback(async () => {
@@ -571,7 +620,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         error,
         setError,
         isNativeToken,
-        fee
+        fee,
+        apr
       }}
     >
       {children}

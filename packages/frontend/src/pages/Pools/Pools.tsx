@@ -57,7 +57,7 @@ const useStyles = makeStyles(theme => ({
   },
   poolPositionBox: {
     width: '45.6rem',
-    marginBottom: '5.4rem',
+    marginBottom: '3.4rem',
     display: 'flex',
     flexDirection: 'column',
     [theme.breakpoints.down('xs')]: {
@@ -124,7 +124,8 @@ const Pools: FC = () => {
     removeLiquidity,
     isNativeToken,
     poolReserves,
-    fee
+    fee,
+    apr
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -176,7 +177,8 @@ const Pools: FC = () => {
 
   const reserve0Formatted = `${commafy(poolReserves?.[0], 0) || '-'} ${canonicalTokenSymbol}`
   const reserve1Formatted = `${commafy(poolReserves?.[1], 0) || '-'} ${hopTokenSymbol}`
-  const feeFormatted = `${fee ? (fee * 100) : '-'}%`
+  const feeFormatted = `${fee ? Number((fee * 100).toFixed(2)) : '-'}%`
+  const aprFormatted = `${apr ? Number((apr * 100).toFixed(2)) : '-'}%`
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -302,18 +304,6 @@ const Pools: FC = () => {
           )}
         </Card>
       </Box>
-      <Box className={styles.details}>
-        <DetailRow
-          title="Pool Totals"
-          tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
-          value={`${reserve0Formatted} / ${reserve1Formatted}`}
-        />
-        <DetailRow
-          title="Fee"
-          tooltip={`Each trade has a ${feeFormatted} fee that goes to liquidity providers`}
-          value={`${feeFormatted}`}
-        />
-      </Box>
       {hasBalance && (
         <Box alignItems="center" className={styles.poolPositionBox}>
           <Card className={styles.poolPositionCard}>
@@ -401,6 +391,23 @@ const Pools: FC = () => {
           </Card>
         </Box>
       )}
+      <Box className={styles.details}>
+        <DetailRow
+          title="APR"
+          tooltip="Annual Percentage Rate (APR) from earning fees"
+          value={`${aprFormatted}`}
+        />
+        <DetailRow
+          title="Pool Totals"
+          tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
+          value={`${reserve0Formatted} / ${reserve1Formatted}`}
+        />
+        <DetailRow
+          title="Fee"
+          tooltip={`Each trade has a ${feeFormatted} fee that goes to liquidity providers`}
+          value={`${feeFormatted}`}
+        />
+      </Box>
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <SendButton />
       {hasBalance && (

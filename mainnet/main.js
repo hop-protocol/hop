@@ -577,6 +577,7 @@ async function main () {
   } catch (err) {
     console.error(err)
   }
+  new Clipboard('.clipboard')
 
   updateData()
   if (poll) {

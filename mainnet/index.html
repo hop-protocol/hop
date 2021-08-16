@@ -121,6 +121,7 @@
                   {{ x.destinationChainName }}
                 </td>
                 <td class="transferId">
+                  <a class="clipboard" :data-clipboard-text="x.transferId" title="Copy transfer ID to clipboard" @click="alert('Copied to clipboard')">📋</a>
                   <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank" title="View on block explorer">
                     {{ x.transferId }}
                   </a>
@@ -176,6 +177,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/1.27.0/luxon.min.js"></script>
     <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
     <script src="../lib/sankey.patched.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.4.0/clipboard.min.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

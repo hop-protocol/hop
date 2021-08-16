@@ -4,6 +4,9 @@ body {
   color: #fff;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
+[v-cloak] {
+  display: none;
+}
 a[target="_blank"]::after {
   display: inline-block;
   content: "↗";
@@ -21,8 +24,8 @@ a[target="_blank"]:hover::after {
     padding: 1rem 1rem 5rem 1rem;
   }
 }
-[v-cloak] {
-  display: none;
+.clipboard {
+  cursor: pointer;
 }
 #chart {
   height: 500px;
@@ -130,6 +133,13 @@ table img {
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-word;
+}
+.transferId .clipboard {
+  display: inline-block;
+  visibility: hidden;
+}
+.transferId:hover .clipboard {
+  visibility: visible;
 }
 .polygon {
   color: #8b57e1;

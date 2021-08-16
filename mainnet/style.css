@@ -4,6 +4,15 @@ body {
   color: #fff;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
+a[target="_blank"]::after {
+  display: inline-block;
+  content: "↗";
+  margin: 0 3px 0 5px;
+  visibility: hidden;
+}
+a[target="_blank"]:hover::after {
+  visibility: visible;
+}
 #app {
   padding: 2rem 2rem 5rem 2rem;
 }

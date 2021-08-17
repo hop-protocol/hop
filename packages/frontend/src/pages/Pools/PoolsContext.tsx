@@ -61,6 +61,7 @@ type PoolsContextProps = {
   fee: number | undefined
   apr: number | undefined,
   priceImpact: number | undefined
+  virtualPrice: number | undefined
 }
 
 const PoolsContext = createContext<PoolsContextProps>({
@@ -99,7 +100,8 @@ const PoolsContext = createContext<PoolsContextProps>({
   isNativeToken: false,
   fee: undefined,
   apr: undefined,
-  priceImpact: undefined
+  priceImpact: undefined,
+  virtualPrice: undefined,
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -245,14 +247,32 @@ const PoolsContextProvider: FC = ({ children }) => {
     }
   }, [sdk, canonicalToken, hopToken, selectedNetwork, token0Amount, token1Amount])
 
+  const virtualPrice = useAsyncMemo(async () => {
+    if (!canonicalToken) {
+      return
+    }
+    try {
+      const bridge = await sdk.bridge(canonicalToken.symbol)
+      const amm = bridge.getAmm(selectedNetwork.slug)
+      const vPrice = await amm.getVirtualPrice()
+      return Number(formatUnits(vPrice.toString(), 18))
+    } catch (err) {
+      logger.error(err)
+    }
+  }, [sdk, canonicalToken, selectedNetwork])
+
   const fee = useAsyncMemo(async () => {
     if (!canonicalToken) {
       return
     }
-    const poolFeePrecision = 10
-    const bridge = await sdk.bridge(canonicalToken.symbol)
-    const amm = bridge.getAmm(selectedNetwork.slug)
-    return amm.getSwapFee()
+    try {
+      const poolFeePrecision = 10
+      const bridge = await sdk.bridge(canonicalToken.symbol)
+      const amm = bridge.getAmm(selectedNetwork.slug)
+      return amm.getSwapFee()
+    } catch (err) {
+      logger.error(err)
+    }
   }, [sdk, canonicalToken, selectedNetwork])
 
   const updatePrices = useCallback(async () => {
@@ -644,7 +664,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         isNativeToken,
         fee,
         apr,
-        priceImpact
+        priceImpact,
+        virtualPrice
       }}
     >
       {children}

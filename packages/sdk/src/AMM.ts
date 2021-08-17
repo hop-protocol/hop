@@ -278,12 +278,17 @@ class AMM extends Base {
     return (totalFeesFormatted * 365) / totalLiquidityFormatted
   }
 
+  public async getVirtualPrice () {
+    const saddleSwap = await this.getSaddleSwap()
+    return saddleSwap.getVirtualPrice()
+  }
+
   public async getPriceImpact (amount0: TAmount, amount1: TAmount) {
     const token = this.toTokenModel(this.tokenSymbol)
     const decimals = token.decimals
     const saddleSwap = await this.getSaddleSwap()
     const [virtualPrice, depositLpTokenAmount] = await Promise.all([
-      saddleSwap.getVirtualPrice(),
+      this.getVirtualPrice(),
       this.calculateAddLiquidityMinimum(amount0, amount1)
     ])
     let tokenInputSum = BigNumber.from(amount0.toString()).add(

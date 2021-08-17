@@ -17,7 +17,7 @@ import AMM from './AMM'
 import _version from './version'
 import { TokenIndex, BondTransferGasCost, LpFee } from './constants'
 import { metadata } from './config'
-import CoinGecko from './CoinGecko'
+import { PriceFeed } from './priceFeed'
 import Token from './Token'
 
 type SendL1ToL2Input = {
@@ -96,6 +96,8 @@ class HopBridge extends Base {
   /** Default deadline for transfers */
   public defaultDeadlineMinutes = 30
 
+  public readonly priceFeed: PriceFeed
+
   /**
    * @desc Instantiates Hop Bridge.
    * Returns a new Hop Bridge instance.
@@ -122,6 +124,8 @@ class HopBridge extends Base {
     } else if (typeof token === 'string') {
       this.tokenSymbol = token
     }
+
+    this.priceFeed = new PriceFeed()
   }
 
   /**
@@ -548,8 +552,8 @@ class HopBridge extends Base {
 
     if (destinationChain && destinationChain.isL1) {
       const canonicalToken = this.getCanonicalToken(sourceChain)
-      const ethPrice = await CoinGecko.getPriceByTokenSymbol('WETH')
-      const tokenPrice = await CoinGecko.getPriceByTokenSymbol(
+      const ethPrice = await this.priceFeed.getPriceByTokenSymbol('WETH')
+      const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
         canonicalToken.symbol
       )
 

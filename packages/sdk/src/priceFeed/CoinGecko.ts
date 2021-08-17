@@ -1,7 +1,7 @@
 import toChecksumAddress from 'ethereum-checksum-address'
 import fetch from 'isomorphic-fetch'
-import serializeQueryParams from './utils/serializeQueryParams'
-import wait from './utils/wait'
+import serializeQueryParams from '../utils/serializeQueryParams'
+import wait from '../utils/wait'
 
 export interface IResult {
   id: string
@@ -249,4 +249,4 @@ class CoinGecko {
   }
 }
 
-export default new CoinGecko()
+export default CoinGecko

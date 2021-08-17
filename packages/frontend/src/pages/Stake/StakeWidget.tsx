@@ -217,16 +217,33 @@ const StakeWidget: FC<Props> = props => {
     stakingToken?.symbol
   )
 
-  const apr = useMemo(() => {
-    if (!(
-      totalRewardsPerDay &&
-      totalStaked
-    )) {
-      return
+  const usdPrice = useAsyncMemo(async () => {
+    try {
+      if (!bridge) {
+        return
+      }
+      const token = await bridge.getL1Token()
+      return bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
+    } catch (err) {
+      console.error(err)
     }
+  }, [bridge])
 
-    return (Number(totalRewardsPerDay.toString()) * 100 * 365) / Number(totalStaked.toString())
-  }, [totalRewardsPerDay, totalStaked])
+  const apr = useAsyncMemo(async () => {
+    try {
+      if (!(
+        totalRewardsPerDay &&
+        totalStaked &&
+        usdPrice
+      )) {
+        return
+      }
+
+      return (Number(totalRewardsPerDay.toString()) * usdPrice * 100 * 365) / Number(totalStaked.toString())
+    } catch (err) {
+      console.error(err)
+    }
+  }, [totalRewardsPerDay, totalStaked, usdPrice])
 
   const aprFormatted = useMemo(() => {
     return `${apr ? Number(apr.toFixed(2)) : '-'}%`

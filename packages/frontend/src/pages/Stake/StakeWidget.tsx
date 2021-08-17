@@ -224,11 +224,12 @@ const StakeWidget: FC<Props> = props => {
     )) {
       return
     }
-    return totalRewardsPerDay.mul(100).mul(365).div(totalStaked)
+
+    return (Number(totalRewardsPerDay.toString()) * 100 * 365) / Number(totalStaked.toString())
   }, [totalRewardsPerDay, totalStaked])
 
   const apyFormatted = useMemo(() => {
-    return `${apy || '-'}%`
+    return `${apy ? Number(apy.toFixed(2)) : '-'}%`
   }, [apy])
 
   const stake = async () => {

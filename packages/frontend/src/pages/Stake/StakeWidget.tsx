@@ -217,7 +217,7 @@ const StakeWidget: FC<Props> = props => {
     stakingToken?.symbol
   )
 
-  const apy = useMemo(() => {
+  const apr = useMemo(() => {
     if (!(
       totalRewardsPerDay &&
       totalStaked
@@ -228,9 +228,9 @@ const StakeWidget: FC<Props> = props => {
     return (Number(totalRewardsPerDay.toString()) * 100 * 365) / Number(totalStaked.toString())
   }, [totalRewardsPerDay, totalStaked])
 
-  const apyFormatted = useMemo(() => {
-    return `${apy ? Number(apy.toFixed(2)) : '-'}%`
-  }, [apy])
+  const aprFormatted = useMemo(() => {
+    return `${apr ? Number(apr.toFixed(2)) : '-'}%`
+  }, [apr])
 
   const stake = async () => {
     if (!stakingRewards) {
@@ -352,9 +352,9 @@ const StakeWidget: FC<Props> = props => {
       />
       <div className={styles.details}>
         <DetailRow
-          title="APY"
-          tooltip="Total annual percentage yield (APY)"
-          value={apyFormatted}
+          title="APR"
+          tooltip="Annual Percentage Rate (APR) from staking LP tokens"
+          value={aprFormatted}
         />
         {!userRewardsPerDay &&
         <DetailRow

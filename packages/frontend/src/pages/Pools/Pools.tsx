@@ -125,7 +125,8 @@ const Pools: FC = () => {
     isNativeToken,
     poolReserves,
     fee,
-    apr
+    apr,
+    priceImpact
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -179,6 +180,8 @@ const Pools: FC = () => {
   const reserve1Formatted = `${commafy(poolReserves?.[1], 0) || '-'} ${hopTokenSymbol}`
   const feeFormatted = `${fee ? Number((fee * 100).toFixed(2)) : '-'}%`
   const aprFormatted = `${apr ? Number((apr * 100).toFixed(2)) : '-'}%`
+  const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
+  const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : ''
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -304,6 +307,13 @@ const Pools: FC = () => {
           )}
         </Card>
       </Box>
+      <Box className={styles.details}>
+        <DetailRow
+          title={priceImpactLabel}
+          tooltip="Depositing underpooled assets will give you bonus LP tokens. Depositing overpooled assets will give you less LP tokens."
+          value={`${priceImpactFormatted}`}
+        />
+      </Box>
       {hasBalance && (
         <Box alignItems="center" className={styles.poolPositionBox}>
           <Card className={styles.poolPositionCard}>
@@ -392,13 +402,22 @@ const Pools: FC = () => {
         </Box>
       )}
       <Box className={styles.details}>
+        <Box alignItems="center" className={styles.poolPosition}>
+          <Typography
+            variant="subtitle2"
+            color="textSecondary"
+            component="div"
+          >
+            Pool stats
+          </Typography>
+        </Box>
         <DetailRow
           title="APR"
           tooltip="Annual Percentage Rate (APR) from earning fees"
           value={`${aprFormatted}`}
         />
         <DetailRow
-          title="Pool Totals"
+          title="Reserves"
           tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
           value={`${reserve0Formatted} / ${reserve1Formatted}`}
         />

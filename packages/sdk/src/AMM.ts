@@ -1,8 +1,8 @@
 import BlockDater from 'ethereum-block-by-date'
 import { DateTime } from 'luxon'
 import { swapAbi as saddleSwapAbi } from '@hop-protocol/core/abi'
-import { BigNumber, BigNumberish } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
+import { BigNumber, BigNumberish, constants } from 'ethers'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { Chain } from './models'
 import { TokenIndex } from './constants'
 import { TChain, TAmount, TProvider } from './types'
@@ -278,6 +278,27 @@ class AMM extends Base {
     return (totalFeesFormatted * 365) / totalLiquidityFormatted
   }
 
+  public async getPriceImpact (amount0: TAmount, amount1: TAmount) {
+    const saddleSwap = await this.getSaddleSwap()
+    const virtualPrice = await saddleSwap.getVirtualPrice()
+    const depositLpTokenAmount = await this.calculateAddLiquidityMinimum(
+      amount0,
+      amount1
+    )
+    let tokenInputSum = BigNumber.from(amount0.toString()).add(
+      BigNumber.from(amount1)
+    )
+
+    // convert to 18 decimals
+    tokenInputSum = parseUnits(formatUnits(tokenInputSum, 6).toString(), 18)
+
+    return this.calculatePriceImpact(
+      tokenInputSum,
+      depositLpTokenAmount,
+      virtualPrice
+    )
+  }
+
   private async calculateSwap (
     fromIndex: TokenIndex,
     toIndex: TokenIndex,
@@ -304,6 +325,27 @@ class AMM extends Base {
    */
   private normalizeDeadline (deadline: number) {
     return parseInt(deadline.toString(), 10)
+  }
+
+  isHighPriceImpact (priceImpact: BigNumber): boolean {
+    // assumes that priceImpact has 18d precision
+    const negOne = BigNumber.from(10)
+      .pow(18 - 2)
+      .mul(-1)
+    return priceImpact.lte(negOne)
+  }
+
+  calculatePriceImpact (
+    tokenInputAmount: BigNumber, // assumed to be 18d precision
+    tokenOutputAmount: BigNumber,
+    virtualPrice = BigNumber.from(10).pow(18)
+  ): BigNumber {
+    return tokenInputAmount.gt(0)
+      ? virtualPrice
+          .mul(tokenOutputAmount)
+          .div(tokenInputAmount)
+          .sub(BigNumber.from(10).pow(18))
+      : constants.Zero
   }
 }
 

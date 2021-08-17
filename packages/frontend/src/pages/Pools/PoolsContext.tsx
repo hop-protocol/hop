@@ -59,7 +59,8 @@ type PoolsContextProps = {
   setError: (error: string | null | undefined) => void
   isNativeToken: boolean
   fee: number | undefined
-  apr: number | undefined
+  apr: number | undefined,
+  priceImpact: number | undefined
 }
 
 const PoolsContext = createContext<PoolsContextProps>({
@@ -97,7 +98,8 @@ const PoolsContext = createContext<PoolsContextProps>({
   setError: (error: string | null | undefined) => {},
   isNativeToken: false,
   fee: undefined,
-  apr: undefined
+  apr: undefined,
+  priceImpact: undefined
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -222,6 +224,26 @@ const PoolsContextProvider: FC = ({ children }) => {
 
     update()
   }, [sdk, canonicalToken, selectedNetwork])
+
+  const priceImpact = useAsyncMemo(async () => {
+    if (!(
+      canonicalToken &&
+      hopToken &&
+      selectedNetwork
+    )) {
+      return
+    }
+    try {
+      const bridge = await sdk.bridge(canonicalToken.symbol)
+      const amm = bridge.getAmm(selectedNetwork.slug)
+      const amount0 = parseUnits(token0Amount || '0', canonicalToken?.decimals)
+      const amount1 = parseUnits(token1Amount || '0', hopToken?.decimals)
+      const price = await amm.getPriceImpact(amount0, amount1)
+      return Number(formatUnits(price.toString(), 18))
+    } catch (err) {
+      // noop
+    }
+  }, [sdk, canonicalToken, hopToken, selectedNetwork, token0Amount, token1Amount])
 
   const fee = useAsyncMemo(async () => {
     if (!canonicalToken) {
@@ -621,7 +643,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         setError,
         isNativeToken,
         fee,
-        apr
+        apr,
+        priceImpact
       }}
     >
       {children}

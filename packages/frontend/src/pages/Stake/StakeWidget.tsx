@@ -14,7 +14,7 @@ import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import useStakeBalance from 'src/pages/Stake/useStakeBalance'
-import { toTokenDisplay } from 'src/utils'
+import { toTokenDisplay, commafy } from 'src/utils'
 import Alert from 'src/components/alert/Alert'
 import usePollValue from 'src/hooks/usePollValue'
 import DetailRow from 'src/components/DetailRow'
@@ -76,6 +76,18 @@ const StakeWidget: FC<Props> = props => {
   const { stakeBalance } = useStakeBalance(stakingRewards, address)
 
   const formattedStakeBalance = toTokenDisplay(stakeBalance, stakingToken?.decimals)
+
+  const usdPrice = useAsyncMemo(async () => {
+    try {
+      if (!bridge) {
+        return
+      }
+      const token = await bridge.getL1Token()
+      return bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
+    } catch (err) {
+      console.error(err)
+    }
+  }, [bridge])
 
   const earned = usePollValue<BigNumber>(
     async () => {
@@ -197,37 +209,19 @@ const StakeWidget: FC<Props> = props => {
 
   const lpPosition = useAsyncMemo(async () => {
     if (!(
-      stakingToken &&
-      stakingRewards &&
-      totalStaked &&
+      earned &&
+      usdPrice &&
       stakeBalance &&
       stakeBalance.gt(0)
     )) {
       return
     }
-    const totalSupply = await stakingRewards?.totalSupply()
-    const rate = totalStaked.div(totalSupply)
-    const position = stakeBalance.mul(rate)
-    return position
-  }, [stakeBalance, stakingRewards, stakingToken, totalStaked])
+    // TODO: use big number
+    const _earned = Number(formatUnits(earned.toString(), stakingToken?.decimals)) * usdPrice
+    return (Number(formatUnits(stakeBalance.toString(), stakingToken?.decimals)) * usdPrice) + _earned
+  }, [stakeBalance, totalStaked, earned, usdPrice])
 
-  const lpPositionFormatted = toTokenDisplay(
-    lpPosition,
-    stakingToken?.decimals,
-    stakingToken?.symbol
-  )
-
-  const usdPrice = useAsyncMemo(async () => {
-    try {
-      if (!bridge) {
-        return
-      }
-      const token = await bridge.getL1Token()
-      return bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
-    } catch (err) {
-      console.error(err)
-    }
-  }, [bridge])
+  const lpPositionFormatted = lpPosition ? `$${commafy(lpPosition, 5)}` : ''
 
   const apr = useAsyncMemo(async () => {
     try {
@@ -239,6 +233,7 @@ const StakeWidget: FC<Props> = props => {
         return
       }
 
+      // TODO: use big number
       return (Number(totalRewardsPerDay.toString()) * usdPrice * 100 * 365) / Number(totalStaked.toString())
     } catch (err) {
       console.error(err)
@@ -392,7 +387,7 @@ const StakeWidget: FC<Props> = props => {
         {lpPosition &&
         <DetailRow
           title="Your Total"
-          tooltip="The total worth of your staked LP position"
+          tooltip="The total worth of your staked LP position in USD"
           value={lpPositionFormatted}
         />
       }

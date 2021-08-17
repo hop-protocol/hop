@@ -1,14 +1,7 @@
 [[redirects]]
-  from = "/whitepaper.pdf"
-  to = "/whitepaper.pdf"
-  status = 200
-  force = true
-
-[[redirects]]
   from = "/*"
-  to = "https://kovan.hop.exchange/:splat"
-  status = 301
-  force = true
+  to = "/index.html"
+  status = 200
 
 [[headers]]
   for = "/*"

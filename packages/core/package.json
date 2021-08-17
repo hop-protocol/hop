@@ -1,0 +1,73 @@
+{
+  "name": "@hop-protocol/core",
+  "version": "0.0.1-beta.13",
+  "description": "Hop Protocol networks config",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "jest test",
+    "dev": "npm run version && tsc --watch",
+    "build": "npm run version && npm run build:ts",
+    "build:ts": "tsc",
+    "clean": "rimraf dist abi addresses metadata networks version.js index.js",
+    "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
+    "version:bump": "npm version prerelease --preid=beta",
+    "lint": "prettier-standard --format",
+    "publish:latest": "npm publish --tag latest --access public",
+    "publish:beta": "npm publish --tag beta --access public",
+    "publish:next": "npm publish --tag next --access public",
+    "dist-tag:latest": "npm dist-tag add \"@hop-protocol/core@$(jq -r .version <package.json)\" latest",
+    "dist-tag:beta": "npm dist-tag add \"@hop-protocol/core@$(jq -r .version <package.json)\" beta",
+    "dist-tag:next": "npm dist-tag add \"@hop-protocol/core@$(jq -r .version <package.json)\" next",
+    "lerna:sync": "lerna-sync-version",
+    "release": "npm run clean && npm test && npm run publish:latest",
+    "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
+    "prepare": "npm run lint && npm run build",
+    "json:mainnet": "node -e \"console.log(JSON.stringify(require('./addresses').mainnet, null, 2))\" > build/addresses/mainnet.json"
+  },
+  "directories": {},
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "deepmerge": "^4.2.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.7.0",
+    "@babel/core": "^7.7.2",
+    "@babel/node": "^7.7.0",
+    "@babel/plugin-transform-arrow-functions": "^7.2.0",
+    "@babel/plugin-transform-runtime": "^7.6.2",
+    "@babel/preset-env": "^7.5.2",
+    "@babel/preset-es2015": "^7.0.0-beta.53",
+    "@babel/runtime": "^7.7.2",
+    "@types/jest": "^25.2.3",
+    "@types/node": "^12.11.7",
+    "@typescript-eslint/eslint-plugin": "^1.9.0",
+    "@typescript-eslint/parser": "^2.31.0",
+    "aliasify": "^2.1.0",
+    "babelify": "^10.0.0",
+    "browserify": "^16.5.0",
+    "concat-md": "^0.3.5",
+    "dotenv": "^8.2.0",
+    "jest": "^26.6.3",
+    "lerna-sync-version": "0.0.6",
+    "prettier-standard": "^16.4.1",
+    "rimraf": "^3.0.2",
+    "standard": "^12.0.1",
+    "ts-jest": "^26.5.4",
+    "tsify": "^4.0.1",
+    "typescript": "^4.2.3",
+    "uglify-es": "^3.3.9"
+  },
+  "standard": {
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint/eslint-plugin"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-push": "npm run lint"
+    }
+  }
+}

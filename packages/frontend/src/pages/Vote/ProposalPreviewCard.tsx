@@ -1,6 +1,6 @@
 import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { useHistory } from 'react-router-dom'
+import { useHistory, useLocation } from 'react-router-dom'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -34,9 +34,13 @@ const ProposalPreviewCard: FC<Props> = props => {
   const styles = useStyles({ status })
 
   const history = useHistory()
+  const { search } = useLocation()
 
   const handleClick = () => {
-    history.push(`/vote/${id}`)
+    history.push({
+      pathname: `/vote/${id}`,
+      search
+    })
   }
 
   return (

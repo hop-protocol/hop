@@ -89,31 +89,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     const cacheKey = 'selectedWallet'
     const rpcUrl = getRpcUrl(L1_NETWORK)
     const walletOptions = [
-      { walletName: 'metamask', preferred: true },
-      {
-        walletName: 'walletConnect',
-        infuraKey,
-        preferred: true
-      },
-      { walletName: 'ledger', rpcUrl, preferred: true },
-      {
-        walletName: 'trezor',
-        appUrl: 'hop.exchange',
-        email: 'contact@hop.exchange',
-        rpcUrl,
-        preferred: true
-      },
-      { walletName: 'dapper' },
-      { walletName: 'fortmatic', apiKey: fortmaticApiKey },
-      { walletName: 'portis', apiKey: portisDappId, label: 'Portis' },
-      { walletName: 'torus' },
-      { walletName: 'coinbase' },
-      { walletName: 'trust', rpcUrl },
-      { walletName: 'authereum' },
-      { walletName: 'opera' },
-      { walletName: 'operaTouch' },
-      { walletName: 'status' },
-      { walletName: 'imToken', rpcUrl }
+      { walletName: 'metamask', preferred: true }
     ]
 
     const networkCheck = async (state: any): Promise<any> => {
@@ -317,22 +293,40 @@ const Web3ContextProvider: FC = ({ children }) => {
 
         try {
           if ((window as any).ethereum && networkId) {
-            await (window as any).ethereum.request({
-              id: 1,
-              jsonrpc: '2.0',
-              method: 'wallet_addEthereumChain',
-              params: [
-                {
-                  chainId: `0x${Number(networkId).toString(16)}`,
-                  chainName: networkNames[networkId.toString()],
-                  rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
-                  blockExplorerUrls: [
-                    getBaseExplorerUrl(networkIdToSlug(networkId.toString()))
-                  ],
-                  nativeCurrency
-                }
-              ]
-            })
+            const wantNetworkName = networkNames[networkId] || 'local'
+            const isL1 = ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
+              wantNetworkName
+            )
+            const rpcObj = {
+              chainId: `0x${Number(networkId).toString(16)}`,
+              chainName: networkNames[networkId.toString()],
+              rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
+              blockExplorerUrls: [
+                getBaseExplorerUrl(networkIdToSlug(networkId.toString()))
+              ],
+              nativeCurrency
+            }
+            if (isL1) {
+              await (window as any).ethereum.request({
+                id: 1,
+                jsonrpc: '2.0',
+                method: 'wallet_switchEthereumChain',
+                params: [
+                  {
+                    chainId: `0x${Number(networkId).toString(16)}`
+                  }
+                ]
+              })
+            } else {
+              await (window as any).ethereum.request({
+                id: 1,
+                jsonrpc: '2.0',
+                method: 'wallet_addEthereumChain',
+                params: [
+                  rpcObj
+                ]
+              })
+            }
           }
 
           return true

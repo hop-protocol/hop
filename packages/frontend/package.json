@@ -4,11 +4,8 @@
   "private": true,
   "dependencies": {
     "@ethersproject/address": "5.0.8",
-    "@hop-protocol/abi": "0.0.1-beta.10",
-    "@hop-protocol/addresses": "0.0.1-beta.23",
-    "@hop-protocol/metadata": "0.0.1-beta.8",
-    "@hop-protocol/networks": "0.0.1-beta.7",
-    "@hop-protocol/sdk": "0.0.1-beta.57",
+    "@hop-protocol/core": "0.0.1-beta.13",
+    "@hop-protocol/sdk": "0.0.1-beta.113",
     "@material-ui/core": "4.11.0",
     "@material-ui/icons": "4.9.1",
     "@material-ui/lab": "4.0.0-alpha.56",
@@ -29,11 +26,11 @@
     "copy-to-clipboard": "^3.3.1",
     "deepmerge": "^4.2.2",
     "dotenv": "8.2.0",
-    "ethers": "^5.1.0",
     "fast-memoize": "^2.5.2",
     "gridplus-sdk": "0.6.1",
     "luxon": "1.25.0",
     "numbro": "^2.3.2",
+    "qs": "^6.10.1",
     "react": "16.10.2",
     "react-dom": "16.8.0",
     "react-feather": "2.0.9",
@@ -85,10 +82,11 @@
     "eslint-plugin-promise": "^5.1.0",
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-react-hooks": "^4.2.0",
+    "ethers": "=5.4.0",
     "ipfs-deploy": "8.0.1",
     "lerna-sync-version": "0.0.5",
     "prettier-standard": "^16.4.1",
     "rimraf": "^3.0.2",
-    "typescript": "^4.2.4"
+    "typescript": "^4.3.4"
   }
 }

@@ -1,9 +1,9 @@
-require('dotenv').config()
-import { User } from './helpers'
-import { wait } from 'src/utils'
 import Logger from 'src/logger'
-import { privateKey } from './config'
 import { Chain } from 'src/constants'
+import { User } from './helpers'
+import { privateKey } from './config'
+import { wait } from 'src/utils'
+require('dotenv').config()
 
 const TOKEN = 'USDC'
 const AMOUNT = 10_000
@@ -11,7 +11,7 @@ const NETWORKS = [Chain.xDai]
 const logger = new Logger('TEST')
 
 describe('convert L1 token to L2 Hop token', () => {
-  for (let L2_NETWORK of NETWORKS) {
+  for (const L2_NETWORK of NETWORKS) {
     const label = `convert token to Hop bridge token on ${L2_NETWORK}`
     it(
       label,

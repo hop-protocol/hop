@@ -1,3 +1,4 @@
+import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { Contract } from 'ethers'
 
 export default class L2BridgeWrapper {
@@ -7,6 +8,7 @@ export default class L2BridgeWrapper {
     this.l2BridgeWrapperContract = l2BridgeWrapperContract
   }
 
+  @rateLimitRetry
   async getMessengerAddress (): Promise<string> {
     return this.l2BridgeWrapperContract.messenger()
   }

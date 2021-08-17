@@ -1,12 +1,14 @@
-import { BigNumber } from 'ethers'
 import BaseDb from './BaseDb'
+import { BigNumber } from 'ethers'
+import { TX_RETRY_DELAY_MS } from 'src/constants'
 import { chainIdToSlug } from 'src/utils'
+import { normalizeDbItem } from './utils'
 
 export type Transfer = {
   transferRootId?: string
   transferRootHash?: string
   transferId?: string
-  chainId?: number
+  destinationChainId?: number
   destinationChainSlug?: string
   sourceChainId?: number
   sourceChainSlug?: string
@@ -14,7 +16,8 @@ export type Transfer = {
   withdrawalBondSettleTxSentAt?: number
   withdrawalBonded?: boolean
   withdrawalBonder?: string
-  sentBondWithdrawalTx?: boolean
+  withdrawalBondedTxHash?: string
+  withdrawalBondTxError?: string
   sentBondWithdrawalTxAt?: number
 
   recipient?: string
@@ -23,38 +26,34 @@ export type Transfer = {
   bonderFee?: BigNumber
   transferNonce?: string
   deadline?: number
-  sentTxHash?: string
-  sentBlockNumber?: number
-  sentTimestamp?: number
+  transferSentTxHash?: string
+  transferSentBlockNumber?: number
+  transferSentIndex?: number
+
+  isBondable?: boolean
+  committed: boolean
 }
 
 class TransfersDb extends BaseDb {
-  constructor (prefix: string = 'transfers') {
-    super(prefix)
-  }
-
   async update (transferId: string, data: Partial<Transfer>) {
     return super.update(transferId, data)
   }
 
   async getByTransferId (transferId: string): Promise<Transfer> {
-    const item = await this.getById(transferId)
-    if (item?.amount && item?.amount?.type === 'BigNumber') {
-      item.amount = BigNumber.from(item.amount?.hex)
+    const item = (await this.getById(transferId)) as Transfer
+    if (!item) {
+      return item
     }
-    if (item?.bonderFee && item?.bonderFee?.type === 'BigNumber') {
-      item.bonderFee = BigNumber.from(item.bonderFee?.hex)
+    if (!item.transferId) {
+      item.transferId = transferId
     }
-    if (item?.amountOutMin && item?.amountOutMin?.type === 'BigNumber') {
-      item.amountOutMin = BigNumber.from(item.amountOutMin?.hex)
-    }
-    if (item?.chainId) {
-      item.destinationChainSlug = chainIdToSlug(item?.chainId)
+    if (item?.destinationChainId) {
+      item.destinationChainSlug = chainIdToSlug(item?.destinationChainId)
     }
     if (item?.sourceChainId) {
-      item.sourceChainSlug = chainIdToSlug(item?.sourceChainId)
+      item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
     }
-    return item
+    return normalizeDbItem(item)
   }
 
   async getTransferIds (): Promise<string[]> {
@@ -69,43 +68,97 @@ class TransfersDb extends BaseDb {
       })
     )
 
-    return transfers.sort((a, b) => a?.sentTimestamp - b?.sentTimestamp)
+    // https://stackoverflow.com/a/9175783/1439168
+    return transfers
+      .filter(x => x)
+      .sort((a, b) => {
+        if (a.transferSentBlockNumber > b.transferSentBlockNumber) return 1
+        if (a.transferSentBlockNumber < b.transferSentBlockNumber) return -1
+        if (a.transferSentIndex > b.transferSentIndex) return 1
+        if (a.transferSentIndex < b.transferSentIndex) return -1
+        return 0
+      })
   }
 
-  async getUnsettledBondedWithdrawalTransfers (): Promise<Transfer[]> {
-    const transfers = await this.getTransfers()
+  async getUnsettledBondedWithdrawalTransfers (
+    filter: Partial<Transfer> = {}
+  ): Promise<Transfer[]> {
+    const transfers: Transfer[] = await this.getTransfers()
     return transfers.filter(item => {
+      if (filter?.destinationChainId) {
+        if (filter.destinationChainId !== item.destinationChainId) {
+          return false
+        }
+      }
+
       return (
+        item.transferRootHash &&
         item.withdrawalBonded &&
         !item.withdrawalBondSettled &&
-        item.transferRootHash
+        item.withdrawalBondedTxHash
       )
     })
   }
 
-  async getUncommittedBondedTransfers (): Promise<Transfer[]> {
-    const transfers = await this.getTransfers()
+  async getUncommittedTransfers (
+    filter: Partial<Transfer> = {}
+  ): Promise<Transfer[]> {
+    const transfers: Transfer[] = await this.getTransfers()
     return transfers.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
       return (
         item.transferId &&
-        item.withdrawalBonded &&
-        item.sentBondWithdrawalTx &&
         !item.transferRootId &&
-        item.sentTxHash
+        item.transferSentTxHash &&
+        !item.committed
       )
     })
   }
 
-  async getUnbondedSentTransfers (): Promise<Transfer[]> {
-    const transfers = await this.getTransfers()
+  async getUnbondedSentTransfers (
+    filter: Partial<Transfer> = {}
+  ): Promise<Transfer[]> {
+    const transfers: Transfer[] = await this.getTransfers()
     return transfers.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
+      let timestampOk = true
+      if (item?.sentBondWithdrawalTxAt) {
+        timestampOk =
+          item?.sentBondWithdrawalTxAt + TX_RETRY_DELAY_MS < Date.now()
+      }
+
       return (
         item.transferId &&
         !item.withdrawalBonded &&
-        !item.sentBondWithdrawalTx &&
-        !item.transferRootId &&
-        item.sentTxHash
+        item.transferSentTxHash &&
+        item.isBondable &&
+        timestampOk
       )
+    })
+  }
+
+  async getBondedTransfersWithoutRoots (
+    filter: Partial<Transfer> = {}
+  ): Promise<Transfer[]> {
+    const transfers: Transfer[] = await this.getTransfers()
+    return transfers.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
+      return item.withdrawalBonded && !item.transferRootHash
     })
   }
 }

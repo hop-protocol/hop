@@ -1,5 +1,5 @@
-import { generateKeystore, recoverKeystore } from 'src/keystore'
 import entropyToMnemonic from 'src/utils/entropyToMnemonic'
+import { generateKeystore, recoverKeystore } from 'src/keystore'
 
 test('generateKeystore - random', async () => {
   const keystore = await generateKeystore()

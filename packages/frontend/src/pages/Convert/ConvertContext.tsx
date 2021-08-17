@@ -4,10 +4,11 @@ import React, {
   useContext,
   useState,
   useMemo,
+  useRef,
   useEffect,
   ReactNode
 } from 'react'
-import { BigNumber } from 'ethers'
+import { BigNumber, Signer } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { useLocation } from 'react-router-dom'
 import { HopBridge, Token } from '@hop-protocol/sdk'
@@ -20,10 +21,9 @@ import logger from 'src/logger'
 import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
-import NativeConvertOption from 'src/pages/Convert/ConvertOption/NativeConvertOption'
 import useBalance from 'src/hooks/useBalance'
-import { DetailRow } from 'src/types'
-import { commafy } from 'src/utils'
+import { toTokenDisplay } from 'src/utils'
+import useApprove from 'src/hooks/useApprove'
 
 type ConvertContextProps = {
   convertOptions: ConvertOption[]
@@ -49,7 +49,7 @@ type ConvertContextProps = {
   destBalance: BigNumber | undefined
   loadingDestBalance: boolean
   switchDirection: () => void
-  details: DetailRow[]
+  details: ReactNode | undefined
   warning: ReactNode | undefined
   error: string | undefined
   setError: (error: string | undefined) => void
@@ -90,16 +90,16 @@ const ConvertContext = createContext<ConvertContextProps>({
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
-  const { provider, checkConnectedNetworkId } = useWeb3Context()
+  const { provider, checkConnectedNetworkId, address } = useWeb3Context()
   const app = useApp()
-  const { networks, selectedBridge, txConfirm, sdk, l1Network } = app
+  const { networks, selectedBridge, txConfirm, sdk, l1Network, settings } = app
+  const { slippageTolerance, deadline } = settings
   const { pathname } = useLocation()
 
   const convertOptions = useMemo(() => {
     return [
       new AmmConvertOption(),
-      new HopConvertOption(),
-      new NativeConvertOption()
+      new HopConvertOption()
     ]
   }, [])
   const convertOption = useMemo(() => {
@@ -131,6 +131,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   }, [isForwardDirection, selectedNetwork, l1Network, convertOption])
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
+  const [amountOutMin, setAmountOutMin] = useState<BigNumber>()
   const [sending, setSending] = useState<boolean>(false)
 
   const [sourceToken, setSourceToken] = useState<Token>()
@@ -138,7 +139,10 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   useEffect(() => {
     const fetchToken = async () => {
-      const token = await convertOption.sourceToken(isForwardDirection, selectedNetwork, selectedBridge)
+      let token = await convertOption.sourceToken(isForwardDirection, selectedNetwork, selectedBridge)
+      if (token?.isNativeToken) {
+        token = token.getWrappedToken()
+      }
       setSourceToken(token)
     }
 
@@ -156,16 +160,31 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(
     sourceToken,
-    sourceNetwork
+    sourceNetwork,
+    address
   )
   const { balance: destBalance, loading: loadingDestBalance } = useBalance(
     destToken,
-    destNetwork
+    destNetwork,
+    address
   )
-  const [details, setDetails] = useState<DetailRow[]>([])
+  const [details, setDetails] = useState<ReactNode>()
   const [warning, setWarning] = useState<ReactNode>()
+  const [bonderFee, setBonderFee] = useState<BigNumber>()
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
+  const debouncer = useRef(0)
+
+  const parsedSourceTokenAmount = useMemo(() => {
+    if (!sourceTokenAmount || !sourceToken) {
+      return BigNumber.from(0)
+    }
+
+    return parseUnits(
+      sourceTokenAmount,
+      sourceToken.decimals
+    )
+  }, [sourceTokenAmount, sourceToken])
 
   useEffect(() => {
     const getSendData = async () => {
@@ -181,34 +200,48 @@ const ConvertContextProvider: FC = ({ children }) => {
         return
       }
 
-      const value = parseUnits(
-        sourceTokenAmount,
-        sourceToken.decimals
-      ).toString()
+      const ctx = ++debouncer.current
 
-      const { amountOut, details, warning } = await convertOption.getSendData(
+      const {
+        amountOut,
+        details,
+        warning,
+        bonderFee
+      } = await convertOption.getSendData(
         sdk,
         sourceNetwork,
         destNetwork,
         isForwardDirection,
         selectedBridge.getTokenSymbol(),
-        value
+        parsedSourceTokenAmount
       )
 
       let formattedAmount = ''
       if (amountOut) {
-        formattedAmount = formatUnits(amountOut, sourceToken.decimals)
-        formattedAmount = commafy(formattedAmount, 5)
+        formattedAmount = toTokenDisplay(amountOut, sourceToken.decimals)
       }
-      setDestTokenAmount(formattedAmount)
 
+      let _amountOutMin
+      if (amountOut) {
+        // amountOutMin only used for AMM option
+        const slippageToleranceBps = slippageTolerance * 100
+        const minBps = Math.ceil(10000 - slippageToleranceBps)
+        _amountOutMin = amountOut.mul(minBps).div(10000)
+      }
+
+      if (ctx !== debouncer.current) return
+
+      setDestTokenAmount(formattedAmount)
+      setAmountOutMin(_amountOutMin)
       setDetails(details)
       setWarning(warning)
+      setBonderFee(bonderFee)
     }
 
     getSendData()
   }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
 
+  const approve = useApprove()
   const approveTokens = async (): Promise<any> => {
     if (!sourceToken) {
       throw new Error('No source token selected')
@@ -221,37 +254,8 @@ const ConvertContextProvider: FC = ({ children }) => {
       destNetwork
     )
 
-    const parsedAmount = parseUnits(sourceTokenAmount, sourceToken.decimals)
-    const approved = await sourceToken.allowance(
-      targetAddress
-    )
+    const tx = await approve(parsedSourceTokenAmount, sourceToken, targetAddress)
 
-    let tx: any
-    if (approved.lt(parsedAmount)) {
-      tx = await txConfirm?.show({
-        kind: 'approval',
-        inputProps: {
-          sourceTokenAmount,
-          tokenSymbol: sourceToken.symbol
-        },
-        onConfirm: async (approveAll: boolean) => {
-          const approveAmount = approveAll ? UINT256 : parsedAmount
-          return sourceToken.approve(
-            targetAddress,
-            approveAmount
-          )
-        }
-      })
-    }
-
-    if (tx?.hash && sourceNetwork) {
-      app?.txHistory?.addTransaction(
-        new Transaction({
-          hash: tx?.hash,
-          networkName: sourceNetwork.slug
-        })
-      )
-    }
     await tx?.wait()
     return tx
   }
@@ -293,32 +297,32 @@ const ConvertContextProvider: FC = ({ children }) => {
           },
           dest: {
             amount: destTokenAmount,
-            token: sourceToken
+            token: destToken
           }
         },
         onConfirm: async () => {
           await approveTokens()
 
-          if (!selectedBridge) {
-            throw new Error('Bridge is required to convert')
+          if (
+            !selectedBridge ||
+            !signer ||
+            !sourceToken ||
+            !amountOutMin
+          ) {
+            throw new Error('Missing convert param')
           }
 
-          if (!signer) {
-            throw new Error('Signer is required to convert')
-          }
-
-          if (!sourceToken) {
-            throw new Error('Token is required to convert')
-          }
-
-          convertOption.convert(
+          return convertOption.convert(
             sdk,
             signer,
             sourceNetwork,
             destNetwork,
             isForwardDirection,
             selectedBridge.getTokenSymbol(),
-            value
+            value,
+            amountOutMin,
+            deadline(),
+            bonderFee
           )
         }
       })
@@ -349,7 +353,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     setSending(false)
   }
 
-  const enoughBalance = Number(sourceBalance) >= Number(sourceTokenAmount)
+  const enoughBalance = sourceBalance?.gte(parsedSourceTokenAmount)
   const withinMax = true
   let sendButtonText = 'Convert'
   const validFormFields = !!(

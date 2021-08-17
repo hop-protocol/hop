@@ -20,14 +20,14 @@ const useStyles = makeStyles(() => ({
   sendButton: {}
 }))
 
-interface Party {
+interface TokenEntity {
   token: Token
   amount: string
 }
 
 interface Props {
-  source: Party
-  dest: Party
+  source: TokenEntity
+  dest: TokenEntity
   onConfirm: (confirmed: boolean) => void
 }
 

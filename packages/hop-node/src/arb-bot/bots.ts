@@ -1,11 +1,11 @@
 import '../moduleAlias'
 import ArbBot from './ArbBot'
-import wallets from 'src/wallets'
 import contracts from 'src/contracts'
-import { config } from 'src/config'
+import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
+import { config as globalConfig } from 'src/config'
 
-const tokenSymbols = Object.keys(config.tokens)
+const tokenSymbols = Object.keys(globalConfig.tokens)
 const networks = [Chain.Arbitrum, Chain.Optimism, Chain.xDai, Chain.Polygon]
 
 export type Config = {
@@ -14,10 +14,10 @@ export type Config = {
 }
 
 export default {
-  start: (_config: Config) => {
+  start: (config: Config) => {
     const bots: ArbBot[] = []
-    for (let network of networks) {
-      for (let token of tokenSymbols) {
+    for (const network of networks) {
+      for (const token of tokenSymbols) {
         if (!contracts.has(token, network)) {
           continue
         }
@@ -39,11 +39,11 @@ export default {
               contract: tokenContracts.saddleSwap
             }
           },
-          tokenDecimals: (config.metadata.tokens[config.network] as any)[token]
+          tokenDecimals: globalConfig.metadata.tokens[token]
             .decimals,
           wallet: wallets.get(network),
-          minThreshold: _config.minThreshold || 1.01,
-          maxTradeAmount: _config.maxTradeAmount || 100000
+          minThreshold: config.minThreshold || 1.01,
+          maxTradeAmount: config.maxTradeAmount || 100000
         })
 
         bots.push(bot)

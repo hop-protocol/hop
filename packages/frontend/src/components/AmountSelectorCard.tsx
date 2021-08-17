@@ -10,7 +10,7 @@ import Skeleton from '@material-ui/lab/Skeleton'
 import { Token } from '@hop-protocol/sdk'
 import clsx from 'clsx'
 import LargeTextField from 'src/components/LargeTextField'
-import { commafy } from 'src/utils'
+import { commafy, normalizeNumberInput } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -26,14 +26,14 @@ const useStyles = makeStyles(theme => ({
   networkSelectionBox: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   networkLabel: {
     display: 'flex',
     flexDirection: 'row',
     marginLeft: '0.4rem',
     overflow: 'hidden',
-    textOverflow: 'ellipsis'
+    textOverflow: 'clip'
   },
   networkIconContainer: {
     display: 'flex',
@@ -43,14 +43,8 @@ const useStyles = makeStyles(theme => ({
   },
   networkIcon: {
     display: 'flex',
-    height: '2.6rem',
-    margin: '0.5rem'
-  },
-  greyCircle: {
-    margin: '0.5rem',
-    padding: '1.3rem',
-    borderRadius: '1.8rem',
-    backgroundColor: '#C4C4C4'
+    height: '2.2rem',
+    margin: '0.7rem'
   },
   balance: {
     display: 'flex',
@@ -65,20 +59,32 @@ const useStyles = makeStyles(theme => ({
     fontSize: '1.2rem',
     marginRight: '1rem',
     cursor: 'pointer'
+  },
+  container: {
+    flexWrap: 'nowrap'
+  },
+  networkContainer: {
+    width: '180px',
+  },
+  inputContainer: {
   }
 }))
 
 type Props = {
   value?: string
   label: string
+  loadingLabel?: boolean
   token?: Token
   onChange?: (value: string) => void
   title?: string
   titleIconUrl?: string
   balance?: BigNumber
+  balanceLabel?: string
   loadingBalance?: boolean
   loadingValue?: boolean
   disableInput?: boolean
+  hideSymbol?: boolean
+  hideMaxButton?: boolean
   className?: string
 }
 
@@ -86,19 +92,23 @@ const AmountSelectorCard: FC<Props> = props => {
   const {
     value = '',
     label,
+    loadingLabel = false,
     token,
     onChange,
     title,
     titleIconUrl,
     balance,
+    balanceLabel,
     loadingBalance = false,
     loadingValue = false,
     disableInput = false,
+    hideSymbol = false,
+    hideMaxButton = false,
     className
   } = props
   const styles = useStyles()
 
-  const balanceLabel = useMemo(() => {
+  const balanceDisplay = useMemo(() => {
     let label: string = ''
     if (token && balance) {
       label = formatUnits(balance, token?.decimals)
@@ -109,8 +119,9 @@ const AmountSelectorCard: FC<Props> = props => {
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
+    const normalizedValue = normalizeNumberInput(value)
     if (onChange) {
-      onChange(value)
+      onChange(normalizedValue)
     }
   }
   const handleMaxClick = () => {
@@ -132,25 +143,26 @@ const AmountSelectorCard: FC<Props> = props => {
         className={styles.topRow}
       >
         <Typography variant="subtitle2" color="textSecondary">
-          {label}
+          {loadingBalance ? <Skeleton variant="text" width="15.0rem"></Skeleton>
+          : label }
         </Typography>
         {loadingBalance ? (
           <Skeleton variant="text" width="15.0rem"></Skeleton>
         ) : balance ? (
           <div className={styles.balance}>
-            {balance.gt(0) && !disableInput ? (
+            {!hideMaxButton && (balance.gt(0) && !disableInput) ? (
               <button className={styles.maxButton} onClick={handleMaxClick}>
                 MAX
               </button>
             ) : null}
             <Typography variant="subtitle2" color="textSecondary">
-              Balance: {balanceLabel}
+              {balanceLabel || 'Balance:'} {balanceDisplay}
             </Typography>
           </div>
         ) : null}
       </Box>
-      <Grid container alignItems="center">
-        <Grid item xs={6}>
+      <Grid container alignItems="center" className={styles.container}>
+        <Grid item className={styles.networkContainer}>
           <Box className={styles.networkSelectionBox}>
             {
               titleIconUrl
@@ -171,12 +183,12 @@ const AmountSelectorCard: FC<Props> = props => {
             </Typography>
           </Box>
         </Grid>
-        <Grid item xs={6}>
+        <Grid item className={styles.inputContainer}>
           <LargeTextField
             value={value}
             onChange={handleInputChange}
             placeholder="0.0"
-            units={token?.symbol}
+            units={hideSymbol ? '' : token?.symbol}
             disabled={disableInput}
             loadingValue={loadingValue}
           />

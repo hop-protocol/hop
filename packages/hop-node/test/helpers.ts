@@ -1,34 +1,36 @@
-// @ts-ignore
-import { Watcher } from '@eth-optimism/watcher'
+import Logger from 'src/logger'
 import expect from 'expect'
-import { ethers, providers, Contract, Wallet, BigNumber } from 'ethers'
+import queue from 'src/decorators/queue'
+import { BigNumber, Contract, Wallet, ethers, providers } from 'ethers'
+import { Chain, Token } from 'src/constants'
 import { HDNode } from '@ethersproject/hdnode'
-import { parseUnits, formatUnits } from 'ethers/lib/utils'
-import { config } from 'src/config'
-import * as hopMetadata from '@hop-protocol/metadata'
+import { Watcher } from '@eth-optimism/watcher'
 import {
-  l1BridgeAbi,
-  l2BridgeAbi,
-  erc20Abi,
-  l2AmmWrapperAbi,
-  swapAbi as saddleSwapAbi,
   arbitrumGlobalInboxAbi,
+  erc20MintableAbi as erc20Abi,
+  l1ArbitrumMessengerAbi,
+  arbitrumMessengerWrapperAbi as l1ArbitrumMessengerWrapperAbi,
+  l1BridgeAbi,
+  l1OptimismMessengerAbi,
+  optimismMessengerWrapperAbi as l1OptimismMessengerWrapperAbi,
+  l1OptimismTokenBridgeAbi,
+  l1PolygonMessengerAbi,
+  polygonMessengerWrapperAbi as l1PolygonMessengerWrapperAbi,
+  l1PolygonPosRootChainManagerAbi,
   l1xDaiForeignOmniBridgeAbi,
   l1xDaiMessengerAbi,
-  l1OptimismMessengerAbi,
-  l1ArbitrumMessengerAbi,
-  l1PolygonMessengerAbi,
   xDaiMessengerWrapperAbi as l1xDaiMessengerWrapperAbi,
-  optimismMessengerWrapperAbi as l1OptimismMessengerWrapperAbi,
-  arbitrumMessengerWrapperAbi as l1ArbitrumMessengerWrapperAbi,
-  polygonMessengerWrapperAbi as l1PolygonMessengerWrapperAbi,
-  l1OptimismTokenBridgeAbi,
-  l1PolygonPosRootChainManagerAbi,
-  l2PolygonChildErc20Abi
-} from '@hop-protocol/abi'
-import { Chain, Token } from 'src/constants'
-import { wait, getRpcProvider, chainSlugToId } from 'src/utils'
-import queue from 'src/decorators/queue'
+  l2AmmWrapperAbi,
+  l2BridgeAbi,
+  l2PolygonChildErc20Abi,
+  swapAbi as saddleSwapAbi
+} from '@hop-protocol/core/abi'
+import { chainSlugToId, getRpcProvider, wait } from 'src/utils'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { config as globalConfig } from 'src/config'
+import * as hopMetadata from '@hop-protocol/core/metadata'
+
+const logger = new Logger('test')
 
 export class User {
   privateKey: string
@@ -37,7 +39,7 @@ export class User {
     this.privateKey = privateKey
   }
 
-  get queueGroup () {
+  async getQueueGroup () {
     return this.privateKey
   }
 
@@ -81,16 +83,16 @@ export class User {
   }
 
   getTokenContract (network: string, token: string) {
-    let tokenAddress = config.tokens[token][network].l2CanonicalToken
+    let tokenAddress = globalConfig.tokens[token][network].l2CanonicalToken
     if (network === Chain.Ethereum) {
-      tokenAddress = config.tokens[token][network].l1CanonicalToken
+      tokenAddress = globalConfig.tokens[token][network].l1CanonicalToken
     }
     const wallet = this.getWallet(network)
     return new Contract(tokenAddress, erc20Abi, wallet)
   }
 
   getSaddleSwapContract (network: string, token: string) {
-    let saddleSwapAddress = config.tokens[token][network].l2SaddleSwap
+    const saddleSwapAddress = globalConfig.tokens[token][network].l2SaddleSwap
     const wallet = this.getWallet(network)
     return new Contract(saddleSwapAddress, saddleSwapAbi, wallet)
   }
@@ -109,7 +111,7 @@ export class User {
     return contract.mint(
       recipient,
       parseUnits(amount.toString(), decimals),
-      this.txOverrides(network)
+      await this.txOverrides(network)
     )
   }
 
@@ -125,18 +127,18 @@ export class User {
     return contract.transfer(
       recipient,
       parseUnits(amount.toString(), decimals),
-      this.txOverrides(network)
+      await this.txOverrides(network)
     )
   }
 
-  getHopBridgeContract (network: string, token: string = Token.DAI) {
+  getHopBridgeContract (network: string, token: string = Token.USDC) {
     let bridgeAddress: string
     let artifact: any
     if (network === Chain.Ethereum) {
-      bridgeAddress = config.tokens[token][network].l1Bridge
+      bridgeAddress = globalConfig.tokens[token][network].l1Bridge
       artifact = l1BridgeAbi
     } else {
-      bridgeAddress = config.tokens[token][network].l2Bridge
+      bridgeAddress = globalConfig.tokens[token][network].l2Bridge
       artifact = l2BridgeAbi
     }
 
@@ -145,14 +147,14 @@ export class User {
   }
 
   getHopBridgeTokenContract (network: string, token: string) {
-    let tokenAddress = config.tokens[token][network].l2HopBridgeToken
+    const tokenAddress = globalConfig.tokens[token][network].l2HopBridgeToken
     const wallet = this.getWallet(network)
     return new Contract(tokenAddress, erc20Abi, wallet)
   }
 
   async getMessengerWrapperContract (
     network: string,
-    token: string = Token.DAI
+    token: string = Token.USDC
   ) {
     const bridge = this.getHopBridgeContract(Chain.Ethereum, token)
     const chainId = chainSlugToId(network)
@@ -174,9 +176,9 @@ export class User {
     return new Contract(wrapperAddress, abi, wallet)
   }
 
-  async getMessengerContract (network: string, token: string = Token.DAI) {
+  async getMessengerContract (network: string, token: string = Token.USDC) {
     if (network === Chain.Ethereum) {
-      throw new Error('not supporsed')
+      throw new Error('not supported')
     }
     const wrapper = await this.getMessengerWrapperContract(network, token)
     const wallet = this.getWallet(Chain.Ethereum)
@@ -198,13 +200,13 @@ export class User {
     return new Contract(messengerAddress, abi, wallet)
   }
 
-  getAmmWrapperContract (network: string, token: string = Token.DAI) {
-    const wrapperAddress = config.tokens[token][network].l2AmmWrapper
+  getAmmWrapperContract (network: string, token: string = Token.USDC) {
+    const wrapperAddress = globalConfig.tokens[token][network].l2AmmWrapper
     const wallet = this.getWallet(network)
     return new Contract(wrapperAddress, l2AmmWrapperAbi, wallet)
   }
 
-  @queue
+  // @queue
   async approve (
     network: string,
     token: string | Contract,
@@ -222,7 +224,11 @@ export class User {
     if (amount) {
       approveAmount = parseUnits(amount.toString(), decimals).toString()
     }
-    return contract.approve(spender, approveAmount, this.txOverrides(network))
+    return contract.approve(
+      spender,
+      approveAmount,
+      await this.txOverrides(network)
+    )
   }
 
   async getAllowance (
@@ -257,6 +263,7 @@ export class User {
     return provider.waitForTransaction(txHash)
   }
 
+  @queue
   async send (
     sourceNetwork: string,
     destNetwork: string,
@@ -271,6 +278,13 @@ export class User {
     }
 
     return this.sendL2ToL2(sourceNetwork, destNetwork, token, amount)
+  }
+
+  isNativeToken (network: string, token: string) {
+    const isEth = token === 'ETH' && network === Chain.Ethereum
+    const isMatic = token === 'MATIC' && network === Chain.Polygon
+    const isxDai = token === 'XDAI' && network === Chain.xDai
+    return isEth || isMatic || isxDai
   }
 
   async sendL1ToL2 (
@@ -301,7 +315,10 @@ export class User {
       deadline,
       relayer,
       relayerFee,
-      this.txOverrides(sourceNetwork)
+      {
+        ...(await this.txOverrides(sourceNetwork)),
+        value: this.isNativeToken(sourceNetwork, token) ? parsedAmount : undefined
+      }
     )
 
     return tx
@@ -325,7 +342,7 @@ export class User {
     let destinationAmountOutMin = 0
     let destinationDeadline = deadline
     const decimals = await getTokenDecimals(token)
-    let parsedAmount = parseUnits(amount.toString(), decimals)
+    const parsedAmount = parseUnits(amount.toString(), decimals)
 
     if (destNetwork === Chain.Ethereum) {
       destinationAmountOutMin = 0
@@ -336,10 +353,10 @@ export class User {
     await this.checkApproval(sourceNetwork, token, wrapper.address)
 
     const balance = await this.getBalance(sourceNetwork, token)
-    console.log('token balance:', balance)
+    logger.debug('token balance:', balance)
 
     const hopBalance = await this.getHopBalance(sourceNetwork, token)
-    console.log('token hop balance:', hopBalance)
+    logger.debug('token hop balance:', hopBalance)
 
     const allowance = await this.getAllowance(
       sourceNetwork,
@@ -350,9 +367,9 @@ export class User {
       throw new Error('not enough allowance')
     }
 
-    const log = false
-    if (log) {
-      console.log(`wrapper.swapAndSend(
+    const debug = false
+    if (debug) {
+      logger.debug(`wrapper.swapAndSend(
       ${chainId},
       ${recipient},
       ${parsedAmount.toString()},
@@ -373,7 +390,10 @@ export class User {
       deadline,
       destinationAmountOutMin,
       destinationDeadline,
-      this.txOverrides(sourceNetwork)
+      {
+        ...(await this.txOverrides(sourceNetwork)),
+        value: this.isNativeToken(sourceNetwork, token) ? parsedAmount : undefined
+      }
     )
   }
 
@@ -411,7 +431,10 @@ export class User {
       deadline,
       destinationAmountOutMin,
       destinationDeadline,
-      this.txOverrides(sourceNetwork)
+      {
+        ...(await this.txOverrides(sourceNetwork)),
+        value: this.isNativeToken(sourceNetwork, token) ? parsedAmount : undefined
+      }
     )
   }
 
@@ -440,7 +463,7 @@ export class User {
       bonderFee,
       amountOutMin,
       deadline,
-      this.txOverrides(sourceNetwork)
+      await this.txOverrides(sourceNetwork)
     )
   }
 
@@ -475,7 +498,7 @@ export class User {
       deadline,
       destinationAmountOutMin,
       destinationDeadline,
-      this.txOverrides(sourceNetwork)
+      await this.txOverrides(sourceNetwork)
     )
   }
 
@@ -493,7 +516,7 @@ export class User {
   async sendEth (amount: number | string, recipient: string, network?: string) {
     const wallet = this.getWallet(network)
     return wallet.sendTransaction({
-      ...this.txOverrides(network),
+      ...(await this.txOverrides(network)),
       to: recipient,
       value: parseUnits(amount.toString(), 18)
     })
@@ -511,7 +534,7 @@ export class User {
     const tx = await tokenContract.transfer(
       recipient,
       parseUnits(amount.toString(), decimals),
-      this.txOverrides(network)
+      await this.txOverrides(network)
     )
     return tx
   }
@@ -526,7 +549,7 @@ export class User {
     const parsedAmount = parseUnits(amount.toString(), decimals)
     const bonder = await this.getAddress()
     const bridge = this.getHopBridgeContract(network, token)
-    return bridge.stake(bonder, parsedAmount, this.txOverrides(network))
+    return bridge.stake(bonder, parsedAmount, await this.txOverrides(network))
   }
 
   async getBonderFee (network: string, token: string, amount: string) {
@@ -540,20 +563,19 @@ export class User {
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute
-    return parseUnits('1', decimals)
     return minBonderFee
   }
 
   getBridgeAddress (network: string, token: string) {
-    let address = config.tokens[token][network].l2Bridge
+    let address = globalConfig.tokens[token][network].l2Bridge
     if (network === Chain.Ethereum) {
-      address = config.tokens[token][network].l1Bridge
+      address = globalConfig.tokens[token][network].l1Bridge
     }
     return address
   }
 
   getAmmWrapperAddress (network: string, token: string) {
-    return config.tokens[token][network].l2AmmWrapper
+    return globalConfig.tokens[token][network].l2AmmWrapper
   }
 
   async getLpToken (network: string, token: string) {
@@ -579,20 +601,26 @@ export class User {
     const wallet = this.getWallet(Chain.Ethereum)
     if (destNetwork === Chain.Arbitrum) {
       return new Contract(
-        config.tokens[token][destNetwork].l1CanonicalBridge,
+        globalConfig.tokens[token][destNetwork].l1CanonicalBridge,
         arbitrumGlobalInboxAbi,
         wallet
       )
     } else if (destNetwork === Chain.Optimism) {
       return new Contract(
-        config.tokens[token][destNetwork].l1CanonicalBridge,
+        globalConfig.tokens[token][destNetwork].l1CanonicalBridge,
         l1OptimismTokenBridgeAbi,
         wallet
       )
     } else if (destNetwork === Chain.xDai) {
       return new Contract(
-        config.tokens[token][destNetwork].l1CanonicalBridge,
+        globalConfig.tokens[token][destNetwork].l1CanonicalBridge,
         l1xDaiForeignOmniBridgeAbi,
+        wallet
+      )
+    } else if (destNetwork === Chain.Polygon) {
+      return new Contract(
+        globalConfig.tokens[token][destNetwork].l1PosRootChainManager,
+        l1PolygonPosRootChainManagerAbi,
         wallet
       )
     } else {
@@ -612,29 +640,43 @@ export class User {
     const tokenBridge = this.getCanonicalBridgeContract(destNetwork, token)
     if (destNetwork === Chain.Arbitrum) {
       return tokenBridge.depositERC20Message(
-        config.tokens[token][destNetwork].arbChain,
-        config.tokens[token][Chain.Ethereum].l1CanonicalToken,
+        globalConfig.tokens[token][destNetwork].arbChain,
+        globalConfig.tokens[token][Chain.Ethereum].l1CanonicalToken,
         recipient,
         value,
-        this.txOverrides(destNetwork)
+        await this.txOverrides(destNetwork)
       )
     } else if (destNetwork === Chain.Optimism) {
       const l1TokenAddress =
-        config.tokens[token][Chain.Ethereum].l1CanonicalToken
-      const l2TokenAddress = config.tokens[token][destNetwork].l2CanonicalToken
+        globalConfig.tokens[token][Chain.Ethereum].l1CanonicalToken
+      const l2TokenAddress = globalConfig.tokens[token][destNetwork].l2CanonicalToken
       return tokenBridge.deposit(
         l1TokenAddress,
         l2TokenAddress,
         recipient,
         value,
-        this.txOverrides(destNetwork)
+        await this.txOverrides(destNetwork)
       )
     } else if (destNetwork === Chain.xDai) {
       return tokenBridge.relayTokens(
-        config.tokens[token][Chain.Ethereum].l1CanonicalToken,
+        globalConfig.tokens[token][Chain.Ethereum].l1CanonicalToken,
         recipient,
         value,
-        this.txOverrides(destNetwork)
+        await this.txOverrides(destNetwork)
+      )
+    } else if (destNetwork === Chain.Polygon) {
+      const approveAddress = globalConfig.tokens[token][destNetwork].l1PosPredicate
+      logger.debug('approving')
+      const tx = await this.approve(Chain.Ethereum, token, approveAddress)
+      await tx?.wait()
+      logger.debug('waiting')
+      const coder = ethers.utils.defaultAbiCoder
+      const payload = coder.encode(['uint256'], [value])
+      return tokenBridge.depositFor(
+        recipient,
+        globalConfig.tokens[token][Chain.Ethereum].l1CanonicalToken,
+        payload,
+        await this.txOverrides(destNetwork)
       )
     } else {
       throw new Error('not implemented')
@@ -657,7 +699,7 @@ export class User {
     if (approve) {
       const erc20Predicate = '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
       const token = new Contract(tokenAddress, erc20Abi, wallet)
-      let tx = await token.approve(erc20Predicate, parsedAmount)
+      const tx = await token.approve(erc20Predicate, parsedAmount)
       await tx.wait()
     }
     const bridge = new Contract(
@@ -671,7 +713,7 @@ export class User {
       recipient,
       tokenAddress,
       data,
-      this.txOverrides(Chain.Polygon)
+      await this.txOverrides(Chain.Polygon)
     )
   }
 
@@ -684,7 +726,7 @@ export class User {
     const provider = new providers.StaticJsonRpcProvider(url)
     const wallet = new Wallet(this.privateKey, provider)
     const token = new Contract(tokenAddress, l2PolygonChildErc20Abi, wallet)
-    return token.withdraw(parsedAmount, this.txOverrides(Chain.Polygon))
+    return token.withdraw(parsedAmount, await this.txOverrides(Chain.Polygon))
   }
 
   @queue
@@ -743,7 +785,7 @@ export class User {
       deadline,
       relayer,
       relayerFee,
-      this.txOverrides(Chain.Ethereum)
+      await this.txOverrides(Chain.Ethereum)
     )
   }
 
@@ -789,7 +831,7 @@ export class User {
       amounts,
       minToMint,
       deadline,
-      this.txOverrides(network)
+      await this.txOverrides(network)
     )
   }
 
@@ -806,14 +848,14 @@ export class User {
       parsedLpTokenAmount,
       minAmounts,
       deadline,
-      this.txOverrides(network)
+      await this.txOverrides(network)
     )
   }
 
   @queue
   async bondTransferRoot (
     transferRootHash: string,
-    chainId: string,
+    chainId: number,
     totalAmount: number
   ) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
@@ -822,13 +864,13 @@ export class User {
       transferRootHash,
       chainId,
       parsedTotalAmount,
-      this.txOverrides(Chain.Ethereum)
+      await this.txOverrides(Chain.Ethereum)
     )
   }
 
   async bondTransferRootAndWaitForReceipt (
     transferRootHash: string,
-    chainId: string,
+    chainId: number,
     totalAmount: number
   ) {
     const tx = await this.bondTransferRoot(
@@ -846,7 +888,7 @@ export class User {
     return bridge.challengeTransferBond(
       transferRootHash,
       parsedTotalAmount,
-      this.txOverrides(Chain.Ethereum)
+      await this.txOverrides(Chain.Ethereum)
     )
   }
 
@@ -865,7 +907,7 @@ export class User {
     return bridge.resolveChallenge(
       transferRootHash,
       parsedTotalAmount,
-      this.txOverrides(Chain.Ethereum)
+      await this.txOverrides(Chain.Ethereum)
     )
   }
 
@@ -910,7 +952,7 @@ export class User {
     }
     return bridge.setChallengeResolutionPeriod(
       challengeResolutionPeriod,
-      this.txOverrides(Chain.Ethereum)
+      await this.txOverrides(Chain.Ethereum)
     )
   }
 
@@ -929,7 +971,7 @@ export class User {
     const calldata = `0x5325937f000000000000000000000000${address}`
     if (network === Chain.Ethereum) {
       const bridge = this.getHopBridgeContract(network, token)
-      return bridge.addBonder(newBonderAddress, this.txOverrides(network))
+      return bridge.addBonder(newBonderAddress, await this.txOverrides(network))
     } else if (network === Chain.xDai) {
       const l2Bridge = await this.getHopBridgeContract(network, token)
       const messenger = await this.getMessengerContract(network, token)
@@ -937,7 +979,7 @@ export class User {
         l2Bridge.address,
         calldata,
         2000000,
-        this.txOverrides(network)
+        await this.txOverrides(network)
       )
     } else if (network === Chain.Optimism) {
       const l2Bridge = await this.getHopBridgeContract(network, token)
@@ -946,13 +988,13 @@ export class User {
         l2Bridge.address,
         calldata,
         9000000,
-        this.txOverrides(network)
+        await this.txOverrides(network)
       )
     } else if (network === Chain.Polygon) {
       const messenger = await this.getMessengerWrapperContract(network, token)
       return messenger.sendCrossDomainMessage(
         calldata,
-        this.txOverrides(network)
+        await this.txOverrides(network)
       )
     } else if (network === Chain.Arbitrum) {
       const l2Bridge = await this.getHopBridgeContract(network, token)
@@ -966,7 +1008,7 @@ export class User {
         100000000000,
         0,
         calldata,
-        this.txOverrides(network)
+        await this.txOverrides(network)
       )
     }
   }
@@ -987,10 +1029,17 @@ export class User {
     return Number(formatUnits(bondAmount.toString(), 18))
   }
 
-  async getTransferRootCommitedAt (transferRootId: string) {
+  async getTransferRootCommittedAt (destChainId: number, transferRootId: string, tokenSymbol: string) {
+    let params: any[] = []
+    if (tokenSymbol === 'USDC') {
+      params = [transferRootId]
+    } else {
+      params = [destChainId, transferRootId]
+    }
+
     const bridge = this.getHopBridgeContract(Chain.Ethereum)
-    const commitedAt = await bridge.transferRootCommittedAt(transferRootId)
-    return Number(commitedAt.toString())
+    const committedAt = await bridge.transferRootCommittedAt(...params)
+    return Number(committedAt.toString())
   }
 
   async getTransferRootId (transferRootHash: string, totalAmount: number) {
@@ -1015,22 +1064,22 @@ export class User {
     return block.timestamp
   }
 
-  async isChainIdPaused (chainId: string) {
+  async isChainIdPaused (chainId: number) {
     const bridge = this.getHopBridgeContract(Chain.Ethereum)
     return bridge.isChainIdPaused(chainId)
   }
 
-  async getCrossDomainMessengerWrapperAddress (chainId: string) {
+  async getCrossDomainMessengerWrapperAddress (chainId: number) {
     const bridge = this.getHopBridgeContract(Chain.Ethereum)
     return bridge.crossDomainMessengerWrappers(chainId)
   }
 
   async setMaxPendingTransfers (network: string, max: number) {
     const bridge = this.getHopBridgeContract(network)
-    return bridge.setMaxPendingTransfers(max, this.txOverrides(network))
+    return bridge.setMaxPendingTransfers(max, await this.txOverrides(network))
   }
 
-  async validateChainId (chainId: string) {
+  async validateChainId (chainId: number) {
     const isPaused = await this.isChainIdPaused(chainId)
     if (isPaused) {
       throw new Error('chain id is paused')
@@ -1044,7 +1093,7 @@ export class User {
     }
   }
 
-  async getMaxPendingTransfers (network: string, token: string = Token.DAI) {
+  async getMaxPendingTransfers (network: string, token: string = Token.USDC) {
     const bridge = this.getHopBridgeContract(network, token)
     return Number((await bridge.maxPendingTransfers()).toString())
   }
@@ -1083,7 +1132,10 @@ export class User {
   ) {
     const bridge = this.getHopBridgeContract(sourceNetwork, token)
     const destChainId = chainSlugToId(destNetwork)
-    return bridge.commitTransfers(destChainId, this.txOverrides(sourceNetwork))
+    return bridge.commitTransfers(
+      destChainId,
+      await this.txOverrides(sourceNetwork)
+    )
   }
 
   async isBonder (sourceNetwork: string, token: string) {
@@ -1121,15 +1173,31 @@ export class User {
     return l2TxReceipt
   }
 
-  txOverrides (network: string) {
+  protected async getBumpedGasPrice (
+    network: string,
+    percent: number
+  ): Promise<BigNumber> {
+    const provider = this.getProvider(network)
+    const gasPrice = await provider.getGasPrice()
+    return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
+  }
+
+  async txOverrides (network: string) {
     const txOptions: any = {}
-    txOptions.gasLimit = 2_000_000
-    if (network === Chain.Optimism) {
-      txOptions.gasPrice = 0
-      txOptions.gasLimit = 8_000_000
-    } else if (network === Chain.xDai) {
-      txOptions.gasPrice = 1000000000
-      txOptions.gasLimit = 4_000_000
+    if (globalConfig.isMainnet) {
+      // txOptions.gasLimit = 1_000_000
+      txOptions.gasPrice = (
+        await this.getBumpedGasPrice(network, 1.5)
+      ).toString()
+    } else {
+      txOptions.gasLimit = 2_000_000
+      if (network === Chain.Optimism) {
+        txOptions.gasPrice = 0
+        txOptions.gasLimit = 8_000_000
+      } else if (network === Chain.xDai) {
+        txOptions.gasPrice = 1000000000
+        txOptions.gasLimit = 4_000_000
+      }
     }
     return txOptions
   }
@@ -1144,7 +1212,7 @@ export async function checkApproval (
   let allowance = await user.getAllowance(network, token, spender)
   if (allowance < 1000) {
     const tx = await user.approve(network, token, spender)
-    console.log('approve tx:', tx?.hash)
+    logger.debug('approve tx:', tx?.hash)
     await tx?.wait()
     allowance = await user.getAllowance(network, token, spender)
   }
@@ -1160,7 +1228,7 @@ export async function waitForEvent (
     watchers.forEach(watcher => {
       watcher
         .on(eventName, (data: any) => {
-          console.log('received event:', eventName, data)
+          logger.debug('received event:', eventName, data)
           if (typeof predicate === 'function') {
             if (predicate(data)) {
               resolve(null)
@@ -1174,6 +1242,10 @@ export async function waitForEvent (
         })
     })
   })
+}
+
+export function generateUser (privateKey: string) {
+  return new User(privateKey)
 }
 
 export function generateUsers (count: number = 1, mnemonic: string) {
@@ -1211,7 +1283,7 @@ export async function prepareAccount (
         l1CanonicalBridge.address
       )
       tx = await user.convertToCanonicalToken(sourceNetwork, token, 1000)
-      console.log('tx:', tx.hash)
+      logger.info('tx:', tx.hash)
       await tx?.wait()
       await wait(120 * 1000)
     } else {
@@ -1243,40 +1315,71 @@ export async function prepareAccounts (
   network: string,
   faucetTokensToSend: number = 100
 ) {
-  for (let user of users) {
-    console.log('preparing account')
+  const faucetSendEth = !globalConfig.isMainnet
+  let i = 0
+  for (const user of users) {
+    logger.debug('preparing account')
     const address = await user.getAddress()
-    if ([Chain.Ethereum as string, Chain.xDai].includes(network)) {
+    const yes = [Chain.Ethereum as string, Chain.xDai].includes(network)
+    let checkEth = true
+    if (!globalConfig.isMainnet) {
+      checkEth = [Chain.Ethereum as string, Chain.xDai].includes(network)
+    }
+    if (checkEth) {
       let ethBal = await user.getBalance(network)
-      if (ethBal < 0.1) {
-        console.log('faucet sending eth')
+      logger.debug(`#${i} eth:`, ethBal)
+      if (faucetSendEth && ethBal < 0.01) {
+        logger.debug('faucet sending eth')
         const tx = await faucet.sendEth(0.1, address, network)
         const receipt = await tx.wait()
         expect(receipt.status).toBe(1)
         ethBal = await user.getBalance(network)
+        expect(ethBal).toBeGreaterThanOrEqual(0.1)
       }
-      expect(ethBal).toBeGreaterThanOrEqual(0.1)
     }
-    let tokenBal = await user.getBalance(network, token)
+    const isNativeToken = user.isNativeToken(network, token)
+    let tokenBal : number
+    if (isNativeToken) {
+      tokenBal = await user.getBalance(network)
+    } else {
+      tokenBal = await user.getBalance(network, token)
+    }
+    logger.debug(`#${i} token balance: ${tokenBal}`)
     if (tokenBal < faucetTokensToSend) {
-      console.log('faucet sending tokens')
-      const faucetBalance = await faucet.getBalance(network, token)
+      logger.debug('faucet sending tokens')
+      let faucetBalance: number
+      if (isNativeToken) {
+        faucetBalance = await faucet.getBalance(network)
+      } else {
+        faucetBalance = await faucet.getBalance(network, token)
+      }
       if (faucetBalance < faucetTokensToSend) {
         throw new Error(
           `faucet does not have enough tokens. Have ${faucetBalance}, need ${faucetTokensToSend} ${token} on ${network}`
         )
       }
-      const tx = await faucet.sendTokens(
-        network,
-        token,
-        faucetTokensToSend,
-        address
-      )
-      console.log('send tokens tx:', tx.hash)
+
+      let tx: any
+      if (isNativeToken) {
+        tx = await faucet.sendEth(faucetTokensToSend, address, network)
+      } else {
+        tx = await faucet.sendTokens(
+          network,
+          token,
+          faucetTokensToSend,
+          address
+        )
+      }
+      logger.debug('send tokens tx:', tx.hash)
       await tx.wait()
-      tokenBal = await user.getBalance(network, token)
+      if (isNativeToken) {
+        tokenBal = await user.getBalance(network)
+      } else {
+        tokenBal = await user.getBalance(network, token)
+      }
     }
-    expect(tokenBal).toBeGreaterThanOrEqual(1)
+    expect(tokenBal).toBeGreaterThanOrEqual(faucetTokensToSend)
+    i++
   }
   return users
 }

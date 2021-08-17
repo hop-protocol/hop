@@ -1,5 +1,6 @@
 export enum Network {
   Mainnet = 'mainnet',
+  Staging = 'staging',
   Goerli = 'goerli',
   Kovan = 'kovan'
 }

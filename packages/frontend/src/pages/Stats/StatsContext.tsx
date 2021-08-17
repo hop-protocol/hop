@@ -11,14 +11,16 @@ import Token from 'src/models/Token'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
 import * as config from 'src/config'
-import * as addresses from '@hop-protocol/addresses'
 
 type StatsContextProps = {
   stats: any[]
   fetching: boolean,
 
   bonderStats: any[],
-  fetchingBonderStats: boolean
+  fetchingBonderStats: boolean,
+
+  pendingAmounts: any[],
+  fetchingPendingAmounts: boolean
 }
 
 const StatsContext = createContext<StatsContextProps>({
@@ -26,7 +28,10 @@ const StatsContext = createContext<StatsContextProps>({
   fetching: false,
 
   bonderStats: [],
-  fetchingBonderStats: false
+  fetchingBonderStats: false,
+
+  pendingAmounts: [],
+  fetchingPendingAmounts: false
 })
 
 type BonderStats = {
@@ -37,6 +42,7 @@ type BonderStats = {
   credit: number,
   debit: number,
   availableLiquidity: number
+  eth: number
 }
 
 const StatsContextProvider: FC = ({ children }) => {
@@ -45,6 +51,8 @@ const StatsContextProvider: FC = ({ children }) => {
   const [fetching, setFetching] = useState<boolean>(false)
   const [bonderStats, setBonderStats] = useState<any[]>([])
   const [fetchingBonderStats, setFetchingBonderStats] = useState<boolean>(false)
+  const [pendingAmounts, setPendingAmounts] = useState<any[]>([])
+  const [fetchingPendingAmounts, setFetchingPendingAmounts] = useState<boolean>(false)
   const filteredNetworks = networks?.filter(token => !token.isLayer1)
 
   async function fetchStats (selectedNetwork: Network, selectedToken: Token) {
@@ -118,10 +126,11 @@ const StatsContextProvider: FC = ({ children }) => {
     }
 
     const bridge = sdk.bridge(selectedToken.symbol)
-    const [credit, debit, availableLiquidity] = await Promise.all([
+    const [credit, debit, availableLiquidity, eth] = await Promise.all([
       bridge.getCredit(selectedNetwork.slug, bonder),
       bridge.getDebit(selectedNetwork.slug, bonder),
       bridge.getAvailableLiquidity(selectedNetwork.slug, bonder),
+      bridge.getEthBalance(selectedNetwork.slug, bonder)
     ])
 
     return {
@@ -131,7 +140,8 @@ const StatsContextProvider: FC = ({ children }) => {
       network: selectedNetwork,
       credit: Number(formatUnits(credit.toString(), token.decimals)),
       debit: Number(formatUnits(debit.toString(), token.decimals)),
-      availableLiquidity: Number(formatUnits(availableLiquidity.toString(), token.decimals))
+      availableLiquidity: Number(formatUnits(availableLiquidity.toString(), token.decimals)),
+      eth: Number(formatUnits(eth.toString(), 18))
     }
   }
 
@@ -144,7 +154,7 @@ const StatsContextProvider: FC = ({ children }) => {
       const promises: Promise<any>[] = []
       for (const network of networks) {
         for (const token of tokens) {
-          for (const bonder of addresses[config.network].bonders) {
+          for (const bonder of config.addresses.bonders?.[token.symbol]) {
             promises.push(fetchBonderStats(network, token, bonder))
           }
         }
@@ -152,6 +162,56 @@ const StatsContextProvider: FC = ({ children }) => {
       const results: any[] = await Promise.all(promises)
       setFetchingBonderStats(false)
       setBonderStats(results.filter(x => x))
+    }
+
+    update().catch(logger.error)
+  }, [])
+
+  async function fetchPendingAmounts (sourceNetwork: Network, destinationNetwork: Network, token: Token) {
+    if (!sourceNetwork) {
+      return
+    }
+    if (!destinationNetwork) {
+      return
+    }
+    if (!token) {
+      return
+    }
+
+    const bridge = sdk.bridge(token.symbol)
+    const contract = await bridge.getBridgeContract(sourceNetwork.slug)
+    const pendingAmountBn = await contract.pendingAmountForChainId(destinationNetwork.networkId)
+    const pendingAmount = formatUnits(pendingAmountBn, token.decimals)
+
+    return {
+      id: `${sourceNetwork.slug}-${destinationNetwork.slug}-${token.symbol}`,
+      sourceNetwork,
+      destinationNetwork,
+      token,
+      pendingAmount
+    }
+  }
+
+  useEffect(() => {
+    const update = async () => {
+      if (!filteredNetworks) {
+        return
+      }
+      setFetchingPendingAmounts(true)
+      const promises: Promise<any>[] = []
+      for (const sourceNetwork of filteredNetworks) {
+        for (const token of tokens) {
+          for (const destinationNetwork of networks) {
+            if (destinationNetwork === sourceNetwork) {
+              continue
+            }
+            promises.push(fetchPendingAmounts(sourceNetwork, destinationNetwork, token))
+          }
+        }
+      }
+      const results: any[] = await Promise.all(promises)
+      setFetchingPendingAmounts(false)
+      setPendingAmounts(results.filter(x => x))
     }
 
     update().catch(logger.error)
@@ -165,6 +225,9 @@ const StatsContextProvider: FC = ({ children }) => {
 
         bonderStats,
         fetchingBonderStats,
+
+        pendingAmounts,
+        fetchingPendingAmounts,
       }}
     >
       {children}

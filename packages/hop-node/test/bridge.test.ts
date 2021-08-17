@@ -1,29 +1,34 @@
-require('dotenv').config()
-import contracts from 'src/contracts'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
-import { config } from 'src/config'
-import db from 'src/db'
+import contracts from 'src/contracts'
+import { config as globalConfig } from 'src/config'
+require('dotenv').config()
 
 const token = 'USDC'
 const network = 'ethereum'
 const tokenContracts = contracts.get(token, network)
 const bridgeContract = tokenContracts.l1Bridge
 const bridge = new L1Bridge(bridgeContract)
-let { totalBlocks, batchBlocks } = config.sync[network]
+const { totalBlocks, batchBlocks } = globalConfig.sync[network]
 
 describe('Happy Path', () => {
   test('Full loop', async () => {
     let count = 0
+    const expectedSizeOfLastIteration = totalBlocks % batchBlocks
+    const expectedCount = Math.ceil(totalBlocks / batchBlocks)
     await bridge.eventsBatch(
       async (start: number, end: number, index: number) => {
         expect(index).toBe(count)
-        expect(end).toBe(start + batchBlocks)
+        if (index !== expectedCount - 1) {
+          expect(end).toBe(start + batchBlocks)
+        } else {
+          expect(end).toBe(start + expectedSizeOfLastIteration)
+        }
+
         count++
       }
     )
 
-    const totalCount = totalBlocks / batchBlocks
-    expect(count).toBe(totalCount)
+    expect(count).toBe(expectedCount)
   })
 
   test('Single Batch', async () => {
@@ -37,7 +42,8 @@ describe('Happy Path', () => {
         expect(index).toBe(count)
         expect(end).toBe(start + totalBlocks)
         count++
-      }, { startBlockNumber, endBlockNumber }
+      },
+      { startBlockNumber, endBlockNumber }
     )
 
     // const totalCount = 1
@@ -47,25 +53,31 @@ describe('Happy Path', () => {
   test('Use an unused key', async () => {
     const key: string = 'testKey' + Math.random().toString()
     let count = 0
+    const expectedSizeOfLastIteration = totalBlocks % batchBlocks
+    const expectedCount = Math.ceil(totalBlocks / batchBlocks)
 
     await bridge.eventsBatch(
       async (start: number, end: number, index: number) => {
         expect(index).toBe(count)
-        expect(end).toBe(start + batchBlocks)
+        if (index !== expectedCount - 1) {
+          expect(end).toBe(start + batchBlocks)
+        } else {
+          expect(end).toBe(start + expectedSizeOfLastIteration)
+        }
         count++
-      }, { key }
+      },
+      { cacheKey: key }
     )
 
-    const totalCount = totalBlocks / batchBlocks
-    expect(count).toBe(totalCount)
+    expect(count).toBe(expectedCount)
   })
 
-  test('Use a used key', async () => {
+  test.skip('Use a used key', async () => {
     const key: string = 'testingKey'
     const chainId = await bridge.getChainId()
     const address = bridge.getAddress()
     const cacheKey = bridge.getCacheKeyFromKey(chainId, address, key)
-    let state = await db.syncState.getByKey(cacheKey)
+    let state = await bridge.db.syncState.getByKey(cacheKey)
 
     // Create entry for key if it does not exist
     if (!state) {
@@ -75,11 +87,12 @@ describe('Happy Path', () => {
           expect(index).toBe(count)
           expect(end).toBe(start + batchBlocks)
           count++
-        }, { key }
+        },
+        { cacheKey: key }
       )
     }
 
-    state = await db.syncState.getByKey(cacheKey)
+    state = await bridge.db.syncState.getByKey(cacheKey)
     expect(state.latestBlockSynced).toBeDefined()
     expect(state.timestamp).toBeDefined()
 
@@ -91,10 +104,11 @@ describe('Happy Path', () => {
       async (start: number, end: number, index: number) => {
         expect(index).toBe(count)
         count++
-      }, { key }
+      },
+      { cacheKey: key }
     )
 
-    state = await db.syncState.getByKey(cacheKey)
+    state = await bridge.db.syncState.getByKey(cacheKey)
     expect(state.latestBlockSynced).toBeGreaterThan(latestBlockSynced)
     expect(state.timestamp).toBeGreaterThan(timestamp)
     expect(count).toBe(1)
@@ -118,23 +132,28 @@ describe('Happy Path', () => {
     expect(count - 1).toBe(expectedCount)
   })
 
-  test('Loop is exited because true was returned', async () => {
-    const expectedCount = 5
+  test('Loop is not exited because true was returned', async () => {
+    const trueReturnCount = 5
     let count = 0
+    const expectedSizeOfLastIteration = totalBlocks % batchBlocks
+    const expectedTotalCount = Math.ceil(totalBlocks / batchBlocks)
     await bridge.eventsBatch(
       async (start: number, end: number, index: number) => {
         expect(index).toBe(count)
-        expect(end).toBe(start + batchBlocks)
+        if (index !== expectedTotalCount - 1) {
+          expect(end).toBe(start + batchBlocks)
+        } else {
+          expect(end).toBe(start + expectedSizeOfLastIteration)
+        }
 
         count++
-        if (index === expectedCount) {
+        if (index === trueReturnCount) {
           return true
         }
       }
     )
 
-    const totalCount = totalBlocks / batchBlocks
-    expect(count).toBe(totalCount)
+    expect(count).toBe(expectedTotalCount)
   })
 
   test('Total blocks in chain is lower than our total blocks config', async () => {
@@ -149,20 +168,24 @@ describe('Non-Happy Path', () => {
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
-        }, { startBlockNumber }
+        async (start: number, end: number, index: number) => {},
+        { startBlockNumber }
       )
     } catch (err) {
-      expect(err.message).toBe('If either a start or end block number exist, both must exist')
+      expect(err.message).toBe(
+        'If either a start or end block number exist, both must exist'
+      )
     }
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
-        }, { endBlockNumber }
+        async (start: number, end: number, index: number) => {},
+        { endBlockNumber }
       )
     } catch (err) {
-      expect(err.message).toBe('If either a start or end block number exist, both must exist')
+      expect(err.message).toBe(
+        'If either a start or end block number exist, both must exist'
+      )
     }
   })
 
@@ -172,20 +195,24 @@ describe('Non-Happy Path', () => {
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
-        }, { startBlockNumber, endBlockNumber }
+        async (start: number, end: number, index: number) => {},
+        { startBlockNumber, endBlockNumber }
       )
     } catch (err) {
-      expect(err.message).toBe('Cannot pass in a start or end block that is less than 0')
+      expect(err.message).toBe(
+        'Cannot pass in a start or end block that is less than 0'
+      )
     }
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
-        }, { startBlockNumber, endBlockNumber }
+        async (start: number, end: number, index: number) => {},
+        { startBlockNumber, endBlockNumber }
       )
     } catch (err) {
-      expect(err.message).toBe('Cannot pass in a start or end block that is less than 0')
+      expect(err.message).toBe(
+        'Cannot pass in a start or end block that is less than 0'
+      )
     }
   })
 
@@ -196,35 +223,41 @@ describe('Non-Happy Path', () => {
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
-        }, { startBlockNumber, endBlockNumber, key }
+        async (start: number, end: number, index: number) => {},
+        { startBlockNumber, endBlockNumber, cacheKey: key }
       )
     } catch (err) {
-      expect(err.message).toBe('A key cannot exist when a start and end block are explicitly defined')
+      expect(err.message).toBe(
+        'A key cannot exist when a start and end block are explicitly defined'
+      )
     }
   })
 
   test('startBlockNumber is greater than endBlockNumber', async () => {
-    let startBlockNumber = 100
+    const startBlockNumber = 100
     let endBlockNumber = 150
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
-        }, { startBlockNumber, endBlockNumber }
+        async (start: number, end: number, index: number) => {},
+        { startBlockNumber, endBlockNumber }
       )
     } catch (err) {
-      expect(err.message).toBe('Cannot pass in an end block that is before a start block')
+      expect(err.message).toBe(
+        'Cannot pass in an end block that is before a start block'
+      )
     }
 
     endBlockNumber = 100
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
-        }, { startBlockNumber, endBlockNumber }
+        async (start: number, end: number, index: number) => {},
+        { startBlockNumber, endBlockNumber }
       )
     } catch (err) {
-      expect(err.message).toBe('Cannot pass in an end block that is before a start block')
+      expect(err.message).toBe(
+        'Cannot pass in an end block that is before a start block'
+      )
     }
   })
 })

@@ -1,10 +1,10 @@
+import React, { ReactNode } from 'react'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
-import { DetailRow } from 'src/types'
 import { toTokenDisplay } from 'src/utils'
+import DetailRow from 'src/components/DetailRow'
 
 class HopConvertOption extends ConvertOption {
   readonly name: string
@@ -26,16 +26,22 @@ class HopConvertOption extends ConvertOption {
     destNetwork: Network,
     isForwardDirection: boolean,
     l1TokenSymbol: string,
-    value: BigNumberish
+    amountIn: BigNumberish,
+    amountOutMin: BigNumberish,
+    deadline: number,
+    bonderFee?: BigNumberish
   ) {
     const bridge = sdk
       .bridge(l1TokenSymbol)
       .connect(signer as Signer)
 
     return bridge.sendHToken(
-      value,
+      amountIn,
       sourceNetwork.slug,
-      destNetwork.slug
+      destNetwork.slug,
+      {
+        bonderFee
+      }
     )
   }
 
@@ -68,31 +74,29 @@ class HopConvertOption extends ConvertOption {
       sourceNetwork.slug,
       destNetwork.slug
     )
-    let amountOut
+
+    const l1Fee = (await bridge.getL1TransactionFee(
+      sourceNetwork.slug,
+      destNetwork.slug
+    )) || BigNumber.from(0)
+
+    const totalFees = bonderFee.add(l1Fee)
+    let estimatedReceived = amountIn
     let warning
-    if (amountIn.gte(bonderFee)) {
-      amountOut = amountIn.sub(bonderFee)
+    if (amountIn.gte(totalFees)) {
+      estimatedReceived = amountIn.sub(totalFees)
     } else {
       warning = 'Amount must be greater than the fee'
     }
 
     const l1Token = bridge.getL1Token()
-    let details: DetailRow[] = []
-    if (bonderFee.gt(0)) {
-      details = [
-        {
-          title: 'Fee',
-          tooltip: 'This fee covers the L1 transaction fee paid by the Bonder',
-          value: toTokenDisplay(bonderFee, l1Token),
-          highlighted: true
-        }
-      ]
-    }
+    const details = this.getDetails(totalFees, estimatedReceived, l1Token)
 
     return {
-      amountOut,
+      amountOut: amountIn,
       details,
-      warning
+      warning,
+      bonderFee: totalFees
     }
   }
 
@@ -138,6 +142,37 @@ class HopConvertOption extends ConvertOption {
     } else {
       return bridge.getL1Token()
     }
+  }
+
+  private getDetails (
+    totalFees: BigNumber,
+    estimatedReceived: BigNumber,
+    token: Token | undefined
+  ): ReactNode {
+    if (!token) return (<></>)
+
+    const feeDisplay = toTokenDisplay(totalFees, token.decimals)
+    const estimatedReceivedDisplay = toTokenDisplay(estimatedReceived, token.decimals)
+
+    return (
+      <>
+      {totalFees.gt(0) &&
+        <DetailRow
+          title="L1 Transaction Fee"
+          tooltip="This fee covers the L1 transaction fee paid by the Bonder."
+          value={feeDisplay}
+          large
+        />
+      }
+      <DetailRow
+        title="Estimated Received"
+        tooltip="The estimated amount you will receive after fees"
+        value={estimatedReceivedDisplay}
+        large
+        bold
+      />
+      </>
+    )
   }
 }
 

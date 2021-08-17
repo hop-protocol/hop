@@ -33,6 +33,11 @@ JSON=$(cat <<EOF
 EOF
 )
 
+if [ -z $GITBOOK_TOKEN ]; then
+  echo 'environment variable "GITBOOK_TOKEN" is required'
+  exit 1
+fi
+
 echo "sending request"
 curl https://$HOSTNAME/v1/spaces/$SPACE_ID/content/v/master/url/$PAGE -H "Authorization: Bearer $GITBOOK_TOKEN" \
     -H "Content-Type: application/json" \

@@ -1,6 +1,6 @@
-import { privateKey } from './config'
-import { User } from './helpers'
 import { Chain } from 'src/constants'
+import { User } from './helpers'
+import { privateKey } from './config'
 
 const sourceNetwork = Chain.xDai
 const destNetwork = Chain.Ethereum

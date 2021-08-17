@@ -1,12 +1,12 @@
 import '../moduleAlias'
-import { ethers, Contract, BigNumber } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { wait } from 'src/utils'
-import chalk from 'chalk'
 import Logger from 'src/logger'
-import { Chain } from 'src/constants'
-import { config } from 'src/config'
+import chalk from 'chalk'
 import queue from 'src/decorators/queue'
+import { BigNumber, Contract, ethers } from 'ethers'
+import { Chain } from 'src/constants'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { config as globalConfig } from 'src/config'
+import { wait } from 'src/utils'
 
 export enum TokenIndex {
   CanonicalToken = 0,
@@ -51,7 +51,7 @@ class ArbBot {
   minThreshold: number
   maxTradeAmount: BigNumber = BigNumber.from(0)
   ready: boolean = false
-  pollTimeSec: number = 10
+  pollIntervalSec: number = 10
   cache: any = {}
 
   constructor (config: Config) {
@@ -81,11 +81,11 @@ class ArbBot {
         try {
           await this.checkArbitrage()
           await this.checkBalances()
-          this.logger.log(`Rechecking in ${this.pollTimeSec} seconds`)
-          await wait(this.pollTimeSec * 1e3)
+          this.logger.log(`Rechecking in ${this.pollIntervalSec} seconds`)
+          await wait(this.pollIntervalSec * 1e3)
         } catch (err) {
           this.logger.error('arb bot error:', err.message)
-          await wait(this.pollTimeSec * 1e3)
+          await wait(this.pollIntervalSec * 1e3)
         }
       }
     } catch (err) {
@@ -178,7 +178,7 @@ class ArbBot {
   }
 
   private async getAmountOut (path: string[], amount: BigNumber) {
-    let [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
+    const [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
     if (amount.eq(0)) {
       return BigNumber.from(0)
     }
@@ -191,10 +191,10 @@ class ArbBot {
   }
 
   private async getTokenIndexes (path: string[]) {
-    let tokenIndexFrom = Number(
+    const tokenIndexFrom = Number(
       (await this.saddleSwap.getTokenIndex(path[0])).toString()
     )
-    let tokenIndexTo = Number(
+    const tokenIndexTo = Number(
       (await this.saddleSwap.getTokenIndex(path[1])).toString()
     )
 
@@ -327,7 +327,7 @@ class ArbBot {
         `Not enough ${inputToken.label} tokens. Need ${amountIn}, have ${pathToken0Balance}`
       )
     }
-    let [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
+    const [tokenIndexFrom, tokenIndexTo] = await this.getTokenIndexes(path)
     return this.saddleSwap.swap(
       tokenIndexFrom,
       tokenIndexTo,
@@ -371,7 +371,7 @@ class ArbBot {
 
   async txOverrides (): Promise<any> {
     const txOptions: any = {}
-    if (config.isMainnet) {
+    if (globalConfig.isMainnet) {
       if (this.network === Chain.Polygon) {
         // txOptions.gasLimit = 3000000
       }

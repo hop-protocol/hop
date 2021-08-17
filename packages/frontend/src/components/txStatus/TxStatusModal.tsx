@@ -6,6 +6,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import TxStatus from 'src/components/txStatus'
 import Transaction from 'src/models/Transaction'
 import Modal from 'src/components/modal'
+import { Chain } from '@hop-protocol/sdk'
 
 const useStyles = makeStyles(theme => ({
   txStatusInfo: {
@@ -32,6 +33,13 @@ function TxStatusModal (props: Props) {
     }
   }
 
+  const sourceChain = tx?.networkName ? Chain.fromSlug(tx.networkName) : null
+  const destinationChain = tx?.destNetworkName ? Chain.fromSlug(tx.destNetworkName) : null
+  let timeEstimate = '5 minutes'
+  if (sourceChain?.isL1 && destinationChain?.equals(Chain.Polygon)) {
+    timeEstimate = '15 minutes'
+  }
+
   return (
     tx ? (
       <Modal onClose={handleTxStatusClose}>
@@ -42,7 +50,11 @@ function TxStatusModal (props: Props) {
           className={styles.txStatusInfo}
         >
           <Typography variant="body1">
-            <em>This may take a few minutes</em>
+            {
+              (tx && tx.token)
+              ? <em>Your transfer will arrive at the destination around <strong>{timeEstimate}</strong> after your transaction is confirmed.</em>
+              : <em>This may take a few minutes</em>
+            }
           </Typography>
           <MuiButton
             className={styles.txStatusCloseButton}

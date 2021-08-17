@@ -1,14 +1,15 @@
-import { Transaction, providers, Contract, BigNumber } from 'ethers'
-import { EventEmitter } from 'events'
-import { wait, chainIdToSlug, chainSlugToId } from 'src/utils'
+import rateLimitRetry from 'src/decorators/rateLimitRetry'
+import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
-import { config } from 'src/config'
+import { EventEmitter } from 'events'
+import { Transaction } from 'src/types'
+import { chainIdToSlug, chainSlugToId, getBumpedGasPrice, getProviderChainSlug } from 'src/utils'
+import { config as globalConfig } from 'src/config'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract
   public chainId: number
   public chainSlug: string
-  public ready: boolean = false
 
   constructor (contract: Contract) {
     super()
@@ -16,29 +17,34 @@ export default class ContractBase extends EventEmitter {
     if (!this.contract.provider) {
       throw new Error('no provider found for contract')
     }
-    this.getChainId()
-      .then((chainId: number) => {
-        this.chainId = chainId
-        this.chainSlug = this.chainIdToSlug(chainId)
-        this.ready = true
-      })
-      .catch(err => {
-        console.log(`ContractBase getNetwork() error: ${err.message}`)
-      })
+    const chainSlug = getProviderChainSlug(contract.provider)
+    if (!chainSlug) {
+      throw new Error('chain slug not found for contract provider')
+    }
+    this.chainSlug = chainSlug
+    this.chainId = chainSlugToId(chainSlug)
   }
 
-  async waitTilReady (): Promise<boolean> {
-    if (this.ready) {
-      return true
+  @rateLimitRetry
+  async getChainId (): Promise<number> {
+    if (this.chainId) {
+      return this.chainId
+    }
+    const { chainId } = await this.contract.provider.getNetwork()
+    const _chainId = Number(chainId.toString())
+    this.chainId = _chainId
+    return _chainId
+  }
+
+  async getChainSlug () {
+    if (this.chainSlug) {
+      return this.chainSlug
     }
 
-    await wait(100)
-    return this.waitTilReady()
-  }
-
-  async getChainId (): Promise<number> {
-    const { chainId } = await this.contract.provider.getNetwork()
-    return Number(chainId.toString())
+    const chainId = await this.getChainId()
+    const chainSlug = chainIdToSlug(chainId)
+    this.chainSlug = chainSlug
+    return chainSlug
   }
 
   chainIdToSlug (chainId: number): string {
@@ -49,31 +55,57 @@ export default class ContractBase extends EventEmitter {
     return Number(chainSlugToId(chainSlug))
   }
 
-  get queueGroup (): string {
-    return this.chainId?.toString()
+  async getQueueGroup (): Promise<string> {
+    return this.getChainSlug()
   }
 
   get address (): string {
     return this.contract.address
   }
 
+  @rateLimitRetry
   async getTransaction (txHash: string): Promise<Transaction> {
+    if (!txHash) {
+      throw new Error('tx hash is required')
+    }
     return this.contract.provider.getTransaction(txHash)
   }
 
+  @rateLimitRetry
   async getTransactionReceipt (
     txHash: string
   ): Promise<providers.TransactionReceipt> {
     return this.contract.provider.getTransactionReceipt(txHash)
   }
 
+  @rateLimitRetry
   async getBlockNumber (): Promise<number> {
     return this.contract.provider.getBlockNumber()
   }
 
-  async getBlockTimestamp (blockNumber: string = 'latest'): Promise<number> {
+  @rateLimitRetry
+  async getTransactionBlockNumber (txHash: string): Promise<number> {
+    const tx = await this.contract.provider.getTransaction(txHash)
+    if (!tx) {
+      throw new Error('transaction not found')
+    }
+    return tx.blockNumber
+  }
+
+  @rateLimitRetry
+  async getBlockTimestamp (
+    blockNumber: number | string = 'latest'
+  ): Promise<number> {
     const block = await this.contract.provider.getBlock(blockNumber)
     return block.timestamp
+  }
+
+  @rateLimitRetry
+  async getTransactionTimestamp (
+    txHash: string
+  ): Promise<number> {
+    const tx = await this.contract.provider.getTransaction(txHash)
+    return this.getBlockTimestamp(tx.blockNumber)
   }
 
   async getEventTimestamp (event: any): Promise<number> {
@@ -87,6 +119,7 @@ export default class ContractBase extends EventEmitter {
     return Number(tx.timestamp.toString())
   }
 
+  @rateLimitRetry
   async getCode (
     address: string,
     blockNumber: string | number = 'latest'
@@ -94,30 +127,36 @@ export default class ContractBase extends EventEmitter {
     return this.contract.provider.getCode(address, blockNumber)
   }
 
-  protected async getBumpedGasPrice (percent: number): Promise<BigNumber> {
-    const gasPrice = await this.contract.provider.getGasPrice()
-    return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
+  @rateLimitRetry
+  async getBalance (
+    address: string
+  ): Promise<BigNumber> {
+    return this.contract.provider.getBalance(address)
   }
 
-  // wait a safe number of confirmations to avoid processing on an uncle block
-  async waitSafeConfirmations (): Promise<void> {
-    let blockNumber = await this.contract.provider.getBlockNumber()
-    const targetBlockNumber = blockNumber + this.waitConfirmations
-    while (blockNumber < targetBlockNumber) {
-      blockNumber = await this.contract.provider.getBlockNumber()
-      await wait(5 * 1000)
-    }
+  @rateLimitRetry
+  protected async getBumpedGasPrice (multiplier: number): Promise<BigNumber> {
+    const gasPrice = await this.contract.provider.getGasPrice()
+    return getBumpedGasPrice(gasPrice, multiplier)
   }
 
   get waitConfirmations () {
-    return config.networks?.[this.chainSlug]?.waitSafeConfirmations || 0
+    return globalConfig.networks?.[this.chainSlug]?.waitConfirmations || 0
   }
 
   async txOverrides (): Promise<any> {
     const txOptions: any = {}
     // TODO: config option for gas price multiplier
-    txOptions.gasPrice = (await this.getBumpedGasPrice(1.5)).toString()
-    if (config.isMainnet) {
+    let multiplier = 1.5
+    if (globalConfig.isMainnet) {
+      // increasing more gas multiplier for xdai
+      // to avoid the error "code:-32010, message: FeeTooLowToCompete"
+      if (
+        this.chainSlug === Chain.xDai ||
+        this.chainSlug === Chain.Polygon
+      ) {
+        multiplier = 3
+      }
     } else {
       txOptions.gasLimit = 5000000
       if (this.chainSlug === Chain.Optimism) {
@@ -128,6 +167,7 @@ export default class ContractBase extends EventEmitter {
         txOptions.gasLimit = 5000000
       }
     }
+    txOptions.gasPrice = (await this.getBumpedGasPrice(multiplier)).toString()
     return txOptions
   }
 }

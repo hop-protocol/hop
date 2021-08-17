@@ -1,6 +1,5 @@
 import React, { FC, useMemo, createContext, useContext } from 'react'
 import { Hop, HopBridge } from '@hop-protocol/sdk'
-
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import User from 'src/models/User'
 import Token from 'src/models/Token'
@@ -11,11 +10,16 @@ import useBridges from 'src/contexts/AppContext/useBridges'
 import useTxHistory, { TxHistory } from 'src/contexts/AppContext/useTxHistory'
 import useContracts, { Contracts } from 'src/contexts/AppContext/useContracts'
 import useEvents, { Events } from 'src/contexts/AppContext/useEvents'
+import useSettings, { Settings } from 'src/contexts/AppContext/useSettings'
 import { useAccountDetails, AccountDetails } from 'src/contexts/AppContext/useAccountDetails'
 import { useTxConfirm, TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
-import { network } from 'src/config'
+import { reactAppNetwork } from 'src/config'
 
 type AppContextProps = {
+  sdk: Hop
+  bridges: HopBridge[],
+  selectedBridge: HopBridge | undefined
+  setSelectedBridge: (bridge: HopBridge) => void
   user: User | undefined
   networks: Network[]
   l1Network: Network | undefined
@@ -25,10 +29,7 @@ type AppContextProps = {
   accountDetails: AccountDetails | undefined
   txHistory: TxHistory | undefined
   txConfirm: TxConfirm | undefined
-  sdk: Hop
-  bridges: HopBridge[],
-  selectedBridge: HopBridge | undefined
-  setSelectedBridge: (bridge: HopBridge) => void
+  settings: Settings
 }
 
 const AppContext = createContext<AppContextProps>({
@@ -44,7 +45,8 @@ const AppContext = createContext<AppContextProps>({
   sdk: {} as Hop,
   bridges: [],
   selectedBridge: undefined,
-  setSelectedBridge: (bridge: HopBridge) => {}
+  setSelectedBridge: (bridge: HopBridge) => {},
+  settings: {} as Settings
 })
 
 const AppContextProvider: FC = ({ children }) => {
@@ -59,7 +61,9 @@ const AppContextProvider: FC = ({ children }) => {
     return new User(provider)
   }, [provider])
 
-  const sdk = useMemo(() => new Hop(network, provider?.getSigner()), [provider])
+  const sdk = useMemo(() => {
+    return new Hop(reactAppNetwork, provider?.getSigner())
+  }, [provider])
   const networks = useNetworks()
   const tokens = useTokens(networks)
   const contracts = useContracts(networks, tokens)
@@ -69,6 +73,7 @@ const AppContextProvider: FC = ({ children }) => {
   const txConfirm = useTxConfirm()
   const l1Network = networks?.[0]
   const { bridges, selectedBridge, setSelectedBridge } = useBridges(sdk)
+  const settings = useSettings()
 
   return (
     <AppContext.Provider
@@ -85,7 +90,8 @@ const AppContextProvider: FC = ({ children }) => {
         events,
         txHistory,
         accountDetails,
-        txConfirm
+        txConfirm,
+        settings
       }}
     >
       {children}

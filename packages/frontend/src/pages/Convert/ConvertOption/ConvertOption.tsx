@@ -2,12 +2,13 @@ import React, { ReactNode } from 'react'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
 import Network from 'src/models/Network'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
-import { DetailRow } from 'src/types'
+import { DetailRowProps as DetailRow } from 'src/components/DetailRow'
 
 export type SendData = {
   amountOut: BigNumber | undefined,
-  details: DetailRow[],
-  warning?: ReactNode
+  details?: ReactNode,
+  warning?: ReactNode,
+  bonderFee?: BigNumber
 }
 
 abstract class ConvertOption {
@@ -38,7 +39,10 @@ abstract class ConvertOption {
     destNetwork: Network,
     isForwardDirection: boolean,
     l1TokenSymbol: string,
-    amountIn: BigNumberish
+    amountIn: BigNumberish,
+    amountOutMin: BigNumberish,
+    deadline: number,
+    bonderFee?: BigNumberish
   ): Promise<any>
 
   abstract sourceToken (

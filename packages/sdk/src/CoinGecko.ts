@@ -1,6 +1,5 @@
-// @ts-ignore
 import toChecksumAddress from 'ethereum-checksum-address'
-import fetch from 'node-fetch'
+import fetch from 'isomorphic-fetch'
 import serializeQueryParams from './utils/serializeQueryParams'
 import wait from './utils/wait'
 
@@ -51,6 +50,7 @@ class CoinGecko {
     SAI: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
     TUSD: '0x0000000000085d4780B73119b644AE5ecd22b376',
     USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    USDT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     WBTC: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
     WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
     ZRX: '0xE41d2489571d322189246DaFA5ebDe1F4699F498'
@@ -124,7 +124,7 @@ class CoinGecko {
       })
 
       const url = `${this._baseUrl}/simple/token_price/ethereum?${params}`
-      const res = await window.fetch(url)
+      const res = await fetch(url)
       const json = await res.json()
       const prices: number[] = []
 

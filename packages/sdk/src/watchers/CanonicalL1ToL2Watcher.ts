@@ -1,11 +1,7 @@
 import { default as BaseWatcher, Config, Event } from './BaseWatcher'
 import { Chain } from '../models'
 import CanonicalBridge from '../CanonicalBridge'
-
-const tokensBridgedTopic =
-  '0x9afd47907e25028cdaca89d193518c302bbb128617d5a992c5abd45815526593'
-const tokenTransferTopic =
-  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+import { tokensBridgedTopic, tokenTransferTopic } from './eventTopics'
 
 class L1ToL2Watcher extends BaseWatcher {
   constructor (config: Config) {
@@ -26,7 +22,6 @@ class L1ToL2Watcher extends BaseWatcher {
     if (this.destinationChain.equals(Chain.xDai)) {
       return this.xDaiWatcher()
     } else if (this.destinationChain.equals(Chain.Optimism)) {
-      console.log('TODO')
       throw new Error('not implemented')
     } else if (this.destinationChain.equals(Chain.Polygon)) {
       return this.polygonWatcher()

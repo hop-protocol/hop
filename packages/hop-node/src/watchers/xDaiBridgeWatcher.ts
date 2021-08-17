@@ -1,23 +1,27 @@
-import { ethers, Contract } from 'ethers'
+import BaseWatcher from './classes/BaseWatcher'
 import chalk from 'chalk'
-import { l2xDaiAmbAbi, l1xDaiAmbAbi } from '@hop-protocol/abi'
-import { Chain } from 'src/constants'
-import { config } from 'src/config'
 import wallets from 'src/wallets'
-import { signatureToVRS, packSignatures, strip0x } from 'src/utils/xdaiUtils'
+import { Chain } from 'src/constants'
+import { Contract, ethers } from 'ethers'
+import { config as globalConfig } from 'src/config'
+import { l1xDaiAmbAbi, l2xDaiAmbAbi } from '@hop-protocol/core/abi'
+import { packSignatures, signatureToVRS, strip0x } from 'src/utils/xdaiUtils'
 import { wait } from 'src/utils'
-import queue from 'src/decorators/queue'
-import BaseWatcherWithEventHandlers from './classes/BaseWatcherWithEventHandlers'
+
+type Config = {
+  chainSlug: string
+  tokenSymbol: string
+}
 
 export const getL1Amb = (token: string) => {
   const l1Wallet = wallets.getRelayer(Chain.Ethereum)
-  const l1AmbAddress = config.tokens[token].xdai.l1Amb
+  const l1AmbAddress = globalConfig.tokens[token].xdai.l1Amb
   return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet)
 }
 
 export const getL2Amb = (token: string) => {
   const l2xDaiProvider = wallets.getRelayer(Chain.xDai).provider
-  const l2AmbAddress = config.tokens[token].xdai.l2Amb
+  const l2AmbAddress = globalConfig.tokens[token].xdai.l2Amb
   return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider)
 }
 
@@ -55,6 +59,7 @@ export const executeExitTx = async (event: any, token: string) => {
     sigs.push(vrs)
   }
   const packedSigs = packSignatures(sigs)
+  // TODO: check if enough funds for gas
   const tx = await l1Amb.executeSignatures(message, packedSigs)
   return {
     tx,
@@ -66,9 +71,11 @@ export const executeExitTx = async (event: any, token: string) => {
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
-class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
-  constructor () {
+class xDaiBridgeWatcher extends BaseWatcher {
+  constructor (config: Config) {
     super({
+      chainSlug: config.chainSlug,
+      tokenSymbol: config.tokenSymbol,
       tag: 'xDaiBridgeWatcher',
       logColor: 'yellow'
     })
@@ -77,11 +84,10 @@ class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
   async start () {
     this.started = true
     try {
-      const token = 'DAI'
-      const l1Amb = getL1Amb(token)
-      const l2Amb = getL2Amb(token)
+      const l1Amb = getL1Amb(this.tokenSymbol)
+      const l2Amb = getL2Amb(this.tokenSymbol)
 
-      this.logger.debug('xDai bridge watcher started')
+      this.logger.debug(`xDai ${this.tokenSymbol} bridge watcher started`)
       while (true) {
         if (!this.started) {
           return
@@ -92,9 +98,9 @@ class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
           (blockNumber as number) - 100
         )
 
-        for (let event of events) {
+        for (const event of events) {
           try {
-            const result = await executeExitTx(event, token)
+            const result = await executeExitTx(event, this.tokenSymbol)
             if (!result) {
               continue
             }
@@ -118,12 +124,9 @@ class xDaiBridgeWatcher extends BaseWatcherWithEventHandlers {
         await wait(10 * 1000)
       }
     } catch (err) {
-      this.logger.error('watcher error:', err)
+      this.logger.error('xDai bridge watcher error:', err)
+      this.quit()
     }
-  }
-
-  async stop () {
-    this.started = false
   }
 }
 export default xDaiBridgeWatcher

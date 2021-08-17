@@ -30,11 +30,16 @@ const boldShadow = `
 
 const useStyles = makeStyles(theme => ({
   root: {
-    margin: `-0.8rem -${theme.padding.extraLight}`
+    margin: `-0.8rem -${theme.padding.extraLight} -0.8rem 0`
   },
   adornment: {
+    marginLeft: '-0.8rem',
     marginRight: theme.padding.extraLight,
-    width: '9.0rem'
+    width: 'auto',
+    textAlign: 'right',
+    [theme.breakpoints.down('xs')]: {
+      fontSize: theme.typography.h6.fontSize
+    }
   }
 }))
 
@@ -74,10 +79,14 @@ const useInputStyles = makeStyles(theme => ({
     fontSize: theme.typography.h4.fontSize,
     fontWeight: theme.typography.h4.fontWeight,
     color: theme.palette.text.primary,
-    textOverflow: 'ellipsis',
+    textOverflow: 'clip',
+    padding: `6px ${theme.padding.extraLight} 7px ${theme.padding.extraLight}`,
     animation: loadingValue
       ? `loadingEffect 1200ms ${theme.transitions.easing.sharp} infinite`
-      : 'none'
+      : 'none',
+    [theme.breakpoints.down('xs')]: {
+      fontSize: theme.typography.h6.fontSize
+    }
   }),
   focused: {
     borderRadius: '1.5rem',
@@ -120,7 +129,7 @@ const TextField: FC<LargeTextFieldProps> = props => {
         ) : null
       }}
       {...textFieldProps}
-    ></MuiTextField>
+    />
   )
 }
 

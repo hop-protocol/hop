@@ -28,6 +28,7 @@ class Chain {
       this.slug === Network.Kovan ||
       this.slug === Network.Goerli ||
       this.slug === Network.Mainnet ||
+      this.slug === Network.Staging ||
       this.slug === ChainEnum.Ethereum
     ) {
       this.isL1 = true
@@ -53,6 +54,7 @@ class Chain {
 function newChain (chain: string) {
   if (
     chain === Network.Mainnet ||
+    chain === Network.Staging ||
     chain === Network.Goerli ||
     chain === Network.Kovan
   ) {

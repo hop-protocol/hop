@@ -1,5 +1,5 @@
-require('dotenv').config()
 import TransfersDb from 'src/db/TransfersDb'
+require('dotenv').config()
 
 describe('db', () => {
   test(

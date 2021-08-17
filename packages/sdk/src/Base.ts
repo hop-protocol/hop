@@ -1,12 +1,13 @@
 import memoize from 'fast-memoize'
+import { Addresses } from '@hop-protocol/core/addresses'
 import { Contract, Signer, providers, BigNumber } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
 import { TChain, TProvider, TToken } from './types'
-import { addresses, chains, metadata, bonders } from './config'
+import { metadata, config } from './config'
 
 // cache provider
 const getProvider = memoize((network: string, chain: Chain) => {
-  const { rpcUrls } = chains[network][chain.slug]
+  const rpcUrls = config.chains[network][chain.slug].rpcUrls.slice(0, 3) // max of 3 endpoints
   const ethersProviders: providers.Provider[] = []
   for (let rpcUrl of rpcUrls) {
     const provider = new providers.StaticJsonRpcProvider(rpcUrl)
@@ -45,8 +46,12 @@ const getContract = async (
   let p = provider as any
   // memoize function doesn't handle dynamic provider object well, so
   // here we derived a cache key based on connected account address and rpc url.
-  const cacheKey = `${p?.getAddress ? await p?.getAddress() : ''}${p?.provider
-    ?._network?.chainId || p?.connection?.url}`
+  const signerAddress = p?.getAddress ? await p?.getAddress() : ''
+  const chainId = p?.provider?._network?.chainId ?? ''
+  await p?._networkPromise
+  const fallbackProviderChainId = p?._network?.chainId ?? ''
+  const rpcUrl = p?.connection?.url ?? ''
+  const cacheKey = `${signerAddress}${chainId}${fallbackProviderChainId}${rpcUrl}`
   return getContractMemo(address, abi, cacheKey)(provider)
 }
 
@@ -60,6 +65,11 @@ class Base {
 
   /** Ethers signer or provider */
   public signer: TProvider
+
+  private addresses = config.addresses
+  private chains = config.chains
+  private bonders = config.bonders
+  gasPriceMultiplier: number = 0
 
   /**
    * @desc Instantiates Base class.
@@ -81,8 +91,17 @@ class Base {
     }
   }
 
+  setConfigAddresses (addresses: Addresses) {
+    if (addresses.bridges) {
+      this.addresses[this.network] = addresses.bridges
+    }
+    if (addresses.bonders) {
+      this.bonders[this.network] = addresses.bonders
+    }
+  }
+
   get supportedNetworks () {
-    return Object.keys(chains)
+    return Object.keys(this.chains)
   }
 
   isValidNetwork (network: string) {
@@ -90,7 +109,7 @@ class Base {
   }
 
   get supportedChains () {
-    return Object.keys(chains[this.network])
+    return Object.keys(this.chains[this.network])
   }
 
   isValidChain (chain: string) {
@@ -128,8 +147,9 @@ class Base {
    */
   public toTokenModel (token: TToken) {
     if (typeof token === 'string') {
-      let { name, symbol, decimals } = metadata.tokens[this.network][token]
-      return new TokenModel(0, '', decimals, symbol, name)
+      const canonicalSymbol = TokenModel.getCanonicalSymbol(token)
+      let { name, decimals } = metadata.tokens[this.network][canonicalSymbol]
+      return new TokenModel(0, '', decimals, token, name)
     }
 
     return token
@@ -160,7 +180,7 @@ class Base {
    * @returns {Number} - Chain ID.
    */
   public getChainId (chain: Chain) {
-    const { chainId } = chains[this.network][chain.slug]
+    const { chainId } = this.chains[this.network][chain.slug]
     return Number(chainId)
   }
 
@@ -207,20 +227,29 @@ class Base {
     chain: TChain,
     signer: TProvider = this.signer as Signer
   ) {
+    //console.log('getSignerOrProvider')
     chain = this.toChainModel(chain)
     if (!signer) {
       return chain.provider
     }
     if (Signer.isSigner(signer)) {
+      if (!signer.provider) {
+        throw new Error('connect a provider to signer')
+      }
       const connectedChainId = await signer.getChainId()
+      //console.log('connectedChainId: ', connectedChainId)
+      //console.log('chain.chainId: ', chain.chainId)
       if (connectedChainId !== chain.chainId) {
         if (!signer.provider) {
+          //console.log('connect provider')
           return (signer as Signer).connect(chain.provider)
         }
+        //console.log('return chain.provider')
         return chain.provider
       }
       return signer
     } else {
+      //console.log('isSigner')
       const { chainId } = await signer.getNetwork()
       if (chainId !== chain.chainId) {
         return chain.provider
@@ -232,7 +261,7 @@ class Base {
   public getConfigAddresses (token: TToken, chain: TChain) {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    return addresses[this.network]?.[token.symbol]?.[chain.slug]
+    return this.addresses[this.network]?.[token.canonicalSymbol]?.[chain.slug]
   }
 
   public getL1BridgeAddress (token: TToken, chain: TChain) {
@@ -301,19 +330,32 @@ class Base {
   }
 
   // Transaction overrides options
-  public txOverrides (chain: Chain) {
+  public async txOverrides (chain: Chain) {
     const txOptions: any = {}
-    if (chain.equals(Chain.Optimism)) {
-      txOptions.gasPrice = 0
-      txOptions.gasLimit = 8000000
-    } else if (chain.equals(Chain.xDai)) {
+    if (chain.equals(Chain.xDai)) {
       txOptions.gasLimit = 5000000
+    }
+    if (this.gasPriceMultiplier) {
+      txOptions.gasPrice = await this.getBumpedGasPrice(
+        this.signer,
+        this.gasPriceMultiplier
+      )
     }
     return txOptions
   }
 
-  public getBonderAddress (): string {
-    return bonders?.[this.network]?.[0]
+  public getBonderAddress (token: TToken): string {
+    token = this.toTokenModel(token)
+    return this.bonders?.[this.network]?.[token.canonicalSymbol]?.[0]
+  }
+
+  public getBonderAddresses (token: TToken): string[] {
+    token = this.toTokenModel(token)
+    return this.bonders?.[this.network]?.[token.canonicalSymbol]
+  }
+
+  setGasPriceMultiplier (gasPriceMultiplier: number) {
+    return (this.gasPriceMultiplier = gasPriceMultiplier)
   }
 
   public getContract = getContract

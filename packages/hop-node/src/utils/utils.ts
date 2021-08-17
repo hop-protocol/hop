@@ -1,11 +1,11 @@
-import * as ethers from 'ethers'
 import debounce from 'debounce-promise'
 import pThrottle from 'p-throttle'
+import { BigNumber, providers, utils } from 'ethers'
 import { Chain } from 'src/constants'
-import { config } from 'src/config'
+import { config as globalConfig } from 'src/config'
 
 export const getL2MessengerId = (l2Name: string): string => {
-  return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(l2Name))
+  return utils.keccak256(utils.toUtf8Bytes(l2Name))
 }
 
 export { debounce }
@@ -19,43 +19,66 @@ export const wait = async (t: number) => {
 }
 
 export const getRpcUrls = (network: string): string | undefined => {
-  return config.networks[network]?.rpcUrls
+  return globalConfig.networks[network]?.rpcUrls.slice(0, 3) // max of 3 endpoints
 }
 
-export const getRpcProvider = (network: string): ethers.providers.Provider => {
+export const getRpcProvider = (network: string): providers.Provider => {
   const rpcUrls = getRpcUrls(network)
   if (!rpcUrls.length) {
     return null
   }
-  let providers: ethers.providers.StaticJsonRpcProvider[] = []
-  for (let rpcUrl of rpcUrls) {
-    const provider = new ethers.providers.StaticJsonRpcProvider(rpcUrl)
+  return getRpcProviderFromUrl(rpcUrls)
+}
+
+export const getProviderChainSlug = (provider: any): string | undefined => {
+  const providerUrl = provider?.connection?.url || provider?.providerConfigs?.[0]?.provider?.connection?.url
+  if (!providerUrl) {
+    return
+  }
+  for (const chain in globalConfig.networks) {
+    for (const url of globalConfig.networks[chain].rpcUrls) {
+      if (new URL(providerUrl).host === new URL(url).host) {
+        return chain
+      }
+    }
+  }
+}
+
+export const getRpcProviderFromUrl = (
+  rpcUrls: string | string[]
+): providers.Provider => {
+  const _providers: providers.StaticJsonRpcProvider[] = []
+  if (!Array.isArray(rpcUrls)) {
+    rpcUrls = [rpcUrls]
+  }
+  for (const rpcUrl of rpcUrls) {
+    const provider = new providers.StaticJsonRpcProvider(rpcUrl)
     if (rpcUrls.length === 1) {
       return provider
     }
-    providers.push(provider)
+    _providers.push(provider)
   }
-  const fallbackProvider = new ethers.providers.FallbackProvider(providers, 1)
+  const fallbackProvider = new providers.FallbackProvider(_providers, 1)
   return fallbackProvider
 }
 
-export const chainSlugToId = (network: string): string | undefined => {
+export const chainSlugToId = (network: string): number | undefined => {
   return (
-    config.networks[network]?.networkId || config.networks[network]?.chainId
+    globalConfig.networks[network]?.networkId || globalConfig.networks[network]?.chainId
   )
 }
 
 export const chainIdToSlug = (chainId: string | number): string | undefined => {
-  if (!config.networks) {
+  if (!globalConfig.networks) {
     throw new Error('networks not found')
   }
-  for (let k in config.networks) {
-    let v = config.networks[k]
+  for (const k in globalConfig.networks) {
+    const v = globalConfig.networks[k]
     if (!v) {
       continue
     }
     if (
-      v?.networkId?.toString() == chainId.toString() ||
+      v?.networkId?.toString() === chainId.toString() ||
       v?.chainId?.toString() === chainId.toString()
     ) {
       return k
@@ -76,5 +99,16 @@ export const isL1ChainId = (chainId: number | string) => {
 }
 
 export const xor = (a: number, b: number) => {
-  return ( a || b ) && !( a && b )
+  return (a || b) && !(a && b)
+}
+
+export const getTransferRootId = (rootHash: string, totalAmount: BigNumber) => {
+  return utils.solidityKeccak256(
+    ['bytes32', 'uint256'],
+    [rootHash, totalAmount]
+  )
+}
+
+export const getBumpedGasPrice = (gasPrice: BigNumber, multiplier: number) => {
+  return gasPrice.mul(BigNumber.from(multiplier * 100)).div(BigNumber.from(100))
 }

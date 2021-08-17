@@ -5,9 +5,13 @@ import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
 import useInterval from 'src/hooks/useInterval'
+import { Addressish } from 'src/models/Address'
 
-const useBalance = (token: Token | undefined, network: Network | undefined) => {
-  const { user } = useApp()
+const useBalance = (
+  token: Token | undefined,
+  network: Network | undefined,
+  address: Addressish,
+) => {
   const [balance, setBalance] = useState<BigNumber>()
   const [loading, setLoading] = useState(false)
   const currentToken = useRef<Token>()
@@ -16,7 +20,7 @@ const useBalance = (token: Token | undefined, network: Network | undefined) => {
 
   const getBalance = useCallback(() => {
     const _getBalance = async () => {
-      if (user && token && network) {
+      if (token && network && address) {
         if (
           (currentNetwork.current && !network.eq(currentNetwork.current)) ||
           (currentToken.current && !token.eq(currentToken.current))
@@ -25,11 +29,10 @@ const useBalance = (token: Token | undefined, network: Network | undefined) => {
         }
 
         const ctx = ++debouncer.current
-
-        const _balance = await token.balanceOf()
+        const _balance = await token.balanceOf(address.toString())
 
         if (ctx === debouncer.current) {
-          setBalance(_balance)
+          setBalance(_balance as BigNumber)
           setLoading(false)
         }
       } else {
@@ -41,11 +44,11 @@ const useBalance = (token: Token | undefined, network: Network | undefined) => {
     }
 
     _getBalance().catch(logger.error)
-  }, [user, token, network])
+  }, [token, network, address])
 
   useEffect(() => {
     getBalance()
-  }, [user, token, network])
+  }, [token, network, address])
 
   useInterval(() => {
     getBalance()

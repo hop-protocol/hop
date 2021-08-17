@@ -1,12 +1,12 @@
-import { BigNumber } from 'ethers'
-import contracts from 'src/contracts'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
-import { config, hostname } from 'src/config'
-import { wait, chainIdToSlug } from 'src/utils'
-import { Notifier } from 'src/notifier'
 import Logger from 'src/logger'
+import contracts from 'src/contracts'
+import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
+import { Notifier } from 'src/notifier'
+import { chainIdToSlug, wait } from 'src/utils'
+import { config as globalConfig, hostname } from 'src/config'
 
 type Config = {
   bondWithdrawalTimeLimitMinutes: number
@@ -24,32 +24,32 @@ class HealthCheck {
   commitTransfersMinThresholdAmount: number = 100
   pollIntervalSeconds: number = 20
 
-  constructor (_config: Partial<Config> = {}) {
+  constructor (config: Partial<Config> = {}) {
     this.logger = new Logger('HealthCheck')
     this.notifier = new Notifier(`watcher: HealthCheck, host: ${hostname}`)
 
-    if (_config.bondWithdrawalTimeLimitMinutes) {
+    if (config.bondWithdrawalTimeLimitMinutes) {
       this.bondWithdrawalTimeLimitMinutes =
-        _config.bondWithdrawalTimeLimitMinutes
+        config.bondWithdrawalTimeLimitMinutes
     }
-    if (_config.bondTransferRootTimeLimitMinutes) {
+    if (config.bondTransferRootTimeLimitMinutes) {
       this.bondTransferRootTimeLimitMinutes =
-        _config.bondTransferRootTimeLimitMinutes
+        config.bondTransferRootTimeLimitMinutes
     }
-    if (_config.commitTransfersMinThresholdAmount) {
+    if (config.commitTransfersMinThresholdAmount) {
       this.commitTransfersMinThresholdAmount =
-        _config.commitTransfersMinThresholdAmount
+        config.commitTransfersMinThresholdAmount
     }
-    if (_config.pollIntervalSeconds) {
-      this.pollIntervalSeconds = _config.pollIntervalSeconds
+    if (config.pollIntervalSeconds) {
+      this.pollIntervalSeconds = config.pollIntervalSeconds
     }
 
-    const tokens: string[] = Object.keys(config.tokens)
-    const networks: string[] = Object.keys(config.networks).filter(
+    const tokens: string[] = Object.keys(globalConfig.tokens)
+    const networks: string[] = Object.keys(globalConfig.networks).filter(
       network => network !== Chain.Ethereum
     )
-    for (let token of tokens) {
-      for (let network of networks) {
+    for (const token of tokens) {
+      for (const network of networks) {
         const tokenContracts = contracts.get(token, network)
         if (!tokenContracts) {
           continue
@@ -103,33 +103,33 @@ class HealthCheck {
   }
 
   async checkBondedWithdrawals (bridge: L2Bridge) {
+    const TOTAL_BLOCKS = 100_000
     const endBlockNumber = await bridge.getBlockNumber()
-    const startBlockNumber = endBlockNumber - 10_000
+    const startBlockNumber = endBlockNumber - TOTAL_BLOCKS
 
     const destBridgeEvents: any = {}
 
     await bridge.eventsBatch(
       async (start: number, end: number) => {
         const events = await bridge.getTransferSentEvents(start, end)
-        for (let event of events) {
-          const tx = await event.getTransaction()
+        for (const event of events) {
+          const { transactionHash } = event
+          const tx = await bridge.getTransaction(transactionHash)
           const { transferId } = event.args
-          const { chainId: destinationChainId } = await bridge.decodeSendData(
-            tx.data
-          )
+          const { destinationChainId } = await bridge.decodeSendData(tx.data)
           const sourceChain = await bridge.getChainSlug()
           const destinationChain = bridge.chainIdToSlug(destinationChainId)
           const tokenSymbol = bridge.tokenSymbol
           const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`
 
-          //this.logger.debug(`checking bonded withdrawals ${path}`)
+          // this.logger.debug(`checking bonded withdrawals ${path}`)
           const timestamp = await bridge.getTransferSentTimestamp(transferId)
           if (!timestamp) {
             this.logger.error('no timestamp found')
             continue
           }
           const timeAgo = DateTime.now()
-            .minus({ minutes: config.bondWithdrawalTimeLimitMinutes })
+            .minus({ minutes: this.bondWithdrawalTimeLimitMinutes })
             .toSeconds()
           // skip if transfer sent events are recent (in the last few minutes)
           if (timestamp > timeAgo) {
@@ -141,10 +141,10 @@ class HealthCheck {
           if (!destBridge) {
             continue
           }
-          if (!config?.bonders?.length) {
-            throw new Error('bonders array is empty')
+          if (!globalConfig?.bonders) {
+            throw new Error('bonders object is empty')
           }
-          const bonder = config.bonders[0]
+          const bonder = globalConfig?.bonders?.[tokenSymbol]?.[0]
           const bondedAmount = await destBridge.getBondedWithdrawalAmountByBonder(
             bonder,
             transferId
@@ -166,8 +166,9 @@ class HealthCheck {
           if (bondedAmount.eq(0)) {
             const cachedEvents = destBridgeEvents[destinationChainId]
             if (!cachedEvents) {
+              const TOTAL_BLOCKS = 100_000
               const destEndBlockNumber = await destBridge.getBlockNumber()
-              const destStartBlockNumber = destEndBlockNumber - 100_000
+              const destStartBlockNumber = destEndBlockNumber - TOTAL_BLOCKS
               destBridgeEvents[destinationChainId] = []
               await bridge.eventsBatch(
                 async (_start: number, _end: number) => {
@@ -193,7 +194,7 @@ class HealthCheck {
       }
     )
 
-    //this.logger.debug(`done checking bonded withdrawals ${path}`)
+    // this.logger.debug(`done checking bonded withdrawals ${path}`)
   }
 
   async checkCommitTransfers (bridge: L2Bridge) {
@@ -218,7 +219,7 @@ class HealthCheck {
     const destinationChain = bridge.chainIdToSlug(destinationChainId)
     const tokenSymbol = bridge.tokenSymbol
     const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`
-    //this.logger.debug(`checking commit transfers ${path}`)
+    // this.logger.debug(`checking commit transfers ${path}`)
     const shouldBeCommitted = amount.gte(
       bridge.parseUnits(this.commitTransfersMinThresholdAmount)
     )
@@ -233,14 +234,14 @@ class HealthCheck {
       this.logger.warn(log)
       this.notifier.warn(log)
     }
-    //this.logger.debug(`done checking commit transfers ${path}`)
+    // this.logger.debug(`done checking commit transfers ${path}`)
   }
 
   async checkTransferRootBonded (bridge: L2Bridge) {
     const sourceChain = await bridge.getChainSlug()
     const tokenSymbol = bridge.tokenSymbol
     const path = `${sourceChain}.${tokenSymbol}`
-    //this.logger.debug(`check transfer root bonded ${path}`)
+    // this.logger.debug(`check transfer root bonded ${path}`)
 
     const l1Bridge = await bridge.getL1Bridge()
     const chainId = await bridge.getChainId()
@@ -256,7 +257,9 @@ class HealthCheck {
       totalAmount
     )
 
+    // TODO: Use dest chainId
     const isConfirmed = await l1Bridge.isTransferRootIdConfirmed(
+      chainId,
       committedTransferRootId
     )
     if (isConfirmed) {
@@ -272,7 +275,7 @@ class HealthCheck {
     }
 
     const timeAgo = DateTime.now()
-      .minus({ minutes: config.bondTransferRootTimeLimitMinutes })
+      .minus({ minutes: this.bondTransferRootTimeLimitMinutes })
       .toSeconds()
     // skip if committed time was less than a few minutes ago
     if (committedAt > timeAgo) {
@@ -287,32 +290,31 @@ class HealthCheck {
       this.logger.warn(
         `(${path}) transferRootId (${committedTransferRootId}) has been committed (${relativeTime}) but not bonded on L1`
       )
-      return
     }
 
-    //this.logger.debug(`done checking transfer bonded ${path}`)
+    // this.logger.debug(`done checking transfer bonded ${path}`)
   }
 
   async checkBondedWithdrawalSettlements (bridge: L2Bridge) {
+    const TOTAL_BLOCKS = 100_000
     const sourceChain = await bridge.getChainSlug()
     const tokenSymbol = bridge.tokenSymbol
     const path = `${sourceChain}.${tokenSymbol}`
-    //this.logger.debug(`checking bonded withdrawal settlements ${path}`)
+    // this.logger.debug(`checking bonded withdrawal settlements ${path}`)
 
     const endBlockNumber = await bridge.getBlockNumber()
-    const startBlockNumber = endBlockNumber - 10_000
+    const startBlockNumber = endBlockNumber - TOTAL_BLOCKS
 
     const bondedTransferIds: any[] = []
 
     await bridge.eventsBatch(
       async (start: number, end: number) => {
         const events = await bridge.getTransferSentEvents(start, end)
-        for (let event of events) {
-          const tx = await event.getTransaction()
+        for (const event of events) {
+          const { transactionHash } = event
+          const tx = await bridge.getTransaction(transactionHash)
           const { transferId, amount, index } = event.args
-          const { chainId: destinationChainId } = await bridge.decodeSendData(
-            tx.data
-          )
+          const { destinationChainId } = await bridge.decodeSendData(tx.data)
           const destBridge = this.bridges.find((bridge: L2Bridge) => {
             return bridge.chainId === destinationChainId
           })
@@ -321,24 +323,24 @@ class HealthCheck {
           }
 
           const destinationChain = destBridge.chainIdToSlug(destinationChainId)
-          if (!config?.bonders?.length) {
-            throw new Error('bonders array is empty')
+          if (!globalConfig?.bonders) {
+            throw new Error('bonders object is empty')
           }
-          const bonder = config.bonders[0]
+          const bonder = globalConfig?.bonders?.[tokenSymbol]?.[0]
           /*
           const bondedAmount = await destBridge.getBondedWithdrawalAmountByBonder(
-						bonder,
+            bonder,
             transferId
           )
-					*/
+          */
           /*
-					// if it's zero, then it doesn't exist or it's already been settled
+          // if it's zero, then it doesn't exist or it's already been settled
           if (bondedAmount.eq(0)) {
             continue
           }
-					*/
-          if (!config?.bonders?.length) {
-            throw new Error('bonders array is empty')
+          */
+          if (!globalConfig?.bonders) {
+            throw new Error('bonders object is empty')
           }
           const destEndBlockNumber = await destBridge.getBlockNumber()
           const destStartBlockNumber = destEndBlockNumber - 1_000
@@ -351,7 +353,9 @@ class HealthCheck {
           if (!timestamp) {
             continue
           }
-          const bondTx = await bondEvent?.getTransaction()
+          const bondTx = await destBridge.getTransaction(
+            bondEvent.transactionHash
+          )
           bondedTransferIds.push({
             transferId,
             destinationChainId,
@@ -384,9 +388,10 @@ class HealthCheck {
               start,
               end
             )
-            for (let event of events) {
+            for (const event of events) {
+              const { transactionHash } = event
               const { bonder, rootHash, totalBondsSettled } = event.args
-              const tx = await event.getTransaction()
+              const tx = await destBridge.getTransaction(transactionHash)
               const {
                 transferIds,
                 totalAmount
@@ -407,10 +412,10 @@ class HealthCheck {
     )
 
     const minThresholdPercent: number = 0.5 // 50%
-    let totalBondsSettleAmounts: any = {}
-    let totals: any = {}
-    for (let { transferId, destinationChainId } of bondedTransferIds) {
-      const bonder = config.bonders[0]
+    const totalBondsSettleAmounts: any = {}
+    const totals: any = {}
+    for (const { transferId, destinationChainId } of bondedTransferIds) {
+      const bonder = globalConfig.bonders?.[tokenSymbol]?.[0]
       const destBridge = this.bridges.find((bridge: L2Bridge) => {
         return bridge.chainId === destinationChainId
       })
@@ -432,14 +437,14 @@ class HealthCheck {
 
     const needsSettlement: any = {}
     const chainIds = await bridge.getChainIds()
-    for (let destinationChainId of chainIds) {
+    for (const destinationChainId of chainIds) {
       const destBridge = this.bridges.find((bridge: L2Bridge) => {
         return bridge.chainId === destinationChainId
       })
       if (!destBridge) {
         continue
       }
-      let [credit, debit] = await Promise.all([
+      const [credit, debit] = await Promise.all([
         destBridge.getCredit(),
         destBridge.getDebit()
       ])
@@ -451,6 +456,7 @@ class HealthCheck {
 
       const bonderDestBridgeStakedAmount = credit.sub(debit)
       if (
+        bonderDestBridgeStakedAmount.gt(0) &&
         totalBondsSettleAmount
           .div(bonderDestBridgeStakedAmount)
           .gte(BigNumber.from(minThresholdPercent * 100).div(100))
@@ -459,12 +465,14 @@ class HealthCheck {
       }
     }
 
+    console.log(bondedTransferIds)
+
     const unsettledTransferIds: any[] = bondedTransferIds.filter(
       ({ transferId }) => {
         return !settledTransferIds.includes(transferId)
       }
     )
-    for (let {
+    for (const {
       transferId,
       destinationChainId,
       timestamp,
@@ -476,12 +484,12 @@ class HealthCheck {
       const bondedAt = DateTime.fromSeconds(timestamp).toRelative()
       const destinationChain = bridge.chainIdToSlug(destinationChainId)
       const path = `${sourceChain}.${tokenSymbol}→${destinationChain}`
-      const log = `(${path}) bonded transfer id (${transferId}) (bonded ${bondedAt} ${txHash}) has not been settled yet.`
+      const log = `(${path}) bonded transfer id (${transferId}) (bonded ${bondedAt} ${txHash}) has not been settled yet (maybe transfer root has not been confirmed?).`
       this.logger.warn(log)
       this.notifier.warn(log)
     }
 
-    //this.logger.debug(`done checking bonded withdrawal settlements ${path}`)
+    // this.logger.debug(`done checking bonded withdrawal settlements ${path}`)
   }
 }
 

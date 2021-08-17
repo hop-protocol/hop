@@ -1,5 +1,5 @@
 import { Contract, Wallet, providers } from 'ethers'
-import { erc20Abi } from '@hop-protocol/abi'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { privateKey } from './config'
 
 test('debug', async () => {

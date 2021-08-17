@@ -1,5 +1,5 @@
 import deepmerge from 'deepmerge'
-import * as hopMetadata from '@hop-protocol/metadata'
+import * as hopMetadata from '@hop-protocol/core/metadata'
 import MainnetLogo from 'src/assets/logos/mainnet.svg'
 import ArbitrumLogo from 'src/assets/logos/arbitrum.svg'
 import OptimismLogo from 'src/assets/logos/optimism.svg'
@@ -9,7 +9,11 @@ import DaiLogo from 'src/assets/logos/dai.svg'
 import SynthEthLogo from 'src/assets/logos/seth.svg'
 import SynthBtcLogo from 'src/assets/logos/sbtc.svg'
 import UsdcLogo from 'src/assets/logos/usdc.svg'
+import usdtLogo from 'src/assets/logos/usdt.svg'
 import wBtcLogo from 'src/assets/logos/wbtc.svg'
+import ethLogo from 'src/assets/logos/eth.svg'
+import maticLogo from 'src/assets/logos/matic.svg'
+import { network } from 'src/config'
 
 type Metadata = {
   tokens: {
@@ -39,10 +43,12 @@ const images = {
   sETH: SynthEthLogo,
   sBTC: SynthBtcLogo,
   USDC: UsdcLogo,
-  WBTC: wBtcLogo
+  USDT: usdtLogo,
+  WBTC: wBtcLogo,
+  ETH: ethLogo,
+  MATIC: maticLogo,
 }
 
-const network = process.env.REACT_APP_NETWORK || 'kovan'
 const tokens = Object.keys(images).reduce((obj, token) => {
   obj[token] = deepmerge(hopMetadata[network].tokens[token], {
     image: images[token]

@@ -1,16 +1,16 @@
-require('dotenv').config()
-import { startWatchers } from 'src/watchers/watchers'
-import { wait } from 'src/utils'
-import {
-  User,
-  waitForEvent,
-  generateUsers,
-  prepareAccounts,
-  getBalances
-} from './helpers'
-import { faucetPrivateKey, mnemonic } from './config'
 import Logger from 'src/logger'
 import { Chain } from 'src/constants'
+import {
+  User,
+  generateUsers,
+  getBalances,
+  prepareAccounts,
+  waitForEvent
+} from './helpers'
+import { faucetPrivateKey, mnemonic } from './config'
+import { startWatchers } from 'src/watchers/watchers'
+import { wait } from 'src/utils'
+require('dotenv').config()
 
 const sourceNetwork = Chain.xDai
 const destNetwork = Chain.Ethereum

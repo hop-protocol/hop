@@ -43,9 +43,21 @@ const useTxHistory = (): TxHistory => {
       const recents = transactions.map((tx: Transaction) => {
         return tx.toObject()
       })
-      localStorage.setItem('recentTransactions', JSON.stringify(recents))
+
+      // avoids error "TypeError: cyclic object value"
+      const seen :any = []
+      localStorage.setItem('recentTransactions', JSON.stringify(recents, (key, val) => {
+          if (val !== null && typeof val === 'object') {
+            if (seen.indexOf(val) >= 0) {
+              return
+            }
+            seen.push(val)
+          }
+          return val
+        }
+      ))
     } catch (err) {
-      // noop
+      console.error(err)
     }
 
     for (const tx of transactions) {

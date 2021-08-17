@@ -29,7 +29,7 @@ const FaucetContext = createContext<FaucetContextProps>({
 })
 
 const FaucetContextProvider: FC = ({ children }) => {
-  const [mintAmount] = useState<string>('10')
+  const [mintAmount] = useState<string>('1000')
   const [isMinting, setMinting] = useState<boolean>(false)
   const {
     contracts,

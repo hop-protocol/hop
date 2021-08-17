@@ -1,0 +1,35 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "jest/globals": true
+  },
+  "extends": [
+    "standard"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": 12,
+      "sourceType": "module"
+    },
+    "plugins": [
+      "jest",
+      "@typescript-eslint",
+      "unused-imports",
+      "sort-imports-es6-autofix"
+    ],
+    "rules": {
+      "no-unused-vars": 0,
+      "@typescript-eslint/no-unused-vars": 0,
+      "unused-imports/no-unused-imports": 1,
+      "new-cap": 0,
+      "prefer-const": 1,
+      "no-async-promise-executor": 0,
+      "node/no-callback-literal": 0,
+      "sort-imports-es6-autofix/sort-imports-es6": [1, {
+        "ignoreCase": false,
+        "ignoreMemberSort": false,
+        "memberSyntaxSortOrder": ["none", "single", "multiple", "all"]
+      }]
+    }
+}

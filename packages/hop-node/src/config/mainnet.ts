@@ -1,12 +1,8 @@
-import { mainnet as mainnetAddresses } from '@hop-protocol/addresses'
-import { mainnet as _networks } from '@hop-protocol/networks'
-import { Networks } from './types'
-
-let networks: Networks = _networks
-for (let network in networks) {
-  networks[network].waitConfirmations = 12
-}
+import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { mainnet as metadata } from '@hop-protocol/core/metadata'
+import { mainnet as networks } from '@hop-protocol/core/networks'
 
 const addresses = mainnetAddresses.bridges
 const bonders = mainnetAddresses.bonders
-export { addresses, networks, bonders }
+
+export { addresses, networks, bonders, metadata }

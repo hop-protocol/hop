@@ -12,7 +12,7 @@ import { Token } from '@hop-protocol/sdk'
 import LargeTextField from 'src/components/LargeTextField'
 import FlatSelect from 'src/components/selects/FlatSelect'
 import Network from 'src/models/Network'
-import { commafy } from 'src/utils'
+import { toTokenDisplay } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -30,6 +30,10 @@ const useStyles = makeStyles(theme => ({
     flexDirection: 'row',
     alignItems: 'center'
   },
+  defaultLabel: {
+    height: '3.8rem',
+    marginLeft: '1.2rem'
+  },
   networkLabel: {
     display: 'flex',
     flexDirection: 'row',
@@ -45,14 +49,8 @@ const useStyles = makeStyles(theme => ({
   },
   networkIcon: {
     display: 'flex',
-    height: '2.6rem',
-    margin: '0.5rem'
-  },
-  greyCircle: {
-    margin: '0.5rem',
-    padding: '1.3rem',
-    borderRadius: '1.8rem',
-    backgroundColor: '#C4C4C4'
+    height: '2.2rem',
+    margin: '0.7rem'
   },
   balance: {
     display: 'flex',
@@ -101,12 +99,7 @@ const AmountSelectorCard: FC<Props> = props => {
   const styles = useStyles()
 
   const balanceLabel = useMemo(() => {
-    let label: string = ''
-    if (token && balance) {
-      label = formatUnits(balance, token?.decimals)
-      label = commafy(label, 4)
-    }
-    return label
+    return toTokenDisplay(balance, token?.decimals)
   }, [balance])
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -152,7 +145,7 @@ const AmountSelectorCard: FC<Props> = props => {
         ) : null}
       </Box>
       <Grid container alignItems="center">
-        <Grid item xs={6}>
+        <Grid item xs={5}>
           <FlatSelect
             value={selectedNetwork?.slug || 'default'}
             onChange={event => {
@@ -163,8 +156,7 @@ const AmountSelectorCard: FC<Props> = props => {
             }}
           >
             <MenuItem value="default">
-              <Box display="flex" flexDirection="row" alignItems="center">
-                <div className={styles.greyCircle} />
+              <Box display="flex" flexDirection="row" alignItems="center" className={styles.defaultLabel}>
                 <Typography variant="subtitle2" className={styles.networkLabel}>
                   Select Network
                 </Typography>
@@ -191,7 +183,7 @@ const AmountSelectorCard: FC<Props> = props => {
             ))}
           </FlatSelect>
         </Grid>
-        <Grid item xs={6}>
+        <Grid item xs={7}>
           <LargeTextField
             value={value}
             onChange={handleInputChange}

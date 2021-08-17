@@ -63,3 +63,11 @@ export const ARBITRUM_MESSENGER_ID =
   '0x9186606d55c571b43a756333453d90ab5653c483deb4980cda697bfa36fba5de'
 export const OPTIMISM_MESSENGER_ID =
   '0x09d0f27659ee556a8134fa56941e42400e672aecc2d4cfc61cdb0fcea4590e05'
+
+export const careersUrl = 'https://hop.exchange/careers'
+export const docsUrl = 'https://docs.hop.exchange/'
+export const faqUrl = 'https://help.hop.exchange/hc/en-us'
+export const discordUrl = 'https://discord.gg/PwCF88emV4'
+export const githubUrl = 'https://github.com/hop-protocol'
+export const mediumUrl = 'https://medium.com/hop-protocol'
+export const twitterUrl = 'https://twitter.com/HopProtocol'

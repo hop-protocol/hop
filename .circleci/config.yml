@@ -42,6 +42,7 @@ jobs:
             docker tag app $DOCKER_IMAGE:$BRANCH
             docker push $DOCKER_IMAGE:$CIRCLE_SHA1
             docker push $DOCKER_IMAGE:$BRANCH
+            test $BRANCH == "mainnet-bonder" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
       - slack/notify:
           event: fail
           template: basic_fail_1
@@ -59,6 +60,7 @@ workflows:
                 - production
                 - staging
                 - mainnet
+                - mainnet-bonder
                 - ropsten
                 - rinkeby
                 - kovan

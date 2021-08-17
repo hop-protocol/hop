@@ -1,7 +1,7 @@
-import { kovan as kovanAddresses } from '@hop-protocol/addresses'
-import { kovan as networks } from '@hop-protocol/networks'
-import { Networks } from './types'
+import { kovan as kovanAddresses } from '@hop-protocol/core/addresses'
+import { kovan as metadata } from '@hop-protocol/core/metadata'
+import { kovan as networks } from '@hop-protocol/core/networks'
 
 const addresses = kovanAddresses.bridges
-const bonders: string[] = []
-export { addresses, networks, bonders }
+const bonders: {[token: string]: string[]} = {}
+export { addresses, networks, bonders, metadata }

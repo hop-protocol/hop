@@ -12,7 +12,10 @@ const commafy = (value: string | number | undefined, decimals: number = 2) => {
   }
 
   try {
-    return numbro(value).format(`0,0.[${'0'.repeat(decimals)}]`)
+    return numbro(value).format({
+      thousandSeparated: true,
+      mantissa: decimals
+    })
   } catch (err) {
     return value.toString()
   }

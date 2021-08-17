@@ -1,4 +1,4 @@
-import { Bridges } from '@hop-protocol/addresses'
+import { Bridges } from '@hop-protocol/core/addresses'
 
 export interface IProposalDetail {
   target: string
@@ -27,6 +27,7 @@ export interface HopAddresses {
     governorAlpha: string
   }
   tokens: Bridges
+  bonders: {[token: string]: string[]}
 }
 
 export type Networks = {

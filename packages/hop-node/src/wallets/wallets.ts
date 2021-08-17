@@ -1,7 +1,8 @@
-import { ethers, Wallet } from 'ethers'
+import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import memoize from 'fast-memoize'
-import { config } from 'src/config'
+import { Wallet } from 'ethers'
 import { getRpcProvider } from 'src/utils'
+import { config as globalConfig } from 'src/config'
 
 const constructWallet = memoize(
   (network: string, privateKey: string): Wallet => {
@@ -9,22 +10,22 @@ const constructWallet = memoize(
       throw new Error('private key is required to instantiate wallet')
     }
     const provider = getRpcProvider(network)
-    return new ethers.Wallet(privateKey, provider)
+    return new GasBoostSigner(privateKey, provider)
   }
 )
 
 // lazy instantiate
 export default {
   has (network: string) {
-    return !!constructWallet(network, config.bonderPrivateKey)
+    return !!constructWallet(network, globalConfig.bonderPrivateKey)
   },
   get (network: string) {
-    return constructWallet(network, config.bonderPrivateKey)
+    return constructWallet(network, globalConfig.bonderPrivateKey)
   },
   getRelayer (network: string) {
     return constructWallet(
       network,
-      config.relayerPrivateKey || config.bonderPrivateKey
+      globalConfig.relayerPrivateKey || globalConfig.bonderPrivateKey
     )
   }
-} as any
+}

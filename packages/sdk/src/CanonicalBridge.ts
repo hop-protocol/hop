@@ -1,4 +1,4 @@
-import { Contract, ethers } from 'ethers'
+import { Signer, Contract, ethers } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import {
   arbErc20Abi,
@@ -10,10 +10,10 @@ import {
   l2xDaiTokenAbi,
   l1PolygonPosRootChainManagerAbi,
   l2PolygonChildErc20Abi
-} from '@hop-protocol/abi'
+} from '@hop-protocol/core/abi'
 import { Chain } from './models'
 import { TChain, TToken, TAmount, TProvider } from './types'
-import { addresses, metadata } from './config'
+import { metadata } from './config'
 import Token from './models/Token'
 import TokenClass from './Token'
 import Base from './Base'
@@ -445,7 +445,7 @@ class CanonicalBridge extends Base {
     })
 
     const provider = await this.getSignerOrProvider(chain)
-    return (provider as any).sendTransaction({
+    return (provider as Signer).sendTransaction({
       to: tx.to,
       value: tx.value,
       data: tx.data,
@@ -558,23 +558,23 @@ class CanonicalBridge extends Base {
   }
 
   public toCanonicalToken (token: TToken, network: string, chain: TChain) {
-    let tokenSymbol
-    if (typeof token === 'string') {
-      tokenSymbol = token
-    } else {
-      tokenSymbol = token.symbol
-    }
-
+    token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
     const { name, symbol, decimals, image } = metadata.tokens[network][
-      tokenSymbol
+      token.canonicalSymbol
     ]
     let address
     if (chain.isL1) {
-      const { l1CanonicalToken } = addresses.bridges[tokenSymbol][chain.slug]
+      const { l1CanonicalToken } = this.getL1CanonicalBridgeAddress(
+        token.symbol,
+        chain.slug
+      )
       address = l1CanonicalToken
     } else {
-      const { l2CanonicalToken } = addresses.bridges[tokenSymbol][chain.slug]
+      const { l2CanonicalToken } = this.getL2CanonicalTokenAddress(
+        token.symbol,
+        chain.slug
+      )
       address = l2CanonicalToken
     }
 
@@ -604,7 +604,10 @@ class CanonicalBridge extends Base {
     const { name, symbol, decimals, image } = metadata.tokens[network][
       tokenSymbol
     ]
-    const { l2HopBridgeToken } = addresses.bridges[tokenSymbol][chain.slug]
+    const { l2HopBridgeToken } = this.getL2HopBridgeTokenAddress(
+      tokenSymbol,
+      chain.slug
+    )
 
     return new TokenClass(
       network,

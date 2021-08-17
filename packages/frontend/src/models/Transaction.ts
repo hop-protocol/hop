@@ -54,7 +54,7 @@ class Transaction extends EventEmitter {
       rpcUrl = getRpcUrl('optimism')
     } else if (networkName.startsWith('xdai')) {
       rpcUrl = getRpcUrl('xdai')
-    } else if (networkName.startsWith('matc')) {
+    } else if (networkName.startsWith('matic') || networkName.startsWith('polygon')) {
       rpcUrl = getRpcUrl('polygon')
     } else {
       rpcUrl = getRpcUrl(L1_NETWORK)
@@ -81,7 +81,7 @@ class Transaction extends EventEmitter {
   }
 
   get explorerLink (): string {
-    if (standardNetworks.has(this.networkName)) {
+    if (this.networkName.startsWith('ethereum')) {
       return this._etherscanLink()
     } else if (this.networkName.startsWith('arbitrum')) {
       return this._arbitrumLink()
@@ -109,28 +109,28 @@ class Transaction extends EventEmitter {
   }
 
   private _etherscanLink () {
-    return `${getBaseExplorerUrl(this.networkName)}tx/${this.hash}`
+    return `${getBaseExplorerUrl(this.networkName)}/tx/${this.hash}`
   }
 
   private _arbitrumLink () {
-    return `${getBaseExplorerUrl('arbitrum')}tx/${this.hash}`
+    return `${getBaseExplorerUrl('arbitrum')}/tx/${this.hash}`
   }
 
   private _optimismLink () {
     try {
       const url = new URL(getBaseExplorerUrl('optimism'))
-      return `${url.origin}${url.pathname}tx/${this.hash}${url.search}`
+      return `${url.origin}${url.pathname}/tx/${this.hash}${url.search}`
     } catch (err) {
       return ''
     }
   }
 
   private _xdaiLink () {
-    return `${getBaseExplorerUrl('xdai')}tx/${this.hash}`
+    return `${getBaseExplorerUrl('xdai')}/tx/${this.hash}`
   }
 
   private _polygonLink () {
-    return ''
+    return `${getBaseExplorerUrl('polygon')}/tx/${this.hash}`
   }
 
   toObject () {

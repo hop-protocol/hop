@@ -191,27 +191,22 @@ class HopBridge extends Base {
     chain: TChain
   ): Token | undefined {
     chain = this.toChainModel(chain)
+    token = this.toTokenModel(token)
     if (chain.isL1) {
       throw new Error('Hop tokens do not exist on layer 1')
     }
 
-    let tokenSymbol
-    if (typeof token === 'string') {
-      tokenSymbol = token
-    } else {
-      tokenSymbol = token.symbol
-    }
     const { name, symbol, decimals, image } = metadata.tokens[network][
-      tokenSymbol
+      token.canonicalSymbol
     ]
-    const address = this.getL2HopBridgeTokenAddress(tokenSymbol, chain)
+    const address = this.getL2HopBridgeTokenAddress(token.symbol, chain)
 
     return new Token(
       network,
       chain,
       address,
       decimals,
-      `h${symbol}`,
+      `h${token.canonicalSymbol}`,
       `Hop ${name}`,
       image,
       this.signer

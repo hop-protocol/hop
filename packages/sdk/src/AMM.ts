@@ -279,18 +279,22 @@ class AMM extends Base {
   }
 
   public async getPriceImpact (amount0: TAmount, amount1: TAmount) {
+    const token = this.toTokenModel(this.tokenSymbol)
+    const decimals = token.decimals
     const saddleSwap = await this.getSaddleSwap()
-    const virtualPrice = await saddleSwap.getVirtualPrice()
-    const depositLpTokenAmount = await this.calculateAddLiquidityMinimum(
-      amount0,
-      amount1
-    )
+    const [virtualPrice, depositLpTokenAmount] = await Promise.all([
+      saddleSwap.getVirtualPrice(),
+      this.calculateAddLiquidityMinimum(amount0, amount1)
+    ])
     let tokenInputSum = BigNumber.from(amount0.toString()).add(
       BigNumber.from(amount1)
     )
 
     // convert to 18 decimals
-    tokenInputSum = parseUnits(formatUnits(tokenInputSum, 6).toString(), 18)
+    tokenInputSum = parseUnits(
+      formatUnits(tokenInputSum, decimals).toString(),
+      18
+    )
 
     return this.calculatePriceImpact(
       tokenInputSum,

@@ -160,23 +160,17 @@ class HopBridge extends Base {
     network: string,
     chain: TChain
   ): Token | undefined {
-    let tokenSymbol
-    if (typeof token === 'string') {
-      tokenSymbol = token
-    } else {
-      tokenSymbol = token.symbol
-    }
-
+    token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
     const { name, symbol, decimals, image } = metadata.tokens[network][
-      tokenSymbol
+      token.canonicalSymbol
     ]
 
     let address
     if (chain.isL1) {
-      address = this.getL1CanonicalTokenAddress(tokenSymbol, chain)
+      address = this.getL1CanonicalTokenAddress(token.symbol, chain)
     } else {
-      address = this.getL2CanonicalTokenAddress(tokenSymbol, chain)
+      address = this.getL2CanonicalTokenAddress(token.symbol, chain)
     }
 
     return new Token(
@@ -197,27 +191,22 @@ class HopBridge extends Base {
     chain: TChain
   ): Token | undefined {
     chain = this.toChainModel(chain)
+    token = this.toTokenModel(token)
     if (chain.isL1) {
       throw new Error('Hop tokens do not exist on layer 1')
     }
 
-    let tokenSymbol
-    if (typeof token === 'string') {
-      tokenSymbol = token
-    } else {
-      tokenSymbol = token.symbol
-    }
     const { name, symbol, decimals, image } = metadata.tokens[network][
-      tokenSymbol
+      token.canonicalSymbol
     ]
-    const address = this.getL2HopBridgeTokenAddress(tokenSymbol, chain)
+    const address = this.getL2HopBridgeTokenAddress(token.symbol, chain)
 
     return new Token(
       network,
       chain,
       address,
       decimals,
-      `h${symbol}`,
+      `h${token.canonicalSymbol}`,
       `Hop ${name}`,
       image,
       this.signer
@@ -905,7 +894,6 @@ class HopBridge extends Base {
     signer: TProvider = this.signer
   ) {
     // ToDo: Remove ability to pass in signer like other token getters
-    if (!signer) return
     chain = this.toChainModel(chain)
     const saddleLpTokenAddress = this.getL2SaddleLpTokenAddress(
       this.tokenSymbol,
@@ -1449,46 +1437,14 @@ class HopBridge extends Base {
   }
 
   isNativeToken (chain?: TChain) {
-    chain = chain ? this.toChainModel(chain) : this.sourceChain
-    const isEth =
-      this.tokenSymbol === TokenModel.ETH && chain.equals(Chain.Ethereum)
-    const isMatic =
-      this.tokenSymbol === TokenModel.MATIC && chain.equals(Chain.Polygon)
-    const isxDai =
-      this.tokenSymbol === TokenModel.XDAI && chain.equals(Chain.xDai)
-    return isEth || isMatic || isxDai
+    const token = this.getCanonicalToken(chain || this.sourceChain)
+    return token.isNativeToken
   }
 
-  async getWethContract (chain: TChain): Promise<Contract> {
-    const address = this.getCanonicalToken(chain).address
-    return this.getContract(address, wethAbi, this.signer)
-  }
-
-  async wrapToken (amount: TAmount, chain?: TChain) {
-    chain = chain ? this.toChainModel(chain) : this.sourceChain
-    const contract = await this.getWethContract(chain)
-    return contract.deposit({
-      value: amount
-    })
-  }
-
-  async unwrapToken (amount: TAmount, chain?: TChain) {
-    chain = chain ? this.toChainModel(chain) : this.sourceChain
-    const contract = await this.getWethContract(chain)
-    return contract.withdraw(amount)
-  }
-
-  async isTokenWrapNeeded (amount: TAmount, chain?: TChain) {
-    chain = chain ? this.toChainModel(chain) : this.sourceChain
-    amount = BigNumber.from(amount.toString())
-    if (this.isNativeToken(chain)) {
-      const canonicalToken = this.getCanonicalToken(chain)
-      const balance = await canonicalToken.balanceOf()
-      if (balance.lt(amount)) {
-        return true
-      }
-    }
-    return false
+  async getEthBalance (chain: TChain = this.sourceChain, address?: string) {
+    chain = this.toChainModel(chain)
+    const _address = address ?? (await this.getSignerAddress())
+    return chain.provider.getBalance(_address)
   }
 }
 

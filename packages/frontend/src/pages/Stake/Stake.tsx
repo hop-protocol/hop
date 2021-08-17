@@ -1,5 +1,6 @@
 import React, { FC, useState, useEffect, useMemo } from 'react'
 import { Contract } from 'ethers'
+import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -23,54 +24,64 @@ const Stake: FC = () => {
   const { bridges, sdk, networks, user, tokens } = useApp()
   const { provider } = useWeb3Context()
 
+  const stakingContracts = {
+    USDC: '0x2C2Ab81Cf235e86374468b387e241DF22459A265',
+    USDT: '0x07932e9A5AB8800922B2688FB1FA0DAAd8341772',
+    MATIC: '0x7dEEbCaD1416110022F444B03aEb1D20eB4Ea53f'
+  }
+
   // USDC
 
-  const usdcStakingToken = useAsyncMemo(async () => {
-    const bridge = bridges.find(bridge =>
+  const usdcBridge = useAsyncMemo(async () => {
+    return bridges.find(bridge =>
       bridge.getTokenSymbol() === 'USDC'
     )
-
-    return bridge?.getSaddleLpToken('polygon')
   }, [bridges])
+
+  const usdcStakingToken = useAsyncMemo(async () => {
+    return usdcBridge?.getSaddleLpToken('polygon')
+  }, [usdcBridge])
 
   const usdcStakingRewards = useAsyncMemo(async () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
     const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
-    return new Contract('0x2C2Ab81Cf235e86374468b387e241DF22459A265', stakingRewardsAbi, _provider)
+    return new Contract(stakingContracts.USDC, stakingRewardsAbi, _provider)
   }, [sdk, provider, user])
 
   // USDT
 
-  const usdtStakingToken = useAsyncMemo(async () => {
-    const bridge = bridges.find(bridge =>
+  const usdtBridge = useAsyncMemo(async () => {
+    return bridges.find(bridge =>
       bridge.getTokenSymbol() === 'USDT'
     )
-
-    const LP = await bridge?.getSaddleLpToken('polygon')
-    return LP
   }, [bridges])
+
+  const usdtStakingToken = useAsyncMemo(async () => {
+    return usdtBridge?.getSaddleLpToken('polygon')
+  }, [usdtBridge])
 
   const usdtStakingRewards = useAsyncMemo(async () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
     const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
-    return new Contract('0x07932e9A5AB8800922B2688FB1FA0DAAd8341772', stakingRewardsAbi, _provider)
+    return new Contract(stakingContracts.USDT, stakingRewardsAbi, _provider)
   }, [sdk, provider, user])
 
   // MATIC
 
-  const maticStakingToken = useAsyncMemo(async () => {
-    const bridge = bridges.find(bridge =>
+  const maticBridge = useAsyncMemo(async () => {
+    return bridges.find(bridge =>
       bridge.getTokenSymbol() === 'MATIC'
     )
-
-    const LP = await bridge?.getSaddleLpToken('polygon')
-    return LP
   }, [bridges])
+
+  const maticStakingToken = useAsyncMemo(async () => {
+    return maticBridge?.getSaddleLpToken('polygon')
+  }, [maticBridge])
 
   const maticStakingRewards = useAsyncMemo(async () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
     const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
-    return new Contract('0x7dEEbCaD1416110022F444B03aEb1D20eB4Ea53f', stakingRewardsAbi, _provider)
+    return new Contract(stakingContracts.MATIC, stakingRewardsAbi, _provider)
   }, [sdk, provider, user])
 
   const rewardsToken = useAsyncMemo(async () => {
@@ -101,7 +112,7 @@ const Stake: FC = () => {
     return (
       <Box display="flex" flexDirection="column" alignItems="center">
         <Typography variant="h4">
-          Coming soon
+          Staking not available on testnet
         </Typography>
       </Box>
     )
@@ -118,6 +129,7 @@ const Stake: FC = () => {
       {enabledTokens.includes('USDC') &&
         <StakeWidget
           network={polygonNetwork}
+          bridge={usdcBridge}
           stakingToken={usdcStakingToken}
           rewardsToken={rewardsToken}
           stakingRewards={usdcStakingRewards}
@@ -127,6 +139,7 @@ const Stake: FC = () => {
       {enabledTokens.includes('USDT') &&
         <StakeWidget
           network={polygonNetwork}
+          bridge={usdtBridge}
           stakingToken={usdtStakingToken}
           rewardsToken={rewardsToken}
           stakingRewards={usdtStakingRewards}
@@ -136,6 +149,7 @@ const Stake: FC = () => {
       {enabledTokens.includes('MATIC') &&
         <StakeWidget
           network={polygonNetwork}
+          bridge={maticBridge}
           stakingToken={maticStakingToken}
           rewardsToken={rewardsToken}
           stakingRewards={maticStakingRewards}

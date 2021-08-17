@@ -57,6 +57,7 @@ const BonderStats: FC = () => {
                 <th>Credit</th>
                 <th>Debit</th>
                 <th>Available Liquidity</th>
+                <th>ETH</th>
               </TableHead>
               <TableBody>
                 {fetchingBonderStats
@@ -99,6 +100,9 @@ const BonderStats: FC = () => {
                           </TableCell>
                           <TableCell className={styles.cell}>
                             {commafy(item.availableLiquidity)}
+                          </TableCell>
+                          <TableCell className={styles.cell}>
+                            {commafy(item.eth)}
                           </TableCell>
                         </TableRow>
                     )

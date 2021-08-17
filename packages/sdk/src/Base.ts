@@ -147,8 +147,9 @@ class Base {
    */
   public toTokenModel (token: TToken) {
     if (typeof token === 'string') {
-      let { name, symbol, decimals } = metadata.tokens[this.network][token]
-      return new TokenModel(0, '', decimals, symbol, name)
+      const canonicalSymbol = TokenModel.getCanonicalSymbol(token)
+      let { name, decimals } = metadata.tokens[this.network][canonicalSymbol]
+      return new TokenModel(0, '', decimals, token, name)
     }
 
     return token
@@ -260,7 +261,7 @@ class Base {
   public getConfigAddresses (token: TToken, chain: TChain) {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    return this.addresses[this.network]?.[token.symbol]?.[chain.slug]
+    return this.addresses[this.network]?.[token.canonicalSymbol]?.[chain.slug]
   }
 
   public getL1BridgeAddress (token: TToken, chain: TChain) {
@@ -345,12 +346,12 @@ class Base {
 
   public getBonderAddress (token: TToken): string {
     token = this.toTokenModel(token)
-    return this.bonders?.[this.network]?.[token.symbol]?.[0]
+    return this.bonders?.[this.network]?.[token.canonicalSymbol]?.[0]
   }
 
   public getBonderAddresses (token: TToken): string[] {
     token = this.toTokenModel(token)
-    return this.bonders?.[this.network]?.[token.symbol]
+    return this.bonders?.[this.network]?.[token.canonicalSymbol]
   }
 
   setGasPriceMultiplier (gasPriceMultiplier: number) {

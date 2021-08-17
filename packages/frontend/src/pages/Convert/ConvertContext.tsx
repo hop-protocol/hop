@@ -139,7 +139,10 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   useEffect(() => {
     const fetchToken = async () => {
-      const token = await convertOption.sourceToken(isForwardDirection, selectedNetwork, selectedBridge)
+      let token = await convertOption.sourceToken(isForwardDirection, selectedNetwork, selectedBridge)
+      if (token?.isNativeToken) {
+        token = token.getWrappedToken()
+      }
       setSourceToken(token)
     }
 

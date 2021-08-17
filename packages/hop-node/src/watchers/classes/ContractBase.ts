@@ -65,6 +65,9 @@ export default class ContractBase extends EventEmitter {
 
   @rateLimitRetry
   async getTransaction (txHash: string): Promise<Transaction> {
+    if (!txHash) {
+      throw new Error('tx hash is required')
+    }
     return this.contract.provider.getTransaction(txHash)
   }
 
@@ -122,6 +125,13 @@ export default class ContractBase extends EventEmitter {
     blockNumber: string | number = 'latest'
   ): Promise<string> {
     return this.contract.provider.getCode(address, blockNumber)
+  }
+
+  @rateLimitRetry
+  async getBalance (
+    address: string
+  ): Promise<BigNumber> {
+    return this.contract.provider.getBalance(address)
   }
 
   @rateLimitRetry

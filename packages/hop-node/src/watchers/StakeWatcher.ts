@@ -74,14 +74,16 @@ class StakeWatcher extends BaseWatcher {
   }
 
   async printAmounts () {
-    const [credit, rawDebit, debit, balance, allowance] = await Promise.all([
+    const [credit, rawDebit, debit, balance, allowance, eth] = await Promise.all([
       this.bridge.getCredit(),
       this.bridge.getRawDebit(),
       this.bridge.getDebit(),
       this.token.getBalance(),
-      this.getTokenAllowance()
+      this.getTokenAllowance(),
+      this.bridge.getEthBalance()
     ])
 
+    this.logger.debug('eth balance:', this.bridge.formatEth(eth))
     this.logger.debug('token balance:', this.bridge.formatUnits(balance))
     this.logger.debug('credit balance:', this.bridge.formatUnits(credit))
     this.logger.debug('raw debit balance:', this.bridge.formatUnits(rawDebit))

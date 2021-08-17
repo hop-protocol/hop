@@ -26,14 +26,14 @@ const useStyles = makeStyles(theme => ({
   networkSelectionBox: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   networkLabel: {
     display: 'flex',
     flexDirection: 'row',
     marginLeft: '0.4rem',
     overflow: 'hidden',
-    textOverflow: 'ellipsis'
+    textOverflow: 'clip'
   },
   networkIconContainer: {
     display: 'flex',
@@ -59,6 +59,14 @@ const useStyles = makeStyles(theme => ({
     fontSize: '1.2rem',
     marginRight: '1rem',
     cursor: 'pointer'
+  },
+  container: {
+    flexWrap: 'nowrap'
+  },
+  networkContainer: {
+    width: '180px',
+  },
+  inputContainer: {
   }
 }))
 
@@ -153,8 +161,8 @@ const AmountSelectorCard: FC<Props> = props => {
           </div>
         ) : null}
       </Box>
-      <Grid container alignItems="center">
-        <Grid item xs={5}>
+      <Grid container alignItems="center" className={styles.container}>
+        <Grid item className={styles.networkContainer}>
           <Box className={styles.networkSelectionBox}>
             {
               titleIconUrl
@@ -175,12 +183,12 @@ const AmountSelectorCard: FC<Props> = props => {
             </Typography>
           </Box>
         </Grid>
-        <Grid item xs={7}>
+        <Grid item className={styles.inputContainer}>
           <LargeTextField
             value={value}
             onChange={handleInputChange}
             placeholder="0.0"
-            units={hideSymbol ? '' : `${token?.isNativeToken ? 'W' : ''}${token?.symbol}`}
+            units={hideSymbol ? '' : token?.symbol}
             disabled={disableInput}
             loadingValue={loadingValue}
           />

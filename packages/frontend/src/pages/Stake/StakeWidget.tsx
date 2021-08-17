@@ -4,7 +4,7 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import MuiButton from '@material-ui/core/Button'
-import { Token } from '@hop-protocol/sdk'
+import { HopBridge, Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
@@ -55,6 +55,7 @@ const useStyles = makeStyles(theme => ({
 
 type Props = {
   network: Network | undefined
+  bridge: HopBridge | undefined
   stakingToken: Token | undefined
   rewardsToken: Token | undefined
   stakingRewards: Contract | undefined
@@ -64,6 +65,7 @@ const StakeWidget: FC<Props> = props => {
   const styles = useStyles()
   const {
     network,
+    bridge,
     stakingToken,
     rewardsToken,
     stakingRewards
@@ -99,7 +101,10 @@ const StakeWidget: FC<Props> = props => {
 
   const allowance = usePollValue(
     async () => {
-      if (!stakingRewards) {
+      if (!(
+        address &&
+        stakingRewards
+      )) {
         return undefined
       }
       return stakingToken?.allowance(stakingRewards.address)
@@ -109,7 +114,9 @@ const StakeWidget: FC<Props> = props => {
   )
 
   const needsApproval = useMemo(() => {
-    if (!allowance || !parsedAmount) return undefined
+    if (!(address && allowance && parsedAmount)) {
+      return undefined
+    }
     return allowance.lt(parsedAmount)
   }, [allowance, parsedAmount])
 
@@ -187,6 +194,43 @@ const StakeWidget: FC<Props> = props => {
 
     await tx?.wait()
   }
+
+  const lpPosition = useAsyncMemo(async () => {
+    if (!(
+      stakingToken &&
+      stakingRewards &&
+      totalStaked &&
+      stakeBalance &&
+      stakeBalance.gt(0)
+    )) {
+      return
+    }
+    const totalSupply = await stakingRewards?.totalSupply()
+    const rate = totalStaked.div(totalSupply)
+    const position = stakeBalance.mul(rate)
+    return position
+  }, [stakeBalance, stakingRewards, stakingToken, totalStaked])
+
+  const lpPositionFormatted = toTokenDisplay(
+    lpPosition,
+    stakingToken?.decimals,
+    stakingToken?.symbol
+  )
+
+  const apy = useMemo(() => {
+    if (!(
+      totalRewardsPerDay &&
+      totalStaked
+    )) {
+      return
+    }
+
+    return (Number(totalRewardsPerDay.toString()) * 100 * 365) / Number(totalStaked.toString())
+  }, [totalRewardsPerDay, totalStaked])
+
+  const apyFormatted = useMemo(() => {
+    return `${apy ? Number(apy.toFixed(2)) : '-'}%`
+  }, [apy])
 
   const stake = async () => {
     if (!stakingRewards) {
@@ -308,10 +352,17 @@ const StakeWidget: FC<Props> = props => {
       />
       <div className={styles.details}>
         <DetailRow
+          title="APY"
+          tooltip="Total annual percentage yield (APY)"
+          value={apyFormatted}
+        />
+        {!userRewardsPerDay &&
+        <DetailRow
           title="Total Staked"
           tooltip="The total amount of LP tokens staked for rewards"
           value={totalStakedFormatted}
         />
+        }
         <DetailRow
           title={userRewardsPerDay ? 'Your Rewards' : 'Total Rewards'}
           tooltip={
@@ -321,6 +372,13 @@ const StakeWidget: FC<Props> = props => {
           }
           value={`${userRewardsPerDay ? userRewardsPerDayFormatted : totalRewardsPerDayFormatted} / day`}
         />
+        {lpPosition &&
+        <DetailRow
+          title="Your Total"
+          tooltip="The total worth of your staked LP position"
+          value={lpPositionFormatted}
+        />
+      }
       </div>
       <Alert severity="warning" text={warning} className={styles.alert}/>
       <Box display="flex" flexDirection="column" alignItems="center">

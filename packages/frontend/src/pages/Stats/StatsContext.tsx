@@ -42,6 +42,7 @@ type BonderStats = {
   credit: number,
   debit: number,
   availableLiquidity: number
+  eth: number
 }
 
 const StatsContextProvider: FC = ({ children }) => {
@@ -125,10 +126,11 @@ const StatsContextProvider: FC = ({ children }) => {
     }
 
     const bridge = sdk.bridge(selectedToken.symbol)
-    const [credit, debit, availableLiquidity] = await Promise.all([
+    const [credit, debit, availableLiquidity, eth] = await Promise.all([
       bridge.getCredit(selectedNetwork.slug, bonder),
       bridge.getDebit(selectedNetwork.slug, bonder),
       bridge.getAvailableLiquidity(selectedNetwork.slug, bonder),
+      bridge.getEthBalance(selectedNetwork.slug, bonder)
     ])
 
     return {
@@ -138,7 +140,8 @@ const StatsContextProvider: FC = ({ children }) => {
       network: selectedNetwork,
       credit: Number(formatUnits(credit.toString(), token.decimals)),
       debit: Number(formatUnits(debit.toString(), token.decimals)),
-      availableLiquidity: Number(formatUnits(availableLiquidity.toString(), token.decimals))
+      availableLiquidity: Number(formatUnits(availableLiquidity.toString(), token.decimals)),
+      eth: Number(formatUnits(eth.toString(), 18))
     }
   }
 

@@ -3,7 +3,6 @@ import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
 import { Contract, providers } from 'ethers'
-import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
 import { wait } from 'src/utils'
 
@@ -68,16 +67,20 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     const promises: Promise<any>[] = []
-    for (const dbTransfer of dbTransfers) {
-      promises.push(this.checkTransferSent(dbTransfer))
+    for (const { transferId } of dbTransfers) {
+      promises.push(this.checkTransferId(transferId))
     }
 
     await Promise.all(promises)
   }
 
-  checkTransferSent = async (dbTransfer: Transfer) => {
+  checkTransferId = async (transferId: string) => {
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    if (!dbTransfer) {
+      this.logger.warn(`transfer id "${transferId}" not found in db`)
+      return
+    }
     const {
-      transferId,
       destinationChainId,
       sourceChainId,
       recipient,
@@ -131,9 +134,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     logger.debug('sending bondWithdrawal tx')
 
-    const { from: sender, data } = await sourceL2Bridge.getTransaction(
+    const sourceTx = await sourceL2Bridge.getTransaction(
       transferSentTxHash
     )
+    if (!sourceTx) {
+      this.logger.warn(`source tx data for tx hash "${transferSentTxHash}" not found. Cannot proceed`)
+      return
+    }
+    const { from: sender, data } = sourceTx
     const { attemptSwap } = await sourceL2Bridge.decodeSendData(data)
 
     await this.db.transfers.update(transferId, {

@@ -1,4 +1,4 @@
-import { Contract, ethers } from 'ethers'
+import { Signer, Contract, ethers } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import {
   arbErc20Abi,
@@ -445,7 +445,7 @@ class CanonicalBridge extends Base {
     })
 
     const provider = await this.getSignerOrProvider(chain)
-    return (provider as any).sendTransaction({
+    return (provider as Signer).sendTransaction({
       to: tx.to,
       value: tx.value,
       data: tx.data,
@@ -558,27 +558,21 @@ class CanonicalBridge extends Base {
   }
 
   public toCanonicalToken (token: TToken, network: string, chain: TChain) {
-    let tokenSymbol
-    if (typeof token === 'string') {
-      tokenSymbol = token
-    } else {
-      tokenSymbol = token.symbol
-    }
-
+    token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
     const { name, symbol, decimals, image } = metadata.tokens[network][
-      tokenSymbol
+      token.canonicalSymbol
     ]
     let address
     if (chain.isL1) {
       const { l1CanonicalToken } = this.getL1CanonicalBridgeAddress(
-        tokenSymbol,
+        token.symbol,
         chain.slug
       )
       address = l1CanonicalToken
     } else {
       const { l2CanonicalToken } = this.getL2CanonicalTokenAddress(
-        tokenSymbol,
+        token.symbol,
         chain.slug
       )
       address = l2CanonicalToken

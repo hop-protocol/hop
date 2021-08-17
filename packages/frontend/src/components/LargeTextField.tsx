@@ -36,7 +36,10 @@ const useStyles = makeStyles(theme => ({
     marginLeft: '-0.8rem',
     marginRight: theme.padding.extraLight,
     width: 'auto',
-    textAlign: 'right'
+    textAlign: 'right',
+    [theme.breakpoints.down('xs')]: {
+      fontSize: theme.typography.h6.fontSize
+    }
   }
 }))
 
@@ -76,11 +79,14 @@ const useInputStyles = makeStyles(theme => ({
     fontSize: theme.typography.h4.fontSize,
     fontWeight: theme.typography.h4.fontWeight,
     color: theme.palette.text.primary,
-    textOverflow: 'ellipsis',
+    textOverflow: 'clip',
     padding: `6px ${theme.padding.extraLight} 7px ${theme.padding.extraLight}`,
     animation: loadingValue
       ? `loadingEffect 1200ms ${theme.transitions.easing.sharp} infinite`
-      : 'none'
+      : 'none',
+    [theme.breakpoints.down('xs')]: {
+      fontSize: theme.typography.h6.fontSize
+    }
   }),
   focused: {
     borderRadius: '1.5rem',

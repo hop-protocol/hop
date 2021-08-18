@@ -4,6 +4,7 @@ import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
 import { BigNumber, Contract } from 'ethers'
+import { Chain } from 'src/constants'
 import { Event } from 'src/types'
 import { boundClass } from 'autobind-decorator'
 import { isL1ChainId, wait } from 'src/utils'
@@ -21,6 +22,7 @@ class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   resyncIntervalMs: number = 60 * 1000
   syncIndex: number = 0
+  readonly bondableChains: string[] = [Chain.Optimism, Chain.Arbitrum]
 
   constructor (config: Config) {
     super({
@@ -329,10 +331,14 @@ class SyncWatcher extends BaseWatcher {
       )
       const blockNumber: number = event.blockNumber
 
+      const sourceChainSlug = this.chainIdToSlug(sourceChainId)
+      const shouldBondTransferRoot = this.bondableChains.includes(sourceChainSlug)
+
       logger.debug('committedAt:', committedAt)
       logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
       logger.debug('transferRootHash:', transferRootHash)
       logger.debug('destinationChainId:', destinationChainId)
+      logger.debug('shouldBondTransferRoot:', shouldBondTransferRoot)
 
       await this.db.transferRoots.update(transferRootHash, {
         transferRootHash,
@@ -344,7 +350,8 @@ class SyncWatcher extends BaseWatcher {
         sourceChainId,
         committed: true,
         commitTxHash: transactionHash,
-        commitTxBlockNumber: blockNumber
+        commitTxBlockNumber: blockNumber,
+        shouldBondTransferRoot
       })
     } catch (err) {
       logger.error(`handleTransfersCommittedEvent error: ${err.message}`)

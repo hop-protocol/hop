@@ -34,10 +34,7 @@ export const networks: Networks = {
     name: chains.xdai.name,
     networkId: 100,
     rpcUrls: ['https://xdai.rpc.hop.exchange'],
-    archiveRpcUrls: [
-      'https://rpc.xdaichain.com',
-      'https://xdai-archive.blockscout.com'
-    ],
+    archiveRpcUrls: ['https://xdai-archive.blockscout.com'],
     explorerUrls: ['https://blockscout.com/xdai/mainnet'],
     nativeBridgeUrl: 'https://omni.xdaichain.com/',
     waitConfirmations: 12

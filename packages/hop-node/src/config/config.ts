@@ -80,17 +80,6 @@ const getConfigByNetwork = (network: string):Partial<Config> => {
   network = normalizeNetwork(network)
   const isMainnet = network === Network.Mainnet
 
-  // set special rpc urls required for certain events on certain chains
-  for (const key in networks) {
-    const item = (networks as any)[key] as any
-    if (item?.archiveRpcUrls.length) {
-      item.readRpcUrl = item.archiveRpcUrls[0]
-    }
-    if (item?.specialArchiveRpcUrl) {
-      item.specialReadRpcUrl = item.specialArchiveRpcUrl
-    }
-  }
-
   return {
     network,
     tokens,

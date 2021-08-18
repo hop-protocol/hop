@@ -33,7 +33,7 @@ export default class L1Bridge extends Bridge {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = await this.getReadBridgeContract().interface.decodeFunctionData(
+    const decoded = await this.bridgeContract.interface.decodeFunctionData(
       'bondTransferRoot',
       data
     )
@@ -52,7 +52,7 @@ export default class L1Bridge extends Bridge {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = await this.getReadBridgeContract().interface.decodeFunctionData(
+    const decoded = await this.bridgeContract.interface.decodeFunctionData(
       'confirmTransferRoot',
       data
     )
@@ -68,7 +68,7 @@ export default class L1Bridge extends Bridge {
 
   @rateLimitRetry
   async getTransferBond (transferRootId: string): Promise<any> {
-    return this.getReadBridgeContract().transferBonds(transferRootId)
+    return this.bridgeContract.transferBonds(transferRootId)
   }
 
   @rateLimitRetry
@@ -76,8 +76,8 @@ export default class L1Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<Event[]> {
-    return this.getReadBridgeContract().queryFilter(
-      this.getReadBridgeContract().filters.TransferRootBonded(),
+    return this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.TransferRootBonded(),
       startBlockNumber,
       endBlockNumber
     )
@@ -88,8 +88,8 @@ export default class L1Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<Event[]> {
-    return this.getReadBridgeContract().queryFilter(
-      this.getReadBridgeContract().filters.TransferBondChallenged(),
+    return this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.TransferBondChallenged(),
       startBlockNumber,
       endBlockNumber
     )
@@ -165,8 +165,8 @@ export default class L1Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<Event[]> {
-    return this.getReadBridgeContract().queryFilter(
-      this.getReadBridgeContract().filters.TransferRootConfirmed(),
+    return this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.TransferRootConfirmed(),
       startBlockNumber,
       endBlockNumber
     )
@@ -192,7 +192,7 @@ export default class L1Bridge extends Bridge {
     } else {
       params = [destChainId, transferRootId]
     }
-    const committedAt = await this.getReadBridgeContract().transferRootCommittedAt(
+    const committedAt = await this.bridgeContract.transferRootCommittedAt(
       ...params
     )
     return Number(committedAt.toString())
@@ -204,11 +204,11 @@ export default class L1Bridge extends Bridge {
   }
 
   async l1CanonicalToken (): Promise<Token> {
-    const tokenAddress = await this.getReadBridgeContract().l1CanonicalToken()
+    const tokenAddress = await this.bridgeContract.l1CanonicalToken()
     const tokenContract = new Contract(
       tokenAddress,
       erc20Abi,
-      this.getWriteBridgeContract().signer
+      this.bridgeContract.signer
     )
     return new Token(tokenContract)
   }
@@ -221,7 +221,7 @@ export default class L1Bridge extends Bridge {
     chainId: number,
     totalAmount: BigNumber
   ): Promise<providers.TransactionResponse> {
-    const tx = await this.getWriteBridgeContract().bondTransferRoot(
+    const tx = await this.bridgeContract.bondTransferRoot(
       transferRootHash,
       chainId,
       totalAmount,
@@ -238,7 +238,7 @@ export default class L1Bridge extends Bridge {
     transferRootHash: string,
     totalAmount: BigNumber
   ): Promise<providers.TransactionResponse> {
-    const tx = await this.getWriteBridgeContract().challengeTransferBond(
+    const tx = await this.bridgeContract.challengeTransferBond(
       transferRootHash,
       totalAmount,
       await this.txOverrides()
@@ -254,7 +254,7 @@ export default class L1Bridge extends Bridge {
     transferRootHash: string,
     totalAmount: BigNumber
   ): Promise<providers.TransactionResponse> {
-    const tx = await this.getWriteBridgeContract().resolveChallenge(
+    const tx = await this.bridgeContract.resolveChallenge(
       transferRootHash,
       totalAmount,
       await this.txOverrides()
@@ -281,7 +281,7 @@ export default class L1Bridge extends Bridge {
       throw new Error(`chain ID "${destChainId}" is not supported`)
     }
 
-    return this.getWriteBridgeContract().sendToL2(
+    return this.bridgeContract.sendToL2(
       destChainId,
       recipient,
       amount,
@@ -295,7 +295,7 @@ export default class L1Bridge extends Bridge {
 
   @rateLimitRetry
   async isSupportedChainId (chainId: number): Promise<boolean> {
-    const address = await this.getReadBridgeContract().crossDomainMessengerWrappers(
+    const address = await this.bridgeContract.crossDomainMessengerWrappers(
       chainId
     )
     return address !== ethers.constants.AddressZero
@@ -303,12 +303,12 @@ export default class L1Bridge extends Bridge {
 
   @rateLimitRetry
   async getChallengePeriod (): Promise<number> {
-    const challengePeriod = await this.getReadBridgeContract().challengePeriod()
+    const challengePeriod = await this.bridgeContract.challengePeriod()
     return Number(challengePeriod.toString())
   }
 
   @rateLimitRetry
   async getBondForTransferAmount (amount: BigNumber): Promise<BigNumber> {
-    return this.getReadBridgeContract().getBondForTransferAmount(amount)
+    return this.bridgeContract.getBondForTransferAmount(amount)
   }
 }

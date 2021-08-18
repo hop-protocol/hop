@@ -22,6 +22,7 @@ class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   resyncIntervalMs: number = 60 * 1000
   syncIndex: number = 0
+  readonly bondableChains: string[] = [Chain.Optimism, Chain.Arbitrum]
 
   constructor (config: Config) {
     super({
@@ -331,8 +332,7 @@ class SyncWatcher extends BaseWatcher {
       const blockNumber: number = event.blockNumber
 
       const sourceChainSlug = this.chainIdToSlug(sourceChainId)
-      const skipChains: string[] = [Chain.xDai, Chain.Polygon]
-      const shouldBondTransferRoot = !skipChains.includes(sourceChainSlug)
+      const shouldBondTransferRoot = this.bondableChains.includes(sourceChainSlug)
 
       logger.debug('committedAt:', committedAt)
       logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))

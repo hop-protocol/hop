@@ -210,21 +210,22 @@ function startWatchers (
         watchers.push(bondWithdrawalWatcher)
       }
 
-      const bondTransferRootWatcher = new BondTransferRootWatcher({
-        chainSlug: network,
-        tokenSymbol: token,
-        order,
-        label,
-        isL1,
-        bridgeContract,
-        dryMode,
-        stateUpdateAddress
-      })
+      if (isL1) {
+        const bondTransferRootWatcher = new BondTransferRootWatcher({
+          chainSlug: network,
+          tokenSymbol: token,
+          order,
+          label,
+          bridgeContract,
+          dryMode,
+          stateUpdateAddress
+        })
 
-      bondTransferRootWatchers[token] = bondTransferRootWatchers[token] || {}
-      bondTransferRootWatchers[token][chainId] = bondTransferRootWatcher
-      if (enabledWatchers.includes('bondTransferRoot')) {
-        watchers.push(bondTransferRootWatcher)
+        bondTransferRootWatchers[token] = bondTransferRootWatchers[token] || {}
+        bondTransferRootWatchers[token][chainId] = bondTransferRootWatcher
+        if (enabledWatchers.includes('bondTransferRoot')) {
+          watchers.push(bondTransferRootWatcher)
+        }
       }
 
       const settleBondedWithdrawalWatcher = new SettleBondedWithdrawalWatcher({

@@ -4,13 +4,11 @@ import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Chain } from 'src/constants'
 import { getTransferRootId, wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
   tokenSymbol: string
-  isL1: boolean
   bridgeContract: Contract
   label: string
   order?: () => number
@@ -29,7 +27,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       prefix: config.label,
       logColor: 'cyan',
       order: config.order,
-      isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode,
       stateUpdateAddress: config.stateUpdateAddress
@@ -37,9 +34,6 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
-    if (!this.isL1) {
-      return
-    }
     await this.checkTransfersCommittedFromDb()
   }
 
@@ -214,8 +208,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         transferRootHash,
         totalAmount
       )
-      const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
-        .bridge as L1Bridge
+      const l1Bridge = this.bridge as L1Bridge
       const bond = await l1Bridge.getTransferBond(transferRootId)
       if (bond.createdAt.toNumber() > 0) {
         break

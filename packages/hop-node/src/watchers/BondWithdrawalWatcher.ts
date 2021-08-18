@@ -3,6 +3,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
 import { Contract, providers } from 'ethers'
+import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
 import { wait } from 'src/utils'
 
@@ -142,7 +143,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
     const { from: sender, data } = sourceTx
-    const { attemptSwap } = await sourceL2Bridge.decodeSendData(data)
+    const attemptSwap = this.shouldAttemptSwap(dbTransfer)
 
     await this.db.transfers.update(transferId, {
       sentBondWithdrawalTxAt: Date.now()
@@ -216,6 +217,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
       throw err
     }
+  }
+
+  shouldAttemptSwap = (dbTransfer: Transfer): boolean => {
+    return dbTransfer.deadline > 0 && dbTransfer.amountOutMin?.gt(0)
   }
 
   sendBondWithdrawalTx = async (params: any) => {

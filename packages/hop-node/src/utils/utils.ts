@@ -24,7 +24,7 @@ export const getRpcUrls = (network: string): string | undefined => {
 
 export const getRpcProvider = (network: string): providers.Provider => {
   const rpcUrls = getRpcUrls(network)
-  if (!rpcUrls.length) {
+  if (!rpcUrls?.length) {
     return null
   }
   return getRpcProviderFromUrl(rpcUrls)

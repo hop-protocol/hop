@@ -2,6 +2,7 @@ import getBondedWithdrawal from './getBondedWithdrawal'
 import getTransferRootForTransferId from './getTransferRootForTransferId'
 import makeRequest from './makeRequest'
 import { chainIdToSlug, normalizeEntity } from './shared'
+import { getRpcProvider } from 'src/utils'
 
 export default async function getTransfer (chain: string, token: string, transferId: string): Promise<any> {
   let query = `
@@ -90,9 +91,24 @@ export default async function getTransfer (chain: string, token: string, transfe
       timestamp: bondedWithdrawal.timestamp.toString(),
       transferRootHash: transferRoot.rootHash
     })
+
     const bondedWithdrawalSettled = normalizeEntity(jsonRes.multipleWithdrawalsSettleds?.[0])
-    transfer.settled = !!bondedWithdrawalSettled
-    transfer.bondedWithdrawalSettledEvent = bondedWithdrawalSettled
+    transfer.settled = false
+
+    if (bondedWithdrawal?.transactionHash && bondedWithdrawalSettled?.transactionHash) {
+      const provider = getRpcProvider(destinationChain)
+      if (!provider) {
+        throw new Error(`provider for ${chain} not found. Check network is correct`)
+      }
+      const [{ from: bondedWithdrawalFrom }, { from: settleFrom }] = await Promise.all([
+        provider.getTransaction(bondedWithdrawal?.transactionHash),
+        provider.getTransaction(bondedWithdrawalSettled?.transactionHash)
+      ])
+      if (bondedWithdrawalFrom === settleFrom) {
+        transfer.settled = true
+        transfer.bondedWithdrawalSettledEvent = bondedWithdrawalSettled
+      }
+    }
   }
 
   return transfer

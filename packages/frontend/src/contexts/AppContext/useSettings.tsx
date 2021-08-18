@@ -8,15 +8,18 @@ export type Settings = {
   deadline: () => number
 }
 
+const defaultDeadlineMinutes = 60 * 24 * 7
+const defaultSlippage = 0.5
+
 const useSettings = (): Settings => {
   const storedSlippageTolerance = localStorage.getItem('slippageTolerance')
-  const storedDeadlineMinutes = localStorage.getItem('transactionDeadline')
+  const storedDeadlineMinutes = localStorage.getItem('transactionDeadlineMinutes')
 
   const [slippageTolerance, setSlippageTolerance] = useState<number>(
-    storedSlippageTolerance ? Number(storedSlippageTolerance) : 0.5
+    storedSlippageTolerance ? Number(storedSlippageTolerance) : defaultSlippage
   )
   const [deadlineMinutes, setDeadlineMinutes] = useState<number>(
-    storedDeadlineMinutes ? Number(storedDeadlineMinutes) : 30
+    storedDeadlineMinutes ? Number(storedDeadlineMinutes) : defaultDeadlineMinutes
   )
 
   const deadline = useCallback(() =>

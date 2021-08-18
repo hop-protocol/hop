@@ -100,7 +100,7 @@ const Settings: FC = () => {
     setSlippageTolerance(value)
   }
 
-  const deadlineError = Number(deadlineMinutes) < 5
+  const deadlineError = Number(deadlineMinutes) < 10
 
   return (
     <div className={styles.root}>
@@ -159,7 +159,7 @@ const Settings: FC = () => {
               />
             </Box>
           </Box>
-          <Box display="flex" flexDirection="column" className={styles.box}>
+          <Box display="flex" flexDirection="column" className={styles.box} style={{ display: 'none' }}>
             <Typography variant="body1" className={styles.label}>
               Transaction deadline{' '}
               <InfoTooltip title="Your transaction will revert if it is pending for more than this long." />

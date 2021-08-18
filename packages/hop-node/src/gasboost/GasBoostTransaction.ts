@@ -3,8 +3,10 @@ import MemoryStore from './MemoryStore'
 import Store from './Store'
 import { BigNumber, Signer, providers, utils } from 'ethers'
 import { EventEmitter } from 'events'
+import { Notifier } from 'src/notifier'
 import { boundClass } from 'autobind-decorator'
 import { chainSlugToId, getBumpedGasPrice, getProviderChainSlug, wait } from 'src/utils'
+import { hostname } from 'src/config'
 import { v4 as uuidv4 } from 'uuid'
 
 export enum State {
@@ -49,11 +51,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   gasPriceMultiplier: number = 1.5
   maxGasPriceGwei: number = 500
   compareMarketGasPrice: boolean = true
+  warnEthBalance: number = 0.1
   boostIndex: number = 0
   inflightItems: InflightItem[] = []
   signer: Signer
   store: Store = new MemoryStore()
   logger: Logger
+  notifier: Notifier
   chainSlug: string
   id: string
   createdAt: number
@@ -104,10 +108,15 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
+    const tag = 'GasBoost'
+    const prefix = `${this.chainSlug} id: ${this.id}`
     this.logger = new Logger({
-      tag: 'GasBoost',
-      prefix: `${this.chainSlug} id: ${this.id}`
+      tag,
+      prefix
     })
+    this.notifier = new Notifier(
+      `GasBoost, label: ${prefix}, host: ${hostname}`
+    )
   }
 
   get hash ():string {
@@ -139,6 +148,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   setCompareMarketGasPrice (compareMarketGasPrice: boolean) {
     this.compareMarketGasPrice = compareMarketGasPrice
+  }
+
+  setWarnEthBalance (warnEthBalance: number) {
+    this.warnEthBalance = warnEthBalance
   }
 
   start () {
@@ -350,15 +363,38 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           gasPrice = await this.getBumpedGasPrice(this.gasPriceMultiplier * i)
         }
 
-        // await here is intential to catch error below
-        return await this.signer.sendTransaction({
+        const payload = {
           to: this.to,
           data: this.data,
           value: this.value,
           nonce: this.nonce,
           gasPrice,
           gasLimit: this.gasLimit
-        })
+        }
+
+        const [gasLimit, ethBalance] = await Promise.all([
+          this.signer.estimateGas(payload),
+          this.signer.getBalance()
+        ])
+
+        const gasCost = gasLimit.mul(gasPrice)
+        const warnEthBalance = utils.parseUnits((this.warnEthBalance || 0).toString(), 18)
+        const formattedGasCost = utils.formatUnits(gasCost, 18)
+        const formattedEthBalance = utils.formatUnits(ethBalance, 18)
+        if (ethBalance.lt(gasCost)) {
+          const errMsg = `insufficient ETH funds to cover gas cost. Need ${formattedGasCost}, have ${formattedEthBalance}`
+          this.notifier.error(errMsg)
+          this.logger.error(errMsg)
+          throw new Error(errMsg)
+        }
+        if (ethBalance.lt(warnEthBalance)) {
+          const warnMsg = `ETH balance is running low. Have ${formattedEthBalance}`
+          this.logger.warn(warnMsg)
+          this.notifier.warn(warnMsg)
+        }
+
+        // await here is intential to catch error below
+        return await this.signer.sendTransaction(payload)
       } catch (err) {
         const isAlreadyKnown = /AlreadyKnown/gi.test(err.message)
         const isFeeTooLow = /FeeTooLowToCompete/gi.test(err.message)

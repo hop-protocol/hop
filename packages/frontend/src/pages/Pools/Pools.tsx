@@ -126,7 +126,8 @@ const Pools: FC = () => {
     poolReserves,
     fee,
     apr,
-    priceImpact
+    priceImpact,
+    virtualPrice
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -182,6 +183,7 @@ const Pools: FC = () => {
   const aprFormatted = `${apr ? Number((apr * 100).toFixed(2)) : '-'}%`
   const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
   const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : ''
+  const virtualPriceFormatted = virtualPrice ? `${Number(virtualPrice.toFixed(4))}` : ''
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -420,6 +422,11 @@ const Pools: FC = () => {
           title="Reserves"
           tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
           value={`${reserve0Formatted} / ${reserve1Formatted}`}
+        />
+        <DetailRow
+          title="Virtual Price"
+          tooltip="The virtual price, to help calculate profit"
+          value={`${virtualPriceFormatted}`}
         />
         <DetailRow
           title="Fee"

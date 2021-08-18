@@ -14,7 +14,7 @@ import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import useStakeBalance from 'src/pages/Stake/useStakeBalance'
-import { toTokenDisplay, commafy } from 'src/utils'
+import { toTokenDisplay, toPercentDisplay, commafy, shiftBNDecimals } from 'src/utils'
 import Alert from 'src/components/alert/Alert'
 import usePollValue from 'src/hooks/usePollValue'
 import DetailRow from 'src/components/DetailRow'
@@ -61,6 +61,8 @@ type Props = {
   stakingRewards: Contract | undefined
 }
 
+const TOTAL_AMOUNTS_DECIMALS = 18
+
 const StakeWidget: FC<Props> = props => {
   const styles = useStyles()
   const {
@@ -77,13 +79,13 @@ const StakeWidget: FC<Props> = props => {
 
   const formattedStakeBalance = toTokenDisplay(stakeBalance, stakingToken?.decimals)
 
-  const usdPrice = useAsyncMemo(async () => {
+  const maticUsdPrice = useAsyncMemo(async () => {
     try {
       if (!bridge) {
         return
       }
       const token = await bridge.getL1Token()
-      return bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
+      return bridge.priceFeed.getPriceByTokenSymbol('MATIC')
     } catch (err) {
       console.error(err)
     }
@@ -210,39 +212,44 @@ const StakeWidget: FC<Props> = props => {
   const lpPosition = useAsyncMemo(async () => {
     if (!(
       earned &&
-      usdPrice &&
+      maticUsdPrice &&
       stakeBalance &&
       stakeBalance.gt(0)
     )) {
       return
     }
-    // TODO: use big number
-    const _earned = Number(formatUnits(earned.toString(), stakingToken?.decimals)) * usdPrice
-    return (Number(formatUnits(stakeBalance.toString(), stakingToken?.decimals)) * usdPrice) + _earned
-  }, [stakeBalance, totalStaked, earned, usdPrice])
 
-  const lpPositionFormatted = lpPosition ? `$${commafy(lpPosition, 5)}` : ''
+    const maticUsdPriceBn = BigNumber.from(maticUsdPrice * 100)
+    return (stakeBalance.add(earned)).mul(maticUsdPriceBn).div(100)
+  }, [stakeBalance, earned, maticUsdPrice])
 
+  const lpPositionFormatted = lpPosition ? `$${toTokenDisplay(lpPosition, stakingToken?.decimals)}` : ''
+
+  // ((MATIC_PRICE * WMATIC_PER_DAY)/(AMM_USDC + AMM_HUSDC)) * DAYS_PER_YEAR
+  // Example: ((1.36 * 3,246.6071)/(2,748,080.39 + 2,698,129.89))*365
   const apr = useAsyncMemo(async () => {
     try {
       if (!(
+        bridge &&
+        network &&
         totalRewardsPerDay &&
-        totalStaked &&
-        usdPrice
+        maticUsdPrice
       )) {
         return
       }
 
-      // TODO: use big number
-      return (Number(totalRewardsPerDay.toString()) * usdPrice * 100 * 365) / Number(totalStaked.toString())
+      const maticUsdPriceBn = parseUnits(maticUsdPrice.toString(), TOTAL_AMOUNTS_DECIMALS)
+      const token = await bridge.getCanonicalToken(network.slug)
+      let ammTotal = await bridge.getReservesTotal(network.slug)
+      ammTotal = shiftBNDecimals(ammTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
+
+      return ((maticUsdPriceBn.mul(totalRewardsPerDay)).div(ammTotal)).mul(365).mul(100)
     } catch (err) {
       console.error(err)
     }
-  }, [totalRewardsPerDay, totalStaked, usdPrice])
+  }, [bridge, network, totalRewardsPerDay, maticUsdPrice])
 
-  const aprFormatted = useMemo(() => {
-    return `${apr ? Number(apr.toFixed(2)) : '-'}%`
-  }, [apr])
+  const aprFormatted = toPercentDisplay(apr, TOTAL_AMOUNTS_DECIMALS)
 
   const stake = async () => {
     if (!stakingRewards) {

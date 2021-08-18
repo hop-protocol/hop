@@ -37,16 +37,14 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
-    if (this.isL1) {
+    if (!this.isL1) {
       return
     }
     await this.checkTransfersCommittedFromDb()
   }
 
   async checkTransfersCommittedFromDb () {
-    const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots({
-      sourceChainId: await this.bridge.getChainId()
-    })
+    const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots()
     if (dbTransferRoots.length) {
       this.logger.debug(
         `checking ${dbTransferRoots.length} unbonded transfer roots db items`
@@ -88,20 +86,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootHash })
 
     const l1Bridge = this.bridge as L1Bridge
-    const minDelaySec = await l1Bridge.getMinTransferRootBondDelaySeconds()
-    const minDelayMs = minDelaySec * 1000
-    const committedAtMs = committedAt * 1000
-    const delta = Date.now() - committedAtMs - minDelayMs
-    const shouldBond = delta > 0
-    if (!shouldBond) {
-      logger.debug(
-        `transferRootHash ${transferRootHash} too early to bond. Must wait ${Math.abs(
-          delta
-        )} seconds`
-      )
-      return
-    }
-
     const transferRootId = getTransferRootId(
       transferRootHash,
       totalAmount
@@ -152,8 +136,9 @@ class BondTransferRootWatcher extends BaseWatcher {
       const rootHash = tree.getHexRoot()
       logger.debug('calculated transfer root hash:', rootHash)
       if (rootHash !== transferRootHash) {
-        logger.warn('calculated transfer root hash does not match')
+        logger.error('calculated transfer root hash does not match')
       }
+      return
     }
 
     const availableCredit = await l1Bridge.getAvailableCredit()
@@ -174,7 +159,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
 
     logger.debug(
-      `bonding transfer root ${transferRootHash} on chain ${destinationChainId}`
+      `bonding transfer root ${transferRootHash} with dest chain ${destinationChainId}`
     )
     await this.db.transferRoots.update(transferRootHash, {
       sentBondTxAt: Date.now()

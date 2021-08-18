@@ -102,12 +102,6 @@ class TransferRootsDb extends BaseDb {
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRoots()
     return transferRoots.filter(item => {
-      if (filter?.sourceChainId) {
-        if (filter.sourceChainId !== item.sourceChainId) {
-          return false
-        }
-      }
-
       let timestampOk = true
       if (item?.sentBondTxAt) {
         timestampOk =

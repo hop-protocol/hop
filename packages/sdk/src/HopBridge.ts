@@ -878,13 +878,18 @@ class HopBridge extends Base {
    * @returns {Array} Array containing reserve amounts for canonical token
    * and hTokens.
    */
-  public async getSaddleSwapReserves (chain: TChain) {
+  public async getSaddleSwapReserves (chain: TChain = this.sourceChain) {
     const amm = this.getAmm(chain)
     const saddleSwap = await amm.getSaddleSwap()
     return Promise.all([
       saddleSwap.getTokenBalance(0),
       saddleSwap.getTokenBalance(1)
     ])
+  }
+
+  public async getReservesTotal (chain: TChain = this.sourceChain) {
+    const [reserve0, reserve1] = await this.getSaddleSwapReserves(chain)
+    return reserve0.add(reserve1)
   }
 
   /**

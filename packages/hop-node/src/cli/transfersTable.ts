@@ -18,6 +18,7 @@ program
   .option('--unbonded', 'Return only unbonded transfers')
   .option('--uncommitted', 'Return only uncommitted transfers')
   .option('--unconfirmed', 'Return only unconfirmed transfers')
+  .option('--confirmed', 'Return only confirmed transfers')
   .option('--unsettled', 'Return only unsettled transfers')
   .option('--transfer-id <string>', 'Transfer ID')
   .option('--from-date <string>', 'Start date in ISO format')
@@ -45,9 +46,6 @@ program
       if (!chain) {
         throw new Error('chain is required')
       }
-      if (!token) {
-        throw new Error('token is required')
-      }
       const printHeaders = () => {
         const headers = [
           'transfer ID'.padEnd(68, ' '),
@@ -66,7 +64,7 @@ program
         console.log(headers.join(' '))
       }
       const printTransfer = (transfer: any) => {
-        const { transferId, formattedAmount, sourceChain, destinationChain, bonded, committed, settled, transferRoot, timestampRelative } = transfer
+        const { transferId, formattedAmount, token, sourceChain, destinationChain, bonded, committed, settled, transferRoot, timestampRelative } = transfer
         const root = transferRoot?.rootHash
         const confirmed = !!transferRoot?.rootConfirmed
         const rootSet = !!transferRoot?.rootSet
@@ -109,6 +107,11 @@ program
         if (filters.unsettled && settled) {
           return false
         }
+        if (source.confirmed !== undefined) {
+          if (!confirmed) {
+            return false
+          }
+        }
         console.log(color ? chalk[color](str) : str)
       }
       if (transferId) {
@@ -128,7 +131,7 @@ program
         console.log('done')
       }
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

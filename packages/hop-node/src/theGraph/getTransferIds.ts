@@ -9,10 +9,10 @@ export default async function getTransferIds (
   filters: Partial<Filters> = {}
 ): Promise<any[]> {
   const query = `
-    query TransfersSent($token: String, $orderDirection: String, $startDate: Int, $endDate: Int) {
+    query TransfersSent(${token ? '$token: String, ' : ''}$orderDirection: String, $startDate: Int, $endDate: Int) {
       transferSents(
         where: {
-          token: $token,
+          ${token ? 'token: $token,' : ''}
           timestamp_gte: $startDate,
           timestamp_lte: $endDate
         },

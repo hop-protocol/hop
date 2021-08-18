@@ -6,10 +6,10 @@ import { getRpcProvider } from 'src/utils'
 
 export default async function getTransfer (chain: string, token: string, transferId: string): Promise<any> {
   let query = `
-    query TransferId($token: String, $transferId: String) {
+    query TransferId(${token ? '$token: String, ' : ''}$transferId: String) {
       transferSents(
         where: {
-          token: $token,
+          ${token ? 'token: $token,' : ''}
           transferId: $transferId
         },
         orderBy: timestamp,
@@ -45,6 +45,9 @@ export default async function getTransfer (chain: string, token: string, transfe
   if (!transfer) {
     return
   }
+
+  token = transfer.token
+
   transfer.sourceChain = chain
   transfer = normalizeEntity(transfer)
 

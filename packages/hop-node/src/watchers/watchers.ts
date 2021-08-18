@@ -9,7 +9,7 @@ import SyncWatcher from 'src/watchers/SyncWatcher'
 import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
-import { chainSlugToId, getRpcProviderFromUrl } from 'src/utils'
+import { chainSlugToId } from 'src/utils'
 import { config as globalConfig } from 'src/config'
 
 // TODO: refactor this file
@@ -79,26 +79,6 @@ function getStakeWatchers (
       stakeWatchers[token][network].setSiblingWatchers(stakeWatchers[token])
     }
   }
-
-  watchers.forEach(watcher => {
-    const readRpcUrl = globalConfig.networks[watcher.chainSlug].readRpcUrl
-    if (readRpcUrl) {
-      const provider = getRpcProviderFromUrl(
-        readRpcUrl
-      )
-      watcher.logger.debug(`read rpc url: ${readRpcUrl}`)
-      watcher.bridge.setReadProvider(provider)
-    }
-
-    const specialReadRpcUrl = globalConfig.networks[watcher.chainSlug].specialReadRpcUrl
-    if (specialReadRpcUrl) {
-      const provider = getRpcProviderFromUrl(
-        specialReadRpcUrl
-      )
-      watcher.logger.debug(`special read rpc url: ${specialReadRpcUrl}`)
-      watcher.bridge.setSpecialReadProvider(provider)
-    }
-  })
 
   return watchers
 }
@@ -346,12 +326,6 @@ function startWatchers (
 
   if (_config?.bonder || _config?.bonder === undefined) {
     watchers.forEach(watcher => {
-      if (globalConfig.networks[watcher.chainSlug].readRpcUrl) {
-        const provider = getRpcProviderFromUrl(
-          globalConfig.networks[watcher.chainSlug].readRpcUrl
-        )
-        watcher.bridge.setReadProvider(provider)
-      }
       if (_config.start || _config.start === undefined) {
         watcher.start()
       }

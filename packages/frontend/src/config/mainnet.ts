@@ -38,13 +38,13 @@ export const networks: Networks = {
     explorerUrl: _networks.arbitrum.explorerUrls[0],
     nativeBridgeUrl: _networks.arbitrum.nativeBridgeUrl
   },
+  */
   optimism: {
     networkId: _networks.optimism.networkId.toString(),
     rpcUrls: _networks.optimism.rpcUrls,
     explorerUrl: _networks.optimism.explorerUrls[0],
     nativeBridgeUrl: _networks.optimism.nativeBridgeUrl
   },
-  */
   xdai: {
     networkId: _networks.xdai.networkId.toString(),
     rpcUrls: _networks.xdai.rpcUrls,

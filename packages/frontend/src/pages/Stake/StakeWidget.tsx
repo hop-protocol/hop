@@ -79,12 +79,23 @@ const StakeWidget: FC<Props> = props => {
 
   const formattedStakeBalance = toTokenDisplay(stakeBalance, stakingToken?.decimals)
 
-  const maticUsdPrice = useAsyncMemo(async () => {
+  const tokenUsdPrice = useAsyncMemo(async () => {
     try {
       if (!bridge) {
         return
       }
       const token = await bridge.getL1Token()
+      return bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
+    } catch (err) {
+      console.error(err)
+    }
+  }, [bridge])
+
+  const maticUsdPrice = useAsyncMemo(async () => {
+    try {
+      if (!bridge) {
+        return
+      }
       return bridge.priceFeed.getPriceByTokenSymbol('MATIC')
     } catch (err) {
       console.error(err)
@@ -212,16 +223,16 @@ const StakeWidget: FC<Props> = props => {
   const lpPosition = useAsyncMemo(async () => {
     if (!(
       earned &&
-      maticUsdPrice &&
+      tokenUsdPrice &&
       stakeBalance &&
       stakeBalance.gt(0)
     )) {
       return
     }
 
-    const maticUsdPriceBn = BigNumber.from(maticUsdPrice * 100)
-    return (stakeBalance.add(earned)).mul(maticUsdPriceBn).div(100)
-  }, [stakeBalance, earned, maticUsdPrice])
+    const tokenUsdPriceBn = BigNumber.from(tokenUsdPrice * 100)
+    return (stakeBalance.add(earned)).mul(tokenUsdPriceBn).div(100)
+  }, [stakeBalance, earned, tokenUsdPrice])
 
   const lpPositionFormatted = lpPosition ? `$${toTokenDisplay(lpPosition, stakingToken?.decimals)}` : ''
 

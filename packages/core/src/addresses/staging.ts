@@ -40,6 +40,18 @@ export const addresses: Addresses = {
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
         bridgeDeployedBlockNumber: 16828103
+      },
+      optimism: {
+        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l1MessengerWrapper: '0x99F68f7819e0ee731fEB1486c7652E3740aE63DC',
+        l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
+        l2CanonicalToken: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607',
+        l2Bridge: '0xe22D2beDb3Eca35E6397e0C6D62857094aA26F52',
+        l2HopBridgeToken: '0x3666f603Cc164936C1b87e207F36BEBa4AC5f18a',
+        l2AmmWrapper: '0x9dA925EBE0e341D06C7074856F49d46866d83762',
+        l2SaddleSwap: '0x0e0E3d2C5c292161999474247956EF542caBF8dd',
+        l2SaddleLpToken: '0x5Da345C942cf804b306D552d343F92b69160b5Df',
+        bridgeDeployedBlockNumber: 760156
       }
     }
   }

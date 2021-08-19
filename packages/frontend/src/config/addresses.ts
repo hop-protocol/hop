@@ -37,6 +37,18 @@ if (enabledTokens) {
   addresses.tokens = filteredAddresses
 }
 
+let enabledChains : string | string[] | undefined = process.env.REACT_APP_ENABLED_CHAINS
+if (enabledChains) {
+  enabledChains = enabledChains.split(',').map(x => x.trim())
+  const filteredNetworks : {[key: string]: any} = {}
+  for (const enabledChain of enabledChains) {
+    if (networks[enabledChain]) {
+      filteredNetworks[enabledChain] = networks[enabledChain]
+    }
+  }
+  networks = filteredNetworks
+}
+
 console.log(`
     __  __
    / / / /___  ____
@@ -47,6 +59,7 @@ console.log(`
 `)
 console.log('Welcome 🐰')
 console.debug('config network:', network)
+console.debug('config chains:', networks)
 console.debug('config addresses:', addresses.tokens)
 
 export { addresses, reactAppNetwork, network, networks, isMainnet }

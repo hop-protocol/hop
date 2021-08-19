@@ -13,7 +13,7 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
-import { commafy, normalizeNumberInput, toTokenDisplay } from 'src/utils'
+import { commafy, normalizeNumberInput, toTokenDisplay, toPercentDisplay } from 'src/utils'
 import TokenWrapper from './TokenWrapper'
 import DetailRow from 'src/components/DetailRow'
 
@@ -178,10 +178,12 @@ const Pools: FC = () => {
   const canonicalTokenSymbol = canonicalToken?.symbol || ''
   const hopTokenSymbol = hopToken?.symbol || ''
 
-  const reserve0Formatted = `${commafy(poolReserves?.[0], 0) || '-'} ${canonicalTokenSymbol}`
-  const reserve1Formatted = `${commafy(poolReserves?.[1], 0) || '-'} ${hopTokenSymbol}`
+  const reserve0 = poolReserves?.[0]
+  const reserve1 = poolReserves?.[1]
+  const reserve0Formatted = `${commafy(reserve0, 0) || '-'} ${canonicalTokenSymbol}`
+  const reserve1Formatted = `${commafy(reserve1, 0) || '-'} ${hopTokenSymbol}`
   const feeFormatted = `${fee ? Number((fee * 100).toFixed(2)) : '-'}%`
-  const aprFormatted = `${apr ? Number((apr * 100).toFixed(2)) : '-'}%`
+  const aprFormatted = toPercentDisplay(apr)
   const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
   const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : ''
   const virtualPriceFormatted = virtualPrice ? `${Number(virtualPrice.toFixed(4))}` : ''

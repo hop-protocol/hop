@@ -52,7 +52,6 @@ type GetWatchersConfig = {
   settleBondedWithdrawalsThresholdPercent?: SettleBondedWithdrawalsThresholdPercent
   dryMode?: boolean
   stateUpdateAddress?: string
-  autostart?: boolean
 }
 
 type GetStakeWatchersConfig = {
@@ -87,16 +86,6 @@ export function getWatchers (config: GetWatchersConfig) {
 
   const order = () => orderNum
   const watchers : Watcher[] = []
-
-  watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
-    return new SyncWatcher({
-      chainSlug: network,
-      tokenSymbol: token,
-      isL1,
-      label,
-      bridgeContract
-    })
-  }))
 
   if (enabledWatchers.includes(Watchers.BondWithdrawal)) {
     watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
@@ -202,6 +191,29 @@ export function getWatchers (config: GetWatchersConfig) {
       networks,
       dryMode
     }))
+  }
+
+  const syncWatchers = getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+    return new SyncWatcher({
+      chainSlug: network,
+      tokenSymbol: token,
+      isL1,
+      label,
+      bridgeContract
+    })
+  })
+
+  watchers.push(...syncWatchers)
+
+  for (const watcher of watchers) {
+    watcher.setSyncWatcher(
+      findWatcher(
+        syncWatchers,
+        SyncWatcher,
+        watcher.bridge.chainSlug,
+        watcher.bridge.tokenSymbol
+      ) as SyncWatcher
+    )
   }
 
   return watchers
@@ -329,14 +341,18 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher) {
   return list
 }
 
-export function findWatcher (watchers: Watcher[], WatcherType: any, chain: string) {
+export function findWatcher (watchers: Watcher[], WatcherType: any, chain?: string, token? :string) {
   return watchers.find((watcher: Watcher) => {
-    if (watcher instanceof WatcherType) {
-      if (watcher.chainSlug === chain) {
-        return watcher
-      }
+    if (!(watcher instanceof WatcherType)) {
+      return null
     }
-    return null
+    if (chain && watcher.chainSlug != chain) {
+      return null
+    }
+    if (token && watcher.tokenSymbol != token) {
+      return null
+    }
+    return watcher
   })
 }
 

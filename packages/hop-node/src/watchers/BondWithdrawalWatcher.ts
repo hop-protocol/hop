@@ -69,7 +69,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const promises: Promise<any>[] = []
     for (const { transferId } of dbTransfers) {
-      promises.push(this.checkTransferId(transferId))
+      promises.push(this.checkTransferId(transferId).catch(err => {
+        this.logger.error(`checkTransferId error: ${err.message}`)
+      }))
     }
 
     await Promise.all(promises)

@@ -47,7 +47,6 @@ program
       const watchers = getWatchers({
         enabledWatchers: ['bondWithdrawal'],
         tokens: [token],
-        autostart: false,
         dryMode
       })
 

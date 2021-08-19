@@ -62,6 +62,7 @@ type Props = {
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
+const USD_BN_PRECISION = 100
 
 const StakeWidget: FC<Props> = props => {
   const styles = useStyles()
@@ -79,12 +80,23 @@ const StakeWidget: FC<Props> = props => {
 
   const formattedStakeBalance = toTokenDisplay(stakeBalance, stakingToken?.decimals)
 
-  const maticUsdPrice = useAsyncMemo(async () => {
+  const tokenUsdPrice = useAsyncMemo(async () => {
     try {
       if (!bridge) {
         return
       }
       const token = await bridge.getL1Token()
+      return bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
+    } catch (err) {
+      console.error(err)
+    }
+  }, [bridge])
+
+  const maticUsdPrice = useAsyncMemo(async () => {
+    try {
+      if (!bridge) {
+        return
+      }
       return bridge.priceFeed.getPriceByTokenSymbol('MATIC')
     } catch (err) {
       console.error(err)
@@ -212,16 +224,16 @@ const StakeWidget: FC<Props> = props => {
   const lpPosition = useAsyncMemo(async () => {
     if (!(
       earned &&
-      maticUsdPrice &&
+      tokenUsdPrice &&
       stakeBalance &&
       stakeBalance.gt(0)
     )) {
       return
     }
 
-    const maticUsdPriceBn = BigNumber.from(maticUsdPrice * 100)
-    return (stakeBalance.add(earned)).mul(maticUsdPriceBn).div(100)
-  }, [stakeBalance, earned, maticUsdPrice])
+    const tokenUsdPriceBn = BigNumber.from(tokenUsdPrice * USD_BN_PRECISION)
+    return (stakeBalance.add(earned)).mul(tokenUsdPriceBn).div(USD_BN_PRECISION)
+  }, [stakeBalance, earned, tokenUsdPrice])
 
   const lpPositionFormatted = lpPosition ? `$${toTokenDisplay(lpPosition, stakingToken?.decimals)}` : ''
 
@@ -238,12 +250,12 @@ const StakeWidget: FC<Props> = props => {
         return
       }
 
-      const maticUsdPriceBn = parseUnits(maticUsdPrice.toString(), TOTAL_AMOUNTS_DECIMALS)
+      const maticUsdPriceBn = BigNumber.from(maticUsdPrice * USD_BN_PRECISION)
       const token = await bridge.getCanonicalToken(network.slug)
-      let ammTotal = await bridge.getReservesTotal(network.slug)
-      ammTotal = shiftBNDecimals(ammTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
+      const ammTotal = await bridge.getReservesTotal(network.slug)
+      const ammTotal18d = shiftBNDecimals(ammTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
 
-      return ((maticUsdPriceBn.mul(totalRewardsPerDay)).div(ammTotal)).mul(365).mul(100)
+      return ((((totalRewardsPerDay).mul(maticUsdPriceBn)).div(USD_BN_PRECISION)).div(ammTotal18d)).mul(365).mul(100)
     } catch (err) {
       console.error(err)
     }

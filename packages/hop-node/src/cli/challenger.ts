@@ -24,7 +24,9 @@ program
         const config: FileConfig = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      await startChallengeWatchers(undefined, undefined, source.dryMode)
+      await startChallengeWatchers({
+        dryMode: source.dryMode
+      })
     } catch (err) {
       logger.error(err.message)
     }

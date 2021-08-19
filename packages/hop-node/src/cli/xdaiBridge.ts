@@ -1,8 +1,7 @@
 import {
   FileConfig,
   config as globalConfig,
-  parseConfigFile
-  ,
+  parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
 import { logger, program } from './shared'

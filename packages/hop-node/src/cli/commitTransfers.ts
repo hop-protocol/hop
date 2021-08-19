@@ -5,8 +5,8 @@ import {
   setGlobalConfigFromConfigFile
 } from 'src/config'
 import { chainSlugToId } from 'src/utils'
+import { findWatcher, getWatchers } from 'src/watchers/watchers'
 import { logger, program } from './shared'
-import { startWatchers } from 'src/watchers/watchers'
 
 program
   .command('commit-transfers')
@@ -43,22 +43,13 @@ program
         throw new Error('token is required')
       }
 
-      const { watchers } = startWatchers({
+      const watchers = getWatchers({
         enabledWatchers: ['commitTransfers'],
         tokens: [token],
-        start: false,
         dryMode
       })
 
-      const watcher = watchers.find(watcher => {
-        if (watcher instanceof CommitTransferWatcher) {
-          if (watcher.chainSlug === sourceChain) {
-            return watcher
-          }
-        }
-        return null
-      })
-
+      const watcher = findWatcher(watchers, CommitTransferWatcher, sourceChain) as CommitTransferWatcher
       if (!watcher) {
         throw new Error('watcher not found')
       }

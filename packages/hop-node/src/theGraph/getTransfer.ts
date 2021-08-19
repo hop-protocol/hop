@@ -103,10 +103,12 @@ export default async function getTransfer (chain: string, token: string, transfe
       if (!provider) {
         throw new Error(`provider for ${chain} not found. Check network is correct`)
       }
-      const [{ from: bondedWithdrawalFrom }, { from: settleFrom }] = await Promise.all([
+      const [bondWithdrawalTx, settleTx] = await Promise.all([
         provider.getTransaction(bondedWithdrawal?.transactionHash),
         provider.getTransaction(bondedWithdrawalSettled?.transactionHash)
       ])
+      const bondedWithdrawalFrom = bondWithdrawalTx?.from
+      const settleFrom = settleTx?.from
       if (bondedWithdrawalFrom === settleFrom) {
         transfer.settled = true
         transfer.bondedWithdrawalSettledEvent = bondedWithdrawalSettled

@@ -1,3 +1,4 @@
+import StakeWatcher from 'src/watchers/StakeWatcher'
 import { Chain } from 'src/constants'
 import {
   FileConfig,
@@ -5,6 +6,7 @@ import {
   setGlobalConfigFromConfigFile
 } from 'src/config'
 import {
+  findWatcher,
   getStakeWatchers
 } from 'src/watchers/watchers'
 
@@ -33,11 +35,11 @@ export async function staker (
     )
   }
 
-  const watchers = getStakeWatchers(
-    [token],
-    [Chain.Optimism, Chain.Arbitrum, Chain.xDai, Chain.Polygon, Chain.Ethereum]
-  )
-  const stakeWatcher = watchers[0].getSiblingWatcherByChainSlug(chain)
+  const watchers = getStakeWatchers({
+    tokens: [token],
+    networks: [Chain.Optimism, Chain.Arbitrum, Chain.xDai, Chain.Polygon, Chain.Ethereum]
+  })
+  const stakeWatcher = findWatcher(watchers, StakeWatcher, chain) as StakeWatcher
   if (action === StakerAction.Stake) {
     logger.debug('action: stake')
     if (!amount) {

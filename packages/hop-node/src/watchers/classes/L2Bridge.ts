@@ -27,29 +27,29 @@ export default class L2Bridge extends Bridge {
   constructor (l2BridgeContract: Contract) {
     super(l2BridgeContract)
 
-    if (this.getReadBridgeContract().ammWrapper) {
-      this.getReadBridgeContract()
+    if (this.bridgeContract.ammWrapper) {
+      this.bridgeContract
         .ammWrapper()
         .then((address: string) => {
           const ammWrapperContract = new Contract(
             address,
             l2AmmWrapperAbi,
-            this.getWriteBridgeContract().signer
+            this.bridgeContract.signer
           )
           this.ammWrapper = new L2AmmWrapper(ammWrapperContract)
         })
     }
 
     const l2BridgeWrapperContract = new Contract(
-      this.getWriteBridgeContract().address,
+      this.bridgeContract.address,
       l2BridgeWrapperAbi,
-      this.getWriteBridgeContract().signer
+      this.bridgeContract.signer
     )
     this.l2BridgeWrapper = new L2BridgeWrapper(l2BridgeWrapperContract)
   }
 
   async getL1Bridge (): Promise<L1Bridge> {
-    const l1BridgeAddress = await this.getReadBridgeContract().l1BridgeAddress()
+    const l1BridgeAddress = await this.bridgeContract.l1BridgeAddress()
     if (!l1BridgeAddress) {
       throw new Error('L1 bridge address not found')
     }
@@ -58,11 +58,11 @@ export default class L2Bridge extends Bridge {
 
   @rateLimitRetry
   async hToken (): Promise<Token> {
-    const tokenAddress = await this.getReadBridgeContract().hToken()
+    const tokenAddress = await this.bridgeContract.hToken()
     const tokenContract = new Contract(
       tokenAddress,
       erc20Abi,
-      this.getWriteBridgeContract().signer
+      this.bridgeContract.signer
     )
     return new Token(tokenContract)
   }
@@ -72,8 +72,8 @@ export default class L2Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<Event[]> {
-    return this.getSpecialReadBridgeContract().queryFilter(
-      this.getReadBridgeContract().filters.TransferFromL1Completed(),
+    return this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.TransferFromL1Completed(),
       startBlockNumber,
       endBlockNumber
     )
@@ -84,8 +84,8 @@ export default class L2Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<Event[]> {
-    return this.getReadBridgeContract().queryFilter(
-      this.getReadBridgeContract().filters.TransfersCommitted(),
+    return this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.TransfersCommitted(),
       startBlockNumber,
       endBlockNumber
     )
@@ -116,8 +116,8 @@ export default class L2Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<Event[]> {
-    return this.getReadBridgeContract().queryFilter(
-      this.getReadBridgeContract().filters.TransferSent(),
+    return this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.TransferSent(),
       startBlockNumber,
       endBlockNumber
     )
@@ -134,8 +134,8 @@ export default class L2Bridge extends Bridge {
   async getTransferSentTimestamp (transferId: string): Promise<number> {
     let match: Event
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.getReadBridgeContract().queryFilter(
-        this.getReadBridgeContract().filters.TransferSent(),
+      const events = await this.bridgeContract.queryFilter(
+        this.bridgeContract.filters.TransferSent(),
         start,
         end
       )
@@ -160,11 +160,11 @@ export default class L2Bridge extends Bridge {
     if (this.chainId) {
       return this.chainId
     }
-    if (!this.getReadBridgeContract()) {
+    if (!this.bridgeContract) {
       return super.getChainId()
     }
     const chainId = Number(
-      (await this.getReadBridgeContract().getChainId()).toString()
+      (await this.bridgeContract.getChainId()).toString()
     )
     this.chainId = chainId
     return chainId
@@ -180,7 +180,7 @@ export default class L2Bridge extends Bridge {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = await this.getReadBridgeContract().interface.decodeFunctionData(
+    const decoded = await this.bridgeContract.interface.decodeFunctionData(
       'commitTransfers',
       data
     )
@@ -201,7 +201,7 @@ export default class L2Bridge extends Bridge {
     let destinationChainId: number
     let attemptSwap = false
     if (methodSig === sendMethodSig) {
-      const decoded = await this.getReadBridgeContract().interface.decodeFunctionData(
+      const decoded = await this.bridgeContract.interface.decodeFunctionData(
         'send',
         data
       )
@@ -220,7 +220,7 @@ export default class L2Bridge extends Bridge {
 
   @rateLimitRetry
   async getPendingTransferByIndex (chainId: number, index: number) {
-    return this.getReadBridgeContract().pendingTransferIdsForChainId(
+    return this.bridgeContract.pendingTransferIdsForChainId(
       chainId,
       index
     )
@@ -240,7 +240,7 @@ export default class L2Bridge extends Bridge {
   async getLastCommitTimeForChainId (chainId: number): Promise<number> {
     return Number(
       (
-        await this.getReadBridgeContract().lastCommitTimeForChainId(chainId)
+        await this.bridgeContract.lastCommitTimeForChainId(chainId)
       ).toString()
     )
   }
@@ -248,13 +248,13 @@ export default class L2Bridge extends Bridge {
   @rateLimitRetry
   async getMinimumForceCommitDelay (): Promise<number> {
     return Number(
-      (await this.getReadBridgeContract().minimumForceCommitDelay()).toString()
+      (await this.bridgeContract.minimumForceCommitDelay()).toString()
     )
   }
 
   @rateLimitRetry
   async getPendingAmountForChainId (chainId: number): Promise<BigNumber> {
-    const pendingAmount = await this.getReadBridgeContract().pendingAmountForChainId(
+    const pendingAmount = await this.bridgeContract.pendingAmountForChainId(
       chainId
     )
     return pendingAmount
@@ -263,7 +263,7 @@ export default class L2Bridge extends Bridge {
   @rateLimitRetry
   async getMaxPendingTransfers (): Promise<number> {
     return Number(
-      (await this.getReadBridgeContract().maxPendingTransfers()).toString()
+      (await this.bridgeContract.maxPendingTransfers()).toString()
     )
   }
 
@@ -289,8 +289,8 @@ export default class L2Bridge extends Bridge {
   ): Promise<string | undefined> {
     let txHash: string
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.getReadBridgeContract().queryFilter(
-        this.getReadBridgeContract().filters.TransfersCommitted(),
+      const events = await this.bridgeContract.queryFilter(
+        this.bridgeContract.filters.TransfersCommitted(),
         start,
         end
       )
@@ -313,8 +313,8 @@ export default class L2Bridge extends Bridge {
   ): Promise<string | undefined> {
     let txHash: string
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.getReadBridgeContract().queryFilter(
-        this.getReadBridgeContract().filters.TransferSent(),
+      const events = await this.bridgeContract.queryFilter(
+        this.bridgeContract.filters.TransferSent(),
         start,
         end
       )
@@ -348,7 +348,7 @@ export default class L2Bridge extends Bridge {
   async commitTransfers (
     destinationChainId: number
   ): Promise<providers.TransactionResponse> {
-    const tx = await this.getWriteBridgeContract().commitTransfers(
+    const tx = await this.bridgeContract.commitTransfers(
       destinationChainId,
       await this.txOverrides()
     )
@@ -372,7 +372,7 @@ export default class L2Bridge extends Bridge {
       txOverrides.gasLimit = 1_000_000
     }
 
-    const tx = await this.getWriteBridgeContract().bondWithdrawalAndDistribute(
+    const payload = [
       recipient,
       amount,
       transferNonce,
@@ -380,7 +380,9 @@ export default class L2Bridge extends Bridge {
       amountOutMin,
       deadline,
       txOverrides
-    )
+    ]
+
+    const tx = await this.bridgeContract.bondWithdrawalAndDistribute(...payload)
 
     return tx
   }

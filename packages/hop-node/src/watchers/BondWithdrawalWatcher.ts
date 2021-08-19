@@ -2,7 +2,9 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
+import { BonderFeeTooLowError } from 'src/types/error'
 import { Contract, providers } from 'ethers'
+import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
 import { wait } from 'src/utils'
 
@@ -68,7 +70,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const promises: Promise<any>[] = []
     for (const { transferId } of dbTransfers) {
-      promises.push(this.checkTransferId(transferId))
+      promises.push(this.checkTransferId(transferId).catch(err => {
+        this.logger.error(`checkTransferId error: ${err.message}`)
+      }))
     }
 
     await Promise.all(promises)
@@ -142,7 +146,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
     const { from: sender, data } = sourceTx
-    const { attemptSwap } = await sourceL2Bridge.decodeSendData(data)
+    const attemptSwap = this.shouldAttemptSwap(dbTransfer)
 
     await this.db.transfers.update(transferId, {
       sentBondWithdrawalTxAt: Date.now()
@@ -213,9 +217,18 @@ class BondWithdrawalWatcher extends BaseWatcher {
           withdrawalBondTxError: TxError.CallException
         })
       }
+      if (err instanceof BonderFeeTooLowError) {
+        await this.db.transfers.update(transferId, {
+          withdrawalBondTxError: err.message
+        })
+      }
 
       throw err
     }
+  }
+
+  shouldAttemptSwap = (dbTransfer: Transfer): boolean => {
+    return dbTransfer.deadline > 0 && dbTransfer.amountOutMin?.gt(0)
   }
 
   sendBondWithdrawalTx = async (params: any) => {

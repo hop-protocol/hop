@@ -62,7 +62,7 @@ type Props = {
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
-const USD_BN_PRECISION = 100
+const USD_BN_PRECISION = 10000000
 
 const StakeWidget: FC<Props> = props => {
   const styles = useStyles()
@@ -253,6 +253,9 @@ const StakeWidget: FC<Props> = props => {
       const maticUsdPriceBn = BigNumber.from(maticUsdPrice * USD_BN_PRECISION)
       const token = await bridge.getCanonicalToken(network.slug)
       const ammTotal = await bridge.getReservesTotal(network.slug)
+      if (ammTotal.lte(0)) {
+        return BigNumber.from(0)
+      }
       const ammTotal18d = shiftBNDecimals(ammTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
 
       return ((((totalRewardsPerDay).mul(maticUsdPriceBn)).div(USD_BN_PRECISION)).div(ammTotal18d)).mul(365).mul(100)

@@ -165,6 +165,11 @@ class AMM extends Base {
     const saddleSwap = await this.getSaddleSwap()
     const recipient = await this.getSignerAddress()
     const isDeposit = true
+    const total = await this.getReservesTotal()
+    if (total.lte(0)) {
+      return BigNumber.from(0)
+    }
+
     return saddleSwap.calculateTokenAmount(
       recipient,
       amounts,
@@ -241,7 +246,9 @@ class AMM extends Base {
     let startBlockNumber: number
 
     const blockDater = new BlockDater(provider)
-    const date = DateTime.fromSeconds(block.timestamp)
+    //const currentTimestamp = block.timestamp
+    const currentTimestamp = (Date.now() / 1000) | 0
+    const date = DateTime.fromSeconds(currentTimestamp)
       .minus({ days: 1 })
       .toJSDate()
     const info = await blockDater.getDate(date)
@@ -355,6 +362,19 @@ class AMM extends Base {
           .div(tokenInputAmount)
           .sub(BigNumber.from(10).pow(18))
       : constants.Zero
+  }
+
+  public async getReserves () {
+    const saddleSwap = await this.getSaddleSwap()
+    return Promise.all([
+      saddleSwap.getTokenBalance(0),
+      saddleSwap.getTokenBalance(1)
+    ])
+  }
+
+  public async getReservesTotal () {
+    const [reserve0, reserve1] = await this.getReserves()
+    return reserve0.add(reserve1)
   }
 }
 

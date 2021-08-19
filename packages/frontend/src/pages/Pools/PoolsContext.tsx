@@ -67,7 +67,7 @@ type PoolsContextProps = {
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
-const USD_BN_PRECISION = 100
+const USD_BN_PRECISION = 10000000
 
 const PoolsContext = createContext<PoolsContextProps>({
   networks: [],
@@ -206,6 +206,9 @@ const PoolsContextProvider: FC = ({ children }) => {
       const tokenUsdPriceBn = BigNumber.from(tokenUsdPrice * USD_BN_PRECISION)
       const bridge = await sdk.bridge(canonicalToken.symbol)
       const ammTotal = await bridge.getReservesTotal(selectedNetwork.slug)
+      if (ammTotal.lte(0)) {
+        return 0
+      }
       const ammTotal18d = shiftBNDecimals(ammTotal, TOTAL_AMOUNTS_DECIMALS - canonicalToken.decimals)
       return Number(formatUnits(ammTotal18d.mul(tokenUsdPriceBn).div(USD_BN_PRECISION), TOTAL_AMOUNTS_DECIMALS))
     } catch (err) {
@@ -315,31 +318,35 @@ const PoolsContextProvider: FC = ({ children }) => {
   }, [sdk, canonicalToken, selectedNetwork])
 
   const updatePrices = useCallback(async () => {
-    if (!totalSupply) return
-    if (Number(token1Rate)) {
-      const price = new Price(token1Rate, '1')
-      setToken0Price(price.toFixed(2))
-      setToken1Price(price.inverted().toFixed(2))
-    }
+    try {
+      if (!totalSupply) return
+      if (Number(token1Rate)) {
+        const price = new Price(token1Rate, '1')
+        setToken0Price(price.toFixed(2))
+        setToken1Price(price.inverted().toFixed(2))
+      }
 
-    if (token0Amount && token1Amount) {
-      const amount0 =
-        (Number(token0Amount) * Number(totalSupply)) / Number(poolReserves[0])
-      const amount1 =
-        (Number(token1Amount) * Number(totalSupply)) / Number(poolReserves[1])
-      const liquidity = Math.min(amount0, amount1)
-      const sharePercentage = Math.max(
-        Math.min(
-          Number(
-            ((liquidity / (Number(totalSupply) + liquidity)) * 100).toFixed(2)
+      if (token0Amount && token1Amount) {
+        const amount0 =
+          (Number(token0Amount) * Number(totalSupply)) / Number(poolReserves[0])
+        const amount1 =
+          (Number(token1Amount) * Number(totalSupply)) / Number(poolReserves[1])
+        const liquidity = Math.min(amount0, amount1)
+        const sharePercentage = Math.max(
+          Math.min(
+            Number(
+              ((liquidity / (Number(totalSupply) + liquidity)) * 100).toFixed(2)
+            ),
+            100
           ),
-          100
-        ),
-        0
-      )
-      setPoolSharePercentage((sharePercentage || '0').toString())
-    } else {
-      setPoolSharePercentage('0')
+          0
+        )
+        setPoolSharePercentage((sharePercentage || '0').toString())
+      } else {
+        setPoolSharePercentage('0')
+      }
+    } catch (err) {
+      logger.error(err)
     }
   }, [token0Amount, totalSupply, token1Amount, token1Rate, poolReserves])
 
@@ -374,7 +381,8 @@ const PoolsContextProvider: FC = ({ children }) => {
     }
 
     update()
-  }, [canonicalToken, hopToken])
+    .catch(err => logger.error(err))
+  }, [canonicalToken, hopToken, selectedNetwork])
 
   const updateUserPoolPositions = useCallback(async () => {
     try {
@@ -415,8 +423,12 @@ const PoolsContextProvider: FC = ({ children }) => {
       const token1Deposited =
         (Number(formattedBalance) * Number(reserve1)) /
         Number(formattedTotalSupply)
-      setToken0Deposited(token0Deposited.toFixed(2))
-      setToken1Deposited(token1Deposited.toFixed(2))
+      if (token0Deposited) {
+        setToken0Deposited(token0Deposited.toFixed(2))
+      }
+      if (token1Deposited) {
+        setToken1Deposited(token1Deposited.toFixed(2))
+      }
 
       if (!Number(reserve0) && !Number(reserve1)) {
         setToken1Rate('0')
@@ -505,16 +517,6 @@ const PoolsContextProvider: FC = ({ children }) => {
         await approval1Tx?.wait()
       }
 
-      const signer = provider?.getSigner()
-      const amount0Desired = parseUnits(token0Amount || '0', canonicalToken?.decimals)
-      const amount1Desired = parseUnits(token1Amount || '0', hopToken?.decimals)
-
-      const bridge = sdk.bridge(canonicalToken.symbol)
-      const amm = bridge.getAmm(selectedNetwork.slug)
-      const minAmount0 = amount0Desired.mul(minBps).div(10000)
-      const minAmount1 = amount1Desired.mul(minBps).div(10000)
-      const minToMint = await amm.calculateAddLiquidityMinimum(minAmount0, minAmount1)
-
       const addLiquidityTx = await txConfirm?.show({
         kind: 'addLiquidity',
         inputProps: {
@@ -530,6 +532,16 @@ const PoolsContextProvider: FC = ({ children }) => {
           }
         },
         onConfirm: async () => {
+          const signer = provider?.getSigner()
+          const amount0Desired = parseUnits(token0Amount || '0', canonicalToken?.decimals)
+          const amount1Desired = parseUnits(token1Amount || '0', hopToken?.decimals)
+
+          const bridge = sdk.bridge(canonicalToken.symbol)
+          const amm = bridge.getAmm(selectedNetwork.slug)
+          const minAmount0 = amount0Desired.mul(minBps).div(10000)
+          const minAmount1 = amount1Desired.mul(minBps).div(10000)
+          const minToMint = await amm.calculateAddLiquidityMinimum(minAmount0, minAmount1)
+
           return bridge
             .connect(signer as Signer)
             .addLiquidity(

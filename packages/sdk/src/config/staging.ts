@@ -5,7 +5,8 @@ import { Chains } from './types'
 const chains: Chains = {
   ethereum: {},
   xdai: {},
-  polygon: {}
+  polygon: {},
+  optimism: {}
 }
 
 for (let chain in chains) {

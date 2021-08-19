@@ -1191,14 +1191,18 @@ export class User {
       ).toString()
     } else {
       txOptions.gasLimit = 2_000_000
-      if (network === Chain.Optimism) {
-        txOptions.gasPrice = 0
-        txOptions.gasLimit = 8_000_000
-      } else if (network === Chain.xDai) {
-        txOptions.gasPrice = 1000000000
+      if (network === Chain.xDai) {
+        txOptions.gasPrice = 1_000_000_000
         txOptions.gasLimit = 4_000_000
       }
     }
+
+    // Optimism has a constant gasPrice
+    if (network === Chain.Optimism) {
+      txOptions.gasPrice = 15_000_000
+      txOptions.gasLimit = undefined
+    }
+
     return txOptions
   }
 }

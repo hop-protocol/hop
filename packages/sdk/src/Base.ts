@@ -341,6 +341,12 @@ class Base {
         this.gasPriceMultiplier
       )
     }
+
+    if (chain.equals(Chain.Optimism)) {
+      txOptions.gasPrice = 15_000_000
+      txOptions.gasLimit = undefined
+    }
+
     return txOptions
   }
 

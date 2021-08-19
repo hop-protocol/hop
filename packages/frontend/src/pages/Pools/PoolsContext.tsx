@@ -23,6 +23,7 @@ import useInterval from 'src/hooks/useInterval'
 import useBalance from 'src/hooks/useBalance'
 import logger from 'src/logger'
 import useApprove from 'src/hooks/useApprove'
+import { shiftBNDecimals } from 'src/utils'
 
 type PoolsContextProps = {
   networks: Network[]
@@ -62,7 +63,11 @@ type PoolsContextProps = {
   apr: number | undefined,
   priceImpact: number | undefined
   virtualPrice: number | undefined
+  reserveTotalsUsd: number | undefined
 }
+
+const TOTAL_AMOUNTS_DECIMALS = 18
+const USD_BN_PRECISION = 100
 
 const PoolsContext = createContext<PoolsContextProps>({
   networks: [],
@@ -102,6 +107,7 @@ const PoolsContext = createContext<PoolsContextProps>({
   apr: undefined,
   priceImpact: undefined,
   virtualPrice: undefined,
+  reserveTotalsUsd: undefined
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -173,6 +179,39 @@ const PoolsContextProvider: FC = ({ children }) => {
     selectedNetwork,
     address
   )
+
+  const tokenUsdPrice = useAsyncMemo(async () => {
+    try {
+      if (!canonicalToken) {
+        return
+      }
+      const bridge = await sdk.bridge(canonicalToken.symbol)
+      const token = await bridge.getL1Token()
+      return bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
+    } catch (err) {
+      console.error(err)
+    }
+  }, [canonicalToken])
+
+  const reserveTotalsUsd = useAsyncMemo(async () => {
+    try {
+      if (!(
+        selectedNetwork &&
+        canonicalToken &&
+        tokenUsdPrice
+      )) {
+        return
+      }
+
+      const tokenUsdPriceBn = BigNumber.from(tokenUsdPrice * USD_BN_PRECISION)
+      const bridge = await sdk.bridge(canonicalToken.symbol)
+      const ammTotal = await bridge.getReservesTotal(selectedNetwork.slug)
+      const ammTotal18d = shiftBNDecimals(ammTotal, TOTAL_AMOUNTS_DECIMALS - canonicalToken.decimals)
+      return Number(formatUnits(ammTotal18d.mul(tokenUsdPriceBn).div(USD_BN_PRECISION), TOTAL_AMOUNTS_DECIMALS))
+    } catch (err) {
+      console.error(err)
+    }
+  }, [selectedNetwork, canonicalToken, tokenUsdPrice])
 
   useEffect(() => {
     if (!l2Networks.includes(selectedNetwork)) {
@@ -665,7 +704,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         fee,
         apr,
         priceImpact,
-        virtualPrice
+        virtualPrice,
+        reserveTotalsUsd
       }}
     >
       {children}

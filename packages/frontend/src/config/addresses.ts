@@ -37,13 +37,13 @@ if (enabledTokens) {
   addresses.tokens = filteredAddresses
 }
 
-let enabledNetworks : string | string[] | undefined = process.env.REACT_APP_ENABLED_NETWORKS
-if (enabledNetworks) {
-  enabledNetworks = enabledNetworks.split(',').map(x => x.trim())
+let enabledChains : string | string[] | undefined = process.env.REACT_APP_ENABLED_CHAINS
+if (enabledChains) {
+  enabledChains = enabledChains.split(',').map(x => x.trim())
   const filteredNetworks : {[key: string]: any} = {}
-  for (const enabledNetwork of enabledNetworks) {
-    if (networks[enabledNetwork]) {
-      filteredNetworks[enabledNetwork] = networks[enabledNetwork]
+  for (const enabledChain of enabledChains) {
+    if (networks[enabledChain]) {
+      filteredNetworks[enabledChain] = networks[enabledChain]
     }
   }
   networks = filteredNetworks

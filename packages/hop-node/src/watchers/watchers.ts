@@ -346,10 +346,10 @@ export function findWatcher (watchers: Watcher[], WatcherType: any, chain?: stri
     if (!(watcher instanceof WatcherType)) {
       return null
     }
-    if (chain && watcher.chainSlug != chain) {
+    if (chain && watcher.chainSlug !== chain) {
       return null
     }
-    if (token && watcher.tokenSymbol != token) {
+    if (token && watcher.tokenSymbol !== token) {
       return null
     }
     return watcher

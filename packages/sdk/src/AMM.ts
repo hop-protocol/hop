@@ -246,8 +246,7 @@ class AMM extends Base {
     let startBlockNumber: number
 
     const blockDater = new BlockDater(provider)
-    //const currentTimestamp = block.timestamp
-    const currentTimestamp = (Date.now() / 1000) | 0
+    const currentTimestamp = block.timestamp
     const date = DateTime.fromSeconds(currentTimestamp)
       .minus({ days: 1 })
       .toJSDate()

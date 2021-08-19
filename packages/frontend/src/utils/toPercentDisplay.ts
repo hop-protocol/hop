@@ -3,16 +3,14 @@ import { formatUnits } from 'ethers/lib/utils'
 import { Token } from '@hop-protocol/sdk'
 import { commafy } from 'src/utils'
 
-const toPercentDisplay = (value: BigNumber | undefined, decimals: number | undefined) => {
-  if (
-    !(value &&
-    decimals)
-  ) {
+const toPercentDisplay = (value: BigNumber | number | undefined, decimals: number | undefined = 0) => {
+  if (typeof value !== 'number') {
     return '-%'
   }
 
+  const num = Number(typeof decimals === 'number' ? formatUnits(value, decimals) : value.toString())
   const formatted = commafy(
-    formatUnits(value, decimals),
+    num * 100,
     2
   )
 

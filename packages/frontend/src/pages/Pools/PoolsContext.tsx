@@ -236,7 +236,7 @@ const PoolsContextProvider: FC = ({ children }) => {
           const cached = JSON.parse(localStorage.getItem(cacheKey) || '')
           const tenMinutes = 10 * 60 * 1000
           const isRecent = cached.timestamp > Date.now() - tenMinutes
-          if (cached && isRecent && cached.apr) {
+          if (cached && isRecent && typeof cached.apr === 'number') {
             setApr(cached.apr)
             return
           }

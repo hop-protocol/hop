@@ -372,7 +372,7 @@ export default class L2Bridge extends Bridge {
       txOverrides.gasLimit = 1_000_000
     }
 
-    const tx = await this.bridgeContract.bondWithdrawalAndDistribute(
+    const payload = [
       recipient,
       amount,
       transferNonce,
@@ -380,7 +380,9 @@ export default class L2Bridge extends Bridge {
       amountOutMin,
       deadline,
       txOverrides
-    )
+    ]
+
+    const tx = await this.bridgeContract.bondWithdrawalAndDistribute(...payload)
 
     return tx
   }

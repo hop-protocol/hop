@@ -12,99 +12,34 @@ import { Chain } from 'src/constants'
 import { chainSlugToId } from 'src/utils'
 import { config as globalConfig } from 'src/config'
 
-// TODO: refactor this file
+type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransferWatcher | SettleBondedWithdrawalWatcher | StakeWatcher | SyncWatcher | xDomainMessageRelayWatcher
 
-const networks: string[] = [
-  Chain.Optimism,
-  Chain.Arbitrum,
-  Chain.xDai,
-  Chain.Polygon,
-  Chain.Ethereum
-]
-
-interface StakeAmounts {
-  [key: string]: number
+enum Watchers {
+  BondWithdrawal = 'bondWithdrawal',
+  BondTransferRoot = 'bondTransferRoot',
+  SettleBondedWithdrawals = 'settleBondedWithdrawals',
+  CommitTransfers = 'commitTransfers',
+  xDomainMessageRelay = 'xDomainMessageRelay',
+  Stake = 'Stake'
 }
 
-function getStakeWatchers (
-  _tokens?: string[],
-  _networks: string[] = networks,
-  maxStakeAmounts: StakeAmounts = {},
-  dryMode: boolean = false,
-  stateUpdateAddress: string = ''
-) {
-  if (!_tokens) {
-    _tokens = Object.keys(globalConfig.tokens)
-  }
-  _networks = (_networks || networks).filter((x: string) =>
-    networks.includes(x)
-  )
-  const stakeWatchers: any = {}
-  const watchers: any[] = []
-  for (const token of _tokens) {
-    for (const network of _networks) {
-      const chainId = chainSlugToId(network)
-      const tokenContracts = contracts.get(token, network)
-      if (!tokenContracts) {
-        continue
-      }
-      let bridgeContract = tokenContracts.l2Bridge
-      let tokenContract = tokenContracts.l2HopBridgeToken
-      if (network === Chain.Ethereum) {
-        bridgeContract = tokenContracts.l1Bridge
-        tokenContract = tokenContracts.l1CanonicalToken
-      }
-
-      const stakeWatcher = new StakeWatcher({
-        isL1: network === Chain.Ethereum,
-        chainSlug: network,
-        tokenSymbol: token,
-        label: `${network}.${token}`,
-        bridgeContract,
-        tokenContract,
-        stakeMinThreshold: 0,
-        maxStakeAmount: maxStakeAmounts[token],
-        dryMode,
-        stateUpdateAddress
-      })
-
-      stakeWatchers[token] = stakeWatchers[token] || {}
-      stakeWatchers[token][chainId] = stakeWatcher
-      watchers.push(stakeWatcher)
-    }
-  }
-
-  for (const token in stakeWatchers) {
-    for (const network in stakeWatchers[token]) {
-      stakeWatchers[token][network].setSiblingWatchers(stakeWatchers[token])
-    }
-  }
-
-  return watchers
+type StakeAmounts = {
+  [token: string]: number
 }
 
-function startStakeWatchers (
-  _tokens?: string[],
-  _networks: string[] = networks,
-  maxStakeAmounts: StakeAmounts = {},
-  dryMode: boolean = false,
-  stateUpdateAddress: string = '',
-  start: boolean = true
-) {
-  const watchers = getStakeWatchers(
-    _tokens,
-    _networks,
-    maxStakeAmounts,
-    dryMode,
-    stateUpdateAddress
-  )
-  if (start || start === undefined) {
-    watchers.forEach(watcher => watcher.start())
-  }
-  return watchers
+type CommitTransfersMinThresholdAmounts = {
+  [token: string]: any
 }
 
-type Config = {
+type BondWithdrawalAmounts = {
+  [token: string]: any
+}
+
+type SettleBondedWithdrawalsThresholdPercent = {
+  [token: string]: any
+}
+
+type GetWatchersConfig = {
   enabledWatchers?: string[]
   order?: number
   tokens?: string[]
@@ -112,68 +47,49 @@ type Config = {
   bonder?: boolean
   challenger?: boolean
   maxStakeAmounts?: StakeAmounts
-  commitTransfersMinThresholdAmounts?: any
-  bondWithdrawalAmounts?: any
-  settleBondedWithdrawalsThresholdPercent?: any
+  commitTransfersMinThresholdAmounts?: CommitTransfersMinThresholdAmounts
+  bondWithdrawalAmounts?: BondWithdrawalAmounts
+  settleBondedWithdrawalsThresholdPercent?: SettleBondedWithdrawalsThresholdPercent
   dryMode?: boolean
   stateUpdateAddress?: string
-  start?: boolean
 }
 
-function startWatchers (
-  _config: Config = {
-    enabledWatchers: [],
-    order: 0,
-    tokens: Object.keys(globalConfig.tokens),
-    networks: networks,
-    bonder: true,
-    challenger: false,
-    maxStakeAmounts: {},
-    commitTransfersMinThresholdAmounts: {},
-    settleBondedWithdrawalsThresholdPercent: {},
-    bondWithdrawalAmounts: {},
-    dryMode: false,
-    stateUpdateAddress: '',
-    start: true
-  }
-) {
-  const enabledWatchers = _config.enabledWatchers || []
-  const orderNum = _config.order || 0
-  let _tokens = _config.tokens
-  let _networks = (_config.networks || []).filter(x => networks.includes(x))
-  if (!_tokens || !_tokens.length) {
-    _tokens = Object.keys(globalConfig.tokens)
-  }
-  if (!_networks.length) {
-    _networks = networks
-  }
-  const dryMode = _config.dryMode
-  const stateUpdateAddress = _config.stateUpdateAddress
-  const watchers: any[] = []
+type GetStakeWatchersConfig = {
+  tokens?: string[]
+  networks?: string[]
+  maxStakeAmounts?: StakeAmounts
+  dryMode?: boolean
+  stateUpdateAddress?: string,
+}
 
-  const order = () => {
-    return orderNum
-  }
+type GetChallengeWatchersConfig = {
+  tokens?: string[]
+  networks?: string[]
+  dryMode?: boolean
+}
 
-  const bondWithdrawalWatchers: any = {}
-  const bondTransferRootWatchers: any = {}
-  const settleBondedWithdrawalWatchers: any = {}
-  const commitTransferWatchers: any = {}
-  const syncWatchers: any = {}
-  for (const network of _networks) {
-    const chainId = chainSlugToId(network)
-    for (const token of _tokens) {
-      if (!contracts.has(token, network)) {
-        continue
-      }
-      const label = `${network}.${token}`
-      const isL1 = network === Chain.Ethereum
+export function getWatchers (config: GetWatchersConfig) {
+  const {
+    enabledWatchers = [],
+    order: orderNum = 0,
+    tokens = getAllTokens(),
+    networks = getAllChains(),
+    bonder = true,
+    challenger = false,
+    maxStakeAmounts = {},
+    commitTransfersMinThresholdAmounts = {},
+    settleBondedWithdrawalsThresholdPercent = {},
+    bondWithdrawalAmounts = {},
+    dryMode = false,
+    stateUpdateAddress
+  } = config
 
-      const bridgeContract = isL1
-        ? contracts.get(token, Chain.Ethereum).l1Bridge
-        : contracts.get(token, network).l2Bridge
+  const order = () => orderNum
+  const watchers : Watcher[] = []
 
-      const bondWithdrawalWatcher = new BondWithdrawalWatcher({
+  if (enabledWatchers.includes(Watchers.BondWithdrawal)) {
+    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+      return new BondWithdrawalWatcher({
         chainSlug: network,
         tokenSymbol: token,
         order,
@@ -183,32 +99,12 @@ function startWatchers (
         dryMode,
         stateUpdateAddress
       })
+    }))
+  }
 
-      bondWithdrawalWatchers[token] = bondWithdrawalWatchers[token] || {}
-      bondWithdrawalWatchers[token][chainId] = bondWithdrawalWatcher
-      if (enabledWatchers.includes('bondWithdrawal')) {
-        watchers.push(bondWithdrawalWatcher)
-      }
-
-      if (isL1) {
-        const bondTransferRootWatcher = new BondTransferRootWatcher({
-          chainSlug: network,
-          tokenSymbol: token,
-          order,
-          label,
-          bridgeContract,
-          dryMode,
-          stateUpdateAddress
-        })
-
-        bondTransferRootWatchers[token] = bondTransferRootWatchers[token] || {}
-        bondTransferRootWatchers[token][chainId] = bondTransferRootWatcher
-        if (enabledWatchers.includes('bondTransferRoot')) {
-          watchers.push(bondTransferRootWatcher)
-        }
-      }
-
-      const settleBondedWithdrawalWatcher = new SettleBondedWithdrawalWatcher({
+  if (enabledWatchers.includes(Watchers.SettleBondedWithdrawals)) {
+    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+      return new SettleBondedWithdrawalWatcher({
         chainSlug: network,
         tokenSymbol: token,
         order,
@@ -216,25 +112,19 @@ function startWatchers (
         isL1,
         bridgeContract,
         dryMode,
-        minThresholdPercent:
-          _config.settleBondedWithdrawalsThresholdPercent?.[token],
+        minThresholdPercent: settleBondedWithdrawalsThresholdPercent?.[token],
         stateUpdateAddress
       })
+    }))
+  }
 
-      settleBondedWithdrawalWatchers[token] =
-        settleBondedWithdrawalWatchers[token] || {}
-      settleBondedWithdrawalWatchers[token][
-        chainId
-      ] = settleBondedWithdrawalWatcher
-      if (enabledWatchers.includes('settleBondedWithdrawals')) {
-        watchers.push(settleBondedWithdrawalWatcher)
-      }
-
+  if (enabledWatchers.includes(Watchers.CommitTransfers)) {
+    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
       // note: the second option is for backward compatibility.
       // remove it once all bonders have updated to use chain specific config.
-      const minThresholdAmount = _config.commitTransfersMinThresholdAmounts?.[network]?.[token] || _config.commitTransfersMinThresholdAmounts?.[token]
+      const minThresholdAmount = commitTransfersMinThresholdAmounts?.[network]?.[token] || commitTransfersMinThresholdAmounts?.[token]
 
-      const commitTransferWatcher = new CommitTransferWatcher({
+      return new CommitTransferWatcher({
         chainSlug: network,
         tokenSymbol: token,
         order,
@@ -245,117 +135,95 @@ function startWatchers (
         dryMode,
         stateUpdateAddress
       })
+    }))
+  }
 
-      commitTransferWatchers[token] = commitTransferWatchers[token] || {}
-      commitTransferWatchers[token][chainId] = commitTransferWatcher
-
-      if (enabledWatchers.includes('commitTransfers')) {
-        watchers.push(commitTransferWatcher)
+  if (enabledWatchers.includes(Watchers.BondTransferRoot)) {
+    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+      if (!isL1) {
+        return
       }
+      return new BondTransferRootWatcher({
+        chainSlug: network,
+        tokenSymbol: token,
+        order,
+        label,
+        bridgeContract,
+        dryMode,
+        stateUpdateAddress
+      })
+    }))
+  }
 
-      if (network !== Chain.Ethereum) {
-        const l2ExitWatcher = new xDomainMessageRelayWatcher({
-          chainSlug: network,
-          tokenSymbol: token,
-          isL1,
-          label: `${network}.${token}`,
-          token,
-          bridgeContract,
-          l1BridgeContract: contracts.get(token, Chain.Ethereum).l1Bridge,
-          dryMode
-        })
-
-        if (enabledWatchers.includes('xDomainMessageRelay')) {
-          watchers.push(l2ExitWatcher)
-        }
+  if (enabledWatchers.includes(Watchers.xDomainMessageRelay)) {
+    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+      if (isL1) {
+        return
       }
-
-      const syncWatcher = new SyncWatcher({
+      return new xDomainMessageRelayWatcher({
         chainSlug: network,
         tokenSymbol: token,
         isL1,
-        label: `${network}.${token}`,
-        bridgeContract
+        label,
+        token,
+        bridgeContract,
+        l1BridgeContract: contracts.get(token, Chain.Ethereum).l1Bridge,
+        dryMode
       })
-
-      syncWatchers[token] = syncWatchers[token] || {}
-      syncWatchers[token][chainId] = syncWatcher
-      watchers.push(syncWatcher)
-    }
+    }))
   }
 
-  for (const token in syncWatchers) {
-    for (const network in syncWatchers[token]) {
-      syncWatchers[token][network].setSiblingWatchers(
-        syncWatchers[token]
-      )
-    }
-  }
-
-  for (const token in bondTransferRootWatchers) {
-    for (const network in bondTransferRootWatchers[token]) {
-      bondTransferRootWatchers[token][network].setSiblingWatchers(
-        bondTransferRootWatchers[token]
-      )
-    }
-  }
-
-  for (const token in bondWithdrawalWatchers) {
-    for (const network in bondWithdrawalWatchers[token]) {
-      bondWithdrawalWatchers[token][network].setSiblingWatchers(
-        bondWithdrawalWatchers[token]
-      )
-    }
-  }
-
-  for (const token in commitTransferWatchers) {
-    for (const network in commitTransferWatchers[token]) {
-      commitTransferWatchers[token][network].setSiblingWatchers(
-        commitTransferWatchers[token]
-      )
-    }
-  }
-
-  for (const token in settleBondedWithdrawalWatchers) {
-    for (const network in settleBondedWithdrawalWatchers[token]) {
-      settleBondedWithdrawalWatchers[token][network].setSiblingWatchers(
-        settleBondedWithdrawalWatchers[token]
-      )
-    }
-  }
-
-  if (_config?.bonder || _config?.bonder === undefined) {
-    watchers.forEach(watcher => {
-      if (_config.start || _config.start === undefined) {
-        watcher.start()
-      }
-    })
-    if (enabledWatchers.includes('stake')) {
-      watchers.push(
-        ...startStakeWatchers(
-          _tokens,
-          _networks,
-          _config.maxStakeAmounts,
-          dryMode,
-          stateUpdateAddress,
-          _config.start
-        )
-      )
-    }
-  }
-
-  if (_config?.challenger) {
-    watchers.push(...startChallengeWatchers(_tokens, _networks, dryMode))
-  }
-
-  for (const watcher of watchers) {
-    watcher.setSyncWatcher(
-      syncWatchers[watcher.bridge.tokenSymbol][watcher.bridge.chainId]
+  if (enabledWatchers.includes(Watchers.Stake)) {
+    watchers.push(
+      ...getStakeWatchers({
+        tokens,
+        networks,
+        maxStakeAmounts,
+        dryMode,
+        stateUpdateAddress
+      })
     )
   }
 
+  if (challenger) {
+    watchers.push(...getChallengeWatchers({
+      tokens,
+      networks,
+      dryMode
+    }))
+  }
+
+  const syncWatchers = getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+    return new SyncWatcher({
+      chainSlug: network,
+      tokenSymbol: token,
+      isL1,
+      label,
+      bridgeContract
+    })
+  })
+
+  watchers.push(...syncWatchers)
+
+  for (const watcher of watchers) {
+    watcher.setSyncWatcher(
+      findWatcher(
+        syncWatchers,
+        SyncWatcher,
+        watcher.bridge.chainSlug,
+        watcher.bridge.tokenSymbol
+      ) as SyncWatcher
+    )
+  }
+
+  return watchers
+}
+
+export function startWatchers (config: GetWatchersConfig) {
+  const watchers = getWatchers(config)
+  watchers.forEach((watcher: Watcher) => watcher.start())
   const stop = () => {
-    return watchers.map(watcher => {
+    return watchers.map((watcher: Watcher) => {
       return watcher.stop()
     })
   }
@@ -363,87 +231,135 @@ function startWatchers (
   return { stop, watchers }
 }
 
-function startChallengeWatchers (
-  _tokens?: string[],
-  _networks?: string[],
-  dryMode?: boolean
-) {
-  if (!_tokens) {
-    _tokens = Object.keys(globalConfig.tokens)
-  }
-  if (!_networks) {
-    _tokens = Object.keys(globalConfig.networks)
+export function startChallengeWatchers (config: GetChallengeWatchersConfig) {
+  const watchers = getChallengeWatchers(config)
+  watchers.forEach((watcher: Watcher) => watcher.start())
+  const stop = () => {
+    return watchers.map((watcher: Watcher) => {
+      return watcher.stop()
+    })
   }
 
-  const watchers: any[] = []
-  const challengeWatchers: any = {}
-  for (const token of _tokens) {
-    for (const network of _networks) {
+  return { stop, watchers }
+}
+
+export function getStakeWatchers (config: GetStakeWatchersConfig) {
+  const {
+    tokens = getAllTokens(),
+    networks = getAllChains(),
+    maxStakeAmounts = {},
+    dryMode = false,
+    stateUpdateAddress
+  } = config
+
+  const watchers = getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+    return new StakeWatcher({
+      isL1,
+      chainSlug: network,
+      tokenSymbol: token,
+      label,
+      bridgeContract,
+      tokenContract,
+      stakeMinThreshold: 0,
+      maxStakeAmount: maxStakeAmounts[token],
+      dryMode,
+      stateUpdateAddress
+    })
+  })
+
+  return watchers
+}
+
+export function getChallengeWatchers (config: GetChallengeWatchersConfig) {
+  const {
+    tokens = getAllTokens(),
+    networks = getAllChains(),
+    dryMode = false
+  } = config
+
+  const watchers = getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+    return new ChallengeWatcher({
+      chainSlug: network,
+      bridgeContract,
+      tokenSymbol: token,
+      isL1,
+      label,
+      dryMode
+    })
+  })
+
+  return watchers
+}
+
+function getSiblingWatchers (config: any, init: (conf: any) => Watcher) {
+  const {
+    tokens = getAllTokens(),
+    networks = getAllChains()
+  } = config
+  const watchers: {[token: string]: {[chainId: string]: Watcher}} = {}
+  const list: Watcher[] = []
+
+  for (const token of tokens) {
+    for (const network of networks) {
+      const label = `${network}.${token}`
+      const isL1 = network === Chain.Ethereum
+      const chainId = chainSlugToId(network)
       if (!contracts.has(token, network)) {
         continue
       }
-      const isL1 = network === Chain.Ethereum
-      const bridgeContract = isL1
-        ? contracts.get(token, Chain.Ethereum).l1Bridge
-        : contracts.get(token, network).l2Bridge
-      const chainId = chainSlugToId(network)
-      const challengeWatcher = new ChallengeWatcher({
-        chainSlug: network,
+      const tokenContracts = contracts.get(token, network)
+      let bridgeContract = tokenContracts.l2Bridge
+      let tokenContract = tokenContracts.l2HopBridgeToken
+      if (network === Chain.Ethereum) {
+        bridgeContract = tokenContracts.l1Bridge
+        tokenContract = tokenContracts.l1CanonicalToken
+      }
+
+      const watcher = init({
+        network,
+        token,
         bridgeContract,
-        tokenSymbol: token,
+        tokenContract,
         isL1,
-        label: `${network}.${token}`,
-        dryMode: dryMode
+        label
       })
-      challengeWatchers[token] = challengeWatchers[token] || {}
-      challengeWatchers[token][chainId] = challengeWatcher
-      watchers.push(challengeWatcher)
-    }
-    for (const network in challengeWatchers[token]) {
-      challengeWatchers[token][network].setSiblingWatchers(
-        challengeWatchers[token]
-      )
+      if (!watcher) {
+        continue
+      }
+      watchers[token] = watchers[token] || {}
+      watchers[token][chainId] = watcher
+      list.push(watcher)
     }
   }
 
-  watchers.forEach(watcher => watcher.start())
-  return watchers
-}
-
-function startCommitTransferWatchers () {
-  const watchers: any[] = []
-  const tokens = Object.keys(globalConfig.tokens)
-  for (const network of networks) {
-    for (const token of tokens) {
-      /*
-      watchers.push(
-        new CommitTransferWatcher({
-          chainSlug: network,
-          label: network,
-          l2BridgeContract: contracts.get[token][network].l2Bridge,
-          // TODO
-          contracts: {
-            '1': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '42': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '5': contracts.get(token, ETHEREUM)?.l1Bridge,
-            '69': contracts.get(token, OPTIMISM)?.l2Bridge,
-            '79377087078960': contracts.get(token, ARBITRUM)?.l2Bridge,
-            '77': contracts.get(token, XDAI)?.l2Bridge,
-            '80001': contracts.get(token, POLYGON)?.l2Bridge
-          }
-        })
-      )
-      */
+  for (const token in watchers) {
+    for (const network in watchers[token]) {
+      watchers[token][network].setSiblingWatchers(watchers[token])
     }
   }
-  watchers.forEach(watcher => watcher.start())
-  return watchers
+
+  return list
 }
 
-export {
-  startWatchers,
-  getStakeWatchers,
-  startStakeWatchers,
-  startChallengeWatchers,
-  startCommitTransferWatchers
+export function findWatcher (watchers: Watcher[], WatcherType: any, chain?: string, token? :string) {
+  return watchers.find((watcher: Watcher) => {
+    if (!(watcher instanceof WatcherType)) {
+      return null
+    }
+    if (chain && watcher.chainSlug !== chain) {
+      return null
+    }
+    if (token && watcher.tokenSymbol !== token) {
+      return null
+    }
+    return watcher
+  })
+}
+
+function getAllChains () {
+  return Object.keys(globalConfig.networks)
+}
+
+function getAllTokens () {
+  return Object.keys(globalConfig.tokens)
 }

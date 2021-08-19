@@ -2,6 +2,7 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
+import { BonderFeeTooLowError } from 'src/types/error'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
@@ -69,7 +70,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const promises: Promise<any>[] = []
     for (const { transferId } of dbTransfers) {
-      promises.push(this.checkTransferId(transferId))
+      promises.push(this.checkTransferId(transferId).catch(err => {
+        this.logger.error(`checkTransferId error: ${err.message}`)
+      }))
     }
 
     await Promise.all(promises)
@@ -212,6 +215,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
       if (isCallExceptionError) {
         await this.db.transfers.update(transferId, {
           withdrawalBondTxError: TxError.CallException
+        })
+      }
+      if (err instanceof BonderFeeTooLowError) {
+        await this.db.transfers.update(transferId, {
+          withdrawalBondTxError: err.message
         })
       }
 

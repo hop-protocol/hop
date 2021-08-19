@@ -2,11 +2,14 @@ import ContractBase from './ContractBase'
 import delay from 'src/decorators/delay'
 import queue from 'src/decorators/queue'
 import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
+import shiftBNDecimals from 'src/utils/shiftBNDecimals'
 import unique from 'src/utils/unique'
 import { BigNumber, Contract, constants, utils as ethersUtils, providers } from 'ethers'
+import { BonderFeeTooLowError } from 'src/types/error'
 import { Chain } from 'src/constants'
 import { Db, getDbSet } from 'src/db'
 import { Event } from 'src/types'
+import { PriceFeed } from 'src/priceFeed'
 import { State } from 'src/db/SyncStateDb'
 import { boundClass } from 'autobind-decorator'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -35,6 +38,7 @@ export default class Bridge extends ContractBase {
   minBondWithdrawalAmount: BigNumber
   maxBondWithdrawalAmount: BigNumber
   stateUpdateAddress: string
+  priceFeed: PriceFeed = new PriceFeed()
 
   constructor (bridgeContract: Contract) {
     super(bridgeContract)
@@ -472,12 +476,22 @@ export default class Bridge extends ContractBase {
     transferNonce: string,
     bonderFee: BigNumber
   ): Promise<providers.TransactionResponse> {
-    const tx = await this.bridgeContract.bondWithdrawal(
+    const txOverrides = await this.txOverrides()
+    const payload = [
       recipient,
       amount,
       transferNonce,
       bonderFee,
-      await this.txOverrides()
+      txOverrides
+    ]
+
+    // don't bond if bonder fee is too low
+    if (this.chainSlug === Chain.Ethereum) {
+      const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
+      await this.compareBonderFeeCost(bonderFee, gasLimit, txOverrides.gasPrice)
+    }
+
+    const tx = await this.bridgeContract.bondWithdrawal(
     )
 
     return tx
@@ -520,6 +534,22 @@ export default class Bridge extends ContractBase {
   async getEthBalance (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
     return this.getBalance(bonder)
+  }
+
+  async compareBonderFeeCost (bonderFee: BigNumber, gasLimit: BigNumber, gasPrice: BigNumber) {
+    const gasCost = gasLimit.mul(gasPrice)
+
+    const ethUsdPrice = await this.priceFeed.getPriceByTokenSymbol('ETH')
+    const tokenUsdPrice = await this.priceFeed.getPriceByTokenSymbol(this.tokenSymbol)
+    const tokenUsdPriceBn = BigNumber.from(ethUsdPrice * 100)
+    const ethUsdPriceBn = BigNumber.from(tokenUsdPrice * 100)
+    const bonderFee18d = shiftBNDecimals(bonderFee, 18 - this.tokenDecimals)
+    const usdBonderFee = bonderFee18d.mul(tokenUsdPriceBn).div(100)
+    const usdGasCost = gasCost.mul(ethUsdPriceBn).div(100)
+
+    if (bonderFee.eq(0) || (bonderFee.div(2)).lt(gasCost)) {
+      throw new BonderFeeTooLowError()
+    }
   }
 
   formatUnits (value: BigNumber) {

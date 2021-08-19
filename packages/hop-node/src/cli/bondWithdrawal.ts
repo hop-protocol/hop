@@ -5,7 +5,8 @@ import {
   setGlobalConfigFromConfigFile
 } from 'src/config'
 import {
-  startWatchers
+  findWatcher,
+  getWatchers
 } from 'src/watchers/watchers'
 
 import { logger, program } from './shared'
@@ -43,22 +44,13 @@ program
         throw new Error('transfer ID is required')
       }
 
-      const { watchers } = startWatchers({
+      const watchers = getWatchers({
         enabledWatchers: ['bondWithdrawal'],
         tokens: [token],
-        start: false,
         dryMode
       })
 
-      const watcher = watchers.find(watcher => {
-        if (watcher instanceof BondWithdrawalWatcher) {
-          if (watcher.chainSlug === chain) {
-            return watcher
-          }
-        }
-        return null
-      })
-
+      const watcher = findWatcher(watchers, BondWithdrawalWatcher, chain) as BondWithdrawalWatcher
       if (!watcher) {
         throw new Error('watcher not found')
       }

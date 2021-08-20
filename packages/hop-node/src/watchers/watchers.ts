@@ -148,6 +148,7 @@ export function getWatchers (config: GetWatchersConfig) {
         tokenSymbol: token,
         order,
         label,
+        isL1,
         bridgeContract,
         dryMode,
         stateUpdateAddress

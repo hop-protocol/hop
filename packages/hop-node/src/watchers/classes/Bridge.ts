@@ -487,7 +487,7 @@ export default class Bridge extends ContractBase {
 
     // don't bond if bonder fee is too low
     if (this.chainSlug === Chain.Ethereum) {
-      const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
+      const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
       await this.compareBonderFeeCost(bonderFee, gasLimit, txOverrides.gasPrice)
     }
 

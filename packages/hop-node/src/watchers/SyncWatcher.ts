@@ -448,7 +448,7 @@ class SyncWatcher extends BaseWatcher {
           const transaction = await sourceBridge.getTransaction(
             event.transactionHash
           )
-          const eventDestinationChainId = Number(event.args.destinationChainId.toString())
+          const eventDestinationChainId = Number(event.args.chainId.toString())
           const isSameChainId = eventDestinationChainId === destinationChainId
           if (!isSameChainId) {
             continue

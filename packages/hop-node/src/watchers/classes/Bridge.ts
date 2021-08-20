@@ -491,8 +491,7 @@ export default class Bridge extends ContractBase {
       await this.compareBonderFeeCost(bonderFee, gasLimit, txOverrides.gasPrice)
     }
 
-    const tx = await this.bridgeContract.bondWithdrawal(
-    )
+    const tx = await this.bridgeContract.bondWithdrawal(...payload)
 
     return tx
   }

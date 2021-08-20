@@ -161,13 +161,35 @@ const Send: FC = () => {
     true
   )
 
+  const isUnsupportedAsset = useMemo(() => {
+    return selectedBridge?.getTokenSymbol() === 'MATIC' && (
+      fromNetwork?.slug === 'optimism' || toNetwork?.slug === 'optimism'
+    )
+  }, [selectedBridge, fromNetwork, toNetwork])
+
+  useEffect(() => {
+    if (isUnsupportedAsset) {
+      setError('MATIC is currently not supported on Optimism')
+    } else {
+      setError('')
+    }
+  }, [isUnsupportedAsset])
+
   const sourceToken = useMemo(() => {
-    if (!fromNetwork || !selectedBridge) return
-    return selectedBridge.getCanonicalToken(fromNetwork?.slug)
+    try {
+      if (!fromNetwork || !selectedBridge) return
+      return selectedBridge.getCanonicalToken(fromNetwork?.slug)
+    } catch (err) {
+      logger.error(err)
+    }
   }, [selectedBridge, fromNetwork])
   const destToken = useMemo(() => {
-    if (!toNetwork || !selectedBridge) return
-    return selectedBridge.getCanonicalToken(toNetwork?.slug)
+    try {
+      if (!toNetwork || !selectedBridge) return
+      return selectedBridge.getCanonicalToken(toNetwork?.slug)
+    } catch (err) {
+      logger.error(err)
+    }
   }, [selectedBridge, toNetwork])
   const placeholderToken = useMemo(() => {
     if (!selectedBridge) return
@@ -774,7 +796,7 @@ const Send: FC = () => {
       </div>
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <Alert severity="warning" text={warning} />
-      <SendButton sending={sending} disabled={!validFormFields} onClick={send}>
+      <SendButton sending={sending} disabled={!validFormFields || isUnsupportedAsset} onClick={send}>
         {buttonText}
       </SendButton>
       <br />

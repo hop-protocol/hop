@@ -15,16 +15,20 @@ const useAvailableLiquidity = (
   }, [destinationChain])
 
   const updateAvailableLiquidity = async () => {
-    if (!bridge) {
-      setAvailableLiquidity(undefined)
-      return
-    }
+    try {
+      if (!bridge) {
+        setAvailableLiquidity(undefined)
+        return
+      }
 
-    let liquidity
-    if (destinationChain) {
-      liquidity = await bridge.getAvailableLiquidity(destinationChain)
+      let liquidity
+      if (destinationChain) {
+        liquidity = await bridge.getAvailableLiquidity(destinationChain)
+      }
+      setAvailableLiquidity(liquidity)
+    } catch (err) {
+      setAvailableLiquidity(undefined)
     }
-    setAvailableLiquidity(liquidity)
   }
 
   useInterval(() => {

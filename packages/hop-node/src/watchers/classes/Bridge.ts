@@ -537,17 +537,18 @@ export default class Bridge extends ContractBase {
   }
 
   async compareBonderFeeCost (bonderFee: BigNumber, gasLimit: BigNumber, gasPrice: BigNumber) {
+    const usdBNPrecision = 10000000
+    const ethDecimals = 18
     const gasCost = gasLimit.mul(gasPrice)
-
     const ethUsdPrice = await this.priceFeed.getPriceByTokenSymbol('ETH')
     const tokenUsdPrice = await this.priceFeed.getPriceByTokenSymbol(this.tokenSymbol)
-    const tokenUsdPriceBn = BigNumber.from(ethUsdPrice * 100)
-    const ethUsdPriceBn = BigNumber.from(tokenUsdPrice * 100)
-    const bonderFee18d = shiftBNDecimals(bonderFee, 18 - this.tokenDecimals)
-    const usdBonderFee = bonderFee18d.mul(tokenUsdPriceBn).div(100)
-    const usdGasCost = gasCost.mul(ethUsdPriceBn).div(100)
-
-    if (bonderFee.eq(0) || (bonderFee.div(2)).lt(gasCost)) {
+    const tokenUsdPriceBn = BigNumber.from(ethUsdPrice * usdBNPrecision)
+    const ethUsdPriceBn = BigNumber.from(tokenUsdPrice * usdBNPrecision)
+    const bonderFee18d = shiftBNDecimals(bonderFee, ethDecimals - this.tokenDecimals)
+    const usdBonderFee = bonderFee18d.mul(tokenUsdPriceBn).div(usdBNPrecision)
+    const usdGasCost = gasCost.mul(ethUsdPriceBn).div(usdBNPrecision)
+    const isTooLow = bonderFee.eq(0) || (usdBonderFee.div(2)).lt(usdGasCost)
+    if (isTooLow) {
       throw new BonderFeeTooLowError()
     }
   }

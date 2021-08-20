@@ -10,6 +10,7 @@ export interface Config {
   chainSlug: string
   tokenSymbol: string
   bridgeContract: Contract
+  isL1: boolean
   label: string
   isL1: boolean
   order?: () => number
@@ -27,6 +28,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       tag: 'BondTransferRootWatcher',
       prefix: config.label,
       logColor: 'cyan',
+      isL1: config.isL1,
       order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,

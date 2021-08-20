@@ -1,13 +1,16 @@
+import L1Bridge from 'src/watchers/classes/L1Bridge'
+import L2Bridge from 'src/watchers/classes/L2Bridge'
+import Token from 'src/watchers/classes/Token'
+import contracts from 'src/contracts'
+import { BigNumber } from 'ethers'
+import { Chain } from 'src/constants'
 import {
   FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
+import { chainSlugToId } from 'src/utils'
 import { logger, program } from './shared'
-
-import Token from 'src/watchers/classes/Token'
-import contracts from 'src/contracts'
-import { Chain } from 'src/constants'
 
 async function sendTokens (
   fromChain: string,
@@ -27,37 +30,83 @@ async function sendTokens (
   if (!tokenContracts) {
     throw new Error('token contracts not found')
   }
-  let instance: Token
+  let tokenClass: Token
+  let bridge: L1Bridge | L2Bridge
   if (fromChain === Chain.Ethereum) {
-    instance = new Token(tokenContracts.l1CanonicalToken)
+    tokenClass = new Token(tokenContracts.l1CanonicalToken)
+    bridge = new L1Bridge(tokenContracts.l1Bridge)
   } else {
+    bridge = new L2Bridge(tokenContracts.l2Bridge)
     if (isHToken) {
-      instance = new Token(tokenContracts.l2HopBridgeToken)
+      tokenClass = new Token(tokenContracts.l2HopBridgeToken)
     } else {
-      instance = new Token(tokenContracts.l2CanonicalToken)
+      tokenClass = new Token(tokenContracts.l2CanonicalToken)
     }
   }
 
+  const signer = tokenClass.contract.signer
   if (!recipient) {
-    recipient = await instance.contract.signer.getAddress()
+    recipient = await signer.getAddress()
   }
   if (!recipient) {
     throw new Error('recipient address is required')
   }
 
-  let balance = await instance.getBalance()
+  const isNativeToken = token === 'MATIC' && fromChain === Chain.Polygon
+  let balance : BigNumber
+  if (isNativeToken) {
+    balance = await signer.getBalance()
+  } else {
+    balance = await tokenClass.getBalance()
+  }
   const label = `${fromChain}.${isHToken ? 'h' : ''}${token}`
-  logger.debug(`${label} balance: ${await instance.formatUnits(balance)}`)
-  const parsedAmount = await instance.parseUnits(amount)
+  logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
+  const parsedAmount = await tokenClass.parseUnits(amount)
   if (balance.lt(parsedAmount)) {
     throw new Error('not enough token balance to send')
   }
-  logger.debug(`attempting to send ${amount} ${label} to ${recipient} on ${toChain}`)
-  const tx = await instance.transfer(recipient, parsedAmount)
-  logger.info(`transfer tx: ${tx.hash}`)
-  await tx.wait()
-  balance = await instance.getBalance()
-  logger.debug(`${label} balance: ${await instance.formatUnits(balance)}`)
+
+  let spender = bridge.address
+  if (fromChain !== Chain.Ethereum && !isHToken) {
+    spender = (bridge as L2Bridge).ammWrapper.contract.address
+  }
+  let tx = await tokenClass.approve(spender, parsedAmount)
+  if (tx) {
+    logger.debug('approve tx:', tx.hash)
+  }
+
+  logger.debug(`attempting to send ${amount} ${label} ⟶  ${toChain} to ${recipient}`)
+  const destinationChainId = chainSlugToId(toChain)
+  if (fromChain === Chain.Ethereum) {
+    if (isHToken) {
+      tx = await (bridge as L1Bridge).convertCanonicalTokenToHopToken(
+        destinationChainId,
+        parsedAmount
+      )
+    } else {
+      tx = await (bridge as L1Bridge).sendCanonicalTokensToL2(
+        destinationChainId,
+        parsedAmount
+      )
+    }
+  } else {
+    if (isHToken) {
+      tx = await (bridge as L2Bridge).sendHTokens(
+        destinationChainId,
+        parsedAmount
+      )
+    } else {
+      tx = await (bridge as L2Bridge).sendCanonicalTokens(
+        destinationChainId,
+        parsedAmount
+      )
+    }
+  }
+  logger.info(`send tx: ${tx.hash}`)
+  await tx?.wait()
+  balance = await tokenClass.getBalance()
+  logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
+  logger.debug('tokens should arrive at destination in 5-15 minutes')
 }
 
 program
@@ -87,7 +136,7 @@ program
       await sendTokens(fromChain, toChain, token, amount, recipient, isHToken)
       process.exit(0)
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

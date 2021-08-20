@@ -94,7 +94,7 @@ class HopBridge extends Base {
   public destinationChain: Chain
 
   /** Default deadline for transfers */
-  public defaultDeadlineMinutes = 30
+  public defaultDeadlineMinutes = 7 * 24 * 60 // 1 week
 
   public readonly priceFeed: PriceFeed
 

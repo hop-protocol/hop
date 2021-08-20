@@ -1,18 +1,16 @@
+import ContractBase from './ContractBase'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
-import { Contract } from 'ethers'
+import { BigNumber, providers } from 'ethers'
+import { Chain } from 'src/constants'
+import { Hop } from '@hop-protocol/sdk'
+import { config as globalConfig } from 'src/config'
 import { isL1ChainId } from 'src/utils'
 
-export default class L2AmmWrapper {
-  ammWrapperContract: Contract
-
-  constructor (ammWrapperContract: Contract) {
-    this.ammWrapperContract = ammWrapperContract
-  }
-
+export default class L2AmmWrapper extends ContractBase {
   @rateLimitRetry
   async decodeSwapAndSendData (data: string): Promise<any> {
     let attemptSwap = false
-    const decoded = await this.ammWrapperContract.interface.decodeFunctionData(
+    const decoded = await this.contract.interface.decodeFunctionData(
       'swapAndSend',
       data
     )
@@ -29,5 +27,45 @@ export default class L2AmmWrapper {
       chainId,
       attemptSwap
     }
+  }
+
+  async swapAndSend (
+    destinationChainId: number,
+    amount: BigNumber,
+    token: string
+  ): Promise<providers.TransactionResponse> {
+    const sdk = new Hop(globalConfig.network)
+    const recipient = await this.contract.signer.getAddress()
+    const bridge = sdk.bridge(token)
+    const bonderFee = await bridge.getBonderFee(
+      amount,
+      this.chainSlug,
+      this.chainIdToSlug(destinationChainId)
+    )
+
+    const deadline = bridge.defaultDeadlineSeconds
+    const destinationDeadline = bridge.defaultDeadlineSeconds
+    const { amountOut } = await bridge.getSendData(amount, this.chainSlug, this.chainIdToSlug(destinationChainId))
+    const slippageTolerance = 0.1
+    const slippageToleranceBps = slippageTolerance * 100
+    const minBps = Math.ceil(10000 - slippageToleranceBps)
+    const amountOutMin = amountOut.mul(minBps).div(10000)
+    const destinationAmountOutMin = amountOutMin
+    const isNativeToken = token === 'MATIC' && this.chainSlug === Chain.Polygon
+
+    return this.contract.swapAndSend(
+      destinationChainId,
+      recipient,
+      amount,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      destinationAmountOutMin,
+      destinationDeadline,
+      {
+        ...(await this.txOverrides()),
+        value: isNativeToken ? amount : undefined
+      }
+    )
   }
 }

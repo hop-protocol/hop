@@ -548,7 +548,9 @@ export default class Bridge extends ContractBase {
     const usdGasCost = gasCost.mul(ethUsdPriceBn).div(usdBNPrecision)
     const isTooLow = bonderFee.eq(0) || usdBonderFee.lt(usdGasCost.div(2))
     if (isTooLow) {
-      throw new BonderFeeTooLowError()
+      const usdBonderFeeFormatted = formatUnits(usdBonderFee, ethDecimals)
+      const usdGasCostFormatted = formatUnits(usdGasCost, ethDecimals)
+      throw new BonderFeeTooLowError(`bonder fee is too low. Cannot bond withdrawal. bonderFee: ${usdBonderFeeFormatted}, gasCost: ${usdGasCostFormatted}`)
     }
   }
 

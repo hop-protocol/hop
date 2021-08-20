@@ -131,7 +131,7 @@ export default class L1Bridge extends Bridge {
     await this.eventsBatch(async (start: number, end: number) => {
       const events = await this.getTransferRootBondedEvents(start, end)
       for (const event of events) {
-        if (transferRootHash === event.args.rootHash) {
+        if (transferRootHash === event.args.root) {
           match = event
           return false
         }

@@ -10,8 +10,8 @@ export interface Config {
   chainSlug: string
   tokenSymbol: string
   bridgeContract: Contract
-  isL1: boolean
   label: string
+  isL1: boolean
   order?: () => number
   dryMode?: boolean
   stateUpdateAddress: string
@@ -133,8 +133,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       logger.debug('calculated transfer root hash:', rootHash)
       if (rootHash !== transferRootHash) {
         logger.error('calculated transfer root hash does not match')
+        return
       }
-      return
     }
 
     const availableCredit = await l1Bridge.getAvailableCredit()

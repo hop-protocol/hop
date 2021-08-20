@@ -441,9 +441,18 @@ async function updateTransfers () {
     }
   }
 
+  const unbondableTransfers = [
+    '0x5a37e070c256e37504116e351ec3955679539d6aa3bd30073942b17afb3279f4',
+    '0x185b2ba8f589119ede69cf03b74ee2b323b23c75b6b9f083bdf6123977576790',
+    '0x0131496b64dbd1f7821ae9f7d78f28f9a78ff23cd85e8851b8a2e4e49688f648'
+  ]
+
   const populatedData = data
     .filter(x => enabledTokens.includes(x.token))
     .filter(x => x.destinationChain && x.transferId)
+    .filter(x => {
+      return !unbondableTransfers.includes(x.transferId)
+    })
     .map(populateTransfer)
     .sort((a, b) => b.timestamp - a.timestamp)
     .map((x, i) => {

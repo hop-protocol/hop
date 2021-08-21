@@ -1,5 +1,6 @@
 import ContractBase from './ContractBase'
 import delay from 'src/decorators/delay'
+import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import queue from 'src/decorators/queue'
 import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import shiftBNDecimals from 'src/utils/shiftBNDecimals'
@@ -43,26 +44,10 @@ export default class Bridge extends ContractBase {
   constructor (bridgeContract: Contract) {
     super(bridgeContract)
     this.bridgeContract = bridgeContract
-    let tokenDecimals: number
-    let tokenSymbol: string
-    // TODO: better way of getting token decimals
-    for (const tkn in globalConfig.tokens) {
-      for (const key in globalConfig.tokens[tkn]) {
-        for (const net in globalConfig.tokens[tkn]) {
-          for (const k in globalConfig.tokens[tkn][net]) {
-            const val = globalConfig.tokens[tkn][net][k]
-            if (val === bridgeContract.address) {
-              tokenDecimals = globalConfig.metadata.tokens[
-                tkn
-              ].decimals
-              tokenSymbol = globalConfig.metadata.tokens[tkn]
-                .symbol
-              break
-            }
-          }
-        }
-      }
-    }
+    const metadata = getTokenMetadataByAddress(bridgeContract.address)
+    const tokenDecimals: number = metadata?.decimals
+    const tokenSymbol: string = metadata?.symbol
+
     if (tokenDecimals !== undefined) {
       this.tokenDecimals = tokenDecimals
     }

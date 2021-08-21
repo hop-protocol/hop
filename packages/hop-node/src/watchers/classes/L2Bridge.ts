@@ -174,19 +174,24 @@ export default class L2Bridge extends Bridge {
     const recipient = await this.getBonderAddress()
     const relayer = recipient
     const relayerFee = '0'
-    const deadline = bridge.defaultDeadlineSeconds
+    const deadline = '0' // must be 0
+    const amountOutMin = '0' // must be 0
     const destinationChain = this.chainIdToSlug(destinationChainId)
-    const { amountOut } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
-    const slippageTolerance = 0.1
-    const slippageToleranceBps = slippageTolerance * 100
-    const minBps = Math.ceil(10000 - slippageToleranceBps)
-    const amountOutMin = amountOut.mul(minBps).div(10000)
     const isNativeToken = this.tokenSymbol === 'MATIC' && this.chainSlug === Chain.Polygon
-    const bonderFee = await bridge.getBonderFee(
+    const { l1Fee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
+    let bonderFee = await bridge.getBonderFee(
       amount,
       this.chainSlug,
       destinationChain
     )
+
+    if (destinationChain === Chain.Ethereum) {
+      bonderFee = bonderFee.add(l1Fee)
+    }
+
+    if (bonderFee.gt(amount)) {
+      throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${this.formatUnits(bonderFee)}`)
+    }
 
     return this.bridgeContract.send(
       destinationChainId,

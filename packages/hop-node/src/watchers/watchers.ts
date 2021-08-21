@@ -20,7 +20,7 @@ enum Watchers {
   SettleBondedWithdrawals = 'settleBondedWithdrawals',
   CommitTransfers = 'commitTransfers',
   xDomainMessageRelay = 'xDomainMessageRelay',
-  Stake = 'Stake'
+  Stake = 'stake'
 }
 
 type StakeAmounts = {

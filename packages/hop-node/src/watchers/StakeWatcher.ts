@@ -7,6 +7,7 @@ import chalk from 'chalk'
 import promiseTimeout from 'src/utils/promiseTimeout'
 import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { isL1ChainId, wait } from 'src/utils'
 
 export interface Config {
@@ -66,6 +67,7 @@ class StakeWatcher extends BaseWatcher {
         this.logger.debug(`bonder address: ${bonderAddress}`)
       }
       this.printAmounts()
+      this.watchEthBalance()
     } catch (err) {
       this.logger.error('stake watcher error:', err.message)
       this.notifier.error(`stake watcher error: ${err.message}`)
@@ -103,6 +105,26 @@ class StakeWatcher extends BaseWatcher {
       'bonder bridge calculated actual staked amount:',
       this.bridge.formatUnits(bonderBridgeStakedAmount)
     )
+  }
+
+  async watchEthBalance () {
+    const oneWeek = 7 * 24 * 60 * 60 * 1000
+    while (true) {
+      try {
+        const ethBalance = await this.bridge.getEthBalance()
+        const formattedEthBalance = formatUnits(ethBalance, 18)
+        const warnEthBalance = parseUnits('1', 18)
+        const isLow = ethBalance.lt(warnEthBalance)
+        if (isLow) {
+          const warnMsg = `ETH balance is running low. Have ${formattedEthBalance}`
+          this.logger.warn(warnMsg)
+          this.notifier.warn(warnMsg)
+        }
+      } catch (err) {
+        this.logger.error(err)
+      }
+      await wait(oneWeek)
+    }
   }
 
   async convertAndStake (amount: BigNumber) {

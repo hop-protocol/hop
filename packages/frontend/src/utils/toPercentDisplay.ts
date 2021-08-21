@@ -8,13 +8,18 @@ const toPercentDisplay = (value: BigNumber | number | undefined, decimals: numbe
     return '-%'
   }
 
-  const num = Number(typeof decimals === 'number' ? formatUnits(value, decimals) : value.toString())
-  const formatted = commafy(
-    num * 100,
-    2
-  )
+  try {
+    const num = Number(typeof decimals === 'number' && decimals > 0 ? formatUnits(value, decimals) : value.toString())
+    const formatted = commafy(
+      num * 100,
+      2
+    )
 
-  return `${formatted}%`
+    return `${formatted}%`
+  } catch (err) {
+    console.error(err)
+    return '-%'
+  }
 }
 
 export default toPercentDisplay

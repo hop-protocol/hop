@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.127",
+  "version": "0.0.1-beta.128",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -37,7 +37,7 @@
     "@types/isomorphic-fetch": "0.0.35",
     "@types/luxon": "^1.27.1",
     "dotenv": "^8.2.0",
-    "ethereum-block-by-date": "^1.4.0",
+    "ethereum-block-by-date": "^1.4.2",
     "ethereum-checksum-address": "0.0.6",
     "eventemitter3": "^4.0.7",
     "fast-memoize": "^2.5.2",

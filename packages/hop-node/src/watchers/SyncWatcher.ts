@@ -200,6 +200,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('destinationChainId:', destinationChainId)
       logger.debug('isBondable:', isBondable)
       logger.debug('transferId:', chalk.bgCyan.black(transferId))
+      logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
 
       await this.db.transfers.update(transferId, {
         transferId,

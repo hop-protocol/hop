@@ -1,6 +1,6 @@
 import BaseDb from './BaseDb'
 import { BigNumber } from 'ethers'
-import { TX_RETRY_DELAY_MS } from 'src/constants'
+import { TX_RETRY_DELAY_MS, TxError } from 'src/constants'
 import { chainIdToSlug } from 'src/utils'
 import { normalizeDbItem } from './utils'
 
@@ -18,6 +18,7 @@ export type Transfer = {
   withdrawalBonder?: string
   withdrawalBondedTxHash?: string
   withdrawalBondTxError?: string
+  withdrawalBondBackoffIndex?: number
   sentBondWithdrawalTxAt?: number
 
   recipient?: string
@@ -132,8 +133,14 @@ class TransfersDb extends BaseDb {
       }
 
       let timestampOk = true
-      if (item?.sentBondWithdrawalTxAt) {
-        timestampOk = item?.sentBondWithdrawalTxAt + TX_RETRY_DELAY_MS < Date.now()
+      if (item.sentBondWithdrawalTxAt) {
+        if (item.withdrawalBondTxError === TxError.BonderFeeTooLow) {
+          const maxDelay = 60 * 60
+          const delay = Math.min((1 << item.withdrawalBondBackoffIndex), maxDelay) * 1000
+          timestampOk = item.sentBondWithdrawalTxAt + delay < Date.now()
+        } else {
+          timestampOk = item.sentBondWithdrawalTxAt + TX_RETRY_DELAY_MS < Date.now()
+        }
       }
 
       return (

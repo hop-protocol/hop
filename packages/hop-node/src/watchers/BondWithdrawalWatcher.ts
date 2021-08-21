@@ -181,13 +181,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       await tx
         ?.wait()
         .then(async (receipt: providers.TransactionReceipt) => {
-          if (receipt.status !== 1) {
-            await this.db.transfers.update(transferId, {
-              sentBondWithdrawalTxAt: 0
-            })
-            throw new Error('status=0')
-          }
-
           this.emit('bondWithdrawal', {
             recipient,
             destNetworkName: this.chainIdToSlug(destinationChainId),
@@ -204,10 +197,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
           )
         })
         .catch(async (err: Error) => {
-          await this.db.transfers.update(transferId, {
-            sentBondWithdrawalTxAt: 0
-          })
-
           throw err
         })
     } catch (err) {
@@ -218,8 +207,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
         })
       }
       if (err instanceof BonderFeeTooLowError) {
+        let { withdrawalBondBackoffIndex } = await this.db.transfers.getByTransferId(transferId)
+        if (!withdrawalBondBackoffIndex) {
+          withdrawalBondBackoffIndex = 0
+        }
+        withdrawalBondBackoffIndex++
         await this.db.transfers.update(transferId, {
-          withdrawalBondTxError: err.message
+          withdrawalBondTxError: TxError.BonderFeeTooLow,
+          withdrawalBondBackoffIndex
         })
       }
 

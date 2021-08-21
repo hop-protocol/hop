@@ -72,8 +72,7 @@ export default async function getTransfer (chain: string, token: string, transfe
             rootHash: $transferRootHash
           },
           orderBy: timestamp,
-          orderDirection: desc,
-          first: 1
+          orderDirection: desc
         ) {
           id
           bonder
@@ -95,23 +94,30 @@ export default async function getTransfer (chain: string, token: string, transfe
       transferRootHash: transferRoot.rootHash
     })
 
-    const bondedWithdrawalSettled = normalizeEntity(jsonRes.multipleWithdrawalsSettleds?.[0])
     transfer.settled = false
 
-    if (bondedWithdrawal?.transactionHash && bondedWithdrawalSettled?.transactionHash) {
-      const provider = getRpcProvider(destinationChain)
-      if (!provider) {
-        throw new Error(`provider for ${chain} not found. Check network is correct`)
-      }
-      const [bondWithdrawalTx, settleTx] = await Promise.all([
-        provider.getTransaction(bondedWithdrawal?.transactionHash),
-        provider.getTransaction(bondedWithdrawalSettled?.transactionHash)
-      ])
-      const bondedWithdrawalFrom = bondWithdrawalTx?.from
-      const settleFrom = settleTx?.from
-      if (bondedWithdrawalFrom === settleFrom) {
-        transfer.settled = true
-        transfer.bondedWithdrawalSettledEvent = bondedWithdrawalSettled
+    const provider = getRpcProvider(destinationChain)
+    if (!provider) {
+      throw new Error(`provider for ${chain} not found. Check network is correct`)
+    }
+
+    let bondedWithdrawalFrom = ''
+    if (bondedWithdrawal) {
+      const bondWithdrawalTx = await provider.getTransaction(bondedWithdrawal.transactionHash)
+      bondedWithdrawalFrom = bondWithdrawalTx?.from
+    }
+
+    const settledEvents = jsonRes.multipleWithdrawalsSettleds ?? []
+    for (const settledEvent of settledEvents) {
+      const bondedWithdrawalSettled = normalizeEntity(settledEvent)
+      if (bondedWithdrawalSettled?.transactionHash) {
+        const settleTx = await provider.getTransaction(bondedWithdrawalSettled.transactionHash)
+        const settleFrom = settleTx?.from
+        if (bondedWithdrawalFrom && settleFrom && bondedWithdrawalFrom === settleFrom) {
+          transfer.settled = true
+          transfer.bondedWithdrawalSettledEvent = bondedWithdrawalSettled
+          break
+        }
       }
     }
   }

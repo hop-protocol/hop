@@ -1,9 +1,14 @@
-import { providers } from 'ethers'
+import { BigNumber, providers } from 'ethers'
+import { EventFragment, Interface } from '@ethersproject/abi'
 import BlockDater from 'ethereum-block-by-date'
 import { default as BaseWatcher, Config, Event } from './BaseWatcher'
 import { Chain } from '../models'
 import { Network } from '../constants'
-import { tokenTransferTopic, transferFromL1CompletedTopic } from './eventTopics'
+import {
+  transferSentToL2Topic,
+  tokenTransferTopic,
+  transferFromL1CompletedTopic
+} from './eventTopics'
 import { DateTime } from 'luxon'
 
 class L1ToL2Watcher extends BaseWatcher {
@@ -25,11 +30,72 @@ class L1ToL2Watcher extends BaseWatcher {
     const destWrapper = await this.bridge.getAmmWrapper(this.destinationChain)
     const l1Bridge = await this.bridge.getL1Bridge()
     const sourceTimestamp = this.sourceBlock.timestamp
-    const decodedSource = l1Bridge.interface.decodeFunctionData(
-      'sendToL2',
-      this.sourceTx.data
-    )
-    const attemptedSwap = Number(decodedSource.deadline.toString()) > 0
+    let attemptedSwap = false
+    let amount = BigNumber.from(0)
+
+    for (const log of this.sourceReceipt.logs) {
+      if (log.topics[0] === transferSentToL2Topic) {
+        const iface = new Interface([])
+        const decodedLog = iface.decodeEventLog(
+          EventFragment.from({
+            anonymous: false,
+            inputs: [
+              {
+                indexed: true,
+                internalType: 'uint256',
+                name: 'chainId',
+                type: 'uint256'
+              },
+              {
+                indexed: true,
+                internalType: 'address',
+                name: 'recipient',
+                type: 'address'
+              },
+              {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'amount',
+                type: 'uint256'
+              },
+              {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'amountOutMin',
+                type: 'uint256'
+              },
+              {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'deadline',
+                type: 'uint256'
+              },
+              {
+                indexed: true,
+                internalType: 'address',
+                name: 'relayer',
+                type: 'address'
+              },
+              {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'relayerFee',
+                type: 'uint256'
+              }
+            ],
+            name: 'TransferSentToL2',
+            type: 'event'
+          } as any),
+          log.data
+        )
+
+        const amountOutMin = Number(decodedLog.amountOutMin.toString())
+        const deadline = Number(decodedLog.deadline.toString())
+        amount = decodedLog.amount
+        attemptedSwap = deadline > 0 && amountOutMin > 0
+      }
+    }
+
     const amm = this.bridge.getAmm(this.destinationChain)
     const swap = await amm.getSaddleSwap()
     const ambBridge = await this.bridge.getAmbBridge(Chain.xDai)
@@ -86,15 +152,10 @@ class L1ToL2Watcher extends BaseWatcher {
         return false
       }
       const decodedLog = event.decode(event.data, event.topics)
-      if (!decodedSource) {
-        return false
-      }
       if (
         destWrapper.address.toLowerCase() === decodedLog.buyer.toLowerCase()
       ) {
-        if (
-          decodedSource.amount.toString() !== decodedLog.tokensSold.toString()
-        ) {
+        if (amount.toString() !== decodedLog.tokensSold.toString()) {
           return
         }
         //const destTx = await event.getTransaction()
@@ -201,9 +262,7 @@ class L1ToL2Watcher extends BaseWatcher {
         const handleL2BridgeReceiveEvent = async (...args: any[]) => {
           const event = args[args.length - 1]
           if (event.args.recipient.toLowerCase() === recipient.toLowerCase()) {
-            if (
-              event.args.amount.toString() === decodedSource.amount.toString()
-            ) {
+            if (event.args.amount.toString() === amount.toString()) {
               const destTx = await event.getTransaction()
               return handleDestTx(destTx)
             }

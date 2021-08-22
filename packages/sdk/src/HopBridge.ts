@@ -550,7 +550,10 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    if (destinationChain && destinationChain.isL1) {
+    const requireFee =
+      (destinationChain && destinationChain.isL1) ||
+      destinationChain.equals(Chain.Optimism)
+    if (requireFee) {
       const canonicalToken = this.getCanonicalToken(sourceChain)
       const ethPrice = await this.priceFeed.getPriceByTokenSymbol('WETH')
       const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(

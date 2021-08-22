@@ -772,8 +772,8 @@ const Send: FC = () => {
           {
             l1Fee &&
             <DetailRow
-              title="L1 Transaction Fee"
-              tooltip="This fee covers the L1 transaction fee paid by the Bonder."
+              title={`${toNetwork?.isLayer1 ? 'L1' : toNetwork?.name} Transaction Fee`}
+              tooltip="This fee covers the destination transaction fee paid by the Bonder."
               value={l1FeeDisplay}
               large
             />

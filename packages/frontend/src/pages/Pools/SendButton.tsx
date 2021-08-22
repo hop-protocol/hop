@@ -16,7 +16,7 @@ type Props = {}
 
 const SendButton: FC<Props> = (props: Props) => {
   const styles = useStyles()
-  const { validFormFields, addLiquidity, sending, sendButtonText } = usePools()
+  const { validFormFields, addLiquidity, sending, sendButtonText, isUnsupportedAsset } = usePools()
   const { walletConnected } = useWeb3Context()
   const handleSubmit = async () => {
     addLiquidity()
@@ -32,7 +32,7 @@ const SendButton: FC<Props> = (props: Props) => {
       className={styles.sendButton}
       startIcon={validFormFields && <SendIcon />}
       onClick={handleSubmit}
-      disabled={!validFormFields}
+      disabled={!validFormFields || isUnsupportedAsset}
       loading={sending}
       large
       highlighted

@@ -4,6 +4,7 @@ import {
   Route,
   useRouteMatch
 } from 'react-router-dom'
+import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
@@ -63,7 +64,8 @@ const Convert: FC = () => {
     error,
     setError,
     tx,
-    setTx
+    setTx,
+    isUnsupportedAsset
   } = useConvert()
   const { path } = useRouteMatch()
 
@@ -85,44 +87,55 @@ const Convert: FC = () => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      <AmountSelectorCard
-        value={sourceTokenAmount as string}
-        token={sourceToken}
-        label={'From'}
-        onChange={handleSourceTokenAmountChange}
-        title={sourceNetwork?.name}
-        titleIconUrl={sourceNetwork?.imageUrl}
-        balance={sourceBalance}
-        loadingBalance={loadingSourceBalance}
-      />
-      <MuiButton
-        className={styles.switchDirectionButton}
-        onClick={switchDirection}
-      >
-        <ArrowDownIcon color="primary" className={styles.downArrow} />
-      </MuiButton>
-      <AmountSelectorCard
-        className={styles.lastSelector}
-        value={destTokenAmount as string}
-        token={destToken}
-        label={'To'}
-        title={destNetwork?.name}
-        titleIconUrl={destNetwork?.imageUrl}
-        balance={destBalance}
-        loadingBalance={loadingDestBalance}
-        disableInput
-      />
-      <div className={styles.details}>
-        {details}
-      </div>
-      <Alert severity="warning">
-        {warning}
-      </Alert>
-      <Alert severity="error" onClose={() => setError(undefined)} text={error} />
-      <TxStatusModal
-        onClose={handleTxStatusClose}
-        tx={tx} />
-      <SendButton />
+      {isUnsupportedAsset ? <>
+        <Typography
+          variant="subtitle1"
+          color="textSecondary"
+          component="div"
+        >
+        {error}
+      </Typography>
+      </> : <>
+        <AmountSelectorCard
+          value={sourceTokenAmount as string}
+          token={sourceToken}
+          label={'From'}
+          onChange={handleSourceTokenAmountChange}
+          title={sourceNetwork?.name}
+          titleIconUrl={sourceNetwork?.imageUrl}
+          balance={sourceBalance}
+          loadingBalance={loadingSourceBalance}
+        />
+        <MuiButton
+          className={styles.switchDirectionButton}
+          onClick={switchDirection}
+        >
+          <ArrowDownIcon color="primary" className={styles.downArrow} />
+        </MuiButton>
+        <AmountSelectorCard
+          className={styles.lastSelector}
+          value={destTokenAmount as string}
+          token={destToken}
+          label={'To'}
+          title={destNetwork?.name}
+          titleIconUrl={destNetwork?.imageUrl}
+          balance={destBalance}
+          loadingBalance={loadingDestBalance}
+          disableInput
+        />
+        <div className={styles.details}>
+          {details}
+        </div>
+        <Alert severity="warning">
+          {warning}
+        </Alert>
+        <Alert severity="error" onClose={() => setError(undefined)} text={error} />
+        <TxStatusModal
+          onClose={handleTxStatusClose}
+          tx={tx} />
+        <SendButton />
+      </>
+      }
     </Box>
   )
 }

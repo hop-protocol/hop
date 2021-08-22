@@ -1,4 +1,4 @@
-import React, { FC, ChangeEvent } from 'react'
+import React, { FC, ChangeEvent, useMemo, useEffect } from 'react'
 import { BigNumber } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
@@ -128,7 +128,8 @@ const Pools: FC = () => {
     apr,
     priceImpact,
     virtualPrice,
-    reserveTotalsUsd
+    reserveTotalsUsd,
+    isUnsupportedAsset
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -233,6 +234,15 @@ const Pools: FC = () => {
           ))}
         </RaisedSelect>
       </Box>
+      {isUnsupportedAsset ? <>
+        <Typography
+          variant="subtitle1"
+          color="textSecondary"
+          component="div"
+        >
+          {error}
+        </Typography>
+      </> : <>
       {isNativeToken &&
         <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
           <TokenWrapper />
@@ -453,6 +463,8 @@ const Pools: FC = () => {
           Remove Liquidity
         </MuiButton>
       )}
+      </>
+      }
     </Box>
   )
 }

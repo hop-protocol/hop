@@ -64,6 +64,7 @@ type PoolsContextProps = {
   priceImpact: number | undefined
   virtualPrice: number | undefined
   reserveTotalsUsd: number | undefined
+  isUnsupportedAsset: boolean
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -107,7 +108,8 @@ const PoolsContext = createContext<PoolsContextProps>({
   apr: undefined,
   priceImpact: undefined,
   virtualPrice: undefined,
-  reserveTotalsUsd: undefined
+  reserveTotalsUsd: undefined,
+  isUnsupportedAsset: false
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -149,20 +151,33 @@ const PoolsContextProvider: FC = ({ children }) => {
   }, [networks])
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(l2Networks[0])
   const isNativeToken = useMemo(() => {
-    const token = selectedBridge?.getCanonicalToken(selectedNetwork.slug)
-    return token?.isNativeToken
+    try {
+      const token = selectedBridge?.getCanonicalToken(selectedNetwork.slug)
+      return token?.isNativeToken
+    } catch (err) {
+      logger.error(err)
+    }
+    return false
   }, [selectedBridge, selectedNetwork]) ?? false
 
   const canonicalToken = useMemo(() => {
-    const token = selectedBridge?.getCanonicalToken(selectedNetwork.slug)
-    if (token?.isNativeToken) {
-      return token?.getWrappedToken()
+    try {
+      const token = selectedBridge?.getCanonicalToken(selectedNetwork.slug)
+      if (token?.isNativeToken) {
+        return token?.getWrappedToken()
+      }
+      return token
+    } catch (err) {
+      logger.error(err)
     }
-    return token
   }, [selectedBridge, selectedNetwork])
 
   const hopToken = useMemo(() => {
-    return selectedBridge?.getL2HopToken(selectedNetwork.slug)
+    try {
+      return selectedBridge?.getL2HopToken(selectedNetwork.slug)
+    } catch (err) {
+      logger.error(err)
+    }
   }, [selectedBridge, selectedNetwork])
 
   const [txHash, setTxHash] = useState<string | undefined>()
@@ -179,6 +194,21 @@ const PoolsContextProvider: FC = ({ children }) => {
     selectedNetwork,
     address
   )
+
+  const isUnsupportedAsset = useMemo(() => {
+    if (!canonicalToken) {
+      return true
+    }
+    return canonicalToken?.symbol === 'MATIC' && selectedNetwork?.slug === 'optimism'
+  }, [canonicalToken, selectedNetwork])
+
+  useEffect(() => {
+    if (isUnsupportedAsset) {
+      setError('MATIC is currently not supported on Optimism')
+    } else {
+      setError('')
+    }
+  }, [isUnsupportedAsset])
 
   const tokenUsdPrice = useAsyncMemo(async () => {
     try {
@@ -717,7 +747,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         apr,
         priceImpact,
         virtualPrice,
-        reserveTotalsUsd
+        reserveTotalsUsd,
+        isUnsupportedAsset
       }}
     >
       {children}

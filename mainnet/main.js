@@ -181,7 +181,9 @@ const colorsMap = {
 const chainLogosMap = {
   ethereum: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/ethereum.svg',
   xdai: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/xdai.svg',
-  polygon: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/polygon.svg'
+  polygon: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/polygon.svg',
+  optimism: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/optimism.svg',
+  arbitrum: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/arbitrum.svg'
 }
 
 const tokenLogosMap = {
@@ -197,6 +199,10 @@ function explorerLink (chain, transactionHash) {
     base = 'https://blockscout.com/xdai/mainnet'
   } else if (chain === 'polygon') {
     base = 'https://polygonscan.com'
+  } else if (chain === 'optimism') {
+    base = 'https://optimistic.etherscan.io'
+  } else if (chain === 'arbitrum') {
+    base = 'https://explorer.offchainlabs.com'
   } else {
     base = 'https://etherscan.io'
   }
@@ -442,9 +448,10 @@ async function updateTransfers () {
   }
 
   const unbondableTransfers = [
+    '0xf78b17ccced6891638989a308cc6c1f089330cd407d8c165ed1fbedb6bda0930',
     '0x5a37e070c256e37504116e351ec3955679539d6aa3bd30073942b17afb3279f4',
     '0x185b2ba8f589119ede69cf03b74ee2b323b23c75b6b9f083bdf6123977576790',
-    '0x0131496b64dbd1f7821ae9f7d78f28f9a78ff23cd85e8851b8a2e4e49688f648'
+    '0x0131496b64dbd1f7821ae9f7d78f28f9a78ff23cd85e8851b8a2e4e49688f648',
   ]
 
   const populatedData = data

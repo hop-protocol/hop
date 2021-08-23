@@ -30,6 +30,9 @@ const app = new Vue({
       polygon: {
         formattedAmount: '-'
       },
+      optimism: {
+        formattedAmount: '-'
+      },
       ethereum: {
         formattedAmount: '-'
       },
@@ -139,22 +142,23 @@ const app = new Vue({
 })
 
 const chainToIndexMapSource = {
+  ethereum: 0,
   xdai: 1,
   polygon: 2,
-  optimism: 2,
-  ethereum: 0
+  optimism: 3
 }
 
 const chainToIndexMapDestination = {
-  ethereum: 3,
-  xdai: 4,
-  optimism: 5,
-  polygon: 5
+  ethereum: 4,
+  xdai: 5,
+  polygon: 6,
+  optimism: 7
 }
 
 const chainIdToSlugMap = {
   1: 'ethereum',
   42: 'ethereum',
+  10: 'optimism',
   69: 'optimism',
   77: 'xdai',
   100: 'xdai',
@@ -172,7 +176,7 @@ const chainSlugToNameMap = {
 const colorsMap = {
   ethereum: '#868dac',
   arbitrum: '#97ba4c',
-  optimism: '#97ba4c',
+  optimism: '#e64b5d',
   xdai: '#46a4a1',
   polygon: '#8b57e1',
   fallback: '#9f9fa3'
@@ -336,16 +340,19 @@ async function updateTvl () {
   const [
     xdaiTvl,
     // polygonTvl,
+    optimismTvl,
     mainnetTvl
   ] = await Promise.all([
     fetchTvl('xdai'),
     // fetchTvl('polygon'),
+    fetchTvl('optimism'),
     fetchTvl('mainnet')
   ])
 
   const xdai = formatTvl(xdaiTvl)
   // const polygon = formatTvl(polygonTvl)
   const polygon = { formattedAmount: '-' }
+  const optimism = formatTvl(optimismTvl)
   const ethereum = formatTvl(mainnetTvl)
   // const totalAmount = xdai.amount + polygon.amount + ethereum.amount
   const totalAmount = xdai.amount + ethereum.amount
@@ -357,6 +364,7 @@ async function updateTvl () {
   const tvl = {
     xdai,
     polygon,
+    optimism,
     ethereum,
     total
   }
@@ -375,20 +383,24 @@ async function updateTransfers () {
   const [
     xdaiTransfers,
     polygonTransfers,
+    optimismTransfers,
     mainnetTransfers
   ] = await Promise.all([
     fetchTransfers('xdai'),
     fetchTransfers('polygon'),
+    fetchTransfers('optimism'),
     fetchTransfers('mainnet')
   ])
 
   const [
     xdaiBonds,
     polygonBonds,
+    optimismBonds,
     mainnetBonds
   ] = await Promise.all([
     fetchBonds('xdai'),
     fetchBonds('polygon'),
+    fetchBonds('optimism'),
     fetchBonds('mainnet')
   ])
 
@@ -406,6 +418,17 @@ async function updateTransfers () {
   for (const x of polygonTransfers) {
     data.push({
       sourceChain: 137,
+      destinationChain: x.destinationChainId,
+      amount: x.amount,
+      transferId: x.transferId,
+      transactionHash: x.transactionHash,
+      timestamp: Number(x.timestamp),
+      token: x.token
+    })
+  }
+  for (const x of optimismTransfers) {
+    data.push({
+      sourceChain: 10,
       destinationChain: x.destinationChainId,
       amount: x.amount,
       transferId: x.transferId,
@@ -433,6 +456,7 @@ async function updateTransfers () {
   const bondsMap = {
     xdai: xdaiBonds,
     polygon: polygonBonds,
+    optimism: optimismBonds,
     ethereum: mainnetBonds
   }
 
@@ -451,7 +475,7 @@ async function updateTransfers () {
     '0xf78b17ccced6891638989a308cc6c1f089330cd407d8c165ed1fbedb6bda0930',
     '0x5a37e070c256e37504116e351ec3955679539d6aa3bd30073942b17afb3279f4',
     '0x185b2ba8f589119ede69cf03b74ee2b323b23c75b6b9f083bdf6123977576790',
-    '0x0131496b64dbd1f7821ae9f7d78f28f9a78ff23cd85e8851b8a2e4e49688f648',
+    '0x0131496b64dbd1f7821ae9f7d78f28f9a78ff23cd85e8851b8a2e4e49688f648'
   ]
 
   const populatedData = data
@@ -513,15 +537,15 @@ async function updateChart (data) {
 
   const graph = {
     nodes: [
-      { node: 0, name: 'Ethereum', id: 'ethereum' },
-      { node: 1, name: 'xDai', id: 'xdai' },
-      // {"node":1,"name":"Optimism", "id": "optimism"},
-      { node: 2, name: 'Polygon', id: 'polygon' },
+      { node: chainToIndexMapSource.ethereum, name: 'Ethereum', id: 'ethereum' },
+      { node: chainToIndexMapSource.xdai, name: 'xDai', id: 'xdai' },
+      { node: chainToIndexMapSource.polygon, name: 'Polygon', id: 'polygon' },
+      { node: chainToIndexMapSource.optimism, name: 'Optimism', id: 'optimism' },
 
-      { node: 3, name: 'Ethereum', id: 'ethereum' },
-      { node: 4, name: 'xDai', id: 'xdai' },
-      // {"node":4,"name":"Optimism", "id": "optimism"},
-      { node: 5, name: 'Polygon', id: 'polygon' }
+      { node: chainToIndexMapDestination.ethereum, name: 'Ethereum', id: 'ethereum' },
+      { node: chainToIndexMapDestination.xdai, name: 'xDai', id: 'xdai' },
+      { node: chainToIndexMapDestination.polygon, name: 'Polygon', id: 'polygon' },
+      { node: chainToIndexMapDestination.optimism, name: 'Optimism', id: 'optimism' }
     ],
     links: links
   }

@@ -141,14 +141,17 @@ table img {
 .transferId:hover .clipboard {
   visibility: visible;
 }
-.polygon {
-  color: #8b57e1;
+.ethereum {
+  color: #868dac;
 }
 .xdai {
   color: #46a4a1;
 }
-.ethereum {
-  color: #868dac;
+.polygon {
+  color: #8b57e1;
+}
+.optimism {
+  color: #e64b5d;
 }
 .paginationButton {
   appearance: none;

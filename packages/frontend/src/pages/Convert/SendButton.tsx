@@ -20,7 +20,8 @@ const SendButton: FC<Props> = (props: Props) => {
     validFormFields,
     convertTokens,
     sending,
-    sendButtonText
+    sendButtonText,
+    isUnsupportedAsset
   } = useConvert()
   const { walletConnected } = useWeb3Context()
   const handleSubmit = async () => {
@@ -37,7 +38,7 @@ const SendButton: FC<Props> = (props: Props) => {
       className={styles.sendButton}
       startIcon={validFormFields && <SendIcon />}
       onClick={handleSubmit}
-      disabled={!validFormFields}
+      disabled={!validFormFields || isUnsupportedAsset}
       loading={sending}
       large
       highlighted

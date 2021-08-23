@@ -75,12 +75,12 @@ class HopConvertOption extends ConvertOption {
       destNetwork.slug
     )
 
-    const l1Fee = (await bridge.getL1TransactionFee(
+    const destinationTxFee = (await bridge.getDestinationTransactionFee(
       sourceNetwork.slug,
       destNetwork.slug
     )) || BigNumber.from(0)
 
-    const totalFees = bonderFee.add(l1Fee)
+    const totalFees = bonderFee.add(destinationTxFee)
     let estimatedReceived = amountIn
     let warning
     if (amountIn.gte(totalFees)) {

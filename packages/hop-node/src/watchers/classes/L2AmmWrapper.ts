@@ -48,7 +48,7 @@ export default class L2AmmWrapper extends ContractBase {
     const deadline = bridge.defaultDeadlineSeconds
     let destinationDeadline = bridge.defaultDeadlineSeconds
     const destinationChain = this.chainIdToSlug(destinationChainId)
-    const { amountOut, l1Fee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
+    const { amountOut, destinationTxFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
     const slippageTolerance = 0.1
     const slippageToleranceBps = slippageTolerance * 100
     const minBps = Math.ceil(10000 - slippageToleranceBps)
@@ -56,8 +56,8 @@ export default class L2AmmWrapper extends ContractBase {
     let destinationAmountOutMin = amountOutMin
     const isNativeToken = token === 'MATIC' && this.chainSlug === Chain.Polygon
     const tokenDecimals = getTokenMetadata(token)?.decimals
+    bonderFee = bonderFee.add(destinationTxFee)
     if (destinationChain === Chain.Ethereum) {
-      bonderFee = bonderFee.add(l1Fee)
       destinationDeadline = 0
       destinationAmountOutMin = BigNumber.from(0)
     }

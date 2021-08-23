@@ -54,7 +54,8 @@ type ConvertContextProps = {
   error: string | undefined
   setError: (error: string | undefined) => void
   tx: Transaction | undefined
-  setTx: (tx: Transaction | undefined) => void
+  setTx: (tx: Transaction | undefined) => void,
+  isUnsupportedAsset: boolean
 }
 
 const ConvertContext = createContext<ConvertContextProps>({
@@ -87,6 +88,7 @@ const ConvertContext = createContext<ConvertContextProps>({
   setError: (error: string | undefined) => {},
   tx: undefined,
   setTx: (tx: Transaction | undefined) => {},
+  isUnsupportedAsset: false
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
@@ -137,13 +139,33 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [sourceToken, setSourceToken] = useState<Token>()
   const [destToken, setDestToken] = useState<Token>()
 
+  const isUnsupportedAsset = useMemo(() => {
+    if (!sourceToken) {
+      return true
+    }
+    return sourceToken?.symbol === 'MATIC' && selectedNetwork?.slug === 'optimism'
+  }, [sourceToken, selectedNetwork])
+
+  useEffect(() => {
+    if (isUnsupportedAsset) {
+      setError('MATIC is currently not supported on Optimism')
+    } else {
+      setError('')
+    }
+  }, [isUnsupportedAsset])
+
   useEffect(() => {
     const fetchToken = async () => {
-      let token = await convertOption.sourceToken(isForwardDirection, selectedNetwork, selectedBridge)
-      if (token?.isNativeToken) {
-        token = token.getWrappedToken()
+      try {
+        let token = await convertOption.sourceToken(isForwardDirection, selectedNetwork, selectedBridge)
+        if (token?.isNativeToken) {
+          token = token.getWrappedToken()
+        }
+        setSourceToken(token)
+      } catch (err) {
+        logger.error(err)
+        setSourceToken(undefined)
       }
-      setSourceToken(token)
     }
 
     fetchToken()
@@ -151,8 +173,13 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   useEffect(() => {
     const fetchToken = async () => {
-      const token = await convertOption.destToken(isForwardDirection, selectedNetwork, selectedBridge)
-      setDestToken(token)
+      try {
+        const token = await convertOption.destToken(isForwardDirection, selectedNetwork, selectedBridge)
+        setDestToken(token)
+      } catch (err) {
+        logger.error(err)
+        setDestToken(undefined)
+      }
     }
 
     fetchToken()
@@ -399,7 +426,8 @@ const ConvertContextProvider: FC = ({ children }) => {
         error,
         setError,
         tx,
-        setTx
+        setTx,
+        isUnsupportedAsset
       }}
     >
       {children}

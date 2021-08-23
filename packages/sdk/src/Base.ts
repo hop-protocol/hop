@@ -233,21 +233,22 @@ class Base {
       return chain.provider
     }
     if (Signer.isSigner(signer)) {
-      if (!signer.provider) {
-        throw new Error('connect a provider to signer')
-      }
-      const connectedChainId = await signer.getChainId()
-      //console.log('connectedChainId: ', connectedChainId)
-      //console.log('chain.chainId: ', chain.chainId)
-      if (connectedChainId !== chain.chainId) {
-        if (!signer.provider) {
-          //console.log('connect provider')
-          return (signer as Signer).connect(chain.provider)
+      if (signer.provider) {
+        const connectedChainId = await signer.getChainId()
+        //console.log('connectedChainId: ', connectedChainId)
+        //console.log('chain.chainId: ', chain.chainId)
+        if (connectedChainId !== chain.chainId) {
+          if (!signer.provider) {
+            //console.log('connect provider')
+            return (signer as Signer).connect(chain.provider)
+          }
+          //console.log('return chain.provider')
+          return chain.provider
         }
-        //console.log('return chain.provider')
+        return signer
+      } else {
         return chain.provider
       }
-      return signer
     } else {
       //console.log('isSigner')
       const { chainId } = await signer.getNetwork()

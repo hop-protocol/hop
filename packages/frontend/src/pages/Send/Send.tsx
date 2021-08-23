@@ -81,7 +81,7 @@ const useStyles = makeStyles(theme => ({
   extraBold: {
     fontWeight: 800
   },
-  l1FeeAndAmount: {
+  destinationTxFeeAndAmount: {
     marginTop: '2.4rem'
   },
   ammDetails: {
@@ -233,7 +233,7 @@ const Send: FC = () => {
     lpFees,
     requiredLiquidity,
     loading: loadingSendData,
-    l1Fee,
+    destinationTxFee,
     estimatedReceived
   } = useSendData(
     sourceToken,
@@ -243,8 +243,8 @@ const Send: FC = () => {
     fromTokenAmountBN
   )
 
-  const l1FeeDisplay = toTokenDisplay(
-    l1Fee,
+  const destinationTxFeeDisplay = toTokenDisplay(
+    destinationTxFee,
     destToken?.decimals,
     destToken?.symbol
   )
@@ -353,13 +353,13 @@ const Send: FC = () => {
   }, [needsTokenForFee, fromNetwork])
 
   useEffect(() => {
-    const warningMessage = `Send at least ${l1FeeDisplay} to cover the transaction fee`
-    if (estimatedReceived?.lte(0) && l1Fee) {
+    const warningMessage = `Send at least ${destinationTxFeeDisplay} to cover the transaction fee`
+    if (estimatedReceived?.lte(0) && destinationTxFee?.gt(0)) {
       setMinimumSendWarning(warningMessage)
     } else {
       setMinimumSendWarning('')
     }
-  }, [estimatedReceived, l1Fee])
+  }, [estimatedReceived, destinationTxFee])
 
   useEffect(() => {
     setWarning(
@@ -393,8 +393,8 @@ const Send: FC = () => {
       return
     }
     let _amountOutMin = amountOutMin
-    if (l1Fee) {
-      _amountOutMin = _amountOutMin.sub(l1Fee)
+    if (destinationTxFee?.gt(0)) {
+      _amountOutMin = _amountOutMin.sub(destinationTxFee)
     }
 
     const amountOutMinFormatted = commafy(
@@ -566,8 +566,8 @@ const Send: FC = () => {
         )
         const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
         let totalBonderFee = bonderFee
-        if (l1Fee) {
-          totalBonderFee = totalBonderFee.add(l1Fee)
+        if (destinationTxFee?.gt(0)) {
+          totalBonderFee = totalBonderFee.add(destinationTxFee)
         }
 
         if (totalBonderFee.gt(parsedAmountIn)) {
@@ -768,13 +768,13 @@ const Send: FC = () => {
         disableInput
       />
       <div className={styles.details}>
-        <div className={styles.l1FeeAndAmount}>
+        <div className={styles.destinationTxFeeAndAmount}>
           {
-            l1Fee &&
+            destinationTxFee?.gt(0) &&
             <DetailRow
               title={`${toNetwork?.isLayer1 ? 'L1' : toNetwork?.name} Transaction Fee`}
               tooltip="This fee covers the destination transaction fee paid by the Bonder."
-              value={l1FeeDisplay}
+              value={destinationTxFeeDisplay}
               large
             />
           }

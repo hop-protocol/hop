@@ -424,10 +424,13 @@ class HopBridge extends Base {
     const priceImpact = this.getPriceImpact(rate, marketRate)
 
     const lpFees = await this.getLpFees(amountIn, sourceChain, destinationChain)
-    const l1Fee = await this.getL1TransactionFee(sourceChain, destinationChain)
+    const destinationTxFee = await this.getDestinationTransactionFee(
+      sourceChain,
+      destinationChain
+    )
     let estimatedReceived = amountOut
-    if (l1Fee) {
-      estimatedReceived = estimatedReceived.sub(l1Fee)
+    if (destinationTxFee.gt(0)) {
+      estimatedReceived = estimatedReceived.sub(destinationTxFee)
     }
 
     return {
@@ -437,7 +440,7 @@ class HopBridge extends Base {
       requiredLiquidity: hTokenAmount,
       bonderFee,
       lpFees,
-      l1Fee,
+      destinationTxFee,
       estimatedReceived
     }
   }
@@ -543,40 +546,44 @@ class HopBridge extends Base {
     return lpFees
   }
 
-  public async getL1TransactionFee (
+  public async getDestinationTransactionFee (
     sourceChain: TChain,
     destinationChain: TChain
-  ): Promise<BigNumber | undefined> {
+  ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
     const requireFee =
-      (destinationChain && destinationChain.isL1) ||
-      destinationChain.equals(Chain.Optimism)
-    if (requireFee) {
-      const canonicalToken = this.getCanonicalToken(sourceChain)
-      const ethPrice = await this.priceFeed.getPriceByTokenSymbol('WETH')
-      const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
-        canonicalToken.symbol
-      )
+      destinationChain?.isL1 ||
+      (!sourceChain?.equals(Chain.Ethereum) &&
+        destinationChain?.equals(Chain.Optimism))
 
-      const rate = ethPrice / tokenPrice
-
-      const gasPrice = await destinationChain.provider.getGasPrice()
-      const txFeeEth = gasPrice.mul(BondTransferGasCost)
-
-      const oneEth = ethers.utils.parseEther('1')
-      const rateBN = ethers.utils.parseUnits(
-        rate.toFixed(canonicalToken.decimals),
-        canonicalToken.decimals
-      )
-      let fee = txFeeEth.mul(rateBN).div(oneEth)
-
-      const multiplier = ethers.utils.parseEther('1.5')
-      fee = fee.mul(multiplier).div(oneEth)
-
-      return fee
+    if (!requireFee) {
+      return BigNumber.from(0)
     }
+
+    const canonicalToken = this.getCanonicalToken(sourceChain)
+    const ethPrice = await this.priceFeed.getPriceByTokenSymbol('WETH')
+    const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
+      canonicalToken.symbol
+    )
+
+    const rate = ethPrice / tokenPrice
+
+    const gasPrice = await destinationChain.provider.getGasPrice()
+    const txFeeEth = gasPrice.mul(BondTransferGasCost)
+
+    const oneEth = ethers.utils.parseEther('1')
+    const rateBN = ethers.utils.parseUnits(
+      rate.toFixed(canonicalToken.decimals),
+      canonicalToken.decimals
+    )
+    let fee = txFeeEth.mul(rateBN).div(oneEth)
+
+    const multiplier = ethers.utils.parseEther('1.5')
+    fee = fee.mul(multiplier).div(oneEth)
+
+    return fee
   }
 
   /**

@@ -20,7 +20,7 @@ const useSendData = (
   const [bonderFee, setBonderFee] = useState<BigNumber>()
   const [lpFees, setLpFees] = useState<BigNumber>()
   const [requiredLiquidity, setRequiredLiquidity] = useState<BigNumber>()
-  const [l1Fee, setL1Fee] = useState<BigNumber>()
+  const [destinationTxFee, setDestinationTxFee] = useState<BigNumber>()
   const [estimatedReceived, setEstimatedReceived] = useState<BigNumber>()
 
   const updateSendData = useCallback(
@@ -42,7 +42,7 @@ const useSendData = (
         setBonderFee(sendData.bonderFee)
         setLpFees(sendData.lpFees)
         setRequiredLiquidity(sendData.requiredLiquidity as BigNumber)
-        setL1Fee(sendData.l1Fee)
+        setDestinationTxFee(sendData.destinationTxFee)
         setEstimatedReceived(sendData.estimatedReceived)
       } catch (err) {
         console.error(err)
@@ -73,7 +73,7 @@ const useSendData = (
     }
 
     return _amountOutMin
-  }, [fromNetwork, toNetwork, amountOut, slippageTolerance, l1Fee])
+  }, [fromNetwork, toNetwork, amountOut, slippageTolerance, destinationTxFee])
 
   const intermediaryAmountOutMin = useMemo(() => {
     let _intermediaryAmountOutMin
@@ -84,7 +84,7 @@ const useSendData = (
     }
 
     return _intermediaryAmountOutMin
-  }, [fromNetwork, toNetwork, requiredLiquidity, slippageTolerance, l1Fee])
+  }, [fromNetwork, toNetwork, requiredLiquidity, slippageTolerance, destinationTxFee])
 
   return {
     amountOut,
@@ -96,7 +96,7 @@ const useSendData = (
     lpFees,
     requiredLiquidity,
     loading,
-    l1Fee,
+    destinationTxFee,
     estimatedReceived
   }
 }

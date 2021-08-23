@@ -62,10 +62,6 @@ class StakeWatcher extends BaseWatcher {
       } else {
         this.logger.warn('not an allowed bonder on chain')
       }
-      const bonderAddress = await this.bridge.getBonderAddress()
-      if (this.isL1) {
-        this.logger.debug(`bonder address: ${bonderAddress}`)
-      }
       this.printAmounts()
       this.watchEthBalance()
     } catch (err) {
@@ -76,6 +72,11 @@ class StakeWatcher extends BaseWatcher {
   }
 
   async printAmounts () {
+    const bonderAddress = await this.bridge.getBonderAddress()
+    if (this.isL1) {
+      this.logger.debug(`bonder address: ${bonderAddress}`)
+    }
+
     const [credit, rawDebit, debit, balance, allowance, eth] = await Promise.all([
       this.bridge.getCredit(),
       this.bridge.getRawDebit(),

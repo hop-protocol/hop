@@ -79,6 +79,9 @@ const StatsContextProvider: FC = ({ children }) => {
     }
 
     const bridge = sdk.bridge(selectedToken.symbol)
+    if (!bridge.isSupportedAsset(selectedNetwork.slug)) {
+      return
+    }
     const reserves = await bridge.getSaddleSwapReserves(selectedNetwork.slug)
     const reserve0 = Number(formatUnits(reserves[0].toString(), decimals))
     const reserve1 = Number(formatUnits(reserves[1].toString(), decimals))
@@ -105,7 +108,7 @@ const StatsContextProvider: FC = ({ children }) => {
       const promises: Promise<any>[] = []
       for (const network of filteredNetworks) {
         for (const token of tokens) {
-          promises.push(fetchStats(network, token))
+          promises.push(fetchStats(network, token).catch(logger.error))
         }
       }
       const results: any[] = await Promise.all(promises)
@@ -126,6 +129,9 @@ const StatsContextProvider: FC = ({ children }) => {
     }
 
     const bridge = sdk.bridge(selectedToken.symbol)
+    if (!bridge.isSupportedAsset(selectedNetwork.slug)) {
+      return
+    }
     const [credit, debit, availableLiquidity, eth] = await Promise.all([
       bridge.getCredit(selectedNetwork.slug, bonder),
       bridge.getDebit(selectedNetwork.slug, bonder),
@@ -155,7 +161,7 @@ const StatsContextProvider: FC = ({ children }) => {
       for (const network of networks) {
         for (const token of tokens) {
           for (const bonder of config.addresses.bonders?.[token.symbol]) {
-            promises.push(fetchBonderStats(network, token, bonder))
+            promises.push(fetchBonderStats(network, token, bonder).catch(logger.error))
           }
         }
       }
@@ -179,6 +185,9 @@ const StatsContextProvider: FC = ({ children }) => {
     }
 
     const bridge = sdk.bridge(token.symbol)
+    if (!bridge.isSupportedAsset(sourceNetwork.slug)) {
+      return
+    }
     const contract = await bridge.getBridgeContract(sourceNetwork.slug)
     const pendingAmountBn = await contract.pendingAmountForChainId(destinationNetwork.networkId)
     const pendingAmount = formatUnits(pendingAmountBn, token.decimals)
@@ -205,7 +214,7 @@ const StatsContextProvider: FC = ({ children }) => {
             if (destinationNetwork === sourceNetwork) {
               continue
             }
-            promises.push(fetchPendingAmounts(sourceNetwork, destinationNetwork, token))
+            promises.push(fetchPendingAmounts(sourceNetwork, destinationNetwork, token).catch(logger.error))
           }
         }
       }

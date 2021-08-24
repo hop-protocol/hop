@@ -1467,6 +1467,10 @@ class HopBridge extends Base {
     const _address = address ?? (await this.getSignerAddress())
     return chain.provider.getBalance(_address)
   }
+
+  isSupportedAsset (chain: TChain) {
+    return !!this.getConfigAddresses(this.tokenSymbol, chain)
+  }
 }
 
 export default HopBridge

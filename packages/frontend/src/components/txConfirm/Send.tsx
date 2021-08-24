@@ -6,6 +6,7 @@ import Network from 'src/models/Network'
 import Typography from '@material-ui/core/Typography'
 import logger from 'src/logger'
 import { commafy } from 'src/utils'
+import Address from 'src/models/Address'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -16,6 +17,9 @@ const useStyles = makeStyles(() => ({
   },
   title: {
     marginBottom: '2rem'
+  },
+  customRecipient: {
+    marginTop: '1rem'
   },
   action: {},
   sendButton: {}
@@ -28,13 +32,14 @@ interface TokenEntity {
 }
 
 interface Props {
+  customRecipient?: string
   source: TokenEntity
   dest: Partial<TokenEntity>
   onConfirm: (confirmed: boolean) => void
 }
 
 const Send = (props: Props) => {
-  const { source, dest, onConfirm } = props
+  const { customRecipient, source, dest, onConfirm } = props
   const styles = useStyles()
   const [sending, setSending] = useState<boolean>(false)
 
@@ -55,6 +60,11 @@ const Send = (props: Props) => {
           Send {commafy(source.amount, 5)} {source.token.symbol} from{' '}
           {source.network.name} to {dest?.network?.name}
         </Typography>
+          {customRecipient ? <>
+          <Typography variant="body1" color="textPrimary" className={styles.customRecipient}>
+            Recipient: {new Address(customRecipient).truncate()}
+          </Typography>
+      </> : null}
       </div>
       <div className={styles.action}>
         <Button

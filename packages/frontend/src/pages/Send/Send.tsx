@@ -528,6 +528,7 @@ const Send: FC = () => {
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
+        customRecipient,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -589,6 +590,7 @@ const Send: FC = () => {
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
+        customRecipient,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -660,6 +662,7 @@ const Send: FC = () => {
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
+        customRecipient,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -712,7 +715,7 @@ const Send: FC = () => {
   }
 
   const handleCustomRecipientInput = (event: any) => {
-    const value = event.target.value
+    const value = event.target.value.trim()
     setCustomRecipient(value)
   }
 

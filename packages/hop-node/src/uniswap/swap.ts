@@ -1,11 +1,16 @@
+import Logger from 'src/logger'
 import wallets from 'src/wallets'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber, Contract, constants } from 'ethers'
 import { Chain } from 'src/constants'
 import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-core'
 import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
 import { erc20Abi } from '@hop-protocol/core/abi'
-import { parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
+
+const logger = new Logger({
+  tag: 'Uniswap'
+})
 
 interface Immutables {
   factory: string;
@@ -79,6 +84,7 @@ async function getPool (poolContract: Contract) {
 
   const TokenA = new Token(1, immutables.token0, token0Decimals, token0Symbol, token0Name)
   const TokenB = new Token(1, immutables.token1, token1Decimals, token1Symbol, token1Name)
+
   const liquidity = state.liquidity.toString()
   const feeAmount = immutables.fee
   const pool = new Pool(
@@ -117,6 +123,7 @@ export type Config = {
   fromToken: string
   toToken: string
   amount: number
+  max?: boolean
   recipient?: string
   slippage?: number
   deadline?: number
@@ -130,7 +137,7 @@ const ethPools: {[key: string]: string} = {
 }
 
 export async function swap (config: Config) {
-  let { fromToken, toToken, amount, slippage, recipient, deadline } = config
+  let { fromToken, toToken, amount, max, slippage, recipient, deadline } = config
   if (toToken !== 'ETH') {
     throw new Error('only ETH as the "to" token is not supported at this time')
   }
@@ -139,6 +146,12 @@ export async function swap (config: Config) {
   if (!poolAddress) {
     throw new Error(`"from" token "${fromToken}" is not supported at this time. Supported options are ${Object.keys(ethPools).join(',')}`)
   }
+  if (amount && max) {
+    throw new Error('only "amount" or "max" can be set, but not both')
+  }
+
+  logger.debug('fetching pool information')
+
   const poolContract = new Contract(
     poolAddress,
     IUniswapV3PoolABI,
@@ -151,15 +164,45 @@ export async function swap (config: Config) {
     wallet
   )
 
-  const decimals = Number((await token0.decimals()).toString())
-  const parsedAmount = parseUnits(amount.toString(), decimals)
+  const token1 = getToken(
+    pool.token1.address,
+    wallet
+  )
+
+  let sourceToken = token0
+  let routeToken0: any = pool.token0
+  let routeToken1: any = pool.token1
+
+  const token0Symbol = await token0.symbol()
+  if (token0Symbol === 'WETH' || token0Symbol === 'ETH') {
+    sourceToken = token1
+    const tmp = routeToken0
+    routeToken0 = routeToken1
+    routeToken1 = tmp
+  }
+
+  if (toToken === 'ETH') {
+    routeToken1 = Ether.onChain(1)
+  }
+
+  const sender = await wallet.getAddress()
+  const balance = await sourceToken.balanceOf(sender)
+  const decimals = Number((await sourceToken.decimals()).toString())
+
+  let parsedAmount : BigNumber
+  if (max) {
+    parsedAmount = balance
+    amount = Number(formatUnits(parsedAmount, decimals))
+  } else {
+    parsedAmount = parseUnits(amount.toString(), decimals)
+  }
+
   const trade = await Trade.fromRoute(
-    new Route([pool], pool.token0, toToken === 'ETH' ? Ether.onChain(1) : pool.token1),
-    CurrencyAmount.fromRawAmount(pool.token0, parsedAmount.toString()),
+    new Route([pool], routeToken0, routeToken1),
+    CurrencyAmount.fromRawAmount(routeToken0, parsedAmount.toString()),
     TradeType.EXACT_INPUT
   )
 
-  const sender = await wallet.getAddress()
   const slippageTolerance = new Percent((slippage || 1) * 100, 10000)
   recipient = recipient || sender
   deadline = (Date.now() / 1000 + (deadline || 300)) | 0
@@ -170,18 +213,17 @@ export async function swap (config: Config) {
     deadline
   })
 
-  const balance = await token0.balanceOf(sender)
   if (balance.lt(parsedAmount)) {
     throw new Error(`not enough ${fromToken} balance`)
   }
 
-  console.log(`attempting to swap ${amount} ${fromToken} for ${toToken}`)
+  logger.debug(`attempting to swap ${amount} ${fromToken} for ${toToken}`)
 
-  const allowance = await token0.allowance(sender, swapRouter)
+  const allowance = await sourceToken.allowance(sender, swapRouter)
   if (allowance.lt(parsedAmount)) {
-    const tx = await token0.approve(swapRouter, parsedAmount)
-    console.log(`approval tx: ${tx.hash}`)
-    console.log('waiting for receipt')
+    const tx = await sourceToken.approve(swapRouter, constants.MaxUint256)
+    logger.info(`approval tx: ${tx.hash}`)
+    logger.debug('waiting for receipt')
     await tx.wait()
   }
 

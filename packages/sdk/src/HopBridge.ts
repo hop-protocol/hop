@@ -1,5 +1,5 @@
 import { ethers, Signer, Contract, BigNumber, BigNumberish } from 'ethers'
-import { parseUnits } from 'ethers/lib/utils'
+import { parseUnits, getAddress } from 'ethers/lib/utils'
 import Chain from './models/Chain'
 import TokenModel from './models/Token'
 import {
@@ -1131,7 +1131,7 @@ class HopBridge extends Base {
       throw new Error('sourceChain must be L1 when calling sendL1ToL2')
     }
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
-    recipient = recipient || (await this.getSignerAddress())
+    recipient = getAddress(recipient || (await this.getSignerAddress()))
     this.checkConnectedChain(this.signer, sourceChain)
     const l1Bridge = await this.getL1Bridge(this.signer)
 
@@ -1182,7 +1182,7 @@ class HopBridge extends Base {
     destinationDeadline = destinationDeadline || 0
     amountOutMin = amountOutMin || 0
     destinationAmountOutMin = destinationAmountOutMin || 0
-    recipient = recipient || (await this.getSignerAddress())
+    recipient = getAddress(recipient || (await this.getSignerAddress()))
     this.checkConnectedChain(this.signer, sourceChain)
     const ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
     const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
@@ -1251,7 +1251,7 @@ class HopBridge extends Base {
     deadline = deadline || this.defaultDeadlineSeconds
     destinationDeadline = destinationDeadline || deadline
     amountOutMin = amountOutMin || 0
-    recipient = recipient || (await this.getSignerAddress())
+    recipient = getAddress(recipient || (await this.getSignerAddress()))
     if (BigNumber.from(bonderFee).gt(amount)) {
       throw new Error('Amount must be greater than bonder fee')
     }
@@ -1322,7 +1322,9 @@ class HopBridge extends Base {
       )
     }
 
-    const recipient = options?.recipient ?? (await this.getSignerAddress())
+    const recipient = getAddress(
+      options?.recipient ?? (await this.getSignerAddress())
+    )
     const bonderFee = options?.bonderFee
       ? BigNumber.from(options?.bonderFee)
       : minBonderFee

@@ -17,6 +17,7 @@ program
   .option('--from <string>', 'From token')
   .option('--to <string>', 'To token')
   .option('--amount <string>', 'From token amount')
+  .option('--max', 'Use max tokens instead of specific amount')
   .option('--deadline <string>', 'Deadline in seconds')
   .option('--slippage <string>', 'Slippage tolerance. E.g. 0.5')
   .option('--recipient <string>', 'Recipient')
@@ -31,6 +32,7 @@ program
       const fromToken = source.from
       const toToken = source.to
       const amount = Number(source.args[0] || source.amount)
+      const max = source.max !== undefined && source.max
       const deadline = Number(source.deadline)
       const slippage = Number(source.slippage)
       const recipient = source.recipient
@@ -46,7 +48,7 @@ program
       if (!toToken) {
         throw new Error('"to" token is required')
       }
-      if (!amount) {
+      if (!max && !amount) {
         throw new Error('"from" token amount is required')
       }
 
@@ -54,10 +56,14 @@ program
         fromToken,
         toToken,
         amount,
+        max,
         deadline,
         slippage,
         recipient
       })
+      if (!tx) {
+        throw new Error('tx object not received')
+      }
       logger.info(`swap tx: ${tx.hash}`)
       logger.log('waiting for receipt')
       const receipt = await tx.wait()

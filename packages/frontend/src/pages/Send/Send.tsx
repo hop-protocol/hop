@@ -1,4 +1,6 @@
 import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
+import Card from '@material-ui/core/Card'
+import LargeTextField from 'src/components/LargeTextField'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -87,6 +89,46 @@ const useStyles = makeStyles(theme => ({
   ammDetails: {
     padding: theme.padding.extraLight,
     width: '32.0rem'
+  },
+  detailsDropdown: {
+    marginTop: '2rem',
+    width: '50.0rem',
+    '&[open] summary span::before': {
+      content: '"▴"',
+    },
+    [theme.breakpoints.down('xs')]: {
+      width: '90%'
+    },
+  },
+  detailsDropdownSummary: {
+    listStyle: 'none',
+    display: 'block',
+    textAlign: 'right',
+    fontWeight: 'normal',
+    paddingRight: '4rem',
+    '&::marker': {
+      display: 'none'
+    }
+  },
+  detailsDropdownLabel: {
+    position: 'relative',
+    cursor: 'pointer',
+    '&::before': {
+      display: 'block',
+      content: '"▾"',
+      position: 'absolute',
+      top: '0',
+      right: '-1.5rem',
+    }
+  },
+  options: {
+  },
+  customRecipient: {
+    width: '100%',
+    padding: '2rem 0'
+  },
+  customRecipientLabel: {
+    marginBottom: '1.5rem'
   }
 }))
 
@@ -160,6 +202,7 @@ const Send: FC = () => {
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(
     true
   )
+  const [customRecipient, setCustomRecipient] = useState<string>('')
 
   const isUnsupportedAsset = useMemo(() => {
     return selectedBridge?.getTokenSymbol() === 'MATIC' && (
@@ -485,6 +528,7 @@ const Send: FC = () => {
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
+        customRecipient,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -500,7 +544,7 @@ const Send: FC = () => {
           fromTokenAmount,
           sourceToken.decimals
         ).toString()
-        const recipient = await signer.getAddress()
+        const recipient = customRecipient || await signer.getAddress()
         const relayer = ethers.constants.AddressZero
         const relayerFee = 0
         const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
@@ -546,6 +590,7 @@ const Send: FC = () => {
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
+        customRecipient,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -573,7 +618,7 @@ const Send: FC = () => {
         if (totalBonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
         }
-        const recipient = await signer?.getAddress()
+        const recipient = customRecipient || await signer?.getAddress()
         const tx = await bridge.send(
           parsedAmountIn,
           fromNetwork?.slug as string,
@@ -617,6 +662,7 @@ const Send: FC = () => {
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
+        customRecipient,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -632,7 +678,7 @@ const Send: FC = () => {
           fromTokenAmount,
           sourceToken.decimals
         )
-        const recipient = await signer?.getAddress()
+        const recipient = customRecipient || await signer?.getAddress()
         const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
         if (bonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
@@ -666,6 +712,11 @@ const Send: FC = () => {
     }
 
     return txObj
+  }
+
+  const handleCustomRecipientInput = (event: any) => {
+    const value = event.target.value.trim()
+    setCustomRecipient(value)
   }
 
   let enoughBalance = true
@@ -767,6 +818,28 @@ const Send: FC = () => {
         loadingValue={loadingSendData}
         disableInput
       />
+      <details className={styles.detailsDropdown}>
+        <summary className={styles.detailsDropdownSummary}>
+          <span className={styles.detailsDropdownLabel}>Options</span>
+        </summary>
+        <div className={styles.options}>
+          <div className={styles.customRecipient}>
+            <Card>
+              <Typography variant="body1" className={styles.customRecipientLabel}>
+                Custom recipient
+              </Typography>
+              <LargeTextField
+                style={{
+                  width: '100%'
+                }}
+                leftAlign
+                value={customRecipient}
+                onChange={handleCustomRecipientInput}
+                placeholder="0x" />
+            </Card>
+          </div>
+        </div>
+      </details>
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
           {

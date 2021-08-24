@@ -1,3 +1,4 @@
+import { Chain } from 'src/constants'
 import {
   FileConfig,
   config as globalConfig,
@@ -63,6 +64,13 @@ program
             const isWithoutChain = Object.values(newConfig.commitTransfers.minThresholdAmount).every(value => typeof value === 'number')
             if (isWithoutChain) {
               for (const network of networks) {
+                if (network === Chain.Arbitrum) {
+                  // TODO: remove skip when arbitrum is launched
+                  continue
+                }
+                if (network === Chain.Ethereum) {
+                  continue
+                }
                 if (!newObj[network]) {
                   newObj[network] = {}
                 }

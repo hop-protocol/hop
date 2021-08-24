@@ -223,7 +223,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   shouldAttemptSwap = (dbTransfer: Transfer): boolean => {
-    return dbTransfer.deadline > 0 && dbTransfer.amountOutMin?.gt(0)
+    return dbTransfer.deadline > 0 || dbTransfer.amountOutMin?.gt(0)
   }
 
   sendBondWithdrawalTx = async (params: any) => {

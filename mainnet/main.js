@@ -34,6 +34,9 @@ const app = new Vue({
       optimism: {
         formattedAmount: '-'
       },
+      arbitrum: {
+        formattedAmount: '-'
+      },
       ethereum: {
         formattedAmount: '-'
       },
@@ -142,18 +145,14 @@ const app = new Vue({
   }
 })
 
-const chainToIndexMapSource = {
-  ethereum: 0,
-  xdai: 1,
-  polygon: 2,
-  optimism: 3
+const chainToIndexMapSource = {}
+for (let i = 0; i < enabledChains.length; i++) {
+  chainToIndexMapSource[enabledChains[i]] = i
 }
 
-const chainToIndexMapDestination = {
-  ethereum: 4,
-  xdai: 5,
-  polygon: 6,
-  optimism: 7
+const chainToIndexMapDestination = {}
+for (let i = 0; i < enabledChains.length; i++) {
+  chainToIndexMapDestination[enabledChains[i]] = i + enabledChains.length
 }
 
 const chainIdToSlugMap = {
@@ -163,7 +162,9 @@ const chainIdToSlugMap = {
   69: 'optimism',
   77: 'xdai',
   100: 'xdai',
-  137: 'polygon'
+  137: 'polygon',
+  42161: 'arbitrum',
+  421611: 'arbitrum'
 }
 
 const chainSlugToNameMap = {
@@ -171,15 +172,16 @@ const chainSlugToNameMap = {
   xdai: 'xDai',
   polygon: 'Polygon',
   arbitrum: 'Arbitrum',
-  optimism: 'Optimism'
+  optimism: 'Optimism',
+  arbitrum: 'Arbitrum'
 }
 
 const colorsMap = {
   ethereum: '#868dac',
-  arbitrum: '#97ba4c',
-  optimism: '#e64b5d',
   xdai: '#46a4a1',
   polygon: '#8b57e1',
+  optimism: '#e64b5d',
+  arbitrum: '#289fef',
   fallback: '#9f9fa3'
 }
 
@@ -385,11 +387,13 @@ async function updateTransfers () {
     xdaiTransfers,
     polygonTransfers,
     optimismTransfers,
+    arbitrumTransfers,
     mainnetTransfers
   ] = await Promise.all([
     enabledChains.includes('xdai') ? fetchTransfers('xdai') : Promise.resolve([]),
-    enabledChains.includes('polygon') ? fetchTransfers('polygon'): Promise.resolve([]),
+    enabledChains.includes('polygon') ? fetchTransfers('polygon') : Promise.resolve([]),
     enabledChains.includes('optimism') ? fetchTransfers('optimism') : Promise.resolve([]),
+    enabledChains.includes('arbitrum') ? fetchTransfers('arbitrum') : Promise.resolve([]),
     enabledChains.includes('ethereum') ? fetchTransfers('mainnet') : Promise.resolve([])
   ])
 
@@ -397,11 +401,13 @@ async function updateTransfers () {
     xdaiBonds,
     polygonBonds,
     optimismBonds,
+    arbitrumBonds,
     mainnetBonds
   ] = await Promise.all([
     enabledChains.includes('xdai') ? fetchBonds('xdai') : Promise.resolve([]),
     enabledChains.includes('xdai') ? fetchBonds('polygon') : Promise.resolve([]),
     enabledChains.includes('optimism') ? fetchBonds('optimism') : Promise.resolve([]),
+    enabledChains.includes('arbitrum') ? fetchBonds('arbitrum') : Promise.resolve([]),
     enabledChains.includes('ethereum') ? fetchBonds('mainnet') : Promise.resolve([])
   ])
 
@@ -438,6 +444,17 @@ async function updateTransfers () {
       token: x.token
     })
   }
+  for (const x of arbitrumTransfers) {
+    data.push({
+      sourceChain: 42161,
+      destinationChain: x.destinationChainId,
+      amount: x.amount,
+      transferId: x.transferId,
+      transactionHash: x.transactionHash,
+      timestamp: Number(x.timestamp),
+      token: x.token
+    })
+  }
   for (const x of mainnetTransfers) {
     data.push({
       sourceChain: 1,
@@ -458,6 +475,7 @@ async function updateTransfers () {
     xdai: xdaiBonds,
     polygon: polygonBonds,
     optimism: optimismBonds,
+    arbitrum: arbitrumBonds,
     ethereum: mainnetBonds
   }
 
@@ -539,19 +557,19 @@ async function updateChart (data) {
     }
   })
 
-  const graph = {
-    nodes: [
-      { node: chainToIndexMapSource.ethereum, name: 'Ethereum', id: 'ethereum' },
-      { node: chainToIndexMapSource.xdai, name: 'xDai', id: 'xdai' },
-      { node: chainToIndexMapSource.polygon, name: 'Polygon', id: 'polygon' },
-      { node: chainToIndexMapSource.optimism, name: 'Optimism', id: 'optimism' },
+  const nodes = []
+  for (let i = 0; i < enabledChains.length; i++) {
+    const chain = enabledChains[i]
+    nodes.push({ node: chainToIndexMapSource[chain], name: chainSlugToNameMap[chain], id: chain })
+  }
+  for (let i = 0; i < enabledChains.length; i++) {
+    const chain = enabledChains[i]
+    nodes.push({ node: chainToIndexMapDestination[chain], name: chainSlugToNameMap[chain], id: chain })
+  }
 
-      { node: chainToIndexMapDestination.ethereum, name: 'Ethereum', id: 'ethereum' },
-      { node: chainToIndexMapDestination.xdai, name: 'xDai', id: 'xdai' },
-      { node: chainToIndexMapDestination.polygon, name: 'Polygon', id: 'polygon' },
-      { node: chainToIndexMapDestination.optimism, name: 'Optimism', id: 'optimism' }
-    ],
-    links: links
+  const graph = {
+    nodes,
+    links
   }
 
   const render = () => {

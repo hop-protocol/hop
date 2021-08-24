@@ -153,6 +153,9 @@ table img {
 .optimism {
   color: #e64b5d;
 }
+.arbitrum {
+  color: #289fef;
+}
 .paginationButton {
   appearance: none;
   border: none;

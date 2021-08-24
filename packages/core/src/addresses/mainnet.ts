@@ -4,7 +4,7 @@ export const addresses: Addresses = {
   bonders: {
     USDC: ['0xa6a688F107851131F0E1dce493EbBebFAf99203e'],
     USDT: ['0xa6a688F107851131F0E1dce493EbBebFAf99203e'],
-    MATIC: ['0xd8781ca9163e9f132a4d8392332e64115688013a']
+    MATIC: ['0xa6a688F107851131F0E1dce493EbBebFAf99203e']
   },
   bridges: {
     USDC: {

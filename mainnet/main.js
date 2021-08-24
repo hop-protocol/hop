@@ -1,6 +1,7 @@
 const poll = true
 const fetchInterval = 10 * 1000
 const enabledTokens = ['USDC', 'USDT']
+const enabledChains = ['ethereum', 'xdai', 'polygon']
 
 let perPage = 100
 try {
@@ -386,10 +387,10 @@ async function updateTransfers () {
     optimismTransfers,
     mainnetTransfers
   ] = await Promise.all([
-    fetchTransfers('xdai'),
-    fetchTransfers('polygon'),
-    fetchTransfers('optimism'),
-    fetchTransfers('mainnet')
+    enabledChains.includes('xdai') ? fetchTransfers('xdai') : Promise.resolve([]),
+    enabledChains.includes('polygon') ? fetchTransfers('polygon'): Promise.resolve([]),
+    enabledChains.includes('optimism') ? fetchTransfers('optimism') : Promise.resolve([]),
+    enabledChains.includes('ethereum') ? fetchTransfers('mainnet') : Promise.resolve([])
   ])
 
   const [
@@ -398,10 +399,10 @@ async function updateTransfers () {
     optimismBonds,
     mainnetBonds
   ] = await Promise.all([
-    fetchBonds('xdai'),
-    fetchBonds('polygon'),
-    fetchBonds('optimism'),
-    fetchBonds('mainnet')
+    enabledChains.includes('xdai') ? fetchBonds('xdai') : Promise.resolve([]),
+    enabledChains.includes('xdai') ? fetchBonds('polygon') : Promise.resolve([]),
+    enabledChains.includes('optimism') ? fetchBonds('optimism') : Promise.resolve([]),
+    enabledChains.includes('ethereum') ? fetchBonds('mainnet') : Promise.resolve([])
   ])
 
   for (const x of xdaiTransfers) {
@@ -487,6 +488,7 @@ async function updateTransfers () {
       return !unbondableTransfers.includes(x.transferId)
     })
     .map(populateTransfer)
+    .filter(x => enabledChains.includes(x.sourceChainSlug) && enabledChains.includes(x.destinationChainSlug))
     .sort((a, b) => b.timestamp - a.timestamp)
     .map((x, i) => {
       x.index = i

@@ -2,6 +2,7 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
+import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
 import chalk from 'chalk'
 import { Chain, TEN_MINUTES_MS, TX_RETRY_DELAY_MS } from 'src/constants'
@@ -279,9 +280,21 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.notifier.info(
         `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
       )
+    } else if (chainSlug === Chain.Optimism) {
+      const commitTx: any = await this.bridge.getTransaction(commitTxHash)
+      const optimismWatcher = new OptimismBridgeWatcher({
+        chainSlug: this.chainSlug,
+        tokenSymbol: this.tokenSymbol
+      })
+
+      if (this.isDryOrPauseMode) {
+        logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
+        return
+      }
+
+      await optimismWatcher.relayXDomainMessages(commitTx)
     } else {
       // not implemented
-
     }
   }
 
@@ -297,7 +310,8 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     // TODO: Move this const to chain-specific location
     const checkpointIntervals: { [key: string]: number } = {
       polygon: 10 * 10 * 1000,
-      xdai: 1 * 10 * 1000
+      xdai: 1 * 10 * 1000,
+      optimism: 1 * 10 * 1000
     }
 
     const interval = checkpointIntervals[chainSlug]

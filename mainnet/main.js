@@ -462,11 +462,13 @@ async function updateTransfers () {
 
   for (const x of data) {
     const bonds = bondsMap[chainIdToSlugMap[x.destinationChain]]
-    for (const bond of bonds) {
-      if (bond.transferId === x.transferId) {
-        x.bonded = true
-        x.bondTransactionHash = bond.transactionHash
-        continue
+    if (bonds) {
+      for (const bond of bonds) {
+        if (bond.transferId === x.transferId) {
+          x.bonded = true
+          x.bondTransactionHash = bond.transactionHash
+          continue
+        }
       }
     }
   }

@@ -33,7 +33,6 @@ export const TotalBlocks = {
 }
 export const DEFAULT_BATCH_BLOCKS = 10000
 
-export const ONE_MONTH_MS = 30 * 24 * 60 * 60 * 1000
 export const TEN_MINUTES_MS = 10 * 60 * 1000
 export const TX_RETRY_DELAY_MS = TEN_MINUTES_MS
 export const ETHEREUM_TX_MAX_DELAY_MS = 1 * 1000

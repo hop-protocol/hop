@@ -1,6 +1,6 @@
 import BaseDb from './BaseDb'
 import { BigNumber } from 'ethers'
-import { ONE_MONTH_MS, TX_RETRY_DELAY_MS, TxError } from 'src/constants'
+import { TX_RETRY_DELAY_MS, TxError } from 'src/constants'
 import { chainIdToSlug } from 'src/utils'
 import { normalizeDbItem } from './utils'
 
@@ -132,8 +132,15 @@ class TransfersDb extends BaseDb {
         }
       }
 
+      const invalidTransferIds: string[] = [
+        '0xb9332b783982344a6b082ef76ec88f3c567f843dad9c896e43dc3248ca205915',
+        '0x53e43773a6942eb91b3439b9bbfc1cbc6c3f4bcd23db92a85ec190e283c7ac4a'
+      ]
+      if (invalidTransferIds.includes(filter.transferId)) {
+        return false
+      }
+
       let timestampOk = true
-      let expirationTimestampOk = true
       if (item.sentBondWithdrawalTxAt) {
         if (item.withdrawalBondTxError === TxError.BonderFeeTooLow) {
           const maxDelay = 60 * 60
@@ -141,7 +148,6 @@ class TransfersDb extends BaseDb {
           timestampOk = item.sentBondWithdrawalTxAt + delay < Date.now()
         } else {
           timestampOk = item.sentBondWithdrawalTxAt + TX_RETRY_DELAY_MS < Date.now()
-          expirationTimestampOk = item.sentBondWithdrawalTxAt + ONE_MONTH_MS < Date.now()
         }
       }
 
@@ -150,8 +156,7 @@ class TransfersDb extends BaseDb {
         !item.withdrawalBonded &&
         item.transferSentTxHash &&
         item.isBondable &&
-        timestampOk &&
-        expirationTimestampOk
+        timestampOk
       )
     })
   }

@@ -61,12 +61,16 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         committedAt
       } = dbTransferRoot
 
+      // only process message after waiting 10 minutes
+      let timestampOk = true
+      if (this.lastSeen[transferRootHash]) {
+        timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
+      }
+
       if (!this.lastSeen[transferRootHash]) {
         this.lastSeen[transferRootHash] = Date.now()
       }
 
-      // only process message after waiting 10 minutes
-      const timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
       if (!timestampOk) {
         continue
       }
@@ -281,7 +285,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
       )
     } else if (chainSlug === Chain.Optimism) {
-      const commitTx: any = await this.bridge.getTransaction(commitTxHash)
       const optimismWatcher = new OptimismBridgeWatcher({
         chainSlug: this.chainSlug,
         tokenSymbol: this.tokenSymbol
@@ -292,7 +295,22 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         return
       }
 
-      await optimismWatcher.relayXDomainMessages(commitTx)
+      const tx = await optimismWatcher.relayXDomainMessages(commitTxHash)
+      if (!tx) {
+        this.logger.debug('cannot relay message yet')
+        return false
+      }
+      await this.db.transferRoots.update(transferRootHash, {
+        sentConfirmTx: true,
+        sentConfirmTxAt: Date.now()
+      })
+      logger.info(
+        `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
+        chalk.bgYellow.black.bold(tx.hash)
+      )
+      this.notifier.info(
+        `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
+      )
     } else {
       // not implemented
     }
@@ -311,7 +329,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     const checkpointIntervals: { [key: string]: number } = {
       polygon: 10 * 10 * 1000,
       xdai: 1 * 10 * 1000,
-      optimism: 1 * 10 * 1000
+      optimism: 10 * 10 * 1000
     }
 
     const interval = checkpointIntervals[chainSlug]

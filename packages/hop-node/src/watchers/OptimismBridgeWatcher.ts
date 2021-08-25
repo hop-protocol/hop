@@ -19,7 +19,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
   l1Wallet: Wallet
   l2Wallet: Wallet
   l1Messenger: Contract
-  sccAddress: string
+  scc: Contract
   watcher: Watcher
 
   constructor (config: Config) {
@@ -39,39 +39,41 @@ class OptimismBridgeWatcher extends BaseWatcher {
     )
     this.l1Wallet = new GasBoostSigner(privateKey, this.l1Provider)
     this.l2Wallet = new GasBoostSigner(privateKey, this.l2Provider)
-    this.sccAddress = '0xE969C2724d2448F1d1A6189d3e2aA1F37d5998c1'
+    const sccAddress = '0xE969C2724d2448F1d1A6189d3e2aA1F37d5998c1'
+    const l1MessengerAddress = '0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1'
+    const l2MessengerAddress = '0x4200000000000000000000000000000000000007'
 
     this.watcher = new Watcher({
       l1: {
         provider: getRpcProvider(Chain.Ethereum),
-        messengerAddress: '0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1'
+        messengerAddress: l1MessengerAddress
       },
       l2: {
         provider: getRpcProvider(Chain.Optimism),
-        messengerAddress: '0x4200000000000000000000000000000000000007'
+        messengerAddress: l2MessengerAddress
       }
     })
 
-    const l1MessengerAddress = '0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1'
     this.l1Messenger = getContractFactory('iOVM_L1CrossDomainMessenger')
       .connect(this.l1Wallet)
       .attach(this.watcher.l1.messengerAddress)
+    this.scc = getContractFactory('iOVM_StateCommitmentChain')
+      .connect(this.l1Wallet)
+      .attach(sccAddress)
   }
 
   async relayXDomainMessages (
-    tx: providers.TransactionResponse
-  ): Promise<void> {
-    tx = await tx
-
+    txHash: string
+  ): Promise<any> {
     let messagePairs = []
     while (true) {
       try {
         messagePairs = await getMessagesAndProofsForL2Transaction(
           this.l1Provider,
           this.l2Provider,
-          this.sccAddress,
+          this.scc.address,
           predeploys.OVM_L2CrossDomainMessenger,
-          tx.hash
+          txHash
         )
         break
       } catch (err) {
@@ -86,6 +88,11 @@ class OptimismBridgeWatcher extends BaseWatcher {
     for (const { message, proof } of messagePairs) {
       while (true) {
         try {
+          const inChallengeWindow = await this.scc.insideFraudProofWindow(proof.stateRootBatchHeader)
+          if (inChallengeWindow) {
+            return false
+          }
+
           const result = await this.l1Messenger
             .connect(this.l1Wallet)
             .relayMessage(
@@ -96,7 +103,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
               proof
             )
           await result.wait()
-          break
+          return result
         } catch (err) {
           if (err.message.includes('execution failed due to an exception')) {
             await wait(5000)
@@ -110,11 +117,6 @@ class OptimismBridgeWatcher extends BaseWatcher {
         }
       }
     }
-  }
-
-  watch () {
-    // const [msgHash] = await watcher.getMessageHashesFromL1Tx(hash)
-    // const L2Receipt = await watcher.getL2TransactionReceipt(msgHash)
   }
 }
 export default OptimismBridgeWatcher

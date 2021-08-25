@@ -2,7 +2,7 @@ import { ethers, providers, Signer, Contract, BigNumber } from 'ethers'
 import { erc20Abi, wethAbi } from '@hop-protocol/core/abi'
 import { TAmount, TChain } from './types'
 import TokenModel from './models/Token'
-import Base from './Base'
+import Base, { ChainProviders } from './Base'
 import Chain from './models/Chain'
 
 /**
@@ -38,9 +38,10 @@ class Token extends Base {
     symbol: string,
     name: string,
     image: string,
-    signer?: Signer | providers.Provider
+    signer?: Signer | providers.Provider,
+    chainProviders?: ChainProviders
   ) {
-    super(network, signer)
+    super(network, signer, chainProviders)
 
     this.address = ethers.utils.getAddress(address)
     this.decimals = decimals
@@ -64,7 +65,8 @@ class Token extends Base {
       this.symbol,
       this.name,
       this.image,
-      signer
+      signer,
+      this.chainProviders
     )
   }
 
@@ -231,7 +233,8 @@ class Token extends Base {
       `W${this.symbol}`,
       this.name,
       this.image,
-      this.signer
+      this.signer,
+      this.chainProviders
     )
   }
 

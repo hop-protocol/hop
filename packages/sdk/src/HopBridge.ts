@@ -12,7 +12,7 @@ import {
   wethAbi
 } from '@hop-protocol/core/abi'
 import { TChain, TToken, TAmount, TProvider } from './types'
-import Base from './Base'
+import Base, { ChainProviders } from './Base'
 import AMM from './AMM'
 import _version from './version'
 import { TokenIndex, BondTransferGasCost, LpFee } from './constants'
@@ -116,8 +116,13 @@ class HopBridge extends Base {
    *const bridge = new HopBridge('kovan', signer, Token.USDC, Chain.Optimism, Chain.xDai)
    *```
    */
-  constructor (network: string, signer: TProvider, token: TToken) {
-    super(network, signer)
+  constructor (
+    network: string,
+    signer: TProvider,
+    token: TToken,
+    chainProviders?: ChainProviders
+  ) {
+    super(network, signer, chainProviders)
 
     if (token instanceof Token || token instanceof TokenModel) {
       this.tokenSymbol = token.symbol
@@ -144,7 +149,12 @@ class HopBridge extends Base {
    *```
    */
   public connect (signer: Signer) {
-    return new HopBridge(this.network, signer, this.tokenSymbol)
+    return new HopBridge(
+      this.network,
+      signer,
+      this.tokenSymbol,
+      this.chainProviders
+    )
   }
 
   public getL1Token () {
@@ -185,7 +195,8 @@ class HopBridge extends Base {
       symbol,
       name,
       image,
-      this.signer
+      this.signer,
+      this.chainProviders
     )
   }
 
@@ -213,7 +224,8 @@ class HopBridge extends Base {
       `h${token.canonicalSymbol}`,
       `Hop ${name}`,
       image,
-      this.signer
+      this.signer,
+      this.chainProviders
     )
   }
 
@@ -933,7 +945,8 @@ class HopBridge extends Base {
       `${this.tokenSymbol} LP`,
       `${this.tokenSymbol} LP`,
       '',
-      signer
+      signer,
+      this.chainProviders
     )
   }
 
@@ -957,7 +970,13 @@ class HopBridge extends Base {
     amount0Desired = BigNumber.from(amount0Desired.toString())
     chain = this.toChainModel(chain)
 
-    const amm = new AMM(this.network, this.tokenSymbol, chain, this.signer)
+    const amm = new AMM(
+      this.network,
+      this.tokenSymbol,
+      chain,
+      this.signer,
+      this.chainProviders
+    )
     return amm.addLiquidity(
       amount0Desired,
       amount1Desired,
@@ -982,7 +1001,13 @@ class HopBridge extends Base {
       chain = this.sourceChain
     }
     chain = this.toChainModel(chain)
-    const amm = new AMM(this.network, this.tokenSymbol, chain, this.signer)
+    const amm = new AMM(
+      this.network,
+      this.tokenSymbol,
+      chain,
+      this.signer,
+      this.chainProviders
+    )
     return amm.removeLiquidity(
       liqudityTokenAmount,
       options.amount0Min,

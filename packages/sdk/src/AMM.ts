@@ -6,7 +6,7 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { Chain } from './models'
 import { TokenIndex } from './constants'
 import { TChain, TAmount, TProvider } from './types'
-import Base from './Base'
+import Base, { ChainProviders } from './Base'
 
 /**
  * Class reprensenting AMM contract
@@ -38,9 +38,10 @@ class AMM extends Base {
     network: string,
     tokenSymbol: string,
     chain?: TChain,
-    signer?: TProvider
+    signer?: TProvider,
+    chainProviders?: ChainProviders
   ) {
-    super(network, signer)
+    super(network, signer, chainProviders)
     if (!tokenSymbol) {
       throw new Error('token is required')
     }
@@ -66,7 +67,13 @@ class AMM extends Base {
    *```
    */
   public connect (signer: TProvider) {
-    return new AMM(this.network, this.tokenSymbol, this.chain, signer)
+    return new AMM(
+      this.network,
+      this.tokenSymbol,
+      this.chain,
+      signer,
+      this.chainProviders
+    )
   }
 
   /**

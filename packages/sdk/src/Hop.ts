@@ -6,7 +6,7 @@ import Watcher from './watchers/Watcher'
 import { Event } from './watchers/BaseWatcher'
 import CanonicalWatcher from './watchers/CanonicalWatcher'
 import { TChain, TToken, TProvider } from './types'
-import Base from './Base'
+import Base, { ChainProviders } from './Base'
 import { Network } from './constants'
 import _version from './version'
 
@@ -61,8 +61,12 @@ class Hop extends Base {
    *const hop = new Hop('mainnet', signer)
    *```
    */
-  constructor (network: string = Network.Kovan, signer?: TProvider) {
-    super(network, signer)
+  constructor (
+    network: string = Network.Kovan,
+    signer?: TProvider,
+    chainProviders?: ChainProviders
+  ) {
+    super(network, signer, chainProviders)
   }
 
   /**
@@ -80,7 +84,7 @@ class Hop extends Base {
    *```
    */
   public bridge (token: TToken) {
-    return new HopBridge(this.network, this.signer, token)
+    return new HopBridge(this.network, this.signer, token, this.chainProviders)
   }
 
   /**
@@ -97,7 +101,13 @@ class Hop extends Base {
    *```
    */
   public canonicalBridge (token: TToken, chain?: TChain) {
-    return new CanonicalBridge(this.network, this.signer, token, chain)
+    return new CanonicalBridge(
+      this.network,
+      this.signer,
+      token,
+      chain,
+      this.chainProviders
+    )
   }
 
   /**
@@ -117,7 +127,7 @@ class Hop extends Base {
    */
   connect (signer: TProvider) {
     this.signer = signer
-    return new Hop(this.network, signer)
+    return new Hop(this.network, signer, this.chainProviders)
   }
 
   /**
@@ -200,6 +210,7 @@ class Hop extends Base {
       token: token,
       sourceChain: sourceChain,
       destinationChain: destinationChain,
+      chainProviders: this.chainProviders,
       options
     }).watch()
   }

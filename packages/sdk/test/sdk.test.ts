@@ -432,3 +432,18 @@ describe('approve addresses', () => {
     expect(approvalAddress).toBe(expectedAddress)
   })
 })
+
+describe('custom chain providers', () => {
+  const sdk = new Hop('mainnet')
+  it('should use custom chain provider', () => {
+    const bridge = sdk.bridge('USDC')
+    let provider = bridge.getChainProvider('polygon')
+    const currentUrl = 'https://polygon.rpc.hop.exchange'
+    const newUrl = 'https://polygon-rpc.com/'
+    expect((provider as any).connection.url).toBe(currentUrl)
+    const newProvider = new providers.StaticJsonRpcProvider(newUrl)
+    sdk.setChainProvider('polygon', newProvider)
+    provider = bridge.getChainProvider('polygon')
+    expect((provider as any).connection.url).toBe(newUrl)
+  })
+})

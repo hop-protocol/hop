@@ -5,9 +5,11 @@ import { Chain, Token as TokenModel } from './models'
 import { TChain, TProvider, TToken } from './types'
 import { metadata, config } from './config'
 
+export type ChainProviders = { [chain: string]: providers.Provider }
+
 // cache provider
-const getProvider = memoize((network: string, chain: Chain) => {
-  const rpcUrls = config.chains[network][chain.slug].rpcUrls.slice(0, 3) // max of 3 endpoints
+const getProvider = memoize((network: string, chain: string) => {
+  const rpcUrls = config.chains[network][chain].rpcUrls.slice(0, 3) // max of 3 endpoints
   const ethersProviders: providers.Provider[] = []
   for (let rpcUrl of rpcUrls) {
     const provider = new providers.StaticJsonRpcProvider(rpcUrl)
@@ -66,6 +68,8 @@ class Base {
   /** Ethers signer or provider */
   public signer: TProvider
 
+  public chainProviders: ChainProviders = {}
+
   private addresses = config.addresses
   private chains = config.chains
   private bonders = config.bonders
@@ -77,7 +81,11 @@ class Base {
    * @param {String} network - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
    * @returns {Object} New Base class instance.
    */
-  constructor (network: string, signer: TProvider) {
+  constructor (
+    network: string,
+    signer: TProvider,
+    chainProviders?: ChainProviders
+  ) {
     if (!this.isValidNetwork(network)) {
       throw new Error(
         `network is unsupported. Supported networks are: ${this.supportedNetworks.join(
@@ -89,6 +97,9 @@ class Base {
     if (signer) {
       this.signer = signer
     }
+    if (chainProviders) {
+      this.chainProviders = chainProviders
+    }
   }
 
   setConfigAddresses (addresses: Addresses) {
@@ -98,6 +109,11 @@ class Base {
     if (addresses.bonders) {
       this.bonders[this.network] = addresses.bonders
     }
+  }
+
+  setChainProvider (chain: TChain, provider: providers.Provider) {
+    chain = this.toChainModel(chain)
+    this.chainProviders[chain.slug] = provider
   }
 
   get supportedNetworks () {
@@ -189,8 +205,19 @@ class Base {
    * @param {Object} - Chain model.
    * @returns {Object} - Ethers provider.
    */
-  public getChainProvider = (chain: Chain) => {
-    return getProvider(this.network, chain)
+  public getChainProvider = (chain: Chain | string) => {
+    let chainSlug: string
+    if (chain instanceof Chain && chain?.slug) {
+      chainSlug = chain?.slug
+    } else if (typeof chain == 'string') {
+      chainSlug = chain
+    } else {
+      throw new Error(`unknown chain "${chain}"`)
+    }
+    if (this.chainProviders[chainSlug]) {
+      return this.chainProviders[chainSlug]
+    }
+    return getProvider(this.network, chainSlug)
   }
 
   /**

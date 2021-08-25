@@ -7,13 +7,13 @@ body {
 [v-cloak] {
   display: none;
 }
-a[target="_blank"]::after {
+#app a[target="_blank"]::after {
   display: inline-block;
   content: "↗";
   margin: 0 3px 0 5px;
   visibility: hidden;
 }
-a[target="_blank"]:hover::after {
+#app a[target="_blank"]:hover::after {
   visibility: visible;
 }
 #app {
@@ -225,4 +225,18 @@ table img {
   50% {
       background-position: 100% 0;
   }
+}
+#banner {
+  width: 100%;
+  background: #3e331f;
+  padding: 0.2rem;
+  color: #fff;
+}
+#banner a {
+  color: #fff;
+  text-decoration: underline;
+}
+#banner div {
+  max-width: 900px;
+  margin: 0 auto;
 }

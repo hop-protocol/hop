@@ -68,7 +68,7 @@ type PoolsContextProps = {
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
-const USD_BN_PRECISION = 10000000
+const USD_BN_PRECISION = 100000000
 
 const PoolsContext = createContext<PoolsContextProps>({
   networks: [],

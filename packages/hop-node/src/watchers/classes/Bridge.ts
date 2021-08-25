@@ -521,7 +521,7 @@ export default class Bridge extends ContractBase {
   }
 
   async compareBonderFeeCost (bonderFee: BigNumber, gasLimit: BigNumber, gasPrice: BigNumber) {
-    const bnMultiplier = 10000000
+    const bnMultiplier = 100000000
     const ethDecimals = 18
     const gasCost = gasLimit.mul(gasPrice)
     const ethUsdPrice = await this.priceFeed.getPriceByTokenSymbol('ETH')

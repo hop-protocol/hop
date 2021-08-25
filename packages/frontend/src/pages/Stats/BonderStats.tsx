@@ -52,12 +52,14 @@ const BonderStats: FC = () => {
           <TableContainer>
             <Table className={styles.table}>
               <TableHead>
-                <th>Bridge</th>
-                <th>Bonder</th>
-                <th>Credit</th>
-                <th>Debit</th>
-                <th>Available Liquidity</th>
-                <th>ETH</th>
+                <TableRow>
+                  <th>Bridge</th>
+                  <th>Bonder</th>
+                  <th>Credit</th>
+                  <th>Debit</th>
+                  <th>Available Liquidity</th>
+                  <th>ETH</th>
+                </TableRow>
               </TableHead>
               <TableBody>
                 {fetchingBonderStats

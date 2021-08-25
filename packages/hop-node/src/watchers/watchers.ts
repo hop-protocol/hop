@@ -20,7 +20,7 @@ enum Watchers {
   SettleBondedWithdrawals = 'settleBondedWithdrawals',
   CommitTransfers = 'commitTransfers',
   xDomainMessageRelay = 'xDomainMessageRelay',
-  Stake = 'Stake'
+  Stake = 'stake'
 }
 
 type StakeAmounts = {
@@ -148,6 +148,7 @@ export function getWatchers (config: GetWatchersConfig) {
         tokenSymbol: token,
         order,
         label,
+        isL1,
         bridgeContract,
         dryMode,
         stateUpdateAddress
@@ -310,7 +311,7 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher) {
       const tokenContracts = contracts.get(token, network)
       let bridgeContract = tokenContracts.l2Bridge
       let tokenContract = tokenContracts.l2HopBridgeToken
-      if (network === Chain.Ethereum) {
+      if (isL1) {
         bridgeContract = tokenContracts.l1Bridge
         tokenContract = tokenContracts.l1CanonicalToken
       }

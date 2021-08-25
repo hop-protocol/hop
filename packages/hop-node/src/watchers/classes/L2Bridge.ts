@@ -9,12 +9,14 @@ import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Event } from 'src/types'
+import { Hop } from '@hop-protocol/sdk'
 import { boundClass } from 'autobind-decorator'
 import {
   erc20Abi,
   l2AmmWrapperAbi,
   l2BridgeWrapperAbi
 } from '@hop-protocol/core/abi'
+import { config as globalConfig } from 'src/config'
 
 @boundClass
 export default class L2Bridge extends Bridge {
@@ -153,6 +155,68 @@ export default class L2Bridge extends Bridge {
     }
 
     return this.getEventTimestamp(match)
+  }
+
+  @queue
+  @delay
+  @rateLimitRetry
+  async sendHTokens (
+    destinationChainId: number,
+    amount: BigNumber
+  ): Promise<providers.TransactionResponse> {
+    const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
+    if (!isSupportedChainId) {
+      throw new Error(`chain ID "${destinationChainId}" is not supported`)
+    }
+
+    const sdk = new Hop(globalConfig.network)
+    const bridge = sdk.bridge(this.tokenSymbol)
+    const recipient = await this.getBonderAddress()
+    const relayer = recipient
+    const relayerFee = '0'
+    const deadline = '0' // must be 0
+    const amountOutMin = '0' // must be 0
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const isNativeToken = this.tokenSymbol === 'MATIC' && this.chainSlug === Chain.Polygon
+    const { destinationTxFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
+    let bonderFee = await bridge.getBonderFee(
+      amount,
+      this.chainSlug,
+      destinationChain
+    )
+
+    bonderFee = bonderFee.add(destinationTxFee)
+
+    if (bonderFee.gt(amount)) {
+      throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${this.formatUnits(bonderFee)}`)
+    }
+
+    return this.bridgeContract.send(
+      destinationChainId,
+      recipient,
+      amount,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      {
+        ...(await this.txOverrides()),
+        value: isNativeToken ? amount : undefined
+      }
+    )
+  }
+
+  @queue
+  @delay
+  @rateLimitRetry
+  async sendCanonicalTokens (
+    destinationChainId: number,
+    amount: BigNumber
+  ): Promise<providers.TransactionResponse> {
+    return this.ammWrapper.swapAndSend(
+      destinationChainId,
+      amount,
+      this.tokenSymbol
+    )
   }
 
   @rateLimitRetry
@@ -385,5 +449,12 @@ export default class L2Bridge extends Bridge {
     const tx = await this.bridgeContract.bondWithdrawalAndDistribute(...payload)
 
     return tx
+  }
+
+  @rateLimitRetry
+  async isSupportedChainId (chainId: number): Promise<boolean> {
+    return this.bridgeContract.activeChainIds(
+      chainId
+    )
   }
 }

@@ -108,7 +108,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
-    const tag = 'GasBoost'
+    const tag = 'GasBoostSigner'
     const prefix = `${this.chainSlug} id: ${this.id}`
     this.logger = new Logger({
       tag,

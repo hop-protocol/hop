@@ -1,12 +1,7 @@
 import MerkleTree from 'src/utils/MerkleTree'
 import makeRequest from './makeRequest'
+import { mainnet as addresses } from '@hop-protocol/core/addresses'
 import { normalizeEntity } from './shared'
-
-const startBlocks: any = {
-  mainnet: 12650032,
-  xdai: 16617211,
-  polygon: 15810014
-}
 
 export default async function getTransferIdsForTransferRoot (
   chain: string,
@@ -90,8 +85,7 @@ export default async function getTransferIdsForTransferRoot (
     // get the transfer sent events between the two commit transfer events
     startBlockNumber = previousTransferCommitted.blockNumber
   } else {
-    startBlockNumber = startBlocks[chain]
-    // throw new Error('previous transfer committed event not found')
+    startBlockNumber = (addresses as any)?.bridges?.[token]?.[chain]?.bridgeDeployedBlockNumber ?? 0
   }
 
   const endBlockNumber = transferCommitted.blockNumber

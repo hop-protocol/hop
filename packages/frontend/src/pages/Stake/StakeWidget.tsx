@@ -62,6 +62,7 @@ type Props = {
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
+const USD_BN_PRECISION = 100000000
 
 const StakeWidget: FC<Props> = props => {
   const styles = useStyles()
@@ -230,8 +231,8 @@ const StakeWidget: FC<Props> = props => {
       return
     }
 
-    const tokenUsdPriceBn = BigNumber.from(tokenUsdPrice * 100)
-    return (stakeBalance.add(earned)).mul(tokenUsdPriceBn).div(100)
+    const tokenUsdPriceBn = BigNumber.from(tokenUsdPrice * USD_BN_PRECISION)
+    return (stakeBalance.add(earned)).mul(tokenUsdPriceBn).div(USD_BN_PRECISION)
   }, [stakeBalance, earned, tokenUsdPrice])
 
   const lpPositionFormatted = lpPosition ? `$${toTokenDisplay(lpPosition, stakingToken?.decimals)}` : ''
@@ -249,12 +250,15 @@ const StakeWidget: FC<Props> = props => {
         return
       }
 
-      const maticUsdPriceBn = parseUnits(maticUsdPrice.toString(), TOTAL_AMOUNTS_DECIMALS)
+      const maticUsdPriceBn = BigNumber.from(maticUsdPrice * USD_BN_PRECISION)
       const token = await bridge.getCanonicalToken(network.slug)
-      let ammTotal = await bridge.getReservesTotal(network.slug)
-      ammTotal = shiftBNDecimals(ammTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
+      const ammTotal = await bridge.getReservesTotal(network.slug)
+      if (ammTotal.lte(0)) {
+        return BigNumber.from(0)
+      }
+      const ammTotal18d = shiftBNDecimals(ammTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
 
-      return ((maticUsdPriceBn.mul(totalRewardsPerDay)).div(ammTotal)).mul(365).mul(100)
+      return ((((totalRewardsPerDay).mul(maticUsdPriceBn)).div(USD_BN_PRECISION)).div(ammTotal18d)).mul(365)
     } catch (err) {
       console.error(err)
     }

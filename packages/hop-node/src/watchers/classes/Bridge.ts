@@ -1,5 +1,6 @@
 import ContractBase from './ContractBase'
 import delay from 'src/decorators/delay'
+import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import queue from 'src/decorators/queue'
 import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import shiftBNDecimals from 'src/utils/shiftBNDecimals'
@@ -43,26 +44,10 @@ export default class Bridge extends ContractBase {
   constructor (bridgeContract: Contract) {
     super(bridgeContract)
     this.bridgeContract = bridgeContract
-    let tokenDecimals: number
-    let tokenSymbol: string
-    // TODO: better way of getting token decimals
-    for (const tkn in globalConfig.tokens) {
-      for (const key in globalConfig.tokens[tkn]) {
-        for (const net in globalConfig.tokens[tkn]) {
-          for (const k in globalConfig.tokens[tkn][net]) {
-            const val = globalConfig.tokens[tkn][net][k]
-            if (val === bridgeContract.address) {
-              tokenDecimals = globalConfig.metadata.tokens[
-                tkn
-              ].decimals
-              tokenSymbol = globalConfig.metadata.tokens[tkn]
-                .symbol
-              break
-            }
-          }
-        }
-      }
-    }
+    const metadata = getTokenMetadataByAddress(bridgeContract.address)
+    const tokenDecimals: number = metadata?.decimals
+    const tokenSymbol: string = metadata?.symbol
+
     if (tokenDecimals !== undefined) {
       this.tokenDecimals = tokenDecimals
     }
@@ -487,12 +472,11 @@ export default class Bridge extends ContractBase {
 
     // don't bond if bonder fee is too low
     if (this.chainSlug === Chain.Ethereum) {
-      const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
+      const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
       await this.compareBonderFeeCost(bonderFee, gasLimit, txOverrides.gasPrice)
     }
 
-    const tx = await this.bridgeContract.bondWithdrawal(
-    )
+    const tx = await this.bridgeContract.bondWithdrawal(...payload)
 
     return tx
   }
@@ -537,18 +521,21 @@ export default class Bridge extends ContractBase {
   }
 
   async compareBonderFeeCost (bonderFee: BigNumber, gasLimit: BigNumber, gasPrice: BigNumber) {
+    const bnMultiplier = 100000000
+    const ethDecimals = 18
     const gasCost = gasLimit.mul(gasPrice)
-
     const ethUsdPrice = await this.priceFeed.getPriceByTokenSymbol('ETH')
     const tokenUsdPrice = await this.priceFeed.getPriceByTokenSymbol(this.tokenSymbol)
-    const tokenUsdPriceBn = BigNumber.from(ethUsdPrice * 100)
-    const ethUsdPriceBn = BigNumber.from(tokenUsdPrice * 100)
-    const bonderFee18d = shiftBNDecimals(bonderFee, 18 - this.tokenDecimals)
-    const usdBonderFee = bonderFee18d.mul(tokenUsdPriceBn).div(100)
-    const usdGasCost = gasCost.mul(ethUsdPriceBn).div(100)
-
-    if (bonderFee.eq(0) || (bonderFee.div(2)).lt(gasCost)) {
-      throw new BonderFeeTooLowError()
+    const tokenUsdPriceBn = BigNumber.from(tokenUsdPrice * bnMultiplier)
+    const ethUsdPriceBn = BigNumber.from(ethUsdPrice * bnMultiplier)
+    const bonderFee18d = shiftBNDecimals(bonderFee, ethDecimals - this.tokenDecimals)
+    const usdBonderFee = bonderFee18d
+    const usdGasCost = gasCost.mul(ethUsdPriceBn).div(bnMultiplier)
+    const isTooLow = bonderFee.eq(0) || usdBonderFee.lt(usdGasCost.div(2))
+    if (isTooLow) {
+      const usdBonderFeeFormatted = formatUnits(usdBonderFee, ethDecimals)
+      const usdGasCostFormatted = formatUnits(usdGasCost, ethDecimals)
+      throw new BonderFeeTooLowError(`bonder fee is too low. Cannot bond withdrawal. bonderFee: ${usdBonderFeeFormatted}, gasCost: ${usdGasCostFormatted}`)
     }
   }
 

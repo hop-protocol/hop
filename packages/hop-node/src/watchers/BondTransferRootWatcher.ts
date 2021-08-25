@@ -11,6 +11,7 @@ export interface Config {
   tokenSymbol: string
   bridgeContract: Contract
   label: string
+  isL1: boolean
   order?: () => number
   dryMode?: boolean
   stateUpdateAddress: string
@@ -26,6 +27,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       tag: 'BondTransferRootWatcher',
       prefix: config.label,
       logColor: 'cyan',
+      isL1: config.isL1,
       order: config.order,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode,
@@ -131,8 +133,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       logger.debug('calculated transfer root hash:', rootHash)
       if (rootHash !== transferRootHash) {
         logger.error('calculated transfer root hash does not match')
+        return
       }
-      return
     }
 
     const availableCredit = await l1Bridge.getAvailableCredit()

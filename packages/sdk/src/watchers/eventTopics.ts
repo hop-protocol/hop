@@ -1,5 +1,7 @@
 export const transferSentTopic =
   '0xe35dddd4ea75d7e9b3fe93af4f4e40e778c3da4074c9d93e7c6536f1e803c1eb'
+export const transferSentToL2Topic =
+  '0x0a0607688c86ec1775abcdbab7b33a3a35a6c9cde677c9be880150c231cc6b0b'
 export const tokensBridgedTopic =
   '0x9afd47907e25028cdaca89d193518c302bbb128617d5a992c5abd45815526593'
 export const tokenTransferTopic =

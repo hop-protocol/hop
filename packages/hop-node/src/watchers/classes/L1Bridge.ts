@@ -4,11 +4,13 @@ import delay from 'src/decorators/delay'
 import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import wallets from 'src/wallets'
-import { BigNumber, Contract, ethers, providers } from 'ethers'
+import { BigNumber, Contract, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Event } from 'src/types'
+import { Hop } from '@hop-protocol/sdk'
 import { boundClass } from 'autobind-decorator'
 import { erc20Abi, l1Erc20BridgeAbi } from '@hop-protocol/core/abi'
+import { config as globalConfig } from 'src/config'
 
 @boundClass
 export default class L1Bridge extends Bridge {
@@ -129,7 +131,7 @@ export default class L1Bridge extends Bridge {
     await this.eventsBatch(async (start: number, end: number) => {
       const events = await this.getTransferRootBondedEvents(start, end)
       for (const event of events) {
-        if (transferRootHash === event.args.rootHash) {
+        if (transferRootHash === event.args.root) {
           match = event
           return false
         }
@@ -267,22 +269,58 @@ export default class L1Bridge extends Bridge {
   @delay
   @rateLimitRetry
   async convertCanonicalTokenToHopToken (
-    destChainId: number,
+    destinationChainId: number,
     amount: BigNumber
   ): Promise<providers.TransactionResponse> {
+    const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
+    if (!isSupportedChainId) {
+      throw new Error(`chain ID "${destinationChainId}" is not supported`)
+    }
+
     const recipient = await this.getBonderAddress()
-    const relayer = ethers.constants.AddressZero
+    const relayer = recipient
     const relayerFee = '0'
     const deadline = '0' // must be 0
     const amountOutMin = '0' // must be 0
 
-    const isSupportedChainId = await this.isSupportedChainId(destChainId)
+    return this.bridgeContract.sendToL2(
+      destinationChainId,
+      recipient,
+      amount,
+      amountOutMin,
+      deadline,
+      relayer,
+      relayerFee,
+      await this.txOverrides()
+    )
+  }
+
+  @queue
+  @delay
+  @rateLimitRetry
+  async sendCanonicalTokensToL2 (
+    destinationChainId: number,
+    amount: BigNumber
+  ): Promise<providers.TransactionResponse> {
+    const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
     if (!isSupportedChainId) {
-      throw new Error(`chain ID "${destChainId}" is not supported`)
+      throw new Error(`chain ID "${destinationChainId}" is not supported`)
     }
 
+    const sdk = new Hop(globalConfig.network)
+    const bridge = sdk.bridge(this.tokenSymbol)
+    const recipient = await this.getBonderAddress()
+    const relayer = recipient
+    const relayerFee = '0'
+    const deadline = bridge.defaultDeadlineSeconds
+    const { amountOut } = await bridge.getSendData(amount, this.chainSlug, this.chainIdToSlug(destinationChainId))
+    const slippageTolerance = 0.1
+    const slippageToleranceBps = slippageTolerance * 100
+    const minBps = Math.ceil(10000 - slippageToleranceBps)
+    const amountOutMin = amountOut.mul(minBps).div(10000)
+
     return this.bridgeContract.sendToL2(
-      destChainId,
+      destinationChainId,
       recipient,
       amount,
       amountOutMin,
@@ -298,7 +336,7 @@ export default class L1Bridge extends Bridge {
     const address = await this.bridgeContract.crossDomainMessengerWrappers(
       chainId
     )
-    return address !== ethers.constants.AddressZero
+    return address !== constants.AddressZero
   }
 
   @rateLimitRetry

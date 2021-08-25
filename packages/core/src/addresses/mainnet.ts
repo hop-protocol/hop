@@ -4,7 +4,7 @@ export const addresses: Addresses = {
   bonders: {
     USDC: ['0xa6a688F107851131F0E1dce493EbBebFAf99203e'],
     USDT: ['0xa6a688F107851131F0E1dce493EbBebFAf99203e'],
-    MATIC: ['0xd8781ca9163e9f132a4d8392332e64115688013a']
+    MATIC: ['0xa6a688F107851131F0E1dce493EbBebFAf99203e']
   },
   bridges: {
     USDC: {
@@ -42,6 +42,18 @@ export const addresses: Addresses = {
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
         bridgeDeployedBlockNumber: 15810014
+      },
+      optimism: {
+        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l1MessengerWrapper: '0x30bD2A2fD99372B53C6a226751a4b65D48941866',
+        l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
+        l2CanonicalToken: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607',
+        l2Bridge: '0xa81D244A1814468C734E5b4101F7b9c0c577a8fC',
+        l2HopBridgeToken: '0x25D8039bB044dC227f741a9e381CA4cEAE2E6aE8',
+        l2AmmWrapper: '0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796',
+        l2SaddleSwap: '0x3c0FFAca566fCcfD9Cc95139FEF6CBA143795963',
+        l2SaddleLpToken: '0x2e17b8193566345a2Dd467183526dEdc42d2d5A8',
+        bridgeDeployedBlockNumber: 856160
       }
     },
     USDT: {
@@ -79,6 +91,18 @@ export const addresses: Addresses = {
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
         bridgeDeployedBlockNumber: 17058878
+      },
+      optimism: {
+        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l1MessengerWrapper: '0x13B7F51BD865410c3AcC4d56083C5B56aB38D203',
+        l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
+        l2CanonicalToken: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
+        l2Bridge: '0x46ae9BaB8CEA96610807a275EBD36f8e916b5C61',
+        l2HopBridgeToken: '0x2057C8ECB70Afd7Bee667d76B4CD373A325b1a20',
+        l2AmmWrapper: '0x7D269D3E0d61A05a0bA976b7DBF8805bF844AF3F',
+        l2SaddleSwap: '0xeC4B41Af04cF917b54AEb6Df58c0f8D78895b5Ef',
+        l2SaddleLpToken: '0xF753A50fc755c6622BBCAa0f59F0522f264F006e',
+        bridgeDeployedBlockNumber: 856444
       }
     },
     MATIC: {

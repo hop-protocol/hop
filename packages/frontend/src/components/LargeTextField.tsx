@@ -7,12 +7,14 @@ import Typography from '@material-ui/core/Typography'
 type LargeTextFieldProps = {
   units?: string | ReactNode
   centerAlign?: boolean | undefined
+  leftAlign?: boolean | undefined
   defaultShadow?: boolean | undefined
   loadingValue?: boolean | undefined
 } & TextFieldProps
 
 interface StyleProps {
   centerAlign: boolean
+  leftAlign: boolean
   defaultShadow: boolean
   hideShadow: boolean
   loadingValue: boolean
@@ -74,8 +76,8 @@ const useInputStyles = makeStyles(theme => ({
       }
     }
   }),
-  input: ({ centerAlign, loadingValue }: StyleProps) => ({
-    textAlign: centerAlign ? 'center' : 'right',
+  input: ({ centerAlign, leftAlign, loadingValue }: StyleProps) => ({
+    textAlign: leftAlign ? 'left' : (centerAlign ? 'center' : 'right'),
     fontSize: theme.typography.h4.fontSize,
     fontWeight: theme.typography.h4.fontWeight,
     color: theme.palette.text.primary,
@@ -98,6 +100,7 @@ const TextField: FC<LargeTextFieldProps> = props => {
   const {
     units,
     centerAlign = false,
+    leftAlign = false,
     defaultShadow = false,
     loadingValue = false,
     ...textFieldProps
@@ -105,6 +108,7 @@ const TextField: FC<LargeTextFieldProps> = props => {
   const styles = useStyles()
   const inputStyles = useInputStyles({
     centerAlign,
+    leftAlign,
     defaultShadow,
     hideShadow: textFieldProps.disabled ?? false,
     loadingValue

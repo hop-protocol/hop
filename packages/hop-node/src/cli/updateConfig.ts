@@ -1,5 +1,7 @@
+import { Chain } from 'src/constants'
 import {
   FileConfig,
+  config as globalConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile,
   writeConfigFile
@@ -54,10 +56,39 @@ program
         if (!token) {
           throw new Error('token is required')
         }
-        if (!(newConfig.commitTransfers.minThresholdAmount[chain] instanceof Object)) {
-          newConfig.commitTransfers.minThresholdAmount[chain] = {}
+
+        const newObj : any = {}
+        const networks = Object.keys(globalConfig.networks)
+        if (newConfig.commitTransfers.minThresholdAmount instanceof Object) {
+          for (const key in newConfig.commitTransfers.minThresholdAmount) {
+            const isWithoutChain = Object.values(newConfig.commitTransfers.minThresholdAmount).every(value => typeof value === 'number')
+            if (isWithoutChain) {
+              for (const network of networks) {
+                if (network === Chain.Arbitrum) {
+                  // TODO: remove skip when arbitrum is launched
+                  continue
+                }
+                if (network === Chain.Ethereum) {
+                  continue
+                }
+                if (!newObj[network]) {
+                  newObj[network] = {}
+                }
+                if (!newObj[network][key]) {
+                  newObj[network][key] = newConfig.commitTransfers.minThresholdAmount[key]
+                }
+              }
+            } else {
+              newObj[key] = newConfig.commitTransfers.minThresholdAmount[key]
+            }
+          }
         }
-        newConfig.commitTransfers.minThresholdAmount[chain][token] = commitTransfersMinThresholdAmount
+
+        if (!(newObj[chain] instanceof Object)) {
+          newObj[chain] = {}
+        }
+        newObj[chain][token] = commitTransfersMinThresholdAmount
+        newConfig.commitTransfers.minThresholdAmount = newObj
         logger.debug(`updating commitTransfers.minThresholdAmount to ${commitTransfersMinThresholdAmount} for ${chain}.${token}`)
       } else if (
         source.bondWithdrawalsMin !== undefined ||

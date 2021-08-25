@@ -1,4 +1,6 @@
 import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
+import Card from '@material-ui/core/Card'
+import LargeTextField from 'src/components/LargeTextField'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -81,12 +83,52 @@ const useStyles = makeStyles(theme => ({
   extraBold: {
     fontWeight: 800
   },
-  l1FeeAndAmount: {
+  destinationTxFeeAndAmount: {
     marginTop: '2.4rem'
   },
   ammDetails: {
     padding: theme.padding.extraLight,
     width: '32.0rem'
+  },
+  detailsDropdown: {
+    marginTop: '2rem',
+    width: '50.0rem',
+    '&[open] summary span::before': {
+      content: '"▴"',
+    },
+    [theme.breakpoints.down('xs')]: {
+      width: '90%'
+    },
+  },
+  detailsDropdownSummary: {
+    listStyle: 'none',
+    display: 'block',
+    textAlign: 'right',
+    fontWeight: 'normal',
+    paddingRight: '4rem',
+    '&::marker': {
+      display: 'none'
+    }
+  },
+  detailsDropdownLabel: {
+    position: 'relative',
+    cursor: 'pointer',
+    '&::before': {
+      display: 'block',
+      content: '"▾"',
+      position: 'absolute',
+      top: '0',
+      right: '-1.5rem',
+    }
+  },
+  options: {
+  },
+  customRecipient: {
+    width: '100%',
+    padding: '2rem 0'
+  },
+  customRecipientLabel: {
+    marginBottom: '1.5rem'
   }
 }))
 
@@ -160,14 +202,37 @@ const Send: FC = () => {
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(
     true
   )
+  const [customRecipient, setCustomRecipient] = useState<string>('')
+
+  const isUnsupportedAsset = useMemo(() => {
+    return selectedBridge?.getTokenSymbol() === 'MATIC' && (
+      fromNetwork?.slug === 'optimism' || toNetwork?.slug === 'optimism'
+    )
+  }, [selectedBridge, fromNetwork, toNetwork])
+
+  useEffect(() => {
+    if (isUnsupportedAsset) {
+      setError('MATIC is currently not supported on Optimism')
+    } else {
+      setError('')
+    }
+  }, [isUnsupportedAsset])
 
   const sourceToken = useMemo(() => {
-    if (!fromNetwork || !selectedBridge) return
-    return selectedBridge.getCanonicalToken(fromNetwork?.slug)
+    try {
+      if (!fromNetwork || !selectedBridge) return
+      return selectedBridge.getCanonicalToken(fromNetwork?.slug)
+    } catch (err) {
+      logger.error(err)
+    }
   }, [selectedBridge, fromNetwork])
   const destToken = useMemo(() => {
-    if (!toNetwork || !selectedBridge) return
-    return selectedBridge.getCanonicalToken(toNetwork?.slug)
+    try {
+      if (!toNetwork || !selectedBridge) return
+      return selectedBridge.getCanonicalToken(toNetwork?.slug)
+    } catch (err) {
+      logger.error(err)
+    }
   }, [selectedBridge, toNetwork])
   const placeholderToken = useMemo(() => {
     if (!selectedBridge) return
@@ -211,7 +276,7 @@ const Send: FC = () => {
     lpFees,
     requiredLiquidity,
     loading: loadingSendData,
-    l1Fee,
+    destinationTxFee,
     estimatedReceived
   } = useSendData(
     sourceToken,
@@ -221,8 +286,8 @@ const Send: FC = () => {
     fromTokenAmountBN
   )
 
-  const l1FeeDisplay = toTokenDisplay(
-    l1Fee,
+  const destinationTxFeeDisplay = toTokenDisplay(
+    destinationTxFee,
     destToken?.decimals,
     destToken?.symbol
   )
@@ -331,13 +396,13 @@ const Send: FC = () => {
   }, [needsTokenForFee, fromNetwork])
 
   useEffect(() => {
-    const warningMessage = `Send at least ${l1FeeDisplay} to cover the transaction fee`
-    if (estimatedReceived?.lte(0) && l1Fee) {
+    const warningMessage = `Send at least ${destinationTxFeeDisplay} to cover the transaction fee`
+    if (estimatedReceived?.lte(0) && destinationTxFee?.gt(0)) {
       setMinimumSendWarning(warningMessage)
     } else {
       setMinimumSendWarning('')
     }
-  }, [estimatedReceived, l1Fee])
+  }, [estimatedReceived, destinationTxFee])
 
   useEffect(() => {
     setWarning(
@@ -371,8 +436,8 @@ const Send: FC = () => {
       return
     }
     let _amountOutMin = amountOutMin
-    if (l1Fee) {
-      _amountOutMin = _amountOutMin.sub(l1Fee)
+    if (destinationTxFee?.gt(0)) {
+      _amountOutMin = _amountOutMin.sub(destinationTxFee)
     }
 
     const amountOutMinFormatted = commafy(
@@ -463,6 +528,7 @@ const Send: FC = () => {
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
+        customRecipient,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -478,7 +544,7 @@ const Send: FC = () => {
           fromTokenAmount,
           sourceToken.decimals
         ).toString()
-        const recipient = await signer.getAddress()
+        const recipient = customRecipient || await signer.getAddress()
         const relayer = ethers.constants.AddressZero
         const relayerFee = 0
         const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
@@ -524,6 +590,7 @@ const Send: FC = () => {
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
+        customRecipient,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -544,14 +611,14 @@ const Send: FC = () => {
         )
         const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
         let totalBonderFee = bonderFee
-        if (l1Fee) {
-          totalBonderFee = totalBonderFee.add(l1Fee)
+        if (destinationTxFee?.gt(0)) {
+          totalBonderFee = totalBonderFee.add(destinationTxFee)
         }
 
         if (totalBonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
         }
-        const recipient = await signer?.getAddress()
+        const recipient = customRecipient || await signer?.getAddress()
         const tx = await bridge.send(
           parsedAmountIn,
           fromNetwork?.slug as string,
@@ -595,6 +662,7 @@ const Send: FC = () => {
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
+        customRecipient,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -610,7 +678,7 @@ const Send: FC = () => {
           fromTokenAmount,
           sourceToken.decimals
         )
-        const recipient = await signer?.getAddress()
+        const recipient = customRecipient || await signer?.getAddress()
         const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
         if (bonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
@@ -644,6 +712,11 @@ const Send: FC = () => {
     }
 
     return txObj
+  }
+
+  const handleCustomRecipientInput = (event: any) => {
+    const value = event.target.value.trim()
+    setCustomRecipient(value)
   }
 
   let enoughBalance = true
@@ -745,14 +818,36 @@ const Send: FC = () => {
         loadingValue={loadingSendData}
         disableInput
       />
+      <details className={styles.detailsDropdown}>
+        <summary className={styles.detailsDropdownSummary}>
+          <span className={styles.detailsDropdownLabel}>Options</span>
+        </summary>
+        <div className={styles.options}>
+          <div className={styles.customRecipient}>
+            <Card>
+              <Typography variant="body1" className={styles.customRecipientLabel}>
+                Custom recipient
+              </Typography>
+              <LargeTextField
+                style={{
+                  width: '100%'
+                }}
+                leftAlign
+                value={customRecipient}
+                onChange={handleCustomRecipientInput}
+                placeholder="0x" />
+            </Card>
+          </div>
+        </div>
+      </details>
       <div className={styles.details}>
-        <div className={styles.l1FeeAndAmount}>
+        <div className={styles.destinationTxFeeAndAmount}>
           {
-            l1Fee &&
+            destinationTxFee?.gt(0) &&
             <DetailRow
-              title="L1 Transaction Fee"
-              tooltip="This fee covers the L1 transaction fee paid by the Bonder."
-              value={l1FeeDisplay}
+              title={`${toNetwork?.isLayer1 ? 'L1' : toNetwork?.name} Transaction Fee`}
+              tooltip="This fee covers the destination transaction fee paid by the Bonder."
+              value={destinationTxFeeDisplay}
               large
             />
           }
@@ -774,7 +869,7 @@ const Send: FC = () => {
       </div>
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <Alert severity="warning" text={warning} />
-      <SendButton sending={sending} disabled={!validFormFields} onClick={send}>
+      <SendButton sending={sending} disabled={!validFormFields || isUnsupportedAsset} onClick={send}>
         {buttonText}
       </SendButton>
       <br />

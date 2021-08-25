@@ -137,10 +137,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       return
     }
 
-    await this.db.transferRoots.update(transferRootHash, {
-      checkpointAttemptedAt: Date.now()
-    })
-
     if (chainSlug === Chain.xDai) {
       const l2Amb = getL2Amb(this.tokenSymbol)
       const tx: any = await this.bridge.getTransaction(commitTxHash)
@@ -175,6 +171,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
           const result = await executeExitTx(sigEvent, this.tokenSymbol)
           if (result) {
             await this.db.transferRoots.update(transferRootHash, {
+              checkpointAttemptedAt: Date.now(),
               sentConfirmTx: true,
               sentConfirmTxAt: Date.now()
             })
@@ -183,6 +180,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
               .then(async (receipt: any) => {
                 if (receipt.status !== 1) {
                   await this.db.transferRoots.update(transferRootHash, {
+                    checkpointAttemptedAt: 0,
                     sentConfirmTx: false,
                     sentConfirmTxAt: 0
                   })
@@ -200,6 +198,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
               })
               .catch(async (err: Error) => {
                 this.db.transferRoots.update(transferRootHash, {
+                  checkpointAttemptedAt: 0,
                   sentConfirmTx: false,
                   sentConfirmTxAt: 0
                 })
@@ -242,6 +241,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       }
       const tx = await poly.relayMessage(commitTxHash, this.tokenSymbol)
       await this.db.transferRoots.update(transferRootHash, {
+        checkpointAttemptedAt: Date.now(),
         sentConfirmTx: true,
         sentConfirmTxAt: Date.now()
       })
@@ -249,6 +249,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         .then(async (receipt: providers.TransactionReceipt) => {
           if (receipt.status !== 1) {
             await this.db.transferRoots.update(transferRootHash, {
+              checkpointAttemptedAt: 0,
               sentConfirmTx: false,
               sentConfirmTxAt: 0
             })
@@ -266,6 +267,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         })
         .catch(async (err: Error) => {
           this.db.transferRoots.update(transferRootHash, {
+            checkpointAttemptedAt: 0,
             sentConfirmTx: false,
             sentConfirmTxAt: 0
           })

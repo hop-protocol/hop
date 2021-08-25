@@ -93,54 +93,25 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }
   }
 
-  checkTransfersCommitted = async (
-    transferRootHash: string,
-    destinationChainId: number,
-    committedAt: number
-  ) => {
-    const logger = this.logger.create({ root: transferRootHash })
-
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
-      transferRootHash
-    )
-
-    const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
-    const l2Bridge = this.bridge as L2Bridge
-    const { transferRootId } = dbTransferRoot
-    const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
+  checkTransfersCommittedByTransferRootHash = async (transferRootHash: string) => {
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    if (!dbTransferRoot) {
+      throw new Error(`transfer root db item not found, root hash "${transferRootHash}"`)
+    }
+    const {
       destinationChainId,
-      transferRootId
+      committedAt
+    } = dbTransferRoot
+    return this.checkTransfersCommitted(
+      transferRootHash,
+      destinationChainId,
+      committedAt
     )
-    // TODO: run poller only after event syncing has finished
-    if (isTransferRootIdConfirmed) {
-      await this.db.transferRoots.update(transferRootHash, {
-        confirmed: true
-      })
-      return
-    }
+  }
 
-    let { commitTxHash } = dbTransferRoot
-    if (!commitTxHash || commitTxHash) {
-      commitTxHash = await l2Bridge.getTransferRootCommittedTxHash(
-        transferRootHash
-      )
-      if (commitTxHash) {
-        this.db.transferRoots.update(transferRootHash, {
-          commitTxHash
-        })
-      }
-    }
-    if (!commitTxHash) {
-      return
-    }
-
-    const shouldAttempt = this.shouldAttemptCheckpoint(
-      dbTransferRoot,
-      chainSlug
-    )
-    if (!shouldAttempt) {
-      return
-    }
+  checkTransfersCommittedByTxHash = async (commitTxHash: string, transferRootHash: string, destinationChainId?: number) => {
+    const logger = this.logger.create({ root: transferRootHash })
+    const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
 
     if (chainSlug === Chain.xDai) {
       const l2Amb = getL2Amb(this.tokenSymbol)
@@ -192,10 +163,12 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
                   throw new Error('status=0')
                 }
 
-                this.emit('transferRootConfirmed', {
-                  transferRootHash,
-                  destinationChainId
-                })
+                if (destinationChainId) {
+                  this.emit('transferRootConfirmed', {
+                    transferRootHash,
+                    destinationChainId
+                  })
+                }
 
                 this.db.transferRoots.update(transferRootHash, {
                   confirmed: true
@@ -324,6 +297,58 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     } else {
       // not implemented
     }
+  }
+
+  checkTransfersCommitted = async (
+    transferRootHash: string,
+    destinationChainId: number,
+    committedAt: number
+  ) => {
+    const logger = this.logger.create({ root: transferRootHash })
+
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
+      transferRootHash
+    )
+
+    const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
+    const l2Bridge = this.bridge as L2Bridge
+    const { transferRootId } = dbTransferRoot
+    const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
+      destinationChainId,
+      transferRootId
+    )
+    // TODO: run poller only after event syncing has finished
+    if (isTransferRootIdConfirmed) {
+      await this.db.transferRoots.update(transferRootHash, {
+        confirmed: true
+      })
+      return
+    }
+
+    let { commitTxHash } = dbTransferRoot
+    if (!commitTxHash || commitTxHash) {
+      commitTxHash = await l2Bridge.getTransferRootCommittedTxHash(
+        transferRootHash
+      )
+      if (commitTxHash) {
+        this.db.transferRoots.update(transferRootHash, {
+          commitTxHash
+        })
+      }
+    }
+    if (!commitTxHash) {
+      return
+    }
+
+    const shouldAttempt = this.shouldAttemptCheckpoint(
+      dbTransferRoot,
+      chainSlug
+    )
+    if (!shouldAttempt) {
+      return
+    }
+
+    return this.checkTransfersCommittedByTxHash(commitTxHash, transferRootHash, destinationChainId)
   }
 
   shouldAttemptCheckpoint (dbTransferRoot: TransferRoot, chainSlug: string) {

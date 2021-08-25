@@ -1,7 +1,7 @@
 const poll = true
 const fetchInterval = 10 * 1000
 const enabledTokens = ['USDC', 'USDT']
-const enabledChains = ['ethereum', 'xdai', 'polygon']
+const enabledChains = ['ethereum', 'xdai', 'polygon', 'optimism']
 
 let perPage = 100
 try {

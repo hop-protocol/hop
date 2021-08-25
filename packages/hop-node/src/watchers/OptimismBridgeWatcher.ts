@@ -5,7 +5,7 @@ import { Contract, Wallet, providers } from 'ethers'
 import { Watcher } from '@eth-optimism/core-utils'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { getMessagesAndProofsForL2Transaction } from '@eth-optimism/message-relayer'
-import { getRpcProvider, getRpcUrls, wait } from 'src/utils'
+import { getRpcProvider, getRpcUrls } from 'src/utils'
 import { config as globalConfig } from 'src/config'
 
 type Config = {
@@ -65,6 +65,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
   async relayXDomainMessages (
     txHash: string
   ): Promise<any> {
+    let tx : any
     let messagePairs = []
     while (true) {
       try {
@@ -78,7 +79,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
         break
       } catch (err) {
         if (err.message.includes('unable to find state root batch for tx')) {
-          await wait(5000)
+          continue
         } else {
           throw err
         }
@@ -90,7 +91,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
         try {
           const inChallengeWindow = await this.scc.insideFraudProofWindow(proof.stateRootBatchHeader)
           if (inChallengeWindow) {
-            return false
+            continue
           }
 
           const result = await this.l1Messenger
@@ -102,11 +103,10 @@ class OptimismBridgeWatcher extends BaseWatcher {
               message.messageNonce,
               proof
             )
-          await result.wait()
-          return result
+          tx = await result.wait()
         } catch (err) {
           if (err.message.includes('execution failed due to an exception')) {
-            await wait(5000)
+            continue
           } else if (
             err.message.includes('message has already been received')
           ) {
@@ -117,6 +117,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
         }
       }
     }
+    return tx
   }
 }
 export default OptimismBridgeWatcher

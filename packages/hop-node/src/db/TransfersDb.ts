@@ -1,6 +1,6 @@
 import BaseDb from './BaseDb'
 import { BigNumber } from 'ethers'
-import { TX_RETRY_DELAY_MS, TxError } from 'src/constants'
+import { ONE_WEEK_MS, TX_RETRY_DELAY_MS, TxError } from 'src/constants'
 import { chainIdToSlug } from 'src/utils'
 import { normalizeDbItem } from './utils'
 
@@ -143,8 +143,13 @@ class TransfersDb extends BaseDb {
       let timestampOk = true
       if (item.sentBondWithdrawalTxAt) {
         if (item.withdrawalBondTxError === TxError.BonderFeeTooLow) {
-          const maxDelay = 60 * 60
-          const delay = Math.min((1 << item.withdrawalBondBackoffIndex), maxDelay) * 1000
+          const delay = (1 << item.withdrawalBondBackoffIndex) * 1000
+          // TODO: use `sentTransferTimestamp` once it's added to db
+
+          // don't attempt to bond withdrawals after a week
+          if (delay > ONE_WEEK_MS) {
+            return false
+          }
           timestampOk = item.sentBondWithdrawalTxAt + delay < Date.now()
         } else {
           timestampOk = item.sentBondWithdrawalTxAt + TX_RETRY_DELAY_MS < Date.now()

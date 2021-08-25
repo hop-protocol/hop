@@ -234,7 +234,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         this.logger.debug(
           `commit tx hash ${commitTxHash} block number ${commitTx.blockNumber} on polygon not yet checkpointed on L1. Cannot relay message yet.`
         )
-        return false
+        return
       }
 
       this.logger.debug(
@@ -295,22 +295,30 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         return
       }
 
+      this.logger.debug(
+        `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
+      )
       const tx = await optimismWatcher.relayXDomainMessages(commitTxHash)
       if (!tx) {
-        this.logger.debug('cannot relay message yet')
-        return false
+        this.logger.debug('cannot relay message')
+        return
       }
-      await this.db.transferRoots.update(transferRootHash, {
-        sentConfirmTx: true,
-        sentConfirmTxAt: Date.now()
-      })
-      logger.info(
-        `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
-        chalk.bgYellow.black.bold(tx.hash)
-      )
-      this.notifier.info(
-        `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
-      )
+      if (tx?.hash) {
+        await this.handleStateSwitch()
+        await this.db.transferRoots.update(transferRootHash, {
+          sentConfirmTx: true,
+          sentConfirmTxAt: Date.now()
+        })
+        logger.info(
+          `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
+          chalk.bgYellow.black.bold(tx.hash)
+        )
+        this.notifier.info(
+          `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
+        )
+      } else {
+        this.logger.debug('cannot relay message')
+      }
     } else {
       // not implemented
     }

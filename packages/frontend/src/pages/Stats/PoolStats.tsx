@@ -52,9 +52,11 @@ const PoolStats: FC = () => {
           <TableContainer>
             <Table className={styles.table}>
               <TableHead>
-                <th>AMM Pair</th>
-                <th>Pooled Token 0</th>
-                <th>Pooled Token 1</th>
+                <TableRow>
+                  <th>AMM Pair</th>
+                  <th>Pooled Token 0</th>
+                  <th>Pooled Token 1</th>
+                </TableRow>
               </TableHead>
               <TableBody>
                 {fetching

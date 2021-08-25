@@ -200,6 +200,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('destinationChainId:', destinationChainId)
       logger.debug('isBondable:', isBondable)
       logger.debug('transferId:', chalk.bgCyan.black(transferId))
+      logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
 
       await this.db.transfers.update(transferId, {
         transferId,
@@ -448,7 +449,7 @@ class SyncWatcher extends BaseWatcher {
           const transaction = await sourceBridge.getTransaction(
             event.transactionHash
           )
-          const eventDestinationChainId = Number(event.args.destinationChainId.toString())
+          const eventDestinationChainId = Number(event.args.chainId.toString())
           const isSameChainId = eventDestinationChainId === destinationChainId
           if (!isSameChainId) {
             continue

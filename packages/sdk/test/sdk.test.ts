@@ -113,15 +113,20 @@ describe.skip('tx watcher', () => {
     120 * 1000
   )
   it(
-    'receive events on token transfer from L1 -> L2 xDai',
+    'receive events on token transfer from L1 -> L2 xDai (swap)',
     async () => {
+      /*
       const tokenAmount = parseUnits('0.1', 18)
       const tx = await hop
         .connect(signer)
         .bridge(Token.USDC)
         .send(tokenAmount, Chain.Ethereum, Chain.xDai)
+      */
 
-      console.log('tx hash:', tx?.hash)
+      const txHash =
+        '0xda9be66e99f9b668de873aeb7b82dc0d7870188862cbf86c52a00d7f61be0be4'
+      console.log('tx hash:', txHash)
+
       console.log('waiting for receipts')
 
       await new Promise(resolve => {
@@ -129,7 +134,7 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.xDai)
+          .watch(txHash, Token.USDC, Chain.Ethereum, Chain.xDai)
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
             if (chain.equals(Chain.Ethereum)) {
@@ -144,9 +149,10 @@ describe.skip('tx watcher', () => {
               resolve(null)
             }
           })
+          .on('error', (err: Error) => {
+            console.error(err)
+          })
       })
-
-      expect(tx.hash).toBeTruthy()
     },
     120 * 1000
   )

@@ -47,9 +47,11 @@ const PoolStats: FC = () => {
           <TableContainer>
             <Table className={styles.table}>
               <TableHead>
-                <th>Source</th>
-                <th>Destination</th>
-                <th>Pending Amount</th>
+                <TableRow>
+                  <th>Source</th>
+                  <th>Destination</th>
+                  <th>Pending Amount</th>
+                </TableRow>
               </TableHead>
               <TableBody>
                 {fetchingPendingAmounts

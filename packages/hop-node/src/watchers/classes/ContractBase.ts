@@ -158,16 +158,20 @@ export default class ContractBase extends EventEmitter {
         multiplier = 3
       }
     } else {
-      txOptions.gasLimit = 5000000
-      if (this.chainSlug === Chain.Optimism) {
-        txOptions.gasPrice = 0
-        txOptions.gasLimit = 8000000
-      } else if (this.chainSlug === Chain.xDai) {
-        txOptions.gasPrice = 50000000000
-        txOptions.gasLimit = 5000000
+      txOptions.gasLimit = 5_000_000
+      if (this.chainSlug === Chain.xDai) {
+        txOptions.gasPrice = 50_000_000_000
+        txOptions.gasLimit = 5_000_000
       }
     }
     txOptions.gasPrice = (await this.getBumpedGasPrice(multiplier)).toString()
+
+    // Optimism has a constant gasPrice and needs to estimate the gasLimit
+    if (this.chainSlug === Chain.Optimism) {
+      txOptions.gasPrice = 15_000_000
+      txOptions.gasLimit = undefined
+    }
+
     return txOptions
   }
 }

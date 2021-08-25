@@ -1,5 +1,6 @@
 import fetch from 'node-fetch'
 import serializeQueryParams from 'src/utils/serializeQueryParams'
+import { constants } from 'ethers'
 import { getAddress } from 'ethers/lib/utils'
 import { wait } from 'src/utils'
 
@@ -129,8 +130,8 @@ class CoinGecko {
       const prices: number[] = []
 
       for (let i = 0; i < addresses.length; i++) {
+        const address = addresses[i]
         try {
-          const address = addresses[i]
           const item = json[address.toLowerCase()]
           if (!item) {
             throw new Error('not found')
@@ -140,7 +141,30 @@ class CoinGecko {
 
           prices.push(price)
         } catch (err) {
-          prices.push(null)
+          if (address === constants.AddressZero) {
+            const id = 'ethereum'
+            const params = serializeQueryParams({
+              ids: id,
+              vs_currencies: base,
+              include_market_cap: false,
+              include_24hr_vol: false,
+              include_24hr_change: false,
+              include_last_updated_at: false
+            })
+            const url = `${this._baseUrl}/simple/price?${params}`
+            const res = await fetch(url)
+            const json = await res.json()
+            const item = json[id]
+            if (!item) {
+              prices.push(null)
+              continue
+            }
+
+            const price = this._normalizePrice(item[base])
+            prices.push(price)
+          } else {
+            prices.push(null)
+          }
         }
       }
 

@@ -2,15 +2,13 @@ import { kovan as kovanAddresses } from '@hop-protocol/core/addresses'
 import { kovan as networks } from '@hop-protocol/core/networks'
 import { Chains } from './types'
 
-const chains: Chains = {
-  ethereum: {},
-  arbitrum: {},
-  optimism: {},
-  xdai: {}
-}
+const chains: Chains = {}
 
-for (let chain in chains) {
+for (let chain in networks) {
   const network = (networks as any)[chain] as any
+  if (!chains[chain]) {
+    chains[chain] = {}
+  }
   chains[chain].name = network?.name
   chains[chain].chainId = network?.networkId
   chains[chain].rpcUrls = network?.rpcUrls

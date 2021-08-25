@@ -1,4 +1,4 @@
-import React, { FC, ChangeEvent } from 'react'
+import React, { FC, ChangeEvent, useMemo, useEffect } from 'react'
 import { BigNumber } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
@@ -13,7 +13,7 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
-import { commafy, normalizeNumberInput, toTokenDisplay } from 'src/utils'
+import { commafy, normalizeNumberInput, toTokenDisplay, toPercentDisplay } from 'src/utils'
 import TokenWrapper from './TokenWrapper'
 import DetailRow from 'src/components/DetailRow'
 
@@ -127,7 +127,9 @@ const Pools: FC = () => {
     fee,
     apr,
     priceImpact,
-    virtualPrice
+    virtualPrice,
+    reserveTotalsUsd,
+    isUnsupportedAsset
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -177,13 +179,16 @@ const Pools: FC = () => {
   const canonicalTokenSymbol = canonicalToken?.symbol || ''
   const hopTokenSymbol = hopToken?.symbol || ''
 
-  const reserve0Formatted = `${commafy(poolReserves?.[0], 0) || '-'} ${canonicalTokenSymbol}`
-  const reserve1Formatted = `${commafy(poolReserves?.[1], 0) || '-'} ${hopTokenSymbol}`
+  const reserve0 = poolReserves?.[0]
+  const reserve1 = poolReserves?.[1]
+  const reserve0Formatted = `${commafy(reserve0, 0) || '-'} ${canonicalTokenSymbol}`
+  const reserve1Formatted = `${commafy(reserve1, 0) || '-'} ${hopTokenSymbol}`
   const feeFormatted = `${fee ? Number((fee * 100).toFixed(2)) : '-'}%`
-  const aprFormatted = `${apr ? Number((apr * 100).toFixed(2)) : '-'}%`
+  const aprFormatted = toPercentDisplay(apr)
   const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
   const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : ''
   const virtualPriceFormatted = virtualPrice ? `${Number(virtualPrice.toFixed(4))}` : ''
+  const reserveTotalsUsdFormatted = `$${reserveTotalsUsd ? commafy(reserveTotalsUsd, 2) : '-'}`
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -229,6 +234,15 @@ const Pools: FC = () => {
           ))}
         </RaisedSelect>
       </Box>
+      {isUnsupportedAsset ? <>
+        <Typography
+          variant="subtitle1"
+          color="textSecondary"
+          component="div"
+        >
+          {error}
+        </Typography>
+      </> : <>
       {isNativeToken &&
         <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
           <TokenWrapper />
@@ -424,6 +438,11 @@ const Pools: FC = () => {
           value={`${reserve0Formatted} / ${reserve1Formatted}`}
         />
         <DetailRow
+          title="TVL"
+          tooltip="Total value locked in USD"
+          value={`${reserveTotalsUsdFormatted}`}
+        />
+        <DetailRow
           title="Virtual Price"
           tooltip="The virtual price, to help calculate profit"
           value={`${virtualPriceFormatted}`}
@@ -444,6 +463,8 @@ const Pools: FC = () => {
           Remove Liquidity
         </MuiButton>
       )}
+      </>
+      }
     </Box>
   )
 }

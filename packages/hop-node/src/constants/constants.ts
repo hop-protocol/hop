@@ -33,6 +33,7 @@ export const TotalBlocks = {
 }
 export const DEFAULT_BATCH_BLOCKS = 10000
 
+export const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
 export const TEN_MINUTES_MS = 10 * 60 * 1000
 export const TX_RETRY_DELAY_MS = TEN_MINUTES_MS
 export const ETHEREUM_TX_MAX_DELAY_MS = 1 * 1000
@@ -42,5 +43,6 @@ export const POLYGON_TX_MAX_DELAY_MS = 10 * 1000
 export const MAX_INT_32 = 2147483647
 
 export enum TxError {
-  CallException = 'CALL_EXCEPTION'
+  CallException = 'CALL_EXCEPTION',
+  BonderFeeTooLow = 'BONDER_FEE_TOO_LOW'
 }

@@ -99,6 +99,7 @@ Class reprensenting AMM contract
 #### Properties
 
 - [chain](#chain)
+- [gasPriceMultiplier](#gaspricemultiplier)
 - [getContract](#getcontract)
 - [network](#network)
 - [signer](#signer)
@@ -113,9 +114,13 @@ Class reprensenting AMM contract
 #### Methods
 
 - [addLiquidity](#addliquidity)
+- [calculateAddLiquidityMinimum](#calculateaddliquidityminimum)
 - [calculateFromHToken](#calculatefromhtoken)
+- [calculatePriceImpact](#calculatepriceimpact)
+- [calculateRemoveLiquidityMinimum](#calculateremoveliquidityminimum)
 - [calculateToHToken](#calculatetohtoken)
 - [connect](#connect)
+- [getApr](#getapr)
 - [getArbChainAddress](#getarbchainaddress)
 - [getBonderAddress](#getbonderaddress)
 - [getBonderAddresses](#getbonderaddresses)
@@ -139,13 +144,20 @@ Class reprensenting AMM contract
 - [getL2HopBridgeTokenAddress](#getl2hopbridgetokenaddress)
 - [getL2SaddleLpTokenAddress](#getl2saddlelptokenaddress)
 - [getL2SaddleSwapAddress](#getl2saddleswapaddress)
+- [getPriceImpact](#getpriceimpact)
+- [getReserves](#getreserves)
+- [getReservesTotal](#getreservestotal)
 - [getSaddleSwap](#getsaddleswap)
 - [getSignerAddress](#getsigneraddress)
 - [getSignerOrProvider](#getsignerorprovider)
+- [getSwapFee](#getswapfee)
+- [getVirtualPrice](#getvirtualprice)
+- [isHighPriceImpact](#ishighpriceimpact)
 - [isValidChain](#isvalidchain)
 - [isValidNetwork](#isvalidnetwork)
 - [removeLiquidity](#removeliquidity)
 - [setConfigAddresses](#setconfigaddresses)
+- [setGasPriceMultiplier](#setgaspricemultiplier)
 - [toChainModel](#tochainmodel)
 - [toTokenModel](#totokenmodel)
 - [txOverrides](#txoverrides)
@@ -187,6 +199,16 @@ Base.constructor
 • **chain**: [`Chain`](#classeschainmd)
 
 Chain model
+
+---
+
+#### gasPriceMultiplier
+
+• **gasPriceMultiplier**: `number` = `0`
+
+##### Inherited from
+
+Base.gasPriceMultiplier
 
 ---
 
@@ -317,6 +339,23 @@ Ethers transaction object.
 
 ---
 
+#### calculateAddLiquidityMinimum
+
+▸ **calculateAddLiquidityMinimum**(`amount0`, `amount1`): `Promise`<`any`\>
+
+##### Parameters
+
+| Name      | Type           |
+| :-------- | :------------- |
+| `amount0` | `BigNumberish` |
+| `amount1` | `BigNumberish` |
+
+##### Returns
+
+`Promise`<`any`\>
+
+---
+
 #### calculateFromHToken
 
 ▸ **calculateFromHToken**(`amount`): `Promise`<`any`\>
@@ -326,6 +365,40 @@ Ethers transaction object.
 | Name     | Type           |
 | :------- | :------------- |
 | `amount` | `BigNumberish` |
+
+##### Returns
+
+`Promise`<`any`\>
+
+---
+
+#### calculatePriceImpact
+
+▸ **calculatePriceImpact**(`tokenInputAmount`, `tokenOutputAmount`, `virtualPrice?`): `BigNumber`
+
+##### Parameters
+
+| Name                | Type        |
+| :------------------ | :---------- |
+| `tokenInputAmount`  | `BigNumber` |
+| `tokenOutputAmount` | `BigNumber` |
+| `virtualPrice`      | `BigNumber` |
+
+##### Returns
+
+`BigNumber`
+
+---
+
+#### calculateRemoveLiquidityMinimum
+
+▸ **calculateRemoveLiquidityMinimum**(`lpTokenAmount`): `Promise`<`any`\>
+
+##### Parameters
+
+| Name            | Type           |
+| :-------------- | :------------- |
+| `lpTokenAmount` | `BigNumberish` |
 
 ##### Returns
 
@@ -380,6 +453,16 @@ Hop AMM instance with connected signer.
 
 ---
 
+#### getApr
+
+▸ **getApr**(): `Promise`<`number`\>
+
+##### Returns
+
+`Promise`<`number`\>
+
+---
+
 #### getArbChainAddress
 
 ▸ **getArbChainAddress**(`token`, `chain`): `any`
@@ -403,7 +486,13 @@ Base.getArbChainAddress
 
 #### getBonderAddress
 
-▸ **getBonderAddress**(): `string`
+▸ **getBonderAddress**(`token`): `string`
+
+##### Parameters
+
+| Name    | Type                |
+| :------ | :------------------ |
+| `token` | [`TToken`](#ttoken) |
 
 ##### Returns
 
@@ -417,7 +506,13 @@ Base.getBonderAddress
 
 #### getBonderAddresses
 
-▸ **getBonderAddresses**(): `string`[]
+▸ **getBonderAddresses**(`token`): `string`[]
+
+##### Parameters
+
+| Name    | Type                |
+| :------ | :------------------ |
+| `token` | [`TToken`](#ttoken) |
 
 ##### Returns
 
@@ -855,6 +950,43 @@ Base.getL2SaddleSwapAddress
 
 ---
 
+#### getPriceImpact
+
+▸ **getPriceImpact**(`amount0`, `amount1`): `Promise`<`BigNumber`\>
+
+##### Parameters
+
+| Name      | Type           |
+| :-------- | :------------- |
+| `amount0` | `BigNumberish` |
+| `amount1` | `BigNumberish` |
+
+##### Returns
+
+`Promise`<`BigNumber`\>
+
+---
+
+#### getReserves
+
+▸ **getReserves**(): `Promise`<[`any`, `any`]\>
+
+##### Returns
+
+`Promise`<[`any`, `any`]\>
+
+---
+
+#### getReservesTotal
+
+▸ **getReservesTotal**(): `Promise`<`any`\>
+
+##### Returns
+
+`Promise`<`any`\>
+
+---
+
 #### getSaddleSwap
 
 ▸ **getSaddleSwap**(): `Promise`<`Contract`\>
@@ -920,6 +1052,42 @@ Ethers signer or provider
 ##### Inherited from
 
 Base.getSignerOrProvider
+
+---
+
+#### getSwapFee
+
+▸ **getSwapFee**(): `Promise`<`number`\>
+
+##### Returns
+
+`Promise`<`number`\>
+
+---
+
+#### getVirtualPrice
+
+▸ **getVirtualPrice**(): `Promise`<`any`\>
+
+##### Returns
+
+`Promise`<`any`\>
+
+---
+
+#### isHighPriceImpact
+
+▸ **isHighPriceImpact**(`priceImpact`): `boolean`
+
+##### Parameters
+
+| Name          | Type        |
+| :------------ | :---------- |
+| `priceImpact` | `BigNumber` |
+
+##### Returns
+
+`boolean`
 
 ---
 
@@ -1016,6 +1184,26 @@ Base.setConfigAddresses
 
 ---
 
+#### setGasPriceMultiplier
+
+▸ **setGasPriceMultiplier**(`gasPriceMultiplier`): `number`
+
+##### Parameters
+
+| Name                 | Type     |
+| :------------------- | :------- |
+| `gasPriceMultiplier` | `number` |
+
+##### Returns
+
+`number`
+
+##### Inherited from
+
+Base.setGasPriceMultiplier
+
+---
+
 #### toChainModel
 
 ▸ **toChainModel**(`chain`): [`Chain`](#classeschainmd)
@@ -1066,7 +1254,7 @@ Base.toTokenModel
 
 #### txOverrides
 
-▸ **txOverrides**(`chain`): `any`
+▸ **txOverrides**(`chain`): `Promise`<`any`\>
 
 ##### Parameters
 
@@ -1076,7 +1264,7 @@ Base.toTokenModel
 
 ##### Returns
 
-`any`
+`Promise`<`any`\>
 
 ##### Inherited from
 
@@ -1105,6 +1293,7 @@ Class reprensenting Canonical Token Bridge.
 #### Properties
 
 - [chain](#chain)
+- [gasPriceMultiplier](#gaspricemultiplier)
 - [getContract](#getcontract)
 - [network](#network)
 - [signer](#signer)
@@ -1157,6 +1346,7 @@ Class reprensenting Canonical Token Bridge.
 - [isValidChain](#isvalidchain)
 - [isValidNetwork](#isvalidnetwork)
 - [setConfigAddresses](#setconfigaddresses)
+- [setGasPriceMultiplier](#setgaspricemultiplier)
 - [toCanonicalToken](#tocanonicaltoken)
 - [toChainModel](#tochainmodel)
 - [toHopToken](#tohoptoken)
@@ -1203,6 +1393,16 @@ Base.constructor
 • **chain**: [`Chain`](#classeschainmd)
 
 Chain model
+
+---
+
+#### gasPriceMultiplier
+
+• **gasPriceMultiplier**: `number` = `0`
+
+##### Inherited from
+
+Base.gasPriceMultiplier
 
 ---
 
@@ -1384,7 +1584,7 @@ Ethers transaction object.
 
 #### exit
 
-▸ **exit**(`txHash`, `chain`): `Promise`<`any`\>
+▸ **exit**(`txHash`, `chain`): `Promise`<`TransactionResponse`\>
 
 **`desc`** Sends transaction to finalize withdrawal.
 This call is necessary on Polygon to finalize L2 withdrawal into L1 on
@@ -1399,7 +1599,7 @@ certain chains. Will only send transaction if necessary.
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`TransactionResponse`\>
 
 Ethers transaction object.
 
@@ -1444,7 +1644,13 @@ Base.getArbChainAddress
 
 #### getBonderAddress
 
-▸ **getBonderAddress**(): `string`
+▸ **getBonderAddress**(`token`): `string`
+
+##### Parameters
+
+| Name    | Type                |
+| :------ | :------------------ |
+| `token` | [`TToken`](#ttoken) |
 
 ##### Returns
 
@@ -1458,7 +1664,13 @@ Base.getBonderAddress
 
 #### getBonderAddresses
 
-▸ **getBonderAddresses**(): `string`[]
+▸ **getBonderAddresses**(`token`): `string`[]
+
+##### Parameters
+
+| Name    | Type                |
+| :------ | :------------------ |
+| `token` | [`TToken`](#ttoken) |
 
 ##### Returns
 
@@ -2076,6 +2288,26 @@ Base.setConfigAddresses
 
 ---
 
+#### setGasPriceMultiplier
+
+▸ **setGasPriceMultiplier**(`gasPriceMultiplier`): `number`
+
+##### Parameters
+
+| Name                 | Type     |
+| :------------------- | :------- |
+| `gasPriceMultiplier` | `number` |
+
+##### Returns
+
+`number`
+
+##### Inherited from
+
+Base.setGasPriceMultiplier
+
+---
+
 #### toCanonicalToken
 
 ▸ **toCanonicalToken**(`token`, `network`, `chain`): [`Token`](#classestokenmd)
@@ -2162,7 +2394,7 @@ Base.toTokenModel
 
 #### txOverrides
 
-▸ **txOverrides**(`chain`): `any`
+▸ **txOverrides**(`chain`): `Promise`<`any`\>
 
 ##### Parameters
 
@@ -2172,7 +2404,7 @@ Base.toTokenModel
 
 ##### Returns
 
-`any`
+`Promise`<`any`\>
 
 ##### Inherited from
 
@@ -2372,6 +2604,7 @@ Class reprensenting Hop
 - [Chain](#chain)
 - [Event](#event)
 - [Token](#token)
+- [gasPriceMultiplier](#gaspricemultiplier)
 - [getContract](#getcontract)
 - [network](#network)
 - [signer](#signer)
@@ -2416,6 +2649,7 @@ Class reprensenting Hop
 - [isValidChain](#isvalidchain)
 - [isValidNetwork](#isvalidnetwork)
 - [setConfigAddresses](#setconfigaddresses)
+- [setGasPriceMultiplier](#setgaspricemultiplier)
 - [toChainModel](#tochainmodel)
 - [toTokenModel](#totokenmodel)
 - [txOverrides](#txoverrides)
@@ -2484,6 +2718,16 @@ Event enum
 • **Token**: typeof `Token`
 
 Token class
+
+---
+
+#### gasPriceMultiplier
+
+• **gasPriceMultiplier**: `number` = `0`
+
+##### Inherited from
+
+Base.gasPriceMultiplier
 
 ---
 
@@ -2718,7 +2962,13 @@ Base.getArbChainAddress
 
 #### getBonderAddress
 
-▸ **getBonderAddress**(): `string`
+▸ **getBonderAddress**(`token`): `string`
+
+##### Parameters
+
+| Name    | Type                |
+| :------ | :------------------ |
+| `token` | [`TToken`](#ttoken) |
 
 ##### Returns
 
@@ -2732,7 +2982,13 @@ Base.getBonderAddress
 
 #### getBonderAddresses
 
-▸ **getBonderAddresses**(): `string`[]
+▸ **getBonderAddresses**(`token`): `string`[]
+
+##### Parameters
+
+| Name    | Type                |
+| :------ | :------------------ |
+| `token` | [`TToken`](#ttoken) |
 
 ##### Returns
 
@@ -3256,6 +3512,26 @@ Base.setConfigAddresses
 
 ---
 
+#### setGasPriceMultiplier
+
+▸ **setGasPriceMultiplier**(`gasPriceMultiplier`): `number`
+
+##### Parameters
+
+| Name                 | Type     |
+| :------------------- | :------- |
+| `gasPriceMultiplier` | `number` |
+
+##### Returns
+
+`number`
+
+##### Inherited from
+
+Base.setGasPriceMultiplier
+
+---
+
 #### toChainModel
 
 ▸ **toChainModel**(`chain`): [`Chain`](#classeschainmd)
@@ -3306,7 +3582,7 @@ Base.toTokenModel
 
 #### txOverrides
 
-▸ **txOverrides**(`chain`): `any`
+▸ **txOverrides**(`chain`): `Promise`<`any`\>
 
 ##### Parameters
 
@@ -3316,7 +3592,7 @@ Base.toTokenModel
 
 ##### Returns
 
-`any`
+`Promise`<`any`\>
 
 ##### Inherited from
 
@@ -3421,8 +3697,10 @@ Class reprensenting Hop bridge.
 
 - [defaultDeadlineMinutes](#defaultdeadlineminutes)
 - [destinationChain](#destinationchain)
+- [gasPriceMultiplier](#gaspricemultiplier)
 - [getContract](#getcontract)
 - [network](#network)
+- [priceFeed](#pricefeed)
 - [signer](#signer)
 - [sourceChain](#sourcechain)
 
@@ -3456,6 +3734,7 @@ Class reprensenting Hop bridge.
 - [getConfigAddresses](#getconfigaddresses)
 - [getCredit](#getcredit)
 - [getDebit](#getdebit)
+- [getEthBalance](#getethbalance)
 - [getL1AmbBridgeAddress](#getl1ambbridgeaddress)
 - [getL1Bridge](#getl1bridge)
 - [getL1BridgeAddress](#getl1bridgeaddress)
@@ -3478,6 +3757,7 @@ Class reprensenting Hop bridge.
 - [getLpFees](#getlpfees)
 - [getMinBonderFee](#getminbonderfee)
 - [getRequiredLiquidity](#getrequiredliquidity)
+- [getReservesTotal](#getreservestotal)
 - [getSaddleLpToken](#getsaddlelptoken)
 - [getSaddleSwapReserves](#getsaddleswapreserves)
 - [getSendApprovalAddress](#getsendapprovaladdress)
@@ -3486,12 +3766,14 @@ Class reprensenting Hop bridge.
 - [getSignerOrProvider](#getsignerorprovider)
 - [getTokenImage](#gettokenimage)
 - [getTokenSymbol](#gettokensymbol)
+- [isNativeToken](#isnativetoken)
 - [isValidChain](#isvalidchain)
 - [isValidNetwork](#isvalidnetwork)
 - [removeLiquidity](#removeliquidity)
 - [send](#send)
 - [sendHToken](#sendhtoken)
 - [setConfigAddresses](#setconfigaddresses)
+- [setGasPriceMultiplier](#setgaspricemultiplier)
 - [toCanonicalToken](#tocanonicaltoken)
 - [toChainModel](#tochainmodel)
 - [toHopToken](#tohoptoken)
@@ -3553,6 +3835,16 @@ Destination Chain model
 
 ---
 
+#### gasPriceMultiplier
+
+• **gasPriceMultiplier**: `number` = `0`
+
+##### Inherited from
+
+Base.gasPriceMultiplier
+
+---
+
 #### getContract
 
 • **getContract**: (`address`: `string`, `abi`: `any`[], `provider`: [`TProvider`](#tprovider)) => `Promise`<`Contract`\>
@@ -3588,6 +3880,12 @@ Network name
 ##### Inherited from
 
 Base.network
+
+---
+
+#### priceFeed
+
+• `Readonly` **priceFeed**: `PriceFeed`
 
 ---
 
@@ -3911,7 +4209,13 @@ Available liquidity as BigNumber.
 
 #### getBonderAddress
 
-▸ **getBonderAddress**(): `string`
+▸ **getBonderAddress**(`token`): `string`
+
+##### Parameters
+
+| Name    | Type                |
+| :------ | :------------------ |
+| `token` | [`TToken`](#ttoken) |
 
 ##### Returns
 
@@ -3925,7 +4229,13 @@ Base.getBonderAddress
 
 #### getBonderAddresses
 
-▸ **getBonderAddresses**(): `string`[]
+▸ **getBonderAddresses**(`token`): `string`[]
+
+##### Parameters
+
+| Name    | Type                |
+| :------ | :------------------ |
+| `token` | [`TToken`](#ttoken) |
 
 ##### Returns
 
@@ -4134,6 +4444,23 @@ Total credit as BigNumber.
 `Promise`<`BigNumber`\>
 
 Total debit as BigNumber.
+
+---
+
+#### getEthBalance
+
+▸ **getEthBalance**(`chain?`, `address?`): `Promise`<`BigNumber`\>
+
+##### Parameters
+
+| Name       | Type                |
+| :--------- | :------------------ |
+| `chain`    | [`TChain`](#tchain) |
+| `address?` | `string`            |
+
+##### Returns
+
+`Promise`<`BigNumber`\>
 
 ---
 
@@ -4587,6 +4914,22 @@ Amount as BigNumber.
 
 ---
 
+#### getReservesTotal
+
+▸ **getReservesTotal**(`chain?`): `Promise`<`any`\>
+
+##### Parameters
+
+| Name    | Type                |
+| :------ | :------------------ |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`Promise`<`any`\>
+
+---
+
 #### getSaddleLpToken
 
 ▸ **getSaddleLpToken**(`chain`, `signer?`): `Promise`<[`Token`](#classestokenmd)\>
@@ -4610,7 +4953,7 @@ Ethers contract instance.
 
 #### getSaddleSwapReserves
 
-▸ **getSaddleSwapReserves**(`chain`): `Promise`<[`any`, `any`]\>
+▸ **getSaddleSwapReserves**(`chain?`): `Promise`<[`any`, `any`]\>
 
 **`desc`** Returns Hop Bridge Saddle reserve amounts.
 
@@ -4631,7 +4974,7 @@ and hTokens.
 
 #### getSendApprovalAddress
 
-▸ **getSendApprovalAddress**(`sourceChain`, `destinationChain`, `isHTokenTransfer?`): `Promise`<`any`\>
+▸ **getSendApprovalAddress**(`sourceChain`, `destinationChain`, `isHTokenTransfer?`): `any`
 
 ##### Parameters
 
@@ -4643,7 +4986,7 @@ and hTokens.
 
 ##### Returns
 
-`Promise`<`any`\>
+`any`
 
 ---
 
@@ -4726,6 +5069,22 @@ Base.getSignerOrProvider
 ##### Returns
 
 `string`
+
+---
+
+#### isNativeToken
+
+▸ **isNativeToken**(`chain?`): `boolean`
+
+##### Parameters
+
+| Name     | Type                |
+| :------- | :------------------ |
+| `chain?` | [`TChain`](#tchain) |
+
+##### Returns
+
+`boolean`
 
 ---
 
@@ -4865,6 +5224,26 @@ Base.setConfigAddresses
 
 ---
 
+#### setGasPriceMultiplier
+
+▸ **setGasPriceMultiplier**(`gasPriceMultiplier`): `number`
+
+##### Parameters
+
+| Name                 | Type     |
+| :------------------- | :------- |
+| `gasPriceMultiplier` | `number` |
+
+##### Returns
+
+`number`
+
+##### Inherited from
+
+Base.setGasPriceMultiplier
+
+---
+
 #### toCanonicalToken
 
 ▸ **toCanonicalToken**(`token`, `network`, `chain`): [`Token`](#classestokenmd)
@@ -4951,7 +5330,7 @@ Base.toTokenModel
 
 #### txOverrides
 
-▸ **txOverrides**(`chain`): `any`
+▸ **txOverrides**(`chain`): `Promise`<`any`\>
 
 ##### Parameters
 
@@ -4961,7 +5340,7 @@ Base.toTokenModel
 
 ##### Returns
 
-`any`
+`Promise`<`any`\>
 
 ##### Inherited from
 
@@ -5033,6 +5412,7 @@ Class reprensenting ERC20 Token
 - [chain](#chain)
 - [contract](#contract)
 - [decimals](#decimals)
+- [gasPriceMultiplier](#gaspricemultiplier)
 - [getContract](#getcontract)
 - [image](#image)
 - [name](#name)
@@ -5043,6 +5423,7 @@ Class reprensenting ERC20 Token
 #### Accessors
 
 - [chainId](#chainid)
+- [isNativeToken](#isnativetoken)
 - [supportedChains](#supportedchains)
 - [supportedNetworks](#supportednetworks)
 
@@ -5075,16 +5456,22 @@ Class reprensenting ERC20 Token
 - [getL2HopBridgeTokenAddress](#getl2hopbridgetokenaddress)
 - [getL2SaddleLpTokenAddress](#getl2saddlelptokenaddress)
 - [getL2SaddleSwapAddress](#getl2saddleswapaddress)
+- [getNativeTokenBalance](#getnativetokenbalance)
 - [getSignerAddress](#getsigneraddress)
 - [getSignerOrProvider](#getsignerorprovider)
+- [getWethContract](#getwethcontract)
+- [getWrappedToken](#getwrappedtoken)
 - [isValidChain](#isvalidchain)
 - [isValidNetwork](#isvalidnetwork)
 - [overrides](#overrides)
 - [setConfigAddresses](#setconfigaddresses)
+- [setGasPriceMultiplier](#setgaspricemultiplier)
 - [toChainModel](#tochainmodel)
 - [toTokenModel](#totokenmodel)
 - [transfer](#transfer)
 - [txOverrides](#txoverrides)
+- [unwrapToken](#unwraptoken)
+- [wrapToken](#wraptoken)
 
 ### Constructors
 
@@ -5134,6 +5521,16 @@ Base.constructor
 #### decimals
 
 • `Readonly` **decimals**: `number`
+
+---
+
+#### gasPriceMultiplier
+
+• **gasPriceMultiplier**: `number` = `0`
+
+##### Inherited from
+
+Base.gasPriceMultiplier
 
 ---
 
@@ -5212,6 +5609,16 @@ Base.signer
 ##### Returns
 
 `number`
+
+---
+
+#### isNativeToken
+
+• `get` **isNativeToken**(): `boolean`
+
+##### Returns
+
+`boolean`
 
 ---
 
@@ -5386,7 +5793,13 @@ Base.getArbChainAddress
 
 #### getBonderAddress
 
-▸ **getBonderAddress**(): `string`
+▸ **getBonderAddress**(`token`): `string`
+
+##### Parameters
+
+| Name    | Type                |
+| :------ | :------------------ |
+| `token` | [`TToken`](#ttoken) |
 
 ##### Returns
 
@@ -5400,7 +5813,13 @@ Base.getBonderAddress
 
 #### getBonderAddresses
 
-▸ **getBonderAddresses**(): `string`[]
+▸ **getBonderAddresses**(`token`): `string`[]
+
+##### Parameters
+
+| Name    | Type                |
+| :------ | :------------------ |
+| `token` | [`TToken`](#ttoken) |
 
 ##### Returns
 
@@ -5824,6 +6243,22 @@ Base.getL2SaddleSwapAddress
 
 ---
 
+#### getNativeTokenBalance
+
+▸ **getNativeTokenBalance**(`address?`): `Promise`<`BigNumber`\>
+
+##### Parameters
+
+| Name       | Type     |
+| :--------- | :------- |
+| `address?` | `string` |
+
+##### Returns
+
+`Promise`<`BigNumber`\>
+
+---
+
 #### getSignerAddress
 
 ▸ **getSignerAddress**(): `Promise`<`string`\>
@@ -5878,6 +6313,32 @@ Base.getSignerOrProvider
 
 ---
 
+#### getWethContract
+
+▸ **getWethContract**(`chain`): `Promise`<`Contract`\>
+
+##### Parameters
+
+| Name    | Type                |
+| :------ | :------------------ |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`Promise`<`Contract`\>
+
+---
+
+#### getWrappedToken
+
+▸ **getWrappedToken**(): [`Token`](#classestokenmd)
+
+##### Returns
+
+[`Token`](#classestokenmd)
+
+---
+
 #### isValidChain
 
 ▸ **isValidChain**(`chain`): `boolean`
@@ -5920,11 +6381,11 @@ Base.isValidNetwork
 
 #### overrides
 
-▸ **overrides**(): `any`
+▸ **overrides**(): `Promise`<`any`\>
 
 ##### Returns
 
-`any`
+`Promise`<`any`\>
 
 ---
 
@@ -5945,6 +6406,26 @@ Base.isValidNetwork
 ##### Inherited from
 
 Base.setConfigAddresses
+
+---
+
+#### setGasPriceMultiplier
+
+▸ **setGasPriceMultiplier**(`gasPriceMultiplier`): `number`
+
+##### Parameters
+
+| Name                 | Type     |
+| :------------------- | :------- |
+| `gasPriceMultiplier` | `number` |
+
+##### Returns
+
+`number`
+
+##### Inherited from
+
+Base.setGasPriceMultiplier
 
 ---
 
@@ -6030,7 +6511,7 @@ Ethers Transaction object.
 
 #### txOverrides
 
-▸ **txOverrides**(`chain`): `any`
+▸ **txOverrides**(`chain`): `Promise`<`any`\>
 
 ##### Parameters
 
@@ -6040,11 +6521,43 @@ Ethers Transaction object.
 
 ##### Returns
 
-`any`
+`Promise`<`any`\>
 
 ##### Inherited from
 
 Base.txOverrides
+
+---
+
+#### unwrapToken
+
+▸ **unwrapToken**(`amount`): `Promise`<`any`\>
+
+##### Parameters
+
+| Name     | Type           |
+| :------- | :------------- |
+| `amount` | `BigNumberish` |
+
+##### Returns
+
+`Promise`<`any`\>
+
+---
+
+#### wrapToken
+
+▸ **wrapToken**(`amount`): `Promise`<`any`\>
+
+##### Parameters
+
+| Name     | Type           |
+| :------- | :------------- |
+| `amount` | `BigNumberish` |
+
+##### Returns
+
+`Promise`<`any`\>
 
 <a name="classestokenamountmd"></a>
 

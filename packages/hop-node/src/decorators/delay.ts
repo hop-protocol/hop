@@ -50,7 +50,7 @@ export default function delay (
         const delta = Date.now() - lastTimestamp
         const delayMs = maxDelayMs - delta
         if (delayMs > 0) {
-          logger.debug(`waiting for ${delayMs / 1000} seconds on ${queueGroup}`)
+          logger.debug(`delaying ${delayMs / 1000} seconds on ${queueGroup} queue group`)
           await wait(delayMs)
         }
       }

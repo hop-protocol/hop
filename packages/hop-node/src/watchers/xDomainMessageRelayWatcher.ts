@@ -2,6 +2,7 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
+import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
 import chalk from 'chalk'
 import { Chain, TEN_MINUTES_MS, TX_RETRY_DELAY_MS } from 'src/constants'
@@ -60,12 +61,16 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         committedAt
       } = dbTransferRoot
 
+      // only process message after waiting 10 minutes
+      let timestampOk = true
+      if (this.lastSeen[transferRootHash]) {
+        timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
+      }
+
       if (!this.lastSeen[transferRootHash]) {
         this.lastSeen[transferRootHash] = Date.now()
       }
 
-      // only process message after waiting 10 minutes
-      const timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
       if (!timestampOk) {
         continue
       }
@@ -228,7 +233,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         this.logger.debug(
           `commit tx hash ${commitTxHash} block number ${commitTx.blockNumber} on polygon not yet checkpointed on L1. Cannot relay message yet.`
         )
-        return false
+        return
       }
 
       this.logger.debug(
@@ -281,9 +286,43 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.notifier.info(
         `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
       )
+    } else if (chainSlug === Chain.Optimism) {
+      const optimismWatcher = new OptimismBridgeWatcher({
+        chainSlug: this.chainSlug,
+        tokenSymbol: this.tokenSymbol
+      })
+
+      if (this.isDryOrPauseMode) {
+        logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
+        return
+      }
+
+      this.logger.debug(
+        `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
+      )
+      const tx = await optimismWatcher.relayXDomainMessages(commitTxHash)
+      if (!tx) {
+        this.logger.debug('cannot relay message')
+        return
+      }
+      if (tx?.hash) {
+        await this.handleStateSwitch()
+        await this.db.transferRoots.update(transferRootHash, {
+          sentConfirmTx: true,
+          sentConfirmTxAt: Date.now()
+        })
+        logger.info(
+          `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
+          chalk.bgYellow.black.bold(tx.hash)
+        )
+        this.notifier.info(
+          `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
+        )
+      } else {
+        this.logger.debug('cannot relay message')
+      }
     } else {
       // not implemented
-
     }
   }
 
@@ -299,7 +338,8 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     // TODO: Move this const to chain-specific location
     const checkpointIntervals: { [key: string]: number } = {
       polygon: 10 * 10 * 1000,
-      xdai: 1 * 10 * 1000
+      xdai: 1 * 10 * 1000,
+      optimism: 10 * 10 * 1000
     }
 
     const interval = checkpointIntervals[chainSlug]

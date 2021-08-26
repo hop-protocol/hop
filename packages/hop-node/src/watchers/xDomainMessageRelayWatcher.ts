@@ -266,36 +266,35 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
       )
     } else if (chainSlug === Chain.Optimism) {
-      return
-      if (this.isDryOrPauseMode) {
-        logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
-        return
-      }
+      // if (this.isDryOrPauseMode) {
+      //   logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
+      //   return
+      // }
 
-      this.logger.debug(
-        `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
-      )
-      const tx = await this.optimismInstance.relayXDomainMessages(commitTxHash)
-      if (!tx) {
-        this.logger.debug('cannot relay message')
-        return
-      }
-      if (tx?.hash) {
-        await this.handleStateSwitch()
-        await this.db.transferRoots.update(transferRootHash, {
-          sentConfirmTx: true,
-          sentConfirmTxAt: Date.now()
-        })
-        logger.info(
-          `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
-          chalk.bgYellow.black.bold(tx.hash)
-        )
-        this.notifier.info(
-          `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
-        )
-      } else {
-        this.logger.debug('cannot relay message')
-      }
+      // this.logger.debug(
+      //   `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
+      // )
+      // const tx = await this.optimismInstance.relayXDomainMessages(commitTxHash)
+      // if (!tx) {
+      //   this.logger.debug('cannot relay message')
+      //   return
+      // }
+      // if (tx?.hash) {
+      //   await this.handleStateSwitch()
+      //   await this.db.transferRoots.update(transferRootHash, {
+      //     sentConfirmTx: true,
+      //     sentConfirmTxAt: Date.now()
+      //   })
+      //   logger.info(
+      //     `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
+      //     chalk.bgYellow.black.bold(tx.hash)
+      //   )
+      //   this.notifier.info(
+      //     `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
+      //   )
+      // } else {
+      //   this.logger.debug('cannot relay message')
+      // }
     } else {
       // not implemented
     }

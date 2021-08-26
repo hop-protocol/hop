@@ -25,7 +25,7 @@ export default {
   getRelayer (network: string) {
     return constructWallet(
       network,
-      globalConfig.relayerPrivateKey || globalConfig.bonderPrivateKey
+      globalConfig.bonderPrivateKey
     )
   }
 }

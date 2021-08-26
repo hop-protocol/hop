@@ -1,9 +1,9 @@
 import BaseWatcher from './classes/BaseWatcher'
-import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import Web3 from 'web3'
 import chalk from 'chalk'
 import fetch from 'node-fetch'
 import queue from 'src/decorators/queue'
+import wallets from 'src/wallets'
 import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Event } from 'src/types'
@@ -34,15 +34,15 @@ class PolygonBridgeWatcher extends BaseWatcher {
       logColor: 'yellow'
     })
 
-    const privateKey = globalConfig.relayerPrivateKey || globalConfig.bonderPrivateKey
     this.l1Provider = new providers.StaticJsonRpcProvider(
       getRpcUrls(Chain.Ethereum)[0]
     )
     this.l2Provider = new providers.StaticJsonRpcProvider(
       getRpcUrls(Chain.Polygon)[0]
     )
-    this.l1Wallet = new GasBoostSigner(privateKey, this.l1Provider)
-    this.l2Wallet = new GasBoostSigner(privateKey, this.l2Provider)
+    this.l1Wallet = wallets.get(Chain.Ethereum)
+    this.l2Wallet = wallets.get(Chain.Polygon)
+
     this.chainId = chainSlugToId(config.chainSlug)
     this.apiUrl = `https://apis.matic.network/api/v1/${
       this.chainId === this.polygonMainnetChainId ? 'matic' : 'mumbai'

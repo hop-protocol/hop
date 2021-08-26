@@ -266,6 +266,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
       )
     } else if (chainSlug === Chain.Optimism) {
+      return
       if (this.isDryOrPauseMode) {
         logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
         return

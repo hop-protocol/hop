@@ -15,6 +15,7 @@ import { config as globalConfig } from 'src/config'
 type Config = {
   chainSlug: string
   tokenSymbol: string
+  dryMode?: boolean
 }
 
 class PolygonBridgeWatcher extends BaseWatcher {
@@ -31,7 +32,8 @@ class PolygonBridgeWatcher extends BaseWatcher {
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
       tag: 'PolygonBridgeWatcher',
-      logColor: 'yellow'
+      logColor: 'yellow',
+      dryMode: config.dryMode
     })
 
     this.l1Provider = new providers.StaticJsonRpcProvider(
@@ -217,6 +219,67 @@ class PolygonBridgeWatcher extends BaseWatcher {
   ): Promise<BigNumber> {
     const gasPrice = await wallet.provider.getGasPrice()
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
+  }
+
+  async handleCommitTxHash (commitTxHash: string, transferRootHash: string) {
+    await this.db.transferRoots.update(transferRootHash, {
+      checkpointAttemptedAt: Date.now()
+    })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    const destinationChainId = dbTransferRoot?.destinationChainId
+    const commitTx: any = await this.bridge.getTransaction(commitTxHash)
+    const isCheckpointed = await this.isCheckpointed(commitTx.blockNumber)
+    if (!isCheckpointed) {
+      this.logger.debug(
+          `commit tx hash ${commitTxHash} block number ${commitTx.blockNumber} on polygon not yet checkpointed on L1. Cannot relay message yet.`
+      )
+      return
+    }
+
+    this.logger.debug(
+        `attempting to send relay message on polygon for commit tx hash ${commitTxHash}`
+    )
+    await this.handleStateSwitch()
+    if (this.isDryOrPauseMode) {
+      this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayMessage`)
+      return
+    }
+    const tx = await this.relayMessage(commitTxHash, this.tokenSymbol)
+    await this.db.transferRoots.update(transferRootHash, {
+      checkpointAttemptedAt: Date.now()
+    })
+    tx?.wait()
+      .then(async (receipt: providers.TransactionReceipt) => {
+        if (receipt.status !== 1) {
+          await this.db.transferRoots.update(transferRootHash, {
+            checkpointAttemptedAt: 0,
+            sentConfirmTxAt: 0
+          })
+          throw new Error('status=0')
+        }
+
+        if (destinationChainId) {
+          this.emit('transferRootConfirmed', {
+            transferRootHash,
+            destinationChainId
+          })
+        }
+      })
+      .catch(async (err: Error) => {
+        this.db.transferRoots.update(transferRootHash, {
+          checkpointAttemptedAt: 0,
+          sentConfirmTxAt: 0
+        })
+
+        throw err
+      })
+    this.logger.info(
+        `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
+        chalk.bgYellow.black.bold(tx.hash)
+    )
+    this.notifier.info(
+        `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
+    )
   }
 }
 export default PolygonBridgeWatcher

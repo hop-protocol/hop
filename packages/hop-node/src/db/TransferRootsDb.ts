@@ -1,7 +1,6 @@
 import BaseDb from './BaseDb'
 import { BigNumber } from 'ethers'
 import { Chain, TX_RETRY_DELAY_MS } from 'src/constants'
-
 import { chainIdToSlug } from 'src/utils'
 import { normalizeDbItem } from './utils'
 

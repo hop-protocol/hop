@@ -24,7 +24,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
   lastSeen: {[key: string]: number} = {}
   xdaiWatcher: xDaiBridgeWatcher
-  polygonInstance: PolygonBridgeWatcher
+  polygonWatcher: PolygonBridgeWatcher
   optimismWatcher: OptimismBridgeWatcher
 
   constructor (config: Config) {
@@ -46,7 +46,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       l1BridgeContract: config.l1BridgeContract,
       dryMode: config.dryMode
     })
-    this.polygonInstance = new PolygonBridgeWatcher({
+    this.polygonWatcher = new PolygonBridgeWatcher({
       chainSlug: Chain.Polygon,
       tokenSymbol: this.tokenSymbol,
       dryMode: config.dryMode
@@ -90,11 +90,9 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.lastSeen[transferRootHash] = Date.now()
     }
 
-    if (this.lastSeen[transferRootHash]) {
-      const timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
-      if (!timestampOk) {
-        // return
-      }
+    const timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
+    if (!timestampOk) {
+      return
     }
 
     const logger = this.logger.create({ root: transferRootHash })
@@ -125,20 +123,20 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       }
     }
     if (!commitTxHash) {
-      this.logger.error('commit tx hash not found')
+      this.logger.error(`commit tx hash not found for root hash ${transferRootHash}`)
       return
     }
 
     if (chainSlug === Chain.xDai) {
       await this.xdaiWatcher.handleCommitTxHash(commitTxHash, transferRootHash)
     } else if (chainSlug === Chain.Polygon) {
-      await this.polygonInstance.handleCommitTxHash(commitTxHash, transferRootHash)
+      await this.polygonWatcher.handleCommitTxHash(commitTxHash, transferRootHash)
     } else if (chainSlug === Chain.Optimism) {
       await this.optimismWatcher.handleCommitTxHash(commitTxHash, transferRootHash)
     } else if (chainSlug === Chain.Arbitrum) {
       // TODO
     } else {
-      // not implemented
+      this.logger.warn(`exit watcher for ${chainSlug} is not implemented yet`)
     }
   }
 }

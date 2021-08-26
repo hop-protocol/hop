@@ -25,6 +25,8 @@ export interface Config {
 class xDomainMessageRelayWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
   lastSeen: {[key: string]: number} = {}
+  polygonInstance: PolygonBridgeWatcher
+  optimismInstance: OptimismBridgeWatcher
 
   constructor (config: Config) {
     super({
@@ -39,6 +41,14 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       dryMode: config.dryMode
     })
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
+    this.polygonInstance = new PolygonBridgeWatcher({
+      chainSlug: Chain.Polygon,
+      tokenSymbol: this.tokenSymbol
+    })
+    this.optimismInstance = new OptimismBridgeWatcher({
+      chainSlug: Chain.Optimism,
+      tokenSymbol: this.tokenSymbol
+    })
   }
 
   async pollHandler () {
@@ -196,12 +206,8 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         }
       }
     } else if (chainSlug === Chain.Polygon) {
-      const poly = new PolygonBridgeWatcher({
-        chainSlug: Chain.Polygon,
-        tokenSymbol: this.tokenSymbol
-      })
       const commitTx: any = await this.bridge.getTransaction(commitTxHash)
-      const isCheckpointed = await poly.isCheckpointed(commitTx.blockNumber)
+      const isCheckpointed = await this.polygonInstance.isCheckpointed(commitTx.blockNumber)
       if (!isCheckpointed) {
         this.logger.debug(
           `commit tx hash ${commitTxHash} block number ${commitTx.blockNumber} on polygon not yet checkpointed on L1. Cannot relay message yet.`
@@ -217,7 +223,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayMessage`)
         return
       }
-      const tx = await poly.relayMessage(commitTxHash, this.tokenSymbol)
+      const tx = await this.polygonInstance.relayMessage(commitTxHash, this.tokenSymbol)
       await this.db.transferRoots.update(transferRootHash, {
         checkpointAttemptedAt: Date.now(),
         sentConfirmTx: true,
@@ -260,11 +266,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
       )
     } else if (chainSlug === Chain.Optimism) {
-      const optimismWatcher = new OptimismBridgeWatcher({
-        chainSlug: this.chainSlug,
-        tokenSymbol: this.tokenSymbol
-      })
-
       if (this.isDryOrPauseMode) {
         logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
         return
@@ -273,7 +274,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.logger.debug(
         `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
       )
-      const tx = await optimismWatcher.relayXDomainMessages(commitTxHash)
+      const tx = await this.optimismInstance.relayXDomainMessages(commitTxHash)
       if (!tx) {
         this.logger.debug('cannot relay message')
         return

@@ -265,10 +265,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.getReceipt(hash)
         .then(() => this.handleConfirmation(hash))
     }
-    return new Promise((resolve) => {
-      this.on(State.Confirmed, (tx) => {
-        resolve(tx)
-      })
+    return new Promise((resolve, reject) => {
+      this
+        .on(State.Confirmed, (tx) => {
+          resolve(tx)
+        })
+        .on(State.Error, (err) => {
+          reject(err)
+        })
     })
   }
 
@@ -310,8 +314,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     this.started = true
     while (true) {
-      await this.poll()
-      await wait(this.pollMs)
+      try {
+        await this.poll()
+        await wait(this.pollMs)
+      } catch (err) {
+        this.emit(State.Error, err)
+      }
     }
   }
 

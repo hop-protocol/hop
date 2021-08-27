@@ -98,8 +98,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       const ok =
         !!dbTransferRoot.destinationChainId &&
         !!dbTransferRoot.totalAmount &&
-        !!dbTransferRoot.confirmed &&
-        !!dbTransferRoot.confirmTxHash &&
+        // !!dbTransferRoot.confirmed &&
+        // !!dbTransferRoot.confirmTxHash &&
         !!dbTransferRoot.committed &&
         !!dbTransferRoot.committedAt &&
         !!dbTransferRoot.rootSetTxHash &&

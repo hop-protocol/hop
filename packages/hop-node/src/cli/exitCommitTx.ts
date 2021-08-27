@@ -15,7 +15,6 @@ program
   .option('--chain <string>', 'Chain')
   .option('--token <string>', 'Token')
   .option('--root <string>', 'Transfer root hash')
-  .option('--tx <string>', 'Commit tx hash')
   .option(
     '-d, --dry',
     'Start in dry mode. If enabled, no transactions will be sent.'
@@ -31,7 +30,6 @@ program
       const chain = source.chain
       const token = source.token
       const transferRootHash = source.root
-      const txHash = source.tx
       const dryMode = !!source.dry
       if (!chain) {
         throw new Error('chain is required')
@@ -54,11 +52,7 @@ program
         throw new Error('watcher not found')
       }
 
-      if (txHash) {
-        await watcher.checkTransfersCommittedByTxHash(txHash, transferRootHash)
-      } else {
-        await watcher.checkTransfersCommittedByTransferRootHash(transferRootHash)
-      }
+      await watcher.checkTransfersCommitted(transferRootHash)
       process.exit(0)
     } catch (err) {
       logger.error(err)

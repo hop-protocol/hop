@@ -1,4 +1,5 @@
 import BaseWatcher from './classes/BaseWatcher'
+import chalk from 'chalk'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract, Wallet, providers } from 'ethers'
@@ -10,6 +11,7 @@ import { getRpcProvider, getRpcUrls } from 'src/utils'
 type Config = {
   chainSlug: string
   tokenSymbol: string
+  dryMode?: boolean
 }
 
 class OptimismBridgeWatcher extends BaseWatcher {
@@ -26,7 +28,8 @@ class OptimismBridgeWatcher extends BaseWatcher {
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
       tag: 'OptimismBridgeWatcher',
-      logColor: 'yellow'
+      logColor: 'yellow',
+      dryMode: config.dryMode
     })
 
     this.l1Provider = new providers.StaticJsonRpcProvider(
@@ -64,59 +67,89 @@ class OptimismBridgeWatcher extends BaseWatcher {
   async relayXDomainMessages (
     txHash: string
   ): Promise<any> {
-    let tx : any
-    let messagePairs = []
-    while (true) {
-      try {
-        messagePairs = await getMessagesAndProofsForL2Transaction(
-          this.l1Provider,
-          this.l2Provider,
-          this.scc.address,
-          predeploys.OVM_L2CrossDomainMessenger,
-          txHash
-        )
-        break
-      } catch (err) {
-        if (err.message.includes('unable to find state root batch for tx')) {
-          continue
-        } else {
-          throw err
-        }
-      }
+    const messagePairs = await getMessagesAndProofsForL2Transaction(
+      this.l1Provider,
+      this.l2Provider,
+      this.scc.address,
+      predeploys.OVM_L2CrossDomainMessenger,
+      txHash
+    )
+
+    const { message, proof } = messagePairs[0]
+    const inChallengeWindow = await this.scc.insideFraudProofWindow(proof.stateRootBatchHeader)
+    if (inChallengeWindow) {
+      return
     }
 
-    for (const { message, proof } of messagePairs) {
-      while (true) {
-        try {
-          const inChallengeWindow = await this.scc.insideFraudProofWindow(proof.stateRootBatchHeader)
-          if (inChallengeWindow) {
-            continue
-          }
+    this.logger.debug(
+         `attempting to send relay message on optimism for commit tx hash ${txHash}`
+    )
 
-          const result = await this.l1Messenger
-            .connect(this.l1Wallet)
-            .relayMessage(
-              message.target,
-              message.sender,
-              message.message,
-              message.messageNonce,
-              proof
-            )
-          tx = await result.wait()
-        } catch (err) {
-          if (err.message.includes('execution failed due to an exception')) {
-            continue
-          } else if (
-            err.message.includes('message has already been received')
-          ) {
-            break
-          } else {
-            throw err
-          }
-        }
-      }
+    await this.handleStateSwitch()
+    if (this.isDryOrPauseMode) {
+      this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
+      return
     }
+
+    const tx = await this.l1Messenger
+      .connect(this.l1Wallet)
+      .relayMessage(
+        message.target,
+        message.sender,
+        message.message,
+        message.messageNonce,
+        proof
+      )
+
     return tx
   }
+
+  async handleCommitTxHash (commitTxHash: string, transferRootHash: string) {
+    try {
+      const tx = await this.relayXDomainMessages(commitTxHash)
+      if (!tx) {
+        return
+      }
+
+      await this.db.transferRoots.update(transferRootHash, {
+        sentConfirmTxAt: Date.now()
+      })
+      this.logger.info(
+           `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
+           chalk.bgYellow.black.bold(tx.hash)
+      )
+      this.notifier.info(
+           `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
+      )
+      tx.wait()
+        .then(async (receipt: any) => {
+          if (receipt.status !== 1) {
+            await this.db.transferRoots.update(transferRootHash, {
+              sentConfirmTxAt: 0
+            })
+            throw new Error('status=0')
+          }
+        })
+        .catch(async (err: Error) => {
+          this.db.transferRoots.update(transferRootHash, {
+            sentConfirmTxAt: 0
+          })
+
+          throw err
+        })
+    } catch (err) {
+      const isNotCheckpointedYet = err.message.includes('unable to find state root batch for tx')
+      if (isNotCheckpointedYet) {
+        this.logger.debug('state root batch not yet on L1. cannot exit yet')
+        return
+      }
+      const isAlreadyRelayed = err.message.includes('message has already been received')
+      if (isAlreadyRelayed) {
+        return
+      }
+      throw err
+    }
+  }
 }
+
 export default OptimismBridgeWatcher

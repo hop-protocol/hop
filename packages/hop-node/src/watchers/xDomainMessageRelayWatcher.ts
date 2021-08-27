@@ -56,6 +56,9 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       tokenSymbol: this.tokenSymbol,
       dryMode: config.dryMode
     })
+
+    // xDomain relayer is less time sensitive than others
+    this.pollIntervalMs = 10 * 60 * 1000
   }
 
   async pollHandler () {
@@ -83,7 +86,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       throw new Error(`transfer root db item not found, root hash "${transferRootHash}"`)
     }
 
-    const { destinationChainId } = dbTransferRoot
+    const { destinationChainId, commitTxHash } = dbTransferRoot
 
     // only process message after waiting 10 minutes
     if (!this.lastSeen[transferRootHash]) {
@@ -103,27 +106,10 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       destinationChainId,
       transferRootId
     )
-    // TODO: run poller only after event syncing has finished
     if (isTransferRootIdConfirmed) {
       await this.db.transferRoots.update(transferRootHash, {
         confirmed: true
       })
-      return
-    }
-
-    let { commitTxHash } = dbTransferRoot
-    if (!commitTxHash || commitTxHash) {
-      commitTxHash = await l2Bridge.getTransferRootCommittedTxHash(
-        transferRootHash
-      )
-      if (commitTxHash) {
-        this.db.transferRoots.update(transferRootHash, {
-          commitTxHash
-        })
-      }
-    }
-    if (!commitTxHash) {
-      this.logger.error(`commit tx hash not found for root hash ${transferRootHash}`)
       return
     }
 

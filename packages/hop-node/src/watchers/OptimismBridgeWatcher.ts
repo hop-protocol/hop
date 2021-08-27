@@ -81,12 +81,11 @@ class OptimismBridgeWatcher extends BaseWatcher {
       return
     }
 
-    await this.handleStateSwitch()
-
     this.logger.debug(
          `attempting to send relay message on optimism for commit tx hash ${txHash}`
     )
 
+    await this.handleStateSwitch()
     if (this.isDryOrPauseMode) {
       this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
       return
@@ -107,9 +106,6 @@ class OptimismBridgeWatcher extends BaseWatcher {
 
   async handleCommitTxHash (commitTxHash: string, transferRootHash: string) {
     try {
-      await this.db.transferRoots.update(transferRootHash, {
-        checkpointAttemptedAt: Date.now()
-      })
       const tx = await this.relayXDomainMessages(commitTxHash)
       if (!tx) {
         return
@@ -129,7 +125,6 @@ class OptimismBridgeWatcher extends BaseWatcher {
         .then(async (receipt: any) => {
           if (receipt.status !== 1) {
             await this.db.transferRoots.update(transferRootHash, {
-              checkpointAttemptedAt: 0,
               sentConfirmTxAt: 0
             })
             throw new Error('status=0')
@@ -137,7 +132,6 @@ class OptimismBridgeWatcher extends BaseWatcher {
         })
         .catch(async (err: Error) => {
           this.db.transferRoots.update(transferRootHash, {
-            checkpointAttemptedAt: 0,
             sentConfirmTxAt: 0
           })
 

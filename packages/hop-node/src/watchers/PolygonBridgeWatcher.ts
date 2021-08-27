@@ -222,17 +222,11 @@ class PolygonBridgeWatcher extends BaseWatcher {
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootHash: string) {
-    await this.db.transferRoots.update(transferRootHash, {
-      checkpointAttemptedAt: Date.now()
-    })
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     const destinationChainId = dbTransferRoot?.destinationChainId
     const commitTx: any = await this.bridge.getTransaction(commitTxHash)
     const isCheckpointed = await this.isCheckpointed(commitTx.blockNumber)
     if (!isCheckpointed) {
-      this.logger.debug(
-          `commit tx hash ${commitTxHash} block number ${commitTx.blockNumber} on polygon not yet checkpointed on L1. Cannot relay message yet.`
-      )
       return
     }
 
@@ -246,13 +240,12 @@ class PolygonBridgeWatcher extends BaseWatcher {
     }
     const tx = await this.relayMessage(commitTxHash, this.tokenSymbol)
     await this.db.transferRoots.update(transferRootHash, {
-      checkpointAttemptedAt: Date.now()
+      sentConfirmTxAt: Date.now()
     })
     tx?.wait()
       .then(async (receipt: providers.TransactionReceipt) => {
         if (receipt.status !== 1) {
           await this.db.transferRoots.update(transferRootHash, {
-            checkpointAttemptedAt: 0,
             sentConfirmTxAt: 0
           })
           throw new Error('status=0')
@@ -267,7 +260,6 @@ class PolygonBridgeWatcher extends BaseWatcher {
       })
       .catch(async (err: Error) => {
         this.db.transferRoots.update(transferRootHash, {
-          checkpointAttemptedAt: 0,
           sentConfirmTxAt: 0
         })
 

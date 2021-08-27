@@ -1,7 +1,6 @@
 import BaseDb from './BaseDb'
 import { BigNumber } from 'ethers'
-import { Chain, TX_RETRY_DELAY_MS } from 'src/constants'
-import { chainIdToSlug } from 'src/utils'
+import { TX_RETRY_DELAY_MS } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
 export type TransferRoot = {
@@ -30,7 +29,6 @@ export type TransferRoot = {
   bondedAt?: number
   transferIds?: string[]
   bonder?: string
-  checkpointAttemptedAt?: number
   withdrawalBondSettleTxSentAt?: number
   bondTotalAmount?: BigNumber
   bondTransferRootId?: string
@@ -144,19 +142,8 @@ class TransferRootsDb extends BaseDb {
           item?.sentConfirmTxAt + TX_RETRY_DELAY_MS < Date.now()
       }
 
-      if (item?.checkpointAttemptedAt) {
-        const checkpointIntervals: { [chain: string]: number } = {
-          [Chain.Polygon]: 5 * 60 * 1000,
-          [Chain.xDai]: 1 * 60 * 1000,
-          [Chain.Optimism]: 4 * 60 * 60 * 1000,
-          [Chain.Arbitrum]: 4 * 60 * 60 * 1000
-        }
-
-        const interval = checkpointIntervals[chainIdToSlug(item.sourceChainId)]
-        timestampOk = item.checkpointAttemptedAt + interval < Date.now()
-      }
-
       return (
+        item.commitTxHash &&
         !item.confirmed &&
         item.transferRootHash &&
         item.destinationChainId &&

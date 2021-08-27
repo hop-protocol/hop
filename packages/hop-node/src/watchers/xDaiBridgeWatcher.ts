@@ -62,8 +62,8 @@ export const executeExitTx = async (event: any, token: string) => {
     sigs.push(vrs)
   }
   const packedSigs = packSignatures(sigs)
-  // TODO: check if enough funds for gas
-  const tx = await l1Amb.executeSignatures(message, packedSigs)
+
+  const tx = l1Amb.executeSignatures(message, packedSigs)
   return {
     tx,
     msgHash,
@@ -139,9 +139,6 @@ class xDaiBridgeWatcher extends BaseWatcher {
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootHash: string) {
-    await this.db.transferRoots.update(transferRootHash, {
-      checkpointAttemptedAt: Date.now()
-    })
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     const destinationChainId = dbTransferRoot?.destinationChainId
     const l2Amb = getL2Amb(this.tokenSymbol)
@@ -158,63 +155,62 @@ class xDaiBridgeWatcher extends BaseWatcher {
       const data = /ef6ebe5e00000/.test(encodedData)
         ? encodedData.replace(/.*(ef6ebe5e00000.*)/, '$1')
         : ''
-      if (data) {
-        const {
-          rootHash,
-          originChainId,
-          destinationChain
-        } = await this.l1Bridge.decodeConfirmTransferRootData(
-          '0x' + data.replace('0x', '')
-        )
-        this.logger.debug(
-            `attempting to send relay message on xdai for commit tx hash ${commitTxHash}`
-        )
-        await this.handleStateSwitch()
-        if (this.isDryOrPauseMode) {
-          this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
-          return
-        }
-        const result = await executeExitTx(sigEvent, this.tokenSymbol)
-        if (result) {
-          await this.db.transferRoots.update(transferRootHash, {
-            sentConfirmTxAt: Date.now()
-          })
-          const { tx } = result
-          tx?.wait()
-            .then(async (receipt: any) => {
-              if (receipt.status !== 1) {
-                await this.db.transferRoots.update(transferRootHash, {
-                  checkpointAttemptedAt: 0,
-                  sentConfirmTxAt: 0
-                })
-                throw new Error('status=0')
-              }
-
-              if (destinationChainId) {
-                this.emit('transferRootConfirmed', {
-                  transferRootHash,
-                  destinationChainId
-                })
-              }
-            })
-            .catch(async (err: Error) => {
-              this.db.transferRoots.update(transferRootHash, {
-                checkpointAttemptedAt: 0,
+      if (!data) {
+        continue
+      }
+      const {
+        rootHash,
+        originChainId,
+        destinationChain
+      } = await this.l1Bridge.decodeConfirmTransferRootData(
+        '0x' + data.replace('0x', '')
+      )
+      this.logger.debug(
+          `attempting to send relay message on xdai for commit tx hash ${commitTxHash}`
+      )
+      await this.handleStateSwitch()
+      if (this.isDryOrPauseMode) {
+        this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
+        return
+      }
+      const result = await executeExitTx(sigEvent, this.tokenSymbol)
+      if (result) {
+        await this.db.transferRoots.update(transferRootHash, {
+          sentConfirmTxAt: Date.now()
+        })
+        const { tx } = result
+        tx?.wait()
+          .then(async (receipt: any) => {
+            if (receipt.status !== 1) {
+              await this.db.transferRoots.update(transferRootHash, {
                 sentConfirmTxAt: 0
               })
+              throw new Error('status=0')
+            }
 
-              throw err
+            if (destinationChainId) {
+              this.emit('transferRootConfirmed', {
+                transferRootHash,
+                destinationChainId
+              })
+            }
+          })
+          .catch(async (err: Error) => {
+            this.db.transferRoots.update(transferRootHash, {
+              sentConfirmTxAt: 0
             })
-          this.logger.info('transferRootHash:', transferRootHash)
-          this.logger.info(
-              `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
-              chalk.bgYellow.black.bold(tx.hash)
-          )
-          this.notifier.info(
-              `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
-          )
-          await tx.wait()
-        }
+
+            throw err
+          })
+        this.logger.info('transferRootHash:', transferRootHash)
+        this.logger.info(
+            `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
+            chalk.bgYellow.black.bold(tx.hash)
+        )
+        this.notifier.info(
+            `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
+        )
+        await tx.wait()
       }
     }
   }

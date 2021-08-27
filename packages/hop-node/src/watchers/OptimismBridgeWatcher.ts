@@ -91,7 +91,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
       return
     }
 
-    const tx = await this.l1Messenger
+    return this.l1Messenger
       .connect(this.l1Wallet)
       .relayMessage(
         message.target,
@@ -100,8 +100,6 @@ class OptimismBridgeWatcher extends BaseWatcher {
         message.messageNonce,
         proof
       )
-
-    return tx
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootHash: string) {

@@ -18,6 +18,9 @@ export enum TokenIndex {
   HopBridgeToken = 1
 }
 
-export const BondTransferGasCost = '150000'
+export enum BondTransferGasLimit {
+  Ethereum = '150000',
+  Optimism = '100000000'
+}
 
 export const LpFee = '0.0004'

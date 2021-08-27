@@ -15,7 +15,7 @@ import { TChain, TToken, TAmount, TProvider } from './types'
 import Base from './Base'
 import AMM from './AMM'
 import _version from './version'
-import { TokenIndex, BondTransferGasCost, LpFee } from './constants'
+import { TokenIndex, BondTransferGasLimit, LpFee } from './constants'
 import { metadata } from './config'
 import { PriceFeed } from './priceFeed'
 import Token from './Token'
@@ -571,7 +571,11 @@ class HopBridge extends Base {
     const rate = ethPrice / tokenPrice
 
     const gasPrice = await destinationChain.provider.getGasPrice()
-    const txFeeEth = gasPrice.mul(BondTransferGasCost)
+    let bondTransferGasLimit = BondTransferGasLimit.Ethereum
+    if (destinationChain?.equals(Chain.Optimism)) {
+      bondTransferGasLimit = BondTransferGasLimit.Optimism
+    }
+    const txFeeEth = gasPrice.mul(bondTransferGasLimit)
 
     const oneEth = ethers.utils.parseEther('1')
     const rateBN = ethers.utils.parseUnits(
@@ -580,8 +584,10 @@ class HopBridge extends Base {
     )
     let fee = txFeeEth.mul(rateBN).div(oneEth)
 
-    const multiplier = ethers.utils.parseEther('1.5')
-    fee = fee.mul(multiplier).div(oneEth)
+    if (destinationChain.equals(Chain.Ethereum)) {
+      const multiplier = ethers.utils.parseEther('1.5')
+      fee = fee.mul(multiplier).div(oneEth)
+    }
 
     return fee
   }

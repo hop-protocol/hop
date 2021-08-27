@@ -21,7 +21,6 @@ export type TransferRoot = {
   confirmTxHash?: string
   rootSetTxHash?: string
   rootSetTimestamp?: number
-  sentConfirmTx?: boolean
   sentConfirmTxAt?: number
   shouldBondTransferRoot?: boolean
   bonded?: boolean
@@ -30,7 +29,6 @@ export type TransferRoot = {
   bondedAt?: number
   transferIds?: string[]
   bonder?: string
-  checkpointAttemptedAt?: number
   withdrawalBondSettleTxSentAt?: number
   bondTotalAmount?: BigNumber
   bondTransferRootId?: string
@@ -134,13 +132,24 @@ class TransferRootsDb extends BaseDb {
         }
       }
 
+      if (!item.sourceChainId) {
+        return false
+      }
+
+      let timestampOk = true
+      if (item?.sentConfirmTxAt) {
+        timestampOk =
+          item?.sentConfirmTxAt + TX_RETRY_DELAY_MS < Date.now()
+      }
+
       return (
+        item.commitTxHash &&
         !item.confirmed &&
-        !item.sentConfirmTx &&
         item.transferRootHash &&
         item.destinationChainId &&
         item.committed &&
-        item.committedAt
+        item.committedAt &&
+        timestampOk
       )
     })
   }

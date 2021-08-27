@@ -20,7 +20,6 @@ export const slackUsername = process.env.SLACK_USERNAME || 'Hop Node'
 const envNetwork = process.env.NETWORK || Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
-const relayerPrivateKey = process.env.RELAYER_PRIVATE_KEY
 
 export const rateLimitMaxRetries = 5
 export const rpcTimeoutSeconds = 10 * 60
@@ -51,7 +50,6 @@ type Config = {
   network: string,
   networks: Networks & {[network: string]: any},
   bonderPrivateKey: string,
-  relayerPrivateKey: string,
   metadata: Metadata & {[network: string]: any},
   bonders: Bonders,
   stateUpdateAddress: string,
@@ -99,7 +97,6 @@ export const config: Config = {
   network,
   networks,
   bonderPrivateKey,
-  relayerPrivateKey,
   metadata,
   bonders,
   stateUpdateAddress: '',

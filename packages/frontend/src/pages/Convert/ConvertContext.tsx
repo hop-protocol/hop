@@ -370,7 +370,7 @@ const ConvertContextProvider: FC = ({ children }) => {
           txObj
         )
       }
-    } catch (err) {
+    } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
         setError(err.message)
       }

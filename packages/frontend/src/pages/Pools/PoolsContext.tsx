@@ -597,7 +597,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       }
       await addLiquidityTx?.wait()
       updateUserPoolPositions()
-    } catch (err) {
+    } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
         setError(err.message)
       }
@@ -686,7 +686,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       }
       await removeLiquidityTx?.wait()
       updateUserPoolPositions()
-    } catch (err) {
+    } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
         setError(err.message)
       }

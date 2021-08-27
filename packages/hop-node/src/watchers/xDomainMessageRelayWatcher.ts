@@ -1,4 +1,5 @@
 import '../moduleAlias'
+import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
@@ -20,12 +21,12 @@ export interface Config {
   dryMode?: boolean
 }
 
+type Watcher = xDaiBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
+
 class xDomainMessageRelayWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
   lastSeen: {[key: string]: number} = {}
-  xdaiWatcher: xDaiBridgeWatcher
-  polygonWatcher: PolygonBridgeWatcher
-  optimismWatcher: OptimismBridgeWatcher
+  watchers: {[chain: string]: Watcher} = {}
 
   constructor (config: Config) {
     super({
@@ -40,19 +41,24 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       dryMode: config.dryMode
     })
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
-    this.xdaiWatcher = new xDaiBridgeWatcher({
+    this.watchers[Chain.xDai] = new xDaiBridgeWatcher({
       chainSlug: Chain.Polygon,
       tokenSymbol: this.tokenSymbol,
       l1BridgeContract: config.l1BridgeContract,
       dryMode: config.dryMode
     })
-    this.polygonWatcher = new PolygonBridgeWatcher({
+    this.watchers[Chain.Polygon] = new PolygonBridgeWatcher({
       chainSlug: Chain.Polygon,
       tokenSymbol: this.tokenSymbol,
       dryMode: config.dryMode
     })
-    this.optimismWatcher = new OptimismBridgeWatcher({
+    this.watchers[Chain.Optimism] = new OptimismBridgeWatcher({
       chainSlug: Chain.Optimism,
+      tokenSymbol: this.tokenSymbol,
+      dryMode: config.dryMode
+    })
+    this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher({
+      chainSlug: Chain.Arbitrum,
       tokenSymbol: this.tokenSymbol,
       dryMode: config.dryMode
     })
@@ -113,17 +119,13 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       return
     }
 
-    if (chainSlug === Chain.xDai) {
-      await this.xdaiWatcher.handleCommitTxHash(commitTxHash, transferRootHash)
-    } else if (chainSlug === Chain.Polygon) {
-      await this.polygonWatcher.handleCommitTxHash(commitTxHash, transferRootHash)
-    } else if (chainSlug === Chain.Optimism) {
-      await this.optimismWatcher.handleCommitTxHash(commitTxHash, transferRootHash)
-    } else if (chainSlug === Chain.Arbitrum) {
-      // TODO
-    } else {
+    const watcher = this.watchers[chainSlug]
+    if (!watcher) {
       this.logger.warn(`exit watcher for ${chainSlug} is not implemented yet`)
+      return
     }
+
+    await watcher.handleCommitTxHash(commitTxHash, transferRootHash)
   }
 }
 

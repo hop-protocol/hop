@@ -69,7 +69,7 @@ const FaucetContextProvider: FC = ({ children }) => {
         })
       )
       await tx?.wait()
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message)
       logger.error(err)
     }

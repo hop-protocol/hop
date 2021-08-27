@@ -158,7 +158,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
         }
         await tokenWrapTx.wait()
       }
-    } catch (err) {
+    } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
         setError(err.message)
       }
@@ -216,7 +216,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
         }
         await tokenUnwrapTx.wait()
       }
-    } catch (err) {
+    } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
         setError(err.message)
       }

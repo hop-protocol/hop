@@ -507,7 +507,7 @@ const Send: FC = () => {
       if (tx) {
         setTx(tx)
       }
-    } catch (err) {
+    } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
         setError(err.message)
       }

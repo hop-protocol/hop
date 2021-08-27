@@ -571,10 +571,22 @@ class HopBridge extends Base {
     const rate = ethPrice / tokenPrice
 
     const gasPrice = await destinationChain.provider.getGasPrice()
-    let bondTransferGasLimit = BondTransferGasLimit.Ethereum
+    let bondTransferGasLimit: string = BondTransferGasLimit.Ethereum
     if (destinationChain?.equals(Chain.Optimism)) {
-      bondTransferGasLimit = BondTransferGasLimit.Optimism
+      try {
+        const estimatedGas = await destinationChain.provider.estimateGas({
+          from: this.getBonderAddress(this.tokenSymbol),
+          to: this.getL2BridgeAddress(this.tokenSymbol, Chain.Optimism),
+          data:
+            '0x3d12a85a000000000000000000000000011111111111111111111111111111111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+        })
+        bondTransferGasLimit = estimatedGas.toString()
+      } catch (err) {
+        console.error(err)
+        bondTransferGasLimit = BondTransferGasLimit.Optimism
+      }
     }
+
     const txFeeEth = gasPrice.mul(bondTransferGasLimit)
 
     const oneEth = ethers.utils.parseEther('1')

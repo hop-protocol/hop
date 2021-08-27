@@ -680,16 +680,23 @@ const Send: FC = () => {
         )
         const recipient = customRecipient || await signer?.getAddress()
         const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
+
+        let totalBonderFee = bonderFee
+        if (destinationTxFee?.gt(0)) {
+          totalBonderFee = totalBonderFee.add(destinationTxFee)
+        }
+
         if (bonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
         }
+
         const tx = await bridge.send(
           parsedAmountIn,
           fromNetwork?.slug as string,
           toNetwork?.slug as string,
           {
             recipient,
-            bonderFee,
+            bonderFee: totalBonderFee,
             amountOutMin: intermediaryAmountOutMin,
             deadline: deadline(),
             destinationAmountOutMin: amountOutMin,

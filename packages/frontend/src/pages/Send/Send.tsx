@@ -626,7 +626,7 @@ const Send: FC = () => {
           {
             recipient,
             bonderFee: totalBonderFee,
-            amountOutMin,
+            amountOutMin: amountOutMin.sub(totalBonderFee),
             deadline: deadline(),
             destinationAmountOutMin,
             destinationDeadline
@@ -686,7 +686,7 @@ const Send: FC = () => {
           totalBonderFee = totalBonderFee.add(destinationTxFee)
         }
 
-        if (bonderFee.gt(parsedAmountIn)) {
+        if (totalBonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
         }
 
@@ -697,7 +697,7 @@ const Send: FC = () => {
           {
             recipient,
             bonderFee: totalBonderFee,
-            amountOutMin: intermediaryAmountOutMin,
+            amountOutMin: intermediaryAmountOutMin.sub(totalBonderFee),
             deadline: deadline(),
             destinationAmountOutMin: amountOutMin,
             destinationDeadline: deadline()

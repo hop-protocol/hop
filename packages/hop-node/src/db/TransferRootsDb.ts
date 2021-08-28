@@ -34,6 +34,7 @@ export type TransferRoot = {
   bondTransferRootId?: string
   challenged?: boolean
   challengeExpired?: boolean
+  allSettled?: boolean
 }
 
 class TransferRootsDb extends BaseDb {
@@ -169,6 +170,44 @@ class TransferRootsDb extends BaseDb {
         !isTransferRootIdValid &&
         !item.challenged &&
         !item.challengeExpired
+      )
+    })
+  }
+
+  async getUnsettledTransferRoots (
+    filter: Partial<TransferRoot> = {}
+  ): Promise<TransferRoot[]> {
+    const transfers: TransferRoot[] = await this.getTransferRoots()
+    return transfers.filter(item => {
+      if (filter?.destinationChainId) {
+        if (filter.destinationChainId !== item.destinationChainId) {
+          return false
+        }
+      }
+
+      let rootSetTimestampOk = true
+      if (item?.rootSetTimestamp) {
+        rootSetTimestampOk = item.rootSetTimestamp * 1000 + TX_RETRY_DELAY_MS < Date.now()
+      }
+
+      let bondSettleTimestampOk = true
+      if (item?.withdrawalBondSettleTxSentAt) {
+        bondSettleTimestampOk =
+          item?.withdrawalBondSettleTxSentAt + TX_RETRY_DELAY_MS <
+          Date.now()
+      }
+
+      return (
+        item.transferRootHash &&
+        item.transferIds &&
+        item.destinationChainId &&
+        item.totalAmount &&
+        item.rootSetTxHash &&
+        item.committed &&
+        item.committedAt &&
+        !item.allSettled &&
+        rootSetTimestampOk &&
+        bondSettleTimestampOk
       )
     })
   }

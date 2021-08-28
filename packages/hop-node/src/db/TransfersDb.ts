@@ -13,7 +13,6 @@ export type Transfer = {
   sourceChainId?: number
   sourceChainSlug?: string
   withdrawalBondSettled?: boolean
-  withdrawalBondSettleTxSentAt?: number
   withdrawalBonded?: boolean
   withdrawalBonder?: string
   withdrawalBondedTxHash?: string

@@ -699,7 +699,7 @@ const Send: FC = () => {
             bonderFee: totalBonderFee,
             amountOutMin: intermediaryAmountOutMin.sub(totalBonderFee),
             deadline: deadline(),
-            destinationAmountOutMin: amountOutMin,
+            destinationAmountOutMin: amountOutMin.sub(totalBonderFee),
             destinationDeadline: deadline()
           }
         )

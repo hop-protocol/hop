@@ -42,7 +42,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     })
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
     this.watchers[Chain.xDai] = new xDaiBridgeWatcher({
-      chainSlug: Chain.Polygon,
+      chainSlug: Chain.xDai,
       tokenSymbol: this.tokenSymbol,
       l1BridgeContract: config.l1BridgeContract,
       dryMode: config.dryMode

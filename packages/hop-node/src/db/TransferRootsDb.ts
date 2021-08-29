@@ -1,6 +1,7 @@
 import BaseDb from './BaseDb'
 import { BigNumber } from 'ethers'
-import { TX_RETRY_DELAY_MS } from 'src/constants'
+import { Chain, ROOT_SET_SETTLE_DELAY_MS, TX_RETRY_DELAY_MS } from 'src/constants'
+import { chainIdToSlug } from 'src/utils'
 import { normalizeDbItem } from './utils'
 
 export type TransferRoot = {
@@ -185,9 +186,11 @@ class TransferRootsDb extends BaseDb {
         }
       }
 
+      // https://github.com/hop-protocol/hop/pull/140#discussion_r697919256
       let rootSetTimestampOk = true
-      if (item?.rootSetTimestamp) {
-        rootSetTimestampOk = item.rootSetTimestamp * 1000 + TX_RETRY_DELAY_MS < Date.now()
+      const checkRootSetTimestamp = item?.rootSetTimestamp && filter?.destinationChainId && chainIdToSlug(filter?.destinationChainId) === Chain.xDai
+      if (checkRootSetTimestamp) {
+        rootSetTimestampOk = (item.rootSetTimestamp * 1000) + ROOT_SET_SETTLE_DELAY_MS < Date.now()
       }
 
       let bondSettleTimestampOk = true

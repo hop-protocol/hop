@@ -122,7 +122,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           .every((dbTransfer: Transfer) =>
             dbTransfer?.withdrawalBondSettled
           )
-        if (!allSettledByBonder) {
+        if (allSettledByBonder) {
           continue
         }
 

@@ -80,26 +80,6 @@ class TransfersDb extends BaseDb {
       })
   }
 
-  async getUnsettledBondedWithdrawalTransfers (
-    filter: Partial<Transfer> = {}
-  ): Promise<Transfer[]> {
-    const transfers: Transfer[] = await this.getTransfers()
-    return transfers.filter(item => {
-      if (filter?.destinationChainId) {
-        if (filter.destinationChainId !== item.destinationChainId) {
-          return false
-        }
-      }
-
-      return (
-        item.transferRootHash &&
-        item.withdrawalBonded &&
-        !item.withdrawalBondSettled &&
-        item.withdrawalBondedTxHash
-      )
-    })
-  }
-
   async getUncommittedTransfers (
     filter: Partial<Transfer> = {}
   ): Promise<Transfer[]> {

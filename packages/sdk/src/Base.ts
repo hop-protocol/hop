@@ -113,7 +113,24 @@ class Base {
 
   setChainProvider (chain: TChain, provider: providers.Provider) {
     chain = this.toChainModel(chain)
+    if (!this.isValidChain(chain.slug)) {
+      throw new Error(
+        `unsupported chain "${chain.slug}" for network ${this.network}`
+      )
+    }
     this.chainProviders[chain.slug] = provider
+  }
+
+  setChainProviders (chainProviders: ChainProviders) {
+    for (let chainSlug in chainProviders) {
+      const chain = this.toChainModel(chainSlug)
+      if (!this.isValidChain(chain.slug)) {
+        throw new Error(
+          `unsupported chain "${chain.slug}" for network ${this.network}`
+        )
+      }
+      this.chainProviders[chain.slug] = chainProviders[chainSlug]
+    }
   }
 
   get supportedNetworks () {

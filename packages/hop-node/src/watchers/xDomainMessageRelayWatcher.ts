@@ -81,6 +81,16 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       )
     }
     for (const { transferRootHash } of dbTransferRoots) {
+      // only process message after waiting 10 minutes
+      if (!this.lastSeen[transferRootHash]) {
+        this.lastSeen[transferRootHash] = Date.now()
+      }
+
+      const timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
+      if (!timestampOk) {
+        return
+      }
+
       // Parallelizing these calls produces RPC errors on Optimism
       await this.checkTransfersCommitted(transferRootHash)
     }
@@ -93,16 +103,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }
 
     const { destinationChainId, commitTxHash } = dbTransferRoot
-
-    // only process message after waiting 10 minutes
-    if (!this.lastSeen[transferRootHash]) {
-      this.lastSeen[transferRootHash] = Date.now()
-    }
-
-    const timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
-    if (!timestampOk) {
-      return
-    }
 
     const logger = this.logger.create({ root: transferRootHash })
     const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())

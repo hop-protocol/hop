@@ -15,6 +15,8 @@ import { config as globalConfig } from 'src/config'
 type Config = {
   chainSlug: string
   tokenSymbol: string
+  bridgeContract?: Contract
+  isL1?: boolean
   dryMode?: boolean
 }
 
@@ -33,6 +35,8 @@ class PolygonBridgeWatcher extends BaseWatcher {
       tokenSymbol: config.tokenSymbol,
       tag: 'PolygonBridgeWatcher',
       logColor: 'yellow',
+      bridgeContract: config.bridgeContract,
+      isL1: config.isL1,
       dryMode: config.dryMode
     })
 

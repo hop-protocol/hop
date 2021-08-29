@@ -2,7 +2,7 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
-import { Chain, TX_RETRY_DELAY_MS } from 'src/constants'
+import { Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
 import { wait } from 'src/utils'
@@ -45,7 +45,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     promises.push(
       new Promise(async resolve => {
         try {
-          await this.checkUnsettledTransfersFromDb()
+          await this.checkUnsettledTransferRootsFromDb()
         } catch (err) {
           this.logger.error(
             `poll error checkUnsettledTransfers: ${err.message}`
@@ -60,133 +60,138 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     await Promise.all(promises)
   }
 
-  checkUnsettledTransfersFromDb = async () => {
+  checkUnsettledTransferRootsFromDb = async () => {
     if (this.chainSlug !== Chain.Optimism) {
       return
     }
 
     // only process transfer where this bridge is the destination chain
-    const dbTransfers: Transfer[] = await this.db.transfers.getUnsettledBondedWithdrawalTransfers(
+    const dbTransferRoots = await this.db.transferRoots.getUnsettledTransferRoots(
       {
         destinationChainId: await this.bridge.getChainId()
       }
     )
-    const filtered: Transfer[] = []
-    const filteredRootHashes: string[] = []
-    for (const dbTransfer of dbTransfers) {
-      if (filteredRootHashes.includes(dbTransfer.transferRootHash)) {
-        continue
-      }
-      const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
-        dbTransfer.transferRootHash
-      )
-      if (!dbTransferRoot) {
-        this.logger.warn(
-          `no db transfer root transfer id ${dbTransfer.transferId}`
-        )
-        continue
-      }
 
-      let rootSetTimestampOk = true
-      if (dbTransferRoot?.rootSetTimestamp) {
-        rootSetTimestampOk = dbTransferRoot.rootSetTimestamp * 1000 + TX_RETRY_DELAY_MS < Date.now()
-      }
-
-      let bondSettleTimestampOk = true
-      if (dbTransferRoot?.withdrawalBondSettleTxSentAt) {
-        bondSettleTimestampOk =
-          dbTransferRoot?.withdrawalBondSettleTxSentAt + TX_RETRY_DELAY_MS <
-          Date.now()
-      }
-
-      const ok =
-        !!dbTransferRoot.destinationChainId &&
-        !!dbTransferRoot.totalAmount &&
-        // !!dbTransferRoot.confirmed &&
-        // !!dbTransferRoot.confirmTxHash &&
-        !!dbTransferRoot.committed &&
-        !!dbTransferRoot.committedAt &&
-        !!dbTransferRoot.rootSetTxHash &&
-        rootSetTimestampOk &&
-        bondSettleTimestampOk
-
-      if (!ok) {
-        continue
-      }
-
-      if (!dbTransferRoot?.transferIds?.length) {
-        this.logger.warn(
-          `db transfer root hash ${dbTransferRoot.transferRootHash} doesn't contain any transfer ids`
-        )
-        continue
-      }
-
-      filtered.push(dbTransfer)
-      filteredRootHashes.push(dbTransfer.transferRootHash)
-    }
-    if (filtered.length) {
-      this.logger.debug(
-        `checking ${filtered.length} unsettled bonded withdrawal transfers db items`
-      )
-    }
     const promises: Promise<any>[] = []
-    for (const { transferId } of filtered) {
-      promises.push(
-        new Promise(async resolve => {
-          try {
-            await this.checkUnsettledTransferId(transferId)
-          } catch (err) {
-            this.logger.error('checkUnsettledTransferId error:', err.message)
-          }
-          resolve(null)
-        })
+    for (const dbTransferRoot of dbTransferRoots) {
+      const { transferRootHash, transferIds } = dbTransferRoot
+
+      // get all db transfer items that belong to root
+      const dbTransfers : Transfer[] = []
+      for (const transferId of transferIds) {
+        const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+        dbTransfers.push(dbTransfer)
+      }
+
+      // skip attempt to settle transfer root if none of the transfers are bonded because there is nothing to settle
+      const hasBondedWithdrawals = dbTransfers.some(
+        (dbTransfer: Transfer) => dbTransfer?.withdrawalBonded
       )
+      if (!hasBondedWithdrawals) {
+        continue
+      }
+
+      // if all transfer ids have been marked as settled,
+      // then mark transfer root as all settled since there is nothing to settle anymore
+      const allSettled = dbTransfers.every(
+        (dbTransfer: Transfer) => dbTransfer?.withdrawalBondSettled
+      )
+      if (allSettled) {
+        await this.db.transferRoots.update(transferRootHash, {
+          allSettled
+        })
+        continue
+      }
+
+      // find all unique bonders that have bonded transfers in this transfer root
+      const bonderSet = new Set<string>()
+      for (const dbTransfer of dbTransfers) {
+        if (!dbTransfer?.withdrawalBonder) {
+          continue
+        }
+        bonderSet.add(dbTransfer.withdrawalBonder)
+      }
+
+      for (const bonder of bonderSet.values()) {
+        // if all transfers have been settled that belong to a bonder
+        // then don't attempt to settle root with that bonder
+        // because there is nothing to settle anymore
+        const allSettledByBonder = dbTransfers.filter(
+          (dbTransfer: Transfer) => dbTransfer.withdrawalBonder === bonder
+        )
+          .every((dbTransfer: Transfer) =>
+            dbTransfer?.withdrawalBondSettled
+          )
+        if (allSettledByBonder) {
+          continue
+        }
+
+        // check settle-able transfer root
+        promises.push(
+          this.checkTransferRootHash(transferRootHash, bonder)
+            .catch((err: Error) => {
+              this.logger.error('checkTransferRootHash error:', err.message)
+            })
+        )
+      }
     }
+
+    if (!promises.length) {
+      return
+    }
+
+    this.logger.debug(
+      `checking ${promises.length} unsettled db transfer roots`
+    )
 
     await Promise.all(promises)
   }
 
-  checkUnsettledTransferId = async (transferId: string) => {
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    if (!dbTransfer) {
-      this.logger.warn(`transfer id "${transferId}" not found in db`)
-      return
-    }
+  checkTransferRootHash = async (transferRootHash: string, bonder: string) => {
     try {
+      if (!transferRootHash) {
+        throw new Error('transfer root hash is required')
+      }
+      if (!bonder) {
+        throw new Error('bonder is required')
+      }
+      const logger = this.logger.create({ root: transferRootHash })
       const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
-        dbTransfer.transferRootHash
+        transferRootHash
       )
       const {
-        transferRootHash: dbTransferRootHash,
+        transferRootId,
+        sourceChainId,
         destinationChainId,
-        totalAmount
+        totalAmount,
+        transferIds
       } = dbTransferRoot
-      const transferIds: string[] = dbTransferRoot?.transferIds || []
+      if (!Array.isArray(transferIds)) {
+        throw new Error('transferIds expected to be array')
+      }
 
-      const logger = this.logger.create({ root: dbTransferRootHash })
       const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
         .bridge
 
       logger.debug(
         'transferRootId:',
-        chalk.bgMagenta.black(dbTransfer.transferRootId)
+        chalk.bgMagenta.black(transferRootId)
       )
 
       const tree = new MerkleTree(transferIds)
-      const transferRootHash = tree.getHexRoot()
-      if (transferRootHash !== dbTransferRootHash) {
+      const calculatedTransferRootHash = tree.getHexRoot()
+      if (calculatedTransferRootHash !== transferRootHash) {
         logger.debug('transferIds:', JSON.stringify(transferIds))
         logger.error(
-          `transfers computed transfer root hash doesn't match. Expected ${dbTransferRootHash}`
+          `transfers computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${calculatedTransferRootHash}`
         )
-        await this.db.transferRoots.update(dbTransferRootHash, {
+        await this.db.transferRoots.update(transferRootHash, {
           transferIds: []
         })
         return
       }
 
-      const bonder = dbTransfer.withdrawalBonder
-      logger.debug('sourceChainId:', dbTransfer.sourceChainId)
+      logger.debug('sourceChainId:', sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)
       logger.debug('computed transferRootHash:', transferRootHash)
       logger.debug('bonder:', bonder)
@@ -216,11 +221,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
             })
             throw new Error('status=0')
           }
-          this.emit('settleBondedWithdrawal', {
+          this.emit('settleBondedWithdrawals', {
             transferRootHash,
             networkName: this.chainIdToSlug(destinationChainId),
-            chainId: destinationChainId,
-            transferId: dbTransfer.transferId
+            chainId: destinationChainId
           })
         })
         .catch(async (err: Error) => {
@@ -243,10 +247,26 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         this.logger.error('settleBondedWithdrawal error:', err.message)
         this.notifier.error(`settleBondedWithdrawal error: ${err.message}`)
       }
-      await this.db.transfers.update(dbTransfer.transferId, {
+      await this.db.transferRoots.update(transferRootHash, {
         withdrawalBondSettleTxSentAt: 0
       })
     }
+  }
+
+  checkTransferId = async (transferId: string) => {
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    if (!dbTransfer) {
+      throw new Error(`transfer id "${transferId}" not found in db`)
+    }
+    const { transferRootHash, withdrawalBonder } = dbTransfer
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
+      transferRootHash
+    )
+    if (!dbTransferRoot) {
+      throw new Error(`transfer root hash "${transferRootHash}" not found in db`)
+    }
+
+    return this.checkTransferRootHash(transferRootHash, withdrawalBonder)
   }
 
   async waitTimeout (transferId: string, destinationChainId: number) {

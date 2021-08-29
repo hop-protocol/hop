@@ -86,6 +86,21 @@ class BondTransferRootWatcher extends BaseWatcher {
       transferRootHash,
       totalAmount
     )
+
+    const minDelaySec = await l1Bridge.getMinTransferRootBondDelaySeconds()
+    const minDelayMs = minDelaySec * 1000
+    const committedAtMs = committedAt * 1000
+    const delta = Date.now() - committedAtMs - minDelayMs
+    const shouldBond = delta > 0
+    if (!shouldBond) {
+      logger.debug(
+        `transferRootHash ${transferRootHash} too early to bond. Must wait ${Math.abs(
+          delta
+        )} seconds`
+      )
+      return
+    }
+
     const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId)
     if (isBonded) {
       logger.debug(

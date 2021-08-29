@@ -4,7 +4,7 @@ import { Token } from '@hop-protocol/sdk'
 import { commafy } from 'src/utils'
 
 const toPercentDisplay = (value: BigNumber | number | undefined, decimals: number | undefined = 0) => {
-  if (typeof value !== 'number') {
+  if (value === undefined) {
     return '-%'
   }
 

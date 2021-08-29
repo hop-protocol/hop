@@ -1,9 +1,9 @@
 import BaseWatcher from './classes/BaseWatcher'
-import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import Web3 from 'web3'
 import chalk from 'chalk'
 import fetch from 'node-fetch'
 import queue from 'src/decorators/queue'
+import wallets from 'src/wallets'
 import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Event } from 'src/types'
@@ -15,6 +15,9 @@ import { config as globalConfig } from 'src/config'
 type Config = {
   chainSlug: string
   tokenSymbol: string
+  bridgeContract?: Contract
+  isL1?: boolean
+  dryMode?: boolean
 }
 
 class PolygonBridgeWatcher extends BaseWatcher {
@@ -31,18 +34,21 @@ class PolygonBridgeWatcher extends BaseWatcher {
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
       tag: 'PolygonBridgeWatcher',
-      logColor: 'yellow'
+      logColor: 'yellow',
+      bridgeContract: config.bridgeContract,
+      isL1: config.isL1,
+      dryMode: config.dryMode
     })
 
-    const privateKey = globalConfig.relayerPrivateKey || globalConfig.bonderPrivateKey
     this.l1Provider = new providers.StaticJsonRpcProvider(
       getRpcUrls(Chain.Ethereum)[0]
     )
     this.l2Provider = new providers.StaticJsonRpcProvider(
       getRpcUrls(Chain.Polygon)[0]
     )
-    this.l1Wallet = new GasBoostSigner(privateKey, this.l1Provider)
-    this.l2Wallet = new GasBoostSigner(privateKey, this.l2Provider)
+    this.l1Wallet = wallets.get(Chain.Ethereum)
+    this.l2Wallet = wallets.get(Chain.Polygon)
+
     this.chainId = chainSlugToId(config.chainSlug)
     this.apiUrl = `https://apis.matic.network/api/v1/${
       this.chainId === this.polygonMainnetChainId ? 'matic' : 'mumbai'
@@ -217,6 +223,59 @@ class PolygonBridgeWatcher extends BaseWatcher {
   ): Promise<BigNumber> {
     const gasPrice = await wallet.provider.getGasPrice()
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
+  }
+
+  async handleCommitTxHash (commitTxHash: string, transferRootHash: string) {
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    const destinationChainId = dbTransferRoot?.destinationChainId
+    const commitTx: any = await this.bridge.getTransaction(commitTxHash)
+    const isCheckpointed = await this.isCheckpointed(commitTx.blockNumber)
+    if (!isCheckpointed) {
+      return
+    }
+
+    this.logger.debug(
+        `attempting to send relay message on polygon for commit tx hash ${commitTxHash}`
+    )
+    await this.handleStateSwitch()
+    if (this.isDryOrPauseMode) {
+      this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayMessage`)
+      return
+    }
+    const tx = await this.relayMessage(commitTxHash, this.tokenSymbol)
+    await this.db.transferRoots.update(transferRootHash, {
+      sentConfirmTxAt: Date.now()
+    })
+    tx?.wait()
+      .then(async (receipt: providers.TransactionReceipt) => {
+        if (receipt.status !== 1) {
+          await this.db.transferRoots.update(transferRootHash, {
+            sentConfirmTxAt: 0
+          })
+          throw new Error('status=0')
+        }
+
+        if (destinationChainId) {
+          this.emit('transferRootConfirmed', {
+            transferRootHash,
+            destinationChainId
+          })
+        }
+      })
+      .catch(async (err: Error) => {
+        this.db.transferRoots.update(transferRootHash, {
+          sentConfirmTxAt: 0
+        })
+
+        throw err
+      })
+    this.logger.info(
+        `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
+        chalk.bgYellow.black.bold(tx.hash)
+    )
+    this.notifier.info(
+        `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
+    )
   }
 }
 export default PolygonBridgeWatcher

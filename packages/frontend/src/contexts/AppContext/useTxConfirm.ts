@@ -31,7 +31,7 @@ export const useTxConfirm = (): TxConfirm => {
 
             const res = await onConfirm(params)
             resolve(res)
-          } catch (err) {
+          } catch (err: any) {
             // MetaMask cancel error
             if (/denied transaction/gi.test(err.message)) {
               reject(new Error('Cancelled'))

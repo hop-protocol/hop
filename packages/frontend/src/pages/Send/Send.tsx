@@ -507,7 +507,7 @@ const Send: FC = () => {
       if (tx) {
         setTx(tx)
       }
-    } catch (err) {
+    } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
         setError(err.message)
       }
@@ -626,7 +626,7 @@ const Send: FC = () => {
           {
             recipient,
             bonderFee: totalBonderFee,
-            amountOutMin,
+            amountOutMin: amountOutMin.sub(totalBonderFee),
             deadline: deadline(),
             destinationAmountOutMin,
             destinationDeadline
@@ -680,19 +680,26 @@ const Send: FC = () => {
         )
         const recipient = customRecipient || await signer?.getAddress()
         const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
-        if (bonderFee.gt(parsedAmountIn)) {
+
+        let totalBonderFee = bonderFee
+        if (destinationTxFee?.gt(0)) {
+          totalBonderFee = totalBonderFee.add(destinationTxFee)
+        }
+
+        if (totalBonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
         }
+
         const tx = await bridge.send(
           parsedAmountIn,
           fromNetwork?.slug as string,
           toNetwork?.slug as string,
           {
             recipient,
-            bonderFee,
-            amountOutMin: intermediaryAmountOutMin,
+            bonderFee: totalBonderFee,
+            amountOutMin: intermediaryAmountOutMin.sub(totalBonderFee),
             deadline: deadline(),
-            destinationAmountOutMin: amountOutMin,
+            destinationAmountOutMin: amountOutMin.sub(totalBonderFee),
             destinationDeadline: deadline()
           }
         )

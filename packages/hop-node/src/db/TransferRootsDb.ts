@@ -1,6 +1,7 @@
 import BaseDb from './BaseDb'
 import { BigNumber } from 'ethers'
-import { TX_RETRY_DELAY_MS } from 'src/constants'
+import { Chain, ROOT_SET_SETTLE_DELAY_MS, TX_RETRY_DELAY_MS } from 'src/constants'
+import { chainIdToSlug } from 'src/utils'
 import { normalizeDbItem } from './utils'
 
 export type TransferRoot = {
@@ -21,7 +22,6 @@ export type TransferRoot = {
   confirmTxHash?: string
   rootSetTxHash?: string
   rootSetTimestamp?: number
-  sentConfirmTx?: boolean
   sentConfirmTxAt?: number
   shouldBondTransferRoot?: boolean
   bonded?: boolean
@@ -30,12 +30,12 @@ export type TransferRoot = {
   bondedAt?: number
   transferIds?: string[]
   bonder?: string
-  checkpointAttemptedAt?: number
   withdrawalBondSettleTxSentAt?: number
   bondTotalAmount?: BigNumber
   bondTransferRootId?: string
   challenged?: boolean
   challengeExpired?: boolean
+  allSettled?: boolean
 }
 
 class TransferRootsDb extends BaseDb {
@@ -134,13 +134,24 @@ class TransferRootsDb extends BaseDb {
         }
       }
 
+      if (!item.sourceChainId) {
+        return false
+      }
+
+      let timestampOk = true
+      if (item?.sentConfirmTxAt) {
+        timestampOk =
+          item?.sentConfirmTxAt + TX_RETRY_DELAY_MS < Date.now()
+      }
+
       return (
+        item.commitTxHash &&
         !item.confirmed &&
-        !item.sentConfirmTx &&
         item.transferRootHash &&
         item.destinationChainId &&
         item.committed &&
-        item.committedAt
+        item.committedAt &&
+        timestampOk
       )
     })
   }
@@ -160,6 +171,46 @@ class TransferRootsDb extends BaseDb {
         !isTransferRootIdValid &&
         !item.challenged &&
         !item.challengeExpired
+      )
+    })
+  }
+
+  async getUnsettledTransferRoots (
+    filter: Partial<TransferRoot> = {}
+  ): Promise<TransferRoot[]> {
+    const transfers: TransferRoot[] = await this.getTransferRoots()
+    return transfers.filter(item => {
+      if (filter?.destinationChainId) {
+        if (filter.destinationChainId !== item.destinationChainId) {
+          return false
+        }
+      }
+
+      // https://github.com/hop-protocol/hop/pull/140#discussion_r697919256
+      let rootSetTimestampOk = true
+      const checkRootSetTimestamp = item?.rootSetTimestamp && filter?.destinationChainId && chainIdToSlug(filter?.destinationChainId) === Chain.xDai
+      if (checkRootSetTimestamp) {
+        rootSetTimestampOk = (item.rootSetTimestamp * 1000) + ROOT_SET_SETTLE_DELAY_MS < Date.now()
+      }
+
+      let bondSettleTimestampOk = true
+      if (item?.withdrawalBondSettleTxSentAt) {
+        bondSettleTimestampOk =
+          item?.withdrawalBondSettleTxSentAt + TX_RETRY_DELAY_MS <
+          Date.now()
+      }
+
+      return (
+        item.transferRootHash &&
+        item.transferIds &&
+        item.destinationChainId &&
+        item.totalAmount &&
+        item.rootSetTxHash &&
+        item.committed &&
+        item.committedAt &&
+        !item.allSettled &&
+        rootSetTimestampOk &&
+        bondSettleTimestampOk
       )
     })
   }

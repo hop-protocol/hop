@@ -1,14 +1,13 @@
 import '../moduleAlias'
+import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
-import chalk from 'chalk'
-import { Chain, TEN_MINUTES_MS, TX_RETRY_DELAY_MS } from 'src/constants'
-import { Contract, providers } from 'ethers'
-import { TransferRoot } from 'src/db/TransferRootsDb'
-import { executeExitTx, getL2Amb } from './xDaiBridgeWatcher'
+import xDaiBridgeWatcher from './xDaiBridgeWatcher'
+import { Chain, TEN_MINUTES_MS } from 'src/constants'
+import { Contract } from 'ethers'
 
 export interface Config {
   chainSlug: string
@@ -22,9 +21,12 @@ export interface Config {
   dryMode?: boolean
 }
 
+type Watcher = xDaiBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
+
 class xDomainMessageRelayWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
   lastSeen: {[key: string]: number} = {}
+  watchers: {[chain: string]: Watcher} = {}
 
   constructor (config: Config) {
     super({
@@ -39,6 +41,38 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       dryMode: config.dryMode
     })
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
+    this.watchers[Chain.xDai] = new xDaiBridgeWatcher({
+      chainSlug: config.chainSlug,
+      tokenSymbol: this.tokenSymbol,
+      l1BridgeContract: config.l1BridgeContract,
+      bridgeContract: config.bridgeContract,
+      isL1: config.isL1,
+      dryMode: config.dryMode
+    })
+    this.watchers[Chain.Polygon] = new PolygonBridgeWatcher({
+      chainSlug: config.chainSlug,
+      tokenSymbol: this.tokenSymbol,
+      bridgeContract: config.bridgeContract,
+      isL1: config.isL1,
+      dryMode: config.dryMode
+    })
+    this.watchers[Chain.Optimism] = new OptimismBridgeWatcher({
+      chainSlug: config.chainSlug,
+      tokenSymbol: this.tokenSymbol,
+      bridgeContract: config.bridgeContract,
+      isL1: config.isL1,
+      dryMode: config.dryMode
+    })
+    this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher({
+      chainSlug: config.chainSlug,
+      tokenSymbol: this.tokenSymbol,
+      bridgeContract: config.bridgeContract,
+      isL1: config.isL1,
+      dryMode: config.dryMode
+    })
+
+    // xDomain relayer is less time sensitive than others
+    this.pollIntervalMs = 10 * 60 * 1000
   }
 
   async pollHandler () {
@@ -54,56 +88,31 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         `checking ${dbTransferRoots.length} unconfirmed transfer roots db items`
       )
     }
-    for (const dbTransferRoot of dbTransferRoots) {
-      const {
-        transferRootHash,
-        destinationChainId,
-        committedAt
-      } = dbTransferRoot
-
+    for (const { transferRootHash } of dbTransferRoots) {
       // only process message after waiting 10 minutes
-      let timestampOk = true
-      if (this.lastSeen[transferRootHash]) {
-        timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
-      }
-
       if (!this.lastSeen[transferRootHash]) {
         this.lastSeen[transferRootHash] = Date.now()
       }
 
+      const timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
       if (!timestampOk) {
-        continue
-      }
-
-      // Retry a tx if it is in the mempool for too long
-      if (dbTransferRoot?.checkpointAttemptedAt) {
-        const xDomainMessageSentTimestampOk = dbTransferRoot?.checkpointAttemptedAt + TX_RETRY_DELAY_MS <
-            Date.now()
-        if (!xDomainMessageSentTimestampOk) {
-          continue
-        }
+        return
       }
 
       // Parallelizing these calls produces RPC errors on Optimism
-      await this.checkTransfersCommitted(
-        transferRootHash,
-        destinationChainId,
-        committedAt
-      )
+      await this.checkTransfersCommitted(transferRootHash)
     }
   }
 
-  checkTransfersCommitted = async (
-    transferRootHash: string,
-    destinationChainId: number,
-    committedAt: number
-  ) => {
+  checkTransfersCommitted = async (transferRootHash: string) => {
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    if (!dbTransferRoot) {
+      throw new Error(`transfer root db item not found, root hash "${transferRootHash}"`)
+    }
+
+    const { destinationChainId, commitTxHash } = dbTransferRoot
+
     const logger = this.logger.create({ root: transferRootHash })
-
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
-      transferRootHash
-    )
-
     const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
     const l2Bridge = this.bridge as L2Bridge
     const { transferRootId } = dbTransferRoot
@@ -111,7 +120,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       destinationChainId,
       transferRootId
     )
-    // TODO: run poller only after event syncing has finished
     if (isTransferRootIdConfirmed) {
       await this.db.transferRoots.update(transferRootHash, {
         confirmed: true
@@ -119,233 +127,13 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       return
     }
 
-    let { commitTxHash } = dbTransferRoot
-    if (!commitTxHash || commitTxHash) {
-      commitTxHash = await l2Bridge.getTransferRootCommittedTxHash(
-        transferRootHash
-      )
-      if (commitTxHash) {
-        this.db.transferRoots.update(transferRootHash, {
-          commitTxHash
-        })
-      }
-    }
-    if (!commitTxHash) {
+    const watcher = this.watchers[chainSlug]
+    if (!watcher) {
+      this.logger.warn(`exit watcher for ${chainSlug} is not implemented yet`)
       return
     }
 
-    const shouldAttempt = this.shouldAttemptCheckpoint(
-      dbTransferRoot,
-      chainSlug
-    )
-    if (!shouldAttempt) {
-      return
-    }
-
-    await this.db.transferRoots.update(transferRootHash, {
-      checkpointAttemptedAt: Date.now()
-    })
-
-    if (chainSlug === Chain.xDai) {
-      const l2Amb = getL2Amb(this.tokenSymbol)
-      const tx: any = await this.bridge.getTransaction(commitTxHash)
-      const sigEvents = await l2Amb?.queryFilter(
-        l2Amb.filters.UserRequestForSignature(),
-        tx.blockNumber - 1,
-        tx.blockNumber + 1
-      )
-
-      for (const sigEvent of sigEvents) {
-        const { encodedData } = sigEvent.args
-        // TODO: better way of slicing by method id
-        const data = /ef6ebe5e00000/.test(encodedData)
-          ? encodedData.replace(/.*(ef6ebe5e00000.*)/, '$1')
-          : ''
-        if (data) {
-          const {
-            rootHash,
-            originChainId,
-            destinationChain
-          } = await this.l1Bridge.decodeConfirmTransferRootData(
-            '0x' + data.replace('0x', '')
-          )
-          this.logger.debug(
-            `attempting to send relay message on xdai for commit tx hash ${commitTxHash}`
-          )
-          await this.handleStateSwitch()
-          if (this.isDryOrPauseMode) {
-            logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
-            return
-          }
-          const result = await executeExitTx(sigEvent, this.tokenSymbol)
-          if (result) {
-            await this.db.transferRoots.update(transferRootHash, {
-              sentConfirmTx: true,
-              sentConfirmTxAt: Date.now()
-            })
-            const { tx } = result
-            tx?.wait()
-              .then(async (receipt: any) => {
-                if (receipt.status !== 1) {
-                  await this.db.transferRoots.update(transferRootHash, {
-                    sentConfirmTx: false,
-                    sentConfirmTxAt: 0
-                  })
-                  throw new Error('status=0')
-                }
-
-                this.emit('transferRootConfirmed', {
-                  transferRootHash,
-                  destinationChainId
-                })
-
-                this.db.transferRoots.update(transferRootHash, {
-                  confirmed: true
-                })
-              })
-              .catch(async (err: Error) => {
-                this.db.transferRoots.update(transferRootHash, {
-                  sentConfirmTx: false,
-                  sentConfirmTxAt: 0
-                })
-
-                throw err
-              })
-            logger.info('transferRootHash:', transferRootHash)
-            logger.info(
-              `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
-              chalk.bgYellow.black.bold(tx.hash)
-            )
-            this.notifier.info(
-              `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
-            )
-            await tx.wait()
-          }
-        }
-      }
-    } else if (chainSlug === Chain.Polygon) {
-      const poly = new PolygonBridgeWatcher({
-        chainSlug: Chain.Polygon,
-        tokenSymbol: this.tokenSymbol
-      })
-      const commitTx: any = await this.bridge.getTransaction(commitTxHash)
-      const isCheckpointed = await poly.isCheckpointed(commitTx.blockNumber)
-      if (!isCheckpointed) {
-        this.logger.debug(
-          `commit tx hash ${commitTxHash} block number ${commitTx.blockNumber} on polygon not yet checkpointed on L1. Cannot relay message yet.`
-        )
-        return
-      }
-
-      this.logger.debug(
-        `attempting to send relay message on polygon for commit tx hash ${commitTxHash}`
-      )
-      await this.handleStateSwitch()
-      if (this.isDryOrPauseMode) {
-        logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayMessage`)
-        return
-      }
-      const tx = await poly.relayMessage(commitTxHash, this.tokenSymbol)
-      await this.db.transferRoots.update(transferRootHash, {
-        sentConfirmTx: true,
-        sentConfirmTxAt: Date.now()
-      })
-      tx?.wait()
-        .then(async (receipt: providers.TransactionReceipt) => {
-          if (receipt.status !== 1) {
-            await this.db.transferRoots.update(transferRootHash, {
-              sentConfirmTx: false,
-              sentConfirmTxAt: 0
-            })
-            throw new Error('status=0')
-          }
-
-          this.emit('transferRootConfirmed', {
-            transferRootHash,
-            destinationChainId
-          })
-
-          this.db.transferRoots.update(transferRootHash, {
-            confirmed: true
-          })
-        })
-        .catch(async (err: Error) => {
-          this.db.transferRoots.update(transferRootHash, {
-            sentConfirmTx: false,
-            sentConfirmTxAt: 0
-          })
-
-          throw err
-        })
-      logger.info(
-        `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
-        chalk.bgYellow.black.bold(tx.hash)
-      )
-      this.notifier.info(
-        `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
-      )
-    } else if (chainSlug === Chain.Optimism) {
-      const optimismWatcher = new OptimismBridgeWatcher({
-        chainSlug: this.chainSlug,
-        tokenSymbol: this.tokenSymbol
-      })
-
-      if (this.isDryOrPauseMode) {
-        logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
-        return
-      }
-
-      this.logger.debug(
-        `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
-      )
-      const tx = await optimismWatcher.relayXDomainMessages(commitTxHash)
-      if (!tx) {
-        this.logger.debug('cannot relay message')
-        return
-      }
-      if (tx?.hash) {
-        await this.handleStateSwitch()
-        await this.db.transferRoots.update(transferRootHash, {
-          sentConfirmTx: true,
-          sentConfirmTxAt: Date.now()
-        })
-        logger.info(
-          `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
-          chalk.bgYellow.black.bold(tx.hash)
-        )
-        this.notifier.info(
-          `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
-        )
-      } else {
-        this.logger.debug('cannot relay message')
-      }
-    } else {
-      // not implemented
-    }
-  }
-
-  shouldAttemptCheckpoint (dbTransferRoot: TransferRoot, chainSlug: string) {
-    if (!chainSlug) {
-      return false
-    }
-
-    if (!dbTransferRoot?.checkpointAttemptedAt) {
-      return true
-    }
-
-    // TODO: Move this const to chain-specific location
-    const checkpointIntervals: { [key: string]: number } = {
-      polygon: 10 * 10 * 1000,
-      xdai: 1 * 10 * 1000,
-      optimism: 10 * 10 * 1000
-    }
-
-    const interval = checkpointIntervals[chainSlug]
-    if (dbTransferRoot.checkpointAttemptedAt + interval < Date.now()) {
-      return true
-    }
-
-    return false
+    await watcher.handleCommitTxHash(commitTxHash, transferRootHash)
   }
 }
 

@@ -15,7 +15,7 @@ import { TChain, TToken, TAmount, TProvider } from './types'
 import Base, { ChainProviders } from './Base'
 import AMM from './AMM'
 import _version from './version'
-import { TokenIndex, BondTransferGasCost, LpFee } from './constants'
+import { TokenIndex, BondTransferGasLimit, LpFee } from './constants'
 import { metadata } from './config'
 import { PriceFeed } from './priceFeed'
 import Token from './Token'
@@ -583,7 +583,23 @@ class HopBridge extends Base {
     const rate = ethPrice / tokenPrice
 
     const gasPrice = await destinationChain.provider.getGasPrice()
-    const txFeeEth = gasPrice.mul(BondTransferGasCost)
+    let bondTransferGasLimit: string = BondTransferGasLimit.Ethereum
+    if (destinationChain?.equals(Chain.Optimism)) {
+      try {
+        const estimatedGas = await destinationChain.provider.estimateGas({
+          from: this.getBonderAddress(this.tokenSymbol),
+          to: this.getL2BridgeAddress(this.tokenSymbol, Chain.Optimism),
+          data:
+            '0x3d12a85a000000000000000000000000011111111111111111111111111111111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+        })
+        bondTransferGasLimit = estimatedGas.toString()
+      } catch (err) {
+        console.error(err)
+        bondTransferGasLimit = BondTransferGasLimit.Optimism
+      }
+    }
+
+    const txFeeEth = gasPrice.mul(bondTransferGasLimit)
 
     const oneEth = ethers.utils.parseEther('1')
     const rateBN = ethers.utils.parseUnits(
@@ -592,8 +608,10 @@ class HopBridge extends Base {
     )
     let fee = txFeeEth.mul(rateBN).div(oneEth)
 
-    const multiplier = ethers.utils.parseEther('1.5')
-    fee = fee.mul(multiplier).div(oneEth)
+    if (destinationChain.equals(Chain.Ethereum)) {
+      const multiplier = ethers.utils.parseEther('1.5')
+      fee = fee.mul(multiplier).div(oneEth)
+    }
 
     return fee
   }
@@ -1158,8 +1176,8 @@ class HopBridge extends Base {
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
     recipient = getAddress(recipient || (await this.getSignerAddress()))
     this.checkConnectedChain(this.signer, sourceChain)
+    amountOutMin = BigNumber.from((amountOutMin || 0).toString())
     const l1Bridge = await this.getL1Bridge(this.signer)
-
     const isNativeToken = this.isNativeToken(sourceChain)
 
     if (!isNativeToken) {
@@ -1175,11 +1193,15 @@ class HopBridge extends Base {
       }
     }
 
+    if (amountOutMin.lt(0)) {
+      amountOutMin = BigNumber.from(0)
+    }
+
     return l1Bridge.sendToL2(
       destinationChainId,
       recipient,
       amount || 0,
-      amountOutMin || 0,
+      amountOutMin,
       deadline,
       relayer,
       relayerFee || 0,
@@ -1205,8 +1227,10 @@ class HopBridge extends Base {
     } = input
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
     destinationDeadline = destinationDeadline || 0
-    amountOutMin = amountOutMin || 0
-    destinationAmountOutMin = destinationAmountOutMin || 0
+    amountOutMin = BigNumber.from((amountOutMin || 0).toString())
+    destinationAmountOutMin = BigNumber.from(
+      (destinationAmountOutMin || 0).toString()
+    )
     recipient = getAddress(recipient || (await this.getSignerAddress()))
     this.checkConnectedChain(this.signer, sourceChain)
     const ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
@@ -1231,6 +1255,14 @@ class HopBridge extends Base {
           throw new Error('not enough allowance')
         }
       }
+    }
+
+    if (amountOutMin.lt(0)) {
+      amountOutMin = BigNumber.from(0)
+    }
+
+    if (destinationAmountOutMin.lt(0)) {
+      destinationAmountOutMin = BigNumber.from(0)
     }
 
     if (attemptSwap) {
@@ -1275,7 +1307,10 @@ class HopBridge extends Base {
     } = input
     deadline = deadline || this.defaultDeadlineSeconds
     destinationDeadline = destinationDeadline || deadline
-    amountOutMin = amountOutMin || 0
+    amountOutMin = BigNumber.from((amountOutMin || 0).toString())
+    destinationAmountOutMin = BigNumber.from(
+      (destinationAmountOutMin || 0).toString()
+    )
     recipient = getAddress(recipient || (await this.getSignerAddress()))
     if (BigNumber.from(bonderFee).gt(amount)) {
       throw new Error('Amount must be greater than bonder fee')
@@ -1299,6 +1334,14 @@ class HopBridge extends Base {
       }
     }
 
+    if (amountOutMin.lt(0)) {
+      amountOutMin = BigNumber.from(0)
+    }
+
+    if (destinationAmountOutMin.lt(0)) {
+      destinationAmountOutMin = BigNumber.from(0)
+    }
+
     return ammWrapper.swapAndSend(
       destinationChainId,
       recipient,
@@ -1306,7 +1349,7 @@ class HopBridge extends Base {
       bonderFee,
       amountOutMin,
       deadline,
-      destinationAmountOutMin || 0,
+      destinationAmountOutMin,
       destinationDeadline,
       {
         ...(await this.txOverrides(sourceChain)),

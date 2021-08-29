@@ -57,11 +57,11 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       tokenSymbol: this.tokenSymbol,
       dryMode: config.dryMode
     })
-    this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher({
-      chainSlug: Chain.Arbitrum,
-      tokenSymbol: this.tokenSymbol,
-      dryMode: config.dryMode
-    })
+    // this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher({
+    //   chainSlug: Chain.Arbitrum,
+    //   tokenSymbol: this.tokenSymbol,
+    //   dryMode: config.dryMode
+    // })
 
     // xDomain relayer is less time sensitive than others
     this.pollIntervalMs = 10 * 60 * 1000

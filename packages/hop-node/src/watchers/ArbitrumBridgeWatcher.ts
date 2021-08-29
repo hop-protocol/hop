@@ -3,11 +3,13 @@ import chalk from 'chalk'
 import wallets from 'src/wallets'
 import { Bridge, OutgoingMessageState } from 'arb-ts'
 import { Chain } from 'src/constants'
-import { Wallet } from 'ethers'
+import { Contract, Wallet } from 'ethers'
 
 type Config = {
   chainSlug: string
   tokenSymbol: string
+  bridgeContract?: Contract
+  isL1?: boolean
   dryMode?: boolean
 }
 
@@ -23,6 +25,8 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
       tokenSymbol: config.tokenSymbol,
       tag: 'ArbitrumBridgeWatcher',
       logColor: 'yellow',
+      bridgeContract: config.bridgeContract,
+      isL1: config.isL1,
       dryMode: config.dryMode
     })
 

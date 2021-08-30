@@ -3,6 +3,7 @@ import { DateTime } from 'luxon'
 import { swapAbi as saddleSwapAbi } from '@hop-protocol/core/abi'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import shiftBNDecimals from './utils/shiftBNDecimals'
 import { Chain } from './models'
 import { TokenIndex } from './constants'
 import { TChain, TAmount, TProvider } from './types'
@@ -305,14 +306,11 @@ class AMM extends Base {
       this.calculateAddLiquidityMinimum(amount0, amount1)
     ])
     let tokenInputSum = BigNumber.from(amount0.toString()).add(
-      BigNumber.from(amount1)
+      BigNumber.from(amount1.toString())
     )
 
     // convert to 18 decimals
-    tokenInputSum = parseUnits(
-      formatUnits(tokenInputSum, decimals).toString(),
-      18
-    )
+    tokenInputSum = shiftBNDecimals(tokenInputSum, 18 - decimals)
 
     return this.calculatePriceImpact(
       tokenInputSum,
@@ -381,6 +379,23 @@ class AMM extends Base {
   public async getReservesTotal () {
     const [reserve0, reserve1] = await this.getReserves()
     return reserve0.add(reserve1)
+  }
+
+  public async calculateAmountsForLpToken (lpTokenAmount: TAmount) {
+    const account = this.signer
+      ? await this.getSignerAddress()
+      : constants.AddressZero
+    const saddleSwap = await this.getSaddleSwap()
+    return saddleSwap.calculateRemoveLiquidity(
+      account,
+      lpTokenAmount,
+      await this.txOverrides(this.chain)
+    )
+  }
+
+  public async calculateTotalAmountForLpToken (lpTokenAmount: TAmount) {
+    const amounts = await this.calculateAmountsForLpToken(lpTokenAmount)
+    return amounts[0].add(amounts[1])
   }
 }
 

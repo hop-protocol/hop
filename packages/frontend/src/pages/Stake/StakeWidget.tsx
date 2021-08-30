@@ -237,32 +237,37 @@ const StakeWidget: FC<Props> = props => {
 
   const lpPositionFormatted = lpPosition ? `$${toTokenDisplay(lpPosition, stakingToken?.decimals)}` : ''
 
-  // ((MATIC_PRICE * WMATIC_PER_DAY)/(AMM_USDC + AMM_HUSDC)) * DAYS_PER_YEAR
-  // Example: ((1.36 * 3,246.6071)/(2,748,080.39 + 2,698,129.89))*365
+  // ((WMATIC_PER_DAY * MATIC_PRICE)/((STAKED_USDC + STAKED_HUSDC)*STAKED_TOKEN_PRICE)) * DAYS_PER_YEAR
   const apr = useAsyncMemo(async () => {
     try {
       if (!(
         bridge &&
         network &&
+        totalStaked &&
         totalRewardsPerDay &&
-        maticUsdPrice
+        maticUsdPrice &&
+        tokenUsdPrice
       )) {
         return
       }
 
       const maticUsdPriceBn = parseUnits(maticUsdPrice.toString(), 18)
+      const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), 18)
       const token = await bridge.getCanonicalToken(network.slug)
-      const ammTotal = await bridge.getReservesTotal(network.slug)
-      if (ammTotal.lte(0)) {
+      const amm = bridge.getAmm(network.slug)
+      const stakedTotal = await amm.calculateTotalAmountForLpToken(totalStaked)
+      if (stakedTotal.lte(0)) {
         return BigNumber.from(0)
       }
-      const ammTotal18d = shiftBNDecimals(ammTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
+      const stakedTotal18d = shiftBNDecimals(stakedTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
+      const precision = parseUnits('1', 18)
+      const oneYear = 365
 
-      return ((((totalRewardsPerDay).mul(maticUsdPriceBn))).div(ammTotal18d)).mul(365)
+      return (((totalRewardsPerDay).mul(maticUsdPriceBn).mul(precision)).div((stakedTotal18d.mul(tokenUsdPriceBn)))).mul(oneYear)
     } catch (err) {
       console.error(err)
     }
-  }, [bridge, network, totalRewardsPerDay, maticUsdPrice])
+  }, [bridge, network, totalStaked, totalRewardsPerDay, maticUsdPrice, tokenUsdPrice])
 
   const aprFormatted = toPercentDisplay(apr, TOTAL_AMOUNTS_DECIMALS)
 

@@ -220,23 +220,6 @@ const StakeWidget: FC<Props> = props => {
     await tx?.wait()
   }
 
-  const lpPosition = useAsyncMemo(async () => {
-    if (!(
-      earned &&
-      tokenUsdPrice &&
-      stakingToken &&
-      stakeBalance &&
-      stakeBalance.gt(0)
-    )) {
-      return
-    }
-
-    const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), stakingToken?.decimals)
-    return (stakeBalance.add(earned)).mul(tokenUsdPriceBn).div(BigNumber.from(10).pow(stakingToken?.decimals))
-  }, [stakeBalance, stakingToken, earned, tokenUsdPrice])
-
-  const lpPositionFormatted = lpPosition ? `$${toTokenDisplay(lpPosition, stakingToken?.decimals)}` : ''
-
   // ((WMATIC_PER_DAY * MATIC_PRICE)/((STAKED_USDC + STAKED_HUSDC)*STAKED_TOKEN_PRICE)) * DAYS_PER_YEAR
   const apr = useAsyncMemo(async () => {
     try {
@@ -270,6 +253,31 @@ const StakeWidget: FC<Props> = props => {
   }, [bridge, network, totalStaked, totalRewardsPerDay, maticUsdPrice, tokenUsdPrice])
 
   const aprFormatted = toPercentDisplay(apr, TOTAL_AMOUNTS_DECIMALS)
+
+  const stakedPosition = useAsyncMemo(async () => {
+    if (!(
+      bridge &&
+      network &&
+      earned &&
+      maticUsdPrice &&
+      tokenUsdPrice &&
+      stakingToken &&
+      stakeBalance &&
+      stakeBalance.gt(0)
+    )) {
+      return
+    }
+
+    const maticUsdPriceBn = parseUnits(maticUsdPrice.toString(), stakingToken?.decimals)
+    const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), stakingToken?.decimals)
+    const token = await bridge.getCanonicalToken(network.slug)
+    const amm = bridge.getAmm(network.slug)
+    const userStakedTotal = await amm.calculateTotalAmountForLpToken(stakeBalance)
+    const userStakedTotal18d = shiftBNDecimals(userStakedTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
+    return (((userStakedTotal18d).mul(tokenUsdPriceBn)).add((earned).mul(maticUsdPriceBn))).div(BigNumber.from(10).pow(stakingToken?.decimals))
+  }, [bridge, network, stakeBalance, stakingToken, earned, maticUsdPrice, tokenUsdPrice])
+
+  const stakedPositionFormatted = stakedPosition ? `$${toTokenDisplay(stakedPosition, stakingToken?.decimals)}` : ''
 
   const stake = async () => {
     if (!stakingRewards) {
@@ -411,11 +419,11 @@ const StakeWidget: FC<Props> = props => {
           }
           value={`${userRewardsPerDay ? userRewardsPerDayFormatted : totalRewardsPerDayFormatted} / day`}
         />
-        {lpPosition &&
+        {stakedPosition &&
         <DetailRow
           title="Your Total"
           tooltip="The total worth of your staked LP position in USD"
-          value={lpPositionFormatted}
+          value={stakedPositionFormatted}
         />
       }
       </div>

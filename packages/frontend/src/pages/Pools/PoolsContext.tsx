@@ -489,7 +489,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     updateUserPoolPositions()
   }, 20 * 1000)
 
-  const approve = useApprove()
+  const { approve } = useApprove()
   const approveTokens = async (
     isHop: boolean,
     amount: string,

@@ -268,7 +268,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     getSendData()
   }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
 
-  const approve = useApprove()
+  const { approve } = useApprove()
   const approveTokens = async (): Promise<any> => {
     if (!sourceToken) {
       throw new Error('No source token selected')

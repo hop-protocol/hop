@@ -201,7 +201,7 @@ const StakeWidget: FC<Props> = props => {
     rewardsToken?.symbol
   )
 
-  const approve = useApprove()
+  const { approve } = useApprove()
   const approveToken = async () => {
     if (
       !stakingRewards ||

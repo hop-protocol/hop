@@ -161,6 +161,10 @@ export function getWatchers (config: GetWatchersConfig) {
       if (isL1) {
         return
       }
+      const l1BridgeContract = contracts.get(token, Chain.Ethereum)?.l1Bridge
+      if (!l1BridgeContract) {
+        return
+      }
       return new xDomainMessageRelayWatcher({
         chainSlug: network,
         tokenSymbol: token,
@@ -168,7 +172,7 @@ export function getWatchers (config: GetWatchersConfig) {
         label,
         token,
         bridgeContract,
-        l1BridgeContract: contracts.get(token, Chain.Ethereum).l1Bridge,
+        l1BridgeContract,
         dryMode
       })
     }))

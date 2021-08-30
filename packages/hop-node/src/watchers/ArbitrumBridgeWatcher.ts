@@ -34,6 +34,10 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     this.l2Wallet = wallets.get(Chain.Arbitrum)
 
     this.init()
+      .catch((err) => {
+        this.logger.error('arbitrum bridge watcher init error:', err.message)
+        this.quit()
+      })
   }
 
   async init () {

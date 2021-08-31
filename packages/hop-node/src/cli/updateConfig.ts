@@ -1,6 +1,8 @@
 import {
   FileConfig,
   getEnabledNetworks,
+  isValidNetwork,
+  isValidToken,
   parseConfigFile,
   setGlobalConfigFromConfigFile,
   writeConfigFile
@@ -42,11 +44,20 @@ program
         if (!chain) {
           throw new Error('chain is required')
         }
+        if (!isValidNetwork(chain)) {
+          throw new Error('chain is invalid')
+        }
         if (!destinationChain) {
           throw new Error('destination chain is required')
         }
+        if (!isValidNetwork(destinationChain)) {
+          throw new Error('destination chain is invalid')
+        }
         if (!token) {
           throw new Error('token is required')
+        }
+        if (!isValidToken(token)) {
+          throw new Error('token is invalid')
         }
         if (!(newConfig.commitTransfers instanceof Object)) {
           newConfig.commitTransfers = {
@@ -57,9 +68,6 @@ program
           newConfig.commitTransfers = {
             minThresholdAmount: {}
           }
-        }
-        if (!token) {
-          throw new Error('token is required')
         }
         let isOldConfigType = false
         if (!(newConfig.commitTransfers.minThresholdAmount[token] instanceof Object)) {
@@ -96,7 +104,13 @@ program
           const allChains = getEnabledNetworks()
           if (oldConfig?.commitTransfers?.minThresholdAmount) {
             for (const _chain in oldConfig.commitTransfers.minThresholdAmount) {
+              if (!isValidNetwork(_chain)) {
+                continue
+              }
               for (const _token in oldConfig.commitTransfers.minThresholdAmount[_chain]) {
+                if (!isValidToken(_token)) {
+                  continue
+                }
                 for (const _destinationChain of allChains) {
                   if (!newConfig.commitTransfers.minThresholdAmount[_token]) {
                     newConfig.commitTransfers.minThresholdAmount[_token] = {}

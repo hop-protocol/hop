@@ -1,4 +1,15 @@
 import { Chain } from 'src/constants'
+import { getEnabledNetworks, getEnabledTokens } from 'src/config'
+
+export function isValidToken (token: string) {
+  const tokens = getEnabledTokens()
+  return tokens.includes(token)
+}
+
+export function isValidNetwork (network: string) {
+  const networks = getEnabledNetworks()
+  return networks.includes(network)
+}
 
 export function validateKeys (validKeys: string[] = [], keys: string[]) {
   for (const key of keys) {

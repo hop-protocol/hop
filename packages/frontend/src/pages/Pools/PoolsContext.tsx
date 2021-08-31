@@ -356,12 +356,18 @@ const PoolsContextProvider: FC = ({ children }) => {
         setToken1Price(price.inverted().toFixed(2))
       }
 
-      if (token0Amount && token1Amount) {
-        const amount0 =
-          (Number(token0Amount) * Number(totalSupply)) / Number(poolReserves[0])
-        const amount1 =
-          (Number(token1Amount) * Number(totalSupply)) / Number(poolReserves[1])
-        const liquidity = Math.min(amount0, amount1)
+      if (token0Amount || token1Amount) {
+        let amount0 = 0
+        let amount1 = 0
+        if (token0Amount) {
+          amount0 =
+            (Number(token0Amount) * Number(totalSupply)) / Number(poolReserves[0])
+        }
+        if (token1Amount) {
+          amount1 =
+            (Number(token1Amount) * Number(totalSupply)) / Number(poolReserves[1])
+        }
+        const liquidity = amount0 + amount1
         const sharePercentage = Math.max(
           Math.min(
             Number(

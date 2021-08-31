@@ -5,13 +5,14 @@ import chalk from 'chalk'
 import { BigNumber, Contract, providers } from 'ethers'
 import { TX_RETRY_DELAY_MS } from 'src/constants'
 import { wait } from 'src/utils'
+import { getEnabledNetworks } from 'src/config'
 
 export interface Config {
   chainSlug: string
   tokenSymbol: string
   label: string
   order?: () => number
-  minThresholdAmount?: number
+  minThresholdAmounts?: {[chain: string]: number}
 
   isL1?: boolean
   bridgeContract?: Contract
@@ -23,7 +24,7 @@ const BONDER_ORDER_DELAY_MS = 60 * 1000
 
 class CommitTransfersWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: CommitTransfersWatcher }
-  minThresholdAmount: BigNumber = BigNumber.from(0)
+  minThresholdAmounts: {[chain: string]: BigNumber} = {}
   commitTxSentAt: { [chainId: number]: number } = {}
 
   constructor (config: Config) {
@@ -40,20 +41,30 @@ class CommitTransfersWatcher extends BaseWatcher {
       stateUpdateAddress: config.stateUpdateAddress
     })
 
-    if (config.minThresholdAmount) {
-      this.minThresholdAmount = this.bridge.parseUnits(
-        config.minThresholdAmount
-      )
+    if (config.minThresholdAmounts) {
+      for (const destinationChain in config.minThresholdAmounts) {
+        this.minThresholdAmounts[destinationChain] = this.bridge.parseUnits(
+          config.minThresholdAmounts[destinationChain]
+        )
+      }
     }
 
     // Commit watcher is less time sensitive than others
     this.pollIntervalMs = 6 * 10 * 1000
   }
 
+  getMinThresholdAmount (destinationChainId: number) {
+    return this.minThresholdAmounts[this.chainIdToSlug(destinationChainId)] || BigNumber.from(0)
+  }
+
   async start () {
-    this.logger.debug(
-      `minThresholdAmount: ${this.bridge.formatUnits(this.minThresholdAmount)}`
-    )
+    const chains = getEnabledNetworks()
+    for (const destinationChain of chains) {
+      const minThresholdAmount = this.getMinThresholdAmount(this.chainSlugToId(destinationChain))
+      this.logger.debug(
+        `destination chain ${destinationChain} min threshold amount: ${this.bridge.formatUnits(minThresholdAmount)}`
+      )
+    }
     await super.start()
   }
 
@@ -115,9 +126,10 @@ class CommitTransfersWatcher extends BaseWatcher {
       )
       const formattedPendingAmount = this.bridge.formatUnits(totalPendingAmount)
 
-      if (totalPendingAmount.lte(this.minThresholdAmount)) {
+      const minThresholdAmount = this.getMinThresholdAmount(destinationChainId)
+      if (totalPendingAmount.lte(minThresholdAmount)) {
         const formattedThreshold = this.bridge.formatUnits(
-          this.minThresholdAmount
+          minThresholdAmount
         )
         this.logger.warn(
           `dest ${destinationChainId}: pending amt ${formattedPendingAmount} less than min of ${formattedThreshold}.`

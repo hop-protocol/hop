@@ -1,7 +1,6 @@
-import { Chain } from 'src/constants'
 import {
   FileConfig,
-  config as globalConfig,
+  getEnabledNetworks,
   parseConfigFile,
   setGlobalConfigFromConfigFile,
   writeConfigFile
@@ -15,6 +14,7 @@ program
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
   .option('--chain <string>', 'Chain')
+  .option('--destination-chain <string>', 'Destination chain')
   .option('--token <string>', 'Token symbol')
   .option('--set-enabled [boolean]', 'Token to set enabled/disabled')
   .option('--commit-transfers-min-threshold <string>', 'Min threshold amount for committing transfers')
@@ -29,16 +29,21 @@ program
         await setGlobalConfigFromConfigFile(config)
       }
       const chain = source.chain
+      const destinationChain = source.destinationChain
       const token = source.token
       const commitTransfersMinThresholdAmount = Number(source.commitTransfersMinThreshold || 0)
       const bondWithdrawalsMin = Number(source.bondWithdrawalsMin || 0)
       const bondWithdrawalsMax = Number(source.bondWithdrawalsMax || 0)
 
       const newConfig = JSON.parse(JSON.stringify(config)) // deep clone
+      const oldConfig = JSON.parse(JSON.stringify(config)) // deep clone
 
       if (source.commitTransfersMinThreshold !== undefined) {
         if (!chain) {
           throw new Error('chain is required')
+        }
+        if (!destinationChain) {
+          throw new Error('destination chain is required')
         }
         if (!token) {
           throw new Error('token is required')
@@ -56,40 +61,60 @@ program
         if (!token) {
           throw new Error('token is required')
         }
-
-        const newObj : any = {}
-        const networks = Object.keys(globalConfig.networks)
-        if (newConfig.commitTransfers.minThresholdAmount instanceof Object) {
-          for (const key in newConfig.commitTransfers.minThresholdAmount) {
-            const isWithoutChain = Object.values(newConfig.commitTransfers.minThresholdAmount).every(value => typeof value === 'number')
-            if (isWithoutChain) {
-              for (const network of networks) {
-                if (network === Chain.Arbitrum) {
-                  // TODO: remove skip when arbitrum is launched
-                  continue
-                }
-                if (network === Chain.Ethereum) {
-                  continue
-                }
-                if (!newObj[network]) {
-                  newObj[network] = {}
-                }
-                if (!newObj[network][key]) {
-                  newObj[network][key] = newConfig.commitTransfers.minThresholdAmount[key]
+        let isOldConfigType = false
+        if (!(newConfig.commitTransfers.minThresholdAmount[token] instanceof Object)) {
+          newConfig.commitTransfers = {
+            minThresholdAmount: {
+              [token]: {}
+            }
+          }
+        }
+        if (!(newConfig.commitTransfers.minThresholdAmount[token][chain] instanceof Object)) {
+          newConfig.commitTransfers = {
+            minThresholdAmount: {
+              [token]: {
+                [chain]: {}
+              }
+            }
+          }
+        }
+        if (!(newConfig.commitTransfers.minThresholdAmount[token][chain][destinationChain] instanceof Object)) {
+          newConfig.commitTransfers = {
+            minThresholdAmount: {
+              [token]: {
+                [chain]: {
+                  [destinationChain]: {}
                 }
               }
-            } else {
-              newObj[key] = newConfig.commitTransfers.minThresholdAmount[key]
+            }
+          }
+          isOldConfigType = true
+        }
+
+        // convert old config type to new config type
+        if (isOldConfigType) {
+          const allChains = getEnabledNetworks()
+          if (oldConfig?.commitTransfers?.minThresholdAmount) {
+            for (const _chain in oldConfig.commitTransfers.minThresholdAmount) {
+              for (const _token in oldConfig.commitTransfers.minThresholdAmount[_chain]) {
+                for (const _destinationChain of allChains) {
+                  if (!newConfig.commitTransfers.minThresholdAmount[_token]) {
+                    newConfig.commitTransfers.minThresholdAmount[_token] = {}
+                  }
+                  if (!newConfig.commitTransfers.minThresholdAmount[_token][_chain]) {
+                    newConfig.commitTransfers.minThresholdAmount[_token][_chain] = {}
+                  }
+                  if (oldConfig.commitTransfers.minThresholdAmount[_chain][_token]) {
+                    newConfig.commitTransfers.minThresholdAmount[_token][_chain][_destinationChain] = oldConfig.commitTransfers.minThresholdAmount[_chain][_token]
+                  }
+                }
+              }
             }
           }
         }
 
-        if (!(newObj[chain] instanceof Object)) {
-          newObj[chain] = {}
-        }
-        newObj[chain][token] = commitTransfersMinThresholdAmount
-        newConfig.commitTransfers.minThresholdAmount = newObj
-        logger.debug(`updating commitTransfers.minThresholdAmount to ${commitTransfersMinThresholdAmount} for ${chain}.${token}`)
+        newConfig.commitTransfers.minThresholdAmount[token][chain][destinationChain] = commitTransfersMinThresholdAmount
+        logger.debug(`updating commitTransfers.minThresholdAmount to ${commitTransfersMinThresholdAmount} for ${token} ${chain}→${destinationChain}`)
       } else if (
         source.bondWithdrawalsMin !== undefined ||
         source.bondWithdrawalsMax !== undefined

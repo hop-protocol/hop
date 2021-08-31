@@ -120,9 +120,7 @@ export function getWatchers (config: GetWatchersConfig) {
 
   if (enabledWatchers.includes(Watchers.CommitTransfers)) {
     watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
-      // note: the second option is for backward compatibility.
-      // remove it once all bonders have updated to use chain specific config.
-      const minThresholdAmount = commitTransfersMinThresholdAmounts?.[network]?.[token] || commitTransfersMinThresholdAmounts?.[token]
+      const minThresholdAmounts = commitTransfersMinThresholdAmounts?.[token]?.[network]
 
       return new CommitTransferWatcher({
         chainSlug: network,
@@ -131,7 +129,7 @@ export function getWatchers (config: GetWatchersConfig) {
         label,
         isL1,
         bridgeContract,
-        minThresholdAmount,
+        minThresholdAmounts,
         dryMode,
         stateUpdateAddress
       })

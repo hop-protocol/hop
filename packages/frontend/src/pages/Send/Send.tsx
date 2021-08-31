@@ -96,7 +96,7 @@ const useStyles = makeStyles(theme => ({
     marginTop: '2rem',
     width: '50.0rem',
     '&[open] summary span::before': {
-      content: '"▴"',
+      content: '"▾"',
     },
     [theme.breakpoints.down('xs')]: {
       width: '90%'
@@ -115,15 +115,19 @@ const useStyles = makeStyles(theme => ({
   detailsDropdownLabel: {
     position: 'relative',
     cursor: 'pointer',
-    '&::before': {
+    '& > span': {
+      position: 'relative',
+      display: 'inline-flex',
+      justifyItems: 'center',
+      alignItems: 'center'
+    },
+    '& > span::before': {
       display: 'block',
-      content: '"▾"',
+      content: '"▸"',
       position: 'absolute',
       top: '0',
       right: '-1.5rem',
     }
-  },
-  options: {
   },
   customRecipient: {
     width: '100%',
@@ -884,9 +888,16 @@ const Send: FC = () => {
       />
       <details className={styles.detailsDropdown}>
         <summary className={styles.detailsDropdownSummary}>
-          <span className={styles.detailsDropdownLabel}>Options</span>
+          <Typography
+            variant="subtitle1"
+            color="textSecondary"
+            component="div"
+            className={styles.detailsDropdownLabel}
+          >
+            <span>Options</span>
+          </Typography>
         </summary>
-        <div className={styles.options}>
+        <div>
           <div className={styles.customRecipient}>
             <Card>
               <Typography variant="body1" className={styles.customRecipientLabel}>

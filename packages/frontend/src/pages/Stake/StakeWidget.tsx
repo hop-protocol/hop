@@ -38,8 +38,7 @@ const useStyles = makeStyles(theme => ({
     marginTop: theme.padding.default
   },
   withdrawButton: {
-    marginTop: theme.padding.light,
-    opacity: 0.5
+    marginTop: theme.padding.light
   },
   rewardsDetails: {
     width: '30.0rem'
@@ -280,102 +279,114 @@ const StakeWidget: FC<Props> = props => {
   const stakedPositionFormatted = stakedPosition ? `$${toTokenDisplay(stakedPosition, stakingToken?.decimals)}` : ''
 
   const stake = async () => {
-    if (!stakingRewards) {
-      throw new Error('StakingRewards not instantiated')
-    }
-
-    if (!network) {
-      throw new Error('Network must be defined')
-    }
-
-    const networkId = Number(network.networkId)
-    const isNetworkConnected = await checkConnectedNetworkId(networkId)
-    if (!isNetworkConnected) return
-
-    const tx = await txConfirm?.show({
-      kind: 'stake',
-      inputProps: {
-        amount: amount,
-        token: stakingToken
-      },
-      onConfirm: async () => {
-        const signer = await sdk.getSignerOrProvider(network.slug)
-        return stakingRewards.connect(signer).stake(parsedAmount)
+    try {
+      if (!stakingRewards) {
+        throw new Error('StakingRewards not instantiated')
       }
-    })
 
-    if (tx?.hash && network) {
-      setAmount('')
-      txHistory?.addTransaction(
-        new Transaction({
-          hash: tx.hash,
-          networkName: network.slug,
+      if (!network) {
+        throw new Error('Network must be defined')
+      }
+
+      const networkId = Number(network.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+
+      const tx = await txConfirm?.show({
+        kind: 'stake',
+        inputProps: {
+          amount: amount,
           token: stakingToken
-        })
-      )
+        },
+        onConfirm: async () => {
+          const signer = await sdk.getSignerOrProvider(network.slug)
+          return stakingRewards.connect(signer).stake(parsedAmount)
+        }
+      })
+
+      if (tx?.hash && network) {
+        setAmount('')
+        txHistory?.addTransaction(
+          new Transaction({
+            hash: tx.hash,
+            networkName: network.slug,
+            token: stakingToken
+          })
+        )
+      }
+    } catch (err: any) {
+      console.error(err)
     }
   }
 
   const claim = async () => {
-    if (!stakingRewards) {
-      throw new Error('StakingRewards not instantiated')
+    try {
+      if (!stakingRewards) {
+        throw new Error('StakingRewards not instantiated')
+      }
+
+      if (!network) {
+        throw new Error('Network must be defined')
+      }
+
+      const networkId = Number(network.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+
+      const signer = await sdk.getSignerOrProvider(network.slug)
+      await stakingRewards.connect(signer).getReward()
+    } catch (err: any) {
+      console.error(err)
     }
-
-    if (!network) {
-      throw new Error('Network must be defined')
-    }
-
-    const networkId = Number(network.networkId)
-    const isNetworkConnected = await checkConnectedNetworkId(networkId)
-    if (!isNetworkConnected) return
-
-    const signer = await sdk.getSignerOrProvider(network.slug)
-    await stakingRewards.connect(signer).getReward()
   }
 
   const withdraw = async () => {
-    if (
-      !stakingRewards ||
-      !network ||
-      !stakeBalance
-    ) {
-      throw new Error('Missing withdraw param')
-    }
-
-    const networkId = Number(network.networkId)
-    const isNetworkConnected = await checkConnectedNetworkId(networkId)
-    if (!isNetworkConnected) return
-
-    const signer = await sdk.getSignerOrProvider(network.slug)
-    const _stakingRewards = stakingRewards.connect(signer)
-
-    const tx = await txConfirm?.show({
-      kind: 'withdrawStake',
-      inputProps: {
-        token: stakingToken,
-        amount: Number(formatUnits(stakeBalance, stakingToken?.decimals))
-      },
-      onConfirm: async (amountPercent: number) => {
-        if (!amountPercent) return
-
-        if (amountPercent === 100) {
-          return _stakingRewards.exit()
-        }
-
-        const withdrawAmount = stakeBalance.mul(amountPercent).div(100)
-
-        return _stakingRewards.withdraw(withdrawAmount)
+    try {
+      if (
+        !stakingRewards ||
+        !network ||
+        !stakeBalance
+      ) {
+        throw new Error('Missing withdraw param')
       }
-    })
 
-    if (tx?.hash && network) {
-      txHistory?.addTransaction(
-        new Transaction({
-          hash: tx.hash,
-          networkName: network.slug,
-          token: stakingToken
-        })
-      )
+      const networkId = Number(network.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+
+      const signer = await sdk.getSignerOrProvider(network.slug)
+      const _stakingRewards = stakingRewards.connect(signer)
+
+      const tx = await txConfirm?.show({
+        kind: 'withdrawStake',
+        inputProps: {
+          token: stakingToken,
+          amount: Number(formatUnits(stakeBalance, stakingToken?.decimals))
+        },
+        onConfirm: async (amountPercent: number) => {
+          if (!amountPercent) return
+
+          if (amountPercent === 100) {
+            return _stakingRewards.exit()
+          }
+
+          const withdrawAmount = stakeBalance.mul(amountPercent).div(100)
+
+          return _stakingRewards.withdraw(withdrawAmount)
+        }
+      })
+
+      if (tx?.hash && network) {
+        txHistory?.addTransaction(
+          new Transaction({
+            hash: tx.hash,
+            networkName: network.slug,
+            token: stakingToken
+          })
+        )
+      }
+    } catch (err: any) {
+      console.error(err)
     }
   }
 
@@ -460,12 +471,13 @@ const StakeWidget: FC<Props> = props => {
           </Button>
         </Box>
         {earned?.gt(0) && (
-          <MuiButton
+          <Button
             className={styles.withdrawButton}
+            large
             onClick={withdraw}
           >
             Withdraw
-          </MuiButton>
+          </Button>
         )}
       </Box>
     </Box>

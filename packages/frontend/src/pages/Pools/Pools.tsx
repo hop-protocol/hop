@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Card from '@material-ui/core/Card'
 import MuiButton from '@material-ui/core/Button'
+import Button from 'src/components/buttons/Button'
 import Box from '@material-ui/core/Box'
 import MenuItem from '@material-ui/core/MenuItem'
 import { useApp } from 'src/contexts/AppContext'
@@ -75,8 +76,6 @@ const useStyles = makeStyles(theme => ({
   },
   removeLiquidityButton: {
     marginTop: '2rem',
-    fontSize: '1.5rem',
-    opacity: 0.5
   },
   tokenWrapper: {
     marginBottom: '2rem'
@@ -456,12 +455,13 @@ const Pools: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <SendButton />
       {hasBalance && (
-        <MuiButton
+        <Button
           className={styles.removeLiquidityButton}
           onClick={handleRemoveLiquidityClick}
+          large
         >
           Remove Liquidity
-        </MuiButton>
+        </Button>
       )}
       </>
       }

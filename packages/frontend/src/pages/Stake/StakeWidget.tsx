@@ -22,7 +22,7 @@ import useApprove from 'src/hooks/useApprove'
 
 const useStyles = makeStyles(theme => ({
   root: {
-    marginBottom: theme.padding.thick
+    marginBottom: '10.4rem'
   },
   buttons: {
     marginTop: theme.padding.default
@@ -414,29 +414,36 @@ const StakeWidget: FC<Props> = props => {
           tooltip="Annual Percentage Rate (APR) from staking LP tokens"
           value={aprFormatted}
         />
-        {!userRewardsPerDay &&
         <DetailRow
           title="Total Staked"
           tooltip="The total amount of LP tokens staked for rewards"
           value={totalStakedFormatted}
         />
-        }
         <DetailRow
-          title={userRewardsPerDay ? 'Your Rewards' : 'Total Rewards'}
+          title={'Total Rewards'}
           tooltip={
-            userRewardsPerDay
-              ? 'The rewards you\'re earning per day'
-              : 'The total rewards being distributed per day'
+              'The total rewards being distributed per day'
           }
-          value={`${userRewardsPerDay ? userRewardsPerDayFormatted : totalRewardsPerDayFormatted} / day`}
+          value={`${totalRewardsPerDayFormatted} / day`}
         />
-        {stakedPosition &&
+      </div>
+      <div className={styles.details}>
+        {!!userRewardsPerDay && (
         <DetailRow
-          title="Your Total"
-          tooltip="The total worth of your staked LP position in USD"
-          value={stakedPositionFormatted}
+          title={'Your Rewards'}
+          tooltip={
+              'The rewards you\'re earning per day'
+          }
+          value={`${userRewardsPerDayFormatted} / day`}
         />
-      }
+        )}
+        {!!stakedPosition && (
+          <DetailRow
+            title="Your Total"
+            tooltip="The total worth of your staked LP position in USD"
+            value={stakedPositionFormatted}
+          />
+        )}
       </div>
       <Alert severity="warning" text={warning} className={styles.alert}/>
       <Box display="flex" flexDirection="column" alignItems="center">

@@ -62,7 +62,6 @@ const TokenWrapper: FC = () => {
   const hasWrappedToken = wrappedTokenBalance?.gt(0)
   const hasNativeToken = canonicalTokenBalance?.gt(0)
   const loadingBalance = !(canonicalTokenBalance && wrappedTokenBalance)
-  const formattedNativeTokenBalance = toTokenDisplay(canonicalTokenBalance, canonicalToken?.decimals)
 
   return (
     <Box
@@ -72,8 +71,10 @@ const TokenWrapper: FC = () => {
       className={styles.root}
     >
       <AmountSelectorCard
-        label={`${canonicalToken?.symbol}: ${formattedNativeTokenBalance}`}
-        loadingLabel={loadingBalance}
+        secondaryToken={canonicalToken}
+        secondaryBalance={canonicalTokenBalance}
+        loadingSecondaryBalance={loadingBalance}
+        secondaryBalanceLabel={`${canonicalToken?.symbol}:`}
         value={amount}
         token={wrappedToken}
         onChange={setAmount}
@@ -83,6 +84,7 @@ const TokenWrapper: FC = () => {
         balanceLabel={`W${wrappedToken?.symbol}:`}
         loadingBalance={loadingBalance}
         hideSymbol
+        decimalPlaces={2}
       />
       <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
         <Button

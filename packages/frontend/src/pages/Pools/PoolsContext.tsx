@@ -68,7 +68,6 @@ type PoolsContextProps = {
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
-const USD_BN_PRECISION = 100000000
 
 const PoolsContext = createContext<PoolsContextProps>({
   networks: [],
@@ -233,14 +232,15 @@ const PoolsContextProvider: FC = ({ children }) => {
         return
       }
 
-      const tokenUsdPriceBn = BigNumber.from(tokenUsdPrice * USD_BN_PRECISION)
+      const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), TOTAL_AMOUNTS_DECIMALS)
       const bridge = await sdk.bridge(canonicalToken.symbol)
       const ammTotal = await bridge.getReservesTotal(selectedNetwork.slug)
       if (ammTotal.lte(0)) {
         return 0
       }
+      const precision = parseUnits('1', 18)
       const ammTotal18d = shiftBNDecimals(ammTotal, TOTAL_AMOUNTS_DECIMALS - canonicalToken.decimals)
-      return Number(formatUnits(ammTotal18d.mul(tokenUsdPriceBn).div(USD_BN_PRECISION), TOTAL_AMOUNTS_DECIMALS))
+      return Number(formatUnits(ammTotal18d.mul(tokenUsdPriceBn).div(precision), TOTAL_AMOUNTS_DECIMALS))
     } catch (err) {
       console.error(err)
     }
@@ -356,12 +356,18 @@ const PoolsContextProvider: FC = ({ children }) => {
         setToken1Price(price.inverted().toFixed(2))
       }
 
-      if (token0Amount && token1Amount) {
-        const amount0 =
-          (Number(token0Amount) * Number(totalSupply)) / Number(poolReserves[0])
-        const amount1 =
-          (Number(token1Amount) * Number(totalSupply)) / Number(poolReserves[1])
-        const liquidity = Math.min(amount0, amount1)
+      if (token0Amount || token1Amount) {
+        let amount0 = 0
+        let amount1 = 0
+        if (token0Amount) {
+          amount0 =
+            (Number(token0Amount) * Number(totalSupply)) / Number(poolReserves[0])
+        }
+        if (token1Amount) {
+          amount1 =
+            (Number(token1Amount) * Number(totalSupply)) / Number(poolReserves[1])
+        }
+        const liquidity = amount0 + amount1
         const sharePercentage = Math.max(
           Math.min(
             Number(
@@ -489,7 +495,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     updateUserPoolPositions()
   }, 20 * 1000)
 
-  const approve = useApprove()
+  const { approve } = useApprove()
   const approveTokens = async (
     isHop: boolean,
     amount: string,

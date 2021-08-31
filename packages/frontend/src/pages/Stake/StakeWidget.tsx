@@ -38,8 +38,7 @@ const useStyles = makeStyles(theme => ({
     marginTop: theme.padding.default
   },
   withdrawButton: {
-    marginTop: theme.padding.light,
-    opacity: 0.5
+    marginTop: theme.padding.light
   },
   rewardsDetails: {
     width: '30.0rem'
@@ -201,7 +200,7 @@ const StakeWidget: FC<Props> = props => {
     rewardsToken?.symbol
   )
 
-  const approve = useApprove()
+  const { approve } = useApprove()
   const approveToken = async () => {
     if (
       !stakingRewards ||
@@ -220,9 +219,46 @@ const StakeWidget: FC<Props> = props => {
     await tx?.wait()
   }
 
-  const lpPosition = useAsyncMemo(async () => {
+  // ((WMATIC_PER_DAY * MATIC_PRICE)/((STAKED_USDC + STAKED_HUSDC)*STAKED_TOKEN_PRICE)) * DAYS_PER_YEAR
+  const apr = useAsyncMemo(async () => {
+    try {
+      if (!(
+        bridge &&
+        network &&
+        totalStaked &&
+        totalRewardsPerDay &&
+        maticUsdPrice &&
+        tokenUsdPrice
+      )) {
+        return
+      }
+
+      const maticUsdPriceBn = parseUnits(maticUsdPrice.toString(), 18)
+      const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), 18)
+      const token = await bridge.getCanonicalToken(network.slug)
+      const amm = bridge.getAmm(network.slug)
+      const stakedTotal = await amm.calculateTotalAmountForLpToken(totalStaked)
+      if (stakedTotal.lte(0)) {
+        return BigNumber.from(0)
+      }
+      const stakedTotal18d = shiftBNDecimals(stakedTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
+      const precision = parseUnits('1', 18)
+      const oneYear = 365
+
+      return (((totalRewardsPerDay).mul(maticUsdPriceBn).mul(precision)).div((stakedTotal18d.mul(tokenUsdPriceBn)))).mul(oneYear)
+    } catch (err) {
+      console.error(err)
+    }
+  }, [bridge, network, totalStaked, totalRewardsPerDay, maticUsdPrice, tokenUsdPrice])
+
+  const aprFormatted = toPercentDisplay(apr, TOTAL_AMOUNTS_DECIMALS)
+
+  const stakedPosition = useAsyncMemo(async () => {
     if (!(
+      bridge &&
+      network &&
       earned &&
+      maticUsdPrice &&
       tokenUsdPrice &&
       stakingToken &&
       stakeBalance &&
@@ -231,138 +267,126 @@ const StakeWidget: FC<Props> = props => {
       return
     }
 
+    const maticUsdPriceBn = parseUnits(maticUsdPrice.toString(), stakingToken?.decimals)
     const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), stakingToken?.decimals)
-    return (stakeBalance.add(earned)).mul(tokenUsdPriceBn).div(BigNumber.from(10).pow(stakingToken?.decimals))
-  }, [stakeBalance, stakingToken, earned, tokenUsdPrice])
+    const token = await bridge.getCanonicalToken(network.slug)
+    const amm = bridge.getAmm(network.slug)
+    const userStakedTotal = await amm.calculateTotalAmountForLpToken(stakeBalance)
+    const userStakedTotal18d = shiftBNDecimals(userStakedTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
+    return (((userStakedTotal18d).mul(tokenUsdPriceBn)).add((earned).mul(maticUsdPriceBn))).div(BigNumber.from(10).pow(stakingToken?.decimals))
+  }, [bridge, network, stakeBalance, stakingToken, earned, maticUsdPrice, tokenUsdPrice])
 
-  const lpPositionFormatted = lpPosition ? `$${toTokenDisplay(lpPosition, stakingToken?.decimals)}` : ''
-
-  // ((MATIC_PRICE * WMATIC_PER_DAY)/(AMM_USDC + AMM_HUSDC)) * DAYS_PER_YEAR
-  // Example: ((1.36 * 3,246.6071)/(2,748,080.39 + 2,698,129.89))*365
-  const apr = useAsyncMemo(async () => {
-    try {
-      if (!(
-        bridge &&
-        network &&
-        totalRewardsPerDay &&
-        maticUsdPrice
-      )) {
-        return
-      }
-
-      const maticUsdPriceBn = parseUnits(maticUsdPrice.toString(), 18)
-      const token = await bridge.getCanonicalToken(network.slug)
-      const ammTotal = await bridge.getReservesTotal(network.slug)
-      if (ammTotal.lte(0)) {
-        return BigNumber.from(0)
-      }
-      const ammTotal18d = shiftBNDecimals(ammTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
-
-      return ((((totalRewardsPerDay).mul(maticUsdPriceBn))).div(ammTotal18d)).mul(365)
-    } catch (err) {
-      console.error(err)
-    }
-  }, [bridge, network, totalRewardsPerDay, maticUsdPrice])
-
-  const aprFormatted = toPercentDisplay(apr, TOTAL_AMOUNTS_DECIMALS)
+  const stakedPositionFormatted = stakedPosition ? `$${toTokenDisplay(stakedPosition, stakingToken?.decimals)}` : ''
 
   const stake = async () => {
-    if (!stakingRewards) {
-      throw new Error('StakingRewards not instantiated')
-    }
-
-    if (!network) {
-      throw new Error('Network must be defined')
-    }
-
-    const networkId = Number(network.networkId)
-    const isNetworkConnected = await checkConnectedNetworkId(networkId)
-    if (!isNetworkConnected) return
-
-    const tx = await txConfirm?.show({
-      kind: 'stake',
-      inputProps: {
-        amount: amount,
-        token: stakingToken
-      },
-      onConfirm: async () => {
-        const signer = await sdk.getSignerOrProvider(network.slug)
-        return stakingRewards.connect(signer).stake(parsedAmount)
+    try {
+      if (!stakingRewards) {
+        throw new Error('StakingRewards not instantiated')
       }
-    })
 
-    if (tx?.hash && network) {
-      setAmount('')
-      txHistory?.addTransaction(
-        new Transaction({
-          hash: tx.hash,
-          networkName: network.slug,
+      if (!network) {
+        throw new Error('Network must be defined')
+      }
+
+      const networkId = Number(network.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+
+      const tx = await txConfirm?.show({
+        kind: 'stake',
+        inputProps: {
+          amount: amount,
           token: stakingToken
-        })
-      )
+        },
+        onConfirm: async () => {
+          const signer = await sdk.getSignerOrProvider(network.slug)
+          return stakingRewards.connect(signer).stake(parsedAmount)
+        }
+      })
+
+      if (tx?.hash && network) {
+        setAmount('')
+        txHistory?.addTransaction(
+          new Transaction({
+            hash: tx.hash,
+            networkName: network.slug,
+            token: stakingToken
+          })
+        )
+      }
+    } catch (err: any) {
+      console.error(err)
     }
   }
 
   const claim = async () => {
-    if (!stakingRewards) {
-      throw new Error('StakingRewards not instantiated')
+    try {
+      if (!stakingRewards) {
+        throw new Error('StakingRewards not instantiated')
+      }
+
+      if (!network) {
+        throw new Error('Network must be defined')
+      }
+
+      const networkId = Number(network.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+
+      const signer = await sdk.getSignerOrProvider(network.slug)
+      await stakingRewards.connect(signer).getReward()
+    } catch (err: any) {
+      console.error(err)
     }
-
-    if (!network) {
-      throw new Error('Network must be defined')
-    }
-
-    const networkId = Number(network.networkId)
-    const isNetworkConnected = await checkConnectedNetworkId(networkId)
-    if (!isNetworkConnected) return
-
-    const signer = await sdk.getSignerOrProvider(network.slug)
-    await stakingRewards.connect(signer).getReward()
   }
 
   const withdraw = async () => {
-    if (
-      !stakingRewards ||
-      !network ||
-      !stakeBalance
-    ) {
-      throw new Error('Missing withdraw param')
-    }
-
-    const networkId = Number(network.networkId)
-    const isNetworkConnected = await checkConnectedNetworkId(networkId)
-    if (!isNetworkConnected) return
-
-    const signer = await sdk.getSignerOrProvider(network.slug)
-    const _stakingRewards = stakingRewards.connect(signer)
-
-    const tx = await txConfirm?.show({
-      kind: 'withdrawStake',
-      inputProps: {
-        token: stakingToken,
-        amount: Number(formatUnits(stakeBalance, stakingToken?.decimals))
-      },
-      onConfirm: async (amountPercent: number) => {
-        if (!amountPercent) return
-
-        if (amountPercent === 100) {
-          return _stakingRewards.exit()
-        }
-
-        const withdrawAmount = stakeBalance.mul(amountPercent).div(100)
-
-        return _stakingRewards.withdraw(withdrawAmount)
+    try {
+      if (
+        !stakingRewards ||
+        !network ||
+        !stakeBalance
+      ) {
+        throw new Error('Missing withdraw param')
       }
-    })
 
-    if (tx?.hash && network) {
-      txHistory?.addTransaction(
-        new Transaction({
-          hash: tx.hash,
-          networkName: network.slug,
-          token: stakingToken
-        })
-      )
+      const networkId = Number(network.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+
+      const signer = await sdk.getSignerOrProvider(network.slug)
+      const _stakingRewards = stakingRewards.connect(signer)
+
+      const tx = await txConfirm?.show({
+        kind: 'withdrawStake',
+        inputProps: {
+          token: stakingToken,
+          amount: Number(formatUnits(stakeBalance, stakingToken?.decimals))
+        },
+        onConfirm: async (amountPercent: number) => {
+          if (!amountPercent) return
+
+          if (amountPercent === 100) {
+            return _stakingRewards.exit()
+          }
+
+          const withdrawAmount = stakeBalance.mul(amountPercent).div(100)
+
+          return _stakingRewards.withdraw(withdrawAmount)
+        }
+      })
+
+      if (tx?.hash && network) {
+        txHistory?.addTransaction(
+          new Transaction({
+            hash: tx.hash,
+            networkName: network.slug,
+            token: stakingToken
+          })
+        )
+      }
+    } catch (err: any) {
+      console.error(err)
     }
   }
 
@@ -406,11 +430,11 @@ const StakeWidget: FC<Props> = props => {
           }
           value={`${userRewardsPerDay ? userRewardsPerDayFormatted : totalRewardsPerDayFormatted} / day`}
         />
-        {lpPosition &&
+        {stakedPosition &&
         <DetailRow
           title="Your Total"
           tooltip="The total worth of your staked LP position in USD"
-          value={lpPositionFormatted}
+          value={stakedPositionFormatted}
         />
       }
       </div>
@@ -447,12 +471,13 @@ const StakeWidget: FC<Props> = props => {
           </Button>
         </Box>
         {earned?.gt(0) && (
-          <MuiButton
+          <Button
             className={styles.withdrawButton}
+            large
             onClick={withdraw}
           >
             Withdraw
-          </MuiButton>
+          </Button>
         )}
       </Box>
     </Box>

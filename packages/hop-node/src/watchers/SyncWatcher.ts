@@ -6,6 +6,7 @@ import chalk from 'chalk'
 import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
 import { Event } from 'src/types'
+import { Transfer } from 'src/db/TransfersDb'
 import { boundClass } from 'autobind-decorator'
 import { isL1ChainId, wait } from 'src/utils'
 
@@ -584,10 +585,21 @@ class SyncWatcher extends BaseWatcher {
     logger.debug(`transferRootHash from event: ${transferRootHash}`)
     logger.debug(`bonder : ${bonder}`)
     logger.debug(`totalBondSettled: ${this.bridge.formatUnits(totalBondsSettled)}`)
+    const dbTransfers : Transfer[] = []
     for (const transferId of transferIds) {
       const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+      dbTransfers.push(dbTransfer)
+      const withdrawalBondSettled = dbTransfer?.withdrawalBonded ?? false
       await this.db.transfers.update(transferId, {
-        withdrawalBondSettled: dbTransfer?.withdrawalBonded ?? false
+        withdrawalBondSettled
+      })
+    }
+    const allSettled = dbTransfers.every(
+      (dbTransfer: Transfer) => dbTransfer?.withdrawalBondSettled
+    )
+    if (allSettled) {
+      await this.db.transferRoots.update(transferRootHash, {
+        allSettled
       })
     }
   }

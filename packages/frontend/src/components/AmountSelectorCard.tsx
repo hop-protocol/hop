@@ -72,20 +72,25 @@ const useStyles = makeStyles(theme => ({
 
 type Props = {
   value?: string
-  label: string
+  label?: string
   loadingLabel?: boolean
-  token?: Token
   onChange?: (value: string) => void
   title?: string
   titleIconUrl?: string
+  token?: Token
   balance?: BigNumber
   balanceLabel?: string
   loadingBalance?: boolean
+  secondaryToken?: Token
+  secondaryBalance?: BigNumber
+  secondaryBalanceLabel?: string
+  loadingSecondaryBalance?: boolean
   loadingValue?: boolean
   disableInput?: boolean
   hideSymbol?: boolean
   hideMaxButton?: boolean
   className?: string
+  decimalPlaces?: number
 }
 
 const AmountSelectorCard: FC<Props> = props => {
@@ -93,17 +98,22 @@ const AmountSelectorCard: FC<Props> = props => {
     value = '',
     label,
     loadingLabel = false,
-    token,
     onChange,
     title,
     titleIconUrl,
+    token,
     balance,
     balanceLabel,
     loadingBalance = false,
+    secondaryToken,
+    secondaryBalance,
+    secondaryBalanceLabel,
+    loadingSecondaryBalance = false,
     loadingValue = false,
     disableInput = false,
     hideSymbol = false,
     hideMaxButton = false,
+    decimalPlaces = 4,
     className
   } = props
   const styles = useStyles()
@@ -112,10 +122,19 @@ const AmountSelectorCard: FC<Props> = props => {
     let label: string = ''
     if (token && balance) {
       label = formatUnits(balance, token?.decimals)
-      label = commafy(label, 4)
+      label = commafy(label, decimalPlaces)
     }
     return label
-  }, [balance])
+  }, [token, balance])
+
+  const secondaryBalanceDisplay = useMemo(() => {
+    let label: string = ''
+    if (secondaryToken && secondaryBalance) {
+      label = formatUnits(secondaryBalance, secondaryToken?.decimals)
+      label = commafy(label, decimalPlaces)
+    }
+    return label
+  }, [secondaryToken, secondaryBalance])
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
@@ -134,6 +153,16 @@ const AmountSelectorCard: FC<Props> = props => {
     }
   }
 
+  const handleSecondaryMaxClick = () => {
+    if (onChange) {
+      let max = ''
+      if (secondaryBalance && secondaryToken) {
+        max = formatUnits(secondaryBalance, secondaryToken.decimals)
+      }
+      onChange(max)
+    }
+  }
+
   return (
     <Card className={clsx(styles.root, className)}>
       <Box
@@ -142,10 +171,26 @@ const AmountSelectorCard: FC<Props> = props => {
         justifyContent="space-between"
         className={styles.topRow}
       >
-        <Typography variant="subtitle2" color="textSecondary">
-          {loadingBalance ? <Skeleton variant="text" width="15.0rem"></Skeleton>
-          : label }
-        </Typography>
+        {!!label && (
+          <Typography variant="subtitle2" color="textSecondary">
+            {loadingBalance ? <Skeleton variant="text" width="15.0rem"></Skeleton>
+            : label }
+          </Typography>
+        )}
+        {loadingSecondaryBalance ? (
+          <Skeleton variant="text" width="15.0rem"></Skeleton>
+        ) : secondaryBalance ? (
+          <div className={styles.balance}>
+            {!hideMaxButton && (secondaryBalance.gt(0) && !disableInput) ? (
+              <button className={styles.maxButton} onClick={handleSecondaryMaxClick}>
+                MAX
+              </button>
+            ) : null}
+            <Typography variant="subtitle2" color="textSecondary">
+              {secondaryBalanceLabel || 'Balance:'} {secondaryBalanceDisplay}
+            </Typography>
+          </div>
+        ) : null}
         {loadingBalance ? (
           <Skeleton variant="text" width="15.0rem"></Skeleton>
         ) : balance ? (

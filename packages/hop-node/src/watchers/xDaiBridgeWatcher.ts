@@ -13,6 +13,8 @@ type Config = {
   chainSlug: string
   tokenSymbol: string
   l1BridgeContract?: Contract
+  bridgeContract?: Contract
+  isL1?: boolean
   dryMode?: boolean
 }
 
@@ -63,7 +65,7 @@ export const executeExitTx = async (event: any, token: string) => {
   }
   const packedSigs = packSignatures(sigs)
 
-  const tx = l1Amb.executeSignatures(message, packedSigs)
+  const tx = await l1Amb.executeSignatures(message, packedSigs)
   return {
     tx,
     msgHash,
@@ -83,6 +85,8 @@ class xDaiBridgeWatcher extends BaseWatcher {
       tokenSymbol: config.tokenSymbol,
       tag: 'xDaiBridgeWatcher',
       logColor: 'yellow',
+      bridgeContract: config.bridgeContract,
+      isL1: config.isL1,
       dryMode: config.dryMode
     })
     if (config.l1BridgeContract) {
@@ -210,7 +214,6 @@ class xDaiBridgeWatcher extends BaseWatcher {
         this.notifier.info(
             `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
         )
-        await tx.wait()
       }
     }
   }

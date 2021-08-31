@@ -191,5 +191,15 @@ export const setDbPath = (dbPath: string) => {
   config.db.path = dbPath
 }
 
+export const getEnabledNetworks = (): string[] => {
+  const networks: {[network: string]: boolean} = {}
+  for (const token in config.tokens) {
+    for (const network in config.tokens[token]) {
+      networks[network] = true
+    }
+  }
+  return Object.keys(networks)
+}
+
 export * from './validation'
 export * from './fileOps'

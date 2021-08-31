@@ -2,9 +2,12 @@ import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
 import Card from '@material-ui/core/Card'
 import LargeTextField from 'src/components/LargeTextField'
 import { makeStyles } from '@material-ui/core/styles'
+import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import MuiButton from '@material-ui/core/Button'
+import Button from 'src/components/buttons/Button'
+import SendIcon from '@material-ui/icons/Send'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import MenuItem from '@material-ui/core/MenuItem'
 import { Token } from '@hop-protocol/sdk'
@@ -22,7 +25,6 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
 import { commafy, normalizeNumberInput, toTokenDisplay } from 'src/utils'
-import SendButton from 'src/pages/Send/SendButton'
 import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
 import useBalance from 'src/hooks/useBalance'
 import useSendData from 'src/pages/Send/useSendData'
@@ -94,7 +96,7 @@ const useStyles = makeStyles(theme => ({
     marginTop: '2rem',
     width: '50.0rem',
     '&[open] summary span::before': {
-      content: '"▴"',
+      content: '"▾"',
     },
     [theme.breakpoints.down('xs')]: {
       width: '90%'
@@ -113,15 +115,19 @@ const useStyles = makeStyles(theme => ({
   detailsDropdownLabel: {
     position: 'relative',
     cursor: 'pointer',
-    '&::before': {
+    '& > span': {
+      position: 'relative',
+      display: 'inline-flex',
+      justifyItems: 'center',
+      alignItems: 'center'
+    },
+    '& > span::before': {
       display: 'block',
-      content: '"▾"',
+      content: '"▸"',
       position: 'absolute',
       top: '0',
       right: '-1.5rem',
     }
-  },
-  options: {
   },
   customRecipient: {
     width: '100%',
@@ -129,7 +135,14 @@ const useStyles = makeStyles(theme => ({
   },
   customRecipientLabel: {
     marginBottom: '1.5rem'
-  }
+  },
+  buttons: {
+    marginTop: theme.padding.default
+  },
+  button: {
+    margin: `0 ${theme.padding.light}`,
+    width: '17.5rem'
+  },
 }))
 
 const Send: FC = () => {
@@ -189,6 +202,7 @@ const Send: FC = () => {
 
   const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
   const [toTokenAmount, setToTokenAmount] = useState<string>('')
+  const [approving, setApproving] = useState<boolean>(false)
   const [sending, setSending] = useState<boolean>(false)
   const [feeDisplay, setFeeDisplay] = useState<string>()
   const [amountOutMinDisplay, setAmountOutMinDisplay] = useState<string>()
@@ -249,6 +263,20 @@ const Send: FC = () => {
     toNetwork,
     address,
   )
+
+  const handleApprove = async () => {
+    try {
+      setError(null)
+      setApproving(true)
+      await approveFromToken()
+    } catch (err: any) {
+      if (!/cancelled/gi.test(err.message)) {
+        setError(err.message)
+      }
+      logger.error(err)
+    }
+    setApproving(false)
+  }
 
   const amountToBN = (token: Token | undefined, amount: string): BigNumber | undefined => {
     if (!token) return
@@ -312,6 +340,11 @@ const Send: FC = () => {
     }
     setToTokenAmount(amount)
   }, [destToken, amountOut])
+
+  let enoughBalance = true
+  if (fromBalance && fromTokenAmountBN && fromBalance.lt(fromTokenAmountBN)) {
+    enoughBalance = false
+  }
 
   const availableLiquidity = useAvailableLiquidity(selectedBridge, toNetwork?.slug)
 
@@ -405,12 +438,19 @@ const Send: FC = () => {
   }, [estimatedReceived, destinationTxFee])
 
   useEffect(() => {
-    setWarning(
+    let message = (
       noLiquidityWarning ||
       minimumSendWarning ||
       needsNativeTokenWarning
     )
-  }, [noLiquidityWarning, needsNativeTokenWarning, minimumSendWarning])
+    if (!enoughBalance) {
+      message = 'Insufficient funds'
+    } else if (estimatedReceived?.lte(0)) {
+      message = 'Insufficient amount'
+    }
+
+    setWarning(message)
+  }, [noLiquidityWarning, needsNativeTokenWarning, minimumSendWarning, enoughBalance, estimatedReceived])
 
   useEffect(() => {
     if (!lpFees || !sourceToken) {
@@ -447,7 +487,46 @@ const Send: FC = () => {
     setAmountOutMinDisplay(`${amountOutMinFormatted} ${sourceToken.symbol}`)
   }, [amountOutMin])
 
-  const approve = useApprove()
+  const { approve, checkApproval } = useApprove()
+  const needsApproval = useAsyncMemo(async () => {
+    try {
+      if (!(
+        fromNetwork &&
+        sourceToken &&
+        fromTokenAmount
+      )) {
+        return false
+      }
+
+      const parsedAmount = parseUnits(fromTokenAmount, sourceToken.decimals)
+      const bridge = sdk.bridge(sourceToken.symbol)
+
+      let spender : string
+      if (fromNetwork.isLayer1) {
+        const l1Bridge = await bridge.getL1Bridge()
+        spender = l1Bridge.address
+      } else {
+        const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
+        spender = ammWrapper.address
+      }
+
+      return checkApproval(
+        parsedAmount,
+        sourceToken,
+        spender
+      )
+    } catch (err: any) {
+      logger.error(err)
+      return false
+    }
+  }, [
+    sdk,
+    fromNetwork,
+    sourceToken,
+    fromTokenAmount,
+    checkApproval
+  ])
+
   const approveFromToken = async () => {
     if (!fromNetwork) {
       throw new Error('No fromNetwork selected')
@@ -460,6 +539,11 @@ const Send: FC = () => {
     if (!fromTokenAmount) {
       throw new Error('No amount to approve')
     }
+
+    const networkId = Number(fromNetwork.networkId)
+    const isNetworkConnected = await checkConnectedNetworkId(networkId)
+    if (!isNetworkConnected) return
+
     const parsedAmount = parseUnits(fromTokenAmount, sourceToken.decimals)
     const bridge = sdk.bridge(sourceToken.symbol)
 
@@ -494,7 +578,6 @@ const Send: FC = () => {
       if (!isNetworkConnected) return
 
       setSending(true)
-      await approveFromToken()
       let tx: Transaction | null = null
       if (fromNetwork.isLayer1) {
         tx = await sendl1ToL2()
@@ -602,7 +685,6 @@ const Send: FC = () => {
       },
       onConfirm: async () => {
         if (!amountOutMin || !bonderFee) return
-        console.log('amountOutMin: ', amountOutMin.toString())
         const destinationAmountOutMin = 0
         const destinationDeadline = 0
         const parsedAmountIn = parseUnits(
@@ -726,10 +808,6 @@ const Send: FC = () => {
     setCustomRecipient(value)
   }
 
-  let enoughBalance = true
-  if (fromBalance && fromTokenAmountBN && fromBalance.lt(fromTokenAmountBN)) {
-    enoughBalance = false
-  }
   const validFormFields = !!(
     fromTokenAmount &&
     toTokenAmount &&
@@ -741,28 +819,11 @@ const Send: FC = () => {
     estimatedReceived?.gt(0)
   )
 
-  let buttonText = 'Send'
-  if (!walletConnected) {
-    buttonText = 'Connect wallet'
-  } else if (!fromNetwork) {
-    buttonText = 'Select from network'
-  } else if (!toNetwork) {
-    buttonText = 'Select to network'
-  } else if (!enoughBalance) {
-    buttonText = 'Insufficient funds'
-  } else if (needsTokenForFee) {
-    buttonText = `Insufficient ${fromNetwork.nativeTokenSymbol}`
-  } else if (!isLiquidityAvailable) {
-    buttonText = 'Insufficient liquidity'
-  } else if (checkingLiquidity) {
-    buttonText = 'Checking liquidity'
-  } else if (estimatedReceived?.lte(0)) {
-    buttonText = 'Insufficient amount'
-  }
-
   const handleTxStatusClose = () => {
     setTx(null)
   }
+
+  const sendButtonActive = (validFormFields && !isUnsupportedAsset && !needsApproval)
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -827,9 +888,16 @@ const Send: FC = () => {
       />
       <details className={styles.detailsDropdown}>
         <summary className={styles.detailsDropdownSummary}>
-          <span className={styles.detailsDropdownLabel}>Options</span>
+          <Typography
+            variant="subtitle1"
+            color="textSecondary"
+            component="div"
+            className={styles.detailsDropdownLabel}
+          >
+            <span>Options</span>
+          </Typography>
         </summary>
-        <div className={styles.options}>
+        <div>
           <div className={styles.customRecipient}>
             <Card>
               <Typography variant="body1" className={styles.customRecipientLabel}>
@@ -876,9 +944,29 @@ const Send: FC = () => {
       </div>
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <Alert severity="warning" text={warning} />
-      <SendButton sending={sending} disabled={!validFormFields || isUnsupportedAsset} onClick={send}>
-        {buttonText}
-      </SendButton>
+      <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
+        <Button
+          className={styles.button}
+          large
+          highlighted={!!needsApproval}
+          disabled={!needsApproval}
+          onClick={handleApprove}
+          loading={approving}
+        >
+          Approve
+        </Button>
+        <Button
+          className={styles.button}
+          startIcon={sendButtonActive && <SendIcon />}
+          onClick={send}
+          disabled={!sendButtonActive}
+          loading={sending}
+          large
+          highlighted
+        >
+          Send
+        </Button>
+      </Box>
       <br />
       <Alert severity="info" onClose={() => setInfo(null)} text={info} />
       <TxStatusModal

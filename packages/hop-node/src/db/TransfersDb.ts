@@ -13,7 +13,6 @@ export type Transfer = {
   sourceChainId?: number
   sourceChainSlug?: string
   withdrawalBondSettled?: boolean
-  withdrawalBondSettleTxSentAt?: number
   withdrawalBonded?: boolean
   withdrawalBonder?: string
   withdrawalBondedTxHash?: string
@@ -79,26 +78,6 @@ class TransfersDb extends BaseDb {
         if (a.transferSentIndex < b.transferSentIndex) return -1
         return 0
       })
-  }
-
-  async getUnsettledBondedWithdrawalTransfers (
-    filter: Partial<Transfer> = {}
-  ): Promise<Transfer[]> {
-    const transfers: Transfer[] = await this.getTransfers()
-    return transfers.filter(item => {
-      if (filter?.destinationChainId) {
-        if (filter.destinationChainId !== item.destinationChainId) {
-          return false
-        }
-      }
-
-      return (
-        item.transferRootHash &&
-        item.withdrawalBonded &&
-        !item.withdrawalBondSettled &&
-        item.withdrawalBondedTxHash
-      )
-    })
   }
 
   async getUncommittedTransfers (

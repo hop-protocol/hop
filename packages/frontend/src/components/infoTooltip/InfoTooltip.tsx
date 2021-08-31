@@ -4,7 +4,8 @@ import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip'
 import HelpIcon from '@material-ui/icons/Help'
 
 type Props = {
-  title: ReactFragment
+  title: ReactFragment,
+  children?: any
 } & Partial<TooltipProps>
 
 const useStyles = makeStyles(theme => ({
@@ -15,10 +16,11 @@ const useStyles = makeStyles(theme => ({
 
 const HelpTooltip: FC<Props> = props => {
   const styles = useStyles()
+  const children = props.children
 
   return (
     <Tooltip
-      {...props}
+      title={props.title}
       style={{
         opacity: 0.5,
         verticalAlign: 'middle',
@@ -33,7 +35,7 @@ const HelpTooltip: FC<Props> = props => {
       placement={props.placement || 'top'}
       arrow={true}
     >
-      <HelpIcon />
+      {children || <HelpIcon />}
     </Tooltip>
   )
 }

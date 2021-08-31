@@ -1,5 +1,5 @@
 import EventEmitter from 'eventemitter3'
-import Base from '../Base'
+import Base, { ChainProviders } from '../Base'
 import HopBridge from '../HopBridge'
 import { TChain, TToken, TProvider } from '../types'
 import { Chain, Token } from '../models'
@@ -26,6 +26,7 @@ export type Config = {
   sourceChain: TChain
   destinationChain: TChain
   options?: WatchOptions
+  chainProviders?: ChainProviders
 }
 
 class BaseWatcher extends Base {
@@ -42,7 +43,7 @@ class BaseWatcher extends Base {
   options: any = {}
 
   constructor (config: Config) {
-    super(config.network, config.signer)
+    super(config.network, config.signer, config.chainProviders)
     let { token, sourceTxHash, sourceChain, destinationChain, options } = config
     this.token = this.toTokenModel(token)
     this.sourceTxHash = sourceTxHash

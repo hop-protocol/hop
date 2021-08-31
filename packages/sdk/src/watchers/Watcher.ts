@@ -8,7 +8,7 @@ class Watcher extends Base {
   watcher: any
 
   constructor (config: Config) {
-    super(config.network, config.signer)
+    super(config.network, config.signer, config.chainProviders)
     let { sourceChain, destinationChain } = config
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)

@@ -8,7 +8,8 @@ const useStyles = makeStyles(theme => ({
   root: {
     fontSize: '1.6rem',
     borderRadius: '2rem',
-    maxWidth: '51.6rem'
+    maxWidth: '51.6rem',
+    overflow: 'auto'
   }
 }))
 

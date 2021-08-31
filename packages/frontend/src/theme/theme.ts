@@ -180,6 +180,9 @@ const theme = createMuiTheme({
         },
         '&$selected': {
           color: palette.primary.main
+        },
+        '&:hover:not($selected)': {
+          color: palette.text.primary
         }
       }
     },

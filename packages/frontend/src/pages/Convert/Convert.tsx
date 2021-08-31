@@ -17,7 +17,9 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import ConvertContent from 'src/pages/Convert/ConvertContent'
 import Network from 'src/models/Network'
+import InfoTooltip from 'src/components/infoTooltip'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
+import HelpIcon from '@material-ui/icons/Help'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -32,12 +34,18 @@ const useStyles = makeStyles(theme => ({
     }
   },
   select: {
-    display: 'block',
+    display: 'flex',
+    alignItems: 'center',
     marginLeft: '1rem',
     [theme.breakpoints.down('xs')]: {
       marginLeft: '0',
       marginBottom: '1rem'
     }
+  },
+  help: {
+    display: 'flex',
+    alignItems: 'center',
+    marginLeft: '1rem'
   },
   box: {
     marginBottom: '4.2rem'
@@ -134,6 +142,14 @@ const Convert: FC = () => {
               </MenuItem>
             ))}
           </RaisedSelect>
+          <div className={styles.help}>
+            <InfoTooltip title={<>
+              <ul>
+                <li>Use "via AMM" to swap between the canonical token and hToken on L2.</li>
+                <li>Use "via Hop Bridge" to send hToken from L2 to Ethereum to receive canonical token on Ethereum, or to send canonical token from Ethereum and receive hToken on L2.</li>
+              </ul>
+          </>} />
+          </div>
         </div>
       </Grid>
       <div className={styles.box}>

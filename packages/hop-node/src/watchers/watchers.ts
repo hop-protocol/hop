@@ -120,9 +120,7 @@ export function getWatchers (config: GetWatchersConfig) {
 
   if (enabledWatchers.includes(Watchers.CommitTransfers)) {
     watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
-      // note: the second option is for backward compatibility.
-      // remove it once all bonders have updated to use chain specific config.
-      const minThresholdAmount = commitTransfersMinThresholdAmounts?.[network]?.[token] || commitTransfersMinThresholdAmounts?.[token]
+      const minThresholdAmounts = commitTransfersMinThresholdAmounts?.[token]?.[network]
 
       return new CommitTransferWatcher({
         chainSlug: network,
@@ -131,7 +129,7 @@ export function getWatchers (config: GetWatchersConfig) {
         label,
         isL1,
         bridgeContract,
-        minThresholdAmount,
+        minThresholdAmounts,
         dryMode,
         stateUpdateAddress
       })
@@ -161,6 +159,10 @@ export function getWatchers (config: GetWatchersConfig) {
       if (isL1) {
         return
       }
+      const l1BridgeContract = contracts.get(token, Chain.Ethereum)?.l1Bridge
+      if (!l1BridgeContract) {
+        return
+      }
       return new xDomainMessageRelayWatcher({
         chainSlug: network,
         tokenSymbol: token,
@@ -168,7 +170,7 @@ export function getWatchers (config: GetWatchersConfig) {
         label,
         token,
         bridgeContract,
-        l1BridgeContract: contracts.get(token, Chain.Ethereum).l1Bridge,
+        l1BridgeContract,
         dryMode
       })
     }))

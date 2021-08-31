@@ -55,7 +55,7 @@ program
         throw new Error('watcher not found')
       }
 
-      await watcher.checkUnsettledTransferId(transferId)
+      await watcher.checkTransferId(transferId)
 
       process.exit(0)
     } catch (err) {

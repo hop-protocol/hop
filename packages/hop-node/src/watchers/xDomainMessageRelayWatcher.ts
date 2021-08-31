@@ -8,6 +8,7 @@ import PolygonBridgeWatcher from './PolygonBridgeWatcher'
 import xDaiBridgeWatcher from './xDaiBridgeWatcher'
 import { Chain, TEN_MINUTES_MS } from 'src/constants'
 import { Contract } from 'ethers'
+import { getEnabledNetworks } from 'src/config'
 
 export interface Config {
   chainSlug: string
@@ -40,28 +41,45 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
+    const enabledNetworks = getEnabledNetworks()
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
-    this.watchers[Chain.xDai] = new xDaiBridgeWatcher({
-      chainSlug: Chain.Polygon,
-      tokenSymbol: this.tokenSymbol,
-      l1BridgeContract: config.l1BridgeContract,
-      dryMode: config.dryMode
-    })
-    this.watchers[Chain.Polygon] = new PolygonBridgeWatcher({
-      chainSlug: Chain.Polygon,
-      tokenSymbol: this.tokenSymbol,
-      dryMode: config.dryMode
-    })
-    this.watchers[Chain.Optimism] = new OptimismBridgeWatcher({
-      chainSlug: Chain.Optimism,
-      tokenSymbol: this.tokenSymbol,
-      dryMode: config.dryMode
-    })
-    this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher({
-      chainSlug: Chain.Arbitrum,
-      tokenSymbol: this.tokenSymbol,
-      dryMode: config.dryMode
-    })
+    if (enabledNetworks.includes(Chain.xDai)) {
+      this.watchers[Chain.xDai] = new xDaiBridgeWatcher({
+        chainSlug: config.chainSlug,
+        tokenSymbol: this.tokenSymbol,
+        l1BridgeContract: config.l1BridgeContract,
+        bridgeContract: config.bridgeContract,
+        isL1: config.isL1,
+        dryMode: config.dryMode
+      })
+    }
+    if (enabledNetworks.includes(Chain.Polygon)) {
+      this.watchers[Chain.Polygon] = new PolygonBridgeWatcher({
+        chainSlug: config.chainSlug,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        isL1: config.isL1,
+        dryMode: config.dryMode
+      })
+    }
+    if (enabledNetworks.includes(Chain.Optimism)) {
+      this.watchers[Chain.Optimism] = new OptimismBridgeWatcher({
+        chainSlug: config.chainSlug,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        isL1: config.isL1,
+        dryMode: config.dryMode
+      })
+    }
+    if (enabledNetworks.includes(Chain.Arbitrum)) {
+      this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher({
+        chainSlug: config.chainSlug,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        isL1: config.isL1,
+        dryMode: config.dryMode
+      })
+    }
 
     // xDomain relayer is less time sensitive than others
     this.pollIntervalMs = 10 * 60 * 1000
@@ -81,6 +99,16 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       )
     }
     for (const { transferRootHash } of dbTransferRoots) {
+      // only process message after waiting 10 minutes
+      if (!this.lastSeen[transferRootHash]) {
+        this.lastSeen[transferRootHash] = Date.now()
+      }
+
+      const timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
+      if (!timestampOk) {
+        return
+      }
+
       // Parallelizing these calls produces RPC errors on Optimism
       await this.checkTransfersCommitted(transferRootHash)
     }
@@ -93,16 +121,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }
 
     const { destinationChainId, commitTxHash } = dbTransferRoot
-
-    // only process message after waiting 10 minutes
-    if (!this.lastSeen[transferRootHash]) {
-      this.lastSeen[transferRootHash] = Date.now()
-    }
-
-    const timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
-    if (!timestampOk) {
-      return
-    }
 
     const logger = this.logger.create({ root: transferRootHash })
     const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())

@@ -16,7 +16,7 @@ import { TChain, TToken, TAmount, TProvider } from './types'
 import { metadata } from './config'
 import Token from './models/Token'
 import TokenClass from './Token'
-import Base from './Base'
+import Base, { ChainProviders } from './Base'
 
 /**
  * Class reprensenting Canonical Token Bridge.
@@ -52,9 +52,10 @@ class CanonicalBridge extends Base {
     network: string,
     signer: TProvider,
     token: TToken,
-    chain: TChain
+    chain: TChain,
+    chainProviders?: ChainProviders
   ) {
-    super(network, signer)
+    super(network, signer, chainProviders)
     if (!token) {
       throw new Error('token symbol is required')
     }
@@ -99,7 +100,8 @@ class CanonicalBridge extends Base {
       this.network,
       signer,
       this.tokenSymbol,
-      this.chain
+      this.chain,
+      this.chainProviders
     )
   }
 

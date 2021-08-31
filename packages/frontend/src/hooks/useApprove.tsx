@@ -15,6 +15,32 @@ const useApprove = () => {
     sdk,
   } = useApp()
 
+  const checkApproval = async (
+    amount: BigNumber,
+    token: Token,
+    spender: string
+  ) => {
+    try {
+      const signer = provider?.getSigner()
+      if (!signer) {
+        throw new Error('Wallet not connected')
+      }
+
+      if (token.isNativeToken) {
+        return false
+      }
+
+      const approved = await token.allowance(spender)
+      if (approved.gte(amount)) {
+        return false
+      }
+
+      return true
+    } catch (err: any) {
+      return false
+    }
+  }
+
   const approve = async (
     amount: BigNumber,
     token: Token,
@@ -65,7 +91,7 @@ const useApprove = () => {
     return tx
   }
 
-  return approve
+  return { approve, checkApproval }
 }
 
 export default useApprove

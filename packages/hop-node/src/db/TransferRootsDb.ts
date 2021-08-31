@@ -1,6 +1,7 @@
 import BaseDb from './BaseDb'
 import { BigNumber } from 'ethers'
-import { TX_RETRY_DELAY_MS } from 'src/constants'
+import { Chain, ROOT_SET_SETTLE_DELAY_MS, TX_RETRY_DELAY_MS } from 'src/constants'
+import { chainIdToSlug } from 'src/utils'
 import { normalizeDbItem } from './utils'
 
 export type TransferRoot = {
@@ -34,6 +35,7 @@ export type TransferRoot = {
   bondTransferRootId?: string
   challenged?: boolean
   challengeExpired?: boolean
+  allSettled?: boolean
 }
 
 class TransferRootsDb extends BaseDb {
@@ -169,6 +171,46 @@ class TransferRootsDb extends BaseDb {
         !isTransferRootIdValid &&
         !item.challenged &&
         !item.challengeExpired
+      )
+    })
+  }
+
+  async getUnsettledTransferRoots (
+    filter: Partial<TransferRoot> = {}
+  ): Promise<TransferRoot[]> {
+    const transfers: TransferRoot[] = await this.getTransferRoots()
+    return transfers.filter(item => {
+      if (filter?.destinationChainId) {
+        if (filter.destinationChainId !== item.destinationChainId) {
+          return false
+        }
+      }
+
+      // https://github.com/hop-protocol/hop/pull/140#discussion_r697919256
+      let rootSetTimestampOk = true
+      const checkRootSetTimestamp = item?.rootSetTimestamp && filter?.destinationChainId && chainIdToSlug(filter?.destinationChainId) === Chain.xDai
+      if (checkRootSetTimestamp) {
+        rootSetTimestampOk = (item.rootSetTimestamp * 1000) + ROOT_SET_SETTLE_DELAY_MS < Date.now()
+      }
+
+      let bondSettleTimestampOk = true
+      if (item?.withdrawalBondSettleTxSentAt) {
+        bondSettleTimestampOk =
+          item?.withdrawalBondSettleTxSentAt + TX_RETRY_DELAY_MS <
+          Date.now()
+      }
+
+      return (
+        item.transferRootHash &&
+        item.transferIds &&
+        item.destinationChainId &&
+        item.totalAmount &&
+        item.rootSetTxHash &&
+        item.committed &&
+        item.committedAt &&
+        !item.allSettled &&
+        rootSetTimestampOk &&
+        bondSettleTimestampOk
       )
     })
   }

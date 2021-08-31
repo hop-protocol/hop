@@ -68,7 +68,6 @@ type PoolsContextProps = {
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
-const USD_BN_PRECISION = 100000000
 
 const PoolsContext = createContext<PoolsContextProps>({
   networks: [],
@@ -233,14 +232,15 @@ const PoolsContextProvider: FC = ({ children }) => {
         return
       }
 
-      const tokenUsdPriceBn = BigNumber.from(tokenUsdPrice * USD_BN_PRECISION)
+      const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), TOTAL_AMOUNTS_DECIMALS)
       const bridge = await sdk.bridge(canonicalToken.symbol)
       const ammTotal = await bridge.getReservesTotal(selectedNetwork.slug)
       if (ammTotal.lte(0)) {
         return 0
       }
+      const precision = parseUnits('1', 18)
       const ammTotal18d = shiftBNDecimals(ammTotal, TOTAL_AMOUNTS_DECIMALS - canonicalToken.decimals)
-      return Number(formatUnits(ammTotal18d.mul(tokenUsdPriceBn).div(USD_BN_PRECISION), TOTAL_AMOUNTS_DECIMALS))
+      return Number(formatUnits(ammTotal18d.mul(tokenUsdPriceBn).div(precision), TOTAL_AMOUNTS_DECIMALS))
     } catch (err) {
       console.error(err)
     }

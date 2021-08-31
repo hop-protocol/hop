@@ -20,21 +20,25 @@ const useApprove = () => {
     token: Token,
     spender: string
   ) => {
-    const signer = provider?.getSigner()
-    if (!signer) {
-      throw new Error('Wallet not connected')
-    }
+    try {
+      const signer = provider?.getSigner()
+      if (!signer) {
+        throw new Error('Wallet not connected')
+      }
 
-    if (token.isNativeToken) {
+      if (token.isNativeToken) {
+        return false
+      }
+
+      const approved = await token.allowance(spender)
+      if (approved.gte(amount)) {
+        return false
+      }
+
+      return true
+    } catch (err: any) {
       return false
     }
-
-    const approved = await token.allowance(spender)
-    if (approved.gte(amount)) {
-      return false
-    }
-
-    return true
   }
 
   const approve = async (

@@ -96,7 +96,7 @@ const useStyles = makeStyles(theme => ({
     marginTop: '2rem',
     width: '50.0rem',
     '&[open] summary span::before': {
-      content: '"▴"',
+      content: '"▾"',
     },
     [theme.breakpoints.down('xs')]: {
       width: '90%'
@@ -115,15 +115,19 @@ const useStyles = makeStyles(theme => ({
   detailsDropdownLabel: {
     position: 'relative',
     cursor: 'pointer',
-    '&::before': {
+    '& > span': {
+      position: 'relative',
+      display: 'inline-flex',
+      justifyItems: 'center',
+      alignItems: 'center'
+    },
+    '& > span::before': {
       display: 'block',
-      content: '"▾"',
+      content: '"▸"',
       position: 'absolute',
       top: '0',
       right: '-1.5rem',
     }
-  },
-  options: {
   },
   customRecipient: {
     width: '100%',
@@ -259,20 +263,6 @@ const Send: FC = () => {
     toNetwork,
     address,
   )
-
-  const needsApproval = useAsyncMemo(async () => {
-    try {
-      return await needsApprovalFromToken()
-    } catch (err: any) {
-      logger.error(err)
-    }
-    return false
-  }, [
-    sdk,
-    fromNetwork,
-    sourceToken,
-    fromTokenAmount
-  ])
 
   const handleApprove = async () => {
     try {
@@ -498,33 +488,44 @@ const Send: FC = () => {
   }, [amountOutMin])
 
   const { approve, checkApproval } = useApprove()
-  const needsApprovalFromToken = async () => {
-    if (!(
-      fromNetwork &&
-      sourceToken &&
-      fromTokenAmount
-    )) {
+  const needsApproval = useAsyncMemo(async () => {
+    try {
+      if (!(
+        fromNetwork &&
+        sourceToken &&
+        fromTokenAmount
+      )) {
+        return false
+      }
+
+      const parsedAmount = parseUnits(fromTokenAmount, sourceToken.decimals)
+      const bridge = sdk.bridge(sourceToken.symbol)
+
+      let spender : string
+      if (fromNetwork.isLayer1) {
+        const l1Bridge = await bridge.getL1Bridge()
+        spender = l1Bridge.address
+      } else {
+        const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
+        spender = ammWrapper.address
+      }
+
+      return checkApproval(
+        parsedAmount,
+        sourceToken,
+        spender
+      )
+    } catch (err: any) {
+      logger.error(err)
       return false
     }
-
-    const parsedAmount = parseUnits(fromTokenAmount, sourceToken.decimals)
-    const bridge = sdk.bridge(sourceToken.symbol)
-
-    let spender : string
-    if (fromNetwork.isLayer1) {
-      const l1Bridge = await bridge.getL1Bridge()
-      spender = l1Bridge.address
-    } else {
-      const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
-      spender = ammWrapper.address
-    }
-
-    return checkApproval(
-      parsedAmount,
-      sourceToken,
-      spender
-    )
-  }
+  }, [
+    sdk,
+    fromNetwork,
+    sourceToken,
+    fromTokenAmount,
+    checkApproval
+  ])
 
   const approveFromToken = async () => {
     if (!fromNetwork) {
@@ -887,9 +888,16 @@ const Send: FC = () => {
       />
       <details className={styles.detailsDropdown}>
         <summary className={styles.detailsDropdownSummary}>
-          <span className={styles.detailsDropdownLabel}>Options</span>
+          <Typography
+            variant="subtitle1"
+            color="textSecondary"
+            component="div"
+            className={styles.detailsDropdownLabel}
+          >
+            <span>Options</span>
+          </Typography>
         </summary>
-        <div className={styles.options}>
+        <div>
           <div className={styles.customRecipient}>
             <Card>
               <Typography variant="body1" className={styles.customRecipientLabel}>

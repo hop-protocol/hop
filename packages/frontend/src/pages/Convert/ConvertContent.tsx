@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from 'react'
+import React, { FC, useState, useEffect } from 'react'
 import {
   Switch,
   Route,
@@ -9,7 +9,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import MuiButton from '@material-ui/core/Button'
-import SendButton from 'src/pages/Convert/SendButton'
+import Button from 'src/components/buttons/Button'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/txStatus/TxStatusModal'
@@ -35,11 +35,18 @@ const useStyles = makeStyles(theme => ({
     marginBottom: '5.4rem'
   },
   details: {
-    marginBottom: theme.padding.thick,
+    marginBottom: theme.padding.light,
     width: '46.0rem',
     [theme.breakpoints.down('xs')]: {
       width: '90%'
     }
+  },
+  buttons: {
+    marginTop: theme.padding.default
+  },
+  button: {
+    margin: `0 ${theme.padding.light}`,
+    width: '17.5rem'
   },
 }))
 
@@ -65,7 +72,13 @@ const Convert: FC = () => {
     setError,
     tx,
     setTx,
-    isUnsupportedAsset
+    isUnsupportedAsset,
+    validFormFields,
+    approving,
+    sending,
+    needsApproval,
+    convertTokens,
+    approveTokens
   } = useConvert()
   const { path } = useRouteMatch()
 
@@ -84,6 +97,16 @@ const Convert: FC = () => {
   const handleTxStatusClose = () => {
     setTx(undefined)
   }
+
+  const handleSend = async () => {
+    convertTokens()
+  }
+
+  const handleApprove = async () => {
+    approveTokens()
+  }
+
+  const sendButtonActive = (validFormFields && !isUnsupportedAsset && !needsApproval)
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -133,7 +156,29 @@ const Convert: FC = () => {
         <TxStatusModal
           onClose={handleTxStatusClose}
           tx={tx} />
-        <SendButton />
+        <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
+          <Button
+            className={styles.button}
+            large
+            highlighted={!!needsApproval}
+            disabled={!needsApproval}
+            onClick={handleApprove}
+            loading={approving}
+          >
+            Approve
+          </Button>
+          <Button
+            className={styles.button}
+            startIcon={sendButtonActive}
+            onClick={handleSend}
+            disabled={!sendButtonActive}
+            loading={sending}
+            large
+            highlighted
+          >
+            Convert
+          </Button>
+        </Box>
       </>
       }
     </Box>

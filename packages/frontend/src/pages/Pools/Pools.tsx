@@ -51,15 +51,52 @@ const useStyles = makeStyles(theme => ({
     marginTop: '2rem',
   },
   tokenWrapper: {
+    marginTop: '1rem',
     marginBottom: '2rem'
   },
   details: {
-    marginBottom: '3.4rem',
     width: '46.0rem',
+    marginBottom: '3.4rem',
     [theme.breakpoints.down('xs')]: {
       width: '90%'
     }
-  }
+  },
+  detailsDropdown: {
+    width: '46.0rem',
+    marginBottom: '3.4rem',
+    '&[open] summary span::before': {
+      content: '"▾"',
+    },
+    [theme.breakpoints.down('xs')]: {
+      width: '90%'
+    },
+  },
+  detailsDropdownSummary: {
+    listStyle: 'none',
+    display: 'block',
+    fontWeight: 'normal',
+    '&::marker': {
+      display: 'none'
+    }
+  },
+  detailsDropdownLabel: {
+    position: 'relative',
+    cursor: 'pointer',
+    width: 'auto',
+    '& > span': {
+      position: 'relative',
+      display: 'inline-flex',
+      justifyItems: 'center',
+      alignItems: 'center'
+    },
+    '& > span::before': {
+      display: 'block',
+      content: '"▸"',
+      position: 'absolute',
+      top: '0',
+      right: '-1.5rem',
+    }
+  },
 }))
 
 const Pools: FC = () => {
@@ -218,9 +255,23 @@ const Pools: FC = () => {
       </> : <>
       <Box className={styles.formBox}>
         {isNativeToken &&
-          <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
-            <TokenWrapper />
-          </Box>
+        <details className={styles.detailsDropdown}>
+          <summary className={styles.detailsDropdownSummary}>
+              <Typography
+                variant="subtitle1"
+                color="textSecondary"
+                component="div"
+                className={styles.detailsDropdownLabel}
+              >
+                <span>Wrap/Unwrap</span>
+              </Typography>
+          </summary>
+          <div>
+            <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
+              <TokenWrapper />
+            </Box>
+          </div>
+        </details>
         }
         <Box display="flex" alignItems="center">
           <AmountSelectorCard
@@ -295,42 +346,47 @@ const Pools: FC = () => {
         )}
         </Box>
       )}
-      <Box className={styles.details}>
-        <Box alignItems="center" className={styles.flexBox}>
-          <Typography
-            variant="subtitle1"
-            color="textSecondary"
-            component="div"
-          >
-            Pool Stats
-          </Typography>
-        </Box>
-        <DetailRow
-          title="APR"
-          tooltip="Annual Percentage Rate (APR) from earning fees"
-          value={`${aprFormatted}`}
-        />
-        <DetailRow
-          title="Reserves"
-          tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
-          value={`${reserve0Formatted} / ${reserve1Formatted}`}
-        />
-        <DetailRow
-          title="TVL"
-          tooltip="Total value locked in USD"
-          value={`${reserveTotalsUsdFormatted}`}
-        />
-        <DetailRow
-          title="Virtual Price"
-          tooltip="The virtual price, to help calculate profit"
-          value={`${virtualPriceFormatted}`}
-        />
-        <DetailRow
-          title="Fee"
-          tooltip={`Each trade has a ${feeFormatted} fee that goes to liquidity providers`}
-          value={`${feeFormatted}`}
-        />
-      </Box>
+      <details className={styles.detailsDropdown}>
+        <summary className={styles.detailsDropdownSummary}>
+            <Typography
+              variant="subtitle1"
+              color="textSecondary"
+              component="div"
+              className={styles.detailsDropdownLabel}
+            >
+              <span>Pool Stats</span>
+            </Typography>
+        </summary>
+        <div>
+          <Box className={styles.details}>
+            <DetailRow
+              title="APR"
+              tooltip="Annual Percentage Rate (APR) from earning fees"
+              value={`${aprFormatted}`}
+            />
+            <DetailRow
+              title="Reserves"
+              tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
+              value={`${reserve0Formatted} / ${reserve1Formatted}`}
+            />
+            <DetailRow
+              title="TVL"
+              tooltip="Total value locked in USD"
+              value={`${reserveTotalsUsdFormatted}`}
+            />
+            <DetailRow
+              title="Virtual Price"
+              tooltip="The virtual price, to help calculate profit"
+              value={`${virtualPriceFormatted}`}
+            />
+            <DetailRow
+              title="Fee"
+              tooltip={`Each trade has a ${feeFormatted} fee that goes to liquidity providers`}
+              value={`${feeFormatted}`}
+            />
+          </Box>
+        </div>
+      </details>
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <SendButton />
       {hasBalance && (

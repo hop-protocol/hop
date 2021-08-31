@@ -260,20 +260,6 @@ const Send: FC = () => {
     address,
   )
 
-  const needsApproval = useAsyncMemo(async () => {
-    try {
-      return await needsApprovalFromToken()
-    } catch (err: any) {
-      logger.error(err)
-    }
-    return false
-  }, [
-    sdk,
-    fromNetwork,
-    sourceToken,
-    fromTokenAmount
-  ])
-
   const handleApprove = async () => {
     try {
       setError(null)
@@ -498,33 +484,44 @@ const Send: FC = () => {
   }, [amountOutMin])
 
   const { approve, checkApproval } = useApprove()
-  const needsApprovalFromToken = async () => {
-    if (!(
-      fromNetwork &&
-      sourceToken &&
-      fromTokenAmount
-    )) {
+  const needsApproval = useAsyncMemo(async () => {
+    try {
+      if (!(
+        fromNetwork &&
+        sourceToken &&
+        fromTokenAmount
+      )) {
+        return false
+      }
+
+      const parsedAmount = parseUnits(fromTokenAmount, sourceToken.decimals)
+      const bridge = sdk.bridge(sourceToken.symbol)
+
+      let spender : string
+      if (fromNetwork.isLayer1) {
+        const l1Bridge = await bridge.getL1Bridge()
+        spender = l1Bridge.address
+      } else {
+        const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
+        spender = ammWrapper.address
+      }
+
+      return checkApproval(
+        parsedAmount,
+        sourceToken,
+        spender
+      )
+    } catch (err: any) {
+      logger.error(err)
       return false
     }
-
-    const parsedAmount = parseUnits(fromTokenAmount, sourceToken.decimals)
-    const bridge = sdk.bridge(sourceToken.symbol)
-
-    let spender : string
-    if (fromNetwork.isLayer1) {
-      const l1Bridge = await bridge.getL1Bridge()
-      spender = l1Bridge.address
-    } else {
-      const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
-      spender = ammWrapper.address
-    }
-
-    return checkApproval(
-      parsedAmount,
-      sourceToken,
-      spender
-    )
-  }
+  }, [
+    sdk,
+    fromNetwork,
+    sourceToken,
+    fromTokenAmount,
+    checkApproval
+  ])
 
   const approveFromToken = async () => {
     if (!fromNetwork) {

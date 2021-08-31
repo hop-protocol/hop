@@ -4,8 +4,8 @@ import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
 import { BigNumber, Contract, providers } from 'ethers'
 import { TX_RETRY_DELAY_MS } from 'src/constants'
-import { wait } from 'src/utils'
 import { getEnabledNetworks } from 'src/config'
+import { wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string

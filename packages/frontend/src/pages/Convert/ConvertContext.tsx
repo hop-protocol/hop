@@ -8,6 +8,7 @@ import React, {
   useEffect,
   ReactNode
 } from 'react'
+import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import { BigNumber, Signer } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import { useLocation } from 'react-router-dom'
@@ -41,8 +42,11 @@ type ConvertContextProps = {
   destTokenAmount: string | undefined
   setDestTokenAmount: (value: string) => void
   convertTokens: () => void
+  approveTokens: () => void
   validFormFields: boolean
   sending: boolean
+  approving: boolean
+  needsApproval: boolean | undefined
   sendButtonText: string
   sourceBalance: BigNumber | undefined
   loadingSourceBalance: boolean
@@ -74,8 +78,11 @@ const ConvertContext = createContext<ConvertContextProps>({
   destTokenAmount: undefined,
   setDestTokenAmount: (value: string) => {},
   convertTokens: () => {},
+  approveTokens: () => {},
   validFormFields: false,
   sending: false,
+  approving: false,
+  needsApproval: false,
   sendButtonText: '',
   sourceBalance: undefined,
   loadingSourceBalance: false,
@@ -135,6 +142,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
   const [amountOutMin, setAmountOutMin] = useState<BigNumber>()
   const [sending, setSending] = useState<boolean>(false)
+  const [approving, setApproving] = useState<boolean>(false)
 
   const [sourceToken, setSourceToken] = useState<Token>()
   const [destToken, setDestToken] = useState<Token>()
@@ -268,23 +276,56 @@ const ConvertContextProvider: FC = ({ children }) => {
     getSendData()
   }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
 
-  const { approve } = useApprove()
-  const approveTokens = async (): Promise<any> => {
-    if (!sourceToken) {
-      throw new Error('No source token selected')
-    }
+  const { approve, checkApproval } = useApprove()
 
-    const targetAddress = await convertOption.getTargetAddress(
-      sdk,
-      selectedBridge?.getTokenSymbol(),
-      sourceNetwork,
+  const needsApproval = useAsyncMemo(async () => {
+    if (!(
+      selectedBridge &&
+      sourceToken &&
       destNetwork
-    )
+    )) {
+        return false
+      }
 
-    const tx = await approve(parsedSourceTokenAmount, sourceToken, targetAddress)
+      const targetAddress = await convertOption.getTargetAddress(
+        sdk,
+        selectedBridge?.getTokenSymbol(),
+        sourceNetwork,
+        destNetwork
+      )
 
-    await tx?.wait()
-    return tx
+      return checkApproval(parsedSourceTokenAmount, sourceToken, targetAddress)
+  }, [convertOption, sdk, selectedBridge, sourceNetwork, destNetwork, checkApproval])
+
+  const approveTokens = async (): Promise<any> => {
+    try {
+      const networkId = Number(sourceNetwork?.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+      setError(undefined)
+      setApproving(true)
+      if (!sourceToken) {
+        throw new Error('No source token selected')
+      }
+
+      const targetAddress = await convertOption.getTargetAddress(
+        sdk,
+        selectedBridge?.getTokenSymbol(),
+        sourceNetwork,
+        destNetwork
+      )
+
+      const tx = await approve(parsedSourceTokenAmount, sourceToken, targetAddress)
+      await tx?.wait()
+      setApproving(false)
+      return tx
+    } catch (err: any) {
+      if (!/cancelled/gi.test(err.message)) {
+        setError(err.message)
+      }
+      logger.error(err)
+      setApproving(false)
+    }
   }
 
   const convertTokens = async () => {
@@ -413,8 +454,11 @@ const ConvertContextProvider: FC = ({ children }) => {
         destTokenAmount,
         setDestTokenAmount,
         convertTokens,
+        approveTokens,
         validFormFields,
         sending,
+        approving,
+        needsApproval,
         sendButtonText,
         sourceBalance,
         loadingSourceBalance,

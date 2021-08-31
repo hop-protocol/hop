@@ -34,7 +34,8 @@ const useStyles = makeStyles(theme => ({
     }
   },
   select: {
-    display: 'block',
+    display: 'flex',
+    alignItems: 'center',
     marginLeft: '1rem',
     [theme.breakpoints.down('xs')]: {
       marginLeft: '0',
@@ -42,7 +43,9 @@ const useStyles = makeStyles(theme => ({
     }
   },
   help: {
-    marginBottom: '2.2rem'
+    display: 'flex',
+    alignItems: 'center',
+    marginLeft: '1rem'
   },
   box: {
     marginBottom: '4.2rem'
@@ -98,16 +101,6 @@ const Convert: FC = () => {
           Convert
         </Typography>
       </Box>
-      <div className={styles.help}>
-        <InfoTooltip title={<>
-          <ul>
-            <li>Use "via AMM" to swap between the canonical token and hToken on L2.</li>
-            <li>Use "via Hop Bridge" to send hToken from L2 to Ethereum to receive canonical token on Ethereum, or to send canonical token from Ethereum and receive hToken on L2.</li>
-          </ul>
-        </>}>
-          <span><HelpIcon /> What's this?</span>
-        </InfoTooltip>
-      </div>
       <Grid className={styles.selects}>
         <div className={styles.select}>
           <RaisedSelect
@@ -149,6 +142,14 @@ const Convert: FC = () => {
               </MenuItem>
             ))}
           </RaisedSelect>
+          <div className={styles.help}>
+            <InfoTooltip title={<>
+              <ul>
+                <li>Use "via AMM" to swap between the canonical token and hToken on L2.</li>
+                <li>Use "via Hop Bridge" to send hToken from L2 to Ethereum to receive canonical token on Ethereum, or to send canonical token from Ethereum and receive hToken on L2.</li>
+              </ul>
+          </>} />
+          </div>
         </div>
       </Grid>
       <div className={styles.box}>

@@ -102,6 +102,15 @@
                 <option value="bonded">Bonded</option>
               </select>
             </div>
+            <div>
+              <label>Amount:</label>
+              <select v-model="filterAmountComparator" @change="setAmountComparator">
+                <option value="eq">=</option>
+                <option value="gt">&gt;</option>
+                <option value="lt">&lt;</option>
+              </select>
+              <input class="filterAmount" v-model="filterAmount" change="setFilterAmount" placeholder="amount" />
+            </div>
           </div>
           <div class="pagination">
             <button v-if="hasPreviousPage" @click="previousPage()" class="paginationButton">previous page</button>
@@ -134,7 +143,7 @@
                     {{ x.transferId }}
                   </a>
                 </td>
-                <td class="amount" :title="x.amount">{{ x.formattedAmount }}</td>
+                <td class="amount" :title="x.amount">{{ x.displayAmount }}</td>
                 <td class="token">
                   <img :src="x.tokenImageUrl" :alt="x.token">
                   {{ x.token }}

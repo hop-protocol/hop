@@ -21,6 +21,8 @@ const app = new Vue({
     filterToken: '',
     filterSource: '',
     filterDestination: '',
+    filterAmount: '',
+    filterAmountComparator: 'gt',
     page: 0,
     allTransfers: [],
     transfers: [],
@@ -89,6 +91,22 @@ const app = new Vue({
             }
           }
 
+          if (this.filterAmount && this.filterAmountComparator) {
+            if (this.filterAmountComparator === 'eq') {
+              if (Number(x.formattedAmount) !== Number(this.filterAmount)) {
+                return false
+              }
+            } else if (this.filterAmountComparator === 'gt') {
+              if (Number(x.formattedAmount) <= Number(this.filterAmount)) {
+                return false
+              }
+            } else if (this.filterAmountComparator === 'lt') {
+              if (Number(x.formattedAmount) >= Number(this.filterAmount)) {
+                return false
+              }
+            }
+          }
+
           return true
         })
         .slice(start, end)
@@ -137,6 +155,16 @@ const app = new Vue({
     setFilterToken (event) {
       const value = event.target.value
       Vue.set(app, 'filterToken', value)
+      this.refreshTransfers()
+    },
+    setAmount (event) {
+      const value = event.target.value
+      Vue.set(app, 'filterAmount', value)
+      this.refreshTransfers()
+    },
+    setAmountComparator (event) {
+      const value = event.target.value
+      Vue.set(app, 'filterAmountComparator', value)
       this.refreshTransfers()
     },
     setTvl (tvl) {
@@ -542,7 +570,8 @@ function populateTransfer (x, i) {
   x.bondTxExplorerUrl = x.bondTransactionHash ? explorerLink(x.destinationChainSlug, x.bondTransactionHash) : ''
 
   const tokenDecimals = 6
-  x.formattedAmount = formatCurrency(ethers.utils.formatUnits(x.amount, tokenDecimals))
+  x.formattedAmount = Number(ethers.utils.formatUnits(x.amount, tokenDecimals))
+  x.displayAmount = formatCurrency(ethers.utils.formatUnits(x.amount, tokenDecimals))
   x.tokenImageUrl = tokenLogosMap[x.token]
 
   return x

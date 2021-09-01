@@ -48,4 +48,4 @@ export enum TxError {
   BonderFeeTooLow = 'BONDER_FEE_TOO_LOW'
 }
 
-export const GAS_PRICE_MULTIPLIER = 1.11
+export const GAS_PRICE_MULTIPLIER = 1.2

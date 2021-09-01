@@ -2,7 +2,6 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
-import { Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
 import { wait } from 'src/utils'
@@ -61,10 +60,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   checkUnsettledTransferRootsFromDb = async () => {
-    if (this.chainSlug !== Chain.Optimism) {
-      return
-    }
-
     // only process transfer where this bridge is the destination chain
     const dbTransferRoots = await this.db.transferRoots.getUnsettledTransferRoots(
       {

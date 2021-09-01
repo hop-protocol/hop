@@ -24,4 +24,4 @@ export enum BondTransferGasLimit {
 }
 
 export const LpFee = '0.0004'
-export const GasPriceMultiplier = '1.11'
+export const GasPriceMultiplier = '1.2'

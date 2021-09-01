@@ -47,7 +47,7 @@ export type Options = {
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
   pollMs: number = 10 * 1000
-  timeTilBoostMs: number = 1 * 60 * 1000
+  timeTilBoostMs: number = 3 * 60 * 1000
   gasPriceMultiplier: number = 1.1
   maxGasPriceGwei: number = 500
   compareMarketGasPrice: boolean = true

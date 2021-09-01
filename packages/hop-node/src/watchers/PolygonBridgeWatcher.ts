@@ -179,7 +179,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
       to: rootTunnel,
       value: tx.value,
       data: tx.data,
-      gasLimit: tx.gas,
+      gasLimit: tx.gas
     })
   }
 
@@ -209,7 +209,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
       to: tx.to,
       value: tx.value,
       data: tx.data,
-      gasLimit: tx.gas,
+      gasLimit: tx.gas
     })
   }
 

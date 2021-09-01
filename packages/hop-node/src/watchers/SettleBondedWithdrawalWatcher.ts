@@ -40,23 +40,16 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
-    const promises: Promise<any>[] = []
-    promises.push(
-      new Promise(async resolve => {
-        try {
-          await this.checkUnsettledTransferRootsFromDb()
-        } catch (err) {
-          this.logger.error(
-            `poll error checkUnsettledTransfers: ${err.message}`
-          )
-          this.notifier.error(
-            `poll error checkUnsettledTransfers: ${err.message}`
-          )
-        }
-        resolve(null)
-      })
-    )
-    await Promise.all(promises)
+    try {
+      await this.checkUnsettledTransferRootsFromDb()
+    } catch (err) {
+      this.logger.error(
+        `poll error checkUnsettledTransfers: ${err.message}`
+      )
+      this.notifier.error(
+        `poll error checkUnsettledTransfers: ${err.message}`
+      )
+    }
   }
 
   checkUnsettledTransferRootsFromDb = async () => {
@@ -211,9 +204,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       tx?.wait()
         .then(async (receipt: providers.TransactionReceipt) => {
           if (receipt.status !== 1) {
-            await this.db.transferRoots.update(transferRootHash, {
-              withdrawalBondSettleTxSentAt: 0
-            })
             throw new Error('status=0')
           }
           this.emit('settleBondedWithdrawals', {
@@ -223,10 +213,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           })
         })
         .catch(async (err: Error) => {
-          await this.db.transferRoots.update(transferRootHash, {
-            withdrawalBondSettleTxSentAt: 0
-          })
-
           throw err
         })
       logger.info(
@@ -242,9 +228,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         this.logger.error('settleBondedWithdrawal error:', err.message)
         this.notifier.error(`settleBondedWithdrawal error: ${err.message}`)
       }
-      await this.db.transferRoots.update(transferRootHash, {
-        withdrawalBondSettleTxSentAt: 0
-      })
     }
   }
 

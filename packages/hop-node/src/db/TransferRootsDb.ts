@@ -196,7 +196,7 @@ class TransferRootsDb extends BaseDb {
       let bondSettleTimestampOk = true
       if (item?.withdrawalBondSettleTxSentAt) {
         bondSettleTimestampOk =
-          item?.withdrawalBondSettleTxSentAt + TX_RETRY_DELAY_MS <
+          (item?.withdrawalBondSettleTxSentAt + TX_RETRY_DELAY_MS) <
           Date.now()
       }
 

@@ -146,8 +146,7 @@ export default class ContractBase extends EventEmitter {
 
   async txOverrides (): Promise<any> {
     const txOptions: any = {}
-    // TODO: config option for gas price multiplier
-    let multiplier = 1.5
+    let multiplier = 1
     if (globalConfig.isMainnet) {
       // increasing more gas multiplier for xdai
       // to avoid the error "code:-32010, message: FeeTooLowToCompete"

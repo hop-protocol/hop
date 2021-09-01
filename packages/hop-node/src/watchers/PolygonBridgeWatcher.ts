@@ -175,13 +175,11 @@ class PolygonBridgeWatcher extends BaseWatcher {
       }
     )
 
-    const bumpedGasPrice = await this.getBumpedGasPrice(1.5, this.l1Wallet)
     return this.l1Wallet.sendTransaction({
       to: rootTunnel,
       value: tx.value,
       data: tx.data,
       gasLimit: tx.gas,
-      gasPrice: bumpedGasPrice
     })
   }
 
@@ -207,13 +205,11 @@ class PolygonBridgeWatcher extends BaseWatcher {
       encodeAbi: true
     })
 
-    const bumpedGasPrice = await this.getBumpedGasPrice(1.5, this.l1Wallet)
     return this.l1Wallet.sendTransaction({
       to: tx.to,
       value: tx.value,
       data: tx.data,
       gasLimit: tx.gas,
-      gasPrice: bumpedGasPrice
     })
   }
 

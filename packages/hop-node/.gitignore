@@ -12,6 +12,7 @@ docker/arbitrum/data
 docker/arbitrum/docker-compose.yml
 src/db/db_data
 src/db_data
+src/scripts
 db_data
 *.dump
 *.log

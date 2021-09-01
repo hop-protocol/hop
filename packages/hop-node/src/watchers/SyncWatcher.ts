@@ -582,9 +582,11 @@ class SyncWatcher extends BaseWatcher {
     )
 
     logger.debug('handling MultipleWithdrawalsSettled event')
+    logger.debug(`tx hash from event: ${transactionHash}`)
     logger.debug(`transferRootHash from event: ${transferRootHash}`)
     logger.debug(`bonder : ${bonder}`)
     logger.debug(`totalBondSettled: ${this.bridge.formatUnits(totalBondsSettled)}`)
+    logger.debug(`transferIds count: ${transferIds.length}`)
     const dbTransfers : Transfer[] = []
     for (const transferId of transferIds) {
       const dbTransfer = await this.db.transfers.getByTransferId(transferId)
@@ -594,9 +596,11 @@ class SyncWatcher extends BaseWatcher {
         withdrawalBondSettled
       })
     }
-    const allSettled = dbTransfers.every(
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    const allSettled = dbTransferRoot?.totalAmount.eq(totalBondsSettled) || dbTransfers.every(
       (dbTransfer: Transfer) => dbTransfer?.withdrawalBondSettled
     )
+    logger.debug(`all settled: ${allSettled}`)
     if (allSettled) {
       await this.db.transferRoots.update(transferRootHash, {
         allSettled

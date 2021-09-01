@@ -22,7 +22,6 @@ const BONDER_ORDER_DELAY_MS = 60 * 1000
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
-  shouldWaitMinThreshold: boolean = false
 
   constructor (config: Config) {
     super({

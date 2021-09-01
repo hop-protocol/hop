@@ -12,6 +12,7 @@ import { wait } from 'src/utils'
 type Config = {
   chainSlug: string
   tokenSymbol: string
+  label?: string
   l1BridgeContract?: Contract
   bridgeContract?: Contract
   isL1?: boolean
@@ -84,6 +85,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
       tag: 'xDaiBridgeWatcher',
+      prefix: config.label,
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,
       isL1: config.isL1,

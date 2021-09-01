@@ -47,6 +47,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.watchers[Chain.xDai] = new xDaiBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
+        label: config.label,
         l1BridgeContract: config.l1BridgeContract,
         bridgeContract: config.bridgeContract,
         isL1: config.isL1,
@@ -57,6 +58,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.watchers[Chain.Polygon] = new PolygonBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
+        label: config.label,
         bridgeContract: config.bridgeContract,
         isL1: config.isL1,
         dryMode: config.dryMode
@@ -66,6 +68,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.watchers[Chain.Optimism] = new OptimismBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
+        label: config.label,
         bridgeContract: config.bridgeContract,
         isL1: config.isL1,
         dryMode: config.dryMode
@@ -75,6 +78,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
+        label: config.label,
         bridgeContract: config.bridgeContract,
         isL1: config.isL1,
         dryMode: config.dryMode

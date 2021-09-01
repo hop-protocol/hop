@@ -11,6 +11,7 @@ import { getRpcProvider, getRpcUrls } from 'src/utils'
 type Config = {
   chainSlug: string
   tokenSymbol: string
+  label?: string
   bridgeContract?: Contract
   isL1?: boolean
   dryMode?: boolean
@@ -29,6 +30,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
+      prefix: config.label,
       tag: 'OptimismBridgeWatcher',
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,

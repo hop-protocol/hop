@@ -7,7 +7,7 @@ import shiftBNDecimals from 'src/utils/shiftBNDecimals'
 import unique from 'src/utils/unique'
 import { BigNumber, Contract, constants, utils as ethersUtils, providers } from 'ethers'
 import { BonderFeeTooLowError } from 'src/types/error'
-import { Chain } from 'src/constants'
+import { Chain, GAS_PRICE_MULTIPLIER } from 'src/constants'
 import { Db, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
@@ -473,7 +473,7 @@ export default class Bridge extends ContractBase {
     // don't bond if bonder fee is too low
     if (this.chainSlug === Chain.Ethereum) {
       const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
-      await this.compareBonderFeeCost(bonderFee, gasLimit, txOverrides.gasPrice)
+      await this.compareBonderFeeCost(bonderFee, gasLimit)
     }
 
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
@@ -520,7 +520,8 @@ export default class Bridge extends ContractBase {
     return this.getBalance(bonder)
   }
 
-  async compareBonderFeeCost (bonderFee: BigNumber, gasLimit: BigNumber, gasPrice: BigNumber) {
+  async compareBonderFeeCost (bonderFee: BigNumber, gasLimit: BigNumber) {
+    const gasPrice = await this.getBumpedGasPrice(GAS_PRICE_MULTIPLIER)
     const bnMultiplier = 100000000
     const ethDecimals = 18
     const gasCost = gasLimit.mul(gasPrice)

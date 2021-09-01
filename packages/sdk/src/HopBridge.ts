@@ -15,7 +15,13 @@ import { TChain, TToken, TAmount, TProvider } from './types'
 import Base, { ChainProviders } from './Base'
 import AMM from './AMM'
 import _version from './version'
-import { TokenIndex, BondTransferGasLimit, LpFee } from './constants'
+import {
+  TokenIndex,
+  BondTransferGasLimit,
+  LpFee,
+  GasPriceMultiplier,
+  MinBonderBps
+} from './constants'
 import { metadata } from './config'
 import { PriceFeed } from './priceFeed'
 import Token from './Token'
@@ -609,7 +615,7 @@ class HopBridge extends Base {
     let fee = txFeeEth.mul(rateBN).div(oneEth)
 
     if (destinationChain.equals(Chain.Ethereum)) {
-      const multiplier = ethers.utils.parseEther('1.5')
+      const multiplier = ethers.utils.parseEther(GasPriceMultiplier)
       fee = fee.mul(multiplier).div(oneEth)
     }
 
@@ -708,9 +714,8 @@ class HopBridge extends Base {
       sourceChain
     )
     const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
-    const minBonderBps = await l2Bridge?.minBonderBps()
     const minBonderFeeAbsolute = await l2Bridge?.minBonderFeeAbsolute()
-    const minBonderFeeRelative = hTokenAmount.mul(minBonderBps).div(10000)
+    const minBonderFeeRelative = hTokenAmount.mul(MinBonderBps).div(10000)
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute

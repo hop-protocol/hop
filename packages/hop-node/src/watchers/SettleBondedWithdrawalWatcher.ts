@@ -2,9 +2,9 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
-import { Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
+import { enabledSettleWatcherChains } from 'src/config'
 import { wait } from 'src/utils'
 
 export interface Config {
@@ -23,7 +23,6 @@ const BONDER_ORDER_DELAY_MS = 60 * 1000
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
-  shouldWaitMinThreshold: boolean = false
 
   constructor (config: Config) {
     super({
@@ -41,28 +40,23 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
-    const promises: Promise<any>[] = []
-    promises.push(
-      new Promise(async resolve => {
-        try {
-          await this.checkUnsettledTransferRootsFromDb()
-        } catch (err) {
-          this.logger.error(
-            `poll error checkUnsettledTransfers: ${err.message}`
-          )
-          this.notifier.error(
-            `poll error checkUnsettledTransfers: ${err.message}`
-          )
-        }
-        resolve(null)
-      })
-    )
-    await Promise.all(promises)
+    try {
+      await this.checkUnsettledTransferRootsFromDb()
+    } catch (err) {
+      this.logger.error(
+        `poll error checkUnsettledTransfers: ${err.message}`
+      )
+      this.notifier.error(
+        `poll error checkUnsettledTransfers: ${err.message}`
+      )
+    }
   }
 
   checkUnsettledTransferRootsFromDb = async () => {
-    if (this.chainSlug !== Chain.Optimism) {
-      return
+    if (enabledSettleWatcherChains?.length) {
+      if (!enabledSettleWatcherChains.includes(this.chainSlug)) {
+        return
+      }
     }
 
     // only process transfer where this bridge is the destination chain
@@ -198,6 +192,15 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
       logger.debug('transferIds', JSON.stringify(transferIds))
 
+      const transferRootStruct = await this.bridge.getTransferRoot(transferRootHash, totalAmount)
+      if (transferRootStruct.amountWithdrawn.eq(totalAmount)) {
+        logger.debug(`transfer root amountWithdrawn (${this.bridge.formatUnits(transferRootStruct.amountWithdrawn)}) matches totalAmount (${this.bridge.formatUnits(totalAmount)}). Marking transfe root as all settled`)
+        await this.db.transferRoots.update(transferRootHash, {
+          allSettled: true
+        })
+        return
+      }
+
       await this.handleStateSwitch()
       if (this.isDryOrPauseMode) {
         logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping settleBondedWithdrawals`)
@@ -216,9 +219,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       tx?.wait()
         .then(async (receipt: providers.TransactionReceipt) => {
           if (receipt.status !== 1) {
-            await this.db.transferRoots.update(transferRootHash, {
-              withdrawalBondSettleTxSentAt: 0
-            })
             throw new Error('status=0')
           }
           this.emit('settleBondedWithdrawals', {
@@ -228,10 +228,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           })
         })
         .catch(async (err: Error) => {
-          await this.db.transferRoots.update(transferRootHash, {
-            withdrawalBondSettleTxSentAt: 0
-          })
-
           throw err
         })
       logger.info(
@@ -247,9 +243,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         this.logger.error('settleBondedWithdrawal error:', err.message)
         this.notifier.error(`settleBondedWithdrawal error: ${err.message}`)
       }
-      await this.db.transferRoots.update(transferRootHash, {
-        withdrawalBondSettleTxSentAt: 0
-      })
     }
   }
 

@@ -3,6 +3,7 @@ import MemoryStore from './MemoryStore'
 import Store from './Store'
 import { BigNumber, Signer, providers, utils } from 'ethers'
 import { EventEmitter } from 'events'
+import { GAS_PRICE_MULTIPLIER } from 'src/constants'
 import { Notifier } from 'src/notifier'
 import { boundClass } from 'autobind-decorator'
 import { chainSlugToId, getBumpedGasPrice, getProviderChainSlug, wait } from 'src/utils'
@@ -47,8 +48,8 @@ export type Options = {
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
   pollMs: number = 10 * 1000
-  timeTilBoostMs: number = 1 * 60 * 1000
-  gasPriceMultiplier: number = 1.5
+  timeTilBoostMs: number = 3 * 60 * 1000
+  gasPriceMultiplier: number = GAS_PRICE_MULTIPLIER
   maxGasPriceGwei: number = 500
   compareMarketGasPrice: boolean = true
   warnEthBalance: number = 0.1
@@ -349,7 +350,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   private async boost (item: InflightItem) {
     const gasPrice = await this.getBumpedGasPrice()
-    const maxGasPrice = utils.parseUnits(this.maxGasPriceGwei.toString(), 18)
+    const maxGasPrice = utils.parseUnits(this.maxGasPriceGwei.toString(), 9)
     if (gasPrice.gt(maxGasPrice)) {
       return
     }

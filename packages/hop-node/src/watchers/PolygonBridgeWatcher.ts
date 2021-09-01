@@ -4,8 +4,8 @@ import chalk from 'chalk'
 import fetch from 'node-fetch'
 import queue from 'src/decorators/queue'
 import wallets from 'src/wallets'
-import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
+import { Contract, Wallet, constants, providers } from 'ethers'
 import { Event } from 'src/types'
 import { MaticPOSClient } from '@maticnetwork/maticjs'
 import { chainSlugToId, getRpcUrls, wait } from 'src/utils'
@@ -15,6 +15,7 @@ import { config as globalConfig } from 'src/config'
 type Config = {
   chainSlug: string
   tokenSymbol: string
+  label?: string
   bridgeContract?: Contract
   isL1?: boolean
   dryMode?: boolean
@@ -34,6 +35,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
       tag: 'PolygonBridgeWatcher',
+      prefix: config.label,
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,
       isL1: config.isL1,
@@ -175,13 +177,11 @@ class PolygonBridgeWatcher extends BaseWatcher {
       }
     )
 
-    const bumpedGasPrice = await this.getBumpedGasPrice(1.5, this.l1Wallet)
     return this.l1Wallet.sendTransaction({
       to: rootTunnel,
       value: tx.value,
       data: tx.data,
-      gasLimit: tx.gas,
-      gasPrice: bumpedGasPrice
+      gasLimit: tx.gas
     })
   }
 
@@ -207,22 +207,12 @@ class PolygonBridgeWatcher extends BaseWatcher {
       encodeAbi: true
     })
 
-    const bumpedGasPrice = await this.getBumpedGasPrice(1.5, this.l1Wallet)
     return this.l1Wallet.sendTransaction({
       to: tx.to,
       value: tx.value,
       data: tx.data,
-      gasLimit: tx.gas,
-      gasPrice: bumpedGasPrice
+      gasLimit: tx.gas
     })
-  }
-
-  protected async getBumpedGasPrice (
-    percent: number,
-    wallet: Wallet
-  ): Promise<BigNumber> {
-    const gasPrice = await wallet.provider.getGasPrice()
-    return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootHash: string) {

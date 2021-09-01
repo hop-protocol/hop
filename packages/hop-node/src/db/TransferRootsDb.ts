@@ -178,8 +178,8 @@ class TransferRootsDb extends BaseDb {
   async getUnsettledTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transfers: TransferRoot[] = await this.getTransferRoots()
-    return transfers.filter(item => {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
       if (filter?.destinationChainId) {
         if (filter.destinationChainId !== item.destinationChainId) {
           return false
@@ -196,7 +196,7 @@ class TransferRootsDb extends BaseDb {
       let bondSettleTimestampOk = true
       if (item?.withdrawalBondSettleTxSentAt) {
         bondSettleTimestampOk =
-          item?.withdrawalBondSettleTxSentAt + TX_RETRY_DELAY_MS <
+          (item?.withdrawalBondSettleTxSentAt + TX_RETRY_DELAY_MS) <
           Date.now()
       }
 

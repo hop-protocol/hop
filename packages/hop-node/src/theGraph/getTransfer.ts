@@ -94,8 +94,6 @@ export default async function getTransfer (chain: string, token: string, transfe
       transferRootHash: transferRoot.rootHash
     })
 
-    transfer.settled = false
-
     const provider = getRpcProvider(destinationChain)
     if (!provider) {
       throw new Error(`provider for ${chain} not found. Check network is correct`)
@@ -104,15 +102,13 @@ export default async function getTransfer (chain: string, token: string, transfe
     let bondedWithdrawalFrom = ''
     if (bondedWithdrawal) {
       const bondWithdrawalTx = await provider.getTransaction(bondedWithdrawal.transactionHash)
-      bondedWithdrawalFrom = bondWithdrawalTx?.from
+      bondedWithdrawalFrom = bondWithdrawalTx?.from?.toLowerCase()
     }
-
-    const settledEvents = jsonRes.multipleWithdrawalsSettleds ?? []
-    for (const settledEvent of settledEvents) {
-      const bondedWithdrawalSettled = normalizeEntity(settledEvent)
-      if (bondedWithdrawalSettled?.transactionHash) {
-        const settleTx = await provider.getTransaction(bondedWithdrawalSettled.transactionHash)
-        const settleFrom = settleTx?.from
+    if (bondedWithdrawalFrom) {
+      const settledEvents = jsonRes.multipleWithdrawalsSettleds ?? []
+      for (const settledEvent of settledEvents) {
+        const bondedWithdrawalSettled = normalizeEntity(settledEvent)
+        const settleFrom = bondedWithdrawalSettled.bonder?.toLowerCase()
         if (bondedWithdrawalFrom && settleFrom && bondedWithdrawalFrom === settleFrom) {
           transfer.settled = true
           transfer.bondedWithdrawalSettledEvent = bondedWithdrawalSettled

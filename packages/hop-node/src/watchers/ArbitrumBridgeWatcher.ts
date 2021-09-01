@@ -8,6 +8,7 @@ import { Contract, Wallet } from 'ethers'
 type Config = {
   chainSlug: string
   tokenSymbol: string
+  label?: string
   bridgeContract?: Contract
   isL1?: boolean
   dryMode?: boolean
@@ -24,6 +25,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
       tag: 'ArbitrumBridgeWatcher',
+      prefix: config.label,
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,
       isL1: config.isL1,

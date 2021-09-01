@@ -609,7 +609,7 @@ class HopBridge extends Base {
     let fee = txFeeEth.mul(rateBN).div(oneEth)
 
     if (destinationChain.equals(Chain.Ethereum)) {
-      const multiplier = ethers.utils.parseEther('1.5')
+      const multiplier = ethers.utils.parseEther('1.11')
       fee = fee.mul(multiplier).div(oneEth)
     }
 

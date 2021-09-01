@@ -48,7 +48,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   started: boolean = false
   pollMs: number = 10 * 1000
   timeTilBoostMs: number = 3 * 60 * 1000
-  gasPriceMultiplier: number = 1.1
+  gasPriceMultiplier: number = 1.11
   maxGasPriceGwei: number = 500
   compareMarketGasPrice: boolean = true
   warnEthBalance: number = 0.1

@@ -19,7 +19,8 @@ import {
   TokenIndex,
   BondTransferGasLimit,
   LpFee,
-  GasPriceMultiplier
+  GasPriceMultiplier,
+  MinBonderBps
 } from './constants'
 import { metadata } from './config'
 import { PriceFeed } from './priceFeed'
@@ -713,9 +714,8 @@ class HopBridge extends Base {
       sourceChain
     )
     const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
-    const minBonderBps = await l2Bridge?.minBonderBps()
     const minBonderFeeAbsolute = await l2Bridge?.minBonderFeeAbsolute()
-    const minBonderFeeRelative = hTokenAmount.mul(minBonderBps).div(10000)
+    const minBonderFeeRelative = hTokenAmount.mul(MinBonderBps).div(10000)
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute

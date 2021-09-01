@@ -590,6 +590,9 @@ class SyncWatcher extends BaseWatcher {
     const dbTransfers : Transfer[] = []
     for (const transferId of transferIds) {
       const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+      if (!dbTransfer) {
+        logger.warn(`transfer id ${transferId} db item not found`)
+      }
       dbTransfers.push(dbTransfer)
       const withdrawalBondSettled = dbTransfer?.withdrawalBonded ?? false
       await this.db.transfers.update(transferId, {

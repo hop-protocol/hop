@@ -6,4 +6,3 @@ node_modules
 .netlify
 
 packages/db_data
-src/scripts

@@ -1,3 +1,4 @@
+import objectDepth from 'src/utils/objectDepth'
 import {
   FileConfig,
   getEnabledNetworks,
@@ -48,9 +49,9 @@ program
           throw new Error('chain is invalid')
         }
         if (!destinationChain) {
-          throw new Error('destination chain is required')
+          logger.warn('destination chain not specified; will configure for all chains')
         }
-        if (!isValidNetwork(destinationChain)) {
+        if (destinationChain && !isValidNetwork(destinationChain)) {
           throw new Error('destination chain is invalid')
         }
         if (!token) {
@@ -65,43 +66,27 @@ program
           }
         }
         if (!(newConfig.commitTransfers.minThresholdAmount instanceof Object)) {
-          newConfig.commitTransfers = {
-            minThresholdAmount: {}
-          }
+          newConfig.commitTransfers.minThresholdAmount = {}
         }
-        let isOldConfigType = false
         if (!(newConfig.commitTransfers.minThresholdAmount[token] instanceof Object)) {
-          newConfig.commitTransfers = {
-            minThresholdAmount: {
-              [token]: {}
-            }
-          }
+          newConfig.commitTransfers.minThresholdAmount[token] = {}
         }
         if (!(newConfig.commitTransfers.minThresholdAmount[token][chain] instanceof Object)) {
-          newConfig.commitTransfers = {
-            minThresholdAmount: {
-              [token]: {
-                [chain]: {}
-              }
-            }
-          }
+          newConfig.commitTransfers.minThresholdAmount[token][chain] = {}
         }
-        if (!(newConfig.commitTransfers.minThresholdAmount[token][chain][destinationChain] instanceof Object)) {
-          newConfig.commitTransfers = {
-            minThresholdAmount: {
-              [token]: {
-                [chain]: {
-                  [destinationChain]: {}
-                }
-              }
-            }
+        if (destinationChain) {
+          if (!(newConfig.commitTransfers.minThresholdAmount[token][chain][destinationChain] instanceof Object)) {
+            newConfig.commitTransfers.minThresholdAmount[token][chain][destinationChain] = {}
           }
-          isOldConfigType = true
         }
 
+        const depth = objectDepth(oldConfig.commitTransfers)
+        const isV1ConfigType = depth < 3
+        const isV2ConfigType = depth < 4
+        const allChains = getEnabledNetworks()
+
         // convert old config type to new config type
-        if (isOldConfigType) {
-          const allChains = getEnabledNetworks()
+        if (isV1ConfigType || isV2ConfigType) {
           if (oldConfig?.commitTransfers?.minThresholdAmount) {
             for (const _chain in oldConfig.commitTransfers.minThresholdAmount) {
               if (!isValidNetwork(_chain)) {
@@ -127,8 +112,25 @@ program
           }
         }
 
-        newConfig.commitTransfers.minThresholdAmount[token][chain][destinationChain] = commitTransfersMinThresholdAmount
-        logger.debug(`updating commitTransfers.minThresholdAmount to ${commitTransfersMinThresholdAmount} for ${token} ${chain}→${destinationChain}`)
+        if (isV1ConfigType || isV2ConfigType) {
+          for (const _token in newConfig.commitTransfers.minThresholdAmount) {
+            if (typeof newConfig.commitTransfers.minThresholdAmount[_token] === 'number') {
+              delete newConfig.commitTransfers.minThresholdAmount[_token]
+            }
+
+            for (const _chain in newConfig.commitTransfers.minThresholdAmount) {
+              if (typeof newConfig.commitTransfers.minThresholdAmount[_chain]?.[_token] === 'number') {
+                delete newConfig.commitTransfers.minThresholdAmount[_chain]
+              }
+            }
+          }
+        }
+
+        const destinationChains = destinationChain ? [destinationChain] : allChains
+        for (const _destinationChain of destinationChains) {
+          newConfig.commitTransfers.minThresholdAmount[token][chain][_destinationChain] = commitTransfersMinThresholdAmount
+          logger.debug(`updating commitTransfers.minThresholdAmount to ${commitTransfersMinThresholdAmount} for ${token} ${chain}→${_destinationChain}`)
+        }
       } else if (
         source.bondWithdrawalsMin !== undefined ||
         source.bondWithdrawalsMax !== undefined

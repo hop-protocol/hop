@@ -4,8 +4,8 @@ import chalk from 'chalk'
 import fetch from 'node-fetch'
 import queue from 'src/decorators/queue'
 import wallets from 'src/wallets'
-import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
+import { Contract, Wallet, constants, providers } from 'ethers'
 import { Event } from 'src/types'
 import { MaticPOSClient } from '@maticnetwork/maticjs'
 import { chainSlugToId, getRpcUrls, wait } from 'src/utils'
@@ -211,14 +211,6 @@ class PolygonBridgeWatcher extends BaseWatcher {
       data: tx.data,
       gasLimit: tx.gas
     })
-  }
-
-  protected async getBumpedGasPrice (
-    percent: number,
-    wallet: Wallet
-  ): Promise<BigNumber> {
-    const gasPrice = await wallet.provider.getGasPrice()
-    return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootHash: string) {

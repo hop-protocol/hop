@@ -47,3 +47,5 @@ export enum TxError {
   CallException = 'CALL_EXCEPTION',
   BonderFeeTooLow = 'BONDER_FEE_TOO_LOW'
 }
+
+export const GAS_PRICE_MULTIPLIER = 1.11

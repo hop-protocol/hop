@@ -349,7 +349,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   private async boost (item: InflightItem) {
     const gasPrice = await this.getBumpedGasPrice()
-    const maxGasPrice = utils.parseUnits(this.maxGasPriceGwei.toString(), 18)
+    const maxGasPrice = utils.parseUnits(this.maxGasPriceGwei.toString(), 9)
     if (gasPrice.gt(maxGasPrice)) {
       return
     }

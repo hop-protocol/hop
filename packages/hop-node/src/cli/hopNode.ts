@@ -41,6 +41,7 @@ program
   )
   .option('--clear-db', 'Clear cache database on start')
   .option('--log-db-state', 'Log db state periodically')
+  .option('--sync-from-date <string>', 'Date to start syncing db from, in format YYYY-MM-DD')
   .action(async (source: any) => {
     try {
       printHopArt()
@@ -48,6 +49,8 @@ program
       const configFilePath = source.config || source.args[0]
       const config: FileConfig = await parseConfigFile(configFilePath)
       await setGlobalConfigFromConfigFile(config, source.passwordFile)
+      const syncFromDate = source.syncFromDate
+
       if (source.clearDb) {
         await clearDb()
         logger.debug(`cleared db at: ${globalConfig.db.path}`)
@@ -157,7 +160,8 @@ program
         bondWithdrawalAmounts,
         settleBondedWithdrawalsThresholdPercent,
         dryMode,
-        stateUpdateAddress
+        stateUpdateAddress,
+        syncFromDate
       })
       if (config?.roles?.arbBot) {
         const maxTradeAmount = 0

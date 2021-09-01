@@ -52,6 +52,7 @@ type GetWatchersConfig = {
   settleBondedWithdrawalsThresholdPercent?: SettleBondedWithdrawalsThresholdPercent
   dryMode?: boolean
   stateUpdateAddress?: string
+  syncFromDate?: string
 }
 
 type GetStakeWatchersConfig = {
@@ -81,7 +82,8 @@ export function getWatchers (config: GetWatchersConfig) {
     settleBondedWithdrawalsThresholdPercent = {},
     bondWithdrawalAmounts = {},
     dryMode = false,
-    stateUpdateAddress
+    stateUpdateAddress,
+    syncFromDate
   } = config
 
   const order = () => orderNum
@@ -202,7 +204,8 @@ export function getWatchers (config: GetWatchersConfig) {
       tokenSymbol: token,
       isL1,
       label,
-      bridgeContract
+      bridgeContract,
+      syncFromDate
     })
   })
 

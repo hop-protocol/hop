@@ -3,8 +3,10 @@ import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
+import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
+import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
 import { boundClass } from 'autobind-decorator'
@@ -16,6 +18,7 @@ export interface Config {
   label: string
   isL1: boolean
   bridgeContract: Contract
+  syncFromDate?: string
 }
 
 @boundClass
@@ -23,6 +26,9 @@ class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   resyncIntervalMs: number = 60 * 1000
   syncIndex: number = 0
+  syncFromDate : string
+  customStartBlockNumber : number
+  ready: boolean = false
   readonly bondableChains: string[] = [Chain.Optimism, Chain.Arbitrum]
 
   constructor (config: Config) {
@@ -35,6 +41,23 @@ class SyncWatcher extends BaseWatcher {
       isL1: config.isL1,
       bridgeContract: config.bridgeContract
     })
+    this.syncFromDate = config.syncFromDate
+    this.init()
+      .catch(err => {
+        this.logger.error('init error', err)
+        this.quit()
+      })
+  }
+
+  async init () {
+    if (this.syncFromDate) {
+      const date = DateTime.fromISO(this.syncFromDate)
+      const timestamp = date.toSeconds()
+      this.customStartBlockNumber = await getBlockNumberFromDate(this.chainSlug, timestamp)
+      this.ready = true
+    } else {
+      this.ready = true
+    }
   }
 
   async start () {
@@ -51,6 +74,10 @@ class SyncWatcher extends BaseWatcher {
 
   async pollSync () {
     while (true) {
+      if (!this.ready) {
+        await wait(5 * 1000)
+        continue
+      }
       await this.preSyncHandler()
       await this.syncHandler()
       await this.postSyncHandler()
@@ -82,7 +109,24 @@ class SyncWatcher extends BaseWatcher {
 
   async syncHandler (): Promise<any> {
     const promises: Promise<any>[] = []
-    const startBlockNumber = this.bridge.bridgeDeployedBlockNumber
+    let startBlockNumber = this.bridge.bridgeDeployedBlockNumber
+    let useCacheKey = true
+
+    // if it is first sync upon start and
+    // custom start block was specified,
+    // then use that as initial start block
+    if (!this.isInitialSyncCompleted() && this.customStartBlockNumber) {
+      useCacheKey = false
+      startBlockNumber = this.customStartBlockNumber
+    }
+
+    const getOptions = (keyName: string) => {
+      return {
+        cacheKey: useCacheKey ? this.cacheKey(keyName) : undefined,
+        startBlockNumber
+      }
+    }
+
     if (this.isL1) {
       const l1Bridge = this.bridge as L1Bridge
       promises.push(
@@ -90,7 +134,7 @@ class SyncWatcher extends BaseWatcher {
           async (event: Event) => {
             return this.handleTransferRootBondedEvent(event)
           },
-          { cacheKey: this.cacheKey(l1Bridge.TransferRootBonded), startBlockNumber }
+          getOptions(l1Bridge.TransferRootBonded)
         )
       )
 
@@ -99,7 +143,7 @@ class SyncWatcher extends BaseWatcher {
           async (event: Event) => {
             return this.handleTransferRootConfirmedEvent(event)
           },
-          { cacheKey: this.cacheKey(l1Bridge.TransferRootConfirmed), startBlockNumber }
+          getOptions(l1Bridge.TransferRootConfirmed)
         )
       )
 
@@ -108,7 +152,7 @@ class SyncWatcher extends BaseWatcher {
           async (event: Event) => {
             return this.handleTransferBondChallengedEvent(event)
           },
-          { cacheKey: this.cacheKey(l1Bridge.TransferBondChallenged), startBlockNumber }
+          getOptions(l1Bridge.TransferBondChallenged)
         )
       )
     }
@@ -120,7 +164,7 @@ class SyncWatcher extends BaseWatcher {
           async (event: Event) => {
             return this.handleTransferSentEvent(event)
           },
-          { cacheKey: this.cacheKey(l2Bridge.TransferSent), startBlockNumber }
+          getOptions(l2Bridge.TransferSent)
         )
       )
 
@@ -132,7 +176,7 @@ class SyncWatcher extends BaseWatcher {
               this.handleTransfersCommittedEventForTransferIds(event)
             ])
           },
-          { cacheKey: this.cacheKey(l2Bridge.TransfersCommitted), startBlockNumber }
+          getOptions(l2Bridge.TransfersCommitted)
         )
       )
     }
@@ -142,7 +186,7 @@ class SyncWatcher extends BaseWatcher {
         async (event: Event) => {
           return this.handleWithdrawalBondedEvent(event)
         },
-        { cacheKey: this.cacheKey(this.bridge.WithdrawalBonded), startBlockNumber }
+        getOptions(this.bridge.WithdrawalBonded)
       )
         .then(() => {
         // This must be executed after the WithdrawalBonded event handler on initial sync
@@ -151,7 +195,7 @@ class SyncWatcher extends BaseWatcher {
             async (event: Event) => {
               return this.handleMultipleWithdrawalsSettledEvent(event)
             },
-            { cacheKey: this.cacheKey(this.bridge.MultipleWithdrawalsSettled), startBlockNumber }
+            getOptions(this.bridge.MultipleWithdrawalsSettled)
           )
         })
     )
@@ -161,7 +205,7 @@ class SyncWatcher extends BaseWatcher {
         async (event: Event) => {
           return this.handleTransferRootSetEvent(event)
         },
-        { cacheKey: this.cacheKey(this.bridge.TransferRootSet), startBlockNumber }
+        getOptions(this.bridge.TransferRootSet)
       )
     )
 

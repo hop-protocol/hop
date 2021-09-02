@@ -394,7 +394,7 @@ const Send: FC = () => {
         requiredLiquidity
       )
 
-      const formattedAmount = formatUnits(
+      const formattedAmount = toTokenDisplay(
         availableLiquidity,
         sourceToken.decimals
       )

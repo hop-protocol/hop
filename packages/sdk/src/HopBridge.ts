@@ -20,7 +20,8 @@ import {
   BondTransferGasLimit,
   LpFee,
   GasPriceMultiplier,
-  MinBonderBps
+  MinBonderBps,
+  UnbondedRootsBuffer
 } from './constants'
 import { metadata } from './config'
 import { PriceFeed } from './priceFeed'
@@ -752,6 +753,15 @@ class HopBridge extends Base {
       )
 
       availableLiquidity = availableLiquidity.sub(pendingAmount)
+
+      const token = this.toTokenModel(this.tokenSymbol)
+      if (token.symbol === 'USDC') {
+        const unbondedRootsBufferBn = parseUnits(
+          UnbondedRootsBuffer,
+          token.decimals
+        )
+        availableLiquidity = availableLiquidity.sub(unbondedRootsBufferBn)
+      }
     }
 
     if (availableLiquidity.lt('0')) {

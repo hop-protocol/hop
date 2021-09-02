@@ -4,7 +4,7 @@ import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
-import { enabledSettleWatcherChains } from 'src/config'
+import { enabledSettleWatcherSourceChains } from 'src/config'
 import { wait } from 'src/utils'
 
 export interface Config {
@@ -53,16 +53,16 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   checkUnsettledTransferRootsFromDb = async () => {
-    if (enabledSettleWatcherChains?.length) {
-      if (!enabledSettleWatcherChains.includes(this.chainSlug)) {
+    if (enabledSettleWatcherSourceChains?.length) {
+      if (!enabledSettleWatcherSourceChains.includes(this.chainSlug)) {
         return
       }
     }
 
-    // only process transfer where this bridge is the destination chain
+    // only process transfer where this bridge is the source chain
     const dbTransferRoots = await this.db.transferRoots.getUnsettledTransferRoots(
       {
-        destinationChainId: await this.bridge.getChainId()
+        sourceChainId: await this.bridge.getChainId()
       }
     )
 

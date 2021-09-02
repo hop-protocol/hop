@@ -629,7 +629,7 @@ export default class Bridge extends ContractBase {
     }
   }
 
-  private getBlockValues = async (options: any, state: State) => {
+  private getBlockValues = async (options: Partial<EventsBatchOptions>, state: State) => {
     const { startBlockNumber, endBlockNumber } = options
 
     let end

@@ -472,12 +472,12 @@ export default class L2Bridge extends Bridge {
   }
 
   async compareBonderFeeBasisPoints (amountIn: BigNumber, bonderFee: BigNumber) {
-    if (amountIn.eq(0)) {
-      return BigNumber.from(0)
+    let hTokenAmount = BigNumber.from(0)
+    if (amountIn.gt(0)) {
+      hTokenAmount = await this.amm.calculateHTokensOut(
+        amountIn
+      )
     }
-    const hTokenAmount = await this.amm.calculateHTokensOut(
-      amountIn
-    )
     const minBonderFeeAbsolute = this.bridgeContract?.minBonderFeeAbsolute()
     const minBonderFeeRelative = hTokenAmount.mul(MIN_BONDER_BPS).div(10000)
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)

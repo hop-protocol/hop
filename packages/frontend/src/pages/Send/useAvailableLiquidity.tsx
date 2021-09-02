@@ -5,6 +5,7 @@ import useInterval from 'src/hooks/useInterval'
 
 const useAvailableLiquidity = (
   bridge: HopBridge | undefined,
+  sourceChain: string | undefined,
   destinationChain: string | undefined
 ): BigNumber | undefined => {
   const [availableLiquidity, setAvailableLiquidity] = useState<BigNumber>()
@@ -22,8 +23,8 @@ const useAvailableLiquidity = (
       }
 
       let liquidity
-      if (destinationChain) {
-        liquidity = await bridge.getAvailableLiquidity(destinationChain)
+      if (sourceChain && destinationChain) {
+        liquidity = await bridge.getAvailableLiquidity(sourceChain, destinationChain)
       }
       setAvailableLiquidity(liquidity)
     } catch (err) {

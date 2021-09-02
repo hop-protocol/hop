@@ -17,7 +17,8 @@ export const hostname = process.env.HOSTNAME || os.hostname()
 export const slackChannel = process.env.SLACK_CHANNEL
 export const slackAuthToken = process.env.SLACK_AUTH_TOKEN
 export const slackUsername = process.env.SLACK_USERNAME || 'Hop Node'
-export const enabledSettleWatcherChains = (process.env.ENABLED_SETTLE_WATCHER_CHAINS || '').split(',').map(x => x.trim()).filter(x => x)
+export const enabledSettleWatcherDestinationChains = (process.env.ENABLED_SETTLE_WATCHER_DESTINATION_CHAINS || '').split(',').map(x => x.trim()).filter(x => x)
+export const enabledSettleWatcherSourceChains = (process.env.ENABLED_SETTLE_WATCHER_SOURCE_CHAINS || '').split(',').map(x => x.trim()).filter(x => x)
 const envNetwork = process.env.NETWORK || Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY

@@ -724,24 +724,41 @@ class HopBridge extends Base {
 
   /**
    * @desc Returns available liquidity for Hop bridge at specified chain.
+   * @param {Object} sourceChain - Source chain model.
    * @param {Object} destinationChain - Destination chain model.
    * @returns {Object} Available liquidity as BigNumber.
    */
   public async getAvailableLiquidity (
+    sourceChain: TChain,
     destinationChain: TChain,
     bonder: string = this.getBonderAddress(this.tokenSymbol)
   ): Promise<BigNumber> {
-    const chain = this.toChainModel(destinationChain)
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
     const [credit, debit] = await Promise.all([
-      this.getCredit(chain, bonder),
-      this.getDebit(chain, bonder)
+      this.getCredit(destinationChain, bonder),
+      this.getDebit(destinationChain, bonder)
     ])
 
-    if (credit.lt(debit)) {
-      return BigNumber.from('0')
-    } else {
-      return credit.sub(debit)
+    let availableLiquidity = credit.sub(debit)
+
+    if (
+      sourceChain.equals(Chain.Optimism) &&
+      destinationChain.equals(Chain.Ethereum)
+    ) {
+      const bridgeContract = await this.getBridgeContract(sourceChain)
+      const pendingAmount = await bridgeContract.pendingAmountForChainId(
+        destinationChain.chainId
+      )
+
+      availableLiquidity = availableLiquidity.sub(pendingAmount)
     }
+
+    if (availableLiquidity.lt('0')) {
+      return BigNumber.from('0')
+    }
+
+    return availableLiquidity
   }
 
   /**

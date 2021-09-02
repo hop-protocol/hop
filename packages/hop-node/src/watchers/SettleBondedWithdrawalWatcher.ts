@@ -4,7 +4,7 @@ import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
-import { enabledSettleWatcherSourceChains } from 'src/config'
+import { enabledSettleWatcherDestinationChains, enabledSettleWatcherSourceChains } from 'src/config'
 import { wait } from 'src/utils'
 
 export interface Config {
@@ -68,7 +68,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
     const promises: Promise<any>[] = []
     for (const dbTransferRoot of dbTransferRoots) {
-      const { transferRootHash, transferIds } = dbTransferRoot
+      const { transferRootHash, transferIds, destinationChainId } = dbTransferRoot
+
+      if (enabledSettleWatcherDestinationChains?.length) {
+        if (!enabledSettleWatcherDestinationChains.includes(this.chainIdToSlug(destinationChainId))) {
+          continue
+        }
+      }
 
       // get all db transfer items that belong to root
       const dbTransfers : Transfer[] = []

@@ -33,30 +33,23 @@ export default class L2Bridge extends Bridge {
   constructor (l2BridgeContract: Contract) {
     super(l2BridgeContract)
 
-    if (this.bridgeContract.ammWrapper) {
-      this.bridgeContract
-        .ammWrapper()
-        .then((address: string) => {
-          const ammWrapperContract = new Contract(
-            address,
-            l2AmmWrapperAbi,
-            this.bridgeContract.signer
-          )
-          this.ammWrapper = new L2AmmWrapper(ammWrapperContract)
+    const addresses = globalConfig.tokens?.[this.tokenSymbol]?.[this.chainSlug]
+    if (addresses?.l2AmmWrapper) {
+      const ammWrapperContract = new Contract(
+        addresses.l2AmmWrapper,
+        l2AmmWrapperAbi,
+        this.bridgeContract.signer
+      )
+      this.ammWrapper = new L2AmmWrapper(ammWrapperContract)
+    }
 
-          if (ammWrapperContract.exchangeAddress) {
-            ammWrapperContract
-              .exchangeAddress()
-              .then((address: string) => {
-                const ammContract = new Contract(
-                  address,
-                  saddleSwapAbi,
-                  this.bridgeContract.signer
-                )
-                this.amm = new L2Amm(ammContract)
-              })
-          }
-        })
+    if (addresses?.l2SaddleSwap) {
+      const ammContract = new Contract(
+        addresses.l2SaddleSwap,
+        saddleSwapAbi,
+        this.bridgeContract.signer
+      )
+      this.amm = new L2Amm(ammContract)
     }
 
     const l2BridgeWrapperContract = new Contract(

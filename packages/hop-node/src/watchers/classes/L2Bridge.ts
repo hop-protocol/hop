@@ -478,7 +478,7 @@ export default class L2Bridge extends Bridge {
         amountIn
       )
     }
-    const minBonderFeeAbsolute = this.bridgeContract?.minBonderFeeAbsolute()
+    const minBonderFeeAbsolute = await this.bridgeContract?.minBonderFeeAbsolute()
     const minBonderFeeRelative = hTokenAmount.mul(MIN_BONDER_BPS).div(10000)
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative

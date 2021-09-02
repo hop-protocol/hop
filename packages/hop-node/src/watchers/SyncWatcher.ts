@@ -642,7 +642,7 @@ class SyncWatcher extends BaseWatcher {
       })
     }
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    const rootAmountAllSettled = dbTransferRoot ? dbTransferRoot?.totalAmount.eq(totalBondsSettled) : false
+    const rootAmountAllSettled = dbTransferRoot ? dbTransferRoot?.totalAmount?.eq(totalBondsSettled) : false
     const allTransfersSettled = dbTransfers.every(
       (dbTransfer: Transfer) => dbTransfer?.withdrawalBondSettled
     )

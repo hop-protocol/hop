@@ -41,7 +41,7 @@ program
   )
   .option('--clear-db', 'Clear cache database on start')
   .option('--log-db-state', 'Log db state periodically')
-  .option('--sync-from-date <string>', 'Date to start syncing db from, in format YYYY-MM-DD')
+  .option('--sync-from-date <string>', 'Date to start syncing db from, in format ISO format YYYY-MM-DD')
   .action(async (source: any) => {
     try {
       printHopArt()

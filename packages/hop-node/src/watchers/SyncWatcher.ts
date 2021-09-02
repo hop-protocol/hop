@@ -44,7 +44,7 @@ class SyncWatcher extends BaseWatcher {
     this.syncFromDate = config.syncFromDate
     this.init()
       .catch(err => {
-        this.logger.error('init error', err)
+        this.logger.error('init error:', err)
         this.quit()
       })
   }
@@ -54,10 +54,8 @@ class SyncWatcher extends BaseWatcher {
       const date = DateTime.fromISO(this.syncFromDate)
       const timestamp = date.toSeconds()
       this.customStartBlockNumber = await getBlockNumberFromDate(this.chainSlug, timestamp)
-      this.ready = true
-    } else {
-      this.ready = true
     }
+    this.ready = true
   }
 
   async start () {

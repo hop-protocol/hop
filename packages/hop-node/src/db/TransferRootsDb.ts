@@ -180,8 +180,8 @@ class TransferRootsDb extends BaseDb {
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRoots()
     return transferRoots.filter(item => {
-      if (filter?.destinationChainId) {
-        if (filter.destinationChainId !== item.destinationChainId) {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
       }

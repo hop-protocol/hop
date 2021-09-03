@@ -346,7 +346,7 @@ const Send: FC = () => {
     enoughBalance = false
   }
 
-  const availableLiquidity = useAvailableLiquidity(selectedBridge, toNetwork?.slug)
+  const availableLiquidity = useAvailableLiquidity(selectedBridge, fromNetwork?.slug, toNetwork?.slug)
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
@@ -394,7 +394,7 @@ const Send: FC = () => {
         requiredLiquidity
       )
 
-      const formattedAmount = formatUnits(
+      const formattedAmount = toTokenDisplay(
         availableLiquidity,
         sourceToken.decimals
       )

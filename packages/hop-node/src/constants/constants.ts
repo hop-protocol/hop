@@ -49,3 +49,4 @@ export enum TxError {
 }
 
 export const GAS_PRICE_MULTIPLIER = 1.25
+export const MIN_BONDER_BPS = '18'

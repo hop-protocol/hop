@@ -2,10 +2,9 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
-import { Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
-import { enabledSettleWatcherChains } from 'src/config'
+import { enabledSettleWatcherDestinationChains, enabledSettleWatcherSourceChains } from 'src/config'
 import { wait } from 'src/utils'
 
 export interface Config {
@@ -54,25 +53,27 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   checkUnsettledTransferRootsFromDb = async () => {
-    if (enabledSettleWatcherChains?.length) {
-      if (!enabledSettleWatcherChains.includes(this.chainSlug)) {
+    if (enabledSettleWatcherSourceChains?.length) {
+      if (!enabledSettleWatcherSourceChains.includes(this.chainSlug)) {
         return
       }
     }
 
-    // only process transfer where this bridge is the destination chain
+    // only process transfer where this bridge is the source chain
     const dbTransferRoots = await this.db.transferRoots.getUnsettledTransferRoots(
       {
-        destinationChainId: await this.bridge.getChainId()
+        sourceChainId: await this.bridge.getChainId()
       }
     )
 
     const promises: Promise<any>[] = []
     for (const dbTransferRoot of dbTransferRoots) {
-      const { transferRootHash, transferIds, sourceChainId } = dbTransferRoot
+      const { transferRootHash, transferIds, destinationChainId } = dbTransferRoot
 
-      if (sourceChainId !== this.chainSlugToId(Chain.Optimism)) {
-        continue
+      if (enabledSettleWatcherDestinationChains?.length) {
+        if (!enabledSettleWatcherDestinationChains.includes(this.chainIdToSlug(destinationChainId))) {
+          continue
+        }
       }
 
       // get all db transfer items that belong to root

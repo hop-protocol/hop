@@ -6,7 +6,7 @@ import { BonderFeeTooLowError } from 'src/types/error'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
-import { wait } from 'src/utils'
+import { isL1, wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
@@ -244,7 +244,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('recipient:', recipient)
     logger.debug('transferNonce:', transferNonce)
     logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
-    if (attemptSwap) {
+    if (attemptSwap && !isL1(destinationChainId)) {
       logger.debug(
         `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
       )

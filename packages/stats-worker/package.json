@@ -1,0 +1,31 @@
+{
+  "name": "stats-worker",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "lint": "prettier-standard --format",
+    "clean": "rimraf dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.29.0",
+    "@hop-protocol/core": "0.0.1-beta.20",
+    "@hop-protocol/sdk": "0.0.1-beta.155",
+    "@pinata/sdk": "^1.1.23",
+    "@types/node": "^16.7.10",
+    "dotenv": "^10.0.0",
+    "ethers": "^5.4.6",
+    "typescript": "^4.4.2",
+    "wait": "^0.4.2"
+  },
+  "devDependencies": {
+    "prettier-standard": "^16.4.1",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.2.1"
+  }
+}

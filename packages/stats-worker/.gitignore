@@ -1,0 +1,7 @@
+node_modules
+package-lock.json
+*.env
+dist
+build
+_data
+generated

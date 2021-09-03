@@ -561,7 +561,7 @@ class HopBridge extends Base {
     }
 
     amountIn = BigNumber.from(amountIn)
-    let lpFees = amountIn.mul(lpFeeBpsBn)
+    let lpFees = amountIn.mul(lpFeeBpsBn).div(10000)
 
     return lpFees
   }

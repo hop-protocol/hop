@@ -18,7 +18,7 @@ import _version from './version'
 import {
   TokenIndex,
   BondTransferGasLimit,
-  LpFee,
+  LpFeeBps,
   GasPriceMultiplier,
   MinBonderBps,
   UnbondedRootsBuffer
@@ -513,8 +513,13 @@ class HopBridge extends Base {
     const minBps = Math.ceil(10000 - slippageToleranceBps)
     const amountOutMin = amountOut.mul(minBps).div(10000)
 
-    const lpFeeBN = parseUnits(LpFee, destToken.decimals)
-    const lpFeeAmount = amountIn.mul(lpFeeBN).div(oneDestBN)
+    // Divide by 10000 at the end so that the amount isn't floored at 0
+    const lpFee = BigNumber.from(LpFeeBps)
+    const lpFeeBN = parseUnits(lpFee.toString(), destToken.decimals)
+    const lpFeeAmount = amountIn
+      .mul(lpFeeBN)
+      .div(oneDestBN)
+      .div(10000)
 
     return {
       rate,
@@ -549,10 +554,10 @@ class HopBridge extends Base {
 
     let lpFeeBpsBn = BigNumber.from('0')
     if (!sourceChain.isL1) {
-      lpFeeBpsBn = lpFeeBpsBn.add(LpFee)
+      lpFeeBpsBn = lpFeeBpsBn.add(LpFeeBps)
     }
     if (!destinationChain.isL1) {
-      lpFeeBpsBn = lpFeeBpsBn.add(LpFee)
+      lpFeeBpsBn = lpFeeBpsBn.add(LpFeeBps)
     }
 
     amountIn = BigNumber.from(amountIn)

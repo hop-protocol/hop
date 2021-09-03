@@ -707,10 +707,6 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    if (sourceChain.isL1) {
-      return BigNumber.from('0')
-    }
-
     const hTokenAmount = await this.calcToHTokenAmount(
       amountIn.toString(),
       sourceChain

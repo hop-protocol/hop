@@ -531,15 +531,11 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    if (!destinationChain.isL1) {
-      return this.getMinBonderFee(
-        amountIn.toString(),
-        sourceChain,
-        destinationChain
-      )
-    } else {
-      return BigNumber.from(0)
-    }
+    return this.getMinBonderFee(
+      amountIn.toString(),
+      sourceChain,
+      destinationChain
+    )
   }
 
   public async getLpFees (
@@ -550,16 +546,16 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    let lpFeeBps = 0
+    let lpFeeBpsBn = BigNumber.from('0')
     if (!sourceChain.isL1) {
-      lpFeeBps += 4
+      lpFeeBpsBn = lpFeeBpsBn.add(LpFee)
     }
     if (!destinationChain.isL1) {
-      lpFeeBps += 4
+      lpFeeBpsBn = lpFeeBpsBn.add(LpFee)
     }
 
     amountIn = BigNumber.from(amountIn)
-    let lpFees = amountIn.mul(lpFeeBps).div(10000)
+    let lpFees = amountIn.mul(lpFeeBpsBn)
 
     return lpFees
   }

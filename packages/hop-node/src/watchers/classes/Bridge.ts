@@ -142,7 +142,7 @@ export default class Bridge extends ContractBase {
     return bondedBn
   }
 
-  async getTotalBondedWithdrawalAmount (
+  async getTotalBondedWithdrawalAmountForTransferId (
     transferId: string
   ): Promise<BigNumber> {
     let totalBondedAmount = BigNumber.from(0)

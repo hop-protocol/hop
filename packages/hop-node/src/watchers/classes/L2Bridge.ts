@@ -465,14 +465,16 @@ export default class L2Bridge extends Bridge {
   }
 
   async compareBonderFeeBasisPoints (amountIn: BigNumber, bonderFee: BigNumber) {
-    let hTokenAmount = BigNumber.from(0)
-    if (amountIn.gt(0)) {
-      hTokenAmount = await this.amm.calculateHTokensOut(
-        amountIn
-      )
+    if (amountIn.eq(0)) {
+      return
     }
     const minBonderFeeAbsolute = await this.bridgeContract?.minBonderFeeAbsolute()
-    const minBonderFeeRelative = hTokenAmount.mul(MIN_BONDER_BPS).div(10000)
+    let minBonderFeeRelative = amountIn.mul(MIN_BONDER_BPS).div(10000)
+
+    // add 10% buffer for in the case amountIn is greater than originally
+    // estimated in frontend due to user receiving more hTokens during swap
+    const tolerance = 0.10
+    minBonderFeeRelative = minBonderFeeRelative.sub(minBonderFeeRelative.mul(tolerance * 100).div(100))
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute

@@ -264,11 +264,27 @@ class AMM extends Base {
     }
     startBlockNumber = info.block
 
-    const tokenSwapEvents = await saddleSwap.queryFilter(
-      saddleSwap.filters.TokenSwap(),
-      startBlockNumber,
+    let tokenSwapEvents: any[] = []
+    let perBatch = 1000
+    let endBatchBlockNumber = Math.min(
+      startBlockNumber + perBatch,
       endBlockNumber
     )
+    while (startBlockNumber < endBlockNumber) {
+      tokenSwapEvents.push(
+        ...(await saddleSwap.queryFilter(
+          saddleSwap.filters.TokenSwap(),
+          startBlockNumber,
+          endBatchBlockNumber
+        ))
+      )
+
+      startBlockNumber = endBatchBlockNumber
+      endBatchBlockNumber = Math.min(
+        endBatchBlockNumber + perBatch,
+        endBlockNumber
+      )
+    }
 
     const basisPoints = data.swapFee
     const FEE_DENOMINATOR = '10000000000' // 10**10

@@ -1,5 +1,6 @@
 import Bridge, { EventCb, EventsBatchOptions } from './Bridge'
 import L1Bridge from './L1Bridge'
+import L2Amm from './L2Amm'
 import L2AmmWrapper from './L2AmmWrapper'
 import L2BridgeWrapper from './L2BridgeWrapper'
 import Token from './Token'
@@ -7,20 +8,23 @@ import delay from 'src/decorators/delay'
 import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Chain } from 'src/constants'
+import { BonderFeeTooLowError } from 'src/types/error'
+import { Chain, MIN_BONDER_BPS } from 'src/constants'
 import { Event } from 'src/types'
 import { Hop } from '@hop-protocol/sdk'
 import { boundClass } from 'autobind-decorator'
 import {
   erc20Abi,
   l2AmmWrapperAbi,
-  l2BridgeWrapperAbi
+  l2BridgeWrapperAbi,
+  swapAbi as saddleSwapAbi
 } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
 
 @boundClass
 export default class L2Bridge extends Bridge {
   ammWrapper: L2AmmWrapper
+  amm: L2Amm
   l2BridgeWrapper: L2BridgeWrapper
   TransfersCommitted: string = 'TransfersCommitted'
   TransferSent: string = 'TransferSent'
@@ -29,17 +33,23 @@ export default class L2Bridge extends Bridge {
   constructor (l2BridgeContract: Contract) {
     super(l2BridgeContract)
 
-    if (this.bridgeContract.ammWrapper) {
-      this.bridgeContract
-        .ammWrapper()
-        .then((address: string) => {
-          const ammWrapperContract = new Contract(
-            address,
-            l2AmmWrapperAbi,
-            this.bridgeContract.signer
-          )
-          this.ammWrapper = new L2AmmWrapper(ammWrapperContract)
-        })
+    const addresses = globalConfig.tokens?.[this.tokenSymbol]?.[this.chainSlug]
+    if (addresses?.l2AmmWrapper) {
+      const ammWrapperContract = new Contract(
+        addresses.l2AmmWrapper,
+        l2AmmWrapperAbi,
+        this.bridgeContract.signer
+      )
+      this.ammWrapper = new L2AmmWrapper(ammWrapperContract)
+    }
+
+    if (addresses?.l2SaddleSwap) {
+      const ammContract = new Contract(
+        addresses.l2SaddleSwap,
+        saddleSwapAbi,
+        this.bridgeContract.signer
+      )
+      this.amm = new L2Amm(ammContract)
     }
 
     const l2BridgeWrapperContract = new Contract(
@@ -446,9 +456,30 @@ export default class L2Bridge extends Bridge {
       txOverrides
     ]
 
+    // don't bond if bonder fee is too low between L2s
+    await this.compareBonderFeeBasisPoints(amount, bonderFee)
+
     const tx = await this.bridgeContract.bondWithdrawalAndDistribute(...payload)
 
     return tx
+  }
+
+  async compareBonderFeeBasisPoints (amountIn: BigNumber, bonderFee: BigNumber) {
+    let hTokenAmount = BigNumber.from(0)
+    if (amountIn.gt(0)) {
+      hTokenAmount = await this.amm.calculateHTokensOut(
+        amountIn
+      )
+    }
+    const minBonderFeeAbsolute = await this.bridgeContract?.minBonderFeeAbsolute()
+    const minBonderFeeRelative = hTokenAmount.mul(MIN_BONDER_BPS).div(10000)
+    const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
+      ? minBonderFeeRelative
+      : minBonderFeeAbsolute
+    const isTooLow = bonderFee.lt(minBonderFee)
+    if (isTooLow) {
+      throw new BonderFeeTooLowError(`bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFee: ${minBonderFee}`)
+    }
   }
 
   @rateLimitRetry

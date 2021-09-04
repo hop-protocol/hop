@@ -142,11 +142,20 @@ program
         if (source.fromFile) {
           let json : any
           try {
-            json = JSON.parse(fs.readFileSync(path.resolve(source.fromFile), 'utf8').trim())
+            const filepath = path.resolve(source.fromFile)
+            if (!fs.existsSync(filepath)) {
+              throw new Error(`file ${filepath} does not exist`)
+            }
+            json = JSON.parse(fs.readFileSync(filepath, 'utf8').trim())
           } catch (err) {
             throw new Error('could not parse JSON input file')
           }
 
+          if (!(newConfig.commitTransfers instanceof Object)) {
+            newConfig.commitTransfers = {
+              minThresholdAmount: {}
+            }
+          }
           newConfig.commitTransfers.minThresholdAmount = json
           for (const _token in json) {
             for (const _sourceChain in json[_token]) {

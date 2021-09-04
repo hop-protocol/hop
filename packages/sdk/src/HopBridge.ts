@@ -448,8 +448,9 @@ class HopBridge extends Base {
       destinationChain
     )
     let estimatedReceived = amountOut
-    if (destinationTxFee.gt(0)) {
-      estimatedReceived = estimatedReceived.sub(destinationTxFee)
+    const totalFee = bonderFee.add(destinationTxFee)
+    if (totalFee.gt(0)) {
+      estimatedReceived = estimatedReceived.sub(totalFee)
     }
 
     return {

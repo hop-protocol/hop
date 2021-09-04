@@ -1,5 +1,7 @@
+import fs from 'fs'
 import normalizeEnvVarArray from 'src/utils/normalizeEnvVarArray'
 import objectDepth from 'src/utils/objectDepth'
+import path from 'path'
 import {
   FileConfig,
   getEnabledNetworks,
@@ -22,10 +24,11 @@ program
   .option('--token <string>', 'Token symbol')
   .option('--tokens <string>', 'Specifiy multiple token symbol')
   .option('--set-enabled [boolean]', 'Token to set enabled/disabled')
-  .option('--commit-transfers-min-threshold <string>', 'Min threshold amount for committing transfers')
+  .option('--commit-transfers-min-threshold [string]', 'Min threshold amount for committing transfers')
   .option('--bond-withdrawals-min <string>', 'Min amount for bonding withdrawals')
   .option('--bond-withdrawals-max <string>', 'Max amount for bonding withdrawals')
   .option('--state-update-address <string>', 'Address of StateUpdater contract')
+  .option('--from-file <string>', 'Update config with input from file')
   .action(async source => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -132,12 +135,31 @@ program
           const destinationChains = destinationChain ? [destinationChain] : allChains
           for (const _destinationChain of destinationChains) {
             newConfig.commitTransfers.minThresholdAmount[token][chain][_destinationChain] = commitTransfersMinThresholdAmount
-            logger.debug(`updating commitTransfers.minThresholdAmount to ${commitTransfersMinThresholdAmount} for ${token} ${chain}→${_destinationChain}`)
+            logger.debug(`updating commitTransfers.minThresholdAmount ${token} ${chain}→${_destinationChain} ${commitTransfersMinThresholdAmount}`)
           }
         }
 
-        for (const token of tokens) {
-          await updateCommitTransfersMinThreshold(token)
+        if (source.fromFile) {
+          let json : any
+          try {
+            json = JSON.parse(fs.readFileSync(path.resolve(source.fromFile), 'utf8').trim())
+          } catch (err) {
+            throw new Error('could not parse JSON input file')
+          }
+
+          newConfig.commitTransfers.minThresholdAmount = json
+          for (const _token in json) {
+            for (const _sourceChain in json[_token]) {
+              for (const _destinationChain in json[_token][_sourceChain]) {
+                const amount = json[_token][_sourceChain][_destinationChain]
+                logger.debug(`updating commitTransfers.minThresholdAmount ${_token} ${_sourceChain}→${_destinationChain} ${amount} `)
+              }
+            }
+          }
+        } else {
+          for (const token of tokens) {
+            await updateCommitTransfersMinThreshold(token)
+          }
         }
       } else if (
         source.bondWithdrawalsMin !== undefined ||

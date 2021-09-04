@@ -60,7 +60,7 @@ class CommitTransfersWatcher extends BaseWatcher {
   async start () {
     const chains = getEnabledNetworks()
     for (const destinationChain of chains) {
-      if (this.isL1) {
+      if (this.isL1 || this.chainSlug === destinationChain) {
         continue
       }
       const minThresholdAmount = this.getMinThresholdAmount(this.chainSlugToId(destinationChain))

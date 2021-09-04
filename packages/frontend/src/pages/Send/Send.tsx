@@ -314,8 +314,12 @@ const Send: FC = () => {
     fromTokenAmountBN
   )
 
+  let totalBonderFee = destinationTxFee
+  if (destinationTxFee && bonderFee) {
+    totalBonderFee = destinationTxFee.add(bonderFee)
+  }
   const destinationTxFeeDisplay = toTokenDisplay(
-    destinationTxFee,
+    totalBonderFee,
     destToken?.decimals,
     destToken?.symbol
   )

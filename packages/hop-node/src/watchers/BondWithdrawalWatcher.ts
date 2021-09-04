@@ -6,7 +6,7 @@ import { BonderFeeTooLowError } from 'src/types/error'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
-import { wait } from 'src/utils'
+import { isL1, wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
@@ -102,7 +102,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     await this.waitTimeout(transferId, destinationChainId)
 
-    const bondedAmount = await destBridge.getBondedWithdrawalAmount(transferId)
+    const bondedAmount = await destBridge.getTotalBondedWithdrawalAmountForTransferId(transferId)
     if (bondedAmount.gt(0)) {
       logger.warn('transfer already bonded. Adding to db and skipping')
       const event = await destBridge.getBondedWithdrawalEvent(transferId)
@@ -244,7 +244,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('recipient:', recipient)
     logger.debug('transferNonce:', transferNonce)
     logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
-    if (attemptSwap) {
+    if (attemptSwap && !isL1(this.chainIdToSlug(destinationChainId))) {
       logger.debug(
         `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
       )
@@ -279,7 +279,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       if (!this.started) {
         return
       }
-      const bondedAmount = await bridge.getTotalBondedWithdrawalAmount(
+      const bondedAmount = await bridge.getTotalBondedWithdrawalAmountForTransferId(
         transferId
       )
       if (!bondedAmount.eq(0)) {

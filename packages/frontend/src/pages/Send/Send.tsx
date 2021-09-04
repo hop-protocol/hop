@@ -314,8 +314,12 @@ const Send: FC = () => {
     fromTokenAmountBN
   )
 
+  let totalBonderFee = destinationTxFee
+  if (destinationTxFee && bonderFee) {
+    totalBonderFee = destinationTxFee.add(bonderFee)
+  }
   const destinationTxFeeDisplay = toTokenDisplay(
-    destinationTxFee,
+    totalBonderFee,
     destToken?.decimals,
     destToken?.symbol
   )
@@ -918,10 +922,10 @@ const Send: FC = () => {
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
           {
-            destinationTxFee?.gt(0) &&
+            totalBonderFee?.gt(0) &&
             <DetailRow
               title={`${toNetwork?.isLayer1 ? 'L1' : toNetwork?.name} Transaction Fee`}
-              tooltip="This fee covers the destination transaction fee paid by the Bonder."
+              tooltip="This fee covers the bonder fee and the destination transaction cost paid by the Bonder."
               value={destinationTxFeeDisplay}
               large
             />

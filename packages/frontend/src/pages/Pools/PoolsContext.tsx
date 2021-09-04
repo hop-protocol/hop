@@ -255,13 +255,14 @@ const PoolsContextProvider: FC = ({ children }) => {
   useEffect(() => {
     const update = async () => {
       try {
-        if (!canonicalToken) {
+        if (!(
+          selectedBridge &&
+          selectedNetwork
+        )) {
           return
         }
-        if (!selectedNetwork) {
-          return
-        }
-        const cacheKey = `apr:${selectedNetwork.slug}:${canonicalToken.symbol}`
+        const token = await selectedBridge.getCanonicalToken(selectedNetwork.slug)
+        const cacheKey = `apr:${selectedNetwork.slug}:${token.symbol}`
         try {
           const cached = JSON.parse(localStorage.getItem(cacheKey) || '')
           const tenMinutes = 10 * 60 * 1000
@@ -278,9 +279,18 @@ const PoolsContextProvider: FC = ({ children }) => {
         }
         setApr(undefined)
         aprRef.current = cacheKey
-        const bridge = await sdk.bridge(canonicalToken.symbol)
-        const amm = bridge.getAmm(selectedNetwork.slug)
-        const apr = await amm.getApr()
+        let apr : number
+        try {
+          const url = 'https://assets.hop.exchange/v1-pool-stats.json'
+          const res = await fetch(url)
+          const json = await res.json()
+
+          apr = json.data[token.symbol][selectedNetwork.slug].apr
+        } catch (err) {
+          const bridge = await sdk.bridge(token.symbol)
+          const amm = bridge.getAmm(selectedNetwork.slug)
+          apr = await amm.getApr()
+        }
         try {
           localStorage.setItem(cacheKey, JSON.stringify({
             timestamp: Date.now(),
@@ -297,7 +307,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     }
 
     update()
-  }, [sdk, canonicalToken, selectedNetwork])
+  }, [sdk, selectedBridge, selectedNetwork])
 
   const priceImpact = useAsyncMemo(async () => {
     if (!(

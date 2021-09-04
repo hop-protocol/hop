@@ -23,7 +23,7 @@ export enum BondTransferGasLimit {
   Optimism = '100000000'
 }
 
-export const LpFee = '0.0004'
+export const LpFeeBps = '4'
 export const GasPriceMultiplier = '1.6'
 export const MinBonderBps = '18'
 export const UnbondedRootsBuffer = '50000'

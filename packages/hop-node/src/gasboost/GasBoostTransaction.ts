@@ -429,9 +429,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const prevItem = this.getLatestInflightItem()
     if (prevItem) {
       prevItem.boosted = true
-      this.logger.debug(`tracking boosted tx: ${tx.hash}, previous tx: ${prevItem.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}, gasPrice: ${this.gasPrice.toString()}`)
+      this.logger.debug(`tracking boosted tx: ${tx.hash}, previous tx: ${prevItem.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}, gasPrice: ${this.gasPrice?.toString()}`)
     } else {
-      this.logger.debug(`tracking new tx: ${tx.hash}, nonce: ${this.nonce.toString()}, gasPrice: ${this.gasPrice.toString()}`)
+      this.logger.debug(`tracking new tx: ${tx.hash}, nonce: ${this.nonce.toString()}, gasPrice: ${this.gasPrice?.toString()}`)
     }
     this.inflightItems.push({
       boosted: false,

@@ -5,7 +5,7 @@ import { Wallet } from 'ethers'
 import { getRpcProvider, wait } from 'src/utils'
 import { privateKey } from './config'
 
-describe.only('GasBoostSigner', () => {
+describe('GasBoostSigner', () => {
   it('initialize', async () => {
     const provider = getRpcProvider('xdai')
     const store = new MemoryStore()
@@ -13,7 +13,7 @@ describe.only('GasBoostSigner', () => {
     signer.setStore(store)
     expect(await signer.getAddress()).toBeTruthy()
   })
-  it.only('sendTransaction', async () => {
+  it('sendTransaction', async () => {
     const provider = getRpcProvider('xdai')
     const store = new MemoryStore()
     const signer = new GasBoostSigner(privateKey, provider, store, {
@@ -46,6 +46,44 @@ describe.only('GasBoostSigner', () => {
     await wait(1 * 1000)
     expect(confirmed).toBeTruthy()
     expect(boosted).toBeTruthy()
+  }, 10 * 60 * 1000)
+  it('maxGasBoostReached', async () => {
+    const provider = getRpcProvider('xdai')
+    const store = new MemoryStore()
+    const signer = new GasBoostSigner(privateKey, provider, store, {
+      timeTilBoostMs: 5 * 1000,
+      compareMarketGasPrice: false,
+      maxGasPriceGwei: 0.22,
+      gasPriceMultiplier: 1.5
+    })
+    const recipient = await signer.getAddress()
+    console.log('recipient:', recipient)
+    const tx = await signer.sendTransaction({
+      to: recipient,
+      value: '0',
+      gasPrice: '100000000' // 0.1 gwei
+    })
+    expect(tx.hash).toBeTruthy()
+    let boostedIndex = 0
+    ;(tx as GasBoostTransaction).on('boosted', (boostedTx: any, boostIndex: number) => {
+      console.log('boosted', {
+        hash: boostedTx.hash,
+        gasPrice: tx.gasPrice.toString(),
+        boostIndex
+      })
+      boostedIndex = boostIndex
+    })
+    let maxGasPriceReached = false
+    ;(tx as GasBoostTransaction).on('maxGasPriceReached', (gasPrice: any, boostIndex: number) => {
+      console.log('maxGasPriceReached', {
+        gasPrice: gasPrice.toString(),
+        boostIndex
+      })
+      maxGasPriceReached = true
+    })
+    await wait(30 * 1000)
+    expect(maxGasPriceReached).toBeTruthy()
+    expect(boostedIndex).toBe(1)
   }, 10 * 60 * 1000)
 })
 

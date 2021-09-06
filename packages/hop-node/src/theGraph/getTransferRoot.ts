@@ -121,6 +121,7 @@ export default async function getTransferRoot (chain: string, token: string, tra
   transferRoot.rootSetEvent = rootSet
   transferRoot.rootConfirmed = !!rootConfirmed
   transferRoot.rootConfirmedEvent = rootConfirmed
+  transferRoot.numTransfers = transferIds.length
   transferRoot.transferIds = transferIds
 
   return transferRoot

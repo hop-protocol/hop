@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid'
 export enum State {
   Confirmed = 'confirmed',
   Boosted = 'boosted',
+  MaxGasPriceReached = 'maxGasPriceReached',
   Error = 'error'
 }
 
@@ -63,6 +64,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   id: string
   createdAt: number
   txHash: string
+  maxGasPriceReached: boolean = false
 
   // these properties are required by ethers TransactionResponse interface
   from: string
@@ -251,7 +253,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.gasPriceMultiplier = options.gasPriceMultiplier
     }
     if (options.maxGasPriceGwei) {
-      this.maxGasPriceGwei = options.gasPriceMultiplier
+      this.maxGasPriceGwei = options.maxGasPriceGwei
     }
     if (typeof options.compareMarketGasPrice === 'boolean') {
       this.compareMarketGasPrice = options.compareMarketGasPrice
@@ -302,7 +304,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.gasPrice = tx.gasPrice
     const receipt = await this.getReceipt(txHash)
     this.emit(State.Confirmed, receipt)
-    this.logger.debug(`confirmed tx: ${tx.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}`)
+    this.logger.debug(`confirmed tx: ${tx.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}, gasPrice: ${this.gasPrice}`)
   }
 
   private async getReceipt (txHash: string) {
@@ -352,6 +354,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const gasPrice = await this.getBumpedGasPrice()
     const maxGasPrice = utils.parseUnits(this.maxGasPriceGwei.toString(), 9)
     if (gasPrice.gt(maxGasPrice)) {
+      if (!this.maxGasPriceReached) {
+        const warnMsg = `max gas price reached. boostedGasPrice: ${gasPrice}, maxGasPrice: ${this.maxGasPriceGwei}. cannot boost`
+        this.notifier.warn(warnMsg)
+        this.logger.warn(warnMsg)
+        this.emit(State.MaxGasPriceReached, gasPrice, this.boostIndex)
+        this.maxGasPriceReached = true
+      }
       return
     }
     const tx = await this._sendTransaction(gasPrice)
@@ -403,7 +412,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         }
 
         // await here is intential to catch error below
-        return await this.signer.sendTransaction(payload)
+        const tx = await this.signer.sendTransaction(payload)
+
+        // attach gasPrice if it's null
+        if (!tx.gasPrice) {
+          tx.gasPrice = gasPrice
+        }
+
+        return tx
       } catch (err) {
         const isAlreadyKnown = /AlreadyKnown/gi.test(err.message)
         const isFeeTooLow = /FeeTooLowToCompete/gi.test(err.message)
@@ -420,9 +436,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const prevItem = this.getLatestInflightItem()
     if (prevItem) {
       prevItem.boosted = true
-      this.logger.debug(`tracking boosted tx: ${tx.hash}, previous tx: ${prevItem.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}`)
+      this.logger.debug(`tracking boosted tx: ${tx.hash}, previous tx: ${prevItem.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}, gasPrice: ${this.gasPrice?.toString()}`)
     } else {
-      this.logger.debug(`tracking new tx: ${tx.hash}, nonce: ${this.nonce.toString()}`)
+      this.logger.debug(`tracking new tx: ${tx.hash}, nonce: ${this.nonce.toString()}, gasPrice: ${this.gasPrice?.toString()}`)
     }
     this.inflightItems.push({
       boosted: false,

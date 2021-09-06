@@ -477,7 +477,7 @@ const StakeWidget: FC<Props> = props => {
             Stake
           </Button>
         </Box>
-        {earned?.gt(0) && (
+        {stakeBalance?.gt(0) && (
           <Button
             className={styles.withdrawButton}
             large

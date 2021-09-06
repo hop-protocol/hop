@@ -412,7 +412,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         }
 
         // await here is intential to catch error below
-        return await this.signer.sendTransaction(payload)
+        const tx = await this.signer.sendTransaction(payload)
+
+        // attach gasPrice if it's null
+        if (!tx.gasPrice) {
+          tx.gasPrice = gasPrice
+        }
+
+        return tx
       } catch (err) {
         const isAlreadyKnown = /AlreadyKnown/gi.test(err.message)
         const isFeeTooLow = /FeeTooLowToCompete/gi.test(err.message)

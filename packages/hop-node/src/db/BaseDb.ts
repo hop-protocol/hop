@@ -14,8 +14,6 @@ const dbMap: { [key: string]: any } = {}
 class BaseDb {
   public db: any
   public prefix: string
-  public IDS = 'ids'
-  public idMap: { [key: string]: boolean }
   logger = new Logger('config')
 
   getQueueGroup () {
@@ -49,18 +47,6 @@ class BaseDb {
     const entry = await this.getById(key, {})
     const value = Object.assign({}, entry, data)
 
-    // lazy load id map
-    if (!this.idMap) {
-      this.idMap = await this.getIdMap()
-    }
-
-    // track unique keys
-    this.idMap[key] = true
-
-    // store id map
-    await this.db.put(this.IDS, this.idMap)
-
-    // store entry
     return this.db.put(key, value)
   }
 
@@ -76,13 +62,20 @@ class BaseDb {
     return this.db.delete(id)
   }
 
-  protected async getIdMap (): Promise<{ [key: string]: boolean }> {
-    return this.getById(this.IDS, {})
-  }
-
   protected async getKeys (): Promise<string[]> {
-    const obj = await this.getIdMap()
-    return Object.keys(obj)
+    return new Promise((resolve, reject) => {
+      const keys : string[] = []
+      this.db.createKeyStream()
+        .on('data', (key: string) => {
+          keys.push(key)
+        })
+        .on('end', () => {
+          resolve(keys)
+        })
+        .on('error', (err: any) => {
+          reject(err)
+        })
+    })
   }
 }
 

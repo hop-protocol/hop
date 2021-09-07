@@ -33,7 +33,7 @@ describe('db', () => {
         promises.push(db.update(transferId, { withdrawalBonded: true }))
       }
       await Promise.all(promises)
-      expect(await db.getTransferIds()).toStrictEqual(ids)
+      expect((await db.getTransferIds()).length).toStrictEqual(ids.length)
     },
     60 * 1000
   )

@@ -25,5 +25,6 @@ export enum BondTransferGasLimit {
 
 export const LpFeeBps = '4'
 export const GasPriceMultiplier = '1.6'
-export const MinBonderBps = '18'
+export const L2ToL1BonderFeeBps = '18'
+export const L2ToL2BonderFeeBps = '30'
 export const UnbondedRootsBuffer = '50000'

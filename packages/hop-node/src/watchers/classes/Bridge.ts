@@ -545,11 +545,15 @@ export default class Bridge extends ContractBase {
     if (amountIn.eq(0)) {
       return
     }
-    let bonderFeeBps = BonderFeeBps.L2ToL2
-    if (this.chainSlug === Chain.Ethereum) {
-      bonderFeeBps = BonderFeeBps.L2ToL1
+    // There is no concept of a minBonderFeeAbsolute on the L1 bridge so we default to 0 since the
+    // relative fee will negate this value anyway
+    let minBonderFeeAbsolute = BigNumber.from('0')
+    let bonderFeeBps = BonderFeeBps.L2ToL1
+    if (this.chainSlug !== Chain.Ethereum) {
+      bonderFeeBps = BonderFeeBps.L2ToL2
+      minBonderFeeAbsolute = await this.bridgeContract?.minBonderFeeAbsolute()
     }
-    const minBonderFeeAbsolute = await this.bridgeContract?.minBonderFeeAbsolute()
+
     let minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)
 
     // add 10% buffer for in the case amountIn is greater than originally

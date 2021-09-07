@@ -1,8 +1,9 @@
 import {
   FileConfig,
   config as globalConfig,
-  parseConfigFile
-  , setGlobalConfigFromConfigFile
+  parseConfigFile,
+  setDbPath,
+  setGlobalConfigFromConfigFile
 } from 'src/config'
 import { getDbSet } from 'src/db'
 
@@ -26,7 +27,7 @@ program
         await setGlobalConfigFromConfigFile(config)
       }
       if (source.dbPath) {
-        globalConfig.db.path = source.dbPath
+        setDbPath(source.dbPath)
       }
       const tokenSymbol = source.token
       if (!tokenSymbol) {

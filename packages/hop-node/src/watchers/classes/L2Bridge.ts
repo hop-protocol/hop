@@ -8,8 +8,7 @@ import delay from 'src/decorators/delay'
 import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { BigNumber, Contract, providers } from 'ethers'
-import { BonderFeeTooLowError } from 'src/types/error'
-import { Chain, MIN_BONDER_BPS } from 'src/constants'
+import { Chain } from 'src/constants'
 import { Event } from 'src/types'
 import { Hop } from '@hop-protocol/sdk'
 import { boundClass } from 'autobind-decorator'
@@ -457,31 +456,11 @@ export default class L2Bridge extends Bridge {
     ]
 
     // don't bond if bonder fee is too low between L2s
-    await this.compareBonderFeeBasisPoints(amount, bonderFee)
+    await this.compareMinBonderFeeBasisPoints(amount, bonderFee)
 
     const tx = await this.bridgeContract.bondWithdrawalAndDistribute(...payload)
 
     return tx
-  }
-
-  async compareBonderFeeBasisPoints (amountIn: BigNumber, bonderFee: BigNumber) {
-    if (amountIn.eq(0)) {
-      return
-    }
-    const minBonderFeeAbsolute = await this.bridgeContract?.minBonderFeeAbsolute()
-    let minBonderFeeRelative = amountIn.mul(MIN_BONDER_BPS).div(10000)
-
-    // add 10% buffer for in the case amountIn is greater than originally
-    // estimated in frontend due to user receiving more hTokens during swap
-    const tolerance = 0.10
-    minBonderFeeRelative = minBonderFeeRelative.sub(minBonderFeeRelative.mul(tolerance * 100).div(100))
-    const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
-      ? minBonderFeeRelative
-      : minBonderFeeAbsolute
-    const isTooLow = bonderFee.lt(minBonderFee)
-    if (isTooLow) {
-      throw new BonderFeeTooLowError(`bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFee: ${minBonderFee}`)
-    }
   }
 
   @rateLimitRetry

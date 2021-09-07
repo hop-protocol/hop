@@ -14,7 +14,7 @@ const dbMap: { [key: string]: any } = {}
 class BaseDb {
   public db: any
   public prefix: string
-  logger = new Logger('config')
+  logger: Logger
 
   getQueueGroup () {
     return this.prefix
@@ -28,6 +28,10 @@ class BaseDb {
       prefix = `${_namespace}:${prefix}`
     }
     this.prefix = prefix
+    this.logger = new Logger({
+      tag: 'Db',
+      prefix
+    })
     const pathname = path.resolve(globalConfig.db.path.replace('~', os.homedir()))
     mkdirp.sync(pathname.replace(path.basename(pathname), ''))
     if (!dbMap[pathname]) {
@@ -40,6 +44,20 @@ class BaseDb {
       dbMap[key] = sub(dbMap[pathname], prefix, { valueEncoding: 'json' })
     }
     this.db = dbMap[key]
+
+    this.db
+      .on('open', () => {
+        this.logger.debug('open')
+      })
+      .on('closed', () => {
+        this.logger.debug('closed')
+      })
+      .on('put', (key: string) => {
+        this.logger.debug(`put item, key=${key}`)
+      })
+      .on('clear', (key: string) => {
+        this.logger.debug(`clear item, key=${key}`)
+      })
   }
 
   @queue

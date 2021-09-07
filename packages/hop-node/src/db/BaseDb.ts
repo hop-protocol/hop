@@ -85,6 +85,10 @@ class BaseDb {
       const keys : string[] = []
       this.db.createKeyStream()
         .on('data', (key: string) => {
+          // ignore this key that used previously to track unique ids
+          if (key === 'ids') {
+            return
+          }
           keys.push(key)
         })
         .on('end', () => {

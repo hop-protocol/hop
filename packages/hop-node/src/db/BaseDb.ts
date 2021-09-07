@@ -3,17 +3,22 @@ import level from 'level'
 import mkdirp from 'mkdirp'
 import os from 'os'
 import path from 'path'
+import queue from 'src/decorators/queue'
 import sub from 'subleveldown'
+import { boundClass } from 'autobind-decorator'
 import { config as globalConfig } from 'src/config'
 
 const dbMap: { [key: string]: any } = {}
 
+@boundClass
 class BaseDb {
   public db: any
   public prefix: string
-  public IDS = 'ids'
-  public idMap: { [key: string]: boolean }
-  logger = new Logger('config')
+  logger: Logger
+
+  getQueueGroup () {
+    return this.prefix
+  }
 
   constructor (prefix: string, _namespace?: string) {
     if (!prefix) {
@@ -23,6 +28,10 @@ class BaseDb {
       prefix = `${_namespace}:${prefix}`
     }
     this.prefix = prefix
+    this.logger = new Logger({
+      tag: 'Db',
+      prefix
+    })
     const pathname = path.resolve(globalConfig.db.path.replace('~', os.homedir()))
     mkdirp.sync(pathname.replace(path.basename(pathname), ''))
     if (!dbMap[pathname]) {
@@ -35,38 +44,27 @@ class BaseDb {
       dbMap[key] = sub(dbMap[pathname], prefix, { valueEncoding: 'json' })
     }
     this.db = dbMap[key]
+
+    this.db
+      .on('open', () => {
+        this.logger.debug('open')
+      })
+      .on('closed', () => {
+        this.logger.debug('closed')
+      })
+      .on('put', (key: string) => {
+        this.logger.debug(`put item, key=${key}`)
+      })
+      .on('clear', (key: string) => {
+        this.logger.debug(`clear item, key=${key}`)
+      })
   }
 
-  handleDataEvent = async (err: Error, data: any) => {
-    if (err) {
-      throw err
-    }
-    if (!data) {
-      return
-    }
-    const { key } = data
-    if (key === this.IDS) {
-      return
-    }
-
-    // lazy load id map
-    if (!this.idMap) {
-      this.idMap = await this.getIdMap()
-    }
-
-    // track unique keys
-    this.idMap[key] = true
-
-    // store id map
-    return this.update(this.IDS, this.idMap, false)
-  }
-
-  public async update (key: string, data: any, dataCb: boolean = true) {
+  @queue
+  public async update (key: string, data: any) {
     const entry = await this.getById(key, {})
     const value = Object.assign({}, entry, data)
-    if (dataCb) {
-      await this.handleDataEvent(undefined, { key, value })
-    }
+
     return this.db.put(key, value)
   }
 
@@ -82,13 +80,24 @@ class BaseDb {
     return this.db.delete(id)
   }
 
-  protected async getIdMap (): Promise<{ [key: string]: boolean }> {
-    return this.getById(this.IDS, {})
-  }
-
   protected async getKeys (): Promise<string[]> {
-    const obj = await this.getIdMap()
-    return Object.keys(obj)
+    return new Promise((resolve, reject) => {
+      const keys : string[] = []
+      this.db.createKeyStream()
+        .on('data', (key: string) => {
+          // ignore this key that used previously to track unique ids
+          if (key === 'ids') {
+            return
+          }
+          keys.push(key)
+        })
+        .on('end', () => {
+          resolve(keys)
+        })
+        .on('error', (err: any) => {
+          reject(err)
+        })
+    })
   }
 }
 

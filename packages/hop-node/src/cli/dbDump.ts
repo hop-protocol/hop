@@ -1,8 +1,9 @@
 import {
   FileConfig,
   config as globalConfig,
-  parseConfigFile
-  , setGlobalConfigFromConfigFile
+  parseConfigFile,
+  setDbPath,
+  setGlobalConfigFromConfigFile
 } from 'src/config'
 import { getDbSet } from 'src/db'
 
@@ -26,7 +27,7 @@ program
         await setGlobalConfigFromConfigFile(config)
       }
       if (source.dbPath) {
-        globalConfig.db.path = source.dbPath
+        setDbPath(source.dbPath)
       }
       const tokenSymbol = source.token
       if (!tokenSymbol) {
@@ -46,7 +47,7 @@ program
         const syncState = await db.syncState.getItems()
         console.log(JSON.stringify(syncState, null, 2))
       } else {
-        throw new Error(`the db "${db}" does not exist`)
+        throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state`)
       }
     } catch (err) {
       logger.error(err.message)

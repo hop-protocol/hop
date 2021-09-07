@@ -20,7 +20,8 @@ import {
   BondTransferGasLimit,
   LpFeeBps,
   GasPriceMultiplier,
-  MinBonderBps,
+  L2ToL2BonderFeeBps,
+  L2ToL1BonderFeeBps,
   UnbondedRootsBuffer
 } from './constants'
 import { metadata } from './config'
@@ -716,9 +717,15 @@ class HopBridge extends Base {
       amountIn.toString(),
       sourceChain
     )
+
+    let feeBps = L2ToL2BonderFeeBps
+    if (destinationChain.isL1) {
+      feeBps = L2ToL1BonderFeeBps
+    }
+
     const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
     const minBonderFeeAbsolute = await l2Bridge?.minBonderFeeAbsolute()
-    const minBonderFeeRelative = hTokenAmount.mul(MinBonderBps).div(10000)
+    const minBonderFeeRelative = hTokenAmount.mul(feeBps).div(10000)
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
       : minBonderFeeAbsolute

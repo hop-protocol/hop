@@ -51,8 +51,8 @@ export enum TxError {
 export const GAS_PRICE_MULTIPLIER = 1.25
 
 export enum BonderFeeBps {
-  L2ToL1 = '1',
-  L2ToL2 = '1'
+  L2ToL1 = '18',
+  L2ToL2 = '30'
 }
 
 export enum TokenIndex {

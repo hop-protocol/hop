@@ -46,7 +46,7 @@ program
         const syncState = await db.syncState.getItems()
         console.log(JSON.stringify(syncState, null, 2))
       } else {
-        throw new Error(`the db "${db}" does not exist`)
+        throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state`)
       }
     } catch (err) {
       logger.error(err.message)

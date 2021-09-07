@@ -3,17 +3,24 @@ import level from 'level'
 import mkdirp from 'mkdirp'
 import os from 'os'
 import path from 'path'
+import queue from 'src/decorators/queue'
 import sub from 'subleveldown'
+import { boundClass } from 'autobind-decorator'
 import { config as globalConfig } from 'src/config'
 
 const dbMap: { [key: string]: any } = {}
 
+@boundClass
 class BaseDb {
   public db: any
   public prefix: string
   public IDS = 'ids'
   public idMap: { [key: string]: boolean }
   logger = new Logger('config')
+
+  getQueueGroup () {
+    return this.prefix
+  }
 
   constructor (prefix: string, _namespace?: string) {
     if (!prefix) {
@@ -37,17 +44,10 @@ class BaseDb {
     this.db = dbMap[key]
   }
 
-  handleDataEvent = async (err: Error, data: any) => {
-    if (err) {
-      throw err
-    }
-    if (!data) {
-      return
-    }
-    const { key } = data
-    if (key === this.IDS) {
-      return
-    }
+  @queue
+  public async update (key: string, data: any) {
+    const entry = await this.getById(key, {})
+    const value = Object.assign({}, entry, data)
 
     // lazy load id map
     if (!this.idMap) {
@@ -58,15 +58,9 @@ class BaseDb {
     this.idMap[key] = true
 
     // store id map
-    return this.update(this.IDS, this.idMap, false)
-  }
+    await this.db.put(this.IDS, this.idMap)
 
-  public async update (key: string, data: any, dataCb: boolean = true) {
-    const entry = await this.getById(key, {})
-    const value = Object.assign({}, entry, data)
-    if (dataCb) {
-      await this.handleDataEvent(undefined, { key, value })
-    }
+    // store entry
     return this.db.put(key, value)
   }
 

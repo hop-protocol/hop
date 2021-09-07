@@ -43,9 +43,8 @@ export function queueFn (fn: any): any {
     const retry = () => promiseTimeout(fn(...args), TIMEOUT_MS)
     while (true) {
       try {
+        // the await here is intentional to catch any error below
         const result = await retry()
-        // TODO: debounce runner function
-        await wait(2 * 1000)
         return result
       } catch (err) {
         retries++

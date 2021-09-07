@@ -65,7 +65,7 @@ const Slider: FC<SliderProps> = (props: SliderProps) => {
         <MuiSlider
           value={value}
           valueLabelDisplay="auto"
-          step={5}
+          step={1}
           marks
           min={0}
           max={100}

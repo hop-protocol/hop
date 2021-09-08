@@ -66,8 +66,13 @@ export default class Bridge extends ContractBase {
     this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
 
+    let maxBondWithdrawalAmount: number
+    if (tokenSymbol === 'USDC' || tokenSymbol === 'USDT') {
+      maxBondWithdrawalAmount = 500000
+    } else {
+      maxBondWithdrawalAmount = globalConfig?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.max
+    }
     const minBondWithdrawalAmount: number = globalConfig?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.min ?? 0
-    const maxBondWithdrawalAmount: number = globalConfig?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.max
     this.minBondWithdrawalAmount = this.parseUnits(minBondWithdrawalAmount)
     this.maxBondWithdrawalAmount = maxBondWithdrawalAmount ? this.parseUnits(maxBondWithdrawalAmount) : constants.MaxUint256
     this.stateUpdateAddress = globalConfig?.stateUpdateAddress

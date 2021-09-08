@@ -237,7 +237,7 @@ class SyncWatcher extends BaseWatcher {
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
-      const isBondable = this.getIsBondable(amount, transferId)
+      const isBondable = this.getIsBondable(transferId, amount, destinationChainId)
 
       logger.debug('transfer event amount:', this.bridge.formatUnits(amount))
       logger.debug('destinationChainId:', destinationChainId)
@@ -655,10 +655,11 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  getIsBondable = (amount: BigNumber, transferId: string): boolean => {
+  getIsBondable = (transferId: string, amount: BigNumber, destinationChainId: number): boolean => {
+    const destBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
     if (
-      (this.bridge.minBondWithdrawalAmount && amount.lt(this.bridge.minBondWithdrawalAmount)) ||
-      (this.bridge.maxBondWithdrawalAmount && amount.gt(this.bridge.maxBondWithdrawalAmount))
+      (destBridge.minBondWithdrawalAmount && amount.lt(destBridge.minBondWithdrawalAmount)) ||
+      (destBridge.maxBondWithdrawalAmount && amount.gt(destBridge.maxBondWithdrawalAmount))
     ) {
       return false
     }

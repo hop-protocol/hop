@@ -209,12 +209,18 @@ const StakeWidget: FC<Props> = props => {
 
   const userRewardsPerDay = useAsyncMemo(async () => {
     try {
-      if (
-        !stakingRewards ||
-        !stakeBalance ||
-        !totalStaked ||
-        stakeBalance.eq(0)
-      ) return undefined
+      if (!(
+        stakingRewards &&
+        stakeBalance &&
+        totalStaked &&
+        stakeBalance.gt(0) &&
+        typeof rewardsExpired === 'boolean'
+      )) {
+        return
+      }
+      if (rewardsExpired) {
+        return 0
+      }
       let rewardRate = await stakingRewards?.rewardRate()
       rewardRate = rewardRate.mul(86400) // multiply by 1 day
       rewardRate = rewardRate.mul(stakeBalance).div(totalStaked)
@@ -222,7 +228,7 @@ const StakeWidget: FC<Props> = props => {
     } catch (err) {
       return ''
     }
-  }, [stakingRewards, stakeBalance, totalStaked])
+  }, [stakingRewards, stakeBalance, totalStaked, rewardsExpired])
 
   const userRewardsPerDayFormatted = toTokenDisplay(
     userRewardsPerDay,
@@ -449,13 +455,15 @@ const StakeWidget: FC<Props> = props => {
           tooltip="The total amount of LP tokens staked for rewards"
           value={totalStakedFormatted}
         />
-        <DetailRow
-          title={'Total Rewards'}
-          tooltip={
-              'The total rewards being distributed per day'
-          }
-          value={`${totalRewardsPerDayFormatted} / day`}
-        />
+        {totalRewardsPerDay?.gt(0) &&
+          <DetailRow
+            title={'Total Rewards'}
+            tooltip={
+                'The total rewards being distributed per day'
+            }
+            value={`${totalRewardsPerDayFormatted} / day`}
+          />
+        }
       </div>
       <div className={styles.details}>
         {!!userRewardsPerDay && (

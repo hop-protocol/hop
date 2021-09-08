@@ -41,6 +41,6 @@ export const networks: Networks = {
     rpcUrls: ['https://polygon.rpc.hop.exchange'],
     explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
-    waitConfirmations: 124
+    waitConfirmations: 128
   }
 }

@@ -27,18 +27,21 @@ class DbLogger {
   async poll () {
     while (true) {
       const transfers = await this.db.transfers.getTransfers()
+      this.logger.debug(`transfers count: ${transfers.length}`)
       transfers.forEach((transfer: Transfer) => {
         const logger = this.logger.create({ id: transfer.transferId })
         logger.debug(JSON.stringify(transfer))
       })
 
       const transferRoots = await this.db.transferRoots.getTransferRoots()
+      this.logger.debug(`transfer roots count: ${transferRoots.length}`)
       transferRoots.forEach((transferRoot: TransferRoot) => {
         const logger = this.logger.create({ root: transferRoot.transferRootHash })
         logger.debug(JSON.stringify(transferRoot))
       })
 
       const syncState = await this.db.syncState.getItems()
+      this.logger.debug(`sync state count: ${syncState.length}`)
       syncState.forEach((item: State) => {
         const logger = this.logger.create({ id: 'syncState' })
         logger.debug(JSON.stringify(item))

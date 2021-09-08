@@ -6,7 +6,7 @@ import getTransferRoot from 'src/theGraph/getTransferRoot'
 import getTransferRoots from 'src/theGraph/getTransferRoots'
 import { Chain } from 'src/constants'
 
-describe('getTransferIdsForTransferRoot', () => {
+describe.skip('getTransferIdsForTransferRoot', () => {
   it('xdai - 1', async () => {
     const rootHash =
       '0x332a76463a0aa69332780dc03c4c8123c965667f2ea5bc24a5b515abbe14916d'
@@ -49,14 +49,14 @@ describe('getTransferIdsForTransferRoot', () => {
   })
 })
 
-describe('getTransferRoots', () => {
+describe.skip('getTransferRoots', () => {
   it('xdai', async () => {
     const transferRoots = await getTransferRoots(Chain.xDai, 'USDC')
     expect(transferRoots.length).toBeGreaterThan(0)
   })
 })
 
-describe('getTransferRoot', () => {
+describe.skip('getTransferRoot', () => {
   it('xdai', async () => {
     const transferRootHash = '0x332a76463a0aa69332780dc03c4c8123c965667f2ea5bc24a5b515abbe14916d'
     const transferRoot = await getTransferRoot(Chain.xDai, 'USDC', transferRootHash)
@@ -66,7 +66,7 @@ describe('getTransferRoot', () => {
   })
 })
 
-describe('getTransfer', () => {
+describe.skip('getTransfer', () => {
   it('xdai - 1', async () => {
     const transferId = '0xb7329b58f3ab879e40df7d2fabf21e591a35adb42803cc4b676fa726a6252ab7'
     const transfer = await getTransfer(Chain.xDai, 'USDC', transferId)
@@ -82,7 +82,7 @@ describe('getTransfer', () => {
   }, 10 * 1000)
 })
 
-describe('getBondedWithdrawal', () => {
+describe.skip('getBondedWithdrawal', () => {
   it('polygon', async () => {
     const transferId = '0xb7329b58f3ab879e40df7d2fabf21e591a35adb42803cc4b676fa726a6252ab7'
     const item = await getBondedWithdrawal(Chain.Polygon, 'USDC', transferId)
@@ -90,14 +90,14 @@ describe('getBondedWithdrawal', () => {
   })
 })
 
-describe('getBondedWithdrawals', () => {
+describe.skip('getBondedWithdrawals', () => {
   it('polygon', async () => {
     const items = await getBondedWithdrawals(Chain.Ethereum, 'USDC')
     expect(items.length).toBeGreaterThan(0)
   }, 60 * 1000)
 })
 
-describe('check bonded withdrawals without a transfer', () => {
+describe.skip('check bonded withdrawals without a transfer', () => {
   it('polygon', async () => {
     const items = await getBondedWithdrawals(Chain.Ethereum, 'USDC')
     let i = 0

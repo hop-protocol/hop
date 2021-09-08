@@ -31,7 +31,7 @@ const TOKEN = 'USDC'
 const TRANSFER_AMOUNT = 1
 const logger = new Logger('TEST')
 
-describe('bondWithdrawal', () => {
+describe.skip('bondWithdrawal', () => {
   let testPaths = [...L1ToL2Paths, ...L2ToL1Paths, ...L2ToL2Paths]
   // debug
   testPaths = [[Chain.Optimism, Chain.Ethereum]]

@@ -5,7 +5,7 @@ import { privateKey } from './config'
 const networks = [Chain.xDai, Chain.Optimism]
 const token = 'DAI'
 
-describe('code', () => {
+describe.skip('code', () => {
   for (const network of networks) {
     it(network, async () => {
       const user = new User(privateKey)

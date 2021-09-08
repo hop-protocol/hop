@@ -6,7 +6,7 @@ const network = Chain.Ethereum
 const token = 'DAI'
 const amount = 1_000
 
-test(
+test.skip(
   'stake',
   async () => {
     const user = new User(bonderPrivateKey)

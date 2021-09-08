@@ -19,7 +19,7 @@ const TRANSFER_AMOUNT = 1
 const NUM_USERS = 2
 const logger = new Logger('TEST')
 
-test(
+test.skip(
   'loadtest',
   async () => {
     const faucet = new User(faucetPrivateKey)

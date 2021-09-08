@@ -9,7 +9,7 @@ const AMOUNT = 10_000
 const NETWORKS = [Chain.Optimism]
 const logger = new Logger('TEST')
 
-describe('convert L1 token to L2 canonical token', () => {
+describe.skip('convert L1 token to L2 canonical token', () => {
   for (const L2_NETWORK of NETWORKS) {
     const label = `convert token to canonical token on ${L2_NETWORK}`
     it(

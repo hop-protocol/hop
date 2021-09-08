@@ -9,7 +9,7 @@ const TOKEN_0_AMOUNT = 1000
 const testNetworks = [Chain.xDai]
 
 for (const l2Network of testNetworks) {
-  test(
+  test.skip(
     `add liquidity on ${l2Network}`,
     async () => {
       await addLiquidity(l2Network, TOKEN_0_AMOUNT)

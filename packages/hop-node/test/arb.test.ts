@@ -12,7 +12,7 @@ const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 100000
 const logger = new Logger('TEST')
 
-describe('arb-bot', () => {
+describe.skip('arb-bot', () => {
   it(
     `send ${TRANSFER_AMOUNT} ${TOKEN} ${sourceNetwork} → ${Chain.Ethereum}`,
     async () => {

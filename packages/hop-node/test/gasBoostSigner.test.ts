@@ -5,7 +5,7 @@ import { Wallet } from 'ethers'
 import { getRpcProvider, wait } from 'src/utils'
 import { privateKey } from './config'
 
-describe('GasBoostSigner', () => {
+describe.skip('GasBoostSigner', () => {
   it('initialize', async () => {
     const provider = getRpcProvider('xdai')
     const store = new MemoryStore()

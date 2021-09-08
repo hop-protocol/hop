@@ -6,7 +6,7 @@ import { wait } from 'src/utils'
 const network = Chain.Optimism
 const token = 'DAI'
 
-test(
+test.skip(
   'addBonder',
   async () => {
     const newBonder = new User(privateKey)

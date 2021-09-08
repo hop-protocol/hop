@@ -10,7 +10,7 @@ const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 1
 const logger = new Logger('TEST')
 
-describe('bondTransferRoot', () => {
+describe.skip('bondTransferRoot', () => {
   const testPaths = [[Chain.xDai, Chain.Ethereum]]
   for (const path of testPaths) {
     const [sourceNetwork, destNetwork] = path

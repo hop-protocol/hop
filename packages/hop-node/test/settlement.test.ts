@@ -24,7 +24,7 @@ const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 1
 const logger = new Logger('TEST')
 
-describe('settleBondedWithdrawal', () => {
+describe.skip('settleBondedWithdrawal', () => {
   let testPaths = [...L2ToL1Paths, ...L2ToL2Paths]
   testPaths = [[Chain.xDai, Chain.xDai]]
   for (const path of testPaths) {

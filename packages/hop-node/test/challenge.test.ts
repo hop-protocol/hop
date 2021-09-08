@@ -11,11 +11,11 @@ const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 1
 const logger = new Logger('TEST')
 
-describe('challenge valid transfer root', () => {
+describe.skip('challenge valid transfer root', () => {
   // TODO: use latest contracts and set min delay time
 })
 
-describe('challenge valid transfer root but committed too early', () => {
+describe.skip('challenge valid transfer root but committed too early', () => {
   const networks = [Chain.xDai]
   const destNetwork = Chain.Ethereum
   for (const sourceNetwork of networks) {
@@ -142,7 +142,7 @@ describe('challenge valid transfer root but committed too early', () => {
   }
 })
 
-describe.only('challenge invalid transfer root', () => {
+describe.skip('challenge invalid transfer root', () => {
   const networks = [Chain.xDai]
   const destNetwork = Chain.Ethereum
   for (const sourceNetwork of networks) {

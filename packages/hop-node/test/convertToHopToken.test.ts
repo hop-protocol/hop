@@ -10,7 +10,7 @@ const AMOUNT = 10_000
 const NETWORKS = [Chain.xDai]
 const logger = new Logger('TEST')
 
-describe('convert L1 token to L2 Hop token', () => {
+describe.skip('convert L1 token to L2 Hop token', () => {
   for (const L2_NETWORK of NETWORKS) {
     const label = `convert token to Hop bridge token on ${L2_NETWORK}`
     it(

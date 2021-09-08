@@ -52,7 +52,7 @@ export const GAS_PRICE_MULTIPLIER = 1.25
 
 export enum BonderFeeBps {
   L2ToL1 = '18',
-  L2ToL2 = '30'
+  L2ToL2 = '10'
 }
 
 export enum TokenIndex {

@@ -165,11 +165,41 @@ const StakeWidget: FC<Props> = props => {
     stakingToken?.symbol
   )
 
-  const totalRewardsPerDay = useAsyncMemo(async () => {
-    if (!stakingRewards) return undefined
-    const rewardRate = await stakingRewards?.rewardRate()
-    return rewardRate.mul(86400) // multiply by 1 day
+  const expireDate = useAsyncMemo(async () => {
+    try {
+      if (!stakingRewards) return undefined
+      const timestamp = await stakingRewards?.periodFinish()
+      return Number(timestamp.toString())
+    } catch (err: any) {
+      console.error(err)
+    }
   }, [stakingRewards])
+
+  const rewardsExpired = useMemo(() => {
+    if (!expireDate) {
+      return
+    }
+    const now = (Date.now() / 1000) | 0
+    return (now > expireDate)
+  }, [expireDate])
+
+  const totalRewardsPerDay = useAsyncMemo(async () => {
+    try {
+      if (!(
+        stakingRewards &&
+        rewardsExpired !== undefined
+      )) {
+        return
+      }
+      if (rewardsExpired) {
+        return BigNumber.from('0')
+      }
+      const rewardRate = await stakingRewards?.rewardRate()
+      return rewardRate.mul(86400) // multiply by 1 day
+    } catch (err: any) {
+      console.error(err)
+    }
+  }, [stakingRewards, rewardsExpired])
 
   const totalRewardsPerDayFormatted = toTokenDisplay(
     totalRewardsPerDay,
@@ -251,7 +281,7 @@ const StakeWidget: FC<Props> = props => {
     }
   }, [bridge, network, totalStaked, totalRewardsPerDay, maticUsdPrice, tokenUsdPrice])
 
-  const aprFormatted = toPercentDisplay(apr, TOTAL_AMOUNTS_DECIMALS)
+  const aprFormatted = `${toPercentDisplay(apr, TOTAL_AMOUNTS_DECIMALS)} ${rewardsExpired ? '(rewards ended)' : ''}`
 
   const stakedPosition = useAsyncMemo(async () => {
     if (!(

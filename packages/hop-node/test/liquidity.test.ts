@@ -1,7 +1,7 @@
+import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import { User } from './helpers'
 import { bonderPrivateKey } from './config'
-import { wait } from 'src/utils'
 require('dotenv').config()
 
 const TOKEN = 'USDC'

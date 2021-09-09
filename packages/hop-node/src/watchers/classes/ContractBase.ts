@@ -1,9 +1,12 @@
+import chainIdToSlug from 'src/utils/chainIdToSlug'
+import chainSlugToId from 'src/utils/chainSlugToId'
+import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
+import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { EventEmitter } from 'events'
 import { Transaction } from 'src/types'
-import { chainIdToSlug, chainSlugToId, getBumpedGasPrice, getProviderChainSlug } from 'src/utils'
 import { config as globalConfig } from 'src/config'
 
 export default class ContractBase extends EventEmitter {

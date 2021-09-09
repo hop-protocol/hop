@@ -3,8 +3,9 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
+import getTransferRootId from 'src/utils/getTransferRootId'
+import wait from 'src/utils/wait'
 import { BigNumber, Contract, providers } from 'ethers'
-import { getTransferRootId, wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string

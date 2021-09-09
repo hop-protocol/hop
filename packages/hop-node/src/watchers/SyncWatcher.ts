@@ -4,13 +4,14 @@ import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
+import isL1ChainId from 'src/utils/isL1ChainId'
+import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
 import { boundClass } from 'autobind-decorator'
-import { isL1ChainId, wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string

@@ -1,7 +1,7 @@
 import GasBoostSigner from 'src/gasboost/GasBoostSigner'
+import getRpcProvider from 'src/utils/getRpcProvider'
 import memoize from 'fast-memoize'
 import { Wallet } from 'ethers'
-import { getRpcProvider } from 'src/utils'
 import { config as globalConfig } from 'src/config'
 
 const constructWallet = memoize(

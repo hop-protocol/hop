@@ -2,6 +2,7 @@ import ContractBase from './ContractBase'
 import compareMinBonderFeeBasisPoints from 'src/utils/compareMinBonderFeeBasisPoints'
 import delay from 'src/decorators/delay'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
+import isL1ChainId from 'src/utils/isL1ChainId'
 import queue from 'src/decorators/queue'
 import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import shiftBNDecimals from 'src/utils/shiftBNDecimals'
@@ -16,7 +17,6 @@ import { State } from 'src/db/SyncStateDb'
 import { boundClass } from 'autobind-decorator'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { config as globalConfig } from 'src/config'
-import { isL1ChainId } from 'src/utils'
 
 export type EventsBatchOptions = {
   cacheKey: string

@@ -1,7 +1,7 @@
+import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import { User } from './helpers'
 import { governancePrivateKey, privateKey } from './config'
-import { wait } from 'src/utils'
 
 const network = Chain.Optimism
 const token = 'DAI'

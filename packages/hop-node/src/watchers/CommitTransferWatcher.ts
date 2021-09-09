@@ -2,10 +2,10 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
+import wait from 'src/utils/wait'
 import { BigNumber, Contract, providers } from 'ethers'
 import { TX_RETRY_DELAY_MS } from 'src/constants'
 import { getEnabledNetworks } from 'src/config'
-import { wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string

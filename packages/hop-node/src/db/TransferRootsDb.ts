@@ -1,7 +1,7 @@
 import BaseDb from './BaseDb'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
 import { Chain, ROOT_SET_SETTLE_DELAY_MS, TX_RETRY_DELAY_MS } from 'src/constants'
-import { chainIdToSlug } from 'src/utils'
 import { normalizeDbItem } from './utils'
 
 export type TransferRoot = {

@@ -1,4 +1,5 @@
 import Logger from 'src/logger'
+import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import {
   User,
@@ -9,7 +10,6 @@ import {
 } from './helpers'
 import { faucetPrivateKey, mnemonic } from './config'
 import { startWatchers } from 'src/watchers/watchers'
-import { wait } from 'src/utils'
 require('dotenv').config()
 
 const sourceNetwork = Chain.xDai

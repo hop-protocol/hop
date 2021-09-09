@@ -1,6 +1,6 @@
 import delay from 'src/decorators/delay'
+import wait from 'src/utils/wait'
 import { XDAI_TX_MAX_DELAY_MS } from 'src/constants'
-import { wait } from 'src/utils'
 
 const DELAY_SECONDS = 1
 const ITERATIONS = 3

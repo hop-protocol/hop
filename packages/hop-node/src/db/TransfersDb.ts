@@ -1,7 +1,7 @@
 import BaseDb from './BaseDb'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
 import { ONE_WEEK_MS, TX_RETRY_DELAY_MS, TxError } from 'src/constants'
-import { chainIdToSlug } from 'src/utils'
 import { normalizeDbItem } from './utils'
 
 export type Transfer = {

@@ -1,6 +1,6 @@
+import chainSlugToId from 'src/utils/chainSlugToId'
 import makeRequest from './makeRequest'
 import { BigNumber } from 'ethers'
-import { chainSlugToId } from 'src/utils'
 
 export default async function getIncompleteSettlements (chain: string, token: string, destinationChain: string): Promise<any> {
   const destinationChainId: number = chainSlugToId(destinationChain)

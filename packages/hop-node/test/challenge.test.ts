@@ -1,8 +1,9 @@
 import Logger from 'src/logger'
+import chainSlugToId from 'src/utils/chainSlugToId'
+import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import { User, waitForEvent } from './helpers'
 import { bonderPrivateKey, governancePrivateKey, privateKey } from './config'
-import { chainSlugToId, wait } from 'src/utils'
 import { keccak256 } from 'ethereumjs-util'
 import { startWatchers } from 'src/watchers/watchers'
 require('dotenv').config()

@@ -1,6 +1,7 @@
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
@@ -9,7 +10,6 @@ import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { chainSlugToId } from 'src/utils'
 import { logger, program } from './shared'
 
 async function sendTokens (

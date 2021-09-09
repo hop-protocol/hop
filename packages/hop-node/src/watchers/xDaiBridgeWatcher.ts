@@ -1,13 +1,13 @@
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import chalk from 'chalk'
+import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract, ethers } from 'ethers'
 import { config as globalConfig } from 'src/config'
 import { l1xDaiAmbAbi, l2xDaiAmbAbi } from '@hop-protocol/core/abi'
 import { packSignatures, signatureToVRS, strip0x } from 'src/utils/xdaiUtils'
-import { wait } from 'src/utils'
 
 type Config = {
   chainSlug: string

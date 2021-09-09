@@ -1,7 +1,8 @@
 import Logger from 'src/logger'
+import isL1 from 'src/utils/isL1'
+import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import { User, prepareAccount, waitForEvent } from './helpers'
-import { isL1, wait } from 'src/utils'
 import { privateKey } from './config'
 import { startWatchers } from 'src/watchers/watchers'
 require('dotenv').config()

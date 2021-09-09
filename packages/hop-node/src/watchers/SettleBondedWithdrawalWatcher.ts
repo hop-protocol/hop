@@ -2,10 +2,10 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
+import wait from 'src/utils/wait'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
 import { enabledSettleWatcherDestinationChains, enabledSettleWatcherSourceChains } from 'src/config'
-import { wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string

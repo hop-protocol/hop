@@ -1,6 +1,6 @@
 import BlockDater from 'ethereum-block-by-date'
+import getRpcProvider from 'src/utils/getRpcProvider'
 import { DateTime } from 'luxon'
-import { getRpcProvider } from 'src/utils'
 
 async function getBlockNumberFromDate (chain: string, timestamp: number) {
   const provider = getRpcProvider(chain)

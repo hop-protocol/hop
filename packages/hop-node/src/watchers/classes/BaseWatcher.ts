@@ -2,6 +2,7 @@ import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import SyncWatcher from '../SyncWatcher'
+import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import { Contract } from 'ethers'
 import { Db, getDbSet } from 'src/db'
@@ -10,7 +11,6 @@ import { IBaseWatcher } from './IBaseWatcher'
 import { Notifier } from 'src/notifier'
 import { boundClass } from 'autobind-decorator'
 import { hostname } from 'src/config'
-import { wait } from 'src/utils'
 
 interface Config {
   chainSlug: string

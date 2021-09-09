@@ -4,11 +4,12 @@ import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import Token from './classes/Token'
 import chalk from 'chalk'
+import isL1ChainId from 'src/utils/isL1ChainId'
 import promiseTimeout from 'src/utils/promiseTimeout'
+import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { isL1ChainId, wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string

@@ -1,10 +1,10 @@
 import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import {
   FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { chainSlugToId } from 'src/utils'
 import { findWatcher, getWatchers } from 'src/watchers/watchers'
 import { logger, program } from './shared'
 

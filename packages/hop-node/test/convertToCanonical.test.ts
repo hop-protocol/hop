@@ -1,8 +1,8 @@
 import Logger from 'src/logger'
+import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import { User } from './helpers'
 import { faucetPrivateKey as privateKey } from './config'
-import { wait } from 'src/utils'
 
 const TOKEN = 'USDC'
 const AMOUNT = 10_000

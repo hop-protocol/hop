@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { ethers } from 'ethers'
+import { formatUnits } from 'ethers/lib/utils'
 
 export type Filters = {
   startDate: string
@@ -36,10 +36,10 @@ export function normalizeEntity (x: any) {
 
   // TODO: use correct decimal places for future assets
   if (x.amount) {
-    x.formattedAmount = ethers.utils.formatUnits(x.amount, 6)
+    x.formattedAmount = formatUnits(x.amount, 6)
   }
   if (x.bonderFee) {
-    x.formattedBonderFee = ethers.utils.formatUnits(x.bonderFee, 6)
+    x.formattedBonderFee = formatUnits(x.bonderFee, 6)
   }
 
   x.blockNumber = Number(x.blockNumber)

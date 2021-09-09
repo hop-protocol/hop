@@ -4,10 +4,11 @@ import chalk from 'chalk'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { Contract, ethers } from 'ethers'
+import { Contract } from 'ethers'
 import { config as globalConfig } from 'src/config'
 import { l1xDaiAmbAbi, l2xDaiAmbAbi } from '@hop-protocol/core/abi'
 import { packSignatures, signatureToVRS, strip0x } from 'src/utils/xdaiUtils'
+import { solidityKeccak256 } from 'ethers/lib/utils'
 
 type Config = {
   chainSlug: string
@@ -36,7 +37,7 @@ export const executeExitTx = async (event: any, token: string) => {
   const l2Amb = getL2Amb(token)
 
   const message = event.args.encodedData
-  const msgHash = ethers.utils.solidityKeccak256(['bytes'], [message])
+  const msgHash = solidityKeccak256(['bytes'], [message])
   const id = await l2Amb.numMessagesSigned(msgHash)
   const alreadyProcessed = await l2Amb.isAlreadyProcessed(id)
   if (!alreadyProcessed) {

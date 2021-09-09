@@ -11,8 +11,8 @@ import {
   setGlobalConfigFromConfigFile,
   writeConfigFile
 } from 'src/config'
+import { getAddress } from 'ethers/lib/utils'
 import { logger, program } from './shared'
-import { utils } from 'ethers'
 
 program
   .command('update-config')
@@ -223,7 +223,7 @@ program
           await updateEnabled(token)
         }
       } else if (source.stateUpdateAddress) {
-        const stateUpdateAddress = utils.getAddress(source.stateUpdateAddress)
+        const stateUpdateAddress = getAddress(source.stateUpdateAddress)
         newConfig.stateUpdateAddress = stateUpdateAddress
         logger.debug(`updating StateUpdate address to ${stateUpdateAddress}`)
       } else {

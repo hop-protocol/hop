@@ -1,4 +1,4 @@
-import { wait } from 'src/utils'
+import wait from 'src/utils/wait'
 
 const eventPoller = async (
   contract: any,

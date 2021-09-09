@@ -1,7 +1,7 @@
 import BaseDb from './BaseDb'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { ONE_WEEK_MS, TX_RETRY_DELAY_MS, TxError } from 'src/constants'
-import { chainIdToSlug } from 'src/utils'
+import { OneWeekMs, TxError, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
 export type Transfer = {
@@ -133,12 +133,12 @@ class TransfersDb extends BaseDb {
           // TODO: use `sentTransferTimestamp` once it's added to db
 
           // don't attempt to bond withdrawals after a week
-          if (delay > ONE_WEEK_MS) {
+          if (delay > OneWeekMs) {
             return false
           }
           timestampOk = item.sentBondWithdrawalTxAt + delay < Date.now()
         } else {
-          timestampOk = item.sentBondWithdrawalTxAt + TX_RETRY_DELAY_MS < Date.now()
+          timestampOk = item.sentBondWithdrawalTxAt + TxRetryDelayMs < Date.now()
         }
       }
 

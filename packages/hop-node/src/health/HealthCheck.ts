@@ -1,11 +1,12 @@
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Logger from 'src/logger'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import contracts from 'src/contracts'
+import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
-import { chainIdToSlug, wait } from 'src/utils'
 import { config as globalConfig, hostname } from 'src/config'
 
 type Config = {

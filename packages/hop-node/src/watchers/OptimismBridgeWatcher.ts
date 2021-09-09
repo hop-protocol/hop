@@ -1,12 +1,13 @@
 import BaseWatcher from './classes/BaseWatcher'
 import chalk from 'chalk'
+import getRpcProvider from 'src/utils/getRpcProvider'
+import getRpcUrls from 'src/utils/getRpcUrls'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract, Wallet, providers } from 'ethers'
 import { Watcher } from '@eth-optimism/core-utils'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { getMessagesAndProofsForL2Transaction } from '@eth-optimism/message-relayer'
-import { getRpcProvider, getRpcUrls } from 'src/utils'
 
 type Config = {
   chainSlug: string

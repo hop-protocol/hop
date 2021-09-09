@@ -1,11 +1,12 @@
 import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import GasBoostTransaction from 'src/gasboost/GasBoostTransaction'
 import MemoryStore from 'src/gasboost/MemoryStore'
+import getRpcProvider from 'src/utils/getRpcProvider'
+import wait from 'src/utils/wait'
 import { Wallet } from 'ethers'
-import { getRpcProvider, wait } from 'src/utils'
 import { privateKey } from './config'
 
-describe('GasBoostSigner', () => {
+describe.skip('GasBoostSigner', () => {
   it('initialize', async () => {
     const provider = getRpcProvider('xdai')
     const store = new MemoryStore()

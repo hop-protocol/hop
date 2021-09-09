@@ -1,8 +1,8 @@
-import normalizeEnvVarArray from 'src/utils/normalizeEnvVarArray'
+import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
-import { Chain, DEFAULT_BATCH_BLOCKS, Network, TotalBlocks } from 'src/constants'
+import { Chain, DefaultBatchBlocks, Network, TotalBlocks } from 'src/constants'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
 import * as goerliConfig from './goerli'
@@ -109,23 +109,23 @@ export const config: Config = {
   sync: {
     [Chain.Ethereum]: {
       totalBlocks: TotalBlocks.Ethereum,
-      batchBlocks: DEFAULT_BATCH_BLOCKS
+      batchBlocks: DefaultBatchBlocks
     },
     [Chain.Arbitrum]: {
       totalBlocks: 100_000,
-      batchBlocks: DEFAULT_BATCH_BLOCKS
+      batchBlocks: DefaultBatchBlocks
     },
     [Chain.Optimism]: {
       totalBlocks: 100_000,
-      batchBlocks: DEFAULT_BATCH_BLOCKS
+      batchBlocks: DefaultBatchBlocks
     },
     [Chain.Polygon]: {
       totalBlocks: TotalBlocks.Polygon,
-      batchBlocks: DEFAULT_BATCH_BLOCKS
+      batchBlocks: DefaultBatchBlocks
     },
     [Chain.xDai]: {
       totalBlocks: TotalBlocks.xDai,
-      batchBlocks: DEFAULT_BATCH_BLOCKS
+      batchBlocks: DefaultBatchBlocks
     }
   },
   bondWithdrawals: {}

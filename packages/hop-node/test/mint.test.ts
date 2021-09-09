@@ -6,7 +6,7 @@ const network = Chain.Ethereum
 const token = 'USDC'
 const amount = 1_000_000_000
 
-test(
+test.skip(
   'mint',
   async () => {
     const user = new User(privateKey)

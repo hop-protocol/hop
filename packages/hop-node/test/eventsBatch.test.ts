@@ -3,7 +3,7 @@ import contracts from 'src/contracts'
 import { Chain, Token } from 'src/constants'
 import { config as globalConfig } from 'src/config'
 
-describe('eventsBatch', () => {
+describe.skip('eventsBatch', () => {
   it(
     'eventsBatch',
     async () => {

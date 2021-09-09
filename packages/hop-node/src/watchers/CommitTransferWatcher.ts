@@ -2,10 +2,10 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
+import wait from 'src/utils/wait'
 import { BigNumber, Contract, providers } from 'ethers'
-import { TX_RETRY_DELAY_MS } from 'src/constants'
+import { TxRetryDelayMs } from 'src/constants'
 import { getEnabledNetworks } from 'src/config'
-import { wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
@@ -110,7 +110,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       if (!this.commitTxSentAt[destinationChainId]) {
         this.commitTxSentAt[destinationChainId] = 0
       }
-      const timestampOk = this.commitTxSentAt[destinationChainId] + TX_RETRY_DELAY_MS < Date.now()
+      const timestampOk = this.commitTxSentAt[destinationChainId] + TxRetryDelayMs < Date.now()
       if (timestampOk) {
         // This may happen either in the happy path case or if the transaction
         // has been in the mempool for too long and we want to retry

@@ -2,11 +2,12 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
+import isL1 from 'src/utils/isL1'
+import wait from 'src/utils/wait'
 import { BonderFeeTooLowError } from 'src/types/error'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
-import { isL1, wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string

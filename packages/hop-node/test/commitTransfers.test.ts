@@ -2,7 +2,7 @@ import { Chain } from 'src/constants'
 import { User } from './helpers'
 import { bonderPrivateKey, governancePrivateKey } from './config'
 
-test(
+test.skip(
   'commitTransfers',
   async () => {
     const user = new User(bonderPrivateKey)

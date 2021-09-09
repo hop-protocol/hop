@@ -1,8 +1,9 @@
 import Logger from 'src/logger'
+import chainSlugToId from 'src/utils/chainSlugToId'
+import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import { User, waitForEvent } from './helpers'
 import { bonderPrivateKey, governancePrivateKey, privateKey } from './config'
-import { chainSlugToId, wait } from 'src/utils'
 import { keccak256 } from 'ethereumjs-util'
 import { startWatchers } from 'src/watchers/watchers'
 require('dotenv').config()
@@ -11,11 +12,11 @@ const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 1
 const logger = new Logger('TEST')
 
-describe('challenge valid transfer root', () => {
+describe.skip('challenge valid transfer root', () => {
   // TODO: use latest contracts and set min delay time
 })
 
-describe('challenge valid transfer root but committed too early', () => {
+describe.skip('challenge valid transfer root but committed too early', () => {
   const networks = [Chain.xDai]
   const destNetwork = Chain.Ethereum
   for (const sourceNetwork of networks) {
@@ -142,7 +143,7 @@ describe('challenge valid transfer root but committed too early', () => {
   }
 })
 
-describe.only('challenge invalid transfer root', () => {
+describe.skip('challenge invalid transfer root', () => {
   const networks = [Chain.xDai]
   const destNetwork = Chain.Ethereum
   for (const sourceNetwork of networks) {

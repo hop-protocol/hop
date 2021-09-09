@@ -21,7 +21,7 @@ describe('db', () => {
   it(
     'multiple updates',
     async () => {
-      const max = 10000
+      const max = 1000
       const ids = []
       const prefix = `test-${Date.now()}`
       const _namespace = `testns-${Date.now()}`

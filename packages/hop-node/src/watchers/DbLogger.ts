@@ -1,9 +1,9 @@
 import Logger from 'src/logger'
+import wait from 'src/utils/wait'
 import { Db, getDbSet } from 'src/db'
 import { State } from 'src/db/SyncStateDb'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { wait } from 'src/utils'
 
 class DbLogger {
   db: Db

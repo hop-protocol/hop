@@ -1,12 +1,12 @@
 import ContractBase from './ContractBase'
 import getTokenMetadata from 'src/utils/getTokenMetadata'
+import isL1ChainId from 'src/utils/isL1ChainId'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Hop } from '@hop-protocol/sdk'
 import { formatUnits } from 'ethers/lib/utils'
 import { config as globalConfig } from 'src/config'
-import { isL1ChainId } from 'src/utils'
 
 export default class L2AmmWrapper extends ContractBase {
   @rateLimitRetry

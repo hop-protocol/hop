@@ -7,7 +7,7 @@ const destNetwork = Chain.Ethereum
 const token = 'USDC'
 const amount = 1
 
-test.only(
+test.skip(
   'send',
   async () => {
     const user = new User(privateKey)
@@ -22,7 +22,7 @@ test.only(
   60 * 1000
 )
 
-test(
+test.skip(
   'swapAndSend',
   async () => {
     const user = new User(privateKey)

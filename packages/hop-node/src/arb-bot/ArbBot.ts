@@ -2,11 +2,11 @@ import '../moduleAlias'
 import Logger from 'src/logger'
 import chalk from 'chalk'
 import queue from 'src/decorators/queue'
+import wait from 'src/utils/wait'
 import { BigNumber, Contract, ethers } from 'ethers'
 import { Chain } from 'src/constants'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { config as globalConfig } from 'src/config'
-import { wait } from 'src/utils'
 
 export enum TokenIndex {
   CanonicalToken = 0,

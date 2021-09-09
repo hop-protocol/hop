@@ -1,12 +1,16 @@
 import Logger from 'src/logger'
 import MemoryStore from './MemoryStore'
 import Store from './Store'
-import { BigNumber, Signer, providers, utils } from 'ethers'
+import chainSlugToId from 'src/utils/chainSlugToId'
+import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
+import getProviderChainSlug from 'src/utils/getProviderChainSlug'
+import wait from 'src/utils/wait'
+import { BigNumber, Signer, providers } from 'ethers'
 import { EventEmitter } from 'events'
-import { GAS_PRICE_MULTIPLIER } from 'src/constants'
+import { MaxGasPriceMultiplier } from 'src/constants'
 import { Notifier } from 'src/notifier'
 import { boundClass } from 'autobind-decorator'
-import { chainSlugToId, getBumpedGasPrice, getProviderChainSlug, wait } from 'src/utils'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { hostname } from 'src/config'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -50,7 +54,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   started: boolean = false
   pollMs: number = 10 * 1000
   timeTilBoostMs: number = 3 * 60 * 1000
-  gasPriceMultiplier: number = GAS_PRICE_MULTIPLIER
+  gasPriceMultiplier: number = MaxGasPriceMultiplier
   maxGasPriceGwei: number = 500
   compareMarketGasPrice: boolean = true
   warnEthBalance: number = 0.1
@@ -352,7 +356,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   private async boost (item: InflightItem) {
     const gasPrice = await this.getBumpedGasPrice()
-    const maxGasPrice = utils.parseUnits(this.maxGasPriceGwei.toString(), 9)
+    const maxGasPrice = parseUnits(this.maxGasPriceGwei.toString(), 9)
     if (gasPrice.gt(maxGasPrice)) {
       if (!this.maxGasPriceReached) {
         const warnMsg = `max gas price reached. boostedGasPrice: ${gasPrice}, maxGasPrice: ${this.maxGasPriceGwei}. cannot boost`
@@ -396,9 +400,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         ])
 
         const gasCost = gasLimit.mul(gasPrice)
-        const warnEthBalance = utils.parseUnits((this.warnEthBalance || 0).toString(), 18)
-        const formattedGasCost = utils.formatUnits(gasCost, 18)
-        const formattedEthBalance = utils.formatUnits(ethBalance, 18)
+        const warnEthBalance = parseUnits((this.warnEthBalance || 0).toString(), 18)
+        const formattedGasCost = formatUnits(gasCost, 18)
+        const formattedEthBalance = formatUnits(ethBalance, 18)
         if (ethBalance.lt(gasCost)) {
           const errMsg = `insufficient ETH funds to cover gas cost. Need ${formattedGasCost}, have ${formattedEthBalance}`
           this.notifier.error(errMsg)

@@ -1,8 +1,8 @@
 import getBondedWithdrawal from './getBondedWithdrawal'
+import getRpcProvider from 'src/utils/getRpcProvider'
 import getTransferRootForTransferId from './getTransferRootForTransferId'
 import makeRequest from './makeRequest'
 import { chainIdToSlug, normalizeEntity } from './shared'
-import { getRpcProvider } from 'src/utils'
 
 export default async function getTransfer (chain: string, token: string, transferId: string): Promise<any> {
   let query = `

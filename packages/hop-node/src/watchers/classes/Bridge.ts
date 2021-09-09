@@ -9,7 +9,7 @@ import queue from 'src/decorators/queue'
 import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import shiftBNDecimals from 'src/utils/shiftBNDecimals'
 import unique from 'src/utils/unique'
-import { BigNumber, Contract, constants, utils as ethersUtils, providers } from 'ethers'
+import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import { BonderFeeBps, Chain, MaxGasPriceMultiplier, MinBonderFeeAbsolute } from 'src/constants'
 import { BonderFeeTooLowError } from 'src/types/error'
 import { Db, getDbSet } from 'src/db'
@@ -41,8 +41,6 @@ export default class Bridge extends ContractBase {
   bridgeContract: Contract
   bridgeDeployedBlockNumber: number
   l1CanonicalTokenAddress: string
-  minBondWithdrawalAmount: BigNumber
-  maxBondWithdrawalAmount: BigNumber
   stateUpdateAddress: string
 
   constructor (bridgeContract: Contract) {
@@ -69,16 +67,6 @@ export default class Bridge extends ContractBase {
     }
     this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
-
-    let maxBondWithdrawalAmount: number
-    if (tokenSymbol === 'USDC' || tokenSymbol === 'USDT') {
-      maxBondWithdrawalAmount = 500000
-    } else {
-      maxBondWithdrawalAmount = globalConfig?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.max
-    }
-    const minBondWithdrawalAmount: number = globalConfig?.bondWithdrawals?.[this.chainSlug]?.[this.tokenSymbol]?.min ?? 0
-    this.minBondWithdrawalAmount = this.parseUnits(minBondWithdrawalAmount)
-    this.maxBondWithdrawalAmount = maxBondWithdrawalAmount ? this.parseUnits(maxBondWithdrawalAmount) : constants.MaxUint256
     this.stateUpdateAddress = globalConfig?.stateUpdateAddress
   }
 

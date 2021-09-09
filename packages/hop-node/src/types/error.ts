@@ -5,7 +5,7 @@ export class BonderFeeTooLowError extends Error {
 }
 
 export class NotEnoughLiquidityError extends Error {
-  constructor (msg = 'bonder doesn\'t have enough liquidity to bond transfer') {
+  constructor (msg = 'bonder does not have enough liquidity to bond transfer') {
     super(msg)
   }
 }

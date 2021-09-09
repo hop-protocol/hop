@@ -30,15 +30,6 @@ export const defaultConfigDir = `${os.homedir()}/.hop-node`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 
-type BondWithdrawalConfig = {
-  [network: string]: {
-    min?: number
-    max?: number
-  }
-}
-type BondWithdrawalsConfig = {
-  [network: string]: BondWithdrawalConfig
-}
 type SyncConfig = {
   totalBlocks?: number
   batchBlocks?: number
@@ -58,7 +49,6 @@ type Config = {
   stateUpdateAddress: string,
   db: DbConfig,
   sync: SyncConfigs,
-  bondWithdrawals: BondWithdrawalsConfig
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -127,8 +117,7 @@ export const config: Config = {
       totalBlocks: TotalBlocks.xDai,
       batchBlocks: DefaultBatchBlocks
     }
-  },
-  bondWithdrawals: {}
+  }
 }
 
 export const setConfigByNetwork = (network: string) => {
@@ -165,10 +154,6 @@ export const setNetworkWaitConfirmations = (
   if (config.networks[network]) {
     config.networks[network].waitConfirmations = waitConfirmations
   }
-}
-
-export const setBondWithdrawalsConfig = (bondWithdrawalsConfig: BondWithdrawalsConfig) => {
-  config.bondWithdrawals = bondWithdrawalsConfig
 }
 
 export const setStateUpdateAddress = (address: string) => {

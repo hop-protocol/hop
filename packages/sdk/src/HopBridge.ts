@@ -1,5 +1,5 @@
 import { ethers, Signer, Contract, BigNumber, BigNumberish } from 'ethers'
-import { parseUnits, getAddress } from 'ethers/lib/utils'
+import { parseUnits, formatUnits, getAddress } from 'ethers/lib/utils'
 import Chain from './models/Chain'
 import TokenModel from './models/Token'
 import {
@@ -22,7 +22,7 @@ import {
   GasPriceMultiplier,
   L2ToL2BonderFeeBps,
   L2ToL1BonderFeeBps,
-  UnbondedRootsBuffer
+  UnbondedRootsBufferAmount
 } from './constants'
 import { metadata } from './config'
 import { PriceFeed } from './priceFeed'
@@ -454,11 +454,30 @@ class HopBridge extends Base {
       estimatedReceived = estimatedReceived.sub(totalFee)
     }
 
+    let requiredLiquidity = hTokenAmount
+    let includePendingAmount = false
+    if (destinationChain.equals(Chain.Ethereum)) {
+      if (
+        sourceChain.equals(Chain.Optimism) ||
+        sourceChain.equals(Chain.Arbitrum)
+      ) {
+        includePendingAmount = true
+      }
+    }
+
+    if (includePendingAmount) {
+      const bridgeContract = await this.getBridgeContract(sourceChain)
+      const pendingAmount = await bridgeContract.pendingAmountForChainId(
+        destinationChain.chainId
+      )
+      requiredLiquidity = requiredLiquidity.add(pendingAmount).add(hTokenAmount) // account for transfer root bonds
+    }
+
     return {
       amountOut,
       rate,
       priceImpact,
-      requiredLiquidity: hTokenAmount,
+      requiredLiquidity,
       bonderFee,
       lpFees,
       destinationTxFee,
@@ -575,10 +594,17 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    const requireFee =
-      destinationChain?.isL1 ||
-      (!sourceChain?.equals(Chain.Ethereum) &&
-        destinationChain?.equals(Chain.Optimism))
+    let requireFee = false
+    if (destinationChain?.isL1) {
+      requireFee = true
+    } else if (!sourceChain?.equals(Chain.Ethereum)) {
+      if (
+        destinationChain?.equals(Chain.Optimism) ||
+        destinationChain?.equals(Chain.Arbitrum)
+      ) {
+        requireFee = true
+      }
+    }
 
     if (!requireFee) {
       return BigNumber.from(0)
@@ -745,6 +771,8 @@ class HopBridge extends Base {
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
+    const token = this.toTokenModel(this.tokenSymbol)
+
     const [credit, debit] = await Promise.all([
       this.getCredit(destinationChain, bonder),
       this.getDebit(destinationChain, bonder)
@@ -752,25 +780,31 @@ class HopBridge extends Base {
 
     let availableLiquidity = credit.sub(debit)
 
-    if (
-      sourceChain.equals(Chain.Optimism) &&
-      destinationChain.equals(Chain.Ethereum)
-    ) {
-      const bridgeContract = await this.getBridgeContract(sourceChain)
-      const pendingAmount = await bridgeContract.pendingAmountForChainId(
-        destinationChain.chainId
-      )
-
-      availableLiquidity = availableLiquidity.sub(pendingAmount)
-
-      const token = this.toTokenModel(this.tokenSymbol)
-      if (token.symbol === 'USDC') {
-        const unbondedRootsBufferBn = parseUnits(
-          UnbondedRootsBuffer,
-          token.decimals
-        )
-        availableLiquidity = availableLiquidity.sub(unbondedRootsBufferBn)
+    let minusBuffer = false
+    if (destinationChain.equals(Chain.Ethereum)) {
+      if (
+        sourceChain.equals(Chain.Optimism) ||
+        sourceChain.equals(Chain.Arbitrum)
+      ) {
+        minusBuffer = true
       }
+    }
+    if (minusBuffer) {
+      const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
+        token.canonicalSymbol
+      )
+      const tokenPriceBn = parseUnits(tokenPrice.toString(), token.decimals)
+      const unbondedRootsBufferAmountBn = parseUnits(
+        UnbondedRootsBufferAmount,
+        token.decimals
+      )
+      const precision = parseUnits('1', token.decimals)
+      const unbondedRootsBufferAmountTokensBn = unbondedRootsBufferAmountBn
+        .div(tokenPriceBn)
+        .mul(precision)
+      availableLiquidity = availableLiquidity.sub(
+        unbondedRootsBufferAmountTokensBn
+      )
     }
 
     if (availableLiquidity.lt('0')) {

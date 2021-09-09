@@ -657,14 +657,6 @@ class SyncWatcher extends BaseWatcher {
   }
 
   getIsBondable = (transferId: string, amount: BigNumber, destinationChainId: number): boolean => {
-    const destBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-    if (
-      (destBridge.minBondWithdrawalAmount && amount.lt(destBridge.minBondWithdrawalAmount)) ||
-      (destBridge.maxBondWithdrawalAmount && amount.gt(destBridge.maxBondWithdrawalAmount))
-    ) {
-      return false
-    }
-
     // Remove when this hash has been resolved
     const invalidTransferIds: string[] = [
       '0x99b304c55afc0b56456dc4999913bafff224080b8a3bbe0e5a04aaf1eedf76b6'

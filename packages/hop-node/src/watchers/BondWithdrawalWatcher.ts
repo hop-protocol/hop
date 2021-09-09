@@ -42,16 +42,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     })
   }
 
-  async start () {
-    this.logger.debug(
-      `min bondWithdrawal amount: ${this.bridge.formatUnits(this.bridge.minBondWithdrawalAmount)}`
-    )
-    this.logger.debug(
-      `max bondWithdrawal amount: ${this.bridge.formatUnits(this.bridge.maxBondWithdrawalAmount)}`
-    )
-    await super.start()
-  }
-
   async pollHandler () {
     if (this.isL1) {
       return
@@ -128,6 +118,16 @@ class BondWithdrawalWatcher extends BaseWatcher {
           availableCredit
         )}, need ${this.bridge.formatUnits(amount)}`
       )
+      let { withdrawalBondBackoffIndex } = await this.db.transfers.getByTransferId(transferId)
+      if (!withdrawalBondBackoffIndex) {
+        withdrawalBondBackoffIndex = 0
+      }
+      withdrawalBondBackoffIndex++
+      await this.db.transfers.update(transferId, {
+        bondWithdrawalAttemptedAt: Date.now(),
+        withdrawalBondTxError: TxError.NotEnoughLiquidity,
+        withdrawalBondBackoffIndex
+      })
       return
     }
 
@@ -150,7 +150,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const attemptSwap = this.shouldAttemptSwap(dbTransfer)
 
     await this.db.transfers.update(transferId, {
-      sentBondWithdrawalTxAt: Date.now()
+      bondWithdrawalAttemptedAt: Date.now()
     })
 
     try {
@@ -218,7 +218,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
           withdrawalBondBackoffIndex
         })
       }
-
       throw err
     }
   }

@@ -1,4 +1,5 @@
 import ContractBase from './ContractBase'
+import compareMinBonderFeeBasisPoints from 'src/utils/compareMinBonderFeeBasisPoints'
 import delay from 'src/decorators/delay'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import queue from 'src/decorators/queue'
@@ -6,8 +7,8 @@ import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import shiftBNDecimals from 'src/utils/shiftBNDecimals'
 import unique from 'src/utils/unique'
 import { BigNumber, Contract, constants, utils as ethersUtils, providers } from 'ethers'
-import { BonderFeeBps, Chain, GAS_PRICE_MULTIPLIER } from 'src/constants'
 import { BonderFeeTooLowError } from 'src/types/error'
+import { Chain, GAS_PRICE_MULTIPLIER } from 'src/constants'
 import { Db, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
@@ -475,7 +476,7 @@ export default class Bridge extends ContractBase {
       txOverrides
     ]
 
-    await this.compareMinBonderFeeBasisPoints(amount, bonderFee)
+    await compareMinBonderFeeBasisPoints(amount, bonderFee, this.chainSlug)
 
     if (this.chainSlug === Chain.Ethereum) {
       const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
@@ -543,34 +544,6 @@ export default class Bridge extends ContractBase {
       const usdBonderFeeFormatted = formatUnits(usdBonderFee, ethDecimals)
       const usdGasCostFormatted = formatUnits(usdGasCost, ethDecimals)
       throw new BonderFeeTooLowError(`bonder fee is too low. Cannot bond withdrawal. bonderFee: ${usdBonderFeeFormatted}, gasCost: ${usdGasCostFormatted}`)
-    }
-  }
-
-  async compareMinBonderFeeBasisPoints (amountIn: BigNumber, bonderFee: BigNumber) {
-    if (amountIn.eq(0)) {
-      return
-    }
-    // There is no concept of a minBonderFeeAbsolute on the L1 bridge so we default to 0 since the
-    // relative fee will negate this value anyway
-    let minBonderFeeAbsolute = BigNumber.from('0')
-    let bonderFeeBps = BonderFeeBps.L2ToL1
-    if (this.chainSlug !== Chain.Ethereum) {
-      bonderFeeBps = BonderFeeBps.L2ToL2
-      minBonderFeeAbsolute = await this.bridgeContract?.minBonderFeeAbsolute()
-    }
-
-    let minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)
-
-    // add 10% buffer for in the case amountIn is greater than originally
-    // estimated in frontend due to user receiving more hTokens during swap
-    const tolerance = 0.10
-    minBonderFeeRelative = minBonderFeeRelative.sub(minBonderFeeRelative.mul(tolerance * 100).div(100))
-    const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
-      ? minBonderFeeRelative
-      : minBonderFeeAbsolute
-    const isTooLow = bonderFee.lt(minBonderFee)
-    if (isTooLow) {
-      throw new BonderFeeTooLowError(`bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFee: ${minBonderFee}`)
     }
   }
 

@@ -4,6 +4,7 @@ import L2Amm from './L2Amm'
 import L2AmmWrapper from './L2AmmWrapper'
 import L2BridgeWrapper from './L2BridgeWrapper'
 import Token from './Token'
+import compareMinBonderFeeBasisPoints from 'src/utils/compareMinBonderFeeBasisPoints'
 import delay from 'src/decorators/delay'
 import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
@@ -456,7 +457,7 @@ export default class L2Bridge extends Bridge {
     ]
 
     // don't bond if bonder fee is too low between L2s
-    await this.compareMinBonderFeeBasisPoints(amount, bonderFee)
+    await compareMinBonderFeeBasisPoints(amount, bonderFee, this.chainSlug)
 
     const tx = await this.bridgeContract.bondWithdrawalAndDistribute(...payload)
 

@@ -1,4 +1,4 @@
-import normalizeEnvVarArray from 'src/utils/normalizeEnvVarArray'
+import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'

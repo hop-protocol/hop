@@ -1,5 +1,5 @@
-import compareMinBonderFeeBasisPoints from 'src/utils/compareMinBonderFeeBasisPoints'
 import { BigNumber } from 'ethers'
+import { compareMinBonderFeeBasisPoints } from 'src/watchers/classes/Bridge'
 
 describe('bonder fee', () => {
   // transferId (optimism->polygon):

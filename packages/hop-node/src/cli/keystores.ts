@@ -1,5 +1,5 @@
 import clearConsole from 'console-clear'
-import entropyToMnemonic from 'src/utils/entropyToMnemonic'
+import entropyToMnemonic from 'src/keystore/entropyToMnemonic'
 import fs from 'fs'
 import path from 'path'
 import {

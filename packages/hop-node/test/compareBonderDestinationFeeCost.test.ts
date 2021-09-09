@@ -1,5 +1,5 @@
-import compareBonderDestinationFeeCost from 'src/utils/compareBonderDestinationFeeCost'
 import { BigNumber } from 'ethers'
+import { compareBonderDestinationFeeCost } from 'src/watchers/classes/Bridge'
 import { setConfigByNetwork } from 'src/config'
 
 setConfigByNetwork('mainnet')

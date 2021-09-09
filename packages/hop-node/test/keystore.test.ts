@@ -1,4 +1,4 @@
-import entropyToMnemonic from 'src/utils/entropyToMnemonic'
+import entropyToMnemonic from 'src/keystore/entropyToMnemonic'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
 
 describe('keystore', () => {

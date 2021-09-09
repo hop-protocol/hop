@@ -2,9 +2,7 @@ import Logger from 'src/logger'
 import wait from 'src/utils/wait'
 import {
   Chain,
-  ETHEREUM_TX_MAX_DELAY_MS,
-  POLYGON_TX_MAX_DELAY_MS,
-  XDAI_TX_MAX_DELAY_MS
+  TxMaxDelayMs
 } from 'src/constants'
 import { Mutex } from 'async-mutex'
 
@@ -12,9 +10,9 @@ const mutexes: { [key: string]: Mutex } = {}
 const logger = new Logger('delayDecorator')
 const cache: { [key: string]: number } = {}
 const delayTimes: { [chain: string]: number } = {
-  [Chain.Ethereum]: ETHEREUM_TX_MAX_DELAY_MS,
-  [Chain.xDai]: XDAI_TX_MAX_DELAY_MS,
-  [Chain.Polygon]: POLYGON_TX_MAX_DELAY_MS
+  [Chain.Ethereum]: TxMaxDelayMs.Ethereum,
+  [Chain.xDai]: TxMaxDelayMs.xDai,
+  [Chain.Polygon]: TxMaxDelayMs.Polygon
 }
 
 export default function delay (

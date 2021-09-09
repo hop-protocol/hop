@@ -1,6 +1,6 @@
 import delay from 'src/decorators/delay'
 import wait from 'src/utils/wait'
-import { XDAI_TX_MAX_DELAY_MS } from 'src/constants'
+import { TxMaxDelayMs } from 'src/constants'
 
 const DELAY_SECONDS = 1
 const ITERATIONS = 3
@@ -32,7 +32,7 @@ test(
     }
     const end = Date.now()
     const waitMs = end - start
-    const expectedWaitMs = XDAI_TX_MAX_DELAY_MS * 2
+    const expectedWaitMs = TxMaxDelayMs.xDai * 2
     expect(waitMs).toBeGreaterThanOrEqual(expectedWaitMs)
     expect(waitMs).toBeLessThanOrEqual(expectedWaitMs + 2 * 1000)
   },

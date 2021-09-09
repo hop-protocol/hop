@@ -1,7 +1,7 @@
 import makeRequest from './makeRequest'
 import { DateTime } from 'luxon'
 import { Filters, normalizeEntity } from './shared'
-import { MAX_INT_32 } from 'src/constants'
+import { MaxInt32 } from 'src/constants'
 
 export default async function getTransferIds (
   chain: string,
@@ -43,7 +43,7 @@ export default async function getTransferIds (
   const variables = {
     token,
     startDate: 0,
-    endDate: MAX_INT_32,
+    endDate: MaxInt32,
     orderDirection: 'desc'
   }
   if (filters?.startDate) {

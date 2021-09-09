@@ -6,7 +6,7 @@ import L2Bridge from './classes/L2Bridge'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
 import xDaiBridgeWatcher from './xDaiBridgeWatcher'
-import { Chain, TEN_MINUTES_MS } from 'src/constants'
+import { Chain, TenMinutesMs } from 'src/constants'
 import { Contract } from 'ethers'
 import { getEnabledNetworks } from 'src/config'
 
@@ -108,7 +108,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         this.lastSeen[transferRootHash] = Date.now()
       }
 
-      const timestampOk = this.lastSeen[transferRootHash] + TEN_MINUTES_MS < Date.now()
+      const timestampOk = this.lastSeen[transferRootHash] + TenMinutesMs < Date.now()
       if (!timestampOk) {
         return
       }

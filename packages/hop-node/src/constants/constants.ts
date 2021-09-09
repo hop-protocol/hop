@@ -20,37 +20,39 @@ export enum Token {
   DAI = 'DAI'
 }
 
-export const AVG_BLOCK_TIME_SEC = {
+export const AvgBlockTimeSeconds = {
   Ethereum: 13,
   Polygon: 2,
   xDai: 5
 }
 
-export const SEC_IN_DAY = 86400
-export const SEC_IN_WEEK = SEC_IN_DAY * 7
+export const SecondsInDay = 86400
+export const SecondsInWeek = SecondsInDay * 7
 export const TotalBlocks = {
-  Ethereum: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.Ethereum),
-  Polygon: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.Polygon),
-  xDai: Math.floor(SEC_IN_WEEK / AVG_BLOCK_TIME_SEC.xDai)
+  Ethereum: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Ethereum),
+  Polygon: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Polygon),
+  xDai: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.xDai)
 }
-export const DEFAULT_BATCH_BLOCKS = 10000
+export const DefaultBatchBlocks = 10000
 
-export const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
-export const TEN_MINUTES_MS = 10 * 60 * 1000
-export const TX_RETRY_DELAY_MS = TEN_MINUTES_MS
-export const ETHEREUM_TX_MAX_DELAY_MS = 1 * 1000
-export const XDAI_TX_MAX_DELAY_MS = 20 * 1000
-export const POLYGON_TX_MAX_DELAY_MS = 10 * 1000
-export const ROOT_SET_SETTLE_DELAY_MS = 5 * 60 * 1000
+export const OneWeekMs = 7 * 24 * 60 * 60 * 1000
+export const TenMinutesMs = 10 * 60 * 1000
+export const TxRetryDelayMs = TenMinutesMs
+export enum TxMaxDelayMs {
+  Ethereum = 1 * 1000,
+  xDai = 20 * 1000,
+  Polygon = 10 * 1000,
+}
+export const RootSetSettleDelayMs = 5 * 60 * 1000
 
-export const MAX_INT_32 = 2147483647
+export const MaxInt32 = 2147483647
 
 export enum TxError {
   CallException = 'CALL_EXCEPTION',
   BonderFeeTooLow = 'BONDER_FEE_TOO_LOW'
 }
 
-export const GAS_PRICE_MULTIPLIER = 1.25
+export const MaxGasPriceMultiplier = 1.25
 
 export enum BonderFeeBps {
   L2ToL1 = '18',

@@ -7,7 +7,7 @@ import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import wait from 'src/utils/wait'
 import { BigNumber, Signer, providers } from 'ethers'
 import { EventEmitter } from 'events'
-import { GAS_PRICE_MULTIPLIER } from 'src/constants'
+import { MaxGasPriceMultiplier } from 'src/constants'
 import { Notifier } from 'src/notifier'
 import { boundClass } from 'autobind-decorator'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -54,7 +54,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   started: boolean = false
   pollMs: number = 10 * 1000
   timeTilBoostMs: number = 3 * 60 * 1000
-  gasPriceMultiplier: number = GAS_PRICE_MULTIPLIER
+  gasPriceMultiplier: number = MaxGasPriceMultiplier
   maxGasPriceGwei: number = 500
   compareMarketGasPrice: boolean = true
   warnEthBalance: number = 0.1

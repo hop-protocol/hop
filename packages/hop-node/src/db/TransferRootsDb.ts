@@ -1,7 +1,7 @@
 import BaseDb from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, ROOT_SET_SETTLE_DELAY_MS, TX_RETRY_DELAY_MS } from 'src/constants'
+import { Chain, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
 export type TransferRoot = {
@@ -105,7 +105,7 @@ class TransferRootsDb extends BaseDb {
       let timestampOk = true
       if (item?.sentBondTxAt) {
         timestampOk =
-          item?.sentBondTxAt + TX_RETRY_DELAY_MS < Date.now()
+          item?.sentBondTxAt + TxRetryDelayMs < Date.now()
       }
 
       return (
@@ -141,7 +141,7 @@ class TransferRootsDb extends BaseDb {
       let timestampOk = true
       if (item?.sentConfirmTxAt) {
         timestampOk =
-          item?.sentConfirmTxAt + TX_RETRY_DELAY_MS < Date.now()
+          item?.sentConfirmTxAt + TxRetryDelayMs < Date.now()
       }
 
       return (
@@ -190,13 +190,13 @@ class TransferRootsDb extends BaseDb {
       let rootSetTimestampOk = true
       const checkRootSetTimestamp = item?.rootSetTimestamp && filter?.destinationChainId && chainIdToSlug(filter?.destinationChainId) === Chain.xDai
       if (checkRootSetTimestamp) {
-        rootSetTimestampOk = (item.rootSetTimestamp * 1000) + ROOT_SET_SETTLE_DELAY_MS < Date.now()
+        rootSetTimestampOk = (item.rootSetTimestamp * 1000) + RootSetSettleDelayMs < Date.now()
       }
 
       let bondSettleTimestampOk = true
       if (item?.withdrawalBondSettleTxSentAt) {
         bondSettleTimestampOk =
-          (item?.withdrawalBondSettleTxSentAt + TX_RETRY_DELAY_MS) <
+          (item?.withdrawalBondSettleTxSentAt + TxRetryDelayMs) <
           Date.now()
       }
 

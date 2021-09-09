@@ -10,7 +10,7 @@ import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
 import shiftBNDecimals from 'src/utils/shiftBNDecimals'
 import unique from 'src/utils/unique'
 import { BigNumber, Contract, constants, utils as ethersUtils, providers } from 'ethers'
-import { BonderFeeBps, Chain, GAS_PRICE_MULTIPLIER, MinBonderFeeAbsolute } from 'src/constants'
+import { BonderFeeBps, Chain, MaxGasPriceMultiplier, MinBonderFeeAbsolute } from 'src/constants'
 import { BonderFeeTooLowError } from 'src/types/error'
 import { Db, getDbSet } from 'src/db'
 import { Event } from 'src/types'
@@ -720,7 +720,7 @@ export async function compareBonderDestinationFeeCost (
   const ethDecimals = 18
   const gweiDecimals = 9
   const provider = getRpcProvider(chain)
-  const gasPrice = getBumpedGasPrice(await provider.getGasPrice(), GAS_PRICE_MULTIPLIER)
+  const gasPrice = getBumpedGasPrice(await provider.getGasPrice(), MaxGasPriceMultiplier)
   const gasPrice18d = shiftBNDecimals(gasPrice, ethDecimals - gweiDecimals)
   const gasCost = gasLimit.mul(gasPrice)
   const ethUsdPrice = await priceFeed.getPriceByTokenSymbol('ETH')

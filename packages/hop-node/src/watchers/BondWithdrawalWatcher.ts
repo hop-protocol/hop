@@ -5,9 +5,9 @@ import chalk from 'chalk'
 import isL1 from 'src/utils/isL1'
 import wait from 'src/utils/wait'
 import { BonderFeeTooLowError } from 'src/types/error'
+import { Chain, TxError } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
-import { TxError } from 'src/constants'
 
 export interface Config {
   chainSlug: string
@@ -88,6 +88,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = dbTransfer
     const logger = this.logger.create({ id: transferId })
     const sourceL2Bridge = this.bridge as L2Bridge
+    const destinationChain = this.chainIdToSlug(destinationChainId)
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
@@ -111,7 +112,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    const availableCredit = await destBridge.getAvailableCredit()
+    let availableCredit = await destBridge.getAvailableCredit()
+    const includePendingAmount = ([Chain.Optimism, Chain.Arbitrum] as string[]).includes(destinationChain)
+    if (includePendingAmount) {
+      const pendingAmount = await sourceL2Bridge.getPendingAmountForChainId(destinationChainId)
+      availableCredit = availableCredit.sub(pendingAmount).sub(amount)
+    }
     if (availableCredit.lt(amount)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(

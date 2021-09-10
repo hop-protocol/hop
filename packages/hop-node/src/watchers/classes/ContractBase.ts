@@ -12,7 +12,7 @@ import { config as globalConfig } from 'src/config'
 export default class ContractBase extends EventEmitter {
   contract: Contract
   public chainId: number
-  public chainSlug: string
+  public chainSlug: Chain
 
   constructor (contract: Contract) {
     super()

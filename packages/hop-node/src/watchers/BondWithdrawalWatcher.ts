@@ -88,6 +88,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = dbTransfer
     const logger = this.logger.create({ id: transferId })
     const sourceL2Bridge = this.bridge as L2Bridge
+    const sourceChain = this.bridge.chainSlug
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
@@ -113,7 +114,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     let availableCredit = await destBridge.getAvailableCredit()
-    const includePendingAmount = [Chain.Optimism, Chain.Arbitrum].includes(destinationChain)
+    const includePendingAmount = destinationChain === Chain.Ethereum && [Chain.Optimism, Chain.Arbitrum].includes(sourceChain)
     if (includePendingAmount) {
       const pendingAmount = await sourceL2Bridge.getPendingAmountForChainId(destinationChainId)
       availableCredit = availableCredit.sub(pendingAmount).sub((amount).mul(2))

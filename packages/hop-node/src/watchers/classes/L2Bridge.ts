@@ -243,7 +243,7 @@ export default class L2Bridge extends Bridge {
     return chainId
   }
 
-  async getChainSlug (): Promise<string> {
+  async getChainSlug (): Promise<Chain> {
     const chainId = await this.getChainId()
     return this.chainIdToSlug(chainId)
   }

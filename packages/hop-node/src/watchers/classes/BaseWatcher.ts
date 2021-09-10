@@ -182,7 +182,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     this.syncWatcher = syncWatcher
   }
 
-  chainIdToSlug (chainId: number): string {
+  chainIdToSlug (chainId: number): Chain {
     return this.bridge.chainIdToSlug(chainId)
   }
 

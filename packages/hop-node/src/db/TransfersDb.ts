@@ -16,7 +16,7 @@ export type Transfer = {
   withdrawalBonded?: boolean
   withdrawalBonder?: string
   withdrawalBondedTxHash?: string
-  withdrawalBondTxError?: string
+  withdrawalBondTxError?: TxError
   withdrawalBondBackoffIndex?: number
   bondWithdrawalAttemptedAt?: number
 
@@ -128,7 +128,7 @@ class TransfersDb extends BaseDb {
 
       let timestampOk = true
       if (item.bondWithdrawalAttemptedAt) {
-        const checkBackoff = ([TxError.BonderFeeTooLow, TxError.NotEnoughLiquidity] as string[]).includes(item.withdrawalBondTxError)
+        const checkBackoff = [TxError.BonderFeeTooLow, TxError.NotEnoughLiquidity].includes(item.withdrawalBondTxError)
         if (checkBackoff) {
           const delay = (1 << item.withdrawalBondBackoffIndex) * 1000
           // TODO: use `sentTransferTimestamp` once it's added to db

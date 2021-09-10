@@ -594,22 +594,6 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    let requireFee = false
-    if (destinationChain?.isL1) {
-      requireFee = true
-    } else if (!sourceChain?.equals(Chain.Ethereum)) {
-      if (
-        destinationChain?.equals(Chain.Optimism) ||
-        destinationChain?.equals(Chain.Arbitrum)
-      ) {
-        requireFee = true
-      }
-    }
-
-    if (!requireFee) {
-      return BigNumber.from(0)
-    }
-
     const canonicalToken = this.getCanonicalToken(sourceChain)
     const ethPrice = await this.priceFeed.getPriceByTokenSymbol('WETH')
     const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
@@ -778,35 +762,7 @@ class HopBridge extends Base {
       this.getDebit(destinationChain, bonder)
     ])
 
-    let availableLiquidity = credit.sub(debit)
-
-    let minusBuffer = false
-    if (destinationChain.equals(Chain.Ethereum)) {
-      if (
-        sourceChain.equals(Chain.Optimism) ||
-        sourceChain.equals(Chain.Arbitrum)
-      ) {
-        minusBuffer = true
-      }
-    }
-    if (minusBuffer) {
-      const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
-        token.canonicalSymbol
-      )
-      const tokenPriceBn = parseUnits(tokenPrice.toString(), token.decimals)
-      const unbondedRootsBufferAmountBn = parseUnits(
-        UnbondedRootsBufferAmount,
-        token.decimals
-      )
-      const precision = parseUnits('1', token.decimals)
-      const unbondedRootsBufferAmountTokensBn = unbondedRootsBufferAmountBn
-        .div(tokenPriceBn)
-        .mul(precision)
-      availableLiquidity = availableLiquidity.sub(
-        unbondedRootsBufferAmountTokensBn
-      )
-    }
-
+    const availableLiquidity = credit.sub(debit)
     if (availableLiquidity.lt('0')) {
       return BigNumber.from('0')
     }

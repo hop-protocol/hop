@@ -11,7 +11,6 @@ export type TransferRoot = {
   totalAmount?: BigNumber
   destinationChainId?: number
   sourceChainId?: number
-  sentCommitTx?: boolean
   sentCommitTxAt: number
   committed?: boolean
   committedAt?: number

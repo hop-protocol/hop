@@ -113,10 +113,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     let availableCredit = await destBridge.getAvailableCredit()
-    const includePendingAmount = ([Chain.Optimism, Chain.Arbitrum] as string[]).includes(destinationChain)
+    const includePendingAmount = [Chain.Optimism, Chain.Arbitrum].includes(destinationChain)
     if (includePendingAmount) {
       const pendingAmount = await sourceL2Bridge.getPendingAmountForChainId(destinationChainId)
-      availableCredit = availableCredit.sub(pendingAmount).sub(amount)
+      availableCredit = availableCredit.sub(pendingAmount).sub((amount).mul(2))
     }
     if (availableCredit.lt(amount)) {
       logger.warn(

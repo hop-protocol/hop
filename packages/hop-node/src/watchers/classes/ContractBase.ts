@@ -50,7 +50,7 @@ export default class ContractBase extends EventEmitter {
     return chainSlug
   }
 
-  chainIdToSlug (chainId: number): string {
+  chainIdToSlug (chainId: number): Chain {
     return chainIdToSlug(chainId)
   }
 

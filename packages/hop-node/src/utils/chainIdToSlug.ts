@@ -1,6 +1,7 @@
+import { Chain } from 'src/constants'
 import { config as globalConfig } from 'src/config'
 
-const chainIdToSlug = (chainId: string | number): string | undefined => {
+const chainIdToSlug = (chainId: string | number): Chain => {
   if (!globalConfig.networks) {
     throw new Error('networks not found')
   }
@@ -13,7 +14,7 @@ const chainIdToSlug = (chainId: string | number): string | undefined => {
       v?.networkId?.toString() === chainId.toString() ||
       v?.chainId?.toString() === chainId.toString()
     ) {
-      return k
+      return k as Chain
     }
   }
 }

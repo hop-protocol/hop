@@ -31,14 +31,12 @@ export const networks: Networks = {
     explorerUrl: _networks.polygon.explorerUrls[0],
     nativeBridgeUrl: _networks.polygon.nativeBridgeUrl
   },
-  /*
   arbitrum: {
     networkId: _networks.arbitrum.networkId.toString(),
     rpcUrls: _networks.arbitrum.rpcUrls,
     explorerUrl: _networks.arbitrum.explorerUrls[0],
     nativeBridgeUrl: _networks.arbitrum.nativeBridgeUrl
   },
-  */
   optimism: {
     networkId: _networks.optimism.networkId.toString(),
     rpcUrls: _networks.optimism.rpcUrls,

@@ -13,9 +13,7 @@ export const networks: Networks = {
     name: chains.arbitrum.name,
     networkId: 1000,
     rpcUrls: ['https://mainnet.arbitrum.io'],
-    explorerUrls: [
-      'https://expedition.dev/?rpcUrl=https%3A%2F%2Fmainnet.arbitrum.io'
-    ],
+    explorerUrls: ['https://arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
     waitConfirmations: 0
   },

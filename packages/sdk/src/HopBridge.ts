@@ -21,8 +21,7 @@ import {
   LpFeeBps,
   GasPriceMultiplier,
   L2ToL2BonderFeeBps,
-  L2ToL1BonderFeeBps,
-  UnbondedRootsBufferAmount
+  L2ToL1BonderFeeBps
 } from './constants'
 import { metadata } from './config'
 import { PriceFeed } from './priceFeed'

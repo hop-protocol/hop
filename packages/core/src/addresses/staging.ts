@@ -55,7 +55,7 @@ export const addresses: Addresses = {
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0xed2520d1D9bf88A29a2b56f32EF2cD8446D54205',
+        l1MessengerWrapper: '0xF86c14f015AcFb14a88C0d3eB51b51e4637ABa3c',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
         l2Bridge: '0xCB4cEeFce514B2d910d3ac529076D18e3aDD3775',

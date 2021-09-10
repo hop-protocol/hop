@@ -11,8 +11,8 @@ export const networks: Networks = {
   },
   arbitrum: {
     name: chains.arbitrum.name,
-    networkId: 1000,
-    rpcUrls: ['https://mainnet.arbitrum.io'],
+    networkId: 42161,
+    rpcUrls: ['https://arb1.arbitrum.io/rpc'],
     explorerUrls: ['https://arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
     waitConfirmations: 0

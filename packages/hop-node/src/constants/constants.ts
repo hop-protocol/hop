@@ -54,6 +54,8 @@ export enum TxError {
 }
 
 export const MaxGasPriceMultiplier = 1.25
+export const MinPriorityFeePerGas = 4
+export const PriorityFeePerGasCap = 20
 
 export enum BonderFeeBps {
   L2ToL1 = '18',

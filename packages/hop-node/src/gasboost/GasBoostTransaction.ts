@@ -8,7 +8,7 @@ import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import wait from 'src/utils/wait'
 import { BigNumber, Signer, providers } from 'ethers'
-import { Chain, MaxGasPriceMultiplier } from 'src/constants'
+import { Chain, MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
 import { EventEmitter } from 'events'
 
 import { Notifier } from 'src/notifier'
@@ -51,6 +51,8 @@ export type Options = {
   timeTilBoostMs: number
   gasPriceMultiplier: number
   maxGasPriceGwei: number
+  minPriorityFeePerGas: number
+  priorityFeePerGasCap: number
   compareMarketGasPrice: boolean
 }
 
@@ -67,8 +69,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   timeTilBoostMs: number = 3 * 60 * 1000
   gasPriceMultiplier: number = MaxGasPriceMultiplier
   maxGasPriceGwei: number = 500
-  minPriorityFeePerGas: number = 4
-  priorityFeePerGasCap: number = 20
+  minPriorityFeePerGas: number = MinPriorityFeePerGas
+  priorityFeePerGasCap: number = PriorityFeePerGasCap
   compareMarketGasPrice: boolean = true
   warnEthBalance: number = 0.1
   boostIndex: number = 0
@@ -173,6 +175,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   setMaxGasPriceGwei (maxGasPriceGwei: number) {
     this.maxGasPriceGwei = maxGasPriceGwei
+  }
+
+  setMinPriorityFeePerGas (minPriorityFeePerGas: number) {
+    this.minPriorityFeePerGas = minPriorityFeePerGas
+  }
+
+  setPriorityFeePerGasCap (priorityFeePerGasCap: number) {
+    this.priorityFeePerGasCap = priorityFeePerGasCap
   }
 
   setCompareMarketGasPrice (compareMarketGasPrice: boolean) {
@@ -347,6 +357,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     if (options.maxGasPriceGwei) {
       this.maxGasPriceGwei = options.maxGasPriceGwei
+    }
+    if (options.minPriorityFeePerGas) {
+      this.minPriorityFeePerGas = options.minPriorityFeePerGas
+    }
+    if (options.priorityFeePerGasCap) {
+      this.priorityFeePerGasCap = options.priorityFeePerGasCap
     }
     if (typeof options.compareMarketGasPrice === 'boolean') {
       this.compareMarketGasPrice = options.compareMarketGasPrice
@@ -569,11 +585,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.inflightItems = []
   }
 
-  private parseGwei(value: number) {
+  private parseGwei (value: number) {
     return parseUnits(value.toString(), 9)
   }
 
-  private formatGwei(value: BigNumber) {
+  private formatGwei (value: BigNumber) {
     return formatUnits(value.toString(), 9)
   }
 

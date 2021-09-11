@@ -48,7 +48,6 @@ type GetWatchersConfig = {
   challenger?: boolean
   maxStakeAmounts?: StakeAmounts
   commitTransfersMinThresholdAmounts?: CommitTransfersMinThresholdAmounts
-  bondWithdrawalAmounts?: BondWithdrawalAmounts
   settleBondedWithdrawalsThresholdPercent?: SettleBondedWithdrawalsThresholdPercent
   dryMode?: boolean
   stateUpdateAddress?: string
@@ -80,7 +79,6 @@ export function getWatchers (config: GetWatchersConfig) {
     maxStakeAmounts = {},
     commitTransfersMinThresholdAmounts = {},
     settleBondedWithdrawalsThresholdPercent = {},
-    bondWithdrawalAmounts = {},
     dryMode = false,
     stateUpdateAddress,
     syncFromDate

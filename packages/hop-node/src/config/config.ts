@@ -1,4 +1,5 @@
 import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
+import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
@@ -20,6 +21,9 @@ export const slackAuthToken = process.env.SLACK_AUTH_TOKEN
 export const slackUsername = process.env.SLACK_USERNAME || 'Hop Node'
 export const enabledSettleWatcherDestinationChains = normalizeEnvVarArray(process.env.ENABLED_SETTLE_WATCHER_DESTINATION_CHAINS)
 export const enabledSettleWatcherSourceChains = normalizeEnvVarArray(process.env.ENABLED_SETTLE_WATCHER_SOURCE_CHAINS)
+export const gasPriceMultiplier = normalizeEnvVarNumber(process.env.GAS_PRICE_MULTIPLIER)
+export const maxGasPriceGwei = normalizeEnvVarNumber(process.env.MAX_GAS_PRICE_GWEI)
+export const timeTilBoostMs = normalizeEnvVarNumber(process.env.TIME_TIL_BOOST_MS)
 const envNetwork = process.env.NETWORK || Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
@@ -30,15 +34,6 @@ export const defaultConfigDir = `${os.homedir()}/.hop-node`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 
-type BondWithdrawalConfig = {
-  [network: string]: {
-    min?: number
-    max?: number
-  }
-}
-type BondWithdrawalsConfig = {
-  [network: string]: BondWithdrawalConfig
-}
 type SyncConfig = {
   totalBlocks?: number
   batchBlocks?: number
@@ -58,7 +53,6 @@ type Config = {
   stateUpdateAddress: string,
   db: DbConfig,
   sync: SyncConfigs,
-  bondWithdrawals: BondWithdrawalsConfig
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -127,8 +121,7 @@ export const config: Config = {
       totalBlocks: TotalBlocks.xDai,
       batchBlocks: DefaultBatchBlocks
     }
-  },
-  bondWithdrawals: {}
+  }
 }
 
 export const setConfigByNetwork = (network: string) => {
@@ -165,10 +158,6 @@ export const setNetworkWaitConfirmations = (
   if (config.networks[network]) {
     config.networks[network].waitConfirmations = waitConfirmations
   }
-}
-
-export const setBondWithdrawalsConfig = (bondWithdrawalsConfig: BondWithdrawalsConfig) => {
-  config.bondWithdrawals = bondWithdrawalsConfig
 }
 
 export const setStateUpdateAddress = (address: string) => {

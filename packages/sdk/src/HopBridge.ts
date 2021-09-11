@@ -1,5 +1,5 @@
 import { ethers, Signer, Contract, BigNumber, BigNumberish } from 'ethers'
-import { parseUnits, getAddress } from 'ethers/lib/utils'
+import { parseUnits, formatUnits, getAddress } from 'ethers/lib/utils'
 import Chain from './models/Chain'
 import TokenModel from './models/Token'
 import {
@@ -21,8 +21,7 @@ import {
   LpFeeBps,
   GasPriceMultiplier,
   L2ToL2BonderFeeBps,
-  L2ToL1BonderFeeBps,
-  UnbondedRootsBuffer
+  L2ToL1BonderFeeBps
 } from './constants'
 import { metadata } from './config'
 import { PriceFeed } from './priceFeed'
@@ -454,11 +453,30 @@ class HopBridge extends Base {
       estimatedReceived = estimatedReceived.sub(totalFee)
     }
 
+    let requiredLiquidity = hTokenAmount
+    let includePendingAmount = false
+    if (destinationChain.equals(Chain.Ethereum)) {
+      if (
+        sourceChain.equals(Chain.Optimism) ||
+        sourceChain.equals(Chain.Arbitrum)
+      ) {
+        includePendingAmount = true
+      }
+    }
+
+    if (includePendingAmount) {
+      const bridgeContract = await this.getBridgeContract(sourceChain)
+      const pendingAmount = await bridgeContract.pendingAmountForChainId(
+        destinationChain.chainId
+      )
+      requiredLiquidity = requiredLiquidity.add(pendingAmount).add(hTokenAmount) // account for transfer root bonds
+    }
+
     return {
       amountOut,
       rate,
       priceImpact,
-      requiredLiquidity: hTokenAmount,
+      requiredLiquidity,
       bonderFee,
       lpFees,
       destinationTxFee,
@@ -574,15 +592,6 @@ class HopBridge extends Base {
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
-
-    const requireFee =
-      destinationChain?.isL1 ||
-      (!sourceChain?.equals(Chain.Ethereum) &&
-        destinationChain?.equals(Chain.Optimism))
-
-    if (!requireFee) {
-      return BigNumber.from(0)
-    }
 
     const canonicalToken = this.getCanonicalToken(sourceChain)
     const ethPrice = await this.priceFeed.getPriceByTokenSymbol('WETH')
@@ -745,34 +754,14 @@ class HopBridge extends Base {
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
+    const token = this.toTokenModel(this.tokenSymbol)
+
     const [credit, debit] = await Promise.all([
       this.getCredit(destinationChain, bonder),
       this.getDebit(destinationChain, bonder)
     ])
 
-    let availableLiquidity = credit.sub(debit)
-
-    if (
-      sourceChain.equals(Chain.Optimism) &&
-      destinationChain.equals(Chain.Ethereum)
-    ) {
-      const bridgeContract = await this.getBridgeContract(sourceChain)
-      const pendingAmount = await bridgeContract.pendingAmountForChainId(
-        destinationChain.chainId
-      )
-
-      availableLiquidity = availableLiquidity.sub(pendingAmount)
-
-      const token = this.toTokenModel(this.tokenSymbol)
-      if (token.symbol === 'USDC') {
-        const unbondedRootsBufferBn = parseUnits(
-          UnbondedRootsBuffer,
-          token.decimals
-        )
-        availableLiquidity = availableLiquidity.sub(unbondedRootsBufferBn)
-      }
-    }
-
+    const availableLiquidity = credit.sub(debit)
     if (availableLiquidity.lt('0')) {
       return BigNumber.from('0')
     }

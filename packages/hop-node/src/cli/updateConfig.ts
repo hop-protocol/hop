@@ -25,8 +25,6 @@ program
   .option('--tokens <string>', 'Specifiy multiple token symbol')
   .option('--set-enabled [boolean]', 'Token to set enabled/disabled')
   .option('--commit-transfers-min-threshold [string]', 'Min threshold amount for committing transfers')
-  .option('--bond-withdrawals-min <string>', 'Min amount for bonding withdrawals')
-  .option('--bond-withdrawals-max <string>', 'Max amount for bonding withdrawals')
   .option('--state-update-address <string>', 'Address of StateUpdater contract')
   .option('--from-file <string>', 'Update config with input from file')
   .action(async source => {
@@ -40,8 +38,6 @@ program
       const destinationChain = source.destinationChain
       const tokens = normalizeEnvVarArray(source.tokens || source.token)
       const commitTransfersMinThresholdAmount = Number(source.commitTransfersMinThreshold || 0)
-      const bondWithdrawalsMin = Number(source.bondWithdrawalsMin || 0)
-      const bondWithdrawalsMax = Number(source.bondWithdrawalsMax || 0)
 
       const newConfig = JSON.parse(JSON.stringify(config)) // deep clone
       const oldConfig = JSON.parse(JSON.stringify(config)) // deep clone
@@ -169,39 +165,6 @@ program
           for (const token of tokens) {
             await updateCommitTransfersMinThreshold(token)
           }
-        }
-      } else if (
-        source.bondWithdrawalsMin !== undefined ||
-        source.bondWithdrawalsMax !== undefined
-      ) {
-        const updateBondWithdrawals = async (token: string) => {
-          if (!chain) {
-            throw new Error('chain is required')
-          }
-          if (!token) {
-            throw new Error('token is required')
-          }
-          if (!(newConfig.bondWithdrawals instanceof Object)) {
-            newConfig.bondWithdrawals = {}
-          }
-          if (!(newConfig.bondWithdrawals[chain] instanceof Object)) {
-            newConfig.bondWithdrawals[chain] = {}
-          }
-          if (!(newConfig.bondWithdrawals[chain][token] instanceof Object)) {
-            newConfig.bondWithdrawals[chain][token] = {}
-          }
-          if (source.bondWithdrawalsMin !== undefined) {
-            newConfig.bondWithdrawals[chain][token].min = bondWithdrawalsMin
-            logger.debug(`updating bondWithdrawals min to ${bondWithdrawalsMin} for ${chain}.${token}`)
-          }
-          if (source.bondWithdrawalsMax !== undefined) {
-            newConfig.bondWithdrawals[chain][token].max = bondWithdrawalsMax
-            logger.debug(`updating bondWithdrawals max to ${bondWithdrawalsMax} for ${chain}.${token}`)
-          }
-        }
-
-        for (const token of tokens) {
-          await updateBondWithdrawals(token)
         }
       } else if (source.setEnabled) {
         const updateEnabled = async (token: string) => {

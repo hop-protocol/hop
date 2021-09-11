@@ -324,7 +324,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   async getBumpedGasFeeData (multiplier : number = this.gasPriceMultiplier): Promise<Partial<GasFeeData>> {
     if (this.chainSlug === Chain.Ethereum && !this.gasPrice) {
       const gasFeeData = await this.getGasFeeData()
-      const maxPriorityFeePerGas = await this.getBumpedMaxPriorityFeePerGas()
+      const maxPriorityFeePerGas = await this.getBumpedMaxPriorityFeePerGas(multiplier)
       const maxFeePerGas = gasFeeData.maxFeePerGas.add(maxPriorityFeePerGas)
 
       return {

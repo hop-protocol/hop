@@ -503,7 +503,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           nonce: this.nonce,
           gasLimit: this.gasLimit
         }
-        console.log(gasFeeData)
 
         if (gasFeeData.gasPrice) {
           payload.gasPrice = gasFeeData.gasPrice
@@ -511,8 +510,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           payload.maxFeePerGas = gasFeeData.maxFeePerGas
           payload.maxPriorityFeePerGas = gasFeeData.maxPriorityFeePerGas
         }
-
-        console.log(payload)
 
         await this.checkHasEnoughFunds(payload, gasFeeData)
 

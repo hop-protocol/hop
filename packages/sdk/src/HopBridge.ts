@@ -758,7 +758,7 @@ class HopBridge extends Base {
 
     const [credit, debit] = await Promise.all([
       this.getCredit(destinationChain, bonder),
-      this.getDebit(destinationChain, bonder)
+      this.getTotalDebit(destinationChain, bonder)
     ])
 
     const availableLiquidity = credit.sub(debit)
@@ -801,6 +801,21 @@ class HopBridge extends Base {
   }
 
   /**
+   * @desc Returns total debit, including sliding window debit, that bonder holds on Hop bridge at specified chain.
+   * @param {Object} chain - Chain model.
+   * @returns {Object} Total debit as BigNumber.
+   */
+  public async getTotalDebit (
+    chain: TChain,
+    bonder: string = this.getBonderAddress(this.tokenSymbol)
+  ): Promise<BigNumber> {
+    chain = this.toChainModel(chain)
+    const bridge = await this.getBridgeContract(chain)
+
+    return bridge.getDebitAndAdditionalDebit(bonder)
+  }
+
+  /**
    * @desc Returns total debit that bonder holds on Hop bridge at specified chain.
    * @param {Object} chain - Chain model.
    * @returns {Object} Total debit as BigNumber.
@@ -812,7 +827,7 @@ class HopBridge extends Base {
     chain = this.toChainModel(chain)
     const bridge = await this.getBridgeContract(chain)
 
-    return bridge.getDebitAndAdditionalDebit(bonder)
+    return bridge.getRawDebit(bonder)
   }
 
   /**

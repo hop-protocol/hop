@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect
 } from 'react'
-import { formatUnits } from 'ethers/lib/utils'
+import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import { useApp } from 'src/contexts/AppContext'
@@ -42,7 +42,10 @@ type BonderStats = {
   credit: number,
   debit: number,
   availableLiquidity: number
-  eth: number
+  pendingAmount: number
+  virtualDebt: number
+  totalAmount: number
+  availableEth: number
 }
 
 const StatsContextProvider: FC = ({ children }) => {
@@ -123,6 +126,9 @@ const StatsContextProvider: FC = ({ children }) => {
     if (!selectedNetwork) {
       return
     }
+    if (!pendingAmounts?.length) {
+      return
+    }
     const token = tokens.find(token => token.symbol === selectedToken?.symbol)
     if (!token) {
       return
@@ -132,12 +138,21 @@ const StatsContextProvider: FC = ({ children }) => {
     if (!bridge.isSupportedAsset(selectedNetwork.slug)) {
       return
     }
-    const [credit, debit, availableLiquidity, eth] = await Promise.all([
+    const [credit, debit, totalDebit, availableLiquidity, eth] = await Promise.all([
       bridge.getCredit(selectedNetwork.slug, bonder),
       bridge.getDebit(selectedNetwork.slug, bonder),
+      bridge.getTotalDebit(selectedNetwork.slug, bonder),
       bridge.getAvailableLiquidity(selectedNetwork.slug, selectedNetwork.slug, bonder),
       bridge.getEthBalance(selectedNetwork.slug, bonder)
     ])
+
+    const virtualDebt = totalDebit.sub(debit)
+    let pendingAmount = 0
+    for (const obj of pendingAmounts) {
+      if (obj.destinationNetwork.slug === selectedNetwork.slug && obj.token.symbol === token.symbol) {
+        pendingAmount += obj.pendingAmount
+      }
+    }
 
     return {
       id: `${selectedNetwork.slug}-${token.symbol}-${bonder}`,
@@ -145,9 +160,12 @@ const StatsContextProvider: FC = ({ children }) => {
       token,
       network: selectedNetwork,
       credit: Number(formatUnits(credit.toString(), token.decimals)),
-      debit: Number(formatUnits(debit.toString(), token.decimals)),
+      debit: Number(formatUnits(totalDebit.toString(), token.decimals)),
       availableLiquidity: Number(formatUnits(availableLiquidity.toString(), token.decimals)),
-      eth: Number(formatUnits(eth.toString(), 18))
+      pendingAmount,
+      virtualDebt: Number(formatUnits(virtualDebt.toString(), token.decimals)),
+      totalAmount: Number(formatUnits(availableLiquidity.add(parseUnits(pendingAmount.toString(), token.decimals)).add(virtualDebt), token.decimals)),
+      availableEth: Number(formatUnits(eth.toString(), 18))
     }
   }
 
@@ -171,7 +189,7 @@ const StatsContextProvider: FC = ({ children }) => {
     }
 
     update().catch(logger.error)
-  }, [])
+  }, [pendingAmounts])
 
   async function fetchPendingAmounts (sourceNetwork: Network, destinationNetwork: Network, token: Token) {
     if (!sourceNetwork) {
@@ -190,7 +208,7 @@ const StatsContextProvider: FC = ({ children }) => {
     }
     const contract = await bridge.getBridgeContract(sourceNetwork.slug)
     const pendingAmountBn = await contract.pendingAmountForChainId(destinationNetwork.networkId)
-    const pendingAmount = formatUnits(pendingAmountBn, token.decimals)
+    const pendingAmount = Number(formatUnits(pendingAmountBn, token.decimals))
 
     return {
       id: `${sourceNetwork.slug}-${destinationNetwork.slug}-${token.symbol}`,

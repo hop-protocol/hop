@@ -121,7 +121,7 @@
           <table>
             <thead>
               <tr>
-                <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Amount</th><th>Token</th><th>Bonded</th>
+                <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Amount</th><th>Token</th><th>Bonded</th><th>Bonded within</th>
               </tr>
             </thead>
             <tbody>
@@ -160,6 +160,9 @@
                   <span class="na" v-if="x.sourceChain === 1">
                     <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
                   </span>
+                </td>
+                <td class="bondedWithin" :title="x.isoBondedTimestamp">
+                  {{ x.relativeBondedWithinTimestamp }}
                 </td>
               </tr>
             </tbody>

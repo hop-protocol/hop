@@ -321,6 +321,7 @@ async function fetchBonds (chain) {
         id
         transferId
         transactionHash
+        timestamp
         token
       }
     }
@@ -514,6 +515,7 @@ async function updateTransfers () {
         if (bond.transferId === x.transferId) {
           x.bonded = true
           x.bondTransactionHash = bond.transactionHash
+          x.bondedTimestamp = Number(bond.timestamp)
           continue
         }
       }
@@ -553,9 +555,9 @@ async function updateTransfers () {
 }
 
 function populateTransfer (x, i) {
-  const t = luxon.DateTime.fromSeconds(x.timestamp)
-  x.isoTimestamp = t.toISO()
-  x.relativeTimestamp = t.toRelative()
+  const transferTime = luxon.DateTime.fromSeconds(x.timestamp)
+  x.isoTimestamp = transferTime.toISO()
+  x.relativeTimestamp = transferTime.toRelative()
 
   x.sourceChainSlug = chainIdToSlugMap[x.sourceChain]
   x.destinationChainSlug = chainIdToSlugMap[x.destinationChain]
@@ -568,6 +570,24 @@ function populateTransfer (x, i) {
 
   x.sourceTxExplorerUrl = explorerLink(x.sourceChainSlug, x.transactionHash)
   x.bondTxExplorerUrl = x.bondTransactionHash ? explorerLink(x.destinationChainSlug, x.bondTransactionHash) : ''
+
+  if (x.bondedTimestamp) {
+    const bondedTime = luxon.DateTime.fromSeconds(x.bondedTimestamp)
+    x.isoBondedTimestamp = bondedTime.toISO()
+    x.relativeBondedTimestamp = bondedTime.toRelative()
+    const diff = bondedTime.diff(transferTime, ['days', 'hours', 'minutes']).toObject()
+    const hours = Number(diff.hours.toFixed(0))
+    let minutes = Number(diff.minutes.toFixed(0))
+    if (hours < 0) {
+      hours = 0
+    }
+    if (minutes < 1) {
+      minutes = 1
+    }
+    if (hours || minutes) {
+      x.relativeBondedWithinTimestamp = `${hours ? `${hours} hour${hours > 1 ? 's' : ''} ` : ''}${minutes ? `${minutes} minute${minutes > 1 ? 's' : ''}` : ''}`
+    }
+  }
 
   const tokenDecimals = 6
   x.formattedAmount = Number(ethers.utils.formatUnits(x.amount, tokenDecimals))

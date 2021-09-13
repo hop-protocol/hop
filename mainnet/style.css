@@ -114,7 +114,8 @@ table img {
   color: #ffffff8a;
 }
 .token,
-.amount {
+.amount,
+.bondedWithin {
   font-weight: normal;
   color: #ffffffcc;
 }

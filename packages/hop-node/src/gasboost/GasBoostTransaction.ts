@@ -8,8 +8,8 @@ import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import wait from 'src/utils/wait'
 import { BigNumber, Signer, providers } from 'ethers'
-import { Chain, MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
 import { EventEmitter } from 'events'
+import { MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
 
 import { Notifier } from 'src/notifier'
 import { boundClass } from 'autobind-decorator'
@@ -84,6 +84,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   createdAt: number
   txHash: string
   maxGasPriceReached: boolean = false
+  private _is1559Supported : boolean
 
   // these properties are required by ethers TransactionResponse interface
   from: string
@@ -252,7 +253,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       if (!this.maxFeePerGas) {
         this.maxFeePerGas = await this.getMarketMaxFeePerGas()
       } else if (!this.maxPriorityFeePerGas) {
-        this.maxPriorityFeePerGas = await this.getMarketMaxPriorityFeePerGas()
+        this.maxPriorityFeePerGas = await this.getBumpedMaxPriorityFeePerGas()
       }
       gasFeeData = {
         maxFeePerGas: this.maxFeePerGas,
@@ -322,7 +323,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getBumpedGasFeeData (multiplier : number = this.gasPriceMultiplier): Promise<Partial<GasFeeData>> {
-    if (this.chainSlug === Chain.Ethereum && !this.gasPrice) {
+    const use1559 = await this.is1559Supported() && !this.gasPrice
+    if (use1559) {
       const gasFeeData = await this.getGasFeeData()
       const maxPriorityFeePerGas = await this.getBumpedMaxPriorityFeePerGas(multiplier)
       const maxFeePerGas = gasFeeData.maxFeePerGas.add(maxPriorityFeePerGas)
@@ -594,6 +596,16 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const format = (value?: BigNumber) => value ? this.formatGwei(value) : null
     const { gasPrice, maxFeePerGas, maxPriorityFeePerGas } = gasFeeData
     return `gasPrice: ${format(gasPrice)}, maxFeePerGas: ${format(maxFeePerGas)}, maxPriorityFeePerGas: ${format(maxPriorityFeePerGas)}`
+  }
+
+  async is1559Supported (): Promise<boolean> {
+    if (typeof this._is1559Supported === 'boolean') {
+      return this._is1559Supported
+    }
+    const { maxFeePerGas, maxPriorityFeePerGas } = await this.getGasFeeData()
+    const isSupported = !!(maxFeePerGas && maxPriorityFeePerGas)
+    this._is1559Supported = isSupported
+    return isSupported
   }
 }
 

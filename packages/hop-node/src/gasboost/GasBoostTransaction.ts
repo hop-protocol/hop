@@ -8,8 +8,8 @@ import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import wait from 'src/utils/wait'
 import { BigNumber, Signer, providers } from 'ethers'
+import { Chain, MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
 import { EventEmitter } from 'events'
-import { MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
 
 import { Notifier } from 'src/notifier'
 import { boundClass } from 'autobind-decorator'
@@ -302,6 +302,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   async getBumpedGasPrice (multiplier : number = this.gasPriceMultiplier): Promise<BigNumber> {
     const marketGasPrice = await this.getMarketGasPrice()
+    if (!this.isChainGasFeeBumpable()) {
+      return marketGasPrice
+    }
     const prevGasPrice = this.gasPrice || marketGasPrice
     const bumpedGasPrice = getBumpedGasPrice(prevGasPrice, multiplier)
     if (!this.compareMarketGasPrice) {
@@ -312,6 +315,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   async getBumpedMaxPriorityFeePerGas (multiplier : number = this.gasPriceMultiplier): Promise<BigNumber> {
     const marketMaxPriorityFeePerGas = await this.getMarketMaxPriorityFeePerGas()
+    if (!this.isChainGasFeeBumpable()) {
+      return marketMaxPriorityFeePerGas
+    }
     const prevMaxPriorityFeePerGas = this.maxPriorityFeePerGas || marketMaxPriorityFeePerGas
     const minPriorityFeePerGas = this.parseGwei(this.minPriorityFeePerGas)
     let bumpedMaxPriorityFeePerGas = getBumpedBN(prevMaxPriorityFeePerGas, multiplier)
@@ -606,6 +612,15 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const isSupported = !!(maxFeePerGas && maxPriorityFeePerGas)
     this._is1559Supported = isSupported
     return isSupported
+  }
+
+  isChainGasFeeBumpable () {
+    // Optimism gasPrice must be constant; shouldn't be bumped
+    if (this.chainSlug === Chain.Optimism) {
+      return false
+    }
+
+    return true
   }
 }
 

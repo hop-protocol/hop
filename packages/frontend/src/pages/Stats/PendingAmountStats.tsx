@@ -94,7 +94,7 @@ const PoolStats: FC = () => {
                             {item.destinationNetwork.name}
                           </TableCell>
                           <TableCell className={styles.cell}>
-                            {commafy(item.pendingAmount)} {item.token.symbol}
+                            {commafy(item.formattedPendingAmount)} {item.token.symbol}
                           </TableCell>
                         </TableRow>
                     )

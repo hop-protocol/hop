@@ -5,7 +5,8 @@ import React, {
   useState,
   useEffect
 } from 'react'
-import { parseUnits, formatUnits } from 'ethers/lib/utils'
+import { BigNumber } from 'ethers'
+import { formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import { useApp } from 'src/contexts/AppContext'
@@ -147,10 +148,10 @@ const StatsContextProvider: FC = ({ children }) => {
     ])
 
     const virtualDebt = totalDebit.sub(debit)
-    let pendingAmount = 0
+    let pendingAmount = BigNumber.from(0)
     for (const obj of pendingAmounts) {
       if (obj.destinationNetwork.slug === selectedNetwork.slug && obj.token.symbol === token.symbol) {
-        pendingAmount += obj.pendingAmount
+        pendingAmount = pendingAmount.add(obj.pendingAmount)
       }
     }
 
@@ -162,9 +163,9 @@ const StatsContextProvider: FC = ({ children }) => {
       credit: Number(formatUnits(credit.toString(), token.decimals)),
       debit: Number(formatUnits(totalDebit.toString(), token.decimals)),
       availableLiquidity: Number(formatUnits(availableLiquidity.toString(), token.decimals)),
-      pendingAmount,
+      pendingAmount: Number(formatUnits(pendingAmount.toString(), token.decimals)),
       virtualDebt: Number(formatUnits(virtualDebt.toString(), token.decimals)),
-      totalAmount: Number(formatUnits(availableLiquidity.add(parseUnits(pendingAmount.toString(), token.decimals)).add(virtualDebt), token.decimals)),
+      totalAmount: Number(formatUnits(availableLiquidity.add(pendingAmount).add(virtualDebt), token.decimals)),
       availableEth: Number(formatUnits(eth.toString(), 18))
     }
   }
@@ -207,15 +208,16 @@ const StatsContextProvider: FC = ({ children }) => {
       return
     }
     const contract = await bridge.getBridgeContract(sourceNetwork.slug)
-    const pendingAmountBn = await contract.pendingAmountForChainId(destinationNetwork.networkId)
-    const pendingAmount = Number(formatUnits(pendingAmountBn, token.decimals))
+    const pendingAmount = await contract.pendingAmountForChainId(destinationNetwork.networkId)
+    const formattedPendingAmount = Number(formatUnits(pendingAmount, token.decimals))
 
     return {
       id: `${sourceNetwork.slug}-${destinationNetwork.slug}-${token.symbol}`,
       sourceNetwork,
       destinationNetwork,
       token,
-      pendingAmount
+      pendingAmount,
+      formattedPendingAmount,
     }
   }
 

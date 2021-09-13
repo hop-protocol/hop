@@ -67,13 +67,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   started: boolean = false
   pollMs: number = 10 * 1000
   timeTilBoostMs: number = 3 * 60 * 1000
-  gasPriceMultiplier: number = MaxGasPriceMultiplier
-  maxGasPriceGwei: number = 500
-  minPriorityFeePerGas: number = MinPriorityFeePerGas
-  priorityFeePerGasCap: number = PriorityFeePerGasCap
+  gasPriceMultiplier: number = MaxGasPriceMultiplier // multiplier for gasPrice
+  maxGasPriceGwei: number = 500 // the max we'll keep bumping gasPrice in type 0 txs
+  maxGasPriceReached: boolean = false // this is set to true when gasPrice is greater than maxGasPrice
+  minPriorityFeePerGas: number = MinPriorityFeePerGas // we use this priorityFeePerGas or the ethers suggestions; which ever one is greater
+  priorityFeePerGasCap: number = PriorityFeePerGasCap // this the max we'll keep bumping maxPriorityFeePerGas to in type 2 txs. Since maxPriorityFeePerGas is already a type 2 argument, it uses the term cap instead
   compareMarketGasPrice: boolean = true
-  warnEthBalance: number = 0.1
-  boostIndex: number = 0
+  warnEthBalance: number = 0.1 // how low ETH balance of signer must get before we log a warning
+  boostIndex: number = 0 // number of times transaction has been boosted
   inflightItems: InflightItem[] = []
   signer: Signer
   store: Store = new MemoryStore()
@@ -83,21 +84,20 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   id: string
   createdAt: number
   txHash: string
-  maxGasPriceReached: boolean = false
-  private _is1559Supported : boolean
+  private _is1559Supported : boolean // set to true if EIP-1559 type transactions are supported
 
   // these properties are required by ethers TransactionResponse interface
-  from: string
-  to: string
-  data: string
-  value: BigNumber
-  nonce: number
-  gasLimit: BigNumber
-  gasPrice: BigNumber
-  maxFeePerGas : BigNumber
-  maxPriorityFeePerGas : BigNumber
-  chainId: number
-  confirmations: number = 0
+  from: string // type 0 and 2 tx required property
+  to: string // type 0 and 2 tx required property
+  data: string // type 0 and 2 tx required property
+  value: BigNumber // type 0 and 2 tx required property
+  nonce: number // type 0 and 2 tx required property
+  gasLimit: BigNumber // type 0 and 2 tx required property
+  gasPrice: BigNumber // type 0 tx required property
+  maxFeePerGas : BigNumber // type 2 tx required property
+  maxPriorityFeePerGas : BigNumber // type 2 tx required property
+  chainId: number // type 0 and 2 tx required property
+  confirmations: number = 0 // type 0 and 2 tx required property
 
   constructor (tx: providers.TransactionRequest, signer: Signer, store?: Store, options: Partial<Options> = {}) {
     super()

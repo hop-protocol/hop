@@ -90,6 +90,18 @@ class GasBoostSigner extends Wallet {
     })
   }
 
+  setMinPriorityFeePerGas (minPriorityFeePerGas: number) {
+    this.setOptions({
+      minPriorityFeePerGas
+    })
+  }
+
+  setPriorityFeePerGasCap (priorityFeePerGasCap: number) {
+    this.setOptions({
+      priorityFeePerGasCap
+    })
+  }
+
   setOptions (options: Partial<Options> = {}): void {
     this.gTxFactory.setOptions(options)
   }

@@ -1,7 +1,8 @@
+import getBumpedBN from './getBumpedBN'
 import { BigNumber } from 'ethers'
 
 const getBumpedGasPrice = (gasPrice: BigNumber, multiplier: number) => {
-  return gasPrice.mul(BigNumber.from(multiplier * 100)).div(BigNumber.from(100))
+  return getBumpedBN(gasPrice, multiplier)
 }
 
 export default getBumpedGasPrice

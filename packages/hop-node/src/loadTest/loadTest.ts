@@ -1,6 +1,8 @@
 import Logger from 'src/logger'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getBondedWithdrawals from 'src/theGraph/getBondedWithdrawals'
 import getTransferSents from 'src/theGraph/getTransferSents'
+import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import { Notifier } from 'src/notifier'
 import {
@@ -9,7 +11,6 @@ import {
   generateUsers,
   prepareAccounts
 } from '../../test/helpers'
-import { chainIdToSlug, wait } from 'src/utils'
 import {
   faucetPrivateKey,
   mnemonic,

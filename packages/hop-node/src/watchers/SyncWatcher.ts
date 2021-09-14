@@ -4,13 +4,14 @@ import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
+import isL1ChainId from 'src/utils/isL1ChainId'
+import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
 import { boundClass } from 'autobind-decorator'
-import { isL1ChainId, wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
@@ -237,7 +238,7 @@ class SyncWatcher extends BaseWatcher {
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
-      const isBondable = this.getIsBondable(amount, transferId)
+      const isBondable = this.getIsBondable(transferId, amount, destinationChainId)
 
       logger.debug('transfer event amount:', this.bridge.formatUnits(amount))
       logger.debug('destinationChainId:', destinationChainId)
@@ -655,14 +656,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  getIsBondable = (amount: BigNumber, transferId: string): boolean => {
-    if (
-      (this.bridge.minBondWithdrawalAmount && amount.lt(this.bridge.minBondWithdrawalAmount)) ||
-      (this.bridge.maxBondWithdrawalAmount && amount.gt(this.bridge.maxBondWithdrawalAmount))
-    ) {
-      return false
-    }
-
+  getIsBondable = (transferId: string, amount: BigNumber, destinationChainId: number): boolean => {
     // Remove when this hash has been resolved
     const invalidTransferIds: string[] = [
       '0x99b304c55afc0b56456dc4999913bafff224080b8a3bbe0e5a04aaf1eedf76b6'

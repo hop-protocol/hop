@@ -2,11 +2,12 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
+import isL1 from 'src/utils/isL1'
+import wait from 'src/utils/wait'
 import { BonderFeeTooLowError } from 'src/types/error'
+import { Chain, TxError } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
-import { TxError } from 'src/constants'
-import { isL1, wait } from 'src/utils'
 
 export interface Config {
   chainSlug: string
@@ -39,16 +40,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       dryMode: config.dryMode,
       stateUpdateAddress: config.stateUpdateAddress
     })
-  }
-
-  async start () {
-    this.logger.debug(
-      `min bondWithdrawal amount: ${this.bridge.formatUnits(this.bridge.minBondWithdrawalAmount)}`
-    )
-    this.logger.debug(
-      `max bondWithdrawal amount: ${this.bridge.formatUnits(this.bridge.maxBondWithdrawalAmount)}`
-    )
-    await super.start()
   }
 
   async pollHandler () {
@@ -97,6 +88,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = dbTransfer
     const logger = this.logger.create({ id: transferId })
     const sourceL2Bridge = this.bridge as L2Bridge
+    const sourceChain = this.bridge.chainSlug
+    const destinationChain = this.chainIdToSlug(destinationChainId)
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
@@ -120,13 +113,28 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    const availableCredit = await destBridge.getAvailableCredit()
+    let availableCredit = await destBridge.getAvailableCredit()
+    const includePendingAmount = destinationChain === Chain.Ethereum && [Chain.Optimism, Chain.Arbitrum].includes(sourceChain)
+    if (includePendingAmount) {
+      const pendingAmount = await sourceL2Bridge.getPendingAmountForChainId(destinationChainId)
+      availableCredit = availableCredit.sub(pendingAmount).sub((amount).mul(2))
+    }
     if (availableCredit.lt(amount)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
           availableCredit
         )}, need ${this.bridge.formatUnits(amount)}`
       )
+      let { withdrawalBondBackoffIndex } = await this.db.transfers.getByTransferId(transferId)
+      if (!withdrawalBondBackoffIndex) {
+        withdrawalBondBackoffIndex = 0
+      }
+      withdrawalBondBackoffIndex++
+      await this.db.transfers.update(transferId, {
+        bondWithdrawalAttemptedAt: Date.now(),
+        withdrawalBondTxError: TxError.NotEnoughLiquidity,
+        withdrawalBondBackoffIndex
+      })
       return
     }
 
@@ -149,7 +157,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const attemptSwap = this.shouldAttemptSwap(dbTransfer)
 
     await this.db.transfers.update(transferId, {
-      sentBondWithdrawalTxAt: Date.now()
+      bondWithdrawalAttemptedAt: Date.now()
     })
 
     try {
@@ -217,7 +225,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
           withdrawalBondBackoffIndex
         })
       }
-
       throw err
     }
   }

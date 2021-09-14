@@ -6,6 +6,7 @@ const generateKeystore = (
   passphrase?: string,
   options?: any
 ): any => {
+  let privateKeyBuffer : Buffer
   if (!privateKey) {
     privateKey = randomBytes(32)
   }
@@ -16,6 +17,9 @@ const generateKeystore = (
 
   if (typeof privateKey === 'string') {
     privateKey = privateKey.trim().replace(/^0x/gi, '')
+    privateKeyBuffer = Buffer.from(privateKey, 'hex')
+  } else {
+    privateKeyBuffer = privateKey
   }
 
   const salt = randomBytes(32)
@@ -39,7 +43,7 @@ const generateKeystore = (
   return new Promise(resolve => {
     keythereum.dump(
       passphrase,
-      privateKey,
+      new Uint8Array(privateKeyBuffer),
       salt,
       iv,
       options,

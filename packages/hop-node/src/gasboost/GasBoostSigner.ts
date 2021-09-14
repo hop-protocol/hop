@@ -2,11 +2,11 @@ import GasBoostTransaction from './GasBoostTransaction'
 import GasBoostTransactionFactory, { Options } from './GasBoostTransactionFactory'
 import MemoryStore from './MemoryStore'
 import Store from './Store'
+import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { Signer, Wallet, providers } from 'ethers'
 import { boundClass } from 'autobind-decorator'
-import { getProviderChainSlug } from 'src/utils'
 
 @boundClass
 class GasBoostSigner extends Wallet {

@@ -9,7 +9,6 @@ import {
   defaultEnabledWatchers,
   config as globalConfig,
   parseConfigFile,
-  setBondWithdrawalsConfig,
   setGlobalConfigFromConfigFile,
   setNetworkRpcUrls,
   setNetworkWaitConfirmations,
@@ -109,11 +108,6 @@ program
             config?.commitTransfers?.minThresholdAmount
         }
       }
-      let bondWithdrawalAmounts: any = {}
-      if (config?.bondWithdrawals) {
-        bondWithdrawalAmounts = config.bondWithdrawals
-        setBondWithdrawalsConfig(bondWithdrawalAmounts)
-      }
       let settleBondedWithdrawalsThresholdPercent: any = {}
       if (config?.settleBondedWithdrawals) {
         if (config?.settleBondedWithdrawals?.thresholdPercent) {
@@ -157,7 +151,6 @@ program
         challenger,
         maxStakeAmounts,
         commitTransfersMinThresholdAmounts,
-        bondWithdrawalAmounts,
         settleBondedWithdrawalsThresholdPercent,
         dryMode,
         stateUpdateAddress,

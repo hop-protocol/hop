@@ -1,9 +1,9 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
+import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, Contract } from 'ethers'
 import { Notifier } from 'src/notifier'
-import { getTransferRootId } from 'src/utils'
 import { hostname } from 'src/config'
 
 export interface Config {

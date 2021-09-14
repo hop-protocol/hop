@@ -1,12 +1,12 @@
+import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import { User } from './helpers'
 import { governancePrivateKey, privateKey } from './config'
-import { wait } from 'src/utils'
 
 const network = Chain.Optimism
 const token = 'DAI'
 
-test(
+test.skip(
   'addBonder',
   async () => {
     const newBonder = new User(privateKey)

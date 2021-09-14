@@ -1,7 +1,7 @@
 import BaseDb from './BaseDb'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { ONE_WEEK_MS, TX_RETRY_DELAY_MS, TxError } from 'src/constants'
-import { chainIdToSlug } from 'src/utils'
+import { OneWeekMs, TxError, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
 export type Transfer = {
@@ -16,9 +16,9 @@ export type Transfer = {
   withdrawalBonded?: boolean
   withdrawalBonder?: string
   withdrawalBondedTxHash?: string
-  withdrawalBondTxError?: string
+  withdrawalBondTxError?: TxError
   withdrawalBondBackoffIndex?: number
-  sentBondWithdrawalTxAt?: number
+  bondWithdrawalAttemptedAt?: number
 
   recipient?: string
   amount?: BigNumber
@@ -111,6 +111,13 @@ class TransfersDb extends BaseDb {
         }
       }
 
+      const customTransferIds: string [] = [
+        '0xa66b7633f73c4e056e67c92b5632f6c6fbf3527d55dba5a1ee6613e2fbf4178a'
+      ]
+      if (customTransferIds.includes(item.transferId)) {
+        item.isBondable = true
+      }
+
       const invalidTransferIds: string[] = [
         '0xb9332b783982344a6b082ef76ec88f3c567f843dad9c896e43dc3248ca205915',
         '0x53e43773a6942eb91b3439b9bbfc1cbc6c3f4bcd23db92a85ec190e283c7ac4a'
@@ -120,18 +127,19 @@ class TransfersDb extends BaseDb {
       }
 
       let timestampOk = true
-      if (item.sentBondWithdrawalTxAt) {
-        if (item.withdrawalBondTxError === TxError.BonderFeeTooLow) {
+      if (item.bondWithdrawalAttemptedAt) {
+        const checkBackoff = [TxError.BonderFeeTooLow, TxError.NotEnoughLiquidity].includes(item.withdrawalBondTxError)
+        if (checkBackoff) {
           const delay = (1 << item.withdrawalBondBackoffIndex) * 1000
           // TODO: use `sentTransferTimestamp` once it's added to db
 
           // don't attempt to bond withdrawals after a week
-          if (delay > ONE_WEEK_MS) {
+          if (delay > OneWeekMs) {
             return false
           }
-          timestampOk = item.sentBondWithdrawalTxAt + delay < Date.now()
+          timestampOk = item.bondWithdrawalAttemptedAt + delay < Date.now()
         } else {
-          timestampOk = item.sentBondWithdrawalTxAt + TX_RETRY_DELAY_MS < Date.now()
+          timestampOk = item.bondWithdrawalAttemptedAt + TxRetryDelayMs < Date.now()
         }
       }
 

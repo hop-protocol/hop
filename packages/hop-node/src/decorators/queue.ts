@@ -1,8 +1,8 @@
 import Logger from 'src/logger'
 import promiseTimeout from 'src/utils/promiseTimeout'
+import wait from 'src/utils/wait'
 import { Mutex } from 'async-mutex'
 import { Notifier } from 'src/notifier'
-import { wait } from 'src/utils'
 
 const mutexes: { [key: string]: Mutex } = {}
 const MAX_RETRIES = 1

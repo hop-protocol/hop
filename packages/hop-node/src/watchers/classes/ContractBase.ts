@@ -1,15 +1,18 @@
+import chainIdToSlug from 'src/utils/chainIdToSlug'
+import chainSlugToId from 'src/utils/chainSlugToId'
+import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
+import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { EventEmitter } from 'events'
 import { Transaction } from 'src/types'
-import { chainIdToSlug, chainSlugToId, getBumpedGasPrice, getProviderChainSlug } from 'src/utils'
 import { config as globalConfig } from 'src/config'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract
   public chainId: number
-  public chainSlug: string
+  public chainSlug: Chain
 
   constructor (contract: Contract) {
     super()
@@ -47,7 +50,7 @@ export default class ContractBase extends EventEmitter {
     return chainSlug
   }
 
-  chainIdToSlug (chainId: number): string {
+  chainIdToSlug (chainId: number): Chain {
     return chainIdToSlug(chainId)
   }
 

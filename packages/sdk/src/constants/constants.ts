@@ -20,11 +20,11 @@ export enum TokenIndex {
 
 export enum BondTransferGasLimit {
   Ethereum = '165000',
-  Optimism = '100000000'
+  Optimism = '100000000',
+  Arbitrum = '25000000'
 }
 
 export const LpFeeBps = '4'
 export const GasPriceMultiplier = '1.6'
 export const L2ToL1BonderFeeBps = '18'
 export const L2ToL2BonderFeeBps = '30'
-export const UnbondedRootsBuffer = '50000'

@@ -10,7 +10,7 @@ const bridgeContract = tokenContracts.l1Bridge
 const bridge = new L1Bridge(bridgeContract)
 const { totalBlocks, batchBlocks } = globalConfig.sync[network]
 
-describe('Happy Path', () => {
+describe.skip('events batch - Happy Path', () => {
   test('Full loop', async () => {
     let count = 0
     const expectedSizeOfLastIteration = totalBlocks % batchBlocks
@@ -161,7 +161,7 @@ describe('Happy Path', () => {
   })
 })
 
-describe('Non-Happy Path', () => {
+describe.skip('events batch - Non-Happy Path', () => {
   test('Only one of startBlockNumber or endBlockNumber are defined', async () => {
     const startBlockNumber = 100
     const endBlockNumber = 150

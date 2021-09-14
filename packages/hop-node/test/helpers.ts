@@ -1,6 +1,9 @@
 import Logger from 'src/logger'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import expect from 'expect'
+import getRpcProvider from 'src/utils/getRpcProvider'
 import queue from 'src/decorators/queue'
+import wait from 'src/utils/wait'
 import { BigNumber, Contract, Wallet, ethers, providers } from 'ethers'
 import { Chain, Token } from 'src/constants'
 import { HDNode } from '@ethersproject/hdnode'
@@ -25,7 +28,6 @@ import {
   l2PolygonChildErc20Abi,
   swapAbi as saddleSwapAbi
 } from '@hop-protocol/core/abi'
-import { chainSlugToId, getRpcProvider, wait } from 'src/utils'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { config as globalConfig } from 'src/config'
 import * as hopMetadata from '@hop-protocol/core/metadata'

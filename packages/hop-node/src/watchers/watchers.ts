@@ -6,10 +6,10 @@ import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
 import SyncWatcher from 'src/watchers/SyncWatcher'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
-import { chainSlugToId } from 'src/utils'
 import { config as globalConfig } from 'src/config'
 
 type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransferWatcher | SettleBondedWithdrawalWatcher | StakeWatcher | SyncWatcher | xDomainMessageRelayWatcher
@@ -48,7 +48,6 @@ type GetWatchersConfig = {
   challenger?: boolean
   maxStakeAmounts?: StakeAmounts
   commitTransfersMinThresholdAmounts?: CommitTransfersMinThresholdAmounts
-  bondWithdrawalAmounts?: BondWithdrawalAmounts
   settleBondedWithdrawalsThresholdPercent?: SettleBondedWithdrawalsThresholdPercent
   dryMode?: boolean
   stateUpdateAddress?: string
@@ -80,7 +79,6 @@ export function getWatchers (config: GetWatchersConfig) {
     maxStakeAmounts = {},
     commitTransfersMinThresholdAmounts = {},
     settleBondedWithdrawalsThresholdPercent = {},
-    bondWithdrawalAmounts = {},
     dryMode = false,
     stateUpdateAddress,
     syncFromDate

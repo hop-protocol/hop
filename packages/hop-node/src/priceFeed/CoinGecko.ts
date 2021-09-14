@@ -1,8 +1,8 @@
 import fetch from 'node-fetch'
 import serializeQueryParams from 'src/utils/serializeQueryParams'
+import wait from 'src/utils/wait'
 import { constants } from 'ethers'
 import { getAddress } from 'ethers/lib/utils'
-import { wait } from 'src/utils'
 
 export interface IResult {
   id: string

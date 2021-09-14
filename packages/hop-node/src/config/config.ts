@@ -1,8 +1,9 @@
-import normalizeEnvVarArray from 'src/utils/normalizeEnvVarArray'
+import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
+import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
-import { Chain, DEFAULT_BATCH_BLOCKS, Network, TotalBlocks } from 'src/constants'
+import { Chain, DefaultBatchBlocks, Network, TotalBlocks } from 'src/constants'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
 import * as goerliConfig from './goerli'
@@ -20,6 +21,9 @@ export const slackAuthToken = process.env.SLACK_AUTH_TOKEN
 export const slackUsername = process.env.SLACK_USERNAME || 'Hop Node'
 export const enabledSettleWatcherDestinationChains = normalizeEnvVarArray(process.env.ENABLED_SETTLE_WATCHER_DESTINATION_CHAINS)
 export const enabledSettleWatcherSourceChains = normalizeEnvVarArray(process.env.ENABLED_SETTLE_WATCHER_SOURCE_CHAINS)
+export const gasPriceMultiplier = normalizeEnvVarNumber(process.env.GAS_PRICE_MULTIPLIER)
+export const maxGasPriceGwei = normalizeEnvVarNumber(process.env.MAX_GAS_PRICE_GWEI)
+export const timeTilBoostMs = normalizeEnvVarNumber(process.env.TIME_TIL_BOOST_MS)
 const envNetwork = process.env.NETWORK || Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
@@ -30,15 +34,6 @@ export const defaultConfigDir = `${os.homedir()}/.hop-node`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 
-type BondWithdrawalConfig = {
-  [network: string]: {
-    min?: number
-    max?: number
-  }
-}
-type BondWithdrawalsConfig = {
-  [network: string]: BondWithdrawalConfig
-}
 type SyncConfig = {
   totalBlocks?: number
   batchBlocks?: number
@@ -58,7 +53,6 @@ type Config = {
   stateUpdateAddress: string,
   db: DbConfig,
   sync: SyncConfigs,
-  bondWithdrawals: BondWithdrawalsConfig
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -109,26 +103,25 @@ export const config: Config = {
   sync: {
     [Chain.Ethereum]: {
       totalBlocks: TotalBlocks.Ethereum,
-      batchBlocks: DEFAULT_BATCH_BLOCKS
+      batchBlocks: DefaultBatchBlocks
     },
     [Chain.Arbitrum]: {
       totalBlocks: 100_000,
-      batchBlocks: DEFAULT_BATCH_BLOCKS
+      batchBlocks: DefaultBatchBlocks
     },
     [Chain.Optimism]: {
       totalBlocks: 100_000,
-      batchBlocks: DEFAULT_BATCH_BLOCKS
+      batchBlocks: DefaultBatchBlocks
     },
     [Chain.Polygon]: {
       totalBlocks: TotalBlocks.Polygon,
-      batchBlocks: DEFAULT_BATCH_BLOCKS
+      batchBlocks: DefaultBatchBlocks
     },
     [Chain.xDai]: {
       totalBlocks: TotalBlocks.xDai,
-      batchBlocks: DEFAULT_BATCH_BLOCKS
+      batchBlocks: DefaultBatchBlocks
     }
-  },
-  bondWithdrawals: {}
+  }
 }
 
 export const setConfigByNetwork = (network: string) => {
@@ -165,10 +158,6 @@ export const setNetworkWaitConfirmations = (
   if (config.networks[network]) {
     config.networks[network].waitConfirmations = waitConfirmations
   }
-}
-
-export const setBondWithdrawalsConfig = (bondWithdrawalsConfig: BondWithdrawalsConfig) => {
-  config.bondWithdrawals = bondWithdrawalsConfig
 }
 
 export const setStateUpdateAddress = (address: string) => {

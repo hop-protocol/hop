@@ -1,9 +1,9 @@
 import Logger from 'src/logger'
+import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import { User, prepareAccount } from './helpers'
 import { privateKey } from './config'
 import { startWatchers } from 'src/watchers/watchers'
-import { wait } from 'src/utils'
 require('dotenv').config()
 
 const sourceNetwork = Chain.Optimism
@@ -12,7 +12,7 @@ const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 100000
 const logger = new Logger('TEST')
 
-describe('arb-bot', () => {
+describe.skip('arb-bot', () => {
   it(
     `send ${TRANSFER_AMOUNT} ${TOKEN} ${sourceNetwork} → ${Chain.Ethereum}`,
     async () => {

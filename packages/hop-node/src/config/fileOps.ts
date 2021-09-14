@@ -82,15 +82,6 @@ type LoggingConfig = {
   level: string
 }
 
-export type BondWithdrawals = {
-  [chain: string]: {
-    [token: string]: {
-      min?: number
-      max?: number
-    }
-  }
-}
-
 export type Addresses = {
   location: string
 }
@@ -108,7 +99,6 @@ export type FileConfig = {
   stake?: any
   settleBondedWithdrawals?: any
   commitTransfers?: any
-  bondWithdrawals?: BondWithdrawals
   order?: number
   addresses?: Addresses
   stateUpdateAddress?: string

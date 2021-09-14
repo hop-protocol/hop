@@ -58,7 +58,10 @@ const BonderStats: FC = () => {
                   <th>Credit</th>
                   <th>Debit</th>
                   <th>Available Liquidity</th>
-                  <th>ETH</th>
+                  <th>Pending Amount</th>
+                  <th>Virtual Debt</th>
+                  <th>Total Amount</th>
+                  <th>Available ETH</th>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -68,7 +71,7 @@ const BonderStats: FC = () => {
                     .map((x, i) => {
                       return (
                           <TableRow key={i}>
-                            <TableCell colSpan={6}>
+                            <TableCell colSpan={9}>
                               <Skeleton animation="wave" width={'100%'} />
                             </TableCell>
                           </TableRow>
@@ -104,7 +107,16 @@ const BonderStats: FC = () => {
                             {commafy(item.availableLiquidity)}
                           </TableCell>
                           <TableCell className={styles.cell}>
-                            {commafy(item.eth)}
+                            {commafy(item.pendingAmount)}
+                          </TableCell>
+                          <TableCell className={styles.cell}>
+                            {commafy(item.virtualDebt)}
+                          </TableCell>
+                          <TableCell className={styles.cell}>
+                            {commafy(item.totalAmount)}
+                          </TableCell>
+                          <TableCell className={styles.cell}>
+                            {commafy(item.availableEth)}
                           </TableCell>
                         </TableRow>
                     )

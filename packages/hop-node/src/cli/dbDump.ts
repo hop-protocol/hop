@@ -34,21 +34,21 @@ program
         throw new Error('token is required')
       }
       const dbName = source.db || 'transfers'
-      logger.debug(`dumping ${dbName} db located at ${globalConfig.db.path}`)
-
       const db = getDbSet(tokenSymbol)
+      let items : any[] = []
       if (dbName === 'transfer-roots') {
-        const transferRoots = await db.transferRoots.getTransferRoots()
-        console.log(JSON.stringify(transferRoots, null, 2))
+        items = await db.transferRoots.getTransferRoots()
       } else if (dbName === 'transfers') {
-        const transfers = await db.transfers.getTransfers()
-        console.log(JSON.stringify(transfers, null, 2))
+        items = await db.transfers.getTransfers()
       } else if (dbName === 'sync-state') {
-        const syncState = await db.syncState.getItems()
-        console.log(JSON.stringify(syncState, null, 2))
+        items = await db.syncState.getItems()
       } else {
         throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state`)
       }
+
+      logger.debug(`count: ${items.length}`)
+      logger.debug(`dumping ${dbName} db located at ${globalConfig.db.path}`)
+      console.log(JSON.stringify(items, null, 2))
     } catch (err) {
       logger.error(err.message)
       process.exit(1)

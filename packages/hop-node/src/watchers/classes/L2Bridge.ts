@@ -1,4 +1,4 @@
-import Bridge, { EventCb, EventsBatchOptions } from './Bridge'
+import Bridge, { EventCb, EventsBatchOptions, compareMinBonderFeeBasisPoints } from './Bridge'
 import L1Bridge from './L1Bridge'
 import L2Amm from './L2Amm'
 import L2AmmWrapper from './L2AmmWrapper'
@@ -243,7 +243,7 @@ export default class L2Bridge extends Bridge {
     return chainId
   }
 
-  async getChainSlug (): Promise<string> {
+  async getChainSlug (): Promise<Chain> {
     const chainId = await this.getChainId()
     return this.chainIdToSlug(chainId)
   }
@@ -456,7 +456,7 @@ export default class L2Bridge extends Bridge {
     ]
 
     // don't bond if bonder fee is too low between L2s
-    await this.compareMinBonderFeeBasisPoints(amount, bonderFee)
+    await compareMinBonderFeeBasisPoints(amount, bonderFee, this.chainSlug)
 
     const tx = await this.bridgeContract.bondWithdrawalAndDistribute(...payload)
 

@@ -1,11 +1,11 @@
 import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import {
   FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { chainSlugToId } from 'src/utils'
 import {
   findWatcher,
   getWatchers

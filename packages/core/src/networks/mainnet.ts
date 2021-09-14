@@ -11,11 +11,9 @@ export const networks: Networks = {
   },
   arbitrum: {
     name: chains.arbitrum.name,
-    networkId: 1000,
-    rpcUrls: ['https://mainnet.arbitrum.io'],
-    explorerUrls: [
-      'https://expedition.dev/?rpcUrl=https%3A%2F%2Fmainnet.arbitrum.io'
-    ],
+    networkId: 42161,
+    rpcUrls: ['https://arb1.arbitrum.io/rpc'],
+    explorerUrls: ['https://arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
     waitConfirmations: 0
   },
@@ -41,6 +39,6 @@ export const networks: Networks = {
     rpcUrls: ['https://polygon.rpc.hop.exchange'],
     explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
-    waitConfirmations: 124
+    waitConfirmations: 128
   }
 }

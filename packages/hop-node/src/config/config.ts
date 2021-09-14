@@ -30,6 +30,7 @@ const envNetwork = process.env.NETWORK || Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
+export const bondableChains: string[] = [Chain.Optimism, Chain.Arbitrum]
 export const rateLimitMaxRetries = 5
 export const rpcTimeoutSeconds = 10 * 60
 export const defaultConfigDir = `${os.homedir()}/.hop-node`

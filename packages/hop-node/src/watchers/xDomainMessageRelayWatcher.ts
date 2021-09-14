@@ -90,7 +90,11 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
-    await this.checkTransfersCommittedFromDb()
+    try {
+      await this.checkTransfersCommittedFromDb()
+    } catch (err) {
+      this.logger.error('checkTransfersCommittedFromDb error:', err)
+    }
   }
 
   async checkTransfersCommittedFromDb () {

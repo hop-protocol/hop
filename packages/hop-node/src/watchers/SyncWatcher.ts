@@ -64,9 +64,8 @@ class SyncWatcher extends BaseWatcher {
     try {
       await this.pollSync()
     } catch (err) {
-      this.logger.error('sync watcher error:', err.message)
-      this.notifier.error(`sync watcher error: '${err.message}`)
-      console.trace()
+      this.logger.error(`sync watcher error: ${err.message}\ntrace: ${err.stack}`)
+      this.notifier.error(`sync watcher error: ${err.message}`)
       this.quit()
     }
   }

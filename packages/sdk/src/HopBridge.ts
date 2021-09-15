@@ -598,12 +598,15 @@ class HopBridge extends Base {
     }
 
     const canonicalToken = this.getCanonicalToken(sourceChain)
-    const ethPrice = await this.priceFeed.getPriceByTokenSymbol('ETH')
+    const chainNativeToken = this.getChainNativeToken(destinationChain)
+    const chainNativeTokenPrice = await this.priceFeed.getPriceByTokenSymbol(
+      chainNativeToken.symbol
+    )
     const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
       canonicalToken.symbol
     )
 
-    const rate = ethPrice / tokenPrice
+    const rate = chainNativeTokenPrice / tokenPrice
 
     const gasPrice = await destinationChain.provider.getGasPrice()
     let bondTransferGasLimit: string = BondTransferGasLimit.Ethereum
@@ -1578,6 +1581,17 @@ class HopBridge extends Base {
     const address = this.getL2AmbBridgeAddress(this.tokenSymbol, Chain.xDai)
     const provider = await this.getSignerOrProvider(Chain.xDai)
     return this.getContract(address, l1HomeAmbNativeToErc20, provider)
+  }
+
+  getChainNativeToken (chain: TChain) {
+    chain = this.toChainModel(chain)
+    if (chain?.equals(Chain.Polygon)) {
+      return this.toTokenModel('MATIC')
+    } else if (chain?.equals(Chain.xDai)) {
+      return this.toTokenModel('DAI')
+    }
+
+    return this.toTokenModel('ETH')
   }
 
   isNativeToken (chain?: TChain) {

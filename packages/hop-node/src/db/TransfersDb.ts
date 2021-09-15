@@ -130,7 +130,7 @@ class TransfersDb extends BaseDb {
       if (item.bondWithdrawalAttemptedAt) {
         const checkBackoff = [TxError.BonderFeeTooLow, TxError.NotEnoughLiquidity].includes(item.withdrawalBondTxError)
         if (checkBackoff) {
-          const delay = (1 << item.withdrawalBondBackoffIndex) * 1000
+          const delay = TxRetryDelayMs + ((1 << item.withdrawalBondBackoffIndex) * 60 * 1000)
           // TODO: use `sentTransferTimestamp` once it's added to db
 
           // don't attempt to bond withdrawals after a week

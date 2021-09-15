@@ -615,7 +615,7 @@ class HopBridge extends Base {
     const chainNativeTokenPrice = await this.priceFeed.getPriceByTokenSymbol(
       chainNativeToken.symbol
     )
-    let tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
+    const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
       canonicalToken.symbol
     )
 

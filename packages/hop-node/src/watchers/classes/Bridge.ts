@@ -749,7 +749,7 @@ export async function compareMinBonderFeeBasisPoints (
   const tokenPrice = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
   const tokenDecimals = getTokenDecimals(tokenSymbol)
   const minBonderFeeAbsolute = parseUnits(
-    (1 / tokenPrice).toString(),
+    (1 / tokenPrice).toFixed(tokenDecimals),
     tokenDecimals
   )
   let minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)

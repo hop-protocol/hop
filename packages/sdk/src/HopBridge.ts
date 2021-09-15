@@ -458,22 +458,31 @@ class HopBridge extends Base {
     }
 
     let requiredLiquidity = hTokenAmount
-    let includePendingAmount = false
-    if (destinationChain.equals(Chain.Ethereum)) {
-      if (
-        sourceChain.equals(Chain.Optimism) ||
-        sourceChain.equals(Chain.Arbitrum)
-      ) {
-        includePendingAmount = true
-      }
-    }
+    const bondableChains = ['optimism', 'arbitrum']
+    const isBondableChain = bondableChains.includes(sourceChain.slug)
+    const includePendingAmount =
+      destinationChain.equals(Chain.Ethereum) && isBondableChain
 
     if (includePendingAmount) {
       const bridgeContract = await this.getBridgeContract(sourceChain)
       const pendingAmount = await bridgeContract.pendingAmountForChainId(
         destinationChain.chainId
       )
-      requiredLiquidity = requiredLiquidity.add(pendingAmount).add(hTokenAmount) // account for transfer root bonds
+      let pendingAmounts = BigNumber.from(0)
+      for (const chain of bondableChains) {
+        const exists = this.getL2BridgeAddress(this.tokenSymbol, chain)
+        if (!exists) {
+          continue
+        }
+        const bridge = await this.getBridgeContract(chain)
+        const pendingAmount = await bridge.pendingAmountForChainId(
+          destinationChain.chainId
+        )
+        pendingAmounts = pendingAmounts.add(pendingAmount)
+      }
+      requiredLiquidity = requiredLiquidity
+        .add(pendingAmounts)
+        .add(hTokenAmount) // account for transfer root bonds
     }
 
     return {

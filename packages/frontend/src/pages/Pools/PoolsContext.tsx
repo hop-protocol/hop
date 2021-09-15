@@ -64,7 +64,7 @@ type PoolsContextProps = {
   priceImpact: number | undefined
   virtualPrice: number | undefined
   reserveTotalsUsd: number | undefined
-  isUnsupportedAsset: boolean
+  unsupportedAsset: any
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -108,7 +108,7 @@ const PoolsContext = createContext<PoolsContextProps>({
   priceImpact: undefined,
   virtualPrice: undefined,
   reserveTotalsUsd: undefined,
-  isUnsupportedAsset: false
+  unsupportedAsset: null
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -194,20 +194,38 @@ const PoolsContextProvider: FC = ({ children }) => {
     address
   )
 
-  const isUnsupportedAsset = useMemo(() => {
-    if (!canonicalToken) {
-      return true
+  const unsupportedAsset = useMemo(() => {
+    if (!(selectedBridge && selectedNetwork)) {
+      return null
     }
-    return canonicalToken?.symbol === 'MATIC' && selectedNetwork?.slug === 'optimism'
-  }, [canonicalToken, selectedNetwork])
+    const unsupportedAssets = {
+      Optimism: 'MATIC',
+      Arbitrum: 'MATIC'
+    }
+
+    const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
+    for (const chain in unsupportedAssets) {
+      const tokenSymbol = unsupportedAssets[chain]
+      const isUnsupported = (selectedTokenSymbol.includes(tokenSymbol) && selectedNetwork?.slug === chain.toLowerCase())
+      if (isUnsupported) {
+        return {
+          chain,
+          tokenSymbol
+        }
+      }
+    }
+
+    return null
+  }, [selectedBridge, selectedNetwork])
 
   useEffect(() => {
-    if (isUnsupportedAsset) {
-      setError('MATIC is currently not supported on Optimism')
+    if (unsupportedAsset) {
+      const { chain, tokenSymbol } = unsupportedAsset
+      setError(`${tokenSymbol} is currently not supported on ${chain}`)
     } else {
       setError('')
     }
-  }, [isUnsupportedAsset])
+  }, [unsupportedAsset])
 
   const tokenUsdPrice = useAsyncMemo(async () => {
     try {
@@ -764,7 +782,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         priceImpact,
         virtualPrice,
         reserveTotalsUsd,
-        isUnsupportedAsset
+        unsupportedAsset
       }}
     >
       {children}

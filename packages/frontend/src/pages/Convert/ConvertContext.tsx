@@ -59,7 +59,7 @@ type ConvertContextProps = {
   setError: (error: string | undefined) => void
   tx: Transaction | undefined
   setTx: (tx: Transaction | undefined) => void,
-  isUnsupportedAsset: boolean
+  unsupportedAsset: any
 }
 
 const ConvertContext = createContext<ConvertContextProps>({
@@ -95,7 +95,7 @@ const ConvertContext = createContext<ConvertContextProps>({
   setError: (error: string | undefined) => {},
   tx: undefined,
   setTx: (tx: Transaction | undefined) => {},
-  isUnsupportedAsset: false
+  unsupportedAsset: null
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
@@ -147,20 +147,38 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [sourceToken, setSourceToken] = useState<Token>()
   const [destToken, setDestToken] = useState<Token>()
 
-  const isUnsupportedAsset = useMemo(() => {
-    if (!sourceToken) {
-      return true
+  const unsupportedAsset = useMemo<any>(() => {
+    if (!(selectedBridge && selectedNetwork)) {
+      return null
     }
-    return sourceToken?.symbol === 'MATIC' && selectedNetwork?.slug === 'optimism'
-  }, [sourceToken, selectedNetwork])
+    const unsupportedAssets = {
+      Optimism: 'MATIC',
+      Arbitrum: 'MATIC'
+    }
+
+    const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
+    for (const chain in unsupportedAssets) {
+      const tokenSymbol = unsupportedAssets[chain]
+      const isUnsupported = (selectedTokenSymbol.includes(tokenSymbol) && selectedNetwork?.slug === chain.toLowerCase())
+      if (isUnsupported) {
+        return {
+          chain,
+          tokenSymbol
+        }
+      }
+    }
+
+    return null
+  }, [selectedBridge, selectedNetwork])
 
   useEffect(() => {
-    if (isUnsupportedAsset) {
-      setError('MATIC is currently not supported on Optimism')
+    if (unsupportedAsset) {
+      const { chain, tokenSymbol } = unsupportedAsset
+      setError(`${tokenSymbol} is currently not supported on ${chain}`)
     } else {
       setError('')
     }
-  }, [isUnsupportedAsset])
+  }, [unsupportedAsset])
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -194,6 +212,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
 
     fetchToken()
+    .catch(err => logger.error(err))
   }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
 
   const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(
@@ -226,7 +245,6 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   useEffect(() => {
     const getSendData = async () => {
-      setError(undefined)
       if (
         !selectedBridge ||
         !sourceTokenAmount ||
@@ -269,6 +287,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
       if (ctx !== debouncer.current) return
 
+      setError(undefined)
       setDestTokenAmount(formattedAmount)
       setAmountOutMin(_amountOutMin)
       setDetails(details)
@@ -277,27 +296,32 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
 
     getSendData()
+    .catch(err => logger.error(err))
   }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
 
   const { approve, checkApproval } = useApprove()
 
   const needsApproval = useAsyncMemo(async () => {
-    if (!(
-      selectedBridge &&
-      sourceToken &&
-      destNetwork
-    )) {
-        return false
-      }
-
-      const targetAddress = await convertOption.getTargetAddress(
-        sdk,
-        selectedBridge?.getTokenSymbol(),
-        sourceNetwork,
+    try {
+      if (!(
+        selectedBridge &&
+        sourceToken &&
         destNetwork
-      )
+      )) {
+          return false
+        }
 
-      return checkApproval(parsedSourceTokenAmount, sourceToken, targetAddress)
+        const targetAddress = await convertOption.getTargetAddress(
+          sdk,
+          selectedBridge?.getTokenSymbol(),
+          sourceNetwork,
+          destNetwork
+        )
+
+        return checkApproval(parsedSourceTokenAmount, sourceToken, targetAddress)
+    } catch (err: any) {
+      logger.error(err)
+    }
   }, [convertOption, sdk, selectedBridge, sourceNetwork, destNetwork, checkApproval])
 
   const approveTokens = async (): Promise<any> => {
@@ -474,7 +498,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         setError,
         tx,
         setTx,
-        isUnsupportedAsset
+        unsupportedAsset
       }}
     >
       {children}

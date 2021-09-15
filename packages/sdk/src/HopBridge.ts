@@ -572,7 +572,7 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    let lpFeeBpsBn = BigNumber.from('0')
+    let lpFeeBpsBn = BigNumber.from(0)
     if (!sourceChain.isL1) {
       lpFeeBpsBn = lpFeeBpsBn.add(LpFeeBps)
     }
@@ -592,6 +592,10 @@ class HopBridge extends Base {
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
+
+    if (sourceChain?.equals(Chain.Ethereum)) {
+      return BigNumber.from(0)
+    }
 
     const canonicalToken = this.getCanonicalToken(sourceChain)
     const ethPrice = await this.priceFeed.getPriceByTokenSymbol('WETH')
@@ -719,7 +723,7 @@ class HopBridge extends Base {
     destinationChain = this.toChainModel(destinationChain)
 
     if (sourceChain.isL1) {
-      return BigNumber.from('0')
+      return BigNumber.from(0)
     }
 
     const hTokenAmount = await this.calcToHTokenAmount(
@@ -762,8 +766,8 @@ class HopBridge extends Base {
     ])
 
     const availableLiquidity = credit.sub(debit)
-    if (availableLiquidity.lt('0')) {
-      return BigNumber.from('0')
+    if (availableLiquidity.lt(0)) {
+      return BigNumber.from(0)
     }
 
     return availableLiquidity

@@ -453,6 +453,10 @@ class HopBridge extends Base {
       estimatedReceived = estimatedReceived.sub(totalFee)
     }
 
+    if (estimatedReceived.lt(0)) {
+      estimatedReceived = BigNumber.from(0)
+    }
+
     let requiredLiquidity = hTokenAmount
     let includePendingAmount = false
     if (destinationChain.equals(Chain.Ethereum)) {

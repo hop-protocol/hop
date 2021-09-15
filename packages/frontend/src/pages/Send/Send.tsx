@@ -31,6 +31,7 @@ import useSendData from 'src/pages/Send/useSendData'
 import useNeedsTokenForFee from 'src/hooks/useNeedsTokenForFee'
 import useQueryParams from 'src/hooks/useQueryParams'
 import AmmDetails from 'src/components/AmmDetails'
+import FeeDetails from 'src/components/FeeDetails'
 import useApprove from 'src/hooks/useApprove'
 import { reactAppNetwork } from 'src/config'
 
@@ -87,10 +88,6 @@ const useStyles = makeStyles(theme => ({
   },
   destinationTxFeeAndAmount: {
     marginTop: '2.4rem'
-  },
-  ammDetails: {
-    padding: theme.padding.extraLight,
-    width: '32.0rem'
   },
   detailsDropdown: {
     marginTop: '2rem',
@@ -342,7 +339,20 @@ const Send: FC = () => {
   if (destinationTxFee && bonderFee) {
     totalBonderFee = destinationTxFee.add(bonderFee)
   }
+
+  const bonderFeeDisplay = toTokenDisplay(
+    bonderFee,
+    destToken?.decimals,
+    destToken?.symbol
+  )
+
   const destinationTxFeeDisplay = toTokenDisplay(
+    destinationTxFee,
+    destToken?.decimals,
+    destToken?.symbol
+  )
+
+  const totalBonderFeeDisplay = toTokenDisplay(
     totalBonderFee,
     destToken?.decimals,
     destToken?.symbol
@@ -506,6 +516,10 @@ const Send: FC = () => {
     let _amountOutMin = amountOutMin
     if (destinationTxFee?.gt(0)) {
       _amountOutMin = _amountOutMin.sub(destinationTxFee)
+    }
+
+    if (_amountOutMin.lt(0)) {
+      _amountOutMin = BigNumber.from(0)
     }
 
     const amountOutMinFormatted = commafy(
@@ -948,9 +962,14 @@ const Send: FC = () => {
           {
             totalBonderFee?.gt(0) &&
             <DetailRow
-              title={`${toNetwork?.isLayer1 ? 'L1' : toNetwork?.name} Transaction Fee`}
-              tooltip="This fee covers the bonder fee and the destination transaction cost paid by the Bonder."
-              value={destinationTxFeeDisplay}
+              title={'Transaction Fee'}
+              tooltip={
+                <FeeDetails
+                  bonderFee={bonderFeeDisplay}
+                  destinationTxFee={destinationTxFeeDisplay}
+                />
+              }
+              value={totalBonderFeeDisplay}
               large
             />
           }

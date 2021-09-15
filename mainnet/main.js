@@ -1,7 +1,7 @@
 const poll = true
 const fetchInterval = 10 * 1000
 const enabledTokens = ['USDC', 'USDT']
-const enabledChains = ['ethereum', 'xdai', 'polygon', 'optimism']
+const enabledChains = ['ethereum', 'xdai', 'polygon', 'optimism', 'arbitrum']
 
 let perPage = 100
 try {
@@ -237,7 +237,7 @@ function explorerLink (chain, transactionHash) {
   } else if (chain === 'optimism') {
     base = 'https://optimistic.etherscan.io'
   } else if (chain === 'arbitrum') {
-    base = 'https://explorer.offchainlabs.com'
+    base = 'https://arbiscan.io'
   } else {
     base = 'https://etherscan.io'
   }
@@ -373,12 +373,14 @@ async function updateTvl () {
     xdaiTvl,
     // polygonTvl,
     optimismTvl,
-    mainnetTvl
+    mainnetTvl,
+    arbitrumTvl
   ] = await Promise.all([
     fetchTvl('xdai'),
     // fetchTvl('polygon'),
     fetchTvl('optimism'),
-    fetchTvl('mainnet')
+    fetchTvl('mainnet'),
+    fetchTvl('arbitrum')
   ])
 
   const xdai = formatTvl(xdaiTvl)
@@ -386,8 +388,9 @@ async function updateTvl () {
   const polygon = { formattedAmount: '-' }
   const optimism = formatTvl(optimismTvl)
   const ethereum = formatTvl(mainnetTvl)
+  const arbitrum = formatTvl(arbitrumTvl)
   // const totalAmount = xdai.amount + polygon.amount + ethereum.amount
-  const totalAmount = xdai.amount + ethereum.amount
+  const totalAmount = xdai.amount + ethereum.amount + optimism.amount + arbitrum.amount
   const total = {
     amount: totalAmount,
     formattedAmount: formatCurrency(totalAmount)
@@ -398,6 +401,7 @@ async function updateTvl () {
     polygon,
     optimism,
     ethereum,
+    arbitrum,
     total
   }
 

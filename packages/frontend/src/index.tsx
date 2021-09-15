@@ -1,12 +1,15 @@
-import React from 'react'
+import React, { ComponentType } from 'react'
 import ReactDOM from 'react-dom'
-import { BrowserRouter as Router } from 'react-router-dom'
+import { BrowserRouter, HashRouter } from 'react-router-dom'
 import './index.css'
 import App from './App'
 import reportWebVitals from './reportWebVitals'
 import ThemeProvider from './theme/ThemeProvider'
 import Web3Context from './contexts/Web3Context'
 import AppContext from './contexts/AppContext'
+
+const isIPFS = !!process.env.REACT_APP_IPFS_BUILD
+const Router: ComponentType = isIPFS ? HashRouter : BrowserRouter
 
 ReactDOM.render(
   <ThemeProvider>

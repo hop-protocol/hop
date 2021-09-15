@@ -22,12 +22,15 @@ export const slackUsername = process.env.SLACK_USERNAME || 'Hop Node'
 export const enabledSettleWatcherDestinationChains = normalizeEnvVarArray(process.env.ENABLED_SETTLE_WATCHER_DESTINATION_CHAINS)
 export const enabledSettleWatcherSourceChains = normalizeEnvVarArray(process.env.ENABLED_SETTLE_WATCHER_SOURCE_CHAINS)
 export const gasPriceMultiplier = normalizeEnvVarNumber(process.env.GAS_PRICE_MULTIPLIER)
+export const minPriorityFeePerGas = normalizeEnvVarNumber(process.env.MIN_PRIORITY_FEE_PER_GAS)
+export const priorityFeePerGasCap = normalizeEnvVarNumber(process.env.PRIORITY_FEE_PER_GAS_CAP)
 export const maxGasPriceGwei = normalizeEnvVarNumber(process.env.MAX_GAS_PRICE_GWEI)
 export const timeTilBoostMs = normalizeEnvVarNumber(process.env.TIME_TIL_BOOST_MS)
 const envNetwork = process.env.NETWORK || Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
+export const bondableChains: string[] = [Chain.Optimism, Chain.Arbitrum]
 export const rateLimitMaxRetries = 5
 export const rpcTimeoutSeconds = 10 * 60
 export const defaultConfigDir = `${os.homedir()}/.hop-node`

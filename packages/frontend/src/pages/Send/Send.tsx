@@ -31,6 +31,7 @@ import useSendData from 'src/pages/Send/useSendData'
 import useNeedsTokenForFee from 'src/hooks/useNeedsTokenForFee'
 import useQueryParams from 'src/hooks/useQueryParams'
 import AmmDetails from 'src/components/AmmDetails'
+import FeeDetails from 'src/components/FeeDetails'
 import useApprove from 'src/hooks/useApprove'
 import { reactAppNetwork } from 'src/config'
 
@@ -87,10 +88,6 @@ const useStyles = makeStyles(theme => ({
   },
   destinationTxFeeAndAmount: {
     marginTop: '2.4rem'
-  },
-  ammDetails: {
-    padding: theme.padding.extraLight,
-    width: '32.0rem'
   },
   detailsDropdown: {
     marginTop: '2rem',
@@ -218,19 +215,43 @@ const Send: FC = () => {
   )
   const [customRecipient, setCustomRecipient] = useState<string>('')
 
-  const isUnsupportedAsset = useMemo(() => {
-    return selectedBridge?.getTokenSymbol() === 'MATIC' && (
-      fromNetwork?.slug === 'optimism' || toNetwork?.slug === 'optimism'
-    )
+  const unsupportedAsset = useMemo<any>(() => {
+    if (!(
+      selectedBridge &&
+      fromNetwork &&
+      toNetwork
+    )) {
+      return null
+    }
+    const unsupportedAssets = {
+      Optimism: 'MATIC',
+      Arbitrum: 'MATIC'
+    }
+
+    for (const chain in unsupportedAssets) {
+      const tokenSymbol = unsupportedAssets[chain]
+      const isUnsupported = (selectedBridge?.getTokenSymbol() === tokenSymbol && (
+        [fromNetwork?.slug, toNetwork?.slug].includes(chain.toLowerCase())
+      ))
+      if (isUnsupported) {
+        return {
+          chain,
+          tokenSymbol
+        }
+      }
+    }
+
+    return null
   }, [selectedBridge, fromNetwork, toNetwork])
 
   useEffect(() => {
-    if (isUnsupportedAsset) {
-      setError('MATIC is currently not supported on Optimism')
+    if (unsupportedAsset) {
+      const { chain, tokenSymbol } = unsupportedAsset
+      setError(`${tokenSymbol} is currently not supported on ${chain}`)
     } else {
       setError('')
     }
-  }, [isUnsupportedAsset])
+  }, [unsupportedAsset])
 
   const sourceToken = useMemo(() => {
     try {
@@ -318,7 +339,20 @@ const Send: FC = () => {
   if (destinationTxFee && bonderFee) {
     totalBonderFee = destinationTxFee.add(bonderFee)
   }
+
+  const bonderFeeDisplay = toTokenDisplay(
+    bonderFee,
+    destToken?.decimals,
+    destToken?.symbol
+  )
+
   const destinationTxFeeDisplay = toTokenDisplay(
+    destinationTxFee,
+    destToken?.decimals,
+    destToken?.symbol
+  )
+
+  const totalBonderFeeDisplay = toTokenDisplay(
     totalBonderFee,
     destToken?.decimals,
     destToken?.symbol
@@ -482,6 +516,10 @@ const Send: FC = () => {
     let _amountOutMin = amountOutMin
     if (destinationTxFee?.gt(0)) {
       _amountOutMin = _amountOutMin.sub(destinationTxFee)
+    }
+
+    if (_amountOutMin.lt(0)) {
+      _amountOutMin = BigNumber.from(0)
     }
 
     const amountOutMinFormatted = commafy(
@@ -827,7 +865,7 @@ const Send: FC = () => {
     setTx(null)
   }
 
-  const sendButtonActive = (validFormFields && !isUnsupportedAsset && !needsApproval)
+  const sendButtonActive = (validFormFields && !unsupportedAsset && !needsApproval)
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -924,9 +962,14 @@ const Send: FC = () => {
           {
             totalBonderFee?.gt(0) &&
             <DetailRow
-              title={`${toNetwork?.isLayer1 ? 'L1' : toNetwork?.name} Transaction Fee`}
-              tooltip="This fee covers the bonder fee and the destination transaction cost paid by the Bonder."
-              value={destinationTxFeeDisplay}
+              title={'Transaction Fee'}
+              tooltip={
+                <FeeDetails
+                  bonderFee={bonderFeeDisplay}
+                  destinationTxFee={destinationTxFeeDisplay}
+                />
+              }
+              value={totalBonderFeeDisplay}
               large
             />
           }

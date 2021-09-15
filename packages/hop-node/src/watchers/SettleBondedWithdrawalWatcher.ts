@@ -40,16 +40,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
-    try {
-      await this.checkUnsettledTransferRootsFromDb()
-    } catch (err) {
-      this.logger.error(
-        `poll error checkUnsettledTransfers: ${err.message}`
-      )
-      this.notifier.error(
-        `poll error checkUnsettledTransfers: ${err.message}`
-      )
-    }
+    await this.checkUnsettledTransferRootsFromDb()
   }
 
   checkUnsettledTransferRootsFromDb = async () => {

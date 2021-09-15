@@ -110,9 +110,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
             await this.pollHandler()
           }
         } catch (err) {
-          this.logger.error(`poll check error: ${err.message}`)
+          this.logger.error(`poll check error: ${err.message}\ntrace: ${err.stack}`)
           this.notifier.error(`poll check error: ${err.message}`)
-          console.trace()
         }
       } else {
         // Allow a paused bonder to go into dry mode or exit
@@ -144,9 +143,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     try {
       await this.pollCheck()
     } catch (err) {
-      this.logger.error('base watcher error:', err.message)
-      this.notifier.error(`base watcher error: '${err.message}`)
-      console.trace()
+      this.logger.error(`base watcher error: ${err.message}\ntrace: ${err.stack}`)
+      this.notifier.error(`base watcher error: ${err.message}`)
       this.quit()
     }
   }

@@ -72,7 +72,7 @@ const Convert: FC = () => {
     setError,
     tx,
     setTx,
-    isUnsupportedAsset,
+    unsupportedAsset,
     validFormFields,
     approving,
     sending,
@@ -106,11 +106,11 @@ const Convert: FC = () => {
     approveTokens()
   }
 
-  const sendButtonActive = (validFormFields && !isUnsupportedAsset && !needsApproval)
+  const sendButtonActive = (validFormFields && !unsupportedAsset && !needsApproval)
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      {isUnsupportedAsset ? <>
+      {unsupportedAsset ? <>
         <Typography
           variant="subtitle1"
           color="textSecondary"

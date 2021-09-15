@@ -6,6 +6,8 @@ import {
   gasPriceMultiplier,
   config as globalConfig,
   maxGasPriceGwei,
+  minPriorityFeePerGas,
+  priorityFeePerGasCap,
   timeTilBoostMs
 } from 'src/config'
 
@@ -19,6 +21,8 @@ const constructWallet = memoize(
     signer.setOptions({
       gasPriceMultiplier,
       maxGasPriceGwei,
+      minPriorityFeePerGas,
+      priorityFeePerGasCap,
       timeTilBoostMs
     })
     return signer

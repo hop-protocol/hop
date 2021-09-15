@@ -138,7 +138,7 @@ const Pools: FC = () => {
     priceImpact,
     virtualPrice,
     reserveTotalsUsd,
-    isUnsupportedAsset
+    unsupportedAsset
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -244,7 +244,7 @@ const Pools: FC = () => {
           ))}
         </RaisedSelect>
       </Box>
-      {isUnsupportedAsset ? <>
+      {unsupportedAsset ? <>
         <Typography
           variant="subtitle1"
           color="textSecondary"

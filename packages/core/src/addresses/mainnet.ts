@@ -45,7 +45,7 @@ export const addresses: Addresses = {
       },
       optimism: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x30bD2A2fD99372B53C6a226751a4b65D48941866',
+        l1MessengerWrapper: '0x1ba1f1368ecEB7bFcbdE20e1F803771b7B401F7d',
         l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
         l2CanonicalToken: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607',
         l2Bridge: '0xa81D244A1814468C734E5b4101F7b9c0c577a8fC',
@@ -54,6 +54,18 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x3c0FFAca566fCcfD9Cc95139FEF6CBA143795963',
         l2SaddleLpToken: '0x2e17b8193566345a2Dd467183526dEdc42d2d5A8',
         bridgeDeployedBlockNumber: 856160
+      },
+      arbitrum: {
+        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l1MessengerWrapper: '0xaC9BABf20eF2338D7F4a152Af43bedDC80C6ae2a',
+        l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l2CanonicalToken: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
+        l2Bridge: '0x0e0E3d2C5c292161999474247956EF542caBF8dd',
+        l2HopBridgeToken: '0x0ce6c85cF43553DE10FC56cecA0aef6Ff0DD444d',
+        l2AmmWrapper: '0xe22D2beDb3Eca35E6397e0C6D62857094aA26F52',
+        l2SaddleSwap: '0x10541b07d8Ad2647Dc6cD67abd4c03575dade261',
+        l2SaddleLpToken: '0xB67c014FA700E69681a673876eb8BAFAA36BFf71',
+        bridgeDeployedBlockNumber: 440027
       }
     },
     USDT: {
@@ -94,7 +106,7 @@ export const addresses: Addresses = {
       },
       optimism: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x13B7F51BD865410c3AcC4d56083C5B56aB38D203',
+        l1MessengerWrapper: '0xC78C53102e161094D848EE167145E5d45EAA6853',
         l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
         l2CanonicalToken: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
         l2Bridge: '0x46ae9BaB8CEA96610807a275EBD36f8e916b5C61',
@@ -103,6 +115,18 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0xeC4B41Af04cF917b54AEb6Df58c0f8D78895b5Ef',
         l2SaddleLpToken: '0xF753A50fc755c6622BBCAa0f59F0522f264F006e',
         bridgeDeployedBlockNumber: 856444
+      },
+      arbitrum: {
+        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l1MessengerWrapper: '0x70A772DDc3413e3456e5A3b2C30cB749C9577d1F',
+        l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l2CanonicalToken: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+        l2Bridge: '0x72209Fe68386b37A40d6bCA04f78356fd342491f',
+        l2HopBridgeToken: '0x12e59C59D282D2C00f3166915BED6DC2F5e2B5C7',
+        l2AmmWrapper: '0xCB0a4177E0A60247C0ad18Be87f8eDfF6DD30283',
+        l2SaddleSwap: '0x18f7402B673Ba6Fb5EA4B95768aABb8aaD7ef18a',
+        l2SaddleLpToken: '0xCe3B19D820CB8B9ae370E423B0a329c4314335fE',
+        bridgeDeployedBlockNumber: 441562
       }
     },
     MATIC: {

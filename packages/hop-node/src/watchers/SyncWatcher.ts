@@ -7,10 +7,10 @@ import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
-import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
+import { bondableChains } from 'src/config'
 import { boundClass } from 'autobind-decorator'
 
 export interface Config {
@@ -30,7 +30,6 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate : string
   customStartBlockNumber : number
   ready: boolean = false
-  readonly bondableChains: string[] = [Chain.Optimism, Chain.Arbitrum]
 
   constructor (config: Config) {
     super({
@@ -64,9 +63,8 @@ class SyncWatcher extends BaseWatcher {
     try {
       await this.pollSync()
     } catch (err) {
-      this.logger.error('sync watcher error:', err.message)
-      this.notifier.error(`sync watcher error: '${err.message}`)
-      console.trace()
+      this.logger.error(`sync watcher error: ${err.message}\ntrace: ${err.stack}`)
+      this.notifier.error(`sync watcher error: ${err.message}`)
       this.quit()
     }
   }
@@ -377,7 +375,7 @@ class SyncWatcher extends BaseWatcher {
       const blockNumber: number = event.blockNumber
 
       const sourceChainSlug = this.chainIdToSlug(sourceChainId)
-      const shouldBondTransferRoot = this.bondableChains.includes(sourceChainSlug)
+      const shouldBondTransferRoot = bondableChains.includes(sourceChainSlug)
 
       logger.debug('committedAt:', committedAt)
       logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))

@@ -178,8 +178,7 @@ program
         }
       }
     } catch (err) {
-      logger.error(`hop-node error: ${err.message}`)
-      console.trace()
+      logger.error(`hop-node error: ${err.message}\ntrace: ${err.stack}`)
       process.exit(1)
     }
   })

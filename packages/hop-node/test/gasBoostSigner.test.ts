@@ -6,7 +6,7 @@ import wait from 'src/utils/wait'
 import { Wallet } from 'ethers'
 import { privateKey } from './config'
 
-describe.skip('GasBoostSigner', () => {
+describe('GasBoostSigner', () => {
   it('initialize', async () => {
     const provider = getRpcProvider('xdai')
     const store = new MemoryStore()
@@ -14,7 +14,7 @@ describe.skip('GasBoostSigner', () => {
     signer.setStore(store)
     expect(await signer.getAddress()).toBeTruthy()
   })
-  it('sendTransaction', async () => {
+  it.skip('sendTransaction - xdai', async () => {
     const provider = getRpcProvider('xdai')
     const store = new MemoryStore()
     const signer = new GasBoostSigner(privateKey, provider, store, {
@@ -37,7 +37,7 @@ describe.skip('GasBoostSigner', () => {
     ;(tx as GasBoostTransaction).on('boosted', (boostedTx: any, boostIndex: number) => {
       console.log('boosted', {
         hash: boostedTx.hash,
-        gasPrice: tx.gasPrice.toString(),
+        gasPrice: tx.gasPrice?.toString(),
         boostIndex
       })
       boosted = true
@@ -48,7 +48,43 @@ describe.skip('GasBoostSigner', () => {
     expect(confirmed).toBeTruthy()
     expect(boosted).toBeTruthy()
   }, 10 * 60 * 1000)
-  it('maxGasBoostReached', async () => {
+  it.skip('sendTransaction - kovan', async () => {
+    const provider = getRpcProvider('ethereum')
+    const store = new MemoryStore()
+    const signer = new GasBoostSigner(privateKey, provider, store, {
+      timeTilBoostMs: 10 * 1000
+      // compareMarketGasPrice: false
+    })
+    const recipient = await signer.getAddress()
+    console.log('recipient:', recipient)
+    const tx = await signer.sendTransaction({
+      to: recipient,
+      value: '0',
+      maxPriorityFeePerGas: '1'
+    })
+    expect(tx.hash).toBeTruthy()
+    let confirmed = false
+    ;(tx as GasBoostTransaction).on('confirmed', (tx: any) => {
+      confirmed = true
+    })
+    let boosted = false
+    ;(tx as GasBoostTransaction).on('boosted', (boostedTx: any, boostIndex: number) => {
+      console.log('boosted', {
+        hash: boostedTx.hash,
+        gasPrice: tx.gasPrice?.toString(),
+        maxFeePerGas: tx.maxFeePerGas?.toString(),
+        maxPriorityFeePerGas: tx.maxPriorityFeePerGas?.toString(),
+        boostIndex
+      })
+      boosted = true
+      expect(boostedTx).toBeTruthy()
+    })
+    await tx.wait()
+    await wait(1 * 1000)
+    expect(confirmed).toBeTruthy()
+    expect(boosted).toBeTruthy()
+  }, 10 * 60 * 1000)
+  it.skip('maxGasBoostReached', async () => {
     const provider = getRpcProvider('xdai')
     const store = new MemoryStore()
     const signer = new GasBoostSigner(privateKey, provider, store, {
@@ -69,7 +105,7 @@ describe.skip('GasBoostSigner', () => {
     ;(tx as GasBoostTransaction).on('boosted', (boostedTx: any, boostIndex: number) => {
       console.log('boosted', {
         hash: boostedTx.hash,
-        gasPrice: tx.gasPrice.toString(),
+        gasPrice: tx.gasPrice?.toString(),
         boostIndex
       })
       boostedIndex = boostIndex

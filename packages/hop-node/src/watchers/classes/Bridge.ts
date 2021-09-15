@@ -469,10 +469,8 @@ export default class Bridge extends ContractBase {
 
     await compareMinBonderFeeBasisPoints(amount, bonderFee, this.chainSlug)
 
-    if (this.chainSlug === Chain.Ethereum) {
-      const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
-      await compareBonderDestinationFeeCost(bonderFee, gasLimit, this.chainSlug, this.tokenSymbol)
-    }
+    const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
+    await compareBonderDestinationFeeCost(bonderFee, gasLimit, this.chainSlug, this.tokenSymbol)
 
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
 

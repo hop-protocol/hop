@@ -623,6 +623,19 @@ class HopBridge extends Base {
         console.error(err)
         bondTransferGasLimit = BondTransferGasLimit.Optimism
       }
+    } else if (destinationChain?.equals(Chain.Arbitrum)) {
+      try {
+        const estimatedGas = await destinationChain.provider.estimateGas({
+          from: this.getBonderAddress(this.tokenSymbol),
+          to: this.getL2BridgeAddress(this.tokenSymbol, destinationChain),
+          data:
+            '0x3d12a85a000000000000000000000000011111111111111111111111111111111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+        })
+        bondTransferGasLimit = estimatedGas.toString()
+      } catch (err) {
+        console.error(err)
+        bondTransferGasLimit = BondTransferGasLimit.Arbitrum
+      }
     }
 
     const txFeeEth = gasPrice.mul(bondTransferGasLimit)

@@ -598,7 +598,7 @@ class HopBridge extends Base {
     }
 
     const canonicalToken = this.getCanonicalToken(sourceChain)
-    const ethPrice = await this.priceFeed.getPriceByTokenSymbol('WETH')
+    const ethPrice = await this.priceFeed.getPriceByTokenSymbol('ETH')
     const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
       canonicalToken.symbol
     )
@@ -611,7 +611,7 @@ class HopBridge extends Base {
       try {
         const estimatedGas = await destinationChain.provider.estimateGas({
           from: this.getBonderAddress(this.tokenSymbol),
-          to: this.getL2BridgeAddress(this.tokenSymbol, Chain.Optimism),
+          to: this.getL2BridgeAddress(this.tokenSymbol, destinationChain),
           data:
             '0x3d12a85a000000000000000000000000011111111111111111111111111111111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
         })
@@ -736,8 +736,14 @@ class HopBridge extends Base {
       feeBps = L2ToL1BonderFeeBps
     }
 
+    const token = this.toTokenModel(this.tokenSymbol)
+    const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(token.symbol)
+    const minBonderFeeAbsolute = parseUnits(
+      (1 / tokenPrice).toString(),
+      token.decimals
+    )
+
     const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
-    const minBonderFeeAbsolute = await l2Bridge?.minBonderFeeAbsolute()
     const minBonderFeeRelative = hTokenAmount.mul(feeBps).div(10000)
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative

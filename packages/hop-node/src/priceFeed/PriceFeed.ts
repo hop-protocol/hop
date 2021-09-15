@@ -2,6 +2,8 @@ import CoinGecko from './CoinGecko'
 
 class PriceFeed {
   private service = new CoinGecko()
+  cacheTimeMs = 5 * 60 * 1000
+
   cache : {[tokenSymbol: string]: {
     timestamp: number
     price: number
@@ -10,8 +12,7 @@ class PriceFeed {
   async getPriceByTokenSymbol (tokenSymbol: string) {
     const cached = this.cache[tokenSymbol]
     if (cached) {
-      const tenMinutes = 10 * 60 * 1000
-      const isRecent = cached.timestamp > Date.now() - tenMinutes
+      const isRecent = cached.timestamp > Date.now() - this.cacheTimeMs
       if (isRecent) {
         return cached.price
       }

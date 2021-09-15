@@ -1,4 +1,4 @@
-import Bridge, { EventCb, EventsBatchOptions, compareBonderDestinationFeeCost, compareMinBonderFeeBasisPoints } from './Bridge'
+import Bridge, { EventCb, EventsBatchOptions, checkMinBonderFee } from './Bridge'
 import L1Bridge from './L1Bridge'
 import L2Amm from './L2Amm'
 import L2AmmWrapper from './L2AmmWrapper'
@@ -455,10 +455,8 @@ export default class L2Bridge extends Bridge {
       txOverrides
     ]
 
-    await compareMinBonderFeeBasisPoints(amount, bonderFee, this.chainSlug)
-
     const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
-    await compareBonderDestinationFeeCost(bonderFee, gasLimit, this.chainSlug, this.tokenSymbol)
+    await checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol)
 
     const tx = await this.bridgeContract.bondWithdrawalAndDistribute(...payload)
 

@@ -8,10 +8,11 @@ describe('bonder fee', () => {
     const amountIn = BigNumber.from('5081424814') // 5081.424814
     const bonderFee = BigNumber.from('9146564') // 9.146564 (18bps)
     const destinationChain = 'polygon'
+    const tokenSymbol = 'USDT'
 
     let threw = false
     try {
-      await compareMinBonderFeeBasisPoints(amountIn, bonderFee, destinationChain)
+      await compareMinBonderFeeBasisPoints(amountIn, bonderFee, destinationChain, tokenSymbol)
     } catch (err) {
       threw = true
     }
@@ -24,10 +25,11 @@ describe('bonder fee', () => {
     const amountIn = BigNumber.from('565803984') // 565.803984
     const bonderFee = BigNumber.from('113160') // 0.11316 (2bps)
     const destinationChain = 'polygon'
+    const tokenSymbol = 'USDC'
 
     let threw = false
     try {
-      await compareMinBonderFeeBasisPoints(amountIn, bonderFee, destinationChain)
+      await compareMinBonderFeeBasisPoints(amountIn, bonderFee, destinationChain, tokenSymbol)
     } catch (err) {
       threw = true
     }

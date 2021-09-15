@@ -83,6 +83,9 @@ class CoinGecko {
     symbol: string,
     base: string = 'usd'
   ) => {
+    if (symbol === 'ETH') {
+      symbol = 'WETH'
+    }
     const prices = await this.getPricesByTokenSymbol([symbol], base)
     return prices[0]
   }

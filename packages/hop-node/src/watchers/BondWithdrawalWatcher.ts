@@ -4,10 +4,11 @@ import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
 import isL1 from 'src/utils/isL1'
 import wait from 'src/utils/wait'
+import { BigNumber, Contract, providers } from 'ethers'
 import { BonderFeeTooLowError } from 'src/types/error'
 import { Chain, TxError } from 'src/constants'
-import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
+import { bondableChains } from 'src/config'
 
 export interface Config {
   chainSlug: string
@@ -114,10 +115,18 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     let availableCredit = await destBridge.getAvailableCredit()
-    const includePendingAmount = destinationChain === Chain.Ethereum && [Chain.Optimism, Chain.Arbitrum].includes(sourceChain)
+    const includePendingAmount = destinationChain === Chain.Ethereum && bondableChains.includes(sourceChain)
     if (includePendingAmount) {
-      const pendingAmount = await sourceL2Bridge.getPendingAmountForChainId(destinationChainId)
-      availableCredit = availableCredit.sub(pendingAmount).sub((amount).mul(2))
+      let pendingAmounts = BigNumber.from(0)
+      for (const chain of bondableChains) {
+        const bridge = this.getSiblingWatcherByChainSlug(chain)
+        if (!bridge) {
+          continue
+        }
+        const pendingAmount = await (bridge as L2Bridge).getPendingAmountForChainId(destinationChainId)
+        pendingAmounts = pendingAmounts.add(pendingAmount)
+      }
+      availableCredit = availableCredit.sub(pendingAmounts).sub((amount).mul(2))
     }
     if (availableCredit.lt(amount)) {
       logger.warn(

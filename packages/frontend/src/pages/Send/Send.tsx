@@ -218,19 +218,43 @@ const Send: FC = () => {
   )
   const [customRecipient, setCustomRecipient] = useState<string>('')
 
-  const isUnsupportedAsset = useMemo(() => {
-    return selectedBridge?.getTokenSymbol() === 'MATIC' && (
-      fromNetwork?.slug === 'optimism' || toNetwork?.slug === 'optimism'
-    )
+  const unsupportedAsset = useMemo<any>(() => {
+    if (!(
+      selectedBridge &&
+      fromNetwork &&
+      toNetwork
+    )) {
+      return null
+    }
+    const unsupportedAssets = {
+      Optimism: 'MATIC',
+      Arbitrum: 'MATIC'
+    }
+
+    for (const chain in unsupportedAssets) {
+      const tokenSymbol = unsupportedAssets[chain]
+      const isUnsupported = (selectedBridge?.getTokenSymbol() === tokenSymbol && (
+        [fromNetwork?.slug, toNetwork?.slug].includes(chain.toLowerCase())
+      ))
+      if (isUnsupported) {
+        return {
+          chain,
+          tokenSymbol
+        }
+      }
+    }
+
+    return null
   }, [selectedBridge, fromNetwork, toNetwork])
 
   useEffect(() => {
-    if (isUnsupportedAsset) {
-      setError('MATIC is currently not supported on Optimism')
+    if (unsupportedAsset) {
+      const { chain, tokenSymbol } = unsupportedAsset
+      setError(`${tokenSymbol} is currently not supported on ${chain}`)
     } else {
       setError('')
     }
-  }, [isUnsupportedAsset])
+  }, [unsupportedAsset])
 
   const sourceToken = useMemo(() => {
     try {
@@ -827,7 +851,7 @@ const Send: FC = () => {
     setTx(null)
   }
 
-  const sendButtonActive = (validFormFields && !isUnsupportedAsset && !needsApproval)
+  const sendButtonActive = (validFormFields && !unsupportedAsset && !needsApproval)
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">

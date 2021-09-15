@@ -711,15 +711,16 @@ export async function compareBonderDestinationFeeCost (
   const gasPrice = getBumpedGasPrice(await provider.getGasPrice(), MaxGasPriceMultiplier)
   const gasPrice18d = shiftBNDecimals(gasPrice, ethDecimals - gweiDecimals)
   const gasCost = gasLimit.mul(gasPrice)
-  const ethUsdPrice = await priceFeed.getPriceByTokenSymbol('ETH')
+  const chainNativeTokenSymbol = getChainNativeTokenSymbol(chain)
+  const chainNativeTokenUsdPrice = await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol)
   const tokenUsdPrice = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
   const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), ethDecimals)
-  const ethUsdPriceBn = parseUnits(ethUsdPrice.toString(), ethDecimals)
+  const chainNativeTokenUsdPriceBn = parseUnits(chainNativeTokenUsdPrice.toString(), ethDecimals)
   const tokenDecimals = getTokenDecimals(tokenSymbol)
   const bonderFee18d = shiftBNDecimals(bonderFee, ethDecimals - tokenDecimals)
   const usdBonderFee = bonderFee18d
   const oneEth = parseUnits('1', ethDecimals)
-  const usdGasCost = gasCost.mul(ethUsdPriceBn).div(oneEth)
+  const usdGasCost = gasCost.mul(chainNativeTokenUsdPriceBn).div(oneEth)
   const usdBonderFeeFormatted = formatUnits(usdBonderFee, ethDecimals)
   const usdGasCostFormatted = formatUnits(usdGasCost, ethDecimals)
   const isTooLow = bonderFee.eq(0) || usdBonderFee.lt(usdGasCost.div(2))
@@ -756,4 +757,14 @@ export async function compareMinBonderFeeBasisPoints (
   if (isTooLow) {
     throw new BonderFeeTooLowError(`bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFee: ${minBonderFee}`)
   }
+}
+
+function getChainNativeTokenSymbol (chain: string) {
+  if (chain === Chain.Polygon) {
+    return 'MATIC'
+  } else if (chain === Chain.xDai) {
+    return 'DAI'
+  }
+
+  return 'ETH'
 }

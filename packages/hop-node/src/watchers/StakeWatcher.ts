@@ -180,7 +180,13 @@ class StakeWatcher extends BaseWatcher {
             )
             this.notifier.info(`convert tx: ${tx.hash}`)
             await tx.wait()
-            txTimestamp = await l1Bridge.getTransactionTimestamp(tx.hash)
+
+            // In the case of RPC latency, tgeTransactionTimestamp will fail. Use current time (w/ buffer) instead.
+            try {
+              txTimestamp = await l1Bridge.getTransactionTimestamp(tx.hash)
+            } catch {
+              txTimestamp = Math.floor(Date.now() / 1000) - (3 * 60)
+            }
           }
 
           this.logger.debug(
@@ -317,10 +323,6 @@ class StakeWatcher extends BaseWatcher {
         continue
       }
       if (!amount.eq(convertAmount)) {
-        continue
-      }
-      const eventTimestamp = await l2Bridge.getBlockTimestamp(event.blockNumber)
-      if (eventTimestamp < timestamp) {
         continue
       }
       return true

@@ -124,7 +124,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
           continue
         }
         const bridge = watcher.bridge as L2Bridge
-        const pendingAmount = await watcher.bridge.getPendingAmountForChainId(destinationChainId)
+        const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
         pendingAmounts = pendingAmounts.add(pendingAmount)
       }
       availableCredit = availableCredit.sub(pendingAmounts).sub(amount)

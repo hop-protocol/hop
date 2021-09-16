@@ -90,7 +90,8 @@ const Web3ContextProvider: FC = ({ children }) => {
     const cacheKey = 'selectedWallet'
     const rpcUrl = getRpcUrl(L1_NETWORK)
     const walletOptions = [
-      { walletName: 'metamask', preferred: true }
+      { walletName: 'metamask', preferred: true },
+      { walletName: 'walletLink', rpcUrl, appName: 'Hop', preferred: true }
     ]
 
     const networkCheck = async (state: any): Promise<any> => {

@@ -325,8 +325,12 @@ class StakeWatcher extends BaseWatcher {
       if (!amount.eq(convertAmount)) {
         continue
       }
-      const eventTimestamp = await l2Bridge.getBlockTimestamp(event.blockNumber)
-      if (eventTimestamp < timestamp) {
+      try {
+        const eventTimestamp = await l2Bridge.getBlockTimestamp(event.blockNumber)
+        if (eventTimestamp < timestamp) {
+          continue
+        }
+      } catch (err) {
         continue
       }
       return true

@@ -782,9 +782,6 @@ class HopBridge extends Base {
 
     if (includePendingAmount) {
       const bridgeContract = await this.getBridgeContract(sourceChain)
-      const pendingAmount = await bridgeContract.pendingAmountForChainId(
-        destinationChain.chainId
-      )
       let pendingAmounts = BigNumber.from(0)
       for (const chain of bondableChains) {
         const exists = this.getL2BridgeAddress(this.tokenSymbol, chain)
@@ -810,7 +807,7 @@ class HopBridge extends Base {
         .mul(precision)
 
       availableLiquidity = availableLiquidity
-        .add(pendingAmounts)
+        .sub(pendingAmounts)
         .div(2)
         .sub(bufferAmountTokensBn) // account for transfer root bonds
     }

@@ -813,8 +813,8 @@ class HopBridge extends Base {
         .div(tokenPriceBn)
         .mul(precision)
 
-      availableLiquidity = (availableLiquidity
-        .sub(pendingAmounts))
+      const liquidityMinusAmounts = availableLiquidity.sub(pendingAmounts)
+      availableLiquidity = liquidityMinusAmounts
         .div(2)
         .sub(bufferAmountTokensBn) // account for transfer root bonds
     }
@@ -1162,7 +1162,7 @@ class HopBridge extends Base {
    * @param {Object} time - Unix timestamp (in seconds) to get the time slot.
    * @returns {Object} Time slot for the given time as BigNumber.
    */
-  public async getTimeSlot(time: TTime): Promise<BigNumber> {
+  public async getTimeSlot (time: TTime): Promise<BigNumber> {
     const bridge = await this.getL1Bridge()
     time = BigNumber.from(time.toString())
 
@@ -1174,7 +1174,7 @@ class HopBridge extends Base {
    * @desc The challenge period.
    * @returns {Object} The challenge period for the bridge as BigNumber.
    */
-  public async challengePeriod(): Promise<BigNumber> {
+  public async challengePeriod (): Promise<BigNumber> {
     const bridge = await this.getL1Bridge()
 
     return bridge.challengePeriod()
@@ -1185,7 +1185,7 @@ class HopBridge extends Base {
    * @desc The size of the time slots.
    * @returns {Object} The size of the time slots for the bridge as BigNumber.
    */
-  public async timeSlotSize(): Promise<BigNumber> {
+  public async timeSlotSize (): Promise<BigNumber> {
     const bridge = await this.getL1Bridge()
 
     return bridge.TIME_SLOT_SIZE()
@@ -1199,7 +1199,7 @@ class HopBridge extends Base {
    * @param {String} bonder - Address of the bonder to check.
    * @returns {Object} Amount bonded for the bonder for the given time slot as BigNumber.
    */
-  public async timeSlotToAmountBonded(
+  public async timeSlotToAmountBonded (
     timeSlot: TTimeSlot,
     bonder: string = this.getBonderAddress(this.tokenSymbol)
   ): Promise<BigNumber> {

@@ -32,3 +32,5 @@ const config = {
 }
 
 export { metadata, config }
+
+export const bondableChains = ['optimism', 'arbitrum']

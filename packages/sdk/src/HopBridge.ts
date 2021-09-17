@@ -20,6 +20,7 @@ import {
   BondTransferGasLimit,
   LpFeeBps,
   GasPriceMultiplier,
+  ORUGasPriceMultiplier,
   L2ToL2BonderFeeBps,
   L2ToL1BonderFeeBps,
   PendingAmountBuffer
@@ -636,8 +637,8 @@ class HopBridge extends Base {
     let multiplier = BigNumber.from(0)
     if (destinationChain.equals(Chain.Ethereum)) {
       multiplier = ethers.utils.parseEther(GasPriceMultiplier)
-    } else if (['optimism', 'arbitrum'].includes(destinationChain.slug)) {
-      multiplier = ethers.utils.parseEther(GasPriceMultiplier).mul(2)
+    } else if (bondableChains.includes(destinationChain.slug)) {
+      multiplier = ethers.utils.parseEther(ORUGasPriceMultiplier)
     }
 
     if (multiplier.gt(0)) {
@@ -812,8 +813,8 @@ class HopBridge extends Base {
         .div(tokenPriceBn)
         .mul(precision)
 
-      availableLiquidity = availableLiquidity
-        .sub(pendingAmounts)
+      availableLiquidity = (availableLiquidity
+        .sub(pendingAmounts))
         .div(2)
         .sub(bufferAmountTokensBn) // account for transfer root bonds
     }

@@ -26,36 +26,27 @@ const WalletWarning: FC = () => {
 
   useEffect(() => {
     const update = async () => {
-      try {
-        if (
-          !(address && provider && walletName)
-        ) {
-          return ''
-        }
-
-        const _address = address.address
-        try {
-          const cached = sessionStorage.getItem('walletWarningClosed')
-          if (cached && cached === _address) {
-            return ''
-          }
-        } catch (err: any) {
-          console.error(err)
-        }
-
-        if (walletName !== 'WalletConnect') {
-          return ''
-        }
-
-        const code = await provider.getCode(_address)
-        if (code === '0x') {
-          return ''
-        }
-
-        return 'Connected wallet is a smart contract. Only send funds on supported networks by wallet or there may permanent be loss of funds.'
-      } catch (err: any) {
+      if (
+        !(address && provider && walletName)
+      ) {
         return ''
       }
+
+      const _address = address.address
+      try {
+        const cached = sessionStorage.getItem('walletWarningClosed')
+        if (cached && cached === _address) {
+          return ''
+        }
+      } catch (err: any) {
+        console.error(err)
+      }
+
+      if (walletName === 'WalletConnect') {
+        return 'Only send funds on supported networks by wallet or there may permanent be loss of funds.'
+      }
+
+      return ''
     }
 
     update()

@@ -30,7 +30,13 @@ const FeeDetails: FC<Props> = props => {
   return (
     <div className={styles.root}>
       <Typography variant="body1" className={styles.text}>
-        This fee covers the bonder fee and the destination transaction cost paid by the Bonder.
+        The total fee covers the bonder fee and the destination transaction cost paid by the Bonder.
+      </Typography>
+      <Typography variant="body1" className={styles.text}>
+      On Optimism and Arbitrum the destination tx fee fluctuates with L1 gas price.
+      </Typography>
+      <Typography variant="body1" className={styles.text}>
+      LP fees are included in the swap price.
       </Typography>
       <DetailRow
         title="Bonder fee"

@@ -133,7 +133,8 @@ const swapRouter = '0xE592427A0AEce92De3Edee1F18E0157C05861564'
 const ethPools: {[key: string]: string} = {
   USDC: '0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8',
   USDT: '0x4e68ccd3e89f51c3074ca5072bbac773960dfa36',
-  DAI: '0x60594a405d53811d3bc4766596efd80fd545a270'
+  DAI: '0x60594a405d53811d3bc4766596efd80fd545a270',
+  MATIC: '0x290A6a7460B308ee3F19023D2D00dE604bcf5B42'
 }
 
 export async function swap (config: Config) {

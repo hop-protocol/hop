@@ -68,6 +68,7 @@ class HopConvertOption extends ConvertOption {
     amountIn = BigNumber.from(amountIn)
     const bridge = sdk
       .bridge(l1TokenSymbol)
+    const token = sourceNetwork?.isLayer1 ? bridge.getCanonicalToken(sourceNetwork?.slug) : bridge.getL2HopToken(sourceNetwork?.slug)
 
     const bonderFee = await bridge.getBonderFee(
       amountIn,
@@ -80,13 +81,35 @@ class HopConvertOption extends ConvertOption {
       destNetwork.slug
     )) || BigNumber.from(0)
 
+    const availableLiquidity = await bridge.getAvailableLiquidity(
+      sourceNetwork.slug,
+      destNetwork.slug
+    )
+
     const totalFees = bonderFee.add(destinationTxFee)
     let estimatedReceived = amountIn
     let warning
+
+    if (!sourceNetwork?.isLayer1 && amountIn.gt(availableLiquidity)) {
+      const formattedAmount = toTokenDisplay(
+        availableLiquidity,
+        token.decimals
+      )
+      warning = `Insufficient liquidity. There is ${formattedAmount} ${l1TokenSymbol} available on ${destNetwork.name}.`
+    }
+
     if (amountIn.gte(totalFees)) {
       estimatedReceived = amountIn.sub(totalFees)
     } else {
       warning = 'Amount must be greater than the fee'
+    }
+
+    if (bridge.signer) {
+      const balance = await token.balanceOf()
+      const enoughBalance = amountIn.lte(balance)
+      if (!enoughBalance) {
+        warning = 'Insufficient funds'
+      }
     }
 
     const l1Token = bridge.getL1Token()

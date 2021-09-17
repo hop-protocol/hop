@@ -21,9 +21,10 @@ import {
   LpFeeBps,
   GasPriceMultiplier,
   L2ToL2BonderFeeBps,
-  L2ToL1BonderFeeBps
+  L2ToL1BonderFeeBps,
+  PendingAmountBuffer
 } from './constants'
-import { metadata } from './config'
+import { metadata, bondableChains } from './config'
 import { PriceFeed } from './priceFeed'
 import Token from './Token'
 
@@ -457,39 +458,11 @@ class HopBridge extends Base {
       estimatedReceived = BigNumber.from(0)
     }
 
-    let requiredLiquidity = hTokenAmount
-    const bondableChains = ['optimism', 'arbitrum']
-    const isBondableChain = bondableChains.includes(sourceChain.slug)
-    const includePendingAmount =
-      destinationChain.equals(Chain.Ethereum) && isBondableChain
-
-    if (includePendingAmount) {
-      const bridgeContract = await this.getBridgeContract(sourceChain)
-      const pendingAmount = await bridgeContract.pendingAmountForChainId(
-        destinationChain.chainId
-      )
-      let pendingAmounts = BigNumber.from(0)
-      for (const chain of bondableChains) {
-        const exists = this.getL2BridgeAddress(this.tokenSymbol, chain)
-        if (!exists) {
-          continue
-        }
-        const bridge = await this.getBridgeContract(chain)
-        const pendingAmount = await bridge.pendingAmountForChainId(
-          destinationChain.chainId
-        )
-        pendingAmounts = pendingAmounts.add(pendingAmount)
-      }
-      requiredLiquidity = requiredLiquidity
-        .add(pendingAmounts)
-        .add(hTokenAmount) // account for transfer root bonds
-    }
-
     return {
       amountOut,
       rate,
       priceImpact,
-      requiredLiquidity,
+      requiredLiquidity: hTokenAmount,
       bonderFee,
       lpFees,
       destinationTxFee,
@@ -807,7 +780,44 @@ class HopBridge extends Base {
       this.getTotalDebit(destinationChain, bonder)
     ])
 
-    const availableLiquidity = credit.sub(debit)
+    let availableLiquidity = credit.sub(debit)
+
+    const isBondableChain = bondableChains.includes(sourceChain.slug)
+    const includePendingAmount =
+      isBondableChain && destinationChain.equals(Chain.Ethereum)
+
+    if (includePendingAmount) {
+      const bridgeContract = await this.getBridgeContract(sourceChain)
+      let pendingAmounts = BigNumber.from(0)
+      for (const chain of bondableChains) {
+        const exists = this.getL2BridgeAddress(this.tokenSymbol, chain)
+        if (!exists) {
+          continue
+        }
+        const bridge = await this.getBridgeContract(chain)
+        const pendingAmount = await bridge.pendingAmountForChainId(
+          destinationChain.chainId
+        )
+        pendingAmounts = pendingAmounts.add(pendingAmount)
+      }
+
+      const token = this.toTokenModel(this.tokenSymbol)
+      const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
+        token.canonicalSymbol
+      )
+      const tokenPriceBn = parseUnits(tokenPrice.toString(), token.decimals)
+      const bufferAmountBn = parseUnits(PendingAmountBuffer, token.decimals)
+      const precision = parseUnits('1', token.decimals)
+      const bufferAmountTokensBn = bufferAmountBn
+        .div(tokenPriceBn)
+        .mul(precision)
+
+      availableLiquidity = availableLiquidity
+        .sub(pendingAmounts)
+        .div(2)
+        .sub(bufferAmountTokensBn) // account for transfer root bonds
+    }
+
     if (availableLiquidity.lt(0)) {
       return BigNumber.from(0)
     }

@@ -94,7 +94,13 @@ const Web3ContextProvider: FC = ({ children }) => {
       { walletName: 'walletLink', rpcUrl, appName: 'Hop', preferred: true },
       {
         walletName: 'walletConnect',
-        infuraKey: '8e4fe7af961f48a1958584ec36742b44',
+        rpc: {
+          1: getRpcUrl('ethereum'),
+          42161: getRpcUrl('arbitrum'),
+          10: getRpcUrl('optimism'),
+          100: getRpcUrl('xdai'),
+          137: getRpcUrl('polygon')
+        },
         preferred: true
       },
     ]

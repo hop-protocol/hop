@@ -24,7 +24,10 @@ type StatsContextProps = {
   fetchingPendingAmounts: boolean,
 
   balances: any[],
-  fetchingBalances: boolean
+  fetchingBalances: boolean,
+
+  debitWindowStats: any[],
+  fetchingDebitWindowStats: boolean
 }
 
 const StatsContext = createContext<StatsContextProps>({
@@ -38,7 +41,10 @@ const StatsContext = createContext<StatsContextProps>({
   fetchingPendingAmounts: false,
 
   balances: [],
-  fetchingBalances: false
+  fetchingBalances: false,
+
+  debitWindowStats: [],
+  fetchingDebitWindowStats: false
 })
 
 type BonderStats = {
@@ -55,6 +61,12 @@ type BonderStats = {
   availableEth: number
 }
 
+type DebitWindowStats = {
+  token: Token
+  amountBonded: number[]
+  remainingMin: number
+}
+
 const StatsContextProvider: FC = ({ children }) => {
   const { networks, tokens, sdk } = useApp()
   const [stats, setStats] = useState<any[]>([])
@@ -65,6 +77,8 @@ const StatsContextProvider: FC = ({ children }) => {
   const [fetchingPendingAmounts, setFetchingPendingAmounts] = useState<boolean>(false)
   const [balances, setBalances] = useState<any[]>([])
   const [fetchingBalances, setFetchingBalances] = useState<boolean>(false)
+  const [debitWindowStats, setDebitWindowStats] = useState<any[]>([])
+  const [fetchingDebitWindowStats, setFetchingDebitWindowStats] = useState<boolean>(false)
   const filteredNetworks = networks?.filter(token => !token.isLayer1)
 
   async function fetchStats (selectedNetwork: Network, selectedToken: Token) {
@@ -254,51 +268,61 @@ const StatsContextProvider: FC = ({ children }) => {
     update().catch(logger.error)
   }, [])
 
-  async function fetchBalances (selectedNetwork: Network) {
-    if (!selectedNetwork) {
+  async function fetchDebitWindowStats (selectedToken: Token, bonder: string): Promise<DebitWindowStats | undefined> {
+    if (!pendingAmounts?.length) {
+      return
+    }
+    const token = tokens.find(token => token.symbol === selectedToken?.symbol)
+    if (!token) {
       return
     }
 
-    // The token doesn't matter
-    const arbitraryToken = 'USDC'
-    const bridge = sdk.bridge(arbitraryToken)
-    if (!bridge.isSupportedAsset(selectedNetwork.slug)) {
-      return
+    const bridge = sdk.bridge(selectedToken.symbol)
+    const slug: string = 'ethereum'
+
+    const currentTime: number = Math.floor(Date.now() / 1000)
+    const currentTimeSlot: BigNumber = await bridge.getTimeSlot(slug, currentTime)
+    const challengePeriod: BigNumber = await bridge.challengePeriod(slug)
+    const timeSlotSize: BigNumber = await bridge.timeSlotSize(slug)
+    const numTimeSlots: BigNumber = challengePeriod.div(timeSlotSize)
+    const amountBonded: number[] = []
+
+    for (let i = 0; i < Number(numTimeSlots); i++) {
+      const timeSlot: number = Number(currentTimeSlot.sub(i))
+      const amount: BigNumber = await bridge.timeSlotToAmountBonded(slug, timeSlot, bonder)
+      amountBonded.push(Number(formatUnits(amount.toString(), token.decimals)))
     }
 
-    // The canonical token decimals is always 18
-    const decimals = 18
-    const addresses = [
-      '0xfEfeC7D3EB14a004029D278393e6AB8B46fb4FCa'
-    ]
-    const formattedBalances: Number[] = []
-    for (const address of addresses) {
-      const balance = await bridge.getEthBalance(selectedNetwork.slug, address)
-      formattedBalances.push(Number(formatUnits(balance, decimals)))
-    }
+    const timeElapsedInSlot: number = currentTime % Number(timeSlotSize)
+    const remainingSec: number = Number(timeSlotSize.sub(timeElapsedInSlot))
+    const remainingMin: number = Math.ceil(remainingSec / 60)
 
     return {
-      balances: formattedBalances
+      token,
+      amountBonded,
+      remainingMin
     }
   }
 
   useEffect(() => {
     const update = async () => {
-      if (!filteredNetworks) {
+      if (!networks) {
         return
       }
-      setFetchingBalances(true)
+      setFetchingDebitWindowStats(true)
       const promises: Promise<any>[] = []
-      for (const selectedNetwork of filteredNetworks) {
-        promises.push(fetchBalances(selectedNetwork).catch(logger.error))
+      for (const token of tokens) {
+        for (const bonder of config.addresses.bonders?.[token.symbol]) {
+          promises.push(fetchDebitWindowStats(token, bonder).catch(logger.error))
+        }
       }
       const results: any[] = await Promise.all(promises)
-      setFetchingBalances(false)
-      setBalances(results.filter(x => x))
+      setFetchingDebitWindowStats(false)
+      setDebitWindowStats(results.filter(x => x))
     }
 
     update().catch(logger.error)
-  }, [balances])
+  }, [pendingAmounts])
 
   return (
     <StatsContext.Provider
@@ -314,6 +338,9 @@ const StatsContextProvider: FC = ({ children }) => {
 
         balances,
         fetchingBalances,
+
+        debitWindowStats,
+        fetchingDebitWindowStats,
       }}
     >
       {children}

@@ -6,6 +6,7 @@ import PoolStats from './PoolStats'
 import BonderStats from './BonderStats'
 import PendingAmountStats from './PendingAmountStats'
 import BalanceStats from './BalanceStats'
+import DebitWindowStats from './DebitWindowStats'
 
 const useStyles = makeStyles(theme => ({
   stats: {
@@ -28,7 +29,7 @@ const Stats: FC = () => {
         <BonderStats />
       </div>
       <div className={styles.stats}>
-        <BalanceStats />
+        <DebitWindowStats />
       </div>
     </Box>
   )

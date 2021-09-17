@@ -90,7 +90,13 @@ const Web3ContextProvider: FC = ({ children }) => {
     const cacheKey = 'selectedWallet'
     const rpcUrl = getRpcUrl(L1_NETWORK)
     const walletOptions = [
-      { walletName: 'metamask', preferred: true }
+      { walletName: 'metamask', preferred: true },
+      { walletName: 'walletLink', rpcUrl, appName: 'Hop', preferred: true },
+      {
+        walletName: 'walletConnect',
+        infuraKey: '8e4fe7af961f48a1958584ec36742b44',
+        preferred: true
+      },
     ]
 
     const networkCheck = async (state: any): Promise<any> => {
@@ -213,11 +219,11 @@ const Web3ContextProvider: FC = ({ children }) => {
                 provider,
                 'any'
               )
-              setProvider(ethersProvider)
-              setWalletName(name)
               if (provider.enable) {
                 await provider.enable()
               }
+              setProvider(ethersProvider)
+              setWalletName(name)
             } else {
               setWalletName('')
               setProvider(undefined)
@@ -293,7 +299,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         }
 
         try {
-          if ((window as any).ethereum && networkId) {
+          if (provider && networkId) {
             const wantNetworkName = networkNames[networkId] || 'local'
             const isL1 = ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
               wantNetworkName
@@ -308,25 +314,19 @@ const Web3ContextProvider: FC = ({ children }) => {
               nativeCurrency
             }
             if (isL1) {
-              await (window as any).ethereum.request({
-                id: 1,
-                jsonrpc: '2.0',
-                method: 'wallet_switchEthereumChain',
-                params: [
+              await provider?.send('wallet_switchEthereumChain',
+                [
                   {
                     chainId: `0x${Number(networkId).toString(16)}`
                   }
                 ]
-              })
+              )
             } else {
-              await (window as any).ethereum.request({
-                id: 1,
-                jsonrpc: '2.0',
-                method: 'wallet_addEthereumChain',
-                params: [
+              await provider?.send('wallet_addEthereumChain',
+                [
                   rpcObj
                 ]
-              })
+              )
             }
           }
 

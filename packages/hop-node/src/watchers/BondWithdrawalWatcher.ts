@@ -119,11 +119,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
     if (includePendingAmount) {
       let pendingAmounts = BigNumber.from(0)
       for (const chain of bondableChains) {
-        const bridge = this.getSiblingWatcherByChainSlug(chain)
-        if (!bridge) {
+        const watcher = this.getSiblingWatcherByChainSlug(chain)
+        if (!watcher) {
           continue
         }
-        const pendingAmount = await (bridge as L2Bridge).getPendingAmountForChainId(destinationChainId)
+        const bridge = watcher.bridge as L2Bridge
+        const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
         pendingAmounts = pendingAmounts.add(pendingAmount)
       }
       availableCredit = availableCredit.sub(pendingAmounts).sub(amount)

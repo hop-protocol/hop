@@ -15,7 +15,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.29.0",
     "@hop-protocol/core": "0.0.1-beta.26",
-    "@hop-protocol/sdk": "0.0.1-beta.181",
+    "@hop-protocol/sdk": "0.0.1-beta.182",
     "@pinata/sdk": "^1.1.23",
     "@types/node": "^16.7.10",
     "dotenv": "^10.0.0",

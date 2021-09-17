@@ -343,18 +343,17 @@ const StatsContextProvider: FC = ({ children }) => {
     }
 
     const bridge = sdk.bridge(selectedToken.symbol)
-    const slug: string = 'ethereum'
 
     const currentTime: number = Math.floor(Date.now() / 1000)
-    const currentTimeSlot: BigNumber = await bridge.getTimeSlot(slug, currentTime)
-    const challengePeriod: BigNumber = await bridge.challengePeriod(slug)
-    const timeSlotSize: BigNumber = await bridge.timeSlotSize(slug)
+    const currentTimeSlot: BigNumber = await bridge.getTimeSlot(currentTime)
+    const challengePeriod: BigNumber = await bridge.challengePeriod()
+    const timeSlotSize: BigNumber = await bridge.timeSlotSize()
     const numTimeSlots: BigNumber = challengePeriod.div(timeSlotSize)
     const amountBonded: number[] = []
 
     for (let i = 0; i < Number(numTimeSlots); i++) {
       const timeSlot: number = Number(currentTimeSlot.sub(i))
-      const amount: BigNumber = await bridge.timeSlotToAmountBonded(slug, timeSlot, bonder)
+      const amount: BigNumber = await bridge.timeSlotToAmountBonded(timeSlot, bonder)
       amountBonded.push(Number(formatUnits(amount.toString(), token.decimals)))
     }
 

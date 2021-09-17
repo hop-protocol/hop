@@ -11,7 +11,7 @@ import {
   l2AmmWrapperAbi,
   wethAbi
 } from '@hop-protocol/core/abi'
-import { TChain, TToken, TAmount, TProvider } from './types'
+import { TChain, TToken, TAmount, TProvider, TTime, TTimeSlot } from './types'
 import Base, { ChainProviders } from './Base'
 import AMM from './AMM'
 import _version from './version'
@@ -1142,16 +1142,12 @@ class HopBridge extends Base {
   /**
    * @readonly
    * @desc The time slot for the current time.
-   * @param {Object} chain - Chain model.
-   * @param {Number} time - Unix timestamp (in seconds) to get the time slot.
+   * @param {Object} time - Unix timestamp (in seconds) to get the time slot.
    * @returns {Object} Time slot for the given time as BigNumber.
    */
-  public async getTimeSlot(
-    chain: TChain,
-    time: number
-  ): Promise<BigNumber> {
-    chain = this.toChainModel(chain)
-    const bridge = await this.getBridgeContract(chain)
+  public async getTimeSlot(time: TTime): Promise<BigNumber> {
+    const bridge = await this.getL1Bridge()
+    time = BigNumber.from(time.toString())
 
     return bridge.getTimeSlot(time)
   }
@@ -1159,12 +1155,10 @@ class HopBridge extends Base {
   /**
    * @readonly
    * @desc The challenge period.
-   * @param {Object} chain - Chain model.
    * @returns {Object} The challenge period for the bridge as BigNumber.
    */
-  public async challengePeriod(chain: TChain): Promise<BigNumber> {
-    chain = this.toChainModel(chain)
-    const bridge = await this.getBridgeContract(chain)
+  public async challengePeriod(): Promise<BigNumber> {
+    const bridge = await this.getL1Bridge()
 
     return bridge.challengePeriod()
   }
@@ -1172,12 +1166,10 @@ class HopBridge extends Base {
   /**
    * @readonly
    * @desc The size of the time slots.
-   * @param {Object} chain - Chain model.
    * @returns {Object} The size of the time slots for the bridge as BigNumber.
    */
-  public async timeSlotSize(chain: TChain): Promise<BigNumber> {
-    chain = this.toChainModel(chain)
-    const bridge = await this.getBridgeContract(chain)
+  public async timeSlotSize(): Promise<BigNumber> {
+    const bridge = await this.getL1Bridge()
 
     return bridge.TIME_SLOT_SIZE()
   }
@@ -1191,12 +1183,11 @@ class HopBridge extends Base {
    * @returns {Object} Amount bonded for the bonder for the given time slot as BigNumber.
    */
   public async timeSlotToAmountBonded(
-    chain: TChain,
-    timeSlot: number,
-    bonder: string
+    timeSlot: TTimeSlot,
+    bonder: string = this.getBonderAddress(this.tokenSymbol)
   ): Promise<BigNumber> {
-    chain = this.toChainModel(chain)
-    const bridge = await this.getBridgeContract(chain)
+    const bridge = await this.getL1Bridge()
+    timeSlot = BigNumber.from(timeSlot.toString())
 
     return bridge.timeSlotToAmountBonded(timeSlot, bonder)
   }

@@ -29,6 +29,9 @@ const Stats: FC = () => {
         <BonderStats />
       </div>
       <div className={styles.stats}>
+        <BalanceStats />
+      </div>
+      <div className={styles.stats}>
         <DebitWindowStats />
       </div>
     </Box>

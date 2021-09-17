@@ -43,7 +43,7 @@ const BalanceStats: FC = () => {
     <Box display="flex" flexDirection="column" alignItems="center">
       <Box display="flex" alignItems="center">
         <Typography variant="h4" className={styles.title}>
-          Balances
+          Native Token Balances
         </Typography>
       </Box>
       <Box display="flex" alignItems="center" className={styles.box}>
@@ -52,6 +52,8 @@ const BalanceStats: FC = () => {
             <Table className={styles.table}>
               <TableHead>
                 <TableRow>
+                  <th>Network</th>
+                  <th>Name</th>
                   <th>Address</th>
                   <th>Balance</th>
                 </TableRow>
@@ -63,7 +65,7 @@ const BalanceStats: FC = () => {
                     .map((x, i) => {
                       return (
                           <TableRow key={i}>
-                            <TableCell colSpan={9}>
+                            <TableCell colSpan={4}>
                               <Skeleton animation="wave" width={'100%'} />
                             </TableCell>
                           </TableRow>
@@ -73,18 +75,10 @@ const BalanceStats: FC = () => {
                     return (
                         <TableRow key={item.id}>
                           <TableCell className={styles.cell}>
-                            <div className={styles.flex}>
-                              <img
-                                style={{
-                                  display: 'inline-block',
-                                  marginRight: '0.5em'
-                                }}
-                                src={item.network.imageUrl}
-                                alt=""
-                                width="16"
-                              />
-                              <span>{item.network.slug}.{item.token.symbol}</span>
-                            </div>
+                            {item.network}
+                          </TableCell>
+                          <TableCell className={styles.cell}>
+                            {item.name}
                           </TableCell>
                           <TableCell className={styles.cell}>
                             {item.address}

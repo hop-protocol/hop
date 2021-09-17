@@ -61,6 +61,13 @@ type BonderStats = {
   availableEth: number
 }
 
+type BalanceStats = {
+  network: string
+  name: string
+  address: string
+  balance: number
+}
+
 type DebitWindowStats = {
   token: Token
   amountBonded: number[]
@@ -263,6 +270,64 @@ const StatsContextProvider: FC = ({ children }) => {
       const results: any[] = await Promise.all(promises)
       setFetchingPendingAmounts(false)
       setPendingAmounts(results.filter(x => x))
+    }
+
+    update().catch(logger.error)
+  }, [])
+
+  async function fetchBalances (slug: string, name: string, address: string): Promise<BalanceStats | undefined> {
+    if (!slug) {
+      return
+    }
+    if (!name) {
+      return
+    }
+    if (!address) {
+      return
+    }
+
+    // The token doesn't matter as long as the bridge set exists
+    const arbitraryToken = 'USDC'
+    const bridge = sdk.bridge(arbitraryToken)
+    if (!bridge.isSupportedAsset(slug)) {
+      return
+    }
+
+    // The canonical token decimals is always 18
+    const decimals = 18
+    const balance = await bridge.getEthBalance(slug, address)
+    const formattedBalance: number = Number(formatUnits(balance, decimals))
+
+    return {
+      network: slug,
+      name,
+      address,
+      balance: formattedBalance
+    }
+  }
+
+  useEffect(() => {
+    const update = async () => {
+      if (!filteredNetworks) {
+        return
+      }
+      setFetchingBalances(true)
+      const addressDatas = [
+        ['ethereum', 'relayer', '0x2A6303e6b99d451Df3566068EBb110708335658f'],
+        ['arbitrum', 'USDC Alias', '0xBDaCAbf20ef2338D7F4A152aF43bedDC80c6BF3b'],
+        ['arbitrum', 'USDT Alias', '0x81B872dDc3413E3456E5A3b2c30cB749c9578e30'],
+        ['arbitrum', 'DAI Alias', '0x36b6a48c35e75bd2eff53d94f0bb60d5a00e47fb']
+      ]
+      const promises: Promise<any>[] = []
+      for (const addressData of addressDatas) {
+        const slug: string = addressData[0]
+        const name: string = addressData[1]
+        const address: string = addressData[2]
+        promises.push(fetchBalances(slug, name, address).catch(logger.error))
+      }
+      const results: any[] = await Promise.all(promises)
+      setFetchingBalances(false)
+      setBalances(results.filter(x => x))
     }
 
     update().catch(logger.error)

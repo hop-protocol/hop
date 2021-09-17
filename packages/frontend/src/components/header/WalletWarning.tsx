@@ -43,7 +43,7 @@ const WalletWarning: FC = () => {
       }
 
       if (walletName === 'WalletConnect') {
-        return 'Only send funds on supported networks by wallet or there may permanent be loss of funds.'
+        return 'Only send funds on networks supported by your wallet provider if it is a smart contract wallet or there may permanent be loss of funds.'
       }
 
       return ''

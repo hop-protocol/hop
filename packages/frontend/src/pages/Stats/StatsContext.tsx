@@ -21,7 +21,10 @@ type StatsContextProps = {
   fetchingBonderStats: boolean,
 
   pendingAmounts: any[],
-  fetchingPendingAmounts: boolean
+  fetchingPendingAmounts: boolean,
+
+  balances: any[],
+  fetchingBalances: boolean
 }
 
 const StatsContext = createContext<StatsContextProps>({
@@ -32,7 +35,10 @@ const StatsContext = createContext<StatsContextProps>({
   fetchingBonderStats: false,
 
   pendingAmounts: [],
-  fetchingPendingAmounts: false
+  fetchingPendingAmounts: false,
+
+  balances: [],
+  fetchingBalances: false
 })
 
 type BonderStats = {
@@ -57,6 +63,8 @@ const StatsContextProvider: FC = ({ children }) => {
   const [fetchingBonderStats, setFetchingBonderStats] = useState<boolean>(false)
   const [pendingAmounts, setPendingAmounts] = useState<any[]>([])
   const [fetchingPendingAmounts, setFetchingPendingAmounts] = useState<boolean>(false)
+  const [balances, setBalances] = useState<any[]>([])
+  const [fetchingBalances, setFetchingBalances] = useState<boolean>(false)
   const filteredNetworks = networks?.filter(token => !token.isLayer1)
 
   async function fetchStats (selectedNetwork: Network, selectedToken: Token) {
@@ -246,6 +254,52 @@ const StatsContextProvider: FC = ({ children }) => {
     update().catch(logger.error)
   }, [])
 
+  async function fetchBalances (selectedNetwork: Network) {
+    if (!selectedNetwork) {
+      return
+    }
+
+    // The token doesn't matter
+    const arbitraryToken = 'USDC'
+    const bridge = sdk.bridge(arbitraryToken)
+    if (!bridge.isSupportedAsset(selectedNetwork.slug)) {
+      return
+    }
+
+    // The canonical token decimals is always 18
+    const decimals = 18
+    const addresses = [
+      '0xfEfeC7D3EB14a004029D278393e6AB8B46fb4FCa'
+    ]
+    const formattedBalances: Number[] = []
+    for (const address of addresses) {
+      const balance = await bridge.getEthBalance(selectedNetwork.slug, address)
+      formattedBalances.push(Number(formatUnits(balance, decimals)))
+    }
+
+    return {
+      balances: formattedBalances
+    }
+  }
+
+  useEffect(() => {
+    const update = async () => {
+      if (!filteredNetworks) {
+        return
+      }
+      setFetchingBalances(true)
+      const promises: Promise<any>[] = []
+      for (const selectedNetwork of filteredNetworks) {
+        promises.push(fetchBalances(selectedNetwork).catch(logger.error))
+      }
+      const results: any[] = await Promise.all(promises)
+      setFetchingBalances(false)
+      setBalances(results.filter(x => x))
+    }
+
+    update().catch(logger.error)
+  }, [balances])
+
   return (
     <StatsContext.Provider
       value={{
@@ -257,6 +311,9 @@ const StatsContextProvider: FC = ({ children }) => {
 
         pendingAmounts,
         fetchingPendingAmounts,
+
+        balances,
+        fetchingBalances,
       }}
     >
       {children}

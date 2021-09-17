@@ -5,6 +5,7 @@ import Box from '@material-ui/core/Box'
 import PoolStats from './PoolStats'
 import BonderStats from './BonderStats'
 import PendingAmountStats from './PendingAmountStats'
+import BalanceStats from './BalanceStats'
 
 const useStyles = makeStyles(theme => ({
   stats: {
@@ -25,6 +26,9 @@ const Stats: FC = () => {
       </div>
       <div className={styles.stats}>
         <BonderStats />
+      </div>
+      <div className={styles.stats}>
+        <BalanceStats />
       </div>
     </Box>
   )

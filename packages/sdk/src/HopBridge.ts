@@ -660,11 +660,14 @@ class HopBridge extends Base {
     )
     let fee = txFeeEth.mul(rateBN).div(oneEth)
 
+    let multiplier = BigNumber.from(0)
     if (destinationChain.equals(Chain.Ethereum)) {
-      let multiplier = ethers.utils.parseEther(GasPriceMultiplier)
-      if (['optimism', 'arbitrum'].includes(sourceChain.slug)) {
-        multiplier = multiplier.mul(2)
-      }
+      multiplier = ethers.utils.parseEther(GasPriceMultiplier)
+    } else if (['optimism', 'arbitrum'].includes(destinationChain.slug)) {
+      multiplier = ethers.utils.parseEther(GasPriceMultiplier).mul(2)
+    }
+
+    if (multiplier.gt(0)) {
       fee = fee.mul(multiplier).div(oneEth)
     }
 

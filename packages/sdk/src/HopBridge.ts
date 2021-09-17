@@ -1192,7 +1192,7 @@ class HopBridge extends Base {
    */
   public async timeSlotToAmountBonded(
     chain: TChain,
-    timeSlot: BigNumberish,
+    timeSlot: number,
     bonder: string
   ): Promise<BigNumber> {
     chain = this.toChainModel(chain)

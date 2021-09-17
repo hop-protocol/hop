@@ -346,7 +346,7 @@ const Pools: FC = () => {
         )}
         </Box>
       )}
-      <details className={styles.detailsDropdown}>
+      <details open className={styles.detailsDropdown}>
         <summary className={styles.detailsDropdownSummary}>
             <Typography
               variant="subtitle1"

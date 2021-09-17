@@ -467,3 +467,28 @@ describe('custom chain providers', () => {
     expect((xDaiProvider as any).connection.url).toBe(newxDaiUrl)
   })
 })
+
+describe('getSendData', () => {
+  it('available liquidity', async () => {
+    const sdk = new Hop('mainnet')
+    const bridge = sdk.bridge('USDC')
+    const availableLiquidityBn = await bridge.getAvailableLiquidity(
+      Chain.Arbitrum,
+      Chain.Ethereum
+    )
+    const sendData = await bridge.getSendData(
+      '1000000000',
+      Chain.Arbitrum,
+      Chain.Ethereum
+    )
+    const requiredLiquidity = Number(
+      formatUnits(sendData.requiredLiquidity.toString(), 6)
+    )
+    const availableLiquidity = Number(
+      formatUnits(availableLiquidityBn.toString(), 6)
+    )
+    expect(availableLiquidity).toBeGreaterThan(0)
+    expect(requiredLiquidity).toBeGreaterThan(0)
+    expect(availableLiquidity).toBeGreaterThan(requiredLiquidity)
+  })
+})

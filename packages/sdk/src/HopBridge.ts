@@ -11,7 +11,7 @@ import {
   l2AmmWrapperAbi,
   wethAbi
 } from '@hop-protocol/core/abi'
-import { TChain, TToken, TAmount, TProvider } from './types'
+import { TChain, TToken, TAmount, TProvider, TTime, TTimeSlot } from './types'
 import Base, { ChainProviders } from './Base'
 import AMM from './AMM'
 import _version from './version'
@@ -1154,6 +1154,59 @@ class HopBridge extends Base {
    */
   public get defaultDeadlineSeconds () {
     return (Date.now() / 1000 + this.defaultDeadlineMinutes * 60) | 0
+  }
+
+  /**
+   * @readonly
+   * @desc The time slot for the current time.
+   * @param {Object} time - Unix timestamp (in seconds) to get the time slot.
+   * @returns {Object} Time slot for the given time as BigNumber.
+   */
+  public async getTimeSlot(time: TTime): Promise<BigNumber> {
+    const bridge = await this.getL1Bridge()
+    time = BigNumber.from(time.toString())
+
+    return bridge.getTimeSlot(time)
+  }
+
+  /**
+   * @readonly
+   * @desc The challenge period.
+   * @returns {Object} The challenge period for the bridge as BigNumber.
+   */
+  public async challengePeriod(): Promise<BigNumber> {
+    const bridge = await this.getL1Bridge()
+
+    return bridge.challengePeriod()
+  }
+
+  /**
+   * @readonly
+   * @desc The size of the time slots.
+   * @returns {Object} The size of the time slots for the bridge as BigNumber.
+   */
+  public async timeSlotSize(): Promise<BigNumber> {
+    const bridge = await this.getL1Bridge()
+
+    return bridge.TIME_SLOT_SIZE()
+  }
+
+  /**
+   * @readonly
+   * @desc The amount bonded for a time slot for a bonder.
+   * @param {Object} chain - Chain model.
+   * @param {Number} timeSlot - Time slot to get.
+   * @param {String} bonder - Address of the bonder to check.
+   * @returns {Object} Amount bonded for the bonder for the given time slot as BigNumber.
+   */
+  public async timeSlotToAmountBonded(
+    timeSlot: TTimeSlot,
+    bonder: string = this.getBonderAddress(this.tokenSymbol)
+  ): Promise<BigNumber> {
+    const bridge = await this.getL1Bridge()
+    timeSlot = BigNumber.from(timeSlot.toString())
+
+    return bridge.timeSlotToAmountBonded(timeSlot, bonder)
   }
 
   private async getTokenIndexes (path: string[], chain: TChain) {

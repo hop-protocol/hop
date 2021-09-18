@@ -10,6 +10,7 @@ import TxPill from 'src/components/header/TxPill'
 import HopLogoFullColor from 'src/assets/logos/hop-logo-full-color.svg'
 import { isMainnet } from 'src/config'
 import Settings from 'src/pages/Send/Settings'
+import WalletWarning from './WalletWarning'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -43,6 +44,7 @@ const Header: FC = () => {
   const { l1Network } = useApp()
 
   return (
+    <>
     <Box className={styles.root} display="flex" alignItems="center">
       <Box
         display="flex"
@@ -78,6 +80,8 @@ const Header: FC = () => {
         )}
       </Box>
     </Box>
+    <WalletWarning />
+    </>
   )
 }
 

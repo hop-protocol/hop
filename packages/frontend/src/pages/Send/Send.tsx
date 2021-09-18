@@ -962,7 +962,7 @@ const Send: FC = () => {
           {
             totalBonderFee?.gt(0) &&
             <DetailRow
-              title={'Transaction Fee'}
+              title={'Fees'}
               tooltip={
                 <FeeDetails
                   bonderFee={bonderFeeDisplay}

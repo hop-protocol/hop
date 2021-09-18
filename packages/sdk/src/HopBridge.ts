@@ -11,7 +11,7 @@ import {
   l2AmmWrapperAbi,
   wethAbi
 } from '@hop-protocol/core/abi'
-import { TChain, TToken, TAmount, TProvider } from './types'
+import { TChain, TToken, TAmount, TProvider, TTime, TTimeSlot } from './types'
 import Base, { ChainProviders } from './Base'
 import AMM from './AMM'
 import _version from './version'
@@ -20,10 +20,12 @@ import {
   BondTransferGasLimit,
   LpFeeBps,
   GasPriceMultiplier,
+  ORUGasPriceMultiplier,
   L2ToL2BonderFeeBps,
-  L2ToL1BonderFeeBps
+  L2ToL1BonderFeeBps,
+  PendingAmountBuffer
 } from './constants'
-import { metadata } from './config'
+import { metadata, bondableChains } from './config'
 import { PriceFeed } from './priceFeed'
 import Token from './Token'
 
@@ -457,39 +459,11 @@ class HopBridge extends Base {
       estimatedReceived = BigNumber.from(0)
     }
 
-    let requiredLiquidity = hTokenAmount
-    const bondableChains = ['optimism', 'arbitrum']
-    const isBondableChain = bondableChains.includes(sourceChain.slug)
-    const includePendingAmount =
-      destinationChain.equals(Chain.Ethereum) && isBondableChain
-
-    if (includePendingAmount) {
-      const bridgeContract = await this.getBridgeContract(sourceChain)
-      const pendingAmount = await bridgeContract.pendingAmountForChainId(
-        destinationChain.chainId
-      )
-      let pendingAmounts = BigNumber.from(0)
-      for (const chain of bondableChains) {
-        const exists = this.getL2BridgeAddress(this.tokenSymbol, chain)
-        if (!exists) {
-          continue
-        }
-        const bridge = await this.getBridgeContract(chain)
-        const pendingAmount = await bridge.pendingAmountForChainId(
-          destinationChain.chainId
-        )
-        pendingAmounts = pendingAmounts.add(pendingAmount)
-      }
-      requiredLiquidity = requiredLiquidity
-        .add(pendingAmounts)
-        .add(hTokenAmount) // account for transfer root bonds
-    }
-
     return {
       amountOut,
       rate,
       priceImpact,
-      requiredLiquidity,
+      requiredLiquidity: hTokenAmount,
       bonderFee,
       lpFees,
       destinationTxFee,
@@ -660,8 +634,14 @@ class HopBridge extends Base {
     )
     let fee = txFeeEth.mul(rateBN).div(oneEth)
 
+    let multiplier = BigNumber.from(0)
     if (destinationChain.equals(Chain.Ethereum)) {
-      const multiplier = ethers.utils.parseEther(GasPriceMultiplier)
+      multiplier = ethers.utils.parseEther(GasPriceMultiplier)
+    } else if (bondableChains.includes(destinationChain.slug)) {
+      multiplier = ethers.utils.parseEther(ORUGasPriceMultiplier)
+    }
+
+    if (multiplier.gt(0)) {
       fee = fee.mul(multiplier).div(oneEth)
     }
 
@@ -801,7 +781,44 @@ class HopBridge extends Base {
       this.getTotalDebit(destinationChain, bonder)
     ])
 
-    const availableLiquidity = credit.sub(debit)
+    let availableLiquidity = credit.sub(debit)
+
+    const isBondableChain = bondableChains.includes(sourceChain.slug)
+    const includePendingAmount =
+      isBondableChain && destinationChain.equals(Chain.Ethereum)
+
+    if (includePendingAmount) {
+      const bridgeContract = await this.getBridgeContract(sourceChain)
+      let pendingAmounts = BigNumber.from(0)
+      for (const chain of bondableChains) {
+        const exists = this.getL2BridgeAddress(this.tokenSymbol, chain)
+        if (!exists) {
+          continue
+        }
+        const bridge = await this.getBridgeContract(chain)
+        const pendingAmount = await bridge.pendingAmountForChainId(
+          destinationChain.chainId
+        )
+        pendingAmounts = pendingAmounts.add(pendingAmount)
+      }
+
+      const token = this.toTokenModel(this.tokenSymbol)
+      const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
+        token.canonicalSymbol
+      )
+      const tokenPriceBn = parseUnits(tokenPrice.toString(), token.decimals)
+      const bufferAmountBn = parseUnits(PendingAmountBuffer, token.decimals)
+      const precision = parseUnits('1', token.decimals)
+      const bufferAmountTokensBn = bufferAmountBn
+        .div(tokenPriceBn)
+        .mul(precision)
+
+      const liquidityMinusAmounts = availableLiquidity.sub(pendingAmounts)
+      availableLiquidity = liquidityMinusAmounts
+        .div(2)
+        .sub(bufferAmountTokensBn) // account for transfer root bonds
+    }
+
     if (availableLiquidity.lt(0)) {
       return BigNumber.from(0)
     }
@@ -1137,6 +1154,59 @@ class HopBridge extends Base {
    */
   public get defaultDeadlineSeconds () {
     return (Date.now() / 1000 + this.defaultDeadlineMinutes * 60) | 0
+  }
+
+  /**
+   * @readonly
+   * @desc The time slot for the current time.
+   * @param {Object} time - Unix timestamp (in seconds) to get the time slot.
+   * @returns {Object} Time slot for the given time as BigNumber.
+   */
+  public async getTimeSlot (time: TTime): Promise<BigNumber> {
+    const bridge = await this.getL1Bridge()
+    time = BigNumber.from(time.toString())
+
+    return bridge.getTimeSlot(time)
+  }
+
+  /**
+   * @readonly
+   * @desc The challenge period.
+   * @returns {Object} The challenge period for the bridge as BigNumber.
+   */
+  public async challengePeriod (): Promise<BigNumber> {
+    const bridge = await this.getL1Bridge()
+
+    return bridge.challengePeriod()
+  }
+
+  /**
+   * @readonly
+   * @desc The size of the time slots.
+   * @returns {Object} The size of the time slots for the bridge as BigNumber.
+   */
+  public async timeSlotSize (): Promise<BigNumber> {
+    const bridge = await this.getL1Bridge()
+
+    return bridge.TIME_SLOT_SIZE()
+  }
+
+  /**
+   * @readonly
+   * @desc The amount bonded for a time slot for a bonder.
+   * @param {Object} chain - Chain model.
+   * @param {Number} timeSlot - Time slot to get.
+   * @param {String} bonder - Address of the bonder to check.
+   * @returns {Object} Amount bonded for the bonder for the given time slot as BigNumber.
+   */
+  public async timeSlotToAmountBonded (
+    timeSlot: TTimeSlot,
+    bonder: string = this.getBonderAddress(this.tokenSymbol)
+  ): Promise<BigNumber> {
+    const bridge = await this.getL1Bridge()
+    timeSlot = BigNumber.from(timeSlot.toString())
+
+    return bridge.timeSlotToAmountBonded(timeSlot, bonder)
   }
 
   private async getTokenIndexes (path: string[], chain: TChain) {

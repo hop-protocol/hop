@@ -9,6 +9,7 @@ import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
+import { getArbitrumAlias } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
 import * as config from 'src/config'
@@ -314,10 +315,20 @@ const StatsContextProvider: FC = ({ children }) => {
       setFetchingBalances(true)
       const addressDatas = [
         ['ethereum', 'relayer', '0x2A6303e6b99d451Df3566068EBb110708335658f'],
-        ['arbitrum', 'USDC Alias', '0xBDaCAbf20ef2338D7F4A152aF43bedDC80c6BF3b'],
-        ['arbitrum', 'USDT Alias', '0x81B872dDc3413E3456E5A3b2c30cB749c9578e30'],
-        ['arbitrum', 'DAI Alias', '0x36b6a48c35e75bd2eff53d94f0bb60d5a00e47fb']
       ]
+
+      const arbitrumSlug = 'arbitrum'
+      for (const token of tokens) {
+        const tokenConfig = config.addresses.tokens[token.symbol][arbitrumSlug]
+        if (!tokenConfig) {
+          continue
+        }
+        const messengerWrapperAddress: string = tokenConfig.l1MessengerWrapper
+        const aliasAddress: string = getArbitrumAlias(messengerWrapperAddress)
+        addressDatas.push([
+          arbitrumSlug, `${token.symbol} Alias`, aliasAddress
+        ])
+      }
       const promises: Promise<any>[] = []
       for (const addressData of addressDatas) {
         const slug: string = addressData[0]

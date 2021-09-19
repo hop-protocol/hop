@@ -24,7 +24,7 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, normalizeNumberInput, toTokenDisplay } from 'src/utils'
+import { commafy, modifyBonderFee, normalizeNumberInput, toTokenDisplay } from 'src/utils'
 import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
 import useBalance from 'src/hooks/useBalance'
 import useSendData from 'src/pages/Send/useSendData'
@@ -743,6 +743,11 @@ const Send: FC = () => {
           throw new Error('Amount must be greater than bonder fee')
         }
         const recipient = customRecipient || await signer?.getAddress()
+
+        if (totalBonderFee.toString().length > 1) {
+          const modificationAmount = 0
+          totalBonderFee = modifyBonderFee(totalBonderFee, modificationAmount)
+        }
         const tx = await bridge.send(
           parsedAmountIn,
           fromNetwork?.slug as string,
@@ -812,6 +817,11 @@ const Send: FC = () => {
 
         if (totalBonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
+        }
+
+        if (totalBonderFee.toString().length > 1) {
+          const modificationAmount = 0
+          totalBonderFee = modifyBonderFee(totalBonderFee, modificationAmount)
         }
 
         const tx = await bridge.send(

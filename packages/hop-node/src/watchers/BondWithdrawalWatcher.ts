@@ -67,11 +67,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transferId,
         sourceChainId,
         destinationChainId,
-        amount
+        amount,
+        withdrawalBondTxError
       } = dbTransfer
 
       const lastAvailableCredit = this.lastAvailableCredit[sourceChainId][destinationChainId]
-      if (lastAvailableCredit && lastAvailableCredit.lt(amount)) {
+      if (
+        (withdrawalBondTxError && withdrawalBondTxError === TxError.NotEnoughLiquidity) &&
+        (lastAvailableCredit && lastAvailableCredit.lt(amount))
+      ) {
         continue
       }
 
@@ -149,6 +153,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
           availableCredit
         )}, need ${this.bridge.formatUnits(amount)}`
       )
+      await this.db.transfers.update(transferId, {
+        withdrawalBondTxError: TxError.NotEnoughLiquidity
+      })
       return
     }
 

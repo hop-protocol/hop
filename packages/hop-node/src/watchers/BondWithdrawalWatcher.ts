@@ -27,6 +27,7 @@ class BondError extends Error {}
 
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
+  lastAvailableCredit: { [sourceChainId: string]: { [destinationChainId: string]: BigNumber }} = {}
 
   constructor (config: Config) {
     super({
@@ -61,7 +62,19 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     const promises: Promise<any>[] = []
-    for (const { transferId } of dbTransfers) {
+    for (const dbTransfer of dbTransfers) {
+      const {
+        transferId,
+        sourceChainId,
+        destinationChainId,
+        amount
+      } = dbTransfer
+
+      const lastAvailableCredit = this.lastAvailableCredit[sourceChainId][destinationChainId]
+      if (lastAvailableCredit && lastAvailableCredit.lt(amount)) {
+        continue
+      }
+
       promises.push(this.checkTransferId(transferId).catch(err => {
         this.logger.error(`checkTransferId error: ${err.message}`)
       }))
@@ -129,22 +142,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
       availableCredit = availableCredit.sub(pendingAmounts).sub(amount)
     }
+    this.lastAvailableCredit[sourceChainId][destinationChainId] = availableCredit
     if (availableCredit.lt(amount)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
           availableCredit
         )}, need ${this.bridge.formatUnits(amount)}`
       )
-      let { withdrawalBondBackoffIndex } = await this.db.transfers.getByTransferId(transferId)
-      if (!withdrawalBondBackoffIndex) {
-        withdrawalBondBackoffIndex = 0
-      }
-      withdrawalBondBackoffIndex++
-      await this.db.transfers.update(transferId, {
-        bondWithdrawalAttemptedAt: Date.now(),
-        withdrawalBondTxError: TxError.NotEnoughLiquidity,
-        withdrawalBondBackoffIndex
-      })
       return
     }
 

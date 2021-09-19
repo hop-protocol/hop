@@ -306,18 +306,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return this.parseGwei(this.maxGasPriceGwei)
   }
 
-  getMaxGasPriceWithBuffer () {
-    return getBumpedBN(this.getMaxGasPrice(), this.minMultiplier)
-  }
-
-  getLastGasPriceWithBuffer () {
-    if (!this.gasPrice) {
-      return BigNumber.from(0)
-    }
-
-    return getBumpedBN(this.gasPrice, this.minMultiplier)
-  }
-
   getMinPriorityFeePerGas () {
     return this.parseGwei(this.minPriorityFeePerGas)
   }
@@ -326,25 +314,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return this.parseGwei(this.priorityFeePerGasCap)
   }
 
-  getMaxPriorityFeeCapWithBuffer () {
-    return getBumpedBN(this.getMaxPriorityFeePerGasCap(), this.minMultiplier)
-  }
-
-  getLastMaxPriorityFeeWithBuffer () {
-    if (!this.maxPriorityFeePerGas) {
-      return BigNumber.from(0)
-    }
-
-    return getBumpedBN(this.maxPriorityFeePerGas, this.minMultiplier)
-  }
-
   async getBumpedGasPrice (multiplier : number = this.gasPriceMultiplier): Promise<BigNumber> {
-    let maxGasPrice = this.getMaxGasPrice()
-    const maxGasPriceWithBuffer = this.getMaxGasPriceWithBuffer()
-    const lastGasPriceWithBuffer = this.getLastGasPriceWithBuffer()
-    if (lastGasPriceWithBuffer.gt(0) && lastGasPriceWithBuffer.gt(maxGasPrice) && lastGasPriceWithBuffer.lt(maxGasPriceWithBuffer)) {
-      maxGasPrice = lastGasPriceWithBuffer
-    }
+    const maxGasPrice = this.getMaxGasPrice()
     const marketGasPrice = await this.getMarketGasPrice()
     if (!this.isChainGasFeeBumpable()) {
       return BNMin(marketGasPrice, maxGasPrice)
@@ -358,12 +329,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getBumpedMaxPriorityFeePerGas (multiplier : number = this.gasPriceMultiplier): Promise<BigNumber> {
-    let priorityFeePerGasCap = this.getMaxPriorityFeePerGasCap()
-    const priorityFeeCapWithBuffer = this.getMaxPriorityFeeCapWithBuffer()
-    const lastMaxPriorityFeeWithBuffer = this.getLastMaxPriorityFeeWithBuffer()
-    if (lastMaxPriorityFeeWithBuffer.gt(0) && lastMaxPriorityFeeWithBuffer.gt(priorityFeePerGasCap) && lastMaxPriorityFeeWithBuffer.lt(priorityFeeCapWithBuffer)) {
-      priorityFeePerGasCap = lastMaxPriorityFeeWithBuffer
-    }
+    const priorityFeePerGasCap = this.getMaxPriorityFeePerGasCap()
     const marketMaxPriorityFeePerGas = await this.getMarketMaxPriorityFeePerGas()
     if (!this.isChainGasFeeBumpable()) {
       return BNMin(marketMaxPriorityFeePerGas, priorityFeePerGasCap)

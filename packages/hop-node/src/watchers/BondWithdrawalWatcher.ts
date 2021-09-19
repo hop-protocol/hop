@@ -76,8 +76,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const destinationChain = this.chainIdToSlug(destinationChainId)
       const lastAvailableCredit = this.lastAvailableCredit?.[sourceChain]?.[destinationChain]
       if (
-        (withdrawalBondTxError === TxError.NotEnoughLiquidity) &&
-        (lastAvailableCredit && lastAvailableCredit.lt(amount))
+        lastAvailableCredit &&
+        lastAvailableCredit.lt(amount) &&
+        withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
         continue
       }

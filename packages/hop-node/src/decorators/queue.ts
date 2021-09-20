@@ -3,13 +3,14 @@ import promiseTimeout from 'src/utils/promiseTimeout'
 import wait from 'src/utils/wait'
 import { Mutex } from 'async-mutex'
 import { Notifier } from 'src/notifier'
+import { hostname } from 'src/config'
 
 const mutexes: { [key: string]: Mutex } = {}
 const MAX_RETRIES = 1
 const TIMEOUT_MS = 300 * 1000
 
 const logger = new Logger('queue')
-const notifier = new Notifier('queue')
+const notifier = new Notifier(`queue, host: ${hostname}`)
 
 export default function queue (
   target: Object,

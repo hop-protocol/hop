@@ -11,6 +11,7 @@ class GasPriceWatcher {
   chainSlug: string
   provider: providers.Provider
   db: Db
+  intervalMs : number = 30 * 1000
 
   constructor (config: Config) {
     this.chainSlug = config.chainSlug
@@ -31,7 +32,7 @@ class GasPriceWatcher {
         gasPrice,
         timestamp
       })
-      await wait(2 * 60 * 1000)
+      await wait(this.intervalMs)
     }
   }
 }

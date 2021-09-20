@@ -225,6 +225,7 @@ const tokenLogosMap = {
   USDC: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/usdc.svg',
   USDT: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/usdt.svg',
   DAI: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/dai.svg',
+  MATIC: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/matic.svg',
   ETH: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/ethereum.svg'
 }
 

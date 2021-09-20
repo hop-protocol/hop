@@ -26,6 +26,7 @@ export type Transfer = {
   bonderFee?: BigNumber
   transferNonce?: string
   deadline?: number
+  transferSentTimestamp?: number
   transferSentTxHash?: string
   transferSentBlockNumber?: number
   transferSentIndex?: number

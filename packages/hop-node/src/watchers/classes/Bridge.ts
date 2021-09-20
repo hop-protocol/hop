@@ -456,7 +456,8 @@ export default class Bridge extends ContractBase {
     recipient: string,
     amount: BigNumber,
     transferNonce: string,
-    bonderFee: BigNumber
+    bonderFee: BigNumber,
+    gasPrice?: BigNumber
   ): Promise<providers.TransactionResponse> {
     const txOverrides = await this.txOverrides()
     const payload = [
@@ -468,7 +469,7 @@ export default class Bridge extends ContractBase {
     ]
 
     const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
-    await checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol)
+    await checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice)
 
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
 
@@ -700,7 +701,7 @@ export async function compareBonderDestinationFeeCost (
   gasLimit: BigNumber,
   chain: string,
   tokenSymbol: string,
-  gasPrice?: BigNumber // used for testing
+  gasPrice?: BigNumber
 ) {
   const ethDecimals = 18
   const gweiDecimals = 9

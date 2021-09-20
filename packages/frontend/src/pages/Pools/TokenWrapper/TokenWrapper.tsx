@@ -81,7 +81,7 @@ const TokenWrapper: FC = () => {
         titleIconUrl={canonicalToken?.image}
         title={'Amount'}
         balance={wrappedTokenBalance}
-        balanceLabel={`W${wrappedToken?.symbol}:`}
+        balanceLabel={`${wrappedToken?.symbol}:`}
         loadingBalance={loadingBalance}
         hideSymbol
         decimalPlaces={2}

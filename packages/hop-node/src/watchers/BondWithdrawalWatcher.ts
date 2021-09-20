@@ -27,7 +27,7 @@ class BondError extends Error {}
 
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
-  lastAvailableCredit: { [sourceChain: string]: { [destinationChain: string]: BigNumber }} = {}
+  lastAvailableCredit: { [destinationChain: string]: BigNumber } = {}
 
   constructor (config: Config) {
     super({
@@ -42,8 +42,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       dryMode: config.dryMode,
       stateUpdateAddress: config.stateUpdateAddress
     })
-
-    this.lastAvailableCredit[this.bridge.chainSlug] = {}
   }
 
   async pollHandler () {
@@ -72,12 +70,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
         withdrawalBondTxError
       } = dbTransfer
 
-      const sourceChain = this.bridge.chainSlug
       const destinationChain = this.chainIdToSlug(destinationChainId)
-      const lastAvailableCredit = this.lastAvailableCredit?.[sourceChain]?.[destinationChain]
+      const lastAvailableCredit = this.lastAvailableCredit?.[destinationChain]
       if (
-        lastAvailableCredit &&
-        lastAvailableCredit.lt(amount) &&
+        lastAvailableCredit?.lt(amount) &&
         withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
         continue
@@ -151,7 +147,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       availableCredit = availableCredit.sub(pendingAmounts).sub(amount)
     }
 
-    this.lastAvailableCredit[sourceChain][destinationChain] = availableCredit
+    this.lastAvailableCredit[destinationChain] = availableCredit
     if (availableCredit.lt(amount)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(

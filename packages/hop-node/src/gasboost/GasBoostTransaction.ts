@@ -378,7 +378,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const priorityFeePerGasCap = this.getPriorityFeePerGasCap()
     return {
       maxFeePerGas: gasFeeData.maxFeePerGas,
-      maxPriorityFeePerGas: BNMin(gasFeeData.gasPrice, priorityFeePerGasCap)
+      maxPriorityFeePerGas: BNMin(gasFeeData.maxPriorityFeePerGas, priorityFeePerGasCap)
     }
   }
 

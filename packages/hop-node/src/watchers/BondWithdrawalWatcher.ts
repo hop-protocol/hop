@@ -27,6 +27,7 @@ class BondError extends Error {}
 
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
+  lastAvailableCredit: { [destinationChain: string]: BigNumber } = {}
 
   constructor (config: Config) {
     super({
@@ -61,7 +62,23 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     const promises: Promise<any>[] = []
-    for (const { transferId } of dbTransfers) {
+    for (const dbTransfer of dbTransfers) {
+      const {
+        transferId,
+        destinationChainId,
+        amount,
+        withdrawalBondTxError
+      } = dbTransfer
+
+      const destinationChain = this.chainIdToSlug(destinationChainId)
+      const lastAvailableCredit = this.lastAvailableCredit?.[destinationChain]
+      if (
+        lastAvailableCredit?.lt(amount) &&
+        withdrawalBondTxError === TxError.NotEnoughLiquidity
+      ) {
+        continue
+      }
+
       promises.push(this.checkTransferId(transferId).catch(err => {
         this.logger.error(`checkTransferId error: ${err.message}`)
       }))
@@ -129,21 +146,16 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
       availableCredit = availableCredit.sub(pendingAmounts).sub(amount)
     }
+
+    this.lastAvailableCredit[destinationChain] = availableCredit
     if (availableCredit.lt(amount)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
           availableCredit
         )}, need ${this.bridge.formatUnits(amount)}`
       )
-      let { withdrawalBondBackoffIndex } = await this.db.transfers.getByTransferId(transferId)
-      if (!withdrawalBondBackoffIndex) {
-        withdrawalBondBackoffIndex = 0
-      }
-      withdrawalBondBackoffIndex++
       await this.db.transfers.update(transferId, {
-        bondWithdrawalAttemptedAt: Date.now(),
-        withdrawalBondTxError: TxError.NotEnoughLiquidity,
-        withdrawalBondBackoffIndex
+        withdrawalBondTxError: TxError.NotEnoughLiquidity
       })
       return
     }

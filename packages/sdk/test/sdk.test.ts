@@ -468,7 +468,7 @@ describe('custom chain providers', () => {
   })
 })
 
-describe('getSendData', () => {
+describe.skip('getSendData', () => {
   it('available liquidity', async () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')

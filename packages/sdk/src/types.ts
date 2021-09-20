@@ -10,5 +10,11 @@ export type TToken = Token | string
 /** Amount-ish type alias */
 export type TAmount = BigNumberish
 
+/** Time-ish type alias */
+export type TTime = BigNumberish
+
+/** TimeSlot-ish type alias */
+export type TTimeSlot = BigNumberish
+
 /** Signer-ish type */
 export type TProvider = Signer | providers.Provider

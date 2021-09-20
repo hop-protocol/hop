@@ -15,7 +15,7 @@ import { EventEmitter } from 'events'
 import { Notifier } from 'src/notifier'
 import { boundClass } from 'autobind-decorator'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { hostname } from 'src/config'
+import { gasBoostErrorSlackChannel, gasBoostWarnSlackChannel, hostname } from 'src/config'
 import { v4 as uuidv4 } from 'uuid'
 
 export enum State {
@@ -496,7 +496,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (isMaxReached) {
       if (!this.maxGasPriceReached) {
         const warnMsg = `max gas price reached. boostedGasFee: (${this.getGasFeeDataAsString(gasFeeData)}, maxGasFee: (gasPrice: ${this.maxGasPriceGwei}, maxPriorityFeePerGas: ${this.priorityFeePerGasCap}). cannot boost`
-        this.notifier.warn(warnMsg)
+        this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
         this.logger.warn(warnMsg)
         this.emit(State.MaxGasPriceReached, gasFeeData.gasPrice, this.boostIndex)
         this.maxGasPriceReached = true
@@ -568,14 +568,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const formattedEthBalance = formatUnits(ethBalance, 18)
     if (ethBalance.lt(gasCost)) {
       const errMsg = `insufficient ETH funds to cover gas cost. Need ${formattedGasCost}, have ${formattedEthBalance}`
-      this.notifier.error(errMsg)
+      this.notifier.error(errMsg, { channel: gasBoostErrorSlackChannel })
       this.logger.error(errMsg)
       throw new Error(errMsg)
     }
     if (ethBalance.lt(warnEthBalance)) {
       const warnMsg = `ETH balance is running low. Have ${formattedEthBalance}`
       this.logger.warn(warnMsg)
-      this.notifier.warn(warnMsg)
+      this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
     }
   }
 

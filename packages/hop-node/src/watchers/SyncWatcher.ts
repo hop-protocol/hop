@@ -488,9 +488,6 @@ class SyncWatcher extends BaseWatcher {
         // transferEvents need to be sorted from [newest...oldest] in order to maintain the ordering
         transferEvents = transferEvents.reverse()
         for (const event of transferEvents) {
-          const transaction = await sourceBridge.getTransaction(
-            event.transactionHash
-          )
           const eventDestinationChainId = Number(event.args.chainId.toString())
           const isSameChainId = eventDestinationChainId === destinationChainId
           if (!isSameChainId) {

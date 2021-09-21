@@ -7,6 +7,7 @@ import {
   networkSlugToId,
   networkIdToSlug,
   getRpcUrl,
+  getPublicRpcUrl,
   getBaseExplorerUrl
 } from 'src/utils'
 import {
@@ -313,7 +314,7 @@ const Web3ContextProvider: FC = ({ children }) => {
             const rpcObj = {
               chainId: `0x${Number(networkId).toString(16)}`,
               chainName: networkNames[networkId.toString()],
-              rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
+              rpcUrls: [getPublicRpcUrl(networkIdToSlug(networkId.toString()))],
               blockExplorerUrls: [
                 getBaseExplorerUrl(networkIdToSlug(networkId.toString()))
               ],

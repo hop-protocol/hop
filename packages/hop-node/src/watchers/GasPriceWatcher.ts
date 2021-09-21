@@ -27,7 +27,7 @@ class GasPriceWatcher {
     while (true) {
       const gasPrice = await this.provider.getGasPrice()
       const timestamp = Math.floor(Date.now() / 1000)
-      await this.db.update(this.chainSlug, {
+      await this.db.addGasPrice({
         chain: this.chainSlug,
         gasPrice,
         timestamp

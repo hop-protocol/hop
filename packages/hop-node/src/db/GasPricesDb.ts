@@ -5,14 +5,19 @@ import { DateTime } from 'luxon'
 import { normalizeDbItem } from './utils'
 
 export type GasPrice = {
-  chain?: string
-  timestamp?: number // in seconds
-  gasPrice?: BigNumber
+  chain: string
+  timestamp: number // in seconds
+  gasPrice: BigNumber
 }
 
 class GasPricesDb extends BaseDb {
-  async update (key: string, data: Partial<GasPrice>) {
+  async update (key: string, data: GasPrice) {
     return super.update(key, data)
+  }
+
+  async addGasPrice (data: GasPrice) {
+    const key = `${data.chain}:${data.timestamp}`
+    return this.update(key, data)
   }
 
   async getNearest (chain: string, timestampSeconds: number): Promise<GasPrice> {
@@ -29,7 +34,13 @@ class GasPricesDb extends BaseDb {
     if (index === -1) {
       return null
     }
-    return normalizeDbItem(items[index])
+    const item = normalizeDbItem(items[index])
+    const varianceSeconds = 10 * 60
+    const isTooFar = Math.abs(item.timestamp - timestampSeconds) > varianceSeconds
+    if (isTooFar) {
+      return null
+    }
+    return item
   }
 }
 

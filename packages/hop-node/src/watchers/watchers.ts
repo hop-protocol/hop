@@ -3,6 +3,7 @@ import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
 import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
+import GasPriceWatcher from 'src/watchers/GasPriceWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
 import SyncWatcher from 'src/watchers/SyncWatcher'
@@ -219,6 +220,14 @@ export function getWatchers (config: GetWatchersConfig) {
       ) as SyncWatcher
     )
   }
+
+  const gasPriceWatchers: any[] = networks.map((network: string) => {
+    return new GasPriceWatcher({
+      chainSlug: network
+    })
+  })
+
+  watchers.push(...gasPriceWatchers)
 
   return watchers
 }

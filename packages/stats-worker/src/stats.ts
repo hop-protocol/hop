@@ -1,3 +1,4 @@
+import { constants } from 'ethers'
 import { Hop } from '@hop-protocol/sdk'
 import wait from 'wait'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
@@ -19,11 +20,17 @@ class Stats {
   async getAllAprs () {
     const timestamp = (Date.now() / 1000) | 0
     const data: Data = {}
-    const bridges = mainnetAddresses.bridges
+    const bridges: any = mainnetAddresses.bridges
     const promises: Promise<any>[] = []
     for (let token in bridges) {
       for (let chain in bridges[token]) {
         if (chain === 'ethereum') {
+          continue
+        }
+        if (!bridges[token][chain]) {
+          continue
+        }
+        if (bridges[token][chain].l2CanonicalToken === constants.AddressZero) {
           continue
         }
         if (!data[token]) {
@@ -37,6 +44,7 @@ class Stats {
         promises.push(
           this.getApr(token, chain)
             .then(apr => {
+              console.log(`${chain}.${token} got apr`)
               data[token][chain].apr = apr
             })
             .catch(err => console.error(err))
@@ -45,6 +53,7 @@ class Stats {
     }
 
     await Promise.all(promises)
+    console.log(JSON.stringify(data, null, 2))
     const response: Response = {
       timestamp,
       data

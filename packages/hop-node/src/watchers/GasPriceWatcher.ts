@@ -26,7 +26,7 @@ class GasPriceWatcher {
   async poll () {
     while (true) {
       const gasPrice = await this.provider.getGasPrice()
-      const timestamp = Date.now()
+      const timestamp = Math.floor(Date.now() / 1000)
       await this.db.update(this.chainSlug, {
         chain: this.chainSlug,
         gasPrice,

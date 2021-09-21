@@ -6,7 +6,7 @@ import { normalizeDbItem } from './utils'
 
 export type GasPrice = {
   chain?: string
-  timestamp?: number
+  timestamp?: number // in seconds
   gasPrice?: BigNumber
 }
 
@@ -24,7 +24,7 @@ class GasPricesDb extends BaseDb {
     )
 
     const target = DateTime.fromSeconds(timestampSeconds)
-    const dates = items.map(item => DateTime.fromSeconds(item.timestamp).toJSDate())
+    const dates = items.filter(item => item.chain === chain).map(item => DateTime.fromSeconds(item.timestamp).toJSDate())
     const index = nearest(dates, target.toJSDate())
     if (index === -1) {
       return null

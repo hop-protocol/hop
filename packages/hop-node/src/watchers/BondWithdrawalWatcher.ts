@@ -262,17 +262,18 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('recipient:', recipient)
     logger.debug('transferNonce:', transferNonce)
     logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
+    const destinationChain = this.chainIdToSlug(destinationChainId)
 
     let gasPrice : BigNumber
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     if (dbTransfer?.transferSentTimestamp) {
-      const item = await this.db.gasPrices.getNearest(this.chainSlug, dbTransfer?.transferSentTimestamp)
+      const item = await this.db.gasPrices.getNearest(destinationChain, dbTransfer?.transferSentTimestamp)
       if (item) {
         gasPrice = item.gasPrice
       }
     }
 
-    if (attemptSwap && !isL1(this.chainIdToSlug(destinationChainId))) {
+    if (attemptSwap && !isL1(destinationChain)) {
       logger.debug(
         `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
       )

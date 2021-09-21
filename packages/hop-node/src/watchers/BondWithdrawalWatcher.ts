@@ -6,9 +6,8 @@ import isL1 from 'src/utils/isL1'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract, providers } from 'ethers'
 import { BonderFeeTooLowError } from 'src/types/error'
-import { Chain, TxError } from 'src/constants'
 import { Transfer } from 'src/db/TransfersDb'
-import { bondableChains } from 'src/config'
+import { TxError } from 'src/constants'
 
 export interface Config {
   chainSlug: string
@@ -27,7 +26,6 @@ class BondError extends Error {}
 
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
-  lastAvailableCredit: { [destinationChain: string]: BigNumber } = {}
 
   constructor (config: Config) {
     super({
@@ -70,10 +68,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
         withdrawalBondTxError
       } = dbTransfer
 
-      const destinationChain = this.chainIdToSlug(destinationChainId)
-      const lastAvailableCredit = this.lastAvailableCredit?.[destinationChain]
+      const availableCredit = await this.syncWatcher.getLastAvailableCredit(destinationChainId, amount)
       if (
-        lastAvailableCredit?.lt(amount) &&
+        availableCredit?.lt(amount) &&
         withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
         continue
@@ -131,23 +128,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    let availableCredit = await destBridge.getAvailableCredit()
-    const includePendingAmount = destinationChain === Chain.Ethereum && bondableChains.includes(sourceChain)
-    if (includePendingAmount) {
-      let pendingAmounts = BigNumber.from(0)
-      for (const chain of bondableChains) {
-        const watcher = this.getSiblingWatcherByChainSlug(chain)
-        if (!watcher) {
-          continue
-        }
-        const bridge = watcher.bridge as L2Bridge
-        const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
-        pendingAmounts = pendingAmounts.add(pendingAmount)
-      }
-      availableCredit = availableCredit.sub(pendingAmounts).sub(amount)
-    }
-
-    this.lastAvailableCredit[destinationChain] = availableCredit
+    const availableCredit = await this.syncWatcher.getLastAvailableCredit(destinationChainId, amount)
     if (availableCredit.lt(amount)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(

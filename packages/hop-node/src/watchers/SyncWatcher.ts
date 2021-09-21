@@ -7,6 +7,7 @@ import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
+import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
@@ -30,6 +31,7 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate : string
   customStartBlockNumber : number
   ready: boolean = false
+  private lastAvailableCredit: { [destinationChainId: string]: BigNumber } = {}
 
   constructor (config: Config) {
     super({
@@ -207,6 +209,7 @@ class SyncWatcher extends BaseWatcher {
     )
 
     await Promise.all(promises)
+    await this.syncAvailableCredit()
   }
 
   async handleTransferSentEvent (event: Event) {
@@ -289,7 +292,7 @@ class SyncWatcher extends BaseWatcher {
   async handleTransferRootConfirmedEvent (event: Event) {
     const {
       originChainId: sourceChainId,
-      destinationChainId: destChainId,
+      destinationChainId,
       rootHash: transferRootHash,
       totalAmount
     } = event.args
@@ -666,6 +669,72 @@ class SyncWatcher extends BaseWatcher {
     }
 
     return true
+  }
+
+  private async calculateAvailableCredit (destinationChainId: number) {
+    const sourceChain = this.chainSlug
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationWatcher = this.getSiblingWatcherByChainSlug(destinationChain)
+    if (!destinationWatcher) {
+      throw new Error(`no destination watcher for ${destinationChain}`)
+    }
+    const destinationBridge = destinationWatcher.bridge
+    let availableCredit = await destinationBridge.getAvailableCredit()
+    const subtracePendingAmount = destinationChain === Chain.Ethereum && bondableChains.includes(sourceChain)
+    if (subtracePendingAmount) {
+      let pendingAmounts = BigNumber.from(0)
+      for (const chain of bondableChains) {
+        const watcher = this.getSiblingWatcherByChainSlug(chain)
+        if (!watcher) {
+          continue
+        }
+        const bridge = watcher.bridge as L2Bridge
+        const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
+        pendingAmounts = pendingAmounts.add(pendingAmount)
+      }
+      availableCredit = availableCredit.sub(pendingAmounts)
+    }
+
+    return availableCredit
+  }
+
+  private async updateAvailableCredit (destinationChainId: number) {
+    const availableCredit = await this.calculateAvailableCredit(destinationChainId)
+    this.lastAvailableCredit[destinationChainId] = availableCredit
+  }
+
+  private async syncAvailableCredit () {
+    const chains = await this.bridge.getChainIds()
+    for (const destinationChainId of chains) {
+      const sourceChain = this.chainSlug
+      const destinationChain = this.chainIdToSlug(destinationChainId)
+      const shouldSkip = (
+        sourceChain === Chain.Ethereum ||
+        sourceChain === destinationChain ||
+        !this.hasSiblingWatcher(destinationChainId)
+      )
+      if (shouldSkip) {
+        continue
+      }
+      await this.updateAvailableCredit(destinationChainId)
+      const lastAvailableCredit = await this.getLastAvailableCredit(destinationChainId)
+      this.logger.debug(`lastAvailableCredit (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(lastAvailableCredit)}`)
+    }
+  }
+
+  public async getLastAvailableCredit (destinationChainId: number, amount: BigNumber = BigNumber.from(0)) {
+    const sourceChain = this.chainSlug
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    let availableCredit = this.lastAvailableCredit[destinationChainId]
+    if (!availableCredit) {
+      return BigNumber.from(0)
+    }
+    const subtraceAmount = destinationChain === Chain.Ethereum && bondableChains.includes(sourceChain)
+    if (subtraceAmount) {
+      availableCredit = availableCredit.sub(amount)
+    }
+
+    return availableCredit
   }
 }
 

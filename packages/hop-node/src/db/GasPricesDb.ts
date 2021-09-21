@@ -3,6 +3,8 @@ import nearest from 'nearest-date'
 import { BigNumber } from 'ethers'
 import { normalizeDbItem } from './utils'
 
+export const varianceSeconds = 10 * 60
+
 export type GasPrice = {
   chain: string
   timestamp: number // in seconds
@@ -33,7 +35,6 @@ class GasPricesDb extends BaseDb {
       return null
     }
     const item = normalizeDbItem(items[index])
-    const varianceSeconds = 10 * 60
     const isTooFar = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
     if (isTooFar) {
       return null

@@ -71,9 +71,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
       } = dbTransfer
 
       const destinationChain = this.chainIdToSlug(destinationChainId)
-      const lastAvailableCredit = this.lastAvailableCredit?.[destinationChain]
+      const lastAvailableCredit = this.lastAvailableCredit?.[destinationChainId]
+      const amountToCompare = this.getAmountToCompare(amount, destinationChain)
       if (
-        lastAvailableCredit?.lt(amount) &&
+        lastAvailableCredit?.lt(amountToCompare) &&
         withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
         continue
@@ -106,7 +107,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = dbTransfer
     const logger = this.logger.create({ id: transferId })
     const sourceL2Bridge = this.bridge as L2Bridge
-    const sourceChain = this.bridge.chainSlug
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
@@ -132,7 +132,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     let availableCredit = await destBridge.getAvailableCredit()
-    const includePendingAmount = destinationChain === Chain.Ethereum && bondableChains.includes(sourceChain)
+    const includePendingAmount = this.shouldIncludePendingAmount(destinationChain)
     if (includePendingAmount) {
       let pendingAmounts = BigNumber.from(0)
       for (const chain of bondableChains) {
@@ -144,11 +144,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
         const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
         pendingAmounts = pendingAmounts.add(pendingAmount)
       }
-      availableCredit = availableCredit.sub(pendingAmounts).sub(amount)
+      availableCredit = availableCredit.sub(pendingAmounts)
     }
 
     this.lastAvailableCredit[destinationChain] = availableCredit
-    if (availableCredit.lt(amount)) {
+    const amountToCompare = this.getAmountToCompare(amount, destinationChain)
+    if (availableCredit.lt(amountToCompare)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
           availableCredit
@@ -254,6 +255,21 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   shouldAttemptSwap = (dbTransfer: Transfer): boolean => {
     return dbTransfer.deadline > 0 || dbTransfer.amountOutMin?.gt(0)
+  }
+
+  shouldIncludePendingAmount = (destinationChain: string): boolean => {
+    return destinationChain === Chain.Ethereum && bondableChains.includes(this.bridge.chainSlug)
+  }
+
+  getAmountToCompare = (amount: BigNumber, destinationChain: string): BigNumber => {
+    const includePendingAmount = this.shouldIncludePendingAmount(destinationChain)
+
+    // Double the amount in order to account for the bonding of a transfer root
+    if (includePendingAmount) {
+      return amount.mul(2)
+    } else {
+      return amount
+    }
   }
 
   sendBondWithdrawalTx = async (params: any) => {

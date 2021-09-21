@@ -1,7 +1,6 @@
 import BaseDb from './BaseDb'
 import nearest from 'nearest-date'
 import { BigNumber } from 'ethers'
-import { DateTime } from 'luxon'
 import { normalizeDbItem } from './utils'
 
 export type GasPrice = {
@@ -20,23 +19,22 @@ class GasPricesDb extends BaseDb {
     return this.update(key, data)
   }
 
-  async getNearest (chain: string, timestampSeconds: number): Promise<GasPrice> {
+  async getNearest (chain: string, targetTimestamp: number): Promise<GasPrice> {
     const keys = await this.getKeys()
-    const items = await Promise.all(
+    const items = (await Promise.all(
       keys.map((key: string) => {
         return this.getById(key)
       })
-    )
+    )).filter(item => item.chain === chain && item.timestamp)
 
-    const target = DateTime.fromSeconds(timestampSeconds)
-    const dates = items.filter(item => item.chain === chain).map(item => DateTime.fromSeconds(item.timestamp).toJSDate())
-    const index = nearest(dates, target.toJSDate())
+    const dates = items.map(item => item.timestamp)
+    const index = nearest(dates, targetTimestamp)
     if (index === -1) {
       return null
     }
     const item = normalizeDbItem(items[index])
     const varianceSeconds = 10 * 60
-    const isTooFar = Math.abs(item.timestamp - timestampSeconds) > varianceSeconds
+    const isTooFar = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
     if (isTooFar) {
       return null
     }

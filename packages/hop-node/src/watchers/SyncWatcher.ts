@@ -2,6 +2,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
+import S3Upload from 'src/aws/s3Upload'
 import chalk from 'chalk'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import isL1ChainId from 'src/utils/isL1ChainId'
@@ -11,7 +12,7 @@ import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
-import { bondableChains } from 'src/config'
+import { bondableChains, s3UploadEnabled } from 'src/config'
 import { boundClass } from 'autobind-decorator'
 
 export interface Config {
@@ -32,6 +33,7 @@ class SyncWatcher extends BaseWatcher {
   customStartBlockNumber : number
   ready: boolean = false
   private lastAvailableCredit: { [destinationChainId: string]: BigNumber } = {}
+  hosting: S3Upload
 
   constructor (config: Config) {
     super({
@@ -52,6 +54,9 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async init () {
+    if (s3UploadEnabled) {
+      this.hosting = new S3Upload()
+    }
     if (this.syncFromDate) {
       const date = DateTime.fromISO(this.syncFromDate)
       const timestamp = date.toSeconds()
@@ -102,6 +107,14 @@ class SyncWatcher extends BaseWatcher {
     return Object.values(this.siblingWatchers).every(
       (siblingWatcher: SyncWatcher) => {
         return siblingWatcher.isInitialSyncCompleted()
+      }
+    )
+  }
+
+  isAllSiblingWatchersSyncCompleted (syncIndex: number = this.syncIndex): boolean {
+    return Object.values(this.siblingWatchers).every(
+      (siblingWatcher: SyncWatcher) => {
+        return siblingWatcher.syncIndex === syncIndex
       }
     )
   }
@@ -719,6 +732,16 @@ class SyncWatcher extends BaseWatcher {
       await this.updateAvailableCredit(destinationChainId)
       const lastAvailableCredit = await this.getLastAvailableCredit(destinationChainId)
       this.logger.debug(`lastAvailableCredit (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(lastAvailableCredit)}`)
+    }
+
+    const shouldUpload = this.hosting && this.isAllSiblingWatchersSyncCompleted()
+    if (shouldUpload) {
+      const data: any = {}
+      for (const chainId in this.siblingWatchers) {
+        const watcher = this.siblingWatchers[chainId]
+        data[chainId] = watcher.lastAvailableCredit
+      }
+      await this.hosting.upload(data)
     }
   }
 

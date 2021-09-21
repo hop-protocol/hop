@@ -32,6 +32,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.33.0",
     "@eth-optimism/contracts": "^0.4.10",
     "@eth-optimism/core-utils": "^0.5.2",
     "@eth-optimism/message-relayer": "^0.1.11",

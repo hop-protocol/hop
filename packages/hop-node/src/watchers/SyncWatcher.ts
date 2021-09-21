@@ -32,7 +32,7 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate : string
   customStartBlockNumber : number
   ready: boolean = false
-  private lastAvailableCredit: { [destinationChainId: string]: BigNumber } = {}
+  private lastAvailableCredit: { [destinationChain: string]: BigNumber } = {}
   hosting: S3Upload
 
   constructor (config: Config) {
@@ -55,7 +55,10 @@ class SyncWatcher extends BaseWatcher {
 
   async init () {
     if (s3UploadEnabled) {
-      this.hosting = new S3Upload()
+      this.hosting = new S3Upload({
+        bucket: 'assets.hop.exchange',
+        key: 'v1-available-liquidity.json'
+      })
     }
     if (this.syncFromDate) {
       const date = DateTime.fromISO(this.syncFromDate)
@@ -284,11 +287,17 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async handleWithdrawalBondedEvent (event: Event) {
+    if (!event) {
+      throw new Error('expected event')
+    }
     const { transferId, amount } = event.args
     const logger = this.logger.create({ id: transferId })
 
     const { transactionHash } = event
     const tx = await this.bridge.getTransaction(transactionHash)
+    if (!tx) {
+      throw new Error(`expected tx object. transferId: ${transferId}`)
+    }
     const { from: withdrawalBonder } = tx
 
     logger.debug('handling WithdrawalBonded event')
@@ -693,8 +702,8 @@ class SyncWatcher extends BaseWatcher {
     }
     const destinationBridge = destinationWatcher.bridge
     let availableCredit = await destinationBridge.getAvailableCredit()
-    const subtracePendingAmount = destinationChain === Chain.Ethereum && bondableChains.includes(sourceChain)
-    if (subtracePendingAmount) {
+    const subtractPendingAmount = destinationChain === Chain.Ethereum && bondableChains.includes(sourceChain)
+    if (subtractPendingAmount) {
       let pendingAmounts = BigNumber.from(0)
       for (const chain of bondableChains) {
         const watcher = this.getSiblingWatcherByChainSlug(chain)
@@ -713,7 +722,8 @@ class SyncWatcher extends BaseWatcher {
 
   private async updateAvailableCredit (destinationChainId: number) {
     const availableCredit = await this.calculateAvailableCredit(destinationChainId)
-    this.lastAvailableCredit[destinationChainId] = availableCredit
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    this.lastAvailableCredit[destinationChain] = availableCredit
   }
 
   private async syncAvailableCredit () {
@@ -736,24 +746,25 @@ class SyncWatcher extends BaseWatcher {
 
     const shouldUpload = this.hosting && this.isAllSiblingWatchersSyncCompleted()
     if (shouldUpload) {
-      const data: any = {}
+      const data : any = {}
       for (const chainId in this.siblingWatchers) {
+        const sourceChain = this.chainIdToSlug(Number(chainId))
         const watcher = this.siblingWatchers[chainId]
-        data[chainId] = watcher.lastAvailableCredit
+        data[sourceChain] = watcher.lastAvailableCredit
       }
-      await this.hosting.upload(data)
+      await this.hosting.upload(data, this.tokenSymbol)
     }
   }
 
   public async getLastAvailableCredit (destinationChainId: number, amount: BigNumber = BigNumber.from(0)) {
     const sourceChain = this.chainSlug
     const destinationChain = this.chainIdToSlug(destinationChainId)
-    let availableCredit = this.lastAvailableCredit[destinationChainId]
+    let availableCredit = this.lastAvailableCredit[destinationChain]
     if (!availableCredit) {
       return BigNumber.from(0)
     }
-    const subtraceAmount = destinationChain === Chain.Ethereum && bondableChains.includes(sourceChain)
-    if (subtraceAmount) {
+    const subtractAmount = destinationChain === Chain.Ethereum && bondableChains.includes(sourceChain)
+    if (subtractAmount) {
       availableCredit = availableCredit.sub(amount)
     }
 

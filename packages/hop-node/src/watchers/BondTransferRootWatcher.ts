@@ -108,6 +108,9 @@ class BondTransferRootWatcher extends BaseWatcher {
         `transferRootHash ${transferRootHash} already bonded. skipping.`
       )
       const event = await l1Bridge.getTransferRootBondedEvent(transferRootHash)
+      if (!event) {
+        throw new Error(`expected event object. transferRootHash: ${transferRootHash}`)
+      }
       const { transactionHash } = event
       const { from: sender } = await l1Bridge.getTransaction(
         event.transactionHash

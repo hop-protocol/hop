@@ -33,6 +33,7 @@ class SyncWatcher extends BaseWatcher {
   customStartBlockNumber : number
   ready: boolean = false
   private lastAvailableCredit: { [destinationChain: string]: BigNumber } = {}
+  private recentCommitPendingAmounts: { [destinationChain: string]: BigNumber } = {}
   hosting: S3Upload
 
   constructor (config: Config) {
@@ -226,6 +227,8 @@ class SyncWatcher extends BaseWatcher {
 
     await Promise.all(promises)
     await this.syncAvailableCredit()
+    await this.syncRecentCommitPendingAmounts()
+    await this.uploadToS3()
   }
 
   async handleTransferSentEvent (event: Event) {
@@ -743,17 +746,6 @@ class SyncWatcher extends BaseWatcher {
       const lastAvailableCredit = await this.getLastAvailableCredit(destinationChainId)
       this.logger.debug(`lastAvailableCredit (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(lastAvailableCredit)}`)
     }
-
-    const shouldUpload = this.hosting && this.isAllSiblingWatchersSyncCompleted()
-    if (shouldUpload) {
-      const data : any = {}
-      for (const chainId in this.siblingWatchers) {
-        const sourceChain = this.chainIdToSlug(Number(chainId))
-        const watcher = this.siblingWatchers[chainId]
-        data[sourceChain] = watcher.lastAvailableCredit
-      }
-      await this.hosting.upload(data, this.tokenSymbol)
-    }
   }
 
   public async getLastAvailableCredit (destinationChainId: number, amount: BigNumber = BigNumber.from(0)) {
@@ -768,7 +760,67 @@ class SyncWatcher extends BaseWatcher {
       availableCredit = availableCredit.sub(amount)
     }
 
+    if (availableCredit.lt(0)) {
+      return BigNumber.from(0)
+    }
+
     return availableCredit
+  }
+
+  public async calculateRecentCommitPendingAmounts (destinationChainId: number) {
+    const transferRoots = await this.db.transferRoots.getRecentlyCommittedTransferRoots({
+      sourceChainId: this.chainSlugToId(this.chainSlug),
+      destinationChainId
+    })
+    let totalPendingAmount = BigNumber.from(0)
+    for (const transferRoot of transferRoots) {
+      totalPendingAmount = totalPendingAmount.add(transferRoot.totalAmount)
+    }
+
+    return totalPendingAmount
+  }
+
+  private async updateRecentCommitPendingAmounts (destinationChainId: number) {
+    const pendingAmounts = await this.calculateRecentCommitPendingAmounts(destinationChainId)
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    this.recentCommitPendingAmounts[destinationChain] = pendingAmounts
+  }
+
+  async syncRecentCommitPendingAmounts () {
+    const chains = await this.bridge.getChainIds()
+    for (const destinationChainId of chains) {
+      const sourceChain = this.chainSlug
+      const destinationChain = this.chainIdToSlug(destinationChainId)
+      const shouldSkip = (
+        sourceChain === Chain.Ethereum ||
+        sourceChain === destinationChain ||
+        !this.hasSiblingWatcher(destinationChainId)
+      )
+      if (shouldSkip) {
+        continue
+      }
+      await this.updateRecentCommitPendingAmounts(destinationChainId)
+    }
+  }
+
+  async uploadToS3 () {
+    const shouldUpload = this.hosting && this.isAllSiblingWatchersSyncCompleted()
+    if (!shouldUpload) {
+      return
+    }
+
+    const data : any = {
+      availableCredit: {},
+      commitPendingAmounts: {}
+    }
+    for (const chainId in this.siblingWatchers) {
+      const sourceChain = this.chainIdToSlug(Number(chainId))
+      const watcher = this.siblingWatchers[chainId]
+      data.availableCredit[sourceChain] = watcher.lastAvailableCredit
+      data.commitPendingAmounts[sourceChain] = watcher.recentCommitPendingAmounts
+    }
+
+    await this.hosting.upload(data, this.tokenSymbol)
   }
 }
 

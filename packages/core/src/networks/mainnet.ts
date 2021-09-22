@@ -16,7 +16,7 @@ export const networks: Networks = {
     publicRpcUrl: 'https://arb1.arbitrum.io/rpc',
     explorerUrls: ['https://arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
-    waitConfirmations: 0
+    waitConfirmations: 1
   },
   optimism: {
     name: chains.optimism.name,
@@ -25,7 +25,7 @@ export const networks: Networks = {
     publicRpcUrl: 'https://mainnet.optimism.io',
     explorerUrls: ['https://optimistic.etherscan.io'],
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',
-    waitConfirmations: 0
+    waitConfirmations: 1
   },
   xdai: {
     name: chains.xdai.name,

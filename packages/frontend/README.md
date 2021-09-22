@@ -10,6 +10,12 @@ Install dependencies:
 npm install
 ```
 
+Lerna link:
+
+```bash
+npx lerna link
+```
+
 Start app (uses `kovan` network by default):
 
 ```bash

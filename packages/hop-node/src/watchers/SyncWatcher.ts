@@ -476,13 +476,11 @@ class SyncWatcher extends BaseWatcher {
       .bridge as L2Bridge
 
     const eventBlockNumber: number = event.blockNumber
-    let startSearchBlockNumber: number
     let startEvent: Event
     let endEvent: Event
 
     let startBlockNumber = sourceBridge.bridgeDeployedBlockNumber
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
-      startSearchBlockNumber = start
       let events = await sourceBridge.getTransfersCommittedEvents(start, end)
       if (!events?.length) {
         return true
@@ -531,9 +529,6 @@ class SyncWatcher extends BaseWatcher {
         // transferEvents need to be sorted from [newest...oldest] in order to maintain the ordering
         transferEvents = transferEvents.reverse()
         for (const event of transferEvents) {
-          const transaction = await sourceBridge.getTransaction(
-            event.transactionHash
-          )
           const eventDestinationChainId = Number(event.args.chainId.toString())
           const isSameChainId = eventDestinationChainId === destinationChainId
           if (!isSameChainId) {

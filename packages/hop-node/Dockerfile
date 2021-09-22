@@ -1,4 +1,4 @@
-FROM node:11.15.0
+FROM node:12.18.3
 
 # Create the working directory and give node use permissions
 RUN mkdir -p /usr/src/app/node_modules && chown -R node:node /usr/src/app

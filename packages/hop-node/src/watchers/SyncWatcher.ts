@@ -12,7 +12,7 @@ import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
-import { bondableChains, s3UploadEnabled } from 'src/config'
+import { bondableChains } from 'src/config'
 import { boundClass } from 'autobind-decorator'
 
 type S3JsonData = {
@@ -32,6 +32,7 @@ export interface Config {
   isL1: boolean
   bridgeContract: Contract
   syncFromDate?: string
+  s3Upload?: boolean
 }
 
 @boundClass
@@ -58,6 +59,12 @@ class SyncWatcher extends BaseWatcher {
       bridgeContract: config.bridgeContract
     })
     this.syncFromDate = config.syncFromDate
+    if (config.s3Upload) {
+      this.hosting = new S3Upload({
+        bucket: 'assets.hop.exchange',
+        key: 'v1-available-liquidity.json'
+      })
+    }
     this.init()
       .catch(err => {
         this.logger.error('init error:', err)
@@ -66,12 +73,6 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async init () {
-    if (s3UploadEnabled) {
-      this.hosting = new S3Upload({
-        bucket: 'assets.hop.exchange',
-        key: 'v1-available-liquidity.json'
-      })
-    }
     if (this.syncFromDate) {
       const date = DateTime.fromISO(this.syncFromDate)
       const timestamp = date.toSeconds()

@@ -81,15 +81,19 @@ export default class Bridge extends ContractBase {
   }
 
   @rateLimitRetry
-  async getCredit (): Promise<BigNumber> {
-    const bonder = await this.getBonderAddress()
+  async getCredit (bonder?: string): Promise<BigNumber> {
+    if (!bonder) {
+      bonder = await this.getBonderAddress()
+    }
     const credit = await this.bridgeContract.getCredit(bonder)
     return credit
   }
 
   @rateLimitRetry
-  async getDebit (): Promise<BigNumber> {
-    const bonder = await this.getBonderAddress()
+  async getDebit (bonder?: string): Promise<BigNumber> {
+    if (!bonder) {
+      bonder = await this.getBonderAddress()
+    }
     const debit = await this.bridgeContract.getDebitAndAdditionalDebit(
       bonder
     )
@@ -104,10 +108,10 @@ export default class Bridge extends ContractBase {
   }
 
   @rateLimitRetry
-  async getAvailableCredit (): Promise<BigNumber> {
+  async getAvailableCredit (bonder?: string): Promise<BigNumber> {
     const [credit, debit] = await Promise.all([
-      this.getCredit(),
-      this.getDebit()
+      this.getCredit(bonder),
+      this.getDebit(bonder)
     ])
     return credit.sub(debit)
   }

@@ -323,7 +323,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   // nonORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
   async getAvailableCredit (destinationChainId: number, amount: BigNumber) {
-    let availableCredit = await this.syncWatcher.getAvailableCredit(destinationChainId)
+    const availableCredit = await this.syncWatcher.getAvailableCredit(destinationChainId)
     if (this.syncWatcher.isOruToL1(destinationChainId)) {
       return availableCredit.div(2)
     }

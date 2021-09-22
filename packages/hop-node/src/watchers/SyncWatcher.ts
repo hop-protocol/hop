@@ -15,6 +15,15 @@ import { Transfer } from 'src/db/TransfersDb'
 import { bondableChains, s3UploadEnabled } from 'src/config'
 import { boundClass } from 'autobind-decorator'
 
+type S3JsonData = {
+  [token: string]: {
+    availableCredit: {[chain: string]: string},
+    commitPendingAmounts: {[chain: string]: string}
+  }
+}
+
+const s3JsonData: S3JsonData = {}
+
 export interface Config {
   chainSlug: string
   tokenSymbol: string
@@ -100,6 +109,11 @@ class SyncWatcher extends BaseWatcher {
     this.logger.debug('done syncing. index:', this.syncIndex)
     this.initialSyncCompleted = true
     this.syncIndex++
+    try {
+      await this.uploadToS3()
+    } catch (err) {
+      this.logger.error(err)
+    }
     await wait(this.resyncIntervalMs)
   }
 
@@ -228,7 +242,6 @@ class SyncWatcher extends BaseWatcher {
     await Promise.all(promises)
     await this.syncAvailableCredit()
     await this.syncRecentCommitPendingAmounts()
-    await this.uploadToS3()
   }
 
   async handleTransferSentEvent (event: Event) {
@@ -720,6 +733,10 @@ class SyncWatcher extends BaseWatcher {
       availableCredit = availableCredit.sub(pendingAmounts)
     }
 
+    if (availableCredit.lt(0)) {
+      return BigNumber.from(0)
+    }
+
     return availableCredit
   }
 
@@ -804,7 +821,11 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async uploadToS3 () {
-    const shouldUpload = this.hosting && this.isAllSiblingWatchersSyncCompleted()
+    if (!this.isAllSiblingWatchersInitialSyncCompleted()) {
+      return
+    }
+    const { syncIndex } = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
+    const shouldUpload = this.hosting && this.isAllSiblingWatchersSyncCompleted(syncIndex)
     if (!shouldUpload) {
       return
     }
@@ -816,11 +837,18 @@ class SyncWatcher extends BaseWatcher {
     for (const chainId in this.siblingWatchers) {
       const sourceChain = this.chainIdToSlug(Number(chainId))
       const watcher = this.siblingWatchers[chainId]
+      const shouldSkip = (
+        sourceChain === Chain.Ethereum
+      )
+      if (shouldSkip) {
+        continue
+      }
       data.availableCredit[sourceChain] = watcher.lastAvailableCredit
       data.commitPendingAmounts[sourceChain] = watcher.recentCommitPendingAmounts
     }
 
-    await this.hosting.upload(data, this.tokenSymbol)
+    s3JsonData[this.tokenSymbol] = data
+    await this.hosting.upload(s3JsonData)
   }
 }
 

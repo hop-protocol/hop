@@ -1,6 +1,7 @@
 import Logger from 'src/logger'
 import fetch from 'node-fetch'
 import queue from 'src/decorators/queue'
+import { BigNumber } from 'ethers'
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { awsAccessKeyId, awsRegion, awsSecretAccessKey } from '../config'
 import { boundClass } from 'autobind-decorator'
@@ -43,19 +44,11 @@ class S3Upload {
   }
 
   @queue
-  async upload (data: any, keyToReplace?: string) {
+  async upload (data: any) {
+    data = JSON.parse(JSON.stringify(data)) // deep clone
     const uploadData = {
       timestamp: Date.now(),
-      data
-    }
-    if (keyToReplace) {
-      const res = await this.getData()
-      let _data = res.data
-      if (!res?.data) {
-        _data = {}
-      }
-      _data[keyToReplace] = data
-      uploadData.data = _data
+      data: this.bigNumbersToString(data)
     }
     this.logger.debug('uploading')
     const input = {
@@ -74,6 +67,24 @@ class S3Upload {
     const res = await fetch(url)
     const json = res.json()
     return json
+  }
+
+  bigNumbersToString (data: any) {
+    if (typeof data !== 'object') {
+      return data
+    }
+
+    for (const key in data) {
+      if (data[key]?._isBigNumber) {
+        data[key] = data[key].toString()
+      } else if (data[key]?.type === 'BigNumber') {
+        data[key] = BigNumber.from(data[key].hex).toString()
+      } else if (typeof data[key] === 'object') {
+        data[key] = this.bigNumbersToString(data[key])
+      }
+    }
+
+    return data
   }
 }
 

@@ -1,7 +1,7 @@
 import BaseDb from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, OneHourMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
+import { Chain, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
 export type TransferRoot = {
@@ -214,7 +214,7 @@ class TransferRootsDb extends BaseDb {
     })
   }
 
-  async getRecentlyCommittedTransferRoots (filter: Partial<TransferRoot>): Promise<TransferRoot[]> {
+  async getUnsetCommittedTransferRoots (filter: Partial<TransferRoot>): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRoots()
     return transferRoots.filter(item => {
       if (filter?.sourceChainId) {
@@ -228,14 +228,13 @@ class TransferRootsDb extends BaseDb {
         }
       }
 
-      const timestampOk = item.committedAt && (item.committedAt >= Math.floor((Date.now() - OneHourMs) / 1000))
       return (
         item.totalAmount &&
         item.committed &&
         item.committedAt &&
         !item.bonded &&
         !item.bondedAt &&
-        timestampOk
+        !item.rootSetTxHash
       )
     })
   }

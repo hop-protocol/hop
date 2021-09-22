@@ -68,9 +68,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
         withdrawalBondTxError
       } = dbTransfer
 
-      const availableCredit = await this.syncWatcher.getLastAvailableCredit(destinationChainId, amount)
+      const lastAvailableCredit = await this.syncWatcher.getLastAvailableCredit(destinationChainId)
+      const amountToCompare = await this.getAmountToCompare(destinationChainId, amount)
       if (
-        availableCredit?.lt(amount) &&
+        lastAvailableCredit?.lt(amountToCompare) &&
         withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
         continue
@@ -128,11 +129,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    const availableCredit = await this.syncWatcher.getLastAvailableCredit(destinationChainId, amount)
-    if (availableCredit.lt(amount)) {
+    const lastAvailableCredit = await this.syncWatcher.getLastAvailableCredit(destinationChainId)
+    const amountToCompare = await this.getAmountToCompare(destinationChainId, amount)
+    if (lastAvailableCredit.lt(amountToCompare)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
-          availableCredit
+          lastAvailableCredit
         )}, need ${this.bridge.formatUnits(amount)}`
       )
       await this.db.transfers.update(transferId, {
@@ -317,6 +319,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
     this.logger.debug(`transfer id already bonded ${transferId}`)
     throw new Error('cancelled')
+  }
+
+  getAmountToCompare (destinationChainId: number, amount: BigNumber) {
+    if (this.syncWatcher.shouldAccountAmountForRootBonds(destinationChainId)) {
+      return amount.mul(2)
+    }
+
+    return amount
   }
 }
 

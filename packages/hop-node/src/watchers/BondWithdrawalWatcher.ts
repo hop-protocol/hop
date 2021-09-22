@@ -319,7 +319,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   // ORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots) / 2
-  //    divide by 2 because `amount` gets added to OruToL1PendingAmount
+  //    - divide by 2 because `amount` gets added to OruToL1PendingAmount
   // nonORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
   async getAvailableCredit (destinationChainId: number, amount: BigNumber) {

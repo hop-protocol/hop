@@ -852,6 +852,9 @@ class HopBridge extends Base {
     const url = `https://assets.hop.exchange/v1-available-liquidity.json`
     const res = await fetch(url)
     const json = await res.json()
+    if (!json) {
+      throw new Error('expected json object')
+    }
     const { timestamp, data } = json
     const tenMinutes = 10 * 60 * 1000
     const isOutdated = Date.now() - timestamp > tenMinutes

@@ -724,33 +724,8 @@ class SyncWatcher extends BaseWatcher {
     return destinationChain === Chain.Ethereum && !bondableChains.includes(sourceChain)
   }
 
-  async getOruToL1PendingAmount () {
-    let pendingAmounts = BigNumber.from(0)
-    for (const chain of bondableChains) {
-      const watcher = this.getSiblingWatcherByChainSlug(chain)
-      if (!watcher) {
-        continue
-      }
-
-      const destinationChainId = this.chainSlugToId(Chain.Ethereum)
-      const pendingAmount = await watcher.calculatePendingAmount(destinationChainId)
-      pendingAmounts = pendingAmounts.add(pendingAmount)
-    }
-
-    return pendingAmounts
-  }
-
-  async getOruToAllUnsetCommitAmount () {
-    let totalAmount = BigNumber.from(0)
-    for (const destinationChain in this.unsetCommitAmounts) {
-      const amount = this.unsetCommitAmounts[destinationChain]
-      totalAmount = totalAmount.add(amount)
-    }
-    return totalAmount
-  }
-
   // ORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots) / 2
-  //    divide by 2 because `amount` gets added to OruToL1PendingAmount
+  //    - divide by 2 because `amount` gets added to OruToL1PendingAmount
   // nonORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
   private async calculateAvailableCredit (destinationChainId: number, bonder?: string) {
@@ -777,7 +752,26 @@ class SyncWatcher extends BaseWatcher {
     return availableCredit
   }
 
-  private async updateAvailableCredit (destinationChainId: number) {
+  async calculatePendingAmount (destinationChainId: number) {
+    const bridge = this.bridge as L2Bridge
+    const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
+    return pendingAmount
+  }
+
+  public async calculateUnsetCommitAmounts (destinationChainId: number) {
+    const transferRoots = await this.db.transferRoots.getUnsetCommittedTransferRoots({
+      sourceChainId: this.chainSlugToId(this.chainSlug),
+      destinationChainId
+    })
+    let totalAmount = BigNumber.from(0)
+    for (const transferRoot of transferRoots) {
+      totalAmount = totalAmount.add(transferRoot.totalAmount)
+    }
+
+    return totalAmount
+  }
+
+  private async updateAvailableCreditMap (destinationChainId: number) {
     const availableCredit = await this.calculateAvailableCredit(destinationChainId)
     const destinationChain = this.chainIdToSlug(destinationChainId)
     this.availableCredit[destinationChain] = availableCredit
@@ -786,6 +780,50 @@ class SyncWatcher extends BaseWatcher {
       const bonder = globalConfig.bonders[this.tokenSymbol]?.[0]
       const availableCredit = await this.calculateAvailableCredit(destinationChainId, bonder)
       this.s3AvailableCredit[destinationChain] = availableCredit
+    }
+  }
+
+  private async updatePendingAmountsMap (destinationChainId: number) {
+    const pendingAmount = await this.calculatePendingAmount(destinationChainId)
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    this.pendingAmounts[destinationChain] = pendingAmount
+  }
+
+  private async updateUnsetCommitAmountsMap (destinationChainId: number) {
+    const totalAmounts = await this.calculateUnsetCommitAmounts(destinationChainId)
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    this.unsetCommitAmounts[destinationChain] = totalAmounts
+  }
+
+  async syncPendingAmounts () {
+    const pendingAmounts = BigNumber.from(0)
+    const chains = await this.bridge.getChainIds()
+    for (const destinationChainId of chains) {
+      const destinationChain = this.chainIdToSlug(destinationChainId)
+      if (
+        this.chainSlug === Chain.Ethereum ||
+        this.chainSlug === destinationChain
+      ) {
+        continue
+      }
+      await this.updatePendingAmountsMap(destinationChainId)
+    }
+  }
+
+  async syncUnsetCommitAmounts () {
+    const chains = await this.bridge.getChainIds()
+    for (const destinationChainId of chains) {
+      const sourceChain = this.chainSlug
+      const destinationChain = this.chainIdToSlug(destinationChainId)
+      const shouldSkip = (
+        sourceChain === Chain.Ethereum ||
+        sourceChain === destinationChain ||
+        !this.hasSiblingWatcher(destinationChainId)
+      )
+      if (shouldSkip) {
+        continue
+      }
+      await this.updateUnsetCommitAmountsMap(destinationChainId)
     }
   }
 
@@ -802,10 +840,35 @@ class SyncWatcher extends BaseWatcher {
       if (shouldSkip) {
         continue
       }
-      await this.updateAvailableCredit(destinationChainId)
+      await this.updateAvailableCreditMap(destinationChainId)
       const availableCredit = await this.getAvailableCredit(destinationChainId)
       this.logger.debug(`availableCredit (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(availableCredit)}`)
     }
+  }
+
+  async getOruToL1PendingAmount () {
+    let pendingAmounts = BigNumber.from(0)
+    for (const chain of bondableChains) {
+      const watcher = this.getSiblingWatcherByChainSlug(chain)
+      if (!watcher) {
+        continue
+      }
+
+      const destinationChainId = this.chainSlugToId(Chain.Ethereum)
+      const pendingAmount = await watcher.calculatePendingAmount(destinationChainId)
+      pendingAmounts = pendingAmounts.add(pendingAmount)
+    }
+
+    return pendingAmounts
+  }
+
+  async getOruToAllUnsetCommitAmount () {
+    let totalAmount = BigNumber.from(0)
+    for (const destinationChain in this.unsetCommitAmounts) {
+      const amount = this.unsetCommitAmounts[destinationChain]
+      totalAmount = totalAmount.add(amount)
+    }
+    return totalAmount
   }
 
   public async getAvailableCredit (destinationChainId: number) {
@@ -817,70 +880,6 @@ class SyncWatcher extends BaseWatcher {
     }
 
     return availableCredit
-  }
-
-  public async calculateUnsetCommitAmounts (destinationChainId: number) {
-    const transferRoots = await this.db.transferRoots.getUnsetCommittedTransferRoots({
-      sourceChainId: this.chainSlugToId(this.chainSlug),
-      destinationChainId
-    })
-    let totalAmount = BigNumber.from(0)
-    for (const transferRoot of transferRoots) {
-      totalAmount = totalAmount.add(transferRoot.totalAmount)
-    }
-
-    return totalAmount
-  }
-
-  private async updateUnsetCommitAmounts (destinationChainId: number) {
-    const totalAmounts = await this.calculateUnsetCommitAmounts(destinationChainId)
-    const destinationChain = this.chainIdToSlug(destinationChainId)
-    this.unsetCommitAmounts[destinationChain] = totalAmounts
-  }
-
-  async syncUnsetCommitAmounts () {
-    const chains = await this.bridge.getChainIds()
-    for (const destinationChainId of chains) {
-      const sourceChain = this.chainSlug
-      const destinationChain = this.chainIdToSlug(destinationChainId)
-      const shouldSkip = (
-        sourceChain === Chain.Ethereum ||
-        sourceChain === destinationChain ||
-        !this.hasSiblingWatcher(destinationChainId)
-      )
-      if (shouldSkip) {
-        continue
-      }
-      await this.updateUnsetCommitAmounts(destinationChainId)
-    }
-  }
-
-  async calculatePendingAmount (destinationChainId: number) {
-    const bridge = this.bridge as L2Bridge
-    const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
-    return pendingAmount
-  }
-
-  private async updatePendingAmounts (destinationChainId: number) {
-    const pendingAmount = await this.calculatePendingAmount(destinationChainId)
-    const destinationChain = this.chainIdToSlug(destinationChainId)
-    this.pendingAmounts[destinationChain] = pendingAmount
-  }
-
-  async syncPendingAmounts () {
-    const pendingAmounts = BigNumber.from(0)
-    const chains = await this.bridge.getChainIds()
-    for (const destinationChainId of chains) {
-      const destinationChain = this.chainIdToSlug(destinationChainId)
-      if (
-        this.chainSlug === Chain.Ethereum ||
-        this.chainSlug === destinationChain
-      ) {
-        continue
-      }
-      const pendingAmount = await this.calculatePendingAmount(destinationChainId)
-      this.pendingAmounts[destinationChain] = pendingAmount
-    }
   }
 
   async uploadToS3 () {

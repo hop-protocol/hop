@@ -1,3 +1,4 @@
+import fetch from 'isomorphic-fetch'
 import { ethers, Signer, Contract, BigNumber, BigNumberish } from 'ethers'
 import { parseUnits, formatUnits, getAddress } from 'ethers/lib/utils'
 import Chain from './models/Chain'
@@ -783,11 +784,15 @@ class HopBridge extends Base {
 
     let availableLiquidity = credit.sub(debit)
 
-    const isBondableChain = bondableChains.includes(sourceChain.slug)
-    const includePendingAmount =
-      isBondableChain && destinationChain.equals(Chain.Ethereum)
+    const unsetCommitAmount = await this.getUnsetCommitAmount(
+      sourceChain,
+      destinationChain
+    )
 
-    if (includePendingAmount) {
+    if (
+      this.isOruToL1(sourceChain, destinationChain) ||
+      this.isNonOruToL1(sourceChain, destinationChain)
+    ) {
       const bridgeContract = await this.getBridgeContract(sourceChain)
       let pendingAmounts = BigNumber.from(0)
       for (const chain of bondableChains) {
@@ -797,12 +802,11 @@ class HopBridge extends Base {
         }
         const bridge = await this.getBridgeContract(chain)
         const pendingAmount = await bridge.pendingAmountForChainId(
-          destinationChain.chainId
+          Chain.Ethereum.chainId
         )
         pendingAmounts = pendingAmounts.add(pendingAmount)
       }
 
-      const token = this.toTokenModel(this.tokenSymbol)
       const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
         token.canonicalSymbol
       )
@@ -813,10 +817,14 @@ class HopBridge extends Base {
         .div(tokenPriceBn)
         .mul(precision)
 
-      const liquidityMinusAmounts = availableLiquidity.sub(pendingAmounts)
-      availableLiquidity = liquidityMinusAmounts
-        .div(2)
-        .sub(bufferAmountTokensBn) // account for transfer root bonds
+      availableLiquidity = availableLiquidity
+        .sub(pendingAmounts)
+        .sub(unsetCommitAmount)
+        .sub(bufferAmountTokensBn)
+
+      if (this.isOruToL1(sourceChain, destinationChain)) {
+        availableLiquidity = availableLiquidity.div(2)
+      }
     }
 
     if (availableLiquidity.lt(0)) {
@@ -824,6 +832,53 @@ class HopBridge extends Base {
     }
 
     return availableLiquidity
+  }
+
+  isOruToL1 (sourceChain: Chain, destinationChain: Chain) {
+    return (
+      destinationChain.equals(Chain.Ethereum) &&
+      bondableChains.includes(sourceChain.slug)
+    )
+  }
+
+  isNonOruToL1 (sourceChain: Chain, destinationChain: Chain) {
+    return (
+      destinationChain.equals(Chain.Ethereum) &&
+      !bondableChains.includes(sourceChain.slug)
+    )
+  }
+
+  async getBonderAvailableLiquidityData () {
+    const url = `https://assets.hop.exchange/v1-available-liquidity.json`
+    const res = await fetch(url)
+    const json = await res.json()
+    const { timestamp, data } = json
+    const tenMinutes = 10 * 60 * 1000
+    const isOutdated = Date.now() - timestamp > tenMinutes
+    if (isOutdated) {
+      return
+    }
+
+    return data
+  }
+
+  async getUnsetCommitAmount (sourceChain: Chain, destinationChain: Chain) {
+    try {
+      const data = await this.getBonderAvailableLiquidityData()
+      if (data) {
+        const _unsetCommitAmount =
+          data?.[this.tokenSymbol]?.unsetCommitAmounts?.[sourceChain.slug]?.[
+            destinationChain.slug
+          ]
+        if (_unsetCommitAmount) {
+          return BigNumber.from(_unsetCommitAmount)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
+
+    return BigNumber.from(0)
   }
 
   /**

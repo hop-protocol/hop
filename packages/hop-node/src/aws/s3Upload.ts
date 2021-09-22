@@ -65,7 +65,7 @@ class S3Upload {
   async getData () {
     const url = `https://${this.bucket}/${this.key}`
     const res = await fetch(url)
-    const json = res.json()
+    const json = await res.json()
     return json
   }
 

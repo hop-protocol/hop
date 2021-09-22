@@ -34,6 +34,7 @@ import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
 import useApprove from 'src/hooks/useApprove'
 import { reactAppNetwork } from 'src/config'
+import InfoTooltip from 'src/components/infoTooltip'
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -203,9 +204,9 @@ const Send: FC = () => {
   const [sending, setSending] = useState<boolean>(false)
   const [feeDisplay, setFeeDisplay] = useState<string>()
   const [amountOutMinDisplay, setAmountOutMinDisplay] = useState<string>()
-  const [warning, setWarning] = useState<string | null | undefined>(null)
+  const [warning, setWarning] = useState<any>(null)
   const [error, setError] = useState<string | null | undefined>(null)
-  const [noLiquidityWarning, setNoLiquidityWarning] = useState<string | null | undefined>(null)
+  const [noLiquidityWarning, setNoLiquidityWarning] = useState<any>(null)
   const [needsNativeTokenWarning, setNeedsNativeTokenWarning] = useState<string | null | undefined>(null)
   const [minimumSendWarning, setMinimumSendWarning] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
@@ -436,7 +437,11 @@ const Send: FC = () => {
         availableLiquidity,
         sourceToken.decimals
       )
-      const warningMessage = `Insufficient liquidity. There is ${formattedAmount} ${sourceToken.symbol} available on ${toNetwork.name}.`
+
+      const warningMessage = (
+        <>Insufficient liquidity. There is {formattedAmount} {sourceToken.symbol} available on {toNetwork.name}. <InfoTooltip
+          title={`Required Liquidity: ${toTokenDisplay(requiredLiquidity, sourceToken.decimals)}`} /></>
+      )
       if (!isAvailable && !fromNetwork?.isLayer1) {
         if (reactAppNetwork !== 'staging') {
           setIsLiquidityAvailable(false)
@@ -993,7 +998,7 @@ const Send: FC = () => {
         </div>
       </div>
       <Alert severity="error" onClose={() => setError(null)} text={error} />
-      <Alert severity="warning" text={warning} />
+      <Alert severity="warning">{warning}</Alert>
       <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
         <Button
           className={styles.button}

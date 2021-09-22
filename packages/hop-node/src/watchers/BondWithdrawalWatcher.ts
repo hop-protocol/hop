@@ -68,10 +68,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
         withdrawalBondTxError
       } = dbTransfer
 
-      const lastAvailableCredit = await this.syncWatcher.getLastAvailableCredit(destinationChainId)
-      const amountToCompare = await this.getAmountToCompare(destinationChainId, amount)
+      const availableCredit = await this.getAvailableCredit(destinationChainId, amount)
       if (
-        lastAvailableCredit?.lt(amountToCompare) &&
+        availableCredit?.lt(amount) &&
         withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
         continue
@@ -128,12 +127,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    const lastAvailableCredit = await this.syncWatcher.getLastAvailableCredit(destinationChainId)
-    const amountToCompare = await this.getAmountToCompare(destinationChainId, amount)
-    if (lastAvailableCredit.lt(amountToCompare)) {
+    const availableCredit = await this.getAvailableCredit(destinationChainId, amount)
+    if (availableCredit.lt(amount)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
-          lastAvailableCredit
+          availableCredit
         )}, need ${this.bridge.formatUnits(amount)}`
       )
       await this.db.transfers.update(transferId, {
@@ -320,12 +318,17 @@ class BondWithdrawalWatcher extends BaseWatcher {
     throw new Error('cancelled')
   }
 
-  getAmountToCompare (destinationChainId: number, amount: BigNumber) {
-    if (this.syncWatcher.shouldAccountAmountForRootBonds(destinationChainId)) {
-      return amount.mul(2)
+  // ORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots) / 2
+  //    divide by 2 because `amount` gets added to OruToL1PendingAmount
+  // nonORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
+  // L2 -> L2: (credit - debit)
+  async getAvailableCredit (destinationChainId: number, amount: BigNumber) {
+    let availableCredit = await this.syncWatcher.getAvailableCredit(destinationChainId)
+    if (this.syncWatcher.isOruToL1(destinationChainId)) {
+      return availableCredit.div(2)
     }
 
-    return amount
+    return availableCredit
   }
 }
 

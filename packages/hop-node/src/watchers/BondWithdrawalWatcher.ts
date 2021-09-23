@@ -179,6 +179,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const { from: sender, data } = sourceTx
     const attemptSwap = this.shouldAttemptSwap(dbTransfer)
 
+    if (attemptSwap && isL1(destinationChainId.toString())) {
+      await this.db.transfers.update(transferId, {
+        isBondable: false
+      })
+      return
+    }
+
     await this.db.transfers.update(transferId, {
       bondWithdrawalAttemptedAt: Date.now()
     })
@@ -301,7 +308,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
     }
 
-    if (attemptSwap && !isL1(destinationChain)) {
+    if (attemptSwap) {
       logger.debug(
         `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
       )

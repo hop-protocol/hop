@@ -1,6 +1,4 @@
 node_modules
-/package-lock.json
-/yarn.lock
 lerna-debug.log
 
 # Local Netlify folder

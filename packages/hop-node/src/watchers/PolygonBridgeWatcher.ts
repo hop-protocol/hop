@@ -106,10 +106,6 @@ class PolygonBridgeWatcher extends BaseWatcher {
           return
         }
 
-        // const transactionHash= '0x3f5997c83acf26d8628c6ba5b410271834a3aa71ca7f1f60a2b2bfb83127db41'
-        // const event = await l2Token.provider.getTransaction(transactionHash)
-        // transactionHashes[transactionHash] = event
-
         try {
           for (const transactionHash in transactionHashes) {
             const { blockNumber: l2BlockNumber } = transactionHashes[

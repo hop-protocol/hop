@@ -101,6 +101,17 @@ class TransferRootsDb extends BaseDb {
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRoots()
     return transferRoots.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+      if (filter?.destinationChainId) {
+        if (filter.destinationChainId !== item.destinationChainId) {
+          return false
+        }
+      }
+
       let timestampOk = true
       if (item?.sentBondTxAt) {
         timestampOk =
@@ -109,6 +120,7 @@ class TransferRootsDb extends BaseDb {
 
       return (
         !item.bonded &&
+        !item.bondedAt &&
         !item.confirmed &&
         item.transferRootHash &&
         item.committedAt &&
@@ -210,31 +222,6 @@ class TransferRootsDb extends BaseDb {
         !item.allSettled &&
         rootSetTimestampOk &&
         bondSettleTimestampOk
-      )
-    })
-  }
-
-  async getUnsetCommittedTransferRoots (filter: Partial<TransferRoot>): Promise<TransferRoot[]> {
-    const transferRoots: TransferRoot[] = await this.getTransferRoots()
-    return transferRoots.filter(item => {
-      if (filter?.sourceChainId) {
-        if (filter.sourceChainId !== item.sourceChainId) {
-          return false
-        }
-      }
-      if (filter?.destinationChainId) {
-        if (filter.destinationChainId !== item.destinationChainId) {
-          return false
-        }
-      }
-
-      return (
-        item.totalAmount &&
-        item.committed &&
-        item.committedAt &&
-        !item.bonded &&
-        !item.bondedAt &&
-        !item.rootSetTxHash
       )
     })
   }

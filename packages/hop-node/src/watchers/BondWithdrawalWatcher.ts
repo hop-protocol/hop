@@ -123,6 +123,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
           withdrawalBonder: sender,
           withdrawalBondedTxHash: transactionHash
         })
+      } else {
+        logger.warn(`event not found. transferId: ${transferId}`)
       }
       return
     }

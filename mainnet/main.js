@@ -608,7 +608,10 @@ function populateTransfer (x, i) {
     }
   }
 
-  const tokenDecimals = 6
+  let tokenDecimals = 18
+  if (['USDC', 'USDT'].includes(x.token)) {
+    tokenDecimals = 6
+  }
   x.formattedAmount = Number(ethers.utils.formatUnits(x.amount, tokenDecimals))
   x.displayAmount = formatCurrency(ethers.utils.formatUnits(x.amount, tokenDecimals))
   x.tokenImageUrl = tokenLogosMap[x.token]

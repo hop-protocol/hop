@@ -17,10 +17,15 @@ import SendButton from 'src/pages/Pools/SendButton'
 import { commafy, normalizeNumberInput, toTokenDisplay } from 'src/utils'
 import { useTokenWrapper } from './TokenWrapperContext'
 import Network from 'src/models/Network'
+import Expandable from './Expandable'
 
 const useStyles = makeStyles(theme => ({
   root: {
     marginBottom: theme.padding.thick
+  },
+  tokenWrapper: {
+    marginTop: '1rem',
+    marginBottom: '2rem'
   },
   buttons: {
     marginTop: theme.padding.default,
@@ -80,54 +85,58 @@ const TokenWrapper: FC<Props> = (props: Props) => {
   }
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      className={styles.root}
-    >
-      <AmountSelectorCard
-        secondaryToken={canonicalToken}
-        secondaryBalance={canonicalTokenBalance}
-        loadingSecondaryBalance={loadingBalance}
-        secondaryBalanceLabel={`${canonicalToken?.symbol}:`}
-        value={amount}
-        token={wrappedToken}
-        onChange={setAmount}
-        titleIconUrl={canonicalToken?.image}
-        title={'Amount'}
-        balance={wrappedTokenBalance}
-        balanceLabel={`${wrappedToken?.symbol}:`}
-        loadingBalance={loadingBalance}
-        hideSymbol
-        decimalPlaces={2}
-      />
-      <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
-        <Button
-          className={styles.button}
-          large
-          highlighted={hasNativeToken}
-          disabled={isWrapping || !hasNativeToken}
-          onClick={handleWrapClick}
-          loading={isWrapping}
+    <Expandable title="Wrap/Unwrap">
+      <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          className={styles.root}
         >
-          Wrap
-        </Button>
-        <Button
-          className={styles.button}
-          large
-          highlighted={hasWrappedToken}
-          disabled={isUnwrapping || !hasWrappedToken}
-          onClick={handleUnwrapClick}
-          loading={isUnwrapping}
-        >
-          Unwrap
-        </Button>
+          <AmountSelectorCard
+            secondaryToken={canonicalToken}
+            secondaryBalance={canonicalTokenBalance}
+            loadingSecondaryBalance={loadingBalance}
+            secondaryBalanceLabel={`${canonicalToken?.symbol}:`}
+            value={amount}
+            token={wrappedToken}
+            onChange={setAmount}
+            titleIconUrl={canonicalToken?.image}
+            title={'Amount'}
+            balance={wrappedTokenBalance}
+            balanceLabel={`${wrappedToken?.symbol}:`}
+            loadingBalance={loadingBalance}
+            hideSymbol
+            decimalPlaces={2}
+          />
+          <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
+            <Button
+              className={styles.button}
+              large
+              highlighted={hasNativeToken}
+              disabled={isWrapping || !hasNativeToken}
+              onClick={handleWrapClick}
+              loading={isWrapping}
+            >
+              Wrap
+            </Button>
+            <Button
+              className={styles.button}
+              large
+              highlighted={hasWrappedToken}
+              disabled={isUnwrapping || !hasWrappedToken}
+              onClick={handleUnwrapClick}
+              loading={isUnwrapping}
+            >
+              Unwrap
+            </Button>
+          </Box>
+          <Box display="flex" flexDirection="row" alignItems="center">
+            <Alert severity="error" onClose={() => setError(null)} text={error} />
+          </Box>
+        </Box>
       </Box>
-      <Box display="flex" flexDirection="row" alignItems="center">
-        <Alert severity="error" onClose={() => setError(null)} text={error} />
-      </Box>
-    </Box>
+    </Expandable>
   )
 }
 

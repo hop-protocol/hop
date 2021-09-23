@@ -19,7 +19,7 @@ class GasPricesDb extends BaseDb {
     this.startPrunePoller()
   }
 
-  async startPrunePoller () {
+  private async startPrunePoller () {
     while (true) {
       try {
         await wait(OneHourMs)
@@ -66,10 +66,10 @@ class GasPricesDb extends BaseDb {
   }
 
   private async getOldEntries (): Promise<GasPrice[]> {
-    const twoWeeksAgo = Math.floor((Date.now() - (2 * OneWeekMs)) / 1000)
+    const oneWeeksAgo = Math.floor((Date.now() - OneWeekMs) / 1000)
 
     const items = (await this.getItems())
-      .filter((item: GasPrice) => item.timestamp < twoWeeksAgo)
+      .filter((item: GasPrice) => item.timestamp < oneWeeksAgo)
 
     return items
   }

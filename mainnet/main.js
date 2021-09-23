@@ -37,9 +37,11 @@ const app = new Vue({
     filterDestination: queryParams.destination || '',
     filterAmount: queryParams.amount || '',
     filterAmountComparator: queryParams.amountCmp || 'gt',
+    chartAmountSize: false,
     page: 0,
     allTransfers: [],
     transfers: [],
+    chartSelection: '',
     tvl: {
       xdai: {
         formattedAmount: '-'
@@ -183,6 +185,14 @@ const app = new Vue({
     },
     setTvl (tvl) {
       Vue.set(app, 'tvl', tvl)
+    },
+    enableChartAmountSize (event) {
+      const value = event.target.checked
+      Vue.set(app, 'chartAmountSize', value)
+      updateChart(app.transfers)
+    },
+    setChartSelection (value) {
+      Vue.set(app, 'chartSelection', value)
     }
   }
 })
@@ -624,7 +634,10 @@ async function updateChart (data) {
     return {
       source: chainToIndexMapSource[x.sourceChainSlug],
       target: chainToIndexMapDestination[x.destinationChainSlug],
-      value: 1
+      value: app.chartAmountSize ? x.formattedAmount : 1,
+      displayAmount: x.displayAmount,
+      token: x.token,
+      transferId: x.transferId
     }
   })
 
@@ -659,6 +672,14 @@ async function updateChart (data) {
       .spread(true)
       .iterations(0)
       .draw(graph)
+
+    chart.on('link:mouseout', function (item) {
+      app.setChartSelection('')
+    })
+    chart.on('link:mouseover', function (item) {
+      const value = `${item.source.name}⟶${item.target.name} ${item.displayAmount} ${item.token}`
+      app.setChartSelection(value)
+    })
 
     function label (node) {
       return node.name.replace(/\s*\(.*?\)$/, '')

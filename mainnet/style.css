@@ -58,6 +58,10 @@ body {
   display: flex;
   justify-content: space-between;
 }
+#chartSelection {
+  text-align: center;
+  min-height: 25px;
+}
 .arrow {
   font-size: 1.6rem;
 }

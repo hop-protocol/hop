@@ -33,6 +33,11 @@
           <div class="chartContainer">
             <div id="chart"></div>
           </div>
+          <label for="#amountSizeCheckbox">
+            <input type="checkbox" id="amountSizeCheckbox" @change="enableChartAmountSize" />
+            Amount size
+          <label>
+            <div id="chartSelection">{{ chartSelection }}</div>
         </details>
       </div>
       <div id="tvl" style="display:none">

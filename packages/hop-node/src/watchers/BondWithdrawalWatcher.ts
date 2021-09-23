@@ -2,12 +2,11 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
-import isL1 from 'src/utils/isL1'
+import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract, providers } from 'ethers'
 import { BonderFeeTooLowError } from 'src/types/error'
 import { Chain, TxError } from 'src/constants'
-import { Transfer } from 'src/db/TransfersDb'
 import { bondableChains } from 'src/config'
 
 export interface Config {
@@ -177,9 +176,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
     const { from: sender, data } = sourceTx
-    const attemptSwap = this.shouldAttemptSwap(dbTransfer)
-
-    if (attemptSwap && isL1(destinationChainId.toString())) {
+    const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin, deadline)
+    if (attemptSwap && isL1ChainId(destinationChainId)) {
       await this.db.transfers.update(transferId, {
         isBondable: false
       })
@@ -258,10 +256,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
       throw err
     }
-  }
-
-  shouldAttemptSwap = (dbTransfer: Transfer): boolean => {
-    return dbTransfer.deadline > 0 || dbTransfer.amountOutMin?.gt(0)
   }
 
   shouldIncludePendingAmount = (destinationChain: string): boolean => {

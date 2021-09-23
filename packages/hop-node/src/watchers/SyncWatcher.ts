@@ -4,7 +4,6 @@ import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
-import isL1 from 'src/utils/isL1'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
@@ -245,6 +244,10 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('isBondable:', isBondable)
       logger.debug('transferId:', chalk.bgCyan.black(transferId))
       logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
+
+      if (!isBondable) {
+        logger.warn('transfer is unbondable', amountOutMin, deadline)
+      }
 
       await this.db.transfers.update(transferId, {
         transferId,
@@ -664,8 +667,8 @@ class SyncWatcher extends BaseWatcher {
       return false
     }
 
-    const attemptSwap = deadline > 0 || amountOutMin?.gt(0)
-    if (attemptSwap && isL1(destinationChainId.toString())) {
+    const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin, deadline)
+    if (attemptSwap && isL1ChainId(destinationChainId)) {
       return false
     }
 

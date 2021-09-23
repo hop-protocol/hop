@@ -16,6 +16,7 @@ import TxStatusModal from 'src/components/txStatus/TxStatusModal'
 import DetailRow from 'src/components/DetailRow'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 import { commafy, normalizeNumberInput } from 'src/utils'
+import TokenWrapper from 'src/components/TokenWrapper'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -119,6 +120,7 @@ const Convert: FC = () => {
         {error}
       </Typography>
       </> : <>
+        <TokenWrapper network={sourceNetwork} />
         <AmountSelectorCard
           value={sourceTokenAmount as string}
           token={sourceToken}

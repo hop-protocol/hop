@@ -15,7 +15,7 @@ import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
 import { commafy, normalizeNumberInput, toTokenDisplay, toPercentDisplay } from 'src/utils'
-import TokenWrapper from './TokenWrapper'
+import TokenWrapper from 'src/components/TokenWrapper'
 import DetailRow from 'src/components/DetailRow'
 
 const useStyles = makeStyles(theme => ({
@@ -268,7 +268,7 @@ const Pools: FC = () => {
           </summary>
           <div>
             <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
-              <TokenWrapper />
+              <TokenWrapper network={selectedNetwork} />
             </Box>
           </div>
         </details>

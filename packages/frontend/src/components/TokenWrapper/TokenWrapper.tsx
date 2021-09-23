@@ -1,4 +1,4 @@
-import React, { FC, ChangeEvent } from 'react'
+import React, { FC, ChangeEvent, useEffect } from 'react'
 import { BigNumber } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
@@ -16,6 +16,7 @@ import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
 import { commafy, normalizeNumberInput, toTokenDisplay } from 'src/utils'
 import { useTokenWrapper } from './TokenWrapperContext'
+import Network from 'src/models/Network'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -31,10 +32,14 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const TokenWrapper: FC = () => {
+export type Props = {
+  network: Network | undefined
+}
+
+const TokenWrapper: FC<Props> = (props: Props) => {
   const styles = useStyles()
   const {
-    selectedNetwork,
+    setSelectedNetwork,
     canonicalToken,
     wrappedToken,
     amount,
@@ -46,8 +51,15 @@ const TokenWrapper: FC = () => {
     isWrapping,
     isUnwrapping,
     error,
-    setError
+    setError,
+    isNativeToken
   } = useTokenWrapper()
+
+  useEffect(() => {
+    if (props.network) {
+      setSelectedNetwork(props.network)
+    }
+  }, [props.network])
 
   const handleWrapClick = (event: any) => {
     event.preventDefault()
@@ -62,6 +74,10 @@ const TokenWrapper: FC = () => {
   const hasWrappedToken = wrappedTokenBalance?.gt(0)
   const hasNativeToken = canonicalTokenBalance?.gt(0)
   const loadingBalance = !(canonicalTokenBalance && wrappedTokenBalance)
+
+  if (!isNativeToken) {
+    return null
+  }
 
   return (
     <Box

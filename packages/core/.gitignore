@@ -1,11 +1,8 @@
-.DS_Store
-node_modules
 data
 *.log
 dist
 !third_party/*.tgz
 src/package.json
-package-lock.json
 *.map
 .env
 *.env

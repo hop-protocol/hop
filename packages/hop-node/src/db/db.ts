@@ -1,7 +1,17 @@
 import GasBoostDb from './GasBoostDb'
+import GasPricesDb from './GasPricesDb'
 import SyncStateDb from './SyncStateDb'
 import TransferRootsDb from './TransferRootsDb'
 import TransfersDb from './TransfersDb'
+
+let gasPricesDb: GasPricesDb | null = null
+
+export const getGasPricesDb = () => {
+  if (!gasPricesDb) {
+    gasPricesDb = new GasPricesDb('gasPrices')
+  }
+  return gasPricesDb
+}
 
 export function getDbSet (tokenSymbol: string) {
   if (!tokenSymbol) {
@@ -38,9 +48,12 @@ export function getDbSet (tokenSymbol: string) {
         transferRootsDb = new TransferRootsDb('transferRoots', tokenSymbol)
       }
       return transferRootsDb
+    },
+    get gasPrices () {
+      return getGasPricesDb()
     }
   }
 }
 
 export type Db = any
-export default { getDbSet }
+export default { getDbSet, getGasPricesDb }

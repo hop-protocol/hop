@@ -1,10 +1,10 @@
 import React from 'react'
-import TokenWrapper from './TokenWrapper'
+import TokenWrapper, { Props } from './TokenWrapper'
 import TokenWrapperContext from './TokenWrapperContext'
 
-const fc = () => (
+const fc = (props: Props) => (
   <TokenWrapperContext>
-    <TokenWrapper />
+    <TokenWrapper {...props} />
   </TokenWrapperContext>
 )
 export default fc

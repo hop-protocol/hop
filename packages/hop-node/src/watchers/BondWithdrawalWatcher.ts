@@ -27,6 +27,7 @@ class BondError extends Error {}
 
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
+  lastAvailableCredit: { [destinationChain: string]: BigNumber } = {}
 
   constructor (config: Config) {
     super({
@@ -61,7 +62,24 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     const promises: Promise<any>[] = []
-    for (const { transferId } of dbTransfers) {
+    for (const dbTransfer of dbTransfers) {
+      const {
+        transferId,
+        destinationChainId,
+        amount,
+        withdrawalBondTxError
+      } = dbTransfer
+
+      const destinationChain = this.chainIdToSlug(destinationChainId)
+      const lastAvailableCredit = this.lastAvailableCredit?.[destinationChainId]
+      const amountToCompare = this.getAmountToCompare(amount, destinationChain)
+      if (
+        lastAvailableCredit?.lt(amountToCompare) &&
+        withdrawalBondTxError === TxError.NotEnoughLiquidity
+      ) {
+        continue
+      }
+
       promises.push(this.checkTransferId(transferId).catch(err => {
         this.logger.error(`checkTransferId error: ${err.message}`)
       }))
@@ -89,7 +107,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = dbTransfer
     const logger = this.logger.create({ id: transferId })
     const sourceL2Bridge = this.bridge as L2Bridge
-    const sourceChain = this.bridge.chainSlug
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
@@ -115,7 +132,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     let availableCredit = await destBridge.getAvailableCredit()
-    const includePendingAmount = destinationChain === Chain.Ethereum && bondableChains.includes(sourceChain)
+    const includePendingAmount = this.shouldIncludePendingAmount(destinationChain)
     if (includePendingAmount) {
       let pendingAmounts = BigNumber.from(0)
       for (const chain of bondableChains) {
@@ -127,23 +144,19 @@ class BondWithdrawalWatcher extends BaseWatcher {
         const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
         pendingAmounts = pendingAmounts.add(pendingAmount)
       }
-      availableCredit = availableCredit.sub(pendingAmounts).sub(amount)
+      availableCredit = availableCredit.sub(pendingAmounts)
     }
-    if (availableCredit.lt(amount)) {
+
+    this.lastAvailableCredit[destinationChain] = availableCredit
+    const amountToCompare = this.getAmountToCompare(amount, destinationChain)
+    if (availableCredit.lt(amountToCompare)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
           availableCredit
         )}, need ${this.bridge.formatUnits(amount)}`
       )
-      let { withdrawalBondBackoffIndex } = await this.db.transfers.getByTransferId(transferId)
-      if (!withdrawalBondBackoffIndex) {
-        withdrawalBondBackoffIndex = 0
-      }
-      withdrawalBondBackoffIndex++
       await this.db.transfers.update(transferId, {
-        bondWithdrawalAttemptedAt: Date.now(),
-        withdrawalBondTxError: TxError.NotEnoughLiquidity,
-        withdrawalBondBackoffIndex
+        withdrawalBondTxError: TxError.NotEnoughLiquidity
       })
       return
     }
@@ -218,6 +231,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
           throw err
         })
     } catch (err) {
+      logger.log(err.message)
       const isCallExceptionError = /The execution failed due to an exception/gi.test(err.message)
       if (isCallExceptionError) {
         await this.db.transfers.update(transferId, {
@@ -243,6 +257,21 @@ class BondWithdrawalWatcher extends BaseWatcher {
     return dbTransfer.deadline > 0 || dbTransfer.amountOutMin?.gt(0)
   }
 
+  shouldIncludePendingAmount = (destinationChain: string): boolean => {
+    return destinationChain === Chain.Ethereum && bondableChains.includes(this.bridge.chainSlug)
+  }
+
+  getAmountToCompare = (amount: BigNumber, destinationChain: string): BigNumber => {
+    const includePendingAmount = this.shouldIncludePendingAmount(destinationChain)
+
+    // Double the amount in order to account for the bonding of a transfer root
+    if (includePendingAmount) {
+      return amount.mul(2)
+    } else {
+      return amount
+    }
+  }
+
   sendBondWithdrawalTx = async (params: any) => {
     const {
       transferId,
@@ -261,7 +290,18 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('recipient:', recipient)
     logger.debug('transferNonce:', transferNonce)
     logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
-    if (attemptSwap && !isL1(this.chainIdToSlug(destinationChainId))) {
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+
+    let gasPrice : BigNumber
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    if (dbTransfer?.transferSentTimestamp) {
+      const item = await this.db.gasPrices.getNearest(destinationChain, dbTransfer?.transferSentTimestamp)
+      if (item) {
+        gasPrice = item.gasPrice
+      }
+    }
+
+    if (attemptSwap && !isL1(destinationChain)) {
       logger.debug(
         `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
       )
@@ -273,12 +313,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transferNonce,
         bonderFee,
         amountOutMin,
-        deadline
+        deadline,
+        gasPrice
       )
     } else {
       logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
       const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-      return bridge.bondWithdrawal(recipient, amount, transferNonce, bonderFee)
+      return bridge.bondWithdrawal(recipient, amount, transferNonce, bonderFee, gasPrice)
     }
   }
 

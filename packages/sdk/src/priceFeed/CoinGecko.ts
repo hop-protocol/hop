@@ -86,6 +86,9 @@ class CoinGecko {
     if (symbol === 'ETH') {
       symbol = 'WETH'
     }
+    if (['WXDAI', 'XDAI'].includes(symbol)) {
+      symbol = 'DAI'
+    }
     const prices = await this.getPricesByTokenSymbol([symbol], base)
     return prices[0]
   }

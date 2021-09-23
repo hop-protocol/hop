@@ -237,6 +237,7 @@ class SyncWatcher extends BaseWatcher {
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
       const isBondable = this.getIsBondable(transferId, amount, destinationChainId)
+      const transferSentTimestamp = await this.bridge.getBlockTimestamp(event.blockNumber)
 
       logger.debug('transfer event amount:', this.bridge.formatUnits(amount))
       logger.debug('destinationChainId:', destinationChainId)
@@ -255,6 +256,7 @@ class SyncWatcher extends BaseWatcher {
         amountOutMin,
         isBondable,
         deadline: Number(deadline.toString()),
+        transferSentTimestamp,
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,
         transferSentIndex: transactionIndex
@@ -433,13 +435,11 @@ class SyncWatcher extends BaseWatcher {
       .bridge as L2Bridge
 
     const eventBlockNumber: number = event.blockNumber
-    let startSearchBlockNumber: number
     let startEvent: Event
     let endEvent: Event
 
     let startBlockNumber = sourceBridge.bridgeDeployedBlockNumber
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
-      startSearchBlockNumber = start
       let events = await sourceBridge.getTransfersCommittedEvents(start, end)
       if (!events?.length) {
         return true
@@ -488,9 +488,6 @@ class SyncWatcher extends BaseWatcher {
         // transferEvents need to be sorted from [newest...oldest] in order to maintain the ordering
         transferEvents = transferEvents.reverse()
         for (const event of transferEvents) {
-          const transaction = await sourceBridge.getTransaction(
-            event.transactionHash
-          )
           const eventDestinationChainId = Number(event.args.chainId.toString())
           const isSameChainId = eventDestinationChainId === destinationChainId
           if (!isSameChainId) {

@@ -31,12 +31,14 @@ type TokenWrapperContextProps = {
   isWrapping: boolean
   isUnwrapping: boolean
   selectedNetwork: Network | undefined,
+  setSelectedNetwork: (network: Network) => void,
   canonicalToken: Token | undefined
   canonicalTokenBalance: BigNumber | undefined,
   wrappedToken: Token | undefined
   wrappedTokenBalance: BigNumber | undefined,
   error: string | null | undefined,
-  setError: (error: string | null | undefined) => void
+  setError: (error: string | null | undefined) => void,
+  isNativeToken: boolean
 }
 
 const TokenWrapperContext = createContext<TokenWrapperContextProps>({
@@ -47,12 +49,14 @@ const TokenWrapperContext = createContext<TokenWrapperContextProps>({
   isWrapping: false,
   isUnwrapping: false,
   selectedNetwork: undefined,
+  setSelectedNetwork: (network: Network) => {},
   canonicalToken: undefined,
   canonicalTokenBalance: undefined,
   wrappedToken: undefined,
   wrappedTokenBalance: undefined,
   error: undefined,
-  setError: (error: string | null | undefined) => {}
+  setError: (error: string | null | undefined) => {},
+  isNativeToken: false
 })
 
 const TokenWrapperContextProvider: FC = ({ children }) => {
@@ -81,6 +85,14 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
   const [isWrapping, setWrapping] = useState<boolean>(false)
   const [isUnwrapping, setUnwrapping] = useState<boolean>(false)
   const [error, setError] = useState<string | null | undefined>(null)
+  const isNativeToken = useMemo(() => {
+    try {
+      return canonicalToken?.isNativeToken
+    } catch (err) {
+      logger.error(err)
+    }
+    return false
+  }, [canonicalToken]) ?? false
 
   const updateBalances = async () => {
     if (!canonicalToken) return
@@ -234,12 +246,14 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
         isWrapping,
         isUnwrapping,
         selectedNetwork,
+        setSelectedNetwork,
         canonicalToken,
         canonicalTokenBalance,
         wrappedToken,
         wrappedTokenBalance,
         error,
-        setError
+        setError,
+        isNativeToken
       }}
     >
       {children}

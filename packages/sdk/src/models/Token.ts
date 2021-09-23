@@ -56,11 +56,14 @@ class Token {
   }
 
   static getCanonicalSymbol (tokenSymbol: string) {
-    const isWrappedToken = [Token.WETH, Token.WMATIC, Token.XDAI].includes(
+    const isWrappedToken = [Token.WETH, Token.WMATIC, Token.WXDAI].includes(
       tokenSymbol
     )
     if (isWrappedToken) {
-      return tokenSymbol.replace(/^W/, '')
+      tokenSymbol = tokenSymbol.replace(/^W/, '')
+    }
+    if (tokenSymbol === 'XDAI') {
+      tokenSymbol = 'DAI'
     }
     return tokenSymbol
   }

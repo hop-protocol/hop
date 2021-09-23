@@ -1,7 +1,21 @@
+// TODO: refactor to a react app
+
 const poll = true
 const fetchInterval = 10 * 1000
 const enabledTokens = ['USDC', 'USDT']
 const enabledChains = ['ethereum', 'xdai', 'polygon', 'optimism', 'arbitrum']
+
+let queryParams = {}
+try {
+  const query = window.location.search.substr(1)
+  queryParams = query.split('&').reduce((acc, x) => {
+    const split = x.split('=')
+    acc[split[0]] = split[1]
+    return acc
+  }, {})
+} catch (err) {
+  console.error(err)
+}
 
 let perPage = 100
 try {
@@ -17,12 +31,12 @@ const app = new Vue({
   el: '#app',
   data: {
     perPage,
-    filterBonded: '',
-    filterToken: '',
-    filterSource: '',
-    filterDestination: '',
-    filterAmount: '',
-    filterAmountComparator: 'gt',
+    filterBonded: queryParams.bonded || '',
+    filterToken: queryParams.token || '',
+    filterSource: queryParams.source || '',
+    filterDestination: queryParams.destination || '',
+    filterAmount: queryParams.amount || '',
+    filterAmountComparator: queryParams.amountCmp || 'gt',
     page: 0,
     allTransfers: [],
     transfers: [],

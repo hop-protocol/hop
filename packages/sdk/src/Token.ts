@@ -207,7 +207,8 @@ class Token extends Base {
     const isMatic =
       this.symbol === TokenModel.MATIC && this.chain.equals(Chain.Polygon)
     const isxDai =
-      this.symbol === TokenModel.XDAI && this.chain.equals(Chain.xDai)
+      [TokenModel.DAI, TokenModel.XDAI].includes(this.symbol) &&
+      this.chain.equals(Chain.xDai)
     return isEth || isMatic || isxDai
   }
 

@@ -66,10 +66,9 @@ class GasPricesDb extends BaseDb {
   }
 
   private async getOldEntries (): Promise<GasPrice[]> {
-    const oneWeeksAgo = Math.floor((Date.now() - OneWeekMs) / 1000)
-
+    const oneWeekAgo = Math.floor((Date.now() - OneWeekMs) / 1000)
     const items = (await this.getItems())
-      .filter((item: GasPrice) => item.timestamp < oneWeeksAgo)
+      .filter((item: GasPrice) => item.timestamp < oneWeekAgo)
 
     return items
   }

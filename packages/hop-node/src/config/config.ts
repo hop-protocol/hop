@@ -43,7 +43,7 @@ const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
 export const bondableChains: string[] = [Chain.Optimism, Chain.Arbitrum]
 export const rateLimitMaxRetries = 5
-export const rpcTimeoutSeconds = 10 * 60
+export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop-node`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`

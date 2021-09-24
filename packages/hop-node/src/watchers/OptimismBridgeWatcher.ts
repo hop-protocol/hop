@@ -156,6 +156,13 @@ class OptimismBridgeWatcher extends BaseWatcher {
         logger.debug('message has already been relayed')
         return
       }
+      // isEventLow() does not handle the case where `batchEvents` is null
+      // https://github.com/ethereum-optimism/optimism/blob/26b39199bef0bea62a2ff070cd66fd92918a556f/packages/message-relayer/src/relay-tx.ts#L179
+      const cannotReadProperty = err.message.includes('Cannot read property')
+      if (cannotReadProperty) {
+        logger.debug('event not found in optimism sdk')
+        return
+      }
       throw err
     }
   }

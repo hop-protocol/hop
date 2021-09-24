@@ -11,7 +11,40 @@ type Config = {
   endTime: number
 }
 
-async function getLogs (config: Partial<Config>, cb: any) {
+export async function getLogGroups () {
+  const cloudwatch = new AWS.CloudWatchLogs()
+  const params = {
+    limit: 20
+  }
+  const data = await pify(cloudwatch.describeLogGroups.bind(cloudwatch))(params)
+  return data?.logGroups.map((item: any) => {
+    return {
+      name: item.logGroupName,
+      createdAt: item.creationTime
+    }
+  })
+}
+
+export async function getLogStreams (config: Partial<Config>) {
+  const { logGroup } = config
+  const cloudwatch = new AWS.CloudWatchLogs()
+  const params = {
+    logGroupName: logGroup,
+    descending: true,
+    orderBy: 'LastEventTime',
+    limit: 10
+  }
+  const data = await pify(cloudwatch.describeLogStreams.bind(cloudwatch))(params)
+  return data?.logStreams.map((item: any) => {
+    return {
+      name: item.logStreamName,
+      createdAt: item.creationTime,
+      lastEventAt: item.lastEventTimestamp
+    }
+  })
+}
+
+export async function getLogs (config: Partial<Config>, cb: any) {
   let { logGroup, logStream, filterPattern, startTime, endTime } = config
   const cloudwatch = new AWS.CloudWatchLogs()
   const getLatestLogStream = async ():Promise<any> => {
@@ -51,7 +84,9 @@ async function getLogs (config: Partial<Config>, cb: any) {
 
   let messages : string[]
   let nextForwardToken : string
+  console.log(`log stream: ${logStream}`)
   console.log('fetching logs (this takes a few seconds)')
+  console.log(startTime)
   while (true) {
     ({ messages, nextForwardToken } = await getLogEvents(nextForwardToken))
     cb(messages)
@@ -60,5 +95,3 @@ async function getLogs (config: Partial<Config>, cb: any) {
     }
   }
 }
-
-export default getLogs

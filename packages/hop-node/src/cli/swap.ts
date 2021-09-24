@@ -1,4 +1,3 @@
-import { Chain } from 'src/constants'
 import {
   FileConfig,
   parseConfigFile,
@@ -39,9 +38,6 @@ program
       if (!chain) {
         throw new Error('chain is required')
       }
-      if (chain !== Chain.Ethereum) {
-        throw new Error('currently only ethereum chain is supported for swapping')
-      }
       if (!fromToken) {
         throw new Error('"from" token is required')
       }
@@ -53,6 +49,7 @@ program
       }
 
       const tx = await swap({
+        chain,
         fromToken,
         toToken,
         amount,

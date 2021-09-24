@@ -1,7 +1,7 @@
 import Logger from 'src/logger'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants } from 'ethers'
-import { Chain } from 'src/constants'
 import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-core'
 import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
@@ -60,6 +60,7 @@ async function getPoolState (poolContract: Contract) {
 }
 
 async function getPool (poolContract: Contract) {
+  const { chainId } = await poolContract.provider.getNetwork()
   const immutables = await getPoolImmutables(poolContract)
   const state = await getPoolState(poolContract)
 
@@ -82,8 +83,8 @@ async function getPool (poolContract: Contract) {
   const token0Name = await token0.name()
   const token1Name = await token1.name()
 
-  const TokenA = new Token(1, immutables.token0, token0Decimals, token0Symbol, token0Name)
-  const TokenB = new Token(1, immutables.token1, token1Decimals, token1Symbol, token1Name)
+  const TokenA = new Token(chainId, immutables.token0, token0Decimals, token0Symbol, token0Name)
+  const TokenB = new Token(chainId, immutables.token1, token1Decimals, token1Symbol, token1Name)
 
   const liquidity = state.liquidity.toString()
   const feeAmount = immutables.fee
@@ -120,6 +121,7 @@ function getToken (address: string, provider: any) {
 }
 
 export type Config = {
+  chain: string
   fromToken: string
   toToken: string
   amount: number
@@ -129,20 +131,40 @@ export type Config = {
   deadline?: number
 }
 
-const swapRouter = '0xE592427A0AEce92De3Edee1F18E0157C05861564'
-const ethPools: {[key: string]: string} = {
-  USDC: '0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8',
-  USDT: '0x4e68ccd3e89f51c3074ca5072bbac773960dfa36',
-  DAI: '0x60594a405d53811d3bc4766596efd80fd545a270',
-  MATIC: '0x290A6a7460B308ee3F19023D2D00dE604bcf5B42'
+const addresses: any = {
+  ethereum: {
+    swapRouter: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
+    ethPools: {
+      USDC: '0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8',
+      USDT: '0x4e68ccd3e89f51c3074ca5072bbac773960dfa36',
+      DAI: '0x60594a405d53811d3bc4766596efd80fd545a270',
+      MATIC: '0x290A6a7460B308ee3F19023D2D00dE604bcf5B42'
+    }
+  },
+  optimism: {
+    swapRouter: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
+    ethPools: {
+      USDC: '0xc2c0786e85ac9b0b223966d040ebc641fa44225e',
+      USDT: '0xcf438c19332d507326210da527fb9cf792fd3e18',
+      DAI: '0x2e9c575206288f2219409289035facac0b670c2f'
+    }
+  },
+  arbitrum: {
+    swapRouter: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
+    ethPools: {}
+  }
 }
 
 export async function swap (config: Config) {
-  let { fromToken, toToken, amount, max, slippage, recipient, deadline } = config
+  let { chain, fromToken, toToken, amount, max, slippage, recipient, deadline } = config
   if (toToken !== 'ETH') {
-    throw new Error('only ETH as the "to" token is not supported at this time')
+    throw new Error('only ETH as the "to" token is supported at this time')
   }
-  const wallet = wallets.get(Chain.Ethereum)
+  if (!addresses[chain]) {
+    throw new Error(`chain "${chain}" currently not supported at at this time`)
+  }
+  const { swapRouter, ethPools } = addresses[chain]
+  const wallet = wallets.get(chain)
   const poolAddress = ethPools[fromToken]
   if (!poolAddress) {
     throw new Error(`"from" token "${fromToken}" is not supported at this time. Supported options are ${Object.keys(ethPools).join(',')}`)
@@ -183,7 +205,7 @@ export async function swap (config: Config) {
   }
 
   if (toToken === 'ETH') {
-    routeToken1 = Ether.onChain(1)
+    routeToken1 = Ether.onChain(chainSlugToId(chain))
   }
 
   const sender = await wallet.getAddress()

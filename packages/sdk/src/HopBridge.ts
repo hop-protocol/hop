@@ -186,9 +186,13 @@ class HopBridge extends Base {
   ): Token | undefined {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    const { name, symbol, decimals, image } = metadata.tokens[network][
+    let { name, symbol, decimals, image } = metadata.tokens[network][
       token.canonicalSymbol
     ]
+
+    if (chain.equals(Chain.xDai) && token.symbol === 'DAI') {
+      symbol = 'XDAI'
+    }
 
     let address
     if (chain.isL1) {

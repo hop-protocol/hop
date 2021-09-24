@@ -672,6 +672,10 @@ export default class Bridge extends ContractBase {
     return `${chainId}:${address}:${key}`
   }
 
+  shouldAttemptSwap (amountOutMin: BigNumber, deadline: number): boolean {
+    return amountOutMin?.gt(0) || deadline > 0
+  }
+
   private validateEventsBatchInput = (
     options: Partial<EventsBatchOptions> = {}
   ) => {

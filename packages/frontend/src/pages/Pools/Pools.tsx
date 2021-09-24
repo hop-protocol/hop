@@ -15,7 +15,7 @@ import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
 import { commafy, normalizeNumberInput, toTokenDisplay, toPercentDisplay } from 'src/utils'
-import TokenWrapper from './TokenWrapper'
+import TokenWrapper from 'src/components/TokenWrapper'
 import DetailRow from 'src/components/DetailRow'
 
 const useStyles = makeStyles(theme => ({
@@ -49,10 +49,6 @@ const useStyles = makeStyles(theme => ({
   },
   removeLiquidityButton: {
     marginTop: '2rem',
-  },
-  tokenWrapper: {
-    marginTop: '1rem',
-    marginBottom: '2rem'
   },
   details: {
     width: '46.0rem',
@@ -254,25 +250,7 @@ const Pools: FC = () => {
         </Typography>
       </> : <>
       <Box className={styles.formBox}>
-        {isNativeToken &&
-        <details className={styles.detailsDropdown}>
-          <summary className={styles.detailsDropdownSummary}>
-              <Typography
-                variant="subtitle1"
-                color="textSecondary"
-                component="div"
-                className={styles.detailsDropdownLabel}
-              >
-                <span>Wrap/Unwrap</span>
-              </Typography>
-          </summary>
-          <div>
-            <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
-              <TokenWrapper />
-            </Box>
-          </div>
-        </details>
-        }
+        <TokenWrapper network={selectedNetwork} />
         <Box display="flex" alignItems="center">
           <AmountSelectorCard
             value={token0Amount}

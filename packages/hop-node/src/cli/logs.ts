@@ -97,6 +97,7 @@ program
         })
       }
 
+      console.log('\ndone')
       process.exit(0)
     } catch (err) {
       logger.error(err)

@@ -1,5 +1,8 @@
 import AWS from 'aws-sdk'
+import Logger from 'src/logger'
 import pify from 'pify'
+
+const logger = new Logger('CloudWatch')
 
 AWS.config.update({ region: 'us-east-1' })
 
@@ -84,9 +87,8 @@ export async function getLogs (config: Partial<Config>, cb: any) {
 
   let messages : string[]
   let nextForwardToken : string
-  console.log(`log stream: ${logStream}`)
-  console.log('fetching logs (this takes a few seconds)')
-  console.log(startTime)
+  logger.debug(`log stream: ${logStream}`)
+  logger.debug('fetching logs (this takes a few seconds)\n')
   while (true) {
     ({ messages, nextForwardToken } = await getLogEvents(nextForwardToken))
     cb(messages)

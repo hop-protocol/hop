@@ -1,4 +1,5 @@
 import BaseWatcher from './classes/BaseWatcher'
+import Logger from 'src/logger'
 import chalk from 'chalk'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getRpcUrls from 'src/utils/getRpcUrls'
@@ -88,16 +89,6 @@ class OptimismBridgeWatcher extends BaseWatcher {
       return
     }
 
-    this.logger.debug(
-         `attempting to send relay message on optimism for commit tx hash ${txHash}`
-    )
-
-    await this.handleStateSwitch()
-    if (this.isDryOrPauseMode) {
-      this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
-      return
-    }
-
     return this.l1Messenger
       .connect(this.l1Wallet)
       .relayMessage(
@@ -109,22 +100,34 @@ class OptimismBridgeWatcher extends BaseWatcher {
       )
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootHash: string) {
+  async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {
     try {
-      const tx = await this.relayXDomainMessages(commitTxHash)
-      if (!tx) {
+      logger.debug(
+        `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
+      )
+
+      await this.handleStateSwitch()
+      if (this.isDryOrPauseMode) {
+        logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
         return
       }
 
       await this.db.transferRoots.update(transferRootHash, {
         sentConfirmTxAt: Date.now()
       })
-      this.logger.info(
-           `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
-           chalk.bgYellow.black.bold(tx.hash)
+
+      const tx = await this.relayXDomainMessages(commitTxHash)
+      if (!tx) {
+        logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
+        return
+      }
+
+      logger.info(
+        `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
+        chalk.bgYellow.black.bold(tx.hash)
       )
       this.notifier.info(
-           `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
+        `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
       )
       tx.wait()
         .then(async (receipt: any) => {
@@ -145,11 +148,19 @@ class OptimismBridgeWatcher extends BaseWatcher {
     } catch (err) {
       const isNotCheckpointedYet = err.message.includes('unable to find state root batch for tx')
       if (isNotCheckpointedYet) {
-        this.logger.debug('state root batch not yet on L1. cannot exit yet')
+        logger.debug('state root batch not yet on L1. cannot exit yet')
         return
       }
       const isAlreadyRelayed = err.message.includes('message has already been received')
       if (isAlreadyRelayed) {
+        logger.debug('message has already been relayed')
+        return
+      }
+      // isEventLow() does not handle the case where `batchEvents` is null
+      // https://github.com/ethereum-optimism/optimism/blob/26b39199bef0bea62a2ff070cd66fd92918a556f/packages/message-relayer/src/relay-tx.ts#L179
+      const cannotReadProperty = err.message.includes('Cannot read property')
+      if (cannotReadProperty) {
+        logger.debug('event not found in optimism sdk')
         return
       }
       throw err

@@ -1,4 +1,5 @@
 import BaseWatcher from './classes/BaseWatcher'
+import Logger from 'src/logger'
 import Web3 from 'web3'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import chalk from 'chalk'
@@ -164,9 +165,6 @@ class PolygonBridgeWatcher extends BaseWatcher {
         globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
     })
 
-    // signature source: https://github.com/maticnetwork/pos-portal/blob/d06271188412a91ab9e4bdea4bbbfeb6cb9d7669/contracts/tunnel/BaseRootTunnel.sol#L21
-    const sig =
-      '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
     const rootTunnel =
       globalConfig.tokens[tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
     const tx = await (maticPOSClient as any).posRootChainManager.processReceivedMessage(
@@ -174,7 +172,6 @@ class PolygonBridgeWatcher extends BaseWatcher {
       txHash,
       {
         from: recipient,
-        // gasLimit: 500_000,
         encodeAbi: true
       }
     )
@@ -217,27 +214,28 @@ class PolygonBridgeWatcher extends BaseWatcher {
     })
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootHash: string) {
+  async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     const destinationChainId = dbTransferRoot?.destinationChainId
     const commitTx: any = await this.bridge.getTransaction(commitTxHash)
     const isCheckpointed = await this.isCheckpointed(commitTx.blockNumber)
     if (!isCheckpointed) {
+      logger.warn(`transaction ${commitTxHash} not checkpointed`)
       return
     }
 
-    this.logger.debug(
-        `attempting to send relay message on polygon for commit tx hash ${commitTxHash}`
+    logger.debug(
+      `attempting to send relay message on polygon for commit tx hash ${commitTxHash}`
     )
     await this.handleStateSwitch()
     if (this.isDryOrPauseMode) {
-      this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayMessage`)
+      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayMessage`)
       return
     }
-    const tx = await this.relayMessage(commitTxHash, this.tokenSymbol)
     await this.db.transferRoots.update(transferRootHash, {
       sentConfirmTxAt: Date.now()
     })
+    const tx = await this.relayMessage(commitTxHash, this.tokenSymbol)
     tx?.wait()
       .then(async (receipt: providers.TransactionReceipt) => {
         if (receipt.status !== 1) {
@@ -261,12 +259,12 @@ class PolygonBridgeWatcher extends BaseWatcher {
 
         throw err
       })
-    this.logger.info(
-        `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
-        chalk.bgYellow.black.bold(tx.hash)
+    logger.info(
+      `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
+      chalk.bgYellow.black.bold(tx.hash)
     )
     this.notifier.info(
-        `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
+      `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
     )
   }
 }

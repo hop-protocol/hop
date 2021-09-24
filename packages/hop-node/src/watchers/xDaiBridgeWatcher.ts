@@ -1,5 +1,6 @@
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
+import Logger from 'src/logger'
 import chalk from 'chalk'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
@@ -144,7 +145,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
     }
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootHash: string) {
+  async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     const destinationChainId = dbTransferRoot?.destinationChainId
     const l2Amb = getL2Amb(this.tokenSymbol)
@@ -155,6 +156,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
       tx.blockNumber + 1
     )
 
+    logger.info(`found ${sigEvents.length} events`)
     for (const sigEvent of sigEvents) {
       const { encodedData } = sigEvent.args
       // TODO: better way of slicing by method id
@@ -164,59 +166,55 @@ class xDaiBridgeWatcher extends BaseWatcher {
       if (!data) {
         continue
       }
-      const {
-        rootHash,
-        originChainId,
-        destinationChain
-      } = await this.l1Bridge.decodeConfirmTransferRootData(
-        '0x' + data.replace('0x', '')
-      )
-      this.logger.debug(
-          `attempting to send relay message on xdai for commit tx hash ${commitTxHash}`
+      logger.debug(
+        `attempting to send relay message on xdai for commit tx hash ${commitTxHash}`
       )
       await this.handleStateSwitch()
       if (this.isDryOrPauseMode) {
-        this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
+        logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
         return
       }
-      const result = await executeExitTx(sigEvent, this.tokenSymbol)
-      if (result) {
-        await this.db.transferRoots.update(transferRootHash, {
-          sentConfirmTxAt: Date.now()
-        })
-        const { tx } = result
-        tx?.wait()
-          .then(async (receipt: any) => {
-            if (receipt.status !== 1) {
-              await this.db.transferRoots.update(transferRootHash, {
-                sentConfirmTxAt: 0
-              })
-              throw new Error('status=0')
-            }
+      await this.db.transferRoots.update(transferRootHash, {
+        sentConfirmTxAt: Date.now()
+      })
 
-            if (destinationChainId) {
-              this.emit('transferRootConfirmed', {
-                transferRootHash,
-                destinationChainId
-              })
-            }
-          })
-          .catch(async (err: Error) => {
-            this.db.transferRoots.update(transferRootHash, {
+      const result = await executeExitTx(sigEvent, this.tokenSymbol)
+      if (!result) {
+        logger.error('no result returned from exit tx')
+      }
+
+      const { tx } = result
+      tx?.wait()
+        .then(async (receipt: any) => {
+          if (receipt.status !== 1) {
+            await this.db.transferRoots.update(transferRootHash, {
               sentConfirmTxAt: 0
             })
+            throw new Error('status=0')
+          }
 
-            throw err
+          if (destinationChainId) {
+            this.emit('transferRootConfirmed', {
+              transferRootHash,
+              destinationChainId
+            })
+          }
+        })
+        .catch(async (err: Error) => {
+          this.db.transferRoots.update(transferRootHash, {
+            sentConfirmTxAt: 0
           })
-        this.logger.info('transferRootHash:', transferRootHash)
-        this.logger.info(
-            `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
-            chalk.bgYellow.black.bold(tx.hash)
-        )
-        this.notifier.info(
-            `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
-        )
-      }
+
+          throw err
+        })
+      logger.info('transferRootHash:', transferRootHash)
+      logger.info(
+        `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
+        chalk.bgYellow.black.bold(tx.hash)
+      )
+      this.notifier.info(
+        `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
+      )
     }
   }
 }

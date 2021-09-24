@@ -153,7 +153,7 @@ const addresses: any = {
     swapRouter: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
     ethPools: {
       USDC: '0x17c14d2c404d167802b16c450d3c99f88f2c4f4d',
-      USDT: '0x641c00a822e8b671738d32a431a4fb6074e5c79d',
+      USDT: '0x641c00a822e8b671738d32a431a4fb6074e5c79d'
     }
   }
 }

@@ -68,7 +68,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         withdrawalBondTxError
       } = dbTransfer
 
-      const availableCredit = await this.getAvailableCredit(destinationChainId, amount)
+      const availableCredit = await this.getAvailableCreditForTransfer(destinationChainId, amount)
       if (
         availableCredit?.lt(amount) &&
         withdrawalBondTxError === TxError.NotEnoughLiquidity
@@ -129,7 +129,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    const availableCredit = await this.getAvailableCredit(destinationChainId, amount)
+    const availableCredit = await this.getAvailableCreditForTransfer(destinationChainId, amount)
     if (availableCredit.lt(amount)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
@@ -324,8 +324,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
   //    - divide by 2 because `amount` gets added to OruToL1PendingAmount
   // nonORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
-  async getAvailableCredit (destinationChainId: number, amount: BigNumber) {
-    const availableCredit = await this.syncWatcher.getAvailableCredit(destinationChainId)
+  async getAvailableCreditForTransfer (destinationChainId: number, amount: BigNumber) {
+    const availableCredit = await this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
     if (this.syncWatcher.isOruToL1(destinationChainId)) {
       return availableCredit.div(2)
     }

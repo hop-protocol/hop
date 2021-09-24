@@ -108,7 +108,7 @@ export default class Bridge extends ContractBase {
   }
 
   @rateLimitRetry
-  async getAvailableCredit (bonder?: string): Promise<BigNumber> {
+  async getBaseAvailableCredit (bonder?: string): Promise<BigNumber> {
     const [credit, debit] = await Promise.all([
       this.getCredit(bonder),
       this.getDebit(bonder)
@@ -118,7 +118,7 @@ export default class Bridge extends ContractBase {
 
   @rateLimitRetry
   async hasPositiveBalance (): Promise<boolean> {
-    const credit = await this.getAvailableCredit()
+    const credit = await this.getBaseAvailableCredit()
     return credit.gt(0)
   }
 

@@ -12,8 +12,8 @@ import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
-import { bondableChains, config as globalConfig } from 'src/config'
 import { boundClass } from 'autobind-decorator'
+import { config as globalConfig, oruChains } from 'src/config'
 
 type S3JsonData = {
   [token: string]: {
@@ -47,6 +47,7 @@ class SyncWatcher extends BaseWatcher {
   private availableCredit: { [destinationChain: string]: BigNumber } = {} // own bonder
   private pendingAmounts: { [destinationChain: string]: BigNumber } = {}
   private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
+  private lastCalculated: { [destinationChain: string]: number } = {}
   s3Upload: S3Upload
 
   constructor (config: Config) {
@@ -414,7 +415,7 @@ class SyncWatcher extends BaseWatcher {
       const blockNumber: number = event.blockNumber
 
       const sourceChainSlug = this.chainIdToSlug(sourceChainId)
-      const shouldBondTransferRoot = bondableChains.includes(sourceChainSlug)
+      const shouldBondTransferRoot = oruChains.includes(sourceChainSlug)
 
       logger.debug('committedAt:', committedAt)
       logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
@@ -703,13 +704,13 @@ class SyncWatcher extends BaseWatcher {
   isOruToL1 (destinationChainId: number) {
     const sourceChain = this.chainSlug
     const destinationChain = this.chainIdToSlug(destinationChainId)
-    return destinationChain === Chain.Ethereum && bondableChains.includes(sourceChain)
+    return destinationChain === Chain.Ethereum && oruChains.includes(sourceChain)
   }
 
   isNonOruToL1 (destinationChainId: number) {
     const sourceChain = this.chainSlug
     const destinationChain = this.chainIdToSlug(destinationChainId)
-    return destinationChain === Chain.Ethereum && !bondableChains.includes(sourceChain)
+    return destinationChain === Chain.Ethereum && !oruChains.includes(sourceChain)
   }
 
   // ORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots) / 2
@@ -725,7 +726,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`no destination watcher for ${destinationChain}`)
     }
     const destinationBridge = destinationWatcher.bridge
-    let availableCredit = await destinationBridge.getAvailableCredit(bonder)
+    let availableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
     if (this.isOruToL1(destinationChainId) || this.isNonOruToL1(destinationChainId)) {
       const pendingAmount = await this.getOruToL1PendingAmount()
       availableCredit = availableCredit.sub(pendingAmount)
@@ -782,6 +783,7 @@ class SyncWatcher extends BaseWatcher {
     const totalAmounts = await this.calculateUnbondedTransferRootAmounts(destinationChainId)
     const destinationChain = this.chainIdToSlug(destinationChainId)
     this.unbondedTransferRootAmounts[destinationChain] = totalAmounts
+    this.lastCalculated[destinationChain] = Date.now()
   }
 
   async syncPendingAmounts () {
@@ -830,14 +832,14 @@ class SyncWatcher extends BaseWatcher {
         continue
       }
       await this.updateAvailableCreditMap(destinationChainId)
-      const availableCredit = await this.getAvailableCredit(destinationChainId)
+      const availableCredit = await this.getEffectiveAvailableCredit(destinationChainId)
       this.logger.debug(`availableCredit (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(availableCredit)}`)
     }
   }
 
   async getOruToL1PendingAmount () {
     let pendingAmounts = BigNumber.from(0)
-    for (const chain of bondableChains) {
+    for (const chain of oruChains) {
       const watcher = this.getSiblingWatcherByChainSlug(chain)
       if (!watcher) {
         continue
@@ -854,13 +856,20 @@ class SyncWatcher extends BaseWatcher {
   async getOruToAllUnbondedTransferRootAmounts () {
     let totalAmount = BigNumber.from(0)
     for (const destinationChain in this.unbondedTransferRootAmounts) {
+      if (this.lastCalculated[this.lastCalculated[destinationChain]]) {
+        const tenMinutes = 10 * 60 * 1000
+        const isStale = Date.now() - this.lastCalculated[destinationChain] > tenMinutes
+        if (isStale) {
+          continue
+        }
+      }
       const amount = this.unbondedTransferRootAmounts[destinationChain]
       totalAmount = totalAmount.add(amount)
     }
     return totalAmount
   }
 
-  public async getAvailableCredit (destinationChainId: number) {
+  public async getEffectiveAvailableCredit (destinationChainId: number) {
     const sourceChain = this.chainSlug
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const availableCredit = this.availableCredit[destinationChain]

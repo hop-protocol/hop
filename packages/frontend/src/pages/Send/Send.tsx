@@ -487,8 +487,11 @@ const Send: FC = () => {
       minimumSendWarning ||
       needsNativeTokenWarning
     )
+
     if (!enoughBalance) {
       message = 'Insufficient funds'
+    } else if (estimatedReceived && bonderFee?.gt(estimatedReceived)) {
+      message = 'Bonder fee greater than estimated received'
     } else if (estimatedReceived?.lte(0)) {
       message = 'Insufficient amount. Send higher amount to cover bonder fee.'
     }

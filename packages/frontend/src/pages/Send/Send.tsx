@@ -294,7 +294,7 @@ const Send: FC = () => {
       await approveFromToken()
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err))
+        setError(formatError(err, fromNetwork))
       }
       logger.error(err)
     }

@@ -20,6 +20,7 @@ import {
   BondTransferGasLimit,
   LpFeeBps,
   GasPriceMultiplier,
+  ORUGasPriceMultiplier,
   L2ToL2BonderFeeBps,
   L2ToL1BonderFeeBps,
   PendingAmountBuffer
@@ -637,8 +638,14 @@ class HopBridge extends Base {
     )
     let fee = txFeeEth.mul(rateBN).div(oneEth)
 
+    let multiplier = BigNumber.from(0)
     if (destinationChain.equals(Chain.Ethereum)) {
-      const multiplier = ethers.utils.parseEther(GasPriceMultiplier)
+      multiplier = ethers.utils.parseEther(GasPriceMultiplier)
+    } else if (bondableChains.includes(destinationChain.slug)) {
+      multiplier = ethers.utils.parseEther(ORUGasPriceMultiplier)
+    }
+
+    if (multiplier.gt(0)) {
       fee = fee.mul(multiplier).div(oneEth)
     }
 

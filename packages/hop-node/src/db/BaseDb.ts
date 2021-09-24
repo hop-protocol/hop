@@ -10,6 +10,10 @@ import { config as globalConfig } from 'src/config'
 
 const dbMap: { [key: string]: any } = {}
 
+export type BaseItem = {
+  _id?: string
+}
+
 @boundClass
 class BaseDb {
   public db: any
@@ -70,14 +74,18 @@ class BaseDb {
 
   protected async getById (id: string, defaultValue: any = null) {
     try {
-      return await this.db.get(id)
+      const item = await this.db.get(id)
+      if (item) {
+        item._id = id
+      }
+      return item
     } catch (err) {
       return defaultValue
     }
   }
 
   protected async deleteById (id: string) {
-    return this.db.delete(id)
+    return this.db.del(id)
   }
 
   protected async getKeys (): Promise<string[]> {

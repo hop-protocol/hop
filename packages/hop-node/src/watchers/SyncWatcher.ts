@@ -236,7 +236,7 @@ class SyncWatcher extends BaseWatcher {
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
-      const isBondable = this.getIsBondable(transferId, amount, destinationChainId)
+      const isBondable = this.getIsBondable(transferId, amountOutMin, deadline, destinationChainId)
       const transferSentTimestamp = await this.bridge.getBlockTimestamp(event.blockNumber)
 
       logger.debug('transfer event amount:', this.bridge.formatUnits(amount))
@@ -244,6 +244,10 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('isBondable:', isBondable)
       logger.debug('transferId:', chalk.bgCyan.black(transferId))
       logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
+
+      if (!isBondable) {
+        logger.warn('transfer is unbondable', amountOutMin, deadline)
+      }
 
       await this.db.transfers.update(transferId, {
         transferId,
@@ -644,19 +648,27 @@ class SyncWatcher extends BaseWatcher {
     )
     const allSettled = rootAmountAllSettled || allTransfersSettled
     logger.debug(`all settled: ${allSettled}`)
-    if (allSettled) {
-      await this.db.transferRoots.update(transferRootHash, {
-        allSettled
-      })
-    }
+    await this.db.transferRoots.update(transferRootHash, {
+      allSettled
+    })
   }
 
-  getIsBondable = (transferId: string, amount: BigNumber, destinationChainId: number): boolean => {
+  getIsBondable = (
+    transferId: string,
+    amountOutMin: BigNumber,
+    deadline: number,
+    destinationChainId: number
+  ): boolean => {
     // Remove when this hash has been resolved
     const invalidTransferIds: string[] = [
       '0x99b304c55afc0b56456dc4999913bafff224080b8a3bbe0e5a04aaf1eedf76b6'
     ]
     if (invalidTransferIds.includes(transferId)) {
+      return false
+    }
+
+    const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin, deadline)
+    if (attemptSwap && isL1ChainId(destinationChainId)) {
       return false
     }
 

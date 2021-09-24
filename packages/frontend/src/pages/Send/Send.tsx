@@ -35,6 +35,7 @@ import FeeDetails from 'src/components/FeeDetails'
 import useApprove from 'src/hooks/useApprove'
 import { reactAppNetwork } from 'src/config'
 import InfoTooltip from 'src/components/infoTooltip'
+import { formatError } from 'src/utils/format'
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -293,7 +294,7 @@ const Send: FC = () => {
       await approveFromToken()
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err))
       }
       logger.error(err)
     }

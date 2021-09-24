@@ -133,14 +133,6 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  isAllSiblingWatchersSyncCompleted (syncIndex: number = this.syncIndex): boolean {
-    return Object.values(this.siblingWatchers).every(
-      (siblingWatcher: SyncWatcher) => {
-        return siblingWatcher.syncIndex === syncIndex
-      }
-    )
-  }
-
   async syncHandler (): Promise<any> {
     const promises: Promise<any>[] = []
     let startBlockNumber = this.bridge.bridgeDeployedBlockNumber
@@ -881,14 +873,6 @@ class SyncWatcher extends BaseWatcher {
 
   async uploadToS3 () {
     if (!this.s3Upload) {
-      return
-    }
-    if (!this.isAllSiblingWatchersInitialSyncCompleted()) {
-      return
-    }
-    const { syncIndex } = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
-    const doneSyncing = this.isAllSiblingWatchersSyncCompleted(syncIndex)
-    if (!doneSyncing) {
       return
     }
 

@@ -484,7 +484,7 @@ const Send: FC = () => {
     if (!enoughBalance) {
       message = 'Insufficient funds'
     } else if (estimatedReceived?.lte(0)) {
-      message = 'Insufficient amount'
+      message = 'Insufficient amount. Send higher amount to cover bonder fee.'
     }
 
     setWarning(message)

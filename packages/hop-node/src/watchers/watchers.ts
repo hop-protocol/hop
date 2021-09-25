@@ -2,7 +2,7 @@ import '../moduleAlias'
 import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
-import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
+import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
 import GasPriceWatcher from 'src/watchers/GasPriceWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
@@ -13,7 +13,7 @@ import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
 import { config as globalConfig } from 'src/config'
 
-type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransferWatcher | SettleBondedWithdrawalWatcher | StakeWatcher | SyncWatcher | xDomainMessageRelayWatcher
+type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransfersWatcher | SettleBondedWithdrawalWatcher | StakeWatcher | SyncWatcher | xDomainMessageRelayWatcher
 
 enum Watchers {
   BondWithdrawal = 'bondWithdrawal',
@@ -125,7 +125,7 @@ export function getWatchers (config: GetWatchersConfig) {
     watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
       const minThresholdAmounts = commitTransfersMinThresholdAmounts?.[token]?.[network]
 
-      return new CommitTransferWatcher({
+      return new CommitTransfersWatcher({
         chainSlug: network,
         tokenSymbol: token,
         order,

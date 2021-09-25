@@ -42,8 +42,10 @@ program
         items = await db.transfers.getTransfers()
       } else if (dbName === 'sync-state') {
         items = await db.syncState.getItems()
+      } else if (dbName === 'gas-prices') {
+        items = await db.gasPrices.getItems()
       } else {
-        throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state`)
+        throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state, gas-prices`)
       }
 
       logger.debug(`count: ${items.length}`)

@@ -603,6 +603,7 @@ class HopBridge extends Base {
     let bondTransferGasLimit: string = BondTransferGasLimit.Ethereum
     if (destinationChain?.equals(Chain.Optimism)) {
       try {
+        // TODO: This estimates for a non-swap. In order to accurately assess fees, we need to estimate for a swap.
         const estimatedGas = await destinationChain.provider.estimateGas({
           from: this.getBonderAddress(this.tokenSymbol),
           to: this.getL2BridgeAddress(this.tokenSymbol, destinationChain),
@@ -615,18 +616,7 @@ class HopBridge extends Base {
         bondTransferGasLimit = BondTransferGasLimit.Optimism
       }
     } else if (destinationChain?.equals(Chain.Arbitrum)) {
-      try {
-        const estimatedGas = await destinationChain.provider.estimateGas({
-          from: this.getBonderAddress(this.tokenSymbol),
-          to: this.getL2BridgeAddress(this.tokenSymbol, destinationChain),
-          data:
-            '0x3d12a85a000000000000000000000000011111111111111111111111111111111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
-        })
-        bondTransferGasLimit = estimatedGas.toString()
-      } catch (err) {
-        console.error(err)
-        bondTransferGasLimit = BondTransferGasLimit.Arbitrum
-      }
+      bondTransferGasLimit = BondTransferGasLimit.Arbitrum
     }
 
     const txFeeEth = gasPrice.mul(bondTransferGasLimit)

@@ -41,6 +41,7 @@ program
   .option('--clear-db', 'Clear cache database on start')
   .option('--log-db-state', 'Log db state periodically')
   .option('--sync-from-date <string>', 'Date to start syncing db from, in ISO format YYYY-MM-DD')
+  .option('--s3-upload', 'Upload available liquidity info as JSON to S3')
   .action(async (source: any) => {
     try {
       printHopArt()
@@ -49,6 +50,10 @@ program
       const config: FileConfig = await parseConfigFile(configFilePath)
       await setGlobalConfigFromConfigFile(config, source.passwordFile)
       const syncFromDate = source.syncFromDate
+      const s3Upload = !!source.s3Upload
+      if (s3Upload) {
+        logger.debug('s3 upload enabled')
+      }
 
       if (source.clearDb) {
         await clearDb()
@@ -154,7 +159,8 @@ program
         settleBondedWithdrawalsThresholdPercent,
         dryMode,
         stateUpdateAddress,
-        syncFromDate
+        syncFromDate,
+        s3Upload
       })
       if (config?.roles?.arbBot) {
         const maxTradeAmount = 0

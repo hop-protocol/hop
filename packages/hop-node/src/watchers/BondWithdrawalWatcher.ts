@@ -6,8 +6,7 @@ import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract, providers } from 'ethers'
 import { BonderFeeTooLowError } from 'src/types/error'
-import { Chain, TxError } from 'src/constants'
-import { bondableChains } from 'src/config'
+import { TxError } from 'src/constants'
 
 export interface Config {
   chainSlug: string
@@ -26,7 +25,6 @@ class BondError extends Error {}
 
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
-  lastAvailableCredit: { [destinationChain: string]: BigNumber } = {}
 
   constructor (config: Config) {
     super({
@@ -69,11 +67,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
         withdrawalBondTxError
       } = dbTransfer
 
-      const destinationChain = this.chainIdToSlug(destinationChainId)
-      const lastAvailableCredit = this.lastAvailableCredit?.[destinationChainId]
-      const amountToCompare = this.getAmountToCompare(amount, destinationChain)
+      const availableCredit = await this.getAvailableCreditForTransfer(destinationChainId, amount)
       if (
-        lastAvailableCredit?.lt(amountToCompare) &&
+        availableCredit?.lt(amount) &&
         withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
         continue
@@ -126,29 +122,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
           withdrawalBonder: sender,
           withdrawalBondedTxHash: transactionHash
         })
+      } else {
+        logger.warn(`event not found. transferId: ${transferId}`)
       }
       return
     }
 
-    let availableCredit = await destBridge.getAvailableCredit()
-    const includePendingAmount = this.shouldIncludePendingAmount(destinationChain)
-    if (includePendingAmount) {
-      let pendingAmounts = BigNumber.from(0)
-      for (const chain of bondableChains) {
-        const watcher = this.getSiblingWatcherByChainSlug(chain)
-        if (!watcher) {
-          continue
-        }
-        const bridge = watcher.bridge as L2Bridge
-        const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
-        pendingAmounts = pendingAmounts.add(pendingAmount)
-      }
-      availableCredit = availableCredit.sub(pendingAmounts)
-    }
-
-    this.lastAvailableCredit[destinationChain] = availableCredit
-    const amountToCompare = this.getAmountToCompare(amount, destinationChain)
-    if (availableCredit.lt(amountToCompare)) {
+    const availableCredit = await this.getAvailableCreditForTransfer(destinationChainId, amount)
+    if (availableCredit.lt(amount)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
           availableCredit
@@ -258,21 +239,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  shouldIncludePendingAmount = (destinationChain: string): boolean => {
-    return destinationChain === Chain.Ethereum && bondableChains.includes(this.bridge.chainSlug)
-  }
-
-  getAmountToCompare = (amount: BigNumber, destinationChain: string): BigNumber => {
-    const includePendingAmount = this.shouldIncludePendingAmount(destinationChain)
-
-    // Double the amount in order to account for the bonding of a transfer root
-    if (includePendingAmount) {
-      return amount.mul(2)
-    } else {
-      return amount
-    }
-  }
-
   sendBondWithdrawalTx = async (params: any) => {
     const {
       transferId,
@@ -353,6 +319,19 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
     this.logger.debug(`transfer id already bonded ${transferId}`)
     throw new Error('cancelled')
+  }
+
+  // ORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots) / 2
+  //    - divide by 2 because `amount` gets added to OruToL1PendingAmount
+  // nonORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
+  // L2 -> L2: (credit - debit)
+  async getAvailableCreditForTransfer (destinationChainId: number, amount: BigNumber) {
+    const availableCredit = await this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
+    if (this.syncWatcher.isOruToL1(destinationChainId)) {
+      return availableCredit.div(2)
+    }
+
+    return availableCredit
   }
 }
 

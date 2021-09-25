@@ -78,7 +78,9 @@ class HopConvertOption extends ConvertOption {
 
     const destinationTxFee = (await bridge.getDestinationTransactionFee(
       sourceNetwork.slug,
-      destNetwork.slug
+      destNetwork.slug,
+      amountIn,
+      bonderFee
     )) || BigNumber.from(0)
 
     const availableLiquidity = await bridge.getAvailableLiquidity(

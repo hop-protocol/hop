@@ -1,5 +1,12 @@
 import fetch from 'isomorphic-fetch'
-import { ethers, Signer, Contract, BigNumber, BigNumberish } from 'ethers'
+import {
+  constants,
+  ethers,
+  Signer,
+  Contract,
+  BigNumber,
+  BigNumberish
+} from 'ethers'
 import { parseUnits, formatUnits, getAddress } from 'ethers/lib/utils'
 import Chain from './models/Chain'
 import TokenModel from './models/Token'
@@ -452,7 +459,9 @@ class HopBridge extends Base {
     const lpFees = await this.getLpFees(amountIn, sourceChain, destinationChain)
     const destinationTxFee = await this.getDestinationTransactionFee(
       sourceChain,
-      destinationChain
+      destinationChain,
+      amountOutWithoutFee,
+      bonderFee
     )
     let estimatedReceived = amountOut
     const totalFee = bonderFee.add(destinationTxFee)
@@ -580,7 +589,9 @@ class HopBridge extends Base {
 
   public async getDestinationTransactionFee (
     sourceChain: TChain,
-    destinationChain: TChain
+    destinationChain: TChain,
+    amount: BigNumber,
+    bonderFee: BigNumber
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
@@ -604,13 +615,26 @@ class HopBridge extends Base {
     let bondTransferGasLimit: string = BondTransferGasLimit.Ethereum
     if (destinationChain?.equals(Chain.Optimism)) {
       try {
-        // TODO: This estimates for a non-swap. In order to accurately assess fees, we need to estimate for a swap.
-        const estimatedGas = await destinationChain.provider.estimateGas({
-          from: this.getBonderAddress(this.tokenSymbol),
-          to: this.getL2BridgeAddress(this.tokenSymbol, destinationChain),
-          data:
-            '0x3d12a85a000000000000000000000000011111111111111111111111111111111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
-        })
+        const destinationBridge = await this.getL2Bridge(destinationChain)
+        const bonder = this.getBonderAddress()
+        const transferNonce = `0x${'0'.repeat(64)}`
+        const amountOutMin = BigNumber.from(1)
+        const deadline = this.defaultDeadlineSeconds
+        const payload = [
+          bonder,
+          amount,
+          transferNonce,
+          bonderFee,
+          amountOutMin,
+          deadline,
+          {
+            from: bonder
+          }
+        ]
+
+        const estimatedGas = await destinationBridge.estimateGas.bondWithdrawalAndDistribute(
+          ...payload
+        )
         bondTransferGasLimit = estimatedGas.toString()
       } catch (err) {
         console.error(err)
@@ -765,7 +789,7 @@ class HopBridge extends Base {
   public async getAvailableLiquidity (
     sourceChain: TChain,
     destinationChain: TChain,
-    bonder: string = this.getBonderAddress(this.tokenSymbol)
+    bonder: string = this.getBonderAddress()
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
@@ -904,7 +928,7 @@ class HopBridge extends Base {
    */
   public async getCredit (
     chain: TChain,
-    bonder: string = this.getBonderAddress(this.tokenSymbol)
+    bonder: string = this.getBonderAddress()
   ): Promise<BigNumber> {
     chain = this.toChainModel(chain)
     const bridge = await this.getBridgeContract(chain)
@@ -919,7 +943,7 @@ class HopBridge extends Base {
    */
   public async getTotalDebit (
     chain: TChain,
-    bonder: string = this.getBonderAddress(this.tokenSymbol)
+    bonder: string = this.getBonderAddress()
   ): Promise<BigNumber> {
     chain = this.toChainModel(chain)
     const bridge = await this.getBridgeContract(chain)
@@ -934,7 +958,7 @@ class HopBridge extends Base {
    */
   public async getDebit (
     chain: TChain,
-    bonder: string = this.getBonderAddress(this.tokenSymbol)
+    bonder: string = this.getBonderAddress()
   ): Promise<BigNumber> {
     chain = this.toChainModel(chain)
     const bridge = await this.getBridgeContract(chain)
@@ -1256,7 +1280,7 @@ class HopBridge extends Base {
    */
   public async timeSlotToAmountBonded (
     timeSlot: TTimeSlot,
-    bonder: string = this.getBonderAddress(this.tokenSymbol)
+    bonder: string = this.getBonderAddress()
   ): Promise<BigNumber> {
     const bridge = await this.getL1Bridge()
     timeSlot = BigNumber.from(timeSlot.toString())
@@ -1759,6 +1783,10 @@ class HopBridge extends Base {
 
   isSupportedAsset (chain: TChain) {
     return !!this.getConfigAddresses(this.tokenSymbol, chain)
+  }
+
+  getBonderAddress (): string {
+    return super.getBonderAddress(this.tokenSymbol)
   }
 }
 

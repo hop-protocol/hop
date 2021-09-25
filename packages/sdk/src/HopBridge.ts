@@ -614,32 +614,10 @@ class HopBridge extends Base {
     const gasPrice = await destinationChain.provider.getGasPrice()
     let bondTransferGasLimit: string = BondTransferGasLimit.Ethereum
     if (destinationChain?.equals(Chain.Optimism)) {
-      try {
-        const destinationBridge = await this.getL2Bridge(destinationChain)
-        const bonder = this.getBonderAddress()
-        const transferNonce = `0x${'0'.repeat(64)}`
-        const amountOutMin = BigNumber.from(1)
-        const deadline = this.defaultDeadlineSeconds
-        const payload = [
-          bonder,
-          amount,
-          transferNonce,
-          bonderFee,
-          amountOutMin,
-          deadline,
-          {
-            from: bonder
-          }
-        ]
-
-        const estimatedGas = await destinationBridge.estimateGas.bondWithdrawalAndDistribute(
-          ...payload
-        )
-        bondTransferGasLimit = estimatedGas.toString()
-      } catch (err) {
-        console.error(err)
-        bondTransferGasLimit = BondTransferGasLimit.Optimism
-      }
+      bondTransferGasLimit = await this.getOptimismEstimatedGas(
+        amount,
+        bonderFee
+      )
     } else if (destinationChain?.equals(Chain.Arbitrum)) {
       bondTransferGasLimit = BondTransferGasLimit.Arbitrum
     }
@@ -665,6 +643,35 @@ class HopBridge extends Base {
     }
 
     return fee
+  }
+
+  async getOptimismEstimatedGas (amount: BigNumber, bonderFee: BigNumber) {
+    try {
+      const destinationBridge = await this.getL2Bridge(Chain.Optimism)
+      const bonder = this.getBonderAddress()
+      const transferNonce = `0x${'0'.repeat(64)}`
+      const amountOutMin = BigNumber.from(1)
+      const deadline = this.defaultDeadlineSeconds
+      const payload = [
+        bonder,
+        amount,
+        transferNonce,
+        bonderFee,
+        amountOutMin,
+        deadline,
+        {
+          from: bonder
+        }
+      ]
+
+      const estimatedGas = await destinationBridge.estimateGas.bondWithdrawalAndDistribute(
+        ...payload
+      )
+      return estimatedGas.toString()
+    } catch (err) {
+      console.error(err)
+      return BondTransferGasLimit.Optimism
+    }
   }
 
   /**

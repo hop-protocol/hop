@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": "^14",
+    "yarn": "^1.22.11"
+  },
   "scripts": {
     "start": "ts-node src/index.ts",
     "build": "tsc",

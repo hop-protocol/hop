@@ -2,6 +2,10 @@
   "name": "@hop-protocol/frontend",
   "version": "0.0.0",
   "private": true,
+  "engines": {
+    "node": "^14",
+    "yarn": "^1.22.11"
+  },
   "dependencies": {
     "@ethersproject/address": "5.0.8",
     "@hop-protocol/core": "0.0.1-beta.30",

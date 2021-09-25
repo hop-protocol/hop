@@ -712,10 +712,8 @@ export async function compareBonderDestinationFeeCost (
   gasPrice?: BigNumber
 ) {
   const ethDecimals = 18
-  const gweiDecimals = 9
   const provider = getRpcProvider(chain)
   gasPrice = gasPrice || getBumpedGasPrice(await provider.getGasPrice(), MaxGasPriceMultiplier)
-  const gasPrice18d = shiftBNDecimals(gasPrice, ethDecimals - gweiDecimals)
   const gasCost = gasLimit.mul(gasPrice)
   const chainNativeTokenSymbol = getChainNativeTokenSymbol(chain)
   const chainNativeTokenUsdPrice = await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol)

@@ -128,13 +128,13 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
 
     const logger = this.logger.create({ root: transferRootHash })
     const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
-    const l2Bridge = this.bridge as L2Bridge
     const { transferRootId } = dbTransferRoot
     const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
       destinationChainId,
       transferRootId
     )
     if (isTransferRootIdConfirmed) {
+      logger.warn('Transfer root already confirmed')
       await this.db.transferRoots.update(transferRootHash, {
         confirmed: true
       })
@@ -143,11 +143,12 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
 
     const watcher = this.watchers[chainSlug]
     if (!watcher) {
-      this.logger.warn(`exit watcher for ${chainSlug} is not implemented yet`)
+      logger.warn(`exit watcher for ${chainSlug} is not implemented yet`)
       return
     }
 
-    await watcher.handleCommitTxHash(commitTxHash, transferRootHash)
+    logger.debug(`handling commit tx hash ${commitTxHash} from ${destinationChainId}`)
+    await watcher.handleCommitTxHash(commitTxHash, transferRootHash, logger)
   }
 }
 

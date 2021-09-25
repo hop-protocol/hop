@@ -234,6 +234,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
           withdrawalBondTxError: TxError.BonderFeeTooLow,
           withdrawalBondBackoffIndex
         })
+        return
       }
       throw err
     }

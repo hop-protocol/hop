@@ -81,15 +81,19 @@ export default class Bridge extends ContractBase {
   }
 
   @rateLimitRetry
-  async getCredit (): Promise<BigNumber> {
-    const bonder = await this.getBonderAddress()
+  async getCredit (bonder?: string): Promise<BigNumber> {
+    if (!bonder) {
+      bonder = await this.getBonderAddress()
+    }
     const credit = await this.bridgeContract.getCredit(bonder)
     return credit
   }
 
   @rateLimitRetry
-  async getDebit (): Promise<BigNumber> {
-    const bonder = await this.getBonderAddress()
+  async getDebit (bonder?: string): Promise<BigNumber> {
+    if (!bonder) {
+      bonder = await this.getBonderAddress()
+    }
     const debit = await this.bridgeContract.getDebitAndAdditionalDebit(
       bonder
     )
@@ -104,17 +108,17 @@ export default class Bridge extends ContractBase {
   }
 
   @rateLimitRetry
-  async getAvailableCredit (): Promise<BigNumber> {
+  async getBaseAvailableCredit (bonder?: string): Promise<BigNumber> {
     const [credit, debit] = await Promise.all([
-      this.getCredit(),
-      this.getDebit()
+      this.getCredit(bonder),
+      this.getDebit(bonder)
     ])
     return credit.sub(debit)
   }
 
   @rateLimitRetry
   async hasPositiveBalance (): Promise<boolean> {
-    const credit = await this.getAvailableCredit()
+    const credit = await this.getBaseAvailableCredit()
     return credit.gt(0)
   }
 
@@ -720,7 +724,6 @@ export async function compareBonderDestinationFeeCost (
   const bonderFee18d = shiftBNDecimals(bonderFee, ethDecimals - tokenDecimals)
   const usdBonderFee = bonderFee18d
   const oneEth = parseUnits('1', ethDecimals)
-  const oneToken = parseUnits('1', tokenDecimals)
   const usdGasCost = gasCost.mul(chainNativeTokenUsdPriceBn).div(oneEth)
   const usdBonderFeeFormatted = formatUnits(usdBonderFee, ethDecimals)
   const usdGasCostFormatted = formatUnits(usdGasCost, ethDecimals)
@@ -779,7 +782,7 @@ export async function checkMinBonderFee (amountIn: BigNumber, bonderFee: BigNumb
   const minBonderFeeTotal = minBpsFee.add(minTxFee)
   const isTooLow = bonderFee.lt(minBonderFeeTotal)
   if (isTooLow) {
-    throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFee: ${minBonderFeeTotal}`)
+    throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`)
   }
 }
 

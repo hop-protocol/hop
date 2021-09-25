@@ -2,16 +2,28 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
+import S3Upload from 'src/aws/s3Upload'
 import chalk from 'chalk'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
+import { Chain, TenMinutesMs } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
-import { bondableChains } from 'src/config'
 import { boundClass } from 'autobind-decorator'
+import { config as globalConfig, oruChains } from 'src/config'
+
+type S3JsonData = {
+  [token: string]: {
+    availableCredit: {[chain: string]: string},
+    pendingAmounts: {[chain: string]: string},
+    unbondedTransferRootAmounts: {[chain: string]: string}
+  }
+}
+
+const s3JsonData: S3JsonData = {}
 
 export interface Config {
   chainSlug: string
@@ -20,6 +32,7 @@ export interface Config {
   isL1: boolean
   bridgeContract: Contract
   syncFromDate?: string
+  s3Upload?: boolean
 }
 
 @boundClass
@@ -30,6 +43,12 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate : string
   customStartBlockNumber : number
   ready: boolean = false
+  private s3AvailableCredit: { [destinationChain: string]: BigNumber } = {} // bonder from core package config
+  private availableCredit: { [destinationChain: string]: BigNumber } = {} // own bonder
+  private pendingAmounts: { [destinationChain: string]: BigNumber } = {}
+  private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
+  private lastCalculated: { [destinationChain: string]: number } = {}
+  s3Upload: S3Upload
 
   constructor (config: Config) {
     super({
@@ -42,6 +61,12 @@ class SyncWatcher extends BaseWatcher {
       bridgeContract: config.bridgeContract
     })
     this.syncFromDate = config.syncFromDate
+    if (config.s3Upload) {
+      this.s3Upload = new S3Upload({
+        bucket: 'assets.hop.exchange',
+        key: 'v1-available-liquidity.json'
+      })
+    }
     this.init()
       .catch(err => {
         this.logger.error('init error:', err)
@@ -89,6 +114,11 @@ class SyncWatcher extends BaseWatcher {
     this.logger.debug('done syncing. index:', this.syncIndex)
     this.initialSyncCompleted = true
     this.syncIndex++
+    try {
+      await this.uploadToS3()
+    } catch (err) {
+      this.logger.error(err)
+    }
     await wait(this.resyncIntervalMs)
   }
 
@@ -206,7 +236,12 @@ class SyncWatcher extends BaseWatcher {
       )
     )
 
+    // these must come after db is done syncing,
+    // and syncAvailableCredit must be last
     await Promise.all(promises)
+      .then(() => this.syncUnbondedTransferRootAmounts())
+      .then(() => this.syncPendingAmounts())
+      .then(() => this.syncAvailableCredit())
   }
 
   async handleTransferSentEvent (event: Event) {
@@ -277,6 +312,9 @@ class SyncWatcher extends BaseWatcher {
 
     const { transactionHash } = event
     const tx = await this.bridge.getTransaction(transactionHash)
+    if (!tx) {
+      throw new Error(`expected tx object. transferId: ${transferId}`)
+    }
     const { from: withdrawalBonder } = tx
 
     logger.debug('handling WithdrawalBonded event')
@@ -293,7 +331,7 @@ class SyncWatcher extends BaseWatcher {
   async handleTransferRootConfirmedEvent (event: Event) {
     const {
       originChainId: sourceChainId,
-      destinationChainId: destChainId,
+      destinationChainId,
       rootHash: transferRootHash,
       totalAmount
     } = event.args
@@ -381,7 +419,7 @@ class SyncWatcher extends BaseWatcher {
       const blockNumber: number = event.blockNumber
 
       const sourceChainSlug = this.chainIdToSlug(sourceChainId)
-      const shouldBondTransferRoot = bondableChains.includes(sourceChainSlug)
+      const shouldBondTransferRoot = oruChains.includes(sourceChainSlug)
 
       logger.debug('committedAt:', committedAt)
       logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
@@ -673,6 +711,212 @@ class SyncWatcher extends BaseWatcher {
     }
 
     return true
+  }
+
+  isOruToL1 (destinationChainId: number) {
+    const sourceChain = this.chainSlug
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    return destinationChain === Chain.Ethereum && oruChains.includes(sourceChain)
+  }
+
+  isNonOruToL1 (destinationChainId: number) {
+    const sourceChain = this.chainSlug
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    return destinationChain === Chain.Ethereum && !oruChains.includes(sourceChain)
+  }
+
+  // ORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots) / 2
+  //    - divide by 2 because `amount` gets added to OruToL1PendingAmount
+  //    - the divide by 2 happens upstream
+  // nonORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
+  // L2 -> L2: (credit - debit)
+  private async calculateAvailableCredit (destinationChainId: number, bonder?: string) {
+    const sourceChain = this.chainSlug
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationWatcher = this.getSiblingWatcherByChainSlug(destinationChain)
+    if (!destinationWatcher) {
+      throw new Error(`no destination watcher for ${destinationChain}`)
+    }
+    const destinationBridge = destinationWatcher.bridge
+    let availableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
+    if (this.isOruToL1(destinationChainId) || this.isNonOruToL1(destinationChainId)) {
+      const pendingAmount = await this.getOruToL1PendingAmount()
+      availableCredit = availableCredit.sub(pendingAmount)
+
+      const unbondedTransferRootAmounts = await this.getOruToAllUnbondedTransferRootAmounts()
+      availableCredit = availableCredit.sub(unbondedTransferRootAmounts)
+    }
+
+    if (availableCredit.lt(0)) {
+      return BigNumber.from(0)
+    }
+
+    return availableCredit
+  }
+
+  async calculatePendingAmount (destinationChainId: number) {
+    const bridge = this.bridge as L2Bridge
+    const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
+    return pendingAmount
+  }
+
+  public async calculateUnbondedTransferRootAmounts (destinationChainId: number) {
+    const transferRoots = await this.db.transferRoots.getUnbondedTransferRoots({
+      sourceChainId: this.chainSlugToId(this.chainSlug),
+      destinationChainId
+    })
+    let totalAmount = BigNumber.from(0)
+    for (const transferRoot of transferRoots) {
+      totalAmount = totalAmount.add(transferRoot.totalAmount)
+    }
+
+    return totalAmount
+  }
+
+  private async updateAvailableCreditMap (destinationChainId: number) {
+    const availableCredit = await this.calculateAvailableCredit(destinationChainId)
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    this.availableCredit[destinationChain] = availableCredit
+
+    if (this.s3Upload) {
+      const bonder = globalConfig.bonders[this.tokenSymbol]?.[0]
+      const availableCredit = await this.calculateAvailableCredit(destinationChainId, bonder)
+      this.s3AvailableCredit[destinationChain] = availableCredit
+    }
+  }
+
+  private async updatePendingAmountsMap (destinationChainId: number) {
+    const pendingAmount = await this.calculatePendingAmount(destinationChainId)
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    this.pendingAmounts[destinationChain] = pendingAmount
+  }
+
+  private async updateUnbondedTransferRootAmountsMap (destinationChainId: number) {
+    const totalAmounts = await this.calculateUnbondedTransferRootAmounts(destinationChainId)
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    this.unbondedTransferRootAmounts[destinationChain] = totalAmounts
+    this.lastCalculated[destinationChain] = Date.now()
+  }
+
+  async syncPendingAmounts () {
+    const pendingAmounts = BigNumber.from(0)
+    const chains = await this.bridge.getChainIds()
+    for (const destinationChainId of chains) {
+      const destinationChain = this.chainIdToSlug(destinationChainId)
+      if (
+        this.chainSlug === Chain.Ethereum ||
+        this.chainSlug === destinationChain
+      ) {
+        continue
+      }
+      await this.updatePendingAmountsMap(destinationChainId)
+    }
+  }
+
+  async syncUnbondedTransferRootAmounts () {
+    const chains = await this.bridge.getChainIds()
+    for (const destinationChainId of chains) {
+      const sourceChain = this.chainSlug
+      const destinationChain = this.chainIdToSlug(destinationChainId)
+      const shouldSkip = (
+        sourceChain === Chain.Ethereum ||
+        sourceChain === destinationChain ||
+        !this.hasSiblingWatcher(destinationChainId)
+      )
+      if (shouldSkip) {
+        continue
+      }
+      await this.updateUnbondedTransferRootAmountsMap(destinationChainId)
+    }
+  }
+
+  private async syncAvailableCredit () {
+    const chains = await this.bridge.getChainIds()
+    for (const destinationChainId of chains) {
+      const sourceChain = this.chainSlug
+      const destinationChain = this.chainIdToSlug(destinationChainId)
+      const shouldSkip = (
+        sourceChain === Chain.Ethereum ||
+        sourceChain === destinationChain ||
+        !this.hasSiblingWatcher(destinationChainId)
+      )
+      if (shouldSkip) {
+        continue
+      }
+      await this.updateAvailableCreditMap(destinationChainId)
+      const availableCredit = await this.getEffectiveAvailableCredit(destinationChainId)
+      this.logger.debug(`availableCredit (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(availableCredit)}`)
+    }
+  }
+
+  async getOruToL1PendingAmount () {
+    let pendingAmounts = BigNumber.from(0)
+    for (const chain of oruChains) {
+      const watcher = this.getSiblingWatcherByChainSlug(chain)
+      if (!watcher) {
+        continue
+      }
+
+      const destinationChainId = this.chainSlugToId(Chain.Ethereum)
+      const pendingAmount = await watcher.calculatePendingAmount(destinationChainId)
+      pendingAmounts = pendingAmounts.add(pendingAmount)
+    }
+
+    return pendingAmounts
+  }
+
+  async getOruToAllUnbondedTransferRootAmounts () {
+    let totalAmount = BigNumber.from(0)
+    for (const destinationChain in this.unbondedTransferRootAmounts) {
+      if (this.lastCalculated[destinationChain]) {
+        const isStale = Date.now() - this.lastCalculated[destinationChain] > TenMinutesMs
+        if (isStale) {
+          continue
+        }
+      }
+      const amount = this.unbondedTransferRootAmounts[destinationChain]
+      totalAmount = totalAmount.add(amount)
+    }
+    return totalAmount
+  }
+
+  public async getEffectiveAvailableCredit (destinationChainId: number) {
+    const sourceChain = this.chainSlug
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const availableCredit = this.availableCredit[destinationChain]
+    if (!availableCredit) {
+      return BigNumber.from(0)
+    }
+
+    return availableCredit
+  }
+
+  async uploadToS3 () {
+    if (!this.s3Upload) {
+      return
+    }
+
+    const data : any = {
+      availableCredit: {},
+      pendingAmounts: {},
+      unbondedTransferRootAmounts: {}
+    }
+    for (const chainId in this.siblingWatchers) {
+      const sourceChain = this.chainIdToSlug(Number(chainId))
+      const watcher = this.siblingWatchers[chainId]
+      const shouldSkip = (
+        sourceChain === Chain.Ethereum
+      )
+      if (shouldSkip) {
+        continue
+      }
+      data.availableCredit[sourceChain] = watcher.s3AvailableCredit
+      data.pendingAmounts[sourceChain] = watcher.pendingAmounts
+      data.unbondedTransferRootAmounts[sourceChain] = watcher.unbondedTransferRootAmounts
+    }
+
+    s3JsonData[this.tokenSymbol] = data
+    await this.s3Upload.upload(s3JsonData)
   }
 }
 

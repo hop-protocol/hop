@@ -869,14 +869,17 @@ class HopBridge extends Base {
     return data
   }
 
-  async getUnbondedTransferRootAmount (sourceChain: Chain, destinationChain: Chain) {
+  async getUnbondedTransferRootAmount (
+    sourceChain: Chain,
+    destinationChain: Chain
+  ) {
     try {
       const data = await this.getBonderAvailableLiquidityData()
       if (data) {
         const _unbondedTransferRootAmount =
-          data?.[this.tokenSymbol]?.unbondedTransferRootAmounts?.[sourceChain.slug]?.[
-            destinationChain.slug
-          ]
+          data?.[this.tokenSymbol]?.unbondedTransferRootAmounts?.[
+            sourceChain.slug
+          ]?.[destinationChain.slug]
         if (_unbondedTransferRootAmount) {
           return BigNumber.from(_unbondedTransferRootAmount)
         }

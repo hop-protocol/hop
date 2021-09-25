@@ -720,7 +720,6 @@ export async function compareBonderDestinationFeeCost (
   const bonderFee18d = shiftBNDecimals(bonderFee, ethDecimals - tokenDecimals)
   const usdBonderFee = bonderFee18d
   const oneEth = parseUnits('1', ethDecimals)
-  const oneToken = parseUnits('1', tokenDecimals)
   const usdGasCost = gasCost.mul(chainNativeTokenUsdPriceBn).div(oneEth)
   const usdBonderFeeFormatted = formatUnits(usdBonderFee, ethDecimals)
   const usdGasCostFormatted = formatUnits(usdGasCost, ethDecimals)
@@ -779,7 +778,7 @@ export async function checkMinBonderFee (amountIn: BigNumber, bonderFee: BigNumb
   const minBonderFeeTotal = minBpsFee.add(minTxFee)
   const isTooLow = bonderFee.lt(minBonderFeeTotal)
   if (isTooLow) {
-    throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFee: ${minBonderFeeTotal}`)
+    throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`)
   }
 }
 

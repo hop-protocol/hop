@@ -631,7 +631,7 @@ class HopBridge extends Base {
     let multiplier = BigNumber.from(0)
     if (destinationChain.equals(Chain.Ethereum)) {
       multiplier = ethers.utils.parseEther(GasPriceMultiplier)
-    } else if (bondableChains.includes(destinationChain.slug)) {
+    } else if (destinationChain.equals(Chain.Optimism)) {
       multiplier = ethers.utils.parseEther(ORUGasPriceMultiplier)
     }
 

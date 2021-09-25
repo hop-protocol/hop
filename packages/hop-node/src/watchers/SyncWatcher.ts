@@ -8,7 +8,7 @@ import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, TenMinutesMs } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
@@ -868,9 +868,8 @@ class SyncWatcher extends BaseWatcher {
   async getOruToAllUnbondedTransferRootAmounts () {
     let totalAmount = BigNumber.from(0)
     for (const destinationChain in this.unbondedTransferRootAmounts) {
-      if (this.lastCalculated[this.lastCalculated[destinationChain]]) {
-        const tenMinutes = 10 * 60 * 1000
-        const isStale = Date.now() - this.lastCalculated[destinationChain] > tenMinutes
+      if (this.lastCalculated[destinationChain]) {
+        const isStale = Date.now() - this.lastCalculated[destinationChain] > TenMinutesMs
         if (isStale) {
           continue
         }

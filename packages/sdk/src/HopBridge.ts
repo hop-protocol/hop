@@ -788,7 +788,7 @@ class HopBridge extends Base {
 
     let availableLiquidity = credit.sub(debit)
 
-    const unsetCommitAmount = await this.getUnsetCommitAmount(
+    const unbondedTransferRootAmount = await this.getUnbondedTransferRootAmount(
       sourceChain,
       destinationChain
     )
@@ -823,7 +823,7 @@ class HopBridge extends Base {
 
       availableLiquidity = availableLiquidity
         .sub(pendingAmounts)
-        .sub(unsetCommitAmount)
+        .sub(unbondedTransferRootAmount)
         .sub(bufferAmountTokensBn)
 
       if (this.isOruToL1(sourceChain, destinationChain)) {
@@ -869,16 +869,16 @@ class HopBridge extends Base {
     return data
   }
 
-  async getUnsetCommitAmount (sourceChain: Chain, destinationChain: Chain) {
+  async getUnbondedTransferRootAmount (sourceChain: Chain, destinationChain: Chain) {
     try {
       const data = await this.getBonderAvailableLiquidityData()
       if (data) {
-        const _unsetCommitAmount =
-          data?.[this.tokenSymbol]?.unsetCommitAmounts?.[sourceChain.slug]?.[
+        const _unbondedTransferRootAmount =
+          data?.[this.tokenSymbol]?.unbondedTransferRootAmounts?.[sourceChain.slug]?.[
             destinationChain.slug
           ]
-        if (_unsetCommitAmount) {
-          return BigNumber.from(_unsetCommitAmount)
+        if (_unbondedTransferRootAmount) {
+          return BigNumber.from(_unbondedTransferRootAmount)
         }
       }
     } catch (err) {

@@ -656,7 +656,11 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootHash })
 
     const { transactionHash } = event
-    const { data } = await this.bridge.getTransaction(transactionHash)
+    const tx = await this.bridge.getTransaction(transactionHash)
+    if (!tx) {
+      throw new Error(`expected tx object. transactionHash: ${transactionHash}`)
+    }
+    const { data } = tx
     const { transferIds } = await this.bridge.decodeSettleBondedWithdrawalsData(
       data
     )

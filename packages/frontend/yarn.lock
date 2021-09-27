@@ -2317,10 +2317,10 @@
   dependencies:
     deepmerge "^4.2.2"
 
-"@hop-protocol/sdk@0.0.1-beta.188":
-  version "0.0.1-beta.188"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.188.tgz#1028cb159d4721c5186744b58d39b5e503bc62cf"
-  integrity sha512-dn6vljVWMovR7iYcxyJNo1BhuX2x43E7zD3kv700MsRUmB/shHnQGbkQHx9x4fGWebIOxEZiyLlQykHdsjykpQ==
+"@hop-protocol/sdk@0.0.1-beta.193":
+  version "0.0.1-beta.193"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.193.tgz#e6b42f50c2da7e7ea9578ab046ea9cb897c723d7"
+  integrity sha512-u31eV6oIrzztR7Cqz63QDM1vW6zqGGy1JDB7COYwWJ9YdR1YB6F0cYavKrefATCB1yTE3NUAnk4+VDs0KwH9zw==
   dependencies:
     "@ethersproject/abi" "^5.4.0"
     "@hop-protocol/core" "0.0.1-beta.30"
@@ -13471,9 +13471,9 @@ ndjson@^1.5.0:
     split2 "^2.1.0"
     through2 "^2.0.3"
 
-"neat-frame@git+https://github.com/agentofuser/neat-frame.git#wrap-ansi-options":
+"neat-frame@https://github.com/agentofuser/neat-frame#wrap-ansi-options":
   version "1.0.2"
-  resolved "git+https://github.com/agentofuser/neat-frame.git#b244ca11078bd35f63b2d7cb22d5e4b5c12ae2aa"
+  resolved "https://github.com/agentofuser/neat-frame#b244ca11078bd35f63b2d7cb22d5e4b5c12ae2aa"
   dependencies:
     inspect-with-kind "^1.0.5"
     merge-options "^1.0.1"

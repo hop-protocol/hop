@@ -1,8 +1,9 @@
 import BaseDb from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
+import { Chain, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
+import { oruChains } from 'src/config'
 
 export type TransferRoot = {
   destinationBridgeAddress?: string
@@ -155,6 +156,14 @@ class TransferRootsDb extends BaseDb {
           item?.sentConfirmTxAt + TxRetryDelayMs < Date.now()
       }
 
+      let oruTimestampOk = true
+      const sourceChain = chainIdToSlug(item.sourceChainId)
+      const isSourceOru = oruChains.includes(sourceChain)
+      if (isSourceOru && item?.committedAt) {
+        oruTimestampOk =
+          item?.committedAt + OneWeekMs < Date.now()
+      }
+
       return (
         item.commitTxHash &&
         !item.confirmed &&
@@ -162,7 +171,8 @@ class TransferRootsDb extends BaseDb {
         item.destinationChainId &&
         item.committed &&
         item.committedAt &&
-        timestampOk
+        timestampOk &&
+        oruTimestampOk
       )
     })
   }

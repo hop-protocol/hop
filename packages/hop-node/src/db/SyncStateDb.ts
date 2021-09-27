@@ -1,4 +1,5 @@
 import BaseDb from './BaseDb'
+import { OneWeekMs } from 'src/constants'
 
 export type State = {
   key: string
@@ -28,6 +29,14 @@ class SyncStateDb extends BaseDb {
       })
     )
     return items.filter(x => x)
+  }
+
+  async getItemsWithWeek (): Promise<State[]> {
+    const items = await this.getItems()
+    const oneWeekAgo = Math.floor((Date.now() - OneWeekMs) / 1000)
+    return items.filter((item: State) => {
+      return item.timestamp > oneWeekAgo
+    })
   }
 }
 

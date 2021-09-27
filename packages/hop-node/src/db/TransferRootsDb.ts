@@ -90,6 +90,14 @@ class TransferRootsDb extends BaseDb {
       .filter(x => x)
   }
 
+  async getTransferRootsWithinWeek (): Promise<TransferRoot[]> {
+    const transfers = await this.getTransferRoots()
+    const oneWeekAgo = Math.floor((Date.now() - OneWeekMs) / 1000)
+    return transfers.filter((item: TransferRoot) => {
+      return item.committedAt > oneWeekAgo
+    })
+  }
+
   async getUncommittedBondedTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {

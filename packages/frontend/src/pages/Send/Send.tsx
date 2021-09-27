@@ -287,6 +287,11 @@ const Send: FC = () => {
     address,
   )
 
+  // Reset error message
+  useEffect(() => {
+    setError('')
+  }, [fromNetwork]);
+
   const handleApprove = async () => {
     try {
       setError(null)
@@ -643,7 +648,7 @@ const Send: FC = () => {
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, fromNetwork))
       }
       logger.error(err)
     }

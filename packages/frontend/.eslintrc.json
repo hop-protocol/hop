@@ -19,6 +19,9 @@
   "plugins": ["react", "@typescript-eslint"],
   "ignorePatterns": [],
   "rules": {
+    "padded-blocks": 0,
+    "no-multiple-empty-lines": 0,
+    "no-unreachable": 0,
     "indent": 0,
     "comma-dangle": 0,
     "no-constant-condition": 0,

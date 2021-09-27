@@ -8,10 +8,10 @@ link local packages together and install remaining package dependencies
 
     $ lerna bootstrap
 
-1. `npm install` all external deps of each pkg
+1. `yarn install` all external deps of each pkg
 2. symlink all lerna `packages` that are dependencies of each other
-3. `npm run prepublish` in all bootstrapped pkgs
-4. `npm run prepare` in all bootstrapped pkgs
+3. `yarn run prepublish` in all bootstrapped pkgs
+4. `yarn run prepare` in all bootstrapped pkgs
 
 Add a dependency to matched packages:
 

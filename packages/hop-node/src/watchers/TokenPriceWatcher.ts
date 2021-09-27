@@ -1,7 +1,7 @@
 import Logger from 'src/logger'
-import { PriceFeed } from 'src/priceFeed'
 import wait from 'src/utils/wait'
 import { Db, getTokenPricesDb } from 'src/db'
+import { PriceFeed } from 'src/priceFeed'
 
 type Config = {
   token: string

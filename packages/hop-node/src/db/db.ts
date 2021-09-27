@@ -1,7 +1,7 @@
 import GasBoostDb from './GasBoostDb'
 import GasPricesDb from './GasPricesDb'
-import TokenPricesDb from './TokenPricesDb'
 import SyncStateDb from './SyncStateDb'
+import TokenPricesDb from './TokenPricesDb'
 import TransferRootsDb from './TransferRootsDb'
 import TransfersDb from './TransfersDb'
 

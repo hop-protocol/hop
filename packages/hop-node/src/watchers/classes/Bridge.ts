@@ -461,7 +461,9 @@ export default class Bridge extends ContractBase {
     amount: BigNumber,
     transferNonce: string,
     bonderFee: BigNumber,
-    gasPrice?: BigNumber
+    gasPrice?: BigNumber,
+    tokenUsdPrice?: number,
+    chainNativeTokenUsdPrice?: number
   ): Promise<providers.TransactionResponse> {
     const txOverrides = await this.txOverrides()
     const payload = [
@@ -473,7 +475,7 @@ export default class Bridge extends ContractBase {
     ]
 
     const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
-    await checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice)
+    await checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
 
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
 
@@ -710,8 +712,8 @@ export async function compareBonderDestinationFeeCost (
   chain: string,
   tokenSymbol: string,
   gasPrice?: BigNumber,
-  chainNativeTokenUsdPrice?: number,
   tokenUsdPrice?: number,
+  chainNativeTokenUsdPrice?: number
 ) {
   const ethDecimals = 18
   const provider = getRpcProvider(chain)
@@ -783,9 +785,18 @@ export async function compareMinBonderFeeBasisPoints (
   return minBonderFee
 }
 
-export async function checkMinBonderFee (amountIn: BigNumber, bonderFee: BigNumber, gasLimit: BigNumber, chainSlug: string, tokenSymbol: string, gasPrice?: BigNumber) {
+export async function checkMinBonderFee (
+  amountIn: BigNumber,
+  bonderFee: BigNumber,
+  gasLimit: BigNumber,
+  chainSlug: string,
+  tokenSymbol: string,
+  gasPrice?: BigNumber,
+  tokenUsdPrice?: number,
+  chainNativeTokenUsdPrice?: number
+) {
   const minBpsFee = await compareMinBonderFeeBasisPoints(amountIn, bonderFee, chainSlug, tokenSymbol)
-  const minTxFee = await compareBonderDestinationFeeCost(bonderFee, gasLimit, chainSlug, tokenSymbol, gasPrice)
+  const minTxFee = await compareBonderDestinationFeeCost(bonderFee, gasLimit, chainSlug, tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
 
   const minBonderFeeTotal = minBpsFee.add(minTxFee)
   const isTooLow = bonderFee.lt(minBonderFeeTotal)
@@ -794,7 +805,7 @@ export async function checkMinBonderFee (amountIn: BigNumber, bonderFee: BigNumb
   }
 }
 
-function getChainNativeTokenSymbol (chain: string) {
+export function getChainNativeTokenSymbol (chain: string) {
   if (chain === Chain.Polygon) {
     return 'MATIC'
   } else if (chain === Chain.xDai) {

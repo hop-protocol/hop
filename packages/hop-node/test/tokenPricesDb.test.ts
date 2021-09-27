@@ -1,6 +1,5 @@
 import TokenPricesDb, { varianceSeconds } from 'src/db/TokenPricesDb'
 import wait from 'src/utils/wait'
-import { BigNumber } from 'ethers'
 
 describe('tokenPricesDb', () => {
   it('should get item nearest to specified datetime', async () => {

@@ -35,6 +35,7 @@ import FeeDetails from 'src/components/FeeDetails'
 import useApprove from 'src/hooks/useApprove'
 import { reactAppNetwork } from 'src/config'
 import InfoTooltip from 'src/components/infoTooltip'
+import { formatError } from 'src/utils/format'
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -286,6 +287,11 @@ const Send: FC = () => {
     address,
   )
 
+  // Reset error message
+  useEffect(() => {
+    setError('')
+  }, [fromNetwork]);
+
   const handleApprove = async () => {
     try {
       setError(null)
@@ -293,7 +299,7 @@ const Send: FC = () => {
       await approveFromToken()
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, fromNetwork))
       }
       logger.error(err)
     }
@@ -486,8 +492,11 @@ const Send: FC = () => {
       minimumSendWarning ||
       needsNativeTokenWarning
     )
+
     if (!enoughBalance) {
       message = 'Insufficient funds'
+    } else if (estimatedReceived && bonderFee?.gt(estimatedReceived)) {
+      message = 'Bonder fee greater than estimated received'
     } else if (estimatedReceived?.lte(0)) {
       message = 'Insufficient amount. Send higher amount to cover bonder fee.'
     }
@@ -639,7 +648,7 @@ const Send: FC = () => {
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, fromNetwork))
       }
       logger.error(err)
     }

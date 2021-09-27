@@ -1,4 +1,10 @@
 {
+  "singleQuote": true,
   "jsxSingleQuote": false,
-  "no-unused-vars": true
+  "no-unused-vars": true,
+  "semi": false,
+  "arrowParens": "avoid",
+  "bracketSpacing": true,
+  "trailingComma": "none",
+  "printWidth": 80
 }

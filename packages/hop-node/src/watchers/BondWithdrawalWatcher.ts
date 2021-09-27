@@ -102,7 +102,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = dbTransfer
     const logger = this.logger.create({ id: transferId })
     const sourceL2Bridge = this.bridge as L2Bridge
-    const destinationChain = this.chainIdToSlug(destinationChainId)
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
@@ -234,6 +233,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
           withdrawalBondTxError: TxError.BonderFeeTooLow,
           withdrawalBondBackoffIndex
         })
+        return
       }
       throw err
     }

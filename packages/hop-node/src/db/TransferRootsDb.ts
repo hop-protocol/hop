@@ -21,12 +21,14 @@ export type TransferRoot = {
   confirmedAt?: number
   confirmTxHash?: string
   rootSetTxHash?: string
+  rootSetBlockNumber?: number
   rootSetTimestamp?: number
   sentConfirmTxAt?: number
   shouldBondTransferRoot?: boolean
   bonded?: boolean
   sentBondTxAt?: number
   bondTxHash?: string
+  bondBlockNumber?: string
   bondedAt?: number
   transferIds?: string[]
   bonder?: string

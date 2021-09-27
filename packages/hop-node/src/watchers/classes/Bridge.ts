@@ -709,15 +709,23 @@ export async function compareBonderDestinationFeeCost (
   gasLimit: BigNumber,
   chain: string,
   tokenSymbol: string,
-  gasPrice?: BigNumber
+  gasPrice?: BigNumber,
+  chainNativeTokenUsdPrice?: number,
+  tokenUsdPrice?: number,
 ) {
   const ethDecimals = 18
   const provider = getRpcProvider(chain)
-  gasPrice = gasPrice || getBumpedGasPrice(await provider.getGasPrice(), MaxGasPriceMultiplier)
+  if (!gasPrice) {
+    gasPrice = getBumpedGasPrice(await provider.getGasPrice(), MaxGasPriceMultiplier)
+  }
+  if (!tokenUsdPrice) {
+    tokenUsdPrice = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
+  }
   const gasCost = gasLimit.mul(gasPrice)
   const chainNativeTokenSymbol = getChainNativeTokenSymbol(chain)
-  const chainNativeTokenUsdPrice = await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol)
-  const tokenUsdPrice = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
+  if (!chainNativeTokenUsdPrice) {
+    chainNativeTokenUsdPrice = await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol)
+  }
   const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), ethDecimals)
   const chainNativeTokenUsdPriceBn = parseUnits(chainNativeTokenUsdPrice.toString(), ethDecimals)
   const tokenDecimals = getTokenDecimals(tokenSymbol)

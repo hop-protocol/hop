@@ -211,5 +211,7 @@ export const getEnabledNetworks = (): string[] => {
   return Object.keys(networks)
 }
 
+export const chainNativeTokens = ['ETH', 'MATIC', 'DAI']
+
 export * from './validation'
 export * from './fileOps'

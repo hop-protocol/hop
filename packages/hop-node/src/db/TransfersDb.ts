@@ -81,7 +81,7 @@ class TransfersDb extends BaseDb {
       })
   }
 
-  async getTransfersWithinWeek (): Promise<Transfer[]> {
+  async getTransfersSentWithinWeek (): Promise<Transfer[]> {
     const transfers = await this.getTransfers()
     const oneWeekAgo = Math.floor((Date.now() - OneWeekMs) / 1000)
     return transfers.filter((item: Transfer) => {

@@ -260,8 +260,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
 
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const pricesNearTransferEvent = await this.getPricesNearTransferEvent(dbTransfer)
-    logger.debug('pricesNearTransferEvent:', pricesNearTransferEvent)
+    const {
+      gasPrice,
+      tokenUsdPrice,
+      chainNativeTokenUsdPrice
+    } = await this.getPricesNearTransferEvent(dbTransfer)
+    logger.debug('gasPrice:', gasPrice.toString())
+    logger.debug('tokenUsdPrice:', tokenUsdPrice)
+    logger.debug('chainNativeTokenUsdPrice:', chainNativeTokenUsdPrice)
 
     if (attemptSwap) {
       logger.debug(
@@ -276,12 +282,22 @@ class BondWithdrawalWatcher extends BaseWatcher {
         bonderFee,
         amountOutMin,
         deadline,
-        ...pricesNearTransferEvent
+        gasPrice,
+        tokenUsdPrice,
+        chainNativeTokenUsdPrice
       )
     } else {
       logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
       const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-      return bridge.bondWithdrawal(recipient, amount, transferNonce, bonderFee, ...pricesNearTransferEvent)
+      return bridge.bondWithdrawal(
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        gasPrice,
+        tokenUsdPrice,
+        chainNativeTokenUsdPrice
+      )
     }
   }
 

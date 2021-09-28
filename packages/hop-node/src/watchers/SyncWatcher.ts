@@ -33,6 +33,7 @@ export interface Config {
   bridgeContract: Contract
   syncFromDate?: string
   s3Upload?: boolean
+  s3Namespace?: string
 }
 
 @boundClass
@@ -49,6 +50,7 @@ class SyncWatcher extends BaseWatcher {
   private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
   private lastCalculated: { [destinationChain: string]: number } = {}
   s3Upload: S3Upload
+  s3Namespace: S3Upload
 
   constructor (config: Config) {
     super({
@@ -64,7 +66,7 @@ class SyncWatcher extends BaseWatcher {
     if (config.s3Upload) {
       this.s3Upload = new S3Upload({
         bucket: 'assets.hop.exchange',
-        key: 'v1-available-liquidity.json'
+        key: `${config.s3Namespace || globalConfig.network}/v1-available-liquidity.json`
       })
     }
     this.init()

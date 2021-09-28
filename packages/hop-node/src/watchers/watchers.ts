@@ -55,6 +55,7 @@ type GetWatchersConfig = {
   stateUpdateAddress?: string
   syncFromDate?: string
   s3Upload?: boolean
+  s3Namespace?: string
 }
 
 type GetStakeWatchersConfig = {
@@ -85,7 +86,8 @@ export function getWatchers (config: GetWatchersConfig) {
     dryMode = false,
     stateUpdateAddress,
     syncFromDate,
-    s3Upload
+    s3Upload,
+    s3Namespace
   } = config
 
   const order = () => orderNum
@@ -208,7 +210,8 @@ export function getWatchers (config: GetWatchersConfig) {
       label,
       bridgeContract,
       syncFromDate,
-      s3Upload
+      s3Upload,
+      s3Namespace
     })
   })
 

@@ -12,7 +12,7 @@ export const networks: Networks = {
   arbitrum: {
     name: chains.arbitrum.name,
     networkId: 42161,
-    rpcUrls: ['https://arb1.arbitrum.io/rpc'],
+    rpcUrls: ['https://arbitrum.rpc.hop.exchange'],
     publicRpcUrl: 'https://arb1.arbitrum.io/rpc',
     explorerUrls: ['https://arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
@@ -21,7 +21,7 @@ export const networks: Networks = {
   optimism: {
     name: chains.optimism.name,
     networkId: 10,
-    rpcUrls: ['https://mainnet.optimism.io'],
+    rpcUrls: ['https://optimism.rpc.hop.exchange'],
     publicRpcUrl: 'https://mainnet.optimism.io',
     explorerUrls: ['https://optimistic.etherscan.io'],
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',

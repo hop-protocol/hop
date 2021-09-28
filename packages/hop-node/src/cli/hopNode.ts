@@ -42,6 +42,7 @@ program
   .option('--log-db-state', 'Log db state periodically')
   .option('--sync-from-date <string>', 'Date to start syncing db from, in ISO format YYYY-MM-DD')
   .option('--s3-upload', 'Upload available liquidity info as JSON to S3')
+  .option('--s3-namespace <string>', 'S3 bucket namespace')
   .action(async (source: any) => {
     try {
       printHopArt()
@@ -51,8 +52,12 @@ program
       await setGlobalConfigFromConfigFile(config, source.passwordFile)
       const syncFromDate = source.syncFromDate
       const s3Upload = !!source.s3Upload
+      const s3Namespace = source.s3Namespace
       if (s3Upload) {
         logger.debug('s3 upload enabled')
+      }
+      if (s3Namespace) {
+        logger.debug(`s3 namespace: ${s3Namespace}`)
       }
 
       if (source.clearDb) {
@@ -160,7 +165,8 @@ program
         dryMode,
         stateUpdateAddress,
         syncFromDate,
-        s3Upload
+        s3Upload,
+        s3Namespace
       })
       if (config?.roles?.arbBot) {
         const maxTradeAmount = 0

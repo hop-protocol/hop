@@ -8,5 +8,9 @@
   "devDependencies": {
     "lerna": "^3.20.2"
   },
+  "scripts": {
+    "bootstrap": "npx lerna bootstrap",
+    "nuke": "npx lerna clean"
+  },
   "dependencies": {}
 }

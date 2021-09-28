@@ -23,7 +23,9 @@ type S3JsonData = {
   }
 }
 
+// TODO: better way of managing aggregate state
 const s3JsonData: S3JsonData = {}
+let s3LastUpload : number
 
 export interface Config {
   chainSlug: string
@@ -922,7 +924,10 @@ class SyncWatcher extends BaseWatcher {
     }
 
     s3JsonData[this.tokenSymbol] = data
-    await this.s3Upload.upload(s3JsonData)
+    if (!s3LastUpload || s3LastUpload < Date.now() - (60 * 1000)) {
+      s3LastUpload = Date.now()
+      await this.s3Upload.upload(s3JsonData)
+    }
   }
 }
 

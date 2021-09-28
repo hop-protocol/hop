@@ -175,6 +175,16 @@ class TransfersDb extends BaseDb {
       return item.withdrawalBonded && !item.transferRootHash
     })
   }
+
+  async getIncompleteItems () {
+    const transfers: Transfer[] = await this.getTransfers()
+    return transfers.filter(item => {
+      return (
+        (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
+        (item.withdrawalBondedTxHash && !item.withdrawalBonder)
+      )
+    })
+  }
 }
 
 export default TransfersDb

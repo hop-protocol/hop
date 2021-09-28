@@ -40,6 +40,7 @@ export interface Config {
 class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   resyncIntervalMs: number = 60 * 1000
+  incompleteIntervalMs: number = 10 * 1000
   syncIndex: number = 0
   syncFromDate : string
   customStartBlockNumber : number
@@ -89,6 +90,7 @@ class SyncWatcher extends BaseWatcher {
     this.started = true
     try {
       await this.pollSync()
+      await this.incompletePollSync()
     } catch (err) {
       this.logger.error(`sync watcher error: ${err.message}\ntrace: ${err.stack}`)
       this.notifier.error(`sync watcher error: ${err.message}`)
@@ -105,6 +107,38 @@ class SyncWatcher extends BaseWatcher {
       await this.preSyncHandler()
       await this.syncHandler()
       await this.postSyncHandler()
+    }
+  }
+
+  async incompletePollSync () {
+    while (true) {
+      if (!(this.ready && !this.isInitialSyncCompleted())) {
+        await wait(5 * 1000)
+        continue
+      }
+      try {
+        const promises : Promise<any>[] = []
+        const incompleteTransfers = await this.db.transfers.getIncompleteItems()
+        for (const { transferId } of incompleteTransfers) {
+          promises.push(this.populateTransferDbItem(transferId).catch(err => {
+            this.logger.error(`populateTransferDbItem error: ${err.message}`)
+            this.notifier.error(`populateTransferDbItem error: ${err.message}`)
+          }))
+        }
+        const incompleteRoots = await this.db.transfers.getIncompleteItems()
+        for (const { transferRootHash } of incompleteRoots) {
+          promises.push(this.populateTransferRootDbItem(transferRootHash).catch(err => {
+            this.logger.error(`populateTransferRootDbItem error: ${err.message}`)
+            this.notifier.error(`populateTransferRootDbItem error: ${err.message}`)
+          }))
+        }
+
+        await Promise.all(promises)
+      } catch (err) {
+        this.logger.error(`incomplete poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
+        this.notifier.error(`incomplete poll sync watcher error: ${err.message}`)
+      }
+      await wait(this.incompleteIntervalMs)
     }
   }
 
@@ -300,8 +334,6 @@ class SyncWatcher extends BaseWatcher {
         transferSentBlockNumber: blockNumber,
         transferSentIndex: transactionIndex
       })
-
-      await this.populateTransferDbItem(transferId)
     } catch (err) {
       logger.error(`handleTransferSentEvent error: ${err.message}`)
       this.notifier.error(`handleTransferSentEvent error: ${err.message}`)
@@ -321,8 +353,6 @@ class SyncWatcher extends BaseWatcher {
       withdrawalBonded: true,
       withdrawalBondedTxHash: transactionHash
     })
-
-    await this.populateTransferDbItem(transferId)
   }
 
   async handleTransferRootConfirmedEvent (event: Event) {
@@ -367,8 +397,6 @@ class SyncWatcher extends BaseWatcher {
         bondTxHash: transactionHash,
         bondBlockNumber: blockNumber
       })
-
-      await this.populateTransferRootDbItem(root)
     } catch (err) {
       logger.error(`handleTransferRootBondedEvent error: ${err.message}`)
       this.notifier.error(`handleTransferRootBondedEvent error: ${err.message}`)
@@ -426,8 +454,6 @@ class SyncWatcher extends BaseWatcher {
         commitTxBlockNumber: blockNumber,
         shouldBondTransferRoot
       })
-
-      await this.populateTransferRootDbItem(transferRootHash)
     } catch (err) {
       logger.error(`handleTransfersCommittedEvent error: ${err.message}`)
       this.notifier.error(`handleTransfersCommittedEvent error: ${err.message}`)
@@ -628,8 +654,6 @@ class SyncWatcher extends BaseWatcher {
       rootSetTxHash: transactionHash,
       rootSetBlockNumber: blockNumber
     })
-
-    await this.populateTransferRootDbItem(transferRootHash)
   }
 
   handleMultipleWithdrawalsSettledEvent = async (event: Event) => {
@@ -683,7 +707,7 @@ class SyncWatcher extends BaseWatcher {
   async populateTransferDbItem (transferId: string) {
     const dbTransfer = await this.db.tranfers.getByTransferId(transferId)
     if (!dbTransfer) {
-      return
+      throw new Error('expected db transfer item')
     }
 
     const { transferSentTimestamp, transferSentBlockNumber, withdrawalBondedTxHash, withdrawalBonder } = dbTransfer
@@ -694,7 +718,7 @@ class SyncWatcher extends BaseWatcher {
       })
     }
 
-    if (withdrawalBondedTxHash && withdrawalBonder) {
+    if (withdrawalBondedTxHash && !withdrawalBonder) {
       const tx = await this.bridge.getTransaction(withdrawalBondedTxHash)
       if (!tx) {
         throw new Error(`expected tx object. transferId: ${transferId}`)
@@ -709,7 +733,7 @@ class SyncWatcher extends BaseWatcher {
   async populateTransferRootDbItem (transferRootHash: string) {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     if (!dbTransferRoot) {
-      return
+      throw new Error('expected db transfer root item')
     }
     const logger = this.logger.create({ root: transferRootHash })
     const { transferRootId, totalAmount, bondTxHash, bondBlockNumber, bondTotalAmount, bondTransferRootId, rootSetBlockNumber, rootSetTimestamp } = dbTransferRoot

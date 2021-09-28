@@ -245,6 +245,17 @@ class TransferRootsDb extends BaseDb {
       )
     })
   }
+
+  async getIncompleteItems () {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
+      return (
+        (item.totalAmount && !item.transferRootId) ||
+        (item.bondTxHash && !item.bondTransferRootId) ||
+        (item.rootSetBlockNumber && !item.rootSetTimestamp)
+      )
+    })
+  }
 }
 
 export default TransferRootsDb

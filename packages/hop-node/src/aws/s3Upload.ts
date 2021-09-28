@@ -45,21 +45,29 @@ class S3Upload {
 
   @queue
   async upload (data: any) {
-    data = JSON.parse(JSON.stringify(data)) // deep clone
-    const uploadData = {
-      timestamp: Date.now(),
-      data: this.bigNumbersToString(data)
+    try {
+      data = JSON.parse(JSON.stringify(data)) // deep clone
+      const uploadData = {
+        timestamp: Date.now(),
+        data: this.bigNumbersToString(data)
+      }
+      this.logger.debug('uploading')
+      const input = {
+        Bucket: this.bucket,
+        Key: this.key,
+        Body: JSON.stringify(uploadData, null, 2),
+        ACL: 'public-read'
+      }
+      const command = new PutObjectCommand(input)
+      await client.send(command)
+      this.logger.debug('uploaded to s3')
+    } catch (err) {
+      const msg = err.message
+      if (msg.includes('The bucket you are attempting to access must be addressed using the specified endpoint')) {
+        throw new Error('could not access bucket. Make sure AWS_REGION is correct')
+      }
+      throw err
     }
-    this.logger.debug('uploading')
-    const input = {
-      Bucket: this.bucket,
-      Key: this.key,
-      Body: JSON.stringify(uploadData, null, 2),
-      ACL: 'public-read'
-    }
-    const command = new PutObjectCommand(input)
-    await client.send(command)
-    this.logger.debug('uploaded to s3')
   }
 
   async getData () {

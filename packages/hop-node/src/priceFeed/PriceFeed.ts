@@ -41,7 +41,7 @@ class PriceFeed {
         return price
       } catch (err) {
         const isLastService = this.services.indexOf(service) === this.services.length - 1
-        errors.push(err)
+        errors.push(err.message)
         if (isLastService) {
           throw new Error(`PriceFeed error(s): ${errors.join(' ')}`)
         }

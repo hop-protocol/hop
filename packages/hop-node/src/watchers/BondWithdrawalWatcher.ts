@@ -8,7 +8,6 @@ import { BigNumber, Contract, providers } from 'ethers'
 import { BonderFeeTooLowError } from 'src/types/error'
 import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
-import { getChainNativeTokenSymbol } from './classes/Bridge'
 
 export interface Config {
   chainSlug: string
@@ -262,6 +261,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     const pricesNearTransferEvent = await this.getPricesNearTransferEvent(dbTransfer)
+    logger.debug('pricesNearTransferEvent:', pricesNearTransferEvent)
 
     if (attemptSwap) {
       logger.debug(
@@ -289,7 +289,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const { destinationChainId } = dbTransfer
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const tokenSymbol = this.tokenSymbol
-    const chainNativeTokenSymbol = getChainNativeTokenSymbol(this.chainSlug)
+    const chainNativeTokenSymbol = this.bridge.getChainNativeTokenSymbol(this.chainSlug)
     const transferSentTimestamp = dbTransfer?.transferSentTimestamp
     let gasPrice : BigNumber
     let tokenUsdPrice : number
@@ -299,14 +299,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
       if (gasPriceItem) {
         gasPrice = gasPriceItem.gasPrice
       }
-      let tokenPriceItem = await this.db.gasPrices.getNearest(tokenSymbol, transferSentTimestamp)
+      let tokenPriceItem = await this.db.tokenPrices.getNearest(tokenSymbol, transferSentTimestamp)
       if (tokenPriceItem) {
         tokenUsdPrice = tokenPriceItem.price
       }
       if (tokenSymbol === chainNativeTokenSymbol) {
         chainNativeTokenUsdPrice = tokenUsdPrice
       } else {
-        tokenPriceItem = await this.db.gasPrices.getNearest(chainNativeTokenSymbol, transferSentTimestamp)
+        tokenPriceItem = await this.db.tokenPrices.getNearest(chainNativeTokenSymbol, transferSentTimestamp)
         if (tokenPriceItem) {
           chainNativeTokenUsdPrice = tokenPriceItem.price
         }

@@ -13,13 +13,13 @@ class Coinbase {
     const json = await res.json()
     const value = json.price
     if (!value) {
-      throw new Error('invalid price')
+      throw new Error('coinbase: invalid price response')
     }
 
     const price = Number(value)
 
     if (Number.isNaN(price)) {
-      throw new Error('invalid price')
+      throw new Error('coinbase: invalid price (not a number)')
     }
 
     return price

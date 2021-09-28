@@ -704,6 +704,10 @@ export default class Bridge extends ContractBase {
       }
     }
   }
+
+  getChainNativeTokenSymbol (chain: string) {
+    return getChainNativeTokenSymbol(chain)
+  }
 }
 
 export async function compareBonderDestinationFeeCost (
@@ -805,7 +809,7 @@ export async function checkMinBonderFee (
   }
 }
 
-export function getChainNativeTokenSymbol (chain: string) {
+function getChainNativeTokenSymbol (chain: string) {
   if (chain === Chain.Polygon) {
     return 'MATIC'
   } else if (chain === Chain.xDai) {

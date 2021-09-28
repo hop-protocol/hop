@@ -1,5 +1,5 @@
 import React, { FC, ChangeEvent } from 'react'
-import { Switch, Route, Redirect, useHistory, useLocation, useRouteMatch } from 'react-router-dom'
+import { useHistory, useLocation, useRouteMatch } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
@@ -12,7 +12,6 @@ import ConvertContent from 'src/pages/Convert/ConvertContent'
 import Network from 'src/models/Network'
 import InfoTooltip from 'src/components/infoTooltip'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
-import HelpIcon from '@material-ui/icons/Help'
 import useQueryParams from 'src/hooks/useQueryParams'
 
 const useStyles = makeStyles(theme => ({
@@ -74,7 +73,7 @@ const Convert: FC = () => {
     }
   }
 
-  const lastPathname = pathname.replace(path, '') || '/bridge'
+  const lastPathname = pathname.replace(path, '') || '/amm'
   const handleTabChange = (event: ChangeEvent<{ value: unknown }>) => {
     const value = event.target.value as string
     history.push({

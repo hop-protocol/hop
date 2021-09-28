@@ -44,7 +44,7 @@ const HeaderRoutes: FC<Props> = () => {
   }
 
   return (
-    <Tabs value={value} onChange={handleChange}>
+    <Tabs value={value || '/send'} onChange={handleChange}>
       <Tab label="Send" value="/send" />
       <Tab label="Pool" value="/pool" />
       {/* <Tab label="HOP" value="/earn" /> */}

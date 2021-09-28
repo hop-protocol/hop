@@ -241,7 +241,7 @@ const Status: FC<StatusProps> = (props: StatusProps) => {
             <Alert severity="warning">
               Destination token swap did not fully complete possibly due to short deadline. You may
               swap h{tx.token.symbol} for {tx.token.symbol} tokens on the{' '}
-              <Link href="/convert/amm">Convert</Link> page.
+              <Link href="/convert">Convert</Link> page.
             </Alert>
           </Box>
         </>

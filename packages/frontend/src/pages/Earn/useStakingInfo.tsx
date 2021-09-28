@@ -42,8 +42,7 @@ export const useStakingInfo = (): StakingInfo => {
   const app = useApp()
   const token = app?.tokens.find(token => token.symbol) as Token
   const stakingRewards = app?.contracts?.governance.stakingRewards
-  const l1Dai =
-    app?.contracts?.tokens[token.symbol][L1_NETWORK].l1CanonicalToken
+  const l1Dai = app?.contracts?.tokens[token.symbol][L1_NETWORK].l1CanonicalToken
   const fromToken = l1Dai
   const toToken = l1Dai
 
@@ -51,9 +50,7 @@ export const useStakingInfo = (): StakingInfo => {
 
   const [stakedAmount, setStakedAmount] = useState<string | undefined>()
   const [earnedAmount, setEarnedAmount] = useState<string | undefined>()
-  const [totalStakedAmount, setTotalStakedAmount] = useState<
-    string | undefined
-  >()
+  const [totalStakedAmount, setTotalStakedAmount] = useState<string | undefined>()
   const [totalRewardRate, setTotalRewardRate] = useState<string | undefined>()
   const [rewardRate, setRewardRate] = useState<string | undefined>()
   const [periodFinish, setPeriodFinish] = useState<Date | undefined>()
@@ -66,7 +63,7 @@ export const useStakingInfo = (): StakingInfo => {
       : false
 
   const fetchStakingValues = useCallback(() => {
-    async function setValues () {
+    async function setValues() {
       setStakedAmount(await stakingRewards?.balanceOf(address?.toString()))
       setEarnedAmount(await stakingRewards?.earned(address?.toString()))
       setTotalStakedAmount(await stakingRewards?.totalSupply())
@@ -86,7 +83,7 @@ export const useStakingInfo = (): StakingInfo => {
     setTotalStakedAmount,
     setTotalRewardRate,
     setRewardRate,
-    setPeriodFinish
+    setPeriodFinish,
   ])
 
   return {
@@ -99,6 +96,6 @@ export const useStakingInfo = (): StakingInfo => {
     totalRewardRate,
     rewardRate,
     periodFinish,
-    active
+    active,
   }
 }

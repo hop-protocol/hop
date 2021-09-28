@@ -9,7 +9,7 @@ const useStyles = makeStyles(theme => ({
     height: '100%',
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   listItemIcon: {
     display: 'flex',
@@ -17,19 +17,19 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 0,
-    marginRight: '1rem'
+    marginRight: '1rem',
   },
   icon: {
     display: 'flex',
     alignItems: 'center',
     width: '100%',
-    height: '100%'
+    height: '100%',
   },
   image: {
     width: 'auto',
     height: '3rem',
-    objectFit: 'contain'
-  }
+    objectFit: 'contain',
+  },
 }))
 
 type Props = {

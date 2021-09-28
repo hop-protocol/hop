@@ -22,34 +22,34 @@ import useApprove from 'src/hooks/useApprove'
 
 const useStyles = makeStyles(theme => ({
   root: {
-    marginBottom: '10.4rem'
+    marginBottom: '10.4rem',
   },
   buttons: {
-    marginTop: theme.padding.default
+    marginTop: theme.padding.default,
   },
   button: {
     margin: `0 ${theme.padding.light}`,
-    width: '17.5rem'
+    width: '17.5rem',
   },
   claimButton: {
-    marginTop: theme.padding.default
+    marginTop: theme.padding.default,
   },
   alert: {
-    marginTop: theme.padding.default
+    marginTop: theme.padding.default,
   },
   withdrawButton: {
-    marginTop: theme.padding.light
+    marginTop: theme.padding.light,
   },
   rewardsDetails: {
-    width: '30.0rem'
+    width: '30.0rem',
   },
   details: {
     marginTop: '4.2rem',
     width: '46.0rem',
     [theme.breakpoints.down('xs')]: {
-      width: '90%'
-    }
-  }
+      width: '90%',
+    },
+  },
 }))
 
 type Props = {
@@ -64,13 +64,7 @@ const TOTAL_AMOUNTS_DECIMALS = 18
 
 const StakeWidget: FC<Props> = props => {
   const styles = useStyles()
-  const {
-    network,
-    bridge,
-    stakingToken,
-    rewardsToken,
-    stakingRewards
-  } = props
+  const { network, bridge, stakingToken, rewardsToken, stakingRewards } = props
 
   const { networks, txConfirm, txHistory, sdk } = useApp()
   const { checkConnectedNetworkId, address } = useWeb3Context()
@@ -113,22 +107,20 @@ const StakeWidget: FC<Props> = props => {
 
   const formattedEarned = toTokenDisplay(earned, rewardsToken?.decimals, rewardsToken?.symbol)
 
-  const polygon = networks.find(network =>
-    network.slug === 'polygon'
-  )
+  const polygon = networks.find(network => network.slug === 'polygon')
 
-  const { balance: lpBalance, loading: loadingLpBalance } = useBalance(stakingToken, polygon, address)
+  const { balance: lpBalance, loading: loadingLpBalance } = useBalance(
+    stakingToken,
+    polygon,
+    address
+  )
   const [amount, setAmount] = useState('')
-  const parsedAmount = (amount && stakingToken)
-    ? parseUnits(amount, stakingToken.decimals)
-    : undefined
+  const parsedAmount =
+    amount && stakingToken ? parseUnits(amount, stakingToken.decimals) : undefined
 
   const allowance = usePollValue(
     async () => {
-      if (!(
-        address &&
-        stakingRewards
-      )) {
+      if (!(address && stakingRewards)) {
         return undefined
       }
       return stakingToken?.allowance(stakingRewards.address)
@@ -180,15 +172,12 @@ const StakeWidget: FC<Props> = props => {
       return
     }
     const now = (Date.now() / 1000) | 0
-    return (now > expireDate)
+    return now > expireDate
   }, [expireDate])
 
   const totalRewardsPerDay = useAsyncMemo(async () => {
     try {
-      if (!(
-        stakingRewards &&
-        rewardsExpired !== undefined
-      )) {
+      if (!(stakingRewards && rewardsExpired !== undefined)) {
         return
       }
       if (rewardsExpired) {
@@ -209,13 +198,15 @@ const StakeWidget: FC<Props> = props => {
 
   const userRewardsPerDay = useAsyncMemo(async () => {
     try {
-      if (!(
-        stakingRewards &&
-        stakeBalance &&
-        totalStaked &&
-        stakeBalance.gt(0) &&
-        typeof rewardsExpired === 'boolean'
-      )) {
+      if (
+        !(
+          stakingRewards &&
+          stakeBalance &&
+          totalStaked &&
+          stakeBalance.gt(0) &&
+          typeof rewardsExpired === 'boolean'
+        )
+      ) {
         return
       }
       if (rewardsExpired) {
@@ -238,11 +229,7 @@ const StakeWidget: FC<Props> = props => {
 
   const { approve } = useApprove()
   const approveToken = async () => {
-    if (
-      !stakingRewards ||
-      !network ||
-      !stakingToken
-    ) {
+    if (!stakingRewards || !network || !stakingToken) {
       throw new Error('Undefined approval parameter')
     }
 
@@ -258,14 +245,9 @@ const StakeWidget: FC<Props> = props => {
   // ((WMATIC_PER_DAY * MATIC_PRICE)/((STAKED_USDC + STAKED_HUSDC)*STAKED_TOKEN_PRICE)) * DAYS_PER_YEAR
   const apr = useAsyncMemo(async () => {
     try {
-      if (!(
-        bridge &&
-        network &&
-        totalStaked &&
-        totalRewardsPerDay &&
-        maticUsdPrice &&
-        tokenUsdPrice
-      )) {
+      if (
+        !(bridge && network && totalStaked && totalRewardsPerDay && maticUsdPrice && tokenUsdPrice)
+      ) {
         return
       }
 
@@ -281,25 +263,33 @@ const StakeWidget: FC<Props> = props => {
       const precision = parseUnits('1', 18)
       const oneYear = 365
 
-      return (((totalRewardsPerDay).mul(maticUsdPriceBn).mul(precision)).div((stakedTotal18d.mul(tokenUsdPriceBn)))).mul(oneYear)
+      return totalRewardsPerDay
+        .mul(maticUsdPriceBn)
+        .mul(precision)
+        .div(stakedTotal18d.mul(tokenUsdPriceBn))
+        .mul(oneYear)
     } catch (err) {
       console.error(err)
     }
   }, [bridge, network, totalStaked, totalRewardsPerDay, maticUsdPrice, tokenUsdPrice])
 
-  const aprFormatted = `${toPercentDisplay(apr, TOTAL_AMOUNTS_DECIMALS)} ${rewardsExpired ? '(rewards ended)' : ''}`
+  const aprFormatted = `${toPercentDisplay(apr, TOTAL_AMOUNTS_DECIMALS)} ${
+    rewardsExpired ? '(rewards ended)' : ''
+  }`
 
   const stakedPosition = useAsyncMemo(async () => {
-    if (!(
-      bridge &&
-      network &&
-      earned &&
-      maticUsdPrice &&
-      tokenUsdPrice &&
-      stakingToken &&
-      stakeBalance &&
-      stakeBalance.gt(0)
-    )) {
+    if (
+      !(
+        bridge &&
+        network &&
+        earned &&
+        maticUsdPrice &&
+        tokenUsdPrice &&
+        stakingToken &&
+        stakeBalance &&
+        stakeBalance.gt(0)
+      )
+    ) {
       return
     }
 
@@ -308,11 +298,19 @@ const StakeWidget: FC<Props> = props => {
     const token = await bridge.getCanonicalToken(network.slug)
     const amm = bridge.getAmm(network.slug)
     const userStakedTotal = await amm.calculateTotalAmountForLpToken(stakeBalance)
-    const userStakedTotal18d = shiftBNDecimals(userStakedTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
-    return (((userStakedTotal18d).mul(tokenUsdPriceBn)).add((earned).mul(maticUsdPriceBn))).div(BigNumber.from(10).pow(stakingToken?.decimals))
+    const userStakedTotal18d = shiftBNDecimals(
+      userStakedTotal,
+      TOTAL_AMOUNTS_DECIMALS - token.decimals
+    )
+    return userStakedTotal18d
+      .mul(tokenUsdPriceBn)
+      .add(earned.mul(maticUsdPriceBn))
+      .div(BigNumber.from(10).pow(stakingToken?.decimals))
   }, [bridge, network, stakeBalance, stakingToken, earned, maticUsdPrice, tokenUsdPrice])
 
-  const stakedPositionFormatted = stakedPosition ? `$${toTokenDisplay(stakedPosition, stakingToken?.decimals)}` : ''
+  const stakedPositionFormatted = stakedPosition
+    ? `$${toTokenDisplay(stakedPosition, stakingToken?.decimals)}`
+    : ''
 
   const stake = async () => {
     try {
@@ -332,12 +330,12 @@ const StakeWidget: FC<Props> = props => {
         kind: 'stake',
         inputProps: {
           amount: amount,
-          token: stakingToken
+          token: stakingToken,
         },
         onConfirm: async () => {
           const signer = await sdk.getSignerOrProvider(network.slug)
           return stakingRewards.connect(signer).stake(parsedAmount)
-        }
+        },
       })
 
       if (tx?.hash && network) {
@@ -346,7 +344,7 @@ const StakeWidget: FC<Props> = props => {
           new Transaction({
             hash: tx.hash,
             networkName: network.slug,
-            token: stakingToken
+            token: stakingToken,
           })
         )
       }
@@ -378,11 +376,7 @@ const StakeWidget: FC<Props> = props => {
 
   const withdraw = async () => {
     try {
-      if (
-        !stakingRewards ||
-        !network ||
-        !stakeBalance
-      ) {
+      if (!stakingRewards || !network || !stakeBalance) {
         throw new Error('Missing withdraw param')
       }
 
@@ -397,7 +391,7 @@ const StakeWidget: FC<Props> = props => {
         kind: 'withdrawStake',
         inputProps: {
           token: stakingToken,
-          amount: Number(formatUnits(stakeBalance, stakingToken?.decimals))
+          amount: Number(formatUnits(stakeBalance, stakingToken?.decimals)),
         },
         onConfirm: async (amountPercent: number) => {
           if (!amountPercent) return
@@ -409,7 +403,7 @@ const StakeWidget: FC<Props> = props => {
           const withdrawAmount = stakeBalance.mul(amountPercent).div(100)
 
           return _stakingRewards.withdraw(withdrawAmount)
-        }
+        },
       })
 
       if (tx?.hash && network) {
@@ -417,7 +411,7 @@ const StakeWidget: FC<Props> = props => {
           new Transaction({
             hash: tx.hash,
             networkName: network.slug,
-            token: stakingToken
+            token: stakingToken,
           })
         )
       }
@@ -427,12 +421,7 @@ const StakeWidget: FC<Props> = props => {
   }
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      className={styles.root}
-    >
+    <Box display="flex" flexDirection="column" alignItems="center" className={styles.root}>
       <AmountSelectorCard
         label={`Staked: ${formattedStakeBalance}`}
         value={amount}
@@ -455,25 +444,21 @@ const StakeWidget: FC<Props> = props => {
           tooltip="The total amount of LP tokens staked for rewards"
           value={totalStakedFormatted}
         />
-        {totalRewardsPerDay?.gt(0) &&
+        {totalRewardsPerDay?.gt(0) && (
           <DetailRow
             title={'Total Rewards'}
-            tooltip={
-                'The total rewards being distributed per day'
-            }
+            tooltip={'The total rewards being distributed per day'}
             value={`${totalRewardsPerDayFormatted} / day`}
           />
-        }
+        )}
       </div>
       <div className={styles.details}>
         {!!userRewardsPerDay && (
-        <DetailRow
-          title={'Your Rewards'}
-          tooltip={
-              'The rewards you\'re earning per day'
-          }
-          value={`${userRewardsPerDayFormatted} / day`}
-        />
+          <DetailRow
+            title={'Your Rewards'}
+            tooltip={"The rewards you're earning per day"}
+            value={`${userRewardsPerDayFormatted} / day`}
+          />
         )}
         {!!stakedPosition && (
           <DetailRow
@@ -483,18 +468,13 @@ const StakeWidget: FC<Props> = props => {
           />
         )}
       </div>
-      <Alert severity="warning" text={warning} className={styles.alert}/>
+      <Alert severity="warning" text={warning} className={styles.alert} />
       <Box display="flex" flexDirection="column" alignItems="center">
-        {earned?.gt(0) &&
-          <Button
-            className={styles.claimButton}
-            large
-            highlighted
-            onClick={claim}
-          >
+        {earned?.gt(0) && (
+          <Button className={styles.claimButton} large highlighted onClick={claim}>
             Claim {formattedEarned}
           </Button>
-        }
+        )}
         <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
           <Button
             className={styles.button}
@@ -516,11 +496,7 @@ const StakeWidget: FC<Props> = props => {
           </Button>
         </Box>
         {stakeBalance?.gt(0) && (
-          <Button
-            className={styles.withdrawButton}
-            large
-            onClick={withdraw}
-          >
+          <Button className={styles.withdrawButton} large onClick={withdraw}>
             Withdraw
           </Button>
         )}

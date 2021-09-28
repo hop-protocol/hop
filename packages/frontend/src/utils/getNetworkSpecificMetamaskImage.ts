@@ -9,7 +9,7 @@ const images: any = {
   kovan: MetamaskNetworkKovan,
   goerli: MetamaskNetworkGoerli,
   ropsten: MetamaskNetworkRopsten,
-  rinkeby: MetamaskNetworkRinkeby
+  rinkeby: MetamaskNetworkRinkeby,
 }
 
 const getNetworkSpecificMetamaskImage = (networkName: string): string => {

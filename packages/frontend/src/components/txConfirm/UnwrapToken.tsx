@@ -12,13 +12,13 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   title: {
-    marginBottom: '2rem'
+    marginBottom: '2rem',
   },
   action: {},
-  sendButton: {}
+  sendButton: {},
 }))
 
 interface TokenEntity {

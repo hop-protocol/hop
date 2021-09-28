@@ -16,24 +16,24 @@ import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   paper: {
-    padding: '2rem'
+    padding: '2rem',
   },
   table: {
-    width: '800px'
+    width: '800px',
   },
   cell: {
-    fontSize: '1.4rem'
+    fontSize: '1.4rem',
   },
   flex: {
-    display: 'flex'
+    display: 'flex',
   },
   title: {
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
   },
   box: {
     marginBottom: '2rem',
-    flexDirection: 'column'
-  }
+    flexDirection: 'column',
+  },
 }))
 
 const PoolStats: FC = () => {
@@ -56,24 +56,24 @@ const PoolStats: FC = () => {
               <TableBody>
                 {fetchingPendingAmounts
                   ? Array(2)
-                    .fill(null)
-                    .map((x, i) => {
-                      return (
+                      .fill(null)
+                      .map((x, i) => {
+                        return (
                           <TableRow key={i}>
                             <TableCell colSpan={6}>
                               <Skeleton animation="wave" width={'100%'} />
                             </TableCell>
                           </TableRow>
-                      )
-                    })
+                        )
+                      })
                   : pendingAmounts?.map(item => {
-                    return (
+                      return (
                         <TableRow key={item.id}>
                           <TableCell className={styles.cell}>
                             <img
                               style={{
                                 display: 'inline-block',
-                                marginRight: '0.5em'
+                                marginRight: '0.5em',
                               }}
                               src={item.sourceNetwork.imageUrl}
                               alt=""
@@ -85,7 +85,7 @@ const PoolStats: FC = () => {
                             <img
                               style={{
                                 display: 'inline-block',
-                                marginRight: '0.5em'
+                                marginRight: '0.5em',
                               }}
                               src={item.destinationNetwork.imageUrl}
                               alt=""
@@ -97,8 +97,8 @@ const PoolStats: FC = () => {
                             {commafy(item.formattedPendingAmount)} {item.token.symbol}
                           </TableCell>
                         </TableRow>
-                    )
-                  })}
+                      )
+                    })}
               </TableBody>
             </Table>
           </TableContainer>

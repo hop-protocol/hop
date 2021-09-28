@@ -7,8 +7,8 @@ const useStyles = makeStyles(theme => ({
     width: '46.0rem',
     marginBottom: '3.4rem',
     [theme.breakpoints.down('xs')]: {
-      width: '90%'
-    }
+      width: '90%',
+    },
   },
   detailsDropdown: {
     width: '46.0rem',
@@ -17,7 +17,7 @@ const useStyles = makeStyles(theme => ({
       content: '"▾"',
     },
     [theme.breakpoints.down('xs')]: {
-      width: '90%'
+      width: '90%',
     },
   },
   detailsDropdownSummary: {
@@ -25,8 +25,8 @@ const useStyles = makeStyles(theme => ({
     display: 'block',
     fontWeight: 'normal',
     '&::marker': {
-      display: 'none'
-    }
+      display: 'none',
+    },
   },
   detailsDropdownLabel: {
     position: 'relative',
@@ -36,7 +36,7 @@ const useStyles = makeStyles(theme => ({
       position: 'relative',
       display: 'inline-flex',
       justifyItems: 'center',
-      alignItems: 'center'
+      alignItems: 'center',
     },
     '& > span::before': {
       display: 'block',
@@ -44,7 +44,7 @@ const useStyles = makeStyles(theme => ({
       position: 'absolute',
       top: '0',
       right: '-1.5rem',
-    }
+    },
   },
 }))
 
@@ -59,18 +59,16 @@ const Expandable: FC<Props> = (props: Props) => {
   return (
     <details className={styles.detailsDropdown}>
       <summary className={styles.detailsDropdownSummary}>
-          <Typography
-            variant="subtitle1"
-            color="textSecondary"
-            component="div"
-            className={styles.detailsDropdownLabel}
-          >
-            <span>{title}</span>
-          </Typography>
+        <Typography
+          variant="subtitle1"
+          color="textSecondary"
+          component="div"
+          className={styles.detailsDropdownLabel}
+        >
+          <span>{title}</span>
+        </Typography>
       </summary>
-      <div>
-        {children}
-      </div>
+      <div>{children}</div>
     </details>
   )
 }

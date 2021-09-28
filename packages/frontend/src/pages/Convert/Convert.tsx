@@ -1,12 +1,5 @@
 import React, { FC, ChangeEvent } from 'react'
-import {
-  Switch,
-  Route,
-  Redirect,
-  useHistory,
-  useLocation,
-  useRouteMatch
-} from 'react-router-dom'
+import { Switch, Route, Redirect, useHistory, useLocation, useRouteMatch } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
@@ -24,15 +17,15 @@ import useQueryParams from 'src/hooks/useQueryParams'
 
 const useStyles = makeStyles(theme => ({
   title: {
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
   },
   selects: {
     marginBottom: '4.4rem',
     display: 'flex',
     [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',
-      textAlign: 'center'
-    }
+      textAlign: 'center',
+    },
   },
   select: {
     display: 'flex',
@@ -40,32 +33,23 @@ const useStyles = makeStyles(theme => ({
     marginLeft: '1rem',
     [theme.breakpoints.down('xs')]: {
       marginLeft: '0',
-      marginBottom: '1rem'
-    }
+      marginBottom: '1rem',
+    },
   },
   help: {
     display: 'flex',
     alignItems: 'center',
-    marginLeft: '1rem'
+    marginLeft: '1rem',
   },
   box: {
-    marginBottom: '4.2rem'
-  }
+    marginBottom: '4.2rem',
+  },
 }))
 
 const Convert: FC = () => {
   const styles = useStyles()
-  const {
-    bridges,
-    selectedBridge,
-    setSelectedBridge
-  } = useApp()
-  const {
-    convertOptions,
-    l2Networks,
-    selectedNetwork,
-    setSelectedNetwork
-  } = useConvert()
+  const { bridges, selectedBridge, setSelectedBridge } = useApp()
+  const { convertOptions, l2Networks, selectedNetwork, setSelectedNetwork } = useConvert()
   const { pathname, search } = useLocation()
   const { path } = useRouteMatch()
   const history = useHistory()
@@ -84,7 +68,7 @@ const Convert: FC = () => {
     const network = l2Networks.find((network: Network) => network.slug === slug)
     if (network) {
       updateQueryParams({
-        sourceNetwork: network.slug ?? ''
+        sourceNetwork: network.slug ?? '',
       })
       setSelectedNetwork(network)
     }
@@ -95,7 +79,7 @@ const Convert: FC = () => {
     const value = event.target.value as string
     history.push({
       pathname: `${path}${value}`,
-      search
+      search,
     })
   }
 
@@ -108,26 +92,16 @@ const Convert: FC = () => {
       </Box>
       <Grid className={styles.selects}>
         <div className={styles.select}>
-          <RaisedSelect
-            value={selectedNetwork?.slug}
-            onChange={handleNetworkChange}
-          >
+          <RaisedSelect value={selectedNetwork?.slug} onChange={handleNetworkChange}>
             {l2Networks.map(network => (
               <MenuItem value={network.slug} key={network.slug}>
-                <SelectOption
-                  value={network.slug}
-                  icon={network.imageUrl}
-                  label={network.name}
-                />
+                <SelectOption value={network.slug} icon={network.imageUrl} label={network.name} />
               </MenuItem>
             ))}
           </RaisedSelect>
         </div>
         <div className={styles.select}>
-          <RaisedSelect
-            value={selectedBridge?.getTokenSymbol()}
-            onChange={handleBridgeChange}
-          >
+          <RaisedSelect value={selectedBridge?.getTokenSymbol()} onChange={handleBridgeChange}>
             {bridges.map(bridge => (
               <MenuItem value={bridge.getTokenSymbol()} key={bridge.getTokenSymbol()}>
                 <SelectOption
@@ -148,12 +122,20 @@ const Convert: FC = () => {
             ))}
           </RaisedSelect>
           <div className={styles.help}>
-            <InfoTooltip title={<>
-              <ul>
-                <li>Use "via AMM" to swap between the canonical token and hToken on L2.</li>
-                <li>Use "via Hop Bridge" to send hToken from L2 to Ethereum to receive canonical token on Ethereum, or to send canonical token from Ethereum and receive hToken on L2.</li>
-              </ul>
-          </>} />
+            <InfoTooltip
+              title={
+                <>
+                  <ul>
+                    <li>Use "via AMM" to swap between the canonical token and hToken on L2.</li>
+                    <li>
+                      Use "via Hop Bridge" to send hToken from L2 to Ethereum to receive canonical
+                      token on Ethereum, or to send canonical token from Ethereum and receive hToken
+                      on L2.
+                    </li>
+                  </ul>
+                </>
+              }
+            />
           </div>
         </div>
       </Grid>

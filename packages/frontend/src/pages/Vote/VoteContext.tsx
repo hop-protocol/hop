@@ -1,11 +1,4 @@
-import React, {
-  FC,
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback
-} from 'react'
+import React, { FC, createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { formatUnits } from 'ethers/lib/utils'
 import useInterval from 'src/hooks/useInterval'
 import { useApp } from 'src/contexts/AppContext'
@@ -21,7 +14,7 @@ type VoteContextProps = {
 const initialState: VoteContextProps = {
   balance: '0.00',
   delegate: ZERO_ADDRESS,
-  humanReadableDelegate: ''
+  humanReadableDelegate: '',
 }
 
 export const VoteContext = createContext<VoteContextProps>(initialState)
@@ -42,11 +35,7 @@ export const VoteContextProvider: FC<{}> = ({ children }) => {
     const _getBalance = async () => {
       if (user && l1HopToken) {
         const _balance = await user.getBalance(l1HopToken, networks[0])
-        setBalance(
-          Number(formatUnits(_balance.toString(), l1HopToken.decimals)).toFixed(
-            2
-          )
-        )
+        setBalance(Number(formatUnits(_balance.toString(), l1HopToken.decimals)).toFixed(2))
       }
     }
 
@@ -83,9 +72,7 @@ export const VoteContextProvider: FC<{}> = ({ children }) => {
     } else {
       const _humanReadableDelegateStart = delegate.substr(0, 6)
       const _humanReadableDelegateEnd = delegate.substr(38, 4)
-      setHumanReadableDelegate(
-        _humanReadableDelegateStart + '...' + _humanReadableDelegateEnd
-      )
+      setHumanReadableDelegate(_humanReadableDelegateStart + '...' + _humanReadableDelegateEnd)
     }
   }, [delegate])
 
@@ -94,7 +81,7 @@ export const VoteContextProvider: FC<{}> = ({ children }) => {
       value={{
         balance,
         delegate,
-        humanReadableDelegate
+        humanReadableDelegate,
       }}
     >
       {children}

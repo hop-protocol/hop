@@ -1,12 +1,6 @@
-import {
-  addresses as mainnetAddresses,
-  networks as mainnetNetworks
-} from './mainnet'
+import { addresses as mainnetAddresses, networks as mainnetNetworks } from './mainnet'
 import { addresses as kovanAddresses, networks as kovanNetworks } from './kovan'
-import {
-  addresses as goerliAddresses,
-  networks as goerliNetworks
-} from './goerli'
+import { addresses as goerliAddresses, networks as goerliNetworks } from './goerli'
 
 const reactAppNetwork = process.env.REACT_APP_NETWORK || 'kovan'
 let network = reactAppNetwork
@@ -25,10 +19,10 @@ if (isMainnet) {
   networks = goerliNetworks
 }
 
-let enabledTokens : string | string[] | undefined = process.env.REACT_APP_ENABLED_TOKENS
+let enabledTokens: string | string[] | undefined = process.env.REACT_APP_ENABLED_TOKENS
 if (enabledTokens) {
   enabledTokens = enabledTokens.split(',').map(x => x.trim())
-  const filteredAddresses : {[key: string]: any} = {}
+  const filteredAddresses: { [key: string]: any } = {}
   for (const enabledToken of enabledTokens) {
     if (addresses.tokens[enabledToken]) {
       filteredAddresses[enabledToken] = addresses.tokens[enabledToken]
@@ -37,10 +31,10 @@ if (enabledTokens) {
   addresses.tokens = filteredAddresses
 }
 
-let enabledChains : string | string[] | undefined = process.env.REACT_APP_ENABLED_CHAINS
+let enabledChains: string | string[] | undefined = process.env.REACT_APP_ENABLED_CHAINS
 if (enabledChains) {
   enabledChains = enabledChains.split(',').map(x => x.trim())
-  const filteredNetworks : {[key: string]: any} = {}
+  const filteredNetworks: { [key: string]: any } = {}
   for (const enabledChain of enabledChains) {
     if (networks[enabledChain]) {
       filteredNetworks[enabledChain] = networks[enabledChain]

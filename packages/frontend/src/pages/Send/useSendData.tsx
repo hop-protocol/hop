@@ -58,7 +58,7 @@ const useSendData = (
       setPriceImpact,
       setBonderFee,
       setLpFees,
-      setRequiredLiquidity
+      setRequiredLiquidity,
     ]
   )
 
@@ -97,7 +97,7 @@ const useSendData = (
     requiredLiquidity,
     loading,
     destinationTxFee,
-    estimatedReceived
+    estimatedReceived,
   }
 }
 

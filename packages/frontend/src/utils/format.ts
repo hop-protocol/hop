@@ -34,10 +34,7 @@ export function formatError(error: Error & ErrorData, network?: Network) {
   return 'Something went wrong. Please try again.'
 }
 
-export function amountToBN(
-  token: Token | undefined,
-  amount: string
-): BigNumber | undefined {
+export function amountToBN(token: Token | undefined, amount: string): BigNumber | undefined {
   if (!token) return
   try {
     const sanitizedAmount = amount.replace(/,/g, '')

@@ -8,21 +8,15 @@ import Button from 'src/components/buttons/Button'
 const useStyles = makeStyles(() => ({
   sendButton: {
     marginTop: '1rem',
-    width: '30.0rem'
-  }
+    width: '30.0rem',
+  },
 }))
 
 type Props = {}
 
 const SendButton: FC<Props> = (props: Props) => {
   const styles = useStyles()
-  const {
-    validFormFields,
-    convertTokens,
-    sending,
-    sendButtonText,
-    unsupportedAsset
-  } = useConvert()
+  const { validFormFields, convertTokens, sending, sendButtonText, unsupportedAsset } = useConvert()
   const { walletConnected } = useWeb3Context()
   const handleSubmit = async () => {
     convertTokens()

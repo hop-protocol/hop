@@ -103,7 +103,7 @@ class CoinGecko {
     for (let i = 0; i < symbols.length; i++) {
       const address = this._tokenSymbolAddressMap[symbols[i].toUpperCase()]
       if (!address) {
-        throw new Error('not found')
+        throw new Error('coingecko: not found')
       }
 
       addresses.push(address)
@@ -140,7 +140,7 @@ class CoinGecko {
         try {
           const item = json[address.toLowerCase()]
           if (!item) {
-            throw new Error('not found')
+            throw new Error('coingecko: not found')
           }
 
           const price = this._normalizePrice(item[base])
@@ -206,7 +206,7 @@ class CoinGecko {
       const json = await res.json()
 
       if (!Array.isArray(json)) {
-        throw new Error('expected array')
+        throw new Error('coingecko: expected array')
       }
 
       const results: IResult[] = []
@@ -255,7 +255,7 @@ class CoinGecko {
     const json = await res.json()
 
     if (!json.symbol) {
-      throw new Error('invalid coingecko response')
+      throw new Error('coingecko: invalid response')
     }
 
     const result = {
@@ -272,7 +272,7 @@ class CoinGecko {
 
     // If the API call did not return a number, throw an error
     if (Number.isNaN(price)) {
-      throw new Error('invalid price')
+      throw new Error('coinbase: invalid price (not a number)')
     }
 
     return price

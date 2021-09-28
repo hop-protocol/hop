@@ -461,7 +461,9 @@ export default class Bridge extends ContractBase {
     amount: BigNumber,
     transferNonce: string,
     bonderFee: BigNumber,
-    gasPrice?: BigNumber
+    gasPrice?: BigNumber,
+    tokenUsdPrice?: number,
+    chainNativeTokenUsdPrice?: number
   ): Promise<providers.TransactionResponse> {
     const txOverrides = await this.txOverrides()
     const payload = [
@@ -473,7 +475,7 @@ export default class Bridge extends ContractBase {
     ]
 
     const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
-    await checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice)
+    await checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
 
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
 
@@ -702,6 +704,10 @@ export default class Bridge extends ContractBase {
       }
     }
   }
+
+  getChainNativeTokenSymbol (chain: string) {
+    return getChainNativeTokenSymbol(chain)
+  }
 }
 
 export async function compareBonderDestinationFeeCost (
@@ -709,15 +715,23 @@ export async function compareBonderDestinationFeeCost (
   gasLimit: BigNumber,
   chain: string,
   tokenSymbol: string,
-  gasPrice?: BigNumber
+  gasPrice?: BigNumber,
+  tokenUsdPrice?: number,
+  chainNativeTokenUsdPrice?: number
 ) {
   const ethDecimals = 18
   const provider = getRpcProvider(chain)
-  gasPrice = gasPrice || getBumpedGasPrice(await provider.getGasPrice(), MaxGasPriceMultiplier)
+  if (!gasPrice) {
+    gasPrice = getBumpedGasPrice(await provider.getGasPrice(), MaxGasPriceMultiplier)
+  }
+  if (!tokenUsdPrice) {
+    tokenUsdPrice = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
+  }
   const gasCost = gasLimit.mul(gasPrice)
   const chainNativeTokenSymbol = getChainNativeTokenSymbol(chain)
-  const chainNativeTokenUsdPrice = await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol)
-  const tokenUsdPrice = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
+  if (!chainNativeTokenUsdPrice) {
+    chainNativeTokenUsdPrice = await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol)
+  }
   const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), ethDecimals)
   const chainNativeTokenUsdPriceBn = parseUnits(chainNativeTokenUsdPrice.toString(), ethDecimals)
   const tokenDecimals = getTokenDecimals(tokenSymbol)
@@ -775,9 +789,18 @@ export async function compareMinBonderFeeBasisPoints (
   return minBonderFee
 }
 
-export async function checkMinBonderFee (amountIn: BigNumber, bonderFee: BigNumber, gasLimit: BigNumber, chainSlug: string, tokenSymbol: string, gasPrice?: BigNumber) {
+export async function checkMinBonderFee (
+  amountIn: BigNumber,
+  bonderFee: BigNumber,
+  gasLimit: BigNumber,
+  chainSlug: string,
+  tokenSymbol: string,
+  gasPrice?: BigNumber,
+  tokenUsdPrice?: number,
+  chainNativeTokenUsdPrice?: number
+) {
   const minBpsFee = await compareMinBonderFeeBasisPoints(amountIn, bonderFee, chainSlug, tokenSymbol)
-  const minTxFee = await compareBonderDestinationFeeCost(bonderFee, gasLimit, chainSlug, tokenSymbol, gasPrice)
+  const minTxFee = await compareBonderDestinationFeeCost(bonderFee, gasLimit, chainSlug, tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
 
   const minBonderFeeTotal = minBpsFee.add(minTxFee)
   const isTooLow = bonderFee.lt(minBonderFeeTotal)

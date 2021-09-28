@@ -10,7 +10,6 @@ import Button from 'src/components/buttons/Button'
 import SendIcon from '@material-ui/icons/Send'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import MenuItem from '@material-ui/core/MenuItem'
-import { Token } from '@hop-protocol/sdk'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
@@ -35,7 +34,7 @@ import FeeDetails from 'src/components/FeeDetails'
 import useApprove from 'src/hooks/useApprove'
 import { reactAppNetwork } from 'src/config'
 import InfoTooltip from 'src/components/infoTooltip'
-import { formatError } from 'src/utils/format'
+import { amountToBN, formatError } from 'src/utils/format'
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -304,18 +303,6 @@ const Send: FC = () => {
       logger.error(err)
     }
     setApproving(false)
-  }
-
-  const amountToBN = (token: Token | undefined, amount: string): BigNumber | undefined => {
-    if (!token) return
-    let val
-    try {
-      const sanitizedAmount = amount.replace(/,/g, '')
-      val = parseUnits(sanitizedAmount, token.decimals)
-    } catch (err) {
-      // noop
-    }
-    return val
   }
 
   const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {

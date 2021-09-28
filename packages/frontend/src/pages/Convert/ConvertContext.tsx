@@ -25,6 +25,7 @@ import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import useBalance from 'src/hooks/useBalance'
 import { toTokenDisplay } from 'src/utils'
 import useApprove from 'src/hooks/useApprove'
+import useQueryParams from 'src/hooks/useQueryParams'
 
 type ConvertContextProps = {
   convertOptions: ConvertOption[]
@@ -104,6 +105,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const { networks, selectedBridge, txConfirm, sdk, l1Network, settings } = app
   const { slippageTolerance, deadline } = settings
   const { pathname } = useLocation()
+  const { queryParams } = useQueryParams()
 
   const convertOptions = useMemo(() => {
     return [
@@ -120,6 +122,13 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(
     l2Networks[0]
   )
+
+  useEffect(() => {
+    if (!selectedNetwork && queryParams?.sourceNetwork) {
+      setSelectedNetwork(queryParams.sourceNetwork)
+    }
+  }, [queryParams]);
+
   const [isForwardDirection, setIsForwardDirection] = useState(true)
   const switchDirection = () => {
     setIsForwardDirection(!isForwardDirection)

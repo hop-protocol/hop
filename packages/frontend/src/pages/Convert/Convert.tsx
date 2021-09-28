@@ -20,6 +20,7 @@ import Network from 'src/models/Network'
 import InfoTooltip from 'src/components/infoTooltip'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 import HelpIcon from '@material-ui/icons/Help'
+import useQueryParams from 'src/hooks/useQueryParams'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -68,6 +69,7 @@ const Convert: FC = () => {
   const { pathname, search } = useLocation()
   const { path } = useRouteMatch()
   const history = useHistory()
+  const { updateQueryParams } = useQueryParams()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
@@ -81,6 +83,9 @@ const Convert: FC = () => {
     const slug = event.target.value as string
     const network = l2Networks.find((network: Network) => network.slug === slug)
     if (network) {
+      updateQueryParams({
+        sourceNetwork: network.slug ?? ''
+      })
       setSelectedNetwork(network)
     }
   }

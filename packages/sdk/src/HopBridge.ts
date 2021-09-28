@@ -874,7 +874,7 @@ class HopBridge extends Base {
   }
 
   async getBonderAvailableLiquidityData () {
-    const url = `https://assets.hop.exchange/v1-available-liquidity.json`
+    const url = `https://assets.hop.exchange/${this.network}/v1-available-liquidity.json`
     const res = await fetch(url)
     const json = await res.json()
     if (!json) {

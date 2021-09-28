@@ -153,6 +153,7 @@ class TransfersDb extends BaseDb {
 
       return (
         item.transferId &&
+        item.transferSentTimestamp &&
         !item.withdrawalBonded &&
         item.transferSentTxHash &&
         item.isBondable &&

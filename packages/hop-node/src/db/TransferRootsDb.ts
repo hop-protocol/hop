@@ -197,6 +197,7 @@ class TransferRootsDb extends BaseDb {
       // transferRootId. If transferRootIds do not match then we know the bond is fraudulent.
       const isTransferRootIdValid = item.bondTransferRootId === item.transferRootId
       return (
+        item.transferRootId &&
         item.transferRootHash &&
         item.bonded &&
         !isTransferRootIdValid &&

@@ -77,7 +77,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       promises.push(this.checkTransferId(transferId).catch(err => {
-        this.logger.error(`checkTransferId error: ${err.message}`)
+        this.logger.error('checkTransferId error:', err)
       }))
     }
 

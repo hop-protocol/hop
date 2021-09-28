@@ -1,9 +1,7 @@
-import React, { FC, ChangeEvent, useMemo, useEffect } from 'react'
-import { BigNumber } from 'ethers'
+import React, { FC, ChangeEvent, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import find from 'lodash/find'
 import Typography from '@material-ui/core/Typography'
-import Card from '@material-ui/core/Card'
-import MuiButton from '@material-ui/core/Button'
 import Button from 'src/components/buttons/Button'
 import Box from '@material-ui/core/Box'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -14,9 +12,11 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
-import { commafy, normalizeNumberInput, toTokenDisplay, toPercentDisplay } from 'src/utils'
+import { commafy, normalizeNumberInput, toPercentDisplay } from 'src/utils'
 import TokenWrapper from 'src/components/TokenWrapper'
 import DetailRow from 'src/components/DetailRow'
+import useQueryParams from 'src/hooks/useQueryParams'
+import Network from 'src/models/Network'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -97,7 +97,7 @@ const useStyles = makeStyles(theme => ({
 
 const Pools: FC = () => {
   const styles = useStyles()
-  const { bridges, selectedBridge, setSelectedBridge } = useApp()
+  const { bridges, selectedBridge, setSelectedBridge, DEFAULT_L2_NETWORK } = useApp()
   const {
     networks,
     canonicalToken,
@@ -140,6 +140,19 @@ const Pools: FC = () => {
       setSelectedBridge(bridge)
     }
   }
+
+  const { queryParams } = useQueryParams()
+
+  useEffect(() => {
+    if (selectedNetwork && queryParams?.sourceNetwork !== selectedNetwork?.slug) {
+      const matchingNetwork = find(networks, ['slug', queryParams.sourceNetwork])
+      if (matchingNetwork && !matchingNetwork?.isLayer1) {
+        setSelectedNetwork(matchingNetwork)
+      } else {
+        setSelectedNetwork(DEFAULT_L2_NETWORK as Network)
+      }
+    }
+  }, [queryParams])
 
   const handleNetworkSelect = (event: ChangeEvent<{ value: unknown }>) => {
     const networkName = event.target.value

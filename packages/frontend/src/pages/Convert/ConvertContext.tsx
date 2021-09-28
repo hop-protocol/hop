@@ -9,15 +9,15 @@ import React, {
   ReactNode,
 } from 'react'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
-import { BigNumber, Signer } from 'ethers'
-import { parseUnits, formatUnits } from 'ethers/lib/utils'
+import { BigNumber } from 'ethers'
+import { parseUnits } from 'ethers/lib/utils'
 import { useLocation } from 'react-router-dom'
-import { HopBridge, Token } from '@hop-protocol/sdk'
+import { Token } from '@hop-protocol/sdk'
+import find from 'lodash/find'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { UINT256 } from 'src/constants'
 import logger from 'src/logger'
 import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
@@ -101,53 +101,90 @@ const ConvertContext = createContext<ConvertContextProps>({
 
 const ConvertContextProvider: FC = ({ children }) => {
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()
-  const app = useApp()
-  const { networks, selectedBridge, txConfirm, sdk, l1Network, settings } = app
+  const {
+    networks,
+    txHistory,
+    l2Networks,
+    DEFAULT_L2_NETWORK,
+    selectedBridge,
+    txConfirm,
+    sdk,
+    l1Network,
+    settings,
+  } = useApp()
   const { slippageTolerance, deadline } = settings
   const { pathname } = useLocation()
   const { queryParams } = useQueryParams()
+  const { approve, checkApproval } = useApprove()
 
-  const convertOptions = useMemo(() => {
-    return [new AmmConvertOption(), new HopConvertOption()]
-  }, [])
-  const convertOption = useMemo(() => {
-    return convertOptions.find(option => pathname.includes(option.path)) || convertOptions[0]
-  }, [pathname])
-  const l2Networks = networks.filter((network: Network) => !network.isLayer1)
   const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(l2Networks[0])
-
-  useEffect(() => {
-    if (!selectedNetwork && queryParams?.sourceNetwork) {
-      setSelectedNetwork(queryParams.sourceNetwork)
-    }
-  }, [queryParams])
-
   const [isForwardDirection, setIsForwardDirection] = useState(true)
   const switchDirection = () => {
     setIsForwardDirection(!isForwardDirection)
   }
-  const sourceNetwork = useMemo<Network | undefined>(() => {
-    if (convertOption instanceof AmmConvertOption || !isForwardDirection) {
-      return selectedNetwork
-    } else {
-      return l1Network
-    }
-  }, [isForwardDirection, selectedNetwork, l1Network, convertOption])
-  const destNetwork = useMemo<Network | undefined>(() => {
-    if (convertOption instanceof AmmConvertOption || isForwardDirection) {
-      return selectedNetwork
-    } else {
-      return l1Network
-    }
-  }, [isForwardDirection, selectedNetwork, l1Network, convertOption])
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
   const [amountOutMin, setAmountOutMin] = useState<BigNumber>()
   const [sending, setSending] = useState<boolean>(false)
   const [approving, setApproving] = useState<boolean>(false)
-
   const [sourceToken, setSourceToken] = useState<Token>()
   const [destToken, setDestToken] = useState<Token>()
+  const [details, setDetails] = useState<ReactNode>()
+  const [warning, setWarning] = useState<ReactNode>()
+  const [bonderFee, setBonderFee] = useState<BigNumber>()
+  const [error, setError] = useState<string | undefined>(undefined)
+  const [tx, setTx] = useState<Transaction | undefined>()
+  const debouncer = useRef(0)
+
+  useEffect(() => {
+    if (selectedNetwork && queryParams?.sourceNetwork !== selectedNetwork?.slug) {
+      const matchingNetwork = find(networks, ['slug', queryParams.sourceNetwork])
+      if (matchingNetwork && !matchingNetwork?.isLayer1) {
+        setSelectedNetwork(matchingNetwork)
+      } else {
+        setSelectedNetwork(DEFAULT_L2_NETWORK)
+      }
+    }
+  }, [queryParams])
+
+  const convertOptions = [new AmmConvertOption(), new HopConvertOption()]
+  const convertOption = useMemo(
+    () => find(convertOptions, option => pathname.includes(option.path)) || convertOptions[0],
+    [pathname]
+  )
+
+  const sourceNetwork = useMemo<Network | undefined>(() => {
+    if (convertOption instanceof AmmConvertOption || !isForwardDirection) {
+      if (selectedNetwork?.isLayer1) {
+        return DEFAULT_L2_NETWORK
+      }
+      return selectedNetwork
+    } else {
+      return l1Network
+    }
+  }, [isForwardDirection, selectedNetwork, l1Network, convertOption])
+
+  const destNetwork = useMemo<Network | undefined>(() => {
+    if (convertOption instanceof AmmConvertOption || isForwardDirection) {
+      if (selectedNetwork?.isLayer1) {
+        return DEFAULT_L2_NETWORK
+      }
+      return selectedNetwork
+    } else {
+      return l1Network
+    }
+  }, [isForwardDirection, selectedNetwork, l1Network, convertOption])
+
+  const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(
+    sourceToken,
+    sourceNetwork,
+    address
+  )
+  const { balance: destBalance, loading: loadingDestBalance } = useBalance(
+    destToken,
+    destNetwork,
+    address
+  )
 
   const unsupportedAsset = useMemo<any>(() => {
     if (!(selectedBridge && selectedNetwork)) {
@@ -183,6 +220,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
   }, [unsupportedAsset])
 
+  // Fetch source token
   useEffect(() => {
     const fetchToken = async () => {
       try {
@@ -201,9 +239,11 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
     }
 
+    console.log(`selectedNetwork:`, selectedNetwork);
     fetchToken()
   }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
 
+  // Fetch destination token
   useEffect(() => {
     const fetchToken = async () => {
       try {
@@ -222,34 +262,10 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
     }
 
-    fetchToken().catch(err => logger.error(err))
+    fetchToken()
   }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
 
-  const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(
-    sourceToken,
-    sourceNetwork,
-    address
-  )
-  const { balance: destBalance, loading: loadingDestBalance } = useBalance(
-    destToken,
-    destNetwork,
-    address
-  )
-  const [details, setDetails] = useState<ReactNode>()
-  const [warning, setWarning] = useState<ReactNode>()
-  const [bonderFee, setBonderFee] = useState<BigNumber>()
-  const [error, setError] = useState<string | undefined>(undefined)
-  const [tx, setTx] = useState<Transaction | undefined>()
-  const debouncer = useRef(0)
-
-  const parsedSourceTokenAmount = useMemo(() => {
-    if (!sourceTokenAmount || !sourceToken) {
-      return BigNumber.from(0)
-    }
-
-    return parseUnits(sourceTokenAmount, sourceToken.decimals)
-  }, [sourceTokenAmount, sourceToken])
-
+  // Fetch send data
   useEffect(() => {
     const getSendData = async () => {
       if (!selectedBridge || !sourceTokenAmount || !sourceNetwork || !destNetwork || !sourceToken) {
@@ -291,10 +307,8 @@ const ConvertContextProvider: FC = ({ children }) => {
       setBonderFee(bonderFee)
     }
 
-    getSendData().catch(err => logger.error(err))
+    getSendData().catch(logger.error)
   }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
-
-  const { approve, checkApproval } = useApprove()
 
   const needsApproval = useAsyncMemo(async () => {
     try {
@@ -315,6 +329,17 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
   }, [convertOption, sdk, selectedBridge, sourceNetwork, destNetwork, checkApproval])
 
+  const parsedSourceTokenAmount = useMemo(() => {
+    if (!sourceTokenAmount || !sourceToken) {
+      return BigNumber.from(0)
+    }
+
+    return parseUnits(sourceTokenAmount, sourceToken.decimals)
+  }, [sourceTokenAmount, sourceToken])
+
+  // ===============================================================================================
+  // Transactions
+  // ===============================================================================================
   const approveTokens = async (): Promise<any> => {
     try {
       const networkId = Number(sourceNetwork?.networkId)
@@ -417,7 +442,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         if (sourceNetwork.isLayer1 !== destNetwork?.isLayer1) {
           setTx(txObj)
         }
-        app?.txHistory?.addTransaction(txObj)
+        txHistory?.addTransaction(txObj)
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {

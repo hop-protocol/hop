@@ -4,7 +4,7 @@ import { network, networks, metadata } from 'src/config'
 
 const useNetworks = () => {
   // logger.debug('useNetworks render')
-  return useMemo<Network[]>(() => {
+  const allNetworks = useMemo<Network[]>(() => {
     const nets: Network[] = []
     for (const key in networks) {
       const net = networks[key]
@@ -28,6 +28,14 @@ const useNetworks = () => {
     }
     return nets
   }, [])
+
+  const l2Networks = allNetworks.filter((network: Network) => !network.isLayer1)
+
+  return {
+    networks: allNetworks,
+    l2Networks,
+    DEFAULT_L2_NETWORK: l2Networks[0],
+  }
 }
 
 export default useNetworks

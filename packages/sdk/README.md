@@ -11,7 +11,7 @@
 ## Install
 
 ```bash
-npm install @hop-protocol/sdk
+yarn add @hop-protocol/sdk
 ```
 
 ## Documentation
@@ -23,25 +23,25 @@ See [docs.hop.protocol/js-sdk](https://docs.hop.exchange/js-sdk)
 Install dependencies
 
 ```bash
-npm install
+yarn install
 ```
 
 Run watcher
 
 ```bash
-npm run dev
+yarn run dev
 ```
 
 Generate documentation
 
 ```bash
-npm run docs
+yarn run docs
 ```
 
 ## Test
 
 ```bash
-npm test
+yarn test
 ```
 
 ## License

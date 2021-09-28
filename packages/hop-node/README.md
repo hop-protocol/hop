@@ -13,13 +13,13 @@ See [docs.hop.exchange/hop-node](https://docs.hop.exchange/hop-node)
 Install dependencies
 
 ```bash
-npm install
+yarn install
 ```
 
 Run node
 
 ```bash
-npm start
+yarn start
 ```
 
 ## License

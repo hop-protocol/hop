@@ -476,7 +476,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         await this.poll()
         await wait(this.pollMs)
       } catch (err) {
-        this.emit(State.Error, err)
+        this._emitError(err)
       }
     }
   }
@@ -618,7 +618,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       .catch((err: Error) => {
         const isReplacedError = /TRANSACTION_REPLACED/gi.test(err.message)
         if (!isReplacedError) {
-          this.emit(State.Error, err)
+          this._emitError(err)
         }
       })
     this.startPoller()
@@ -659,6 +659,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
 
     return true
+  }
+
+  // https://stackoverflow.com/q/35185749/1439168
+  private _emitError (err: Error) {
+    if (this.listeners('error').length > 0) {
+      this.emit(State.Error, err)
+    }
   }
 }
 

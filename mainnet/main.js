@@ -61,6 +61,26 @@ const app = new Vue({
       total: {
         formattedAmount: '-'
       }
+    },
+    volume: {
+      xdai: {
+        formattedAmount: '-'
+      },
+      polygon: {
+        formattedAmount: '-'
+      },
+      optimism: {
+        formattedAmount: '-'
+      },
+      arbitrum: {
+        formattedAmount: '-'
+      },
+      ethereum: {
+        formattedAmount: '-'
+      },
+      total: {
+        formattedAmount: '-'
+      }
     }
   },
   computed: {
@@ -186,6 +206,9 @@ const app = new Vue({
     setTvl (tvl) {
       Vue.set(app, 'tvl', tvl)
     },
+    setVolume (volume) {
+      Vue.set(app, 'volume', volume)
+    },
     enableChartAmountSize (event) {
       const value = event.target.checked
       Vue.set(app, 'chartAmountSize', value)
@@ -251,6 +274,14 @@ const tokenLogosMap = {
   DAI: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/dai.svg',
   MATIC: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/matic.svg',
   ETH: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/ethereum.svg'
+}
+
+const tokenDecimals = {
+  USDC: 6,
+  USDT: 6,
+  DAI: 18,
+  MATIC: 18,
+  ETH: 18
 }
 
 function explorerLink (chain, transactionHash) {
@@ -360,7 +391,6 @@ async function fetchTvl (chain) {
   const query = `
     query Tvl {
       tvls(
-        first: 1,
         orderDirection: desc
       ) {
         id
@@ -371,23 +401,59 @@ async function fetchTvl (chain) {
   `
   const url = getUrl(chain)
   const data = await queryFetch(url, query)
-  return data.tvls[0]
+  return data.tvls
+}
+
+async function fetchVolume (chain) {
+  const query = `
+    query Volume {
+      volumes(
+        orderDirection: desc
+      ) {
+        id
+        amount
+        token
+      }
+    }
+  `
+  const url = getUrl(chain)
+  const data = await queryFetch(url, query)
+  return data.volumes
 }
 
 async function updateData () {
   await Promise.all([
     updateTvl().catch(err => console.error(err)),
+    updateVolume().catch(err => console.error(err)),
     updateTransfers().catch(err => console.error(err))
   ])
 }
 
-function formatTvl (tvl) {
-  const tokenDecimals = 6
-  const rawAmount = tvl.amount
-  const amount = Number(ethers.utils.formatUnits(rawAmount, tokenDecimals))
+function formatTvl (tvls) {
+  let amount = 0
+  for (const tvl of tvls) {
+    const decimals = tokenDecimals[tvl.token]
+    const rawAmount = ethers.BigNumber.from(tvl.amount)
+    const _amount = Number(ethers.utils.formatUnits(rawAmount, decimals))
+    amount = amount + _amount
+  }
   const formattedAmount = formatCurrency(amount)
   return {
-    rawAmount,
+    amount,
+    formattedAmount
+  }
+}
+
+function formatVolume (volumes) {
+  let amount = 0
+  for (const volume of volumes) {
+    const decimals = tokenDecimals[volume.token]
+    const rawAmount = ethers.BigNumber.from(volume.amount)
+    const _amount = Number(ethers.utils.formatUnits(rawAmount, decimals))
+    amount = amount + _amount
+  }
+  const formattedAmount = formatCurrency(amount)
+  return {
     amount,
     formattedAmount
   }
@@ -396,26 +462,24 @@ function formatTvl (tvl) {
 async function updateTvl () {
   const [
     xdaiTvl,
-    // polygonTvl,
+    polygonTvl,
     optimismTvl,
-    mainnetTvl,
-    arbitrumTvl
+    arbitrumTvl,
+    mainnetTvl
   ] = await Promise.all([
     fetchTvl('xdai'),
-    // fetchTvl('polygon'),
+    fetchTvl('polygon'),
     fetchTvl('optimism'),
-    fetchTvl('mainnet'),
-    fetchTvl('arbitrum')
+    fetchTvl('arbitrum'),
+    fetchTvl('mainnet')
   ])
 
   const xdai = formatTvl(xdaiTvl)
-  // const polygon = formatTvl(polygonTvl)
-  const polygon = { formattedAmount: '-' }
+  const polygon = formatTvl(polygonTvl)
   const optimism = formatTvl(optimismTvl)
-  const ethereum = formatTvl(mainnetTvl)
   const arbitrum = formatTvl(arbitrumTvl)
-  // const totalAmount = xdai.amount + polygon.amount + ethereum.amount
-  const totalAmount = xdai.amount + ethereum.amount + optimism.amount + arbitrum.amount
+  const ethereum = formatTvl(mainnetTvl)
+  const totalAmount = xdai.amount + polygon.amount + optimism.amount + arbitrum.amount + ethereum.amount
   const total = {
     amount: totalAmount,
     formattedAmount: formatCurrency(totalAmount)
@@ -425,8 +489,8 @@ async function updateTvl () {
     xdai,
     polygon,
     optimism,
-    ethereum,
     arbitrum,
+    ethereum,
     total
   }
 
@@ -434,6 +498,51 @@ async function updateTvl () {
 
   try {
     localStorage.setItem('tvl', JSON.stringify(tvl))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+async function updateVolume () {
+  const [
+    xdaiVolume,
+    polygonVolume,
+    optimismVolume,
+    arbitrumVolume,
+    mainnetVolume
+  ] = await Promise.all([
+    fetchVolume('xdai'),
+    fetchVolume('polygon'),
+    fetchVolume('optimism'),
+    fetchVolume('arbitrum'),
+    fetchVolume('mainnet')
+  ])
+
+  const xdai = formatVolume(xdaiVolume)
+  const polygon = formatVolume(polygonVolume)
+  const optimism = formatVolume(optimismVolume)
+  const arbitrum = formatVolume(arbitrumVolume)
+  const ethereum = formatVolume(mainnetVolume)
+
+  const totalAmount = xdai.amount + polygon.amount + optimism.amount + arbitrum.amount + ethereum.amount
+  const total = {
+    amount: totalAmount,
+    formattedAmount: formatCurrency(totalAmount)
+  }
+
+  const volume = {
+    xdai,
+    polygon,
+    optimism,
+    arbitrum,
+    ethereum,
+    total
+  }
+
+  app.setVolume(volume)
+
+  try {
+    localStorage.setItem('volume', JSON.stringify(volume))
   } catch (err) {
     console.error(err)
   }
@@ -575,7 +684,7 @@ async function updateTransfers () {
   app.updateTransfers(populatedData)
 
   try {
-    localStorage.setItem('data', JSON.stringify(populatedData))
+    localStorage.setItem('data', JSON.stringify(populatedData.slice(0, 200)))
   } catch (err) {
     console.error(err)
   }
@@ -618,12 +727,9 @@ function populateTransfer (x, i) {
     }
   }
 
-  let tokenDecimals = 18
-  if (['USDC', 'USDT'].includes(x.token)) {
-    tokenDecimals = 6
-  }
-  x.formattedAmount = Number(ethers.utils.formatUnits(x.amount, tokenDecimals))
-  x.displayAmount = formatCurrency(ethers.utils.formatUnits(x.amount, tokenDecimals))
+  const decimals = tokenDecimals[x.token]
+  x.formattedAmount = Number(ethers.utils.formatUnits(x.amount, decimals))
+  x.displayAmount = formatCurrency(ethers.utils.formatUnits(x.amount, decimals))
   x.tokenImageUrl = tokenLogosMap[x.token]
 
   return x

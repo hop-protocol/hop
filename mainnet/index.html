@@ -40,17 +40,31 @@
           <div id="chartSelection">{{ chartSelection }}</div>
         </details>
       </div>
-      <div id="tvl" style="display:none">
-        <details open>
-          <summary>Total Value Locked (USD) ▾</summary>
-          <div>
-            <div>Total: {{tvl.total.formattedAmount}}</div>
-            <div class="ethereum">Ethereum: {{tvl.ethereum.formattedAmount}}</div>
-            <div class="polygon">Polygon: {{tvl.polygon.formattedAmount}}</div>
-            <div class="xdai">xDai: {{tvl.xdai.formattedAmount}}</div>
-            <div class="optimism">Optimism: {{tvl.optimism.formattedAmount}}</div>
-            <div class="arbitrum">Arbitrum: {{tvl.arbitrum.formattedAmount}}</div>
-          </div>
+      <div id="stats">
+        <div id="volume">
+          <details open>
+            <summary>Cumulative Volume (USD) ▾</summary>
+            <div>
+              <div>Total: {{volume.total.formattedAmount}}</div>
+              <div class="ethereum">Ethereum: {{volume.ethereum.formattedAmount}}</div>
+              <div class="xdai">xDai: {{volume.xdai.formattedAmount}}</div>
+              <div class="polygon">Polygon: {{volume.polygon.formattedAmount}}</div>
+              <div class="optimism">Optimism: {{volume.optimism.formattedAmount}}</div>
+              <div class="arbitrum">Arbitrum: {{volume.arbitrum.formattedAmount}}</div>
+            </div>
+        </div>
+        <div id="tvl">
+          <details open>
+            <summary>Total Value Locked (USD) ▾</summary>
+            <div>
+              <div>Total: {{tvl.total.formattedAmount}}</div>
+              <div class="ethereum">Ethereum: {{tvl.ethereum.formattedAmount}}</div>
+              <div class="xdai">xDai: {{tvl.xdai.formattedAmount}}</div>
+              <div class="polygon">Polygon: {{tvl.polygon.formattedAmount}}</div>
+              <div class="optimism">Optimism: {{tvl.optimism.formattedAmount}}</div>
+              <div class="arbitrum">Arbitrum: {{tvl.arbitrum.formattedAmount}}</div>
+            </div>
+        </div>
       </div>
       <details open>
         <summary>Transfers ▾</summary>

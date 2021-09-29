@@ -76,7 +76,21 @@ details > summary::marker {
   margin-bottom: 2rem;
 }
 #tvl {
+}
+#volume {
+}
+#stats {
+  display: flex;
+  justify-content: space-between;
   margin-bottom: 2rem;
+}
+@media (max-width: 400px) {
+  #stats {
+    flex-direction: column;
+  }
+  #volume {
+    margin-bottom: 2rem;
+  }
 }
 #transfers {
   overflow: auto;

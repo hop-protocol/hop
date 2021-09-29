@@ -565,6 +565,20 @@ class HopBridge extends Base {
     )
   }
 
+  public async getTotalFee (
+    amountIn: BigNumberish,
+    sourceChain: TChain,
+    destinationChain: TChain
+  ): Promise<BigNumber> {
+    const { bonderFee, destinationTxFee } = await this.getSendData(
+      amountIn,
+      sourceChain,
+      destinationChain
+    )
+
+    return bonderFee.add(destinationTxFee)
+  }
+
   public async getLpFees (
     amountIn: BigNumberish,
     sourceChain: TChain,
@@ -1355,7 +1369,7 @@ class HopBridge extends Base {
     if (destinationChain.isL1) {
       let bonderFee = options?.bonderFee
       if (!bonderFee) {
-        bonderFee = await this.getBonderFee(
+        bonderFee = await this.getTotalFee(
           tokenAmount,
           sourceChain,
           destinationChain
@@ -1378,7 +1392,7 @@ class HopBridge extends Base {
     // L2 -> L2
     let bonderFee = options?.bonderFee
     if (!bonderFee) {
-      bonderFee = await this.getBonderFee(
+      bonderFee = await this.getTotalFee(
         tokenAmount,
         sourceChain,
         destinationChain

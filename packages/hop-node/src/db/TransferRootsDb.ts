@@ -256,7 +256,8 @@ class TransferRootsDb extends BaseDb {
     return transferRoots.filter(item => {
       return (
         (item.bondTxHash && (!item.bonder || item.bondedAt)) ||
-        (item.rootSetBlockNumber && !item.rootSetTimestamp)
+        (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
+        ((item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount) && !item.transferIds)
       )
     })
   }

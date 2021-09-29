@@ -6,7 +6,6 @@ import { normalizeDbItem } from './utils'
 import { oruChains } from 'src/config'
 
 export type TransferRoot = {
-  destinationBridgeAddress?: string
   transferRootId?: string
   transferRootHash?: string
   totalAmount?: BigNumber

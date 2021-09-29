@@ -425,13 +425,6 @@ class SyncWatcher extends BaseWatcher {
       const { transactionHash, blockNumber } = event
       const sourceChainId = await this.bridge.getChainId()
       const destinationChainId = Number(destinationChainIdBn.toString())
-      let destinationBridgeAddress: string
-      const isExitWatcher = !this.hasSiblingWatcher(destinationChainId)
-      if (!isExitWatcher) {
-        destinationBridgeAddress = await this.getSiblingWatcherByChainId(
-          destinationChainId
-        ).bridge.getAddress()
-      }
       const transferRootId = await this.bridge.getTransferRootId(
         transferRootHash,
         totalAmount
@@ -453,7 +446,6 @@ class SyncWatcher extends BaseWatcher {
         totalAmount,
         committedAt,
         destinationChainId,
-        destinationBridgeAddress,
         sourceChainId,
         committed: true,
         commitTxHash: transactionHash,

@@ -8,12 +8,12 @@ const useStyles = makeStyles(() => ({
   selfDelegateContainer: {
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   textContainer: {
     marginTop: '1rem',
-    marginBottom: '1rem'
-  }
+    marginBottom: '1rem',
+  },
 }))
 
 type DelegateModalTransactionProps = {

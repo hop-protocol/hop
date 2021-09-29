@@ -1,6 +1,6 @@
 import { getAddress } from '@ethersproject/address'
 
-function isAddress (value: any): string | false {
+function isAddress(value: any): string | false {
   try {
     return getAddress(value)
   } catch {

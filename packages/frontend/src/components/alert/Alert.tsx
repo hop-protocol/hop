@@ -9,8 +9,8 @@ const useStyles = makeStyles(theme => ({
     fontSize: '1.6rem',
     borderRadius: '2rem',
     maxWidth: '51.6rem',
-    overflow: 'auto'
-  }
+    overflow: 'auto',
+  },
 }))
 
 type AlertProps = {

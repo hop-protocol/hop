@@ -19,43 +19,43 @@ const useStyles = makeStyles(theme => ({
     width: '51.6rem',
     boxSizing: 'border-box',
     [theme.breakpoints.down('xs')]: {
-      width: 'auto'
-    }
+      width: 'auto',
+    },
   },
   topRow: {
-    marginBottom: '1.8rem'
+    marginBottom: '1.8rem',
   },
   networkSelectionBox: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   defaultLabel: {
     height: '3.8rem',
-    marginLeft: '1.2rem'
+    marginLeft: '1.2rem',
   },
   networkLabel: {
     display: 'flex',
     flexDirection: 'row',
     marginLeft: '0.4rem',
     overflow: 'hidden',
-    textOverflow: 'ellipsis'
+    textOverflow: 'ellipsis',
   },
   networkIconContainer: {
     display: 'flex',
     justifyContent: 'center',
     width: '4rem',
-    height: '4rem'
+    height: '4rem',
   },
   networkIcon: {
     display: 'flex',
     height: '2.2rem',
-    margin: '0.7rem'
+    margin: '0.7rem',
   },
   balance: {
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   maxButton: {
     border: 'none',
@@ -64,8 +64,8 @@ const useStyles = makeStyles(theme => ({
     padding: '0.5rem 1rem',
     fontSize: '1.2rem',
     marginRight: '1rem',
-    cursor: 'pointer'
-  }
+    cursor: 'pointer',
+  },
 }))
 
 type Props = {
@@ -94,7 +94,7 @@ const AmountSelectorCard: FC<Props> = props => {
     balance,
     loadingBalance = false,
     loadingValue = false,
-    disableInput = false
+    disableInput = false,
   } = props
   const styles = useStyles()
 
@@ -149,14 +149,17 @@ const AmountSelectorCard: FC<Props> = props => {
           <FlatSelect
             value={selectedNetwork?.slug || 'default'}
             onChange={event => {
-              const network = networkOptions.find(
-                _network => _network.slug === event.target.value
-              )
+              const network = networkOptions.find(_network => _network.slug === event.target.value)
               onNetworkChange(network)
             }}
           >
             <MenuItem value="default">
-              <Box display="flex" flexDirection="row" alignItems="center" className={styles.defaultLabel}>
+              <Box
+                display="flex"
+                flexDirection="row"
+                alignItems="center"
+                className={styles.defaultLabel}
+              >
                 <Typography variant="subtitle2" className={styles.networkLabel}>
                   Select Network
                 </Typography>
@@ -166,16 +169,9 @@ const AmountSelectorCard: FC<Props> = props => {
               <MenuItem value={network.slug} key={network.slug}>
                 <Box className={styles.networkSelectionBox}>
                   <Box className={styles.networkIconContainer}>
-                    <img
-                      src={network.imageUrl}
-                      className={styles.networkIcon}
-                      alt={network.name}
-                    />
+                    <img src={network.imageUrl} className={styles.networkIcon} alt={network.name} />
                   </Box>
-                  <Typography
-                    variant="subtitle2"
-                    className={styles.networkLabel}
-                  >
+                  <Typography variant="subtitle2" className={styles.networkLabel}>
                     {network.name}
                   </Typography>
                 </Box>

@@ -13,9 +13,7 @@ const useStakeBalance = (stakingRewards: Contract | undefined, address: Address 
   const getBalance = useCallback(() => {
     const _getBalance = async () => {
       if (stakingRewards && address) {
-        if (
-          (currentContract.current && currentContract.current !== stakingRewards)
-        ) {
+        if (currentContract.current && currentContract.current !== stakingRewards) {
           setLoadingStakeBalance(true)
         }
 

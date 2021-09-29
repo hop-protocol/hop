@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers'
 
-function getBonderFeeWithId (bonderFee: BigNumber, modifyAmount: string = '123'): BigNumber {
+function getBonderFeeWithId(bonderFee: BigNumber, modifyAmount: string = '123'): BigNumber {
   const modifyAmountLength = modifyAmount.length
   if (bonderFee.toString().length <= modifyAmountLength) {
     return bonderFee

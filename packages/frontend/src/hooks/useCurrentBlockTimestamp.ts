@@ -5,7 +5,7 @@ const useCurrentBlockTimestamp = (): number | undefined => {
   const { provider } = useWeb3Context()
   const [timestamp, setTimestamp] = useState<number>()
   useEffect(() => {
-    async function fetchTimestamp () {
+    async function fetchTimestamp() {
       const blockNumber: any = await provider?.getBlockNumber()
       const blockData = await provider?.getBlock(blockNumber)
       blockData && setTimestamp(blockData.timestamp)

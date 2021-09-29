@@ -13,7 +13,7 @@ class AmmConvertOption extends ConvertOption {
   readonly slug: string
   readonly path: string
 
-  constructor () {
+  constructor() {
     super()
 
     this.name = 'AMM'
@@ -21,7 +21,7 @@ class AmmConvertOption extends ConvertOption {
     this.path = '/amm'
   }
 
-  async getTargetAddress (
+  async getTargetAddress(
     sdk: Hop,
     l1TokenSymbol: string | undefined,
     sourceNetwork: Network | undefined,
@@ -41,7 +41,7 @@ class AmmConvertOption extends ConvertOption {
     return swap.address
   }
 
-  async getSendData (
+  async getSendData(
     sdk: Hop,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined,
@@ -49,18 +49,14 @@ class AmmConvertOption extends ConvertOption {
     l1TokenSymbol: string | undefined,
     amountIn: BigNumberish | undefined
   ): Promise<SendData> {
-    if (
-      !l1TokenSymbol ||
-      !sourceNetwork
-    ) {
+    if (!l1TokenSymbol || !sourceNetwork) {
       return {
         amountOut: undefined,
-        details: []
+        details: [],
       }
     }
 
-    const bridge = await sdk
-      .bridge(l1TokenSymbol)
+    const bridge = await sdk.bridge(l1TokenSymbol)
 
     const amm = bridge.getAmm(sourceNetwork.slug)
     let amountOut: BigNumber | undefined
@@ -84,11 +80,11 @@ class AmmConvertOption extends ConvertOption {
 
     return {
       amountOut,
-      details
+      details,
     }
   }
 
-  async convert (
+  async convert(
     sdk: Hop,
     signer: Signer,
     sourceNetwork: Network,
@@ -100,9 +96,7 @@ class AmmConvertOption extends ConvertOption {
     deadline: number,
     bonderFee?: BigNumberish
   ) {
-    const bridge = await sdk
-      .bridge(l1TokenSymbol)
-      .connect(signer as Signer)
+    const bridge = await sdk.bridge(l1TokenSymbol).connect(signer as Signer)
 
     return bridge.execSaddleSwap(
       sourceNetwork.slug,
@@ -113,7 +107,11 @@ class AmmConvertOption extends ConvertOption {
     )
   }
 
-  async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<Token | undefined> {
+  async sourceToken(
+    isForwardDirection: boolean,
+    network?: Network,
+    bridge?: HopBridge
+  ): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {
@@ -123,7 +121,11 @@ class AmmConvertOption extends ConvertOption {
     }
   }
 
-  async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<Token | undefined> {
+  async destToken(
+    isForwardDirection: boolean,
+    network?: Network,
+    bridge?: HopBridge
+  ): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {
@@ -133,7 +135,7 @@ class AmmConvertOption extends ConvertOption {
     }
   }
 
-  private async getDetails (
+  private async getDetails(
     sdk: Hop,
     amountIn: BigNumberish | undefined,
     amountOut: BigNumber | undefined,
@@ -151,25 +153,14 @@ class AmmConvertOption extends ConvertOption {
     // ToDo: Enable configurable slippage tolerance
     const slippageTolerance = 1
 
-    if (
-      !amountIn ||
-      !sourceNetwork ||
-      !destNetwork ||
-      !slippageTolerance
-    ) {
+    if (!amountIn || !sourceNetwork || !destNetwork || !slippageTolerance) {
       return []
     }
 
     amountIn = BigNumber.from(amountIn)
-    const bridge = await sdk
-      .bridge(l1TokenSymbol)
+    const bridge = await sdk.bridge(l1TokenSymbol)
 
-    const {
-      rate,
-      priceImpact,
-      amountOutMin,
-      lpFeeAmount
-    } = await bridge.getAmmData(
+    const { rate, priceImpact, amountOutMin, lpFeeAmount } = await bridge.getAmmData(
       sourceNetwork.slug,
       amountIn,
       isForwardDirection,
@@ -178,9 +169,7 @@ class AmmConvertOption extends ConvertOption {
 
     rateDisplay = rate === 0 ? '-' : commafy(rate, 4)
     slippageToleranceDisplay = `${slippageTolerance}%`
-    priceImpactDisplay = priceImpact < 0.01
-      ? '<0.01%'
-      : `${commafy(priceImpact)}%`
+    priceImpactDisplay = priceImpact < 0.01 ? '<0.01%' : `${commafy(priceImpact)}%`
 
     const sourceToken = isForwardDirection
       ? bridge.getCanonicalToken(destNetwork.slug)

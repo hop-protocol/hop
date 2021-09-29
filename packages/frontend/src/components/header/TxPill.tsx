@@ -10,11 +10,11 @@ const useStyles = makeStyles(theme => ({
   root: {},
   button: {},
   pendingButton: {
-    backgroundColor: 'rgba(179, 46, 255, 0.12)'
+    backgroundColor: 'rgba(179, 46, 255, 0.12)',
   },
   spinner: {
-    marginLeft: '1rem'
-  }
+    marginLeft: '1rem',
+  },
 }))
 
 const TxPill = () => {
@@ -36,8 +36,7 @@ const TxPill = () => {
     <div className={styles.root}>
       {pendingTxs?.length ? (
         <Button className={styles.pendingButton} flat onClick={handleClick}>
-          {pendingTxs.length} Pending{' '}
-          <CircularProgress size={18} className={styles.spinner} />
+          {pendingTxs.length} Pending <CircularProgress size={18} className={styles.spinner} />
         </Button>
       ) : (
         <Button flat onClick={handleClick}>

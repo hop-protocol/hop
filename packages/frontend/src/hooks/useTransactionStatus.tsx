@@ -4,6 +4,8 @@ import { TChain, Chain } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import useInterval from 'src/hooks/useInterval'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
+import { loadState, saveState } from 'src/utils/localStorage'
+import logger from 'src/logger'
 
 const useTransactionStatus = (txHash?: string, chain?: TChain) => {
   const [completed, setCompleted] = useState<boolean>()
@@ -23,14 +25,16 @@ const useTransactionStatus = (txHash?: string, chain?: TChain) => {
 
     const cacheKey = `txReceipt:${txHash}`
 
-    let tx
-    const txString = localStorage.getItem(cacheKey)
-    if (txString) {
-      tx = JSON.parse(txString)
-    } else {
+    // Load local storage
+    let tx: any = loadState(cacheKey)
+
+    if (!tx) {
       tx = await provider.getTransactionReceipt(txHash)
+
       if (tx) {
-        localStorage.setItem(cacheKey, JSON.stringify(tx))
+        saveState(cacheKey, tx)
+      } else {
+        logger.warn(`Failed to save state: ${cacheKey}`, txHash)
       }
     }
 

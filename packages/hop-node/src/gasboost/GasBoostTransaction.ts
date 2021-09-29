@@ -567,7 +567,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         const isAlreadyKnown = /AlreadyKnown/gi.test(err.message)
         const isFeeTooLow = /FeeTooLowToCompete/gi.test(err.message)
         const nonceTooLow = /(nonce.*too low|already been used|NONCE_EXPIRED)/gi.test(err.message)
-        const shouldRetry = (isAlreadyKnown || isFeeTooLow) && i < maxRetries
+        const shouldRetry = (isAlreadyKnown || isFeeTooLow || nonceTooLow) && i < maxRetries
         if (nonceTooLow) {
           if (!this.nonce) {
             // wait a bit before attempting again so it re-fetches latest nonce
@@ -575,7 +575,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
             this.logger.warn(warnMsg)
             this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
             await wait(10 * 1000)
-            continue
           }
         }
         if (shouldRetry) {

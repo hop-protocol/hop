@@ -571,6 +571,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         if (nonceTooLow) {
           if (!this.nonce) {
             // wait a bit before attempting again so it re-fetches latest nonce
+            const warnMsg = `nonce too low. Waiting a moment before retrying again. Error: ${err.message}`
+            this.logger.warn(warnMsg)
+            this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
             await wait(10 * 1000)
             continue
           }

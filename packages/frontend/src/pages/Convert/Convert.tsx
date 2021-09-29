@@ -68,6 +68,7 @@ const Convert: FC = () => {
     if (network) {
       updateQueryParams({
         sourceNetwork: network.slug ?? '',
+        destNetwork: network.slug ?? '',
       })
       setSelectedNetwork(network)
     }

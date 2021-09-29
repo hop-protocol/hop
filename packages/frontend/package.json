@@ -46,6 +46,9 @@
     "web-vitals": "0.2.4",
     "web3-utils": "1.3.4"
   },
+  "resolutions": {
+    "babel-loader": "8.1.0"
+  },
   "scripts": {
     "start": "react-scripts start",
     "dev": "BROWSER=none npm start",
@@ -56,12 +59,24 @@
     "eject": "react-scripts eject",
     "deploy": "netlify deploy --prod",
     "deploy:ipfs": "ipd -p pinata build --no-open --no-clipboard",
-    "dnslink": "IPFS_HASH=$(npm run deploy:ipfs 2>1 | tail -1) node ./scripts/update_dnslink.js"
+    "dnslink": "IPFS_HASH=$(npm run deploy:ipfs 2>1 | tail -1) node ./scripts/update_dnslink.js",
+    "storybook": "start-storybook -p 6006 -s public",
+    "build-storybook": "build-storybook -s public"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
+    ],
+    "overrides": [
+      {
+        "files": [
+          "**/*.stories.*"
+        ],
+        "rules": {
+          "import/no-anonymous-default-export": "off"
+        }
+      }
     ]
   },
   "browserslist": {
@@ -80,6 +95,12 @@
     "@aws-sdk/client-route-53": "3.4.1",
     "@types/styled-components": "^5.1.14",
     "@types/styled-system": "^5.1.13",
+    "@storybook/addon-actions": "^6.3.8",
+    "@storybook/addon-essentials": "^6.3.8",
+    "@storybook/addon-links": "^6.3.8",
+    "@storybook/node-logger": "^6.3.8",
+    "@storybook/preset-create-react-app": "^3.2.0",
+    "@storybook/react": "^6.3.8",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
     "@typescript-eslint/parser": "^4.18.0",
     "eslint": "^7.15.0",

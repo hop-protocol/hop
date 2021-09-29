@@ -23,31 +23,31 @@ const useStyles = makeStyles(theme => ({
   mini: {
     transform: 'scale(0.6)',
     transformOrigin: 'top left',
-    height: '60px'
+    height: '60px',
   },
   title: {
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
   },
   box: {
     marginBottom: '2rem',
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   stepLabelRoot: {
     width: '9rem',
   },
   stepLabel: {
-    fontSize: '2rem'
+    fontSize: '2rem',
   },
   stepLink: {
     color: 'inherit',
     textDecoration: 'none',
     '&:hover': {
-      textDecoration: 'underline'
-    }
+      textDecoration: 'underline',
+    },
   },
   notice: {
-    marginBottom: '2rem'
-  }
+    marginBottom: '2rem',
+  },
 }))
 
 const CustomStepConnector = withStyles({
@@ -55,23 +55,23 @@ const CustomStepConnector = withStyles({
   alternativeLabel: {
     top: 10,
     left: 'calc(-50% + 16px)',
-    right: 'calc(50% + 16px)'
+    right: 'calc(50% + 16px)',
   },
   active: {
     '& $line': {
-      borderColor: '#B32EFF'
-    }
+      borderColor: '#B32EFF',
+    },
   },
   completed: {
     '& $line': {
-      borderColor: '#B32EFF'
-    }
+      borderColor: '#B32EFF',
+    },
   },
   line: {
     borderColor: '#dbdbe8',
     borderTopWidth: 3,
     borderRadius: 1,
-  }
+  },
 })(StepConnector)
 
 const useStepIconStyles = makeStyles({
@@ -79,39 +79,39 @@ const useStepIconStyles = makeStyles({
     color: '#dbdbe8',
     display: 'flex',
     height: 22,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   active: {
-    color: '#B32EFF'
+    color: '#B32EFF',
   },
   circle: {
     width: 14,
     height: 14,
     borderRadius: '50%',
-    backgroundColor: 'currentColor'
+    backgroundColor: 'currentColor',
   },
   bg: {
     background: '#f0f0f3',
-    zIndex: 1
+    zIndex: 1,
   },
   completed: {
     color: '#B32EFF',
     zIndex: 1,
-    fontSize: '4rem'
+    fontSize: '4rem',
   },
   failure: {
     color: '#ff00a7',
     zIndex: 1,
-    fontSize: '4rem'
+    fontSize: '4rem',
   },
   warning: {
     color: '#ffb47c',
     zIndex: 1,
-    fontSize: '4rem'
-  }
+    fontSize: '4rem',
+  },
 })
 
-function StepIcon (props: StepIconProps) {
+function StepIcon(props: StepIconProps) {
   const styles = useStepIconStyles()
   const { active, completed } = props
   const loader = active && !completed
@@ -119,7 +119,7 @@ function StepIcon (props: StepIconProps) {
   return (
     <div
       className={clsx(styles.root, {
-        [styles.active]: active
+        [styles.active]: active,
       })}
     >
       <div className={styles.bg}>
@@ -137,12 +137,12 @@ function StepIcon (props: StepIconProps) {
   )
 }
 
-function StepFailIcon (props: StepIconProps) {
+function StepFailIcon(props: StepIconProps) {
   const styles = useStepIconStyles()
   return (
     <div
       className={clsx(styles.root, {
-        [styles.active]: true
+        [styles.active]: true,
       })}
     >
       <div className={styles.bg}>
@@ -154,12 +154,12 @@ function StepFailIcon (props: StepIconProps) {
   )
 }
 
-function StepWarningIcon (props: StepIconProps) {
+function StepWarningIcon(props: StepIconProps) {
   const styles = useStepIconStyles()
   return (
     <div
       className={clsx(styles.root, {
-        [styles.active]: true
+        [styles.active]: true,
       })}
     >
       <div className={styles.bg}>
@@ -200,11 +200,7 @@ const Status: FC<StatusProps> = (props: StatusProps) => {
         </Box>
       ) : null}
       <Box display="flex" alignItems="center" className={styles.box}>
-        <Stepper
-          alternativeLabel
-          activeStep={activeStep}
-          connector={<CustomStepConnector />}
-        >
+        <Stepper alternativeLabel activeStep={activeStep} connector={<CustomStepConnector />}>
           {steps.map(step => {
             let icon = StepIcon
             if (step.warning) {
@@ -213,40 +209,43 @@ const Status: FC<StatusProps> = (props: StatusProps) => {
               icon = StepFailIcon
             }
             return (
-            <Step key={step.text}>
-              <StepLabel
-                classes={{
-                  root: styles.stepLabelRoot,
-                  label: styles.stepLabel
-                }}
-                StepIconComponent={icon}
-              >
-                {step.url ? (
-                  <a
-                    className={styles.stepLink}
-                    href={step.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {step.text}
-                  </a>
-                ) : (
-                  step.text
-                )}
-              </StepLabel>
-            </Step>
-        )
-        })}
+              <Step key={step.text}>
+                <StepLabel
+                  classes={{
+                    root: styles.stepLabelRoot,
+                    label: styles.stepLabel,
+                  }}
+                  StepIconComponent={icon}
+                >
+                  {step.url ? (
+                    <a
+                      className={styles.stepLink}
+                      href={step.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {step.text}
+                    </a>
+                  ) : (
+                    step.text
+                  )}
+                </StepLabel>
+              </Step>
+            )
+          })}
         </Stepper>
       </Box>
-      {variant !== 'mini' && tx?.token && receivedHToken ? <>
-        <Box display="flex" alignItems="center" className={styles.notice}>
-      <Alert severity="warning">
-          Destination token swap did not fully complete possibly due to short deadline. You may swap h{tx.token.symbol} for {tx.token.symbol} tokens on the <Link href="/convert/amm">Convert</Link> page.
-      </Alert>
-      </Box>
-      </>
-      : null}
+      {variant !== 'mini' && tx?.token && receivedHToken ? (
+        <>
+          <Box display="flex" alignItems="center" className={styles.notice}>
+            <Alert severity="warning">
+              Destination token swap did not fully complete possibly due to short deadline. You may
+              swap h{tx.token.symbol} for {tx.token.symbol} tokens on the{' '}
+              <Link href="/convert/amm">Convert</Link> page.
+            </Alert>
+          </Box>
+        </>
+      ) : null}
     </Box>
   )
 }

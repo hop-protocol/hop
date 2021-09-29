@@ -10,7 +10,7 @@ import { Addressish } from 'src/models/Address'
 const useBalance = (
   token: Token | undefined,
   network: Network | undefined,
-  address: Addressish,
+  address: Addressish
 ) => {
   const [balance, setBalance] = useState<BigNumber>()
   const [loading, setLoading] = useState(false)

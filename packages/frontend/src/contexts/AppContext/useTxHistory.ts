@@ -12,9 +12,7 @@ const useTxHistory = (): TxHistory => {
   // logger.debug('useTxHistory render')
 
   const sort = (list: Transaction[]) => {
-    return list.sort(
-      (a: Transaction, b: Transaction) => b.timestamp - a.timestamp
-    )
+    return list.sort((a: Transaction, b: Transaction) => b.timestamp - a.timestamp)
   }
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
@@ -30,9 +28,7 @@ const useTxHistory = (): TxHistory => {
 
   const handleChange = useCallback(
     (pending: boolean, tx: Transaction) => {
-      const filtered = transactions.filter(
-        (t: Transaction) => t.hash !== tx.hash
-      )
+      const filtered = transactions.filter((t: Transaction) => t.hash !== tx.hash)
       setTransactions(sort([...filtered, tx]).slice(0, 3))
     },
     [transactions]
@@ -45,8 +41,10 @@ const useTxHistory = (): TxHistory => {
       })
 
       // avoids error "TypeError: cyclic object value"
-      const seen :any = []
-      localStorage.setItem('recentTransactions', JSON.stringify(recents, (key, val) => {
+      const seen: any = []
+      localStorage.setItem(
+        'recentTransactions',
+        JSON.stringify(recents, (key, val) => {
           if (val !== null && typeof val === 'object') {
             if (seen.indexOf(val) >= 0) {
               return
@@ -54,8 +52,8 @@ const useTxHistory = (): TxHistory => {
             seen.push(val)
           }
           return val
-        }
-      ))
+        })
+      )
     } catch (err) {
       console.error(err)
     }
@@ -79,7 +77,7 @@ const useTxHistory = (): TxHistory => {
     transactions,
     setTransactions,
     addTransaction,
-    clear
+    clear,
   }
 }
 

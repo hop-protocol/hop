@@ -17,7 +17,7 @@ import { reactAppNetwork } from 'src/config'
 
 type AppContextProps = {
   sdk: Hop
-  bridges: HopBridge[],
+  bridges: HopBridge[]
   selectedBridge: HopBridge | undefined
   setSelectedBridge: (bridge: HopBridge) => void
   user: User | undefined
@@ -46,7 +46,7 @@ const AppContext = createContext<AppContextProps>({
   bridges: [],
   selectedBridge: undefined,
   setSelectedBridge: (bridge: HopBridge) => {},
-  settings: {} as Settings
+  settings: {} as Settings,
 })
 
 const AppContextProvider: FC = ({ children }) => {
@@ -91,7 +91,7 @@ const AppContextProvider: FC = ({ children }) => {
         txHistory,
         accountDetails,
         txConfirm,
-        settings
+        settings,
       }}
     >
       {children}

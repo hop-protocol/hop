@@ -18,23 +18,23 @@ const useStyles = makeStyles((theme: Theme) => ({
     justifyContent: 'center',
     alignItems: 'center',
     '&:hover': {
-      cursor: 'pointer'
-    }
+      cursor: 'pointer',
+    },
   },
   label: {
     marginLeft: '0.5em',
     fontSize: '1.2rem',
     opacity: 0.5,
     '&:hover': {
-      opacity: 0.7
-    }
-  }
+      opacity: 0.7,
+    },
+  },
 }))
 
 const tooltipStyles = {
   tooltip: {
-    fontSize: '1.4rem'
-  }
+    fontSize: '1.4rem',
+  },
 }
 
 const Tooltip = withStyles(tooltipStyles)(MuiTooltip)
@@ -44,7 +44,7 @@ export type Props = ButtonProps & {
   label?: string
 }
 
-function ClipboardCopyButton (props: Props) {
+function ClipboardCopyButton(props: Props) {
   const { value, label, className } = props
   const styles = useStyles()
   const [text, setText] = useState<string>('')

@@ -9,11 +9,11 @@ const useQueryParams = () => {
     return qs.parse(location.search, { ignoreQueryPrefix: true })
   }, [location])
 
-  const updateQueryParams = (updates: {[index: string]: string}) => {
+  const updateQueryParams = (updates: { [index: string]: string }) => {
     Object.assign(queryParams, updates)
 
     history.push({
-      search: qs.stringify(queryParams)
+      search: qs.stringify(queryParams),
     })
   }
 

@@ -11,16 +11,16 @@ const useStyles = makeStyles(theme => ({
   previewsBox: {
     width: '51.6rem',
     marginBottom: '2rem',
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   previewText: {
     flex: 'auto',
-    marginLeft: '3rem'
+    marginLeft: '3rem',
   },
   previewCard: {
     display: 'flex',
-    justifyContent: 'space-between'
-  }
+    justifyContent: 'space-between',
+  },
 }))
 
 type Props = {
@@ -39,7 +39,7 @@ const ProposalPreviewCard: FC<Props> = props => {
   const handleClick = () => {
     history.push({
       pathname: `/vote/${id}`,
-      search
+      search,
     })
   }
 

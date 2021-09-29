@@ -10,18 +10,18 @@ import TxConfirm from 'src/components/txConfirm/TxConfirm'
 
 const useStyles = makeStyles(theme => ({
   app: {
-    minHeight: '100vh'
+    minHeight: '100vh',
   },
   content: {
     padding: '4.2rem',
     flexGrow: 1,
     [theme.breakpoints.down('xs')]: {
-      padding: '2.2rem'
-    }
-  }
+      padding: '2.2rem',
+    },
+  },
 }))
 
-function App () {
+function App() {
   const styles = useStyles()
 
   return (

@@ -1,9 +1,5 @@
 import React, { FC, useState, useEffect } from 'react'
-import {
-  Switch,
-  Route,
-  useRouteMatch
-} from 'react-router-dom'
+import { Switch, Route, useRouteMatch } from 'react-router-dom'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
@@ -20,34 +16,34 @@ import TokenWrapper from 'src/components/TokenWrapper'
 
 const useStyles = makeStyles(theme => ({
   title: {
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
   },
   switchDirectionButton: {
     padding: 0,
     minWidth: 0,
-    margin: '1.0rem'
+    margin: '1.0rem',
   },
   downArrow: {
     margin: '0.8rem',
     height: '2.4rem',
-    width: '2.4rem'
+    width: '2.4rem',
   },
   lastSelector: {
-    marginBottom: '5.4rem'
+    marginBottom: '5.4rem',
   },
   details: {
     marginBottom: theme.padding.light,
     width: '46.0rem',
     [theme.breakpoints.down('xs')]: {
-      width: '90%'
-    }
+      width: '90%',
+    },
   },
   buttons: {
-    marginTop: theme.padding.default
+    marginTop: theme.padding.default,
   },
   button: {
     margin: `0 ${theme.padding.light}`,
-    width: '17.5rem'
+    width: '17.5rem',
   },
 }))
 
@@ -79,7 +75,7 @@ const Convert: FC = () => {
     sending,
     needsApproval,
     convertTokens,
-    approveTokens
+    approveTokens,
   } = useConvert()
   const { path } = useRouteMatch()
 
@@ -107,82 +103,72 @@ const Convert: FC = () => {
     approveTokens()
   }
 
-  const sendButtonActive = (validFormFields && !unsupportedAsset && !needsApproval)
+  const sendButtonActive = validFormFields && !unsupportedAsset && !needsApproval
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      {unsupportedAsset ? <>
-        <Typography
-          variant="subtitle1"
-          color="textSecondary"
-          component="div"
-        >
-        {error}
-      </Typography>
-      </> : <>
-        <TokenWrapper network={sourceNetwork} />
-        <AmountSelectorCard
-          value={sourceTokenAmount as string}
-          token={sourceToken}
-          label={'From'}
-          onChange={handleSourceTokenAmountChange}
-          title={sourceNetwork?.name}
-          titleIconUrl={sourceNetwork?.imageUrl}
-          balance={sourceBalance}
-          loadingBalance={loadingSourceBalance}
-        />
-        <MuiButton
-          className={styles.switchDirectionButton}
-          onClick={switchDirection}
-        >
-          <ArrowDownIcon color="primary" className={styles.downArrow} />
-        </MuiButton>
-        <AmountSelectorCard
-          className={styles.lastSelector}
-          value={destTokenAmount as string}
-          token={destToken}
-          label={'To'}
-          title={destNetwork?.name}
-          titleIconUrl={destNetwork?.imageUrl}
-          balance={destBalance}
-          loadingBalance={loadingDestBalance}
-          disableInput
-        />
-        <div className={styles.details}>
-          {details}
-        </div>
-        <Alert severity="warning">
-          {warning}
-        </Alert>
-        <Alert severity="error" onClose={() => setError(undefined)} text={error} />
-        <TxStatusModal
-          onClose={handleTxStatusClose}
-          tx={tx} />
-        <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
-          <Button
-            className={styles.button}
-            large
-            highlighted={!!needsApproval}
-            disabled={!needsApproval}
-            onClick={handleApprove}
-            loading={approving}
-          >
-            Approve
-          </Button>
-          <Button
-            className={styles.button}
-            startIcon={sendButtonActive}
-            onClick={handleSend}
-            disabled={!sendButtonActive}
-            loading={sending}
-            large
-            highlighted
-          >
-            Convert
-          </Button>
-        </Box>
-      </>
-      }
+      {unsupportedAsset ? (
+        <>
+          <Typography variant="subtitle1" color="textSecondary" component="div">
+            {error}
+          </Typography>
+        </>
+      ) : (
+        <>
+          <TokenWrapper network={sourceNetwork} />
+          <AmountSelectorCard
+            value={sourceTokenAmount as string}
+            token={sourceToken}
+            label={'From'}
+            onChange={handleSourceTokenAmountChange}
+            title={sourceNetwork?.name}
+            titleIconUrl={sourceNetwork?.imageUrl}
+            balance={sourceBalance}
+            loadingBalance={loadingSourceBalance}
+          />
+          <MuiButton className={styles.switchDirectionButton} onClick={switchDirection}>
+            <ArrowDownIcon color="primary" className={styles.downArrow} />
+          </MuiButton>
+          <AmountSelectorCard
+            className={styles.lastSelector}
+            value={destTokenAmount as string}
+            token={destToken}
+            label={'To'}
+            title={destNetwork?.name}
+            titleIconUrl={destNetwork?.imageUrl}
+            balance={destBalance}
+            loadingBalance={loadingDestBalance}
+            disableInput
+          />
+          <div className={styles.details}>{details}</div>
+          <Alert severity="warning">{warning}</Alert>
+          <Alert severity="error" onClose={() => setError(undefined)} text={error} />
+          <TxStatusModal onClose={handleTxStatusClose} tx={tx} />
+          <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
+            <Button
+              className={styles.button}
+              large
+              highlighted={!!needsApproval}
+              disabled={!needsApproval}
+              onClick={handleApprove}
+              loading={approving}
+            >
+              Approve
+            </Button>
+            <Button
+              className={styles.button}
+              startIcon={sendButtonActive}
+              onClick={handleSend}
+              disabled={!sendButtonActive}
+              loading={sending}
+              large
+              highlighted
+            >
+              Convert
+            </Button>
+          </Box>
+        </>
+      )}
     </Box>
   )
 }

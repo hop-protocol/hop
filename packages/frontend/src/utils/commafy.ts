@@ -14,7 +14,7 @@ const commafy = (value: string | number | undefined, decimals: number = 2) => {
   try {
     return numbro(value).format({
       thousandSeparated: true,
-      mantissa: decimals
+      mantissa: decimals,
     })
   } catch (err) {
     return value.toString()

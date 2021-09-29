@@ -251,7 +251,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async send () {
-    const nonce = await this.getLatestNonce()
     let gasFeeData = await this.getBumpedGasFeeData()
 
     // use passed in tx gas values if they were specified

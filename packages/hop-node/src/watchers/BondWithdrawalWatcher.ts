@@ -130,15 +130,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const availableCredit = await this.getAvailableCreditForTransfer(destinationChainId, amount)
     if (availableCredit.lt(amount)) {
-      // logger.warn(
-      //   `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
-      //     availableCredit
-      //   )}, need ${this.bridge.formatUnits(amount)}`
-      // )
-      // await this.db.transfers.update(transferId, {
-      //   withdrawalBondTxError: TxError.NotEnoughLiquidity
-      // })
-      // return
+      logger.warn(
+        `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
+          availableCredit
+        )}, need ${this.bridge.formatUnits(amount)}`
+      )
+      await this.db.transfers.update(transferId, {
+        withdrawalBondTxError: TxError.NotEnoughLiquidity
+      })
+      return
     }
 
     await this.handleStateSwitch()

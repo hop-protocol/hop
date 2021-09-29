@@ -9,17 +9,9 @@ import { UINT256 } from 'src/constants'
 
 const useApprove = () => {
   const { provider } = useWeb3Context()
-  const {
-    txConfirm,
-    txHistory,
-    sdk,
-  } = useApp()
+  const { txConfirm, txHistory, sdk } = useApp()
 
-  const checkApproval = async (
-    amount: BigNumber,
-    token: Token,
-    spender: string
-  ) => {
+  const checkApproval = async (amount: BigNumber, token: Token, spender: string) => {
     try {
       const signer = provider?.getSigner()
       if (!signer) {
@@ -41,11 +33,7 @@ const useApprove = () => {
     }
   }
 
-  const approve = async (
-    amount: BigNumber,
-    token: Token,
-    spender: string
-  ) => {
+  const approve = async (amount: BigNumber, token: Token, spender: string) => {
     const signer = provider?.getSigner()
     if (!signer) {
       throw new Error('Wallet not connected')
@@ -67,15 +55,12 @@ const useApprove = () => {
       inputProps: {
         tagline: `Allow Hop to spend your ${token.symbol} on ${chain.name}`,
         amount: token.symbol === 'USDT' ? undefined : formattedAmount,
-        token: token.symbol
+        token: token.symbol,
       },
       onConfirm: async (approveAll: boolean) => {
         const approveAmount = approveAll ? UINT256 : amount
-        return token.approve(
-          spender,
-          approveAmount
-        )
-      }
+        return token.approve(spender, approveAmount)
+      },
     })
 
     if (tx?.hash) {
@@ -83,7 +68,7 @@ const useApprove = () => {
         new Transaction({
           hash: tx?.hash,
           networkName: token.chain.slug,
-          token
+          token,
         })
       )
     }

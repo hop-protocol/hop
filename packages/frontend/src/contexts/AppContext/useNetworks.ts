@@ -22,7 +22,7 @@ const useNetworks = () => {
           nativeTokenSymbol: meta.nativeTokenSymbol,
           requiresGas: meta.requiresGas,
           isLayer1: meta.isLayer1,
-          nativeBridgeUrl: net.nativeBridgeUrl
+          nativeBridgeUrl: net.nativeBridgeUrl,
         })
       )
     }

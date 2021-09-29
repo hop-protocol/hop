@@ -20,7 +20,7 @@ import DetailRow from 'src/components/DetailRow'
 
 const useStyles = makeStyles(theme => ({
   title: {
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
   },
   plusDivider: {
     textAlign: 'center',
@@ -28,17 +28,17 @@ const useStyles = makeStyles(theme => ({
     height: '2.4rem',
     margin: '2.2rem',
     fontSize: '2rem',
-    opacity: '0.5'
+    opacity: '0.5',
   },
   sendButton: {
     marginTop: '6.4rem',
-    width: '30.0rem'
+    width: '30.0rem',
   },
   tokenSelector: {
-    marginBottom: '4.4rem'
+    marginBottom: '4.4rem',
   },
   textSpacing: {
-    padding: '0 1rem'
+    padding: '0 1rem',
   },
   formBox: {
     marginBottom: '3.4rem',
@@ -54,8 +54,8 @@ const useStyles = makeStyles(theme => ({
     width: '46.0rem',
     marginBottom: '3.4rem',
     [theme.breakpoints.down('xs')]: {
-      width: '90%'
-    }
+      width: '90%',
+    },
   },
   detailsDropdown: {
     width: '46.0rem',
@@ -64,7 +64,7 @@ const useStyles = makeStyles(theme => ({
       content: '"▾"',
     },
     [theme.breakpoints.down('xs')]: {
-      width: '90%'
+      width: '90%',
     },
   },
   detailsDropdownSummary: {
@@ -72,8 +72,8 @@ const useStyles = makeStyles(theme => ({
     display: 'block',
     fontWeight: 'normal',
     '&::marker': {
-      display: 'none'
-    }
+      display: 'none',
+    },
   },
   detailsDropdownLabel: {
     position: 'relative',
@@ -83,7 +83,7 @@ const useStyles = makeStyles(theme => ({
       position: 'relative',
       display: 'inline-flex',
       justifyItems: 'center',
-      alignItems: 'center'
+      alignItems: 'center',
     },
     '& > span::before': {
       display: 'block',
@@ -91,17 +91,13 @@ const useStyles = makeStyles(theme => ({
       position: 'absolute',
       top: '0',
       right: '-1.5rem',
-    }
+    },
   },
 }))
 
 const Pools: FC = () => {
   const styles = useStyles()
-  const {
-    bridges,
-    selectedBridge,
-    setSelectedBridge
-  } = useApp()
+  const { bridges, selectedBridge, setSelectedBridge } = useApp()
   const {
     networks,
     canonicalToken,
@@ -134,7 +130,7 @@ const Pools: FC = () => {
     priceImpact,
     virtualPrice,
     reserveTotalsUsd,
-    unsupportedAsset
+    unsupportedAsset,
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -147,9 +143,7 @@ const Pools: FC = () => {
 
   const handleNetworkSelect = (event: ChangeEvent<{ value: unknown }>) => {
     const networkName = event.target.value
-    const newSelectedNetwork = networks.find(
-      network => network.slug === networkName
-    )
+    const newSelectedNetwork = networks.find(network => network.slug === networkName)
     if (newSelectedNetwork) {
       setSelectedNetwork(newSelectedNetwork)
     }
@@ -204,10 +198,7 @@ const Pools: FC = () => {
         </Typography>
       </Box>
       <Box display="flex" alignItems="center" className={styles.tokenSelector}>
-        <RaisedSelect
-          value={selectedBridge?.getTokenSymbol()}
-          onChange={handleBridgeChange}
-        >
+        <RaisedSelect value={selectedBridge?.getTokenSymbol()} onChange={handleBridgeChange}>
           {bridges.map(bridge => (
             <MenuItem value={bridge.getTokenSymbol()} key={bridge.getTokenSymbol()}>
               <SelectOption
@@ -218,166 +209,141 @@ const Pools: FC = () => {
             </MenuItem>
           ))}
         </RaisedSelect>
-        <Typography
-          variant="body1"
-          component="span"
-          className={styles.textSpacing}
-        >
+        <Typography variant="body1" component="span" className={styles.textSpacing}>
           on
         </Typography>
-        <RaisedSelect
-          value={selectedNetwork?.slug}
-          onChange={handleNetworkSelect}
-        >
+        <RaisedSelect value={selectedNetwork?.slug} onChange={handleNetworkSelect}>
           {networks.map(network => (
             <MenuItem value={network.slug} key={network.slug}>
-              <SelectOption
-                value={network.slug}
-                icon={network.imageUrl}
-                label={network.name}
-              />
+              <SelectOption value={network.slug} icon={network.imageUrl} label={network.name} />
             </MenuItem>
           ))}
         </RaisedSelect>
       </Box>
-      {unsupportedAsset ? <>
-        <Typography
-          variant="subtitle1"
-          color="textSecondary"
-          component="div"
-        >
-          {error}
-        </Typography>
-      </> : <>
-      <Box className={styles.formBox}>
-        <TokenWrapper network={selectedNetwork} />
-        <Box display="flex" alignItems="center">
-          <AmountSelectorCard
-            value={token0Amount}
-            token={canonicalToken}
-            label="Input"
-            onChange={handleToken0Change}
-            title={`${selectedNetwork?.name} ${canonicalTokenSymbol}`}
-            balance={canonicalBalance}
-            loadingBalance={loadingCanonicalBalance}
-          />
-        </Box>
-        <Box display="flex" alignItems="center">
-          <div className={styles.plusDivider}>+</div>
-        </Box>
-        <Box display="flex" alignItems="center">
-          <AmountSelectorCard
-            value={token1Amount}
-            token={hopToken}
-            label="Input"
-            onChange={handleToken1Change}
-            title={hopToken?.name}
-            balance={hopBalance}
-            loadingBalance={loadingHopBalance}
-          />
-        </Box>
-      </Box>
-      <Box className={styles.details}>
-        <DetailRow
-          title={priceImpactLabel}
-          tooltip="Depositing underpooled assets will give you bonus LP tokens. Depositing overpooled assets will give you less LP tokens."
-          value={`${priceImpactFormatted}`}
-        />
-        <DetailRow
-          title={'Share of pool'}
-          value={poolSharePercentageFormatted}
-        />
-      </Box>
-
-      {hasBalance && (
-      <Box className={styles.details}>
-        <Box alignItems="center" className={styles.flexBox}>
-          <Typography
-            variant="subtitle1"
-            color="textSecondary"
-            component="div"
-          >
-            Your Position
+      {unsupportedAsset ? (
+        <>
+          <Typography variant="subtitle1" color="textSecondary" component="div">
+            {error}
           </Typography>
-        </Box>
-        <DetailRow
-          title={`${canonicalTokenSymbol}/${hopTokenSymbol}`}
-          value={`${commafy(userPoolBalance, 5)}`}
-        />
-        {userPoolTokenPercentage && (
-          <DetailRow
-            title={'Your pool share'}
-            value={`${commafy(userPoolTokenPercentage)}%`}
-          />
-        )}
-        {token0Deposited && (
-          <DetailRow
-            title={canonicalTokenSymbol}
-            value={`${commafy(token0Deposited, 5)}`}
-          />
-        )}
-        {token1Deposited && (
-          <DetailRow
-            title={hopTokenSymbol}
-            value={`${commafy(token1Deposited, 5)}`}
-          />
-        )}
-        </Box>
-      )}
-      <details open className={styles.detailsDropdown}>
-        <summary className={styles.detailsDropdownSummary}>
-            <Typography
-              variant="subtitle1"
-              color="textSecondary"
-              component="div"
-              className={styles.detailsDropdownLabel}
-            >
-              <span>Pool Stats</span>
-            </Typography>
-        </summary>
-        <div>
+        </>
+      ) : (
+        <>
+          <Box className={styles.formBox}>
+            <TokenWrapper network={selectedNetwork} />
+            <Box display="flex" alignItems="center">
+              <AmountSelectorCard
+                value={token0Amount}
+                token={canonicalToken}
+                label="Input"
+                onChange={handleToken0Change}
+                title={`${selectedNetwork?.name} ${canonicalTokenSymbol}`}
+                balance={canonicalBalance}
+                loadingBalance={loadingCanonicalBalance}
+              />
+            </Box>
+            <Box display="flex" alignItems="center">
+              <div className={styles.plusDivider}>+</div>
+            </Box>
+            <Box display="flex" alignItems="center">
+              <AmountSelectorCard
+                value={token1Amount}
+                token={hopToken}
+                label="Input"
+                onChange={handleToken1Change}
+                title={hopToken?.name}
+                balance={hopBalance}
+                loadingBalance={loadingHopBalance}
+              />
+            </Box>
+          </Box>
           <Box className={styles.details}>
             <DetailRow
-              title="APR"
-              tooltip="Annual Percentage Rate (APR) from earning fees"
-              value={`${aprFormatted}`}
+              title={priceImpactLabel}
+              tooltip="Depositing underpooled assets will give you bonus LP tokens. Depositing overpooled assets will give you less LP tokens."
+              value={`${priceImpactFormatted}`}
             />
-            <DetailRow
-              title="Reserves"
-              tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
-              value={`${reserve0Formatted} / ${reserve1Formatted}`}
-            />
-            <DetailRow
-              title="TVL"
-              tooltip="Total value locked in USD"
-              value={`${reserveTotalsUsdFormatted}`}
-            />
-            <DetailRow
-              title="Virtual Price"
-              tooltip="The virtual price, to help calculate profit"
-              value={`${virtualPriceFormatted}`}
-            />
-            <DetailRow
-              title="Fee"
-              tooltip={`Each trade has a ${feeFormatted} fee that goes to liquidity providers`}
-              value={`${feeFormatted}`}
-            />
+            <DetailRow title={'Share of pool'} value={poolSharePercentageFormatted} />
           </Box>
-        </div>
-      </details>
-      <Alert severity="error" onClose={() => setError(null)} text={error} />
-      <SendButton />
-      {hasBalance && (
-        <Button
-          className={styles.removeLiquidityButton}
-          onClick={handleRemoveLiquidityClick}
-          large
-        >
-          Remove Liquidity
-        </Button>
+
+          {hasBalance && (
+            <Box className={styles.details}>
+              <Box alignItems="center" className={styles.flexBox}>
+                <Typography variant="subtitle1" color="textSecondary" component="div">
+                  Your Position
+                </Typography>
+              </Box>
+              <DetailRow
+                title={`${canonicalTokenSymbol}/${hopTokenSymbol}`}
+                value={`${commafy(userPoolBalance, 5)}`}
+              />
+              {userPoolTokenPercentage && (
+                <DetailRow
+                  title={'Your pool share'}
+                  value={`${commafy(userPoolTokenPercentage)}%`}
+                />
+              )}
+              {token0Deposited && (
+                <DetailRow title={canonicalTokenSymbol} value={`${commafy(token0Deposited, 5)}`} />
+              )}
+              {token1Deposited && (
+                <DetailRow title={hopTokenSymbol} value={`${commafy(token1Deposited, 5)}`} />
+              )}
+            </Box>
+          )}
+          <details open className={styles.detailsDropdown}>
+            <summary className={styles.detailsDropdownSummary}>
+              <Typography
+                variant="subtitle1"
+                color="textSecondary"
+                component="div"
+                className={styles.detailsDropdownLabel}
+              >
+                <span>Pool Stats</span>
+              </Typography>
+            </summary>
+            <div>
+              <Box className={styles.details}>
+                <DetailRow
+                  title="APR"
+                  tooltip="Annual Percentage Rate (APR) from earning fees"
+                  value={`${aprFormatted}`}
+                />
+                <DetailRow
+                  title="Reserves"
+                  tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
+                  value={`${reserve0Formatted} / ${reserve1Formatted}`}
+                />
+                <DetailRow
+                  title="TVL"
+                  tooltip="Total value locked in USD"
+                  value={`${reserveTotalsUsdFormatted}`}
+                />
+                <DetailRow
+                  title="Virtual Price"
+                  tooltip="The virtual price, to help calculate profit"
+                  value={`${virtualPriceFormatted}`}
+                />
+                <DetailRow
+                  title="Fee"
+                  tooltip={`Each trade has a ${feeFormatted} fee that goes to liquidity providers`}
+                  value={`${feeFormatted}`}
+                />
+              </Box>
+            </div>
+          </details>
+          <Alert severity="error" onClose={() => setError(null)} text={error} />
+          <SendButton />
+          {hasBalance && (
+            <Button
+              className={styles.removeLiquidityButton}
+              onClick={handleRemoveLiquidityClick}
+              large
+            >
+              Remove Liquidity
+            </Button>
+          )}
+        </>
       )}
-      </>
-      }
     </Box>
   )
 }

@@ -5,10 +5,7 @@ import { addresses } from 'src/config'
 import Token from 'src/models/Token'
 import { L1_NETWORK } from 'src/constants'
 
-const useL1BridgeContracts = (
-  provider: providers.Provider,
-  token: Token
-): Contract | undefined => {
+const useL1BridgeContracts = (provider: providers.Provider, token: Token): Contract | undefined => {
   // logger.debug('useL1BridgeContracts render')
 
   const l1Bridge = useMemo(() => {

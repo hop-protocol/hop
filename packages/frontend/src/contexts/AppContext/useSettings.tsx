@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 export type Settings = {
-  slippageTolerance: number,
-  setSlippageTolerance: (number) => void,
-  deadlineMinutes: number,
+  slippageTolerance: number
+  setSlippageTolerance: (number) => void
+  deadlineMinutes: number
   setDeadlineMinutes: (number) => void
   deadline: () => number
 }
@@ -22,8 +22,8 @@ const useSettings = (): Settings => {
     storedDeadlineMinutes ? Number(storedDeadlineMinutes) : defaultDeadlineMinutes
   )
 
-  const deadline = useCallback(() =>
-    (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0,
+  const deadline = useCallback(
+    () => (Date.now() / 1000 + Number(deadlineMinutes) * 60) | 0,
     [deadlineMinutes]
   )
 
@@ -40,7 +40,7 @@ const useSettings = (): Settings => {
     setSlippageTolerance,
     deadlineMinutes,
     setDeadlineMinutes,
-    deadline
+    deadline,
   }
 }
 

@@ -5,24 +5,24 @@ class TokenAmount {
   readonly amountRaw: BigNumber
   readonly token: Token
 
-  constructor (amount: any, token: Token) {
+  constructor(amount: any, token: Token) {
     this.amountRaw = BigNumber.from(amount)
     this.token = token
   }
 
-  toString () {
+  toString() {
     return this.display()
   }
 
-  raw (): string {
+  raw(): string {
     return this.amountRaw.toString()
   }
 
-  amount (): string {
+  amount(): string {
     return ethersUtils.parseUnits(this.raw(), this.token.decimals).toString()
   }
 
-  display (): string {
+  display(): string {
     return `${this.amount} ${this.token.symbol}`
   }
 }

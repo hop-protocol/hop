@@ -7,7 +7,7 @@ export const addresses: HopAddresses = {
     l1Hop: '',
     stakingRewardsFactory: '',
     stakingRewards: '',
-    governorAlpha: ''
+    governorAlpha: '',
   },
   tokens: goerliAddresses.bridges,
   bonders: goerliAddresses.bonders,
@@ -19,13 +19,13 @@ export const networks: Networks = {
   ethereum: {
     networkId: _networks.ethereum.networkId.toString(),
     rpcUrls: _networks.ethereum.rpcUrls,
-    explorerUrl: _networks.ethereum.explorerUrls[0]
+    explorerUrl: _networks.ethereum.explorerUrls[0],
   },
   polygon: {
     networkId: _networks.polygon.networkId.toString(),
     rpcUrls: _networks.polygon.rpcUrls,
-    explorerUrl: _networks.polygon.explorerUrls[0]
-  }
+    explorerUrl: _networks.polygon.explorerUrls[0],
+  },
   /*
   arbitrum: {
     networkId: _networks.arbitrum.networkId.toString(),

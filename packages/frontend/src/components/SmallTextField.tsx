@@ -17,8 +17,8 @@ const useStyles = makeStyles(theme => ({
   root: {},
   adornment: {
     marginRight: '0',
-    fontSize: '1.4rem'
-  }
+    fontSize: '1.4rem',
+  },
 }))
 
 const normalShadow = `
@@ -32,19 +32,19 @@ const useInputStyles = makeStyles(theme => ({
     borderRadius: '2rem',
     boxShadow: normalShadow,
     '&:hover': {},
-    '&.Mui-focused': {}
+    '&.Mui-focused': {},
   }),
   input: ({ centerAlign }: StyleProps) => ({
     textAlign: centerAlign ? 'center' : 'right',
     fontSize: theme.typography.body1.fontSize,
     fontWeight: theme.typography.body1.fontWeight,
     color: theme.palette.text.primary,
-    textOverflow: 'ellipsis'
+    textOverflow: 'ellipsis',
   }),
   focused: {
     borderRadius: '2rem',
-    boxShadow: normalShadow
-  }
+    boxShadow: normalShadow,
+  },
 }))
 
 const TextField: FC<LargeTextFieldProps> = props => {
@@ -60,15 +60,11 @@ const TextField: FC<LargeTextFieldProps> = props => {
         disableUnderline: true,
         endAdornment: units ? (
           <InputAdornment position="end">
-            <Typography
-              variant="h4"
-              color="textPrimary"
-              className={styles.adornment}
-            >
+            <Typography variant="h4" color="textPrimary" className={styles.adornment}>
               {units}
             </Typography>
           </InputAdornment>
-        ) : null
+        ) : null,
       }}
       {...textFieldProps}
     ></MuiTextField>

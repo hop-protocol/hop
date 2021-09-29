@@ -22,13 +22,7 @@ const FlatTabs = (props: Props) => {
   }
 
   return (
-    <Tabs
-      value={value}
-      indicatorColor="primary"
-      onChange={handleChange}
-      aria-label="Tabs"
-      centered
-    >
+    <Tabs value={value} indicatorColor="primary" onChange={handleChange} aria-label="Tabs" centered>
       {tabs?.map((tab: ITab) => {
         const { label, value } = tab
         return <Tab key={value} label={label} value={value} />

@@ -15,24 +15,24 @@ import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   paper: {
-    padding: '2rem'
+    padding: '2rem',
   },
   table: {
-    width: '800px'
+    width: '800px',
   },
   cell: {
-    fontSize: '1.4rem'
+    fontSize: '1.4rem',
   },
   flex: {
-    display: 'flex'
+    display: 'flex',
   },
   title: {
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
   },
   box: {
     marginBottom: '2rem',
-    flexDirection: 'column'
-  }
+    flexDirection: 'column',
+  },
 }))
 
 const BalanceStats: FC = () => {
@@ -61,34 +61,26 @@ const BalanceStats: FC = () => {
               <TableBody>
                 {fetchingBalances
                   ? Array(2)
-                    .fill(null)
-                    .map((x, i) => {
-                      return (
+                      .fill(null)
+                      .map((x, i) => {
+                        return (
                           <TableRow key={i}>
                             <TableCell colSpan={4}>
                               <Skeleton animation="wave" width={'100%'} />
                             </TableCell>
                           </TableRow>
-                      )
-                    })
+                        )
+                      })
                   : balances?.map(item => {
-                    return (
+                      return (
                         <TableRow key={item.id}>
-                          <TableCell className={styles.cell}>
-                            {item.network}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {item.name}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {item.address}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.balance)}
-                          </TableCell>
+                          <TableCell className={styles.cell}>{item.network}</TableCell>
+                          <TableCell className={styles.cell}>{item.name}</TableCell>
+                          <TableCell className={styles.cell}>{item.address}</TableCell>
+                          <TableCell className={styles.cell}>{commafy(item.balance)}</TableCell>
                         </TableRow>
-                    )
-                  })}
+                      )
+                    })}
               </TableBody>
             </Table>
           </TableContainer>

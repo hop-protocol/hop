@@ -8,8 +8,8 @@ import Button from 'src/components/buttons/Button'
 const useStyles = makeStyles(() => ({
   sendButton: {
     marginTop: '1rem',
-    width: '30.0rem'
-  }
+    width: '30.0rem',
+  },
 }))
 
 type Props = {}

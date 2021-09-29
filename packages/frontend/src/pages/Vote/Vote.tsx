@@ -16,32 +16,32 @@ const useStyles = makeStyles(() => ({
     width: '51rem',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
   },
   buttonStyle: {
-    margin: 'initial'
+    margin: 'initial',
   },
   editDelegateButtonStyle: {
-    marginTop: '1rem'
+    marginTop: '1rem',
   },
   pricesBox: {
     width: '51.6rem',
     marginTop: '4.2rem',
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
   },
   priceBox: {
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   pricesCard: {
     display: 'flex',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   delegateOverview: {
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center'
-  }
+    alignItems: 'center',
+  },
 }))
 
 type VoteProps = {
@@ -68,23 +68,14 @@ const VoteChild: FC<VoteProps> = props => {
       <Box display="flex" alignItems="center" className={styles.headerWrapper}>
         <Typography variant="h6">Participating Pools</Typography>
         {balance !== '0.00' && delegate === ZERO_ADDRESS ? (
-          <Button
-            flat
-            className={styles.buttonStyle}
-            onClick={() => setModalIsOpen(true)}
-          >
+          <Button flat className={styles.buttonStyle} onClick={() => setModalIsOpen(true)}>
             Unlock Voting
           </Button>
         ) : (
           <Box className={styles.delegateOverview}>
             <Typography variant="body1">{balance} Votes</Typography>
-            <Typography variant="body1">
-              Delegated to {humanReadableDelegate}
-            </Typography>
-            <Button
-              className={styles.editDelegateButtonStyle}
-              onClick={() => setModalIsOpen(true)}
-            >
+            <Typography variant="body1">Delegated to {humanReadableDelegate}</Typography>
+            <Button className={styles.editDelegateButtonStyle} onClick={() => setModalIsOpen(true)}>
               Edit Delegate
             </Button>
           </Box>

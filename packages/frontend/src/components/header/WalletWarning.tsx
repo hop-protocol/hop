@@ -14,9 +14,7 @@ import { isMainnet } from 'src/config'
 import Settings from 'src/pages/Send/Settings'
 
 const useStyles = makeStyles((theme: Theme) => ({
-  root: {
-
-  },
+  root: {},
 }))
 
 const WalletWarning: FC = () => {
@@ -26,9 +24,7 @@ const WalletWarning: FC = () => {
 
   useEffect(() => {
     const update = async () => {
-      if (
-        !(address && provider && walletName)
-      ) {
+      if (!(address && provider && walletName)) {
         return ''
       }
 
@@ -69,16 +65,11 @@ const WalletWarning: FC = () => {
 
   return (
     <Box className={styles.root} display="flex" alignItems="center">
-      {!!warning &&
-        <Box
-          display="flex"
-          flexDirection="row"
-          flex={1}
-          justifyContent="center"
-        >
+      {!!warning && (
+        <Box display="flex" flexDirection="row" flex={1} justifyContent="center">
           <Alert severity="warning" onClose={() => closeWarning()} text={warning} />
         </Box>
-      }
+      )}
     </Box>
   )
 }

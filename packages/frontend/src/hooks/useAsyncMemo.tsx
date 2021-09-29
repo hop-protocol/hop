@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, DependencyList } from 'react'
 import { shallowEquals } from 'src/utils'
 
-function useAsyncMemo<T> (
+function useAsyncMemo<T>(
   factory: () => Promise<T>,
   deps: DependencyList | undefined
 ): T | undefined {

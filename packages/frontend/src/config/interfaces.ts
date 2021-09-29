@@ -27,7 +27,7 @@ export interface HopAddresses {
     governorAlpha: string
   }
   tokens: Bridges
-  bonders: {[token: string]: string[]}
+  bonders: { [token: string]: string[] }
 }
 
 export type Networks = {
@@ -35,7 +35,7 @@ export type Networks = {
     networkId: string
     rpcUrls: string[]
     publicRpcUrl?: string
-    explorerUrl: string,
+    explorerUrl: string
     nativeBridgeUrl?: string
   }
 }

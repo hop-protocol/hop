@@ -16,24 +16,24 @@ import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   paper: {
-    padding: '2rem'
+    padding: '2rem',
   },
   table: {
-    width: '800px'
+    width: '800px',
   },
   cell: {
-    fontSize: '1.4rem'
+    fontSize: '1.4rem',
   },
   flex: {
-    display: 'flex'
+    display: 'flex',
   },
   title: {
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
   },
   box: {
     marginBottom: '2rem',
-    flexDirection: 'column'
-  }
+    flexDirection: 'column',
+  },
 }))
 
 const PoolStats: FC = () => {
@@ -61,31 +61,33 @@ const PoolStats: FC = () => {
               <TableBody>
                 {fetching
                   ? Array(2)
-                    .fill(null)
-                    .map((x, i) => {
-                      return (
+                      .fill(null)
+                      .map((x, i) => {
+                        return (
                           <TableRow key={i}>
                             <TableCell colSpan={6}>
                               <Skeleton animation="wave" width={'100%'} />
                             </TableCell>
                           </TableRow>
-                      )
-                    })
+                        )
+                      })
                   : stats?.map(item => {
-                    return (
+                      return (
                         <TableRow key={item.id}>
                           <TableCell className={styles.cell}>
                             <div className={styles.flex}>
                               <img
                                 style={{
                                   display: 'inline-block',
-                                  marginRight: '0.5em'
+                                  marginRight: '0.5em',
                                 }}
                                 src={item.network.imageUrl}
                                 alt=""
                                 width="16"
                               />
-                              <span>{item.token0.symbol}-{item.token1.symbol}</span>
+                              <span>
+                                {item.token0.symbol}-{item.token1.symbol}
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell className={styles.cell}>
@@ -95,8 +97,8 @@ const PoolStats: FC = () => {
                             {commafy(item.reserve1)} {item.token1.symbol}
                           </TableCell>
                         </TableRow>
-                    )
-                  })}
+                      )
+                    })}
               </TableBody>
             </Table>
           </TableContainer>

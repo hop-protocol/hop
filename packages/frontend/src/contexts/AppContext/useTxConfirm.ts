@@ -40,14 +40,14 @@ export const useTxConfirm = (): TxConfirm => {
             }
           }
           setTxConfirm(null)
-        }
+        },
       })
     })
   }
 
   return {
     txConfirmParams,
-    show
+    show,
   }
 }
 

@@ -85,7 +85,7 @@ class TransfersDb extends BaseDb {
     const transfers = await this.getTransfers()
     const oneWeekAgo = Math.floor((Date.now() - OneWeekMs) / 1000)
     return transfers.filter((item: Transfer) => {
-      return item.transferSentTimestamp > oneWeekAgo
+      return !item.transferSentTimestamp || item.transferSentTimestamp > oneWeekAgo
     })
   }
 

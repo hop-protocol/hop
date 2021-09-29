@@ -195,7 +195,12 @@ class TransferRootsDb extends BaseDb {
       // Do not check if a rootHash has been committed. A rootHash can be committed and bonded,
       // but if the bond uses a different totalAmount then it is fraudulent. Instead, use the
       // transferRootId. If transferRootIds do not match then we know the bond is fraudulent.
-      const isTransferRootIdValid = item.bondTransferRootId === item.transferRootId
+
+      let isTransferRootIdValid = false
+      if (item?.bondTransferRootId && item?.transferRootId) {
+        isTransferRootIdValid = item.bondTransferRootId === item.transferRootId
+      }
+
       return (
         item.transferRootId &&
         item.transferRootHash &&
@@ -251,8 +256,7 @@ class TransferRootsDb extends BaseDb {
     const transferRoots: TransferRoot[] = await this.getTransferRoots()
     return transferRoots.filter(item => {
       return (
-        (item.totalAmount && !item.transferRootId) ||
-        (item.bondTxHash && !item.bondTransferRootId) ||
+        (item.bondTxHash && (!item.bonder || item.bondedAt)) ||
         (item.rootSetBlockNumber && !item.rootSetTimestamp)
       )
     })

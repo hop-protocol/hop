@@ -4,6 +4,7 @@ import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
+import getTransferRootId from 'src/utils/getTransferRootId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import queue from 'src/decorators/queue'
 import rateLimitRetry, { rateLimitRetryFn } from 'src/decorators/rateLimitRetry'
@@ -377,7 +378,7 @@ export default class Bridge extends ContractBase {
   }
 
   @rateLimitRetry
-  async getTransferRootId (
+  async getOnChainTransferRootId (
     transferRootHash: string,
     totalAmount: BigNumber
   ): Promise<string> {
@@ -385,6 +386,13 @@ export default class Bridge extends ContractBase {
       transferRootHash,
       totalAmount
     )
+  }
+
+  async getTransferRootId (
+    transferRootHash: string,
+    totalAmount: BigNumber
+  ): Promise<string> {
+    return getTransferRootId(transferRootHash, totalAmount)
   }
 
   @rateLimitRetry

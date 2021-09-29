@@ -5,6 +5,7 @@ import os from 'os'
 import path from 'path'
 import queue from 'src/decorators/queue'
 import sub from 'subleveldown'
+import { TenSecondsMs } from 'src/constants'
 import { boundClass } from 'autobind-decorator'
 import { config as globalConfig } from 'src/config'
 
@@ -12,6 +13,7 @@ const dbMap: { [key: string]: any } = {}
 
 export type BaseItem = {
   _id?: string
+  _createdAt?: number
 }
 
 @boundClass
@@ -56,8 +58,12 @@ class BaseDb {
       .on('closed', () => {
         this.logger.debug('closed')
       })
-      .on('put', (key: string) => {
-        this.logger.debug(`put item, key=${key}`)
+      .on('put', (key: string, value: any) => {
+        // only log recently created items
+        const recentlyCreated = value?._createdAt && Date.now() - value._createdAt < TenSecondsMs
+        if (recentlyCreated) {
+          this.logger.debug(`put item, key=${key}`)
+        }
       })
       .on('clear', (key: string) => {
         this.logger.debug(`clear item, key=${key}`)
@@ -66,7 +72,9 @@ class BaseDb {
 
   @queue
   public async update (key: string, data: any) {
-    const entry = await this.getById(key, {})
+    const entry = await this.getById(key, {
+      _createdAt: Date.now()
+    })
     const value = Object.assign({}, entry, data)
 
     return this.db.put(key, value)

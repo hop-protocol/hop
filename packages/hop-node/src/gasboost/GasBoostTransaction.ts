@@ -566,7 +566,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       } catch (err) {
         const isAlreadyKnown = /AlreadyKnown/gi.test(err.message)
         const isFeeTooLow = /FeeTooLowToCompete/gi.test(err.message)
-        const nonceTooLow = /(nonce.*too low|already been used|NONCE_EXPIRED)/gi.test(err.message)
+        const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED)/gi.test(err.message)
         const shouldRetry = (isAlreadyKnown || isFeeTooLow || nonceTooLow) && i < maxRetries
         if (nonceTooLow) {
           if (!this.nonce) {

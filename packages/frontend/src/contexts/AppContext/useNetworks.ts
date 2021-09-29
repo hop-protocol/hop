@@ -34,7 +34,7 @@ const useNetworks = () => {
   return {
     networks: allNetworks,
     l2Networks,
-    DEFAULT_L2_NETWORK: l2Networks[0],
+    defaultL2Network: l2Networks[0],
   }
 }
 

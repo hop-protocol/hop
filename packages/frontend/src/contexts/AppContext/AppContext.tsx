@@ -23,7 +23,7 @@ type AppContextProps = {
   user: User | undefined
   networks: Network[]
   l2Networks: Network[]
-  DEFAULT_L2_NETWORK: Network | undefined
+  defaultL2Network: Network | undefined
   l1Network: Network | undefined
   contracts: Contracts | undefined
   tokens: Token[]
@@ -38,7 +38,7 @@ const AppContext = createContext<AppContextProps>({
   user: undefined,
   networks: [],
   l2Networks: [],
-  DEFAULT_L2_NETWORK: undefined,
+  defaultL2Network: undefined,
   l1Network: undefined,
   contracts: undefined,
   tokens: [],
@@ -68,7 +68,7 @@ const AppContextProvider: FC = ({ children }) => {
   const sdk = useMemo(() => {
     return new Hop(reactAppNetwork, provider?.getSigner())
   }, [provider])
-  const { networks, l2Networks, DEFAULT_L2_NETWORK } = useNetworks()
+  const { networks, l2Networks, defaultL2Network } = useNetworks()
   const tokens = useTokens(networks)
   const contracts = useContracts(networks, tokens)
   const events = useEvents()
@@ -89,7 +89,7 @@ const AppContextProvider: FC = ({ children }) => {
         user,
         networks,
         l2Networks,
-        DEFAULT_L2_NETWORK,
+        defaultL2Network,
         l1Network,
         contracts,
         tokens,

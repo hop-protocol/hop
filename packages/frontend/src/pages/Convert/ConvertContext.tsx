@@ -105,7 +105,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     networks,
     txHistory,
     l2Networks,
-    DEFAULT_L2_NETWORK,
+    defaultL2Network,
     selectedBridge,
     txConfirm,
     sdk,
@@ -142,7 +142,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       if (matchingNetwork && !matchingNetwork?.isLayer1) {
         setSelectedNetwork(matchingNetwork)
       } else {
-        setSelectedNetwork(DEFAULT_L2_NETWORK)
+        setSelectedNetwork(defaultL2Network)
       }
     }
   }, [queryParams])
@@ -156,7 +156,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const sourceNetwork = useMemo<Network | undefined>(() => {
     if (convertOption instanceof AmmConvertOption || !isForwardDirection) {
       if (selectedNetwork?.isLayer1) {
-        return DEFAULT_L2_NETWORK
+        return defaultL2Network
       }
       return selectedNetwork
     } else {
@@ -167,7 +167,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const destNetwork = useMemo<Network | undefined>(() => {
     if (convertOption instanceof AmmConvertOption || isForwardDirection) {
       if (selectedNetwork?.isLayer1) {
-        return DEFAULT_L2_NETWORK
+        return defaultL2Network
       }
       return selectedNetwork
     } else {

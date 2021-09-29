@@ -97,7 +97,7 @@ const useStyles = makeStyles(theme => ({
 
 const Pools: FC = () => {
   const styles = useStyles()
-  const { bridges, selectedBridge, setSelectedBridge, DEFAULT_L2_NETWORK } = useApp()
+  const { bridges, selectedBridge, setSelectedBridge, defaultL2Network } = useApp()
   const {
     networks,
     canonicalToken,
@@ -149,7 +149,7 @@ const Pools: FC = () => {
       if (matchingNetwork && !matchingNetwork?.isLayer1) {
         setSelectedNetwork(matchingNetwork)
       } else {
-        setSelectedNetwork(DEFAULT_L2_NETWORK as Network)
+        setSelectedNetwork(defaultL2Network as Network)
       }
     }
   }, [queryParams])

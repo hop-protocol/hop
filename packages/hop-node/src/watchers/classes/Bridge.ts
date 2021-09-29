@@ -356,6 +356,19 @@ export default class Bridge extends ContractBase {
   }
 
   @rateLimitRetry
+  async getTransferIdsFromSettleEventTransaction (transactionHash: string):Promise<string[]> {
+    const tx = await this.getTransaction(transactionHash)
+    if (!tx) {
+      throw new Error(`expected tx object. transactionHash: ${transactionHash}`)
+    }
+    const { data } = tx
+    const decodedData = await this.decodeSettleBondedWithdrawalsData(
+      data
+    )
+    return decodedData.transferIds
+  }
+
+  @rateLimitRetry
   async decodeSettleBondedWithdrawalsData (data: string): Promise<any> {
     if (!data) {
       throw new Error('data to decode is required')

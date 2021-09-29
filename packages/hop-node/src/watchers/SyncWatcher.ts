@@ -503,27 +503,40 @@ class SyncWatcher extends BaseWatcher {
     } = event.args
     const logger = this.logger.create({ root: transferRootHash })
 
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    let transferIds = dbTransferRoot?.transferIds
-    if (!transferIds) {
-      const tx = await this.bridge.getTransaction(transactionHash)
-      if (!tx) {
-        throw new Error(`expected tx object. transactionHash: ${transactionHash}`)
-      }
-      const { data } = tx
-       const decodedData = await this.bridge.decodeSettleBondedWithdrawalsData(
-        data
-      )
-      transferIds = decodedData.transferIds
-    }
-
     logger.debug('handling MultipleWithdrawalsSettled event')
     logger.debug(`tx hash from event: ${transactionHash}`)
     logger.debug(`transferRootHash from event: ${transferRootHash}`)
     logger.debug(`bonder : ${bonder}`)
     logger.debug(`totalBondSettled: ${this.bridge.formatUnits(totalBondsSettled)}`)
+
+    await this.db.transfeRoots.update(transferRootHash, {
+      multipleWithdrawalsSettledTxHash: transactionHash,
+      multipleWithdrawalsSettledTotalAmount: totalBondsSettled
+    })
+
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    const transferIds = dbTransferRoot?.transferIds
+    if (!transferIds) {
+      return
+    }
+
+    await this.checkTransferRootSettledState(transferRootHash, totalBondsSettled)
+  }
+
+  async checkTransferRootSettledState (transferRootHash: string, totalBondsSettled: BigNumber) {
+    const dbTransferRoot = await this.db.transfers.getByTransferRootHash(transferRootHash)
+    if (!dbTransferRoot) {
+      throw new Error('expected db transfer root item')
+    }
+
+    const logger = this.logger.create({ root: transferRootHash })
+    const { transferIds } = dbTransferRoot
+    if (!transferIds.length) {
+      return
+    }
+
     logger.debug(`transferIds count: ${transferIds.length}`)
-    const dbTransfers : Transfer[] = []
+    const dbTransfers: Transfer[] = []
     for (const transferId of transferIds) {
       const dbTransfer = await this.db.transfers.getByTransferId(transferId)
       if (!dbTransfer) {
@@ -535,7 +548,10 @@ class SyncWatcher extends BaseWatcher {
         withdrawalBondSettled
       })
     }
-    const rootAmountAllSettled = dbTransferRoot ? dbTransferRoot?.totalAmount?.eq(totalBondsSettled) : false
+    let rootAmountAllSettled = false
+    if (totalBondsSettled) {
+      rootAmountAllSettled = dbTransferRoot?.totalAmount?.eq(totalBondsSettled)
+    }
     const allTransfersSettled = dbTransfers.every(
       (dbTransfer: Transfer) => dbTransfer?.withdrawalBondSettled
     )
@@ -580,7 +596,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error('expected db transfer root item')
     }
     const logger = this.logger.create({ root: transferRootHash })
-    const { transferRootId, totalAmount, bondTxHash, bondBlockNumber, bondTotalAmount, bonder, bondedAt, rootSetBlockNumber, rootSetTimestamp, sourceChainId, destinationChainId, commitTxBlockNumber, transferIds } = dbTransferRoot
+    const { transferRootId, totalAmount, bondTxHash, bondBlockNumber, bondTotalAmount, bonder, bondedAt, rootSetBlockNumber, rootSetTimestamp, sourceChainId, destinationChainId, commitTxBlockNumber, transferIds, multipleWithdrawalsSettledTxHash, multipleWithdrawalsSettledTotalAmount } = dbTransferRoot
 
     if (bondTxHash && (!bonder || !bondedAt)) {
       const tx = await this.bridge.getTransaction(bondTxHash)
@@ -615,6 +631,22 @@ class SyncWatcher extends BaseWatcher {
     if (sourceChainId && destinationChainId && commitTxBlockNumber && totalAmount && !transferIds) {
       await this.populateTransferRootTransferIds(transferRootHash)
     }
+
+    if (multipleWithdrawalsSettledTxHash && multipleWithdrawalsSettledTotalAmount && !transferIds) {
+      const _transferIds = await this.bridge.getTransferIdsFromSettleEventTransaction(multipleWithdrawalsSettledTxHash)
+      const tree = new MerkleTree(_transferIds)
+      const computedTransferRootHash = tree.getHexRoot()
+      if (computedTransferRootHash !== transferRootHash) {
+        logger.error(
+          `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. List: ${JSON.stringify(_transferIds)}`
+        )
+      } else {
+        await this.db.transferRoots.update(transferRootHash, {
+          transferIds: _transferIds
+        })
+        await this.checkTransferRootSettledState(transferRootHash, multipleWithdrawalsSettledTotalAmount)
+      }
+    }
   }
 
   async populateTransferRootTransferIds (transferRootHash: string) {
@@ -622,7 +654,7 @@ class SyncWatcher extends BaseWatcher {
     if (!dbTransferRoot) {
       throw new Error('expected db transfer root item')
     }
-    let { sourceChainId, destinationChainId, totalAmount, commitTxBlockNumber } = dbTransferRoot
+    const { sourceChainId, destinationChainId, totalAmount, commitTxBlockNumber } = dbTransferRoot
     if (isL1ChainId(sourceChainId)) {
       return
     }

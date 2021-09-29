@@ -37,6 +37,8 @@ export type TransferRoot = {
   challenged?: boolean
   challengeExpired?: boolean
   allSettled?: boolean
+  multipleWithdrawalsSettledTxHash?: string
+  multipleWithdrawalsSettledTotalAmount?: BigNumber
 }
 
 class TransferRootsDb extends BaseDb {
@@ -257,7 +259,8 @@ class TransferRootsDb extends BaseDb {
       return (
         (item.bondTxHash && (!item.bonder || item.bondedAt)) ||
         (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
-        ((item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount) && !item.transferIds)
+        ((item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount) && !item.transferIds) ||
+        (item.multipleWithdrawalsSettledTxHash && item.multipleWithdrawalsSettledTotalAmount && !item.transferIds)
       )
     })
   }

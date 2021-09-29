@@ -181,6 +181,12 @@ const Send: FC = () => {
     _setFromNetwork(_fromNetwork)
 
     const _toNetwork = networks.find(network => network.slug === queryParams.destNetwork)
+
+    if (_fromNetwork?.name === _toNetwork?.name) {
+      // Leave destination network empty
+      return
+    }
+
     _setToNetwork(_toNetwork)
   }, [queryParams, networks])
 

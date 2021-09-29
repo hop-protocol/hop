@@ -89,27 +89,27 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       return false
     }, [canonicalToken]) ?? false
 
-  const updateBalances = async () => {
-    if (!canonicalToken) return
-    if (!wrappedToken) return
-    try {
-      const [canonicalBalance, wrappedBalance] = await Promise.all([
-        canonicalToken.balanceOf(),
-        wrappedToken.balanceOf(),
-      ])
-      setCanonicalTokenBalance(canonicalBalance)
-      setWrappedTokenBalance(wrappedBalance)
-    } catch (err) {
-      // noop
-    }
-  }
-
   useEffect(() => {
+    const updateBalances = async () => {
+      if (!canonicalToken) return
+      if (!wrappedToken) return
+      try {
+        const [canonicalBalance, wrappedBalance] = await Promise.all([
+          canonicalToken.balanceOf(),
+          wrappedToken.balanceOf(),
+        ])
+        setCanonicalTokenBalance(canonicalBalance)
+        setWrappedTokenBalance(wrappedBalance)
+      } catch (err) {
+        // noop
+      }
+    }
+
     updateBalances()
+
+    const intervalId = setInterval(updateBalances, 5000)
+    return () => clearInterval(intervalId)
   }, [canonicalToken])
-  useInterval(() => {
-    updateBalances()
-  }, 5 * 1000)
 
   const wrap = async () => {
     try {

@@ -579,7 +579,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error('expected db transfer item')
     }
     const logger = this.logger.create({ id: transferId })
-    const { transferSentTimestamp, transferSentBlockNumber, withdrawalBondedTxHash, withdrawalBonder, sourceChainId, destinationChainId } = dbTransfer
+    const { transferSentTimestamp, transferSentBlockNumber, sourceChainId, destinationChainId } = dbTransfer
     if (transferSentBlockNumber && !transferSentTimestamp) {
       const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
       const transferSentTimestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
@@ -589,6 +589,7 @@ class SyncWatcher extends BaseWatcher {
       })
     }
 
+    const {withdrawalBondedTxHash, withdrawalBonder} = await this.db.transfers.getByTransferId(transferId)
     if (withdrawalBondedTxHash && !withdrawalBonder) {
       const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
       const tx = await destinationBridge.getTransaction(withdrawalBondedTxHash)
@@ -609,7 +610,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error('expected db transfer root item')
     }
     const logger = this.logger.create({ root: transferRootHash })
-    const { totalAmount, bondTxHash, bondBlockNumber, bonder, bondedAt, rootSetBlockNumber, rootSetTimestamp, sourceChainId, destinationChainId, commitTxBlockNumber, transferIds, multipleWithdrawalsSettledTxHash, multipleWithdrawalsSettledTotalAmount } = dbTransferRoot
+    let { totalAmount, bondTxHash, bondBlockNumber, bonder, bondedAt, sourceChainId, destinationChainId, commitTxBlockNumber } = dbTransferRoot
 
     if (bondTxHash && (!bonder || !bondedAt)) {
       const destinationBridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge
@@ -629,6 +630,7 @@ class SyncWatcher extends BaseWatcher {
       })
     }
 
+    const {rootSetBlockNumber, rootSetTimestamp} = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     if (rootSetBlockNumber && !rootSetTimestamp) {
       const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
       const rootSetTimestamp = await destinationBridge.getBlockTimestamp(rootSetBlockNumber)
@@ -638,10 +640,7 @@ class SyncWatcher extends BaseWatcher {
       })
     }
 
-    if (sourceChainId && destinationChainId && commitTxBlockNumber && totalAmount && !transferIds) {
-      await this.populateTransferRootTransferIds(transferRootHash)
-    }
-
+    let {multipleWithdrawalsSettledTxHash, multipleWithdrawalsSettledTotalAmount, transferIds} = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     if (multipleWithdrawalsSettledTxHash && multipleWithdrawalsSettledTotalAmount && !transferIds) {
       const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
       const _transferIds = await destinationBridge.getTransferIdsFromSettleEventTransaction(multipleWithdrawalsSettledTxHash)
@@ -657,6 +656,11 @@ class SyncWatcher extends BaseWatcher {
         })
         await this.checkTransferRootSettledState(transferRootHash, multipleWithdrawalsSettledTotalAmount)
       }
+    }
+
+    ({sourceChainId, destinationChainId, commitTxBlockNumber, totalAmount, transferIds} = await this.db.transferRoots.getByTransferRootHash(transferRootHash))
+    if (sourceChainId && destinationChainId && commitTxBlockNumber && totalAmount && !transferIds) {
+      await this.populateTransferRootTransferIds(transferRootHash)
     }
   }
 

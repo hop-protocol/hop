@@ -5,7 +5,6 @@ import os from 'os'
 import path from 'path'
 import queue from 'src/decorators/queue'
 import sub from 'subleveldown'
-import { TenSecondsMs } from 'src/constants'
 import { boundClass } from 'autobind-decorator'
 import { config as globalConfig } from 'src/config'
 
@@ -60,7 +59,7 @@ class BaseDb {
       })
       .on('put', (key: string, value: any) => {
         // only log recently created items
-        const recentlyCreated = value?._createdAt && Date.now() - value._createdAt < TenSecondsMs
+        const recentlyCreated = value?._createdAt && Date.now() - value._createdAt < 1 * 1000
         if (recentlyCreated) {
           this.logger.debug(`put item, key=${key}`)
         }

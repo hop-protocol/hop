@@ -42,7 +42,6 @@ export interface Config {
 class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   resyncIntervalMs: number = 60 * 1000
-  incompletePollerIntervalMs: number = 10 * 1000
   syncIndex: number = 0
   syncFromDate : string
   customStartBlockNumber : number
@@ -91,10 +90,7 @@ class SyncWatcher extends BaseWatcher {
   async start () {
     this.started = true
     try {
-      await Promise.all([
-        this.pollSync(),
-        this.incompletePollSync()
-      ])
+      await this.pollSync()
     } catch (err) {
       this.logger.error(`sync watcher error: ${err.message}\ntrace: ${err.stack}`)
       this.notifier.error(`sync watcher error: ${err.message}`)
@@ -110,43 +106,47 @@ class SyncWatcher extends BaseWatcher {
       }
       await this.preSyncHandler()
       await this.syncHandler()
+      this.logger.debug('done syncing pure handlers. index:', this.syncIndex)
+      await this.incompletePollSync()
+      this.logger.debug('done syncing incomplete items. index:', this.syncIndex)
       await this.postSyncHandler()
     }
   }
 
   async incompletePollSync () {
-    while (true) {
-      if (!(this.ready && this.isInitialSyncCompleted())) {
-        await wait(5 * 1000)
-        continue
-      }
-      try {
-        const promises : Promise<any>[] = []
-        const incompleteTransfers = await this.db.transfers.getIncompleteItems({
-          sourceChainId: this.chainSlugToId(this.chainSlug)
-        })
+    try {
+      const promises : Promise<any>[] = []
+      const incompleteTransfers = await this.db.transfers.getIncompleteItems({
+        sourceChainId: this.chainSlugToId(this.chainSlug)
+      })
+      if (incompleteTransfers.length) {
+        this.logger.debug(`incomplete transfer items: ${incompleteTransfers.length}`)
         for (const { transferId } of incompleteTransfers) {
           promises.push(this.populateTransferDbItem(transferId).catch(err => {
             this.logger.error('populateTransferDbItem error:', err)
             this.notifier.error(`populateTransferDbItem error: ${err.message}`)
           }))
         }
-        const incompleteRoots = await this.db.transferRoots.getIncompleteItems({
-          sourceChainId: this.chainSlugToId(this.chainSlug)
-        })
+      }
+      const incompleteRoots = await this.db.transferRoots.getIncompleteItems({
+        sourceChainId: this.chainSlugToId(this.chainSlug)
+      })
+      if (incompleteRoots.length) {
+        this.logger.debug(`incomplete transfer root items: ${incompleteRoots.length}`)
         for (const { transferRootHash } of incompleteRoots) {
           promises.push(this.populateTransferRootDbItem(transferRootHash).catch(err => {
             this.logger.error('populateTransferRootDbItem error:', err)
             this.notifier.error(`populateTransferRootDbItem error: ${err.message}`)
           }))
         }
-
-        await Promise.all(promises)
-      } catch (err) {
-        this.logger.error(`incomplete poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
-        this.notifier.error(`incomplete poll sync watcher error: ${err.message}`)
       }
-      await wait(this.incompletePollerIntervalMs)
+
+      if (promises.length) {
+        await Promise.all(promises)
+      }
+    } catch (err) {
+      this.logger.error(`incomplete poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
+      this.notifier.error(`incomplete poll sync watcher error: ${err.message}`)
     }
   }
 
@@ -155,8 +155,11 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async postSyncHandler () {
+    if (this.syncIndex === 0) {
+      this.initialSyncCompleted = true
+      this.logger.debug('initial sync complete')
+    }
     this.logger.debug('done syncing. index:', this.syncIndex)
-    this.initialSyncCompleted = true
     this.syncIndex++
     try {
       await this.uploadToS3()

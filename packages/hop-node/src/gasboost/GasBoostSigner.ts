@@ -5,6 +5,7 @@ import Store from './Store'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
+import wait from 'src/utils/wait'
 import { Signer, Wallet, providers } from 'ethers'
 import { boundClass } from 'autobind-decorator'
 
@@ -12,6 +13,8 @@ import { boundClass } from 'autobind-decorator'
 class GasBoostSigner extends Wallet {
   store: Store = new MemoryStore()
   items: string[] = []
+  lastTxSentTimestamp: number = 0
+  delayBetweenTxsMs: number = 7 * 1000
   chainSlug: string
   gTxFactory: GasBoostTransactionFactory
   signer: Signer
@@ -44,11 +47,26 @@ class GasBoostSigner extends Wallet {
   @queue
   @rateLimitRetry
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
+    await this.waitDelay()
     const gTx = this.gTxFactory.createTransaction(tx)
     await this.track(gTx)
     await gTx.save()
     await gTx.send()
+    this.lastTxSentTimestamp = Date.now()
     return gTx
+  }
+
+  private async waitDelay () {
+    const delta = await this.getDelayDelta()
+    if (delta > 0) {
+      await wait(delta)
+    }
+  }
+
+  private getDelayDelta () {
+    const now = Date.now()
+    const delta = this.delayBetweenTxsMs - (now - this.lastTxSentTimestamp)
+    return delta
   }
 
   private async restore () {

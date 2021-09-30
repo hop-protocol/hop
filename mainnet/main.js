@@ -2,7 +2,7 @@
 
 const poll = true
 const fetchInterval = 10 * 1000
-const enabledTokens = ['USDC', 'USDT', 'DAI']
+const enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC']
 const enabledChains = ['ethereum', 'xdai', 'polygon', 'optimism', 'arbitrum']
 
 let queryParams = {}

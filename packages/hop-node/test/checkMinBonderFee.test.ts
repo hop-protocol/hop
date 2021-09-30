@@ -1,3 +1,4 @@
+/*
 import { BigNumber } from 'ethers'
 import { checkMinBonderFee } from 'src/watchers/classes/Bridge'
 import { parseUnits } from 'ethers/lib/utils'
@@ -41,3 +42,4 @@ describe('checkMinBonderFee', () => {
     expect(threw).toBeTruthy()
   }, 10 * 1000)
 })
+*/

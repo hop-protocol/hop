@@ -475,7 +475,7 @@ export default class Bridge extends ContractBase {
     ]
 
     const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
-    await checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
+    await this.checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
 
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
 
@@ -705,116 +705,112 @@ export default class Bridge extends ContractBase {
     }
   }
 
+  async compareBonderDestinationFeeCost (
+    bonderFee: BigNumber,
+    gasLimit: BigNumber,
+    chain: string,
+    tokenSymbol: string,
+    gasPrice?: BigNumber,
+    tokenUsdPrice?: number,
+    chainNativeTokenUsdPrice?: number
+  ) {
+    const ethDecimals = 18
+    const provider = getRpcProvider(chain)
+    if (!gasPrice) {
+      gasPrice = getBumpedGasPrice(await provider.getGasPrice(), MaxGasPriceMultiplier)
+    }
+    if (!tokenUsdPrice) {
+      tokenUsdPrice = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
+    }
+    const gasCost = gasLimit.mul(gasPrice)
+    const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
+    if (!chainNativeTokenUsdPrice) {
+      chainNativeTokenUsdPrice = await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol)
+    }
+    const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), ethDecimals)
+    const chainNativeTokenUsdPriceBn = parseUnits(chainNativeTokenUsdPrice.toString(), ethDecimals)
+    const tokenDecimals = getTokenDecimals(tokenSymbol)
+    const bonderFee18d = shiftBNDecimals(bonderFee, ethDecimals - tokenDecimals)
+    const usdBonderFee = bonderFee18d
+    const oneEth = parseUnits('1', ethDecimals)
+    const usdGasCost = gasCost.mul(chainNativeTokenUsdPriceBn).div(oneEth)
+    const usdBonderFeeFormatted = formatUnits(usdBonderFee, ethDecimals)
+    const usdGasCostFormatted = formatUnits(usdGasCost, ethDecimals)
+    const usdMinTxCost = usdGasCost.div(2)
+    const isTooLow = bonderFee.lte(0) || usdBonderFee.lt(usdMinTxCost)
+    if (isTooLow) {
+      throw new BonderFeeTooLowError(`bonder fee is too low. Cannot bond withdrawal. bonderFee: ${usdBonderFeeFormatted}, gasCost: ${usdGasCostFormatted}`)
+    }
+
+    return parseUnits(Number(formatUnits((usdMinTxCost).mul(tokenUsdPriceBn).div(oneEth), ethDecimals)).toFixed(tokenDecimals), tokenDecimals)
+  }
+
+  async compareMinBonderFeeBasisPoints (
+    amountIn: BigNumber,
+    bonderFee: BigNumber,
+    destinationChain: string,
+    tokenSymbol: string
+  ) {
+    if (amountIn.lte(0)) {
+      return BigNumber.from(0)
+    }
+    // There is no concept of a minBonderFeeAbsolute on the L1 bridge so we default to 0 since the
+    // relative fee will negate this value anyway
+    let bonderFeeBps = BonderFeeBps.L2ToL1
+    if (destinationChain !== Chain.Ethereum) {
+      bonderFeeBps = BonderFeeBps.L2ToL2
+    }
+
+    const tokenPrice = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
+    const tokenDecimals = getTokenDecimals(tokenSymbol)
+    const minBonderFeeAbsolute = parseUnits(
+      (1 / tokenPrice).toFixed(tokenDecimals),
+      tokenDecimals
+    )
+    let minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)
+
+    // add 10% buffer for in the case amountIn is greater than originally
+    // estimated in frontend due to user receiving more hTokens during swap
+    const tolerance = 0.10
+    minBonderFeeRelative = minBonderFeeRelative.sub(minBonderFeeRelative.mul(tolerance * 100).div(100))
+    const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
+      ? minBonderFeeRelative
+      : MinBonderFeeAbsolute
+    const isTooLow = bonderFee.lt(minBonderFee)
+    if (isTooLow) {
+      throw new BonderFeeTooLowError(`bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFee: ${minBonderFee}`)
+    }
+
+    return minBonderFee
+  }
+
+  async checkMinBonderFee (
+    amountIn: BigNumber,
+    bonderFee: BigNumber,
+    gasLimit: BigNumber,
+    chainSlug: string,
+    tokenSymbol: string,
+    gasPrice?: BigNumber,
+    tokenUsdPrice?: number,
+    chainNativeTokenUsdPrice?: number
+  ) {
+    const minBpsFee = await this.compareMinBonderFeeBasisPoints(amountIn, bonderFee, chainSlug, tokenSymbol)
+    const minTxFee = await this.compareBonderDestinationFeeCost(bonderFee, gasLimit, chainSlug, tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
+
+    const minBonderFeeTotal = minBpsFee.add(minTxFee)
+    const isTooLow = bonderFee.lt(minBonderFeeTotal)
+    if (isTooLow) {
+      throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`)
+    }
+  }
+
   getChainNativeTokenSymbol (chain: string) {
-    return getChainNativeTokenSymbol(chain)
-  }
-}
+    if (chain === Chain.Polygon) {
+      return 'MATIC'
+    } else if (chain === Chain.xDai) {
+      return 'DAI'
+    }
 
-export async function compareBonderDestinationFeeCost (
-  bonderFee: BigNumber,
-  gasLimit: BigNumber,
-  chain: string,
-  tokenSymbol: string,
-  gasPrice?: BigNumber,
-  tokenUsdPrice?: number,
-  chainNativeTokenUsdPrice?: number
-) {
-  const ethDecimals = 18
-  const provider = getRpcProvider(chain)
-  if (!gasPrice) {
-    gasPrice = getBumpedGasPrice(await provider.getGasPrice(), MaxGasPriceMultiplier)
+    return 'ETH'
   }
-  if (!tokenUsdPrice) {
-    tokenUsdPrice = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
-  }
-  const gasCost = gasLimit.mul(gasPrice)
-  const chainNativeTokenSymbol = getChainNativeTokenSymbol(chain)
-  if (!chainNativeTokenUsdPrice) {
-    chainNativeTokenUsdPrice = await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol)
-  }
-  const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), ethDecimals)
-  const chainNativeTokenUsdPriceBn = parseUnits(chainNativeTokenUsdPrice.toString(), ethDecimals)
-  const tokenDecimals = getTokenDecimals(tokenSymbol)
-  const bonderFee18d = shiftBNDecimals(bonderFee, ethDecimals - tokenDecimals)
-  const usdBonderFee = bonderFee18d
-  const oneEth = parseUnits('1', ethDecimals)
-  const usdGasCost = gasCost.mul(chainNativeTokenUsdPriceBn).div(oneEth)
-  const usdBonderFeeFormatted = formatUnits(usdBonderFee, ethDecimals)
-  const usdGasCostFormatted = formatUnits(usdGasCost, ethDecimals)
-  const usdMinTxCost = usdGasCost.div(2)
-  const isTooLow = bonderFee.lte(0) || usdBonderFee.lt(usdMinTxCost)
-  if (isTooLow) {
-    throw new BonderFeeTooLowError(`bonder fee is too low. Cannot bond withdrawal. bonderFee: ${usdBonderFeeFormatted}, gasCost: ${usdGasCostFormatted}`)
-  }
-
-  return parseUnits(Number(formatUnits((usdMinTxCost).mul(tokenUsdPriceBn).div(oneEth), ethDecimals)).toFixed(tokenDecimals), tokenDecimals)
-}
-
-export async function compareMinBonderFeeBasisPoints (
-  amountIn: BigNumber,
-  bonderFee: BigNumber,
-  destinationChain: string,
-  tokenSymbol: string
-) {
-  if (amountIn.lte(0)) {
-    return BigNumber.from(0)
-  }
-  // There is no concept of a minBonderFeeAbsolute on the L1 bridge so we default to 0 since the
-  // relative fee will negate this value anyway
-  let bonderFeeBps = BonderFeeBps.L2ToL1
-  if (destinationChain !== Chain.Ethereum) {
-    bonderFeeBps = BonderFeeBps.L2ToL2
-  }
-
-  const tokenPrice = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
-  const tokenDecimals = getTokenDecimals(tokenSymbol)
-  const minBonderFeeAbsolute = parseUnits(
-    (1 / tokenPrice).toFixed(tokenDecimals),
-    tokenDecimals
-  )
-  let minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)
-
-  // add 10% buffer for in the case amountIn is greater than originally
-  // estimated in frontend due to user receiving more hTokens during swap
-  const tolerance = 0.10
-  minBonderFeeRelative = minBonderFeeRelative.sub(minBonderFeeRelative.mul(tolerance * 100).div(100))
-  const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
-    ? minBonderFeeRelative
-    : MinBonderFeeAbsolute
-  const isTooLow = bonderFee.lt(minBonderFee)
-  if (isTooLow) {
-    throw new BonderFeeTooLowError(`bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFee: ${minBonderFee}`)
-  }
-
-  return minBonderFee
-}
-
-export async function checkMinBonderFee (
-  amountIn: BigNumber,
-  bonderFee: BigNumber,
-  gasLimit: BigNumber,
-  chainSlug: string,
-  tokenSymbol: string,
-  gasPrice?: BigNumber,
-  tokenUsdPrice?: number,
-  chainNativeTokenUsdPrice?: number
-) {
-  const minBpsFee = await compareMinBonderFeeBasisPoints(amountIn, bonderFee, chainSlug, tokenSymbol)
-  const minTxFee = await compareBonderDestinationFeeCost(bonderFee, gasLimit, chainSlug, tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
-
-  const minBonderFeeTotal = minBpsFee.add(minTxFee)
-  const isTooLow = bonderFee.lt(minBonderFeeTotal)
-  if (isTooLow) {
-    throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`)
-  }
-}
-
-function getChainNativeTokenSymbol (chain: string) {
-  if (chain === Chain.Polygon) {
-    return 'MATIC'
-  } else if (chain === Chain.xDai) {
-    return 'DAI'
-  }
-
-  return 'ETH'
 }

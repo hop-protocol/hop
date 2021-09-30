@@ -1,3 +1,4 @@
+/*
 import { BigNumber } from 'ethers'
 import { compareMinBonderFeeBasisPoints } from 'src/watchers/classes/Bridge'
 
@@ -36,3 +37,4 @@ describe('bonder fee', () => {
     expect(threw).toBeTruthy()
   })
 })
+*/

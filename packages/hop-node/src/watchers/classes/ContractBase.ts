@@ -112,7 +112,7 @@ export default class ContractBase extends EventEmitter {
   ): Promise<number> {
     const tx = await this.contract.provider.getTransaction(txHash)
     if (!tx) {
-      throw new Error(`expected tx object. transactionHash: ${txHash}`)
+      throw new Error(`expected tx object. transactionHash: ${txHash} chain: ${this.chainSlug}`)
     }
     return this.getBlockTimestamp(tx.blockNumber)
   }

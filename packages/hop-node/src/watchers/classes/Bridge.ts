@@ -359,7 +359,7 @@ export default class Bridge extends ContractBase {
   async getTransferIdsFromSettleEventTransaction (transactionHash: string):Promise<string[]> {
     const tx = await this.getTransaction(transactionHash)
     if (!tx) {
-      throw new Error(`expected tx object. transactionHash: ${transactionHash}`)
+      throw new Error(`getTransferIdsFromSettleEventTransaction: expected tx object. transactionHash: ${transactionHash} chain: ${this.chainSlug}`)
     }
     const { data } = tx
     const decodedData = await this.decodeSettleBondedWithdrawalsData(

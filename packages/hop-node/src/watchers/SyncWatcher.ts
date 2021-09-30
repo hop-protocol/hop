@@ -609,10 +609,10 @@ class SyncWatcher extends BaseWatcher {
     const { totalAmount, bondTxHash, bondBlockNumber, bonder, bondedAt, rootSetBlockNumber, rootSetTimestamp, sourceChainId, destinationChainId, commitTxBlockNumber, transferIds, multipleWithdrawalsSettledTxHash, multipleWithdrawalsSettledTotalAmount } = dbTransferRoot
 
     if (bondTxHash && (!bonder || !bondedAt)) {
-      const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+      const destinationBridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge
       const tx = await destinationBridge.getTransaction(bondTxHash)
       if (!tx) {
-        throw new Error(`expected tx object. transactionHash: ${bondTxHash}`)
+        throw new Error(`expected tx object. transactionHash: ${bondTxHash} transferRootHash: ${transferRootHash} chain: ${Chain.Ethereum}`)
       }
       const { from: bonder } = tx
       const bondedAt = await destinationBridge.getBlockTimestamp(bondBlockNumber)

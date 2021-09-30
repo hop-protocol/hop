@@ -253,9 +253,17 @@ class TransferRootsDb extends BaseDb {
     })
   }
 
-  async getIncompleteItems () {
+  async getIncompleteItems (
+    filter: Partial<TransferRoot> = {}
+  ) {
     const transferRoots: TransferRoot[] = await this.getTransferRoots()
     return transferRoots.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
       return (
         (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
         (item.rootSetBlockNumber && !item.rootSetTimestamp) ||

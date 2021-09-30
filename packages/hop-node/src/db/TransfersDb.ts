@@ -177,9 +177,17 @@ class TransfersDb extends BaseDb {
     })
   }
 
-  async getIncompleteItems () {
+  async getIncompleteItems (
+    filter: Partial<Transfer> = {}
+  ) {
     const transfers: Transfer[] = await this.getTransfers()
     return transfers.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
       return (
         (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
         (item.withdrawalBondedTxHash && !item.withdrawalBonder)

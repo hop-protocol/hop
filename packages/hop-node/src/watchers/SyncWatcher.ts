@@ -91,8 +91,10 @@ class SyncWatcher extends BaseWatcher {
   async start () {
     this.started = true
     try {
-      await this.pollSync()
-      await this.incompletePollSync()
+      await Promise.all([
+        this.pollSync(),
+        this.incompletePollSync()
+      ])
     } catch (err) {
       this.logger.error(`sync watcher error: ${err.message}\ntrace: ${err.stack}`)
       this.notifier.error(`sync watcher error: ${err.message}`)

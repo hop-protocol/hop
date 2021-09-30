@@ -729,7 +729,7 @@ function populateTransfer (x, i) {
 
   const decimals = tokenDecimals[x.token]
   x.formattedAmount = Number(ethers.utils.formatUnits(x.amount, decimals))
-  x.displayAmount = formatCurrency(ethers.utils.formatUnits(x.amount, decimals))
+  x.displayAmount = formatCurrency(ethers.utils.formatUnits(x.amount, decimals), x.token)
   x.tokenImageUrl = tokenLogosMap[x.token]
 
   return x
@@ -809,11 +809,15 @@ async function updateChart (data) {
   window.addEventListener('resize', render)
 }
 
-function formatCurrency (value) {
+function formatCurrency (value, token) {
   const currencyFormatter = new Intl.NumberFormat('en-US', {
     // style: 'currency',
     // currency: 'USD'
   })
+
+  if (token === 'MATIC') {
+    return `${currencyFormatter.format(value)}`
+  }
 
   return `$${currencyFormatter.format(value)}`
 }

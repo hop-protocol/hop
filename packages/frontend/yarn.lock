@@ -15674,9 +15674,9 @@ ndjson@^1.5.0:
     split2 "^2.1.0"
     through2 "^2.0.3"
 
-"neat-frame@git+https://github.com/agentofuser/neat-frame.git#wrap-ansi-options":
+"neat-frame@https://github.com/agentofuser/neat-frame#wrap-ansi-options":
   version "1.0.2"
-  resolved "git+https://github.com/agentofuser/neat-frame.git#b244ca11078bd35f63b2d7cb22d5e4b5c12ae2aa"
+  resolved "https://github.com/agentofuser/neat-frame#b244ca11078bd35f63b2d7cb22d5e4b5c12ae2aa"
   dependencies:
     inspect-with-kind "^1.0.5"
     merge-options "^1.0.1"

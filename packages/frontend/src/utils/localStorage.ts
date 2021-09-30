@@ -16,7 +16,16 @@ export const loadState = (item: string = 'state') => {
 
 export const saveState = (key: string = 'state', state: any) => {
   try {
-    const serializedState = JSON.stringify(state)
+    const seen: any = []
+    const serializedState = JSON.stringify(state, (key, val) => {
+      if (val !== null && typeof val === 'object') {
+        if (seen.indexOf(val) >= 0) {
+          return
+        }
+        seen.push(val)
+      }
+      return val
+    })
     setItem(key, serializedState)
   } catch (err) {
     // Ignore write errors.

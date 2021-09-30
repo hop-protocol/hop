@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import Transaction from 'src/models/Transaction'
+import { loadState, saveState } from 'src/utils/localStorage'
 
 export interface TxHistory {
   transactions: Transaction[]
@@ -17,9 +18,8 @@ const useTxHistory = (): TxHistory => {
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
-      const cached = localStorage.getItem('recentTransactions')
-      if (!cached) return []
-      const txs = JSON.parse(cached)
+      const txs = loadState('recentTransactions')
+      if (!txs) return []
       return txs.map((obj: Transaction) => Transaction.fromObject(obj))
     } catch (err) {
       return []
@@ -40,20 +40,7 @@ const useTxHistory = (): TxHistory => {
         return tx.toObject()
       })
 
-      // avoids error "TypeError: cyclic object value"
-      const seen: any = []
-      localStorage.setItem(
-        'recentTransactions',
-        JSON.stringify(recents, (key, val) => {
-          if (val !== null && typeof val === 'object') {
-            if (seen.indexOf(val) >= 0) {
-              return
-            }
-            seen.push(val)
-          }
-          return val
-        })
-      )
+      saveState('recentTransactions', recents)
     } catch (err) {
       console.error(err)
     }
@@ -69,7 +56,7 @@ const useTxHistory = (): TxHistory => {
   }
 
   const clear = () => {
-    localStorage.setItem('recentTransactions', JSON.stringify([]))
+    saveState('recentTransactions', [])
     setTransactions([])
   }
 

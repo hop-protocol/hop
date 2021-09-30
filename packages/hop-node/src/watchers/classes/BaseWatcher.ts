@@ -5,7 +5,7 @@ import SyncWatcher from '../SyncWatcher'
 import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import { Contract } from 'ethers'
-import { Db, getDbSet } from 'src/db'
+import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
 import { Notifier } from 'src/notifier'
@@ -34,7 +34,7 @@ enum State {
 
 @boundClass
 class BaseWatcher extends EventEmitter implements IBaseWatcher {
-  db: Db
+  db: DbSet
   logger: Logger
   notifier: Notifier
   order: () => number = () => 0

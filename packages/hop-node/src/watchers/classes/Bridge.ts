@@ -13,7 +13,7 @@ import unique from 'src/utils/unique'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import { BonderFeeBps, Chain, MaxGasPriceMultiplier, MinBonderFeeAbsolute } from 'src/constants'
 import { BonderFeeTooLowError } from 'src/types/error'
-import { Db, getDbSet } from 'src/db'
+import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
 import { State } from 'src/db/SyncStateDb'
@@ -33,7 +33,7 @@ const priceFeed = new PriceFeed()
 
 @boundClass
 export default class Bridge extends ContractBase {
-  db: Db
+  db: DbSet
   WithdrawalBonded: string = 'WithdrawalBonded'
   TransferRootSet: string = 'TransferRootSet'
   MultipleWithdrawalsSettled: string = 'MultipleWithdrawalsSettled'

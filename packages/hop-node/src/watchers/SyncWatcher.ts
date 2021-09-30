@@ -430,7 +430,7 @@ class SyncWatcher extends BaseWatcher {
       const sourceChainSlug = this.chainIdToSlug(sourceChainId)
       const shouldBondTransferRoot = oruChains.includes(sourceChainSlug)
 
-      logger.debug('transfeRootId:', transferRootId)
+      logger.debug('transferRootId:', transferRootId)
       logger.debug('committedAt:', committedAt)
       logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
       logger.debug('transferRootHash:', transferRootHash)
@@ -509,7 +509,7 @@ class SyncWatcher extends BaseWatcher {
     logger.debug(`bonder : ${bonder}`)
     logger.debug(`totalBondSettled: ${this.bridge.formatUnits(totalBondsSettled)}`)
 
-    await this.db.transfeRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootHash, {
       multipleWithdrawalsSettledTxHash: transactionHash,
       multipleWithdrawalsSettledTotalAmount: totalBondsSettled
     })
@@ -524,7 +524,7 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async checkTransferRootSettledState (transferRootHash: string, totalBondsSettled: BigNumber) {
-    const dbTransferRoot = await this.db.transfers.getByTransferRootHash(transferRootHash)
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     if (!dbTransferRoot) {
       throw new Error('expected db transfer root item')
     }
@@ -596,7 +596,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error('expected db transfer root item')
     }
     const logger = this.logger.create({ root: transferRootHash })
-    const { transferRootId, totalAmount, bondTxHash, bondBlockNumber, bondTotalAmount, bonder, bondedAt, rootSetBlockNumber, rootSetTimestamp, sourceChainId, destinationChainId, commitTxBlockNumber, transferIds, multipleWithdrawalsSettledTxHash, multipleWithdrawalsSettledTotalAmount } = dbTransferRoot
+    const { totalAmount, bondTxHash, bondBlockNumber, bonder, bondedAt, rootSetBlockNumber, rootSetTimestamp, sourceChainId, destinationChainId, commitTxBlockNumber, transferIds, multipleWithdrawalsSettledTxHash, multipleWithdrawalsSettledTotalAmount } = dbTransferRoot
 
     if (bondTxHash && (!bonder || !bondedAt)) {
       const tx = await this.bridge.getTransaction(bondTxHash)
@@ -617,11 +617,6 @@ class SyncWatcher extends BaseWatcher {
 
     if (rootSetBlockNumber && !rootSetTimestamp) {
       const rootSetTimestamp = await this.bridge.getBlockTimestamp(rootSetBlockNumber)
-      const transferRootId = await this.bridge.getTransferRootId(
-        transferRootHash,
-        totalAmount
-      )
-      logger.debug(`transferRootId: ${transferRootId}`)
       logger.debug(`rootSetTimestamp: ${rootSetTimestamp}`)
       await this.db.transferRoots.update(transferRootHash, {
         rootSetTimestamp

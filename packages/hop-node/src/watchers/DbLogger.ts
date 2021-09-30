@@ -1,12 +1,12 @@
 import Logger from 'src/logger'
 import wait from 'src/utils/wait'
-import { Db, getDbSet } from 'src/db'
+import { DbSet, getDbSet } from 'src/db'
 import { State } from 'src/db/SyncStateDb'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 
 class DbLogger {
-  db: Db
+  db: DbSet
   logger: Logger
   token: string
   pollIntervalMs: number = 60 * 60 * 1000

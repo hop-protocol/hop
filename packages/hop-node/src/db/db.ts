@@ -22,7 +22,17 @@ export const getTokenPricesDb = () => {
   return tokenPricesDb
 }
 
-export function getDbSet (tokenSymbol: string) {
+export type Db = GasBoostDb | GasPricesDb | SyncStateDb | TokenPricesDb | TransferRootsDb | TransfersDb
+export type DbSet = {
+  gasBoost: GasBoostDb,
+  syncState: SyncStateDb,
+  transfers: TransfersDb,
+  transferRoots: TransferRootsDb,
+  gasPrices: GasPricesDb,
+  tokenPrices : TokenPricesDb,
+}
+
+export function getDbSet (tokenSymbol: string): DbSet {
   if (!tokenSymbol) {
     throw new Error('token symbol is required to namespace leveldbs')
   }
@@ -34,38 +44,37 @@ export function getDbSet (tokenSymbol: string) {
 
   // lazy instantiate with getters
   return {
-    get gasBoost () {
+    get gasBoost (): GasBoostDb {
       if (!gasBoostDb) {
         gasBoostDb = new GasBoostDb('gasBoost')
       }
       return gasBoostDb
     },
-    get syncState () {
+    get syncState (): SyncStateDb {
       if (!syncStateDb) {
         syncStateDb = new SyncStateDb('state', tokenSymbol)
       }
       return syncStateDb
     },
-    get transfers () {
+    get transfers () : TransfersDb {
       if (!transfersDb) {
         transfersDb = new TransfersDb('transfers', tokenSymbol)
       }
       return transfersDb
     },
-    get transferRoots () {
+    get transferRoots () : TransferRootsDb {
       if (!transferRootsDb) {
         transferRootsDb = new TransferRootsDb('transferRoots', tokenSymbol)
       }
       return transferRootsDb
     },
-    get gasPrices () {
+    get gasPrices () : GasPricesDb {
       return getGasPricesDb()
     },
-    get tokenPrices () {
+    get tokenPrices () : TokenPricesDb {
       return getTokenPricesDb()
     }
   }
 }
 
-export type Db = any
 export default { getDbSet, getGasPricesDb, getTokenPricesDb }

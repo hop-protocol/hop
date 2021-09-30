@@ -27,7 +27,7 @@ export type TransferRoot = {
   bonded?: boolean
   sentBondTxAt?: number
   bondTxHash?: string
-  bondBlockNumber?: string
+  bondBlockNumber?: number
   bondedAt?: number
   transferIds?: string[]
   bonder?: string
@@ -257,7 +257,7 @@ class TransferRootsDb extends BaseDb {
     const transferRoots: TransferRoot[] = await this.getTransferRoots()
     return transferRoots.filter(item => {
       return (
-        (item.bondTxHash && (!item.bonder || item.bondedAt)) ||
+        (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
         (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
         ((item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount) && !item.transferIds) ||
         (item.multipleWithdrawalsSettledTxHash && item.multipleWithdrawalsSettledTotalAmount && !item.transferIds)

@@ -14,8 +14,8 @@ import { isMainnet } from 'src/config'
 
 const useStyles = makeStyles(theme => ({
   container: {
-    padding: `${theme.padding.thick} 0`
-  }
+    padding: `${theme.padding.thick} 0`,
+  },
 }))
 
 const Stake: FC = () => {
@@ -27,15 +27,13 @@ const Stake: FC = () => {
   const stakingContracts = {
     USDC: '0x2C2Ab81Cf235e86374468b387e241DF22459A265',
     USDT: '0x07932e9A5AB8800922B2688FB1FA0DAAd8341772',
-    MATIC: '0x7dEEbCaD1416110022F444B03aEb1D20eB4Ea53f'
+    MATIC: '0x7dEEbCaD1416110022F444B03aEb1D20eB4Ea53f',
   }
 
   // USDC
 
   const usdcBridge = useAsyncMemo(async () => {
-    return bridges.find(bridge =>
-      bridge.getTokenSymbol() === 'USDC'
-    )
+    return bridges.find(bridge => bridge.getTokenSymbol() === 'USDC')
   }, [bridges])
 
   const usdcStakingToken = useAsyncMemo(async () => {
@@ -51,9 +49,7 @@ const Stake: FC = () => {
   // USDT
 
   const usdtBridge = useAsyncMemo(async () => {
-    return bridges.find(bridge =>
-      bridge.getTokenSymbol() === 'USDT'
-    )
+    return bridges.find(bridge => bridge.getTokenSymbol() === 'USDT')
   }, [bridges])
 
   const usdtStakingToken = useAsyncMemo(async () => {
@@ -69,9 +65,7 @@ const Stake: FC = () => {
   // MATIC
 
   const maticBridge = useAsyncMemo(async () => {
-    return bridges.find(bridge =>
-      bridge.getTokenSymbol() === 'MATIC'
-    )
+    return bridges.find(bridge => bridge.getTokenSymbol() === 'MATIC')
   }, [bridges])
 
   const maticStakingToken = useAsyncMemo(async () => {
@@ -111,9 +105,7 @@ const Stake: FC = () => {
   if (!isMainnet) {
     return (
       <Box display="flex" flexDirection="column" alignItems="center">
-        <Typography variant="h4">
-          Staking not available on testnet
-        </Typography>
+        <Typography variant="h4">Staking not available on testnet</Typography>
       </Box>
     )
   }
@@ -122,40 +114,38 @@ const Stake: FC = () => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      <Typography variant="h4">
-        Stake
-      </Typography>
+      <Typography variant="h4">Stake</Typography>
       <div className={styles.container}>
-      {enabledTokens.includes('USDC') &&
-        <StakeWidget
-          network={polygonNetwork}
-          bridge={usdcBridge}
-          stakingToken={usdcStakingToken}
-          rewardsToken={rewardsToken}
-          stakingRewards={usdcStakingRewards}
-          key={usdcStakingToken?.symbol}
-        />
-      }
-      {enabledTokens.includes('USDT') &&
-        <StakeWidget
-          network={polygonNetwork}
-          bridge={usdtBridge}
-          stakingToken={usdtStakingToken}
-          rewardsToken={rewardsToken}
-          stakingRewards={usdtStakingRewards}
-          key={usdtStakingToken?.symbol}
-        />
-      }
-      {enabledTokens.includes('MATIC') &&
-        <StakeWidget
-          network={polygonNetwork}
-          bridge={maticBridge}
-          stakingToken={maticStakingToken}
-          rewardsToken={rewardsToken}
-          stakingRewards={maticStakingRewards}
-          key={maticStakingToken?.symbol}
-        />
-      }
+        {enabledTokens.includes('USDC') && (
+          <StakeWidget
+            network={polygonNetwork}
+            bridge={usdcBridge}
+            stakingToken={usdcStakingToken}
+            rewardsToken={rewardsToken}
+            stakingRewards={usdcStakingRewards}
+            key={usdcStakingToken?.symbol}
+          />
+        )}
+        {enabledTokens.includes('USDT') && (
+          <StakeWidget
+            network={polygonNetwork}
+            bridge={usdtBridge}
+            stakingToken={usdtStakingToken}
+            rewardsToken={rewardsToken}
+            stakingRewards={usdtStakingRewards}
+            key={usdtStakingToken?.symbol}
+          />
+        )}
+        {enabledTokens.includes('MATIC') && (
+          <StakeWidget
+            network={polygonNetwork}
+            bridge={maticBridge}
+            stakingToken={maticStakingToken}
+            rewardsToken={rewardsToken}
+            stakingRewards={maticStakingRewards}
+            key={maticStakingToken?.symbol}
+          />
+        )}
       </div>
     </Box>
   )

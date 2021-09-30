@@ -16,7 +16,9 @@ type Contracts = {
 const useTokens = (networks: Network[]) => {
   const tokens = useMemo<Token[]>(() => {
     return Object.keys(addresses.tokens).map(tokenSymbol => {
-      const canonicalSymbol = ['WETH', 'WMATIC', 'XDAI'].includes(tokenSymbol) ? tokenSymbol.replace(/^W/, '') : tokenSymbol
+      const canonicalSymbol = ['WETH', 'WMATIC', 'XDAI'].includes(tokenSymbol)
+        ? tokenSymbol.replace(/^W/, '')
+        : tokenSymbol
       const tokenMeta = metadata.tokens[canonicalSymbol]
       const supportedNetworks = Object.keys(addresses.tokens[canonicalSymbol])
       return new Token({
@@ -24,7 +26,7 @@ const useTokens = (networks: Network[]) => {
         tokenName: tokenMeta.name,
         decimals: tokenMeta.decimals,
         imageUrl: tokenMeta.image,
-        supportedNetworks
+        supportedNetworks,
       })
     })
   }, [])

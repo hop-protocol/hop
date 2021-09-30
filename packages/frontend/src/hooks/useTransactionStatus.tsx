@@ -44,7 +44,7 @@ const useTransactionStatus = (txHash?: string, chain?: TChain) => {
   useInterval(updateTxStatus, 15e3)
 
   return {
-    completed
+    completed,
   }
 }
 

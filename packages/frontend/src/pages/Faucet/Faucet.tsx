@@ -11,15 +11,15 @@ import Button from 'src/components/buttons/Button'
 
 const useStyles = makeStyles(theme => ({
   title: {
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
   },
   box: {
     marginBottom: '2rem',
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   text: {
     fontSize: '2rem',
-    marginRight: '1rem'
+    marginRight: '1rem',
   },
   selectBox: {
     marginBottom: '2rem',
@@ -27,22 +27,14 @@ const useStyles = makeStyles(theme => ({
   button: {},
   alert: {
     marginTop: '2rem',
-    marginBottom: '1.2rem'
-  }
+    marginBottom: '1.2rem',
+  },
 }))
 
 const Faucet: FC = () => {
   const styles = useStyles()
   const { bridges, selectedBridge, setSelectedBridge } = useApp()
-  const {
-    mintToken,
-    mintAmount,
-    isMinting,
-    error,
-    setError,
-    tokens,
-    selectedNetwork
-  } = useFaucet()
+  const { mintToken, mintAmount, isMinting, error, setError, tokens, selectedNetwork } = useFaucet()
 
   const handleMint = () => {
     mintToken()
@@ -78,10 +70,7 @@ const Faucet: FC = () => {
           <Typography variant="body1" className={styles.text}>
             Mint {mintAmount} {selectedNetwork?.name}
           </Typography>
-          <RaisedSelect
-            value={selectedBridge?.getTokenSymbol()}
-            onChange={handleTokenChange}
-          >
+          <RaisedSelect value={selectedBridge?.getTokenSymbol()} onChange={handleTokenChange}>
             {tokens.map(token => (
               <MenuItem value={token.symbol} key={token.symbol}>
                 {token.symbol}
@@ -109,12 +98,7 @@ const Faucet: FC = () => {
         <Typography variant="body1" className={styles.text}>
           Get {selectedNetwork?.name} ETH
         </Typography>
-        <Button
-          className={styles.button}
-          onClick={handleKethFaucetClick}
-          large
-          highlighted
-        >
+        <Button className={styles.button} onClick={handleKethFaucetClick} large highlighted>
           Get {selectedNetwork?.name} ETH ↗
         </Button>
       </Box>
@@ -122,12 +106,7 @@ const Faucet: FC = () => {
         <Typography variant="body1" className={styles.text}>
           Get xDAI Sokol ETH (SPOA)
         </Typography>
-        <Button
-          className={styles.button}
-          onClick={handlexDaiFaucetClick}
-          large
-          highlighted
-        >
+        <Button className={styles.button} onClick={handlexDaiFaucetClick} large highlighted>
           Get xDai ETH ↗
         </Button>
       </Box>

@@ -17,25 +17,25 @@ const useStyles = makeStyles(() => ({
   modalContainer: {
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
   },
   textContainer: {
     marginTop: '1rem',
-    marginBottom: '1rem'
+    marginBottom: '1rem',
   },
   actionContainer: {
     display: 'flex',
     alignSelf: 'center',
-    margin: '1rem'
+    margin: '1rem',
   },
   selfDelegateContainer: {
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   textFieldContainer: {
-    alignSelf: 'center'
-  }
+    alignSelf: 'center',
+  },
 }))
 
 type DelegateModalProps = {
@@ -55,7 +55,7 @@ const DelegateModal: FC<DelegateModalProps> = props => {
   const [isTransactionPending, setIsTransactionPending] = useState(false)
   const [delegateAddress, setDelegateAddress] = useState<Address | undefined>()
 
-  function handleOnClose () {
+  function handleOnClose() {
     setDelegateAddress(undefined)
     setIsOtherDelegate(false)
     setIsTransactionPending(false)
@@ -79,7 +79,7 @@ const DelegateModal: FC<DelegateModalProps> = props => {
     app?.txHistory?.addTransaction(
       new Transaction({
         hash: tx?.hash,
-        networkName: L1_NETWORK
+        networkName: L1_NETWORK,
       })
     )
 
@@ -91,18 +91,14 @@ const DelegateModal: FC<DelegateModalProps> = props => {
       {isOpen && (
         <Modal onClose={handleOnClose}>
           {!isTransactionPending && (
-            <Box
-              display="flex"
-              alignItems="center"
-              className={styles.modalContainer}
-            >
+            <Box display="flex" alignItems="center" className={styles.modalContainer}>
               <Typography variant="h6">Participating Pools</Typography>
               <Typography variant="body1" className={styles.textContainer}>
                 Earned HOP tokens represent voting shares in Hop governance.
               </Typography>
               <Typography variant="body1" className={styles.textContainer}>
-                You can either vote on each proposal yourself or delegate your
-                votes to a third party.
+                You can either vote on each proposal yourself or delegate your votes to a third
+                party.
               </Typography>
               {isOtherDelegate && (
                 <LargeTextField
@@ -114,11 +110,7 @@ const DelegateModal: FC<DelegateModalProps> = props => {
                   className={styles.textFieldContainer}
                 />
               )}
-              <Box
-                display="flex"
-                alignItems="center"
-                className={styles.actionContainer}
-              >
+              <Box display="flex" alignItems="center" className={styles.actionContainer}>
                 <Button
                   highlighted
                   disabled={isOtherDelegate && !delegateAddress}
@@ -134,9 +126,7 @@ const DelegateModal: FC<DelegateModalProps> = props => {
               </Box>
             </Box>
           )}
-          {isTransactionPending && (
-            <DelegateModalTransaction numVotes={numVotes} />
-          )}
+          {isTransactionPending && <DelegateModalTransaction numVotes={numVotes} />}
         </Modal>
       )}
     </>

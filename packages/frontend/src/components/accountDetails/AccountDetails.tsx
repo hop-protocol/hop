@@ -13,73 +13,73 @@ import ClipboardCopyButton from 'src/components/buttons/ClipboardCopyButton'
 
 const useStyles = makeStyles((theme: Theme) => ({
   header: {
-    fontSize: '1.8rem'
+    fontSize: '1.8rem',
   },
   box: {
-    position: 'relative'
+    position: 'relative',
   },
   row: {
     display: 'flex',
     justifyContent: 'space-between',
     marginBottom: '0.5rem',
     [theme.breakpoints.down('xs')]: {
-      flexDirection: 'column'
-    }
+      flexDirection: 'column',
+    },
   },
   leftColumn: {
     display: 'flex',
     alignItems: 'center',
     width: '60%',
     [theme.breakpoints.down('xs')]: {
-      width: '100%'
-    }
+      width: '100%',
+    },
   },
   rightColumn: {
     display: 'flex',
     alignItems: 'center',
     width: '40%',
     [theme.breakpoints.down('xs')]: {
-      width: '100%'
-    }
+      width: '100%',
+    },
   },
   statusIcon: {},
   network: {
     display: 'inline-block',
-    marginRight: '0.5rem'
+    marginRight: '0.5rem',
   },
   connectedWallet: {
     border: '1px solid #fff',
     padding: '2rem',
     marginBottom: '3rem',
-    borderRadius: '1rem'
+    borderRadius: '1rem',
   },
   changeButton: {
     position: 'absolute',
     top: '1rem',
-    right: '1rem'
+    right: '1rem',
   },
   disconnectButton: {
     position: 'absolute',
     bottom: '1rem',
     right: '1rem',
     fontSize: '1.2rem',
-    marginBottom: 0
+    marginBottom: 0,
   },
   clearButton: {
-    fontSize: '1.2rem'
+    fontSize: '1.2rem',
   },
   recentsHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '1rem'
+    marginBottom: '1rem',
   },
   address: {
-    fontSize: '2rem'
+    fontSize: '2rem',
   },
   copyButton: {
-    marginLeft: '0.5rem'
-  }
+    marginLeft: '0.5rem',
+  },
 }))
 
 const TransactionsList = (props: any) => {
@@ -100,13 +100,8 @@ const TransactionsList = (props: any) => {
         return (
           <div key={tx.hash} className={styles.row}>
             <div className={styles.leftColumn}>
-              <Link
-                href={tx.explorerLink}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <span className={styles.network}>{tx.networkName}:</span>{' '}
-                {tx.truncatedHash} ↗
+              <Link href={tx.explorerLink} target="_blank" rel="noopener noreferrer">
+                <span className={styles.network}>{tx.networkName}:</span> {tx.truncatedHash} ↗
               </Link>
             </div>
             <div className={styles.rightColumn}>
@@ -180,22 +175,14 @@ const AccountDetails = () => {
     <Modal onClose={handleClose}>
       <Box className={styles.box}>
         {!!address && (
-          <ManageWallet
-            onChange={handleChangeClick}
-            onDisconnect={handleDisconnectClick}
-          />
+          <ManageWallet onChange={handleChangeClick} onDisconnect={handleDisconnectClick} />
         )}
       </Box>
       <Box className={styles.box}>
         {transactions?.length ? (
-          <TransactionsList
-            transactions={transactions}
-            onClear={handleTransactionsClear}
-          />
+          <TransactionsList transactions={transactions} onClear={handleTransactionsClear} />
         ) : (
-          <Typography variant="body1">
-            Your transactions will appear here...
-          </Typography>
+          <Typography variant="body1">Your transactions will appear here...</Typography>
         )}
       </Box>
     </Modal>

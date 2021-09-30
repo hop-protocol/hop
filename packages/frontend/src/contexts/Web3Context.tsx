@@ -8,15 +8,9 @@ import {
   networkIdToSlug,
   getRpcUrl,
   getPublicRpcUrl,
-  getBaseExplorerUrl
+  getBaseExplorerUrl,
 } from 'src/utils'
-import {
-  networks,
-  infuraKey,
-  blocknativeDappid,
-  fortmaticApiKey,
-  portisDappId
-} from 'src/config'
+import { networks, infuraKey, blocknativeDappid, fortmaticApiKey, portisDappId } from 'src/config'
 import { L1_NETWORK } from 'src/constants'
 
 import MetamaskAccountsSettingsHighlight from 'src/assets/onboard/metamask-accounts-settings-highlight.png'
@@ -37,9 +31,7 @@ type Props = {
   walletConnected: boolean
   walletName: string
   checkConnectedNetworkId: (networkId: number) => Promise<boolean>
-  getWriteContract: (
-    contract: Contract | undefined
-  ) => Promise<Contract | undefined>
+  getWriteContract: (contract: Contract | undefined) => Promise<Contract | undefined>
 }
 
 const initialState = {
@@ -54,9 +46,8 @@ const initialState = {
   walletConnected: false,
   walletName: '',
   checkConnectedNetworkId: async (networkId: number): Promise<boolean> => false,
-  getWriteContract: async (
-    contract: Contract | undefined
-  ): Promise<Contract | undefined> => undefined
+  getWriteContract: async (contract: Contract | undefined): Promise<Contract | undefined> =>
+    undefined,
 }
 
 const networkNames: any = {
@@ -73,16 +64,14 @@ const networkNames: any = {
   77: 'xDai',
   100: 'xDai',
   80001: 'Polygon',
-  137: 'Polygon'
+  137: 'Polygon',
 }
 
 const Web3Context = createContext<Props>(initialState)
 
 const Web3ContextProvider: FC = ({ children }) => {
   // logger.debug('Web3ContextProvider render')
-  const [provider, setProvider] = useState<
-    ethers.providers.Web3Provider | undefined
-  >()
+  const [provider, setProvider] = useState<ethers.providers.Web3Provider | undefined>()
   const [connectedNetworkId, setConnectedNetworkId] = useState<string>('')
   const [validConnectedNetworkId] = useState<boolean>(false)
   const [walletName, setWalletName] = useState<string>('')
@@ -100,9 +89,9 @@ const Web3ContextProvider: FC = ({ children }) => {
           42161: getRpcUrl('arbitrum'),
           10: getRpcUrl('optimism'),
           100: getRpcUrl('xdai'),
-          137: getRpcUrl('polygon')
+          137: getRpcUrl('polygon'),
         },
-        preferred: true
+        preferred: true,
       },
     ]
 
@@ -144,13 +133,9 @@ const Web3ContextProvider: FC = ({ children }) => {
             MetamaskSettingsHighlight,
             MetamaskAddNetworkHighlight,
             MetamaskNewCustomNetworkHighlight,
-            MetamaskCustomNetworkHighlight
+            MetamaskCustomNetworkHighlight,
           ]
-        } else if (
-          ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
-            wantNetworkName
-          )
-        ) {
+        } else if (['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(wantNetworkName)) {
           const metamaskImage = getNetworkSpecificMetamaskImage(wantNetworkName)
           stepImages = [metamaskImage]
         } else {
@@ -191,7 +176,7 @@ const Web3ContextProvider: FC = ({ children }) => {
               <path d="m13.375 28c-1.86075 0-3.375-1.51425-3.375-3.375s1.51425-3.375 3.375-3.375 3.375 1.51425 3.375 3.375-1.51425 3.375-3.375 3.375zm0-4.5c-.619875 0-1.125.504-1.125 1.125s.505125 1.125 1.125 1.125 1.125-.504 1.125-1.125-.505125-1.125-1.125-1.125zm0-6.75c-1.86075 0-3.375-1.51425-3.375-3.375s1.51425-3.375 3.375-3.375 3.375 1.51425 3.375 3.375-1.51425 3.375-3.375 3.375zm0-4.5c-.619875 0-1.125.505125-1.125 1.125s.505125 1.125 1.125 1.125 1.125-.505125 1.125-1.125-.505125-1.125-1.125-1.125zm11.25 4.5c-1.86075 0-3.375-1.51425-3.375-3.375s1.51425-3.375 3.375-3.375 3.375 1.51425 3.375 3.375-1.51425 3.375-3.375 3.375zm0-4.5c-.621 0-1.125.505125-1.125 1.125s.504 1.125 1.125 1.125 1.125-.505125 1.125-1.125-.504-1.125-1.125-1.125zm-11.25 10.117125h-.014625c-.615375-.007875-1.110375-.50175-1.110375-1.117125 0-1.35675.898875-3.375 3.375-3.375h6.75c.50625-.0135 1.125-.219375 1.125-1.125v-1.125c0-.621.502875-1.125 1.125-1.125s1.125.504 1.125 1.125v1.125c0 2.476125-2.01825 3.375-3.375 3.375h-6.75c-.905625 0-1.1115.61875-1.125 1.1385-.01575.610875-.51525 1.103625-1.125 1.103625zm0 1.132875c-.621 0-1.125-.502875-1.125-1.125v-6.75c0-.621.504-1.125 1.125-1.125s1.125.504 1.125 1.125v6.75c0 .622125-.504 1.125-1.125 1.125z" fill="currentColor" transform="translate(-10 -10)"></path>
             </svg>
         `,
-        html
+        html,
       }
     }
 
@@ -199,7 +184,7 @@ const Web3ContextProvider: FC = ({ children }) => {
       dappId: blocknativeDappid,
       networkId: Number(networks[L1_NETWORK].networkId),
       walletSelect: {
-        wallets: walletOptions
+        wallets: walletOptions,
       },
       walletCheck: [
         { checkName: 'derivationPath' },
@@ -207,7 +192,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         { checkName: 'connect' },
         // { checkName: 'network' },
         networkCheck,
-        { checkName: 'balance' }
+        { checkName: 'balance' },
       ],
       subscriptions: {
         address: async (address: string) => {
@@ -222,10 +207,7 @@ const Web3ContextProvider: FC = ({ children }) => {
             const { name, provider } = wallet
             if (provider) {
               localStorage.setItem(cacheKey, name)
-              const ethersProvider = new ethers.providers.Web3Provider(
-                provider,
-                'any'
-              )
+              const ethersProvider = new ethers.providers.Web3Provider(provider, 'any')
               if (provider.enable) {
                 await provider.enable()
               }
@@ -246,8 +228,8 @@ const Web3ContextProvider: FC = ({ children }) => {
           } else {
             setConnectedNetworkId('')
           }
-        }
-      }
+        },
+      },
     })
 
     const cachedWallet = window.localStorage.getItem(cacheKey)
@@ -282,26 +264,24 @@ const Web3ContextProvider: FC = ({ children }) => {
 
   const walletConnected = !!address
 
-  const checkConnectedNetworkId = async (
-    networkId: number
-  ): Promise<boolean> => {
+  const checkConnectedNetworkId = async (networkId: number): Promise<boolean> => {
     logger.debug('checkConnectedNetworkId')
     const signerNetworkId = (await provider?.getNetwork())?.chainId
     if (networkId.toString() !== signerNetworkId?.toString()) {
       onboard.config({ networkId })
       if (onboard.getState().address) {
-        let nativeCurrency : any
+        let nativeCurrency: any
         if (networkIdToSlug(networkId) === 'xdai') {
           nativeCurrency = {
             name: 'xDAI',
             symbol: 'XDAI',
-            decimals: 18
+            decimals: 18,
           }
         } else if (networkIdToSlug(networkId) === 'polygon') {
           nativeCurrency = {
             name: 'Matic',
             symbol: 'MATIC',
-            decimals: 18
+            decimals: 18,
           }
         }
 
@@ -315,25 +295,17 @@ const Web3ContextProvider: FC = ({ children }) => {
               chainId: `0x${Number(networkId).toString(16)}`,
               chainName: networkNames[networkId.toString()],
               rpcUrls: [getPublicRpcUrl(networkIdToSlug(networkId.toString()))],
-              blockExplorerUrls: [
-                getBaseExplorerUrl(networkIdToSlug(networkId.toString()))
-              ],
-              nativeCurrency
+              blockExplorerUrls: [getBaseExplorerUrl(networkIdToSlug(networkId.toString()))],
+              nativeCurrency,
             }
             if (isL1) {
-              await provider?.send('wallet_switchEthereumChain',
-                [
-                  {
-                    chainId: `0x${Number(networkId).toString(16)}`
-                  }
-                ]
-              )
+              await provider?.send('wallet_switchEthereumChain', [
+                {
+                  chainId: `0x${Number(networkId).toString(16)}`,
+                },
+              ])
             } else {
-              await provider?.send('wallet_addEthereumChain',
-                [
-                  rpcObj
-                ]
-              )
+              await provider?.send('wallet_addEthereumChain', [rpcObj])
             }
           }
 
@@ -350,9 +322,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     return true
   }
 
-  const getWriteContract = async (
-    contract?: Contract
-  ): Promise<Contract | undefined> => {
+  const getWriteContract = async (contract?: Contract): Promise<Contract | undefined> => {
     if (!contract) return
     const signerNetworkId = (await provider?.getNetwork())?.chainId
     const contractNetworkId = (await contract.provider.getNetwork()).chainId
@@ -390,7 +360,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         disconnectWallet,
         walletName,
         checkConnectedNetworkId,
-        getWriteContract
+        getWriteContract,
       }}
     >
       {children}

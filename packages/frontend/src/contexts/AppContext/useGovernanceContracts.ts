@@ -4,7 +4,7 @@ import {
   governorAlphaAbi,
   stakingRewardsFactoryAbi,
   stakingRewardsAbi,
-  hopAbi
+  hopAbi,
 } from '@hop-protocol/core/abi'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -23,9 +23,7 @@ const useGovernanceContracts = (networks: Network[]): GovernanceContracts => {
   const { provider, connectedNetworkId } = useWeb3Context()
 
   const l1Provider = useMemo(() => {
-    const network = networks.find(
-      (network: Network) => network.slug === L1_NETWORK
-    )
+    const network = networks.find((network: Network) => network.slug === L1_NETWORK)
     if (connectedNetworkId === network?.networkId) {
       return provider?.getSigner()
     }
@@ -55,29 +53,21 @@ const useGovernanceContracts = (networks: Network[]): GovernanceContracts => {
     if (!addresses.governance.stakingRewards) {
       return
     }
-    return new Contract(
-      addresses.governance.stakingRewards,
-      stakingRewardsAbi,
-      l1Provider
-    )
+    return new Contract(addresses.governance.stakingRewards, stakingRewardsAbi, l1Provider)
   }, [l1Provider])
 
   const governorAlpha = useMemo(() => {
     if (!addresses.governance.governorAlpha) {
       return
     }
-    return new Contract(
-      addresses.governance.governorAlpha,
-      governorAlphaAbi,
-      l1Provider
-    )
+    return new Contract(addresses.governance.governorAlpha, governorAlphaAbi, l1Provider)
   }, [l1Provider])
 
   return {
     l1Hop,
     stakingRewardsFactory,
     stakingRewards,
-    governorAlpha
+    governorAlpha,
   }
 }
 

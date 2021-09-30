@@ -14,19 +14,19 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   title: {
-    marginBottom: '2rem'
+    marginBottom: '2rem',
   },
   customRecipient: {
-    marginTop: '2rem'
+    marginTop: '2rem',
   },
   warning: {
-    marginTop: '2rem'
+    marginTop: '2rem',
   },
   action: {},
-  sendButton: {}
+  sendButton: {},
 }))
 
 interface TokenEntity {
@@ -59,24 +59,25 @@ const Send = (props: Props) => {
 
   let warning = ''
   if (customRecipient && !dest?.network?.isLayer1) {
-    warning = 'If the recipient is an exchange, then there is possibility of loss funds if the token swap fails.'
+    warning =
+      'If the recipient is an exchange, then there is possibility of loss funds if the token swap fails.'
   }
 
   return (
     <div className={styles.root}>
       <div className={styles.title}>
         <Typography variant="h5" color="textPrimary">
-          Send {commafy(source.amount, 5)} {source.token.symbol} from{' '}
-          {source.network.name} to {dest?.network?.name}
+          Send {commafy(source.amount, 5)} {source.token.symbol} from {source.network.name} to{' '}
+          {dest?.network?.name}
         </Typography>
-          {!!customRecipient && <>
-          <Typography variant="body1" color="textPrimary" className={styles.customRecipient}>
-            Recipient: {new Address(customRecipient).truncate()}
-          </Typography>
-        </>}
-        {!!warning &&
-          <Alert severity="warning" text={warning} className={styles.warning} />
-        }
+        {!!customRecipient && (
+          <>
+            <Typography variant="body1" color="textPrimary" className={styles.customRecipient}>
+              Recipient: {new Address(customRecipient).truncate()}
+            </Typography>
+          </>
+        )}
+        {!!warning && <Alert severity="warning" text={warning} className={styles.warning} />}
       </div>
       <div className={styles.action}>
         <Button

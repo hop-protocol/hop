@@ -13,16 +13,14 @@ const useBridges = (sdk: Hop) => {
   }, [sdk])
 
   const queryParamBridge = useMemo(() => {
-    return bridges.find(bridge =>
-      bridge.getTokenSymbol() === queryParams.token
-    )
+    return bridges.find(bridge => bridge.getTokenSymbol() === queryParams.token)
   }, [bridges, queryParams])
 
   const [selectedBridge, _setSelectedBridge] = useState<HopBridge>(queryParamBridge ?? bridges[0])
 
   const setSelectedBridge = (bridge: HopBridge) => {
     updateQueryParams({
-      token: bridge.getTokenSymbol()
+      token: bridge.getTokenSymbol(),
     })
 
     _setSelectedBridge(bridge)

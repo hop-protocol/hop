@@ -35,6 +35,7 @@ export const TotalBlocks = {
 }
 export const DefaultBatchBlocks = 10000
 
+export const TenSecondsMs = 10 * 1000
 export const TenMinutesMs = 10 * 60 * 1000
 export const OneHourMs = 60 * 60 * 1000
 export const OneWeekMs = 7 * 24 * 60 * 60 * 1000

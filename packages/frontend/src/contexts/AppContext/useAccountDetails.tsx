@@ -10,6 +10,6 @@ export const useAccountDetails = (): AccountDetails => {
 
   return {
     open,
-    show
+    show,
   }
 }

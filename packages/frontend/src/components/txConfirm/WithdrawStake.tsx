@@ -12,13 +12,13 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   title: {
-    marginBottom: '2rem'
+    marginBottom: '2rem',
   },
   amounts: {
-    fontSize: '2rem'
+    fontSize: '2rem',
   },
   action: {},
   sendButton: {},
@@ -26,13 +26,13 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    marginBottom: '2rem'
+    marginBottom: '2rem',
   },
   slider: {
     width: '100%',
     maxWidth: '260px',
-    margin: '0 auto'
-  }
+    margin: '0 auto',
+  },
 }))
 
 type SliderProps = {
@@ -98,7 +98,7 @@ const WithdrawStake = (props: Props) => {
   }
 
   const disabled = amountPercent === 0
-  const tokenAmount = (Number(amount) * (amountPercent / 100))
+  const tokenAmount = Number(amount) * (amountPercent / 100)
   const formattedAmount = commafy(tokenAmount.toFixed(5), 5)
   const withdrawAndClaim = amountPercent === 100
 
@@ -108,11 +108,7 @@ const WithdrawStake = (props: Props) => {
         <Typography variant="h5" color="textPrimary">
           Withdraw
         </Typography>
-        <Typography
-          variant="body2"
-          color="textPrimary"
-          className={styles.amounts}
-        >
+        <Typography variant="body2" color="textPrimary" className={styles.amounts}>
           {formattedAmount} {token.symbol}
         </Typography>
       </div>
@@ -130,11 +126,7 @@ const WithdrawStake = (props: Props) => {
           large
           highlighted
         >
-          {
-            withdrawAndClaim
-              ? 'Withdraw & Claim'
-              : 'Withdraw'
-          }
+          {withdrawAndClaim ? 'Withdraw & Claim' : 'Withdraw'}
         </Button>
       </div>
     </div>

@@ -213,9 +213,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
             this.bridge.formatUnits(bondedAmount)
           )
         })
-        .catch(async (err: Error) => {
-          throw err
-        })
     } catch (err) {
       logger.log(err.message)
       const isCallExceptionError = /The execution failed due to an exception/gi.test(err.message)

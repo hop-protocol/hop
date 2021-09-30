@@ -251,7 +251,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async send () {
-    const nonce = await this.getLatestNonce()
     let gasFeeData = await this.getBumpedGasFeeData()
 
     // use passed in tx gas values if they were specified
@@ -476,7 +475,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         await this.poll()
         await wait(this.pollMs)
       } catch (err) {
-        this.emit(State.Error, err)
+        this._emitError(err)
       }
     }
   }
@@ -566,7 +565,17 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       } catch (err) {
         const isAlreadyKnown = /AlreadyKnown/gi.test(err.message)
         const isFeeTooLow = /FeeTooLowToCompete/gi.test(err.message)
-        const shouldRetry = (isAlreadyKnown || isFeeTooLow) && i < maxRetries
+        const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED)/gi.test(err.message)
+        const shouldRetry = (isAlreadyKnown || isFeeTooLow || nonceTooLow) && i < maxRetries
+        if (nonceTooLow) {
+          if (!this.nonce) {
+            // wait a bit before attempting again so it re-fetches latest nonce
+            const warnMsg = `nonce too low. Waiting a moment before retrying again. Error: ${err.message}`
+            this.logger.warn(warnMsg)
+            this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
+            await wait(10 * 1000)
+          }
+        }
         if (shouldRetry) {
           continue
         }
@@ -618,7 +627,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       .catch((err: Error) => {
         const isReplacedError = /TRANSACTION_REPLACED/gi.test(err.message)
         if (!isReplacedError) {
-          this.emit(State.Error, err)
+          this._emitError(err)
         }
       })
     this.startPoller()
@@ -659,6 +668,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
 
     return true
+  }
+
+  // https://stackoverflow.com/q/35185749/1439168
+  private _emitError (err: Error) {
+    if (this.listeners('error').length > 0) {
+      this.emit(State.Error, err)
+    }
   }
 }
 

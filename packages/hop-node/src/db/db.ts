@@ -6,16 +6,8 @@ import TokenPricesDb from './TokenPricesDb'
 import TransferRootsDb from './TransferRootsDb'
 import TransfersDb from './TransfersDb'
 
-let gasCostDb: GasCostDb | null = null
 let gasPricesDb: GasPricesDb | null = null
 let tokenPricesDb: TokenPricesDb | null = null
-
-export const getGasCostDb = () => {
-  if (!gasCostDb) {
-    gasCostDb = new GasCostDb('gasCost')
-  }
-  return gasCostDb
-}
 
 export const getGasPricesDb = () => {
   if (!gasPricesDb) {
@@ -40,6 +32,7 @@ export function getDbSet (tokenSymbol: string) {
   let syncStateDb: SyncStateDb | null = null
   let transfersDb: TransfersDb | null = null
   let transferRootsDb: TransferRootsDb | null = null
+  let gasCostDb: GasCostDb | null = null
 
   // lazy instantiate with getters
   return {
@@ -67,17 +60,20 @@ export function getDbSet (tokenSymbol: string) {
       }
       return transferRootsDb
     },
-    get gasCost () {
-      return getGasCostDb()
-    },
     get gasPrices () {
       return getGasPricesDb()
     },
     get tokenPrices () {
       return getTokenPricesDb()
+    },
+    get gasCost () {
+      if (!gasCostDb) {
+        gasCostDb = new GasCostDb('gasCost', tokenSymbol)
+      }
+      return gasCostDb
     }
   }
 }
 
 export type Db = any
-export default { getDbSet, getGasCostDb, getGasPricesDb, getTokenPricesDb }
+export default { getDbSet, getGasPricesDb, getTokenPricesDb }

@@ -9,7 +9,9 @@ export const varianceSeconds = 10 * 60
 
 export type GasCost = BaseItem & {
   chain: string
+  token: string
   timestamp: number // in seconds
+  attemptSwap: boolean
   gasCost: BigNumber
   gasCostUsd: string
   gasPrice: BigNumber
@@ -40,7 +42,7 @@ class GasCostDb extends BaseDb {
   }
 
   async addGasCost (data: GasCost) {
-    const key = `${data.chain}:${data.timestamp}`
+    const key = `${data.chain}:${data.token}:${data.timestamp}`
     return this.update(key, data)
   }
 
@@ -54,8 +56,15 @@ class GasCostDb extends BaseDb {
     return items
   }
 
-  async getNearest (chain: string, targetTimestamp: number): Promise<GasCost | null> {
-    const items : GasCost[] = (await this.getItems()).filter((item: GasCost) => item.chain === chain && item.timestamp)
+  async getNearest (chain: string, token: string, attemptSwap: boolean, targetTimestamp: number): Promise<GasCost | null> {
+    const items : GasCost[] = (await this.getItems()).filter((item: GasCost) => {
+      return (
+        item.chain === chain &&
+        item.token === token &&
+        item.attemptSwap === attemptSwap &&
+        item.timestamp
+      )
+    })
 
     const dates = items.map((item: GasCost) => item.timestamp)
     const index = nearest(dates, targetTimestamp)

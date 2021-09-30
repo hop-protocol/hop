@@ -162,6 +162,10 @@ export default class Bridge extends ContractBase {
     return totalBondedAmount
   }
 
+  getConfigBonderAddress ():string {
+    return globalConfig?.bonders?.[this.tokenSymbol]?.[0]
+  }
+
   @rateLimitRetry
   async getBonderBondedWithdrawalsBalance (): Promise<BigNumber> {
     const bonderAddress = await this.getBonderAddress()
@@ -463,7 +467,8 @@ export default class Bridge extends ContractBase {
     bonderFee: BigNumber,
     gasPrice?: BigNumber,
     tokenUsdPrice?: number,
-    chainNativeTokenUsdPrice?: number
+    chainNativeTokenUsdPrice?: number,
+    gasCost?: BigNumber
   ): Promise<providers.TransactionResponse> {
     const txOverrides = await this.txOverrides()
     const payload = [
@@ -475,7 +480,7 @@ export default class Bridge extends ContractBase {
     ]
 
     const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
-    await this.checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
+    await this.checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice, gasCost)
 
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
 
@@ -712,7 +717,8 @@ export default class Bridge extends ContractBase {
     tokenSymbol: string,
     gasPrice?: BigNumber,
     tokenUsdPrice?: number,
-    chainNativeTokenUsdPrice?: number
+    chainNativeTokenUsdPrice?: number,
+    gasCost?: BigNumber
   ) {
     const ethDecimals = 18
     const provider = getRpcProvider(chain)
@@ -722,7 +728,9 @@ export default class Bridge extends ContractBase {
     if (!tokenUsdPrice) {
       tokenUsdPrice = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
     }
-    const gasCost = gasLimit.mul(gasPrice)
+    if (!gasCost) {
+      gasCost = gasLimit.mul(gasPrice)
+    }
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     if (!chainNativeTokenUsdPrice) {
       chainNativeTokenUsdPrice = await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol)
@@ -738,11 +746,22 @@ export default class Bridge extends ContractBase {
     const usdGasCostFormatted = formatUnits(usdGasCost, ethDecimals)
     const usdMinTxCost = usdGasCost.div(2)
     const isTooLow = bonderFee.lte(0) || usdBonderFee.lt(usdMinTxCost)
-    if (isTooLow) {
-      throw new BonderFeeTooLowError(`bonder fee is too low. Cannot bond withdrawal. bonderFee: ${usdBonderFeeFormatted}, gasCost: ${usdGasCostFormatted}`)
-    }
 
-    return parseUnits(Number(formatUnits((usdMinTxCost).mul(tokenUsdPriceBn).div(oneEth), ethDecimals)).toFixed(tokenDecimals), tokenDecimals)
+    const minTxFee = parseUnits(Number(formatUnits((usdMinTxCost).mul(tokenUsdPriceBn).div(oneEth), ethDecimals)).toFixed(tokenDecimals), tokenDecimals)
+
+    return {
+      isTooLow,
+      minTxFee,
+      gasCost,
+      usdGasCost,
+      usdGasCostFormatted,
+      usdBonderFee,
+      usdBonderFeeFormatted,
+      gasPrice,
+      gasLimit,
+      tokenUsdPrice,
+      chainNativeTokenUsdPrice
+    }
   }
 
   async compareMinBonderFeeBasisPoints (
@@ -792,13 +811,17 @@ export default class Bridge extends ContractBase {
     tokenSymbol: string,
     gasPrice?: BigNumber,
     tokenUsdPrice?: number,
-    chainNativeTokenUsdPrice?: number
+    chainNativeTokenUsdPrice?: number,
+    gasCost?: BigNumber
   ) {
     const minBpsFee = await this.compareMinBonderFeeBasisPoints(amountIn, bonderFee, chainSlug, tokenSymbol)
-    const minTxFee = await this.compareBonderDestinationFeeCost(bonderFee, gasLimit, chainSlug, tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
+    let { isTooLow, minTxFee, usdBonderFeeFormatted, usdGasCostFormatted } = await this.compareBonderDestinationFeeCost(bonderFee, gasLimit, chainSlug, tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice, gasCost)
+    if (isTooLow) {
+      throw new BonderFeeTooLowError(`bonder fee is too low. Cannot bond withdrawal. bonderFee: ${usdBonderFeeFormatted}, gasCost: ${usdGasCostFormatted}`)
+    }
 
     const minBonderFeeTotal = minBpsFee.add(minTxFee)
-    const isTooLow = bonderFee.lt(minBonderFeeTotal)
+    isTooLow = bonderFee.lt(minBonderFeeTotal)
     if (isTooLow) {
       throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`)
     }

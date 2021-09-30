@@ -2,9 +2,10 @@ import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import SyncWatcher from '../SyncWatcher'
+import getRpcProvider from 'src/utils/getRpcProvider'
 import wait from 'src/utils/wait'
+import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
-import { Contract } from 'ethers'
 import { Db, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
@@ -92,6 +93,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (config.stateUpdateAddress) {
       this.stateUpdateAddress = config.stateUpdateAddress
     }
+    this.pollGasCost()
   }
 
   isAllSiblingWatchersInitialSyncCompleted (): boolean {
@@ -231,6 +233,75 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (this.pauseMode !== enabled) {
       this.logger.warn(`Pause mode updated: ${enabled}`)
       this.pauseMode = enabled
+    }
+  }
+
+  async pollGasCost () {
+    while (true) {
+      try {
+        const timestamp = Math.floor(Date.now() / 1000)
+        const deadline = 7 * 24 * 60 // 1 week
+        const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug))
+        const txOverrides = await this.bridge.txOverrides()
+        const amount = BigNumber.from(0)
+        const amountOutMin = BigNumber.from(1)
+        const bonderFee = BigNumber.from(0)
+        const bonder = await this.bridge.getConfigBonderAddress()
+        txOverrides.from = bonder
+        const transferNonce = `0x${'0'.repeat(64)}`
+        let gasLimit: BigNumber
+        let attemptSwap = false
+        if (bridgeContract.estimateGas.bondWithdrawalAndDistribute) {
+          attemptSwap = true
+          const payload = [
+            bonder,
+            amount,
+            transferNonce,
+            bonderFee,
+            txOverrides
+          ]
+
+          gasLimit = await bridgeContract.estimateGas.bondWithdrawal(...payload)
+        } else {
+          const payload = [
+            bonder,
+            amount,
+            transferNonce,
+            bonderFee,
+            amountOutMin,
+            deadline,
+            txOverrides
+          ]
+
+          gasLimit = await bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
+        }
+
+        const data = await this.bridge.compareBonderDestinationFeeCost(
+          bonderFee,
+          gasLimit,
+          this.chainSlug,
+          this.tokenSymbol
+        )
+        console.log('gas limit', data)
+
+        await this.db.gasCost.addGasCost({
+          chain: this.chainSlug,
+          token: this.tokenSymbol,
+          timestamp,
+          attemptSwap,
+          gasCost: data.gasCost,
+          gasCostUsd: data.usdGasCost,
+          gasPrice: data.gasPrice,
+          gasLimit: data.gasLimit,
+          tokenPrice: data.tokenUsdPrice,
+          nativeTokenPrice: data.chainNativeTokenUsdPrice
+        })
+
+        // const nearest = await this.db.gasCost.getNearest(this.chainSlug, this.tokenSymbol, timestamp)
+      } catch (err) {
+        this.logger.error(`pollGasCost error: ${err.message}`)
+      }
+      await wait(30 * 1000)
     }
   }
 

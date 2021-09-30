@@ -258,10 +258,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     const {
+      gasCost,
       gasPrice,
       tokenUsdPrice,
       chainNativeTokenUsdPrice
-    } = await this.getPricesNearTransferEvent(dbTransfer)
+    } = await this.getPricesNearTransferEvent(dbTransfer, attemptSwap)
+    logger.debug('gasCost:', gasCost?.toString())
     logger.debug('gasPrice:', gasPrice?.toString())
     logger.debug('tokenUsdPrice:', tokenUsdPrice)
     logger.debug('chainNativeTokenUsdPrice:', chainNativeTokenUsdPrice)
@@ -281,7 +283,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
         deadline,
         gasPrice,
         tokenUsdPrice,
-        chainNativeTokenUsdPrice
+        chainNativeTokenUsdPrice,
+        gasCost
       )
     } else {
       logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
@@ -293,40 +296,34 @@ class BondWithdrawalWatcher extends BaseWatcher {
         bonderFee,
         gasPrice,
         tokenUsdPrice,
-        chainNativeTokenUsdPrice
+        chainNativeTokenUsdPrice,
+        gasCost
       )
     }
   }
 
-  async getPricesNearTransferEvent (dbTransfer: Transfer): Promise<any> {
+  async getPricesNearTransferEvent (dbTransfer: Transfer, attemptSwap: boolean): Promise<any> {
     const { destinationChainId } = dbTransfer
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const tokenSymbol = this.tokenSymbol
     const chainNativeTokenSymbol = this.bridge.getChainNativeTokenSymbol(this.chainSlug)
     const transferSentTimestamp = dbTransfer?.transferSentTimestamp
+    let gasCost: BigNumber
     let gasPrice : BigNumber
     let tokenUsdPrice : number
     let chainNativeTokenUsdPrice : number
     if (transferSentTimestamp) {
-      const gasPriceItem = await this.db.gasPrices.getNearest(destinationChain, transferSentTimestamp)
-      if (gasPriceItem) {
-        gasPrice = gasPriceItem.gasPrice
-      }
-      let tokenPriceItem = await this.db.tokenPrices.getNearest(tokenSymbol, transferSentTimestamp)
-      if (tokenPriceItem) {
-        tokenUsdPrice = tokenPriceItem.price
-      }
-      if (tokenSymbol === chainNativeTokenSymbol) {
-        chainNativeTokenUsdPrice = tokenUsdPrice
-      } else {
-        tokenPriceItem = await this.db.tokenPrices.getNearest(chainNativeTokenSymbol, transferSentTimestamp)
-        if (tokenPriceItem) {
-          chainNativeTokenUsdPrice = tokenPriceItem.price
-        }
+      const data = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, attemptSwap, transferSentTimestamp)
+      if (data) {
+        gasCost = data.gasCost
+        gasPrice = data.gasPrice
+        tokenUsdPrice = data.tokenPrice
+        chainNativeTokenUsdPrice = data.nativeTokenPrice
       }
     }
 
     return {
+      gasCost,
       gasPrice,
       tokenUsdPrice,
       chainNativeTokenUsdPrice

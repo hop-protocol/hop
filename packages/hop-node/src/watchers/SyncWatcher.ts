@@ -589,7 +589,7 @@ class SyncWatcher extends BaseWatcher {
       })
     }
 
-    const {withdrawalBondedTxHash, withdrawalBonder} = await this.db.transfers.getByTransferId(transferId)
+    const { withdrawalBondedTxHash, withdrawalBonder } = await this.db.transfers.getByTransferId(transferId)
     if (withdrawalBondedTxHash && !withdrawalBonder) {
       const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
       const tx = await destinationBridge.getTransaction(withdrawalBondedTxHash)
@@ -630,7 +630,7 @@ class SyncWatcher extends BaseWatcher {
       })
     }
 
-    const {rootSetBlockNumber, rootSetTimestamp} = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    const { rootSetBlockNumber, rootSetTimestamp } = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     if (rootSetBlockNumber && !rootSetTimestamp) {
       const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
       const rootSetTimestamp = await destinationBridge.getBlockTimestamp(rootSetBlockNumber)
@@ -640,7 +640,7 @@ class SyncWatcher extends BaseWatcher {
       })
     }
 
-    let {multipleWithdrawalsSettledTxHash, multipleWithdrawalsSettledTotalAmount, transferIds} = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    let { multipleWithdrawalsSettledTxHash, multipleWithdrawalsSettledTotalAmount, transferIds } = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     if (multipleWithdrawalsSettledTxHash && multipleWithdrawalsSettledTotalAmount && !transferIds) {
       const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
       const _transferIds = await destinationBridge.getTransferIdsFromSettleEventTransaction(multipleWithdrawalsSettledTxHash)
@@ -658,7 +658,7 @@ class SyncWatcher extends BaseWatcher {
       }
     }
 
-    ({sourceChainId, destinationChainId, commitTxBlockNumber, totalAmount, transferIds} = await this.db.transferRoots.getByTransferRootHash(transferRootHash))
+    ({ sourceChainId, destinationChainId, commitTxBlockNumber, totalAmount, transferIds } = await this.db.transferRoots.getByTransferRootHash(transferRootHash))
     if (sourceChainId && destinationChainId && commitTxBlockNumber && totalAmount && !transferIds) {
       await this.populateTransferRootTransferIds(transferRootHash)
     }
@@ -713,8 +713,7 @@ class SyncWatcher extends BaseWatcher {
 
       return true
     },
-    { endBlockNumber: eventBlockNumber, startBlockNumber }
-    )
+    { endBlockNumber: eventBlockNumber, startBlockNumber })
 
     if (!endEvent) {
       return

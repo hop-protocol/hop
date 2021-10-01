@@ -53,6 +53,10 @@ class GasPricesDb extends BaseDb {
   async getNearest (chain: string, targetTimestamp: number): Promise<GasPrice | null> {
     const items : GasPrice[] = (await this.getItems()).filter((item: GasPrice) => item?.chain === chain && item?.timestamp)
 
+    if (!items) {
+      return null
+    }
+
     const dates = items.map((item: GasPrice) => item.timestamp)
     const index = nearest(dates, targetTimestamp)
     if (index === -1) {

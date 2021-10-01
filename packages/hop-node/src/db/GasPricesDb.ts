@@ -50,7 +50,7 @@ class GasPricesDb extends BaseDb {
     return items.filter(item => !!item)
   }
 
-  async getNearest (chain: string, targetTimestamp: number): Promise<GasPrice | null> {
+  async getNearest (chain: string, targetTimestamp: number, staleCheck: boolean = true): Promise<GasPrice | null> {
     const items : GasPrice[] = (await this.getItems()).filter((item: GasPrice) => item.chain === chain && item.timestamp)
 
     const dates = items.map((item: GasPrice) => item.timestamp)
@@ -59,8 +59,8 @@ class GasPricesDb extends BaseDb {
       return null
     }
     const item = normalizeDbItem(items[index])
-    const isTooFar = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
-    if (isTooFar) {
+    const isStale = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
+    if (staleCheck && isStale) {
       return null
     }
     return item

@@ -18,6 +18,8 @@ program
   .option('--db-path <string>', 'Path to leveldb.')
   .option('--token <string>', 'Token symbol')
   .option('--config <string>', 'Config file to use.')
+  .option('--chain <string>', 'Chain')
+  .option('--nearest <string>', 'Nearest timestamp')
   .description('Dump leveldb database')
   .action(async (source: any) => {
     try {
@@ -35,6 +37,8 @@ program
       }
       const dbName = source.db || 'transfers'
       const db = getDbSet(tokenSymbol)
+      const chain = source.chain
+      const nearest = Number(source.nearest)
       let items : any[] = []
       if (dbName === 'transfer-roots') {
         items = await db.transferRoots.getTransferRoots()
@@ -43,9 +47,19 @@ program
       } else if (dbName === 'sync-state') {
         items = await db.syncState.getItems()
       } else if (dbName === 'gas-prices') {
-        items = await db.gasPrices.getItems()
+        if (chain && nearest) {
+          items = [await db.gasPrices.getNearest(chain, nearest, false)]
+        } else {
+          items = await db.gasPrices.getItems()
+        }
+      } else if (dbName === 'token-prices') {
+        if (tokenSymbol && nearest) {
+          items = [await db.tokenPrices.getNearest(tokenSymbol, nearest, false)]
+        } else {
+          items = await db.tokenPrices.getItems()
+        }
       } else {
-        throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state, gas-prices`)
+        throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state, gas-prices, token-prices`)
       }
 
       logger.debug(`count: ${items.length}`)

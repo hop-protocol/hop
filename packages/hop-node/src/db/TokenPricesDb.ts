@@ -48,7 +48,7 @@ class TokenPricesDb extends BaseDb {
     return items.filter(item => !!item)
   }
 
-  async getNearest (token: string, targetTimestamp: number): Promise<TokenPrice | null> {
+  async getNearest (token: string, targetTimestamp: number, staleCheck: boolean = true): Promise<TokenPrice | null> {
     const items : TokenPrice[] = (await this.getItems()).filter((item: TokenPrice) => item.token === token && item.timestamp)
 
     const dates = items.map((item: TokenPrice) => item.timestamp)
@@ -57,8 +57,8 @@ class TokenPricesDb extends BaseDb {
       return null
     }
     const item = normalizeDbItem(items[index])
-    const isTooFar = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
-    if (isTooFar) {
+    const isStale = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
+    if (staleCheck && isStale) {
       return null
     }
     return item

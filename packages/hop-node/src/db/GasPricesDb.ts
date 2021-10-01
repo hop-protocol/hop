@@ -17,6 +17,7 @@ class GasPricesDb extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
     this.startPrunePoller()
+    this.logNullValues()
   }
 
   private async startPrunePoller () {
@@ -46,11 +47,11 @@ class GasPricesDb extends BaseDb {
         return this.getById(key)
       })))
 
-    return items
+    return items.filter(item => !!item)
   }
 
   async getNearest (chain: string, targetTimestamp: number): Promise<GasPrice | null> {
-    const items : GasPrice[] = (await this.getItems()).filter((item: GasPrice) => item.chain === chain && item.timestamp)
+    const items : GasPrice[] = (await this.getItems()).filter((item: GasPrice) => item?.chain === chain && item?.timestamp)
 
     const dates = items.map((item: GasPrice) => item.timestamp)
     const index = nearest(dates, targetTimestamp)
@@ -77,6 +78,22 @@ class GasPricesDb extends BaseDb {
     const items = await this.getOldEntries()
     for (const { _id } of items) {
       await this.deleteById(_id)
+    }
+  }
+
+  private async logNullValues () {
+    const keys = await this.getKeys()
+    const items: GasPrice[] = (await Promise.all(
+      keys.map((key: string) => {
+        return this.getById(key)
+      })))
+
+    const nullValues = items.map((item, i) => {
+      const key = keys[i]
+      return { key, item }
+    }).filter(obj => !obj.item)
+    if (nullValues.length) {
+      this.logger.warn('null values', nullValues)
     }
   }
 }

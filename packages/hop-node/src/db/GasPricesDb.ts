@@ -46,7 +46,7 @@ class GasPricesDb extends BaseDb {
         return this.getById(key)
       })))
 
-    return items
+    return items.filter(item => !!item)
   }
 
   async getNearest (chain: string, targetTimestamp: number): Promise<GasPrice | null> {

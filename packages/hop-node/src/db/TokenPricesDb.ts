@@ -45,7 +45,7 @@ class TokenPricesDb extends BaseDb {
         return this.getById(key)
       })))
 
-    return items
+    return items.filter(item => !!item)
   }
 
   async getNearest (token: string, targetTimestamp: number): Promise<TokenPrice | null> {

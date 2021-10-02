@@ -47,7 +47,7 @@ class GasPricesDb extends BaseDb {
         return this.getById(key)
       })))
 
-    return items.filter(item => !!item)
+    return items.filter(x => x)
   }
 
   async getNearest (chain: string, targetTimestamp: number): Promise<GasPrice | null> {
@@ -88,12 +88,12 @@ class GasPricesDb extends BaseDb {
         return this.getById(key)
       })))
 
-    const nullValues = items.map((item, i) => {
+    const nullValues = items.map((value, i) => {
       const key = keys[i]
-      return { key, item }
-    }).filter(obj => !obj.item)
+      return { key, value }
+    }).filter(obj => !obj.value)
     if (nullValues.length) {
-      this.logger.warn('null values', nullValues)
+      this.logger.warn('null values:', nullValues)
     }
   }
 }

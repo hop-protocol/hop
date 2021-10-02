@@ -88,6 +88,9 @@ class BaseDb {
       }
       return item
     } catch (err) {
+      if (!err.message.includes('Key not found in database')) {
+        this.logger.error(`getById error: ${err.message}`)
+      }
       return defaultValue
     }
   }
@@ -105,7 +108,9 @@ class BaseDb {
           if (key === 'ids') {
             return
           }
-          keys.push(key)
+          if (typeof key === 'string') {
+            keys.push(key)
+          }
         })
         .on('end', () => {
           resolve(keys)

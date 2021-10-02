@@ -1,9 +1,7 @@
-import React, { FC, ChangeEvent, useMemo, useEffect } from 'react'
-import { BigNumber } from 'ethers'
+import React, { FC, ChangeEvent, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import find from 'lodash/find'
 import Typography from '@material-ui/core/Typography'
-import Card from '@material-ui/core/Card'
-import MuiButton from '@material-ui/core/Button'
 import Button from 'src/components/buttons/Button'
 import Box from '@material-ui/core/Box'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -14,13 +12,15 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
-import { commafy, normalizeNumberInput, toTokenDisplay, toPercentDisplay } from 'src/utils'
-import TokenWrapper from './TokenWrapper'
+import { commafy, normalizeNumberInput, toPercentDisplay } from 'src/utils'
+import TokenWrapper from 'src/components/TokenWrapper'
 import DetailRow from 'src/components/DetailRow'
+import useQueryParams from 'src/hooks/useQueryParams'
+import Network from 'src/models/Network'
 
 const useStyles = makeStyles(theme => ({
   title: {
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
   },
   plusDivider: {
     textAlign: 'center',
@@ -28,17 +28,17 @@ const useStyles = makeStyles(theme => ({
     height: '2.4rem',
     margin: '2.2rem',
     fontSize: '2rem',
-    opacity: '0.5'
+    opacity: '0.5',
   },
   sendButton: {
     marginTop: '6.4rem',
-    width: '30.0rem'
+    width: '30.0rem',
   },
   tokenSelector: {
-    marginBottom: '4.4rem'
+    marginBottom: '4.4rem',
   },
   textSpacing: {
-    padding: '0 1rem'
+    padding: '0 1rem',
   },
   formBox: {
     marginBottom: '3.4rem',
@@ -50,16 +50,12 @@ const useStyles = makeStyles(theme => ({
   removeLiquidityButton: {
     marginTop: '2rem',
   },
-  tokenWrapper: {
-    marginTop: '1rem',
-    marginBottom: '2rem'
-  },
   details: {
     width: '46.0rem',
     marginBottom: '3.4rem',
     [theme.breakpoints.down('xs')]: {
-      width: '90%'
-    }
+      width: '90%',
+    },
   },
   detailsDropdown: {
     width: '46.0rem',
@@ -68,7 +64,7 @@ const useStyles = makeStyles(theme => ({
       content: '"▾"',
     },
     [theme.breakpoints.down('xs')]: {
-      width: '90%'
+      width: '90%',
     },
   },
   detailsDropdownSummary: {
@@ -76,8 +72,8 @@ const useStyles = makeStyles(theme => ({
     display: 'block',
     fontWeight: 'normal',
     '&::marker': {
-      display: 'none'
-    }
+      display: 'none',
+    },
   },
   detailsDropdownLabel: {
     position: 'relative',
@@ -87,7 +83,7 @@ const useStyles = makeStyles(theme => ({
       position: 'relative',
       display: 'inline-flex',
       justifyItems: 'center',
-      alignItems: 'center'
+      alignItems: 'center',
     },
     '& > span::before': {
       display: 'block',
@@ -95,17 +91,13 @@ const useStyles = makeStyles(theme => ({
       position: 'absolute',
       top: '0',
       right: '-1.5rem',
-    }
+    },
   },
 }))
 
 const Pools: FC = () => {
   const styles = useStyles()
-  const {
-    bridges,
-    selectedBridge,
-    setSelectedBridge
-  } = useApp()
+  const { bridges, selectedBridge, setSelectedBridge, defaultL2Network } = useApp()
   const {
     networks,
     canonicalToken,
@@ -138,7 +130,7 @@ const Pools: FC = () => {
     priceImpact,
     virtualPrice,
     reserveTotalsUsd,
-    unsupportedAsset
+    unsupportedAsset,
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -149,11 +141,22 @@ const Pools: FC = () => {
     }
   }
 
+  const { queryParams } = useQueryParams()
+
+  useEffect(() => {
+    if (selectedNetwork && queryParams?.sourceNetwork !== selectedNetwork?.slug) {
+      const matchingNetwork = find(networks, ['slug', queryParams.sourceNetwork])
+      if (matchingNetwork && !matchingNetwork?.isLayer1) {
+        setSelectedNetwork(matchingNetwork)
+      } else {
+        setSelectedNetwork(defaultL2Network as Network)
+      }
+    }
+  }, [queryParams])
+
   const handleNetworkSelect = (event: ChangeEvent<{ value: unknown }>) => {
     const networkName = event.target.value
-    const newSelectedNetwork = networks.find(
-      network => network.slug === networkName
-    )
+    const newSelectedNetwork = networks.find(network => network.slug === networkName)
     if (newSelectedNetwork) {
       setSelectedNetwork(newSelectedNetwork)
     }
@@ -208,10 +211,7 @@ const Pools: FC = () => {
         </Typography>
       </Box>
       <Box display="flex" alignItems="center" className={styles.tokenSelector}>
-        <RaisedSelect
-          value={selectedBridge?.getTokenSymbol()}
-          onChange={handleBridgeChange}
-        >
+        <RaisedSelect value={selectedBridge?.getTokenSymbol()} onChange={handleBridgeChange}>
           {bridges.map(bridge => (
             <MenuItem value={bridge.getTokenSymbol()} key={bridge.getTokenSymbol()}>
               <SelectOption
@@ -222,184 +222,141 @@ const Pools: FC = () => {
             </MenuItem>
           ))}
         </RaisedSelect>
-        <Typography
-          variant="body1"
-          component="span"
-          className={styles.textSpacing}
-        >
+        <Typography variant="body1" component="span" className={styles.textSpacing}>
           on
         </Typography>
-        <RaisedSelect
-          value={selectedNetwork?.slug}
-          onChange={handleNetworkSelect}
-        >
+        <RaisedSelect value={selectedNetwork?.slug} onChange={handleNetworkSelect}>
           {networks.map(network => (
             <MenuItem value={network.slug} key={network.slug}>
-              <SelectOption
-                value={network.slug}
-                icon={network.imageUrl}
-                label={network.name}
-              />
+              <SelectOption value={network.slug} icon={network.imageUrl} label={network.name} />
             </MenuItem>
           ))}
         </RaisedSelect>
       </Box>
-      {unsupportedAsset ? <>
-        <Typography
-          variant="subtitle1"
-          color="textSecondary"
-          component="div"
-        >
-          {error}
-        </Typography>
-      </> : <>
-      <Box className={styles.formBox}>
-        {isNativeToken &&
-        <details className={styles.detailsDropdown}>
-          <summary className={styles.detailsDropdownSummary}>
+      {unsupportedAsset ? (
+        <>
+          <Typography variant="subtitle1" color="textSecondary" component="div">
+            {error}
+          </Typography>
+        </>
+      ) : (
+        <>
+          <Box className={styles.formBox}>
+            <TokenWrapper network={selectedNetwork} />
+            <Box display="flex" alignItems="center">
+              <AmountSelectorCard
+                value={token0Amount}
+                token={canonicalToken}
+                label="Input"
+                onChange={handleToken0Change}
+                title={`${selectedNetwork?.name} ${canonicalTokenSymbol}`}
+                balance={canonicalBalance}
+                loadingBalance={loadingCanonicalBalance}
+              />
+            </Box>
+            <Box display="flex" alignItems="center">
+              <div className={styles.plusDivider}>+</div>
+            </Box>
+            <Box display="flex" alignItems="center">
+              <AmountSelectorCard
+                value={token1Amount}
+                token={hopToken}
+                label="Input"
+                onChange={handleToken1Change}
+                title={hopToken?.name}
+                balance={hopBalance}
+                loadingBalance={loadingHopBalance}
+              />
+            </Box>
+          </Box>
+          <Box className={styles.details}>
+            <DetailRow
+              title={priceImpactLabel}
+              tooltip="Depositing underpooled assets will give you bonus LP tokens. Depositing overpooled assets will give you less LP tokens."
+              value={`${priceImpactFormatted}`}
+            />
+            <DetailRow title={'Share of pool'} value={poolSharePercentageFormatted} />
+          </Box>
+
+          {hasBalance && (
+            <Box className={styles.details}>
+              <Box alignItems="center" className={styles.flexBox}>
+                <Typography variant="subtitle1" color="textSecondary" component="div">
+                  Your Position
+                </Typography>
+              </Box>
+              <DetailRow
+                title={`${canonicalTokenSymbol}/${hopTokenSymbol}`}
+                value={`${commafy(userPoolBalance, 5)}`}
+              />
+              {userPoolTokenPercentage && (
+                <DetailRow
+                  title={'Your pool share'}
+                  value={`${commafy(userPoolTokenPercentage)}%`}
+                />
+              )}
+              {token0Deposited && (
+                <DetailRow title={canonicalTokenSymbol} value={`${commafy(token0Deposited, 5)}`} />
+              )}
+              {token1Deposited && (
+                <DetailRow title={hopTokenSymbol} value={`${commafy(token1Deposited, 5)}`} />
+              )}
+            </Box>
+          )}
+          <details open className={styles.detailsDropdown}>
+            <summary className={styles.detailsDropdownSummary}>
               <Typography
                 variant="subtitle1"
                 color="textSecondary"
                 component="div"
                 className={styles.detailsDropdownLabel}
               >
-                <span>Wrap/Unwrap</span>
+                <span>Pool Stats</span>
               </Typography>
-          </summary>
-          <div>
-            <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
-              <TokenWrapper />
-            </Box>
-          </div>
-        </details>
-        }
-        <Box display="flex" alignItems="center">
-          <AmountSelectorCard
-            value={token0Amount}
-            token={canonicalToken}
-            label="Input"
-            onChange={handleToken0Change}
-            title={`${selectedNetwork?.name} ${canonicalTokenSymbol}`}
-            balance={canonicalBalance}
-            loadingBalance={loadingCanonicalBalance}
-          />
-        </Box>
-        <Box display="flex" alignItems="center">
-          <div className={styles.plusDivider}>+</div>
-        </Box>
-        <Box display="flex" alignItems="center">
-          <AmountSelectorCard
-            value={token1Amount}
-            token={hopToken}
-            label="Input"
-            onChange={handleToken1Change}
-            title={hopToken?.name}
-            balance={hopBalance}
-            loadingBalance={loadingHopBalance}
-          />
-        </Box>
-      </Box>
-      <Box className={styles.details}>
-        <DetailRow
-          title={priceImpactLabel}
-          tooltip="Depositing underpooled assets will give you bonus LP tokens. Depositing overpooled assets will give you less LP tokens."
-          value={`${priceImpactFormatted}`}
-        />
-        <DetailRow
-          title={'Share of pool'}
-          value={poolSharePercentageFormatted}
-        />
-      </Box>
-
-      {hasBalance && (
-      <Box className={styles.details}>
-        <Box alignItems="center" className={styles.flexBox}>
-          <Typography
-            variant="subtitle1"
-            color="textSecondary"
-            component="div"
-          >
-            Your Position
-          </Typography>
-        </Box>
-        <DetailRow
-          title={`${canonicalTokenSymbol}/${hopTokenSymbol}`}
-          value={`${commafy(userPoolBalance, 5)}`}
-        />
-        {userPoolTokenPercentage && (
-          <DetailRow
-            title={'Your pool share'}
-            value={`${commafy(userPoolTokenPercentage)}%`}
-          />
-        )}
-        {token0Deposited && (
-          <DetailRow
-            title={canonicalTokenSymbol}
-            value={`${commafy(token0Deposited, 5)}`}
-          />
-        )}
-        {token1Deposited && (
-          <DetailRow
-            title={hopTokenSymbol}
-            value={`${commafy(token1Deposited, 5)}`}
-          />
-        )}
-        </Box>
-      )}
-      <details open className={styles.detailsDropdown}>
-        <summary className={styles.detailsDropdownSummary}>
-            <Typography
-              variant="subtitle1"
-              color="textSecondary"
-              component="div"
-              className={styles.detailsDropdownLabel}
+            </summary>
+            <div>
+              <Box className={styles.details}>
+                <DetailRow
+                  title="APR"
+                  tooltip="Annual Percentage Rate (APR) from earning fees"
+                  value={`${aprFormatted}`}
+                />
+                <DetailRow
+                  title="Reserves"
+                  tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
+                  value={`${reserve0Formatted} / ${reserve1Formatted}`}
+                />
+                <DetailRow
+                  title="TVL"
+                  tooltip="Total value locked in USD"
+                  value={`${reserveTotalsUsdFormatted}`}
+                />
+                <DetailRow
+                  title="Virtual Price"
+                  tooltip="The virtual price, to help calculate profit"
+                  value={`${virtualPriceFormatted}`}
+                />
+                <DetailRow
+                  title="Fee"
+                  tooltip={`Each trade has a ${feeFormatted} fee that goes to liquidity providers`}
+                  value={`${feeFormatted}`}
+                />
+              </Box>
+            </div>
+          </details>
+          <Alert severity="error" onClose={() => setError(null)} text={error} />
+          <SendButton />
+          {hasBalance && (
+            <Button
+              className={styles.removeLiquidityButton}
+              onClick={handleRemoveLiquidityClick}
+              large
             >
-              <span>Pool Stats</span>
-            </Typography>
-        </summary>
-        <div>
-          <Box className={styles.details}>
-            <DetailRow
-              title="APR"
-              tooltip="Annual Percentage Rate (APR) from earning fees"
-              value={`${aprFormatted}`}
-            />
-            <DetailRow
-              title="Reserves"
-              tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
-              value={`${reserve0Formatted} / ${reserve1Formatted}`}
-            />
-            <DetailRow
-              title="TVL"
-              tooltip="Total value locked in USD"
-              value={`${reserveTotalsUsdFormatted}`}
-            />
-            <DetailRow
-              title="Virtual Price"
-              tooltip="The virtual price, to help calculate profit"
-              value={`${virtualPriceFormatted}`}
-            />
-            <DetailRow
-              title="Fee"
-              tooltip={`Each trade has a ${feeFormatted} fee that goes to liquidity providers`}
-              value={`${feeFormatted}`}
-            />
-          </Box>
-        </div>
-      </details>
-      <Alert severity="error" onClose={() => setError(null)} text={error} />
-      <SendButton />
-      {hasBalance && (
-        <Button
-          className={styles.removeLiquidityButton}
-          onClick={handleRemoveLiquidityClick}
-          large
-        >
-          Remove Liquidity
-        </Button>
+              Remove Liquidity
+            </Button>
+          )}
+        </>
       )}
-      </>
-      }
     </Box>
   )
 }

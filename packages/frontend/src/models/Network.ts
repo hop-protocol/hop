@@ -27,7 +27,7 @@ class Network {
   readonly isLayer1: boolean
   readonly nativeBridgeUrl: string | undefined
 
-  constructor (props: NetworkProps) {
+  constructor(props: NetworkProps) {
     this.name = props.name
     this.slug = props.slug
     this.imageUrl = props.imageUrl
@@ -40,11 +40,11 @@ class Network {
     this.nativeBridgeUrl = props.nativeBridgeUrl
   }
 
-  toString () {
+  toString() {
     return this.name
   }
 
-  eq (otherNetwork: Network) {
+  eq(otherNetwork: Network) {
     return otherNetwork.networkId === this.networkId
   }
 }

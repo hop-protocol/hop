@@ -35,9 +35,11 @@ export const TotalBlocks = {
 }
 export const DefaultBatchBlocks = 10000
 
-export const OneWeekMs = 7 * 24 * 60 * 60 * 1000
+export const TenSecondsMs = 10 * 1000
 export const TenMinutesMs = 10 * 60 * 1000
-export const TxRetryDelayMs = TenMinutesMs
+export const OneHourMs = 60 * 60 * 1000
+export const OneWeekMs = 7 * 24 * 60 * 60 * 1000
+export const TxRetryDelayMs = OneHourMs
 export enum TxMaxDelayMs {
   Ethereum = 1 * 1000,
   xDai = 20 * 1000,

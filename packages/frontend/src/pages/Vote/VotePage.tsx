@@ -27,7 +27,7 @@ import {
   PROPOSAL_STATUSES,
   VOTE_STATUS,
   PROPOSAL_LENGTH_IN_SECS,
-  COMMON_CONTRACT_NAMES
+  COMMON_CONTRACT_NAMES,
 } from 'src/constants'
 
 const useStyles = makeStyles(theme => ({
@@ -43,37 +43,37 @@ const useStyles = makeStyles(theme => ({
     boxShadow: `
       inset -3px -3px 6px rgba(255, 255, 255, 0.5),
       inset 3px 3px 6px rgba(174, 174, 192, 0.16)
-    `
+    `,
   },
   navStatusBarContainer: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: '1rem'
+    marginBottom: '1rem',
   },
   allProposalsContainer: {
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   title: {
-    marginBottom: '1rem'
+    marginBottom: '1rem',
   },
   subtitle: {
     fontSize: '1.5rem',
-    opacity: '0.5'
+    opacity: '0.5',
   },
   statusAndVoteCardsContainer: {
     display: 'flex',
     alignItems: 'center',
-    marginTop: '1rem'
+    marginTop: '1rem',
   },
   statusAndVoteContainer: {
     width: '23.8rem',
     padding: '1rem',
     borderRadius: '1.5rem',
     marginBottom: '1rem',
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   voteContainer: {
     width: '23.8rem',
@@ -82,7 +82,7 @@ const useStyles = makeStyles(theme => ({
     boxShadow: `
       inset -3px -3px 6px rgba(255, 255, 255, 0.5),
       inset 3px 3px 6px rgba(174, 174, 192, 0.16)
-    `
+    `,
   },
   voteDelegationContainer: {
     padding: '1rem',
@@ -90,17 +90,17 @@ const useStyles = makeStyles(theme => ({
     boxShadow: `
       inset -3px -3px 6px rgba(255, 255, 255, 0.5),
       inset 3px 3px 6px rgba(174, 174, 192, 0.16)
-    `
+    `,
   },
   contentHeader: {
     marginBottom: '2rem',
-    fontSize: '2rem'
+    fontSize: '2rem',
   },
   contentBody: {
     marginBottom: '1rem',
     fontSize: '1.5rem',
-    fontWeight: 300
-  }
+    fontWeight: 300,
+  },
 }))
 
 type VotePageProps = {
@@ -131,13 +131,11 @@ const VotePageChild: FC<VotePageProps> = props => {
   }
 
   // Timing
-  const startTimestamp: number | undefined = useTimestampFromBlock(
-    proposal.startBlock
-  )
+  const startTimestamp: number | undefined = useTimestampFromBlock(proposal.startBlock)
   const endDate: DateTime | undefined = startTimestamp
     ? DateTime.fromSeconds(startTimestamp).plus({
-      seconds: PROPOSAL_LENGTH_IN_SECS
-    })
+        seconds: PROPOSAL_LENGTH_IN_SECS,
+      })
     : undefined
   const now: DateTime = DateTime.local()
 
@@ -146,13 +144,9 @@ const VotePageChild: FC<VotePageProps> = props => {
     ? proposal.forCount + proposal.againstCount
     : undefined
   const forPercentage: string =
-    proposal && totalVotes
-      ? ((proposal.forCount * 100) / totalVotes).toFixed(0) + '%'
-      : '0%'
+    proposal && totalVotes ? ((proposal.forCount * 100) / totalVotes).toFixed(0) + '%' : '0%'
   const againstPercentage: string =
-    proposal && totalVotes
-      ? ((proposal.againstCount * 100) / totalVotes).toFixed(0) + '%'
-      : '0%'
+    proposal && totalVotes ? ((proposal.againstCount * 100) / totalVotes).toFixed(0) + '%' : '0%'
 
   // Only show voting if user has > 0 votes at proposal start block and proposal is active
   const availableVotes = BigNumber.from(Number(balance))
@@ -167,16 +161,9 @@ const VotePageChild: FC<VotePageProps> = props => {
   const linkIfAddress = (content: string) => {
     try {
       const address = new Address(content)
-      const commonName =
-        COMMON_CONTRACT_NAMES[address.toString()] ?? address.toString()
+      const commonName = COMMON_CONTRACT_NAMES[address.toString()] ?? address.toString()
       return (
-        <Link
-          href={getEtherscanLink(
-            connectedNetworkId,
-            address.toString(),
-            'address'
-          )}
-        >
+        <Link href={getEtherscanLink(connectedNetworkId, address.toString(), 'address')}>
           {commonName}
         </Link>
       )
@@ -209,17 +196,14 @@ const VotePageChild: FC<VotePageProps> = props => {
             ? 'Voting ended ' +
               (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL as LocaleOptions))
             : proposal
-              ? 'Voting ends approximately ' +
+            ? 'Voting ends approximately ' +
               (endDate && endDate.toLocaleString(DateTime.DATETIME_FULL as LocaleOptions))
-              : ''}
+            : ''}
         </Typography>
 
         <Box className={styles.statusAndVoteCardsContainer}>
           <Box className={styles.statusAndVoteContainer}>
-            <Button
-              className={styles.voteContainer}
-              onClick={handleVoteForClick}
-            >
+            <Button className={styles.voteContainer} onClick={handleVoteForClick}>
               Vote For
             </Button>
             <VoteStatusCard
@@ -229,10 +213,7 @@ const VotePageChild: FC<VotePageProps> = props => {
             />
           </Box>
           <Box className={styles.statusAndVoteContainer}>
-            <Button
-              className={styles.voteContainer}
-              onClick={handleVoteAgainstClick}
-            >
+            <Button className={styles.voteContainer} onClick={handleVoteAgainstClick}>
               Vote Against
             </Button>
             <VoteStatusCard
@@ -243,16 +224,13 @@ const VotePageChild: FC<VotePageProps> = props => {
           </Box>
         </Box>
 
-        {proposal &&
-          proposal.status === PROPOSAL_STATUSES.ACTIVE &&
-          !showVotingButtons && (
-            <Box className={styles.voteDelegationContainer}>
-              <Typography variant="subtitle1" className={styles.subtitle}>
-                Only HOP votes that were self delegated or delegated to another
-                address before block {proposal.startBlock} are eligible for
-                voting.{' '}
-              </Typography>
-            </Box>
+        {proposal && proposal.status === PROPOSAL_STATUSES.ACTIVE && !showVotingButtons && (
+          <Box className={styles.voteDelegationContainer}>
+            <Typography variant="subtitle1" className={styles.subtitle}>
+              Only HOP votes that were self delegated or delegated to another address before block{' '}
+              {proposal.startBlock} are eligible for voting.{' '}
+            </Typography>
+          </Box>
         )}
 
         <Typography variant="h6" className={styles.contentHeader}>
@@ -260,11 +238,7 @@ const VotePageChild: FC<VotePageProps> = props => {
         </Typography>
         {proposal.details?.map((d, i) => {
           return (
-            <Typography
-              variant="subtitle1"
-              className={styles.contentBody}
-              key={i}
-            >
+            <Typography variant="subtitle1" className={styles.contentBody} key={i}>
               {i + 1}: {linkIfAddress(d.target)}.{d.functionSig}(
               {d.callData.split(',').map((content, i) => {
                 return (
@@ -290,10 +264,7 @@ const VotePageChild: FC<VotePageProps> = props => {
           Proposer
         </Typography>
         <Typography variant="subtitle1" className={styles.contentBody}>
-          <Link
-            href={`https://etherscan.io/address/${proposal.proposer}`}
-            underline={'none'}
-          >
+          <Link href={`https://etherscan.io/address/${proposal.proposer}`} underline={'none'}>
             {proposal.proposer}
           </Link>
         </Typography>

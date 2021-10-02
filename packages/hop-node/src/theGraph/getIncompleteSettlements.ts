@@ -2,7 +2,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import makeRequest from './makeRequest'
 import { BigNumber } from 'ethers'
 
-export default async function getIncompleteSettlements (chain: string, token: string, destinationChain: string): Promise<any> {
+export default async function getIncompleteSettlements (token: string, chain: string, destinationChain: string): Promise<any> {
   const destinationChainId: number = chainSlugToId(destinationChain)
 
   let query = getTransfersCommittedsQuery(token)
@@ -12,10 +12,13 @@ export default async function getIncompleteSettlements (chain: string, token: st
   })
   const transfersCommitted = transfersCommittedRes.transfersCommitteds
   if (!transfersCommitted) {
-    throw new Error('There are no committed transfers')
+    throw new Error('there are no committed transfers')
   }
 
+  const total = transfersCommitted.length
+  console.log(`total: ${total}`)
   for (let i = 0; i < transfersCommitted.length; i++) {
+    console.log(`checking ${i + 1}/${total}`)
     const { rootHash, totalAmount } = transfersCommitted[i]
     const totalAmountBn: BigNumber = BigNumber.from(totalAmount)
 
@@ -24,8 +27,8 @@ export default async function getIncompleteSettlements (chain: string, token: st
       rootHash
     })
     const multipleWithdrawalsSettled = multipleWithdrawalsSettledRes.multipleWithdrawalsSettleds
-    if (!multipleWithdrawalsSettled) {
-      console.log(`No settlements for ${rootHash}`)
+    if (!multipleWithdrawalsSettled.length) {
+      console.log(`no settlements for ${rootHash}`)
       continue
     }
 
@@ -38,7 +41,7 @@ export default async function getIncompleteSettlements (chain: string, token: st
     if (!totalAmountBn.eq(calcAmountBn)) {
       const diff = (totalAmountBn.sub(calcAmountBn))
       console.log(
-        `Root: ${rootHash}, totalAmount: ${totalAmountBn}, calcedAmt: ${calcAmountBn}. diff: ${diff}`
+        `root: ${rootHash}, totalAmount: ${totalAmountBn}, calculatedAmount: ${calcAmountBn}. diff: ${diff}`
       )
     }
   }

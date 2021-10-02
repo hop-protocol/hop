@@ -6,8 +6,8 @@ import { commafy } from 'src/utils'
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.padding.extraLight,
-    width: '32.0rem'
-  }
+    width: '32.0rem',
+  },
 }))
 
 type Props = {
@@ -19,20 +19,11 @@ type Props = {
 
 const AmmDetails: FC<Props> = props => {
   const styles = useStyles()
-  const {
-    rate,
-    slippageTolerance,
-    priceImpact,
-    amountOutMinDisplay
-  } = props
+  const { rate, slippageTolerance, priceImpact, amountOutMinDisplay } = props
 
   return (
     <div className={styles.root}>
-      <DetailRow
-        title="Rate"
-        value={rate === 0 ? '-' : commafy(rate, 4)}
-        contrastText
-      />
+      <DetailRow title="Rate" value={rate === 0 ? '-' : commafy(rate, 4)} contrastText />
       <DetailRow
         title="Slippage Tolerance"
         value={slippageTolerance ? `${slippageTolerance}%` : undefined}
@@ -41,19 +32,11 @@ const AmmDetails: FC<Props> = props => {
       <DetailRow
         title="Price Impact"
         value={
-          !priceImpact
-            ? undefined
-            : priceImpact < 0.01
-              ? '<0.01%'
-              : `${commafy(priceImpact)}%`
+          !priceImpact ? undefined : priceImpact < 0.01 ? '<0.01%' : `${commafy(priceImpact)}%`
         }
         contrastText
       />
-      <DetailRow
-        title="Minimum received"
-        value={amountOutMinDisplay}
-        contrastText
-      />
+      <DetailRow title="Minimum received" value={amountOutMinDisplay} contrastText />
     </div>
   )
 }

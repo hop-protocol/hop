@@ -1,4 +1,5 @@
 import BaseWatcher from './classes/BaseWatcher'
+import Logger from 'src/logger'
 import chalk from 'chalk'
 import wallets from 'src/wallets'
 import { Bridge, OutgoingMessageState } from 'arb-ts'
@@ -84,34 +85,34 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
       return
     }
 
-    this.logger.debug(
-         `attempting to send relay message on arbitrum for commit tx hash ${txHash}`
-    )
+    return this.arbBridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
+  }
 
+  async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {
+    logger.debug(
+      `attempting to send relay message on arbitrum for commit tx hash ${commitTxHash}`
+    )
     await this.handleStateSwitch()
     if (this.isDryOrPauseMode) {
       this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
       return
     }
 
-    return this.arbBridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
-  }
-
-  async handleCommitTxHash (commitTxHash: string, transferRootHash: string) {
-    const tx = await this.relayMessage(commitTxHash)
-    if (!tx) {
-      return
-    }
-
     await this.db.transferRoots.update(transferRootHash, {
       sentConfirmTxAt: Date.now()
     })
-    this.logger.info(
-         `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
-         chalk.bgYellow.black.bold(tx.hash)
+    const tx = await this.relayMessage(commitTxHash)
+    if (!tx) {
+      logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
+      return
+    }
+
+    logger.info(
+      `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
+      chalk.bgYellow.black.bold(tx.hash)
     )
     this.notifier.info(
-         `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
+      `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
     )
     tx.wait()
       .then(async (receipt: any) => {

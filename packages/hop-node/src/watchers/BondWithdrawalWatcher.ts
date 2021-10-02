@@ -1,14 +1,14 @@
 import '../moduleAlias'
+import BNMin from 'src/utils/BNMin'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
-import isL1 from 'src/utils/isL1'
+import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract, providers } from 'ethers'
 import { BonderFeeTooLowError } from 'src/types/error'
-import { Chain, TxError } from 'src/constants'
 import { Transfer } from 'src/db/TransfersDb'
-import { bondableChains } from 'src/config'
+import { TxError } from 'src/constants'
 
 export interface Config {
   chainSlug: string
@@ -61,9 +61,24 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     const promises: Promise<any>[] = []
-    for (const { transferId } of dbTransfers) {
+    for (const dbTransfer of dbTransfers) {
+      const {
+        transferId,
+        destinationChainId,
+        amount,
+        withdrawalBondTxError
+      } = dbTransfer
+
+      const availableCredit = await this.getAvailableCreditForTransfer(destinationChainId, amount)
+      if (
+        availableCredit?.lt(amount) &&
+        withdrawalBondTxError === TxError.NotEnoughLiquidity
+      ) {
+        continue
+      }
+
       promises.push(this.checkTransferId(transferId).catch(err => {
-        this.logger.error(`checkTransferId error: ${err.message}`)
+        this.logger.error('checkTransferId error:', err)
       }))
     }
 
@@ -89,8 +104,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = dbTransfer
     const logger = this.logger.create({ id: transferId })
     const sourceL2Bridge = this.bridge as L2Bridge
-    const sourceChain = this.bridge.chainSlug
-    const destinationChain = this.chainIdToSlug(destinationChainId)
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
@@ -110,40 +123,21 @@ class BondWithdrawalWatcher extends BaseWatcher {
           withdrawalBonder: sender,
           withdrawalBondedTxHash: transactionHash
         })
+      } else {
+        logger.warn(`event not found. transferId: ${transferId}`)
       }
       return
     }
 
-    let availableCredit = await destBridge.getAvailableCredit()
-    const includePendingAmount = destinationChain === Chain.Ethereum && bondableChains.includes(sourceChain)
-    if (includePendingAmount) {
-      let pendingAmounts = BigNumber.from(0)
-      for (const chain of bondableChains) {
-        const watcher = this.getSiblingWatcherByChainSlug(chain)
-        if (!watcher) {
-          continue
-        }
-        const bridge = watcher.bridge as L2Bridge
-        const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
-        pendingAmounts = pendingAmounts.add(pendingAmount)
-      }
-      availableCredit = availableCredit.sub(pendingAmounts).sub(amount)
-    }
+    const availableCredit = await this.getAvailableCreditForTransfer(destinationChainId, amount)
     if (availableCredit.lt(amount)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
           availableCredit
         )}, need ${this.bridge.formatUnits(amount)}`
       )
-      let { withdrawalBondBackoffIndex } = await this.db.transfers.getByTransferId(transferId)
-      if (!withdrawalBondBackoffIndex) {
-        withdrawalBondBackoffIndex = 0
-      }
-      withdrawalBondBackoffIndex++
       await this.db.transfers.update(transferId, {
-        bondWithdrawalAttemptedAt: Date.now(),
-        withdrawalBondTxError: TxError.NotEnoughLiquidity,
-        withdrawalBondBackoffIndex
+        withdrawalBondTxError: TxError.NotEnoughLiquidity
       })
       return
     }
@@ -164,7 +158,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
     const { from: sender, data } = sourceTx
-    const attemptSwap = this.shouldAttemptSwap(dbTransfer)
+    const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin, deadline)
+    if (attemptSwap && isL1ChainId(destinationChainId)) {
+      await this.db.transfers.update(transferId, {
+        isBondable: false
+      })
+      return
+    }
 
     await this.db.transfers.update(transferId, {
       bondWithdrawalAttemptedAt: Date.now()
@@ -214,10 +214,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
             this.bridge.formatUnits(bondedAmount)
           )
         })
-        .catch(async (err: Error) => {
-          throw err
-        })
     } catch (err) {
+      logger.log(err.message)
       const isCallExceptionError = /The execution failed due to an exception/gi.test(err.message)
       if (isCallExceptionError) {
         await this.db.transfers.update(transferId, {
@@ -234,13 +232,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
           withdrawalBondTxError: TxError.BonderFeeTooLow,
           withdrawalBondBackoffIndex
         })
+        return
       }
       throw err
     }
-  }
-
-  shouldAttemptSwap = (dbTransfer: Transfer): boolean => {
-    return dbTransfer.deadline > 0 || dbTransfer.amountOutMin?.gt(0)
   }
 
   sendBondWithdrawalTx = async (params: any) => {
@@ -261,7 +256,18 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('recipient:', recipient)
     logger.debug('transferNonce:', transferNonce)
     logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
-    if (attemptSwap && !isL1(this.chainIdToSlug(destinationChainId))) {
+
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    const {
+      gasPrice,
+      tokenUsdPrice,
+      chainNativeTokenUsdPrice
+    } = await this.getPricesNearTransferEvent(dbTransfer)
+    logger.debug('gasPrice:', gasPrice?.toString())
+    logger.debug('tokenUsdPrice:', tokenUsdPrice)
+    logger.debug('chainNativeTokenUsdPrice:', chainNativeTokenUsdPrice)
+
+    if (attemptSwap) {
       logger.debug(
         `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
       )
@@ -273,12 +279,62 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transferNonce,
         bonderFee,
         amountOutMin,
-        deadline
+        deadline,
+        gasPrice,
+        tokenUsdPrice,
+        chainNativeTokenUsdPrice
       )
     } else {
       logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
       const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-      return bridge.bondWithdrawal(recipient, amount, transferNonce, bonderFee)
+      return bridge.bondWithdrawal(
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        gasPrice,
+        tokenUsdPrice,
+        chainNativeTokenUsdPrice
+      )
+    }
+  }
+
+  async getPricesNearTransferEvent (dbTransfer: Transfer): Promise<any> {
+    const { destinationChainId } = dbTransfer
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+    const tokenSymbol = this.tokenSymbol
+    const chainNativeTokenSymbol = this.bridge.getChainNativeTokenSymbol(destinationChain)
+    const transferSentTimestamp = dbTransfer?.transferSentTimestamp
+    let gasPrice : BigNumber
+    let tokenUsdPrice : number
+    let chainNativeTokenUsdPrice : number
+    if (transferSentTimestamp) {
+      const gasPriceItem = await this.db.gasPrices.getNearest(destinationChain, transferSentTimestamp)
+      if (gasPriceItem) {
+        gasPrice = gasPriceItem.gasPrice
+
+        const marketGasPrice = await destinationBridge.getGasPrice()
+        gasPrice = BNMin(gasPrice, marketGasPrice)
+      }
+      let tokenPriceItem = await this.db.tokenPrices.getNearest(tokenSymbol, transferSentTimestamp)
+      if (tokenPriceItem) {
+        tokenUsdPrice = tokenPriceItem.price
+      }
+      if (tokenSymbol === chainNativeTokenSymbol) {
+        chainNativeTokenUsdPrice = tokenUsdPrice
+      } else {
+        tokenPriceItem = await this.db.tokenPrices.getNearest(chainNativeTokenSymbol, transferSentTimestamp)
+        if (tokenPriceItem) {
+          chainNativeTokenUsdPrice = tokenPriceItem.price
+        }
+      }
+    }
+
+    return {
+      gasPrice,
+      tokenUsdPrice,
+      chainNativeTokenUsdPrice
     }
   }
 
@@ -311,6 +367,19 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
     this.logger.debug(`transfer id already bonded ${transferId}`)
     throw new Error('cancelled')
+  }
+
+  // ORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots) / 2
+  //    - divide by 2 because `amount` gets added to OruToL1PendingAmount
+  // nonORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
+  // L2 -> L2: (credit - debit)
+  async getAvailableCreditForTransfer (destinationChainId: number, amount: BigNumber) {
+    const availableCredit = await this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
+    if (this.syncWatcher.isOruToL1(destinationChainId)) {
+      return availableCredit.div(2)
+    }
+
+    return availableCredit
   }
 }
 

@@ -8,7 +8,7 @@ import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 
 import useGovernanceContracts, {
-  GovernanceContracts
+  GovernanceContracts,
 } from 'src/contexts/AppContext/useGovernanceContracts'
 import useL1BridgeContract from 'src/contexts/AppContext/useL1BridgeContract'
 import useNetworkSpecificContracts from 'src/contexts/AppContext/useNetworkSpecificContracts'
@@ -21,11 +21,7 @@ export type Contracts = {
   providers: {
     [key: string]: Provider
   }
-  getContract: (
-    address: string,
-    abi: ABI[],
-    provider: Provider
-  ) => Contract | undefined
+  getContract: (address: string, abi: ABI[], provider: Provider) => Contract | undefined
   getErc20Contract: (address: string, provider: Provider) => Contract
 }
 
@@ -41,11 +37,7 @@ const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
   // logger.debug('useContracts render')
   const { provider, connectedNetworkId } = useWeb3Context()
 
-  const getContract = (
-    address: string,
-    abi: ABI[],
-    provider: Provider
-  ): Contract | undefined => {
+  const getContract = (address: string, abi: ABI[], provider: Provider): Contract | undefined => {
     if (!provider) return
     return new Contract(address, abi, provider as providers.Provider)
   }
@@ -85,17 +77,10 @@ const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
             erc20MintableAbi,
             providers[network.slug] as providers.Provider
           ),
-          l1Bridge: useL1BridgeContract(
-            providers[network.slug] as providers.Provider,
-            token
-          )
+          l1Bridge: useL1BridgeContract(providers[network.slug] as providers.Provider, token),
         }
       } else if (tokenConfig) {
-        networkMap[network.slug] = useNetworkSpecificContracts(
-          l1Network,
-          network,
-          token
-        )
+        networkMap[network.slug] = useNetworkSpecificContracts(l1Network, network, token)
       }
       return networkMap
     }, {} as { [key: string]: { [key: string]: any } })
@@ -108,7 +93,7 @@ const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
     tokens: tokenContracts,
     providers,
     getContract,
-    getErc20Contract
+    getErc20Contract,
   }
 }
 

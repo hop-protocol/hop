@@ -17,11 +17,13 @@ import { reactAppNetwork } from 'src/config'
 
 type AppContextProps = {
   sdk: Hop
-  bridges: HopBridge[],
+  bridges: HopBridge[]
   selectedBridge: HopBridge | undefined
   setSelectedBridge: (bridge: HopBridge) => void
   user: User | undefined
   networks: Network[]
+  l2Networks: Network[]
+  defaultL2Network: Network | undefined
   l1Network: Network | undefined
   contracts: Contracts | undefined
   tokens: Token[]
@@ -35,6 +37,8 @@ type AppContextProps = {
 const AppContext = createContext<AppContextProps>({
   user: undefined,
   networks: [],
+  l2Networks: [],
+  defaultL2Network: undefined,
   l1Network: undefined,
   contracts: undefined,
   tokens: [],
@@ -46,7 +50,7 @@ const AppContext = createContext<AppContextProps>({
   bridges: [],
   selectedBridge: undefined,
   setSelectedBridge: (bridge: HopBridge) => {},
-  settings: {} as Settings
+  settings: {} as Settings,
 })
 
 const AppContextProvider: FC = ({ children }) => {
@@ -64,7 +68,7 @@ const AppContextProvider: FC = ({ children }) => {
   const sdk = useMemo(() => {
     return new Hop(reactAppNetwork, provider?.getSigner())
   }, [provider])
-  const networks = useNetworks()
+  const { networks, l2Networks, defaultL2Network } = useNetworks()
   const tokens = useTokens(networks)
   const contracts = useContracts(networks, tokens)
   const events = useEvents()
@@ -84,6 +88,8 @@ const AppContextProvider: FC = ({ children }) => {
         setSelectedBridge,
         user,
         networks,
+        l2Networks,
+        defaultL2Network,
         l1Network,
         contracts,
         tokens,
@@ -91,7 +97,7 @@ const AppContextProvider: FC = ({ children }) => {
         txHistory,
         accountDetails,
         txConfirm,
-        settings
+        settings,
       }}
     >
       {children}

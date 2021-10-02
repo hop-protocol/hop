@@ -17,13 +17,17 @@
 | [@hop-protocol/frontend](packages/frontend)                   | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Ffrontend.svg)](https://badge.fury.io/js/%40hop-protocol%2Ffrontend)                    | React Frontend UI                           |
 | [@hop-protocol/hop-node](packages/hop-node)                   | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fhop-node.svg)](https://badge.fury.io/js/%40hop-protocol%2Fhop-node)                    | TypeScript Hop Node                         |
 
-## Getting started
+## Quickstart
 
-```bash
-npm run bootstrap
-cd packages/frontend
-npm run dev
-```
+Install dependencies & link packages
+
+    yarn install
+    yarn run bootstrap
+
+Run frontend app in development
+
+    cd packages/frontend
+    REACT_APP_NETWORK=mainnet yarn run dev
 
 Visit [http://localhost:3000/](http://localhost:3000/)
 

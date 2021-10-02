@@ -18,17 +18,17 @@ const useStyles = makeStyles((theme: Theme) => ({
     transition: 'background 0.1s ease-out',
     background: '#00000070',
     '&.entering': {
-      background: 'transparent'
+      background: 'transparent',
     },
     '&.entered': {
-      background: '#f4f4f491'
+      background: '#f4f4f491',
     },
     '&.exiting': {
-      background: '#f4f4f491'
+      background: '#f4f4f491',
     },
     '&.exited': {
-      background: 'transparent'
-    }
+      background: 'transparent',
+    },
   },
   close: {
     position: 'absolute',
@@ -44,8 +44,8 @@ const useStyles = makeStyles((theme: Theme) => ({
     '&:hover': {
       color: '#000',
       opacity: 0.6,
-      cursor: 'pointer'
-    }
+      cursor: 'pointer',
+    },
   },
   container: {
     position: 'fixed',
@@ -60,43 +60,43 @@ const useStyles = makeStyles((theme: Theme) => ({
     padding: '5rem',
     '&.entering': {
       opacity: 0,
-      transform: 'translate(-50%, -50%) scale(0.8)'
+      transform: 'translate(-50%, -50%) scale(0.8)',
     },
     '&.entered': {
       opacity: 1,
-      transform: 'translate(-50%, -50%) scale(1)'
+      transform: 'translate(-50%, -50%) scale(1)',
     },
     '&.exiting': {
       opacity: 0,
-      transform: 'translate(-50%, -50%) scale(0.6)'
+      transform: 'translate(-50%, -50%) scale(0.6)',
     },
     '&.exited': {
       opacity: 0,
-      transform: 'translate(-50%, -50%) scale(0)'
+      transform: 'translate(-50%, -50%) scale(0)',
     },
     [theme.breakpoints.down('xs')]: {
-      maxWidth: '90%'
-    }
+      maxWidth: '90%',
+    },
   },
   card: {
     position: 'relative',
     padding: 0,
     overflow: 'auto',
-    maxHeight: '100%'
+    maxHeight: '100%',
   },
   content: {
     padding: '4rem',
     [theme.breakpoints.down('xs')]: {
-      padding: '4rem 2rem'
-    }
-  }
+      padding: '4rem 2rem',
+    },
+  },
 }))
 
 export type ActivityDetailsProps = {
   onClose?: () => void
 } & CardProps
 
-const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(function Modal (props, ref) {
+const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(function Modal(props, ref) {
   const { children, onClose } = props
   const styles = useStyles()
   const { events } = useApp()
@@ -115,46 +115,45 @@ const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(function Mo
   }, [keypress, handleClose])
 
   return (
-      <ClickAwayListener onClickAway={handleClose}>
-        <Transition
-          in={true}
-          timeout={{
-            appear: 0,
-            enter: 0,
-            exit: 0
-          }}
-          appear={true}
-          unmountOnExit={false}
-        >
-          {(transitionState: string) => (
-            <div className={classnames(styles.root, transitionState)}>
-              <Transition
-                in={true}
-                timeout={{
-                  appear: 0,
-                  enter: 0,
-                  exit: 0
-                }}
-                appear={true}
-                unmountOnExit={false}
-              >
-                <div className={classnames(styles.container, transitionState)}>
-                  <ClickAwayListener onClickAway={handleClose}>
-                    <Card className={styles.card} ref={ref}>
-                      <div className={styles.close} onClick={handleClose}>
-                        ✕
-                      </div>
-                      <div className={styles.content}>{children}</div>
-                    </Card>
-                  </ClickAwayListener>
-                </div>
-              </Transition>
-            </div>
-          )}
-        </Transition>
-      </ClickAwayListener>
+    <ClickAwayListener onClickAway={handleClose}>
+      <Transition
+        in={true}
+        timeout={{
+          appear: 0,
+          enter: 0,
+          exit: 0,
+        }}
+        appear={true}
+        unmountOnExit={false}
+      >
+        {(transitionState: string) => (
+          <div className={classnames(styles.root, transitionState)}>
+            <Transition
+              in={true}
+              timeout={{
+                appear: 0,
+                enter: 0,
+                exit: 0,
+              }}
+              appear={true}
+              unmountOnExit={false}
+            >
+              <div className={classnames(styles.container, transitionState)}>
+                <ClickAwayListener onClickAway={handleClose}>
+                  <Card className={styles.card} ref={ref}>
+                    <div className={styles.close} onClick={handleClose}>
+                      ✕
+                    </div>
+                    <div className={styles.content}>{children}</div>
+                  </Card>
+                </ClickAwayListener>
+              </div>
+            </Transition>
+          </div>
+        )}
+      </Transition>
+    </ClickAwayListener>
   )
-}
-)
+})
 
 export default Modal

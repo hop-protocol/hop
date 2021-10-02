@@ -2,10 +2,14 @@
   "name": "@hop-protocol/frontend",
   "version": "0.0.0",
   "private": true,
+  "engines": {
+    "node": "^14",
+    "yarn": "^1.22.11"
+  },
   "dependencies": {
     "@ethersproject/address": "5.0.8",
-    "@hop-protocol/core": "0.0.1-beta.26",
-    "@hop-protocol/sdk": "0.0.1-beta.183",
+    "@hop-protocol/core": "0.0.1-beta.31",
+    "@hop-protocol/sdk": "0.0.1-beta.197",
     "@material-ui/core": "4.11.0",
     "@material-ui/icons": "4.9.1",
     "@material-ui/lab": "4.0.0-alpha.56",

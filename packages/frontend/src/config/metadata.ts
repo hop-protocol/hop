@@ -51,7 +51,7 @@ const images = {
 
 const tokens = Object.keys(images).reduce((obj, token) => {
   obj[token] = deepmerge(hopMetadata[network].tokens[token], {
-    image: images[token]
+    image: images[token],
   })
   return obj
 }, {})
@@ -64,56 +64,56 @@ export const metadata: Metadata = {
       isLayer1: true,
       image: MainnetLogo,
       nativeTokenSymbol: 'ETH',
-      requiresGas: true
+      requiresGas: true,
     },
     kovan: {
       name: 'Kovan',
       isLayer1: true,
       image: MainnetLogo,
       nativeTokenSymbol: 'ETH',
-      requiresGas: true
+      requiresGas: true,
     },
     goerli: {
       name: 'Goerli',
       isLayer1: true,
       image: MainnetLogo,
       nativeTokenSymbol: 'ETH',
-      requiresGas: true
+      requiresGas: true,
     },
     mainnet: {
       name: 'Mainnet',
       isLayer1: true,
       image: MainnetLogo,
       nativeTokenSymbol: 'ETH',
-      requiresGas: true
+      requiresGas: true,
     },
     arbitrum: {
       name: 'Arbitrum',
       isLayer1: false,
       image: ArbitrumLogo,
       nativeTokenSymbol: 'ETH',
-      requiresGas: false
+      requiresGas: false,
     },
     optimism: {
       name: 'Optimism',
       isLayer1: false,
       image: OptimismLogo,
       nativeTokenSymbol: 'ETH',
-      requiresGas: false
+      requiresGas: false,
     },
     xdai: {
       name: 'xDai',
       isLayer1: false,
       image: xDaiLogo,
       nativeTokenSymbol: 'xDAI',
-      requiresGas: true
+      requiresGas: true,
     },
     polygon: {
       name: 'Polygon',
       isLayer1: false,
       image: PolygonLogo,
       nativeTokenSymbol: 'MATIC',
-      requiresGas: true
-    }
-  }
+      requiresGas: true,
+    },
+  },
 }

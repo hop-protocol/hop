@@ -13,15 +13,15 @@ const useStyles = makeStyles((theme: Theme) => ({
   whitepaperTabContainer: {
     display: 'flex',
     [theme.breakpoints.down('xs')]: {
-      display: 'none'
+      display: 'none',
     },
     flexDirection: 'row',
     padding: '6px 12px',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   whitepaperExternalLink: {
-    paddingLeft: '0.6rem'
-  }
+    paddingLeft: '0.6rem',
+  },
 }))
 
 const HeaderRoutes: FC<Props> = () => {
@@ -33,21 +33,18 @@ const HeaderRoutes: FC<Props> = () => {
     event.preventDefault()
     history.push({
       pathname: value,
-      search
+      search,
     })
   }
 
-  const value = pathname
-    .split('/')
-    .slice(0, 2)
-    .join('/')
+  const value = pathname.split('/').slice(0, 2).join('/')
 
   const goToWhitepaper = () => {
     window.open('/whitepaper.pdf', 'noopener', 'noreferrer')
   }
 
   return (
-    <Tabs value={value} onChange={handleChange}>
+    <Tabs value={value || '/send'} onChange={handleChange}>
       <Tab label="Send" value="/send" />
       <Tab label="Pool" value="/pool" />
       {/* <Tab label="HOP" value="/earn" /> */}

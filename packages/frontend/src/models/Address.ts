@@ -5,7 +5,7 @@ export type Addressish = Address | string | undefined
 class Address {
   public readonly address: string
 
-  constructor (address: Addressish) {
+  constructor(address: Addressish) {
     let _address
     if (address instanceof Address) {
       _address = address.toString()
@@ -20,23 +20,23 @@ class Address {
     this.address = _address
   }
 
-  static from (address: Addressish): Address {
+  static from(address: Addressish): Address {
     return new Address(address)
   }
 
-  toString (): string {
+  toString(): string {
     return this.address
   }
 
-  truncate (): string {
+  truncate(): string {
     return this.address.slice(0, 6) + '...' + this.address.slice(38, 42)
   }
 
-  toLowercase (): string {
+  toLowercase(): string {
     return this.address.toLowerCase()
   }
 
-  eq (address: Addressish): boolean {
+  eq(address: Addressish): boolean {
     return new Address(address).toLowercase() === this.toLowercase()
   }
 }

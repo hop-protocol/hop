@@ -27,14 +27,15 @@ export interface HopAddresses {
     governorAlpha: string
   }
   tokens: Bridges
-  bonders: {[token: string]: string[]}
+  bonders: { [token: string]: string[] }
 }
 
 export type Networks = {
   [key: string]: {
     networkId: string
     rpcUrls: string[]
-    explorerUrl: string,
+    publicRpcUrl?: string
+    explorerUrl: string
     nativeBridgeUrl?: string
   }
 }

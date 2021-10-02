@@ -171,7 +171,7 @@ const StatsContextProvider: FC = ({ children }) => {
       bridge.getCredit(selectedNetwork.slug, bonder),
       bridge.getDebit(selectedNetwork.slug, bonder),
       bridge.getTotalDebit(selectedNetwork.slug, bonder),
-      bridge.getAvailableLiquidity(selectedNetwork.slug, selectedNetwork.slug, bonder),
+      bridge.getAvailableLiquidity(selectedNetwork.slug, bonder),
       bridge.getEthBalance(selectedNetwork.slug, bonder),
     ])
 

@@ -801,13 +801,26 @@ class HopBridge extends Base {
     return minBonderFee
   }
 
+  public async getAvailableLiquidity (
+    chain: TChain,
+    bonder: string = this.getBonderAddress()
+  ): Promise<BigNumber> {
+    const [credit, debit] = await Promise.all([
+      this.getCredit(chain, bonder),
+      this.getTotalDebit(chain, bonder)
+    ])
+
+    const availableLiquidity = credit.sub(debit)
+    return availableLiquidity
+  }
+
   /**
    * @desc Returns available liquidity for Hop bridge at specified chain.
    * @param {Object} sourceChain - Source chain model.
    * @param {Object} destinationChain - Destination chain model.
    * @returns {Object} Available liquidity as BigNumber.
    */
-  public async getAvailableLiquidity (
+  public async getFrontendAvailableLiquidity (
     sourceChain: TChain,
     destinationChain: TChain,
     bonder: string = this.getBonderAddress()
@@ -815,14 +828,10 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     const token = this.toTokenModel(this.tokenSymbol)
-
-    const [credit, debit] = await Promise.all([
-      this.getCredit(destinationChain, bonder),
-      this.getTotalDebit(destinationChain, bonder)
-    ])
-
-    let availableLiquidity = credit.sub(debit)
-
+    let availableLiquidity = await this.getAvailableLiquidity(
+      destinationChain,
+      bonder
+    )
     const unbondedTransferRootAmount = await this.getUnbondedTransferRootAmount(
       sourceChain,
       destinationChain

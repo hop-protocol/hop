@@ -24,7 +24,7 @@ const useAvailableLiquidity = (
 
       let liquidity
       if (sourceChain && destinationChain) {
-        liquidity = await bridge.getAvailableLiquidity(sourceChain, destinationChain)
+        liquidity = await bridge.getFrontendAvailableLiquidity(sourceChain, destinationChain)
       }
       setAvailableLiquidity(liquidity)
     } catch (err) {

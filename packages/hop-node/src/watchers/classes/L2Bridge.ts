@@ -458,9 +458,6 @@ export default class L2Bridge extends Bridge {
       txOverrides
     ]
 
-    const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
-    await checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
-
     const tx = await this.bridgeContract.bondWithdrawalAndDistribute(...payload)
 
     return tx

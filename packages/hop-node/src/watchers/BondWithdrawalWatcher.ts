@@ -259,15 +259,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('transferNonce:', transferNonce)
     logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
 
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const {
-      gasPrice,
-      tokenUsdPrice,
-      chainNativeTokenUsdPrice
-    } = await this.getPricesNearTransferEvent(dbTransfer)
-    logger.debug('gasPrice:', gasPrice.toString())
-    logger.debug('tokenUsdPrice:', tokenUsdPrice)
-    logger.debug('chainNativeTokenUsdPrice:', chainNativeTokenUsdPrice)
+    const minFee = BigNumber.from('1000000')
+    if (bonderFee.lt(minFee)) {
+      logger.log('bonder fee too small', bonderFee.toString())
+      return
+    }
 
     if (attemptSwap) {
       logger.debug(
@@ -281,10 +277,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transferNonce,
         bonderFee,
         amountOutMin,
-        deadline,
-        gasPrice,
-        tokenUsdPrice,
-        chainNativeTokenUsdPrice
+        deadline
       )
     } else {
       logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
@@ -293,10 +286,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         recipient,
         amount,
         transferNonce,
-        bonderFee,
-        gasPrice,
-        tokenUsdPrice,
-        chainNativeTokenUsdPrice
+        bonderFee
       )
     }
   }

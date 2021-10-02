@@ -474,9 +474,6 @@ export default class Bridge extends ContractBase {
       txOverrides
     ]
 
-    const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
-    await checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
-
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
 
     return tx

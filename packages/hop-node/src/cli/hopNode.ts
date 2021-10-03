@@ -46,6 +46,7 @@ program
   .action(async (source: any) => {
     try {
       printHopArt()
+      logger.debug('starting hop node')
 
       const configFilePath = source.config || source.args[0]
       const config: FileConfig = await parseConfigFile(configFilePath)

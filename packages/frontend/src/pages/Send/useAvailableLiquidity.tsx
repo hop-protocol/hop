@@ -26,6 +26,11 @@ const useAvailableLiquidity = (
       if (sourceChain && destinationChain) {
         liquidity = await bridge.getFrontendAvailableLiquidity(sourceChain, destinationChain)
       }
+
+      // NOTE: temporarily disable ability to transfer due to bonder delays.
+      // remove this once infura is back up
+      liquidity = BigNumber.from(0)
+
       setAvailableLiquidity(liquidity)
     } catch (err) {
       setAvailableLiquidity(undefined)

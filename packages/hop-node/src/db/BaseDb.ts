@@ -16,6 +16,13 @@ export type BaseItem = {
   _createdAt?: number
 }
 
+export type KeyFilter = {
+  gt?: string
+  gte?: string
+  lt?: string
+  lte?: string
+}
+
 @boundClass
 class BaseDb {
   public db: any
@@ -99,10 +106,10 @@ class BaseDb {
     return this.db.del(id)
   }
 
-  protected async getKeys (): Promise<string[]> {
+  protected async getKeys (filter?: KeyFilter): Promise<string[]> {
     return new Promise((resolve, reject) => {
       const keys : string[] = []
-      this.db.createKeyStream()
+      this.db.createKeyStream(filter)
         .on('data', (key: string) => {
           // ignore this key that used previously to track unique ids
           if (key === 'ids') {

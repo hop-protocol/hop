@@ -53,7 +53,7 @@ class TokenPricesDb extends BaseDb {
     const endTimestamp = targetTimestamp + OneHourSeconds
     const filter = {
       gte: `${token}:${startTimestamp}`,
-      lte: `${token}:${endTimestamp}`
+      lte: `${token}:${endTimestamp}~`
     }
     const items : TokenPrice[] = (await this.getItems(filter)).filter((item: TokenPrice) => item.token === token && item.timestamp)
 

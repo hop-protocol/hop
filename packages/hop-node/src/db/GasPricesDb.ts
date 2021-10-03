@@ -55,7 +55,7 @@ class GasPricesDb extends BaseDb {
     const endTimestamp = targetTimestamp + OneHourSeconds
     const filter = {
       gte: `${chain}:${startTimestamp}`,
-      lte: `${chain}:${endTimestamp}`
+      lte: `${chain}:${endTimestamp}~`
     }
     const items : GasPrice[] = (await this.getItems(filter)).filter((item: GasPrice) => item.chain === chain && item.timestamp)
 

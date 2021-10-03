@@ -5,8 +5,19 @@ import TokenPricesDb from './TokenPricesDb'
 import TransferRootsDb from './TransferRootsDb'
 import TransfersDb from './TransfersDb'
 
+// db instances (initialized only once)
+
+// gas prices and token prices db are global (not token specific)
 let gasPricesDb: GasPricesDb | null = null
 let tokenPricesDb: TokenPricesDb | null = null
+
+// dbSets are token specific instances
+const dbSets : {[db: string]: {[tokenSymbol: string]: any}} = {
+  gasBoostDb: {},
+  syncStateDb: {},
+  transfersDb: {},
+  transferRootsDb: {}
+}
 
 export const getGasPricesDb = () => {
   if (!gasPricesDb) {
@@ -27,36 +38,31 @@ export function getDbSet (tokenSymbol: string) {
     throw new Error('token symbol is required to namespace leveldbs')
   }
 
-  let gasBoostDb : GasBoostDb | null = null
-  let syncStateDb: SyncStateDb | null = null
-  let transfersDb: TransfersDb | null = null
-  let transferRootsDb: TransferRootsDb | null = null
-
   // lazy instantiate with getters
   return {
     get gasBoost () {
-      if (!gasBoostDb) {
-        gasBoostDb = new GasBoostDb('gasBoost')
+      if (!dbSets.gasBoostDb[tokenSymbol]) {
+        dbSets.gasBoostDb[tokenSymbol] = new GasBoostDb('gasBoost')
       }
-      return gasBoostDb
+      return dbSets.gasBoostDb[tokenSymbol]
     },
     get syncState () {
-      if (!syncStateDb) {
-        syncStateDb = new SyncStateDb('state', tokenSymbol)
+      if (!dbSets.syncStateDb[tokenSymbol]) {
+        dbSets.syncStateDb[tokenSymbol] = new SyncStateDb('state', tokenSymbol)
       }
-      return syncStateDb
+      return dbSets.syncStateDb[tokenSymbol]
     },
     get transfers () {
-      if (!transfersDb) {
-        transfersDb = new TransfersDb('transfers', tokenSymbol)
+      if (!dbSets.transfersDb[tokenSymbol]) {
+        dbSets.transfersDb[tokenSymbol] = new TransfersDb('transfers', tokenSymbol)
       }
-      return transfersDb
+      return dbSets.transfersDb[tokenSymbol]
     },
     get transferRoots () {
-      if (!transferRootsDb) {
-        transferRootsDb = new TransferRootsDb('transferRoots', tokenSymbol)
+      if (!dbSets.transferRootsDb[tokenSymbol]) {
+        dbSets.transferRootsDb[tokenSymbol] = new TransferRootsDb('transferRoots', tokenSymbol)
       }
-      return transferRootsDb
+      return dbSets.transferRootsDb[tokenSymbol]
     },
     get gasPrices () {
       return getGasPricesDb()

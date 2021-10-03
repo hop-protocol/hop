@@ -21,6 +21,10 @@ export type KeyFilter = {
   gte?: string
   lt?: string
   lte?: string
+  limit?: number
+  reverse?: boolean
+  keys?: boolean
+  values?: boolean
 }
 
 @boundClass
@@ -107,20 +111,33 @@ class BaseDb {
   }
 
   protected async getKeys (filter?: KeyFilter): Promise<string[]> {
+    filter = Object.assign({
+      keys: true,
+      values: false
+    }, filter)
+    const kv = await this.getKeyValues(filter)
+    return kv.map(x => x.key).filter(x => x)
+  }
+
+  protected async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<any[]> {
     return new Promise((resolve, reject) => {
-      const keys : string[] = []
-      this.db.createKeyStream(filter)
-        .on('data', (key: string) => {
+      const kv : any[] = []
+      this.db.createReadStream(filter)
+        .on('data', (key: any, value: any) => {
+          if (typeof key === 'object') {
+            value = key.value
+            key = key.key
+          }
           // ignore this key that used previously to track unique ids
           if (key === 'ids') {
             return
           }
           if (typeof key === 'string') {
-            keys.push(key)
+            kv.push({ key, value })
           }
         })
         .on('end', () => {
-          resolve(keys)
+          resolve(kv)
         })
         .on('error', (err: any) => {
           reject(err)

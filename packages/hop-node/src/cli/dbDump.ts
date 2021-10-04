@@ -20,6 +20,8 @@ program
   .option('--config <string>', 'Config file to use.')
   .option('--chain <string>', 'Chain')
   .option('--nearest <string>', 'Nearest timestamp')
+  .option('--from-date <string>', 'From date timestamp')
+  .option('--to-date <string>', 'To date timestamp')
   .description('Dump leveldb database')
   .action(async (source: any) => {
     try {
@@ -39,11 +41,16 @@ program
       const db = getDbSet(tokenSymbol)
       const chain = source.chain
       const nearest = Number(source.nearest)
+      const fromDate = Number(source.fromDate)
+      const toDate = Number(source.toDate)
       let items : any[] = []
       if (dbName === 'transfer-roots') {
         items = await db.transferRoots.getTransferRoots()
       } else if (dbName === 'transfers') {
-        items = await db.transfers.getTransfers()
+        items = await db.transfers.getTransfers({
+          fromUnix: fromDate,
+          toUnix: toDate
+        })
       } else if (dbName === 'sync-state') {
         items = await db.syncState.getItems()
       } else if (dbName === 'gas-prices') {

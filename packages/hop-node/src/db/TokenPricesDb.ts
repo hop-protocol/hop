@@ -49,7 +49,11 @@ class TokenPricesDb extends BaseDb {
   }
 
   async getNearest (token: string, targetTimestamp: number): Promise<TokenPrice | null> {
-    const items : TokenPrice[] = (await this.getItems()).filter((item: TokenPrice) => item.token === token && item.timestamp)
+    const items : TokenPrice[] = (await this.getItems()).filter((item: TokenPrice) => item?.token === token && item?.timestamp)
+
+    if (!items) {
+      return null
+    }
 
     const dates = items.map((item: TokenPrice) => item.timestamp)
     const index = nearest(dates, targetTimestamp)

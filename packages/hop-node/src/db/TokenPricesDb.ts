@@ -1,7 +1,7 @@
-import BaseDb, { BaseItem } from './BaseDb'
+import BaseDb, { BaseItem, KeyFilter } from './BaseDb'
 import nearest from 'nearest-date'
 import wait from 'src/utils/wait'
-import { OneHourMs, OneWeekMs } from 'src/constants'
+import { OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
 export const varianceSeconds = 10 * 60
@@ -38,8 +38,8 @@ class TokenPricesDb extends BaseDb {
     return this.update(key, data)
   }
 
-  async getItems ():Promise<TokenPrice[]> {
-    const keys = await this.getKeys()
+  async getItems (filter?: KeyFilter):Promise<TokenPrice[]> {
+    const keys = await this.getKeys(filter)
     const items: TokenPrice[] = (await Promise.all(
       keys.map((key: string) => {
         return this.getById(key)
@@ -49,7 +49,13 @@ class TokenPricesDb extends BaseDb {
   }
 
   async getNearest (token: string, targetTimestamp: number, staleCheck: boolean = true): Promise<TokenPrice | null> {
-    const items : TokenPrice[] = (await this.getItems()).filter((item: TokenPrice) => item.token === token && item.timestamp)
+    const startTimestamp = targetTimestamp - OneHourSeconds
+    const endTimestamp = targetTimestamp + OneHourSeconds
+    const filter = {
+      gte: `${token}:${startTimestamp}`,
+      lte: `${token}:${endTimestamp}~`
+    }
+    const items : TokenPrice[] = (await this.getItems(filter)).filter((item: TokenPrice) => item.token === token && item.timestamp)
 
     const dates = items.map((item: TokenPrice) => item.timestamp)
     const index = nearest(dates, targetTimestamp)

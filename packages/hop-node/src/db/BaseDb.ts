@@ -16,6 +16,18 @@ export type BaseItem = {
   _createdAt?: number
 }
 
+// this are options that leveldb createReadStream accepts
+export type KeyFilter = {
+  gt?: string
+  gte?: string
+  lt?: string
+  lte?: string
+  limit?: number
+  reverse?: boolean
+  keys?: boolean
+  values?: boolean
+}
+
 @boundClass
 class BaseDb {
   public db: any
@@ -99,21 +111,35 @@ class BaseDb {
     return this.db.del(id)
   }
 
-  protected async getKeys (): Promise<string[]> {
+  protected async getKeys (filter?: KeyFilter): Promise<string[]> {
+    filter = Object.assign({
+      keys: true,
+      values: false
+    }, filter)
+    const kv = await this.getKeyValues(filter)
+    return kv.map(x => x.key).filter(x => x)
+  }
+
+  protected async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<any[]> {
     return new Promise((resolve, reject) => {
-      const keys : string[] = []
-      this.db.createKeyStream()
-        .on('data', (key: string) => {
+      const kv : any[] = []
+      this.db.createReadStream(filter)
+        .on('data', (key: any, value: any) => {
+          // the parameter types depend on what key/value enabled options were used
+          if (typeof key === 'object') {
+            value = key.value
+            key = key.key
+          }
           // ignore this key that used previously to track unique ids
           if (key === 'ids') {
             return
           }
           if (typeof key === 'string') {
-            keys.push(key)
+            kv.push({ key, value })
           }
         })
         .on('end', () => {
-          resolve(keys)
+          resolve(kv)
         })
         .on('error', (err: any) => {
           reject(err)

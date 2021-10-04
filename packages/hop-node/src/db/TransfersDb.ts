@@ -69,20 +69,30 @@ class TransfersDb extends BaseDb {
   }
 
   async trackTimestampedKeys () {
-    const transfers = await this.getTransfers()
+    const transfers = await this._getTransfers()
     for (const transfer of transfers) {
       await this.trackTimestampedKey(transfer)
     }
   }
 
   async trackTimestampedKey (transfer: Partial<Transfer>) {
-    const transferId = transfer.transferId
+    if (!transfer) {
+      this.logger.warn('expected transfer object for timestamped key')
+      return
+    }
+    const transferId = transfer?.transferId
     const key = this.getTimestampedKey(transfer)
-    if (!key || !transferId) {
+    if (!key) {
+      this.logger.warn('expected timestamped key. incomplete transfer:', transfer)
+      return
+    }
+    if (!transferId) {
+      this.logger.warn(`expected transfer id for timestamped key. key: ${key} incomplete transfer: `, transfer)
       return
     }
     const exists = await this.getById(key)
     if (!exists) {
+      this.logger.debug(`storing timestamped key. key: ${key} transferId: ${transferId}`)
       await super.update(key, { transferId })
     }
   }
@@ -102,9 +112,9 @@ class TransfersDb extends BaseDb {
   async getByTransferId (transferId: string): Promise<Transfer> {
     const item = (await this.getById(transferId)) as Transfer
     if (!item) {
-      return item
+      return null
     }
-    if (!item.transferId) {
+    if (!item?.transferId) {
       item.transferId = transferId
     }
     if (item?.destinationChainId) {
@@ -127,7 +137,7 @@ class TransfersDb extends BaseDb {
         filter.lte = `transfer:${dateFilter.toUnix}~`
       }
       const kv = await this.getKeyValues(filter)
-      return kv.map(x => x.value.transferId).filter(x => x)
+      return kv.map(x => x?.value?.transferId).filter(x => x)
     }
 
     // return all transfer-id keys if no filter is used (filter out timestamped keys)
@@ -135,7 +145,7 @@ class TransfersDb extends BaseDb {
     return keys.filter((key: string) => !key?.startsWith('transfer:')).filter(x => x)
   }
 
-  async getTransfers (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
+  private async _getTransfers (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
     const transferIds = await this.getTransferIds(dateFilter)
     const transfers = await Promise.all(
       transferIds.map(transferId => {
@@ -155,6 +165,11 @@ class TransfersDb extends BaseDb {
       })
 
     return items
+  }
+
+  async getTransfers (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
+    await this.tilReady()
+    return this._getTransfers(dateFilter)
   }
 
   // gets only transfers within range: now - 1 week ago

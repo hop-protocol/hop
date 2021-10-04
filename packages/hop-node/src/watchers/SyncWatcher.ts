@@ -258,7 +258,7 @@ class SyncWatcher extends BaseWatcher {
       bonderFee,
       index,
       amountOutMin,
-      deadline
+      deadline: deadlineBn
     } = event.args
     const logger = this.logger.create({ id: transferId })
     logger.debug('handling TransferSent event')
@@ -273,16 +273,23 @@ class SyncWatcher extends BaseWatcher {
         throw new Error('event block number not found')
       }
       const l2Bridge = this.bridge as L2Bridge
-      const destinationChainId = Number(destinationChainIdBn.toString())
+      const destinationChainId = Number(destinationChainIdBn?.toString())
       const sourceChainId = await l2Bridge.getChainId()
+      const deadline = Number(deadlineBn?.toString())
       const isBondable = this.getIsBondable(transferId, amountOutMin, deadline, destinationChainId)
       const transferSentTimestamp = await this.bridge.getBlockTimestamp(event.blockNumber)
 
-      logger.debug('transfer event amount:', this.bridge.formatUnits(amount))
+      logger.debug('sourceChainId:', sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)
       logger.debug('isBondable:', isBondable)
       logger.debug('transferId:', chalk.bgCyan.black(transferId))
+      logger.debug('amount:', this.bridge.formatUnits(amount))
       logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
+      logger.debug('amountOutMin:', amountOutMin)
+      logger.debug('deadline:', deadline)
+      logger.debug('transferSentTimestamp:', transferSentTimestamp)
+      logger.debug('transferSentIndex:', transactionIndex)
+      logger.debug('transferSentBlockNumber:', blockNumber)
 
       if (!isBondable) {
         logger.warn('transfer is unbondable', amountOutMin, deadline)
@@ -298,7 +305,7 @@ class SyncWatcher extends BaseWatcher {
         bonderFee,
         amountOutMin,
         isBondable,
-        deadline: Number(deadline.toString()),
+        deadline,
         transferSentTimestamp,
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,

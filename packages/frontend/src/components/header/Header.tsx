@@ -11,6 +11,7 @@ import HopLogoFullColor from 'src/assets/logos/hop-logo-full-color.svg'
 import { isMainnet } from 'src/config'
 import Settings from 'src/pages/Send/Settings'
 import WalletWarning from './WalletWarning'
+import Banner from 'src/components/Banner'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -19,23 +20,23 @@ const useStyles = makeStyles((theme: Theme) => ({
     [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',
       paddingTop: '2rem',
-      marginBottom: '4rem'
-    }
+      marginBottom: '4rem',
+    },
   },
   title: {
-    position: 'relative'
+    position: 'relative',
   },
   hopLogo: {
     marginTop: '-1.0rem',
-    width: '19.1rem'
+    width: '19.1rem',
   },
   label: {
     fontSize: '1rem',
     position: 'absolute',
     bottom: '-0.2rem',
     right: '0',
-    opacity: '0.2'
-  }
+    opacity: '0.2',
+  },
 }))
 
 const Header: FC = () => {
@@ -45,42 +46,33 @@ const Header: FC = () => {
 
   return (
     <>
-    <Box className={styles.root} display="flex" alignItems="center">
-      <Box
-        display="flex"
-        flexDirection="row"
-        flex={1}
-        justifyContent="flex-start"
-      >
-        <Link to="/">
-          <h1 className={styles.title}>
-            <img className={styles.hopLogo} src={HopLogoFullColor} alt="Hop" />
-            {!isMainnet ? (
-              <span className={styles.label}>{l1Network?.name}</span>
-            ) : null}
-          </h1>
-        </Link>
+      <Banner>
+      Hop transactions are taking longer than usual. The bonder is experiencing some latency so transfers may take a few hours. We apologize for the delay and are working on resolving the issue.
+      </Banner>
+      <Box className={styles.root} display="flex" alignItems="center">
+        <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-start">
+          <Link to="/">
+            <h1 className={styles.title}>
+              <img className={styles.hopLogo} src={HopLogoFullColor} alt="Hop" />
+              {!isMainnet ? <span className={styles.label}>{l1Network?.name}</span> : null}
+            </h1>
+          </Link>
+        </Box>
+        <Box display="flex" flexDirection="row" flex={1} justifyContent="center">
+          <HeaderRoutes />
+        </Box>
+        <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-end">
+          <Settings />
+          {address ? (
+            <TxPill />
+          ) : (
+            <Button highlighted onClick={requestWallet}>
+              Connect a Wallet
+            </Button>
+          )}
+        </Box>
       </Box>
-      <Box display="flex" flexDirection="row" flex={1} justifyContent="center">
-        <HeaderRoutes />
-      </Box>
-      <Box
-        display="flex"
-        flexDirection="row"
-        flex={1}
-        justifyContent="flex-end"
-      >
-        <Settings />
-        {address ? (
-          <TxPill />
-        ) : (
-          <Button highlighted onClick={requestWallet}>
-            Connect a Wallet
-          </Button>
-        )}
-      </Box>
-    </Box>
-    <WalletWarning />
+      <WalletWarning />
     </>
   )
 }

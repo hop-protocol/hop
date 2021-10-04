@@ -1,9 +1,13 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.188",
+  "version": "0.0.1-beta.199",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "engines": {
+    "node": ">=14",
+    "yarn": "^1.22.11"
+  },
   "scripts": {
     "test": "jest test",
     "dev": "npm run version && tsc --watch",
@@ -33,7 +37,7 @@
   "license": "MIT",
   "dependencies": {
     "@ethersproject/abi": "^5.4.0",
-    "@hop-protocol/core": "0.0.1-beta.30",
+    "@hop-protocol/core": "0.0.1-beta.32",
     "@maticnetwork/maticjs": "^2.0.38",
     "@types/isomorphic-fetch": "0.0.35",
     "@types/luxon": "^1.27.1",

@@ -1,9 +1,13 @@
 node_modules
-/package-lock.json
-/yarn.lock
 lerna-debug.log
 
 # Local Netlify folder
 .netlify
 
-packages/db_data
+db_data
+
+.DS_Store
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

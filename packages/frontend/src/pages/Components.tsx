@@ -11,17 +11,17 @@ import MenuItem from '@material-ui/core/MenuItem'
 
 const useStyles = makeStyles(() => ({
   container: {
-    maxWidth: '96.0rem'
+    maxWidth: '96.0rem',
   },
   section: {
-    margin: '2.1rem'
+    margin: '2.1rem',
   },
   sectionTitle: {
-    marginBottom: '2.8rem'
+    marginBottom: '2.8rem',
   },
   largeButton: {
-    marginBottom: '2.8rem'
-  }
+    marginBottom: '2.8rem',
+  },
 }))
 
 type SectionProps = {
@@ -54,14 +54,12 @@ const Components: FC = () => {
         <Section title="Cards">
           <Typography variant="h6">You're looking at one</Typography>
           <Typography variant="body1">
-            This is a card. Lorem ipsum dolor sit amet, consectetur adipiscing
-            elit, sed do eiusmod tempor incididunt ut labore et dolore magna
-            aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-            laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
-            dolor in reprehenderit in voluptate velit esse cillum dolore eu
-            fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-            proident, sunt in culpa qui officia deserunt mollit anim id est
-            laborum.
+            This is a card. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+            tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+            nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute
+            irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
+            deserunt mollit anim id est laborum.
           </Typography>
         </Section>
 
@@ -72,37 +70,19 @@ const Components: FC = () => {
           <Button className={styles.largeButton} startIcon={<SendIcon />} flat>
             Button flat
           </Button>
-          <Button
-            className={styles.largeButton}
-            startIcon={<SendIcon />}
-            highlighted
-          >
+          <Button className={styles.largeButton} startIcon={<SendIcon />} highlighted>
             Button highlighted
           </Button>
-          <Button
-            className={styles.largeButton}
-            startIcon={<SendIcon />}
-            disabled
-          >
+          <Button className={styles.largeButton} startIcon={<SendIcon />} disabled>
             Button disabled
           </Button>
           <Button className={styles.largeButton} startIcon={<SendIcon />} large>
             Button large
           </Button>
-          <Button
-            className={styles.largeButton}
-            startIcon={<SendIcon />}
-            large
-            highlighted
-          >
+          <Button className={styles.largeButton} startIcon={<SendIcon />} large highlighted>
             Button large highlighted
           </Button>
-          <Button
-            className={styles.largeButton}
-            startIcon={<SendIcon />}
-            large
-            disabled
-          >
+          <Button className={styles.largeButton} startIcon={<SendIcon />} large disabled>
             Button large disabled
           </Button>
         </Section>
@@ -122,30 +102,26 @@ const Components: FC = () => {
           <Typography variant="h5">h5. Lorem ipsum dolor sit amet</Typography>
           <Typography variant="h6">h6. Lorem ipsum dolor sit amet</Typography>
           <Typography variant="subtitle1">
-            subtitle1. Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-            sed do eiusmod
+            subtitle1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
           </Typography>
           <Typography variant="subtitle2">
-            subtitle2. Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-            sed do eiusmod
+            subtitle2. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
           </Typography>
           <Typography variant="body1">
-            body1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-            do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-            enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
-            ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-            culpa qui officia deserunt mollit anim id est laborum.
+            body1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+            incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+            exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
+            dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+            Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+            mollit anim id est laborum.
           </Typography>
           <Typography variant="body2">
-            body2. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-            do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-            enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
-            ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-            culpa qui officia deserunt mollit anim id est laborum.
+            body2. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+            incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+            exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
+            dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+            Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+            mollit anim id est laborum.
           </Typography>
         </Section>
       </div>

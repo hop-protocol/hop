@@ -11,7 +11,7 @@ class HopConvertOption extends ConvertOption {
   readonly slug: string
   readonly path: string
 
-  constructor () {
+  constructor() {
     super()
 
     this.name = 'Hop Bridge'
@@ -19,7 +19,7 @@ class HopConvertOption extends ConvertOption {
     this.path = '/hop'
   }
 
-  async convert (
+  async convert(
     sdk: Hop,
     signer: Signer,
     sourceNetwork: Network,
@@ -31,21 +31,14 @@ class HopConvertOption extends ConvertOption {
     deadline: number,
     bonderFee?: BigNumberish
   ) {
-    const bridge = sdk
-      .bridge(l1TokenSymbol)
-      .connect(signer as Signer)
+    const bridge = sdk.bridge(l1TokenSymbol).connect(signer as Signer)
 
-    return bridge.sendHToken(
-      amountIn,
-      sourceNetwork.slug,
-      destNetwork.slug,
-      {
-        bonderFee
-      }
-    )
+    return bridge.sendHToken(amountIn, sourceNetwork.slug, destNetwork.slug, {
+      bonderFee,
+    })
   }
 
-  async getSendData (
+  async getSendData(
     sdk: Hop,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined,
@@ -53,35 +46,30 @@ class HopConvertOption extends ConvertOption {
     l1TokenSymbol: string | undefined,
     amountIn: BigNumberish | undefined
   ): Promise<SendData> {
-    if (
-      !l1TokenSymbol ||
-      !sourceNetwork ||
-      !destNetwork ||
-      !amountIn
-    ) {
+    if (!l1TokenSymbol || !sourceNetwork || !destNetwork || !amountIn) {
       return {
         amountOut: undefined,
-        details: []
+        details: [],
       }
     }
 
     amountIn = BigNumber.from(amountIn)
-    const bridge = sdk
-      .bridge(l1TokenSymbol)
-    const token = sourceNetwork?.isLayer1 ? bridge.getCanonicalToken(sourceNetwork?.slug) : bridge.getL2HopToken(sourceNetwork?.slug)
+    const bridge = sdk.bridge(l1TokenSymbol)
+    const token = sourceNetwork?.isLayer1
+      ? bridge.getCanonicalToken(sourceNetwork?.slug)
+      : bridge.getL2HopToken(sourceNetwork?.slug)
 
-    const bonderFee = await bridge.getBonderFee(
-      amountIn,
-      sourceNetwork.slug,
-      destNetwork.slug
-    )
+    const bonderFee = await bridge.getBonderFee(amountIn, sourceNetwork.slug, destNetwork.slug)
 
-    const destinationTxFee = (await bridge.getDestinationTransactionFee(
-      sourceNetwork.slug,
-      destNetwork.slug
-    )) || BigNumber.from(0)
+    const destinationTxFee =
+      (await bridge.getDestinationTransactionFee(
+        sourceNetwork.slug,
+        destNetwork.slug,
+        amountIn,
+        bonderFee
+      )) || BigNumber.from(0)
 
-    const availableLiquidity = await bridge.getAvailableLiquidity(
+    const availableLiquidity = await bridge.getFrontendAvailableLiquidity(
       sourceNetwork.slug,
       destNetwork.slug
     )
@@ -91,10 +79,7 @@ class HopConvertOption extends ConvertOption {
     let warning
 
     if (!sourceNetwork?.isLayer1 && amountIn.gt(availableLiquidity)) {
-      const formattedAmount = toTokenDisplay(
-        availableLiquidity,
-        token.decimals
-      )
+      const formattedAmount = toTokenDisplay(availableLiquidity, token.decimals)
       warning = `Insufficient liquidity. There is ${formattedAmount} ${l1TokenSymbol} available on ${destNetwork.name}.`
     }
 
@@ -119,11 +104,11 @@ class HopConvertOption extends ConvertOption {
       amountOut: amountIn,
       details,
       warning,
-      bonderFee: totalFees
+      bonderFee: totalFees,
     }
   }
 
-  async getTargetAddress (
+  async getTargetAddress(
     sdk: Hop,
     l1TokenSymbol: string | undefined,
     sourceNetwork: Network | undefined,
@@ -147,7 +132,11 @@ class HopConvertOption extends ConvertOption {
     }
   }
 
-  async sourceToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<Token | undefined> {
+  async sourceToken(
+    isForwardDirection: boolean,
+    network?: Network,
+    bridge?: HopBridge
+  ): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {
@@ -157,7 +146,11 @@ class HopConvertOption extends ConvertOption {
     }
   }
 
-  async destToken (isForwardDirection: boolean, network?: Network, bridge?: HopBridge): Promise<Token | undefined> {
+  async destToken(
+    isForwardDirection: boolean,
+    network?: Network,
+    bridge?: HopBridge
+  ): Promise<Token | undefined> {
     if (!bridge || !network) return
 
     if (isForwardDirection) {
@@ -167,33 +160,33 @@ class HopConvertOption extends ConvertOption {
     }
   }
 
-  private getDetails (
+  private getDetails(
     totalFees: BigNumber,
     estimatedReceived: BigNumber,
     token: Token | undefined
   ): ReactNode {
-    if (!token) return (<></>)
+    if (!token) return <></>
 
     const feeDisplay = toTokenDisplay(totalFees, token.decimals)
     const estimatedReceivedDisplay = toTokenDisplay(estimatedReceived, token.decimals)
 
     return (
       <>
-      {totalFees.gt(0) &&
+        {totalFees.gt(0) && (
+          <DetailRow
+            title="L1 Transaction Fee"
+            tooltip="This fee covers the L1 transaction fee paid by the Bonder."
+            value={feeDisplay}
+            large
+          />
+        )}
         <DetailRow
-          title="L1 Transaction Fee"
-          tooltip="This fee covers the L1 transaction fee paid by the Bonder."
-          value={feeDisplay}
+          title="Estimated Received"
+          tooltip="The estimated amount you will receive after fees"
+          value={estimatedReceivedDisplay}
           large
+          bold
         />
-      }
-      <DetailRow
-        title="Estimated Received"
-        tooltip="The estimated amount you will receive after fees"
-        value={estimatedReceivedDisplay}
-        large
-        bold
-      />
       </>
     )
   }

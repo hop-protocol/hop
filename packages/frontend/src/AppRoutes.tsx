@@ -18,9 +18,8 @@ const mockDetails = [
   {
     target: '0x752Ebd504E4faC89397448b434aa3aA4AEcD0B5E',
     functionSig: 'transfer',
-    callData:
-      '0x967F2c0826AF779a09E42eff7BfAdAD7618b55E5, 5047600000000000000000000'
-  }
+    callData: '0x967F2c0826AF779a09E42eff7BfAdAD7618b55E5, 5047600000000000000000000',
+  },
 ]
 
 const mockProposals: IProposal[] = [
@@ -35,7 +34,7 @@ const mockProposals: IProposal[] = [
     againstCount: 21229,
     startBlock: 123,
     endBlock: 678,
-    details: mockDetails
+    details: mockDetails,
   },
   {
     id: '3',
@@ -48,7 +47,7 @@ const mockProposals: IProposal[] = [
     againstCount: 21229,
     startBlock: 123,
     endBlock: 678,
-    details: mockDetails
+    details: mockDetails,
   },
   {
     id: '2',
@@ -61,7 +60,7 @@ const mockProposals: IProposal[] = [
     againstCount: 21229,
     startBlock: 123,
     endBlock: 678,
-    details: mockDetails
+    details: mockDetails,
   },
   {
     id: '1',
@@ -74,8 +73,8 @@ const mockProposals: IProposal[] = [
     againstCount: 2245,
     startBlock: 123,
     endBlock: 678,
-    details: mockDetails
-  }
+    details: mockDetails,
+  },
 ]
 
 const COMPONENT_NAME: FC<Props> = () => {
@@ -83,9 +82,6 @@ const COMPONENT_NAME: FC<Props> = () => {
     <Switch>
       <Route path="/(send|arbitrum|optimism|polygon|xdai)/">
         <Send />
-      </Route>
-      <Route path="/convert" exact >
-        <Redirect to="/convert/amm" />
       </Route>
       <Route path="/convert">
         <Convert />

@@ -5,6 +5,7 @@ import os from 'os'
 import path from 'path'
 import queue from 'src/decorators/queue'
 import sub from 'subleveldown'
+import { TenSecondsMs } from 'src/constants'
 import { boundClass } from 'autobind-decorator'
 import { config as globalConfig } from 'src/config'
 
@@ -12,6 +13,19 @@ const dbMap: { [key: string]: any } = {}
 
 export type BaseItem = {
   _id?: string
+  _createdAt?: number
+}
+
+// this are options that leveldb createReadStream accepts
+export type KeyFilter = {
+  gt?: string
+  gte?: string
+  lt?: string
+  lte?: string
+  limit?: number
+  reverse?: boolean
+  keys?: boolean
+  values?: boolean
 }
 
 @boundClass
@@ -56,8 +70,12 @@ class BaseDb {
       .on('closed', () => {
         this.logger.debug('closed')
       })
-      .on('put', (key: string) => {
-        this.logger.debug(`put item, key=${key}`)
+      .on('put', (key: string, value: any) => {
+        // only log recently created items
+        const recentlyCreated = value?._createdAt && Date.now() - value._createdAt < TenSecondsMs
+        if (recentlyCreated) {
+          this.logger.debug(`put item, key=${key}`)
+        }
       })
       .on('clear', (key: string) => {
         this.logger.debug(`clear item, key=${key}`)
@@ -66,7 +84,9 @@ class BaseDb {
 
   @queue
   public async update (key: string, data: any) {
-    const entry = await this.getById(key, {})
+    const entry = await this.getById(key, {
+      _createdAt: Date.now()
+    })
     const value = Object.assign({}, entry, data)
 
     return this.db.put(key, value)
@@ -80,6 +100,9 @@ class BaseDb {
       }
       return item
     } catch (err) {
+      if (!err.message.includes('Key not found in database')) {
+        this.logger.error(`getById error: ${err.message}`)
+      }
       return defaultValue
     }
   }
@@ -88,19 +111,35 @@ class BaseDb {
     return this.db.del(id)
   }
 
-  protected async getKeys (): Promise<string[]> {
+  protected async getKeys (filter?: KeyFilter): Promise<string[]> {
+    filter = Object.assign({
+      keys: true,
+      values: false
+    }, filter)
+    const kv = await this.getKeyValues(filter)
+    return kv.map(x => x.key).filter(x => x)
+  }
+
+  protected async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<any[]> {
     return new Promise((resolve, reject) => {
-      const keys : string[] = []
-      this.db.createKeyStream()
-        .on('data', (key: string) => {
+      const kv : any[] = []
+      this.db.createReadStream(filter)
+        .on('data', (key: any, value: any) => {
+          // the parameter types depend on what key/value enabled options were used
+          if (typeof key === 'object') {
+            value = key.value
+            key = key.key
+          }
           // ignore this key that used previously to track unique ids
           if (key === 'ids') {
             return
           }
-          keys.push(key)
+          if (typeof key === 'string') {
+            kv.push({ key, value })
+          }
         })
         .on('end', () => {
-          resolve(keys)
+          resolve(kv)
         })
         .on('error', (err: any) => {
           reject(err)

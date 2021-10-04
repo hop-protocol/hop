@@ -9,7 +9,7 @@ import {
   arbitrumGlobalInboxAbi,
   l1OptimismTokenBridgeAbi,
   l1xDaiForeignOmniBridgeAbi,
-  arbErc20Abi
+  arbErc20Abi,
 } from '@hop-protocol/core/abi'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -41,7 +41,7 @@ const useNetworkSpecificContracts = (
       l2CanonicalBridge: undefined,
       l2CanonicalToken: undefined,
       l2Bridge: undefined,
-      l2HopBridgeToken: undefined
+      l2HopBridgeToken: undefined,
     }
   }
 
@@ -75,66 +75,28 @@ const useNetworkSpecificContracts = (
     return new Contract(l1BridgeAddress, l1BridgeAbi, l1Provider)
   }, [l1Provider])
   const l1CanonicalBridge = useMemo(() => {
-    if (
-      l1CanonicalBridgeAddress ===
-      addresses.tokens[token.symbol]?.optimism?.l1CanonicalBridge
-    ) {
-      return new Contract(
-        l1CanonicalBridgeAddress,
-        l1OptimismTokenBridgeAbi,
-        l1Provider
-      )
+    if (l1CanonicalBridgeAddress === addresses.tokens[token.symbol]?.optimism?.l1CanonicalBridge) {
+      return new Contract(l1CanonicalBridgeAddress, l1OptimismTokenBridgeAbi, l1Provider)
     }
 
-    if (
-      l1CanonicalBridgeAddress ===
-      addresses.tokens[token.symbol]?.xdai?.l1CanonicalBridge
-    ) {
-      return new Contract(
-        l1CanonicalBridgeAddress,
-        l1xDaiForeignOmniBridgeAbi,
-        l1Provider
-      )
+    if (l1CanonicalBridgeAddress === addresses.tokens[token.symbol]?.xdai?.l1CanonicalBridge) {
+      return new Contract(l1CanonicalBridgeAddress, l1xDaiForeignOmniBridgeAbi, l1Provider)
     }
 
-    if (
-      l1CanonicalBridgeAddress ===
-      addresses.tokens[token.symbol]?.arbitrum?.l1CanonicalBridge
-    ) {
-      return new Contract(
-        l1CanonicalBridgeAddress,
-        arbitrumGlobalInboxAbi,
-        l1Provider
-      )
+    if (l1CanonicalBridgeAddress === addresses.tokens[token.symbol]?.arbitrum?.l1CanonicalBridge) {
+      return new Contract(l1CanonicalBridgeAddress, arbitrumGlobalInboxAbi, l1Provider)
     }
   }, [l1Provider])
   const l2CanonicalBridge = useMemo(() => {
-    if (
-      l2CanonicalBridgeAddress ===
-      addresses.tokens[token.symbol]?.optimism?.l2CanonicalBridge
-    ) {
-      return new Contract(
-        l2CanonicalBridgeAddress,
-        l2OptimismTokenBridgeAbi,
-        l2Provider
-      )
+    if (l2CanonicalBridgeAddress === addresses.tokens[token.symbol]?.optimism?.l2CanonicalBridge) {
+      return new Contract(l2CanonicalBridgeAddress, l2OptimismTokenBridgeAbi, l2Provider)
     }
-    if (
-      l2CanonicalBridgeAddress ===
-      addresses.tokens[token.symbol]?.xdai?.l2CanonicalBridge
-    ) {
-      return new Contract(
-        l2CanonicalBridgeAddress,
-        l1xDaiForeignOmniBridgeAbi,
-        l2Provider
-      )
+    if (l2CanonicalBridgeAddress === addresses.tokens[token.symbol]?.xdai?.l2CanonicalBridge) {
+      return new Contract(l2CanonicalBridgeAddress, l1xDaiForeignOmniBridgeAbi, l2Provider)
     }
   }, [l2Provider])
   const l2CanonicalToken = useMemo(() => {
-    if (
-      l2CanonicalTokenAddress ===
-      addresses.tokens[token.symbol]?.xdai?.l2CanonicalToken
-    ) {
+    if (l2CanonicalTokenAddress === addresses.tokens[token.symbol]?.xdai?.l2CanonicalToken) {
       return new Contract(l2CanonicalTokenAddress, l2xDaiTokenAbi, l2Provider)
     }
 
@@ -153,7 +115,7 @@ const useNetworkSpecificContracts = (
     l2CanonicalBridge,
     l2CanonicalToken,
     l2Bridge,
-    l2HopBridgeToken
+    l2HopBridgeToken,
   }
 }
 

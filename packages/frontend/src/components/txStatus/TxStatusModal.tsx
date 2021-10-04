@@ -12,10 +12,10 @@ const useStyles = makeStyles(theme => ({
   txStatusInfo: {
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   txStatusCloseButton: {
-    marginTop: '1rem'
+    marginTop: '1rem',
   },
 }))
 
@@ -24,7 +24,7 @@ type Props = {
   onClose?: () => void
 }
 
-function TxStatusModal (props: Props) {
+function TxStatusModal(props: Props) {
   const styles = useStyles()
   const { onClose, tx } = props
   const handleTxStatusClose = () => {
@@ -40,32 +40,26 @@ function TxStatusModal (props: Props) {
     timeEstimate = '15 minutes'
   }
 
-  return (
-    tx ? (
-      <Modal onClose={handleTxStatusClose}>
-        <TxStatus tx={tx} />
-        <Box
-          display="flex"
-          alignItems="center"
-          className={styles.txStatusInfo}
-        >
-          <Typography variant="body1">
-            {
-              (tx && tx.token)
-              ? <em>Your transfer will arrive at the destination around <strong>{timeEstimate}</strong> after your transaction is confirmed.</em>
-              : <em>This may take a few minutes</em>
-            }
-          </Typography>
-          <MuiButton
-            className={styles.txStatusCloseButton}
-            onClick={handleTxStatusClose}
-          >
-            Close
-          </MuiButton>
-        </Box>
-      </Modal>
-    ) : null
-  )
+  return tx ? (
+    <Modal onClose={handleTxStatusClose}>
+      <TxStatus tx={tx} />
+      <Box display="flex" alignItems="center" className={styles.txStatusInfo}>
+        <Typography variant="body1">
+          {tx && tx.token ? (
+            <em>
+              Your transfer will arrive at the destination around <strong>{timeEstimate}</strong>{' '}
+              after your transaction is confirmed.
+            </em>
+          ) : (
+            <em>This may take a few minutes</em>
+          )}
+        </Typography>
+        <MuiButton className={styles.txStatusCloseButton} onClick={handleTxStatusClose}>
+          Close
+        </MuiButton>
+      </Box>
+    </Modal>
+  ) : null
 }
 
 export default TxStatusModal

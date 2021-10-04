@@ -2,18 +2,19 @@ import '../moduleAlias'
 import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
-import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
+import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
 import GasPriceWatcher from 'src/watchers/GasPriceWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
 import SyncWatcher from 'src/watchers/SyncWatcher'
+import TokenPriceWatcher from 'src/watchers/TokenPriceWatcher'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
-import { config as globalConfig } from 'src/config'
+import { chainNativeTokens, config as globalConfig } from 'src/config'
 
-type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransferWatcher | SettleBondedWithdrawalWatcher | StakeWatcher | SyncWatcher | xDomainMessageRelayWatcher
+type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransfersWatcher | SettleBondedWithdrawalWatcher | StakeWatcher | SyncWatcher | xDomainMessageRelayWatcher
 
 enum Watchers {
   BondWithdrawal = 'bondWithdrawal',
@@ -53,6 +54,8 @@ type GetWatchersConfig = {
   dryMode?: boolean
   stateUpdateAddress?: string
   syncFromDate?: string
+  s3Upload?: boolean
+  s3Namespace?: string
 }
 
 type GetStakeWatchersConfig = {
@@ -82,7 +85,9 @@ export function getWatchers (config: GetWatchersConfig) {
     settleBondedWithdrawalsThresholdPercent = {},
     dryMode = false,
     stateUpdateAddress,
-    syncFromDate
+    syncFromDate,
+    s3Upload,
+    s3Namespace
   } = config
 
   const order = () => orderNum
@@ -123,7 +128,7 @@ export function getWatchers (config: GetWatchersConfig) {
     watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
       const minThresholdAmounts = commitTransfersMinThresholdAmounts?.[token]?.[network]
 
-      return new CommitTransferWatcher({
+      return new CommitTransfersWatcher({
         chainSlug: network,
         tokenSymbol: token,
         order,
@@ -204,7 +209,9 @@ export function getWatchers (config: GetWatchersConfig) {
       isL1,
       label,
       bridgeContract,
-      syncFromDate
+      syncFromDate,
+      s3Upload,
+      s3Namespace
     })
   })
 
@@ -228,6 +235,15 @@ export function getWatchers (config: GetWatchersConfig) {
   })
 
   watchers.push(...gasPriceWatchers)
+
+  const watcherTokens = Array.from((new Set(tokens.concat(chainNativeTokens))).values())
+  const tokenPriceWatchers: any[] = watcherTokens.map((token: string) => {
+    return new TokenPriceWatcher({
+      token
+    })
+  })
+
+  watchers.push(...tokenPriceWatchers)
 
   return watchers
 }

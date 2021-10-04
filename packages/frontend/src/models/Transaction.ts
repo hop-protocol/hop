@@ -16,13 +16,7 @@ interface Config {
   isCanonicalTransfer?: boolean
 }
 
-const standardNetworks = new Set([
-  'mainnet',
-  'ropsten',
-  'kovan',
-  'rinkeby',
-  'goerli'
-])
+const standardNetworks = new Set(['mainnet', 'ropsten', 'kovan', 'rinkeby', 'goerli'])
 
 class Transaction extends EventEmitter {
   readonly hash: string
@@ -35,14 +29,14 @@ class Transaction extends EventEmitter {
   timestamp: number
   status: null | boolean = null
 
-  constructor ({
+  constructor({
     hash,
     networkName,
     destNetworkName,
     pending = true,
     timestamp,
     token,
-    isCanonicalTransfer
+    isCanonicalTransfer,
   }: Config) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
@@ -80,7 +74,7 @@ class Transaction extends EventEmitter {
     console.debug('transaction:', this.hash)
   }
 
-  get explorerLink (): string {
+  get explorerLink(): string {
     if (this.networkName.startsWith('ethereum')) {
       return this._etherscanLink()
     } else if (this.networkName.startsWith('arbitrum')) {
@@ -96,27 +90,27 @@ class Transaction extends EventEmitter {
     }
   }
 
-  get truncatedHash (): string {
+  get truncatedHash(): string {
     return `${this.hash.substring(0, 6)}…${this.hash.substring(62, 66)}`
   }
 
-  async receipt () {
+  async receipt() {
     return this.provider.waitForTransaction(this.hash)
   }
 
-  async getTransaction () {
+  async getTransaction() {
     return this.provider.getTransaction(this.hash)
   }
 
-  private _etherscanLink () {
+  private _etherscanLink() {
     return `${getBaseExplorerUrl(this.networkName)}/tx/${this.hash}`
   }
 
-  private _arbitrumLink () {
+  private _arbitrumLink() {
     return `${getBaseExplorerUrl('arbitrum')}/tx/${this.hash}`
   }
 
-  private _optimismLink () {
+  private _optimismLink() {
     try {
       const url = new URL(getBaseExplorerUrl('optimism'))
       return `${url.origin}${url.pathname}/tx/${this.hash}${url.search}`
@@ -125,37 +119,23 @@ class Transaction extends EventEmitter {
     }
   }
 
-  private _xdaiLink () {
+  private _xdaiLink() {
     return `${getBaseExplorerUrl('xdai')}/tx/${this.hash}`
   }
 
-  private _polygonLink () {
+  private _polygonLink() {
     return `${getBaseExplorerUrl('polygon')}/tx/${this.hash}`
   }
 
-  toObject () {
-    const {
-      hash,
-      networkName,
-      pending,
-      timestamp,
-      token,
-      destNetworkName,
-      isCanonicalTransfer
-    } = this
+  toObject() {
+    const { hash, networkName, pending, timestamp, token, destNetworkName, isCanonicalTransfer } =
+      this
     return { hash, networkName, pending, timestamp, token, destNetworkName, isCanonicalTransfer }
   }
 
-  static fromObject (obj: any) {
-    const {
-      hash,
-      networkName,
-      pending,
-      timestamp,
-      token,
-      destNetworkName,
-      isCanonicalTransfer
-    } = obj
+  static fromObject(obj: any) {
+    const { hash, networkName, pending, timestamp, token, destNetworkName, isCanonicalTransfer } =
+      obj
     return new Transaction({
       hash,
       networkName,
@@ -163,7 +143,7 @@ class Transaction extends EventEmitter {
       timestamp,
       token,
       destNetworkName,
-      isCanonicalTransfer
+      isCanonicalTransfer,
     })
   }
 }

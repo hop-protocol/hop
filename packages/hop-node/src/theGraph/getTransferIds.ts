@@ -6,10 +6,11 @@ import { MaxInt32 } from 'src/constants'
 export default async function getTransferIds (
   chain: string,
   token: string,
-  filters: Partial<Filters> = {}
+  filters: Partial<Filters> = {},
+  skip : number = 0
 ): Promise<any[]> {
   const query = `
-    query TransfersSent(${token ? '$token: String, ' : ''}$orderDirection: String, $startDate: Int, $endDate: Int) {
+    query TransfersSent(${token ? '$token: String, ' : ''}$orderDirection: String, $startDate: Int, $endDate: Int, $skip: Int) {
       transferSents(
         where: {
           ${token ? 'token: $token,' : ''}
@@ -18,6 +19,7 @@ export default async function getTransferIds (
         },
         orderBy: blockNumber,
         orderDirection: $orderDirection,
+        skip: $skip,
         first: 1000,
       ) {
         id
@@ -44,7 +46,8 @@ export default async function getTransferIds (
     token,
     startDate: 0,
     endDate: MaxInt32,
-    orderDirection: 'desc'
+    orderDirection: 'desc',
+    skip
   }
   if (filters?.startDate) {
     variables.startDate = DateTime.fromISO(filters.startDate).toSeconds() >>> 0
@@ -56,5 +59,22 @@ export default async function getTransferIds (
     variables.orderDirection = filters.orderDesc ? 'desc' : 'asc'
   }
   const jsonRes = await makeRequest(chain, query, variables)
-  return jsonRes.transferSents.map((x: any) => normalizeEntity(x))
+  let transfers = jsonRes.transferSents.map((x: any) => normalizeEntity(x))
+
+  if (transfers.length === 1000) {
+    try {
+      transfers = transfers.concat(await getTransferIds(
+        chain,
+        token,
+        filters,
+        skip + 1000
+      ))
+    } catch (err) {
+      if (!err.message.includes('The `skip` argument must be between')) {
+        throw err
+      }
+    }
+  }
+
+  return transfers
 }

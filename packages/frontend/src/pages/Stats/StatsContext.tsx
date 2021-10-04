@@ -1,10 +1,4 @@
-import React, {
-  FC,
-  createContext,
-  useContext,
-  useState,
-  useEffect
-} from 'react'
+import React, { FC, createContext, useContext, useState, useEffect } from 'react'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
@@ -16,18 +10,18 @@ import * as config from 'src/config'
 
 type StatsContextProps = {
   stats: any[]
-  fetching: boolean,
+  fetching: boolean
 
-  bonderStats: any[],
-  fetchingBonderStats: boolean,
+  bonderStats: any[]
+  fetchingBonderStats: boolean
 
-  pendingAmounts: any[],
-  fetchingPendingAmounts: boolean,
+  pendingAmounts: any[]
+  fetchingPendingAmounts: boolean
 
-  balances: any[],
-  fetchingBalances: boolean,
+  balances: any[]
+  fetchingBalances: boolean
 
-  debitWindowStats: any[],
+  debitWindowStats: any[]
   fetchingDebitWindowStats: boolean
 }
 
@@ -45,16 +39,16 @@ const StatsContext = createContext<StatsContextProps>({
   fetchingBalances: false,
 
   debitWindowStats: [],
-  fetchingDebitWindowStats: false
+  fetchingDebitWindowStats: false,
 })
 
 type BonderStats = {
   id: string
-  bonder: string,
-  token: Token,
-  network: Network,
-  credit: number,
-  debit: number,
+  bonder: string
+  token: Token
+  network: Network
+  credit: number
+  debit: number
   availableLiquidity: number
   pendingAmount: number
   virtualDebt: number
@@ -89,7 +83,7 @@ const StatsContextProvider: FC = ({ children }) => {
   const [fetchingDebitWindowStats, setFetchingDebitWindowStats] = useState<boolean>(false)
   const filteredNetworks = networks?.filter(token => !token.isLayer1)
 
-  async function fetchStats (selectedNetwork: Network, selectedToken: Token) {
+  async function fetchStats(selectedNetwork: Network, selectedToken: Token) {
     if (!selectedNetwork) {
       return
     }
@@ -106,10 +100,10 @@ const StatsContextProvider: FC = ({ children }) => {
     })
     const decimals = hopToken.decimals
     const token0 = {
-      symbol: selectedToken?.networkSymbol(selectedNetwork)
+      symbol: selectedToken?.networkSymbol(selectedNetwork),
     }
     const token1 = {
-      symbol: hopToken.networkSymbol(selectedNetwork)
+      symbol: hopToken.networkSymbol(selectedNetwork),
     }
 
     const bridge = sdk.bridge(selectedToken.symbol)
@@ -129,7 +123,7 @@ const StatsContextProvider: FC = ({ children }) => {
       token1,
       reserve0,
       reserve1,
-      network: selectedNetwork
+      network: selectedNetwork,
     }
   }
 
@@ -153,7 +147,11 @@ const StatsContextProvider: FC = ({ children }) => {
     update().catch(logger.error)
   }, [])
 
-  async function fetchBonderStats (selectedNetwork: Network, selectedToken: Token, bonder: string): Promise<BonderStats | undefined> {
+  async function fetchBonderStats(
+    selectedNetwork: Network,
+    selectedToken: Token,
+    bonder: string
+  ): Promise<BonderStats | undefined> {
     if (!selectedNetwork) {
       return
     }
@@ -173,14 +171,17 @@ const StatsContextProvider: FC = ({ children }) => {
       bridge.getCredit(selectedNetwork.slug, bonder),
       bridge.getDebit(selectedNetwork.slug, bonder),
       bridge.getTotalDebit(selectedNetwork.slug, bonder),
-      bridge.getAvailableLiquidity(selectedNetwork.slug, selectedNetwork.slug, bonder),
-      bridge.getEthBalance(selectedNetwork.slug, bonder)
+      bridge.getAvailableLiquidity(selectedNetwork.slug, bonder),
+      bridge.getEthBalance(selectedNetwork.slug, bonder),
     ])
 
     const virtualDebt = totalDebit.sub(debit)
     let pendingAmount = BigNumber.from(0)
     for (const obj of pendingAmounts) {
-      if (obj.destinationNetwork.slug === selectedNetwork.slug && obj.token.symbol === token.symbol) {
+      if (
+        obj.destinationNetwork.slug === selectedNetwork.slug &&
+        obj.token.symbol === token.symbol
+      ) {
         pendingAmount = pendingAmount.add(obj.pendingAmount)
       }
     }
@@ -195,8 +196,10 @@ const StatsContextProvider: FC = ({ children }) => {
       availableLiquidity: Number(formatUnits(availableLiquidity.toString(), token.decimals)),
       pendingAmount: Number(formatUnits(pendingAmount.toString(), token.decimals)),
       virtualDebt: Number(formatUnits(virtualDebt.toString(), token.decimals)),
-      totalAmount: Number(formatUnits(availableLiquidity.add(pendingAmount).add(virtualDebt), token.decimals)),
-      availableEth: Number(formatUnits(eth.toString(), 18))
+      totalAmount: Number(
+        formatUnits(availableLiquidity.add(pendingAmount).add(virtualDebt), token.decimals)
+      ),
+      availableEth: Number(formatUnits(eth.toString(), 18)),
     }
   }
 
@@ -222,7 +225,11 @@ const StatsContextProvider: FC = ({ children }) => {
     update().catch(logger.error)
   }, [pendingAmounts])
 
-  async function fetchPendingAmounts (sourceNetwork: Network, destinationNetwork: Network, token: Token) {
+  async function fetchPendingAmounts(
+    sourceNetwork: Network,
+    destinationNetwork: Network,
+    token: Token
+  ) {
     if (!sourceNetwork) {
       return
     }
@@ -264,7 +271,9 @@ const StatsContextProvider: FC = ({ children }) => {
             if (destinationNetwork === sourceNetwork) {
               continue
             }
-            promises.push(fetchPendingAmounts(sourceNetwork, destinationNetwork, token).catch(logger.error))
+            promises.push(
+              fetchPendingAmounts(sourceNetwork, destinationNetwork, token).catch(logger.error)
+            )
           }
         }
       }
@@ -276,7 +285,11 @@ const StatsContextProvider: FC = ({ children }) => {
     update().catch(logger.error)
   }, [])
 
-  async function fetchBalances (slug: string, name: string, address: string): Promise<BalanceStats | undefined> {
+  async function fetchBalances(
+    slug: string,
+    name: string,
+    address: string
+  ): Promise<BalanceStats | undefined> {
     if (!slug) {
       return
     }
@@ -303,7 +316,7 @@ const StatsContextProvider: FC = ({ children }) => {
       network: slug,
       name,
       address,
-      balance: formattedBalance
+      balance: formattedBalance,
     }
   }
 
@@ -313,9 +326,7 @@ const StatsContextProvider: FC = ({ children }) => {
         return
       }
       setFetchingBalances(true)
-      const addressDatas = [
-        ['ethereum', 'relayer', '0x2A6303e6b99d451Df3566068EBb110708335658f'],
-      ]
+      const addressDatas = [['ethereum', 'relayer', '0x2A6303e6b99d451Df3566068EBb110708335658f']]
 
       const arbitrumSlug = 'arbitrum'
       for (const token of tokens) {
@@ -325,9 +336,7 @@ const StatsContextProvider: FC = ({ children }) => {
         }
         const messengerWrapperAddress: string = tokenConfig.l1MessengerWrapper
         const aliasAddress: string = getArbitrumAlias(messengerWrapperAddress)
-        addressDatas.push([
-          arbitrumSlug, `${token.symbol} Alias`, aliasAddress
-        ])
+        addressDatas.push([arbitrumSlug, `${token.symbol} Alias`, aliasAddress])
       }
       const promises: Promise<any>[] = []
       for (const addressData of addressDatas) {
@@ -344,7 +353,10 @@ const StatsContextProvider: FC = ({ children }) => {
     update().catch(logger.error)
   }, [])
 
-  async function fetchDebitWindowStats (selectedToken: Token, bonder: string): Promise<DebitWindowStats | undefined> {
+  async function fetchDebitWindowStats(
+    selectedToken: Token,
+    bonder: string
+  ): Promise<DebitWindowStats | undefined> {
     if (!pendingAmounts?.length) {
       return
     }
@@ -375,7 +387,7 @@ const StatsContextProvider: FC = ({ children }) => {
     return {
       token,
       amountBonded,
-      remainingMin
+      remainingMin,
     }
   }
 

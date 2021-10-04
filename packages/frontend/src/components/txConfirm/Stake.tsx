@@ -11,18 +11,18 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   title: {
-    marginBottom: '2rem'
+    marginBottom: '2rem',
   },
   action: {},
-  sendButton: {}
+  sendButton: {},
 }))
 
 interface Props {
-  amount: string,
-  token: Token,
+  amount: string
+  token: Token
   onConfirm: (confirmed: boolean) => void
 }
 

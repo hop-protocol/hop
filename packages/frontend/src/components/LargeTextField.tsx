@@ -32,7 +32,7 @@ const boldShadow = `
 
 const useStyles = makeStyles(theme => ({
   root: {
-    margin: `-0.8rem -${theme.padding.extraLight} -0.8rem 0`
+    margin: `-0.8rem -${theme.padding.extraLight} -0.8rem 0`,
   },
   adornment: {
     marginLeft: '-0.8rem',
@@ -40,24 +40,24 @@ const useStyles = makeStyles(theme => ({
     width: 'auto',
     textAlign: 'right',
     [theme.breakpoints.down('xs')]: {
-      fontSize: theme.typography.h6.fontSize
-    }
-  }
+      fontSize: theme.typography.h6.fontSize,
+    },
+  },
 }))
 
 const useInputStyles = makeStyles(theme => ({
   '@global': {
     '@keyframes loadingEffect': {
       '0%': {
-        opacity: 0.9
+        opacity: 0.9,
       },
       '50%': {
-        opacity: 0.3
+        opacity: 0.3,
       },
       '100%': {
-        opacity: 0.9
-      }
-    }
+        opacity: 0.9,
+      },
+    },
   },
   root: ({ defaultShadow, hideShadow }: StyleProps) => ({
     padding: '0.8rem 0',
@@ -73,11 +73,11 @@ const useInputStyles = makeStyles(theme => ({
         } else {
           return normalShadow
         }
-      }
-    }
+      },
+    },
   }),
   input: ({ centerAlign, leftAlign, loadingValue }: StyleProps) => ({
-    textAlign: leftAlign ? 'left' : (centerAlign ? 'center' : 'right'),
+    textAlign: leftAlign ? 'left' : centerAlign ? 'center' : 'right',
     fontSize: theme.typography.h4.fontSize,
     fontWeight: theme.typography.h4.fontWeight,
     color: theme.palette.text.primary,
@@ -87,13 +87,13 @@ const useInputStyles = makeStyles(theme => ({
       ? `loadingEffect 1200ms ${theme.transitions.easing.sharp} infinite`
       : 'none',
     [theme.breakpoints.down('xs')]: {
-      fontSize: theme.typography.h6.fontSize
-    }
+      fontSize: theme.typography.h6.fontSize,
+    },
   }),
   focused: {
     borderRadius: '1.5rem',
-    boxShadow: normalShadow
-  }
+    boxShadow: normalShadow,
+  },
 }))
 
 const TextField: FC<LargeTextFieldProps> = props => {
@@ -111,7 +111,7 @@ const TextField: FC<LargeTextFieldProps> = props => {
     leftAlign,
     defaultShadow,
     hideShadow: textFieldProps.disabled ?? false,
-    loadingValue
+    loadingValue,
   })
 
   return (
@@ -122,15 +122,11 @@ const TextField: FC<LargeTextFieldProps> = props => {
         disableUnderline: true,
         endAdornment: units ? (
           <InputAdornment position="end">
-            <Typography
-              variant="h4"
-              color="textPrimary"
-              className={styles.adornment}
-            >
+            <Typography variant="h4" color="textPrimary" className={styles.adornment}>
               {units}
             </Typography>
           </InputAdornment>
-        ) : null
+        ) : null,
       }}
       {...textFieldProps}
     />

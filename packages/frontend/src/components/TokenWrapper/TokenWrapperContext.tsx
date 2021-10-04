@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useState,
   useMemo,
-  useCallback
+  useCallback,
 } from 'react'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import { ethers, Signer, BigNumber } from 'ethers'
@@ -24,20 +24,20 @@ import logger from 'src/logger'
 import useApprove from 'src/hooks/useApprove'
 
 type TokenWrapperContextProps = {
-  amount: string,
-  setAmount: (amount: string) => void,
-  wrap: () => void,
-  unwrap: () => void,
+  amount: string
+  setAmount: (amount: string) => void
+  wrap: () => void
+  unwrap: () => void
   isWrapping: boolean
   isUnwrapping: boolean
-  selectedNetwork: Network | undefined,
-  setSelectedNetwork: (network: Network) => void,
+  selectedNetwork: Network | undefined
+  setSelectedNetwork: (network: Network) => void
   canonicalToken: Token | undefined
-  canonicalTokenBalance: BigNumber | undefined,
+  canonicalTokenBalance: BigNumber | undefined
   wrappedToken: Token | undefined
-  wrappedTokenBalance: BigNumber | undefined,
-  error: string | null | undefined,
-  setError: (error: string | null | undefined) => void,
+  wrappedTokenBalance: BigNumber | undefined
+  error: string | null | undefined
+  setError: (error: string | null | undefined) => void
   isNativeToken: boolean
 }
 
@@ -56,18 +56,12 @@ const TokenWrapperContext = createContext<TokenWrapperContextProps>({
   wrappedTokenBalance: undefined,
   error: undefined,
   setError: (error: string | null | undefined) => {},
-  isNativeToken: false
+  isNativeToken: false,
 })
 
 const TokenWrapperContextProvider: FC = ({ children }) => {
   const [amount, setAmount] = useState<string>('')
-  const {
-    networks,
-    txConfirm,
-    txHistory,
-    sdk,
-    selectedBridge
-  } = useApp()
+  const { networks, txConfirm, txHistory, sdk, selectedBridge } = useApp()
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
   const l2Networks = useMemo(() => {
     return networks.filter(network => !network.isLayer1)
@@ -85,36 +79,37 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
   const [isWrapping, setWrapping] = useState<boolean>(false)
   const [isUnwrapping, setUnwrapping] = useState<boolean>(false)
   const [error, setError] = useState<string | null | undefined>(null)
-  const isNativeToken = useMemo(() => {
-    try {
-      return canonicalToken?.isNativeToken
-    } catch (err) {
-      logger.error(err)
-    }
-    return false
-  }, [canonicalToken]) ?? false
-
-  const updateBalances = async () => {
-    if (!canonicalToken) return
-    if (!wrappedToken) return
-    try {
-      const [canonicalBalance, wrappedBalance] = await Promise.all([
-        canonicalToken.balanceOf(),
-        wrappedToken.balanceOf(),
-      ])
-      setCanonicalTokenBalance(canonicalBalance)
-      setWrappedTokenBalance(wrappedBalance)
-    } catch (err) {
-      // noop
-    }
-  }
+  const isNativeToken =
+    useMemo(() => {
+      try {
+        return canonicalToken?.isNativeToken
+      } catch (err) {
+        logger.error(err)
+      }
+      return false
+    }, [canonicalToken]) ?? false
 
   useEffect(() => {
+    const updateBalances = async () => {
+      if (!canonicalToken) return
+      if (!wrappedToken) return
+      try {
+        const [canonicalBalance, wrappedBalance] = await Promise.all([
+          canonicalToken.balanceOf(),
+          wrappedToken.balanceOf(),
+        ])
+        setCanonicalTokenBalance(canonicalBalance)
+        setWrappedTokenBalance(wrappedBalance)
+      } catch (err) {
+        // noop
+      }
+    }
+
     updateBalances()
+
+    const intervalId = setInterval(updateBalances, 5000)
+    return () => clearInterval(intervalId)
   }, [canonicalToken])
-  useInterval(() => {
-    updateBalances()
-  }, 5 * 1000)
 
   const wrap = async () => {
     try {
@@ -146,16 +141,12 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
           token: {
             amount: amount,
             token: canonicalToken,
-            network: selectedNetwork
-          }
+            network: selectedNetwork,
+          },
         },
         onConfirm: async () => {
-          return wrappedToken
-            .connect(signer as Signer)
-            .wrapToken(
-              parsedAmount,
-            )
-        }
+          return wrappedToken.connect(signer as Signer).wrapToken(parsedAmount)
+        },
       })
 
       if (tokenWrapTx) {
@@ -164,7 +155,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
           txHistory?.addTransaction(
             new Transaction({
               hash: tokenWrapTx.hash,
-              networkName: selectedNetwork?.slug
+              networkName: selectedNetwork?.slug,
             })
           )
         }
@@ -205,16 +196,12 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
           token: {
             amount: amount,
             token: wrappedToken,
-            network: selectedNetwork
-          }
+            network: selectedNetwork,
+          },
         },
         onConfirm: async () => {
-          return wrappedToken
-            .connect(signer as Signer)
-            .unwrapToken(
-              parsedAmount,
-            )
-        }
+          return wrappedToken.connect(signer as Signer).unwrapToken(parsedAmount)
+        },
       })
       if (tokenUnwrapTx) {
         setAmount('')
@@ -222,7 +209,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
           txHistory?.addTransaction(
             new Transaction({
               hash: tokenUnwrapTx.hash,
-              networkName: selectedNetwork?.slug
+              networkName: selectedNetwork?.slug,
             })
           )
         }
@@ -253,7 +240,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
         wrappedTokenBalance,
         error,
         setError,
-        isNativeToken
+        isNativeToken,
       }}
     >
       {children}

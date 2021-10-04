@@ -12,22 +12,22 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   title: {
-    marginBottom: '2rem'
+    marginBottom: '2rem',
   },
   tagline: {
-    marginTop: '1rem'
+    marginTop: '1rem',
   },
   approveAll: {
     display: 'flex',
     justifyContent: 'center',
     alignContent: 'center',
-    marginBottom: '2rem'
+    marginBottom: '2rem',
   },
   action: {},
-  sendButton: {}
+  sendButton: {},
 }))
 
 interface Props {
@@ -65,13 +65,14 @@ const Approval = (props: Props) => {
         <Typography variant="h5" color="textPrimary">
           Approve {commafy(!approveAll ? amount : '')} {tokenSymbol}
         </Typography>
-        {tagline ? <Typography variant="body1" color="textPrimary" className={styles.tagline}>
+        {tagline ? (
+          <Typography variant="body1" color="textPrimary" className={styles.tagline}>
             {tagline}
           </Typography>
-        : null}
+        ) : null}
       </div>
-      {showApproveAll
-        ? <div className={styles.approveAll}>
+      {showApproveAll ? (
+        <div className={styles.approveAll}>
           <FormControlLabel
             control={
               <Checkbox
@@ -84,7 +85,7 @@ const Approval = (props: Props) => {
             label="Approve all"
           />
         </div>
-      : null }
+      ) : null}
       <div className={styles.action}>
         <Button
           className={styles.sendButton}

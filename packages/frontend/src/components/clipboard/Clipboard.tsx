@@ -6,7 +6,7 @@ export interface Props {
   children: any
 }
 
-function Clipboard (props: Props) {
+function Clipboard(props: Props) {
   const { value } = props
 
   const handleClick = (event: SyntheticEvent) => {

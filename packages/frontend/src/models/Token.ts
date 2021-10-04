@@ -18,7 +18,7 @@ class Token {
   readonly addresses: { [key: string]: Address } = {}
   readonly supportedNetworks: string[] = []
 
-  constructor (props: TokenProps) {
+  constructor(props: TokenProps) {
     this.symbol = props.symbol
     this.tokenName = props.tokenName
     this.imageUrl = props.imageUrl
@@ -26,12 +26,12 @@ class Token {
     this.supportedNetworks = props.supportedNetworks || []
   }
 
-  networkSymbol (network: Network | undefined) {
+  networkSymbol(network: Network | undefined) {
     const prefix = network?.slug || ''
     return prefix + '.' + this.symbol
   }
 
-  eq (otherToken: Token) {
+  eq(otherToken: Token) {
     return otherToken.symbol === this.symbol
   }
 }

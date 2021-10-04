@@ -13,14 +13,14 @@ import { normalizeNumberInput } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   root: {
-    padding: `0 ${theme.padding.extraLight}`
+    padding: `0 ${theme.padding.extraLight}`,
   },
   header: {
     fontSize: '1.7rem',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   box: {
-    marginBottom: '2rem'
+    marginBottom: '2rem',
   },
   label: {
     fontWeight: 'bold',
@@ -30,7 +30,7 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'left',
   },
   inlineLabel: {
-    marginLeft: '0.5rem'
+    marginLeft: '0.5rem',
   },
   settingsContent: {
     padding: '3rem',
@@ -38,29 +38,24 @@ const useStyles = makeStyles(theme => ({
     textAlign: 'center',
     [theme.breakpoints.down('xs')]: {
       width: 'auto',
-    }
+    },
   },
   slippageTolerance: {
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   settingsIcon: {
-    fontSize: '2rem'
+    fontSize: '2rem',
   },
   warningBox: {
-    marginTop: '1rem'
-  }
+    marginTop: '1rem',
+  },
 }))
 
 const Settings: FC = () => {
   const styles = useStyles()
   const [open, setOpen] = useState<boolean>(false)
   const { settings } = useApp()
-  const {
-    slippageTolerance,
-    setSlippageTolerance,
-    deadlineMinutes,
-    setDeadlineMinutes
-  } = settings
+  const { slippageTolerance, setSlippageTolerance, deadlineMinutes, setDeadlineMinutes } = settings
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
   const handleClick = (event: any) => {
     setOpen(true)
@@ -113,11 +108,11 @@ const Settings: FC = () => {
         anchorEl={anchorEl}
         anchorOrigin={{
           vertical: 'bottom',
-          horizontal: 'center'
+          horizontal: 'center',
         }}
         transformOrigin={{
           vertical: 'top',
-          horizontal: 'right'
+          horizontal: 'right',
         }}
       >
         <div className={styles.settingsContent}>
@@ -159,7 +154,12 @@ const Settings: FC = () => {
               />
             </Box>
           </Box>
-          <Box display="flex" flexDirection="column" className={styles.box} style={{ display: 'none' }}>
+          <Box
+            display="flex"
+            flexDirection="column"
+            className={styles.box}
+            style={{ display: 'none' }}
+          >
             <Typography variant="body1" className={styles.label}>
               Transaction deadline{' '}
               <InfoTooltip title="Your transaction will revert if it is pending for more than this long." />
@@ -174,8 +174,16 @@ const Settings: FC = () => {
               <span className={styles.inlineLabel}>minutes</span>
             </Box>
             <Box display="flex" alignItems="center" className={styles.warningBox}>
-              {deadlineError
-                ? <div><Alert severity="warning" text={'Cross-chain transactions take a few minutes. The deadline you set may be too short for the cross chain message to reach its destination.'} /></div> : null}
+              {deadlineError ? (
+                <div>
+                  <Alert
+                    severity="warning"
+                    text={
+                      'Cross-chain transactions take a few minutes. The deadline you set may be too short for the cross chain message to reach its destination.'
+                    }
+                  />
+                </div>
+              ) : null}
             </Box>
           </Box>
         </div>

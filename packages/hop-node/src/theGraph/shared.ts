@@ -1,3 +1,4 @@
+import getTokenDecimals from 'src/utils/getTokenDecimals'
 import { DateTime } from 'luxon'
 import { formatUnits } from 'ethers/lib/utils'
 
@@ -35,12 +36,14 @@ export function normalizeEntity (x: any) {
     x.destinationChain = chainIdToSlug[x.destinationChainId]
   }
 
+  const decimals = getTokenDecimals(x.token)
+
   // TODO: use correct decimal places for future assets
   if (x.amount) {
-    x.formattedAmount = formatUnits(x.amount, 6)
+    x.formattedAmount = formatUnits(x.amount, decimals)
   }
   if (x.bonderFee) {
-    x.formattedBonderFee = formatUnits(x.bonderFee, 6)
+    x.formattedBonderFee = formatUnits(x.bonderFee, decimals)
   }
 
   x.blockNumber = Number(x.blockNumber)

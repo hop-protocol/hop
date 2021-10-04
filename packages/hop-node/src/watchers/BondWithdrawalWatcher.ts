@@ -1,4 +1,5 @@
 import '../moduleAlias'
+import BNMin from 'src/utils/BNMin'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chalk from 'chalk'
@@ -301,8 +302,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
   async getPricesNearTransferEvent (dbTransfer: Transfer): Promise<any> {
     const { destinationChainId } = dbTransfer
     const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
     const tokenSymbol = this.tokenSymbol
-    const chainNativeTokenSymbol = this.bridge.getChainNativeTokenSymbol(this.chainSlug)
+    const chainNativeTokenSymbol = this.bridge.getChainNativeTokenSymbol(destinationChain)
     const transferSentTimestamp = dbTransfer?.transferSentTimestamp
     let gasPrice : BigNumber
     let tokenUsdPrice : number
@@ -311,6 +313,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const gasPriceItem = await this.db.gasPrices.getNearest(destinationChain, transferSentTimestamp)
       if (gasPriceItem) {
         gasPrice = gasPriceItem.gasPrice
+
+        const marketGasPrice = await destinationBridge.getGasPrice()
+        gasPrice = BNMin(gasPrice, marketGasPrice)
       }
       let tokenPriceItem = await this.db.tokenPrices.getNearest(tokenSymbol, transferSentTimestamp)
       if (tokenPriceItem) {

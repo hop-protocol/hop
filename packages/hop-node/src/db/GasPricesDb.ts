@@ -1,8 +1,8 @@
-import BaseDb, { BaseItem } from './BaseDb'
+import BaseDb, { BaseItem, KeyFilter } from './BaseDb'
 import nearest from 'nearest-date'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
-import { OneHourMs, OneWeekMs } from 'src/constants'
+import { OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
 export const varianceSeconds = 10 * 60
@@ -40,22 +40,24 @@ class GasPricesDb extends BaseDb {
     return this.update(key, data)
   }
 
-  async getItems ():Promise<GasPrice[]> {
-    const keys = await this.getKeys()
+  async getItems (filter?: KeyFilter):Promise<GasPrice[]> {
+    const keys = await this.getKeys(filter)
     const items: GasPrice[] = (await Promise.all(
       keys.map((key: string) => {
         return this.getById(key)
       })))
 
-    return items.filter(item => !!item)
+    return items.filter(x => x)
   }
 
-  async getNearest (chain: string, targetTimestamp: number): Promise<GasPrice | null> {
-    const items : GasPrice[] = (await this.getItems()).filter((item: GasPrice) => item?.chain === chain && item?.timestamp)
-
-    if (!items) {
-      return null
+  async getNearest (chain: string, targetTimestamp: number, staleCheck: boolean = true): Promise<GasPrice | null> {
+    const startTimestamp = targetTimestamp - OneHourSeconds
+    const endTimestamp = targetTimestamp + OneHourSeconds
+    const filter = {
+      gte: `${chain}:${startTimestamp}`,
+      lte: `${chain}:${endTimestamp}~`
     }
+    const items : GasPrice[] = (await this.getItems(filter)).filter((item: GasPrice) => item.chain === chain && item.timestamp)
 
     const dates = items.map((item: GasPrice) => item.timestamp)
     const index = nearest(dates, targetTimestamp)
@@ -63,8 +65,8 @@ class GasPricesDb extends BaseDb {
       return null
     }
     const item = normalizeDbItem(items[index])
-    const isTooFar = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
-    if (isTooFar) {
+    const isStale = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
+    if (staleCheck && isStale) {
       return null
     }
     return item
@@ -92,12 +94,12 @@ class GasPricesDb extends BaseDb {
         return this.getById(key)
       })))
 
-    const nullValues = items.map((item, i) => {
+    const nullValues = items.map((value, i) => {
       const key = keys[i]
-      return { key, item }
-    }).filter(obj => !obj.item)
+      return { key, value }
+    }).filter(obj => !obj.value)
     if (nullValues.length) {
-      this.logger.warn('null values', nullValues)
+      this.logger.warn('null values:', nullValues)
     }
   }
 }

@@ -37,6 +37,7 @@ export const DefaultBatchBlocks = 10000
 
 export const TenSecondsMs = 10 * 1000
 export const TenMinutesMs = 10 * 60 * 1000
+export const OneHourSeconds = 60 * 60
 export const OneHourMs = 60 * 60 * 1000
 export const OneWeekMs = 7 * 24 * 60 * 60 * 1000
 export const TxRetryDelayMs = OneHourMs
@@ -60,8 +61,8 @@ export const MinPriorityFeePerGas = 4
 export const PriorityFeePerGasCap = 20
 
 export enum BonderFeeBps {
-  L2ToL1 = '18',
-  L2ToL2 = '18'
+  L2ToL1 = '10',
+  L2ToL2 = '10'
 }
 
 export const MinBonderFeeAbsolute = BigNumber.from('0')

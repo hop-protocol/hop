@@ -5,8 +5,7 @@ import TokenPricesDb from './TokenPricesDb'
 import TransferRootsDb from './TransferRootsDb'
 import TransfersDb from './TransfersDb'
 
-// db instances (initialized only once)
-
+// these are the db instances (initialized only once).
 // gas prices and token prices db are global (not token specific)
 let gasPricesDb: GasPricesDb | null = null
 let tokenPricesDb: TokenPricesDb | null = null

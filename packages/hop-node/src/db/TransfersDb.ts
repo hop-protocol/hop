@@ -49,7 +49,9 @@ class TransfersDb extends BaseDb {
 
     // this only needs to be ran once on start up to backfill timestamped keys.
     // this function can be removed once all bonders update.
-    this.trackTimestampKeys()
+    // timestamped keys (in addition to transferId as keys) are needed to filter
+    // leveldb read streams.
+    this.trackTimestampedKeys()
       .then(() => {
         this.ready = true
         this.logger.debug('transfersDb ready')
@@ -66,16 +68,16 @@ class TransfersDb extends BaseDb {
     return this.tilReady()
   }
 
-  async trackTimestampKeys () {
+  async trackTimestampedKeys () {
     const transfers = await this.getTransfers()
     for (const transfer of transfers) {
-      await this.trackTimestampKey(transfer)
+      await this.trackTimestampedKey(transfer)
     }
   }
 
-  async trackTimestampKey (transfer: Partial<Transfer>) {
+  async trackTimestampedKey (transfer: Partial<Transfer>) {
     const transferId = transfer.transferId
-    const key = this.getTimestampKey(transfer)
+    const key = this.getTimestampedKey(transfer)
     if (!key || !transferId) {
       return
     }
@@ -85,7 +87,7 @@ class TransfersDb extends BaseDb {
     }
   }
 
-  getTimestampKey (transfer: Partial<Transfer>) {
+  getTimestampedKey (transfer: Partial<Transfer>) {
     if (transfer?.transferSentTimestamp && transfer?.transferSentIndex !== undefined) {
       const key = `transfer:${transfer?.transferSentTimestamp}:${transfer?.transferSentIndex}`
       return key
@@ -93,7 +95,7 @@ class TransfersDb extends BaseDb {
   }
 
   async update (transferId: string, transfer: Partial<Transfer>) {
-    await this.trackTimestampKey(transfer)
+    await this.trackTimestampedKey(transfer)
     return super.update(transferId, transfer)
   }
 
@@ -115,8 +117,8 @@ class TransfersDb extends BaseDb {
   }
 
   async getTransferIds (dateFilter?: TransfersDateFilter): Promise<string[]> {
+    // return only transfer-id keys that are within specified range (filter by timestamped keys)
     if (dateFilter) {
-      // return only transfer-id keys that are within specified range
       const filter : KeyFilter = {}
       if (dateFilter.fromUnix) {
         filter.gte = `transfer:${dateFilter.fromUnix}`
@@ -128,7 +130,7 @@ class TransfersDb extends BaseDb {
       return kv.map(x => x.value.transferId).filter(x => x)
     }
 
-    // return all transfer-id keys if no filter is used
+    // return all transfer-id keys if no filter is used (filter out timestamped keys)
     const keys = await this.getKeys()
     return keys.filter((key: string) => !key?.startsWith('transfer:')).filter(x => x)
   }
@@ -141,7 +143,7 @@ class TransfersDb extends BaseDb {
       })
     )
 
-    // https://stackoverflow.com/a/9175783/1439168
+    // sort explainer: https://stackoverflow.com/a/9175783/1439168
     const items = transfers
       .filter(x => x)
       .sort((a, b) => {
@@ -152,12 +154,10 @@ class TransfersDb extends BaseDb {
         return 0
       })
 
-    console.log('items:', transfers.length)
-    console.timeEnd('elapsed')
-
     return items
   }
 
+  // gets only transfers within range: now - 1 week ago
   async getTransfersFromWeek () {
     await this.tilReady()
     const fromUnix = Math.floor((Date.now() - OneWeekMs) / 1000)

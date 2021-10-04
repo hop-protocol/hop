@@ -16,6 +16,7 @@ export type BaseItem = {
   _createdAt?: number
 }
 
+// this are options that leveldb createReadStream accepts
 export type KeyFilter = {
   gt?: string
   gte?: string
@@ -124,6 +125,7 @@ class BaseDb {
       const kv : any[] = []
       this.db.createReadStream(filter)
         .on('data', (key: any, value: any) => {
+          // the parameter types depend on what key/value enabled options were used
           if (typeof key === 'object') {
             value = key.value
             key = key.key

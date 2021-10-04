@@ -63,6 +63,14 @@ class BaseDb {
     }
     this.db = dbMap[key]
 
+    const logPut = (key: string, value: any) => {
+      // only log recently created items
+      const recentlyCreated = value?._createdAt && Date.now() - value._createdAt < TenSecondsMs
+      if (recentlyCreated) {
+        this.logger.debug(`put item, key=${key}`)
+      }
+    }
+
     this.db
       .on('open', () => {
         this.logger.debug('open')
@@ -70,26 +78,57 @@ class BaseDb {
       .on('closed', () => {
         this.logger.debug('closed')
       })
-      .on('put', (key: string, value: any) => {
-        // only log recently created items
-        const recentlyCreated = value?._createdAt && Date.now() - value._createdAt < TenSecondsMs
-        if (recentlyCreated) {
-          this.logger.debug(`put item, key=${key}`)
+      .on('batch', (ops: any[]) => {
+        for (const op of ops) {
+          if (op.type === 'put') {
+            logPut(op.key, op.value)
+          }
         }
+      })
+      .on('put', (key: string, value: any) => {
+        logPut(key, value)
       })
       .on('clear', (key: string) => {
         this.logger.debug(`clear item, key=${key}`)
       })
   }
 
-  @queue
-  public async update (key: string, data: any) {
+  protected async _getUpdateData (key: string, data: any) {
     const entry = await this.getById(key, {
       _createdAt: Date.now()
     })
     const value = Object.assign({}, entry, data)
+    return { key, value }
+  }
 
+  @queue
+  public async update (key: string, data: any) {
+    const { value } = await this._getUpdateData(key, data)
     return this.db.put(key, value)
+  }
+
+  @queue
+  public async batchUpdate (updates: any[]) {
+    const ops : any[] = []
+    for (const data of updates) {
+      const { key, value } = await this._getUpdateData(data.key, data.value)
+      ops.push({
+        type: 'put',
+        key,
+        value
+      })
+    }
+
+    return new Promise((resolve, reject) => {
+      this.db.batch(ops, (err: Error) => {
+        if (err) {
+          reject(err)
+          return
+        }
+
+        resolve(null)
+      })
+    })
   }
 
   protected async getById (id: string, defaultValue: any = null) {

@@ -76,6 +76,23 @@ class TransfersDb extends BaseDb {
   }
 
   async trackTimestampedKey (transfer: Partial<Transfer>) {
+    const data = await this.getTimestampedKeyValueForUpdate(transfer)
+    if (data) {
+      const key = data?.key
+      const transferId = data?.value?.transferId
+      this.logger.debug(`storing timestamped key. key: ${key} transferId: ${transferId}`)
+      await super.update(key, { transferId })
+    }
+  }
+
+  getTimestampedKey (transfer: Partial<Transfer>) {
+    if (transfer?.transferSentTimestamp && transfer?.transferSentIndex !== undefined) {
+      const key = `transfer:${transfer?.transferSentTimestamp}:${transfer?.transferSentIndex}`
+      return key
+    }
+  }
+
+  async getTimestampedKeyValueForUpdate (transfer: Partial<Transfer>) {
     if (!transfer) {
       this.logger.warn('expected transfer object for timestamped key')
       return
@@ -92,21 +109,18 @@ class TransfersDb extends BaseDb {
     }
     const exists = await this.getById(key)
     if (!exists) {
-      this.logger.debug(`storing timestamped key. key: ${key} transferId: ${transferId}`)
-      await super.update(key, { transferId })
-    }
-  }
-
-  getTimestampedKey (transfer: Partial<Transfer>) {
-    if (transfer?.transferSentTimestamp && transfer?.transferSentIndex !== undefined) {
-      const key = `transfer:${transfer?.transferSentTimestamp}:${transfer?.transferSentIndex}`
-      return key
+      const value = { transferId }
+      return { key, value }
     }
   }
 
   async update (transferId: string, transfer: Partial<Transfer>) {
-    await this.trackTimestampedKey(transfer)
-    return super.update(transferId, transfer)
+    const ops = [{ key: transferId, value: transfer }]
+    const timestampedKv = await this.getTimestampedKeyValueForUpdate(transfer)
+    if (timestampedKv) {
+      ops.push(timestampedKv)
+    }
+    return this.batchUpdate(ops)
   }
 
   async getByTransferId (transferId: string): Promise<Transfer> {

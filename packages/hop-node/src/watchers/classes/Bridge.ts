@@ -46,7 +46,7 @@ export default class Bridge extends ContractBase {
   constructor (bridgeContract: Contract) {
     super(bridgeContract)
     this.bridgeContract = bridgeContract
-    const metadata = getTokenMetadataByAddress(bridgeContract.address)
+    const metadata = getTokenMetadataByAddress(bridgeContract.address, this.chainSlug)
     const tokenDecimals: number = metadata?.decimals
     const tokenSymbol: string = metadata?.symbol
 

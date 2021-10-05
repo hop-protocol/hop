@@ -6,7 +6,7 @@ export type State = {
 
 class GasBoostDb extends BaseDb {
   async update (key: string, data: Partial<State>) {
-    return super.update(key, data)
+    return this._update(key, data)
   }
 
   async getItem (key: string): Promise<State> {

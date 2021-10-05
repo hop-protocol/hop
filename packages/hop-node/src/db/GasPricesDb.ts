@@ -32,7 +32,7 @@ class GasPricesDb extends BaseDb {
   }
 
   async update (key: string, data: GasPrice) {
-    return super.update(key, data)
+    return this._update(key, data)
   }
 
   async addGasPrice (data: GasPrice) {

@@ -92,7 +92,7 @@ class BaseDb {
         this.logger.debug(`clear item, key=${key}`)
       })
       .on('error', (err: Error) => {
-        this.logger.debug(`error: ${err.message}`)
+        this.logger.error(`leveldb error: ${err.message}`)
       })
   }
 
@@ -105,7 +105,7 @@ class BaseDb {
   }
 
   @queue
-  public async update (key: string, data: any) {
+  async _update (key: string, data: any) {
     const { value } = await this._getUpdateData(key, data)
     return this.db.put(key, value)
   }

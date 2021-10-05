@@ -40,7 +40,7 @@ export type TransferRoot = {
 
 class TransferRootsDb extends BaseDb {
   async update (transferRootHash: string, data: Partial<TransferRoot>) {
-    return super.update(transferRootHash, data)
+    return this._update(transferRootHash, data)
   }
 
   async getByTransferRootHash (

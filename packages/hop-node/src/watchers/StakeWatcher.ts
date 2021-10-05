@@ -92,21 +92,7 @@ class StakeWatcher extends BaseWatcher {
     this.logger.debug('credit balance:', this.bridge.formatUnits(credit))
     this.logger.debug('raw debit balance:', this.bridge.formatUnits(rawDebit))
     this.logger.debug('debit balance:', this.bridge.formatUnits(debit))
-
-    const bondedBondedWithdrawalsBalance = await this.bridge.getBonderBondedWithdrawalsBalance()
-
-    const bonderBridgeStakedAmount = credit
-      .sub(rawDebit)
-      .add(bondedBondedWithdrawalsBalance)
-
-    this.logger.debug(
-      'bonder bonded withdrawals balance:',
-      this.bridge.formatUnits(bondedBondedWithdrawalsBalance)
-    )
-    this.logger.debug(
-      'bonder bridge calculated actual staked amount:',
-      this.bridge.formatUnits(bonderBridgeStakedAmount)
-    )
+    this.logger.debug('allowance:', this.bridge.formatUnits(allowance))
   }
 
   async watchEthBalance () {

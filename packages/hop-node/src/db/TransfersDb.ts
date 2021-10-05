@@ -115,7 +115,6 @@ class TransfersDb extends BaseDb {
     }
     const item = await this.subDb.getById(key)
     const exists = !!item
-    this.logger.debug(`exists: ${!!exists}, key: ${key}`, item)
     if (!exists) {
       const value = { transferId }
       return { key, value }
@@ -126,7 +125,6 @@ class TransfersDb extends BaseDb {
     const logger = this.logger.create({ id: transferId })
     logger.debug('update called')
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transfer)
-    logger.debug('timestampedKv:', timestampedKv)
     if (timestampedKv) {
       logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferId: ${transferId}`)
       await this.subDb._update(timestampedKv.key, timestampedKv.value)
@@ -292,6 +290,23 @@ class TransfersDb extends BaseDb {
       }
 
       return item.withdrawalBonded && !item.transferRootHash
+    })
+  }
+
+  async getIncompleteItems (
+    filter: Partial<Transfer> = {}
+  ) {
+    const transfers: Transfer[] = await this.getTransfers()
+    return transfers.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
+      return (
+        (item.transferSentBlockNumber && !item.transferSentTimestamp)
+      )
     })
   }
 }

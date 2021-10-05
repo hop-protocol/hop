@@ -27,7 +27,7 @@ class DbLogger {
   async poll () {
     while (true) {
       try {
-        const transfers = await this.db.transfers.getTransfers()
+        const transfers = await this.db.transfers.getTransfersFromWeek()
         this.logger.debug(`transfers count: ${transfers.length}`)
         transfers.forEach((transfer: Transfer) => {
           const logger = this.logger.create({ id: transfer.transferId })

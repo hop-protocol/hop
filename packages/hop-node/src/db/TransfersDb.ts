@@ -106,11 +106,11 @@ class TransfersDb extends BaseDb {
     const transferId = transfer?.transferId
     const key = this.getTimestampedKey(transfer)
     if (!key) {
-      this.logger.warn('expected timestamped key. incomplete transfer:', transfer)
+      this.logger.warn('expected timestamped key. incomplete transfer:', JSON.stringify(transfer))
       return
     }
     if (!transferId) {
-      this.logger.warn(`expected transfer id for timestamped key. key: ${key} incomplete transfer: `, transfer)
+      this.logger.warn(`expected transfer id for timestamped key. key: ${key} incomplete transfer: `, JSON.stringify(transfer))
       return
     }
     const item = await this.subDb.getById(key)

@@ -41,11 +41,16 @@ export type Transfer = {
   committed: boolean
 }
 
+class TransfersTimestampedKeysDb extends BaseDb {}
+
 class TransfersDb extends BaseDb {
   ready = false
+  subDb : TransfersTimestampedKeysDb
 
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
+
+    this.subDb = new TransfersTimestampedKeysDb(`${prefix}:timestampedKeys`, _namespace)
 
     // this only needs to be ran once on start up to backfill timestamped keys.
     // this function can be removed once all bonders update.
@@ -81,7 +86,8 @@ class TransfersDb extends BaseDb {
       const key = data?.key
       const transferId = data?.value?.transferId
       this.logger.debug(`storing timestamped key. key: ${key} transferId: ${transferId}`)
-      await super.update(key, { transferId })
+      const value = { transferId }
+      await this.subDb.update(key, value)
     }
   }
 
@@ -107,7 +113,7 @@ class TransfersDb extends BaseDb {
       this.logger.warn(`expected transfer id for timestamped key. key: ${key} incomplete transfer: `, transfer)
       return
     }
-    const exists = await this.getById(key)
+    const exists = await this.subDb.getById(key)
     if (!exists) {
       const value = { transferId }
       return { key, value }
@@ -115,12 +121,11 @@ class TransfersDb extends BaseDb {
   }
 
   async update (transferId: string, transfer: Partial<Transfer>) {
-    const ops = [{ key: transferId, value: transfer }]
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transfer)
     if (timestampedKv) {
-      ops.push(timestampedKv)
+      await this.subDb.update(timestampedKv.key, timestampedKv.value)
     }
-    return this.batchUpdate(ops)
+    return super.update(transferId, transfer)
   }
 
   async getByTransferId (transferId: string): Promise<Transfer> {
@@ -150,7 +155,7 @@ class TransfersDb extends BaseDb {
       if (dateFilter.toUnix) {
         filter.lte = `transfer:${dateFilter.toUnix}~`
       }
-      const kv = await this.getKeyValues(filter)
+      const kv = await this.subDb.getKeyValues(filter)
       return kv.map(x => x?.value?.transferId).filter(x => x)
     }
 

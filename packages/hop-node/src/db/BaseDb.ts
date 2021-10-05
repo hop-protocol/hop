@@ -91,6 +91,9 @@ class BaseDb {
       .on('clear', (key: string) => {
         this.logger.debug(`clear item, key=${key}`)
       })
+      .on('error', (err: Error) => {
+        this.logger.debug(`error: ${err.message}`)
+      })
   }
 
   protected async _getUpdateData (key: string, data: any) {
@@ -131,7 +134,7 @@ class BaseDb {
     })
   }
 
-  protected async getById (id: string, defaultValue: any = null) {
+  async getById (id: string, defaultValue: any = null) {
     try {
       const item = await this.db.get(id)
       if (item) {
@@ -150,7 +153,7 @@ class BaseDb {
     return this.db.del(id)
   }
 
-  protected async getKeys (filter?: KeyFilter): Promise<string[]> {
+  async getKeys (filter?: KeyFilter): Promise<string[]> {
     filter = Object.assign({
       keys: true,
       values: false
@@ -159,7 +162,7 @@ class BaseDb {
     return kv.map(x => x.key).filter(x => x)
   }
 
-  protected async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<any[]> {
+  async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<any[]> {
     return new Promise((resolve, reject) => {
       const kv : any[] = []
       this.db.createReadStream(filter)

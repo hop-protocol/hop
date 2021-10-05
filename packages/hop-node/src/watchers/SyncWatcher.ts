@@ -4,6 +4,7 @@ import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import S3Upload from 'src/aws/s3Upload'
 import chalk from 'chalk'
+import chunk from 'lodash/chunk'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
@@ -116,27 +117,29 @@ class SyncWatcher extends BaseWatcher {
 
   async incompletePollSync () {
     try {
-      const promises : Promise<any>[] = []
       const incompleteTransfers = await this.db.transfers.getIncompleteItems({
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })
       if (incompleteTransfers.length) {
         this.logger.debug(`incomplete transfer items: ${incompleteTransfers.length}`)
-        for (const { transferId } of incompleteTransfers) {
-          promises.push(this.populateTransferDbItem(transferId).catch(err => {
-            this.logger.error('populateTransferDbItem error:', err)
-            this.notifier.error(`populateTransferDbItem error: ${err.message}`)
+        const chunkSize = 20
+        const allChunks = chunk(incompleteTransfers, chunkSize)
+        for (const chunks of allChunks) {
+          await Promise.all(chunks.map((transfer: Transfer) => {
+            const { transferId } = transfer
+            return this.populateTransferDbItem(transferId)
+              .then(() => {
+                // fill in missing db timestamped keys
+                return this.db.transfers.trackTimestampedKeyByTransferId(transferId)
+              })
+              .catch(err => {
+                this.logger.error('populateTransferDbItem error:', err)
+                this.notifier.error(`populateTransferDbItem error: ${err.message}`)
+              })
           }))
         }
       }
-
-      if (promises.length) {
-        await Promise.all(promises)
-
-        // fill in missing db timestamped keys
-        await this.db.transfers.trackTimestampedKeys()
-      }
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error(`incomplete poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
       this.notifier.error(`incomplete poll sync watcher error: ${err.message}`)
     }

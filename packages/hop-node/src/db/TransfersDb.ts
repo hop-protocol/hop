@@ -91,6 +91,11 @@ class TransfersDb extends BaseDb {
     }
   }
 
+  async trackTimestampedKeyByTransferId (transferId: string) {
+    const transfer = await this.getByTransferId(transferId)
+    return this.trackTimestampedKey(transfer)
+  }
+
   getTimestampedKey (transfer: Partial<Transfer>) {
     if (transfer?.transferSentTimestamp && transfer?.transferSentIndex !== undefined) {
       const key = `transfer:${transfer?.transferSentTimestamp}:${transfer?.transferSentIndex}`

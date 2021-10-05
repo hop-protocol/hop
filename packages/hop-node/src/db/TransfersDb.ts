@@ -121,11 +121,12 @@ class TransfersDb extends BaseDb {
   }
 
   async update (transferId: string, transfer: Partial<Transfer>) {
+    await super.update(transferId, transfer)
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transfer)
     if (timestampedKv) {
+      this.logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferId: ${transferId}`)
       await this.subDb.update(timestampedKv.key, timestampedKv.value)
     }
-    return super.update(transferId, transfer)
   }
 
   async getByTransferId (transferId: string): Promise<Transfer> {

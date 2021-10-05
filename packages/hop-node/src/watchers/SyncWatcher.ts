@@ -132,6 +132,9 @@ class SyncWatcher extends BaseWatcher {
 
       if (promises.length) {
         await Promise.all(promises)
+
+        // fill in missing db timestamped keys
+        await this.db.transfers.trackTimestampedKeys()
       }
     } catch (err) {
       this.logger.error(`incomplete poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)

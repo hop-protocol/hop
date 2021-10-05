@@ -116,7 +116,7 @@ class TransfersDb extends BaseDb {
     const exists = await this.subDb.getById(key)
     if (!exists) {
       const value = { transferId }
-      return { key, value}
+      return { key, value }
     }
   }
 

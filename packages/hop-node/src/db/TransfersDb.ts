@@ -113,7 +113,9 @@ class TransfersDb extends BaseDb {
       this.logger.warn(`expected transfer id for timestamped key. key: ${key} incomplete transfer: `, transfer)
       return
     }
-    const exists = await this.subDb.getById(key)
+    const item = await this.subDb.getById(key)
+    const exists = !!item
+    this.logger.debug(`exists: ${!!exists}, key: ${key}`, item)
     if (!exists) {
       const value = { transferId }
       return { key, value }
@@ -122,10 +124,13 @@ class TransfersDb extends BaseDb {
 
   async update (transferId: string, transfer: Partial<Transfer>) {
     await super.update(transferId, transfer)
+    this.logger.debug(`updated db item. key: ${transferId}`)
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transfer)
+    this.logger.debug('timestampedKv:', timestampedKv)
     if (timestampedKv) {
       this.logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferId: ${transferId}`)
       await this.subDb.update(timestampedKv.key, timestampedKv.value)
+      this.logger.debug(`updated db item. key: ${timestampedKv.key}`)
     }
   }
 

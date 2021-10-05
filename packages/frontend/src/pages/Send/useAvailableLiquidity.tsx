@@ -29,7 +29,9 @@ const useAvailableLiquidity = (
 
       // NOTE: temporarily disable ability to transfer due to bonder delays.
       // remove this once bonder is updated
-      liquidity = BigNumber.from(0)
+      if (bridge.getTokenSymbol() !== 'MATIC') {
+        liquidity = BigNumber.from(0)
+      }
 
       setAvailableLiquidity(liquidity)
     } catch (err) {

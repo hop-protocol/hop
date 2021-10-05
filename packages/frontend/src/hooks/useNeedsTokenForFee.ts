@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { BigNumber } from 'ethers'
+import logger from 'src/logger'
 
 const useNeedsTokenForFee = (network: Network | undefined) => {
   const [needsToken, setNeedsToken] = useState(false)
@@ -12,11 +13,7 @@ const useNeedsTokenForFee = (network: Network | undefined) => {
       const provider = network?.provider
       const signer = walletProvider?.getSigner()
 
-      if (
-        !provider ||
-        !signer ||
-        !network?.requiresGas
-      ) {
+      if (!provider || !signer || !network?.requiresGas) {
         setNeedsToken(false)
         return
       }
@@ -32,7 +29,7 @@ const useNeedsTokenForFee = (network: Network | undefined) => {
       setNeedsToken(_needsToken)
     }
 
-    checkBalance()
+    checkBalance().catch(logger.error)
   }, [network, walletProvider])
 
   return needsToken

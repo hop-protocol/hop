@@ -1,8 +1,9 @@
 import BaseDb from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
+import { Chain, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
+import { oruChains } from 'src/config'
 
 export type TransferRoot = {
   destinationBridgeAddress?: string
@@ -39,7 +40,7 @@ export type TransferRoot = {
 
 class TransferRootsDb extends BaseDb {
   async update (transferRootHash: string, data: Partial<TransferRoot>) {
-    return super.update(transferRootHash, data)
+    return this._update(transferRootHash, data)
   }
 
   async getByTransferRootHash (
@@ -101,6 +102,17 @@ class TransferRootsDb extends BaseDb {
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRoots()
     return transferRoots.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+      if (filter?.destinationChainId) {
+        if (filter.destinationChainId !== item.destinationChainId) {
+          return false
+        }
+      }
+
       let timestampOk = true
       if (item?.sentBondTxAt) {
         timestampOk =
@@ -109,6 +121,7 @@ class TransferRootsDb extends BaseDb {
 
       return (
         !item.bonded &&
+        !item.bondedAt &&
         !item.confirmed &&
         item.transferRootHash &&
         item.committedAt &&
@@ -143,6 +156,14 @@ class TransferRootsDb extends BaseDb {
           item?.sentConfirmTxAt + TxRetryDelayMs < Date.now()
       }
 
+      let oruTimestampOk = true
+      const sourceChain = chainIdToSlug(item.sourceChainId)
+      const isSourceOru = oruChains.includes(sourceChain)
+      if (isSourceOru && item?.committedAt) {
+        oruTimestampOk =
+          item?.committedAt + OneWeekMs < Date.now()
+      }
+
       return (
         item.commitTxHash &&
         !item.confirmed &&
@@ -150,7 +171,8 @@ class TransferRootsDb extends BaseDb {
         item.destinationChainId &&
         item.committed &&
         item.committedAt &&
-        timestampOk
+        timestampOk &&
+        oruTimestampOk
       )
     })
   }

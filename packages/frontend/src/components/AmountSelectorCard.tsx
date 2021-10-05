@@ -17,11 +17,11 @@ const useStyles = makeStyles(theme => ({
     width: '51.6rem',
     boxSizing: 'border-box',
     [theme.breakpoints.down('xs')]: {
-      width: 'auto'
-    }
+      width: 'auto',
+    },
   },
   topRow: {
-    marginBottom: '1.8rem'
+    marginBottom: '1.8rem',
   },
   networkSelectionBox: {
     display: 'flex',
@@ -33,23 +33,23 @@ const useStyles = makeStyles(theme => ({
     flexDirection: 'row',
     marginLeft: '0.4rem',
     overflow: 'hidden',
-    textOverflow: 'clip'
+    textOverflow: 'clip',
   },
   networkIconContainer: {
     display: 'flex',
     justifyContent: 'center',
     width: '4rem',
-    height: '4rem'
+    height: '4rem',
   },
   networkIcon: {
     display: 'flex',
     height: '2.2rem',
-    margin: '0.7rem'
+    margin: '0.7rem',
   },
   balance: {
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   maxButton: {
     border: 'none',
@@ -58,16 +58,15 @@ const useStyles = makeStyles(theme => ({
     padding: '0.5rem 1rem',
     fontSize: '1.2rem',
     marginRight: '1rem',
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   container: {
-    flexWrap: 'nowrap'
+    flexWrap: 'nowrap',
   },
   networkContainer: {
     width: '180px',
   },
-  inputContainer: {
-  }
+  inputContainer: {},
 }))
 
 type Props = {
@@ -114,7 +113,7 @@ const AmountSelectorCard: FC<Props> = props => {
     hideSymbol = false,
     hideMaxButton = false,
     decimalPlaces = 4,
-    className
+    className,
   } = props
   const styles = useStyles()
 
@@ -173,15 +172,14 @@ const AmountSelectorCard: FC<Props> = props => {
       >
         {!!label && (
           <Typography variant="subtitle2" color="textSecondary">
-            {loadingBalance ? <Skeleton variant="text" width="15.0rem"></Skeleton>
-            : label }
+            {loadingBalance ? <Skeleton variant="text" width="15.0rem"></Skeleton> : label}
           </Typography>
         )}
         {loadingSecondaryBalance ? (
           <Skeleton variant="text" width="15.0rem"></Skeleton>
         ) : secondaryBalance ? (
           <div className={styles.balance}>
-            {!hideMaxButton && (secondaryBalance.gt(0) && !disableInput) ? (
+            {!hideMaxButton && secondaryBalance.gt(0) && !disableInput ? (
               <button className={styles.maxButton} onClick={handleSecondaryMaxClick}>
                 MAX
               </button>
@@ -195,7 +193,7 @@ const AmountSelectorCard: FC<Props> = props => {
           <Skeleton variant="text" width="15.0rem"></Skeleton>
         ) : balance ? (
           <div className={styles.balance}>
-            {!hideMaxButton && (balance.gt(0) && !disableInput) ? (
+            {!hideMaxButton && balance.gt(0) && !disableInput ? (
               <button className={styles.maxButton} onClick={handleMaxClick}>
                 MAX
               </button>
@@ -209,21 +207,12 @@ const AmountSelectorCard: FC<Props> = props => {
       <Grid container alignItems="center" className={styles.container}>
         <Grid item className={styles.networkContainer}>
           <Box className={styles.networkSelectionBox}>
-            {
-              titleIconUrl
-              ? <Box className={styles.networkIconContainer}>
-                  <img
-                    src={titleIconUrl}
-                    className={styles.networkIcon}
-                    alt={title}
-                  />
-                </Box>
-              : null
-            }
-            <Typography
-              variant="subtitle2"
-              className={styles.networkLabel}
-            >
+            {titleIconUrl ? (
+              <Box className={styles.networkIconContainer}>
+                <img src={titleIconUrl} className={styles.networkIcon} alt={title} />
+              </Box>
+            ) : null}
+            <Typography variant="subtitle2" className={styles.networkLabel}>
               {title}
             </Typography>
           </Box>

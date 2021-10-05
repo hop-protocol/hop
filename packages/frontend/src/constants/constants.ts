@@ -6,18 +6,17 @@ export const PROPOSAL_STATUSES: any = {
   SUCCEEDED: 'succeeded',
   QUEUED: 'queued',
   EXPIRED: 'expired',
-  EXECUTED: 'executed'
+  EXECUTED: 'executed',
 }
 
 export enum VOTE_STATUS {
   FOR = 'For',
-  AGAINST = 'Against'
+  AGAINST = 'Against',
 }
 
 export const AVERAGE_BLOCK_TIME_IN_SECS = 14
 export const PROPOSAL_LENGTH_IN_BLOCKS = 40_320
-export const PROPOSAL_LENGTH_IN_SECS =
-  AVERAGE_BLOCK_TIME_IN_SECS * PROPOSAL_LENGTH_IN_BLOCKS
+export const PROPOSAL_LENGTH_IN_SECS = AVERAGE_BLOCK_TIME_IN_SECS * PROPOSAL_LENGTH_IN_BLOCKS
 
 export const NetworkContextName = 'NETWORK'
 
@@ -28,7 +27,7 @@ export const TIMELOCK_ADDRESS = '0x92E5A4B202F57B3634d6352fBAbBA9Cf2908a14A'
 export const COMMON_CONTRACT_NAMES: { [address: string]: string } = {
   [HOP_ADDRESS]: 'HOP',
   [GOVERNANCE_ADDRESS]: 'Governance',
-  [TIMELOCK_ADDRESS]: 'Timelock'
+  [TIMELOCK_ADDRESS]: 'Timelock',
 }
 
 export declare enum NetworkId {
@@ -36,7 +35,7 @@ export declare enum NetworkId {
   ROPSTEN = 3,
   RINKEBY = 4,
   GOERLI = 5,
-  KOVAN = 42
+  KOVAN = 42,
 }
 
 export const ETHERSCAN_PREFIXES: { [networkId in NetworkId]: string } = {
@@ -44,13 +43,12 @@ export const ETHERSCAN_PREFIXES: { [networkId in NetworkId]: string } = {
   3: 'ropsten.',
   4: 'rinkeby.',
   5: 'goerli.',
-  42: 'kovan.'
+  42: 'kovan.',
 }
 
 export const STAKING_GENESIS = 1600387200 // TODO: Update with real data
 export const REWARDS_DURATION_DAYS = 60
-export const UINT256: string =
-  '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+export const UINT256: string = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
 
 export const MAINNET = 'mainnet'
 export const KOVAN = 'kovan'

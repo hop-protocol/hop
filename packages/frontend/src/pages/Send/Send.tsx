@@ -10,7 +10,6 @@ import Button from 'src/components/buttons/Button'
 import SendIcon from '@material-ui/icons/Send'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import MenuItem from '@material-ui/core/MenuItem'
-import { Token } from '@hop-protocol/sdk'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
@@ -34,60 +33,62 @@ import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
 import useApprove from 'src/hooks/useApprove'
 import { reactAppNetwork } from 'src/config'
+import InfoTooltip from 'src/components/infoTooltip'
+import { amountToBN, formatError } from 'src/utils/format'
 
 const useStyles = makeStyles(theme => ({
   header: {
     display: 'flex',
     justifyContent: 'center',
     width: '46.0rem',
-    position: 'relative'
+    position: 'relative',
   },
   sendSelect: {
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
   },
   sendLabel: {
-    marginRight: '1.8rem'
+    marginRight: '1.8rem',
   },
   downArrow: {
     margin: '0.8rem',
     height: '2.4rem',
-    width: '2.4rem'
+    width: '2.4rem',
   },
   switchDirectionButton: {
     padding: 0,
     minWidth: 0,
-    margin: '1.0rem'
+    margin: '1.0rem',
   },
   details: {
     marginTop: '4.2rem',
     marginBottom: '5.4rem',
     width: '46.0rem',
     [theme.breakpoints.down('xs')]: {
-      width: '90%'
-    }
+      width: '90%',
+    },
   },
   detailRow: {},
   detailLabel: {
     display: 'flex',
     justifyContent: 'flex-start',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   txStatusInfo: {
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   txStatusCloseButton: {
-    marginTop: '1rem'
+    marginTop: '1rem',
   },
   semiBold: {
-    fontWeight: 600
+    fontWeight: 600,
   },
   extraBold: {
-    fontWeight: 800
+    fontWeight: 800,
   },
   destinationTxFeeAndAmount: {
-    marginTop: '2.4rem'
+    marginTop: '2.4rem',
   },
   detailsDropdown: {
     marginTop: '2rem',
@@ -96,7 +97,7 @@ const useStyles = makeStyles(theme => ({
       content: '"▾"',
     },
     [theme.breakpoints.down('xs')]: {
-      width: '90%'
+      width: '90%',
     },
   },
   detailsDropdownSummary: {
@@ -106,8 +107,8 @@ const useStyles = makeStyles(theme => ({
     fontWeight: 'normal',
     paddingRight: '4rem',
     '&::marker': {
-      display: 'none'
-    }
+      display: 'none',
+    },
   },
   detailsDropdownLabel: {
     position: 'relative',
@@ -116,7 +117,7 @@ const useStyles = makeStyles(theme => ({
       position: 'relative',
       display: 'inline-flex',
       justifyItems: 'center',
-      alignItems: 'center'
+      alignItems: 'center',
     },
     '& > span::before': {
       display: 'block',
@@ -124,21 +125,21 @@ const useStyles = makeStyles(theme => ({
       position: 'absolute',
       top: '0',
       right: '-1.5rem',
-    }
+    },
   },
   customRecipient: {
     width: '100%',
-    padding: '2rem 0'
+    padding: '2rem 0',
   },
   customRecipientLabel: {
-    marginBottom: '1.5rem'
+    marginBottom: '1.5rem',
   },
   buttons: {
-    marginTop: theme.padding.default
+    marginTop: theme.padding.default,
   },
   button: {
     margin: `0 ${theme.padding.light}`,
-    width: '17.5rem'
+    width: '17.5rem',
   },
 }))
 
@@ -152,38 +153,46 @@ const Send: FC = () => {
     bridges,
     selectedBridge,
     setSelectedBridge,
-    settings
+    settings,
   } = useApp()
-  const {
-    slippageTolerance,
-    deadline
-  } = settings
-  const {
-    provider,
-    walletConnected,
-    checkConnectedNetworkId,
-    address
-  } = useWeb3Context()
+  const { slippageTolerance, deadline } = settings
+  const { provider, walletConnected, checkConnectedNetworkId, address } = useWeb3Context()
   const { queryParams, updateQueryParams } = useQueryParams()
-
   const [fromNetwork, _setFromNetwork] = useState<Network>()
   const [toNetwork, _setToNetwork] = useState<Network>()
+  const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
+  const [toTokenAmount, setToTokenAmount] = useState<string>('')
+  const [approving, setApproving] = useState<boolean>(false)
+  const [sending, setSending] = useState<boolean>(false)
+  const [feeDisplay, setFeeDisplay] = useState<string>()
+  const [amountOutMinDisplay, setAmountOutMinDisplay] = useState<string>()
+  const [warning, setWarning] = useState<any>(null)
+  const [error, setError] = useState<string | null | undefined>(null)
+  const [noLiquidityWarning, setNoLiquidityWarning] = useState<any>(null)
+  const [needsNativeTokenWarning, setNeedsNativeTokenWarning] = useState<string>()
+  const [minimumSendWarning, setMinimumSendWarning] = useState<string | null | undefined>(null)
+  const [info, setInfo] = useState<string | null | undefined>(null)
+  const [tx, setTx] = useState<Transaction | null>(null)
+  const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
+  const [customRecipient, setCustomRecipient] = useState<string>('')
 
   useEffect(() => {
-    const _fromNetwork = networks.find(network =>
-      network.slug === queryParams.sourceNetwork
-    )
+    const _fromNetwork = networks.find(network => network.slug === queryParams.sourceNetwork)
     _setFromNetwork(_fromNetwork)
 
-    const _toNetwork = networks.find(network =>
-      network.slug === queryParams.destNetwork
-    )
+    const _toNetwork = networks.find(network => network.slug === queryParams.destNetwork)
+
+    if (_fromNetwork?.name === _toNetwork?.name) {
+      // Leave destination network empty
+      return
+    }
+
     _setToNetwork(_toNetwork)
   }, [queryParams, networks])
 
   const setFromNetwork = (network: Network | undefined) => {
     updateQueryParams({
-      sourceNetwork: network?.slug ?? ''
+      sourceNetwork: network?.slug ?? '',
     })
 
     _setFromNetwork(network)
@@ -191,52 +200,30 @@ const Send: FC = () => {
 
   const setToNetwork = (network: Network | undefined) => {
     updateQueryParams({
-      destNetwork: network?.slug ?? ''
+      destNetwork: network?.slug ?? '',
     })
 
     _setToNetwork(network)
   }
 
-  const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
-  const [toTokenAmount, setToTokenAmount] = useState<string>('')
-  const [approving, setApproving] = useState<boolean>(false)
-  const [sending, setSending] = useState<boolean>(false)
-  const [feeDisplay, setFeeDisplay] = useState<string>()
-  const [amountOutMinDisplay, setAmountOutMinDisplay] = useState<string>()
-  const [warning, setWarning] = useState<string | null | undefined>(null)
-  const [error, setError] = useState<string | null | undefined>(null)
-  const [noLiquidityWarning, setNoLiquidityWarning] = useState<string | null | undefined>(null)
-  const [needsNativeTokenWarning, setNeedsNativeTokenWarning] = useState<string | null | undefined>(null)
-  const [minimumSendWarning, setMinimumSendWarning] = useState<string | null | undefined>(null)
-  const [info, setInfo] = useState<string | null | undefined>(null)
-  const [tx, setTx] = useState<Transaction | null>(null)
-  const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(
-    true
-  )
-  const [customRecipient, setCustomRecipient] = useState<string>('')
-
   const unsupportedAsset = useMemo<any>(() => {
-    if (!(
-      selectedBridge &&
-      fromNetwork &&
-      toNetwork
-    )) {
+    if (!(selectedBridge && fromNetwork && toNetwork)) {
       return null
     }
     const unsupportedAssets = {
       Optimism: 'MATIC',
-      Arbitrum: 'MATIC'
+      Arbitrum: 'MATIC',
     }
 
     for (const chain in unsupportedAssets) {
       const tokenSymbol = unsupportedAssets[chain]
-      const isUnsupported = (selectedBridge?.getTokenSymbol() === tokenSymbol && (
+      const isUnsupported =
+        selectedBridge?.getTokenSymbol() === tokenSymbol &&
         [fromNetwork?.slug, toNetwork?.slug].includes(chain.toLowerCase())
-      ))
       if (isUnsupported) {
         return {
           chain,
-          tokenSymbol
+          tokenSymbol,
         }
       }
     }
@@ -277,13 +264,18 @@ const Send: FC = () => {
   const { balance: fromBalance, loading: loadingFromBalance } = useBalance(
     sourceToken,
     fromNetwork,
-    address,
+    address
   )
   const { balance: toBalance, loading: loadingToBalance } = useBalance(
     destToken,
     toNetwork,
-    address,
+    address
   )
+
+  // Reset error message
+  useEffect(() => {
+    setError('')
+  }, [fromNetwork])
 
   const handleApprove = async () => {
     try {
@@ -292,23 +284,11 @@ const Send: FC = () => {
       await approveFromToken()
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, fromNetwork))
       }
       logger.error(err)
     }
     setApproving(false)
-  }
-
-  const amountToBN = (token: Token | undefined, amount: string): BigNumber | undefined => {
-    if (!token) return
-    let val
-    try {
-      const sanitizedAmount = amount.replace(/,/g, '')
-      val = parseUnits(sanitizedAmount, token.decimals)
-    } catch (err) {
-      // noop
-    }
-    return val
   }
 
   const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {
@@ -326,25 +306,15 @@ const Send: FC = () => {
     requiredLiquidity,
     loading: loadingSendData,
     destinationTxFee,
-    estimatedReceived
-  } = useSendData(
-    sourceToken,
-    slippageTolerance,
-    fromNetwork,
-    toNetwork,
-    fromTokenAmountBN
-  )
+    estimatedReceived,
+  } = useSendData(sourceToken, slippageTolerance, fromNetwork, toNetwork, fromTokenAmountBN)
 
   let totalBonderFee = destinationTxFee
   if (destinationTxFee && bonderFee) {
     totalBonderFee = destinationTxFee.add(bonderFee)
   }
 
-  const bonderFeeDisplay = toTokenDisplay(
-    bonderFee,
-    destToken?.decimals,
-    destToken?.symbol
-  )
+  const bonderFeeDisplay = toTokenDisplay(bonderFee, destToken?.decimals, destToken?.symbol)
 
   const destinationTxFeeDisplay = toTokenDisplay(
     destinationTxFee,
@@ -384,7 +354,11 @@ const Send: FC = () => {
     enoughBalance = false
   }
 
-  const availableLiquidity = useAvailableLiquidity(selectedBridge, fromNetwork?.slug, toNetwork?.slug)
+  const availableLiquidity = useAvailableLiquidity(
+    selectedBridge,
+    fromNetwork?.slug,
+    toNetwork?.slug
+  )
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
@@ -418,25 +392,24 @@ const Send: FC = () => {
 
   useEffect(() => {
     const checkAvailableLiquidity = async () => {
-      if (
-        !toNetwork ||
-        !availableLiquidity ||
-        !requiredLiquidity ||
-        !sourceToken
-      ) {
+      if (!toNetwork || !availableLiquidity || !requiredLiquidity || !sourceToken) {
         setNoLiquidityWarning('')
         return
       }
 
-      const isAvailable = BigNumber.from(availableLiquidity).gte(
-        requiredLiquidity
-      )
+      const isAvailable = BigNumber.from(availableLiquidity).gte(requiredLiquidity)
 
-      const formattedAmount = toTokenDisplay(
-        availableLiquidity,
-        sourceToken.decimals
+      const formattedAmount = toTokenDisplay(availableLiquidity, sourceToken.decimals)
+
+      const warningMessage = (
+        <>
+          Insufficient liquidity. There is {formattedAmount} {sourceToken.symbol} available on{' '}
+          {toNetwork.name}.{' '}
+          <InfoTooltip
+            title={`Required Liquidity: ${toTokenDisplay(requiredLiquidity, sourceToken.decimals)}`}
+          />
+        </>
       )
-      const warningMessage = `Insufficient liquidity. There is ${formattedAmount} ${sourceToken.symbol} available on ${toNetwork.name}.`
       if (!isAvailable && !fromNetwork?.isLayer1) {
         if (reactAppNetwork !== 'staging') {
           setIsLiquidityAvailable(false)
@@ -452,15 +425,14 @@ const Send: FC = () => {
   }, [fromNetwork, sourceToken, toNetwork, availableLiquidity, requiredLiquidity])
 
   const checkingLiquidity = useMemo(() => {
-    return (
-      !fromNetwork?.isLayer1 &&
-      availableLiquidity === undefined
-    )
+    return !fromNetwork?.isLayer1 && availableLiquidity === undefined
   }, [fromNetwork, availableLiquidity])
 
   useEffect(() => {
     if (needsTokenForFee && fromNetwork) {
-      setNeedsNativeTokenWarning(`Add ${fromNetwork.nativeTokenSymbol} to your account on ${fromNetwork.name} for the transaction fee.`)
+      setNeedsNativeTokenWarning(
+        `Add ${fromNetwork.nativeTokenSymbol} to your account on ${fromNetwork.name} for the transaction fee.`
+      )
     } else {
       setNeedsNativeTokenWarning('')
     }
@@ -476,19 +448,24 @@ const Send: FC = () => {
   }, [estimatedReceived, destinationTxFee])
 
   useEffect(() => {
-    let message = (
-      noLiquidityWarning ||
-      minimumSendWarning ||
-      needsNativeTokenWarning
-    )
+    let message = noLiquidityWarning || minimumSendWarning || needsNativeTokenWarning
+
     if (!enoughBalance) {
       message = 'Insufficient funds'
+    } else if (estimatedReceived && bonderFee?.gt(estimatedReceived)) {
+      message = 'Bonder fee greater than estimated received'
     } else if (estimatedReceived?.lte(0)) {
-      message = 'Insufficient amount'
+      message = 'Insufficient amount. Send higher amount to cover bonder fee.'
     }
 
     setWarning(message)
-  }, [noLiquidityWarning, needsNativeTokenWarning, minimumSendWarning, enoughBalance, estimatedReceived])
+  }, [
+    noLiquidityWarning,
+    needsNativeTokenWarning,
+    minimumSendWarning,
+    enoughBalance,
+    estimatedReceived,
+  ])
 
   useEffect(() => {
     if (!lpFees || !sourceToken) {
@@ -522,28 +499,21 @@ const Send: FC = () => {
       _amountOutMin = BigNumber.from(0)
     }
 
-    const amountOutMinFormatted = commafy(
-      formatUnits(_amountOutMin, sourceToken.decimals),
-      4
-    )
+    const amountOutMinFormatted = commafy(formatUnits(_amountOutMin, sourceToken.decimals), 4)
     setAmountOutMinDisplay(`${amountOutMinFormatted} ${sourceToken.symbol}`)
   }, [amountOutMin])
 
   const { approve, checkApproval } = useApprove()
   const needsApproval = useAsyncMemo(async () => {
     try {
-      if (!(
-        fromNetwork &&
-        sourceToken &&
-        fromTokenAmount
-      )) {
+      if (!(fromNetwork && sourceToken && fromTokenAmount)) {
         return false
       }
 
       const parsedAmount = parseUnits(fromTokenAmount, sourceToken.decimals)
       const bridge = sdk.bridge(sourceToken.symbol)
 
-      let spender : string
+      let spender: string
       if (fromNetwork.isLayer1) {
         const l1Bridge = await bridge.getL1Bridge()
         spender = l1Bridge.address
@@ -552,22 +522,12 @@ const Send: FC = () => {
         spender = ammWrapper.address
       }
 
-      return checkApproval(
-        parsedAmount,
-        sourceToken,
-        spender
-      )
+      return checkApproval(parsedAmount, sourceToken, spender)
     } catch (err: any) {
       logger.error(err)
       return false
     }
-  }, [
-    sdk,
-    fromNetwork,
-    sourceToken,
-    fromTokenAmount,
-    checkApproval
-  ])
+  }, [sdk, fromNetwork, sourceToken, fromTokenAmount, checkApproval])
 
   const approveFromToken = async () => {
     if (!fromNetwork) {
@@ -589,7 +549,7 @@ const Send: FC = () => {
     const parsedAmount = parseUnits(fromTokenAmount, sourceToken.decimals)
     const bridge = sdk.bridge(sourceToken.symbol)
 
-    let spender : string
+    let spender: string
     if (fromNetwork.isLayer1) {
       const l1Bridge = await bridge.getL1Bridge()
       spender = l1Bridge.address
@@ -598,11 +558,7 @@ const Send: FC = () => {
       spender = ammWrapper.address
     }
 
-    const tx = await approve(
-      parsedAmount,
-      sourceToken,
-      spender
-    )
+    const tx = await approve(parsedAmount, sourceToken, spender)
 
     await tx?.wait()
   }
@@ -634,7 +590,7 @@ const Send: FC = () => {
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, fromNetwork))
       }
       logger.error(err)
     }
@@ -657,36 +613,28 @@ const Send: FC = () => {
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
-          network: fromNetwork
+          network: fromNetwork,
         },
         dest: {
-          network: toNetwork
-        }
+          network: toNetwork,
+        },
       },
       onConfirm: async () => {
         if (!amountOutMin) return
-        const parsedAmount = parseUnits(
-          fromTokenAmount,
-          sourceToken.decimals
-        ).toString()
-        const recipient = customRecipient || await signer.getAddress()
+        const parsedAmount = parseUnits(fromTokenAmount, sourceToken.decimals).toString()
+        const recipient = customRecipient || (await signer.getAddress())
         const relayer = ethers.constants.AddressZero
         const relayerFee = 0
         const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
-        const tx = await bridge.send(
-          parsedAmount,
-          sdk.Chain.Ethereum,
-          toNetwork?.slug,
-          {
-            deadline: deadline(),
-            relayer,
-            relayerFee,
-            recipient,
-            amountOutMin
-          }
-        )
+        const tx = await bridge.send(parsedAmount, sdk.Chain.Ethereum, toNetwork?.slug, {
+          deadline: deadline(),
+          relayer,
+          relayerFee,
+          recipient,
+          amountOutMin,
+        })
         return tx
-      }
+      },
     })
 
     let txObj: Transaction | null = null
@@ -695,7 +643,7 @@ const Send: FC = () => {
         hash: tx?.hash,
         networkName: fromNetwork?.slug,
         destNetworkName: toNetwork?.slug,
-        token: sourceToken
+        token: sourceToken,
       })
       txHistory?.addTransaction(txObj)
     }
@@ -719,20 +667,17 @@ const Send: FC = () => {
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
-          network: fromNetwork
+          network: fromNetwork,
         },
         dest: {
-          network: toNetwork
-        }
+          network: toNetwork,
+        },
       },
       onConfirm: async () => {
         if (!amountOutMin || !bonderFee) return
         const destinationAmountOutMin = 0
         const destinationDeadline = 0
-        const parsedAmountIn = parseUnits(
-          fromTokenAmount,
-          sourceToken.decimals
-        )
+        const parsedAmountIn = parseUnits(fromTokenAmount, sourceToken.decimals)
         const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
         let totalBonderFee = bonderFee
         if (destinationTxFee?.gt(0)) {
@@ -742,7 +687,7 @@ const Send: FC = () => {
         if (totalBonderFee.gt(parsedAmountIn)) {
           throw new Error('Amount must be greater than bonder fee')
         }
-        const recipient = customRecipient || await signer?.getAddress()
+        const recipient = customRecipient || (await signer?.getAddress())
 
         totalBonderFee = getBonderFeeWithId(totalBonderFee)
         const tx = await bridge.send(
@@ -755,11 +700,11 @@ const Send: FC = () => {
             amountOutMin: amountOutMin.sub(totalBonderFee),
             deadline: deadline(),
             destinationAmountOutMin,
-            destinationDeadline
+            destinationDeadline,
           }
         )
         return tx
-      }
+      },
     })
 
     let txObj: Transaction | null = null
@@ -768,7 +713,7 @@ const Send: FC = () => {
         hash: tx?.hash,
         networkName: fromNetwork?.slug,
         destNetworkName: toNetwork?.slug,
-        token: sourceToken
+        token: sourceToken,
       })
       txHistory?.addTransaction(txObj)
     }
@@ -792,19 +737,16 @@ const Send: FC = () => {
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
-          network: fromNetwork
+          network: fromNetwork,
         },
         dest: {
-          network: toNetwork
-        }
+          network: toNetwork,
+        },
       },
       onConfirm: async () => {
         if (!bonderFee) return
-        const parsedAmountIn = parseUnits(
-          fromTokenAmount,
-          sourceToken.decimals
-        )
-        const recipient = customRecipient || await signer?.getAddress()
+        const parsedAmountIn = parseUnits(fromTokenAmount, sourceToken.decimals)
+        const recipient = customRecipient || (await signer?.getAddress())
         const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
 
         let totalBonderFee = bonderFee
@@ -827,11 +769,11 @@ const Send: FC = () => {
             amountOutMin: intermediaryAmountOutMin.sub(totalBonderFee),
             deadline: deadline(),
             destinationAmountOutMin: amountOutMin.sub(totalBonderFee),
-            destinationDeadline: deadline()
+            destinationDeadline: deadline(),
           }
         )
         return tx
-      }
+      },
     })
 
     let txObj: Transaction | null = null
@@ -840,7 +782,7 @@ const Send: FC = () => {
         hash: tx?.hash,
         networkName: fromNetwork?.slug,
         destNetworkName: toNetwork?.slug,
-        token: sourceToken
+        token: sourceToken,
       })
       txHistory?.addTransaction(txObj)
     }
@@ -868,7 +810,7 @@ const Send: FC = () => {
     setTx(null)
   }
 
-  const sendButtonActive = (validFormFields && !unsupportedAsset && !needsApproval)
+  const sendButtonActive = validFormFields && !unsupportedAsset && !needsApproval
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -877,10 +819,7 @@ const Send: FC = () => {
           <Typography variant="h4" className={styles.sendLabel}>
             Send
           </Typography>
-          <RaisedSelect
-            value={selectedBridge?.getTokenSymbol()}
-            onChange={handleBridgeChange}
-          >
+          <RaisedSelect value={selectedBridge?.getTokenSymbol()} onChange={handleBridgeChange}>
             {bridges.map(bridge => (
               <MenuItem value={bridge.getTokenSymbol()} key={bridge.getTokenSymbol()}>
                 <SelectOption
@@ -913,10 +852,7 @@ const Send: FC = () => {
         balance={fromBalance}
         loadingBalance={loadingFromBalance}
       />
-      <MuiButton
-        className={styles.switchDirectionButton}
-        onClick={handleSwitchDirection}
-      >
+      <MuiButton className={styles.switchDirectionButton} onClick={handleSwitchDirection}>
         <ArrowDownIcon color="primary" className={styles.downArrow} />
       </MuiButton>
       <AmountSelectorCard
@@ -950,20 +886,20 @@ const Send: FC = () => {
               </Typography>
               <LargeTextField
                 style={{
-                  width: '100%'
+                  width: '100%',
                 }}
                 leftAlign
                 value={customRecipient}
                 onChange={handleCustomRecipientInput}
-                placeholder="0x" />
+                placeholder="0x"
+              />
             </Card>
           </div>
         </div>
       </details>
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
-          {
-            totalBonderFee?.gt(0) &&
+          {totalBonderFee?.gt(0) && (
             <DetailRow
               title={'Fees'}
               tooltip={
@@ -975,7 +911,7 @@ const Send: FC = () => {
               value={totalBonderFeeDisplay}
               large
             />
-          }
+          )}
           <DetailRow
             title="Estimated Received"
             tooltip={
@@ -993,7 +929,7 @@ const Send: FC = () => {
         </div>
       </div>
       <Alert severity="error" onClose={() => setError(null)} text={error} />
-      <Alert severity="warning" text={warning} />
+      <Alert severity="warning">{warning}</Alert>
       <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
         <Button
           className={styles.button}
@@ -1019,9 +955,7 @@ const Send: FC = () => {
       </Box>
       <br />
       <Alert severity="info" onClose={() => setInfo(null)} text={info} />
-      <TxStatusModal
-        onClose={handleTxStatusClose}
-        tx={tx} />
+      <TxStatusModal onClose={handleTxStatusClose} tx={tx} />
     </Box>
   )
 }

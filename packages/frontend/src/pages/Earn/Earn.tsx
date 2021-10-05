@@ -11,13 +11,13 @@ import { Countdown } from 'src/pages/Earn/Countdown'
 
 const useStyles = makeStyles(() => ({
   title: {
-    marginBottom: '4.2rem'
+    marginBottom: '4.2rem',
   },
   headerWrapper: {
     display: 'flex',
     width: '51rem',
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   poolSection: {
     display: 'grid',
@@ -26,7 +26,7 @@ const useStyles = makeStyles(() => ({
     rowGap: '15px',
     width: '100%',
     justifySelf: 'center',
-    justifyItems: 'center'
+    justifyItems: 'center',
   },
   poolContainer: {
     display: 'flex',
@@ -40,11 +40,11 @@ const useStyles = makeStyles(() => ({
     boxShadow: `
       inset -3px -3px 6px rgba(255, 255, 255, 0.5),
       inset 3px 3px 6px rgba(174, 174, 192, 0.16)
-    `
+    `,
   },
   centerCircularProgress: {
-    alignSelf: 'center'
-  }
+    alignSelf: 'center',
+  },
 }))
 
 const Earn: FC = () => {
@@ -60,7 +60,7 @@ const Earn: FC = () => {
     totalRewardRate,
     rewardRate,
     periodFinish,
-    active
+    active,
   } = useStakingInfo()
 
   useEffect(() => {
@@ -92,10 +92,7 @@ const Earn: FC = () => {
             )
           ) : (
             <div>
-              <span>
-                {' '}
-                stakingRewardAddress {stakingRewardAddress?.toString()}
-              </span>
+              <span> stakingRewardAddress {stakingRewardAddress?.toString()}</span>
               <br />
               <br />
               <span> stakedAmount {stakedAmount?.toString()}</span>

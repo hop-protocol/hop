@@ -10,7 +10,7 @@ import DebitWindowStats from './DebitWindowStats'
 
 const useStyles = makeStyles(theme => ({
   stats: {
-    marginBottom: '2rem'
+    marginBottom: '2rem',
   },
 }))
 

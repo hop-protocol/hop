@@ -108,6 +108,9 @@ class BondTransferRootWatcher extends BaseWatcher {
         `transferRootHash ${transferRootHash} already bonded. skipping.`
       )
       const event = await l1Bridge.getTransferRootBondedEvent(transferRootHash)
+      if (!event) {
+        throw new Error(`expected event object. transferRootHash: ${transferRootHash}`)
+      }
       const { transactionHash } = event
       const { from: sender } = await l1Bridge.getTransaction(
         event.transactionHash
@@ -153,7 +156,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       }
     }
 
-    const availableCredit = await l1Bridge.getAvailableCredit()
+    const availableCredit = await l1Bridge.getBaseAvailableCredit()
     const bondAmount = await l1Bridge.getBondForTransferAmount(totalAmount)
     if (availableCredit.lt(bondAmount)) {
       const msg = `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(

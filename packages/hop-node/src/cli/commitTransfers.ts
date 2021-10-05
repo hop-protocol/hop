@@ -1,4 +1,4 @@
-import CommitTransferWatcher from 'src/watchers/CommitTransferWatcher'
+import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import {
   FileConfig,
@@ -49,7 +49,7 @@ program
         dryMode
       })
 
-      const watcher = findWatcher(watchers, CommitTransferWatcher, sourceChain) as CommitTransferWatcher
+      const watcher = findWatcher(watchers, CommitTransfersWatcher, sourceChain) as CommitTransfersWatcher
       if (!watcher) {
         throw new Error('watcher not found')
       }

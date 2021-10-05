@@ -21,7 +21,7 @@ export default class Transfer {
   amountOutMin: ethers.BigNumber
   deadline: ethers.BigNumber
 
-  constructor (props: TransferProps) {
+  constructor(props: TransferProps) {
     this.chainId = props.chainId
     this.sender = props.sender
     this.recipient = props.recipient
@@ -32,18 +32,9 @@ export default class Transfer {
     this.deadline = props.deadline
   }
 
-  getTransferHash (): Buffer {
+  getTransferHash(): Buffer {
     const data = ethers.utils.defaultAbiCoder.encode(
-      [
-        'uint256',
-        'address',
-        'address',
-        'uint256',
-        'uint256',
-        'uint256',
-        'uint256',
-        'uint256'
-      ],
+      ['uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256'],
       [
         this.chainId,
         this.sender,
@@ -52,7 +43,7 @@ export default class Transfer {
         this.transferNonce,
         this.relayerFee,
         this.amountOutMin,
-        this.deadline
+        this.deadline,
       ]
     )
     const hash = ethers.utils.keccak256(data)

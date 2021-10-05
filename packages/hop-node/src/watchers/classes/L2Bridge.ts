@@ -439,7 +439,9 @@ export default class L2Bridge extends Bridge {
     bonderFee: BigNumber,
     amountOutMin: BigNumber,
     deadline: number,
-    gasPrice?: BigNumber
+    gasPrice?: BigNumber,
+    tokenUsdPrice?: number,
+    chainNativeTokenUsdPrice?: number
   ): Promise<providers.TransactionResponse> {
     const txOverrides = await this.txOverrides()
     if (this.chainSlug === Chain.Polygon) {
@@ -457,7 +459,7 @@ export default class L2Bridge extends Bridge {
     ]
 
     const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
-    await checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice)
+    await checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
 
     const tx = await this.bridgeContract.bondWithdrawalAndDistribute(...payload)
 

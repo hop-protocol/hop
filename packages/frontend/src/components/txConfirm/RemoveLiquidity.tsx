@@ -13,13 +13,13 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   title: {
-    marginBottom: '2rem'
+    marginBottom: '2rem',
   },
   amounts: {
-    fontSize: '2rem'
+    fontSize: '2rem',
   },
   action: {},
   sendButton: {},
@@ -27,13 +27,13 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    marginBottom: '2rem'
+    marginBottom: '2rem',
   },
   slider: {
     width: '100%',
     maxWidth: '260px',
-    margin: '0 auto'
-  }
+    margin: '0 auto',
+  },
 }))
 
 type SliderProps = {
@@ -105,12 +105,8 @@ const RemoveLiquidity = (props: Props) => {
   }
 
   const disabled = amountPercent === 0
-  const token0Amount = commafy(
-    (Number(token0.amount) * (amountPercent / 100)).toFixed(5)
-    , 5)
-  const token1Amount = commafy(
-    (Number(token1.amount) * (amountPercent / 100)).toFixed(5)
-    , 5)
+  const token0Amount = commafy((Number(token0.amount) * (amountPercent / 100)).toFixed(5), 5)
+  const token1Amount = commafy((Number(token1.amount) * (amountPercent / 100)).toFixed(5), 5)
 
   return (
     <div className={styles.root}>
@@ -118,13 +114,8 @@ const RemoveLiquidity = (props: Props) => {
         <Typography variant="h5" color="textPrimary">
           Remove Liquidity
         </Typography>
-        <Typography
-          variant="body2"
-          color="textPrimary"
-          className={styles.amounts}
-        >
-          {token0Amount} {token0.token.symbol} + {token1Amount}{' '}
-          {token1.token.symbol}
+        <Typography variant="body2" color="textPrimary" className={styles.amounts}>
+          {token0Amount} {token0.token.symbol} + {token1Amount} {token1.token.symbol}
         </Typography>
       </div>
       <Slider

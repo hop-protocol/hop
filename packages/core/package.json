@@ -1,9 +1,13 @@
 {
   "name": "@hop-protocol/core",
-  "version": "0.0.1-beta.30",
+  "version": "0.0.1-beta.32",
   "description": "Hop Protocol networks config",
   "main": "index.js",
   "types": "index.d.ts",
+  "engines": {
+    "node": ">=14",
+    "yarn": "^1.22.11"
+  },
   "scripts": {
     "test": "jest test",
     "dev": "npm run version && tsc --watch",

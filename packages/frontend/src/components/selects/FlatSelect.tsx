@@ -11,28 +11,28 @@ const useStyles = makeStyles(theme => ({
     borderRadius: '2.3rem',
     padding: '0 2.8rem 0 0',
     '&.MuiSelect-select': {
-      paddingRight: '2.8rem'
+      paddingRight: '2.8rem',
     },
     fontSize: '1.8rem',
     fontWeight: 700,
     lineHeight: '3.6rem',
     '&:focus': {
       borderRadius: '2.3rem',
-      backgroundColor: 'white'
+      backgroundColor: 'white',
     },
     [theme.breakpoints.down('xs')]: {
-      width: '12.4rem'
-    }
+      width: '12.4rem',
+    },
   },
   selectMenu: {
     paddingRight: '4.8rem',
-    height: '3.6rem'
+    height: '3.6rem',
   },
   icon: {
     top: 'calc(50% - 0.75rem)',
     right: '0.8rem',
-    color: theme.palette.text.secondary
-  }
+    color: theme.palette.text.secondary,
+  },
 }))
 
 const FlatSelect: FC<SelectProps & { children: any }> = props => {
@@ -41,13 +41,7 @@ const FlatSelect: FC<SelectProps & { children: any }> = props => {
   const icon = isSingle ? () => null : ArrowDropDownIcon
 
   return (
-    <Select
-      disabled={isSingle}
-      IconComponent={icon}
-      {...props}
-      classes={styles}
-      disableUnderline
-    />
+    <Select disabled={isSingle} IconComponent={icon} {...props} classes={styles} disableUnderline />
   )
 }
 

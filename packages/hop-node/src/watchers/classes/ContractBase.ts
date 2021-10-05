@@ -90,7 +90,7 @@ export default class ContractBase extends EventEmitter {
   async getTransactionBlockNumber (txHash: string): Promise<number> {
     const tx = await this.contract.provider.getTransaction(txHash)
     if (!tx) {
-      throw new Error('transaction not found')
+      throw new Error(`transaction not found. transactionHash: ${txHash}`)
     }
     return tx.blockNumber
   }
@@ -100,6 +100,9 @@ export default class ContractBase extends EventEmitter {
     blockNumber: number | string = 'latest'
   ): Promise<number> {
     const block = await this.contract.provider.getBlock(blockNumber)
+    if (!block) {
+      throw new Error(`expected block. blockNumber: ${blockNumber}`)
+    }
     return block.timestamp
   }
 
@@ -108,6 +111,9 @@ export default class ContractBase extends EventEmitter {
     txHash: string
   ): Promise<number> {
     const tx = await this.contract.provider.getTransaction(txHash)
+    if (!tx) {
+      throw new Error(`expected tx object. transactionHash: ${txHash}`)
+    }
     return this.getBlockTimestamp(tx.blockNumber)
   }
 

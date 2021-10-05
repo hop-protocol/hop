@@ -1,11 +1,4 @@
-import React, {
-  FC,
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useMemo
-} from 'react'
+import React, { FC, createContext, useContext, useState, useEffect, useMemo } from 'react'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
@@ -25,7 +18,7 @@ const StatusContext = createContext<StatusContextProps>({
   activeStep: 0,
   fetching: false,
   setTx: (tx: Transaction) => {},
-  receivedHToken: false
+  receivedHToken: false,
 })
 
 type Step = {
@@ -50,15 +43,19 @@ const StatusContextProvider: FC = ({ children }) => {
     if (!tx) return [] as Step[]
 
     if (completed) {
-      return [{
-        text: 'Complete',
-        url: tx.explorerLink
-      }]
+      return [
+        {
+          text: 'Complete',
+          url: tx.explorerLink,
+        },
+      ]
     } else {
-      return [{
-        text: 'Pending',
-        url: tx.explorerLink
-      }]
+      return [
+        {
+          text: 'Pending',
+          url: tx.explorerLink,
+        },
+      ]
     }
   }, [tx, completed])
 
@@ -217,7 +214,7 @@ const StatusContextProvider: FC = ({ children }) => {
         steps,
         activeStep,
         setTx,
-        receivedHToken
+        receivedHToken,
       }}
     >
       {children}

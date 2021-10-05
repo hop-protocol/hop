@@ -21,11 +21,11 @@ import Expandable from './Expandable'
 
 const useStyles = makeStyles(theme => ({
   root: {
-    marginBottom: theme.padding.thick
+    marginBottom: theme.padding.thick,
   },
   tokenWrapper: {
     marginTop: '1rem',
-    marginBottom: '2rem'
+    marginBottom: '2rem',
   },
   buttons: {
     marginTop: theme.padding.default,
@@ -33,8 +33,8 @@ const useStyles = makeStyles(theme => ({
   },
   button: {
     margin: `0 ${theme.padding.light}`,
-    width: '17.5rem'
-  }
+    width: '17.5rem',
+  },
 }))
 
 export type Props = {
@@ -57,7 +57,7 @@ const TokenWrapper: FC<Props> = (props: Props) => {
     isUnwrapping,
     error,
     setError,
-    isNativeToken
+    isNativeToken,
   } = useTokenWrapper()
 
   useEffect(() => {
@@ -87,12 +87,7 @@ const TokenWrapper: FC<Props> = (props: Props) => {
   return (
     <Expandable title="Wrap/Unwrap">
       <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          className={styles.root}
-        >
+        <Box display="flex" flexDirection="column" alignItems="center" className={styles.root}>
           <AmountSelectorCard
             secondaryToken={canonicalToken}
             secondaryBalance={canonicalTokenBalance}

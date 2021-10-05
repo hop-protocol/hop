@@ -25,23 +25,16 @@ const FaucetContext = createContext<FaucetContextProps>({
   tokens: [],
   error: null,
   setError: (error: string | null | undefined) => {},
-  selectedNetwork: undefined
+  selectedNetwork: undefined,
 })
 
 const FaucetContextProvider: FC = ({ children }) => {
   const [mintAmount] = useState<string>('1000')
   const [isMinting, setMinting] = useState<boolean>(false)
-  const {
-    contracts,
-    txHistory,
-    networks,
-    tokens
-  } = useApp()
+  const { contracts, txHistory, networks, tokens } = useApp()
   const { address, getWriteContract } = useWeb3Context()
   const selectedNetwork = networks[0]
-  const [selectedToken, setSelectedToken] = useState<Token | undefined>(
-    tokens[0]
-  )
+  const [selectedToken, setSelectedToken] = useState<Token | undefined>(tokens[0])
   const [error, setError] = useState<string | null | undefined>(null)
 
   const mintToken = async () => {
@@ -49,8 +42,7 @@ const FaucetContextProvider: FC = ({ children }) => {
       if (!selectedToken?.symbol) {
         return
       }
-      const contract =
-        contracts?.tokens[selectedToken.symbol][L1_NETWORK].l1CanonicalToken
+      const contract = contracts?.tokens[selectedToken.symbol][L1_NETWORK].l1CanonicalToken
       const writeContract = await getWriteContract(contract)
       if (!writeContract) {
         return
@@ -65,7 +57,7 @@ const FaucetContextProvider: FC = ({ children }) => {
       txHistory?.addTransaction(
         new Transaction({
           hash: tx?.hash,
-          networkName: L1_NETWORK
+          networkName: L1_NETWORK,
         })
       )
       await tx?.wait()
@@ -85,7 +77,7 @@ const FaucetContextProvider: FC = ({ children }) => {
         selectedNetwork,
         tokens,
         error,
-        setError
+        setError,
       }}
     >
       {children}

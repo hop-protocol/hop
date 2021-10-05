@@ -12,23 +12,23 @@ type StyleProps = {
 
 const statusColors = {
   green: 'rgba(75, 181, 67)',
-  red: 'rgba(252, 16, 13)'
+  red: 'rgba(252, 16, 13)',
 }
 
 const useStyles = makeStyles(theme => ({
   previewBox: {
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   previewCard: {
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   cardTop: {
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   cardBottom: {},
   proposalStatus: ({ status }: StyleProps) => ({
@@ -48,7 +48,7 @@ const useStyles = makeStyles(theme => ({
         : `
       inset -3px -3px 6px ${statusColors.red},
       inset 3px 3px 6px rgba(174, 192, 177, 0.16)
-    `
+    `,
   }),
   progressWrapper: {
     width: '100%',
@@ -56,17 +56,14 @@ const useStyles = makeStyles(theme => ({
     height: '4px',
     borderRadius: '4px',
     position: 'relative',
-    backgroundColor: '#abb1ae'
+    backgroundColor: '#abb1ae',
   },
   progress: ({ status, percentageVotes }: any) => ({
     height: '4px',
     borderRadius: '4px',
     width: `${percentageVotes}`,
-    backgroundColor:
-      status === VOTE_STATUS.FOR
-        ? `${statusColors.green}`
-        : `${statusColors.red}`
-  })
+    backgroundColor: status === VOTE_STATUS.FOR ? `${statusColors.green}` : `${statusColors.red}`,
+  }),
 }))
 
 type Props = {

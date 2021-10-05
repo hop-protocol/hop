@@ -122,7 +122,7 @@ class SyncWatcher extends BaseWatcher {
       })
       if (incompleteTransfers.length) {
         this.logger.debug(`incomplete transfer items: ${incompleteTransfers.length}`)
-        const chunkSize = 10
+        const chunkSize = 20
         const allChunks = chunk(incompleteTransfers, chunkSize)
         for (const chunks of allChunks) {
           await Promise.all(chunks.map((transfer: Transfer) => {

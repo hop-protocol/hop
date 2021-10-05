@@ -30,7 +30,7 @@ class TokenPricesDb extends BaseDb {
   }
 
   async update (key: string, data: TokenPrice) {
-    return super.update(key, data)
+    return this._update(key, data)
   }
 
   async addTokenPrice (data: TokenPrice) {

@@ -50,7 +50,7 @@ class TransfersDb extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
 
-    this.subDb = new TransfersTimestampedKeysDb(`${prefix}:timestampedKeys`, _namespace)
+    this.subDb = new TransfersTimestampedKeysDb(`${prefix}TimestampedKeys`, _namespace)
 
     // this only needs to be ran once on start up to backfill timestamped keys.
     // this function can be removed once all bonders update.
@@ -87,7 +87,7 @@ class TransfersDb extends BaseDb {
       const transferId = data?.value?.transferId
       this.logger.debug(`storing timestamped key. key: ${key} transferId: ${transferId}`)
       const value = { transferId }
-      await this.subDb.update(key, value)
+      await this.subDb._update(key, value)
     }
   }
 
@@ -123,15 +123,17 @@ class TransfersDb extends BaseDb {
   }
 
   async update (transferId: string, transfer: Partial<Transfer>) {
-    await super.update(transferId, transfer)
-    this.logger.debug(`updated db item. key: ${transferId}`)
+    const logger = this.logger.create({ id: transferId })
+    logger.debug('update called')
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transfer)
-    this.logger.debug('timestampedKv:', timestampedKv)
+    logger.debug('timestampedKv:', timestampedKv)
     if (timestampedKv) {
-      this.logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferId: ${transferId}`)
-      await this.subDb.update(timestampedKv.key, timestampedKv.value)
-      this.logger.debug(`updated db item. key: ${timestampedKv.key}`)
+      logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferId: ${transferId}`)
+      await this.subDb._update(timestampedKv.key, timestampedKv.value)
+      logger.debug(`updated db item. key: ${timestampedKv.key}`)
     }
+    await this._update(transferId, transfer)
+    logger.debug(`updated db item. key: ${transferId}`)
   }
 
   async getByTransferId (transferId: string): Promise<Transfer> {

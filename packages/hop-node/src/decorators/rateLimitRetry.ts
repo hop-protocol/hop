@@ -47,7 +47,7 @@ export function rateLimitRetryFn (fn: any): any {
         if (retries >= rateLimitMaxRetries) {
           logger.error(`max retries (${rateLimitMaxRetries}) reached. Error: ${err.message}`)
           // this must be a regular console log to print original function name
-          console.log(fn, id)
+          console.log(fn, id, ...args)
           notifier.error(`max retries (${rateLimitMaxRetries}) reached. Error: ${err.message}`)
           throw err
         }
@@ -59,7 +59,7 @@ export function rateLimitRetryFn (fn: any): any {
           }". retrying again in ${delayMs / 1000} seconds.`
         )
         // this must be a regular console log to print original function name
-        console.log(fn, id)
+        console.log(fn, id, ...args)
         // exponential backoff wait
         await wait(delayMs)
       }

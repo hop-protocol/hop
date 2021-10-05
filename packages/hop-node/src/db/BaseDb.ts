@@ -91,6 +91,9 @@ class BaseDb {
       .on('clear', (key: string) => {
         this.logger.debug(`clear item, key=${key}`)
       })
+      .on('error', (err: Error) => {
+        this.logger.debug(`error: ${err.message}`)
+      })
   }
 
   protected async _getUpdateData (key: string, data: any) {

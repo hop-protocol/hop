@@ -104,9 +104,38 @@ class SyncWatcher extends BaseWatcher {
         await wait(5 * 1000)
         continue
       }
+
       await this.preSyncHandler()
       await this.syncHandler()
+      this.logger.debug('done syncing main handler. index:', this.syncIndex)
+      await this.incompletePollSync()
+      this.logger.debug('done syncing incomplete items. index:', this.syncIndex)
       await this.postSyncHandler()
+    }
+  }
+
+  async incompletePollSync () {
+    try {
+      const promises : Promise<any>[] = []
+      const incompleteTransfers = await this.db.transfers.getIncompleteItems({
+        sourceChainId: this.chainSlugToId(this.chainSlug)
+      })
+      if (incompleteTransfers.length) {
+        this.logger.debug(`incomplete transfer items: ${incompleteTransfers.length}`)
+        for (const { transferId } of incompleteTransfers) {
+          promises.push(this.populateTransferDbItem(transferId).catch(err => {
+            this.logger.error('populateTransferDbItem error:', err)
+            this.notifier.error(`populateTransferDbItem error: ${err.message}`)
+          }))
+        }
+      }
+
+      if (promises.length) {
+        await Promise.all(promises)
+      }
+    } catch (err) {
+      this.logger.error(`incomplete poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
+      this.notifier.error(`incomplete poll sync watcher error: ${err.message}`)
     }
   }
 
@@ -246,6 +275,25 @@ class SyncWatcher extends BaseWatcher {
       .then(() => this.syncUnbondedTransferRootAmounts())
       .then(() => this.syncPendingAmounts())
       .then(() => this.syncAvailableCredit())
+  }
+
+  async populateTransferDbItem (transferId: string) {
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    if (!dbTransfer) {
+      throw new Error('expected db transfer item')
+    }
+    const logger = this.logger.create({ id: transferId })
+    logger.debug(`populateTransferDbItem: transferId: ${transferId}`)
+    const { transferSentTimestamp, transferSentBlockNumber, sourceChainId, destinationChainId } = dbTransfer
+    if (transferSentBlockNumber && !transferSentTimestamp) {
+      logger.debug('populating transferSentTimestamp')
+      const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
+      const transferSentTimestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
+      logger.debug(`transferSentTimestamp: ${transferSentTimestamp}`)
+      await this.db.transfers.update(transferId, {
+        transferSentTimestamp
+      })
+    }
   }
 
   async handleTransferSentEvent (event: Event) {

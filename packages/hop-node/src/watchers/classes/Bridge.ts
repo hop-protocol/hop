@@ -107,7 +107,6 @@ export default class Bridge extends ContractBase {
     return debit
   }
 
-  @rateLimitRetry
   async getBaseAvailableCredit (bonder?: string): Promise<BigNumber> {
     const [credit, debit] = await Promise.all([
       this.getCredit(bonder),
@@ -116,7 +115,6 @@ export default class Bridge extends ContractBase {
     return credit.sub(debit)
   }
 
-  @rateLimitRetry
   async hasPositiveBalance (): Promise<boolean> {
     const credit = await this.getBaseAvailableCredit()
     return credit.gt(0)
@@ -239,7 +237,6 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  @rateLimitRetry
   async getTransferRootSetTxHash (
     transferRootHash: string
   ): Promise<string | undefined> {
@@ -494,7 +491,6 @@ export default class Bridge extends ContractBase {
     return Number(res)
   }
 
-  @rateLimitRetry
   async getEthBalance (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
     return this.getBalance(bonder)

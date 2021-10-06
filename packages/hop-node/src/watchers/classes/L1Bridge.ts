@@ -1,7 +1,5 @@
 import Bridge, { EventCb, EventsBatchOptions } from './Bridge'
 import Token from './Token'
-import delay from 'src/decorators/delay'
-import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants, providers } from 'ethers'

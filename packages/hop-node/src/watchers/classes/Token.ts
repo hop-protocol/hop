@@ -1,6 +1,4 @@
 import ContractBase from './ContractBase'
-import delay from 'src/decorators/delay'
-import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { BigNumber, Contract, ethers, providers } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'

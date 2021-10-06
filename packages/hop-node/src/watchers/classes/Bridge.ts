@@ -1,5 +1,4 @@
 import ContractBase from './ContractBase'
-import delay from 'src/decorators/delay'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'

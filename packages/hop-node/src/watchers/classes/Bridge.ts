@@ -141,25 +141,6 @@ export default class Bridge extends ContractBase {
     return bondedBn
   }
 
-  async getTotalBondedWithdrawalAmountForTransferId (
-    transferId: string
-  ): Promise<BigNumber> {
-    let totalBondedAmount = BigNumber.from(0)
-    const bonderAddress = await this.getBonderAddress()
-    let bonders = [bonderAddress]
-    if (globalConfig?.bonders?.[this.tokenSymbol]) {
-      bonders = unique([bonderAddress, ...globalConfig.bonders[this.tokenSymbol]])
-    }
-    for (const bonder of bonders) {
-      const bondedAmount = await this.getBondedWithdrawalAmountByBonder(
-        bonder,
-        transferId
-      )
-      totalBondedAmount = totalBondedAmount.add(bondedAmount)
-    }
-    return totalBondedAmount
-  }
-
   async getBondedWithdrawalTimestamp (
     transferId: string,
     startBlockNumber?: number,

@@ -281,6 +281,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas
     this.nonce = tx.nonce
 
+    this.logger.debug(`beginning tracking for ${tx.hash}`)
     this.track(tx)
   }
 
@@ -416,7 +417,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   async wait (): Promise<providers.TransactionReceipt> {
     this.logger.debug(`wait() called, tx: ${this.hash}`)
     this.logger.debug(`wait() called, txHash: ${this.txHash}`)
-    this.logger.debug(`wait() called, inFlightItems: ${this.inflightItems}`)
+    this.logger.debug(`wait() called, inFlightItems: ${JSON.stringify(this.inflightItems)}`)
     if (this.txHash) {
       return this.getReceipt(this.txHash)
     }
@@ -427,6 +428,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return new Promise((resolve, reject) => {
       this
         .on(State.Confirmed, (tx) => {
+          this.logger.debug('state confirmed')
           resolve(tx)
         })
         .on(State.Error, (err) => {
@@ -614,7 +616,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private track (tx: providers.TransactionResponse) {
+    this.logger.debug('tracking')
     const prevItem = this.getLatestInflightItem()
+    this.logger.debug(`tracking: prevItem ${prevItem}`)
     if (prevItem) {
       prevItem.boosted = true
       this.logger.debug(`tracking boosted tx: ${tx.hash}, previous tx: ${prevItem.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}, ${this.getGasFeeDataAsString()}`)
@@ -627,7 +631,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       sentAt: Date.now(),
       confirmed: false
     })
+    this.logger.debug(`tracking: inflightItems${JSON.stringify(this.inflightItems)}`)
     tx.wait().then(() => {
+      this.logger.debug(`tracking: wait completed. tx hash ${tx.hash}`)
       this.handleConfirmation(tx.hash)
     })
       .catch((err: Error) => {

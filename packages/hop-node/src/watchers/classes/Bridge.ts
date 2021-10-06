@@ -445,7 +445,6 @@ export default class Bridge extends ContractBase {
   @queue
   @rateLimitRetry
   async unstake (amount: BigNumber): Promise<providers.TransactionResponse> {
-    const bonder = await this.getBonderAddress()
     const tx = await this.bridgeContract.unstake(
       amount,
       await this.txOverrides()

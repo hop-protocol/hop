@@ -121,11 +121,13 @@ class Transaction extends EventEmitter {
   async checkIsTransferIdSpent(sdk: Hop) {
     if (this.token && this.destNetworkName && this.transferId) {
       const bridge = sdk.bridge(this.token.symbol)
+      // TODO: check if L1Bridge needed
       const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
       const isSpent = await destL2Bridge.isTransferIdSpent(this.transferId)
       if (isSpent) {
         this.pendingDestinationConfirmation = false
       }
+      return !!isSpent
     }
   }
 

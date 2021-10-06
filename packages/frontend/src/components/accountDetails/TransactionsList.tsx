@@ -5,12 +5,11 @@ import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import Transaction from 'src/models/Transaction'
 import TxStatus from 'src/components/txStatus'
-import Flex from '../ui/Flex'
-import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 import Check from '@material-ui/icons/Check'
 import CircularProgress from '@material-ui/core/CircularProgress'
-import Zoom from '@material-ui/core/Zoom'
-import { Div } from '../ui'
+import { Div, A, Flex } from '../ui'
+import useTxHistory from 'src/contexts/AppContext/useTxHistory'
+import useTransactionStatus from 'src/hooks/useTransactionStatus'
 
 const useStyles = makeStyles((theme: Theme) => ({
   header: {
@@ -54,60 +53,95 @@ const useStyles = makeStyles((theme: Theme) => ({
     marginBottom: '1rem',
   },
   completed: {
+    color: '#B32EFF',
+    zIndex: 1,
+    height: 22,
+    fontSize: '4em',
     '& $line': {
       borderColor: '#B32EFF',
     },
   },
 }))
 
-function TransactionsList() {
+function TransactionRow({ tx, styles }) {
+  const { destCompleted } = useTransactionStatus(tx.hash, tx.networkName, tx)
+
+  return (
+    <Flex justifyBetween mb=".5rem" alignCenter>
+      <div className={styles.leftColumn}>
+        <Link href={tx.explorerLink} target="_blank" rel="noopener noreferrer">
+          <span className={styles.network}>{tx.networkName}:</span> {tx.truncatedHash} ↗
+        </Link>
+      </div>
+      <Flex alignCenter justifyAround>
+        <Flex justifyCenter width="50%">
+          <TxStatus tx={tx} variant="mini" />
+        </Flex>
+
+        <Flex justifyCenter width="50%">
+          <Flex column alignCenter fontSize="20px">
+            {destCompleted ? (
+              <>
+                <Check className={styles.completed} />
+                <A
+                  mt={2}
+                  href={tx.explorerLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  fontSize={0}
+                >
+                  Complete
+                </A>
+              </>
+            ) : (
+              <>
+                <CircularProgress size={20} thickness={5} />
+                <A
+                  mt={2}
+                  href={tx.explorerLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  fontSize={0}
+                >
+                  Pending
+                </A>
+              </>
+            )}
+          </Flex>
+        </Flex>
+      </Flex>
+    </Flex>
+  )
+}
+
+function TransactionsList(props: any) {
   const styles = useStyles()
-  const { clear, transactions } = useTxHistory()
-  console.log(`transactions:`, transactions)
+  const { transactions, clear } = useTxHistory()
 
-  const handleTransactionsClear = () => {
-    clear()
-  }
-
-  if (transactions.length === 0) {
+  if (!transactions || transactions.length === 0) {
     return <Typography variant="body1">Your transactions will appear here...</Typography>
   }
 
   return (
     <>
-      <div className={styles.recentsHeader}>
+      <Flex justifyBetween alignCenter>
         <Typography variant="h3" className={styles.header}>
           Recent transactions
         </Typography>
-        <Button className={styles.clearButton} onClick={handleTransactionsClear}>
+        <Button className={styles.clearButton} onClick={clear}>
           (clear all)
         </Button>
-      </div>
+      </Flex>
+
+      <Flex justifyEnd alignCenter my={1}>
+        <Flex width="50%" justifyAround>
+          <Div>Source</Div>
+          <Div>Destination</Div>
+        </Flex>
+      </Flex>
 
       {transactions?.map((tx: Transaction) => {
-        return (
-          <div key={tx.hash} className={styles.row}>
-            <div className={styles.leftColumn}>
-              <Link href={tx.explorerLink} target="_blank" rel="noopener noreferrer">
-                <span className={styles.network}>{tx.networkName}:</span> {tx.truncatedHash} ↗
-              </Link>
-            </div>
-            <Flex alignCenter>
-              <TxStatus tx={tx} variant="mini" />
-
-              {tx.pendingDestinationConfirmation ? (
-                <>
-                  <CircularProgress size={24} thickness={5} />
-                </>
-              ) : (
-                <Div>
-                  <Check className={styles.completed} />
-                  <Div>Completed</Div>
-                </Div>
-              )}
-            </Flex>
-          </div>
-        )
+        return <TransactionRow key={tx.hash} tx={tx} styles={styles} />
       })}
     </>
   )

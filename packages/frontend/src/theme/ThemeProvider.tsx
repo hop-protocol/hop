@@ -13,7 +13,7 @@ export const styledSystemTheme = {
   lineHeights: {
     solid: 1,
     title: 1.25,
-    copy: 1.5
+    copy: 1.5,
   },
   fonts: ['Helvetica', 'sans-serif'],
   borders: [0, '1px solid black', '1px solid #00FFFF'],
@@ -21,8 +21,15 @@ export const styledSystemTheme = {
   shadows: ['0px 5px 20px rgba(0, 0, 0, 0.1)', '0px 4px 10px #00000099'],
   sizes: [16, 32, 64, 128, 256],
   colors: {
-    ...theme.palette
-  }
+    ...theme.palette,
+    steps: {
+      bg: '#f0f0f3',
+      active: '#B32EFF',
+      completed: '#B32EFF',
+      failed: '#ff00a7',
+      warning: '#ffb47c',
+    },
+  },
 }
 
 const ThemeProvider: FC = ({ children }) => {

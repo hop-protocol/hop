@@ -1,7 +1,9 @@
 import React from 'react'
 import { ComponentStory, ComponentMeta } from '@storybook/react'
 import TransactionsList from 'src/components/accountDetails/TransactionsList'
-import { useApp } from 'src/contexts/AppContext'
+import { createTransaction } from 'src/utils/createTransaction'
+import { storyTransactions } from './data'
+import { Div } from 'src/components/ui'
 
 export default {
   title: 'components/TransactionsList',
@@ -12,9 +14,16 @@ const Template: ComponentStory<typeof TransactionsList> = args => {
   function handleClear() {
     console.log('clear')
   }
-  const app = useApp()
-  const txs = app.txHistory?.transactions
-  return <TransactionsList />
+
+  const transactions = storyTransactions.map(tx =>
+    createTransaction(tx, tx.networkName, tx.destNetworkName, tx.token)
+  )
+
+  return (
+    <Div width="480px">
+      <TransactionsList {...args} transactions={transactions} clear={handleClear} />
+    </Div>
+  )
 }
 
 export const Basic = Template.bind({})

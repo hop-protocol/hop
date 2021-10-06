@@ -18,30 +18,10 @@ import {
   BorderProps,
   BackgroundProps,
   ShadowProps,
-  PositionProps
+  PositionProps,
 } from 'styled-system'
 
-interface BoxBaseProps {
-  children?: any
-  onClick?: (e: any) => void
-  onMouseLeave?: (e: any) => void
-  ref?: any
-  disabled?: boolean
-}
-
-type BoxProps = SpaceProps &
-  ColorProps &
-  LayoutProps &
-  TypographyProps &
-  FlexboxProps &
-  BorderProps &
-  BackgroundProps &
-  ShadowProps &
-  PositionProps &
-  BoxBaseProps & { cursor?: string; bold?: boolean; id?: string }
-
 interface FlexBaseProps {
-  id?: string
   wrap?: boolean | string
   column?: boolean
   justifyCenter?: boolean
@@ -53,9 +33,29 @@ interface FlexBaseProps {
   alignStart?: boolean
 }
 
-type FlexProps = BoxProps &
+interface CustomFlexProps {
+  children?: any
+  onClick?: (e: any) => void
+  onMouseLeave?: (e: any) => void
+  ref?: any
+  disabled?: boolean
+  cursor?: boolean
+  id?: string
+  style?: any
+  bold?: boolean
+}
+
+type FlexProps = BackgroundProps &
+  BorderProps &
+  ColorProps &
+  FlexboxProps &
+  LayoutProps &
+  PositionProps &
+  ShadowProps &
+  TypographyProps &
+  SpaceProps &
   FlexBaseProps &
-  FlexboxProps & { style?: any; bold?: boolean; wrap?: boolean | string }
+  CustomFlexProps
 
 const Flex: React.FC<FlexProps> = styled.div`
   box-sizing: border-box;

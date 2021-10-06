@@ -13,7 +13,6 @@ import { Chain, MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCa
 import { EventEmitter } from 'events'
 
 import { Notifier } from 'src/notifier'
-import { boundClass } from 'autobind-decorator'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { gasBoostErrorSlackChannel, gasBoostWarnSlackChannel, hostname } from 'src/config'
 import { v4 as uuidv4 } from 'uuid'
@@ -67,7 +66,6 @@ export type Type2GasData = {
 
 export type GasFeeData = Type0GasData & Type2GasData
 
-@boundClass
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
   pollMs: number = 10 * 1000

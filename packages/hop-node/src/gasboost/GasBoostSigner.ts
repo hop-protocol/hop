@@ -66,11 +66,11 @@ class GasBoostSigner extends Wallet {
     if (!tx?.nonce) {
       tx.nonce = nonce
     }
+    this.nonce++
     const gTx = this.gTxFactory.createTransaction(tx)
     this.track(gTx)
     await gTx.save()
     await gTx.send()
-    this.nonce++
     this.lastTxSentTimestamp = Date.now()
     return gTx
   }

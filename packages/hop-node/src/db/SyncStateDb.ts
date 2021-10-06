@@ -8,7 +8,7 @@ export type State = {
 
 class SyncStateDb extends BaseDb {
   async update (key: string, data: Partial<State>) {
-    return super.update(key, data)
+    return this._update(key, data)
   }
 
   async getByKey (key: string): Promise<State> {

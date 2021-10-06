@@ -63,6 +63,14 @@ class BaseDb {
     }
     this.db = dbMap[key]
 
+    const logPut = (key: string, value: any) => {
+      // only log recently created items
+      const recentlyCreated = value?._createdAt && Date.now() - value._createdAt < TenSecondsMs
+      if (recentlyCreated) {
+        this.logger.debug(`put item, key=${key}`)
+      }
+    }
+
     this.db
       .on('open', () => {
         this.logger.debug('open')
@@ -70,29 +78,63 @@ class BaseDb {
       .on('closed', () => {
         this.logger.debug('closed')
       })
-      .on('put', (key: string, value: any) => {
-        // only log recently created items
-        const recentlyCreated = value?._createdAt && Date.now() - value._createdAt < TenSecondsMs
-        if (recentlyCreated) {
-          this.logger.debug(`put item, key=${key}`)
+      .on('batch', (ops: any[]) => {
+        for (const op of ops) {
+          if (op.type === 'put') {
+            logPut(op.key, op.value)
+          }
         }
+      })
+      .on('put', (key: string, value: any) => {
+        logPut(key, value)
       })
       .on('clear', (key: string) => {
         this.logger.debug(`clear item, key=${key}`)
       })
+      .on('error', (err: Error) => {
+        this.logger.error(`leveldb error: ${err.message}`)
+      })
   }
 
-  @queue
-  public async update (key: string, data: any) {
+  protected async _getUpdateData (key: string, data: any) {
     const entry = await this.getById(key, {
       _createdAt: Date.now()
     })
     const value = Object.assign({}, entry, data)
+    return { key, value }
+  }
 
+  @queue
+  async _update (key: string, data: any) {
+    const { value } = await this._getUpdateData(key, data)
     return this.db.put(key, value)
   }
 
-  protected async getById (id: string, defaultValue: any = null) {
+  @queue
+  public async batchUpdate (updates: any[]) {
+    const ops : any[] = []
+    for (const data of updates) {
+      const { key, value } = await this._getUpdateData(data.key, data.value)
+      ops.push({
+        type: 'put',
+        key,
+        value
+      })
+    }
+
+    return new Promise((resolve, reject) => {
+      this.db.batch(ops, (err: Error) => {
+        if (err) {
+          reject(err)
+          return
+        }
+
+        resolve(null)
+      })
+    })
+  }
+
+  async getById (id: string, defaultValue: any = null) {
     try {
       const item = await this.db.get(id)
       if (item) {
@@ -111,7 +153,7 @@ class BaseDb {
     return this.db.del(id)
   }
 
-  protected async getKeys (filter?: KeyFilter): Promise<string[]> {
+  async getKeys (filter?: KeyFilter): Promise<string[]> {
     filter = Object.assign({
       keys: true,
       values: false
@@ -120,7 +162,7 @@ class BaseDb {
     return kv.map(x => x.key).filter(x => x)
   }
 
-  protected async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<any[]> {
+  async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<any[]> {
     return new Promise((resolve, reject) => {
       const kv : any[] = []
       this.db.createReadStream(filter)

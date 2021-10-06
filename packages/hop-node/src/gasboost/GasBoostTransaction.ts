@@ -413,6 +413,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async wait (): Promise<providers.TransactionReceipt> {
+    this.logger.debug(`wait() called, tx: ${this.hash}`)
     if (this.txHash) {
       return this.getReceipt(this.txHash)
     }
@@ -428,6 +429,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         .on(State.Error, (err) => {
           reject(err)
         })
+        const listeners = (this as any)._events
+        this.logger.debug(`subscribers: "${State.Confirmed}": ${listeners?.[State.Confirmed]?.length}, "${State.Error}": ${listeners?.[State.Error]?.length}`)
     })
   }
 

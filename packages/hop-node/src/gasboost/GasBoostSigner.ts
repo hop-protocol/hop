@@ -57,7 +57,9 @@ class GasBoostSigner extends Wallet {
   @rateLimitRetry
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
     const nonce = await this.getNonce()
-    tx.nonce = nonce
+    if (!tx?.nonce) {
+      tx.nonce = nonce
+    }
     const gTx = this.gTxFactory.createTransaction(tx)
     this.track(gTx)
     await gTx.save()
@@ -69,13 +71,13 @@ class GasBoostSigner extends Wallet {
 
   private async getNonce () {
     if (!this.nonce) {
-      this.nonce = await this.signer.getTransactionCount()
+      this.nonce = await this.signer.getTransactionCount('pending')
     }
 
     const timeSinceLastTxMs = Date.now() - this.lastTxSentTimestamp
     if (this.lastTxSentTimestamp && timeSinceLastTxMs > TenMinutesMs) {
       this.logger.info(`checking on-chain nonce. timeSinceLastTxMs ${timeSinceLastTxMs}`)
-      const onChainNonce = await this.signer.getTransactionCount()
+      const onChainNonce = await this.signer.getTransactionCount('pending')
       if (onChainNonce !== this.nonce) {
         this.logger.error(
           `Nonces out of sync. on chain ${onChainNonce}, local ${this.nonce}`

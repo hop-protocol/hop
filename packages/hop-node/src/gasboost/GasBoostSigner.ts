@@ -6,8 +6,8 @@ import Store from './Store'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
-import wait from 'src/utils/wait'
 import { Signer, Wallet, providers } from 'ethers'
+import { TenMinutesMs } from 'src/constants'
 import { boundClass } from 'autobind-decorator'
 
 @boundClass
@@ -16,6 +16,7 @@ class GasBoostSigner extends Wallet {
   items: string[] = []
   lastTxSentTimestamp: number = 0
   delayBetweenTxsMs: number = 7 * 1000
+  nonce: number = 0
   chainSlug: string
   gTxFactory: GasBoostTransactionFactory
   signer: Signer
@@ -55,27 +56,34 @@ class GasBoostSigner extends Wallet {
   @queue
   @rateLimitRetry
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
-    await this.waitDelay()
+    const nonce = await this.getNonce()
+    tx.nonce = nonce
     const gTx = this.gTxFactory.createTransaction(tx)
     this.track(gTx)
     await gTx.save()
     await gTx.send()
+    this.nonce++
     this.lastTxSentTimestamp = Date.now()
     return gTx
   }
 
-  private async waitDelay () {
-    const delta = this.getDelayDelta()
-    if (delta > 0) {
-      this.logger.log(`delaying ${delta / 1000} seconds on ${this.chainSlug} chain`)
-      await wait(delta)
+  private async getNonce () {
+    if (!this.nonce) {
+      this.nonce = await this.signer.getTransactionCount()
     }
-  }
 
-  private getDelayDelta () {
-    const now = Date.now()
-    const delta = this.delayBetweenTxsMs - (now - this.lastTxSentTimestamp)
-    return delta
+    const timeSinceLastTxMs = Date.now() - this.lastTxSentTimestamp
+    if (this.lastTxSentTimestamp && timeSinceLastTxMs > TenMinutesMs) {
+      this.logger.info(`checking on-chain nonce. timeSinceLastTxMs ${timeSinceLastTxMs}`)
+      const onChainNonce = await this.signer.getTransactionCount()
+      if (onChainNonce !== this.nonce) {
+        this.logger.error(
+          `Nonces out of sync. on chain ${onChainNonce}, local ${this.nonce}`
+        )
+      }
+    }
+
+    return this.nonce
   }
 
   private async restore () {

@@ -37,8 +37,6 @@ export default class Token extends ContractBase {
     return allowance
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async approve (
     spender: string,
@@ -54,8 +52,6 @@ export default class Token extends ContractBase {
     }
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async transfer (
     recipient: string,

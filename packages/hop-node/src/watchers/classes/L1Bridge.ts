@@ -215,8 +215,6 @@ export default class L1Bridge extends Bridge {
     return new Token(tokenContract)
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async bondTransferRoot (
     transferRootHash: string,
@@ -233,8 +231,6 @@ export default class L1Bridge extends Bridge {
     return tx
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async challengeTransferRootBond (
     transferRootHash: string,
@@ -249,8 +245,6 @@ export default class L1Bridge extends Bridge {
     return tx
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async resolveChallenge (
     transferRootHash: string,
@@ -265,8 +259,6 @@ export default class L1Bridge extends Bridge {
     return tx
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async convertCanonicalTokenToHopToken (
     destinationChainId: number,
@@ -295,8 +287,6 @@ export default class L1Bridge extends Bridge {
     )
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async sendCanonicalTokensToL2 (
     destinationChainId: number,

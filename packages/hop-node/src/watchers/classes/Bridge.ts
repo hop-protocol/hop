@@ -428,8 +428,6 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async bondWithdrawal (
     recipient: string,
@@ -457,8 +455,6 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async settleBondedWithdrawals (
     bonder: string,

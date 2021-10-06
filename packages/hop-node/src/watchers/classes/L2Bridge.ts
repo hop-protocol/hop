@@ -165,8 +165,6 @@ export default class L2Bridge extends Bridge {
     return this.getEventTimestamp(match)
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async sendHTokens (
     destinationChainId: number,
@@ -213,8 +211,6 @@ export default class L2Bridge extends Bridge {
     )
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async sendCanonicalTokens (
     destinationChainId: number,
@@ -412,8 +408,6 @@ export default class L2Bridge extends Bridge {
     return Number(transferRoot.createdAt.toString()) > 0
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async commitTransfers (
     destinationChainId: number
@@ -426,8 +420,6 @@ export default class L2Bridge extends Bridge {
     return tx
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async bondWithdrawalAndAttemptSwap (
     recipient: string,

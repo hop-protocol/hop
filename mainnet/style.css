@@ -1,3 +1,6 @@
+* {
+  box-sizing: border-box;
+}
 body {
   margin: auto;
   background: #151417;
@@ -127,13 +130,14 @@ table img {
   font-weight: normal;
   color: #ffffff33;
 }
-.timestamp {
+.timestamp,
+.bondedDate,
+.bondedWithin {
   font-weight: normal;
   color: #ffffff8a;
 }
 .token,
-.amount,
-.bondedWithin {
+.amount {
   font-weight: normal;
   color: #ffffffcc;
 }
@@ -145,7 +149,7 @@ table img {
 .bonded .no {
   color: #ffc55a;
 }
-.bonded .na {
+.na {
   color: #ffffff33;
 }
 .transferId {

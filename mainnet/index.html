@@ -146,7 +146,7 @@
           <table>
             <thead>
               <tr>
-                <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Amount</th><th>Token</th><th>Bonded</th><th>Bonded within</th>
+                <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Amount</th><th>Token</th><th>Bonded</th><th>Bonded Date</th><th>Bonded Within</th>
               </tr>
             </thead>
             <tbody>
@@ -186,8 +186,17 @@
                     <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
                   </span>
                 </td>
+                <td class="bondedDate" :title="x.isoBondedTimestamp">
+                  {{ x.relativeBondedTimestamp }}
+                  <span class="na" v-if="x.sourceChain === 1">
+                    <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
+                  </span>
+                </td>
                 <td class="bondedWithin" :title="x.isoBondedTimestamp">
                   {{ x.relativeBondedWithinTimestamp }}
+                  <span class="na" v-if="x.sourceChain === 1">
+                    <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
+                  </span>
                 </td>
               </tr>
             </tbody>

@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
+import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
 import { loadState, saveState } from 'src/utils/localStorage'
+import { useApp } from '.'
 
 export interface TxHistory {
   transactions: Transaction[]
@@ -11,6 +13,7 @@ export interface TxHistory {
 
 const useTxHistory = (): TxHistory => {
   // logger.debug('useTxHistory render')
+  const { sdk } = useApp()
 
   const sort = (list: Transaction[]) => {
     return list.sort((a: Transaction, b: Transaction) => b.timestamp - a.timestamp)
@@ -34,6 +37,29 @@ const useTxHistory = (): TxHistory => {
     [transactions]
   )
 
+  useEffect(() => {
+    async function checkTransferIds() {
+      if (sdk && 'bridge' in sdk && transactions.length) {
+        for (const stx of transactions) {
+          try {
+            await stx.checkIsTransferIdSpent(sdk)
+          } catch (error) {
+            logger.error(error, stx)
+          }
+        }
+      }
+    }
+
+    checkTransferIds()
+
+    // Poll for balance changes every X seconds
+    const pollInterval = 5000
+    const timeoutId = setInterval(checkTransferIds, pollInterval)
+    return () => clearInterval(timeoutId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Transforms and saves transactions (component state) -> local storage objects
   useEffect(() => {
     try {
       const recents = transactions.map((tx: Transaction) => {

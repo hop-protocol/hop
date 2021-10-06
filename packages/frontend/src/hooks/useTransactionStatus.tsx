@@ -1,11 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react'
-import { providers } from 'ethers'
-import { TChain, Chain } from '@hop-protocol/sdk'
+import { useState, useMemo, useEffect } from 'react'
+import { TChain } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import useInterval from 'src/hooks/useInterval'
-import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import { loadState, saveState } from 'src/utils/localStorage'
 import logger from 'src/logger'
+import find from 'lodash/find'
 
 const useTransactionStatus = (txHash?: string, chain?: TChain) => {
   const [completed, setCompleted] = useState<boolean>()
@@ -40,6 +39,12 @@ const useTransactionStatus = (txHash?: string, chain?: TChain) => {
 
     setCompleted(!!tx)
   }
+
+  useEffect(() => {
+    const txs = loadState('recentTransactions')
+    const tx = find(txs, ['hash', txHash])
+    console.log(`tx:`, tx)
+  }, [txHash, completed])
 
   useEffect(() => {
     updateTxStatus()

@@ -259,13 +259,11 @@ const Web3ContextProvider: FC = ({ children }) => {
   }
 
   const disconnectWallet = () => {
-    ;(async () => {
-      try {
-        await onboard.walletReset()
-      } catch (err) {
-        logger.error(err)
-      }
-    })()
+    try {
+      onboard.walletReset()
+    } catch (error) {
+      logger.error(error)
+    }
   }
 
   const walletConnected = !!address

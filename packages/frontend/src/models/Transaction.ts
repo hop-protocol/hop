@@ -3,8 +3,9 @@ import { EventEmitter } from 'events'
 import { L1_NETWORK } from 'src/constants'
 import { getRpcUrl, getProvider, getBaseExplorerUrl } from 'src/utils'
 
-import { Token } from '@hop-protocol/sdk'
+import { Hop, Token } from '@hop-protocol/sdk'
 import { network as defaultNetwork } from 'src/config'
+import { getTransferSentDetailsFromLogs } from 'src/utils/logs'
 
 interface Config {
   networkName: string
@@ -14,6 +15,8 @@ interface Config {
   timestamp?: number
   token?: Token
   isCanonicalTransfer?: boolean
+  pendingDestinationConfirmation?: boolean
+  transferId?: string | null
 }
 
 const standardNetworks = new Set(['mainnet', 'ropsten', 'kovan', 'rinkeby', 'goerli'])
@@ -28,6 +31,8 @@ class Transaction extends EventEmitter {
   pending: boolean
   timestamp: number
   status: null | boolean = null
+  pendingDestinationConfirmation: boolean = true
+  transferId: string | null = null
 
   constructor({
     hash,
@@ -37,6 +42,8 @@ class Transaction extends EventEmitter {
     timestamp,
     token,
     isCanonicalTransfer,
+    pendingDestinationConfirmation = true,
+    transferId,
   }: Config) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
@@ -55,6 +62,7 @@ class Transaction extends EventEmitter {
     }
     if (destNetworkName) {
       this.destNetworkName = destNetworkName
+      this.pendingDestinationConfirmation = pendingDestinationConfirmation
     }
 
     this.provider = getProvider(rpcUrl)
@@ -63,7 +71,15 @@ class Transaction extends EventEmitter {
       this.token = token
     }
     this.pending = pending
+    if (transferId) {
+      this.transferId = transferId
+    }
+
     this.receipt().then((receipt: any) => {
+      const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
+      if (tsDetails?.transferId) {
+        this.transferId = tsDetails.transferId
+      }
       this.status = !!receipt.status
       this.pending = false
       this.emit('pending', false, this)
@@ -102,6 +118,17 @@ class Transaction extends EventEmitter {
     return this.provider.getTransaction(this.hash)
   }
 
+  async checkIsTransferIdSpent(sdk: Hop) {
+    if (this.token && this.destNetworkName && this.transferId) {
+      const bridge = sdk.bridge(this.token.symbol)
+      const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
+      const isSpent = await destL2Bridge.isTransferIdSpent(this.transferId)
+      if (isSpent) {
+        this.pendingDestinationConfirmation = false
+      }
+    }
+  }
+
   private _etherscanLink() {
     return `${getBaseExplorerUrl(this.networkName)}/tx/${this.hash}`
   }
@@ -128,14 +155,42 @@ class Transaction extends EventEmitter {
   }
 
   toObject() {
-    const { hash, networkName, pending, timestamp, token, destNetworkName, isCanonicalTransfer } =
-      this
-    return { hash, networkName, pending, timestamp, token, destNetworkName, isCanonicalTransfer }
+    const {
+      hash,
+      networkName,
+      pending,
+      timestamp,
+      token,
+      destNetworkName,
+      isCanonicalTransfer,
+      pendingDestinationConfirmation,
+      transferId,
+    } = this
+    return {
+      hash,
+      networkName,
+      pending,
+      timestamp,
+      token,
+      destNetworkName,
+      isCanonicalTransfer,
+      pendingDestinationConfirmation,
+      transferId,
+    }
   }
 
   static fromObject(obj: any) {
-    const { hash, networkName, pending, timestamp, token, destNetworkName, isCanonicalTransfer } =
-      obj
+    const {
+      hash,
+      networkName,
+      pending,
+      timestamp,
+      token,
+      destNetworkName,
+      isCanonicalTransfer,
+      pendingDestinationConfirmation,
+      transferId,
+    } = obj
     return new Transaction({
       hash,
       networkName,
@@ -144,6 +199,8 @@ class Transaction extends EventEmitter {
       token,
       destNetworkName,
       isCanonicalTransfer,
+      pendingDestinationConfirmation,
+      transferId,
     })
   }
 }

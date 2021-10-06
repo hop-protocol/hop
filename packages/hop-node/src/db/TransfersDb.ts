@@ -164,7 +164,7 @@ class TransfersDb extends BaseDb {
         filter.gte = `transfer:${dateFilter.fromUnix}`
       }
       if (dateFilter.toUnix) {
-        filter.lte = `transfer:${dateFilter.toUnix}~`
+        filter.lte = `transfer:${dateFilter.toUnix}~` // tilde is intentional
       }
       const kv = await this.subDb.getKeyValues(filter)
       return kv.map(x => x?.value?.transferId).filter(x => x)

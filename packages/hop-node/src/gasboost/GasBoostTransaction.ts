@@ -152,6 +152,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       tag,
       prefix
     })
+    this.logger.log('starting log')
     this.notifier = new Notifier(
       `GasBoost, label: ${prefix}, host: ${hostname}`
     )
@@ -414,6 +415,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   async wait (): Promise<providers.TransactionReceipt> {
     this.logger.debug(`wait() called, tx: ${this.hash}`)
+    this.logger.debug(`wait() called, txHash: ${this.txHash}`)
+    this.logger.debug(`wait() called, inFlightItems: ${this.inflightItems}`)
     if (this.txHash) {
       return this.getReceipt(this.txHash)
     }
@@ -429,8 +432,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         .on(State.Error, (err) => {
           reject(err)
         })
-        const listeners = (this as any)._events
-        this.logger.debug(`subscribers: "${State.Confirmed}": ${listeners?.[State.Confirmed]?.length}, "${State.Error}": ${listeners?.[State.Error]?.length}`)
+      const listeners = (this as any)._events
+      this.logger.debug(`subscribers: "${State.Confirmed}": ${listeners?.[State.Confirmed]?.length}, "${State.Error}": ${listeners?.[State.Error]?.length}`)
     })
   }
 

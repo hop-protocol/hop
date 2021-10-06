@@ -339,7 +339,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('transferId:', chalk.bgCyan.black(transferId))
       logger.debug('amount:', this.bridge.formatUnits(amount))
       logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
-      logger.debug('amountOutMin:', amountOutMin)
+      logger.debug('amountOutMin:', this.bridge.formatUnits(amountOutMin))
       logger.debug('deadline:', deadline)
       logger.debug('transferSentTimestamp:', transferSentTimestamp)
       logger.debug('transferSentIndex:', transactionIndex)
@@ -378,7 +378,7 @@ class SyncWatcher extends BaseWatcher {
     const { transactionHash } = event
     const tx = await this.bridge.getTransaction(transactionHash)
     if (!tx) {
-      throw new Error(`expected tx object. transferId: ${transferId}`)
+      throw new Error(`expected tx object. transferId: ${transferId} transactionHash: ${transactionHash}`)
     }
     const { from: withdrawalBonder } = tx
 

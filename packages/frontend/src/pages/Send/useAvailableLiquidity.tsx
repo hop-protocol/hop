@@ -27,11 +27,6 @@ const useAvailableLiquidity = (
         liquidity = await bridge.getFrontendAvailableLiquidity(sourceChain, destinationChain)
       }
 
-      // temporarily disable ability to transfer due to bonder delays
-      if (bridge.getTokenSymbol() !== 'MATIC') {
-        liquidity = BigNumber.from(0)
-      }
-
       setAvailableLiquidity(liquidity)
     } catch (err) {
       setAvailableLiquidity(undefined)

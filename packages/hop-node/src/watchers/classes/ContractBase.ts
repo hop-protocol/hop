@@ -106,15 +106,11 @@ export default class ContractBase extends EventEmitter {
     return block.timestamp
   }
 
-  @rateLimitRetry
   async getTransactionTimestamp (
     txHash: string
   ): Promise<number> {
-    const tx = await this.contract.provider.getTransaction(txHash)
-    if (!tx) {
-      throw new Error(`expected tx object. transactionHash: ${txHash}`)
-    }
-    return this.getBlockTimestamp(tx.blockNumber)
+    const blockNumber = await this.getTransactionBlockNumber(txHash)
+    return this.getBlockTimestamp(blockNumber)
   }
 
   async getEventTimestamp (event: any): Promise<number> {
@@ -148,7 +144,6 @@ export default class ContractBase extends EventEmitter {
     return this.contract.provider.getGasPrice()
   }
 
-  @rateLimitRetry
   protected async getBumpedGasPrice (multiplier: number): Promise<BigNumber> {
     const gasPrice = await this.getGasPrice()
     return getBumpedGasPrice(gasPrice, multiplier)

@@ -1,5 +1,6 @@
 import GasBoostTransaction from './GasBoostTransaction'
 import GasBoostTransactionFactory, { Options } from './GasBoostTransactionFactory'
+import Logger from 'src/logger'
 import MemoryStore from './MemoryStore'
 import Store from './Store'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
@@ -19,6 +20,7 @@ class GasBoostSigner extends Wallet {
   gTxFactory: GasBoostTransactionFactory
   signer: Signer
   pollMs: number
+  logger: Logger
 
   constructor (privateKey: string, provider?: providers.Provider, store?: Store, options: Partial<Options> = {}) {
     super(privateKey, provider)
@@ -32,6 +34,12 @@ class GasBoostSigner extends Wallet {
     }
     this.chainSlug = chainSlug
     this.gTxFactory = new GasBoostTransactionFactory(this.signer, this.store)
+    const tag = 'GasBoostSigner'
+    const prefix = `${this.chainSlug}`
+    this.logger = new Logger({
+      tag,
+      prefix
+    })
     this.setOptions(options)
     this.restore()
   }
@@ -49,7 +57,7 @@ class GasBoostSigner extends Wallet {
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
     await this.waitDelay()
     const gTx = this.gTxFactory.createTransaction(tx)
-    await this.track(gTx)
+    this.track(gTx)
     await gTx.save()
     await gTx.send()
     this.lastTxSentTimestamp = Date.now()
@@ -57,8 +65,9 @@ class GasBoostSigner extends Wallet {
   }
 
   private async waitDelay () {
-    const delta = await this.getDelayDelta()
+    const delta = this.getDelayDelta()
     if (delta > 0) {
+      this.logger.log(`delaying ${delta / 1000} seconds on ${this.chainSlug} chain`)
       await wait(delta)
     }
   }

@@ -41,11 +41,6 @@ export const OneHourSeconds = 60 * 60
 export const OneHourMs = 60 * 60 * 1000
 export const OneWeekMs = 7 * 24 * 60 * 60 * 1000
 export const TxRetryDelayMs = OneHourMs
-export enum TxMaxDelayMs {
-  Ethereum = 1 * 1000,
-  xDai = 20 * 1000,
-  Polygon = 10 * 1000,
-}
 export const RootSetSettleDelayMs = 5 * 60 * 1000
 
 export const MaxInt32 = 2147483647

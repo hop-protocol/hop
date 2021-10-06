@@ -1,13 +1,16 @@
 import GasBoostTransaction from './GasBoostTransaction'
 import GasBoostTransactionFactory, { Options } from './GasBoostTransactionFactory'
+import Logger from 'src/logger'
 import MemoryStore from './MemoryStore'
 import Store from './Store'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
-import wait from 'src/utils/wait'
+import { Notifier } from 'src/notifier'
 import { Signer, Wallet, providers } from 'ethers'
+import { TenMinutesMs } from 'src/constants'
 import { boundClass } from 'autobind-decorator'
+import { gasBoostErrorSlackChannel, hostname } from 'src/config'
 
 @boundClass
 class GasBoostSigner extends Wallet {
@@ -15,10 +18,13 @@ class GasBoostSigner extends Wallet {
   items: string[] = []
   lastTxSentTimestamp: number = 0
   delayBetweenTxsMs: number = 7 * 1000
+  nonce: number = 0
   chainSlug: string
   gTxFactory: GasBoostTransactionFactory
   signer: Signer
   pollMs: number
+  logger: Logger
+  notifier: Notifier
 
   constructor (privateKey: string, provider?: providers.Provider, store?: Store, options: Partial<Options> = {}) {
     super(privateKey, provider)
@@ -32,6 +38,15 @@ class GasBoostSigner extends Wallet {
     }
     this.chainSlug = chainSlug
     this.gTxFactory = new GasBoostTransactionFactory(this.signer, this.store)
+    const tag = 'GasBoostSigner'
+    const prefix = `${this.chainSlug}`
+    this.logger = new Logger({
+      tag,
+      prefix
+    })
+    this.notifier = new Notifier(
+      `GasBoostSigner, label: ${prefix}, host: ${hostname}`
+    )
     this.setOptions(options)
     this.restore()
   }
@@ -47,26 +62,36 @@ class GasBoostSigner extends Wallet {
   @queue
   @rateLimitRetry
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
-    await this.waitDelay()
+    const nonce = await this.getNonce()
+    if (!tx?.nonce) {
+      tx.nonce = nonce
+    }
     const gTx = this.gTxFactory.createTransaction(tx)
-    await this.track(gTx)
+    this.track(gTx)
     await gTx.save()
     await gTx.send()
+    this.nonce++
     this.lastTxSentTimestamp = Date.now()
     return gTx
   }
 
-  private async waitDelay () {
-    const delta = await this.getDelayDelta()
-    if (delta > 0) {
-      await wait(delta)
+  private async getNonce () {
+    if (!this.nonce) {
+      this.nonce = await this.signer.getTransactionCount('pending')
     }
-  }
 
-  private getDelayDelta () {
-    const now = Date.now()
-    const delta = this.delayBetweenTxsMs - (now - this.lastTxSentTimestamp)
-    return delta
+    const timeSinceLastTxMs = Date.now() - this.lastTxSentTimestamp
+    if (this.lastTxSentTimestamp && timeSinceLastTxMs > TenMinutesMs) {
+      this.logger.info(`checking on-chain nonce. timeSinceLastTxMs ${timeSinceLastTxMs}`)
+      const onChainNonce = await this.signer.getTransactionCount('pending')
+      if (onChainNonce !== this.nonce) {
+        const errMsg = `Nonces out of sync. on chain ${onChainNonce}, local ${this.nonce}`
+        this.logger.error(errMsg)
+        this.notifier.error(errMsg, { channel: gasBoostErrorSlackChannel })
+      }
+    }
+
+    return this.nonce
   }
 
   private async restore () {

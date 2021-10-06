@@ -1,8 +1,14 @@
-import BaseDb from './BaseDb'
+import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
+import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
 import { OneWeekMs, TxError, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
+
+export type TransfersDateFilter = {
+  fromUnix?: number
+  toUnix?: number
+}
 
 export type Transfer = {
   transferRootId?: string
@@ -35,17 +41,110 @@ export type Transfer = {
   committed: boolean
 }
 
+class TransfersTimestampedKeysDb extends BaseDb {}
+
 class TransfersDb extends BaseDb {
-  async update (transferId: string, data: Partial<Transfer>) {
-    return super.update(transferId, data)
+  ready = false
+  subDb : TransfersTimestampedKeysDb
+
+  constructor (prefix: string, _namespace?: string) {
+    super(prefix, _namespace)
+
+    this.subDb = new TransfersTimestampedKeysDb(`${prefix}TimestampedKeys`, _namespace)
+
+    // this only needs to be ran once on start up to backfill timestamped keys.
+    // this function can be removed once all bonders update.
+    // timestamped keys (in addition to transferId as keys) are needed to filter
+    // leveldb read streams.
+    this.trackTimestampedKeys()
+      .then(() => {
+        this.ready = true
+        this.logger.debug('transfersDb ready')
+      })
+      .catch(this.logger.error)
+  }
+
+  private async tilReady (): Promise<boolean> {
+    if (this.ready) {
+      return true
+    }
+
+    await wait(100)
+    return this.tilReady()
+  }
+
+  async trackTimestampedKeys () {
+    const transfers = await this._getTransfers()
+    for (const transfer of transfers) {
+      await this.trackTimestampedKey(transfer)
+    }
+  }
+
+  async trackTimestampedKey (transfer: Partial<Transfer>) {
+    const data = await this.getTimestampedKeyValueForUpdate(transfer)
+    if (data) {
+      const key = data?.key
+      const transferId = data?.value?.transferId
+      this.logger.debug(`storing timestamped key. key: ${key} transferId: ${transferId}`)
+      const value = { transferId }
+      await this.subDb._update(key, value)
+    }
+  }
+
+  async trackTimestampedKeyByTransferId (transferId: string) {
+    const transfer = await this.getByTransferId(transferId)
+    return this.trackTimestampedKey(transfer)
+  }
+
+  getTimestampedKey (transfer: Partial<Transfer>) {
+    if (transfer?.transferSentTimestamp && transfer?.transferSentIndex !== undefined) {
+      const key = `transfer:${transfer?.transferSentTimestamp}:${transfer?.transferSentIndex}`
+      return key
+    }
+  }
+
+  async getTimestampedKeyValueForUpdate (transfer: Partial<Transfer>) {
+    if (!transfer) {
+      this.logger.warn('expected transfer object for timestamped key')
+      return
+    }
+    const transferId = transfer?.transferId
+    const key = this.getTimestampedKey(transfer)
+    if (!key) {
+      this.logger.warn('expected timestamped key. incomplete transfer:', JSON.stringify(transfer))
+      return
+    }
+    if (!transferId) {
+      this.logger.warn(`expected transfer id for timestamped key. key: ${key} incomplete transfer: `, JSON.stringify(transfer))
+      return
+    }
+    const item = await this.subDb.getById(key)
+    const exists = !!item
+    if (!exists) {
+      const value = { transferId }
+      return { key, value }
+    }
+  }
+
+  async update (transferId: string, transfer: Partial<Transfer>) {
+    const logger = this.logger.create({ id: transferId })
+    logger.debug('update called')
+    const timestampedKv = await this.getTimestampedKeyValueForUpdate(transfer)
+    if (timestampedKv) {
+      logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferId: ${transferId}`)
+      await this.subDb._update(timestampedKv.key, timestampedKv.value)
+      logger.debug(`updated db item. key: ${timestampedKv.key}`)
+    }
+    await this._update(transferId, transfer)
+    logger.debug(`updated db item. key: ${transferId}`)
   }
 
   async getByTransferId (transferId: string): Promise<Transfer> {
     const item = (await this.getById(transferId)) as Transfer
     if (!item) {
-      return item
+      return null
     }
-    if (!item.transferId) {
+    if (!item?.transferId) {
       item.transferId = transferId
     }
     if (item?.destinationChainId) {
@@ -57,20 +156,35 @@ class TransfersDb extends BaseDb {
     return normalizeDbItem(item)
   }
 
-  async getTransferIds (): Promise<string[]> {
-    return this.getKeys()
+  async getTransferIds (dateFilter?: TransfersDateFilter): Promise<string[]> {
+    // return only transfer-id keys that are within specified range (filter by timestamped keys)
+    if (dateFilter) {
+      const filter : KeyFilter = {}
+      if (dateFilter.fromUnix) {
+        filter.gte = `transfer:${dateFilter.fromUnix}`
+      }
+      if (dateFilter.toUnix) {
+        filter.lte = `transfer:${dateFilter.toUnix}~`
+      }
+      const kv = await this.subDb.getKeyValues(filter)
+      return kv.map(x => x?.value?.transferId).filter(x => x)
+    }
+
+    // return all transfer-id keys if no filter is used (filter out timestamped keys)
+    const keys = await this.getKeys()
+    return keys.filter((key: string) => !key?.startsWith('transfer:')).filter(x => x)
   }
 
-  async getTransfers (): Promise<Transfer[]> {
-    const transferIds = await this.getTransferIds()
+  private async _getTransfers (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
+    const transferIds = await this.getTransferIds(dateFilter)
     const transfers = await Promise.all(
       transferIds.map(transferId => {
         return this.getByTransferId(transferId)
       })
     )
 
-    // https://stackoverflow.com/a/9175783/1439168
-    return transfers
+    // sort explainer: https://stackoverflow.com/a/9175783/1439168
+    const items = transfers
       .filter(x => x)
       .sort((a, b) => {
         if (a.transferSentBlockNumber > b.transferSentBlockNumber) return 1
@@ -79,12 +193,28 @@ class TransfersDb extends BaseDb {
         if (a.transferSentIndex < b.transferSentIndex) return -1
         return 0
       })
+
+    return items
+  }
+
+  async getTransfers (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
+    await this.tilReady()
+    return this._getTransfers(dateFilter)
+  }
+
+  // gets only transfers within range: now - 1 week ago
+  async getTransfersFromWeek () {
+    await this.tilReady()
+    const fromUnix = Math.floor((Date.now() - OneWeekMs) / 1000)
+    return this.getTransfers({
+      fromUnix
+    })
   }
 
   async getUncommittedTransfers (
     filter: Partial<Transfer> = {}
   ): Promise<Transfer[]> {
-    const transfers: Transfer[] = await this.getTransfers()
+    const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
@@ -104,7 +234,7 @@ class TransfersDb extends BaseDb {
   async getUnbondedSentTransfers (
     filter: Partial<Transfer> = {}
   ): Promise<Transfer[]> {
-    const transfers: Transfer[] = await this.getTransfers()
+    const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
@@ -156,7 +286,7 @@ class TransfersDb extends BaseDb {
   async getBondedTransfersWithoutRoots (
     filter: Partial<Transfer> = {}
   ): Promise<Transfer[]> {
-    const transfers: Transfer[] = await this.getTransfers()
+    const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
@@ -165,6 +295,23 @@ class TransfersDb extends BaseDb {
       }
 
       return item.withdrawalBonded && !item.transferRootHash
+    })
+  }
+
+  async getIncompleteItems (
+    filter: Partial<Transfer> = {}
+  ) {
+    const transfers: Transfer[] = await this.getTransfers()
+    return transfers.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
+      return (
+        (item.transferSentBlockNumber && !item.transferSentTimestamp)
+      )
     })
   }
 }

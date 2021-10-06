@@ -141,7 +141,6 @@ export default class L2Bridge extends Bridge {
     return this.mapEventsBatch(this.getTransferSentEvents, cb, options)
   }
 
-  @rateLimitRetry
   async getTransferSentTimestamp (transferId: string): Promise<number> {
     let match: Event
     await this.eventsBatch(async (start: number, end: number) => {
@@ -299,7 +298,6 @@ export default class L2Bridge extends Bridge {
     )
   }
 
-  @rateLimitRetry
   async doPendingTransfersExist (chainId: number): Promise<boolean> {
     try {
       await this.getPendingTransferByIndex(chainId, 0)
@@ -340,7 +338,6 @@ export default class L2Bridge extends Bridge {
     )
   }
 
-  @rateLimitRetry
   async getPendingTransfers (chainId: number): Promise<string[]> {
     const pendingTransfers: string[] = []
     const max = await this.getMaxPendingTransfers()

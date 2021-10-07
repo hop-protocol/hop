@@ -146,7 +146,7 @@
           <table>
             <thead>
               <tr>
-                <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Amount</th><th>Token</th><th>Bonded</th><th>Bonded Date</th><th>Bonded Within</th>
+                <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Amount</th><th>Token</th><th>Bonder Fee</th><th>Bonded</th><th>Bonded Date</th><th>Bonded Within</th>
               </tr>
             </thead>
             <tbody>
@@ -173,6 +173,7 @@
                   <img :src="x.tokenImageUrl" :alt="x.token">
                   {{ x.token }}
                 </td>
+                <td class="bonderFee" :title="x.bonderFee">{{ x.displayBonderFee }}</td>
                 <td class="bonded">
                   <a v-if="x.bondTxExplorerUrl" :class="`${x.bonded ? 'yes' : 'no'}`" :href="x.bondTxExplorerUrl" target="_blank" title="View on block explorer">
                     <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">

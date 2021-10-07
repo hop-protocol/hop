@@ -332,6 +332,7 @@ async function fetchTransfers (chain) {
         id
         destinationChainId
         amount
+        relayerFee
         transactionHash
         timestamp
         token
@@ -348,6 +349,7 @@ async function fetchTransfers (chain) {
         transferId
         destinationChainId
         amount
+        bonderFee
         transactionHash
         timestamp
         token
@@ -583,6 +585,7 @@ async function updateTransfers () {
       sourceChain: 100,
       destinationChain: x.destinationChainId,
       amount: x.amount,
+      bonderFee: x.bonderFee,
       transferId: x.transferId,
       transactionHash: x.transactionHash,
       timestamp: Number(x.timestamp),
@@ -594,6 +597,7 @@ async function updateTransfers () {
       sourceChain: 137,
       destinationChain: x.destinationChainId,
       amount: x.amount,
+      bonderFee: x.bonderFee,
       transferId: x.transferId,
       transactionHash: x.transactionHash,
       timestamp: Number(x.timestamp),
@@ -605,6 +609,7 @@ async function updateTransfers () {
       sourceChain: 10,
       destinationChain: x.destinationChainId,
       amount: x.amount,
+      bonderFee: x.bonderFee,
       transferId: x.transferId,
       transactionHash: x.transactionHash,
       timestamp: Number(x.timestamp),
@@ -616,6 +621,7 @@ async function updateTransfers () {
       sourceChain: 42161,
       destinationChain: x.destinationChainId,
       amount: x.amount,
+      bonderFee: x.bonderFee,
       transferId: x.transferId,
       transactionHash: x.transactionHash,
       timestamp: Number(x.timestamp),
@@ -627,6 +633,7 @@ async function updateTransfers () {
       sourceChain: 1,
       destinationChain: x.destinationChainId,
       amount: x.amount,
+      bonderFee: x.relayerFee,
       transferId: x.id,
       transactionHash: x.transactionHash,
       timestamp: Number(x.timestamp),
@@ -730,6 +737,7 @@ function populateTransfer (x, i) {
   const decimals = tokenDecimals[x.token]
   x.formattedAmount = Number(ethers.utils.formatUnits(x.amount, decimals))
   x.displayAmount = formatCurrency(ethers.utils.formatUnits(x.amount, decimals), x.token)
+  x.displayBonderFee = formatCurrency(ethers.utils.formatUnits(x.bonderFee, decimals), x.token)
   x.tokenImageUrl = tokenLogosMap[x.token]
 
   return x

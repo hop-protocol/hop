@@ -137,7 +137,8 @@ table img {
   color: #ffffff8a;
 }
 .token,
-.amount {
+.amount,
+.bonderFee {
   font-weight: normal;
   color: #ffffffcc;
 }

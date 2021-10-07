@@ -4,8 +4,6 @@ import L2Amm from './L2Amm'
 import L2AmmWrapper from './L2AmmWrapper'
 import L2BridgeWrapper from './L2BridgeWrapper'
 import Token from './Token'
-import delay from 'src/decorators/delay'
-import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
@@ -165,8 +163,6 @@ export default class L2Bridge extends Bridge {
     return this.getEventTimestamp(match)
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async sendHTokens (
     destinationChainId: number,
@@ -213,8 +209,6 @@ export default class L2Bridge extends Bridge {
     )
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async sendCanonicalTokens (
     destinationChainId: number,
@@ -412,8 +406,6 @@ export default class L2Bridge extends Bridge {
     return Number(transferRoot.createdAt.toString()) > 0
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async commitTransfers (
     destinationChainId: number
@@ -426,8 +418,6 @@ export default class L2Bridge extends Bridge {
     return tx
   }
 
-  @queue
-  @delay
   @rateLimitRetry
   async bondWithdrawalAndAttemptSwap (
     recipient: string,

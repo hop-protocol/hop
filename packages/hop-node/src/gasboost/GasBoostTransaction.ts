@@ -268,6 +268,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     gasFeeData = this.clampMaxGasFeeData(gasFeeData)
     const tx = await this._sendTransaction(gasFeeData)
 
+    if (!tx) {
+      return
+    }
+
     // store populated and normalized values
     this.from = tx.from
     this.to = tx.to
@@ -571,7 +575,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       } catch (err) {
         const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED)/gi.test(err.message)
         if (nonceTooLow) {
-          throw err
+          this.logger.error(err.message)
+          return
         }
 
         const isAlreadyKnown = /AlreadyKnown/gi.test(err.message)

@@ -12,6 +12,7 @@ import { BigNumber, Signer, providers } from 'ethers'
 import { Chain, MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
 import { EventEmitter } from 'events'
 
+import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { gasBoostErrorSlackChannel, gasBoostWarnSlackChannel, hostname } from 'src/config'
@@ -267,10 +268,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     // clamp gas values to max if they go over max for initial tx send
     gasFeeData = this.clampMaxGasFeeData(gasFeeData)
     const tx = await this._sendTransaction(gasFeeData)
-
-    if (!tx) {
-      return
-    }
 
     // store populated and normalized values
     this.from = tx.from
@@ -573,10 +570,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
         return tx
       } catch (err) {
-        const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED)/gi.test(err.message)
+        const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce)/gi.test(err.message)
         if (nonceTooLow) {
           this.logger.error(err.message)
-          return
+          throw new NonceTooLowError('NonceTooLow')
         }
 
         const isAlreadyKnown = /AlreadyKnown/gi.test(err.message)

@@ -6,6 +6,7 @@ import Store from './Store'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import queue from 'src/decorators/queue'
 import rateLimitRetry from 'src/decorators/rateLimitRetry'
+import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import { Signer, Wallet, providers } from 'ethers'
 import { TenMinutesMs } from 'src/constants'
@@ -69,7 +70,16 @@ class GasBoostSigner extends Wallet {
     const gTx = this.gTxFactory.createTransaction(tx)
     this.track(gTx)
     await gTx.save()
-    await gTx.send()
+    try {
+      await gTx.send()
+    } catch (err) {
+      // if nonce too low then we still want to increment the tracked nonce
+      // before throwing error
+      if (err instanceof NonceTooLowError) {
+        this.nonce++
+      }
+      throw err
+    }
     this.nonce++
     this.lastTxSentTimestamp = Date.now()
     return gTx

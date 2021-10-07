@@ -50,7 +50,7 @@ class TransfersDb extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
 
-    this.subDb = new TransfersTimestampedKeysDb(`${prefix}TimestampedKeys`, _namespace)
+    this.subDb = new TransfersTimestampedKeysDb(`${prefix}:timestampedKeys`, _namespace)
 
     // this only needs to be ran once on start up to backfill timestamped keys.
     // this function can be removed once all bonders update.
@@ -97,8 +97,8 @@ class TransfersDb extends BaseDb {
   }
 
   getTimestampedKey (transfer: Partial<Transfer>) {
-    if (transfer?.transferSentTimestamp && transfer?.transferSentIndex !== undefined) {
-      const key = `transfer:${transfer?.transferSentTimestamp}:${transfer?.transferSentIndex}`
+    if (transfer?.transferSentTimestamp && transfer?.transferId) {
+      const key = `transfer:${transfer?.transferSentTimestamp}:${transfer?.transferId}`
       return key
     }
   }

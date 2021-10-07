@@ -12,8 +12,8 @@ import { BigNumber, Signer, providers } from 'ethers'
 import { Chain, MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
 import { EventEmitter } from 'events'
 
+import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
-import { boundClass } from 'autobind-decorator'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { gasBoostErrorSlackChannel, gasBoostWarnSlackChannel, hostname } from 'src/config'
 import { v4 as uuidv4 } from 'uuid'
@@ -67,7 +67,6 @@ export type Type2GasData = {
 
 export type GasFeeData = Type0GasData & Type2GasData
 
-@boundClass
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
   pollMs: number = 10 * 1000
@@ -146,12 +145,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
-    const tag = 'GasBoostSigner'
+    const tag = 'GasBoostTransaction'
     const prefix = `${this.chainSlug} id: ${this.id}`
     this.logger = new Logger({
       tag,
       prefix
     })
+    this.logger.log('starting log')
     this.notifier = new Notifier(
       `GasBoost, label: ${prefix}, host: ${hostname}`
     )
@@ -280,6 +280,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas
     this.nonce = tx.nonce
 
+    this.logger.debug(`beginning tracking for ${tx.hash}`)
     this.track(tx)
   }
 
@@ -413,6 +414,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async wait (): Promise<providers.TransactionReceipt> {
+    this.logger.debug(`wait() called, tx: ${this.hash}`)
+    this.logger.debug(`wait() called, txHash: ${this.txHash}`)
+    this.logger.debug(`wait() called, inFlightItems: ${JSON.stringify(this.inflightItems)}`)
     if (this.txHash) {
       return this.getReceipt(this.txHash)
     }
@@ -423,11 +427,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return new Promise((resolve, reject) => {
       this
         .on(State.Confirmed, (tx) => {
+          this.logger.debug('state confirmed')
           resolve(tx)
         })
         .on(State.Error, (err) => {
           reject(err)
         })
+      const listeners = (this as any)._events
+      this.logger.debug(`subscribers: "${State.Confirmed}": ${listeners?.[State.Confirmed]?.length}, "${State.Error}": ${listeners?.[State.Error]?.length}`)
     })
   }
 
@@ -563,19 +570,15 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
         return tx
       } catch (err) {
+        const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce)/gi.test(err.message)
+        if (nonceTooLow) {
+          this.logger.error(err.message)
+          throw new NonceTooLowError('NonceTooLow')
+        }
+
         const isAlreadyKnown = /AlreadyKnown/gi.test(err.message)
         const isFeeTooLow = /FeeTooLowToCompete/gi.test(err.message)
-        const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED)/gi.test(err.message)
-        const shouldRetry = (isAlreadyKnown || isFeeTooLow || nonceTooLow) && i < maxRetries
-        if (nonceTooLow) {
-          if (!this.nonce) {
-            // wait a bit before attempting again so it re-fetches latest nonce
-            const warnMsg = `nonce too low. Waiting a moment before retrying again. Error: ${err.message}`
-            this.logger.warn(warnMsg)
-            this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
-            await wait(10 * 1000)
-          }
-        }
+        const shouldRetry = (isAlreadyKnown || isFeeTooLow) && i < maxRetries
         if (shouldRetry) {
           continue
         }
@@ -608,7 +611,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private track (tx: providers.TransactionResponse) {
+    this.logger.debug('tracking')
     const prevItem = this.getLatestInflightItem()
+    this.logger.debug(`tracking: prevItem ${prevItem}`)
     if (prevItem) {
       prevItem.boosted = true
       this.logger.debug(`tracking boosted tx: ${tx.hash}, previous tx: ${prevItem.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}, ${this.getGasFeeDataAsString()}`)
@@ -621,7 +626,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       sentAt: Date.now(),
       confirmed: false
     })
+    this.logger.debug(`tracking: inflightItems${JSON.stringify(this.inflightItems)}`)
     tx.wait().then(() => {
+      this.logger.debug(`tracking: wait completed. tx hash ${tx.hash}`)
       this.handleConfirmation(tx.hash)
     })
       .catch((err: Error) => {

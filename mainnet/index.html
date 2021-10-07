@@ -163,7 +163,7 @@
                   {{ x.destinationChainName }}
                 </td>
                 <td class="transferId">
-                  <a class="clipboard" :data-clipboard-text="x.transferId" title="Copy transfer ID to clipboard" @click="alert('Copied to clipboard')">📋</a>
+                  <a class="clipboard" :data-clipboard-text="x.transferId" title="Copy transfer ID to clipboard" onclick="this.innerText='✅';setTimeout(()=>this.innerText='📋',1000)">📋</a>
                   <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank" title="View on block explorer">
                     {{ x.transferId }}
                   </a>

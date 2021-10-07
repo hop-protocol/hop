@@ -13,7 +13,6 @@ import { Chain, TenMinutesMs } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
-import { boundClass } from 'autobind-decorator'
 import { config as globalConfig, oruChains } from 'src/config'
 
 type S3JsonData = {
@@ -39,7 +38,6 @@ export interface Config {
   s3Namespace?: string
 }
 
-@boundClass
 class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   resyncIntervalMs: number = 60 * 1000

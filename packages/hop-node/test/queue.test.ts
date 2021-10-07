@@ -1,14 +1,16 @@
-import queue from 'src/decorators/queue'
+import { Mutex } from 'async-mutex'
 import wait from 'src/utils/wait'
 
 const DELAY_SECONDS = 1
 const ITERATIONS = 5
 
 class Test {
-  @queue
+  mutex: Mutex = new Mutex()
   async getValue () {
-    await wait(DELAY_SECONDS * 1000)
-    return (Date.now() / 1000) | 0
+    return this.mutex.runExclusive(async () => {
+      await wait(DELAY_SECONDS * 1000)
+      return (Date.now() / 1000) | 0
+    })
   }
 }
 

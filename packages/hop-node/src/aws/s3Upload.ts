@@ -1,10 +1,11 @@
 import Logger from 'src/logger'
 import fetch from 'node-fetch'
-import queue from 'src/decorators/queue'
 import { BigNumber } from 'ethers'
+import { Mutex } from 'async-mutex'
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { awsAccessKeyId, awsRegion, awsSecretAccessKey } from '../config'
-import { boundClass } from 'autobind-decorator'
+
+const mutex = new Mutex()
 
 let credentials
 if (awsAccessKeyId) {
@@ -24,7 +25,6 @@ const client = new S3Client({
   credentials
 })
 
-@boundClass
 class S3Upload {
   bucket: string = 'assets.hop.exchange'
   key: string = 'data.json'
@@ -39,35 +39,32 @@ class S3Upload {
     }
   }
 
-  getQueueGroup () {
-    return 's3'
-  }
-
-  @queue
   async upload (data: any) {
-    try {
-      data = JSON.parse(JSON.stringify(data)) // deep clone
-      const uploadData = {
-        timestamp: Date.now(),
-        data: this.bigNumbersToString(data)
+    return mutex.runExclusive(async () => {
+      try {
+        data = JSON.parse(JSON.stringify(data)) // deep clone
+        const uploadData = {
+          timestamp: Date.now(),
+          data: this.bigNumbersToString(data)
+        }
+        this.logger.debug('uploading')
+        const input = {
+          Bucket: this.bucket,
+          Key: this.key,
+          Body: JSON.stringify(uploadData, null, 2),
+          ACL: 'public-read'
+        }
+        const command = new PutObjectCommand(input)
+        await client.send(command)
+        this.logger.debug('uploaded to s3')
+      } catch (err) {
+        const msg = err.message
+        if (msg.includes('The bucket you are attempting to access must be addressed using the specified endpoint')) {
+          throw new Error('could not access bucket. Make sure AWS_REGION is correct')
+        }
+        throw err
       }
-      this.logger.debug('uploading')
-      const input = {
-        Bucket: this.bucket,
-        Key: this.key,
-        Body: JSON.stringify(uploadData, null, 2),
-        ACL: 'public-read'
-      }
-      const command = new PutObjectCommand(input)
-      await client.send(command)
-      this.logger.debug('uploaded to s3')
-    } catch (err) {
-      const msg = err.message
-      if (msg.includes('The bucket you are attempting to access must be addressed using the specified endpoint')) {
-        throw new Error('could not access bucket. Make sure AWS_REGION is correct')
-      }
-      throw err
-    }
+    })
   }
 
   async getData () {

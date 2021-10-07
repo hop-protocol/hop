@@ -69,9 +69,10 @@ program
         throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state, gas-prices, token-prices`)
       }
 
-      logger.debug(`count: ${items.length}`)
       logger.debug(`dumping ${dbName} db located at ${globalConfig.db.path}`)
       console.log(JSON.stringify(items, null, 2))
+      logger.debug(`count: ${items.length}`)
+      process.exit(0)
     } catch (err) {
       logger.error(err.message)
       process.exit(1)

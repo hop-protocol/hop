@@ -43,10 +43,7 @@ class TransferRootsDb extends BaseDb {
     return this._update(transferRootHash, data)
   }
 
-  async getByTransferRootHash (
-    transferRootHash: string
-  ): Promise<TransferRoot> {
-    const item = (await this.getById(transferRootHash)) as TransferRoot
+  normalizeItem (transferRootHash: string, item: Partial<TransferRoot>) {
     if (!item) {
       return item
     }
@@ -54,6 +51,13 @@ class TransferRootsDb extends BaseDb {
       item.transferRootHash = transferRootHash
     }
     return normalizeDbItem(item)
+  }
+
+  async getByTransferRootHash (
+    transferRootHash: string
+  ): Promise<TransferRoot> {
+    const item : TransferRoot = await this.getById(transferRootHash)
+    return this.normalizeItem(transferRootHash, item)
   }
 
   async getByTransferRootId (transferRootId: string): Promise<TransferRoot> {
@@ -76,12 +80,7 @@ class TransferRootsDb extends BaseDb {
   }
 
   async getTransferRoots (): Promise<TransferRoot[]> {
-    const transferRootHashes = await this.getTransferRootHashes()
-    const transferRoots = await Promise.all(
-      transferRootHashes.map(transferRootHash => {
-        return this.getByTransferRootHash(transferRootHash)
-      })
-    )
+    const transferRoots : TransferRoot[] = await this.getValues()
 
     return transferRoots
       .sort((a, b) => a?.committedAt - b?.committedAt)

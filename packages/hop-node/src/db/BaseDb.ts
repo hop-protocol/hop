@@ -136,17 +136,34 @@ class BaseDb {
 
   async getById (id: string, defaultValue: any = null) {
     try {
-      const item = await this.db.get(id)
-      if (item) {
-        item._id = id
-      }
-      return item
+      const value = await this.db.get(id)
+      return this.normalizeReadValue(id, value)
     } catch (err) {
       if (!err.message.includes('Key not found in database')) {
         this.logger.error(`getById error: ${err.message}`)
       }
       return defaultValue
     }
+  }
+
+  attachId (id: string, item: any) {
+    if (item) {
+      item._id = id
+    }
+    return item
+  }
+
+  normalizeReadValue (key: string, value: any) {
+    return this.attachId(key, value)
+  }
+
+  async batchGetByIds (ids: string[], defaultValue: any = null) {
+    const values = await this.db.getMany(ids)
+    const items: any[] = values.map((item: any, i: number) => {
+      return this.normalizeReadValue(ids[i], item)
+    })
+
+    return items.filter(x => x)
   }
 
   protected async deleteById (id: string) {
@@ -160,6 +177,15 @@ class BaseDb {
     }, filter)
     const kv = await this.getKeyValues(filter)
     return kv.map(x => x.key).filter(x => x)
+  }
+
+  async getValues (filter?: KeyFilter): Promise<any[]> {
+    filter = Object.assign({
+      keys: true,
+      values: true
+    }, filter)
+    const kv = await this.getKeyValues(filter)
+    return kv.map(x => x.value).filter(x => x)
   }
 
   async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<any[]> {
@@ -177,6 +203,7 @@ class BaseDb {
             return
           }
           if (typeof key === 'string') {
+            value = this.normalizeReadValue(key, value)
             kv.push({ key, value })
           }
         })

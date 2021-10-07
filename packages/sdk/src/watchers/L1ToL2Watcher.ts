@@ -8,7 +8,7 @@ import {
   transferSentToL2Topic,
   tokenTransferTopic,
   transferFromL1CompletedTopic
-} from './eventTopics'
+} from '../constants/eventTopics'
 import { DateTime } from 'luxon'
 
 class L1ToL2Watcher extends BaseWatcher {

@@ -7,7 +7,7 @@ import Transaction from 'src/models/Transaction'
 import TxStatus from 'src/components/txStatus'
 import Check from '@material-ui/icons/Check'
 import CircularProgress from '@material-ui/core/CircularProgress'
-import { Div, A, Flex } from '../ui'
+import { Div, Flex } from '../ui'
 import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 import useTransactionStatus from 'src/hooks/useTransactionStatus'
 
@@ -64,7 +64,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 }))
 
 function TransactionRow({ tx, styles }) {
-  const { destCompleted } = useTransactionStatus(tx.hash, tx.networkName, tx)
+  const { destCompleted } = useTransactionStatus(tx, tx.networkName)
 
   return (
     <Flex justifyBetween mb=".5rem" alignCenter>
@@ -83,28 +83,30 @@ function TransactionRow({ tx, styles }) {
             {destCompleted ? (
               <>
                 <Check className={styles.completed} />
-                <A
-                  mt={2}
-                  href={tx.explorerLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  fontSize={0}
-                >
-                  Complete
-                </A>
+                <Flex mt={2} fontSize={0}>
+                  <Link
+                    color="inherit"
+                    href={tx.explorerLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Complete
+                  </Link>
+                </Flex>
               </>
             ) : (
               <>
                 <CircularProgress size={20} thickness={5} />
-                <A
-                  mt={2}
-                  href={tx.explorerLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  fontSize={0}
-                >
-                  Pending
-                </A>
+                <Flex mt={2} fontSize={0}>
+                  <Link
+                    color="inherit"
+                    href={tx.explorerLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Pending
+                  </Link>
+                </Flex>
               </>
             )}
           </Flex>

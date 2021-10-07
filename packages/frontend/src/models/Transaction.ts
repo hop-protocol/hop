@@ -127,7 +127,7 @@ class Transaction extends EventEmitter {
       if (isSpent) {
         this.pendingDestinationConfirmation = false
       }
-      return !!isSpent
+      return isSpent
     }
   }
 

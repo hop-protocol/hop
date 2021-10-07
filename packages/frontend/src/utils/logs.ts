@@ -1,9 +1,10 @@
 import { BigNumber, utils } from 'ethers'
 import find from 'lodash/find'
-import { EventTopics, EventNames } from 'src/constants'
+import { eventTopics } from '@hop-protocol/sdk'
+import { EventNames } from 'src/constants'
 
 export function findTransferSentLog(logs) {
-  const tsLog = find(logs, log => log.topics[0] === EventTopics.TransferSent)
+  const tsLog = find(logs, log => log.topics[0] === eventTopics.transferSentTopic)
   return tsLog
 }
 

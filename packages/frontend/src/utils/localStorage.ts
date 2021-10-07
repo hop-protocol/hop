@@ -29,5 +29,6 @@ export const saveState = (key: string = 'state', state: any) => {
     setItem(key, serializedState)
   } catch (err) {
     // Ignore write errors.
+    console.error(err)
   }
 }

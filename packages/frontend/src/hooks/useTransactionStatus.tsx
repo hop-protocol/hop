@@ -6,7 +6,7 @@ import Transaction from 'src/models/Transaction'
 import { loadState, saveState } from 'src/utils/localStorage'
 import logger from 'src/logger'
 
-const useTransactionStatus = (txHash?: string, chain?: TChain, transaction?: Transaction) => {
+const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   const [completed, setCompleted] = useState<boolean>()
   const [destCompleted, setDestCompleted] = useState<boolean>(
     !transaction?.pendingDestinationConfirmation || false
@@ -30,11 +30,12 @@ const useTransactionStatus = (txHash?: string, chain?: TChain, transaction?: Tra
   }
 
   const updateTxStatus = async () => {
-    if (!provider || !txHash) {
+    if (!provider || !transaction?.hash) {
       setCompleted(undefined)
       return
     }
 
+    const txHash = transaction.hash
     const cacheKey = `txReceipt:${txHash}`
 
     // Load local storage
@@ -55,7 +56,7 @@ const useTransactionStatus = (txHash?: string, chain?: TChain, transaction?: Tra
 
   useEffect(() => {
     updateTxStatus()
-  }, [txHash, chain])
+  }, [transaction?.hash, chain])
 
   useEffect(() => {
     updateDestTxStatus()

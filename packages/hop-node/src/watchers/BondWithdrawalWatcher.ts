@@ -51,8 +51,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async checkTransferSentFromDb () {
+    const sourceChainId = await this.bridge.getChainId()
+    this.logger.debug(`polling with sourceChainId ${sourceChainId}`)
     const dbTransfers = await this.db.transfers.getUnbondedSentTransfers({
-      sourceChainId: await this.bridge.getChainId()
+      sourceChainId
     })
     if (dbTransfers.length) {
       this.logger.debug(
@@ -74,6 +76,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
         availableCredit?.lt(amount) &&
         withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
+        const logger = this.logger.create({ id: transferId })
+        logger.debug(
+          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`,
+          `withdrawalBondTxError: ${withdrawalBondTxError}`
+        )
+
         continue
       }
 

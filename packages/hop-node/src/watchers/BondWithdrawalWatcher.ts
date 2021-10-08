@@ -51,8 +51,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async checkTransferSentFromDb () {
+    const sourceChainId = await this.bridge.getChainId()
+    this.logger.debug(`polling with sourceChainId ${sourceChainId}`)
     const dbTransfers = await this.db.transfers.getUnbondedSentTransfers({
-      sourceChainId: await this.bridge.getChainId()
+      sourceChainId
     })
     if (dbTransfers.length) {
       this.logger.debug(
@@ -68,15 +70,21 @@ class BondWithdrawalWatcher extends BaseWatcher {
         amount,
         withdrawalBondTxError
       } = dbTransfer
-
-      const availableCredit = await this.getAvailableCreditForTransfer(destinationChainId, amount)
+      const logger = this.logger.create({ id: transferId })
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId, amount)
       if (
         availableCredit?.lt(amount) &&
         withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
+        logger.debug(
+          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`,
+          `withdrawalBondTxError: ${withdrawalBondTxError}`
+        )
+
         continue
       }
 
+      logger.debug('db poll completed')
       promises.push(this.checkTransferId(transferId).catch(err => {
         this.logger.error('checkTransferId error:', err)
       }))
@@ -103,6 +111,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       transferSentTxHash
     } = dbTransfer
     const logger = this.logger.create({ id: transferId })
+    logger.debug('processing bondWithdrawal')
     const sourceL2Bridge = this.bridge as L2Bridge
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
@@ -110,6 +119,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     await this.waitTimeout(transferId, destinationChainId)
 
     const bondedAmount = await destBridge.getTotalBondedWithdrawalAmountForTransferId(transferId)
+    logger.debug(`processing bondWithdrawal. bondedAmount: ${bondedAmount?.toString()}`)
     if (bondedAmount.gt(0)) {
       logger.warn('transfer already bonded. Adding to db and skipping')
       const event = await destBridge.getBondedWithdrawalEvent(transferId)
@@ -129,7 +139,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    const availableCredit = await this.getAvailableCreditForTransfer(destinationChainId, amount)
+    const availableCredit = this.getAvailableCreditForTransfer(destinationChainId, amount)
+    logger.debug(`processing bondWithdrawal. availableCredit: ${availableCredit?.toString()}`)
     if (availableCredit.lt(amount)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
@@ -378,8 +389,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
   //    - divide by 2 because `amount` gets added to OruToL1PendingAmount
   // nonORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
-  async getAvailableCreditForTransfer (destinationChainId: number, amount: BigNumber) {
-    const availableCredit = await this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
+  getAvailableCreditForTransfer (destinationChainId: number, amount: BigNumber) {
+    const availableCredit = this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
     if (this.syncWatcher.isOruToL1(destinationChainId)) {
       return availableCredit.div(2)
     }

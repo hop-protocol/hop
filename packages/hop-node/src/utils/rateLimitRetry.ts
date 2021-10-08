@@ -7,20 +7,7 @@ import { hostname, rateLimitMaxRetries, rpcTimeoutSeconds } from 'src/config'
 const logger = new Logger('rateLimitRetry')
 const notifier = new Notifier(`rateLimitRetry, host: ${hostname}`)
 
-export default function rateLimitRetry (
-  target: Object,
-  propertyKey: string,
-  descriptor: PropertyDescriptor
-): any {
-  const originalMethod = descriptor.value
-  descriptor.value = async function (...args: any[]) {
-    return rateLimitRetryFn(originalMethod.bind(this))(...args)
-  }
-
-  return descriptor
-}
-
-export function rateLimitRetryFn (fn: any): any {
+export default function rateLimitRetry (fn: any): any {
   const id = `${process.hrtime()[1]}`
   const log = logger.create({ id })
   return async (...args: any[]) => {

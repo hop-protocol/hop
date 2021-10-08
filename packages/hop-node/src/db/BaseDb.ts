@@ -3,10 +3,9 @@ import level from 'level'
 import mkdirp from 'mkdirp'
 import os from 'os'
 import path from 'path'
-import queue from 'src/decorators/queue'
 import sub from 'subleveldown'
+import { Mutex } from 'async-mutex'
 import { TenSecondsMs } from 'src/constants'
-import { boundClass } from 'autobind-decorator'
 import { config as globalConfig } from 'src/config'
 
 const dbMap: { [key: string]: any } = {}
@@ -28,15 +27,11 @@ export type KeyFilter = {
   values?: boolean
 }
 
-@boundClass
 class BaseDb {
   public db: any
   public prefix: string
   logger: Logger
-
-  getQueueGroup () {
-    return this.prefix
-  }
+  mutex: Mutex = new Mutex()
 
   constructor (prefix: string, _namespace?: string) {
     if (!prefix) {
@@ -104,32 +99,34 @@ class BaseDb {
     return { key, value }
   }
 
-  @queue
   async _update (key: string, data: any) {
-    const { value } = await this._getUpdateData(key, data)
-    return this.db.put(key, value)
+    return this.mutex.runExclusive(async () => {
+      const { value } = await this._getUpdateData(key, data)
+      return this.db.put(key, value)
+    })
   }
 
-  @queue
   public async batchUpdate (updates: any[]) {
-    const ops : any[] = []
-    for (const data of updates) {
-      const { key, value } = await this._getUpdateData(data.key, data.value)
-      ops.push({
-        type: 'put',
-        key,
-        value
-      })
-    }
+    return this.mutex.runExclusive(async () => {
+      const ops : any[] = []
+      for (const data of updates) {
+        const { key, value } = await this._getUpdateData(data.key, data.value)
+        ops.push({
+          type: 'put',
+          key,
+          value
+        })
+      }
 
-    return new Promise((resolve, reject) => {
-      this.db.batch(ops, (err: Error) => {
-        if (err) {
-          reject(err)
-          return
-        }
+      return new Promise((resolve, reject) => {
+        this.db.batch(ops, (err: Error) => {
+          if (err) {
+            reject(err)
+            return
+          }
 
-        resolve(null)
+          resolve(null)
+        })
       })
     })
   }

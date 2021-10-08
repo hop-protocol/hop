@@ -230,8 +230,7 @@ export default class Bridge extends ContractBase {
   ): Promise<string | undefined> {
     let txHash: string
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.bridgeContract.queryFilter(
-        this.bridgeContract.filters.TransferRootSet(),
+      const events = await this.getTransferRootSetEvents(
         start,
         end
       )

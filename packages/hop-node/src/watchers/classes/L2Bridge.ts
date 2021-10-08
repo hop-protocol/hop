@@ -136,8 +136,7 @@ export default class L2Bridge extends Bridge {
   async getTransferSentTimestamp (transferId: string): Promise<number> {
     let match: Event
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.bridgeContract.queryFilter(
-        this.bridgeContract.filters.TransferSent(),
+      const events = await this.getTransferSentEvents(
         start,
         end
       )
@@ -331,13 +330,12 @@ export default class L2Bridge extends Bridge {
     return pendingTransfers
   }
 
-  getTransferRootCommittedTxHash = rateLimitRetry(async (
+  async getTransferRootCommittedTxHash (
     transferRootHash: string
-  ): Promise<string | undefined> => {
+  ): Promise<string | undefined> {
     let txHash: string
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.bridgeContract.queryFilter(
-        this.bridgeContract.filters.TransfersCommitted(),
+      const events = await this.getTransfersCommittedEvents(
         start,
         end
       )
@@ -352,15 +350,14 @@ export default class L2Bridge extends Bridge {
     })
 
     return txHash
-  })
+  }
 
-  getTransferSentTxHash = rateLimitRetry(async (
+  async getTransferSentTxHash (
     transferId: string
-  ): Promise<string | undefined> => {
+  ): Promise<string | undefined> {
     let txHash: string
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.bridgeContract.queryFilter(
-        this.bridgeContract.filters.TransferSent(),
+      const events = await this.getTransferSentEvents(
         start,
         end
       )
@@ -375,7 +372,7 @@ export default class L2Bridge extends Bridge {
     })
 
     return txHash
-  })
+  }
 
   async isTransferRootIdSet (
     transferRootHash: string,

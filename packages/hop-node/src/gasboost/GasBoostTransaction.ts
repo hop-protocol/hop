@@ -88,6 +88,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   id: string
   createdAt: number
   txHash: string
+  receipt: providers.TransactionReceipt
   private _is1559Supported : boolean // set to true if EIP-1559 type transactions are supported
   readonly minMultiplier : number = 1.10 // the minimum gas price multiplier that miners will accept for transaction replacements
 
@@ -466,6 +467,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (!receipt) {
       receipt = await this.getReceipt(txHash)
     }
+    this.receipt = receipt
     this.emit(State.Confirmed, receipt)
     this.logger.debug(`confirmed tx: ${tx.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}, ${this.getGasFeeDataAsString()}`)
   }
@@ -497,7 +499,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   private async handleInflightTx (item: InflightItem) {
     if (item.confirmed) {
-      this.handleConfirmation(item.hash)
+      this.handleConfirmation(item.hash, this.receipt)
       return
     }
     if (item.boosted) {

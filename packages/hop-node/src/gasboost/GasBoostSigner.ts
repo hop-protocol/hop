@@ -58,6 +58,7 @@ class GasBoostSigner extends Wallet {
 
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
     return this.mutex.runExclusive(async () => {
+      this.logger.debug(`unlocked tx: ${JSON.stringify(tx)}`)
       return this._sendTransaction(tx)
     })
   }

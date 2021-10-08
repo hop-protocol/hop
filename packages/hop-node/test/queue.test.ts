@@ -1,5 +1,5 @@
-import { Mutex } from 'async-mutex'
 import wait from 'src/utils/wait'
+import { Mutex } from 'async-mutex'
 
 const DELAY_SECONDS = 1
 const ITERATIONS = 5

@@ -114,9 +114,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
-    const bondedAmount = await destBridge.getTotalBondedWithdrawalAmountForTransferId(transferId)
-    logger.debug(`processing bondWithdrawal. bondedAmount: ${bondedAmount?.toString()}`)
-    if (bondedAmount.gt(0)) {
+    const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
+    if (isTransferSpent) {
       logger.warn('transfer already bonded. Adding to db and skipping')
       const event = await destBridge.getBondedWithdrawalEvent(transferId)
       if (event) {

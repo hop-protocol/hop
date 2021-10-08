@@ -14,7 +14,6 @@ import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { boundClass } from 'autobind-decorator'
 import { config as globalConfig, oruChains } from 'src/config'
 
 type S3JsonData = {
@@ -40,7 +39,6 @@ export interface Config {
   s3Namespace?: string
 }
 
-@boundClass
 class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   resyncIntervalMs: number = 60 * 1000
@@ -990,8 +988,7 @@ class SyncWatcher extends BaseWatcher {
     return totalAmount
   }
 
-  public async getEffectiveAvailableCredit (destinationChainId: number) {
-    const sourceChain = this.chainSlug
+  public getEffectiveAvailableCredit (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const availableCredit = this.availableCredit[destinationChain]
     if (!availableCredit) {

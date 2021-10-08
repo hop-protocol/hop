@@ -182,7 +182,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {
-      logger.log(err.message)
+      logger.error(err.message)
       throw err
     }
   }

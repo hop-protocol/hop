@@ -4,7 +4,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import { BigNumber, Contract } from 'ethers'
-import { BonderFeeTooLowError } from 'src/types/error'
+import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
 
@@ -213,6 +213,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
           withdrawalBondBackoffIndex
         })
         return
+      }
+      if (err instanceof NonceTooLowError) {
+        await this.db.transfers.update(transferId, {
+          bondWithdrawalAttemptedAt: 0
+        })
       }
       throw err
     }

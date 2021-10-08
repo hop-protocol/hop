@@ -159,7 +159,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       this.logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {
-      this.logger.log(err.message)
+      this.logger.error(err.message)
       throw err
     }
   }

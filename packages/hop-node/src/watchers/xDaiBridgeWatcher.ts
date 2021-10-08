@@ -170,12 +170,14 @@ class xDaiBridgeWatcher extends BaseWatcher {
         const result = await executeExitTx(sigEvent, this.tokenSymbol)
         if (!result) {
           logger.error('no result returned from exit tx')
+          return
         }
+        const { tx } = result
         const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
         logger.info(msg)
         this.notifier.info(msg)
       } catch (err) {
-        logger.log(err)
+        logger.error(err)
         throw err
       }
     }

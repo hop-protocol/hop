@@ -125,7 +125,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {
-      this.logger.log(err.message)
+      this.logger.error(err.message)
       const isNotCheckpointedYet = err.message.includes('unable to find state root batch for tx')
       if (isNotCheckpointedYet) {
         logger.debug('state root batch not yet on L1. cannot exit yet')

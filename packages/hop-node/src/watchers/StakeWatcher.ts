@@ -158,7 +158,7 @@ class StakeWatcher extends BaseWatcher {
           let txTimestamp : number = 0
           if (tx) {
             const msg = `convert tx: ${tx?.hash}`
-            this.logger.debug(msg)
+            this.logger.info(msg)
             this.notifier.info(msg)
             await tx.wait()
 

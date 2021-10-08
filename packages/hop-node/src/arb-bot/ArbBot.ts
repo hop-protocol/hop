@@ -1,7 +1,6 @@
 import '../moduleAlias'
 import Logger from 'src/logger'
 import chalk from 'chalk'
-import queue from 'src/decorators/queue'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract, ethers } from 'ethers'
 import { Chain } from 'src/constants'
@@ -162,7 +161,6 @@ class ArbBot {
     }
   }
 
-  @queue
   private async approveTokens () {
     let tx = await this.approveToken(this.token0)
     if (tx) {
@@ -302,7 +300,6 @@ class ArbBot {
     return amountOut
   }
 
-  @queue
   private async trade (
     pathTokens: Token[],
     amountIn: BigNumber,

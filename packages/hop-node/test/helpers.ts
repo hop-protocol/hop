@@ -2,7 +2,6 @@ import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import expect from 'expect'
 import getRpcProvider from 'src/utils/getRpcProvider'
-import queue from 'src/decorators/queue'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract, Wallet, ethers, providers } from 'ethers'
 import { Chain, Token } from 'src/constants'
@@ -39,10 +38,6 @@ export class User {
 
   constructor (privateKey: string) {
     this.privateKey = privateKey
-  }
-
-  async getQueueGroup () {
-    return this.privateKey
   }
 
   getProvider (network: string) {
@@ -117,7 +112,6 @@ export class User {
     )
   }
 
-  @queue
   async transfer (
     network: string,
     token: string,
@@ -208,7 +202,6 @@ export class User {
     return new Contract(wrapperAddress, l2AmmWrapperAbi, wallet)
   }
 
-  // @queue
   async approve (
     network: string,
     token: string | Contract,
@@ -265,7 +258,6 @@ export class User {
     return provider.waitForTransaction(txHash)
   }
 
-  @queue
   async send (
     sourceNetwork: string,
     destNetwork: string,
@@ -514,7 +506,6 @@ export class User {
     return this.waitForTransactionReceipt(sourceNetwork, tx.hash)
   }
 
-  @queue
   async sendEth (amount: number | string, recipient: string, network?: string) {
     const wallet = this.getWallet(network)
     return wallet.sendTransaction({
@@ -524,7 +515,6 @@ export class User {
     })
   }
 
-  @queue
   async sendTokens (
     network: string,
     token: string,
@@ -545,7 +535,6 @@ export class User {
     return checkApproval(this, network, token, spender)
   }
 
-  @queue
   async stake (network: string, token: string, amount: number) {
     const decimals = await getTokenDecimals(token)
     const parsedAmount = parseUnits(amount.toString(), decimals)
@@ -630,7 +619,6 @@ export class User {
     }
   }
 
-  @queue
   async convertToCanonicalToken (
     destNetwork: string,
     token: string,
@@ -685,7 +673,6 @@ export class User {
     }
   }
 
-  @queue
   async polygonCanonicalL1ToL2 (
     amount: string | number,
     approve: boolean = false
@@ -719,7 +706,6 @@ export class User {
     )
   }
 
-  @queue
   async polygonCanonicalL2ToL1 (amount: string | number) {
     const parsedAmount = parseUnits(amount.toString(), 18)
     // dummy erc20
@@ -731,7 +717,6 @@ export class User {
     return token.withdraw(parsedAmount, await this.txOverrides(Chain.Polygon))
   }
 
-  @queue
   async polygonCanonicalL2ToL1Exit (txHash: string) {
     const url = 'https://goerli.rpc.hop.exchange'
     const provider = new providers.StaticJsonRpcProvider(url)
@@ -763,7 +748,6 @@ export class User {
     })
   }
 
-  @queue
   async canonicalTokenToHopToken (
     destNetwork: string,
     token: string,
@@ -854,7 +838,6 @@ export class User {
     )
   }
 
-  @queue
   async bondTransferRoot (
     transferRootHash: string,
     chainId: number,
@@ -883,7 +866,6 @@ export class User {
     return this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
   }
 
-  @queue
   async challengeTransferRoot (transferRootHash: string, totalAmount: number) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
     const bridge = this.getHopBridgeContract(Chain.Ethereum)
@@ -902,7 +884,6 @@ export class User {
     return this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
   }
 
-  @queue
   async resolveChallenge (transferRootHash: string, totalAmount: number) {
     const parsedTotalAmount = parseUnits(totalAmount.toString(), 18)
     const bridge = this.getHopBridgeContract(Chain.Ethereum)
@@ -967,7 +948,6 @@ export class User {
     return Number(formatUnits(challengeAmount, 18).toString())
   }
 
-  @queue
   async addBonder (network: string, token: string, newBonderAddress: string) {
     const address = newBonderAddress.replace('0x', '').toLowerCase()
     const calldata = `0x5325937f000000000000000000000000${address}`

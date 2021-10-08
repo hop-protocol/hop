@@ -6,7 +6,7 @@ import chalk from 'chalk'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract, providers } from 'ethers'
-import { BonderFeeTooLowError } from 'src/types/error'
+import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
 
@@ -51,8 +51,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async checkTransferSentFromDb () {
+    const sourceChainId = await this.bridge.getChainId()
+    this.logger.debug(`polling with sourceChainId ${sourceChainId}`)
     const dbTransfers = await this.db.transfers.getUnbondedSentTransfers({
-      sourceChainId: await this.bridge.getChainId()
+      sourceChainId
     })
     if (dbTransfers.length) {
       this.logger.debug(
@@ -74,6 +76,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
         availableCredit?.lt(amount) &&
         withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
+        const logger = this.logger.create({ id: transferId })
+        logger.debug(
+          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`,
+          `withdrawalBondTxError: ${withdrawalBondTxError}`
+        )
+
         continue
       }
 
@@ -233,6 +241,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
           withdrawalBondBackoffIndex
         })
         return
+      }
+      if (err instanceof NonceTooLowError) {
+        await this.db.transfers.update(transferId, {
+          bondWithdrawalAttemptedAt: 0
+        })
       }
       throw err
     }

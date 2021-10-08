@@ -3,10 +3,9 @@ import level from 'level'
 import mkdirp from 'mkdirp'
 import os from 'os'
 import path from 'path'
-import queue from 'src/decorators/queue'
 import sub from 'subleveldown'
+import { Mutex } from 'async-mutex'
 import { TenSecondsMs } from 'src/constants'
-import { boundClass } from 'autobind-decorator'
 import { config as globalConfig } from 'src/config'
 
 const dbMap: { [key: string]: any } = {}
@@ -16,15 +15,23 @@ export type BaseItem = {
   _createdAt?: number
 }
 
-@boundClass
+// this are options that leveldb createReadStream accepts
+export type KeyFilter = {
+  gt?: string
+  gte?: string
+  lt?: string
+  lte?: string
+  limit?: number
+  reverse?: boolean
+  keys?: boolean
+  values?: boolean
+}
+
 class BaseDb {
   public db: any
   public prefix: string
   logger: Logger
-
-  getQueueGroup () {
-    return this.prefix
-  }
+  mutex: Mutex = new Mutex()
 
   constructor (prefix: string, _namespace?: string) {
     if (!prefix) {
@@ -51,6 +58,14 @@ class BaseDb {
     }
     this.db = dbMap[key]
 
+    const logPut = (key: string, value: any) => {
+      // only log recently created items
+      const recentlyCreated = value?._createdAt && Date.now() - value._createdAt < TenSecondsMs
+      if (recentlyCreated) {
+        this.logger.debug(`put item, key=${key}`)
+      }
+    }
+
     this.db
       .on('open', () => {
         this.logger.debug('open')
@@ -58,29 +73,65 @@ class BaseDb {
       .on('closed', () => {
         this.logger.debug('closed')
       })
-      .on('put', (key: string, value: any) => {
-        // only log recently created items
-        const recentlyCreated = value?._createdAt && Date.now() - value._createdAt < TenSecondsMs
-        if (recentlyCreated) {
-          this.logger.debug(`put item, key=${key}`)
+      .on('batch', (ops: any[]) => {
+        for (const op of ops) {
+          if (op.type === 'put') {
+            logPut(op.key, op.value)
+          }
         }
+      })
+      .on('put', (key: string, value: any) => {
+        logPut(key, value)
       })
       .on('clear', (key: string) => {
         this.logger.debug(`clear item, key=${key}`)
       })
+      .on('error', (err: Error) => {
+        this.logger.error(`leveldb error: ${err.message}`)
+      })
   }
 
-  @queue
-  public async update (key: string, data: any) {
+  protected async _getUpdateData (key: string, data: any) {
     const entry = await this.getById(key, {
       _createdAt: Date.now()
     })
     const value = Object.assign({}, entry, data)
-
-    return this.db.put(key, value)
+    return { key, value }
   }
 
-  protected async getById (id: string, defaultValue: any = null) {
+  async _update (key: string, data: any) {
+    return this.mutex.runExclusive(async () => {
+      const { value } = await this._getUpdateData(key, data)
+      return this.db.put(key, value)
+    })
+  }
+
+  public async batchUpdate (updates: any[]) {
+    return this.mutex.runExclusive(async () => {
+      const ops : any[] = []
+      for (const data of updates) {
+        const { key, value } = await this._getUpdateData(data.key, data.value)
+        ops.push({
+          type: 'put',
+          key,
+          value
+        })
+      }
+
+      return new Promise((resolve, reject) => {
+        this.db.batch(ops, (err: Error) => {
+          if (err) {
+            reject(err)
+            return
+          }
+
+          resolve(null)
+        })
+      })
+    })
+  }
+
+  async getById (id: string, defaultValue: any = null) {
     try {
       const item = await this.db.get(id)
       if (item) {
@@ -99,21 +150,35 @@ class BaseDb {
     return this.db.del(id)
   }
 
-  protected async getKeys (): Promise<string[]> {
+  async getKeys (filter?: KeyFilter): Promise<string[]> {
+    filter = Object.assign({
+      keys: true,
+      values: false
+    }, filter)
+    const kv = await this.getKeyValues(filter)
+    return kv.map(x => x.key).filter(x => x)
+  }
+
+  async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<any[]> {
     return new Promise((resolve, reject) => {
-      const keys : string[] = []
-      this.db.createKeyStream()
-        .on('data', (key: string) => {
+      const kv : any[] = []
+      this.db.createReadStream(filter)
+        .on('data', (key: any, value: any) => {
+          // the parameter types depend on what key/value enabled options were used
+          if (typeof key === 'object') {
+            value = key.value
+            key = key.key
+          }
           // ignore this key that used previously to track unique ids
           if (key === 'ids') {
             return
           }
           if (typeof key === 'string') {
-            keys.push(key)
+            kv.push({ key, value })
           }
         })
         .on('end', () => {
-          resolve(keys)
+          resolve(kv)
         })
         .on('error', (err: any) => {
           reject(err)

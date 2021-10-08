@@ -4,6 +4,7 @@ import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import S3Upload from 'src/aws/s3Upload'
 import chalk from 'chalk'
+import chunk from 'lodash/chunk'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
@@ -12,7 +13,6 @@ import { Chain, TenMinutesMs } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
-import { boundClass } from 'autobind-decorator'
 import { config as globalConfig, oruChains } from 'src/config'
 
 type S3JsonData = {
@@ -38,7 +38,6 @@ export interface Config {
   s3Namespace?: string
 }
 
-@boundClass
 class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   resyncIntervalMs: number = 60 * 1000
@@ -104,9 +103,43 @@ class SyncWatcher extends BaseWatcher {
         await wait(5 * 1000)
         continue
       }
+
       await this.preSyncHandler()
       await this.syncHandler()
+      this.logger.debug('done syncing main handler. index:', this.syncIndex)
+      await this.incompletePollSync()
+      this.logger.debug('done syncing incomplete items. index:', this.syncIndex)
       await this.postSyncHandler()
+    }
+  }
+
+  async incompletePollSync () {
+    try {
+      const incompleteTransfers = await this.db.transfers.getIncompleteItems({
+        sourceChainId: this.chainSlugToId(this.chainSlug)
+      })
+      if (incompleteTransfers.length) {
+        this.logger.debug(`incomplete transfer items: ${incompleteTransfers.length}`)
+        const chunkSize = 20
+        const allChunks = chunk(incompleteTransfers, chunkSize)
+        for (const chunks of allChunks) {
+          await Promise.all(chunks.map((transfer: Transfer) => {
+            const { transferId } = transfer
+            return this.populateTransferDbItem(transferId)
+              .then(() => {
+                // fill in missing db timestamped keys
+                return this.db.transfers.trackTimestampedKeyByTransferId(transferId)
+              })
+              .catch(err => {
+                this.logger.error('populateTransferDbItem error:', err)
+                this.notifier.error(`populateTransferDbItem error: ${err.message}`)
+              })
+          }))
+        }
+      }
+    } catch (err: any) {
+      this.logger.error(`incomplete poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
+      this.notifier.error(`incomplete poll sync watcher error: ${err.message}`)
     }
   }
 
@@ -248,6 +281,25 @@ class SyncWatcher extends BaseWatcher {
       .then(() => this.syncAvailableCredit())
   }
 
+  async populateTransferDbItem (transferId: string) {
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    if (!dbTransfer) {
+      throw new Error('expected db transfer item')
+    }
+    const logger = this.logger.create({ id: transferId })
+    logger.debug(`populateTransferDbItem: transferId: ${transferId}`)
+    const { transferSentTimestamp, transferSentBlockNumber, sourceChainId, destinationChainId } = dbTransfer
+    if (transferSentBlockNumber && !transferSentTimestamp) {
+      logger.debug('populating transferSentTimestamp')
+      const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
+      const transferSentTimestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
+      logger.debug(`transferSentTimestamp: ${transferSentTimestamp}`)
+      await this.db.transfers.update(transferId, {
+        transferSentTimestamp
+      })
+    }
+  }
+
   async handleTransferSentEvent (event: Event) {
     const {
       transferId,
@@ -258,7 +310,7 @@ class SyncWatcher extends BaseWatcher {
       bonderFee,
       index,
       amountOutMin,
-      deadline
+      deadline: deadlineBn
     } = event.args
     const logger = this.logger.create({ id: transferId })
     logger.debug('handling TransferSent event')
@@ -273,16 +325,23 @@ class SyncWatcher extends BaseWatcher {
         throw new Error('event block number not found')
       }
       const l2Bridge = this.bridge as L2Bridge
-      const destinationChainId = Number(destinationChainIdBn.toString())
+      const destinationChainId = Number(destinationChainIdBn?.toString())
       const sourceChainId = await l2Bridge.getChainId()
+      const deadline = Number(deadlineBn?.toString())
       const isBondable = this.getIsBondable(transferId, amountOutMin, deadline, destinationChainId)
       const transferSentTimestamp = await this.bridge.getBlockTimestamp(event.blockNumber)
 
-      logger.debug('transfer event amount:', this.bridge.formatUnits(amount))
+      logger.debug('sourceChainId:', sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)
       logger.debug('isBondable:', isBondable)
       logger.debug('transferId:', chalk.bgCyan.black(transferId))
+      logger.debug('amount:', this.bridge.formatUnits(amount))
       logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
+      logger.debug('amountOutMin:', this.bridge.formatUnits(amountOutMin))
+      logger.debug('deadline:', deadline)
+      logger.debug('transferSentTimestamp:', transferSentTimestamp)
+      logger.debug('transferSentIndex:', transactionIndex)
+      logger.debug('transferSentBlockNumber:', blockNumber)
 
       if (!isBondable) {
         logger.warn('transfer is unbondable', amountOutMin, deadline)
@@ -298,7 +357,7 @@ class SyncWatcher extends BaseWatcher {
         bonderFee,
         amountOutMin,
         isBondable,
-        deadline: Number(deadline.toString()),
+        deadline,
         transferSentTimestamp,
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,
@@ -317,7 +376,7 @@ class SyncWatcher extends BaseWatcher {
     const { transactionHash } = event
     const tx = await this.bridge.getTransaction(transactionHash)
     if (!tx) {
-      throw new Error(`expected tx object. transferId: ${transferId}`)
+      throw new Error(`expected tx object. transferId: ${transferId} transactionHash: ${transactionHash}`)
     }
     const { from: withdrawalBonder } = tx
 

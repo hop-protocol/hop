@@ -27,13 +27,15 @@ class DbLogger {
   async poll () {
     while (true) {
       try {
-        const transfers = await this.db.transfers.getTransfers()
+        this.logger.debug('starting transfers db log')
+        const transfers = await this.db.transfers.getTransfersFromWeek()
         this.logger.debug(`transfers count: ${transfers.length}`)
         transfers.forEach((transfer: Transfer) => {
           const logger = this.logger.create({ id: transfer.transferId })
           logger.debug(JSON.stringify(transfer))
         })
 
+        this.logger.debug('starting transferRoots db log')
         const transferRoots = await this.db.transferRoots.getTransferRoots()
         this.logger.debug(`transfer roots count: ${transferRoots.length}`)
         transferRoots.forEach((transferRoot: TransferRoot) => {
@@ -41,6 +43,7 @@ class DbLogger {
           logger.debug(JSON.stringify(transferRoot))
         })
 
+        this.logger.debug('starting syncState db log')
         const syncState = await this.db.syncState.getItems()
         this.logger.debug(`sync state count: ${syncState.length}`)
         syncState.forEach((item: State) => {

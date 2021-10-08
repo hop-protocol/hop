@@ -617,7 +617,7 @@ class HopBridge extends Base {
     const canonicalToken = this.getCanonicalToken(sourceChain)
     const chainNativeToken = this.getChainNativeToken(destinationChain)
     const chainNativeTokenPrice = await this.priceFeed.getPriceByTokenSymbol(
-      TokenModel.ETH
+      chainNativeToken.symbol
     )
     const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
       canonicalToken.symbol

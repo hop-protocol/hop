@@ -26,7 +26,7 @@ program
       await staker(chain, token, 0, StakerAction.Status)
       process.exit(0)
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

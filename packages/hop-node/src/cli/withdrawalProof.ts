@@ -68,7 +68,6 @@ program
       const output = {
         transferId,
         transferRootHash,
-        transferIds,
         leaves,
         proof,
         transferIndex,
@@ -78,7 +77,7 @@ program
       console.log(JSON.stringify(output, null, 2))
       process.exit(0)
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

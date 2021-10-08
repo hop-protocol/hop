@@ -40,6 +40,6 @@ program
       )
       console.log(JSON.stringify(transferRoot, null, 2))
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
     }
   })

@@ -2,10 +2,9 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
-import chalk from 'chalk'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import wait from 'src/utils/wait'
-import { BigNumber, Contract, providers } from 'ethers'
+import { BigNumber, Contract } from 'ethers'
 
 export interface Config {
   chainSlug: string
@@ -129,11 +128,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    logger.info(
-      sourceChainId,
-      'transferRootHash:',
-      chalk.bgMagenta.black(transferRootHash)
-    )
+    logger.info(`source: ${sourceChainId} transferRootHash: ${transferRootHash}`)
     logger.debug('committedAt:', committedAt)
     logger.debug('destinationChainId:', destinationChainId)
     logger.debug('sourceChainId:', sourceChainId)
@@ -179,37 +174,20 @@ class BondTransferRootWatcher extends BaseWatcher {
     await this.db.transferRoots.update(transferRootHash, {
       sentBondTxAt: Date.now()
     })
-    const tx = await l1Bridge.bondTransferRoot(
-      transferRootHash,
-      destinationChainId,
-      totalAmount
-    )
-    tx?.wait()
-      .then(async (receipt: providers.TransactionReceipt) => {
-        if (receipt.status !== 1) {
-          await this.db.transferRoots.update(transferRootHash, {
-            sentBondTxAt: 0
-          })
-          throw new Error('status=0')
-        }
 
-        this.emit('bondTransferRoot', {
-          transferRootHash,
-          destinationChainId,
-          totalAmount
-        })
-      })
-      .catch(async (err: Error) => {
-        this.db.transferRoots.update(transferRootHash, {
-          sentBondTxAt: 0
-        })
-
-        throw err
-      })
-    logger.info('L1 bondTransferRoot tx', chalk.bgYellow.black.bold(tx.hash))
-    this.notifier.info(
-      `destinationChainId: ${destinationChainId} bondTransferRoot tx: ${tx.hash}`
-    )
+    try {
+      const tx = await l1Bridge.bondTransferRoot(
+        transferRootHash,
+        destinationChainId,
+        totalAmount
+      )
+      const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash}`
+      logger.info(msg)
+      this.notifier.info(msg)
+    } catch (err) {
+      logger.log(err.message)
+      throw err
+    }
   }
 
   async waitTimeout (transferRootHash: string, totalAmount: BigNumber) {

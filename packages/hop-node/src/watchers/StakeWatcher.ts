@@ -3,7 +3,6 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import Token from './classes/Token'
-import chalk from 'chalk'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import promiseTimeout from 'src/utils/promiseTimeout'
 import wait from 'src/utils/wait'
@@ -149,10 +148,7 @@ class StakeWatcher extends BaseWatcher {
           const spender = l1Bridge.getAddress()
           tx = await l1Token.approve(spender, convertAmount)
           if (tx) {
-            this.logger.info(
-              'L1 canonical token approve tx:',
-              chalk.bgYellow.black.bold(tx?.hash)
-            )
+            this.logger.info(`L1 canonical token approve tx: ${tx?.hash}`)
             await tx.wait()
           }
           tx = await l1Bridge.convertCanonicalTokenToHopToken(
@@ -161,9 +157,7 @@ class StakeWatcher extends BaseWatcher {
           )
           let txTimestamp : number = 0
           if (tx) {
-            this.logger.debug(
-              `convert tx: ${chalk.bgYellow.black.bold(tx?.hash)}`
-            )
+            this.logger.debug(`convert tx: ${tx?.hash}`)
             this.notifier.info(`convert tx: ${tx.hash}`)
             await tx.wait()
 
@@ -222,7 +216,7 @@ class StakeWatcher extends BaseWatcher {
       return
     }
     const tx = await this.bridge.stake(amount)
-    this.logger.info('stake tx:', chalk.bgYellow.black.bold(tx?.hash))
+    this.logger.info(`stake tx: ${(tx?.hash)}`)
     const receipt = await tx.wait()
     if (receipt.status) {
       this.logger.debug(`successfully staked ${formattedAmount} tokens`)
@@ -259,7 +253,7 @@ class StakeWatcher extends BaseWatcher {
       return
     }
     const tx = await this.bridge.unstake(amount)
-    this.logger.info('unstake tx:', chalk.bgYellow.black.bold(tx?.hash))
+    this.logger.info(`unstake tx: ${(tx?.hash)}`)
     const receipt = await tx.wait()
     if (receipt.status) {
       this.logger.debug(`successfully unstaked ${parsedAmount} tokens`)
@@ -273,10 +267,7 @@ class StakeWatcher extends BaseWatcher {
     const spender = this.bridge.getAddress()
     const tx = await this.token.approve(spender)
     if (tx) {
-      this.logger.info(
-        'stake approve tokens tx:',
-        chalk.bgYellow.black.bold(tx?.hash)
-      )
+      this.logger.info(`stake approve tokens tx: ${tx?.hash}`)
     }
     await tx?.wait()
     return tx

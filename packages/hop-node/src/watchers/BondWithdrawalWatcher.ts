@@ -2,11 +2,10 @@ import '../moduleAlias'
 import BNMin from 'src/utils/BNMin'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
-import chalk from 'chalk'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
-import { BigNumber, Contract, providers } from 'ethers'
-import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
+import { BigNumber, Contract } from 'ethers'
+import { BonderFeeTooLowError } from 'src/types/error'
 import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
 
@@ -195,36 +194,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
         deadline
       })
 
-      logger.info(
-        `sent bondWithdrawal on ${
-          attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
-        } (source chain ${sourceChainId}) tx:`,
-        chalk.bgYellow.black.bold(tx.hash)
-      )
-      this.notifier.info(
-        `sent ${
-          attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
-        } bondWithdrawal tx: ${tx.hash}`
-      )
-
-      await tx
-        ?.wait()
-        .then(async (receipt: providers.TransactionReceipt) => {
-          this.emit('bondWithdrawal', {
-            recipient,
-            destNetworkName: this.chainIdToSlug(destinationChainId),
-            destNetworkId: destinationChainId,
-            transferId
-          })
-
-          const bondedAmount = await destBridge.getBondedWithdrawalAmount(
-            transferId
-          )
-          logger.debug(
-            `destination chain id: ${destinationChainId} bondWithdrawal amount:`,
-            this.bridge.formatUnits(bondedAmount)
-          )
-        })
+      const sentChain = attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
+      const msg = `sent bondWithdrawal on ${sentChain} (source chain ${sourceChainId}) tx: ${tx.hash}`
+      logger.info(msg)
+      this.notifier.info(msg)
     } catch (err) {
       logger.log(err.message)
       const isCallExceptionError = /The execution failed due to an exception/gi.test(err.message)
@@ -244,11 +217,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
           withdrawalBondBackoffIndex
         })
         return
-      }
-      if (err instanceof NonceTooLowError) {
-        await this.db.transfers.update(transferId, {
-          bondWithdrawalAttemptedAt: 0
-        })
       }
       throw err
     }

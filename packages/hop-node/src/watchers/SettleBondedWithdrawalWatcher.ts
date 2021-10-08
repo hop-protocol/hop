@@ -1,9 +1,8 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
-import chalk from 'chalk'
 import wait from 'src/utils/wait'
-import { Contract, providers } from 'ethers'
+import { Contract } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
 import { enabledSettleWatcherDestinationChains, enabledSettleWatcherSourceChains } from 'src/config'
 
@@ -139,107 +138,83 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   checkTransferRootHash = async (transferRootHash: string, bonder: string) => {
-    try {
-      if (!transferRootHash) {
-        throw new Error('transfer root hash is required')
-      }
-      if (!bonder) {
-        throw new Error('bonder is required')
-      }
-      const logger = this.logger.create({ root: transferRootHash })
-      const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
-        transferRootHash
+    if (!transferRootHash) {
+      throw new Error('transfer root hash is required')
+    }
+    if (!bonder) {
+      throw new Error('bonder is required')
+    }
+    const logger = this.logger.create({ root: transferRootHash })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
+      transferRootHash
+    )
+    const {
+      transferRootId,
+      sourceChainId,
+      destinationChainId,
+      totalAmount,
+      transferIds
+    } = dbTransferRoot
+    if (!Array.isArray(transferIds)) {
+      throw new Error('transferIds expected to be array')
+    }
+
+    const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
+      .bridge
+
+    logger.debug(`transferRootId: ${transferRootId}`)
+
+    const tree = new MerkleTree(transferIds)
+    const calculatedTransferRootHash = tree.getHexRoot()
+    if (calculatedTransferRootHash !== transferRootHash) {
+      logger.debug('transferIds:', JSON.stringify(transferIds))
+      logger.error(
+        `transfers computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${calculatedTransferRootHash}`
       )
-      const {
-        transferRootId,
-        sourceChainId,
-        destinationChainId,
-        totalAmount,
-        transferIds
-      } = dbTransferRoot
-      if (!Array.isArray(transferIds)) {
-        throw new Error('transferIds expected to be array')
-      }
-
-      const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
-        .bridge
-
-      logger.debug(
-        'transferRootId:',
-        chalk.bgMagenta.black(transferRootId)
-      )
-
-      const tree = new MerkleTree(transferIds)
-      const calculatedTransferRootHash = tree.getHexRoot()
-      if (calculatedTransferRootHash !== transferRootHash) {
-        logger.debug('transferIds:', JSON.stringify(transferIds))
-        logger.error(
-          `transfers computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${calculatedTransferRootHash}`
-        )
-        await this.db.transferRoots.update(transferRootHash, {
-          transferIds: []
-        })
-        return
-      }
-
-      logger.debug('sourceChainId:', sourceChainId)
-      logger.debug('destinationChainId:', destinationChainId)
-      logger.debug('computed transferRootHash:', transferRootHash)
-      logger.debug('bonder:', bonder)
-      logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
-      logger.debug('transferIds', JSON.stringify(transferIds))
-
-      const transferRootStruct = await this.bridge.getTransferRoot(transferRootHash, totalAmount)
-      if (transferRootStruct.amountWithdrawn.eq(totalAmount)) {
-        logger.debug(`transfer root amountWithdrawn (${this.bridge.formatUnits(transferRootStruct.amountWithdrawn)}) matches totalAmount (${this.bridge.formatUnits(totalAmount)}). Marking transfe root as all settled`)
-        await this.db.transferRoots.update(transferRootHash, {
-          allSettled: true
-        })
-        return
-      }
-
-      await this.handleStateSwitch()
-      if (this.isDryOrPauseMode) {
-        logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping settleBondedWithdrawals`)
-        return
-      }
-
       await this.db.transferRoots.update(transferRootHash, {
-        withdrawalBondSettleTxSentAt: Date.now()
+        transferIds: []
       })
-      logger.debug('sending settle tx')
+      return
+    }
+
+    logger.debug('sourceChainId:', sourceChainId)
+    logger.debug('destinationChainId:', destinationChainId)
+    logger.debug('computed transferRootHash:', transferRootHash)
+    logger.debug('bonder:', bonder)
+    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
+    logger.debug('transferIds', JSON.stringify(transferIds))
+
+    const transferRootStruct = await this.bridge.getTransferRoot(transferRootHash, totalAmount)
+    if (transferRootStruct.amountWithdrawn.eq(totalAmount)) {
+      logger.debug(`transfer root amountWithdrawn (${this.bridge.formatUnits(transferRootStruct.amountWithdrawn)}) matches totalAmount (${this.bridge.formatUnits(totalAmount)}). Marking transfer root as all settled`)
+      await this.db.transferRoots.update(transferRootHash, {
+        allSettled: true
+      })
+      return
+    }
+
+    await this.handleStateSwitch()
+    if (this.isDryOrPauseMode) {
+      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping settleBondedWithdrawals`)
+      return
+    }
+
+    await this.db.transferRoots.update(transferRootHash, {
+      withdrawalBondSettleTxSentAt: Date.now()
+    })
+    logger.debug('sending settle tx')
+    try {
       const tx = await destBridge.settleBondedWithdrawals(
         bonder,
         transferIds,
         totalAmount
       )
-      tx?.wait()
-        .then(async (receipt: providers.TransactionReceipt) => {
-          if (receipt.status !== 1) {
-            throw new Error('status=0')
-          }
-          this.emit('settleBondedWithdrawals', {
-            transferRootHash,
-            networkName: this.chainIdToSlug(destinationChainId),
-            chainId: destinationChainId
-          })
-        })
-        .catch(async (err: Error) => {
-          throw err
-        })
-      logger.info(
-        `settleBondedWithdrawals on destinationChainId:${destinationChainId} tx: ${chalk.bgYellow.black.bold(
-          tx.hash
-        )}`
-      )
-      this.notifier.info(
-        `settleBondedWithdrawals on destinationChainId:${destinationChainId} tx: ${tx.hash}`
-      )
+      const msg = `settleBondedWithdrawals on destinationChainId:${destinationChainId} tx: ${tx.hash}`
+      logger.info(msg)
+      this.notifier.info(msg)
     } catch (err) {
-      if (err.message !== 'cancelled') {
-        this.logger.error('settleBondedWithdrawal error:', err.message)
-        this.notifier.error(`settleBondedWithdrawal error: ${err.message}`)
-      }
+      logger.log(err.message)
+      throw err
     }
   }
 

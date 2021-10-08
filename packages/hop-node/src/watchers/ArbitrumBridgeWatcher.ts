@@ -1,6 +1,5 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
-import chalk from 'chalk'
 import wallets from 'src/wallets'
 import { Bridge, OutgoingMessageState } from 'arb-ts'
 import { Chain } from 'src/constants'
@@ -101,35 +100,20 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     await this.db.transferRoots.update(transferRootHash, {
       sentConfirmTxAt: Date.now()
     })
-    const tx = await this.relayMessage(commitTxHash)
-    if (!tx) {
-      logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
-      return
+    try {
+      const tx = await this.relayMessage(commitTxHash)
+      if (!tx) {
+        logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
+        return
+      }
+
+      const msg = `sent chain ${this.bridge.chainId} confirmTransferRoot exit tx ${tx.hash}`
+      logger.info(msg)
+      this.notifier.info(msg)
+    } catch (err) {
+      logger.log(err.message)
+      throw err
     }
-
-    logger.info(
-      `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
-      chalk.bgYellow.black.bold(tx.hash)
-    )
-    this.notifier.info(
-      `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
-    )
-    tx.wait()
-      .then(async (receipt: any) => {
-        if (receipt.status !== 1) {
-          await this.db.transferRoots.update(transferRootHash, {
-            sentConfirmTxAt: 0
-          })
-          throw new Error('status=0')
-        }
-      })
-      .catch(async (err: Error) => {
-        this.db.transferRoots.update(transferRootHash, {
-          sentConfirmTxAt: 0
-        })
-
-        throw err
-      })
   }
 }
 

@@ -2,7 +2,6 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
 import chalk from 'chalk'
-import wait from 'src/utils/wait'
 import { Contract, providers } from 'ethers'
 import { Transfer } from 'src/db/TransfersDb'
 import { enabledSettleWatcherDestinationChains, enabledSettleWatcherSourceChains } from 'src/config'
@@ -257,35 +256,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
 
     return this.checkTransferRootHash(transferRootHash, withdrawalBonder)
-  }
-
-  async waitTimeout (transferId: string, destinationChainId: number) {
-    await wait(2 * 1000)
-    if (!this.order()) {
-      return
-    }
-    this.logger.debug(
-      `waiting for settle bonded withdrawal event. transferId: ${transferId} destinationChainId: ${destinationChainId}`
-    )
-    const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-    let timeout = this.order() * BONDER_ORDER_DELAY_MS
-    while (timeout > 0) {
-      if (!this.started) {
-        return
-      }
-
-      // TODO
-      // break
-
-      const delay = 2 * 1000
-      timeout -= delay
-      await wait(delay)
-    }
-    if (timeout <= 0) {
-      return
-    }
-    this.logger.debug(`transfer id already bonded ${transferId}`)
-    throw new Error('cancelled')
   }
 }
 

@@ -3,7 +3,6 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
 
 export interface Config {
@@ -137,8 +136,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     logger.debug('transferRootId:', transferRootId)
 
-    await this.waitTimeout(transferRootHash, totalAmount)
-
     const pendingTransfers: string[] = transferIds || []
     logger.debug('transferRootHash transferIds:', pendingTransfers)
     if (pendingTransfers.length) {
@@ -188,39 +185,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       logger.log(err.message)
       throw err
     }
-  }
-
-  async waitTimeout (transferRootHash: string, totalAmount: BigNumber) {
-    await wait(2 * 1000)
-    if (!this.order()) {
-      return
-    }
-    this.logger.debug(
-      `waiting for bond root event. transfer root hash: ${transferRootHash}`
-    )
-    let timeout = this.order() * 15 * 1000
-    while (timeout > 0) {
-      if (!this.started) {
-        return
-      }
-      const transferRootId = await this.bridge.getTransferRootId(
-        transferRootHash,
-        totalAmount
-      )
-      const l1Bridge = this.bridge as L1Bridge
-      const bond = await l1Bridge.getTransferBond(transferRootId)
-      if (bond.createdAt.toNumber() > 0) {
-        break
-      }
-      const delay = 2 * 1000
-      timeout -= delay
-      await wait(delay)
-    }
-    if (timeout <= 0) {
-      return
-    }
-    this.logger.debug(`transfer root hash already bonded: ${transferRootHash}`)
-    throw new Error('cancelled')
   }
 }
 

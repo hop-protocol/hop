@@ -3,7 +3,6 @@ import BNMin from 'src/utils/BNMin'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import isL1ChainId from 'src/utils/isL1ChainId'
-import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
 import { BonderFeeTooLowError } from 'src/types/error'
 import { Transfer } from 'src/db/TransfersDb'
@@ -114,8 +113,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const sourceL2Bridge = this.bridge as L2Bridge
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
-
-    await this.waitTimeout(transferId, destinationChainId)
 
     const bondedAmount = await destBridge.getTotalBondedWithdrawalAmountForTransferId(transferId)
     logger.debug(`processing bondWithdrawal. bondedAmount: ${bondedAmount?.toString()}`)
@@ -320,37 +317,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       tokenUsdPrice,
       chainNativeTokenUsdPrice
     }
-  }
-
-  async waitTimeout (transferId: string, destinationChainId: number) {
-    await wait(2 * 1000)
-    if (!this.order()) {
-      return
-    }
-    this.logger.debug(
-      `waiting for bondWithdrawal event. transferId: ${transferId} destinationChainId: ${destinationChainId}`
-    )
-    const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-    let timeout = this.order() * BONDER_ORDER_DELAY_MS
-    while (timeout > 0) {
-      if (!this.started) {
-        return
-      }
-      const bondedAmount = await bridge.getTotalBondedWithdrawalAmountForTransferId(
-        transferId
-      )
-      if (!bondedAmount.eq(0)) {
-        break
-      }
-      const delay = 2 * 1000
-      timeout -= delay
-      await wait(delay)
-    }
-    if (timeout <= 0) {
-      return
-    }
-    this.logger.debug(`transfer id already bonded ${transferId}`)
-    throw new Error('cancelled')
   }
 
   // ORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots) / 2

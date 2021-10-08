@@ -1,7 +1,6 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
-import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
 import { TxRetryDelayMs } from 'src/constants'
 import { getEnabledNetworks } from 'src/config'
@@ -148,7 +147,6 @@ class CommitTransfersWatcher extends BaseWatcher {
       return
     }
 
-    await this.waitTimeout(destinationChainId)
     this.logger.debug(
       `sending commitTransfers (destination chain ${destinationChainId}) tx`
     )
@@ -164,37 +162,6 @@ class CommitTransfersWatcher extends BaseWatcher {
       this.logger.log(err.message)
       throw err
     }
-  }
-
-  async waitTimeout (destinationChainId: number) {
-    await wait(2 * 1000)
-    if (!this.order()) {
-      return
-    }
-    this.logger.debug(
-      `waiting for commitTransfers event. destinationChainId: ${destinationChainId}`
-    )
-    let timeout = this.order() * BONDER_ORDER_DELAY_MS
-    while (timeout > 0) {
-      if (!this.started) {
-        return
-      }
-      const l2Bridge = this.bridge as L2Bridge
-      const doesPendingTransferExist: boolean = await l2Bridge.doPendingTransfersExist(
-        destinationChainId
-      )
-      if (!doesPendingTransferExist) {
-        break
-      }
-      const delay = 2 * 1000
-      timeout -= delay
-      await wait(delay)
-    }
-    if (timeout <= 0) {
-      return
-    }
-    this.logger.debug('transfers already committed')
-    throw new Error('cancelled')
   }
 }
 

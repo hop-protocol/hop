@@ -29,7 +29,6 @@ type InflightItem = {
   hash?: string
   boosted: boolean
   sentAt: number
-  confirmed: boolean
 }
 
 type MarshalledItem = {
@@ -453,7 +452,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
-  private async handleConfirmation (txHash: string, receipt?: providers.TransactionReceipt) {
+  private async handleConfirmation (txHash: string, receipt: providers.TransactionReceipt) {
     if (this.confirmations) {
       return
     }
@@ -464,9 +463,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.gasPrice = tx.gasPrice
     this.maxFeePerGas = tx.maxFeePerGas
     this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas
-    if (!receipt) {
-      receipt = await this.getReceipt(txHash)
-    }
     this.receipt = receipt
     this.emit(State.Confirmed, receipt)
     this.logger.debug(`confirmed tx: ${tx.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}, ${this.getGasFeeDataAsString()}`)
@@ -498,10 +494,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private async handleInflightTx (item: InflightItem) {
-    if (item.confirmed) {
-      this.handleConfirmation(item.hash, this.receipt)
-      return
-    }
     if (item.boosted) {
       return
     }

@@ -1,7 +1,5 @@
 import ContractBase from './ContractBase'
-import delay from 'src/decorators/delay'
-import queue from 'src/decorators/queue'
-import rateLimitRetry from 'src/decorators/rateLimitRetry'
+import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, Contract, ethers, providers } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
@@ -14,36 +12,30 @@ export default class Token extends ContractBase {
     this.tokenContract = tokenContract
   }
 
-  @rateLimitRetry
-  async getBalance (): Promise<BigNumber> {
+  getBalance = rateLimitRetry(async (): Promise<BigNumber> => {
     const address = await this.tokenContract.signer.getAddress()
     const balance = await this.tokenContract.balanceOf(address)
     return balance
-  }
+  })
 
-  @rateLimitRetry
-  async decimals () {
+  decimals = rateLimitRetry(async () => {
     if (!this._decimals) {
       const _decimals = await this.tokenContract.decimals()
       this._decimals = Number(_decimals.toString())
     }
     return this._decimals
-  }
+  })
 
-  @rateLimitRetry
-  async getAllowance (spender: string): Promise<BigNumber> {
+  getAllowance = rateLimitRetry(async (spender: string): Promise<BigNumber> => {
     const owner = await this.tokenContract.signer.getAddress()
     const allowance = await this.tokenContract.allowance(owner, spender)
     return allowance
-  }
+  })
 
-  @queue
-  @delay
-  @rateLimitRetry
-  async approve (
+  approve = rateLimitRetry(async (
     spender: string,
     amount: BigNumber = ethers.constants.MaxUint256
-  ): Promise<providers.TransactionResponse> {
+  ): Promise<providers.TransactionResponse> => {
     const allowance = await this.getAllowance(spender)
     if (allowance.lt(amount)) {
       return this.tokenContract.approve(
@@ -52,21 +44,18 @@ export default class Token extends ContractBase {
         await this.txOverrides()
       )
     }
-  }
+  })
 
-  @queue
-  @delay
-  @rateLimitRetry
-  async transfer (
+  transfer = rateLimitRetry(async (
     recipient: string,
     amount: BigNumber
-  ): Promise<providers.TransactionResponse> {
+  ): Promise<providers.TransactionResponse> => {
     return this.tokenContract.transfer(
       recipient,
       amount,
       await this.txOverrides()
     )
-  }
+  })
 
   async formatUnits (value: BigNumber) {
     return Number(formatUnits(value.toString(), await this.decimals()))

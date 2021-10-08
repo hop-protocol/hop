@@ -5,7 +5,6 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import chalk from 'chalk'
 import fetch from 'node-fetch'
 import getRpcUrls from 'src/utils/getRpcUrls'
-import queue from 'src/decorators/queue'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
@@ -180,7 +179,6 @@ class PolygonBridgeWatcher extends BaseWatcher {
     })
   }
 
-  @queue
   async sendTransaction (txHash: string, tokenSymbol: string) {
     const recipient = await this.l1Wallet.getAddress()
     const maticPOSClient = new MaticPOSClient({

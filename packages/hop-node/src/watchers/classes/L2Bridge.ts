@@ -232,11 +232,11 @@ export default class L2Bridge extends Bridge {
     return this.chainIdToSlug(chainId)
   }
 
-  decodeCommitTransfersData = rateLimitRetry(async (data: string): Promise<any> => {
+  decodeCommitTransfersData (data: string): any {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = await this.bridgeContract.interface.decodeFunctionData(
+    const decoded = this.bridgeContract.interface.decodeFunctionData(
       'commitTransfers',
       data
     )
@@ -245,9 +245,9 @@ export default class L2Bridge extends Bridge {
     return {
       destinationChainId
     }
-  })
+  }
 
-  decodeSendData = rateLimitRetry(async (data: string): Promise<any> => {
+  decodeSendData (data: string): any {
     if (!data) {
       throw new Error('data to decode is required')
     }
@@ -256,13 +256,13 @@ export default class L2Bridge extends Bridge {
     let destinationChainId: number
     let attemptSwap = false
     if (methodSig === sendMethodSig) {
-      const decoded = await this.bridgeContract.interface.decodeFunctionData(
+      const decoded = this.bridgeContract.interface.decodeFunctionData(
         'send',
         data
       )
       destinationChainId = Number(decoded.chainId.toString())
     } else {
-      const decoded = await this.ammWrapper.decodeSwapAndSendData(data)
+      const decoded = this.ammWrapper.decodeSwapAndSendData(data)
       destinationChainId = Number(decoded.chainId.toString())
       attemptSwap = decoded.attemptSwap
     }
@@ -271,7 +271,7 @@ export default class L2Bridge extends Bridge {
       destinationChainId,
       attemptSwap
     }
-  })
+  }
 
   getPendingTransferByIndex = rateLimitRetry(async (chainId: number, index: number) => {
     return this.bridgeContract.pendingTransferIdsForChainId(

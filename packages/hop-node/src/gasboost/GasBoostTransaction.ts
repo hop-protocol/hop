@@ -619,8 +619,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.inflightItems.push({
       boosted: false,
       hash: tx.hash,
-      sentAt: Date.now(),
-      confirmed: false
+      sentAt: Date.now()
     })
     this.logger.debug(`tracking: inflightItems${JSON.stringify(this.inflightItems)}`)
     tx.wait().then((receipt: providers.TransactionReceipt) => {

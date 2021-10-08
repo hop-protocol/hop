@@ -6,7 +6,6 @@ import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 import shiftBNDecimals from 'src/utils/shiftBNDecimals'
-import unique from 'src/utils/unique'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import { BonderFeeBps, Chain, MaxGasPriceMultiplier, MinBonderFeeAbsolute } from 'src/constants'
 import { BonderFeeTooLowError } from 'src/types/error'
@@ -131,25 +130,6 @@ export default class Bridge extends ContractBase {
     )
     return bondedBn
   })
-
-  async getTotalBondedWithdrawalAmountForTransferId (
-    transferId: string
-  ): Promise<BigNumber> {
-    let totalBondedAmount = BigNumber.from(0)
-    const bonderAddress = await this.getBonderAddress()
-    let bonders = [bonderAddress]
-    if (globalConfig?.bonders?.[this.tokenSymbol]) {
-      bonders = unique([bonderAddress, ...globalConfig.bonders[this.tokenSymbol]])
-    }
-    for (const bonder of bonders) {
-      const bondedAmount = await this.getBondedWithdrawalAmountByBonder(
-        bonder,
-        transferId
-      )
-      totalBondedAmount = totalBondedAmount.add(bondedAmount)
-    }
-    return totalBondedAmount
-  }
 
   async getBondedWithdrawalTimestamp (
     transferId: string,

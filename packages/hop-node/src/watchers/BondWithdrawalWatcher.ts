@@ -2,9 +2,8 @@ import '../moduleAlias'
 import BNMin from 'src/utils/BNMin'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
-import chalk from 'chalk'
 import isL1ChainId from 'src/utils/isL1ChainId'
-import { BigNumber, Contract, providers } from 'ethers'
+import { BigNumber, Contract } from 'ethers'
 import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
@@ -69,13 +68,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
         amount,
         withdrawalBondTxError
       } = dbTransfer
-
-      const availableCredit = await this.getAvailableCreditForTransfer(destinationChainId, amount)
+      const logger = this.logger.create({ id: transferId })
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId, amount)
       if (
         availableCredit?.lt(amount) &&
         withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
-        const logger = this.logger.create({ id: transferId })
         logger.debug(
           `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`,
           `withdrawalBondTxError: ${withdrawalBondTxError}`
@@ -84,6 +82,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         continue
       }
 
+      logger.debug('db poll completed')
       promises.push(this.checkTransferId(transferId).catch(err => {
         this.logger.error('checkTransferId error:', err)
       }))
@@ -110,12 +109,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
       transferSentTxHash
     } = dbTransfer
     const logger = this.logger.create({ id: transferId })
+    logger.debug('processing bondWithdrawal')
     const sourceL2Bridge = this.bridge as L2Bridge
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
-    const bondedAmount = await destBridge.getTotalBondedWithdrawalAmountForTransferId(transferId)
-    if (bondedAmount.gt(0)) {
+    const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
+    if (isTransferSpent) {
       logger.warn('transfer already bonded. Adding to db and skipping')
       const event = await destBridge.getBondedWithdrawalEvent(transferId)
       if (event) {
@@ -134,7 +134,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    const availableCredit = await this.getAvailableCreditForTransfer(destinationChainId, amount)
+    const availableCredit = this.getAvailableCreditForTransfer(destinationChainId, amount)
+    logger.debug(`processing bondWithdrawal. availableCredit: ${availableCredit?.toString()}`)
     if (availableCredit.lt(amount)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
@@ -189,36 +190,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
         deadline
       })
 
-      logger.info(
-        `sent bondWithdrawal on ${
-          attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
-        } (source chain ${sourceChainId}) tx:`,
-        chalk.bgYellow.black.bold(tx.hash)
-      )
-      this.notifier.info(
-        `sent ${
-          attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
-        } bondWithdrawal tx: ${tx.hash}`
-      )
-
-      await tx
-        ?.wait()
-        .then(async (receipt: providers.TransactionReceipt) => {
-          this.emit('bondWithdrawal', {
-            recipient,
-            destNetworkName: this.chainIdToSlug(destinationChainId),
-            destNetworkId: destinationChainId,
-            transferId
-          })
-
-          const bondedAmount = await destBridge.getBondedWithdrawalAmount(
-            transferId
-          )
-          logger.debug(
-            `destination chain id: ${destinationChainId} bondWithdrawal amount:`,
-            this.bridge.formatUnits(bondedAmount)
-          )
-        })
+      const sentChain = attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
+      const msg = `sent bondWithdrawal on ${sentChain} (source chain ${sourceChainId}) tx: ${tx.hash}`
+      logger.info(msg)
+      this.notifier.info(msg)
     } catch (err) {
       logger.log(err.message)
       const isCallExceptionError = /The execution failed due to an exception/gi.test(err.message)
@@ -352,8 +327,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
   //    - divide by 2 because `amount` gets added to OruToL1PendingAmount
   // nonORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
-  async getAvailableCreditForTransfer (destinationChainId: number, amount: BigNumber) {
-    const availableCredit = await this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
+  getAvailableCreditForTransfer (destinationChainId: number, amount: BigNumber) {
+    const availableCredit = this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
     if (this.syncWatcher.isOruToL1(destinationChainId)) {
       return availableCredit.div(2)
     }

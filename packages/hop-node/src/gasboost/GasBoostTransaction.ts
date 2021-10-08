@@ -29,7 +29,6 @@ type InflightItem = {
   hash?: string
   boosted: boolean
   sentAt: number
-  confirmed: boolean
 }
 
 type MarshalledItem = {
@@ -88,6 +87,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   id: string
   createdAt: number
   txHash: string
+  receipt: providers.TransactionReceipt
   private _is1559Supported : boolean // set to true if EIP-1559 type transactions are supported
   readonly minMultiplier : number = 1.10 // the minimum gas price multiplier that miners will accept for transaction replacements
 
@@ -422,7 +422,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     for (const { hash } of this.inflightItems) {
       this.getReceipt(hash)
-        .then(() => this.handleConfirmation(hash))
+        .then((receipt: providers.TransactionReceipt) => this.handleConfirmation(hash, receipt))
     }
     return new Promise((resolve, reject) => {
       this
@@ -452,7 +452,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
-  private async handleConfirmation (txHash: string) {
+  private async handleConfirmation (txHash: string, receipt: providers.TransactionReceipt) {
     if (this.confirmations) {
       return
     }
@@ -463,7 +463,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.gasPrice = tx.gasPrice
     this.maxFeePerGas = tx.maxFeePerGas
     this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas
-    const receipt = await this.getReceipt(txHash)
+    this.receipt = receipt
     this.emit(State.Confirmed, receipt)
     this.logger.debug(`confirmed tx: ${tx.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}, ${this.getGasFeeDataAsString()}`)
   }
@@ -494,10 +494,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private async handleInflightTx (item: InflightItem) {
-    if (item.confirmed) {
-      this.handleConfirmation(item.hash)
-      return
-    }
     if (item.boosted) {
       return
     }
@@ -623,13 +619,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.inflightItems.push({
       boosted: false,
       hash: tx.hash,
-      sentAt: Date.now(),
-      confirmed: false
+      sentAt: Date.now()
     })
     this.logger.debug(`tracking: inflightItems${JSON.stringify(this.inflightItems)}`)
-    tx.wait().then(() => {
+    tx.wait().then((receipt: providers.TransactionReceipt) => {
       this.logger.debug(`tracking: wait completed. tx hash ${tx.hash}`)
-      this.handleConfirmation(tx.hash)
+      this.handleConfirmation(tx.hash, receipt)
     })
       .catch((err: Error) => {
         const isReplacedError = /TRANSACTION_REPLACED/gi.test(err.message)

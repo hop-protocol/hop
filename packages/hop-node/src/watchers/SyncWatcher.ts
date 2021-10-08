@@ -947,8 +947,7 @@ class SyncWatcher extends BaseWatcher {
     return totalAmount
   }
 
-  public async getEffectiveAvailableCredit (destinationChainId: number) {
-    const sourceChain = this.chainSlug
+  public getEffectiveAvailableCredit (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const availableCredit = this.availableCredit[destinationChain]
     if (!availableCredit) {

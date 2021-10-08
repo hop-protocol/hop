@@ -157,8 +157,9 @@ class StakeWatcher extends BaseWatcher {
           )
           let txTimestamp : number = 0
           if (tx) {
-            this.logger.debug(`convert tx: ${tx?.hash}`)
-            this.notifier.info(`convert tx: ${tx.hash}`)
+            const msg = `convert tx: ${tx?.hash}`
+            this.logger.debug(msg)
+            this.notifier.info(msg)
             await tx.wait()
 
             // In the case of RPC latency, tgeTransactionTimestamp will fail. Use current time (w/ buffer) instead.

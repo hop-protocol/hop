@@ -49,10 +49,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async checkTransferSentFromDb () {
-    const sourceChainId = await this.bridge.getChainId()
-    this.logger.debug(`polling with sourceChainId ${sourceChainId}`)
     const dbTransfers = await this.db.transfers.getUnbondedSentTransfers({
-      sourceChainId
+      sourceChainId: await this.bridge.getChainId()
     })
     if (dbTransfers.length) {
       this.logger.debug(
@@ -115,6 +113,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       .bridge
 
     const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
+    logger.debug(`processing bondWithdrawal. isTransferSpent: ${isTransferSpent?.toString()}`)
     if (isTransferSpent) {
       logger.warn('transfer already bonded. Adding to db and skipping')
       const event = await destBridge.getBondedWithdrawalEvent(transferId)

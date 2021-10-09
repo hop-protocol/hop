@@ -328,7 +328,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error('expected db transfer root item')
     }
     const logger = this.logger.create({ root: transferRootHash })
-    logger.debug(`populateTransferRootDbItem: transferRootHash: ${transferRootHash}`)
+    logger.debug(`populateTransferRootDbItem`)
     const { commitTxHash, committedAt, sourceChainId, destinationChainId } = dbTransferRoot
     if (commitTxHash && !committedAt) {
       logger.debug('populating committedAt')

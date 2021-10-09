@@ -203,7 +203,7 @@ class TransferRootsDb extends BaseDb {
     return this._getTransferRoots(dateFilter)
   }
 
-  // gets only transfers within range: now - 2 weeks ago
+  // gets only transfer roots within range: now - 2 weeks ago
   async getTransferRootsFromTwoWeeks (): Promise<TransferRoot[]> {
     await this.tilReady()
     const fromUnix = Math.floor((Date.now() - (OneWeekMs * 2)) / 1000)

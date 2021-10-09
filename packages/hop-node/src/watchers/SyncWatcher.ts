@@ -309,7 +309,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error('expected db transfer item')
     }
     const logger = this.logger.create({ id: transferId })
-    logger.debug(`populateTransferDbItem: transferId: ${transferId}`)
+    logger.debug(`populateTransferDbItem`)
     const { transferSentTimestamp, transferSentBlockNumber, sourceChainId, destinationChainId } = dbTransfer
     if (transferSentBlockNumber && !transferSentTimestamp) {
       logger.debug('populating transferSentTimestamp')

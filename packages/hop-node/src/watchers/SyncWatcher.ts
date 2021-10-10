@@ -396,6 +396,7 @@ class SyncWatcher extends BaseWatcher {
     logger.debug('handling WithdrawalBonded event')
     logger.debug('transferId:', transferId)
     logger.debug('amount:', this.bridge.formatUnits(amount))
+    logger.debug('bonder:', withdrawalBonder)
 
     await this.db.transfers.update(transferId, {
       withdrawalBonded: true,
@@ -419,6 +420,9 @@ class SyncWatcher extends BaseWatcher {
     logger.debug('handling Withdrew event')
     logger.debug('transferId:', transferId)
     logger.debug('transactionHash:', transactionHash)
+    logger.debug('recipient:', recipient)
+    logger.debug('amount:', amount)
+    logger.debug('transferNonce:', transferNonce)
 
     await this.db.transfers.update(transferId, {
       isTransferSpent: true,

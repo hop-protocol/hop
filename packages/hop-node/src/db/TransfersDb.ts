@@ -167,7 +167,6 @@ class TransfersDb extends BaseDb {
         filter.lte = `transfer:${dateFilter.toUnix}~`
       }
       const kv = await this.subDb.getKeyValues(filter)
-      this.logger.debug(`kv length: ${kv.length}`)
       return kv.map(x => x?.value?.transferId).filter(x => x)
     }
 
@@ -177,32 +176,15 @@ class TransfersDb extends BaseDb {
   }
 
   private async _getTransfers (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
-    const uniqueTransferIds: string[] = [
-      '0x1253eecfad03d8686080fec6e453ec3c632df2623c7a6b030b45656dc9566704', // bonded
-      '0x9719423311cb14cc72d3d682aaf2b413618acacfe902ad44504ca7912ffc49ee', // bonded
-      '0xebe4a8735f42cb11f0d24bcd5b865127576c3c3bab2ff6cd0e090886557eb571',
-      '0xe8686e40ace8f5f4fc0447f313418581233f78f135de933429f5285f5569c37b',
-      '0x6c10a2373df26856218115c7ed3242c646fd40612ed20054c6622aec014f0832',
-      '0x25f5d56f88419b969e08fcd29c755b1a380a42695b3252246d0873f31c881232',
-      '0x29d2d83c017a70dfc439e7bf6fa80cb7509d05c9f4ae0ef8c568cc0f7ff59e54',
-      '0xbad32b347d956f7962ff5682d0da6ff55c88e208571326669ff206db6134854e'
-    ]
-
     const transferIds = await this.getTransferIds(dateFilter)
-
     this.logger.debug(`transferIds length: ${transferIds.length}`)
-    for (let i = 0; i < uniqueTransferIds.length; i++) {
-      if (transferIds.includes(uniqueTransferIds[i])) {
-        this.logger.debug(`id exists in transferIds ${uniqueTransferIds[i]}`)
-      }
-    }
+
     const transfers = await Promise.all(
       transferIds.map(transferId => {
         return this.getByTransferId(transferId)
       })
     )
 
-    this.logger.debug(`transfers length: ${transfers.length}`)
     // sort explainer: https://stackoverflow.com/a/9175783/1439168
     const items = transfers
       .filter(x => x)
@@ -227,7 +209,6 @@ class TransfersDb extends BaseDb {
   async getTransfersFromWeek () {
     await this.tilReady()
     const fromUnix = Math.floor((Date.now() - OneWeekMs) / 1000)
-    this.logger.debug(`getting transfers fromUnix: ${fromUnix}`)
     return this.getTransfers({
       fromUnix
     })
@@ -257,42 +238,11 @@ class TransfersDb extends BaseDb {
     filter: Partial<Transfer> = {}
   ): Promise<Transfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
-    this.logger.debug(`getUnbondedSentTransfers length: ${transfers.length}`)
     return transfers.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
-      }
-
-      const uniqueTransferIds: string[] = [
-        '0x1253eecfad03d8686080fec6e453ec3c632df2623c7a6b030b45656dc9566704', // bonded
-        '0x9719423311cb14cc72d3d682aaf2b413618acacfe902ad44504ca7912ffc49ee', // bonded
-        '0xebe4a8735f42cb11f0d24bcd5b865127576c3c3bab2ff6cd0e090886557eb571',
-        '0xe8686e40ace8f5f4fc0447f313418581233f78f135de933429f5285f5569c37b',
-        '0x6c10a2373df26856218115c7ed3242c646fd40612ed20054c6622aec014f0832',
-        '0x25f5d56f88419b969e08fcd29c755b1a380a42695b3252246d0873f31c881232',
-        '0x29d2d83c017a70dfc439e7bf6fa80cb7509d05c9f4ae0ef8c568cc0f7ff59e54',
-        '0xbad32b347d956f7962ff5682d0da6ff55c88e208571326669ff206db6134854e'
-      ]
-
-      if (uniqueTransferIds.includes(item.transferId)) {
-        this.logger.debug(`transfer id ${item.transferId} attempting bond in getter. ${JSON.stringify(item)}`)
-      }
-
-      const customTransferIds: string [] = [
-        '0xa66b7633f73c4e056e67c92b5632f6c6fbf3527d55dba5a1ee6613e2fbf4178a'
-      ]
-      if (customTransferIds.includes(item.transferId)) {
-        item.isBondable = true
-      }
-
-      const invalidTransferIds: string[] = [
-        '0xb9332b783982344a6b082ef76ec88f3c567f843dad9c896e43dc3248ca205915',
-        '0x53e43773a6942eb91b3439b9bbfc1cbc6c3f4bcd23db92a85ec190e283c7ac4a'
-      ]
-      if (invalidTransferIds.includes(item.transferId)) {
-        return false
       }
 
       let timestampOk = true

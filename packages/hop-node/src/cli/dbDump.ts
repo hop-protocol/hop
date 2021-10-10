@@ -73,7 +73,7 @@ program
       logger.debug(`dumping ${dbName} db located at ${globalConfig.db.path}`)
       console.log(JSON.stringify(items, null, 2))
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

@@ -28,6 +28,6 @@ program
         dryMode: source.dryMode
       })
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
     }
   })

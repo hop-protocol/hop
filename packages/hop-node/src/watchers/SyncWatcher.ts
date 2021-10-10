@@ -3,7 +3,6 @@ import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import S3Upload from 'src/aws/s3Upload'
-import chalk from 'chalk'
 import chunk from 'lodash/chunk'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import isL1ChainId from 'src/utils/isL1ChainId'
@@ -334,7 +333,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('sourceChainId:', sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)
       logger.debug('isBondable:', isBondable)
-      logger.debug('transferId:', chalk.bgCyan.black(transferId))
+      logger.debug('transferId:', transferId)
       logger.debug('amount:', this.bridge.formatUnits(amount))
       logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
       logger.debug('amountOutMin:', this.bridge.formatUnits(amountOutMin))
@@ -947,8 +946,7 @@ class SyncWatcher extends BaseWatcher {
     return totalAmount
   }
 
-  public async getEffectiveAvailableCredit (destinationChainId: number) {
-    const sourceChain = this.chainSlug
+  public getEffectiveAvailableCredit (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const availableCredit = this.availableCredit[destinationChain]
     if (!availableCredit) {

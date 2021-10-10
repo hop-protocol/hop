@@ -2,7 +2,6 @@ import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import Web3 from 'web3'
 import chainSlugToId from 'src/utils/chainSlugToId'
-import chalk from 'chalk'
 import fetch from 'node-fetch'
 import getRpcUrls from 'src/utils/getRpcUrls'
 import wait from 'src/utils/wait'
@@ -119,10 +118,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
             delete transactionHashes[transactionHash]
             this.logger.info('sending polygon canonical bridge exit tx')
             const tx = await this.sendTransaction(transactionHash, this.tokenSymbol)
-            this.logger.info(
-              'polygon canonical bridge exit tx:',
-              chalk.bgYellow.black.bold(tx.hash)
-            )
+            this.logger.info(`polygon canonical bridge exit tx: ${tx.hash}`)
           }
         } catch (err) {
           this.logger.error('poll error:', err.message)
@@ -229,37 +225,15 @@ class PolygonBridgeWatcher extends BaseWatcher {
     await this.db.transferRoots.update(transferRootHash, {
       sentConfirmTxAt: Date.now()
     })
-    const tx = await this.relayMessage(commitTxHash, this.tokenSymbol)
-    tx?.wait()
-      .then(async (receipt: providers.TransactionReceipt) => {
-        if (receipt.status !== 1) {
-          await this.db.transferRoots.update(transferRootHash, {
-            sentConfirmTxAt: 0
-          })
-          throw new Error('status=0')
-        }
-
-        if (destinationChainId) {
-          this.emit('transferRootConfirmed', {
-            transferRootHash,
-            destinationChainId
-          })
-        }
-      })
-      .catch(async (err: Error) => {
-        this.db.transferRoots.update(transferRootHash, {
-          sentConfirmTxAt: 0
-        })
-
-        throw err
-      })
-    logger.info(
-      `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
-      chalk.bgYellow.black.bold(tx.hash)
-    )
-    this.notifier.info(
-      `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
-    )
+    try {
+      const tx = await this.relayMessage(commitTxHash, this.tokenSymbol)
+      const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
+      logger.info(msg)
+      this.notifier.info(msg)
+    } catch (err) {
+      logger.log(err.message)
+      throw err
+    }
   }
 }
 export default PolygonBridgeWatcher

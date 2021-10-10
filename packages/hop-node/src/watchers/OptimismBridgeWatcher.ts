@@ -1,6 +1,5 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
-import chalk from 'chalk'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getRpcUrls from 'src/utils/getRpcUrls'
 import wallets from 'src/wallets'
@@ -101,51 +100,32 @@ class OptimismBridgeWatcher extends BaseWatcher {
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {
+    logger.debug(
+      `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
+    )
+
+    await this.handleStateSwitch()
+    if (this.isDryOrPauseMode) {
+      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
+      return
+    }
+
+    await this.db.transferRoots.update(transferRootHash, {
+      sentConfirmTxAt: Date.now()
+    })
+
     try {
-      logger.debug(
-        `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
-      )
-
-      await this.handleStateSwitch()
-      if (this.isDryOrPauseMode) {
-        logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
-        return
-      }
-
-      await this.db.transferRoots.update(transferRootHash, {
-        sentConfirmTxAt: Date.now()
-      })
-
       const tx = await this.relayXDomainMessages(commitTxHash)
       if (!tx) {
         logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
         return
       }
 
-      logger.info(
-        `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
-        chalk.bgYellow.black.bold(tx.hash)
-      )
-      this.notifier.info(
-        `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
-      )
-      tx.wait()
-        .then(async (receipt: any) => {
-          if (receipt.status !== 1) {
-            await this.db.transferRoots.update(transferRootHash, {
-              sentConfirmTxAt: 0
-            })
-            throw new Error('status=0')
-          }
-        })
-        .catch(async (err: Error) => {
-          this.db.transferRoots.update(transferRootHash, {
-            sentConfirmTxAt: 0
-          })
-
-          throw err
-        })
+      const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
+      logger.info(msg)
+      this.notifier.info(msg)
     } catch (err) {
+      this.logger.error(err.message)
       const isNotCheckpointedYet = err.message.includes('unable to find state root batch for tx')
       if (isNotCheckpointedYet) {
         logger.debug('state root batch not yet on L1. cannot exit yet')

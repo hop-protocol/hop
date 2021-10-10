@@ -35,6 +35,7 @@ import './unconfirmedTransferRoots'
 import './unstake'
 import './updateConfig'
 import './withdraw'
+import './withdrawalProof'
 import './xdaiBridge'
 
 program.parse(process.argv)

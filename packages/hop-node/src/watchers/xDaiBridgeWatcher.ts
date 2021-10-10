@@ -1,7 +1,6 @@
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import Logger from 'src/logger'
-import chalk from 'chalk'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
@@ -120,19 +119,8 @@ class xDaiBridgeWatcher extends BaseWatcher {
             if (!result) {
               continue
             }
-            const { tx, msgHash, message, packedSigs } = result
-            tx?.wait().then(() => {
-              this.emit('executeSignatures', {
-                message,
-                packedSigs
-              })
-            })
-            this.logger.debug('executeSignatures messageHash:', msgHash)
-            this.logger.info(
-              'executeSignatures tx hash:',
-              chalk.bgYellow.black.bold(tx.hash)
-            )
-            await tx?.wait()
+            const { tx, msgHash } = result
+            this.logger.debug(`executeSignatures. tx hash: ${tx.hash} messageHash: ${msgHash}`)
           } catch (err) {
             this.logger.error('tx error:', err.message)
           }
@@ -178,43 +166,20 @@ class xDaiBridgeWatcher extends BaseWatcher {
         sentConfirmTxAt: Date.now()
       })
 
-      const result = await executeExitTx(sigEvent, this.tokenSymbol)
-      if (!result) {
-        logger.error('no result returned from exit tx')
+      try {
+        const result = await executeExitTx(sigEvent, this.tokenSymbol)
+        if (!result) {
+          logger.error('no result returned from exit tx')
+          return
+        }
+        const { tx } = result
+        const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
+        logger.info(msg)
+        this.notifier.info(msg)
+      } catch (err) {
+        logger.error(err)
+        throw err
       }
-
-      const { tx } = result
-      tx?.wait()
-        .then(async (receipt: any) => {
-          if (receipt.status !== 1) {
-            await this.db.transferRoots.update(transferRootHash, {
-              sentConfirmTxAt: 0
-            })
-            throw new Error('status=0')
-          }
-
-          if (destinationChainId) {
-            this.emit('transferRootConfirmed', {
-              transferRootHash,
-              destinationChainId
-            })
-          }
-        })
-        .catch(async (err: Error) => {
-          this.db.transferRoots.update(transferRootHash, {
-            sentConfirmTxAt: 0
-          })
-
-          throw err
-        })
-      logger.info('transferRootHash:', transferRootHash)
-      logger.info(
-        `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx`,
-        chalk.bgYellow.black.bold(tx.hash)
-      )
-      this.notifier.info(
-        `chainId: ${this.bridge.chainId} confirmTransferRoot L1 exit tx: ${tx.hash}`
-      )
     }
   }
 }

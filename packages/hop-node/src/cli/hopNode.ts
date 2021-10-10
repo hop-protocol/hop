@@ -1,4 +1,5 @@
 import DbLogger from 'src/watchers/DbLogger'
+import OsWatcher from 'src/watchers/OsWatcher'
 import arbbots from 'src/arb-bot/bots'
 import clearDb from 'src/db/clearDb'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
@@ -190,6 +191,7 @@ program
           new DbLogger(token).start()
         }
       }
+      new OsWatcher().start()
     } catch (err) {
       logger.error(`hop-node error: ${err.message}\ntrace: ${err.stack}`)
       process.exit(1)

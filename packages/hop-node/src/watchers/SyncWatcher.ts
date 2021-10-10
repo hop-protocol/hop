@@ -244,16 +244,30 @@ class SyncWatcher extends BaseWatcher {
       )
     }
 
-    promises.push(
+    const transferSpentPromises: Promise<any>[] = []
+    transferSpentPromises.push(
       this.bridge.mapWithdrawalBondedEvents(
         async (event: Event) => {
           return this.handleWithdrawalBondedEvent(event)
         },
         getOptions(this.bridge.WithdrawalBonded)
       )
+    )
+
+    transferSpentPromises.push(
+      this.bridge.mapWithdrewEvents(
+        async (event: Event) => {
+          return this.handleWithdrewEvent(event)
+        },
+        getOptions(this.bridge.Withdrew)
+      )
+    )
+
+    promises.push(
+      Promise.all(transferSpentPromises)
         .then(() => {
-        // This must be executed after the WithdrawalBonded event handler on initial sync
-        // since it relies on data from that handler.
+        // This must be executed after the Withdrew and WithdrawalBonded event handlers
+        // on initial sync since it relies on data from those handlers.
           return this.bridge.mapMultipleWithdrawalsSettledEvents(
             async (event: Event) => {
               return this.handleMultipleWithdrawalsSettledEvent(event)
@@ -386,7 +400,30 @@ class SyncWatcher extends BaseWatcher {
     await this.db.transfers.update(transferId, {
       withdrawalBonded: true,
       withdrawalBonder,
-      withdrawalBondedTxHash: transactionHash
+      isTransferSpent: true,
+      transferSpentTxHash: transactionHash
+    })
+  }
+
+  async handleWithdrewEvent (event: Event) {
+    const {
+      transferId,
+      recipient,
+      amount,
+      transferNonce
+    } = event.args
+    const logger = this.logger.create({ id: transferId })
+
+    const { transactionHash } = event
+
+    logger.debug('handling Withdrew event')
+    logger.debug('transferId:', transferId)
+    logger.debug('transactionHash:', transactionHash)
+
+    await this.db.transfers.update(transferId, {
+      isTransferSpent: true,
+      transferSpentTxHash: transactionHash,
+      isBondable: false
     })
   }
 
@@ -748,7 +785,10 @@ class SyncWatcher extends BaseWatcher {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     const rootAmountAllSettled = dbTransferRoot ? dbTransferRoot?.totalAmount?.eq(totalBondsSettled) : false
     const allTransfersSettled = dbTransfers.every(
-      (dbTransfer: Transfer) => dbTransfer?.withdrawalBondSettled
+      (dbTransfer: Transfer) => {
+        // A transfer does not need to be settled if it is unbondable
+        return !dbTransfer?.isBondable || dbTransfer?.withdrawalBondSettled
+      }
     )
     const allSettled = rootAmountAllSettled || allTransfersSettled
     logger.debug(`all settled: ${allSettled}`)

@@ -246,21 +246,6 @@ class TransfersDb extends BaseDb {
         }
       }
 
-      const customTransferIds: string [] = [
-        '0xa66b7633f73c4e056e67c92b5632f6c6fbf3527d55dba5a1ee6613e2fbf4178a'
-      ]
-      if (customTransferIds.includes(item.transferId)) {
-        item.isBondable = true
-      }
-
-      const invalidTransferIds: string[] = [
-        '0xb9332b783982344a6b082ef76ec88f3c567f843dad9c896e43dc3248ca205915',
-        '0x53e43773a6942eb91b3439b9bbfc1cbc6c3f4bcd23db92a85ec190e283c7ac4a'
-      ]
-      if (invalidTransferIds.includes(item.transferId)) {
-        return false
-      }
-
       let timestampOk = true
       if (item.bondWithdrawalAttemptedAt) {
         if (TxError.BonderFeeTooLow === item.withdrawalBondTxError) {

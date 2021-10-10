@@ -176,7 +176,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.timeTilBoostMs = timeTilBoostMs
   }
 
-  setGasPriceMutliplier (gasPriceMultiplier: number) {
+  setGasPriceMultiplier (gasPriceMultiplier: number) {
     this.gasPriceMultiplier = gasPriceMultiplier
   }
 
@@ -561,7 +561,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
         await this.checkHasEnoughFunds(payload, gasFeeData)
 
-        // await here is intential to catch error below
+        // await here is intentional to catch error below
         const tx = await this.signer.sendTransaction(payload)
 
         return tx

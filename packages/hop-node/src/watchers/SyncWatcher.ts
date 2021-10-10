@@ -786,8 +786,9 @@ class SyncWatcher extends BaseWatcher {
     const rootAmountAllSettled = dbTransferRoot ? dbTransferRoot?.totalAmount?.eq(totalBondsSettled) : false
     const allTransfersSettled = dbTransfers.every(
       (dbTransfer: Transfer) => {
-        // A transfer does not need to be settled if it is unbondable
-        return !dbTransfer?.isBondable || dbTransfer?.withdrawalBondSettled
+        // A transfer should not be settled if it has been _explicitly_ marked as unbondable
+        const shouldNotSettle = dbTransfer?.isBondable === false
+        return shouldNotSettle || dbTransfer?.withdrawalBondSettled
       }
     )
     const allSettled = rootAmountAllSettled || allTransfersSettled

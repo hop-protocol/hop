@@ -566,7 +566,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
         return tx
       } catch (err) {
-        const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce)/gi.test(err.message)
+        const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/gi.test(err.message)
         if (nonceTooLow) {
           this.logger.error(`nonce ${this.nonce} too low`)
           this.logger.error(err.message)

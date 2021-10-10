@@ -345,6 +345,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const { transactionHash } = event
       const { from: sender } = await destBridge.getTransaction(transactionHash)
       await this.db.transfers.update(transferId, {
+        isBondable: true,
         withdrawalBonded: true,
         withdrawalBonder: sender,
         isTransferSpent: true,

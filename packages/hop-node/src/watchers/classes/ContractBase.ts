@@ -2,7 +2,7 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
-import rateLimitRetry from 'src/decorators/rateLimitRetry'
+import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { EventEmitter } from 'events'
@@ -28,8 +28,7 @@ export default class ContractBase extends EventEmitter {
     this.chainId = chainSlugToId(chainSlug)
   }
 
-  @rateLimitRetry
-  async getChainId (): Promise<number> {
+  getChainId = rateLimitRetry(async (): Promise<number> => {
     if (this.chainId) {
       return this.chainId
     }
@@ -37,7 +36,7 @@ export default class ContractBase extends EventEmitter {
     const _chainId = Number(chainId.toString())
     this.chainId = _chainId
     return _chainId
-  }
+  })
 
   async getChainSlug () {
     if (this.chainSlug) {
@@ -58,53 +57,44 @@ export default class ContractBase extends EventEmitter {
     return Number(chainSlugToId(chainSlug))
   }
 
-  async getQueueGroup (): Promise<string> {
-    return this.getChainSlug()
-  }
-
   get address (): string {
     return this.contract.address
   }
 
-  @rateLimitRetry
-  async getTransaction (txHash: string): Promise<Transaction> {
+  getTransaction = rateLimitRetry(async (txHash: string): Promise<Transaction> => {
     if (!txHash) {
       throw new Error('tx hash is required')
     }
     return this.contract.provider.getTransaction(txHash)
-  }
+  })
 
-  @rateLimitRetry
-  async getTransactionReceipt (
+  getTransactionReceipt = rateLimitRetry((
     txHash: string
-  ): Promise<providers.TransactionReceipt> {
+  ): Promise<providers.TransactionReceipt> => {
     return this.contract.provider.getTransactionReceipt(txHash)
-  }
+  })
 
-  @rateLimitRetry
-  async getBlockNumber (): Promise<number> {
+  getBlockNumber = rateLimitRetry((): Promise<number> => {
     return this.contract.provider.getBlockNumber()
-  }
+  })
 
-  @rateLimitRetry
-  async getTransactionBlockNumber (txHash: string): Promise<number> {
+  getTransactionBlockNumber = rateLimitRetry(async (txHash: string): Promise<number> => {
     const tx = await this.contract.provider.getTransaction(txHash)
     if (!tx) {
       throw new Error(`transaction not found. transactionHash: ${txHash}`)
     }
     return tx.blockNumber
-  }
+  })
 
-  @rateLimitRetry
-  async getBlockTimestamp (
+  getBlockTimestamp = rateLimitRetry(async (
     blockNumber: number | string = 'latest'
-  ): Promise<number> {
+  ): Promise<number> => {
     const block = await this.contract.provider.getBlock(blockNumber)
     if (!block) {
       throw new Error(`expected block. blockNumber: ${blockNumber}`)
     }
     return block.timestamp
-  }
+  })
 
   async getTransactionTimestamp (
     txHash: string
@@ -124,25 +114,22 @@ export default class ContractBase extends EventEmitter {
     return Number(tx.timestamp.toString())
   }
 
-  @rateLimitRetry
-  async getCode (
+  getCode = rateLimitRetry(async (
     address: string,
     blockNumber: string | number = 'latest'
-  ): Promise<string> {
+  ): Promise<string> => {
     return this.contract.provider.getCode(address, blockNumber)
-  }
+  })
 
-  @rateLimitRetry
-  async getBalance (
+  getBalance = rateLimitRetry(async (
     address: string
-  ): Promise<BigNumber> {
+  ): Promise<BigNumber> => {
     return this.contract.provider.getBalance(address)
-  }
+  })
 
-  @rateLimitRetry
-  protected async getGasPrice (): Promise<BigNumber> {
+  protected getGasPrice = rateLimitRetry(async (): Promise<BigNumber> => {
     return this.contract.provider.getGasPrice()
-  }
+  })
 
   protected async getBumpedGasPrice (multiplier: number): Promise<BigNumber> {
     const gasPrice = await this.getGasPrice()

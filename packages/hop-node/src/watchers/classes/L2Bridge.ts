@@ -55,13 +55,13 @@ export default class L2Bridge extends Bridge {
     this.l2BridgeWrapper = new L2BridgeWrapper(l2BridgeWrapperContract)
   }
 
-  async getL1Bridge (): Promise<L1Bridge> {
+  getL1Bridge = rateLimitRetry(async (): Promise<L1Bridge> => {
     const l1BridgeAddress = await this.bridgeContract.l1BridgeAddress()
     if (!l1BridgeAddress) {
       throw new Error('L1 bridge address not found')
     }
     return L1Bridge.fromAddress(l1BridgeAddress)
-  }
+  })
 
   hToken = rateLimitRetry(async (): Promise<Token> => {
     const tokenAddress = await this.bridgeContract.hToken()

@@ -788,13 +788,13 @@ class SyncWatcher extends BaseWatcher {
     }
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     const rootAmountAllSettled = dbTransferRoot ? dbTransferRoot?.totalAmount?.eq(totalBondsSettled) : false
-    const allTransfersSettled = dbTransfers.every(
+    const allBondableTransfersSettled = dbTransfers.every(
       (dbTransfer: Transfer) => {
         // A transfer should not be settled if it is unbondable
         return !dbTransfer.isBondable || dbTransfer?.withdrawalBondSettled
       }
     )
-    const allSettled = rootAmountAllSettled || allTransfersSettled
+    const allSettled = rootAmountAllSettled || allBondableTransfersSettled
     logger.debug(`all settled: ${allSettled}`)
     await this.db.transferRoots.update(transferRootHash, {
       allSettled

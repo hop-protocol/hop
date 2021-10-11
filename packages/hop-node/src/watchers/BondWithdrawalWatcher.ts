@@ -202,6 +202,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         return
       }
       if (err instanceof NonceTooLowError) {
+        logger.error('nonce too low. trying again.')
         await this.db.transfers.update(transferId, {
           bondWithdrawalAttemptedAt: 0
         })

@@ -136,7 +136,8 @@ class TransfersDb extends BaseDb {
       logger.debug(`updated db item. key: ${timestampedKv.key}`)
     }
     await this._update(transferId, transfer)
-    logger.debug(`updated db item. key: ${transferId}`)
+    const entry = await this.getById(transferId)
+    logger.debug(`updated db transfer item. ${JSON.stringify(entry)}`)
   }
 
   normalizeItem (transferId: string, item: Partial<Transfer>) {

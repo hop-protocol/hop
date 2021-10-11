@@ -723,7 +723,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`expected tx object. transactionHash: ${transactionHash}`)
     }
     const { data } = tx
-    const { transferIds } = await this.bridge.decodeSettleBondedWithdrawalsData(
+    const { transferIds } = this.bridge.decodeSettleBondedWithdrawalsData(
       data
     )
 

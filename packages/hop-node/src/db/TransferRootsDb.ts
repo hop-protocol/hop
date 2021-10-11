@@ -40,7 +40,10 @@ export type TransferRoot = {
 
 class TransferRootsDb extends BaseDb {
   async update (transferRootHash: string, data: Partial<TransferRoot>) {
-    return this._update(transferRootHash, data)
+    const logger = this.logger.create({ root: transferRootHash })
+    await this._update(transferRootHash, data)
+    const entry = await this.getById(transferRootHash)
+    logger.debug(`updated db transferRoot item. ${JSON.stringify(entry)}`)
   }
 
   normalizeItem (transferRootHash: string, item: Partial<TransferRoot>) {

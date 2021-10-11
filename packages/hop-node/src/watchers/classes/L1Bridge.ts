@@ -26,11 +26,11 @@ export default class L1Bridge extends Bridge {
     return new L1Bridge(contract)
   }
 
-  decodeBondTransferRootData = rateLimitRetry(async (data: string): Promise<any> => {
+  decodeBondTransferRootData (data: string): any {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = await this.bridgeContract.interface.decodeFunctionData(
+    const decoded = this.bridgeContract.interface.decodeFunctionData(
       'bondTransferRoot',
       data
     )
@@ -42,13 +42,13 @@ export default class L1Bridge extends Bridge {
       destinationChainId,
       totalAmount
     }
-  })
+  }
 
-  decodeConfirmTransferRootData = rateLimitRetry(async (data: string): Promise<any> => {
+  decodeConfirmTransferRootData (data: string): any {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = await this.bridgeContract.interface.decodeFunctionData(
+    const decoded = this.bridgeContract.interface.decodeFunctionData(
       'confirmTransferRoot',
       data
     )
@@ -60,7 +60,7 @@ export default class L1Bridge extends Bridge {
       totalAmount: decoded.totalAmount,
       rootCommittedAt: Number(decoded.rootCommittedAt.toString())
     }
-  })
+  }
 
   getTransferBond = rateLimitRetry((transferRootId: string): Promise<any> => {
     return this.bridgeContract.transferBonds(transferRootId)

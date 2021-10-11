@@ -12,6 +12,9 @@ class SyncStateDb extends BaseDb {
       data.key = key
     }
     return this._update(key, data)
+    await this._update(key, data)
+    const entry = await this.getById(key)
+    this.logger.debug(`updated db syncState item. ${JSON.stringify(entry)}`)
   }
 
   normalizeValue (key: string, value: State) {

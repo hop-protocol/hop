@@ -81,13 +81,6 @@ program
         const l2Bridge = new L2Bridge(l2BridgeContract)
         const amm = l2Bridge.amm
         const ammWrapper = l2Bridge.ammWrapper
-        const amountIn = l2Bridge.parseUnits(amount)
-        let amountOut : BigNumber
-        if (fromTokenIsHToken) {
-          amountOut = await amm.calculateToHTokensAmount(amountIn)
-        } else {
-          amountOut = await amm.calculateFromHTokensAmount(amountIn)
-        }
 
         let fromTokenIndex : number
         let toTokenIndex : number
@@ -102,6 +95,19 @@ program
           token = await l2Bridge.canonicalToken()
         }
 
+        let amountIn = l2Bridge.parseUnits(amount)
+        if (max) {
+          logger.debug('max flag used')
+          amountIn = await token.getBalance()
+        }
+
+        let amountOut : BigNumber
+        if (fromTokenIsHToken) {
+          amountOut = await amm.calculateToHTokensAmount(amountIn)
+        } else {
+          amountOut = await amm.calculateFromHTokensAmount(amountIn)
+        }
+
         const slippageToleranceBps = (slippage || 0.5) * 100
         const minBps = Math.ceil(10000 - slippageToleranceBps)
         const minAmountOut = amountOut.mul(minBps).div(10000)
@@ -114,7 +120,7 @@ program
           await tx?.wait()
         }
 
-        logger.debug(`attempting to swap ${amount} ${fromToken} for at least ${minAmountOut} ${toToken}`)
+        logger.debug(`attempting to swap ${l2Bridge.formatUnits(amountIn)} ${fromToken} for at least ${l2Bridge.formatUnits(minAmountOut)} ${toToken}`)
         tx = await amm.swap(fromTokenIndex, toTokenIndex, amountIn, minAmountOut)
       } else {
         logger.debug('uniswap swap')

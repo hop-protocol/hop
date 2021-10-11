@@ -19,7 +19,8 @@ export default async function getUnbondedTransferRoots (chain: string, token: st
     const { rootHash, totalAmount, timestamp } = transfersCommitted[i]
 
     query = getTransferRootBondedsQuery()
-    const transferRootBondedRes = await makeRequest(destinationChain, query, {
+    const requestChain = 'ethereum'
+    const transferRootBondedRes = await makeRequest(requestChain, query, {
       rootHash
     })
     const transferRootBonded = transferRootBondedRes.transferRootBondeds
@@ -62,6 +63,7 @@ function getTransferRootBondedsQuery () {
         }
       ) {
         timestamp
+        totalBondsSettled
       }
     }
   `

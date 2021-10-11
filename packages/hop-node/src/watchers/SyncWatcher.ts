@@ -308,7 +308,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error('expected db transfer item')
     }
     const logger = this.logger.create({ id: transferId })
-    logger.debug(`populateTransferDbItem`)
+    logger.debug('populateTransferDbItem')
     const { transferSentTimestamp, transferSentBlockNumber, sourceChainId, destinationChainId } = dbTransfer
     if (transferSentBlockNumber && !transferSentTimestamp) {
       logger.debug('populating transferSentTimestamp')
@@ -327,7 +327,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error('expected db transfer root item')
     }
     const logger = this.logger.create({ root: transferRootHash })
-    logger.debug(`populateTransferRootDbItem`)
+    logger.debug('populateTransferRootDbItem')
     const { commitTxHash, committedAt, sourceChainId, destinationChainId } = dbTransferRoot
     if (commitTxHash && !committedAt) {
       logger.debug('populating committedAt')

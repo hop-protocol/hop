@@ -1,8 +1,8 @@
-import BaseDb, { KeyFilter } from './BaseDb'
+import TimestampedKeysDb from './TimestampedKeysDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
-import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
 import { Chain, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
+import { KeyFilter } from './BaseDb'
 import { normalizeDbItem } from './utils'
 import { oruChains } from 'src/config'
 
@@ -44,41 +44,7 @@ export type TransferRoot = {
   allSettled?: boolean
 }
 
-class TransferRootsTimestampedKeysDb extends BaseDb {}
-
-class TransferRootsDb extends BaseDb {
-  ready = false
-  subDb : TransferRootsTimestampedKeysDb
-
-  constructor (prefix: string, _namespace?: string) {
-    super(prefix, _namespace)
-
-    this.subDb = new TransferRootsTimestampedKeysDb(`${prefix}:timestampedKeys`, _namespace)
-
-    this.trackTimestampedKeys()
-      .then(() => {
-        this.ready = true
-        this.logger.debug('transferRootsDb ready')
-      })
-      .catch(this.logger.error)
-  }
-
-  private async tilReady (): Promise<boolean> {
-    if (this.ready) {
-      return true
-    }
-
-    await wait(100)
-    return this.tilReady()
-  }
-
-  async trackTimestampedKeys () {
-    const transferRoots = await this._getTransferRoots()
-    for (const transferRoot of transferRoots) {
-      await this.trackTimestampedKey(transferRoot)
-    }
-  }
-
+class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   async trackTimestampedKey (transferRoot: Partial<TransferRoot>) {
     const data = await this.getTimestampedKeyValueForUpdate(transferRoot)
     if (data) {
@@ -177,7 +143,7 @@ class TransferRootsDb extends BaseDb {
         filter.lte = `transferRoot:${dateFilter.toUnix}~` // tilde is intentional
       }
       const kv = await this.subDb.getKeyValues(filter)
-      return kv.map(x => x?.value?.transferRootHash).filter(x => x)
+      return kv.map((x: any) => x?.value?.transferRootHash).filter((x: any) => x)
     }
 
     // return all transfer-root keys if no filter is used (filter out timestamped keys)
@@ -185,7 +151,7 @@ class TransferRootsDb extends BaseDb {
     return keys.filter(x => x)
   }
 
-  async _getTransferRoots (dateFilter?: TransferRootsDateFilter): Promise<TransferRoot[]> {
+  async getItems (dateFilter?: TransferRootsDateFilter): Promise<TransferRoot[]> {
     const transferRootHashes = await this.getTransferRootHashes(dateFilter)
     const transferRoots = await Promise.all(
       transferRootHashes.map(transferRootHash => {
@@ -200,7 +166,7 @@ class TransferRootsDb extends BaseDb {
 
   async getTransferRoots (dateFilter?: TransferRootsDateFilter): Promise<TransferRoot[]> {
     await this.tilReady()
-    return this._getTransferRoots(dateFilter)
+    return this.getItems(dateFilter)
   }
 
   // gets only transfer roots within range: now - 2 weeks ago

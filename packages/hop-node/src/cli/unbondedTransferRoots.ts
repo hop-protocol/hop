@@ -11,9 +11,9 @@ program
   .description('Get unbonded transfer roots')
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
-  .option('--chain <string>', 'Chain')
+  .option('--source-chain <string>', 'Source chain')
   .option('--token <string>', 'Token')
-  .option('--destChain <string>', 'Destination Chain')
+  .option('--destination-chain <string>', 'Destination chain')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config

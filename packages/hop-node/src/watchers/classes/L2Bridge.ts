@@ -63,6 +63,16 @@ export default class L2Bridge extends Bridge {
     return L1Bridge.fromAddress(l1BridgeAddress)
   })
 
+  canonicalToken = rateLimitRetry(async (): Promise<Token> => {
+    const tokenAddress = await this.ammWrapper.contract.l2CanonicalToken()
+    const tokenContract = new Contract(
+      tokenAddress,
+      erc20Abi,
+      this.bridgeContract.signer
+    )
+    return new Token(tokenContract)
+  })
+
   hToken = rateLimitRetry(async (): Promise<Token> => {
     const tokenAddress = await this.bridgeContract.hToken()
     const tokenContract = new Contract(

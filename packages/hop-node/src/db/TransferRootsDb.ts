@@ -102,12 +102,11 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     }
     await this._update(transferRootHash, transferRoot)
     logger.debug(`updated db item. key: ${transferRootHash}`)
+    const entry = await this.getById(transferRootHash)
+    logger.debug(`updated db transferRoot item. ${JSON.stringify(entry)}`)
   }
 
-  async getByTransferRootHash (
-    transferRootHash: string
-  ): Promise<TransferRoot> {
-    const item = (await this.getById(transferRootHash)) as TransferRoot
+  normalizeItem (transferRootHash: string, item: Partial<TransferRoot>) {
     if (!item) {
       return item
     }
@@ -115,6 +114,13 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       item.transferRootHash = transferRootHash
     }
     return normalizeDbItem(item)
+  }
+
+  async getByTransferRootHash (
+    transferRootHash: string
+  ): Promise<TransferRoot> {
+    const item : TransferRoot = await this.getById(transferRootHash)
+    return this.normalizeItem(transferRootHash, item)
   }
 
   async getByTransferRootId (transferRootId: string): Promise<TransferRoot> {

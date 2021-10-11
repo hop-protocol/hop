@@ -98,11 +98,11 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       logger.debug(`updated db item. key: ${timestampedKv.key}`)
     }
     await this._update(transferId, transfer)
-    logger.debug(`updated db item. key: ${transferId}`)
+    const entry = await this.getById(transferId)
+    logger.debug(`updated db transfer item. ${JSON.stringify(entry)}`)
   }
 
-  async getByTransferId (transferId: string): Promise<Transfer> {
-    const item = (await this.getById(transferId)) as Transfer
+  normalizeItem (transferId: string, item: Partial<Transfer>) {
     if (!item) {
       return null
     }
@@ -116,6 +116,11 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
     }
     return normalizeDbItem(item)
+  }
+
+  async getByTransferId (transferId: string): Promise<Transfer> {
+    const item : Transfer = await this.getById(transferId)
+    return this.normalizeItem(transferId, item)
   }
 
   async getTransferIds (dateFilter?: TransfersDateFilter): Promise<string[]> {
@@ -133,8 +138,8 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     }
 
     // return all transfer-id keys if no filter is used (filter out timestamped keys)
-    const keys = await this.getKeys()
-    return keys.filter((key: string) => !key?.startsWith('transfer:')).filter(x => x)
+    const keys = (await this.getKeys()).filter((key: string) => !key?.startsWith('transfer:'))
+    return this.batchGetByIds(keys)
   }
 
   async getItems (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {

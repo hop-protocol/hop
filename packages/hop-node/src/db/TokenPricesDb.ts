@@ -39,12 +39,7 @@ class TokenPricesDb extends BaseDb {
   }
 
   async getItems (filter?: KeyFilter):Promise<TokenPrice[]> {
-    const keys = await this.getKeys(filter)
-    const items: TokenPrice[] = (await Promise.all(
-      keys.map((key: string) => {
-        return this.getById(key)
-      })))
-
+    const items : TokenPrice[] = await this.getValues(filter)
     return items.filter(x => x)
   }
 

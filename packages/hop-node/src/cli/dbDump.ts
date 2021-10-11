@@ -75,6 +75,7 @@ program
       logger.debug(`dumping ${dbName} db located at ${globalConfig.db.path}`)
       console.log(JSON.stringify(items, null, 2))
       logger.debug(`count: ${items.length}`)
+      process.exit(0)
     } catch (err) {
       logger.error(err)
       process.exit(1)

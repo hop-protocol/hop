@@ -21,10 +21,11 @@ export type Transfer = {
   withdrawalBondSettled?: boolean
   withdrawalBonded?: boolean
   withdrawalBonder?: string
-  withdrawalBondedTxHash?: string
   withdrawalBondTxError?: TxError
   withdrawalBondBackoffIndex?: number
   bondWithdrawalAttemptedAt?: number
+  isTransferSpent?: boolean
+  transferSpentTxHash?: string
 
   recipient?: string
   amount?: BigNumber
@@ -233,6 +234,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
         !item.withdrawalBonded &&
         item.transferSentTxHash &&
         item.isBondable &&
+        !item.isTransferSpent &&
         timestampOk
       )
     })

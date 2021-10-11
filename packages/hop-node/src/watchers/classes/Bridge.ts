@@ -29,6 +29,7 @@ const priceFeed = new PriceFeed()
 export default class Bridge extends ContractBase {
   db: Db
   WithdrawalBonded: string = 'WithdrawalBonded'
+  Withdrew: string = 'Withdrew'
   TransferRootSet: string = 'TransferRootSet'
   MultipleWithdrawalsSettled: string = 'MultipleWithdrawalsSettled'
   tokenDecimals: number = 18
@@ -172,6 +173,31 @@ export default class Bridge extends ContractBase {
     return match
   }
 
+  async getWithdrewEvent (
+    transferId: string,
+    startBlockNumber?: number,
+    endBlockNumber?: number
+  ): Promise<any> {
+    let match: Event = null
+    await this.eventsBatch(
+      async (start: number, end: number) => {
+        const events = await this.getWithdrewEvents(start, end)
+        for (const event of events) {
+          if (event.args.transferId === transferId) {
+            match = event
+            return false
+          }
+        }
+      },
+      {
+        startBlockNumber,
+        endBlockNumber
+      }
+    )
+
+    return match
+  }
+
   isTransferIdSpent = rateLimitRetry((transferId: string): Promise<boolean> => {
     return this.bridgeContract.isTransferIdSpent(transferId)
   })
@@ -187,11 +213,29 @@ export default class Bridge extends ContractBase {
     )
   })
 
+  getWithdrewEvents = rateLimitRetry((
+    startBlockNumber: number,
+    endBlockNumber: number
+  ): Promise<Event[]> => {
+    return this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.Withdrew(),
+      startBlockNumber,
+      endBlockNumber
+    )
+  })
+
   async mapWithdrawalBondedEvents (
     cb: EventCb,
     options?: Partial<EventsBatchOptions>
   ) {
     return this.mapEventsBatch(this.getWithdrawalBondedEvents, cb, options)
+  }
+
+  async mapWithdrewEvents (
+    cb: EventCb,
+    options?: Partial<EventsBatchOptions>
+  ) {
+    return this.mapEventsBatch(this.getWithdrewEvents, cb, options)
   }
 
   getTransferRootSetEvents = rateLimitRetry((

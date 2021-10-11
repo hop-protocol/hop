@@ -1,7 +1,7 @@
-import BaseDb, { KeyFilter } from './BaseDb'
+import TimestampedKeysDb from './TimestampedKeysDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
-import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
+import { KeyFilter } from './BaseDb'
 import { OneWeekMs, TxError, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
@@ -42,45 +42,7 @@ export type Transfer = {
   committed: boolean
 }
 
-class TransfersTimestampedKeysDb extends BaseDb {}
-
-class TransfersDb extends BaseDb {
-  ready = false
-  subDb : TransfersTimestampedKeysDb
-
-  constructor (prefix: string, _namespace?: string) {
-    super(prefix, _namespace)
-
-    this.subDb = new TransfersTimestampedKeysDb(`${prefix}:timestampedKeys`, _namespace)
-
-    // this only needs to be ran once on start up to backfill timestamped keys.
-    // this function can be removed once all bonders update.
-    // timestamped keys (in addition to transferId as keys) are needed to filter
-    // leveldb read streams.
-    this.trackTimestampedKeys()
-      .then(() => {
-        this.ready = true
-        this.logger.debug('transfersDb ready')
-      })
-      .catch(this.logger.error)
-  }
-
-  private async tilReady (): Promise<boolean> {
-    if (this.ready) {
-      return true
-    }
-
-    await wait(100)
-    return this.tilReady()
-  }
-
-  async trackTimestampedKeys () {
-    const transfers = await this._getTransfers()
-    for (const transfer of transfers) {
-      await this.trackTimestampedKey(transfer)
-    }
-  }
-
+class TransfersDb extends TimestampedKeysDb<Transfer> {
   async trackTimestampedKey (transfer: Partial<Transfer>) {
     const data = await this.getTimestampedKeyValueForUpdate(transfer)
     if (data) {
@@ -137,11 +99,11 @@ class TransfersDb extends BaseDb {
       logger.debug(`updated db item. key: ${timestampedKv.key}`)
     }
     await this._update(transferId, transfer)
-    logger.debug(`updated db item. key: ${transferId}`)
+    const entry = await this.getById(transferId)
+    logger.debug(`updated db transfer item. ${JSON.stringify(entry)}`)
   }
 
-  async getByTransferId (transferId: string): Promise<Transfer> {
-    const item = (await this.getById(transferId)) as Transfer
+  normalizeItem (transferId: string, item: Partial<Transfer>) {
     if (!item) {
       return null
     }
@@ -157,6 +119,11 @@ class TransfersDb extends BaseDb {
     return normalizeDbItem(item)
   }
 
+  async getByTransferId (transferId: string): Promise<Transfer> {
+    const item : Transfer = await this.getById(transferId)
+    return this.normalizeItem(transferId, item)
+  }
+
   async getTransferIds (dateFilter?: TransfersDateFilter): Promise<string[]> {
     // return only transfer-id keys that are within specified range (filter by timestamped keys)
     if (dateFilter) {
@@ -165,18 +132,18 @@ class TransfersDb extends BaseDb {
         filter.gte = `transfer:${dateFilter.fromUnix}`
       }
       if (dateFilter.toUnix) {
-        filter.lte = `transfer:${dateFilter.toUnix}~`
+        filter.lte = `transfer:${dateFilter.toUnix}~` // tilde is intentional
       }
       const kv = await this.subDb.getKeyValues(filter)
-      return kv.map(x => x?.value?.transferId).filter(x => x)
+      return kv.map((x: any) => x?.value?.transferId).filter((x: any) => x)
     }
 
     // return all transfer-id keys if no filter is used (filter out timestamped keys)
-    const keys = await this.getKeys()
-    return keys.filter((key: string) => !key?.startsWith('transfer:')).filter(x => x)
+    const keys = (await this.getKeys()).filter((key: string) => !key?.startsWith('transfer:'))
+    return this.batchGetByIds(keys)
   }
 
-  private async _getTransfers (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
+  async getItems (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
     const transferIds = await this.getTransferIds(dateFilter)
     this.logger.debug(`transferIds length: ${transferIds.length}`)
 
@@ -203,7 +170,7 @@ class TransfersDb extends BaseDb {
 
   async getTransfers (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
     await this.tilReady()
-    return this._getTransfers(dateFilter)
+    return this.getItems(dateFilter)
   }
 
   // gets only transfers within range: now - 1 week ago

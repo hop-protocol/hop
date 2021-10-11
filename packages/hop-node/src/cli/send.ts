@@ -5,7 +5,7 @@ import Token from 'src/watchers/classes/Token'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import getRpcProvider from 'src/utils/getRpcProvider'
-import { BigNumber, Wallet } from 'ethers'
+import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import {
   FileConfig,

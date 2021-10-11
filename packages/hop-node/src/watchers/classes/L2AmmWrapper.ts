@@ -9,9 +9,9 @@ import { formatUnits } from 'ethers/lib/utils'
 import { config as globalConfig } from 'src/config'
 
 export default class L2AmmWrapper extends ContractBase {
-  decodeSwapAndSendData = rateLimitRetry(async (data: string): Promise<any> => {
+  decodeSwapAndSendData (data: string): any {
     let attemptSwap = false
-    const decoded = await this.contract.interface.decodeFunctionData(
+    const decoded = this.contract.interface.decodeFunctionData(
       'swapAndSend',
       data
     )
@@ -28,13 +28,13 @@ export default class L2AmmWrapper extends ContractBase {
       chainId,
       attemptSwap
     }
-  })
+  }
 
-  async swapAndSend (
+  swapAndSend = rateLimitRetry(async (
     destinationChainId: number,
     amount: BigNumber,
     token: string
-  ): Promise<providers.TransactionResponse> {
+  ): Promise<providers.TransactionResponse> => {
     const sdk = new Hop(globalConfig.network)
     const recipient = await this.contract.signer.getAddress()
     const bridge = sdk.bridge(token)
@@ -79,5 +79,5 @@ export default class L2AmmWrapper extends ContractBase {
         value: isNativeToken ? amount : undefined
       }
     )
-  }
+  })
 }

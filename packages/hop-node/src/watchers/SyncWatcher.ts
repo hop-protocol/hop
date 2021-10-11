@@ -12,6 +12,7 @@ import { Chain, TenMinutesMs } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
+import { TransferRoot } from 'src/db/TransferRootsDb'
 import { config as globalConfig, oruChains } from 'src/config'
 
 type S3JsonData = {
@@ -114,12 +115,12 @@ class SyncWatcher extends BaseWatcher {
 
   async incompletePollSync () {
     try {
+      const chunkSize = 20
       const incompleteTransfers = await this.db.transfers.getIncompleteItems({
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })
       if (incompleteTransfers.length) {
         this.logger.debug(`incomplete transfer items: ${incompleteTransfers.length}`)
-        const chunkSize = 20
         const allChunks = chunk(incompleteTransfers, chunkSize)
         for (const chunks of allChunks) {
           await Promise.all(chunks.map((transfer: Transfer) => {
@@ -129,9 +130,30 @@ class SyncWatcher extends BaseWatcher {
                 // fill in missing db timestamped keys
                 return this.db.transfers.trackTimestampedKeyByTransferId(transferId)
               })
-              .catch(err => {
+              .catch((err: Error) => {
                 this.logger.error('populateTransferDbItem error:', err)
                 this.notifier.error(`populateTransferDbItem error: ${err.message}`)
+              })
+          }))
+        }
+      }
+      const incompleteTransferRoots = await this.db.transferRoots.getIncompleteItems({
+        sourceChainId: this.chainSlugToId(this.chainSlug)
+      })
+      if (incompleteTransferRoots.length) {
+        this.logger.debug(`incomplete transfer root  items: ${incompleteTransferRoots.length}`)
+        const allChunks = chunk(incompleteTransfers, chunkSize)
+        for (const chunks of allChunks) {
+          await Promise.all(chunks.map((transferRoot: TransferRoot) => {
+            const { transferRootHash } = transferRoot
+            return this.populateTransferRootDbItem(transferRootHash)
+              .then(() => {
+                // fill in missing db timestamped keys
+                return this.db.transferRoots.trackTimestampedKeyByTransferRootHash(transferRootHash)
+              })
+              .catch((err: Error) => {
+                this.logger.error('populateTransferRootDbItem error:', err)
+                this.notifier.error(`populateTransferRootDbItem error: ${err.message}`)
               })
           }))
         }
@@ -300,7 +322,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error('expected db transfer item')
     }
     const logger = this.logger.create({ id: transferId })
-    logger.debug(`populateTransferDbItem: transferId: ${transferId}`)
+    logger.debug('populateTransferDbItem')
     const { transferSentTimestamp, transferSentBlockNumber, sourceChainId, destinationChainId } = dbTransfer
     if (transferSentBlockNumber && !transferSentTimestamp) {
       logger.debug('populating transferSentTimestamp')
@@ -309,6 +331,25 @@ class SyncWatcher extends BaseWatcher {
       logger.debug(`transferSentTimestamp: ${transferSentTimestamp}`)
       await this.db.transfers.update(transferId, {
         transferSentTimestamp
+      })
+    }
+  }
+
+  async populateTransferRootDbItem (transferRootHash: string) {
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    if (!dbTransferRoot) {
+      throw new Error('expected db transfer root item')
+    }
+    const logger = this.logger.create({ root: transferRootHash })
+    logger.debug('populateTransferRootDbItem')
+    const { commitTxHash, committedAt, sourceChainId, destinationChainId } = dbTransferRoot
+    if (commitTxHash && !committedAt) {
+      logger.debug('populating committedAt')
+      const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
+      const committedAt = await sourceBridge.getTransactionTimestamp(commitTxHash)
+      logger.debug(`committedAt: ${committedAt}`)
+      await this.db.transferRoots.update(transferRootHash, {
+        committedAt
       })
     }
   }
@@ -764,7 +805,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`expected tx object. transactionHash: ${transactionHash}`)
     }
     const { data } = tx
-    const { transferIds } = await this.bridge.decodeSettleBondedWithdrawalsData(
+    const { transferIds } = this.bridge.decodeSettleBondedWithdrawalsData(
       data
     )
 

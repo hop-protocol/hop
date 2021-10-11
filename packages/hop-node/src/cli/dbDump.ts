@@ -76,7 +76,7 @@ program
       console.log(JSON.stringify(items, null, 2))
       logger.debug(`count: ${items.length}`)
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

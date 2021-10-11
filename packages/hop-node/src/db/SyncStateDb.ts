@@ -8,27 +8,29 @@ export type State = {
 
 class SyncStateDb extends BaseDb {
   async update (key: string, data: Partial<State>) {
+    if (!data.key) {
+      data.key = key
+    }
+    return this._update(key, data)
     await this._update(key, data)
     const entry = await this.getById(key)
     this.logger.debug(`updated db syncState item. ${JSON.stringify(entry)}`)
   }
 
-  async getByKey (key: string): Promise<State> {
-    const item = await this.getById(key)
-    if (!item) {
-      return
+  normalizeValue (key: string, value: State) {
+    if (value) {
+      value.key = key
     }
-    item.key = key
-    return item
+    return value
+  }
+
+  async getByKey (key: string): Promise<State> {
+    const item : State = await this.getById(key)
+    return this.normalizeValue(key, item)
   }
 
   async getItems (): Promise<State[]> {
-    const keys = await this.getKeys()
-    const items = await Promise.all(
-      keys.map((key: string) => {
-        return this.getByKey(key)
-      })
-    )
+    const items : State[] = await this.getValues()
     return items.filter(x => x)
   }
 }

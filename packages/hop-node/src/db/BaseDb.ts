@@ -102,6 +102,7 @@ class BaseDb {
   async _update (key: string, data: any) {
     return this.mutex.runExclusive(async () => {
       const { value } = await this._getUpdateData(key, data)
+      this.logIdOrRootOnEntry(value)
       return this.db.put(key, value)
     })
   }
@@ -184,6 +185,22 @@ class BaseDb {
           reject(err)
         })
     })
+  }
+
+  logIdOrRootOnEntry (entry: any): void {
+    // Use these identifiers as they are inserted upon ID or root creation and they
+    // are unique to each DB
+    const isEntryTransferId = entry?.isBondable
+    const isEntryTransferRoot = entry?.shouldBondTransferRoot
+
+    if (isEntryTransferId) {
+      const logger = this.logger.create({ id: entry.transferId })
+      logger.debug('transferId db entry log', JSON.stringify(entry))
+    }
+    if (isEntryTransferRoot) {
+      const logger = this.logger.create({ root: entry.transferRootHash })
+      logger.debug('transferRoot db entry log', JSON.stringify(entry))
+    }
   }
 }
 

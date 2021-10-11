@@ -12,7 +12,7 @@ import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { formatEther, parseEther } from 'ethers/lib/utils'
 import { logger, program } from './shared'
 
 async function sendTokens (
@@ -128,8 +128,7 @@ async function sendNativeToken (
   const provider = getRpcProvider(chain)
   const wallet = new Wallet(globalConfig.bonderPrivateKey, provider)
 
-  const nativeTokenDecimals = 18
-  const parsedAmount = parseUnits(amount.toString(), nativeTokenDecimals)
+  const parsedAmount = parseEther(amount.toString())
   let balance = await wallet.getBalance()
   if (balance.lt(parsedAmount)) {
     throw new Error('not enough token balance to send')
@@ -143,7 +142,7 @@ async function sendNativeToken (
   logger.info(`send tx: ${tx.hash}`)
   await tx?.wait()
   balance = await wallet.getBalance()
-  logger.debug(`send complete. new balance: ${formatUnits(balance)}`)
+  logger.debug(`send complete. new balance: ${formatEther(balance)}`)
 }
 
 program

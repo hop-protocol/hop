@@ -177,8 +177,7 @@ class TransfersDb extends BaseDb {
 
     // return all transfer-id keys if no filter is used (filter out timestamped keys)
     const keys = (await this.getKeys()).filter((key: string) => !key?.startsWith('transfer:'))
-    const items = await this.batchGetByIds(keys)
-    return items.filter(x => x)
+    return this.batchGetByIds(keys)
   }
 
   private async _getTransfers (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {

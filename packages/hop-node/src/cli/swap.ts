@@ -1,4 +1,5 @@
 import L2Bridge from 'src/watchers/classes/L2Bridge'
+import Token from 'src/watchers/classes/Token'
 import contracts from 'src/contracts'
 import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import isHToken from 'src/utils/isHToken'
@@ -72,8 +73,11 @@ program
         if (chain === Chain.Ethereum) {
           throw new Error('no AMM on Ethereum chain')
         }
-        const token = fromTokenIsHToken ? toToken : fromToken
-        const l2BridgeContract = contracts.get(token, chain)?.l2Bridge
+        const tokenSymbol = fromTokenIsHToken ? toToken : fromToken
+        const l2BridgeContract = contracts.get(tokenSymbol, chain)?.l2Bridge
+        if (!l2BridgeContract) {
+          throw new Error(`L2 bridge contract not found for ${chain}.${tokenSymbol}`)
+        }
         const l2Bridge = new L2Bridge(l2BridgeContract)
         const amm = l2Bridge.amm
         const ammWrapper = l2Bridge.ammWrapper
@@ -87,17 +91,28 @@ program
 
         let fromTokenIndex : number
         let toTokenIndex : number
+        let token : Token
         if (fromTokenIsHToken) {
           fromTokenIndex = TokenIndex.HopBridgeToken
           toTokenIndex = TokenIndex.CanonicalToken
+          token = await l2Bridge.hToken()
         } else {
           fromTokenIndex = TokenIndex.CanonicalToken
           toTokenIndex = TokenIndex.HopBridgeToken
+          token = await l2Bridge.canonicalToken()
         }
 
         const slippageToleranceBps = (slippage || 0.5) * 100
         const minBps = Math.ceil(10000 - slippageToleranceBps)
         const minAmountOut = amountOut.mul(minBps).div(10000)
+
+        logger.debug('checking approval')
+        const spender = amm.address
+        tx = await token.approve(spender, amountIn)
+        if (tx) {
+          logger.info(`approval tx: ${tx.hash}`)
+          await tx?.wait()
+        }
 
         logger.debug(`attempting to swap ${amount} ${fromToken} for at least ${minAmountOut} ${toToken}`)
         tx = await amm.swap(fromTokenIndex, toTokenIndex, amountIn, minAmountOut)

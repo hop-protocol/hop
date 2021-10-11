@@ -1,3 +1,4 @@
+import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
@@ -126,7 +127,7 @@ async function sendNativeToken (
   }
 
   const provider = getRpcProvider(chain)
-  const wallet = new Wallet(globalConfig.bonderPrivateKey, provider)
+  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider)
 
   const parsedAmount = parseEther(amount.toString())
   let balance = await wallet.getBalance()

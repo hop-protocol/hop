@@ -210,8 +210,7 @@ export default class Bridge extends ContractBase {
   ): Promise<string | undefined> {
     let txHash: string
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.bridgeContract.queryFilter(
-        this.bridgeContract.filters.TransferRootSet(),
+      const events = await this.getTransferRootSetEvents(
         start,
         end
       )
@@ -246,11 +245,11 @@ export default class Bridge extends ContractBase {
     )
   })
 
-  async decodeSettleBondedWithdrawalData (data: string): Promise<any> {
+  decodeSettleBondedWithdrawalData (data: string): any {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = await this.bridgeContract.interface.decodeFunctionData(
+    const decoded = this.bridgeContract.interface.decodeFunctionData(
       'settleBondedWithdrawal',
       data
     )
@@ -296,11 +295,11 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  decodeSettleBondedWithdrawalsData = rateLimitRetry(async (data: string): Promise<any> => {
+  decodeSettleBondedWithdrawalsData (data: string): any {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = await this.bridgeContract.interface.decodeFunctionData(
+    const decoded = this.bridgeContract.interface.decodeFunctionData(
       'settleBondedWithdrawals',
       data
     )
@@ -315,7 +314,7 @@ export default class Bridge extends ContractBase {
       transferIds,
       totalAmount
     }
-  })
+  }
 
   getTransferRootId = rateLimitRetry((
     transferRootHash: string,

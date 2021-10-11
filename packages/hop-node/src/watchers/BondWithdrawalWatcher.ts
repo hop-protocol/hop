@@ -2,10 +2,8 @@ import '../moduleAlias'
 import BNMin from 'src/utils/BNMin'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
-import chalk from 'chalk'
 import isL1ChainId from 'src/utils/isL1ChainId'
-import wait from 'src/utils/wait'
-import { BigNumber, Contract, providers } from 'ethers'
+import { BigNumber, Contract } from 'ethers'
 import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
@@ -51,10 +49,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async checkTransferSentFromDb () {
-    const sourceChainId = await this.bridge.getChainId()
-    this.logger.debug(`polling with sourceChainId ${sourceChainId}`)
     const dbTransfers = await this.db.transfers.getUnbondedSentTransfers({
-      sourceChainId
+      sourceChainId: await this.bridge.getChainId()
     })
     if (dbTransfers.length) {
       this.logger.debug(
@@ -116,11 +112,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
-    await this.waitTimeout(transferId, destinationChainId)
-
-    const bondedAmount = await destBridge.getTotalBondedWithdrawalAmountForTransferId(transferId)
-    logger.debug(`processing bondWithdrawal. bondedAmount: ${bondedAmount?.toString()}`)
-    if (bondedAmount.gt(0)) {
+    const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
+    logger.debug(`processing bondWithdrawal. isTransferSpent: ${isTransferSpent?.toString()}`)
+    if (isTransferSpent) {
       logger.warn('transfer already bonded. Adding to db and skipping')
       const event = await destBridge.getBondedWithdrawalEvent(transferId)
       if (event) {
@@ -195,36 +189,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
         deadline
       })
 
-      logger.info(
-        `sent bondWithdrawal on ${
-          attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
-        } (source chain ${sourceChainId}) tx:`,
-        chalk.bgYellow.black.bold(tx.hash)
-      )
-      this.notifier.info(
-        `sent ${
-          attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
-        } bondWithdrawal tx: ${tx.hash}`
-      )
-
-      await tx
-        ?.wait()
-        .then(async (receipt: providers.TransactionReceipt) => {
-          this.emit('bondWithdrawal', {
-            recipient,
-            destNetworkName: this.chainIdToSlug(destinationChainId),
-            destNetworkId: destinationChainId,
-            transferId
-          })
-
-          const bondedAmount = await destBridge.getBondedWithdrawalAmount(
-            transferId
-          )
-          logger.debug(
-            `destination chain id: ${destinationChainId} bondWithdrawal amount:`,
-            this.bridge.formatUnits(bondedAmount)
-          )
-        })
+      const sentChain = attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
+      const msg = `sent bondWithdrawal on ${sentChain} (source chain ${sourceChainId}) tx: ${tx.hash}`
+      logger.info(msg)
+      this.notifier.info(msg)
     } catch (err) {
       logger.log(err.message)
       const isCallExceptionError = /The execution failed due to an exception/gi.test(err.message)
@@ -246,6 +214,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         return
       }
       if (err instanceof NonceTooLowError) {
+        logger.error('nonce too low. trying again.')
         await this.db.transfers.update(transferId, {
           bondWithdrawalAttemptedAt: 0
         })
@@ -352,37 +321,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       tokenUsdPrice,
       chainNativeTokenUsdPrice
     }
-  }
-
-  async waitTimeout (transferId: string, destinationChainId: number) {
-    await wait(2 * 1000)
-    if (!this.order()) {
-      return
-    }
-    this.logger.debug(
-      `waiting for bondWithdrawal event. transferId: ${transferId} destinationChainId: ${destinationChainId}`
-    )
-    const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-    let timeout = this.order() * BONDER_ORDER_DELAY_MS
-    while (timeout > 0) {
-      if (!this.started) {
-        return
-      }
-      const bondedAmount = await bridge.getTotalBondedWithdrawalAmountForTransferId(
-        transferId
-      )
-      if (!bondedAmount.eq(0)) {
-        break
-      }
-      const delay = 2 * 1000
-      timeout -= delay
-      await wait(delay)
-    }
-    if (timeout <= 0) {
-      return
-    }
-    this.logger.debug(`transfer id already bonded ${transferId}`)
-    throw new Error('cancelled')
   }
 
   // ORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots) / 2

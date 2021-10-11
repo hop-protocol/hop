@@ -48,7 +48,7 @@ program
       console.log(`total: ${total}`)
       process.exit(0)
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

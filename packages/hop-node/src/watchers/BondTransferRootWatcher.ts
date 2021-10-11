@@ -2,10 +2,8 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
-import chalk from 'chalk'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import wait from 'src/utils/wait'
-import { BigNumber, Contract, providers } from 'ethers'
+import { BigNumber, Contract } from 'ethers'
 
 export interface Config {
   chainSlug: string
@@ -129,11 +127,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    logger.info(
-      sourceChainId,
-      'transferRootHash:',
-      chalk.bgMagenta.black(transferRootHash)
-    )
+    logger.info(`source: ${sourceChainId} transferRootHash: ${transferRootHash}`)
     logger.debug('committedAt:', committedAt)
     logger.debug('destinationChainId:', destinationChainId)
     logger.debug('sourceChainId:', sourceChainId)
@@ -141,8 +135,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     logger.debug('transferRootId:', transferRootId)
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     logger.debug('transferRootId:', transferRootId)
-
-    await this.waitTimeout(transferRootHash, totalAmount)
 
     const pendingTransfers: string[] = transferIds || []
     logger.debug('transferRootHash transferIds:', pendingTransfers)
@@ -179,70 +171,20 @@ class BondTransferRootWatcher extends BaseWatcher {
     await this.db.transferRoots.update(transferRootHash, {
       sentBondTxAt: Date.now()
     })
-    const tx = await l1Bridge.bondTransferRoot(
-      transferRootHash,
-      destinationChainId,
-      totalAmount
-    )
-    tx?.wait()
-      .then(async (receipt: providers.TransactionReceipt) => {
-        if (receipt.status !== 1) {
-          await this.db.transferRoots.update(transferRootHash, {
-            sentBondTxAt: 0
-          })
-          throw new Error('status=0')
-        }
 
-        this.emit('bondTransferRoot', {
-          transferRootHash,
-          destinationChainId,
-          totalAmount
-        })
-      })
-      .catch(async (err: Error) => {
-        this.db.transferRoots.update(transferRootHash, {
-          sentBondTxAt: 0
-        })
-
-        throw err
-      })
-    logger.info('L1 bondTransferRoot tx', chalk.bgYellow.black.bold(tx.hash))
-    this.notifier.info(
-      `destinationChainId: ${destinationChainId} bondTransferRoot tx: ${tx.hash}`
-    )
-  }
-
-  async waitTimeout (transferRootHash: string, totalAmount: BigNumber) {
-    await wait(2 * 1000)
-    if (!this.order()) {
-      return
-    }
-    this.logger.debug(
-      `waiting for bond root event. transfer root hash: ${transferRootHash}`
-    )
-    let timeout = this.order() * 15 * 1000
-    while (timeout > 0) {
-      if (!this.started) {
-        return
-      }
-      const transferRootId = await this.bridge.getTransferRootId(
+    try {
+      const tx = await l1Bridge.bondTransferRoot(
         transferRootHash,
+        destinationChainId,
         totalAmount
       )
-      const l1Bridge = this.bridge as L1Bridge
-      const bond = await l1Bridge.getTransferBond(transferRootId)
-      if (bond.createdAt.toNumber() > 0) {
-        break
-      }
-      const delay = 2 * 1000
-      timeout -= delay
-      await wait(delay)
+      const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash}`
+      logger.info(msg)
+      this.notifier.info(msg)
+    } catch (err) {
+      logger.error(err.message)
+      throw err
     }
-    if (timeout <= 0) {
-      return
-    }
-    this.logger.debug(`transfer root hash already bonded: ${transferRootHash}`)
-    throw new Error('cancelled')
   }
 }
 

@@ -29,7 +29,6 @@ type InflightItem = {
   hash?: string
   boosted: boolean
   sentAt: number
-  confirmed: boolean
 }
 
 type MarshalledItem = {
@@ -177,7 +176,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.timeTilBoostMs = timeTilBoostMs
   }
 
-  setGasPriceMutliplier (gasPriceMultiplier: number) {
+  setGasPriceMultiplier (gasPriceMultiplier: number) {
     this.gasPriceMultiplier = gasPriceMultiplier
   }
 
@@ -453,7 +452,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
-  private async handleConfirmation (txHash: string, receipt?: providers.TransactionReceipt) {
+  private async handleConfirmation (txHash: string, receipt: providers.TransactionReceipt) {
     if (this.confirmations) {
       return
     }
@@ -464,9 +463,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.gasPrice = tx.gasPrice
     this.maxFeePerGas = tx.maxFeePerGas
     this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas
-    if (!receipt) {
-      receipt = await this.getReceipt(txHash)
-    }
     this.receipt = receipt
     this.emit(State.Confirmed, receipt)
     this.logger.debug(`confirmed tx: ${tx.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}, ${this.getGasFeeDataAsString()}`)
@@ -498,10 +494,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private async handleInflightTx (item: InflightItem) {
-    if (item.confirmed) {
-      this.handleConfirmation(item.hash, this.receipt)
-      return
-    }
     if (item.boosted) {
       return
     }
@@ -569,13 +561,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
         await this.checkHasEnoughFunds(payload, gasFeeData)
 
-        // await here is intential to catch error below
+        // await here is intentional to catch error below
         const tx = await this.signer.sendTransaction(payload)
 
         return tx
       } catch (err) {
-        const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce)/gi.test(err.message)
+        const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/gi.test(err.message)
         if (nonceTooLow) {
+          this.logger.error(`nonce ${this.nonce} too low`)
           this.logger.error(err.message)
           throw new NonceTooLowError('NonceTooLow')
         }
@@ -627,8 +620,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.inflightItems.push({
       boosted: false,
       hash: tx.hash,
-      sentAt: Date.now(),
-      confirmed: false
+      sentAt: Date.now()
     })
     this.logger.debug(`tracking: inflightItems${JSON.stringify(this.inflightItems)}`)
     tx.wait().then((receipt: providers.TransactionReceipt) => {

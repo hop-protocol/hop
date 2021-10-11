@@ -35,13 +35,17 @@ class OsWatcher {
           reject(err)
           return
         }
-        const vcpus = os.cpus().length
-        const cpuPercent = stats.cpu
-        const cpuFormatted = `${cpuPercent.toFixed(2)}% out of 100*vcpus (${vcpus})`
-        const totalMemoryMb = os.totalmem() / 1024 / 1024
-        const memoryUsageMb = stats.memory / 1024 / 1024
+        if (!stats) {
+          reject(new Error('expected stats'))
+          return
+        }
+        const vcpus = os?.cpus()?.length
+        const cpuPercent = stats?.cpu
+        const cpuFormatted = `${cpuPercent?.toFixed(2)}% out of 100*vcpus (${vcpus})`
+        const totalMemoryMb = os?.totalmem() / 1024 / 1024
+        const memoryUsageMb = stats?.memory / 1024 / 1024
         const memoryPercent = (memoryUsageMb / totalMemoryMb) * 100
-        const memoryFormatted = `${memoryUsageMb.toFixed(2)}MB out of ${totalMemoryMb.toFixed(2)}MB (${memoryPercent.toFixed(2)}%)`
+        const memoryFormatted = `${memoryUsageMb?.toFixed(2)}MB out of ${totalMemoryMb?.toFixed(2)}MB (${memoryPercent?.toFixed(2)}%)`
         this.logger.debug(`CPU: ${cpuFormatted}`)
         this.logger.debug(`MEMORY: ${memoryFormatted}`)
         resolve(null)

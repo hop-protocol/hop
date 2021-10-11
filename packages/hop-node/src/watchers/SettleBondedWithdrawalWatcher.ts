@@ -82,15 +82,15 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
       // if all transfer ids have been marked as settled,
       // then mark transfer root as all settled since there is nothing to settle anymore
-      const allSettled = dbTransfers.every(
+      const allBondableTransfersSettled = dbTransfers.every(
         (dbTransfer: Transfer) => {
           // A transfer should not be settled if it is unbondable
           return !dbTransfer.isBondable || dbTransfer?.withdrawalBondSettled
         }
       )
-      if (allSettled) {
+      if (allBondableTransfersSettled) {
         await this.db.transferRoots.update(transferRootHash, {
-          allSettled
+          allSettled: allBondableTransfersSettled
         })
         continue
       }

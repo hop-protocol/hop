@@ -226,6 +226,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         item.destinationChainId &&
         item.sourceChainId &&
         item.shouldBondTransferRoot &&
+        item.totalAmount &&
         timestampOk
       )
     })

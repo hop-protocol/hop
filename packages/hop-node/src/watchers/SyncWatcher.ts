@@ -912,10 +912,12 @@ class SyncWatcher extends BaseWatcher {
   }
 
   public async calculateUnbondedTransferRootAmounts (destinationChainId: number) {
+    const destinationChain = this.chainIdToSlug(destinationChainId)
     const transferRoots = await this.db.transferRoots.getUnbondedTransferRoots({
       sourceChainId: this.chainSlugToId(this.chainSlug),
       destinationChainId
     })
+    this.logger.debug(`getUnbondedTransferRoots ${this.chainSlug}→${destinationChain}:`, JSON.stringify(transferRoots.map(({ transferRootHash, totalAmount }: TransferRoot) => ({ transferRootHash, totalAmount }))))
     let totalAmount = BigNumber.from(0)
     for (const transferRoot of transferRoots) {
       totalAmount = totalAmount.add(transferRoot.totalAmount)
@@ -953,6 +955,7 @@ class SyncWatcher extends BaseWatcher {
     const pendingAmounts = BigNumber.from(0)
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {
+      const sourceChain = this.chainSlug
       const destinationChain = this.chainIdToSlug(destinationChainId)
       if (
         this.chainSlug === Chain.Ethereum ||
@@ -961,6 +964,8 @@ class SyncWatcher extends BaseWatcher {
         continue
       }
       await this.updatePendingAmountsMap(destinationChainId)
+      const pendingAmounts = await this.getPendingAmounts(destinationChainId)
+      this.logger.debug(`pendingAmounts (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(pendingAmounts)}`)
     }
   }
 
@@ -978,6 +983,8 @@ class SyncWatcher extends BaseWatcher {
         continue
       }
       await this.updateUnbondedTransferRootAmountsMap(destinationChainId)
+      const unbondedTransferRootAmounts = this.getUnbondedTransferRootAmounts(destinationChainId)
+      this.logger.debug(`unbondedTransferRootAmounts (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(unbondedTransferRootAmounts)}`)
     }
   }
 
@@ -1039,6 +1046,26 @@ class SyncWatcher extends BaseWatcher {
     }
 
     return availableCredit
+  }
+
+  public getPendingAmounts (destinationChainId: number) {
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const pendingAmounts = this.pendingAmounts[destinationChain]
+    if (!pendingAmounts) {
+      return BigNumber.from(0)
+    }
+
+    return pendingAmounts
+  }
+
+  public getUnbondedTransferRootAmounts (destinationChainId: number) {
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const unbondedAmounts = this.unbondedTransferRootAmounts[destinationChain]
+    if (!unbondedAmounts) {
+      return BigNumber.from(0)
+    }
+
+    return unbondedAmounts
   }
 
   async uploadToS3 () {

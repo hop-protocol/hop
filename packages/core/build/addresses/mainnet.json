@@ -11,6 +11,9 @@
     ],
     "DAI": [
       "0xa6a688F107851131F0E1dce493EbBebFAf99203e"
+    ],
+    "ETH": [
+      "0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A"
     ]
   },
   "bridges": {
@@ -232,6 +235,55 @@
         "l2SaddleSwap": "0xa5A33aB9063395A90CCbEa2D86a62EcCf27B5742",
         "l2SaddleLpToken": "0x68f5d998F00bB2460511021741D098c05721d8fF",
         "bridgeDeployedBlockNumber": 945326
+      }
+    },
+    "ETH": {
+      "ethereum": {
+        "l1CanonicalToken": "0x0000000000000000000000000000000000000000",
+        "l1Bridge": "0xb8901acB165ed027E32754E0FFe830802919727f",
+        "bridgeDeployedBlockNumber": 13331564
+      },
+      "xdai": {
+        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1MessengerWrapper": "0x25FB92E505F752F730cAD0Bd4fa17ecE4A384266",
+        "l2CanonicalBridge": "0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d",
+        "l2CanonicalToken": "0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1",
+        "l2Bridge": "0xD8926c12C0B2E5Cd40cFdA49eCaFf40252Af491B",
+        "l2HopBridgeToken": "0xc46F2004006d4C770346f60a7BaA3f1Cc67dFD1c",
+        "l2AmmWrapper": "0x03D7f750777eC48d39D080b020D83Eb2CB4e3547",
+        "l2SaddleSwap": "0x4014DC015641c08788F15bD6eB20dA4c47D936d8",
+        "l2SaddleLpToken": "0xb9cca4Ed3f082a459c0851058D9FBA0B78dD6C7d",
+        "l1Amb": "0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e",
+        "l2Amb": "0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59",
+        "canonicalBridgeMaxPerTx": 1000000000,
+        "bridgeDeployedBlockNumber": 18359713
+      },
+      "polygon": {
+        "l1CanonicalBridge": "0xA0c68C638235ee32657e8f720a23ceC1bFc77C77",
+        "l1MessengerWrapper": "0xCC24674F41A8100E6748DAA184A191A8c8CE6741",
+        "l2CanonicalBridge": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+        "l2CanonicalToken": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+        "l2Bridge": "0xb98454270065A31D71Bf635F6F7Ee6A518dFb849",
+        "l2HopBridgeToken": "0x1fDeAF938267ca43388eD1FdB879eaF91e920c7A",
+        "l2AmmWrapper": "0xc315239cFb05F1E130E7E28E603CEa4C014c57f0",
+        "l2SaddleSwap": "0x266e2dc3C4c59E42AA07afeE5B09E964cFFe6778",
+        "l2SaddleLpToken": "0x971039bF0A49c8d8A675f839739eE7a42511eC91",
+        "l1FxBaseRootTunnel": "0xCC24674F41A8100E6748DAA184A191A8c8CE6741",
+        "l1PosRootChainManager": "0xA0c68C638235ee32657e8f720a23ceC1bFc77C77",
+        "l1PosPredicate": "0x8484Ef722627bf18ca5Ae6BcF031c23E6e922B30",
+        "bridgeDeployedBlockNumber": 19706859
+      },
+      "arbitrum": {
+        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1MessengerWrapper": "0xEcf268Be00308980B5b3fcd0975D47C4C8e1382a",
+        "l2CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l2CanonicalToken": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+        "l2Bridge": "0x3749C4f034022c39ecafFaBA182555d4508caCCC",
+        "l2HopBridgeToken": "0xDa7c0de432a9346bB6e96aC74e3B61A36d8a77eB",
+        "l2AmmWrapper": "0x33ceb27b39d2Bb7D2e61F7564d3Df29344020417",
+        "l2SaddleSwap": "0x652d27c0F72771Ce5C76fd400edD61B406Ac6D97",
+        "l2SaddleLpToken": "0x59745774Ed5EfF903e615F5A2282Cae03484985a",
+        "bridgeDeployedBlockNumber": 2135598
       }
     }
   }

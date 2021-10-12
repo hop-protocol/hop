@@ -82,7 +82,6 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
   const isNativeToken =
     useMemo(() => {
       try {
-        console.log('yooo', canonicalToken)
         return canonicalToken?.isNativeToken
       } catch (err) {
         logger.error(err)

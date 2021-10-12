@@ -26,6 +26,7 @@ import useBalance from 'src/hooks/useBalance'
 import { toTokenDisplay } from 'src/utils'
 import useApprove from 'src/hooks/useApprove'
 import useQueryParams from 'src/hooks/useQueryParams'
+import { reactAppNetwork } from 'src/config'
 
 type ConvertContextProps = {
   convertOptions: ConvertOption[]
@@ -191,8 +192,8 @@ const ConvertContextProvider: FC = ({ children }) => {
       return null
     }
     const unsupportedAssets = {
-      Optimism: ['MATIC', 'ETH'],
-      Arbitrum: ['MATIC'],
+      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC', 'ETH'],
+      Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
     }
 
     const selectedTokenSymbol = selectedBridge?.getTokenSymbol()

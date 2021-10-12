@@ -86,10 +86,16 @@ const Web3ContextProvider: FC = ({ children }) => {
         walletName: 'walletConnect',
         rpc: {
           1: getRpcUrl('ethereum'),
+          42: getRpcUrl('ethereum'),
           42161: getRpcUrl('arbitrum'),
+          421611: getRpcUrl('arbitrum'),
+          200: getRpcUrl('arbitrum'),
           10: getRpcUrl('optimism'),
+          69: getRpcUrl('optimism'),
+          420: getRpcUrl('optimism'),
           100: getRpcUrl('xdai'),
           137: getRpcUrl('polygon'),
+          80001: getRpcUrl('polygon')
         },
         preferred: true,
       },

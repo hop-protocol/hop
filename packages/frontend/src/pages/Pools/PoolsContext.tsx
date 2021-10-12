@@ -24,6 +24,7 @@ import useBalance from 'src/hooks/useBalance'
 import logger from 'src/logger'
 import useApprove from 'src/hooks/useApprove'
 import { shiftBNDecimals } from 'src/utils'
+import { reactAppNetwork } from 'src/config'
 
 type PoolsContextProps = {
   networks: Network[]
@@ -188,8 +189,8 @@ const PoolsContextProvider: FC = ({ children }) => {
       return null
     }
     const unsupportedAssets = {
-      Optimism: ['MATIC', 'ETH'],
-      Arbitrum: ['MATIC'],
+      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC', 'ETH'],
+      Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
     }
 
     const selectedTokenSymbol = selectedBridge?.getTokenSymbol()

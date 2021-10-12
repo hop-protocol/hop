@@ -211,8 +211,8 @@ const Send: FC = () => {
       return null
     }
     const unsupportedAssets = {
-      Optimism: ['MATIC', 'ETH'],
-      Arbitrum: ['MATIC'],
+      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC', 'ETH'],
+      Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
     }
 
     for (const chain in unsupportedAssets) {

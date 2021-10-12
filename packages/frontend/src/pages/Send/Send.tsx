@@ -600,10 +600,6 @@ const Send: FC = () => {
         const destChain = sdk.Chain.fromSlug(toNetwork.slug)
         const watcher = sdk.watch(tx.hash, sourceToken!.symbol, sourceChain, destChain)
 
-        watcher.on(sdk.Event.SourceTxReceipt, async data => {
-          console.log(`source tx receipt event data:`, data)
-        })
-
         watcher.on(sdk.Event.DestinationTxReceipt, async data => {
           console.log(`dest tx receipt event data:`, data)
         })

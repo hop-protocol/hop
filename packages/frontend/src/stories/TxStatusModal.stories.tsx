@@ -1,6 +1,7 @@
 import React from 'react'
 import { ComponentStory, ComponentMeta } from '@storybook/react'
 import TxStatusModal from 'src/components/txStatus/TxStatusModal'
+import { storyTransactions } from './data'
 import Transaction from 'src/models/Transaction'
 
 export default {
@@ -13,12 +14,7 @@ const Template: ComponentStory<typeof TxStatusModal> = args => {
     console.log('close')
   }
 
-  const tx = {
-    // networkName: 'ethereum',
-    // token: {
-    //   symbol: '',
-    // },
-  }
+  const tx = storyTransactions[0]
 
   return <TxStatusModal onClose={handleClose} tx={tx as Transaction} {...args} />
 }

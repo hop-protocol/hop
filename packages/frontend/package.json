@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@ethersproject/address": "5.0.8",
-    "@hop-protocol/core": "0.0.1-beta.34",
+    "@hop-protocol/core": "0.0.1-beta.35",
     "@hop-protocol/sdk": "0.0.1-beta.203",
     "@material-ui/core": "4.11.0",
     "@material-ui/icons": "4.9.1",

@@ -21,11 +21,11 @@ program
         const config: FileConfig = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      const chain = source.chain
+      const sourceChain = source.sourceChain
       const token = source.token
-      const destinationChain = source.destChain
-      if (!chain) {
-        throw new Error('chain is required')
+      const destinationChain = source.destinationChain
+      if (!sourceChain) {
+        throw new Error('source chain is required')
       }
       if (!token) {
         throw new Error('token is required')
@@ -34,7 +34,7 @@ program
         throw new Error('destination chain is required')
       }
       const transferRoot = await getUnconfirmedTransferRoots(
-        chain,
+        sourceChain,
         token,
         destinationChain
       )

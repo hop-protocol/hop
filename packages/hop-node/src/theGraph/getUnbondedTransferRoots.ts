@@ -63,7 +63,6 @@ function getTransferRootBondedsQuery () {
         }
       ) {
         timestamp
-        totalBondsSettled
       }
     }
   `

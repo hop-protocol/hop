@@ -1,7 +1,7 @@
-import BaseDb, { KeyFilter } from './BaseDb'
+import TimestampedKeysDb from './TimestampedKeysDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
-import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
+import { KeyFilter } from './BaseDb'
 import { OneWeekMs, TxError, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
@@ -21,10 +21,11 @@ export type Transfer = {
   withdrawalBondSettled?: boolean
   withdrawalBonded?: boolean
   withdrawalBonder?: string
-  withdrawalBondedTxHash?: string
   withdrawalBondTxError?: TxError
   withdrawalBondBackoffIndex?: number
   bondWithdrawalAttemptedAt?: number
+  isTransferSpent?: boolean
+  transferSpentTxHash?: string
 
   recipient?: string
   amount?: BigNumber
@@ -41,45 +42,7 @@ export type Transfer = {
   committed: boolean
 }
 
-class TransfersTimestampedKeysDb extends BaseDb {}
-
-class TransfersDb extends BaseDb {
-  ready = false
-  subDb : TransfersTimestampedKeysDb
-
-  constructor (prefix: string, _namespace?: string) {
-    super(prefix, _namespace)
-
-    this.subDb = new TransfersTimestampedKeysDb(`${prefix}:timestampedKeys`, _namespace)
-
-    // this only needs to be ran once on start up to backfill timestamped keys.
-    // this function can be removed once all bonders update.
-    // timestamped keys (in addition to transferId as keys) are needed to filter
-    // leveldb read streams.
-    this.trackTimestampedKeys()
-      .then(() => {
-        this.ready = true
-        this.logger.debug('transfersDb ready')
-      })
-      .catch(this.logger.error)
-  }
-
-  private async tilReady (): Promise<boolean> {
-    if (this.ready) {
-      return true
-    }
-
-    await wait(100)
-    return this.tilReady()
-  }
-
-  async trackTimestampedKeys () {
-    const transfers = await this._getTransfers()
-    for (const transfer of transfers) {
-      await this.trackTimestampedKey(transfer)
-    }
-  }
-
+class TransfersDb extends TimestampedKeysDb<Transfer> {
   async trackTimestampedKey (transfer: Partial<Transfer>) {
     const data = await this.getTimestampedKeyValueForUpdate(transfer)
     if (data) {
@@ -169,10 +132,10 @@ class TransfersDb extends BaseDb {
         filter.gte = `transfer:${dateFilter.fromUnix}`
       }
       if (dateFilter.toUnix) {
-        filter.lte = `transfer:${dateFilter.toUnix}~`
+        filter.lte = `transfer:${dateFilter.toUnix}~` // tilde is intentional
       }
       const kv = await this.subDb.getKeyValues(filter)
-      return kv.map(x => x?.value?.transferId).filter(x => x)
+      return kv.map((x: any) => x?.value?.transferId).filter((x: any) => x)
     }
 
     // return all transfer-id keys if no filter is used (filter out timestamped keys)
@@ -180,7 +143,7 @@ class TransfersDb extends BaseDb {
     return this.batchGetByIds(keys)
   }
 
-  private async _getTransfers (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
+  async getItems (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
     const transferIds = await this.getTransferIds(dateFilter)
     this.logger.debug(`transferIds length: ${transferIds.length}`)
 
@@ -207,7 +170,7 @@ class TransfersDb extends BaseDb {
 
   async getTransfers (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
     await this.tilReady()
-    return this._getTransfers(dateFilter)
+    return this.getItems(dateFilter)
   }
 
   // gets only transfers within range: now - 1 week ago
@@ -271,6 +234,7 @@ class TransfersDb extends BaseDb {
         !item.withdrawalBonded &&
         item.transferSentTxHash &&
         item.isBondable &&
+        !item.isTransferSpent &&
         timestampOk
       )
     })

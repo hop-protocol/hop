@@ -45,7 +45,10 @@ program
       const toDate = Number(source.toDate)
       let items : any[] = []
       if (dbName === 'transfer-roots') {
-        items = await db.transferRoots.getTransferRoots()
+        items = await db.transferRoots.getTransferRoots({
+          fromUnix: fromDate,
+          toUnix: toDate
+        })
       } else if (dbName === 'transfers') {
         items = await db.transfers.getTransfers({
           fromUnix: fromDate,

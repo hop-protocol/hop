@@ -99,17 +99,22 @@ class SyncWatcher extends BaseWatcher {
 
   async pollSync () {
     while (true) {
-      if (!this.ready) {
-        await wait(5 * 1000)
-        continue
-      }
+      try {
+        if (!this.ready) {
+          await wait(5 * 1000)
+          continue
+        }
 
-      await this.preSyncHandler()
-      await this.syncHandler()
-      this.logger.debug('done syncing main handler. index:', this.syncIndex)
-      await this.incompletePollSync()
-      this.logger.debug('done syncing incomplete items. index:', this.syncIndex)
-      await this.postSyncHandler()
+        await this.preSyncHandler()
+        await this.syncHandler()
+        this.logger.debug('done syncing main handler. index:', this.syncIndex)
+        await this.incompletePollSync()
+        this.logger.debug('done syncing incomplete items. index:', this.syncIndex)
+        await this.postSyncHandler()
+      } catch (err) {
+        this.notifier.error(`pollsync error: ${err.message}`)
+        this.logger.error('pollSync error:', err)
+      }
     }
   }
 

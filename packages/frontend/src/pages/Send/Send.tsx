@@ -211,19 +211,21 @@ const Send: FC = () => {
       return null
     }
     const unsupportedAssets = {
-      Optimism: 'MATIC',
-      Arbitrum: 'MATIC',
+      Optimism: ['MATIC', 'ETH'],
+      Arbitrum: ['MATIC'],
     }
 
     for (const chain in unsupportedAssets) {
-      const tokenSymbol = unsupportedAssets[chain]
-      const isUnsupported =
-        selectedBridge?.getTokenSymbol() === tokenSymbol &&
-        [fromNetwork?.slug, toNetwork?.slug].includes(chain.toLowerCase())
-      if (isUnsupported) {
-        return {
-          chain,
-          tokenSymbol,
+      const tokenSymbols = unsupportedAssets[chain]
+      for (const tokenSymbol of tokenSymbols) {
+        const isUnsupported =
+          selectedBridge?.getTokenSymbol() === tokenSymbol &&
+          [fromNetwork?.slug, toNetwork?.slug].includes(chain.toLowerCase())
+        if (isUnsupported) {
+          return {
+            chain,
+            tokenSymbol,
+          }
         }
       }
     }

@@ -11,17 +11,13 @@ export default {
 } as ComponentMeta<typeof TransactionsList>
 
 const Template: ComponentStory<typeof TransactionsList> = args => {
-  function handleClear() {
-    console.log('clear')
-  }
-
   const transactions = storyTransactions.map(tx =>
     createTransaction(tx, tx.networkName, tx.destNetworkName, tx.token)
   )
 
   return (
     <Div width="480px">
-      <TransactionsList {...args} transactions={transactions} clear={handleClear} />
+      <TransactionsList {...args} transactions={transactions} />
     </Div>
   )
 }

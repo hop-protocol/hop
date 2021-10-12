@@ -63,7 +63,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-function TransactionRow({ tx, styles }) {
+function TransactionRow({ tx, styles }: { tx: Transaction; styles: any }) {
   const { destCompleted } = useTransactionStatus(tx, tx.networkName)
 
   return (
@@ -86,7 +86,7 @@ function TransactionRow({ tx, styles }) {
                 <Flex mt={2} fontSize={0}>
                   <Link
                     color="inherit"
-                    href={tx.explorerLink}
+                    href={tx.destExplorerLink}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -100,7 +100,7 @@ function TransactionRow({ tx, styles }) {
                 <Flex mt={2} fontSize={0}>
                   <Link
                     color="inherit"
-                    href={tx.explorerLink}
+                    href={tx.destExplorerLink}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -118,7 +118,7 @@ function TransactionRow({ tx, styles }) {
 
 function TransactionsList(props: any) {
   const styles = useStyles()
-  const { transactions, clear } = useTxHistory()
+  const { transactions, clear } = useTxHistory(props.transactions)
 
   if (!transactions || transactions.length === 0) {
     return <Typography variant="body1">Your transactions will appear here...</Typography>

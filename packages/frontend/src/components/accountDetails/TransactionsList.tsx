@@ -98,14 +98,18 @@ function TransactionRow({ tx, styles }: { tx: Transaction; styles: any }) {
               <>
                 <CircularProgress size={20} thickness={5} />
                 <Flex mt={2} fontSize={0}>
-                  <Link
-                    color="inherit"
-                    href={tx.destExplorerLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Pending
-                  </Link>
+                  {tx.destExplorerLink ? (
+                    <Link
+                      color="inherit"
+                      href={tx.destExplorerLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Pending
+                    </Link>
+                  ) : (
+                    <Flex>Pending</Flex>
+                  )}
                 </Flex>
               </>
             )}

@@ -421,19 +421,24 @@ class SyncWatcher extends BaseWatcher {
 
     try {
       const { transactionHash } = event
+      logger.debug('calling getTransaction')
       const tx = await this.bridge.getTransaction(transactionHash)
-      const { from: bonder } = tx
+      const { from: bonder, blockNumber } = tx
+      logger.debug('got tx')
       const transferRootId = await this.bridge.getTransferRootId(
         root,
         amount
       )
-      const timestamp = await this.bridge.getEventTimestamp(event)
+      logger.debug(`calling getBlockTimestamp, blockNumber: ${blockNumber}`)
+      const timestamp = await this.bridge.getBlockTimestamp(blockNumber)
+      logger.debug('got block timestamp')
 
       logger.debug(`transferRootHash from event: ${root}`)
       logger.debug(`bondAmount: ${this.bridge.formatUnits(amount)}`)
       logger.debug(`transferRootId: ${transferRootId}`)
       logger.debug(`event transactionHash: ${transactionHash}`)
       logger.debug(`bonder: ${bonder}`)
+      logger.debug(`timestamp: ${timestamp}`)
 
       await this.db.transferRoots.update(root, {
         transferRootHash: root,

@@ -10,7 +10,7 @@ import {
   getPublicRpcUrl,
   getBaseExplorerUrl,
 } from 'src/utils'
-import { networks, infuraKey, blocknativeDappid, fortmaticApiKey, portisDappId } from 'src/config'
+import { networks, blocknativeDappid, fortmaticApiKey, portisDappId } from 'src/config'
 import { L1_NETWORK } from 'src/constants'
 
 import MetamaskAccountsSettingsHighlight from 'src/assets/onboard/metamask-accounts-settings-highlight.png'

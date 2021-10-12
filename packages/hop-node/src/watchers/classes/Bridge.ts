@@ -6,6 +6,7 @@ import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 import shiftBNDecimals from 'src/utils/shiftBNDecimals'
+import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import { BonderFeeBps, Chain, MaxGasPriceMultiplier, MinBonderFeeAbsolute } from 'src/constants'
 import { BonderFeeTooLowError } from 'src/types/error'
@@ -360,15 +361,15 @@ export default class Bridge extends ContractBase {
     }
   }
 
-  getTransferRootId = rateLimitRetry((
+  getTransferRootId = (
     transferRootHash: string,
     totalAmount: BigNumber
-  ): Promise<string> => {
-    return this.bridgeContract.getTransferRootId(
+  ): string => {
+    return getTransferRootId(
       transferRootHash,
       totalAmount
     )
-  })
+  }
 
   getTransferRoot = rateLimitRetry((
     transferRootHash: string,

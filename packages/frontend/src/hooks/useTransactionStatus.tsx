@@ -5,11 +5,13 @@ import useInterval from 'src/hooks/useInterval'
 import Transaction from 'src/models/Transaction'
 import { loadState, saveState } from 'src/utils/localStorage'
 import logger from 'src/logger'
+import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
+  const { updateTransaction } = useTxHistory()
   const [completed, setCompleted] = useState<boolean>()
   const [destCompleted, setDestCompleted] = useState<boolean>(
-    !transaction?.pendingDestinationConfirmation || false
+    !transaction?.pendingDestinationConfirmation
   )
 
   const { sdk } = useApp()
@@ -20,11 +22,12 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   }, [chain])
 
   async function updateDestTxStatus() {
-    if (!destCompleted) {
+    if (transaction && destCompleted === false) {
       const isSpent = await transaction?.checkIsTransferIdSpent(sdk)
       logger.debug(`isSpent:`, isSpent)
       if (isSpent) {
         setDestCompleted(true)
+        updateTransaction(transaction)
       }
     }
   }

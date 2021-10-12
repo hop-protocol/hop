@@ -72,4 +72,5 @@ export const twitterUrl = 'https://twitter.com/HopProtocol'
 
 export enum EventNames {
   TransferSent = 'TransferSent',
+  TransferSentToL2 = 'TransferSentToL2',
 }

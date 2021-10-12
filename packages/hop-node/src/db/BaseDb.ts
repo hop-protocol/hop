@@ -4,15 +4,27 @@ import mkdirp from 'mkdirp'
 import os from 'os'
 import path from 'path'
 import sub from 'subleveldown'
+import wait from 'src/utils/wait'
+import { EventEmitter } from 'events'
 import { Mutex } from 'async-mutex'
 import { TenSecondsMs } from 'src/constants'
 import { config as globalConfig } from 'src/config'
 
 const dbMap: { [key: string]: any } = {}
 
+export enum Event {
+  Error = 'error',
+  Batch = 'batch',
+}
+
 export type BaseItem = {
   _id?: string
   _createdAt?: number
+}
+
+export type KV = {
+  key: string
+  value: any
 }
 
 // this are options that leveldb createReadStream accepts
@@ -27,13 +39,18 @@ export type KeyFilter = {
   values?: boolean
 }
 
-class BaseDb {
+class BaseDb extends EventEmitter {
   public db: any
   public prefix: string
   logger: Logger
   mutex: Mutex = new Mutex()
+  pollIntervalMs : number = 5 * 1000
+  lastBatchUpdatedAt : number = Date.now()
+  batchSize : number = 5
+  batchQueue : KV[] = []
 
   constructor (prefix: string, _namespace?: string) {
+    super()
     if (!prefix) {
       throw new Error('db prefix is required')
     }
@@ -74,6 +91,7 @@ class BaseDb {
         this.logger.debug('closed')
       })
       .on('batch', (ops: any[]) => {
+        this.emit(Event.Batch, ops)
         for (const op of ops) {
           if (op.type === 'put') {
             logPut(op.key, op.value)
@@ -87,8 +105,37 @@ class BaseDb {
         this.logger.debug(`clear item, key=${key}`)
       })
       .on('error', (err: Error) => {
+        this._emitError(err)
         this.logger.error(`leveldb error: ${err.message}`)
       })
+
+    this.pollBatchQueue()
+  }
+
+  async pollBatchQueue () {
+    while (true) {
+      await this.checkBatchQueue()
+      await wait(this.pollIntervalMs)
+    }
+  }
+
+  async addUpdateKvToBatchQueue (key: string, value: any) {
+    this.logger.debug(`adding to batch, key: ${key} `)
+    this.batchQueue.push({ key, value })
+  }
+
+  async checkBatchQueue () {
+    const timeLimit = 5 * 1000
+    const timestampOk = this.lastBatchUpdatedAt + timeLimit < Date.now()
+    const batchSizeOk = this.batchQueue.length >= this.batchSize
+    const shouldPutBatch = timestampOk || batchSizeOk
+    if (shouldPutBatch) {
+      const ops = this.batchQueue.slice(0)
+      this.batchQueue = []
+      this.lastBatchUpdatedAt = Date.now()
+      this.logger.debug(`executing batch, items: ${ops?.length} `)
+      await this.batchUpdate(ops)
+    }
   }
 
   protected async _getUpdateData (key: string, data: any) {
@@ -100,33 +147,45 @@ class BaseDb {
   }
 
   async _update (key: string, data: any) {
+    const logger = this.logger.create({ id: key })
     return this.mutex.runExclusive(async () => {
-      const { value } = await this._getUpdateData(key, data)
-      return this.db.put(key, value)
+      return new Promise(async (resolve, reject) => {
+        const errCb = (err: Error) => reject(err)
+        const cb = (ops: any[]) => {
+          this.off(Event.Error, errCb)
+          logger.debug(`received batch put event. items: ${ops?.length}`)
+          resolve(null)
+        }
+        this.once(Event.Error, errCb)
+        this.once(Event.Batch, cb)
+        this.addUpdateKvToBatchQueue(key, data)
+          .then(() => {
+            this.checkBatchQueue()
+          })
+      })
     })
   }
 
-  public async batchUpdate (updates: any[]) {
-    return this.mutex.runExclusive(async () => {
-      const ops : any[] = []
-      for (const data of updates) {
-        const { key, value } = await this._getUpdateData(data.key, data.value)
-        ops.push({
-          type: 'put',
-          key,
-          value
-        })
-      }
+  public async batchUpdate (putKvs: KV[]) {
+    const ops : any[] = []
+    for (const data of putKvs) {
+      const { key, value } = await this._getUpdateData(data.key, data.value)
+      ops.push({
+        type: 'put',
+        key,
+        value
+      })
+    }
 
-      return new Promise((resolve, reject) => {
-        this.db.batch(ops, (err: Error) => {
-          if (err) {
-            reject(err)
-            return
-          }
+    return new Promise((resolve, reject) => {
+      this.db.batch(ops, (err: Error) => {
+        if (err) {
+          this._emitError(err)
+          reject(err)
+          return
+        }
 
-          resolve(null)
-        })
+        resolve(null)
       })
     })
   }
@@ -185,9 +244,9 @@ class BaseDb {
     return kv.map(x => x.value).filter(x => x)
   }
 
-  async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<any[]> {
+  async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<KV[]> {
     return new Promise((resolve, reject) => {
-      const kv : any[] = []
+      const kv : KV[] = []
       this.db.createReadStream(filter)
         .on('data', (key: any, value: any) => {
           // the parameter types depend on what key/value enabled options were used
@@ -211,6 +270,13 @@ class BaseDb {
           reject(err)
         })
     })
+  }
+
+  // explainer: https://stackoverflow.com/q/35185749/1439168
+  private _emitError (err: Error) {
+    if (this.listeners(Event.Error).length > 0) {
+      this.emit(Event.Error, err)
+    }
   }
 }
 

@@ -6,7 +6,7 @@ import Token from './classes/Token'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import promiseTimeout from 'src/utils/promiseTimeout'
 import wait from 'src/utils/wait'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber, Contract, constants } from 'ethers'
 import { Chain } from 'src/constants'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
@@ -121,8 +121,14 @@ class StakeWatcher extends BaseWatcher {
       if (!isL1) {
         const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
           .bridge as L1Bridge
-        const l1Token = await l1Bridge.l1CanonicalToken()
-        const l1Balance = await l1Token.getBalance()
+        const isEthSend = l1Bridge.l1CanonicalTokenAddress === constants.AddressZero
+        let l1Balance
+        if (isEthSend) {
+          l1Balance = await this.bridge.getEthBalance()
+        } else {
+          const l1Token = await l1Bridge.l1CanonicalToken()
+          l1Balance = await l1Token.getBalance()
+        }
         this.logger.debug(
           'l1 token balance:',
           this.bridge.formatUnits(l1Balance)
@@ -146,10 +152,13 @@ class StakeWatcher extends BaseWatcher {
 
           let tx: any
           const spender = l1Bridge.getAddress()
-          tx = await l1Token.approve(spender, convertAmount)
-          if (tx) {
-            this.logger.info(`L1 canonical token approve tx: ${tx?.hash}`)
-            await tx.wait()
+          if (!isEthSend) {
+            const l1Token = await l1Bridge.l1CanonicalToken()
+            tx = await l1Token.approve(spender, convertAmount)
+            if (tx) {
+              this.logger.info(`L1 canonical token approve tx: ${tx?.hash}`)
+              await tx.wait()
+            }
           }
           tx = await l1Bridge.convertCanonicalTokenToHopToken(
             this.token.chainId,

@@ -6,17 +6,16 @@ import Button from 'src/components/buttons/Button'
 import SendIcon from '@material-ui/icons/Send'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
-import Transaction from 'src/models/Transaction'
 import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/txStatus/TxStatusModal'
 import DetailRow from 'src/components/DetailRow'
-import { BigNumber, ethers } from 'ethers'
+import { BigNumber } from 'ethers'
 import { parseUnits, formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, getBonderFeeWithId, normalizeNumberInput, toTokenDisplay } from 'src/utils'
+import { commafy, normalizeNumberInput, toTokenDisplay } from 'src/utils'
 import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
 import useBalance from 'src/hooks/useBalance'
 import useSendData from 'src/pages/Send/useSendData'
@@ -28,7 +27,6 @@ import useApprove from 'src/hooks/useApprove'
 import { reactAppNetwork } from 'src/config'
 import InfoTooltip from 'src/components/infoTooltip'
 import { amountToBN, formatError } from 'src/utils/format'
-import { createTransaction } from 'src/utils/createTransaction'
 import { useFeeConversions } from 'src/hooks/useFeeConversions'
 import { useSendStyles } from './useSendStyles'
 import { useAssets } from 'src/hooks/useAssets'
@@ -50,7 +48,7 @@ const Send: FC = () => {
     settings,
   } = useApp()
   const { slippageTolerance, deadline } = settings
-  const { provider, checkConnectedNetworkId, address } = useWeb3Context()
+  const { checkConnectedNetworkId, address } = useWeb3Context()
   const { queryParams, updateQueryParams } = useQueryParams()
   const [fromNetwork, _setFromNetwork] = useState<Network>()
   const [toNetwork, _setToNetwork] = useState<Network>()
@@ -386,7 +384,7 @@ const Send: FC = () => {
     amountOutMin,
     bonderFee,
     customRecipient,
-    deadline: settings.deadline,
+    deadline,
     destinationTxFee,
     fromNetwork,
     fromTokenAmount,

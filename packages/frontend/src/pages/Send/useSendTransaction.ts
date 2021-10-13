@@ -1,12 +1,21 @@
 import { useState, useEffect } from 'react'
-import { constants, utils } from 'ethers'
-import { useApp } from 'src/contexts/AppContext'
+import { BigNumber, constants, Signer, utils } from 'ethers'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
 import { getBonderFeeWithId } from 'src/utils'
 import { createTransaction } from 'src/utils/createTransaction'
 import { formatError } from 'src/utils/format'
+import { HopBridge } from '@hop-protocol/sdk'
+
+function handleTransaction(tx, fromNetwork, toNetwork, sourceToken, txHistory) {
+  let txObj: Transaction | null = null
+  if (tx?.hash && fromNetwork) {
+    txObj = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
+    txHistory?.addTransaction(txObj)
+  }
+  return txObj
+}
 
 export function useSendTransaction(props) {
   const {
@@ -26,9 +35,55 @@ export function useSendTransaction(props) {
     txHistory,
   } = props
   const [tx, setTx] = useState<Transaction | null>(null)
-  const [sending, setSending] = useState(false)
+  const [sending, setSending] = useState<boolean>(false)
   const { provider, checkConnectedNetworkId } = useWeb3Context()
+  const [recipient, setRecipient] = useState<string>()
+  const [signer, setSigner] = useState<Signer>()
+  const [bridge, setBridge] = useState<HopBridge>()
+  const [parsedAmount, setParsedAmount] = useState<BigNumber>(BigNumber.from(0))
+  const [totalBonderFee, setTotalBonderFee] = useState<BigNumber>(BigNumber.from(0))
 
+  // Set signer
+  useEffect(() => {
+    if (provider) {
+      const s = provider.getSigner()
+      setSigner(s)
+    }
+  }, [provider])
+
+  // Set recipient and bridge
+  useEffect(() => {
+    async function setRecipientAndBridge() {
+      if (signer) {
+        const r = customRecipient || (await signer.getAddress())
+        setRecipient(r)
+
+        if (sourceToken) {
+          const b = sdk.bridge(sourceToken.symbol).connect(signer)
+          setBridge(b)
+        }
+      }
+    }
+
+    setRecipientAndBridge()
+  }, [signer, sourceToken])
+
+  // Set parsedAmount and totalBonderFee
+  useEffect(() => {
+    if (fromTokenAmount && sourceToken && bonderFee && destinationTxFee) {
+      const parsedAmount = utils.parseUnits(fromTokenAmount, sourceToken.decimals)
+
+      let totalBonderFee = bonderFee
+      if (destinationTxFee?.gt(0)) {
+        totalBonderFee = totalBonderFee.add(destinationTxFee)
+      }
+
+      setParsedAmount(parsedAmount)
+      setTotalBonderFee(totalBonderFee)
+    }
+  }, [fromTokenAmount, sourceToken, bonderFee, destinationTxFee])
+
+  // Master send method
   const send = async () => {
     try {
       if (!fromNetwork || !toNetwork) {
@@ -41,7 +96,15 @@ export function useSendTransaction(props) {
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
 
+      if (!signer) {
+        throw new Error('Cannot send: signer does not exist.')
+      }
+      if (!sourceToken) {
+        throw new Error('No from token selected')
+      }
+
       setSending(true)
+
       let tx: Transaction | null = null
       if (fromNetwork.isLayer1) {
         tx = await sendl1ToL2()
@@ -79,14 +142,6 @@ export function useSendTransaction(props) {
   }
 
   const sendl1ToL2 = async () => {
-    const signer = provider?.getSigner()
-    if (!signer) {
-      throw new Error('Cannot send: signer does not exist.')
-    }
-    if (!sourceToken) {
-      throw new Error('No from token selected')
-    }
-
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
@@ -101,42 +156,22 @@ export function useSendTransaction(props) {
         },
       },
       onConfirm: async () => {
-        if (!amountOutMin) return
-        const parsedAmount = utils.parseUnits(fromTokenAmount, sourceToken.decimals).toString()
-        const recipient = customRecipient || (await signer.getAddress())
-        const relayer = constants.AddressZero
-        const relayerFee = 0
-        const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
+        if (!amountOutMin || !bridge) return
 
-        const tx = await bridge.send(parsedAmount, sdk.Chain.Ethereum, toNetwork?.slug, {
+        return bridge.send(parsedAmount, sdk.Chain.Ethereum, toNetwork?.slug, {
           deadline: deadline(),
-          relayer,
-          relayerFee,
+          relayer: constants.AddressZero,
+          relayerFee: 0,
           recipient,
           amountOutMin,
         })
-        return tx
       },
     })
 
-    let txObj: Transaction | null = null
-    if (tx?.hash && fromNetwork) {
-      txObj = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
-      txHistory?.addTransaction(txObj)
-    }
-
-    return txObj
+    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, txHistory)
   }
 
   const sendl2ToL1 = async () => {
-    const signer = provider?.getSigner()
-    if (!signer) {
-      throw new Error('Cannot send: signer does not exist.')
-    }
-    if (!sourceToken) {
-      throw new Error('No from token selected')
-    }
-
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
@@ -151,58 +186,28 @@ export function useSendTransaction(props) {
         },
       },
       onConfirm: async () => {
-        if (!amountOutMin || !bonderFee) return
-        const destinationAmountOutMin = 0
-        const destinationDeadline = 0
-        const parsedAmountIn = utils.parseUnits(fromTokenAmount, sourceToken.decimals)
-        const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
-
-        let totalBonderFee = bonderFee
-        if (destinationTxFee?.gt(0)) {
-          totalBonderFee = totalBonderFee.add(destinationTxFee)
-        }
-
-        if (totalBonderFee.gt(parsedAmountIn)) {
+        if (!amountOutMin || !bonderFee || !bridge) return
+        if (totalBonderFee.gt(parsedAmount)) {
           throw new Error('Amount must be greater than bonder fee')
         }
-        const recipient = customRecipient || (await signer?.getAddress())
 
-        totalBonderFee = getBonderFeeWithId(totalBonderFee)
-        const tx = await bridge.send(
-          parsedAmountIn,
-          fromNetwork?.slug as string,
-          toNetwork?.slug as string,
-          {
-            recipient,
-            bonderFee: totalBonderFee,
-            amountOutMin: amountOutMin.sub(totalBonderFee),
-            deadline: deadline(),
-            destinationAmountOutMin,
-            destinationDeadline,
-          }
-        )
-        return tx
+        const bonderFeeWithId = getBonderFeeWithId(totalBonderFee)
+
+        return bridge.send(parsedAmount, fromNetwork?.slug as string, toNetwork?.slug as string, {
+          recipient,
+          bonderFee: bonderFeeWithId,
+          amountOutMin: amountOutMin.sub(bonderFeeWithId),
+          deadline: deadline(),
+          destinationAmountOutMin: 0,
+          destinationDeadline: 0,
+        })
       },
     })
 
-    let txObj: Transaction | null = null
-    if (tx?.hash && fromNetwork) {
-      txObj = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
-      txHistory?.addTransaction(txObj)
-    }
-
-    return txObj
+    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, txHistory)
   }
 
   const sendl2ToL2 = async () => {
-    const signer = provider?.getSigner()
-    if (!signer) {
-      throw new Error('Cannot send: signer does not exist.')
-    }
-    if (!sourceToken) {
-      throw new Error('No from token selected')
-    }
-
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
@@ -217,45 +222,25 @@ export function useSendTransaction(props) {
         },
       },
       onConfirm: async () => {
-        if (!bonderFee) return
-        const parsedAmountIn = utils.parseUnits(fromTokenAmount, sourceToken.decimals)
-        const recipient = customRecipient || (await signer?.getAddress())
-        const bridge = sdk.bridge(sourceToken.symbol).connect(signer)
-
-        let totalBonderFee = bonderFee
-        if (destinationTxFee?.gt(0)) {
-          totalBonderFee = totalBonderFee.add(destinationTxFee)
-        }
-
-        if (totalBonderFee.gt(parsedAmountIn)) {
+        if (!bonderFee || !bridge) return
+        if (totalBonderFee.gt(parsedAmount)) {
           throw new Error('Amount must be greater than bonder fee')
         }
 
-        totalBonderFee = getBonderFeeWithId(totalBonderFee)
-        const tx = await bridge.send(
-          parsedAmountIn,
-          fromNetwork?.slug as string,
-          toNetwork?.slug as string,
-          {
-            recipient,
-            bonderFee: totalBonderFee,
-            amountOutMin: intermediaryAmountOutMin.sub(totalBonderFee),
-            deadline: deadline(),
-            destinationAmountOutMin: amountOutMin.sub(totalBonderFee),
-            destinationDeadline: deadline(),
-          }
-        )
-        return tx
+        const bonderFeeWithId = getBonderFeeWithId(totalBonderFee)
+
+        return bridge.send(parsedAmount, fromNetwork?.slug as string, toNetwork?.slug as string, {
+          recipient,
+          bonderFee: bonderFeeWithId,
+          amountOutMin: intermediaryAmountOutMin.sub(bonderFeeWithId),
+          deadline: deadline(),
+          destinationAmountOutMin: amountOutMin.sub(bonderFeeWithId),
+          destinationDeadline: deadline(),
+        })
       },
     })
 
-    let txObj: Transaction | null = null
-    if (tx?.hash && fromNetwork) {
-      txObj = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
-      txHistory?.addTransaction(txObj)
-    }
-
-    return txObj
+    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, txHistory)
   }
 
   return {

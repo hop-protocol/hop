@@ -46,6 +46,7 @@ class Transaction extends EventEmitter {
     hash,
     networkName,
     destNetworkName,
+    destTxHash,
     pending = true,
     timestamp,
     token,
@@ -71,6 +72,9 @@ class Transaction extends EventEmitter {
     if (destNetworkName) {
       this.destNetworkName = destNetworkName
       this.pendingDestinationConfirmation = pendingDestinationConfirmation
+    }
+    if (destTxHash) {
+      this.destTxHash = destTxHash
     }
 
     this.provider = getProvider(rpcUrl)

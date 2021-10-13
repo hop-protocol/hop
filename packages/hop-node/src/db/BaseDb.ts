@@ -47,6 +47,7 @@ class BaseDb extends EventEmitter {
   pollIntervalMs : number = 5 * 1000
   lastBatchUpdatedAt : number = Date.now()
   batchSize : number = 5
+  batchTimeLimit: number = 5 * 1000
   batchQueue : KV[] = []
 
   constructor (prefix: string, _namespace?: string) {
@@ -119,14 +120,13 @@ class BaseDb extends EventEmitter {
     }
   }
 
-  async addUpdateKvToBatchQueue (key: string, value: any) {
+  addUpdateKvToBatchQueue (key: string, value: any) {
     this.logger.debug(`adding to batch, key: ${key} `)
     this.batchQueue.push({ key, value })
   }
 
   async checkBatchQueue () {
-    const timeLimit = 5 * 1000
-    const timestampOk = this.lastBatchUpdatedAt + timeLimit < Date.now()
+    const timestampOk = this.lastBatchUpdatedAt + this.batchTimeLimit < Date.now()
     const batchSizeOk = this.batchQueue.length >= this.batchSize
     const shouldPutBatch = timestampOk || batchSizeOk
     if (shouldPutBatch) {
@@ -159,9 +159,7 @@ class BaseDb extends EventEmitter {
         this.once(Event.Error, errCb)
         this.once(Event.Batch, cb)
         this.addUpdateKvToBatchQueue(key, data)
-          .then(() => {
-            this.checkBatchQueue()
-          })
+        this.checkBatchQueue()
       })
     })
   }

@@ -414,10 +414,15 @@ export default class Bridge extends ContractBase {
 
   stake = rateLimitRetry(async (amount: BigNumber): Promise<providers.TransactionResponse> => {
     const bonder = await this.getBonderAddress()
+    const txOverrides = await this.txOverrides()
+    const isEthSend = this.chainSlug === Chain.Ethereum
+    if (isEthSend) {
+      txOverrides.value = amount
+    }
     const tx = await this.bridgeContract.stake(
       bonder,
       amount,
-      await this.txOverrides()
+      txOverrides
     )
 
     return tx

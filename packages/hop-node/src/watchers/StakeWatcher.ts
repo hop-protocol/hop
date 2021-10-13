@@ -115,16 +115,16 @@ class StakeWatcher extends BaseWatcher {
   }
 
   async convertAndStake (amount: BigNumber) {
-    const balance = await this.token.getBalance()
-    const isL1 = isL1ChainId(await this.token.getChainId())
-    if (balance.lt(amount)) {
-      if (!isL1) {
+    const isStakeOnL1 = isL1ChainId(await this.token.getChainId())
+    if (!isStakeOnL1) {
+      const hTokenBalance = await this.token.getBalance()
+      if (hTokenBalance.lt(amount)) {
         const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
           .bridge as L1Bridge
         const isEthSend = l1Bridge.l1CanonicalTokenAddress === constants.AddressZero
         let l1Balance
         if (isEthSend) {
-          l1Balance = await this.bridge.getEthBalance()
+          l1Balance = await l1Bridge.getEthBalance()
         } else {
           const l1Token = await l1Bridge.l1CanonicalToken()
           l1Balance = await l1Token.getBalance()
@@ -190,7 +190,7 @@ class StakeWatcher extends BaseWatcher {
         if (balance.lt(amount)) {
           throw new Error(
             `not enough ${
-              isL1 ? 'canonical' : 'hop'
+              isStakeOnL1 ? 'canonical' : 'hop'
             } token balance to stake. Have ${this.bridge.formatUnits(
               balance
             )}, need ${this.bridge.formatUnits(amount)}`
@@ -208,7 +208,13 @@ class StakeWatcher extends BaseWatcher {
       throw new Error('not an allowed bonder on chain')
     }
     const formattedAmount = this.bridge.formatUnits(amount)
-    const balance = await this.token.getBalance()
+    const isL1EthStake = this.bridge.chainSlug === Chain.Ethereum
+    let balance
+    if (isL1EthStake) {
+      balance = amount
+    } else {
+      balance = await this.token.getBalance()
+    }
     const isL1 = isL1ChainId(await this.token.getChainId())
     if (balance.lt(amount)) {
       throw new Error(

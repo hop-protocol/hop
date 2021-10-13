@@ -117,7 +117,7 @@ class HealthCheck {
           const { transactionHash } = event
           const tx = await bridge.getTransaction(transactionHash)
           const { transferId } = event.args
-          const { destinationChainId } = await bridge.decodeSendData(tx.data)
+          const { destinationChainId } = bridge.decodeSendData(tx.data)
           const sourceChain = await bridge.getChainSlug()
           const destinationChain = bridge.chainIdToSlug(destinationChainId)
           const tokenSymbol = bridge.tokenSymbol
@@ -315,7 +315,7 @@ class HealthCheck {
           const { transactionHash } = event
           const tx = await bridge.getTransaction(transactionHash)
           const { transferId, amount, index } = event.args
-          const { destinationChainId } = await bridge.decodeSendData(tx.data)
+          const { destinationChainId } = bridge.decodeSendData(tx.data)
           const destBridge = this.bridges.find((bridge: L2Bridge) => {
             return bridge.chainId === destinationChainId
           })
@@ -396,7 +396,7 @@ class HealthCheck {
               const {
                 transferIds,
                 totalAmount
-              } = await destBridge.decodeSettleBondedWithdrawalsData(tx.data)
+              } = destBridge.decodeSettleBondedWithdrawalsData(tx.data)
               const isSettled = transferIds.includes(transferId)
               if (isSettled) {
                 settledTransferIds.push(transferId)

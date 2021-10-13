@@ -45,7 +45,10 @@ program
       const toDate = Number(source.toDate)
       let items : any[] = []
       if (dbName === 'transfer-roots') {
-        items = await db.transferRoots.getTransferRoots()
+        items = await db.transferRoots.getTransferRoots({
+          fromUnix: fromDate,
+          toUnix: toDate
+        })
       } else if (dbName === 'transfers') {
         items = await db.transfers.getTransfers({
           fromUnix: fromDate,
@@ -69,9 +72,10 @@ program
         throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state, gas-prices, token-prices`)
       }
 
-      logger.debug(`count: ${items.length}`)
       logger.debug(`dumping ${dbName} db located at ${globalConfig.db.path}`)
       console.log(JSON.stringify(items, null, 2))
+      logger.debug(`count: ${items.length}`)
+      process.exit(0)
     } catch (err) {
       logger.error(err)
       process.exit(1)

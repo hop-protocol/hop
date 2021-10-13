@@ -1,9 +1,15 @@
-import BaseDb from './BaseDb'
+import TimestampedKeysDb from './TimestampedKeysDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
 import { Chain, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
+import { KeyFilter } from './BaseDb'
 import { normalizeDbItem } from './utils'
 import { oruChains } from 'src/config'
+
+export type TransferRootsDateFilter = {
+  fromUnix?: number
+  toUnix?: number
+}
 
 export type TransferRoot = {
   destinationBridgeAddress?: string
@@ -38,15 +44,69 @@ export type TransferRoot = {
   allSettled?: boolean
 }
 
-class TransferRootsDb extends BaseDb {
-  async update (transferRootHash: string, data: Partial<TransferRoot>) {
-    return this._update(transferRootHash, data)
+class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
+  async trackTimestampedKey (transferRoot: Partial<TransferRoot>) {
+    const data = await this.getTimestampedKeyValueForUpdate(transferRoot)
+    if (data) {
+      const key = data?.key
+      const transferRootHash = data?.value?.transferRootHash
+      this.logger.debug(`storing timestamped key. key: ${key} transferRootHash: ${transferRootHash}`)
+      const value = { transferRootHash }
+      await this.subDb._update(key, value)
+    }
   }
 
-  async getByTransferRootHash (
-    transferRootHash: string
-  ): Promise<TransferRoot> {
-    const item = (await this.getById(transferRootHash)) as TransferRoot
+  async trackTimestampedKeyByTransferRootHash (transferRootHash: string) {
+    const transferRoot = await this.getByTransferRootHash(transferRootHash)
+    return this.trackTimestampedKey(transferRoot)
+  }
+
+  getTimestampedKey (transferRoot: Partial<TransferRoot>) {
+    if (transferRoot?.committedAt && transferRoot?.transferRootHash) {
+      const key = `transferRoot:${transferRoot?.committedAt}:${transferRoot?.transferRootHash}`
+      return key
+    }
+  }
+
+  async getTimestampedKeyValueForUpdate (transferRoot: Partial<TransferRoot>) {
+    if (!transferRoot) {
+      this.logger.warn('expected transfer root object for timestamped key')
+      return
+    }
+    const transferRootHash = transferRoot?.transferRootHash
+    const key = this.getTimestampedKey(transferRoot)
+    if (!key) {
+      this.logger.warn('expected timestamped key. incomplete transfer root:', JSON.stringify(transferRoot))
+      return
+    }
+    if (!transferRootHash) {
+      this.logger.warn(`expected transfer root hash for timestamped key. key: ${key} incomplete transfer root: `, JSON.stringify(transferRoot))
+      return
+    }
+    const item = await this.subDb.getById(key)
+    const exists = !!item
+    if (!exists) {
+      const value = { transferRootHash }
+      return { key, value }
+    }
+  }
+
+  async update (transferRootHash: string, transferRoot: Partial<TransferRoot>) {
+    const logger = this.logger.create({ root: transferRootHash })
+    logger.debug('update called')
+    const timestampedKv = await this.getTimestampedKeyValueForUpdate(transferRoot)
+    if (timestampedKv) {
+      logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferRootHash: ${transferRootHash}`)
+      await this.subDb._update(timestampedKv.key, timestampedKv.value)
+      logger.debug(`updated db item. key: ${timestampedKv.key}`)
+    }
+    await this._update(transferRootHash, transferRoot)
+    logger.debug(`updated db item. key: ${transferRootHash}`)
+    const entry = await this.getById(transferRootHash)
+    logger.debug(`updated db transferRoot item. ${JSON.stringify(entry)}`)
+  }
+
+  normalizeItem (transferRootHash: string, item: Partial<TransferRoot>) {
     if (!item) {
       return item
     }
@@ -54,6 +114,13 @@ class TransferRootsDb extends BaseDb {
       item.transferRootHash = transferRootHash
     }
     return normalizeDbItem(item)
+  }
+
+  async getByTransferRootHash (
+    transferRootHash: string
+  ): Promise<TransferRoot> {
+    const item : TransferRoot = await this.getById(transferRootHash)
+    return this.normalizeItem(transferRootHash, item)
   }
 
   async getByTransferRootId (transferRootId: string): Promise<TransferRoot> {
@@ -71,12 +138,27 @@ class TransferRootsDb extends BaseDb {
     return filtered?.[0]
   }
 
-  async getTransferRootHashes (): Promise<string[]> {
-    return this.getKeys()
+  async getTransferRootHashes (dateFilter?: TransferRootsDateFilter): Promise<string[]> {
+    // return only transfer-root keys that are within specified range (filter by timestamped keys)
+    if (dateFilter) {
+      const filter : KeyFilter = {}
+      if (dateFilter.fromUnix) {
+        filter.gte = `transferRoot:${dateFilter.fromUnix}`
+      }
+      if (dateFilter.toUnix) {
+        filter.lte = `transferRoot:${dateFilter.toUnix}~` // tilde is intentional
+      }
+      const kv = await this.subDb.getKeyValues(filter)
+      return kv.map((x: any) => x?.value?.transferRootHash).filter((x: any) => x)
+    }
+
+    // return all transfer-root keys if no filter is used (filter out timestamped keys)
+    const keys = await this.getKeys()
+    return keys.filter(x => x)
   }
 
-  async getTransferRoots (): Promise<TransferRoot[]> {
-    const transferRootHashes = await this.getTransferRootHashes()
+  async getItems (dateFilter?: TransferRootsDateFilter): Promise<TransferRoot[]> {
+    const transferRootHashes = await this.getTransferRootHashes(dateFilter)
     const transferRoots = await Promise.all(
       transferRootHashes.map(transferRootHash => {
         return this.getByTransferRootHash(transferRootHash)
@@ -88,10 +170,24 @@ class TransferRootsDb extends BaseDb {
       .filter(x => x)
   }
 
+  async getTransferRoots (dateFilter?: TransferRootsDateFilter): Promise<TransferRoot[]> {
+    await this.tilReady()
+    return this.getItems(dateFilter)
+  }
+
+  // gets only transfer roots within range: now - 2 weeks ago
+  async getTransferRootsFromTwoWeeks (): Promise<TransferRoot[]> {
+    await this.tilReady()
+    const fromUnix = Math.floor((Date.now() - (OneWeekMs * 2)) / 1000)
+    return this.getTransferRoots({
+      fromUnix
+    })
+  }
+
   async getUncommittedBondedTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
       return !item.committed && item?.transferIds?.length
     })
@@ -100,7 +196,7 @@ class TransferRootsDb extends BaseDb {
   async getUnbondedTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
@@ -130,6 +226,7 @@ class TransferRootsDb extends BaseDb {
         item.destinationChainId &&
         item.sourceChainId &&
         item.shouldBondTransferRoot &&
+        item.totalAmount &&
         timestampOk
       )
     })
@@ -138,7 +235,7 @@ class TransferRootsDb extends BaseDb {
   async getUnconfirmedTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
@@ -180,7 +277,7 @@ class TransferRootsDb extends BaseDb {
   async getChallengeableTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
       // Do not check if a rootHash has been committed. A rootHash can be committed and bonded,
       // but if the bond uses a different totalAmount then it is fraudulent. Instead, use the
@@ -199,7 +296,7 @@ class TransferRootsDb extends BaseDb {
   async getUnsettledTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
-    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
@@ -232,6 +329,23 @@ class TransferRootsDb extends BaseDb {
         !item.allSettled &&
         rootSetTimestampOk &&
         bondSettleTimestampOk
+      )
+    })
+  }
+
+  async getIncompleteItems (
+    filter: Partial<TransferRoot> = {}
+  ) {
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    return transferRoots.filter(item => {
+      if (filter?.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
+      return (
+        (item.commitTxHash && !item.committedAt)
       )
     })
   }

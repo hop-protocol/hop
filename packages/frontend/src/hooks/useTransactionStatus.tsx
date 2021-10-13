@@ -22,9 +22,8 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   }, [chain])
 
   async function updateDestTxStatus() {
-    if (transaction && destCompleted === false) {
+    if (transaction && (destCompleted === false || !transaction.destTxHash)) {
       const isSpent = await transaction?.checkIsTransferIdSpent(sdk)
-      logger.debug(`isSpent:`, isSpent)
       if (isSpent) {
         setDestCompleted(true)
         updateTransaction(transaction)

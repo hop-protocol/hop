@@ -7,12 +7,16 @@ import { Hop, Token } from '@hop-protocol/sdk'
 import { network as defaultNetwork } from 'src/config'
 import { getTransferSentDetailsFromLogs } from 'src/utils/logs'
 import logger from 'src/logger'
-import { fetchTransfersFromL1Completeds, L1Transfer } from '../utils/queries'
+import {
+  fetchTransferFromL1Completeds,
+  fetchWithdrawalBondedsByTransferId,
+  L1Transfer,
+} from '../utils/queries'
 
 interface Config {
   networkName: string
   destNetworkName?: string | null
-  destTxHash?: string | null
+  destTxHash?: string
   hash: string
   pending?: boolean
   timestamp?: number
@@ -36,7 +40,7 @@ class Transaction extends EventEmitter {
   status: null | boolean = null
   pendingDestinationConfirmation?: boolean
   transferId: string | null = null
-  destTxHash: string | null = null
+  destTxHash?: string
 
   constructor({
     hash,
@@ -159,7 +163,7 @@ class Transaction extends EventEmitter {
 
         if ('amount' in decodedData) {
           const { amount } = decodedData
-          const transferFromL1Completeds = await fetchTransfersFromL1Completeds(
+          const transferFromL1Completeds = await fetchTransferFromL1Completeds(
             this.destNetworkName,
             tsDetails.recipient,
             amount.toString()
@@ -176,8 +180,21 @@ class Transaction extends EventEmitter {
         }
       }
 
+      if (tsDetails?.transferId) {
+        this.transferId = tsDetails.transferId
+      }
+
       // transferId found in event: TransferSent
       if (this.transferId) {
+        const withdrawalBondeds = await fetchWithdrawalBondedsByTransferId(
+          this.destNetworkName,
+          this.transferId
+        )
+        if (withdrawalBondeds.length) {
+          const lastEvent = withdrawalBondeds[withdrawalBondeds.length - 1]
+          this.destTxHash = lastEvent.transactionHash
+        }
+
         const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
         const isSpent = await destL2Bridge.isTransferIdSpent(this.transferId)
         if (isSpent) {
@@ -224,6 +241,7 @@ class Transaction extends EventEmitter {
       timestamp,
       token,
       destNetworkName,
+      destTxHash,
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
@@ -235,6 +253,7 @@ class Transaction extends EventEmitter {
       timestamp,
       token,
       destNetworkName,
+      destTxHash,
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
@@ -249,6 +268,7 @@ class Transaction extends EventEmitter {
       timestamp,
       token,
       destNetworkName,
+      destTxHash,
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
@@ -260,6 +280,7 @@ class Transaction extends EventEmitter {
       timestamp,
       token,
       destNetworkName,
+      destTxHash,
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,

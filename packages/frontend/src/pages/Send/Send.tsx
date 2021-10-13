@@ -602,6 +602,10 @@ const Send: FC = () => {
 
         watcher.on(sdk.Event.DestinationTxReceipt, async data => {
           console.log(`dest tx receipt event data:`, data)
+          if (tx && !tx.destTxHash) {
+            tx.destTxHash = data.receipt.transactionHash
+            txHistory?.updateTransaction(tx)
+          }
         })
 
         setTx(tx)

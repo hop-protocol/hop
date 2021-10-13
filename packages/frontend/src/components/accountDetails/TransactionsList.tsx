@@ -84,14 +84,18 @@ function TransactionRow({ tx, styles }: { tx: Transaction; styles: any }) {
               <>
                 <Check className={styles.completed} />
                 <Flex mt={2} fontSize={0}>
-                  <Link
-                    color="inherit"
-                    href={tx.destExplorerLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Complete
-                  </Link>
+                  {tx.destExplorerLink ? (
+                    <Link
+                      color="inherit"
+                      href={tx.destExplorerLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Complete
+                    </Link>
+                  ) : (
+                    <Flex>Complete</Flex>
+                  )}
                 </Flex>
               </>
             ) : (

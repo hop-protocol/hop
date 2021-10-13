@@ -31,7 +31,7 @@ export interface L1Transfer {
   transactionHash: string
 }
 
-export async function fetchTransfersFromL1Completeds(
+export async function fetchTransferFromL1Completeds(
   chain,
   recipient: string,
   amount: string
@@ -56,3 +56,23 @@ export async function fetchTransfersFromL1Completeds(
 
   return data?.transferFromL1Completeds
 }
+
+export async function fetchWithdrawalBondedsByTransferId(chain, transferId: string) {
+  const query = `
+      query WithdrawalBondeds {
+        withdrawalBondeds(
+          where: {
+            transferId: "${transferId}"
+          }
+        ) {
+          transactionHash
+          timestamp
+          token
+        }
+      }
+    `
+  const url = getUrl(chain)
+  const data = await queryFetch(url, query)
+  return data.withdrawalBondeds
+}
+

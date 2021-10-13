@@ -115,7 +115,11 @@ class BaseDb extends EventEmitter {
 
   async pollBatchQueue () {
     while (true) {
-      await this.checkBatchQueue()
+      try {
+        await this.checkBatchQueue()
+      } catch (err) {
+        this.logger.error('pollBatchQueue error:', err)
+      }
       await wait(this.pollIntervalMs)
     }
   }

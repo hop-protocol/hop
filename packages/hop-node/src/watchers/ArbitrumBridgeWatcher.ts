@@ -5,7 +5,7 @@ import { Bridge, OutgoingMessageState } from 'arb-ts'
 import { Chain } from 'src/constants'
 import { Contract, Wallet } from 'ethers'
 
-type Config = {
+interface Config {
   chainSlug: string
   tokenSymbol: string
   label?: string
@@ -64,7 +64,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     }
 
     const outGoingMessagesFromTxn = await this.arbBridge.getWithdrawalsInL2Transaction(initiatingTxnReceipt)
-    if (!outGoingMessagesFromTxn.length) {
+    if (outGoingMessagesFromTxn.length === 0) {
       throw new Error(`tx hash ${txHash} did not initiate an outgoing messages`)
     }
 
@@ -84,7 +84,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
       return
     }
 
-    return this.arbBridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
+    return await this.arbBridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {

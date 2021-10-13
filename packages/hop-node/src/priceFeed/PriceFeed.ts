@@ -2,10 +2,10 @@ import CoinGecko from './CoinGecko'
 import Coinbase from './Coinbase'
 
 class PriceFeed {
-  private services = [new CoinGecko(), new Coinbase()]
+  private readonly services = [new CoinGecko(), new Coinbase()]
   cacheTimeMs = 5 * 60 * 1000
 
-  cache : {[tokenSymbol: string]: {
+  cache: {[tokenSymbol: string]: {
     timestamp: number
     price: number
   }} = {}

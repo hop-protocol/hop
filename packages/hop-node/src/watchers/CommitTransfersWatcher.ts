@@ -39,7 +39,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       stateUpdateAddress: config.stateUpdateAddress
     })
 
-    if (config.minThresholdAmounts) {
+    if (config.minThresholdAmounts != null) {
       for (const destinationChain in config.minThresholdAmounts) {
         this.minThresholdAmounts[destinationChain] = this.bridge.parseUnits(
           config.minThresholdAmounts[destinationChain]

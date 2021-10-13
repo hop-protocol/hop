@@ -7,7 +7,7 @@ export default async function getTransferIds (
   chain: string,
   token: string,
   filters: Partial<Filters> = {},
-  skip : number = 0
+  skip: number = 0
 ): Promise<any[]> {
   const query = `
     query TransfersSent(${token ? '$token: String, ' : ''}$orderDirection: String, $startDate: Int, $endDate: Int, $skip: Int) {

@@ -3,7 +3,7 @@ import wait from 'src/utils/wait'
 import { Db, getTokenPricesDb } from 'src/db'
 import { PriceFeed } from 'src/priceFeed'
 
-type Config = {
+interface Config {
   token: string
 }
 
@@ -11,7 +11,7 @@ class TokenPriceWatcher {
   token: string
   priceFeed: PriceFeed
   db: Db
-  intervalMs : number = 30 * 1000
+  intervalMs: number = 30 * 1000
   logger: Logger
 
   constructor (config: Config) {

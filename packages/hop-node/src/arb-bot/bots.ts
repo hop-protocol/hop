@@ -8,7 +8,7 @@ import { config as globalConfig } from 'src/config'
 const tokenSymbols = Object.keys(globalConfig.tokens)
 const networks = [Chain.Arbitrum, Chain.Optimism, Chain.xDai, Chain.Polygon]
 
-export type Config = {
+export interface Config {
   minThreshold: number
   maxTradeAmount: number
 }
@@ -50,6 +50,6 @@ export default {
       }
     }
 
-    bots.forEach(bot => bot.start())
+    bots.forEach(async bot => await bot.start())
   }
 }

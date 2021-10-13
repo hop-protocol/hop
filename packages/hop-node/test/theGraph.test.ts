@@ -108,7 +108,7 @@ describe.skip('check bonded withdrawals without a transfer', () => {
           transfer = await getTransfer(Chain.Polygon, 'USDC', item.transferId)
         }
         if (!transfer) {
-          throw new Error('no transfer' + item.transferId)
+          throw new Error(`no transfer ${item.transferId}`)
         }
         console.log(i)
         i++

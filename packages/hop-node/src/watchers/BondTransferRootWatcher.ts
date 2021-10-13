@@ -46,7 +46,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       )
     }
 
-    const promises: Promise<any>[] = []
+    const promises: Array<Promise<any>> = []
     for (const dbTransferRoot of dbTransferRoots) {
       const {
         transferRootHash,
@@ -138,7 +138,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     const pendingTransfers: string[] = transferIds || []
     logger.debug('transferRootHash transferIds:', pendingTransfers)
-    if (pendingTransfers.length) {
+    if (pendingTransfers.length > 0) {
       const tree = new MerkleTree(pendingTransfers)
       const rootHash = tree.getHexRoot()
       logger.debug('calculated transfer root hash:', rootHash)

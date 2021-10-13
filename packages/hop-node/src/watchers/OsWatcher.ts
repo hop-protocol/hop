@@ -28,8 +28,8 @@ class OsWatcher {
     }
   }
 
-  logUsage () {
-    return new Promise((resolve, reject) => {
+  async logUsage () {
+    return await new Promise((resolve, reject) => {
       pidusage(process.pid, (err: Error, stats: any) => {
         if (err) {
           reject(err)

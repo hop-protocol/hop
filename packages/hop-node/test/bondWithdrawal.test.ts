@@ -5,7 +5,7 @@ import { Chain } from 'src/constants'
 import { User, prepareAccount, waitForEvent } from './helpers'
 import { privateKey } from './config'
 import { startWatchers } from 'src/watchers/watchers'
-require('dotenv').config()
+require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
 
 const L1ToL2Paths = [
   // [Chain.Ethereum, Chain.Arbitrum],

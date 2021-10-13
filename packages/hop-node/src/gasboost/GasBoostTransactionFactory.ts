@@ -12,7 +12,7 @@ class GasBoostTransactionFactory {
 
   constructor (signer: Signer, store?: Store, options: Partial<Options> = {}) {
     this.signer = signer
-    if (store) {
+    if (store != null) {
       this.store = store
     }
 
@@ -25,7 +25,7 @@ class GasBoostTransactionFactory {
   }
 
   async getTransactionFromId (id: string) {
-    return GasBoostTransaction.fromId(id, this.signer, this.store, this.options)
+    return await GasBoostTransaction.fromId(id, this.signer, this.store, this.options)
   }
 
   setOptions (options: Partial<Options>): void {

@@ -13,23 +13,23 @@ const logger = new Logger({
 })
 
 interface Immutables {
-  factory: string;
-  token0: string;
-  token1: string;
-  fee: number;
-  tickSpacing: number;
-  maxLiquidityPerTick: BigNumber;
+  factory: string
+  token0: string
+  token1: string
+  fee: number
+  tickSpacing: number
+  maxLiquidityPerTick: BigNumber
 }
 
 interface State {
-  liquidity: BigNumber;
-  sqrtPriceX96: BigNumber;
-  tick: number;
-  observationIndex: number;
-  observationCardinality: number;
-  observationCardinalityNext: number;
-  feeProtocol: number;
-  unlocked: boolean;
+  liquidity: BigNumber
+  sqrtPriceX96: BigNumber
+  tick: number
+  observationIndex: number
+  observationCardinality: number
+  observationCardinalityNext: number
+  feeProtocol: number
+  unlocked: boolean
 }
 
 async function getPoolImmutables (poolContract: Contract) {
@@ -120,7 +120,7 @@ function getToken (address: string, provider: any) {
   )
 }
 
-export type Config = {
+export interface Config {
   chain: string
   fromToken: string
   toToken: string
@@ -215,7 +215,7 @@ export async function swap (config: Config) {
   const balance = await sourceToken.balanceOf(sender)
   const decimals = Number((await sourceToken.decimals()).toString())
 
-  let parsedAmount : BigNumber
+  let parsedAmount: BigNumber
   if (max) {
     parsedAmount = balance
     amount = Number(formatUnits(parsedAmount, decimals))
@@ -229,9 +229,9 @@ export async function swap (config: Config) {
     TradeType.EXACT_INPUT
   )
 
-  const slippageTolerance = new Percent((slippage || 1) * 100, 10000)
-  recipient = recipient || sender
-  deadline = (Date.now() / 1000 + (deadline || 300)) | 0
+  const slippageTolerance = new Percent((slippage ?? 1) * 100, 10000)
+  recipient = recipient ?? sender
+  deadline = (Date.now() / 1000 + (deadline ?? 300)) | 0
 
   const { calldata, value } = SwapRouter.swapCallParameters(trade, {
     slippageTolerance,
@@ -253,7 +253,7 @@ export async function swap (config: Config) {
     await tx.wait()
   }
 
-  return wallet.sendTransaction({
+  return await wallet.sendTransaction({
     to: swapRouter,
     data: calldata,
     value

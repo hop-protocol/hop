@@ -25,23 +25,23 @@ enum Watchers {
   Stake = 'stake'
 }
 
-type StakeAmounts = {
+interface StakeAmounts {
   [token: string]: number
 }
 
-type CommitTransfersMinThresholdAmounts = {
+interface CommitTransfersMinThresholdAmounts {
   [token: string]: any
 }
 
-type BondWithdrawalAmounts = {
+interface BondWithdrawalAmounts {
   [token: string]: any
 }
 
-type SettleBondedWithdrawalsThresholdPercent = {
+interface SettleBondedWithdrawalsThresholdPercent {
   [token: string]: any
 }
 
-type GetWatchersConfig = {
+interface GetWatchersConfig {
   enabledWatchers?: string[]
   order?: number
   tokens?: string[]
@@ -58,15 +58,15 @@ type GetWatchersConfig = {
   s3Namespace?: string
 }
 
-type GetStakeWatchersConfig = {
+interface GetStakeWatchersConfig {
   tokens?: string[]
   networks?: string[]
   maxStakeAmounts?: StakeAmounts
   dryMode?: boolean
-  stateUpdateAddress?: string,
+  stateUpdateAddress?: string
 }
 
-type GetChallengeWatchersConfig = {
+interface GetChallengeWatchersConfig {
   tokens?: string[]
   networks?: string[]
   dryMode?: boolean
@@ -91,7 +91,7 @@ export function getWatchers (config: GetWatchersConfig) {
   } = config
 
   const order = () => orderNum
-  const watchers : Watcher[] = []
+  const watchers: Watcher[] = []
 
   if (enabledWatchers.includes(Watchers.BondWithdrawal)) {
     watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
@@ -250,10 +250,10 @@ export function getWatchers (config: GetWatchersConfig) {
 
 export function startWatchers (config: GetWatchersConfig) {
   const watchers = getWatchers(config)
-  watchers.forEach((watcher: Watcher) => watcher.start())
+  watchers.forEach(async (watcher: Watcher) => await watcher.start())
   const stop = () => {
-    return watchers.map((watcher: Watcher) => {
-      return watcher.stop()
+    return watchers.map(async (watcher: Watcher) => {
+      return await watcher.stop()
     })
   }
 
@@ -262,10 +262,10 @@ export function startWatchers (config: GetWatchersConfig) {
 
 export function startChallengeWatchers (config: GetChallengeWatchersConfig) {
   const watchers = getChallengeWatchers(config)
-  watchers.forEach((watcher: Watcher) => watcher.start())
+  watchers.forEach(async (watcher: Watcher) => await watcher.start())
   const stop = () => {
-    return watchers.map((watcher: Watcher) => {
-      return watcher.stop()
+    return watchers.map(async (watcher: Watcher) => {
+      return await watcher.stop()
     })
   }
 
@@ -370,7 +370,7 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher) {
   return list
 }
 
-export function findWatcher (watchers: Watcher[], WatcherType: any, chain?: string, token? :string) {
+export function findWatcher (watchers: Watcher[], WatcherType: any, chain?: string, token?: string) {
   return watchers.find((watcher: Watcher) => {
     if (!(watcher instanceof WatcherType)) {
       return null

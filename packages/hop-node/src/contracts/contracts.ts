@@ -92,7 +92,7 @@ const constructContractsObject = memoize((token: string) => {
   if (!globalConfig.tokens[token]) {
     return null
   }
-  return Object.keys(globalConfig.tokens?.[token]).reduce((obj, network) => {
+  return Object.keys(globalConfig.tokens?.[token]).reduce<any>((obj, network) => {
     const wallet = wallets.get(network)
     if (!wallet) {
       return obj
@@ -112,7 +112,7 @@ const constructContractsObject = memoize((token: string) => {
       }
     }
     return obj
-  }, {} as any)
+  }, {})
 })
 
 export default {

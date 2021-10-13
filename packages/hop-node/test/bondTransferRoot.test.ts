@@ -4,7 +4,7 @@ import { Chain } from 'src/constants'
 import { User, waitForEvent } from './helpers'
 import { privateKey } from './config'
 import { startWatchers } from 'src/watchers/watchers'
-require('dotenv').config()
+require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
 
 const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 1

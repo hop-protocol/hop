@@ -31,16 +31,16 @@ class GasPricesDb extends BaseDb {
   }
 
   async update (key: string, data: GasPrice) {
-    return this._update(key, data)
+    return await this._update(key, data)
   }
 
   async addGasPrice (data: GasPrice) {
     const key = `${data.chain}:${data.timestamp}`
-    return this.update(key, data)
+    return await this.update(key, data)
   }
 
-  async getItems (filter?: KeyFilter):Promise<GasPrice[]> {
-    const items : GasPrice[] = await this.getValues(filter)
+  async getItems (filter?: KeyFilter): Promise<GasPrice[]> {
+    const items: GasPrice[] = await this.getValues(filter)
     return items.filter(x => x)
   }
 
@@ -51,7 +51,7 @@ class GasPricesDb extends BaseDb {
       gte: `${chain}:${startTimestamp}`,
       lte: `${chain}:${endTimestamp}~`
     }
-    const items : GasPrice[] = (await this.getItems(filter)).filter((item: GasPrice) => item.chain === chain && item.timestamp)
+    const items: GasPrice[] = (await this.getItems(filter)).filter((item: GasPrice) => item.chain === chain && item.timestamp)
 
     const dates = items.map((item: GasPrice) => item.timestamp)
     const index = nearest(dates, targetTimestamp)

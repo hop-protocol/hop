@@ -1,6 +1,6 @@
 import BaseDb from './BaseDb'
 
-export type State = {
+export interface State {
   key: string
   latestBlockSynced: number
   timestamp: number
@@ -24,12 +24,12 @@ class SyncStateDb extends BaseDb {
   }
 
   async getByKey (key: string): Promise<State> {
-    const item : State = await this.getById(key)
+    const item: State = await this.getById(key)
     return this.normalizeValue(key, item)
   }
 
   async getItems (): Promise<State[]> {
-    const items : State[] = await this.getValues()
+    const items: State[] = await this.getValues()
     return items.filter(x => x)
   }
 }

@@ -59,7 +59,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       )
     }
 
-    const promises: Promise<any>[] = []
+    const promises: Array<Promise<any>> = []
     for (const dbTransfer of dbTransfers) {
       const {
         transferId,
@@ -246,7 +246,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       )
       const l2Bridge = this.getSiblingWatcherByChainId(destinationChainId)
         .bridge as L2Bridge
-      return l2Bridge.bondWithdrawalAndAttemptSwap(
+      return await l2Bridge.bondWithdrawalAndAttemptSwap(
         recipient,
         amount,
         transferNonce,
@@ -279,9 +279,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const tokenSymbol = this.tokenSymbol
     const chainNativeTokenSymbol = this.bridge.getChainNativeTokenSymbol(destinationChain)
     const transferSentTimestamp = dbTransfer?.transferSentTimestamp
-    let gasPrice : BigNumber
-    let tokenUsdPrice : number
-    let chainNativeTokenUsdPrice : number
+    let gasPrice: BigNumber
+    let tokenUsdPrice: number
+    let chainNativeTokenUsdPrice: number
     if (transferSentTimestamp) {
       const gasPriceItem = await this.db.gasPrices.getNearest(destinationChain, transferSentTimestamp)
       if (gasPriceItem) {

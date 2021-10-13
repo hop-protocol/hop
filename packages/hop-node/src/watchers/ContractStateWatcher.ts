@@ -5,7 +5,7 @@ import { Contract } from 'ethers'
 import { getEnabledNetworks, config as globalConfig } from 'src/config'
 import { l1BridgeAbi, l2AmmWrapperAbi, l2BridgeAbi, swapAbi } from '@hop-protocol/core/abi'
 
-type Config = {
+interface Config {
   token: string
   contracts?: string[]
 }
@@ -47,7 +47,7 @@ class ContractStateWatcher {
     const minTransferRootBondDelay = (await l1Bridge.minTransferRootBondDelay()).toString()
 
     const chains = getEnabledNetworks()
-    const chainStates : any = {}
+    const chainStates: any = {}
     for (const chain of chains) {
       if (chain === Chain.Ethereum) {
         continue
@@ -69,7 +69,7 @@ class ContractStateWatcher {
       }
     }
 
-    const bonderStates : any = {}
+    const bonderStates: any = {}
     for (const bonder of globalConfig.bonders[this.token]) {
       if (!bonderStates[bonder]) {
         bonderStates[bonder] = {}
@@ -119,7 +119,7 @@ class ContractStateWatcher {
     const minBonderFeeAbsolute = (await l2Bridge.minBonderFeeAbsolute()).toString()
 
     const chains = getEnabledNetworks()
-    const chainStates : any = {}
+    const chainStates: any = {}
     for (const chain of chains) {
       const chainId = chainSlugToId(chain)
       if (!chainStates[chainId]) {
@@ -136,7 +136,7 @@ class ContractStateWatcher {
       }
     }
 
-    const bonderStates : any = {}
+    const bonderStates: any = {}
     for (const bonder of globalConfig.bonders[this.token]) {
       if (!bonderStates[bonder]) {
         bonderStates[bonder] = {}
@@ -172,7 +172,7 @@ class ContractStateWatcher {
 
   async getL2BridgeStates () {
     const chains = getEnabledNetworks()
-    const states : any = {}
+    const states: any = {}
     for (const chain of chains) {
       if (chain === Chain.Ethereum) {
         continue
@@ -223,7 +223,7 @@ class ContractStateWatcher {
 
   async getL2AmmStates () {
     const chains = getEnabledNetworks()
-    const states : any = {}
+    const states: any = {}
     for (const chain of chains) {
       if (chain === Chain.Ethereum) {
         continue
@@ -257,7 +257,7 @@ class ContractStateWatcher {
 
   async getL2AmmWrapperStates () {
     const chains = getEnabledNetworks()
-    const states : any = {}
+    const states: any = {}
     for (const chain of chains) {
       if (chain === Chain.Ethereum) {
         continue
@@ -269,7 +269,7 @@ class ContractStateWatcher {
   }
 
   async getState () {
-    const states : any = {}
+    const states: any = {}
     if (this.contracts.includes(Contracts.L1Bridge)) {
       states.l1Bridge = await this.getL1BridgeState()
     }

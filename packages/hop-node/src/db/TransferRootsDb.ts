@@ -6,12 +6,12 @@ import { KeyFilter } from './BaseDb'
 import { normalizeDbItem } from './utils'
 import { oruChains } from 'src/config'
 
-export type TransferRootsDateFilter = {
+export interface TransferRootsDateFilter {
   fromUnix?: number
   toUnix?: number
 }
 
-export type TransferRoot = {
+export interface TransferRoot {
   destinationBridgeAddress?: string
   transferRootId?: string
   transferRootHash?: string
@@ -47,7 +47,7 @@ export type TransferRoot = {
 class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   async trackTimestampedKey (transferRoot: Partial<TransferRoot>) {
     const data = await this.getTimestampedKeyValueForUpdate(transferRoot)
-    if (data) {
+    if (data != null) {
       const key = data?.key
       const transferRootHash = data?.value?.transferRootHash
       this.logger.debug(`storing timestamped key. key: ${key} transferRootHash: ${transferRootHash}`)
@@ -58,7 +58,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
 
   async trackTimestampedKeyByTransferRootHash (transferRootHash: string) {
     const transferRoot = await this.getByTransferRootHash(transferRootHash)
-    return this.trackTimestampedKey(transferRoot)
+    return await this.trackTimestampedKey(transferRoot)
   }
 
   getTimestampedKey (transferRoot: Partial<TransferRoot>) {
@@ -95,7 +95,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('update called')
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transferRoot)
-    if (timestampedKv) {
+    if (timestampedKv != null) {
       logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferRootHash: ${transferRootHash}`)
       await this.subDb._update(timestampedKv.key, timestampedKv.value)
       logger.debug(`updated db item. key: ${timestampedKv.key}`)
@@ -119,7 +119,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   async getByTransferRootHash (
     transferRootHash: string
   ): Promise<TransferRoot> {
-    const item : TransferRoot = await this.getById(transferRootHash)
+    const item: TransferRoot = await this.getById(transferRootHash)
     return this.normalizeItem(transferRootHash, item)
   }
 
@@ -140,8 +140,8 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
 
   async getTransferRootHashes (dateFilter?: TransferRootsDateFilter): Promise<string[]> {
     // return only transfer-root keys that are within specified range (filter by timestamped keys)
-    if (dateFilter) {
-      const filter : KeyFilter = {}
+    if (dateFilter != null) {
+      const filter: KeyFilter = {}
       if (dateFilter.fromUnix) {
         filter.gte = `transferRoot:${dateFilter.fromUnix}`
       }
@@ -160,8 +160,8 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   async getItems (dateFilter?: TransferRootsDateFilter): Promise<TransferRoot[]> {
     const transferRootHashes = await this.getTransferRootHashes(dateFilter)
     const transferRoots = await Promise.all(
-      transferRootHashes.map(transferRootHash => {
-        return this.getByTransferRootHash(transferRootHash)
+      transferRootHashes.map(async transferRootHash => {
+        return await this.getByTransferRootHash(transferRootHash)
       })
     )
 
@@ -172,14 +172,14 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
 
   async getTransferRoots (dateFilter?: TransferRootsDateFilter): Promise<TransferRoot[]> {
     await this.tilReady()
-    return this.getItems(dateFilter)
+    return await this.getItems(dateFilter)
   }
 
   // gets only transfer roots within range: now - 2 weeks ago
   async getTransferRootsFromTwoWeeks (): Promise<TransferRoot[]> {
     await this.tilReady()
     const fromUnix = Math.floor((Date.now() - (OneWeekMs * 2)) / 1000)
-    return this.getTransferRoots({
+    return await this.getTransferRoots({
       fromUnix
     })
   }

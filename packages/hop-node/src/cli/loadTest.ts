@@ -21,12 +21,12 @@ program
   .option('--env <string>', 'Environment variables file')
   .action(async (source: any) => {
     try {
-      const configPath = source?.config || source?.parent?.config
+      const configPath = source?.config ?? source?.parent?.config
       if (configPath) {
         const config: FileConfig = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      const paths = (source.paths || '')
+      const paths = (source.paths ?? '')
         .split(',')
         .map((s: string) => {
           return s
@@ -35,7 +35,7 @@ program
             .map((v: string) => v.trim())
             .filter((v: string) => v)
         })
-        .filter((x: any) => x && x?.length)
+        .filter((x: any) => x?.length)
       new LoadTest({
         concurrentUsers: Number(source.concurrentUsers || 1),
         iterations: Number(source.iterations || 1),

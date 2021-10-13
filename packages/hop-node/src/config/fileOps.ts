@@ -38,26 +38,26 @@ export const defaultEnabledNetworks: { [key: string]: boolean } = {
   [Chain.Ethereum]: true
 }
 
-type ChainsConfig = {
+interface ChainsConfig {
   [key: string]: any
 }
 
-type TokensConfig = {
+interface TokensConfig {
   [key: string]: boolean
 }
 
-type SyncConfig = {
+interface SyncConfig {
   [key: string]: any
 }
 
-type RolesConfig = {
+interface RolesConfig {
   bonder?: boolean
   challenger?: boolean
   arbBot?: boolean
   xdaiBridge?: boolean
 }
 
-type WatchersConfig = {
+interface WatchersConfig {
   bondTransferRoot: boolean
   bondWithdrawal: boolean
   challenge: boolean
@@ -67,26 +67,26 @@ type WatchersConfig = {
   xDomainMessageRelay: boolean
 }
 
-type DbConfig = {
+interface DbConfig {
   location: string
 }
 
-type KeystoreConfig = {
+interface KeystoreConfig {
   location: string
   pass?: string
   passwordFile?: string
   parameterStore?: string
 }
 
-type LoggingConfig = {
+interface LoggingConfig {
   level: string
 }
 
-export type Addresses = {
+export interface Addresses {
   location: string
 }
 
-export type FileConfig = {
+export interface FileConfig {
   network?: string
   chains?: ChainsConfig
   tokens?: TokensConfig
@@ -127,9 +127,9 @@ export async function setGlobalConfigFromConfigFile (
       config.keystore.location.replace('~', os.homedir())
     )
     const keystore = JSON.parse(fs.readFileSync(path.resolve(filepath), 'utf8'))
-    let passphrase: string = process.env.KEYSTORE_PASS || config?.keystore.pass
+    let passphrase: string = process.env.KEYSTORE_PASS ?? config?.keystore.pass
     if (!passphrase) {
-      let passwordFilePath = passwordFile || config?.keystore?.passwordFile
+      let passwordFilePath = passwordFile ?? config?.keystore?.passwordFile
       const parameterStoreName = config?.keystore?.parameterStore
       if (passwordFilePath) {
         passwordFilePath = path.resolve(
@@ -142,7 +142,7 @@ export async function setGlobalConfigFromConfigFile (
         passphrase = (await promptPassphrase()) as string
       }
     }
-    const privateKey = await recoverKeystore(keystore, passphrase as string)
+    const privateKey = await recoverKeystore(keystore, passphrase)
     setBonderPrivateKey(privateKey)
   }
   if (config?.network) {
@@ -153,12 +153,12 @@ export async function setGlobalConfigFromConfigFile (
   if (config?.sync) {
     setSyncConfig(config?.sync)
   }
-  if (config?.addresses && config?.addresses.location) {
+  if (config?.addresses?.location) {
     const location = path.resolve(config?.addresses.location.replace('~', os.homedir()))
     if (!fs.existsSync(location)) {
       throw new Error(`no config file found at ${location}`)
     }
-    const addresses = require(location)
+    const addresses = require(location) // eslint-disable-line @typescript-eslint/no-var-requires
     setConfigAddresses(addresses)
   }
   if (config?.stateUpdateAddress) {
@@ -201,7 +201,7 @@ export async function parseConfigFile (
       config = require(configPath)
     }
   }
-  if (config) {
+  if (config != null) {
     await validateConfig(config)
     logger.info('config file:', configPath)
   }

@@ -1,7 +1,8 @@
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import contracts from 'src/contracts'
+import { expectDefined } from './helpers'
 import { config as globalConfig } from 'src/config'
-require('dotenv').config()
+require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
 
 const token = 'USDC'
 const network = 'ethereum'
@@ -11,6 +12,9 @@ const bridge = new L1Bridge(bridgeContract)
 const { totalBlocks, batchBlocks } = globalConfig.sync[network]
 
 describe.skip('events batch - Happy Path', () => {
+  expectDefined(totalBlocks)
+  expectDefined(batchBlocks)
+
   test('Full loop', async () => {
     let count = 0
     const expectedSizeOfLastIteration = totalBlocks % batchBlocks

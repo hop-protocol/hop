@@ -9,6 +9,7 @@
     "target": "ES2017",
     "noImplicitAny": true,
     "noUnusedLocals": false,
+    "strictNullChecks": true,
     "moduleResolution": "node",
     "skipLibCheck": true,
     "sourceMap": false,

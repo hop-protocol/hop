@@ -85,7 +85,7 @@ program
           `${root || ''}`.padEnd(68, ' ')
         ]
         const str = fields.join(' ')
-        let color : string
+        let color: string
         if (needsSettlement) {
           color = 'magenta'
         } else if (!bonded) {

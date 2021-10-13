@@ -10,13 +10,13 @@ import { config as globalConfig } from 'src/config'
 
 const dbMap: { [key: string]: any } = {}
 
-export type BaseItem = {
+export interface BaseItem {
   _id?: string
   _createdAt?: number
 }
 
 // this are options that leveldb createReadStream accepts
-export type KeyFilter = {
+export interface KeyFilter {
   gt?: string
   gte?: string
   lt?: string
@@ -100,15 +100,15 @@ class BaseDb {
   }
 
   async _update (key: string, data: any) {
-    return this.mutex.runExclusive(async () => {
+    return await this.mutex.runExclusive(async () => {
       const { value } = await this._getUpdateData(key, data)
       return this.db.put(key, value)
     })
   }
 
   public async batchUpdate (updates: any[]) {
-    return this.mutex.runExclusive(async () => {
-      const ops : any[] = []
+    return await this.mutex.runExclusive(async () => {
+      const ops: any[] = []
       for (const data of updates) {
         const { key, value } = await this._getUpdateData(data.key, data.value)
         ops.push({
@@ -118,7 +118,7 @@ class BaseDb {
         })
       }
 
-      return new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         this.db.batch(ops, (err: Error) => {
           if (err) {
             reject(err)
@@ -186,8 +186,8 @@ class BaseDb {
   }
 
   async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      const kv : any[] = []
+    return await new Promise((resolve, reject) => {
+      const kv: any[] = []
       this.db.createReadStream(filter)
         .on('data', (key: any, value: any) => {
           // the parameter types depend on what key/value enabled options were used

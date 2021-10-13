@@ -45,9 +45,9 @@ export const setLogLevel = (_logLevel: LogLevels | string) => {
 }
 
 class Logger {
-  private tag: string = ''
-  private prefix: string = ''
-  private options: any = {}
+  private readonly tag: string = ''
+  private readonly prefix: string = ''
+  private readonly options: any = {}
   enabled: boolean = true
 
   setEnabled (enabled: boolean) {
@@ -62,7 +62,7 @@ class Logger {
   ) {
     if (tag instanceof Object) {
       opts = tag
-      tag = opts.tag
+      tag = opts.tag ?? ''
     }
     if (opts.prefix) {
       this.prefix = `<${opts.prefix}>`

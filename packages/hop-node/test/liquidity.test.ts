@@ -2,7 +2,7 @@ import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import { User } from './helpers'
 import { bonderPrivateKey } from './config'
-require('dotenv').config()
+require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
 
 const TOKEN = 'USDC'
 const TOKEN_0_AMOUNT = 1000

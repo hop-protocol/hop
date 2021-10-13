@@ -25,7 +25,7 @@ program
 
       const chains = getEnabledNetworks()
       const tokens = getEnabledTokens()
-      const counts : any = {}
+      const counts: Record<string, Record<string, number>> = {}
       let total = 0
       for (const chain of chains) {
         if (chain === Chain.Ethereum) {

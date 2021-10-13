@@ -3,7 +3,7 @@ import rateLimitRetry from 'src/utils/rateLimitRetry'
 class Example {
   counter = 0
   foo = rateLimitRetry(async () => {
-    return new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
       setTimeout(() => {
         this.counter++
         if (this.counter < 2) {

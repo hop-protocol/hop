@@ -92,7 +92,7 @@ program
             } else if (rpcUrls.length) {
               _rpcUrls.push(...rpcUrls)
             }
-            if (_rpcUrls.length) {
+            if (_rpcUrls.length > 0) {
               setNetworkRpcUrls(k, _rpcUrls)
             }
             if (typeof waitConfirmations === 'number') {
@@ -104,7 +104,7 @@ program
 
       const bonder = config?.roles?.bonder
       const challenger = config?.roles?.challenger
-      const order = Number(config?.order || 0)
+      const order = Number(config.order ?? 0)
       if (order) {
         logger.info('order:', order)
       }

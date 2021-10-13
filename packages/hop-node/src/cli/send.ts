@@ -57,7 +57,7 @@ async function sendTokens (
   }
 
   const isNativeToken = token === 'MATIC' && fromChain === Chain.Polygon
-  let balance : BigNumber
+  let balance: BigNumber
   if (isNativeToken) {
     balance = await signer.getBalance()
   } else {

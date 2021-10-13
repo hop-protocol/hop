@@ -55,7 +55,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
     )
 
-    const promises: Promise<any>[] = []
+    const promises: Array<Promise<any>> = []
     for (const dbTransferRoot of dbTransferRoots) {
       const { transferRootHash, transferIds, destinationChainId } = dbTransferRoot
 
@@ -66,7 +66,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
 
       // get all db transfer items that belong to root
-      const dbTransfers : Transfer[] = []
+      const dbTransfers: Transfer[] = []
       for (const transferId of transferIds) {
         const dbTransfer = await this.db.transfers.getByTransferId(transferId)
         dbTransfers.push(dbTransfer)
@@ -128,7 +128,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
     }
 
-    if (!promises.length) {
+    if (promises.length === 0) {
       return
     }
 
@@ -233,7 +233,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       throw new Error(`transfer root hash "${transferRootHash}" not found in db`)
     }
 
-    return this.checkTransferRootHash(transferRootHash, withdrawalBonder)
+    return await this.checkTransferRootHash(transferRootHash, withdrawalBonder)
   }
 }
 

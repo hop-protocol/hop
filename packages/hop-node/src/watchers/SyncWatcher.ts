@@ -15,17 +15,17 @@ import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { config as globalConfig, oruChains } from 'src/config'
 
-type S3JsonData = {
+interface S3JsonData {
   [token: string]: {
-    availableCredit: {[chain: string]: string},
-    pendingAmounts: {[chain: string]: string},
+    availableCredit: {[chain: string]: string}
+    pendingAmounts: {[chain: string]: string}
     unbondedTransferRootAmounts: {[chain: string]: string}
   }
 }
 
 // TODO: better way of managing aggregate state
 const s3JsonData: S3JsonData = {}
-let s3LastUpload : number
+let s3LastUpload: number
 
 export interface Config {
   chainSlug: string
@@ -42,8 +42,8 @@ class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   resyncIntervalMs: number = 60 * 1000
   syncIndex: number = 0
-  syncFromDate : string
-  customStartBlockNumber : number
+  syncFromDate: string
+  customStartBlockNumber: number
   ready: boolean = false
   private s3AvailableCredit: { [destinationChain: string]: BigNumber } = {} // bonder from core package config
   private availableCredit: { [destinationChain: string]: BigNumber } = {} // own bonder
@@ -67,7 +67,7 @@ class SyncWatcher extends BaseWatcher {
     if (config.s3Upload) {
       this.s3Upload = new S3Upload({
         bucket: 'assets.hop.exchange',
-        key: `${config.s3Namespace || globalConfig.network}/v1-available-liquidity.json`
+        key: `${config.s3Namespace ?? globalConfig.network}/v1-available-liquidity.json`
       })
     }
     this.init()
@@ -128,9 +128,9 @@ class SyncWatcher extends BaseWatcher {
         this.logger.debug(`incomplete transfer items: ${incompleteTransfers.length}`)
         const allChunks = chunk(incompleteTransfers, chunkSize)
         for (const chunks of allChunks) {
-          await Promise.all(chunks.map((transfer: Transfer) => {
+          await Promise.all(chunks.map(async (transfer: Transfer) => {
             const { transferId } = transfer
-            return this.populateTransferDbItem(transferId)
+            return await this.populateTransferDbItem(transferId)
               .then(() => {
                 // fill in missing db timestamped keys
                 return this.db.transfers.trackTimestampedKeyByTransferId(transferId)
@@ -149,9 +149,9 @@ class SyncWatcher extends BaseWatcher {
         this.logger.debug(`incomplete transfer root  items: ${incompleteTransferRoots.length}`)
         const allChunks = chunk(incompleteTransfers, chunkSize)
         for (const chunks of allChunks) {
-          await Promise.all(chunks.map((transferRoot: TransferRoot) => {
+          await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {
             const { transferRootHash } = transferRoot
-            return this.populateTransferRootDbItem(transferRootHash)
+            return await this.populateTransferRootDbItem(transferRootHash)
               .then(() => {
                 // fill in missing db timestamped keys
                 return this.db.transferRoots.trackTimestampedKeyByTransferRootHash(transferRootHash)
@@ -198,7 +198,7 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async syncHandler (): Promise<any> {
-    const promises: Promise<any>[] = []
+    const promises: Array<Promise<any>> = []
     let startBlockNumber = this.bridge.bridgeDeployedBlockNumber
     let useCacheKey = true
 
@@ -222,7 +222,7 @@ class SyncWatcher extends BaseWatcher {
       promises.push(
         l1Bridge.mapTransferRootBondedEvents(
           async (event: Event) => {
-            return this.handleTransferRootBondedEvent(event)
+            return await this.handleTransferRootBondedEvent(event)
           },
           getOptions(l1Bridge.TransferRootBonded)
         )
@@ -231,7 +231,7 @@ class SyncWatcher extends BaseWatcher {
       promises.push(
         l1Bridge.mapTransferRootConfirmedEvents(
           async (event: Event) => {
-            return this.handleTransferRootConfirmedEvent(event)
+            return await this.handleTransferRootConfirmedEvent(event)
           },
           getOptions(l1Bridge.TransferRootConfirmed)
         )
@@ -240,7 +240,7 @@ class SyncWatcher extends BaseWatcher {
       promises.push(
         l1Bridge.mapTransferBondChallengedEvents(
           async (event: Event) => {
-            return this.handleTransferBondChallengedEvent(event)
+            return await this.handleTransferBondChallengedEvent(event)
           },
           getOptions(l1Bridge.TransferBondChallenged)
         )
@@ -252,7 +252,7 @@ class SyncWatcher extends BaseWatcher {
       promises.push(
         l2Bridge.mapTransferSentEvents(
           async (event: Event) => {
-            return this.handleTransferSentEvent(event)
+            return await this.handleTransferSentEvent(event)
           },
           getOptions(l2Bridge.TransferSent)
         )
@@ -261,7 +261,7 @@ class SyncWatcher extends BaseWatcher {
       promises.push(
         l2Bridge.mapTransfersCommittedEvents(
           async (event: Event) => {
-            return Promise.all([
+            return await Promise.all([
               this.handleTransfersCommittedEvent(event),
               this.handleTransfersCommittedEventForTransferIds(event)
             ])
@@ -271,11 +271,11 @@ class SyncWatcher extends BaseWatcher {
       )
     }
 
-    const transferSpentPromises: Promise<any>[] = []
+    const transferSpentPromises: Array<Promise<any>> = []
     transferSpentPromises.push(
       this.bridge.mapWithdrawalBondedEvents(
         async (event: Event) => {
-          return this.handleWithdrawalBondedEvent(event)
+          return await this.handleWithdrawalBondedEvent(event)
         },
         getOptions(this.bridge.WithdrawalBonded)
       )
@@ -284,7 +284,7 @@ class SyncWatcher extends BaseWatcher {
     transferSpentPromises.push(
       this.bridge.mapWithdrewEvents(
         async (event: Event) => {
-          return this.handleWithdrewEvent(event)
+          return await this.handleWithdrewEvent(event)
         },
         getOptions(this.bridge.Withdrew)
       )
@@ -292,12 +292,12 @@ class SyncWatcher extends BaseWatcher {
 
     promises.push(
       Promise.all(transferSpentPromises)
-        .then(() => {
+        .then(async () => {
         // This must be executed after the Withdrew and WithdrawalBonded event handlers
         // on initial sync since it relies on data from those handlers.
-          return this.bridge.mapMultipleWithdrawalsSettledEvents(
+          return await this.bridge.mapMultipleWithdrawalsSettledEvents(
             async (event: Event) => {
-              return this.handleMultipleWithdrawalsSettledEvent(event)
+              return await this.handleMultipleWithdrawalsSettledEvent(event)
             },
             getOptions(this.bridge.MultipleWithdrawalsSettled)
           )
@@ -307,7 +307,7 @@ class SyncWatcher extends BaseWatcher {
     promises.push(
       this.bridge.mapTransferRootSetEvents(
         async (event: Event) => {
-          return this.handleTransferRootSetEvent(event)
+          return await this.handleTransferRootSetEvent(event)
         },
         getOptions(this.bridge.TransferRootSet)
       )
@@ -316,9 +316,9 @@ class SyncWatcher extends BaseWatcher {
     // these must come after db is done syncing,
     // and syncAvailableCredit must be last
     await Promise.all(promises)
-      .then(() => this.syncUnbondedTransferRootAmounts())
-      .then(() => this.syncPendingAmounts())
-      .then(() => this.syncAvailableCredit())
+      .then(async () => await this.syncUnbondedTransferRootAmounts())
+      .then(async () => await this.syncPendingAmounts())
+      .then(async () => await this.syncAvailableCredit())
   }
 
   async populateTransferDbItem (transferId: string) {
@@ -825,7 +825,7 @@ class SyncWatcher extends BaseWatcher {
     logger.debug(`bonder : ${bonder}`)
     logger.debug(`totalBondSettled: ${this.bridge.formatUnits(totalBondsSettled)}`)
     logger.debug(`transferIds count: ${transferIds.length}`)
-    const dbTransfers : Transfer[] = []
+    const dbTransfers: Transfer[] = []
     for (const transferId of transferIds) {
       const dbTransfer = await this.db.transfers.getByTransferId(transferId)
       if (!dbTransfer) {
@@ -1083,7 +1083,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const data : any = {
+    const data: any = {
       availableCredit: {},
       pendingAmounts: {},
       unbondedTransferRootAmounts: {}

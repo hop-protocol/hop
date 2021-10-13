@@ -43,7 +43,7 @@ program
       const nearest = Number(source.nearest)
       const fromDate = Number(source.fromDate)
       const toDate = Number(source.toDate)
-      let items : any[] = []
+      let items: any[] = []
       if (dbName === 'transfer-roots') {
         items = await db.transferRoots.getTransferRoots({
           fromUnix: fromDate,

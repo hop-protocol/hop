@@ -29,7 +29,7 @@ class StakeWatcher extends BaseWatcher {
   stakeMinThreshold: BigNumber = BigNumber.from(0)
   maxStakeAmount: BigNumber = BigNumber.from(0)
   interval: number = 60 * 1000
-  private prevCacheKey: string = ''
+  private readonly prevCacheKey: string = ''
 
   constructor (config: Config) {
     super({
@@ -155,7 +155,7 @@ class StakeWatcher extends BaseWatcher {
             this.token.chainId,
             convertAmount
           )
-          let txTimestamp : number = 0
+          let txTimestamp: number = 0
           if (tx) {
             const msg = `convert tx: ${tx?.hash}`
             this.logger.info(msg)
@@ -190,7 +190,7 @@ class StakeWatcher extends BaseWatcher {
       }
     }
 
-    return this.stake(amount)
+    return await this.stake(amount)
   }
 
   async stake (amount: BigNumber) {
@@ -276,7 +276,7 @@ class StakeWatcher extends BaseWatcher {
 
   async getTokenAllowance () {
     const spender = this.bridge.getAddress()
-    return this.token.getAllowance(spender)
+    return await this.token.getAllowance(spender)
   }
 
   async pollConvertTxReceive (convertAmount: BigNumber, timestamp: number) {

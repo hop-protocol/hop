@@ -13,7 +13,7 @@ import { MaticPOSClient } from '@maticnetwork/maticjs'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
 
-type Config = {
+interface Config {
   chainSlug: string
   tokenSymbol: string
   label?: string
@@ -167,7 +167,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
       }
     )
 
-    return this.l1Wallet.sendTransaction({
+    return await this.l1Wallet.sendTransaction({
       to: rootTunnel,
       value: tx.value,
       data: tx.data,
@@ -196,7 +196,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
       encodeAbi: true
     })
 
-    return this.l1Wallet.sendTransaction({
+    return await this.l1Wallet.sendTransaction({
       to: tx.to,
       value: tx.value,
       data: tx.data,

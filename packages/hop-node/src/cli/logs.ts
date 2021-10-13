@@ -78,7 +78,7 @@ program
         }
 
         let startTime: number
-        let endTime : number
+        let endTime: number
         if (startTimeISO) {
           startTime = DateTime.fromISO(startTimeISO, { zone: 'UTC' }).toMillis()
         }

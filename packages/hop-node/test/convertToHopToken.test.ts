@@ -3,7 +3,7 @@ import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import { User } from './helpers'
 import { privateKey } from './config'
-require('dotenv').config()
+require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
 
 const TOKEN = 'USDC'
 const AMOUNT = 10_000

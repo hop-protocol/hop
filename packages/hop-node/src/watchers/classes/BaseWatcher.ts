@@ -68,7 +68,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (prefix) {
       this.prefix = prefix
     }
-    if (order) {
+    if (order != null) {
       this.order = order
     }
     this.notifier = new Notifier(
@@ -77,7 +77,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (config.isL1) {
       this.isL1 = config.isL1
     }
-    if (config.bridgeContract) {
+    if (config.bridgeContract != null) {
       if (this.isL1) {
         this.bridge = new L1Bridge(config.bridgeContract)
       } else {

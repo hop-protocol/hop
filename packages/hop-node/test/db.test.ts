@@ -1,5 +1,5 @@
 import TransfersDb from 'src/db/TransfersDb'
-require('dotenv').config()
+require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
 
 describe('db', () => {
   it(
@@ -26,7 +26,7 @@ describe('db', () => {
       const prefix = `test-${Date.now()}`
       const _namespace = `testns-${Date.now()}`
       const db = new TransfersDb(prefix, _namespace)
-      const promises : Promise<any>[] = []
+      const promises: Array<Promise<any>> = []
       for (let i = 0; i < max; i++) {
         const transferId = i.toString()
         ids.push(transferId)

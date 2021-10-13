@@ -14,8 +14,8 @@ import * as testConfig from './test'
 require('./loadEnvFile')
 const defaultDbPath = path.resolve(__dirname, '../../../db_data')
 
-export const ipfsHost = process.env.IPFS_HOST || 'http://127.0.0.1:5001'
-export const hostname = process.env.HOSTNAME || os.hostname()
+export const ipfsHost = process.env.IPFS_HOST ?? 'http://127.0.0.1:5001'
+export const hostname = process.env.HOSTNAME ?? os.hostname()
 export const slackChannel = process.env.SLACK_CHANNEL
 export const slackWarnChannel = process.env.SLACK_WARN_CHANNEL // optional
 export const slackErrorChannel = process.env.SLACK_ERROR_CHANNEL // optional
@@ -23,7 +23,7 @@ export const slackInfoChannel = process.env.SLACK_INFO_CHANNEL // optional
 export const slackLogChannel = process.env.SLACK_LOG_CHANNEL // optional
 export const slackSuccessChannel = process.env.SLACK_SUCCESS_CHANNEL // optional
 export const slackAuthToken = process.env.SLACK_AUTH_TOKEN
-export const slackUsername = process.env.SLACK_USERNAME || 'Hop Node'
+export const slackUsername = process.env.SLACK_USERNAME ?? 'Hop Node'
 export const gasBoostWarnSlackChannel = process.env.GAS_BOOST_WARN_SLACK_CHANNEL // optional
 export const gasBoostErrorSlackChannel = process.env.GAS_BOOST_ERROR_SLACK_CHANNEL // optional
 export const enabledSettleWatcherDestinationChains = normalizeEnvVarArray(process.env.ENABLED_SETTLE_WATCHER_DESTINATION_CHAINS)
@@ -37,7 +37,7 @@ export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
 export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 export const awsRegion = process.env.AWS_REGION
 export const awsProfile = process.env.AWS_PROFILE
-const envNetwork = process.env.NETWORK || Network.Kovan
+const envNetwork = process.env.NETWORK ?? Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
@@ -48,25 +48,25 @@ export const defaultConfigDir = `${os.homedir()}/.hop-node`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 
-type SyncConfig = {
+interface SyncConfig {
   totalBlocks?: number
   batchBlocks?: number
 }
-type SyncConfigs = { [key: string]: SyncConfig }
-type DbConfig = {
+interface SyncConfigs { [key: string]: SyncConfig }
+interface DbConfig {
   path: string
 }
-type Config = {
+interface Config {
   isMainnet: boolean
-  tokens:Bridges & {[network: string]: any},
-  network: string,
-  networks: Networks & {[network: string]: any},
-  bonderPrivateKey: string,
-  metadata: Metadata & {[network: string]: any},
-  bonders: Bonders,
-  stateUpdateAddress: string,
-  db: DbConfig,
-  sync: SyncConfigs,
+  tokens: Bridges & {[network: string]: any}
+  network: string
+  networks: Networks & {[network: string]: any}
+  bonderPrivateKey: string
+  metadata: Metadata & {[network: string]: any}
+  bonders: Bonders
+  stateUpdateAddress: string
+  db: DbConfig
+  sync: SyncConfigs
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -84,7 +84,7 @@ const normalizeNetwork = (network: string) => {
   return network
 }
 
-const getConfigByNetwork = (network: string):Partial<Config> => {
+const getConfigByNetwork = (network: string): Partial<Config> => {
   const { addresses: tokens, networks, bonders, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
   network = normalizeNetwork(network)
   const isMainnet = network === Network.Mainnet

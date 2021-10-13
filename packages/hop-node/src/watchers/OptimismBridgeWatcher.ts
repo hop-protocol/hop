@@ -9,7 +9,7 @@ import { Watcher } from '@eth-optimism/core-utils'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { getMessagesAndProofsForL2Transaction } from '@eth-optimism/message-relayer'
 
-type Config = {
+interface Config {
   chainSlug: string
   tokenSymbol: string
   label?: string

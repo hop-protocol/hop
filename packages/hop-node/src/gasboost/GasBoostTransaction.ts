@@ -14,7 +14,7 @@ import { EventEmitter } from 'events'
 
 import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils'
 import { gasBoostErrorSlackChannel, gasBoostWarnSlackChannel, hostname } from 'src/config'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -25,13 +25,13 @@ export enum State {
   Error = 'error'
 }
 
-type InflightItem = {
+interface InflightItem {
   hash?: string
   boosted: boolean
   sentAt: number
 }
 
-type MarshalledItem = {
+interface MarshalledItem {
   id: string
   createdAt: number
   txHash: string
@@ -46,7 +46,7 @@ type MarshalledItem = {
   gasLimit: string
 }
 
-export type Options = {
+export interface Options {
   pollMs: number
   timeTilBoostMs: number
   gasPriceMultiplier: number
@@ -56,10 +56,10 @@ export type Options = {
   compareMarketGasPrice: boolean
 }
 
-export type Type0GasData = {
+export interface Type0GasData {
   gasPrice: BigNumber
 }
-export type Type2GasData = {
+export interface Type2GasData {
   maxFeePerGas: BigNumber
   maxPriorityFeePerGas: BigNumber
 }
@@ -88,26 +88,26 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   createdAt: number
   txHash: string
   receipt: providers.TransactionReceipt
-  private _is1559Supported : boolean // set to true if EIP-1559 type transactions are supported
-  readonly minMultiplier : number = 1.10 // the minimum gas price multiplier that miners will accept for transaction replacements
+  private _is1559Supported: boolean // set to true if EIP-1559 type transactions are supported
+  readonly minMultiplier: number = 1.10 // the minimum gas price multiplier that miners will accept for transaction replacements
 
   // these properties are required by ethers TransactionResponse interface
   from: string // type 0 and 2 tx required property
   to: string // type 0 and 2 tx required property
   data: string // type 0 and 2 tx required property
   value: BigNumber // type 0 and 2 tx required property
-  nonce: number // type 0 and 2 tx required property
+  nonce: BigNumber // type 0 and 2 tx required property
   gasLimit: BigNumber // type 0 and 2 tx required property
   gasPrice: BigNumber // type 0 tx required property
-  maxFeePerGas : BigNumber // type 2 tx required property
-  maxPriorityFeePerGas : BigNumber // type 2 tx required property
+  maxFeePerGas: BigNumber // type 2 tx required property
+  maxPriorityFeePerGas: BigNumber // type 2 tx required property
   chainId: number // type 0 and 2 tx required property
   confirmations: number = 0 // type 0 and 2 tx required property
 
   constructor (tx: providers.TransactionRequest, signer: Signer, store?: Store, options: Partial<Options> = {}) {
     super()
     this.signer = signer
-    if (store) {
+    if (store != null) {
       this.store = store
     }
     this.id = uuidv4()
@@ -115,26 +115,26 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.from = tx.from
     this.to = tx.to
     if (tx.data) {
-      this.data = tx.data.toString()
+      this.data = hexlify(tx.data)
     }
     if (tx.value) {
-      this.value = BigNumber.from(tx.value.toString())
+      this.value = BigNumber.from(tx.value)
     }
     if (tx.nonce) {
-      this.nonce = Number(tx.nonce.toString())
+      this.nonce = BigNumber.from(tx.nonce)
     }
     if (tx.gasPrice) {
-      this.gasPrice = BigNumber.from(tx.gasPrice.toString())
+      this.gasPrice = BigNumber.from(tx.gasPrice)
     } else {
       if (tx.maxFeePerGas) {
-        this.maxFeePerGas = BigNumber.from(tx.maxFeePerGas.toString())
+        this.maxFeePerGas = BigNumber.from(tx.maxFeePerGas)
       }
       if (tx.maxPriorityFeePerGas) {
-        this.maxPriorityFeePerGas = BigNumber.from(tx.maxPriorityFeePerGas.toString())
+        this.maxPriorityFeePerGas = BigNumber.from(tx.maxPriorityFeePerGas)
       }
     }
     if (tx.gasLimit) {
-      this.gasLimit = BigNumber.from(tx.gasLimit.toString())
+      this.gasLimit = BigNumber.from(tx.gasLimit)
     }
 
     this.setOptions(options)
@@ -157,7 +157,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     )
   }
 
-  get hash ():string {
+  get hash (): string {
     if (this.txHash) {
       return this.txHash
     }
@@ -227,7 +227,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   static async fromId (id: string, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const item = await store.getItem(id)
-    return GasBoostTransaction.unmarshal(item, signer, store, options)
+    return await GasBoostTransaction.unmarshal(item, signer, store, options)
   }
 
   static async unmarshal (item: MarshalledItem, signer: Signer, store: Store, options: Partial<Options> = {}) {
@@ -284,16 +284,16 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.track(tx)
   }
 
-  async getLatestNonce ():Promise<number> {
+  async getLatestNonce (): Promise<number> {
     return await this.signer.getTransactionCount('pending')
   }
 
   async getGasFeeData () {
-    return this.signer.provider.getFeeData()
+    return await this.signer.provider.getFeeData()
   }
 
   async getMarketGasPrice (): Promise<BigNumber> {
-    return this.signer.getGasPrice()
+    return await this.signer.getGasPrice()
   }
 
   async getMarketMaxFeePerGas (): Promise<BigNumber> {
@@ -318,7 +318,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return this.parseGwei(this.priorityFeePerGasCap)
   }
 
-  async getBumpedGasPrice (multiplier : number = this.gasPriceMultiplier): Promise<BigNumber> {
+  async getBumpedGasPrice (multiplier: number = this.gasPriceMultiplier): Promise<BigNumber> {
     const marketGasPrice = await this.getMarketGasPrice()
     if (!this.isChainGasFeeBumpable()) {
       return marketGasPrice
@@ -331,7 +331,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return BNMax(marketGasPrice, bumpedGasPrice)
   }
 
-  async getBumpedMaxPriorityFeePerGas (multiplier : number = this.gasPriceMultiplier): Promise<BigNumber> {
+  async getBumpedMaxPriorityFeePerGas (multiplier: number = this.gasPriceMultiplier): Promise<BigNumber> {
     const marketMaxPriorityFeePerGas = await this.getMarketMaxPriorityFeePerGas()
     if (!this.isChainGasFeeBumpable()) {
       return marketMaxPriorityFeePerGas
@@ -346,7 +346,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return BNMax(marketMaxPriorityFeePerGas, bumpedMaxPriorityFeePerGas)
   }
 
-  async getBumpedGasFeeData (multiplier : number = this.gasPriceMultiplier): Promise<Partial<GasFeeData>> {
+  async getBumpedGasFeeData (multiplier: number = this.gasPriceMultiplier): Promise<Partial<GasFeeData>> {
     const use1559 = await this.is1559Supported() && !this.gasPrice
     if (use1559) {
       const gasFeeData = await this.getGasFeeData()
@@ -368,7 +368,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   clampMaxGasFeeData (gasFeeData: Partial<GasFeeData>): Partial<GasFeeData> {
-    if (gasFeeData.gasPrice) {
+    if (gasFeeData.gasPrice != null) {
       const maxGasPrice = this.getMaxGasPrice()
       return {
         gasPrice: BNMin(gasFeeData.gasPrice, maxGasPrice)
@@ -418,13 +418,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.logger.debug(`wait() called, txHash: ${this.txHash}`)
     this.logger.debug(`wait() called, inFlightItems: ${JSON.stringify(this.inflightItems)}`)
     if (this.txHash) {
-      return this.getReceipt(this.txHash)
+      return await this.getReceipt(this.txHash)
     }
     for (const { hash } of this.inflightItems) {
       this.getReceipt(hash)
-        .then((receipt: providers.TransactionReceipt) => this.handleConfirmation(hash, receipt))
+        .then(async (receipt: providers.TransactionReceipt) => await this.handleConfirmation(hash, receipt))
     }
-    return new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
       this
         .on(State.Confirmed, (tx) => {
           this.logger.debug('state confirmed')
@@ -469,7 +469,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private async getReceipt (txHash: string) {
-    return this.signer.provider.waitForTransaction(txHash)
+    return await this.signer.provider.waitForTransaction(txHash)
   }
 
   private async startPoller () {
@@ -513,7 +513,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const priorityFeePerGasCap = this.getPriorityFeePerGasCap()
 
     // don't boost if suggested gas is over max
-    const isMaxReached = gasFeeData.gasPrice?.gt(maxGasPrice) || gasFeeData.maxPriorityFeePerGas?.gt(priorityFeePerGasCap)
+    const isMaxReached = gasFeeData.gasPrice?.gt(maxGasPrice) ?? gasFeeData.maxPriorityFeePerGas?.gt(priorityFeePerGasCap)
     if (isMaxReached) {
       if (!this.maxGasPriceReached) {
         const warnMsg = `max gas price reached. boostedGasFee: (${this.getGasFeeDataAsString(gasFeeData)}, maxGasFee: (gasPrice: ${this.maxGasPriceGwei}, maxPriorityFeePerGas: ${this.priorityFeePerGasCap}). cannot boost`
@@ -534,7 +534,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.emit(State.Boosted, tx, this.boostIndex)
   }
 
-  private async _sendTransaction (gasFeeData: Partial<GasFeeData>):Promise<providers.TransactionResponse> {
+  private async _sendTransaction (gasFeeData: Partial<GasFeeData>): Promise<providers.TransactionResponse> {
     const maxRetries = 10
     let i = 0
     while (true) {
@@ -552,7 +552,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           gasLimit: this.gasLimit
         }
 
-        if (gasFeeData.gasPrice) {
+        if (gasFeeData.gasPrice != null) {
           payload.gasPrice = gasFeeData.gasPrice
         } else {
           payload.maxFeePerGas = gasFeeData.maxFeePerGas
@@ -589,7 +589,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.signer.estimateGas(payload),
       this.signer.getBalance()
     ])
-    const gasPrice = gasFeeData.gasPrice || gasFeeData.maxFeePerGas
+    const gasPrice = (gasFeeData.gasPrice != null) || gasFeeData.maxFeePerGas
     const gasCost = gasLimit.mul(gasPrice)
     const warnEthBalance = parseUnits((this.warnEthBalance || 0).toString(), 18)
     const formattedGasCost = formatUnits(gasCost, 18)
@@ -610,7 +610,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   private track (tx: providers.TransactionResponse) {
     this.logger.debug('tracking')
     const prevItem = this.getLatestInflightItem()
-    this.logger.debug(`tracking: prevItem ${prevItem}`)
+    this.logger.debug(`tracking: prevItem ${JSON.stringify(prevItem)}`)
     if (prevItem) {
       prevItem.boosted = true
       this.logger.debug(`tracking boosted tx: ${tx.hash}, previous tx: ${prevItem.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}, ${this.getGasFeeDataAsString()}`)
@@ -648,8 +648,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return formatUnits(value.toString(), 9)
   }
 
-  private getGasFeeDataAsString (gasFeeData : Partial<GasFeeData> = this) {
-    const format = (value?: BigNumber) => value ? this.formatGwei(value) : null
+  private getGasFeeDataAsString (gasFeeData: Partial<GasFeeData> = this) {
+    const format = (value?: BigNumber) => (value != null) ? this.formatGwei(value) : null
     const { gasPrice, maxFeePerGas, maxPriorityFeePerGas } = gasFeeData
     return `gasPrice: ${format(gasPrice)}, maxFeePerGas: ${format(maxFeePerGas)}, maxPriorityFeePerGas: ${format(maxPriorityFeePerGas)}`
   }
@@ -659,7 +659,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       return this._is1559Supported
     }
     const { maxFeePerGas, maxPriorityFeePerGas } = await this.getGasFeeData()
-    const isSupported = !!(maxFeePerGas && maxPriorityFeePerGas)
+    const isSupported = !!((maxFeePerGas != null) && (maxPriorityFeePerGas != null))
     this._is1559Supported = isSupported
     return isSupported
   }

@@ -145,7 +145,7 @@ Press [Enter] to exit.
           fs.readFileSync(path.resolve(filepath), 'utf8')
         )
         const address = keystore.address
-        console.log('0x' + address) // intentional log
+        console.log(`0x${address}`) // intentional log
       } else {
         console.log(`unsupported command: "${action}"`) // intentional log
       }

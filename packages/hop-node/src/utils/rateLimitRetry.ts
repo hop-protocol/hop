@@ -7,12 +7,12 @@ import { hostname, rateLimitMaxRetries, rpcTimeoutSeconds } from 'src/config'
 const logger = new Logger('rateLimitRetry')
 const notifier = new Notifier(`rateLimitRetry, host: ${hostname}`)
 
-export default function rateLimitRetry (fn: any): any {
+export default function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn: FN): (...args: Parameters<FN>) => Promise<Awaited<ReturnType<FN>>> {
   const id = `${process.hrtime()[1]}`
   const log = logger.create({ id })
-  return async (...args: any[]) => {
+  return async (...args: Parameters<FN>): Promise<Awaited<ReturnType<FN>>> => {
     let retries = 0
-    const retry = () => promiseTimeout(fn(...args), rpcTimeoutSeconds * 1000)
+    const retry = await promiseTimeout(fn(...args), rpcTimeoutSeconds * 1000)
     while (true) {
       try {
         // the await here is intentional so it's caught in the try/catch below.

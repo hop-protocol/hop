@@ -11,7 +11,7 @@ let gasPricesDb: GasPricesDb | null = null
 let tokenPricesDb: TokenPricesDb | null = null
 
 // dbSets are token specific instances
-const dbSets : {[db: string]: {[tokenSymbol: string]: any}} = {
+const dbSets: {[db: string]: {[tokenSymbol: string]: any}} = {
   gasBoostDb: {},
   syncStateDb: {},
   transfersDb: {},
@@ -19,14 +19,14 @@ const dbSets : {[db: string]: {[tokenSymbol: string]: any}} = {
 }
 
 export const getGasPricesDb = () => {
-  if (!gasPricesDb) {
+  if (gasPricesDb == null) {
     gasPricesDb = new GasPricesDb('gasPrices')
   }
   return gasPricesDb
 }
 
 export const getTokenPricesDb = () => {
-  if (!tokenPricesDb) {
+  if (tokenPricesDb == null) {
     tokenPricesDb = new TokenPricesDb('tokenPrices')
   }
   return tokenPricesDb

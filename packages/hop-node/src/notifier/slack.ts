@@ -2,12 +2,12 @@ import { Notifier } from './interfaces'
 import { WebClient } from '@slack/web-api'
 import { slackAuthToken, slackChannel, slackErrorChannel, slackInfoChannel, slackLogChannel, slackSuccessChannel, slackUsername, slackWarnChannel } from 'src/config'
 
-type MessageOptions = {
+interface MessageOptions {
   channel: string
 }
 
 class SlackClient implements Notifier {
-  private static instance: SlackClient
+  private static readonly instance: SlackClient
   client: WebClient
   channel: string
   label: string
@@ -30,7 +30,7 @@ class SlackClient implements Notifier {
     }
     try {
       await this.client.chat.postMessage({
-        channel: options.channel || this.channel,
+        channel: options.channel ?? this.channel,
         text: message,
         username: slackUsername,
         icon_emoji: ':rabbit'
@@ -42,36 +42,36 @@ class SlackClient implements Notifier {
 
   async error (message: string, options: Partial<MessageOptions> = {}) {
     const icon = '❌'
-    return this.sendMessage(`${icon} ${message}`, {
-      channel: options.channel || slackErrorChannel
+    return await this.sendMessage(`${icon} ${message}`, {
+      channel: options.channel ?? slackErrorChannel
     })
   }
 
   async info (message: string, options: Partial<MessageOptions> = {}) {
     const icon = 'ℹ️'
-    return this.sendMessage(`${icon} ${message}`, {
-      channel: options.channel || slackInfoChannel
+    return await this.sendMessage(`${icon} ${message}`, {
+      channel: options.channel ?? slackInfoChannel
     })
   }
 
   async log (message: string, options: Partial<MessageOptions> = {}) {
     const icon = 'ℹ️'
-    return this.sendMessage(`${icon} ${message}`, {
-      channel: options.channel || slackLogChannel
+    return await this.sendMessage(`${icon} ${message}`, {
+      channel: options.channel ?? slackLogChannel
     })
   }
 
   async success (message: string, options: Partial<MessageOptions> = {}) {
     const icon = '✅'
-    return this.sendMessage(`${icon} ${message}`, {
-      channel: options.channel || slackSuccessChannel
+    return await this.sendMessage(`${icon} ${message}`, {
+      channel: options.channel ?? slackSuccessChannel
     })
   }
 
   async warn (message: string, options: Partial<MessageOptions> = {}) {
     const icon = '⚠️'
-    return this.sendMessage(`${icon} ${message}`, {
-      channel: options.channel || slackWarnChannel
+    return await this.sendMessage(`${icon} ${message}`, {
+      channel: options.channel ?? slackWarnChannel
     })
   }
 }

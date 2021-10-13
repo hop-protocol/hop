@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 
 class Coinbase {
-  private baseUrl: string = 'https://api.pro.coinbase.com'
+  private readonly baseUrl: string = 'https://api.pro.coinbase.com'
 
   public getPriceByTokenSymbol = async (symbol: string, base: string = 'USD') => {
     // pair "USDC-USD" doesn't exist so just return $1

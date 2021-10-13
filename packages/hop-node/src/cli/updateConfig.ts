@@ -39,8 +39,8 @@ program
       const tokens = normalizeEnvVarArray(source.tokens || source.token)
       const commitTransfersMinThresholdAmount = Number(source.commitTransfersMinThreshold || 0)
 
-      const newConfig = JSON.parse(JSON.stringify(config)) // deep clone
-      const oldConfig = JSON.parse(JSON.stringify(config)) // deep clone
+      const newConfig = JSON.parse(JSON.stringify(config)) as FileConfig // deep clone
+      const oldConfig = JSON.parse(JSON.stringify(config)) as FileConfig // deep clone
 
       if (source.commitTransfersMinThreshold !== undefined) {
         const updateCommitTransfersMinThreshold = async (token: string) => {
@@ -136,7 +136,7 @@ program
         }
 
         if (source.fromFile) {
-          let json : any
+          let json: any
           try {
             const filepath = path.resolve(source.fromFile)
             if (!fs.existsSync(filepath)) {

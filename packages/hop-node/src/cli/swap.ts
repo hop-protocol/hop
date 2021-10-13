@@ -59,7 +59,7 @@ program
       const fromTokenIsHToken = isHToken(fromToken)
       const toTokenIsHToken = isHToken(toToken)
       const isAmmSwap = fromTokenIsHToken || toTokenIsHToken
-      let tx : any
+      let tx: any
       if (isAmmSwap) {
         logger.debug('L2 AMM swap')
         if (fromTokenIsHToken && toTokenIsHToken) {
@@ -82,9 +82,9 @@ program
         const amm = l2Bridge.amm
         const ammWrapper = l2Bridge.ammWrapper
 
-        let fromTokenIndex : number
-        let toTokenIndex : number
-        let token : Token
+        let fromTokenIndex: number
+        let toTokenIndex: number
+        let token: Token
         if (fromTokenIsHToken) {
           fromTokenIndex = TokenIndex.HopBridgeToken
           toTokenIndex = TokenIndex.CanonicalToken
@@ -101,7 +101,7 @@ program
           amountIn = await token.getBalance()
         }
 
-        let amountOut : BigNumber
+        let amountOut: BigNumber
         if (fromTokenIsHToken) {
           amountOut = await amm.calculateToHTokensAmount(amountIn)
         } else {

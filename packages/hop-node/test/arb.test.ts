@@ -4,7 +4,7 @@ import { Chain } from 'src/constants'
 import { User, prepareAccount } from './helpers'
 import { privateKey } from './config'
 import { startWatchers } from 'src/watchers/watchers'
-require('dotenv').config()
+require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
 
 const sourceNetwork = Chain.Optimism
 const destNetwork = Chain.Ethereum

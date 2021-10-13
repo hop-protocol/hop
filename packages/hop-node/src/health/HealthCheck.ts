@@ -9,7 +9,7 @@ import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { config as globalConfig, hostname } from 'src/config'
 
-type Config = {
+interface Config {
   bondWithdrawalTimeLimitMinutes: number
   bondTransferRootTimeLimitMinutes: number
   commitTransfersMinThresholdAmount: number
@@ -90,7 +90,7 @@ class HealthCheck {
   async check () {
     this.logger.debug('--- poll ---')
     await Promise.all(
-      this.bridges.map((bridge: L2Bridge) => this.checkBridge(bridge))
+      this.bridges.map(async (bridge: L2Bridge) => await this.checkBridge(bridge))
     )
   }
 
@@ -139,7 +139,7 @@ class HealthCheck {
           const destBridge = this.bridges.find((bridge: L2Bridge) => {
             return bridge.chainId === destinationChainId
           })
-          if (!destBridge) {
+          if (destBridge == null) {
             continue
           }
           if (!globalConfig?.bonders) {
@@ -200,9 +200,9 @@ class HealthCheck {
 
   async checkCommitTransfers (bridge: L2Bridge) {
     const chainIds = await bridge.getChainIds()
-    return Promise.all(
-      chainIds.map((destinationChainId: number) =>
-        this.checkCommitTransfersForChain(bridge, destinationChainId)
+    return await Promise.all(
+      chainIds.map(async (destinationChainId: number) =>
+        await this.checkCommitTransfersForChain(bridge, destinationChainId)
       )
     )
   }
@@ -319,7 +319,7 @@ class HealthCheck {
           const destBridge = this.bridges.find((bridge: L2Bridge) => {
             return bridge.chainId === destinationChainId
           })
-          if (!destBridge) {
+          if (destBridge == null) {
             continue
           }
 
@@ -378,7 +378,7 @@ class HealthCheck {
         const destBridge = this.bridges.find((bridge: L2Bridge) => {
           return bridge.chainId === destinationChainId
         })
-        if (!destBridge) {
+        if (destBridge == null) {
           return false
         }
         const endBlockNumber = await destBridge.getBlockNumber()
@@ -420,7 +420,7 @@ class HealthCheck {
       const destBridge = this.bridges.find((bridge: L2Bridge) => {
         return bridge.chainId === destinationChainId
       })
-      if (!destBridge) {
+      if (destBridge == null) {
         continue
       }
 
@@ -442,7 +442,7 @@ class HealthCheck {
       const destBridge = this.bridges.find((bridge: L2Bridge) => {
         return bridge.chainId === destinationChainId
       })
-      if (!destBridge) {
+      if (destBridge == null) {
         continue
       }
       const [credit, debit] = await Promise.all([

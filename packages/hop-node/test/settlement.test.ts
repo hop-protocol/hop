@@ -3,7 +3,7 @@ import { Chain } from 'src/constants'
 import { User, waitForEvent } from './helpers'
 import { privateKey } from './config'
 import { startWatchers } from 'src/watchers/watchers'
-require('dotenv').config()
+require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
 
 const L2ToL1Paths = [
   [Chain.Arbitrum, Chain.Ethereum],
@@ -39,7 +39,7 @@ describe.skip('settleBondedWithdrawal', () => {
         const recipient = await user.getAddress()
         const { stop, watchers } = startWatchers({ networks: path })
 
-        const promises: Promise<any>[] = []
+        const promises: Array<Promise<any>> = []
         for (let i = 0; i < txCount; i++) {
           promises.push(
             new Promise(async resolve => {

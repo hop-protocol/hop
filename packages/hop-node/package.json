@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/hop-node",
-  "version": "0.0.1-beta.2",
+  "version": "0.0.1-beta.3",
   "description": "The Hop Node for Hop Protocol",
   "main": "dist/index.js",
   "engines": {

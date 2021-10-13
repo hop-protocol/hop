@@ -265,6 +265,18 @@ export const addresses: Addresses = {
         l1PosPredicate: '0x8484Ef722627bf18ca5Ae6BcF031c23E6e922B30',
         bridgeDeployedBlockNumber: 19706859
       },
+      optimism: {
+        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l1MessengerWrapper: '0x64e5A143a3775a500BF19E609E1a74A5Cbc3bb2A',
+        l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
+        l2CanonicalToken: '0x4200000000000000000000000000000000000006',
+        l2Bridge: '0x83f6244Bd87662118d96D9a6D44f09dffF14b30E',
+        l2HopBridgeToken: '0xE38faf9040c7F09958c638bBDB977083722c5156',
+        l2AmmWrapper: '0x86cA30bEF97fB651b8d866D45503684b90cb3312',
+        l2SaddleSwap: '0xaa30D6bba6285d0585722e2440Ff89E23EF68864',
+        l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
+        bridgeDeployedBlockNumber: 3153382
+      },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l1MessengerWrapper: '0xEcf268Be00308980B5b3fcd0975D47C4C8e1382a',

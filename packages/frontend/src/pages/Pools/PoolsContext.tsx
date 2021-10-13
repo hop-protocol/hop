@@ -189,7 +189,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       return null
     }
     const unsupportedAssets = {
-      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC', 'ETH'],
+      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
       Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
     }
 

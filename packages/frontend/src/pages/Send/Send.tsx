@@ -36,116 +36,12 @@ import { reactAppNetwork } from 'src/config'
 import InfoTooltip from 'src/components/infoTooltip'
 import { amountToBN, formatError } from 'src/utils/format'
 import { createTransaction } from 'src/utils/createTransaction'
-
-const useStyles = makeStyles(theme => ({
-  header: {
-    display: 'flex',
-    justifyContent: 'center',
-    width: '46.0rem',
-    position: 'relative',
-  },
-  sendSelect: {
-    marginBottom: '4.2rem',
-  },
-  sendLabel: {
-    marginRight: '1.8rem',
-  },
-  downArrow: {
-    margin: '0.8rem',
-    height: '2.4rem',
-    width: '2.4rem',
-  },
-  switchDirectionButton: {
-    padding: 0,
-    minWidth: 0,
-    margin: '1.0rem',
-  },
-  details: {
-    marginTop: '4.2rem',
-    marginBottom: '5.4rem',
-    width: '46.0rem',
-    [theme.breakpoints.down('xs')]: {
-      width: '90%',
-    },
-  },
-  detailRow: {},
-  detailLabel: {
-    display: 'flex',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
-  txStatusInfo: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  txStatusCloseButton: {
-    marginTop: '1rem',
-  },
-  semiBold: {
-    fontWeight: 600,
-  },
-  extraBold: {
-    fontWeight: 800,
-  },
-  destinationTxFeeAndAmount: {
-    marginTop: '2.4rem',
-  },
-  detailsDropdown: {
-    marginTop: '2rem',
-    width: '50.0rem',
-    '&[open] summary span::before': {
-      content: '"▾"',
-    },
-    [theme.breakpoints.down('xs')]: {
-      width: '90%',
-    },
-  },
-  detailsDropdownSummary: {
-    listStyle: 'none',
-    display: 'block',
-    textAlign: 'right',
-    fontWeight: 'normal',
-    paddingRight: '4rem',
-    '&::marker': {
-      display: 'none',
-    },
-  },
-  detailsDropdownLabel: {
-    position: 'relative',
-    cursor: 'pointer',
-    '& > span': {
-      position: 'relative',
-      display: 'inline-flex',
-      justifyItems: 'center',
-      alignItems: 'center',
-    },
-    '& > span::before': {
-      display: 'block',
-      content: '"▸"',
-      position: 'absolute',
-      top: '0',
-      right: '-1.5rem',
-    },
-  },
-  customRecipient: {
-    width: '100%',
-    padding: '2rem 0',
-  },
-  customRecipientLabel: {
-    marginBottom: '1.5rem',
-  },
-  buttons: {
-    marginTop: theme.padding.default,
-  },
-  button: {
-    margin: `0 ${theme.padding.light}`,
-    width: '17.5rem',
-  },
-}))
+import { useFeeConversions } from 'src/hooks/useFeeConversions'
+import { useSendStyles } from './useSendStyles'
+import { useAssets } from 'src/hooks/useAssets'
 
 const Send: FC = () => {
-  const styles = useStyles()
+  const styles = useSendStyles()
   const {
     networks,
     txConfirm,
@@ -157,7 +53,7 @@ const Send: FC = () => {
     settings,
   } = useApp()
   const { slippageTolerance, deadline } = settings
-  const { provider, walletConnected, checkConnectedNetworkId, address } = useWeb3Context()
+  const { provider, checkConnectedNetworkId, address } = useWeb3Context()
   const { queryParams, updateQueryParams } = useQueryParams()
   const [fromNetwork, _setFromNetwork] = useState<Network>()
   const [toNetwork, _setToNetwork] = useState<Network>()
@@ -177,6 +73,7 @@ const Send: FC = () => {
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>('')
 
+  // Set fromNetwork and toNetwork using query params
   useEffect(() => {
     const _fromNetwork = networks.find(network => network.slug === queryParams.sourceNetwork)
     _setFromNetwork(_fromNetwork)
@@ -191,79 +88,14 @@ const Send: FC = () => {
     _setToNetwork(_toNetwork)
   }, [queryParams, networks])
 
-  const setFromNetwork = (network: Network | undefined) => {
-    updateQueryParams({
-      sourceNetwork: network?.slug ?? '',
-    })
+  // Get assets
+  const { unsupportedAsset, sourceToken, destToken, placeholderToken } = useAssets(
+    selectedBridge,
+    fromNetwork,
+    toNetwork
+  )
 
-    _setFromNetwork(network)
-  }
-
-  const setToNetwork = (network: Network | undefined) => {
-    updateQueryParams({
-      destNetwork: network?.slug ?? '',
-    })
-
-    _setToNetwork(network)
-  }
-
-  const unsupportedAsset = useMemo<any>(() => {
-    if (!(selectedBridge && fromNetwork && toNetwork)) {
-      return null
-    }
-    const unsupportedAssets = {
-      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
-      Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
-    }
-
-    for (const chain in unsupportedAssets) {
-      const tokenSymbols = unsupportedAssets[chain]
-      for (const tokenSymbol of tokenSymbols) {
-        const isUnsupported =
-          selectedBridge?.getTokenSymbol() === tokenSymbol &&
-          [fromNetwork?.slug, toNetwork?.slug].includes(chain.toLowerCase())
-        if (isUnsupported) {
-          return {
-            chain,
-            tokenSymbol,
-          }
-        }
-      }
-    }
-
-    return null
-  }, [selectedBridge, fromNetwork, toNetwork])
-
-  useEffect(() => {
-    if (unsupportedAsset) {
-      const { chain, tokenSymbol } = unsupportedAsset
-      setError(`${tokenSymbol} is currently not supported on ${chain}`)
-    } else {
-      setError('')
-    }
-  }, [unsupportedAsset])
-
-  const sourceToken = useMemo(() => {
-    try {
-      if (!fromNetwork || !selectedBridge) return
-      return selectedBridge.getCanonicalToken(fromNetwork?.slug)
-    } catch (err) {
-      logger.error(err)
-    }
-  }, [selectedBridge, fromNetwork])
-  const destToken = useMemo(() => {
-    try {
-      if (!toNetwork || !selectedBridge) return
-      return selectedBridge.getCanonicalToken(toNetwork?.slug)
-    } catch (err) {
-      logger.error(err)
-    }
-  }, [selectedBridge, toNetwork])
-  const placeholderToken = useMemo(() => {
-    if (!selectedBridge) return
-    return selectedBridge.getL1Token()
-  }, [selectedBridge])
-
+  // Get token balances for both networks
   const { balance: fromBalance, loading: loadingFromBalance } = useBalance(
     sourceToken,
     fromNetwork,
@@ -275,29 +107,19 @@ const Send: FC = () => {
     address
   )
 
-  // Reset error message
-  useEffect(() => {
-    setError('')
-  }, [fromNetwork])
+  // Get available liquidity
+  const availableLiquidity = useAvailableLiquidity(
+    selectedBridge,
+    fromNetwork?.slug,
+    toNetwork?.slug
+  )
 
-  const handleApprove = async () => {
-    try {
-      setError(null)
-      setApproving(true)
-      await approveFromToken()
-    } catch (err: any) {
-      if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err, fromNetwork))
-      }
-      logger.error(err)
-    }
-    setApproving(false)
-  }
-
+  // Set fromToken -> BN
   const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {
     return amountToBN(sourceToken, fromTokenAmount)
   }, [sourceToken, fromTokenAmount])
 
+  // Use send data for tx
   const {
     amountOut,
     rate,
@@ -312,33 +134,7 @@ const Send: FC = () => {
     estimatedReceived,
   } = useSendData(sourceToken, slippageTolerance, fromNetwork, toNetwork, fromTokenAmountBN)
 
-  let totalBonderFee = destinationTxFee
-  if (destinationTxFee && bonderFee) {
-    totalBonderFee = destinationTxFee.add(bonderFee)
-  }
-
-  const bonderFeeDisplay = toTokenDisplay(bonderFee, destToken?.decimals, destToken?.symbol)
-
-  const destinationTxFeeDisplay = toTokenDisplay(
-    destinationTxFee,
-    destToken?.decimals,
-    destToken?.symbol
-  )
-
-  const totalBonderFeeDisplay = toTokenDisplay(
-    totalBonderFee,
-    destToken?.decimals,
-    destToken?.symbol
-  )
-
-  const estimatedReceivedDisplay = toTokenDisplay(
-    estimatedReceived,
-    destToken?.decimals,
-    destToken?.symbol
-  )
-
-  const needsTokenForFee = useNeedsTokenForFee(fromNetwork)
-
+  // Set toAmount
   useEffect(() => {
     if (!destToken) {
       setToTokenAmount('')
@@ -352,47 +148,43 @@ const Send: FC = () => {
     setToTokenAmount(amount)
   }, [destToken, amountOut])
 
-  let enoughBalance = true
-  if (fromBalance && fromTokenAmountBN && fromBalance.lt(fromTokenAmountBN)) {
-    enoughBalance = false
-  }
+  // Convert fees to displayed values
+  const {
+    destinationTxFeeDisplay,
+    bonderFeeDisplay,
+    totalBonderFee,
+    totalBonderFeeDisplay,
+    estimatedReceivedDisplay,
+  } = useFeeConversions(destinationTxFee, bonderFee, estimatedReceived, destToken)
 
-  const availableLiquidity = useAvailableLiquidity(
-    selectedBridge,
-    fromNetwork?.slug,
-    toNetwork?.slug
-  )
-
-  const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
-    const tokenSymbol = event.target.value as string
-    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
-    if (bridge) {
-      setSelectedBridge(bridge)
+  // Check if user has enough balance (more than the inputed value)
+  const enoughBalance = useMemo(() => {
+    if (fromBalance && fromTokenAmountBN && fromBalance.lt(fromTokenAmountBN)) {
+      return false
     }
-  }
+    return true
+  }, [fromBalance, fromTokenAmountBN])
 
-  const handleSwitchDirection = () => {
-    setToTokenAmount('')
-    setFromNetwork(toNetwork)
-    setToNetwork(fromNetwork)
-  }
+  // ==============================================================================================
+  // Error and warning messages
+  // ==============================================================================================
 
-  const handleToNetworkChange = (network: Network | undefined) => {
-    if (network === fromNetwork) {
-      handleSwitchDirection()
+  // Set error message if asset is unsupported
+  useEffect(() => {
+    if (unsupportedAsset) {
+      const { chain, tokenSymbol } = unsupportedAsset
+      setError(`${tokenSymbol} is currently not supported on ${chain}`)
     } else {
-      setToNetwork(network)
+      setError('')
     }
-  }
+  }, [unsupportedAsset])
 
-  const handleFromNetworkChange = (network: Network | undefined) => {
-    if (network === toNetwork) {
-      handleSwitchDirection()
-    } else {
-      setFromNetwork(network)
-    }
-  }
+  // Reset error message when fromNetwork changes
+  useEffect(() => {
+    setError('')
+  }, [fromNetwork])
 
+  // Check if there is sufficient available liquidity
   useEffect(() => {
     const checkAvailableLiquidity = async () => {
       if (!toNetwork || !availableLiquidity || !requiredLiquidity || !sourceToken) {
@@ -430,6 +222,8 @@ const Send: FC = () => {
   const checkingLiquidity = useMemo(() => {
     return !fromNetwork?.isLayer1 && availableLiquidity === undefined
   }, [fromNetwork, availableLiquidity])
+
+  const needsTokenForFee = useNeedsTokenForFee(fromNetwork)
 
   useEffect(() => {
     if (needsTokenForFee && fromNetwork) {
@@ -510,7 +304,12 @@ const Send: FC = () => {
     setAmountOutMinDisplay(`${amountOutMinFormatted} ${sourceToken.symbol}`)
   }, [amountOutMin])
 
+  // ==============================================================================================
+  // Approve fromNetwork / fromToken
+  // ==============================================================================================
+
   const { approve, checkApproval } = useApprove()
+
   const needsApproval = useAsyncMemo(async () => {
     try {
       if (!(fromNetwork && sourceToken && fromTokenAmount)) {
@@ -569,6 +368,24 @@ const Send: FC = () => {
 
     await tx?.wait()
   }
+
+  const handleApprove = async () => {
+    try {
+      setError(null)
+      setApproving(true)
+      await approveFromToken()
+    } catch (err: any) {
+      if (!/cancelled/gi.test(err.message)) {
+        setError(formatError(err, fromNetwork))
+      }
+      logger.error(err)
+    }
+    setApproving(false)
+  }
+
+  // ==============================================================================================
+  // Send tokens
+  // ==============================================================================================
 
   const send = async () => {
     try {
@@ -797,6 +614,63 @@ const Send: FC = () => {
     return txObj
   }
 
+  // ==============================================================================================
+  // User actions
+  // - Bridge / Network selection
+  // - Custom recipient input
+  // ==============================================================================================
+
+  // Change the bridge if user selects different token to send
+  const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
+    const tokenSymbol = event.target.value as string
+    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
+    if (bridge) {
+      setSelectedBridge(bridge)
+    }
+  }
+
+  // Set fromNetwork
+  const setFromNetwork = (network: Network | undefined) => {
+    updateQueryParams({
+      sourceNetwork: network?.slug ?? '',
+    })
+    _setFromNetwork(network)
+  }
+
+  // Set toNetwork
+  const setToNetwork = (network: Network | undefined) => {
+    updateQueryParams({
+      destNetwork: network?.slug ?? '',
+    })
+    _setToNetwork(network)
+  }
+
+  // Switch the fromNetwork <--> toNetwork
+  const handleSwitchDirection = () => {
+    setToTokenAmount('')
+    setFromNetwork(toNetwork)
+    setToNetwork(fromNetwork)
+  }
+
+  // Change the fromNetwork
+  const handleFromNetworkChange = (network: Network | undefined) => {
+    if (network === toNetwork) {
+      handleSwitchDirection()
+    } else {
+      setFromNetwork(network)
+    }
+  }
+
+  // Change the toNetwork
+  const handleToNetworkChange = (network: Network | undefined) => {
+    if (network === fromNetwork) {
+      handleSwitchDirection()
+    } else {
+      setToNetwork(network)
+    }
+  }
+
+  // Specify custom recipient
   const handleCustomRecipientInput = (event: any) => {
     const value = event.target.value.trim()
     setCustomRecipient(value)
@@ -812,10 +686,6 @@ const Send: FC = () => {
     !checkingLiquidity &&
     estimatedReceived?.gt(0)
   )
-
-  const handleTxStatusClose = () => {
-    setTx(null)
-  }
 
   const sendButtonActive = validFormFields && !unsupportedAsset && !needsApproval
 
@@ -839,6 +709,7 @@ const Send: FC = () => {
           </RaisedSelect>
         </Box>
       </div>
+
       <AmountSelectorCard
         value={fromTokenAmount}
         token={sourceToken ?? placeholderToken}
@@ -859,9 +730,11 @@ const Send: FC = () => {
         balance={fromBalance}
         loadingBalance={loadingFromBalance}
       />
+
       <MuiButton className={styles.switchDirectionButton} onClick={handleSwitchDirection}>
         <ArrowDownIcon color="primary" className={styles.downArrow} />
       </MuiButton>
+
       <AmountSelectorCard
         value={toTokenAmount}
         token={destToken ?? placeholderToken}
@@ -874,6 +747,7 @@ const Send: FC = () => {
         loadingValue={loadingSendData}
         disableInput
       />
+
       <details className={styles.detailsDropdown}>
         <summary className={styles.detailsDropdownSummary}>
           <Typography
@@ -904,6 +778,7 @@ const Send: FC = () => {
           </div>
         </div>
       </details>
+
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
           {totalBonderFee?.gt(0) && (
@@ -935,8 +810,10 @@ const Send: FC = () => {
           />
         </div>
       </div>
+
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <Alert severity="warning">{warning}</Alert>
+
       <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
         <Button
           className={styles.button}
@@ -960,9 +837,11 @@ const Send: FC = () => {
           Send
         </Button>
       </Box>
+
       <br />
+
       <Alert severity="info" onClose={() => setInfo(null)} text={info} />
-      <TxStatusModal onClose={handleTxStatusClose} tx={tx} />
+      <TxStatusModal onClose={() => setTx(null)} tx={tx} />
     </Box>
   )
 }

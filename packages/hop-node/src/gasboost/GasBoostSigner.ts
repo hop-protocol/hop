@@ -1,7 +1,6 @@
 import GasBoostTransaction from './GasBoostTransaction'
 import GasBoostTransactionFactory, { Options } from './GasBoostTransactionFactory'
 import Logger from 'src/logger'
-import MemoryStore from './MemoryStore'
 import Store from './Store'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
@@ -13,7 +12,7 @@ import { TenMinutesMs } from 'src/constants'
 import { gasBoostErrorSlackChannel, hostname } from 'src/config'
 
 class GasBoostSigner extends Wallet {
-  store: Store = new MemoryStore()
+  store: Store
   items: string[] = []
   lastTxSentTimestamp: number = 0
   delayBetweenTxsMs: number = 7 * 1000
@@ -106,6 +105,9 @@ class GasBoostSigner extends Wallet {
   }
 
   private async restore () {
+    if (!this.store) {
+      return
+    }
     const items = await this.store.getItems()
     if (items) {
       for (const item of items) {
@@ -116,6 +118,9 @@ class GasBoostSigner extends Wallet {
   }
 
   private track (gTx: GasBoostTransaction) {
+    if (!this.store) {
+      return
+    }
     this.items.push(gTx.id)
     this.store.updateItem(gTx.id, gTx.marshal())
   }

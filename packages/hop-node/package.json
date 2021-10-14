@@ -69,6 +69,7 @@
     "aws-sdk": "^2.937.0",
     "bip39": "3.0.4",
     "chalk": "4.1.0",
+    "check-disk-space": "^3.0.1",
     "commander": "6.2.0",
     "console-clear": "^1.1.1",
     "cross-env": "^7.0.3",

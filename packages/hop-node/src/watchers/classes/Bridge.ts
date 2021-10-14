@@ -711,8 +711,8 @@ export async function compareBonderDestinationFeeCost (
   const chainNativeTokenUsdPriceBn = parseUnits(chainNativeTokenUsdPrice.toString(), ethDecimals)
   const tokenDecimals = getTokenDecimals(tokenSymbol)
   const bonderFee18d = shiftBNDecimals(bonderFee, ethDecimals - tokenDecimals)
-  const usdBonderFee = bonderFee18d
   const oneEth = parseUnits('1', ethDecimals)
+  const usdBonderFee = bonderFee18d.mul(tokenUsdPriceBn).div(oneEth)
   const usdGasCost = gasCost.mul(chainNativeTokenUsdPriceBn).div(oneEth)
   const usdBonderFeeFormatted = formatUnits(usdBonderFee, ethDecimals)
   const usdGasCostFormatted = formatUnits(usdGasCost, ethDecimals)
@@ -774,14 +774,16 @@ export async function checkMinBonderFee (
   tokenUsdPrice?: number,
   chainNativeTokenUsdPrice?: number
 ) {
-  const minBpsFee = await compareMinBonderFeeBasisPoints(amountIn, bonderFee, chainSlug, tokenSymbol)
-  const minTxFee = await compareBonderDestinationFeeCost(bonderFee, gasLimit, chainSlug, tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
+  await compareMinBonderFeeBasisPoints(amountIn, bonderFee, chainSlug, tokenSymbol)
+  await compareBonderDestinationFeeCost(bonderFee, gasLimit, chainSlug, tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
+  // const minBpsFee = await compareMinBonderFeeBasisPoints(amountIn, bonderFee, chainSlug, tokenSymbol)
+  // const minTxFee = await compareBonderDestinationFeeCost(bonderFee, gasLimit, chainSlug, tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
 
-  const minBonderFeeTotal = minBpsFee.add(minTxFee)
-  const isTooLow = bonderFee.lt(minBonderFeeTotal)
-  if (isTooLow) {
-    throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`)
-  }
+  // const minBonderFeeTotal = minBpsFee.add(minTxFee)
+  // const isTooLow = bonderFee.lt(minBonderFeeTotal)
+  // if (isTooLow) {
+  //   throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`)
+  // }
 }
 
 function getChainNativeTokenSymbol (chain: string) {

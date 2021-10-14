@@ -35,6 +35,9 @@ const useStyles = makeStyles(theme => ({
     margin: `0 ${theme.padding.light}`,
     width: '17.5rem',
   },
+  warning: {
+    marginBottom: theme.padding.default
+  }
 }))
 
 export type Props = {
@@ -85,10 +88,16 @@ const TokenWrapper: FC<Props> = (props: Props) => {
     return null
   }
 
+  let wethWarning = ''
+  if (canonicalToken?.symbol === 'ETH' && props.network?.slug === 'optimism') {
+    wethWarning = 'ETH and WETH are the same asset on Optimism and wrapping/unwrapping will do nothing.'
+  }
+
   return (
     <Expandable title="Wrap/Unwrap">
       <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
         <Box display="flex" flexDirection="column" alignItems="center" className={styles.root}>
+          <Alert severity="warning" text={wethWarning} className={styles.warning} />
           <AmountSelectorCard
             secondaryToken={canonicalToken}
             secondaryBalance={canonicalTokenBalance}

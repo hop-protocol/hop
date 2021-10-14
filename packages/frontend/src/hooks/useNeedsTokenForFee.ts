@@ -6,14 +6,14 @@ import logger from 'src/logger'
 
 const useNeedsTokenForFee = (network: Network | undefined) => {
   const [needsToken, setNeedsToken] = useState(false)
-  const { provider: walletProvider } = useWeb3Context()
+  const { provider: walletProvider, address } = useWeb3Context()
 
   useEffect(() => {
     const checkBalance = async () => {
       const provider = network?.provider
       const signer = walletProvider?.getSigner()
 
-      if (!provider || !signer || !network?.requiresGas) {
+      if (!provider || !signer) {
         setNeedsToken(false)
         return
       }
@@ -30,7 +30,7 @@ const useNeedsTokenForFee = (network: Network | undefined) => {
     }
 
     checkBalance().catch(logger.error)
-  }, [network, walletProvider])
+  }, [network, walletProvider, address])
 
   return needsToken
 }

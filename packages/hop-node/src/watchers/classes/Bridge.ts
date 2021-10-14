@@ -711,8 +711,8 @@ export async function compareBonderDestinationFeeCost (
   const chainNativeTokenUsdPriceBn = parseUnits(chainNativeTokenUsdPrice.toString(), ethDecimals)
   const tokenDecimals = getTokenDecimals(tokenSymbol)
   const bonderFee18d = shiftBNDecimals(bonderFee, ethDecimals - tokenDecimals)
-  const usdBonderFee = bonderFee18d
   const oneEth = parseUnits('1', ethDecimals)
+  const usdBonderFee = bonderFee18d.mul(tokenUsdPriceBn).div(oneEth)
   const usdGasCost = gasCost.mul(chainNativeTokenUsdPriceBn).div(oneEth)
   const usdBonderFeeFormatted = formatUnits(usdBonderFee, ethDecimals)
   const usdGasCostFormatted = formatUnits(usdGasCost, ethDecimals)

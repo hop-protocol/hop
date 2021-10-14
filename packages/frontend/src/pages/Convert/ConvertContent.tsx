@@ -75,7 +75,7 @@ const Convert: FC = () => {
     sending,
     needsApproval,
     convertTokens,
-    approveTokens,
+    approveTokens
   } = useConvert()
   const { path } = useRouteMatch()
 

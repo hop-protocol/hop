@@ -260,6 +260,12 @@ export default class L1Bridge extends Bridge {
     const deadline = '0' // must be 0
     const amountOutMin = '0' // must be 0
 
+    const txOverrides = await this.txOverrides()
+    const isEthSend = this.chainSlug === Chain.Ethereum
+    if (isEthSend) {
+      txOverrides.value = amount
+    }
+
     return this.bridgeContract.sendToL2(
       destinationChainId,
       recipient,
@@ -268,7 +274,7 @@ export default class L1Bridge extends Bridge {
       deadline,
       relayer,
       relayerFee,
-      await this.txOverrides()
+      txOverrides
     )
   })
 
@@ -293,6 +299,12 @@ export default class L1Bridge extends Bridge {
     const minBps = Math.ceil(10000 - slippageToleranceBps)
     const amountOutMin = amountOut.mul(minBps).div(10000)
 
+    const txOverrides = await this.txOverrides()
+    const isEthSend = this.chainSlug === Chain.Ethereum
+    if (isEthSend) {
+      txOverrides.value = amount
+    }
+
     return this.bridgeContract.sendToL2(
       destinationChainId,
       recipient,
@@ -301,7 +313,7 @@ export default class L1Bridge extends Bridge {
       deadline,
       relayer,
       relayerFee,
-      await this.txOverrides()
+      txOverrides
     )
   })
 

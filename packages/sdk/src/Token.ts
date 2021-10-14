@@ -203,7 +203,10 @@ class Token extends Base {
 
   get isNativeToken () {
     const isEth =
-      this.symbol === TokenModel.ETH && this.chain.equals(Chain.Ethereum)
+      this.symbol === TokenModel.ETH &&
+      (this.chain.equals(Chain.Ethereum) ||
+        this.chain.equals(Chain.Arbitrum) ||
+        this.chain.equals(Chain.Optimism))
     const isMatic =
       this.symbol === TokenModel.MATIC && this.chain.equals(Chain.Polygon)
     const isxDai =

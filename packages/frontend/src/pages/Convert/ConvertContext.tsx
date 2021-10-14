@@ -26,6 +26,7 @@ import useBalance from 'src/hooks/useBalance'
 import { toTokenDisplay } from 'src/utils'
 import useApprove from 'src/hooks/useApprove'
 import useQueryParams from 'src/hooks/useQueryParams'
+import { reactAppNetwork } from 'src/config'
 
 type ConvertContextProps = {
   convertOptions: ConvertOption[]
@@ -191,19 +192,21 @@ const ConvertContextProvider: FC = ({ children }) => {
       return null
     }
     const unsupportedAssets = {
-      Optimism: 'MATIC',
-      Arbitrum: 'MATIC',
+      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
+      Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
     }
 
     const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
     for (const chain in unsupportedAssets) {
-      const tokenSymbol = unsupportedAssets[chain]
-      const isUnsupported =
-        selectedTokenSymbol.includes(tokenSymbol) && selectedNetwork?.slug === chain.toLowerCase()
-      if (isUnsupported) {
-        return {
-          chain,
-          tokenSymbol,
+      const tokenSymbols = unsupportedAssets[chain]
+      for (const tokenSymbol of tokenSymbols) {
+        const isUnsupported =
+          selectedTokenSymbol.includes(tokenSymbol) && selectedNetwork?.slug === chain.toLowerCase()
+        if (isUnsupported) {
+          return {
+            chain,
+            tokenSymbol,
+          }
         }
       }
     }
@@ -224,14 +227,11 @@ const ConvertContextProvider: FC = ({ children }) => {
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        let token = await convertOption.sourceToken(
+        const token = await convertOption.sourceToken(
           isForwardDirection,
           selectedNetwork,
           selectedBridge
         )
-        if (token?.isNativeToken) {
-          token = token.getWrappedToken()
-        }
         setSourceToken(token)
       } catch (err) {
         logger.error(err)
@@ -247,14 +247,11 @@ const ConvertContextProvider: FC = ({ children }) => {
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        let token = await convertOption.destToken(
+        const token = await convertOption.destToken(
           isForwardDirection,
           selectedNetwork,
           selectedBridge
         )
-        if (token?.isNativeToken) {
-          token = token.getWrappedToken()
-        }
         setDestToken(token)
       } catch (err) {
         logger.error(err)

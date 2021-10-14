@@ -8,7 +8,7 @@ import { awsAccessKeyId, awsRegion, awsSecretAccessKey } from '../config'
 const mutex = new Mutex()
 
 let credentials
-if (awsAccessKeyId) {
+if (awsAccessKeyId && awsSecretAccessKey) {
   credentials = {
     accessKeyId: awsAccessKeyId,
     secretAccessKey: awsSecretAccessKey

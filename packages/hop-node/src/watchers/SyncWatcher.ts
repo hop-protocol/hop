@@ -7,10 +7,13 @@ import chunk from 'lodash/chunk'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber } from 'ethers'
 import { Chain, TenMinutesMs } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Event } from 'src/types'
+import { L1Bridge as L1BridgeContract, MultipleWithdrawalsSettledEvent, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { config as globalConfig, oruChains } from 'src/config'
@@ -32,7 +35,7 @@ export interface Config {
   tokenSymbol: string
   label: string
   isL1: boolean
-  bridgeContract: Contract
+  bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   syncFromDate?: string
   s3Upload?: boolean
   s3Namespace?: string
@@ -63,7 +66,7 @@ class SyncWatcher extends BaseWatcher {
       isL1: config.isL1,
       bridgeContract: config.bridgeContract
     })
-    this.syncFromDate = config.syncFromDate
+    this.syncFromDate = config.syncFromDate! // eslint-disable-line
     if (config.s3Upload) {
       this.s3Upload = new S3Upload({
         bucket: 'assets.hop.exchange',
@@ -130,7 +133,7 @@ class SyncWatcher extends BaseWatcher {
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transfer: Transfer) => {
             const { transferId } = transfer
-            return await this.populateTransferDbItem(transferId)
+            return await this.populateTransferDbItem(transferId!) // eslint-disable-line
               .then(() => {
                 // fill in missing db timestamped keys
                 return this.db.transfers.trackTimestampedKeyByTransferId(transferId)
@@ -151,7 +154,7 @@ class SyncWatcher extends BaseWatcher {
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {
             const { transferRootHash } = transferRoot
-            return await this.populateTransferRootDbItem(transferRootHash)
+            return await this.populateTransferRootDbItem(transferRootHash!) // eslint-disable-line
               .then(() => {
                 // fill in missing db timestamped keys
                 return this.db.transferRoots.trackTimestampedKeyByTransferRootHash(transferRootHash)
@@ -221,7 +224,7 @@ class SyncWatcher extends BaseWatcher {
       const l1Bridge = this.bridge as L1Bridge
       promises.push(
         l1Bridge.mapTransferRootBondedEvents(
-          async (event: Event) => {
+          async (event: TransferRootBondedEvent) => {
             return await this.handleTransferRootBondedEvent(event)
           },
           getOptions(l1Bridge.TransferRootBonded)
@@ -230,7 +233,7 @@ class SyncWatcher extends BaseWatcher {
 
       promises.push(
         l1Bridge.mapTransferRootConfirmedEvents(
-          async (event: Event) => {
+          async (event: TransferRootConfirmedEvent) => {
             return await this.handleTransferRootConfirmedEvent(event)
           },
           getOptions(l1Bridge.TransferRootConfirmed)
@@ -239,7 +242,7 @@ class SyncWatcher extends BaseWatcher {
 
       promises.push(
         l1Bridge.mapTransferBondChallengedEvents(
-          async (event: Event) => {
+          async (event: TransferBondChallengedEvent) => {
             return await this.handleTransferBondChallengedEvent(event)
           },
           getOptions(l1Bridge.TransferBondChallenged)
@@ -251,7 +254,7 @@ class SyncWatcher extends BaseWatcher {
       const l2Bridge = this.bridge as L2Bridge
       promises.push(
         l2Bridge.mapTransferSentEvents(
-          async (event: Event) => {
+          async (event: TransferSentEvent) => {
             return await this.handleTransferSentEvent(event)
           },
           getOptions(l2Bridge.TransferSent)
@@ -260,7 +263,7 @@ class SyncWatcher extends BaseWatcher {
 
       promises.push(
         l2Bridge.mapTransfersCommittedEvents(
-          async (event: Event) => {
+          async (event: TransfersCommittedEvent) => {
             return await Promise.all([
               this.handleTransfersCommittedEvent(event),
               this.handleTransfersCommittedEventForTransferIds(event)
@@ -274,7 +277,7 @@ class SyncWatcher extends BaseWatcher {
     const transferSpentPromises: Array<Promise<any>> = []
     transferSpentPromises.push(
       this.bridge.mapWithdrawalBondedEvents(
-        async (event: Event) => {
+        async (event: WithdrawalBondedEvent) => {
           return await this.handleWithdrawalBondedEvent(event)
         },
         getOptions(this.bridge.WithdrawalBonded)
@@ -283,7 +286,7 @@ class SyncWatcher extends BaseWatcher {
 
     transferSpentPromises.push(
       this.bridge.mapWithdrewEvents(
-        async (event: Event) => {
+        async (event: WithdrewEvent) => {
           return await this.handleWithdrewEvent(event)
         },
         getOptions(this.bridge.Withdrew)
@@ -296,7 +299,7 @@ class SyncWatcher extends BaseWatcher {
         // This must be executed after the Withdrew and WithdrawalBonded event handlers
         // on initial sync since it relies on data from those handlers.
           return await this.bridge.mapMultipleWithdrawalsSettledEvents(
-            async (event: Event) => {
+            async (event: MultipleWithdrawalsSettledEvent) => {
               return await this.handleMultipleWithdrawalsSettledEvent(event)
             },
             getOptions(this.bridge.MultipleWithdrawalsSettled)
@@ -306,7 +309,7 @@ class SyncWatcher extends BaseWatcher {
 
     promises.push(
       this.bridge.mapTransferRootSetEvents(
-        async (event: Event) => {
+        async (event: TransferRootSetEvent) => {
           return await this.handleTransferRootSetEvent(event)
         },
         getOptions(this.bridge.TransferRootSet)
@@ -359,7 +362,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async handleTransferSentEvent (event: Event) {
+  async handleTransferSentEvent (event: TransferSentEvent) {
     const {
       transferId,
       chainId: destinationChainIdBn,
@@ -428,7 +431,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async handleWithdrawalBondedEvent (event: Event) {
+  async handleWithdrawalBondedEvent (event: WithdrawalBondedEvent) {
     const { transferId, amount } = event.args
     const logger = this.logger.create({ id: transferId })
 
@@ -452,7 +455,7 @@ class SyncWatcher extends BaseWatcher {
     })
   }
 
-  async handleWithdrewEvent (event: Event) {
+  async handleWithdrewEvent (event: WithdrewEvent) {
     const {
       transferId,
       recipient,
@@ -477,7 +480,7 @@ class SyncWatcher extends BaseWatcher {
     })
   }
 
-  async handleTransferRootConfirmedEvent (event: Event) {
+  async handleTransferRootConfirmedEvent (event: TransferRootConfirmedEvent) {
     const {
       originChainId: sourceChainId,
       destinationChainId,
@@ -501,7 +504,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async handleTransferRootBondedEvent (event: Event) {
+  async handleTransferRootBondedEvent (event: TransferRootBondedEvent) {
     const { root, amount } = event.args
     const logger = this.logger.create({ root: root })
     logger.debug('handling TransferRootBonded event')
@@ -542,7 +545,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async handleTransfersCommittedEvent (event: Event) {
+  async handleTransfersCommittedEvent (event: TransfersCommittedEvent) {
     const {
       destinationChainId: destinationChainIdBn,
       rootHash: transferRootHash,
@@ -559,7 +562,7 @@ class SyncWatcher extends BaseWatcher {
 
       const sourceChainId = await l2Bridge.getChainId()
       const destinationChainId = Number(destinationChainIdBn.toString())
-      let destinationBridgeAddress: string
+      let destinationBridgeAddress: string | undefined
       const isExitWatcher = !this.hasSiblingWatcher(destinationChainId)
       if (!isExitWatcher) {
         destinationBridgeAddress = await this.getSiblingWatcherByChainId(
@@ -600,7 +603,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async handleTransfersCommittedEventForTransferIds (event: Event) {
+  async handleTransfersCommittedEventForTransferIds (event: TransfersCommittedEvent) {
     const {
       destinationChainId: destinationChainIdBn,
       rootHash: transferRootHash,
@@ -631,8 +634,8 @@ class SyncWatcher extends BaseWatcher {
       .bridge as L2Bridge
 
     const eventBlockNumber: number = event.blockNumber
-    let startEvent: Event
-    let endEvent: Event
+    let startEvent: Event | undefined
+    let endEvent: Event | undefined
 
     let startBlockNumber = sourceBridge.bridgeDeployedBlockNumber
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
@@ -698,10 +701,10 @@ class SyncWatcher extends BaseWatcher {
             }
           }
 
-          if (event.blockNumber === endEvent.blockNumber) {
+          if (event.blockNumber === endEvent?.blockNumber) {
             // If TransferSent is in the same tx as TransfersCommitted or later,
             // the transferId should be included in the next transferRoot
-            if (event.transactionIndex >= endEvent.transactionIndex) {
+            if (event.transactionIndex >= endEvent?.transactionIndex) {
               continue
             }
           }
@@ -757,7 +760,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  handleTransferBondChallengedEvent = async (event: Event) => {
+  handleTransferBondChallengedEvent = async (event: TransferBondChallengedEvent) => {
     const {
       transferRootId,
       rootHash,
@@ -777,7 +780,7 @@ class SyncWatcher extends BaseWatcher {
     })
   }
 
-  handleTransferRootSetEvent = async (event: Event) => {
+  handleTransferRootSetEvent = async (event: TransferRootSetEvent) => {
     const {
       rootHash: transferRootHash,
       totalAmount
@@ -801,7 +804,7 @@ class SyncWatcher extends BaseWatcher {
     })
   }
 
-  handleMultipleWithdrawalsSettledEvent = async (event: Event) => {
+  handleMultipleWithdrawalsSettledEvent = async (event: MultipleWithdrawalsSettledEvent) => {
     const {
       bonder,
       rootHash: transferRootHash,
@@ -942,7 +945,7 @@ class SyncWatcher extends BaseWatcher {
     this.availableCredit[destinationChain] = availableCredit
 
     if (this.s3Upload) {
-      const bonder = globalConfig.bonders[this.tokenSymbol]?.[0]
+      const bonder = globalConfig.bonders?.[this.tokenSymbol]?.[0]
       const availableCredit = await this.calculateAvailableCredit(destinationChainId, bonder)
       this.s3AvailableCredit[destinationChain] = availableCredit
     }

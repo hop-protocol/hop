@@ -17,7 +17,7 @@ class GasPriceWatcher {
 
   constructor (config: Config) {
     this.chainSlug = config.chainSlug
-    this.provider = getRpcProvider(this.chainSlug)
+    this.provider = getRpcProvider(this.chainSlug)! // eslint-disable-line
     this.db = getGasPricesDb()
     this.logger = new Logger({
       tag: 'GasPricesWatcher',

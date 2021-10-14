@@ -34,6 +34,9 @@ class PriceFeed {
     for (const service of this.services) {
       try {
         const price = await service.getPriceByTokenSymbol(tokenSymbol)
+        if (price === null) {
+          throw new Error(`null price for ${tokenSymbol}`)
+        }
         this.cache[tokenSymbol] = {
           timestamp: Date.now(),
           price

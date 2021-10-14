@@ -30,7 +30,7 @@ program
   .action(async source => {
     try {
       const configPath = source?.config || source?.parent?.config
-      const config: FileConfig = await parseConfigFile(configPath)
+      const config = await parseConfigFile(configPath)
       if (configPath) {
         await setGlobalConfigFromConfigFile(config)
       }

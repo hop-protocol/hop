@@ -1,10 +1,12 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber } from 'ethers'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { TxRetryDelayMs } from 'src/constants'
 import { getEnabledNetworks } from 'src/config'
-
 export interface Config {
   chainSlug: string
   tokenSymbol: string
@@ -13,7 +15,7 @@ export interface Config {
   minThresholdAmounts?: {[chain: string]: number}
 
   isL1?: boolean
-  bridgeContract?: Contract
+  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   dryMode?: boolean
   stateUpdateAddress?: string
 }

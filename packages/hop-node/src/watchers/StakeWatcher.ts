@@ -6,8 +6,12 @@ import Token from './classes/Token'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import promiseTimeout from 'src/utils/promiseTimeout'
 import wait from 'src/utils/wait'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
+import { ERC20 } from '@hop-protocol/core/contracts'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 export interface Config {
@@ -15,8 +19,8 @@ export interface Config {
   tokenSymbol: string
   label: string
   isL1: boolean
-  bridgeContract: Contract
-  tokenContract: Contract
+  bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
+  tokenContract: ERC20
   stakeMinThreshold: number
   maxStakeAmount: number
   dryMode?: boolean

@@ -135,7 +135,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         })
       )
     ).filter(x => x)
-    return filtered?.[0]
+    return filtered[0]! // eslint-disable-line @typescript-eslint/no-non-null-assertion
   }
 
   async getTransferRootHashes (dateFilter?: TransferRootsDateFilter): Promise<string[]> {
@@ -166,7 +166,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     )
 
     return transferRoots
-      .sort((a, b) => a?.committedAt - b?.committedAt)
+      .sort((a, b) => a.committedAt! - b.committedAt!) // eslint-disable-line
       .filter(x => x)
   }
 
@@ -308,7 +308,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       let rootSetTimestampOk = true
       const checkRootSetTimestamp = item?.rootSetTimestamp && filter?.destinationChainId && chainIdToSlug(filter?.destinationChainId) === Chain.xDai
       if (checkRootSetTimestamp) {
-        rootSetTimestampOk = (item.rootSetTimestamp * 1000) + RootSetSettleDelayMs < Date.now()
+        rootSetTimestampOk = (item.rootSetTimestamp! * 1000) + RootSetSettleDelayMs < Date.now() // eslint-disable-line
       }
 
       let bondSettleTimestampOk = true

@@ -1,10 +1,9 @@
 import { DateTime } from 'luxon'
+import { getLogGroups, getLogStreams, getLogs } from 'src/aws/cloudWatch'
 import {
-  FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { getLogGroups, getLogStreams, getLogs } from 'src/aws/cloudWatch'
 
 import { logger, program } from './shared'
 
@@ -29,7 +28,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       let filterPattern = source.filter
@@ -56,7 +55,7 @@ program
         })
         console.log(`${'log stream name'.padEnd(66, ' ')}${'created'.padEnd(16, ' ')}last event`)
         for (const { name, createdAt, lastEventAt } of streams) {
-          const relativeCreatedAt = DateTime.fromMillis(createdAt).toRelative()
+          const relativeCreatedAt = DateTime.fromMillis(createdAt).toRelative()! // eslint-disable-line
           const relativeLastEventAt = DateTime.fromMillis(createdAt).toRelative()
           console.log(`${name.padEnd(66, ' ')}${relativeCreatedAt.padEnd(16, ' ')}${relativeLastEventAt}`)
         }
@@ -77,8 +76,8 @@ program
           filterPattern = 'INFO'
         }
 
-        let startTime: number
-        let endTime: number
+        let startTime: number | undefined
+        let endTime: number | undefined
         if (startTimeISO) {
           startTime = DateTime.fromISO(startTimeISO, { zone: 'UTC' }).toMillis()
         }

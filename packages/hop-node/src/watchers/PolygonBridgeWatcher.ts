@@ -9,15 +9,17 @@ import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract, Wallet, constants, providers } from 'ethers'
 import { Event } from 'src/types'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { MaticPOSClient } from '@maticnetwork/maticjs'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
-
 interface Config {
   chainSlug: string
   tokenSymbol: string
   label?: string
-  bridgeContract?: Contract
+  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   isL1?: boolean
   dryMode?: boolean
 }
@@ -44,15 +46,15 @@ class PolygonBridgeWatcher extends BaseWatcher {
     })
 
     this.l1Provider = new providers.StaticJsonRpcProvider(
-      getRpcUrls(Chain.Ethereum)[0]
+      getRpcUrls(Chain.Ethereum)?.[0]
     )
     this.l2Provider = new providers.StaticJsonRpcProvider(
-      getRpcUrls(Chain.Polygon)[0]
+      getRpcUrls(Chain.Polygon)?.[0]
     )
     this.l1Wallet = wallets.get(Chain.Ethereum)
     this.l2Wallet = wallets.get(Chain.Polygon)
 
-    this.chainId = chainSlugToId(config.chainSlug)
+    this.chainId = chainSlugToId(config.chainSlug)! // eslint-disable-line
     this.apiUrl = `https://apis.matic.network/api/v1/${
       this.chainId === this.polygonMainnetChainId ? 'matic' : 'mumbai'
     }/block-included`
@@ -68,7 +70,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
       // const l1RootChainAddress = addresses[token][Chain.Polygon].l1PosRootChainManager
       // const l2TokenAddress = '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1' // dummy erc20
       const l2TokenAddress =
-        globalConfig.tokens[this.tokenSymbol][Chain.Polygon]?.l2CanonicalToken
+        globalConfig.tokens?.[this.tokenSymbol][Chain.Polygon]?.l2CanonicalToken
       if (!l2TokenAddress) {
         throw new Error(
           `no token address found for ${this.tokenSymbol} on ${Chain.Polygon}`
@@ -151,13 +153,13 @@ class PolygonBridgeWatcher extends BaseWatcher {
         this.l1Provider.connection.url
       ),
       posRootChainManager:
-        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
+        globalConfig.tokens?.[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
       posERC20Predicate:
-        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
+        globalConfig.tokens?.[tokenSymbol][Chain.Polygon].l1PosPredicate
     })
 
     const rootTunnel =
-      globalConfig.tokens[tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
+      globalConfig.tokens?.[tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
     const tx = await (maticPOSClient as any).posRootChainManager.processReceivedMessage(
       rootTunnel,
       txHash,
@@ -187,9 +189,9 @@ class PolygonBridgeWatcher extends BaseWatcher {
         this.l1Provider.connection.url
       ),
       posRootChainManager:
-        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
+        globalConfig.tokens?.[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
       posERC20Predicate:
-        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
+        globalConfig.tokens?.[tokenSymbol][Chain.Polygon].l1PosPredicate
     })
     const tx = await maticPOSClient.exitERC20(txHash, {
       from: recipient,

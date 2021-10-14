@@ -9,7 +9,7 @@ class GasBoostDb extends BaseDb {
     return await this._update(key, data)
   }
 
-  async getItem (key: string): Promise<State> {
+  async getItem (key: string): Promise<State | undefined> {
     const item = await this.getById(key)
     if (!item) {
       return
@@ -25,7 +25,10 @@ class GasBoostDb extends BaseDb {
         return await this.getItem(key)
       })
     )
-    return items.filter(x => x)
+    const isDefined = (item: State | undefined): item is State => {
+      return item !== undefined
+    }
+    return items.filter(isDefined)
   }
 
   async deleteItem (key: string): Promise<void> {

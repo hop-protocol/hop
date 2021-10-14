@@ -17,7 +17,7 @@ class SlackClient implements Notifier {
       return
     }
     this.client = new WebClient(slackAuthToken)
-    this.channel = slackChannel
+    this.channel = slackChannel! // eslint-disable-line
     this.label = label
   }
 

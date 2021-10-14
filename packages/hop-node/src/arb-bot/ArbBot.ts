@@ -123,6 +123,9 @@ class ArbBot {
     this.network = config.network
     this.wallet = config.wallet
     this.minThreshold = config.minThreshold
+    if (config.amm.saddleSwap.contract === undefined) {
+      throw new Error('saddleSwap contract must be defined')
+    }
     this.saddleSwap = config.amm.saddleSwap.contract
     this.token0 = {
       label: config.token0.label,

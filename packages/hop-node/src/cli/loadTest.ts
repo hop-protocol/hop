@@ -1,10 +1,9 @@
 import LoadTest from 'src/loadTest'
+import { logger, program } from './shared'
 import {
-  FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { logger, program } from './shared'
 
 program
   .command('load-test')
@@ -23,7 +22,7 @@ program
     try {
       const configPath = source?.config ?? source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const paths = (source.paths ?? '')

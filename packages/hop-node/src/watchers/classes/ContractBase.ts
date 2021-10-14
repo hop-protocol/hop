@@ -5,6 +5,7 @@ import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
+import { Event } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
 import { Transaction } from 'src/types'
 import { config as globalConfig } from 'src/config'
@@ -25,7 +26,7 @@ export default class ContractBase extends EventEmitter {
       throw new Error('chain slug not found for contract provider')
     }
     this.chainSlug = chainSlug
-    this.chainId = chainSlugToId(chainSlug)
+    this.chainId = chainSlugToId(chainSlug)! // eslint-disable-line
   }
 
   getChainId = rateLimitRetry(async (): Promise<number> => {
@@ -83,7 +84,7 @@ export default class ContractBase extends EventEmitter {
     if (!tx) {
       throw new Error(`transaction not found. transactionHash: ${txHash}`)
     }
-    return tx.blockNumber
+    return tx.blockNumber! // eslint-disable-line
   })
 
   getBlockTimestamp = rateLimitRetry(async (
@@ -103,7 +104,7 @@ export default class ContractBase extends EventEmitter {
     return await this.getBlockTimestamp(blockNumber)
   }
 
-  async getEventTimestamp (event: any): Promise<number> {
+  async getEventTimestamp (event: Event): Promise<number> {
     const tx = await event?.getBlock()
     if (!tx) {
       return 0

@@ -2,13 +2,12 @@ import clearConsole from 'console-clear'
 import entropyToMnemonic from 'src/keystore/entropyToMnemonic'
 import fs from 'fs'
 import path from 'path'
+import { HDNode } from '@ethersproject/hdnode'
 import {
-  FileConfig,
   defaultKeystoreFilePath,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { HDNode } from '@ethersproject/hdnode'
 import { generateKeystore, recoverKeystore } from 'src/keystore'
 import { hopArt } from './shared/art'
 import { logger, program } from './shared'
@@ -28,7 +27,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const action = source.args[0]
@@ -47,7 +46,7 @@ program
             throw new Error('ERROR: passwords did not match')
           }
         }
-        let mnemonic: string
+        let mnemonic: string | undefined
         const hdpath = 'm/44\'/60\'/0\'/0/0'
         let privateKey: string | null = source.privateKey || null
         if (!privateKey) {

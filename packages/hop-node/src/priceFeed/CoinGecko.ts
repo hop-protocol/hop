@@ -118,7 +118,7 @@ class CoinGecko {
   ) => {
     let page = 0
     const limit = 100 // max addresses allowed per request
-    const allResults: number[] = []
+    const allResults: Array<number | null> = []
 
     const getTokens = async (addresses: string[]) => {
       const params = serializeQueryParams({
@@ -133,7 +133,7 @@ class CoinGecko {
       const url = `${this._baseUrl}/simple/token_price/ethereum?${params}`
       const res = await fetch(url)
       const json = await res.json()
-      const prices: number[] = []
+      const prices: Array<number | null> = []
 
       for (let i = 0; i < addresses.length; i++) {
         const address = addresses[i]

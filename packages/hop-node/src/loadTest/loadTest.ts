@@ -105,16 +105,16 @@ class LoadTest {
               })
               const notifier = new Notifier('LoadTest')
               try {
-                const faucet = new User(faucetPrivateKey)
+                const faucet = new User(faucetPrivateKey!) // eslint-disable-line
                 const users = []
                 if (useTestUserPrivateKey) {
-                  const user = generateUser(testUserPrivateKey)
+                  const user = generateUser(testUserPrivateKey!) // eslint-disable-line
                   for (let i = 0; i < this.concurrentUsers; i++) {
                     // simulate users using same signer
                     users.push(user)
                   }
                 } else {
-                  users.push(...generateUsers(this.concurrentUsers, mnemonic))
+                  users.push(...generateUsers(this.concurrentUsers, mnemonic!)) // eslint-disable-line
                 }
                 for (const [i, user] of users.entries()) {
                   logger.debug(`#${i} account: ${await users[i].getAddress()}`)

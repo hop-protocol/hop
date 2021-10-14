@@ -33,7 +33,7 @@ class ContractStateWatcher {
 
   async getL1BridgeState () {
     const l1Wallet = wallets.get(Chain.Ethereum)
-    const address = globalConfig.tokens[this.token]?.ethereum?.l1Bridge
+    const address = globalConfig.tokens?.[this.token]?.ethereum?.l1Bridge
     if (!address) {
       return null
     }
@@ -52,7 +52,7 @@ class ContractStateWatcher {
       if (chain === Chain.Ethereum) {
         continue
       }
-      const chainId = chainSlugToId(chain)
+      const chainId = chainSlugToId(chain)! // eslint-disable-line
       if (!chainStates[chainId]) {
         chainStates[chainId] = {}
       }
@@ -70,7 +70,7 @@ class ContractStateWatcher {
     }
 
     const bonderStates: any = {}
-    for (const bonder of globalConfig.bonders[this.token]) {
+    for (const bonder of globalConfig.bonders?.[this.token] ?? []) {
       if (!bonderStates[bonder]) {
         bonderStates[bonder] = {}
       }
@@ -102,7 +102,7 @@ class ContractStateWatcher {
 
   async getL2BridgeState (chain: string) {
     const l2Wallet = wallets.get(chain)
-    const address = globalConfig.tokens[this.token]?.[chain]?.l2Bridge
+    const address = globalConfig.tokens?.[this.token]?.[chain]?.l2Bridge
     if (!address) {
       return null
     }
@@ -121,7 +121,7 @@ class ContractStateWatcher {
     const chains = getEnabledNetworks()
     const chainStates: any = {}
     for (const chain of chains) {
-      const chainId = chainSlugToId(chain)
+      const chainId = chainSlugToId(chain)! // eslint-disable-line
       if (!chainStates[chainId]) {
         chainStates[chainId] = {}
       }
@@ -137,7 +137,7 @@ class ContractStateWatcher {
     }
 
     const bonderStates: any = {}
-    for (const bonder of globalConfig.bonders[this.token]) {
+    for (const bonder of globalConfig.bonders?.[this.token] ?? []) {
       if (!bonderStates[bonder]) {
         bonderStates[bonder] = {}
       }
@@ -185,7 +185,7 @@ class ContractStateWatcher {
 
   async getL2AmmState (chain: string) {
     const l2Wallet = wallets.get(chain)
-    const address = globalConfig.tokens[this.token]?.[chain]?.l2SaddleSwap
+    const address = globalConfig.tokens?.[this.token]?.[chain]?.l2SaddleSwap
     if (!address) {
       return null
     }
@@ -236,7 +236,7 @@ class ContractStateWatcher {
 
   async getL2AmmWrapperState (chain: string) {
     const l2Wallet = wallets.get(chain)
-    const address = globalConfig.tokens[this.token]?.[chain]?.l2AmmWrapper
+    const address = globalConfig.tokens?.[this.token]?.[chain]?.l2AmmWrapper
     if (!address) {
       return null
     }

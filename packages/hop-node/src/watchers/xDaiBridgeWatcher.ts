@@ -5,6 +5,10 @@ import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract } from 'ethers'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L1XDaiAMB, L2XDaiAMB } from '@hop-protocol/core/contracts'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { config as globalConfig } from 'src/config'
 import { l1xDaiAmbAbi, l2xDaiAmbAbi } from '@hop-protocol/core/abi'
 import { solidityKeccak256 } from 'ethers/lib/utils'
@@ -13,22 +17,22 @@ interface Config {
   chainSlug: string
   tokenSymbol: string
   label?: string
-  l1BridgeContract?: Contract
-  bridgeContract?: Contract
+  l1BridgeContract?: L1BridgeContract | L1ERC20BridgeContract
+  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   isL1?: boolean
   dryMode?: boolean
 }
 
 export const getL1Amb = (token: string) => {
   const l1Wallet = wallets.get(Chain.Ethereum)
-  const l1AmbAddress = globalConfig.tokens[token].xdai.l1Amb
-  return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet)
+  const l1AmbAddress = globalConfig.tokens?.[token].xdai.l1Amb
+  return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet) as L1XDaiAMB
 }
 
 export const getL2Amb = (token: string) => {
   const l2xDaiProvider = wallets.get(Chain.xDai).provider
-  const l2AmbAddress = globalConfig.tokens[token].xdai.l2Amb
-  return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider)
+  const l2AmbAddress = globalConfig.tokens?.[token].xdai.l2Amb
+  return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider) as L2XDaiAMB
 }
 
 export const executeExitTx = async (event: any, token: string) => {
@@ -148,7 +152,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
     for (const sigEvent of sigEvents) {
       const { encodedData } = sigEvent.args
       // TODO: better way of slicing by method id
-      const data = /ef6ebe5e00000/.test(encodedData)
+      const data = encodedData.includes('ef6ebe5e00000')
         ? encodedData.replace(/.*(ef6ebe5e00000.*)/, '$1')
         : ''
       if (!data) {

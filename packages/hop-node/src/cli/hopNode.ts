@@ -4,7 +4,6 @@ import clearDb from 'src/db/clearDb'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 import { Chain } from 'src/constants'
 import {
-  FileConfig,
   defaultEnabledNetworks,
   defaultEnabledWatchers,
   config as globalConfig,
@@ -49,7 +48,7 @@ program
       logger.debug('starting hop node')
 
       const configFilePath = source.config || source.args[0]
-      const config: FileConfig = await parseConfigFile(configFilePath)
+      const config = await parseConfigFile(configFilePath)
       await setGlobalConfigFromConfigFile(config, source.passwordFile)
       const syncFromDate = source.syncFromDate
       const s3Upload = !!source.s3Upload
@@ -63,7 +62,7 @@ program
 
       if (source.clearDb) {
         await clearDb()
-        logger.debug(`cleared db at: ${globalConfig.db.path}`)
+        logger.debug(`cleared db at: ${globalConfig.db?.path}`)
       }
 
       const tokens = []
@@ -104,7 +103,7 @@ program
 
       const bonder = config?.roles?.bonder
       const challenger = config?.roles?.challenger
-      const order = Number(config.order ?? 0)
+      const order = Number(config?.order ?? 0)
       if (order) {
         logger.info('order:', order)
       }

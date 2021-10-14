@@ -7,13 +7,12 @@ import contracts from 'src/contracts'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
+import { formatEther, parseEther } from 'ethers/lib/utils'
 import {
-  FileConfig,
   config as globalConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { formatEther, parseEther } from 'ethers/lib/utils'
 import { logger, program } from './shared'
 
 async function sendTokens (
@@ -80,7 +79,7 @@ async function sendTokens (
   }
 
   logger.debug(`attempting to send ${amount} ${label} ⟶  ${toChain} to ${recipient}`)
-  const destinationChainId = chainSlugToId(toChain)
+  const destinationChainId = chainSlugToId(toChain)! // eslint-disable-line
   if (fromChain === Chain.Ethereum) {
     if (isHToken) {
       tx = await (bridge as L1Bridge).convertCanonicalTokenToHopToken(
@@ -127,7 +126,7 @@ async function sendNativeToken (
   }
 
   const provider = getRpcProvider(chain)
-  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider)
+  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey!, provider!) // eslint-disable-line
 
   const parsedAmount = parseEther(amount.toString())
   let balance = await wallet.getBalance()
@@ -162,7 +161,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const fromChain = source.fromChain

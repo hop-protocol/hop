@@ -127,7 +127,7 @@ export async function setGlobalConfigFromConfigFile (
       config.keystore.location.replace('~', os.homedir())
     )
     const keystore = JSON.parse(fs.readFileSync(path.resolve(filepath), 'utf8'))
-    let passphrase: string = process.env.KEYSTORE_PASS ?? config?.keystore.pass
+    let passphrase = process.env.KEYSTORE_PASS ?? config?.keystore.pass
     if (!passphrase) {
       let passwordFilePath = passwordFile ?? config?.keystore?.passwordFile
       const parameterStoreName = config?.keystore?.parameterStore
@@ -204,7 +204,6 @@ export async function parseConfigFile (
   if (config != null) {
     await validateConfig(config)
     logger.info('config file:', configPath)
+    return config
   }
-
-  return config
 }

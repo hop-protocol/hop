@@ -86,7 +86,7 @@ export async function getLogs (config: Partial<Config>, cb: any) {
   }
 
   let messages: string[]
-  let nextForwardToken: string
+  let nextForwardToken: string | undefined
   logger.debug(`log stream: ${logStream}`)
   logger.debug('fetching logs (this takes a few seconds)\n')
   while (true) {

@@ -9,7 +9,7 @@ const network = 'ethereum'
 const tokenContracts = contracts.get(token, network)
 const bridgeContract = tokenContracts.l1Bridge
 const bridge = new L1Bridge(bridgeContract)
-const { totalBlocks, batchBlocks } = globalConfig.sync[network]
+const { totalBlocks, batchBlocks } = globalConfig.sync?.[network]! // eslint-disable-line
 
 describe.skip('events batch - Happy Path', () => {
   expectDefined(totalBlocks)

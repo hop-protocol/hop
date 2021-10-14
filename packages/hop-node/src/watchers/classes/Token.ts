@@ -1,13 +1,14 @@
 import ContractBase from './ContractBase'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
-import { BigNumber, Contract, ethers, providers } from 'ethers'
+import { BigNumber, ethers, providers } from 'ethers'
+import { ERC20 } from '@hop-protocol/core/contracts'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 export default class Token extends ContractBase {
-  tokenContract: Contract
+  tokenContract: ERC20
   _decimals: number
 
-  constructor (tokenContract: Contract) {
+  constructor (tokenContract: ERC20) {
     super(tokenContract)
     this.tokenContract = tokenContract
   }
@@ -35,10 +36,10 @@ export default class Token extends ContractBase {
   approve = rateLimitRetry(async (
     spender: string,
     amount: BigNumber = ethers.constants.MaxUint256
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<providers.TransactionResponse | undefined> => {
     const allowance = await this.getAllowance(spender)
     if (allowance.lt(amount)) {
-      return this.tokenContract.approve(
+      return await this.tokenContract.approve(
         spender,
         amount,
         await this.txOverrides()
@@ -50,7 +51,7 @@ export default class Token extends ContractBase {
     recipient: string,
     amount: BigNumber
   ): Promise<providers.TransactionResponse> => {
-    return this.tokenContract.transfer(
+    return await this.tokenContract.transfer(
       recipient,
       amount,
       await this.txOverrides()

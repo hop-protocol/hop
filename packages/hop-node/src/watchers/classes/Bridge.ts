@@ -10,6 +10,7 @@ import shiftBNDecimals from 'src/utils/shiftBNDecimals'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import { BonderFeeBps, Chain, MaxGasPriceMultiplier, MinBonderFeeAbsolute } from 'src/constants'
 import { BonderFeeTooLowError } from 'src/types/error'
+import { Bridge as BridgeContract, MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
 import { Db, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
@@ -23,7 +24,7 @@ export interface EventsBatchOptions {
   endBlockNumber: number
 }
 
-export type EventCb = (event: Event, i?: number) => any
+export type EventCb<E extends Event, R> = (event: E, i?: number) => R
 
 const priceFeed = new PriceFeed()
 
@@ -35,12 +36,12 @@ export default class Bridge extends ContractBase {
   MultipleWithdrawalsSettled: string = 'MultipleWithdrawalsSettled'
   tokenDecimals: number = 18
   tokenSymbol: string = ''
-  bridgeContract: Contract
+  bridgeContract: BridgeContract
   bridgeDeployedBlockNumber: number
   l1CanonicalTokenAddress: string
   stateUpdateAddress: string
 
-  constructor (bridgeContract: Contract) {
+  constructor (bridgeContract: BridgeContract) {
     super(bridgeContract)
     this.bridgeContract = bridgeContract
     const metadata = getTokenMetadataByAddress(bridgeContract.address, this.chainSlug)
@@ -54,8 +55,8 @@ export default class Bridge extends ContractBase {
       this.tokenSymbol = tokenSymbol
     }
     this.db = getDbSet(this.tokenSymbol)
-    const bridgeDeployedBlockNumber = globalConfig.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
-    const l1CanonicalTokenAddress = globalConfig.tokens[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken
+    const bridgeDeployedBlockNumber = globalConfig.tokens?.[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
+    const l1CanonicalTokenAddress = globalConfig.tokens?.[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken
     if (!bridgeDeployedBlockNumber) {
       throw new Error('bridge deployed block number is required')
     }
@@ -64,16 +65,16 @@ export default class Bridge extends ContractBase {
     }
     this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
-    this.stateUpdateAddress = globalConfig?.stateUpdateAddress
+    this.stateUpdateAddress = globalConfig?.stateUpdateAddress! // eslint-disable-line
   }
 
   async getBonderAddress (): Promise<string> {
-    return await this.bridgeContract.signer.getAddress()
+    return await (this.bridgeContract as Contract).signer.getAddress()
   }
 
   isBonder = rateLimitRetry(async (): Promise<boolean> => {
     const bonder = await this.getBonderAddress()
-    return this.bridgeContract.getIsBonder(bonder)
+    return await this.bridgeContract.getIsBonder(bonder)
   })
 
   getCredit = rateLimitRetry(async (bonder?: string): Promise<BigNumber> => {
@@ -153,8 +154,8 @@ export default class Bridge extends ContractBase {
     transferId: string,
     startBlockNumber?: number,
     endBlockNumber?: number
-  ): Promise<any> {
-    let match: Event = null
+  ): Promise<WithdrawalBondedEvent | undefined> {
+    let match: WithdrawalBondedEvent | undefined
     await this.eventsBatch(
       async (start: number, end: number) => {
         const events = await this.getWithdrawalBondedEvents(start, end)
@@ -178,8 +179,8 @@ export default class Bridge extends ContractBase {
     transferId: string,
     startBlockNumber?: number,
     endBlockNumber?: number
-  ): Promise<any> {
-    let match: Event = null
+  ): Promise<WithdrewEvent | undefined> {
+    let match: WithdrewEvent | undefined
     await this.eventsBatch(
       async (start: number, end: number) => {
         const events = await this.getWithdrewEvents(start, end)
@@ -200,13 +201,13 @@ export default class Bridge extends ContractBase {
   }
 
   isTransferIdSpent = rateLimitRetry(async (transferId: string): Promise<boolean> => {
-    return this.bridgeContract.isTransferIdSpent(transferId)
+    return await this.bridgeContract.isTransferIdSpent(transferId)
   })
 
   getWithdrawalBondedEvents = rateLimitRetry(async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> => {
+  ) => {
     return await this.bridgeContract.queryFilter(
       this.bridgeContract.filters.WithdrawalBonded(),
       startBlockNumber,
@@ -217,7 +218,7 @@ export default class Bridge extends ContractBase {
   getWithdrewEvents = rateLimitRetry(async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> => {
+  ) => {
     return await this.bridgeContract.queryFilter(
       this.bridgeContract.filters.Withdrew(),
       startBlockNumber,
@@ -225,15 +226,15 @@ export default class Bridge extends ContractBase {
     )
   })
 
-  async mapWithdrawalBondedEvents (
-    cb: EventCb,
+  async mapWithdrawalBondedEvents<R> (
+    cb: EventCb<WithdrawalBondedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
     return await this.mapEventsBatch(this.getWithdrawalBondedEvents, cb, options)
   }
 
-  async mapWithdrewEvents (
-    cb: EventCb,
+  async mapWithdrewEvents<R> (
+    cb: EventCb<WithdrewEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
     return await this.mapEventsBatch(this.getWithdrewEvents, cb, options)
@@ -242,7 +243,7 @@ export default class Bridge extends ContractBase {
   getTransferRootSetEvents = rateLimitRetry(async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> => {
+  ) => {
     return await this.bridgeContract.queryFilter(
       this.bridgeContract.filters.TransferRootSet(),
       startBlockNumber,
@@ -253,7 +254,7 @@ export default class Bridge extends ContractBase {
   async getTransferRootSetTxHash (
     transferRootHash: string
   ): Promise<string | undefined> {
-    let txHash: string
+    let txHash: string | undefined
     await this.eventsBatch(async (start: number, end: number) => {
       const events = await this.getTransferRootSetEvents(
         start,
@@ -272,8 +273,8 @@ export default class Bridge extends ContractBase {
     return txHash
   }
 
-  async mapTransferRootSetEvents (
-    cb: EventCb,
+  async mapTransferRootSetEvents<R> (
+    cb: EventCb<TransferRootSetEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
     return await this.mapEventsBatch(this.getTransferRootSetEvents, cb, options)
@@ -282,7 +283,7 @@ export default class Bridge extends ContractBase {
   getWithdrawalBondSettledEvents = rateLimitRetry(async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> => {
+  ) => {
     return await this.bridgeContract.queryFilter(
       this.bridgeContract.filters.WithdrawalBondSettled(),
       startBlockNumber,
@@ -321,7 +322,7 @@ export default class Bridge extends ContractBase {
   getMultipleWithdrawalsSettledEvents = rateLimitRetry(async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> => {
+  ) => {
     return await this.bridgeContract.queryFilter(
       this.bridgeContract.filters.MultipleWithdrawalsSettled(),
       startBlockNumber,
@@ -329,8 +330,8 @@ export default class Bridge extends ContractBase {
     )
   })
 
-  async mapMultipleWithdrawalsSettledEvents (
-    cb: EventCb,
+  async mapMultipleWithdrawalsSettledEvents<R> (
+    cb: EventCb<MultipleWithdrawalsSettledEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
     return await this.mapEventsBatch(
@@ -375,7 +376,7 @@ export default class Bridge extends ContractBase {
     transferRootHash: string,
     totalAmount: BigNumber
   ): Promise<any> => {
-    return this.bridgeContract.getTransferRoot(
+    return await this.bridgeContract.getTransferRoot(
       transferRootHash,
       totalAmount
     )
@@ -391,7 +392,7 @@ export default class Bridge extends ContractBase {
     return chainIds
   }
 
-  async getL1ChainId (): Promise<number> {
+  async getL1ChainId (): Promise<number | undefined> {
     for (const key in globalConfig.networks) {
       const { networkId: chainId } = globalConfig.networks[key]
       if (isL1ChainId(chainId)) {
@@ -447,7 +448,7 @@ export default class Bridge extends ContractBase {
       transferNonce,
       bonderFee,
       txOverrides
-    ]
+    ] as const
 
     const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
     await checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
@@ -507,25 +508,25 @@ export default class Bridge extends ContractBase {
     return parseUnits(value.toString(), 18)
   }
 
-  protected async mapEventsBatch (
-    getEventsMethod: (start: number, end: number) => Promise<Event[]>,
-    cb: EventCb,
+  protected async mapEventsBatch<E extends Event, R> (
+    getEventsMethod: (start: number, end: number) => Promise<E[]>,
+    cb: EventCb<E, R>,
     options?: Partial<EventsBatchOptions>
-  ) {
+  ): Promise<R[]> {
     let i = 0
-    const promises: Array<Promise<any>> = []
+    const results: R[] = []
     await this.eventsBatch(async (start: number, end: number) => {
-      let events = await rateLimitRetry(getEventsMethod)(start, end, i)
+      let events = await rateLimitRetry(getEventsMethod)(start, end /*, i */)
       events = events.reverse()
       for (const event of events) {
-        promises.push(cb(event, i++))
+        results.push(await cb(event, i++))
       }
     }, options)
-    return await Promise.all(promises)
+    return results
   }
 
   public async eventsBatch (
-    cb: (start?: number, end?: number, i?: number) => Promise<boolean> | Promise<void>,
+    cb: (start?: number, end?: number, i?: number) => Promise<boolean | undefined> | Promise<void>,
     options: Partial<EventsBatchOptions> = {}
   ) {
     this.validateEventsBatchInput(options)
@@ -547,7 +548,7 @@ export default class Bridge extends ContractBase {
       batchBlocks,
       earliestBlockInBatch,
       latestBlockInBatch
-    } = await this.getBlockValues(options, state)
+    } = await this.getBlockValues(options, state!) // eslint-disable-line
 
     let i = 0
     while (start >= earliestBlockInBatch) {
@@ -561,7 +562,7 @@ export default class Bridge extends ContractBase {
 
       // Subtract 1 so that the boundary blocks are not double counted
       end = start - 1
-      start = end - batchBlocks
+      start = end - batchBlocks! // eslint-disable-line
 
       if (start < earliestBlockInBatch) {
         start = earliestBlockInBatch
@@ -583,10 +584,10 @@ export default class Bridge extends ContractBase {
   private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state: State) => {
     const { startBlockNumber, endBlockNumber } = options
 
-    let end
-    let start
-    let totalBlocksInBatch
-    const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
+    let end: number
+    let start: number
+    let totalBlocksInBatch: number
+    const { totalBlocks, batchBlocks } = globalConfig.sync?.[this.chainSlug] ?? {}
     const currentBlockNumber = await this.getBlockNumber()
     const currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
     const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
@@ -597,7 +598,7 @@ export default class Bridge extends ContractBase {
       totalBlocksInBatch = end - startBlockNumber
     } else if (endBlockNumber) {
       end = endBlockNumber
-      totalBlocksInBatch = totalBlocks
+      totalBlocksInBatch = totalBlocks! // eslint-disable-line
     } else if (isInitialSync) {
       end = currentBlockNumberWithFinality
       totalBlocksInBatch = end - startBlockNumber
@@ -606,7 +607,7 @@ export default class Bridge extends ContractBase {
       totalBlocksInBatch = end - state.latestBlockSynced
     } else {
       end = currentBlockNumberWithFinality
-      totalBlocksInBatch = totalBlocks
+      totalBlocksInBatch = totalBlocks! // eslint-disable-line
     }
 
     // Handle the case where the chain has less blocks than the total block config
@@ -615,10 +616,10 @@ export default class Bridge extends ContractBase {
       totalBlocksInBatch = end
     }
 
-    if (totalBlocksInBatch <= batchBlocks) {
+    if (totalBlocksInBatch <= batchBlocks!) { // eslint-disable-line
       start = end - totalBlocksInBatch
     } else {
-      start = end - batchBlocks
+      start = end - batchBlocks! // eslint-disable-line
     }
 
     const earliestBlockInBatch = end - totalBlocksInBatch
@@ -692,18 +693,18 @@ export async function compareBonderDestinationFeeCost (
   const ethDecimals = 18
   const provider = getRpcProvider(chain)
   if (gasPrice == null) {
-    gasPrice = getBumpedGasPrice(await provider.getGasPrice(), MaxGasPriceMultiplier)
+    gasPrice = getBumpedGasPrice(await provider!.getGasPrice(), MaxGasPriceMultiplier) // eslint-disable-line
   }
   if (!tokenUsdPrice) {
-    tokenUsdPrice = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
+    tokenUsdPrice = (await priceFeed.getPriceByTokenSymbol(tokenSymbol))! // eslint-disable-line
   }
   const gasCost = gasLimit.mul(gasPrice)
   const chainNativeTokenSymbol = getChainNativeTokenSymbol(chain)
   if (!chainNativeTokenUsdPrice) {
-    chainNativeTokenUsdPrice = await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol)
+    chainNativeTokenUsdPrice = (await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol))! // eslint-disable-line
   }
-  const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), ethDecimals)
-  const chainNativeTokenUsdPriceBn = parseUnits(chainNativeTokenUsdPrice.toString(), ethDecimals)
+  const tokenUsdPriceBn = parseUnits(tokenUsdPrice!.toString(), ethDecimals) // eslint-disable-line
+  const chainNativeTokenUsdPriceBn = parseUnits(chainNativeTokenUsdPrice!.toString(), ethDecimals) // eslint-disable-line
   const tokenDecimals = getTokenDecimals(tokenSymbol)
   const bonderFee18d = shiftBNDecimals(bonderFee, ethDecimals - tokenDecimals)
   const usdBonderFee = bonderFee18d
@@ -739,7 +740,7 @@ export async function compareMinBonderFeeBasisPoints (
   const tokenPrice = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
   const tokenDecimals = getTokenDecimals(tokenSymbol)
   const minBonderFeeAbsolute = parseUnits(
-    (1 / tokenPrice).toFixed(tokenDecimals),
+    (1 / tokenPrice!).toFixed(tokenDecimals), // eslint-disable-line
     tokenDecimals
   )
   let minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)

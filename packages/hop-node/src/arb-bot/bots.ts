@@ -5,7 +5,7 @@ import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { config as globalConfig } from 'src/config'
 
-const tokenSymbols = Object.keys(globalConfig.tokens)
+const tokenSymbols = Object.keys(globalConfig.tokens ?? {})
 const networks = [Chain.Arbitrum, Chain.Optimism, Chain.xDai, Chain.Polygon]
 
 export interface Config {
@@ -39,7 +39,7 @@ export default {
               contract: tokenContracts.saddleSwap
             }
           },
-          tokenDecimals: globalConfig.metadata.tokens[token]
+          tokenDecimals: globalConfig.metadata?.tokens[token]
             .decimals,
           wallet: wallets.get(network),
           minThreshold: config.minThreshold || 1.01,

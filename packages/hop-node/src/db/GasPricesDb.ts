@@ -77,7 +77,7 @@ class GasPricesDb extends BaseDb {
   private async prune (): Promise<void> {
     const items = await this.getOldEntries()
     for (const { _id } of items) {
-      await this.deleteById(_id)
+      await this.deleteById(_id!) // eslint-disable-line
     }
   }
 }

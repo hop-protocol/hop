@@ -320,7 +320,7 @@ export function getChallengeWatchers (config: GetChallengeWatchersConfig) {
   return watchers
 }
 
-function getSiblingWatchers (config: any, init: (conf: any) => Watcher) {
+function getSiblingWatchers (config: any, init: (conf: any) => Watcher | undefined) {
   const {
     tokens = getAllTokens(),
     networks = getAllChains()
@@ -332,7 +332,7 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher) {
     for (const network of networks) {
       const label = `${network}.${token}`
       const isL1 = network === Chain.Ethereum
-      const chainId = chainSlugToId(network)
+      const chainId = chainSlugToId(network)! // eslint-disable-line
       if (!contracts.has(token, network)) {
         continue
       }
@@ -386,9 +386,9 @@ export function findWatcher (watchers: Watcher[], WatcherType: any, chain?: stri
 }
 
 function getAllChains () {
-  return Object.keys(globalConfig.networks)
+  return Object.keys(globalConfig.networks ?? {})
 }
 
 function getAllTokens () {
-  return Object.keys(globalConfig.tokens)
+  return Object.keys(globalConfig.tokens ?? {})
 }

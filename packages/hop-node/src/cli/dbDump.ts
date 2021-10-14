@@ -1,11 +1,10 @@
+import { getDbSet } from 'src/db'
 import {
-  FileConfig,
   config as globalConfig,
   parseConfigFile,
   setDbPath,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { getDbSet } from 'src/db'
 
 import { logger, program } from './shared'
 
@@ -27,7 +26,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       if (source.dbPath) {
@@ -72,7 +71,7 @@ program
         throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state, gas-prices, token-prices`)
       }
 
-      logger.debug(`dumping ${dbName} db located at ${globalConfig.db.path}`)
+      logger.debug(`dumping ${dbName} db located at ${globalConfig.db?.path}`)
       console.log(JSON.stringify(items, null, 2))
       logger.debug(`count: ${items.length}`)
       process.exit(0)

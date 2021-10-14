@@ -102,7 +102,7 @@ const getConfigByNetwork = (network: string): Partial<Config> => {
 // get default config
 const { tokens, network, networks, metadata, bonders, isMainnet } = getConfigByNetwork(envNetwork)
 
-export const config: Config = {
+export const config: Partial<Config> = {
   isMainnet,
   tokens,
   network,
@@ -160,7 +160,7 @@ export const setBonderPrivateKey = (privateKey: string) => {
 
 export const setNetworkRpcUrls = (network: string, rpcUrls: string[]) => {
   network = normalizeNetwork(network)
-  if (config.networks[network]) {
+  if (config.networks?.[network]) {
     config.networks[network].rpcUrls = rpcUrls
   }
 }
@@ -169,7 +169,7 @@ export const setNetworkWaitConfirmations = (
   network: string,
   waitConfirmations: number
 ) => {
-  if (config.networks[network]) {
+  if (config.networks?.[network]) {
     config.networks[network].waitConfirmations = waitConfirmations
   }
 }
@@ -179,9 +179,10 @@ export const setStateUpdateAddress = (address: string) => {
 }
 
 export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {
-  const networks = Object.keys(config.networks)
+  const networks = Object.keys(config.networks ?? [])
   for (const network of networks) {
-    if (!config.sync[network]) {
+    if (!config.sync?.[network]) {
+      config.sync = config.sync ?? {}
       config.sync[network] = {}
     }
     if (syncConfigs[network]?.totalBlocks) {
@@ -194,11 +195,11 @@ export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {
 }
 
 export const setDbPath = (dbPath: string) => {
-  config.db.path = dbPath
+  config.db = { ...config.db, path: dbPath }
 }
 
 export const getEnabledTokens = (): string[] => {
-  return Object.keys(config.tokens)
+  return Object.keys(config.tokens ?? {})
 }
 
 export const getEnabledNetworks = (): string[] => {

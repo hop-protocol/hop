@@ -157,10 +157,14 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     const items = transfers
       .filter(x => x)
       .sort((a, b) => {
-        if (a.transferSentBlockNumber > b.transferSentBlockNumber) return 1
-        if (a.transferSentBlockNumber < b.transferSentBlockNumber) return -1
-        if (a.transferSentIndex > b.transferSentIndex) return 1
-        if (a.transferSentIndex < b.transferSentIndex) return -1
+        /* eslint-disable @typescript-eslint/no-non-null-assertion */
+        /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+        if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
+        if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
+        if (a.transferSentIndex! > b.transferSentIndex!) return 1
+        if (a.transferSentIndex! < b.transferSentIndex!) return -1
+        /* eslint-enable @typescript-eslint/no-non-null-assertion */
+        /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
         return 0
       })
 
@@ -216,7 +220,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       let timestampOk = true
       if (item.bondWithdrawalAttemptedAt) {
         if (TxError.BonderFeeTooLow === item.withdrawalBondTxError) {
-          const delay = TxRetryDelayMs + ((1 << item.withdrawalBondBackoffIndex) * 60 * 1000)
+          const delay = TxRetryDelayMs + ((1 << item.withdrawalBondBackoffIndex!) * 60 * 1000) // eslint-disable-line
           // TODO: use `sentTransferTimestamp` once it's added to db
 
           // don't attempt to bond withdrawals after a week

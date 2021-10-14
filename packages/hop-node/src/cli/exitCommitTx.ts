@@ -1,11 +1,10 @@
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
+import { findWatcher, getWatchers } from 'src/watchers/watchers'
+import { logger, program } from './shared'
 import {
-  FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { findWatcher, getWatchers } from 'src/watchers/watchers'
-import { logger, program } from './shared'
 
 program
   .command('exit-commit-tx')
@@ -23,7 +22,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
 

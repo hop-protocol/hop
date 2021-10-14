@@ -3,7 +3,7 @@ import makeRequest from './makeRequest'
 import { BigNumber } from 'ethers'
 
 export default async function getIncompleteSettlements (token: string, chain: string, destinationChain: string): Promise<any> {
-  const destinationChainId: number = chainSlugToId(destinationChain)
+  const destinationChainId: number = chainSlugToId(destinationChain)! // eslint-disable-line
 
   let query = getTransfersCommittedsQuery(token)
   const transfersCommittedRes = await makeRequest(chain, query, {

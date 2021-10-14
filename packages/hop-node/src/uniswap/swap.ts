@@ -208,7 +208,7 @@ export async function swap (config: Config) {
   }
 
   if (toToken === 'ETH') {
-    routeToken1 = Ether.onChain(chainSlugToId(chain))
+    routeToken1 = Ether.onChain(chainSlugToId(chain)!) // eslint-disable-line
   }
 
   const sender = await wallet.getAddress()

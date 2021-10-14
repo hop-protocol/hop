@@ -45,7 +45,7 @@ class BaseDb {
       tag: 'Db',
       prefix
     })
-    const pathname = path.resolve(globalConfig.db.path.replace('~', os.homedir()))
+    const pathname = path.resolve(globalConfig.db!.path.replace('~', os.homedir())) // eslint-disable-line
     mkdirp.sync(pathname.replace(path.basename(pathname), ''))
     if (!dbMap[pathname]) {
       this.logger.info(`db path: ${pathname}`)

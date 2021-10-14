@@ -1,7 +1,9 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
-import { Contract } from 'ethers'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
 import { enabledSettleWatcherDestinationChains, enabledSettleWatcherSourceChains } from 'src/config'
 
@@ -9,7 +11,7 @@ export interface Config {
   chainSlug: string
   tokenSymbol: string
   isL1: boolean
-  bridgeContract: Contract
+  bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   label: string
   order?: () => number
   dryMode?: boolean

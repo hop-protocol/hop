@@ -45,8 +45,8 @@ class HealthCheck {
       this.pollIntervalSeconds = config.pollIntervalSeconds
     }
 
-    const tokens: string[] = Object.keys(globalConfig.tokens)
-    const networks: string[] = Object.keys(globalConfig.networks).filter(
+    const tokens: string[] = Object.keys(globalConfig.tokens ?? {})
+    const networks: string[] = Object.keys(globalConfig.networks ?? {}).filter(
       network => network !== Chain.Ethereum
     )
     for (const token of tokens) {
@@ -116,7 +116,7 @@ class HealthCheck {
         for (const event of events) {
           const { transactionHash } = event
           const tx = await bridge.getTransaction(transactionHash)
-          const { transferId } = event.args
+          const { transferId } = event.args! // eslint-disable-line
           const { destinationChainId } = bridge.decodeSendData(tx.data)
           const sourceChain = await bridge.getChainSlug()
           const destinationChain = bridge.chainIdToSlug(destinationChainId)
@@ -350,12 +350,12 @@ class HealthCheck {
             destStartBlockNumber,
             destEndBlockNumber
           )
-          const timestamp = await destBridge.getEventTimestamp(bondEvent)
+          const timestamp = await destBridge.getEventTimestamp(bondEvent!) // eslint-disable-line
           if (!timestamp) {
             continue
           }
           const bondTx = await destBridge.getTransaction(
-            bondEvent.transactionHash
+            bondEvent!.transactionHash // eslint-disable-line
           )
           bondedTransferIds.push({
             transferId,
@@ -425,7 +425,7 @@ class HealthCheck {
       }
 
       const transferBondAmount = await destBridge.getBondedWithdrawalAmountByBonder(
-        bonder,
+        bonder!, // eslint-disable-line
         transferId
       )
       if (!totalBondsSettleAmounts[destinationChainId]) {

@@ -1,5 +1,4 @@
 import {
-  FileConfig,
   config as globalConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
@@ -18,10 +17,10 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      const tokens = Object.keys(globalConfig.tokens)
+      const tokens = Object.keys(globalConfig.tokens ?? {})
       for (const token of tokens) {
         new xDaiBridgeWatcher({
           chainSlug: Chain.xDai,

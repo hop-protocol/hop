@@ -1,5 +1,4 @@
 import {
-  FileConfig,
   defaultEnabledWatchers,
   parseConfigFile,
   setConfigByNetwork
@@ -27,7 +26,7 @@ program
       printHopArt()
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       if (source.l1Network) {

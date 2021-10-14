@@ -1,5 +1,5 @@
 import React, { FC, ChangeEvent, useEffect } from 'react'
-import { BigNumber } from 'ethers'
+import { BigNumber, constants } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Card from '@material-ui/core/Card'
@@ -76,11 +76,12 @@ const TokenWrapper: FC<Props> = (props: Props) => {
     unwrap()
   }
 
+  const isWrappedTokenValid = wrappedToken?.address !== constants.AddressZero
   const hasWrappedToken = wrappedTokenBalance?.gt(0)
   const hasNativeToken = canonicalTokenBalance?.gt(0)
   const loadingBalance = !(canonicalTokenBalance && wrappedTokenBalance)
 
-  if (!isNativeToken) {
+  if (!isNativeToken || !isWrappedTokenValid) {
     return null
   }
 

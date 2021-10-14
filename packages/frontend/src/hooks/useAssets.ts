@@ -11,7 +11,7 @@ export function useAssets(selectedBridge?: HopBridge, fromNetwork?: Network, toN
       return null
     }
     const unsupportedAssets = {
-      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC', 'ETH'],
+      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
       Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
     }
 

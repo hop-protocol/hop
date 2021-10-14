@@ -27,6 +27,8 @@ const useAvailableLiquidity = (
         liquidity = await bridge.getFrontendAvailableLiquidity(sourceChain, destinationChain)
       }
 
+      liquidity = BigNumber.from(0)
+
       setAvailableLiquidity(liquidity)
     } catch (err) {
       setAvailableLiquidity(undefined)

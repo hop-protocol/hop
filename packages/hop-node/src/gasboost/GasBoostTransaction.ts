@@ -673,9 +673,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return true
   }
 
-  // https://stackoverflow.com/q/35185749/1439168
+  // explainer: https://stackoverflow.com/q/35185749/1439168
   private _emitError (err: Error) {
-    if (this.listeners('error').length > 0) {
+    if (this.listeners(State.Error).length > 0) {
       this.emit(State.Error, err)
     }
   }

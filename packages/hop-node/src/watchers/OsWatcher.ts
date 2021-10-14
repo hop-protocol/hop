@@ -1,4 +1,5 @@
 import Logger from 'src/logger'
+import checkDiskSpace from 'check-disk-space'
 import os from 'os'
 import pidusage from 'pidusage'
 import wait from 'src/utils/wait'
@@ -20,7 +21,8 @@ class OsWatcher {
   async poll () {
     while (true) {
       try {
-        await this.logUsage()
+        await this.logCpuMemory()
+        await this.logDisk()
       } catch (err) {
         this.logger.error(`error retrieving stats: ${err.message}`)
       }
@@ -28,7 +30,23 @@ class OsWatcher {
     }
   }
 
-  logUsage () {
+  logDisk () {
+    return new Promise((resolve) => {
+      checkDiskSpace('/').then((diskSpace) => {
+        const freeSizeGb = diskSpace?.free / 1024 / 1024 / 1024
+        const totalSizeGb = diskSpace?.size / 1024 / 1024 / 1024
+        const usedSizeGb = totalSizeGb - freeSizeGb
+        const usedSizeFormatted = `${usedSizeGb?.toFixed(2)}GB`
+        const totalSizeFormatted = `${totalSizeGb?.toFixed(2)}GB`
+        const usedPercent = (usedSizeGb / totalSizeGb) * 100
+        const usedPercentFormatted = `${usedPercent?.toFixed(2)}%`
+        this.logger.debug(`DISK: ${usedSizeFormatted}/${totalSizeFormatted} (${usedPercentFormatted})`)
+        resolve(null)
+      })
+    })
+  }
+
+  logCpuMemory () {
     return new Promise((resolve, reject) => {
       pidusage(process.pid, (err: Error, stats: any) => {
         if (err) {

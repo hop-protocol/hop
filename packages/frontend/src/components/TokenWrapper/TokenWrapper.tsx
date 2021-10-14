@@ -1,5 +1,5 @@
 import React, { FC, ChangeEvent, useEffect } from 'react'
-import { BigNumber } from 'ethers'
+import { BigNumber, constants } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Card from '@material-ui/core/Card'
@@ -35,6 +35,9 @@ const useStyles = makeStyles(theme => ({
     margin: `0 ${theme.padding.light}`,
     width: '17.5rem',
   },
+  warning: {
+    marginBottom: theme.padding.default
+  }
 }))
 
 export type Props = {
@@ -76,18 +79,25 @@ const TokenWrapper: FC<Props> = (props: Props) => {
     unwrap()
   }
 
+  const isWrappedTokenValid = wrappedToken?.address !== constants.AddressZero
   const hasWrappedToken = wrappedTokenBalance?.gt(0)
   const hasNativeToken = canonicalTokenBalance?.gt(0)
   const loadingBalance = !(canonicalTokenBalance && wrappedTokenBalance)
 
-  if (!isNativeToken) {
+  if (!isNativeToken || !isWrappedTokenValid) {
     return null
+  }
+
+  let wethWarning = ''
+  if (canonicalToken?.symbol === 'ETH' && props.network?.slug === 'optimism') {
+    wethWarning = 'ETH and WETH are the same asset on Optimism and wrapping/unwrapping will do nothing.'
   }
 
   return (
     <Expandable title="Wrap/Unwrap">
       <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
         <Box display="flex" flexDirection="column" alignItems="center" className={styles.root}>
+          <Alert severity="warning" text={wethWarning} className={styles.warning} />
           <AmountSelectorCard
             secondaryToken={canonicalToken}
             secondaryBalance={canonicalTokenBalance}

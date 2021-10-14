@@ -1,4 +1,3 @@
-import DbLogger from 'src/watchers/DbLogger'
 import OsWatcher from 'src/watchers/OsWatcher'
 import arbbots from 'src/arb-bot/bots'
 import clearDb from 'src/db/clearDb'
@@ -184,11 +183,6 @@ program
             chainSlug: Chain.xDai,
             tokenSymbol: token
           }).start()
-        }
-      }
-      for (const token of tokens) {
-        if (source.logDbState) {
-          new DbLogger(token).start()
         }
       }
       new OsWatcher().start()

@@ -46,7 +46,10 @@ export async function staker (
       throw new Error('amount is required. E.g. 100')
     }
     const parsedAmount = stakeWatcher.bridge.parseUnits(amount)
-    await stakeWatcher.approveTokens()
+    const isEthSend = token === 'ETH'
+    if (!isEthSend) {
+      await stakeWatcher.approveTokens()
+    }
     await stakeWatcher.convertAndStake(parsedAmount)
   } else if (action === StakerAction.Unstake) {
     logger.debug('action: unstake')

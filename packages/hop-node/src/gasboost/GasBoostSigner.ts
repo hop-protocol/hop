@@ -96,7 +96,7 @@ class GasBoostSigner extends Wallet {
       this.logger.info(`checking on-chain nonce. timeSinceLastTxMs ${timeSinceLastTxMs}`)
       const onChainNonce = await this.signer.getTransactionCount('pending')
       if (onChainNonce !== this.nonce) {
-        const errMsg = `Nonces out of sync. on chain ${onChainNonce}, local ${this.nonce}`
+        const errMsg = `Nonces out of sync. on chain nonce: ${onChainNonce}, local nonce: ${this.nonce}`
         this.logger.error(errMsg)
         this.notifier.error(errMsg, { channel: gasBoostErrorSlackChannel })
       }

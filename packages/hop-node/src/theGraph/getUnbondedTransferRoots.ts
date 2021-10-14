@@ -19,13 +19,14 @@ export default async function getUnbondedTransferRoots (chain: string, token: st
     const { rootHash, totalAmount, timestamp } = transfersCommitted[i]
 
     query = getTransferRootBondedsQuery()
-    const transferRootBondedRes = await makeRequest(destinationChain, query, {
+    const requestChain = 'ethereum'
+    const transferRootBondedRes = await makeRequest(requestChain, query, {
       rootHash
     })
     const transferRootBonded = transferRootBondedRes.transferRootBondeds
     if (transferRootBonded.length === 0) {
       const formattedTimestamp = DateTime.fromMillis(Number(timestamp) * 1000)
-      console.log(`No confirmation for ${rootHash} committed at ${formattedTimestamp} with an amount of ${totalAmount}`)
+      console.log(`No bond for ${rootHash} committed at ${formattedTimestamp} with an amount of ${totalAmount}`)
       continue
     }
   }

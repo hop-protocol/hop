@@ -17,7 +17,6 @@ class GasPricesDb extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
     this.startPrunePoller()
-    this.logNullValues()
   }
 
   private async startPrunePoller () {
@@ -41,12 +40,7 @@ class GasPricesDb extends BaseDb {
   }
 
   async getItems (filter?: KeyFilter):Promise<GasPrice[]> {
-    const keys = await this.getKeys(filter)
-    const items: GasPrice[] = (await Promise.all(
-      keys.map((key: string) => {
-        return this.getById(key)
-      })))
-
+    const items : GasPrice[] = await this.getValues(filter)
     return items.filter(x => x)
   }
 
@@ -84,22 +78,6 @@ class GasPricesDb extends BaseDb {
     const items = await this.getOldEntries()
     for (const { _id } of items) {
       await this.deleteById(_id)
-    }
-  }
-
-  private async logNullValues () {
-    const keys = await this.getKeys()
-    const items: GasPrice[] = (await Promise.all(
-      keys.map((key: string) => {
-        return this.getById(key)
-      })))
-
-    const nullValues = items.map((value, i) => {
-      const key = keys[i]
-      return { key, value }
-    }).filter(obj => !obj.value)
-    if (nullValues.length) {
-      this.logger.warn('null values:', nullValues)
     }
   }
 }

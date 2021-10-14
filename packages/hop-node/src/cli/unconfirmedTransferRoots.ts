@@ -11,9 +11,9 @@ program
   .description('Get unconfirmed transfer roots')
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
-  .option('--chain <string>', 'Chain')
+  .option('--source-chain <string>', 'Source chain')
   .option('--token <string>', 'Token')
-  .option('--destChain <string>', 'Destination Chain')
+  .option('--destination-chain <string>', 'Destination chain')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -21,11 +21,11 @@ program
         const config: FileConfig = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      const chain = source.chain
+      const sourceChain = source.sourceChain
       const token = source.token
-      const destinationChain = source.destChain
-      if (!chain) {
-        throw new Error('chain is required')
+      const destinationChain = source.destinationChain
+      if (!sourceChain) {
+        throw new Error('source chain is required')
       }
       if (!token) {
         throw new Error('token is required')
@@ -34,7 +34,7 @@ program
         throw new Error('destination chain is required')
       }
       const transferRoot = await getUnconfirmedTransferRoots(
-        chain,
+        sourceChain,
         token,
         destinationChain
       )

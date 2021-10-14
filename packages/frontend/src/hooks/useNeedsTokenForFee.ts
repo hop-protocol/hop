@@ -13,7 +13,7 @@ const useNeedsTokenForFee = (network: Network | undefined) => {
       const provider = network?.provider
       const signer = walletProvider?.getSigner()
 
-      if (!provider || !signer || !network?.requiresGas) {
+      if (!provider || !signer) {
         setNeedsToken(false)
         return
       }

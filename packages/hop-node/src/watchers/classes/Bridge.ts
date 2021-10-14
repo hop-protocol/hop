@@ -774,14 +774,16 @@ export async function checkMinBonderFee (
   tokenUsdPrice?: number,
   chainNativeTokenUsdPrice?: number
 ) {
-  const minBpsFee = await compareMinBonderFeeBasisPoints(amountIn, bonderFee, chainSlug, tokenSymbol)
-  const minTxFee = await compareBonderDestinationFeeCost(bonderFee, gasLimit, chainSlug, tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
+  await compareMinBonderFeeBasisPoints(amountIn, bonderFee, chainSlug, tokenSymbol)
+  await compareBonderDestinationFeeCost(bonderFee, gasLimit, chainSlug, tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
+  // const minBpsFee = await compareMinBonderFeeBasisPoints(amountIn, bonderFee, chainSlug, tokenSymbol)
+  // const minTxFee = await compareBonderDestinationFeeCost(bonderFee, gasLimit, chainSlug, tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
 
-  const minBonderFeeTotal = minBpsFee.add(minTxFee)
-  const isTooLow = bonderFee.lt(minBonderFeeTotal)
-  if (isTooLow) {
-    throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`)
-  }
+  // const minBonderFeeTotal = minBpsFee.add(minTxFee)
+  // const isTooLow = bonderFee.lt(minBonderFeeTotal)
+  // if (isTooLow) {
+  //   throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`)
+  // }
 }
 
 function getChainNativeTokenSymbol (chain: string) {

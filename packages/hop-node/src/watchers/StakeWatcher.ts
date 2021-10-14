@@ -6,7 +6,7 @@ import Token from './classes/Token'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import promiseTimeout from 'src/utils/promiseTimeout'
 import wait from 'src/utils/wait'
-import { BigNumber } from 'ethers'
+import { BigNumber, constants } from 'ethers'
 import { Chain } from 'src/constants'
 import { ERC20 } from '@hop-protocol/core/contracts'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
@@ -119,14 +119,20 @@ class StakeWatcher extends BaseWatcher {
   }
 
   async convertAndStake (amount: BigNumber) {
-    const balance = await this.token.getBalance()
-    const isL1 = isL1ChainId(await this.token.getChainId())
-    if (balance.lt(amount)) {
-      if (!isL1) {
+    const isStakeOnL1 = isL1ChainId(await this.token.getChainId())
+    if (!isStakeOnL1) {
+      const hTokenBalance = await this.token.getBalance()
+      if (hTokenBalance.lt(amount)) {
         const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
           .bridge as L1Bridge
-        const l1Token = await l1Bridge.l1CanonicalToken()
-        const l1Balance = await l1Token.getBalance()
+        const isEthSend = l1Bridge.l1CanonicalTokenAddress === constants.AddressZero
+        let l1Balance
+        if (isEthSend) {
+          l1Balance = await l1Bridge.getEthBalance()
+        } else {
+          const l1Token = await l1Bridge.l1CanonicalToken()
+          l1Balance = await l1Token.getBalance()
+        }
         this.logger.debug(
           'l1 token balance:',
           this.bridge.formatUnits(l1Balance)
@@ -150,10 +156,13 @@ class StakeWatcher extends BaseWatcher {
 
           let tx: any
           const spender = l1Bridge.getAddress()
-          tx = await l1Token.approve(spender, convertAmount)
-          if (tx) {
-            this.logger.info(`L1 canonical token approve tx: ${tx?.hash}`)
-            await tx.wait()
+          if (!isEthSend) {
+            const l1Token = await l1Bridge.l1CanonicalToken()
+            tx = await l1Token.approve(spender, convertAmount)
+            if (tx) {
+              this.logger.info(`L1 canonical token approve tx: ${tx?.hash}`)
+              await tx.wait()
+            }
           }
           tx = await l1Bridge.convertCanonicalTokenToHopToken(
             this.token.chainId,
@@ -185,7 +194,7 @@ class StakeWatcher extends BaseWatcher {
         if (balance.lt(amount)) {
           throw new Error(
             `not enough ${
-              isL1 ? 'canonical' : 'hop'
+              isStakeOnL1 ? 'canonical' : 'hop'
             } token balance to stake. Have ${this.bridge.formatUnits(
               balance
             )}, need ${this.bridge.formatUnits(amount)}`
@@ -203,7 +212,13 @@ class StakeWatcher extends BaseWatcher {
       throw new Error('not an allowed bonder on chain')
     }
     const formattedAmount = this.bridge.formatUnits(amount)
-    const balance = await this.token.getBalance()
+    const isL1EthStake = this.bridge.chainSlug === Chain.Ethereum
+    let balance
+    if (isL1EthStake) {
+      balance = amount
+    } else {
+      balance = await this.token.getBalance()
+    }
     const isL1 = isL1ChainId(await this.token.getChainId())
     if (balance.lt(amount)) {
       throw new Error(

@@ -1,7 +1,6 @@
 import BNMax from 'src/utils/BNMax'
 import BNMin from 'src/utils/BNMin'
 import Logger from 'src/logger'
-import MemoryStore from './MemoryStore'
 import Store from './Store'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedBN from 'src/utils/getBumpedBN'
@@ -80,7 +79,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   boostIndex: number = 0 // number of times transaction has been boosted
   inflightItems: InflightItem[] = []
   signer: Signer
-  store: Store = new MemoryStore()
+  store: Store
   logger: Logger
   notifier: Notifier
   chainSlug: string
@@ -205,6 +204,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async save () {
+    if (!this.store) {
+      return
+    }
     await this.store.updateItem(this.id, this.marshal())
   }
 
@@ -673,9 +675,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return true
   }
 
-  // https://stackoverflow.com/q/35185749/1439168
+  // explainer: https://stackoverflow.com/q/35185749/1439168
   private _emitError (err: Error) {
-    if (this.listeners('error').length > 0) {
+    if (this.listeners(State.Error).length > 0) {
       this.emit(State.Error, err)
     }
   }

@@ -192,7 +192,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       return null
     }
     const unsupportedAssets = {
-      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC', 'ETH'],
+      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
       Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
     }
 
@@ -227,14 +227,11 @@ const ConvertContextProvider: FC = ({ children }) => {
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        let token = await convertOption.sourceToken(
+        const token = await convertOption.sourceToken(
           isForwardDirection,
           selectedNetwork,
           selectedBridge
         )
-        if (token?.isNativeToken) {
-          token = token.getWrappedToken()
-        }
         setSourceToken(token)
       } catch (err) {
         logger.error(err)
@@ -250,14 +247,11 @@ const ConvertContextProvider: FC = ({ children }) => {
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        let token = await convertOption.destToken(
+        const token = await convertOption.destToken(
           isForwardDirection,
           selectedNetwork,
           selectedBridge
         )
-        if (token?.isNativeToken) {
-          token = token.getWrappedToken()
-        }
         setDestToken(token)
       } catch (err) {
         logger.error(err)

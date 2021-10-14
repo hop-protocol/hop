@@ -4,6 +4,7 @@ import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
 import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
 import GasPriceWatcher from 'src/watchers/GasPriceWatcher'
+import Logger from 'src/logger'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
 import SyncWatcher from 'src/watchers/SyncWatcher'
@@ -13,6 +14,8 @@ import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
 import { chainNativeTokens, config as globalConfig } from 'src/config'
+
+const logger = new Logger('config')
 
 type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransfersWatcher | SettleBondedWithdrawalWatcher | StakeWatcher | SyncWatcher | xDomainMessageRelayWatcher
 
@@ -92,6 +95,7 @@ export function getWatchers (config: GetWatchersConfig) {
 
   const order = () => orderNum
   const watchers: Watcher[] = []
+  logger.debug(`enabled watchers: ${enabledWatchers?.join(',')}`)
 
   if (enabledWatchers.includes(Watchers.BondWithdrawal)) {
     watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {

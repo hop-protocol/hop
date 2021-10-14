@@ -1,5 +1,4 @@
 import GasBoostTransaction, { Options } from './GasBoostTransaction'
-import MemoryStore from './MemoryStore'
 import Store from './Store'
 import { Signer, providers } from 'ethers'
 
@@ -7,7 +6,7 @@ export { Options }
 
 class GasBoostTransactionFactory {
   signer: Signer
-  store: Store = new MemoryStore()
+  store: Store
   options: Partial<Options> = {}
 
   constructor (signer: Signer, store?: Store, options: Partial<Options> = {}) {

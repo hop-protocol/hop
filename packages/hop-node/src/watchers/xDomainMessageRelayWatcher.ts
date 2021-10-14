@@ -42,6 +42,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
+    this.logger.debug('starting watcher')
     const enabledNetworks = getEnabledNetworks()
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
     if (enabledNetworks.includes(Chain.xDai)) {

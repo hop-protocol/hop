@@ -53,7 +53,7 @@ export const addresses: Addresses = {
         l2CanonicalToken: '0x4200000000000000000000000000000000000006',
         l2Bridge: '0x1261CaA21f059d8D386D76e0C1349d4E1B541C5A',
         l2HopBridgeToken: '0x45f6370A540d3148Dc6c20142d16E0290671276A',
-        l2AmmWrapper: '0x7DaC0Ec97559862Ac311f5aBE2C4EC2F01255E4a',
+        l2AmmWrapper: '0xc9E6628791cdD4ad568550fcc6f378cEF27e98fd',
         l2SaddleSwap: '0xD6E31cE884DFf44c4600fD9D36BcC9af447C28d5',
         l2SaddleLpToken: '0x93168D7e16e49E28dE5B05bb7aD015ae77082812',
         bridgeDeployedBlockNumber: 1661404

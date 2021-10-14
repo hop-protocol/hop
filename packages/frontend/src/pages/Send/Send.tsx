@@ -211,7 +211,7 @@ const Send: FC = () => {
       return null
     }
     const unsupportedAssets = {
-      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC', 'ETH'],
+      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
       Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
     }
 
@@ -450,7 +450,7 @@ const Send: FC = () => {
   }, [estimatedReceived, destinationTxFee])
 
   useEffect(() => {
-    let message = noLiquidityWarning || minimumSendWarning || needsNativeTokenWarning
+    let message = noLiquidityWarning || minimumSendWarning
 
     if (!enoughBalance) {
       message = 'Insufficient funds'
@@ -458,6 +458,10 @@ const Send: FC = () => {
       message = 'Bonder fee greater than estimated received'
     } else if (estimatedReceived?.lte(0)) {
       message = 'Insufficient amount. Send higher amount to cover bonder fee.'
+    }
+
+    if (needsNativeTokenWarning) {
+      message = needsNativeTokenWarning
     }
 
     setWarning(message)
@@ -937,7 +941,7 @@ const Send: FC = () => {
           className={styles.button}
           large
           highlighted={!!needsApproval}
-          disabled={!needsApproval}
+          disabled={!needsApproval || needsTokenForFee}
           onClick={handleApprove}
           loading={approving}
         >
@@ -947,7 +951,7 @@ const Send: FC = () => {
           className={styles.button}
           startIcon={sendButtonActive && <SendIcon />}
           onClick={send}
-          disabled={!sendButtonActive}
+          disabled={!sendButtonActive || needsTokenForFee}
           loading={sending}
           large
           highlighted

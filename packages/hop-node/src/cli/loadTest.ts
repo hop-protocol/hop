@@ -35,8 +35,8 @@ program
             .map((v: string) => v.trim())
             .filter((v: string) => v)
         })
-        .filter((x: any) => x && x?.length)
-      new LoadTest({
+        .filter((x: any) => x?.length)
+      await new LoadTest({
         concurrentUsers: Number(source.concurrentUsers || 1),
         iterations: Number(source.iterations || 1),
         amount: Number(source.amount || 0),

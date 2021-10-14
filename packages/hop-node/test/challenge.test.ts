@@ -25,6 +25,8 @@ describe.skip('challenge valid transfer root but committed too early', () => {
       label,
       async () => {
         logger.log(label)
+        expectDefined(privateKey)
+        expectDefined(bonderPrivateKey)
         const user = new User(privateKey)
         const bonder = new User(bonderPrivateKey)
         const { stop, watchers } = startWatchers({
@@ -156,6 +158,8 @@ describe.skip('challenge invalid transfer root', () => {
       label,
       async () => {
         logger.log(label)
+        expectDefined(privateKey)
+        expectDefined(bonderPrivateKey)
         const user = new User(privateKey)
         const bonder = new User(bonderPrivateKey)
         const { stop, watchers } = startWatchers({
@@ -266,6 +270,7 @@ test.skip(
 )
 
 async function updateChallengePeriods () {
+  expectDefined(governancePrivateKey)
   const gov = new User(governancePrivateKey)
   const challengePeriod = 300
   const timeSlotSize = challengePeriod / 3

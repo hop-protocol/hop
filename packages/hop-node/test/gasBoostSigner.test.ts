@@ -11,6 +11,7 @@ describe('GasBoostSigner', () => {
   it('initialize', async () => {
     const provider = getRpcProvider('xdai')
     expectDefined(provider)
+    expectDefined(privateKey)
     const store = new MemoryStore()
     const signer = new GasBoostSigner(privateKey, provider)
     signer.setStore(store)
@@ -19,6 +20,7 @@ describe('GasBoostSigner', () => {
   it.skip('sendTransaction - xdai', async () => {
     const provider = getRpcProvider('xdai')
     expectDefined(provider)
+    expectDefined(privateKey)
     const store = new MemoryStore()
     const signer = new GasBoostSigner(privateKey, provider, store, {
       timeTilBoostMs: 10 * 1000
@@ -54,6 +56,7 @@ describe('GasBoostSigner', () => {
   it.skip('sendTransaction - kovan', async () => {
     const provider = getRpcProvider('ethereum')
     expectDefined(provider)
+    expectDefined(privateKey)
     const store = new MemoryStore()
     const signer = new GasBoostSigner(privateKey, provider, store, {
       timeTilBoostMs: 10 * 1000
@@ -91,6 +94,7 @@ describe('GasBoostSigner', () => {
   it.skip('maxGasBoostReached', async () => {
     const provider = getRpcProvider('xdai')
     expectDefined(provider)
+    expectDefined(privateKey)
     const store = new MemoryStore()
     const signer = new GasBoostSigner(privateKey, provider, store, {
       timeTilBoostMs: 5 * 1000,
@@ -130,6 +134,7 @@ describe('GasBoostSigner', () => {
   it('nonceTooLow', async () => {
     const provider = getRpcProvider('xdai')
     expectDefined(provider)
+    expectDefined(privateKey)
     const store = new MemoryStore()
     const signer = new GasBoostSigner(privateKey, provider, store, {
       timeTilBoostMs: 5 * 1000
@@ -158,6 +163,7 @@ describe('GasBoostTransaction', () => {
   const store = new MemoryStore()
   const provider = getRpcProvider('xdai')
   expectDefined(provider)
+  expectDefined(privateKey)
   const signer = new Wallet(privateKey, provider)
 
   it('instance', () => {

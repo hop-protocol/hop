@@ -1,11 +1,13 @@
 import { Contract, Wallet, providers } from 'ethers'
 import { erc20Abi } from '@hop-protocol/core/abi'
+import { expectDefined } from './helpers'
 import { privateKey } from './config'
 
 test('debug', async () => {
   const provider = new providers.StaticJsonRpcProvider(
     'https://sokol.poa.network'
   )
+  expectDefined(privateKey)
   const wallet = new Wallet(privateKey, provider)
   const tokenAddress = '0x452AED3fdB2E83A1352624321629180aB1489Dd0'
   const token = new Contract(tokenAddress, erc20Abi, wallet)

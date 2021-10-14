@@ -2,7 +2,7 @@ import Logger from 'src/logger'
 import isL1 from 'src/utils/isL1'
 import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
-import { User, prepareAccount, waitForEvent } from './helpers'
+import { User, expectDefined, prepareAccount, waitForEvent } from './helpers'
 import { privateKey } from './config'
 import { startWatchers } from 'src/watchers/watchers'
 require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
@@ -43,6 +43,7 @@ describe.skip('bondWithdrawal', () => {
       label,
       async () => {
         logger.log(label)
+        expectDefined(privateKey)
         const user = new User(privateKey)
         logger.log('preparing account')
         await prepareAccount(user, sourceNetwork, TOKEN)

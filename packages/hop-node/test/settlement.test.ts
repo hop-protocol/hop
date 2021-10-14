@@ -1,6 +1,6 @@
 import Logger from 'src/logger'
 import { Chain } from 'src/constants'
-import { User, waitForEvent } from './helpers'
+import { User, expectDefined, waitForEvent } from './helpers'
 import { privateKey } from './config'
 import { startWatchers } from 'src/watchers/watchers'
 require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
@@ -35,6 +35,7 @@ describe.skip('settleBondedWithdrawal', () => {
       label,
       async () => {
         logger.log(label)
+        expectDefined(privateKey)
         const user = new User(privateKey)
         const recipient = await user.getAddress()
         const { stop, watchers } = startWatchers({ networks: path })

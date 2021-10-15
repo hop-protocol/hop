@@ -1,5 +1,4 @@
 import BaseDb from './BaseDb'
-import { OneWeekMs } from 'src/constants'
 
 export type State = {
   key: string

@@ -4,12 +4,10 @@ import Link from '@material-ui/core/Link'
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import Transaction from 'src/models/Transaction'
-import TxStatus from 'src/components/txStatus'
-import Check from '@material-ui/icons/Check'
-import CircularProgress from '@material-ui/core/CircularProgress'
 import { Div, Flex } from '../ui'
 import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 import useTransactionStatus from 'src/hooks/useTransactionStatus'
+import TransactionStatus from './TransactionStatus'
 
 const useStyles = makeStyles((theme: Theme) => ({
   header: {
@@ -21,22 +19,6 @@ const useStyles = makeStyles((theme: Theme) => ({
     marginBottom: '0.5rem',
     [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',
-    },
-  },
-  leftColumn: {
-    display: 'flex',
-    alignItems: 'center',
-    width: '60%',
-    [theme.breakpoints.down('xs')]: {
-      width: '100%',
-    },
-  },
-  rightColumn: {
-    display: 'flex',
-    alignItems: 'center',
-    width: '40%',
-    [theme.breakpoints.down('xs')]: {
-      width: '100%',
     },
   },
   network: {
@@ -64,61 +46,31 @@ const useStyles = makeStyles((theme: Theme) => ({
 }))
 
 function TransactionRow({ tx, styles }: { tx: Transaction; styles: any }) {
-  const { destCompleted } = useTransactionStatus(tx, tx.networkName)
+  const { completed, destCompleted } = useTransactionStatus(tx, tx.networkName)
 
   return (
     <Flex justifyBetween mb=".5rem" alignCenter>
-      <div className={styles.leftColumn}>
+      <Flex alignCenter width="50%">
         <Link href={tx.explorerLink} target="_blank" rel="noopener noreferrer">
           <span className={styles.network}>{tx.networkName}:</span> {tx.truncatedHash} ↗
         </Link>
-      </div>
-      <Flex alignCenter justifyAround>
-        <Flex justifyCenter width="50%">
-          <TxStatus tx={tx} variant="mini" />
-        </Flex>
+      </Flex>
 
-        <Flex justifyCenter width="50%">
-          <Flex column alignCenter fontSize="20px">
-            {destCompleted ? (
-              <>
-                <Check className={styles.completed} />
-                <Flex mt={2} fontSize={0}>
-                  {tx.destExplorerLink ? (
-                    <Link
-                      color="inherit"
-                      href={tx.destExplorerLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Complete
-                    </Link>
-                  ) : (
-                    <Flex>Complete</Flex>
-                  )}
-                </Flex>
-              </>
-            ) : (
-              <>
-                <CircularProgress size={20} thickness={5} />
-                <Flex mt={2} fontSize={0}>
-                  {tx.destExplorerLink ? (
-                    <Link
-                      color="inherit"
-                      href={tx.destExplorerLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Pending
-                    </Link>
-                  ) : (
-                    <Flex>Pending</Flex>
-                  )}
-                </Flex>
-              </>
-            )}
-          </Flex>
-        </Flex>
+      <Flex justifyAround alignCenter width="50%">
+        <TransactionStatus
+          complete={completed}
+          link={tx.explorerLink}
+          destNetworkName={tx.destNetworkName}
+          styles={styles}
+        />
+
+        <TransactionStatus
+          complete={destCompleted}
+          link={tx.destExplorerLink}
+          destNetworkName={tx.destNetworkName}
+          destTx
+          styles={styles}
+        />
       </Flex>
     </Flex>
   )
@@ -145,8 +97,12 @@ function TransactionsList(props: any) {
 
       <Flex justifyEnd alignCenter my={1}>
         <Flex width="50%" justifyAround>
-          <Div>Source</Div>
-          <Div>Destination</Div>
+          <Div textAlign="center" width="5em">
+            Source
+          </Div>
+          <Div textAlign="center" width="5em">
+            Destination
+          </Div>
         </Flex>
       </Flex>
 

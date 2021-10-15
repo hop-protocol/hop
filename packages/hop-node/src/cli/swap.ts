@@ -58,6 +58,7 @@ program
       const fromTokenIsHToken = isHToken(fromToken)
       const toTokenIsHToken = isHToken(toToken)
       const isAmmSwap = fromTokenIsHToken || toTokenIsHToken
+      const deadlineBn = source.deadline ? BigNumber.from(source.deadline) : undefined
       let tx: any
       if (isAmmSwap) {
         logger.debug('L2 AMM swap')
@@ -120,7 +121,7 @@ program
         }
 
         logger.debug(`attempting to swap ${l2Bridge.formatUnits(amountIn)} ${fromToken} for at least ${l2Bridge.formatUnits(minAmountOut)} ${toToken}`)
-        tx = await amm.swap(fromTokenIndex, toTokenIndex, amountIn, minAmountOut)
+        tx = await amm.swap(fromTokenIndex, toTokenIndex, amountIn, minAmountOut, deadlineBn)
       } else {
         logger.debug('uniswap swap')
         tx = await uniswapSwap({

@@ -472,6 +472,7 @@ const Send: FC = () => {
     estimatedReceived?.gt(0)
   )
 
+  const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
   const sendButtonActive = validFormFields && !unsupportedAsset && !needsApproval
 
   return (
@@ -567,7 +568,7 @@ const Send: FC = () => {
           className={styles.button}
           large
           highlighted={!!needsApproval}
-          disabled={!needsApproval || needsTokenForFee}
+          disabled={!approveButtonActive}
           onClick={handleApprove}
           loading={approving}
         >
@@ -577,7 +578,7 @@ const Send: FC = () => {
           className={styles.button}
           startIcon={sendButtonActive && <SendIcon />}
           onClick={send}
-          disabled={!sendButtonActive || needsTokenForFee}
+          disabled={!sendButtonActive}
           loading={sending}
           large
           highlighted

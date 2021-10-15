@@ -105,7 +105,7 @@ export default class ContractBase extends EventEmitter {
   }
 
   async getEventTimestamp (event: Event): Promise<number> {
-    const tx = await event?.getBlock()
+    const tx = await event.getBlock()
     if (!tx) {
       return 0
     }
@@ -138,7 +138,7 @@ export default class ContractBase extends EventEmitter {
   }
 
   get waitConfirmations () {
-    return globalConfig.networks?.[this.chainSlug]?.waitConfirmations ?? 0
+    return globalConfig.networks[this.chainSlug]?.waitConfirmations ?? 0
   }
 
   async txOverrides (): Promise<any> {

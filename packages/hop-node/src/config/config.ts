@@ -38,7 +38,7 @@ export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
 export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 export const awsRegion = process.env.AWS_REGION
 export const awsProfile = process.env.AWS_PROFILE
-export const gitRev = buildInfo?.rev
+export const gitRev = buildInfo.rev
 const envNetwork = process.env.NETWORK ?? Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
@@ -162,7 +162,7 @@ export const setBonderPrivateKey = (privateKey: string) => {
 
 export const setNetworkRpcUrls = (network: string, rpcUrls: string[]) => {
   network = normalizeNetwork(network)
-  if (config.networks?.[network]) {
+  if (config.networks[network]) {
     config.networks[network].rpcUrls = rpcUrls
   }
 }
@@ -171,7 +171,7 @@ export const setNetworkWaitConfirmations = (
   network: string,
   waitConfirmations: number
 ) => {
-  if (config.networks?.[network]) {
+  if (config.networks[network]) {
     config.networks[network].waitConfirmations = waitConfirmations
   }
 }
@@ -181,27 +181,27 @@ export const setStateUpdateAddress = (address: string) => {
 }
 
 export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {
-  const networks = Object.keys(config.networks ?? [])
+  const networks = Object.keys(config.networks)
   for (const network of networks) {
-    if (!config.sync?.[network]) {
+    if (!config.sync[network]) {
       config.sync = config.sync ?? {}
       config.sync[network] = {}
     }
-    if (syncConfigs[network]?.totalBlocks) {
-      config.sync[network].totalBlocks = syncConfigs[network]?.totalBlocks
+    if (syncConfigs[network].totalBlocks) {
+      config.sync[network].totalBlocks = syncConfigs[network].totalBlocks
     }
-    if (syncConfigs[network]?.batchBlocks) {
-      config.sync[network].batchBlocks = syncConfigs[network]?.batchBlocks
+    if (syncConfigs[network].batchBlocks) {
+      config.sync[network].batchBlocks = syncConfigs[network].batchBlocks
     }
   }
 }
 
 export const setDbPath = (dbPath: string) => {
-  config.db = { ...config.db, path: dbPath }
+  config.db.path = dbPath
 }
 
 export const getEnabledTokens = (): string[] => {
-  return Object.keys(config.tokens ?? {})
+  return Object.keys(config.tokens)
 }
 
 export const getEnabledNetworks = (): string[] => {

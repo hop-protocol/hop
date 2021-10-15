@@ -71,7 +71,7 @@ program
         throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state, gas-prices, token-prices`)
       }
 
-      logger.debug(`dumping ${dbName} db located at ${globalConfig.db?.path}`)
+      logger.debug(`dumping ${dbName} db located at ${globalConfig.db.path}`)
       console.log(JSON.stringify(items, null, 2))
       logger.debug(`count: ${items.length}`)
       process.exit(0)

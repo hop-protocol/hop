@@ -44,7 +44,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   checkUnsettledTransferRootsFromDb = async () => {
-    if (enabledSettleWatcherSourceChains?.length) {
+    if (enabledSettleWatcherSourceChains.length) {
       if (!enabledSettleWatcherSourceChains.includes(this.chainSlug)) {
         return
       }
@@ -61,7 +61,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     for (const dbTransferRoot of dbTransferRoots) {
       const { transferRootHash, transferIds, destinationChainId } = dbTransferRoot
 
-      if (enabledSettleWatcherDestinationChains?.length) {
+      if (enabledSettleWatcherDestinationChains.length) {
         if (!enabledSettleWatcherDestinationChains.includes(this.chainIdToSlug(destinationChainId))) {
           continue
         }
@@ -76,7 +76,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
       // skip attempt to settle transfer root if none of the transfers are bonded because there is nothing to settle
       const hasBondedWithdrawals = dbTransfers.some(
-        (dbTransfer: Transfer) => dbTransfer?.withdrawalBonded
+        (dbTransfer: Transfer) => dbTransfer.withdrawalBonded
       )
       if (!hasBondedWithdrawals) {
         continue
@@ -87,7 +87,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       const allBondableTransfersSettled = dbTransfers.every(
         (dbTransfer: Transfer) => {
           // A transfer should not be settled if it is unbondable
-          return !dbTransfer.isBondable || dbTransfer?.withdrawalBondSettled
+          return !dbTransfer.isBondable || dbTransfer.withdrawalBondSettled
         }
       )
       if (allBondableTransfersSettled) {
@@ -100,7 +100,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       // find all unique bonders that have bonded transfers in this transfer root
       const bonderSet = new Set<string>()
       for (const dbTransfer of dbTransfers) {
-        if (!dbTransfer?.withdrawalBonder) {
+        if (!dbTransfer.withdrawalBonder) {
           continue
         }
         bonderSet.add(dbTransfer.withdrawalBonder)
@@ -114,7 +114,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           (dbTransfer: Transfer) => dbTransfer.withdrawalBonder === bonder
         )
           .every((dbTransfer: Transfer) =>
-            dbTransfer?.withdrawalBondSettled
+            dbTransfer.withdrawalBondSettled
           )
         if (allSettledByBonder) {
           continue

@@ -387,7 +387,7 @@ class SyncWatcher extends BaseWatcher {
         throw new Error('event block number not found')
       }
       const l2Bridge = this.bridge as L2Bridge
-      const destinationChainId = Number(destinationChainIdBn?.toString())
+      const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
       const isBondable = this.getIsBondable(transferId, amountOutMin, deadline, destinationChainId)
       const transferSentTimestamp = await this.bridge.getBlockTimestamp(event.blockNumber)
@@ -399,7 +399,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('amount:', this.bridge.formatUnits(amount))
       logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
       logger.debug('amountOutMin:', this.bridge.formatUnits(amountOutMin))
-      logger.debug('deadline:', deadline?.toString())
+      logger.debug('deadline:', deadline.toString())
       logger.debug('transferSentTimestamp:', transferSentTimestamp)
       logger.debug('transferSentIndex:', transactionIndex)
       logger.debug('transferSentBlockNumber:', blockNumber)
@@ -639,7 +639,7 @@ class SyncWatcher extends BaseWatcher {
     let startBlockNumber = sourceBridge.bridgeDeployedBlockNumber
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
       let events = await sourceBridge.getTransfersCommittedEvents(start, end)
-      if (!events?.length) {
+      if (!events.length) {
         return true
       }
 
@@ -703,7 +703,7 @@ class SyncWatcher extends BaseWatcher {
           if (event.blockNumber === endEvent?.blockNumber) {
             // If TransferSent is in the same tx as TransfersCommitted or later,
             // the transferId should be included in the next transferRoot
-            if (event.transactionIndex >= endEvent?.transactionIndex) {
+            if (event.transactionIndex >= endEvent.transactionIndex) {
               continue
             }
           }
@@ -844,7 +844,7 @@ class SyncWatcher extends BaseWatcher {
     const allBondableTransfersSettled = dbTransfers.every(
       (dbTransfer: Transfer) => {
         // A transfer should not be settled if it is unbondable
-        return !dbTransfer.isBondable || dbTransfer?.withdrawalBondSettled
+        return !dbTransfer.isBondable || dbTransfer.withdrawalBondSettled
       }
     )
     const allSettled = rootAmountAllSettled || allBondableTransfersSettled
@@ -944,7 +944,7 @@ class SyncWatcher extends BaseWatcher {
     this.availableCredit[destinationChain] = availableCredit
 
     if (this.s3Upload) {
-      const bonder = globalConfig.bonders?.[this.tokenSymbol]?.[0]
+      const bonder = globalConfig.bonders[this.tokenSymbol][0]
       const availableCredit = await this.calculateAvailableCredit(destinationChainId, bonder)
       this.s3AvailableCredit[destinationChain] = availableCredit
     }

@@ -106,7 +106,7 @@ async function sendTokens (
     }
   }
   logger.info(`send tx: ${tx.hash}`)
-  await tx?.wait()
+  await tx.wait()
   balance = await tokenClass.getBalance()
   logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
   logger.debug('tokens should arrive at destination in 5-15 minutes')
@@ -126,7 +126,7 @@ async function sendNativeToken (
   }
 
   const provider = getRpcProvider(chain)
-  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey!, provider!) // eslint-disable-line
+  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
 
   const parsedAmount = parseEther(amount.toString())
   let balance = await wallet.getBalance()
@@ -140,7 +140,7 @@ async function sendNativeToken (
     to: recipient
   })
   logger.info(`send tx: ${tx.hash}`)
-  await tx?.wait()
+  await tx.wait()
   balance = await wallet.getBalance()
   logger.debug(`send complete. new balance: ${formatEther(balance)}`)
 }

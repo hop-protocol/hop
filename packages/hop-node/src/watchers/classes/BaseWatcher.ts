@@ -95,7 +95,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   isAllSiblingWatchersInitialSyncCompleted (): boolean {
-    return this.syncWatcher?.isAllSiblingWatchersInitialSyncCompleted()
+    return this.syncWatcher.isAllSiblingWatchersInitialSyncCompleted()
   }
 
   async pollCheck () {

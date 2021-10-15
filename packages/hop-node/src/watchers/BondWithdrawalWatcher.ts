@@ -73,7 +73,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const logger = this.logger.create({ id: transferId })
       const availableCredit = this.getAvailableCreditForTransfer(destinationChainId, amount)
       if (
-        availableCredit?.lt(amount) &&
+        availableCredit.lt(amount) &&
         withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
         logger.debug(
@@ -125,7 +125,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     const availableCredit = this.getAvailableCreditForTransfer(destinationChainId, amount)
-    logger.debug(`processing bondWithdrawal. availableCredit: ${availableCredit?.toString()}`)
+    logger.debug(`processing bondWithdrawal. availableCredit: ${availableCredit.toString()}`)
     if (availableCredit.lt(amount)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
@@ -281,7 +281,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId!).bridge // eslint-disable-line
     const tokenSymbol = this.tokenSymbol
     const chainNativeTokenSymbol = this.bridge.getChainNativeTokenSymbol(destinationChain)
-    const transferSentTimestamp = dbTransfer?.transferSentTimestamp
+    const transferSentTimestamp = dbTransfer.transferSentTimestamp
     let gasPrice: BigNumber | undefined
     let tokenUsdPrice: number | undefined
     let chainNativeTokenUsdPrice: number | undefined

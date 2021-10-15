@@ -7,7 +7,7 @@ function BNMin (a: BigNumber, b: BigNumber) {
   if (!b) {
     return a
   }
-  return a?.lt(b) ? a : b
+  return a.lt(b) ? a : b
 }
 
 export default BNMin

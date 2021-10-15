@@ -89,7 +89,7 @@ program
 
           // convert old config type to new config type
           if (isV1ConfigType || isV2ConfigType) {
-            if (oldConfig?.commitTransfers?.minThresholdAmount) {
+            if (oldConfig.commitTransfers?.minThresholdAmount) {
               for (const _chain in oldConfig.commitTransfers.minThresholdAmount) {
                 if (!isValidNetwork(_chain)) {
                   continue

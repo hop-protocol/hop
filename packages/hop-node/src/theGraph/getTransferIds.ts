@@ -49,13 +49,13 @@ export default async function getTransferIds (
     orderDirection: 'desc',
     skip
   }
-  if (filters?.startDate) {
+  if (filters.startDate) {
     variables.startDate = DateTime.fromISO(filters.startDate).toSeconds() >>> 0
   }
-  if (filters?.endDate) {
+  if (filters.endDate) {
     variables.endDate = DateTime.fromISO(filters.endDate).toSeconds() >>> 0
   }
-  if (typeof filters?.orderDesc === 'boolean') {
+  if (typeof filters.orderDesc === 'boolean') {
     variables.orderDirection = filters.orderDesc ? 'desc' : 'asc'
   }
   const jsonRes = await makeRequest(chain, query, variables)

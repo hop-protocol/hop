@@ -64,7 +64,7 @@ program
 
       if (source.clearDb) {
         await clearDb()
-        logger.debug(`cleared db at: ${globalConfig.db?.path}`)
+        logger.debug(`cleared db at: ${globalConfig.db.path}`)
       }
 
       const tokens = []
@@ -115,16 +115,16 @@ program
       }
       let commitTransfersMinThresholdAmounts: any = {}
       if (config?.commitTransfers) {
-        if (config?.commitTransfers?.minThresholdAmount) {
+        if (config.commitTransfers?.minThresholdAmount) {
           commitTransfersMinThresholdAmounts =
-            config?.commitTransfers?.minThresholdAmount
+            config.commitTransfers?.minThresholdAmount
         }
       }
       let settleBondedWithdrawalsThresholdPercent: any = {}
       if (config?.settleBondedWithdrawals) {
-        if (config?.settleBondedWithdrawals?.thresholdPercent) {
+        if (config.settleBondedWithdrawals?.thresholdPercent) {
           settleBondedWithdrawalsThresholdPercent =
-            config?.settleBondedWithdrawals?.thresholdPercent
+            config.settleBondedWithdrawals?.thresholdPercent
         }
       }
       const slackEnabled = slackAuthToken && slackChannel && slackUsername

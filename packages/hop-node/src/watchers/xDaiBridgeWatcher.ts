@@ -25,13 +25,13 @@ interface Config {
 
 export const getL1Amb = (token: string) => {
   const l1Wallet = wallets.get(Chain.Ethereum)
-  const l1AmbAddress = globalConfig.tokens?.[token].xdai.l1Amb
+  const l1AmbAddress = globalConfig.tokens[token].xdai.l1Amb
   return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet) as L1XDaiAMB
 }
 
 export const getL2Amb = (token: string) => {
   const l2xDaiProvider = wallets.get(Chain.xDai).provider
-  const l2AmbAddress = globalConfig.tokens?.[token].xdai.l2Amb
+  const l2AmbAddress = globalConfig.tokens[token].xdai.l2Amb
   return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider) as L2XDaiAMB
 }
 
@@ -112,7 +112,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
           return
         }
         const blockNumber = await l2Amb.provider.getBlockNumber()
-        const events = await l2Amb?.queryFilter(
+        const events = await l2Amb.queryFilter(
           l2Amb.filters.UserRequestForSignature(),
           (blockNumber) - 100
         )
@@ -142,7 +142,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
     const destinationChainId = dbTransferRoot?.destinationChainId
     const l2Amb = getL2Amb(this.tokenSymbol)
     const tx = await this.bridge.getTransactionReceipt(commitTxHash)
-    const sigEvents = await l2Amb?.queryFilter(
+    const sigEvents = await l2Amb.queryFilter(
       l2Amb.filters.UserRequestForSignature(),
       tx.blockNumber - 1,
       tx.blockNumber + 1

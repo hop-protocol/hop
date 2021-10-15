@@ -64,7 +64,7 @@ class GasBoostSigner extends Wallet {
 
   _sendTransaction = rateLimitRetry(async (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> => {
     const nonce = await this.getNonce()
-    if (!tx?.nonce) {
+    if (!tx.nonce) {
       tx.nonce = nonce
     }
     const gTx = this.gTxFactory.createTransaction(tx)

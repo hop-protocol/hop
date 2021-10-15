@@ -45,8 +45,8 @@ class HealthCheck {
       this.pollIntervalSeconds = config.pollIntervalSeconds
     }
 
-    const tokens: string[] = Object.keys(globalConfig.tokens ?? {})
-    const networks: string[] = Object.keys(globalConfig.networks ?? {}).filter(
+    const tokens: string[] = Object.keys(globalConfig.tokens)
+    const networks: string[] = Object.keys(globalConfig.networks).filter(
       network => network !== Chain.Ethereum
     )
     for (const token of tokens) {
@@ -142,10 +142,10 @@ class HealthCheck {
           if (destBridge == null) {
             continue
           }
-          if (!globalConfig?.bonders) {
+          if (!globalConfig.bonders) {
             throw new Error('bonders object is empty')
           }
-          const bonder = globalConfig?.bonders?.[tokenSymbol]?.[0]
+          const bonder = globalConfig.bonders[tokenSymbol][0]
           const bondedAmount = await destBridge.getBondedWithdrawalAmountByBonder(
             bonder,
             transferId
@@ -324,10 +324,10 @@ class HealthCheck {
           }
 
           const destinationChain = destBridge.chainIdToSlug(destinationChainId)
-          if (!globalConfig?.bonders) {
+          if (!globalConfig.bonders) {
             throw new Error('bonders object is empty')
           }
-          const bonder = globalConfig?.bonders?.[tokenSymbol]?.[0]
+          const bonder = globalConfig.bonders[tokenSymbol][0]
           /*
           const bondedAmount = await destBridge.getBondedWithdrawalAmountByBonder(
             bonder,
@@ -340,7 +340,7 @@ class HealthCheck {
             continue
           }
           */
-          if (!globalConfig?.bonders) {
+          if (!globalConfig.bonders) {
             throw new Error('bonders object is empty')
           }
           const destEndBlockNumber = await destBridge.getBlockNumber()
@@ -362,7 +362,7 @@ class HealthCheck {
             destinationChainId,
             bonder,
             timestamp,
-            txHash: bondTx?.hash
+            txHash: bondTx.hash
           })
         }
       },
@@ -416,7 +416,7 @@ class HealthCheck {
     const totalBondsSettleAmounts: any = {}
     const totals: any = {}
     for (const { transferId, destinationChainId } of bondedTransferIds) {
-      const bonder = globalConfig.bonders?.[tokenSymbol]?.[0]
+      const bonder = globalConfig.bonders[tokenSymbol][0]
       const destBridge = this.bridges.find((bridge: L2Bridge) => {
         return bridge.chainId === destinationChainId
       })

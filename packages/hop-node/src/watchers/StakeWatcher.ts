@@ -236,7 +236,7 @@ class StakeWatcher extends BaseWatcher {
       return
     }
     const tx = await this.bridge.stake(amount)
-    this.logger.info(`stake tx: ${(tx?.hash)}`)
+    this.logger.info(`stake tx: ${(tx.hash)}`)
     const receipt = await tx.wait()
     if (receipt.status) {
       this.logger.debug(`successfully staked ${formattedAmount} tokens`)
@@ -273,7 +273,7 @@ class StakeWatcher extends BaseWatcher {
       return
     }
     const tx = await this.bridge.unstake(amount)
-    this.logger.info(`unstake tx: ${(tx?.hash)}`)
+    this.logger.info(`unstake tx: ${(tx.hash)}`)
     const receipt = await tx.wait()
     if (receipt.status) {
       this.logger.debug(`successfully unstaked ${parsedAmount} tokens`)
@@ -287,7 +287,7 @@ class StakeWatcher extends BaseWatcher {
     const spender = this.bridge.getAddress()
     const tx = await this.token.approve(spender)
     if (tx) {
-      this.logger.info(`stake approve tokens tx: ${tx?.hash}`)
+      this.logger.info(`stake approve tokens tx: ${tx.hash}`)
     }
     await tx?.wait()
     return tx

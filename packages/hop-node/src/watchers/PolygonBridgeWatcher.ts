@@ -70,7 +70,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
       // const l1RootChainAddress = addresses[token][Chain.Polygon].l1PosRootChainManager
       // const l2TokenAddress = '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1' // dummy erc20
       const l2TokenAddress =
-        globalConfig.tokens?.[this.tokenSymbol][Chain.Polygon]?.l2CanonicalToken
+        globalConfig.tokens[this.tokenSymbol][Chain.Polygon]?.l2CanonicalToken
       if (!l2TokenAddress) {
         throw new Error(
           `no token address found for ${this.tokenSymbol} on ${Chain.Polygon}`
@@ -153,13 +153,13 @@ class PolygonBridgeWatcher extends BaseWatcher {
         this.l1Provider.connection.url
       ),
       posRootChainManager:
-        globalConfig.tokens?.[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
+        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
       posERC20Predicate:
-        globalConfig.tokens?.[tokenSymbol][Chain.Polygon].l1PosPredicate
+        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
     })
 
     const rootTunnel =
-      globalConfig.tokens?.[tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
+      globalConfig.tokens[tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
     const tx = await (maticPOSClient as any).posRootChainManager.processReceivedMessage(
       rootTunnel,
       txHash,
@@ -189,9 +189,9 @@ class PolygonBridgeWatcher extends BaseWatcher {
         this.l1Provider.connection.url
       ),
       posRootChainManager:
-        globalConfig.tokens?.[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
+        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
       posERC20Predicate:
-        globalConfig.tokens?.[tokenSymbol][Chain.Polygon].l1PosPredicate
+        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
     })
     const tx = await maticPOSClient.exitERC20(txHash, {
       from: recipient,

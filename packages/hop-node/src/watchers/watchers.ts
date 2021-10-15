@@ -95,7 +95,7 @@ export function getWatchers (config: GetWatchersConfig) {
 
   const order = () => orderNum
   const watchers: Watcher[] = []
-  logger.debug(`enabled watchers: ${enabledWatchers?.join(',')}`)
+  logger.debug(`enabled watchers: ${enabledWatchers.join(',')}`)
 
   if (enabledWatchers.includes(Watchers.BondWithdrawal)) {
     watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
@@ -122,7 +122,7 @@ export function getWatchers (config: GetWatchersConfig) {
         isL1,
         bridgeContract,
         dryMode,
-        minThresholdPercent: settleBondedWithdrawalsThresholdPercent?.[token],
+        minThresholdPercent: settleBondedWithdrawalsThresholdPercent[token],
         stateUpdateAddress
       })
     }))
@@ -130,7 +130,7 @@ export function getWatchers (config: GetWatchersConfig) {
 
   if (enabledWatchers.includes(Watchers.CommitTransfers)) {
     watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
-      const minThresholdAmounts = commitTransfersMinThresholdAmounts?.[token]?.[network]
+      const minThresholdAmounts = commitTransfersMinThresholdAmounts[token]?.[network]
 
       return new CommitTransfersWatcher({
         chainSlug: network,
@@ -390,9 +390,9 @@ export function findWatcher (watchers: Watcher[], WatcherType: any, chain?: stri
 }
 
 function getAllChains () {
-  return Object.keys(globalConfig.networks ?? {})
+  return Object.keys(globalConfig.networks)
 }
 
 function getAllTokens () {
-  return Object.keys(globalConfig.tokens ?? {})
+  return Object.keys(globalConfig.tokens)
 }

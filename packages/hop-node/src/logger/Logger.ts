@@ -82,7 +82,7 @@ class Logger {
 
   create (additionalDataLabel: AdditionalDataLabel): Logger {
     let label: string
-    if (additionalDataLabel?.id) {
+    if (additionalDataLabel.id) {
       label = `id: ${additionalDataLabel.id}`
     } else {
       label = `root: ${additionalDataLabel.root}`

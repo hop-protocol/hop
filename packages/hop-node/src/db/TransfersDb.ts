@@ -46,8 +46,8 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   async trackTimestampedKey (transfer: Partial<Transfer>) {
     const data = await this.getTimestampedKeyValueForUpdate(transfer)
     if (data != null) {
-      const key = data?.key
-      const transferId = data?.value?.transferId
+      const key = data.key
+      const transferId = data.value.transferId
       this.logger.debug(`storing timestamped key. key: ${key} transferId: ${transferId}`)
       const value = { transferId }
       await this.subDb._update(key, value)
@@ -60,8 +60,8 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   }
 
   getTimestampedKey (transfer: Partial<Transfer>) {
-    if (transfer?.transferSentTimestamp && transfer?.transferId) {
-      const key = `transfer:${transfer?.transferSentTimestamp}:${transfer?.transferId}`
+    if (transfer.transferSentTimestamp && transfer.transferId) {
+      const key = `transfer:${transfer.transferSentTimestamp}:${transfer.transferId}`
       return key
     }
   }
@@ -71,7 +71,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       this.logger.warn('expected transfer object for timestamped key')
       return
     }
-    const transferId = transfer?.transferId
+    const transferId = transfer.transferId
     const key = this.getTimestampedKey(transfer)
     if (!key) {
       this.logger.warn('expected timestamped key. incomplete transfer:', JSON.stringify(transfer))
@@ -107,16 +107,16 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     if (!item) {
       return null
     }
-    if (!item?.transferId) {
+    if (!item.transferId) {
       item.transferId = transferId
     }
-    if (item?.destinationChainId) {
-      item.destinationChainSlug = chainIdToSlug(item?.destinationChainId)
+    if (item.destinationChainId) {
+      item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
     }
-    if (item?.sourceChainId) {
+    if (item.sourceChainId) {
       item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
     }
-    if (item?.deadline !== undefined) {
+    if (item.deadline !== undefined) {
       // convert number to BigNumber for backward compatibility reasons
       if (typeof item.deadline === 'number') {
         item.deadline = BigNumber.from(item.deadline)
@@ -145,7 +145,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     }
 
     // return all transfer-id keys if no filter is used (filter out timestamped keys)
-    const keys = (await this.getKeys()).filter((key: string) => !key?.startsWith('transfer:'))
+    const keys = (await this.getKeys()).filter((key: string) => !key.startsWith('transfer:'))
     return keys
   }
 
@@ -197,7 +197,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   ): Promise<Transfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
-      if (filter?.sourceChainId) {
+      if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
@@ -217,7 +217,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   ): Promise<Transfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
-      if (filter?.sourceChainId) {
+      if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
@@ -255,7 +255,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   ): Promise<Transfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
-      if (filter?.sourceChainId) {
+      if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
@@ -270,7 +270,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   ) {
     const transfers: Transfer[] = await this.getTransfers()
     return transfers.filter(item => {
-      if (filter?.sourceChainId) {
+      if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }

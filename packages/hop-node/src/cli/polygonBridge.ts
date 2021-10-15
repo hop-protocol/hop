@@ -20,7 +20,7 @@ program
         const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      const tokens = Object.keys(globalConfig.tokens ?? {})
+      const tokens = Object.keys(globalConfig.tokens)
       for (const token of tokens) {
         new PolygonBridgeWatcher({
           chainSlug: Chain.Polygon,

@@ -218,12 +218,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       from: this.from,
       to: this.to,
       data: this.data,
-      value: this.value?.toString(),
+      value: this.value.toString(),
       nonce: this.nonce,
-      gasPrice: this.gasPrice?.toString(),
-      maxFeePerGas: this.maxFeePerGas?.toString(),
-      maxPriorityFeePerGas: this.maxPriorityFeePerGas?.toString(),
-      gasLimit: this.gasLimit?.toString()
+      gasPrice: this.gasPrice.toString(),
+      maxFeePerGas: this.maxFeePerGas.toString(),
+      maxPriorityFeePerGas: this.maxPriorityFeePerGas.toString(),
+      gasLimit: this.gasLimit.toString()
     }
   }
 

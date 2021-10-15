@@ -55,8 +55,8 @@ export default class Bridge extends ContractBase {
       this.tokenSymbol = tokenSymbol
     }
     this.db = getDbSet(this.tokenSymbol)
-    const bridgeDeployedBlockNumber = globalConfig.tokens?.[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
-    const l1CanonicalTokenAddress = globalConfig.tokens?.[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken
+    const bridgeDeployedBlockNumber = globalConfig.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
+    const l1CanonicalTokenAddress = globalConfig.tokens[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken
     if (!bridgeDeployedBlockNumber) {
       throw new Error('bridge deployed block number is required')
     }
@@ -65,7 +65,7 @@ export default class Bridge extends ContractBase {
     }
     this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
-    this.stateUpdateAddress = globalConfig?.stateUpdateAddress! // eslint-disable-line
+    this.stateUpdateAddress = globalConfig.stateUpdateAddress
   }
 
   async getBonderAddress (): Promise<string> {
@@ -538,7 +538,7 @@ export default class Bridge extends ContractBase {
 
     let cacheKey = ''
     let state: State
-    if (options?.cacheKey) {
+    if (options.cacheKey) {
       cacheKey = this.getCacheKeyFromKey(
         this.chainId,
         this.address,
@@ -592,11 +592,11 @@ export default class Bridge extends ContractBase {
     let end: number
     let start: number
     let totalBlocksInBatch: number
-    const { totalBlocks, batchBlocks } = globalConfig.sync?.[this.chainSlug] ?? {}
+    const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
     const currentBlockNumber = await this.getBlockNumber()
     const currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
-    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
-    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber
+    const isInitialSync = !state.latestBlockSynced && startBlockNumber && !endBlockNumber
+    const isSync = state.latestBlockSynced && startBlockNumber && !endBlockNumber
 
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
@@ -651,7 +651,7 @@ export default class Bridge extends ContractBase {
   }
 
   shouldAttemptSwap (amountOutMin: BigNumber, deadline: BigNumber): boolean {
-    return amountOutMin?.gt(0) || deadline?.gt(0)
+    return amountOutMin.gt(0) || deadline.gt(0)
   }
 
   private readonly validateEventsBatchInput = (

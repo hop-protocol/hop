@@ -32,9 +32,9 @@ const constructWallet = memoize(
 // lazy instantiate
 export default {
   has (network: string) {
-    return !!constructWallet(network, globalConfig.bonderPrivateKey!) // eslint-disable-line
+    return !!constructWallet(network, globalConfig.bonderPrivateKey)
   },
   get (network: string) {
-    return constructWallet(network, globalConfig.bonderPrivateKey!) // eslint-disable-line
+    return constructWallet(network, globalConfig.bonderPrivateKey)
   }
 }

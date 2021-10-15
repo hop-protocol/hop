@@ -63,7 +63,7 @@ class BaseDb extends EventEmitter {
       tag: 'Db',
       prefix
     })
-    const pathname = path.resolve(globalConfig.db!.path.replace('~', os.homedir())) // eslint-disable-line
+    const pathname = path.resolve(globalConfig.db.path.replace('~', os.homedir()))
     mkdirp.sync(pathname.replace(path.basename(pathname), ''))
     if (!dbMap[pathname]) {
       this.logger.info(`db path: ${pathname}`)
@@ -137,7 +137,7 @@ class BaseDb extends EventEmitter {
       const ops = this.batchQueue.slice(0)
       this.batchQueue = []
       this.lastBatchUpdatedAt = Date.now()
-      this.logger.debug(`executing batch, items: ${ops?.length} `)
+      this.logger.debug(`executing batch, items: ${ops.length} `)
       await this.batchUpdate(ops)
     }
   }
@@ -157,7 +157,7 @@ class BaseDb extends EventEmitter {
         const errCb = (err: Error) => reject(err)
         const cb = (ops: any[]) => {
           this.off(Event.Error, errCb)
-          logger.debug(`received batch put event. items: ${ops?.length}`)
+          logger.debug(`received batch put event. items: ${ops.length}`)
           resolve(null)
         }
         this.once(Event.Error, errCb)

@@ -7,6 +7,7 @@ import {
   FileConfig,
   defaultEnabledNetworks,
   defaultEnabledWatchers,
+  gitRev,
   config as globalConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile,
@@ -47,6 +48,7 @@ program
     try {
       printHopArt()
       logger.debug('starting hop node')
+      logger.debug(`git revision: ${gitRev}`)
 
       const configFilePath = source.config || source.args[0]
       const config: FileConfig = await parseConfigFile(configFilePath)

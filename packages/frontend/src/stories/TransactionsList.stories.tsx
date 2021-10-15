@@ -4,6 +4,7 @@ import TransactionsList from 'src/components/accountDetails/TransactionsList'
 import { createTransaction } from 'src/utils/createTransaction'
 import { storyTransactions } from './data'
 import { Div } from 'src/components/ui'
+import { Token } from '@hop-protocol/sdk'
 
 export default {
   title: 'components/TransactionsList',
@@ -12,7 +13,7 @@ export default {
 
 const Template: ComponentStory<typeof TransactionsList> = args => {
   const transactions = storyTransactions.map(tx =>
-    createTransaction(tx, tx.networkName, tx.destNetworkName, tx.token)
+    createTransaction(tx, tx.networkName, tx.destNetworkName, tx.token as Token)
   )
 
   return (

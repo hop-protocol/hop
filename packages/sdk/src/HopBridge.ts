@@ -147,6 +147,10 @@ class HopBridge extends Base {
       this.tokenSymbol = token
     }
 
+    if (!token) {
+      throw new Error('token is required')
+    }
+
     this.priceFeed = new PriceFeed()
   }
 

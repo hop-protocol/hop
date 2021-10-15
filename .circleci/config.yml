@@ -32,6 +32,7 @@ jobs:
             docker build \
               -f Dockerfile \
               --no-cache \
+              --build-arg=GIT_REV=$CIRCLE_SHA1
               -t app .
       - deploy:
           name: Push Hop Node Docker image to Docker Hub

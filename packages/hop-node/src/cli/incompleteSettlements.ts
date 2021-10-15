@@ -11,9 +11,9 @@ program
   .description('Get incomplete settlements')
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
-  .option('--chain <string>', 'Chain')
+  .option('--source-chain <string>', 'Source chain')
+  .option('--destination-chain <string>', 'Destination Chain')
   .option('--token <string>', 'Token')
-  .option('--destChain <string>', 'Destination Chain')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -21,26 +21,26 @@ program
         const config: FileConfig = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      const chain = source.chain
+      const sourceChain = source.sourceChain
+      const destinationChain = source.destinationChain
       const token = source.token
-      const destinationChain = source.destChain
-      if (!chain) {
-        throw new Error('chain is required')
-      }
       if (!token) {
         throw new Error('token is required')
+      }
+      if (!sourceChain) {
+        throw new Error('source chain is required')
       }
       if (!destinationChain) {
         throw new Error('destination chain is required')
       }
       const transferRoot = await getIncompleteSettlements(
-        chain,
         token,
+        sourceChain,
         destinationChain
       )
       console.log(JSON.stringify(transferRoot, null, 2))
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

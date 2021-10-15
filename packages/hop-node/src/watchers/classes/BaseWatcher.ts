@@ -9,7 +9,6 @@ import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
 import { Notifier } from 'src/notifier'
-import { boundClass } from 'autobind-decorator'
 import { hostname } from 'src/config'
 
 interface Config {
@@ -32,7 +31,6 @@ enum State {
   Exit = 3
 }
 
-@boundClass
 class BaseWatcher extends EventEmitter implements IBaseWatcher {
   db: DbSet
   logger: Logger

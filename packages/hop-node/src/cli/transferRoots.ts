@@ -41,7 +41,7 @@ program
         return x.rootHash
       }), null, 2))
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

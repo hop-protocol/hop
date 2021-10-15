@@ -72,7 +72,8 @@ export default async function getTransfer (chain: string, token: string, transfe
             rootHash: $transferRootHash
           },
           orderBy: timestamp,
-          orderDirection: desc
+          orderDirection: desc,
+          first: 1000
         ) {
           id
           bonder

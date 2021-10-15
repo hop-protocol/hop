@@ -3,11 +3,10 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import Token from './classes/Token'
-import chalk from 'chalk'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import promiseTimeout from 'src/utils/promiseTimeout'
 import wait from 'src/utils/wait'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber, Contract, constants } from 'ethers'
 import { Chain } from 'src/constants'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
@@ -92,21 +91,7 @@ class StakeWatcher extends BaseWatcher {
     this.logger.debug('credit balance:', this.bridge.formatUnits(credit))
     this.logger.debug('raw debit balance:', this.bridge.formatUnits(rawDebit))
     this.logger.debug('debit balance:', this.bridge.formatUnits(debit))
-
-    const bondedBondedWithdrawalsBalance = await this.bridge.getBonderBondedWithdrawalsBalance()
-
-    const bonderBridgeStakedAmount = credit
-      .sub(rawDebit)
-      .add(bondedBondedWithdrawalsBalance)
-
-    this.logger.debug(
-      'bonder bonded withdrawals balance:',
-      this.bridge.formatUnits(bondedBondedWithdrawalsBalance)
-    )
-    this.logger.debug(
-      'bonder bridge calculated actual staked amount:',
-      this.bridge.formatUnits(bonderBridgeStakedAmount)
-    )
+    this.logger.debug('allowance:', this.bridge.formatUnits(allowance))
   }
 
   async watchEthBalance () {
@@ -130,14 +115,20 @@ class StakeWatcher extends BaseWatcher {
   }
 
   async convertAndStake (amount: BigNumber) {
-    const balance = await this.token.getBalance()
-    const isL1 = isL1ChainId(await this.token.getChainId())
-    if (balance.lt(amount)) {
-      if (!isL1) {
+    const isStakeOnL1 = isL1ChainId(await this.token.getChainId())
+    if (!isStakeOnL1) {
+      const hTokenBalance = await this.token.getBalance()
+      if (hTokenBalance.lt(amount)) {
         const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum)
           .bridge as L1Bridge
-        const l1Token = await l1Bridge.l1CanonicalToken()
-        const l1Balance = await l1Token.getBalance()
+        const isEthSend = l1Bridge.l1CanonicalTokenAddress === constants.AddressZero
+        let l1Balance
+        if (isEthSend) {
+          l1Balance = await l1Bridge.getEthBalance()
+        } else {
+          const l1Token = await l1Bridge.l1CanonicalToken()
+          l1Balance = await l1Token.getBalance()
+        }
         this.logger.debug(
           'l1 token balance:',
           this.bridge.formatUnits(l1Balance)
@@ -161,13 +152,13 @@ class StakeWatcher extends BaseWatcher {
 
           let tx: any
           const spender = l1Bridge.getAddress()
-          tx = await l1Token.approve(spender, convertAmount)
-          if (tx) {
-            this.logger.info(
-              'L1 canonical token approve tx:',
-              chalk.bgYellow.black.bold(tx?.hash)
-            )
-            await tx.wait()
+          if (!isEthSend) {
+            const l1Token = await l1Bridge.l1CanonicalToken()
+            tx = await l1Token.approve(spender, convertAmount)
+            if (tx) {
+              this.logger.info(`L1 canonical token approve tx: ${tx?.hash}`)
+              await tx.wait()
+            }
           }
           tx = await l1Bridge.convertCanonicalTokenToHopToken(
             this.token.chainId,
@@ -175,10 +166,9 @@ class StakeWatcher extends BaseWatcher {
           )
           let txTimestamp : number = 0
           if (tx) {
-            this.logger.debug(
-              `convert tx: ${chalk.bgYellow.black.bold(tx?.hash)}`
-            )
-            this.notifier.info(`convert tx: ${tx.hash}`)
+            const msg = `convert tx: ${tx?.hash}`
+            this.logger.info(msg)
+            this.notifier.info(msg)
             await tx.wait()
 
             // In the case of RPC latency, tgeTransactionTimestamp will fail. Use current time (w/ buffer) instead.
@@ -200,7 +190,7 @@ class StakeWatcher extends BaseWatcher {
         if (balance.lt(amount)) {
           throw new Error(
             `not enough ${
-              isL1 ? 'canonical' : 'hop'
+              isStakeOnL1 ? 'canonical' : 'hop'
             } token balance to stake. Have ${this.bridge.formatUnits(
               balance
             )}, need ${this.bridge.formatUnits(amount)}`
@@ -218,7 +208,13 @@ class StakeWatcher extends BaseWatcher {
       throw new Error('not an allowed bonder on chain')
     }
     const formattedAmount = this.bridge.formatUnits(amount)
-    const balance = await this.token.getBalance()
+    const isL1EthStake = this.bridge.chainSlug === Chain.Ethereum
+    let balance
+    if (isL1EthStake) {
+      balance = amount
+    } else {
+      balance = await this.token.getBalance()
+    }
     const isL1 = isL1ChainId(await this.token.getChainId())
     if (balance.lt(amount)) {
       throw new Error(
@@ -236,7 +232,7 @@ class StakeWatcher extends BaseWatcher {
       return
     }
     const tx = await this.bridge.stake(amount)
-    this.logger.info('stake tx:', chalk.bgYellow.black.bold(tx?.hash))
+    this.logger.info(`stake tx: ${(tx?.hash)}`)
     const receipt = await tx.wait()
     if (receipt.status) {
       this.logger.debug(`successfully staked ${formattedAmount} tokens`)
@@ -273,7 +269,7 @@ class StakeWatcher extends BaseWatcher {
       return
     }
     const tx = await this.bridge.unstake(amount)
-    this.logger.info('unstake tx:', chalk.bgYellow.black.bold(tx?.hash))
+    this.logger.info(`unstake tx: ${(tx?.hash)}`)
     const receipt = await tx.wait()
     if (receipt.status) {
       this.logger.debug(`successfully unstaked ${parsedAmount} tokens`)
@@ -287,10 +283,7 @@ class StakeWatcher extends BaseWatcher {
     const spender = this.bridge.getAddress()
     const tx = await this.token.approve(spender)
     if (tx) {
-      this.logger.info(
-        'stake approve tokens tx:',
-        chalk.bgYellow.black.bold(tx?.hash)
-      )
+      this.logger.info(`stake approve tokens tx: ${tx?.hash}`)
     }
     await tx?.wait()
     return tx

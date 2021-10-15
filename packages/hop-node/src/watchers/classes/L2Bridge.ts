@@ -4,14 +4,11 @@ import L2Amm from './L2Amm'
 import L2AmmWrapper from './L2AmmWrapper'
 import L2BridgeWrapper from './L2BridgeWrapper'
 import Token from './Token'
-import delay from 'src/decorators/delay'
-import queue from 'src/decorators/queue'
-import rateLimitRetry from 'src/decorators/rateLimitRetry'
+import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Event } from 'src/types'
 import { Hop } from '@hop-protocol/sdk'
-import { boundClass } from 'autobind-decorator'
 import {
   erc20Abi,
   l2AmmWrapperAbi,
@@ -20,7 +17,6 @@ import {
 } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
 
-@boundClass
 export default class L2Bridge extends Bridge {
   ammWrapper: L2AmmWrapper
   amm: L2Amm
@@ -59,16 +55,25 @@ export default class L2Bridge extends Bridge {
     this.l2BridgeWrapper = new L2BridgeWrapper(l2BridgeWrapperContract)
   }
 
-  async getL1Bridge (): Promise<L1Bridge> {
+  getL1Bridge = rateLimitRetry(async (): Promise<L1Bridge> => {
     const l1BridgeAddress = await this.bridgeContract.l1BridgeAddress()
     if (!l1BridgeAddress) {
       throw new Error('L1 bridge address not found')
     }
     return L1Bridge.fromAddress(l1BridgeAddress)
-  }
+  })
 
-  @rateLimitRetry
-  async hToken (): Promise<Token> {
+  canonicalToken = rateLimitRetry(async (): Promise<Token> => {
+    const tokenAddress = await this.ammWrapper.contract.l2CanonicalToken()
+    const tokenContract = new Contract(
+      tokenAddress,
+      erc20Abi,
+      this.bridgeContract.signer
+    )
+    return new Token(tokenContract)
+  })
+
+  hToken = rateLimitRetry(async (): Promise<Token> => {
     const tokenAddress = await this.bridgeContract.hToken()
     const tokenContract = new Contract(
       tokenAddress,
@@ -76,31 +81,29 @@ export default class L2Bridge extends Bridge {
       this.bridgeContract.signer
     )
     return new Token(tokenContract)
-  }
+  })
 
-  @rateLimitRetry
-  async getTransferFromL1CompletedEvents (
+  getTransferFromL1CompletedEvents = rateLimitRetry((
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> {
+  ): Promise<Event[]> => {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.TransferFromL1Completed(),
       startBlockNumber,
       endBlockNumber
     )
-  }
+  })
 
-  @rateLimitRetry
-  async getTransfersCommittedEvents (
+  getTransfersCommittedEvents = rateLimitRetry(async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> {
+  ): Promise<Event[]> => {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.TransfersCommitted(),
       startBlockNumber,
       endBlockNumber
     )
-  }
+  })
 
   async mapTransfersCommittedEvents (
     cb: EventCb,
@@ -122,17 +125,16 @@ export default class L2Bridge extends Bridge {
     return match
   }
 
-  @rateLimitRetry
-  async getTransferSentEvents (
+  getTransferSentEvents = rateLimitRetry(async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> {
+  ): Promise<Event[]> => {
     return this.bridgeContract.queryFilter(
       this.bridgeContract.filters.TransferSent(),
       startBlockNumber,
       endBlockNumber
     )
-  }
+  })
 
   async mapTransferSentEvents (
     cb: EventCb,
@@ -141,12 +143,10 @@ export default class L2Bridge extends Bridge {
     return this.mapEventsBatch(this.getTransferSentEvents, cb, options)
   }
 
-  @rateLimitRetry
   async getTransferSentTimestamp (transferId: string): Promise<number> {
     let match: Event
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.bridgeContract.queryFilter(
-        this.bridgeContract.filters.TransferSent(),
+      const events = await this.getTransferSentEvents(
         start,
         end
       )
@@ -166,13 +166,10 @@ export default class L2Bridge extends Bridge {
     return this.getEventTimestamp(match)
   }
 
-  @queue
-  @delay
-  @rateLimitRetry
-  async sendHTokens (
+  sendHTokens = rateLimitRetry(async (
     destinationChainId: number,
     amount: BigNumber
-  ): Promise<providers.TransactionResponse> {
+  ): Promise<providers.TransactionResponse> => {
     const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
     if (!isSupportedChainId) {
       throw new Error(`chain ID "${destinationChainId}" is not supported`)
@@ -212,24 +209,20 @@ export default class L2Bridge extends Bridge {
         value: isNativeToken ? amount : undefined
       }
     )
-  }
+  })
 
-  @queue
-  @delay
-  @rateLimitRetry
-  async sendCanonicalTokens (
+  sendCanonicalTokens = rateLimitRetry((
     destinationChainId: number,
     amount: BigNumber
-  ): Promise<providers.TransactionResponse> {
+  ): Promise<providers.TransactionResponse> => {
     return this.ammWrapper.swapAndSend(
       destinationChainId,
       amount,
       this.tokenSymbol
     )
-  }
+  })
 
-  @rateLimitRetry
-  async getChainId (): Promise<number> {
+  getChainId = rateLimitRetry(async (): Promise<number> => {
     if (this.chainId) {
       return this.chainId
     }
@@ -241,19 +234,18 @@ export default class L2Bridge extends Bridge {
     )
     this.chainId = chainId
     return chainId
-  }
+  })
 
   async getChainSlug (): Promise<Chain> {
     const chainId = await this.getChainId()
     return this.chainIdToSlug(chainId)
   }
 
-  @rateLimitRetry
-  async decodeCommitTransfersData (data: string): Promise<any> {
+  decodeCommitTransfersData (data: string): any {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = await this.bridgeContract.interface.decodeFunctionData(
+    const decoded = this.bridgeContract.interface.decodeFunctionData(
       'commitTransfers',
       data
     )
@@ -264,8 +256,7 @@ export default class L2Bridge extends Bridge {
     }
   }
 
-  @rateLimitRetry
-  async decodeSendData (data: string): Promise<any> {
+  decodeSendData (data: string): any {
     if (!data) {
       throw new Error('data to decode is required')
     }
@@ -274,13 +265,13 @@ export default class L2Bridge extends Bridge {
     let destinationChainId: number
     let attemptSwap = false
     if (methodSig === sendMethodSig) {
-      const decoded = await this.bridgeContract.interface.decodeFunctionData(
+      const decoded = this.bridgeContract.interface.decodeFunctionData(
         'send',
         data
       )
       destinationChainId = Number(decoded.chainId.toString())
     } else {
-      const decoded = await this.ammWrapper.decodeSwapAndSendData(data)
+      const decoded = this.ammWrapper.decodeSwapAndSendData(data)
       destinationChainId = Number(decoded.chainId.toString())
       attemptSwap = decoded.attemptSwap
     }
@@ -291,15 +282,13 @@ export default class L2Bridge extends Bridge {
     }
   }
 
-  @rateLimitRetry
-  async getPendingTransferByIndex (chainId: number, index: number) {
+  getPendingTransferByIndex = rateLimitRetry(async (chainId: number, index: number) => {
     return this.bridgeContract.pendingTransferIdsForChainId(
       chainId,
       index
     )
-  }
+  })
 
-  @rateLimitRetry
   async doPendingTransfersExist (chainId: number): Promise<boolean> {
     try {
       await this.getPendingTransferByIndex(chainId, 0)
@@ -309,38 +298,33 @@ export default class L2Bridge extends Bridge {
     }
   }
 
-  @rateLimitRetry
-  async getLastCommitTimeForChainId (chainId: number): Promise<number> {
+  getLastCommitTimeForChainId = rateLimitRetry(async (chainId: number): Promise<number> => {
     return Number(
       (
         await this.bridgeContract.lastCommitTimeForChainId(chainId)
       ).toString()
     )
-  }
+  })
 
-  @rateLimitRetry
-  async getMinimumForceCommitDelay (): Promise<number> {
+  getMinimumForceCommitDelay = rateLimitRetry(async (): Promise<number> => {
     return Number(
       (await this.bridgeContract.minimumForceCommitDelay()).toString()
     )
-  }
+  })
 
-  @rateLimitRetry
-  async getPendingAmountForChainId (chainId: number): Promise<BigNumber> {
+  getPendingAmountForChainId = rateLimitRetry(async (chainId: number): Promise<BigNumber> => {
     const pendingAmount = await this.bridgeContract.pendingAmountForChainId(
       chainId
     )
     return pendingAmount
-  }
+  })
 
-  @rateLimitRetry
-  async getMaxPendingTransfers (): Promise<number> {
+  getMaxPendingTransfers = rateLimitRetry(async (): Promise<number> => {
     return Number(
       (await this.bridgeContract.maxPendingTransfers()).toString()
     )
-  }
+  })
 
-  @rateLimitRetry
   async getPendingTransfers (chainId: number): Promise<string[]> {
     const pendingTransfers: string[] = []
     const max = await this.getMaxPendingTransfers()
@@ -356,14 +340,12 @@ export default class L2Bridge extends Bridge {
     return pendingTransfers
   }
 
-  @rateLimitRetry
   async getTransferRootCommittedTxHash (
     transferRootHash: string
   ): Promise<string | undefined> {
     let txHash: string
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.bridgeContract.queryFilter(
-        this.bridgeContract.filters.TransfersCommitted(),
+      const events = await this.getTransfersCommittedEvents(
         start,
         end
       )
@@ -380,14 +362,12 @@ export default class L2Bridge extends Bridge {
     return txHash
   }
 
-  @rateLimitRetry
   async getTransferSentTxHash (
     transferId: string
   ): Promise<string | undefined> {
     let txHash: string
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.bridgeContract.queryFilter(
-        this.bridgeContract.filters.TransferSent(),
+      const events = await this.getTransferSentEvents(
         start,
         end
       )
@@ -415,24 +395,18 @@ export default class L2Bridge extends Bridge {
     return Number(transferRoot.createdAt.toString()) > 0
   }
 
-  @queue
-  @delay
-  @rateLimitRetry
-  async commitTransfers (
+  commitTransfers = rateLimitRetry(async (
     destinationChainId: number
-  ): Promise<providers.TransactionResponse> {
+  ): Promise<providers.TransactionResponse> => {
     const tx = await this.bridgeContract.commitTransfers(
       destinationChainId,
       await this.txOverrides()
     )
 
     return tx
-  }
+  })
 
-  @queue
-  @delay
-  @rateLimitRetry
-  async bondWithdrawalAndAttemptSwap (
+  bondWithdrawalAndAttemptSwap = rateLimitRetry(async (
     recipient: string,
     amount: BigNumber,
     transferNonce: string,
@@ -442,7 +416,7 @@ export default class L2Bridge extends Bridge {
     gasPrice?: BigNumber,
     tokenUsdPrice?: number,
     chainNativeTokenUsdPrice?: number
-  ): Promise<providers.TransactionResponse> {
+  ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
     if (this.chainSlug === Chain.Polygon) {
       txOverrides.gasLimit = 1_000_000
@@ -464,12 +438,11 @@ export default class L2Bridge extends Bridge {
     const tx = await this.bridgeContract.bondWithdrawalAndDistribute(...payload)
 
     return tx
-  }
+  })
 
-  @rateLimitRetry
-  async isSupportedChainId (chainId: number): Promise<boolean> {
+  isSupportedChainId = rateLimitRetry((chainId: number): Promise<boolean> => {
     return this.bridgeContract.activeChainIds(
       chainId
     )
-  }
+  })
 }

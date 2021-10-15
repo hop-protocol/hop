@@ -211,19 +211,21 @@ const Send: FC = () => {
       return null
     }
     const unsupportedAssets = {
-      Optimism: 'MATIC',
-      Arbitrum: 'MATIC',
+      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
+      Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
     }
 
     for (const chain in unsupportedAssets) {
-      const tokenSymbol = unsupportedAssets[chain]
-      const isUnsupported =
-        selectedBridge?.getTokenSymbol() === tokenSymbol &&
-        [fromNetwork?.slug, toNetwork?.slug].includes(chain.toLowerCase())
-      if (isUnsupported) {
-        return {
-          chain,
-          tokenSymbol,
+      const tokenSymbols = unsupportedAssets[chain]
+      for (const tokenSymbol of tokenSymbols) {
+        const isUnsupported =
+          selectedBridge?.getTokenSymbol() === tokenSymbol &&
+          [fromNetwork?.slug, toNetwork?.slug].includes(chain.toLowerCase())
+        if (isUnsupported) {
+          return {
+            chain,
+            tokenSymbol,
+          }
         }
       }
     }
@@ -448,7 +450,7 @@ const Send: FC = () => {
   }, [estimatedReceived, destinationTxFee])
 
   useEffect(() => {
-    let message = noLiquidityWarning || minimumSendWarning || needsNativeTokenWarning
+    let message = noLiquidityWarning || minimumSendWarning
 
     if (!enoughBalance) {
       message = 'Insufficient funds'
@@ -456,6 +458,10 @@ const Send: FC = () => {
       message = 'Bonder fee greater than estimated received'
     } else if (estimatedReceived?.lte(0)) {
       message = 'Insufficient amount. Send higher amount to cover bonder fee.'
+    }
+
+    if (needsNativeTokenWarning) {
+      message = needsNativeTokenWarning
     }
 
     setWarning(message)
@@ -935,7 +941,7 @@ const Send: FC = () => {
           className={styles.button}
           large
           highlighted={!!needsApproval}
-          disabled={!needsApproval}
+          disabled={!needsApproval || needsTokenForFee}
           onClick={handleApprove}
           loading={approving}
         >
@@ -945,7 +951,7 @@ const Send: FC = () => {
           className={styles.button}
           startIcon={sendButtonActive && <SendIcon />}
           onClick={send}
-          disabled={!sendButtonActive}
+          disabled={!sendButtonActive || needsTokenForFee}
           loading={sending}
           large
           highlighted

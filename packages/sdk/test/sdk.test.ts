@@ -472,7 +472,7 @@ describe.skip('getSendData', () => {
   it('available liquidity', async () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
-    const availableLiquidityBn = await bridge.getAvailableLiquidity(
+    const availableLiquidityBn = await bridge.getFrontendAvailableLiquidity(
       Chain.Arbitrum,
       Chain.Ethereum
     )

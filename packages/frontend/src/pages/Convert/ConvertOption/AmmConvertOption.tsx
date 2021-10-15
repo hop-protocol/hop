@@ -115,7 +115,11 @@ class AmmConvertOption extends ConvertOption {
     if (!bridge || !network) return
 
     if (isForwardDirection) {
-      return bridge.getCanonicalToken(network.slug)
+      let token = bridge.getCanonicalToken(network.slug)
+      if (token?.isNativeToken) {
+        token = token.getWrappedToken()
+      }
+      return token
     } else {
       return bridge.getL2HopToken(network.slug)
     }
@@ -131,7 +135,11 @@ class AmmConvertOption extends ConvertOption {
     if (isForwardDirection) {
       return bridge.getL2HopToken(network.slug)
     } else {
-      return bridge.getCanonicalToken(network.slug)
+      let token = bridge.getCanonicalToken(network.slug)
+      if (token?.isNativeToken) {
+        token = token.getWrappedToken()
+      }
+      return token
     }
   }
 

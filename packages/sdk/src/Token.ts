@@ -12,11 +12,11 @@ import Chain from './models/Chain'
 class Token extends Base {
   public readonly address: string
   public readonly decimals: number
-  public readonly symbol: string
   public readonly name: string
   public readonly image: string
   public readonly chain: Chain
   public readonly contract: Contract
+  _symbol: string
 
   // TODO: clean up and remove unused parameters.
   /**
@@ -45,10 +45,17 @@ class Token extends Base {
 
     this.address = ethers.utils.getAddress(address)
     this.decimals = decimals
-    this.symbol = symbol
+    this._symbol = symbol
     this.name = name
     this.image = image
     this.chain = this.toChainModel(chain)
+  }
+
+  get symbol () {
+    if (this._symbol === TokenModel.ETH && !this.isNativeToken) {
+      return 'WETH'
+    }
+    return this._symbol
   }
 
   /**
@@ -62,7 +69,7 @@ class Token extends Base {
       this.chain,
       this.address,
       this.decimals,
-      this.symbol,
+      this._symbol,
       this.name,
       this.image,
       signer,
@@ -195,7 +202,7 @@ class Token extends Base {
 
   public eq (token: Token): boolean {
     return (
-      this.symbol.toLowerCase() === token.symbol.toLowerCase() &&
+      this._symbol.toLowerCase() === token.symbol.toLowerCase() &&
       this.address.toLowerCase() === token.address.toLowerCase() &&
       this.chain.equals(token.chain)
     )
@@ -203,11 +210,14 @@ class Token extends Base {
 
   get isNativeToken () {
     const isEth =
-      this.symbol === TokenModel.ETH && this.chain.equals(Chain.Ethereum)
+      this._symbol === TokenModel.ETH &&
+      (this.chain.equals(Chain.Ethereum) ||
+        this.chain.equals(Chain.Arbitrum) ||
+        this.chain.equals(Chain.Optimism))
     const isMatic =
-      this.symbol === TokenModel.MATIC && this.chain.equals(Chain.Polygon)
+      this._symbol === TokenModel.MATIC && this.chain.equals(Chain.Polygon)
     const isxDai =
-      [TokenModel.DAI, TokenModel.XDAI].includes(this.symbol) &&
+      [TokenModel.DAI, TokenModel.XDAI].includes(this._symbol) &&
       this.chain.equals(Chain.xDai)
     return isEth || isMatic || isxDai
   }
@@ -231,7 +241,7 @@ class Token extends Base {
       this.chain,
       this.address,
       this.decimals,
-      `W${this.symbol}`,
+      `W${this._symbol}`,
       this.name,
       this.image,
       this.signer,

@@ -1,15 +1,19 @@
+import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
+import getRpcProvider from 'src/utils/getRpcProvider'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import {
   FileConfig,
+  config as globalConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
+import { formatEther, parseEther } from 'ethers/lib/utils'
 import { logger, program } from './shared'
 
 async function sendTokens (
@@ -109,6 +113,39 @@ async function sendTokens (
   logger.debug('tokens should arrive at destination in 5-15 minutes')
 }
 
+async function sendNativeToken (
+  chain: string,
+  amount: number,
+  recipient: string
+) {
+  if (!amount) {
+    throw new Error('amount is required. E.g. 100')
+  }
+
+  if (!recipient) {
+    throw new Error('recipient is required for sending a native asset')
+  }
+
+  const provider = getRpcProvider(chain)
+  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider)
+
+  const parsedAmount = parseEther(amount.toString())
+  let balance = await wallet.getBalance()
+  if (balance.lt(parsedAmount)) {
+    throw new Error('not enough token balance to send')
+  }
+
+  logger.debug(`attempting to send ${amount} to ${recipient} on ${chain}`)
+  const tx = await wallet.sendTransaction({
+    value: parsedAmount,
+    to: recipient
+  })
+  logger.info(`send tx: ${tx.hash}`)
+  await tx?.wait()
+  balance = await wallet.getBalance()
+  logger.debug(`send complete. new balance: ${formatEther(balance)}`)
+}
+
 program
   .command('send')
   .description('Send tokens over Hop bridge')
@@ -120,6 +157,7 @@ program
   .option('--amount <number>', 'Amount (in human readable format)')
   .option('--recipient <string>', 'Recipient to send tokens to')
   .option('--htoken', 'Send hTokens')
+  .option('--native', 'Send the native token')
   .action(async source => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -133,7 +171,15 @@ program
       const amount = Number(source.args[0] || source.amount)
       const recipient = source.recipient
       const isHToken = !!source.htoken
-      await sendTokens(fromChain, toChain, token, amount, recipient, isHToken)
+      const isNativeSend = !!source.native
+      if (isHToken && isNativeSend) {
+        throw new Error('Cannot use --htoken and --native flag together')
+      }
+      if (isNativeSend) {
+        await sendNativeToken(fromChain, amount, recipient)
+      } else {
+        await sendTokens(fromChain, toChain, token, amount, recipient, isHToken)
+      }
       process.exit(0)
     } catch (err) {
       logger.error(err)

@@ -29,7 +29,7 @@ program
         }).start()
       }
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

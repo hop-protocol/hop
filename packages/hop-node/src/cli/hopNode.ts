@@ -1,4 +1,4 @@
-import DbLogger from 'src/watchers/DbLogger'
+import OsWatcher from 'src/watchers/OsWatcher'
 import arbbots from 'src/arb-bot/bots'
 import clearDb from 'src/db/clearDb'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
@@ -46,6 +46,7 @@ program
   .action(async (source: any) => {
     try {
       printHopArt()
+      logger.debug('starting hop node')
 
       const configFilePath = source.config || source.args[0]
       const config: FileConfig = await parseConfigFile(configFilePath)
@@ -184,11 +185,7 @@ program
           }).start()
         }
       }
-      for (const token of tokens) {
-        if (source.logDbState) {
-          new DbLogger(token).start()
-        }
-      }
+      new OsWatcher().start()
     } catch (err) {
       logger.error(`hop-node error: ${err.message}\ntrace: ${err.stack}`)
       process.exit(1)

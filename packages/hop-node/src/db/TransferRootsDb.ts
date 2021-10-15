@@ -286,10 +286,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       // but if the bond uses a different totalAmount then it is fraudulent. Instead, use the
       // transferRootId. If transferRootIds do not match then we know the bond is fraudulent.
 
-      let isTransferRootIdValid = false
-      if (item?.bondTransferRootId && item?.transferRootId) {
-        isTransferRootIdValid = item.bondTransferRootId === item.transferRootId
-      }
+      const isTransferRootIdValid = item?.bondTransferRootId === item?.transferRootId
 
       return (
         item.transferRootId &&

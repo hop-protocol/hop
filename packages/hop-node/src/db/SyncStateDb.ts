@@ -33,14 +33,6 @@ class SyncStateDb extends BaseDb {
     const items : State[] = await this.getValues()
     return items.filter(x => x)
   }
-
-  async getItemsWithinWeek (): Promise<State[]> {
-    const items = await this.getItems()
-    const oneWeekAgo = Math.floor((Date.now() - OneWeekMs) / 1000)
-    return items.filter((item: State) => {
-      return item.timestamp > oneWeekAgo
-    })
-  }
 }
 
 export default SyncStateDb

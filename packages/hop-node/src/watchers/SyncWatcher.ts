@@ -124,6 +124,7 @@ class SyncWatcher extends BaseWatcher {
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })
       if (incompleteTransfers.length) {
+        this.logger.debug(`incomplete transfer items: ${incompleteTransfers.length}`)
         const allChunks = chunk(incompleteTransfers, chunkSize)
         for (const chunks of allChunks) {
           await Promise.all(chunks.map((transfer: Transfer) => {
@@ -343,7 +344,7 @@ class SyncWatcher extends BaseWatcher {
       if (!blockNumber) {
         throw new Error('event block number not found')
       }
-      const destinationChainId = Number(destinationChainIdBn.toString())
+      const destinationChainId = Number(destinationChainIdBn?.toString())
       const sourceChainId = await this.bridge.getChainId()
       const deadline = Number(deadlineBn?.toString())
       const isBondable = this.getIsBondable(transferId, amountOutMin, deadline, destinationChainId)

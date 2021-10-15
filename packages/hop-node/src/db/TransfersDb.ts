@@ -33,7 +33,7 @@ export type Transfer = {
   amountOutMin?: BigNumber
   bonderFee?: BigNumber
   transferNonce?: string
-  deadline?: number
+  deadline?: BigNumber
   transferSentTimestamp?: number
   transferSentTxHash?: string
   transferSentBlockNumber?: number
@@ -116,6 +116,12 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     }
     if (item?.sourceChainId) {
       item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
+    }
+    if (item?.deadline !== undefined) {
+      // convert number to BigNumber for backward compatibility reasons
+      if (typeof item.deadline === 'number') {
+        item.deadline = BigNumber.from(item.deadline)
+      }
     }
     return normalizeDbItem(item)
   }

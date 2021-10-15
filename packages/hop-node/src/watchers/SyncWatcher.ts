@@ -330,7 +330,7 @@ class SyncWatcher extends BaseWatcher {
       bonderFee,
       index,
       amountOutMin,
-      deadline: deadlineBn
+      deadline
     } = event.args
     const logger = this.logger.create({ id: transferId })
     logger.debug('handling TransferSent event')
@@ -346,7 +346,6 @@ class SyncWatcher extends BaseWatcher {
       }
       const destinationChainId = Number(destinationChainIdBn?.toString())
       const sourceChainId = await this.bridge.getChainId()
-      const deadline = Number(deadlineBn?.toString())
       const isBondable = this.getIsBondable(transferId, amountOutMin, deadline, destinationChainId)
 
       logger.debug('sourceChainId:', sourceChainId)
@@ -356,7 +355,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('amount:', this.bridge.formatUnits(amount))
       logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
       logger.debug('amountOutMin:', this.bridge.formatUnits(amountOutMin))
-      logger.debug('deadline:', deadline)
+      logger.debug('deadline:', deadline?.toString())
       logger.debug('transferSentIndex:', transactionIndex)
       logger.debug('transferSentBlockNumber:', blockNumber)
 
@@ -956,7 +955,7 @@ class SyncWatcher extends BaseWatcher {
   getIsBondable = (
     transferId: string,
     amountOutMin: BigNumber,
-    deadline: number,
+    deadline: BigNumber,
     destinationChainId: number
   ): boolean => {
     // Remove when this hash has been resolved

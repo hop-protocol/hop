@@ -86,7 +86,7 @@ const normalizeNetwork = (network: string) => {
   return network
 }
 
-const getConfigByNetwork = (network: string): Partial<Config> => {
+const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'tokens' | 'networks' | 'bonders' | 'metadata' | 'isMainnet'> => {
   const { addresses: tokens, networks, bonders, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
   network = normalizeNetwork(network)
   const isMainnet = network === Network.Mainnet
@@ -104,12 +104,12 @@ const getConfigByNetwork = (network: string): Partial<Config> => {
 // get default config
 const { tokens, network, networks, metadata, bonders, isMainnet } = getConfigByNetwork(envNetwork)
 
-export const config: Partial<Config> = {
+export const config: Config = {
   isMainnet,
   tokens,
   network,
   networks,
-  bonderPrivateKey,
+  bonderPrivateKey: bonderPrivateKey ?? '',
   metadata,
   bonders,
   stateUpdateAddress: '',

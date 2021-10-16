@@ -260,6 +260,29 @@ class Token extends Base {
     const contract = await this.getWethContract(this.chain)
     return contract.withdraw(amount)
   }
+
+  static fromJSON(json: any):Token {
+    return new Token(
+      json.network,
+      json.chain,
+      json.address,
+      json.decimals,
+      json.symbol,
+      json.name,
+      json.image
+    )
+  }
+
+  async toJSON() {
+    return {
+      address: this.address,
+      decimals: this.decimals,
+      name: this.name,
+      image: this.image,
+      chain: this.chain,
+      symbol: this._symbol,
+    }
+  }
 }
 
 export default Token

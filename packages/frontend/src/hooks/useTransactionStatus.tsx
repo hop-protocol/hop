@@ -1,12 +1,18 @@
-import React, { useState, useMemo, useEffect } from 'react'
-import { providers } from 'ethers'
-import { TChain, Chain } from '@hop-protocol/sdk'
+import { useState, useMemo, useEffect } from 'react'
+import { TChain } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import useInterval from 'src/hooks/useInterval'
-import useAsyncMemo from 'src/hooks/useAsyncMemo'
+import Transaction from 'src/models/Transaction'
+import { loadState, saveState } from 'src/utils/localStorage'
+import logger from 'src/logger'
+import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 
-const useTransactionStatus = (txHash?: string, chain?: TChain) => {
+const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
+  const { updateTransaction } = useTxHistory()
   const [completed, setCompleted] = useState<boolean>()
+  const [destCompleted, setDestCompleted] = useState<boolean>(
+    !transaction?.pendingDestinationConfirmation
+  )
 
   const { sdk } = useApp()
   const provider = useMemo(() => {
@@ -15,22 +21,35 @@ const useTransactionStatus = (txHash?: string, chain?: TChain) => {
     return _chain.provider
   }, [chain])
 
+  async function updateDestTxStatus() {
+    if (transaction && (destCompleted === false || !transaction.destTxHash)) {
+      const isSpent = await transaction?.checkIsTransferIdSpent(sdk)
+      if (isSpent) {
+        setDestCompleted(true)
+        updateTransaction(transaction)
+      }
+    }
+  }
+
   const updateTxStatus = async () => {
-    if (!provider || !txHash) {
+    if (!provider || !transaction?.hash) {
       setCompleted(undefined)
       return
     }
 
+    const txHash = transaction.hash
     const cacheKey = `txReceipt:${txHash}`
 
-    let tx
-    const txString = localStorage.getItem(cacheKey)
-    if (txString) {
-      tx = JSON.parse(txString)
-    } else {
+    // Load local storage
+    let tx: any = loadState(cacheKey)
+
+    if (!tx) {
       tx = await provider.getTransactionReceipt(txHash)
+
       if (tx) {
-        localStorage.setItem(cacheKey, JSON.stringify(tx))
+        saveState(cacheKey, tx)
+      } else {
+        logger.warn(`Failed to save state: ${cacheKey}`, txHash)
       }
     }
 
@@ -39,12 +58,18 @@ const useTransactionStatus = (txHash?: string, chain?: TChain) => {
 
   useEffect(() => {
     updateTxStatus()
-  }, [txHash, chain])
+  }, [transaction?.hash, chain])
+
+  useEffect(() => {
+    updateDestTxStatus()
+  }, [transaction])
 
   useInterval(updateTxStatus, 15e3)
+  useInterval(updateDestTxStatus, 15e3)
 
   return {
     completed,
+    destCompleted,
   }
 }
 

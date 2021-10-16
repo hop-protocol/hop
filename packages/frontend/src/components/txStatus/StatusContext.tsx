@@ -33,11 +33,11 @@ const StatusContextProvider: FC = ({ children }) => {
   // let [steps, setSteps] = useState<Step[]>([])
   // let [activeStep, setActiveStep] = React.useState(0)
   const [fetching, setFetching] = useState<boolean>(false)
-  const [tx, setTx] = useState<Transaction | null>(null)
+  const [tx, setTx] = useState<Transaction>()
   const [receivedHToken, setReceivedHToken] = useState<boolean>(false)
   const cacheKey = `txStatus:${tx?.hash}`
 
-  const { completed } = useTransactionStatus(tx?.hash, tx?.networkName)
+  const { completed } = useTransactionStatus(tx, tx?.networkName)
 
   const steps = useMemo<Step[]>(() => {
     if (!tx) return [] as Step[]

@@ -273,7 +273,7 @@ class Token extends Base {
     )
   }
 
-  async toJSON() {
+  toJSON() {
     return {
       address: this.address,
       decimals: this.decimals,

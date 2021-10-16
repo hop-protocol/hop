@@ -155,7 +155,7 @@ class Transaction extends EventEmitter {
     if (this.token && this.destNetworkName) {
       const receipt = await this.receipt()
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
-      const bridge = sdk.bridge(this.token._symbol)
+      const bridge = sdk.bridge(this.token.symbol)
 
       // No transferId because L1 -> L2
       if (tsDetails && !tsDetails.transferId) {

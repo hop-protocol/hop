@@ -1,13 +1,14 @@
 import {
   FileConfig,
   defaultEnabledWatchers,
+  config as globalConfig,
   parseConfigFile,
-  setConfigByNetwork
-  , setGlobalConfigFromConfigFile
+  setConfigByNetwork,
+  setGlobalConfigFromConfigFile
 } from 'src/config'
+import { MetricsServer } from 'src/metrics'
 import { logger, parseArgList, program } from './shared'
 import { printHopArt } from './shared/art'
-
 import { startWatchers } from 'src/watchers/watchers'
 
 program
@@ -54,6 +55,9 @@ program
         tokens,
         networks
       })
+      if (globalConfig.metrics?.enabled) {
+        await new MetricsServer(logger, globalConfig.metrics?.port).start()
+      }
     } catch (err) {
       logger.error(err)
       process.exit(1)

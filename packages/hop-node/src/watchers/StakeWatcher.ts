@@ -9,6 +9,7 @@ import wait from 'src/utils/wait'
 import { BigNumber, Contract, constants } from 'ethers'
 import { Chain } from 'src/constants'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { metrics } from 'src/metrics'
 
 export interface Config {
   chainSlug: string
@@ -62,8 +63,10 @@ class StakeWatcher extends BaseWatcher {
       } else {
         this.logger.warn('not an allowed bonder on chain')
       }
-      this.printAmounts()
-      this.watchEthBalance()
+      await Promise.all([
+        this.printAmounts(),
+        this.watchEthBalance()
+      ])
     } catch (err) {
       this.logger.error('stake watcher error:', err.message)
       this.notifier.error(`stake watcher error: ${err.message}`)
@@ -85,6 +88,9 @@ class StakeWatcher extends BaseWatcher {
       this.getTokenAllowance(),
       this.bridge.getEthBalance()
     ])
+
+    metrics.bonderBalance.set({ chain: this.chainSlug, token: this.tokenSymbol }, this.bridge.formatUnits(balance))
+    metrics.bonderBalance.set({ chain: this.chainSlug, token: 'ETH' }, this.bridge.formatEth(eth))
 
     this.logger.debug('eth balance:', this.bridge.formatEth(eth))
     this.logger.debug('token balance:', this.bridge.formatUnits(balance))

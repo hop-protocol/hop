@@ -7,8 +7,8 @@ export { default as Token } from './Token'
 export { Chain } from './models'
 export { Route } from './models'
 export { TokenAmount } from './models'
-export { Transfer } from './models'
 export * from './types'
+export { eventTopics } from './constants'
 
 import * as utils from './utils'
 export { utils }

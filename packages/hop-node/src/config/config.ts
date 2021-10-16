@@ -58,17 +58,22 @@ type SyncConfigs = { [key: string]: SyncConfig }
 type DbConfig = {
   path: string
 }
+type MetricsConfig = {
+  enabled: boolean
+  port?: number
+}
 type Config = {
   isMainnet: boolean
-  tokens:Bridges & {[network: string]: any},
-  network: string,
-  networks: Networks & {[network: string]: any},
-  bonderPrivateKey: string,
-  metadata: Metadata & {[network: string]: any},
-  bonders: Bonders,
-  stateUpdateAddress: string,
-  db: DbConfig,
-  sync: SyncConfigs,
+  tokens: Bridges & {[network: string]: any}
+  network: string
+  networks: Networks & {[network: string]: any}
+  bonderPrivateKey: string
+  metadata: Metadata & {[network: string]: any}
+  bonders: Bonders
+  stateUpdateAddress: string
+  db: DbConfig
+  sync: SyncConfigs
+  metrics: MetricsConfig
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -137,6 +142,9 @@ export const config: Config = {
       totalBlocks: TotalBlocks.xDai,
       batchBlocks: DefaultBatchBlocks
     }
+  },
+  metrics: {
+    enabled: false
   }
 }
 
@@ -211,6 +219,10 @@ export const getEnabledNetworks = (): string[] => {
     }
   }
   return Object.keys(networks)
+}
+
+export const setMetricsConfig = (metricsConfig: MetricsConfig) => {
+  config.metrics = { ...config.metrics, ...metricsConfig }
 }
 
 export const chainNativeTokens = ['ETH', 'MATIC', 'DAI']

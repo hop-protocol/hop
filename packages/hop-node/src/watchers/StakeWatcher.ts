@@ -62,8 +62,10 @@ class StakeWatcher extends BaseWatcher {
       } else {
         this.logger.warn('not an allowed bonder on chain')
       }
-      this.printAmounts()
-      this.watchEthBalance()
+      await Promise.all([
+        this.printAmounts(),
+        this.watchEthBalance()
+      ])
     } catch (err) {
       this.logger.error('stake watcher error:', err.message)
       this.notifier.error(`stake watcher error: ${err.message}`)
@@ -85,6 +87,9 @@ class StakeWatcher extends BaseWatcher {
       this.getTokenAllowance(),
       this.bridge.getEthBalance()
     ])
+
+    this.metrics.setBonderBalance(this.chainSlug, this.tokenSymbol, this.bridge.formatUnits(balance))
+    this.metrics.setBonderBalance(this.chainSlug, 'ETH', this.bridge.formatEth(eth))
 
     this.logger.debug('eth balance:', this.bridge.formatEth(eth))
     this.logger.debug('token balance:', this.bridge.formatUnits(balance))

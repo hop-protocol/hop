@@ -45,7 +45,7 @@ program
     const pollIntervalSeconds = Number(source.pollIntervalSeconds)
 
     try {
-      await new HealthCheck({
+      new HealthCheck({
         bondWithdrawalTimeLimitMinutes,
         bondTransferRootTimeLimitMinutes,
         commitTransfersMinThresholdAmount,

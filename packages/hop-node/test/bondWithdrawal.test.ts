@@ -48,7 +48,7 @@ describe.skip('bondWithdrawal', () => {
         await prepareAccount(user, sourceNetwork, TOKEN)
         const recipient = await user.getAddress()
         logger.log('starting watchers')
-        const { stop, watchers } = startWatchers({ networks: path })
+        const { stop, watchers } = await startWatchers({ networks: path })
         const sourceBalanceBefore = await user.getBalance(sourceNetwork, TOKEN)
         expect(sourceBalanceBefore).toBeGreaterThan(TRANSFER_AMOUNT)
         const destBalanceBefore = await user.getBalance(destNetwork, TOKEN)

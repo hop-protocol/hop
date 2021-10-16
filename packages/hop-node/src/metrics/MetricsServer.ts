@@ -4,9 +4,12 @@ import { Registry, collectDefaultMetrics } from 'prom-client'
 import { metrics } from './metrics'
 
 export class MetricsServer {
-  app: Express
-  registry: Registry
-  constructor (private readonly logger: Logger, private readonly port = 8080) {
+  private app: Express
+  private registry: Registry
+  private readonly logger: Logger
+
+  constructor (private readonly port = 8080) {
+    this.logger = new Logger('Metrics')
     this.registry = new Registry()
     MetricsServer._registerCustomMetrics(this.registry)
     this.app = express()
@@ -22,7 +25,7 @@ export class MetricsServer {
       gcDurationBuckets: [0.001, 0.01, 0.1, 1, 2, 5]
     })
     this.app.listen(this.port, () => {
-      this.logger.info(`metrics server listening on port ${8080} at /metrics`)
+      this.logger.info(`metrics server listening on port ${this.port} at /metrics`)
     })
   }
 

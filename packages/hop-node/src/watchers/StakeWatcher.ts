@@ -9,7 +9,6 @@ import wait from 'src/utils/wait'
 import { BigNumber, Contract, constants } from 'ethers'
 import { Chain } from 'src/constants'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { metrics } from 'src/metrics'
 
 export interface Config {
   chainSlug: string
@@ -89,8 +88,8 @@ class StakeWatcher extends BaseWatcher {
       this.bridge.getEthBalance()
     ])
 
-    metrics.bonderBalance.set({ chain: this.chainSlug, token: this.tokenSymbol }, this.bridge.formatUnits(balance))
-    metrics.bonderBalance.set({ chain: this.chainSlug, token: 'ETH' }, this.bridge.formatEth(eth))
+    this.metrics.setBonderBalance(this.chainSlug, this.tokenSymbol, this.bridge.formatUnits(balance))
+    this.metrics.setBonderBalance(this.chainSlug, 'ETH', this.bridge.formatEth(eth))
 
     this.logger.debug('eth balance:', this.bridge.formatEth(eth))
     this.logger.debug('token balance:', this.bridge.formatUnits(balance))

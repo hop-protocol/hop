@@ -151,7 +151,7 @@ program
         }
       }
       const stateUpdateAddress = config?.stateUpdateAddress
-      startWatchers({
+      await startWatchers({
         enabledWatchers: Object.keys(enabledWatchers).filter(
           key => enabledWatchers[key]
         ),

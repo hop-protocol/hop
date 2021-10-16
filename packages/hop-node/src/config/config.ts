@@ -58,11 +58,11 @@ type SyncConfigs = { [key: string]: SyncConfig }
 type DbConfig = {
   path: string
 }
-interface MetricsConfig {
+type MetricsConfig = {
   enabled: boolean
   port?: number
 }
-interface Config {
+type Config = {
   isMainnet: boolean
   tokens: Bridges & {[network: string]: any}
   network: string
@@ -144,7 +144,7 @@ export const config: Config = {
     }
   },
   metrics: {
-    enabled: true
+    enabled: false
   }
 }
 

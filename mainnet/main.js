@@ -148,6 +148,11 @@ const app = new Vue({
             return false
           }
 
+          const oneDayAgo = luxon.DateTime.utc().minus({ days: 1 }).toSeconds()
+          if (x.timestamp < oneDayAgo) {
+            return false
+          }
+
           return true
         })
         .slice(start, end)

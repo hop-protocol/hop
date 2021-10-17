@@ -833,7 +833,7 @@ function formatCurrency (value, token) {
     // currency: 'USD'
   })
 
-  if (token === 'MATIC') {
+  if (token === 'MATIC' || token === 'ETH') {
     return `${currencyFormatter.format(value)}`
   }
 

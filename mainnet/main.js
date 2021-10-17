@@ -2,7 +2,7 @@
 
 const poll = true
 const fetchInterval = 10 * 1000
-const enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC']
+const enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH']
 const enabledChains = ['ethereum', 'xdai', 'polygon', 'optimism', 'arbitrum']
 
 let queryParams = {}
@@ -141,6 +141,11 @@ const app = new Vue({
                 return false
               }
             }
+          }
+
+          // remove this once polygon subgraph has finished syncing
+          if (x.token === 'ETH' && x.destinationChainSlug === 'polygon') {
+            return false
           }
 
           return true

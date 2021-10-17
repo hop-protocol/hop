@@ -1,7 +1,7 @@
 import { default as BaseWatcher, Config, Event } from './BaseWatcher'
 import { Chain } from '../models'
 import CanonicalBridge from '../CanonicalBridge'
-import { tokensBridgedTopic, tokenTransferTopic } from './eventTopics'
+import { tokensBridgedTopic, tokenTransferTopic } from '../constants/eventTopics'
 
 class L1ToL2Watcher extends BaseWatcher {
   constructor (config: Config) {

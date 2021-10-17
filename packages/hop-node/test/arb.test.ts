@@ -22,7 +22,7 @@ describe.skip('arb-bot', () => {
       const tx = await user.mint(sourceNetwork, TOKEN, TRANSFER_AMOUNT)
       await tx.wait()
       logger.log('starting watchers')
-      const { stop } = startWatchers({
+      const { stop } = await startWatchers({
         networks: [sourceNetwork, destNetwork]
       })
       const sourceBalanceBefore = await user.getBalance(sourceNetwork, TOKEN)

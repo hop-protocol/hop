@@ -1,7 +1,8 @@
 import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
-import SyncWatcher from '../SyncWatcher'
+import Metrics from './Metrics'
+import SyncWatcher from 'src/watchers/SyncWatcher'
 import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import { Contract } from 'ethers'
@@ -45,6 +46,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   bridge: L2Bridge | L1Bridge
   siblingWatchers: { [chainId: string]: any }
   syncWatcher: SyncWatcher
+  metrics = new Metrics()
   dryMode: boolean
   tag: string
   prefix: string

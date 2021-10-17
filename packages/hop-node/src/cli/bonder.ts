@@ -2,12 +2,11 @@ import {
   FileConfig,
   defaultEnabledWatchers,
   parseConfigFile,
-  setConfigByNetwork
-  , setGlobalConfigFromConfigFile
+  setConfigByNetwork,
+  setGlobalConfigFromConfigFile
 } from 'src/config'
 import { logger, parseArgList, program } from './shared'
 import { printHopArt } from './shared/art'
-
 import { startWatchers } from 'src/watchers/watchers'
 
 program
@@ -46,7 +45,7 @@ program
         {},
         defaultEnabledWatchers
       )
-      startWatchers({
+      await startWatchers({
         enabledWatchers: Object.keys(enabledWatchers).filter(
           key => enabledWatchers[key]
         ),

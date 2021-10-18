@@ -12,7 +12,6 @@ export type TransferRootsDateFilter = {
 }
 
 export type TransferRoot = {
-  destinationBridgeAddress?: string
   transferRootId?: string
   transferRootHash?: string
   totalAmount?: BigNumber
@@ -27,12 +26,14 @@ export type TransferRoot = {
   confirmedAt?: number
   confirmTxHash?: string
   rootSetTxHash?: string
+  rootSetBlockNumber?: number
   rootSetTimestamp?: number
   sentConfirmTxAt?: number
   shouldBondTransferRoot?: boolean
   bonded?: boolean
   sentBondTxAt?: number
   bondTxHash?: string
+  bondBlockNumber?: number
   bondedAt?: number
   transferIds?: string[]
   bonder?: string
@@ -42,6 +43,8 @@ export type TransferRoot = {
   challenged?: boolean
   challengeExpired?: boolean
   allSettled?: boolean
+  multipleWithdrawalsSettledTxHash?: string
+  multipleWithdrawalsSettledTotalAmount?: BigNumber
 }
 
 class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
@@ -282,8 +285,12 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       // Do not check if a rootHash has been committed. A rootHash can be committed and bonded,
       // but if the bond uses a different totalAmount then it is fraudulent. Instead, use the
       // transferRootId. If transferRootIds do not match then we know the bond is fraudulent.
-      const isTransferRootIdValid = item.bondTransferRootId === item.transferRootId
+
+      const isTransferRootIdValid = item?.bondTransferRootId === item?.transferRootId
+
       return (
+        item.transferRootId &&
+        item.bondTransferRootId &&
         item.transferRootHash &&
         item.bonded &&
         !isTransferRootIdValid &&
@@ -336,7 +343,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   async getIncompleteItems (
     filter: Partial<TransferRoot> = {}
   ) {
-    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    const transferRoots: TransferRoot[] = await this.getItems()
     return transferRoots.filter(item => {
       if (filter?.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
@@ -345,6 +352,10 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       }
 
       return (
+        (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
+        (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
+        (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds) ||
+        (item.multipleWithdrawalsSettledTxHash && item.multipleWithdrawalsSettledTotalAmount && !item.transferIds) ||
         (item.commitTxHash && !item.committedAt)
       )
     })

@@ -25,7 +25,7 @@ test.skip(
     const faucet = new User(faucetPrivateKey)
     const users = generateUsers(NUM_USERS, mnemonic)
     await prepareAccounts(users, faucet, token, sourceNetwork)
-    const { stop, watchers } = startWatchers({
+    const { stop, watchers } = await startWatchers({
       networks: [sourceNetwork, destNetwork]
     })
 

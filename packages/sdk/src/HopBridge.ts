@@ -147,6 +147,10 @@ class HopBridge extends Base {
       this.tokenSymbol = token
     }
 
+    if (!token) {
+      throw new Error('token is required')
+    }
+
     this.priceFeed = new PriceFeed()
   }
 
@@ -1670,6 +1674,7 @@ class HopBridge extends Base {
       }
 
       const l1Bridge = await this.getL1Bridge(this.signer)
+      const isNativeToken = this.isNativeToken(sourceChain)
       return l1Bridge.sendToL2(
         destinationChain.chainId,
         recipient,
@@ -1678,7 +1683,10 @@ class HopBridge extends Base {
         deadline,
         relayer,
         bonderFee,
-        await this.txOverrides(Chain.Ethereum)
+        {
+          ...(await this.txOverrides(Chain.Ethereum)),
+          value: isNativeToken ? tokenAmount : undefined
+        }
       )
     } else {
       if (bonderFee.eq(0)) {

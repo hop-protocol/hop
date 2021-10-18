@@ -21,6 +21,7 @@ export type Transfer = {
   withdrawalBondSettled?: boolean
   withdrawalBonded?: boolean
   withdrawalBonder?: string
+  withdrawalBondedTxHash?: string
   withdrawalBondTxError?: TxError
   withdrawalBondBackoffIndex?: number
   bondWithdrawalAttemptedAt?: number
@@ -32,7 +33,7 @@ export type Transfer = {
   amountOutMin?: BigNumber
   bonderFee?: BigNumber
   transferNonce?: string
-  deadline?: number
+  deadline?: BigNumber
   transferSentTimestamp?: number
   transferSentTxHash?: string
   transferSentBlockNumber?: number
@@ -116,6 +117,12 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     if (item?.sourceChainId) {
       item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
     }
+    if (item?.deadline !== undefined) {
+      // convert number to BigNumber for backward compatibility reasons
+      if (typeof item.deadline === 'number') {
+        item.deadline = BigNumber.from(item.deadline)
+      }
+    }
     return normalizeDbItem(item)
   }
 
@@ -140,7 +147,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
 
     // return all transfer-id keys if no filter is used (filter out timestamped keys)
     const keys = (await this.getKeys()).filter((key: string) => !key?.startsWith('transfer:'))
-    return this.batchGetByIds(keys)
+    return keys
   }
 
   async getItems (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
@@ -231,6 +238,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
 
       return (
         item.transferId &&
+        item.transferSentTimestamp &&
         !item.withdrawalBonded &&
         item.transferSentTxHash &&
         item.isBondable &&
@@ -267,7 +275,8 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       }
 
       return (
-        (item.transferSentBlockNumber && !item.transferSentTimestamp)
+        (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
+        (item.withdrawalBondedTxHash && !item.withdrawalBonder)
       )
     })
   }

@@ -396,7 +396,28 @@ async function fetchBonds (chain) {
   `
   const url = getUrl(chain)
   const data = await queryFetch(url, query)
-  return data.withdrawalBondeds
+  return data.withdrawalBondeds || []
+}
+
+async function fetchWithdrews (chain) {
+  const query = `
+    query Withdrews {
+      withdrews(
+        first: 1000,
+        orderBy: timestamp,
+        orderDirection: desc
+      ) {
+        id
+        transferId
+        transactionHash
+        timestamp
+        token
+      }
+    }
+  `
+  const url = getUrl(chain)
+  const data = await queryFetch(url, query)
+  return data.withdrews || []
 }
 
 async function fetchTvl (chain) {
@@ -577,18 +598,39 @@ async function updateTransfers () {
   ])
 
   const [
-    xdaiBonds,
-    polygonBonds,
-    optimismBonds,
-    arbitrumBonds,
-    mainnetBonds
+    xdaiBondedWithdrawals,
+    polygonBondedWithdrawals,
+    optimismBondedWithdrawals,
+    arbitrumBondedWithdrawals,
+    mainnetBondedWithdrawals,
   ] = await Promise.all([
     enabledChains.includes('xdai') ? fetchBonds('xdai') : Promise.resolve([]),
-    enabledChains.includes('xdai') ? fetchBonds('polygon') : Promise.resolve([]),
+    enabledChains.includes('polygon') ? fetchBonds('polygon') : Promise.resolve([]),
     enabledChains.includes('optimism') ? fetchBonds('optimism') : Promise.resolve([]),
     enabledChains.includes('arbitrum') ? fetchBonds('arbitrum') : Promise.resolve([]),
     enabledChains.includes('ethereum') ? fetchBonds('mainnet') : Promise.resolve([])
   ])
+
+  const [
+    xdaiWithdrews,
+    polygonWithdrews,
+    optimismWithdrews,
+    arbitrumWithdrews,
+    mainnetWithdrews,
+  ] = await Promise.all([
+    enabledChains.includes('xdai') ? fetchWithdrews('xdai') : Promise.resolve([]),
+    enabledChains.includes('polygon') ? fetchWithdrews('polygon') : Promise.resolve([]),
+    enabledChains.includes('optimism') ? fetchWithdrews('optimism') : Promise.resolve([]),
+    enabledChains.includes('arbitrum') ? fetchWithdrews('arbitrum') : Promise.resolve([]),
+    enabledChains.includes('ethereum') ? fetchWithdrews('mainnet') : Promise.resolve([])
+  ])
+
+  const xdaiBonds = [...xdaiBondedWithdrawals, ...xdaiWithdrews]
+  const polygonBonds = [...polygonBondedWithdrawals, ...polygonWithdrews]
+  const optimismBonds = [...optimismBondedWithdrawals, ...optimismWithdrews]
+  const arbitrumBonds = [...arbitrumBondedWithdrawals, ...arbitrumWithdrews]
+  const mainnetBonds = [...mainnetBondedWithdrawals, ...mainnetWithdrews]
+
 
   for (const x of xdaiTransfers) {
     data.push({

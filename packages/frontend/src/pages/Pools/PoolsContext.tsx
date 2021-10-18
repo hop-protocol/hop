@@ -8,8 +8,8 @@ import React, {
   useRef,
   useCallback,
 } from 'react'
-import { ethers, Signer, BigNumber } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { Signer, BigNumber } from 'ethers'
+import { formatUnits } from 'ethers/lib/utils'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -17,7 +17,6 @@ import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import Network from 'src/models/Network'
 import Address from 'src/models/Address'
 import Price from 'src/models/Price'
-import { UINT256 } from 'src/constants'
 import Transaction from 'src/models/Transaction'
 import useInterval from 'src/hooks/useInterval'
 import useBalance from 'src/hooks/useBalance'
@@ -25,6 +24,7 @@ import logger from 'src/logger'
 import useApprove from 'src/hooks/useApprove'
 import { shiftBNDecimals } from 'src/utils'
 import { reactAppNetwork } from 'src/config'
+import { amountToBN } from 'src/utils/format'
 
 type PoolsContextProps = {
   networks: Network[]
@@ -239,13 +239,13 @@ const PoolsContextProvider: FC = ({ children }) => {
         return
       }
 
-      const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), TOTAL_AMOUNTS_DECIMALS)
+      const tokenUsdPriceBn = amountToBN(tokenUsdPrice.toString(), TOTAL_AMOUNTS_DECIMALS)
       const bridge = await sdk.bridge(canonicalToken.symbol)
       const ammTotal = await bridge.getReservesTotal(selectedNetwork.slug)
       if (ammTotal.lte(0)) {
         return 0
       }
-      const precision = parseUnits('1', 18)
+      const precision = amountToBN('1', 18)
       const ammTotal18d = shiftBNDecimals(
         ammTotal,
         TOTAL_AMOUNTS_DECIMALS - canonicalToken.decimals
@@ -328,8 +328,8 @@ const PoolsContextProvider: FC = ({ children }) => {
     try {
       const bridge = await sdk.bridge(canonicalToken.symbol)
       const amm = bridge.getAmm(selectedNetwork.slug)
-      const amount0 = parseUnits(token0Amount || '0', canonicalToken?.decimals)
-      const amount1 = parseUnits(token1Amount || '0', hopToken?.decimals)
+      const amount0 = amountToBN(token0Amount || '0', canonicalToken?.decimals)
+      const amount1 = amountToBN(token1Amount || '0', hopToken?.decimals)
       const price = await amm.getPriceImpact(amount0, amount1)
       return Number(formatUnits(price.toString(), 18))
     } catch (err) {
@@ -498,7 +498,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     const amm = bridge.getAmm(network.slug)
     const saddleSwap = await amm.getSaddleSwap()
     const spender = saddleSwap.address
-    const parsedAmount = parseUnits(amount, canonicalToken.decimals)
+    const parsedAmount = amountToBN(amount, canonicalToken.decimals)
     let token = isHop ? bridge.getL2HopToken(network.slug) : bridge.getCanonicalToken(network.slug)
     if (token.isNativeToken) {
       token = token.getWrappedToken()
@@ -553,8 +553,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         },
         onConfirm: async () => {
           const signer = provider?.getSigner()
-          const amount0Desired = parseUnits(token0Amount || '0', canonicalToken?.decimals)
-          const amount1Desired = parseUnits(token1Amount || '0', hopToken?.decimals)
+          const amount0Desired = amountToBN(token0Amount || '0', canonicalToken?.decimals)
+          const amount1Desired = amountToBN(token1Amount || '0', hopToken?.decimals)
 
           const bridge = sdk.bridge(canonicalToken.symbol)
           const amm = bridge.getAmm(selectedNetwork.slug)

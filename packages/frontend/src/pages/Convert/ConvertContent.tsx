@@ -1,5 +1,4 @@
-import React, { FC, useState, useEffect } from 'react'
-import { Switch, Route, useRouteMatch } from 'react-router-dom'
+import React, { FC, useEffect } from 'react'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
@@ -9,10 +8,9 @@ import Button from 'src/components/buttons/Button'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/txStatus/TxStatusModal'
-import DetailRow from 'src/components/DetailRow'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
-import { commafy, normalizeNumberInput } from 'src/utils'
 import TokenWrapper from 'src/components/TokenWrapper'
+import { fixedDecimals } from 'src/utils/format'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -75,9 +73,8 @@ const Convert: FC = () => {
     sending,
     needsApproval,
     convertTokens,
-    approveTokens
+    approveTokens,
   } = useConvert()
-  const { path } = useRouteMatch()
 
   useEffect(() => {
     setSourceTokenAmount('')
@@ -86,8 +83,10 @@ const Convert: FC = () => {
 
   const handleSourceTokenAmountChange = async (amount: string) => {
     try {
-      const normalizedAmount = normalizeNumberInput(amount)
-      setSourceTokenAmount(normalizedAmount)
+      if (sourceToken) {
+        const normalizedAmount = fixedDecimals(amount, sourceToken?.decimals)
+        setSourceTokenAmount(normalizedAmount)
+      }
     } catch (err) {}
   }
 

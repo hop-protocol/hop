@@ -34,12 +34,16 @@ export function formatError(error: Error & ErrorData, network?: Network) {
   return 'Something went wrong. Please try again.'
 }
 
-export function amountToBN(token: Token | undefined, amount: string): BigNumber | undefined {
-  if (!token) return
-  try {
-    const sanitizedAmount = amount.replace(/,/g, '')
-    return parseUnits(sanitizedAmount, token.decimals)
-  } catch (err) {
-    // noop
-  }
+export function amountToBN(amount: string, decimals: number = 18) {
+  const fixedAmount = fixedDecimals(amount, decimals)
+  return parseUnits(fixedAmount, decimals)
+}
+
+export function fixedDecimals(amount: string, decimals: number): string {
+  const sanitizedAmount = amount.replace(/,/g, '')
+  const indexOfDecimal = sanitizedAmount.indexOf('.')
+  const wholeAmount = sanitizedAmount.slice(0, indexOfDecimal)
+  const fractionalAmount = sanitizedAmount.slice(indexOfDecimal + 1)
+  const fixedAmount = `${wholeAmount}.${fractionalAmount.slice(0, decimals)}`
+  return fixedAmount
 }

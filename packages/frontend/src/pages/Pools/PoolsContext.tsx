@@ -8,7 +8,7 @@ import React, {
   useRef,
   useCallback,
 } from 'react'
-import { ethers, Signer, BigNumber } from 'ethers'
+import { Signer, BigNumber } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
@@ -17,7 +17,6 @@ import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import Network from 'src/models/Network'
 import Address from 'src/models/Address'
 import Price from 'src/models/Price'
-import { UINT256 } from 'src/constants'
 import Transaction from 'src/models/Transaction'
 import useInterval from 'src/hooks/useInterval'
 import useBalance from 'src/hooks/useBalance'
@@ -25,6 +24,7 @@ import logger from 'src/logger'
 import useApprove from 'src/hooks/useApprove'
 import { shiftBNDecimals } from 'src/utils'
 import { reactAppNetwork } from 'src/config'
+import { amountToBN } from 'src/utils/format'
 
 type PoolsContextProps = {
   networks: Network[]
@@ -239,13 +239,13 @@ const PoolsContextProvider: FC = ({ children }) => {
         return
       }
 
-      const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), TOTAL_AMOUNTS_DECIMALS)
+      const tokenUsdPriceBn = amountToBN(tokenUsdPrice.toString(), TOTAL_AMOUNTS_DECIMALS)
       const bridge = await sdk.bridge(canonicalToken.symbol)
       const ammTotal = await bridge.getReservesTotal(selectedNetwork.slug)
       if (ammTotal.lte(0)) {
         return 0
       }
-      const precision = parseUnits('1', 18)
+      const precision = amountToBN('1', 18)
       const ammTotal18d = shiftBNDecimals(
         ammTotal,
         TOTAL_AMOUNTS_DECIMALS - canonicalToken.decimals
@@ -328,8 +328,8 @@ const PoolsContextProvider: FC = ({ children }) => {
     try {
       const bridge = await sdk.bridge(canonicalToken.symbol)
       const amm = bridge.getAmm(selectedNetwork.slug)
-      const amount0 = parseUnits(token0Amount || '0', canonicalToken?.decimals)
-      const amount1 = parseUnits(token1Amount || '0', hopToken?.decimals)
+      const amount0 = amountToBN(token0Amount || '0', canonicalToken?.decimals)
+      const amount1 = amountToBN(token1Amount || '0', hopToken?.decimals)
       const price = await amm.getPriceImpact(amount0, amount1)
       return Number(formatUnits(price.toString(), 18))
     } catch (err) {
@@ -425,51 +425,58 @@ const PoolsContextProvider: FC = ({ children }) => {
   const updateUserPoolPositions = useCallback(async () => {
     try {
       if (!(canonicalToken && provider && selectedNetwork.provider && poolReserves)) {
+        setToken1Rate('')
+        setToken0Deposited('')
+        setToken1Deposited('')
+        setTotalSupply('')
+        setUserPoolTokenPercentage('')
         return
       }
-      const [reserve0, reserve1] = poolReserves
       const bridge = await sdk.bridge(canonicalToken.symbol)
       const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
 
-      const [lpDecimalsBn, totalSupply, balance] = await Promise.all([
+      const [lpDecimalsBn, totalSupply, balance, reserves] = await Promise.all([
         lpToken.decimals,
         (await lpToken.getErc20()).totalSupply(),
         lpToken.balanceOf(),
+        bridge.getSaddleSwapReserves(selectedNetwork.slug),
       ])
+      const tokenDecimals = canonicalToken?.decimals
       const lpDecimals = Number(lpDecimalsBn.toString())
 
+      const [reserve0, reserve1] = reserves
       const formattedTotalSupply = formatUnits(totalSupply.toString(), lpDecimals)
-      setTotalSupply(formattedTotalSupply)
 
       const formattedBalance = formatUnits(balance.toString(), lpDecimals)
+
+      const oneToken = parseUnits('1', lpDecimals)
+      const poolPercentage = (balance.mul(oneToken)).div(totalSupply).mul(100)
+      const formattedPoolPercentage = Number(formatUnits(poolPercentage, lpDecimals)).toFixed(2)
+      setUserPoolTokenPercentage(formattedPoolPercentage === '0.00' ? '<0.01' : formattedPoolPercentage)
+
+      const token0Deposited = (balance.mul(reserve0)).div(totalSupply)
+      const token1Deposited = (balance.mul(reserve1)).div(totalSupply)
+      const token0DepositedFormatted = Number(formatUnits(token0Deposited, tokenDecimals))
+      const token1DepositedFormatted = Number(formatUnits(token1Deposited, tokenDecimals))
+
+      setTotalSupply(formattedTotalSupply)
       setUserPoolBalance(Number(formattedBalance).toFixed(2))
-
-      const poolPercentage = (Number(formattedBalance) / Number(formattedTotalSupply)) * 100
-      const formattedPoolPercentage =
-        poolPercentage.toFixed(2) === '0.00' ? '<0.01' : poolPercentage.toFixed(2)
-      setUserPoolTokenPercentage(formattedPoolPercentage)
-
-      const token0Deposited =
-        (Number(formattedBalance) * Number(reserve0)) / Number(formattedTotalSupply)
-      const token1Deposited =
-        (Number(formattedBalance) * Number(reserve1)) / Number(formattedTotalSupply)
-      if (token0Deposited) {
-        setToken0Deposited(token0Deposited.toFixed(2))
+      if (token0DepositedFormatted) {
+        setToken0Deposited(token0DepositedFormatted.toFixed(2))
       }
-      if (token1Deposited) {
-        setToken1Deposited(token1Deposited.toFixed(2))
+      if (token1DepositedFormatted) {
+        setToken1Deposited(token1DepositedFormatted.toFixed(2))
       }
-
-      if (!Number(reserve0) && !Number(reserve1)) {
+      if (reserve0?.eq(0) && reserve1?.eq(0)) {
         setToken1Rate('0')
       } else {
-        const amount0 = (1 * Number(reserve1)) / Number(reserve0)
-        setToken1Rate(amount0.toString())
+        const amount0 = formatUnits(reserve1.mul(oneToken).div(reserve0), tokenDecimals)
+        setToken1Rate(Number(amount0).toFixed(2))
       }
     } catch (err) {
       logger.error(err)
     }
-  }, [provider, selectedNetwork, canonicalToken, hopToken, poolReserves])
+  }, [provider, selectedNetwork, canonicalToken, hopToken])
 
   useEffect(() => {
     updateUserPoolPositions()
@@ -481,7 +488,7 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   useInterval(() => {
     updateUserPoolPositions()
-  }, 20 * 1000)
+  }, 5 * 1000)
 
   const { approve } = useApprove()
   const approveTokens = async (isHop: boolean, amount: string, network: Network) => {
@@ -498,7 +505,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     const amm = bridge.getAmm(network.slug)
     const saddleSwap = await amm.getSaddleSwap()
     const spender = saddleSwap.address
-    const parsedAmount = parseUnits(amount, canonicalToken.decimals)
+    const parsedAmount = amountToBN(amount, canonicalToken.decimals)
     let token = isHop ? bridge.getL2HopToken(network.slug) : bridge.getCanonicalToken(network.slug)
     if (token.isNativeToken) {
       token = token.getWrappedToken()
@@ -553,8 +560,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         },
         onConfirm: async () => {
           const signer = provider?.getSigner()
-          const amount0Desired = parseUnits(token0Amount || '0', canonicalToken?.decimals)
-          const amount1Desired = parseUnits(token1Amount || '0', hopToken?.decimals)
+          const amount0Desired = amountToBN(token0Amount || '0', canonicalToken?.decimals)
+          const amount1Desired = amountToBN(token1Amount || '0', hopToken?.decimals)
 
           const bridge = sdk.bridge(canonicalToken.symbol)
           const amm = bridge.getAmm(selectedNetwork.slug)

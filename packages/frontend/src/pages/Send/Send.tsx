@@ -10,7 +10,7 @@ import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/txStatus/TxStatusModal'
 import DetailRow from 'src/components/DetailRow'
 import { BigNumber } from 'ethers'
-import { parseUnits, formatUnits } from 'ethers/lib/utils'
+import { formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
@@ -109,7 +109,9 @@ const Send: FC = () => {
 
   // Set fromToken -> BN
   const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {
-    return amountToBN(sourceToken, fromTokenAmount)
+    if (sourceToken) {
+      return amountToBN(fromTokenAmount, sourceToken.decimals)
+    }
   }, [sourceToken, fromTokenAmount])
 
   // Use send data for tx
@@ -309,7 +311,7 @@ const Send: FC = () => {
         return false
       }
 
-      const parsedAmount = parseUnits(fromTokenAmount, sourceToken.decimals)
+      const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
       const bridge = sdk.bridge(sourceToken.symbol)
 
       let spender: string
@@ -345,7 +347,7 @@ const Send: FC = () => {
     const isNetworkConnected = await checkConnectedNetworkId(networkId)
     if (!isNetworkConnected) return
 
-    const parsedAmount = parseUnits(fromTokenAmount, sourceToken.decimals)
+    const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
     const bridge = sdk.bridge(sourceToken.symbol)
 
     let spender: string

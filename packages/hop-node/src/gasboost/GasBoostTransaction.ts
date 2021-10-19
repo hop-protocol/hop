@@ -1,12 +1,12 @@
 import BNMax from 'src/utils/BNMax'
 import BNMin from 'src/utils/BNMin'
 import Logger from 'src/logger'
-import MemoryStore from './MemoryStore'
 import Store from './Store'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedBN from 'src/utils/getBumpedBN'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
+import getTransferIdFromCalldata from 'src/utils/getTransferIdFromCalldata'
 import wait from 'src/utils/wait'
 import { BigNumber, Signer, providers } from 'ethers'
 import { Chain, MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
@@ -80,7 +80,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   boostIndex: number = 0 // number of times transaction has been boosted
   inflightItems: InflightItem[] = []
   signer: Signer
-  store: Store = new MemoryStore()
+  store: Store
   logger: Logger
   notifier: Notifier
   chainSlug: string
@@ -110,7 +110,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (store) {
       this.store = store
     }
-    this.id = uuidv4()
     this.createdAt = Date.now()
     this.from = tx.from
     this.to = tx.to
@@ -137,6 +136,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.gasLimit = BigNumber.from(tx.gasLimit.toString())
     }
 
+    this.id = this.generateId()
     this.setOptions(options)
 
     const chainSlug = getProviderChainSlug(this.signer.provider)
@@ -146,7 +146,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
     const tag = 'GasBoostTransaction'
-    const prefix = `${this.chainSlug} id: ${this.id}`
+    let prefix = `${this.chainSlug} id: ${this.id}`
+    const transferId = this.decodeTransferId()
+    if (transferId) {
+      prefix = `${prefix} transferId: ${transferId}`
+    }
     this.logger = new Logger({
       tag,
       prefix
@@ -155,6 +159,25 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.notifier = new Notifier(
       `GasBoost, label: ${prefix}, host: ${hostname}`
     )
+  }
+
+  generateId (): string {
+    return uuidv4()
+  }
+
+  decodeTransferId (): string {
+    if (this.data) {
+      try {
+        if (this.data?.startsWith('0x3d12a85a') || this.data?.startsWith('0x23c452cd')) {
+          const transferId = getTransferIdFromCalldata(this.data, this.chainId)
+          if (transferId) {
+            return transferId
+          }
+        }
+      } catch (err) {
+        // noop
+      }
+    }
   }
 
   get hash ():string {
@@ -205,6 +228,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async save () {
+    if (!this.store) {
+      return
+    }
     await this.store.updateItem(this.id, this.marshal())
   }
 
@@ -673,9 +699,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return true
   }
 
-  // https://stackoverflow.com/q/35185749/1439168
+  // explainer: https://stackoverflow.com/q/35185749/1439168
   private _emitError (err: Error) {
-    if (this.listeners('error').length > 0) {
+    if (this.listeners(State.Error).length > 0) {
       this.emit(State.Error, err)
     }
   }

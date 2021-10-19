@@ -21,13 +21,15 @@ program
         const config: FileConfig = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      const tokens = Object.keys(globalConfig.tokens)
+      const tokens = Object.keys(globalConfig.tokens ?? {})
+      const promises: Array<Promise<void>> = []
       for (const token of tokens) {
-        new PolygonBridgeWatcher({
+        promises.push(new PolygonBridgeWatcher({
           chainSlug: Chain.Polygon,
           tokenSymbol: token
-        }).start()
+        }).start())
       }
+      await Promise.all(promises)
     } catch (err) {
       logger.error(err)
       process.exit(1)

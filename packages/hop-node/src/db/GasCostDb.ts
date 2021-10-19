@@ -13,11 +13,11 @@ export type GasCost = BaseItem & {
   timestamp: number // in seconds
   attemptSwap: boolean
   gasCost: BigNumber
-  gasCostUsd: string
+  gasCostUsd: number
   gasPrice: BigNumber
   gasLimit: BigNumber
-  tokenPrice: BigNumber
-  nativeTokenPrice: BigNumber
+  tokenPrice: number
+  nativeTokenPrice: number
 }
 
 class GasCostDb extends BaseDb {
@@ -38,7 +38,7 @@ class GasCostDb extends BaseDb {
   }
 
   async update (key: string, data: GasCost) {
-    return super.update(key, data)
+    return this._update(key, data)
   }
 
   async addGasCost (data: GasCost) {

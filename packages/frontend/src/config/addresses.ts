@@ -52,12 +52,12 @@ console.log(`
            /_/
 `)
 console.log('Welcome 🐰')
+console.debug('ui version:', process.env.REACT_APP_GIT_SHA);
 console.debug('config network:', network)
 console.debug('config chains:', networks)
 console.debug('config addresses:', addresses.tokens)
 
 export { addresses, reactAppNetwork, network, networks, isMainnet }
 export const blocknativeDappid = '328621b8-952f-4a86-bd39-724ba822d416'
-export const infuraKey = '8e4fe7af961f48a1958584ec36742b44'
 export const fortmaticApiKey = 'pk_live_AB6F615F133473CA'
 export const portisDappId = 'fbde3745-1363-4ae4-a517-00d98ab2dfbc'

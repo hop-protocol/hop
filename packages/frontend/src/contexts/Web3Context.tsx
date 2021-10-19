@@ -10,7 +10,7 @@ import {
   getPublicRpcUrl,
   getBaseExplorerUrl,
 } from 'src/utils'
-import { networks, infuraKey, blocknativeDappid, fortmaticApiKey, portisDappId } from 'src/config'
+import { networks, blocknativeDappid, fortmaticApiKey, portisDappId } from 'src/config'
 import { L1_NETWORK } from 'src/constants'
 
 import MetamaskAccountsSettingsHighlight from 'src/assets/onboard/metamask-accounts-settings-highlight.png'
@@ -86,10 +86,16 @@ const Web3ContextProvider: FC = ({ children }) => {
         walletName: 'walletConnect',
         rpc: {
           1: getRpcUrl('ethereum'),
+          42: getRpcUrl('ethereum'),
           42161: getRpcUrl('arbitrum'),
+          421611: getRpcUrl('arbitrum'),
+          200: getRpcUrl('arbitrum'),
           10: getRpcUrl('optimism'),
+          69: getRpcUrl('optimism'),
+          420: getRpcUrl('optimism'),
           100: getRpcUrl('xdai'),
           137: getRpcUrl('polygon'),
+          80001: getRpcUrl('polygon')
         },
         preferred: true,
       },
@@ -253,13 +259,11 @@ const Web3ContextProvider: FC = ({ children }) => {
   }
 
   const disconnectWallet = () => {
-    ;(async () => {
-      try {
-        await onboard.walletReset()
-      } catch (err) {
-        logger.error(err)
-      }
-    })()
+    try {
+      onboard.walletReset()
+    } catch (error) {
+      logger.error(error)
+    }
   }
 
   const walletConnected = !!address

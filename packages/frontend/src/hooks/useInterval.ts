@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import logger from 'src/logger'
 
 const useInterval = (callback: () => any, delay: number) => {
   const savedCallback = useRef<() => any>()
@@ -33,7 +34,7 @@ const useInterval = (callback: () => any, delay: number) => {
       }
     }
 
-    tick()
+    tick().catch(logger.error)
 
     return () => {
       clearTimeout(id)

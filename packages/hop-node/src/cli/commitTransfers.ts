@@ -43,7 +43,7 @@ program
         throw new Error('token is required')
       }
 
-      const watchers = getWatchers({
+      const watchers = await getWatchers({
         enabledWatchers: ['commitTransfers'],
         tokens: [token],
         dryMode
@@ -57,7 +57,7 @@ program
       const destinationChainId = chainSlugToId(destinationChain)
       await watcher.checkIfShouldCommit(destinationChainId)
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

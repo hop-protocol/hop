@@ -7,20 +7,7 @@ import { hostname, rateLimitMaxRetries, rpcTimeoutSeconds } from 'src/config'
 const logger = new Logger('rateLimitRetry')
 const notifier = new Notifier(`rateLimitRetry, host: ${hostname}`)
 
-export default function rateLimitRetry (
-  target: Object,
-  propertyKey: string,
-  descriptor: PropertyDescriptor
-): any {
-  const originalMethod = descriptor.value
-  descriptor.value = async function (...args: any[]) {
-    return rateLimitRetryFn(originalMethod.bind(this))(...args)
-  }
-
-  return descriptor
-}
-
-export function rateLimitRetryFn (fn: any): any {
+export default function rateLimitRetry (fn: any): any {
   const id = `${process.hrtime()[1]}`
   const log = logger.create({ id })
   return async (...args: any[]) => {
@@ -36,7 +23,8 @@ export function rateLimitRetryFn (fn: any): any {
         return result
       } catch (err) {
         const errorRegex = /(timeout|timedout|ETIMEDOUT|ENETUNREACH|ECONNRESET|bad response|response error|missing response|rate limit|too many concurrent requests|socket hang up)/gi
-        const isRateLimitError = errorRegex.test(err.message)
+        const notRateLimitErrorRegex = /revert/gi
+        const isRateLimitError = errorRegex.test(err.message) && !notRateLimitErrorRegex.test(err.message)
         // throw error as usual if it's not a rate limit error
         if (!isRateLimitError) {
           log.error(err.message)
@@ -45,9 +33,9 @@ export function rateLimitRetryFn (fn: any): any {
         retries++
         // if it's a rate limit error, then throw error after max retries attempted.
         if (retries >= rateLimitMaxRetries) {
-          logger.error(`max retries (${rateLimitMaxRetries}) reached. Error: ${err.message}`)
+          logger.error(`max retries (${rateLimitMaxRetries}) reached. Error: ${err}`)
           // this must be a regular console log to print original function name
-          console.log(fn, id)
+          console.log(fn, id, ...args)
           notifier.error(`max retries (${rateLimitMaxRetries}) reached. Error: ${err.message}`)
           throw err
         }
@@ -59,7 +47,7 @@ export function rateLimitRetryFn (fn: any): any {
           }". retrying again in ${delayMs / 1000} seconds.`
         )
         // this must be a regular console log to print original function name
-        console.log(fn, id)
+        console.log(fn, id, ...args)
         // exponential backoff wait
         await wait(delayMs)
       }

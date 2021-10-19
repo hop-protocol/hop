@@ -73,7 +73,7 @@ class HopConvertOption extends ConvertOption {
         deadline
       )) || BigNumber.from(0)
 
-    const availableLiquidity = await bridge.getAvailableLiquidity(
+    const availableLiquidity = await bridge.getFrontendAvailableLiquidity(
       sourceNetwork.slug,
       destNetwork.slug
     )

@@ -122,6 +122,30 @@ describe('GasBoostSigner', () => {
     expect(maxGasPriceReached).toBeTruthy()
     expect(boostedIndex).toBe(1)
   }, 10 * 60 * 1000)
+  it.skip('nonceTooLow', async () => {
+    const provider = getRpcProvider('xdai')
+    const store = new MemoryStore()
+    const signer = new GasBoostSigner(privateKey, provider, store, {
+      timeTilBoostMs: 5 * 1000
+    })
+    const recipient = await signer.getAddress()
+    console.log('recipient:', recipient)
+    expect(signer.nonce).toBe(0)
+    let errMsg = ''
+    const nonce = await signer.getTransactionCount('pending')
+    try {
+      const tx = await signer.sendTransaction({
+        to: recipient,
+        value: '0',
+        gasPrice: '100000000', // 0.1 gwei
+        nonce: nonce - 1
+      })
+    } catch (err) {
+      errMsg = err.message
+    }
+    expect(errMsg).toBe('NonceTooLow')
+    expect(signer.nonce).toBe(nonce + 1)
+  }, 10 * 60 * 1000)
 })
 
 describe('GasBoostTransaction', () => {

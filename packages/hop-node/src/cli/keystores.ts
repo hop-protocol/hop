@@ -150,7 +150,7 @@ Press [Enter] to exit.
         console.log(`unsupported command: "${action}"`) // intentional log
       }
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

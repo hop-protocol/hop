@@ -44,7 +44,7 @@ program
         throw new Error('transfer ID is required')
       }
 
-      const watchers = getWatchers({
+      const watchers = await getWatchers({
         enabledWatchers: ['settleBondedWithdrawals'],
         tokens: [token],
         dryMode
@@ -59,7 +59,7 @@ program
 
       process.exit(0)
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

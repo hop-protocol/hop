@@ -75,7 +75,7 @@ const Convert: FC = () => {
     sending,
     needsApproval,
     convertTokens,
-    approveTokens,
+    approveTokens
   } = useConvert()
   const { path } = useRouteMatch()
 
@@ -103,7 +103,7 @@ const Convert: FC = () => {
     approveTokens()
   }
 
-  const sendButtonActive = validFormFields && !unsupportedAsset && !needsApproval
+  const sendButtonActive = validFormFields && !unsupportedAsset && !needsApproval && !warning
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">

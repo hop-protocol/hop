@@ -6,8 +6,19 @@ import TokenPricesDb from './TokenPricesDb'
 import TransferRootsDb from './TransferRootsDb'
 import TransfersDb from './TransfersDb'
 
+// these are the db instances (initialized only once).
+// gas prices and token prices db are global (not token specific)
 let gasPricesDb: GasPricesDb | null = null
 let tokenPricesDb: TokenPricesDb | null = null
+
+// dbSets are token specific instances
+const dbSets : {[db: string]: {[tokenSymbol: string]: any}} = {
+  gasBoostDb: {},
+  syncStateDb: {},
+  transfersDb: {},
+  transferRootsDb: {},
+  gasCostDb: {}
+}
 
 export const getGasPricesDb = () => {
   if (!gasPricesDb) {
@@ -23,57 +34,61 @@ export const getTokenPricesDb = () => {
   return tokenPricesDb
 }
 
-export function getDbSet (tokenSymbol: string) {
+export type Db = GasBoostDb | GasPricesDb | SyncStateDb | TokenPricesDb | TransferRootsDb | TransfersDb
+export type DbSet = {
+  gasBoost: GasBoostDb,
+  syncState: SyncStateDb,
+  transfers: TransfersDb,
+  transferRoots: TransferRootsDb,
+  gasPrices: GasPricesDb,
+  tokenPrices : TokenPricesDb,
+  gasCost: GasCostDb,
+}
+
+export function getDbSet (tokenSymbol: string): DbSet {
   if (!tokenSymbol) {
     throw new Error('token symbol is required to namespace leveldbs')
   }
 
-  let gasBoostDb : GasBoostDb | null = null
-  let syncStateDb: SyncStateDb | null = null
-  let transfersDb: TransfersDb | null = null
-  let transferRootsDb: TransferRootsDb | null = null
-  let gasCostDb: GasCostDb | null = null
-
   // lazy instantiate with getters
   return {
-    get gasBoost () {
-      if (!gasBoostDb) {
-        gasBoostDb = new GasBoostDb('gasBoost')
+    get gasBoost (): GasBoostDb {
+      if (!dbSets.gasBoostDb[tokenSymbol]) {
+        dbSets.gasBoostDb[tokenSymbol] = new GasBoostDb('gasBoost')
       }
-      return gasBoostDb
+      return dbSets.gasBoostDb[tokenSymbol]
     },
-    get syncState () {
-      if (!syncStateDb) {
-        syncStateDb = new SyncStateDb('state', tokenSymbol)
+    get syncState () : SyncStateDb {
+      if (!dbSets.syncStateDb[tokenSymbol]) {
+        dbSets.syncStateDb[tokenSymbol] = new SyncStateDb('state', tokenSymbol)
       }
-      return syncStateDb
+      return dbSets.syncStateDb[tokenSymbol]
     },
-    get transfers () {
-      if (!transfersDb) {
-        transfersDb = new TransfersDb('transfers', tokenSymbol)
+    get transfers () : TransfersDb {
+      if (!dbSets.transfersDb[tokenSymbol]) {
+        dbSets.transfersDb[tokenSymbol] = new TransfersDb('transfers', tokenSymbol)
       }
-      return transfersDb
+      return dbSets.transfersDb[tokenSymbol]
     },
-    get transferRoots () {
-      if (!transferRootsDb) {
-        transferRootsDb = new TransferRootsDb('transferRoots', tokenSymbol)
+    get transferRoots () : TransferRootsDb {
+      if (!dbSets.transferRootsDb[tokenSymbol]) {
+        dbSets.transferRootsDb[tokenSymbol] = new TransferRootsDb('transferRoots', tokenSymbol)
       }
-      return transferRootsDb
+      return dbSets.transferRootsDb[tokenSymbol]
     },
-    get gasPrices () {
+    get gasPrices () : GasPricesDb {
       return getGasPricesDb()
     },
-    get tokenPrices () {
+    get tokenPrices () : TokenPricesDb {
       return getTokenPricesDb()
     },
-    get gasCost () {
-      if (!gasCostDb) {
-        gasCostDb = new GasCostDb('gasCost', tokenSymbol)
+    get gasCost (): GasCostDb {
+      if (!dbSets.gasCostDb[tokenSymbol]) {
+        dbSets.gasCostDb[tokenSymbol] = new GasCostDb('gasCost', tokenSymbol)
       }
-      return gasCostDb
+      return dbSets.gasCostDb[tokenSymbol]
     }
   }
 }
 
-export type Db = any
 export default { getDbSet, getGasPricesDb, getTokenPricesDb }

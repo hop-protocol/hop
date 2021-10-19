@@ -1,11 +1,11 @@
 {
   "name": "@hop-protocol/core",
-  "version": "0.0.1-beta.31",
+  "version": "0.0.1-beta.39",
   "description": "Hop Protocol networks config",
   "main": "index.js",
   "types": "index.d.ts",
   "engines": {
-    "node": "^14",
+    "node": ">=14",
     "yarn": "^1.22.11"
   },
   "scripts": {

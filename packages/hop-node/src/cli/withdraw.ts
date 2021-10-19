@@ -80,7 +80,7 @@ program
       await withdrawTokens(chain, token, amount, recipient, isHToken)
       process.exit(0)
     } catch (err) {
-      logger.error(err.message)
+      logger.error(err)
       process.exit(1)
     }
   })

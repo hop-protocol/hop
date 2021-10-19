@@ -1,7 +1,7 @@
-import BaseDb, { BaseItem } from './BaseDb'
+import BaseDb, { BaseItem, KeyFilter } from './BaseDb'
 import nearest from 'nearest-date'
 import wait from 'src/utils/wait'
-import { OneHourMs, OneWeekMs } from 'src/constants'
+import { OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
 export const varianceSeconds = 10 * 60
@@ -30,7 +30,7 @@ class TokenPricesDb extends BaseDb {
   }
 
   async update (key: string, data: TokenPrice) {
-    return super.update(key, data)
+    return this._update(key, data)
   }
 
   async addTokenPrice (data: TokenPrice) {
@@ -38,18 +38,19 @@ class TokenPricesDb extends BaseDb {
     return this.update(key, data)
   }
 
-  async getItems ():Promise<TokenPrice[]> {
-    const keys = await this.getKeys()
-    const items: TokenPrice[] = (await Promise.all(
-      keys.map((key: string) => {
-        return this.getById(key)
-      })))
-
-    return items
+  async getItems (filter?: KeyFilter):Promise<TokenPrice[]> {
+    const items : TokenPrice[] = await this.getValues(filter)
+    return items.filter(x => x)
   }
 
-  async getNearest (token: string, targetTimestamp: number): Promise<TokenPrice | null> {
-    const items : TokenPrice[] = (await this.getItems()).filter((item: TokenPrice) => item.token === token && item.timestamp)
+  async getNearest (token: string, targetTimestamp: number, staleCheck: boolean = true): Promise<TokenPrice | null> {
+    const startTimestamp = targetTimestamp - OneHourSeconds
+    const endTimestamp = targetTimestamp + OneHourSeconds
+    const filter = {
+      gte: `${token}:${startTimestamp}`,
+      lte: `${token}:${endTimestamp}~`
+    }
+    const items : TokenPrice[] = (await this.getItems(filter)).filter((item: TokenPrice) => item.token === token && item.timestamp)
 
     const dates = items.map((item: TokenPrice) => item.timestamp)
     const index = nearest(dates, targetTimestamp)
@@ -57,8 +58,8 @@ class TokenPricesDb extends BaseDb {
       return null
     }
     const item = normalizeDbItem(items[index])
-    const isTooFar = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
-    if (isTooFar) {
+    const isStale = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
+    if (staleCheck && isStale) {
       return null
     }
     return item

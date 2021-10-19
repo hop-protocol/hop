@@ -111,7 +111,7 @@ const useStepIconStyles = makeStyles({
   },
 })
 
-function StepIcon(props: StepIconProps) {
+export function StepIcon(props: StepIconProps) {
   const styles = useStepIconStyles()
   const { active, completed } = props
   const loader = active && !completed
@@ -199,6 +199,7 @@ const Status: FC<StatusProps> = (props: StatusProps) => {
           </Typography>
         </Box>
       ) : null}
+
       <Box display="flex" alignItems="center" className={styles.box}>
         <Stepper alternativeLabel activeStep={activeStep} connector={<CustomStepConnector />}>
           {steps.map(step => {
@@ -235,6 +236,7 @@ const Status: FC<StatusProps> = (props: StatusProps) => {
           })}
         </Stepper>
       </Box>
+
       {variant !== 'mini' && tx?.token && receivedHToken ? (
         <>
           <Box display="flex" alignItems="center" className={styles.notice}>

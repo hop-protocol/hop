@@ -9,7 +9,7 @@ import React, {
   useCallback,
 } from 'react'
 import { Signer, BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -427,7 +427,6 @@ const PoolsContextProvider: FC = ({ children }) => {
       if (!(canonicalToken && provider && selectedNetwork.provider && poolReserves)) {
         return
       }
-      const [reserve0, reserve1] = poolReserves
       const bridge = await sdk.bridge(canonicalToken.symbol)
       const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
 
@@ -436,7 +435,11 @@ const PoolsContextProvider: FC = ({ children }) => {
         (await lpToken.getErc20()).totalSupply(),
         lpToken.balanceOf(),
       ])
+      const tokenDecimals = canonicalToken?.decimals
       const lpDecimals = Number(lpDecimalsBn.toString())
+
+      const reserve0 = parseUnits(poolReserves?.[0] ?? '0', tokenDecimals)
+      const reserve1 = parseUnits(poolReserves?.[1] ?? '0', tokenDecimals)
 
       const formattedTotalSupply = formatUnits(totalSupply.toString(), lpDecimals)
       setTotalSupply(formattedTotalSupply)
@@ -444,27 +447,27 @@ const PoolsContextProvider: FC = ({ children }) => {
       const formattedBalance = formatUnits(balance.toString(), lpDecimals)
       setUserPoolBalance(Number(formattedBalance).toFixed(2))
 
-      const poolPercentage = (Number(formattedBalance) / Number(formattedTotalSupply)) * 100
-      const formattedPoolPercentage =
-        poolPercentage.toFixed(2) === '0.00' ? '<0.01' : poolPercentage.toFixed(2)
-      setUserPoolTokenPercentage(formattedPoolPercentage)
+      const oneToken = parseUnits('1', lpDecimals)
+      const poolPercentage = (balance.mul(oneToken)).div(totalSupply).mul(100)
+      const formattedPoolPercentage = Number(formatUnits(poolPercentage, lpDecimals)).toFixed(2)
+      setUserPoolTokenPercentage(formattedPoolPercentage === '0.00' ? '<0.01' : formattedPoolPercentage)
 
-      const token0Deposited =
-        (Number(formattedBalance) * Number(reserve0)) / Number(formattedTotalSupply)
-      const token1Deposited =
-        (Number(formattedBalance) * Number(reserve1)) / Number(formattedTotalSupply)
-      if (token0Deposited) {
-        setToken0Deposited(token0Deposited.toFixed(2))
+      const token0Deposited = (balance.mul(reserve0)).div(totalSupply)
+      const token1Deposited = (balance.mul(reserve1)).div(totalSupply)
+      const token0DepositedFormatted = Number(formatUnits(token0Deposited, tokenDecimals))
+      const token1DepositedFormatted = Number(formatUnits(token1Deposited, tokenDecimals))
+      if (token0DepositedFormatted) {
+        setToken0Deposited(token0DepositedFormatted.toFixed(2))
       }
-      if (token1Deposited) {
-        setToken1Deposited(token1Deposited.toFixed(2))
+      if (token1DepositedFormatted) {
+        setToken1Deposited(token1DepositedFormatted.toFixed(2))
       }
 
-      if (!Number(reserve0) && !Number(reserve1)) {
+      if (reserve0?.eq(0) && reserve1?.eq(0)) {
         setToken1Rate('0')
       } else {
-        const amount0 = (1 * Number(reserve1)) / Number(reserve0)
-        setToken1Rate(amount0.toString())
+        const amount0 = formatUnits(reserve1.mul(oneToken).div(reserve0), tokenDecimals)
+        setToken1Rate(Number(amount0).toFixed(2))
       }
     } catch (err) {
       logger.error(err)

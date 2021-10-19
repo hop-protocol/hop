@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { BigNumber, constants, Signer, utils } from 'ethers'
+import { BigNumber, constants, Signer } from 'ethers'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
 import { getBonderFeeWithId } from 'src/utils'
 import { createTransaction } from 'src/utils/createTransaction'
-import { formatError } from 'src/utils/format'
+import { amountToBN, formatError } from 'src/utils/format'
 import { HopBridge } from '@hop-protocol/sdk'
 
 function handleTransaction(tx, fromNetwork, toNetwork, sourceToken, txHistory) {
@@ -71,7 +71,7 @@ export function useSendTransaction(props) {
   // Set parsedAmount and totalBonderFee
   useEffect(() => {
     if (fromTokenAmount && sourceToken && bonderFee && destinationTxFee) {
-      const parsedAmount = utils.parseUnits(fromTokenAmount, sourceToken.decimals)
+      const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
 
       let totalBonderFee = bonderFee
       if (destinationTxFee?.gt(0)) {

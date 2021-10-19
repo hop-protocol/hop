@@ -425,27 +425,29 @@ const PoolsContextProvider: FC = ({ children }) => {
   const updateUserPoolPositions = useCallback(async () => {
     try {
       if (!(canonicalToken && provider && selectedNetwork.provider && poolReserves)) {
+        setToken1Rate('')
+        setToken0Deposited('')
+        setToken1Deposited('')
+        setTotalSupply('')
+        setUserPoolTokenPercentage('')
         return
       }
       const bridge = await sdk.bridge(canonicalToken.symbol)
       const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
 
-      const [lpDecimalsBn, totalSupply, balance] = await Promise.all([
+      const [lpDecimalsBn, totalSupply, balance, reserves] = await Promise.all([
         lpToken.decimals,
         (await lpToken.getErc20()).totalSupply(),
         lpToken.balanceOf(),
+        bridge.getSaddleSwapReserves(selectedNetwork.slug),
       ])
       const tokenDecimals = canonicalToken?.decimals
       const lpDecimals = Number(lpDecimalsBn.toString())
 
-      const reserve0 = parseUnits(poolReserves?.[0] ?? '0', tokenDecimals)
-      const reserve1 = parseUnits(poolReserves?.[1] ?? '0', tokenDecimals)
-
+      const [reserve0, reserve1] = reserves
       const formattedTotalSupply = formatUnits(totalSupply.toString(), lpDecimals)
-      setTotalSupply(formattedTotalSupply)
 
       const formattedBalance = formatUnits(balance.toString(), lpDecimals)
-      setUserPoolBalance(Number(formattedBalance).toFixed(2))
 
       const oneToken = parseUnits('1', lpDecimals)
       const poolPercentage = (balance.mul(oneToken)).div(totalSupply).mul(100)
@@ -456,13 +458,15 @@ const PoolsContextProvider: FC = ({ children }) => {
       const token1Deposited = (balance.mul(reserve1)).div(totalSupply)
       const token0DepositedFormatted = Number(formatUnits(token0Deposited, tokenDecimals))
       const token1DepositedFormatted = Number(formatUnits(token1Deposited, tokenDecimals))
+
+      setTotalSupply(formattedTotalSupply)
+      setUserPoolBalance(Number(formattedBalance).toFixed(2))
       if (token0DepositedFormatted) {
         setToken0Deposited(token0DepositedFormatted.toFixed(2))
       }
       if (token1DepositedFormatted) {
         setToken1Deposited(token1DepositedFormatted.toFixed(2))
       }
-
       if (reserve0?.eq(0) && reserve1?.eq(0)) {
         setToken1Rate('0')
       } else {
@@ -472,7 +476,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     } catch (err) {
       logger.error(err)
     }
-  }, [provider, selectedNetwork, canonicalToken, hopToken, poolReserves])
+  }, [provider, selectedNetwork, canonicalToken, hopToken])
 
   useEffect(() => {
     updateUserPoolPositions()
@@ -484,7 +488,7 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   useInterval(() => {
     updateUserPoolPositions()
-  }, 20 * 1000)
+  }, 5 * 1000)
 
   const { approve } = useApprove()
   const approveTokens = async (isHop: boolean, amount: string, network: Network) => {

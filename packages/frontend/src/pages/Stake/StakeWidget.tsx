@@ -74,7 +74,7 @@ const StakeWidget: FC<Props> = props => {
 
   const tokenUsdPrice = useAsyncMemo(async () => {
     try {
-      if (!bridge) {
+      if (!bridge?.signer) {
         return
       }
       const token = await bridge.getL1Token()
@@ -86,7 +86,7 @@ const StakeWidget: FC<Props> = props => {
 
   const maticUsdPrice = useAsyncMemo(async () => {
     try {
-      if (!bridge) {
+      if (!bridge?.signer) {
         return
       }
       return bridge.priceFeed.getPriceByTokenSymbol('MATIC')
@@ -120,7 +120,7 @@ const StakeWidget: FC<Props> = props => {
 
   const allowance = usePollValue(
     async () => {
-      if (!(address && stakingRewards)) {
+      if (!(address && stakingRewards && stakingToken?.signer)) {
         return undefined
       }
       return stakingToken?.allowance(stakingRewards.address)

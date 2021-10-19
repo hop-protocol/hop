@@ -37,7 +37,7 @@ describe.skip('settleBondedWithdrawal', () => {
         logger.log(label)
         const user = new User(privateKey)
         const recipient = await user.getAddress()
-        const { stop, watchers } = startWatchers({ networks: path })
+        const { stop, watchers } = await startWatchers({ networks: path })
 
         const promises: Promise<any>[] = []
         for (let i = 0; i < txCount; i++) {

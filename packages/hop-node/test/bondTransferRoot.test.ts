@@ -21,7 +21,7 @@ describe.skip('bondTransferRoot', () => {
         logger.log(label)
         const user = new User(privateKey)
         const recipient = await user.getAddress()
-        const { stop, watchers } = startWatchers({ networks: path })
+        const { stop, watchers } = await startWatchers({ networks: path })
         logger.log('sending and waiting for receipt')
         const receipt = await user.sendAndWaitForReceipt(
           sourceNetwork,

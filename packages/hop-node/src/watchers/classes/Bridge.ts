@@ -10,7 +10,7 @@ import shiftBNDecimals from 'src/utils/shiftBNDecimals'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import { BonderFeeBps, Chain, MaxGasPriceMultiplier, MinBonderFeeAbsolute } from 'src/constants'
 import { BonderFeeTooLowError } from 'src/types/error'
-import { Db, getDbSet } from 'src/db'
+import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
 import { State } from 'src/db/SyncStateDb'
@@ -28,7 +28,7 @@ export type EventCb = (event: Event, i?: number) => any
 const priceFeed = new PriceFeed()
 
 export default class Bridge extends ContractBase {
-  db: Db
+  db: DbSet
   WithdrawalBonded: string = 'WithdrawalBonded'
   Withdrew: string = 'Withdrew'
   TransferRootSet: string = 'TransferRootSet'
@@ -520,11 +520,14 @@ export default class Bridge extends ContractBase {
     let i = 0
     const promises: Promise<any>[] = []
     await this.eventsBatch(async (start: number, end: number) => {
-      let events = await rateLimitRetry(getEventsMethod)(start, end, i)
-      events = events.reverse()
-      for (const event of events) {
-        promises.push(cb(event, i++))
-      }
+      rateLimitRetry(getEventsMethod)(start, end, i)
+        .then((events: any[]) => {
+          events = events.reverse()
+          for (const event of events) {
+            promises.push(cb(event, i))
+          }
+        })
+      i++
     }, options)
     return Promise.all(promises)
   }
@@ -649,8 +652,8 @@ export default class Bridge extends ContractBase {
     return `${chainId}:${address}:${key}`
   }
 
-  shouldAttemptSwap (amountOutMin: BigNumber, deadline: number): boolean {
-    return amountOutMin?.gt(0) || deadline > 0
+  shouldAttemptSwap (amountOutMin: BigNumber, deadline: BigNumber): boolean {
+    return amountOutMin?.gt(0) || deadline?.gt(0)
   }
 
   private validateEventsBatchInput = (

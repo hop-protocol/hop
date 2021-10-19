@@ -78,8 +78,10 @@ class ArbBot {
 
       while (true) {
         try {
-          await this.checkArbitrage()
-          await this.checkBalances()
+          await Promise.all([
+            this.checkArbitrage(),
+            this.checkBalances()
+          ])
           this.logger.log(`Rechecking in ${this.pollIntervalSec} seconds`)
           await wait(this.pollIntervalSec * 1e3)
         } catch (err) {

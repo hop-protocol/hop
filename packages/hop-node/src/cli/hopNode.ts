@@ -7,6 +7,7 @@ import {
   FileConfig,
   defaultEnabledNetworks,
   defaultEnabledWatchers,
+  gitRev,
   config as globalConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile,
@@ -47,6 +48,7 @@ program
     try {
       printHopArt()
       logger.debug('starting hop node')
+      logger.debug(`git revision: ${gitRev}`)
 
       const configFilePath = source.config || source.args[0]
       const config: FileConfig = await parseConfigFile(configFilePath)
@@ -149,7 +151,7 @@ program
         }
       }
       const stateUpdateAddress = config?.stateUpdateAddress
-      startWatchers({
+      await startWatchers({
         enabledWatchers: Object.keys(enabledWatchers).filter(
           key => enabledWatchers[key]
         ),
@@ -177,15 +179,20 @@ program
           minThreshold
         })
       }
+      const promises: Array<Promise<void>> = []
       if (config?.roles?.xdaiBridge) {
         for (const token of tokens) {
-          new xDaiBridgeWatcher({
+          promises.push(new xDaiBridgeWatcher({
             chainSlug: Chain.xDai,
             tokenSymbol: token
-          }).start()
+          }).start())
         }
       }
-      new OsWatcher().start()
+      promises.push(new Promise((resolve) => {
+        new OsWatcher().start()
+        resolve()
+      }))
+      await Promise.all(promises)
     } catch (err) {
       logger.error(`hop-node error: ${err.message}\ntrace: ${err.stack}`)
       process.exit(1)

@@ -52,6 +52,7 @@ console.log(`
            /_/
 `)
 console.log('Welcome 🐰')
+console.debug('ui version:', process.env.REACT_APP_GIT_SHA);
 console.debug('config network:', network)
 console.debug('config chains:', networks)
 console.debug('config addresses:', addresses.tokens)

@@ -40,7 +40,7 @@ program
         throw new Error('token is required')
       }
 
-      const watchers = getWatchers({
+      const watchers = await getWatchers({
         enabledWatchers: ['commitTransfers'],
         tokens: [token],
         dryMode: true

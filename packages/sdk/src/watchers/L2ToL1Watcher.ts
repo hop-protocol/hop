@@ -1,5 +1,5 @@
 import { default as BaseWatcher, Config, Event } from './BaseWatcher'
-import { transferSentTopic } from './eventTopics'
+import { transferSentTopic } from '../constants/eventTopics'
 
 class L2ToL1Watcher extends BaseWatcher {
   constructor (config: Config) {

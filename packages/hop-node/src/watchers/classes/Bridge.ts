@@ -316,6 +316,15 @@ export default class Bridge extends ContractBase {
     }
   }
 
+  getTransferIdsFromSettleEventTransaction = async (multipleWithdrawalsSettledTxHash: string) => {
+    const tx = await this.getTransaction(multipleWithdrawalsSettledTxHash)
+    if (!tx) {
+      throw new Error('expected tx object')
+    }
+    const { transferIds } = await this.decodeSettleBondedWithdrawalsData(tx.data)
+    return transferIds
+  }
+
   getMultipleWithdrawalsSettledEvents = rateLimitRetry((
     startBlockNumber: number,
     endBlockNumber: number

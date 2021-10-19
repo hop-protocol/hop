@@ -122,7 +122,7 @@ describe('GasBoostSigner', () => {
     expect(maxGasPriceReached).toBeTruthy()
     expect(boostedIndex).toBe(1)
   }, 10 * 60 * 1000)
-  it('nonceTooLow', async () => {
+  it.skip('nonceTooLow', async () => {
     const provider = getRpcProvider('xdai')
     const store = new MemoryStore()
     const signer = new GasBoostSigner(privateKey, provider, store, {

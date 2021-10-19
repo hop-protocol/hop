@@ -27,7 +27,7 @@ describe.skip('challenge valid transfer root but committed too early', () => {
         logger.log(label)
         const user = new User(privateKey)
         const bonder = new User(bonderPrivateKey)
-        const { stop, watchers } = startWatchers({
+        const { stop, watchers } = await startWatchers({
           networks: [sourceNetwork, destNetwork]
         })
         logger.log('sending and waiting for receipt')
@@ -155,7 +155,7 @@ describe.skip('challenge invalid transfer root', () => {
         logger.log(label)
         const user = new User(privateKey)
         const bonder = new User(bonderPrivateKey)
-        const { stop, watchers } = startWatchers({
+        const { stop, watchers } = await startWatchers({
           networks: [sourceNetwork, destNetwork]
         })
         logger.log('sending and waiting for receipt')

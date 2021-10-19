@@ -1,5 +1,8 @@
 FROM node:14
 
+ARG GIT_REV
+ENV GIT_REV=${GIT_REV}
+
 # Create the working directory and give node use permissions
 RUN mkdir -p /usr/src/app/node_modules && chown -R node:node /usr/src/app
 
@@ -14,4 +17,4 @@ RUN npm install
 RUN npm run build
 
 ENTRYPOINT [ "./bin/hop-node" ]
-CMD [ "bonder" ]
+CMD []

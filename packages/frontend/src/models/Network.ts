@@ -10,7 +10,6 @@ export type NetworkProps = {
   rpcUrl: string
   networkId: string
   nativeTokenSymbol: string
-  requiresGas: boolean
   isLayer1?: boolean
   nativeBridgeUrl?: string
 }
@@ -23,7 +22,6 @@ class Network {
   readonly rpcUrl: string
   readonly networkId: string
   readonly nativeTokenSymbol: string
-  readonly requiresGas: boolean
   readonly isLayer1: boolean
   readonly nativeBridgeUrl: string | undefined
 
@@ -35,7 +33,6 @@ class Network {
     this.provider = getProvider(props.rpcUrl)
     this.networkId = props.networkId
     this.nativeTokenSymbol = props.nativeTokenSymbol
-    this.requiresGas = props.requiresGas
     this.isLayer1 = props.isLayer1 ? props.isLayer1 : false
     this.nativeBridgeUrl = props.nativeBridgeUrl
   }

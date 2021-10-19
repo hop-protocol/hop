@@ -20,7 +20,6 @@ const useNetworks = () => {
           rpcUrl: net.rpcUrls[0],
           networkId: net.networkId,
           nativeTokenSymbol: meta.nativeTokenSymbol,
-          requiresGas: meta.requiresGas,
           isLayer1: meta.isLayer1,
           nativeBridgeUrl: net.nativeBridgeUrl,
         })

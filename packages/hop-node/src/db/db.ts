@@ -34,7 +34,7 @@ export const getTokenPricesDb = () => {
   return tokenPricesDb
 }
 
-export type Db = GasBoostDb | GasPricesDb | SyncStateDb | TokenPricesDb | TransferRootsDb | TransfersDb
+export type Db = GasBoostDb | GasPricesDb | SyncStateDb | TokenPricesDb | TransferRootsDb | TransfersDb | GasCostDb
 export type DbSet = {
   gasBoost: GasBoostDb,
   syncState: SyncStateDb,

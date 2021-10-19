@@ -249,20 +249,17 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
         const bonder = await this.bridge.getConfigBonderAddress()
         txOverrides.from = bonder
         const transferNonce = `0x${'0'.repeat(64)}`
-        let gasLimit: BigNumber
-        let attemptSwap = false
-        if (bridgeContract.estimateGas.bondWithdrawalAndDistribute) {
-          attemptSwap = true
-          const payload = [
-            bonder,
-            amount,
-            transferNonce,
-            bonderFee,
-            txOverrides
-          ]
+        const payload = [
+          bonder,
+          amount,
+          transferNonce,
+          bonderFee,
+          txOverrides
+        ]
+        const gasLimit = await bridgeContract.estimateGas.bondWithdrawal(...payload)
+        const estimates = [{ gasLimit, attemptSwap: false }]
 
-          gasLimit = await bridgeContract.estimateGas.bondWithdrawal(...payload)
-        } else {
+        if (bridgeContract.bondWithdrawalAndDistribute) {
           const payload = [
             bonder,
             amount,
@@ -272,32 +269,30 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
             deadline,
             txOverrides
           ]
-
-          gasLimit = await bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
+          const gasLimit = await bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
+          estimates.push({ gasLimit, attemptSwap: true })
         }
 
-        const data = await this.bridge.compareBonderDestinationFeeCost(
-          bonderFee,
-          gasLimit,
-          this.chainSlug,
-          this.tokenSymbol
-        )
-        console.log('gas limit', data)
+        await Promise.all(estimates.map(async ({ gasLimit, attemptSwap }) => {
+          const { gasCost, gasCostUsd, gasPrice, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
+            gasLimit,
+            this.chainSlug,
+            this.tokenSymbol
+          )
 
-        await this.db.gasCost.addGasCost({
-          chain: this.chainSlug,
-          token: this.tokenSymbol,
-          timestamp,
-          attemptSwap,
-          gasCost: data.gasCost,
-          gasCostUsd: Number(data.usdGasCostFormatted),
-          gasPrice: data.gasPrice,
-          gasLimit: data.gasLimit,
-          tokenPrice: data.tokenUsdPrice,
-          nativeTokenPrice: data.chainNativeTokenUsdPrice
-        })
-
-        // const nearest = await this.db.gasCost.getNearest(this.chainSlug, this.tokenSymbol, timestamp)
+          await this.db.gasCost.addGasCost({
+            chain: this.chainSlug,
+            token: this.tokenSymbol,
+            timestamp,
+            attemptSwap,
+            gasCost,
+            gasCostUsd,
+            gasPrice,
+            gasLimit,
+            tokenPriceUsd,
+            nativeTokenPriceUsd
+          })
+        }))
       } catch (err) {
         this.logger.error(`pollGasCost error: ${err.message}`)
       }

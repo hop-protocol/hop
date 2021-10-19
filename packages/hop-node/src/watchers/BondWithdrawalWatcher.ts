@@ -230,16 +230,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
 
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const {
-      gasCost,
-      gasPrice,
-      tokenUsdPrice,
-      chainNativeTokenUsdPrice
-    } = await this.getPricesNearTransferEvent(dbTransfer, attemptSwap)
-    logger.debug('gasCost:', gasCost?.toString())
-    logger.debug('gasPrice:', gasPrice?.toString())
-    logger.debug('tokenUsdPrice:', tokenUsdPrice)
-    logger.debug('chainNativeTokenUsdPrice:', chainNativeTokenUsdPrice)
+    const { gasCostUsd, tokenPriceUsd } = await this.getPricesNearTransferEvent(dbTransfer, attemptSwap)
+    logger.debug('gasCostUsd:', gasCostUsd?.toString())
+    logger.debug('tokenPriceUsd:', tokenPriceUsd?.toString())
 
     if (attemptSwap) {
       logger.debug(
@@ -254,10 +247,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         bonderFee,
         amountOutMin,
         deadline,
-        gasPrice,
-        tokenUsdPrice,
-        chainNativeTokenUsdPrice,
-        gasCost
+        gasCostUsd
       )
     } else {
       logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
@@ -267,10 +257,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         amount,
         transferNonce,
         bonderFee,
-        gasPrice,
-        tokenUsdPrice,
-        chainNativeTokenUsdPrice,
-        gasCost
+        gasCostUsd
       )
     }
   }
@@ -278,29 +265,21 @@ class BondWithdrawalWatcher extends BaseWatcher {
   async getPricesNearTransferEvent (dbTransfer: Transfer, attemptSwap: boolean): Promise<any> {
     const { destinationChainId } = dbTransfer
     const destinationChain = this.chainIdToSlug(destinationChainId)
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
     const tokenSymbol = this.tokenSymbol
-    const chainNativeTokenSymbol = this.bridge.getChainNativeTokenSymbol(destinationChain)
     const transferSentTimestamp = dbTransfer?.transferSentTimestamp
-    let gasCost: BigNumber
-    let gasPrice : BigNumber
-    let tokenUsdPrice : number
-    let chainNativeTokenUsdPrice : number
+    let gasCostUsd: number
+    let tokenPriceUsd: number
     if (transferSentTimestamp) {
       const data = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, attemptSwap, transferSentTimestamp)
       if (data) {
-        gasCost = data.gasCost
-        gasPrice = data.gasPrice
-        tokenUsdPrice = data.tokenPrice
-        chainNativeTokenUsdPrice = data.nativeTokenPrice
+        gasCostUsd = data.gasCostUsd
+        tokenPriceUsd = data.tokenPriceUsd
       }
     }
 
     return {
-      gasCost,
-      gasPrice,
-      tokenUsdPrice,
-      chainNativeTokenUsdPrice
+      gasCostUsd,
+      tokenPriceUsd
     }
   }
 

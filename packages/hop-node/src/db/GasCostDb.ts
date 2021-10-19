@@ -1,8 +1,8 @@
-import BaseDb, { BaseItem } from './BaseDb'
+import BaseDb, { BaseItem, KeyFilter } from './BaseDb'
 import nearest from 'nearest-date'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
-import { OneHourMs, OneWeekMs } from 'src/constants'
+import { OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
 export const varianceSeconds = 10 * 60
@@ -16,8 +16,8 @@ export type GasCost = BaseItem & {
   gasCostUsd: number
   gasPrice: BigNumber
   gasLimit: BigNumber
-  tokenPrice: number
-  nativeTokenPrice: number
+  tokenPriceUsd: number
+  nativeTokenPriceUsd: number
 }
 
 class GasCostDb extends BaseDb {
@@ -42,22 +42,23 @@ class GasCostDb extends BaseDb {
   }
 
   async addGasCost (data: GasCost) {
-    const key = `${data.chain}:${data.token}:${data.timestamp}`
+    const key = `${data.chain}:${data.token}:${data.timestamp}:${Number(data.attemptSwap)}`
     return this.update(key, data)
   }
 
-  async getItems ():Promise<GasCost[]> {
-    const keys = await this.getKeys()
-    const items: GasCost[] = (await Promise.all(
-      keys.map((key: string) => {
-        return this.getById(key)
-      })))
-
-    return items
+  async getItems (filter?: KeyFilter):Promise<GasCost[]> {
+    const items : GasCost[] = await this.getValues(filter)
+    return items.filter(x => x)
   }
 
   async getNearest (chain: string, token: string, attemptSwap: boolean, targetTimestamp: number): Promise<GasCost | null> {
-    const items : GasCost[] = (await this.getItems()).filter((item: GasCost) => {
+    const startTimestamp = targetTimestamp - OneHourSeconds
+    const endTimestamp = targetTimestamp + OneHourSeconds
+    const filter = {
+      gte: `${chain}:${token}:${startTimestamp}`,
+      lte: `${chain}:${token}:${endTimestamp}~`
+    }
+    const items :GasCost[] = (await this.getItems(filter)).filter((item: GasCost) => {
       return (
         item.chain === chain &&
         item.token === token &&

@@ -576,7 +576,7 @@ class HopBridge extends Base {
     amountIn: BigNumberish,
     sourceChain: TChain,
     destinationChain: TChain,
-    deadline: number
+    deadline?: number
   ): Promise<BigNumber> {
     const { bonderFee, destinationTxFee } = await this.getSendData(
       amountIn,

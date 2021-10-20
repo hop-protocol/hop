@@ -9,3 +9,4 @@ docker/arbitrum/docker-compose.yml
 src/scripts
 *.dump
 *.log
+.build-info.json

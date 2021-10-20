@@ -5,7 +5,6 @@ import {
   Route,
   // Token,
   TokenAmount,
-  Transfer,
   utils
 } from '../src/index'
 import Token from '../src/models/Token'

@@ -137,7 +137,7 @@ class BaseDb extends EventEmitter {
       const ops = this.batchQueue.slice(0)
       this.batchQueue = []
       this.lastBatchUpdatedAt = Date.now()
-      this.logger.debug(`executing batch, items: ${ops?.length} `)
+      this.logger.debug(`attempting batch write, items: ${ops?.length} `)
       await this.batchUpdate(ops)
     }
   }

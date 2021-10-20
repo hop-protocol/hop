@@ -1,7 +1,5 @@
 import { parseUnits } from '@ethersproject/units'
-import { BigNumber } from 'ethers'
 import Network from 'src/models/Network'
-import { Token } from '@hop-protocol/sdk'
 import { prettifyErrorMessage } from '.'
 
 interface ErrorData {
@@ -34,12 +32,22 @@ export function formatError(error: Error & ErrorData, network?: Network) {
   return 'Something went wrong. Please try again.'
 }
 
-export function amountToBN(token: Token | undefined, amount: string): BigNumber | undefined {
-  if (!token) return
-  try {
-    const sanitizedAmount = amount.replace(/,/g, '')
-    return parseUnits(sanitizedAmount, token.decimals)
-  } catch (err) {
-    // noop
-  }
+export function sanitizeNumericalString(numStr: string) {
+  return numStr.replace(/[^0-9.]|\.(?=.*\.)/g, '')
+}
+
+function truncate(value: number, precision: number) {
+    const step = Math.pow(10, precision || 0)
+    const temp = Math.trunc(step * value)
+    return temp / step
+}
+
+export function fixedDecimals(amount: string, decimals: number) {
+  const sanitizedAmount = sanitizeNumericalString(amount)
+  return truncate(Number(amount), decimals).toString()
+}
+
+export function amountToBN(amount: string, decimals: number = 18) {
+  const fixedAmount = fixedDecimals(amount, decimals).toString()
+  return parseUnits(fixedAmount, decimals)
 }

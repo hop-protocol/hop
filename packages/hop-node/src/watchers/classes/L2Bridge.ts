@@ -412,7 +412,7 @@ export default class L2Bridge extends Bridge {
     transferNonce: string,
     bonderFee: BigNumber,
     amountOutMin: BigNumber,
-    deadline: number,
+    deadline: BigNumber,
     gasPrice?: BigNumber,
     tokenUsdPrice?: number,
     chainNativeTokenUsdPrice?: number

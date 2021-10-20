@@ -1,6 +1,6 @@
 # Build docker target
 docker-build:
-	docker build -f Dockerfile -t hopprotocol/hop-node .
+	docker build --build-arg=GIT_REV=$$(git rev-parse --short HEAD) -f Dockerfile -t hopprotocol/hop-node .
 
 # Tag docker image with latest
 docker-image-tag-latest:

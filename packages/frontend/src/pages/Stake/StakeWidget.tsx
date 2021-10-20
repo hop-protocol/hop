@@ -1,9 +1,8 @@
 import React, { FC, useState, useMemo } from 'react'
 import { BigNumber, Contract } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
-import MuiButton from '@material-ui/core/Button'
 import { HopBridge, Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -19,6 +18,7 @@ import Alert from 'src/components/alert/Alert'
 import usePollValue from 'src/hooks/usePollValue'
 import DetailRow from 'src/components/DetailRow'
 import useApprove from 'src/hooks/useApprove'
+import { amountToBN } from 'src/utils/format'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -74,7 +74,7 @@ const StakeWidget: FC<Props> = props => {
 
   const tokenUsdPrice = useAsyncMemo(async () => {
     try {
-      if (!bridge) {
+      if (!bridge?.signer) {
         return
       }
       const token = await bridge.getL1Token()
@@ -86,7 +86,7 @@ const StakeWidget: FC<Props> = props => {
 
   const maticUsdPrice = useAsyncMemo(async () => {
     try {
-      if (!bridge) {
+      if (!bridge?.signer) {
         return
       }
       return bridge.priceFeed.getPriceByTokenSymbol('MATIC')
@@ -116,11 +116,11 @@ const StakeWidget: FC<Props> = props => {
   )
   const [amount, setAmount] = useState('')
   const parsedAmount =
-    amount && stakingToken ? parseUnits(amount, stakingToken.decimals) : undefined
+    amount && stakingToken ? amountToBN(amount, stakingToken.decimals) : undefined
 
   const allowance = usePollValue(
     async () => {
-      if (!(address && stakingRewards)) {
+      if (!(address && stakingRewards && stakingToken?.signer)) {
         return undefined
       }
       return stakingToken?.allowance(stakingRewards.address)
@@ -251,8 +251,8 @@ const StakeWidget: FC<Props> = props => {
         return
       }
 
-      const maticUsdPriceBn = parseUnits(maticUsdPrice.toString(), 18)
-      const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), 18)
+      const maticUsdPriceBn = amountToBN(maticUsdPrice.toString(), 18)
+      const tokenUsdPriceBn = amountToBN(tokenUsdPrice.toString(), 18)
       const token = await bridge.getCanonicalToken(network.slug)
       const amm = bridge.getAmm(network.slug)
       const stakedTotal = await amm.calculateTotalAmountForLpToken(totalStaked)
@@ -260,7 +260,7 @@ const StakeWidget: FC<Props> = props => {
         return BigNumber.from(0)
       }
       const stakedTotal18d = shiftBNDecimals(stakedTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
-      const precision = parseUnits('1', 18)
+      const precision = amountToBN('1', 18)
       const oneYear = 365
 
       return totalRewardsPerDay
@@ -293,8 +293,8 @@ const StakeWidget: FC<Props> = props => {
       return
     }
 
-    const maticUsdPriceBn = parseUnits(maticUsdPrice.toString(), stakingToken?.decimals)
-    const tokenUsdPriceBn = parseUnits(tokenUsdPrice.toString(), stakingToken?.decimals)
+    const maticUsdPriceBn = amountToBN(maticUsdPrice.toString(), stakingToken.decimals)
+    const tokenUsdPriceBn = amountToBN(tokenUsdPrice.toString(), stakingToken.decimals)
     const token = await bridge.getCanonicalToken(network.slug)
     const amm = bridge.getAmm(network.slug)
     const userStakedTotal = await amm.calculateTotalAmountForLpToken(stakeBalance)

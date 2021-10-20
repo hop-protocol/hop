@@ -44,7 +44,7 @@ type SendL1ToL2Input = {
   relayerFee?: TAmount
   amount: TAmount
   amountOutMin?: TAmount
-  deadline?: number
+  deadline?: BigNumber | number
   recipient?: string
   approval?: boolean
 }
@@ -55,8 +55,8 @@ type SendL2ToL1Input = {
   amount: TAmount
   amountOutMin: TAmount
   destinationAmountOutMin?: TAmount
-  deadline?: number
-  destinationDeadline?: number
+  deadline?: BigNumber | number
+  destinationDeadline?: BigNumber | number
   bonderFee?: TAmount
   recipient?: string
   approval?: boolean
@@ -69,32 +69,32 @@ type SendL2ToL2Input = {
   amountOutMin: TAmount
   destinationAmountOutMin?: TAmount
   bonderFee?: TAmount
-  deadline?: number
-  destinationDeadline?: number
+  deadline?: BigNumber | number
+  destinationDeadline?: BigNumber | number
   recipient?: string
   approval?: boolean
 }
 
 type SendOptions = {
-  deadline: number
+  deadline: BigNumber | number
   relayer: string
   relayerFee: TAmount
   recipient: string
   amountOutMin: TAmount
   bonderFee: TAmount
   destinationAmountOutMin: TAmount
-  destinationDeadline: number
+  destinationDeadline: BigNumber | number
 }
 
 type AddLiquidityOptions = {
   minToMint: TAmount
-  deadline: number
+  deadline: BigNumber | number
 }
 
 type RemoveLiquidityOptions = {
   amount0Min: TAmount
   amount1Min: TAmount
-  deadline: number
+  deadline: BigNumber | number
 }
 
 /**
@@ -395,7 +395,7 @@ class HopBridge extends Base {
     amountIn: BigNumberish,
     sourceChain?: TChain,
     destinationChain?: TChain,
-    deadline?: number
+    deadline?: BigNumber | number
   ) {
     amountIn = BigNumber.from(amountIn)
     sourceChain = this.toChainModel(sourceChain)
@@ -576,7 +576,7 @@ class HopBridge extends Base {
     amountIn: BigNumberish,
     sourceChain: TChain,
     destinationChain: TChain,
-    deadline?: number
+    deadline?: BigNumber | number
   ): Promise<BigNumber> {
     const { bonderFee, destinationTxFee } = await this.getSendData(
       amountIn,
@@ -616,7 +616,7 @@ class HopBridge extends Base {
     amount: BigNumber,
     amountOutMin: BigNumber,
     bonderFee: BigNumber,
-    deadline: number
+    deadline: BigNumber | number
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
@@ -673,7 +673,7 @@ class HopBridge extends Base {
     amount: BigNumber,
     amountOutMin: BigNumber,
     bonderFee: BigNumber,
-    deadline: number
+    deadline: BigNumber | number
   ) {
     try {
       const destinationBridge = await this.getL2Bridge(destinationChain)
@@ -1052,7 +1052,7 @@ class HopBridge extends Base {
     toHop: boolean,
     amount: TAmount,
     minAmountOut: TAmount,
-    deadline: number
+    deadline: BigNumber | number
   ) {
     sourceChain = this.toChainModel(sourceChain)
     let tokenIndexFrom: number
@@ -1866,8 +1866,9 @@ class HopBridge extends Base {
     return super.getBonderAddress(this.tokenSymbol)
   }
 
-  shouldAttemptSwap (amountOutMin: BigNumber, deadline: number): boolean {
-    return amountOutMin?.gt(0) || deadline > 0
+  shouldAttemptSwap (amountOutMin: BigNumber, deadline: BigNumber | number): boolean {
+    deadline = BigNumber.from(deadline?.toString() || 0)
+    return amountOutMin?.gt(0) || deadline?.gt(0)
   }
 }
 

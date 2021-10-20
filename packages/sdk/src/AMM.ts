@@ -98,7 +98,7 @@ class AMM extends Base {
     amount0Desired: TAmount,
     amount1Desired: TAmount,
     minToMint: TAmount = 0,
-    deadline: number = this.defaultDeadlineSeconds
+    deadline: BigNumber | number = this.defaultDeadlineSeconds
   ) {
     deadline = this.normalizeDeadline(deadline)
     const amounts = [amount0Desired, amount1Desired]
@@ -134,7 +134,7 @@ class AMM extends Base {
     liqudityTokenAmount: TAmount,
     amount0Min: TAmount = 0,
     amount1Min: TAmount = 0,
-    deadline: number = this.defaultDeadlineSeconds
+    deadline: BigNumber | number = this.defaultDeadlineSeconds
   ) {
     deadline = this.normalizeDeadline(deadline)
     const saddleSwap = await this.getSaddleSwap()
@@ -359,7 +359,7 @@ class AMM extends Base {
    * @param {Number} deadline - deadline timestamp
    * @returns {Number} Deadline in seconds
    */
-  private normalizeDeadline (deadline: number) {
+  private normalizeDeadline (deadline: BigNumber | number) {
     return parseInt(deadline.toString(), 10)
   }
 

@@ -6,7 +6,7 @@ import SyncWatcher from 'src/watchers/SyncWatcher'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, OneWeekMs } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
@@ -240,12 +240,12 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     while (true) {
       try {
         const timestamp = Math.floor(Date.now() / 1000)
-        const deadline = 7 * 24 * 60 // 1 week
+        const deadline = Math.floor((Date.now() + OneWeekMs) / 1000)
         const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug))
         const txOverrides = await this.bridge.txOverrides()
-        const amount = BigNumber.from(0)
-        const amountOutMin = BigNumber.from(1)
-        const bonderFee = BigNumber.from(0)
+        const amount = BigNumber.from(2)
+        const amountOutMin = BigNumber.from(0)
+        const bonderFee = BigNumber.from(1)
         const bonder = await this.bridge.getConfigBonderAddress()
         txOverrides.from = bonder
         const transferNonce = `0x${'0'.repeat(64)}`

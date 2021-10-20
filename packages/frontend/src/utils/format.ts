@@ -52,5 +52,5 @@ export function fixedDecimals(amount: string, decimals: number) {
 
 export function amountToBN(amount: string, decimals: number = 18) {
   const fixedAmount = fixedDecimals(amount, decimals).toString()
-  return parseUnits(fixedAmount, decimals)
+  return parseUnits(fixedAmount || '0', decimals)
 }

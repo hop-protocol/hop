@@ -1,11 +1,11 @@
 import '../moduleAlias'
+import BNMin from 'src/utils/BNMin'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import { BigNumber, Contract } from 'ethers'
 import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
-import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
 
 export interface Config {
@@ -229,10 +229,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('transferNonce:', transferNonce)
     logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
 
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const { gasCostInToken, tokenPriceUsd } = await this.getPricesNearTransferEvent(dbTransfer, attemptSwap)
-    logger.debug('gasCostInToken:', gasCostInToken?.toString())
-    logger.debug('tokenPriceUsd:', tokenPriceUsd?.toString())
+    await this.checkBonderFee(transferId, attemptSwap)
 
     if (attemptSwap) {
       logger.debug(
@@ -246,8 +243,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transferNonce,
         bonderFee,
         amountOutMin,
-        deadline,
-        gasCostInToken
+        deadline
       )
     } else {
       logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
@@ -256,30 +252,52 @@ class BondWithdrawalWatcher extends BaseWatcher {
         recipient,
         amount,
         transferNonce,
-        bonderFee,
-        gasCostInToken
+        bonderFee
       )
     }
   }
 
-  async getPricesNearTransferEvent (dbTransfer: Transfer, attemptSwap: boolean): Promise<any> {
-    const { destinationChainId } = dbTransfer
-    const destinationChain = this.chainIdToSlug(destinationChainId)
-    const tokenSymbol = this.tokenSymbol
-    const transferSentTimestamp = dbTransfer?.transferSentTimestamp
-    let gasCostInToken: BigNumber
-    let tokenPriceUsd: number
-    if (transferSentTimestamp) {
-      const data = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, attemptSwap, transferSentTimestamp)
-      if (data) {
-        gasCostInToken = data.gasCostInToken
-        tokenPriceUsd = data.tokenPriceUsd
-      }
+  async checkBonderFee (
+    transferId: string,
+    attemptSwap: boolean
+  ) {
+    const logger = this.logger.create({ id: transferId })
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    if (!dbTransfer) {
+      throw new Error('expected db tansfer item')
     }
 
-    return {
-      gasCostInToken,
-      tokenPriceUsd
+    const { amount, bonderFee, destinationChainId } = dbTransfer
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const transferSentTimestamp = dbTransfer?.transferSentTimestamp
+    if (!transferSentTimestamp) {
+      throw new Error('expected transferSentTimestamp')
+    }
+
+    const now = Math.floor(Date.now() / 1000)
+    const nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, attemptSwap, transferSentTimestamp)
+    const nearestItemToNow = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, attemptSwap, now)
+    if (!nearestItemToTransferSent) {
+      throw new Error('expected nearestItemToTransferSent')
+    }
+    if (!nearestItemToNow) {
+      throw new Error('expected nearestItemToNow')
+    }
+    let { gasCostInToken, minBonderFeeAbsolute } = nearestItemToTransferSent
+    const { gasCostInToken: currentGasCostInToken, minBonderFeeAbsolute: currentMinBonderFeeAbsolute } = nearestItemToNow
+
+    gasCostInToken = BNMin(gasCostInToken, currentGasCostInToken)
+    minBonderFeeAbsolute = BNMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
+
+    logger.debug('gasCostInToken:', gasCostInToken?.toString())
+    logger.debug('minBonderFeeAbsolute:', minBonderFeeAbsolute?.toString())
+
+    const minBpsFee = await this.bridge.getBonderFeeBps(amount, minBonderFeeAbsolute)
+    const minTxFee = gasCostInToken.div(2)
+    const minBonderFeeTotal = minBpsFee.add(minTxFee)
+    const isTooLow = bonderFee.lt(minBonderFeeTotal)
+    if (isTooLow) {
+      throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`)
     }
   }
 

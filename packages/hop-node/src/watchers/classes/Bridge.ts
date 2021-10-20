@@ -1,4 +1,3 @@
-import BNMin from 'src/utils/BNMin'
 import ContractBase from './ContractBase'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
@@ -9,7 +8,6 @@ import rateLimitRetry from 'src/utils/rateLimitRetry'
 import shiftBNDecimals from 'src/utils/shiftBNDecimals'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import { BonderFeeBps, Chain, MinBonderFeeAbsolute } from 'src/constants'
-import { BonderFeeTooLowError } from 'src/types/error'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
@@ -449,8 +447,7 @@ export default class Bridge extends ContractBase {
     recipient: string,
     amount: BigNumber,
     transferNonce: string,
-    bonderFee: BigNumber,
-    gasCostInToken?: BigNumber
+    bonderFee: BigNumber
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
     const payload = [
@@ -460,9 +457,6 @@ export default class Bridge extends ContractBase {
       bonderFee,
       txOverrides
     ]
-
-    const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
-    await this.checkBonderFee(amount, bonderFee, gasLimit, this.tokenSymbol, gasCostInToken)
 
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
 
@@ -690,10 +684,20 @@ export default class Bridge extends ContractBase {
     }
   }
 
+  async getMinBonderFeeAbsolute (tokenSymbol: string, tokenPriceUsd: number) {
+    // absolute minimum is $1 of token
+    const tokenDecimals = getTokenDecimals(tokenSymbol)
+    const minBonderFeeAbsolute = parseUnits(
+      (1 / tokenPriceUsd).toFixed(tokenDecimals),
+      tokenDecimals
+    )
+
+    return minBonderFeeAbsolute
+  }
+
   async getBonderFeeBps (
     amountIn: BigNumber,
-    tokenSymbol: string,
-    tokenPriceUsd: number
+    minBonderFeeAbsolute: BigNumber
   ) {
     if (amountIn.lte(0)) {
       return BigNumber.from(0)
@@ -706,15 +710,6 @@ export default class Bridge extends ContractBase {
       bonderFeeBps = BonderFeeBps.L2ToL2
     }
 
-    const currentTokenPriceUsd = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
-    tokenPriceUsd = Math.min(tokenPriceUsd, currentTokenPriceUsd)
-
-    // absolute minimum is $1 of token
-    const tokenDecimals = getTokenDecimals(tokenSymbol)
-    const minBonderFeeAbsolute = parseUnits(
-      (1 / tokenPriceUsd).toFixed(tokenDecimals),
-      tokenDecimals
-    )
     const minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)
     let minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
@@ -725,35 +720,6 @@ export default class Bridge extends ContractBase {
     const tolerance = 0.10
     minBonderFee = minBonderFee.sub(minBonderFee.mul(tolerance * 100).div(100))
     return minBonderFee
-  }
-
-  async checkBonderFee (
-    amountIn: BigNumber,
-    bonderFee: BigNumber,
-    gasLimit: BigNumber,
-    tokenSymbol: string,
-    gasCostInToken?: BigNumber,
-    tokenPriceUsd?: number
-  ) {
-    if (!tokenPriceUsd) {
-      tokenPriceUsd = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
-    }
-    const minBpsFee = await this.getBonderFeeBps(amountIn, tokenSymbol, tokenPriceUsd)
-    const { gasCostInToken: currentGasCostInToken } = await this.getGasCostEstimation(
-      gasLimit,
-      this.chainSlug,
-      this.tokenSymbol
-    )
-    if (!gasCostInToken) {
-      gasCostInToken = currentGasCostInToken
-    }
-    gasCostInToken = BNMin(gasCostInToken, currentGasCostInToken)
-    const minTxFee = gasCostInToken.div(2)
-    const minBonderFeeTotal = minBpsFee.add(minTxFee)
-    const isTooLow = bonderFee.lt(minBonderFeeTotal)
-    if (isTooLow) {
-      throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`)
-    }
   }
 
   async getGasCostEstimation (

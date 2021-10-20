@@ -280,6 +280,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
             this.tokenSymbol
           )
 
+          const minBonderFeeAbsolute = await this.bridge.getMinBonderFeeAbsolute(this.tokenSymbol, tokenPriceUsd)
+
           await this.db.gasCost.addGasCost({
             chain: this.chainSlug,
             token: this.tokenSymbol,
@@ -290,7 +292,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
             gasPrice,
             gasLimit,
             tokenPriceUsd,
-            nativeTokenPriceUsd
+            nativeTokenPriceUsd,
+            minBonderFeeAbsolute
           })
         }))
       } catch (err) {

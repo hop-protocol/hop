@@ -18,6 +18,7 @@ export type GasCost = BaseItem & {
   gasLimit: BigNumber
   tokenPriceUsd: number
   nativeTokenPriceUsd: number
+  minBonderFeeAbsolute: BigNumber
 }
 
 class GasCostDb extends BaseDb {

@@ -450,9 +450,6 @@ export default class Bridge extends ContractBase {
     amount: BigNumber,
     transferNonce: string,
     bonderFee: BigNumber,
-    gasPrice?: BigNumber,
-    tokenUsdPrice?: number,
-    chainNativeTokenUsdPrice?: number,
     gasCostInToken?: BigNumber
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()

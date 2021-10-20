@@ -639,10 +639,6 @@ class HopBridge extends Base {
     const gasPrice = await destinationChain.provider.getGasPrice()
     const bondTransferGasLimit = await this.getBondWithdrawalEstimatedGas(
       destinationChain,
-      amount,
-      amountOutMin,
-      bonderFee,
-      deadline
     )
 
     const txFeeEth = gasPrice.mul(bondTransferGasLimit)
@@ -670,14 +666,14 @@ class HopBridge extends Base {
 
   async getBondWithdrawalEstimatedGas (
     destinationChain: Chain,
-    amount: BigNumber,
-    amountOutMin: BigNumber,
-    bonderFee: BigNumber,
-    deadline: BigNumber | number
   ) {
     try {
       const destinationBridge = await this.getL2Bridge(destinationChain)
       const bonder = this.getBonderAddress()
+      const amount = BigNumber.from('2')
+      const amountOutMin = BigNumber.from('0')
+      const bonderFee = BigNumber.from('1')
+      const deadline = this.defaultDeadlineSeconds
       const transferNonce = `0x${'0'.repeat(64)}`
       const attemptSwap = this.shouldAttemptSwap(amountOutMin, deadline)
       if (attemptSwap && !destinationChain.isL1) {
@@ -714,10 +710,6 @@ class HopBridge extends Base {
     } catch (err) {
       console.error(err, {
         destinationChain,
-        amount,
-        amountOutMin,
-        bonderFee,
-        deadline
       })
       let bondTransferGasLimit: string = BondTransferGasLimit.Ethereum
       if (destinationChain.equals(Chain.Optimism)) {

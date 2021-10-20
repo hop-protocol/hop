@@ -28,7 +28,40 @@ const Stake: FC = () => {
     USDC: '0x2C2Ab81Cf235e86374468b387e241DF22459A265',
     USDT: '0x07932e9A5AB8800922B2688FB1FA0DAAd8341772',
     MATIC: '0x7dEEbCaD1416110022F444B03aEb1D20eB4Ea53f',
+    ETH: '0x7bceda1db99d64f25efa279bb11ce48e15fda427'
   }
+
+  // ETH
+
+  const ethBridge = useAsyncMemo(async () => {
+    return bridges.find(bridge => bridge.getTokenSymbol() === 'ETH')
+  }, [bridges])
+
+  const ethStakingToken = useAsyncMemo(async () => {
+    return ethBridge?.getSaddleLpToken('polygon')
+  }, [ethBridge])
+
+  const ethStakingRewards = useAsyncMemo(async () => {
+    const polygonProvider = await sdk.getSignerOrProvider('polygon')
+    const _provider = provider?.network.name === 'eth' ? provider : polygonProvider
+    return new Contract(stakingContracts.ETH, stakingRewardsAbi, _provider)
+  }, [sdk, provider, user])
+
+  // MATIC
+
+  const maticBridge = useAsyncMemo(async () => {
+    return bridges.find(bridge => bridge.getTokenSymbol() === 'MATIC')
+  }, [bridges])
+
+  const maticStakingToken = useAsyncMemo(async () => {
+    return maticBridge?.getSaddleLpToken('polygon')
+  }, [maticBridge])
+
+  const maticStakingRewards = useAsyncMemo(async () => {
+    const polygonProvider = await sdk.getSignerOrProvider('polygon')
+    const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
+    return new Contract(stakingContracts.MATIC, stakingRewardsAbi, _provider)
+  }, [sdk, provider, user])
 
   // USDC
 
@@ -60,22 +93,6 @@ const Stake: FC = () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
     const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
     return new Contract(stakingContracts.USDT, stakingRewardsAbi, _provider)
-  }, [sdk, provider, user])
-
-  // MATIC
-
-  const maticBridge = useAsyncMemo(async () => {
-    return bridges.find(bridge => bridge.getTokenSymbol() === 'MATIC')
-  }, [bridges])
-
-  const maticStakingToken = useAsyncMemo(async () => {
-    return maticBridge?.getSaddleLpToken('polygon')
-  }, [maticBridge])
-
-  const maticStakingRewards = useAsyncMemo(async () => {
-    const polygonProvider = await sdk.getSignerOrProvider('polygon')
-    const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
-    return new Contract(stakingContracts.MATIC, stakingRewardsAbi, _provider)
   }, [sdk, provider, user])
 
   const rewardsToken = useAsyncMemo(async () => {
@@ -116,6 +133,26 @@ const Stake: FC = () => {
     <Box display="flex" flexDirection="column" alignItems="center">
       <Typography variant="h4">Stake</Typography>
       <div className={styles.container}>
+        {enabledTokens.includes('ETH') && (
+          <StakeWidget
+            network={polygonNetwork}
+            bridge={ethBridge}
+            stakingToken={ethStakingToken}
+            rewardsToken={rewardsToken}
+            stakingRewards={ethStakingRewards}
+            key={ethStakingToken?.symbol}
+          />
+        )}
+        {enabledTokens.includes('MATIC') && (
+          <StakeWidget
+            network={polygonNetwork}
+            bridge={maticBridge}
+            stakingToken={maticStakingToken}
+            rewardsToken={rewardsToken}
+            stakingRewards={maticStakingRewards}
+            key={maticStakingToken?.symbol}
+          />
+        )}
         {enabledTokens.includes('USDC') && (
           <StakeWidget
             network={polygonNetwork}
@@ -134,16 +171,6 @@ const Stake: FC = () => {
             rewardsToken={rewardsToken}
             stakingRewards={usdtStakingRewards}
             key={usdtStakingToken?.symbol}
-          />
-        )}
-        {enabledTokens.includes('MATIC') && (
-          <StakeWidget
-            network={polygonNetwork}
-            bridge={maticBridge}
-            stakingToken={maticStakingToken}
-            rewardsToken={rewardsToken}
-            stakingRewards={maticStakingRewards}
-            key={maticStakingToken?.symbol}
           />
         )}
       </div>

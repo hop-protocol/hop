@@ -2535,20 +2535,20 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@hop-protocol/core@0.0.1-beta.31":
-  version "0.0.1-beta.31"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.31.tgz#840ac05c1c214dc5f5ea8bf1f716a64b988c3d43"
-  integrity sha512-0VwnO8HAqqxHet8O1ZRi4avYr4CRoduD07TMICQdod48SVqkMv6XQyglvy/bJDEi3yFcihyDHmbo5mZ7J07ISQ==
+"@hop-protocol/core@0.0.1-beta.39":
+  version "0.0.1-beta.39"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.39.tgz#cbdc8b9849e40ec51c960b6243dfc7151383341b"
+  integrity sha512-8ju1Qm1e7mmWlJDum7kblz/nX2XIbLpmVxYmxrc5IzfILXw60VTYh+OwvXnhIKDVjYuMFvzlTaKmx1Z3TmpvSA==
   dependencies:
     deepmerge "^4.2.2"
 
-"@hop-protocol/sdk@0.0.1-beta.195":
-  version "0.0.1-beta.195"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.195.tgz#d8a39b0a6405c92f9e445b3ffd4db93f00b54951"
-  integrity sha512-0P6EUflmDTxEVZqkAoeSWRdxLbdgUxAvsebvdY5a22WdOpWIJcNTIIDXxV+k+PKdyCeS8kfBvIOEXpvnxHqRDw==
+"@hop-protocol/sdk@0.0.1-beta.214":
+  version "0.0.1-beta.214"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.214.tgz#b63ebe8de471da7bd23ca8df5183fed5b5f21939"
+  integrity sha512-xMPWpVEqjyskf0DSw39smVgHBii4tRPB0C6oSJbBiv8Kf0QOdxv6NwnGcr+RTF9ckC3KjvmbxHvOulUaVwhLgQ==
   dependencies:
     "@ethersproject/abi" "^5.4.0"
-    "@hop-protocol/core" "0.0.1-beta.31"
+    "@hop-protocol/core" "0.0.1-beta.39"
     "@maticnetwork/maticjs" "^2.0.38"
     "@types/isomorphic-fetch" "0.0.35"
     "@types/luxon" "^1.27.1"

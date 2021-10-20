@@ -36,7 +36,7 @@ export function useSendTransaction(props) {
   } = props
   const [tx, setTx] = useState<Transaction | null>(null)
   const [sending, setSending] = useState<boolean>(false)
-  const { provider, checkConnectedNetworkId } = useWeb3Context()
+  const { provider, address, checkConnectedNetworkId } = useWeb3Context()
   const [recipient, setRecipient] = useState<string>()
   const [signer, setSigner] = useState<Signer>()
   const [bridge, setBridge] = useState<HopBridge>()
@@ -49,7 +49,7 @@ export function useSendTransaction(props) {
       const s = provider.getSigner()
       setSigner(s)
     }
-  }, [provider])
+  }, [provider, address]) // trigger on address change (ie metamask wallet change)
 
   // Set recipient and bridge
   useEffect(() => {
@@ -66,7 +66,7 @@ export function useSendTransaction(props) {
     }
 
     setRecipientAndBridge()
-  }, [signer, sourceToken])
+  }, [signer, sourceToken, customRecipient])
 
   // Set parsedAmount and totalBonderFee
   useEffect(() => {
@@ -104,6 +104,7 @@ export function useSendTransaction(props) {
       }
 
       setSending(true)
+      logger.debug(`recipient: ${recipient}`)
 
       let tx: Transaction | null = null
       if (fromNetwork.isLayer1) {
@@ -123,7 +124,7 @@ export function useSendTransaction(props) {
         const watcher = sdk.watch(tx.hash, sourceToken!.symbol, sourceChain, destChain)
 
         watcher.on(sdk.Event.DestinationTxReceipt, async data => {
-          console.log(`dest tx receipt event data:`, data)
+          logger.debug(`dest tx receipt event data:`, data)
           if (tx && !tx.destTxHash) {
             tx.destTxHash = data.receipt.transactionHash
             txHistory?.updateTransaction(tx)

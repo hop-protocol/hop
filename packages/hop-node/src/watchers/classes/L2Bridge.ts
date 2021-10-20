@@ -1,4 +1,4 @@
-import Bridge, { EventCb, EventsBatchOptions, checkMinBonderFee } from './Bridge'
+import Bridge, { EventCb, EventsBatchOptions } from './Bridge'
 import L1Bridge from './L1Bridge'
 import L2Amm from './L2Amm'
 import L2AmmWrapper from './L2AmmWrapper'
@@ -412,10 +412,7 @@ export default class L2Bridge extends Bridge {
     transferNonce: string,
     bonderFee: BigNumber,
     amountOutMin: BigNumber,
-    deadline: BigNumber,
-    gasPrice?: BigNumber,
-    tokenUsdPrice?: number,
-    chainNativeTokenUsdPrice?: number
+    deadline: BigNumber
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
     if (this.chainSlug === Chain.Polygon) {
@@ -432,11 +429,7 @@ export default class L2Bridge extends Bridge {
       txOverrides
     ]
 
-    const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
-    await checkMinBonderFee(amount, bonderFee, gasLimit, this.chainSlug, this.tokenSymbol, gasPrice, tokenUsdPrice, chainNativeTokenUsdPrice)
-
     const tx = await this.bridgeContract.bondWithdrawalAndDistribute(...payload)
-
     return tx
   })
 

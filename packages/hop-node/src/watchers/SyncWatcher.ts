@@ -111,7 +111,7 @@ class SyncWatcher extends BaseWatcher {
         this.logger.debug('done syncing incomplete items. index:', this.syncIndex)
         await this.postSyncHandler()
       } catch (err) {
-        this.notifier.error(`pollsync error: ${err.message}`)
+        this.notifier.error(`pollSync error: ${err.message}`)
         this.logger.error('pollSync error:', err)
       }
     }
@@ -458,11 +458,6 @@ class SyncWatcher extends BaseWatcher {
 
     try {
       const bondTransferRootId = await this.bridge.getTransferRootId(
-        root,
-        amount
-      )
-      const { transactionHash } = event
-      const transferRootId = await this.bridge.getTransferRootId(
         root,
         amount
       )

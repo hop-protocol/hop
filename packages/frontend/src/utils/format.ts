@@ -36,15 +36,18 @@ export function sanitizeNumericalString(numStr: string) {
   return numStr.replace(/[^0-9.]|\.(?=.*\.)/g, '')
 }
 
-function truncate(value: number, precision: number) {
-    const step = Math.pow(10, precision || 0)
-    const temp = Math.trunc(step * value)
-    return temp / step
-}
-
 export function fixedDecimals(amount: string, decimals: number) {
   const sanitizedAmount = sanitizeNumericalString(amount)
-  return truncate(Number(amount), decimals).toString()
+  const indexOfDecimal = sanitizedAmount.indexOf('.')
+  if (indexOfDecimal === -1) {
+    return sanitizedAmount
+  }
+
+  const wholeAmount = sanitizedAmount.slice(0, indexOfDecimal)
+  const fractionalAmount = sanitizedAmount.slice(indexOfDecimal + 1)
+  const decimalAmount = decimals !== 0 ? `.${fractionalAmount.slice(0, decimals)}` : ''
+
+  return `${wholeAmount}${decimalAmount}`
 }
 
 export function amountToBN(amount: string, decimals: number = 18) {

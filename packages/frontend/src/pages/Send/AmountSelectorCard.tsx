@@ -1,5 +1,5 @@
 import React, { useMemo, FC, ChangeEvent } from 'react'
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
@@ -13,6 +13,9 @@ import LargeTextField from 'src/components/LargeTextField'
 import FlatSelect from 'src/components/selects/FlatSelect'
 import Network from 'src/models/Network'
 import { toTokenDisplay } from 'src/utils'
+import { useApp } from 'src/contexts/AppContext'
+import { ZERO_ADDRESS } from 'src/constants'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -73,6 +76,8 @@ type Props = {
   label: string
   token?: Token
   onChange?: (value: string) => void
+  fromNetwork?: Network
+  toNetwork?: Network
   selectedNetwork?: Network
   networkOptions: Network[]
   onNetworkChange: (network?: Network) => void
@@ -80,6 +85,7 @@ type Props = {
   loadingBalance?: boolean
   loadingValue?: boolean
   disableInput?: boolean
+  deadline?: any
 }
 
 const AmountSelectorCard: FC<Props> = props => {
@@ -88,15 +94,21 @@ const AmountSelectorCard: FC<Props> = props => {
     label,
     token,
     onChange,
+    fromNetwork,
     selectedNetwork,
+    toNetwork,
     networkOptions,
     onNetworkChange,
     balance,
     loadingBalance = false,
     loadingValue = false,
     disableInput = false,
+    deadline,
   } = props
   const styles = useStyles()
+
+  const { checkConnectedNetworkId, address } = useWeb3Context()
+  const { sdk } = useApp()
 
   const balanceLabel = useMemo(() => {
     return toTokenDisplay(balance, token?.decimals)
@@ -108,13 +120,49 @@ const AmountSelectorCard: FC<Props> = props => {
       onChange(value)
     }
   }
-  const handleMaxClick = () => {
-    if (onChange) {
-      let max = ''
-      if (balance && token) {
-        max = formatUnits(balance, token.decimals)
+  const handleMaxClick = async () => {
+    if (onChange && sdk && balance && token && fromNetwork && toNetwork && deadline) {
+      let nativeTokenMaxGas = BigNumber.from(0)
+
+      if (token.isNativeToken) {
+        // Switch networks
+        const isNetworkConnected = await checkConnectedNetworkId(Number(fromNetwork.networkId))
+        if (!isNetworkConnected) return
+
+        const bridge = sdk.bridge(token?.symbol)
+
+        // Get estimated gas cost
+        const estimatedGas = await bridge.send(
+          '2',
+          fromNetwork?.slug as string,
+          toNetwork?.slug as string,
+          {
+            recipient: ZERO_ADDRESS,
+            bonderFee: '1',
+            amountOutMin: '0',
+            deadline: deadline(),
+            destinationAmountOutMin: '0',
+            destinationDeadline: deadline(),
+            estimateGasCost: true,
+          }
+        )
+
+        // Get current gas price
+        const feeData = await bridge.signer.getFeeData()
+
+        if (estimatedGas && feeData?.gasPrice) {
+          // Add some wiggle room
+          const bufferGas = utils.parseUnits('50', 'gwei')
+
+          nativeTokenMaxGas = estimatedGas.mul(feeData?.gasPrice).add(bufferGas)
+        }
       }
-      onChange(max)
+
+      // Subtract the total gas
+      const totalAmount = balance.sub(nativeTokenMaxGas)
+
+      const maxValue = formatUnits(totalAmount, token.decimals)
+      onChange(maxValue)
     }
   }
 

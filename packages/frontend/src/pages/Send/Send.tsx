@@ -503,6 +503,9 @@ const Send: FC = () => {
         onNetworkChange={handleFromNetworkChange}
         balance={fromBalance}
         loadingBalance={loadingFromBalance}
+        deadline={deadline}
+        toNetwork={toNetwork}
+        fromNetwork={fromNetwork}
       />
 
       <MuiButton className={styles.switchDirectionButton} onClick={handleSwitchDirection}>

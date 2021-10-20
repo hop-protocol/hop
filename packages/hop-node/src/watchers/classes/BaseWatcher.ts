@@ -274,7 +274,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
         }
 
         await Promise.all(estimates.map(async ({ gasLimit, attemptSwap }) => {
-          const { gasCost, gasCostUsd, gasPrice, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
+          const { gasCost, gasCostInToken, gasPrice, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
             gasLimit,
             this.chainSlug,
             this.tokenSymbol
@@ -286,7 +286,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
             timestamp,
             attemptSwap,
             gasCost,
-            gasCostUsd,
+            gasCostInToken,
             gasPrice,
             gasLimit,
             tokenPriceUsd,

@@ -230,8 +230,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
 
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const { gasCostUsd, tokenPriceUsd } = await this.getPricesNearTransferEvent(dbTransfer, attemptSwap)
-    logger.debug('gasCostUsd:', gasCostUsd?.toString())
+    const { gasCostInToken, tokenPriceUsd } = await this.getPricesNearTransferEvent(dbTransfer, attemptSwap)
+    logger.debug('gasCostInToken:', gasCostInToken?.toString())
     logger.debug('tokenPriceUsd:', tokenPriceUsd?.toString())
 
     if (attemptSwap) {
@@ -247,7 +247,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         bonderFee,
         amountOutMin,
         deadline,
-        gasCostUsd
+        gasCostInToken
       )
     } else {
       logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
@@ -257,7 +257,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         amount,
         transferNonce,
         bonderFee,
-        gasCostUsd
+        gasCostInToken
       )
     }
   }
@@ -267,18 +267,18 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const tokenSymbol = this.tokenSymbol
     const transferSentTimestamp = dbTransfer?.transferSentTimestamp
-    let gasCostUsd: number
+    let gasCostInToken: BigNumber
     let tokenPriceUsd: number
     if (transferSentTimestamp) {
       const data = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, attemptSwap, transferSentTimestamp)
       if (data) {
-        gasCostUsd = data.gasCostUsd
+        gasCostInToken = data.gasCostInToken
         tokenPriceUsd = data.tokenPriceUsd
       }
     }
 
     return {
-      gasCostUsd,
+      gasCostInToken,
       tokenPriceUsd
     }
   }

@@ -1,3 +1,4 @@
+import BNMin from 'src/utils/BNMin'
 import ContractBase from './ContractBase'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
@@ -5,6 +6,7 @@ import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
+import shiftBNDecimals from 'src/utils/shiftBNDecimals'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import { BonderFeeBps, Chain, MinBonderFeeAbsolute } from 'src/constants'
 import { BonderFeeTooLowError } from 'src/types/error'
@@ -451,7 +453,7 @@ export default class Bridge extends ContractBase {
     gasPrice?: BigNumber,
     tokenUsdPrice?: number,
     chainNativeTokenUsdPrice?: number,
-    gasCostUsd?: number
+    gasCostInToken?: BigNumber
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
     const payload = [
@@ -463,7 +465,7 @@ export default class Bridge extends ContractBase {
     ]
 
     const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
-    await this.checkBonderFee(amount, bonderFee, gasLimit, this.tokenSymbol, gasCostUsd)
+    await this.checkBonderFee(amount, bonderFee, gasLimit, this.tokenSymbol, gasCostInToken)
 
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
 
@@ -733,24 +735,23 @@ export default class Bridge extends ContractBase {
     bonderFee: BigNumber,
     gasLimit: BigNumber,
     tokenSymbol: string,
-    gasCostUsd?: number,
+    gasCostInToken?: BigNumber,
     tokenPriceUsd?: number
   ) {
     if (!tokenPriceUsd) {
       tokenPriceUsd = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
     }
     const minBpsFee = await this.getBonderFeeBps(amountIn, tokenSymbol, tokenPriceUsd)
-    const { gasCostUsd: currentGasCostUsd } = await this.getGasCostEstimation(
+    const { gasCostInToken: currentGasCostInToken } = await this.getGasCostEstimation(
       gasLimit,
       this.chainSlug,
       this.tokenSymbol
     )
-    if (!gasCostUsd) {
-      gasCostUsd = currentGasCostUsd
+    if (!gasCostInToken) {
+      gasCostInToken = currentGasCostInToken
     }
-    gasCostUsd = Math.min(gasCostUsd, currentGasCostUsd)
-    const tokenDecimals = getTokenDecimals(tokenSymbol)
-    const minTxFee = parseUnits((gasCostUsd / 2).toString(), tokenDecimals)
+    gasCostInToken = BNMin(gasCostInToken, currentGasCostInToken)
+    const minTxFee = gasCostInToken.div(2)
     const minBonderFeeTotal = minBpsFee.add(minTxFee)
     const isTooLow = bonderFee.lt(minBonderFeeTotal)
     if (isTooLow) {
@@ -763,23 +764,23 @@ export default class Bridge extends ContractBase {
     chain: string,
     tokenSymbol: string
   ) {
-    const ethDecimals = 18
+    const nativeTokenDecimals = 18
     const provider = getRpcProvider(chain)
     const gasPrice = await provider.getGasPrice()
     const tokenPriceUsd = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
     const gasCost = gasLimit.mul(gasPrice)
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     const nativeTokenPriceUsd = await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol)
-    const tokenPriceUsdBn = parseUnits(tokenPriceUsd.toString(), ethDecimals)
-    const nativeTokenPriceUsdBn = parseUnits(nativeTokenPriceUsd.toString(), ethDecimals)
     const tokenDecimals = getTokenDecimals(tokenSymbol)
-    const oneEth = parseUnits('1', ethDecimals)
-    const gasCostUsdBn = gasCost.mul(nativeTokenPriceUsdBn).div(oneEth)
-    const gasCostUsd = Number(formatUnits(gasCostUsdBn, ethDecimals))
+    const tokenPriceUsdBn = parseUnits(tokenPriceUsd.toString(), tokenDecimals)
+    const nativeTokenPriceUsdBn = parseUnits(nativeTokenPriceUsd.toString(), tokenDecimals)
+    const oneToken = parseUnits('1', tokenDecimals)
+    const rate = (nativeTokenPriceUsdBn.mul(oneToken)).div(tokenPriceUsdBn)
+    const gasCostInToken = (shiftBNDecimals(gasCost, nativeTokenDecimals - tokenDecimals).mul(rate)).div(oneToken)
 
     return {
       gasCost,
-      gasCostUsd,
+      gasCostInToken,
       gasPrice,
       gasLimit,
       tokenPriceUsd,

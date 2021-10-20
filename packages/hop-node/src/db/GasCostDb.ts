@@ -13,7 +13,7 @@ export type GasCost = BaseItem & {
   timestamp: number // in seconds
   attemptSwap: boolean
   gasCost: BigNumber
-  gasCostUsd: number
+  gasCostInToken: BigNumber
   gasPrice: BigNumber
   gasLimit: BigNumber
   tokenPriceUsd: number

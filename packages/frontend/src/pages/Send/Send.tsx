@@ -109,7 +109,7 @@ const Send: FC = () => {
 
   // Set fromToken -> BN
   const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {
-    if (sourceToken) {
+    if (fromTokenAmount && sourceToken) {
       return amountToBN(fromTokenAmount, sourceToken.decimals)
     }
   }, [sourceToken, fromTokenAmount])

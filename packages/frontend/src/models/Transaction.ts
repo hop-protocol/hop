@@ -175,7 +175,7 @@ class Transaction extends EventEmitter {
   }
 
   async checkIsTransferIdSpent(sdk: Hop) {
-    if (this.token && this.destNetworkName) {
+    if (this.provider && this.token && this.destNetworkName) {
       const receipt = await this.receipt()
       // Get the event data (topics)
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
@@ -237,7 +237,8 @@ class Transaction extends EventEmitter {
       }
 
       // Transfer from L2
-      if (this.transferId) {
+      // transferId found in event: TransferSent
+      if (this.transferId && this.destNetworkName) {
         // Query Graph Protocol for WithdrawalBonded events
         const withdrawalBondeds = await fetchWithdrawalBondedsByTransferId(
           this.destNetworkName,

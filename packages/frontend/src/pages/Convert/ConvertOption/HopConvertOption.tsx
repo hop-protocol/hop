@@ -62,7 +62,7 @@ class HopConvertOption extends ConvertOption {
     const bonderFee = await bridge.getBonderFee(amountIn, sourceNetwork.slug, destNetwork.slug)
 
     const amountOutMin = BigNumber.from(0)
-    const deadline = 0
+    const deadline = BigNumber.from(0)
     const destinationTxFee =
       (await bridge.getDestinationTransactionFee(
         sourceNetwork.slug,

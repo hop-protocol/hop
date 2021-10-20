@@ -727,12 +727,12 @@ export default class Bridge extends ContractBase {
     chain: string,
     tokenSymbol: string
   ) {
-    const nativeTokenDecimals = 18
+    const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
+    const nativeTokenDecimals = getTokenDecimals(chainNativeTokenSymbol)
     const provider = getRpcProvider(chain)
     const gasPrice = await provider.getGasPrice()
     const tokenPriceUsd = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
     const gasCost = gasLimit.mul(gasPrice)
-    const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     const nativeTokenPriceUsd = await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol)
     const tokenDecimals = getTokenDecimals(tokenSymbol)
     const tokenPriceUsdBn = parseUnits(tokenPriceUsd.toString(), tokenDecimals)

@@ -142,7 +142,7 @@ const Convert: FC = () => {
           <div className={styles.details}>{details}</div>
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error" onClose={() => setError(undefined)} text={error} />
-          <TxStatusModal onClose={handleTxStatusClose} tx={tx} />
+          {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
           <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
             <Button
               className={styles.button}

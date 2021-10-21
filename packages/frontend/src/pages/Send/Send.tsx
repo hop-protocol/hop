@@ -588,7 +588,7 @@ const Send: FC = () => {
 
       <Flex mt={1}>
         <Alert severity="info" onClose={() => setInfo(null)} text={info} />
-        <TxStatusModal onClose={() => setTx(null)} tx={tx} />
+        {tx && <TxStatusModal onClose={() => setTx(null)} tx={tx} />}
       </Flex>
     </Box>
   )

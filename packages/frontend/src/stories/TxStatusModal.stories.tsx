@@ -2,7 +2,7 @@ import React from 'react'
 import { ComponentStory, ComponentMeta } from '@storybook/react'
 import TxStatusModal from 'src/components/txStatus/TxStatusModal'
 import { storyTransactions } from './data'
-import Transaction from 'src/models/Transaction'
+import { createTransaction } from 'src/utils/createTransaction'
 
 export default {
   title: 'components/TxStatusModal',
@@ -14,10 +14,22 @@ const Template: ComponentStory<typeof TxStatusModal> = args => {
     console.log('close')
   }
 
-  const tx = storyTransactions[0]
-
-  return <TxStatusModal onClose={handleClose} tx={tx as Transaction} {...args} />
+  return <TxStatusModal onClose={handleClose} {...args} />
 }
 
-export const Basic = Template.bind({})
-Basic.args = {}
+const sts = storyTransactions.map(tx =>
+  createTransaction(tx, tx.networkName, tx.destNetworkName, tx.token, {
+    pendingDestinationConfirmation: tx.pendingDestinationConfirmation,
+  })
+)
+console.log(`sts:`, sts)
+
+export const PendingDestination = Template.bind({})
+PendingDestination.args = {
+  tx: sts[0],
+}
+
+export const BothCompleted = Template.bind({})
+BothCompleted.args = {
+  tx: sts[1],
+}

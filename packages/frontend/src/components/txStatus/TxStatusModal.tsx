@@ -1,31 +1,27 @@
-import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
+import React, { useState, useEffect } from 'react'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import MuiButton from '@material-ui/core/Button'
-import { makeStyles } from '@material-ui/core/styles'
-import TxStatus from 'src/components/txStatus'
 import Transaction from 'src/models/Transaction'
 import Modal from 'src/components/modal'
 import { Chain } from '@hop-protocol/sdk'
-
-const useStyles = makeStyles(theme => ({
-  txStatusInfo: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  txStatusCloseButton: {
-    marginTop: '1rem',
-  },
-}))
+import { Div, Flex } from '../ui'
+import TransactionStatus from '../accountDetails/TransactionStatus'
+import useTransactionStatus from 'src/hooks/useTransactionStatus'
+import { useTxStatusStyles } from '../accountDetails/useTxStatusStyles'
+import SelectOption from '../selects/SelectOption'
+import { useApp } from 'src/contexts/AppContext'
+import find from 'lodash/find'
 
 type Props = {
-  tx?: Transaction | null
+  tx: Transaction
   onClose?: () => void
 }
 
 function TxStatusModal(props: Props) {
-  const styles = useStyles()
+  const { networks } = useApp()
+  const [iconImage, setIconImage] = useState('')
+  const styles = useTxStatusStyles()
   const { onClose, tx } = props
   const handleTxStatusClose = () => {
     if (onClose) {
@@ -40,9 +36,48 @@ function TxStatusModal(props: Props) {
     timeEstimate = '15 minutes'
   }
 
-  return tx ? (
+  useEffect(() => {
+    if (networks?.length && tx?.networkName) {
+      const n = find(networks, ['slug', tx.networkName])
+      if (n) {
+        setIconImage(n.imageUrl)
+      }
+    }
+  }, [networks, tx])
+
+  const { completed, destCompleted } = useTransactionStatus(tx, tx.networkName)
+
+  return (
     <Modal onClose={handleTxStatusClose}>
-      <TxStatus tx={tx} />
+      <Div mb={4}>
+        <Flex justifyAround alignCenter>
+          <Flex column alignCenter textAlign="center" width="5em">
+            {/* <SelectOption icon={iconImage} /> */}
+            <Div>Source</Div>
+          </Flex>
+          <Flex textAlign="center" width="5em">
+            Destination
+          </Flex>
+        </Flex>
+
+        <Flex justifyAround alignCenter mt={3}>
+          <TransactionStatus
+            complete={completed}
+            link={tx.explorerLink}
+            destNetworkName={tx.destNetworkName}
+            styles={styles}
+          />
+
+          <TransactionStatus
+            complete={destCompleted}
+            link={tx.destExplorerLink}
+            destNetworkName={tx.destNetworkName}
+            destTx
+            styles={styles}
+          />
+        </Flex>
+      </Div>
+
       <Box display="flex" alignItems="center" className={styles.txStatusInfo}>
         <Typography variant="body1">
           {tx && tx.token ? (
@@ -59,7 +94,7 @@ function TxStatusModal(props: Props) {
         </MuiButton>
       </Box>
     </Modal>
-  ) : null
+  )
 }
 
 export default TxStatusModal

@@ -2,7 +2,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import { DateTime } from 'luxon'
 import { formatUnits } from 'ethers/lib/utils'
 
-export interface Filters {
+export type Filters = {
   startDate: string
   endDate: string
   orderDesc: boolean

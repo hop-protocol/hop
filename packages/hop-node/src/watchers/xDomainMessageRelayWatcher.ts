@@ -11,7 +11,7 @@ import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contr
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { getEnabledNetworks } from 'src/config'
 
-export interface Config {
+export type Config = {
   chainSlug: string
   tokenSymbol: string
   isL1: boolean
@@ -105,18 +105,21 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       )
     }
     for (const { transferRootHash } of dbTransferRoots) {
+      /* eslint-disable @typescript-eslint/no-non-null-assertion */
+
       // only process message after waiting 10 minutes
-      if (!this.lastSeen[transferRootHash]) {
-        this.lastSeen[transferRootHash] = Date.now()
+      if (!this.lastSeen[transferRootHash!]) {
+        this.lastSeen[transferRootHash!] = Date.now()
       }
 
-      const timestampOk = this.lastSeen[transferRootHash] + TenMinutesMs < Date.now()
+      const timestampOk = this.lastSeen[transferRootHash!] + TenMinutesMs < Date.now()
       if (!timestampOk) {
         return
       }
 
       // Parallelizing these calls produces RPC errors on Optimism
-      await this.checkTransfersCommitted(transferRootHash)
+      await this.checkTransfersCommitted(transferRootHash!)
+      /* eslint-enable @typescript-eslint/no-non-null-assertion */
     }
   }
 
@@ -132,8 +135,8 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
     const { transferRootId } = dbTransferRoot
     const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
-      destinationChainId,
-      transferRootId
+      destinationChainId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      transferRootId! // eslint-disable-line @typescript-eslint/no-non-null-assertion
     )
     if (isTransferRootIdConfirmed) {
       logger.warn('Transfer root already confirmed')
@@ -150,7 +153,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }
 
     logger.debug(`handling commit tx hash ${commitTxHash} from ${destinationChainId}`)
-    await watcher.handleCommitTxHash(commitTxHash, transferRootHash, logger)
+    await watcher.handleCommitTxHash(commitTxHash!, transferRootHash, logger) // eslint-disable-line @typescript-eslint/no-non-null-assertion
   }
 }
 

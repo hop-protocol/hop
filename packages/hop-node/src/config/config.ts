@@ -50,12 +50,12 @@ export const defaultConfigDir = `${os.homedir()}/.hop-node`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 
-interface SyncConfig {
+type SyncConfig = {
   totalBlocks?: number
   batchBlocks?: number
 }
-interface SyncConfigs { [key: string]: SyncConfig }
-interface DbConfig {
+type SyncConfigs = { [key: string]: SyncConfig }
+type DbConfig = {
   path: string
 }
 type MetricsConfig = {

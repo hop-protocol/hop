@@ -9,10 +9,9 @@ import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { Transfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
 
-export interface Config {
+export type Config = {
   chainSlug: string
   tokenSymbol: string
   isL1: boolean
@@ -71,13 +70,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
         withdrawalBondTxError
       } = dbTransfer
       const logger = this.logger.create({ id: transferId })
-      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId, amount)
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!, amount!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       if (
-        availableCredit.lt(amount) &&
+        availableCredit.lt(amount!) && // eslint-disable-line @typescript-eslint/no-non-null-assertion
         withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
         logger.debug(
-          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`,
+          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`, // eslint-disable-line @typescript-eslint/no-non-null-assertion
           `withdrawalBondTxError: ${withdrawalBondTxError}`
         )
 
@@ -85,7 +84,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       logger.debug('db poll completed')
-      promises.push(this.checkTransferId(transferId).catch(err => {
+      promises.push(this.checkTransferId(transferId!).catch(err => { // eslint-disable-line @typescript-eslint/no-non-null-assertion
         this.logger.error('checkTransferId error:', err)
       }))
     }
@@ -113,7 +112,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const logger: Logger = this.logger.create({ id: transferId })
     logger.debug('processing bondWithdrawal')
     const sourceL2Bridge = this.bridge as L2Bridge
-    const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
+    const destBridge = this.getSiblingWatcherByChainId(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       .bridge
 
     const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
@@ -124,13 +123,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    const availableCredit = this.getAvailableCreditForTransfer(destinationChainId, amount)
+    const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!, amount!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     logger.debug(`processing bondWithdrawal. availableCredit: ${availableCredit.toString()}`)
-    if (availableCredit.lt(amount)) {
+    if (availableCredit.lt(amount!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
           availableCredit
-        )}, need ${this.bridge.formatUnits(amount)}`
+        )}, need ${this.bridge.formatUnits(amount!)}` // eslint-disable-line @typescript-eslint/no-non-null-assertion
       )
       await this.db.transfers.update(transferId, {
         withdrawalBondTxError: TxError.NotEnoughLiquidity
@@ -147,15 +146,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('sending bondWithdrawal tx')
 
     const sourceTx = await sourceL2Bridge.getTransaction(
-      transferSentTxHash
+      transferSentTxHash! // eslint-disable-line @typescript-eslint/no-non-null-assertion
     )
     if (!sourceTx) {
       this.logger.warn(`source tx data for tx hash "${transferSentTxHash}" not found. Cannot proceed`)
       return
     }
     const { from: sender, data } = sourceTx
-    const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin, deadline)
-    if (attemptSwap && isL1ChainId(destinationChainId)) {
+    const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin!, deadline!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    if (attemptSwap && isL1ChainId(destinationChainId!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
       await this.db.transfers.update(transferId, {
         isBondable: false
       })
@@ -272,7 +271,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     const { amount, bonderFee, destinationChainId } = dbTransfer
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationChain = this.chainIdToSlug(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const transferSentTimestamp = dbTransfer?.transferSentTimestamp
     if (!transferSentTimestamp) {
       throw new Error('expected transferSentTimestamp')
@@ -296,10 +295,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('gasCostInToken:', gasCostInToken?.toString())
     logger.debug('minBonderFeeAbsolute:', minBonderFeeAbsolute?.toString())
 
-    const minBpsFee = await this.bridge.getBonderFeeBps(amount, minBonderFeeAbsolute)
+    const minBpsFee = await this.bridge.getBonderFeeBps(amount!, minBonderFeeAbsolute) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const minTxFee = gasCostInToken.div(2)
     const minBonderFeeTotal = minBpsFee.add(minTxFee)
-    const isTooLow = bonderFee.lt(minBonderFeeTotal)
+    const isTooLow = bonderFee!.lt(minBonderFeeTotal) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     if (isTooLow) {
       throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`)
     }

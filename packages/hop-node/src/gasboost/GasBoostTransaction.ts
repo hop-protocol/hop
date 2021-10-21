@@ -25,13 +25,13 @@ export enum State {
   Error = 'error'
 }
 
-interface InflightItem {
+type InflightItem = {
   hash?: string
   boosted: boolean
   sentAt: number
 }
 
-interface MarshalledItem {
+type MarshalledItem = {
   id: string
   createdAt: number
   txHash: string
@@ -46,7 +46,7 @@ interface MarshalledItem {
   gasLimit: string
 }
 
-export interface Options {
+export type Options = {
   pollMs: number
   timeTilBoostMs: number
   gasPriceMultiplier: number
@@ -56,10 +56,10 @@ export interface Options {
   compareMarketGasPrice: boolean
 }
 
-export interface Type0GasData {
+export type Type0GasData = {
   gasPrice: BigNumber
 }
-export interface Type2GasData {
+export type Type2GasData = {
   maxFeePerGas: BigNumber
   maxPriorityFeePerGas: BigNumber
 }
@@ -165,7 +165,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return uuidv4()
   }
 
-  decodeTransferId (): string {
+  decodeTransferId (): string | undefined {
     if (this.data) {
       try {
         if (this.data?.startsWith('0x3d12a85a') || this.data?.startsWith('0x23c452cd')) {
@@ -180,7 +180,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
-  get hash ():string {
+  get hash (): string {
     if (this.txHash) {
       return this.txHash
     }

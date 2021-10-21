@@ -7,7 +7,7 @@ import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contr
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { TxRetryDelayMs } from 'src/constants'
 import { getEnabledNetworks } from 'src/config'
-export interface Config {
+export type Config = {
   chainSlug: string
   tokenSymbol: string
   label: string
@@ -91,8 +91,8 @@ class CommitTransfersWatcher extends BaseWatcher {
     const destinationChainIds: number[] = []
     for (const dbTransfer of dbTransfers) {
       const { destinationChainId } = dbTransfer
-      if (!destinationChainIds.includes(destinationChainId)) {
-        destinationChainIds.push(destinationChainId)
+      if (!destinationChainIds.includes(destinationChainId!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        destinationChainIds.push(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       }
     }
     for (const destinationChainId of destinationChainIds) {

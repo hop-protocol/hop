@@ -8,7 +8,7 @@ import { config as globalConfig } from 'src/config'
 const tokenSymbols = Object.keys(globalConfig.tokens)
 const networks = [Chain.Arbitrum, Chain.Optimism, Chain.xDai, Chain.Polygon]
 
-export interface Config {
+export type Config = {
   minThreshold: number
   maxTradeAmount: number
 }

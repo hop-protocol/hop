@@ -6,7 +6,7 @@ const logger = new Logger('CloudWatch')
 
 AWS.config.update({ region: 'us-east-1' })
 
-interface Config {
+type Config = {
   logGroup: string
   logStream: string
   filterPattern: string

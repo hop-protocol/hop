@@ -39,26 +39,26 @@ export const defaultEnabledNetworks: { [key: string]: boolean } = {
   [Chain.Ethereum]: true
 }
 
-interface ChainsConfig {
+type ChainsConfig = {
   [key: string]: any
 }
 
-interface TokensConfig {
+type TokensConfig = {
   [key: string]: boolean
 }
 
-interface SyncConfig {
+type SyncConfig = {
   [key: string]: any
 }
 
-interface RolesConfig {
+type RolesConfig = {
   bonder?: boolean
   challenger?: boolean
   arbBot?: boolean
   xdaiBridge?: boolean
 }
 
-interface WatchersConfig {
+type WatchersConfig = {
   bondTransferRoot: boolean
   bondWithdrawal: boolean
   challenge: boolean
@@ -68,31 +68,31 @@ interface WatchersConfig {
   xDomainMessageRelay: boolean
 }
 
-interface DbConfig {
+type DbConfig = {
   location: string
 }
 
-interface KeystoreConfig {
+type KeystoreConfig = {
   location: string
   pass?: string
   passwordFile?: string
   parameterStore?: string
 }
 
-interface LoggingConfig {
+type LoggingConfig = {
   level: string
 }
 
-interface MetricsConfig {
+type MetricsConfig = {
   enabled: boolean
   port?: number
 }
 
-export interface Addresses {
+export type Addresses = {
   location: string
 }
 
-export interface FileConfig {
+export type FileConfig = {
   network?: string
   chains?: ChainsConfig
   tokens?: TokensConfig

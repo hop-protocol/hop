@@ -7,7 +7,7 @@ import { BigNumber } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-export interface Config {
+export type Config = {
   chainSlug: string
   tokenSymbol: string
   bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
@@ -60,12 +60,12 @@ class BondTransferRootWatcher extends BaseWatcher {
       } = dbTransferRoot
 
       promises.push(this.checkTransfersCommitted(
-        transferRootHash,
-        totalAmount,
-        destinationChainId,
-        committedAt,
-        sourceChainId,
-        transferIds
+        transferRootHash!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        totalAmount!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        destinationChainId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        committedAt!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        sourceChainId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        transferIds! // eslint-disable-line @typescript-eslint/no-non-null-assertion
       ))
     }
 

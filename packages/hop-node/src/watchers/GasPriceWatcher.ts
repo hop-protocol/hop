@@ -5,7 +5,7 @@ import wait from 'src/utils/wait'
 import { getGasPricesDb } from 'src/db'
 import { providers } from 'ethers'
 
-interface Config {
+type Config = {
   chainSlug: string
 }
 
@@ -13,7 +13,7 @@ class GasPriceWatcher {
   chainSlug: string
   provider: providers.Provider
   db: GasPricesDb
-  intervalMs : number = 30 * 1000
+  intervalMs: number = 30 * 1000
   logger: Logger
 
   constructor (config: Config) {

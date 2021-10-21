@@ -11,7 +11,7 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { Watcher } from '@eth-optimism/core-utils'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { getMessagesAndProofsForL2Transaction } from '@eth-optimism/message-relayer'
-interface Config {
+type Config = {
   chainSlug: string
   tokenSymbol: string
   label?: string

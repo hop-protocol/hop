@@ -29,23 +29,23 @@ enum Watchers {
   Stake = 'stake'
 }
 
-interface StakeAmounts {
+type StakeAmounts = {
   [token: string]: number
 }
 
-interface CommitTransfersMinThresholdAmounts {
+type CommitTransfersMinThresholdAmounts = {
   [token: string]: any
 }
 
-interface BondWithdrawalAmounts {
+type BondWithdrawalAmounts = {
   [token: string]: any
 }
 
-interface SettleBondedWithdrawalsThresholdPercent {
+type SettleBondedWithdrawalsThresholdPercent = {
   [token: string]: any
 }
 
-interface GetWatchersConfig {
+type GetWatchersConfig = {
   enabledWatchers?: string[]
   order?: number
   tokens?: string[]
@@ -62,7 +62,7 @@ interface GetWatchersConfig {
   s3Namespace?: string
 }
 
-interface GetStakeWatchersConfig {
+type GetStakeWatchersConfig = {
   tokens?: string[]
   networks?: string[]
   maxStakeAmounts?: StakeAmounts
@@ -70,7 +70,7 @@ interface GetStakeWatchersConfig {
   stateUpdateAddress?: string
 }
 
-interface GetChallengeWatchersConfig {
+type GetChallengeWatchersConfig = {
   tokens?: string[]
   networks?: string[]
   dryMode?: boolean
@@ -259,7 +259,7 @@ export async function getWatchers (config: GetWatchersConfig) {
 
 export async function startWatchers (config: GetWatchersConfig) {
   const watchers = await getWatchers(config)
-  watchers.forEach((watcher: Watcher) => watcher.start())
+  watchers.forEach(async (watcher: Watcher) => watcher.start())
   const stop = () => {
     return watchers.map(async (watcher: Watcher) => {
       return await watcher.stop()

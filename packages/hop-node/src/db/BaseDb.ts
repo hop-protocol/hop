@@ -20,12 +20,12 @@ export enum Event {
   Batch = 'batch',
 }
 
-export interface BaseItem {
+export type BaseItem = {
   _id?: string
   _createdAt?: number
 }
 
-export interface KV {
+export type KV = {
   key: string
   value: any
 }
@@ -37,7 +37,7 @@ export type QueueItem = {
 }
 
 // this are options that leveldb createReadStream accepts
-export interface KeyFilter {
+export type KeyFilter = {
   gt?: string
   gte?: string
   lt?: string
@@ -53,11 +53,11 @@ class BaseDb extends EventEmitter {
   public prefix: string
   logger: Logger
   mutex: Mutex = new Mutex()
-  pollIntervalMs : number = 5 * 1000
-  lastBatchUpdatedAt : number = Date.now()
-  batchSize : number = 10
+  pollIntervalMs: number = 5 * 1000
+  lastBatchUpdatedAt: number = Date.now()
+  batchSize: number = 10
   batchTimeLimit: number = 3 * 1000
-  batchQueue : QueueItem[] = []
+  batchQueue: QueueItem[] = []
 
   constructor (prefix: string, _namespace?: string) {
     super()
@@ -187,7 +187,7 @@ class BaseDb extends EventEmitter {
   }
 
   public async putBatch (putItems: QueueItem[]) {
-    const ops : any[] = []
+    const ops: any[] = []
     for (const data of putItems) {
       const { key, value } = await this._getUpdateData(data.key, data.value)
       ops.push({

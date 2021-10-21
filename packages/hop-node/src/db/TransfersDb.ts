@@ -5,12 +5,12 @@ import { KeyFilter } from './BaseDb'
 import { OneWeekMs, TxError, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
-export interface TransfersDateFilter {
+export type TransfersDateFilter = {
   fromUnix?: number
   toUnix?: number
 }
 
-export interface Transfer {
+export type Transfer = {
   transferRootId?: string
   transferRootHash?: string
   transferId?: string
@@ -94,7 +94,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     const logger = this.logger.create({ id: transferId })
     logger.debug('update called')
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transfer)
-    const promises : Promise<any>[] = []
+    const promises: Array<Promise<any>> = []
     if (timestampedKv) {
       logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferId: ${transferId}`)
       promises.push(this.subDb._update(timestampedKv.key, timestampedKv.value).then(() => {
@@ -137,8 +137,8 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
 
   async getTransferIds (dateFilter?: TransfersDateFilter): Promise<string[]> {
     // return only transfer-id keys that are within specified range (filter by timestamped keys)
-    if (dateFilter?.fromUnix || dateFilter?.toUnix) {
-      const filter : KeyFilter = {}
+    if (dateFilter?.fromUnix || dateFilter?.toUnix) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+      const filter: KeyFilter = {}
       if (dateFilter.fromUnix) {
         filter.gte = `transfer:${dateFilter.fromUnix}`
       }
@@ -283,8 +283,10 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       }
 
       return (
+        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
         (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
         (item.withdrawalBondedTxHash && !item.withdrawalBonder)
+        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
       )
     })
   }

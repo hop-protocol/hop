@@ -6,7 +6,7 @@ import { KeyFilter } from './BaseDb'
 import { normalizeDbItem } from './utils'
 import { oruChains } from 'src/config'
 
-export interface TransferRootsDateFilter {
+export type TransferRootsDateFilter = {
   fromUnix?: number
   toUnix?: number
 }
@@ -98,7 +98,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('update called')
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transferRoot)
-    const promises : Promise<any>[] = []
+    const promises: Array<Promise<any>> = []
     if (timestampedKv) {
       logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferRootHash: ${transferRootHash}`)
       promises.push(this.subDb._update(timestampedKv.key, timestampedKv.value).then(() => {
@@ -357,11 +357,13 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       }
 
       return (
+        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
         (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
         (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
         (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds) ||
         (item.multipleWithdrawalsSettledTxHash && item.multipleWithdrawalsSettledTotalAmount && !item.transferIds) ||
         (item.commitTxHash && !item.committedAt)
+        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
       )
     })
   }

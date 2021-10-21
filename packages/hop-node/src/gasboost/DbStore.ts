@@ -20,7 +20,7 @@ export default class DbStore {
     return this.db.gasBoost.getItems()
   }
 
-  async deleteItem (key: string):Promise<void> {
+  async deleteItem (key: string): Promise<void> {
     return this.db.gasBoost.deleteItem(key)
   }
 }

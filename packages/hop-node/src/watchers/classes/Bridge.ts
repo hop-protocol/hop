@@ -7,8 +7,8 @@ import isL1ChainId from 'src/utils/isL1ChainId'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 import shiftBNDecimals from 'src/utils/shiftBNDecimals'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
+import { BonderFeeBps, Chain, MinBonderFeeAbsolute } from 'src/constants'
 import { Bridge as BridgeContract, MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
-import { BonderFeeBps, Chain, MaxGasPriceMultiplier, MinBonderFeeAbsolute } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
@@ -16,7 +16,7 @@ import { State } from 'src/db/SyncStateDb'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { config as globalConfig } from 'src/config'
 
-export interface EventsBatchOptions {
+export type EventsBatchOptions = {
   cacheKey: string
   startBlockNumber: number
   endBlockNumber: number
@@ -728,11 +728,11 @@ export default class Bridge extends ContractBase {
   ) {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     const nativeTokenDecimals = getTokenDecimals(chainNativeTokenSymbol)
-    const provider = getRpcProvider(chain)
+    const provider = getRpcProvider(chain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const gasPrice = await provider.getGasPrice()
-    const tokenPriceUsd = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
+    const tokenPriceUsd = (await priceFeed.getPriceByTokenSymbol(tokenSymbol))! // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const gasCost = gasLimit.mul(gasPrice)
-    const nativeTokenPriceUsd = await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol)
+    const nativeTokenPriceUsd = (await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol))! // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const tokenDecimals = getTokenDecimals(tokenSymbol)
     const tokenPriceUsdBn = parseUnits(tokenPriceUsd.toString(), tokenDecimals)
     const nativeTokenPriceUsdBn = parseUnits(nativeTokenPriceUsd.toString(), tokenDecimals)
@@ -760,7 +760,7 @@ export default class Bridge extends ContractBase {
     return 'ETH'
   }
 
-  getConfigBonderAddress ():string {
+  getConfigBonderAddress (): string {
     return globalConfig?.bonders?.[this.tokenSymbol]?.[0]
   }
 }

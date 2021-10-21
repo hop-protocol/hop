@@ -2,7 +2,7 @@ import { Notifier } from './interfaces'
 import { WebClient } from '@slack/web-api'
 import { slackAuthToken, slackChannel, slackErrorChannel, slackInfoChannel, slackLogChannel, slackSuccessChannel, slackUsername, slackWarnChannel } from 'src/config'
 
-interface MessageOptions {
+type MessageOptions = {
   channel: string
 }
 

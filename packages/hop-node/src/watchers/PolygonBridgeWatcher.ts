@@ -15,7 +15,7 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { MaticPOSClient } from '@maticnetwork/maticjs'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
-interface Config {
+type Config = {
   chainSlug: string
   tokenSymbol: string
   label?: string

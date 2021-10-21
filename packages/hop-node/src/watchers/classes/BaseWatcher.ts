@@ -5,7 +5,7 @@ import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import wait from 'src/utils/wait'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber } from 'ethers'
 import { Chain, OneWeekMs } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
@@ -16,7 +16,7 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { Notifier } from 'src/notifier'
 import { hostname } from 'src/config'
 
-interface Config {
+type Config = {
   chainSlug: string
   tokenSymbol: string
   tag: string
@@ -244,7 +244,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       try {
         const timestamp = Math.floor(Date.now() / 1000)
         const deadline = Math.floor((Date.now() + OneWeekMs) / 1000)
-        const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug))
+        const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract // eslint-disable-line @typescript-eslint/no-non-null-assertion
         const txOverrides = await this.bridge.txOverrides()
         const amount = BigNumber.from(2)
         const amountOutMin = BigNumber.from(0)
@@ -258,11 +258,11 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
           transferNonce,
           bonderFee,
           txOverrides
-        ]
+        ] as const
         const gasLimit = await bridgeContract.estimateGas.bondWithdrawal(...payload)
         const estimates = [{ gasLimit, attemptSwap: false }]
 
-        if (bridgeContract.bondWithdrawalAndDistribute) {
+        if (this._isL2BridgeContract(bridgeContract) && bridgeContract.bondWithdrawalAndDistribute) {
           const payload = [
             bonder,
             amount,
@@ -271,7 +271,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
             amountOutMin,
             deadline,
             txOverrides
-          ]
+          ] as const
           const gasLimit = await bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
           estimates.push({ gasLimit, attemptSwap: true })
         }
@@ -304,6 +304,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       }
       await wait(30 * 1000)
     }
+  }
+
+  private _isL2BridgeContract (bridgeContract: L1BridgeContract | L2BridgeContract): bridgeContract is L2BridgeContract {
+    return !this.isL1
   }
 
   // force quit so docker can restart

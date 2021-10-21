@@ -9,7 +9,7 @@ import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { config as globalConfig, hostname } from 'src/config'
 
-interface Config {
+type Config = {
   bondWithdrawalTimeLimitMinutes: number
   bondTransferRootTimeLimitMinutes: number
   commitTransfersMinThresholdAmount: number

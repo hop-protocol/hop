@@ -1,13 +1,13 @@
 import chalk from 'chalk'
 import { DateTime } from 'luxon'
 
-export interface Options {
+export type Options = {
   tag?: string
   prefix?: string
   color: string
 }
 
-interface AdditionalDataLabel {
+type AdditionalDataLabel = {
   id?: string
   root?: string
 }

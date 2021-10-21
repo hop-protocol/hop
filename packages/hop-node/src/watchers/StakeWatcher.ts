@@ -14,7 +14,7 @@ import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contr
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
-export interface Config {
+export type Config = {
   chainSlug: string
   tokenSymbol: string
   label: string

@@ -1,6 +1,6 @@
 import BaseDb from './BaseDb'
 
-export interface State {
+export type State = {
   key: string
 }
 

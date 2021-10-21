@@ -10,7 +10,6 @@ import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
 import { Chain, TenMinutesMs } from 'src/constants'
 import { DateTime } from 'luxon'
-import { Event } from 'src/types'
 import { L1Bridge as L1BridgeContract, MultipleWithdrawalsSettledEvent, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
@@ -18,7 +17,7 @@ import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { config as globalConfig, oruChains } from 'src/config'
 
-interface S3JsonData {
+type S3JsonData = {
   [token: string]: {
     availableCredit: {[chain: string]: string}
     pendingAmounts: {[chain: string]: string}
@@ -30,7 +29,7 @@ interface S3JsonData {
 const s3JsonData: S3JsonData = {}
 let s3LastUpload: number
 
-export interface Config {
+export type Config = {
   chainSlug: string
   tokenSymbol: string
   label: string
@@ -66,7 +65,7 @@ class SyncWatcher extends BaseWatcher {
       isL1: config.isL1,
       bridgeContract: config.bridgeContract
     })
-    this.syncFromDate = config.syncFromDate! // eslint-disable-line
+    this.syncFromDate = config.syncFromDate! // eslint-disable-line @typescript-eslint/no-non-null-assertion
     if (config.s3Upload) {
       this.s3Upload = new S3Upload({
         bucket: 'assets.hop.exchange',
@@ -132,10 +131,10 @@ class SyncWatcher extends BaseWatcher {
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transfer: Transfer) => {
             const { transferId } = transfer
-            return await this.populateTransferDbItem(transferId!) // eslint-disable-line
-              .then(() => {
+            return await this.populateTransferDbItem(transferId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+              .then(async () => {
                 // fill in missing db timestamped keys
-                return this.db.transfers.trackTimestampedKeyByTransferId(transferId)
+                return this.db.transfers.trackTimestampedKeyByTransferId(transferId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
               })
               .catch((err: Error) => {
                 this.logger.error('populateTransferDbItem error:', err)
@@ -153,10 +152,10 @@ class SyncWatcher extends BaseWatcher {
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {
             const { transferRootHash } = transferRoot
-            return await this.populateTransferRootDbItem(transferRootHash!) // eslint-disable-line
-              .then(() => {
+            return await this.populateTransferRootDbItem(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+              .then(async () => {
                 // fill in missing db timestamped keys
-                return this.db.transferRoots.trackTimestampedKeyByTransferRootHash(transferRootHash)
+                return this.db.transferRoots.trackTimestampedKeyByTransferRootHash(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
               })
               .catch((err: Error) => {
                 this.logger.error('populateTransferRootDbItem error:', err)
@@ -267,7 +266,7 @@ class SyncWatcher extends BaseWatcher {
         l2Bridge.mapTransfersCommittedEvents(
           async (event: TransfersCommittedEvent) => {
             return await Promise.all([
-              this.handleTransfersCommittedEvent(event),
+              this.handleTransfersCommittedEvent(event)
             ])
           },
           getOptions(l2Bridge.TransfersCommitted)
@@ -583,7 +582,7 @@ class SyncWatcher extends BaseWatcher {
 
     const logger = this.logger.create({ root: transferRootHash })
     const { transferIds } = dbTransferRoot
-    if (!transferIds.length) {
+    if (transferIds === undefined || !transferIds.length) {
       return
     }
 
@@ -602,7 +601,7 @@ class SyncWatcher extends BaseWatcher {
     }
     let rootAmountAllSettled = false
     if (totalBondsSettled) {
-      rootAmountAllSettled = dbTransferRoot?.totalAmount?.eq(totalBondsSettled)
+      rootAmountAllSettled = dbTransferRoot?.totalAmount?.eq(totalBondsSettled) ?? false
     }
     const allBondableTransfersSettled = dbTransfers.every(
       (dbTransfer: Transfer) => {
@@ -648,7 +647,7 @@ class SyncWatcher extends BaseWatcher {
     ) {
       return
     }
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
+    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
     logger.debug(`transferSentTimestamp: ${transferSentTimestamp}`)
     await this.db.transfers.update(transferId, {
@@ -666,7 +665,7 @@ class SyncWatcher extends BaseWatcher {
     ) {
       return
     }
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const tx = await destinationBridge.getTransaction(withdrawalBondedTxHash)
     if (!tx) {
       throw new Error(`expected tx object. transferId: ${transferId}`)
@@ -691,7 +690,7 @@ class SyncWatcher extends BaseWatcher {
     }
 
     logger.debug('populating committedAt')
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
+    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await sourceBridge.getTransactionTimestamp(commitTxHash)
     logger.debug(`committedAt: ${timestamp}`)
     await this.db.transferRoots.update(transferRootHash, {
@@ -736,7 +735,7 @@ class SyncWatcher extends BaseWatcher {
     ) {
       return
     }
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await destinationBridge.getBlockTimestamp(rootSetBlockNumber)
     logger.debug(`rootSetTimestamp: ${timestamp}`)
     await this.db.transferRoots.update(transferRootHash, {
@@ -756,7 +755,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const _transferIds = await destinationBridge.getTransferIdsFromSettleEventTransaction(multipleWithdrawalsSettledTxHash)
     const tree = new MerkleTree(_transferIds)
     const computedTransferRootHash = tree.getHexRoot()
@@ -780,7 +779,7 @@ class SyncWatcher extends BaseWatcher {
     const { sourceChainId, destinationChainId, totalAmount, commitTxBlockNumber, transferIds: dbTransferIds } = dbTransferRoot
 
     if (
-      dbTransferIds ||
+      (dbTransferIds !== undefined && dbTransferIds.length > 0) ||
       !(sourceChainId && destinationChainId && commitTxBlockNumber && totalAmount) ||
       isL1ChainId(sourceChainId)
     ) {
@@ -799,8 +798,8 @@ class SyncWatcher extends BaseWatcher {
       .bridge as L2Bridge
 
     const eventBlockNumber: number = commitTxBlockNumber
-    let startEvent: Event
-    let endEvent: Event
+    let startEvent: TransfersCommittedEvent | undefined
+    let endEvent: TransfersCommittedEvent | undefined
 
     let startBlockNumber = sourceBridge.bridgeDeployedBlockNumber
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
@@ -1030,7 +1029,7 @@ class SyncWatcher extends BaseWatcher {
     this.logger.debug(`getUnbondedTransferRoots ${this.chainSlug}→${destinationChain}:`, JSON.stringify(transferRoots.map(({ transferRootHash, totalAmount }: TransferRoot) => ({ transferRootHash, totalAmount }))))
     let totalAmount = BigNumber.from(0)
     for (const transferRoot of transferRoots) {
-      totalAmount = totalAmount.add(transferRoot.totalAmount)
+      totalAmount = totalAmount.add(transferRoot.totalAmount!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     }
 
     return totalAmount

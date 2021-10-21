@@ -4,7 +4,7 @@ import wait from 'src/utils/wait'
 import { PriceFeed } from 'src/priceFeed'
 import { getTokenPricesDb } from 'src/db'
 
-interface Config {
+type Config = {
   token: string
 }
 
@@ -12,7 +12,7 @@ class TokenPriceWatcher {
   token: string
   priceFeed: PriceFeed
   db: TokenPricesDb
-  intervalMs : number = 30 * 1000
+  intervalMs: number = 30 * 1000
   logger: Logger
 
   constructor (config: Config) {
@@ -37,7 +37,7 @@ class TokenPriceWatcher {
         const timestamp = Math.floor(Date.now() / 1000)
         await this.db.addTokenPrice({
           token,
-          price,
+          price: price!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
           timestamp
         })
       } catch (err) {

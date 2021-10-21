@@ -15,7 +15,7 @@ if (awsAccessKeyId && awsSecretAccessKey) {
   }
 }
 
-interface Config {
+type Config = {
   bucket: string
   key: string
 }

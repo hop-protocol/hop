@@ -20,7 +20,7 @@ import { config as globalConfig } from 'src/config'
 
 const useTestUserPrivateKey = false
 
-interface Config {
+type Config = {
   concurrentUsers: number
   iterations: number
   amount: number

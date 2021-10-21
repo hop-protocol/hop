@@ -9,7 +9,7 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { Notifier } from 'src/notifier'
 import { hostname } from 'src/config'
 
-export interface Config {
+export type Config = {
   chainSlug: string
   bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   tokenSymbol: string
@@ -54,8 +54,8 @@ class ChallengeWatcher extends BaseWatcher {
     for (const dbTransferRoot of dbTransferRoots) {
       const rootHash = dbTransferRoot.transferRootHash
       await this.checkChallengeableTransferRoot(
-        rootHash,
-        dbTransferRoot.bondTotalAmount
+        rootHash!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        dbTransferRoot.bondTotalAmount! // eslint-disable-line @typescript-eslint/no-non-null-assertion
       )
     }
   }
@@ -78,7 +78,7 @@ class ChallengeWatcher extends BaseWatcher {
 
     const l1Bridge = this.bridge as L1Bridge
     const transferRootCommittedAt = await l1Bridge.getTransferRootCommittedAt(
-      dbTransferRoot.destinationChainId, transferRootId
+      dbTransferRoot.destinationChainId!, transferRootId // eslint-disable-line @typescript-eslint/no-non-null-assertion
     )
     const isRootHashConfirmed = !!transferRootCommittedAt
     if (isRootHashConfirmed) {
@@ -100,7 +100,7 @@ class ChallengeWatcher extends BaseWatcher {
     }
 
     const challengePeriod: number = await l1Bridge.getChallengePeriod()
-    const bondedAtMs: number = dbTransferRoot.bondedAt * 1000
+    const bondedAtMs: number = dbTransferRoot.bondedAt! * 1000 // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const challengePeriodMs: number = challengePeriod * 1000
     const isChallengePeriodOver = bondedAtMs + challengePeriodMs < Date.now()
     if (isChallengePeriodOver) {

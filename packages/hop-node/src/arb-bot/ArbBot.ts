@@ -12,16 +12,16 @@ export enum TokenIndex {
   HopBridgeToken = 1
 }
 
-interface TokenConfig {
+type TokenConfig = {
   label: string
   contract: Contract
 }
 
-interface AmmConfig {
+type AmmConfig = {
   saddleSwap: Partial<TokenConfig>
 }
 
-interface Config {
+type Config = {
   label: string
   network: string
   token0: TokenConfig
@@ -33,7 +33,7 @@ interface Config {
   maxTradeAmount: number
 }
 
-interface Token {
+type Token = {
   label: string
   contract: Contract
 }

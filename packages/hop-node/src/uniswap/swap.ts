@@ -12,7 +12,7 @@ const logger = new Logger({
   tag: 'Uniswap'
 })
 
-interface Immutables {
+type Immutables = {
   factory: string
   token0: string
   token1: string
@@ -21,7 +21,7 @@ interface Immutables {
   maxLiquidityPerTick: BigNumber
 }
 
-interface State {
+type State = {
   liquidity: BigNumber
   sqrtPriceX96: BigNumber
   tick: number
@@ -120,7 +120,7 @@ function getToken (address: string, provider: any) {
   )
 }
 
-export interface Config {
+export type Config = {
   chain: string
   fromToken: string
   toToken: string

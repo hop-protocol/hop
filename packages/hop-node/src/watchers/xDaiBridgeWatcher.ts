@@ -13,7 +13,7 @@ import { config as globalConfig } from 'src/config'
 import { l1xDaiAmbAbi, l2xDaiAmbAbi } from '@hop-protocol/core/abi'
 import { solidityKeccak256 } from 'ethers/lib/utils'
 
-interface Config {
+type Config = {
   chainSlug: string
   tokenSymbol: string
   label?: string

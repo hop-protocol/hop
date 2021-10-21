@@ -5,7 +5,7 @@ import { Contract } from 'ethers'
 import { getEnabledNetworks, config as globalConfig } from 'src/config'
 import { l1BridgeAbi, l2AmmWrapperAbi, l2BridgeAbi, swapAbi } from '@hop-protocol/core/abi'
 
-interface Config {
+type Config = {
   token: string
   contracts?: string[]
 }

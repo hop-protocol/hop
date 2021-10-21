@@ -521,13 +521,11 @@ export default class Bridge extends ContractBase {
     let i = 0
     const promises: Promise<any>[] = []
     await this.eventsBatch(async (start: number, end: number) => {
-      rateLimitRetry(getEventsMethod)(start, end, i)
-        .then((events: any[]) => {
-          events = events.reverse()
-          for (const event of events) {
-            promises.push(cb(event, i))
-          }
-        })
+      let events = await rateLimitRetry(getEventsMethod)(start, end)
+      events = events.reverse()
+      for (const event of events) {
+        promises.push(cb(event, i))
+      }
       i++
     }, options)
     return Promise.all(promises)

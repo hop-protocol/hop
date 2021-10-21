@@ -37,5 +37,6 @@ export type Networks = {
     publicRpcUrl?: string
     explorerUrl: string
     nativeBridgeUrl?: string
+    waitConfirmations?: number
   }
 }

@@ -38,6 +38,7 @@ export const storyTransactions = [
     isCanonicalTransfer: false,
     pendingDestinationConfirmation: false,
     transferId: '0x957b2be780f34bc3de22bc2d4e82935b25f3a51ca11dd70f22a33940ae7e403a',
+    destTxHash: '0xc05a2b28fbbe84337f83e5d98c1941aa6da064ae3aba803c69a0e760e5cfd935',
   },
   {
     hash: '0x8178a274abcb6a8321a487241fcc20ee8b96a8c9836a2e3d91d4ae7458afc3c7',

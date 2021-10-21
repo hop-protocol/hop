@@ -20,6 +20,7 @@ const Template: ComponentStory<typeof TxStatusModal> = args => {
 const sts = storyTransactions.map(tx =>
   createTransaction(tx, tx.networkName, tx.destNetworkName, tx.token, {
     pendingDestinationConfirmation: tx.pendingDestinationConfirmation,
+    destTxHash: tx.destTxHash,
   })
 )
 console.log(`sts:`, sts)

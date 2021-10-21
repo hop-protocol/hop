@@ -12,6 +12,7 @@ import { useTxStatusStyles } from '../accountDetails/useTxStatusStyles'
 import SelectOption from '../selects/SelectOption'
 import { useApp } from 'src/contexts/AppContext'
 import find from 'lodash/find'
+import Network from 'src/models/Network'
 
 type Props = {
   tx: Transaction
@@ -21,6 +22,8 @@ type Props = {
 function TxStatusModal(props: Props) {
   const { networks } = useApp()
   const [iconImage, setIconImage] = useState('')
+  const [network, setNetwork] = useState<Network>()
+  const [destNetwork, setDestNetwork] = useState<Network>()
   const styles = useTxStatusStyles()
   const { onClose, tx } = props
   const handleTxStatusClose = () => {
@@ -38,25 +41,33 @@ function TxStatusModal(props: Props) {
 
   useEffect(() => {
     if (networks?.length && tx?.networkName) {
-      const n = find(networks, ['slug', tx.networkName])
+      const n: Network = find(networks, ['slug', tx.networkName])
+      const dn: Network = find(networks, ['slug', tx.destNetworkName])
       if (n) {
-        setIconImage(n.imageUrl)
+        setNetwork(n)
+      }
+      if (dn) {
+        setDestNetwork(dn)
       }
     }
   }, [networks, tx])
 
-  const { completed, destCompleted } = useTransactionStatus(tx, tx.networkName)
+  const { completed, destCompleted, confirmations, destConfirmations } = useTransactionStatus(
+    tx,
+    tx.networkName
+  )
 
   return (
     <Modal onClose={handleTxStatusClose}>
       <Div mb={4}>
         <Flex justifyAround alignCenter>
           <Flex column alignCenter textAlign="center" width="5em">
-            {/* <SelectOption icon={iconImage} /> */}
+            {/* <SelectOption icon={network?.imageUrl} /> */}
             <Div>Source</Div>
           </Flex>
-          <Flex textAlign="center" width="5em">
-            Destination
+          <Flex column alignCenter textAlign="center" width="5em">
+            {/* <SelectOption icon={destNetwork?.imageUrl} /> */}
+            <Div>Destination</Div>
           </Flex>
         </Flex>
 
@@ -66,6 +77,8 @@ function TxStatusModal(props: Props) {
             link={tx.explorerLink}
             destNetworkName={tx.destNetworkName}
             styles={styles}
+            network={network}
+            confirmations={confirmations}
           />
 
           <TransactionStatus
@@ -74,6 +87,8 @@ function TxStatusModal(props: Props) {
             destNetworkName={tx.destNetworkName}
             destTx
             styles={styles}
+            network={destNetwork}
+            confirmations={destConfirmations}
           />
         </Flex>
       </Div>

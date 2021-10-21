@@ -34,6 +34,7 @@ class Transaction extends EventEmitter {
   readonly destNetworkName: string | null = null
   readonly isCanonicalTransfer: boolean = false
   readonly provider: ethers.providers.Provider
+  readonly destProvider: ethers.providers.Provider | null = null
   token: Token | null = null
   pending: boolean
   timestamp: number
@@ -69,10 +70,27 @@ class Transaction extends EventEmitter {
     } else {
       rpcUrl = getRpcUrl(L1_NETWORK)
     }
+
     if (destNetworkName) {
       this.destNetworkName = destNetworkName
       this.pendingDestinationConfirmation = pendingDestinationConfirmation
+
+      let destRpcUrl = ''
+      if (destNetworkName.startsWith('arbitrum')) {
+        destRpcUrl = getRpcUrl('arbitrum')
+      } else if (destNetworkName.startsWith('optimism')) {
+        destRpcUrl = getRpcUrl('optimism')
+      } else if (destNetworkName.startsWith('xdai')) {
+        destRpcUrl = getRpcUrl('xdai')
+      } else if (destNetworkName.startsWith('matic') || destNetworkName.startsWith('polygon')) {
+        destRpcUrl = getRpcUrl('polygon')
+      } else {
+        destRpcUrl = getRpcUrl(L1_NETWORK)
+      }
+
+      this.destProvider = getProvider(destRpcUrl)
     }
+
     if (destTxHash) {
       this.destTxHash = destTxHash
     }
@@ -148,6 +166,12 @@ class Transaction extends EventEmitter {
 
   async getTransaction() {
     return this.provider.getTransaction(this.hash)
+  }
+
+  async getDestTransaction() {
+    if (this.destTxHash && this.destProvider) {
+      return this.destProvider.getTransaction(this.destTxHash)
+    }
   }
 
   async checkIsTransferIdSpent(sdk: Hop) {

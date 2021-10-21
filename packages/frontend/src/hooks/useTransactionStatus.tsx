@@ -10,9 +10,33 @@ import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   const { updateTransaction } = useTxHistory()
   const [completed, setCompleted] = useState<boolean>()
+  const [confirmations, setConfirmations] = useState<number>()
+  const [destConfirmations, setDestConfirmations] = useState<number>()
   const [destCompleted, setDestCompleted] = useState<boolean>(
     !transaction?.pendingDestinationConfirmation
   )
+
+  useEffect(() => {
+    async function getConfirmations() {
+      if (transaction) {
+        const tx = await transaction.getTransaction()
+        setConfirmations(tx.confirmations)
+      }
+    }
+    getConfirmations()
+  }, [transaction])
+
+  useEffect(() => {
+    async function getConfirmations() {
+      if (transaction) {
+        const destTx = await transaction.getDestTransaction()
+        if (destTx) {
+          setDestConfirmations(destTx.confirmations)
+        }
+      }
+    }
+    getConfirmations()
+  }, [transaction, destCompleted])
 
   const { sdk } = useApp()
   const provider = useMemo(() => {
@@ -75,6 +99,8 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   return {
     completed,
     destCompleted,
+    confirmations,
+    destConfirmations,
   }
 }
 

@@ -55,7 +55,7 @@ program
         })
         console.log(`${'log stream name'.padEnd(66, ' ')}${'created'.padEnd(16, ' ')}last event`)
         for (const { name, createdAt, lastEventAt } of streams) {
-          const relativeCreatedAt = DateTime.fromMillis(createdAt).toRelative()! // eslint-disable-line
+          const relativeCreatedAt = DateTime.fromMillis(createdAt).toRelative()! // eslint-disable-line @typescript-eslint/no-non-null-assertion
           const relativeLastEventAt = DateTime.fromMillis(createdAt).toRelative()
           console.log(`${name.padEnd(66, ' ')}${relativeCreatedAt.padEnd(16, ' ')}${relativeLastEventAt}`)
         }

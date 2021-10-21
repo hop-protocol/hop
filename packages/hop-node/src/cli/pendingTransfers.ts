@@ -50,7 +50,7 @@ program
         throw new Error('watcher not found')
       }
 
-      const destinationChainId = chainSlugToId(destinationChain)! // eslint-disable-line
+      const destinationChainId = chainSlugToId(destinationChain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
       const bridge = (watcher.bridge as L2Bridge)
       const exists = await bridge.doPendingTransfersExist(destinationChainId)
       if (!exists) {

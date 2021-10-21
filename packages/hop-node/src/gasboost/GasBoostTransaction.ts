@@ -447,8 +447,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       return await this.getReceipt(this.txHash)
     }
     for (const { hash } of this.inflightItems) {
-      this.getReceipt(hash!) // eslint-disable-line
-        .then(async (receipt: providers.TransactionReceipt) => await this.handleConfirmation(hash!, receipt)) // eslint-disable-line
+      this.getReceipt(hash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        .then(async (receipt: providers.TransactionReceipt) => this.handleConfirmation(hash!, receipt)) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     }
     return await new Promise((resolve, reject) => {
       this

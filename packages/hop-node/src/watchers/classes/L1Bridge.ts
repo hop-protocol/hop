@@ -68,7 +68,7 @@ export default class L1Bridge extends Bridge {
     }
   }
 
-  getTransferBond = rateLimitRetry(async (transferRootId: string): Promise<any> => {
+  getTransferBond = rateLimitRetry(async (transferRootId: string) => {
     return await this.l1BridgeContract.transferBonds(transferRootId)
   })
 

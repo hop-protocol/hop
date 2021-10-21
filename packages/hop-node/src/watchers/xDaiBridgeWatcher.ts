@@ -114,7 +114,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
         const blockNumber = await l2Amb.provider.getBlockNumber()
         const events = await l2Amb.queryFilter(
           l2Amb.filters.UserRequestForSignature(),
-          (blockNumber) - 100
+          blockNumber - 100
         )
 
         for (const event of events) {

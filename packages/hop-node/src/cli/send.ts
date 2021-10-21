@@ -79,7 +79,7 @@ async function sendTokens (
   }
 
   logger.debug(`attempting to send ${amount} ${label} ⟶  ${toChain} to ${recipient}`)
-  const destinationChainId = chainSlugToId(toChain)! // eslint-disable-line
+  const destinationChainId = chainSlugToId(toChain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
   if (fromChain === Chain.Ethereum) {
     if (isHToken) {
       tx = await (bridge as L1Bridge).convertCanonicalTokenToHopToken(

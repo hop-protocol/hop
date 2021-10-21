@@ -95,21 +95,21 @@ class ArbBot {
   }
 
   public async getToken0Balance () {
-    return await this.getTokenBalance(this.token0)
+    return this.getTokenBalance(this.token0)
   }
 
   public async getToken1Balance () {
-    return await this.getTokenBalance(this.token1)
+    return this.getTokenBalance(this.token1)
   }
 
   public async getToken0AmountOut (amount: BigNumber) {
     const path = [this.token0.contract.address, this.token1.contract.address]
-    return await this.getAmountOut(path, amount)
+    return this.getAmountOut(path, amount)
   }
 
   public async getToken1AmountOut (amount: BigNumber) {
     const path = [this.token1.contract.address, this.token0.contract.address]
-    return await this.getAmountOut(path, amount)
+    return this.getAmountOut(path, amount)
   }
 
   private async tilReady (): Promise<boolean> {
@@ -118,7 +118,7 @@ class ArbBot {
     }
 
     await wait(100)
-    return await this.tilReady()
+    return this.tilReady()
   }
 
   private async init (config: Config) {

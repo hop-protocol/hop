@@ -26,7 +26,7 @@ function TransactionStatus(props) {
 
   return (
     <Div>
-      <Div>
+      <Div width='5em'>
         {destTx && !destNetworkName ? (
           <Div textAlign="center">-</Div>
         ) : complete ? (

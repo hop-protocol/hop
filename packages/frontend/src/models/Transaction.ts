@@ -1,7 +1,7 @@
 import { ethers } from 'ethers'
 import { EventEmitter } from 'events'
 import { L1_NETWORK } from 'src/constants'
-import { getRpcUrl, getProvider, getBaseExplorerUrl, networkSlugToId } from 'src/utils'
+import { getRpcUrl, getProvider, getBaseExplorerUrl } from 'src/utils'
 
 import { Hop, Token } from '@hop-protocol/sdk'
 import { network as defaultNetwork } from 'src/config'
@@ -102,7 +102,6 @@ class Transaction extends EventEmitter {
     if (typeof isCanonicalTransfer === 'boolean') {
       this.isCanonicalTransfer = isCanonicalTransfer
     }
-    console.debug('transaction:', this.hash)
   }
 
   get explorerLink(): string {
@@ -154,12 +153,14 @@ class Transaction extends EventEmitter {
   async checkIsTransferIdSpent(sdk: Hop) {
     if (this.token && this.destNetworkName) {
       const receipt = await this.receipt()
+      // Get the event data (topics)
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
       const bridge = sdk.bridge(this.token.symbol)
 
       // No transferId because L1 -> L2
       if (tsDetails && !tsDetails.transferId) {
         const l1Bridge = await bridge.getL1Bridge(this.provider)
+        // Get the rest of the event data
         const decodedData = l1Bridge.interface.decodeEventLog(
           tsDetails?.eventName!,
           tsDetails?.log.data
@@ -167,6 +168,7 @@ class Transaction extends EventEmitter {
 
         if ('amount' in decodedData) {
           const { amount } = decodedData
+          // Query Graph Protocol for TransferFromL1Completed events
           const transferFromL1Completeds = await fetchTransferFromL1Completeds(
             this.destNetworkName,
             tsDetails.recipient,
@@ -191,11 +193,14 @@ class Transaction extends EventEmitter {
             bln
           )
 
-          const tfl1Completed = findTransferFromL1CompletedLog(evs, amount)
-          if (tfl1Completed) {
-            this.destTxHash = tfl1Completed.transactionHash
-            this.pendingDestinationConfirmation = false
-            return true
+          if (evs?.length) {
+            // Find the matching amount
+            const tfl1Completed = findTransferFromL1CompletedLog(evs, amount, tsDetails.recipient)
+            if (tfl1Completed) {
+              this.destTxHash = tfl1Completed.transactionHash
+              this.pendingDestinationConfirmation = false
+              return true
+            }
           }
 
           logger.debug(`isSpent ${tsDetails.txHash}:`, false)
@@ -209,6 +214,7 @@ class Transaction extends EventEmitter {
 
       // Transfer from L2
       if (this.transferId) {
+        // Query Graph Protocol for WithdrawalBonded events
         const withdrawalBondeds = await fetchWithdrawalBondedsByTransferId(
           this.destNetworkName,
           this.transferId

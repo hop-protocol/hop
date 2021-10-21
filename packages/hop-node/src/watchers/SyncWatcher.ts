@@ -1213,15 +1213,16 @@ class SyncWatcher extends BaseWatcher {
         const deadline = Math.floor((Date.now() + OneWeekMs) / 1000)
         const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug))
         const txOverrides = await this.bridge.txOverrides()
-        const amount = BigNumber.from(2)
+        const amount = BigNumber.from(10)
         const amountOutMin = BigNumber.from(0)
-        const bonderFee = BigNumber.from(0)
+        const bonderFee = BigNumber.from(1)
         const bonder = await this.bridge.getConfigBonderAddress()
+        const recipient = `0x${'1'.repeat(40)}`
         txOverrides.from = bonder
 
         const transferNonce = `0x${'0'.repeat(64)}`
         const payload = [
-          bonder,
+          recipient,
           amount,
           transferNonce,
           bonderFee,
@@ -1232,7 +1233,7 @@ class SyncWatcher extends BaseWatcher {
 
         if (bridgeContract.bondWithdrawalAndDistribute) {
           const payload = [
-            bonder,
+            recipient,
             amount,
             transferNonce,
             bonderFee,

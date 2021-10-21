@@ -85,6 +85,7 @@ function TxStatusModal(props: Props) {
             complete={destCompleted}
             link={tx.destExplorerLink}
             destNetworkName={tx.destNetworkName}
+            networkName={tx.networkName}
             destTx
             styles={styles}
             network={destNetwork}

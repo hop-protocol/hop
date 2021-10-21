@@ -32,6 +32,7 @@ function TransactionRow({ tx, styles }: { tx: Transaction; styles: any }) {
           complete={destCompleted}
           link={tx.destExplorerLink}
           destNetworkName={tx.destNetworkName}
+          networkName={tx.networkName}
           destTx
           styles={styles}
         />

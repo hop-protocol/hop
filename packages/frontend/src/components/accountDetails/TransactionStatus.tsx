@@ -5,7 +5,16 @@ import Link from '@material-ui/core/Link'
 import { Div, Flex } from '../ui'
 
 function TransactionStatus(props) {
-  const { complete, link, destNetworkName, destTx, styles, network, confirmations } = props
+  const {
+    complete,
+    link,
+    destNetworkName,
+    networkName,
+    destTx,
+    styles,
+    network,
+    confirmations,
+  } = props
   const [confirmationText, setConfirmationText] = useState('')
 
   useEffect(() => {
@@ -26,8 +35,8 @@ function TransactionStatus(props) {
 
   return (
     <Div>
-      <Div width='5em'>
-        {destTx && !destNetworkName ? (
+      <Div width="5em">
+        {destTx && (!destNetworkName || destNetworkName === networkName) ? (
           <Div textAlign="center">-</Div>
         ) : complete ? (
           <Flex column justifyBetween alignCenter fontSize="20px">

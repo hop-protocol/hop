@@ -45,7 +45,8 @@ type PoolsContextProps = {
   token1Rate: string | undefined
   addLiquidity: () => void
   removeLiquidity: () => void
-  userPoolBalance: string | undefined
+  userPoolBalance: BigNumber | undefined
+  userPoolBalanceFormatted: string | undefined
   userPoolTokenPercentage: string | undefined
   token0Deposited: string | undefined
   token1Deposited: string | undefined
@@ -90,6 +91,7 @@ const PoolsContext = createContext<PoolsContextProps>({
   addLiquidity: () => {},
   removeLiquidity: () => {},
   userPoolBalance: undefined,
+  userPoolBalanceFormatted: undefined,
   userPoolTokenPercentage: undefined,
   token0Deposited: undefined,
   token1Deposited: undefined,
@@ -121,7 +123,8 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [poolSharePercentage, setPoolSharePercentage] = useState<string>('0')
   const [token0Price, setToken0Price] = useState<string>('-')
   const [token1Price, setToken1Price] = useState<string>('-')
-  const [userPoolBalance, setUserPoolBalance] = useState<string>('')
+  const [userPoolBalance, setUserPoolBalance] = useState<BigNumber>()
+  const [userPoolBalanceFormatted, setUserPoolBalanceFormatted] = useState<string>()
   const [userPoolTokenPercentage, setUserPoolTokenPercentage] = useState<string>('')
   const [token0Deposited, setToken0Deposited] = useState<string>('')
   const [token1Deposited, setToken1Deposited] = useState<string>('')
@@ -441,13 +444,21 @@ const PoolsContextProvider: FC = ({ children }) => {
         lpToken.balanceOf(),
         bridge.getSaddleSwapReserves(selectedNetwork.slug),
       ])
+      setUserPoolBalance(balance)
+
       const tokenDecimals = canonicalToken?.decimals
       const lpDecimals = Number(lpDecimalsBn.toString())
 
       const [reserve0, reserve1] = reserves
       const formattedTotalSupply = formatUnits(totalSupply.toString(), lpDecimals)
+      setTotalSupply(formattedTotalSupply)
 
-      const formattedBalance = formatUnits(balance.toString(), lpDecimals)
+      let formattedBalance = formatUnits(balance.toString(), lpDecimals)
+      formattedBalance = Number(formattedBalance).toFixed(5)
+      if (Number(formattedBalance) === 0 && balance.gt(0)) {
+        formattedBalance = '<0.00001'
+      }
+      setUserPoolBalanceFormatted(formattedBalance)
 
       const oneToken = parseUnits('1', lpDecimals)
       const poolPercentage = (balance.mul(oneToken)).div(totalSupply).mul(100)
@@ -459,8 +470,6 @@ const PoolsContextProvider: FC = ({ children }) => {
       const token0DepositedFormatted = Number(formatUnits(token0Deposited, tokenDecimals))
       const token1DepositedFormatted = Number(formatUnits(token1Deposited, tokenDecimals))
 
-      setTotalSupply(formattedTotalSupply)
-      setUserPoolBalance(Number(formattedBalance).toFixed(2))
       if (token0DepositedFormatted) {
         setToken0Deposited(token0DepositedFormatted.toFixed(2))
       }
@@ -622,7 +631,6 @@ const PoolsContextProvider: FC = ({ children }) => {
 
       const signer = provider?.getSigner()
       const balance = await lpToken?.balanceOf()
-      const formattedBalance = Number(formatUnits(balance.toString(), lpTokenDecimals))
 
       const approvalTx = await approve(balance, lpToken, saddleSwap.address)
       await approvalTx?.wait()
@@ -723,6 +731,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         addLiquidity,
         removeLiquidity,
         userPoolBalance,
+        userPoolBalanceFormatted,
         userPoolTokenPercentage,
         token0Deposited,
         token1Deposited,

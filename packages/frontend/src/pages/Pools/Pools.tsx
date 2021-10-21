@@ -113,6 +113,7 @@ const Pools: FC = () => {
     token1Price,
     token1Rate,
     userPoolBalance,
+    userPoolBalanceFormatted,
     userPoolTokenPercentage,
     token0Deposited,
     token1Deposited,
@@ -187,7 +188,8 @@ const Pools: FC = () => {
     removeLiquidity()
   }
 
-  const hasBalance = !!Number(userPoolBalance)
+  console.log('userPoolBalance: ', userPoolBalance)
+  const hasBalance = userPoolBalance?.gt(0)
   const canonicalTokenSymbol = canonicalToken?.symbol || ''
   const hopTokenSymbol = hopToken?.symbol || ''
 
@@ -287,7 +289,7 @@ const Pools: FC = () => {
               </Box>
               <DetailRow
                 title={`${canonicalTokenSymbol}/${hopTokenSymbol}`}
-                value={`${commafy(userPoolBalance, 5)}`}
+                value={`${commafy(userPoolBalanceFormatted, 5)}`}
               />
               {userPoolTokenPercentage && (
                 <DetailRow

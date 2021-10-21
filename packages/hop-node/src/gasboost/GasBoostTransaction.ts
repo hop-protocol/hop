@@ -566,6 +566,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     while (true) {
       i++
       try {
+        this.logger.debug(`sending tx index ${i}`)
         if (i > 1) {
           gasFeeData = await this.getBumpedGasFeeData(this.gasPriceMultiplier * i)
         }
@@ -590,8 +591,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         // await here is intentional to catch error below
         const tx = await this.signer.sendTransaction(payload)
 
+        this.logger.debug(`tx index ${i} completed`)
         return tx
       } catch (err) {
+        this.logger.debug(`tx index ${i} error: ${err.message}`)
         const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/gi.test(err.message)
         if (nonceTooLow) {
           this.logger.error(`nonce ${this.nonce} too low`)

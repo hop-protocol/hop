@@ -1,4 +1,5 @@
 import GasBoostDb from './GasBoostDb'
+import GasCostDb from './GasCostDb'
 import GasPricesDb from './GasPricesDb'
 import SyncStateDb from './SyncStateDb'
 import TokenPricesDb from './TokenPricesDb'
@@ -15,7 +16,8 @@ const dbSets : {[db: string]: {[tokenSymbol: string]: any}} = {
   gasBoostDb: {},
   syncStateDb: {},
   transfersDb: {},
-  transferRootsDb: {}
+  transferRootsDb: {},
+  gasCostDb: {}
 }
 
 export const getGasPricesDb = () => {
@@ -32,7 +34,7 @@ export const getTokenPricesDb = () => {
   return tokenPricesDb
 }
 
-export type Db = GasBoostDb | GasPricesDb | SyncStateDb | TokenPricesDb | TransferRootsDb | TransfersDb
+export type Db = GasBoostDb | GasPricesDb | SyncStateDb | TokenPricesDb | TransferRootsDb | TransfersDb | GasCostDb
 export type DbSet = {
   gasBoost: GasBoostDb,
   syncState: SyncStateDb,
@@ -40,6 +42,7 @@ export type DbSet = {
   transferRoots: TransferRootsDb,
   gasPrices: GasPricesDb,
   tokenPrices : TokenPricesDb,
+  gasCost: GasCostDb,
 }
 
 export function getDbSet (tokenSymbol: string): DbSet {
@@ -78,6 +81,12 @@ export function getDbSet (tokenSymbol: string): DbSet {
     },
     get tokenPrices () : TokenPricesDb {
       return getTokenPricesDb()
+    },
+    get gasCost (): GasCostDb {
+      if (!dbSets.gasCostDb[tokenSymbol]) {
+        dbSets.gasCostDb[tokenSymbol] = new GasCostDb('gasCost', tokenSymbol)
+      }
+      return dbSets.gasCostDb[tokenSymbol]
     }
   }
 }

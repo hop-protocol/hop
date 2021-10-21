@@ -504,12 +504,21 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     this.started = true
     while (true) {
+      if (this.confirmations) {
+        this.logger.debug('ending poller. confirmations found.')
+        break
+      }
       try {
         await this.poll()
-        await wait(this.pollMs)
       } catch (err) {
         this._emitError(err)
+        this.logger.error(`ending poller. ${err.message}`)
+        if (err instanceof NonceTooLowError) {
+          this.logger.error('ending poller. breaking.')
+          break
+        }
       }
+      await wait(this.pollMs)
     }
   }
 
@@ -530,10 +539,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private shouldBoost (item: InflightItem) {
-    return item.sentAt < (Date.now() - this.timeTilBoostMs)
+    const timeOk = item.sentAt < (Date.now() - this.timeTilBoostMs)
+    const isConfirmed = this.confirmations
+    return timeOk && !isConfirmed
   }
 
   private async boost (item: InflightItem) {
+    this.logger.debug(`attempting boost with boost index ${this.boostIndex}`)
     const gasFeeData = await this.getBumpedGasFeeData()
     const maxGasPrice = this.getMaxGasPrice()
     const priorityFeePerGasCap = this.getPriorityFeePerGasCap()
@@ -566,6 +578,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     while (true) {
       i++
       try {
+        this.logger.debug(`sending tx index ${i}`)
         if (i > 1) {
           gasFeeData = await this.getBumpedGasFeeData(this.gasPriceMultiplier * i)
         }
@@ -590,8 +603,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         // await here is intentional to catch error below
         const tx = await this.signer.sendTransaction(payload)
 
+        this.logger.debug(`tx index ${i} completed`)
         return tx
       } catch (err) {
+        this.logger.debug(`tx index ${i} error: ${err.message}`)
         const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/gi.test(err.message)
         if (nonceTooLow) {
           this.logger.error(`nonce ${this.nonce} too low`)

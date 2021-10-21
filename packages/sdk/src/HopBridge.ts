@@ -670,15 +670,16 @@ class HopBridge extends Base {
     try {
       const destinationBridge = await this.getL2Bridge(destinationChain)
       const bonder = this.getBonderAddress()
-      const amount = BigNumber.from('2')
-      const amountOutMin = BigNumber.from('0')
-      const bonderFee = BigNumber.from('1')
+      const amount = BigNumber.from(10)
+      const amountOutMin = BigNumber.from(0)
+      const bonderFee = BigNumber.from(1)
       const deadline = this.defaultDeadlineSeconds
       const transferNonce = `0x${'0'.repeat(64)}`
+      const recipient = `0x${'1'.repeat(40)}`
       const attemptSwap = this.shouldAttemptSwap(amountOutMin, deadline)
       if (attemptSwap && !destinationChain.isL1) {
         const payload = [
-          bonder,
+          recipient,
           amount,
           transferNonce,
           bonderFee,
@@ -694,7 +695,7 @@ class HopBridge extends Base {
         return estimatedGas.toString()
       } else {
         const payload = [
-          bonder,
+          recipient,
           amount,
           transferNonce,
           bonderFee,

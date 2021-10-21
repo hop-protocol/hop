@@ -98,15 +98,18 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('update called')
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transferRoot)
+    const promises : Promise<any>[] = []
     if (timestampedKv) {
       logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferRootHash: ${transferRootHash}`)
-      await this.subDb._update(timestampedKv.key, timestampedKv.value)
-      logger.debug(`updated db item. key: ${timestampedKv.key}`)
+      promises.push(this.subDb._update(timestampedKv.key, timestampedKv.value).then(() => {
+        logger.debug(`updated db item. key: ${timestampedKv.key}`)
+      }))
     }
-    await this._update(transferRootHash, transferRoot)
-    logger.debug(`updated db item. key: ${transferRootHash}`)
-    const entry = await this.getById(transferRootHash)
-    logger.debug(`updated db transferRoot item. ${JSON.stringify(entry)}`)
+    promises.push(this._update(transferRootHash, transferRoot).then(async () => {
+      const entry = await this.getById(transferRootHash)
+      logger.debug(`updated db transferRoot item. ${JSON.stringify(entry)}`)
+    }))
+    await Promise.all(promises)
   }
 
   normalizeItem (transferRootHash: string, item: Partial<TransferRoot>) {

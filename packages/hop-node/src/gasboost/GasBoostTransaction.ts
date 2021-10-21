@@ -480,12 +480,21 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     this.started = true
     while (true) {
+      if (this.confirmations) {
+        this.logger.debug('ending poller. confirmations found.')
+        break
+      }
       try {
         await this.poll()
-        await wait(this.pollMs)
       } catch (err) {
         this._emitError(err)
+        this.logger.error(`ending poller. ${err.message}`)
+        if (err instanceof NonceTooLowError) {
+          this.logger.error('ending poller. breaking.')
+          break
+        }
       }
+      await wait(this.pollMs)
     }
   }
 
@@ -506,10 +515,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private shouldBoost (item: InflightItem) {
-    return item.sentAt < (Date.now() - this.timeTilBoostMs)
+    const timeOk = item.sentAt < (Date.now() - this.timeTilBoostMs)
+    const isConfirmed = this.confirmations
+    return timeOk && !isConfirmed
   }
 
   private async boost (item: InflightItem) {
+    this.logger.debug(`attempting boost with boost index ${this.boostIndex}`)
     const gasFeeData = await this.getBumpedGasFeeData()
     const maxGasPrice = this.getMaxGasPrice()
     const priorityFeePerGasCap = this.getPriorityFeePerGasCap()

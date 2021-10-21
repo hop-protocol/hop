@@ -38,7 +38,7 @@ describe.skip('settleBondedWithdrawal', () => {
         expectDefined(privateKey)
         const user = new User(privateKey)
         const recipient = await user.getAddress()
-        const { stop, watchers } = startWatchers({ networks: path })
+        const { stop, watchers } = await startWatchers({ networks: path })
 
         const promises: Array<Promise<any>> = []
         for (let i = 0; i < txCount; i++) {

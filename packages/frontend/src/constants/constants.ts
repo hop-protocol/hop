@@ -69,3 +69,8 @@ export const discordUrl = 'https://discord.gg/PwCF88emV4'
 export const githubUrl = 'https://github.com/hop-protocol'
 export const mediumUrl = 'https://medium.com/hop-protocol'
 export const twitterUrl = 'https://twitter.com/HopProtocol'
+
+export enum EventNames {
+  TransferSent = 'TransferSent',
+  TransferSentToL2 = 'TransferSentToL2',
+}

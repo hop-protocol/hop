@@ -17,6 +17,7 @@ import {
 import { getParameter } from 'src/aws/parameterStore'
 import { promptPassphrase } from 'src/prompt'
 import { recoverKeystore } from 'src/keystore'
+import { setMetricsConfig } from '.'
 
 const logger = new Logger('config')
 
@@ -82,6 +83,11 @@ interface LoggingConfig {
   level: string
 }
 
+interface MetricsConfig {
+  enabled: boolean
+  port?: number
+}
+
 export interface Addresses {
   location: string
 }
@@ -102,6 +108,7 @@ export interface FileConfig {
   order?: number
   addresses?: Addresses
   stateUpdateAddress?: string
+  metrics?: MetricsConfig
 }
 
 export async function setGlobalConfigFromConfigFile (
@@ -163,6 +170,9 @@ export async function setGlobalConfigFromConfigFile (
   }
   if (config.stateUpdateAddress) {
     setStateUpdateAddress(config.stateUpdateAddress)
+  }
+  if (config?.metrics) {
+    setMetricsConfig(config.metrics)
   }
 }
 

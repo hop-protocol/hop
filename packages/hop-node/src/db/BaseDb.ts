@@ -1,8 +1,11 @@
 import Logger from 'src/logger'
+import groupBy from 'lodash/groupBy'
 import level from 'level'
+import merge from 'lodash/merge'
 import mkdirp from 'mkdirp'
 import os from 'os'
 import path from 'path'
+import spread from 'lodash/spread'
 import sub from 'subleveldown'
 import wait from 'src/utils/wait'
 import { EventEmitter } from 'events'
@@ -27,6 +30,12 @@ export interface KV {
   value: any
 }
 
+export type QueueItem = {
+  key: string
+  value: any
+  cb: any
+}
+
 // this are options that leveldb createReadStream accepts
 export interface KeyFilter {
   gt?: string
@@ -44,11 +53,11 @@ class BaseDb extends EventEmitter {
   public prefix: string
   logger: Logger
   mutex: Mutex = new Mutex()
-  pollIntervalMs: number = 5 * 1000
-  lastBatchUpdatedAt: number = Date.now()
-  batchSize: number = 5
-  batchTimeLimit: number = 5 * 1000
-  batchQueue: KV[] = []
+  pollIntervalMs : number = 5 * 1000
+  lastBatchUpdatedAt : number = Date.now()
+  batchSize : number = 10
+  batchTimeLimit: number = 3 * 1000
+  batchQueue : QueueItem[] = []
 
   constructor (prefix: string, _namespace?: string) {
     super()
@@ -124,21 +133,22 @@ class BaseDb extends EventEmitter {
     }
   }
 
-  addUpdateKvToBatchQueue (key: string, value: any) {
+  async addUpdateKvToBatchQueue (key: string, value: any, cb: any) {
     this.logger.debug(`adding to batch, key: ${key} `)
-    this.batchQueue.push({ key, value })
+    this.batchQueue.push({ key, value, cb })
+    await this.checkBatchQueue()
   }
 
   async checkBatchQueue () {
     const timestampOk = this.lastBatchUpdatedAt + this.batchTimeLimit < Date.now()
     const batchSizeOk = this.batchQueue.length >= this.batchSize
-    const shouldPutBatch = timestampOk || batchSizeOk
+    const shouldPutBatch = (timestampOk || batchSizeOk) && this.batchQueue.length
     if (shouldPutBatch) {
       const ops = this.batchQueue.slice(0)
       this.batchQueue = []
       this.lastBatchUpdatedAt = Date.now()
-      this.logger.debug(`executing batch, items: ${ops.length} `)
-      await this.batchUpdate(ops)
+      this.logger.debug(`attempting batch write, items: ${ops?.length} `)
+      await this.putBatch(ops)
     }
   }
 
@@ -151,26 +161,34 @@ class BaseDb extends EventEmitter {
   }
 
   async _update (key: string, data: any) {
-    const logger = this.logger.create({ id: key })
-    return await this.mutex.runExclusive(async () => {
-      return await new Promise(async (resolve, reject) => {
-        const errCb = (err: Error) => reject(err)
-        const cb = (ops: any[]) => {
-          this.off(Event.Error, errCb)
-          logger.debug(`received batch put event. items: ${ops.length}`)
-          resolve(null)
-        }
-        this.once(Event.Error, errCb)
-        this.once(Event.Batch, cb)
-        this.addUpdateKvToBatchQueue(key, data)
-        this.checkBatchQueue()
-      })
+    return this._updateWithBatch(key, data)
+  }
+
+  async _updateSingle (key: string, data: any) {
+    return this.mutex.runExclusive(async () => {
+      const { value } = await this._getUpdateData(key, data)
+      return this.db.put(key, value)
     })
   }
 
-  public async batchUpdate (putKvs: KV[]) {
-    const ops: any[] = []
-    for (const data of putKvs) {
+  async _updateWithBatch (key: string, data: any) {
+    const logger = this.logger.create({ id: key })
+    return new Promise(async (resolve, reject) => {
+      const cb = (err: Error, ops: any[]) => {
+        if (err) {
+          reject(err)
+          return
+        }
+        logger.debug(`received batch put event. items: ${ops?.length}`)
+        resolve(null)
+      }
+      await this.addUpdateKvToBatchQueue(key, data, cb)
+    })
+  }
+
+  public async putBatch (putItems: QueueItem[]) {
+    const ops : any[] = []
+    for (const data of putItems) {
       const { key, value } = await this._getUpdateData(data.key, data.value)
       ops.push({
         type: 'put',
@@ -179,8 +197,26 @@ class BaseDb extends EventEmitter {
       })
     }
 
-    return await new Promise((resolve, reject) => {
-      this.db.batch(ops, (err: Error) => {
+    // merge all properties belong to same key
+    const groups = groupBy(ops, 'key')
+    const keys = Object.keys(groups)
+    const groupedOps = Object.values(groups).map((items: any[], i) => {
+      const value = spread(merge)(items.map(x => x.value))
+      return {
+        type: 'put',
+        key: keys[i],
+        value
+      }
+    })
+
+    return new Promise((resolve, reject) => {
+      this.db.batch(groupedOps, (err: Error) => {
+        for (const { cb } of putItems) {
+          if (cb) {
+            cb(err, putItems)
+          }
+        }
+
         if (err) {
           this._emitError(err)
           reject(err)

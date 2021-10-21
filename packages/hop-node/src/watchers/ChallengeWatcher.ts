@@ -90,7 +90,8 @@ class ChallengeWatcher extends BaseWatcher {
     }
 
     const bond = await l1Bridge.getTransferBond(transferRootId)
-    if (bond.challengeStartTime.toNumber() > 0) {
+    const isChallenged = bond.challengeStartTime.toNumber() > 0
+    if (isChallenged) {
       logger.info('challenge already started')
       await this.db.transferRoots.update(transferRootHash, {
         challenged: true
@@ -101,7 +102,8 @@ class ChallengeWatcher extends BaseWatcher {
     const challengePeriod: number = await l1Bridge.getChallengePeriod()
     const bondedAtMs: number = dbTransferRoot.bondedAt * 1000
     const challengePeriodMs: number = challengePeriod * 1000
-    if (bondedAtMs + challengePeriodMs < Date.now()) {
+    const isChallengePeriodOver = bondedAtMs + challengePeriodMs < Date.now()
+    if (isChallengePeriodOver) {
       logger.info('challenge period over')
       await this.db.transferRoots.update(transferRootHash, {
         challengeExpired: true

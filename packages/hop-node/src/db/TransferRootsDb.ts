@@ -11,8 +11,7 @@ export interface TransferRootsDateFilter {
   toUnix?: number
 }
 
-export interface TransferRoot {
-  destinationBridgeAddress?: string
+export type TransferRoot = {
   transferRootId?: string
   transferRootHash?: string
   totalAmount?: BigNumber
@@ -27,12 +26,14 @@ export interface TransferRoot {
   confirmedAt?: number
   confirmTxHash?: string
   rootSetTxHash?: string
+  rootSetBlockNumber?: number
   rootSetTimestamp?: number
   sentConfirmTxAt?: number
   shouldBondTransferRoot?: boolean
   bonded?: boolean
   sentBondTxAt?: number
   bondTxHash?: string
+  bondBlockNumber?: number
   bondedAt?: number
   transferIds?: string[]
   bonder?: string
@@ -42,6 +43,8 @@ export interface TransferRoot {
   challenged?: boolean
   challengeExpired?: boolean
   allSettled?: boolean
+  multipleWithdrawalsSettledTxHash?: string
+  multipleWithdrawalsSettledTotalAmount?: BigNumber
 }
 
 class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
@@ -95,15 +98,18 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('update called')
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transferRoot)
-    if (timestampedKv != null) {
+    const promises : Promise<any>[] = []
+    if (timestampedKv) {
       logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferRootHash: ${transferRootHash}`)
-      await this.subDb._update(timestampedKv.key, timestampedKv.value)
-      logger.debug(`updated db item. key: ${timestampedKv.key}`)
+      promises.push(this.subDb._update(timestampedKv.key, timestampedKv.value).then(() => {
+        logger.debug(`updated db item. key: ${timestampedKv.key}`)
+      }))
     }
-    await this._update(transferRootHash, transferRoot)
-    logger.debug(`updated db item. key: ${transferRootHash}`)
-    const entry = await this.getById(transferRootHash)
-    logger.debug(`updated db transferRoot item. ${JSON.stringify(entry)}`)
+    promises.push(this._update(transferRootHash, transferRoot).then(async () => {
+      const entry = await this.getById(transferRootHash)
+      logger.debug(`updated db transferRoot item. ${JSON.stringify(entry)}`)
+    }))
+    await Promise.all(promises)
   }
 
   normalizeItem (transferRootHash: string, item: Partial<TransferRoot>) {
@@ -282,11 +288,17 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       // Do not check if a rootHash has been committed. A rootHash can be committed and bonded,
       // but if the bond uses a different totalAmount then it is fraudulent. Instead, use the
       // transferRootId. If transferRootIds do not match then we know the bond is fraudulent.
-      const isTransferRootIdValid = item.bondTransferRootId === item.transferRootId
+
+      let isValidItem = false
+      if (item?.transferRootId) {
+        isValidItem = item?.bondTransferRootId === item.transferRootId
+      }
+
       return (
+        item.bondTransferRootId &&
         item.transferRootHash &&
         item.bonded &&
-        !isTransferRootIdValid &&
+        !isValidItem &&
         !item.challenged &&
         !item.challengeExpired
       )
@@ -336,7 +348,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   async getIncompleteItems (
     filter: Partial<TransferRoot> = {}
   ) {
-    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    const transferRoots: TransferRoot[] = await this.getItems()
     return transferRoots.filter(item => {
       if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
@@ -345,6 +357,10 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       }
 
       return (
+        (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
+        (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
+        (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds) ||
+        (item.multipleWithdrawalsSettledTxHash && item.multipleWithdrawalsSettledTotalAmount && !item.transferIds) ||
         (item.commitTxHash && !item.committedAt)
       )
     })

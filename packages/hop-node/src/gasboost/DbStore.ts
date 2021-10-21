@@ -1,8 +1,8 @@
-import { Db, getDbSet } from 'src/db'
+import { DbSet, getDbSet } from 'src/db'
 
 export default class DbStore {
   items: any = {}
-  db: Db
+  db: DbSet
 
   constructor () {
     this.db = getDbSet('gasBoost')
@@ -20,7 +20,7 @@ export default class DbStore {
     return this.db.gasBoost.getItems()
   }
 
-  async deleteItem (key: string): Promise<void> {
-    return this.db.gasBoost.deleteItem()
+  async deleteItem (key: string):Promise<void> {
+    return this.db.gasBoost.deleteItem(key)
   }
 }

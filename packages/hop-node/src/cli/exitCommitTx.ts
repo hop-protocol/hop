@@ -40,7 +40,7 @@ program
         throw new Error('transfer root hash is required')
       }
 
-      const watchers = getWatchers({
+      const watchers = await getWatchers({
         enabledWatchers: ['xDomainMessageRelay'],
         tokens: [token],
         dryMode

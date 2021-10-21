@@ -13,6 +13,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
+import { MetricsServer } from 'src/metrics'
 import { chainNativeTokens, config as globalConfig } from 'src/config'
 
 const logger = new Logger('config')
@@ -75,7 +76,7 @@ interface GetChallengeWatchersConfig {
   dryMode?: boolean
 }
 
-export function getWatchers (config: GetWatchersConfig) {
+export async function getWatchers (config: GetWatchersConfig) {
   const {
     enabledWatchers = [],
     order: orderNum = 0,
@@ -249,12 +250,16 @@ export function getWatchers (config: GetWatchersConfig) {
 
   watchers.push(...tokenPriceWatchers)
 
+  if (globalConfig.metrics?.enabled) {
+    await new MetricsServer(globalConfig.metrics?.port).start()
+  }
+
   return watchers
 }
 
-export function startWatchers (config: GetWatchersConfig) {
-  const watchers = getWatchers(config)
-  watchers.forEach(async (watcher: Watcher) => await watcher.start())
+export async function startWatchers (config: GetWatchersConfig) {
+  const watchers = await getWatchers(config)
+  watchers.forEach((watcher: Watcher) => watcher.start())
   const stop = () => {
     return watchers.map(async (watcher: Watcher) => {
       return await watcher.stop()

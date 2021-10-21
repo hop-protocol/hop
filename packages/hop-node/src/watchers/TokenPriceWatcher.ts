@@ -1,7 +1,8 @@
 import Logger from 'src/logger'
+import TokenPricesDb from 'src/db/TokenPricesDb'
 import wait from 'src/utils/wait'
-import { Db, getTokenPricesDb } from 'src/db'
 import { PriceFeed } from 'src/priceFeed'
+import { getTokenPricesDb } from 'src/db'
 
 interface Config {
   token: string
@@ -10,8 +11,8 @@ interface Config {
 class TokenPriceWatcher {
   token: string
   priceFeed: PriceFeed
-  db: Db
-  intervalMs: number = 30 * 1000
+  db: TokenPricesDb
+  intervalMs : number = 30 * 1000
   logger: Logger
 
   constructor (config: Config) {

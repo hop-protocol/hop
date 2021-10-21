@@ -77,6 +77,7 @@ class GasBoostSigner extends Wallet {
       // before throwing error
       if (err instanceof NonceTooLowError) {
         this.nonce++
+        this.logger.debug(`increment for NonceTooLowError. new nonce ${this.nonce}`)
       }
       throw err
     }

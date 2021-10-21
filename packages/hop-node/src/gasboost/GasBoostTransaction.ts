@@ -6,6 +6,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedBN from 'src/utils/getBumpedBN'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
+import getTransferIdFromCalldata from 'src/utils/getTransferIdFromCalldata'
 import wait from 'src/utils/wait'
 import { BigNumber, Signer, providers } from 'ethers'
 import { Chain, MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
@@ -109,7 +110,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (store != null) {
       this.store = store
     }
-    this.id = uuidv4()
     this.createdAt = Date.now()
     this.from = tx.from! // eslint-disable-line @typescript-eslint/no-non-null-assertion
     this.to = tx.to! // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -136,6 +136,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.gasLimit = BigNumber.from(tx.gasLimit)
     }
 
+    this.id = this.generateId()
     this.setOptions(options)
 
     const chainSlug = getProviderChainSlug(this.signer.provider)
@@ -145,7 +146,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const tag = 'GasBoostTransaction'
-    const prefix = `${this.chainSlug} id: ${this.id}`
+    let prefix = `${this.chainSlug} id: ${this.id}`
+    const transferId = this.decodeTransferId()
+    if (transferId) {
+      prefix = `${prefix} transferId: ${transferId}`
+    }
     this.logger = new Logger({
       tag,
       prefix
@@ -156,7 +161,26 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     )
   }
 
-  get hash (): string {
+  generateId (): string {
+    return uuidv4()
+  }
+
+  decodeTransferId (): string {
+    if (this.data) {
+      try {
+        if (this.data?.startsWith('0x3d12a85a') || this.data?.startsWith('0x23c452cd')) {
+          const transferId = getTransferIdFromCalldata(this.data, this.chainId)
+          if (transferId) {
+            return transferId
+          }
+        }
+      } catch (err) {
+        // noop
+      }
+    }
+  }
+
+  get hash ():string {
     if (this.txHash) {
       return this.txHash
     }
@@ -542,6 +566,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     while (true) {
       i++
       try {
+        this.logger.debug(`sending tx index ${i}`)
         if (i > 1) {
           gasFeeData = await this.getBumpedGasFeeData(this.gasPriceMultiplier * i)
         }
@@ -566,8 +591,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         // await here is intentional to catch error below
         const tx = await this.signer.sendTransaction(payload)
 
+        this.logger.debug(`tx index ${i} completed`)
         return tx
       } catch (err) {
+        this.logger.debug(`tx index ${i} error: ${err.message}`)
         const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/gi.test(err.message)
         if (nonceTooLow) {
           this.logger.error(`nonce ${this.nonce} too low`)

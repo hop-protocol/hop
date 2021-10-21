@@ -27,6 +27,12 @@ export type KV = {
   value: any
 }
 
+export type QueueItem = {
+  key: string
+  value: any
+  cb: any
+}
+
 // this are options that leveldb createReadStream accepts
 export type KeyFilter = {
   gt?: string
@@ -46,9 +52,9 @@ class BaseDb extends EventEmitter {
   mutex: Mutex = new Mutex()
   pollIntervalMs : number = 5 * 1000
   lastBatchUpdatedAt : number = Date.now()
-  batchSize : number = 5
-  batchTimeLimit: number = 5 * 1000
-  batchQueue : KV[] = []
+  batchSize : number = 10
+  batchTimeLimit: number = 3 * 1000
+  batchQueue : QueueItem[] = []
 
   constructor (prefix: string, _namespace?: string) {
     super()
@@ -124,15 +130,15 @@ class BaseDb extends EventEmitter {
     }
   }
 
-  addUpdateKvToBatchQueue (key: string, value: any) {
+  addUpdateKvToBatchQueue (key: string, value: any, cb: any) {
     this.logger.debug(`adding to batch, key: ${key} `)
-    this.batchQueue.push({ key, value })
+    this.batchQueue.push({ key, value, cb })
   }
 
   async checkBatchQueue () {
     const timestampOk = this.lastBatchUpdatedAt + this.batchTimeLimit < Date.now()
     const batchSizeOk = this.batchQueue.length >= this.batchSize
-    const shouldPutBatch = timestampOk || batchSizeOk
+    const shouldPutBatch = (timestampOk || batchSizeOk) && this.batchQueue.length
     if (shouldPutBatch) {
       const ops = this.batchQueue.slice(0)
       this.batchQueue = []
@@ -151,26 +157,38 @@ class BaseDb extends EventEmitter {
   }
 
   async _update (key: string, data: any) {
-    const logger = this.logger.create({ id: key })
+    return this._updateWithBatch(key, data)
+  }
+
+  async _updateSingle (key: string, data: any) {
     return this.mutex.runExclusive(async () => {
-      return new Promise(async (resolve, reject) => {
-        const errCb = (err: Error) => reject(err)
-        const cb = (ops: any[]) => {
-          this.off(Event.Error, errCb)
-          logger.debug(`received batch put event. items: ${ops?.length}`)
-          resolve(null)
-        }
-        this.once(Event.Error, errCb)
-        this.once(Event.Batch, cb)
-        this.addUpdateKvToBatchQueue(key, data)
-        this.checkBatchQueue()
-      })
+      const { value } = await this._getUpdateData(key, data)
+      return this.db.put(key, value)
     })
   }
 
-  public async batchUpdate (putKvs: KV[]) {
+  async _updateWithBatch (key: string, data: any) {
+    const logger = this.logger.create({ id: key })
+    const p = new Promise((resolve, reject) => {
+      const cb = (err: Error, ops: any[]) => {
+        if (err) {
+          reject(err)
+          return
+        }
+        logger.debug(`received batch put event. items: ${ops?.length}`)
+        resolve(null)
+      }
+      this.addUpdateKvToBatchQueue(key, data, cb)
+    })
+    return this.mutex.runExclusive(async () => {
+      this.checkBatchQueue()
+      return p
+    })
+  }
+
+  public async batchUpdate (putItems: QueueItem[]) {
     const ops : any[] = []
-    for (const data of putKvs) {
+    for (const data of putItems) {
       const { key, value } = await this._getUpdateData(data.key, data.value)
       ops.push({
         type: 'put',
@@ -181,6 +199,12 @@ class BaseDb extends EventEmitter {
 
     return new Promise((resolve, reject) => {
       this.db.batch(ops, (err: Error) => {
+        for (const { cb } of putItems) {
+          if (cb) {
+            cb(err, ops)
+          }
+        }
+
         if (err) {
           this._emitError(err)
           reject(err)

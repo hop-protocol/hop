@@ -5,7 +5,7 @@ import { getRpcUrl, getProvider, getBaseExplorerUrl, networkSlugToId } from 'src
 
 import { Hop, Token } from '@hop-protocol/sdk'
 import { network as defaultNetwork } from 'src/config'
-import { getTransferSentDetailsFromLogs } from 'src/utils/logs'
+import { findTransferFromL1CompletedLog, getTransferSentDetailsFromLogs } from 'src/utils/logs'
 import logger from 'src/logger'
 import {
   fetchTransferFromL1Completeds,
@@ -173,7 +173,7 @@ class Transaction extends EventEmitter {
             amount.toString()
           )
 
-          if (transferFromL1Completeds.length) {
+          if (transferFromL1Completeds?.length) {
             const lastTransfer: L1Transfer =
               transferFromL1Completeds[transferFromL1Completeds.length - 1]
 
@@ -181,24 +181,55 @@ class Transaction extends EventEmitter {
             this.pendingDestinationConfirmation = false
             return true
           }
+
+          // If TheGraph is not working...
+          const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
+          const bln = await destL2Bridge.provider.getBlockNumber()
+          const evs = await destL2Bridge.queryFilter(
+            destL2Bridge.filters.TransferFromL1Completed(),
+            bln - 9999,
+            bln
+          )
+
+          const tfl1Completed = findTransferFromL1CompletedLog(evs, amount)
+          if (tfl1Completed) {
+            this.destTxHash = tfl1Completed.transactionHash
+            this.pendingDestinationConfirmation = false
+            return true
+          }
+
+          logger.debug(`isSpent ${tsDetails.txHash}:`, false)
         }
       }
 
+      // transferId found in event: TransferSent
       if (tsDetails?.transferId) {
         this.transferId = tsDetails.transferId
       }
 
-      // transferId found in event: TransferSent
+      // Transfer from L2
       if (this.transferId) {
         const withdrawalBondeds = await fetchWithdrawalBondedsByTransferId(
           this.destNetworkName,
           this.transferId
         )
-        if (withdrawalBondeds.length) {
+        if (withdrawalBondeds?.length) {
           const lastEvent = withdrawalBondeds[withdrawalBondeds.length - 1]
           this.destTxHash = lastEvent.transactionHash
         }
 
+        // L2 -> L1
+        if (this.destNetworkName === 'ethereum') {
+          const destL1Bridge = await bridge.getL1Bridge(this.provider)
+          const isSpent = await destL1Bridge.isTransferIdSpent(this.transferId)
+          if (isSpent) {
+            this.pendingDestinationConfirmation = false
+          }
+          // console.log(`isSpent ${this.transferId}:`, isSpent)
+          return isSpent
+        }
+
+        // L2 -> L2
         const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
         const isSpent = await destL2Bridge.isTransferIdSpent(this.transferId)
         if (isSpent) {

@@ -7,6 +7,10 @@ export function findTransferSentLog(logs) {
   return find(logs, log => log.topics[0] === eventTopics.transferSentTopic)
 }
 
+export function findTransferFromL1CompletedLog(logs, amount) {
+  return find(logs, log => log.topics[0] === eventTopics.transferFromL1CompletedTopic && log.args.amount.eq(amount))
+}
+
 export function findTransferSentToL2Log(logs) {
   return find(logs, log => log.topics[0] === eventTopics.transferSentToL2Topic)
 }

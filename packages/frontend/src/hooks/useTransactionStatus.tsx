@@ -10,11 +10,11 @@ import { getNetworkWaitConfirmations } from 'src/utils/networks'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   const { updateTransaction } = useTxHistory()
-  const [completed, setCompleted] = useState<boolean>()
+  const [completed, setCompleted] = useState<boolean>(transaction?.pending === false)
   const [networkConfirmations, setNetworkConfirmations] = useState<number>()
   const [confirmations, setConfirmations] = useState<number>()
   const [destCompleted, setDestCompleted] = useState<boolean>(
-    !transaction?.pendingDestinationConfirmation
+    transaction?.pendingDestinationConfirmation === false
   )
 
   const { sdk } = useApp()
@@ -41,7 +41,7 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
 
   const updateTxStatus = async () => {
     if (!provider || !transaction?.hash || !chain) {
-      setCompleted(undefined)
+      setCompleted(false)
       return
     }
 

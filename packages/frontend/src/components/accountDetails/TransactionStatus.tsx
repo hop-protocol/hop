@@ -41,9 +41,11 @@ function TransactionStatus(props) {
 
   return (
     <>
-      <Div height={60}>
+      <Flex justifyCenter height={60} width="5em">
         {destTx && (!destNetworkName || destNetworkName === networkName) ? (
-          <Div textAlign="center">-</Div>
+          <Flex justifyCenter alignCenter height="100%" fontSize="20px" width="5em">
+            -
+          </Flex>
         ) : (
           <Flex column height="100%" justifyAround alignCenter fontSize="20px" width="5em">
             {txConfirmed ? (
@@ -65,7 +67,7 @@ function TransactionStatus(props) {
             </Div>
           </Flex>
         )}
-      </Div>
+      </Flex>
     </>
   )
 }

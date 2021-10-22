@@ -22,14 +22,15 @@ function TransactionRow({ tx, styles }: { tx: Transaction; styles: any }) {
 
       <Flex justifyAround alignCenter width="50%">
         <TransactionStatus
-          complete={completed}
+          txConfirmed={completed}
           link={tx.explorerLink}
           destNetworkName={tx.destNetworkName}
           styles={styles}
         />
 
         <TransactionStatus
-          complete={destCompleted}
+          srcConfirmed={completed}
+          txConfirmed={destCompleted}
           link={tx.destExplorerLink}
           destNetworkName={tx.destNetworkName}
           networkName={tx.networkName}

@@ -5,10 +5,11 @@ import MerkleTree from 'src/utils/MerkleTree'
 import S3Upload from 'src/aws/s3Upload'
 import chunk from 'lodash/chunk'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
+import getRpcProvider from 'src/utils/getRpcProvider'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
-import { Chain, TenMinutesMs } from 'src/constants'
+import { Chain, OneWeekMs, TenMinutesMs } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Event } from 'src/types'
 import { Transfer } from 'src/db/TransfersDb'
@@ -89,7 +90,10 @@ class SyncWatcher extends BaseWatcher {
   async start () {
     this.started = true
     try {
-      await this.pollSync()
+      await Promise.all([
+        this.pollGasCost(),
+        this.pollSync()
+      ])
     } catch (err) {
       this.logger.error(`sync watcher error: ${err.message}\ntrace: ${err.stack}`)
       this.notifier.error(`sync watcher error: ${err.message}`)
@@ -1201,6 +1205,76 @@ class SyncWatcher extends BaseWatcher {
     if (!s3LastUpload || s3LastUpload < Date.now() - (60 * 1000)) {
       s3LastUpload = Date.now()
       await this.s3Upload.upload(s3JsonData)
+    }
+  }
+
+  async pollGasCost () {
+    while (true) {
+      try {
+        const timestamp = Math.floor(Date.now() / 1000)
+        const deadline = Math.floor((Date.now() + OneWeekMs) / 1000)
+        const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug))
+        const txOverrides = await this.bridge.txOverrides()
+        const amount = BigNumber.from(10)
+        const amountOutMin = BigNumber.from(0)
+        const bonderFee = BigNumber.from(1)
+        const bonder = this.bridge.getConfigBonderAddress()
+        const recipient = `0x${'1'.repeat(40)}`
+        txOverrides.from = bonder
+
+        const transferNonce = `0x${'0'.repeat(64)}`
+        const payload = [
+          recipient,
+          amount,
+          transferNonce,
+          bonderFee,
+          txOverrides
+        ]
+        const gasLimit = await bridgeContract.estimateGas.bondWithdrawal(...payload)
+        const estimates = [{ gasLimit, attemptSwap: false }]
+
+        if (bridgeContract.bondWithdrawalAndDistribute) {
+          const payload = [
+            recipient,
+            amount,
+            transferNonce,
+            bonderFee,
+            amountOutMin,
+            deadline,
+            txOverrides
+          ]
+          const gasLimit = await bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
+          estimates.push({ gasLimit, attemptSwap: true })
+        }
+
+        await Promise.all(estimates.map(async ({ gasLimit, attemptSwap }) => {
+          const { gasCost, gasCostInToken, gasPrice, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
+            gasLimit,
+            this.chainSlug,
+            this.tokenSymbol
+          )
+
+          const minBonderFeeAbsolute = await this.bridge.getMinBonderFeeAbsolute(this.tokenSymbol, tokenPriceUsd)
+          this.logger.debug(`pollGasCost estimate: attemptSwap: ${attemptSwap}, gasLimit: ${gasLimit?.toString()}, gasPrice: ${gasPrice?.toString()}, gasCost: ${gasCost?.toString()}, gasCostInToken: ${gasCostInToken?.toString()}, tokenPriceUsd: ${tokenPriceUsd?.toString()}`)
+
+          await this.db.gasCost.addGasCost({
+            chain: this.chainSlug,
+            token: this.tokenSymbol,
+            timestamp,
+            attemptSwap,
+            gasCost,
+            gasCostInToken,
+            gasPrice,
+            gasLimit,
+            tokenPriceUsd,
+            nativeTokenPriceUsd,
+            minBonderFeeAbsolute
+          })
+        }))
+      } catch (err) {
+        this.logger.error(`pollGasCost error: ${err.message}`)
+      }
+      await wait(30 * 1000)
     }
   }
 }

@@ -69,7 +69,15 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       const dbTransfers : Transfer[] = []
       for (const transferId of transferIds) {
         const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+        if (!dbTransfer) {
+          continue
+        }
         dbTransfers.push(dbTransfer)
+      }
+
+      if (dbTransfers.length !== transferIds.length) {
+        this.logger.error(`could not find all db transfers for root hash ${transferRootHash}. Has ${transferIds.length}, found ${dbTransfers.length}. Db may not be fully synced`)
+        continue
       }
 
       // skip attempt to settle transfer root if none of the transfers are bonded because there is nothing to settle

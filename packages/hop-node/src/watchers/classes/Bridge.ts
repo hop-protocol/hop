@@ -5,14 +5,13 @@ import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
-import shiftBNDecimals from 'src/utils/shiftBNDecimals'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import { BonderFeeBps, Chain, MinBonderFeeAbsolute } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
 import { State } from 'src/db/SyncStateDb'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import { config as globalConfig } from 'src/config'
 
 export type EventsBatchOptions = {
@@ -726,18 +725,32 @@ export default class Bridge extends ContractBase {
     tokenSymbol: string
   ) {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
-    const nativeTokenDecimals = getTokenDecimals(chainNativeTokenSymbol)
     const provider = getRpcProvider(chain)
-    const gasPrice = await provider.getGasPrice()
-    const tokenPriceUsd = await priceFeed.getPriceByTokenSymbol(tokenSymbol)
+    let gasPrice = await provider.getGasPrice()
+    // Arbitrum returns a gasLimit & gasPriceBid of 2x what is generally paid
+    if (this.chainSlug === Chain.Arbitrum) {
+      gasPrice = gasPrice.div(2)
+      gasLimit = gasLimit.div(2)
+    }
     const gasCost = gasLimit.mul(gasPrice)
-    const nativeTokenPriceUsd = await priceFeed.getPriceByTokenSymbol(chainNativeTokenSymbol)
-    const tokenDecimals = getTokenDecimals(tokenSymbol)
-    const tokenPriceUsdBn = parseUnits(tokenPriceUsd.toString(), tokenDecimals)
-    const nativeTokenPriceUsdBn = parseUnits(nativeTokenPriceUsd.toString(), tokenDecimals)
-    const oneToken = parseUnits('1', tokenDecimals)
-    const rate = (nativeTokenPriceUsdBn.mul(oneToken)).div(tokenPriceUsdBn)
-    const gasCostInToken = (shiftBNDecimals(gasCost, nativeTokenDecimals - tokenDecimals).mul(rate)).div(oneToken)
+
+    const {
+      decimals: tokenDecimals,
+      priceUsd: tokenPriceUsd,
+      priceUsdWei: tokenPriceUsdWei
+    } = await this.getGasCostTokenValues(tokenSymbol)
+    const {
+      decimals: nativeTokenDecimals,
+      priceUsd: nativeTokenPriceUsd,
+      priceUsdWei: nativeTokenPriceUsdWei
+    } = await this.getGasCostTokenValues(chainNativeTokenSymbol)
+
+    const multiplier = parseEther('1')
+    const rate = (nativeTokenPriceUsdWei.mul(multiplier)).div(tokenPriceUsdWei)
+    const exponent = nativeTokenDecimals - tokenDecimals
+
+    const gasCostInTokenWei = gasCost.mul(rate).div(multiplier)
+    const gasCostInToken = gasCostInTokenWei.div(BigNumber.from(10).pow(exponent))
 
     return {
       gasCost,
@@ -746,6 +759,17 @@ export default class Bridge extends ContractBase {
       gasLimit,
       tokenPriceUsd,
       nativeTokenPriceUsd
+    }
+  }
+
+  async getGasCostTokenValues (symbol: string) {
+    const decimals = getTokenDecimals(symbol)
+    const priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)
+    const priceUsdWei = parseEther(priceUsd.toString())
+    return {
+      decimals,
+      priceUsd,
+      priceUsdWei
     }
   }
 

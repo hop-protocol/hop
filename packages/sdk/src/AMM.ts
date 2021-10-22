@@ -1,13 +1,13 @@
-import BlockDater from 'ethereum-block-by-date'
-import { DateTime } from 'luxon'
-import { swapAbi as saddleSwapAbi } from '@hop-protocol/core/abi'
-import { BigNumber, BigNumberish, constants } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import shiftBNDecimals from './utils/shiftBNDecimals'
-import { Chain } from './models'
-import { TokenIndex } from './constants'
-import { TChain, TAmount, TProvider } from './types'
 import Base, { ChainProviders } from './Base'
+import BlockDater from 'ethereum-block-by-date'
+import shiftBNDecimals from './utils/shiftBNDecimals'
+import { BigNumber, BigNumberish, constants } from 'ethers'
+import { Chain } from './models'
+import { DateTime } from 'luxon'
+import { TAmount, TChain, TProvider } from './types'
+import { TokenIndex } from './constants'
+import { formatUnits } from 'ethers/lib/utils'
+import { swapAbi as saddleSwapAbi } from '@hop-protocol/core/abi'
 
 /**
  * Class reprensenting AMM contract
@@ -264,8 +264,8 @@ class AMM extends Base {
     }
     startBlockNumber = info.block
 
-    let tokenSwapEvents: any[] = []
-    let perBatch = 1000
+    const tokenSwapEvents: any[] = []
+    const perBatch = 1000
     let endBatchBlockNumber = Math.min(
       startBlockNumber + perBatch,
       endBlockNumber
@@ -291,7 +291,7 @@ class AMM extends Base {
     const decimals = token.decimals
 
     let totalFees = BigNumber.from(0)
-    for (let event of tokenSwapEvents) {
+    for (const event of tokenSwapEvents) {
       const tokensSold = event.args.tokensSold
       totalFees = totalFees.add(
         tokensSold
@@ -378,9 +378,9 @@ class AMM extends Base {
   ): BigNumber {
     return tokenInputAmount.gt(0)
       ? virtualPrice
-          .mul(tokenOutputAmount)
-          .div(tokenInputAmount)
-          .sub(BigNumber.from(10).pow(18))
+        .mul(tokenOutputAmount)
+        .div(tokenInputAmount)
+        .sub(BigNumber.from(10).pow(18))
       : constants.Zero
   }
 

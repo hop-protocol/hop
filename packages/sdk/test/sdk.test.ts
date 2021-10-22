@@ -1,17 +1,12 @@
-import {
-  Hop,
-  HopBridge,
-  Chain,
-  Route,
-  // Token,
-  TokenAmount,
-  utils
-} from '../src/index'
 import Token from '../src/models/Token'
-import * as addresses from '@hop-protocol/core/addresses'
+import {
+  Chain,
+  Hop
+} from '../src/index'
 import { Wallet, providers } from 'ethers'
-import { parseUnits, formatUnits } from 'ethers/lib/utils'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { privateKey } from './config'
+import * as addresses from '@hop-protocol/core/addresses'
 // @ts-ignore
 import pkg from '../package.json'
 
@@ -105,7 +100,7 @@ describe.skip('tx watcher', () => {
           })
           .on('error', (err: Error) => {
             console.error(err)
-            //expect(err).toBeFalsy()
+            // expect(err).toBeFalsy()
           })
       })
     },

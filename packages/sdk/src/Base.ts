@@ -1,9 +1,9 @@
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
-import { Contract, Signer, providers, BigNumber } from 'ethers'
+import { BigNumber, Contract, Signer, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
 import { TChain, TProvider, TToken } from './types'
-import { metadata, config } from './config'
+import { config, metadata } from './config'
 
 export type ChainProviders = { [chain: string]: providers.Provider }
 
@@ -11,7 +11,7 @@ export type ChainProviders = { [chain: string]: providers.Provider }
 const getProvider = memoize((network: string, chain: string) => {
   const rpcUrls = config.chains[network][chain].rpcUrls.slice(0, 3) // max of 3 endpoints
   const ethersProviders: providers.Provider[] = []
-  for (let rpcUrl of rpcUrls) {
+  for (const rpcUrl of rpcUrls) {
     const provider = new providers.StaticJsonRpcProvider(rpcUrl)
     ethersProviders.push(provider)
   }
@@ -45,7 +45,7 @@ const getContract = async (
   abi: any[],
   provider: TProvider
 ): Promise<Contract> => {
-  let p = provider as any
+  const p = provider as any
   // memoize function doesn't handle dynamic provider object well, so
   // here we derived a cache key based on connected account address and rpc url.
   const signerAddress = p?.getAddress ? await p?.getAddress() : ''
@@ -122,7 +122,7 @@ class Base {
   }
 
   setChainProviders (chainProviders: ChainProviders) {
-    for (let chainSlug in chainProviders) {
+    for (const chainSlug in chainProviders) {
       const chain = this.toChainModel(chainSlug)
       if (!this.isValidChain(chain.slug)) {
         throw new Error(
@@ -181,7 +181,7 @@ class Base {
   public toTokenModel (token: TToken) {
     if (typeof token === 'string') {
       const canonicalSymbol = TokenModel.getCanonicalSymbol(token)
-      let { name, decimals } = metadata.tokens[this.network][canonicalSymbol]
+      const { name, decimals } = metadata.tokens[this.network][canonicalSymbol]
       return new TokenModel(0, '', decimals, token, name)
     }
 
@@ -226,7 +226,7 @@ class Base {
     let chainSlug: string
     if (chain instanceof Chain && chain?.slug) {
       chainSlug = chain?.slug
-    } else if (typeof chain == 'string') {
+    } else if (typeof chain === 'string') {
       chainSlug = chain
     } else {
       throw new Error(`unknown chain "${chain}"`)
@@ -271,7 +271,7 @@ class Base {
     chain: TChain,
     signer: TProvider = this.signer as Signer
   ) {
-    //console.log('getSignerOrProvider')
+    // console.log('getSignerOrProvider')
     chain = this.toChainModel(chain)
     if (!signer) {
       return chain.provider
@@ -279,14 +279,14 @@ class Base {
     if (Signer.isSigner(signer)) {
       if (signer.provider) {
         const connectedChainId = await signer.getChainId()
-        //console.log('connectedChainId: ', connectedChainId)
-        //console.log('chain.chainId: ', chain.chainId)
+        // console.log('connectedChainId: ', connectedChainId)
+        // console.log('chain.chainId: ', chain.chainId)
         if (connectedChainId !== chain.chainId) {
           if (!signer.provider) {
-            //console.log('connect provider')
+            // console.log('connect provider')
             return (signer as Signer).connect(chain.provider)
           }
-          //console.log('return chain.provider')
+          // console.log('return chain.provider')
           return chain.provider
         }
         return signer
@@ -294,7 +294,7 @@ class Base {
         return chain.provider
       }
     } else {
-      //console.log('isSigner')
+      // console.log('isSigner')
       const { chainId } = await signer.getNetwork()
       if (chainId !== chain.chainId) {
         return chain.provider

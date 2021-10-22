@@ -1,6 +1,6 @@
+import { Network } from '../constants'
 import { ethers } from 'ethers'
 import { metadata } from '../config'
-import { Network } from '../constants'
 
 class Token {
   public readonly chainId: number

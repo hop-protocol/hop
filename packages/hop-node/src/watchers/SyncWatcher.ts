@@ -1216,7 +1216,7 @@ class SyncWatcher extends BaseWatcher {
         const amount = BigNumber.from(10)
         const amountOutMin = BigNumber.from(0)
         const bonderFee = BigNumber.from(1)
-        const bonder = await this.bridge.getConfigBonderAddress()
+        const bonder = this.bridge.getConfigBonderAddress()
         const recipient = `0x${'1'.repeat(40)}`
         txOverrides.from = bonder
 

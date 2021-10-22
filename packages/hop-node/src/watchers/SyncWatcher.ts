@@ -85,13 +85,15 @@ class SyncWatcher extends BaseWatcher {
       this.customStartBlockNumber = await getBlockNumberFromDate(this.chainSlug, timestamp)
     }
     this.ready = true
-    this.pollGasCost()
   }
 
   async start () {
     this.started = true
     try {
-      await this.pollSync()
+      await Promise.all([
+        this.pollGasCost(),
+        this.pollSync()
+      ])
     } catch (err) {
       this.logger.error(`sync watcher error: ${err.message}\ntrace: ${err.stack}`)
       this.notifier.error(`sync watcher error: ${err.message}`)

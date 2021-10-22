@@ -727,9 +727,10 @@ export default class Bridge extends ContractBase {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     const provider = getRpcProvider(chain)
     let gasPrice = await provider.getGasPrice()
-    // Arbitrum returns a gasPriceBid of 2x what is generally paid
+    // Arbitrum returns a gasLimit & gasPriceBid of 2x what is generally paid
     if (this.chainSlug === Chain.Arbitrum) {
       gasPrice = gasPrice.div(2)
+      gasLimit = gasLimit.div(2)
     }
     const gasCost = gasLimit.mul(gasPrice)
 

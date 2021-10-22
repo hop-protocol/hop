@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { ComponentStory, ComponentMeta } from '@storybook/react'
 import TxStatusModal from 'src/components/txStatus/TxStatusModal'
 import { storyTransactions } from './data'
 import { createTransaction } from 'src/utils/createTransaction'
+import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 
 export default {
   title: 'components/TxStatusModal',
@@ -10,6 +11,12 @@ export default {
 } as ComponentMeta<typeof TxStatusModal>
 
 const Template: ComponentStory<typeof TxStatusModal> = args => {
+  const txHistory = useTxHistory()
+
+  useEffect(() => {
+    txHistory.setTransactions([...txHistory.transactions, args.tx])
+  }, [])
+
   function handleClose() {
     console.log('close')
   }
@@ -33,4 +40,9 @@ PendingDestination.args = {
 export const BothCompleted = Template.bind({})
 BothCompleted.args = {
   tx: sts[1],
+}
+
+export const PendingSource = Template.bind({})
+PendingSource.args = {
+  tx: sts[2],
 }

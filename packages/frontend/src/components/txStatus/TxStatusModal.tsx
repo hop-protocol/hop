@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useMemo } from 'react'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import MuiButton from '@material-ui/core/Button'
@@ -9,10 +9,8 @@ import { Div, Flex } from '../ui'
 import TransactionStatus from '../accountDetails/TransactionStatus'
 import useTransactionStatus from 'src/hooks/useTransactionStatus'
 import { useTxStatusStyles } from '../accountDetails/useTxStatusStyles'
-import SelectOption from '../selects/SelectOption'
 import { useApp } from 'src/contexts/AppContext'
-import find from 'lodash/find'
-import Network from 'src/models/Network'
+import { findNetworkBySlug } from 'src/utils/networks'
 
 type Props = {
   tx: Transaction
@@ -21,9 +19,6 @@ type Props = {
 
 function TxStatusModal(props: Props) {
   const { networks } = useApp()
-  const [iconImage, setIconImage] = useState('')
-  const [network, setNetwork] = useState<Network>()
-  const [destNetwork, setDestNetwork] = useState<Network>()
   const styles = useTxStatusStyles()
   const { onClose, tx } = props
   const handleTxStatusClose = () => {
@@ -32,6 +27,9 @@ function TxStatusModal(props: Props) {
     }
   }
 
+  const network = useMemo(() => findNetworkBySlug(networks, tx.networkName), [tx, networks])
+  // const destNetwork = findNetworkBySlug(networks, tx.destNetworkName)
+
   const sourceChain = tx?.networkName ? Chain.fromSlug(tx.networkName) : null
   const destinationChain = tx?.destNetworkName ? Chain.fromSlug(tx.destNetworkName) : null
   let timeEstimate = '5 minutes'
@@ -39,20 +37,7 @@ function TxStatusModal(props: Props) {
     timeEstimate = '15 minutes'
   }
 
-  useEffect(() => {
-    if (networks?.length && tx?.networkName) {
-      const n: Network = find(networks, ['slug', tx.networkName])
-      const dn: Network = find(networks, ['slug', tx.destNetworkName])
-      if (n) {
-        setNetwork(n)
-      }
-      if (dn) {
-        setDestNetwork(dn)
-      }
-    }
-  }, [networks, tx])
-
-  const { completed, destCompleted, confirmations, destConfirmations } = useTransactionStatus(
+  const { completed, destCompleted, confirmations, networkConfirmations } = useTransactionStatus(
     tx,
     tx.networkName
   )
@@ -61,36 +46,43 @@ function TxStatusModal(props: Props) {
     <Modal onClose={handleTxStatusClose}>
       <Div mb={4}>
         <Flex justifyAround alignCenter>
-          <Flex column alignCenter textAlign="center" width="5em">
-            {/* <SelectOption icon={network?.imageUrl} /> */}
-            <Div>Source</Div>
-          </Flex>
-          <Flex column alignCenter textAlign="center" width="5em">
-            {/* <SelectOption icon={destNetwork?.imageUrl} /> */}
-            <Div>Destination</Div>
-          </Flex>
+          {network && (
+            <Flex column alignCenter textAlign="center" width="5em">
+              {/* <Icon src={network?.imageUrl} /> */}
+              {/* <Div>{network.name}</Div> */}
+              <Div mt={2}>Source</Div>
+            </Flex>
+          )}
+          {tx.destNetworkName !== tx.networkName && (
+            <Flex column alignCenter textAlign="center" width="5em">
+              {/* <Icon src={destNetwork?.imageUrl} /> */}
+              {/* <Div>{destNetwork?.name}</Div> */}
+              <Div mt={2}>Destination</Div>
+            </Flex>
+          )}
         </Flex>
 
         <Flex justifyAround alignCenter mt={3}>
           <TransactionStatus
-            complete={completed}
+            txConfirmed={completed}
             link={tx.explorerLink}
             destNetworkName={tx.destNetworkName}
             styles={styles}
-            network={network}
             confirmations={confirmations}
+            networkWaitConfirmations={networkConfirmations}
           />
 
-          <TransactionStatus
-            complete={destCompleted}
-            link={tx.destExplorerLink}
-            destNetworkName={tx.destNetworkName}
-            networkName={tx.networkName}
-            destTx
-            styles={styles}
-            network={destNetwork}
-            confirmations={destConfirmations}
-          />
+          {tx.destNetworkName !== tx.networkName && (
+            <TransactionStatus
+              srcConfirmed={completed}
+              txConfirmed={destCompleted}
+              link={tx.destExplorerLink}
+              destNetworkName={tx.destNetworkName}
+              networkName={tx.networkName}
+              destTx
+              styles={styles}
+            />
+          )}
         </Flex>
       </Div>
 

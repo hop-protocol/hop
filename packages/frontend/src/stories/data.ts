@@ -43,7 +43,7 @@ export const storyTransactions = [
   {
     hash: '0x8178a274abcb6a8321a487241fcc20ee8b96a8c9836a2e3d91d4ae7458afc3c7',
     networkName: 'xdai',
-    pending: false,
+    pending: true,
     timestamp: 1633480791056,
     token: {
       gasPriceMultiplier: 0,
@@ -57,7 +57,7 @@ export const storyTransactions = [
     },
     destNetworkName: 'polygon',
     isCanonicalTransfer: false,
-    pendingDestinationConfirmation: false,
+    pendingDestinationConfirmation: true,
     transferId: '0x5097b643b3b0f5d2f9281766c105aa115925d2290c58afdd1d60ab86db55d9c6',
   },
   {

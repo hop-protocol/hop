@@ -23,7 +23,7 @@ const useInterval = (callback: () => any, delay: number) => {
         await savedCallback.current()
       }
       if (savedDelay.current !== null) {
-        id = setTimeout(tick, savedDelay.current)
+        id = window.setTimeout(tick, savedDelay.current)
         if (savedTimeout.current === undefined) {
           savedTimeout.current = id
         }

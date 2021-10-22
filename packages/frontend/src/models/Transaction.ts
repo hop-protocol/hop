@@ -1,4 +1,4 @@
-import { ethers } from 'ethers'
+import { ethers, providers } from 'ethers'
 import { EventEmitter } from 'events'
 import { L1_NETWORK } from 'src/constants'
 import { getRpcUrl, getProvider, getBaseExplorerUrl } from 'src/utils'
@@ -105,7 +105,7 @@ class Transaction extends EventEmitter {
       this.transferId = transferId
     }
 
-    this.receipt().then((receipt: any) => {
+    this.receipt().then((receipt: providers.TransactionReceipt) => {
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
 
       // Source: L2

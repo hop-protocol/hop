@@ -3,77 +3,70 @@ import { CircularProgress } from '@material-ui/core'
 import Check from '@material-ui/icons/Check'
 import Link from '@material-ui/core/Link'
 import { Div, Flex } from '../ui'
+import { Text } from '../ui/Text'
 
 function TransactionStatus(props) {
   const {
-    complete,
     link,
     destNetworkName,
     networkName,
     destTx,
     styles,
-    network,
+    srcConfirmed,
+    txConfirmed,
     confirmations,
+    networkWaitConfirmations,
   } = props
-  const [confirmationText, setConfirmationText] = useState('')
+  const [text, setText] = useState('')
 
   useEffect(() => {
-    if (!network) return
+    console.log(`confirmations:`, confirmations)
 
-    if (!confirmations) {
-      return setConfirmationText(`... / ${network.waitConfirmations}`)
+    if (txConfirmed) {
+      return setText('Complete')
     }
 
-    setConfirmationText(`${confirmations} / ${network.waitConfirmations}`)
+    if (!networkWaitConfirmations) {
+      return setText('Pending')
+    }
 
-    // if (confirmations >= network.waitConfirmations) {
-    //   setConfirmationText(`${network.waitConfirmations} / ${network.waitConfirmations}`)
-    // } else {
-    //   setConfirmationText(`${confirmations} / ${network.waitConfirmations}`)
-    // }
-  }, [confirmations, network])
+    if (confirmations && networkWaitConfirmations) {
+      setText(`${confirmations} / ${networkWaitConfirmations} Confirmations`)
+    }
+
+    if (!confirmations) {
+      return setText(`... / ${networkWaitConfirmations} Confirmations`)
+    }
+  }, [txConfirmed, confirmations, networkWaitConfirmations])
 
   return (
-    <Div>
-      <Div width="5em">
+    <>
+      <Div height={60}>
         {destTx && (!destNetworkName || destNetworkName === networkName) ? (
           <Div textAlign="center">-</Div>
-        ) : complete ? (
-          <Flex column justifyBetween alignCenter fontSize="20px">
-            <Check className={styles.completed} />
-            <Flex mt={2} fontSize={0}>
-              {link ? (
-                <Link color="inherit" href={link} target="_blank" rel="noopener noreferrer">
-                  Complete
-                </Link>
-              ) : (
-                <Div>Complete</Div>
-              )}
-            </Flex>
-          </Flex>
         ) : (
-          <Flex column justifyBetween alignCenter fontSize="20px">
-            <CircularProgress size={20} thickness={5} />
-            <Flex mt="10px" fontSize={0}>
+          <Flex column height="100%" justifyAround alignCenter fontSize="20px" width="5em">
+            {txConfirmed ? (
+              <Check className={styles.completed} />
+            ) : destTx && !srcConfirmed ? (
+              <Div width={20} height={20} borderRadius="50%" bg="darkgrey" />
+            ) : (
+              <CircularProgress size={20} thickness={5} />
+            )}
+
+            <Div mt={2} fontSize={0}>
               {link ? (
                 <Link color="inherit" href={link} target="_blank" rel="noopener noreferrer">
-                  Pending
+                  <Text>{text}</Text>
                 </Link>
               ) : (
-                <Div>Pending</Div>
+                <Text>{text}</Text>
               )}
-            </Flex>
+            </Div>
           </Flex>
         )}
       </Div>
-
-      {confirmationText && (
-        <Flex column justifyCenter alignCenter mt={3}>
-          <Div>{confirmationText}</Div>
-          <Div>Confirmations</Div>
-        </Flex>
-      )}
-    </Div>
+    </>
   )
 }
 

@@ -613,7 +613,7 @@ async function updateTransfers () {
     polygonBondedWithdrawals,
     optimismBondedWithdrawals,
     arbitrumBondedWithdrawals,
-    mainnetBondedWithdrawals,
+    mainnetBondedWithdrawals
   ] = await Promise.all([
     enabledChains.includes('xdai') ? fetchBonds('xdai') : Promise.resolve([]),
     enabledChains.includes('polygon') ? fetchBonds('polygon') : Promise.resolve([]),
@@ -627,7 +627,7 @@ async function updateTransfers () {
     polygonWithdrews,
     optimismWithdrews,
     arbitrumWithdrews,
-    mainnetWithdrews,
+    mainnetWithdrews
   ] = await Promise.all([
     enabledChains.includes('xdai') ? fetchWithdrews('xdai') : Promise.resolve([]),
     enabledChains.includes('polygon') ? fetchWithdrews('polygon') : Promise.resolve([]),
@@ -641,7 +641,6 @@ async function updateTransfers () {
   const optimismBonds = [...optimismBondedWithdrawals, ...optimismWithdrews]
   const arbitrumBonds = [...arbitrumBondedWithdrawals, ...arbitrumWithdrews]
   const mainnetBonds = [...mainnetBondedWithdrawals, ...mainnetWithdrews]
-
 
   for (const x of xdaiTransfers) {
     data.push({
@@ -765,6 +764,7 @@ async function updateTransfers () {
 
 function populateTransfer (x, i) {
   const transferTime = luxon.DateTime.fromSeconds(x.timestamp)
+  x.transferIdTruncated = truncateHash(x.transferId)
   x.isoTimestamp = transferTime.toISO()
   x.relativeTimestamp = transferTime.toRelative()
 
@@ -779,6 +779,7 @@ function populateTransfer (x, i) {
 
   x.sourceTxExplorerUrl = explorerLinkTx(x.sourceChainSlug, x.transactionHash)
   x.bondTxExplorerUrl = x.bondTransactionHash ? explorerLinkTx(x.destinationChainSlug, x.bondTransactionHash) : ''
+  x.bonderTruncated = truncateAddress(x.bonder)
   x.bonderUrl = x.bonder ? explorerLinkAddress(x.destinationChainSlug, x.bonder) : ''
 
   if (x.bondedTimestamp) {
@@ -924,6 +925,19 @@ async function main () {
       await updateChart(app.transfers)
     }
   }
+}
+
+function truncateAddress (address) {
+  return truncateString(address, 4)
+}
+
+function truncateHash (hash) {
+  return truncateString(hash, 6)
+}
+
+function truncateString (str, splitNum) {
+  if (!str) return ''
+  return str.substring(0, 2 + splitNum) + '…' + str.substring(str.length - splitNum, str.length)
 }
 
 main()

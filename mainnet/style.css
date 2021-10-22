@@ -104,7 +104,7 @@ table {
   background: #161a1ca8;
   padding: 2rem;
   border-radius: 10px;
-  min-width: 1000px;
+  min-width: 1500px;
 }
 thead {
   text-align: left;
@@ -163,10 +163,12 @@ table img {
 }
 .transferId .clipboard {
   display: inline-block;
-  visibility: hidden;
+  opacity: 0.2;
+  filter: grayscale(1);
 }
 .transferId:hover .clipboard {
-  visibility: visible;
+  opacity: 1;
+  filter: grayscale(0);
 }
 .ethereum {
   color: #868dac;

@@ -164,8 +164,8 @@
                 </td>
                 <td class="transferId">
                   <a class="clipboard" :data-clipboard-text="x.transferId" title="Copy transfer ID to clipboard" onclick="this.innerText='✅';setTimeout(()=>this.innerText='📋',1000)">📋</a>
-                  <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank" title="View on block explorer">
-                    {{ x.transferId }}
+                  <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank" :title="`View on block explorer - ${x.transferId}`">
+                    {{ x.transferIdTruncated }}
                   </a>
                 </td>
                 <td class="amount" :title="x.amount">{{ x.displayAmount }}</td>
@@ -200,8 +200,8 @@
                   </span>
                 </td>
                 <td class="bondedWithin" :title="x.bonder">
-                  <a v-if="x.bonderUrl" class="bonder" :href="x.bonderUrl" target="_blank" title="View on block explorer">
-                    {{ x.bonder }}
+                  <a v-if="x.bonderUrl" class="bonder" :href="x.bonderUrl" target="_blank" :title="`View on block explorer - ${x.bonder}`">
+                    {{ x.bonderTruncated }}
                   </a>
                   <span class="na" v-if="x.sourceChain === 1">
                     <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>

@@ -301,16 +301,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  // ORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots) / 2
-  //    - divide by 2 because `amount` gets added to OruToL1PendingAmount
-  // nonORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
+  // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
   getAvailableCreditForTransfer (destinationChainId: number, amount: BigNumber) {
     const availableCredit = this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
-    if (this.syncWatcher.isOruToL1(destinationChainId)) {
-      return availableCredit.div(2)
-    }
-
     return availableCredit
   }
 

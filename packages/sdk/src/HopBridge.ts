@@ -1,41 +1,35 @@
+import AMM from './AMM'
+import Base, { ChainProviders } from './Base'
+import Chain from './models/Chain'
+import Token from './Token'
+import TokenModel from './models/Token'
 import fetch from 'isomorphic-fetch'
 import {
-  constants,
-  ethers,
-  Signer,
-  Contract,
   BigNumber,
-  BigNumberish
+  BigNumberish,
+  Signer,
+  ethers
 } from 'ethers'
-import { parseUnits, formatUnits, getAddress } from 'ethers/lib/utils'
-import Chain from './models/Chain'
-import TokenModel from './models/Token'
+import {
+  BondTransferGasLimit,
+  GasPriceMultiplier,
+  L2ToL1BonderFeeBps,
+  L2ToL2BonderFeeBps,
+  LpFeeBps,
+  ORUGasPriceMultiplier,
+  PendingAmountBuffer,
+  TokenIndex
+} from './constants'
+import { PriceFeed } from './priceFeed'
+import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
+import { bondableChains, metadata } from './config'
+import { getAddress, parseUnits } from 'ethers/lib/utils'
 import {
   l1Erc20BridgeAbi,
-  l2BridgeAbi,
-  saddleLpTokenAbi,
-  swapAbi as saddleSwapAbi,
   l1HomeAmbNativeToErc20,
   l2AmmWrapperAbi,
-  wethAbi
+  l2BridgeAbi
 } from '@hop-protocol/core/abi'
-import { TChain, TToken, TAmount, TProvider, TTime, TTimeSlot } from './types'
-import Base, { ChainProviders } from './Base'
-import AMM from './AMM'
-import _version from './version'
-import {
-  TokenIndex,
-  BondTransferGasLimit,
-  LpFeeBps,
-  GasPriceMultiplier,
-  ORUGasPriceMultiplier,
-  L2ToL2BonderFeeBps,
-  L2ToL1BonderFeeBps,
-  PendingAmountBuffer
-} from './constants'
-import { metadata, bondableChains } from './config'
-import { PriceFeed } from './priceFeed'
-import Token from './Token'
 
 type SendL1ToL2Input = {
   destinationChainId: number | string
@@ -605,7 +599,7 @@ class HopBridge extends Base {
     }
 
     amountIn = BigNumber.from(amountIn)
-    let lpFees = amountIn.mul(lpFeeBpsBn).div(10000)
+    const lpFees = amountIn.mul(lpFeeBpsBn).div(10000)
 
     return lpFees
   }
@@ -638,7 +632,7 @@ class HopBridge extends Base {
 
     const gasPrice = await destinationChain.provider.getGasPrice()
     const bondTransferGasLimit = await this.getBondWithdrawalEstimatedGas(
-      destinationChain,
+      destinationChain
     )
 
     const txFeeEth = gasPrice.mul(bondTransferGasLimit)
@@ -665,7 +659,7 @@ class HopBridge extends Base {
   }
 
   async getBondWithdrawalEstimatedGas (
-    destinationChain: Chain,
+    destinationChain: Chain
   ) {
     try {
       const destinationBridge = await this.getL2Bridge(destinationChain)
@@ -710,7 +704,7 @@ class HopBridge extends Base {
       }
     } catch (err) {
       console.error(err, {
-        destinationChain,
+        destinationChain
       })
       let bondTransferGasLimit: string = BondTransferGasLimit.Ethereum
       if (destinationChain.equals(Chain.Optimism)) {
@@ -1051,14 +1045,14 @@ class HopBridge extends Base {
     let tokenIndexFrom: number
     let tokenIndexTo: number
 
-    let l2CanonicalTokenAddress = this.getL2CanonicalTokenAddress(
+    const l2CanonicalTokenAddress = this.getL2CanonicalTokenAddress(
       this.tokenSymbol,
       sourceChain
     )
     if (!l2CanonicalTokenAddress) {
       throw new Error(`source chain "${sourceChain.slug}" is unsupported`)
     }
-    let l2HopBridgeTokenAddress = this.getL2HopBridgeTokenAddress(
+    const l2HopBridgeTokenAddress = this.getL2HopBridgeTokenAddress(
       this.tokenSymbol,
       sourceChain
     )
@@ -1068,10 +1062,10 @@ class HopBridge extends Base {
 
     const amm = await this.getAmm(sourceChain)
     const saddleSwap = await amm.getSaddleSwap()
-    let canonicalTokenIndex = Number(
+    const canonicalTokenIndex = Number(
       (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
     )
-    let hopTokenIndex = Number(
+    const hopTokenIndex = Number(
       (await saddleSwap.getTokenIndex(l2HopBridgeTokenAddress)).toString()
     )
     if (toHop) {
@@ -1355,10 +1349,10 @@ class HopBridge extends Base {
   private async getTokenIndexes (path: string[], chain: TChain) {
     const amm = this.getAmm(chain)
     const saddleSwap = await amm.getSaddleSwap()
-    let tokenIndexFrom = Number(
+    const tokenIndexFrom = Number(
       (await saddleSwap.getTokenIndex(path[0])).toString()
     )
-    let tokenIndexTo = Number(
+    const tokenIndexTo = Number(
       (await saddleSwap.getTokenIndex(path[1])).toString()
     )
 

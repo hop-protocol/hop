@@ -1,6 +1,6 @@
-import { providers } from 'ethers'
+import { Chain as ChainEnum, Network } from '../constants'
 import { metadata } from '../config'
-import { Network, Chain as ChainEnum } from '../constants'
+import { providers } from 'ethers'
 
 type Provider = providers.Provider
 
@@ -43,7 +43,7 @@ class Chain {
   }
 
   equals (other: Chain) {
-    return this.slug == other.slug
+    return this.slug === other.slug
   }
 
   get rpcUrl () {

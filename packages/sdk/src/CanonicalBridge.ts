@@ -1,22 +1,22 @@
-import { Signer, Contract, ethers } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
-import {
-  arbErc20Abi,
-  l1xDaiForeignOmniBridgeAbi,
-  l1HomeAmbNativeToErc20,
-  l1OptimismTokenBridgeAbi,
-  arbitrumGlobalInboxAbi,
-  l2OptimismTokenBridgeAbi,
-  l2xDaiTokenAbi,
-  l1PolygonPosRootChainManagerAbi,
-  l2PolygonChildErc20Abi
-} from '@hop-protocol/core/abi'
-import { Chain } from './models'
-import { TChain, TToken, TAmount, TProvider } from './types'
-import { metadata } from './config'
+import Base, { ChainProviders } from './Base'
 import Token from './models/Token'
 import TokenClass from './Token'
-import Base, { ChainProviders } from './Base'
+import { Chain } from './models'
+import { Contract, Signer, ethers } from 'ethers'
+import { TAmount, TChain, TProvider, TToken } from './types'
+import {
+  arbErc20Abi,
+  arbitrumGlobalInboxAbi,
+  l1HomeAmbNativeToErc20,
+  l1OptimismTokenBridgeAbi,
+  l1PolygonPosRootChainManagerAbi,
+  l1xDaiForeignOmniBridgeAbi,
+  l2OptimismTokenBridgeAbi,
+  l2PolygonChildErc20Abi,
+  l2xDaiTokenAbi
+} from '@hop-protocol/core/abi'
+import { formatUnits } from 'ethers/lib/utils'
+import { metadata } from './config'
 
 /**
  * Class reprensenting Canonical Token Bridge.
@@ -185,7 +185,7 @@ class CanonicalBridge extends Base {
         l1xDaiForeignOmniBridgeAbi,
         provider
       )
-      //await this.checkMaxTokensAllowed(chain, bridge, amount)
+      // await this.checkMaxTokensAllowed(chain, bridge, amount)
       return bridge.relayTokens(tokenAddress, recipient, amount, {
         // xDai requires a higher gas limit
         gasLimit: 300000

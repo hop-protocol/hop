@@ -1,4 +1,4 @@
-import { Signer, providers, BigNumberish } from 'ethers'
+import { BigNumberish, Signer, providers } from 'ethers'
 import { Chain, Token } from './models'
 
 /** Chain-ish type */

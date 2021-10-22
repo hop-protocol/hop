@@ -294,7 +294,7 @@ const tokenDecimals = {
   ETH: 18
 }
 
-function explorerLink (chain, transactionHash) {
+function explorerLink (chain) {
   let base = ''
   if (chain === 'xdai') {
     base = 'https://blockscout.com/xdai/mainnet'
@@ -308,6 +308,16 @@ function explorerLink (chain, transactionHash) {
     base = 'https://etherscan.io'
   }
 
+  return base
+}
+
+function explorerLinkAddress (chain, address) {
+  const base = explorerLink(chain)
+  return `${base}/address/${address}`
+}
+
+function explorerLinkTx (chain, transactionHash) {
+  const base = explorerLink(chain)
   return `${base}/tx/${transactionHash}`
 }
 
@@ -391,6 +401,7 @@ async function fetchBonds (chain) {
         transactionHash
         timestamp
         token
+        from
       }
     }
   `
@@ -711,6 +722,7 @@ async function updateTransfers () {
       for (const bond of bonds) {
         if (bond.transferId === x.transferId) {
           x.bonded = true
+          x.bonder = bond.from
           x.bondTransactionHash = bond.transactionHash
           x.bondedTimestamp = Number(bond.timestamp)
           continue
@@ -765,8 +777,9 @@ function populateTransfer (x, i) {
   x.sourceChainImageUrl = chainLogosMap[x.sourceChainSlug]
   x.destinationChainImageUrl = chainLogosMap[x.destinationChainSlug]
 
-  x.sourceTxExplorerUrl = explorerLink(x.sourceChainSlug, x.transactionHash)
-  x.bondTxExplorerUrl = x.bondTransactionHash ? explorerLink(x.destinationChainSlug, x.bondTransactionHash) : ''
+  x.sourceTxExplorerUrl = explorerLinkTx(x.sourceChainSlug, x.transactionHash)
+  x.bondTxExplorerUrl = x.bondTransactionHash ? explorerLinkTx(x.destinationChainSlug, x.bondTransactionHash) : ''
+  x.bonderUrl = x.bonder ? explorerLinkAddress(x.destinationChainSlug, x.bonder) : ''
 
   if (x.bondedTimestamp) {
     const bondedTime = luxon.DateTime.fromSeconds(x.bondedTimestamp)

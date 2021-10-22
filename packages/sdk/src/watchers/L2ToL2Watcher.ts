@@ -1,11 +1,7 @@
-import { default as BaseWatcher, Config, Event } from './BaseWatcher'
+import { default as BaseWatcher, Event } from './BaseWatcher'
 import { transferSentTopic } from '../constants/eventTopics'
 
 class L2ToL2Watcher extends BaseWatcher {
-  constructor (config: Config) {
-    super(config)
-  }
-
   public watch () {
     this.start().catch((err: Error) => this.ee.emit('error', err))
     return this.ee

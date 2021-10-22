@@ -1,10 +1,10 @@
-import { staging as stagingAddresses } from '@hop-protocol/core/addresses'
-import { mainnet as networks } from '@hop-protocol/core/networks'
 import { Chains } from './types'
+import { mainnet as networks } from '@hop-protocol/core/networks'
+import { staging as stagingAddresses } from '@hop-protocol/core/addresses'
 
 const chains: Chains = {}
 
-for (let chain in networks) {
+for (const chain in networks) {
   const network = (networks as any)[chain] as any
   if (!chains[chain]) {
     chains[chain] = {}

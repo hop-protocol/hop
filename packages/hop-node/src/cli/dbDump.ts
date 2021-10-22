@@ -13,7 +13,7 @@ program
   .command('db-dump')
   .option(
     '--db <string>',
-    'Name of db. Options are "transfers", "transfer-roots"'
+    'Name of db. Options are "transfers", "transfer-roots", "sync-state", "token-prices", "gas-cost"'
   )
   .option('--db-path <string>', 'Path to leveldb.')
   .option('--token <string>', 'Token symbol')
@@ -67,6 +67,13 @@ program
           items = [await db.tokenPrices.getNearest(tokenSymbol, nearest, false)]
         } else {
           items = await db.tokenPrices.getItems()
+        }
+      } else if (dbName === 'gas-cost') {
+        if (tokenSymbol && nearest) {
+          items = [await db.gasCost.getNearest(chain, tokenSymbol, false, nearest)]
+          items = [await db.gasCost.getNearest(chain, tokenSymbol, true, nearest)]
+        } else {
+          items = await db.gasCost.getItems()
         }
       } else {
         throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state, gas-prices, token-prices`)

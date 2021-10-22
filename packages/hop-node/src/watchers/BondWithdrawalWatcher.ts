@@ -264,7 +264,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const logger = this.logger.create({ id: transferId })
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     if (!dbTransfer) {
-      throw new Error('expected db tansfer item')
+      throw new Error('expected db transfer item')
     }
 
     const { amount, bonderFee, destinationChainId } = dbTransfer

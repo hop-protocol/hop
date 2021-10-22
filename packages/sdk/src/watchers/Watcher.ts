@@ -1,8 +1,8 @@
-import { Config } from './BaseWatcher'
 import Base from '../Base'
 import L1ToL2Watcher from './L1ToL2Watcher'
 import L2ToL1Watcher from './L2ToL1Watcher'
 import L2ToL2Watcher from './L2ToL2Watcher'
+import { Config } from './BaseWatcher'
 
 class Watcher extends Base {
   watcher: any

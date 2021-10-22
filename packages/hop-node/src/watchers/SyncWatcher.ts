@@ -85,13 +85,15 @@ class SyncWatcher extends BaseWatcher {
       this.customStartBlockNumber = await getBlockNumberFromDate(this.chainSlug, timestamp)
     }
     this.ready = true
-    this.pollGasCost()
   }
 
   async start () {
     this.started = true
     try {
-      await this.pollSync()
+      await Promise.all([
+        this.pollGasCost(),
+        this.pollSync()
+      ])
     } catch (err) {
       this.logger.error(`sync watcher error: ${err.message}\ntrace: ${err.stack}`)
       this.notifier.error(`sync watcher error: ${err.message}`)
@@ -1216,7 +1218,7 @@ class SyncWatcher extends BaseWatcher {
         const amount = BigNumber.from(10)
         const amountOutMin = BigNumber.from(0)
         const bonderFee = BigNumber.from(1)
-        const bonder = await this.bridge.getConfigBonderAddress()
+        const bonder = this.bridge.getConfigBonderAddress()
         const recipient = `0x${'1'.repeat(40)}`
         txOverrides.from = bonder
 

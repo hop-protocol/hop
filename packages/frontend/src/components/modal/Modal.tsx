@@ -139,7 +139,11 @@ const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(function Mo
               unmountOnExit={false}
             >
               <div className={classnames(styles.container, transitionState)}>
-                <ClickAwayListener onClickAway={handleClose}>
+                <ClickAwayListener
+                  onClickAway={handleClose}
+                  mouseEvent="onMouseDown"
+                  touchEvent="onTouchStart"
+                >
                   <Card className={styles.card} ref={ref}>
                     <div className={styles.close} onClick={handleClose}>
                       ✕

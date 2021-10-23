@@ -17,7 +17,7 @@ try {
   console.error(err)
 }
 
-let perPage = 100
+let perPage = 25
 try {
   const cached = Number(localStorage.getItem('perPage'))
   if (cached) {

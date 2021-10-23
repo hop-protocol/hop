@@ -25,10 +25,39 @@ const bonders: { [network: string]: { [token: string]: string[] } } = {
   goerli: goerli.bonders
 }
 
+type FeeBps = {
+  L2ToL1BonderFeeBps: number
+  L2ToL2BonderFeeBps: number
+}
+
+const fees: Record<string, FeeBps> = {
+  USDC: {
+    L2ToL1BonderFeeBps: 18,
+    L2ToL2BonderFeeBps: 18
+  },
+  USDT: {
+    L2ToL1BonderFeeBps: 18,
+    L2ToL2BonderFeeBps: 18
+  },
+  DAI: {
+    L2ToL1BonderFeeBps: 18,
+    L2ToL2BonderFeeBps: 18
+  },
+  MATIC: {
+    L2ToL1BonderFeeBps: 18,
+    L2ToL2BonderFeeBps: 18
+  },
+  ETH: {
+    L2ToL1BonderFeeBps: 18,
+    L2ToL2BonderFeeBps: 18
+  }
+}
+
 const config = {
   addresses,
   chains,
-  bonders
+  bonders,
+  fees
 }
 
 export { metadata, config }

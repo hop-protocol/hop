@@ -196,7 +196,7 @@ const Send: FC = () => {
           Insufficient liquidity. There is {formattedAmount} {sourceToken.symbol} available on{' '}
           {toNetwork.name}.{' '}
           <InfoTooltip
-            title={`Required Liquidity: ${toTokenDisplay(requiredLiquidity, sourceToken.decimals)}`}
+            title={<><div>The Bonder does not have enough liquidity to bond the transfer at the destination.</div><div>Available liquidity: {formattedAmount}</div><div>Required liquidity: {toTokenDisplay(requiredLiquidity, sourceToken.decimals)}</div></>}
           />
         </>
       )

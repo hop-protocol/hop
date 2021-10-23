@@ -2542,10 +2542,10 @@
   dependencies:
     deepmerge "^4.2.2"
 
-"@hop-protocol/sdk@0.0.1-beta.214":
-  version "0.0.1-beta.214"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.214.tgz#b63ebe8de471da7bd23ca8df5183fed5b5f21939"
-  integrity sha512-xMPWpVEqjyskf0DSw39smVgHBii4tRPB0C6oSJbBiv8Kf0QOdxv6NwnGcr+RTF9ckC3KjvmbxHvOulUaVwhLgQ==
+"@hop-protocol/sdk@0.0.1-beta.217":
+  version "0.0.1-beta.217"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.217.tgz#76dcdada1d9f4638c014297fa9f854596ddcf8ef"
+  integrity sha512-D2mUEEtk7M7ACLPZqEj6HDSIKCjUpjJxuxBvmPMZ2EXlrvrHPCJPsgwacDXDKo/WEliw1NxPXTun5t5J5u8vvA==
   dependencies:
     "@ethersproject/abi" "^5.4.0"
     "@hop-protocol/core" "0.0.1-beta.39"

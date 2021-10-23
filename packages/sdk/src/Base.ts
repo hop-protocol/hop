@@ -419,9 +419,9 @@ class Base {
     if (!fees) {
       throw new Error('fee data not found')
     }
-    let feeBps = fees?.L2ToL2BonderFeeBps
+    let feeBps = fees?.L2ToL2
     if (destinationChain.isL1) {
-      feeBps = fees?.L2ToL1BonderFeeBps
+      feeBps = fees?.L2ToL1
     }
     return feeBps
   }

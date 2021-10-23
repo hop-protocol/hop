@@ -5,11 +5,12 @@ import path from 'path'
 import yaml from 'js-yaml'
 import { Chain } from 'src/constants'
 import {
-  defaultConfigFilePath,
-  setBonderPrivateKey,
+  Fees, defaultConfigFilePath, setBonderPrivateKey,
   setConfigAddresses,
   setConfigByNetwork,
   setDbPath,
+  setFeesConfig,
+  setMetricsConfig,
   setStateUpdateAddress,
   setSyncConfig,
   validateConfig
@@ -17,7 +18,6 @@ import {
 import { getParameter } from 'src/aws/parameterStore'
 import { promptPassphrase } from 'src/prompt'
 import { recoverKeystore } from 'src/keystore'
-import { setMetricsConfig } from '.'
 
 const logger = new Logger('config')
 
@@ -109,6 +109,7 @@ export type FileConfig = {
   addresses?: Addresses
   stateUpdateAddress?: string
   metrics?: MetricsConfig
+  fees?: Fees
 }
 
 export async function setGlobalConfigFromConfigFile (
@@ -173,6 +174,9 @@ export async function setGlobalConfigFromConfigFile (
   }
   if (config?.metrics) {
     setMetricsConfig(config.metrics)
+  }
+  if (config?.fees) {
+    setFeesConfig(config.fees)
   }
 }
 

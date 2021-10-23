@@ -123,7 +123,7 @@ export async function getWatchers (config: GetWatchersConfig) {
         isL1,
         bridgeContract,
         dryMode,
-        minThresholdPercent: settleBondedWithdrawalsThresholdPercent[token],
+        minThresholdPercent: settleBondedWithdrawalsThresholdPercent?.[token],
         stateUpdateAddress
       })
     }))
@@ -131,7 +131,7 @@ export async function getWatchers (config: GetWatchersConfig) {
 
   if (enabledWatchers.includes(Watchers.CommitTransfers)) {
     watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
-      const minThresholdAmounts = commitTransfersMinThresholdAmounts[token]?.[network]
+      const minThresholdAmounts = commitTransfersMinThresholdAmounts?.[token]?.[network]
 
       return new CommitTransfersWatcher({
         chainSlug: network,

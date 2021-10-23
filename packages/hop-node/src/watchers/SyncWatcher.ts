@@ -1045,7 +1045,7 @@ class SyncWatcher extends BaseWatcher {
     this.availableCredit[destinationChain] = availableCredit
 
     if (this.s3Upload) {
-      const bonder = globalConfig.bonders[this.tokenSymbol][0]
+      const bonder = globalConfig.bonders[this.tokenSymbol]?.[0]
       const availableCredit = await this.calculateAvailableCredit(destinationChainId, bonder)
       this.s3AvailableCredit[destinationChain] = availableCredit
     }

@@ -72,7 +72,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
       // get all db transfer items that belong to root
       const dbTransfers: Transfer[] = []
-      for (const transferId of transferIds!) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      for (const transferId of transferIds) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
         const dbTransfer = await this.db.transfers.getByTransferId(transferId)
         if (!dbTransfer) {
           continue

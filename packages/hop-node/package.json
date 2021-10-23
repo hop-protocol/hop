@@ -44,7 +44,7 @@
     "@eth-optimism/message-relayer": "^0.1.11",
     "@eth-optimism/watcher": "0.0.1-alpha.9",
     "@ethersproject/hdnode": "^5.0.9",
-    "@hop-protocol/core": "0.0.1-beta.40",
+    "@hop-protocol/core": "0.0.1-beta.41",
     "@hop-protocol/sdk": "0.0.1-beta.217",
     "@maticnetwork/maticjs": "2.0.45",
     "@slack/web-api": "^6.1.0",

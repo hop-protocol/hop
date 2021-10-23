@@ -519,16 +519,16 @@ export default class Bridge extends ContractBase {
     options?: Partial<EventsBatchOptions>
   ): Promise<R[]> {
     let i = 0
-    const results: R[] = []
+    const promises: R[] = []
     await this.eventsBatch(async (start: number, end: number) => {
       let events = await rateLimitRetry(getEventsMethod)(start, end)
       events = events.reverse()
       for (const event of events) {
-        results.push(cb(event, i))
+        promises.push(cb(event, i))
       }
       i++
     }, options)
-    return results
+    return await Promise.all(promises)
   }
 
   public async eventsBatch (
@@ -538,7 +538,7 @@ export default class Bridge extends ContractBase {
     this.validateEventsBatchInput(options)
 
     let cacheKey = ''
-    let state: State
+    let state: State | undefined
     if (options.cacheKey) {
       cacheKey = this.getCacheKeyFromKey(
         this.chainId,
@@ -554,7 +554,7 @@ export default class Bridge extends ContractBase {
       batchBlocks,
       earliestBlockInBatch,
       latestBlockInBatch
-    } = await this.getBlockValues(options, state!) // eslint-disable-line
+    } = await this.getBlockValues(options, state) // eslint-disable-line
 
     let i = 0
     while (start >= earliestBlockInBatch) {
@@ -587,7 +587,7 @@ export default class Bridge extends ContractBase {
     }
   }
 
-  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state: State) => {
+  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state?: State) => {
     const { startBlockNumber, endBlockNumber } = options
 
     let end: number
@@ -596,8 +596,8 @@ export default class Bridge extends ContractBase {
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
     const currentBlockNumber = await this.getBlockNumber()
     const currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
-    const isInitialSync = !state.latestBlockSynced && startBlockNumber && !endBlockNumber
-    const isSync = state.latestBlockSynced && startBlockNumber && !endBlockNumber
+    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
+    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber
 
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
@@ -607,10 +607,10 @@ export default class Bridge extends ContractBase {
       totalBlocksInBatch = totalBlocks! // eslint-disable-line
     } else if (isInitialSync) {
       end = currentBlockNumberWithFinality
-      totalBlocksInBatch = end - startBlockNumber
+      totalBlocksInBatch = end - (startBlockNumber ?? 0)
     } else if (isSync) {
-      end = Math.max(currentBlockNumberWithFinality, state.latestBlockSynced)
-      totalBlocksInBatch = end - state.latestBlockSynced
+      end = Math.max(currentBlockNumberWithFinality, state?.latestBlockSynced ?? 0)
+      totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {
       end = currentBlockNumberWithFinality
       totalBlocksInBatch = totalBlocks! // eslint-disable-line
@@ -652,7 +652,7 @@ export default class Bridge extends ContractBase {
   }
 
   shouldAttemptSwap (amountOutMin: BigNumber, deadline: BigNumber): boolean {
-    return amountOutMin.gt(0) || deadline.gt(0)
+    return amountOutMin?.gt(0) || deadline?.gt(0)
   }
 
   private readonly validateEventsBatchInput = (

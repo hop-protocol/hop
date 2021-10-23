@@ -185,9 +185,9 @@ export default class L1Bridge extends Bridge {
   getTransferRootCommittedAt = rateLimitRetry(async (destChainId: number, transferRootId: string): Promise<number> => {
     let committedAt
     if (this.tokenSymbol === 'USDC') {
-      committedAt = await (this.l1BridgeContract as L1ERC20BridgeContract).transferRootCommittedAt(destChainId, transferRootId)
-    } else {
       committedAt = await (this.l1BridgeContract as L1BridgeContract).transferRootCommittedAt(transferRootId)
+    } else {
+      committedAt = await (this.l1BridgeContract as L1ERC20BridgeContract).transferRootCommittedAt(destChainId, transferRootId)
     }
     return committedAt.toNumber()
   })

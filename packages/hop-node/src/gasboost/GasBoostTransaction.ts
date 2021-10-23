@@ -242,12 +242,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       from: this.from,
       to: this.to,
       data: this.data,
-      value: this.value.toString(),
+      value: this.value?.toString(),
       nonce: this.nonce,
-      gasPrice: this.gasPrice.toString(),
-      maxFeePerGas: this.maxFeePerGas.toString(),
-      maxPriorityFeePerGas: this.maxPriorityFeePerGas.toString(),
-      gasLimit: this.gasLimit.toString()
+      gasPrice: this.gasPrice?.toString(),
+      maxFeePerGas: this.maxFeePerGas?.toString(),
+      maxPriorityFeePerGas: this.maxPriorityFeePerGas?.toString(),
+      gasLimit: this.gasLimit?.toString()
     }
   }
 
@@ -630,7 +630,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.signer.estimateGas(payload),
       this.signer.getBalance()
     ])
-    const gasPrice = gasFeeData.gasPrice ?? gasFeeData.maxFeePerGas
+    const gasPrice = gasFeeData.gasPrice || gasFeeData.maxFeePerGas // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
     const gasCost = gasLimit.mul(gasPrice!) // eslint-disable-line
     const warnEthBalance = parseUnits((this.warnEthBalance || 0).toString(), 18)
     const formattedGasCost = formatUnits(gasCost, 18)

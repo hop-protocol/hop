@@ -129,7 +129,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     return this.normalizeItem(transferRootHash, item)
   }
 
-  async getByTransferRootId (transferRootId: string): Promise<TransferRoot> {
+  async getByTransferRootId (transferRootId: string): Promise<TransferRoot | null | undefined> {
     const transferRootHashes = await this.getTransferRootHashes()
     const filtered = (
       await Promise.all(
@@ -141,7 +141,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         })
       )
     ).filter(x => x)
-    return filtered[0]! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    return filtered?.[0]
   }
 
   async getTransferRootHashes (dateFilter?: TransferRootsDateFilter): Promise<string[]> {
@@ -168,7 +168,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     const transferRoots = await this.batchGetByIds(transferRootHashes)
 
     return transferRoots
-      .sort((a, b) => a.committedAt! - b.committedAt!) // eslint-disable-line
+      .sort((a, b) => a?.committedAt - b?.committedAt)
       .filter(x => x)
   }
 

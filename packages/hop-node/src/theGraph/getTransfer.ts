@@ -103,7 +103,7 @@ export default async function getTransfer (chain: string, token: string, transfe
     let bondedWithdrawalFrom = ''
     if (bondedWithdrawal) {
       const bondWithdrawalTx = await provider.getTransaction(bondedWithdrawal.transactionHash)
-      bondedWithdrawalFrom = bondWithdrawalTx.from.toLowerCase()
+      bondedWithdrawalFrom = bondWithdrawalTx?.from?.toLowerCase()
     }
     if (bondedWithdrawalFrom) {
       const settledEvents = jsonRes.multipleWithdrawalsSettleds ?? []

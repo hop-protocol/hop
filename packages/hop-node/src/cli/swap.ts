@@ -37,8 +37,8 @@ program
       const toToken = source.to
       const amount = Number(source.args[0] || source.amount)
       const max = source.max !== undefined && source.max
-      const deadline = Number(source.deadline)
-      const slippage = Number(source.slippage)
+      const deadline = source.deadline ? Number(source.deadline) : undefined // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+      const slippage = source.slippage ? Number(source.slippage) : undefined // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
       const recipient = source.recipient
       if (!chain) {
         throw new Error('chain is required')
@@ -108,7 +108,7 @@ program
           amountOut = await amm.calculateFromHTokensAmount(amountIn)
         }
 
-        const slippageToleranceBps = (slippage || 0.5) * 100
+        const slippageToleranceBps = (slippage ?? 0.5) * 100
         const minBps = Math.ceil(10000 - slippageToleranceBps)
         const minAmountOut = amountOut.mul(minBps).div(10000)
 

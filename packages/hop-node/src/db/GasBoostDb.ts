@@ -25,10 +25,9 @@ class GasBoostDb extends BaseDb {
         return await this.getItem(key)
       })
     )
-    const isDefined = (item: State | undefined): item is State => {
-      return item !== undefined
-    }
-    return items.filter(isDefined)
+    return items.filter((item: State): item is State => {
+      return item != null
+    })
   }
 
   async deleteItem (key: string): Promise<void> {

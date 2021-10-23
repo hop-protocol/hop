@@ -50,9 +50,9 @@ export type TransferRoot = {
 class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   async trackTimestampedKey (transferRoot: Partial<TransferRoot>) {
     const data = await this.getTimestampedKeyValueForUpdate(transferRoot)
-    if (data) {
-      const key = data?.key
-      const transferRootHash = data?.value?.transferRootHash
+    if (data != null) {
+      const key = data.key
+      const transferRootHash = data.value.transferRootHash
       this.logger.debug(`storing timestamped key. key: ${key} transferRootHash: ${transferRootHash}`)
       const value = { transferRootHash }
       await this.subDb._update(key, value)
@@ -61,12 +61,12 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
 
   async trackTimestampedKeyByTransferRootHash (transferRootHash: string) {
     const transferRoot = await this.getByTransferRootHash(transferRootHash)
-    return this.trackTimestampedKey(transferRoot)
+    return await this.trackTimestampedKey(transferRoot)
   }
 
   getTimestampedKey (transferRoot: Partial<TransferRoot>) {
-    if (transferRoot?.committedAt && transferRoot?.transferRootHash) {
-      const key = `transferRoot:${transferRoot?.committedAt}:${transferRoot?.transferRootHash}`
+    if (transferRoot.committedAt && transferRoot.transferRootHash) {
+      const key = `transferRoot:${transferRoot.committedAt}:${transferRoot.transferRootHash}`
       return key
     }
   }
@@ -76,7 +76,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       this.logger.warn('expected transfer root object for timestamped key')
       return
     }
-    const transferRootHash = transferRoot?.transferRootHash
+    const transferRootHash = transferRoot.transferRootHash
     const key = this.getTimestampedKey(transferRoot)
     if (!key) {
       this.logger.warn('expected timestamped key. incomplete transfer root:', JSON.stringify(transferRoot))
@@ -98,7 +98,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('update called')
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transferRoot)
-    const promises : Promise<any>[] = []
+    const promises: Array<Promise<any>> = []
     if (timestampedKv) {
       logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferRootHash: ${transferRootHash}`)
       promises.push(this.subDb._update(timestampedKv.key, timestampedKv.value).then(() => {
@@ -116,7 +116,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     if (!item) {
       return item
     }
-    if (!item?.transferRootHash) {
+    if (!item.transferRootHash) {
       item.transferRootHash = transferRootHash
     }
     return normalizeDbItem(item)
@@ -125,7 +125,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   async getByTransferRootHash (
     transferRootHash: string
   ): Promise<TransferRoot> {
-    const item : TransferRoot = await this.getById(transferRootHash)
+    const item: TransferRoot = await this.getById(transferRootHash)
     return this.normalizeItem(transferRootHash, item)
   }
 
@@ -141,13 +141,13 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         })
       )
     ).filter(x => x)
-    return filtered?.[0]
+    return filtered[0]! // eslint-disable-line @typescript-eslint/no-non-null-assertion
   }
 
   async getTransferRootHashes (dateFilter?: TransferRootsDateFilter): Promise<string[]> {
     // return only transfer-root keys that are within specified range (filter by timestamped keys)
-    if (dateFilter) {
-      const filter : KeyFilter = {}
+    if (dateFilter != null) {
+      const filter: KeyFilter = {}
       if (dateFilter.fromUnix) {
         filter.gte = `transferRoot:${dateFilter.fromUnix}`
       }
@@ -166,21 +166,22 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   async getItems (dateFilter?: TransferRootsDateFilter): Promise<TransferRoot[]> {
     const transferRootHashes = await this.getTransferRootHashes(dateFilter)
     const transferRoots = await this.batchGetByIds(transferRootHashes)
+
     return transferRoots
-      .sort((a, b) => a?.committedAt - b?.committedAt)
+      .sort((a, b) => a.committedAt! - b.committedAt!) // eslint-disable-line
       .filter(x => x)
   }
 
   async getTransferRoots (dateFilter?: TransferRootsDateFilter): Promise<TransferRoot[]> {
     await this.tilReady()
-    return this.getItems(dateFilter)
+    return await this.getItems(dateFilter)
   }
 
   // gets only transfer roots within range: now - 2 weeks ago
   async getTransferRootsFromTwoWeeks (): Promise<TransferRoot[]> {
     await this.tilReady()
     const fromUnix = Math.floor((Date.now() - (OneWeekMs * 2)) / 1000)
-    return this.getTransferRoots({
+    return await this.getTransferRoots({
       fromUnix
     })
   }
@@ -190,7 +191,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
-      return !item.committed && item?.transferIds?.length
+      return !item.committed && item.transferIds?.length
     })
   }
 
@@ -199,21 +200,21 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
-      if (filter?.sourceChainId) {
+      if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
       }
-      if (filter?.destinationChainId) {
+      if (filter.destinationChainId) {
         if (filter.destinationChainId !== item.destinationChainId) {
           return false
         }
       }
 
       let timestampOk = true
-      if (item?.sentBondTxAt) {
+      if (item.sentBondTxAt) {
         timestampOk =
-          item?.sentBondTxAt + TxRetryDelayMs < Date.now()
+          item.sentBondTxAt + TxRetryDelayMs < Date.now()
       }
 
       return (
@@ -238,7 +239,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
-      if (filter?.sourceChainId) {
+      if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
@@ -249,17 +250,17 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       }
 
       let timestampOk = true
-      if (item?.sentConfirmTxAt) {
+      if (item.sentConfirmTxAt) {
         timestampOk =
-          item?.sentConfirmTxAt + TxRetryDelayMs < Date.now()
+          item.sentConfirmTxAt + TxRetryDelayMs < Date.now()
       }
 
       let oruTimestampOk = true
       const sourceChain = chainIdToSlug(item.sourceChainId)
       const isSourceOru = oruChains.includes(sourceChain)
-      if (isSourceOru && item?.committedAt) {
+      if (isSourceOru && item.committedAt) {
         oruTimestampOk =
-          item?.committedAt + OneWeekMs < Date.now()
+          item.committedAt + OneWeekMs < Date.now()
       }
 
       return (
@@ -305,7 +306,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
-      if (filter?.sourceChainId) {
+      if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
@@ -313,15 +314,15 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
 
       // https://github.com/hop-protocol/hop/pull/140#discussion_r697919256
       let rootSetTimestampOk = true
-      const checkRootSetTimestamp = item?.rootSetTimestamp && filter?.destinationChainId && chainIdToSlug(filter?.destinationChainId) === Chain.xDai
+      const checkRootSetTimestamp = item.rootSetTimestamp && filter.destinationChainId && chainIdToSlug(filter.destinationChainId) === Chain.xDai
       if (checkRootSetTimestamp) {
-        rootSetTimestampOk = (item.rootSetTimestamp * 1000) + RootSetSettleDelayMs < Date.now()
+        rootSetTimestampOk = (item.rootSetTimestamp! * 1000) + RootSetSettleDelayMs < Date.now() // eslint-disable-line
       }
 
       let bondSettleTimestampOk = true
-      if (item?.withdrawalBondSettleTxSentAt) {
+      if (item.withdrawalBondSettleTxSentAt) {
         bondSettleTimestampOk =
-          (item?.withdrawalBondSettleTxSentAt + TxRetryDelayMs) <
+          (item.withdrawalBondSettleTxSentAt + TxRetryDelayMs) <
           Date.now()
       }
 
@@ -345,18 +346,20 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   ) {
     const transferRoots: TransferRoot[] = await this.getItems()
     return transferRoots.filter(item => {
-      if (filter?.sourceChainId) {
+      if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
       }
 
       return (
+        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
         (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
         (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
         (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds) ||
         (item.multipleWithdrawalsSettledTxHash && item.multipleWithdrawalsSettledTotalAmount && !item.transferIds) ||
         (item.commitTxHash && !item.committedAt)
+        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
       )
     })
   }

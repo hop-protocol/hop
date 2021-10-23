@@ -22,7 +22,7 @@ export default class L2Amm extends ContractBase {
     return amountOut
   })
 
-  swap = rateLimitRetry((fromTokenIndex: number, toTokenIndex: number, amountIn: BigNumber, minAmountOut: BigNumber = BigNumber.from(0), deadline: BigNumber = this.defaultDeadline()):Promise<BigNumber> => {
+  swap = rateLimitRetry(async (fromTokenIndex: number, toTokenIndex: number, amountIn: BigNumber, minAmountOut: BigNumber = BigNumber.from(0), deadline: BigNumber = this.defaultDeadline()): Promise<BigNumber> => {
     return this.contract.swap(
       fromTokenIndex,
       toTokenIndex,

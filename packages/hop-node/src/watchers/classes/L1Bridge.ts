@@ -4,8 +4,10 @@ import rateLimitRetry from 'src/utils/rateLimitRetry'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
-import { Event } from 'src/types'
+import { ERC20 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
+import { L1Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { erc20Abi, l1Erc20BridgeAbi } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
 
@@ -16,6 +18,10 @@ export default class L1Bridge extends Bridge {
   TransferSentToL2: string = 'TransferSentToL2'
   ChallengeResolved: string = 'ChallengeResolved'
 
+  constructor (private readonly l1BridgeContract: L1BridgeContract | L1ERC20BridgeContract) {
+    super(l1BridgeContract)
+  }
+
   static fromAddress (address: string): L1Bridge {
     const contract = new Contract(
       address,
@@ -23,14 +29,14 @@ export default class L1Bridge extends Bridge {
       wallets.get(Chain.Ethereum)
     )
 
-    return new L1Bridge(contract)
+    return new L1Bridge(contract as L1BridgeContract)
   }
 
   decodeBondTransferRootData (data: string): any {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = this.bridgeContract.interface.decodeFunctionData(
+    const decoded = this.l1BridgeContract.interface.decodeFunctionData(
       'bondTransferRoot',
       data
     )
@@ -48,7 +54,7 @@ export default class L1Bridge extends Bridge {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = this.bridgeContract.interface.decodeFunctionData(
+    const decoded = this.l1BridgeContract.interface.decodeFunctionData(
       'confirmTransferRoot',
       data
     )
@@ -62,48 +68,48 @@ export default class L1Bridge extends Bridge {
     }
   }
 
-  getTransferBond = rateLimitRetry((transferRootId: string): Promise<any> => {
-    return this.bridgeContract.transferBonds(transferRootId)
+  getTransferBond = rateLimitRetry(async (transferRootId: string) => {
+    return await this.l1BridgeContract.transferBonds(transferRootId)
   })
 
-  getTransferRootBondedEvents = rateLimitRetry((
+  getTransferRootBondedEvents = rateLimitRetry(async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> => {
-    return this.bridgeContract.queryFilter(
-      this.bridgeContract.filters.TransferRootBonded(),
+  ) => {
+    return await this.l1BridgeContract.queryFilter(
+      this.l1BridgeContract.filters.TransferRootBonded(),
       startBlockNumber,
       endBlockNumber
     )
   })
 
-  getTransferBondChallengedEvents = rateLimitRetry((
+  getTransferBondChallengedEvents = rateLimitRetry(async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> => {
-    return this.bridgeContract.queryFilter(
-      this.bridgeContract.filters.TransferBondChallenged(),
+  ) => {
+    return await this.l1BridgeContract.queryFilter(
+      this.l1BridgeContract.filters.TransferBondChallenged(),
       startBlockNumber,
       endBlockNumber
     )
   })
 
-  async mapTransferRootBondedEvents (
-    cb: EventCb,
+  async mapTransferRootBondedEvents<R> (
+    cb: EventCb<TransferRootBondedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return this.mapEventsBatch(this.getTransferRootBondedEvents, cb, options)
+    return await this.mapEventsBatch(this.getTransferRootBondedEvents, cb, options)
   }
 
-  async mapTransferBondChallengedEvents (
-    cb: EventCb,
+  async mapTransferBondChallengedEvents<R> (
+    cb: EventCb<TransferBondChallengedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return this.mapEventsBatch(this.getTransferBondChallengedEvents, cb, options)
+    return await this.mapEventsBatch(this.getTransferBondChallengedEvents, cb, options)
   }
 
-  async getLastTransferRootBondedEvent (): Promise<any> {
-    let match: Event = null
+  async getLastTransferRootBondedEvent (): Promise<TransferRootBondedEvent | undefined> {
+    let match: TransferRootBondedEvent | undefined
     await this.eventsBatch(async (start: number, end: number) => {
       const events = await this.getTransferRootBondedEvents(start, end)
       if (events.length) {
@@ -117,8 +123,8 @@ export default class L1Bridge extends Bridge {
 
   async getTransferRootBondedEvent (
     transferRootHash: string
-  ): Promise<Event> {
-    let match: Event = null
+  ) {
+    let match: TransferRootBondedEvent | undefined
     await this.eventsBatch(async (start: number, end: number) => {
       const events = await this.getTransferRootBondedEvents(start, end)
       for (const event of events) {
@@ -141,7 +147,7 @@ export default class L1Bridge extends Bridge {
       transferRootHash,
       amount
     )
-    return this.isTransferRootIdBonded(transferRootId)
+    return await this.isTransferRootIdBonded(transferRootId)
   }
 
   async isTransferRootIdBonded (transferRootId: string): Promise<boolean> {
@@ -153,22 +159,22 @@ export default class L1Bridge extends Bridge {
     return createdAt > 0
   }
 
-  getTransferRootConfirmedEvents = rateLimitRetry((
+  getTransferRootConfirmedEvents = rateLimitRetry(async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> => {
-    return this.bridgeContract.queryFilter(
-      this.bridgeContract.filters.TransferRootConfirmed(),
+  ): Promise<TransferRootConfirmedEvent[]> => {
+    return await this.l1BridgeContract.queryFilter(
+      this.l1BridgeContract.filters.TransferRootConfirmed(),
       startBlockNumber,
       endBlockNumber
     )
   })
 
-  async mapTransferRootConfirmedEvents (
-    cb: EventCb,
+  async mapTransferRootConfirmedEvents<R> (
+    cb: EventCb<TransferRootConfirmedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return this.mapEventsBatch(this.getTransferRootConfirmedEvents, cb, options)
+    return await this.mapEventsBatch(this.getTransferRootConfirmedEvents, cb, options)
   }
 
   async isTransferRootIdConfirmed (destChainId: number, transferRootId: string): Promise<boolean> {
@@ -177,16 +183,13 @@ export default class L1Bridge extends Bridge {
   }
 
   getTransferRootCommittedAt = rateLimitRetry(async (destChainId: number, transferRootId: string): Promise<number> => {
-    let params: any[] = []
+    let committedAt
     if (this.tokenSymbol === 'USDC') {
-      params = [transferRootId]
+      committedAt = await (this.l1BridgeContract as L1ERC20BridgeContract).transferRootCommittedAt(destChainId, transferRootId)
     } else {
-      params = [destChainId, transferRootId]
+      committedAt = await (this.l1BridgeContract as L1BridgeContract).transferRootCommittedAt(transferRootId)
     }
-    const committedAt = await this.bridgeContract.transferRootCommittedAt(
-      ...params
-    )
-    return Number(committedAt.toString())
+    return committedAt.toNumber()
   })
 
   async getMinTransferRootBondDelaySeconds (): Promise<number> {
@@ -195,12 +198,12 @@ export default class L1Bridge extends Bridge {
   }
 
   async l1CanonicalToken (): Promise<Token> {
-    const tokenAddress = await this.bridgeContract.l1CanonicalToken()
+    const tokenAddress = await (this.l1BridgeContract as L1ERC20BridgeContract).l1CanonicalToken()
     const tokenContract = new Contract(
       tokenAddress,
       erc20Abi,
-      this.bridgeContract.signer
-    )
+      this.l1BridgeContract.signer
+    ) as ERC20
     return new Token(tokenContract)
   }
 
@@ -209,7 +212,7 @@ export default class L1Bridge extends Bridge {
     chainId: number,
     totalAmount: BigNumber
   ): Promise<providers.TransactionResponse> => {
-    const tx = await this.bridgeContract.bondTransferRoot(
+    const tx = await this.l1BridgeContract.bondTransferRoot(
       transferRootHash,
       chainId,
       totalAmount,
@@ -223,7 +226,7 @@ export default class L1Bridge extends Bridge {
     transferRootHash: string,
     totalAmount: BigNumber
   ): Promise<providers.TransactionResponse> => {
-    const tx = await this.bridgeContract.challengeTransferBond(
+    const tx = await this.l1BridgeContract.challengeTransferBond(
       transferRootHash,
       totalAmount,
       await this.txOverrides()
@@ -236,7 +239,7 @@ export default class L1Bridge extends Bridge {
     transferRootHash: string,
     totalAmount: BigNumber
   ): Promise<providers.TransactionResponse> => {
-    const tx = await this.bridgeContract.resolveChallenge(
+    const tx = await this.l1BridgeContract.resolveChallenge(
       transferRootHash,
       totalAmount,
       await this.txOverrides()
@@ -266,7 +269,7 @@ export default class L1Bridge extends Bridge {
       txOverrides.value = amount
     }
 
-    return this.bridgeContract.sendToL2(
+    return await this.l1BridgeContract.sendToL2(
       destinationChainId,
       recipient,
       amount,
@@ -305,7 +308,7 @@ export default class L1Bridge extends Bridge {
       txOverrides.value = amount
     }
 
-    return this.bridgeContract.sendToL2(
+    return await this.l1BridgeContract.sendToL2(
       destinationChainId,
       recipient,
       amount,
@@ -318,18 +321,18 @@ export default class L1Bridge extends Bridge {
   })
 
   isSupportedChainId = rateLimitRetry(async (chainId: number): Promise<boolean> => {
-    const address = await this.bridgeContract.crossDomainMessengerWrappers(
+    const address = await this.l1BridgeContract.crossDomainMessengerWrappers(
       chainId
     )
     return address !== constants.AddressZero
   })
 
   getChallengePeriod = rateLimitRetry(async (): Promise<number> => {
-    const challengePeriod = await this.bridgeContract.challengePeriod()
+    const challengePeriod = await this.l1BridgeContract.challengePeriod()
     return Number(challengePeriod.toString())
   })
 
-  getBondForTransferAmount = rateLimitRetry((amount: BigNumber): Promise<BigNumber> => {
-    return this.bridgeContract.getBondForTransferAmount(amount)
+  getBondForTransferAmount = rateLimitRetry(async (amount: BigNumber): Promise<BigNumber> => {
+    return await this.l1BridgeContract.getBondForTransferAmount(amount)
   })
 }

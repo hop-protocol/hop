@@ -5,12 +5,11 @@ import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import isHToken from 'src/utils/isHToken'
 import { BigNumber } from 'ethers'
 import { Chain, TokenIndex } from 'src/constants'
+import { logger, program } from './shared'
 import {
-  FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { logger, program } from './shared'
 import { swap as uniswapSwap } from 'src/uniswap'
 
 program
@@ -30,7 +29,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const chain = source.chain
@@ -60,7 +59,7 @@ program
       const toTokenIsHToken = isHToken(toToken)
       const isAmmSwap = fromTokenIsHToken || toTokenIsHToken
       const deadlineBn = source.deadline ? BigNumber.from(source.deadline) : undefined
-      let tx : any
+      let tx: any
       if (isAmmSwap) {
         logger.debug('L2 AMM swap')
         if (fromTokenIsHToken && toTokenIsHToken) {
@@ -83,9 +82,9 @@ program
         const amm = l2Bridge.amm
         const ammWrapper = l2Bridge.ammWrapper
 
-        let fromTokenIndex : number
-        let toTokenIndex : number
-        let token : Token
+        let fromTokenIndex: number
+        let toTokenIndex: number
+        let token: Token
         if (fromTokenIsHToken) {
           fromTokenIndex = TokenIndex.HopBridgeToken
           toTokenIndex = TokenIndex.CanonicalToken
@@ -102,7 +101,7 @@ program
           amountIn = await token.getBalance()
         }
 
-        let amountOut : BigNumber
+        let amountOut: BigNumber
         if (fromTokenIsHToken) {
           amountOut = await amm.calculateToHTokensAmount(amountIn)
         } else {

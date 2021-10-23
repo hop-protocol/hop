@@ -1,5 +1,5 @@
 import { Chain } from 'src/constants'
-import { User } from './helpers'
+import { User, expectDefined } from './helpers'
 import { privateKey } from './config'
 
 const networks = [Chain.xDai, Chain.Optimism]
@@ -8,6 +8,7 @@ const token = 'DAI'
 describe.skip('code', () => {
   for (const network of networks) {
     it(network, async () => {
+      expectDefined(privateKey)
       const user = new User(privateKey)
       const bridge = await user.getHopBridgeContract(network, token)
       const wrapperAddress = await bridge.ammWrapper()

@@ -5,14 +5,16 @@ import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
 import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
-import { Contract } from 'ethers'
 import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Notifier } from 'src/notifier'
 import { hostname } from 'src/config'
 
-interface Config {
+type Config = {
   chainSlug: string
   tokenSymbol: string
   tag: string
@@ -20,7 +22,7 @@ interface Config {
   logColor?: string
   order?: () => number
   isL1?: boolean
-  bridgeContract?: Contract
+  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   dryMode?: boolean
   stateUpdateAddress?: string
 }
@@ -70,7 +72,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (prefix) {
       this.prefix = prefix
     }
-    if (order) {
+    if (order != null) {
       this.order = order
     }
     this.notifier = new Notifier(
@@ -79,11 +81,11 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (config.isL1) {
       this.isL1 = config.isL1
     }
-    if (config.bridgeContract) {
+    if (config.bridgeContract != null) {
       if (this.isL1) {
-        this.bridge = new L1Bridge(config.bridgeContract)
+        this.bridge = new L1Bridge(config.bridgeContract as L1BridgeContract | L1ERC20BridgeContract)
       } else {
-        this.bridge = new L2Bridge(config.bridgeContract)
+        this.bridge = new L2Bridge(config.bridgeContract as L2BridgeContract)
       }
     }
     if (config.dryMode) {
@@ -95,7 +97,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   isAllSiblingWatchersInitialSyncCompleted (): boolean {
-    return this.syncWatcher?.isAllSiblingWatchersInitialSyncCompleted()
+    return this.syncWatcher.isAllSiblingWatchersInitialSyncCompleted()
   }
 
   async pollCheck () {

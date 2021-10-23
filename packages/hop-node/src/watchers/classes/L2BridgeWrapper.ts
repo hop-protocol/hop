@@ -1,14 +1,10 @@
 import rateLimitRetry from 'src/utils/rateLimitRetry'
-import { Contract } from 'ethers'
+import { L2BridgeWrapper as L2BridgeWrapperContract } from '@hop-protocol/core/contracts/L2BridgeWrapper'
 
 export default class L2BridgeWrapper {
-  l2BridgeWrapperContract: Contract
-
-  constructor (l2BridgeWrapperContract: Contract) {
-    this.l2BridgeWrapperContract = l2BridgeWrapperContract
-  }
+  constructor (private readonly l2BridgeWrapperContract: L2BridgeWrapperContract) {}
 
   getMessengerAddress = rateLimitRetry(async (): Promise<string> => {
-    return this.l2BridgeWrapperContract.messenger()
+    return await this.l2BridgeWrapperContract.messenger()
   })
 }

@@ -28,7 +28,7 @@ class GasBoostSigner extends Wallet {
   constructor (privateKey: string, provider?: providers.Provider, store?: Store, options: Partial<Options> = {}) {
     super(privateKey, provider)
     this.signer = new Wallet(privateKey, provider)
-    if (store) {
+    if (store != null) {
       this.store = store
     }
     const chainSlug = getProviderChainSlug(this.signer.provider)
@@ -56,15 +56,15 @@ class GasBoostSigner extends Wallet {
   }
 
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
-    return this.mutex.runExclusive(async () => {
+    return await this.mutex.runExclusive(async () => {
       this.logger.debug(`unlocked tx: ${JSON.stringify(tx)}`)
-      return this._sendTransaction(tx)
+      return await this._sendTransaction(tx)
     })
   }
 
   _sendTransaction = rateLimitRetry(async (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> => {
     const nonce = await this.getNonce()
-    if (!tx?.nonce) {
+    if (!tx.nonce) {
       tx.nonce = nonce
     }
     const gTx = this.gTxFactory.createTransaction(tx)

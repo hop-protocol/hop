@@ -2,7 +2,7 @@ import { config as globalConfig } from 'src/config'
 
 function getTokenMetadataByAddress (address: string, chain: string) {
   for (const tkn in globalConfig.tokens) {
-    if (!globalConfig.tokens?.[tkn]?.[chain]) {
+    if (!globalConfig.tokens[tkn]?.[chain]) {
       continue
     }
     for (const k in globalConfig.tokens[tkn][chain]) {

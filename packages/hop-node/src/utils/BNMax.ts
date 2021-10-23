@@ -7,7 +7,7 @@ function BNMax (a: BigNumber, b: BigNumber) {
   if (!b) {
     return a
   }
-  return a?.gt(b) ? a : b
+  return a.gt(b) ? a : b
 }
 
 export default BNMax

@@ -3,7 +3,7 @@ import wait from 'src/utils/wait'
 
 class TimestampedKeysDb<Type> extends BaseDb {
   ready = false
-  subDb : any
+  subDb: any
 
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
@@ -28,7 +28,7 @@ class TimestampedKeysDb<Type> extends BaseDb {
     }
 
     await wait(100)
-    return this.tilReady()
+    return await this.tilReady()
   }
 
   async trackTimestampedKeys () {
@@ -38,7 +38,7 @@ class TimestampedKeysDb<Type> extends BaseDb {
     }
   }
 
-  async getItems () :Promise<Type[]> {
+  async getItems (): Promise<Type[]> {
     // implemented in child class
     return []
   }

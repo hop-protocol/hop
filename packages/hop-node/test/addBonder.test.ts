@@ -1,6 +1,6 @@
 import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
-import { User } from './helpers'
+import { User, expectDefined } from './helpers'
 import { governancePrivateKey, privateKey } from './config'
 
 const network = Chain.Optimism
@@ -9,6 +9,8 @@ const token = 'DAI'
 test.skip(
   'addBonder',
   async () => {
+    expectDefined(privateKey)
+    expectDefined(governancePrivateKey)
     const newBonder = new User(privateKey)
     const gov = new User(governancePrivateKey)
     console.log('gov address:', await gov.getAddress())

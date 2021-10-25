@@ -337,7 +337,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x2A11a98e2fCF4674F30934B5166645fE6CA35F56',
         l2SaddleSwap: '0x46fc3Af3A47792cA3ED06fdF3D657145A675a8D8',
         l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
-        bridgeDeployedBlockNumber: 19380
+        bridgeDeployedBlockNumber: 3564522
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',

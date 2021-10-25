@@ -39,7 +39,7 @@ type SendL1ToL2Input = {
   deadline?: BigNumberish
   recipient?: string
   approval?: boolean
-  estimateGasCost?: boolean
+  estimateGasOnly?: boolean
 }
 
 type SendL2ToL1Input = {
@@ -53,7 +53,7 @@ type SendL2ToL1Input = {
   bonderFee?: TAmount
   recipient?: string
   approval?: boolean
-  estimateGasCost?: boolean
+  estimateGasOnly?: boolean
 }
 
 type SendL2ToL2Input = {
@@ -67,7 +67,7 @@ type SendL2ToL2Input = {
   destinationDeadline?: BigNumberish
   recipient?: string
   approval?: boolean
-  estimateGasCost?: boolean
+  estimateGasOnly?: boolean
 }
 
 type SendOptions = {
@@ -79,7 +79,7 @@ type SendOptions = {
   bonderFee: TAmount
   destinationAmountOutMin: TAmount
   destinationDeadline: BigNumberish
-  estimateGasCost?: boolean
+  estimateGasOnly?: boolean
 }
 
 type AddLiquidityOptions = {
@@ -1395,7 +1395,7 @@ class HopBridge extends Base {
         deadline: options?.deadline,
         recipient: options?.recipient,
         approval,
-        estimateGasCost: options.estimateGasCost,
+        estimateGasOnly: options?.estimateGasOnly,
       })
     }
     // else:
@@ -1423,7 +1423,7 @@ class HopBridge extends Base {
         destinationAmountOutMin: options?.destinationAmountOutMin,
         destinationDeadline: options?.destinationDeadline,
         approval,
-        estimateGasCost: options.estimateGasCost,
+        estimateGasOnly: options?.estimateGasOnly,
       })
     }
 
@@ -1448,7 +1448,7 @@ class HopBridge extends Base {
       destinationAmountOutMin: options?.destinationAmountOutMin,
       destinationDeadline: options?.destinationDeadline,
       approval,
-      estimateGasCost: options.estimateGasCost,
+      estimateGasOnly: options?.estimateGasOnly,
     })
   }
 
@@ -1463,7 +1463,7 @@ class HopBridge extends Base {
       deadline,
       recipient,
       approval,
-      estimateGasCost,
+      estimateGasOnly,
     } = input
     if (!sourceChain.isL1) {
       // ToDo: Don't pass in sourceChain since it will always be L1
@@ -1507,7 +1507,7 @@ class HopBridge extends Base {
       }
     ]
 
-    if (estimateGasCost) {
+    if (estimateGasOnly) {
       return l1Bridge.estimateGas.sendToL2(
         ...txOptions
       )
@@ -1530,7 +1530,7 @@ class HopBridge extends Base {
       deadline,
       destinationDeadline,
       approval,
-      estimateGasCost,
+      estimateGasOnly,
     } = input
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
     destinationDeadline = destinationDeadline || 0
@@ -1591,7 +1591,7 @@ class HopBridge extends Base {
         }
       ]
 
-      if (estimateGasCost) {
+      if (estimateGasOnly) {
         return ammWrapper.estimateGas.swapAndSend(
           ...txOptions,
           ...additionalOptions,
@@ -1619,7 +1619,7 @@ class HopBridge extends Base {
       amountOutMin,
       recipient,
       approval,
-      estimateGasCost,
+      estimateGasOnly,
     } = input
     deadline = deadline || this.defaultDeadlineSeconds
     destinationDeadline = destinationDeadline || deadline
@@ -1673,7 +1673,7 @@ class HopBridge extends Base {
         }
     ]
 
-    if (estimateGasCost) {
+    if (estimateGasOnly) {
       return ammWrapper.estimateGas.swapAndSend(...txOptions)
     }
 

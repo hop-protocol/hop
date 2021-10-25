@@ -16,6 +16,7 @@ import { toTokenDisplay } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
 import { ZERO_ADDRESS } from 'src/constants'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import logger from 'src/logger'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -121,8 +122,12 @@ const AmountSelectorCard: FC<Props> = props => {
     }
   }
   const handleMaxClick = async () => {
-    if (onChange && sdk && balance && token && fromNetwork && toNetwork && deadline) {
-      let nativeTokenMaxGas = BigNumber.from(0)
+    if (!(onChange && sdk && balance && token && fromNetwork && toNetwork && deadline)) {
+      return
+    }
+
+    try {
+      let nativeTokenMaxGasCost = BigNumber.from(0)
 
       if (token.isNativeToken) {
         // Switch networks
@@ -132,7 +137,7 @@ const AmountSelectorCard: FC<Props> = props => {
         const bridge = sdk.bridge(token?.symbol)
 
         // Get estimated gas cost
-        const estimatedGas = await bridge.send(
+        const estimatedGasLimit = await bridge.send(
           '2',
           fromNetwork?.slug as string,
           toNetwork?.slug as string,
@@ -143,26 +148,27 @@ const AmountSelectorCard: FC<Props> = props => {
             deadline: deadline(),
             destinationAmountOutMin: '0',
             destinationDeadline: deadline(),
-            estimateGasCost: true,
+            estimateGasOnly: true,
           }
         )
 
         // Get current gas price
-        const feeData = await bridge.signer.getFeeData()
+        const gasPrice = await bridge.signer.getGasPrice()
 
-        if (estimatedGas && feeData?.gasPrice) {
+        if (estimatedGasLimit && gasPrice) {
           // Add some wiggle room
-          const bufferGas = utils.parseUnits('50', 'gwei')
-
-          nativeTokenMaxGas = estimatedGas.mul(feeData?.gasPrice).add(bufferGas)
+          const bufferGas = BigNumber.from(2000)
+          nativeTokenMaxGasCost = estimatedGasLimit.add(bufferGas).mul(gasPrice)
         }
       }
 
       // Subtract the total gas
-      const totalAmount = balance.sub(nativeTokenMaxGas)
+      const totalAmount = balance.sub(nativeTokenMaxGasCost)
 
       const maxValue = formatUnits(totalAmount, token.decimals)
       onChange(maxValue)
+    } catch (error) {
+      logger.error(error)
     }
   }
 

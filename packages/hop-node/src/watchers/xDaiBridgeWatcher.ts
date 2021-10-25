@@ -190,7 +190,7 @@ export default xDaiBridgeWatcher
 const assert = require('assert')
 const { toHex, numberToHex, padLeft } = require('web3-utils')
 
-export const strip0x = (value: string) => value.replace(/^0x/gi, '')
+export const strip0x = (value: string) => value.replace(/^0x/i, '')
 
 export function createMessage ({
   recipient,

@@ -32,8 +32,8 @@ class OsWatcher {
     }
   }
 
-  logDisk () {
-    return new Promise((resolve) => {
+  async logDisk () {
+    return await new Promise((resolve) => {
       checkDiskSpace('/').then((diskSpace) => {
         const totalSize = diskSpace?.size
         const freeSize = diskSpace?.free
@@ -44,7 +44,7 @@ class OsWatcher {
         const usedSizeFormatted = `${usedSizeGb?.toFixed(2)}GB`
         const totalSizeFormatted = `${totalSizeGb?.toFixed(2)}GB`
         const usedPercent = (usedSizeGb / totalSizeGb) * 100
-        const usedPercentFormatted = `${usedPercent?.toFixed(2)}%`
+        const usedPercentFormatted = `${usedPercent.toFixed(2)}%`
         this.logger.debug(`DISK: ${usedSizeFormatted}/${totalSizeFormatted} (${usedPercentFormatted})`)
         this.metrics.setDisk(totalSize, freeSize, usedSize)
         resolve(null)
@@ -52,8 +52,8 @@ class OsWatcher {
     })
   }
 
-  logCpuMemory () {
-    return new Promise((resolve, reject) => {
+  async logCpuMemory () {
+    return await new Promise((resolve, reject) => {
       pidusage(process.pid, (err: Error, stats: any) => {
         if (err) {
           reject(err)
@@ -63,7 +63,7 @@ class OsWatcher {
           reject(new Error('expected stats'))
           return
         }
-        const vcpus = os?.cpus()?.length
+        const vcpus = os.cpus().length
         const cpuPercent = stats?.cpu
         const cpuFormatted = `${cpuPercent?.toFixed(2)}% out of 100*vcpus (${vcpus})`
         const totalMemory = os?.totalmem()

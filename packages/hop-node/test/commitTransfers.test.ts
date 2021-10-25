@@ -1,10 +1,11 @@
 import { Chain } from 'src/constants'
-import { User } from './helpers'
+import { User, expectDefined } from './helpers'
 import { bonderPrivateKey, governancePrivateKey } from './config'
 
 test.skip(
   'commitTransfers',
   async () => {
+    expectDefined(bonderPrivateKey)
     const user = new User(bonderPrivateKey)
     const sourceChain = Chain.xDai
     const destChain = Chain.Ethereum
@@ -32,6 +33,7 @@ test.skip(
 )
 
 test.skip('setMaxPendingTransfers', async () => {
+  expectDefined(governancePrivateKey)
   const gov = new User(governancePrivateKey)
   const max = 100
   const tx = await gov.setMaxPendingTransfers(Chain.Optimism, max)

@@ -4,8 +4,8 @@ import { Registry, collectDefaultMetrics } from 'prom-client'
 import { metrics } from './metrics'
 
 export class MetricsServer {
-  private app: Express
-  private registry: Registry
+  private readonly app: Express
+  private readonly registry: Registry
   private readonly logger: Logger
 
   constructor (private readonly port = 8080) {

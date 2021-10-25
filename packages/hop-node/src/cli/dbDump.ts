@@ -1,11 +1,10 @@
+import { getDbSet } from 'src/db'
 import {
-  FileConfig,
   config as globalConfig,
   parseConfigFile,
   setDbPath,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { getDbSet } from 'src/db'
 
 import { logger, program } from './shared'
 
@@ -27,7 +26,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       if (source.dbPath) {
@@ -43,7 +42,7 @@ program
       const nearest = Number(source.nearest)
       const fromDate = Number(source.fromDate)
       const toDate = Number(source.toDate)
-      let items : any[] = []
+      let items: any[] = []
       if (dbName === 'transfer-roots') {
         items = await db.transferRoots.getTransferRoots({
           fromUnix: fromDate,

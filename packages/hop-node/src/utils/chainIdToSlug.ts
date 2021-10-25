@@ -17,6 +17,7 @@ const chainIdToSlug = (chainId: string | number): Chain => {
       return k as Chain
     }
   }
+  throw new Error(`chain ID ${chainId} not found`)
 }
 
 export default chainIdToSlug

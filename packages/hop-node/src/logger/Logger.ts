@@ -1,13 +1,13 @@
 import chalk from 'chalk'
 import { DateTime } from 'luxon'
 
-export interface Options {
+export type Options = {
   tag?: string
   prefix?: string
   color: string
 }
 
-interface AdditionalDataLabel {
+type AdditionalDataLabel = {
   id?: string
   root?: string
 }
@@ -45,9 +45,9 @@ export const setLogLevel = (_logLevel: LogLevels | string) => {
 }
 
 class Logger {
-  private tag: string = ''
-  private prefix: string = ''
-  private options: any = {}
+  private readonly tag: string = ''
+  private readonly prefix: string = ''
+  private readonly options: any = {}
   enabled: boolean = true
 
   setEnabled (enabled: boolean) {
@@ -62,7 +62,7 @@ class Logger {
   ) {
     if (tag instanceof Object) {
       opts = tag
-      tag = opts.tag
+      tag = opts.tag ?? ''
     }
     if (opts.prefix) {
       this.prefix = `<${opts.prefix}>`
@@ -82,7 +82,7 @@ class Logger {
 
   create (additionalDataLabel: AdditionalDataLabel): Logger {
     let label: string
-    if (additionalDataLabel?.id) {
+    if (additionalDataLabel.id) {
       label = `id: ${additionalDataLabel.id}`
     } else {
       label = `root: ${additionalDataLabel.root}`

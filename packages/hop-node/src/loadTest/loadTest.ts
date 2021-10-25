@@ -58,7 +58,6 @@ class LoadTest {
       tag: 'LoadTest'
     })
     const transactions: any = {}
-    const amounts: any = {}
     const bonded: any = {}
     const transferAmount = this.amount
     const paths = this.paths
@@ -70,7 +69,7 @@ class LoadTest {
     logger.debug('tokens:', tokens)
     logger.debug('paths', paths)
 
-    if (!paths.length) {
+    if (paths.length === 0) {
       throw new Error('paths is required')
     }
 
@@ -82,7 +81,7 @@ class LoadTest {
     let failedIndex = -1
     let failedTxHash = ''
     while (count < this.iterations) {
-      const promises: Promise<any>[] = []
+      const promises: Array<Promise<any>> = []
       for (const path of paths) {
         const sourceNetwork = path[0]
         const destNetwork = path[1]
@@ -96,9 +95,6 @@ class LoadTest {
         if (!transactions[sourceNetwork]) {
           transactions[sourceNetwork] = []
         }
-        if (!amounts[sourceNetwork]) {
-          amounts[sourceNetwork] = []
-        }
         promises.push(
           new Promise(async (resolve, reject) => {
             for (const token of tokens) {
@@ -109,18 +105,18 @@ class LoadTest {
               })
               const notifier = new Notifier('LoadTest')
               try {
-                const faucet = new User(faucetPrivateKey)
+                const faucet = new User(faucetPrivateKey!) // eslint-disable-line
                 const users = []
                 if (useTestUserPrivateKey) {
-                  const user = generateUser(testUserPrivateKey)
+                  const user = generateUser(testUserPrivateKey!) // eslint-disable-line
                   for (let i = 0; i < this.concurrentUsers; i++) {
                     // simulate users using same signer
                     users.push(user)
                   }
                 } else {
-                  users.push(...generateUsers(this.concurrentUsers, mnemonic))
+                  users.push(...generateUsers(this.concurrentUsers, mnemonic!)) // eslint-disable-line
                 }
-                for (const i in users) {
+                for (const [i, user] of users.entries()) {
                   logger.debug(`#${i} account: ${await users[i].getAddress()}`)
                 }
                 const faucetTokensToSend = transferAmount
@@ -153,7 +149,6 @@ class LoadTest {
                       logger.log(`user #${i} - tx hash: ${tx.hash}`)
                       logger.log(`user #${i} - waiting for receipt`)
                       transactions[sourceNetwork].push(tx.hash)
-                      amounts[sourceNetwork] += transferAmount
                       await tx?.wait()
                     } catch (err) {
                       failedIndex = i
@@ -220,7 +215,7 @@ class LoadTest {
       }
       const items = Object.values(bonded)
       const allBonded =
-        items.length &&
+        (items.length > 0) &&
         items.length === Object.keys(transferIds).length &&
         items.every(x => x)
       if (allBonded) {
@@ -228,7 +223,7 @@ class LoadTest {
         return
       }
       await wait(10 * 1000)
-      return poll()
+      return await poll()
     }
 
     await poll()

@@ -37,7 +37,7 @@ describe('rateLimitRetry', () => {
   it('should not retry', async () => {
     const example = new Example()
     expect(example.counter).toBe(0)
-    let errMsg : string
+    let errMsg: string | undefined
     try {
       await example.triggerRevertError()
     } catch (err) {

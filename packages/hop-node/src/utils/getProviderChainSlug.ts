@@ -1,7 +1,7 @@
 import { Chain } from 'src/constants'
 import { config as globalConfig } from 'src/config'
 
-const getProviderChainSlug = (provider: any): Chain => {
+const getProviderChainSlug = (provider: any): Chain | undefined => {
   const providerUrl = provider?.connection?.url || provider?.providerConfigs?.[0]?.provider?.connection?.url
   if (!providerUrl) {
     return

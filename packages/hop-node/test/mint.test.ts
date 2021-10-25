@@ -1,5 +1,5 @@
 import { Chain } from 'src/constants'
-import { User } from './helpers'
+import { User, expectDefined } from './helpers'
 import { privateKey } from './config'
 
 const network = Chain.Ethereum
@@ -9,6 +9,7 @@ const amount = 1_000_000_000
 test.skip(
   'mint',
   async () => {
+    expectDefined(privateKey)
     const user = new User(privateKey)
     console.log(await user.getAddress())
     const recipient = await user.getAddress()

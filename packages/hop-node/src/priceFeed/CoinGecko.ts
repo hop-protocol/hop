@@ -4,7 +4,7 @@ import wait from 'src/utils/wait'
 import { constants } from 'ethers'
 import { getAddress } from 'ethers/lib/utils'
 
-export interface IResult {
+export type IResult = {
   id: string
   symbol: string
   name: string
@@ -13,10 +13,10 @@ export interface IResult {
 }
 
 class CoinGecko {
-  private _baseUrl: string = 'https://api.coingecko.com/api/v3'
-  private _maxPerPage: number = 100
-  private _maxPages: number = 40
-  private _tokenSymbolAddressMap: { [key: string]: string } = {
+  private readonly _baseUrl: string = 'https://api.coingecko.com/api/v3'
+  private readonly _maxPerPage: number = 100
+  private readonly _maxPages: number = 40
+  private readonly _tokenSymbolAddressMap: { [key: string]: string } = {
     ADT: '0xD0D6D6C5Fe4a677D343cC433536BB717bAe167dD',
     BAT: '0x0D8775F648430679A709E98d2b0Cb6250d2887EF',
     BLT: '0x107c4504cd79C5d2696Ea0030a8dD4e92601B82e',
@@ -57,7 +57,7 @@ class CoinGecko {
     ZRX: '0xE41d2489571d322189246DaFA5ebDe1F4699F498'
   }
 
-  private _nonEthTokens: { [key: string]: string } = {
+  private readonly _nonEthTokens: { [key: string]: string } = {
     BNB: 'Binance Coin',
     CRO: 'Crypto.com Coin',
     BSV: 'Bitcoin SV',
@@ -109,7 +109,7 @@ class CoinGecko {
       addresses.push(address)
     }
 
-    return this.getPricesByTokenAddresses(addresses, base)
+    return await this.getPricesByTokenAddresses(addresses, base)
   }
 
   public getPricesByTokenAddresses = async (
@@ -118,7 +118,7 @@ class CoinGecko {
   ) => {
     let page = 0
     const limit = 100 // max addresses allowed per request
-    const allResults: number[] = []
+    const allResults: Array<number | null> = []
 
     const getTokens = async (addresses: string[]) => {
       const params = serializeQueryParams({
@@ -133,7 +133,7 @@ class CoinGecko {
       const url = `${this._baseUrl}/simple/token_price/ethereum?${params}`
       const res = await fetch(url)
       const json = await res.json()
-      const prices: number[] = []
+      const prices: Array<number | null> = []
 
       for (let i = 0; i < addresses.length; i++) {
         const address = addresses[i]
@@ -267,7 +267,7 @@ class CoinGecko {
     return result
   }
 
-  private _normalizePrice = (price: string | number) => {
+  private readonly _normalizePrice = (price: string | number) => {
     price = Number(price)
 
     // If the API call did not return a number, throw an error

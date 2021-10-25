@@ -53,11 +53,11 @@ class BaseDb extends EventEmitter {
   public prefix: string
   logger: Logger
   mutex: Mutex = new Mutex()
-  pollIntervalMs : number = 5 * 1000
-  lastBatchUpdatedAt : number = Date.now()
-  batchSize : number = 10
+  pollIntervalMs: number = 5 * 1000
+  lastBatchUpdatedAt: number = Date.now()
+  batchSize: number = 10
   batchTimeLimit: number = 3 * 1000
-  batchQueue : QueueItem[] = []
+  batchQueue: QueueItem[] = []
 
   constructor (prefix: string, _namespace?: string) {
     super()
@@ -187,7 +187,7 @@ class BaseDb extends EventEmitter {
   }
 
   public async putBatch (putItems: QueueItem[]) {
-    const ops : any[] = []
+    const ops: any[] = []
     for (const data of putItems) {
       const { key, value } = await this._getUpdateData(data.key, data.value)
       ops.push({
@@ -283,8 +283,8 @@ class BaseDb extends EventEmitter {
   }
 
   async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<KV[]> {
-    return new Promise((resolve, reject) => {
-      const kv : KV[] = []
+    return await new Promise((resolve, reject) => {
+      const kv: KV[] = []
       this.db.createReadStream(filter)
         .on('data', (key: any, value: any) => {
           // the parameter types depend on what key/value enabled options were used

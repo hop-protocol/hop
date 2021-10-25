@@ -28,6 +28,7 @@ export const networks: Networks = {
     rpcUrls: _networks.ethereum.rpcUrls,
     publicRpcUrl: _networks.ethereum.publicRpcUrl,
     explorerUrl: _networks.ethereum.explorerUrls[0],
+    waitConfirmations: _networks.ethereum.waitConfirmations,
   },
   polygon: {
     networkId: _networks.polygon.networkId.toString(),
@@ -35,6 +36,7 @@ export const networks: Networks = {
     publicRpcUrl: _networks.polygon.publicRpcUrl,
     explorerUrl: _networks.polygon.explorerUrls[0],
     nativeBridgeUrl: _networks.polygon.nativeBridgeUrl,
+    waitConfirmations: _networks.polygon.waitConfirmations,
   },
   arbitrum: {
     networkId: _networks.arbitrum.networkId.toString(),
@@ -42,6 +44,7 @@ export const networks: Networks = {
     publicRpcUrl: _networks.arbitrum.publicRpcUrl,
     explorerUrl: _networks.arbitrum.explorerUrls[0],
     nativeBridgeUrl: _networks.arbitrum.nativeBridgeUrl,
+    waitConfirmations: _networks.arbitrum.waitConfirmations,
   },
   optimism: {
     networkId: _networks.optimism.networkId.toString(),
@@ -49,6 +52,7 @@ export const networks: Networks = {
     publicRpcUrl: _networks.optimism.publicRpcUrl,
     explorerUrl: _networks.optimism.explorerUrls[0],
     nativeBridgeUrl: _networks.optimism.nativeBridgeUrl,
+    waitConfirmations: _networks.optimism.waitConfirmations,
   },
   xdai: {
     networkId: _networks.xdai.networkId.toString(),
@@ -56,5 +60,6 @@ export const networks: Networks = {
     publicRpcUrl: _networks.xdai.publicRpcUrl,
     explorerUrl: _networks.xdai.explorerUrls[0],
     nativeBridgeUrl: _networks.xdai.nativeBridgeUrl,
+    waitConfirmations: _networks.xdai.waitConfirmations,
   },
 }

@@ -6,12 +6,15 @@ import Transaction from 'src/models/Transaction'
 import { loadState, saveState } from 'src/utils/localStorage'
 import logger from 'src/logger'
 import useTxHistory from 'src/contexts/AppContext/useTxHistory'
+import { getNetworkWaitConfirmations } from 'src/utils/networks'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   const { updateTransaction } = useTxHistory()
-  const [completed, setCompleted] = useState<boolean>()
+  const [completed, setCompleted] = useState<boolean>(transaction?.pending === false)
+  const [networkConfirmations, setNetworkConfirmations] = useState<number>()
+  const [confirmations, setConfirmations] = useState<number>()
   const [destCompleted, setDestCompleted] = useState<boolean>(
-    !transaction?.pendingDestinationConfirmation
+    transaction?.pendingDestinationConfirmation === false
   )
 
   const { sdk } = useApp()
@@ -22,8 +25,13 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   }, [chain])
 
   async function updateDestTxStatus() {
-    if (transaction && (destCompleted === false || !transaction.destTxHash)) {
+    if (
+      transaction &&
+      (destCompleted === false || !transaction.destTxHash) &&
+      transaction.pendingDestinationConfirmation
+    ) {
       const isSpent = await transaction?.checkIsTransferIdSpent(sdk)
+      logger.debug(`${transaction.hash} isSpent:`, isSpent)
       if (isSpent) {
         setDestCompleted(true)
         updateTransaction(transaction)
@@ -32,8 +40,8 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   }
 
   const updateTxStatus = async () => {
-    if (!provider || !transaction?.hash) {
-      setCompleted(undefined)
+    if (!provider || !transaction?.hash || !chain) {
+      setCompleted(false)
       return
     }
 
@@ -53,7 +61,15 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
       }
     }
 
-    setCompleted(!!tx)
+    const waitConfirmations = getNetworkWaitConfirmations(chain as string)
+    setNetworkConfirmations(waitConfirmations)
+
+    const txResponse = await transaction.getTransaction()
+    setConfirmations(txResponse.confirmations)
+
+    if (waitConfirmations && txResponse.confirmations >= waitConfirmations) {
+      setCompleted(true)
+    }
   }
 
   useEffect(() => {
@@ -64,12 +80,14 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
     updateDestTxStatus()
   }, [transaction])
 
-  useInterval(updateTxStatus, 15e3)
-  useInterval(updateDestTxStatus, 15e3)
+  useInterval(updateTxStatus, 10e3)
+  useInterval(updateDestTxStatus, 10e3)
 
   return {
     completed,
     destCompleted,
+    confirmations,
+    networkConfirmations,
   }
 }
 

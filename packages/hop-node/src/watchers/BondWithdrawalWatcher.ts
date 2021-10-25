@@ -280,17 +280,19 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const now = Math.floor(Date.now() / 1000)
     const nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, attemptSwap, transferSentTimestamp)
     const nearestItemToNow = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, attemptSwap, now)
-    if (!nearestItemToTransferSent) {
-      throw new Error('expected nearestItemToTransferSent')
+    let gasCostInToken: BigNumber
+    let minBonderFeeAbsolute: BigNumber
+    if (nearestItemToTransferSent && nearestItemToNow) {
+      ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToTransferSent)
+      const { gasCostInToken: currentGasCostInToken, minBonderFeeAbsolute: currentMinBonderFeeAbsolute } = nearestItemToNow
+      gasCostInToken = BNMin(gasCostInToken, currentGasCostInToken)
+      minBonderFeeAbsolute = BNMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
+    } else if (nearestItemToNow) {
+      ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToNow)
+      this.logger.warn('nearestItemToTransferSent not found, using only nearestItemToNow')
+    } else {
+      throw new Error('expected nearestItemToTransferSent or nearestItemToNow')
     }
-    if (!nearestItemToNow) {
-      throw new Error('expected nearestItemToNow')
-    }
-    let { gasCostInToken, minBonderFeeAbsolute } = nearestItemToTransferSent
-    const { gasCostInToken: currentGasCostInToken, minBonderFeeAbsolute: currentMinBonderFeeAbsolute } = nearestItemToNow
-
-    gasCostInToken = BNMin(gasCostInToken, currentGasCostInToken)
-    minBonderFeeAbsolute = BNMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
 
     logger.debug('gasCostInToken:', gasCostInToken?.toString())
     logger.debug('minBonderFeeAbsolute:', minBonderFeeAbsolute?.toString())

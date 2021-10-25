@@ -65,9 +65,9 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
     setNetworkConfirmations(waitConfirmations)
 
     const txResponse = await transaction.getTransaction()
-    setConfirmations(txResponse.confirmations)
+    setConfirmations(txResponse?.confirmations)
 
-    if (waitConfirmations && txResponse.confirmations >= waitConfirmations) {
+    if (waitConfirmations && txResponse?.confirmations >= waitConfirmations) {
       setCompleted(true)
     }
   }

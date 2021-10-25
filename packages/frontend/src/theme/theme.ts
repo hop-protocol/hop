@@ -12,7 +12,7 @@ declare module '@material-ui/core/styles/overrides' {
   }
 }
 
-declare module '@material-ui/core/styles/createMuiTheme' {
+declare module '@material-ui/core/styles/createTheme' {
   interface Theme {
     padding: {
       thick: CSSProperties['paddingTop']

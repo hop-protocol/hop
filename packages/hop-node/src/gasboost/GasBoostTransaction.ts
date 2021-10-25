@@ -11,7 +11,7 @@ import { BigNumber, Signer, providers } from 'ethers'
 import { Chain, MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
 import { EventEmitter } from 'events'
 
-import { NonceTooLowError } from 'src/types/error'
+import { NonceTooLowError, EstimateGasError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { gasBoostErrorSlackChannel, gasBoostWarnSlackChannel, hostname } from 'src/config'
@@ -489,7 +489,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       } catch (err) {
         this._emitError(err)
         this.logger.error(`ending poller. ${err.message}`)
-        if (err instanceof NonceTooLowError) {
+        if (err instanceof NonceTooLowError || err instanceof EstimateGasError) {
           this.logger.error('ending poller. breaking.')
           break
         }
@@ -580,15 +580,24 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
         return tx
       } catch (err) {
-        const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/gi.test(err.message)
+        this.logger.debug(`tx index ${i} error: ${err.message}`)
+
+        const {
+          nonceTooLow,
+          estimateGasFailed,
+          isAlreadyKnown,
+          isFeeTooLow
+        } = this.parseErrorString(err.message)
+
+        // nonceTooLow error checks must be done first since the following errors can be true while nonce is too low
         if (nonceTooLow) {
           this.logger.error(`nonce ${this.nonce} too low`)
-          this.logger.error(err.message)
           throw new NonceTooLowError('NonceTooLow')
+        } else if (estimateGasFailed) {
+          this.logger.error(`estimateGas failed`)
+          throw new EstimateGasError('EstimateGasError')
         }
 
-        const isAlreadyKnown = /AlreadyKnown/gi.test(err.message)
-        const isFeeTooLow = /FeeTooLowToCompete/gi.test(err.message)
         const shouldRetry = (isAlreadyKnown || isFeeTooLow) && i < maxRetries
         if (shouldRetry) {
           continue
@@ -599,12 +608,15 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private async checkHasEnoughFunds (payload: providers.TransactionRequest, gasFeeData: Partial<GasFeeData>) {
-    const [gasLimit, ethBalance] = await Promise.all([
-      this.signer.estimateGas(payload),
-      this.signer.getBalance()
-    ])
-    const gasPrice = gasFeeData.gasPrice || gasFeeData.maxFeePerGas
-    const gasCost = gasLimit.mul(gasPrice)
+    let gasLimit
+    try {
+      gasLimit = await this.signer.estimateGas(payload)
+    } catch (err) {
+      throw new Error(`checkHasEnoughFunds estimateGas failed ${err.message}`)
+    }
+    const ethBalance = await this.signer.getBalance()
+    const gasPrice = gasFeeData.gasPrice || gasFeeData.maxFeePerGas // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+    const gasCost = gasLimit.mul(gasPrice!) // eslint-disable-line
     const warnEthBalance = parseUnits((this.warnEthBalance || 0).toString(), 18)
     const formattedGasCost = formatUnits(gasCost, 18)
     const formattedEthBalance = formatUnits(ethBalance, 18)
@@ -691,6 +703,19 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   private _emitError (err: Error) {
     if (this.listeners('error').length > 0) {
       this.emit(State.Error, err)
+    }
+  }
+  
+  private parseErrorString (errMessage: string) {
+    const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/gi.test(errMessage)
+    const estimateGasFailed = /checkHasEnoughFunds estimateGas failed/gi.test(errMessage)
+    const isAlreadyKnown = /AlreadyKnown/gi.test(errMessage)
+    const isFeeTooLow = /FeeTooLowToCompete/gi.test(errMessage)
+    return {
+      nonceTooLow,
+      estimateGasFailed,
+      isAlreadyKnown,
+      isFeeTooLow
     }
   }
 }

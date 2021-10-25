@@ -37,6 +37,7 @@ const app = new Vue({
     filterDestination: queryParams.destination || '',
     filterAmount: queryParams.amount || '',
     filterAmountComparator: queryParams.amountCmp || 'gt',
+    filterBonder: queryParams.bonder || '',
     chartAmountSize: false,
     page: 0,
     allTransfers: [],
@@ -115,7 +116,7 @@ const app = new Vue({
             }
           }
 
-          if (this.setFilterBonded) {
+          if (this.filterBonded) {
             if (this.filterBonded === 'pending') {
               if (x.bonded) {
                 return false
@@ -124,6 +125,15 @@ const app = new Vue({
               if (!x.bonded) {
                 return false
               }
+            }
+          }
+
+          if (this.filterBonder) {
+            if (!x.bonder) {
+              return false
+            }
+            if (x.bonder && this.filterBonder.toLowerCase() !== x.bonder.toString()) {
+              return false
             }
           }
 
@@ -203,14 +213,19 @@ const app = new Vue({
       Vue.set(app, 'filterToken', value)
       this.refreshTransfers()
     },
-    setAmount (event) {
+    setFilterAmount (event) {
       const value = event.target.value
       Vue.set(app, 'filterAmount', value)
       this.refreshTransfers()
     },
-    setAmountComparator (event) {
+    setFilterAmountComparator (event) {
       const value = event.target.value
       Vue.set(app, 'filterAmountComparator', value)
+      this.refreshTransfers()
+    },
+    setFilterBonder (event) {
+      const value = event.target.value
+      Vue.set(app, 'filterBonder', value)
       this.refreshTransfers()
     },
     setTvl (tvl) {

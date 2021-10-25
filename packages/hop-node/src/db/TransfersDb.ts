@@ -157,7 +157,9 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   async getItems (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
     const transferIds = await this.getTransferIds(dateFilter)
     this.logger.debug(`transferIds length: ${transferIds.length}`)
-    const transfers = await this.batchGetByIds(transferIds)
+    const transfers = (await this.batchGetByIds(transferIds)).map((item: Transfer) => {
+      return this.normalizeItem(item.transferId as string, item)
+    })
 
     // sort explainer: https://stackoverflow.com/a/9175783/1439168
     const items = transfers

@@ -165,7 +165,9 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
 
   async getItems (dateFilter?: TransferRootsDateFilter): Promise<TransferRoot[]> {
     const transferRootHashes = await this.getTransferRootHashes(dateFilter)
-    const transferRoots = await this.batchGetByIds(transferRootHashes)
+    const transferRoots = (await this.batchGetByIds(transferRootHashes)).map((item: TransferRoot) => {
+      return this.normalizeItem(item.transferRootHash as string, item)
+    })
 
     return transferRoots
       .sort((a, b) => a?.committedAt - b?.committedAt)

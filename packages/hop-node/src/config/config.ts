@@ -62,6 +62,13 @@ type MetricsConfig = {
   enabled: boolean
   port?: number
 }
+type Bps = {
+  L2ToL1: number
+  L2ToL2: number
+}
+
+export type Fees = Record<string, Bps>
+
 type Config = {
   isMainnet: boolean
   tokens: Bridges & {[network: string]: any}
@@ -74,6 +81,7 @@ type Config = {
   db: DbConfig
   sync: SyncConfigs
   metrics: MetricsConfig
+  fees: Fees
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -109,6 +117,7 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'tokens' 
 // get default config
 const { tokens, network, networks, metadata, bonders, isMainnet } = getConfigByNetwork(envNetwork)
 
+// defaults
 export const config: Config = {
   isMainnet,
   tokens,
@@ -118,6 +127,28 @@ export const config: Config = {
   metadata,
   bonders,
   stateUpdateAddress: '',
+  fees: {
+    USDC: {
+      L2ToL1: 10,
+      L2ToL2: 10
+    },
+    USDT: {
+      L2ToL1: 10,
+      L2ToL2: 10
+    },
+    DAI: {
+      L2ToL1: 10,
+      L2ToL2: 10
+    },
+    MATIC: {
+      L2ToL1: 10,
+      L2ToL2: 10
+    },
+    ETH: {
+      L2ToL1: 10,
+      L2ToL2: 10
+    }
+  },
   db: {
     path: defaultDbPath
   },
@@ -224,6 +255,10 @@ export const getEnabledNetworks = (): string[] => {
 
 export const setMetricsConfig = (metricsConfig: MetricsConfig) => {
   config.metrics = { ...config.metrics, ...metricsConfig }
+}
+
+export const setFeesConfig = (fees: Fees) => {
+  config.fees = { ...config.fees, ...fees }
 }
 
 export const chainNativeTokens = ['ETH', 'MATIC', 'DAI']

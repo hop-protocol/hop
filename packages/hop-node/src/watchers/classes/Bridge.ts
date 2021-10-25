@@ -6,8 +6,8 @@ import getTransferRootId from 'src/utils/getTransferRootId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
-import { BonderFeeBps, Chain, MinBonderFeeAbsolute } from 'src/constants'
 import { Bridge as BridgeContract, MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
+import { Chain, MinBonderFeeAbsolute } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
@@ -683,6 +683,13 @@ export default class Bridge extends ContractBase {
   }
 
   async getMinBonderFeeAbsolute (tokenSymbol: string, tokenPriceUsd: number) {
+    // There is no concept of a minBonderFeeAbsolute on the L1 bridge so we default to 0 since the
+    // relative fee will negate this value anyway
+    const destinationChain = this.chainSlug
+    if (destinationChain === Chain.Ethereum) {
+      return BigNumber.from(0)
+    }
+
     // absolute minimum is $1 of token
     const tokenDecimals = getTokenDecimals(tokenSymbol)
     const minBonderFeeAbsolute = parseUnits(
@@ -701,11 +708,14 @@ export default class Bridge extends ContractBase {
       return BigNumber.from(0)
     }
     const destinationChain = this.chainSlug
-    // There is no concept of a minBonderFeeAbsolute on the L1 bridge so we default to 0 since the
-    // relative fee will negate this value anyway
-    let bonderFeeBps = BonderFeeBps.L2ToL1
-    if (destinationChain !== Chain.Ethereum) {
-      bonderFeeBps = BonderFeeBps.L2ToL2
+    const fees = globalConfig?.fees?.[this.tokenSymbol]
+    if (!fees) {
+      throw new Error(`fee config not found for ${this.tokenSymbol}`)
+    }
+
+    let bonderFeeBps = fees.L2ToL2
+    if (destinationChain === Chain.Ethereum) {
+      bonderFeeBps = fees.L2ToL1
     }
 
     const minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)

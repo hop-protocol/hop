@@ -13,8 +13,6 @@ import {
 import {
   BondTransferGasLimit,
   GasPriceMultiplier,
-  L2ToL1BonderFeeBps,
-  L2ToL2BonderFeeBps,
   LpFeeBps,
   ORUGasPriceMultiplier,
   PendingAmountBuffer,
@@ -808,11 +806,7 @@ class HopBridge extends Base {
       sourceChain
     )
 
-    let feeBps = L2ToL2BonderFeeBps
-    if (destinationChain.isL1) {
-      feeBps = L2ToL1BonderFeeBps
-    }
-
+    const feeBps = this.getFeeBps(this.tokenSymbol, destinationChain)
     const token = this.toTokenModel(this.tokenSymbol)
     const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(token.symbol)
 

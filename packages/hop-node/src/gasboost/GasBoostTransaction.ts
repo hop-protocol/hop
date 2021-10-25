@@ -680,7 +680,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.handleConfirmation(tx.hash, receipt)
     })
       .catch((err: Error) => {
-        const isReplacedError = /TRANSACTION_REPLACED/gi.test(err.message)
+        const isReplacedError = /TRANSACTION_REPLACED/i.test(err.message)
         if (!isReplacedError) {
           this._emitError(err)
         }
@@ -733,10 +733,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
   
   private parseErrorString (errMessage: string) {
-    const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/gi.test(errMessage)
-    const estimateGasFailed = /checkHasEnoughFunds estimateGas failed/gi.test(errMessage)
-    const isAlreadyKnown = /AlreadyKnown/gi.test(errMessage)
-    const isFeeTooLow = /FeeTooLowToCompete/gi.test(errMessage)
+    const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/i.test(errMessage)
+    const estimateGasFailed = /eth_estimateGas/i.test(errMessage)
+    const isAlreadyKnown = /AlreadyKnown/i.test(errMessage)
+    const isFeeTooLow = /FeeTooLowToCompete/i.test(errMessage)
     return {
       nonceTooLow,
       estimateGasFailed,

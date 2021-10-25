@@ -194,7 +194,7 @@ export default xDaiBridgeWatcher
 const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires
 const { toHex, numberToHex, padLeft } = require('web3-utils') // eslint-disable-line @typescript-eslint/no-var-requires
 
-export const strip0x = (value: string) => value.replace(/^0x/gi, '')
+export const strip0x = (value: string) => value.replace(/^0x/i, '')
 
 export function createMessage ({
   recipient,

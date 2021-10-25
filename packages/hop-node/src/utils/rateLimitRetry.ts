@@ -22,8 +22,8 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
         }
         return result
       } catch (err) {
-        const errorRegex = /(timeout|timedout|ETIMEDOUT|ENETUNREACH|ECONNRESET|bad response|response error|missing response|rate limit|too many concurrent requests|socket hang up)/gi
-        const notRateLimitErrorRegex = /revert/gi
+        const errorRegex = /(timeout|timedout|ETIMEDOUT|ENETUNREACH|ECONNRESET|bad response|response error|missing response|rate limit|too many concurrent requests|socket hang up)/i
+        const notRateLimitErrorRegex = /revert/i
         const isRateLimitError = errorRegex.test(err.message) && !notRateLimitErrorRegex.test(err.message)
         // throw error as usual if it's not a rate limit error
         if (!isRateLimitError) {

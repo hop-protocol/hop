@@ -138,7 +138,7 @@ const AmountSelectorCard: FC<Props> = props => {
 
         // Get estimated gas cost
         const estimatedGasLimit = await bridge.send(
-          '2',
+          '10',
           fromNetwork?.slug as string,
           toNetwork?.slug as string,
           {

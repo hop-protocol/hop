@@ -43,7 +43,7 @@ export function fixedDecimals(amount: string, decimals: number) {
     return sanitizedAmount
   }
 
-  const wholeAmount = sanitizedAmount.slice(0, indexOfDecimal)
+  const wholeAmount = sanitizedAmount.slice(0, indexOfDecimal) || '0'
   const fractionalAmount = sanitizedAmount.slice(indexOfDecimal + 1)
   const decimalAmount = decimals !== 0 ? `.${fractionalAmount.slice(0, decimals)}` : ''
 

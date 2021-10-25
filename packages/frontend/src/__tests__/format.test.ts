@@ -19,4 +19,14 @@ it('should trim a numerical string with decimals', () => {
   expect(f5).toBe('1234567890.01234567890123456789012345678901')
 })
 
-it.todo('should allow for input beginning with a decimal (convert "." -> "0.")', () => {})
+it('should allow for input beginning with a decimal (convert "." -> "0.")', () => {
+  const numStr1 = '.1'
+
+  const f1 = fixedDecimals(numStr1, 18)
+  expect(f1).toBe('0.1')
+
+  const numStr2 = '.12345'
+
+  const f2 = fixedDecimals(numStr2, 2)
+  expect(f2).toBe('0.12')
+})

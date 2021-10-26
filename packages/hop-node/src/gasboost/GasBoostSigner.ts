@@ -4,6 +4,8 @@ import Logger from 'src/logger'
 import Store from './Store'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
+import { BlockTag } from '@ethersproject/abstract-provider'
+import { Deferrable, resolveProperties } from '@ethersproject/properties'
 import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
@@ -55,6 +57,19 @@ class GasBoostSigner extends Wallet {
     this.store = store
   }
 
+  // this is a required ethers Signer method
+  async call (transaction: Deferrable<providers.TransactionRequest>, blockTag?: BlockTag): Promise<string> {
+    return this._call(transaction, blockTag)
+  }
+
+  // reference: https://github.com/ethers-io/ethers.js/blob/73a46efea32c3f9a4833ed77896a216e3d3752a0/packages/abstract-signer/src.ts/index.ts#L115
+  _call = rateLimitRetry(async (transaction: Deferrable<providers.TransactionRequest>, blockTag?: BlockTag): Promise<string> => {
+    this._checkProvider('call')
+    const tx = await resolveProperties(this.checkTransaction(transaction))
+    return await this.provider.call(tx, blockTag)
+  })
+
+  // this is a required ethers Signer method
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
     return await this.mutex.runExclusive(async () => {
       this.logger.debug(`unlocked tx: ${JSON.stringify(tx)}`)

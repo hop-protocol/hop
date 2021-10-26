@@ -9,17 +9,7 @@ class TimestampedKeysDb<Type> extends BaseDb {
     super(prefix, _namespace)
 
     this.subDb = new BaseDb(`${prefix}:timestampedKeys`, _namespace)
-
-    // this only needs to be ran once on start up to backfill timestamped keys.
-    // this function can be removed once all bonders update.
-    // timestamped keys (in addition to transferId as keys) are needed to filter
-    // leveldb read streams.
-    this.trackTimestampedKeys()
-      .then(() => {
-        this.ready = true
-        this.logger.debug('db ready')
-      })
-      .catch(this.logger.error)
+    this.ready = true
   }
 
   protected async tilReady (): Promise<boolean> {

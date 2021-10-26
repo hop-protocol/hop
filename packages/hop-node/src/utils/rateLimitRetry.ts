@@ -27,7 +27,7 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
 
         const isRateLimitError = errorRegex.test(err.message)
         const isRevertError = revertErrorRegex.test(err.message)
-        const shouldRetry =  isRateLimitError && !isRevertError
+        const shouldRetry = isRateLimitError && !isRevertError
         log.debug(`isRateLimitError: ${isRateLimitError} isRevertError: ${isRevertError}`)
 
         // throw error as usual if it's not a rate limit error

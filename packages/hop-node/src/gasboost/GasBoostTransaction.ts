@@ -12,7 +12,7 @@ import { BigNumber, Signer, providers } from 'ethers'
 import { Chain, MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
 import { EventEmitter } from 'events'
 
-import { NonceTooLowError, EstimateGasError } from 'src/types/error'
+import { EstimateGasError, NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils'
 import { gasBoostErrorSlackChannel, gasBoostWarnSlackChannel, hostname } from 'src/config'
@@ -620,7 +620,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           this.logger.error(`nonce ${this.nonce} too low`)
           throw new NonceTooLowError('NonceTooLow')
         } else if (estimateGasFailed) {
-          this.logger.error(`estimateGas failed`)
+          this.logger.error('estimateGas failed')
           throw new EstimateGasError('EstimateGasError')
         }
 
@@ -731,7 +731,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.emit(State.Error, err)
     }
   }
-  
+
   private parseErrorString (errMessage: string) {
     const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/i.test(errMessage)
     const estimateGasFailed = /eth_estimateGas/i.test(errMessage)

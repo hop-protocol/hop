@@ -336,7 +336,7 @@ export const addresses: Addresses = {
         l2HopBridgeToken: '0xa492d3596e8391E376D4f5a5cBA5C077B890b094',
         l2AmmWrapper: '0x2A11a98e2fCF4674F30934B5166645fE6CA35F56',
         l2SaddleSwap: '0x46fc3Af3A47792cA3ED06fdF3D657145A675a8D8',
-        l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
+        l2SaddleLpToken: '0x07CE97eb3f375901D26Ec1e32144292318839802',
         bridgeDeployedBlockNumber: 3564522
       },
       arbitrum: {

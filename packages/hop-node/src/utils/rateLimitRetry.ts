@@ -23,10 +23,15 @@ export default function rateLimitRetry (fn: any): any {
         return result
       } catch (err) {
         const errorRegex = /(timeout|timedout|ETIMEDOUT|ENETUNREACH|ECONNRESET|bad response|response error|missing response|rate limit|too many concurrent requests|socket hang up)/i
-        const notRateLimitErrorRegex = /revert/i
-        const isRateLimitError = errorRegex.test(err.message) && !notRateLimitErrorRegex.test(err.message)
+        const revertErrorRegex = /revert/i
+
+        const isRateLimitError = errorRegex.test(err.message)
+        const isRevertError = revertErrorRegex.test(err.message)
+        const shouldRetry =  isRateLimitError && !isRevertError
+        log.debug(`isRateLimitError: ${isRateLimitError} isRevertError: ${isRevertError}`)
+
         // throw error as usual if it's not a rate limit error
-        if (!isRateLimitError) {
+        if (!shouldRetry) {
           log.error(err.message)
           throw err
         }

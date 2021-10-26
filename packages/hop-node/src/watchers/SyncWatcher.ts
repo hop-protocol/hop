@@ -639,6 +639,7 @@ class SyncWatcher extends BaseWatcher {
     await this.populateTransferRootBondedAt(transferRootHash)
     await this.populateTransferRootTimestamp(transferRootHash)
     await this.populateTransferRootMultipleWithdrawSettled(transferRootHash)
+    await this.populateTransferRootTransferIds(transferRootHash)
   }
 
   async populateTransferSentTimestamp (transferId: string) {

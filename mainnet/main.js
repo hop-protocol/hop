@@ -153,11 +153,6 @@ const app = new Vue({
             }
           }
 
-          // remove this once polygon subgraph has finished syncing
-          if (x.token === 'ETH' && x.destinationChainSlug === 'polygon') {
-            return false
-          }
-
           const oneDayAgo = luxon.DateTime.utc().minus({ days: 1 }).toSeconds()
           if (x.timestamp < oneDayAgo) {
             return false
@@ -905,7 +900,7 @@ function formatCurrency (value, token) {
   })
 
   if (token === 'MATIC' || token === 'ETH') {
-    return `${currencyFormatter.format(value)}`
+    return Number(value || 0).toFixed(5)
   }
 
   return `$${currencyFormatter.format(value)}`

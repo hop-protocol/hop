@@ -37,6 +37,7 @@ const app = new Vue({
     filterDestination: queryParams.destination || '',
     filterAmount: queryParams.amount || '',
     filterAmountComparator: queryParams.amountCmp || 'gt',
+    filterBonder: queryParams.bonder || '',
     chartAmountSize: false,
     page: 0,
     allTransfers: [],
@@ -115,7 +116,7 @@ const app = new Vue({
             }
           }
 
-          if (this.setFilterBonded) {
+          if (this.filterBonded) {
             if (this.filterBonded === 'pending') {
               if (x.bonded) {
                 return false
@@ -124,6 +125,15 @@ const app = new Vue({
               if (!x.bonded) {
                 return false
               }
+            }
+          }
+
+          if (this.filterBonder) {
+            if (!x.bonder) {
+              return false
+            }
+            if (x.bonder && this.filterBonder.toLowerCase() !== x.bonder.toString()) {
+              return false
             }
           }
 
@@ -141,11 +151,6 @@ const app = new Vue({
                 return false
               }
             }
-          }
-
-          // remove this once polygon subgraph has finished syncing
-          if (x.token === 'ETH' && x.destinationChainSlug === 'polygon') {
-            return false
           }
 
           const oneDayAgo = luxon.DateTime.utc().minus({ days: 1 }).toSeconds()
@@ -203,14 +208,19 @@ const app = new Vue({
       Vue.set(app, 'filterToken', value)
       this.refreshTransfers()
     },
-    setAmount (event) {
+    setFilterAmount (event) {
       const value = event.target.value
       Vue.set(app, 'filterAmount', value)
       this.refreshTransfers()
     },
-    setAmountComparator (event) {
+    setFilterAmountComparator (event) {
       const value = event.target.value
       Vue.set(app, 'filterAmountComparator', value)
+      this.refreshTransfers()
+    },
+    setFilterBonder (event) {
+      const value = event.target.value
+      Vue.set(app, 'filterBonder', value)
       this.refreshTransfers()
     },
     setTvl (tvl) {
@@ -890,7 +900,7 @@ function formatCurrency (value, token) {
   })
 
   if (token === 'MATIC' || token === 'ETH') {
-    return `${currencyFormatter.format(value)}`
+    return Number(value || 0).toFixed(5)
   }
 
   return `$${currencyFormatter.format(value)}`

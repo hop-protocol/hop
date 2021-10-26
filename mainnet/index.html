@@ -130,12 +130,16 @@
             </div>
             <div>
               <label>Amount:</label>
-              <select v-model="filterAmountComparator" @change="setAmountComparator">
+              <select v-model="filterAmountComparator" @change="setFilterAmountComparator">
                 <option value="eq">=</option>
                 <option value="gt">&gt;</option>
                 <option value="lt">&lt;</option>
               </select>
               <input class="filterAmount" v-model="filterAmount" change="setFilterAmount" placeholder="amount" />
+            </div>
+            <div>
+              <label>Bonder:</label>
+              <input class="filterBonder" v-model="filterBonder" change="setFilterBonder" placeholder="bonder" />
             </div>
           </div>
           <div class="pagination">

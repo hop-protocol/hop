@@ -20,8 +20,6 @@ export type Config = {
   stateUpdateAddress?: string
 }
 
-const BONDER_ORDER_DELAY_MS = 60 * 1000
-
 class CommitTransfersWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: CommitTransfersWatcher }
   minThresholdAmounts: {[chain: string]: BigNumber} = {}

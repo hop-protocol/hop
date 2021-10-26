@@ -22,10 +22,6 @@ export type Config = {
   stateUpdateAddress?: string
 }
 
-const BONDER_ORDER_DELAY_MS = 60 * 1000
-
-class BondError extends Error {}
-
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
 

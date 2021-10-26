@@ -1604,7 +1604,13 @@ class HopBridge extends Base {
       )
     }
 
-    return l2Bridge.send(...txOptions)
+    return l2Bridge.send(
+      ...txOptions,
+      {
+        ...(await this.txOverrides(sourceChain)),
+        value: isNativeToken ? amount : undefined
+      }
+    )
   }
 
   private async sendL2ToL2 (input: SendL2ToL2Input) {

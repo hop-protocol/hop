@@ -1395,7 +1395,7 @@ class HopBridge extends Base {
         deadline: options?.deadline,
         recipient: options?.recipient,
         approval,
-        estimateGasOnly: options?.estimateGasOnly,
+        estimateGasOnly: options?.estimateGasOnly
       })
     }
     // else:
@@ -1423,7 +1423,7 @@ class HopBridge extends Base {
         destinationAmountOutMin: options?.destinationAmountOutMin,
         destinationDeadline: options?.destinationDeadline,
         approval,
-        estimateGasOnly: options?.estimateGasOnly,
+        estimateGasOnly: options?.estimateGasOnly
       })
     }
 
@@ -1448,7 +1448,7 @@ class HopBridge extends Base {
       destinationAmountOutMin: options?.destinationAmountOutMin,
       destinationDeadline: options?.destinationDeadline,
       approval,
-      estimateGasOnly: options?.estimateGasOnly,
+      estimateGasOnly: options?.estimateGasOnly
     })
   }
 
@@ -1463,7 +1463,7 @@ class HopBridge extends Base {
       deadline,
       recipient,
       approval,
-      estimateGasOnly,
+      estimateGasOnly
     } = input
     if (!sourceChain.isL1) {
       // ToDo: Don't pass in sourceChain since it will always be L1
@@ -1530,7 +1530,7 @@ class HopBridge extends Base {
       deadline,
       destinationDeadline,
       approval,
-      estimateGasOnly,
+      estimateGasOnly
     } = input
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
     destinationDeadline = destinationDeadline || 0
@@ -1573,12 +1573,12 @@ class HopBridge extends Base {
     }
 
     const txOptions = [
-        destinationChainId,
-        recipient,
-        amount,
-        bonderFee,
-        amountOutMin,
-        deadline,
+      destinationChainId,
+      recipient,
+      amount,
+      bonderFee,
+      amountOutMin,
+      deadline
     ]
 
     if (attemptSwap) {
@@ -1594,13 +1594,13 @@ class HopBridge extends Base {
       if (estimateGasOnly) {
         return ammWrapper.estimateGas.swapAndSend(
           ...txOptions,
-          ...additionalOptions,
+          ...additionalOptions
         )
       }
 
       return ammWrapper.swapAndSend(
         ...txOptions,
-        ...additionalOptions,
+        ...additionalOptions
       )
     }
 
@@ -1625,7 +1625,7 @@ class HopBridge extends Base {
       amountOutMin,
       recipient,
       approval,
-      estimateGasOnly,
+      estimateGasOnly
     } = input
     deadline = deadline || this.defaultDeadlineSeconds
     destinationDeadline = destinationDeadline || deadline
@@ -1665,18 +1665,18 @@ class HopBridge extends Base {
     }
 
     const txOptions = [
-        destinationChainId,
-        recipient,
-        amount,
-        bonderFee,
-        amountOutMin,
-        deadline,
-        destinationAmountOutMin,
-        destinationDeadline,
-        {
-          ...(await this.txOverrides(sourceChain)),
-          value: isNativeToken ? amount : undefined
-        }
+      destinationChainId,
+      recipient,
+      amount,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      destinationAmountOutMin,
+      destinationDeadline,
+      {
+        ...(await this.txOverrides(sourceChain)),
+        value: isNativeToken ? amount : undefined
+      }
     ]
 
     if (estimateGasOnly) {

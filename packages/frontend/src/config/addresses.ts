@@ -43,7 +43,8 @@ if (enabledChains) {
   networks = filteredNetworks
 }
 
-console.log(`
+if (process.env.NODE_ENV !== 'test') {
+  console.log(`
     __  __
    / / / /___  ____
   / /_/ / __ \\/ __ \\
@@ -51,11 +52,12 @@ console.log(`
 /_/ /_/\\____/ .___/
            /_/
 `)
-console.log('Welcome 🐰')
-console.debug('ui version:', process.env.REACT_APP_GIT_SHA);
-console.debug('config network:', network)
-console.debug('config chains:', networks)
-console.debug('config addresses:', addresses.tokens)
+  console.log('Welcome 🐰')
+  console.debug('ui version:', process.env.REACT_APP_GIT_SHA)
+  console.debug('config network:', network)
+  console.debug('config chains:', networks)
+  console.debug('config addresses:', addresses.tokens)
+}
 
 export { addresses, reactAppNetwork, network, networks, isMainnet }
 export const blocknativeDappid = process.env.REACT_APP_BNC_DAPP_ID || '328621b8-952f-4a86-bd39-724ba822d416'

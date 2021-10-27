@@ -2529,29 +2529,22 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@hop-protocol/core@0.0.1-beta.39":
-  version "0.0.1-beta.39"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.39.tgz#cbdc8b9849e40ec51c960b6243dfc7151383341b"
-  integrity sha512-8ju1Qm1e7mmWlJDum7kblz/nX2XIbLpmVxYmxrc5IzfILXw60VTYh+OwvXnhIKDVjYuMFvzlTaKmx1Z3TmpvSA==
-  dependencies:
-    deepmerge "^4.2.2"
-
-"@hop-protocol/core@0.0.1-beta.42":
-  version "0.0.1-beta.42"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.42.tgz#c2137b9f33d21875401f62fc3ea0b6aa2b6b9fea"
-  integrity sha512-A49XmeWBBWlM20b01ZHswq1Ok/tli+9pSGZ6MvumFEfi7v2BBilocBqs6vJuQ5kgpn1VrpJ9jqI01gPrY2ZPRA==
+"@hop-protocol/core@0.0.1-beta.44":
+  version "0.0.1-beta.44"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.44.tgz#2b48088325269caf361b45a1ca51d9e181f9edc7"
+  integrity sha512-S9vFAvIdq+93mY1urxyTPvcAZMELueqmnN7r8jBbQtH8psJl6fo4cykdIRlMGslcyY9uhTdJn+1Ni0/rHTAyAw==
   dependencies:
     deepmerge "^4.2.2"
     eslint-plugin-json "^3.1.0"
     ethers "^5.4.7"
 
-"@hop-protocol/sdk@0.0.1-beta.217":
-  version "0.0.1-beta.217"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.217.tgz#76dcdada1d9f4638c014297fa9f854596ddcf8ef"
-  integrity sha512-D2mUEEtk7M7ACLPZqEj6HDSIKCjUpjJxuxBvmPMZ2EXlrvrHPCJPsgwacDXDKo/WEliw1NxPXTun5t5J5u8vvA==
+"@hop-protocol/sdk@0.0.1-beta.218":
+  version "0.0.1-beta.218"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.218.tgz#289e48f006b2c6b8cd427a51550b4cb2ffb372de"
+  integrity sha512-HEKJwBn3Wevq26wUyFDxw8tLBTQ4ZoGfJApYcu+KUN+S88ZJixe/Qdk3tqJOlqDgPJrViRgUX7ZdLK8xw4fZ1w==
   dependencies:
     "@ethersproject/abi" "^5.4.0"
-    "@hop-protocol/core" "0.0.1-beta.39"
+    "@hop-protocol/core" "0.0.1-beta.44"
     "@maticnetwork/maticjs" "^2.0.38"
     "@types/isomorphic-fetch" "0.0.35"
     "@types/luxon" "^1.27.1"
@@ -15725,9 +15718,9 @@ ndjson@^1.5.0:
     split2 "^2.1.0"
     through2 "^2.0.3"
 
-"neat-frame@git+https://github.com/agentofuser/neat-frame.git#wrap-ansi-options":
+"neat-frame@https://github.com/agentofuser/neat-frame#wrap-ansi-options":
   version "1.0.2"
-  resolved "git+https://github.com/agentofuser/neat-frame.git#b244ca11078bd35f63b2d7cb22d5e4b5c12ae2aa"
+  resolved "https://github.com/agentofuser/neat-frame#b244ca11078bd35f63b2d7cb22d5e4b5c12ae2aa"
   dependencies:
     inspect-with-kind "^1.0.5"
     merge-options "^1.0.1"

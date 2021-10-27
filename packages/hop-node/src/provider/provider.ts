@@ -60,16 +60,16 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
     return super.getBlockWithTransactions(blockHashOrBlockTag)
   })
 
-  getTransaction = rateLimitRetry(async (transactionHash: string): Promise<TransactionResponse> => {
+  getTransaction = rateLimitRetry(async (transactionHash: string | Promise<string>): Promise<TransactionResponse> => {
     return super.getTransaction(transactionHash)
   })
 
-  getTransactionReceipt = rateLimitRetry(async (transactionHash: string): Promise<TransactionReceipt> => {
+  getTransactionReceipt = rateLimitRetry(async (transactionHash: string | Promise<string>): Promise<TransactionReceipt> => {
     return super.getTransactionReceipt(transactionHash)
   })
 
   // Bloom-filter Queries
-  getLogs = rateLimitRetry(async (filter: Filter | FilterByBlockHash | Promise<Filter | FilterByBlockHash>): Promise<Log[]> => {
+  getLogs = rateLimitRetry(async (filter: Filter | FilterByBlockHash | Promise<Filter | FilterByBlockHash>): Promise<Array<Log>> => {
     return super.getLogs(filter)
   })
 

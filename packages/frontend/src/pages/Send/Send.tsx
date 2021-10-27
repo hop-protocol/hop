@@ -68,10 +68,10 @@ const Send: FC = () => {
 
   // Set fromNetwork and toNetwork using query params
   useEffect(() => {
-    const _fromNetwork = networks.find((network) => network.slug === queryParams.sourceNetwork)
+    const _fromNetwork = networks.find(network => network.slug === queryParams.sourceNetwork)
     _setFromNetwork(_fromNetwork)
 
-    const _toNetwork = networks.find((network) => network.slug === queryParams.destNetwork)
+    const _toNetwork = networks.find(network => network.slug === queryParams.destNetwork)
 
     if (_fromNetwork?.name === _toNetwork?.name) {
       // Leave destination network empty
@@ -258,8 +258,8 @@ const Send: FC = () => {
       message = 'Bonder fee greater than estimated received'
     } else if (estimatedReceived?.lte(0)) {
       message = 'Insufficient amount. Send higher amount to cover bonder fee.'
-    } else if (priceImpact && priceImpact !== 100 && priceImpact >= 1) {
-      message = `Warning: High Price Impact! -${commafy(priceImpact)}%`
+    } else if (priceImpact && priceImpact !== 100 && (priceImpact >= 1 || priceImpact <= -1)) {
+      message = `Warning: High Price Impact! ${commafy(priceImpact)}%`
     }
 
     if (needsNativeTokenWarning) {
@@ -421,7 +421,7 @@ const Send: FC = () => {
   // Change the bridge if user selects different token to send
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
-    const bridge = bridges.find((bridge) => bridge.getTokenSymbol() === tokenSymbol)
+    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
     if (bridge) {
       setSelectedBridge(bridge)
     }
@@ -500,7 +500,7 @@ const Send: FC = () => {
         value={fromTokenAmount}
         token={sourceToken ?? placeholderToken}
         label={'From'}
-        onChange={(value) => {
+        onChange={value => {
           if (!value) {
             setFromTokenAmount('')
             setToTokenAmount('')

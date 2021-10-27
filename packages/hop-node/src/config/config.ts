@@ -151,7 +151,7 @@ export const config: Config = {
     WBTC: {
       L2ToL1: 10,
       L2ToL2: 10
-    },
+    }
   },
   db: {
     path: defaultDbPath

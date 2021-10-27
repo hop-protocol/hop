@@ -3,11 +3,10 @@ import Logger from 'src/logger'
 import Web3 from 'web3'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import fetch from 'node-fetch'
-import getRpcUrls from 'src/utils/getRpcUrls'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { Contract, Wallet, constants, providers } from 'ethers'
+import { Contract, Wallet, constants } from 'ethers'
 import { Event } from 'src/types'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
@@ -45,14 +44,10 @@ class PolygonBridgeWatcher extends BaseWatcher {
       dryMode: config.dryMode
     })
 
-    this.l1Provider = new providers.StaticJsonRpcProvider(
-      getRpcUrls(Chain.Ethereum)?.[0]
-    )
-    this.l2Provider = new providers.StaticJsonRpcProvider(
-      getRpcUrls(Chain.Polygon)?.[0]
-    )
     this.l1Wallet = wallets.get(Chain.Ethereum)
     this.l2Wallet = wallets.get(Chain.Polygon)
+    this.l1Provider = this.l1Wallet.provider
+    this.l2Provider = this.l2Wallet.provider
 
     this.chainId = chainSlugToId(config.chainSlug)! // eslint-disable-line
     this.apiUrl = `https://apis.matic.network/api/v1/${

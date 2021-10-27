@@ -4,7 +4,6 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import isL1ChainId from 'src/utils/isL1ChainId'
-import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import { Bridge as BridgeContract, MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
 import { Chain, MinBonderFeeAbsolute } from 'src/constants'
@@ -69,20 +68,20 @@ export default class Bridge extends ContractBase {
     return await (this.bridgeContract as Contract).signer.getAddress()
   }
 
-  isBonder = rateLimitRetry(async (): Promise<boolean> => {
+  isBonder = async (): Promise<boolean> => {
     const bonder = await this.getBonderAddress()
     return await this.bridgeContract.getIsBonder(bonder)
-  })
+  }
 
-  getCredit = rateLimitRetry(async (bonder?: string): Promise<BigNumber> => {
+  getCredit = async (bonder?: string): Promise<BigNumber> => {
     if (!bonder) {
       bonder = await this.getBonderAddress()
     }
     const credit = await this.bridgeContract.getCredit(bonder)
     return credit
-  })
+  }
 
-  getDebit = rateLimitRetry(async (bonder?: string): Promise<BigNumber> => {
+  getDebit = async (bonder?: string): Promise<BigNumber> => {
     if (!bonder) {
       bonder = await this.getBonderAddress()
     }
@@ -90,13 +89,13 @@ export default class Bridge extends ContractBase {
       bonder
     )
     return debit
-  })
+  }
 
-  getRawDebit = rateLimitRetry(async (): Promise<BigNumber> => {
+  getRawDebit = async (): Promise<BigNumber> => {
     const bonder = await this.getBonderAddress()
     const debit = await this.bridgeContract.getRawDebit(bonder)
     return debit
-  })
+  }
 
   async getBaseAvailableCredit (bonder?: string): Promise<BigNumber> {
     const [credit, debit] = await Promise.all([
@@ -120,7 +119,7 @@ export default class Bridge extends ContractBase {
     return await this.getBondedWithdrawalAmountByBonder(bonderAddress, transferId)
   }
 
-  getBondedWithdrawalAmountByBonder = rateLimitRetry(async (
+  getBondedWithdrawalAmountByBonder = async (
     bonder: string,
     transferId: string
   ): Promise<BigNumber> => {
@@ -129,7 +128,7 @@ export default class Bridge extends ContractBase {
       transferId
     )
     return bondedBn
-  })
+  }
 
   async getBondedWithdrawalTimestamp (
     transferId: string,
@@ -197,11 +196,11 @@ export default class Bridge extends ContractBase {
     return match
   }
 
-  isTransferIdSpent = rateLimitRetry(async (transferId: string): Promise<boolean> => {
+  isTransferIdSpent = async (transferId: string): Promise<boolean> => {
     return await this.bridgeContract.isTransferIdSpent(transferId)
-  })
+  }
 
-  getWithdrawalBondedEvents = rateLimitRetry(async (
+  getWithdrawalBondedEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
@@ -210,9 +209,9 @@ export default class Bridge extends ContractBase {
       startBlockNumber,
       endBlockNumber
     )
-  })
+  }
 
-  getWithdrewEvents = rateLimitRetry(async (
+  getWithdrewEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
@@ -221,7 +220,7 @@ export default class Bridge extends ContractBase {
       startBlockNumber,
       endBlockNumber
     )
-  })
+  }
 
   async mapWithdrawalBondedEvents<R> (
     cb: EventCb<WithdrawalBondedEvent, R>,
@@ -237,7 +236,7 @@ export default class Bridge extends ContractBase {
     return await this.mapEventsBatch(this.getWithdrewEvents, cb, options)
   }
 
-  getTransferRootSetEvents = rateLimitRetry(async (
+  getTransferRootSetEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
@@ -246,7 +245,7 @@ export default class Bridge extends ContractBase {
       startBlockNumber,
       endBlockNumber
     )
-  })
+  }
 
   async getTransferRootSetTxHash (
     transferRootHash: string
@@ -277,7 +276,7 @@ export default class Bridge extends ContractBase {
     return await this.mapEventsBatch(this.getTransferRootSetEvents, cb, options)
   }
 
-  getWithdrawalBondSettledEvents = rateLimitRetry(async (
+  getWithdrawalBondSettledEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
@@ -286,7 +285,7 @@ export default class Bridge extends ContractBase {
       startBlockNumber,
       endBlockNumber
     )
-  })
+  }
 
   decodeSettleBondedWithdrawalData (data: string): any {
     if (!data) {
@@ -325,7 +324,7 @@ export default class Bridge extends ContractBase {
     return transferIds
   }
 
-  getMultipleWithdrawalsSettledEvents = rateLimitRetry(async (
+  getMultipleWithdrawalsSettledEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
@@ -334,7 +333,7 @@ export default class Bridge extends ContractBase {
       startBlockNumber,
       endBlockNumber
     )
-  })
+  }
 
   async mapMultipleWithdrawalsSettledEvents<R> (
     cb: EventCb<MultipleWithdrawalsSettledEvent, R>,
@@ -378,7 +377,7 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  getTransferRoot = rateLimitRetry(async (
+  getTransferRoot = async (
     transferRootHash: string,
     totalAmount: BigNumber
   ) => {
@@ -386,7 +385,7 @@ export default class Bridge extends ContractBase {
       transferRootHash,
       totalAmount
     )
-  })
+  }
 
   // get the chain ids of all bridged L2s and L1
   async getChainIds (): Promise<number[]> {
@@ -419,7 +418,7 @@ export default class Bridge extends ContractBase {
     return chainIds
   }
 
-  stake = rateLimitRetry(async (amount: BigNumber): Promise<providers.TransactionResponse> => {
+  stake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
     const bonder = await this.getBonderAddress()
     const txOverrides = await this.txOverrides()
     const isEthSend = this.chainSlug === Chain.Ethereum
@@ -433,17 +432,17 @@ export default class Bridge extends ContractBase {
     )
 
     return tx
-  })
+  }
 
-  unstake = rateLimitRetry(async (amount: BigNumber): Promise<providers.TransactionResponse> => {
+  unstake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
     const tx = await this.bridgeContract.unstake(
       amount,
       await this.txOverrides()
     )
     return tx
-  })
+  }
 
-  bondWithdrawal = rateLimitRetry(async (
+  bondWithdrawal = async (
     recipient: string,
     amount: BigNumber,
     transferNonce: string,
@@ -461,9 +460,9 @@ export default class Bridge extends ContractBase {
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
 
     return tx
-  })
+  }
 
-  settleBondedWithdrawals = rateLimitRetry(async (
+  settleBondedWithdrawals = async (
     bonder: string,
     transferIds: string[],
     amount: BigNumber
@@ -476,9 +475,9 @@ export default class Bridge extends ContractBase {
     )
 
     return tx
-  })
+  }
 
-  getStateUpdateStatus = rateLimitRetry(async (stateUpdateAddress: string, chainId: number): Promise<number> => {
+  getStateUpdateStatus = async (stateUpdateAddress: string, chainId: number): Promise<number> => {
     const abi = ['function currentState(address,uint256)']
     const ethersInterface = new ethersUtils.Interface(abi)
     const data = ethersInterface.encodeFunctionData(
@@ -490,7 +489,7 @@ export default class Bridge extends ContractBase {
     }
     const res: string = await this.contract.provider.call(tx)
     return Number(res)
-  })
+  }
 
   async getEthBalance (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
@@ -521,7 +520,7 @@ export default class Bridge extends ContractBase {
     let i = 0
     const promises: R[] = []
     await this.eventsBatch(async (start: number, end: number) => {
-      let events = await rateLimitRetry(getEventsMethod)(start, end)
+      let events = await getEventsMethod(start, end)
       events = events.reverse()
       for (const event of events) {
         promises.push(cb(event, i))
@@ -558,7 +557,7 @@ export default class Bridge extends ContractBase {
 
     let i = 0
     while (start >= earliestBlockInBatch) {
-      const shouldContinue = await rateLimitRetry(cb)(start, end, i)
+      const shouldContinue = await cb(start, end, i)
       if (
         (typeof shouldContinue === 'boolean' && !shouldContinue) ||
         start === earliestBlockInBatch

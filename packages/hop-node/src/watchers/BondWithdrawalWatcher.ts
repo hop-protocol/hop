@@ -10,6 +10,7 @@ import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bri
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { TxError } from 'src/constants'
+import { config as globalConfig } from 'src/config'
 
 export type Config = {
   chainSlug: string
@@ -38,6 +39,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
       dryMode: config.dryMode,
       stateUpdateAddress: config.stateUpdateAddress
     })
+
+    const fees = globalConfig?.fees?.[this.tokenSymbol]
+    this.logger.log('bonder fees:', fees)
   }
 
   async pollHandler () {

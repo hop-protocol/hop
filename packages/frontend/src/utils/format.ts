@@ -1,4 +1,4 @@
-import { BigNumber, utils } from 'ethers'
+import { BigNumber, FixedNumber, utils } from 'ethers'
 import Network from 'src/models/Network'
 import { prettifyErrorMessage } from '.'
 
@@ -57,8 +57,7 @@ export function fixedDecimals(amount: string, decimals: number = 18) {
     return amount
   }
   const mdAmount = maxDecimals(amount, decimals)
-  const parsed = utils.parseUnits(mdAmount, decimals)
-  return utils.formatUnits(parsed, decimals).toString()
+  return FixedNumber.from(mdAmount).toString()
 }
 
 export function amountToBN(amount: string, decimals: number = 18) {

@@ -10,13 +10,10 @@ it('should trim a numerical string with decimals', () => {
   expect(f2).toBe('1234567890.012345678')
 
   const f3 = fixedDecimals(numStr, 0)
-  expect(f3).toBe('1234567890')
+  expect(f3).toBe('1234567890.0')
 
   const f4 = fixedDecimals(numStr, 6)
   expect(f4).toBe('1234567890.012345')
-
-  const f5 = fixedDecimals(numStr, 50)
-  expect(f5).toBe('1234567890.01234567890123456789012345678901')
 })
 
 it('should allow for input beginning with a decimal (convert "." -> "0.")', () => {

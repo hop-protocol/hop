@@ -56,6 +56,7 @@ class Transaction extends EventEmitter {
     isCanonicalTransfer,
     pendingDestinationConfirmation = true,
     transferId,
+    replaced,
   }: Config) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
@@ -93,18 +94,21 @@ class Transaction extends EventEmitter {
       this.destProvider = getProvider(destRpcUrl)
     }
 
+    // TODO: cleanup
+    this.provider = getProvider(rpcUrl)
+    this.timestamp = timestamp || Date.now()
+    this.pending = pending
     if (destTxHash) {
       this.destTxHash = destTxHash
     }
-
-    this.provider = getProvider(rpcUrl)
-    this.timestamp = timestamp || Date.now()
     if (token) {
       this.token = token
     }
-    this.pending = pending
     if (transferId) {
       this.transferId = transferId
+    }
+    if (replaced) {
+      this.replaced = replaced
     }
 
     this.receipt().then((receipt: providers.TransactionReceipt) => {
@@ -319,6 +323,7 @@ class Transaction extends EventEmitter {
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
+      replaced,
     } = this
     return {
       hash,
@@ -331,6 +336,7 @@ class Transaction extends EventEmitter {
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
+      replaced,
     }
   }
 
@@ -346,6 +352,7 @@ class Transaction extends EventEmitter {
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
+      replaced,
     } = obj
     return new Transaction({
       hash,
@@ -358,6 +365,7 @@ class Transaction extends EventEmitter {
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
+      replaced,
     })
   }
 }

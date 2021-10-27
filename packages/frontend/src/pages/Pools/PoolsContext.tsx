@@ -8,7 +8,7 @@ import React, {
   useRef,
   useCallback,
 } from 'react'
-import { Signer, BigNumber } from 'ethers'
+import { Signer, BigNumber, errors } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
@@ -598,7 +598,25 @@ const PoolsContextProvider: FC = ({ children }) => {
           })
         )
       }
-      await addLiquidityTx?.wait()
+
+      try {
+        await addLiquidityTx?.wait()
+      } catch (error: any) {
+        if (error.code === errors.TRANSACTION_REPLACED) {
+          if (error.cancelled) {
+            // console.log(`error.cancelled__error.replacement:`, error.replacement)
+          } else {
+            const replacementTx = new Transaction({
+              hash: error.replacement.hash,
+              networkName: selectedNetwork.slug,
+            })
+
+            setTxHash(replacementTx.hash)
+            txHistory?.replaceTransaction(addLiquidityTx.hash, replacementTx)
+          }
+        }
+      }
+
       updateUserPoolPositions()
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
@@ -682,7 +700,25 @@ const PoolsContextProvider: FC = ({ children }) => {
           })
         )
       }
-      await removeLiquidityTx?.wait()
+
+      try {
+        await removeLiquidityTx?.wait()
+      } catch (error: any) {
+        if (error.code === errors.TRANSACTION_REPLACED) {
+          if (error.cancelled) {
+            // console.log(`error.cancelled__error.replacement:`, error.replacement)
+          } else {
+            const replacementTx = new Transaction({
+              hash: error.replacement.hash,
+              networkName: selectedNetwork.slug,
+            })
+
+            setTxHash(replacementTx.hash)
+            txHistory?.replaceTransaction(removeLiquidityTx.hash, replacementTx)
+          }
+        }
+      }
+
       updateUserPoolPositions()
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {

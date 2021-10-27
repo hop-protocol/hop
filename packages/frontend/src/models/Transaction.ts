@@ -1,11 +1,11 @@
-import { ethers } from 'ethers'
+import { ethers, providers } from 'ethers'
 import { EventEmitter } from 'events'
 import { L1_NETWORK } from 'src/constants'
-import { getRpcUrl, getProvider, getBaseExplorerUrl, networkSlugToId } from 'src/utils'
+import { getRpcUrl, getProvider, getBaseExplorerUrl } from 'src/utils'
 
 import { Hop, Token } from '@hop-protocol/sdk'
 import { network as defaultNetwork } from 'src/config'
-import { getTransferSentDetailsFromLogs } from 'src/utils/logs'
+import { findTransferFromL1CompletedLog, getTransferSentDetailsFromLogs } from 'src/utils/logs'
 import logger from 'src/logger'
 import {
   fetchTransferFromL1Completeds,
@@ -34,6 +34,7 @@ class Transaction extends EventEmitter {
   readonly destNetworkName: string | null = null
   readonly isCanonicalTransfer: boolean = false
   readonly provider: ethers.providers.Provider
+  readonly destProvider: ethers.providers.Provider | null = null
   token: Token | null = null
   pending: boolean
   timestamp: number
@@ -69,10 +70,27 @@ class Transaction extends EventEmitter {
     } else {
       rpcUrl = getRpcUrl(L1_NETWORK)
     }
+
     if (destNetworkName) {
       this.destNetworkName = destNetworkName
       this.pendingDestinationConfirmation = pendingDestinationConfirmation
+
+      let destRpcUrl = ''
+      if (destNetworkName.startsWith('arbitrum')) {
+        destRpcUrl = getRpcUrl('arbitrum')
+      } else if (destNetworkName.startsWith('optimism')) {
+        destRpcUrl = getRpcUrl('optimism')
+      } else if (destNetworkName.startsWith('xdai')) {
+        destRpcUrl = getRpcUrl('xdai')
+      } else if (destNetworkName.startsWith('matic') || destNetworkName.startsWith('polygon')) {
+        destRpcUrl = getRpcUrl('polygon')
+      } else {
+        destRpcUrl = getRpcUrl(L1_NETWORK)
+      }
+
+      this.destProvider = getProvider(destRpcUrl)
     }
+
     if (destTxHash) {
       this.destTxHash = destTxHash
     }
@@ -87,7 +105,7 @@ class Transaction extends EventEmitter {
       this.transferId = transferId
     }
 
-    this.receipt().then((receipt: any) => {
+    this.receipt().then((receipt: providers.TransactionReceipt) => {
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
 
       // Source: L2
@@ -102,7 +120,6 @@ class Transaction extends EventEmitter {
     if (typeof isCanonicalTransfer === 'boolean') {
       this.isCanonicalTransfer = isCanonicalTransfer
     }
-    console.debug('transaction:', this.hash)
   }
 
   get explorerLink(): string {
@@ -151,15 +168,23 @@ class Transaction extends EventEmitter {
     return this.provider.getTransaction(this.hash)
   }
 
+  async getDestTransaction() {
+    if (this.destTxHash && this.destProvider) {
+      return this.destProvider.getTransaction(this.destTxHash)
+    }
+  }
+
   async checkIsTransferIdSpent(sdk: Hop) {
-    if (this.token && this.destNetworkName) {
+    if (this.provider && this.token && this.destNetworkName) {
       const receipt = await this.receipt()
+      // Get the event data (topics)
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
       const bridge = sdk.bridge(this.token.symbol)
 
       // No transferId because L1 -> L2
       if (tsDetails && !tsDetails.transferId) {
         const l1Bridge = await bridge.getL1Bridge(this.provider)
+        // Get the rest of the event data
         const decodedData = l1Bridge.interface.decodeEventLog(
           tsDetails?.eventName!,
           tsDetails?.log.data
@@ -167,13 +192,14 @@ class Transaction extends EventEmitter {
 
         if ('amount' in decodedData) {
           const { amount } = decodedData
+          // Query Graph Protocol for TransferFromL1Completed events
           const transferFromL1Completeds = await fetchTransferFromL1Completeds(
             this.destNetworkName,
             tsDetails.recipient,
             amount.toString()
           )
 
-          if (transferFromL1Completeds.length) {
+          if (transferFromL1Completeds?.length) {
             const lastTransfer: L1Transfer =
               transferFromL1Completeds[transferFromL1Completeds.length - 1]
 
@@ -181,24 +207,60 @@ class Transaction extends EventEmitter {
             this.pendingDestinationConfirmation = false
             return true
           }
+
+          // If TheGraph is not working...
+          const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
+          const bln = await destL2Bridge.provider.getBlockNumber()
+          const evs = await destL2Bridge.queryFilter(
+            destL2Bridge.filters.TransferFromL1Completed(),
+            bln - 9999,
+            bln
+          )
+
+          if (evs?.length) {
+            // Find the matching amount
+            const tfl1Completed = findTransferFromL1CompletedLog(evs, amount, tsDetails.recipient)
+            if (tfl1Completed) {
+              this.destTxHash = tfl1Completed.transactionHash
+              this.pendingDestinationConfirmation = false
+              return true
+            }
+          }
+
+          logger.debug(`isSpent ${tsDetails.txHash}:`, false)
         }
       }
 
+      // transferId found in event: TransferSent
       if (tsDetails?.transferId) {
         this.transferId = tsDetails.transferId
       }
 
+      // Transfer from L2
       // transferId found in event: TransferSent
-      if (this.transferId) {
+      if (this.transferId && this.destNetworkName) {
+        // Query Graph Protocol for WithdrawalBonded events
         const withdrawalBondeds = await fetchWithdrawalBondedsByTransferId(
           this.destNetworkName,
           this.transferId
         )
-        if (withdrawalBondeds.length) {
+        if (withdrawalBondeds?.length) {
           const lastEvent = withdrawalBondeds[withdrawalBondeds.length - 1]
           this.destTxHash = lastEvent.transactionHash
         }
 
+        // L2 -> L1
+        if (this.destNetworkName === 'ethereum') {
+          const destL1Bridge = await bridge.getL1Bridge(this.provider)
+          const isSpent = await destL1Bridge.isTransferIdSpent(this.transferId)
+          if (isSpent) {
+            this.pendingDestinationConfirmation = false
+          }
+          // console.log(`isSpent ${this.transferId}:`, isSpent)
+          return isSpent
+        }
+
+        // L2 -> L2
         const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
         const isSpent = await destL2Bridge.isTransferIdSpent(this.transferId)
         if (isSpent) {

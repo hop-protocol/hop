@@ -45,7 +45,7 @@ class OsWatcher {
         const totalSizeFormatted = `${totalSizeGb?.toFixed(2)}GB`
         const usedPercent = (usedSizeGb / totalSizeGb) * 100
         const usedPercentFormatted = `${usedPercent.toFixed(2)}%`
-        this.logger.debug(`DISK: ${usedSizeFormatted}/${totalSizeFormatted} (${usedPercentFormatted})`)
+        this.logger.info(`DISK: ${usedSizeFormatted}/${totalSizeFormatted} (${usedPercentFormatted})`)
         this.metrics.setDisk(totalSize, freeSize, usedSize)
         resolve(null)
       })
@@ -73,8 +73,8 @@ class OsWatcher {
         const freeMemory = totalMemory - usedMemory
         const memoryPercent = (usedMemoryMb / totalMemoryMb) * 100
         const memoryFormatted = `${usedMemoryMb?.toFixed(2)}MB out of ${totalMemoryMb?.toFixed(2)}MB (${memoryPercent?.toFixed(2)}%)`
-        this.logger.debug(`CPU: ${cpuFormatted}`)
-        this.logger.debug(`MEMORY: ${memoryFormatted}`)
+        this.logger.info(`CPU: ${cpuFormatted}`)
+        this.logger.info(`MEMORY: ${memoryFormatted}`)
         this.metrics.setMemory(totalMemory, freeMemory, usedMemory)
         resolve(null)
       })

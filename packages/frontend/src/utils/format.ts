@@ -1,4 +1,4 @@
-import { parseUnits } from '@ethersproject/units'
+import { BigNumber, FixedNumber, utils } from 'ethers'
 import Network from 'src/models/Network'
 import { prettifyErrorMessage } from '.'
 
@@ -36,21 +36,31 @@ export function sanitizeNumericalString(numStr: string) {
   return numStr.replace(/[^0-9.]|\.(?=.*\.)/g, '')
 }
 
-export function fixedDecimals(amount: string, decimals: number) {
+export function maxDecimals(amount: string, decimals) {
   const sanitizedAmount = sanitizeNumericalString(amount)
   const indexOfDecimal = sanitizedAmount.indexOf('.')
   if (indexOfDecimal === -1) {
     return sanitizedAmount
   }
 
-  const wholeAmount = sanitizedAmount.slice(0, indexOfDecimal)
+  const wholeAmountStr = sanitizedAmount.slice(0, indexOfDecimal) || '0'
+  const wholeAmount = BigNumber.from(wholeAmountStr).toString()
+
   const fractionalAmount = sanitizedAmount.slice(indexOfDecimal + 1)
   const decimalAmount = decimals !== 0 ? `.${fractionalAmount.slice(0, decimals)}` : ''
 
   return `${wholeAmount}${decimalAmount}`
 }
 
+export function fixedDecimals(amount: string, decimals: number = 18) {
+  if (amount === '') {
+    return amount
+  }
+  const mdAmount = maxDecimals(amount, decimals)
+  return FixedNumber.from(mdAmount).toString()
+}
+
 export function amountToBN(amount: string, decimals: number = 18) {
-  const fixedAmount = fixedDecimals(amount, decimals).toString()
-  return parseUnits(fixedAmount || '0', decimals)
+  const fixedAmount = fixedDecimals(amount, decimals)
+  return utils.parseUnits(fixedAmount || '0', decimals)
 }

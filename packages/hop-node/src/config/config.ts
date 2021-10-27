@@ -147,6 +147,10 @@ export const config: Config = {
     ETH: {
       L2ToL1: 10,
       L2ToL2: 10
+    },
+    WBTC: {
+      L2ToL1: 10,
+      L2ToL2: 10
     }
   },
   db: {

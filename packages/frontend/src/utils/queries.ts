@@ -1,6 +1,9 @@
 import logger from 'src/logger'
 
 export function getUrl(chain) {
+  if (chain === 'ethereum') {
+    chain = 'mainnet'
+  }
   return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
 }
 
@@ -73,6 +76,6 @@ export async function fetchWithdrawalBondedsByTransferId(chain, transferId: stri
     `
   const url = getUrl(chain)
   const data = await queryFetch(url, query)
-  return data.withdrawalBondeds
+  return data?.withdrawalBondeds
 }
 

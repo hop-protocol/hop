@@ -23,10 +23,6 @@ export type Config = {
   stateUpdateAddress?: string
 }
 
-const BONDER_ORDER_DELAY_MS = 60 * 1000
-
-class BondError extends Error {}
-
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
 
@@ -189,7 +185,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       this.notifier.info(msg)
     } catch (err) {
       logger.log(err.message)
-      const isCallExceptionError = /The execution failed due to an exception/gi.test(err.message)
+      const isCallExceptionError = /The execution failed due to an exception/i.test(err.message)
       if (isCallExceptionError) {
         await this.db.transfers.update(transferId, {
           withdrawalBondTxError: TxError.CallException

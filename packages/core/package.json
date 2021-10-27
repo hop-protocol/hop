@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/core",
-  "version": "0.0.1-beta.42",
+  "version": "0.0.1-beta.44",
   "description": "Hop Protocol networks config",
   "main": "index.js",
   "types": "index.d.ts",
@@ -36,7 +36,7 @@
   "dependencies": {
     "deepmerge": "^4.2.2",
     "eslint-plugin-json": "^3.1.0",
-    "ethers": "^5.4.7"
+    "ethers": "^5.5.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.7.0",

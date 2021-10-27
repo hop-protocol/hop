@@ -1,3 +1,4 @@
+import { Provider } from 'src/provider'
 import { providers } from 'ethers'
 
 const cache: any = {}
@@ -12,9 +13,9 @@ const getRpcProviderFromUrl = (
   if (cache[cacheKey]) {
     return cache[cacheKey]
   }
-  const _providers: providers.StaticJsonRpcProvider[] = []
+  const _providers: Provider[] = []
   for (const rpcUrl of rpcUrls) {
-    const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+    const provider = new Provider(rpcUrl)
     if (rpcUrls.length === 1) {
       cache[cacheKey] = provider
       return provider

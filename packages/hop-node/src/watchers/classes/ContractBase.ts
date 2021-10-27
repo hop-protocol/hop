@@ -2,7 +2,6 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
-import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Event } from '@ethersproject/contracts'
@@ -29,7 +28,7 @@ export default class ContractBase extends EventEmitter {
     this.chainId = chainSlugToId(chainSlug)! // eslint-disable-line
   }
 
-  getChainId = rateLimitRetry(async (): Promise<number> => {
+  getChainId = async (): Promise<number> => {
     if (this.chainId) {
       return this.chainId
     }
@@ -37,7 +36,7 @@ export default class ContractBase extends EventEmitter {
     const _chainId = Number(chainId.toString())
     this.chainId = _chainId
     return _chainId
-  })
+  }
 
   async getChainSlug () {
     if (this.chainSlug) {
@@ -62,32 +61,32 @@ export default class ContractBase extends EventEmitter {
     return this.contract.address
   }
 
-  getTransaction = rateLimitRetry(async (txHash: string): Promise<Transaction> => {
+  getTransaction = async (txHash: string): Promise<Transaction> => {
     if (!txHash) {
       throw new Error('tx hash is required')
     }
     return await this.contract.provider.getTransaction(txHash)
-  })
+  }
 
-  getTransactionReceipt = rateLimitRetry(async (
+  getTransactionReceipt = async (
     txHash: string
   ): Promise<providers.TransactionReceipt> => {
     return await this.contract.provider.getTransactionReceipt(txHash)
-  })
+  }
 
-  getBlockNumber = rateLimitRetry(async (): Promise<number> => {
+  getBlockNumber = async (): Promise<number> => {
     return await this.contract.provider.getBlockNumber()
-  })
+  }
 
-  getTransactionBlockNumber = rateLimitRetry(async (txHash: string): Promise<number> => {
+  getTransactionBlockNumber = async (txHash: string): Promise<number> => {
     const tx = await this.contract.provider.getTransaction(txHash)
     if (!tx) {
       throw new Error(`transaction not found. transactionHash: ${txHash}`)
     }
     return tx.blockNumber! // eslint-disable-line
-  })
+  }
 
-  getBlockTimestamp = rateLimitRetry(async (
+  getBlockTimestamp = async (
     blockNumber: number | string = 'latest'
   ): Promise<number> => {
     const block = await this.contract.provider.getBlock(blockNumber)
@@ -95,7 +94,7 @@ export default class ContractBase extends EventEmitter {
       throw new Error(`expected block. blockNumber: ${blockNumber}`)
     }
     return block.timestamp
-  })
+  }
 
   async getTransactionTimestamp (
     txHash: string
@@ -115,22 +114,22 @@ export default class ContractBase extends EventEmitter {
     return Number(tx.timestamp.toString())
   }
 
-  getCode = rateLimitRetry(async (
+  getCode = async (
     address: string,
     blockNumber: string | number = 'latest'
   ): Promise<string> => {
     return await this.contract.provider.getCode(address, blockNumber)
-  })
+  }
 
-  getBalance = rateLimitRetry(async (
+  getBalance = async (
     address: string
   ): Promise<BigNumber> => {
     return await this.contract.provider.getBalance(address)
-  })
+  }
 
-  protected getGasPrice = rateLimitRetry(async (): Promise<BigNumber> => {
+  protected getGasPrice = async (): Promise<BigNumber> => {
     return await this.contract.provider.getGasPrice()
-  })
+  }
 
   protected async getBumpedGasPrice (multiplier: number): Promise<BigNumber> {
     const gasPrice = await this.getGasPrice()

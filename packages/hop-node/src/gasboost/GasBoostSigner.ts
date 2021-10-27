@@ -3,7 +3,6 @@ import GasBoostTransactionFactory, { Options } from './GasBoostTransactionFactor
 import Logger from 'src/logger'
 import Store from './Store'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
-import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
@@ -55,6 +54,7 @@ class GasBoostSigner extends Wallet {
     this.store = store
   }
 
+  // this is a required ethers Signer method
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
     return await this.mutex.runExclusive(async () => {
       this.logger.debug(`unlocked tx: ${JSON.stringify(tx)}`)
@@ -62,7 +62,7 @@ class GasBoostSigner extends Wallet {
     })
   }
 
-  _sendTransaction = rateLimitRetry(async (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> => {
+  _sendTransaction = async (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> => {
     const nonce = await this.getNonce()
     if (!tx.nonce) {
       tx.nonce = nonce
@@ -84,7 +84,7 @@ class GasBoostSigner extends Wallet {
     this.nonce++
     this.lastTxSentTimestamp = Date.now()
     return gTx
-  })
+  }
 
   private async getNonce () {
     if (!this.nonce) {

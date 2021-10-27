@@ -1,5 +1,4 @@
 import ContractBase from './ContractBase'
-import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, ethers, providers } from 'ethers'
 import { ERC20 } from '@hop-protocol/core/contracts'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -13,27 +12,27 @@ export default class Token extends ContractBase {
     this.tokenContract = tokenContract
   }
 
-  getBalance = rateLimitRetry(async (): Promise<BigNumber> => {
+  getBalance = async (): Promise<BigNumber> => {
     const address = await this.tokenContract.signer.getAddress()
     const balance = await this.tokenContract.balanceOf(address)
     return balance
-  })
+  }
 
-  decimals = rateLimitRetry(async () => {
+  decimals = async () => {
     if (!this._decimals) {
       const _decimals = await this.tokenContract.decimals()
       this._decimals = Number(_decimals.toString())
     }
     return this._decimals
-  })
+  }
 
-  getAllowance = rateLimitRetry(async (spender: string): Promise<BigNumber> => {
+  getAllowance = async (spender: string): Promise<BigNumber> => {
     const owner = await this.tokenContract.signer.getAddress()
     const allowance = await this.tokenContract.allowance(owner, spender)
     return allowance
-  })
+  }
 
-  approve = rateLimitRetry(async (
+  approve = async (
     spender: string,
     amount: BigNumber = ethers.constants.MaxUint256
   ): Promise<providers.TransactionResponse | undefined> => {
@@ -45,9 +44,9 @@ export default class Token extends ContractBase {
         await this.txOverrides()
       )
     }
-  })
+  }
 
-  transfer = rateLimitRetry(async (
+  transfer = async (
     recipient: string,
     amount: BigNumber
   ): Promise<providers.TransactionResponse> => {
@@ -56,7 +55,7 @@ export default class Token extends ContractBase {
       amount,
       await this.txOverrides()
     )
-  })
+  }
 
   async formatUnits (value: BigNumber) {
     return Number(formatUnits(value.toString(), await this.decimals()))

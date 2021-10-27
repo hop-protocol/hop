@@ -69,7 +69,7 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
   })
 
   // Bloom-filter Queries
-  getLogs = rateLimitRetry(async (filter: Filter | FilterByBlockHash | Promise<Filter | FilterByBlockHash>): Promise<Array<Log>> => {
+  getLogs = rateLimitRetry(async (filter: Filter | FilterByBlockHash | Promise<Filter | FilterByBlockHash>): Promise<Log[]> => {
     return super.getLogs(filter)
   })
 

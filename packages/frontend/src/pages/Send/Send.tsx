@@ -52,8 +52,8 @@ const Send: FC = () => {
   const { queryParams, updateQueryParams } = useQueryParams()
   const [fromNetwork, _setFromNetwork] = useState<Network>()
   const [toNetwork, _setToNetwork] = useState<Network>()
-  const [fromTokenAmount, setFromTokenAmount] = useState<string>('')
-  const [toTokenAmount, setToTokenAmount] = useState<string>('')
+  const [fromTokenAmount, setFromTokenAmount] = useState<string>()
+  const [toTokenAmount, setToTokenAmount] = useState<string>()
   const [approving, setApproving] = useState<boolean>(false)
   const [feeDisplay, setFeeDisplay] = useState<string>()
   const [amountOutMinDisplay, setAmountOutMinDisplay] = useState<string>()
@@ -64,14 +64,14 @@ const Send: FC = () => {
   const [minimumSendWarning, setMinimumSendWarning] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
-  const [customRecipient, setCustomRecipient] = useState<string>('')
+  const [customRecipient, setCustomRecipient] = useState<string>()
 
   // Set fromNetwork and toNetwork using query params
   useEffect(() => {
-    const _fromNetwork = networks.find(network => network.slug === queryParams.sourceNetwork)
+    const _fromNetwork = networks.find((network) => network.slug === queryParams.sourceNetwork)
     _setFromNetwork(_fromNetwork)
 
-    const _toNetwork = networks.find(network => network.slug === queryParams.destNetwork)
+    const _toNetwork = networks.find((network) => network.slug === queryParams.destNetwork)
 
     if (_fromNetwork?.name === _toNetwork?.name) {
       // Leave destination network empty
@@ -109,7 +109,7 @@ const Send: FC = () => {
 
   // Set fromToken -> BN
   const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {
-    if (sourceToken) {
+    if (fromTokenAmount && sourceToken) {
       return amountToBN(fromTokenAmount, sourceToken.decimals)
     }
   }, [sourceToken, fromTokenAmount])
@@ -196,7 +196,17 @@ const Send: FC = () => {
           Insufficient liquidity. There is {formattedAmount} {sourceToken.symbol} available on{' '}
           {toNetwork.name}.{' '}
           <InfoTooltip
-            title={<><div>The Bonder does not have enough liquidity to bond the transfer at the destination.</div><div>Available liquidity: {formattedAmount}</div><div>Required liquidity: {toTokenDisplay(requiredLiquidity, sourceToken.decimals)}</div></>}
+            title={
+              <>
+                <div>
+                  The Bonder does not have enough liquidity to bond the transfer at the destination.
+                </div>
+                <div>Available liquidity: {formattedAmount}</div>
+                <div>
+                  Required liquidity: {toTokenDisplay(requiredLiquidity, sourceToken.decimals)}
+                </div>
+              </>
+            }
           />
         </>
       )
@@ -248,6 +258,8 @@ const Send: FC = () => {
       message = 'Bonder fee greater than estimated received'
     } else if (estimatedReceived?.lte(0)) {
       message = 'Insufficient amount. Send higher amount to cover bonder fee.'
+    } else if (priceImpact && priceImpact !== 100 && (priceImpact >= 1 || priceImpact <= -1)) {
+      message = `Warning: High Price Impact! ${commafy(priceImpact)}%`
     }
 
     if (needsNativeTokenWarning) {
@@ -261,6 +273,7 @@ const Send: FC = () => {
     minimumSendWarning,
     enoughBalance,
     estimatedReceived,
+    priceImpact,
   ])
 
   useEffect(() => {
@@ -408,7 +421,7 @@ const Send: FC = () => {
   // Change the bridge if user selects different token to send
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
-    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
+    const bridge = bridges.find((bridge) => bridge.getTokenSymbol() === tokenSymbol)
     if (bridge) {
       setSelectedBridge(bridge)
     }
@@ -472,6 +485,7 @@ const Send: FC = () => {
     estimatedReceived?.gt(0)
   )
 
+  const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
   const sendButtonActive = validFormFields && !unsupportedAsset && !needsApproval
 
   return (
@@ -487,7 +501,7 @@ const Send: FC = () => {
         value={fromTokenAmount}
         token={sourceToken ?? placeholderToken}
         label={'From'}
-        onChange={value => {
+        onChange={(value) => {
           if (!value) {
             setFromTokenAmount('')
             setToTokenAmount('')
@@ -502,6 +516,9 @@ const Send: FC = () => {
         onNetworkChange={handleFromNetworkChange}
         balance={fromBalance}
         loadingBalance={loadingFromBalance}
+        deadline={deadline}
+        toNetwork={toNetwork}
+        fromNetwork={fromNetwork}
       />
 
       <MuiButton className={styles.switchDirectionButton} onClick={handleSwitchDirection}>
@@ -567,7 +584,7 @@ const Send: FC = () => {
           className={styles.button}
           large
           highlighted={!!needsApproval}
-          disabled={!needsApproval || needsTokenForFee}
+          disabled={!approveButtonActive}
           onClick={handleApprove}
           loading={approving}
         >
@@ -577,7 +594,7 @@ const Send: FC = () => {
           className={styles.button}
           startIcon={sendButtonActive && <SendIcon />}
           onClick={send}
-          disabled={!sendButtonActive || needsTokenForFee}
+          disabled={!sendButtonActive}
           loading={sending}
           large
           highlighted

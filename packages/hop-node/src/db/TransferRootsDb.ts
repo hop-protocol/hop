@@ -365,6 +365,23 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       )
     })
   }
+
+  async getItemsWithoutAllSettledState (
+    filter: Partial<TransferRoot> = {}
+  ) {
+    const transferRoots: TransferRoot[] = await this.getItems()
+    return transferRoots.filter(item => {
+      if (filter.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
+      return (
+        item?.allSettled === undefined
+      )
+    })
+  }
 }
 
 export default TransferRootsDb

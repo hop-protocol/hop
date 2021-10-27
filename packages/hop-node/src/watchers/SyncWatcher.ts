@@ -162,8 +162,29 @@ class SyncWatcher extends BaseWatcher {
                 return this.db.transferRoots.trackTimestampedKeyByTransferRootHash(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
               })
               .catch((err: Error) => {
-                this.logger.error('populateTransferRootDbItem error:', err)
-                this.notifier.error(`populateTransferRootDbItem error: ${err.message}`)
+                this.logger.error('populateIncompleteTransferRootDbItem error:', err)
+                this.notifier.error(`populateIncompleteTransferRootDbItem error: ${err.message}`)
+              })
+          }))
+        }
+      }
+      // This DB state update requires transfer IDs and Roots to be fully populated before calling
+      // since this update depends on the DB state updates of other events
+      const transferRootsWithoutAllSettledState = await this.db.transferRoots.getItemsWithoutAllSettledState()
+      if (transferRootsWithoutAllSettledState.length) {
+        this.logger.debug(`transfer root items (w/o allSettled): ${transferRootsWithoutAllSettledState.length}`)
+        const allChunks = chunk(transferRootsWithoutAllSettledState, chunkSize)
+        for (const chunks of allChunks) {
+          await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {
+            const { transferRootHash, multipleWithdrawalsSettledTotalAmount } = transferRoot
+            return await this.checkTransferRootSettledState(transferRootHash!, multipleWithdrawalsSettledTotalAmount!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+              .then(async () => {
+                // fill in missing db timestamped keys
+                return this.db.transferRoots.trackTimestampedKeyByTransferRootHash(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+              })
+              .catch((err: Error) => {
+                this.logger.error('populateCompleteTransferRootDbItem error:', err)
+                this.notifier.error(`populateCompleteTransferRootDbItem error: ${err.message}`)
               })
           }))
         }
@@ -278,8 +299,7 @@ class SyncWatcher extends BaseWatcher {
       )
     }
 
-    const transferSpentPromises: Array<Promise<any>> = []
-    transferSpentPromises.push(
+    promises.push(
       this.bridge.mapWithdrawalBondedEvents(
         async (event: WithdrawalBondedEvent) => {
           return await this.handleWithdrawalBondedEvent(event)
@@ -288,7 +308,7 @@ class SyncWatcher extends BaseWatcher {
       )
     )
 
-    transferSpentPromises.push(
+    promises.push(
       this.bridge.mapWithdrewEvents(
         async (event: WithdrewEvent) => {
           return await this.handleWithdrewEvent(event)
@@ -298,17 +318,12 @@ class SyncWatcher extends BaseWatcher {
     )
 
     promises.push(
-      Promise.all(transferSpentPromises)
-        .then(async () => {
-        // This must be executed after the Withdrew and WithdrawalBonded event handlers
-        // on initial sync since it relies on data from those handlers.
-          return await this.bridge.mapMultipleWithdrawalsSettledEvents(
-            async (event: MultipleWithdrawalsSettledEvent) => {
-              return await this.handleMultipleWithdrawalsSettledEvent(event)
-            },
-            getOptions(this.bridge.MultipleWithdrawalsSettled)
-          )
-        })
+      this.bridge.mapMultipleWithdrawalsSettledEvents(
+        async (event: MultipleWithdrawalsSettledEvent) => {
+          return await this.handleMultipleWithdrawalsSettledEvent(event)
+        },
+        getOptions(this.bridge.MultipleWithdrawalsSettled)
+      )
     )
 
     promises.push(
@@ -946,14 +961,6 @@ class SyncWatcher extends BaseWatcher {
       multipleWithdrawalsSettledTxHash: transactionHash,
       multipleWithdrawalsSettledTotalAmount: totalBondsSettled
     })
-
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    const transferIds = dbTransferRoot?.transferIds
-    if (!transferIds) {
-      return
-    }
-
-    await this.checkTransferRootSettledState(transferRootHash, totalBondsSettled)
   }
 
   getIsBondable = (

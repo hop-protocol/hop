@@ -45,6 +45,11 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
       return
     }
 
+    // Return quickly if already completed
+    if (completed) {
+      return
+    }
+
     const txHash = transaction.hash
     const cacheKey = `txReceipt:${txHash}`
 
@@ -78,7 +83,7 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
 
   useEffect(() => {
     updateDestTxStatus()
-  }, [transaction])
+  }, [sdk, transaction])
 
   useInterval(updateTxStatus, 10e3)
   useInterval(updateDestTxStatus, 10e3)

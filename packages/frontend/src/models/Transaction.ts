@@ -24,6 +24,7 @@ interface Config {
   isCanonicalTransfer?: boolean
   pendingDestinationConfirmation?: boolean
   transferId?: string | null
+  replaced?: boolean
 }
 
 const standardNetworks = new Set(['mainnet', 'ropsten', 'kovan', 'rinkeby', 'goerli'])
@@ -42,6 +43,7 @@ class Transaction extends EventEmitter {
   pendingDestinationConfirmation?: boolean
   transferId: string | null = null
   destTxHash?: string
+  replaced?: boolean
 
   constructor({
     hash,
@@ -191,12 +193,13 @@ class Transaction extends EventEmitter {
         )
 
         if ('amount' in decodedData) {
-          const { amount } = decodedData
+          const { amount, deadline } = decodedData
           // Query Graph Protocol for TransferFromL1Completed events
           const transferFromL1Completeds = await fetchTransferFromL1Completeds(
             this.destNetworkName,
             tsDetails.recipient,
-            amount.toString()
+            amount,
+            deadline
           )
 
           if (transferFromL1Completeds?.length) {
@@ -219,7 +222,12 @@ class Transaction extends EventEmitter {
 
           if (evs?.length) {
             // Find the matching amount
-            const tfl1Completed = findTransferFromL1CompletedLog(evs, amount, tsDetails.recipient)
+            const tfl1Completed = findTransferFromL1CompletedLog(
+              evs,
+              tsDetails.recipient,
+              amount,
+              deadline
+            )
             if (tfl1Completed) {
               this.destTxHash = tfl1Completed.transactionHash
               this.pendingDestinationConfirmation = false

@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import Transaction from 'src/models/Transaction'
 import { loadState, saveState } from 'src/utils/localStorage'
 import { sortByRecentTimestamp } from 'src/utils/sort'
+import logger from 'src/logger'
+import find from 'lodash/find'
 
 export interface TxHistory {
   transactions: Transaction[]
@@ -9,6 +11,7 @@ export interface TxHistory {
   addTransaction: (tx: Transaction) => void
   clear: () => void
   updateTransaction: (tx: Transaction) => void
+  replaceTransaction: (hash: string, tx: Transaction) => void
 }
 
 const useTxHistory = (defaultTxs?: Transaction[]): TxHistory => {
@@ -25,7 +28,17 @@ const useTxHistory = (defaultTxs?: Transaction[]): TxHistory => {
   })
 
   function updateTransaction(tx: Transaction) {
+    const match = find(transactions, ['hash', tx.hash])
+    if (!match) {
+      logger.error(`no matching transaction ${tx.hash}`)
+      return
+    }
     const filtered = transactions.filter((t: Transaction) => t.hash !== tx.hash)
+    setTransactions(sortByRecentTimestamp([...filtered, tx]).slice(0, 3))
+  }
+
+  function replaceTransaction(hash: string, tx: Transaction) {
+    const filtered = transactions.filter((t: Transaction) => t.hash !== hash)
     setTransactions(sortByRecentTimestamp([...filtered, tx]).slice(0, 3))
   }
 
@@ -70,6 +83,7 @@ const useTxHistory = (defaultTxs?: Transaction[]): TxHistory => {
     addTransaction,
     clear,
     updateTransaction,
+    replaceTransaction,
   }
 }
 

@@ -1,6 +1,6 @@
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
-import { Block, BlockTag, BlockWithTransactions, Provider as EthersProvider, Filter, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
+import { Block, BlockTag, BlockWithTransactions, Provider as EthersProvider, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
 import { Deferrable } from '@ethersproject/properties'
 import { Network } from '@ethersproject/networks'
 import { providers } from 'ethers'
@@ -14,7 +14,6 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
 
   // Latest State
   getBlockNumber = rateLimitRetry(async (): Promise<number> => {
-    console.log('FOO bn')
     return super.getBlockNumber()
   })
 
@@ -70,7 +69,7 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
   })
 
   // Bloom-filter Queries
-  getLogs = rateLimitRetry(async (filter: Filter): Promise<Log[]> => {
+  getLogs = rateLimitRetry(async (filter: Filter | FilterByBlockHash | Promise<Filter | FilterByBlockHash>): Promise<Log[]> => {
     return super.getLogs(filter)
   })
 

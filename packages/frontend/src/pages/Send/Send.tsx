@@ -196,7 +196,17 @@ const Send: FC = () => {
           Insufficient liquidity. There is {formattedAmount} {sourceToken.symbol} available on{' '}
           {toNetwork.name}.{' '}
           <InfoTooltip
-            title={<><div>The Bonder does not have enough liquidity to bond the transfer at the destination.</div><div>Available liquidity: {formattedAmount}</div><div>Required liquidity: {toTokenDisplay(requiredLiquidity, sourceToken.decimals)}</div></>}
+            title={
+              <>
+                <div>
+                  The Bonder does not have enough liquidity to bond the transfer at the destination.
+                </div>
+                <div>Available liquidity: {formattedAmount}</div>
+                <div>
+                  Required liquidity: {toTokenDisplay(requiredLiquidity, sourceToken.decimals)}
+                </div>
+              </>
+            }
           />
         </>
       )
@@ -248,6 +258,8 @@ const Send: FC = () => {
       message = 'Bonder fee greater than estimated received'
     } else if (estimatedReceived?.lte(0)) {
       message = 'Insufficient amount. Send higher amount to cover bonder fee.'
+    } else if (priceImpact && priceImpact !== 100 && (priceImpact >= 1 || priceImpact <= -1)) {
+      message = `Warning: High Price Impact! ${commafy(priceImpact)}%`
     }
 
     if (needsNativeTokenWarning) {
@@ -261,6 +273,7 @@ const Send: FC = () => {
     minimumSendWarning,
     enoughBalance,
     estimatedReceived,
+    priceImpact,
   ])
 
   useEffect(() => {

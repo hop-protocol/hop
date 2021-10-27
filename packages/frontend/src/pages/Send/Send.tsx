@@ -109,7 +109,7 @@ const Send: FC = () => {
 
   // Set fromToken -> BN
   const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {
-    if (sourceToken) {
+    if (fromTokenAmount && sourceToken) {
       return amountToBN(fromTokenAmount, sourceToken.decimals)
     }
   }, [sourceToken, fromTokenAmount])
@@ -472,6 +472,7 @@ const Send: FC = () => {
     estimatedReceived?.gt(0)
   )
 
+  const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
   const sendButtonActive = validFormFields && !unsupportedAsset && !needsApproval
 
   return (
@@ -502,6 +503,9 @@ const Send: FC = () => {
         onNetworkChange={handleFromNetworkChange}
         balance={fromBalance}
         loadingBalance={loadingFromBalance}
+        deadline={deadline}
+        toNetwork={toNetwork}
+        fromNetwork={fromNetwork}
       />
 
       <MuiButton className={styles.switchDirectionButton} onClick={handleSwitchDirection}>
@@ -567,7 +571,7 @@ const Send: FC = () => {
           className={styles.button}
           large
           highlighted={!!needsApproval}
-          disabled={!needsApproval || needsTokenForFee}
+          disabled={!approveButtonActive}
           onClick={handleApprove}
           loading={approving}
         >
@@ -577,7 +581,7 @@ const Send: FC = () => {
           className={styles.button}
           startIcon={sendButtonActive && <SendIcon />}
           onClick={send}
-          disabled={!sendButtonActive || needsTokenForFee}
+          disabled={!sendButtonActive}
           loading={sending}
           large
           highlighted

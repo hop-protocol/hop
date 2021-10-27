@@ -96,7 +96,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       const allBondableTransfersSettled = dbTransfers.every(
         (dbTransfer: Transfer) => {
           // A transfer should not be settled if it is unbondable
-          return !dbTransfer?.isBondable || dbTransfer.withdrawalBondSettled
+          return !dbTransfer.isBondable || dbTransfer.withdrawalBondSettled
         }
       )
       if (allBondableTransfersSettled) {

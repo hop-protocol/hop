@@ -24,7 +24,7 @@ export type GasCost = BaseItem & {
 class GasCostDb extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
-    this.startPrunePoller()
+    // this.startPrunePoller()
   }
 
   private async startPrunePoller () {
@@ -90,13 +90,13 @@ class GasCostDb extends BaseDb {
   }
 
   private async prune (): Promise<void> {
-    const items = await this.getOldEntries()
-    for (const { chain, token, timestamp, _id } of items) {
-      if (_id === undefined) {
-        throw new Error(`id undefined for ${chain}:${token}:${timestamp}`)
-      }
-      await this.deleteById(_id)
-    }
+    // const items = await this.getOldEntries()
+    // for (const { chain, token, timestamp, _id } of items) {
+    //   if (_id === undefined) {
+    //     throw new Error(`id undefined for ${chain}:${token}:${timestamp}`)
+    //   }
+    //   await this.deleteById(_id)
+    // }
   }
 }
 

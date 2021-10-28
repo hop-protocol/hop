@@ -179,24 +179,24 @@ export default class L2Bridge extends Bridge {
     const amountOutMin = '0' // must be 0
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const isNativeToken = this.tokenSymbol === 'MATIC' && this.chainSlug === Chain.Polygon
-    const { destinationTxFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
-    let bonderFee = await bridge.getBonderFee(
-      amount,
-      this.chainSlug,
-      destinationChain
-    )
+    const { totalFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
+    // let bonderFee = await bridge.getBonderFee(
+    //   amount,
+    //   this.chainSlug,
+    //   destinationChain
+    // )
 
-    bonderFee = bonderFee.add(destinationTxFee)
+    // bonderFee = bonderFee.add(destinationTxFee)
 
-    if (bonderFee.gt(amount)) {
-      throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${this.formatUnits(bonderFee)}`)
+    if (totalFee.gt(amount)) {
+      throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${this.formatUnits(totalFee)}`)
     }
 
     return await this.l2BridgeContract.send(
       destinationChainId,
       recipient,
       amount,
-      bonderFee,
+      totalFee,
       amountOutMin,
       deadline,
       {

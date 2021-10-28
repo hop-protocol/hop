@@ -486,9 +486,10 @@ class HopBridge extends Base {
       rate,
       priceImpact,
       requiredLiquidity: hTokenAmount,
-      bonderFee: adjustedBonderFee,
       lpFees,
-      destinationTxFee: adjustedDestinationTxFee,
+      adjustedBonderFee,
+      adjustedDestinationTxFee,
+      totalFee,
       estimatedReceived
     }
   }
@@ -579,14 +580,14 @@ class HopBridge extends Base {
     destinationChain: TChain,
     deadline?: BigNumberish
   ): Promise<BigNumber> {
-    const { bonderFee, destinationTxFee } = await this.getSendData(
+    const { totalFee } = await this.getSendData(
       amountIn,
       sourceChain,
       destinationChain,
       deadline
     )
 
-    return bonderFee.add(destinationTxFee)
+    return totalFee
   }
 
   public async getLpFees (

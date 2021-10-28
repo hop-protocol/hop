@@ -178,6 +178,7 @@ program
           minThreshold
         })
       }
+
       const promises: Array<Promise<void>> = []
       if (config?.roles?.xdaiBridge) {
         for (const token of tokens) {

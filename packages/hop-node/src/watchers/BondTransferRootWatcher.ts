@@ -42,11 +42,13 @@ class BondTransferRootWatcher extends BaseWatcher {
 
   async checkTransfersCommittedFromDb () {
     const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots()
-    if (dbTransferRoots.length) {
-      this.logger.debug(
-        `checking ${dbTransferRoots.length} unbonded transfer roots db items`
-      )
+    if (!dbTransferRoots.length) {
+      return
     }
+
+    this.logger.debug(
+        `checking ${dbTransferRoots.length} unbonded transfer roots db items`
+    )
 
     const promises: Array<Promise<any>> = []
     for (const dbTransferRoot of dbTransferRoots) {

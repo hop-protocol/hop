@@ -112,12 +112,9 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     await Promise.all(promises)
   }
 
-  normalizeItem (transferRootHash: string, item: Partial<TransferRoot>) {
+  normalizeItem (item: Partial<TransferRoot>) {
     if (!item) {
       return item
-    }
-    if (!item.transferRootHash) {
-      item.transferRootHash = transferRootHash
     }
     return normalizeDbItem(item)
   }
@@ -126,7 +123,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     transferRootHash: string
   ): Promise<TransferRoot> {
     const item: TransferRoot = await this.getById(transferRootHash)
-    return this.normalizeItem(transferRootHash, item)
+    return this.normalizeItem(item)
   }
 
   async getByTransferRootId (transferRootId: string): Promise<TransferRoot | null | undefined> {
@@ -140,8 +137,12 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
           }
         })
       )
-    ).filter(x => x)
+    ).filter(this.filterExisty)
     return filtered?.[0]
+  }
+
+  filterTimestampedKeyValues = (x: any) => {
+    return x?.value?.transferRootHash
   }
 
   async getTransferRootHashes (dateFilter?: TransferRootsDateFilter): Promise<string[]> {
@@ -155,23 +156,28 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         filter.lte = `transferRoot:${dateFilter.toUnix}~` // tilde is intentional
       }
       const kv = await this.subDb.getKeyValues(filter)
-      return kv.map((x: any) => x?.value?.transferRootHash).filter((x: any) => x)
+      return kv.map(this.filterTimestampedKeyValues).filter(this.filterExisty)
     }
 
     // return all transfer-root keys if no filter is used (filter out timestamped keys)
     const keys = await this.getKeys()
-    return keys.filter(x => x)
+    return keys.filter(this.filterExisty)
+  }
+
+  sortItems = (a: any, b: any) => {
+    return a?.committedAt - b?.committedAt
   }
 
   async getItems (dateFilter?: TransferRootsDateFilter): Promise<TransferRoot[]> {
     const transferRootHashes = await this.getTransferRootHashes(dateFilter)
-    const transferRoots = (await this.batchGetByIds(transferRootHashes)).map((item: TransferRoot) => {
-      return this.normalizeItem(item.transferRootHash as string, item)
-    })
+    const batchedItems = await this.batchGetByIds(transferRootHashes)
+    const transferRoots = batchedItems.map(this.normalizeItem)
 
-    return transferRoots
-      .sort((a, b) => a?.committedAt - b?.committedAt)
-      .filter(x => x)
+    const items = transferRoots
+      .sort(this.sortItems)
+
+    this.logger.debug(`items length: ${items.length}`)
+    return items
   }
 
   async getTransferRoots (dateFilter?: TransferRootsDateFilter): Promise<TransferRoot[]> {

@@ -55,11 +55,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const dbTransfers = await this.db.transfers.getUnbondedSentTransfers({
       sourceChainId: await this.bridge.getChainId()
     })
-    if (dbTransfers.length) {
-      this.logger.debug(
-        `checking ${dbTransfers.length} unbonded transfers db items`
-      )
+    if (!dbTransfers.length) {
+      return
     }
+
+    this.logger.info(
+      `checking ${dbTransfers.length} unbonded transfers db items`
+    )
 
     const promises: Array<Promise<any>> = []
     for (const dbTransfer of dbTransfers) {

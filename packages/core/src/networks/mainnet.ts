@@ -1,5 +1,5 @@
-import { chains } from '../metadata'
 import { Networks } from './types'
+import { chains } from '../metadata'
 
 export const networks: Networks = {
   ethereum: {

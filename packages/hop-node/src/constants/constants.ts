@@ -55,11 +55,6 @@ export const MaxGasPriceMultiplier = 1.25
 export const MinPriorityFeePerGas = 4
 export const PriorityFeePerGasCap = 20
 
-export enum BonderFeeBps {
-  L2ToL1 = '10',
-  L2ToL2 = '10'
-}
-
 export const MinBonderFeeAbsolute = BigNumber.from('0')
 
 export enum TokenIndex {

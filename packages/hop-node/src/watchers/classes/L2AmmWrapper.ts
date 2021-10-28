@@ -1,7 +1,6 @@
 import ContractBase from './ContractBase'
 import getTokenMetadata from 'src/utils/getTokenMetadata'
 import isL1ChainId from 'src/utils/isL1ChainId'
-import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Hop } from '@hop-protocol/sdk'
@@ -30,7 +29,7 @@ export default class L2AmmWrapper extends ContractBase {
     }
   }
 
-  swapAndSend = rateLimitRetry(async (
+  swapAndSend = async (
     destinationChainId: number,
     amount: BigNumber,
     token: string
@@ -79,5 +78,5 @@ export default class L2AmmWrapper extends ContractBase {
         value: isNativeToken ? amount : undefined
       }
     )
-  })
+  }
 }

@@ -47,8 +47,8 @@ class GasCostDb extends BaseDb {
     return this.update(key, data)
   }
 
-  async getItems (filter?: KeyFilter):Promise<GasCost[]> {
-    const items : GasCost[] = await this.getValues(filter)
+  async getItems (filter?: KeyFilter): Promise<GasCost[]> {
+    const items: GasCost[] = await this.getValues(filter)
     return items.filter(x => x)
   }
 
@@ -59,7 +59,7 @@ class GasCostDb extends BaseDb {
       gte: `${chain}:${token}:${startTimestamp}`,
       lte: `${chain}:${token}:${endTimestamp}~`
     }
-    const items :GasCost[] = (await this.getItems(filter)).filter((item: GasCost) => {
+    const items: GasCost[] = (await this.getItems(filter)).filter((item: GasCost) => {
       return (
         item.chain === chain &&
         item.token === token &&
@@ -91,7 +91,10 @@ class GasCostDb extends BaseDb {
 
   private async prune (): Promise<void> {
     const items = await this.getOldEntries()
-    for (const { _id } of items) {
+    for (const { chain, token, timestamp, _id } of items) {
+      if (_id === undefined) {
+        throw new Error(`id undefined for ${chain}:${token}:${timestamp}`)
+      }
       await this.deleteById(_id)
     }
   }

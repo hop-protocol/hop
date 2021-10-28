@@ -1,6 +1,6 @@
-import toChecksumAddress from 'ethereum-checksum-address'
 import fetch from 'isomorphic-fetch'
 import serializeQueryParams from '../utils/serializeQueryParams'
+import toChecksumAddress from 'ethereum-checksum-address'
 import wait from '../utils/wait'
 
 export interface IResult {
@@ -116,7 +116,7 @@ class CoinGecko {
     base: string = 'usd'
   ) => {
     let page = 0
-    let limit = 100 // max addresses allowed per request
+    const limit = 100 // max addresses allowed per request
     const allResults: number[] = []
 
     const getTokens = async (addresses: string[]) => {
@@ -136,7 +136,7 @@ class CoinGecko {
 
       for (let i = 0; i < addresses.length; i++) {
         try {
-          let address = addresses[i]
+          const address = addresses[i]
           const item = json[address.toLowerCase()]
           if (!item) {
             throw new Error('not found')

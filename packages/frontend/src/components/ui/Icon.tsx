@@ -8,7 +8,9 @@ const StyledIcon = styled.img`
   ${color}
 `
 
-const Icon = ({ src, width, alt }: { src: string; width?: number; alt?: string }) => {
+const Icon = ({ src, width, alt }: { src?: string; width?: number; alt?: string }) => {
+  if (!src) return null
+
   return <StyledIcon src={src} width={width || 24} alt={alt || `${src.slice(4)} icon`} />
 }
 

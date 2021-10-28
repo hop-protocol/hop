@@ -8,13 +8,13 @@ import { createTransaction } from 'src/utils/createTransaction'
 import { amountToBN, formatError } from 'src/utils/format'
 import { HopBridge } from '@hop-protocol/sdk'
 
-function handleTransaction(tx, fromNetwork, toNetwork, sourceToken, txHistory) {
-  let txObj: Transaction | null = null
-  if (tx?.hash && fromNetwork) {
-    txObj = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
+function handleTransaction(tx: Transaction, fromNetwork, toNetwork, sourceToken, txHistory) {
+  if (tx && fromNetwork && toNetwork && sourceToken) {
+    const txObj = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
     txHistory?.addTransaction(txObj)
+    return txObj
   }
-  return txObj
+  return null
 }
 
 export function useSendTransaction(props) {

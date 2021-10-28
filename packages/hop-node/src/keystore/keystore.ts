@@ -6,7 +6,7 @@ const generateKeystore = (
   passphrase?: string,
   options?: any
 ): any => {
-  let privateKeyBuffer : Buffer
+  let privateKeyBuffer: Buffer
   if (!privateKey) {
     privateKey = randomBytes(32)
   }
@@ -16,7 +16,7 @@ const generateKeystore = (
   }
 
   if (typeof privateKey === 'string') {
-    privateKey = privateKey.trim().replace(/^0x/gi, '')
+    privateKey = privateKey.trim().replace(/^0x/i, '')
     privateKeyBuffer = Buffer.from(privateKey, 'hex')
   } else {
     privateKeyBuffer = privateKey

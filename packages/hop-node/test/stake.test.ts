@@ -1,5 +1,5 @@
 import { Chain } from 'src/constants'
-import { User } from './helpers'
+import { User, expectDefined } from './helpers'
 import { bonderPrivateKey } from './config'
 
 const network = Chain.Ethereum
@@ -9,6 +9,7 @@ const amount = 1_000
 test.skip(
   'stake',
   async () => {
+    expectDefined(bonderPrivateKey)
     const user = new User(bonderPrivateKey)
     let tokenBalanceBefore: number
     if (network === Chain.Ethereum) {

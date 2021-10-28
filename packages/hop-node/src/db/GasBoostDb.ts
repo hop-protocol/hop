@@ -6,10 +6,10 @@ export type State = {
 
 class GasBoostDb extends BaseDb {
   async update (key: string, data: Partial<State>) {
-    return this._update(key, data)
+    return await this._update(key, data)
   }
 
-  async getItem (key: string): Promise<State> {
+  async getItem (key: string): Promise<State | undefined> {
     const item = await this.getById(key)
     if (!item) {
       return
@@ -21,14 +21,16 @@ class GasBoostDb extends BaseDb {
   async getItems (): Promise<State[]> {
     const keys = await this.getKeys()
     const items = await Promise.all(
-      keys.map((key: string) => {
-        return this.getItem(key)
+      keys.map(async (key: string) => {
+        return await this.getItem(key)
       })
     )
-    return items.filter(x => x)
+    return items.filter((item: State): item is State => {
+      return item != null
+    })
   }
 
-  async deleteItem (key: string):Promise<void> {
+  async deleteItem (key: string): Promise<void> {
     await this.deleteById(key)
   }
 }

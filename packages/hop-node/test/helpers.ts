@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import expect from 'expect'
@@ -45,7 +47,7 @@ export class User {
   }
 
   getWallet (network: string = Chain.Ethereum) {
-    const provider = this.getProvider(network)
+    const provider = this.getProvider(network)!
     return new Wallet(this.privateKey, provider)
   }
 
@@ -59,7 +61,7 @@ export class User {
     }
     if (!token) {
       const provider = this.getProvider(network)
-      const balance = await provider.getBalance(address)
+      const balance = await provider!.getBalance(address)
       return Number(formatUnits(balance, 18))
     }
 
@@ -76,7 +78,7 @@ export class User {
 
   async getHopBalance (network: string = Chain.Ethereum, token: string = '') {
     const contract = this.getHopBridgeTokenContract(network, token)
-    return this.getBalance(network, contract)
+    return await this.getBalance(network, contract)
   }
 
   getTokenContract (network: string, token: string) {
@@ -192,6 +194,8 @@ export class User {
     } else if (network === Chain.Polygon) {
       messengerAddress = await wrapper.address
       abi = l1PolygonMessengerAbi
+    } else {
+      throw new Error(`${network} not supported`)
     }
     return new Contract(messengerAddress, abi, wallet)
   }
@@ -245,17 +249,17 @@ export class User {
 
   async getAddress () {
     const wallet = this.getWallet()
-    return wallet.getAddress()
+    return await wallet.getAddress()
   }
 
   async getTransactionReceipt (network: string, txHash: string) {
-    const provider = this.getProvider(network)
-    return provider.getTransactionReceipt(txHash)
+    const provider = this.getProvider(network)!
+    return await provider.getTransactionReceipt(txHash)
   }
 
   async waitForTransactionReceipt (network: string, txHash: string) {
-    const provider = this.getProvider(network)
-    return provider.waitForTransaction(txHash)
+    const provider = this.getProvider(network)!
+    return await provider.waitForTransaction(txHash)
   }
 
   async send (
@@ -265,13 +269,13 @@ export class User {
     amount: string | number
   ) {
     if (sourceNetwork === Chain.Ethereum) {
-      return this.sendL1ToL2(sourceNetwork, destNetwork, token, amount)
+      return await this.sendL1ToL2(sourceNetwork, destNetwork, token, amount)
     }
     if (destNetwork === Chain.Ethereum) {
-      return this.sendL2ToL1(sourceNetwork, destNetwork, token, amount)
+      return await this.sendL2ToL1(sourceNetwork, destNetwork, token, amount)
     }
 
-    return this.sendL2ToL2(sourceNetwork, destNetwork, token, amount)
+    return await this.sendL2ToL2(sourceNetwork, destNetwork, token, amount)
   }
 
   isNativeToken (network: string, token: string) {
@@ -399,7 +403,7 @@ export class User {
   ) {
     const recipient = await this.getAddress()
     const deadline = (Date.now() / 1000 + 300) | 0
-    const sourceChainId = chainSlugToId(sourceNetwork)
+    const sourceChainId = chainSlugToId(sourceNetwork)!
     const chainId = chainSlugToId(destNetwork)
     const bonderFee = await this.getBonderFee(
       sourceNetwork,
@@ -503,13 +507,13 @@ export class User {
     amount: string | number
   ) {
     const tx = await this.send(sourceNetwork, destNetwork, token, amount)
-    return this.waitForTransactionReceipt(sourceNetwork, tx.hash)
+    return await this.waitForTransactionReceipt(sourceNetwork, tx.hash)
   }
 
   async sendEth (amount: number | string, recipient: string, network?: string) {
     const wallet = this.getWallet(network)
-    return wallet.sendTransaction({
-      ...(await this.txOverrides(network)),
+    return await wallet.sendTransaction({
+      ...(await this.txOverrides(network!)),
       to: recipient,
       value: parseUnits(amount.toString(), 18)
     })
@@ -532,7 +536,7 @@ export class User {
   }
 
   async checkApproval (network: string, token: string, spender: string) {
-    return checkApproval(this, network, token, spender)
+    return await checkApproval(this, network, token, spender)
   }
 
   async stake (network: string, token: string, amount: number) {
@@ -721,8 +725,8 @@ export class User {
     const url = 'https://goerli.rpc.hop.exchange'
     const provider = new providers.StaticJsonRpcProvider(url)
     const l1Wallet = new Wallet(this.privateKey, provider)
-    const Web3 = require('web3')
-    const { MaticPOSClient } = require('@maticnetwork/maticjs')
+    const Web3 = require('web3') // eslint-disable-line @typescript-eslint/no-var-requires
+    const { MaticPOSClient } = require('@maticnetwork/maticjs') // eslint-disable-line @typescript-eslint/no-var-requires
     const maticPOSClient = new MaticPOSClient({
       network: 'testnet',
       maticProvider: new Web3.providers.HttpProvider(
@@ -740,7 +744,7 @@ export class User {
       encodeAbi: true
     })
 
-    return l1Wallet.sendTransaction({
+    return await l1Wallet.sendTransaction({
       to: tx.to,
       value: tx.value,
       data: tx.data,
@@ -863,7 +867,7 @@ export class User {
       chainId,
       totalAmount
     )
-    return this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
+    return await this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
   }
 
   async challengeTransferRoot (transferRootHash: string, totalAmount: number) {
@@ -881,7 +885,7 @@ export class User {
     totalAmount: number
   ) {
     const tx = await this.challengeTransferRoot(transferRootHash, totalAmount)
-    return this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
+    return await this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
   }
 
   async resolveChallenge (transferRootHash: string, totalAmount: number) {
@@ -899,7 +903,7 @@ export class User {
     totalAmount: number
   ) {
     const tx = await this.resolveChallenge(transferRootHash, totalAmount)
-    return this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
+    return await this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
   }
 
   async getChallengePeriod () {
@@ -1159,7 +1163,7 @@ export class User {
     network: string,
     percent: number
   ): Promise<BigNumber> {
-    const provider = this.getProvider(network)
+    const provider = this.getProvider(network)!
     const gasPrice = await provider.getGasPrice()
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
@@ -1210,7 +1214,7 @@ export async function waitForEvent (
   eventName: string,
   predicate?: (data: any) => boolean
 ) {
-  return new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     watchers.forEach(watcher => {
       watcher
         .on(eventName, (data: any) => {
@@ -1324,7 +1328,7 @@ export async function prepareAccounts (
       }
     }
     const isNativeToken = user.isNativeToken(network, token)
-    let tokenBal : number
+    let tokenBal: number
     if (isNativeToken) {
       tokenBal = await user.getBalance(network)
     } else {
@@ -1375,12 +1379,12 @@ export async function getBalances (
   token: string,
   sourceNetwork: string,
   destNetwork: string
-): Promise<any[]> {
-  return Promise.all([
+): Promise<[number[], number[]]> {
+  return await Promise.all([
     Promise.all(
-      users.map((user: User) => user.getBalance(sourceNetwork, token))
+      users.map(async (user: User) => await user.getBalance(sourceNetwork, token))
     ),
-    Promise.all(users.map((user: User) => user.getBalance(destNetwork, token)))
+    Promise.all(users.map(async (user: User) => await user.getBalance(destNetwork, token)))
   ])
 }
 
@@ -1398,5 +1402,9 @@ async function getTokenDecimals (token: string | Contract): Promise<number> {
   }
 
   // The decimals will be the same on all networks
-  return hopMetadata.mainnet.tokens[tokenSymbol].decimals
+  return hopMetadata.mainnet.tokens[tokenSymbol]?.decimals! // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+}
+
+export function expectDefined<T> (arg: T): asserts arg is NonNullable<T> {
+  expect(arg).toBeDefined()
 }

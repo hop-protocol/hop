@@ -8,7 +8,7 @@ import { awsAccessKeyId, awsRegion, awsSecretAccessKey } from '../config'
 const mutex = new Mutex()
 
 let credentials
-if (awsAccessKeyId) {
+if (awsAccessKeyId && awsSecretAccessKey) {
   credentials = {
     accessKeyId: awsAccessKeyId,
     secretAccessKey: awsSecretAccessKey
@@ -40,7 +40,7 @@ class S3Upload {
   }
 
   async upload (data: any) {
-    return mutex.runExclusive(async () => {
+    return await mutex.runExclusive(async () => {
       try {
         data = JSON.parse(JSON.stringify(data)) // deep clone
         const uploadData = {

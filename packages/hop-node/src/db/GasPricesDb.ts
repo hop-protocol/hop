@@ -1,9 +1,7 @@
 import BaseDb, { BaseItem, KeyFilter } from './BaseDb'
-import nearest from 'nearest-date'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
-import { OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
-import { normalizeDbItem } from './utils'
+import { OneHourMs, OneWeekMs } from 'src/constants'
 
 export const varianceSeconds = 10 * 60
 
@@ -16,14 +14,14 @@ export type GasPrice = BaseItem & {
 class GasPricesDb extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
-    // this.startPrunePoller()
+    this.startPrunePoller()
   }
 
   private async startPrunePoller () {
     while (true) {
       try {
         await wait(OneHourMs)
-        await this.prune()
+        // await this.prune()
       } catch (err) {
         this.logger.error(`prune poller error: ${err.message}`)
       }
@@ -46,25 +44,25 @@ class GasPricesDb extends BaseDb {
 
   async getNearest (chain: string, targetTimestamp: number, staleCheck: boolean = true): Promise<GasPrice | null> {
     return null
-    const startTimestamp = targetTimestamp - OneHourSeconds
-    const endTimestamp = targetTimestamp + OneHourSeconds
-    const filter = {
-      gte: `${chain}:${startTimestamp}`,
-      lte: `${chain}:${endTimestamp}~`
-    }
-    const items: GasPrice[] = (await this.getItems(filter)).filter((item: GasPrice) => item.chain === chain && item.timestamp)
+    // const startTimestamp = targetTimestamp - OneHourSeconds
+    // const endTimestamp = targetTimestamp + OneHourSeconds
+    // const filter = {
+    //   gte: `${chain}:${startTimestamp}`,
+    //   lte: `${chain}:${endTimestamp}~`
+    // }
+    // const items: GasPrice[] = (await this.getItems(filter)).filter((item: GasPrice) => item.chain === chain && item.timestamp)
 
-    const dates = items.map((item: GasPrice) => item.timestamp)
-    const index = nearest(dates, targetTimestamp)
-    if (index === -1) {
-      return null
-    }
-    const item = normalizeDbItem(items[index])
-    const isStale = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
-    if (staleCheck && isStale) {
-      return null
-    }
-    return item
+    // const dates = items.map((item: GasPrice) => item.timestamp)
+    // const index = nearest(dates, targetTimestamp)
+    // if (index === -1) {
+    //   return null
+    // }
+    // const item = normalizeDbItem(items[index])
+    // const isStale = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
+    // if (staleCheck && isStale) {
+    //   return null
+    // }
+    // return item
   }
 
   private async getOldEntries (): Promise<GasPrice[]> {

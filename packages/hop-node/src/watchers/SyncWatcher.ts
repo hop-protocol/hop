@@ -113,7 +113,7 @@ class SyncWatcher extends BaseWatcher {
         await this.preSyncHandler()
         await this.syncHandler()
         this.logger.debug('done syncing pure handlers. index:', this.syncIndex)
-        await this.incompletePollSync()
+        // await this.incompletePollSync()
         this.logger.debug('done syncing incomplete items. index:', this.syncIndex)
         await this.postSyncHandler()
       } catch (err) {

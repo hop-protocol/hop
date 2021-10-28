@@ -16,7 +16,7 @@ export type GasPrice = BaseItem & {
 class GasPricesDb extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
-    this.startPrunePoller()
+    // this.startPrunePoller()
   }
 
   private async startPrunePoller () {
@@ -45,6 +45,7 @@ class GasPricesDb extends BaseDb {
   }
 
   async getNearest (chain: string, targetTimestamp: number, staleCheck: boolean = true): Promise<GasPrice | null> {
+    return null
     const startTimestamp = targetTimestamp - OneHourSeconds
     const endTimestamp = targetTimestamp + OneHourSeconds
     const filter = {
@@ -75,10 +76,10 @@ class GasPricesDb extends BaseDb {
   }
 
   private async prune (): Promise<void> {
-    const items = await this.getOldEntries()
-    for (const { _id } of items) {
-      await this.deleteById(_id!) // eslint-disable-line
-    }
+    // const items = await this.getOldEntries()
+    // for (const { _id } of items) {
+    //   await this.deleteById(_id!) // eslint-disable-line
+    // }
   }
 }
 

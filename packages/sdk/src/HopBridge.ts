@@ -417,26 +417,40 @@ class HopBridge extends Base {
       destinationChain
     )
 
+    const destinationTxFeePromise = this.getDestinationTransactionFee(
+      sourceChain,
+      destinationChain
+    )
+
     const [
       amountOutWithoutFee,
       amountOutNoSlippage,
-      bonderFee
+      bonderFee,
+      destinationTxFee
     ] = await Promise.all([
       amountOutWithoutFeePromise,
       amountOutNoSlippagePromise,
-      bonderFeePromise
+      bonderFeePromise,
+      destinationTxFeePromise
     ])
 
-    let afterBonderFee
-    if (hTokenAmount.gt(bonderFee)) {
-      afterBonderFee = hTokenAmount.sub(bonderFee)
-    } else {
-      afterBonderFee = BigNumber.from(0)
-    }
     const amountOut = await this.calcFromHTokenAmount(
-      afterBonderFee,
+      hTokenAmount,
       destinationChain
     )
+
+    // adjustedFee is the fee in the canonical token after adjusting for the hToken price.
+    const adjustedBonderFee = await this.calcFromHTokenAmount(
+      bonderFee,
+      destinationChain
+    )
+
+    const adjustedDestinationTxFee = await this.calcFromHTokenAmount(
+      destinationTxFee,
+      destinationChain
+    )
+
+    const totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
 
     const sourceToken = this.getCanonicalToken(sourceChain)
     const destToken = this.getCanonicalToken(destinationChain)
@@ -458,16 +472,7 @@ class HopBridge extends Base {
     const priceImpact = this.getPriceImpact(rate, marketRate)
 
     const lpFees = await this.getLpFees(amountIn, sourceChain, destinationChain)
-    const destinationTxFee = await this.getDestinationTransactionFee(
-      sourceChain,
-      destinationChain,
-      amountOut,
-      hTokenAmount,
-      bonderFee,
-      deadline
-    )
     let estimatedReceived = amountOut
-    const totalFee = bonderFee.add(destinationTxFee)
     if (totalFee.gt(0)) {
       estimatedReceived = estimatedReceived.sub(totalFee)
     }
@@ -481,9 +486,10 @@ class HopBridge extends Base {
       rate,
       priceImpact,
       requiredLiquidity: hTokenAmount,
-      bonderFee,
       lpFees,
-      destinationTxFee,
+      adjustedBonderFee,
+      adjustedDestinationTxFee,
+      totalFee,
       estimatedReceived
     }
   }
@@ -574,14 +580,14 @@ class HopBridge extends Base {
     destinationChain: TChain,
     deadline?: BigNumberish
   ): Promise<BigNumber> {
-    const { bonderFee, destinationTxFee } = await this.getSendData(
+    const { totalFee } = await this.getSendData(
       amountIn,
       sourceChain,
       destinationChain,
       deadline
     )
 
-    return bonderFee.add(destinationTxFee)
+    return totalFee
   }
 
   public async getLpFees (
@@ -608,11 +614,7 @@ class HopBridge extends Base {
 
   public async getDestinationTransactionFee (
     sourceChain: TChain,
-    destinationChain: TChain,
-    amount: BigNumber,
-    amountOutMin: BigNumber,
-    bonderFee: BigNumber,
-    deadline: BigNumberish
+    destinationChain: TChain
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)

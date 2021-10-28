@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { BigNumber, constants, Signer } from 'ethers'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
@@ -20,10 +20,9 @@ function handleTransaction(tx: Transaction, fromNetwork, toNetwork, sourceToken,
 export function useSendTransaction(props) {
   const {
     amountOutMin,
-    bonderFee,
     customRecipient,
     deadline,
-    destinationTxFee,
+    totalFee,
     fromNetwork,
     fromTokenAmount,
     intermediaryAmountOutMin,
@@ -40,8 +39,13 @@ export function useSendTransaction(props) {
   const [recipient, setRecipient] = useState<string>()
   const [signer, setSigner] = useState<Signer>()
   const [bridge, setBridge] = useState<HopBridge>()
-  const [parsedAmount, setParsedAmount] = useState<BigNumber>(BigNumber.from(0))
-  const [totalBonderFee, setTotalBonderFee] = useState<BigNumber>(BigNumber.from(0))
+
+  const parsedAmount = useMemo(() => {
+      if (!fromTokenAmount || !sourceToken) return BigNumber.from(0)
+      return amountToBN(fromTokenAmount, sourceToken.decimals)
+    },
+    [fromTokenAmount, sourceToken?.decimals]
+  )
 
   // Set signer
   useEffect(() => {
@@ -67,21 +71,6 @@ export function useSendTransaction(props) {
 
     setRecipientAndBridge()
   }, [signer, sourceToken, customRecipient])
-
-  // Set parsedAmount and totalBonderFee
-  useEffect(() => {
-    if (fromTokenAmount && sourceToken && bonderFee && destinationTxFee) {
-      const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
-
-      let totalBonderFee = bonderFee
-      if (destinationTxFee?.gt(0)) {
-        totalBonderFee = totalBonderFee.add(destinationTxFee)
-      }
-
-      setParsedAmount(parsedAmount)
-      setTotalBonderFee(totalBonderFee)
-    }
-  }, [fromTokenAmount, sourceToken, bonderFee, destinationTxFee])
 
   // Master send method
   const send = async () => {
@@ -187,12 +176,12 @@ export function useSendTransaction(props) {
         },
       },
       onConfirm: async () => {
-        if (!amountOutMin || !bonderFee || !bridge) return
-        if (totalBonderFee.gt(parsedAmount)) {
+        if (!amountOutMin || !totalFee || !bridge) return
+        if (totalFee.gt(parsedAmount)) {
           throw new Error('Amount must be greater than bonder fee')
         }
 
-        const bonderFeeWithId = getBonderFeeWithId(totalBonderFee)
+        const bonderFeeWithId = getBonderFeeWithId(totalFee)
 
         return bridge.send(parsedAmount, fromNetwork?.slug as string, toNetwork?.slug as string, {
           recipient,
@@ -223,12 +212,12 @@ export function useSendTransaction(props) {
         },
       },
       onConfirm: async () => {
-        if (!bonderFee || !bridge) return
-        if (totalBonderFee.gt(parsedAmount)) {
+        if (!totalFee || !bridge) return
+        if (totalFee.gt(parsedAmount)) {
           throw new Error('Amount must be greater than bonder fee')
         }
 
-        const bonderFeeWithId = getBonderFeeWithId(totalBonderFee)
+        const bonderFeeWithId = getBonderFeeWithId(totalFee)
 
         return bridge.send(parsedAmount, fromNetwork?.slug as string, toNetwork?.slug as string, {
           recipient,

@@ -1,7 +1,6 @@
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
 import { Chain } from 'src/constants'
 import {
-  FileConfig,
   config as globalConfig,
   parseConfigFile
   , setGlobalConfigFromConfigFile
@@ -18,16 +17,18 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      const tokens = Object.keys(globalConfig.tokens)
+      const tokens = Object.keys(globalConfig.tokens ?? {})
+      const promises: Array<Promise<void>> = []
       for (const token of tokens) {
-        new PolygonBridgeWatcher({
+        promises.push(new PolygonBridgeWatcher({
           chainSlug: Chain.Polygon,
           tokenSymbol: token
-        }).start()
+        }).start())
       }
+      await Promise.all(promises)
     } catch (err) {
       logger.error(err)
       process.exit(1)

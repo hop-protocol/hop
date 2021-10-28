@@ -1,14 +1,13 @@
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import {
-  FileConfig,
-  parseConfigFile,
-  setGlobalConfigFromConfigFile
-} from 'src/config'
-import {
   findWatcher,
   getWatchers
 } from 'src/watchers/watchers'
 import { logger, program } from './shared'
+import {
+  parseConfigFile,
+  setGlobalConfigFromConfigFile
+} from 'src/config'
 
 program
   .command('settle')
@@ -26,7 +25,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
 
@@ -44,7 +43,7 @@ program
         throw new Error('transfer ID is required')
       }
 
-      const watchers = getWatchers({
+      const watchers = await getWatchers({
         enabledWatchers: ['settleBondedWithdrawals'],
         tokens: [token],
         dryMode

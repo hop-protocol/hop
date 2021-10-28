@@ -5,11 +5,12 @@ import path from 'path'
 import yaml from 'js-yaml'
 import { Chain } from 'src/constants'
 import {
-  defaultConfigFilePath,
-  setBonderPrivateKey,
+  Fees, defaultConfigFilePath, setBonderPrivateKey,
   setConfigAddresses,
   setConfigByNetwork,
   setDbPath,
+  setFeesConfig,
+  setMetricsConfig,
   setStateUpdateAddress,
   setSyncConfig,
   validateConfig
@@ -82,6 +83,11 @@ type LoggingConfig = {
   level: string
 }
 
+type MetricsConfig = {
+  enabled: boolean
+  port?: number
+}
+
 export type Addresses = {
   location: string
 }
@@ -102,24 +108,26 @@ export type FileConfig = {
   order?: number
   addresses?: Addresses
   stateUpdateAddress?: string
+  metrics?: MetricsConfig
+  fees?: Fees
 }
 
 export async function setGlobalConfigFromConfigFile (
   config: FileConfig = {},
   passwordFile: string = ''
 ) {
-  if (config?.db) {
-    const dbPath = config?.db?.location
+  if (config.db) {
+    const dbPath = config.db.location
     if (dbPath) {
       setDbPath(dbPath)
     }
   }
-  if (config?.logging?.level) {
+  if (config.logging?.level) {
     const logLevel = config.logging.level
     logger.info(`log level: "${logLevel}"`)
     setLogLevel(logLevel)
   }
-  if (config?.keystore) {
+  if (config.keystore) {
     if (!config.keystore.location) {
       throw new Error('keystore location is required')
     }
@@ -127,10 +135,10 @@ export async function setGlobalConfigFromConfigFile (
       config.keystore.location.replace('~', os.homedir())
     )
     const keystore = JSON.parse(fs.readFileSync(path.resolve(filepath), 'utf8'))
-    let passphrase: string = process.env.KEYSTORE_PASS || config?.keystore.pass
+    let passphrase = process.env.KEYSTORE_PASS ?? config.keystore.pass
     if (!passphrase) {
-      let passwordFilePath = passwordFile || config?.keystore?.passwordFile
-      const parameterStoreName = config?.keystore?.parameterStore
+      let passwordFilePath = passwordFile ?? config.keystore.passwordFile
+      const parameterStoreName = config.keystore.parameterStore
       if (passwordFilePath) {
         passwordFilePath = path.resolve(
           passwordFilePath.replace('~', os.homedir())
@@ -142,27 +150,33 @@ export async function setGlobalConfigFromConfigFile (
         passphrase = (await promptPassphrase()) as string
       }
     }
-    const privateKey = await recoverKeystore(keystore, passphrase as string)
+    const privateKey = await recoverKeystore(keystore, passphrase)
     setBonderPrivateKey(privateKey)
   }
-  if (config?.network) {
+  if (config.network) {
     const network = config.network
     logger.info(`network: "${network}"`)
     setConfigByNetwork(network)
   }
-  if (config?.sync) {
-    setSyncConfig(config?.sync)
+  if (config.sync) {
+    setSyncConfig(config.sync)
   }
-  if (config?.addresses && config?.addresses.location) {
-    const location = path.resolve(config?.addresses.location.replace('~', os.homedir()))
+  if (config.addresses?.location) {
+    const location = path.resolve(config.addresses.location.replace('~', os.homedir()))
     if (!fs.existsSync(location)) {
       throw new Error(`no config file found at ${location}`)
     }
-    const addresses = require(location)
+    const addresses = require(location) // eslint-disable-line @typescript-eslint/no-var-requires
     setConfigAddresses(addresses)
   }
-  if (config?.stateUpdateAddress) {
+  if (config.stateUpdateAddress) {
     setStateUpdateAddress(config.stateUpdateAddress)
+  }
+  if (config?.metrics) {
+    setMetricsConfig(config.metrics)
+  }
+  if (config?.fees) {
+    setFeesConfig(config.fees)
   }
 }
 
@@ -201,10 +215,9 @@ export async function parseConfigFile (
       config = require(configPath)
     }
   }
-  if (config) {
+  if (config != null) {
     await validateConfig(config)
     logger.info('config file:', configPath)
+    return config
   }
-
-  return config
 }

@@ -13,6 +13,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
+import { MetricsServer } from 'src/metrics'
 import { chainNativeTokens, config as globalConfig } from 'src/config'
 
 const logger = new Logger('config')
@@ -66,7 +67,7 @@ type GetStakeWatchersConfig = {
   networks?: string[]
   maxStakeAmounts?: StakeAmounts
   dryMode?: boolean
-  stateUpdateAddress?: string,
+  stateUpdateAddress?: string
 }
 
 type GetChallengeWatchersConfig = {
@@ -75,7 +76,7 @@ type GetChallengeWatchersConfig = {
   dryMode?: boolean
 }
 
-export function getWatchers (config: GetWatchersConfig) {
+export async function getWatchers (config: GetWatchersConfig) {
   const {
     enabledWatchers = [],
     order: orderNum = 0,
@@ -94,8 +95,8 @@ export function getWatchers (config: GetWatchersConfig) {
   } = config
 
   const order = () => orderNum
-  const watchers : Watcher[] = []
-  logger.debug(`enabled watchers: ${enabledWatchers?.join(',')}`)
+  const watchers: Watcher[] = []
+  logger.debug(`enabled watchers: ${enabledWatchers.join(',')}`)
 
   if (enabledWatchers.includes(Watchers.BondWithdrawal)) {
     watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
@@ -249,15 +250,19 @@ export function getWatchers (config: GetWatchersConfig) {
 
   watchers.push(...tokenPriceWatchers)
 
+  if (globalConfig.metrics?.enabled) {
+    await new MetricsServer(globalConfig.metrics?.port).start()
+  }
+
   return watchers
 }
 
-export function startWatchers (config: GetWatchersConfig) {
-  const watchers = getWatchers(config)
-  watchers.forEach((watcher: Watcher) => watcher.start())
+export async function startWatchers (config: GetWatchersConfig) {
+  const watchers = await getWatchers(config)
+  watchers.forEach(async (watcher: Watcher) => watcher.start())
   const stop = () => {
-    return watchers.map((watcher: Watcher) => {
-      return watcher.stop()
+    return watchers.map(async (watcher: Watcher) => {
+      return await watcher.stop()
     })
   }
 
@@ -266,10 +271,10 @@ export function startWatchers (config: GetWatchersConfig) {
 
 export function startChallengeWatchers (config: GetChallengeWatchersConfig) {
   const watchers = getChallengeWatchers(config)
-  watchers.forEach((watcher: Watcher) => watcher.start())
+  watchers.forEach(async (watcher: Watcher) => await watcher.start())
   const stop = () => {
-    return watchers.map((watcher: Watcher) => {
-      return watcher.stop()
+    return watchers.map(async (watcher: Watcher) => {
+      return await watcher.stop()
     })
   }
 
@@ -324,7 +329,7 @@ export function getChallengeWatchers (config: GetChallengeWatchersConfig) {
   return watchers
 }
 
-function getSiblingWatchers (config: any, init: (conf: any) => Watcher) {
+function getSiblingWatchers (config: any, init: (conf: any) => Watcher | undefined) {
   const {
     tokens = getAllTokens(),
     networks = getAllChains()
@@ -336,7 +341,7 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher) {
     for (const network of networks) {
       const label = `${network}.${token}`
       const isL1 = network === Chain.Ethereum
-      const chainId = chainSlugToId(network)
+      const chainId = chainSlugToId(network)! // eslint-disable-line
       if (!contracts.has(token, network)) {
         continue
       }
@@ -374,7 +379,7 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher) {
   return list
 }
 
-export function findWatcher (watchers: Watcher[], WatcherType: any, chain?: string, token? :string) {
+export function findWatcher (watchers: Watcher[], WatcherType: any, chain?: string, token?: string) {
   return watchers.find((watcher: Watcher) => {
     if (!(watcher instanceof WatcherType)) {
       return null

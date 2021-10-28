@@ -1,5 +1,5 @@
 import { Chain } from 'src/constants'
-import { User } from './helpers'
+import { User, expectDefined } from './helpers'
 import { privateKey } from './config'
 
 const sourceNetwork = Chain.xDai
@@ -10,6 +10,7 @@ const amount = 1
 test.skip(
   'send',
   async () => {
+    expectDefined(privateKey)
     const user = new User(privateKey)
     const tokenBalanceBefore = await user.getHopBalance(sourceNetwork, token)
     const tx = await user.send(sourceNetwork, destNetwork, token, amount)
@@ -25,6 +26,7 @@ test.skip(
 test.skip(
   'swapAndSend',
   async () => {
+    expectDefined(privateKey)
     const user = new User(privateKey)
     const tokenBalanceBefore = await user.getBalance(sourceNetwork, token)
     console.log('balance before:', tokenBalanceBefore)

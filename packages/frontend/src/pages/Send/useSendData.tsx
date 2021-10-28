@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { BigNumber } from 'ethers'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
@@ -12,7 +12,7 @@ const useSendData = (
   toNetwork: Network | undefined,
   fromAmount: BigNumber | undefined
 ) => {
-  const { sdk } = useApp()
+  const { sdk, settings } = useApp()
 
   const [amountOut, setAmountOut] = useState<BigNumber>()
   const [rate, setRate] = useState<number | undefined>()
@@ -32,7 +32,7 @@ const useSendData = (
         if (!fromAmount) return 0
 
         const bridge = sdk.bridge(token?.symbol)
-        const sendData = await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
+        const sendData = await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug, settings.deadline())
 
         if (isCancelled()) return
 

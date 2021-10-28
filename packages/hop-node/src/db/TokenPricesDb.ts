@@ -30,16 +30,16 @@ class TokenPricesDb extends BaseDb {
   }
 
   async update (key: string, data: TokenPrice) {
-    return this._update(key, data)
+    return await this._update(key, data)
   }
 
   async addTokenPrice (data: TokenPrice) {
     const key = `${data.token}:${data.timestamp}`
-    return this.update(key, data)
+    return await this.update(key, data)
   }
 
-  async getItems (filter?: KeyFilter):Promise<TokenPrice[]> {
-    const items : TokenPrice[] = await this.getValues(filter)
+  async getItems (filter?: KeyFilter): Promise<TokenPrice[]> {
+    const items: TokenPrice[] = await this.getValues(filter)
     return items.filter(x => x)
   }
 
@@ -50,7 +50,7 @@ class TokenPricesDb extends BaseDb {
       gte: `${token}:${startTimestamp}`,
       lte: `${token}:${endTimestamp}~`
     }
-    const items : TokenPrice[] = (await this.getItems(filter)).filter((item: TokenPrice) => item.token === token && item.timestamp)
+    const items: TokenPrice[] = (await this.getItems(filter)).filter((item: TokenPrice) => item.token === token && item.timestamp)
 
     const dates = items.map((item: TokenPrice) => item.timestamp)
     const index = nearest(dates, targetTimestamp)
@@ -76,7 +76,7 @@ class TokenPricesDb extends BaseDb {
   private async prune (): Promise<void> {
     const items = await this.getOldEntries()
     for (const { _id } of items) {
-      await this.deleteById(_id)
+      await this.deleteById(_id!) // eslint-disable-line
     }
   }
 }

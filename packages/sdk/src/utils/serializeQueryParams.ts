@@ -12,9 +12,9 @@ const serializeQueryParams = (
   const query = []
 
   if (params instanceof Object) {
-    for (let k in params) {
-      let value = params[k]
-      let keyName = k
+    for (const k in params) {
+      const value = params[k]
+      const keyName = k
 
       if (options.omitFalsy && !value) {
         continue

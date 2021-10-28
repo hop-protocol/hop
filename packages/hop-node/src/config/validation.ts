@@ -1,5 +1,5 @@
 import { Chain } from 'src/constants'
-import { getEnabledNetworks, getEnabledTokens } from 'src/config'
+import { FileConfig, getEnabledNetworks, getEnabledTokens } from 'src/config'
 
 export function isValidToken (token: string) {
   const tokens = getEnabledTokens()
@@ -19,7 +19,7 @@ export function validateKeys (validKeys: string[] = [], keys: string[]) {
   }
 }
 
-export async function validateConfig (config: any) {
+export async function validateConfig (config?: FileConfig) {
   if (!config) {
     throw new Error('config is required')
   }
@@ -44,7 +44,9 @@ export async function validateConfig (config: any) {
     'keystore',
     'addresses',
     'order',
-    'stateUpdateAddress'
+    'stateUpdateAddress',
+    'metrics',
+    'fees'
   ]
 
   const validWatcherKeys = [
@@ -115,6 +117,12 @@ export async function validateConfig (config: any) {
     const validCommitTransfersKeys = ['minThresholdAmount']
     const commitTransfersKeys = Object.keys(config.commitTransfers)
     await validateKeys(validCommitTransfersKeys, commitTransfersKeys)
+  }
+
+  if (config.metrics) {
+    const validMetricsKeys = ['enabled', 'port']
+    const metricsKeys = Object.keys(config.metrics)
+    await validateKeys(validMetricsKeys, metricsKeys)
   }
 
   if (config.addresses) {

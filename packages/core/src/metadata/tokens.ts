@@ -1,16 +1,16 @@
-import { Tokens } from './types'
 import {
-  ETHImage,
-  XDAIImage,
-  MATICImage,
   ARBImage,
   DAIImage,
-  sBTCImage,
-  sETHImage,
+  ETHImage,
+  MATICImage,
   USDCImage,
   USDTImage,
-  WBTCImage
+  WBTCImage,
+  XDAIImage,
+  sBTCImage,
+  sETHImage
 } from './assets'
+import { Tokens } from './types'
 
 export const tokens: Tokens = {
   ETH: {

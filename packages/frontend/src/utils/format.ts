@@ -1,7 +1,5 @@
-import { parseUnits } from '@ethersproject/units'
-import { BigNumber } from 'ethers'
+import { BigNumber, FixedNumber, utils } from 'ethers'
 import Network from 'src/models/Network'
-import { Token } from '@hop-protocol/sdk'
 import { prettifyErrorMessage } from '.'
 
 interface ErrorData {
@@ -34,12 +32,35 @@ export function formatError(error: Error & ErrorData, network?: Network) {
   return 'Something went wrong. Please try again.'
 }
 
-export function amountToBN(token: Token | undefined, amount: string): BigNumber | undefined {
-  if (!token) return
-  try {
-    const sanitizedAmount = amount.replace(/,/g, '')
-    return parseUnits(sanitizedAmount, token.decimals)
-  } catch (err) {
-    // noop
+export function sanitizeNumericalString(numStr: string) {
+  return numStr.replace(/[^0-9.]|\.(?=.*\.)/g, '')
+}
+
+export function maxDecimals(amount: string, decimals) {
+  const sanitizedAmount = sanitizeNumericalString(amount)
+  const indexOfDecimal = sanitizedAmount.indexOf('.')
+  if (indexOfDecimal === -1) {
+    return sanitizedAmount
   }
+
+  const wholeAmountStr = sanitizedAmount.slice(0, indexOfDecimal) || '0'
+  const wholeAmount = BigNumber.from(wholeAmountStr).toString()
+
+  const fractionalAmount = sanitizedAmount.slice(indexOfDecimal + 1)
+  const decimalAmount = decimals !== 0 ? `.${fractionalAmount.slice(0, decimals)}` : ''
+
+  return `${wholeAmount}${decimalAmount}`
+}
+
+export function fixedDecimals(amount: string, decimals: number = 18) {
+  if (amount === '') {
+    return amount
+  }
+  const mdAmount = maxDecimals(amount, decimals)
+  return FixedNumber.from(mdAmount).toString()
+}
+
+export function amountToBN(amount: string, decimals: number = 18) {
+  const fixedAmount = fixedDecimals(amount, decimals)
+  return utils.parseUnits(fixedAmount || '0', decimals)
 }

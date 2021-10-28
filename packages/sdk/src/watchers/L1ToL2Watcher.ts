@@ -1,21 +1,17 @@
-import { BigNumber, providers } from 'ethers'
-import { EventFragment, Interface } from '@ethersproject/abi'
 import BlockDater from 'ethereum-block-by-date'
-import { default as BaseWatcher, Config, Event } from './BaseWatcher'
+import { default as BaseWatcher } from './BaseWatcher'
+import { BigNumber, providers } from 'ethers'
 import { Chain } from '../models'
+import { DateTime } from 'luxon'
+import { EventFragment, Interface } from '@ethersproject/abi'
 import { Network } from '../constants'
 import {
-  transferSentToL2Topic,
   tokenTransferTopic,
-  transferFromL1CompletedTopic
-} from './eventTopics'
-import { DateTime } from 'luxon'
+  transferFromL1CompletedTopic,
+  transferSentToL2Topic
+} from '../constants/eventTopics'
 
 class L1ToL2Watcher extends BaseWatcher {
-  constructor (config: Config) {
-    super(config)
-  }
-
   public watch () {
     this.start().catch((err: Error) => this.ee.emit('error', err))
     return this.ee
@@ -158,8 +154,8 @@ class L1ToL2Watcher extends BaseWatcher {
         if (amount.toString() !== decodedLog.tokensSold.toString()) {
           return
         }
-        //const destTx = await event.getTransaction()
-        //return handleDestTx(destTx)
+        // const destTx = await event.getTransaction()
+        // return handleDestTx(destTx)
       }
       return false
     }

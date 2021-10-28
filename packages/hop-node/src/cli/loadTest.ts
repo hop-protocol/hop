@@ -1,10 +1,9 @@
 import LoadTest from 'src/loadTest'
+import { logger, program } from './shared'
 import {
-  FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { logger, program } from './shared'
 
 program
   .command('load-test')
@@ -21,12 +20,12 @@ program
   .option('--env <string>', 'Environment variables file')
   .action(async (source: any) => {
     try {
-      const configPath = source?.config || source?.parent?.config
+      const configPath = source?.config ?? source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
-      const paths = (source.paths || '')
+      const paths = (source.paths ?? '')
         .split(',')
         .map((s: string) => {
           return s
@@ -35,8 +34,8 @@ program
             .map((v: string) => v.trim())
             .filter((v: string) => v)
         })
-        .filter((x: any) => x && x?.length)
-      new LoadTest({
+        .filter((x: any) => x?.length)
+      await new LoadTest({
         concurrentUsers: Number(source.concurrentUsers || 1),
         iterations: Number(source.iterations || 1),
         amount: Number(source.amount || 0),

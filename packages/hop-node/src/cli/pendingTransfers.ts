@@ -2,15 +2,14 @@ import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import {
-  FileConfig,
-  parseConfigFile,
-  setGlobalConfigFromConfigFile
-} from 'src/config'
-import {
   findWatcher,
   getWatchers
 } from 'src/watchers/watchers'
 import { logger, program } from './shared'
+import {
+  parseConfigFile,
+  setGlobalConfigFromConfigFile
+} from 'src/config'
 
 program
   .command('pending-transfers')
@@ -24,7 +23,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const sourceChain = source.sourceChain
@@ -40,7 +39,7 @@ program
         throw new Error('token is required')
       }
 
-      const watchers = getWatchers({
+      const watchers = await getWatchers({
         enabledWatchers: ['commitTransfers'],
         tokens: [token],
         dryMode: true
@@ -51,7 +50,7 @@ program
         throw new Error('watcher not found')
       }
 
-      const destinationChainId = chainSlugToId(destinationChain)
+      const destinationChainId = chainSlugToId(destinationChain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
       const bridge = (watcher.bridge as L2Bridge)
       const exists = await bridge.doPendingTransfersExist(destinationChainId)
       if (!exists) {

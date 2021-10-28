@@ -1,41 +1,33 @@
+import AMM from './AMM'
+import Base, { ChainProviders } from './Base'
+import Chain from './models/Chain'
+import Token from './Token'
+import TokenModel from './models/Token'
 import fetch from 'isomorphic-fetch'
 import {
-  constants,
-  ethers,
-  Signer,
-  Contract,
   BigNumber,
-  BigNumberish
+  BigNumberish,
+  Signer,
+  ethers
 } from 'ethers'
-import { parseUnits, formatUnits, getAddress } from 'ethers/lib/utils'
-import Chain from './models/Chain'
-import TokenModel from './models/Token'
+import {
+  BondTransferGasLimit,
+  GasPriceMultiplier,
+  LpFeeBps,
+  ORUGasPriceMultiplier,
+  PendingAmountBuffer,
+  TokenIndex
+} from './constants'
+import { PriceFeed } from './priceFeed'
+import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
+import { bondableChains, metadata } from './config'
+import { getAddress, parseUnits } from 'ethers/lib/utils'
 import {
   l1Erc20BridgeAbi,
-  l2BridgeAbi,
-  saddleLpTokenAbi,
-  swapAbi as saddleSwapAbi,
   l1HomeAmbNativeToErc20,
   l2AmmWrapperAbi,
-  wethAbi
+  l2BridgeAbi
 } from '@hop-protocol/core/abi'
-import { TChain, TToken, TAmount, TProvider, TTime, TTimeSlot } from './types'
-import Base, { ChainProviders } from './Base'
-import AMM from './AMM'
-import _version from './version'
-import {
-  TokenIndex,
-  BondTransferGasLimit,
-  LpFeeBps,
-  GasPriceMultiplier,
-  ORUGasPriceMultiplier,
-  L2ToL2BonderFeeBps,
-  L2ToL1BonderFeeBps,
-  PendingAmountBuffer
-} from './constants'
-import { metadata, bondableChains } from './config'
-import { PriceFeed } from './priceFeed'
-import Token from './Token'
 
 type SendL1ToL2Input = {
   destinationChainId: number | string
@@ -44,9 +36,10 @@ type SendL1ToL2Input = {
   relayerFee?: TAmount
   amount: TAmount
   amountOutMin?: TAmount
-  deadline?: number
+  deadline?: BigNumberish
   recipient?: string
   approval?: boolean
+  estimateGasOnly?: boolean
 }
 
 type SendL2ToL1Input = {
@@ -55,11 +48,12 @@ type SendL2ToL1Input = {
   amount: TAmount
   amountOutMin: TAmount
   destinationAmountOutMin?: TAmount
-  deadline?: number
-  destinationDeadline?: number
+  deadline?: BigNumberish
+  destinationDeadline?: BigNumberish
   bonderFee?: TAmount
   recipient?: string
   approval?: boolean
+  estimateGasOnly?: boolean
 }
 
 type SendL2ToL2Input = {
@@ -69,32 +63,34 @@ type SendL2ToL2Input = {
   amountOutMin: TAmount
   destinationAmountOutMin?: TAmount
   bonderFee?: TAmount
-  deadline?: number
-  destinationDeadline?: number
+  deadline?: BigNumberish
+  destinationDeadline?: BigNumberish
   recipient?: string
   approval?: boolean
+  estimateGasOnly?: boolean
 }
 
 type SendOptions = {
-  deadline: number
+  deadline: BigNumberish
   relayer: string
   relayerFee: TAmount
   recipient: string
   amountOutMin: TAmount
   bonderFee: TAmount
   destinationAmountOutMin: TAmount
-  destinationDeadline: number
+  destinationDeadline: BigNumberish
+  estimateGasOnly?: boolean
 }
 
 type AddLiquidityOptions = {
   minToMint: TAmount
-  deadline: number
+  deadline: BigNumberish
 }
 
 type RemoveLiquidityOptions = {
   amount0Min: TAmount
   amount1Min: TAmount
-  deadline: number
+  deadline: BigNumberish
 }
 
 /**
@@ -145,6 +141,10 @@ class HopBridge extends Base {
       this.tokenSymbol = token.symbol
     } else if (typeof token === 'string') {
       this.tokenSymbol = token
+    }
+
+    if (!token) {
+      throw new Error('token is required')
     }
 
     this.priceFeed = new PriceFeed()
@@ -390,7 +390,8 @@ class HopBridge extends Base {
   public async getSendData (
     amountIn: BigNumberish,
     sourceChain?: TChain,
-    destinationChain?: TChain
+    destinationChain?: TChain,
+    deadline?: BigNumberish
   ) {
     amountIn = BigNumber.from(amountIn)
     sourceChain = this.toChainModel(sourceChain)
@@ -460,8 +461,10 @@ class HopBridge extends Base {
     const destinationTxFee = await this.getDestinationTransactionFee(
       sourceChain,
       destinationChain,
-      amountOutWithoutFee,
-      bonderFee
+      amountOut,
+      hTokenAmount,
+      bonderFee,
+      deadline
     )
     let estimatedReceived = amountOut
     const totalFee = bonderFee.add(destinationTxFee)
@@ -568,12 +571,14 @@ class HopBridge extends Base {
   public async getTotalFee (
     amountIn: BigNumberish,
     sourceChain: TChain,
-    destinationChain: TChain
+    destinationChain: TChain,
+    deadline?: BigNumberish
   ): Promise<BigNumber> {
     const { bonderFee, destinationTxFee } = await this.getSendData(
       amountIn,
       sourceChain,
-      destinationChain
+      destinationChain,
+      deadline
     )
 
     return bonderFee.add(destinationTxFee)
@@ -596,7 +601,7 @@ class HopBridge extends Base {
     }
 
     amountIn = BigNumber.from(amountIn)
-    let lpFees = amountIn.mul(lpFeeBpsBn).div(10000)
+    const lpFees = amountIn.mul(lpFeeBpsBn).div(10000)
 
     return lpFees
   }
@@ -605,7 +610,9 @@ class HopBridge extends Base {
     sourceChain: TChain,
     destinationChain: TChain,
     amount: BigNumber,
-    bonderFee: BigNumber
+    amountOutMin: BigNumber,
+    bonderFee: BigNumber,
+    deadline: BigNumberish
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
@@ -626,15 +633,9 @@ class HopBridge extends Base {
     const rate = chainNativeTokenPrice / tokenPrice
 
     const gasPrice = await destinationChain.provider.getGasPrice()
-    let bondTransferGasLimit: string = BondTransferGasLimit.Ethereum
-    if (destinationChain?.equals(Chain.Optimism)) {
-      bondTransferGasLimit = await this.getOptimismEstimatedGas(
-        amount,
-        bonderFee
-      )
-    } else if (destinationChain?.equals(Chain.Arbitrum)) {
-      bondTransferGasLimit = BondTransferGasLimit.Arbitrum
-    }
+    const bondTransferGasLimit = await this.getBondWithdrawalEstimatedGas(
+      destinationChain
+    )
 
     const txFeeEth = gasPrice.mul(bondTransferGasLimit)
 
@@ -659,32 +660,61 @@ class HopBridge extends Base {
     return fee
   }
 
-  async getOptimismEstimatedGas (amount: BigNumber, bonderFee: BigNumber) {
+  async getBondWithdrawalEstimatedGas (
+    destinationChain: Chain
+  ) {
     try {
-      const destinationBridge = await this.getL2Bridge(Chain.Optimism)
+      const destinationBridge = await this.getL2Bridge(destinationChain)
       const bonder = this.getBonderAddress()
-      const transferNonce = `0x${'0'.repeat(64)}`
-      const amountOutMin = BigNumber.from(1)
+      const amount = BigNumber.from(10)
+      const amountOutMin = BigNumber.from(0)
+      const bonderFee = BigNumber.from(1)
       const deadline = this.defaultDeadlineSeconds
-      const payload = [
-        bonder,
-        amount,
-        transferNonce,
-        bonderFee,
-        amountOutMin,
-        deadline,
-        {
-          from: bonder
-        }
-      ]
-
-      const estimatedGas = await destinationBridge.estimateGas.bondWithdrawalAndDistribute(
-        ...payload
-      )
-      return estimatedGas.toString()
+      const transferNonce = `0x${'0'.repeat(64)}`
+      const recipient = `0x${'1'.repeat(40)}`
+      const attemptSwap = this.shouldAttemptSwap(amountOutMin, deadline)
+      if (attemptSwap && !destinationChain.isL1) {
+        const payload = [
+          recipient,
+          amount,
+          transferNonce,
+          bonderFee,
+          amountOutMin,
+          deadline,
+          {
+            from: bonder
+          }
+        ]
+        const estimatedGas = await destinationBridge.estimateGas.bondWithdrawalAndDistribute(
+          ...payload
+        )
+        return estimatedGas.toString()
+      } else {
+        const payload = [
+          recipient,
+          amount,
+          transferNonce,
+          bonderFee,
+          {
+            from: bonder
+          }
+        ]
+        const estimatedGas = await destinationBridge.estimateGas.bondWithdrawal(
+          ...payload
+        )
+        return estimatedGas.toString()
+      }
     } catch (err) {
-      console.error(err)
-      return BondTransferGasLimit.Optimism
+      console.error(err, {
+        destinationChain
+      })
+      let bondTransferGasLimit: string = BondTransferGasLimit.Ethereum
+      if (destinationChain.equals(Chain.Optimism)) {
+        bondTransferGasLimit = BondTransferGasLimit.Optimism
+      } else if (destinationChain.equals(Chain.Arbitrum)) {
+        bondTransferGasLimit = BondTransferGasLimit.Arbitrum
+      }
+      return bondTransferGasLimit
     }
   }
 
@@ -780,11 +810,7 @@ class HopBridge extends Base {
       sourceChain
     )
 
-    let feeBps = L2ToL2BonderFeeBps
-    if (destinationChain.isL1) {
-      feeBps = L2ToL1BonderFeeBps
-    }
-
+    const feeBps = this.getFeeBps(this.tokenSymbol, destinationChain)
     const token = this.toTokenModel(this.tokenSymbol)
     const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(token.symbol)
 
@@ -1011,20 +1037,20 @@ class HopBridge extends Base {
     toHop: boolean,
     amount: TAmount,
     minAmountOut: TAmount,
-    deadline: number
+    deadline: BigNumberish
   ) {
     sourceChain = this.toChainModel(sourceChain)
     let tokenIndexFrom: number
     let tokenIndexTo: number
 
-    let l2CanonicalTokenAddress = this.getL2CanonicalTokenAddress(
+    const l2CanonicalTokenAddress = this.getL2CanonicalTokenAddress(
       this.tokenSymbol,
       sourceChain
     )
     if (!l2CanonicalTokenAddress) {
       throw new Error(`source chain "${sourceChain.slug}" is unsupported`)
     }
-    let l2HopBridgeTokenAddress = this.getL2HopBridgeTokenAddress(
+    const l2HopBridgeTokenAddress = this.getL2HopBridgeTokenAddress(
       this.tokenSymbol,
       sourceChain
     )
@@ -1034,10 +1060,10 @@ class HopBridge extends Base {
 
     const amm = await this.getAmm(sourceChain)
     const saddleSwap = await amm.getSaddleSwap()
-    let canonicalTokenIndex = Number(
+    const canonicalTokenIndex = Number(
       (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
     )
-    let hopTokenIndex = Number(
+    const hopTokenIndex = Number(
       (await saddleSwap.getTokenIndex(l2HopBridgeTokenAddress)).toString()
     )
     if (toHop) {
@@ -1321,10 +1347,10 @@ class HopBridge extends Base {
   private async getTokenIndexes (path: string[], chain: TChain) {
     const amm = this.getAmm(chain)
     const saddleSwap = await amm.getSaddleSwap()
-    let tokenIndexFrom = Number(
+    const tokenIndexFrom = Number(
       (await saddleSwap.getTokenIndex(path[0])).toString()
     )
-    let tokenIndexTo = Number(
+    const tokenIndexTo = Number(
       (await saddleSwap.getTokenIndex(path[1])).toString()
     )
 
@@ -1368,7 +1394,8 @@ class HopBridge extends Base {
         amountOutMin: options?.amountOutMin ?? 0,
         deadline: options?.deadline,
         recipient: options?.recipient,
-        approval
+        approval,
+        estimateGasOnly: options?.estimateGasOnly
       })
     }
     // else:
@@ -1381,7 +1408,8 @@ class HopBridge extends Base {
         bonderFee = await this.getTotalFee(
           tokenAmount,
           sourceChain,
-          destinationChain
+          destinationChain,
+          options?.destinationDeadline
         )
       }
       return this.sendL2ToL1({
@@ -1394,7 +1422,8 @@ class HopBridge extends Base {
         deadline: options?.deadline,
         destinationAmountOutMin: options?.destinationAmountOutMin,
         destinationDeadline: options?.destinationDeadline,
-        approval
+        approval,
+        estimateGasOnly: options?.estimateGasOnly
       })
     }
 
@@ -1404,7 +1433,8 @@ class HopBridge extends Base {
       bonderFee = await this.getTotalFee(
         tokenAmount,
         sourceChain,
-        destinationChain
+        destinationChain,
+        options?.destinationDeadline
       )
     }
     return this.sendL2ToL2({
@@ -1417,7 +1447,8 @@ class HopBridge extends Base {
       deadline: options?.deadline,
       destinationAmountOutMin: options?.destinationAmountOutMin,
       destinationDeadline: options?.destinationDeadline,
-      approval
+      approval,
+      estimateGasOnly: options?.estimateGasOnly
     })
   }
 
@@ -1431,7 +1462,8 @@ class HopBridge extends Base {
       amountOutMin,
       deadline,
       recipient,
-      approval
+      approval,
+      estimateGasOnly
     } = input
     if (!sourceChain.isL1) {
       // ToDo: Don't pass in sourceChain since it will always be L1
@@ -1461,7 +1493,7 @@ class HopBridge extends Base {
       amountOutMin = BigNumber.from(0)
     }
 
-    return l1Bridge.sendToL2(
+    const txOptions = [
       destinationChainId,
       recipient,
       amount || 0,
@@ -1473,6 +1505,16 @@ class HopBridge extends Base {
         ...(await this.txOverrides(Chain.Ethereum)),
         value: isNativeToken ? amount : undefined
       }
+    ]
+
+    if (estimateGasOnly) {
+      return l1Bridge.estimateGas.sendToL2(
+        ...txOptions
+      )
+    }
+
+    return l1Bridge.sendToL2(
+      ...txOptions
     )
   }
 
@@ -1487,7 +1529,8 @@ class HopBridge extends Base {
       amountOutMin,
       deadline,
       destinationDeadline,
-      approval
+      approval,
+      estimateGasOnly
     } = input
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
     destinationDeadline = destinationDeadline || 0
@@ -1529,30 +1572,44 @@ class HopBridge extends Base {
       destinationAmountOutMin = BigNumber.from(0)
     }
 
-    if (attemptSwap) {
-      return ammWrapper.swapAndSend(
-        destinationChainId,
-        recipient,
-        amount,
-        bonderFee,
-        amountOutMin,
-        deadline,
-        destinationAmountOutMin,
-        destinationDeadline,
-        {
-          ...(await this.txOverrides(sourceChain)),
-          value: isNativeToken ? amount : undefined
-        }
-      )
-    }
-
-    return l2Bridge.send(
+    const txOptions = [
       destinationChainId,
       recipient,
       amount,
       bonderFee,
       amountOutMin,
       deadline
+    ]
+
+    if (attemptSwap) {
+      const additionalOptions = [
+        destinationAmountOutMin,
+        destinationDeadline,
+        {
+          ...(await this.txOverrides(sourceChain)),
+          value: isNativeToken ? amount : undefined
+        }
+      ]
+
+      if (estimateGasOnly) {
+        return ammWrapper.estimateGas.swapAndSend(
+          ...txOptions,
+          ...additionalOptions
+        )
+      }
+
+      return ammWrapper.swapAndSend(
+        ...txOptions,
+        ...additionalOptions
+      )
+    }
+
+    return l2Bridge.send(
+      ...txOptions,
+      {
+        ...(await this.txOverrides(sourceChain)),
+        value: isNativeToken ? amount : undefined
+      }
     )
   }
 
@@ -1567,7 +1624,8 @@ class HopBridge extends Base {
       destinationDeadline,
       amountOutMin,
       recipient,
-      approval
+      approval,
+      estimateGasOnly
     } = input
     deadline = deadline || this.defaultDeadlineSeconds
     destinationDeadline = destinationDeadline || deadline
@@ -1606,7 +1664,7 @@ class HopBridge extends Base {
       destinationAmountOutMin = BigNumber.from(0)
     }
 
-    return ammWrapper.swapAndSend(
+    const txOptions = [
       destinationChainId,
       recipient,
       amount,
@@ -1619,7 +1677,13 @@ class HopBridge extends Base {
         ...(await this.txOverrides(sourceChain)),
         value: isNativeToken ? amount : undefined
       }
-    )
+    ]
+
+    if (estimateGasOnly) {
+      return ammWrapper.estimateGas.swapAndSend(...txOptions)
+    }
+
+    return ammWrapper.swapAndSend(...txOptions)
   }
 
   private async sendHTokenHandler (
@@ -1670,6 +1734,7 @@ class HopBridge extends Base {
       }
 
       const l1Bridge = await this.getL1Bridge(this.signer)
+      const isNativeToken = this.isNativeToken(sourceChain)
       return l1Bridge.sendToL2(
         destinationChain.chainId,
         recipient,
@@ -1678,7 +1743,10 @@ class HopBridge extends Base {
         deadline,
         relayer,
         bonderFee,
-        await this.txOverrides(Chain.Ethereum)
+        {
+          ...(await this.txOverrides(Chain.Ethereum)),
+          value: isNativeToken ? tokenAmount : undefined
+        }
       )
     } else {
       if (bonderFee.eq(0)) {
@@ -1817,6 +1885,11 @@ class HopBridge extends Base {
 
   getBonderAddress (): string {
     return super.getBonderAddress(this.tokenSymbol)
+  }
+
+  shouldAttemptSwap (amountOutMin: BigNumber, deadline: BigNumberish): boolean {
+    deadline = BigNumber.from(deadline?.toString() || 0)
+    return amountOutMin?.gt(0) || deadline?.gt(0)
   }
 }
 

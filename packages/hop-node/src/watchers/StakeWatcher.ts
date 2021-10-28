@@ -6,17 +6,21 @@ import Token from './classes/Token'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import promiseTimeout from 'src/utils/promiseTimeout'
 import wait from 'src/utils/wait'
-import { BigNumber, Contract, constants } from 'ethers'
+import { BigNumber, constants } from 'ethers'
 import { Chain } from 'src/constants'
+import { ERC20 } from '@hop-protocol/core/contracts'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
-export interface Config {
+export type Config = {
   chainSlug: string
   tokenSymbol: string
   label: string
   isL1: boolean
-  bridgeContract: Contract
-  tokenContract: Contract
+  bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
+  tokenContract: ERC20
   stakeMinThreshold: number
   maxStakeAmount: number
   dryMode?: boolean
@@ -29,7 +33,7 @@ class StakeWatcher extends BaseWatcher {
   stakeMinThreshold: BigNumber = BigNumber.from(0)
   maxStakeAmount: BigNumber = BigNumber.from(0)
   interval: number = 60 * 1000
-  private prevCacheKey: string = ''
+  private readonly prevCacheKey: string = ''
 
   constructor (config: Config) {
     super({
@@ -62,8 +66,10 @@ class StakeWatcher extends BaseWatcher {
       } else {
         this.logger.warn('not an allowed bonder on chain')
       }
-      this.printAmounts()
-      this.watchEthBalance()
+      await Promise.all([
+        this.printAmounts(),
+        this.watchEthBalance()
+      ])
     } catch (err) {
       this.logger.error('stake watcher error:', err.message)
       this.notifier.error(`stake watcher error: ${err.message}`)
@@ -85,6 +91,9 @@ class StakeWatcher extends BaseWatcher {
       this.getTokenAllowance(),
       this.bridge.getEthBalance()
     ])
+
+    this.metrics.setBonderBalance(this.chainSlug, this.tokenSymbol, this.bridge.formatUnits(balance))
+    this.metrics.setBonderBalance(this.chainSlug, 'ETH', this.bridge.formatEth(eth))
 
     this.logger.debug('eth balance:', this.bridge.formatEth(eth))
     this.logger.debug('token balance:', this.bridge.formatUnits(balance))
@@ -164,7 +173,7 @@ class StakeWatcher extends BaseWatcher {
             this.token.chainId,
             convertAmount
           )
-          let txTimestamp : number = 0
+          let txTimestamp: number = 0
           if (tx) {
             const msg = `convert tx: ${tx?.hash}`
             this.logger.info(msg)
@@ -199,7 +208,7 @@ class StakeWatcher extends BaseWatcher {
       }
     }
 
-    return this.stake(amount)
+    return await this.stake(amount)
   }
 
   async stake (amount: BigNumber) {
@@ -232,7 +241,7 @@ class StakeWatcher extends BaseWatcher {
       return
     }
     const tx = await this.bridge.stake(amount)
-    this.logger.info(`stake tx: ${(tx?.hash)}`)
+    this.logger.info(`stake tx: ${(tx.hash)}`)
     const receipt = await tx.wait()
     if (receipt.status) {
       this.logger.debug(`successfully staked ${formattedAmount} tokens`)
@@ -269,7 +278,7 @@ class StakeWatcher extends BaseWatcher {
       return
     }
     const tx = await this.bridge.unstake(amount)
-    this.logger.info(`unstake tx: ${(tx?.hash)}`)
+    this.logger.info(`unstake tx: ${(tx.hash)}`)
     const receipt = await tx.wait()
     if (receipt.status) {
       this.logger.debug(`successfully unstaked ${parsedAmount} tokens`)
@@ -283,7 +292,7 @@ class StakeWatcher extends BaseWatcher {
     const spender = this.bridge.getAddress()
     const tx = await this.token.approve(spender)
     if (tx) {
-      this.logger.info(`stake approve tokens tx: ${tx?.hash}`)
+      this.logger.info(`stake approve tokens tx: ${tx.hash}`)
     }
     await tx?.wait()
     return tx
@@ -291,7 +300,7 @@ class StakeWatcher extends BaseWatcher {
 
   async getTokenAllowance () {
     const spender = this.bridge.getAddress()
-    return this.token.getAllowance(spender)
+    return await this.token.getAllowance(spender)
   }
 
   async pollConvertTxReceive (convertAmount: BigNumber, timestamp: number) {

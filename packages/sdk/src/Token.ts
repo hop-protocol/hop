@@ -1,9 +1,9 @@
-import { ethers, providers, Signer, Contract, BigNumber } from 'ethers'
-import { erc20Abi, wethAbi } from '@hop-protocol/core/abi'
-import { TAmount, TChain } from './types'
-import TokenModel from './models/Token'
 import Base, { ChainProviders } from './Base'
 import Chain from './models/Chain'
+import TokenModel from './models/Token'
+import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
+import { TAmount, TChain } from './types'
+import { erc20Abi, wethAbi } from '@hop-protocol/core/abi'
 
 /**
  * Class reprensenting ERC20 Token
@@ -12,11 +12,11 @@ import Chain from './models/Chain'
 class Token extends Base {
   public readonly address: string
   public readonly decimals: number
-  public readonly symbol: string
   public readonly name: string
   public readonly image: string
   public readonly chain: Chain
   public readonly contract: Contract
+  _symbol: string
 
   // TODO: clean up and remove unused parameters.
   /**
@@ -45,10 +45,17 @@ class Token extends Base {
 
     this.address = ethers.utils.getAddress(address)
     this.decimals = decimals
-    this.symbol = symbol
+    this._symbol = symbol
     this.name = name
     this.image = image
     this.chain = this.toChainModel(chain)
+  }
+
+  get symbol () {
+    if (this._symbol === TokenModel.ETH && !this.isNativeToken) {
+      return 'WETH'
+    }
+    return this._symbol
   }
 
   /**
@@ -62,7 +69,7 @@ class Token extends Base {
       this.chain,
       this.address,
       this.decimals,
-      this.symbol,
+      this._symbol,
       this.name,
       this.image,
       signer,
@@ -190,12 +197,11 @@ class Token extends Base {
   // ToDo: Remove chainId. This is added to comply with the token model type
   get chainId () {
     throw new Error('chainId should not be accessed')
-    return 0
   }
 
   public eq (token: Token): boolean {
     return (
-      this.symbol.toLowerCase() === token.symbol.toLowerCase() &&
+      this._symbol.toLowerCase() === token.symbol.toLowerCase() &&
       this.address.toLowerCase() === token.address.toLowerCase() &&
       this.chain.equals(token.chain)
     )
@@ -203,14 +209,14 @@ class Token extends Base {
 
   get isNativeToken () {
     const isEth =
-      this.symbol === TokenModel.ETH &&
+      this._symbol === TokenModel.ETH &&
       (this.chain.equals(Chain.Ethereum) ||
         this.chain.equals(Chain.Arbitrum) ||
         this.chain.equals(Chain.Optimism))
     const isMatic =
-      this.symbol === TokenModel.MATIC && this.chain.equals(Chain.Polygon)
+      this._symbol === TokenModel.MATIC && this.chain.equals(Chain.Polygon)
     const isxDai =
-      [TokenModel.DAI, TokenModel.XDAI].includes(this.symbol) &&
+      [TokenModel.DAI, TokenModel.XDAI].includes(this._symbol) &&
       this.chain.equals(Chain.xDai)
     return isEth || isMatic || isxDai
   }
@@ -234,7 +240,7 @@ class Token extends Base {
       this.chain,
       this.address,
       this.decimals,
-      `W${this.symbol}`,
+      `W${this._symbol}`,
       this.name,
       this.image,
       this.signer,
@@ -252,6 +258,29 @@ class Token extends Base {
   async unwrapToken (amount: TAmount) {
     const contract = await this.getWethContract(this.chain)
     return contract.withdraw(amount)
+  }
+
+  static fromJSON (json: any):Token {
+    return new Token(
+      json.network,
+      json.chain,
+      json.address,
+      json.decimals,
+      json.symbol,
+      json.name,
+      json.image
+    )
+  }
+
+  toJSON () {
+    return {
+      address: this.address,
+      decimals: this.decimals,
+      name: this.name,
+      image: this.image,
+      chain: this.chain,
+      symbol: this._symbol
+    }
   }
 }
 

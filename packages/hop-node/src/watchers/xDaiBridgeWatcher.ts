@@ -5,6 +5,10 @@ import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract } from 'ethers'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L1XDaiAMB, L2XDaiAMB } from '@hop-protocol/core/contracts'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { config as globalConfig } from 'src/config'
 import { l1xDaiAmbAbi, l2xDaiAmbAbi } from '@hop-protocol/core/abi'
 import { solidityKeccak256 } from 'ethers/lib/utils'
@@ -13,8 +17,8 @@ type Config = {
   chainSlug: string
   tokenSymbol: string
   label?: string
-  l1BridgeContract?: Contract
-  bridgeContract?: Contract
+  l1BridgeContract?: L1BridgeContract | L1ERC20BridgeContract
+  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   isL1?: boolean
   dryMode?: boolean
 }
@@ -22,13 +26,13 @@ type Config = {
 export const getL1Amb = (token: string) => {
   const l1Wallet = wallets.get(Chain.Ethereum)
   const l1AmbAddress = globalConfig.tokens[token].xdai.l1Amb
-  return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet)
+  return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet) as L1XDaiAMB
 }
 
 export const getL2Amb = (token: string) => {
   const l2xDaiProvider = wallets.get(Chain.xDai).provider
   const l2AmbAddress = globalConfig.tokens[token].xdai.l2Amb
-  return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider)
+  return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider) as L2XDaiAMB
 }
 
 export const executeExitTx = async (event: any, token: string) => {
@@ -91,7 +95,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
       isL1: config.isL1,
       dryMode: config.dryMode
     })
-    if (config.l1BridgeContract) {
+    if (config.l1BridgeContract != null) {
       this.l1Bridge = new L1Bridge(config.l1BridgeContract)
     }
   }
@@ -108,15 +112,15 @@ class xDaiBridgeWatcher extends BaseWatcher {
           return
         }
         const blockNumber = await l2Amb.provider.getBlockNumber()
-        const events = await l2Amb?.queryFilter(
+        const events = await l2Amb.queryFilter(
           l2Amb.filters.UserRequestForSignature(),
-          (blockNumber as number) - 100
+          blockNumber - 100
         )
 
         for (const event of events) {
           try {
             const result = await executeExitTx(event, this.tokenSymbol)
-            if (!result) {
+            if (result == null) {
               continue
             }
             const { tx, msgHash } = result
@@ -137,8 +141,8 @@ class xDaiBridgeWatcher extends BaseWatcher {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     const destinationChainId = dbTransferRoot?.destinationChainId
     const l2Amb = getL2Amb(this.tokenSymbol)
-    const tx: any = await this.bridge.getTransaction(commitTxHash)
-    const sigEvents = await l2Amb?.queryFilter(
+    const tx = await this.bridge.getTransactionReceipt(commitTxHash)
+    const sigEvents = await l2Amb.queryFilter(
       l2Amb.filters.UserRequestForSignature(),
       tx.blockNumber - 1,
       tx.blockNumber + 1
@@ -148,7 +152,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
     for (const sigEvent of sigEvents) {
       const { encodedData } = sigEvent.args
       // TODO: better way of slicing by method id
-      const data = /ef6ebe5e00000/.test(encodedData)
+      const data = encodedData.includes('ef6ebe5e00000')
         ? encodedData.replace(/.*(ef6ebe5e00000.*)/, '$1')
         : ''
       if (!data) {
@@ -168,7 +172,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
 
       try {
         const result = await executeExitTx(sigEvent, this.tokenSymbol)
-        if (!result) {
+        if (result == null) {
           logger.error('no result returned from exit tx')
           return
         }
@@ -187,8 +191,8 @@ class xDaiBridgeWatcher extends BaseWatcher {
 export default xDaiBridgeWatcher
 
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
-const assert = require('assert')
-const { toHex, numberToHex, padLeft } = require('web3-utils')
+const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires
+const { toHex, numberToHex, padLeft } = require('web3-utils') // eslint-disable-line @typescript-eslint/no-var-requires
 
 export const strip0x = (value: string) => value.replace(/^0x/i, '')
 

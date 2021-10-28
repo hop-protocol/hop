@@ -23,7 +23,6 @@ type Metadata = {
       decimals: number
       image: any
       nativeTokenSymbol: string
-      requiresGas: boolean
     }
   }
   networks: {
@@ -32,7 +31,6 @@ type Metadata = {
       isLayer1: boolean
       image: any
       nativeTokenSymbol: string
-      requiresGas: boolean
     }
   }
 }
@@ -64,56 +62,48 @@ export const metadata: Metadata = {
       isLayer1: true,
       image: MainnetLogo,
       nativeTokenSymbol: 'ETH',
-      requiresGas: true,
     },
     kovan: {
       name: 'Kovan',
       isLayer1: true,
       image: MainnetLogo,
       nativeTokenSymbol: 'ETH',
-      requiresGas: true,
     },
     goerli: {
       name: 'Goerli',
       isLayer1: true,
       image: MainnetLogo,
       nativeTokenSymbol: 'ETH',
-      requiresGas: true,
     },
     mainnet: {
       name: 'Mainnet',
       isLayer1: true,
       image: MainnetLogo,
       nativeTokenSymbol: 'ETH',
-      requiresGas: true,
     },
     arbitrum: {
       name: 'Arbitrum',
       isLayer1: false,
       image: ArbitrumLogo,
       nativeTokenSymbol: 'ETH',
-      requiresGas: false,
     },
     optimism: {
       name: 'Optimism',
       isLayer1: false,
       image: OptimismLogo,
       nativeTokenSymbol: 'ETH',
-      requiresGas: false,
     },
     xdai: {
       name: 'xDai',
       isLayer1: false,
       image: xDaiLogo,
       nativeTokenSymbol: 'xDAI',
-      requiresGas: true,
     },
     polygon: {
       name: 'Polygon',
       isLayer1: false,
       image: PolygonLogo,
       nativeTokenSymbol: 'MATIC',
-      requiresGas: true,
     },
   },
 }

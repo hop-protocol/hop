@@ -1,14 +1,14 @@
-import { Signer } from 'ethers'
-import { Chain, Token } from './models'
-import HopBridge from './HopBridge'
-import CanonicalBridge from './CanonicalBridge'
-import Watcher from './watchers/Watcher'
-import { Event } from './watchers/BaseWatcher'
-import CanonicalWatcher from './watchers/CanonicalWatcher'
-import { TChain, TToken, TProvider } from './types'
 import Base, { ChainProviders } from './Base'
-import { Network } from './constants'
+import CanonicalBridge from './CanonicalBridge'
+import CanonicalWatcher from './watchers/CanonicalWatcher'
+import HopBridge from './HopBridge'
+import Watcher from './watchers/Watcher'
 import _version from './version'
+import { Chain, Token } from './models'
+import { Event } from './watchers/BaseWatcher'
+import { Network } from './constants'
+import { Signer } from 'ethers'
+import { TChain, TProvider, TToken } from './types'
 
 /**
  * @desc Event watcher options

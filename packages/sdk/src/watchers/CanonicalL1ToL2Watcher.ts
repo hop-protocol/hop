@@ -1,13 +1,9 @@
-import { default as BaseWatcher, Config, Event } from './BaseWatcher'
-import { Chain } from '../models'
 import CanonicalBridge from '../CanonicalBridge'
-import { tokensBridgedTopic, tokenTransferTopic } from './eventTopics'
+import { default as BaseWatcher } from './BaseWatcher'
+import { Chain } from '../models'
+import { tokenTransferTopic, tokensBridgedTopic } from '../constants/eventTopics'
 
 class L1ToL2Watcher extends BaseWatcher {
-  constructor (config: Config) {
-    super(config)
-  }
-
   public watch () {
     this.start().catch((err: Error) => this.ee.emit('error', err))
     return this.ee

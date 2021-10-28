@@ -1,7 +1,8 @@
+import GasPricesDb from 'src/db/GasPricesDb'
 import Logger from 'src/logger'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import wait from 'src/utils/wait'
-import { Db, getGasPricesDb } from 'src/db'
+import { getGasPricesDb } from 'src/db'
 import { providers } from 'ethers'
 
 type Config = {
@@ -11,13 +12,13 @@ type Config = {
 class GasPriceWatcher {
   chainSlug: string
   provider: providers.Provider
-  db: Db
-  intervalMs : number = 30 * 1000
+  db: GasPricesDb
+  intervalMs: number = 30 * 1000
   logger: Logger
 
   constructor (config: Config) {
     this.chainSlug = config.chainSlug
-    this.provider = getRpcProvider(this.chainSlug)
+    this.provider = getRpcProvider(this.chainSlug)! // eslint-disable-line
     this.db = getGasPricesDb()
     this.logger = new Logger({
       tag: 'GasPricesWatcher',

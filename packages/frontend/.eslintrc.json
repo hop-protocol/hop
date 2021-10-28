@@ -1,7 +1,8 @@
 {
   "env": {
     "browser": true,
-    "es2021": true
+    "es2021": true,
+    "jest": true
   },
   "extends": [
     "plugin:react/recommended",
@@ -29,6 +30,7 @@
     "semi": 0,
     "import/no-unresolved": 0,
     "no-use-before-define": 0,
+    "no-trailing-spaces": 0,
     "no-unused-vars": 0,
     "spaced-comment": 0,
     "space-before-function-paren": 0,

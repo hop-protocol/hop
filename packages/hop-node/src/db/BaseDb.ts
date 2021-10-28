@@ -1,18 +1,39 @@
 import Logger from 'src/logger'
+import groupBy from 'lodash/groupBy'
 import level from 'level'
+import merge from 'lodash/merge'
 import mkdirp from 'mkdirp'
 import os from 'os'
 import path from 'path'
+import spread from 'lodash/spread'
 import sub from 'subleveldown'
+import wait from 'src/utils/wait'
+import { EventEmitter } from 'events'
 import { Mutex } from 'async-mutex'
 import { TenSecondsMs } from 'src/constants'
 import { config as globalConfig } from 'src/config'
 
 const dbMap: { [key: string]: any } = {}
 
+export enum Event {
+  Error = 'error',
+  Batch = 'batch',
+}
+
 export type BaseItem = {
   _id?: string
   _createdAt?: number
+}
+
+export type KV = {
+  key: string
+  value: any
+}
+
+export type QueueItem = {
+  key: string
+  value: any
+  cb: any
 }
 
 // this are options that leveldb createReadStream accepts
@@ -27,13 +48,19 @@ export type KeyFilter = {
   values?: boolean
 }
 
-class BaseDb {
+class BaseDb extends EventEmitter {
   public db: any
   public prefix: string
   logger: Logger
   mutex: Mutex = new Mutex()
+  pollIntervalMs: number = 5 * 1000
+  lastBatchUpdatedAt: number = Date.now()
+  batchSize: number = 10
+  batchTimeLimit: number = 3 * 1000
+  batchQueue: QueueItem[] = []
 
   constructor (prefix: string, _namespace?: string) {
+    super()
     if (!prefix) {
       throw new Error('db prefix is required')
     }
@@ -74,6 +101,7 @@ class BaseDb {
         this.logger.debug('closed')
       })
       .on('batch', (ops: any[]) => {
+        this.emit(Event.Batch, ops)
         for (const op of ops) {
           if (op.type === 'put') {
             logPut(op.key, op.value)
@@ -87,8 +115,41 @@ class BaseDb {
         this.logger.debug(`clear item, key=${key}`)
       })
       .on('error', (err: Error) => {
+        this._emitError(err)
         this.logger.error(`leveldb error: ${err.message}`)
       })
+
+    this.pollBatchQueue()
+  }
+
+  async pollBatchQueue () {
+    while (true) {
+      try {
+        await this.checkBatchQueue()
+      } catch (err) {
+        this.logger.error('pollBatchQueue error:', err)
+      }
+      await wait(this.pollIntervalMs)
+    }
+  }
+
+  async addUpdateKvToBatchQueue (key: string, value: any, cb: any) {
+    this.logger.debug(`adding to batch, key: ${key} `)
+    this.batchQueue.push({ key, value, cb })
+    await this.checkBatchQueue()
+  }
+
+  async checkBatchQueue () {
+    const timestampOk = this.lastBatchUpdatedAt + this.batchTimeLimit < Date.now()
+    const batchSizeOk = this.batchQueue.length >= this.batchSize
+    const shouldPutBatch = (timestampOk || batchSizeOk) && this.batchQueue.length
+    if (shouldPutBatch) {
+      const ops = this.batchQueue.slice(0)
+      this.batchQueue = []
+      this.lastBatchUpdatedAt = Date.now()
+      this.logger.debug(`attempting batch write, items: ${ops?.length} `)
+      await this.putBatch(ops)
+    }
   }
 
   protected async _getUpdateData (key: string, data: any) {
@@ -100,33 +161,69 @@ class BaseDb {
   }
 
   async _update (key: string, data: any) {
+    return this._updateWithBatch(key, data)
+  }
+
+  async _updateSingle (key: string, data: any) {
     return this.mutex.runExclusive(async () => {
       const { value } = await this._getUpdateData(key, data)
       return this.db.put(key, value)
     })
   }
 
-  public async batchUpdate (updates: any[]) {
-    return this.mutex.runExclusive(async () => {
-      const ops : any[] = []
-      for (const data of updates) {
-        const { key, value } = await this._getUpdateData(data.key, data.value)
-        ops.push({
-          type: 'put',
-          key,
-          value
-        })
+  async _updateWithBatch (key: string, data: any) {
+    const logger = this.logger.create({ id: key })
+    return new Promise(async (resolve, reject) => {
+      const cb = (err: Error, ops: any[]) => {
+        if (err) {
+          reject(err)
+          return
+        }
+        logger.debug(`received batch put event. items: ${ops?.length}`)
+        resolve(null)
       }
+      await this.addUpdateKvToBatchQueue(key, data, cb)
+    })
+  }
 
-      return new Promise((resolve, reject) => {
-        this.db.batch(ops, (err: Error) => {
-          if (err) {
-            reject(err)
-            return
+  public async putBatch (putItems: QueueItem[]) {
+    const ops: any[] = []
+    for (const data of putItems) {
+      const { key, value } = await this._getUpdateData(data.key, data.value)
+      ops.push({
+        type: 'put',
+        key,
+        value
+      })
+    }
+
+    // merge all properties belong to same key
+    const groups = groupBy(ops, 'key')
+    const keys = Object.keys(groups)
+    const groupedOps = Object.values(groups).map((items: any[], i) => {
+      const value = spread(merge)(items.map(x => x.value))
+      return {
+        type: 'put',
+        key: keys[i],
+        value
+      }
+    })
+
+    return new Promise((resolve, reject) => {
+      this.db.batch(groupedOps, (err: Error) => {
+        for (const { cb } of putItems) {
+          if (cb) {
+            cb(err, putItems)
           }
+        }
 
-          resolve(null)
-        })
+        if (err) {
+          this._emitError(err)
+          reject(err)
+          return
+        }
+
+        resolve(null)
       })
     })
   }
@@ -185,9 +282,9 @@ class BaseDb {
     return kv.map(x => x.value).filter(x => x)
   }
 
-  async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      const kv : any[] = []
+  async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<KV[]> {
+    return await new Promise((resolve, reject) => {
+      const kv: KV[] = []
       this.db.createReadStream(filter)
         .on('data', (key: any, value: any) => {
           // the parameter types depend on what key/value enabled options were used
@@ -211,6 +308,13 @@ class BaseDb {
           reject(err)
         })
     })
+  }
+
+  // explainer: https://stackoverflow.com/q/35185749/1439168
+  private _emitError (err: Error) {
+    if (this.listeners(Event.Error).length > 0) {
+      this.emit(Event.Error, err)
+    }
   }
 }
 

@@ -273,10 +273,10 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     })
   }
 
-  async getIncompleteItems (
+  async getIncompleteTransferSentTimestampItems(
     filter: Partial<Transfer> = {}
   ) {
-    const transfers: Transfer[] = await this.getTransfers()
+    const transfers: Transfer[] = await this.getItems()
     return transfers.filter(item => {
       if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
@@ -285,10 +285,24 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       }
 
       return (
-        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-        (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
-        (item.withdrawalBondedTxHash && !item.withdrawalBonder)
-        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+        item.transferSentBlockNumber && !item.transferSentTimestamp
+      )
+    })
+  }
+
+  async getIncompleteItems (
+    filter: Partial<Transfer> = {}
+  ) {
+    const transfers: Transfer[] = await this.getTransfersFromWeek()
+    return transfers.filter(item => {
+      if (filter.sourceChainId) {
+        if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
+      return (
+        item.withdrawalBondedTxHash && !item.withdrawalBonder
       )
     })
   }

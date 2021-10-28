@@ -296,6 +296,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         item.bondTransferRootId &&
         item.transferRootHash &&
         item.bonded &&
+        item.destinationChainId &&
         !isValidItem &&
         !item.challenged &&
         !item.challengeExpired

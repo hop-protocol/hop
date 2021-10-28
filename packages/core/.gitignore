@@ -16,3 +16,5 @@ docs
 /version.js
 /index.d.ts
 /version.d.ts
+/contracts
+src/contracts/

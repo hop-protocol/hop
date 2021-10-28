@@ -1,19 +1,19 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import getRpcUrls from 'src/utils/getRpcUrls'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { Contract, Wallet, providers } from 'ethers'
+import { Contract, Wallet } from 'ethers'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Watcher } from '@eth-optimism/core-utils'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { getMessagesAndProofsForL2Transaction } from '@eth-optimism/message-relayer'
-
 type Config = {
   chainSlug: string
   tokenSymbol: string
   label?: string
-  bridgeContract?: Contract
+  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   isL1?: boolean
   dryMode?: boolean
 }
@@ -39,14 +39,10 @@ class OptimismBridgeWatcher extends BaseWatcher {
       dryMode: config.dryMode
     })
 
-    this.l1Provider = new providers.StaticJsonRpcProvider(
-      getRpcUrls(Chain.Ethereum)[0]
-    )
-    this.l2Provider = new providers.StaticJsonRpcProvider(
-      getRpcUrls(Chain.Optimism)[0]
-    )
     this.l1Wallet = wallets.get(Chain.Ethereum)
     this.l2Wallet = wallets.get(Chain.Optimism)
+    this.l1Provider = this.l1Wallet.provider
+    this.l2Provider = this.l2Wallet.provider
 
     const sccAddress = '0xE969C2724d2448F1d1A6189d3e2aA1F37d5998c1'
     const l1MessengerAddress = '0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1'
@@ -54,11 +50,11 @@ class OptimismBridgeWatcher extends BaseWatcher {
 
     this.watcher = new Watcher({
       l1: {
-        provider: getRpcProvider(Chain.Ethereum),
+        provider: this.l1Provider,
         messengerAddress: l1MessengerAddress
       },
       l2: {
-        provider: getRpcProvider(Chain.Optimism),
+        provider: this.l2Provider,
         messengerAddress: l2MessengerAddress
       }
     })

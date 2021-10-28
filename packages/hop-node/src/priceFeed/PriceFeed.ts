@@ -2,10 +2,10 @@ import CoinGecko from './CoinGecko'
 import Coinbase from './Coinbase'
 
 class PriceFeed {
-  private services = [new CoinGecko(), new Coinbase()]
+  private readonly services = [new CoinGecko(), new Coinbase()]
   cacheTimeMs = 5 * 60 * 1000
 
-  cache : {[tokenSymbol: string]: {
+  cache: {[tokenSymbol: string]: {
     timestamp: number
     price: number
   }} = {}
@@ -34,6 +34,9 @@ class PriceFeed {
     for (const service of this.services) {
       try {
         const price = await service.getPriceByTokenSymbol(tokenSymbol)
+        if (price === null) {
+          throw new Error(`null price for ${tokenSymbol}`)
+        }
         this.cache[tokenSymbol] = {
           timestamp: Date.now(),
           price

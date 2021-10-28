@@ -30,7 +30,7 @@ program
   .action(async source => {
     try {
       const configPath = source?.config || source?.parent?.config
-      const config: FileConfig = await parseConfigFile(configPath)
+      const config = await parseConfigFile(configPath)
       if (configPath) {
         await setGlobalConfigFromConfigFile(config)
       }
@@ -39,8 +39,8 @@ program
       const tokens = normalizeEnvVarArray(source.tokens || source.token)
       const commitTransfersMinThresholdAmount = Number(source.commitTransfersMinThreshold || 0)
 
-      const newConfig = JSON.parse(JSON.stringify(config)) // deep clone
-      const oldConfig = JSON.parse(JSON.stringify(config)) // deep clone
+      const newConfig = JSON.parse(JSON.stringify(config)) as FileConfig // deep clone
+      const oldConfig = JSON.parse(JSON.stringify(config)) as FileConfig // deep clone
 
       if (source.commitTransfersMinThreshold !== undefined) {
         const updateCommitTransfersMinThreshold = async (token: string) => {
@@ -89,7 +89,7 @@ program
 
           // convert old config type to new config type
           if (isV1ConfigType || isV2ConfigType) {
-            if (oldConfig?.commitTransfers?.minThresholdAmount) {
+            if (oldConfig.commitTransfers?.minThresholdAmount) {
               for (const _chain in oldConfig.commitTransfers.minThresholdAmount) {
                 if (!isValidNetwork(_chain)) {
                   continue
@@ -136,7 +136,7 @@ program
         }
 
         if (source.fromFile) {
-          let json : any
+          let json: any
           try {
             const filepath = path.resolve(source.fromFile)
             if (!fs.existsSync(filepath)) {

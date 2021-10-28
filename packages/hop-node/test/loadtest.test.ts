@@ -3,6 +3,7 @@ import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
 import {
   User,
+  expectDefined,
   generateUsers,
   getBalances,
   prepareAccounts,
@@ -10,7 +11,7 @@ import {
 } from './helpers'
 import { faucetPrivateKey, mnemonic } from './config'
 import { startWatchers } from 'src/watchers/watchers'
-require('dotenv').config()
+require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
 
 const sourceNetwork = Chain.xDai
 const destNetwork = Chain.Ethereum
@@ -22,6 +23,9 @@ const logger = new Logger('TEST')
 test.skip(
   'loadtest',
   async () => {
+    expectDefined(faucetPrivateKey)
+    expectDefined(mnemonic)
+
     const faucet = new User(faucetPrivateKey)
     const users = generateUsers(NUM_USERS, mnemonic)
     await prepareAccounts(users, faucet, token, sourceNetwork)

@@ -1,10 +1,9 @@
 import HealthCheck from 'src/health/HealthCheck'
+import { logger, program } from './shared'
 import {
-  FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { logger, program } from './shared'
 
 program
   .command('health-check')
@@ -30,7 +29,7 @@ program
   .action(async (source: any) => {
     const configPath = source?.config || source?.parent?.config
     if (configPath) {
-      const config: FileConfig = await parseConfigFile(configPath)
+      const config = await parseConfigFile(configPath)
       await setGlobalConfigFromConfigFile(config)
     }
     const bondWithdrawalTimeLimitMinutes = Number(

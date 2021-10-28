@@ -5,12 +5,11 @@ import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import isHToken from 'src/utils/isHToken'
 import { BigNumber } from 'ethers'
 import { Chain, TokenIndex } from 'src/constants'
+import { logger, program } from './shared'
 import {
-  FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { logger, program } from './shared'
 import { swap as uniswapSwap } from 'src/uniswap'
 
 program
@@ -30,7 +29,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const chain = source.chain
@@ -38,8 +37,8 @@ program
       const toToken = source.to
       const amount = Number(source.args[0] || source.amount)
       const max = source.max !== undefined && source.max
-      const deadline = Number(source.deadline)
-      const slippage = Number(source.slippage)
+      const deadline = source.deadline ? Number(source.deadline) : undefined // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+      const slippage = source.slippage ? Number(source.slippage) : undefined // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
       const recipient = source.recipient
       if (!chain) {
         throw new Error('chain is required')
@@ -60,7 +59,7 @@ program
       const toTokenIsHToken = isHToken(toToken)
       const isAmmSwap = fromTokenIsHToken || toTokenIsHToken
       const deadlineBn = source.deadline ? BigNumber.from(source.deadline) : undefined
-      let tx : any
+      let tx: any
       if (isAmmSwap) {
         logger.debug('L2 AMM swap')
         if (fromTokenIsHToken && toTokenIsHToken) {
@@ -83,9 +82,9 @@ program
         const amm = l2Bridge.amm
         const ammWrapper = l2Bridge.ammWrapper
 
-        let fromTokenIndex : number
-        let toTokenIndex : number
-        let token : Token
+        let fromTokenIndex: number
+        let toTokenIndex: number
+        let token: Token
         if (fromTokenIsHToken) {
           fromTokenIndex = TokenIndex.HopBridgeToken
           toTokenIndex = TokenIndex.CanonicalToken
@@ -102,14 +101,14 @@ program
           amountIn = await token.getBalance()
         }
 
-        let amountOut : BigNumber
+        let amountOut: BigNumber
         if (fromTokenIsHToken) {
           amountOut = await amm.calculateToHTokensAmount(amountIn)
         } else {
           amountOut = await amm.calculateFromHTokensAmount(amountIn)
         }
 
-        const slippageToleranceBps = (slippage || 0.5) * 100
+        const slippageToleranceBps = (slippage ?? 0.5) * 100
         const minBps = Math.ceil(10000 - slippageToleranceBps)
         const minAmountOut = amountOut.mul(minBps).div(10000)
 

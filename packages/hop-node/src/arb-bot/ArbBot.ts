@@ -12,16 +12,16 @@ export enum TokenIndex {
   HopBridgeToken = 1
 }
 
-interface TokenConfig {
+type TokenConfig = {
   label: string
   contract: Contract
 }
 
-interface AmmConfig {
+type AmmConfig = {
   saddleSwap: Partial<TokenConfig>
 }
 
-interface Config {
+type Config = {
   label: string
   network: string
   token0: TokenConfig
@@ -33,7 +33,7 @@ interface Config {
   maxTradeAmount: number
 }
 
-interface Token {
+type Token = {
   label: string
   contract: Contract
 }
@@ -125,6 +125,9 @@ class ArbBot {
     this.network = config.network
     this.wallet = config.wallet
     this.minThreshold = config.minThreshold
+    if (config.amm.saddleSwap.contract === undefined) {
+      throw new Error('saddleSwap contract must be defined')
+    }
     this.saddleSwap = config.amm.saddleSwap.contract
     this.token0 = {
       label: config.token0.label,

@@ -1,9 +1,9 @@
 import Logger from 'src/logger'
 import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
-import { User } from './helpers'
+import { User, expectDefined } from './helpers'
 import { privateKey } from './config'
-require('dotenv').config()
+require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
 
 const TOKEN = 'USDC'
 const AMOUNT = 10_000
@@ -17,6 +17,7 @@ describe.skip('convert L1 token to L2 Hop token', () => {
       label,
       async () => {
         logger.log(label)
+        expectDefined(privateKey)
         const user = new User(privateKey)
         logger.log(`minting ${Chain.Ethereum} ${TOKEN}`)
         let tx = await user.mint(Chain.Ethereum, TOKEN, AMOUNT)

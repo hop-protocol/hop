@@ -73,6 +73,7 @@ class Base {
   private addresses = config.addresses
   private chains = config.chains
   private bonders = config.bonders
+  private fees = config.fees
   gasPriceMultiplier: number = 0
 
   /**
@@ -403,6 +404,26 @@ class Base {
   public getBonderAddresses (token: TToken): string[] {
     token = this.toTokenModel(token)
     return this.bonders?.[this.network]?.[token.canonicalSymbol]
+  }
+
+  public getFeeBps (token: TToken, destinationChain: TChain) {
+    token = this.toTokenModel(token)
+    destinationChain = this.toChainModel(destinationChain)
+    if (!token) {
+      throw new Error('token is required')
+    }
+    if (!destinationChain) {
+      throw new Error('destinationChain is required')
+    }
+    const fees = config.fees?.[token?.canonicalSymbol]
+    if (!fees) {
+      throw new Error('fee data not found')
+    }
+    let feeBps = fees?.L2ToL2
+    if (destinationChain.isL1) {
+      feeBps = fees?.L2ToL1
+    }
+    return feeBps
   }
 
   setGasPriceMultiplier (gasPriceMultiplier: number) {

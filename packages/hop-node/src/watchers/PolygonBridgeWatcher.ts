@@ -3,21 +3,22 @@ import Logger from 'src/logger'
 import Web3 from 'web3'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import fetch from 'node-fetch'
-import getRpcUrls from 'src/utils/getRpcUrls'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { Contract, Wallet, constants, providers } from 'ethers'
+import { Contract, Wallet, constants } from 'ethers'
 import { Event } from 'src/types'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { MaticPOSClient } from '@maticnetwork/maticjs'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
-
 type Config = {
   chainSlug: string
   tokenSymbol: string
   label?: string
-  bridgeContract?: Contract
+  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   isL1?: boolean
   dryMode?: boolean
 }
@@ -43,16 +44,12 @@ class PolygonBridgeWatcher extends BaseWatcher {
       dryMode: config.dryMode
     })
 
-    this.l1Provider = new providers.StaticJsonRpcProvider(
-      getRpcUrls(Chain.Ethereum)[0]
-    )
-    this.l2Provider = new providers.StaticJsonRpcProvider(
-      getRpcUrls(Chain.Polygon)[0]
-    )
     this.l1Wallet = wallets.get(Chain.Ethereum)
     this.l2Wallet = wallets.get(Chain.Polygon)
+    this.l1Provider = this.l1Wallet.provider
+    this.l2Provider = this.l2Wallet.provider
 
-    this.chainId = chainSlugToId(config.chainSlug)
+    this.chainId = chainSlugToId(config.chainSlug)! // eslint-disable-line
     this.apiUrl = `https://apis.matic.network/api/v1/${
       this.chainId === this.polygonMainnetChainId ? 'matic' : 'mumbai'
     }/block-included`
@@ -167,7 +164,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
       }
     )
 
-    return this.l1Wallet.sendTransaction({
+    return await this.l1Wallet.sendTransaction({
       to: rootTunnel,
       value: tx.value,
       data: tx.data,
@@ -196,7 +193,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
       encodeAbi: true
     })
 
-    return this.l1Wallet.sendTransaction({
+    return await this.l1Wallet.sendTransaction({
       to: tx.to,
       value: tx.value,
       data: tx.data,

@@ -4,9 +4,9 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import isL1ChainId from 'src/utils/isL1ChainId'
-import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
-import { BonderFeeBps, Chain, MinBonderFeeAbsolute } from 'src/constants'
+import { Bridge as BridgeContract, MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
+import { Chain, MinBonderFeeAbsolute } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
@@ -20,7 +20,7 @@ export type EventsBatchOptions = {
   endBlockNumber: number
 }
 
-export type EventCb = (event: Event, i?: number) => any
+export type EventCb<E extends Event, R> = (event: E, i?: number) => R
 
 const priceFeed = new PriceFeed()
 
@@ -32,12 +32,12 @@ export default class Bridge extends ContractBase {
   MultipleWithdrawalsSettled: string = 'MultipleWithdrawalsSettled'
   tokenDecimals: number = 18
   tokenSymbol: string = ''
-  bridgeContract: Contract
+  bridgeContract: BridgeContract
   bridgeDeployedBlockNumber: number
   l1CanonicalTokenAddress: string
   stateUpdateAddress: string
 
-  constructor (bridgeContract: Contract) {
+  constructor (bridgeContract: BridgeContract) {
     super(bridgeContract)
     this.bridgeContract = bridgeContract
     const metadata = getTokenMetadataByAddress(bridgeContract.address, this.chainSlug)
@@ -61,27 +61,27 @@ export default class Bridge extends ContractBase {
     }
     this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
-    this.stateUpdateAddress = globalConfig?.stateUpdateAddress
+    this.stateUpdateAddress = globalConfig.stateUpdateAddress
   }
 
   async getBonderAddress (): Promise<string> {
-    return this.bridgeContract.signer.getAddress()
+    return await (this.bridgeContract as Contract).signer.getAddress()
   }
 
-  isBonder = rateLimitRetry(async (): Promise<boolean> => {
+  isBonder = async (): Promise<boolean> => {
     const bonder = await this.getBonderAddress()
-    return this.bridgeContract.getIsBonder(bonder)
-  })
+    return await this.bridgeContract.getIsBonder(bonder)
+  }
 
-  getCredit = rateLimitRetry(async (bonder?: string): Promise<BigNumber> => {
+  getCredit = async (bonder?: string): Promise<BigNumber> => {
     if (!bonder) {
       bonder = await this.getBonderAddress()
     }
     const credit = await this.bridgeContract.getCredit(bonder)
     return credit
-  })
+  }
 
-  getDebit = rateLimitRetry(async (bonder?: string): Promise<BigNumber> => {
+  getDebit = async (bonder?: string): Promise<BigNumber> => {
     if (!bonder) {
       bonder = await this.getBonderAddress()
     }
@@ -89,13 +89,13 @@ export default class Bridge extends ContractBase {
       bonder
     )
     return debit
-  })
+  }
 
-  getRawDebit = rateLimitRetry(async (): Promise<BigNumber> => {
+  getRawDebit = async (): Promise<BigNumber> => {
     const bonder = await this.getBonderAddress()
     const debit = await this.bridgeContract.getRawDebit(bonder)
     return debit
-  })
+  }
 
   async getBaseAvailableCredit (bonder?: string): Promise<BigNumber> {
     const [credit, debit] = await Promise.all([
@@ -116,10 +116,10 @@ export default class Bridge extends ContractBase {
 
   async getBondedWithdrawalAmount (transferId: string): Promise<BigNumber> {
     const bonderAddress = await this.getBonderAddress()
-    return this.getBondedWithdrawalAmountByBonder(bonderAddress, transferId)
+    return await this.getBondedWithdrawalAmountByBonder(bonderAddress, transferId)
   }
 
-  getBondedWithdrawalAmountByBonder = rateLimitRetry(async (
+  getBondedWithdrawalAmountByBonder = async (
     bonder: string,
     transferId: string
   ): Promise<BigNumber> => {
@@ -128,7 +128,7 @@ export default class Bridge extends ContractBase {
       transferId
     )
     return bondedBn
-  })
+  }
 
   async getBondedWithdrawalTimestamp (
     transferId: string,
@@ -143,15 +143,15 @@ export default class Bridge extends ContractBase {
     if (!event) {
       return 0
     }
-    return this.getEventTimestamp(event)
+    return await this.getEventTimestamp(event)
   }
 
   async getBondedWithdrawalEvent (
     transferId: string,
     startBlockNumber?: number,
     endBlockNumber?: number
-  ): Promise<any> {
-    let match: Event = null
+  ): Promise<WithdrawalBondedEvent | undefined> {
+    let match: WithdrawalBondedEvent | undefined
     await this.eventsBatch(
       async (start: number, end: number) => {
         const events = await this.getWithdrawalBondedEvents(start, end)
@@ -175,8 +175,8 @@ export default class Bridge extends ContractBase {
     transferId: string,
     startBlockNumber?: number,
     endBlockNumber?: number
-  ): Promise<any> {
-    let match: Event = null
+  ): Promise<WithdrewEvent | undefined> {
+    let match: WithdrewEvent | undefined
     await this.eventsBatch(
       async (start: number, end: number) => {
         const events = await this.getWithdrewEvents(start, end)
@@ -196,61 +196,61 @@ export default class Bridge extends ContractBase {
     return match
   }
 
-  isTransferIdSpent = rateLimitRetry((transferId: string): Promise<boolean> => {
-    return this.bridgeContract.isTransferIdSpent(transferId)
-  })
+  isTransferIdSpent = async (transferId: string): Promise<boolean> => {
+    return await this.bridgeContract.isTransferIdSpent(transferId)
+  }
 
-  getWithdrawalBondedEvents = rateLimitRetry((
+  getWithdrawalBondedEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> => {
-    return this.bridgeContract.queryFilter(
+  ) => {
+    return await this.bridgeContract.queryFilter(
       this.bridgeContract.filters.WithdrawalBonded(),
       startBlockNumber,
       endBlockNumber
     )
-  })
+  }
 
-  getWithdrewEvents = rateLimitRetry((
+  getWithdrewEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> => {
-    return this.bridgeContract.queryFilter(
+  ) => {
+    return await this.bridgeContract.queryFilter(
       this.bridgeContract.filters.Withdrew(),
       startBlockNumber,
       endBlockNumber
     )
-  })
-
-  async mapWithdrawalBondedEvents (
-    cb: EventCb,
-    options?: Partial<EventsBatchOptions>
-  ) {
-    return this.mapEventsBatch(this.getWithdrawalBondedEvents, cb, options)
   }
 
-  async mapWithdrewEvents (
-    cb: EventCb,
+  async mapWithdrawalBondedEvents<R> (
+    cb: EventCb<WithdrawalBondedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return this.mapEventsBatch(this.getWithdrewEvents, cb, options)
+    return await this.mapEventsBatch(this.getWithdrawalBondedEvents, cb, options)
   }
 
-  getTransferRootSetEvents = rateLimitRetry((
+  async mapWithdrewEvents<R> (
+    cb: EventCb<WithdrewEvent, R>,
+    options?: Partial<EventsBatchOptions>
+  ) {
+    return await this.mapEventsBatch(this.getWithdrewEvents, cb, options)
+  }
+
+  getTransferRootSetEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> => {
-    return this.bridgeContract.queryFilter(
+  ) => {
+    return await this.bridgeContract.queryFilter(
       this.bridgeContract.filters.TransferRootSet(),
       startBlockNumber,
       endBlockNumber
     )
-  })
+  }
 
   async getTransferRootSetTxHash (
     transferRootHash: string
   ): Promise<string | undefined> {
-    let txHash: string
+    let txHash: string | undefined
     await this.eventsBatch(async (start: number, end: number) => {
       const events = await this.getTransferRootSetEvents(
         start,
@@ -269,23 +269,23 @@ export default class Bridge extends ContractBase {
     return txHash
   }
 
-  async mapTransferRootSetEvents (
-    cb: EventCb,
+  async mapTransferRootSetEvents<R> (
+    cb: EventCb<TransferRootSetEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return this.mapEventsBatch(this.getTransferRootSetEvents, cb, options)
+    return await this.mapEventsBatch(this.getTransferRootSetEvents, cb, options)
   }
 
-  getWithdrawalBondSettledEvents = rateLimitRetry((
+  getWithdrawalBondSettledEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> => {
-    return this.bridgeContract.queryFilter(
+  ) => {
+    return await this.bridgeContract.queryFilter(
       this.bridgeContract.filters.WithdrawalBondSettled(),
       startBlockNumber,
       endBlockNumber
     )
-  })
+  }
 
   decodeSettleBondedWithdrawalData (data: string): any {
     if (!data) {
@@ -324,22 +324,22 @@ export default class Bridge extends ContractBase {
     return transferIds
   }
 
-  getMultipleWithdrawalsSettledEvents = rateLimitRetry((
+  getMultipleWithdrawalsSettledEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
-  ): Promise<Event[]> => {
-    return this.bridgeContract.queryFilter(
+  ) => {
+    return await this.bridgeContract.queryFilter(
       this.bridgeContract.filters.MultipleWithdrawalsSettled(),
       startBlockNumber,
       endBlockNumber
     )
-  })
+  }
 
-  async mapMultipleWithdrawalsSettledEvents (
-    cb: EventCb,
+  async mapMultipleWithdrawalsSettledEvents<R> (
+    cb: EventCb<MultipleWithdrawalsSettledEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return this.mapEventsBatch(
+    return await this.mapEventsBatch(
       this.getMultipleWithdrawalsSettledEvents,
       cb,
       options
@@ -377,15 +377,15 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  getTransferRoot = rateLimitRetry((
+  getTransferRoot = async (
     transferRootHash: string,
     totalAmount: BigNumber
-  ): Promise<any> => {
-    return this.bridgeContract.getTransferRoot(
+  ) => {
+    return await this.bridgeContract.getTransferRoot(
       transferRootHash,
       totalAmount
     )
-  })
+  }
 
   // get the chain ids of all bridged L2s and L1
   async getChainIds (): Promise<number[]> {
@@ -397,7 +397,7 @@ export default class Bridge extends ContractBase {
     return chainIds
   }
 
-  async getL1ChainId (): Promise<number> {
+  async getL1ChainId (): Promise<number | undefined> {
     for (const key in globalConfig.networks) {
       const { networkId: chainId } = globalConfig.networks[key]
       if (isL1ChainId(chainId)) {
@@ -418,7 +418,7 @@ export default class Bridge extends ContractBase {
     return chainIds
   }
 
-  stake = rateLimitRetry(async (amount: BigNumber): Promise<providers.TransactionResponse> => {
+  stake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
     const bonder = await this.getBonderAddress()
     const txOverrides = await this.txOverrides()
     const isEthSend = this.chainSlug === Chain.Ethereum
@@ -432,17 +432,17 @@ export default class Bridge extends ContractBase {
     )
 
     return tx
-  })
+  }
 
-  unstake = rateLimitRetry(async (amount: BigNumber): Promise<providers.TransactionResponse> => {
+  unstake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
     const tx = await this.bridgeContract.unstake(
       amount,
       await this.txOverrides()
     )
     return tx
-  })
+  }
 
-  bondWithdrawal = rateLimitRetry(async (
+  bondWithdrawal = async (
     recipient: string,
     amount: BigNumber,
     transferNonce: string,
@@ -455,14 +455,14 @@ export default class Bridge extends ContractBase {
       transferNonce,
       bonderFee,
       txOverrides
-    ]
+    ] as const
 
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
 
     return tx
-  })
+  }
 
-  settleBondedWithdrawals = rateLimitRetry(async (
+  settleBondedWithdrawals = async (
     bonder: string,
     transferIds: string[],
     amount: BigNumber
@@ -475,9 +475,9 @@ export default class Bridge extends ContractBase {
     )
 
     return tx
-  })
+  }
 
-  getStateUpdateStatus = rateLimitRetry(async (stateUpdateAddress: string, chainId: number): Promise<number> => {
+  getStateUpdateStatus = async (stateUpdateAddress: string, chainId: number): Promise<number> => {
     const abi = ['function currentState(address,uint256)']
     const ethersInterface = new ethersUtils.Interface(abi)
     const data = ethersInterface.encodeFunctionData(
@@ -489,11 +489,11 @@ export default class Bridge extends ContractBase {
     }
     const res: string = await this.contract.provider.call(tx)
     return Number(res)
-  })
+  }
 
   async getEthBalance (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
-    return this.getBalance(bonder)
+    return await this.getBalance(bonder)
   }
 
   formatUnits (value: BigNumber) {
@@ -512,33 +512,33 @@ export default class Bridge extends ContractBase {
     return parseUnits(value.toString(), 18)
   }
 
-  protected async mapEventsBatch (
-    getEventsMethod: (start: number, end: number) => Promise<Event[]>,
-    cb: EventCb,
+  protected async mapEventsBatch<E extends Event, R> (
+    getEventsMethod: (start: number, end: number) => Promise<E[]>,
+    cb: EventCb<E, R>,
     options?: Partial<EventsBatchOptions>
-  ) {
+  ): Promise<R[]> {
     let i = 0
-    const promises: Promise<any>[] = []
+    const promises: R[] = []
     await this.eventsBatch(async (start: number, end: number) => {
-      let events = await rateLimitRetry(getEventsMethod)(start, end)
+      let events = await getEventsMethod(start, end)
       events = events.reverse()
       for (const event of events) {
         promises.push(cb(event, i))
       }
       i++
     }, options)
-    return Promise.all(promises)
+    return await Promise.all(promises)
   }
 
   public async eventsBatch (
-    cb: (start?: number, end?: number, i?: number) => Promise<void | boolean>,
+    cb: (start?: number, end?: number, i?: number) => Promise<boolean | undefined> | Promise<void>,
     options: Partial<EventsBatchOptions> = {}
   ) {
     this.validateEventsBatchInput(options)
 
     let cacheKey = ''
-    let state: State
-    if (options?.cacheKey) {
+    let state: State | undefined
+    if (options.cacheKey) {
       cacheKey = this.getCacheKeyFromKey(
         this.chainId,
         this.address,
@@ -553,11 +553,11 @@ export default class Bridge extends ContractBase {
       batchBlocks,
       earliestBlockInBatch,
       latestBlockInBatch
-    } = await this.getBlockValues(options, state)
+    } = await this.getBlockValues(options, state) // eslint-disable-line
 
     let i = 0
     while (start >= earliestBlockInBatch) {
-      const shouldContinue = await rateLimitRetry(cb)(start, end, i)
+      const shouldContinue = await cb(start, end, i)
       if (
         (typeof shouldContinue === 'boolean' && !shouldContinue) ||
         start === earliestBlockInBatch
@@ -567,7 +567,7 @@ export default class Bridge extends ContractBase {
 
       // Subtract 1 so that the boundary blocks are not double counted
       end = start - 1
-      start = end - batchBlocks
+      start = end - batchBlocks! // eslint-disable-line
 
       if (start < earliestBlockInBatch) {
         start = earliestBlockInBatch
@@ -586,12 +586,12 @@ export default class Bridge extends ContractBase {
     }
   }
 
-  private getBlockValues = async (options: Partial<EventsBatchOptions>, state: State) => {
+  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state?: State) => {
     const { startBlockNumber, endBlockNumber } = options
 
-    let end
-    let start
-    let totalBlocksInBatch
+    let end: number
+    let start: number
+    let totalBlocksInBatch: number
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
     const currentBlockNumber = await this.getBlockNumber()
     const currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
@@ -603,16 +603,16 @@ export default class Bridge extends ContractBase {
       totalBlocksInBatch = end - startBlockNumber
     } else if (endBlockNumber) {
       end = endBlockNumber
-      totalBlocksInBatch = totalBlocks
+      totalBlocksInBatch = totalBlocks! // eslint-disable-line
     } else if (isInitialSync) {
       end = currentBlockNumberWithFinality
-      totalBlocksInBatch = end - startBlockNumber
+      totalBlocksInBatch = end - (startBlockNumber ?? 0)
     } else if (isSync) {
-      end = Math.max(currentBlockNumberWithFinality, state.latestBlockSynced)
-      totalBlocksInBatch = end - state.latestBlockSynced
+      end = Math.max(currentBlockNumberWithFinality, state?.latestBlockSynced ?? 0)
+      totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {
       end = currentBlockNumberWithFinality
-      totalBlocksInBatch = totalBlocks
+      totalBlocksInBatch = totalBlocks! // eslint-disable-line
     }
 
     // Handle the case where the chain has less blocks than the total block config
@@ -621,10 +621,10 @@ export default class Bridge extends ContractBase {
       totalBlocksInBatch = end
     }
 
-    if (totalBlocksInBatch <= batchBlocks) {
+    if (totalBlocksInBatch <= batchBlocks!) { // eslint-disable-line
       start = end - totalBlocksInBatch
     } else {
-      start = end - batchBlocks
+      start = end - batchBlocks! // eslint-disable-line
     }
 
     const earliestBlockInBatch = end - totalBlocksInBatch
@@ -654,7 +654,7 @@ export default class Bridge extends ContractBase {
     return amountOutMin?.gt(0) || deadline?.gt(0)
   }
 
-  private validateEventsBatchInput = (
+  private readonly validateEventsBatchInput = (
     options: Partial<EventsBatchOptions> = {}
   ) => {
     const { cacheKey, startBlockNumber, endBlockNumber } = options
@@ -682,6 +682,13 @@ export default class Bridge extends ContractBase {
   }
 
   async getMinBonderFeeAbsolute (tokenSymbol: string, tokenPriceUsd: number) {
+    // There is no concept of a minBonderFeeAbsolute on the L1 bridge so we default to 0 since the
+    // relative fee will negate this value anyway
+    const destinationChain = this.chainSlug
+    if (destinationChain === Chain.Ethereum) {
+      return BigNumber.from(0)
+    }
+
     // absolute minimum is $1 of token
     const tokenDecimals = getTokenDecimals(tokenSymbol)
     const minBonderFeeAbsolute = parseUnits(
@@ -700,11 +707,14 @@ export default class Bridge extends ContractBase {
       return BigNumber.from(0)
     }
     const destinationChain = this.chainSlug
-    // There is no concept of a minBonderFeeAbsolute on the L1 bridge so we default to 0 since the
-    // relative fee will negate this value anyway
-    let bonderFeeBps = BonderFeeBps.L2ToL1
-    if (destinationChain !== Chain.Ethereum) {
-      bonderFeeBps = BonderFeeBps.L2ToL2
+    const fees = globalConfig?.fees?.[this.tokenSymbol]
+    if (!fees) {
+      throw new Error(`fee config not found for ${this.tokenSymbol}`)
+    }
+
+    let bonderFeeBps = fees.L2ToL2
+    if (destinationChain === Chain.Ethereum) {
+      bonderFeeBps = fees.L2ToL1
     }
 
     const minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)
@@ -725,7 +735,7 @@ export default class Bridge extends ContractBase {
     tokenSymbol: string
   ) {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
-    const provider = getRpcProvider(chain)
+    const provider = getRpcProvider(chain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
     let gasPrice = await provider.getGasPrice()
     // Arbitrum returns a gasLimit & gasPriceBid of 2x what is generally paid
     if (this.chainSlug === Chain.Arbitrum) {
@@ -764,7 +774,10 @@ export default class Bridge extends ContractBase {
 
   async getGasCostTokenValues (symbol: string) {
     const decimals = getTokenDecimals(symbol)
-    const priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)
+    const priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    if (typeof priceUsd !== 'number') {
+      throw new Error('expected price to be number type')
+    }
     const priceUsdWei = parseEther(priceUsd.toString())
     return {
       decimals,
@@ -783,7 +796,7 @@ export default class Bridge extends ContractBase {
     return 'ETH'
   }
 
-  getConfigBonderAddress ():string {
+  getConfigBonderAddress (): string {
     return globalConfig?.bonders?.[this.tokenSymbol]?.[0]
   }
 }

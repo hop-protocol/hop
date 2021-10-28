@@ -1,6 +1,7 @@
 import GasPricesDb, { varianceSeconds } from 'src/db/GasPricesDb'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
+import { expectDefined } from './helpers'
 
 describe('gasPricesDb', () => {
   it('should get item nearest to specified datetime', async () => {
@@ -20,18 +21,18 @@ describe('gasPricesDb', () => {
     await wait(2 * 1000)
     const now = Math.floor(Date.now() / 1000)
     let item = await db.getNearest('polygon', now)
-    expect(item).toBeTruthy()
+    expectDefined(item)
     expect(item.gasPrice.toString()).toBe('200')
 
     item = await db.getNearest('polygon', now - 3)
-    expect(item).toBeTruthy()
+    expectDefined(item)
     expect(item.gasPrice.toString()).toBe('100')
 
     item = await db.getNearest('polygon', timestamp - varianceSeconds)
-    expect(item).toBeTruthy()
+    expectDefined(item)
     expect(item.gasPrice.toString()).toBe('100')
 
     item = await db.getNearest('polygon', timestamp - varianceSeconds - 1)
-    expect(item).toBeFalsy()
+    expect(item).toBeUndefined()
   })
 })

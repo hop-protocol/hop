@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { ComponentStory, ComponentMeta } from '@storybook/react'
 import TxStatusModal from 'src/components/txStatus/TxStatusModal'
 import { storyTransactions } from './data'
-import Transaction from 'src/models/Transaction'
+import { createTransaction } from 'src/utils/createTransaction'
+import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 
 export default {
   title: 'components/TxStatusModal',
@@ -10,14 +11,38 @@ export default {
 } as ComponentMeta<typeof TxStatusModal>
 
 const Template: ComponentStory<typeof TxStatusModal> = args => {
+  const txHistory = useTxHistory()
+
+  useEffect(() => {
+    txHistory.setTransactions([...txHistory.transactions, args.tx])
+  }, [])
+
   function handleClose() {
     console.log('close')
   }
 
-  const tx = storyTransactions[0]
-
-  return <TxStatusModal onClose={handleClose} tx={tx as Transaction} {...args} />
+  return <TxStatusModal onClose={handleClose} {...args} />
 }
 
-export const Basic = Template.bind({})
-Basic.args = {}
+const sts = storyTransactions.map(tx =>
+  createTransaction(tx, tx.networkName, tx.destNetworkName, tx.token, {
+    pendingDestinationConfirmation: tx.pendingDestinationConfirmation,
+    destTxHash: tx.destTxHash,
+  })
+)
+console.log(`sts:`, sts)
+
+export const PendingDestination = Template.bind({})
+PendingDestination.args = {
+  tx: sts[0],
+}
+
+export const BothCompleted = Template.bind({})
+BothCompleted.args = {
+  tx: sts[1],
+}
+
+export const PendingSource = Template.bind({})
+PendingSource.args = {
+  tx: sts[2],
+}

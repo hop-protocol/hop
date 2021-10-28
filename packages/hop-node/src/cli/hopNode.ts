@@ -4,7 +4,6 @@ import clearDb from 'src/db/clearDb'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 import { Chain } from 'src/constants'
 import {
-  FileConfig,
   defaultEnabledNetworks,
   defaultEnabledWatchers,
   gitRev,
@@ -51,7 +50,7 @@ program
       logger.debug(`git revision: ${gitRev}`)
 
       const configFilePath = source.config || source.args[0]
-      const config: FileConfig = await parseConfigFile(configFilePath)
+      const config = await parseConfigFile(configFilePath)
       await setGlobalConfigFromConfigFile(config, source.passwordFile)
       const syncFromDate = source.syncFromDate
       const s3Upload = !!source.s3Upload
@@ -94,7 +93,7 @@ program
             } else if (rpcUrls.length) {
               _rpcUrls.push(...rpcUrls)
             }
-            if (_rpcUrls.length) {
+            if (_rpcUrls.length > 0) {
               setNetworkRpcUrls(k, _rpcUrls)
             }
             if (typeof waitConfirmations === 'number') {
@@ -106,7 +105,7 @@ program
 
       const bonder = config?.roles?.bonder
       const challenger = config?.roles?.challenger
-      const order = Number(config?.order || 0)
+      const order = Number(config?.order ?? 0)
       if (order) {
         logger.info('order:', order)
       }
@@ -116,16 +115,16 @@ program
       }
       let commitTransfersMinThresholdAmounts: any = {}
       if (config?.commitTransfers) {
-        if (config?.commitTransfers?.minThresholdAmount) {
+        if (config.commitTransfers?.minThresholdAmount) {
           commitTransfersMinThresholdAmounts =
-            config?.commitTransfers?.minThresholdAmount
+            config.commitTransfers?.minThresholdAmount
         }
       }
       let settleBondedWithdrawalsThresholdPercent: any = {}
       if (config?.settleBondedWithdrawals) {
-        if (config?.settleBondedWithdrawals?.thresholdPercent) {
+        if (config.settleBondedWithdrawals?.thresholdPercent) {
           settleBondedWithdrawalsThresholdPercent =
-            config?.settleBondedWithdrawals?.thresholdPercent
+            config.settleBondedWithdrawals?.thresholdPercent
         }
       }
       const slackEnabled = slackAuthToken && slackChannel && slackUsername

@@ -1,7 +1,7 @@
 import Logger from 'src/logger'
 import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
-import { User } from './helpers'
+import { User, expectDefined } from './helpers'
 import { faucetPrivateKey as privateKey } from './config'
 
 const TOKEN = 'USDC'
@@ -16,6 +16,7 @@ describe.skip('convert L1 token to L2 canonical token', () => {
       label,
       async () => {
         logger.log(label)
+        expectDefined(privateKey)
         const user = new User(privateKey)
         logger.log(`minting ${Chain.Ethereum} ${TOKEN}`)
         let tx = await user.mint(Chain.Ethereum, TOKEN, AMOUNT)
@@ -52,6 +53,7 @@ describe.skip('polygon', () => {
   it(
     'polygon canonical L1 → L2',
     async () => {
+      expectDefined(privateKey)
       const user = new User(privateKey)
       const amount = 0.1
       const tx = await user.polygonCanonicalL1ToL2(amount, true)
@@ -66,6 +68,7 @@ describe.skip('polygon', () => {
   it(
     'polygon canonical L2 → L1',
     async () => {
+      expectDefined(privateKey)
       const user = new User(privateKey)
       const amount = 0.01
       let tx: any

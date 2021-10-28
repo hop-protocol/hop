@@ -3,7 +3,6 @@ import GasBoostTransactionFactory, { Options } from './GasBoostTransactionFactor
 import Logger from 'src/logger'
 import Store from './Store'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
-import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
@@ -28,7 +27,7 @@ class GasBoostSigner extends Wallet {
   constructor (privateKey: string, provider?: providers.Provider, store?: Store, options: Partial<Options> = {}) {
     super(privateKey, provider)
     this.signer = new Wallet(privateKey, provider)
-    if (store) {
+    if (store != null) {
       this.store = store
     }
     const chainSlug = getProviderChainSlug(this.signer.provider)
@@ -55,16 +54,17 @@ class GasBoostSigner extends Wallet {
     this.store = store
   }
 
+  // this is a required ethers Signer method
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
-    return this.mutex.runExclusive(async () => {
+    return await this.mutex.runExclusive(async () => {
       this.logger.debug(`unlocked tx: ${JSON.stringify(tx)}`)
-      return this._sendTransaction(tx)
+      return await this._sendTransaction(tx)
     })
   }
 
-  _sendTransaction = rateLimitRetry(async (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> => {
+  _sendTransaction = async (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> => {
     const nonce = await this.getNonce()
-    if (!tx?.nonce) {
+    if (!tx.nonce) {
       tx.nonce = nonce
     }
     const gTx = this.gTxFactory.createTransaction(tx)
@@ -84,7 +84,7 @@ class GasBoostSigner extends Wallet {
     this.nonce++
     this.lastTxSentTimestamp = Date.now()
     return gTx
-  })
+  }
 
   private async getNonce () {
     if (!this.nonce) {

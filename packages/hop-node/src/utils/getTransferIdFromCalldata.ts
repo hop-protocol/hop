@@ -5,7 +5,7 @@ const getTransferIdFromCalldata = (data: string, destinationChainId: number) => 
   if (!data || !destinationChainId) {
     return
   }
-  let types : string[]
+  let types: string[] | undefined
   if (data.startsWith('0x3d12a85a')) {
     data = data.replace('0x3d12a85a', '')
     types = ['address', 'uint256', 'bytes32', 'uint256', 'uint256', 'uint256']
@@ -13,7 +13,7 @@ const getTransferIdFromCalldata = (data: string, destinationChainId: number) => 
     data = data.replace('0x23c452cd', '')
     types = ['address', 'uint256', 'bytes32', 'uint256']
   }
-  if (!types) {
+  if (types === undefined) {
     return
   }
   data = data.replace('0x', '')

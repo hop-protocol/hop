@@ -121,11 +121,12 @@ const Send: FC = () => {
     priceImpact,
     amountOutMin,
     intermediaryAmountOutMin,
-    bonderFee,
     lpFees,
+    adjustedBonderFee,
+    adjustedDestinationTxFee,
+    totalFee,
     requiredLiquidity,
     loading: loadingSendData,
-    destinationTxFee,
     estimatedReceived,
   } = useSendData(sourceToken, slippageTolerance, fromNetwork, toNetwork, fromTokenAmountBN)
 
@@ -150,7 +151,7 @@ const Send: FC = () => {
     totalBonderFee,
     totalBonderFeeDisplay,
     estimatedReceivedDisplay,
-  } = useFeeConversions(destinationTxFee, bonderFee, estimatedReceived, destToken)
+  } = useFeeConversions(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, destToken)
 
   // Check if user has enough balance (more than the inputed value)
   const enoughBalance = useMemo(() => {
@@ -242,19 +243,19 @@ const Send: FC = () => {
 
   useEffect(() => {
     const warningMessage = `Send at least ${destinationTxFeeDisplay} to cover the transaction fee`
-    if (estimatedReceived?.lte(0) && destinationTxFee?.gt(0)) {
+    if (estimatedReceived?.lte(0) && adjustedDestinationTxFee?.gt(0)) {
       setMinimumSendWarning(warningMessage)
     } else {
       setMinimumSendWarning('')
     }
-  }, [estimatedReceived, destinationTxFee])
+  }, [estimatedReceived, adjustedDestinationTxFee])
 
   useEffect(() => {
     let message = noLiquidityWarning || minimumSendWarning
 
     if (!enoughBalance) {
       message = 'Insufficient funds'
-    } else if (estimatedReceived && bonderFee?.gt(estimatedReceived)) {
+    } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
       message = 'Bonder fee greater than estimated received'
     } else if (estimatedReceived?.lte(0)) {
       message = 'Insufficient amount. Send higher amount to cover bonder fee.'
@@ -300,8 +301,8 @@ const Send: FC = () => {
       return
     }
     let _amountOutMin = amountOutMin
-    if (destinationTxFee?.gt(0)) {
-      _amountOutMin = _amountOutMin.sub(destinationTxFee)
+    if (adjustedDestinationTxFee?.gt(0)) {
+      _amountOutMin = _amountOutMin.sub(adjustedDestinationTxFee)
     }
 
     if (_amountOutMin.lt(0)) {
@@ -397,10 +398,9 @@ const Send: FC = () => {
 
   const { tx, setTx, send, sending } = useSendTransaction({
     amountOutMin,
-    bonderFee,
     customRecipient,
     deadline,
-    destinationTxFee,
+    totalFee,
     fromNetwork,
     fromTokenAmount,
     intermediaryAmountOutMin,

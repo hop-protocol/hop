@@ -1,10 +1,10 @@
 import Logger from 'src/logger'
 import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
-import { User, prepareAccount } from './helpers'
+import { User, expectDefined, prepareAccount } from './helpers'
 import { privateKey } from './config'
 import { startWatchers } from 'src/watchers/watchers'
-require('dotenv').config()
+require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
 
 const sourceNetwork = Chain.Optimism
 const destNetwork = Chain.Ethereum
@@ -16,6 +16,7 @@ describe.skip('arb-bot', () => {
   it(
     `send ${TRANSFER_AMOUNT} ${TOKEN} ${sourceNetwork} → ${Chain.Ethereum}`,
     async () => {
+      expectDefined(privateKey)
       const user = new User(privateKey)
       logger.log('preparing account')
       await prepareAccount(user, sourceNetwork, TOKEN)

@@ -3,23 +3,13 @@ import wait from 'src/utils/wait'
 
 class TimestampedKeysDb<Type> extends BaseDb {
   ready = false
-  subDb : any
+  subDb: any
 
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
 
     this.subDb = new BaseDb(`${prefix}:timestampedKeys`, _namespace)
-
-    // this only needs to be ran once on start up to backfill timestamped keys.
-    // this function can be removed once all bonders update.
-    // timestamped keys (in addition to transferId as keys) are needed to filter
-    // leveldb read streams.
-    this.trackTimestampedKeys()
-      .then(() => {
-        this.ready = true
-        this.logger.debug('db ready')
-      })
-      .catch(this.logger.error)
+    this.ready = true
   }
 
   protected async tilReady (): Promise<boolean> {
@@ -28,7 +18,7 @@ class TimestampedKeysDb<Type> extends BaseDb {
     }
 
     await wait(100)
-    return this.tilReady()
+    return await this.tilReady()
   }
 
   async trackTimestampedKeys () {
@@ -38,7 +28,7 @@ class TimestampedKeysDb<Type> extends BaseDb {
     }
   }
 
-  async getItems () :Promise<Type[]> {
+  async getItems (): Promise<Type[]> {
     // implemented in child class
     return []
   }

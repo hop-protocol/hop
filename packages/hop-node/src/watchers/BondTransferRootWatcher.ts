@@ -3,17 +3,19 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import { BigNumber, Contract } from 'ethers'
-
-export interface Config {
+import { BigNumber } from 'ethers'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+export type Config = {
   chainSlug: string
   tokenSymbol: string
-  bridgeContract: Contract
+  bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   label: string
   isL1: boolean
   order?: () => number
   dryMode?: boolean
-  stateUpdateAddress: string
+  stateUpdateAddress?: string
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
@@ -40,13 +42,15 @@ class BondTransferRootWatcher extends BaseWatcher {
 
   async checkTransfersCommittedFromDb () {
     const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots()
-    if (dbTransferRoots.length) {
-      this.logger.debug(
-        `checking ${dbTransferRoots.length} unbonded transfer roots db items`
-      )
+    if (!dbTransferRoots.length) {
+      return
     }
 
-    const promises: Promise<any>[] = []
+    this.logger.debug(
+        `checking ${dbTransferRoots.length} unbonded transfer roots db items`
+    )
+
+    const promises: Array<Promise<any>> = []
     for (const dbTransferRoot of dbTransferRoots) {
       const {
         transferRootHash,
@@ -58,12 +62,12 @@ class BondTransferRootWatcher extends BaseWatcher {
       } = dbTransferRoot
 
       promises.push(this.checkTransfersCommitted(
-        transferRootHash,
-        totalAmount,
-        destinationChainId,
-        committedAt,
-        sourceChainId,
-        transferIds
+        transferRootHash!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        totalAmount!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        destinationChainId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        committedAt!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        sourceChainId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        transferIds! // eslint-disable-line @typescript-eslint/no-non-null-assertion
       ))
     }
 
@@ -138,7 +142,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     const pendingTransfers: string[] = transferIds || []
     logger.debug('transferRootHash transferIds:', pendingTransfers)
-    if (pendingTransfers.length) {
+    if (pendingTransfers.length > 0) {
       const tree = new MerkleTree(pendingTransfers)
       const rootHash = tree.getHexRoot()
       logger.debug('calculated transfer root hash:', rootHash)

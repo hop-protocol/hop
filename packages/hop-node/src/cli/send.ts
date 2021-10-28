@@ -7,13 +7,12 @@ import contracts from 'src/contracts'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
+import { formatEther, parseEther } from 'ethers/lib/utils'
 import {
-  FileConfig,
   config as globalConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { formatEther, parseEther } from 'ethers/lib/utils'
 import { logger, program } from './shared'
 
 async function sendTokens (
@@ -57,7 +56,7 @@ async function sendTokens (
   }
 
   const isNativeToken = token === 'MATIC' && fromChain === Chain.Polygon
-  let balance : BigNumber
+  let balance: BigNumber
   if (isNativeToken) {
     balance = await signer.getBalance()
   } else {
@@ -80,7 +79,7 @@ async function sendTokens (
   }
 
   logger.debug(`attempting to send ${amount} ${label} ⟶  ${toChain} to ${recipient}`)
-  const destinationChainId = chainSlugToId(toChain)
+  const destinationChainId = chainSlugToId(toChain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
   if (fromChain === Chain.Ethereum) {
     if (isHToken) {
       tx = await (bridge as L1Bridge).convertCanonicalTokenToHopToken(
@@ -107,7 +106,7 @@ async function sendTokens (
     }
   }
   logger.info(`send tx: ${tx.hash}`)
-  await tx?.wait()
+  await tx.wait()
   balance = await tokenClass.getBalance()
   logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
   logger.debug('tokens should arrive at destination in 5-15 minutes')
@@ -127,7 +126,7 @@ async function sendNativeToken (
   }
 
   const provider = getRpcProvider(chain)
-  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider)
+  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
 
   const parsedAmount = parseEther(amount.toString())
   let balance = await wallet.getBalance()
@@ -141,7 +140,7 @@ async function sendNativeToken (
     to: recipient
   })
   logger.info(`send tx: ${tx.hash}`)
-  await tx?.wait()
+  await tx.wait()
   balance = await wallet.getBalance()
   logger.debug(`send complete. new balance: ${formatEther(balance)}`)
 }
@@ -162,7 +161,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const fromChain = source.fromChain

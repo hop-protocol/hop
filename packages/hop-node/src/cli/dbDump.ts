@@ -1,11 +1,10 @@
+import { getDbSet } from 'src/db'
 import {
-  FileConfig,
   config as globalConfig,
   parseConfigFile,
   setDbPath,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { getDbSet } from 'src/db'
 
 import { logger, program } from './shared'
 
@@ -13,7 +12,7 @@ program
   .command('db-dump')
   .option(
     '--db <string>',
-    'Name of db. Options are "transfers", "transfer-roots"'
+    'Name of db. Options are "transfers", "transfer-roots", "sync-state", "token-prices", "gas-cost"'
   )
   .option('--db-path <string>', 'Path to leveldb.')
   .option('--token <string>', 'Token symbol')
@@ -27,7 +26,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       if (source.dbPath) {
@@ -43,7 +42,7 @@ program
       const nearest = Number(source.nearest)
       const fromDate = Number(source.fromDate)
       const toDate = Number(source.toDate)
-      let items : any[] = []
+      let items: any[] = []
       if (dbName === 'transfer-roots') {
         items = await db.transferRoots.getTransferRoots({
           fromUnix: fromDate,
@@ -67,6 +66,13 @@ program
           items = [await db.tokenPrices.getNearest(tokenSymbol, nearest, false)]
         } else {
           items = await db.tokenPrices.getItems()
+        }
+      } else if (dbName === 'gas-cost') {
+        if (tokenSymbol && nearest) {
+          items = [await db.gasCost.getNearest(chain, tokenSymbol, false, nearest)]
+          items = [await db.gasCost.getNearest(chain, tokenSymbol, true, nearest)]
+        } else {
+          items = await db.gasCost.getItems()
         }
       } else {
         throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state, gas-prices, token-prices`)

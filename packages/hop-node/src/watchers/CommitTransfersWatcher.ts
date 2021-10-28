@@ -1,11 +1,13 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber } from 'ethers'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { TxRetryDelayMs } from 'src/constants'
 import { getEnabledNetworks } from 'src/config'
-
-export interface Config {
+export type Config = {
   chainSlug: string
   tokenSymbol: string
   label: string
@@ -13,12 +15,10 @@ export interface Config {
   minThresholdAmounts?: {[chain: string]: number}
 
   isL1?: boolean
-  bridgeContract?: Contract
+  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   dryMode?: boolean
   stateUpdateAddress?: string
 }
-
-const BONDER_ORDER_DELAY_MS = 60 * 1000
 
 class CommitTransfersWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: CommitTransfersWatcher }
@@ -39,7 +39,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       stateUpdateAddress: config.stateUpdateAddress
     })
 
-    if (config.minThresholdAmounts) {
+    if (config.minThresholdAmounts != null) {
       for (const destinationChain in config.minThresholdAmounts) {
         this.minThresholdAmounts[destinationChain] = this.bridge.parseUnits(
           config.minThresholdAmounts[destinationChain]
@@ -81,16 +81,18 @@ class CommitTransfersWatcher extends BaseWatcher {
     const dbTransfers = await this.db.transfers.getUncommittedTransfers({
       sourceChainId: await this.bridge.getChainId()
     })
-    if (dbTransfers.length) {
-      this.logger.debug(
-        `checking ${dbTransfers.length} uncommitted transfers db items`
-      )
+    if (!dbTransfers.length) {
+      return
     }
+
+    this.logger.debug(
+        `checking ${dbTransfers.length} uncommitted transfers db items`
+    )
     const destinationChainIds: number[] = []
     for (const dbTransfer of dbTransfers) {
       const { destinationChainId } = dbTransfer
-      if (!destinationChainIds.includes(destinationChainId)) {
-        destinationChainIds.push(destinationChainId)
+      if (!destinationChainIds.includes(destinationChainId!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        destinationChainIds.push(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       }
     }
     for (const destinationChainId of destinationChainIds) {

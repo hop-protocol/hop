@@ -1,9 +1,9 @@
-import { ethers, providers, Signer, Contract, BigNumber } from 'ethers'
-import { erc20Abi, wethAbi } from '@hop-protocol/core/abi'
-import { TAmount, TChain } from './types'
-import TokenModel from './models/Token'
 import Base, { ChainProviders } from './Base'
 import Chain from './models/Chain'
+import TokenModel from './models/Token'
+import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
+import { TAmount, TChain } from './types'
+import { erc20Abi, wethAbi } from '@hop-protocol/core/abi'
 
 /**
  * Class reprensenting ERC20 Token
@@ -197,7 +197,6 @@ class Token extends Base {
   // ToDo: Remove chainId. This is added to comply with the token model type
   get chainId () {
     throw new Error('chainId should not be accessed')
-    return 0
   }
 
   public eq (token: Token): boolean {
@@ -261,7 +260,7 @@ class Token extends Base {
     return contract.withdraw(amount)
   }
 
-  static fromJSON(json: any):Token {
+  static fromJSON (json: any):Token {
     return new Token(
       json.network,
       json.chain,
@@ -273,14 +272,14 @@ class Token extends Base {
     )
   }
 
-  toJSON() {
+  toJSON () {
     return {
       address: this.address,
       decimals: this.decimals,
       name: this.name,
       image: this.image,
       chain: this.chain,
-      symbol: this._symbol,
+      symbol: this._symbol
     }
   }
 }

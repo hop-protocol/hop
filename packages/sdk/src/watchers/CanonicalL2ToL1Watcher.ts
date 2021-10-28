@@ -1,15 +1,11 @@
-import { erc20Abi } from '@hop-protocol/core/abi'
-import { Contract } from 'ethers'
-import { default as BaseWatcher, Config, Event } from './BaseWatcher'
-import { Chain } from '../models'
 import CanonicalBridge from '../CanonicalBridge'
-import { tokensBridgedTopic, tokenTransferTopic } from '../constants/eventTopics'
+import { default as BaseWatcher } from './BaseWatcher'
+import { Chain } from '../models'
+import { Contract } from 'ethers'
+import { erc20Abi } from '@hop-protocol/core/abi'
+import { tokenTransferTopic, tokensBridgedTopic } from '../constants/eventTopics'
 
 class L1ToL2Watcher extends BaseWatcher {
-  constructor (config: Config) {
-    super(config)
-  }
-
   public watch () {
     this.start().catch((err: Error) => this.ee.emit('error', err))
     return this.ee

@@ -90,7 +90,7 @@ class HealthCheck {
   async check () {
     this.logger.debug('--- poll ---')
     await Promise.all(
-      this.bridges.map((bridge: L2Bridge) => this.checkBridge(bridge))
+      this.bridges.map(async (bridge: L2Bridge) => await this.checkBridge(bridge))
     )
   }
 
@@ -116,7 +116,7 @@ class HealthCheck {
         for (const event of events) {
           const { transactionHash } = event
           const tx = await bridge.getTransaction(transactionHash)
-          const { transferId } = event.args
+          const { transferId } = event.args! // eslint-disable-line
           const { destinationChainId } = bridge.decodeSendData(tx.data)
           const sourceChain = await bridge.getChainSlug()
           const destinationChain = bridge.chainIdToSlug(destinationChainId)
@@ -139,13 +139,13 @@ class HealthCheck {
           const destBridge = this.bridges.find((bridge: L2Bridge) => {
             return bridge.chainId === destinationChainId
           })
-          if (!destBridge) {
+          if (destBridge == null) {
             continue
           }
-          if (!globalConfig?.bonders) {
+          if (!globalConfig.bonders) {
             throw new Error('bonders object is empty')
           }
-          const bonder = globalConfig?.bonders?.[tokenSymbol]?.[0]
+          const bonder = globalConfig.bonders?.[tokenSymbol]?.[0]
           const bondedAmount = await destBridge.getBondedWithdrawalAmountByBonder(
             bonder,
             transferId
@@ -200,9 +200,9 @@ class HealthCheck {
 
   async checkCommitTransfers (bridge: L2Bridge) {
     const chainIds = await bridge.getChainIds()
-    return Promise.all(
-      chainIds.map((destinationChainId: number) =>
-        this.checkCommitTransfersForChain(bridge, destinationChainId)
+    return await Promise.all(
+      chainIds.map(async (destinationChainId: number) =>
+        await this.checkCommitTransfersForChain(bridge, destinationChainId)
       )
     )
   }
@@ -319,15 +319,15 @@ class HealthCheck {
           const destBridge = this.bridges.find((bridge: L2Bridge) => {
             return bridge.chainId === destinationChainId
           })
-          if (!destBridge) {
+          if (destBridge == null) {
             continue
           }
 
           const destinationChain = destBridge.chainIdToSlug(destinationChainId)
-          if (!globalConfig?.bonders) {
+          if (!globalConfig.bonders) {
             throw new Error('bonders object is empty')
           }
-          const bonder = globalConfig?.bonders?.[tokenSymbol]?.[0]
+          const bonder = globalConfig.bonders?.[tokenSymbol]?.[0]
           /*
           const bondedAmount = await destBridge.getBondedWithdrawalAmountByBonder(
             bonder,
@@ -340,7 +340,7 @@ class HealthCheck {
             continue
           }
           */
-          if (!globalConfig?.bonders) {
+          if (!globalConfig.bonders) {
             throw new Error('bonders object is empty')
           }
           const destEndBlockNumber = await destBridge.getBlockNumber()
@@ -350,19 +350,19 @@ class HealthCheck {
             destStartBlockNumber,
             destEndBlockNumber
           )
-          const timestamp = await destBridge.getEventTimestamp(bondEvent)
+          const timestamp = await destBridge.getEventTimestamp(bondEvent!) // eslint-disable-line
           if (!timestamp) {
             continue
           }
           const bondTx = await destBridge.getTransaction(
-            bondEvent.transactionHash
+            bondEvent!.transactionHash // eslint-disable-line
           )
           bondedTransferIds.push({
             transferId,
             destinationChainId,
             bonder,
             timestamp,
-            txHash: bondTx?.hash
+            txHash: bondTx.hash
           })
         }
       },
@@ -378,7 +378,7 @@ class HealthCheck {
         const destBridge = this.bridges.find((bridge: L2Bridge) => {
           return bridge.chainId === destinationChainId
         })
-        if (!destBridge) {
+        if (destBridge == null) {
           return false
         }
         const endBlockNumber = await destBridge.getBlockNumber()
@@ -420,12 +420,12 @@ class HealthCheck {
       const destBridge = this.bridges.find((bridge: L2Bridge) => {
         return bridge.chainId === destinationChainId
       })
-      if (!destBridge) {
+      if (destBridge == null) {
         continue
       }
 
       const transferBondAmount = await destBridge.getBondedWithdrawalAmountByBonder(
-        bonder,
+        bonder!, // eslint-disable-line
         transferId
       )
       if (!totalBondsSettleAmounts[destinationChainId]) {
@@ -442,7 +442,7 @@ class HealthCheck {
       const destBridge = this.bridges.find((bridge: L2Bridge) => {
         return bridge.chainId === destinationChainId
       })
-      if (!destBridge) {
+      if (destBridge == null) {
         continue
       }
       const [credit, debit] = await Promise.all([

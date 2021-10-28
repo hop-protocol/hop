@@ -33,14 +33,18 @@ const useStyles = makeStyles(theme => ({
 }))
 
 type Props = {
-  value: string
-  label: string
-  icon: string
+  value?: string
+  label?: string
+  icon?: string
 }
 
 const SelectOption: FC<Props> = props => {
   const styles = useStyles()
   const { label, icon } = props
+
+  if (!icon) {
+    return null
+  }
 
   return (
     <div className={styles.root}>
@@ -49,9 +53,11 @@ const SelectOption: FC<Props> = props => {
           <img src={icon} className={styles.image} alt="" />
         </Icon>
       </ListItemIcon>
-      <Typography component="span" variant="h6">
-        {label}
-      </Typography>
+      {label && (
+        <Typography component="span" variant="h6">
+          {label}
+        </Typography>
+      )}
     </div>
   )
 }

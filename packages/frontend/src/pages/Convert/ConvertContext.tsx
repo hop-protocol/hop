@@ -23,7 +23,7 @@ import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import useBalance from 'src/hooks/useBalance'
-import { toTokenDisplay } from 'src/utils'
+import { toTokenDisplay, commafy } from 'src/utils'
 import useApprove from 'src/hooks/useApprove'
 import useQueryParams from 'src/hooks/useQueryParams'
 import { reactAppNetwork } from 'src/config'
@@ -239,7 +239,6 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
     }
 
-    console.log(`selectedNetwork:`, selectedNetwork);
     fetchToken()
   }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
 
@@ -272,7 +271,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
       const ctx = ++debouncer.current
 
-      const { amountOut, details, warning, bonderFee } = await convertOption.getSendData(
+      const { amountOut, details, bonderFee } = await convertOption.getSendData(
         sdk,
         sourceNetwork,
         destNetwork,
@@ -300,12 +299,23 @@ const ConvertContextProvider: FC = ({ children }) => {
       setDestTokenAmount(formattedAmount)
       setAmountOutMin(_amountOutMin)
       setDetails(details)
-      setWarning(warning)
       setBonderFee(bonderFee)
     }
 
     getSendData().catch(logger.error)
   }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
+
+  useEffect(() => {
+    // NOTE: `convertOption.getSendData()` returns jsx code via the AmmConvertOption class.
+    // This works for now, but we should convert AmmConvertOption Class -> React.FC w/ hooks
+    if (details && (details as any).props?.children?.props?.tooltip?.props?.priceImpact) {
+      const priceImpact = (details as any).props?.children?.props?.tooltip?.props?.priceImpact
+      if (priceImpact && priceImpact !== 100 && (priceImpact >= 1 || priceImpact <= -1)) {
+        const warning = `Warning: High Price Impact! ${commafy(priceImpact)}%`
+        setWarning(warning)
+      }
+    }
+  }, [details])
 
   const needsApproval = useAsyncMemo(async () => {
     try {

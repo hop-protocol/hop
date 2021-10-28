@@ -1,8 +1,8 @@
 import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
-import { User } from './helpers'
+import { User, expectDefined } from './helpers'
 import { bonderPrivateKey } from './config'
-require('dotenv').config()
+require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
 
 const TOKEN = 'USDC'
 const TOKEN_0_AMOUNT = 1000
@@ -27,6 +27,7 @@ for (const l2Network of testNetworks) {
 }
 
 async function addLiquidity (l2Network: string, amount: number) {
+  expectDefined(bonderPrivateKey)
   const user = new User(bonderPrivateKey)
   const l1Balance = await user.getBalance(Chain.Ethereum, TOKEN)
   console.log(`L1 ${TOKEN} balance: ${l1Balance}`)
@@ -106,6 +107,7 @@ async function addLiquidity (l2Network: string, amount: number) {
 }
 
 async function removeLiquidity (l2Network: string, amount: number) {
+  expectDefined(bonderPrivateKey)
   const user = new User(bonderPrivateKey)
 
   // const lpToken = await user.getLpToken(l2Network, TOKEN)

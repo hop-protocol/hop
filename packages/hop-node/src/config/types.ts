@@ -1,10 +1,10 @@
-export interface Network {
+export type Network = {
   networkId: number
   rpcUrls: string[]
   explorerUrls: string[]
   waitConfirmations?: number
 }
 
-export interface Networks {
+export type Networks = {
   [key: string]: Network
 }

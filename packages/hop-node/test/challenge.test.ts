@@ -2,11 +2,11 @@ import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
-import { User, waitForEvent } from './helpers'
+import { User, expectDefined, waitForEvent } from './helpers'
 import { bonderPrivateKey, governancePrivateKey, privateKey } from './config'
 import { keccak256 } from 'ethereumjs-util'
 import { startWatchers } from 'src/watchers/watchers'
-require('dotenv').config()
+require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
 
 const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 1
@@ -25,6 +25,8 @@ describe.skip('challenge valid transfer root but committed too early', () => {
       label,
       async () => {
         logger.log(label)
+        expectDefined(privateKey)
+        expectDefined(bonderPrivateKey)
         const user = new User(privateKey)
         const bonder = new User(bonderPrivateKey)
         const { stop, watchers } = await startWatchers({
@@ -55,6 +57,7 @@ describe.skip('challenge valid transfer root but committed too early', () => {
             totalAmount = data.totalAmount
             return true
           }
+          return false
         })
 
         // await wait(30 * 1000)
@@ -111,6 +114,7 @@ describe.skip('challenge valid transfer root but committed too early', () => {
           totalAmount
         )
         const destChainId = chainSlugToId(destNetwork)
+        expectDefined(destChainId)
         const committedAt = await user.getTransferRootCommittedAt(
           destChainId,
           transferRootId,
@@ -148,11 +152,14 @@ describe.skip('challenge invalid transfer root', () => {
   const destNetwork = Chain.Ethereum
   for (const sourceNetwork of networks) {
     const chainId = chainSlugToId(sourceNetwork)
+    expectDefined(chainId)
     const label = `challenge invalid transfer root on ${sourceNetwork}`
     it(
       label,
       async () => {
         logger.log(label)
+        expectDefined(privateKey)
+        expectDefined(bonderPrivateKey)
         const user = new User(privateKey)
         const bonder = new User(bonderPrivateKey)
         const { stop, watchers } = await startWatchers({
@@ -223,6 +230,7 @@ describe.skip('challenge invalid transfer root', () => {
           totalAmount
         )
         const destChainId = chainSlugToId(destNetwork)
+        expectDefined(destChainId)
         const committedAt = await user.getTransferRootCommittedAt(
           destChainId,
           transferRootId,
@@ -262,6 +270,7 @@ test.skip(
 )
 
 async function updateChallengePeriods () {
+  expectDefined(governancePrivateKey)
   const gov = new User(governancePrivateKey)
   const challengePeriod = 300
   const timeSlotSize = challengePeriod / 3

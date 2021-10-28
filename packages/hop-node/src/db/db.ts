@@ -12,7 +12,7 @@ let gasPricesDb: GasPricesDb | null = null
 let tokenPricesDb: TokenPricesDb | null = null
 
 // dbSets are token specific instances
-const dbSets : {[db: string]: {[tokenSymbol: string]: any}} = {
+const dbSets: {[db: string]: {[tokenSymbol: string]: any}} = {
   gasBoostDb: {},
   syncStateDb: {},
   transfersDb: {},
@@ -21,14 +21,14 @@ const dbSets : {[db: string]: {[tokenSymbol: string]: any}} = {
 }
 
 export const getGasPricesDb = () => {
-  if (!gasPricesDb) {
+  if (gasPricesDb == null) {
     gasPricesDb = new GasPricesDb('gasPrices')
   }
   return gasPricesDb
 }
 
 export const getTokenPricesDb = () => {
-  if (!tokenPricesDb) {
+  if (tokenPricesDb == null) {
     tokenPricesDb = new TokenPricesDb('tokenPrices')
   }
   return tokenPricesDb
@@ -36,13 +36,13 @@ export const getTokenPricesDb = () => {
 
 export type Db = GasBoostDb | GasPricesDb | SyncStateDb | TokenPricesDb | TransferRootsDb | TransfersDb | GasCostDb
 export type DbSet = {
-  gasBoost: GasBoostDb,
-  syncState: SyncStateDb,
-  transfers: TransfersDb,
-  transferRoots: TransferRootsDb,
-  gasPrices: GasPricesDb,
-  tokenPrices : TokenPricesDb,
-  gasCost: GasCostDb,
+  gasBoost: GasBoostDb
+  syncState: SyncStateDb
+  transfers: TransfersDb
+  transferRoots: TransferRootsDb
+  gasPrices: GasPricesDb
+  tokenPrices: TokenPricesDb
+  gasCost: GasCostDb
 }
 
 export function getDbSet (tokenSymbol: string): DbSet {
@@ -58,28 +58,28 @@ export function getDbSet (tokenSymbol: string): DbSet {
       }
       return dbSets.gasBoostDb[tokenSymbol]
     },
-    get syncState () : SyncStateDb {
+    get syncState (): SyncStateDb {
       if (!dbSets.syncStateDb[tokenSymbol]) {
         dbSets.syncStateDb[tokenSymbol] = new SyncStateDb('state', tokenSymbol)
       }
       return dbSets.syncStateDb[tokenSymbol]
     },
-    get transfers () : TransfersDb {
+    get transfers (): TransfersDb {
       if (!dbSets.transfersDb[tokenSymbol]) {
         dbSets.transfersDb[tokenSymbol] = new TransfersDb('transfers', tokenSymbol)
       }
       return dbSets.transfersDb[tokenSymbol]
     },
-    get transferRoots () : TransferRootsDb {
+    get transferRoots (): TransferRootsDb {
       if (!dbSets.transferRootsDb[tokenSymbol]) {
         dbSets.transferRootsDb[tokenSymbol] = new TransferRootsDb('transferRoots', tokenSymbol)
       }
       return dbSets.transferRootsDb[tokenSymbol]
     },
-    get gasPrices () : GasPricesDb {
+    get gasPrices (): GasPricesDb {
       return getGasPricesDb()
     },
-    get tokenPrices () : TokenPricesDb {
+    get tokenPrices (): TokenPricesDb {
       return getTokenPricesDb()
     },
     get gasCost (): GasCostDb {

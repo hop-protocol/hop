@@ -53,11 +53,11 @@ class BaseDb extends EventEmitter {
   public prefix: string
   logger: Logger
   mutex: Mutex = new Mutex()
-  pollIntervalMs : number = 5 * 1000
-  lastBatchUpdatedAt : number = Date.now()
-  batchSize : number = 10
+  pollIntervalMs: number = 5 * 1000
+  lastBatchUpdatedAt: number = Date.now()
+  batchSize: number = 10
   batchTimeLimit: number = 3 * 1000
-  batchQueue : QueueItem[] = []
+  batchQueue: QueueItem[] = []
 
   constructor (prefix: string, _namespace?: string) {
     super()
@@ -187,7 +187,7 @@ class BaseDb extends EventEmitter {
   }
 
   public async putBatch (putItems: QueueItem[]) {
-    const ops : any[] = []
+    const ops: any[] = []
     for (const data of putItems) {
       const { key, value } = await this._getUpdateData(data.key, data.value)
       ops.push({
@@ -201,7 +201,7 @@ class BaseDb extends EventEmitter {
     const groups = groupBy(ops, 'key')
     const keys = Object.keys(groups)
     const groupedOps = Object.values(groups).map((items: any[], i) => {
-      const value = spread(merge)(items.map(x => x.value))
+      const value = spread(merge)(items.map(this.getValue))
       return {
         type: 'put',
         key: keys[i],
@@ -253,15 +253,19 @@ class BaseDb extends EventEmitter {
 
   async batchGetByIds (ids: string[], defaultValue: any = null) {
     const values = await this.db.getMany(ids)
-    const items: any[] = values.map((item: any, i: number) => {
-      return this.normalizeReadValue(ids[i], item)
-    })
-
-    return items.filter(x => x)
+    return values.filter(this.filterExisty)
   }
 
   protected async deleteById (id: string) {
     return this.db.del(id)
+  }
+
+  private getKey (x: any): string {
+    return x.key
+  }
+
+  private getValue (x: any): any {
+    return x.value
   }
 
   async getKeys (filter?: KeyFilter): Promise<string[]> {
@@ -270,7 +274,7 @@ class BaseDb extends EventEmitter {
       values: false
     }, filter)
     const kv = await this.getKeyValues(filter)
-    return kv.map(x => x.key).filter(x => x)
+    return kv.map(this.getKey).filter(this.filterExisty)
   }
 
   async getValues (filter?: KeyFilter): Promise<any[]> {
@@ -279,35 +283,40 @@ class BaseDb extends EventEmitter {
       values: true
     }, filter)
     const kv = await this.getKeyValues(filter)
-    return kv.map(x => x.value).filter(x => x)
+    return kv.map(this.getValue).filter(this.filterExisty)
   }
 
   async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<KV[]> {
-    return new Promise((resolve, reject) => {
-      const kv : KV[] = []
-      this.db.createReadStream(filter)
-        .on('data', (key: any, value: any) => {
-          // the parameter types depend on what key/value enabled options were used
-          if (typeof key === 'object') {
-            value = key.value
-            key = key.key
-          }
-          // ignore this key that used previously to track unique ids
-          if (key === 'ids') {
-            return
-          }
-          if (typeof key === 'string') {
-            value = this.normalizeReadValue(key, value)
-            kv.push({ key, value })
-          }
-        })
+    return await new Promise((resolve, reject) => {
+      const kv: KV[] = []
+      const s = this.db.createReadStream(filter)
+      s.on('data', (key: any, value: any) => {
+        // the parameter types depend on what key/value enabled options were used
+        if (typeof key === 'object') {
+          value = key.value
+          key = key.key
+        }
+        // ignore this key that used previously to track unique ids
+        if (key === 'ids') {
+          return
+        }
+        if (typeof key === 'string') {
+          kv.push({ key, value: Object.assign({}, value) })
+        }
+      })
         .on('end', () => {
+          s.destroy()
           resolve(kv)
         })
         .on('error', (err: any) => {
+          s.destroy()
           reject(err)
         })
     })
+  }
+
+  filterExisty = (x: any) => {
+    return x
   }
 
   // explainer: https://stackoverflow.com/q/35185749/1439168

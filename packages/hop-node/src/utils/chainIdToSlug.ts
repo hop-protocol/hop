@@ -1,7 +1,13 @@
 import { Chain } from 'src/constants'
 import { config as globalConfig } from 'src/config'
 
+const cache: Record<string, Chain> = {}
+
 const chainIdToSlug = (chainId: string | number): Chain => {
+  const cacheKey = chainId?.toString()
+  if (cache[cacheKey]) {
+    return cache[cacheKey]
+  }
   if (!globalConfig.networks) {
     throw new Error('networks not found')
   }
@@ -14,9 +20,12 @@ const chainIdToSlug = (chainId: string | number): Chain => {
       v?.networkId?.toString() === chainId.toString() ||
       v?.chainId?.toString() === chainId.toString()
     ) {
-      return k as Chain
+      const chain = k as Chain
+      cache[cacheKey] = chain
+      return chain
     }
   }
+  throw new Error(`chain ID ${chainId} not found`)
 }
 
 export default chainIdToSlug

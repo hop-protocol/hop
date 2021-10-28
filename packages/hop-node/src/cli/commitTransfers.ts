@@ -1,12 +1,11 @@
 import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import { findWatcher, getWatchers } from 'src/watchers/watchers'
+import { logger, program } from './shared'
 import {
-  FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { findWatcher, getWatchers } from 'src/watchers/watchers'
-import { logger, program } from './shared'
 
 program
   .command('commit-transfers')
@@ -25,7 +24,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
 
@@ -55,7 +54,7 @@ program
       }
 
       const destinationChainId = chainSlugToId(destinationChain)
-      await watcher.checkIfShouldCommit(destinationChainId)
+      await watcher.checkIfShouldCommit(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     } catch (err) {
       logger.error(err)
       process.exit(1)

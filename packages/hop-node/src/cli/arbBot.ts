@@ -1,10 +1,9 @@
 import arbbots from 'src/arb-bot/bots'
+import { logger, program } from './shared'
 import {
-  FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { logger, program } from './shared'
 
 program
   .command('arb-bot')
@@ -17,7 +16,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const maxTradeAmount = Number(source.maxTradeAmount) || 0

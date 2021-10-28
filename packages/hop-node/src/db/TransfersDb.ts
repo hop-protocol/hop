@@ -46,9 +46,9 @@ export type Transfer = {
 class TransfersDb extends TimestampedKeysDb<Transfer> {
   async trackTimestampedKey (transfer: Partial<Transfer>) {
     const data = await this.getTimestampedKeyValueForUpdate(transfer)
-    if (data) {
-      const key = data?.key
-      const transferId = data?.value?.transferId
+    if (data != null) {
+      const key = data.key
+      const transferId = data.value.transferId
       this.logger.debug(`storing timestamped key. key: ${key} transferId: ${transferId}`)
       const value = { transferId }
       await this.subDb._update(key, value)
@@ -57,12 +57,12 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
 
   async trackTimestampedKeyByTransferId (transferId: string) {
     const transfer = await this.getByTransferId(transferId)
-    return this.trackTimestampedKey(transfer)
+    return await this.trackTimestampedKey(transfer)
   }
 
   getTimestampedKey (transfer: Partial<Transfer>) {
-    if (transfer?.transferSentTimestamp && transfer?.transferId) {
-      const key = `transfer:${transfer?.transferSentTimestamp}:${transfer?.transferId}`
+    if (transfer.transferSentTimestamp && transfer.transferId) {
+      const key = `transfer:${transfer.transferSentTimestamp}:${transfer.transferId}`
       return key
     }
   }
@@ -72,7 +72,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       this.logger.warn('expected transfer object for timestamped key')
       return
     }
-    const transferId = transfer?.transferId
+    const transferId = transfer.transferId
     const key = this.getTimestampedKey(transfer)
     if (!key) {
       this.logger.warn('expected timestamped key. incomplete transfer:', JSON.stringify(transfer))
@@ -94,7 +94,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     const logger = this.logger.create({ id: transferId })
     logger.debug('update called')
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transfer)
-    const promises : Promise<any>[] = []
+    const promises: Array<Promise<any>> = []
     if (timestampedKv) {
       logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferId: ${transferId}`)
       promises.push(this.subDb._update(timestampedKv.key, timestampedKv.value).then(() => {
@@ -108,20 +108,17 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     await Promise.all(promises)
   }
 
-  normalizeItem (transferId: string, item: Partial<Transfer>) {
+  normalizeItem (item: Partial<Transfer>) {
     if (!item) {
       return null
     }
-    if (!item?.transferId) {
-      item.transferId = transferId
+    if (item.destinationChainId) {
+      item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
     }
-    if (item?.destinationChainId) {
-      item.destinationChainSlug = chainIdToSlug(item?.destinationChainId)
-    }
-    if (item?.sourceChainId) {
+    if (item.sourceChainId) {
       item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
     }
-    if (item?.deadline !== undefined) {
+    if (item.deadline !== undefined) {
       // convert number to BigNumber for backward compatibility reasons
       if (typeof item.deadline === 'number') {
         item.deadline = BigNumber.from(item.deadline)
@@ -131,14 +128,22 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   }
 
   async getByTransferId (transferId: string): Promise<Transfer> {
-    const item : Transfer = await this.getById(transferId)
-    return this.normalizeItem(transferId, item)
+    const item: Transfer = await this.getById(transferId)
+    return this.normalizeItem(item)
+  }
+
+  private readonly filterTimestampedKeyValues = (x: any) => {
+    return x?.value?.transferId
+  }
+
+  private readonly filterOutTimestampedKeys = (key: string) => {
+    return !key.startsWith('transfer:')
   }
 
   async getTransferIds (dateFilter?: TransfersDateFilter): Promise<string[]> {
     // return only transfer-id keys that are within specified range (filter by timestamped keys)
-    if (dateFilter?.fromUnix || dateFilter?.toUnix) {
-      const filter : KeyFilter = {}
+    if (dateFilter?.fromUnix || dateFilter?.toUnix) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+      const filter: KeyFilter = {}
       if (dateFilter.fromUnix) {
         filter.gte = `transfer:${dateFilter.fromUnix}`
       }
@@ -146,29 +151,35 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
         filter.lte = `transfer:${dateFilter.toUnix}~` // tilde is intentional
       }
       const kv = await this.subDb.getKeyValues(filter)
-      return kv.map((x: any) => x?.value?.transferId).filter((x: any) => x)
+      return kv.map(this.filterTimestampedKeyValues).filter(this.filterExisty)
     }
 
     // return all transfer-id keys if no filter is used (filter out timestamped keys)
-    const keys = (await this.getKeys()).filter((key: string) => !key?.startsWith('transfer:'))
+    const keys = (await this.getKeys()).filter(this.filterOutTimestampedKeys)
     return keys
+  }
+
+  sortItems = (a: any, b: any) => {
+    /* eslint-disable @typescript-eslint/no-non-null-assertion */
+    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+    if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
+    if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
+    if (a.transferSentIndex! > b.transferSentIndex!) return 1
+    if (a.transferSentIndex! < b.transferSentIndex!) return -1
+    /* eslint-enable @typescript-eslint/no-non-null-assertion */
+    /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
+    return 0
   }
 
   async getItems (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
     const transferIds = await this.getTransferIds(dateFilter)
     this.logger.debug(`transferIds length: ${transferIds.length}`)
-    const transfers = await this.batchGetByIds(transferIds)
+    const batchedItems = await this.batchGetByIds(transferIds)
+    const transfers = batchedItems.map(this.normalizeItem)
 
     // sort explainer: https://stackoverflow.com/a/9175783/1439168
     const items = transfers
-      .filter(x => x)
-      .sort((a, b) => {
-        if (a.transferSentBlockNumber > b.transferSentBlockNumber) return 1
-        if (a.transferSentBlockNumber < b.transferSentBlockNumber) return -1
-        if (a.transferSentIndex > b.transferSentIndex) return 1
-        if (a.transferSentIndex < b.transferSentIndex) return -1
-        return 0
-      })
+      .sort(this.sortItems)
 
     this.logger.debug(`items length: ${items.length}`)
     return items
@@ -176,14 +187,14 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
 
   async getTransfers (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
     await this.tilReady()
-    return this.getItems(dateFilter)
+    return await this.getItems(dateFilter)
   }
 
   // gets only transfers within range: now - 1 week ago
   async getTransfersFromWeek () {
     await this.tilReady()
     const fromUnix = Math.floor((Date.now() - OneWeekMs) / 1000)
-    return this.getTransfers({
+    return await this.getTransfers({
       fromUnix
     })
   }
@@ -193,7 +204,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   ): Promise<Transfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
-      if (filter?.sourceChainId) {
+      if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
@@ -213,7 +224,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   ): Promise<Transfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
-      if (filter?.sourceChainId) {
+      if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
@@ -222,7 +233,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       let timestampOk = true
       if (item.bondWithdrawalAttemptedAt) {
         if (TxError.BonderFeeTooLow === item.withdrawalBondTxError) {
-          const delay = TxRetryDelayMs + ((1 << item.withdrawalBondBackoffIndex) * 60 * 1000)
+          const delay = TxRetryDelayMs + ((1 << item.withdrawalBondBackoffIndex!) * 60 * 1000) // eslint-disable-line
           // TODO: use `sentTransferTimestamp` once it's added to db
 
           // don't attempt to bond withdrawals after a week
@@ -252,7 +263,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   ): Promise<Transfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
-      if (filter?.sourceChainId) {
+      if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
@@ -267,15 +278,17 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   ) {
     const transfers: Transfer[] = await this.getTransfers()
     return transfers.filter(item => {
-      if (filter?.sourceChainId) {
+      if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
       }
 
       return (
+        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
         (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
         (item.withdrawalBondedTxHash && !item.withdrawalBonder)
+        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
       )
     })
   }

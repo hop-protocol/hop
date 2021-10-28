@@ -3,13 +3,16 @@ import Logger from 'src/logger'
 import wallets from 'src/wallets'
 import { Bridge, OutgoingMessageState } from 'arb-ts'
 import { Chain } from 'src/constants'
-import { Contract, Wallet } from 'ethers'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { Wallet } from 'ethers'
 
 type Config = {
   chainSlug: string
   tokenSymbol: string
   label?: string
-  bridgeContract?: Contract
+  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   isL1?: boolean
   dryMode?: boolean
 }
@@ -64,7 +67,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     }
 
     const outGoingMessagesFromTxn = await this.arbBridge.getWithdrawalsInL2Transaction(initiatingTxnReceipt)
-    if (!outGoingMessagesFromTxn.length) {
+    if (outGoingMessagesFromTxn.length === 0) {
       throw new Error(`tx hash ${txHash} did not initiate an outgoing messages`)
     }
 
@@ -84,7 +87,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
       return
     }
 
-    return this.arbBridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
+    return await this.arbBridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {

@@ -8,7 +8,7 @@ export async function getParameter (name: string): Promise<string> {
     Name: name,
     WithDecryption: true
   }
-  return new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     ssm.getParameter(params, function (err: Error, data: any) {
       if (err) {
         return reject(err)

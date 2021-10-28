@@ -13,12 +13,12 @@ class GasPriceWatcher {
   chainSlug: string
   provider: providers.Provider
   db: GasPricesDb
-  intervalMs : number = 30 * 1000
+  intervalMs: number = 30 * 1000
   logger: Logger
 
   constructor (config: Config) {
     this.chainSlug = config.chainSlug
-    this.provider = getRpcProvider(this.chainSlug)
+    this.provider = getRpcProvider(this.chainSlug)! // eslint-disable-line
     this.db = getGasPricesDb()
     this.logger = new Logger({
       tag: 'GasPricesWatcher',

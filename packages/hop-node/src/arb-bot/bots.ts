@@ -50,6 +50,6 @@ export default {
       }
     }
 
-    bots.forEach(bot => bot.start())
+    bots.forEach(async bot => await bot.start())
   }
 }

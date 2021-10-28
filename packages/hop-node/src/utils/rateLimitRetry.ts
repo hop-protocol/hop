@@ -7,12 +7,12 @@ import { hostname, rateLimitMaxRetries, rpcTimeoutSeconds } from 'src/config'
 const logger = new Logger('rateLimitRetry')
 const notifier = new Notifier(`rateLimitRetry, host: ${hostname}`)
 
-export default function rateLimitRetry (fn: any): any {
+export default function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn: FN): (...args: Parameters<FN>) => Promise<Awaited<ReturnType<FN>>> {
   const id = `${process.hrtime()[1]}`
   const log = logger.create({ id })
-  return async (...args: any[]) => {
+  return async (...args: Parameters<FN>): Promise<Awaited<ReturnType<FN>>> => {
     let retries = 0
-    const retry = () => promiseTimeout(fn(...args), rpcTimeoutSeconds * 1000)
+    const retry = () => promiseTimeout(fn(...args), rpcTimeoutSeconds * 1000) // eslint-disable-line
     while (true) {
       try {
         // the await here is intentional so it's caught in the try/catch below.
@@ -22,11 +22,16 @@ export default function rateLimitRetry (fn: any): any {
         }
         return result
       } catch (err) {
-        const errorRegex = /(timeout|timedout|ETIMEDOUT|ENETUNREACH|ECONNRESET|bad response|response error|missing response|rate limit|too many concurrent requests|socket hang up)/gi
-        const notRateLimitErrorRegex = /revert/gi
-        const isRateLimitError = errorRegex.test(err.message) && !notRateLimitErrorRegex.test(err.message)
+        const errorRegex = /(timeout|timedout|ETIMEDOUT|ENETUNREACH|ECONNRESET|bad response|response error|missing response|rate limit|too many concurrent requests|socket hang up)/i
+        const revertErrorRegex = /revert/i
+
+        const isRateLimitError = errorRegex.test(err.message)
+        const isRevertError = revertErrorRegex.test(err.message)
+        const shouldRetry = isRateLimitError && !isRevertError
+        log.debug(`isRateLimitError: ${isRateLimitError} isRevertError: ${isRevertError}`)
+
         // throw error as usual if it's not a rate limit error
-        if (!isRateLimitError) {
+        if (!shouldRetry) {
           log.error(err.message)
           throw err
         }

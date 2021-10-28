@@ -2,13 +2,16 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber } from 'ethers'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Notifier } from 'src/notifier'
 import { hostname } from 'src/config'
 
-export interface Config {
+export type Config = {
   chainSlug: string
-  bridgeContract: Contract
+  bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   tokenSymbol: string
   label: string
   isL1: boolean
@@ -42,17 +45,19 @@ class ChallengeWatcher extends BaseWatcher {
 
   async checkChallengeableTransferRootFromDb () {
     const dbTransferRoots = await this.db.transferRoots.getChallengeableTransferRoots()
-    if (dbTransferRoots.length) {
-      this.logger.debug(
-        `checking ${dbTransferRoots.length} challengeable root db items`
-      )
+    if (!dbTransferRoots.length) {
+      return
     }
+
+    this.logger.debug(
+        `checking ${dbTransferRoots.length} challengeable root db items`
+    )
 
     for (const dbTransferRoot of dbTransferRoots) {
       const rootHash = dbTransferRoot.transferRootHash
       await this.checkChallengeableTransferRoot(
-        rootHash,
-        dbTransferRoot.bondTotalAmount
+        rootHash!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        dbTransferRoot.bondTotalAmount! // eslint-disable-line @typescript-eslint/no-non-null-assertion
       )
     }
   }
@@ -75,7 +80,7 @@ class ChallengeWatcher extends BaseWatcher {
 
     const l1Bridge = this.bridge as L1Bridge
     const transferRootCommittedAt = await l1Bridge.getTransferRootCommittedAt(
-      dbTransferRoot.destinationChainId, transferRootId
+      dbTransferRoot.destinationChainId!, transferRootId // eslint-disable-line @typescript-eslint/no-non-null-assertion
     )
     const isRootHashConfirmed = !!transferRootCommittedAt
     if (isRootHashConfirmed) {
@@ -97,7 +102,7 @@ class ChallengeWatcher extends BaseWatcher {
     }
 
     const challengePeriod: number = await l1Bridge.getChallengePeriod()
-    const bondedAtMs: number = dbTransferRoot.bondedAt * 1000
+    const bondedAtMs: number = dbTransferRoot.bondedAt! * 1000 // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const challengePeriodMs: number = challengePeriod * 1000
     const isChallengePeriodOver = bondedAtMs + challengePeriodMs < Date.now()
     if (isChallengePeriodOver) {

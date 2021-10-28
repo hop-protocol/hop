@@ -1,10 +1,9 @@
 import getUnconfirmedTransferRoots from 'src/theGraph/getUnconfirmedTransferRoots'
+import { logger, program } from './shared'
 import {
-  FileConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { logger, program } from './shared'
 
 program
   .command('unconfirmed-transfer-roots')
@@ -18,7 +17,7 @@ program
     try {
       const configPath = source?.config || source?.parent?.config
       if (configPath) {
-        const config: FileConfig = await parseConfigFile(configPath)
+        const config = await parseConfigFile(configPath)
         await setGlobalConfigFromConfigFile(config)
       }
       const sourceChain = source.sourceChain

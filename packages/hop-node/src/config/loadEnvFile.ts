@@ -1,5 +1,6 @@
-const path = require('path')
-const fs = require('fs')
+/* eslint-disable @typescript-eslint/no-var-requires */
+import fs from 'fs'
+import path from 'path'
 const argv = require('minimist')(process.argv.slice(2))
 
 const opts: any = {}

@@ -1,5 +1,5 @@
-import { metrics } from 'src/metrics'
 import { config as globalConfig } from 'src/config'
+import { metrics } from 'src/metrics'
 
 class Metrics {
   metrics = metrics

@@ -46,7 +46,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    this.logger.debug(
+    this.logger.info(
         `checking ${dbTransferRoots.length} unbonded transfer roots db items`
     )
 

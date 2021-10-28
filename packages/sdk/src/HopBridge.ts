@@ -417,26 +417,45 @@ class HopBridge extends Base {
       destinationChain
     )
 
+    const destinationTxFeePromise = this.getDestinationTransactionFee(
+      sourceChain,
+      destinationChain,
+      // ToDo: The parameters aren't being used and shouldn't be used in getDestinationTransactionFee.
+      BigNumber.from(0),
+      BigNumber.from(0),
+      BigNumber.from(0),
+      BigNumber.from(0)
+    )
+
     const [
       amountOutWithoutFee,
       amountOutNoSlippage,
-      bonderFee
+      bonderFee,
+      destinationTxFee
     ] = await Promise.all([
       amountOutWithoutFeePromise,
       amountOutNoSlippagePromise,
-      bonderFeePromise
+      bonderFeePromise,
+      destinationTxFeePromise
     ])
 
-    let afterBonderFee
-    if (hTokenAmount.gt(bonderFee)) {
-      afterBonderFee = hTokenAmount.sub(bonderFee)
-    } else {
-      afterBonderFee = BigNumber.from(0)
-    }
     const amountOut = await this.calcFromHTokenAmount(
-      afterBonderFee,
+      hTokenAmount,
       destinationChain
     )
+
+    // adjustedFee is the fee in the canonical token after adjusting for the hToken price.
+    const adjustedBonderFee = await this.calcFromHTokenAmount(
+      bonderFee,
+      destinationChain
+    )
+
+    const adjustedDestinationTxFee = await this.calcFromHTokenAmount(
+      destinationTxFee,
+      destinationChain
+    )
+
+    const totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
 
     const sourceToken = this.getCanonicalToken(sourceChain)
     const destToken = this.getCanonicalToken(destinationChain)
@@ -458,16 +477,7 @@ class HopBridge extends Base {
     const priceImpact = this.getPriceImpact(rate, marketRate)
 
     const lpFees = await this.getLpFees(amountIn, sourceChain, destinationChain)
-    const destinationTxFee = await this.getDestinationTransactionFee(
-      sourceChain,
-      destinationChain,
-      amountOut,
-      hTokenAmount,
-      bonderFee,
-      deadline
-    )
     let estimatedReceived = amountOut
-    const totalFee = bonderFee.add(destinationTxFee)
     if (totalFee.gt(0)) {
       estimatedReceived = estimatedReceived.sub(totalFee)
     }
@@ -481,9 +491,9 @@ class HopBridge extends Base {
       rate,
       priceImpact,
       requiredLiquidity: hTokenAmount,
-      bonderFee,
+      bonderFee: adjustedBonderFee,
       lpFees,
-      destinationTxFee,
+      destinationTxFee: adjustedDestinationTxFee,
       estimatedReceived
     }
   }

@@ -419,12 +419,7 @@ class HopBridge extends Base {
 
     const destinationTxFeePromise = this.getDestinationTransactionFee(
       sourceChain,
-      destinationChain,
-      // ToDo: The parameters aren't being used and shouldn't be used in getDestinationTransactionFee.
-      BigNumber.from(0),
-      BigNumber.from(0),
-      BigNumber.from(0),
-      BigNumber.from(0)
+      destinationChain
     )
 
     const [
@@ -618,11 +613,7 @@ class HopBridge extends Base {
 
   public async getDestinationTransactionFee (
     sourceChain: TChain,
-    destinationChain: TChain,
-    amount: BigNumber,
-    amountOutMin: BigNumber,
-    bonderFee: BigNumber,
-    deadline: BigNumberish
+    destinationChain: TChain
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)

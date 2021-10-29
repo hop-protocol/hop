@@ -93,6 +93,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   async update (transferId: string, transfer: Partial<Transfer>) {
     const logger = this.logger.create({ id: transferId })
     logger.debug('update called')
+    transfer.transferId = transferId
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transfer)
     const promises: Array<Promise<any>> = []
     if (timestampedKv) {

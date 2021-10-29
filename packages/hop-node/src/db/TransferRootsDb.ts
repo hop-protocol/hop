@@ -97,6 +97,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   async update (transferRootHash: string, transferRoot: Partial<TransferRoot>) {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('update called')
+    transferRoot.transferRootHash = transferRootHash
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transferRoot)
     const promises: Array<Promise<any>> = []
     if (timestampedKv) {

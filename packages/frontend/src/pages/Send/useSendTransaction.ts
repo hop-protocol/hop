@@ -7,6 +7,7 @@ import { getBonderFeeWithId } from 'src/utils'
 import { createTransaction } from 'src/utils/createTransaction'
 import { amountToBN, formatError } from 'src/utils/format'
 import { HopBridge } from '@hop-protocol/sdk'
+import { useTransactionReplacement } from 'src/hooks'
 
 type TransactionHandled = {
   transaction: any
@@ -45,13 +46,12 @@ export function useSendTransaction(props) {
   const [recipient, setRecipient] = useState<string>()
   const [signer, setSigner] = useState<Signer>()
   const [bridge, setBridge] = useState<HopBridge>()
+  const { waitForTransaction } = useTransactionReplacement(txHistory)
 
   const parsedAmount = useMemo(() => {
-      if (!fromTokenAmount || !sourceToken) return BigNumber.from(0)
-      return amountToBN(fromTokenAmount, sourceToken.decimals)
-    },
-    [fromTokenAmount, sourceToken?.decimals]
-  )
+    if (!fromTokenAmount || !sourceToken) return BigNumber.from(0)
+    return amountToBN(fromTokenAmount, sourceToken.decimals)
+  }, [fromTokenAmount, sourceToken?.decimals])
 
   // Set signer
   useEffect(() => {
@@ -118,7 +118,7 @@ export function useSendTransaction(props) {
 
       const sourceChain = sdk.Chain.fromSlug(fromNetwork.slug)
       const destChain = sdk.Chain.fromSlug(toNetwork.slug)
-      const watcher = sdk.watch(txModel.hash, sourceToken!.symbol, sourceChain, destChain)
+      const watcher = sdk.watch(txModel.hash, sourceToken.symbol, sourceChain, destChain)
 
       watcher.on(sdk.Event.DestinationTxReceipt, async data => {
         logger.debug(`dest tx receipt event data:`, data)
@@ -131,48 +131,33 @@ export function useSendTransaction(props) {
 
       setTx(txModel)
 
-      try {
-        await transaction.wait()
-      } catch (error: any) {
-        if (error.code === errors.TRANSACTION_REPLACED) {
-          if (error.cancelled) {
-            // console.log(`error.cancelled__error.replacement:`, error.replacement)
-          } else {
-            // console.log(`error.replacement:`, error.replacement)
-            // console.log(`error.receipt:`, error.receipt)
-            const txModelReplacement = createTransaction(
-              error.replacement,
-              fromNetwork,
-              toNetwork,
-              sourceToken
-            )
+      const txModelArgs = {
+        networkName: fromNetwork.slug,
+        destNetworkName: toNetwork.slug,
+        token: sourceToken,
+      }
+      const res = await waitForTransaction(transaction, txModelArgs)
+      if (res && 'replacementTxModel' in res) {
+        setTx(res.replacementTxModel)
+        const { replacementTxModel: txModelReplacement } = res
 
-            // Replace local storage
-            txHistory?.replaceTransaction(transaction.hash, txModelReplacement)
-            setTx(txModelReplacement)
-
-            // TODO: (when refactoring Transfer handling) Use a separate function to "DRY" this logic.
-            // Or handle it in the Transaction model.
-
-            // Replace watcher
-            watcher.off(sdk.Event.DestinationTxReceipt)
-            const replacementWatcher = sdk.watch(
-              txModelReplacement.hash,
-              sourceToken!.symbol,
-              sourceChain,
-              destChain
-            )
-            replacementWatcher.on(sdk.Event.DestinationTxReceipt, async data => {
-              logger.debug(`replacement dest tx receipt event data:`, data)
-              if (txModelReplacement && !txModelReplacement.destTxHash) {
-                txModelReplacement.destTxHash = data.receipt.transactionHash
-                txModel.pendingDestinationConfirmation = false
-                txModel.replaced = true
-                txHistory?.updateTransaction(txModelReplacement)
-              }
-            })
+        // Replace watcher
+        watcher.off(sdk.Event.DestinationTxReceipt)
+        const replacementWatcher = sdk.watch(
+          txModelReplacement.hash,
+          sourceToken!.symbol,
+          sourceChain,
+          destChain
+        )
+        replacementWatcher.on(sdk.Event.DestinationTxReceipt, async data => {
+          logger.debug(`replacement dest tx receipt event data:`, data)
+          if (txModelReplacement && !txModelReplacement.destTxHash) {
+            txModelReplacement.destTxHash = data.receipt.transactionHash
+            txModel.pendingDestinationConfirmation = false
+            txModel.replaced = true
+            txHistory?.updateTransaction(txModelReplacement)
           }
-        }
+        })
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {

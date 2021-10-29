@@ -8,8 +8,6 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import Button from 'src/components/buttons/Button'
-import useBalance from 'src/hooks/useBalance'
-import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import useStakeBalance from 'src/pages/Stake/useStakeBalance'
@@ -17,8 +15,8 @@ import { toTokenDisplay, toPercentDisplay, commafy, shiftBNDecimals } from 'src/
 import Alert from 'src/components/alert/Alert'
 import usePollValue from 'src/hooks/usePollValue'
 import DetailRow from 'src/components/DetailRow'
-import useApprove from 'src/hooks/useApprove'
 import { amountToBN } from 'src/utils/format'
+import { useTransactionReplacement, useApprove, useAsyncMemo, useBalance } from 'src/hooks'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -69,7 +67,7 @@ const StakeWidget: FC<Props> = props => {
   const { networks, txConfirm, txHistory, sdk } = useApp()
   const { checkConnectedNetworkId, address } = useWeb3Context()
   const { stakeBalance } = useStakeBalance(stakingRewards, address)
-
+  const { waitForTransaction } = useTransactionReplacement(txHistory)
   const formattedStakeBalance = toTokenDisplay(stakeBalance, stakingToken?.decimals)
 
   const tokenUsdPrice = useAsyncMemo(async () => {
@@ -347,6 +345,8 @@ const StakeWidget: FC<Props> = props => {
             token: stakingToken,
           })
         )
+
+        await waitForTransaction(tx, { networkName: network.slug, token: stakingToken })
       }
     } catch (err: any) {
       console.error(err)
@@ -414,6 +414,8 @@ const StakeWidget: FC<Props> = props => {
             token: stakingToken,
           })
         )
+
+        await waitForTransaction(tx, { networkName: network.slug, token: stakingToken })
       }
     } catch (err: any) {
       console.error(err)

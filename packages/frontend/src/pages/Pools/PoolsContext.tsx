@@ -8,23 +8,26 @@ import React, {
   useRef,
   useCallback,
 } from 'react'
-import { Signer, BigNumber, errors } from 'ethers'
+import { Signer, BigNumber } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import Network from 'src/models/Network'
 import Address from 'src/models/Address'
 import Price from 'src/models/Price'
 import Transaction from 'src/models/Transaction'
-import useInterval from 'src/hooks/useInterval'
-import useBalance from 'src/hooks/useBalance'
 import logger from 'src/logger'
-import useApprove from 'src/hooks/useApprove'
 import { shiftBNDecimals } from 'src/utils'
 import { reactAppNetwork } from 'src/config'
 import { amountToBN, formatError } from 'src/utils/format'
+import {
+  useTransactionReplacement,
+  useAsyncMemo,
+  useInterval,
+  useBalance,
+  useApprove,
+} from 'src/hooks'
 
 type PoolsContextProps = {
   networks: Network[]
@@ -133,6 +136,7 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   const { networks, txConfirm, txHistory, sdk, selectedBridge, settings } = useApp()
   const { deadline, slippageTolerance } = settings
+  const { waitForTransaction } = useTransactionReplacement(txHistory)
   const slippageToleranceBps = slippageTolerance * 100
   const minBps = Math.ceil(10000 - slippageToleranceBps)
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
@@ -599,22 +603,9 @@ const PoolsContextProvider: FC = ({ children }) => {
         )
       }
 
-      try {
-        await addLiquidityTx?.wait()
-      } catch (error: any) {
-        if (error.code === errors.TRANSACTION_REPLACED) {
-          if (error.cancelled) {
-            // console.log(`error.cancelled__error.replacement:`, error.replacement)
-          } else {
-            const replacementTx = new Transaction({
-              hash: error.replacement.hash,
-              networkName: selectedNetwork.slug,
-            })
-
-            setTxHash(replacementTx.hash)
-            txHistory?.replaceTransaction(addLiquidityTx.hash, replacementTx)
-          }
-        }
+      const res = await waitForTransaction(addLiquidityTx, { networkName: selectedNetwork.slug })
+      if (res && 'replacementTx' in res) {
+        setTxHash(res.replacementTx.hash)
       }
 
       updateUserPoolPositions()
@@ -701,22 +692,9 @@ const PoolsContextProvider: FC = ({ children }) => {
         )
       }
 
-      try {
-        await removeLiquidityTx?.wait()
-      } catch (error: any) {
-        if (error.code === errors.TRANSACTION_REPLACED) {
-          if (error.cancelled) {
-            // console.log(`error.cancelled__error.replacement:`, error.replacement)
-          } else {
-            const replacementTx = new Transaction({
-              hash: error.replacement.hash,
-              networkName: selectedNetwork.slug,
-            })
-
-            setTxHash(replacementTx.hash)
-            txHistory?.replaceTransaction(removeLiquidityTx.hash, replacementTx)
-          }
-        }
+      const res = await waitForTransaction(removeLiquidityTx, { networkName: selectedNetwork.slug })
+      if (res && 'replacementTx' in res) {
+        setTxHash(res.replacementTx.hash)
       }
 
       updateUserPoolPositions()

@@ -389,9 +389,9 @@ class SyncWatcher extends BaseWatcher {
       })
 
       logger.debug('handleTransferSentEvent: stored transfer item')
-      logger.debug('handleTransferSentEvent: attempting to fetch transfer sent timestamp')
+      // logger.debug('handleTransferSentEvent: attempting to fetch transfer sent timestamp')
       // await this.populateTransferSentTimestamp(transferId)
-      logger.debug('handleTransferSentEvent: stored transfer sent timestamp')
+      // logger.debug('handleTransferSentEvent: stored transfer sent timestamp')
     } catch (err) {
       logger.error(`handleTransferSentEvent error: ${err.message}`)
       this.notifier.error(`handleTransferSentEvent error: ${err.message}`)

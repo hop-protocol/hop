@@ -276,7 +276,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   async getIncompleteItems (
     filter: Partial<Transfer> = {}
   ) {
-    const transfers: Transfer[] = await this.getTransfersFromWeek()
+    const transfers: Transfer[] = await this.getTransfers()
     return transfers.filter(item => {
       if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {

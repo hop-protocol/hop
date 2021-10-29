@@ -1,20 +1,10 @@
-import React, { FC, ChangeEvent, useEffect } from 'react'
-import { BigNumber, constants } from 'ethers'
+import React, { FC, useEffect } from 'react'
+import { constants } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import Card from '@material-ui/core/Card'
-import MuiButton from '@material-ui/core/Button'
 import Button from 'src/components/buttons/Button'
 import Box from '@material-ui/core/Box'
-import MenuItem from '@material-ui/core/MenuItem'
-import { useApp } from 'src/contexts/AppContext'
 import Alert from 'src/components/alert/Alert'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
-import RaisedSelect from 'src/components/selects/RaisedSelect'
-import SelectOption from 'src/components/selects/SelectOption'
-import { usePools } from 'src/pages/Pools/PoolsContext'
-import SendButton from 'src/pages/Pools/SendButton'
-import { commafy, normalizeNumberInput, toTokenDisplay } from 'src/utils'
 import { useTokenWrapper } from './TokenWrapperContext'
 import Network from 'src/models/Network'
 import Expandable from './Expandable'
@@ -36,8 +26,8 @@ const useStyles = makeStyles(theme => ({
     width: '17.5rem',
   },
   warning: {
-    marginBottom: theme.padding.default
-  }
+    marginBottom: theme.padding.default,
+  },
 }))
 
 export type Props = {
@@ -90,7 +80,8 @@ const TokenWrapper: FC<Props> = (props: Props) => {
 
   let wethWarning = ''
   if (canonicalToken?.symbol === 'ETH' && props.network?.slug === 'optimism') {
-    wethWarning = 'ETH and WETH are the same asset on Optimism and wrapping/unwrapping will do nothing.'
+    wethWarning =
+      'ETH and WETH are the same asset on Optimism and wrapping/unwrapping will do nothing.'
   }
 
   return (

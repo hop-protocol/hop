@@ -12,7 +12,7 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
-import { commafy, normalizeNumberInput, toPercentDisplay } from 'src/utils'
+import { commafy, sanitizeNumericalString, toPercentDisplay } from 'src/utils'
 import TokenWrapper from 'src/components/TokenWrapper'
 import DetailRow from 'src/components/DetailRow'
 import useQueryParams from 'src/hooks/useQueryParams'
@@ -164,7 +164,7 @@ const Pools: FC = () => {
   }
 
   const handleToken0Change = async (value: string) => {
-    const token0Value = normalizeNumberInput(value)
+    const token0Value = sanitizeNumericalString(value)
     if (!token0Value) {
       setToken0Amount('')
       return
@@ -174,7 +174,7 @@ const Pools: FC = () => {
   }
 
   const handleToken1Change = async (value: string) => {
-    const token1Value = normalizeNumberInput(value)
+    const token1Value = sanitizeNumericalString(value)
     if (!token1Value) {
       setToken1Amount('')
       return

@@ -10,7 +10,7 @@ import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/txStatus/TxStatusModal'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 import TokenWrapper from 'src/components/TokenWrapper'
-import { fixedDecimals } from 'src/utils/format'
+import { sanitizeNumericalString } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -83,10 +83,8 @@ const Convert: FC = () => {
 
   const handleSourceTokenAmountChange = async (amount: string) => {
     try {
-      if (sourceToken) {
-        const normalizedAmount = fixedDecimals(amount, sourceToken?.decimals)
-        setSourceTokenAmount(normalizedAmount)
-      }
+      const normalizedAmount = sanitizeNumericalString(amount)
+      setSourceTokenAmount(normalizedAmount)
     } catch (err) {}
   }
 

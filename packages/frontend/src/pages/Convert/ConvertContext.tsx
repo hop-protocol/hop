@@ -114,7 +114,6 @@ const ConvertContextProvider: FC = ({ children }) => {
   const { slippageTolerance, deadline } = settings
   const { pathname } = useLocation()
   const { queryParams } = useQueryParams()
-  const { approve, checkApproval } = useApprove()
 
   const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(l2Networks[0])
   const [isForwardDirection, setIsForwardDirection] = useState(true)
@@ -127,6 +126,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [sending, setSending] = useState<boolean>(false)
   const [approving, setApproving] = useState<boolean>(false)
   const [sourceToken, setSourceToken] = useState<Token>()
+  const { approve, checkApproval } = useApprove(sourceToken)
   const [destToken, setDestToken] = useState<Token>()
   const [details, setDetails] = useState<ReactNode>()
   const [warning, setWarning] = useState<ReactNode>()

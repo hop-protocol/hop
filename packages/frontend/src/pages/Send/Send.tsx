@@ -319,7 +319,7 @@ const Send: FC = () => {
   // Approve fromNetwork / fromToken
   // ==============================================================================================
 
-  const { approve, checkApproval } = useApprove()
+  const { approve, checkApproval } = useApprove(sourceToken)
 
   const needsApproval = useAsyncMemo(async () => {
     try {

@@ -505,7 +505,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     updateUserPoolPositions()
   }, 5 * 1000)
 
-  const { approve } = useApprove()
+  const { approve } = useApprove(canonicalToken)
   const approveTokens = async (isHop: boolean, amount: string, network: Network) => {
     if (!canonicalToken) {
       throw new Error('Canonical token is required')

@@ -1,4 +1,3 @@
-import React from 'react'
 import { BigNumber } from 'ethers'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
@@ -6,10 +5,12 @@ import { Token, Chain } from '@hop-protocol/sdk'
 import Transaction from 'src/models/Transaction'
 import { toTokenDisplay } from 'src/utils'
 import { UINT256 } from 'src/constants'
+import { useTransactionReplacement } from './useTransactionReplacement'
 
-const useApprove = () => {
+const useApprove = token => {
   const { provider } = useWeb3Context()
   const { txConfirm, txHistory, sdk } = useApp()
+  const { waitForTransaction } = useTransactionReplacement(txHistory)
 
   const checkApproval = async (amount: BigNumber, token: Token, spender: string) => {
     try {
@@ -71,9 +72,14 @@ const useApprove = () => {
           token,
         })
       )
+
+      const ret = await waitForTransaction(tx, { networkName: token.chain.slug, token })
+      if (ret && 'replacementTx' in ret) {
+        return ret.replacementTx
+      }
     }
 
-    return tx
+    return tx.wait()
   }
 
   return { approve, checkApproval }

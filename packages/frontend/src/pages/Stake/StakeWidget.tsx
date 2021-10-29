@@ -225,7 +225,7 @@ const StakeWidget: FC<Props> = props => {
     rewardsToken?.symbol
   )
 
-  const { approve } = useApprove()
+  const { approve } = useApprove(stakingToken)
   const approveToken = async () => {
     if (!stakingRewards || !network || !stakingToken) {
       throw new Error('Undefined approval parameter')

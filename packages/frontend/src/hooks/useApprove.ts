@@ -79,7 +79,7 @@ const useApprove = token => {
       }
     }
 
-    return tx.wait()
+    return tx
   }
 
   return { approve, checkApproval }

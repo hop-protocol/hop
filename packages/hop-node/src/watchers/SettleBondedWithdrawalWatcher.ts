@@ -143,7 +143,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    this.logger.debug(
+    this.logger.info(
       `checking ${promises.length} unsettled db transfer roots`
     )
 

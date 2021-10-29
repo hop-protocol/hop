@@ -45,11 +45,13 @@ class ChallengeWatcher extends BaseWatcher {
 
   async checkChallengeableTransferRootFromDb () {
     const dbTransferRoots = await this.db.transferRoots.getChallengeableTransferRoots()
-    if (dbTransferRoots.length) {
-      this.logger.debug(
-        `checking ${dbTransferRoots.length} challengeable root db items`
-      )
+    if (!dbTransferRoots.length) {
+      return
     }
+
+    this.logger.info(
+        `checking ${dbTransferRoots.length} challengeable root db items`
+    )
 
     for (const dbTransferRoot of dbTransferRoots) {
       const rootHash = dbTransferRoot.transferRootHash

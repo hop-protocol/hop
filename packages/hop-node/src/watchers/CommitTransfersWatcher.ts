@@ -81,11 +81,13 @@ class CommitTransfersWatcher extends BaseWatcher {
     const dbTransfers = await this.db.transfers.getUncommittedTransfers({
       sourceChainId: await this.bridge.getChainId()
     })
-    if (dbTransfers.length) {
-      this.logger.debug(
-        `checking ${dbTransfers.length} uncommitted transfers db items`
-      )
+    if (!dbTransfers.length) {
+      return
     }
+
+    this.logger.info(
+        `checking ${dbTransfers.length} uncommitted transfers db items`
+    )
     const destinationChainIds: number[] = []
     for (const dbTransfer of dbTransfers) {
       const { destinationChainId } = dbTransfer

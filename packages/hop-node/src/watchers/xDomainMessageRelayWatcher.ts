@@ -99,11 +99,12 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     const dbTransferRoots = await this.db.transferRoots.getUnconfirmedTransferRoots({
       sourceChainId: await this.bridge.getChainId()
     })
-    if (dbTransferRoots.length) {
-      this.logger.debug(
-        `checking ${dbTransferRoots.length} unconfirmed transfer roots db items`
-      )
+    if (!dbTransferRoots.length) {
+      return
     }
+    this.logger.debug(
+        `checking ${dbTransferRoots.length} unconfirmed transfer roots db items`
+    )
     for (const { transferRootHash } of dbTransferRoots) {
       /* eslint-disable @typescript-eslint/no-non-null-assertion */
 

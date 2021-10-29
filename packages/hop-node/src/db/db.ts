@@ -1,15 +1,8 @@
 import GasBoostDb from './GasBoostDb'
 import GasCostDb from './GasCostDb'
-import GasPricesDb from './GasPricesDb'
 import SyncStateDb from './SyncStateDb'
-import TokenPricesDb from './TokenPricesDb'
 import TransferRootsDb from './TransferRootsDb'
 import TransfersDb from './TransfersDb'
-
-// these are the db instances (initialized only once).
-// gas prices and token prices db are global (not token specific)
-let gasPricesDb: GasPricesDb | null = null
-let tokenPricesDb: TokenPricesDb | null = null
 
 // dbSets are token specific instances
 const dbSets: {[db: string]: {[tokenSymbol: string]: any}} = {
@@ -20,28 +13,12 @@ const dbSets: {[db: string]: {[tokenSymbol: string]: any}} = {
   gasCostDb: {}
 }
 
-export const getGasPricesDb = () => {
-  if (gasPricesDb == null) {
-    gasPricesDb = new GasPricesDb('gasPrices')
-  }
-  return gasPricesDb
-}
-
-export const getTokenPricesDb = () => {
-  if (tokenPricesDb == null) {
-    tokenPricesDb = new TokenPricesDb('tokenPrices')
-  }
-  return tokenPricesDb
-}
-
-export type Db = GasBoostDb | GasPricesDb | SyncStateDb | TokenPricesDb | TransferRootsDb | TransfersDb | GasCostDb
+export type Db = GasBoostDb | SyncStateDb | TransferRootsDb | TransfersDb | GasCostDb
 export type DbSet = {
   gasBoost: GasBoostDb
   syncState: SyncStateDb
   transfers: TransfersDb
   transferRoots: TransferRootsDb
-  gasPrices: GasPricesDb
-  tokenPrices: TokenPricesDb
   gasCost: GasCostDb
 }
 
@@ -76,12 +53,6 @@ export function getDbSet (tokenSymbol: string): DbSet {
       }
       return dbSets.transferRootsDb[tokenSymbol]
     },
-    get gasPrices (): GasPricesDb {
-      return getGasPricesDb()
-    },
-    get tokenPrices (): TokenPricesDb {
-      return getTokenPricesDb()
-    },
     get gasCost (): GasCostDb {
       if (!dbSets.gasCostDb[tokenSymbol]) {
         dbSets.gasCostDb[tokenSymbol] = new GasCostDb('gasCost', tokenSymbol)
@@ -91,4 +62,4 @@ export function getDbSet (tokenSymbol: string): DbSet {
   }
 }
 
-export default { getDbSet, getGasPricesDb, getTokenPricesDb }
+export default { getDbSet }

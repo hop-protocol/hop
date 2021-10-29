@@ -108,12 +108,9 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     await Promise.all(promises)
   }
 
-  normalizeItem (transferId: string, item: Partial<Transfer>) {
+  normalizeItem (item: Partial<Transfer>) {
     if (!item) {
       return null
-    }
-    if (!item.transferId) {
-      item.transferId = transferId
     }
     if (item.destinationChainId) {
       item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
@@ -132,7 +129,15 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
 
   async getByTransferId (transferId: string): Promise<Transfer> {
     const item: Transfer = await this.getById(transferId)
-    return this.normalizeItem(transferId, item)
+    return this.normalizeItem(item)
+  }
+
+  private readonly filterTimestampedKeyValues = (x: any) => {
+    return x?.value?.transferId
+  }
+
+  private readonly filterOutTimestampedKeys = (key: string) => {
+    return !key.startsWith('transfer:')
   }
 
   async getTransferIds (dateFilter?: TransfersDateFilter): Promise<string[]> {
@@ -146,37 +151,37 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
         filter.lte = `transfer:${dateFilter.toUnix}~` // tilde is intentional
       }
       const kv = await this.subDb.getKeyValues(filter)
-      return kv.map((x: any) => x?.value?.transferId).filter((x: any) => x)
+      return kv.map(this.filterTimestampedKeyValues).filter(this.filterExisty)
     }
 
     // return all transfer-id keys if no filter is used (filter out timestamped keys)
-    const keys = (await this.getKeys()).filter((key: string) => !key.startsWith('transfer:'))
+    const keys = (await this.getKeys()).filter(this.filterOutTimestampedKeys)
     return keys
+  }
+
+  sortItems = (a: any, b: any) => {
+    /* eslint-disable @typescript-eslint/no-non-null-assertion */
+    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+    if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
+    if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
+    if (a.transferSentIndex! > b.transferSentIndex!) return 1
+    if (a.transferSentIndex! < b.transferSentIndex!) return -1
+    /* eslint-enable @typescript-eslint/no-non-null-assertion */
+    /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
+    return 0
   }
 
   async getItems (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
     const transferIds = await this.getTransferIds(dateFilter)
     this.logger.debug(`transferIds length: ${transferIds.length}`)
-    const transfers = (await this.batchGetByIds(transferIds)).map((item: Transfer) => {
-      return this.normalizeItem(item.transferId as string, item)
-    })
+    const batchedItems = await this.batchGetByIds(transferIds)
+    const transfers = batchedItems.map(this.normalizeItem)
 
     // sort explainer: https://stackoverflow.com/a/9175783/1439168
     const items = transfers
-      .filter(x => x)
-      .sort((a, b) => {
-        /* eslint-disable @typescript-eslint/no-non-null-assertion */
-        /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-        if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
-        if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
-        if (a.transferSentIndex! > b.transferSentIndex!) return 1
-        if (a.transferSentIndex! < b.transferSentIndex!) return -1
-        /* eslint-enable @typescript-eslint/no-non-null-assertion */
-        /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
-        return 0
-      })
+      .sort(this.sortItems)
 
-    this.logger.debug(`items length: ${items.length}`)
+    this.logger.info(`items length: ${items.length}`)
     return items
   }
 
@@ -271,7 +276,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   async getIncompleteItems (
     filter: Partial<Transfer> = {}
   ) {
-    const transfers: Transfer[] = await this.getTransfers()
+    const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
       if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {

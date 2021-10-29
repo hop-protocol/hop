@@ -13,6 +13,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
+import { MetricsServer } from 'src/metrics'
 import { chainNativeTokens, config as globalConfig } from 'src/config'
 
 const logger = new Logger('config')
@@ -248,6 +249,10 @@ export async function getWatchers (config: GetWatchersConfig) {
   })
 
   watchers.push(...tokenPriceWatchers)
+
+  if (globalConfig.metrics?.enabled) {
+    await new MetricsServer(globalConfig.metrics?.port).start()
+  }
 
   return watchers
 }

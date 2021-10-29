@@ -1,6 +1,8 @@
 import BaseDb, { BaseItem, KeyFilter } from './BaseDb'
+import nearest from 'nearest-date'
 import wait from 'src/utils/wait'
-import { OneHourMs, OneWeekMs } from 'src/constants'
+import { OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
+import { normalizeDbItem } from './utils'
 
 export const varianceSeconds = 10 * 60
 
@@ -20,7 +22,7 @@ class TokenPricesDb extends BaseDb {
     while (true) {
       try {
         await wait(OneHourMs)
-        // await this.prune()
+        await this.prune()
       } catch (err) {
         this.logger.error(`prune poller error: ${err.message}`)
       }
@@ -42,26 +44,25 @@ class TokenPricesDb extends BaseDb {
   }
 
   async getNearest (token: string, targetTimestamp: number, staleCheck: boolean = true): Promise<TokenPrice | null> {
-    return null
-    // const startTimestamp = targetTimestamp - OneHourSeconds
-    // const endTimestamp = targetTimestamp + OneHourSeconds
-    // const filter = {
-    //   gte: `${token}:${startTimestamp}`,
-    //   lte: `${token}:${endTimestamp}~`
-    // }
-    // const items: TokenPrice[] = (await this.getItems(filter)).filter((item: TokenPrice) => item.token === token && item.timestamp)
+    const startTimestamp = targetTimestamp - OneHourSeconds
+    const endTimestamp = targetTimestamp + OneHourSeconds
+    const filter = {
+      gte: `${token}:${startTimestamp}`,
+      lte: `${token}:${endTimestamp}~`
+    }
+    const items: TokenPrice[] = (await this.getItems(filter)).filter((item: TokenPrice) => item.token === token && item.timestamp)
 
-    // const dates = items.map((item: TokenPrice) => item.timestamp)
-    // const index = nearest(dates, targetTimestamp)
-    // if (index === -1) {
-    //   return null
-    // }
-    // const item = normalizeDbItem(items[index])
-    // const isStale = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
-    // if (staleCheck && isStale) {
-    //   return null
-    // }
-    // return item
+    const dates = items.map((item: TokenPrice) => item.timestamp)
+    const index = nearest(dates, targetTimestamp)
+    if (index === -1) {
+      return null
+    }
+    const item = normalizeDbItem(items[index])
+    const isStale = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
+    if (staleCheck && isStale) {
+      return null
+    }
+    return item
   }
 
   private async getOldEntries (): Promise<TokenPrice[]> {
@@ -73,10 +74,10 @@ class TokenPricesDb extends BaseDb {
   }
 
   private async prune (): Promise<void> {
-    // const items = await this.getOldEntries()
-    // for (const { _id } of items) {
-    //   await this.deleteById(_id!) // eslint-disable-line
-    // }
+    const items = await this.getOldEntries()
+    for (const { _id } of items) {
+      await this.deleteById(_id!) // eslint-disable-line
+    }
   }
 }
 

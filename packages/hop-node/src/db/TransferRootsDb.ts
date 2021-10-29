@@ -350,27 +350,10 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     })
   }
 
-  async getIncompleteCommittedAtItems (
-    filter: Partial<TransferRoot> = {}
-  ) {
-    const transferRoots: TransferRoot[] = await this.getItems()
-    return transferRoots.filter(item => {
-      if (filter.sourceChainId) {
-        if (filter.sourceChainId !== item.sourceChainId) {
-          return false
-        }
-      }
-
-      return (
-        item.commitTxHash && !item.committedAt
-      )
-    })
-  }
-
   async getIncompleteItems (
     filter: Partial<TransferRoot> = {}
   ) {
-    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
     return transferRoots.filter(item => {
       if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
@@ -380,6 +363,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
 
       return (
         /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+        (item.commitTxHash && !item.committedAt) ||
         (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
         (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
         (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds) ||

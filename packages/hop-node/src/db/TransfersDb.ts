@@ -273,23 +273,6 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     })
   }
 
-  async getIncompleteTransferSentTimestampItems (
-    filter: Partial<Transfer> = {}
-  ) {
-    const transfers: Transfer[] = await this.getItems()
-    return transfers.filter(item => {
-      if (filter.sourceChainId) {
-        if (filter.sourceChainId !== item.sourceChainId) {
-          return false
-        }
-      }
-
-      return (
-        item.transferSentBlockNumber && !item.transferSentTimestamp
-      )
-    })
-  }
-
   async getIncompleteItems (
     filter: Partial<Transfer> = {}
   ) {
@@ -302,7 +285,8 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       }
 
       return (
-        item.withdrawalBondedTxHash && !item.withdrawalBonder
+        (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
+        (item.withdrawalBondedTxHash && !item.withdrawalBonder)
       )
     })
   }

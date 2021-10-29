@@ -285,8 +285,10 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       }
 
       return (
+        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
         (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
         (item.withdrawalBondedTxHash && !item.withdrawalBonder)
+        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
       )
     })
   }

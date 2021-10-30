@@ -736,6 +736,41 @@ class SyncWatcher extends BaseWatcher {
     })
   }
 
+  async populateTransferRootBonded (transferRootHash: string) {
+    const logger = this.logger.create({ root: transferRootHash })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    if (!dbTransferRoot) {
+      logger.error('expected dbTransferRoot')
+      return
+    }
+    const { bonded, destinationChainId, transferRootId } = dbTransferRoot
+    if (bonded) {
+      return
+    }
+    if (!destinationChainId) {
+      logger.error('expected destinationChainId')
+      return
+    }
+    if (!transferRootId) {
+      logger.error('expected transferRootId')
+      return
+    }
+    logger.debug('checking on-chain bonded status')
+    const l1Bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge as L1Bridge
+    const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    logger.debug(`isBonded: ${isBonded}`)
+    if (!isBonded) {
+      return
+    }
+    const event = await l1Bridge.getTransferRootBondedEvent(transferRootHash)
+    if (!event) {
+      logger.error('expected event object')
+      return
+    }
+    await this.handleTransferRootBondedEvent(event)
+    await this.populateTransferRootBondedAt(transferRootHash)
+  }
+
   async populateTransferRootTimestamp (transferRootHash: string) {
     const logger = this.logger.create({ root: transferRootHash })
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
@@ -1036,9 +1071,19 @@ class SyncWatcher extends BaseWatcher {
       sourceChainId: this.chainSlugToId(this.chainSlug),
       destinationChainId
     })
+
     this.logger.debug(`getUnbondedTransferRoots ${this.chainSlug}→${destinationChain}:`, JSON.stringify(transferRoots.map(({ transferRootHash, totalAmount }: TransferRoot) => ({ transferRootHash, totalAmount }))))
     let totalAmount = BigNumber.from(0)
     for (const transferRoot of transferRoots) {
+      const { transferRootHash, transferRootId } = transferRoot
+      const l1Bridge = this.getSiblingWatcherByChainSlug(destinationChain).bridge as L1Bridge
+      const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      if (isBonded) {
+        this.logger.debug(`calculateUnbondedTransferRootAmounts transferRootHash: ${transferRootHash} root is bonded. calling populateTransferRootBonded`)
+        await this.populateTransferRootBonded(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        continue
+      }
+
       totalAmount = totalAmount.add(transferRoot.totalAmount!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     }
 
@@ -1123,6 +1168,10 @@ class SyncWatcher extends BaseWatcher {
       await this.updateAvailableCreditMap(destinationChainId)
       const availableCredit = await this.getEffectiveAvailableCredit(destinationChainId)
       this.logger.debug(`availableCredit (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(availableCredit)}`)
+      if (this.s3Upload) {
+        const s3AvailableCredit = await this.getS3EffectiveAvailableCredit(destinationChainId)
+        this.logger.debug(`s3AvailableCredit (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(s3AvailableCredit)}`)
+      }
     }
   }
 
@@ -1160,6 +1209,16 @@ class SyncWatcher extends BaseWatcher {
   public getEffectiveAvailableCredit (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const availableCredit = this.availableCredit[destinationChain]
+    if (!availableCredit) {
+      return BigNumber.from(0)
+    }
+
+    return availableCredit
+  }
+
+  public getS3EffectiveAvailableCredit (destinationChainId: number) {
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const availableCredit = this.s3AvailableCredit[destinationChain]
     if (!availableCredit) {
       return BigNumber.from(0)
     }

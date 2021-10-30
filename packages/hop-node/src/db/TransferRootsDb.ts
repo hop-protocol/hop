@@ -231,6 +231,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         !item.bondedAt &&
         !item.confirmed &&
         item.transferRootHash &&
+        item.transferRootId &&
         item.committedAt &&
         item.commitTxHash &&
         item.commitTxBlockNumber &&

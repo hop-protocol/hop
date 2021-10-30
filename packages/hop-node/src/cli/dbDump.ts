@@ -1,3 +1,4 @@
+import chainSlugToId from 'src/utils/chainSlugToId'
 import { getDbSet } from 'src/db'
 import {
   config as globalConfig,
@@ -47,6 +48,10 @@ program
         items = await db.transferRoots.getTransferRoots({
           fromUnix: fromDate,
           toUnix: toDate
+        })
+      } else if (dbName === 'unbonded-roots') {
+        items = await db.transferRoots.getUnbondedTransferRoots({
+          sourceChainId: chainSlugToId(chain)
         })
       } else if (dbName === 'transfers') {
         items = await db.transfers.getTransfers({

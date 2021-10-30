@@ -56,10 +56,10 @@ program
       const s3Upload = !!source.s3Upload
       const s3Namespace = source.s3Namespace
       if (s3Upload) {
-        logger.debug('s3 upload enabled')
+        logger.info('s3 upload enabled')
       }
       if (s3Namespace) {
-        logger.debug(`s3 namespace: ${s3Namespace}`)
+        logger.info(`s3 namespace: ${s3Namespace}`)
       }
 
       if (source.clearDb) {

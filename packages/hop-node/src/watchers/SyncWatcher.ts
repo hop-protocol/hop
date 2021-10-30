@@ -756,7 +756,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     logger.debug('checking on-chain bonded status')
-    const l1Bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge as L1Bridge
+    const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
     const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     logger.debug(`isBonded: ${isBonded}`)
     if (!isBonded) {
@@ -1076,7 +1076,7 @@ class SyncWatcher extends BaseWatcher {
     let totalAmount = BigNumber.from(0)
     for (const transferRoot of transferRoots) {
       const { transferRootHash, transferRootId } = transferRoot
-      const l1Bridge = this.getSiblingWatcherByChainSlug(destinationChain).bridge as L1Bridge
+      const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
       const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       if (isBonded) {
         this.logger.debug(`calculateUnbondedTransferRootAmounts transferRootHash: ${transferRootHash} root is bonded. calling populateTransferRootBonded`)

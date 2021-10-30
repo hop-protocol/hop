@@ -123,6 +123,7 @@ const Convert: FC = () => {
             titleIconUrl={sourceNetwork?.imageUrl}
             balance={sourceBalance}
             loadingBalance={loadingSourceBalance}
+            methodName="convertTokens"
           />
           <MuiButton className={styles.switchDirectionButton} onClick={switchDirection}>
             <ArrowDownIcon color="primary" className={styles.downArrow} />

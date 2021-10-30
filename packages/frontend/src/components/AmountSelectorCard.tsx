@@ -1,4 +1,4 @@
-import React, { useMemo, FC, ChangeEvent } from 'react'
+import React, { useMemo, FC, ChangeEvent, useCallback } from 'react'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
@@ -11,6 +11,9 @@ import { Token } from '@hop-protocol/sdk'
 import clsx from 'clsx'
 import LargeTextField from 'src/components/LargeTextField'
 import { commafy } from 'src/utils'
+import { useNativeTokenMaxValue } from 'src/hooks'
+import { printBalance } from 'src/utils/values'
+import { useTokenWrapper } from './TokenWrapper/TokenWrapperContext'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -69,7 +72,7 @@ const useStyles = makeStyles(theme => ({
   inputContainer: {},
 }))
 
-type Props = {
+type AmountSelectorProps = {
   value?: string
   label?: string
   loadingLabel?: boolean
@@ -90,9 +93,10 @@ type Props = {
   hideMaxButton?: boolean
   className?: string
   decimalPlaces?: number
+  methodName?: string
 }
 
-const AmountSelectorCard: FC<Props> = props => {
+const AmountSelectorCard: FC<AmountSelectorProps> = props => {
   const {
     value = '',
     label,
@@ -114,8 +118,11 @@ const AmountSelectorCard: FC<Props> = props => {
     hideMaxButton = false,
     decimalPlaces = 4,
     className,
+    methodName,
   } = props
   const styles = useStyles()
+  const { canonicalToken, canonicalTokenBalance } = useTokenWrapper()
+  const { estimateMaxValue } = useNativeTokenMaxValue(token, secondaryToken)
 
   const balanceDisplay = useMemo(() => {
     let label: string = ''
@@ -141,25 +148,55 @@ const AmountSelectorCard: FC<Props> = props => {
       onChange(value)
     }
   }
-  const handleMaxClick = () => {
-    if (onChange) {
-      let max = ''
-      if (balance && token) {
-        max = formatUnits(balance, token.decimals)
-      }
-      onChange(max)
+  const handleMaxClick = async () => {
+    if (!(onChange && balance && token)) {
+      return
     }
+
+    let max = formatUnits(balance, token.decimals)
+    printBalance(`balance`, balance)
+    console.log(`max:`, max)
+
+    if (token?.isNativeToken) {
+      const method = methodName === 'wrapToken' ? 'unwrapToken' : methodName
+      const opts = {
+        methodName: method,
+        token: token,
+        balance,
+      }
+      const nativeTokenMaxGasCost = await estimateMaxValue(method, opts)
+      if (nativeTokenMaxGasCost && balance) {
+        const totalAmount = balance.sub(nativeTokenMaxGasCost)
+        max = formatUnits(totalAmount, token.decimals)
+      }
+    }
+    onChange(max)
   }
 
-  const handleSecondaryMaxClick = () => {
-    if (onChange) {
-      let max = ''
-      if (secondaryBalance && secondaryToken) {
-        max = formatUnits(secondaryBalance, secondaryToken.decimals)
-      }
-      onChange(max)
+  const handleSecondaryMaxClick = useCallback(async () => {
+    if (!(onChange && secondaryBalance && secondaryToken)) {
+      return
     }
-  }
+
+    let max = formatUnits(secondaryBalance, secondaryToken.decimals)
+    printBalance(`secondaryBalance`, secondaryBalance)
+    console.log(`max:`, max)
+
+    if (secondaryToken?.isNativeToken) {
+      const opts = {
+        methodName,
+        token: secondaryToken,
+        balance: secondaryBalance,
+      }
+      const nativeTokenMaxGasCost = await estimateMaxValue(methodName, opts)
+      console.log(`secondary nativeTokenMaxGasCost:`, nativeTokenMaxGasCost?.toString())
+      if (nativeTokenMaxGasCost && secondaryBalance) {
+        const totalAmount = secondaryBalance.sub(nativeTokenMaxGasCost)
+        max = formatUnits(totalAmount, secondaryToken.decimals)
+      }
+    }
+    onChange(max)
+  }, [onChange, secondaryBalance, secondaryToken])
 
   return (
     <Card className={clsx(styles.root, className)}>

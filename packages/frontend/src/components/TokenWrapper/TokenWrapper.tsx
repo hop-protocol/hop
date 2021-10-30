@@ -104,6 +104,7 @@ const TokenWrapper: FC<Props> = (props: Props) => {
             loadingBalance={loadingBalance}
             hideSymbol
             decimalPlaces={2}
+            methodName='wrapToken'
           />
           <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
             <Button

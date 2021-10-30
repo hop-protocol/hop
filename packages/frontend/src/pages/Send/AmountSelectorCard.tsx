@@ -1,4 +1,4 @@
-import React, { useMemo, FC, ChangeEvent } from 'react'
+import React, { useMemo, FC, ChangeEvent, useEffect } from 'react'
 import { BigNumber, utils } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
@@ -17,6 +17,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { ZERO_ADDRESS } from 'src/constants'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
+import { useNativeTokenMaxValue } from 'src/hooks'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -108,8 +109,7 @@ const AmountSelectorCard: FC<Props> = props => {
   } = props
   const styles = useStyles()
 
-  const { checkConnectedNetworkId, address } = useWeb3Context()
-  const { sdk } = useApp()
+  const { estimateSend } = useNativeTokenMaxValue(token)
 
   const balanceLabel = useMemo(() => {
     return toTokenDisplay(balance, token?.decimals)
@@ -121,55 +121,38 @@ const AmountSelectorCard: FC<Props> = props => {
       onChange(value)
     }
   }
+
   const handleMaxClick = async () => {
-    if (!(onChange && sdk && balance && token && fromNetwork && toNetwork && deadline)) {
+    if (!(onChange && balance && token && fromNetwork && toNetwork && deadline)) {
       return
     }
 
-    try {
-      let nativeTokenMaxGasCost = BigNumber.from(0)
+    let nativeTokenMaxGasCost = BigNumber.from(0)
 
-      if (token.isNativeToken) {
-        // Switch networks
-        const isNetworkConnected = await checkConnectedNetworkId(Number(fromNetwork.networkId))
-        if (!isNetworkConnected) return
-
-        const bridge = sdk.bridge(token?.symbol)
-
-        // Get estimated gas cost
-        const estimatedGasLimit = await bridge.send(
-          '10',
-          fromNetwork?.slug as string,
-          toNetwork?.slug as string,
-          {
-            recipient: ZERO_ADDRESS,
-            bonderFee: '1',
-            amountOutMin: '0',
-            deadline: deadline(),
-            destinationAmountOutMin: '0',
-            destinationDeadline: deadline(),
-            estimateGasOnly: true,
-          }
-        )
-
-        // Get current gas price
-        const gasPrice = await bridge.signer.getGasPrice()
-
-        if (estimatedGasLimit && gasPrice) {
-          // Add some wiggle room
-          const bufferGas = BigNumber.from(2000)
-          nativeTokenMaxGasCost = estimatedGasLimit.add(bufferGas).mul(gasPrice)
-        }
+    if (token.isNativeToken) {
+      const options = {
+        balance,
+        token,
+        fromNetwork,
+        toNetwork,
+        deadline,
+        network: fromNetwork,
       }
 
-      // Subtract the total gas
-      const totalAmount = balance.sub(nativeTokenMaxGasCost)
-
-      const maxValue = formatUnits(totalAmount, token.decimals)
-      onChange(maxValue)
-    } catch (error) {
-      logger.error(error)
+      try {
+        const estimatedGasCost = await estimateSend(options)
+        if (estimatedGasCost) {
+          nativeTokenMaxGasCost = estimatedGasCost
+        }
+      } catch (error) {
+        logger.error(error)
+      }
     }
+
+    const totalAmount = balance.sub(nativeTokenMaxGasCost)
+
+    const maxValue = formatUnits(totalAmount, token.decimals)
+    onChange(maxValue)
   }
 
   return (

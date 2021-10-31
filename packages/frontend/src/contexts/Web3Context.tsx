@@ -268,8 +268,8 @@ const Web3ContextProvider: FC = ({ children }) => {
   const walletConnected = !!address
 
   const checkConnectedNetworkId = async (networkId: number): Promise<boolean> => {
-    logger.debug('checkConnectedNetworkId')
     const signerNetworkId = (await provider?.getNetwork())?.chainId
+    logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
     if (networkId.toString() !== signerNetworkId?.toString()) {
       onboard.config({ networkId })
       if (onboard.getState().address) {

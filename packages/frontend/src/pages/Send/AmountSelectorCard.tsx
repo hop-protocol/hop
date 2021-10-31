@@ -136,7 +136,6 @@ const AmountSelectorCard: FC<Props> = props => {
         fromNetwork,
         toNetwork,
         deadline,
-        network: fromNetwork,
       }
 
       try {

@@ -12,8 +12,7 @@ import clsx from 'clsx'
 import LargeTextField from 'src/components/LargeTextField'
 import { commafy } from 'src/utils'
 import { useNativeTokenMaxValue } from 'src/hooks'
-import { printBalance } from 'src/utils/values'
-import { useTokenWrapper } from './TokenWrapper/TokenWrapperContext'
+import Network from 'src/models/Network'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -94,6 +93,8 @@ type AmountSelectorProps = {
   className?: string
   decimalPlaces?: number
   methodName?: string
+  destNetwork?: Network
+  selectedNetwork?: Network
 }
 
 const AmountSelectorCard: FC<AmountSelectorProps> = props => {
@@ -119,9 +120,10 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
     decimalPlaces = 4,
     className,
     methodName,
+    destNetwork,
+    selectedNetwork,
   } = props
   const styles = useStyles()
-  const { canonicalToken, canonicalTokenBalance } = useTokenWrapper()
   const { estimateMaxValue } = useNativeTokenMaxValue(token, secondaryToken)
 
   const balanceDisplay = useMemo(() => {
@@ -148,55 +150,62 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
       onChange(value)
     }
   }
-  const handleMaxClick = async () => {
-    if (!(onChange && balance && token)) {
-      return
+
+  async function getEstimatedMaxValue(methodName: string, options: any) {
+    const { balance, token: selectedToken } = options
+
+    if (!selectedToken?.isNativeToken) {
+      return ''
     }
 
-    let max = formatUnits(balance, token.decimals)
-    printBalance(`balance`, balance)
-    console.log(`max:`, max)
+    const nativeTokenMaxGasCost = await estimateMaxValue(methodName, options)
 
-    if (token?.isNativeToken) {
-      const method = methodName === 'wrapToken' ? 'unwrapToken' : methodName
-      const opts = {
-        methodName: method,
-        token: token,
-        balance,
-      }
-      const nativeTokenMaxGasCost = await estimateMaxValue(method, opts)
-      if (nativeTokenMaxGasCost && balance) {
-        const totalAmount = balance.sub(nativeTokenMaxGasCost)
-        max = formatUnits(totalAmount, token.decimals)
-      }
+    if (nativeTokenMaxGasCost) {
+      const totalAmount = balance.sub(nativeTokenMaxGasCost)
+      return formatUnits(totalAmount, selectedToken.decimals)
     }
-    onChange(max)
+
+    return formatUnits(balance, selectedToken.decimals)
   }
 
-  const handleSecondaryMaxClick = useCallback(async () => {
-    if (!(onChange && secondaryBalance && secondaryToken)) {
+  const handleMaxClick = useCallback(async () => {
+    if (!(onChange && balance && token && methodName)) {
       return
     }
 
-    let max = formatUnits(secondaryBalance, secondaryToken.decimals)
-    printBalance(`secondaryBalance`, secondaryBalance)
-    console.log(`max:`, max)
+    let maxValue = formatUnits(balance, token.decimals)
+
+    if (token?.isNativeToken) {
+      const opts = {
+        token,
+        balance,
+        destNetwork,
+      }
+      maxValue = await getEstimatedMaxValue(methodName, opts)
+    }
+
+    onChange(maxValue)
+  }, [onChange, token, balance, methodName])
+
+  const handleSecondaryMaxClick = useCallback(async () => {
+    console.log(`selectedNetwork:`, selectedNetwork)
+    if (!(onChange && secondaryBalance && secondaryToken && methodName && selectedNetwork)) {
+      return
+    }
+
+    let maxValue = formatUnits(secondaryBalance, secondaryToken.decimals)
 
     if (secondaryToken?.isNativeToken) {
       const opts = {
-        methodName,
         token: secondaryToken,
         balance: secondaryBalance,
+        network: selectedNetwork,
       }
-      const nativeTokenMaxGasCost = await estimateMaxValue(methodName, opts)
-      console.log(`secondary nativeTokenMaxGasCost:`, nativeTokenMaxGasCost?.toString())
-      if (nativeTokenMaxGasCost && secondaryBalance) {
-        const totalAmount = secondaryBalance.sub(nativeTokenMaxGasCost)
-        max = formatUnits(totalAmount, secondaryToken.decimals)
-      }
+      maxValue = await getEstimatedMaxValue(methodName, opts)
     }
-    onChange(max)
-  }, [onChange, secondaryBalance, secondaryToken])
+
+    onChange(maxValue)
+  }, [onChange, secondaryToken, secondaryBalance, methodName, selectedNetwork])
 
   return (
     <Card className={clsx(styles.root, className)}>

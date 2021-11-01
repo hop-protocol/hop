@@ -1,12 +1,12 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
-import wallets from 'src/wallets'
-import { Chain } from 'src/constants'
-import { Contract } from 'ethers'
-import { getEnabledNetworks, config as globalConfig } from 'src/config'
 import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
 import l2AmmWrapperAbi from '@hop-protocol/core/abi/generated/L2_AmmWrapper.json'
 import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
 import swapAbi from '@hop-protocol/core/abi/generated/Swap.json'
+import wallets from 'src/wallets'
+import { Chain } from 'src/constants'
+import { Contract } from 'ethers'
+import { getEnabledNetworks, config as globalConfig } from 'src/config'
 
 type Config = {
   token: string

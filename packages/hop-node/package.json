@@ -81,6 +81,7 @@
     "expect": "^26.6.2",
     "express": "^4.17.1",
     "fast-memoize": "^2.5.2",
+    "heapdump": "^0.3.15",
     "js-yaml": "^4.1.0",
     "keythereum": "1.2.0",
     "level": "^7.0.1",
@@ -109,6 +110,7 @@
   "devDependencies": {
     "@types/commander": "^2.12.2",
     "@types/express": "^4.17.13",
+    "@types/heapdump": "^0.3.1",
     "@types/jest": "^26.0.20",
     "@types/level": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^4.28.2",

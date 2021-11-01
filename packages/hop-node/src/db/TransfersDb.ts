@@ -50,9 +50,18 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     super(prefix, _namespace)
     this.subDbIncompletes = new BaseDb(`${prefix}:incompleteItems`, _namespace)
 
-    // this only needs to be ran once on start up to backfill incompleteItems keys.
-    // this function can be removed once all bonders update.
     this.ready = false
+    this.migrations()
+      .then(() => {
+        this.ready = true
+        this.logger.debug('db ready')
+      })
+      .catch(this.logger.error)
+  }
+
+  async migrations () {
+    // this only needs to be ran once on start up to backfill keys.
+    // this function can be removed once all bonders update.
     this.trackIncompleteItems()
       .then(() => {
         this.ready = true
@@ -62,13 +71,17 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   }
 
   async trackIncompleteItems () {
-    const items = await this.getItems()
-    for (const item of items) {
-      await this.trackIncompleteItem(item)
+    const kv = await this.getKeyValues()
+    for (const { key, value } of kv) {
+      if (!value.transferId) {
+        value.transferId = key
+        await this._update(key, value)
+      }
+      await this.updateIncompleteItem(value)
     }
   }
 
-  async trackIncompleteItem (item: Partial<Transfer>) {
+  async updateIncompleteItem (item: Partial<Transfer>) {
     if (!item) {
       this.logger.error('expected item', item)
       return
@@ -77,10 +90,11 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     if (!transferId) {
       this.logger.error('expected transferId', item)
     }
-    if (item.transferSentTimestamp) {
-      await this.subDbIncompletes.deleteById(transferId)
-    } else {
+    const isIncomplete = !item.sourceChainId || !item.transferSentTimestamp || (item.withdrawalBondedTxHash && !item.withdrawalBonder)
+    if (isIncomplete) {
       await this.subDbIncompletes._update(transferId, { transferId })
+    } else {
+      await this.subDbIncompletes.deleteById(transferId)
     }
   }
 
@@ -145,7 +159,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     promises.push(this._update(transferId, transfer).then(async () => {
       const entry = await this.getById(transferId)
       logger.debug(`updated db transfer item. ${JSON.stringify(entry)}`)
-      await this.trackIncompleteItem(entry)
+      await this.updateIncompleteItem(entry)
     }))
     await Promise.all(promises)
   }
@@ -327,7 +341,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     const transfers = batchedItems.map(this.normalizeItem)
 
     return transfers.filter((item: any) => {
-      if (filter.sourceChainId) {
+      if (filter.sourceChainId && item.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
@@ -335,6 +349,9 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
 
       return (
         /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+        !item.sourceChainId ||
+        !item.destinationChainId ||
+        !item.transferSentBlockNumber ||
         (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
         (item.withdrawalBondedTxHash && !item.withdrawalBonder)
         /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */

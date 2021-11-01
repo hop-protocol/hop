@@ -630,6 +630,9 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`expected db transfer it, transferId: ${transferId}`)
     }
 
+    await this.populateTransferSourceChainId(transferId)
+    await this.populateTransferDestinationChainId(transferId)
+    await this.populateTransferSentBlockNumber(transferId)
     await this.populateTransferSentTimestamp(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
   }
@@ -645,6 +648,73 @@ class SyncWatcher extends BaseWatcher {
     await this.populateTransferRootTimestamp(transferRootHash)
     await this.populateTransferRootMultipleWithdrawSettled(transferRootHash)
     await this.populateTransferRootTransferIds(transferRootHash)
+  }
+
+  async populateTransferSourceChainId (transferId: string) {
+    const logger = this.logger.create({ id: transferId })
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    const { sourceChainId, transferRootHash } = dbTransfer
+    if (sourceChainId) {
+      return
+    }
+
+    // attempt to find source chain id from root transfer belongs to
+    if (transferRootHash) {
+      const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+      if (dbTransferRoot?.sourceChainId) {
+        await this.db.transfers.update(transferId, {
+          sourceChainId: dbTransferRoot.sourceChainId
+        })
+        return
+      }
+    }
+
+    // attempt to find source event to find source chain id
+    for (const chainId in this.siblingWatchers) {
+      const sourceWatcher = this.siblingWatchers[chainId]
+      const sourceBridge = sourceWatcher?.bridge
+      if (sourceWatcher.isL1) {
+        continue
+      }
+      const event = await sourceBridge.getTransferSentEvent(transferId)
+      if (event) {
+        await sourceWatcher.handleTransferSentEvent(event)
+        return
+      }
+    }
+  }
+
+  async populateTransferDestinationChainId (transferId: string) {
+    const logger = this.logger.create({ id: transferId })
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    const { destinationChainId, transferRootHash } = dbTransfer
+    if (destinationChainId) {
+      return
+    }
+    if (transferRootHash) {
+      const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+      if (dbTransferRoot?.destinationChainId) {
+        await this.db.transfers.update(transferId, {
+          destinationChainId: dbTransferRoot.destinationChainId
+        })
+      }
+    }
+  }
+
+  async populateTransferSentBlockNumber (transferId: string) {
+    const logger = this.logger.create({ id: transferId })
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    const { transferSentBlockNumber, sourceChainId } = dbTransfer
+    if (!sourceChainId || transferSentBlockNumber) {
+      return
+    }
+    const sourceWatcher = this.getSiblingWatcherByChainId(sourceChainId) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const sourceBridge = sourceWatcher.bridge
+    const event = await sourceBridge.getTransferSentEvent(transferId)
+    if (!event) {
+      return
+    }
+    await sourceWatcher.handleTransferSentEvent(event)
   }
 
   async populateTransferSentTimestamp (transferId: string) {

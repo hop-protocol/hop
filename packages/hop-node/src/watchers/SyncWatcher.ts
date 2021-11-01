@@ -691,6 +691,8 @@ class SyncWatcher extends BaseWatcher {
     if (destinationChainId) {
       return
     }
+
+    // attempt to find destination chain id from root transfer belongs to
     if (transferRootHash) {
       const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
       if (dbTransferRoot?.destinationChainId) {

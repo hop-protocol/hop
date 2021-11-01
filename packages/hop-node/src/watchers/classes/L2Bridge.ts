@@ -142,6 +142,8 @@ export default class L2Bridge extends Bridge {
 
   async getTransferSentEvent (transferId: string): Promise<TransferSentEvent | null> {
     let match: TransferSentEvent | undefined
+    // block times on rollups work different compared to regular chains,
+    // so the block number lookup gurantees that it'll look back far enough
     const startTimestamp = Math.floor(DateTime.now().minus({ days: 7 }).toSeconds())
     const startBlockNumber = await getBlockNumberFromDate(this.chainSlug, startTimestamp)
     await this.eventsBatch(async (start: number, end: number) => {

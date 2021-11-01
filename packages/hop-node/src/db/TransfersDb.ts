@@ -73,6 +73,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   async trackIncompleteItems () {
     const kv = await this.getKeyValues()
     for (const { key, value } of kv) {
+      // backfill items with missing transferId
       if (!value.transferId) {
         value.transferId = key
         await this._update(key, value)
@@ -90,7 +91,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     if (!transferId) {
       this.logger.error('expected transferId', item)
     }
-    const isIncomplete = !item.sourceChainId || !item.transferSentTimestamp || (item.withdrawalBondedTxHash && !item.withdrawalBonder)
+    const isIncomplete = !item.sourceChainId || !item.destinationChainId || !item.transferSentBlockNumber || !item.transferSentTimestamp || (item.withdrawalBondedTxHash && !item.withdrawalBonder)
     if (isIncomplete) {
       await this.subDbIncompletes._update(transferId, { transferId })
     } else {

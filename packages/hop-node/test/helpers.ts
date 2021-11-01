@@ -9,26 +9,24 @@ import { BigNumber, Contract, Wallet, ethers, providers } from 'ethers'
 import { Chain, Token } from 'src/constants'
 import { HDNode } from '@ethersproject/hdnode'
 import { Watcher } from '@eth-optimism/watcher'
-import {
-  arbitrumGlobalInboxAbi,
-  erc20MintableAbi as erc20Abi,
-  l1ArbitrumMessengerAbi,
-  arbitrumMessengerWrapperAbi as l1ArbitrumMessengerWrapperAbi,
-  l1BridgeAbi,
-  l1OptimismMessengerAbi,
-  optimismMessengerWrapperAbi as l1OptimismMessengerWrapperAbi,
-  l1OptimismTokenBridgeAbi,
-  l1PolygonMessengerAbi,
-  polygonMessengerWrapperAbi as l1PolygonMessengerWrapperAbi,
-  l1PolygonPosRootChainManagerAbi,
-  l1xDaiForeignOmniBridgeAbi,
-  l1xDaiMessengerAbi,
-  xDaiMessengerWrapperAbi as l1xDaiMessengerWrapperAbi,
-  l2AmmWrapperAbi,
-  l2BridgeAbi,
-  l2PolygonChildErc20Abi,
-  swapAbi as saddleSwapAbi
-} from '@hop-protocol/core/abi'
+import arbitrumGlobalInboxAbi from '@hop-protocol/core/abi/static/ArbitrumGlobalInbox.json'
+import erc20Abi from '@hop-protocol/core/abi/static/ERC20Mintable.json'
+import l1ArbitrumMessengerAbi from '@hop-protocol/core/abi/static/L1_ArbitrumMessenger.json'
+import l1ArbitrumMessengerWrapperAbi from '@hop-protocol/core/abi/generated/ArbitrumMessengerWrapper.json'
+import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
+import l1OptimismMessengerAbi from '@hop-protocol/core/abi/static/L1_OptimismMessenger.json'
+import l1OptimismMessengerWrapperAbi from '@hop-protocol/core/abi/generated/OptimismMessengerWrapper.json'
+import l1OptimismTokenBridgeAbi from '@hop-protocol/core/abi/static/L1_OptimismTokenBridge.json'
+import l1PolygonMessengerAbi from '@hop-protocol/core/abi/static/L1_PolygonMessenger.json'
+import l1PolygonMessengerWrapperAbi from '@hop-protocol/core/abi/generated/PolygonMessengerWrapper.json'
+import l1PolygonPosRootChainManagerAbi from '@hop-protocol/core/abi/static/L1_PolygonPosRootChainManager.json'
+import l1xDaiForeignOmniBridgeAbi from '@hop-protocol/core/abi/static/L1_xDaiForeignOmniBridge.json'
+import l1xDaiMessengerAbi from '@hop-protocol/core/abi/static/L1_xDaiMessenger.json'
+import l1xDaiMessengerWrapperAbi from '@hop-protocol/core/abi/generated/xDaiMessengerWrapper.json'
+import l2AmmWrapperAbi from '@hop-protocol/core/abi/generated/L2_AmmWrapper.json'
+import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
+import l2PolygonChildErc20Abi from '@hop-protocol/core/abi/static/L2_PolygonChildERC20.json'
+import saddleSwapAbi from '@hop-protocol/core/abi/generated/Swap.json'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { config as globalConfig } from 'src/config'
 import * as hopMetadata from '@hop-protocol/core/metadata'

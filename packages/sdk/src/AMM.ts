@@ -7,7 +7,7 @@ import { DateTime } from 'luxon'
 import { TAmount, TChain, TProvider } from './types'
 import { TokenIndex } from './constants'
 import { formatUnits } from 'ethers/lib/utils'
-import { swapAbi as saddleSwapAbi } from '@hop-protocol/core/abi'
+import saddleSwapAbi from '@hop-protocol/core/abi/generated/Swap.json'
 
 /**
  * Class reprensenting AMM contract

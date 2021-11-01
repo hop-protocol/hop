@@ -1,5 +1,5 @@
 import { Contract, Wallet, providers } from 'ethers'
-import { erc20Abi } from '@hop-protocol/core/abi'
+import erc20Abi from '@hop-protocol/core/abi/generated/MockERC20.json'
 import { expectDefined } from './helpers'
 import { privateKey } from './config'
 

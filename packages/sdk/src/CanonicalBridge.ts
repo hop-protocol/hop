@@ -4,17 +4,15 @@ import TokenClass from './Token'
 import { Chain } from './models'
 import { Contract, Signer, ethers } from 'ethers'
 import { TAmount, TChain, TProvider, TToken } from './types'
-import {
-  arbErc20Abi,
-  arbitrumGlobalInboxAbi,
-  l1HomeAmbNativeToErc20,
-  l1OptimismTokenBridgeAbi,
-  l1PolygonPosRootChainManagerAbi,
-  l1xDaiForeignOmniBridgeAbi,
-  l2OptimismTokenBridgeAbi,
-  l2PolygonChildErc20Abi,
-  l2xDaiTokenAbi
-} from '@hop-protocol/core/abi'
+import arbErc20Abi from '@hop-protocol/core/abi/static/ArbERC20.json'
+import arbitrumGlobalInboxAbi from '@hop-protocol/core/abi/static/ArbitrumGlobalInbox.json'
+import l1HomeAmbNativeToErc20 from '@hop-protocol/core/abi/static/L1_HomeAMBNativeToErc20.json'
+import l1OptimismTokenBridgeAbi from '@hop-protocol/core/abi/static/L1_OptimismTokenBridge.json'
+import l1PolygonPosRootChainManagerAbi from '@hop-protocol/core/abi/static/L1_PolygonPosRootChainManager.json'
+import l1xDaiForeignOmniBridgeAbi from '@hop-protocol/core/abi/static/L1_xDaiForeignOmniBridge.json'
+import l2OptimismTokenBridgeAbi from '@hop-protocol/core/abi/static/L2_OptimismTokenBridge.json'
+import l2PolygonChildErc20Abi from '@hop-protocol/core/abi/static/L2_PolygonChildERC20.json'
+import l2xDaiTokenAbi from '@hop-protocol/core/abi/static/L2_xDaiToken.json'
 import { formatUnits } from 'ethers/lib/utils'
 import { metadata } from './config'
 

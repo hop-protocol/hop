@@ -9,11 +9,9 @@ import { Chain } from 'src/constants'
 import { ERC20, L2BridgeWrapper__factory } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
 import { L2Bridge as L2BridgeContract, TransferFromL1CompletedEvent, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
-import {
-  erc20Abi,
-  l2AmmWrapperAbi,
-  swapAbi as saddleSwapAbi
-} from '@hop-protocol/core/abi'
+import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
+import l2AmmWrapperAbi from '@hop-protocol/core/abi/generated/L2_AmmWrapper.json'
+import saddleSwapAbi from '@hop-protocol/core/abi/generated/Swap.json'
 import { config as globalConfig } from 'src/config'
 
 export default class L2Bridge extends Bridge {

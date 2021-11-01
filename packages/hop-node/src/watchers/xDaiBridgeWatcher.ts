@@ -10,7 +10,8 @@ import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contr
 import { L1XDaiAMB, L2XDaiAMB } from '@hop-protocol/core/contracts'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { config as globalConfig } from 'src/config'
-import { l1xDaiAmbAbi, l2xDaiAmbAbi } from '@hop-protocol/core/abi'
+import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
+import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
 import { solidityKeccak256 } from 'ethers/lib/utils'
 
 type Config = {

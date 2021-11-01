@@ -814,8 +814,9 @@ class HopBridge extends Base {
     const token = this.toTokenModel(this.tokenSymbol)
     const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(token.symbol)
 
+    const minBonderFeeUsd = 0.25
     const minBonderFeeAbsolute = parseUnits(
-      (1 / tokenPrice).toFixed(token.decimals),
+      (minBonderFeeUsd / tokenPrice).toFixed(token.decimals),
       token.decimals
     )
 

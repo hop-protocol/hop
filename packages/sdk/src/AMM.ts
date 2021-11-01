@@ -1,5 +1,6 @@
 import Base, { ChainProviders } from './Base'
 import BlockDater from 'ethereum-block-by-date'
+import saddleSwapAbi from '@hop-protocol/core/abi/generated/Swap.json'
 import shiftBNDecimals from './utils/shiftBNDecimals'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import { Chain } from './models'
@@ -7,7 +8,6 @@ import { DateTime } from 'luxon'
 import { TAmount, TChain, TProvider } from './types'
 import { TokenIndex } from './constants'
 import { formatUnits } from 'ethers/lib/utils'
-import saddleSwapAbi from '@hop-protocol/core/abi/generated/Swap.json'
 
 /**
  * Class reprensenting AMM contract

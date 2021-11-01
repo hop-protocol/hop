@@ -1,10 +1,10 @@
 import Base, { ChainProviders } from './Base'
 import Chain from './models/Chain'
 import TokenModel from './models/Token'
-import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
-import { TAmount, TChain } from './types'
 import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import wethAbi from '@hop-protocol/core/abi/static/WETH9.json'
+import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
+import { TAmount, TChain } from './types'
 
 /**
  * Class reprensenting ERC20 Token

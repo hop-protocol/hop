@@ -1,8 +1,8 @@
 import CanonicalBridge from '../CanonicalBridge'
+import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import { default as BaseWatcher } from './BaseWatcher'
 import { Chain } from '../models'
 import { Contract } from 'ethers'
-import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import { tokenTransferTopic, tokensBridgedTopic } from '../constants/eventTopics'
 
 class L1ToL2Watcher extends BaseWatcher {

@@ -57,7 +57,7 @@ type SendL2ToL1Input = {
 type SendL2ToL2Input = {
   destinationChainId: number | string
   sourceChain: Chain
-  amount: number | string
+  amount: TAmount
   amountOutMin: TAmount
   destinationAmountOutMin?: TAmount
   bonderFee?: TAmount
@@ -274,7 +274,7 @@ class HopBridge extends Base {
   ) {
     // ToDo: Add approval
     return this.sendHandler(
-      tokenAmount.toString(),
+      tokenAmount,
       sourceChain,
       destinationChain,
       true,
@@ -305,7 +305,7 @@ class HopBridge extends Base {
     destinationChain?: TChain,
     options?: Partial<SendOptions>
   ) {
-    tokenAmount = tokenAmount.toString()
+    tokenAmount = BigNumber.from(tokenAmount.toString())
     if (!sourceChain) {
       sourceChain = this.sourceChain
     }
@@ -319,8 +319,24 @@ class HopBridge extends Base {
       throw new Error('destination chain is required')
     }
 
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    if (!options?.estimateGasOnly) {
+      const availableLiquidity = await this.getFrontendAvailableLiquidity(
+        sourceChain,
+        destinationChain
+      )
+
+      const requiredLiquidity = await this.calcToHTokenAmount(tokenAmount, sourceChain)
+      const isAvailable = availableLiquidity.gte(requiredLiquidity)
+      if (!isAvailable) {
+        throw new Error('Insufficient liquidity available by bonder. Try again in a few minutes')
+      }
+    }
+
     return this.sendHandler(
-      tokenAmount.toString(),
+      tokenAmount,
       sourceChain,
       destinationChain,
       false,
@@ -1358,12 +1374,13 @@ class HopBridge extends Base {
   }
 
   private async sendHandler (
-    tokenAmount: string,
+    tokenAmount: TAmount,
     sourceChain: TChain,
     destinationChain: TChain,
     approval: boolean = false,
     options: Partial<SendOptions> = {}
   ) {
+    tokenAmount = BigNumber.from(tokenAmount.toString())
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
@@ -1374,7 +1391,7 @@ class HopBridge extends Base {
     } else {
       balance = await canonicalToken.balanceOf()
     }
-    if (balance.lt(BigNumber.from(tokenAmount))) {
+    if (balance.lt(tokenAmount)) {
       throw new Error('not enough token balance')
     }
 

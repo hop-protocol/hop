@@ -26,6 +26,7 @@ import { toTokenDisplay, commafy, amountToBN } from 'src/utils'
 import useApprove from 'src/hooks/useApprove'
 import useQueryParams from 'src/hooks/useQueryParams'
 import { reactAppNetwork } from 'src/config'
+import { formatError } from 'src/utils/format'
 
 type ConvertContextProps = {
   convertOptions: ConvertOption[]
@@ -370,7 +371,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       return tx
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, selectedNetwork))
       }
       logger.error(err)
       setApproving(false)
@@ -452,7 +453,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, selectedNetwork))
       }
       logger.error(err)
     }

@@ -9,7 +9,7 @@ import { useApp } from 'src/contexts/AppContext'
 import SmallTextField from 'src/components/SmallTextField'
 import InfoTooltip from 'src/components/infoTooltip'
 import Alert from 'src/components/alert/Alert'
-import { normalizeNumberInput } from 'src/utils'
+import { sanitizeNumericalString } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -68,7 +68,7 @@ const Settings: FC = () => {
   }
 
   const handleDeadlineMinutes = (event: any) => {
-    const value = normalizeNumberInput(event.target.value)
+    const value = sanitizeNumericalString(event.target.value)
     if (!value) {
       setDeadlineMinutes('')
       return
@@ -82,7 +82,7 @@ const Settings: FC = () => {
   }
 
   const handleSlippageToleranceChange = (event: any) => {
-    const value = normalizeNumberInput(event.target.value)
+    const value = sanitizeNumericalString(event.target.value)
     if (!value) {
       setSlippageTolerance('')
       return

@@ -10,7 +10,6 @@ import React, {
 } from 'react'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import { BigNumber } from 'ethers'
-import { parseUnits } from 'ethers/lib/utils'
 import { useLocation } from 'react-router-dom'
 import { Token } from '@hop-protocol/sdk'
 import find from 'lodash/find'
@@ -23,7 +22,7 @@ import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import useBalance from 'src/hooks/useBalance'
-import { toTokenDisplay, commafy } from 'src/utils'
+import { toTokenDisplay, commafy, amountToBN } from 'src/utils'
 import useApprove from 'src/hooks/useApprove'
 import useQueryParams from 'src/hooks/useQueryParams'
 import { reactAppNetwork } from 'src/config'
@@ -341,7 +340,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       return BigNumber.from(0)
     }
 
-    return parseUnits(sourceTokenAmount, sourceToken.decimals)
+    return amountToBN(sourceTokenAmount, sourceToken.decimals)
   }, [sourceTokenAmount, sourceToken])
 
   // ===============================================================================================
@@ -399,7 +398,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       setSending(true)
 
       const signer = provider?.getSigner()
-      const value = parseUnits(sourceTokenAmount, sourceToken.decimals).toString()
+      const value = amountToBN(sourceTokenAmount, sourceToken.decimals).toString()
       const l1Bridge = await selectedBridge.getL1Bridge()
       const isCanonicalTransfer = false
 

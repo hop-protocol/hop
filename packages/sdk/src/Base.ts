@@ -87,6 +87,9 @@ class Base {
     signer: TProvider,
     chainProviders?: ChainProviders
   ) {
+    if (!network) {
+      throw new Error(`network is required. Options are: ${this.supportedNetworks.join(',')}`)
+    }
     if (!this.isValidNetwork(network)) {
       throw new Error(
         `network is unsupported. Supported networks are: ${this.supportedNetworks.join(

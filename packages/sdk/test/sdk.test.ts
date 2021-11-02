@@ -10,8 +10,8 @@ import * as addresses from '@hop-protocol/core/addresses'
 // @ts-ignore
 import pkg from '../package.json'
 
-describe.skip('sdk setup', () => {
-  const hop = new Hop()
+describe('sdk setup', () => {
+  const hop = new Hop('kovan')
   const signer = new Wallet(privateKey)
   it('should return version', () => {
     expect(hop.version).toBe(pkg.version)
@@ -19,7 +19,7 @@ describe.skip('sdk setup', () => {
 })
 
 describe.skip('hop bridge token transfers', () => {
-  const hop = new Hop()
+  const hop = new Hop('kovan')
   const signer = new Wallet(privateKey)
   it(
     'send token from L1 -> L2',
@@ -296,7 +296,7 @@ describe.skip('tx watcher', () => {
 })
 
 describe.skip('canonical bridge transfers', () => {
-  const hop = new Hop()
+  const hop = new Hop('kovan')
   const signer = new Wallet(privateKey)
   it(
     'deposit token from L1 -> xDai L2 canonical bridge',
@@ -367,7 +367,7 @@ describe.skip('canonical bridge transfers', () => {
 })
 
 describe.skip('liqudity provider', () => {
-  const hop = new Hop()
+  const hop = new Hop('kovan')
   const signer = new Wallet(privateKey)
   it('should add liqudity on xDai', async () => {
     const bridge = hop.bridge(Token.USDC)

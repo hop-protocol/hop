@@ -1897,7 +1897,9 @@ class HopBridge extends Base {
   }
 
   isSupportedAsset (chain: TChain) {
-    return !!this.getConfigAddresses(this.tokenSymbol, chain)
+    chain = this.toChainModel(chain)
+    const supported = this.getSupportedAssets()
+    return !!supported[chain.slug]?.[this.tokenSymbol]
   }
 
   getBonderAddress (): string {

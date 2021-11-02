@@ -434,6 +434,25 @@ class Base {
   }
 
   public getContract = getContract
+
+  getSupportedAssets () {
+    const supported : any = {}
+    for (const token in this.addresses[this.network]) {
+      for (const chain in this.addresses[this.network][token]) {
+        if (!supported[chain]) {
+          supported[chain] = {}
+        }
+        supported[chain][token] = true
+      }
+    }
+    return supported
+  }
+
+  getSupportedAssetsForChain (chain: TChain) {
+    chain = this.toChainModel(chain)
+    const supported = this.getSupportedAssets()
+    return supported[chain.slug]
+  }
 }
 
 export default Base

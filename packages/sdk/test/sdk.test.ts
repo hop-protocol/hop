@@ -486,3 +486,11 @@ describe.skip('getSendData', () => {
     expect(availableLiquidity).toBeGreaterThan(requiredLiquidity)
   })
 })
+
+describe('getSupportedAssets', () => {
+  it('should return list of supported assets per chain', () => {
+    const hop = new Hop('mainnet')
+    const assets = hop.getSupportedAssets()
+    expect(assets).toBeTruthy()
+  })
+})

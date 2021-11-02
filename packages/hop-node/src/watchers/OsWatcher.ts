@@ -1,19 +1,30 @@
 import Logger from 'src/logger'
 import Metrics from 'src/watchers/classes/Metrics'
 import checkDiskSpace from 'check-disk-space'
+import heapdump from 'heapdump'
 import os from 'os'
 import pidusage from 'pidusage'
 import wait from 'src/utils/wait'
 
+type Config = {
+  heapdump: boolean
+}
+
 class OsWatcher {
-  pollIntervalMs: number = 60 * 1000
+  statsPollIntervalMs: number = 60 * 1000
+  heapdumpPollIntervalMs: number = 5 * 60 * 1000
+  heapdump: boolean = false
+  heapIndex: number = 0
   logger: Logger
   metrics = new Metrics()
 
-  constructor () {
+  constructor (config: Partial<Config> = {}) {
     this.logger = new Logger({
       tag: 'OsWatcher'
     })
+    if (config.heapdump) {
+      this.heapdump = true
+    }
   }
 
   start () {
@@ -21,6 +32,13 @@ class OsWatcher {
   }
 
   async poll () {
+    await Promise.all([
+      this.pollStats(),
+      this.pollHeapdump()
+    ])
+  }
+
+  async pollStats () {
     while (true) {
       try {
         await this.logCpuMemory()
@@ -28,7 +46,21 @@ class OsWatcher {
       } catch (err) {
         this.logger.error(`error retrieving stats: ${err.message}`)
       }
-      await wait(this.pollIntervalMs)
+      await wait(this.statsPollIntervalMs)
+    }
+  }
+
+  async pollHeapdump () {
+    if (!this.heapdump) {
+      return
+    }
+    while (true) {
+      try {
+        await this.logHeapdump()
+      } catch (err) {
+        this.logger.error(`error heapdumping: ${err.message}`)
+      }
+      await wait(this.heapdumpPollIntervalMs)
     }
   }
 
@@ -79,6 +111,16 @@ class OsWatcher {
         resolve(null)
       })
     })
+  }
+
+  async logHeapdump () {
+    this.heapIndex++
+    const location = `/tmp/heapdump_${Date.now()}.heapsnapshot`
+    this.logger.debug('generating heapdump snapshot')
+    // note: if you see the error "Segmentation fault (core dumped)" on node v14,
+    // try using node v12
+    heapdump.writeSnapshot(location)
+    this.logger.info(`wrote heapdump snapshot to: ${location}`)
   }
 }
 

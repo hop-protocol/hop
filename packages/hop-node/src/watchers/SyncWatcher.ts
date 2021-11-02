@@ -1030,10 +1030,7 @@ class SyncWatcher extends BaseWatcher {
     return destinationChain === Chain.Ethereum && !oruChains.includes(sourceChain)
   }
 
-  // ORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots) / 2
-  //    - divide by 2 because `amount` gets added to OruToL1PendingAmount
-  //    - the divide by 2 happens upstream
-  // nonORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
+  // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
   private async calculateAvailableCredit (destinationChainId: number, bonder?: string) {
     const sourceChain = this.chainSlug

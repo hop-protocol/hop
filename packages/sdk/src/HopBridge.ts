@@ -4,6 +4,10 @@ import Chain from './models/Chain'
 import Token from './Token'
 import TokenModel from './models/Token'
 import fetch from 'isomorphic-fetch'
+import l1Erc20BridgeAbi from '@hop-protocol/core/abi/generated/L1_ERC20_Bridge.json'
+import l1HomeAmbNativeToErc20 from '@hop-protocol/core/abi/static/L1_HomeAMBNativeToErc20.json'
+import l2AmmWrapperAbi from '@hop-protocol/core/abi/generated/L2_AmmWrapper.json'
+import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
 import {
   BigNumber,
   BigNumberish,
@@ -22,12 +26,6 @@ import { PriceFeed } from './priceFeed'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata } from './config'
 import { getAddress, parseUnits } from 'ethers/lib/utils'
-import {
-  l1Erc20BridgeAbi,
-  l1HomeAmbNativeToErc20,
-  l2AmmWrapperAbi,
-  l2BridgeAbi
-} from '@hop-protocol/core/abi'
 
 type SendL1ToL2Input = {
   destinationChainId: number | string

@@ -689,10 +689,10 @@ export default class Bridge extends ContractBase {
       return BigNumber.from(0)
     }
 
-    // absolute minimum is $1 of token
+    const minBonderFeeUsd = 0.25
     const tokenDecimals = getTokenDecimals(tokenSymbol)
     const minBonderFeeAbsolute = parseUnits(
-      (1 / tokenPriceUsd).toFixed(tokenDecimals),
+      (minBonderFeeUsd / tokenPriceUsd).toFixed(tokenDecimals),
       tokenDecimals
     )
 

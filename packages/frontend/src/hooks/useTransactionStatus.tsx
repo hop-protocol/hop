@@ -1,7 +1,7 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { TChain } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
-import useInterval from 'src/hooks/useInterval'
+import { useInterval } from 'react-use'
 import Transaction from 'src/models/Transaction'
 import { loadState, saveState } from 'src/utils/localStorage'
 import logger from 'src/logger'
@@ -9,7 +9,7 @@ import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
-  const { updateTransaction } = useTxHistory()
+  const { transactions, updateTransaction, addTransaction, replaceTransaction } = useTxHistory()
   const [completed, setCompleted] = useState<boolean>(transaction?.pending === false)
   const [networkConfirmations, setNetworkConfirmations] = useState<number>()
   const [confirmations, setConfirmations] = useState<number>()
@@ -24,7 +24,7 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
     return _chain.provider
   }, [chain])
 
-  async function updateDestTxStatus() {
+  const updateDestTxStatus = useCallback(async () => {
     if (
       transaction &&
       (destCompleted === false || !transaction.destTxHash) &&
@@ -37,7 +37,7 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
         updateTransaction(transaction)
       }
     }
-  }
+  }, [transactions, updateTransaction, transaction])
 
   const updateTxStatus = async () => {
     if (!provider || !transaction?.hash || !chain) {
@@ -78,17 +78,23 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   }
 
   useEffect(() => {
+    console.log(`transaction hash changed:`, transaction)
     updateTxStatus()
   }, [transaction?.hash, chain])
 
   useEffect(() => {
+    console.log(`transaction changed:`, transaction)
     updateDestTxStatus()
   }, [sdk, transaction])
 
-  useInterval(updateTxStatus, 10e3)
-  useInterval(updateDestTxStatus, 10e3)
+  useInterval(updateTxStatus, completed ? null : 10e3)
+  useInterval(updateDestTxStatus, destCompleted ? 10e3 : null)
 
   return {
+    transactions,
+    addTransaction,
+    replaceTransaction,
+    updateTransaction,
     completed,
     destCompleted,
     confirmations,

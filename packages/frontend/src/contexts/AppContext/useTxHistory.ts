@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
+import { useDeepCompareEffect } from 'react-use'
 import Transaction from 'src/models/Transaction'
 import { loadState, saveState } from 'src/utils/localStorage'
 import { sortByRecentTimestamp } from 'src/utils/sort'
@@ -10,7 +11,7 @@ export interface TxHistory {
   setTransactions: (txs: Transaction[]) => void
   addTransaction: (tx: Transaction) => void
   clear: () => void
-  updateTransaction: (tx: Transaction) => void
+  updateTransaction: (tx: Transaction, updateOpts?: any) => void
   replaceTransaction: (hash: string, tx: Transaction) => void
 }
 
@@ -27,12 +28,22 @@ const useTxHistory = (defaultTxs?: Transaction[]): TxHistory => {
     }
   })
 
-  function updateTransaction(tx: Transaction) {
+  function updateTransaction(tx: Transaction, updateOpts?: any) {
+    console.log(`tx:`, tx, updateOpts)
+
+    for (const key in updateOpts) {
+      tx[key] = updateOpts[key]
+    }
+
+    console.log(`updated tx:`, tx)
+
     const match = find(transactions, ['hash', tx.hash])
     if (!match) {
       logger.error(`no matching transaction ${tx.hash}`)
       return
+      // return addTransaction(tx)
     }
+
     const filtered = transactions.filter((t: Transaction) => t.hash !== tx.hash)
     setTransactions(sortByRecentTimestamp([...filtered, tx]).slice(0, 3))
   }
@@ -51,7 +62,7 @@ const useTxHistory = (defaultTxs?: Transaction[]): TxHistory => {
   )
 
   // Transforms and saves transactions (component state) -> local storage objects
-  useEffect(() => {
+  useDeepCompareEffect(() => {
     try {
       const recents = transactions.map((tx: Transaction) => {
         return tx.toObject()

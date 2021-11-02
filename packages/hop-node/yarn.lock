@@ -1552,22 +1552,22 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
-"@hop-protocol/core@0.0.1-beta.44":
-  version "0.0.1-beta.44"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.44.tgz#2b48088325269caf361b45a1ca51d9e181f9edc7"
-  integrity sha512-S9vFAvIdq+93mY1urxyTPvcAZMELueqmnN7r8jBbQtH8psJl6fo4cykdIRlMGslcyY9uhTdJn+1Ni0/rHTAyAw==
+"@hop-protocol/core@0.0.1-beta.46":
+  version "0.0.1-beta.46"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.46.tgz#520816259cf2e9ea965706ed9239c71fc78c937b"
+  integrity sha512-d/DiGSbJEYv4pwZrYdLV+ZpUbYK3qOcbYtBIxxUpeqjJD3r9MMyH2CQIEhjiW6ElC6hqdDcJWEW4gwZJ1hUwMQ==
   dependencies:
     deepmerge "^4.2.2"
     eslint-plugin-json "^3.1.0"
-    ethers "^5.4.7"
+    ethers "^5.5.1"
 
-"@hop-protocol/sdk@0.0.1-beta.221":
-  version "0.0.1-beta.221"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.221.tgz#f0a05cbab412e3376c7a9a926b7f7804b9231306"
-  integrity sha512-OINtZNH15YLoPU43Y6to2lsVp0JAjeM/1R9SEAQHUi5af3mI4Fh/gXgB8YT+IxRvqHNZ847g6SGVTPAqgVr6Rg==
+"@hop-protocol/sdk@0.0.1-beta.222":
+  version "0.0.1-beta.222"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.222.tgz#cabf86f3c1724f4fad73522cfd5175f601f5aeeb"
+  integrity sha512-mGbRyZ2ne6CygKrHgXVZVUNXnWs2xpCJwdtLrsHw14LrQfOKjxamL1+Dm4bo999l/ZiMMwKcWEv1bLgPqIpWrg==
   dependencies:
     "@ethersproject/abi" "^5.4.0"
-    "@hop-protocol/core" "0.0.1-beta.44"
+    "@hop-protocol/core" "0.0.1-beta.46"
     "@maticnetwork/maticjs" "^2.0.38"
     dotenv "^8.2.0"
     ethereum-block-by-date "^1.4.2"
@@ -4868,7 +4868,7 @@ ethers@5.0.0:
     "@ethersproject/web" "^5.0.0"
     "@ethersproject/wordlists" "^5.0.0"
 
-ethers@5.5.1, ethers@^5.1.0, ethers@^5.4.5, ethers@^5.4.7, ethers@^5.5.0, ethers@^5.5.1:
+ethers@5.5.1, ethers@^5.1.0, ethers@^5.4.5, ethers@^5.5.0, ethers@^5.5.1:
   version "5.5.1"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.5.1.tgz#d3259a95a42557844aa543906c537106c0406fbf"
   integrity sha512-RodEvUFZI+EmFcE6bwkuJqpCYHazdzeR1nMzg+YWQSmQEsNtfl1KHGfp/FWZYl48bI/g7cgBeP2IlPthjiVngw==

@@ -20,8 +20,6 @@ function TransactionStatus(props) {
   const [text, setText] = useState('')
 
   useEffect(() => {
-    console.log(`confirmations:`, confirmations)
-
     if (txConfirmed) {
       return setText('Complete')
     }

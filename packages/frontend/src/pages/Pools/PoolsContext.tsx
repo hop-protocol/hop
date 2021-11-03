@@ -13,18 +13,21 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import Network from 'src/models/Network'
 import Address from 'src/models/Address'
 import Price from 'src/models/Price'
 import Transaction from 'src/models/Transaction'
-import useInterval from 'src/hooks/useInterval'
-import useBalance from 'src/hooks/useBalance'
 import logger from 'src/logger'
-import useApprove from 'src/hooks/useApprove'
 import { shiftBNDecimals } from 'src/utils'
 import { reactAppNetwork } from 'src/config'
 import { amountToBN, formatError } from 'src/utils/format'
+import {
+  useTransactionReplacement,
+  useAsyncMemo,
+  useInterval,
+  useBalance,
+  useApprove,
+} from 'src/hooks'
 
 type PoolsContextProps = {
   networks: Network[]
@@ -131,8 +134,9 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [apr, setApr] = useState<number | undefined>()
   const aprRef = useRef<string>('')
 
-  const { networks, txConfirm, txHistory, sdk, selectedBridge, settings } = useApp()
+  const { networks, txConfirm, sdk, selectedBridge, settings } = useApp()
   const { deadline, slippageTolerance } = settings
+  const { waitForTransaction, addTransaction } = useTransactionReplacement()
   const slippageToleranceBps = slippageTolerance * 100
   const minBps = Math.ceil(10000 - slippageToleranceBps)
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
@@ -501,7 +505,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     updateUserPoolPositions()
   }, 5 * 1000)
 
-  const { approve } = useApprove()
+  const { approve } = useApprove(canonicalToken)
   const approveTokens = async (isHop: boolean, amount: string, network: Network) => {
     if (!canonicalToken) {
       throw new Error('Canonical token is required')
@@ -591,14 +595,19 @@ const PoolsContextProvider: FC = ({ children }) => {
 
       setTxHash(addLiquidityTx?.hash)
       if (addLiquidityTx?.hash && selectedNetwork) {
-        txHistory?.addTransaction(
+        addTransaction(
           new Transaction({
             hash: addLiquidityTx?.hash,
             networkName: selectedNetwork?.slug,
           })
         )
       }
-      await addLiquidityTx?.wait()
+
+      const res = await waitForTransaction(addLiquidityTx, { networkName: selectedNetwork.slug })
+      if (res && 'replacementTx' in res) {
+        setTxHash(res.replacementTx.hash)
+      }
+
       updateUserPoolPositions()
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
@@ -675,14 +684,19 @@ const PoolsContextProvider: FC = ({ children }) => {
 
       setTxHash(removeLiquidityTx?.hash)
       if (removeLiquidityTx?.hash && selectedNetwork) {
-        txHistory?.addTransaction(
+        addTransaction(
           new Transaction({
             hash: removeLiquidityTx?.hash,
             networkName: selectedNetwork?.slug,
           })
         )
       }
-      await removeLiquidityTx?.wait()
+
+      const res = await waitForTransaction(removeLiquidityTx, { networkName: selectedNetwork.slug })
+      if (res && 'replacementTx' in res) {
+        setTxHash(res.replacementTx.hash)
+      }
+
       updateUserPoolPositions()
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {

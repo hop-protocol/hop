@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { ComponentStory, ComponentMeta } from '@storybook/react'
-import TxStatusModal from 'src/components/txStatus/TxStatusModal'
+import TxStatusModal from 'src/components/modal/TxStatusModal'
 import { storyTransactions } from './data'
 import { createTransaction } from 'src/utils/createTransaction'
 import useTxHistory from 'src/contexts/AppContext/useTxHistory'
@@ -14,7 +14,7 @@ const Template: ComponentStory<typeof TxStatusModal> = args => {
   const txHistory = useTxHistory()
 
   useEffect(() => {
-    txHistory.setTransactions([...txHistory.transactions, args.tx])
+    txHistory.setTransactions([...(txHistory.transactions || []), args.tx])
   }, [])
 
   function handleClose() {

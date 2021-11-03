@@ -1,3 +1,4 @@
+import { BigNumberish } from 'ethers'
 import logger from 'src/logger'
 
 export function getUrl(chain) {
@@ -34,17 +35,31 @@ export interface L1Transfer {
   transactionHash: string
 }
 
+function normalizeBN(str: BigNumberish) {
+  if (typeof str === 'string') {
+    return str
+  }
+
+  return str.toString()
+}
+
 export async function fetchTransferFromL1Completeds(
   chain,
   recipient: string,
-  amount: string
+  amount: BigNumberish,
+  deadline: BigNumberish
 ): Promise<L1Transfer[]> {
+  recipient = recipient.toLowerCase()
+  amount = normalizeBN(amount)
+  deadline = normalizeBN(deadline)
+
   const query = `
     {
       transferFromL1Completeds(
         where: {
           recipient: "${recipient}",
-          amount: "${amount}"
+          amount: "${amount}",
+          deadline: "${deadline}"
         }
       ) {
         timestamp
@@ -60,7 +75,9 @@ export async function fetchTransferFromL1Completeds(
   return data?.transferFromL1Completeds
 }
 
-export async function fetchWithdrawalBondedsByTransferId(chain, transferId: string) {
+export async function fetchWithdrawalBondedsByTransferId(chain, transferId: BigNumberish) {
+  transferId = normalizeBN(transferId)
+
   const query = `
       query WithdrawalBondeds {
         withdrawalBondeds(
@@ -78,4 +95,3 @@ export async function fetchWithdrawalBondedsByTransferId(chain, transferId: stri
   const data = await queryFetch(url, query)
   return data?.withdrawalBondeds
 }
-

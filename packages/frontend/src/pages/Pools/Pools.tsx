@@ -188,7 +188,6 @@ const Pools: FC = () => {
     removeLiquidity()
   }
 
-  console.log('userPoolBalance: ', userPoolBalance)
   const hasBalance = userPoolBalance?.gt(0)
   const canonicalTokenSymbol = canonicalToken?.symbol || ''
   const hopTokenSymbol = hopToken?.symbol || ''

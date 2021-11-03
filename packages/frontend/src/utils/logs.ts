@@ -10,15 +10,17 @@ export function findTransferSentLog(logs: providers.Log[]) {
 
 export function findTransferFromL1CompletedLog(
   logs: Event[],
+  recipient: string,
   amount: BigNumberish,
-  recipient: string
+  deadline: BigNumberish
 ) {
   return find<Event>(
     logs,
     (log: Event) =>
       log.topics[0] === eventTopics.transferFromL1CompletedTopic &&
-      log.args?.amount.eq(amount) &&
-      isSameAddress(log.args?.recipient, recipient)
+      isSameAddress(log.args?.recipient, recipient) &&
+      log.args?.amount?.eq(amount) &&
+      log.args?.deadline?.eq(deadline)
   )
 }
 

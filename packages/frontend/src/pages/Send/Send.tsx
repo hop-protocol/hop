@@ -15,7 +15,7 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, normalizeNumberInput, toTokenDisplay } from 'src/utils'
+import { commafy, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
 import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
 import useBalance from 'src/hooks/useBalance'
 import useSendData from 'src/pages/Send/useSendData'
@@ -508,7 +508,7 @@ const Send: FC = () => {
             return
           }
 
-          const amountIn = normalizeNumberInput(value)
+          const amountIn = sanitizeNumericalString(value)
           setFromTokenAmount(amountIn)
         }}
         selectedNetwork={fromNetwork}

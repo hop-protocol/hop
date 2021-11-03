@@ -22,6 +22,7 @@ import useInterval from 'src/hooks/useInterval'
 import useBalance from 'src/hooks/useBalance'
 import logger from 'src/logger'
 import useApprove from 'src/hooks/useApprove'
+import { formatError } from 'src/utils/format'
 
 type TokenWrapperContextProps = {
   amount: string
@@ -163,7 +164,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, selectedNetwork))
       }
     }
     setWrapping(false)
@@ -217,7 +218,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, selectedNetwork))
       }
     }
     setUnwrapping(false)

@@ -1,4 +1,4 @@
-import { fixedDecimals, amountToBN } from 'src/utils/format'
+import { fixedDecimals, amountToBN } from './format'
 
 it('should trim a numerical string with decimals', () => {
   const numStr = '1234567890.01234567890123456789012345678901'

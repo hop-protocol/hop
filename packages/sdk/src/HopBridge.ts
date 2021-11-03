@@ -18,7 +18,6 @@ import {
   BondTransferGasLimit,
   GasPriceMultiplier,
   LpFeeBps,
-  ORUGasPriceMultiplier,
   PendingAmountBuffer,
   TokenIndex
 } from './constants'
@@ -648,11 +647,16 @@ class HopBridge extends Base {
 
     const rate = chainNativeTokenPrice / tokenPrice
 
-    const gasPrice = await destinationChain.provider.getGasPrice()
-    const bondTransferGasLimit = await this.getBondWithdrawalEstimatedGas(
+    let gasPrice = await destinationChain.provider.getGasPrice()
+    let bondTransferGasLimit = await this.getBondWithdrawalEstimatedGas(
       destinationChain
     )
 
+    // Arbitrum returns a gasLimit & gasPriceBid of 2x what is generally paid
+    if (destinationChain.equals(Chain.Arbitrum)) {
+      gasPrice = gasPrice.div(2)
+      bondTransferGasLimit = bondTransferGasLimit.div(2)
+    }
     const txFeeEth = gasPrice.mul(bondTransferGasLimit)
 
     const oneEth = ethers.utils.parseEther('1')
@@ -665,8 +669,6 @@ class HopBridge extends Base {
     let multiplier = BigNumber.from(0)
     if (destinationChain.equals(Chain.Ethereum)) {
       multiplier = ethers.utils.parseEther(GasPriceMultiplier)
-    } else if (destinationChain.equals(Chain.Optimism)) {
-      multiplier = ethers.utils.parseEther(ORUGasPriceMultiplier)
     }
 
     if (multiplier.gt(0)) {
@@ -678,7 +680,7 @@ class HopBridge extends Base {
 
   async getBondWithdrawalEstimatedGas (
     destinationChain: Chain
-  ) {
+  ): Promise<BigNumber> {
     try {
       const destinationBridge = await this.getL2Bridge(destinationChain)
       const bonder = this.getBonderAddress()
@@ -704,7 +706,7 @@ class HopBridge extends Base {
         const estimatedGas = await destinationBridge.estimateGas.bondWithdrawalAndDistribute(
           ...payload
         )
-        return estimatedGas.toString()
+        return estimatedGas
       } else {
         const payload = [
           recipient,
@@ -718,7 +720,7 @@ class HopBridge extends Base {
         const estimatedGas = await destinationBridge.estimateGas.bondWithdrawal(
           ...payload
         )
-        return estimatedGas.toString()
+        return estimatedGas
       }
     } catch (err) {
       console.error(err, {
@@ -730,7 +732,7 @@ class HopBridge extends Base {
       } else if (destinationChain.equals(Chain.Arbitrum)) {
         bondTransferGasLimit = BondTransferGasLimit.Arbitrum
       }
-      return bondTransferGasLimit
+      return BigNumber.from(bondTransferGasLimit)
     }
   }
 
@@ -1258,13 +1260,13 @@ class HopBridge extends Base {
 
   /**
    * @desc Sends transaction to remove liquidity from AMM.
-   * @param {Object} liqudityTokenAmount - Amount of LP tokens to burn.
+   * @param {Object} liquidityTokenAmount - Amount of LP tokens to burn.
    * @param {Object} chain - Chain model of desired chain to add liquidity to.
    * @param {Object} options - Method options.
    * @returns {Object} Ethers transaction object.
    */
   public async removeLiquidity (
-    liqudityTokenAmount: TAmount,
+    liquidityTokenAmount: TAmount,
     chain?: TChain,
     options: Partial<RemoveLiquidityOptions> = {}
   ) {
@@ -1280,7 +1282,7 @@ class HopBridge extends Base {
       this.chainProviders
     )
     return amm.removeLiquidity(
-      liqudityTokenAmount,
+      liquidityTokenAmount,
       options.amount0Min,
       options.amount1Min,
       options.deadline

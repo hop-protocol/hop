@@ -2,13 +2,7 @@ import { BigNumber, FixedNumber, utils } from 'ethers'
 import Network from 'src/models/Network'
 import { prettifyErrorMessage } from '.'
 
-interface ErrorData {
-  data?: {
-    message?: string
-  }
-}
-
-export function formatError(error: Error & ErrorData, network?: Network) {
+export function formatError(error: any, network?: Network) {
   if (typeof error === 'string') {
     return prettifyErrorMessage(error)
   }

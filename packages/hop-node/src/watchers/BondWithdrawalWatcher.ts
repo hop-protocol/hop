@@ -41,7 +41,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     })
 
     const fees = globalConfig?.fees?.[this.tokenSymbol]
-    this.logger.log('bonder fees:', fees)
+    this.logger.log('bonder fees:', JSON.stringify(fees))
   }
 
   async pollHandler () {

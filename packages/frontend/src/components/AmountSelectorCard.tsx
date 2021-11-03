@@ -10,7 +10,7 @@ import Skeleton from '@material-ui/lab/Skeleton'
 import { Token } from '@hop-protocol/sdk'
 import clsx from 'clsx'
 import LargeTextField from 'src/components/LargeTextField'
-import { commafy, normalizeNumberInput } from 'src/utils'
+import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -137,9 +137,8 @@ const AmountSelectorCard: FC<Props> = props => {
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
-    const normalizedValue = normalizeNumberInput(value)
     if (onChange) {
-      onChange(normalizedValue)
+      onChange(value)
     }
   }
   const handleMaxClick = () => {

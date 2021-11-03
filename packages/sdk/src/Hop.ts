@@ -6,7 +6,6 @@ import Watcher from './watchers/Watcher'
 import _version from './version'
 import { Chain, Token } from './models'
 import { Event } from './watchers/BaseWatcher'
-import { Network } from './constants'
 import { Signer } from 'ethers'
 import { TChain, TProvider, TToken } from './types'
 
@@ -61,8 +60,9 @@ class Hop extends Base {
    *const hop = new Hop('mainnet', signer)
    *```
    */
+  // eslint-disable-next-line no-useless-constructor
   constructor (
-    network: string = Network.Kovan,
+    network: string,
     signer?: TProvider,
     chainProviders?: ChainProviders
   ) {

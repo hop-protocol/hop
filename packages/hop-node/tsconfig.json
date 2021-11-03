@@ -19,7 +19,8 @@
       "*": ["node_modules/*", "src/types/*"],
       "src/*": ["*"]
     },
-    "typeRoots": ["./node_modules/@types", "./@types"]
+    "typeRoots": ["./node_modules/@types", "./@types"],
+    "lib": ["ESNext"]
   },
   "include": ["src/**/*", "test/*"]
 }

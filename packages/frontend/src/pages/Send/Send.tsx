@@ -1,5 +1,4 @@
 import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
-import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import Box from '@material-ui/core/Box'
 import MuiButton from '@material-ui/core/Button'
 import Button from 'src/components/buttons/Button'
@@ -7,7 +6,7 @@ import SendIcon from '@material-ui/icons/Send'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
-import TxStatusModal from 'src/components/txStatus/TxStatusModal'
+import TxStatusModal from 'src/components/modal/TxStatusModal'
 import DetailRow from 'src/components/DetailRow'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
@@ -15,25 +14,28 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, normalizeNumberInput, toTokenDisplay } from 'src/utils'
+import { commafy, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
 import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
-import useBalance from 'src/hooks/useBalance'
 import useSendData from 'src/pages/Send/useSendData'
-import useNeedsTokenForFee from 'src/hooks/useNeedsTokenForFee'
-import useQueryParams from 'src/hooks/useQueryParams'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
-import useApprove from 'src/hooks/useApprove'
 import { reactAppNetwork } from 'src/config'
 import InfoTooltip from 'src/components/infoTooltip'
 import { amountToBN, formatError } from 'src/utils/format'
-import { useFeeConversions } from 'src/hooks/useFeeConversions'
 import { useSendStyles } from './useSendStyles'
-import { useAssets } from 'src/hooks/useAssets'
 import SendHeader from './SendHeader'
 import CustomRecipientDropdown from './CustomRecipientDropdown'
 import { Flex } from 'src/components/ui'
 import { useSendTransaction } from './useSendTransaction'
+import {
+  useAssets,
+  useAsyncMemo,
+  useFeeConversions,
+  useApprove,
+  useQueryParams,
+  useNeedsTokenForFee,
+  useBalance,
+} from 'src/hooks'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -68,10 +70,10 @@ const Send: FC = () => {
 
   // Set fromNetwork and toNetwork using query params
   useEffect(() => {
-    const _fromNetwork = networks.find((network) => network.slug === queryParams.sourceNetwork)
+    const _fromNetwork = networks.find(network => network.slug === queryParams.sourceNetwork)
     _setFromNetwork(_fromNetwork)
 
-    const _toNetwork = networks.find((network) => network.slug === queryParams.destNetwork)
+    const _toNetwork = networks.find(network => network.slug === queryParams.destNetwork)
 
     if (_fromNetwork?.name === _toNetwork?.name) {
       // Leave destination network empty
@@ -121,11 +123,12 @@ const Send: FC = () => {
     priceImpact,
     amountOutMin,
     intermediaryAmountOutMin,
-    bonderFee,
     lpFees,
+    adjustedBonderFee,
+    adjustedDestinationTxFee,
+    totalFee,
     requiredLiquidity,
     loading: loadingSendData,
-    destinationTxFee,
     estimatedReceived,
   } = useSendData(sourceToken, slippageTolerance, fromNetwork, toNetwork, fromTokenAmountBN)
 
@@ -150,7 +153,7 @@ const Send: FC = () => {
     totalBonderFee,
     totalBonderFeeDisplay,
     estimatedReceivedDisplay,
-  } = useFeeConversions(destinationTxFee, bonderFee, estimatedReceived, destToken)
+  } = useFeeConversions(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, destToken)
 
   // Check if user has enough balance (more than the inputed value)
   const enoughBalance = useMemo(() => {
@@ -242,19 +245,19 @@ const Send: FC = () => {
 
   useEffect(() => {
     const warningMessage = `Send at least ${destinationTxFeeDisplay} to cover the transaction fee`
-    if (estimatedReceived?.lte(0) && destinationTxFee?.gt(0)) {
+    if (estimatedReceived?.lte(0) && adjustedDestinationTxFee?.gt(0)) {
       setMinimumSendWarning(warningMessage)
     } else {
       setMinimumSendWarning('')
     }
-  }, [estimatedReceived, destinationTxFee])
+  }, [estimatedReceived, adjustedDestinationTxFee])
 
   useEffect(() => {
     let message = noLiquidityWarning || minimumSendWarning
 
     if (!enoughBalance) {
       message = 'Insufficient funds'
-    } else if (estimatedReceived && bonderFee?.gt(estimatedReceived)) {
+    } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
       message = 'Bonder fee greater than estimated received'
     } else if (estimatedReceived?.lte(0)) {
       message = 'Insufficient amount. Send higher amount to cover bonder fee.'
@@ -300,8 +303,8 @@ const Send: FC = () => {
       return
     }
     let _amountOutMin = amountOutMin
-    if (destinationTxFee?.gt(0)) {
-      _amountOutMin = _amountOutMin.sub(destinationTxFee)
+    if (adjustedDestinationTxFee?.gt(0)) {
+      _amountOutMin = _amountOutMin.sub(adjustedDestinationTxFee)
     }
 
     if (_amountOutMin.lt(0)) {
@@ -316,7 +319,7 @@ const Send: FC = () => {
   // Approve fromNetwork / fromToken
   // ==============================================================================================
 
-  const { approve, checkApproval } = useApprove()
+  const { approve, checkApproval } = useApprove(sourceToken)
 
   const needsApproval = useAsyncMemo(async () => {
     try {
@@ -397,10 +400,9 @@ const Send: FC = () => {
 
   const { tx, setTx, send, sending } = useSendTransaction({
     amountOutMin,
-    bonderFee,
     customRecipient,
     deadline,
-    destinationTxFee,
+    totalFee,
     fromNetwork,
     fromTokenAmount,
     intermediaryAmountOutMin,
@@ -421,7 +423,7 @@ const Send: FC = () => {
   // Change the bridge if user selects different token to send
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
-    const bridge = bridges.find((bridge) => bridge.getTokenSymbol() === tokenSymbol)
+    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
     if (bridge) {
       setSelectedBridge(bridge)
     }
@@ -501,14 +503,14 @@ const Send: FC = () => {
         value={fromTokenAmount}
         token={sourceToken ?? placeholderToken}
         label={'From'}
-        onChange={(value) => {
+        onChange={value => {
           if (!value) {
             setFromTokenAmount('')
             setToTokenAmount('')
             return
           }
 
-          const amountIn = normalizeNumberInput(value)
+          const amountIn = sanitizeNumericalString(value)
           setFromTokenAmount(amountIn)
         }}
         selectedNetwork={fromNetwork}

@@ -43,6 +43,7 @@ program
   .option('--sync-from-date <string>', 'Date to start syncing db from, in ISO format YYYY-MM-DD')
   .option('--s3-upload', 'Upload available liquidity info as JSON to S3')
   .option('--s3-namespace <string>', 'S3 bucket namespace')
+  .option('--heapdump', 'Write heapdump snapshot to a file every 5 minutes')
   .action(async (source: any) => {
     try {
       printHopArt()
@@ -56,10 +57,10 @@ program
       const s3Upload = !!source.s3Upload
       const s3Namespace = source.s3Namespace
       if (s3Upload) {
-        logger.debug('s3 upload enabled')
+        logger.info('s3 upload enabled')
       }
       if (s3Namespace) {
-        logger.debug(`s3 namespace: ${s3Namespace}`)
+        logger.info(`s3 namespace: ${s3Namespace}`)
       }
 
       if (source.clearDb) {
@@ -189,7 +190,9 @@ program
         }
       }
       promises.push(new Promise((resolve) => {
-        new OsWatcher().start()
+        new OsWatcher({
+          heapdump: source.heapdump
+        }).start()
         resolve()
       }))
       await Promise.all(promises)

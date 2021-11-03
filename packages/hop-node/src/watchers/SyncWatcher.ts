@@ -1030,10 +1030,7 @@ class SyncWatcher extends BaseWatcher {
     return destinationChain === Chain.Ethereum && !oruChains.includes(sourceChain)
   }
 
-  // ORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots) / 2
-  //    - divide by 2 because `amount` gets added to OruToL1PendingAmount
-  //    - the divide by 2 happens upstream
-  // nonORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
+  // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
   private async calculateAvailableCredit (destinationChainId: number, bonder?: string) {
     const sourceChain = this.chainSlug
@@ -1278,20 +1275,20 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async pollGasCost () {
+    const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const amount = BigNumber.from(10)
+    const amountOutMin = BigNumber.from(0)
+    const bonderFee = BigNumber.from(1)
+    const bonder = this.bridge.getConfigBonderAddress()
+    const recipient = `0x${'1'.repeat(40)}`
+    const transferNonce = `0x${'0'.repeat(64)}`
+
     while (true) {
+      const txOverrides = await this.bridge.txOverrides()
+      txOverrides.from = bonder
       try {
         const timestamp = Math.floor(Date.now() / 1000)
         const deadline = Math.floor((Date.now() + OneWeekMs) / 1000)
-        const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        const txOverrides = await this.bridge.txOverrides()
-        const amount = BigNumber.from(10)
-        const amountOutMin = BigNumber.from(0)
-        const bonderFee = BigNumber.from(1)
-        const bonder = this.bridge.getConfigBonderAddress()
-        const recipient = `0x${'1'.repeat(40)}`
-        txOverrides.from = bonder
-
-        const transferNonce = `0x${'0'.repeat(64)}`
         const payload = [
           recipient,
           amount,
@@ -1316,6 +1313,7 @@ class SyncWatcher extends BaseWatcher {
           estimates.push({ gasLimit, attemptSwap: true })
         }
 
+        this.logger.debug(`pollGasCost estimate. estimates complete`)
         await Promise.all(estimates.map(async ({ gasLimit, attemptSwap }) => {
           const { gasCost, gasCostInToken, gasPrice, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
             gasLimit,
@@ -1323,8 +1321,9 @@ class SyncWatcher extends BaseWatcher {
             this.tokenSymbol
           )
 
+          this.logger.debug(`pollGasCost estimate. attemptSwap: ${attemptSwap}, gasLimit: ${gasLimit?.toString()}, gasPrice: ${gasPrice?.toString()}, gasCost: ${gasCost?.toString()}, gasCostInToken: ${gasCostInToken?.toString()}, tokenPriceUsd: ${tokenPriceUsd?.toString()}`)
           const minBonderFeeAbsolute = await this.bridge.getMinBonderFeeAbsolute(this.tokenSymbol, tokenPriceUsd)
-          this.logger.debug(`pollGasCost estimate: attemptSwap: ${attemptSwap}, gasLimit: ${gasLimit?.toString()}, gasPrice: ${gasPrice?.toString()}, gasCost: ${gasCost?.toString()}, gasCostInToken: ${gasCostInToken?.toString()}, tokenPriceUsd: ${tokenPriceUsd?.toString()}`)
+          this.logger.debug(`pollGasCost estimate. minBonderFeeAbsolute: ${minBonderFeeAbsolute.toString()}`)
 
           await this.db.gasCost.addGasCost({
             chain: this.chainSlug,

@@ -1,75 +1,77 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, Dispatch, SetStateAction } from 'react'
+import { useLocalStorage } from 'react-use'
 import Transaction from 'src/models/Transaction'
-import { loadState, saveState } from 'src/utils/localStorage'
-import { sortByRecentTimestamp } from 'src/utils/sort'
+import find from 'lodash/find'
+import { filterByHash, sortByRecentTimestamp } from 'src/utils'
 
 export interface TxHistory {
-  transactions: Transaction[]
-  setTransactions: (txs: Transaction[]) => void
+  transactions?: Transaction[]
+  setTransactions: Dispatch<SetStateAction<Transaction[] | undefined>>
   addTransaction: (tx: Transaction) => void
+  updateTransaction: (tx: Transaction, updateOpts?: any) => void
   clear: () => void
-  updateTransaction: (tx: Transaction) => void
 }
 
-const useTxHistory = (defaultTxs?: Transaction[]): TxHistory => {
-  // logger.debug('useTxHistory render')
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    try {
-      const txs = loadState('recentTransactions')
-      if (!txs && defaultTxs) return defaultTxs
-      if (!txs) return []
-      return txs.map((obj: Transaction) => Transaction.fromObject(obj))
-    } catch (err) {
-      return []
-    }
-  })
+export interface UpdateTransactionOptions {
+  pendingDestinationConfirmation?: boolean
+  destNetworkName?: string
+  destTxHash?: string
+  replaced?: boolean | string
+}
 
-  function updateTransaction(tx: Transaction) {
-    const filtered = transactions.filter((t: Transaction) => t.hash !== tx.hash)
+const cacheKey = 'recentTransactions'
+
+const localStorageSerializationOptions = {
+  raw: false,
+  serializer: (value: Transaction[]) => {
+    return JSON.stringify(
+      value.map(tx => {
+        return tx.toObject()
+      })
+    )
+  },
+  deserializer: (value: string) => {
+    return JSON.parse(value).map((obj: Transaction) => Transaction.fromObject(obj))
+  },
+}
+
+const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
+  const [transactions, setTransactions, clear] = useLocalStorage<Transaction[]>(
+    cacheKey,
+    defaultTxs,
+    localStorageSerializationOptions
+  )
+
+  function filterSortAndSetTransactions(tx: Transaction, txs?: Transaction[], hashFilter?: string) {
+    const filtered = filterByHash(txs, hashFilter)
     setTransactions(sortByRecentTimestamp([...filtered, tx]).slice(0, 3))
   }
 
-  const handleChange = useCallback(
-    (pending: boolean, tx: Transaction) => {
-      const filtered = transactions.filter((t: Transaction) => t.hash !== tx.hash)
-      setTransactions(sortByRecentTimestamp([...filtered, tx]).slice(0, 3))
+  const addTransaction = useCallback(
+    (tx: Transaction) => {
+      // If tx exists with hash == tx.replaced, remove it
+      const match = find(transactions, ['hash', tx.replaced])
+      filterSortAndSetTransactions(tx, transactions, match?.hash)
     },
     [transactions]
   )
 
-  // Transforms and saves transactions (component state) -> local storage objects
-  useEffect(() => {
-    try {
-      const recents = transactions.map((tx: Transaction) => {
-        return tx.toObject()
-      })
-
-      saveState('recentTransactions', recents)
-    } catch (err) {
-      console.error(err)
-    }
-
-    for (const tx of transactions) {
-      tx.off('pending', handleChange)
-      tx.on('pending', handleChange)
-    }
-  }, [transactions, handleChange])
-
-  const addTransaction = (tx: Transaction) => {
-    setTransactions(sortByRecentTimestamp([...transactions, tx]).slice(0, 3))
-  }
-
-  const clear = () => {
-    saveState('recentTransactions', [])
-    setTransactions([])
-  }
+  const updateTransaction = useCallback(
+    (tx: Transaction, updateOpts: UpdateTransactionOptions) => {
+      for (const key in updateOpts) {
+        tx[key] = updateOpts[key]
+      }
+      filterSortAndSetTransactions(tx, transactions, tx.hash)
+    },
+    [transactions]
+  )
 
   return {
     transactions,
     setTransactions,
     addTransaction,
-    clear,
     updateTransaction,
+    clear,
   }
 }
 

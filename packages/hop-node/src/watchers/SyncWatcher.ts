@@ -630,9 +630,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`expected db transfer it, transferId: ${transferId}`)
     }
 
-    await this.populateTransferSourceChainId(transferId)
-    await this.populateTransferDestinationChainId(transferId)
-    await this.populateTransferSentBlockNumber(transferId)
+    await this.populateTransferSentEvent(transferId)
     await this.populateTransferSentTimestamp(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
   }
@@ -650,73 +648,49 @@ class SyncWatcher extends BaseWatcher {
     await this.populateTransferRootTransferIds(transferRootHash)
   }
 
-  async populateTransferSourceChainId (transferId: string) {
+  async populateTransferSentEvent (transferId: string) {
     const logger = this.logger.create({ id: transferId })
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const { sourceChainId, transferRootHash } = dbTransfer
-    if (sourceChainId) {
+    const { sourceChainId, destinationChainId, transferSentBlockNumber, transferRootHash } = dbTransfer
+    if (sourceChainId && destinationChainId && transferSentBlockNumber) {
       return
     }
 
-    // attempt to find source chain id from root transfer belongs to
-    if (transferRootHash) {
-      const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-      if (dbTransferRoot?.sourceChainId) {
-        await this.db.transfers.update(transferId, {
-          sourceChainId: dbTransferRoot.sourceChainId
-        })
-        return
-      }
-    }
-
-    // attempt to find source event to find source chain id
-    for (const chainId in this.siblingWatchers) {
-      const sourceWatcher = this.siblingWatchers[chainId]
+    if (sourceChainId) {
+      logger.debug(`attempting to find TrasferSent event on chain ${sourceChainId}`)
+      const sourceWatcher = this.getSiblingWatcherByChainId(sourceChainId) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       const sourceBridge = sourceWatcher?.bridge
-      if (sourceWatcher.isL1) {
-        continue
+      if (!sourceBridge) {
+        logger.error('source bridge not found')
+        return
       }
       const event = await sourceBridge.getTransferSentEvent(transferId)
-      if (event) {
-        await sourceWatcher.handleTransferSentEvent(event)
+      logger.debug(`found TrasferSent event on chain ${sourceChainId}`)
+      if (!event) {
+        logger.warn('TransferSent event not found')
         return
       }
-    }
-  }
-
-  async populateTransferDestinationChainId (transferId: string) {
-    const logger = this.logger.create({ id: transferId })
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const { destinationChainId, transferRootHash } = dbTransfer
-    if (destinationChainId) {
-      return
-    }
-
-    // attempt to find destination chain id from root transfer belongs to
-    if (transferRootHash) {
-      const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-      if (dbTransferRoot?.destinationChainId) {
-        await this.db.transfers.update(transferId, {
-          destinationChainId: dbTransferRoot.destinationChainId
-        })
+      await sourceWatcher.handleTransferSentEvent(event)
+    } else {
+      // attempt to find source event by trying to query all source chains
+      for (const chainId in this.siblingWatchers) {
+        const sourceWatcher = this.siblingWatchers[chainId]
+        const sourceBridge = sourceWatcher?.bridge
+        if (!sourceBridge) {
+          continue
+        }
+        if (sourceWatcher.isL1) {
+          continue
+        }
+        logger.debug(`attempting to find TrasferSent event on chain ${sourceChainId}`)
+        const event = await sourceBridge.getTransferSentEvent(transferId)
+        if (event) {
+          logger.debug(`found TrasferSent event on chain ${sourceChainId}`)
+          await sourceWatcher.handleTransferSentEvent(event)
+          break
+        }
       }
     }
-  }
-
-  async populateTransferSentBlockNumber (transferId: string) {
-    const logger = this.logger.create({ id: transferId })
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const { transferSentBlockNumber, sourceChainId } = dbTransfer
-    if (!sourceChainId || transferSentBlockNumber) {
-      return
-    }
-    const sourceWatcher = this.getSiblingWatcherByChainId(sourceChainId) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    const sourceBridge = sourceWatcher.bridge
-    const event = await sourceBridge.getTransferSentEvent(transferId)
-    if (!event) {
-      return
-    }
-    await sourceWatcher.handleTransferSentEvent(event)
   }
 
   async populateTransferSentTimestamp (transferId: string) {
@@ -1102,10 +1076,7 @@ class SyncWatcher extends BaseWatcher {
     return destinationChain === Chain.Ethereum && !oruChains.includes(sourceChain)
   }
 
-  // ORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots) / 2
-  //    - divide by 2 because `amount` gets added to OruToL1PendingAmount
-  //    - the divide by 2 happens upstream
-  // nonORU -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
+  // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
   private async calculateAvailableCredit (destinationChainId: number, bonder?: string) {
     const sourceChain = this.chainSlug
@@ -1350,20 +1321,20 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async pollGasCost () {
+    const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const amount = BigNumber.from(10)
+    const amountOutMin = BigNumber.from(0)
+    const bonderFee = BigNumber.from(1)
+    const bonder = this.bridge.getConfigBonderAddress()
+    const recipient = `0x${'1'.repeat(40)}`
+    const transferNonce = `0x${'0'.repeat(64)}`
+
     while (true) {
+      const txOverrides = await this.bridge.txOverrides()
+      txOverrides.from = bonder
       try {
         const timestamp = Math.floor(Date.now() / 1000)
         const deadline = Math.floor((Date.now() + OneWeekMs) / 1000)
-        const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        const txOverrides = await this.bridge.txOverrides()
-        const amount = BigNumber.from(10)
-        const amountOutMin = BigNumber.from(0)
-        const bonderFee = BigNumber.from(1)
-        const bonder = this.bridge.getConfigBonderAddress()
-        const recipient = `0x${'1'.repeat(40)}`
-        txOverrides.from = bonder
-
-        const transferNonce = `0x${'0'.repeat(64)}`
         const payload = [
           recipient,
           amount,
@@ -1388,6 +1359,7 @@ class SyncWatcher extends BaseWatcher {
           estimates.push({ gasLimit, attemptSwap: true })
         }
 
+        this.logger.debug('pollGasCost estimate. estimates complete')
         await Promise.all(estimates.map(async ({ gasLimit, attemptSwap }) => {
           const { gasCost, gasCostInToken, gasPrice, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
             gasLimit,
@@ -1395,8 +1367,9 @@ class SyncWatcher extends BaseWatcher {
             this.tokenSymbol
           )
 
+          this.logger.debug(`pollGasCost estimate. attemptSwap: ${attemptSwap}, gasLimit: ${gasLimit?.toString()}, gasPrice: ${gasPrice?.toString()}, gasCost: ${gasCost?.toString()}, gasCostInToken: ${gasCostInToken?.toString()}, tokenPriceUsd: ${tokenPriceUsd?.toString()}`)
           const minBonderFeeAbsolute = await this.bridge.getMinBonderFeeAbsolute(this.tokenSymbol, tokenPriceUsd)
-          this.logger.debug(`pollGasCost estimate: attemptSwap: ${attemptSwap}, gasLimit: ${gasLimit?.toString()}, gasPrice: ${gasPrice?.toString()}, gasCost: ${gasCost?.toString()}, gasCostInToken: ${gasCostInToken?.toString()}, tokenPriceUsd: ${tokenPriceUsd?.toString()}`)
+          this.logger.debug(`pollGasCost estimate. minBonderFeeAbsolute: ${minBonderFeeAbsolute.toString()}`)
 
           await this.db.gasCost.addGasCost({
             chain: this.chainSlug,

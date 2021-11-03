@@ -1,5 +1,7 @@
 import Bridge, { EventCb, EventsBatchOptions } from './Bridge'
 import Token from './Token'
+import erc20Abi from '@hop-protocol/core/abi/static/ArbERC20.json'
+import l1Erc20BridgeAbi from '@hop-protocol/core/abi/generated/L1_ERC20_Bridge.json'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
@@ -7,7 +9,6 @@ import { ERC20 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
 import { L1Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
-import { erc20Abi, l1Erc20BridgeAbi } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
 
 export default class L1Bridge extends Bridge {

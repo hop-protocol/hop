@@ -91,10 +91,13 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     if (!transferId) {
       this.logger.error('expected transferId', item)
     }
-    const isIncomplete = !item.sourceChainId || !item.destinationChainId || !item.transferSentBlockNumber || !item.transferSentTimestamp || (item.withdrawalBondedTxHash && !item.withdrawalBonder)
-    if (isIncomplete) {
+    const isIncomplete = this.isItemIncomplete(item)
+    const exists = await this.subDbIncompletes.getById(transferId)
+    const shouldUpsert = isIncomplete && !exists
+    const shouldDelete = !isIncomplete && exists
+    if (shouldUpsert) {
       await this.subDbIncompletes._update(transferId, { transferId })
-    } else {
+    } else if (shouldDelete) {
       await this.subDbIncompletes.deleteById(transferId)
     }
   }
@@ -178,7 +181,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     if (item.deadline !== undefined) {
       // convert number to BigNumber for backward compatibility reasons
       if (typeof item.deadline === 'number') {
-        item.deadline = BigNumber.from(item.deadline)
+        item.deadline = BigNumber.from((item.deadline as number).toString())
       }
     }
     return normalizeDbItem(item)
@@ -330,6 +333,18 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     })
   }
 
+  isItemIncomplete (item: Partial<Transfer>) {
+    return (
+      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+      !item.sourceChainId ||
+      !item.destinationChainId ||
+      !item.transferSentBlockNumber ||
+      (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
+      (item.withdrawalBondedTxHash && !item.withdrawalBonder)
+      /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+    )
+  }
+
   async getIncompleteItems (
     filter: Partial<Transfer> = {}
   ) {
@@ -348,15 +363,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
         }
       }
 
-      return (
-        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-        !item.sourceChainId ||
-        !item.destinationChainId ||
-        !item.transferSentBlockNumber ||
-        (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
-        (item.withdrawalBondedTxHash && !item.withdrawalBonder)
-        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
-      )
+      return this.isItemIncomplete(item)
     })
   }
 }

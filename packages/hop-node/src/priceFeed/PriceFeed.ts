@@ -1,9 +1,11 @@
 import CoinGecko from './CoinGecko'
 import Coinbase from './Coinbase'
+import Logger from 'src/logger'
 
 class PriceFeed {
   private readonly services = [new CoinGecko(), new Coinbase()]
   cacheTimeMs = 5 * 60 * 1000
+  logger = new Logger('PriceFeed')
 
   cache: {[tokenSymbol: string]: {
     timestamp: number
@@ -30,6 +32,7 @@ class PriceFeed {
       }
     }
 
+    this.logger.info(`fetching new token price for ${tokenSymbol}`)
     const errors: Error[] = []
     for (const service of this.services) {
       try {
@@ -41,8 +44,10 @@ class PriceFeed {
           timestamp: Date.now(),
           price
         }
+        this.logger.info(`fetched new token price of ${price} for ${tokenSymbol}`)
         return price
       } catch (err) {
+        this.logger.debug(`error fetching price for ${tokenSymbol}`)
         const isLastService = this.services.indexOf(service) === this.services.length - 1
         errors.push(err.message)
         if (isLastService) {

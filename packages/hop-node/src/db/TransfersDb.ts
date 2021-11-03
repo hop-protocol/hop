@@ -122,7 +122,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     if (item.deadline !== undefined) {
       // convert number to BigNumber for backward compatibility reasons
       if (typeof item.deadline === 'number') {
-        item.deadline = BigNumber.from(item.deadline)
+        item.deadline = BigNumber.from((item.deadline as number).toString())
       }
     }
     return normalizeDbItem(item)

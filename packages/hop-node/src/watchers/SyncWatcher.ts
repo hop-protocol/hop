@@ -1313,7 +1313,7 @@ class SyncWatcher extends BaseWatcher {
           estimates.push({ gasLimit, attemptSwap: true })
         }
 
-        this.logger.debug(`pollGasCost estimate. estimates complete`)
+        this.logger.debug('pollGasCost estimate. estimates complete')
         await Promise.all(estimates.map(async ({ gasLimit, attemptSwap }) => {
           const { gasCost, gasCostInToken, gasPrice, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
             gasLimit,

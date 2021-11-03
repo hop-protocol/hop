@@ -14,6 +14,9 @@ export default class Token extends ContractBase {
 
   getBalance = async (): Promise<BigNumber> => {
     const address = await this.tokenContract.signer.getAddress()
+    if (!address) {
+      throw new Error('expected signer address')
+    }
     const balance = await this.tokenContract.balanceOf(address)
     return balance
   }

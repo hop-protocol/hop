@@ -1,6 +1,6 @@
-import Logger from 'src/logger'
 import CoinGecko from './CoinGecko'
 import Coinbase from './Coinbase'
+import Logger from 'src/logger'
 
 class PriceFeed {
   private readonly services = [new CoinGecko(), new Coinbase()]

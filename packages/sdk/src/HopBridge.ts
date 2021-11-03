@@ -1258,13 +1258,13 @@ class HopBridge extends Base {
 
   /**
    * @desc Sends transaction to remove liquidity from AMM.
-   * @param {Object} liqudityTokenAmount - Amount of LP tokens to burn.
+   * @param {Object} liquidityTokenAmount - Amount of LP tokens to burn.
    * @param {Object} chain - Chain model of desired chain to add liquidity to.
    * @param {Object} options - Method options.
    * @returns {Object} Ethers transaction object.
    */
   public async removeLiquidity (
-    liqudityTokenAmount: TAmount,
+    liquidityTokenAmount: TAmount,
     chain?: TChain,
     options: Partial<RemoveLiquidityOptions> = {}
   ) {
@@ -1280,7 +1280,7 @@ class HopBridge extends Base {
       this.chainProviders
     )
     return amm.removeLiquidity(
-      liqudityTokenAmount,
+      liquidityTokenAmount,
       options.amount0Min,
       options.amount1Min,
       options.deadline

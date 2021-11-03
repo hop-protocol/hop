@@ -159,7 +159,6 @@ const Convert: FC = () => {
             </Button>
             <Button
               className={styles.button}
-              startIcon={sendButtonActive}
               onClick={handleSend}
               disabled={!sendButtonActive}
               loading={sending}

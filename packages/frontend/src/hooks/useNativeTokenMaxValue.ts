@@ -13,112 +13,47 @@ export const METHOD_NAMES = {
   wrapToken: 'wrapToken',
 }
 
-const estimatedGasLimits = {
-  convertTokens: {
-    // destNetwork
-    arbitrum: 124_069,
-    optimism: 289_937,
-    polygon: 72_039,
-    xdai: 78_450,
-  },
-  wrapToken: {
-    // destNetwork
-    arbitrum: 964_242,
-    optimism: 65_000_000,
-    polygon: 27_941,
-    xdai: 62_000_000,
-  },
-  sendL1ToL2: {
-    // destNetwork
-    arbitrum: 123_793,
-    optimism: 289_661,
-    polygon: 71_763,
-    xdai: 78_174,
-  },
-  sendL2ToL1: {
-    // sourceNetwork
-    arbitrum: 1_818_394,
-    optimism: 80_000_000,
-    polygon: 273_869,
-    xdai: 302_165,
-  },
-  sendL2ToL2: {
-    // sourceNetwork
-    arbitrum: {
-      // destNetwork
-      polygon: 1_818_387,
-      optimism: 1_818_370,
-      xdai: 1_818_414,
-    },
-    optimism: {
-      polygon: 75_000_000,
-      arbitrum: 75_000_000,
-      xdai: 1_818_414,
-    },
-    polygon: {
-      xdai: 273_869,
-    },
-    xdai: {
-      arbitrum: 302_177,
-      optimism: 302_165,
-      polygon: 302_165,
-    },
-  },
-}
-
-function getSendHardcodedGasLimit(sourceNetwork, destNetwork) {
-  const l1ToL2 = sourceNetwork.isLayer1 && !destNetwork.isLayer1
-  const l2ToL1 = !sourceNetwork.isLayer1 && destNetwork.isLayer1
-  const l2ToL2 = !sourceNetwork.isLayer1 && !destNetwork.isLayer1
-
-  let estimatedGasLimit
-
-  if (l1ToL2) {
-    estimatedGasLimit = BigNumber.from(estimatedGasLimits.sendL1ToL2[destNetwork.slug] || '0')
-  } else if (l2ToL1) {
-    estimatedGasLimit = BigNumber.from(estimatedGasLimits.sendL2ToL1[sourceNetwork.slug] || '0')
-  } else if (l2ToL2) {
-    estimatedGasLimit = BigNumber.from(
-      estimatedGasLimits.sendL2ToL2[sourceNetwork.slug][destNetwork.slug] || '0'
-    )
-  }
-
-  return estimatedGasLimit
-}
-
 async function estimateGasCost(signer: TProvider, estimatedGasLimit: BigNumber) {
   try {
     // Get current gas price
     const gasPrice = await signer.getGasPrice()
     // Add some wiggle room
-    const bufferGas = BigNumber.from(50_000)
+    const bufferGas = BigNumber.from(70_000)
     return estimatedGasLimit.add(bufferGas).mul(gasPrice)
   } catch (error) {
     logger.error(error)
   }
 }
 
-export function useNativeTokenMaxValue(token?: Token, secondaryToken?: Token) {
-  const { checkConnectedNetworkId, provider } = useWeb3Context()
+export function useNativeTokenMaxValue(selectedNetwork?: Network) {
+  const { checkConnectedNetworkId } = useWeb3Context()
   const { sdk } = useApp()
   const [tx, setTx] = useState<Transaction | null>(null)
-  const [sending, setSending] = useState<boolean>(false)
 
+  // { destNetwork: Network; network: Network }
   const estimateConvertTokens = useCallback(
-    async (options: { destNetwork: Network }) => {
-      const {
-        destNetwork: { slug },
-      } = options
+    async (options: any) => {
+      const { token, network, destNetwork } = options
 
-      if (token && slug) {
-        // ----------------------------------------------------------------------------------------
-        // Hardcoded dictionary lookup approach
-        // ----------------------------------------------------------------------------------------
-        const estimatedGasLimit = BigNumber.from(estimatedGasLimits.convertTokens[slug] || '0')
+      if (!(sdk && token?.isNativeToken && network && destNetwork?.slug)) {
+        return
+      }
+
+      const isNetworkConnected = await checkConnectedNetworkId(Number(network.networkId))
+      if (!isNetworkConnected) return
+
+      const bridge = sdk.bridge(token.symbol)
+
+      const estimatedGasLimit = await bridge.sendHToken('420', network.slug, destNetwork.slug, {
+        bonderFee: '0',
+        estimateGasOnly: true,
+      })
+
+      if (estimatedGasLimit) {
         return estimateGasCost(token.signer, estimatedGasLimit)
       }
     },
-    [token]
+    [sdk, selectedNetwork]
   )
 
   const estimateSend = useCallback(
@@ -131,17 +66,8 @@ export function useNativeTokenMaxValue(token?: Token, secondaryToken?: Token) {
       try {
         // Switch networks
         const isNetworkConnected = await checkConnectedNetworkId(Number(fromNetwork.networkId))
-        if (!isNetworkConnected) {
-          // --------------------------------------------------------------------------------------
-          // Hardcoded dictionary lookup approach
-          // --------------------------------------------------------------------------------------
-          const estimatedGasLimit = getSendHardcodedGasLimit(fromNetwork, toNetwork)
-          return estimateGasCost(token.signer, estimatedGasLimit)
-        }
+        if (!isNetworkConnected) return
 
-        // ----------------------------------------------------------------------------------------
-        // contract.estimateGas.method() approach
-        // ----------------------------------------------------------------------------------------
         const bridge = sdk.bridge(token.symbol)
         // Get estimated gas limit
         const estimatedGasLimit = await bridge.send(
@@ -166,32 +92,21 @@ export function useNativeTokenMaxValue(token?: Token, secondaryToken?: Token) {
         logger.error(error)
       }
     },
-    [sdk, token]
+    [sdk, selectedNetwork]
   )
 
   const estimateWrap = useCallback(
     async (options: { token: Token; network: Network }) => {
       const { token, network } = options
-      if (!token?.isNativeToken) {
+      if (!(token?.isNativeToken && network)) {
         return
       }
 
       try {
         // Switch networks
         const isNetworkConnected = await checkConnectedNetworkId(Number(network.networkId))
-        if (!isNetworkConnected) {
-          // --------------------------------------------------------------------------------------
-          // Hardcoded dictionary lookup approach
-          // --------------------------------------------------------------------------------------
-          const estimatedGasLimit = BigNumber.from(
-            estimatedGasLimits.wrapToken[network.slug] || '0'
-          )
-          return estimateGasCost(token.signer, estimatedGasLimit)
-        }
+        if (!isNetworkConnected) return
 
-        // ----------------------------------------------------------------------------------------
-        // contract.estimateGas.method() approach
-        // ----------------------------------------------------------------------------------------
         // Get estimated gas cost
         const estimatedGasLimit = await token.wrapToken(BigNumber.from(10), true)
 
@@ -202,7 +117,7 @@ export function useNativeTokenMaxValue(token?: Token, secondaryToken?: Token) {
         logger.error(error)
       }
     },
-    [token, secondaryToken]
+    [selectedNetwork]
   )
 
   // Master send method
@@ -230,13 +145,12 @@ export function useNativeTokenMaxValue(token?: Token, secondaryToken?: Token) {
         logger.error(error)
       }
     },
-    [token, secondaryToken]
+    [sdk, selectedNetwork]
   )
 
   return {
     estimateMaxValue,
     estimateSend,
-    sending,
     tx,
     setTx,
   }

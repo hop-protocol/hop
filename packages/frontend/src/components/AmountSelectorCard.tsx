@@ -124,7 +124,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
     selectedNetwork,
   } = props
   const styles = useStyles()
-  const { estimateMaxValue } = useNativeTokenMaxValue(token, secondaryToken)
+  const { estimateMaxValue } = useNativeTokenMaxValue(selectedNetwork)
 
   const balanceDisplay = useMemo(() => {
     let label: string = ''
@@ -179,6 +179,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
       const opts = {
         token,
         balance,
+        network: selectedNetwork,
         destNetwork,
       }
       maxValue = await getEstimatedMaxValue(methodName, opts)
@@ -188,7 +189,6 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
   }, [onChange, token, balance, methodName])
 
   const handleSecondaryMaxClick = useCallback(async () => {
-    console.log(`selectedNetwork:`, selectedNetwork)
     if (!(onChange && secondaryBalance && secondaryToken && methodName && selectedNetwork)) {
       return
     }

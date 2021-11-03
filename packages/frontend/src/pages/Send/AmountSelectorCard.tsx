@@ -109,7 +109,7 @@ const AmountSelectorCard: FC<Props> = props => {
   } = props
   const styles = useStyles()
 
-  const { estimateSend } = useNativeTokenMaxValue(token)
+  const { estimateSend } = useNativeTokenMaxValue(selectedNetwork)
 
   const balanceLabel = useMemo(() => {
     return toTokenDisplay(balance, token?.decimals)

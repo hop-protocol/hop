@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { BigNumber, constants, Signer } from 'ethers'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
@@ -7,23 +7,35 @@ import { getBonderFeeWithId } from 'src/utils'
 import { createTransaction } from 'src/utils/createTransaction'
 import { amountToBN, formatError } from 'src/utils/format'
 import { HopBridge } from '@hop-protocol/sdk'
+import { useTransactionReplacement } from 'src/hooks'
 
-function handleTransaction(tx: Transaction, fromNetwork, toNetwork, sourceToken, txHistory) {
-  if (tx && fromNetwork && toNetwork && sourceToken) {
-    const txObj = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
-    txHistory?.addTransaction(txObj)
-    return txObj
+type TransactionHandled = {
+  transaction: any
+  txModel: Transaction
+}
+
+function handleTransaction(
+  tx,
+  fromNetwork,
+  toNetwork,
+  sourceToken,
+  addTransaction
+): TransactionHandled {
+  const txModel = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
+  addTransaction(txModel)
+
+  return {
+    transaction: tx,
+    txModel,
   }
-  return null
 }
 
 export function useSendTransaction(props) {
   const {
     amountOutMin,
-    bonderFee,
     customRecipient,
     deadline,
-    destinationTxFee,
+    totalFee,
     fromNetwork,
     fromTokenAmount,
     intermediaryAmountOutMin,
@@ -32,7 +44,6 @@ export function useSendTransaction(props) {
     sourceToken,
     toNetwork,
     txConfirm,
-    txHistory,
   } = props
   const [tx, setTx] = useState<Transaction | null>(null)
   const [sending, setSending] = useState<boolean>(false)
@@ -40,8 +51,12 @@ export function useSendTransaction(props) {
   const [recipient, setRecipient] = useState<string>()
   const [signer, setSigner] = useState<Signer>()
   const [bridge, setBridge] = useState<HopBridge>()
-  const [parsedAmount, setParsedAmount] = useState<BigNumber>(BigNumber.from(0))
-  const [totalBonderFee, setTotalBonderFee] = useState<BigNumber>(BigNumber.from(0))
+  const { waitForTransaction, addTransaction, updateTransaction } = useTransactionReplacement()
+
+  const parsedAmount = useMemo(() => {
+    if (!fromTokenAmount || !sourceToken) return BigNumber.from(0)
+    return amountToBN(fromTokenAmount, sourceToken.decimals)
+  }, [fromTokenAmount, sourceToken?.decimals])
 
   // Set signer
   useEffect(() => {
@@ -68,21 +83,6 @@ export function useSendTransaction(props) {
     setRecipientAndBridge()
   }, [signer, sourceToken, customRecipient])
 
-  // Set parsedAmount and totalBonderFee
-  useEffect(() => {
-    if (fromTokenAmount && sourceToken && bonderFee && destinationTxFee) {
-      const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
-
-      let totalBonderFee = bonderFee
-      if (destinationTxFee?.gt(0)) {
-        totalBonderFee = totalBonderFee.add(destinationTxFee)
-      }
-
-      setParsedAmount(parsedAmount)
-      setTotalBonderFee(totalBonderFee)
-    }
-  }, [fromTokenAmount, sourceToken, bonderFee, destinationTxFee])
-
   // Master send method
   const send = async () => {
     try {
@@ -106,32 +106,66 @@ export function useSendTransaction(props) {
       setSending(true)
       logger.debug(`recipient: ${recipient}`)
 
-      let tx: Transaction | null = null
+      let txHandled: TransactionHandled
+
       if (fromNetwork.isLayer1) {
-        tx = await sendl1ToL2()
-        logger.debug(`sendl1ToL2 tx:`, tx)
+        txHandled = await sendl1ToL2()
+        logger.debug(`sendl1ToL2 tx:`, txHandled.txModel)
       } else if (!fromNetwork.isLayer1 && toNetwork.isLayer1) {
-        tx = await sendl2ToL1()
-        logger.debug(`sendl2ToL1 tx:`, tx)
+        txHandled = await sendl2ToL1()
+        logger.debug(`sendl2ToL1 tx:`, txHandled.txModel)
       } else {
-        tx = await sendl2ToL2()
-        logger.debug(`sendl2ToL2 tx:`, tx)
+        txHandled = await sendl2ToL2()
+        logger.debug(`sendl2ToL2 tx:`, txHandled.txModel)
       }
 
-      if (tx) {
-        const sourceChain = sdk.Chain.fromSlug(fromNetwork.slug)
-        const destChain = sdk.Chain.fromSlug(toNetwork.slug)
-        const watcher = sdk.watch(tx.hash, sourceToken!.symbol, sourceChain, destChain)
+      const { transaction, txModel } = txHandled
 
-        watcher.on(sdk.Event.DestinationTxReceipt, async data => {
-          logger.debug(`dest tx receipt event data:`, data)
-          if (tx && !tx.destTxHash) {
-            tx.destTxHash = data.receipt.transactionHash
-            txHistory?.updateTransaction(tx)
+      const sourceChain = sdk.Chain.fromSlug(fromNetwork.slug)
+      const destChain = sdk.Chain.fromSlug(toNetwork.slug)
+      const watcher = sdk.watch(txModel.hash, sourceToken.symbol, sourceChain, destChain)
+
+      watcher.once(sdk.Event.DestinationTxReceipt, async data => {
+        logger.debug(`dest tx receipt event data:`, data)
+        if (txModel && !txModel.destTxHash) {
+          const opts = {
+            destTxHash: data.receipt.transactionHash,
+            pendingDestinationConfirmation: false,
+          }
+          updateTransaction(txModel, opts)
+        }
+      })
+
+      setTx(txModel)
+
+      const txModelArgs = {
+        networkName: fromNetwork.slug,
+        destNetworkName: toNetwork.slug,
+        token: sourceToken,
+      }
+      const res = await waitForTransaction(transaction, txModelArgs)
+      if (res && 'replacementTxModel' in res) {
+        setTx(res.replacementTxModel)
+        const { replacementTxModel: txModelReplacement } = res
+
+        // Replace watcher
+        const replacementWatcher = sdk.watch(
+          txModelReplacement.hash,
+          sourceToken!.symbol,
+          sourceChain,
+          destChain
+        )
+        replacementWatcher.once(sdk.Event.DestinationTxReceipt, async data => {
+          logger.debug(`replacement dest tx receipt event data:`, data)
+          if (txModelReplacement && !txModelReplacement.destTxHash) {
+            const opts = {
+              destTxHash: data.receipt.transactionHash,
+              pendingDestinationConfirmation: false,
+              replaced: transaction.hash,
+            }
+            updateTransaction(txModelReplacement, opts)
           }
         })
-
-        setTx(tx)
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
@@ -169,7 +203,7 @@ export function useSendTransaction(props) {
       },
     })
 
-    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, txHistory)
+    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, addTransaction)
   }
 
   const sendl2ToL1 = async () => {
@@ -187,12 +221,12 @@ export function useSendTransaction(props) {
         },
       },
       onConfirm: async () => {
-        if (!amountOutMin || !bonderFee || !bridge) return
-        if (totalBonderFee.gt(parsedAmount)) {
+        if (!amountOutMin || !totalFee || !bridge) return
+        if (totalFee.gt(parsedAmount)) {
           throw new Error('Amount must be greater than bonder fee')
         }
 
-        const bonderFeeWithId = getBonderFeeWithId(totalBonderFee)
+        const bonderFeeWithId = getBonderFeeWithId(totalFee)
 
         return bridge.send(parsedAmount, fromNetwork?.slug as string, toNetwork?.slug as string, {
           recipient,
@@ -205,7 +239,7 @@ export function useSendTransaction(props) {
       },
     })
 
-    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, txHistory)
+    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, addTransaction)
   }
 
   const sendl2ToL2 = async () => {
@@ -223,12 +257,12 @@ export function useSendTransaction(props) {
         },
       },
       onConfirm: async () => {
-        if (!bonderFee || !bridge) return
-        if (totalBonderFee.gt(parsedAmount)) {
+        if (!totalFee || !bridge) return
+        if (totalFee.gt(parsedAmount)) {
           throw new Error('Amount must be greater than bonder fee')
         }
 
-        const bonderFeeWithId = getBonderFeeWithId(totalBonderFee)
+        const bonderFeeWithId = getBonderFeeWithId(totalFee)
 
         return bridge.send(parsedAmount, fromNetwork?.slug as string, toNetwork?.slug as string, {
           recipient,
@@ -241,7 +275,7 @@ export function useSendTransaction(props) {
       },
     })
 
-    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, txHistory)
+    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, addTransaction)
   }
 
   return {

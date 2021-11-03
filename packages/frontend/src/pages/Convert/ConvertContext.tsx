@@ -10,7 +10,6 @@ import React, {
 } from 'react'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import { BigNumber } from 'ethers'
-import { parseUnits } from 'ethers/lib/utils'
 import { useLocation } from 'react-router-dom'
 import { Token } from '@hop-protocol/sdk'
 import find from 'lodash/find'
@@ -22,11 +21,10 @@ import logger from 'src/logger'
 import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
-import useBalance from 'src/hooks/useBalance'
 import { toTokenDisplay, commafy } from 'src/utils'
-import useApprove from 'src/hooks/useApprove'
-import useQueryParams from 'src/hooks/useQueryParams'
 import { reactAppNetwork } from 'src/config'
+import { useTransactionReplacement, useApprove, useQueryParams, useBalance } from 'src/hooks'
+import { formatError, amountToBN } from 'src/utils/format'
 
 type ConvertContextProps = {
   convertOptions: ConvertOption[]
@@ -104,7 +102,6 @@ const ConvertContextProvider: FC = ({ children }) => {
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()
   const {
     networks,
-    txHistory,
     l2Networks,
     defaultL2Network,
     selectedBridge,
@@ -116,7 +113,6 @@ const ConvertContextProvider: FC = ({ children }) => {
   const { slippageTolerance, deadline } = settings
   const { pathname } = useLocation()
   const { queryParams } = useQueryParams()
-  const { approve, checkApproval } = useApprove()
 
   const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(l2Networks[0])
   const [isForwardDirection, setIsForwardDirection] = useState(true)
@@ -129,6 +125,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [sending, setSending] = useState<boolean>(false)
   const [approving, setApproving] = useState<boolean>(false)
   const [sourceToken, setSourceToken] = useState<Token>()
+  const { approve, checkApproval } = useApprove(sourceToken)
   const [destToken, setDestToken] = useState<Token>()
   const [details, setDetails] = useState<ReactNode>()
   const [warning, setWarning] = useState<ReactNode>()
@@ -136,6 +133,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
   const debouncer = useRef(0)
+  const { waitForTransaction, addTransaction } = useTransactionReplacement()
 
   useEffect(() => {
     if (selectedNetwork && queryParams?.sourceNetwork !== selectedNetwork?.slug) {
@@ -341,7 +339,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       return BigNumber.from(0)
     }
 
-    return parseUnits(sourceTokenAmount, sourceToken.decimals)
+    return amountToBN(sourceTokenAmount, sourceToken.decimals)
   }, [sourceTokenAmount, sourceToken])
 
   // ===============================================================================================
@@ -371,7 +369,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       return tx
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, selectedNetwork))
       }
       logger.error(err)
       setApproving(false)
@@ -399,7 +397,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       setSending(true)
 
       const signer = provider?.getSigner()
-      const value = parseUnits(sourceTokenAmount, sourceToken.decimals).toString()
+      const value = amountToBN(sourceTokenAmount, sourceToken.decimals).toString()
       const l1Bridge = await selectedBridge.getL1Bridge()
       const isCanonicalTransfer = false
 
@@ -438,22 +436,32 @@ const ConvertContextProvider: FC = ({ children }) => {
       })
 
       if (tx?.hash && sourceNetwork?.name) {
-        const txObj = new Transaction({
-          hash: tx?.hash,
+        const txModelArgs = {
           networkName: sourceNetwork.slug,
           destNetworkName: destNetwork.slug,
           token: sourceToken,
           isCanonicalTransfer,
+        }
+        const txObj = new Transaction({
+          hash: tx?.hash,
+          ...txModelArgs,
         })
         // don't set tx status modal if it's tx to the same chain
         if (sourceNetwork.isLayer1 !== destNetwork?.isLayer1) {
           setTx(txObj)
         }
-        txHistory?.addTransaction(txObj)
+        addTransaction(txObj)
+
+        const res = await waitForTransaction(tx, txModelArgs)
+        if (res && 'replacementTxModel' in res) {
+          if (sourceNetwork.isLayer1 !== destNetwork?.isLayer1) {
+            setTx(res.replacementTxModel)
+          }
+        }
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, selectedNetwork))
       }
       logger.error(err)
     }

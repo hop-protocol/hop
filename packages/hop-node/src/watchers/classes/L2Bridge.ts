@@ -4,16 +4,14 @@ import L2Amm from './L2Amm'
 import L2AmmWrapper from './L2AmmWrapper'
 import L2BridgeWrapper from './L2BridgeWrapper'
 import Token from './Token'
+import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
+import l2AmmWrapperAbi from '@hop-protocol/core/abi/generated/L2_AmmWrapper.json'
+import saddleSwapAbi from '@hop-protocol/core/abi/generated/Swap.json'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { ERC20, L2BridgeWrapper__factory } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
 import { L2Bridge as L2BridgeContract, TransferFromL1CompletedEvent, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
-import {
-  erc20Abi,
-  l2AmmWrapperAbi,
-  swapAbi as saddleSwapAbi
-} from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
 
 export default class L2Bridge extends Bridge {
@@ -179,24 +177,24 @@ export default class L2Bridge extends Bridge {
     const amountOutMin = '0' // must be 0
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const isNativeToken = this.tokenSymbol === 'MATIC' && this.chainSlug === Chain.Polygon
-    const { destinationTxFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
-    let bonderFee = await bridge.getBonderFee(
-      amount,
-      this.chainSlug,
-      destinationChain
-    )
+    const { totalFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
+    // let bonderFee = await bridge.getBonderFee(
+    //   amount,
+    //   this.chainSlug,
+    //   destinationChain
+    // )
 
-    bonderFee = bonderFee.add(destinationTxFee)
+    // bonderFee = bonderFee.add(destinationTxFee)
 
-    if (bonderFee.gt(amount)) {
-      throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${this.formatUnits(bonderFee)}`)
+    if (totalFee.gt(amount)) {
+      throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${this.formatUnits(totalFee)}`)
     }
 
     return await this.l2BridgeContract.send(
       destinationChainId,
       recipient,
       amount,
-      bonderFee,
+      totalFee,
       amountOutMin,
       deadline,
       {

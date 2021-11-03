@@ -630,6 +630,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`expected db transfer it, transferId: ${transferId}`)
     }
 
+    await this.populateTransferSentEvent(transferId)
     await this.populateTransferSentTimestamp(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
   }
@@ -645,6 +646,51 @@ class SyncWatcher extends BaseWatcher {
     await this.populateTransferRootTimestamp(transferRootHash)
     await this.populateTransferRootMultipleWithdrawSettled(transferRootHash)
     await this.populateTransferRootTransferIds(transferRootHash)
+  }
+
+  async populateTransferSentEvent (transferId: string) {
+    const logger = this.logger.create({ id: transferId })
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    const { sourceChainId, destinationChainId, transferSentBlockNumber, transferRootHash } = dbTransfer
+    if (sourceChainId && destinationChainId && transferSentBlockNumber) {
+      return
+    }
+
+    if (sourceChainId) {
+      logger.debug(`attempting to find TrasferSent event on chain ${sourceChainId}`)
+      const sourceWatcher = this.getSiblingWatcherByChainId(sourceChainId) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      const sourceBridge = sourceWatcher?.bridge
+      if (!sourceBridge) {
+        logger.error('source bridge not found')
+        return
+      }
+      const event = await sourceBridge.getTransferSentEvent(transferId)
+      logger.debug(`found TrasferSent event on chain ${sourceChainId}`)
+      if (!event) {
+        logger.warn('TransferSent event not found')
+        return
+      }
+      await sourceWatcher.handleTransferSentEvent(event)
+    } else {
+      // attempt to find source event by trying to query all source chains
+      for (const chainId in this.siblingWatchers) {
+        const sourceWatcher = this.siblingWatchers[chainId]
+        const sourceBridge = sourceWatcher?.bridge
+        if (!sourceBridge) {
+          continue
+        }
+        if (sourceWatcher.isL1) {
+          continue
+        }
+        logger.debug(`attempting to find TrasferSent event on chain ${sourceChainId}`)
+        const event = await sourceBridge.getTransferSentEvent(transferId)
+        if (event) {
+          logger.debug(`found TrasferSent event on chain ${sourceChainId}`)
+          await sourceWatcher.handleTransferSentEvent(event)
+          break
+        }
+      }
+    }
   }
 
   async populateTransferSentTimestamp (transferId: string) {

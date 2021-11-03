@@ -10,7 +10,10 @@ import TransactionStatus from './TransactionStatus'
 import { useTxStatusStyles } from './useTxStatusStyles'
 
 function TransactionRow({ tx, styles }: { tx: Transaction; styles: any }) {
-  const { completed, destCompleted } = useTransactionStatus(tx, tx.networkName)
+  const { completed, destCompleted, confirmations, networkConfirmations } = useTransactionStatus(
+    tx,
+    tx.networkName
+  )
 
   return (
     <Flex justifyBetween mb=".5rem" alignCenter>
@@ -26,6 +29,8 @@ function TransactionRow({ tx, styles }: { tx: Transaction; styles: any }) {
           link={tx.explorerLink}
           destNetworkName={tx.destNetworkName}
           styles={styles}
+          confirmations={confirmations}
+          networkWaitConfirmations={networkConfirmations}
         />
 
         <TransactionStatus

@@ -182,110 +182,119 @@ class Transaction extends EventEmitter {
   }
 
   async checkIsTransferIdSpent(sdk: Hop) {
-    if (this.provider && this.token && this.destNetworkName) {
-      try {
-        const receipt = await this.receipt()
-        // Get the event data (topics)
-        const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
-        const bridge = sdk.bridge(this.token.symbol)
+    if (
+      !(
+        this.provider &&
+        this.token &&
+        this.destNetworkName &&
+        this.networkName !== this.destNetworkName
+      )
+    ) {
+      return
+    }
 
-        // No transferId because L1 -> L2
-        if (tsDetails && !tsDetails.transferId) {
-          const l1Bridge = await bridge.getL1Bridge(this.provider)
-          // Get the rest of the event data
-          const decodedData = l1Bridge.interface.decodeEventLog(
-            tsDetails?.eventName!,
-            tsDetails?.log.data
+    try {
+      const receipt = await this.receipt()
+      // Get the event data (topics)
+      const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
+      const bridge = sdk.bridge(this.token.symbol)
+
+      // No transferId because L1 -> L2
+      if (tsDetails && !tsDetails.transferId) {
+        const l1Bridge = await bridge.getL1Bridge(this.provider)
+        // Get the rest of the event data
+        const decodedData = l1Bridge.interface.decodeEventLog(
+          tsDetails?.eventName!,
+          tsDetails?.log.data
+        )
+
+        if ('amount' in decodedData) {
+          const { amount, deadline } = decodedData
+          // Query Graph Protocol for TransferFromL1Completed events
+          const transferFromL1Completeds = await fetchTransferFromL1Completeds(
+            this.destNetworkName,
+            tsDetails.recipient,
+            amount,
+            deadline
           )
 
-          if ('amount' in decodedData) {
-            const { amount, deadline } = decodedData
-            // Query Graph Protocol for TransferFromL1Completed events
-            const transferFromL1Completeds = await fetchTransferFromL1Completeds(
-              this.destNetworkName,
+          if (transferFromL1Completeds?.length) {
+            const lastTransfer: L1Transfer =
+              transferFromL1Completeds[transferFromL1Completeds.length - 1]
+
+            this.destTxHash = lastTransfer.transactionHash
+            this.pendingDestinationConfirmation = false
+            return true
+          }
+
+          // If TheGraph is not working...
+          const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
+          const bln = await destL2Bridge.provider.getBlockNumber()
+          const evs = await destL2Bridge.queryFilter(
+            destL2Bridge.filters.TransferFromL1Completed(),
+            bln - 9999,
+            bln
+          )
+
+          if (evs?.length) {
+            // Find the matching amount
+            const tfl1Completed = findTransferFromL1CompletedLog(
+              evs,
               tsDetails.recipient,
               amount,
               deadline
             )
-
-            if (transferFromL1Completeds?.length) {
-              const lastTransfer: L1Transfer =
-                transferFromL1Completeds[transferFromL1Completeds.length - 1]
-
-              this.destTxHash = lastTransfer.transactionHash
+            if (tfl1Completed) {
+              this.destTxHash = tfl1Completed.transactionHash
               this.pendingDestinationConfirmation = false
               return true
             }
-
-            // If TheGraph is not working...
-            const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
-            const bln = await destL2Bridge.provider.getBlockNumber()
-            const evs = await destL2Bridge.queryFilter(
-              destL2Bridge.filters.TransferFromL1Completed(),
-              bln - 9999,
-              bln
-            )
-
-            if (evs?.length) {
-              // Find the matching amount
-              const tfl1Completed = findTransferFromL1CompletedLog(
-                evs,
-                tsDetails.recipient,
-                amount,
-                deadline
-              )
-              if (tfl1Completed) {
-                this.destTxHash = tfl1Completed.transactionHash
-                this.pendingDestinationConfirmation = false
-                return true
-              }
-            }
-
-            logger.debug(`tx ${tsDetails.txHash.slice(0, 10)} isSpent:`, false)
           }
+
+          logger.debug(`tx ${tsDetails.txHash.slice(0, 10)} isSpent:`, false)
+        }
+      }
+
+      // transferId found in event: TransferSent
+      if (tsDetails?.transferId) {
+        this.transferId = tsDetails.transferId
+      }
+
+      // Transfer from L2
+      // transferId found in event: TransferSent
+      if (this.transferId && this.destNetworkName) {
+        // Query Graph Protocol for WithdrawalBonded events
+        const withdrawalBondeds = await fetchWithdrawalBondedsByTransferId(
+          this.destNetworkName,
+          this.transferId
+        )
+        if (withdrawalBondeds?.length) {
+          const lastEvent = withdrawalBondeds[withdrawalBondeds.length - 1]
+          this.destTxHash = lastEvent.transactionHash
         }
 
-        // transferId found in event: TransferSent
-        if (tsDetails?.transferId) {
-          this.transferId = tsDetails.transferId
-        }
-
-        // Transfer from L2
-        // transferId found in event: TransferSent
-        if (this.transferId && this.destNetworkName) {
-          // Query Graph Protocol for WithdrawalBonded events
-          const withdrawalBondeds = await fetchWithdrawalBondedsByTransferId(
-            this.destNetworkName,
-            this.transferId
-          )
-          if (withdrawalBondeds?.length) {
-            const lastEvent = withdrawalBondeds[withdrawalBondeds.length - 1]
-            this.destTxHash = lastEvent.transactionHash
-          }
-
-          // L2 -> L1
-          if (this.destNetworkName === 'ethereum') {
-            const destL1Bridge = await bridge.getL1Bridge(this.provider)
-            const isSpent = await destL1Bridge.isTransferIdSpent(this.transferId)
-            if (isSpent) {
-              this.pendingDestinationConfirmation = false
-            }
-            logger.debug(`isSpent(${this.transferId.slice(0, 10)}: transferId):`, isSpent)
-            return isSpent
-          }
-
-          // L2 -> L2
-          const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
-          const isSpent = await destL2Bridge.isTransferIdSpent(this.transferId)
+        // L2 -> L1
+        if (this.destNetworkName === 'ethereum') {
+          const destL1Bridge = await bridge.getL1Bridge(this.provider)
+          const isSpent = await destL1Bridge.isTransferIdSpent(this.transferId)
           if (isSpent) {
             this.pendingDestinationConfirmation = false
           }
           logger.debug(`isSpent(${this.transferId.slice(0, 10)}: transferId):`, isSpent)
           return isSpent
         }
-      } catch (error) {
-        logger.error(formatError(error))
+
+        // L2 -> L2
+        const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
+        const isSpent = await destL2Bridge.isTransferIdSpent(this.transferId)
+        if (isSpent) {
+          this.pendingDestinationConfirmation = false
+        }
+        logger.debug(`isSpent(${this.transferId.slice(0, 10)}: transferId):`, isSpent)
+        return isSpent
       }
+    } catch (error) {
+      logger.error(formatError(error))
     }
 
     return false

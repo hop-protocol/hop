@@ -65,6 +65,8 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   const updateDestTxStatus = useCallback(async () => {
     if (
       transaction &&
+      transaction.destNetworkName &&
+      transaction.networkName !== transaction.destNetworkName &&
       (destCompleted === false ||
         !transaction.destTxHash ||
         transaction.pendingDestinationConfirmation)

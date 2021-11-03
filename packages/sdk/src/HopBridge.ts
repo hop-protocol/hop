@@ -4,6 +4,10 @@ import Chain from './models/Chain'
 import Token from './Token'
 import TokenModel from './models/Token'
 import fetch from 'isomorphic-fetch'
+import l1Erc20BridgeAbi from '@hop-protocol/core/abi/generated/L1_ERC20_Bridge.json'
+import l1HomeAmbNativeToErc20 from '@hop-protocol/core/abi/static/L1_HomeAMBNativeToErc20.json'
+import l2AmmWrapperAbi from '@hop-protocol/core/abi/generated/L2_AmmWrapper.json'
+import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
 import {
   BigNumber,
   BigNumberish,
@@ -22,12 +26,6 @@ import { PriceFeed } from './priceFeed'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata } from './config'
 import { getAddress, parseUnits } from 'ethers/lib/utils'
-import {
-  l1Erc20BridgeAbi,
-  l1HomeAmbNativeToErc20,
-  l2AmmWrapperAbi,
-  l2BridgeAbi
-} from '@hop-protocol/core/abi'
 
 type SendL1ToL2Input = {
   destinationChainId: number | string
@@ -59,7 +57,7 @@ type SendL2ToL1Input = {
 type SendL2ToL2Input = {
   destinationChainId: number | string
   sourceChain: Chain
-  amount: number | string
+  amount: TAmount
   amountOutMin: TAmount
   destinationAmountOutMin?: TAmount
   bonderFee?: TAmount
@@ -276,7 +274,7 @@ class HopBridge extends Base {
   ) {
     // ToDo: Add approval
     return this.sendHandler(
-      tokenAmount.toString(),
+      tokenAmount,
       sourceChain,
       destinationChain,
       true,
@@ -307,7 +305,7 @@ class HopBridge extends Base {
     destinationChain?: TChain,
     options?: Partial<SendOptions>
   ) {
-    tokenAmount = tokenAmount.toString()
+    tokenAmount = BigNumber.from(tokenAmount.toString())
     if (!sourceChain) {
       sourceChain = this.sourceChain
     }
@@ -321,8 +319,24 @@ class HopBridge extends Base {
       throw new Error('destination chain is required')
     }
 
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    if (!options?.estimateGasOnly) {
+      const availableLiquidity = await this.getFrontendAvailableLiquidity(
+        sourceChain,
+        destinationChain
+      )
+
+      const requiredLiquidity = await this.calcToHTokenAmount(tokenAmount, sourceChain)
+      const isAvailable = availableLiquidity.gte(requiredLiquidity)
+      if (!isAvailable) {
+        throw new Error('Insufficient liquidity available by bonder. Try again in a few minutes')
+      }
+    }
+
     return this.sendHandler(
-      tokenAmount.toString(),
+      tokenAmount,
       sourceChain,
       destinationChain,
       false,
@@ -1360,12 +1374,13 @@ class HopBridge extends Base {
   }
 
   private async sendHandler (
-    tokenAmount: string,
+    tokenAmount: TAmount,
     sourceChain: TChain,
     destinationChain: TChain,
     approval: boolean = false,
     options: Partial<SendOptions> = {}
   ) {
+    tokenAmount = BigNumber.from(tokenAmount.toString())
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
@@ -1376,7 +1391,7 @@ class HopBridge extends Base {
     } else {
       balance = await canonicalToken.balanceOf()
     }
-    if (balance.lt(BigNumber.from(tokenAmount))) {
+    if (balance.lt(tokenAmount)) {
       throw new Error('not enough token balance')
     }
 
@@ -1882,7 +1897,9 @@ class HopBridge extends Base {
   }
 
   isSupportedAsset (chain: TChain) {
-    return !!this.getConfigAddresses(this.tokenSymbol, chain)
+    chain = this.toChainModel(chain)
+    const supported = this.getSupportedAssets()
+    return !!supported[chain.slug]?.[this.tokenSymbol]
   }
 
   getBonderAddress (): string {

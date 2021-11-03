@@ -24,7 +24,7 @@ import logger from 'src/logger'
 import useApprove from 'src/hooks/useApprove'
 import { shiftBNDecimals } from 'src/utils'
 import { reactAppNetwork } from 'src/config'
-import { amountToBN } from 'src/utils/format'
+import { amountToBN, formatError } from 'src/utils/format'
 
 type PoolsContextProps = {
   networks: Network[]
@@ -461,12 +461,14 @@ const PoolsContextProvider: FC = ({ children }) => {
       setUserPoolBalanceFormatted(formattedBalance)
 
       const oneToken = parseUnits('1', lpDecimals)
-      const poolPercentage = (balance.mul(oneToken)).div(totalSupply).mul(100)
+      const poolPercentage = balance.mul(oneToken).div(totalSupply).mul(100)
       const formattedPoolPercentage = Number(formatUnits(poolPercentage, lpDecimals)).toFixed(2)
-      setUserPoolTokenPercentage(formattedPoolPercentage === '0.00' ? '<0.01' : formattedPoolPercentage)
+      setUserPoolTokenPercentage(
+        formattedPoolPercentage === '0.00' ? '<0.01' : formattedPoolPercentage
+      )
 
-      const token0Deposited = (balance.mul(reserve0)).div(totalSupply)
-      const token1Deposited = (balance.mul(reserve1)).div(totalSupply)
+      const token0Deposited = balance.mul(reserve0).div(totalSupply)
+      const token1Deposited = balance.mul(reserve1).div(totalSupply)
       const token0DepositedFormatted = Number(formatUnits(token0Deposited, tokenDecimals))
       const token1DepositedFormatted = Number(formatUnits(token1Deposited, tokenDecimals))
 
@@ -600,7 +602,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       updateUserPoolPositions()
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, selectedNetwork))
       }
       logger.error(err)
     }
@@ -684,7 +686,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       updateUserPoolPositions()
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, selectedNetwork))
       }
       logger.error(err)
     }

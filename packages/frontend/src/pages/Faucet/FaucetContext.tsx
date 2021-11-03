@@ -7,6 +7,7 @@ import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
 import { L1_NETWORK } from 'src/constants'
+import { formatError } from 'src/utils/format'
 
 type FaucetContextProps = {
   mintToken: () => void
@@ -62,7 +63,7 @@ const FaucetContextProvider: FC = ({ children }) => {
       )
       await tx?.wait()
     } catch (err: any) {
-      setError(err.message)
+      setError(formatError(err, selectedNetwork))
       logger.error(err)
     }
     setMinting(false)

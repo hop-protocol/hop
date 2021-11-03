@@ -134,9 +134,9 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [apr, setApr] = useState<number | undefined>()
   const aprRef = useRef<string>('')
 
-  const { networks, txConfirm, txHistory, sdk, selectedBridge, settings } = useApp()
+  const { networks, txConfirm, sdk, selectedBridge, settings } = useApp()
   const { deadline, slippageTolerance } = settings
-  const { waitForTransaction } = useTransactionReplacement(txHistory)
+  const { waitForTransaction, addTransaction } = useTransactionReplacement()
   const slippageToleranceBps = slippageTolerance * 100
   const minBps = Math.ceil(10000 - slippageToleranceBps)
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
@@ -595,7 +595,7 @@ const PoolsContextProvider: FC = ({ children }) => {
 
       setTxHash(addLiquidityTx?.hash)
       if (addLiquidityTx?.hash && selectedNetwork) {
-        txHistory?.addTransaction(
+        addTransaction(
           new Transaction({
             hash: addLiquidityTx?.hash,
             networkName: selectedNetwork?.slug,
@@ -684,7 +684,7 @@ const PoolsContextProvider: FC = ({ children }) => {
 
       setTxHash(removeLiquidityTx?.hash)
       if (removeLiquidityTx?.hash && selectedNetwork) {
-        txHistory?.addTransaction(
+        addTransaction(
           new Transaction({
             hash: removeLiquidityTx?.hash,
             networkName: selectedNetwork?.slug,

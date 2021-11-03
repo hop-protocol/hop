@@ -48,7 +48,7 @@ const TokenWrapperContext = createContext<TokenWrapperContextProps>({
 
 const TokenWrapperContextProvider: FC = ({ children }) => {
   const [amount, setAmount] = useState<string>('')
-  const { networks, txConfirm, txHistory, sdk, selectedBridge } = useApp()
+  const { networks, txConfirm, sdk, selectedBridge } = useApp()
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
   const l2Networks = useMemo(() => {
     return networks.filter(network => !network.isLayer1)
@@ -66,7 +66,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
   const [isWrapping, setWrapping] = useState<boolean>(false)
   const [isUnwrapping, setUnwrapping] = useState<boolean>(false)
   const [error, setError] = useState<string | null | undefined>(null)
-  const { waitForTransaction } = useTransactionReplacement(txHistory)
+  const { waitForTransaction, addTransaction } = useTransactionReplacement()
   const isNativeToken =
     useMemo(() => {
       try {
@@ -139,7 +139,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
 
       if (tokenWrapTx && selectedNetwork) {
         setAmount('')
-        txHistory?.addTransaction(
+        addTransaction(
           new Transaction({
             hash: tokenWrapTx.hash,
             networkName: selectedNetwork?.slug,
@@ -193,7 +193,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
 
       if (tokenUnwrapTx && selectedNetwork) {
         setAmount('')
-        txHistory?.addTransaction(
+        addTransaction(
           new Transaction({
             hash: tokenUnwrapTx.hash,
             networkName: selectedNetwork.slug,

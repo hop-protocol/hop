@@ -72,9 +72,9 @@ function TransactionsList(props: any) {
         </Flex>
       </Flex>
 
-      {transactions?.map((tx: Transaction) => {
-        return <TransactionRow key={tx.hash} tx={tx} styles={styles} />
-      })}
+      {transactions?.map((tx: Transaction) => (
+        <TransactionRow key={tx.hash} tx={tx} styles={styles} />
+      ))}
     </>
   )
 }

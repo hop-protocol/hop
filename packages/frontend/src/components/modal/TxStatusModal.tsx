@@ -18,7 +18,7 @@ type Props = {
 }
 
 function TxStatusModal(props: Props) {
-  const { networks, txHistory } = useApp()
+  const { networks } = useApp()
   const styles = useTxStatusStyles()
   const { onClose, tx } = props
   const handleTxStatusClose = () => {
@@ -38,7 +38,6 @@ function TxStatusModal(props: Props) {
   }
 
   const { completed, destCompleted, confirmations, networkConfirmations } = useTransactionStatus(
-    txHistory,
     tx,
     tx.networkName
   )

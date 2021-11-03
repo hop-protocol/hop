@@ -1,100 +1,77 @@
-import { useState, useCallback } from 'react'
-import { useDeepCompareEffect } from 'react-use'
+import { useCallback, Dispatch, SetStateAction } from 'react'
+import { useLocalStorage } from 'react-use'
 import Transaction from 'src/models/Transaction'
-import { loadState, saveState } from 'src/utils/localStorage'
-import { sortByRecentTimestamp } from 'src/utils/sort'
-import logger from 'src/logger'
 import find from 'lodash/find'
+import { filterByHash, sortByRecentTimestamp } from 'src/utils'
 
 export interface TxHistory {
-  transactions: Transaction[]
-  setTransactions: (txs: Transaction[]) => void
+  transactions?: Transaction[]
+  setTransactions: Dispatch<SetStateAction<Transaction[] | undefined>>
   addTransaction: (tx: Transaction) => void
-  clear: () => void
   updateTransaction: (tx: Transaction, updateOpts?: any) => void
-  replaceTransaction: (hash: string, tx: Transaction) => void
+  clear: () => void
 }
 
-const useTxHistory = (defaultTxs?: Transaction[]): TxHistory => {
-  // logger.debug('useTxHistory render')
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    try {
-      const txs = loadState('recentTransactions')
-      if (!txs && defaultTxs) return defaultTxs
-      if (!txs) return []
-      return txs.map((obj: Transaction) => Transaction.fromObject(obj))
-    } catch (err) {
-      return []
-    }
-  })
+export interface UpdateTransactionOptions {
+  pendingDestinationConfirmation?: boolean
+  destNetworkName?: string
+  destTxHash?: string
+  replaced?: boolean | string
+}
 
-  function updateTransaction(tx: Transaction, updateOpts?: any) {
-    console.log(`tx:`, tx, updateOpts)
+const cacheKey = 'recentTransactions'
 
-    for (const key in updateOpts) {
-      tx[key] = updateOpts[key]
-    }
+const localStorageSerializationOptions = {
+  raw: false,
+  serializer: (value: Transaction[]) => {
+    return JSON.stringify(
+      value.map(tx => {
+        return tx.toObject()
+      })
+    )
+  },
+  deserializer: (value: string) => {
+    return JSON.parse(value).map((obj: Transaction) => Transaction.fromObject(obj))
+  },
+}
 
-    console.log(`updated tx:`, tx)
+const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
+  const [transactions, setTransactions, clear] = useLocalStorage<Transaction[]>(
+    cacheKey,
+    defaultTxs,
+    localStorageSerializationOptions
+  )
 
-    const match = find(transactions, ['hash', tx.hash])
-    if (!match) {
-      logger.error(`no matching transaction ${tx.hash}`)
-      return
-      // return addTransaction(tx)
-    }
-
-    const filtered = transactions.filter((t: Transaction) => t.hash !== tx.hash)
+  function filterSortAndSetTransactions(tx: Transaction, txs?: Transaction[], hashFilter?: string) {
+    const filtered = filterByHash(txs, hashFilter)
     setTransactions(sortByRecentTimestamp([...filtered, tx]).slice(0, 3))
   }
 
-  function replaceTransaction(hash: string, tx: Transaction) {
-    const filtered = transactions.filter((t: Transaction) => t.hash !== hash)
-    setTransactions(sortByRecentTimestamp([...filtered, tx]).slice(0, 3))
-  }
-
-  const handleChange = useCallback(
-    (pending: boolean, tx: Transaction) => {
-      const filtered = transactions.filter((t: Transaction) => t.hash !== tx.hash)
-      setTransactions(sortByRecentTimestamp([...filtered, tx]).slice(0, 3))
+  const addTransaction = useCallback(
+    (tx: Transaction) => {
+      // If tx exists with hash == tx.replaced, remove it
+      const match = find(transactions, ['hash', tx.replaced])
+      filterSortAndSetTransactions(tx, transactions, match?.hash)
     },
     [transactions]
   )
 
-  // Transforms and saves transactions (component state) -> local storage objects
-  useDeepCompareEffect(() => {
-    try {
-      const recents = transactions.map((tx: Transaction) => {
-        return tx.toObject()
-      })
-
-      saveState('recentTransactions', recents)
-    } catch (err) {
-      console.error(err)
-    }
-
-    for (const tx of transactions) {
-      tx.off('pending', handleChange)
-      tx.on('pending', handleChange)
-    }
-  }, [transactions, handleChange])
-
-  const addTransaction = (tx: Transaction) => {
-    setTransactions(sortByRecentTimestamp([...transactions, tx]).slice(0, 3))
-  }
-
-  const clear = () => {
-    saveState('recentTransactions', [])
-    setTransactions([])
-  }
+  const updateTransaction = useCallback(
+    (tx: Transaction, updateOpts: UpdateTransactionOptions) => {
+      for (const key in updateOpts) {
+        tx[key] = updateOpts[key]
+      }
+      filterSortAndSetTransactions(tx, transactions, tx.hash)
+    },
+    [transactions]
+  )
 
   return {
     transactions,
     setTransactions,
     addTransaction,
-    clear,
     updateTransaction,
-    replaceTransaction,
+    clear,
   }
 }
 

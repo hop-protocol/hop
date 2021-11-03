@@ -1,11 +1,11 @@
 import { useCallback } from 'react'
 import { errors, ContractTransaction } from 'ethers'
-import { TxHistory } from 'src/contexts/AppContext/useTxHistory'
+import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 import Transaction from 'src/models/Transaction'
 import { getTransferSentDetailsFromLogs } from 'src/utils/logs'
 
-function useTransactionReplacement(txHistory?: TxHistory) {
-  const { transactions, replaceTransaction, addTransaction, updateTransaction } = txHistory!
+function useTransactionReplacement() {
+  const { transactions, addTransaction, updateTransaction } = useTxHistory()
 
   const waitForTransaction = useCallback(
     async (transaction: ContractTransaction, txModelArgs: any) => {
@@ -27,12 +27,11 @@ function useTransactionReplacement(txHistory?: TxHistory) {
               ...txModelArgs,
               hash: replacement.hash,
               pendingDestinationConfirmation: true,
-              replaced: true,
+              replaced: transaction.hash,
               transferId: tsDetails?.transferId,
             })
 
-            // Replace local storage
-            replaceTransaction(transaction.hash, replacementTxModel)
+            addTransaction(replacementTxModel)
 
             return {
               originalTx: transaction,
@@ -44,7 +43,7 @@ function useTransactionReplacement(txHistory?: TxHistory) {
         }
       }
     },
-    [transactions, replaceTransaction]
+    [transactions, addTransaction]
   )
 
   return { waitForTransaction, transactions, addTransaction, updateTransaction }

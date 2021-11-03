@@ -9,8 +9,8 @@ import { useTransactionReplacement } from './useTransactionReplacement'
 
 const useApprove = token => {
   const { provider } = useWeb3Context()
-  const { txConfirm, txHistory, sdk } = useApp()
-  const { waitForTransaction } = useTransactionReplacement(txHistory)
+  const { txConfirm } = useApp()
+  const { waitForTransaction, addTransaction } = useTransactionReplacement()
 
   const checkApproval = async (amount: BigNumber, token: Token, spender: string) => {
     try {
@@ -65,7 +65,7 @@ const useApprove = token => {
     })
 
     if (tx?.hash) {
-      txHistory?.addTransaction(
+      addTransaction(
         new Transaction({
           hash: tx?.hash,
           networkName: token.chain.slug,
@@ -73,9 +73,9 @@ const useApprove = token => {
         })
       )
 
-      const ret = await waitForTransaction(tx, { networkName: token.chain.slug, token })
-      if (ret && 'replacementTx' in ret) {
-        return ret.replacementTx
+      const res = await waitForTransaction(tx, { networkName: token.chain.slug, token })
+      if (res && 'replacementTx' in res) {
+        return res.replacementTx
       }
     }
 

@@ -102,7 +102,6 @@ const ConvertContextProvider: FC = ({ children }) => {
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()
   const {
     networks,
-    txHistory,
     l2Networks,
     defaultL2Network,
     selectedBridge,
@@ -134,7 +133,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
   const debouncer = useRef(0)
-  const { waitForTransaction } = useTransactionReplacement(txHistory)
+  const { waitForTransaction, addTransaction } = useTransactionReplacement()
 
   useEffect(() => {
     if (selectedNetwork && queryParams?.sourceNetwork !== selectedNetwork?.slug) {
@@ -451,7 +450,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         if (sourceNetwork.isLayer1 !== destNetwork?.isLayer1) {
           setTx(txObj)
         }
-        txHistory?.addTransaction(txObj)
+        addTransaction(txObj)
 
         const res = await waitForTransaction(tx, txModelArgs)
         if (res && 'replacementTxModel' in res) {

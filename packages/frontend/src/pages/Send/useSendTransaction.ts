@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { BigNumber, constants, Signer, errors } from 'ethers'
+import { BigNumber, constants, Signer } from 'ethers'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
@@ -14,9 +14,15 @@ type TransactionHandled = {
   txModel: Transaction
 }
 
-function handleTransaction(tx, fromNetwork, toNetwork, sourceToken, txHistory): TransactionHandled {
+function handleTransaction(
+  tx,
+  fromNetwork,
+  toNetwork,
+  sourceToken,
+  addTransaction
+): TransactionHandled {
   const txModel = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
-  txHistory.addTransaction(txModel)
+  addTransaction(txModel)
 
   return {
     transaction: tx,
@@ -38,7 +44,6 @@ export function useSendTransaction(props) {
     sourceToken,
     toNetwork,
     txConfirm,
-    txHistory,
   } = props
   const [tx, setTx] = useState<Transaction | null>(null)
   const [sending, setSending] = useState<boolean>(false)
@@ -46,7 +51,7 @@ export function useSendTransaction(props) {
   const [recipient, setRecipient] = useState<string>()
   const [signer, setSigner] = useState<Signer>()
   const [bridge, setBridge] = useState<HopBridge>()
-  const { waitForTransaction } = useTransactionReplacement(txHistory)
+  const { waitForTransaction, addTransaction, updateTransaction } = useTransactionReplacement()
 
   const parsedAmount = useMemo(() => {
     if (!fromTokenAmount || !sourceToken) return BigNumber.from(0)
@@ -120,12 +125,14 @@ export function useSendTransaction(props) {
       const destChain = sdk.Chain.fromSlug(toNetwork.slug)
       const watcher = sdk.watch(txModel.hash, sourceToken.symbol, sourceChain, destChain)
 
-      watcher.on(sdk.Event.DestinationTxReceipt, async data => {
+      watcher.once(sdk.Event.DestinationTxReceipt, async data => {
         logger.debug(`dest tx receipt event data:`, data)
         if (txModel && !txModel.destTxHash) {
-          txModel.destTxHash = data.receipt.transactionHash
-          txModel.pendingDestinationConfirmation = false
-          txHistory?.updateTransaction(txModel)
+          const opts = {
+            destTxHash: data.receipt.transactionHash,
+            pendingDestinationConfirmation: false,
+          }
+          updateTransaction(txModel, opts)
         }
       })
 
@@ -142,20 +149,21 @@ export function useSendTransaction(props) {
         const { replacementTxModel: txModelReplacement } = res
 
         // Replace watcher
-        watcher.off(sdk.Event.DestinationTxReceipt)
         const replacementWatcher = sdk.watch(
           txModelReplacement.hash,
           sourceToken!.symbol,
           sourceChain,
           destChain
         )
-        replacementWatcher.on(sdk.Event.DestinationTxReceipt, async data => {
+        replacementWatcher.once(sdk.Event.DestinationTxReceipt, async data => {
           logger.debug(`replacement dest tx receipt event data:`, data)
           if (txModelReplacement && !txModelReplacement.destTxHash) {
-            txModelReplacement.destTxHash = data.receipt.transactionHash
-            txModel.pendingDestinationConfirmation = false
-            txModel.replaced = true
-            txHistory?.updateTransaction(txModelReplacement)
+            const opts = {
+              destTxHash: data.receipt.transactionHash,
+              pendingDestinationConfirmation: false,
+              replaced: transaction.hash,
+            }
+            updateTransaction(txModelReplacement, opts)
           }
         })
       }
@@ -195,7 +203,7 @@ export function useSendTransaction(props) {
       },
     })
 
-    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, txHistory)
+    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, addTransaction)
   }
 
   const sendl2ToL1 = async () => {
@@ -231,7 +239,7 @@ export function useSendTransaction(props) {
       },
     })
 
-    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, txHistory)
+    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, addTransaction)
   }
 
   const sendl2ToL2 = async () => {
@@ -267,7 +275,7 @@ export function useSendTransaction(props) {
       },
     })
 
-    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, txHistory)
+    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, addTransaction)
   }
 
   return {

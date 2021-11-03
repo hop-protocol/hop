@@ -64,10 +64,10 @@ const StakeWidget: FC<Props> = props => {
   const styles = useStyles()
   const { network, bridge, stakingToken, rewardsToken, stakingRewards } = props
 
-  const { networks, txConfirm, txHistory, sdk } = useApp()
+  const { networks, txConfirm, sdk } = useApp()
   const { checkConnectedNetworkId, address } = useWeb3Context()
   const { stakeBalance } = useStakeBalance(stakingRewards, address)
-  const { waitForTransaction } = useTransactionReplacement(txHistory)
+  const { waitForTransaction, addTransaction } = useTransactionReplacement()
   const formattedStakeBalance = toTokenDisplay(stakeBalance, stakingToken?.decimals)
 
   const tokenUsdPrice = useAsyncMemo(async () => {
@@ -338,7 +338,7 @@ const StakeWidget: FC<Props> = props => {
 
       if (tx?.hash && network) {
         setAmount('')
-        txHistory?.addTransaction(
+        addTransaction(
           new Transaction({
             hash: tx.hash,
             networkName: network.slug,
@@ -407,7 +407,7 @@ const StakeWidget: FC<Props> = props => {
       })
 
       if (tx?.hash && network) {
-        txHistory?.addTransaction(
+        addTransaction(
           new Transaction({
             hash: tx.hash,
             networkName: network.slug,

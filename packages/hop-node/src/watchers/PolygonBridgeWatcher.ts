@@ -2,6 +2,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import Web3 from 'web3'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import fetch from 'node-fetch'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
@@ -12,7 +13,6 @@ import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bri
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { MaticPOSClient } from '@maticnetwork/maticjs'
-import { erc20Abi } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
 type Config = {
   chainSlug: string

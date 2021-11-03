@@ -29,7 +29,7 @@ type AppContextProps = {
   tokens: Token[]
   events: Events | undefined
   accountDetails: AccountDetails | undefined
-  txHistory: TxHistory | undefined
+  txHistory?: TxHistory
   txConfirm: TxConfirm | undefined
   settings: Settings
 }

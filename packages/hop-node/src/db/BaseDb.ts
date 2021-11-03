@@ -252,7 +252,10 @@ class BaseDb extends EventEmitter {
   }
 
   async batchGetByIds (ids: string[], defaultValue: any = null) {
-    const values = await this.db.getMany(ids)
+    const values = []
+    for (const id of ids) {
+      values.push(await this.getById(id))
+    }
     return values.filter(this.filterExisty)
   }
 

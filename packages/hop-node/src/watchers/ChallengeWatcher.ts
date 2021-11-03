@@ -49,7 +49,7 @@ class ChallengeWatcher extends BaseWatcher {
       return
     }
 
-    this.logger.debug(
+    this.logger.info(
         `checking ${dbTransferRoots.length} challengeable root db items`
     )
 

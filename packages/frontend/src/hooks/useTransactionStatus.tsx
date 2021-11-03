@@ -1,7 +1,7 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { TChain } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
-import useInterval from 'src/hooks/useInterval'
+import { useInterval } from 'react-use'
 import Transaction from 'src/models/Transaction'
 import { loadState, saveState } from 'src/utils/localStorage'
 import logger from 'src/logger'
@@ -9,7 +9,7 @@ import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
-  const { updateTransaction } = useTxHistory()
+  const { transactions, updateTransaction } = useTxHistory()
   const [completed, setCompleted] = useState<boolean>(transaction?.pending === false)
   const [networkConfirmations, setNetworkConfirmations] = useState<number>()
   const [confirmations, setConfirmations] = useState<number>()
@@ -24,24 +24,14 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
     return _chain.provider
   }, [chain])
 
-  async function updateDestTxStatus() {
-    if (
-      transaction &&
-      (destCompleted === false || !transaction.destTxHash) &&
-      transaction.pendingDestinationConfirmation
-    ) {
-      const isSpent = await transaction?.checkIsTransferIdSpent(sdk)
-      logger.debug(`${transaction.hash} isSpent:`, isSpent)
-      if (isSpent) {
-        setDestCompleted(true)
-        updateTransaction(transaction)
-      }
-    }
-  }
-
-  const updateTxStatus = async () => {
+  const updateTxStatus = useCallback(async () => {
     if (!provider || !transaction?.hash || !chain) {
       setCompleted(false)
+      return
+    }
+
+    // Return quickly if already completed
+    if (completed) {
       return
     }
 
@@ -69,19 +59,42 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
 
     if (waitConfirmations && txResponse?.confirmations >= waitConfirmations) {
       setCompleted(true)
+      updateTransaction(transaction, { pending: false })
     }
-  }
+  }, [transactions, transaction, provider])
+
+  const updateDestTxStatus = useCallback(async () => {
+    if (
+      transaction &&
+      transaction.destNetworkName &&
+      transaction.networkName !== transaction.destNetworkName &&
+      (destCompleted === false ||
+        !transaction.destTxHash ||
+        transaction.pendingDestinationConfirmation)
+    ) {
+      const isSpent = await transaction?.checkIsTransferIdSpent(sdk)
+      logger.debug(`tx ${transaction.hash.slice(0, 10)} isSpent:`, isSpent)
+      if (isSpent) {
+        setDestCompleted(true)
+        updateTransaction(transaction, { pendingDestinationConfirmation: false })
+      }
+    }
+  }, [transactions, transaction])
 
   useEffect(() => {
-    updateTxStatus()
-  }, [transaction?.hash, chain])
+    if (!completed) {
+      updateTxStatus()
+    }
+  }, [transactions, transaction?.hash, chain])
 
   useEffect(() => {
-    updateDestTxStatus()
-  }, [transaction])
+    if (completed && !destCompleted) {
+      updateDestTxStatus()
+    }
+  }, [transactions, transaction])
 
-  useInterval(updateTxStatus, 10e3)
-  useInterval(updateDestTxStatus, 10e3)
+  useInterval(updateTxStatus, completed ? null : 10e3)
+  useInterval(updateDestTxStatus, !completed || destCompleted ? null : 10e3)
 
   return {
     completed,

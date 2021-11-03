@@ -46,7 +46,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    this.logger.debug(
+    this.logger.info(
         `checking ${dbTransferRoots.length} unbonded transfer roots db items`
     )
 
@@ -97,7 +97,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     const shouldBond = delta > 0
     if (!shouldBond) {
       logger.debug(
-        `transferRootHash ${transferRootHash} too early to bond. Must wait ${Math.abs(
+        `too early to bond. Must wait ${Math.abs(
           delta
         )} seconds`
       )
@@ -106,28 +106,8 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId)
     if (isBonded) {
-      logger.debug(
-        `transferRootHash ${transferRootHash} already bonded. skipping.`
-      )
-      const event = await l1Bridge.getTransferRootBondedEvent(transferRootHash)
-      if (!event) {
-        throw new Error(`expected event object. transferRootHash: ${transferRootHash}`)
-      }
-      const { transactionHash } = event
-      const { from: sender } = await l1Bridge.getTransaction(
-        event.transactionHash
-      )
-      const timestamp = await this.bridge.getEventTimestamp(event)
-
-      await this.db.transferRoots.update(transferRootHash, {
-        transferRootHash,
-        bonded: true,
-        bonder: sender,
-        bondTotalAmount: totalAmount,
-        bondTxHash: transactionHash,
-        bondedAt: timestamp,
-        bondTransferRootId: transferRootId
-      })
+      logger.debug('already bonded. will attempt to add to db and skip bond attempt.')
+      await this.syncWatcher.populateTransferRootBonded(transferRootHash)
       return
     }
 

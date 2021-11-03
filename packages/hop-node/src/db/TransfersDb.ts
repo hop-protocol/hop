@@ -93,6 +93,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   async update (transferId: string, transfer: Partial<Transfer>) {
     const logger = this.logger.create({ id: transferId })
     logger.debug('update called')
+    transfer.transferId = transferId
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transfer)
     const promises: Array<Promise<any>> = []
     if (timestampedKv) {
@@ -121,7 +122,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     if (item.deadline !== undefined) {
       // convert number to BigNumber for backward compatibility reasons
       if (typeof item.deadline === 'number') {
-        item.deadline = BigNumber.from(item.deadline)
+        item.deadline = BigNumber.from((item.deadline as number).toString())
       }
     }
     return normalizeDbItem(item)
@@ -181,7 +182,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     const items = transfers
       .sort(this.sortItems)
 
-    this.logger.debug(`items length: ${items.length}`)
+    this.logger.info(`items length: ${items.length}`)
     return items
   }
 

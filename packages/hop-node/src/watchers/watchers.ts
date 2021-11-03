@@ -3,18 +3,16 @@ import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
 import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
-import GasPriceWatcher from 'src/watchers/GasPriceWatcher'
 import Logger from 'src/logger'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import StakeWatcher from 'src/watchers/StakeWatcher'
 import SyncWatcher from 'src/watchers/SyncWatcher'
-import TokenPriceWatcher from 'src/watchers/TokenPriceWatcher'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
 import { MetricsServer } from 'src/metrics'
-import { chainNativeTokens, config as globalConfig } from 'src/config'
+import { config as globalConfig } from 'src/config'
 
 const logger = new Logger('config')
 
@@ -232,23 +230,6 @@ export async function getWatchers (config: GetWatchersConfig) {
       ) as SyncWatcher
     )
   }
-
-  const gasPriceWatchers: any[] = networks.map((network: string) => {
-    return new GasPriceWatcher({
-      chainSlug: network
-    })
-  })
-
-  watchers.push(...gasPriceWatchers)
-
-  const watcherTokens = Array.from((new Set(tokens.concat(chainNativeTokens))).values())
-  const tokenPriceWatchers: any[] = watcherTokens.map((token: string) => {
-    return new TokenPriceWatcher({
-      token
-    })
-  })
-
-  watchers.push(...tokenPriceWatchers)
 
   if (globalConfig.metrics?.enabled) {
     await new MetricsServer(globalConfig.metrics?.port).start()

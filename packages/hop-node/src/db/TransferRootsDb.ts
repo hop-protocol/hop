@@ -97,6 +97,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   async update (transferRootHash: string, transferRoot: Partial<TransferRoot>) {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('update called')
+    transferRoot.transferRootHash = transferRootHash
     const timestampedKv = await this.getTimestampedKeyValueForUpdate(transferRoot)
     const promises: Array<Promise<any>> = []
     if (timestampedKv) {
@@ -230,6 +231,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         !item.bondedAt &&
         !item.confirmed &&
         item.transferRootHash &&
+        item.transferRootId &&
         item.committedAt &&
         item.commitTxHash &&
         item.commitTxBlockNumber &&
@@ -353,7 +355,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   async getIncompleteItems (
     filter: Partial<TransferRoot> = {}
   ) {
-    const transferRoots: TransferRoot[] = await this.getItems()
+    const transferRoots: TransferRoot[] = await this.getTransferRoots()
     return transferRoots.filter(item => {
       if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
@@ -363,11 +365,11 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
 
       return (
         /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+        (item.commitTxHash && !item.committedAt) ||
         (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
         (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
         (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds) ||
-        (item.multipleWithdrawalsSettledTxHash && item.multipleWithdrawalsSettledTotalAmount && !item.transferIds) ||
-        (item.commitTxHash && !item.committedAt)
+        (item.multipleWithdrawalsSettledTxHash && item.multipleWithdrawalsSettledTotalAmount && !item.transferIds)
         /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
       )
     })

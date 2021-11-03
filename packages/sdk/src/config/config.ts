@@ -48,8 +48,8 @@ const fees: Record<string, Bps> = {
     L2ToL2: 18
   },
   ETH: {
-    L2ToL1: 18,
-    L2ToL2: 18
+    L2ToL1: 9,
+    L2ToL2: 9
   }
 }
 

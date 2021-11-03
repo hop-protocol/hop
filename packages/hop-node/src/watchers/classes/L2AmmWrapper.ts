@@ -37,16 +37,16 @@ export default class L2AmmWrapper extends ContractBase {
     const sdk = new Hop(globalConfig.network)
     const recipient = await this.contract.signer.getAddress()
     const bridge = sdk.bridge(token)
-    let bonderFee = await bridge.getBonderFee(
-      amount,
-      this.chainSlug,
-      this.chainIdToSlug(destinationChainId)
-    )
+    // let bonderFee = await bridge.getBonderFee(
+    //   amount,
+    //   this.chainSlug,
+    //   this.chainIdToSlug(destinationChainId)
+    // )
 
     const deadline = bridge.defaultDeadlineSeconds
     let destinationDeadline = bridge.defaultDeadlineSeconds
     const destinationChain = this.chainIdToSlug(destinationChainId)
-    const { amountOut, destinationTxFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
+    const { amountOut, totalFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
     const slippageTolerance = 0.1
     const slippageToleranceBps = slippageTolerance * 100
     const minBps = Math.ceil(10000 - slippageToleranceBps)
@@ -54,21 +54,21 @@ export default class L2AmmWrapper extends ContractBase {
     let destinationAmountOutMin = amountOutMin
     const isNativeToken = token === 'MATIC' && this.chainSlug === Chain.Polygon
     const tokenDecimals = getTokenMetadata(token)?.decimals
-    bonderFee = bonderFee.add(destinationTxFee)
+    // bonderFee = bonderFee.add(destinationTxFee)
     if (destinationChain === Chain.Ethereum) {
       destinationDeadline = 0
       destinationAmountOutMin = BigNumber.from(0)
     }
 
-    if (bonderFee.gt(amount)) {
-      throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${formatUnits(bonderFee, tokenDecimals)}`)
+    if (totalFee.gt(amount)) {
+      throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${formatUnits(totalFee, tokenDecimals)}`)
     }
 
     return this.contract.swapAndSend(
       destinationChainId,
       recipient,
       amount,
-      bonderFee,
+      totalFee,
       amountOutMin,
       deadline,
       destinationAmountOutMin,

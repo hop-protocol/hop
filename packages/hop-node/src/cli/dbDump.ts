@@ -1,3 +1,4 @@
+import chainSlugToId from 'src/utils/chainSlugToId'
 import { getDbSet } from 'src/db'
 import {
   config as globalConfig,
@@ -48,6 +49,10 @@ program
           fromUnix: fromDate,
           toUnix: toDate
         })
+      } else if (dbName === 'unbonded-roots') {
+        items = await db.transferRoots.getUnbondedTransferRoots({
+          sourceChainId: chainSlugToId(chain)
+        })
       } else if (dbName === 'transfers') {
         items = await db.transfers.getTransfers({
           fromUnix: fromDate,
@@ -55,22 +60,12 @@ program
         })
       } else if (dbName === 'sync-state') {
         items = await db.syncState.getItems()
-      } else if (dbName === 'gas-prices') {
-        if (chain && nearest) {
-          items = [await db.gasPrices.getNearest(chain, nearest, false)]
-        } else {
-          items = await db.gasPrices.getItems()
-        }
-      } else if (dbName === 'token-prices') {
-        if (tokenSymbol && nearest) {
-          items = [await db.tokenPrices.getNearest(tokenSymbol, nearest, false)]
-        } else {
-          items = await db.tokenPrices.getItems()
-        }
       } else if (dbName === 'gas-cost') {
         if (tokenSymbol && nearest) {
-          items = [await db.gasCost.getNearest(chain, tokenSymbol, false, nearest)]
-          items = [await db.gasCost.getNearest(chain, tokenSymbol, true, nearest)]
+          items = [
+            await db.gasCost.getNearest(chain, tokenSymbol, false, nearest),
+            await db.gasCost.getNearest(chain, tokenSymbol, true, nearest)
+          ]
         } else {
           items = await db.gasCost.getItems()
         }

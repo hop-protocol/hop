@@ -124,6 +124,9 @@ export default class ContractBase extends EventEmitter {
   getBalance = async (
     address: string
   ): Promise<BigNumber> => {
+    if (!address) {
+      throw new Error('expected address')
+    }
     return await this.contract.provider.getBalance(address)
   }
 

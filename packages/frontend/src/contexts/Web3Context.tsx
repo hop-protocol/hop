@@ -81,7 +81,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     const rpcUrl = getRpcUrl(L1_NETWORK)
     const walletOptions = [
       { walletName: 'metamask', preferred: true },
-      { walletName: 'walletLink', rpcUrl, appName: 'Hop', preferred: true },
+      { walletName: 'walletLink', rpcUrl, appName: 'Hop' },
       {
         walletName: 'walletConnect',
         rpc: {
@@ -95,9 +95,8 @@ const Web3ContextProvider: FC = ({ children }) => {
           420: getRpcUrl('optimism'),
           100: getRpcUrl('xdai'),
           137: getRpcUrl('polygon'),
-          80001: getRpcUrl('polygon')
+          80001: getRpcUrl('polygon'),
         },
-        preferred: true,
       },
     ]
 

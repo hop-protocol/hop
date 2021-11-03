@@ -59,6 +59,7 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
 
     if (waitConfirmations && txResponse?.confirmations >= waitConfirmations) {
       setCompleted(true)
+      updateTransaction(transaction, { pending: false })
     }
   }, [transactions, transaction, provider])
 

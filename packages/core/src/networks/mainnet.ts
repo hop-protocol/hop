@@ -16,7 +16,7 @@ export const networks: Networks = {
     publicRpcUrl: 'https://arb1.arbitrum.io/rpc',
     explorerUrls: ['https://arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
-    waitConfirmations: 1
+    waitConfirmations: 20
   },
   optimism: {
     name: chains.optimism.name,

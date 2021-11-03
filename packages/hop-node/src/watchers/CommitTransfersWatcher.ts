@@ -85,7 +85,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       return
     }
 
-    this.logger.debug(
+    this.logger.info(
         `checking ${dbTransfers.length} uncommitted transfers db items`
     )
     const destinationChainIds: number[] = []

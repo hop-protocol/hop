@@ -27,7 +27,7 @@ export const defaultEnabledWatchers: { [key: string]: boolean } = {
   challenge: true, // only active if role.challenger is also true
   commitTransfers: true,
   settleBondedWithdrawals: true,
-  stake: true,
+  stake: false,
   xDomainMessageRelay: false
 }
 

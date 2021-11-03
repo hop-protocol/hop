@@ -65,7 +65,11 @@ export default class Bridge extends ContractBase {
   }
 
   async getBonderAddress (): Promise<string> {
-    return await (this.bridgeContract as Contract).signer.getAddress()
+    const address = await (this.bridgeContract as Contract).signer.getAddress()
+    if (!address) {
+      throw new Error('expected signer address')
+    }
+    return address
   }
 
   isBonder = async (): Promise<boolean> => {
@@ -493,6 +497,9 @@ export default class Bridge extends ContractBase {
 
   async getEthBalance (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
+    if (!bonder) {
+      throw new Error('expected bonder address')
+    }
     return await this.getBalance(bonder)
   }
 
@@ -689,10 +696,10 @@ export default class Bridge extends ContractBase {
       return BigNumber.from(0)
     }
 
-    // absolute minimum is $1 of token
+    const minBonderFeeUsd = 0.25
     const tokenDecimals = getTokenDecimals(tokenSymbol)
     const minBonderFeeAbsolute = parseUnits(
-      (1 / tokenPriceUsd).toFixed(tokenDecimals),
+      (minBonderFeeUsd / tokenPriceUsd).toFixed(tokenDecimals),
       tokenDecimals
     )
 

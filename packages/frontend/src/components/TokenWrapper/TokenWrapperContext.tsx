@@ -1,27 +1,14 @@
-import React, {
-  FC,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useMemo,
-  useCallback,
-} from 'react'
-import useAsyncMemo from 'src/hooks/useAsyncMemo'
-import { ethers, Signer, BigNumber } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import React, { FC, createContext, useContext, useEffect, useState, useMemo } from 'react'
+import { Signer, BigNumber } from 'ethers'
+import { parseUnits } from 'ethers/lib/utils'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Network from 'src/models/Network'
-import Address from 'src/models/Address'
-import Price from 'src/models/Price'
-import { UINT256 } from 'src/constants'
 import Transaction from 'src/models/Transaction'
-import useInterval from 'src/hooks/useInterval'
-import useBalance from 'src/hooks/useBalance'
 import logger from 'src/logger'
-import useApprove from 'src/hooks/useApprove'
+import { formatError } from 'src/utils/format'
+import { useTransactionReplacement, useApprove } from 'src/hooks'
 
 type TokenWrapperContextProps = {
   amount: string
@@ -61,7 +48,7 @@ const TokenWrapperContext = createContext<TokenWrapperContextProps>({
 
 const TokenWrapperContextProvider: FC = ({ children }) => {
   const [amount, setAmount] = useState<string>('')
-  const { networks, txConfirm, txHistory, sdk, selectedBridge } = useApp()
+  const { networks, txConfirm, sdk, selectedBridge } = useApp()
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
   const l2Networks = useMemo(() => {
     return networks.filter(network => !network.isLayer1)
@@ -79,6 +66,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
   const [isWrapping, setWrapping] = useState<boolean>(false)
   const [isUnwrapping, setUnwrapping] = useState<boolean>(false)
   const [error, setError] = useState<string | null | undefined>(null)
+  const { waitForTransaction, addTransaction } = useTransactionReplacement()
   const isNativeToken =
     useMemo(() => {
       try {
@@ -149,21 +137,20 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
         },
       })
 
-      if (tokenWrapTx) {
+      if (tokenWrapTx && selectedNetwork) {
         setAmount('')
-        if (tokenWrapTx.hash && selectedNetwork) {
-          txHistory?.addTransaction(
-            new Transaction({
-              hash: tokenWrapTx.hash,
-              networkName: selectedNetwork?.slug,
-            })
-          )
-        }
-        await tokenWrapTx.wait()
+        addTransaction(
+          new Transaction({
+            hash: tokenWrapTx.hash,
+            networkName: selectedNetwork?.slug,
+          })
+        )
+
+        await waitForTransaction(tokenWrapTx, { networkName: selectedNetwork.slug })
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, selectedNetwork))
       }
     }
     setWrapping(false)
@@ -203,21 +190,21 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
           return wrappedToken.connect(signer as Signer).unwrapToken(parsedAmount)
         },
       })
-      if (tokenUnwrapTx) {
+
+      if (tokenUnwrapTx && selectedNetwork) {
         setAmount('')
-        if (tokenUnwrapTx.hash && selectedNetwork) {
-          txHistory?.addTransaction(
-            new Transaction({
-              hash: tokenUnwrapTx.hash,
-              networkName: selectedNetwork?.slug,
-            })
-          )
-        }
-        await tokenUnwrapTx.wait()
+        addTransaction(
+          new Transaction({
+            hash: tokenUnwrapTx.hash,
+            networkName: selectedNetwork.slug,
+          })
+        )
+
+        await waitForTransaction(tokenUnwrapTx, { networkName: selectedNetwork.slug })
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
-        setError(err.message)
+        setError(formatError(err, selectedNetwork))
       }
     }
     setUnwrapping(false)

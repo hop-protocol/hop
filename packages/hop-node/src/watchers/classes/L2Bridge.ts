@@ -5,12 +5,10 @@ import L2AmmWrapper from './L2AmmWrapper'
 import L2BridgeWrapper from './L2BridgeWrapper'
 import Token from './Token'
 import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import l2AmmWrapperAbi from '@hop-protocol/core/abi/generated/L2_AmmWrapper.json'
 import saddleSwapAbi from '@hop-protocol/core/abi/generated/Swap.json'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
-import { DateTime } from 'luxon'
 import { ERC20, L2BridgeWrapper__factory } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
 import { L2Bridge as L2BridgeContract, TransferFromL1CompletedEvent, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
@@ -140,11 +138,6 @@ export default class L2Bridge extends Bridge {
 
   async getTransferSentEvent (transferId: string): Promise<TransferSentEvent | null> {
     let match: TransferSentEvent | undefined
-    // block times on rollups work different compared to regular chains,
-    // so the block number lookup gurantees that it'll look back far enough
-    // issue: https://github.com/hop-protocol/hop/issues/268
-    const startTimestamp = Math.floor(DateTime.now().minus({ days: 14 }).toSeconds())
-    const startBlockNumber = await getBlockNumberFromDate(this.chainSlug, startTimestamp)
     await this.eventsBatch(async (start: number, end: number) => {
       const events = await this.getTransferSentEvents(
         start,
@@ -157,7 +150,7 @@ export default class L2Bridge extends Bridge {
           return false
         }
       }
-    }, { startBlockNumber })
+    })
 
     if (!match) {
       return null

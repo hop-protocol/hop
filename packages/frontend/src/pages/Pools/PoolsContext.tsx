@@ -252,7 +252,6 @@ const PoolsContextProvider: FC = ({ children }) => {
           return
         }
 
-        console.log('hi')
         const tokenUsdPriceBn = amountToBN(tokenUsdPrice.toString(), TOTAL_AMOUNTS_DECIMALS)
         const bridge = await sdk.bridge(canonicalToken.symbol)
         const ammTotal = await bridge.getReservesTotal(selectedNetwork.slug)

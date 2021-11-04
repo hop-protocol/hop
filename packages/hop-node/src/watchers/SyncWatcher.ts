@@ -657,7 +657,10 @@ class SyncWatcher extends BaseWatcher {
     }
 
     if (sourceChainId) {
-      logger.debug(`attempting to find TrasferSent event on chain ${sourceChainId}`)
+      if (!this.hasSiblingWatcher(sourceChainId)) {
+        logger.error('sibling watcher not found')
+        return
+      }
       const sourceWatcher = this.getSiblingWatcherByChainId(sourceChainId) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       const sourceBridge = sourceWatcher?.bridge
       if (!sourceBridge) {
@@ -665,7 +668,7 @@ class SyncWatcher extends BaseWatcher {
         return
       }
       const event = await sourceBridge.getTransferSentEvent(transferId)
-      logger.debug(`found TrasferSent event on chain ${sourceChainId}`)
+      logger.debug(`found TrasferSent event on chainId ${sourceChainId}`)
       if (!event) {
         logger.warn('TransferSent event not found')
         return
@@ -673,8 +676,13 @@ class SyncWatcher extends BaseWatcher {
       await sourceWatcher.handleTransferSentEvent(event)
     } else {
       // attempt to find source event by trying to query all source chains
-      for (const chainId in this.siblingWatchers) {
-        const sourceWatcher = this.siblingWatchers[chainId]
+      for (const key in this.siblingWatchers) {
+        const chainId = Number(key)
+        if (!this.hasSiblingWatcher(chainId)) {
+          logger.error(`sibling watcher not found for chainId ${chainId}`)
+          continue
+        }
+        const sourceWatcher = this.getSiblingWatcherByChainId(chainId)
         const sourceBridge = sourceWatcher?.bridge
         if (!sourceBridge) {
           continue
@@ -682,10 +690,10 @@ class SyncWatcher extends BaseWatcher {
         if (sourceWatcher.isL1) {
           continue
         }
-        logger.debug(`attempting to find TrasferSent event on chain ${sourceChainId}`)
+        logger.debug(`attempting to find TrasferSent event on chainId ${chainId}`)
         const event = await sourceBridge.getTransferSentEvent(transferId)
         if (event) {
-          logger.debug(`found TrasferSent event on chain ${sourceChainId}`)
+          logger.debug(`found TrasferSent event on chainId ${chainId}`)
           await sourceWatcher.handleTransferSentEvent(event)
           break
         }
@@ -703,7 +711,11 @@ class SyncWatcher extends BaseWatcher {
     ) {
       return
     }
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    if (!sourceChainId) {
+      logger.error('expected sourceChainId')
+      return
+    }
+    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
     logger.debug(`transferSentTimestamp: ${transferSentTimestamp}`)
     await this.db.transfers.update(transferId, {
@@ -721,10 +733,15 @@ class SyncWatcher extends BaseWatcher {
     ) {
       return
     }
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    if (!destinationChainId) {
+      logger.error('expected destinationChainId')
+      return
+    }
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const tx = await destinationBridge.getTransaction(withdrawalBondedTxHash)
     if (!tx) {
-      throw new Error(`expected tx object. transferId: ${transferId}`)
+      logger.error(`expected tx object. transferId: ${transferId}`)
+      return
     }
     const { from } = tx
     logger.debug(`withdrawalBonder: ${from}`)
@@ -736,7 +753,7 @@ class SyncWatcher extends BaseWatcher {
   async populateTransferRootCommittedAt (transferRootHash: string) {
     const logger = this.logger.create({ root: transferRootHash })
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    const { sourceChainId, destinationChainId, commitTxHash, committedAt } = dbTransferRoot
+    const { sourceChainId, commitTxHash, committedAt } = dbTransferRoot
 
     if (
       !commitTxHash ||
@@ -745,8 +762,12 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
+    if (!sourceChainId) {
+      logger.error('expected sourceChainId')
+      return
+    }
     logger.debug('populating committedAt')
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await sourceBridge.getTransactionTimestamp(commitTxHash)
     logger.debug(`committedAt: ${timestamp}`)
     await this.db.transferRoots.update(transferRootHash, {
@@ -768,7 +789,8 @@ class SyncWatcher extends BaseWatcher {
     const destinationBridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge
     const tx = await destinationBridge.getTransaction(bondTxHash)
     if (!tx) {
-      throw new Error(`expected tx object. transactionHash: ${bondTxHash} transferRootHash: ${transferRootHash} chain: ${Chain.Ethereum}`)
+      logger.error(`expected tx object. transactionHash: ${bondTxHash} transferRootHash: ${transferRootHash} chain: ${Chain.Ethereum}`)
+      return
     }
     const { from } = tx
     const timestamp = await destinationBridge.getBlockTimestamp(bondBlockNumber)
@@ -826,7 +848,11 @@ class SyncWatcher extends BaseWatcher {
     ) {
       return
     }
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    if (!destinationChainId) {
+      logger.error('expected destinationChainId')
+      return
+    }
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await destinationBridge.getBlockTimestamp(rootSetBlockNumber)
     logger.debug(`rootSetTimestamp: ${timestamp}`)
     await this.db.transferRoots.update(transferRootHash, {
@@ -846,7 +872,11 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    if (!destinationChainId) {
+      logger.error('expected destinationChainId')
+      return
+    }
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const _transferIds = await destinationBridge.getTransferIdsFromSettleEventTransaction(multipleWithdrawalsSettledTxHash)
     const tree = new MerkleTree(_transferIds)
     const computedTransferRootHash = tree.getHexRoot()

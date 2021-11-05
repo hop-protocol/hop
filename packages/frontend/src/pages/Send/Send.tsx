@@ -4,7 +4,7 @@ import MuiButton from '@material-ui/core/Button'
 import Button from 'src/components/buttons/Button'
 import SendIcon from '@material-ui/icons/Send'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
-import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
+import SendAmountSelectorCard from 'src/pages/Send/SendAmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/modal/TxStatusModal'
 import DetailRow from 'src/components/DetailRow'
@@ -499,7 +499,7 @@ const Send: FC = () => {
         handleBridgeChange={handleBridgeChange}
       />
 
-      <AmountSelectorCard
+      <SendAmountSelectorCard
         value={fromTokenAmount}
         token={sourceToken ?? placeholderToken}
         label={'From'}
@@ -527,7 +527,7 @@ const Send: FC = () => {
         <ArrowDownIcon color="primary" className={styles.downArrow} />
       </MuiButton>
 
-      <AmountSelectorCard
+      <SendAmountSelectorCard
         value={toTokenAmount}
         token={destToken ?? placeholderToken}
         label={'To (estimated)'}

@@ -90,7 +90,7 @@ type Props = {
   deadline?: any
 }
 
-const AmountSelectorCard: FC<Props> = props => {
+const SendAmountSelectorCard: FC<Props> = props => {
   const {
     value = '',
     label,
@@ -230,4 +230,4 @@ const AmountSelectorCard: FC<Props> = props => {
   )
 }
 
-export default AmountSelectorCard
+export default SendAmountSelectorCard

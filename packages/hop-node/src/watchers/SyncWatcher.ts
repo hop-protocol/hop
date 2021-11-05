@@ -129,8 +129,8 @@ class SyncWatcher extends BaseWatcher {
       const incompleteTransfers = await this.db.transfers.getIncompleteItems({
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })
+      this.logger.debug(`incomplete transfer items: ${incompleteTransfers.length}`)
       if (incompleteTransfers.length) {
-        this.logger.debug(`incomplete transfer items: ${incompleteTransfers.length}`)
         const allChunks = chunk(incompleteTransfers, chunkSize)
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transfer: Transfer) => {
@@ -150,8 +150,8 @@ class SyncWatcher extends BaseWatcher {
       const incompleteTransferRoots = await this.db.transferRoots.getIncompleteItems({
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })
+      this.logger.debug(`incomplete transfer root items: ${incompleteTransferRoots.length}`)
       if (incompleteTransferRoots.length) {
-        this.logger.debug(`incomplete transfer root items: ${incompleteTransferRoots.length}`)
         const allChunks = chunk(incompleteTransferRoots, chunkSize)
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {

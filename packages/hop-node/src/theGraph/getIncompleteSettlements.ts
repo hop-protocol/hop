@@ -98,7 +98,6 @@ export default async function getIncompleteSettlements (token: string, chain: st
         // If a transfer was neither bonded nor withdrawn, log it
         console.log(`transfer ${transferId} was not bonded, not withdrawn, or bonded with incorrect parameters (which produced an incorrect transferId)`)
       }
-
     }
 
     if (!totalAmountBn.eq(calcAmountBn)) {
@@ -233,10 +232,10 @@ function getTransferSentsQuery (
     }
   `
 
-return query
+  return query
 }
 
-function getWithdrewsQuery() {
+function getWithdrewsQuery () {
   const query = `
     query Withdrew($transferId: String) {
       withdrews(
@@ -252,7 +251,7 @@ function getWithdrewsQuery() {
   return query
 }
 
-function getWithdrawalBondedsQuery() {
+function getWithdrawalBondedsQuery () {
   const query = `
     query WithdrawalBonded($transferId: String) {
       withdrawalBondeds(

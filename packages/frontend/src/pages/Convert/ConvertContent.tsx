@@ -102,6 +102,7 @@ const Convert: FC = () => {
 
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning: High Price Impact!')
   const sendButtonActive = validFormFields && !unsupportedAsset && !needsApproval && sendableWarning
+  const approvalButtonActive = needsApproval && validFormFields
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -147,7 +148,7 @@ const Convert: FC = () => {
               className={styles.button}
               large
               highlighted={!!needsApproval}
-              disabled={!needsApproval}
+              disabled={!approvalButtonActive}
               onClick={handleApprove}
               loading={approving}
             >

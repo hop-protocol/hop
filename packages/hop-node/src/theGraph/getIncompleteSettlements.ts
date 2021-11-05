@@ -14,9 +14,14 @@ type MultipleWithdrawalsSettled = {
 
 type TransferSent = {
   transferId: string
+  amount: string
 }
 
 type WithdrawnTransfer = {
+  amount: string
+}
+
+type BondedTransfer = {
   amount: string
 }
 
@@ -49,28 +54,51 @@ export default async function getIncompleteSettlements (token: string, chain: st
       calcAmountBn = calcAmountBn.add(amountSettled)
     }
 
-    const startBlockNumber = (transfersCommitted[i + 1].blockNumber).toString()
-    const endBlockNumber = blockNumber.toString()
-    const transferSent: TransferSent[] = await getTransferSent(
-      token,
-      chain,
-      destinationChainId,
-      startBlockNumber,
-      endBlockNumber
-    )
-
-    // Add any transfers that were completed using `withdraw()`
-    for (let j = 0; j < transferSent.length; j++) {
-      const { transferId } = transferSent[j]
-      const withdrawnTransfer: WithdrawnTransfer[] = await getWithdrew(
-        destinationChain,
-        transferId
+    // There is an edge case where, if the earliest committed root contains an unbonded
+    // or unwithdrawn transfer, this script will not be aware of it. The result is
+    // that the earliest committed root may be shown as incomplete even if it is
+    // actually complete
+    const nextTransferCommitted = transfersCommitted[i + 1]
+    const isEarliestCommit = !nextTransferCommitted
+    if (!isEarliestCommit) {
+      const startBlockNumber = (transfersCommitted[i + 1].blockNumber).toString()
+      const endBlockNumber = blockNumber.toString()
+      const transferSent: TransferSent[] = await getTransferSent(
+        token,
+        chain,
+        destinationChainId,
+        startBlockNumber,
+        endBlockNumber
       )
-      if (withdrawnTransfer.length === 0) {
-        continue
+
+      for (let k = 0; k < transferSent.length; k++) {
+        const { transferId, amount: transferAmount } = transferSent[k]
+
+        // Add any transfers that were completed using `withdraw()`
+        const withdrawnTransfer: WithdrawnTransfer[] = await getWithdrew(
+          destinationChain,
+          transferId
+        )
+        if (withdrawnTransfer.length !== 0) {
+          const amount = withdrawnTransfer[0].amount
+          calcAmountBn = calcAmountBn.add(amount)
+          continue
+        }
+
+        // Add any transfers that were not bonded
+        const bondedTransfer: BondedTransfer[] = await getBondedTransfer(
+          destinationChain,
+          transferId
+        )
+        if (bondedTransfer.length !== 0) {
+          continue
+        }
+        calcAmountBn = calcAmountBn.add(transferAmount)
+
+        // If a transfer was neither bonded nor withdrawn, log it
+        console.log(`transfer ${transferId} was not bonded, not withdrawn, or bonded with incorrect parameters (which produced an incorrect transferId)`)
       }
-      const amount = withdrawnTransfer[0].amount
-      calcAmountBn = calcAmountBn.add(amount)
+
     }
 
     if (!totalAmountBn.eq(calcAmountBn)) {
@@ -134,6 +162,17 @@ async function getWithdrew (
   return withdrewsRes.withdrews
 }
 
+async function getBondedTransfer (
+  destinationChain: string,
+  transferId: string
+): Promise<BondedTransfer[]> {
+  const query = getWithdrawalBondedsQuery()
+  const withdrawalBondedsRes = await makeRequest(destinationChain, query, {
+    transferId
+  })
+  return withdrawalBondedsRes.withdrawalBondeds
+}
+
 function getTransfersCommittedsQuery (token: string) {
   const query = `
     query TransferId(${token ? '$token: String, ' : ''}$destinationChainId: String) {
@@ -189,6 +228,7 @@ function getTransferSentsQuery (
         first: 1000
       ) {
         transferId
+        amount
       }
     }
   `
@@ -200,6 +240,22 @@ function getWithdrewsQuery() {
   const query = `
     query Withdrew($transferId: String) {
       withdrews(
+        where: {
+          transferId: $transferId
+        }
+      ) {
+        amount
+      }
+    }
+  `
+
+  return query
+}
+
+function getWithdrawalBondedsQuery() {
+  const query = `
+    query WithdrawalBonded($transferId: String) {
+      withdrawalBondeds(
         where: {
           transferId: $transferId
         }

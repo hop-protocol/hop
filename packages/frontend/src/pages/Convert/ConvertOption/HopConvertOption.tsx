@@ -78,6 +78,10 @@ class HopConvertOption extends ConvertOption {
     let estimatedReceived = amountIn
     let warning
 
+    if (estimatedReceived && totalFees?.gt(estimatedReceived)) {
+      warning = 'Bonder fee greater than estimated received'
+    }
+
     if (!sourceNetwork?.isLayer1 && amountIn.gt(availableLiquidity)) {
       const formattedAmount = toTokenDisplay(availableLiquidity, token.decimals)
       warning = `Insufficient liquidity. There is ${formattedAmount} ${l1TokenSymbol} available on ${destNetwork.name}.`

@@ -6,6 +6,7 @@ type TransferCommitted = {
   blockNumber: string
   rootHash: string
   totalAmount: string
+  transactionIndex: string
 }
 
 type MultipleWithdrawalsSettled = {
@@ -41,7 +42,7 @@ export default async function getIncompleteSettlements (token: string, chain: st
   console.log(`Number of transfersCommitted: ${numTransfersCommitted}`)
   for (let i = 0; i < transfersCommitted.length; i++) {
     console.log(`checking ${i + 1}/${numTransfersCommitted}`)
-    const { rootHash, totalAmount, blockNumber } = transfersCommitted[i]
+    const { rootHash, totalAmount, blockNumber, transactionIndex } = transfersCommitted[i]
     const totalAmountBn: BigNumber = BigNumber.from(totalAmount)
 
     const multipleWithdrawalsSettled: MultipleWithdrawalsSettled[] = await getMultipleWithdrawalsSettled(
@@ -61,14 +62,18 @@ export default async function getIncompleteSettlements (token: string, chain: st
     const nextTransferCommitted = transfersCommitted[i + 1]
     const isEarliestCommit = !nextTransferCommitted
     if (!isEarliestCommit) {
-      const startBlockNumber = (transfersCommitted[i + 1].blockNumber).toString()
-      const endBlockNumber = blockNumber.toString()
+      const startBlockNumber = nextTransferCommitted.blockNumber
+      const startTransactionIndex = nextTransferCommitted.transactionIndex
+      const endBlockNumber = blockNumber
+      const endTransactionIndex = transactionIndex
       const transferSent: TransferSent[] = await getTransferSent(
         token,
         chain,
         destinationChainId,
         startBlockNumber,
-        endBlockNumber
+        endBlockNumber,
+        startTransactionIndex,
+        endTransactionIndex
       )
 
       for (let k = 0; k < transferSent.length; k++) {
@@ -139,13 +144,17 @@ async function getTransferSent (
   chain: string,
   destinationChainId: number,
   startBlockNumber: string,
-  endBlockNumber: string
+  endBlockNumber: string,
+  startTransactionIndex: string,
+  endTransactionIndex: string
 ): Promise<TransferSent[]> {
   const query = getTransferSentsQuery(token)
   const transferSentRes = await makeRequest(chain, query, {
     token,
     startBlockNumber,
     endBlockNumber,
+    startTransactionIndex,
+    endTransactionIndex,
     destinationChainId: destinationChainId.toString()
   })
   return transferSentRes.transferSents
@@ -188,6 +197,7 @@ function getTransfersCommittedsQuery (token: string) {
         rootHash
         totalAmount
         blockNumber
+        transactionIndex
       }
     }
   `
@@ -215,13 +225,15 @@ function getTransferSentsQuery (
   token: string
 ) {
   const query = `
-    query TransferSent(${token ? '$token: String, ' : ''}$destinationChainId: String, $startBlockNumber: String, $endBlockNumber: String) {
+    query TransferSent(${token ? '$token: String, ' : ''}$destinationChainId: String, $startBlockNumber: String, $endBlockNumber: String, $startTransactionIndex: String, $endTransactionIndex: String) {
       transferSents(
         where: {
           ${token ? 'token: $token,' : ''}
           destinationChainId: $destinationChainId
           blockNumber_gte: $startBlockNumber
           blockNumber_lte: $endBlockNumber
+          transactionIndex_gte: $startTransactionIndex
+          transactionIndex_lte: $endTransactionIndex
         },
         orderBy: timestamp,
         orderDirection: desc,

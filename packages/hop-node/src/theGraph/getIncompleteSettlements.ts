@@ -16,6 +16,8 @@ type MultipleWithdrawalsSettled = {
 type TransferSent = {
   transferId: string
   amount: string
+  transactionIndex: string
+  blockNumber: string
 }
 
 type WithdrawnTransfer = {
@@ -66,18 +68,28 @@ export default async function getIncompleteSettlements (token: string, chain: st
       const startTransactionIndex = nextTransferCommitted.transactionIndex
       const endBlockNumber = blockNumber
       const endTransactionIndex = transactionIndex
-      const transferSent: TransferSent[] = await getTransferSent(
+      let transferSent: TransferSent[] = await getTransferSent(
         token,
         chain,
         destinationChainId,
         startBlockNumber,
-        endBlockNumber,
-        startTransactionIndex,
-        endTransactionIndex
+        endBlockNumber
       )
 
+      // Put transfers in chronological order
+      transferSent = transferSent.reverse()
       for (let k = 0; k < transferSent.length; k++) {
-        const { transferId, amount: transferAmount } = transferSent[k]
+        const { transferId, amount: transferAmount, transactionIndex, blockNumber } = transferSent[k]
+
+        if (k === 0) {
+          if (transactionIndex < startTransactionIndex && blockNumber === startBlockNumber) {
+            continue
+          }
+        } else if (k === transferSent.length - 1) {
+          if (transactionIndex > endTransactionIndex && blockNumber === endBlockNumber) {
+            continue
+          }
+        }
 
         // Add any transfers that were completed using `withdraw()`
         const withdrawnTransfer: WithdrawnTransfer[] = await getWithdrew(
@@ -144,17 +156,13 @@ async function getTransferSent (
   chain: string,
   destinationChainId: number,
   startBlockNumber: string,
-  endBlockNumber: string,
-  startTransactionIndex: string,
-  endTransactionIndex: string
+  endBlockNumber: string
 ): Promise<TransferSent[]> {
   const query = getTransferSentsQuery(token)
   const transferSentRes = await makeRequest(chain, query, {
     token,
     startBlockNumber,
     endBlockNumber,
-    startTransactionIndex,
-    endTransactionIndex,
     destinationChainId: destinationChainId.toString()
   })
   return transferSentRes.transferSents
@@ -232,8 +240,6 @@ function getTransferSentsQuery (
           destinationChainId: $destinationChainId
           blockNumber_gte: $startBlockNumber
           blockNumber_lte: $endBlockNumber
-          transactionIndex_gte: $startTransactionIndex
-          transactionIndex_lte: $endTransactionIndex
         },
         orderBy: timestamp,
         orderDirection: desc,
@@ -241,6 +247,8 @@ function getTransferSentsQuery (
       ) {
         transferId
         amount
+        transactionIndex
+        blockNumber
       }
     }
   `

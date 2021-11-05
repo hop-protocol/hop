@@ -169,13 +169,13 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
   }
 
   const handleMaxClick = useCallback(async () => {
-    if (!(onChange && balance && token && methodName)) {
+    if (!(onChange && balance && token)) {
       return
     }
 
     let maxValue = formatUnits(balance, token.decimals)
 
-    if (token?.isNativeToken) {
+    if (token?.isNativeToken && methodName) {
       const opts = {
         token,
         balance,
@@ -189,13 +189,13 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
   }, [onChange, token, balance, methodName])
 
   const handleSecondaryMaxClick = useCallback(async () => {
-    if (!(onChange && secondaryBalance && secondaryToken && methodName && selectedNetwork)) {
+    if (!(onChange && secondaryBalance && secondaryToken)) {
       return
     }
 
     let maxValue = formatUnits(secondaryBalance, secondaryToken.decimals)
 
-    if (secondaryToken?.isNativeToken) {
+    if (secondaryToken?.isNativeToken && methodName) {
       const opts = {
         token: secondaryToken,
         balance: secondaryBalance,

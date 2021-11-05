@@ -8,9 +8,9 @@ import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
 import { ZERO_ADDRESS } from 'src/constants'
 
-export const METHOD_NAMES = {
-  convertTokens: 'convertTokens',
-  wrapToken: 'wrapToken',
+export enum MethodNames {
+  convertTokens = 'convertTokens',
+  wrapToken = 'wrapToken',
 }
 
 async function estimateGasCost(signer: TProvider, estimatedGasLimit: BigNumber) {
@@ -130,11 +130,11 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
 
       try {
         switch (methodName) {
-          case METHOD_NAMES.convertTokens: {
+          case MethodNames.convertTokens: {
             return estimateConvertTokens(options)
           }
 
-          case METHOD_NAMES.wrapToken: {
+          case MethodNames.wrapToken: {
             return estimateWrap(options)
           }
 

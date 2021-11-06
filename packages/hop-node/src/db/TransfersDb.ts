@@ -91,6 +91,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     const { transferId } = item
     if (!transferId) {
       this.logger.error('expected transferId', item)
+      return
     }
     const isIncomplete = this.isItemIncomplete(item)
     const exists = await this.subDbIncompletes.getById(transferId)

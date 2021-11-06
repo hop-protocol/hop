@@ -711,7 +711,7 @@ class SyncWatcher extends BaseWatcher {
     }
     const event = await sourceBridge.getTransferSentEvent(transferId)
     if (!event) {
-      logger.warn('TransferSent event not found')
+      logger.warn('TransferSent event not found', JSON.stringify(dbTransfer))
       return
     }
     logger.debug(`found TrasferSent event on chainId ${sourceChainId}`)

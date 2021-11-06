@@ -340,9 +340,9 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     }
 
     // skip any items that cannot be found on-chain
-    if (item.isNotFound) {
-      return false
-    }
+    // if (item.isNotFound) {
+    // return false
+    // }
 
     return (
       /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */

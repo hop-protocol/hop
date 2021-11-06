@@ -661,6 +661,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`expected db transfer root item, transferRootHash: ${transferRootHash}`)
     }
 
+    await this.populateTransferRootCommittedEvent(transferRootHash)
     await this.populateTransferRootCommittedAt(transferRootHash)
     await this.populateTransferRootBondedAt(transferRootHash)
     await this.populateTransferRootTimestamp(transferRootHash)
@@ -769,10 +770,47 @@ class SyncWatcher extends BaseWatcher {
     })
   }
 
+  async populateTransferRootCommittedEvent (transferRootHash: string) {
+    const logger = this.logger.create({ root: transferRootHash })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    let { sourceChainId, destinationChainId, committedAt } = dbTransferRoot
+    if (sourceChainId && destinationChainId && committedAt) {
+      return
+    }
+
+    if (!sourceChainId) {
+      if (this.isL1) {
+        return
+      }
+
+      // attempt to find transfer event on chain this bridge belongs to
+      sourceChainId = await this.bridge.getChainId()
+    }
+
+    if (!this.hasSiblingWatcher(sourceChainId)) {
+      logger.error('sibling watcher not found')
+      return
+    }
+    const sourceWatcher = this.getSiblingWatcherByChainId(sourceChainId) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const sourceBridge = sourceWatcher?.bridge
+    if (!sourceBridge) {
+      logger.error('source bridge not found')
+      return
+    }
+    const event = await sourceBridge.getTransfersCommittedEvent(transferRootHash)
+    if (!event) {
+      logger.warn('TransfersCommitted event not found. isNotFound: true, dbItem:', JSON.stringify(dbTransferRoot))
+      // await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
+    logger.debug(`found TransfersCommitted event on chainId ${sourceChainId}`)
+    await sourceWatcher.handleTransfersCommittedEvent(event)
+  }
+
   async populateTransferRootCommittedAt (transferRootHash: string) {
     const logger = this.logger.create({ root: transferRootHash })
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    const { sourceChainId, commitTxHash, committedAt } = dbTransferRoot
+    const { sourceChainId, destinationChainId, commitTxHash, committedAt } = dbTransferRoot
 
     if (
       !commitTxHash ||
@@ -835,7 +873,6 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     if (!destinationChainId) {
-      logger.error('expected destinationChainId')
       return
     }
     if (!transferRootId) {
@@ -868,7 +905,6 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     if (!destinationChainId) {
-      logger.error('expected destinationChainId')
       return
     }
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -892,7 +928,6 @@ class SyncWatcher extends BaseWatcher {
     }
 
     if (!destinationChainId) {
-      logger.error('expected destinationChainId')
       return
     }
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion

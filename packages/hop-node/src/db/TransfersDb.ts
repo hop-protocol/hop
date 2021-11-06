@@ -40,7 +40,8 @@ export type Transfer = {
   transferSentIndex?: number
 
   isBondable?: boolean
-  committed: boolean
+  committed?: boolean
+  isNotFound?: boolean
 }
 
 class TransfersDb extends TimestampedKeysDb<Transfer> {
@@ -334,6 +335,15 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   }
 
   isItemIncomplete (item: Partial<Transfer>) {
+    if (!item) {
+      return false
+    }
+
+    // skip any items that cannot be found on-chain
+    if (item.isNotFound) {
+      return false
+    }
+
     return (
       /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
       !item.sourceChainId ||

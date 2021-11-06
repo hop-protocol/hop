@@ -139,7 +139,14 @@ export default class L2Bridge extends Bridge {
   async getTransferSentEvent (transferId: string): Promise<TransferSentEvent | null> {
     let match: TransferSentEvent | undefined
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.getTransferSentEvents(
+      const events: any[] = await this.l2BridgeContract.queryFilter(
+        {
+          topics: [
+            // this.l2BridgeContract.filters.TransferSent(),
+            '0xe35dddd4ea75d7e9b3fe93af4f4e40e778c3da4074c9d93e7c6536f1e803c1eb',
+            transferId
+          ]
+        },
         start,
         end
       )
@@ -150,7 +157,7 @@ export default class L2Bridge extends Bridge {
           return false
         }
       }
-    })
+    }, { startBlockNumber: this.bridgeDeployedBlockNumber })
 
     if (!match) {
       return null

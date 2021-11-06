@@ -413,7 +413,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   }
 
   isItemIncomplete (item: Partial<TransferRoot>) {
-    if (!item) {
+    if (!item?.transferRootHash) {
       return false
     }
 

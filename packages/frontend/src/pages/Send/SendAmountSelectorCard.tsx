@@ -88,6 +88,7 @@ type Props = {
   loadingValue?: boolean
   disableInput?: boolean
   deadline?: any
+  setWarning?: (message: string) => void
 }
 
 const SendAmountSelectorCard: FC<Props> = props => {
@@ -106,6 +107,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
     loadingValue = false,
     disableInput = false,
     deadline,
+    setWarning,
   } = props
   const styles = useStyles()
 
@@ -123,13 +125,17 @@ const SendAmountSelectorCard: FC<Props> = props => {
   }
 
   const handleMaxClick = async () => {
-    if (!(onChange && balance && token && fromNetwork && toNetwork && deadline)) {
+    if (!(onChange && balance && token && fromNetwork && deadline)) {
       return
     }
 
     let nativeTokenMaxGasCost = BigNumber.from(0)
 
     if (token.isNativeToken) {
+      if (!toNetwork && setWarning) {
+        return setWarning('Please set a destination network to determine max value')
+      }
+
       const options = {
         balance,
         token,

@@ -179,8 +179,9 @@ const Send: FC = () => {
 
   // Reset error message when fromNetwork changes
   useEffect(() => {
+    setWarning('')
     setError('')
-  }, [fromNetwork])
+  }, [fromNetwork, toNetwork])
 
   // Check if there is sufficient available liquidity
   useEffect(() => {
@@ -521,6 +522,7 @@ const Send: FC = () => {
         deadline={deadline}
         toNetwork={toNetwork}
         fromNetwork={fromNetwork}
+        setWarning={setWarning}
       />
 
       <MuiButton className={styles.switchDirectionButton} onClick={handleSwitchDirection}>

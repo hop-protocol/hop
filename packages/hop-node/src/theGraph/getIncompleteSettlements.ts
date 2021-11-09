@@ -6,6 +6,7 @@ type TransferCommitted = {
   blockNumber: string
   rootHash: string
   totalAmount: string
+  transactionIndex: string
 }
 
 type MultipleWithdrawalsSettled = {
@@ -15,6 +16,8 @@ type MultipleWithdrawalsSettled = {
 type TransferSent = {
   transferId: string
   amount: string
+  transactionIndex: string
+  blockNumber: string
 }
 
 type WithdrawnTransfer = {
@@ -41,7 +44,7 @@ export default async function getIncompleteSettlements (token: string, chain: st
   console.log(`Number of transfersCommitted: ${numTransfersCommitted}`)
   for (let i = 0; i < transfersCommitted.length; i++) {
     console.log(`checking ${i + 1}/${numTransfersCommitted}`)
-    const { rootHash, totalAmount, blockNumber } = transfersCommitted[i]
+    const { rootHash, totalAmount, blockNumber, transactionIndex } = transfersCommitted[i]
     const totalAmountBn: BigNumber = BigNumber.from(totalAmount)
 
     const multipleWithdrawalsSettled: MultipleWithdrawalsSettled[] = await getMultipleWithdrawalsSettled(
@@ -61,9 +64,11 @@ export default async function getIncompleteSettlements (token: string, chain: st
     const nextTransferCommitted = transfersCommitted[i + 1]
     const isEarliestCommit = !nextTransferCommitted
     if (!isEarliestCommit) {
-      const startBlockNumber = (transfersCommitted[i + 1].blockNumber).toString()
-      const endBlockNumber = blockNumber.toString()
-      const transferSent: TransferSent[] = await getTransferSent(
+      const startBlockNumber = nextTransferCommitted.blockNumber
+      const startTransactionIndex = nextTransferCommitted.transactionIndex
+      const endBlockNumber = blockNumber
+      const endTransactionIndex = transactionIndex
+      let transferSent: TransferSent[] = await getTransferSent(
         token,
         chain,
         destinationChainId,
@@ -71,8 +76,20 @@ export default async function getIncompleteSettlements (token: string, chain: st
         endBlockNumber
       )
 
+      // Put transfers in chronological order
+      transferSent = transferSent.reverse()
       for (let k = 0; k < transferSent.length; k++) {
-        const { transferId, amount: transferAmount } = transferSent[k]
+        const { transferId, amount: transferAmount, transactionIndex, blockNumber } = transferSent[k]
+
+        if (k === 0) {
+          if (transactionIndex < startTransactionIndex && blockNumber === startBlockNumber) {
+            continue
+          }
+        } else if (k === transferSent.length - 1) {
+          if (transactionIndex > endTransactionIndex && blockNumber === endBlockNumber) {
+            continue
+          }
+        }
 
         // Add any transfers that were completed using `withdraw()`
         const withdrawnTransfer: WithdrawnTransfer[] = await getWithdrew(
@@ -98,7 +115,6 @@ export default async function getIncompleteSettlements (token: string, chain: st
         // If a transfer was neither bonded nor withdrawn, log it
         console.log(`transfer ${transferId} was not bonded, not withdrawn, or bonded with incorrect parameters (which produced an incorrect transferId)`)
       }
-
     }
 
     if (!totalAmountBn.eq(calcAmountBn)) {
@@ -188,6 +204,7 @@ function getTransfersCommittedsQuery (token: string) {
         rootHash
         totalAmount
         blockNumber
+        transactionIndex
       }
     }
   `
@@ -215,7 +232,7 @@ function getTransferSentsQuery (
   token: string
 ) {
   const query = `
-    query TransferSent(${token ? '$token: String, ' : ''}$destinationChainId: String, $startBlockNumber: String, $endBlockNumber: String) {
+    query TransferSent(${token ? '$token: String, ' : ''}$destinationChainId: String, $startBlockNumber: String, $endBlockNumber: String, $startTransactionIndex: String, $endTransactionIndex: String) {
       transferSents(
         where: {
           ${token ? 'token: $token,' : ''}
@@ -229,14 +246,16 @@ function getTransferSentsQuery (
       ) {
         transferId
         amount
+        transactionIndex
+        blockNumber
       }
     }
   `
 
-return query
+  return query
 }
 
-function getWithdrewsQuery() {
+function getWithdrewsQuery () {
   const query = `
     query Withdrew($transferId: String) {
       withdrews(
@@ -252,7 +271,7 @@ function getWithdrewsQuery() {
   return query
 }
 
-function getWithdrawalBondedsQuery() {
+function getWithdrawalBondedsQuery () {
   const query = `
     query WithdrawalBonded($transferId: String) {
       withdrawalBondeds(

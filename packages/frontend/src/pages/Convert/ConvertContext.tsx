@@ -262,6 +262,11 @@ const ConvertContextProvider: FC = ({ children }) => {
   // Fetch send data
   useEffect(() => {
     const getSendData = async () => {
+      setWarning(undefined)
+      setAmountOutMin(undefined)
+      setDetails(undefined)
+      setBonderFee(undefined)
+
       if (!selectedBridge || !sourceTokenAmount || !sourceNetwork || !destNetwork || !sourceToken) {
         setDestTokenAmount('')
         return
@@ -269,7 +274,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
       const ctx = ++debouncer.current
 
-      const { amountOut, details, bonderFee } = await convertOption.getSendData(
+      const { amountOut, details, bonderFee, warning } = await convertOption.getSendData(
         sdk,
         sourceNetwork,
         destNetwork,
@@ -294,6 +299,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       if (ctx !== debouncer.current) return
 
       setError(undefined)
+      setWarning(warning)
       setDestTokenAmount(formattedAmount)
       setAmountOutMin(_amountOutMin)
       setDetails(details)
@@ -472,7 +478,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const enoughBalance = sourceBalance?.gte(parsedSourceTokenAmount)
   const withinMax = true
   let sendButtonText = 'Convert'
-  const validFormFields = !!(sourceTokenAmount && destTokenAmount && enoughBalance && withinMax)
+  const validFormFields = !!(sourceTokenAmount && destTokenAmount && enoughBalance && withinMax) && !!bonderFee
   if (sourceBalance === undefined) {
     sendButtonText = 'Fetching balance...'
   } else if (!enoughBalance) {

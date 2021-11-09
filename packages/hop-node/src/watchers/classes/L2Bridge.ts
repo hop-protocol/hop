@@ -136,10 +136,11 @@ export default class L2Bridge extends Bridge {
     return await this.mapEventsBatch(this.getTransferSentEvents, cb, options)
   }
 
-  async getTransferSentTimestamp (transferId: string): Promise<number> {
+  async getTransferSentEvent (transferId: string): Promise<TransferSentEvent | null> {
     let match: TransferSentEvent | undefined
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.getTransferSentEvents(
+      const events: any[] = await this.l2BridgeContract.queryFilter(
+        this.l2BridgeContract.filters.TransferSent(transferId),
         start,
         end
       )
@@ -150,13 +151,21 @@ export default class L2Bridge extends Bridge {
           return false
         }
       }
-    })
+    }, { startBlockNumber: this.bridgeDeployedBlockNumber })
 
     if (!match) {
-      return 0
+      return null
     }
 
-    return await this.getEventTimestamp(match)
+    return match
+  }
+
+  async getTransferSentTimestamp (transferId: string): Promise<number> {
+    const event = await this.getTransferSentEvent(transferId)
+    if (!event) {
+      return 0
+    }
+    return await this.getEventTimestamp(event)
   }
 
   sendHTokens = async (
@@ -333,48 +342,28 @@ export default class L2Bridge extends Bridge {
     return pendingTransfers
   }
 
-  async getTransferRootCommittedTxHash (
-    transferRootHash: string
-  ): Promise<string | undefined> {
-    let txHash: string | undefined
+  async getTransfersCommittedEvent (transferRootHash: string): Promise<TransfersCommittedEvent | null> {
+    let match: TransfersCommittedEvent | undefined
     await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.getTransfersCommittedEvents(
+      const events: any[] = await this.l2BridgeContract.queryFilter(
+        this.l2BridgeContract.filters.TransfersCommitted(null, transferRootHash),
         start,
         end
       )
 
       for (const event of events) {
-        if (transferRootHash === event.args.rootHash) {
-          txHash = event.transactionHash
+        if (event.args.rootHash === transferRootHash) {
+          match = event
           return false
         }
       }
-      return true
-    })
+    }, { startBlockNumber: this.bridgeDeployedBlockNumber })
 
-    return txHash
-  }
+    if (!match) {
+      return null
+    }
 
-  async getTransferSentTxHash (
-    transferId: string
-  ): Promise<string | undefined> {
-    let txHash: string | undefined
-    await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.getTransferSentEvents(
-        start,
-        end
-      )
-
-      for (const event of events) {
-        if (transferId === event.args.transferId) {
-          txHash = event.transactionHash
-          return false
-        }
-      }
-      return true
-    })
-
-    return txHash
+    return match
   }
 
   async isTransferRootIdSet (

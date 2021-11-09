@@ -133,6 +133,9 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [token1Deposited, setToken1Deposited] = useState<string>('')
   const [apr, setApr] = useState<number | undefined>()
   const aprRef = useRef<string>('')
+  const [reserveTotalsUsd, setReserveTotalsUsd] = useState<number | undefined>()
+  const [virtualPrice, setVirutalPrice] = useState<number | undefined>()
+  const [fee, setFee] = useState<number | undefined>()
 
   const { networks, txConfirm, sdk, selectedBridge, settings } = useApp()
   const { deadline, slippageTolerance } = settings
@@ -240,28 +243,40 @@ const PoolsContextProvider: FC = ({ children }) => {
     }
   }, [canonicalToken])
 
-  const reserveTotalsUsd = useAsyncMemo(async () => {
-    try {
-      if (!(selectedNetwork && canonicalToken && tokenUsdPrice)) {
-        return
-      }
+  useEffect(() => {
+    let isSubscribed = true
+    const update = async () => {
+      try {
+        setReserveTotalsUsd(undefined)
+        if (!(selectedNetwork && canonicalToken && tokenUsdPrice)) {
+          return
+        }
 
-      const tokenUsdPriceBn = amountToBN(tokenUsdPrice.toString(), TOTAL_AMOUNTS_DECIMALS)
-      const bridge = await sdk.bridge(canonicalToken.symbol)
-      const ammTotal = await bridge.getReservesTotal(selectedNetwork.slug)
-      if (ammTotal.lte(0)) {
-        return 0
+        const tokenUsdPriceBn = amountToBN(tokenUsdPrice.toString(), TOTAL_AMOUNTS_DECIMALS)
+        const bridge = await sdk.bridge(canonicalToken.symbol)
+        const ammTotal = await bridge.getReservesTotal(selectedNetwork.slug)
+        if (ammTotal.lte(0)) {
+          setReserveTotalsUsd(0)
+          return
+        }
+        const precision = amountToBN('1', 18)
+        const ammTotal18d = shiftBNDecimals(
+          ammTotal,
+          TOTAL_AMOUNTS_DECIMALS - canonicalToken.decimals
+        )
+        if (isSubscribed) {
+          setReserveTotalsUsd(Number(
+            formatUnits(ammTotal18d.mul(tokenUsdPriceBn).div(precision), TOTAL_AMOUNTS_DECIMALS)
+          ))
+        }
+      } catch (err) {
+        console.error(err)
       }
-      const precision = amountToBN('1', 18)
-      const ammTotal18d = shiftBNDecimals(
-        ammTotal,
-        TOTAL_AMOUNTS_DECIMALS - canonicalToken.decimals
-      )
-      return Number(
-        formatUnits(ammTotal18d.mul(tokenUsdPriceBn).div(precision), TOTAL_AMOUNTS_DECIMALS)
-      )
-    } catch (err) {
-      console.error(err)
+    }
+
+    update().catch(err => logger.error(err))
+    return () => {
+      isSubscribed = false
     }
   }, [selectedNetwork, canonicalToken, tokenUsdPrice])
 
@@ -272,9 +287,11 @@ const PoolsContextProvider: FC = ({ children }) => {
   }, [l2Networks])
 
   useEffect(() => {
+    let isSubscribed = true
     const update = async () => {
       try {
         if (!(selectedBridge && selectedNetwork)) {
+          setApr(undefined)
           return
         }
         const token = await selectedBridge.getCanonicalToken(selectedNetwork.slug)
@@ -318,14 +335,18 @@ const PoolsContextProvider: FC = ({ children }) => {
         } catch (err) {
           // noop
         }
-        setApr(apr)
+        if (isSubscribed) {
+          setApr(apr)
+        }
       } catch (err) {
-        setApr(undefined)
         logger.error(err)
       }
     }
 
-    update()
+    update().catch(err => logger.error(err))
+    return () => {
+      isSubscribed = false
+    }
   }, [sdk, selectedBridge, selectedNetwork])
 
   const priceImpact = useAsyncMemo(async () => {
@@ -344,31 +365,53 @@ const PoolsContextProvider: FC = ({ children }) => {
     }
   }, [sdk, canonicalToken, hopToken, selectedNetwork, token0Amount, token1Amount])
 
-  const virtualPrice = useAsyncMemo(async () => {
-    if (!canonicalToken) {
-      return
+  useEffect(() => {
+    let isSubscribed = true
+    const update = async () => {
+      setVirutalPrice(undefined)
+      if (!canonicalToken) {
+        return
+      }
+      try {
+        const bridge = await sdk.bridge(canonicalToken.symbol)
+        const amm = bridge.getAmm(selectedNetwork.slug)
+        const vPrice = await amm.getVirtualPrice()
+        if (isSubscribed) {
+          setVirutalPrice(Number(formatUnits(vPrice.toString(), 18)))
+        }
+      } catch (err) {
+        logger.error(err)
+      }
     }
-    try {
-      const bridge = await sdk.bridge(canonicalToken.symbol)
-      const amm = bridge.getAmm(selectedNetwork.slug)
-      const vPrice = await amm.getVirtualPrice()
-      return Number(formatUnits(vPrice.toString(), 18))
-    } catch (err) {
-      logger.error(err)
+
+    update().catch(err => logger.error(err))
+    return () => {
+      isSubscribed = false
     }
   }, [sdk, canonicalToken, selectedNetwork])
 
-  const fee = useAsyncMemo(async () => {
-    if (!canonicalToken) {
-      return
+  useEffect(() => {
+    let isSubscribed = true
+    const update = async () => {
+      setFee(undefined)
+      if (!canonicalToken) {
+        return
+      }
+      try {
+        const poolFeePrecision = 10
+        const bridge = await sdk.bridge(canonicalToken.symbol)
+        const amm = bridge.getAmm(selectedNetwork.slug)
+        if (isSubscribed) {
+          setFee(await amm.getSwapFee())
+        }
+      } catch (err) {
+        logger.error(err)
+      }
     }
-    try {
-      const poolFeePrecision = 10
-      const bridge = await sdk.bridge(canonicalToken.symbol)
-      const amm = bridge.getAmm(selectedNetwork.slug)
-      return amm.getSwapFee()
-    } catch (err) {
-      logger.error(err)
+
+    update().catch(err => logger.error(err))
+    return () => {
+      isSubscribed = false
     }
   }, [sdk, canonicalToken, selectedNetwork])
 
@@ -409,7 +452,9 @@ const PoolsContextProvider: FC = ({ children }) => {
   }, [hopToken, token0Amount, totalSupply, token1Amount, token1Rate, poolReserves, updatePrices])
 
   useEffect(() => {
+    let isSubscribed = true
     const update = async () => {
+      setPoolReserves([])
       if (!(canonicalToken && hopToken)) {
         return
       }
@@ -423,10 +468,15 @@ const PoolsContextProvider: FC = ({ children }) => {
       const lpDecimals = Number(lpDecimalsBn.toString())
       const reserve0 = formatUnits(reserves[0].toString(), canonicalToken.decimals)
       const reserve1 = formatUnits(reserves[1].toString(), hopToken.decimals)
-      setPoolReserves([reserve0, reserve1])
+      if (isSubscribed) {
+        setPoolReserves([reserve0, reserve1])
+      }
     }
 
     update().catch(err => logger.error(err))
+    return () => {
+      isSubscribed = false
+    }
   }, [canonicalToken, hopToken, selectedNetwork])
 
   const updateUserPoolPositions = useCallback(async () => {

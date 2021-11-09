@@ -62,6 +62,7 @@ program
       }
       const tree = new MerkleTree(transferIds)
       const leaves = tree.getHexLeaves()
+      const numLeaves = leaves.length
       const transferIndex = leaves.indexOf(transferId)
       const proof = tree.getHexProof(leaves[transferIndex])
       const output = {
@@ -70,7 +71,8 @@ program
         leaves,
         proof,
         transferIndex,
-        rootTotalAmount
+        rootTotalAmount,
+        numLeaves
       }
 
       console.log(JSON.stringify(output, null, 2))

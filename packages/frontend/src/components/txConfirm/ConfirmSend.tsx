@@ -42,7 +42,7 @@ interface Props {
   onConfirm: (confirmed: boolean) => void
 }
 
-const Send = (props: Props) => {
+const ConfirmSend = (props: Props) => {
   const { customRecipient, source, dest, onConfirm } = props
   const styles = useStyles()
   const [sending, setSending] = useState<boolean>(false)
@@ -54,7 +54,7 @@ const Send = (props: Props) => {
     } catch (err) {
       logger.error(err)
     }
-    setSending(false)
+    // setSending(false)
   }
 
   let warning = ''
@@ -84,6 +84,7 @@ const Send = (props: Props) => {
           className={styles.sendButton}
           onClick={handleSubmit}
           loading={sending}
+          disabled={sending}
           large
           highlighted
         >
@@ -94,4 +95,4 @@ const Send = (props: Props) => {
   )
 }
 
-export default Send
+export default ConfirmSend

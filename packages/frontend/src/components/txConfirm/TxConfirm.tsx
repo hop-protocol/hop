@@ -1,7 +1,7 @@
 import React, { FC } from 'react'
 import Modal from 'src/components/modal/Modal'
 import Approval from 'src/components/txConfirm/Approval'
-import Send from 'src/components/txConfirm/Send'
+import ConfirmSend from 'src/components/txConfirm/ConfirmSend'
 import Convert from 'src/components/txConfirm/Convert'
 import AddLiquidity from 'src/components/txConfirm/AddLiquidity'
 import RemoveLiquidity from 'src/components/txConfirm/RemoveLiquidity'
@@ -20,7 +20,7 @@ const TxConfirm: FC = props => {
   const { kind, inputProps, onConfirm } = txConfirmParams
   const components: { [key: string]: FC<any> } = {
     approval: Approval,
-    send: Send,
+    send: ConfirmSend,
     convert: Convert,
     addLiquidity: AddLiquidity,
     removeLiquidity: RemoveLiquidity,

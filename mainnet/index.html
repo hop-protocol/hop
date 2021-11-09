@@ -151,7 +151,7 @@
             </thead>
             <tbody>
               <tr v-for="(x, index) in transfers">
-                <td class="index">{{ x.index + 1 }}</td>
+                <td class="index">{{ index + 1 }}</td>
                 <td class="timestamp" :title="x.isoTimestamp">{{ x.relativeTimestamp }}</td>
                 <td :class="x.sourceChainSlug">
                   <img :src="x.sourceChainImageUrl" :alt="x.sourceChainName">

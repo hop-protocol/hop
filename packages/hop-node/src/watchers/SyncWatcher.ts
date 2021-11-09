@@ -125,38 +125,28 @@ class SyncWatcher extends BaseWatcher {
 
   async incompletePollSync () {
     try {
+      await Promise.all([
+        this.incompleteTransfersPollSync(),
+        this.incompleteTransferRootsPollSync()
+      ])
+    } catch (err) {
+      this.logger.error(`incomplete poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
+    }
+  }
+
+  async incompleteTransferRootsPollSync () {
+    try {
       const chunkSize = 20
-      const incompleteTransfers = await this.db.transfers.getIncompleteItems({
-        sourceChainId: this.chainSlugToId(this.chainSlug)
-      })
-      if (incompleteTransfers.length) {
-        this.logger.debug(`incomplete transfer items: ${incompleteTransfers.length}`)
-        const allChunks = chunk(incompleteTransfers, chunkSize)
-        for (const chunks of allChunks) {
-          await Promise.all(chunks.map(async (transfer: Transfer) => {
-            const { transferId } = transfer
-            return await this.populateTransferDbItem(transferId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-              .then(async () => {
-                // fill in missing db timestamped keys
-                return this.db.transfers.trackTimestampedKeyByTransferId(transferId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-              })
-              .catch((err: Error) => {
-                this.logger.error('populateTransferDbItem error:', err)
-                this.notifier.error(`populateTransferDbItem error: ${err.message}`)
-              })
-          }))
-        }
-      }
       const incompleteTransferRoots = await this.db.transferRoots.getIncompleteItems({
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })
+      this.logger.info(`transfer roots incomplete items: ${incompleteTransferRoots.length}`)
       if (incompleteTransferRoots.length) {
-        this.logger.debug(`incomplete transfer root items: ${incompleteTransferRoots.length}`)
         const allChunks = chunk(incompleteTransferRoots, chunkSize)
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {
             const { transferRootHash } = transferRoot
-            return await this.populateTransferRootDbItem(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+            return this.populateTransferRootDbItem(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
               .then(async () => {
                 // fill in missing db timestamped keys
                 return this.db.transferRoots.trackTimestampedKeyByTransferRootHash(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -169,8 +159,38 @@ class SyncWatcher extends BaseWatcher {
         }
       }
     } catch (err: any) {
-      this.logger.error(`incomplete poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
-      this.notifier.error(`incomplete poll sync watcher error: ${err.message}`)
+      this.logger.error(`incomplete transfer roots poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
+      this.notifier.error(`incomplete transfer roots poll sync watcher error: ${err.message}`)
+    }
+  }
+
+  async incompleteTransfersPollSync () {
+    try {
+      const chunkSize = 20
+      const incompleteTransfers = await this.db.transfers.getIncompleteItems({
+        sourceChainId: this.chainSlugToId(this.chainSlug)
+      })
+      this.logger.info(`transfers incomplete items: ${incompleteTransfers.length}`)
+      if (incompleteTransfers.length) {
+        const allChunks = chunk(incompleteTransfers, chunkSize)
+        for (const chunks of allChunks) {
+          await Promise.all(chunks.map(async (transfer: Transfer) => {
+            const { transferId } = transfer
+            return this.populateTransferDbItem(transferId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+              .then(async () => {
+                // fill in missing db timestamped keys
+                return this.db.transfers.trackTimestampedKeyByTransferId(transferId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+              })
+              .catch((err: Error) => {
+                this.logger.error('populateTransferDbItem error:', err)
+                this.notifier.error(`populateTransferDbItem error: ${err.message}`)
+              })
+          }))
+        }
+      }
+    } catch (err: any) {
+      this.logger.error(`incomplete transfers poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
+      this.notifier.error(`incomplete transfer poll sync watcher error: ${err.message}`)
     }
   }
 
@@ -641,6 +661,7 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`expected db transfer root item, transferRootHash: ${transferRootHash}`)
     }
 
+    await this.populateTransferRootCommittedEvent(transferRootHash)
     await this.populateTransferRootCommittedAt(transferRootHash)
     await this.populateTransferRootBondedAt(transferRootHash)
     await this.populateTransferRootTimestamp(transferRootHash)
@@ -651,54 +672,52 @@ class SyncWatcher extends BaseWatcher {
   async populateTransferSentEvent (transferId: string) {
     const logger = this.logger.create({ id: transferId })
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const { sourceChainId, destinationChainId, transferSentBlockNumber, transferRootHash } = dbTransfer
+    let { sourceChainId, destinationChainId, transferSentBlockNumber, transferRootHash } = dbTransfer
     if (sourceChainId && destinationChainId && transferSentBlockNumber) {
       return
     }
 
-    if (sourceChainId) {
-      if (!this.hasSiblingWatcher(sourceChainId)) {
-        logger.error('sibling watcher not found')
-        return
-      }
-      const sourceWatcher = this.getSiblingWatcherByChainId(sourceChainId) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-      const sourceBridge = sourceWatcher?.bridge
-      if (!sourceBridge) {
-        logger.error('source bridge not found')
-        return
-      }
-      const event = await sourceBridge.getTransferSentEvent(transferId)
-      logger.debug(`found TrasferSent event on chainId ${sourceChainId}`)
-      if (!event) {
-        logger.warn('TransferSent event not found')
-        return
-      }
-      await sourceWatcher.handleTransferSentEvent(event)
-    } else {
-      // attempt to find source event by trying to query all source chains
-      for (const key in this.siblingWatchers) {
-        const chainId = Number(key)
-        if (!this.hasSiblingWatcher(chainId)) {
-          logger.error(`sibling watcher not found for chainId ${chainId}`)
-          continue
-        }
-        const sourceWatcher = this.getSiblingWatcherByChainId(chainId)
-        const sourceBridge = sourceWatcher?.bridge
-        if (!sourceBridge) {
-          continue
-        }
-        if (sourceWatcher.isL1) {
-          continue
-        }
-        logger.debug(`attempting to find TrasferSent event on chainId ${chainId}`)
-        const event = await sourceBridge.getTransferSentEvent(transferId)
-        if (event) {
-          logger.debug(`found TrasferSent event on chainId ${chainId}`)
-          await sourceWatcher.handleTransferSentEvent(event)
-          break
+    if (!sourceChainId) {
+      // attempt to find source chain id from root transfer belongs to.
+      // this will save a lot of time compared to traversing event log history
+      if (transferRootHash) {
+        const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+        if (dbTransferRoot?.sourceChainId) {
+          sourceChainId = dbTransferRoot.sourceChainId
+          await this.db.transfers.update(transferId, {
+            sourceChainId
+          })
         }
       }
     }
+
+    if (!sourceChainId) {
+      if (this.isL1) {
+        return
+      }
+
+      // attempt to find transfer event on chain this bridge belongs to
+      sourceChainId = await this.bridge.getChainId()
+    }
+
+    if (!this.hasSiblingWatcher(sourceChainId)) {
+      logger.error('sibling watcher not found')
+      return
+    }
+    const sourceWatcher = this.getSiblingWatcherByChainId(sourceChainId) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const sourceBridge = sourceWatcher?.bridge
+    if (!sourceBridge) {
+      logger.error('source bridge not found')
+      return
+    }
+    const event = await sourceBridge.getTransferSentEvent(transferId)
+    if (!event) {
+      logger.warn('TransferSent event not found. isNotFound: true, dbItem:', JSON.stringify(dbTransfer))
+      // await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
+    logger.debug(`found TransferSent event on chainId ${sourceChainId}`)
+    await sourceWatcher.handleTransferSentEvent(event)
   }
 
   async populateTransferSentTimestamp (transferId: string) {
@@ -717,6 +736,10 @@ class SyncWatcher extends BaseWatcher {
     }
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
+    if (transferSentTimestamp) {
+      logger.warn(`transferSentTimestamp not found for block number ${transferSentBlockNumber} on sourceChainId ${sourceChainId}`)
+      return
+    }
     logger.debug(`transferSentTimestamp: ${transferSentTimestamp}`)
     await this.db.transfers.update(transferId, {
       transferSentTimestamp: timestamp
@@ -728,13 +751,10 @@ class SyncWatcher extends BaseWatcher {
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     const { destinationChainId, withdrawalBondedTxHash, withdrawalBonder } = dbTransfer
     if (
+      !destinationChainId ||
       !withdrawalBondedTxHash ||
       withdrawalBonder
     ) {
-      return
-    }
-    if (!destinationChainId) {
-      logger.error('expected destinationChainId')
       return
     }
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -750,10 +770,47 @@ class SyncWatcher extends BaseWatcher {
     })
   }
 
+  async populateTransferRootCommittedEvent (transferRootHash: string) {
+    const logger = this.logger.create({ root: transferRootHash })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    let { sourceChainId, destinationChainId, committedAt } = dbTransferRoot
+    if (sourceChainId && destinationChainId && committedAt) {
+      return
+    }
+
+    if (!sourceChainId) {
+      if (this.isL1) {
+        return
+      }
+
+      // attempt to find transfer event on chain this bridge belongs to
+      sourceChainId = await this.bridge.getChainId()
+    }
+
+    if (!this.hasSiblingWatcher(sourceChainId)) {
+      logger.error('sibling watcher not found')
+      return
+    }
+    const sourceWatcher = this.getSiblingWatcherByChainId(sourceChainId) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const sourceBridge = sourceWatcher?.bridge
+    if (!sourceBridge) {
+      logger.error('source bridge not found')
+      return
+    }
+    const event = await sourceBridge.getTransfersCommittedEvent(transferRootHash)
+    if (!event) {
+      logger.warn('TransfersCommitted event not found. isNotFound: true, dbItem:', JSON.stringify(dbTransferRoot))
+      // await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
+    logger.debug(`found TransfersCommitted event on chainId ${sourceChainId}`)
+    await sourceWatcher.handleTransfersCommittedEvent(event)
+  }
+
   async populateTransferRootCommittedAt (transferRootHash: string) {
     const logger = this.logger.create({ root: transferRootHash })
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    const { sourceChainId, commitTxHash, committedAt } = dbTransferRoot
+    const { sourceChainId, destinationChainId, commitTxHash, committedAt } = dbTransferRoot
 
     if (
       !commitTxHash ||
@@ -816,7 +873,6 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     if (!destinationChainId) {
-      logger.error('expected destinationChainId')
       return
     }
     if (!transferRootId) {
@@ -849,7 +905,6 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     if (!destinationChainId) {
-      logger.error('expected destinationChainId')
       return
     }
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -873,7 +928,6 @@ class SyncWatcher extends BaseWatcher {
     }
 
     if (!destinationChainId) {
-      logger.error('expected destinationChainId')
       return
     }
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion

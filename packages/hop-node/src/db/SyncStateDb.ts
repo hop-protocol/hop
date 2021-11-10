@@ -1,4 +1,7 @@
 import BaseDb from './BaseDb'
+import chainSlugToId from 'src/utils/chainSlugToId'
+import wait from 'src/utils/wait'
+import { Chain } from 'src/constants'
 
 export type State = {
   key: string
@@ -7,7 +10,38 @@ export type State = {
 }
 
 class SyncStateDb extends BaseDb {
+  ready: boolean = false
+  constructor (prefix: string, _namespace?: string) {
+    super(prefix, _namespace)
+    this.migrations()
+      .then(() => {this.ready = true})
+      .catch(this.logger.error)
+  }
+
+  async migrations () {
+    const items = await this.getKeyValues()
+    for (let { key, value } of items) {
+      if (key?.startsWith(`${chainSlugToId(Chain.Optimism)}:`)) {
+        await this._update(key, Object.assign({}, value, {
+          latestBlockSynced: 0,
+          timestamp: Date.now()
+        }))
+        this.logger.debug(`${key} updated latestBlockSynced to 0`)
+      }
+    }
+  }
+
+  protected async tilReady (): Promise<boolean> {
+    if (this.ready) {
+      return true
+    }
+
+    await wait(100)
+    return await this.tilReady()
+  }
+
   async update (key: string, data: Partial<State>) {
+    await this.tilReady()
     if (!data.key) {
       data.key = key
     }
@@ -29,6 +63,7 @@ class SyncStateDb extends BaseDb {
   }
 
   async getItems (): Promise<State[]> {
+    await this.tilReady()
     const items: State[] = await this.getValues()
     return items.filter(x => x)
   }

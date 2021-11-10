@@ -36,7 +36,6 @@ export default class Bridge extends ContractBase {
   bridgeDeployedBlockNumber: number
   l1CanonicalTokenAddress: string
   stateUpdateAddress: string
-  isFirstIteration: boolean = true
 
   constructor (bridgeContract: BridgeContract) {
     super(bridgeContract)
@@ -553,14 +552,6 @@ export default class Bridge extends ContractBase {
         options.cacheKey
       )
       state = await this.db.syncState.getByKey(cacheKey)
-    }
-
-    if (cacheKey && this.isFirstIteration && this.chainSlug === Chain.Optimism) {
-      await this.db.syncState.update(cacheKey, {
-        latestBlockSynced: 0,
-        timestamp: Date.now()
-      })
-      this.isFirstIteration = false
     }
 
     let {

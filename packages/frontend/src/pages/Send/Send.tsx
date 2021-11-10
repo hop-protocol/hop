@@ -191,7 +191,6 @@ const Send: FC = () => {
       }
 
       const isAvailable = BigNumber.from(availableLiquidity).gte(requiredLiquidity)
-
       const formattedAmount = toTokenDisplay(availableLiquidity, sourceToken.decimals)
 
       const warningMessage = (

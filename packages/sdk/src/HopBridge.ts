@@ -327,7 +327,7 @@ class HopBridge extends Base {
         destinationChain
       )
 
-      const requiredLiquidity = await this.calcToHTokenAmount(tokenAmount, sourceChain)
+      const requiredLiquidity = await this.getRequiredLiquidity(tokenAmount, sourceChain)
       const isAvailable = availableLiquidity.gte(requiredLiquidity)
       if (!isAvailable) {
         throw new Error('Insufficient liquidity available by bonder. Try again in a few minutes')
@@ -791,10 +791,14 @@ class HopBridge extends Base {
    */
   public async getRequiredLiquidity (
     tokenAmountIn: TAmount,
-    sourceChain?: TChain
+    sourceChain: TChain
   ): Promise<BigNumber> {
     tokenAmountIn = BigNumber.from(tokenAmountIn.toString())
     sourceChain = this.toChainModel(sourceChain)
+
+    if (sourceChain.equals(Chain.Ethereum)) {
+      return BigNumber.from(0)
+    }
 
     const hTokenAmount = await this.calcToHTokenAmount(
       tokenAmountIn,

@@ -1,4 +1,4 @@
-import React, { useMemo, FC, ChangeEvent } from 'react'
+import React, { useMemo, FC, ChangeEvent, useCallback } from 'react'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
@@ -11,6 +11,8 @@ import { Token } from '@hop-protocol/sdk'
 import clsx from 'clsx'
 import LargeTextField from 'src/components/LargeTextField'
 import { commafy } from 'src/utils'
+import { useNativeTokenMaxValue } from 'src/hooks'
+import Network from 'src/models/Network'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -69,7 +71,7 @@ const useStyles = makeStyles(theme => ({
   inputContainer: {},
 }))
 
-type Props = {
+type AmountSelectorProps = {
   value?: string
   label?: string
   loadingLabel?: boolean
@@ -90,9 +92,12 @@ type Props = {
   hideMaxButton?: boolean
   className?: string
   decimalPlaces?: number
+  methodName?: string
+  destNetwork?: Network
+  selectedNetwork?: Network
 }
 
-const AmountSelectorCard: FC<Props> = props => {
+const AmountSelectorCard: FC<AmountSelectorProps> = props => {
   const {
     value = '',
     label,
@@ -114,8 +119,12 @@ const AmountSelectorCard: FC<Props> = props => {
     hideMaxButton = false,
     decimalPlaces = 4,
     className,
+    methodName,
+    destNetwork,
+    selectedNetwork,
   } = props
   const styles = useStyles()
+  const { estimateMaxValue } = useNativeTokenMaxValue(selectedNetwork)
 
   const balanceDisplay = useMemo(() => {
     let label: string = ''
@@ -141,25 +150,62 @@ const AmountSelectorCard: FC<Props> = props => {
       onChange(value)
     }
   }
-  const handleMaxClick = () => {
-    if (onChange) {
-      let max = ''
-      if (balance && token) {
-        max = formatUnits(balance, token.decimals)
-      }
-      onChange(max)
+
+  async function getEstimatedMaxValue(methodName: string, options: any) {
+    const { balance, token: selectedToken } = options
+
+    if (!selectedToken?.isNativeToken) {
+      return ''
     }
+
+    const nativeTokenMaxGasCost = await estimateMaxValue(methodName, options)
+
+    if (nativeTokenMaxGasCost) {
+      const totalAmount = balance.sub(nativeTokenMaxGasCost)
+      return formatUnits(totalAmount, selectedToken.decimals)
+    }
+
+    return formatUnits(balance, selectedToken.decimals)
   }
 
-  const handleSecondaryMaxClick = () => {
-    if (onChange) {
-      let max = ''
-      if (secondaryBalance && secondaryToken) {
-        max = formatUnits(secondaryBalance, secondaryToken.decimals)
-      }
-      onChange(max)
+  const handleMaxClick = useCallback(async () => {
+    if (!(onChange && balance && token)) {
+      return
     }
-  }
+
+    let maxValue = formatUnits(balance, token.decimals)
+
+    if (token?.isNativeToken && methodName) {
+      const opts = {
+        token,
+        balance,
+        network: selectedNetwork,
+        destNetwork,
+      }
+      maxValue = await getEstimatedMaxValue(methodName, opts)
+    }
+
+    onChange(maxValue)
+  }, [onChange, token, balance, methodName])
+
+  const handleSecondaryMaxClick = useCallback(async () => {
+    if (!(onChange && secondaryBalance && secondaryToken)) {
+      return
+    }
+
+    let maxValue = formatUnits(secondaryBalance, secondaryToken.decimals)
+
+    if (secondaryToken?.isNativeToken && methodName) {
+      const opts = {
+        token: secondaryToken,
+        balance: secondaryBalance,
+        network: selectedNetwork,
+      }
+      maxValue = await getEstimatedMaxValue(methodName, opts)
+    }
+
+    onChange(maxValue)
+  }, [onChange, secondaryToken, secondaryBalance, methodName, selectedNetwork])
 
   return (
     <Card className={clsx(styles.root, className)}>

@@ -37,6 +37,7 @@ export type Props = {
 const TokenWrapper: FC<Props> = (props: Props) => {
   const styles = useStyles()
   const {
+    selectedNetwork,
     setSelectedNetwork,
     canonicalToken,
     wrappedToken,
@@ -104,6 +105,8 @@ const TokenWrapper: FC<Props> = (props: Props) => {
             loadingBalance={loadingBalance}
             hideSymbol
             decimalPlaces={2}
+            methodName="wrapToken"
+            selectedNetwork={selectedNetwork}
           />
           <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
             <Button

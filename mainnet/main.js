@@ -1,7 +1,7 @@
 // TODO: refactor to a react app
 
-const poll = true
-const fetchInterval = 10 * 1000
+const poll = false
+const fetchInterval = 20 * 1000
 const enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC']
 const enabledChains = ['ethereum', 'xdai', 'polygon', 'optimism', 'arbitrum']
 
@@ -18,6 +18,7 @@ try {
 }
 
 let perPage = 25
+
 try {
   const cached = Number(localStorage.getItem('perPage'))
   if (cached) {
@@ -351,13 +352,18 @@ async function queryFetch (url, query, variables) {
   return jsonRes.data
 }
 
-async function fetchTransfers (chain) {
+async function fetchTransfers (chain, startTime, endTime, skip) {
   const queryL1 = `
-    query TransferSentToL2 {
+    query TransferSentToL2($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int) {
       transferSents: transferSentToL2S(
-        first: 1000,
+        where: {
+          timestamp_gte: $startTime,
+          timestamp_lte: $endTime
+        },
+        first: $perPage,
         orderBy: timestamp,
-        orderDirection: desc
+        orderDirection: desc,
+        skip: $skip
       ) {
         id
         destinationChainId
@@ -370,11 +376,16 @@ async function fetchTransfers (chain) {
     }
   `
   const queryL2 = `
-    query TransferSents {
+    query TransferSents($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int) {
       transferSents(
-        first: 1000,
+        where: {
+          timestamp_gte: $startTime,
+          timestamp_lte: $endTime
+        },
+        first: $perPage,
         orderBy: timestamp,
-        orderDirection: desc
+        orderDirection: desc,
+        skip: $skip
       ) {
         transferId
         destinationChainId
@@ -391,20 +402,51 @@ async function fetchTransfers (chain) {
   if (chain !== 'mainnet') {
     query = queryL2
   }
-  const data = await queryFetch(url, query)
-  return data.transferSents.map(x => {
+  if (!skip) {
+    skip = 0
+  }
+  const data = await queryFetch(url, query, {
+    // perPage: Math.ceil(app.perPage / 5),
+    perPage: 1000,
+    startTime,
+    endTime,
+    skip
+  })
+  let transfers = data.transferSents.map(x => {
     x.destinationChainId = Number(x.destinationChainId)
     return x
   })
+
+  if (transfers.length === 1000) {
+    try {
+      transfers = transfers.concat(...(await fetchTransfers(
+        chain,
+        startTime,
+        endTime,
+        skip + 1000
+      )))
+    } catch (err) {
+      if (!err.message.includes('The `skip` argument must be between')) {
+        throw err
+      }
+    }
+  }
+
+  return transfers
 }
 
-async function fetchBonds (chain) {
+async function fetchBonds (chain, startTime, endTime, skip) {
   const query = `
-    query WithdrawalBondeds {
+    query WithdrawalBondeds($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int) {
       withdrawalBondeds(
-        first: 1000,
+        where: {
+          timestamp_gte: $startTime,
+          timestamp_lte: $endTime
+        },
+        first: $perPage,
         orderBy: timestamp,
-        orderDirection: desc
+        orderDirection: desc,
+        skip: $skip,
       ) {
         id
         transferId
@@ -416,17 +458,47 @@ async function fetchBonds (chain) {
     }
   `
   const url = getUrl(chain)
-  const data = await queryFetch(url, query)
-  return data.withdrawalBondeds || []
+  if (!skip) {
+    skip = 0
+  }
+  const data = await queryFetch(url, query, {
+    perPage: 1000,
+    startTime,
+    endTime,
+    skip
+  })
+  let bonds = data.withdrawalBondeds || []
+
+  if (bonds.length === 1000) {
+    try {
+      bonds = bonds.concat(...(await fetchBonds(
+        chain,
+        startTime,
+        endTime,
+        skip + 1000
+      )))
+    } catch (err) {
+      if (!err.message.includes('The `skip` argument must be between')) {
+        throw err
+      }
+    }
+  }
+
+  return bonds
 }
 
-async function fetchWithdrews (chain) {
+async function fetchWithdrews (chain, startTime, endTime, skip) {
   const query = `
-    query Withdrews {
+    query Withdrews($perPage: Int, $startTime: Int, $endTime: Int) {
       withdrews(
-        first: 1000,
+        where: {
+          timestamp_gte: $startTime,
+          timestamp_lte: $endTime
+        },
+        first: $perPage,
         orderBy: timestamp,
-        orderDirection: desc
+        orderDirection: desc,
+        skip: $skip
       ) {
         id
         transferId
@@ -437,8 +509,33 @@ async function fetchWithdrews (chain) {
     }
   `
   const url = getUrl(chain)
-  const data = await queryFetch(url, query)
-  return data.withdrews || []
+  if (!skip) {
+    skip = 0
+  }
+  const data = await queryFetch(url, query, {
+    perPage: 1000,
+    startTime,
+    endTime,
+    skip
+  })
+  let withdrawals = data.withdrews || []
+
+  if (withdrawals.length === 1000) {
+    try {
+      withdrawals = withdrawals.concat(...(await fetchWithdrews(
+        chain,
+        startTime,
+        endTime,
+        skip + 1000
+      )))
+    } catch (err) {
+      if (!err.message.includes('The `skip` argument must be between')) {
+        throw err
+      }
+    }
+  }
+
+  return withdrawals
 }
 
 async function fetchTvl (chain) {
@@ -603,7 +700,9 @@ async function updateVolume () {
 }
 
 async function updateTransfers () {
-  const data = []
+  let data = []
+  let startTime = Math.floor(luxon.DateTime.utc().minus({ days: 1 }).toSeconds())
+  let endTime = Math.floor(luxon.DateTime.utc().toSeconds())
   const [
     xdaiTransfers,
     polygonTransfers,
@@ -611,46 +710,12 @@ async function updateTransfers () {
     arbitrumTransfers,
     mainnetTransfers
   ] = await Promise.all([
-    enabledChains.includes('xdai') ? fetchTransfers('xdai') : Promise.resolve([]),
-    enabledChains.includes('polygon') ? fetchTransfers('polygon') : Promise.resolve([]),
-    enabledChains.includes('optimism') ? fetchTransfers('optimism') : Promise.resolve([]),
-    enabledChains.includes('arbitrum') ? fetchTransfers('arbitrum') : Promise.resolve([]),
-    enabledChains.includes('ethereum') ? fetchTransfers('mainnet') : Promise.resolve([])
+    enabledChains.includes('xdai') ? fetchTransfers('xdai', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('polygon') ? fetchTransfers('polygon', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('optimism') ? fetchTransfers('optimism', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('arbitrum') ? fetchTransfers('arbitrum', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('ethereum') ? fetchTransfers('mainnet', startTime, endTime) : Promise.resolve([])
   ])
-
-  const [
-    xdaiBondedWithdrawals,
-    polygonBondedWithdrawals,
-    optimismBondedWithdrawals,
-    arbitrumBondedWithdrawals,
-    mainnetBondedWithdrawals
-  ] = await Promise.all([
-    enabledChains.includes('xdai') ? fetchBonds('xdai') : Promise.resolve([]),
-    enabledChains.includes('polygon') ? fetchBonds('polygon') : Promise.resolve([]),
-    enabledChains.includes('optimism') ? fetchBonds('optimism') : Promise.resolve([]),
-    enabledChains.includes('arbitrum') ? fetchBonds('arbitrum') : Promise.resolve([]),
-    enabledChains.includes('ethereum') ? fetchBonds('mainnet') : Promise.resolve([])
-  ])
-
-  const [
-    xdaiWithdrews,
-    polygonWithdrews,
-    optimismWithdrews,
-    arbitrumWithdrews,
-    mainnetWithdrews
-  ] = await Promise.all([
-    enabledChains.includes('xdai') ? fetchWithdrews('xdai') : Promise.resolve([]),
-    enabledChains.includes('polygon') ? fetchWithdrews('polygon') : Promise.resolve([]),
-    enabledChains.includes('optimism') ? fetchWithdrews('optimism') : Promise.resolve([]),
-    enabledChains.includes('arbitrum') ? fetchWithdrews('arbitrum') : Promise.resolve([]),
-    enabledChains.includes('ethereum') ? fetchWithdrews('mainnet') : Promise.resolve([])
-  ])
-
-  const xdaiBonds = [...xdaiBondedWithdrawals, ...xdaiWithdrews]
-  const polygonBonds = [...polygonBondedWithdrawals, ...polygonWithdrews]
-  const optimismBonds = [...optimismBondedWithdrawals, ...optimismWithdrews]
-  const arbitrumBonds = [...arbitrumBondedWithdrawals, ...arbitrumWithdrews]
-  const mainnetBonds = [...mainnetBondedWithdrawals, ...mainnetWithdrews]
 
   for (const x of xdaiTransfers) {
     data.push({
@@ -716,6 +781,52 @@ async function updateTransfers () {
   for (const x of data) {
     x.bonded = x.sourceChain === 1
   }
+
+  data = data.sort((a, b) => b.timestamp - a.timestamp)
+  startTime = data.length ? data[data.length - 1].timestamp : 0
+  endTime = data.length ? data[0].timestamp : 0
+
+  if (startTime) {
+    startTime = Math.floor(luxon.DateTime.fromSeconds(startTime).minus({ days: 1 }).toSeconds())
+  }
+
+  if (endTime) {
+    endTime = Math.floor(luxon.DateTime.fromSeconds(endTime).plus({ days: 1 }).toSeconds())
+  }
+
+  const [
+    xdaiBondedWithdrawals,
+    polygonBondedWithdrawals,
+    optimismBondedWithdrawals,
+    arbitrumBondedWithdrawals,
+    mainnetBondedWithdrawals
+  ] = await Promise.all([
+    enabledChains.includes('xdai') ? fetchBonds('xdai', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('polygon') ? fetchBonds('polygon', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('optimism') ? fetchBonds('optimism', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('arbitrum') ? fetchBonds('arbitrum', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('ethereum') ? fetchBonds('mainnet', startTime, endTime) : Promise.resolve([])
+  ])
+
+  const [
+    xdaiWithdrews,
+    polygonWithdrews,
+    optimismWithdrews,
+    arbitrumWithdrews,
+    mainnetWithdrews
+  ] = await Promise.all([
+    enabledChains.includes('xdai') ? fetchWithdrews('xdai', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('polygon') ? fetchWithdrews('polygon', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('optimism') ? fetchWithdrews('optimism', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('arbitrum') ? fetchWithdrews('arbitrum', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('ethereum') ? fetchWithdrews('mainnet', startTime, endTime) : Promise.resolve([])
+  ])
+
+  const xdaiBonds = [...xdaiBondedWithdrawals, ...xdaiWithdrews]
+  const polygonBonds = [...polygonBondedWithdrawals, ...polygonWithdrews]
+  const optimismBonds = [...optimismBondedWithdrawals, ...optimismWithdrews]
+  const arbitrumBonds = [...arbitrumBondedWithdrawals, ...arbitrumWithdrews]
+  const mainnetBonds = [...mainnetBondedWithdrawals, ...mainnetWithdrews]
 
   const bondsMap = {
     xdai: xdaiBonds,

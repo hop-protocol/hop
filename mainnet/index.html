@@ -133,6 +133,15 @@
               <label>Bonder:</label>
               <input class="filterBonder" v-model="filterBonder" change="setFilterBonder" placeholder="bonder" />
             </div>
+            <div>
+              <label>Date:</label>
+              <input type="date" id="date" name="date"
+               v-model="filterDate"
+               :min="minDate"
+               :max="maxDate"
+               @change="setFilterDate()"
+               >
+            </div>
           </div>
           <div class="pagination">
             <button v-if="hasPreviousPage" @click="previousPage()" class="paginationButton">previous page</button>

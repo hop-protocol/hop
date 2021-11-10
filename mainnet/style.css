@@ -214,7 +214,7 @@ table img {
   margin-right: 0.2rem;
 }
 
-@media (max-width: 1500px) {
+@media (max-width: 1720px) {
   .filters div {
     display: block;
   }

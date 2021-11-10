@@ -28,9 +28,13 @@ try {
   console.error(err)
 }
 
+const currentDate = luxon.DateTime.now().toFormat('yyyy-MM-dd')
 const app = new Vue({
   el: '#app',
   data: {
+    filterDate: currentDate,
+    minDate: '2020-07-01',
+    maxDate: currentDate,
     perPage,
     filterBonded: queryParams.bonded || '',
     filterToken: queryParams.token || '',
@@ -154,11 +158,6 @@ const app = new Vue({
             }
           }
 
-          const oneDayAgo = luxon.DateTime.utc().minus({ days: 1 }).toSeconds()
-          if (x.timestamp < oneDayAgo) {
-            return false
-          }
-
           return true
         })
         .slice(start, end)
@@ -237,6 +236,10 @@ const app = new Vue({
     },
     setChartSelection (value) {
       Vue.set(app, 'chartSelection', value)
+    },
+    setFilterDate () {
+      Vue.set(app, 'page', 0)
+      updateData()
     }
   }
 })
@@ -701,8 +704,9 @@ async function updateVolume () {
 
 async function updateTransfers () {
   let data = []
-  let startTime = Math.floor(luxon.DateTime.utc().minus({ days: 1 }).toSeconds())
-  let endTime = Math.floor(luxon.DateTime.utc().toSeconds())
+  const endDate = luxon.DateTime.fromFormat(app.filterDate, 'yyyy-MM-dd').endOf('day').toUTC()
+  let startTime = Math.floor(endDate.minus({ days: 1 }).startOf('day').toSeconds())
+  let endTime = Math.floor(endDate.toSeconds())
   const [
     xdaiTransfers,
     polygonTransfers,

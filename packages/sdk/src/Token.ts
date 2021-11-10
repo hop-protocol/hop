@@ -249,8 +249,13 @@ class Token extends Base {
     )
   }
 
-  async wrapToken (amount: TAmount) {
+  async wrapToken (amount: TAmount, estimateGasOnly: boolean = false) {
     const contract = await this.getWethContract(this.chain)
+    if (estimateGasOnly) {
+      return contract.estimateGas.deposit({
+        value: amount
+      })
+    }
     return contract.deposit({
       value: amount
     })

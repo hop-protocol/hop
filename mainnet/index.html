@@ -132,11 +132,15 @@
                 <option value="gt">&gt;</option>
                 <option value="lt">&lt;</option>
               </select>
-              <input class="filterAmount" v-model="filterAmount" change="setFilterAmount" placeholder="amount" />
+              <input class="filterAmount" v-model="filterAmount" @input="setFilterAmount" placeholder="amount" />
             </div>
             <div>
               <label>Bonder:</label>
-              <input class="filterBonder" v-model="filterBonder" change="setFilterBonder" placeholder="bonder" />
+              <input class="filterBonder" v-model="filterBonder" @input="setFilterBonder" placeholder="bonder" />
+            </div>
+            <div>
+              <label>Transfer ID:</label>
+              <input class="filterTransferId" v-model="filterTransferId" @input="setFilterTransferId" placeholder="transfer ID" />
             </div>
             <div>
               <label>Date:</label>

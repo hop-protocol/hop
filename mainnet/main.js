@@ -33,7 +33,7 @@ const app = new Vue({
   el: '#app',
   data: {
     loadingData: false,
-    filterDate: currentDate,
+    filterDate: queryParams.date || currentDate,
     minDate: '2020-07-01',
     maxDate: currentDate,
     perPage,
@@ -44,6 +44,7 @@ const app = new Vue({
     filterAmount: queryParams.amount || '',
     filterAmountComparator: queryParams.amountCmp || 'gt',
     filterBonder: queryParams.bonder || '',
+    filterTransferId: queryParams.transferId || '',
     chartAmountSize: false,
     page: 0,
     allTransfers: [],
@@ -231,6 +232,12 @@ const app = new Vue({
       this.resetPage()
       this.refreshTransfers()
     },
+    setFilterTransferId (event) {
+      const value = event.target.value
+      Vue.set(app, 'filterTransferId', value)
+      this.resetPage()
+      updateData()
+    },
     setTvl (tvl) {
       Vue.set(app, 'tvl', tvl)
     },
@@ -249,9 +256,9 @@ const app = new Vue({
       this.resetPage()
       updateData()
     },
-    resetPage() {
+    resetPage () {
       Vue.set(app, 'page', 0)
-    },
+    }
   }
 })
 
@@ -367,12 +374,14 @@ async function queryFetch (url, query, variables) {
 }
 
 async function fetchTransfers (chain, startTime, endTime, skip) {
+  const transferId = app.filterTransferId
   const queryL1 = `
-    query TransferSentToL2($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int) {
+    query TransferSentToL2($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int, $transferId: String) {
       transferSents: transferSentToL2S(
         where: {
           timestamp_gte: $startTime,
-          timestamp_lte: $endTime
+          timestamp_lte: $endTime,
+          transferId: $transferId
         },
         first: $perPage,
         orderBy: timestamp,
@@ -390,11 +399,10 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
     }
   `
   const queryL2 = `
-    query TransferSents($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int) {
+    query TransferSents($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int, $transferId: String) {
       transferSents(
         where: {
-          timestamp_gte: $startTime,
-          timestamp_lte: $endTime
+          ${transferId ? 'transferId: $transferId' : 'timestamp_gte: $startTime, timestamp_lte: $endTime'}
         },
         first: $perPage,
         orderBy: timestamp,
@@ -420,13 +428,13 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
     skip = 0
   }
   const data = await queryFetch(url, query, {
-    // perPage: Math.ceil(app.perPage / 5),
     perPage: 1000,
     startTime,
     endTime,
-    skip
+    skip,
+    transferId
   })
-  let transfers = data.transferSents.map(x => {
+  let transfers = (data ? data.transferSents : []).map(x => {
     x.destinationChainId = Number(x.destinationChainId)
     return x
   })
@@ -816,22 +824,20 @@ async function updateTransfers () {
     polygonBondedWithdrawals,
     optimismBondedWithdrawals,
     arbitrumBondedWithdrawals,
-    mainnetBondedWithdrawals
-  ] = await Promise.all([
-    enabledChains.includes('xdai') ? fetchBonds('xdai', startTime, endTime) : Promise.resolve([]),
-    enabledChains.includes('polygon') ? fetchBonds('polygon', startTime, endTime) : Promise.resolve([]),
-    enabledChains.includes('optimism') ? fetchBonds('optimism', startTime, endTime) : Promise.resolve([]),
-    enabledChains.includes('arbitrum') ? fetchBonds('arbitrum', startTime, endTime) : Promise.resolve([]),
-    enabledChains.includes('ethereum') ? fetchBonds('mainnet', startTime, endTime) : Promise.resolve([])
-  ])
+    mainnetBondedWithdrawals,
 
-  const [
     xdaiWithdrews,
     polygonWithdrews,
     optimismWithdrews,
     arbitrumWithdrews,
     mainnetWithdrews
   ] = await Promise.all([
+    enabledChains.includes('xdai') ? fetchBonds('xdai', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('polygon') ? fetchBonds('polygon', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('optimism') ? fetchBonds('optimism', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('arbitrum') ? fetchBonds('arbitrum', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('ethereum') ? fetchBonds('mainnet', startTime, endTime) : Promise.resolve([]),
+
     enabledChains.includes('xdai') ? fetchWithdrews('xdai', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('polygon') ? fetchWithdrews('polygon', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('optimism') ? fetchWithdrews('optimism', startTime, endTime) : Promise.resolve([]),

@@ -192,36 +192,43 @@ const app = new Vue({
     setFilterBonded (event) {
       const value = event.target.value
       Vue.set(app, 'filterBonded', value)
+      this.resetPage()
       this.refreshTransfers()
     },
     setFilterSource (event) {
       const value = event.target.value
       Vue.set(app, 'filterSource', value)
+      this.resetPage()
       this.refreshTransfers()
     },
     setFilterDestination (event) {
       const value = event.target.value
       Vue.set(app, 'filterDestination', value)
+      this.resetPage()
       this.refreshTransfers()
     },
     setFilterToken (event) {
       const value = event.target.value
       Vue.set(app, 'filterToken', value)
+      this.resetPage()
       this.refreshTransfers()
     },
     setFilterAmount (event) {
       const value = event.target.value
       Vue.set(app, 'filterAmount', value)
+      this.resetPage()
       this.refreshTransfers()
     },
     setFilterAmountComparator (event) {
       const value = event.target.value
       Vue.set(app, 'filterAmountComparator', value)
+      this.resetPage()
       this.refreshTransfers()
     },
     setFilterBonder (event) {
       const value = event.target.value
       Vue.set(app, 'filterBonder', value)
+      this.resetPage()
       this.refreshTransfers()
     },
     setTvl (tvl) {
@@ -239,9 +246,12 @@ const app = new Vue({
       Vue.set(app, 'chartSelection', value)
     },
     setFilterDate () {
-      Vue.set(app, 'page', 0)
+      this.resetPage()
       updateData()
-    }
+    },
+    resetPage() {
+      Vue.set(app, 'page', 0)
+    },
   }
 })
 

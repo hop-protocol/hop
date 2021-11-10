@@ -26,7 +26,7 @@ interface Props {
   onConfirm: (confirmed: boolean) => void
 }
 
-const Stake = (props: Props) => {
+const ConfirmStake = (props: Props) => {
   const { amount, token, onConfirm } = props
   const styles = useStyles()
   const [sending, setSending] = useState<boolean>(false)
@@ -63,4 +63,4 @@ const Stake = (props: Props) => {
   )
 }
 
-export default Stake
+export default ConfirmStake

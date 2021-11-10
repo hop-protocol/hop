@@ -31,7 +31,7 @@ interface Props {
   onConfirm: (confirmed: boolean) => void
 }
 
-const Convert = (props: Props) => {
+const ConfirmConvert = (props: Props) => {
   const { source, dest, onConfirm } = props
   const styles = useStyles()
   const [sending, setSending] = useState<boolean>(false)
@@ -69,4 +69,4 @@ const Convert = (props: Props) => {
   )
 }
 
-export default Convert
+export default ConfirmConvert

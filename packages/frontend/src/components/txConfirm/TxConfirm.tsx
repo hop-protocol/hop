@@ -2,10 +2,10 @@ import React, { FC } from 'react'
 import Modal from 'src/components/modal/Modal'
 import Approval from 'src/components/txConfirm/Approval'
 import ConfirmSend from 'src/components/txConfirm/ConfirmSend'
-import Convert from 'src/components/txConfirm/Convert'
+import ConfirmConvert from 'src/components/txConfirm/ConfirmConvert'
 import AddLiquidity from 'src/components/txConfirm/AddLiquidity'
 import RemoveLiquidity from 'src/components/txConfirm/RemoveLiquidity'
-import Stake from 'src/components/txConfirm/Stake'
+import ConfirmStake from 'src/components/txConfirm/ConfirmStake'
 import WithdrawStake from 'src/components/txConfirm/WithdrawStake'
 import WrapToken from 'src/components/txConfirm/WrapToken'
 import UnwrapToken from 'src/components/txConfirm/UnwrapToken'
@@ -21,10 +21,10 @@ const TxConfirm: FC = props => {
   const components: { [key: string]: FC<any> } = {
     approval: Approval,
     send: ConfirmSend,
-    convert: Convert,
+    convert: ConfirmConvert,
     addLiquidity: AddLiquidity,
     removeLiquidity: RemoveLiquidity,
-    stake: Stake,
+    stake: ConfirmStake,
     withdrawStake: WithdrawStake,
     wrapToken: WrapToken,
     unwrapToken: UnwrapToken,

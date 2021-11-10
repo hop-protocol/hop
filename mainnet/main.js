@@ -1,6 +1,6 @@
 // TODO: refactor to a react app
 
-const poll = false
+const poll = true
 const fetchInterval = 20 * 1000
 const enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC']
 const enabledChains = ['ethereum', 'xdai', 'polygon', 'optimism', 'arbitrum']
@@ -32,6 +32,7 @@ const currentDate = luxon.DateTime.now().toFormat('yyyy-MM-dd')
 const app = new Vue({
   el: '#app',
   data: {
+    loadingData: false,
     filterDate: currentDate,
     minDate: '2020-07-01',
     maxDate: currentDate,
@@ -576,11 +577,13 @@ async function fetchVolume (chain) {
 }
 
 async function updateData () {
+  Vue.set(app, 'loadingData', true)
   await Promise.all([
     updateTvl().catch(err => console.error(err)),
     updateVolume().catch(err => console.error(err)),
     updateTransfers().catch(err => console.error(err))
   ])
+  Vue.set(app, 'loadingData', false)
 }
 
 function formatTvl (tvls) {

@@ -62,7 +62,12 @@
         </div>
       </div>
       <details open>
-        <summary>Transfers ▾</summary>
+      <summary>
+        <span>Transfers ▾</span>
+        <span v-if="loadingData" class="loadingData">
+          Loading...
+        </span>
+      </summary>
         <div class="tableHeader">
           <div class="filters">
             <div>

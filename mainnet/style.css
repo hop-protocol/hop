@@ -69,6 +69,7 @@ body {
   font-size: 1.6rem;
 }
 details > summary {
+  display: block;
   list-style: none;
   cursor: pointer;
 }
@@ -271,4 +272,8 @@ table img {
 }
 .filterAmount {
   width: 100px;
+}
+.loadingData {
+  display: inline-block;
+  margin-left: 2rem;
 }

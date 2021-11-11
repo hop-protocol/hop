@@ -14,13 +14,13 @@ class SyncStateDb extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
     this.migrations()
-      .then(() => {this.ready = true})
+      .then(() => { this.ready = true })
       .catch(this.logger.error)
   }
 
   async migrations () {
     const items = await this.getKeyValues()
-    for (let { key, value } of items) {
+    for (const { key, value } of items) {
       if (key?.startsWith(`${chainSlugToId(Chain.Optimism)}:`)) {
         await this._update(key, Object.assign({}, value, {
           latestBlockSynced: 0,
@@ -58,6 +58,7 @@ class SyncStateDb extends BaseDb {
   }
 
   async getByKey (key: string): Promise<State> {
+    await this.tilReady()
     const item: State = await this.getById(key)
     return this.normalizeValue(key, item)
   }

@@ -32,7 +32,7 @@ export const defaultEnabledWatchers: { [key: string]: boolean } = {
 }
 
 export const defaultEnabledNetworks: { [key: string]: boolean } = {
-  [Chain.Optimism]: false,
+  [Chain.Optimism]: true,
   [Chain.Arbitrum]: true,
   [Chain.xDai]: true,
   [Chain.Polygon]: true,
